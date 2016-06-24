@@ -66,7 +66,7 @@ public:
       
    std::string getScratchDir( ) { return _scratch_dir; }
    
-   bool loadMatrices(void);
+   bool loadMatrices(Orbitals * _orbitals);
    
 private:  
 
@@ -93,13 +93,14 @@ private:
     std::string _pplib_path;//full path to the pseudopotential library of CPMD
     
     BasisSet _bs;
-    //std::vector<std::string> _ppElementNames;       //element names
-    //std::vector<std::string> _ppFileNames;          //pseudopotential file names
     std::map<std::string,std::string> _ppFileNames;   //pseudopotential file names indexed by element name
     std::map<std::string,int> _nAtomsOfElement;       //number of atoms of element indexed by element name
-    //std::vector<int> _element_Lmax;               //max L of each element
     
     
+    
+    ub::symmetric_matrix<double>            _overlap; //overlap matrix, from OVERLAP file
+    ub::symmetric_matrix<double>            _density; //density matrix, calculated here
+    ub::matrix<double>                      _coefs;   //coefficients of MOs expressed in basis set, from WFNCOEF
     
 
     int NumberOfElectrons( std::string _line ); 

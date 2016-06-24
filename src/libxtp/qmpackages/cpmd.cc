@@ -514,11 +514,185 @@ namespace votca {
          * Parses the CPMD Log file and stores data in the Orbitals object
          */
         bool Cpmd::ParseLogFile(Orbitals * _orbitals) {
+            std::string _line;
+            std::vector<std::string> results;
+            
+            LOG(logDEBUG, *_pLog) << "CPMD: parsing " << _log_file_name << flush;
+            
+            std::string _log_file_name_full = _log_file_name;
+            if (_run_dir != "") _log_file_name_full = _run_dir + "/" + _log_file_name;
+            
+            // check if LOG file is complete
+            if (!CheckLogFile()) return false;
 
-            //TODO: Yuriy, fill this in
+            // save qmpackage name
+            _orbitals->setQMpackage("cpmd");
+            
+            ifstream _input_file(_log_file_name_full.c_str());
+            while (_input_file) {
+                
+                getline(_input_file, _line);
+                boost::trim(_line);
+                
+                
+                /*
+                 * number of electrons
+                 */
+                std::string::size_type electrons_pos = _line.find("alpha electrons");
+                if (electrons_pos != std::string::npos) {
+                    boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+                    int _number_of_electrons = (int) boost::lexical_cast<double>(results.back());
+                    _orbitals->setNumberOfElectrons(_number_of_electrons);
+                    LOG(logDEBUG, *_pLog) << "Alpha electrons: " << _number_of_electrons << flush;
+                }
+                
+            }
+            LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
+            _input_file.close();
+            
+            
+            //MO coefficient and overlap matrices
+            return loadMatrices(_orbitals);
 
+        }
+        
+        bool Cpmd::loadMatrices(Orbitals * _orbitals)
+        {
+            //check if WFNCOEF exists
+            boost::filesystem::path arg_path;
+            std::string _full_name = (arg_path / _run_dir / "WFNCOEF").c_str();
+            ifstream wf_file(_full_name.c_str());
+            if(wf_file.fail())
+            {
+                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found" << flush;
+            }
+            LOG(logDEBUG, *_pLog) << "CPMD: parsing " << _full_name << flush;
+            
+            //read WFNCOEF
+            //variable names in all CAPS are variables from CPMD source code
+            int count=0, endcount=0;
+            wf_file.read((char*)&count, 4); //bytes in this record
+            int bl=count;
+
+            int NATTOT=0;
+            wf_file.read((char*)&NATTOT, 4);    //number of basis functions
+            bl-=4;
+            _orbitals->setBasisSetSize(NATTOT);
+            LOG(logDEBUG, *_pLog) << "Basis functions: " << NATTOT << flush;
+
+            int NSP=0;                  //number of atom types
+            wf_file.read((char*)&NSP, 4);
+            bl-=4;
+
+            double ZV[NSP];             //core charge
+            int NA[NSP], NUMAOR[NSP];
+            for(int i=0; i<NSP; i++)
+            {
+                wf_file.read((char*)&ZV[i], 8);     //core charge of atom type i
+                wf_file.read((char*)&NA[i], 4);     //number of atoms of type i
+                wf_file.read((char*)&NUMAOR[i], 4); //number of atomic orbitals of atom type i
+                bl-=8+4*2;
+            }
+            
+            //check footer
+            wf_file.read((char*)&endcount, 4);
+            if(bl!=0 || endcount!=count){ //number of bytes read was wrong
+                cerr << "CPMD: " << "could not parse record in "<< _full_name << endl << flush;
+                LOG(logERROR, *_pLog) << "CPMD: " << "could not parse record in "<< _full_name << flush;
+                throw std::runtime_error("IO error");
+                return false;
+            }
+                
+            //NEW RECORD
+            wf_file.read((char*)&count, 4); //bytes in this record
+            bl=count;
+
+            int NUMORB=count/8/NATTOT;          //number of MOs (energy levels))
+            LOG(logDEBUG, *_pLog) << "number of energy levels: " << NATTOT << flush;
+                //resize the coefficient matrix
+            ub::matrix<double> &mo_coefficients = _orbitals->MOCoefficients();
+            mo_coefficients.resize(NUMORB, NATTOT);
+            //double XXMAT[NATTOT][NUMORB];
+            double XXMAT;
+            for(int i=0; i<NUMORB; i++){
+                for(int j=0; j<NATTOT; j++){  
+                    wf_file.read((char*)&XXMAT, 8);
+                    mo_coefficients(i,j)=XXMAT;
+                    bl-=8;
+                }
+            }
+            
+            
+            //check footer
+            wf_file.read((char*)&endcount, 4);
+            if(bl!=0 || endcount!=count){ //number of bytes read was wrong
+                cerr << "CPMD: " << "could not parse record in "<< _full_name << endl << flush;
+                LOG(logERROR, *_pLog) << "CPMD: " << "could not parse record in "<< _full_name << flush;
+                throw std::runtime_error("IO error");
+                return false;
+            }
+            
+            wf_file.close();
+            LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
+            
+            
+            
+            
+            //check if OVERLAP exists
+            _full_name = (arg_path / _run_dir / "OVERLAP").c_str();
+            ifstream ov_file(_full_name.c_str());
+            if(ov_file.fail())
+            {
+                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found" << flush;
+            }
+            LOG(logDEBUG, *_pLog) << "CPMD: parsing " << _full_name << flush;
+            
+            //read OVERLAP
+            count=0, endcount=0;
+            ov_file.read((char*)&count, 4); //bytes in this record
+            bl=count;
+            
+            if(NATTOT*NATTOT!=count/8)
+            {
+                cerr << "CPMD: " << "Number of basis functions in the overlap and coefficient matrices do not match."<< endl << flush;
+                LOG(logERROR, *_pLog) << "CPMD: " << "Number of basis functions in the overlap and coefficient matrices do not match."<< endl << flush;
+                throw std::runtime_error("IO error");
+                return false;
+            }
+            
+            
+                //resize the overlap matrix
+            ub::symmetric_matrix<double> &overlap = _orbitals->AOOverlap();
+            overlap.resize(NATTOT);
+            
+            //read
+            double XSMAT;
+            for(int i=0; i<NATTOT; i++){
+                for(int j=0; j<NATTOT; j++){  
+                    ov_file.read((char*)&XSMAT, 8);
+                    overlap(i,j)=XSMAT;
+                    bl-=8;
+                }
+            }
+            
+            //check footer
+            ov_file.read((char*)&endcount, 4);
+            if(bl!=0 || endcount!=count){ //number of bytes read was wrong
+                cerr << "CPMD: " << "could not parse record in "<< _full_name << endl << flush;
+                LOG(logERROR, *_pLog) << "CPMD: " << "could not parse record in "<< _full_name << flush;
+                throw std::runtime_error("IO error");
+                return false;
+            }
+            
+            ov_file.close();
+            LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
+            
+            
+            #warning "TODO: Reorder Overlap and MOcoeefficient matrices so that the order of basis functions (like d_xx) matches the VOTCA order."
+            
             return true;
         }
+
 
         
         std::string Cpmd::FortranFormat(const double &number) {
