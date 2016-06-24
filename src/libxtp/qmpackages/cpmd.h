@@ -68,6 +68,16 @@ public:
    
    bool loadMatrices(Orbitals * _orbitals);
    
+   ~Cpmd(){
+       //free the memory
+       if(_ZV!=NULL)
+       {
+           delete[] _ZV;
+           delete[] _NA;
+           delete[] _NUMAOR;
+       }
+   };
+   
 private:  
 
     std::string                              _shell_file_name;
@@ -95,7 +105,11 @@ private:
     BasisSet _bs;
     std::map<std::string,std::string> _ppFileNames;   //pseudopotential file names indexed by element name
     std::map<std::string,int> _nAtomsOfElement;       //number of atoms of element indexed by element name
+    list<std::string> _elements;                      //keeps track of element names and their order in CPMD
     
+    int _NSP;                    
+    double *_ZV;             //core charge
+    int *_NA, *_NUMAOR;
     
     
     ub::symmetric_matrix<double>            _overlap; //overlap matrix, from OVERLAP file

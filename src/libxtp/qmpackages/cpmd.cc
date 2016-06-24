@@ -235,7 +235,7 @@ namespace votca {
             //atoms
             _com_file << "\n&ATOMS\n";
                 //find how many atoms of each element there are
-            list<std::string> elements;
+            //list<std::string> elements;
             for (sit = segments.begin(); sit != segments.end(); ++sit) {
 
                 _atoms = (*sit)-> Atoms();
@@ -244,9 +244,9 @@ namespace votca {
 
                     std::string element_name = (*ait)->getElement();
                     list<std::string>::iterator ite;
-                    ite = find(elements.begin(), elements.end(), element_name);
-                    if (ite == elements.end()) {            //this is the first atom of this element encountered
-                        elements.push_back(element_name);
+                    ite = find(_elements.begin(), _elements.end(), element_name);
+                    if (ite == _elements.end()) {            //this is the first atom of this element encountered
+                        _elements.push_back(element_name);
                         _nAtomsOfElement[element_name]=1;
                     }
                     else
@@ -257,7 +257,7 @@ namespace votca {
             }
                 //now loop over elements and store all atoms of that element
             list<std::string>::iterator ite;
-            for (ite = elements.begin(); ite != elements.end(); ite++) {
+            for (ite = _elements.begin(); ite != _elements.end(); ite++) {
                 if(_ppFileNames.find(*ite)==_ppFileNames.end()) {
                     cerr << "Error: Element "<<(*ite)<<" has not pseudopotential specified in CPMD options file.\n" << flush;
                     throw std::runtime_error("Encountered element with no pseudopotential");
@@ -552,7 +552,42 @@ namespace votca {
             
             
             //MO coefficient and overlap matrices
-            return loadMatrices(_orbitals);
+            if(!loadMatrices(_orbitals)) return false;
+            
+            //atom info
+            if(!(_orbitals->hasQMAtoms())){ //no atoms defined for the orbitals
+                //lets fill them in, in CPMD's order
+                
+                //iterate over elements
+                list<std::string>::iterator ite;
+                int i=0;
+                for (ite = _elements.begin(); ite != _elements.end(); ite++, i++) {
+                    for(int a=0; a<_NA[i]; a++)
+                        _orbitals->AddAtom(*ite, 0, 0, 0, _ZV[i]); //store core charge in the atomic charge field
+                }
+            }
+            else
+            {
+                cerr << "CPMD: _orbitals already has some atoms. Need to implement atom reordering for this case." << flush;
+                LOG(logDEBUG, *_pLog) << "CPMD: _orbitals already has some atoms. Need to implement atom reordering for this case." << flush;
+                throw std::runtime_error("Unimplemented case");
+                return false;
+            }
+            
+            //basis set
+            if(_orbitals->hasGWbasis()){
+                if(_orbitals->getGWbasis().compare(_basisset_name)!=0){
+                    cerr << "CPMD: _orbitals already has a basis set and it does not match the basis set CPMD was initialized with." << flush;
+                    LOG(logDEBUG, *_pLog) << "CPMD: _orbitals already has a basis set and it does not match the basis set CPMD was initialized with." << flush;
+                    throw std::runtime_error("Basis set mismatch");
+                    return false;
+                }
+            }
+            else{
+                _orbitals->setGWbasis(_basisset_name);
+            }
+            
+            return true;
 
         }
         
@@ -580,17 +615,20 @@ namespace votca {
             _orbitals->setBasisSetSize(NATTOT);
             LOG(logDEBUG, *_pLog) << "Basis functions: " << NATTOT << flush;
 
-            int NSP=0;                  //number of atom types
-            wf_file.read((char*)&NSP, 4);
+            _NSP=0;                  //number of atom types
+            wf_file.read((char*)&_NSP, 4);
             bl-=4;
 
-            double ZV[NSP];             //core charge
-            int NA[NSP], NUMAOR[NSP];
-            for(int i=0; i<NSP; i++)
+            //double ZV[NSP];             //core charge
+            //int NA[NSP], NUMAOR[NSP];
+            _ZV=new double[_NSP];
+            _NA=new int[_NSP];
+            _NUMAOR=new int[_NSP];
+            for(int i=0; i<_NSP; i++)
             {
-                wf_file.read((char*)&ZV[i], 8);     //core charge of atom type i
-                wf_file.read((char*)&NA[i], 4);     //number of atoms of type i
-                wf_file.read((char*)&NUMAOR[i], 4); //number of atomic orbitals of atom type i
+                wf_file.read((char*)&_ZV[i], 8);     //core charge of atom type i
+                wf_file.read((char*)&_NA[i], 4);     //number of atoms of type i
+                wf_file.read((char*)&_NUMAOR[i], 4); //number of atomic orbitals of atom type i
                 bl-=8+4*2;
             }
             
