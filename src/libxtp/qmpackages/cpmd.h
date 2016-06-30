@@ -60,9 +60,12 @@ public:
 
    bool ParseLogFile( Orbitals* _orbitals );
 
-   bool ParseOrbitalsFile( Orbitals* _orbitals );
+   bool ParseOrbitalsFile( Orbitals* _orbitals ){return true;};
    
-   bool ConvertToGW( Orbitals* _orbitals );
+   bool ConvertToGW( Orbitals* _orbitals ){
+       LOG(logDEBUG, *_pLog) << "CPMD: ConvertToGW is unimplemented." << flush;
+       throw std::runtime_error("Unimplemented ConvertToGW");
+   };
       
    std::string getScratchDir( ) { return _scratch_dir; }
    
@@ -102,8 +105,9 @@ private:
     std::string _rsrt_kwds; //what parts to reuse from previous run
     std::string _pplib_path;//full path to the pseudopotential library of CPMD
     
-    BasisSet _bs;
+    
     std::map<std::string,std::string> _ppFileNames;   //pseudopotential file names indexed by element name
+    std::map<std::string,std::string> _ppLData;       //LMAX, LOC and SKIP data for pseudopotential file
     std::map<std::string,int> _nAtomsOfElement;       //number of atoms of element indexed by element name
     list<std::string> _elements;                      //keeps track of element names and their order in CPMD
     

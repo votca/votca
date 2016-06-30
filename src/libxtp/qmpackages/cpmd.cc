@@ -91,14 +91,19 @@ namespace votca {
                 _functional = options->get(key + ".functional.name").as<std::string> ();
                 
                 list<Property*>::iterator pit;
-                std::list<Property *> props = options->Select(key + ".functional.*");
+                std::list<Property *> props = options->Select(key + ".functional.pseudopotentials.*");
                 for (pit = props.begin(); pit != props.end(); ++pit)
                 {
                     Property* p= *pit;
-                    if(p->name().compare("name")!=0){ //not functional name, so must be element name
-                        _ppFileNames[p->name()]=p->as<std::string> ();
-                    }
+                    _ppFileNames[p->name()]=p->as<std::string> ();
                 }
+                props = options->Select(key + ".functional.l.*");
+                for (pit = props.begin(); pit != props.end(); ++pit)
+                {
+                    Property* p= *pit;
+                    _ppLData[p->name()]=p->as<std::string> ();
+                }
+                
             }
             else throw std::runtime_error("No functional and pseudopotentials specified");
             
@@ -136,6 +141,11 @@ namespace votca {
             _projectWF=false;
             if (options->exists(key + ".projectwf")) {
                 _projectWF=options->get(key + ".projectwf").as<bool> ();
+            }
+            
+            //basis set file name
+            if (options->exists(key + ".basisset")) {
+            _basisset_name=options->get(key + ".basisset").as<string> ();
             }
 
             //do population analysis? required to have access to WF coefs in atom-centric basis
@@ -228,9 +238,11 @@ namespace votca {
             }
             
             //basis
-            _com_file << "\n&BASIS\n";
-            WriteBasisSet(segments, _com_file);
-            _com_file << "&END" << endl;
+            if(_projectWF){
+                _com_file << "\n&BASIS\n";
+                WriteBasisSet(segments, _com_file);
+                _com_file << "&END" << endl;
+            }
             
             //atoms
             _com_file << "\n&ATOMS\n";
@@ -259,13 +271,33 @@ namespace votca {
             list<std::string>::iterator ite;
             for (ite = _elements.begin(); ite != _elements.end(); ite++) {
                 if(_ppFileNames.find(*ite)==_ppFileNames.end()) {
-                    cerr << "Error: Element "<<(*ite)<<" has not pseudopotential specified in CPMD options file.\n" << flush;
-                    throw std::runtime_error("Encountered element with no pseudopotential");
+                    cerr << "Error: Element "<<(*ite)<<" has no pseudopotential specified in CPMD options file.\n" << flush;
+                    throw std::runtime_error("Encountered element with no pseudopotential.\n");
                 }
                 else{
                     _com_file << "*" << _ppFileNames[(*ite)] << endl; //store name of the pseudopotential file and it's read options
-                    int Lmax = _bs.getElement(*ite)->getLmax();
-                    _com_file << "   "<<Lmax<<" "<<Lmax<<" "<<Lmax<< endl; //LMAX LOC SKIP
+                    if(_ppLData.find(*ite)==_ppLData.end()) {
+                        cerr << "Warning: Element "<<(*ite)<<" has no angular momentum data (<l></l>) specified in CPMD options file.\n\tAttempting to read it from basis set. This may produce errors.\n" << flush;
+                        if(_basisset_name.empty()){
+                            cerr << "Error: Basis set file not specified.\n" << flush;
+                            throw std::runtime_error("Encountered element with no angular momentum data.\n");
+                        }
+                        else{
+                            BasisSet _bs;
+                            _bs.LoadBasisSet(_basisset_name);
+                            int Lmax = 0;
+                            //find Lmax by checking all shells of the element
+                            Element* el=_bs.getElement(*ite);
+                            for (Element::ShellIterator its = el->firstShell(); its != el->lastShell(); its++) {
+                                        int Ls=(*its)->getLmax();
+                                        if(Lmax<Ls) Lmax=Ls;
+                            }
+                            _com_file << "   "<<Lmax<<" "<<Lmax<<" "<<Lmax<< endl; //LMAX LOC SKIP
+                        }
+                    }
+                    else{
+                        _com_file << "   "<<_ppLData[(*ite)]<< endl; //LMAX LOC SKIP
+                    }
                     _com_file << "   "<< _nAtomsOfElement[(*ite)] <<endl;  //# atoms of element
                     
                     //store atomic positions
@@ -275,9 +307,9 @@ namespace votca {
                             if((*ait)->getElement().compare(*ite)==0){     //this element
                                 vec pos = (*ait)->getQMPos();
                                 _com_file << "   ";
-                                _com_file << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX() << "   ";
-                                _com_file << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY() << "   ";
-                                _com_file << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ() << "   ";
+                                _com_file << setw(12) << setiosflags(ios::fixed) << setprecision(5) << conv::nm2bohr*pos.getX() << "   ";
+                                _com_file << setw(12) << setiosflags(ios::fixed) << setprecision(5) << conv::nm2bohr*pos.getY() << "   ";
+                                _com_file << setw(12) << setiosflags(ios::fixed) << setprecision(5) << conv::nm2bohr*pos.getZ() << "   ";
                                 _com_file << endl;
                             }
                         }
@@ -306,8 +338,8 @@ namespace votca {
             std::vector< Atom* > ::iterator ait;
             std::vector< Segment* >::iterator sit;
             list<std::string> elements;
-            //BasisSet bs;
-
+            
+            BasisSet _bs;
             _bs.LoadBasisSet(_basisset_name);
             LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
@@ -344,13 +376,18 @@ namespace votca {
                         _el_file << element_name << " with the "<< _basisset_name << " basis." << endl;
                         
                         //Lmax
-                        _el_file << element->getLmax() << endl;
+                        int Lmax = 0;
+                        //find Lmax by checking all shells of the element
+                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                                    int Ls=(*its)->getLmax();
+                                    if(Lmax<Ls) Lmax=Ls;
+                        }
+                        _el_file << Lmax+1 << endl; //number of L-values in this .basis file
+                        
                         
                         //sort shells by L
                         for (int L=0; L <= element->getLmax(); L++)
                         {
-                            _el_file << "  Functions for l="<<L<<endl;
-                            
                             std::vector<Shell*> Lshells;
                             
                             int ndecays=0;
@@ -358,7 +395,7 @@ namespace votca {
                                 Shell* shell = (*its);
                                 int Ls=shell->getLmax();
                                 if(shell->getType().size()>1){
-                                    cerr << "CPMD does not support " << shell->getType() << "basis functions." << endl;
+                                    cerr << "CPMD does not support " << shell->getType() << " basis functions." << endl;
                                     cerr << "Please break the basis set into basis functions with only one L-value each." << endl << flush;
                                     LOG(logDEBUG, *_pLog) << "CPMD: multi-L basis functions not supported." << flush;
                                     throw std::runtime_error("Unsupported basis function");
@@ -377,53 +414,56 @@ namespace votca {
                                 }
                             }
                             
-                            _el_file << "  " << Lshells.size()<< " " << ndecays << endl;
-                            _el_file << endl;
-                            
-                            //decays
-                            ios::fmtflags old_settings = _el_file.flags();
-                            _el_file << std::scientific << std::setprecision(6);
-                            _el_file << "  ";
-                            for (Element::ShellIterator its = Lshells.begin(); its !=  Lshells.end(); its++)
-                            {
-                                Shell* shell = (*its);
-                                for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                    GaussianPrimitive* gaussian = *itg;
-                                    _el_file << gaussian->decay << "\t";
-                                }
-                            }
-                            _el_file << endl;
-                            
-                            //coefficients (scale*contraction)
-                            int gs=0; //number of decays already handled
-                            for (Element::ShellIterator its = Lshells.begin(); its !=  Lshells.end(); its++)
-                            {
-                                Shell* shell = (*its);
-                                if(shell->getSize()!=0) //there are gaussians in this shell
+                            if(!Lshells.empty()){   //only write things if there are shells with this L
+                                _el_file << "  Functions for l="<<L<<endl;
+                                _el_file << "  " << Lshells.size()<< " " << ndecays << endl;
+                                _el_file << endl;
+
+                                //decays
+                                ios::fmtflags old_settings = _el_file.flags();
+                                _el_file << std::scientific << std::setprecision(6);
+                                _el_file << "  ";
+                                for (Element::ShellIterator its = Lshells.begin(); its !=  Lshells.end(); its++)
                                 {
-                                    int gi=0; //index of the current decay
-                                    _el_file << "  ";
-                                    //output zeros for all decays already handled
-                                    for(gi=0; gi<gs; gi++)
-                                    {
-                                        _el_file << 0.0 << "\t";
-                                    }
-                                    //output coefficients for this shell's gaussians
+                                    Shell* shell = (*its);
                                     for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                         GaussianPrimitive* gaussian = *itg;
-                                        _el_file << shell->getScale() * gaussian->contraction[0] << "\t";
-                                        gi++;
+                                        _el_file << gaussian->decay << "\t";
                                     }
-                                    gs+=shell->getSize();
-                                    //output zeros till the end of decays
-                                    for(;gi<ndecays; gi++)
-                                    {
-                                        _el_file << 0.0 << "\t";
-                                    }
-                                    _el_file << endl;
                                 }
+                                _el_file << endl;
+
+                                //coefficients (scale*contraction)
+                                int gs=0; //number of decays already handled
+                                for (Element::ShellIterator its = Lshells.begin(); its !=  Lshells.end(); its++)
+                                {
+                                    Shell* shell = (*its);
+                                    if(shell->getSize()!=0) //there are gaussians in this shell
+                                    {
+                                        int gi=0; //index of the current decay
+                                        _el_file << "  ";
+                                        //output zeros for all decays already handled
+                                        for(gi=0; gi<gs; gi++)
+                                        {
+                                            _el_file << 0.0 << "\t";
+                                        }
+                                        //output coefficients for this shell's gaussians
+                                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                                            GaussianPrimitive* gaussian = *itg;
+                                            _el_file << shell->getScale() * gaussian->contraction[L] << "\t";
+                                            gi++;
+                                        }
+                                        gs+=shell->getSize();
+                                        //output zeros till the end of decays
+                                        for(;gi<ndecays; gi++)
+                                        {
+                                            _el_file << 0.0 << "\t";
+                                        }
+                                        _el_file << endl;
+                                    }
+                                }
+                                _el_file.flags(old_settings);
                             }
-                            _el_file.flags(old_settings);
                         }
 
                         _el_file << endl;
@@ -445,7 +485,7 @@ namespace votca {
 
             if (std::system(NULL)) {
                 std::string _command;
-                _command = "cd " + _run_dir + "; mkdir -p $CPMD_SCRDIR; " + _executable + " " + _input_file_name;
+                _command = "cd " + _run_dir + "; rm -f LocalError*.log; " + _executable + " " + _input_file_name + ">" + _log_file_name;
                 std::system(_command.c_str());
 
                 if (CheckLogFile()) {
@@ -487,25 +527,26 @@ namespace votca {
             ifstream _input_file(_full_name.c_str());
 
             if (_input_file.fail()) {
-                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found" << flush;
+                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << endl << flush;
                 return false;
             };
 
             //Use brute force. Search every line for the termination string.
             //It doesn't appear at the very end, like in gaussian
-            std::string::size_type self_energy_pos;
+            std::string::size_type self_energy_pos=std::string::npos;
             std::string _line;
             do {
                 getline(_input_file, _line);
-            } while (self_energy_pos!=_line.find("PROGRAM CPMD ENDED AT") || _input_file.eof());
+                self_energy_pos=_line.find("PROGRAM CPMD ENDED AT");
+            } while (self_energy_pos==std::string::npos && !(_input_file.eof()));
 
             _input_file.close();
 
             if (self_energy_pos == std::string::npos) {
-                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is incomplete" << flush;
+                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is incomplete."<< endl << flush;
                 return false;
             } else {
-                //LOG(logDEBUG,*_pLog) << "CPMD LOG is complete" << flush;
+                LOG(logDEBUG,*_pLog) << "CPMD LOG is complete." <<endl << flush;
                 return true;
             }
         }
@@ -551,28 +592,31 @@ namespace votca {
             _input_file.close();
             
             
-            //MO coefficient and overlap matrices
-            if(!loadMatrices(_orbitals)) return false;
-            
-            //atom info
-            if(!(_orbitals->hasQMAtoms())){ //no atoms defined for the orbitals
-                //lets fill them in, in CPMD's order
-                
-                //iterate over elements
-                list<std::string>::iterator ite;
-                int i=0;
-                for (ite = _elements.begin(); ite != _elements.end(); ite++, i++) {
-                    for(int a=0; a<_NA[i]; a++)
-                        _orbitals->AddAtom(*ite, 0, 0, 0, _ZV[i]); //store core charge in the atomic charge field
+            if(_projectWF){
+                //MO coefficient and overlap matrices
+                if(!loadMatrices(_orbitals)) return false;
+
+                //atom info
+                if(!(_orbitals->hasQMAtoms())){ //no atoms defined for the orbitals
+                    //lets fill them in, in CPMD's order
+
+                    //iterate over elements
+                    list<std::string>::iterator ite;
+                    int i=0;
+                    for (ite = _elements.begin(); ite != _elements.end(); ite++, i++) {
+                        for(int a=0; a<_NA[i]; a++)
+                            _orbitals->AddAtom(*ite, 0, 0, 0, _ZV[i]); //store core charge in the atomic charge field
+                    }
+                }
+                else
+                {
+                    cerr << "CPMD: _orbitals already has some atoms. Need to implement atom reordering for this case." << flush;
+                    LOG(logDEBUG, *_pLog) << "CPMD: _orbitals already has some atoms. Need to implement atom reordering for this case." << flush;
+                    throw std::runtime_error("Unimplemented case");
+                    return false;
                 }
             }
-            else
-            {
-                cerr << "CPMD: _orbitals already has some atoms. Need to implement atom reordering for this case." << flush;
-                LOG(logDEBUG, *_pLog) << "CPMD: _orbitals already has some atoms. Need to implement atom reordering for this case." << flush;
-                throw std::runtime_error("Unimplemented case");
-                return false;
-            }
+            
             
             //basis set
             if(_orbitals->hasGWbasis()){
@@ -599,7 +643,7 @@ namespace votca {
             ifstream wf_file(_full_name.c_str());
             if(wf_file.fail())
             {
-                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found" << flush;
+                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << endl << flush;
             }
             LOG(logDEBUG, *_pLog) << "CPMD: parsing " << _full_name << flush;
             
@@ -621,9 +665,17 @@ namespace votca {
 
             //double ZV[NSP];             //core charge
             //int NA[NSP], NUMAOR[NSP];
+            if(_ZV!=NULL)
+            {
+                delete[] _ZV;
+                delete[] _NA;
+                delete[] _NUMAOR;
+            }
             _ZV=new double[_NSP];
             _NA=new int[_NSP];
             _NUMAOR=new int[_NSP];
+            if(_ZV==NULL || _NA==NULL || _NUMAOR==NULL)
+                throw std::runtime_error("Memory allocation failed");
             for(int i=0; i<_NSP; i++)
             {
                 wf_file.read((char*)&_ZV[i], 8);     //core charge of atom type i
@@ -665,7 +717,7 @@ namespace votca {
             wf_file.read((char*)&endcount, 4);
             if(bl!=0 || endcount!=count){ //number of bytes read was wrong
                 cerr << "CPMD: " << "could not parse record in "<< _full_name << endl << flush;
-                LOG(logERROR, *_pLog) << "CPMD: " << "could not parse record in "<< _full_name << flush;
+                LOG(logERROR, *_pLog) << "CPMD: " << "could not parse record in "<< _full_name << endl << flush;
                 throw std::runtime_error("IO error");
                 return false;
             }
@@ -681,7 +733,7 @@ namespace votca {
             ifstream ov_file(_full_name.c_str());
             if(ov_file.fail())
             {
-                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found" << flush;
+                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << endl << flush;
             }
             LOG(logDEBUG, *_pLog) << "CPMD: parsing " << _full_name << flush;
             
