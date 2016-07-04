@@ -111,8 +111,8 @@ public:
     
     
     
-    /*
-    int AOBasis::OffsetFuncShell( string shell_type ) {
+   
+    int OffsetFuncShell( string shell_type ) {
     int _nbf;
     // single type shells
     if ( shell_type.length() == 1 ){
@@ -131,7 +131,7 @@ public:
         }   
     }
     return _nbf;
-        } */
+        } 
     
     
     
@@ -140,15 +140,6 @@ public:
     
     
     int getnumofFunc() {
-        /* int _size;
-        if ( _type == "S" ) _size = 1;
-        if ( _type == "SP" ) _size = 4;
-        if ( _type == "SPD" ) _size = 9;
-        if ( _type == "P" ) _size = 3;
-        if ( _type == "PD" ) _size = 8;
-        if ( _type == "D" ) _size = 5;
-        if ( _type == "F" ) _size = 7;
-        if ( _type == "SPDF" ) _size = 16;*/
         return FindnumofFunc(_type);
     }; 
     
@@ -163,7 +154,7 @@ public:
             if ( shell_type == "F" ){ _nbf = 7;}
             if ( shell_type == "G" ){ _nbf = 9;}
     } else {
-        // for combined shells, go over all contributions and find minimal offset
+        // for combined shells, go over all contributions and add functions
         _nbf = 0;
         
            for (unsigned i = 0; i < shell_type.length(); ++i) {

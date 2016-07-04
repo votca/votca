@@ -49,6 +49,7 @@ void NBO::EvaluateNBO(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AO
          for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
              Shell* shell = (*its);
              shell->getnumofFunc();
+             shell->
          }
          //cout << id << " "<< id+nooffunc << endl;
       
