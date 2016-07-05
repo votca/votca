@@ -305,7 +305,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         
         if (_print_BSE_singlets){
             LOG(logINFO, _log) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
-            const ub::vector<real> &  _bse_singlet_energies = _orbitals.BSESingletEnergies();
+            const ub::vector<real_gwbse> &  _bse_singlet_energies = _orbitals.BSESingletEnergies();
             const std::vector<ub::vector<double> > & _transition_dipoles=_orbitals.TransitionDipoles();
             
             for (unsigned _i=0;_i<_bse_singlet_energies.size();_i++){
@@ -351,7 +351,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         
         if(_print_BSE_triplets){
              LOG(logINFO, _log) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
-             const ub::vector<real> &  _bse_triplet_energies = _orbitals.BSETripletEnergies();
+             const ub::vector<real_gwbse> &  _bse_triplet_energies = _orbitals.BSETripletEnergies();
              
              for (unsigned _i=0;_i<_bse_triplet_energies.size();_i++){
              LOG(logINFO, _log) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")

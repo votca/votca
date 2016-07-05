@@ -309,19 +309,19 @@ public:
     //ub::matrix<double> _eh_d;
     //ub::matrix<double> _eh_qp;
     
-    ub::matrix<real>& _eh_x;//stored in orbitals object
-    ub::matrix<real>& _eh_d;//stored in orbitals object
-    ub::matrix<real> _eh_d2;//because it is not stored in orbitals object
-    ub::matrix<real> _eh_qp;//not used right now
+    ub::matrix<real_gwbse>& _eh_x;//stored in orbitals object
+    ub::matrix<real_gwbse>& _eh_d;//stored in orbitals object
+    ub::matrix<real_gwbse> _eh_d2;//because it is not stored in orbitals object
+    ub::matrix<real_gwbse> _eh_qp;//not used right now
     
     // ub::vector<double> _bse_singlet_energies;
     // ub::matrix<double> _bse_singlet_coefficients;
     //ub::vector<double> _bse_triplet_energies;
     //ub::matrix<double> _bse_triplet_coefficients;
-    ub::vector<real>& _bse_singlet_energies;//stored in orbitals object
-    ub::matrix<real>& _bse_singlet_coefficients;//stored in orbitals object
-    ub::vector<real>& _bse_triplet_energies;//stored in orbitals object
-    ub::matrix<real>& _bse_triplet_coefficients;//stored in orbitals object
+    ub::vector<real_gwbse>& _bse_singlet_energies;//stored in orbitals object
+    ub::matrix<real_gwbse>& _bse_singlet_coefficients;//stored in orbitals object
+    ub::vector<real_gwbse>& _bse_triplet_energies;//stored in orbitals object
+    ub::matrix<real_gwbse>& _bse_triplet_coefficients;//stored in orbitals object
     
     std::vector< ub::matrix<double> > _interlevel_dipoles;
     std::vector< ub::matrix<double> > _interlevel_dipoles_electrical;
@@ -329,7 +329,7 @@ public:
     void BSE_d_setup( TCMatrix& _Mmn );
     void BSE_d2_setup( TCMatrix& _Mmn );
     void BSE_qp_setup( );
-    void BSE_Add_qp2H( ub::matrix<real>& qp );
+    void BSE_Add_qp2H( ub::matrix<real_gwbse>& qp );
     void BSE_solve_triplets();
     void BSE_solve_singlets();
     void BSE_solve_singlets_BTDA();

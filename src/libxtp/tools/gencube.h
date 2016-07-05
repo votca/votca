@@ -307,7 +307,7 @@ namespace votca {
                     }
                     
                     if(_state>0){
-                        ub::matrix<real> BSECoefs;
+                        ub::matrix<real_gwbse> BSECoefs;
                         if (_spin=="singlet") BSECoefs = _orbitals.BSESingletCoefficients();
                         else if (_spin =="triplet") BSECoefs = _orbitals.BSETripletCoefficients();
                     

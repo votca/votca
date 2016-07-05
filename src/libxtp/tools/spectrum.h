@@ -152,7 +152,7 @@ bool Spectrum::Evaluate() {
         throw std::runtime_error("BSE transition dipoles not stored in QM data file!");
     } 
     
-    const ub::vector<real>& BSESingletEnergies = _orbitals.BSESingletEnergies();
+    const ub::vector<real_gwbse>& BSESingletEnergies = _orbitals.BSESingletEnergies();
     const std::vector<ub::vector<double> >& TransitionDipoles = _orbitals.TransitionDipoles();
     
 
