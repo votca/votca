@@ -46,8 +46,8 @@ public:
     bool get_doSinglets(){ return _doSinglets;}
     bool get_doTriplets(){ return _doTriplets;}
     
-    ub::matrix<real> getJAB_singletstorage(){return JAB_singlet;}
-    ub::matrix<real> getJAB_tripletstorage(){return JAB_triplet;}
+    ub::matrix<real_gwbse> getJAB_singletstorage(){return JAB_singlet;}
+    ub::matrix<real_gwbse> getJAB_tripletstorage(){return JAB_triplet;}
     void addoutput(Property *_type_summary,Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB);
     
@@ -59,16 +59,16 @@ public:
     bool CalculateCouplings_OLD(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
                                Orbitals* _orbitalsAB, 
-                               ub::matrix<real>* _JAB_singlet);  
+                               ub::matrix<real_gwbse>* _JAB_singlet);  
     
     
 
      
-    real getSingletCouplingElement( int levelA, int levelB);
+    real_gwbse getSingletCouplingElement( int levelA, int levelB);
     
-    real getTripletCouplingElement( int levelA, int levelB);
-    real getSingletDimerEnergy( int level);
-    real getTripletDimerEnergy( int level);
+    real_gwbse getTripletCouplingElement( int levelA, int levelB);
+    real_gwbse getSingletDimerEnergy( int level);
+    real_gwbse getTripletDimerEnergy( int level);
     void setLogger( Logger* pLog ) { _pLog = pLog; }
     
 private:
@@ -76,13 +76,13 @@ private:
     Logger *_pLog;
   
     
-    bool ProjectExcitons(const ub::matrix<real>& _kap,const ub::matrix<real>& _kbp, 
-                         const ub::matrix<real>& ctAB,const ub::matrix<real>& ctBA, 
-                         const ub::matrix<real>& _bseA,const ub::matrix<real>& _bseB, 
-                         const ub::matrix<real>& _H, ub::matrix<real>& _J );
+    bool ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::matrix<real_gwbse>& _kbp, 
+                         const ub::matrix<real_gwbse>& ctAB,const ub::matrix<real_gwbse>& ctBA, 
+                         const ub::matrix<real_gwbse>& _bseA,const ub::matrix<real_gwbse>& _bseB, 
+                         const ub::matrix<real_gwbse>& _H, ub::matrix<real_gwbse>& _J );
     
-    ub::matrix<real> JAB_singlet;
-    ub::matrix<real> JAB_triplet;
+    ub::matrix<real_gwbse> JAB_singlet;
+    ub::matrix<real_gwbse> JAB_triplet;
 
     bool _doTriplets;
     bool _doSinglets;

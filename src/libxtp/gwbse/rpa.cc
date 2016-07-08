@@ -341,14 +341,14 @@ namespace votca {
             }// loop n-levels
 
             // multiply _temp with overlap
-            ub::matrix<real> _temp2 = ub::prod( gwoverlap.Matrix() , _temp );
+            ub::matrix<real_gwbse> _temp2 = ub::prod( gwoverlap.Matrix() , _temp );
 	    //_temp2 = ub::prod( gwoverlap._aomatrix , _temp );
             // copy to _Mmn_RPA
                       
-            //ub::matrix<real> _cut = ub::project( _temp2, ub::range(0, gwbasis._AOBasisSize) , ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin()  , _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() +1 ));
+            //ub::matrix<real_gwbse> _cut = ub::project( _temp2, ub::range(0, gwbasis._AOBasisSize) , ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin()  , _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() +1 ));
             
             _Mmn_RPA[ _m_level ] = ub::project( _temp2, ub::range(0, gwbasis._AOBasisSize) , ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin()  , _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() +1 ));
-            //_Mmn_RPA[ _m_level ] =  ub::zero_matrix<real>(gwbasis._AOBasisSize,_Mmn_RPA[0].size2() );
+            //_Mmn_RPA[ _m_level ] =  ub::zero_matrix<real_gwbse>(gwbasis._AOBasisSize,_Mmn_RPA[0].size2() );
             //_Mmn_RPA[ _m_level ] = _cut;
             
         }// loop m-levels
