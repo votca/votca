@@ -43,20 +43,26 @@ void NBO::EvaluateNBO(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AO
     int id =0;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
                 
+    //TODO: Jens, fill this in
     
          Element* element = bs.getElement((*atom)->type);
          int nooffunc=0;
          for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
              Shell* shell = (*its);
              shell->getnumofFunc();
-             shell->
+             
          }
          //cout << id << " "<< id+nooffunc << endl;
       
     }
     //cout << id << " " << _dmat.size1() << endl;
-
-
 }
+
+void NBO::LoadMatrices(std::string fn_projectionMatrix, std::string fn_overlapMatrix){
+
+    //TODO: Yuriy, fill this in
+    
+    return;
+    }
 
 }}

@@ -985,8 +985,7 @@ namespace votca {
             cout << " BLOCK Time AOxc sum    : " << _t_sum << endl;
 
 
-                       boost::timer::cpu_times texit = cpu_t.elapsed();
-                                _t_total = (texit.wall-tenter.wall)/1e9;
+                    
                     
                                  
                                  

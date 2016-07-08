@@ -24,6 +24,7 @@
 #include <votca/xtp/espfit.h>
 #include <votca/xtp/mulliken.h>
 #include <votca/xtp/lowdin.h>
+#include <votca/xtp/nbo.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/qmmachine.h>
 #include <boost/filesystem.hpp>
@@ -66,6 +67,7 @@ private:
     bool        _use_CHELPG;
     bool        _use_GDMA;
     bool        _use_CHELPG_SVD;
+    bool        _use_NBO;
     bool        _use_ecp;
     bool        _do_svd;
     double      _conditionnumber;

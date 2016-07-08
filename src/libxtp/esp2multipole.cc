@@ -33,6 +33,8 @@ void Esp2multipole::Initialize(Property* options) {
     _use_GDMA=false;
     _use_CHELPG_SVD=false;
     _use_lowdin=false;     
+    _use_NBO=false;
+         
     _state     = options->get(key + ".state").as<string> (); 
     _state_no     = options->get(key + ".statenumber").as<int> ();
     _spin     = options->get(key + ".spin").as<string> ();
@@ -46,7 +48,8 @@ void Esp2multipole::Initialize(Property* options) {
          else if(_method=="CHELPG")_use_CHELPG=true; 
          else if(_method=="GDMA") throw std::runtime_error("GDMA not implemented yet");
          else if(_method=="CHELPG_SVD") throw std::runtime_error("CHELPG_SVD not implemented yet"); 
-         else  throw std::runtime_error("Method not recognized. Only Mulliken,Loewdin and CHELPG implemented");
+         else if(_method=="NBO") throw std::runtime_error("NBO not implemented yet."); //_use_NBO=true;
+         else  throw std::runtime_error("Method not recognized. Only Mulliken and CHELPG implemented");
          }
     else _use_CHELPG=true;
     if (!_use_mulliken){
@@ -209,7 +212,7 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
         if (_use_lowdin) {
             Lowdin lowdin;
             lowdin.setUseECPs(_use_ecp);
-            lowdin.EvaluateLowdin(Atomlist, DMAT_tot, basis, bs, _do_transition);              
+            lowdin.EvaluateLowdin(_Atomlist, DMAT_tot, basis, bs, _do_transition);              
         }
         else if (_use_CHELPG){         
             Espfit esp=Espfit(_log);
@@ -221,6 +224,14 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
                 esp.Fit2Density(_Atomlist, DMAT_tot, basis,bs,_gridsize); 
             }
             else if (_integrationmethod=="analytic")  esp.Fit2Density_analytic(_Atomlist,DMAT_tot,basis);
+        }
+        else if(_use_NBO){
+            std::cout<<"WARNING: NBO analysis isn't fully implemented yet."<<std::endl;
+            //LOG(logDEBUG, _log) << "Initializing NBO" << flush;
+            NBO nbo=NBO(_log);
+            nbo.setUseECPs(_use_ecp);
+            //nbo.LoadMatrices("", "");
+            nbo.EvaluateNBO(_Atomlist, DMAT_tot, basis,bs);
         }
 }       
 

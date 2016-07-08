@@ -23,11 +23,12 @@
 
 #include <votca/xtp/elements.h>
 #include <votca/xtp/aobasis.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/qmatom.h>
 
 
 /**
-* \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of NBO partial charges
+* \brief Takes a list of atoms, and the corresponding density and overlap matrices and puts out a table of partial charges
 *
 * 
 * 
@@ -41,25 +42,23 @@ namespace votca { namespace xtp {
 class NBO{
 public:
     
-    NBO(){_use_ecp=false;}
+    NBO(Logger *log):_ECP(false) {_log = log;}
    ~NBO(){};
     
-    void setUseECPs(bool use_ecp){_use_ecp=use_ecp;}
-    void EvaluateNBO(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs);
-  
+   void setUseECPs(bool ECP){_ECP=ECP;}
    
+   void EvaluateNBO(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis, BasisSet &bs);
+   
+   void LoadMatrices(std::string fn_projectionMatrix, std::string fn_overlapMatrix);
+    
 private:
     
+     Logger *_log;
      Elements _elements; 
-     bool _use_ecp;
-     
- 
+     bool _ECP;
+    
     
 };
-
-
-
-
 }}
 
-#endif	/* ESPFIT_H */
+#endif	/* NBO_H */
