@@ -1134,14 +1134,14 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
   
    
 
-         //ct_states=ct_states-correction;    
+         ct_states=ct_states-correction;    
 
     
     
      overlaps.resize(0,0);
      correction.resize(0,0);
      //normalize
-    /* 
+    
      for (unsigned i=0;i<_ct;i++){
          double norm=0.0;
          for (unsigned j=0;j<nobasisfunc;j++){
@@ -1156,7 +1156,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
          
      }
     //cout <<ub::prod(fe_states,ub::trans(ct_states))<<endl; 
-      */
+      
     } 
 
      
@@ -1245,7 +1245,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
      //Diagonalize ct states
      
      if(_do_perturbation){
-         bool _diag_ct=false;
+         bool _diag_ct=true;
      if (_ct > 0 && _diag_ct) {
         
          
