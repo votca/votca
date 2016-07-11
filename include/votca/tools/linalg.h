@@ -192,6 +192,9 @@ namespace votca { namespace tools {
      * This function calculates the sqrt of a matrix
      */
    int linalg_matrixsqrt(ub::matrix<double> &S);
+   
+   
+   
 }}
 
 
