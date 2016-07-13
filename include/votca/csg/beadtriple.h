@@ -18,7 +18,7 @@
 #ifndef BEADTRIPLE_H
 #define	BEADTRIPLE_H
 
-#include <vector>
+#include <tuple>
 
 namespace votca { namespace csg {
 using namespace votca::tools;
@@ -31,25 +31,15 @@ using namespace votca::tools;
  
  */
 
-class BeadTriple    
+class BeadTriple   
+    : public std::tuple<Bead *, Bead *, Bead *>
 {
 public:
-    BeadTriple() {_triple.resize(3);}
-    BeadTriple(Bead *bead1, Bead *bead2, Bead *bead3, vec r12, vec r13, vec r23)
-        : _r12(r12), _r13(r13), _r23(r23), _dist12(abs(r12)), _dist13(abs(r13)), _dist23(abs(r23)) 
-    {
-        _triple.resize(3);
-        _triple[0]=bead1;
-        _triple[1]=bead2;
-        _triple[2]=bead3;
-    }
+    BeadTriple() {}
+    BeadTriple(Bead *bead1, Bead *bead2, Bead *bead3, vec r12, vec r13, vec r23)    
+        : std::tuple<Bead*, Bead *, Bead *>(bead1, bead2, bead3), _r12(r12), _r13(r13), _r23(r23), _dist12(abs(r12)), _dist13(abs(r13)), _dist23(abs(r23)) {}
         
-    virtual ~BeadTriple() 
-    {   
-        for(std::vector<Bead *>::iterator iter = _triple.begin(); iter!=_triple.end(); ++iter)
-            delete *iter;
-        _triple.clear();
-    }
+    virtual ~BeadTriple() {}
 
     /// \brief the vector connecting two beads
     vec &r12() { return _r12; }
@@ -61,13 +51,12 @@ public:
     double &dist23() { return _dist23; }    
 
 protected:
-        vec _r12;
-        vec _r13;
-        vec _r23;
-        double _dist12;
-        double _dist13;
-        double _dist23;
-        std::vector<Bead *> _triple;
+    vec _r12;
+    vec _r13;
+    vec _r23;
+    double _dist12;
+    double _dist13;
+    double _dist23;
 };
 
 }}
