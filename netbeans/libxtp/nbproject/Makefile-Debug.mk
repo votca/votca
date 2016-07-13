@@ -93,7 +93,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce08c7a/qmmachine.o \
 	${OBJECTDIR}/_ext/1ce08c7a/qmnblist.o \
 	${OBJECTDIR}/_ext/1ce08c7a/qmpackagefactory.o \
-	${OBJECTDIR}/_ext/60851bbe/cpmd.o \
 	${OBJECTDIR}/_ext/60851bbe/gaussian.o \
 	${OBJECTDIR}/_ext/60851bbe/nwchem.o \
 	${OBJECTDIR}/_ext/60851bbe/orca.o \
@@ -436,11 +435,6 @@ ${OBJECTDIR}/_ext/1ce08c7a/qmpackagefactory.o: ../../src/libxtp/qmpackagefactory
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/qmpackagefactory.o ../../src/libxtp/qmpackagefactory.cc
-
-${OBJECTDIR}/_ext/60851bbe/cpmd.o: ../../src/libxtp/qmpackages/cpmd.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/60851bbe
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/60851bbe/cpmd.o ../../src/libxtp/qmpackages/cpmd.cc
 
 ${OBJECTDIR}/_ext/60851bbe/gaussian.o: ../../src/libxtp/qmpackages/gaussian.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/60851bbe

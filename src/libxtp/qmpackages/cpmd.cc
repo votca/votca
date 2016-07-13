@@ -604,8 +604,9 @@ namespace votca {
                     list<std::string>::iterator ite;
                     int i=0;
                     for (ite = _elements.begin(); ite != _elements.end(); ite++, i++) {
-                        for(int a=0; a<_NA[i]; a++)
+                        for(int a=0; a<_NA[i]; a++){
                             _orbitals->AddAtom(*ite, 0, 0, 0, _ZV[i]); //store core charge in the atomic charge field
+                        }
                     }
                 }
                 else

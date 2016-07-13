@@ -93,7 +93,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce08c7a/qmmachine.o \
 	${OBJECTDIR}/_ext/1ce08c7a/qmnblist.o \
 	${OBJECTDIR}/_ext/1ce08c7a/qmpackagefactory.o \
-	${OBJECTDIR}/_ext/60851bbe/cpmd.o \
 	${OBJECTDIR}/_ext/60851bbe/gaussian.o \
 	${OBJECTDIR}/_ext/60851bbe/nwchem.o \
 	${OBJECTDIR}/_ext/60851bbe/orca.o \
@@ -436,11 +435,6 @@ ${OBJECTDIR}/_ext/1ce08c7a/qmpackagefactory.o: nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/qmpackagefactory.o ../../src/libxtp/qmpackagefactory.cc
-
-${OBJECTDIR}/_ext/60851bbe/cpmd.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/qmpackages/cpmd.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/60851bbe
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/60851bbe/cpmd.o ../../src/libxtp/qmpackages/cpmd.cc
 
 ${OBJECTDIR}/_ext/60851bbe/gaussian.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/qmpackages/gaussian.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/60851bbe
