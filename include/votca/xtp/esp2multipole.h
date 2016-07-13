@@ -65,6 +65,7 @@ private:
     bool        _use_mulliken;
     bool        _use_lowdin;
     bool        _use_CHELPG;
+    bool        _use_bulkESP;
     bool        _use_GDMA;
     bool        _use_CHELPG_SVD;
     bool        _use_NBO;

@@ -46,6 +46,7 @@ void Esp2multipole::Initialize(Property* options) {
          if (_method=="Mulliken" || _method=="mulliken")_use_mulliken=true; 
          else if(_method=="loewdin" || _method=="Loewdin") _use_lowdin=true;
          else if(_method=="CHELPG")_use_CHELPG=true; 
+         else if(_method=="bulkESP")_use_bulkESP=true; 
          else if(_method=="GDMA") throw std::runtime_error("GDMA not implemented yet");
          else if(_method=="CHELPG_SVD") throw std::runtime_error("CHELPG_SVD not implemented yet"); 
          else if(_method=="NBO") throw std::runtime_error("NBO not implemented yet."); //_use_NBO=true;
@@ -215,6 +216,17 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
             lowdin.EvaluateLowdin(_Atomlist, DMAT_tot, basis, bs, _do_transition);              
         }
         else if (_use_CHELPG){         
+            Espfit esp=Espfit(_log);
+            esp.setUseECPs(_use_ecp);
+            if(_do_svd){
+                esp.setUseSVD(_do_svd,_conditionnumber);
+            }
+            if (_integrationmethod=="numeric")  {
+                esp.Fit2Density(_Atomlist, DMAT_tot, basis,bs,_gridsize); 
+            }
+            else if (_integrationmethod=="analytic")  esp.Fit2Density_analytic(_Atomlist,DMAT_tot,basis);
+        }
+        else if (_use_bulkESP){         
             Espfit esp=Espfit(_log);
             esp.setUseECPs(_use_ecp);
             if(_do_svd){
