@@ -71,8 +71,8 @@ If molecule information is already present in the parent topology but molecules 
 \end{lstlisting}
 Here, the file \progopt{topol.tpr} is loaded first and all molecules are renamed afterwards.
 
-If you do not have a .pdb/.gro file and want to read trajectory from LAMMPS .dump file or H5MD then it is also possible to directly define topology in \xml file.
-Here is an example of such file for the case of butane, where trajectory is read from H5MD file
+If you do not have a .pdb/.gro file and you want to read trajectory from LAMMPS .dump file or H5MD then it is also possible to directly define topology in \xml file.
+Here is an example of such file where the trajectory is read from H5MD file:
 \begin{lstlisting}
 <topology>
     <!-- particle group name in H5MD file -->
@@ -118,10 +118,10 @@ Here is an example of such file for the case of butane, where trajectory is read
 </topology>
 \end{lstlisting}
 
-The section ordered list \texttt{molecules} contains information about the beads in the trajectory file.
-The beads \texttt{<bead>} will be replicated \texttt{nmols} times and then the next \texttt{molecule} will be use.
+The list of molecules is defined in section \texttt{molecules} where every \texttt{molecule} is replicated \texttt{nmols} times.
+Inside \texttt{molecule} the list of \texttt{bead} has to be defined with the name, type, mass and charge.
 
-The H5MD format contains information about box size but one can it define directly in the \xml file by tag
+The box size can be set by the tag \texttt{box}:
 \begin{lstlisting}
 <box xx="6.0" yy="6.0" zz="6.0" />
 \end{lstlisting}
