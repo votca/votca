@@ -1,0 +1,76 @@
+<topology>
+    <DESC>The XML topology root element, the base for the topology can be defined by the "name" attribute</DESC>
+    <h5md_particle_group>
+        <DESC>Attribute name holds the name of particles group in H5MD file</DESC>
+    </h5md_particle_group>
+    <molecules>
+        <DESC>The the molecules in the trajectory or other operation on the molecules.</DESC>
+        <molecule>
+            <DESC>
+                Definition of the molecule, with attributes: name, nmols and nbeads.
+                The name defines residue name, nmols tells how many times this molecule
+                has to be replicated to match with trajectory file and nbeads
+                defines number of beads in every molecule.
+            </DESC>
+            <bead>
+                <DESC>
+                    Define the bead in the molecule. Attributes are:
+                    name - the name of bead, type - the type of bead,
+                    mass - the mass of bead and q - the value of charge.
+                </DESC>
+            </bead>
+        </molecule>
+        <clear>
+            <DESC>Clear the information about the molecules</DESC>
+        </clear>
+        <rename>
+            <DESC>
+                Rename the molecules; attributes: "name" - the new name, "range" - the range where the new name will be set
+                in the format start_range:end_range
+            </DESC>
+        </rename>
+        <define>
+            <DESC>
+                Define the molecules; attributes: "name" - the name of molecule, "first" - the id of first molecule, "nbeads" - the number of
+                beads in the molecule, "nmols" - the number of molecules
+            </DESC>
+        </define>
+    </molecules>
+    <bonded>
+        <DESC>This section defines the topology of the molecules, it is used to generate proper exclusions for calculating rdfs</DESC>
+        <bond>
+            <DESC>Describes the bond</DESC>
+            <name>
+                <DESC>The name of the bond</DESC>
+            </name>
+            <beads>
+                <DESC>
+                    The pair of the beads in the format MOLECULE_NAME:BEAD_NAME
+                </DESC>
+            </beads>
+        </bond>
+        <angle>
+            <DESC>Describes the angle</DESC>
+            <name><DESC>The name of the angle</DESC></name>
+            <beads>
+                <DESC>The triplet of the beads in the format MOLECULE_NAME:BEAD_NAME</DESC>
+            </beads>
+        </angle>
+        <dihedral>
+            <DESC>Describes the dihedrals</DESC>
+            <name><DESC>The name of the dihedral</DESC></name>
+            <beads>
+                <DESC>The quadruplet of the beads in the format MOLECULE_NAME:BEAD_NAME</DESC>
+            </beads>
+        </dihedral>
+    </bonded>
+    <beadtypes>
+        <DESC>Allows defining bead types</DESC>
+        <rename>
+            <DESC>Rename the bead type; attributes: "name" - the old name, "newname" - the new name</DESC>
+        </rename>
+        <mass>
+            <DESC>Define the mass of the bead type; attributes: "name" - the bead type name, "value" - the new mass</DESC>
+        </mass>
+    </beadtypes>
+</topology>
