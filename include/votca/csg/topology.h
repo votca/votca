@@ -115,6 +115,7 @@ public:
      * @return created residue
      */
     virtual Residue *CreateResidue(string name);
+    virtual Residue *CreateResidue(string name, int id);
     
     /** 
      * \brief create molecules based on the residue
@@ -140,7 +141,7 @@ public:
      * \param nmolecules number of molecules
      */
     void CreateMoleculesByRange(string name, int first, int nbeads, int nmolecules);
-    
+
     /**
      * \brief number of molecules in the system
      * @return number of molecule in topology
@@ -423,6 +424,13 @@ inline Molecule *Topology::CreateMolecule(string name)
     Molecule *mol = new Molecule(this, _molecules.size(), name);
     _molecules.push_back(mol);
     return mol;
+}
+
+inline Residue *Topology::CreateResidue(string name, int id)
+{
+    Residue *res = new Residue(this, id, name);
+    _residues.push_back(res);
+    return res;
 }
 
 inline Residue *Topology::CreateResidue(string name)

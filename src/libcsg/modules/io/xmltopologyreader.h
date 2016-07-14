@@ -22,12 +22,56 @@
 #include <votca/csg/topologyreader.h>
 #include <stack>
 #include <votca/tools/parsexml.h>
+#include <boost/unordered_map.hpp>
 
 
 namespace votca { namespace csg {
 using namespace votca::tools;
 
 using namespace std;
+
+class BondBead {
+ public:
+  BondBead(string &line) {
+    Tokenizer tok(line, ":");
+    vector<string> tmp_vec;
+    tok.ToVector(tmp_vec);
+    if (tmp_vec.size() != 2)
+      throw runtime_error("Wrong number of elements in bead: " + line);
+    molname = tmp_vec[0];
+    atname = tmp_vec[1];
+    molname.erase(molname.find_last_not_of(" \n\r\t") + 1);
+    atname.erase(atname.find_last_not_of(" \n\r\t") + 1);
+  }
+
+  string molname;
+  string atname;
+};
+
+class XMLBead {
+ public:
+  XMLBead(string _name, string _type, double _mass=1.0, double _q=0.0):
+    name(_name), type(_type), mass(_mass), q(_q) {};
+  XMLBead() {};
+
+  int pid;
+  string name;
+  string type;
+  double mass;
+  double q;
+
+};
+
+class XMLMolecule {
+ public:
+  XMLMolecule(string _name, int _nmols): name(_name), nmols(_nmols) {}
+  string name;
+  int nmols;
+  int pid;
+  vector<XMLBead*> beads;
+  map<string, XMLBead*> name2beads;
+  Molecule *mi;
+};
 
 /**
  *  Reads in an xml topology
@@ -42,20 +86,31 @@ class XMLTopologyReader
 public:
     /// read a topology file
     bool ReadTopology(string file, Topology &top);
-
-private:    
+    ~XMLTopologyReader();
+private:
+    typedef boost::unordered_multimap<string, XMLMolecule*> MoleculesMap;
 
     void ReadTopolFile(string file);
 
-    void ParseRoot(const string &el, map<string, string> &attr);
-    void ParseTopology(const string &el, map<string, string> &attr);
-    void ParseMolecules(const string &el, map<string, string> &attr);
-    void ParseBeadTypes(const string &el, map<string, string> &attr);
-    
+    void ParseRoot(Property &el);
+    void ParseMolecules(Property &el);
+    void ParseBeadTypes(Property &el);
+    void ParseBonded(Property &el);
+    void ParseBox(Property &p);
+    void ParseMolecule(Property &p, string molname, int nbeads, int nmols);
+    void ParseBond(Property &p);
+    void ParseAngle(Property &p);
+    void ParseDihedral(Property &p);
+
 private:
     ParseXML _parser;
 
     Topology *_top;
+    MoleculesMap _molecules;
+    int _mol_index;
+    int _bead_index;
+
+    bool _has_base_topology;
 };
 
 }}
