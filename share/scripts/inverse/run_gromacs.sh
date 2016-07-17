@@ -103,15 +103,8 @@ if [[ $(critical ${grompp[@]} -h 2>&1) = *"VERSION 5."[01]* && $(get_simulation_
 fi
 
 if [[ ${CSG_MDRUN_STEPS} ]]; then
-  #mdrun <4.6 does not have -nsteps options, remove this block whenever we drop support for <4.6
-  if [[ $(critical ${grompp[@]} -h 2>&1) = *"VERSION 4."[05]* ]]; then
-    nsteps=$(get_simulation_setting nsteps)
-    critical sed -i "/^nsteps/s/=.*/=${CSG_MDRUN_STEPS}/" $mdp
-    msg --color blue --to-stderr "Replace nsteps (=$nsteps) in '$mdp' to be ${CSG_MDRUN_STEPS}"
-  else
-    msg --color blue --to-stderr "Appending -nsteps ${CSG_MDRUN_STEPS} to mdrun options"
-    mdrun_opts+=" -nsteps $CSG_MDRUN_STEPS"
-  fi
+  msg --color blue --to-stderr "Appending -nsteps ${CSG_MDRUN_STEPS} to mdrun options"
+  mdrun_opts+=" -nsteps $CSG_MDRUN_STEPS"
 fi
 
 #see can run grompp again as checksum of tpr does not appear in the checkpoint
