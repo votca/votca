@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -97,7 +97,8 @@ fi
 
 #support for older mdp file, cutoff-scheme = Verlet is default for Gromacs 5.0, but does not work with tabulated interactions
 #XXX is returned if cutoff-scheme is not in mdp file
-if [[ $(critical ${grompp[@]} -h 2>&1) = *"VERSION 5."[01]* && $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
+gmx_ver="$(critical ${grompp[@]} -h 2>&1)"
+if [[ ${gmx_ver} = *"VERSION 5."[01]* || ${gmx_ver} = *"version 2016"* ]] && [[ $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
   echo "cutoff-scheme = Group" >> $mdp
   msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
 fi
