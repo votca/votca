@@ -126,6 +126,18 @@ else
   echo "${0##*/}: No walltime defined, so no time limitation given to $mdrun"
 fi
 
+#>gmx-5.1 has new handling of bonded tables, remove this block we drop support for gmx-5.0 
+if [[ ${gmx_ver} = *"VERSION 5.1"* || ${gmx_ver} = *"version 2016"* ]] && [[ ${mdrun_opts} != *tableb* ]]; then
+  tables=
+  for i in table_[abd][0-9]*.xvg; do
+    [[ -f $i ]] && tables+=" $i"
+  done
+  if [[ -n ${tables} ]]; then
+	  msg --color blue --to-stderr "Automatically added '-tableb${tables} to mdrun options (add -tableb option to cg.inverse.gromacs.mdrun.opts yourself if this is wrong)"
+    mdrun_opts+=" -tableb${tables}"
+  fi
+fi
+
 critical $mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts} ${CSG_RUNTEST:+-v} 2>&1 | gromacs_log "$mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts}"
 
 [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
