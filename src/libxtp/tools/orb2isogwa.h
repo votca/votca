@@ -77,7 +77,7 @@ void Orb2IsoGWA::Initialize(Property* options) {
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");    
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    // string xmlFile = string(getenv("VOTCASHARE")) + string("/xtp/qmpackages/") + _package + string("_idft_pair.xml");
+    // string xmlFile = string(getenv("VOTCASHARE")) + string("/xtp/packages/") + _package + string("_idft_pair.xml");
     // load_property_from_xml( _package_options, xmlFile );    
 
     // register all QM packages (Gaussian, TURBOMOLE, etc)
