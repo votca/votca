@@ -1,2 +1,2 @@
 file(GLOB_RECURSE VOTCA_XTP_XML *.xml)
-install(FILES ${VOTCA_XTP_XML} DESTINATION ${DATA}/xtp/qmpackages/)
+install(FILES ${VOTCA_XTP_XML} DESTINATION ${DATA}/xtp/packages/)
