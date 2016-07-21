@@ -50,14 +50,14 @@ public:
    void EvaluateNBO(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis, BasisSet &bs);
    
    void LoadMatrices(std::string fn_projectionMatrix, std::string fn_overlapMatrix);
-    
+
 private:
     
      Logger *_log;
      Elements _elements; 
      bool _ECP;
     
-    
+    void IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< QMAtom* >& _atomlist);
 };
 }}
 

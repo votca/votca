@@ -22,7 +22,7 @@
 #include <votca/xtp/aomatrix.h>
 namespace votca { namespace xtp {
 
-void NBO::EvaluateNBO(vector< QMAtom* >& _atomlist,  const ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs){
+void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,  ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs){
     AOOverlap _overlap;
     // initialize overlap matrix
     _overlap.Initialize(basis._AOBasisSize);
@@ -61,7 +61,9 @@ void NBO::EvaluateNBO(vector< QMAtom* >& _atomlist,  const ub::matrix<double> &_
 
 
 
-void NBO::IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< QMAtom* >& _atomlist,)
+void NBO::IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< QMAtom* >& _atomlist){
+    return;
+}
 
 
 void NBO::LoadMatrices(std::string fn_projectionMatrix, std::string fn_overlapMatrix){
