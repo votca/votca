@@ -81,6 +81,15 @@ public:
     }; */
     
     
+    bool combined(){
+        if (_type.length()>1){
+            return true;
+        }
+        return false;
+    }
+    
+   
+    
     int getLmax(  ) {
         return FindLmax(_type);
     }

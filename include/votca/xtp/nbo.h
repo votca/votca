@@ -57,8 +57,11 @@ private:
      Elements _elements; 
      bool _ECP;
     
-    void IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< QMAtom* >& _atomlist);
+    void IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< QMAtom* >& _atomlist, BasisSet &bs);
+    void TransformMatrixtoNewBasis(ub::matrix<double>& Matrix,const ub::matrix<double>& transformation);
 };
 }}
 
-#endif	/* NBO_H */
+#endif /* NBO_H */
+
+

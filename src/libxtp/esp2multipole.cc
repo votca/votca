@@ -20,6 +20,7 @@
 
 #include <votca/xtp/esp2multipole.h>
 #include <boost/format.hpp>
+#include <votca/xtp/orbitals.h>
 
 namespace votca { namespace xtp {
 
@@ -30,6 +31,7 @@ void Esp2multipole::Initialize(Property* options) {
     
     _use_mulliken=false;
     _use_CHELPG=false;
+    _use_bulkESP=false;
     _use_GDMA=false;
     _use_CHELPG_SVD=false;
     _use_lowdin=false;     
@@ -49,15 +51,19 @@ void Esp2multipole::Initialize(Property* options) {
          else if(_method=="bulkESP")_use_bulkESP=true; 
          else if(_method=="GDMA") throw std::runtime_error("GDMA not implemented yet");
          else if(_method=="CHELPG_SVD") throw std::runtime_error("CHELPG_SVD not implemented yet"); 
-         else if(_method=="NBO") throw std::runtime_error("NBO not implemented yet."); //_use_NBO=true;
-         else  throw std::runtime_error("Method not recognized. Only Mulliken and CHELPG implemented");
+         else if(_method=="NBO") _use_NBO=true;
+         else  throw std::runtime_error("Method not recognized. Mulliken, Lowdin and CHELPG implemented");
          }
     else _use_CHELPG=true;
-    if (!_use_mulliken){
+    
+    
+   
+    
+    if (_use_CHELPG){
          _integrationmethod     = options->get(key + ".integrationmethod").as<string> ();
     }
     
-
+  
     if (!(_integrationmethod=="numeric" || _integrationmethod=="analytic")){
         std::runtime_error("Method not recognized. Only numeric and analytic available");
     }
@@ -142,7 +148,7 @@ void Esp2multipole::WritetoFile(string _output_file, string identifier){
 
 
 
-void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
+void Esp2multipole::Extractingcharges( Orbitals & _orbitals ){
     int threads=1;
 #ifdef _OPENMP
             if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads); 
@@ -202,15 +208,15 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
 	   // Ground state + hole_contribution + electron contribution
 	}
         else throw std::runtime_error("State entry not recognized");
-        
-        
+
+
         if (_use_mulliken) {
             Mulliken mulliken;
             mulliken.setUseECPs(_use_ecp);
             mulliken.EvaluateMulliken(_Atomlist, DMAT_tot, basis, bs, _do_transition);
                 
         }   
-        if (_use_lowdin) {
+        else if (_use_lowdin) {
             Lowdin lowdin;
             lowdin.setUseECPs(_use_ecp);
             lowdin.EvaluateLowdin(_Atomlist, DMAT_tot, basis, bs, _do_transition);              
@@ -238,12 +244,16 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
             else if (_integrationmethod=="analytic")  esp.Fit2Density_analytic(_Atomlist,DMAT_tot,basis);
         }
         else if(_use_NBO){
+            
             std::cout<<"WARNING: NBO analysis isn't fully implemented yet."<<std::endl;
             //LOG(logDEBUG, _log) << "Initializing NBO" << flush;
             NBO nbo=NBO(_log);
             nbo.setUseECPs(_use_ecp);
             //nbo.LoadMatrices("", "");
             nbo.EvaluateNBO(_Atomlist, DMAT_tot, basis,bs);
+        }
+        else{
+            std::cout<<"Method not recognized."<<std::endl;
         }
 }       
 
