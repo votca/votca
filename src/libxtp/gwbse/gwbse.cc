@@ -1121,7 +1121,7 @@ void GWBSE::addoutput(Property *_summary) {
                         //                cout << _i_exc << " : " << _tdipole[0] << " : "  << _tdipole[1] << " : " << _tdipole[2] << endl;
                         _transition_dipoles.push_back(_tdipole);
                         _transition_dipole_strength.push_back((ub::inner_prod(_tdipole,_tdipole)));
-                        cout<< ub::inner_prod(_tdipole,_tdipole)<< " "<< _tdipole<< endl;
+                        //cout<< ub::inner_prod(_tdipole,_tdipole)<< " "<< _tdipole<< endl;
                         _oscillator_strength.push_back(_transition_dipole_strength[_i_exc] / 3.0 * (_bse_singlet_energies(_i_exc)));
                     }
 
