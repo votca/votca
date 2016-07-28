@@ -907,6 +907,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
@@ -1699,6 +1701,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>

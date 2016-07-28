@@ -71,6 +71,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/f632c409/idft.o \
 	${OBJECTDIR}/_ext/f632c409/iexcitoncl.o \
 	${OBJECTDIR}/_ext/f632c409/igwbse.o \
+	${OBJECTDIR}/_ext/1ce08c7a/lowdin.o \
 	${OBJECTDIR}/_ext/1ce08c7a/molecule.o \
 	${OBJECTDIR}/_ext/1ce08c7a/nbo.o \
 	${OBJECTDIR}/_ext/4d261038/numerical_integrations.o \
@@ -325,6 +326,11 @@ ${OBJECTDIR}/_ext/f632c409/igwbse.o: nbproject/Makefile-${CND_CONF}.mk ../../src
 	${MKDIR} -p ${OBJECTDIR}/_ext/f632c409
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/f632c409/igwbse.o ../../src/libxtp/jobcalculators/igwbse.cc
+
+${OBJECTDIR}/_ext/1ce08c7a/lowdin.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/lowdin.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/lowdin.o ../../src/libxtp/lowdin.cc
 
 ${OBJECTDIR}/_ext/1ce08c7a/molecule.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/molecule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
