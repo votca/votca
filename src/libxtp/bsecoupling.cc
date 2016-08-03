@@ -1111,7 +1111,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
       
      ub::matrix<double> ct_states=ub::matrix<double>(_ct,nobasisfunc);
      
-     cout<< _ct<< "ct states"<<endl;
+     //cout<< _ct<< "ct states"<<endl;
     if(_ct>0){ 
      //orthogonalize ct-states with respect to the FE states. 
        LOG(logDEBUG, *_pLog) << TimeStamp()  << " Orthogonalizing CT-states with respect to FE-states" << flush;
