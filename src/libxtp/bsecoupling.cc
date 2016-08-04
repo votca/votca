@@ -1172,9 +1172,9 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
      //cout << _S_dimer.size1()<< " : "<<_S_dimer.size2()<<endl;
      
      #if (GWBSE_DOUBLE)
-        ub::matrix<double>& Htemp=_H;
+      const ub::matrix<double>& Htemp=_H;
 #else
-      ub::matrix<double> Htemp=_H;
+     const ub::matrix<double> Htemp=_H;
      LOG(logDEBUG, *_pLog) << TimeStamp()  << " casting Hamiltonian to double  " << flush;
 
 #endif
