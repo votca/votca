@@ -74,6 +74,7 @@ namespace votca {
             _store_qp_pert = true;
             _do_bse_diag = true;
             _store_eh_interaction = false;
+            _store_qp_diag=false;
             _openmp_threads = 0; // take all available
             _iterate_shift = false;
             _doVxc=false;
@@ -191,8 +192,8 @@ namespace votca {
             if ((_store_string.find("all") != std::string::npos) || (_store_string.find("") != std::string::npos)) {
                 // store according to tasks choice
                 if ( _do_qp_diag ) _store_qp_diag = true;
-                if ( _do_bse_singlets) _store_bse_singlets = true;
-                if ( _do_bse_triplets) _store_bse_triplets = true;
+                if ( _do_bse_singlets && _do_bse_diag) _store_bse_singlets = true;
+                if ( _do_bse_triplets && _do_bse_diag) _store_bse_triplets = true;
             }
             if (_store_string.find("qpdiag") != std::string::npos) _store_qp_diag = true;
             if (_store_string.find("singlets") != std::string::npos) _store_bse_singlets = true;
