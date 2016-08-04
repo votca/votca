@@ -1204,8 +1204,11 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
      
      ub::matrix<double> _temp=ub::prod(Htemp,ub::trans(projection));
      ub::matrix<double> _J_dimer=ub::prod(projection,_temp);
-     
+       #if (GWBSE_DOUBLE)
+    LOG(logDEBUG, *_pLog) << TimeStamp()  << " no Casting  " << flush;
+    #else
      Htemp.resize(0,0);
+     #endif
      _temp.resize(0,0);
      
 
