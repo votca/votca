@@ -18,6 +18,7 @@
  */
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aoshell.h"
+#include <votca/tools/constants.h>
 
 
 namespace votca { namespace xtp {
@@ -396,9 +397,9 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fragbreak
        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
           // get coordinates of this atom and convert from Angstrom to Bohr
           vec pos;
-          pos.setX( (*ait)->x * 1.8897259886  );
-          pos.setY( (*ait)->y * 1.8897259886  );
-          pos.setZ( (*ait)->z * 1.8897259886  );
+          pos.setX( (*ait)->x * tools::conv::ang2bohr  );
+          pos.setY( (*ait)->y * tools::conv::ang2bohr  );
+          pos.setZ( (*ait)->z * tools::conv::ang2bohr );
           // get element type of the atom
           string  name = (*ait)->type;
           // get the basis set entry for this element
@@ -450,9 +451,9 @@ void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
           // get coordinates of this atom and convert from Angstrom to Bohr
           vec pos;
-          pos.setX( (*ait)->x * 1.8897259886  );
-          pos.setY( (*ait)->y * 1.8897259886  );
-          pos.setZ( (*ait)->z * 1.8897259886  );
+          pos.setX( (*ait)->x * tools::conv::ang2bohr  );
+          pos.setY( (*ait)->y * tools::conv::ang2bohr  );
+          pos.setZ( (*ait)->z * tools::conv::ang2bohr  );
           // get element type of the atom
           string  name = (*ait)->type;
           // get the basis set entry for this element
@@ -503,17 +504,20 @@ int AOBasis::NumFuncShell(string shell_type) {
                 if (shell_type == "S") {
                     _nbf = 1;
                 }
-                if (shell_type == "P") {
+                else if (shell_type == "P") {
                     _nbf = 3;
                 }
-                if (shell_type == "D") {
+                else if (shell_type == "D") {
                     _nbf = 5;
                 }
-                if (shell_type == "F") {
+                else if (shell_type == "F") {
                     _nbf = 7;
                 }
-                if (shell_type == "G") {
+                else if (shell_type == "G") {
                     _nbf = 9;
+                }
+                else {
+                    throw runtime_error("Num Func Shell shell_type not known");
                 }
             } else {
                 // for combined shells, sum over all contributions
@@ -533,10 +537,13 @@ int AOBasis::NumFuncShell_cartesian( string shell_type ) {
     // single type shells defined here
     if ( shell_type.length() == 1 ){
        if ( shell_type == "S" ){ _nbf = 1;}
-       if ( shell_type == "P" ){ _nbf = 3;}
-       if ( shell_type == "D" ){ _nbf = 6;}
-       if ( shell_type == "F" ){ _nbf = 10;}
-       if ( shell_type == "G" ){ _nbf = 15;}
+       else if ( shell_type == "P" ){ _nbf = 3;}
+       else if ( shell_type == "D" ){ _nbf = 6;}
+       else if ( shell_type == "F" ){ _nbf = 10;}
+       else if ( shell_type == "G" ){ _nbf = 15;}
+       else {
+                    throw runtime_error("NumFuncShell shell_type not known");
+                }
     } else {
         // for combined shells, sum over all contributions
         _nbf = 0;
@@ -558,10 +565,13 @@ int AOBasis::OffsetFuncShell_cartesian( string shell_type ) {
     // single type shells
     if ( shell_type.length() == 1 ){
        if ( shell_type == "S" ){ _nbf = 0;}
-       if ( shell_type == "P" ){ _nbf = 1;}
-       if ( shell_type == "D" ){ _nbf = 4;}
-       if ( shell_type == "F" ){ _nbf = 10;}
-       if ( shell_type == "G" ){ _nbf = 20;}
+       else if ( shell_type == "P" ){ _nbf = 1;}
+       else if ( shell_type == "D" ){ _nbf = 4;}
+       else if ( shell_type == "F" ){ _nbf = 10;}
+       else if ( shell_type == "G" ){ _nbf = 20;}
+       else {
+                    throw runtime_error("NumFuncShell_cartesian shell_type not known");
+                }
     } else {
         // for combined shells, go over all contributions and find minimal offset
         _nbf = 1000;
@@ -580,10 +590,10 @@ int AOBasis::OffsetFuncShell( string shell_type ) {
     // single type shells
     if ( shell_type.length() == 1 ){
        if ( shell_type == "S" ){ _nbf = 0;}
-       if ( shell_type == "P" ){ _nbf = 1;}
-       if ( shell_type == "D" ){ _nbf = 4;}
-       if ( shell_type == "F" ){ _nbf = 9;}
-       if ( shell_type == "G" ){ _nbf = 16;}
+       else if ( shell_type == "P" ){ _nbf = 1;}
+       else if ( shell_type == "D" ){ _nbf = 4;}
+       else if ( shell_type == "F" ){ _nbf = 9;}
+       else if ( shell_type == "G" ){ _nbf = 16;}
     } else {
         // for combined shells, go over all contributions and find minimal offset
         _nbf = 1000;

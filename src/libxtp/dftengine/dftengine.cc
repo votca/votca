@@ -84,7 +84,7 @@ namespace votca {
 	    _x_functional_name = options->get(key + ".exchange_functional").as<string>();
 	    _c_functional_name = options->get(key + ".correlation_functional").as<string>();
             _numofelectrons =0;
-            _mixingparameter = options->get(key + ".density-mixing").as<double>();
+            _mixingparameter = options->get(key + ".density_mixing").as<double>();
 	    _max_iter = options->get(key + ".max_iterations").as<int>();
             
             
@@ -119,60 +119,7 @@ namespace votca {
             
 	    /**** Density-independent matrices ****/
 	    SetupInvariantMatrices();
-           /* 
-	                int size4c=_dftbasis.AOBasisSize();
-            fourdim fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
-            for ( int i = 0; i < size4c; i++ ){
-                for ( int j = 0; j < size4c; j++ ){
-                    for ( int k = 0; k < size4c; k++ ){
-                        for ( int l = 0; l < size4c; l++ ){
-                            
-                            fourcenter[i][j][k][l] = 0.0;
-                            
-                        }
-                    }
-                }
-            }
-            
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Init 4c "<< flush;
-            
-                         ifstream in;
-            string _4cfile = "test/4cints";             
-                       in.open(_4cfile.c_str(), ios::in);
-                        if (!in) throw runtime_error(string("Error reading 4cs from: ")
-                        + _4cfile);
-                       string ao;
-                       int iin;
-                       int jin;
-                       int kin;
-                       int lin;
-                       double cval;
-                       int id = 0;
-                       while (in.good()) { // keep reading until end-of-file
-                           
-                           id++;
-                           //cout << "reading entry " << id << endl; 
-                           
-                           in >> ao;
-                           in >> iin;
-                           in >> jin;
-                           in >> kin;
-                           in >> lin;
-                           in >> cval;
-                              if (in.eof()) break;
-                           // put to 4c
-                           fourcenter[iin-1][jin-1][kin-1][lin-1] = cval;
-                           
-                           
-                           
-                       }
-                       in.close();
-                       
-                       LOG(logDEBUG, *_pLog) << TimeStamp() << "Read 4cs from file "<< flush;
-             */          
-	    
-            // _dftAOkinetic.Print("TMAT");
-            //exit(0);
+         
             
             
             /**** Initial guess = one-electron Hamiltonian without interactions ****/
@@ -181,162 +128,56 @@ namespace votca {
 
             /**** Construct initial density  ****/
 
-            ub::matrix<double> H0 = _dftAOkinetic._aomatrix + _dftAOESP._nuclearpotential; // +_dftAOECP.Matrix();
-/*
+            ub::matrix<double> H0 = _dftAOkinetic._aomatrix + _dftAOESP._nuclearpotential; 
+            
+            if(_with_ecp){
+            H0+=_dftAOECP.Matrix();
+            }
             linalg_eigenvalues_general(H0, _dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
 
             double totinit = 0;
 
             for (int i = 0; i < (_numofelectrons / 2); i++) {
-                cout << MOEnergies(i) << " eigenwert " << i << endl;
+                //cout << MOEnergies(i) << " eigenwert " << i << endl;
                 totinit += 2 * MOEnergies(i);
             }
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy " << totinit << flush;
-  */               
-		       
-            /*
-            // cout << MOEnergies[0] << " " << MOEnergies[_numofelectrons/2] << endl;
-            cout << "\n";
-            for ( int i =0; i < _dftbasis.AOBasisSize(); i++){
-            ub::matrix_range< ub::matrix<double> > _MO = ub::subrange(MOCoeff, 0, _dftbasis.AOBasisSize(), i, i+1 );
-            
-            ub::matrix<double> _temp = ub::prod(_dftAOoverlap._aomatrix, _MO);
-            for ( int j =0; j < _dftbasis.AOBasisSize(); j++){
-                ub::matrix_range< ub::matrix<double> > _MO2 = ub::subrange(MOCoeff, 0, _dftbasis.AOBasisSize(), j, j+1 );
-            ub::matrix<double> norm = ub::prod(ub::trans(_MO2), _temp);
-            if (std::abs(norm(0,0)) > 1e-5 ){
-            cout << " Norm of MO " << i << " " << j << " " << norm(0,0) << endl;
-            }}}
-            exit(0);
-            
-            */
-            
-            
-            
+               
+
             
 	    ub::matrix<double> initMOCoeff= ub::trans(_orbitals->MOCoefficients());
             
 	    DensityMatrixGroundState( initMOCoeff, _numofelectrons/2 ) ;
-	    cout << endl;
-/*
-	    
-            for (int alpha=0;alpha<size4c;alpha++){
-                    for (int beta=0;beta<size4c;beta++){
 
-                        double localERI = 0.0;
-                        
-                        for (int mu=0;mu<size4c;mu++){
-                            for (int nu=0;nu<size4c;nu++){
-                                
-                                localERI += _dftAOdmat(mu,nu) * fourcenter[alpha][beta][mu][nu];
-                                
-                         }
-                    }
-                        
-                        
-                        cout << "ExactVH " << alpha+1<<" : "<<beta+1<< " = " << localERI << endl;
-                        
-                 }
-            }
-  */          
-           // exit(0); 
+
 	    
 
-
-
-           //int size4c=_dftbasis.AOBasisSize();
 
            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
-           LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
+           //LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity_Atomblock(_dftAOdmat, basis) << flush;
 	   
             for ( _this_iter=0; _this_iter<_max_iter; _this_iter++){
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
 
 
-                _ERIs.CalculateERIs(_dftAOdmat, _auxAOoverlap, _AOIntegrals);
-                // LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
+                _ERIs.CalculateERIs(_dftAOdmat, _auxAOcoulomb);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
 
-/*
-                // ERI from 4cs
-                ub::matrix<double> ERI4c = ub::zero_matrix<double>(size4c,size4c);
-                for ( int ii=0; ii< size4c; ii++){
-                    for ( int jj=0; jj< size4c; jj++){
-                        for ( int kk=0; kk< size4c; kk++){
-                            for ( int ll=0; ll< size4c; ll++){
-                                
-                                
-                                ERI4c(ii,jj) += _dftAOdmat(kk,ll)*fourcenter[ii][jj][kk][ll];
-                                
-                                
-                                
-                            }
-                        }
-                    }
-                }
-                
-      */         
+
 		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis,"PBE_VOTCA");
-                ub::matrix<double> VXC2=_gridIntegration.IntegrateVXC(_dftAOdmat,  basis);
-		 for ( unsigned iout=0; iout<_dftAOdmat.size1();iout++){
-		for ( unsigned jout=0; jout<_dftAOdmat.size1();jout++){
-
-		  cout.precision(10);
-		  cout << "VXC " << std::setprecision(10)  << iout+1 << " " << jout+1 << " " << VXC(iout,jout) <<  " " << VXC2(iout,jout) <<endl;
-
-		}
-		} 
-
-
-                /*
-		for ( int iout=0; iout<_dftAOdmat.size1();iout++){
-		for ( int jout=0; jout<_dftAOdmat.size1();jout++){
-
-		  cout.precision(10);
-		  cout << "HAM "  << iout+1 << " " << jout+1 << " " << _dftAOkinetic._aomatrix(iout,jout) << " " << _dftAOESP._nuclearpotential(iout,jout) << " " << _ERIs.getERIs()(iout,jout) << " " << ERI4c(iout,jout) << " " << VXC(iout,jout) << " " << VXC2(iout,jout) << " " << _dftAOoverlap._aomatrix(iout,jout) << endl;
-
-		}
-		}*/
-
+         
                 
                 
                 
                 ub::matrix<double> H=H0+_ERIs.getERIs()+VXC;
-                
-                //ub::matrix<double> H=H0+ERI4c+VXC;
-                
-                /*
-		for ( int iout=0; iout<_dftAOdmat.size1();iout++){
-		for ( int jout=0; jout<_dftAOdmat.size1();jout++){
-
-		  cout.precision(10);
-		  cout << "HAM " << std::setprecision(10)  << iout+1 << " " << jout+1 << " " << _dftAOkinetic._aomatrix(iout,jout) << " " << _dftAOESP._nuclearpotential(iout,jout) << " " << _ERIs.getERIs()(iout,jout) << " " << VXC(iout,jout)  << " " << _dftAOoverlap._aomatrix(iout,jout) << endl;
-
-		}
-		}
-		//exit(0);
-             */
-		               for (int j=0;j<_ERIs.getSize2();j++){
-                        for (int i=0;i<_ERIs.getSize1();i++){
-                cout << "_ERIs ("<< i <<":"<< j<<")="<<_ERIs.getERIs()(i,j)<<endl;
-		}}
-                exit(0);
+             
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;
                 linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
                 
-                
-               /* 		for ( int iout=0; iout<_dftAOdmat.size1();iout++){
-		for ( int jout=0; jout<_dftAOdmat.size1();jout++){
-
-		  cout.precision(10);
-		  cout << "HAM2 " << std::setprecision(10)  << iout+1 << " " << jout+1 << " " << _dftAOkinetic._aomatrix(iout,jout) << " " << _dftAOESP._nuclearpotential(iout,jout) << " " << _ERIs.getERIs()(iout,jout) << " " << VXC(iout,jout)  << " " << _dftAOoverlap._aomatrix(iout,jout) << endl;
-
-		}
-		}
-		exit(0);
-*/                
+          
                 
                 double totenergy=0;
-                cout << endl;
+       
 
                 for (int i=0;i<_numofelectrons;i++){
                     if ( i <= _numofelectrons/2-1) {
@@ -362,7 +203,7 @@ namespace votca {
 
 
                 EvolveDensityMatrix( MOCoeff, _numofelectrons/2 ) ;
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
+                //LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity_Atomblock(_dftAOdmat, basis) << flush;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
             }
           
@@ -397,7 +238,7 @@ namespace votca {
 
             
             _dftAOESP.Initialize(_dftbasis.AOBasisSize());
-            _dftAOESP.Fillnucpotential(&_dftbasis, _atoms);
+            _dftAOESP.Fillnucpotential(&_dftbasis, _atoms,_with_ecp);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
             //_dftAOESP.Print("NUC");
 
@@ -413,31 +254,15 @@ namespace votca {
             // exit(0);
             
 	    // AUX AOoverlap
+        
+ 
+   
             _auxAOoverlap.Initialize(_auxbasis.AOBasisSize());
             _auxAOoverlap.Fill(&_auxbasis);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled AUX Overlap matrix of dimension: " << _auxAOoverlap.Dimension() << flush;
- 
-            //exit(0);
-	    // check AUX basis for linear dependence
             linalg_eigenvalues(_auxAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Smallest eigenvalue of AUX Overlap matrix : " << _eigenvalues[0] << flush;
  
-            // checking integrals of AOfunctions !!!! not NORM !!!!
-            _AOIntegrals = ub::zero_matrix<double>(1, _auxbasis._AOBasisSize); // TRY MORE USEFUL DATA
-
-            for (vector< AOShell* >::iterator _row = _auxbasis.firstShell(); _row != _auxbasis.lastShell(); _row++) {
             
-            
-            ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(_AOIntegrals, 0, 1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
-                         
-                            (*_row)->EvalAOIntegral(_AOgridsub );
-            }
-            
-            /*
-            for (int i = 0; i < _AOIntegrals.size2(); i++){
-                
-                cout << i << " " << _AOIntegrals(0,i) << endl;
-            }*/
             
             
             
@@ -450,8 +275,8 @@ namespace votca {
             //exit(0);
        
             // prepare invariant part of electron repulsion integrals
-            // _ERIs.Initialize_Symmetric(_dftbasis, _auxbasis, _auxAOoverlap, _auxAOcoulomb);
-            _ERIs.Initialize(_dftbasis, _auxbasis, _auxAOoverlap, _auxAOcoulomb);
+      
+            _ERIs.Initialize(_dftbasis, _auxbasis);
           
             
             
@@ -477,7 +302,7 @@ namespace votca {
 	    _auxbasis.AOBasisFill( &_auxbasisset, _atoms);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded AUX Basis Set " << _auxbasis_name << flush;
 
-
+            if(_with_ecp){
             // load ECP (element-wise information) from xml file
             _ecpbasisset.LoadPseudopotentialSet("ecp");
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded ECP library " << "ecp" << flush;
@@ -485,7 +310,7 @@ namespace votca {
             // fill auxiliary ECP basis by going through all atoms
             _ecp.ECPFill(&_ecpbasisset, _atoms);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled ECP Basis of size " << _ecp._aoshells.size() << flush;
-
+            }
             
 	    // setup numerical integration grid
             _gridIntegration.GridSetup(_grid_name,&_dftbasisset,_atoms);

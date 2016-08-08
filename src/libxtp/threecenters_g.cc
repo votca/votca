@@ -45,7 +45,7 @@ namespace votca {
          *      S,P,D,F functions in GW  basis
          * 
          */
-        void TCrawMatrix::FillThreeCenterOLBlock_g(ma_type &S,vec &gma, vec &gmc,int &_lmax_alpha, int &_lmax_gamma,double & fak) {
+        void TCrawMatrix::FillThreeCenterOLBlock_g(ma_type &S,const vec gma,const vec gmc,const int _lmax_alpha, const int _lmax_gamma,const double fak) {
 	  //bool TCrawMatrix::FillThreeCenterOLBlock(ub::matrix<float>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
             
             double fak2 = 2.0 * fak;

@@ -48,32 +48,15 @@ namespace votca {
             for (int i=0; i< _auxbasis._AOBasisSize; i++){
                 _matrix.push_back(ub::zero_matrix<double>(_dftbasis._AOBasisSize, _dftbasis._AOBasisSize));        
             }
-           /*
-            std::vector< int > _limits;
-            int _temp=0;
-            for (std::vector< AOShell* >::iterator _is = _auxbasis.firstShell(); _is != _auxbasis.lastShell(); _is++) {
-                _limits.push_back(_temp);
-                 
-                _temp+=(*_is)->getNumFunc();
-               
-                cout << " StartIndex " << (*_is)->getStartIndex() << endl;
-            }
-            
-            for ( int i=0;i<_limits.size();i++){
-                cout <<"grenze " << _limits[i]<< endl;
-            }
-            exit(0);
-            */ 
+         
             // loop over all shells in the GW basis and get _Mmn for that shell
-            //#pragma omp parallel for //private(_block)
+            #pragma omp parallel for //private(_block)
             for ( unsigned _is= 0; _is <  _auxbasis._aoshells.size() ; _is++ ){
             // for (std::vector< AOShell* >::iterator _is = _gwbasis.firstShell(); _is != _gwbasis.lastShell(); _is++) {
                 //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
                 AOShell* _shell = _auxbasis.getShell(_is);
                
 
-                //cout << _is << " shell " << _shell->getType() << " from " << _shell->getStartIndex() << " to " << _shell->getStartIndex() + _shell->getNumFunc() << endl;
-                
                 
                 // Fill block for this shell (3-center overlap with _dft_basis )
                 FillBlock(_shell, _dftbasis);
@@ -119,27 +102,7 @@ namespace votca {
                     
                     //bool nonzero = FillThreeCenterOLBlock(_subvector, _shell, _shell_row, _shell_col);
                     bool nonzero=FillThreeCenterRepBlock(_subvector, _shell, _shell_row, _shell_col);
-                    //cout << "subvector " <<_subvector<< endl;
-                    /* test 
-                    for (int j=0;j<_subvector.size1();j++){
-                    for (int i=0;i<_subvector.size1();i++){
-                        
-                        _subvector(i,_shell->getNumFunc()*j+i)=1;
-                        
-                    }}
-                    */
-                    
-                    
-                  /*  for (int i = 0; i < _subvector.size1(); i++){
-                        for (int j = 0; j < _subvector.size2(); j++){
-                            
-                            
-                            cout << "SV " << _subvector(i,j) << endl;
-                            
-                        }
-                        
-                        
-                    } */
+             
                     
                     if (nonzero) {
                         // and put it into the block it belongs to
@@ -164,7 +127,6 @@ namespace votca {
                 } // DFT col
             } // DFT row
            
-            //       exit(0);
         } // TCMatrix_dft::FillBlock
 
 

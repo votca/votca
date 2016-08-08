@@ -77,18 +77,6 @@ public:
     std::string getName() { return _atomname;}
     
     int getLmax(  ) { return detlmax( _type );}
-    /*
-        int _lmax;
-        if ( _type == "S" ) _lmax = 0;
-        if ( _type == "SP" ) _lmax = 1;
-        if ( _type == "SPD" ) _lmax = 2;
-        if ( _type == "P" ) _lmax = 1;
-        if ( _type == "PD" ) _lmax = 2;
-        if ( _type == "D" ) _lmax = 2;
-        
-        
-        return _lmax;
-    };*/ 
     
     vec getPos() { return _pos; }
     double getScale() { return _scale; }
@@ -96,17 +84,14 @@ public:
     int getSize() { return _gaussians.size(); }
     
     
-    //vector<double> evalAOspace( double x, double y, double z , string type = "");
-    //void EvalAOspace( ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z , string type = "");
+    
     void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z );
     void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z );
     //void EvalAOspace(ub::matrix<double>& AOvalues, double x, double y, double z , string type = "");
     
     void EvalAOIntegral(ub::matrix_range<ub::matrix<double> >& AOvalues);
-    //vector< vector<double> > evalAOGradspace( double x, double y, double z , string type = "");
-    //void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODerXvalues,ub::matrix_range<ub::matrix<double> >& AODerYvalues,ub::matrix_range<ub::matrix<double> >& AODerZvalues, double x, double y, double z , string type = "");
+    
     void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z , std::string type = "");
-    //void EvalAOGradspace( ub::matrix<double>& AODervalues, double x, double y, double z , string type = "");
     // iterator over pairs (decay constant; contraction coefficient)
     typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
     GaussianIterator firstGaussian() { return _gaussians.begin(); }

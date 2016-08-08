@@ -36,10 +36,23 @@ using namespace votca::tools;
 
 namespace Cart {
         enum Index {
-                s, x, y, z,  xy, xz, yz, xx, yy, zz, xxy, xyy, xyz, xxz, xzz, yyz, yzz, xxx, yyy, zzz,
-                xxxy,xxxz,xxyy,xxyz,xxzz,xyyy,xyyz,xyzz,xzzz,yyyz,yyzz,yzzz,xxxx,yyyy,zzzz,
-                xxxxy,xxxxz,xxxyy,xxxyz,xxxzz,xxyyy,xxyyz,xxyzz,xxzzz,xyyyy,xyyyz,xyyzz,xyzzz,xzzzz,yyyyz,yyyzz,yyzzz,yzzzz,xxxxx,yyyyy,zzzzz
-                
+                    s,                                                                                                                                                     // s
+                    x, y, z,                                                                                                                                               // p
+                    xx, xy, xz, yy, yz, zz,                                                                                                                                // d
+                    xxx, xxy, xxz, xyy, xyz, xzz, yyy, yyz, yzz, zzz,                                                                                                      // f
+                    xxxx, xxxy, xxxz, xxyy, xxyz, xxzz, xyyy, xyyz, xyzz, xzzz, yyyy, yyyz, yyzz, yzzz, zzzz,                                                              // g
+                    xxxxx, xxxxy, xxxxz, xxxyy, xxxyz, xxxzz, xxyyy, xxyyz, xxyzz, xxzzz, xyyyy, xyyyz, xyyzz, xyzzz, xzzzz, yyyyy, yyyyz, yyyzz, yyzzz, yzzzz, zzzzz,     // h
+
+                    xxxxxx, xxxxxy, xxxxxz, xxxxyy, xxxxyz, xxxxzz, xxxyyy, xxxyyz, xxxyzz, xxxzzz, xxyyyy, xxyyyz, xxyyzz, xxyzzz,                                        // i
+                    xxzzzz, xyyyyy, xyyyyz, xyyyzz, xyyzzz, xyzzzz, xzzzzz, yyyyyy, yyyyyz, yyyyzz, yyyzzz, yyzzzz, yzzzzz, zzzzzz,
+
+                    xxxxxxx, xxxxxxy, xxxxxxz, xxxxxyy, xxxxxyz, xxxxxzz, xxxxyyy, xxxxyyz, xxxxyzz, xxxxzzz, xxxyyyy, xxxyyyz,                                            // j
+                    xxxyyzz, xxxyzzz, xxxzzzz, xxyyyyy, xxyyyyz, xxyyyzz, xxyyzzz, xxyzzzz, xxzzzzz, xyyyyyy, xyyyyyz, xyyyyzz,
+                    xyyyzzz, xyyzzzz, xyzzzzz, xzzzzzz, yyyyyyy, yyyyyyz, yyyyyzz, yyyyzzz, yyyzzzz, yyzzzzz, yzzzzzz, zzzzzzz,
+
+                    xxxxxxxx, xxxxxxxy, xxxxxxxz, xxxxxxyy, xxxxxxyz, xxxxxxzz, xxxxxyyy, xxxxxyyz, xxxxxyzz, xxxxxzzz, xxxxyyyy, xxxxyyyz, xxxxyyzz, xxxxyzzz, xxxxzzzz,  // k
+                    xxxyyyyy, xxxyyyyz, xxxyyyzz, xxxyyzzz, xxxyzzzz, xxxzzzzz, xxyyyyyy, xxyyyyyz, xxyyyyzz, xxyyyzzz, xxyyzzzz, xxyzzzzz, xxzzzzzz, xyyyyyyy, xyyyyyyz,
+                    xyyyyyzz, xyyyyzzz, xyyyzzzz, xyyzzzzz, xyzzzzzz, xzzzzzzz, yyyyyyyy, yyyyyyyz, yyyyyyzz, yyyyyzzz, yyyyzzzz, yyyzzzzz, yyzzzzzz, yzzzzzzz, zzzzzzzz,
                 };
 }
 
@@ -57,7 +70,7 @@ namespace votca { namespace xtp {
         
         int getBlockSize( int size );
         
-        void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay );
+        
         void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay , std::vector<double> contractions);
         
         void PrintIndexToFunction( AOBasis* aobasis);
@@ -162,7 +175,7 @@ namespace votca { namespace xtp {
         //block fill for overlap, implementation in aoesp.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         //void Print();
-        void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms );
+        void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms,bool _with_ecp=false );
         
         ub::matrix<double> _nuclearpotential;
         // ~AOESP();
@@ -217,12 +230,7 @@ namespace votca { namespace xtp {
         
     };
     
-    // inline AOOverlap::~AOOverlap(){
-        
-    //_aomatrix.clear();
-    //_aomatrix.resize(0,0);
-        
-    //}
+ 
     
     //derived class for atomic orbital Coulomb interaction
     class AOCoulomb : public AOMatrix{

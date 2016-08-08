@@ -156,35 +156,32 @@ void DFT::Initialize(Property* options) {
             _reporting =  options->get(key + ".reporting").as<string> ();
 
             // options for dft package
-            string _package_xml = options->get(key + ".package").as<string> ();
+            
             //cout << endl << "... ... Parsing " << _package_xml << endl ;
-            load_property_from_xml(_package_options, _package_xml.c_str());
-            key = "package";
-            _package = _package_options.get(key + ".name").as<string> ();
+            
 
     
 
-            // options for GWBSE package
+            // options for dftengine
 key = "options." + Identify();
+
+if(options->exists(key+".dftengine")){
+    string _dftengine_xml = options->get(key + ".dftengine").as<string> ();
+    load_property_from_xml(_dftengine_options, _dftengine_xml.c_str());
+}
+else if( options->exists(key+".package")){
+        string _package_xml = options->get(key + ".package").as<string> ();
+        key = "package";
+        _package = _package_options.get(key + ".name").as<string> ();
+        load_property_from_xml(_package_options, _package_xml.c_str());
+        key = "options." + Identify();
         _logfile = options->get(key + ".molecule.log").as<string> ();
         _orbfile = options->get(key + ".molecule.orbitals").as<string> ();
-            string _dftengine_xml = options->get(key + ".dftengine").as<string> ();
-            //cout << endl << "... ... Parsing " << _package_xml << endl ;
-            load_property_from_xml(_dftengine_options, _dftengine_xml.c_str());
+        }
 
+        
             
-            // job tasks
-            /*string _tasks_string = options->get(key + ".tasks").as<string> ();
-            if (_tasks_string.find("input") != std::string::npos) _do_dft_input = true;
-            if (_tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
-            if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
-            if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
-            if (_tasks_string.find("optimize") != std::string::npos) _do_optimize = true;
-	    */           
- 
-            
-            // something unique
-            // _package = options->get(key + ".package").as<string> ();
+         
 
             // initial coordinates
 	    _xyzfile = options->get(key + ".xyz").as<string>();
@@ -242,7 +239,7 @@ bool DFT::Evaluate() {
                 if (!in) throw runtime_error(string("Error reading coordinates from: ")
                         + _xyzfile);
 
-                id = 1;
+                id = 0;
                 while (in.good()) { // keep reading until end-of-file
                     in >> type;
                     in >> x;
@@ -267,7 +264,7 @@ bool DFT::Evaluate() {
        _segments.push_back(&_segment);
        //}
 
-
+/*
     //cout << "here" << endl;
     // get the corresponding object from the QMPackageFactory
         QMPackage *_qmpackage =  QMPackages().Create( _package );
@@ -292,7 +289,7 @@ bool DFT::Evaluate() {
         //int _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
         _orbitals.setDFTbasis(_qmpackage->getBasisSetName());
  
-        
+     */   
 
 
 
