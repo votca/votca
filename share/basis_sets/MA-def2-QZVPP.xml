@@ -1,0 +1,315 @@
+<basis name="MA-def2-QZVPP">
+
+     <element name="C">
+
+          <shell type="S" scale="1.00">
+               <constant decay="67025.0710290000" >
+                    <contractions type="S" factor="0.0000709883"></contractions>
+               </constant>
+               <constant decay="10039.9865380000" >
+                    <contractions type="S" factor="0.0005517591"></contractions>
+               </constant>
+               <constant decay="2284.9316911000" >
+                    <contractions type="S" factor="0.0028933011"></contractions>
+               </constant>
+               <constant decay="647.1412213000" >
+                    <contractions type="S" factor="0.0121111499"></contractions>
+               </constant>
+               <constant decay="211.0947233500" >
+                    <contractions type="S" factor="0.0428226972"></contractions>
+               </constant>
+               <constant decay="76.1776438620" >
+                    <contractions type="S" factor="0.1290533288"></contractions>
+               </constant>
+               <constant decay="29.6338391630" >
+                    <contractions type="S" factor="0.3181464779"></contractions>
+               </constant>
+               <constant decay="12.1877850810" >
+                    <contractions type="S" factor="0.5917902746"></contractions>
+               </constant>
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="53.0260062990" >
+                    <contractions type="S" factor="0.0913649169"></contractions>
+               </constant>
+               <constant decay="15.2585027760" >
+                    <contractions type="S" factor="0.9287610902"></contractions>
+               </constant>
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="5.2403957464" >
+                    <contractions type="S" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="2.2905022379" >
+                    <contractions type="S" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="0.6967328301" >
+                    <contractions type="S" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="0.2759933736" >
+                    <contractions type="S" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="0.1073988439" >
+                    <contractions type="S" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="P" scale="1.00">
+               <constant decay="105.1255508200" >
+                    <contractions type="P" factor="0.0024965349"></contractions>
+               </constant>
+               <constant decay="24.8844610660" >
+                    <contractions type="P" factor="0.0195463958"></contractions>
+               </constant>
+               <constant decay="7.8637230826" >
+                    <contractions type="P" factor="0.0888349466"></contractions>
+               </constant>
+               <constant decay="2.8407001835" >
+                    <contractions type="P" factor="0.2947896861"></contractions>
+               </constant>
+               <constant decay="1.1227137335" >
+                    <contractions type="P" factor="0.7027159992"></contractions>
+               </constant>
+          </shell>
+
+          <shell type="P" scale="1.00">
+               <constant decay="0.4605072555" >
+                    <contractions type="P" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="P" scale="1.00">
+               <constant decay="0.1893753091" >
+                    <contractions type="P" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="P" scale="1.00">
+               <constant decay="0.0759837916" >
+                    <contractions type="P" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="D" scale="1.00">
+               <constant decay="1.8480000000" >
+                    <contractions type="D" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="D" scale="1.00">
+               <constant decay="0.6490000000" >
+                    <contractions type="D" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="D" scale="1.00">
+               <constant decay="0.2280000000" >
+                    <contractions type="D" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="F" scale="1.00">
+               <constant decay="1.4190000000" >
+                    <contractions type="F" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="F" scale="1.00">
+               <constant decay="0.4850000000" >
+                    <contractions type="F" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="G" scale="1.00">
+               <constant decay="1.0110000000" >
+                    <contractions type="G" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="0.0357996146333333333" >
+                    <contractions type="S" factor="1.0"></contractions>
+               </constant>
+          </shell>
+
+          <shell type="P" scale="1.00">
+               <constant decay="0.0253279305333333333" >
+                    <contractions type="P" factor="1.0"></contractions>
+               </constant>
+          </shell>
+
+    </element>
+
+
+
+
+    <element name="O">
+
+          <shell type="S" scale="1.00">
+               <constant decay="116506.4690800000" >
+                    <contractions type="S" factor="0.0000719877"></contractions>
+               </constant>
+               <constant decay="17504.3497240000" >
+                    <contractions type="S" factor="0.0005571488"></contractions>
+               </constant>
+               <constant decay="3993.4513230000" >
+                    <contractions type="S" factor="0.0029130031"></contractions>
+               </constant>
+               <constant decay="1133.0063186000" >
+                    <contractions type="S" factor="0.0121720511"></contractions>
+               </constant>
+               <constant decay="369.9956959400" >
+                    <contractions type="S" factor="0.0430037618"></contractions>
+               </constant>
+               <constant decay="133.6207434900" >
+                    <contractions type="S" factor="0.1296476240"></contractions>
+               </constant>
+               <constant decay="52.0356436490" >
+                    <contractions type="S" factor="0.3196960856"></contractions>
+               </constant>
+               <constant decay="21.4619393130" >
+                    <contractions type="S" factor="0.5893145880"></contractions>
+               </constant>
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="89.8350512520" >
+                    <contractions type="S" factor="0.0948480528"></contractions>
+               </constant>
+               <constant decay="26.4280108440" >
+                    <contractions type="S" factor="0.9253637879"></contractions>
+               </constant>
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="9.2822824649" >
+                    <contractions type="S" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="4.0947728533" >
+                    <contractions type="S" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="1.3255349078" >
+                    <contractions type="S" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="0.5187723079" >
+                    <contractions type="S" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="0.1977267645" >
+                    <contractions type="S" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="P" scale="1.00">
+               <constant decay="191.1525581000" >
+                    <contractions type="P" factor="0.0025359574"></contractions>
+               </constant>
+               <constant decay="45.2333567390" >
+                    <contractions type="P" factor="0.0202338243"></contractions>
+               </constant>
+               <constant decay="14.3534659220" >
+                    <contractions type="P" factor="0.0945180200"></contractions>
+               </constant>
+               <constant decay="5.2422371832" >
+                    <contractions type="P" factor="0.3091543280"></contractions>
+               </constant>
+               <constant decay="2.0792418599" >
+                    <contractions type="P" factor="0.6846894953"></contractions>
+               </constant>
+          </shell>
+
+          <shell type="P" scale="1.00">
+               <constant decay="0.8428237142" >
+                    <contractions type="P" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="P" scale="1.00">
+               <constant decay="0.3361769489" >
+                    <contractions type="P" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="P" scale="1.00">
+               <constant decay="0.1286399797" >
+                    <contractions type="P" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="D" scale="1.00">
+               <constant decay="3.7750000000" >
+                    <contractions type="D" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="D" scale="1.00">
+               <constant decay="1.3000000000" >
+                    <contractions type="D" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="D" scale="1.00">
+               <constant decay="0.4440000000" >
+                    <contractions type="D" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="F" scale="1.00">
+               <constant decay="2.6660000000" >
+                    <contractions type="F" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="F" scale="1.00">
+               <constant decay="0.8590000000" >
+                    <contractions type="F" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="G" scale="1.00">
+               <constant decay="1.8460000000" >
+                    <contractions type="G" factor="1.0"></contractions>
+               </constant> 
+          </shell>
+
+          <shell type="S" scale="1.00">
+               <constant decay="0.0659089215" >
+                    <contractions type="S" factor="1.0"></contractions>
+               </constant>
+          </shell>
+
+          <shell type="P" scale="1.00">
+               <constant decay="0.0428799932333333333" >
+                    <contractions type="P" factor="1.0"></contractions>
+               </constant>
+          </shell>
+
+    </element>
+
+</basis>
+
