@@ -1174,7 +1174,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
      #if (GWBSE_DOUBLE)
       const ub::matrix<double>& Htemp=_H;
 #else
-     const ub::matrix<double> Htemp=_H;
+     ub::matrix<double> Htemp=_H;
      LOG(logDEBUG, *_pLog) << TimeStamp()  << " casting Hamiltonian to double  " << flush;
 
 #endif
