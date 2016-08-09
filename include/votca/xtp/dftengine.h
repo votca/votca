@@ -124,7 +124,7 @@ public:
     // AO Matrices
     AOOverlap                           _dftAOoverlap;
     AOOverlap                           _auxAOoverlap;
-    AOCoulomb                           _dftAOcoulomb;
+   // AOCoulomb                           _dftAOcoulomb;
     AOCoulomb                           _auxAOcoulomb;
     AOKinetic                           _dftAOkinetic;
     AOESP                               _dftAOESP;
@@ -145,8 +145,8 @@ public:
     
     
     // exchange and correlation
-    std::string                              _x_functional_name;
-    std::string                              _c_functional_name;
+    std::string                              _xc_functional_name;
+
 
     
    typedef boost::multi_array<double, 4> fourdim;

@@ -46,7 +46,7 @@ namespace votca { namespace xtp {
     }
 
     void AOCoulomb::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp) {
-
+      
             // shell info, only lmax tells how far to go
             const int _lmax_row = _shell_row->getLmax();
             const int _lmax_col = _shell_col->getLmax();
@@ -679,7 +679,7 @@ if (_lmax_col > 5) {
       }
     }
   }
- 
+}
  
  
          
@@ -933,6 +933,10 @@ if (_lmax_col > 5) {
               }
             }
 
+                
+                
+            
+
     ub::matrix<double> _cou_sph = ub::zero_matrix<double>(_ntrafo_row, _ntrafo_col);  ////////////////////////////////////
 
               // s-functions
@@ -1180,7 +1184,7 @@ if (_lmax_col > 5) {
                 } // _shell_col Gaussians
             } // _shell_row Gaussians
             
-            }}    
+            }    
     
 
     
@@ -1284,127 +1288,7 @@ if (_lmax_col > 5) {
     
     
     
-    void AOCoulomb::Symmetrize_DFT( AOOverlap& _gwoverlap, AOBasis& gwbasis, AOOverlap& _gwoverlap_inverse, AOOverlap& _gwoverlap_cholesky_inverse){
-        
-        //Logger* pLog = opThread->getLogger();
-             
-        if ( gwbasis._is_stable ){
-            cout << "doing something " << endl;
-            // get inverse of _aooverlap
-            
-            
-            // Inversion of the matrix using GSL (much faster than boost)
-            ub::matrix<double> _overlap_copy = _gwoverlap._aomatrix;
-            linalg_invert( _overlap_copy, _gwoverlap_inverse._aomatrix );
-            // cout << TimeStamp() << " Inverted GW Overlap matrix " <<   endl;
-            _overlap_copy.resize(0,0);
-            //_gwoverlap_inverse.Print( "S^-1" );
 
-            ub::matrix<double> Vcou_backup = this->_aomatrix;
-            
-            /******* SKIPPING CHOLESKY STUFF ********/
-            /*
-            // getting Cholesky decomposition of AOOverlap matrix
-            AOOverlap _gwoverlap_cholesky;
-            // make copy of _gwoverlap, because matrix is overwritten in GSL
-            _gwoverlap_cholesky._aomatrix = _gwoverlap._aomatrix;
-            linalg_cholesky_decompose( _gwoverlap_cholesky._aomatrix );
-            // cout << TimeStamp() << " Calculated Cholesky decomposition of GW Overlap matrix " <<  endl;
-            //_gwoverlap_cholesky.Print( "ChoS" );
-
-            // remove L^T from Cholesky
-            for (int i =0; i < _gwoverlap_cholesky._aomatrix.size1(); i++ ){
-                for (int j = i+1; j < _gwoverlap_cholesky._aomatrix.size1(); j++ ){
-                    _gwoverlap_cholesky._aomatrix(i,j) = 0.0;
-                }
-            }
-            //_gwoverlap_cholesky.Print( "ChoS_zeroed" );
-
-            // invert L to get L^-1
-            //AOOverlap _gwoverlap_cholesky_inverse;
-            _gwoverlap_cholesky_inverse.Initialize(gwbasis._AOBasisSize);
-            _overlap_copy = _gwoverlap_cholesky._aomatrix;
-            linalg_invert( _overlap_copy , _gwoverlap_cholesky_inverse._aomatrix );
-            // cout << TimeStamp() << " Inverted Cholesky of GW Overlap " <<  endl;
-            //_gwoverlap_cholesky_inverse.Print( "L^-1" );
-            _overlap_copy.resize(0,0);
-
-   
-            
-            
-            // calculate V' = L^-1 V (L^-1)^T
-            ub::matrix<double> _temp ( gwbasis._AOBasisSize, gwbasis._AOBasisSize);
-            //_temp = ub::prod( _gwoverlap_cholesky_inverse._aomatrix , _gwcoulomb._aomatrix );
-            _temp = ub::prod( _gwoverlap_cholesky_inverse._aomatrix , this->_aomatrix );
-
-
-            // boost standard, nesting prod and trans is superslow
-            //this->_aomatrix = ub::prod( _temp, ub::trans(_gwoverlap_cholesky_inverse._aomatrix ));
-            ub::matrix<double> _gwoverlap_cholesky_inverse_transposed = ub::trans(_gwoverlap_cholesky_inverse._aomatrix );
-            this->_aomatrix = ub::prod( _temp, _gwoverlap_cholesky_inverse_transposed);
-            
-            // cout << TimeStamp() << " Multiplied GW Coulomb with L^-1 and (L^-1)^T " <<  endl;
-            // this->Print( "CouSu" );
-*/
-            
-            
-            ub::vector<double>                  _eigenvalues;
-            ub::matrix<double>                  _eigenvectors;
-
-            // get eigenvectors and eigenvalues of V'
-            // LA_Eigenvalues( this->_aomatrix , _eigenvalues, _eigenvectors);
-            linalg_eigenvalues( this->_aomatrix , _eigenvalues, _eigenvectors);
-            // calc sqrt(V')
-            ub::matrix<double> _temp ( gwbasis._AOBasisSize, gwbasis._AOBasisSize);
-            _temp.clear();
-            for ( int i = 0; i  < gwbasis._AOBasisSize; i++ ){
-
-                if ( _eigenvalues(i) < 0.0 ) {
-                    cout << "Warning: negative eigenvalue!" << endl;
-                    _eigenvalues(i) = 0.0;
-                }
-                for ( int j = 0; j < gwbasis._AOBasisSize; j++){
-                    _temp(i,j) = _eigenvectors(j,i) * sqrt(_eigenvalues(i));
-                }
-            }
-            
-            this->_aomatrix = ub::prod(_eigenvectors, _temp);
-            // cout << TimeStamp() << " Calculated sqrt(V') matrix " <<  endl;
-            // this->Print( "CouEV" );
-
-            /****** SKIPPING AGAIN ******/
-            /*
-            // multiply with L from the left and L+ from the right
-            _temp = ub::prod( _gwoverlap_cholesky._aomatrix , this->_aomatrix );
-            
-            
-            ub::matrix<double> _gwoverlap_cholesky_transposed = ub::trans( _gwoverlap_cholesky._aomatrix );
-            this->_aomatrix = ub::prod( _temp ,_gwoverlap_cholesky_transposed);
-            
-            
-            // cout << TimeStamp() << " Coulomb matrix sqrt'ed " <<  endl;
-            // this->Print( "CouSqrt" );
-             * 
-             * 
-             */
-            ub::matrix<double> Vcou =ub::prod(this->_aomatrix,this->_aomatrix);
-            for ( int i =0; i < this->Dimension(); i++ ){
-            for ( int j =0; j < this->Dimension(); j++ ){
-                
-                cout <<  i << " : "  << j << " = " << Vcou(i,j) << " vs " << Vcou_backup(i,j) << endl;
-                
-            }                
-            }
-            
-            
-            
-            // multiply _gwcoulomb with _gwoverlap_inverse
-            this->_aomatrix = ub::prod( this->_aomatrix , _gwoverlap_inverse._aomatrix );
-            // cout << TimeStamp() << " Final Coulomb matrix  " <<  endl;
-            // this->Print( " COUfinal ");
-        }
-        
-    }
     
 }}
 

@@ -74,10 +74,10 @@ namespace votca { namespace xtp {
                 int _col_end   = _col_start + _shell_col->getNumFunc();
                 //cout << _row << ":" << _row_start << ":" << _row_end << "/" << _col << ":" <<  _col_start << ":" << _col_end << endl;
                 ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(this->_aomatrix, _row_start, _row_end, _col_start, _col_end);
-
+                
                 // Fill block
                 FillBlock( _submatrix, _shell_row, _shell_col, ecp );
-
+                //cout << _submatrix<<endl;
             }
         }
         

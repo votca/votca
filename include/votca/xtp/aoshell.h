@@ -87,7 +87,6 @@ public:
     
     void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z );
     void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z );
-    //void EvalAOspace(ub::matrix<double>& AOvalues, double x, double y, double z , string type = "");
     
     void EvalAOIntegral(ub::matrix_range<ub::matrix<double> >& AOvalues);
     

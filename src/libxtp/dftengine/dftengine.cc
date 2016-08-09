@@ -81,8 +81,10 @@ namespace votca {
 	    _grid_name = options->get(key + ".integration_grid").as<string>();
 
 	    // exchange and correlation as in libXC
-	    _x_functional_name = options->get(key + ".exchange_functional").as<string>();
-	    _c_functional_name = options->get(key + ".correlation_functional").as<string>();
+        
+        _xc_functional_name = options->get(key + ".xc_functional").as<string> ();
+        
+	   
             _numofelectrons =0;
             _mixingparameter = options->get(key + ".density_mixing").as<double>();
 	    _max_iter = options->get(key + ".max_iterations").as<int>();
@@ -110,6 +112,11 @@ namespace votca {
             #endif
 
             _atoms = _orbitals->QMAtoms();
+            LOG(logDEBUG, *_pLog) << TimeStamp() << "Molecule Coordinates [A] "  << flush;
+            for(unsigned i=0;i<_atoms.size();i++){
+                LOG(logDEBUG, *_pLog) << "\t\t"<< _atoms[i]->type<<" "<<_atoms[i]->x<<" "<<_atoms[i]->y<<" "<<_atoms[i]->z<<" "<<flush;
+            }
+            
             AOBasis* basis = &_dftbasis;
             
            
@@ -132,6 +139,7 @@ namespace votca {
             
             if(_with_ecp){
             H0+=_dftAOECP.Matrix();
+            cout<< "WARNING ecps are not correctly sorted" <<endl;
             }
             linalg_eigenvalues_general(H0, _dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
 
@@ -149,7 +157,7 @@ namespace votca {
             
 	    DensityMatrixGroundState( initMOCoeff, _numofelectrons/2 ) ;
 
-
+        
 	    
 
 
@@ -164,9 +172,10 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
 
 
-		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis,"PBE_VOTCA");
+		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis,_xc_functional_name);
          
-                
+       //cout << "ERIS"<<endl;
+       //cout<<_ERIs.getERIs()<<endl;
                 
                 
                 ub::matrix<double> H=H0+_ERIs.getERIs()+VXC;
@@ -181,14 +190,14 @@ namespace votca {
 
                 for (int i=0;i<_numofelectrons;i++){
                     if ( i <= _numofelectrons/2-1) {
-                        cout <<  i <<  " occ " << MOEnergies(i)  << endl;
+                        LOG(logDEBUG, *_pLog) <<"\t\t" << i <<  " occ " << MOEnergies(i)  << flush;
                         totenergy+=2*MOEnergies(i);
                     } else {
-                        cout <<  i <<  " vir " << MOEnergies(i)  << endl;
+                        LOG(logDEBUG, *_pLog) <<"\t\t"<<   i <<  " vir " << MOEnergies(i)  << flush;
                         
                     }
                 }
-                cout << " GAP " << MOEnergies(_numofelectrons/2)-MOEnergies(_numofelectrons/2-1) << endl;
+                LOG(logDEBUG, *_pLog) << "\t\tGAP " << MOEnergies(_numofelectrons/2)-MOEnergies(_numofelectrons/2-1) << flush;
                 
                  LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy "<<totenergy<<flush;
                 totenergy+=_gridIntegration.getTotEcontribution()-0.5*_ERIs.getERIsenergy();
@@ -268,8 +277,11 @@ namespace votca {
             
             
             // AUX AOcoulomb matrix
+            //cout << " _auxAOcoulomb" <<endl;
             _auxAOcoulomb.Initialize(_auxbasis.AOBasisSize());
             _auxAOcoulomb.Fill(&_auxbasis);
+            
+            //cout << _auxAOcoulomb._aomatrix<<endl;
             // _auxAOcoulomb.Print("COU");
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
             //exit(0);
@@ -314,7 +326,8 @@ namespace votca {
             
 	    // setup numerical integration grid
             _gridIntegration.GridSetup(_grid_name,&_dftbasisset,_atoms);
-	    LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name << flush;
+	    LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name << " for vxc functional " << _xc_functional_name<< flush;
+        
 	
            Elements _elements; 
             //set number of electrons and such

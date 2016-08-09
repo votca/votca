@@ -35,7 +35,8 @@ namespace votca {
            
            
             _threecenter.Fill( _auxbasis, _dftbasis );
-            
+            //cout << "_threeceenter(0)"<<endl;
+            //cout << _threecenter.getDatamatrix(0)<<endl;
 
             return;
         }
@@ -54,9 +55,9 @@ namespace votca {
             
             ub::matrix<double> _inverse_Coulomb=ub::zero_matrix<double>( _auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension()); 
             linalg_invert( _auxAOcoulomb.Matrix() , _inverse_Coulomb);
-
-
-
+            //cout << _auxAOcoulomb.Matrix()<<endl;
+            //cout << "inverse Coulomb"<< endl;
+            //cout << _inverse_Coulomb<<endl;
             
             _ERIs=ub::zero_matrix<double>(DMAT.size1(),DMAT.size2());
             const ub::vector<double> dmatasarray=DMAT.data();
