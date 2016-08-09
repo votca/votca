@@ -79,7 +79,7 @@ namespace votca {
             
 	    // numerical integrations
 	    _grid_name = options->get(key + ".integration_grid").as<string>();
-
+        _Econverged = options->get(key + ".convergence").as<double>();
 	    // exchange and correlation as in libXC
         
         _xc_functional_name = options->get(key + ".xc_functional").as<string> ();
@@ -164,6 +164,8 @@ namespace votca {
            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
            //LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity_Atomblock(_dftAOdmat, basis) << flush;
 	   
+           double energyold=totinit;
+           
             for ( _this_iter=0; _this_iter<_max_iter; _this_iter++){
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
 
@@ -207,8 +209,13 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<totenergy<<flush;
                 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
-
-
+                if (std::abs(totenergy-energyold)< _Econverged){
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculation has converged up to "<<_Econverged<<"."<<flush;
+                    break;
+                }
+                else{
+                    energyold=totenergy;
+                }
 
 
                 EvolveDensityMatrix( MOCoeff, _numofelectrons/2 ) ;

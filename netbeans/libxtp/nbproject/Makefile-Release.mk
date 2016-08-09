@@ -37,7 +37,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/ERIs.o \
 	${OBJECTDIR}/_ext/484478074/aobasis.o \
-	${OBJECTDIR}/_ext/708574269/aocoulomb_g.o \
 	${OBJECTDIR}/_ext/708574269/aodipole.o \
 	${OBJECTDIR}/_ext/708574269/aoecp.o \
 	${OBJECTDIR}/_ext/708574269/aoesp.o \
@@ -155,11 +154,6 @@ ${OBJECTDIR}/_ext/484478074/aobasis.o: nbproject/Makefile-${CND_CONF}.mk ../../s
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484478074/aobasis.o ../../src/libxtp/aobasis.cc
-
-${OBJECTDIR}/_ext/708574269/aocoulomb_g.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/aomatrices/aocoulomb_g.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/708574269
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/708574269/aocoulomb_g.o ../../src/libxtp/aomatrices/aocoulomb_g.cc
 
 ${OBJECTDIR}/_ext/708574269/aodipole.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/aomatrices/aodipole.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/708574269

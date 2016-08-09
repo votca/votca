@@ -1347,7 +1347,7 @@ if (_lmax_beta > 3) {
         
         const int _mm = _FmT.size() - 1;
         const double pi = boost::math::constants::pi<double>();
-        if ( _mm < 0 || _mm > 10){
+        if ( _mm < 0){
             cerr << "mm is: " << _mm << " This should not have happened!" << flush;
             exit(1);
         }

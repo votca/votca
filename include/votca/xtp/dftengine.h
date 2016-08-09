@@ -132,6 +132,7 @@ public:
     
     //
     double                              _mixingparameter;
+    double                              _Econverged;
     int                                 _numofelectrons;
     int                                 _max_iter;
     int                                 _this_iter;

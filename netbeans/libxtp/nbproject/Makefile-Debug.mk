@@ -37,7 +37,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/ERIs.o \
 	${OBJECTDIR}/_ext/484478074/aobasis.o \
-	${OBJECTDIR}/_ext/708574269/aocoulomb_g.o \
 	${OBJECTDIR}/_ext/708574269/aodipole.o \
 	${OBJECTDIR}/_ext/708574269/aoecp.o \
 	${OBJECTDIR}/_ext/708574269/aoesp.o \
@@ -155,11 +154,6 @@ ${OBJECTDIR}/_ext/484478074/aobasis.o: ../../src/libxtp/aobasis.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} $@.d
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484478074/aobasis.o ../../src/libxtp/aobasis.cc
-
-${OBJECTDIR}/_ext/708574269/aocoulomb_g.o: ../../src/libxtp/aomatrices/aocoulomb_g.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/708574269
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/708574269/aocoulomb_g.o ../../src/libxtp/aomatrices/aocoulomb_g.cc
 
 ${OBJECTDIR}/_ext/708574269/aodipole.o: ../../src/libxtp/aomatrices/aodipole.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/708574269

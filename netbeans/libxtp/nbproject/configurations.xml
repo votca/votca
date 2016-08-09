@@ -566,11 +566,6 @@
       </item>
       <item path="../../src/libxtp/aobasis.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/aomatrices/aocoulomb_g.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/aomatrices/aodipole.cc"
             ex="false"
             tool="1"
@@ -1362,11 +1357,6 @@
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../src/libxtp/aobasis.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/aomatrices/aocoulomb_g.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aodipole.cc"
             ex="false"

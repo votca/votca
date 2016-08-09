@@ -939,6 +939,7 @@ if (_lmax_col > 5) {
 
     ub::matrix<double> _cou_sph = ub::zero_matrix<double>(_ntrafo_row, _ntrafo_col);  ////////////////////////////////////
 
+        
               // s-functions
             factor = _contractions_col[0];
             for (int _i =  0; _i < _ntrafo_row; _i++) {
