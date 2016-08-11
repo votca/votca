@@ -50,7 +50,7 @@ namespace votca { namespace xtp {
         ub::matrix<double> getERIs(){return _ERIs;}
         double& getERIsenergy(){return _ERIsenergy;}
         
-        void CalculateERIs(const ub::matrix<double> &DMAT, AOCoulomb &_auxAOcoulomb);
+        void CalculateERIs(const ub::matrix<double> &DMAT, const ub::matrix<double> &_inverse_Coulomb);
         
         
         int getSize1(){return _ERIs.size1();}

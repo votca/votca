@@ -125,8 +125,9 @@ namespace votca {
             /**** END OF PREPARATION ****/
             
 	    /**** Density-independent matrices ****/
-	    SetupInvariantMatrices();
-         
+            SetupInvariantMatrices();
+            ub::matrix<double> _inverse_Coulomb=ub::zero_matrix<double>( _auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension()); 
+            linalg_invert( _auxAOcoulomb.Matrix() , _inverse_Coulomb);
             
             
             /**** Initial guess = one-electron Hamiltonian without interactions ****/
@@ -150,7 +151,9 @@ namespace votca {
                 totinit += 2 * MOEnergies(i);
             }
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy " << totinit << flush;
-               
+            
+            NuclearRepulsion();
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Nuclear Repulsion Energy is " << E_nucnuc << flush;
 
             
 	    ub::matrix<double> initMOCoeff= ub::trans(_orbitals->MOCoefficients());
@@ -170,7 +173,7 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
 
 
-                _ERIs.CalculateERIs(_dftAOdmat, _auxAOcoulomb);
+                _ERIs.CalculateERIs(_dftAOdmat, _inverse_Coulomb);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
 
 
@@ -187,7 +190,7 @@ namespace votca {
                 
           
                 
-                double totenergy=0;
+                double totenergy=E_nucnuc;
        
 
                 for (int i=0;i<_numofelectrons;i++){
@@ -205,7 +208,7 @@ namespace votca {
                 totenergy+=_gridIntegration.getTotEcontribution()-0.5*_ERIs.getERIsenergy();
 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Exc contribution "<<_gridIntegration.getTotEcontribution()<<flush;
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " E_H contribution "<<-0.5*_ERIs.getERIsenergy()<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " E_H contribution "<<0.5*_ERIs.getERIsenergy()<<flush;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<totenergy<<flush;
                 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
@@ -392,6 +395,34 @@ namespace votca {
       /*DIIS or mixing can be implemented here*/
       
       }
+      
+      void DFTENGINE::NuclearRepulsion(){
+          Elements element;
+          E_nucnuc=0.0;
+          
+          std::vector<double> charge;
+          for(unsigned i=0;i<_atoms.size();i++){
+              if(_with_ecp){
+                  charge.push_back(element.getNucCrgECP(_atoms[i]->type));
+              }
+              else{
+                  charge.push_back(element.getNucCrg(_atoms[i]->type));
+              }
+          }      
+              
+          for(unsigned i=0;i<_atoms.size();i++){
+              vec r1=vec(_atoms[i]->x*tools::conv::ang2bohr,_atoms[i]->y*tools::conv::ang2bohr,_atoms[i]->z*tools::conv::ang2bohr);
+              double charge1=charge[i];
+              for(unsigned j=0;j<i;j++){
+                  vec r2=vec(_atoms[j]->x*tools::conv::ang2bohr,_atoms[j]->y*tools::conv::ang2bohr,_atoms[j]->z*tools::conv::ang2bohr);
+                  double charge2=charge[j];
+                  E_nucnuc+=charge1*charge2/(abs(r1-r2));
+              }
+          }
+
+          return;
+      }
+      
       
 
       

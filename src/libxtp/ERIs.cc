@@ -43,18 +43,23 @@ namespace votca {
         
         
 
+  /*  void Eris::Initialize_Symmetric(AOBasis &_dftbasis,AOBasis &_auxbasis, AOCoulomb &_auxcoulomb){
+        _threecenter.Fill(_auxbasis,_dftbasis);
+        eigenlinalg_matrixsqrt(_auxcoulomb.Matrix());
         
+        for 
         
+    }    
         
+ */       
         
         
       
         
         
-        void ERIs::CalculateERIs (const ub::matrix<double> &DMAT, AOCoulomb &_auxAOcoulomb){
+        void ERIs::CalculateERIs (const ub::matrix<double> &DMAT, const ub::matrix<double> &_inverse_Coulomb){
             
-            ub::matrix<double> _inverse_Coulomb=ub::zero_matrix<double>( _auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension()); 
-            linalg_invert( _auxAOcoulomb.Matrix() , _inverse_Coulomb);
+           
             //cout << _auxAOcoulomb.Matrix()<<endl;
             //cout << "inverse Coulomb"<< endl;
             //cout << _inverse_Coulomb<<endl;

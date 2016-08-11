@@ -80,7 +80,7 @@ public:
     
     void DensityMatrixGroundState( ub::matrix<double>& _MOs, int occulevels ) ;
     
-
+    void NuclearRepulsion();
     void EvolveDensityMatrix(ub::matrix<double>& MOCoeff, int occulevels);
     
     //bool   _maverick;
@@ -129,6 +129,8 @@ public:
     AOKinetic                           _dftAOkinetic;
     AOESP                               _dftAOESP;
     AOECP                               _dftAOECP;
+    
+    double                              E_nucnuc;
     
     //
     double                              _mixingparameter;
