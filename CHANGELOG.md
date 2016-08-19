@@ -1,5 +1,11 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
+## Version 1.3.1 (released 19.08.16)
+* histogram: use floor() on bin value
+* calculator: fixed namespace
+* VOTCARC: added shebang
+* fixed gromacs detection with >=cmake-3.4
+
 ## Version 1.3 _SuperUzma_ (released 15.01.16)
 * re-implemented csg_boltzmann --excl
 * added support for upcoming gromacs 2016
