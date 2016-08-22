@@ -200,7 +200,7 @@ public:
     }
     int getGWAmin() const { return _qpmin;}
     int getGWAmax() const { return _qpmax;}
-    int getGWAtot() const { return _qptotal;}
+    int getGWAtot() const { return (_qpmax - _qpmin +1);}
 
     // access to list of indices used in RPA
     bool hasRPAindices() { return ( _rpamax > 0 ) ? true : false; }
