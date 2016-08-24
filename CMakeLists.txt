@@ -44,3 +44,6 @@ if(NOT TARGET uninstall)
   add_custom_target(uninstall)
 endif()
 add_dependencies(uninstall uninstall-csgapps)
+
+include(FeatureSummary)
+feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
