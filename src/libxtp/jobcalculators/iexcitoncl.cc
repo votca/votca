@@ -221,8 +221,8 @@ double IEXCITON::EvaluatePair(Topology *top,PolarSeg* Seg1,PolarSeg* Seg2, Logge
 void IEXCITON::WriteJobFile(Topology *top) {
 
     cout << endl << "... ... Writing job file " << flush;
-    ofstream ofs;
-    ofs.open(_jobfile.c_str(), ofstream::out);
+    std::ofstream ofs;
+    ofs.open(_jobfile.c_str(), std::ofstream::out);
     if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
 
  
