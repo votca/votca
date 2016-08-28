@@ -1111,6 +1111,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
       
      ub::matrix<double> ct_states=ub::matrix<double>(_ct,nobasisfunc);
      
+     //cout<< _ct<< "ct states"<<endl;
     if(_ct>0){ 
      //orthogonalize ct-states with respect to the FE states. 
        LOG(logDEBUG, *_pLog) << TimeStamp()  << " Orthogonalizing CT-states with respect to FE-states" << flush;
@@ -1149,7 +1150,9 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
          }
          //cout << "norm ["<<i<<"]:" <<norm<<endl;
          norm=1/std::sqrt(norm);
-         
+         if(norm<0.95){
+            LOG(logDEBUG, *_pLog) << TimeStamp()  << " WARNING: CT-state "<< i<< " norm is only"<< norm << flush; 
+         }
          for (unsigned j=0;j<nobasisfunc;j++){
             ct_states(i,j)=norm*ct_states(i,j);    
          }
@@ -1169,9 +1172,9 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
      //cout << _S_dimer.size1()<< " : "<<_S_dimer.size2()<<endl;
      
      #if (GWBSE_DOUBLE)
-        ub::matrix<double>& Htemp=_H;
+      const ub::matrix<double>& Htemp=_H;
 #else
-      ub::matrix<double> Htemp=_H;
+     ub::matrix<double> Htemp=_H;
      LOG(logDEBUG, *_pLog) << TimeStamp()  << " casting Hamiltonian to double  " << flush;
 
 #endif
@@ -1201,8 +1204,11 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
      
      ub::matrix<double> _temp=ub::prod(Htemp,ub::trans(projection));
      ub::matrix<double> _J_dimer=ub::prod(projection,_temp);
-     
+       #if (GWBSE_DOUBLE)
+    LOG(logDEBUG, *_pLog) << TimeStamp()  << " no Casting  " << flush;
+    #else
      Htemp.resize(0,0);
+     #endif
      _temp.resize(0,0);
      
 
@@ -1264,7 +1270,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
 
                     LOG(logDEBUG, *_pLog) << "FE state hamiltonian" << flush;
                     LOG(logDEBUG, *_pLog) << ub::project(_J_dimer, ub::range(0, _bse_exc), ub::range(0, _bse_exc)) << flush;
-                    if (_ct > 0) {
+                    if (_ct > 0 ) {
                         LOG(logDEBUG, *_pLog) << "eigenvalues of CT states" << flush;
                         LOG(logDEBUG, *_pLog) << eigenvalues_ct << flush;
                     }
