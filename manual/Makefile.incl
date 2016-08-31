@@ -1,7 +1,8 @@
 all:  $(SUBDIRS) $(AGRPICS) $(GPPICS) $(FIGPICS) $(PNGPICS) $(JPGPICS) $(SVGPICS) 
 
 SHELL=/bin/bash
-ROOTDIR=$(shell git rev-parse --show-toplevel)
+ROOTDIR1=$(shell git rev-parse --show-toplevel)
+ROOTDIR=${ROOTDIR1}/manual
 SCRIPTDIR=$(ROOTDIR)/scripts
 
 ifeq ($(OSTYPE),darwin)
