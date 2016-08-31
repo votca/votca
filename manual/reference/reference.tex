@@ -11,9 +11,9 @@ Programs execute specific tasks (calculators).
 \label{ref:calculators}
 \label{sec:calculators}
 
-Calculator is a piece of code which computes specific system properties, such as site energies, transfer integrals, etc. \ctprun, \kmcrun are wrapper programs which executes such calculators. The generic syntax is 
+Calculator is a piece of code which computes specific system properties, such as site energies, transfer integrals, etc. \xtprun, \kmcrun are wrapper programs which executes such calculators. The generic syntax is 
 \vskip 0.2cm
-{\noindent \small \ctprun \exe \texttt{"calc1, calc2, ..."} \opt \xmloptions }
+{\noindent \small \xtprun \exe \texttt{"calc1, calc2, ..."} \opt \xmloptions }
 \vskip 0.2cm
 %
 File \xmloptions lists all options needed to run a specific calculator. The format of this file is explained in listing~\ref{list:calc}. A complete list of calculators is given in the \refcalc reference section.
@@ -24,12 +24,12 @@ File \xmloptions lists all options needed to run a specific calculator. The form
 
 A list of all calculators and their short descriptions can be obtain using 
 \vskip 0.1cm
-{\noindent \small \ctprun \texttt{-{}-list} }
+{\noindent \small \xtprun \texttt{-{}-list} }
 \vskip 0.1cm
 
 A detailed description of all options of a specific calculator(s) is available via
 \vskip 0.1cm
-{\noindent \small \ctprun \texttt{-{}-desc calc1,calc2,...} }
+{\noindent \small \xtprun \texttt{-{}-desc calc1,calc2,...} }
 
 \input{reference/calculators/calculators}
 \vfill

@@ -1,7 +1,7 @@
 SHELL=/bin/bash
-BINS1:=$(shell ls `dirname \`which ctp_run\``/ctp_* | xargs -n1 basename ) 
-BINS2:=$(shell ls `dirname \`which kmc_run\``/kmc_* | xargs -n1 basename )
-BINS3:=$(shell ls `dirname \`which moo_overlap\``/moo_* | xargs -n1 basename )
+BINS1:=$(shell ls `dirname \`which xtp_run\``/xtp_* | xargs -n1 basename ) 
+BINS2:=$(shell ls `dirname \`which xtp_kmc_run\``/kmc_* | xargs -n1 basename )
+BINS3:=$(shell ls `dirname \`which xtp_overlap\``/xtp_* | xargs -n1 basename )
 
 all: Makefile.incl
 

@@ -153,7 +153,7 @@
          id="tspan3907"
          x="219.71429"
          y="136.93361"
-         style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:100%;font-family:Courier;-inkscape-font-specification:Courier">ctp_map -t MD_FILES/topol.tpr -c MD_FILES/conf.gro</tspan><tspan
+         style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:100%;font-family:Courier;-inkscape-font-specification:Courier">xtp_map -t MD_FILES/topol.tpr -c MD_FILES/conf.gro</tspan><tspan
          sodipodi:role="line"
          x="219.71429"
          y="146.93361"
@@ -182,7 +182,7 @@
          x="217.76399"
          y="241.1954"
          style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:100%;font-family:Courier;-inkscape-font-specification:Courier"
-         id="tspan4022">ctp_run -e neighborlist -o options.xml -f state.sql</tspan></text>
+         id="tspan4022">xtp_run -e neighborlist -o options.xml -f state.sql</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:35.32790375px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
@@ -354,7 +354,7 @@
          x="42.919926"
          y="528.99365"
          style="font-size:10px;line-height:100%;font-family:courier;-inkscape-font-specification:courier"
-         id="tspan3358">ctp_parallel -e edft -o options.xml -f state.sql</tspan><tspan
+         id="tspan3358">xtp_parallel -e edft -o options.xml -f state.sql</tspan><tspan
          sodipodi:role="line"
          x="42.919926"
          y="538.99365"
@@ -374,7 +374,7 @@
          x="42.919926"
          y="568.99365"
          style="font-size:10px;line-height:100%;font-family:courier;-inkscape-font-specification:courier"
-         id="tspan3371">ctp_parallel -e edft -o options.xml -f state.sql</tspan><tspan
+         id="tspan3371">xtp_parallel -e edft -o options.xml -f state.sql</tspan><tspan
          sodipodi:role="line"
          x="42.919926"
          y="578.99365"
@@ -389,7 +389,7 @@
          x="42.919926"
          y="598.99365"
          style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:100%;font-family:Courier;-inkscape-font-specification:Courier"
-         id="tspan3377">ctp_parallel -e edft -o options.xml -f state.sql</tspan><tspan
+         id="tspan3377">xtp_parallel -e edft -o options.xml -f state.sql</tspan><tspan
          sodipodi:role="line"
          x="42.919926"
          y="608.99365"
@@ -473,7 +473,7 @@
          x="43.256241"
          y="694.04285"
          style="font-size:10px;line-height:100%;font-family:courier;-inkscape-font-specification:courier"
-         id="tspan3358-8">ctp_parallel -e idft -o options.xml -f state.sql</tspan><tspan
+         id="tspan3358-8">xtp_parallel -e idft -o options.xml -f state.sql</tspan><tspan
          sodipodi:role="line"
          x="43.256241"
          y="704.04285"
@@ -540,7 +540,7 @@
          x="219.64252"
          y="328.07489"
          style="font-size:10px;line-height:100%;font-family:courier;-inkscape-font-specification:courier"
-         id="tspan3358-1">ctp_run -e emultipole -o options.xml -f state.sql</tspan><tspan
+         id="tspan3358-1">xtp_run -e emultipole -o options.xml -f state.sql</tspan><tspan
          sodipodi:role="line"
          x="219.64252"
          y="338.07489"
@@ -616,7 +616,7 @@
          x="219.65308"
          y="434.5116"
          style="font-size:10px;line-height:100%;font-family:courier;-inkscape-font-specification:courier"
-         id="tspan3358-1-8">ctp_run -e einternal -o options.xml -f state.sql</tspan><tspan
+         id="tspan3358-1-8">xtp_run -e einternal -o options.xml -f state.sql</tspan><tspan
          sodipodi:role="line"
          x="219.65308"
          y="444.5116"
@@ -709,7 +709,7 @@
          x="387.47327"
          y="527.84711"
          style="font-size:10px;line-height:100%;font-family:courier;-inkscape-font-specification:courier"
-         id="tspan3358-1-8-6">ctp_run -e izindo -o options.xml -f state.sql</tspan><tspan
+         id="tspan3358-1-8-6">xtp_run -e izindo -o options.xml -f state.sql</tspan><tspan
          sodipodi:role="line"
          x="387.47327"
          y="537.84711"
@@ -764,7 +764,7 @@
          x="218.48883"
          y="811.36438"
          style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:100%;font-family:Courier;-inkscape-font-specification:Courier"
-         id="tspan4022-7">ctp_run -e eoutersphere -o options.xml -f state.sql</tspan></text>
+         id="tspan4022-7">xtp_run -e eoutersphere -o options.xml -f state.sql</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:35.32790375px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
@@ -849,7 +849,7 @@
          x="218.14334"
          y="895.43579"
          style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:100%;font-family:Courier;-inkscape-font-specification:Courier"
-         id="tspan4022-7-7">ctp_run -e rates -o options.xml -f state.sql</tspan></text>
+         id="tspan4022-7-7">xtp_run -e rates -o options.xml -f state.sql</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:35.32790375px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
@@ -1132,7 +1132,7 @@
          x="38.695599"
          y="831.68549"
          style="font-size:10px;line-height:100%;font-family:courier;-inkscape-font-specification:courier"
-         id="tspan4403">ctp_run -l</tspan><tspan
+         id="tspan4403">xtp_run -l</tspan><tspan
          sodipodi:role="line"
          x="38.695599"
          y="841.68549"
@@ -1152,7 +1152,7 @@
          x="38.695599"
          y="871.68549"
          style="font-size:10px;line-height:100%;font-family:courier;-inkscape-font-specification:courier"
-         id="tspan4393">ctp_run -d neighborlist</tspan></text>
+         id="tspan4393">xtp_run -d neighborlist</tspan></text>
     <flowRoot
        xml:space="preserve"
        id="flowRoot4407"

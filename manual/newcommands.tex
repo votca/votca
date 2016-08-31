@@ -35,7 +35,7 @@
 
 \newcommand{\xyz}{\texttt{geometry.xyz}\xspace}
 \newcommand{\orb}{\texttt{zindo.orb}\xspace}
-\newcommand{\votcactp}{{\MakeUppercase{votca-ctp}}\xspace}
+\newcommand{\votcaxtp}{{\MakeUppercase{votca-xtp}}\xspace}
 
 \newcommand{\calculator}{\hyperref[sec:calculators]{calculator}\xspace}
 \newcommand{\tool}{\hyperref[sec:calculators]{tool}\xspace}
@@ -62,15 +62,15 @@
 
 \newcommand{\refcalc}{\hyperref[ref:calculators]{calculators}\xspace}
 
-\newcommand{\overlap}{\hyperref[prog:moo_overlap]{\texttt{moo\_overlap}}\xspace}
-\newcommand{\ctprun}{\hyperref[prog:ctp_run]{\texttt{ctp\_run}}\xspace}
-\newcommand{\ctpmap}{\hyperref[prog:ctp_map]{\texttt{ctp\_map}}\xspace}
-\newcommand{\ctpdipro}{\hyperref[prog:ctp_dipro]{\texttt{ctp\_dipro}}\xspace}
-\newcommand{\ctpparallel}{\hyperref[prog:ctp_parallel]{\texttt{ctp\_parallel}}\xspace}
-\newcommand{\ctpdump}{\hyperref[prog:ctp_dump]{\texttt{ctp\_dump}}\xspace}
-\newcommand{\ctpupdate}{\hyperref[prog:ctp_update]{\texttt{ctp\_update}}\xspace}
-\newcommand{\ctptools}{\hyperref[prog:ctp_tools]{\texttt{ctp\_tools}}\xspace}
-\newcommand{\kmcrun}{\hyperref[prog:kmc_run]{\texttt{kmc\_run}}\xspace}
+\newcommand{\overlap}{\hyperref[prog:xtp_overlap]{\texttt{xtp\_overlap}}\xspace}
+\newcommand{\xtprun}{\hyperref[prog:xtp_run]{\texttt{xtp\_run}}\xspace}
+\newcommand{\xtpmap}{\hyperref[prog:xtp_map]{\texttt{xtp\_map}}\xspace}
+\newcommand{\xtpdipro}{\hyperref[prog:xtp_dipro]{\texttt{xtp\_dipro}}\xspace}
+\newcommand{\xtpparallel}{\hyperref[prog:xtp_parallel]{\texttt{xtp\_parallel}}\xspace}
+\newcommand{\xtpdump}{\hyperref[prog:xtp_dump]{\texttt{xtp\_dump}}\xspace}
+\newcommand{\xtpupdate}{\hyperref[prog:xtp_update]{\texttt{xtp\_update}}\xspace}
+\newcommand{\xtptools}{\hyperref[prog:xtp_tools]{\texttt{xtp\_tools}}\xspace}
+\newcommand{\kmcrun}{\hyperref[prog:xtp_kmc_run]{\texttt{xtp\_kmc\_run}}\xspace}
 
 \newcommand{\sqlite}{\texttt{sqlite3}\xspace}
 \newcommand{\sqlconjsegproperties}{\texttt{conjseg\_properties}\xspace}
@@ -110,19 +110,19 @@
 \newcommand{\matr}[1]{\mathbf{ #1 }}
 
 %% FULL COMMANDS LISTING
-\newcommand{\cmdmap}{\ctpmap \tpl \topology \trj \trajectory \seg \xmlcsg  \sql \sqlstate}
-\newcommand{\cmdnbl}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{neighborlist}}
-\newcommand{\cmdemlt}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{emultipole}}
-\newcommand{\cmdeint}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{einternal}}
-\newcommand{\cmdedft}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{edft}}
-\newcommand{\cmdidft}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{idft}}
-\newcommand{\cmdizindo}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{izindo}}
-\newcommand{\cmdouter}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{outersphere}}
-\newcommand{\cmdrates}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{rates}}
+\newcommand{\cmdmap}{\xtpmap \tpl \topology \trj \trajectory \seg \xmlcsg  \sql \sqlstate}
+\newcommand{\cmdnbl}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{neighborlist}}
+\newcommand{\cmdemlt}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{emultipole}}
+\newcommand{\cmdeint}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{einternal}}
+\newcommand{\cmdedft}{\xtpparallel \opt \xmloptions \sql \sqlstate \exe \calc{edft}}
+\newcommand{\cmdidft}{\xtpparallel \opt \xmloptions \sql \sqlstate \exe \calc{idft}}
+\newcommand{\cmdizindo}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{izindo}}
+\newcommand{\cmdouter}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{outersphere}}
+\newcommand{\cmdrates}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{rates}}
 \newcommand{\cmdkmc}{ \kmcrun \opt \xmloptions  \sql  \sqlstate \exe  \calc{kmcmultiple}}
 \newcommand{\cmdkmcsin}{ \kmcrun \opt \xmloptions  \sql  \sqlstate \exe  \calc{kmcsingle}}
-\newcommand{\cmdeana}{\ctprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{eanalyze}}
-\newcommand{\cmdmolpol}{\ctptools \opt \xmloptions \exe \toolref{molpol}}
-\newcommand{\cmdlogmps}{\ctptools \opt \xmloptions \exe \toolref{log2mps}}
-\newcommand{\cmdxqmult}{\ctpparallel \opt \xmloptions \sql \sqlstate \exe \calc{xqmultipole}}
+\newcommand{\cmdeana}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{eanalyze}}
+\newcommand{\cmdmolpol}{\xtptools \opt \xmloptions \exe \toolref{molpol}}
+\newcommand{\cmdlogmps}{\xtptools \opt \xmloptions \exe \toolref{log2mps}}
+\newcommand{\cmdxqmult}{\xtpparallel \opt \xmloptions \sql \sqlstate \exe \calc{xqmultipole}}
 
