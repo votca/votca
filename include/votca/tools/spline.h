@@ -64,8 +64,8 @@ public:
     /// enum for type of boundary condition
     enum eBoundary {
         splineNormal = 0,  ///< normal boundary conditions: \f$f_0=f_N=0\f$
-        splinePeriodic,    ///< periodic boundary conditions: \f$f_0=f_N\f$
-        splineDerivativeZero ///< derivatives and end-points are zero.
+        splinePeriodic = 1,    ///< periodic boundary conditions: \f$f_0=f_N\f$
+        splineDerivativeZero = 2 ///< derivatives and end-points are zero.
     };
 
     /**
@@ -73,6 +73,24 @@ public:
      * \param boundary of type eBoundary
      */
     void setBC(eBoundary bc) {_boundaries = bc;}
+    
+        /**
+     * \brief Set the boundary type of the spline
+     * \param boundary of type int
+     */
+    void setBCInt(int bc) {        
+        switch(bc){
+            case 0:
+                _boundaries = splineNormal;
+                break;
+            case 1:
+                _boundaries = splinePeriodic;
+                break;
+            case 2:
+                _boundaries = splineDerivativeZero;
+                break;                    
+        }         
+    }
 
     /**
      * \brief Get the grid point of certain index
