@@ -1,4 +1,4 @@
-#!/bin/bash -e
+a#!/bin/bash -e
 
 VOTCASHARE="$(csg_call --show-share)"
 

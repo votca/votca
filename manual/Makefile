@@ -4,7 +4,7 @@ HGID:=$(shell git rev-parse --short HEAD 2> /dev/null | sed 's/.*/\\newcommand{\
 LATEXMK=./scripts/latexmk.pl
 LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
 
-NAME=manual
+NAME=xtp_manual
 ifeq ($(OSTYPE),darwin)
 CWD=$(shell pwd)
 ND=$(subst work/votca_xtp,Dropbox,$(CWD))
@@ -14,7 +14,7 @@ all: $(NAME).pdf
 dvi: $(NAME).dvi
 ps: $(NAME).ps
 
-$(NAME).tex: hgid.tex fig_submake programs_submake theory_submake reference_submake input_submake appendix_submake titlepage.tex manual.bib           
+$(NAME).tex: hgid.tex fig_submake programs_submake theory_submake reference_submake input_submake appendix_submake titlepage.tex xtp_manual.bib           
 
 #remove broken dvi if LATEXMK fails
 .DELETE_ON_ERROR: %.dvi

@@ -8,7 +8,7 @@
 
 #remove extra info from the file
 system("rm -f literature.bib");
-system("cat manual.bib | grep -v -e url -e doi -e issn -e month >> literature.bib");
+system("cat xtp_manual.bib | grep -v -e url -e doi -e issn -e month >> literature.bib");
 
 # Get the list of journal names in a variable
 open(JOURNALS,  "abbreviations.txt") or die "Can't open journalnames.txt: $!";
