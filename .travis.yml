@@ -11,8 +11,11 @@ addons:
     sources:
       - boost-latest 
       - george-edison55-precise-backports
+      - ubuntu-toolchain-r-test
     packages:
       - ccache
+      - gcc-4.8
+      - g++-4.8
       - libfftw3-dev
       - cmake
       - cmake-data
@@ -37,6 +40,7 @@ env:
     - HDF5_VERSION=1.8.14
     - GMX_MAX_THREADS=8
     - CCACHE_CPP2=yes #for clang
+    - GVER=4.8
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
     - XTP=yes WERROR=yes J=4
     - XTP=yes WALL=yes J=4
@@ -50,6 +54,8 @@ before_script:
       wget -qO- https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xz &&
       cd hdf5-${HDF5_VERSION} && ./configure --prefix=$HOME/hdf5 && make -j4 &> /dev/null && make install && cd ..;
     fi
+  - if [[ ${MAN} ]]; then git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/votca/src/devdoc"; fi 
+  - if [[ ${GVER} ]]; then export CC=gcc-${GVER}; export CXX=g++-${GVER}; fi
 
 script:
   - PATH="$HOME/hdf5:$PATH" ./build.sh -Wu --dev --prefix "$HOME/votca" ${MAN:+--devdoc}
