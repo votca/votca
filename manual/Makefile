@@ -7,7 +7,7 @@ LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
 NAME=manual
 ifeq ($(OSTYPE),darwin)
 CWD=$(shell pwd)
-ND=$(subst work/votca_ct,Dropbox,$(CWD))
+ND=$(subst work/votca_xtp,Dropbox,$(CWD))
 endif
 
 all: $(NAME).pdf
