@@ -48,28 +48,24 @@ fi
 
 [ -z "$1" ] && die "${0##*/}: Missing argument"
 [ -z "$(type -p csg_property)" ] && die "${0##*/}: csg_property not found"
-[ -z "$(type -p csg_call)" ] && die "${0##*/}: csg_call not found"
 
 xmlfile="$1"
-
-# TODO: this is hacked
-CSGSHARE="$(csg_call --show-share)/xtp"
-[ -f "${CSGSHARE}/xml/$xmlfile" ] || die "${0##*/}: Error, did not find ${CSGSHARE}/xml/$xmlfile"
+[ -f "$xmlfile" ] || die "${0##*/}: Error, did not find $xmlfile"
 
 trunc=""
-[ "$xmlfile" = "segments.xml" ] && trunc="segments."
-[ "$xmlfile" = "mapping.xml" ] && trunc="mapping."
-[ "$xmlfile" = "options.xml" ] && trunc="options."
+[ "$xmlfile" = *"segments.xml" ] && trunc="segments."
+[ "$xmlfile" = *"mapping.xml" ] && trunc="mapping."
+[ "$xmlfile" = *"options.xml" ] && trunc="options."
 
 #header lines
-echo $xmlfile 
+echo ${xmlfile##*/}
 echo ${0##*/}
 date
 echo '%!includeconf: config.t2t'
 echo
 
 #get all items
-items="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --print name --short)" || die "parsing xml failed"
+items="$(csg_property --file $xmlfile --path tags.item --print name --short)" || die "parsing xml failed"
 #check if a head node is missing
 #add_heads
 #sort them
@@ -81,7 +77,7 @@ for name in ${items}; do
   cut_heads "$name"
   head="$(echo $name | sed -e 's/'${item}'//')"
   #echo $head $name $item
-  desc="$(csg_property --file ${CSGSHARE}/xml/$xmlfile --path tags.item --filter "name=$name" --print desc --short)" || die "${0##*/}: Could not get desc for $name"
+  desc="$(csg_property --file $xmlfile --path tags.item --filter "name=$name" --print desc --short)" || die "${0##*/}: Could not get desc for $name"
 
   if [ "$name" = "sectionlink" ]; then
      link="$name($desc)"

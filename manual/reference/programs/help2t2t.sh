@@ -6,12 +6,12 @@ die() {
 }
 
 [ -z "$1" ] && die "${0##*/}: Missing argument"
-prog="$1"
+exe=${1}
+prog="${1##*/}"
 shift
+chmod +x ${exe}
 
-[ -z "$(type $prog)" ] && die "${0##*/}: $prog not found"
-
-helpmsg="$($prog "$@" --help)" || die "${0##*/}: $prog --help failed"
+helpmsg="$($exe "$@" --help)" || die "${0##*/}: $prog --help failed"
 
 echo "$prog"
 echo ${0##*/}

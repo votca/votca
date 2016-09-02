@@ -164,3 +164,7 @@ add_subdirectory(src/tools)
 #add_subdirectory(src/dipro)
 #add_subdirectory(share/scripts/dipro) 
 add_subdirectory(share)  
+
+add_custom_target(manual COMMAND make -C ${CMAKE_SOURCE_DIR}/manual
+	XTP_SCRIPTS="${XTP_SCRIPTS}"
+	XTP_PROGS="${XTP_PROGS}")

@@ -1,6 +1,6 @@
 SHELL=/bin/bash
-BINS1:=$(shell ls `dirname \`which xtp_run\``/xtp_* | xargs -n1 basename ) 
-BINS2:=$(shell ls `dirname \`which xtp_kmc_run\``/xtp_kmc* | xargs -n1 basename )
+BINS1:=$(shell echo $(XTP_SCRIPTS) | xargs -n1 basename)
+BINS2:=$(shell echo $(XTP_PROGS) | xargs -n1 basename)
 
 all: Makefile.incl
 
@@ -8,10 +8,6 @@ all: Makefile.incl
 dummy: ;
 
 Makefile.incl: dummy
-	@if ! which csg_call > /dev/null 2>&1; then\
-	  echo csg_call not found;\
-	  exit 1;\
-	fi
 	echo $(BINS1) $(BINS2)  | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.t2t\\/' -e '1i BINST2T=\\' > $@
 	echo >> $@
 	echo $(BINS1) $(BINS2)  | sed 's/[[:space:]]\+/\n/g' | sed -e 's/.*/\t&.tex\\/' -e '1i BINSTEX=\\' >> $@

@@ -9,7 +9,7 @@ TXT2TAGS=$(TRUNC)/manual/scripts/txt2tags
 all: clean all.tex   
 
 #this is a hack to generate Makefile.incl
-HAKE:=$(shell $(MAKE) -f Makefile.BINS Makefile.incl)
+HACK:=$(shell $(MAKE) -f Makefile.BINS Makefile.incl)
 include Makefile.incl
 
 all.tex: $(BINSTEX)
@@ -19,7 +19,9 @@ all.tex: $(BINSTEX)
 
 $(BINST2T): help2t2t.sh
 %.t2t:
-	./help2t2t.sh $* > $@
+	@x=`echo $(XTP_SCRIPTS) $(XTP_PROGS) | xargs -n1 echo | grep '/$*$$'` && \
+	echo ./help2t2t.sh $$x \> $@ && \
+	./help2t2t.sh $$x > $@
 
 config.t2t: ../config.t2t
 	cp $< .
