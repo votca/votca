@@ -12,7 +12,24 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 
 enable_language(CXX)
+
+######################################################################
+# compiler tests
+# these need ot be done early (before further tests).
+#####################################################################
+
+#needed by csg
 include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if(COMPILER_SUPPORTS_CXX11)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else()
+	message(FATAL_ERROR "Could not find a C++-11 compiler")
+endif()
+
+########################################################################
+#Find external packages
+########################################################################
 
 find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options )
 include_directories(${Boost_INCLUDE_DIRS})
