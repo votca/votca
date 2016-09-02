@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,6 +113,15 @@ public:
     template<typename matrix_type, typename vector_type>
     void AddToFitMatrix(matrix_type &M, vector_type &x, 
             int offset1, int offset2=0);
+    
+    /**
+     * \brief Add boundary condition of sum_i f_i =0 to fitting matrix
+     * \param pointer to matrix
+     * \param offsets
+    */
+    template<typename matrix_type>
+    void AddBCSumZeroToFitMatrix(matrix_type &A,
+            int offset1, int offset2=0);
 
     /**
      * \brief Add boundary conditions to fitting matrix
@@ -189,6 +198,17 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, vector_type &x,
         M(offset1+i, offset2 + spi + _r.size()) = C(x(i));
         M(offset1+i, offset2 + spi + _r.size() + 1) = D(x(i));
     }
+}
+
+template<typename matrix_type>
+inline void CubicSpline::AddBCSumZeroToFitMatrix(matrix_type &M,
+            int offset1, int offset2)
+{
+    for(size_t i=0; i<_r.size(); ++i) {
+            M(offset1, offset2 + i) = 1;
+            M(offset1, offset2 + _r.size() + i) = 0;
+    }
+    
 }
 
 template<typename matrix_type>
