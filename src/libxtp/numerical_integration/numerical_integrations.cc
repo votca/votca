@@ -569,7 +569,8 @@ namespace votca {
 
  #ifdef LIBXC                   
                     if (_use_votca) {
-#endif
+#endif                  
+                        cout<<"Warning: VOTCA_PBE does give correct Vxc but incorrect E_xc"<<endl;
                         _xc.getXC(xfunc_id, rho, grad_rho(0, 0), grad_rho(0, 1), grad_rho(0, 2), f_xc, df_drho, df_dsigma);
 #ifdef LIBXC
                     }                        // evaluate via LIBXC, if compiled, otherwise, go via own implementation

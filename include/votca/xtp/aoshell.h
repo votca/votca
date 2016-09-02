@@ -24,7 +24,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/basisset.h>
-
+#include <votca/tools/constants.h>
 
 
 using namespace votca::tools;
@@ -88,7 +88,7 @@ public:
     void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z );
     void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z );
     
-    void EvalAOIntegral(ub::matrix_range<ub::matrix<double> >& AOvalues);
+   
     
     void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z , std::string type = "");
     // iterator over pairs (decay constant; contraction coefficient)

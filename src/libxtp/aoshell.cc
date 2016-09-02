@@ -291,39 +291,7 @@ void AOShell::EvalAOGradspace(ub::matrix_range<ub::matrix<double> >& gradAOvalue
     
         
        
-void AOShell::EvalAOIntegral(ub::matrix_range<ub::matrix<double> >& AOvalues){
 
-            // need type of shell
-            string shell_type = this->_type;
-
-            const double pi = boost::math::constants::pi<double>();
-
-
-            
-            
-            typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
-            // iterate over Gaussians in this shell
-            for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
-
-                const double& alpha = (*itr)->decay;
-                std::vector<double> _contractions = (*itr)->contraction;
-
-                double _factor = pow(2.0 * pi / alpha, 0.75) ;
-
-                // split combined shells
-                int _i_func = -1;
-                //int i_act;
-                for (unsigned i = 0; i < shell_type.length(); ++i) {
-                    string single_shell = string(shell_type, i, 1);
-                    // single type shells
-                    if (single_shell == "S") {
-                        AOvalues(0, _i_func + 1) += _contractions[0] * _factor; // s-function
-                        _i_func++;
-                    }
-                }
-            } // contractions
-
-        }
        
        
        

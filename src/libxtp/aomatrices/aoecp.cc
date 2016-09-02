@@ -705,7 +705,7 @@ namespace votca { namespace xtp {
             }
 
           
-      //cout << matrix(0,0) <<  " " << matrix(9,9) << endl;
+      cout << matrix << endl;
       
       
       

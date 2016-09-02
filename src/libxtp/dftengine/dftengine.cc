@@ -266,7 +266,7 @@ namespace votca {
                 _dftAOECP.Fill(&_dftbasis, ub::zero_vector<double>(3), &_ecp);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
                 //_dftAOECP.Print("ECP");
-
+                
                 _dftAOESP._nuclearpotential += _dftAOECP.Matrix();
                 
             }

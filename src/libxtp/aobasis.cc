@@ -39,6 +39,10 @@ void AOBasis::ReorderMOs(ub::matrix<double> &v, string start, string target )  {
        
           // cout << " Reordering MOs from " << start << " to " << target << endl;
            
+    if (start==target){
+        return;
+    }
+    
           // get reordering vector _start -> target 
           vector<int> order;
           this->getReorderVector( start, target, order);
@@ -71,7 +75,7 @@ void AOBasis::ReorderMOs(ub::matrix<double> &v, string start, string target )  {
           }
            
            
-           
+          return;
        }
 
 void AOBasis::MultiplyMOs(ub::matrix<double> &v, vector<int> const &multiplier )  { 
@@ -245,13 +249,12 @@ void AOBasis::addMultiplierShell(string& start, string& target, string& shell_ty
             if (shell_type == "S") {
                 multiplier.push_back(1);
             }
-
-            if (shell_type == "P") {
+            else if (shell_type == "P") {
                 multiplier.push_back(1);
                 multiplier.push_back(1);
                 multiplier.push_back(1);
             }
-            if (shell_type == "D") {
+            else if (shell_type == "D") {
                 if (start == "nwchem") {
                     multiplier.push_back(-1);
                     multiplier.push_back(1);
@@ -263,11 +266,11 @@ void AOBasis::addMultiplierShell(string& start, string& target, string& shell_ty
                     throw std::runtime_error("Multiplication not implemented yet!");
                 }
             }
-            if (shell_type == "F") {
+            else if (shell_type == "F") {
                 cerr << "Tried to get multipliers for f-functions . ";
                 throw std::runtime_error("Multiplication not implemented yet!");
             }
-            if (shell_type == "G") {
+            else if (shell_type == "G") {
                 cerr << "Tried to get multipliers g-functions . ";
                 throw std::runtime_error("Multiplication not implemented yet!");
             }
@@ -315,52 +318,55 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
            neworder.push_back( _cur_pos + 1 );
        }//for S
        
-       if ( shell_type == "P" ){
-           if( start == "orca" ){
-           neworder.push_back( _cur_pos + 3 );
-           neworder.push_back( _cur_pos + 1 );
-           neworder.push_back( _cur_pos + 2 );
-        }else {
-           neworder.push_back( _cur_pos + 1 );
-           neworder.push_back( _cur_pos + 2 );
-           neworder.push_back( _cur_pos + 3 );
        
-           }
-       }   //for P
-       //votca order is dxz dyz dxy d3z2-r2 dx2-y2
-       if ( shell_type == "D" ){ 
-           if ( start == "gaussian"){
-               neworder.push_back( _cur_pos + 4 );
+       //votca order is z,y,x e.g. Y1,0 Y1,-1 Y1,1
+       if (shell_type == "P") {
+                if (start == "orca") {
+                    neworder.push_back(_cur_pos + 1);
+                    neworder.push_back(_cur_pos + 3);
+                    neworder.push_back(_cur_pos + 2);
+                } else if (start == "gaussian" || "nwchem") {
+                    neworder.push_back(_cur_pos + 3);
+                    neworder.push_back(_cur_pos + 2);
+                    neworder.push_back(_cur_pos + 1);
+                } else if (start == "votca") {
+                    neworder.push_back(_cur_pos + 1);
+                    neworder.push_back(_cur_pos + 2);
+                    neworder.push_back(_cur_pos + 3);
+                }
+        } //for P
+       //votca order is d3z2-r2 dyz dxz dxy dx2-y2 e.g. Y2,0 Y2,-1 Y2,1 Y2,-2 Y2,2                                                                                                                                                
+       else if ( shell_type == "D" ){ 
+           //orca order is d3z2-r2 dxz dyz dx2-y2 dxy
+           if ( start == "gaussian"|| start=="orca"){
                neworder.push_back( _cur_pos + 1 );
+               neworder.push_back( _cur_pos + 3 );
                neworder.push_back( _cur_pos + 2 );
                neworder.push_back( _cur_pos + 5 );
-               neworder.push_back( _cur_pos + 3 );
+               neworder.push_back( _cur_pos + 4 );
            } else if ( start == "nwchem") {
                // nwchem order is dxy dyz d3z2-r2 -dxz dx2-y2 
-               neworder.push_back( _cur_pos + 3  ); 
+               neworder.push_back( _cur_pos + 4  ); 
                neworder.push_back( _cur_pos + 2 );
-               neworder.push_back( _cur_pos + 4 );
-               //neworder.push_back( -(_cur_pos + 1) ); // bloody inverted sign // BUG!!!!!!!
-               neworder.push_back( _cur_pos + 1 ); 
-               neworder.push_back( _cur_pos + 5 );               
-           }else if ( start == "orca") {
-               //orca order is d3z2-r2 dxz dyz dx2-y2 dxy
-               neworder.push_back( _cur_pos + 4 ); 
                neworder.push_back( _cur_pos + 1 );
+               //neworder.push_back( -(_cur_pos + 1) ); // bloody inverted sign // BUG!!!!!!!
+               neworder.push_back( _cur_pos + 3 ); 
+               neworder.push_back( _cur_pos + 5 );               
+           
+           }else if ( start == "votca") {
+               
+               neworder.push_back( _cur_pos + 1 ); 
                neworder.push_back( _cur_pos + 2 );
-               neworder.push_back( _cur_pos + 5 ); 
-               neworder.push_back( _cur_pos + 3 );               
-            } else {
+               neworder.push_back( _cur_pos + 3 );
+               neworder.push_back( _cur_pos + 4 ); 
+               neworder.push_back( _cur_pos + 5 );               
+            }else {
                cerr << "Tried to reorder d-functions from package " << start << ".";
                throw std::runtime_error( "Reordering not implemented yet!");
            }
        }
-       if ( shell_type == "F" ){ 
-           cerr << "Tried to reorder f-functions . ";
-           throw std::runtime_error( "Reordering not implemented yet!");
-       }
-       if ( shell_type == "G" ){
-           cerr << "Tried to reorder g-functions . ";
+       else{
+           cerr << "Tried to reorder functions  higher than D. ";
            throw std::runtime_error( "Reordering not implemented yet!");
        } 
     } else {
