@@ -80,6 +80,8 @@ protected:
         int splineIndex;
         /// \brief true for bonded interactions, false for non-bonded
         bool bonded;
+        /// \brief true if tabulated forces are periodic (e.g. for dihedral interactions)
+        bool periodic;
         /// \brief CubicSpline object
         CubicSpline Spline;
         /// \brief position in the _A matrix (first coloumn which is occupied with this particular spline)
