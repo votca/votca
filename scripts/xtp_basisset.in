@@ -119,8 +119,10 @@ def turbomolegetcontributions(element,lines,basissetstringlist,basis,shells):
         elif "$end" in line:
             continue
         if line[0]=="*" and basissetfound:
+            #print start
             if start:
-                start=False
+                #print "Breaking"
+                break
             else:
                 start=True
             continue
@@ -141,7 +143,8 @@ def turbomolegetcontributions(element,lines,basissetstringlist,basis,shells):
                 else:
                     
                     constant=lxml.SubElement(shell,"constant",decay="{:1.6e}".format(convertofloat(entries[0])))
-                    lxml.SubElement(constant,"contraction",type=shelltype,factor="{:1.6e}".format(convertofloat(entries[1])))
+                    contraction=lxml.SubElement(constant,"contractions",type=shelltype,factor="{:1.6e}".format(convertofloat(entries[1])))
+                    #contraction.text=" "
             else:
                 print "Cannot figure out what line '{}' means".format(line)
                 sys.exit()
@@ -171,7 +174,7 @@ if os.path.isfile(OPTIONS.input):
 
 
     
-    keywords=["BASIS","end","basis"]
+    keywords=["BASIS","end","basis","END"]
 
     with open(OPTIONS.input,'r') as f:
         for line in f.readlines():
@@ -190,7 +193,8 @@ if os.path.isfile(OPTIONS.input):
             elif len(entries)>1 and shell!=None:
                 constant=lxml.SubElement(shell,"constant",decay="{:1.6e}".format(convertofloat(entries[0])))
                 for i in range(len(entries[1:])):
-                     lxml.SubElement(constant,"contraction",type=shells[i],factor="{:1.6e}".format(convertofloat(entries[i+1])))
+                    contraction=lxml.SubElement(constant,"contractions",type=shells[i],factor="{:1.6e}".format(convertofloat(entries[i+1])))
+                    #contraction.text=" "
             else:
                okquit("\nCannot understand line in file:{}".format(line)) 
 
