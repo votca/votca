@@ -191,7 +191,7 @@ namespace votca { namespace xtp {
             }
         
      
-//Integral  p - s
+//Integrals     p - s
 if (_lmax_row > 0) {
   for (int m = 0; m < _lsum; m++) {
     nuc3[Cart::x][0][m] = PmA0*nuc3[0][0][m] - PmC0*nuc3[0][0][m+1];
@@ -201,7 +201,7 @@ if (_lmax_row > 0) {
 }
 //------------------------------------------------------
 
-//Integral  d - s
+//Integrals     d - s
 if (_lmax_row > 1) {
   for (int m = 0; m < _lsum-1; m++) {
     double term = _fak*(nuc3[0][0][m]-nuc3[0][0][m+1]);
@@ -215,7 +215,7 @@ if (_lmax_row > 1) {
 }
 //------------------------------------------------------
 
-//Integral  f - s
+//Integrals     f - s
 if (_lmax_row > 2) {
   for (int m = 0; m < _lsum-2; m++) {
     nuc3[Cart::xxx][0][m] = PmA0*nuc3[Cart::xx][0][m] - PmC0*nuc3[Cart::xx][0][m+1] + 2*_fak*(nuc3[Cart::x][0][m]-nuc3[Cart::x][0][m+1]);
@@ -232,7 +232,7 @@ if (_lmax_row > 2) {
 }
 //------------------------------------------------------
 
-//Integral  g - s
+//Integrals     g - s
 if (_lmax_row > 3) {
   for (int m = 0; m < _lsum-3; m++) {
     double term_xx = _fak*(nuc3[Cart::xx][0][m]-nuc3[Cart::xx][0][m+1]);
@@ -262,17 +262,17 @@ if (_lmax_row > 3) {
 
 if (_lmax_col > 0) {
 
-  //Integral  s - p
-  for (int m = 0; m < _lsum; m++) {
+  //Integrals     s - p
+  for (int m = 0; m < _lmax_col; m++) {
     nuc3[0][Cart::x][m] = PmB0*nuc3[0][0][m] - PmC0*nuc3[0][0][m+1];
     nuc3[0][Cart::y][m] = PmB1*nuc3[0][0][m] - PmC1*nuc3[0][0][m+1];
     nuc3[0][Cart::z][m] = PmB2*nuc3[0][0][m] - PmC2*nuc3[0][0][m+1];
   }
   //------------------------------------------------------
 
-  //Integral  p - p
+  //Integrals     p - p
   if (_lmax_row > 0) {
-    for (int m = 0; m < _lsum-1; m++) {
+    for (int m = 0; m < _lmax_col; m++) {
       double term = _fak*(nuc3[0][0][m]-nuc3[0][0][m+1]);
       for (int _i =  1; _i < 4; _i++) {
         nuc3[_i][Cart::x][m] = PmB0*nuc3[_i][0][m] - PmC0*nuc3[_i][0][m+1] + nx[_i]*term;
@@ -284,13 +284,11 @@ if (_lmax_col > 0) {
   //------------------------------------------------------
 
   //Integrals     d - p     f - p     g - p
-  for (int _i_row = 2; _i_row < _lmax_row+1; _i_row++) {
-    for (int m = 0; m < _lsum-_i_row; m++) {
-      for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-        nuc3[_i][Cart::x][m] = PmB0*nuc3[_i][0][m] - PmC0*nuc3[_i][0][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][0][m] - nuc3[i_less_x[_i]][0][m+1]);
-        nuc3[_i][Cart::y][m] = PmB1*nuc3[_i][0][m] - PmC1*nuc3[_i][0][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][0][m] - nuc3[i_less_y[_i]][0][m+1]);
-        nuc3[_i][Cart::z][m] = PmB2*nuc3[_i][0][m] - PmC2*nuc3[_i][0][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][0][m] - nuc3[i_less_z[_i]][0][m+1]);
-      }
+  for (int m = 0; m < _lmax_col; m++) {
+    for (int _i = 4; _i < n_orbitals[_lmax_row]; _i++) {
+      nuc3[_i][Cart::x][m] = PmB0*nuc3[_i][0][m] - PmC0*nuc3[_i][0][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][0][m] - nuc3[i_less_x[_i]][0][m+1]);
+      nuc3[_i][Cart::y][m] = PmB1*nuc3[_i][0][m] - PmC1*nuc3[_i][0][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][0][m] - nuc3[i_less_y[_i]][0][m+1]);
+      nuc3[_i][Cart::z][m] = PmB2*nuc3[_i][0][m] - PmC2*nuc3[_i][0][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][0][m] - nuc3[i_less_z[_i]][0][m+1]);
     }
   }
   //------------------------------------------------------
@@ -300,8 +298,8 @@ if (_lmax_col > 0) {
 
 if (_lmax_col > 1) {
 
-  //Integral  s - d
-  for (int m = 0; m < _lsum-1; m++) {
+  //Integrals     s - d
+  for (int m = 0; m < _lmax_col-1; m++) {
     double term = _fak*(nuc3[0][0][m]-nuc3[0][0][m+1]);
     nuc3[0][Cart::xx][m] = PmB0*nuc3[0][Cart::x][m] - PmC0*nuc3[0][Cart::x][m+1] + term;
     nuc3[0][Cart::xy][m] = PmB0*nuc3[0][Cart::y][m] - PmC0*nuc3[0][Cart::y][m+1];
@@ -313,17 +311,15 @@ if (_lmax_col > 1) {
   //------------------------------------------------------
 
   //Integrals     p - d     d - d     f - d     g - d
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int m = 0; m < _lsum-_i_row-1; m++) {
-      for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-        double term = _fak*(nuc3[_i][0][m]-nuc3[_i][0][m+1]);
-        nuc3[_i][Cart::xx][m] = PmB0*nuc3[_i][Cart::x][m] - PmC0*nuc3[_i][Cart::x][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::x][m] - nuc3[i_less_x[_i]][Cart::x][m+1]) + term;
-        nuc3[_i][Cart::xy][m] = PmB0*nuc3[_i][Cart::y][m] - PmC0*nuc3[_i][Cart::y][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::y][m] - nuc3[i_less_x[_i]][Cart::y][m+1]);
-        nuc3[_i][Cart::xz][m] = PmB0*nuc3[_i][Cart::z][m] - PmC0*nuc3[_i][Cart::z][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::z][m] - nuc3[i_less_x[_i]][Cart::z][m+1]);
-        nuc3[_i][Cart::yy][m] = PmB1*nuc3[_i][Cart::y][m] - PmC1*nuc3[_i][Cart::y][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::y][m] - nuc3[i_less_y[_i]][Cart::y][m+1]) + term;
-        nuc3[_i][Cart::yz][m] = PmB1*nuc3[_i][Cart::z][m] - PmC1*nuc3[_i][Cart::z][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::z][m] - nuc3[i_less_y[_i]][Cart::z][m+1]);
-        nuc3[_i][Cart::zz][m] = PmB2*nuc3[_i][Cart::z][m] - PmC2*nuc3[_i][Cart::z][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::z][m] - nuc3[i_less_z[_i]][Cart::z][m+1]) + term;
-      }
+  for (int m = 0; m < _lmax_col-1; m++) {
+    for (int _i = 1; _i < n_orbitals[_lmax_row]; _i++) {
+      double term = _fak*(nuc3[_i][0][m]-nuc3[_i][0][m+1]);
+      nuc3[_i][Cart::xx][m] = PmB0*nuc3[_i][Cart::x][m] - PmC0*nuc3[_i][Cart::x][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::x][m] - nuc3[i_less_x[_i]][Cart::x][m+1]) + term;
+      nuc3[_i][Cart::xy][m] = PmB0*nuc3[_i][Cart::y][m] - PmC0*nuc3[_i][Cart::y][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::y][m] - nuc3[i_less_x[_i]][Cart::y][m+1]);
+      nuc3[_i][Cart::xz][m] = PmB0*nuc3[_i][Cart::z][m] - PmC0*nuc3[_i][Cart::z][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::z][m] - nuc3[i_less_x[_i]][Cart::z][m+1]);
+      nuc3[_i][Cart::yy][m] = PmB1*nuc3[_i][Cart::y][m] - PmC1*nuc3[_i][Cart::y][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::y][m] - nuc3[i_less_y[_i]][Cart::y][m+1]) + term;
+      nuc3[_i][Cart::yz][m] = PmB1*nuc3[_i][Cart::z][m] - PmC1*nuc3[_i][Cart::z][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::z][m] - nuc3[i_less_y[_i]][Cart::z][m+1]);
+      nuc3[_i][Cart::zz][m] = PmB2*nuc3[_i][Cart::z][m] - PmC2*nuc3[_i][Cart::z][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::z][m] - nuc3[i_less_z[_i]][Cart::z][m+1]) + term;
     }
   }
   //------------------------------------------------------
@@ -333,8 +329,8 @@ if (_lmax_col > 1) {
 
 if (_lmax_col > 2) {
 
-  //Integral  s - f
-  for (int m = 0; m < _lsum-2; m++) {
+  //Integrals     s - f
+  for (int m = 0; m < _lmax_col-2; m++) {
     nuc3[0][Cart::xxx][m] = PmB0*nuc3[0][Cart::xx][m] - PmC0*nuc3[0][Cart::xx][m+1] + 2*_fak*(nuc3[0][Cart::x][m]-nuc3[0][Cart::x][m+1]);
     nuc3[0][Cart::xxy][m] = PmB1*nuc3[0][Cart::xx][m] - PmC1*nuc3[0][Cart::xx][m+1];
     nuc3[0][Cart::xxz][m] = PmB2*nuc3[0][Cart::xx][m] - PmC2*nuc3[0][Cart::xx][m+1];
@@ -349,23 +345,21 @@ if (_lmax_col > 2) {
   //------------------------------------------------------
 
   //Integrals     p - f     d - f     f - f     g - f
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int m = 0; m < _lsum-_i_row-2; m++) {
-      for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-        double term_x = 2*_fak*(nuc3[_i][Cart::x][m]-nuc3[_i][Cart::x][m+1]);
-        double term_y = 2*_fak*(nuc3[_i][Cart::y][m]-nuc3[_i][Cart::y][m+1]);
-        double term_z = 2*_fak*(nuc3[_i][Cart::z][m]-nuc3[_i][Cart::z][m+1]);
-        nuc3[_i][Cart::xxx][m] = PmB0*nuc3[_i][Cart::xx][m] - PmC0*nuc3[_i][Cart::xx][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::xx][m] - nuc3[i_less_x[_i]][Cart::xx][m+1]) + term_x;
-        nuc3[_i][Cart::xxy][m] = PmB1*nuc3[_i][Cart::xx][m] - PmC1*nuc3[_i][Cart::xx][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::xx][m] - nuc3[i_less_y[_i]][Cart::xx][m+1]);
-        nuc3[_i][Cart::xxz][m] = PmB2*nuc3[_i][Cart::xx][m] - PmC2*nuc3[_i][Cart::xx][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::xx][m] - nuc3[i_less_z[_i]][Cart::xx][m+1]);
-        nuc3[_i][Cart::xyy][m] = PmB0*nuc3[_i][Cart::yy][m] - PmC0*nuc3[_i][Cart::yy][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yy][m] - nuc3[i_less_x[_i]][Cart::yy][m+1]);
-        nuc3[_i][Cart::xyz][m] = PmB0*nuc3[_i][Cart::yz][m] - PmC0*nuc3[_i][Cart::yz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yz][m] - nuc3[i_less_x[_i]][Cart::yz][m+1]);
-        nuc3[_i][Cart::xzz][m] = PmB0*nuc3[_i][Cart::zz][m] - PmC0*nuc3[_i][Cart::zz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::zz][m] - nuc3[i_less_x[_i]][Cart::zz][m+1]);
-        nuc3[_i][Cart::yyy][m] = PmB1*nuc3[_i][Cart::yy][m] - PmC1*nuc3[_i][Cart::yy][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::yy][m] - nuc3[i_less_y[_i]][Cart::yy][m+1]) + term_y;
-        nuc3[_i][Cart::yyz][m] = PmB2*nuc3[_i][Cart::yy][m] - PmC2*nuc3[_i][Cart::yy][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::yy][m] - nuc3[i_less_z[_i]][Cart::yy][m+1]);
-        nuc3[_i][Cart::yzz][m] = PmB1*nuc3[_i][Cart::zz][m] - PmC1*nuc3[_i][Cart::zz][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::zz][m] - nuc3[i_less_y[_i]][Cart::zz][m+1]);
-        nuc3[_i][Cart::zzz][m] = PmB2*nuc3[_i][Cart::zz][m] - PmC2*nuc3[_i][Cart::zz][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::zz][m] - nuc3[i_less_z[_i]][Cart::zz][m+1]) + term_z;
-      }
+  for (int m = 0; m < _lmax_col-2; m++) {
+    for (int _i = 1; _i < n_orbitals[_lmax_row]; _i++) {
+      double term_x = 2*_fak*(nuc3[_i][Cart::x][m]-nuc3[_i][Cart::x][m+1]);
+      double term_y = 2*_fak*(nuc3[_i][Cart::y][m]-nuc3[_i][Cart::y][m+1]);
+      double term_z = 2*_fak*(nuc3[_i][Cart::z][m]-nuc3[_i][Cart::z][m+1]);
+      nuc3[_i][Cart::xxx][m] = PmB0*nuc3[_i][Cart::xx][m] - PmC0*nuc3[_i][Cart::xx][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::xx][m] - nuc3[i_less_x[_i]][Cart::xx][m+1]) + term_x;
+      nuc3[_i][Cart::xxy][m] = PmB1*nuc3[_i][Cart::xx][m] - PmC1*nuc3[_i][Cart::xx][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::xx][m] - nuc3[i_less_y[_i]][Cart::xx][m+1]);
+      nuc3[_i][Cart::xxz][m] = PmB2*nuc3[_i][Cart::xx][m] - PmC2*nuc3[_i][Cart::xx][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::xx][m] - nuc3[i_less_z[_i]][Cart::xx][m+1]);
+      nuc3[_i][Cart::xyy][m] = PmB0*nuc3[_i][Cart::yy][m] - PmC0*nuc3[_i][Cart::yy][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yy][m] - nuc3[i_less_x[_i]][Cart::yy][m+1]);
+      nuc3[_i][Cart::xyz][m] = PmB0*nuc3[_i][Cart::yz][m] - PmC0*nuc3[_i][Cart::yz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yz][m] - nuc3[i_less_x[_i]][Cart::yz][m+1]);
+      nuc3[_i][Cart::xzz][m] = PmB0*nuc3[_i][Cart::zz][m] - PmC0*nuc3[_i][Cart::zz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::zz][m] - nuc3[i_less_x[_i]][Cart::zz][m+1]);
+      nuc3[_i][Cart::yyy][m] = PmB1*nuc3[_i][Cart::yy][m] - PmC1*nuc3[_i][Cart::yy][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::yy][m] - nuc3[i_less_y[_i]][Cart::yy][m+1]) + term_y;
+      nuc3[_i][Cart::yyz][m] = PmB2*nuc3[_i][Cart::yy][m] - PmC2*nuc3[_i][Cart::yy][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::yy][m] - nuc3[i_less_z[_i]][Cart::yy][m+1]);
+      nuc3[_i][Cart::yzz][m] = PmB1*nuc3[_i][Cart::zz][m] - PmC1*nuc3[_i][Cart::zz][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::zz][m] - nuc3[i_less_y[_i]][Cart::zz][m+1]);
+      nuc3[_i][Cart::zzz][m] = PmB2*nuc3[_i][Cart::zz][m] - PmC2*nuc3[_i][Cart::zz][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::zz][m] - nuc3[i_less_z[_i]][Cart::zz][m+1]) + term_z;
     }
   }
   //------------------------------------------------------
@@ -375,8 +369,8 @@ if (_lmax_col > 2) {
 
 if (_lmax_col > 3) {
 
-  //Integral  s - g
-  for (int m = 0; m < _lsum-3; m++) {
+  //Integrals     s - g
+  for (int m = 0; m < _lmax_col-3; m++) {
     double term_xx = _fak*(nuc3[0][Cart::xx][m]-nuc3[0][Cart::xx][m+1]);
     double term_yy = _fak*(nuc3[0][Cart::yy][m]-nuc3[0][Cart::yy][m+1]);
     double term_zz = _fak*(nuc3[0][Cart::zz][m]-nuc3[0][Cart::zz][m+1]);
@@ -399,38 +393,38 @@ if (_lmax_col > 3) {
   //------------------------------------------------------
 
   //Integrals     p - g     d - g     f - g     g - g
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int m = 0; m < _lsum-_i_row-3; m++) {
-      for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-        double term_xx = _fak*(nuc3[_i][Cart::xx][m]-nuc3[_i][Cart::xx][m+1]);
-        double term_yy = _fak*(nuc3[_i][Cart::yy][m]-nuc3[_i][Cart::yy][m+1]);
-        double term_zz = _fak*(nuc3[_i][Cart::zz][m]-nuc3[_i][Cart::zz][m+1]);
-        nuc3[_i][Cart::xxxx][m] = PmB0*nuc3[_i][Cart::xxx][m] - PmC0*nuc3[_i][Cart::xxx][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::xxx][m] - nuc3[i_less_x[_i]][Cart::xxx][m+1]) + 3*term_xx;
-        nuc3[_i][Cart::xxxy][m] = PmB1*nuc3[_i][Cart::xxx][m] - PmC1*nuc3[_i][Cart::xxx][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::xxx][m] - nuc3[i_less_y[_i]][Cart::xxx][m+1]);
-        nuc3[_i][Cart::xxxz][m] = PmB2*nuc3[_i][Cart::xxx][m] - PmC2*nuc3[_i][Cart::xxx][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::xxx][m] - nuc3[i_less_z[_i]][Cart::xxx][m+1]);
-        nuc3[_i][Cart::xxyy][m] = PmB0*nuc3[_i][Cart::xyy][m] - PmC0*nuc3[_i][Cart::xyy][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::xyy][m] - nuc3[i_less_x[_i]][Cart::xyy][m+1]) + term_yy;
-        nuc3[_i][Cart::xxyz][m] = PmB1*nuc3[_i][Cart::xxz][m] - PmC1*nuc3[_i][Cart::xxz][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::xxz][m] - nuc3[i_less_y[_i]][Cart::xxz][m+1]);
-        nuc3[_i][Cart::xxzz][m] = PmB0*nuc3[_i][Cart::xzz][m] - PmC0*nuc3[_i][Cart::xzz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::xzz][m] - nuc3[i_less_x[_i]][Cart::xzz][m+1]) + term_zz;
-        nuc3[_i][Cart::xyyy][m] = PmB0*nuc3[_i][Cart::yyy][m] - PmC0*nuc3[_i][Cart::yyy][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yyy][m] - nuc3[i_less_x[_i]][Cart::yyy][m+1]);
-        nuc3[_i][Cart::xyyz][m] = PmB0*nuc3[_i][Cart::yyz][m] - PmC0*nuc3[_i][Cart::yyz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yyz][m] - nuc3[i_less_x[_i]][Cart::yyz][m+1]);
-        nuc3[_i][Cart::xyzz][m] = PmB0*nuc3[_i][Cart::yzz][m] - PmC0*nuc3[_i][Cart::yzz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yzz][m] - nuc3[i_less_x[_i]][Cart::yzz][m+1]);
-        nuc3[_i][Cart::xzzz][m] = PmB0*nuc3[_i][Cart::zzz][m] - PmC0*nuc3[_i][Cart::zzz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::zzz][m] - nuc3[i_less_x[_i]][Cart::zzz][m+1]);
-        nuc3[_i][Cart::yyyy][m] = PmB1*nuc3[_i][Cart::yyy][m] - PmC1*nuc3[_i][Cart::yyy][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::yyy][m] - nuc3[i_less_y[_i]][Cart::yyy][m+1]) + 3*term_yy;
-        nuc3[_i][Cart::yyyz][m] = PmB2*nuc3[_i][Cart::yyy][m] - PmC2*nuc3[_i][Cart::yyy][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::yyy][m] - nuc3[i_less_z[_i]][Cart::yyy][m+1]);
-        nuc3[_i][Cart::yyzz][m] = PmB1*nuc3[_i][Cart::yzz][m] - PmC1*nuc3[_i][Cart::yzz][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::yzz][m] - nuc3[i_less_y[_i]][Cart::yzz][m+1]) + term_zz;
-        nuc3[_i][Cart::yzzz][m] = PmB1*nuc3[_i][Cart::zzz][m] - PmC1*nuc3[_i][Cart::zzz][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::zzz][m] - nuc3[i_less_y[_i]][Cart::zzz][m+1]);
-        nuc3[_i][Cart::zzzz][m] = PmB2*nuc3[_i][Cart::zzz][m] - PmC2*nuc3[_i][Cart::zzz][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::zzz][m] - nuc3[i_less_z[_i]][Cart::zzz][m+1]) + 3*term_zz;
-      }
+  for (int m = 0; m < _lmax_col-3; m++) {
+    for (int _i = 1; _i < n_orbitals[_lmax_row]; _i++) {
+      double term_xx = _fak*(nuc3[_i][Cart::xx][m]-nuc3[_i][Cart::xx][m+1]);
+      double term_yy = _fak*(nuc3[_i][Cart::yy][m]-nuc3[_i][Cart::yy][m+1]);
+      double term_zz = _fak*(nuc3[_i][Cart::zz][m]-nuc3[_i][Cart::zz][m+1]);
+      nuc3[_i][Cart::xxxx][m] = PmB0*nuc3[_i][Cart::xxx][m] - PmC0*nuc3[_i][Cart::xxx][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::xxx][m] - nuc3[i_less_x[_i]][Cart::xxx][m+1]) + 3*term_xx;
+      nuc3[_i][Cart::xxxy][m] = PmB1*nuc3[_i][Cart::xxx][m] - PmC1*nuc3[_i][Cart::xxx][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::xxx][m] - nuc3[i_less_y[_i]][Cart::xxx][m+1]);
+      nuc3[_i][Cart::xxxz][m] = PmB2*nuc3[_i][Cart::xxx][m] - PmC2*nuc3[_i][Cart::xxx][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::xxx][m] - nuc3[i_less_z[_i]][Cart::xxx][m+1]);
+      nuc3[_i][Cart::xxyy][m] = PmB0*nuc3[_i][Cart::xyy][m] - PmC0*nuc3[_i][Cart::xyy][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::xyy][m] - nuc3[i_less_x[_i]][Cart::xyy][m+1]) + term_yy;
+      nuc3[_i][Cart::xxyz][m] = PmB1*nuc3[_i][Cart::xxz][m] - PmC1*nuc3[_i][Cart::xxz][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::xxz][m] - nuc3[i_less_y[_i]][Cart::xxz][m+1]);
+      nuc3[_i][Cart::xxzz][m] = PmB0*nuc3[_i][Cart::xzz][m] - PmC0*nuc3[_i][Cart::xzz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::xzz][m] - nuc3[i_less_x[_i]][Cart::xzz][m+1]) + term_zz;
+      nuc3[_i][Cart::xyyy][m] = PmB0*nuc3[_i][Cart::yyy][m] - PmC0*nuc3[_i][Cart::yyy][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yyy][m] - nuc3[i_less_x[_i]][Cart::yyy][m+1]);
+      nuc3[_i][Cart::xyyz][m] = PmB0*nuc3[_i][Cart::yyz][m] - PmC0*nuc3[_i][Cart::yyz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yyz][m] - nuc3[i_less_x[_i]][Cart::yyz][m+1]);
+      nuc3[_i][Cart::xyzz][m] = PmB0*nuc3[_i][Cart::yzz][m] - PmC0*nuc3[_i][Cart::yzz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yzz][m] - nuc3[i_less_x[_i]][Cart::yzz][m+1]);
+      nuc3[_i][Cart::xzzz][m] = PmB0*nuc3[_i][Cart::zzz][m] - PmC0*nuc3[_i][Cart::zzz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::zzz][m] - nuc3[i_less_x[_i]][Cart::zzz][m+1]);
+      nuc3[_i][Cart::yyyy][m] = PmB1*nuc3[_i][Cart::yyy][m] - PmC1*nuc3[_i][Cart::yyy][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::yyy][m] - nuc3[i_less_y[_i]][Cart::yyy][m+1]) + 3*term_yy;
+      nuc3[_i][Cart::yyyz][m] = PmB2*nuc3[_i][Cart::yyy][m] - PmC2*nuc3[_i][Cart::yyy][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::yyy][m] - nuc3[i_less_z[_i]][Cart::yyy][m+1]);
+      nuc3[_i][Cart::yyzz][m] = PmB1*nuc3[_i][Cart::yzz][m] - PmC1*nuc3[_i][Cart::yzz][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::yzz][m] - nuc3[i_less_y[_i]][Cart::yzz][m+1]) + term_zz;
+      nuc3[_i][Cart::yzzz][m] = PmB1*nuc3[_i][Cart::zzz][m] - PmC1*nuc3[_i][Cart::zzz][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::zzz][m] - nuc3[i_less_y[_i]][Cart::zzz][m+1]);
+      nuc3[_i][Cart::zzzz][m] = PmB2*nuc3[_i][Cart::zzz][m] - PmC2*nuc3[_i][Cart::zzz][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::zzz][m] - nuc3[i_less_z[_i]][Cart::zzz][m+1]) + 3*term_zz;
     }
-  }   
-}  
+  }
+  //------------------------------------------------------
+
+} // end if (_lmax_col > 3)
                          
                          
          for (int i = 0; i < _nrows; i++) {
-                             for (int j = 0; j < _ncols; j++) {
-                               nuc(i,j) = nuc3[i][j][0];
-                             }
-                           }                
+            for (int j = 0; j < _ncols; j++) {
+               nuc(i,j) = nuc3[i][j][0];
+            }
+         }                
 
         
         
