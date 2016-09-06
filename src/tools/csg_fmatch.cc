@@ -69,6 +69,10 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
     // Set frame counter to zero
     _frame_counter = 0;
 
+    // accuracy for evaluating the difference in bead positions 
+    _dist = _options.get("cg.fmatch.dist").as<double>();
+    //std::cout << "_dist: " << _dist << std::endl;  
+    
     // read _nframes from input file
     _nframes = _options.get("cg.fmatch.frames_per_block").as<int>();
     // read _constr_least_sq from input file
@@ -289,7 +293,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
             conf->getBead(i)->F() -= _top_force.getBead(i)->getF();
             vec d = conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
 //            cout << "vec d of bead " << i << ": " << d << "abs(d): " << abs(d) << endl; 
-            if(abs(d) > 1e-5)//altered to 1e-5, otherwise it can be a too strict criterion
+            if(abs(d) > _dist)//default is 1e-5, otherwise it can be a too strict criterion
 //                cout << "conf->getBead(" << i << ")->getPos(): " << conf->getBead(i)->getPos() << endl;                
 //                cout << "_top_force->getBead(" << i << ")->getPos(): " << _top_force.getBead(i)->getPos() << endl; 
                 throw std::runtime_error("One or more bead positions in mapped and reference force trajectory differ by more than 1e-5");

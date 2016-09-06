@@ -139,6 +139,9 @@ protected:
   /// \brief Number of CG beads
   int _nbeads;
   
+  /// \brief accuracy for evaluating the difference in bead positions 
+  double _dist;
+  
   /// \brief Flag: true for constrained least squares, false for simple least squares
   bool _constr_least_sq;
   /// \brief used in EvalConf to distinguish constrained and simple least squares
