@@ -114,7 +114,7 @@ namespace votca { namespace xtp {
         // iterate over Gaussians in this _shell_row
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
-            const double& _decay_row = (*itr)->decay;
+            const double _decay_row = (*itr)->decay;
             
             for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
            
@@ -122,7 +122,7 @@ namespace votca { namespace xtp {
            
 
             // get decay constants 
-            const double& _decay_col = (*itc)->decay;
+            const double _decay_col = (*itc)->decay;
             
             // some helpers
             const double _fak  = 0.5/(_decay_row + _decay_col);

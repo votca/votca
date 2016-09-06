@@ -250,7 +250,6 @@ namespace votca {
             linalg_eigenvalues(_dftAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Smallest eigenvalue of DFT Overlap matrix : " << _eigenvalues[0] << flush;
 
-
             _dftAOkinetic.Initialize(_dftbasis.AOBasisSize());
             _dftAOkinetic.Fill(&_dftbasis);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
@@ -278,6 +277,8 @@ namespace votca {
    
             _auxAOoverlap.Initialize(_auxbasis.AOBasisSize());
             _auxAOoverlap.Fill(&_auxbasis);
+            
+            
             linalg_eigenvalues(_auxAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Smallest eigenvalue of AUX Overlap matrix : " << _eigenvalues[0] << flush;
  

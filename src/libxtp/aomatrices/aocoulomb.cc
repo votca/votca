@@ -39,11 +39,7 @@ using namespace votca::tools;
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
 
-    
-    int AOCoulomb::getExtraBlockSize(int _lmax_row, int _lmax_col){
-        int _block_size = _lmax_col + _lmax_row +1;
-        return _block_size;
-    }
+ 
 
     void AOCoulomb::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp) {
       
@@ -54,14 +50,12 @@ namespace votca { namespace xtp {
             // set size of internal block for recursion
             int _nrows = this->getBlockSize(_lmax_row);
             int _ncols = this->getBlockSize(_lmax_col);
-            int _nextra = this->getExtraBlockSize(_lmax_row, _lmax_col);
-            int _l_sum = _lmax_row + _lmax_col;
+            const int _mmax = _lmax_row + _lmax_col; 
+            const int _nextra = _mmax +1;
+            
 
             
-            int nmax=20; // This is hardcoded using getBlocksize leads to problems the if clauses are not that restrictive and so if you do use a smaller array it might lead to problems
-             if(_lmax_row>3 ||_lmax_col>3){
-                 nmax=35;
-             }
+           
             
             // get shell positions
             const vec& _pos_row = _shell_row->getPos();
@@ -160,12 +154,12 @@ namespace votca { namespace xtp {
                        
                       
                          
-                         //ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
-                         ma_type _cou(boost::extents[nmax][nmax][_nextra]);
+                         ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
+                         
                          
                                   
-                           for (index i = 0; i != nmax; ++i) {
-                               for (index j = 0; j != nmax; ++j) {
+                           for (index i = 0; i != _nrows; ++i) {
+                               for (index j = 0; j != _ncols; ++j) {
                                    for (index k = 0; k != _nextra; ++k) {
                                        _cou[i][j][k] = 0.0;
                                    }
@@ -174,12 +168,12 @@ namespace votca { namespace xtp {
 
                          
                          
-            const double _decay = _decay_row + _decay_col; ///////////////
-            const double r_decay = 0.5/_decay; /////////////////////
-            const double r_decay_2 = 2.*r_decay; /////////////////////
-            const double fac_a_ac = _decay_row/_decay; ///////////
-            const double fac_c_ac = _decay_col/_decay; ///////////
-            const int _mmax = _lmax_row + _lmax_col; //////////////
+            const double _decay = _decay_row + _decay_col; 
+            const double r_decay = 0.5/_decay; 
+            const double r_decay_2 = 2.*r_decay; 
+            const double fac_a_ac = _decay_row/_decay; 
+            const double fac_c_ac = _decay_col/_decay; 
+            
                        
 
             
