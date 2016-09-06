@@ -105,7 +105,7 @@ script:
     ${CTP:+kmc moo ctp} ${XTP:+xtp}
 
 after_success:
-  - if [[ ${MAN} && ${CC} = gcc ]]; then
+  - if [[ ${MAN} && ${CC} = gcc* ]]; then
       cp "$HOME"/votca/src/{csg-manual,devdoc}/manual.pdf;
       cd "$HOME/votca/src/devdoc";
       if [[ ${TRAVIS_BRANCH} = master && ${encrypted_3780e1dc437f_key} && ${encrypted_3780e1dc437f_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then
