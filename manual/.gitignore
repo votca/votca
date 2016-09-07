@@ -34,5 +34,6 @@ xtp_manual.ind
 xtp_manual.log
 xtp_manual.out
 xtp_manual.toc
+xtp_manual.pdf
 reference/programs/*.tex
 reference/*/*.xml.tex

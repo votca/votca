@@ -44,8 +44,10 @@ endif
 qclean:
 	$(LATEXMK) -C $(NAME).tex
 
-install: all
-	@echo "$(NAME).pdf is ready to use, no need to install it."
+install: xtp_manual.pdf
+	mkdir -p $(XTP_MANUAL)
+	cp $< $(XTP_MANUAL)/xtp_manual.pdf
+	echo "Installing to ${XTP_MANUAL}"
 
 clean: qclean reference_subclean fig_subclean programs_subclean theory_subclean reference_subclean input_subclean
 	rm -f $(NAME).fdb_latexmk $(NAME).brf literature_short.bib literature.bib

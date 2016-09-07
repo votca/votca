@@ -34,6 +34,8 @@ scripts/xtp_update_exciton.out
 scripts/xtp_basisset
 scripts/xtp_basisset.out
 
+
+
 netbeans/*/build
 .dep.inc
 */nbproject/private
