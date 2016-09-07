@@ -1,3 +1,4 @@
+set(XTP_PROGS) 
 foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump xtp_overlap xtp_kmc_run)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
 
@@ -19,5 +20,6 @@ foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump xtp_overlap xtp_kmc
      add_dependencies(manpages ${PROG}_manpage)
      install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${MAN}/man1 RENAME ${PROG}.1)
   endif (BUILD_MANPAGES)
+  set(XTP_PROGS "${XTP_PROGS} ${CMAKE_CURRENT_BINARY_DIR}/${PROG}")
 endforeach(PROG)
-
+set(XTP_PROGS "${XTP_PROGS}" PARENT_SCOPE)

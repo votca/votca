@@ -153,7 +153,6 @@ namespace votca {
             // if it does, go on and create multiarray
             typedef boost::multi_array<double, 3> ma_type;
             typedef boost::multi_array_types::extent_range range;
-            typedef ma_type::index index;
             ma_type::extent_gen extents;
             ma_type S;
             S.resize(extents[ range(1, _nalpha + 1) ][ range(1, _ngw + 1) ][ range(1, _ngamma + 1)]);
