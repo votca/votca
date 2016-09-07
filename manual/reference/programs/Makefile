@@ -21,7 +21,7 @@ $(BINST2T): help2t2t.sh
 %.t2t:
 	@x=`echo $(XTP_SCRIPTS) $(XTP_PROGS) | xargs -n1 echo | grep '/$*$$'` && \
 	echo ./help2t2t.sh $$x \> $@ && \
-	./help2t2t.sh $$x > $@
+	VOTCASHARE=$${PWD}/../../share ./help2t2t.sh $$x > $@
 
 config.t2t: ../config.t2t
 	cp $< .
