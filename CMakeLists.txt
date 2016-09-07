@@ -176,7 +176,17 @@ add_subdirectory(src/tools)
 #add_subdirectory(share/scripts/dipro) 
 add_subdirectory(share)  
 
-add_custom_target(manual COMMAND make install -C ${CMAKE_SOURCE_DIR}/manual
+add_custom_target(manual COMMAND make -C ${CMAKE_SOURCE_DIR}/manual
+	XTP_SCRIPTS="${XTP_SCRIPTS}"
+	XTP_PROGS="${XTP_PROGS}"
+    XTP_MANUAL="${CMAKE_INSTALL_PREFIX}/${XTP_MANUAL}" VERBATIM)
+
+add_custom_target(cleanmanual COMMAND make clean -C ${CMAKE_SOURCE_DIR}/manual
+	XTP_SCRIPTS="${XTP_SCRIPTS}"
+	XTP_PROGS="${XTP_PROGS}"
+    XTP_MANUAL="${CMAKE_INSTALL_PREFIX}/${XTP_MANUAL}" VERBATIM)
+
+add_custom_target(installmanual COMMAND make install -C ${CMAKE_SOURCE_DIR}/manual
 	XTP_SCRIPTS="${XTP_SCRIPTS}"
 	XTP_PROGS="${XTP_PROGS}"
     XTP_MANUAL="${CMAKE_INSTALL_PREFIX}/${XTP_MANUAL}" VERBATIM)
