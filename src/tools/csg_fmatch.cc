@@ -69,8 +69,11 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
     // Set frame counter to zero
     _frame_counter = 0;
 
-    // accuracy for evaluating the difference in bead positions 
-    _dist = _options.get("cg.fmatch.dist").as<double>();
+    // accuracy for evaluating the difference in bead positions (default 1e-5)
+    _dist = 1e-5;
+    if (_options.exists("cg.fmatch.dist")) {
+        _dist = _options.get("cg.fmatch.dist").as<double>();
+    }
     //std::cout << "_dist: " << _dist << std::endl;  
     
     // read _nframes from input file
