@@ -76,13 +76,20 @@ namespace votca {
                  _with_ecp = false;
              }
             
+             if ( options->exists(key+".guess")) {
+               _ecp_name = options->get(key+".guess").as<bool>();
+               _with_guess = true;
+             } else {
+                 _with_guess = false;
+             }
+            
             
 	    // numerical integrations
 	    _grid_name = options->get(key + ".integration_grid").as<string>();
-        _Econverged = options->get(key + ".convergence").as<double>();
+            _Econverged = options->get(key + ".convergence").as<double>();
 	    // exchange and correlation as in libXC
         
-        _xc_functional_name = options->get(key + ".xc_functional").as<string> ();
+            _xc_functional_name = options->get(key + ".xc_functional").as<string> ();
         
 	   
             _numofelectrons =0;
@@ -108,6 +115,7 @@ namespace votca {
             #ifdef _OPENMP
             if ( _openmp_threads > 0 ) {
                 omp_set_num_threads(_openmp_threads);
+                LOG(logDEBUG, *_pLog) << TimeStamp()  << " Using "<< omp_get_max_threads()<<" threads" << flush;
             }
             #endif
 
@@ -142,8 +150,15 @@ namespace votca {
             H0+=_dftAOECP.Matrix();
             cout<< "WARNING ecps are not correctly sorted" <<endl;
             }
-            linalg_eigenvalues_general(H0, _dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
-
+            
+            // if we have a guess we do not need this. 
+            if(!_with_guess){
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
+             // this temp is necessary because eigenvalues_general returns MO^T and not MO
+            ub::matrix<double> temp;
+            linalg_eigenvalues_general(H0, _dftAOoverlap._aomatrix, MOEnergies,temp);
+            MOCoeff=ub::trans(temp);
+            }
             double totinit = 0;
 
             for (int i = 0; i < (_numofelectrons / 2); i++) {
@@ -155,16 +170,15 @@ namespace votca {
             NuclearRepulsion();
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Nuclear Repulsion Energy is " << E_nucnuc << flush;
 
-            
-	    ub::matrix<double> initMOCoeff= ub::trans(_orbitals->MOCoefficients());
-            
-	    DensityMatrixGroundState( initMOCoeff, _numofelectrons/2 ) ;
+         
+            _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
+	    
 
         
 	    
 
 
-           LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
+           
            //LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity_Atomblock(_dftAOdmat, basis) << flush;
 	   
            double energyold=totinit;
@@ -186,8 +200,11 @@ namespace votca {
                 ub::matrix<double> H=H0+_ERIs.getERIs()+VXC;
              
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;
-                linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
                 
+                // this temp is necessary because eigenvalues_general returns MO^T and not MO
+                ub::matrix<double> temp;
+                linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, temp);
+                MOCoeff=ub::trans(temp);
           
                 
                 double totenergy=E_nucnuc;
@@ -221,7 +238,7 @@ namespace votca {
                 }
 
 
-                EvolveDensityMatrix( MOCoeff, _numofelectrons/2 ) ;
+                EvolveDensityMatrix(_orbitals ) ;
                 //LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity_Atomblock(_dftAOdmat, basis) << flush;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
             }
@@ -315,6 +332,10 @@ namespace votca {
 
             // load and fill DFT basis set
             _dftbasisset.LoadBasisSet(_dftbasis_name);
+            
+            if(_with_guess && _orbitals->getDFTbasis()!=_dftbasis_name){
+                throw runtime_error("Basisset Name in guess orb file and in dftengine option file differ.");
+            }
             _orbitals->setDFTbasis( _dftbasis_name );    
 	    _dftbasis.AOBasisFill( &_dftbasisset, _atoms);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
@@ -357,6 +378,16 @@ namespace votca {
            
            
            LOG(logDEBUG, *_pLog) << TimeStamp() << " Total number of electrons: " << _numofelectrons << flush;
+           
+           if(_with_guess){
+               if(_orbitals->getNumberOfElectrons()!=_numofelectrons){
+               throw runtime_error("Number of electron in guess orb file and in dftengine differ.");
+               }
+               if(_orbitals->getNumberOfLevels()!=_dftbasis.AOBasisSize()){
+               throw runtime_error("Number of levels in guess orb file and in dftengine differ.");
+               }
+            }
+           
            _orbitals->setNumberOfElectrons(_numofelectrons);
            _orbitals->setNumberOfLevels(_numofelectrons/2,_dftbasis.AOBasisSize()-_numofelectrons/2);
            
@@ -366,31 +397,13 @@ namespace votca {
             
       }
       
-      void DFTENGINE::DensityMatrixGroundState( ub::matrix<double>& _MOs, int occulevels ) {
-     
-     // first fill Density matrix, if required
-    //  if ( _dmatGS.size1() != _basis_set_size ) {
-          int size=max(_MOs.size1(),_MOs.size2());
-          // cout << "Size " << size << " occ levels " << occulevels << endl;
-        _dftAOdmat = ub::zero_matrix<double>(size,size);
-        for ( int _i=0; _i < size; _i++ ){
-            for ( int _j=0; _j < size; _j++ ){
-                for ( int _level=0; _level < occulevels ; _level++ ){
-                 
-                    //_dftAOdmat(_i,_j) += 2.0 * _MOs( _level , _i ) * _MOs( _level , _j );
-                    _dftAOdmat(_i,_j) += 2.0 * _MOs(  _i , _level) * _MOs(  _j, _level );
-                 
-                }
-            }
-         }
-     //}
-    }
       
       
-      void DFTENGINE::EvolveDensityMatrix(ub::matrix<double>& MOCoeff, int occulevels){
+      
+      void DFTENGINE::EvolveDensityMatrix(Orbitals* _orbitals ){
           
       ub::matrix<double> dftdmat_old=_dftAOdmat;
-      DensityMatrixGroundState(MOCoeff, occulevels);
+      _dftAOdmat=_orbitals->DensityMatrixGroundState(_orbitals->MOCoefficients());;
       if (_this_iter > 0) _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*dftdmat_old;
       
       /*DIIS or mixing can be implemented here*/

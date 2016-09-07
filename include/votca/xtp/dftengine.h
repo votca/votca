@@ -78,10 +78,10 @@ public:
     void Prepare( Orbitals* _orbitals );
     void SetupInvariantMatrices();
     
-    void DensityMatrixGroundState( ub::matrix<double>& _MOs, int occulevels ) ;
+    
     
     void NuclearRepulsion();
-    void EvolveDensityMatrix(ub::matrix<double>& MOCoeff, int occulevels);
+    void EvolveDensityMatrix(Orbitals* _orbitals);
     
     //bool   _maverick;
     
@@ -130,6 +130,7 @@ public:
     AOESP                               _dftAOESP;
     AOECP                               _dftAOECP;
     
+    bool                                _with_guess;
     double                              E_nucnuc;
     
     //
@@ -139,11 +140,14 @@ public:
     int                                 _max_iter;
     int                                 _this_iter;
     ub::matrix<double>                  _dftAOdmat;
-    std::vector< ub::matrix<double> >   _dftdmathist;
+    
+    
+    std::list< ub::matrix<double> >   _dftdmathist;
+    std::list< ub::matrix<double> >   _errormatrixhist;
     //Electron repulsion integrals
     ERIs                                _ERIs;
     
-     ub::matrix<double>                 _AOIntegrals ; // TRY MORE USEFUL DATA
+
     
     
     
@@ -152,9 +156,7 @@ public:
 
 
     
-   typedef boost::multi_array<double, 4> fourdim;
-   //fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
-    //fourdim  fourcenter;
+  
     
 };
 
