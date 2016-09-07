@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.3)
 
 project(votca-tools)
 
@@ -69,25 +69,11 @@ add_custom_target(manpages ALL)
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################
-option(WITH_LINALG "Checking which BLAS libraries are installed" ON)
-if (WITH_LINALG)
-
-  find_package(Eigen)
 
 
-  if (EIGEN_FOUND) 
-    message("-- EIGEN found (not used at the moment)")
-    set(EIGEN TRUE) #used in votca_tools_config.h
-    include_directories(${EIGEN_INCLUDE_DIRS})
-  else()
-    message("-- EIGEN not found")
-    set(EIGEN FALSE) #used in votca_tools_config.h
-  endif()
+  
 
-  set(MKL FALSE)
-  set(GSL FALSE)
-
-  #find_package(GSL)
+  find_package(GSL)
   find_package(MKL)
 
 
@@ -101,7 +87,25 @@ if (WITH_LINALG)
     set(GSL TRUE) #used in votca_xtp_config.h
   endif()
 
-endif(WITH_LINALG)
+if (MKL_FOUND)
+set(MKL_URL "http://software.intel.com/sites/default/files/managed/76/8c/intel-mkl-and-boost-example.zip")
+set(MKL_MD5 B957EE63A2167AD21B650B47726CD55C )
+set(MKL_FILE "intel-mkl-and-boost-example.zip")
+
+include(ExternalProject)
+ExternalProject_add(intel
+        PREFIX intel
+        URL "${MKL_URL}" URL_MD5 "${MKL_MD5}"
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+        )
+set(MKL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/intel/src/intel/MKL_and_boost_example/headers")
+include_directories(${MKL_INCLUDE_DIR})
+file(GLOB_RECURSE MKL_HEADERS ${MKL_INCLUDE_DIR}/*.hpp )
+install(FILES ${MKL_HEADERS} DESTINATION include/votca/tools)
+
+ENDIF(MKL_FOUND)
 
 
 option(WITH_FFTW "Use FFTW3, disabling leads to reduced functionality!" ON)

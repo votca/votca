@@ -26,3 +26,7 @@ install_manifest.txt
 cmake_install.cmake
 cmake_uninstall.cmake
 CMakeCache.txt
+intel/*
+include/votca/tools/votca_config.h
+
+
