@@ -69,6 +69,7 @@ script:
     --directory "$HOME/votca/src" --no-clean --depth 1 -DGMX_USE_RDTSCP=OFF ${GMX_DOUBLE:+-DGMX_DOUBLE=yes}
     tools $([[ ${MINIMAL} ]] || echo gromacs) csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
     ${CTP:+kmc moo ctp} ${XTP:+xtp}
+  - cd "$HOME/votca/src/xtp" && make installmanual DESTDIR=/tmp 
 
 cache:
   - ccache

@@ -10,7 +10,7 @@ CWD=$(shell pwd)
 ND=$(subst work/votca_xtp,Dropbox,$(CWD))
 endif
 
-all: $(NAME).pdf
+all: check $(NAME).pdf
 dvi: $(NAME).dvi
 ps: $(NAME).ps
 
@@ -44,10 +44,33 @@ endif
 qclean:
 	$(LATEXMK) -C $(NAME).tex
 
-install: xtp_manual.pdf
-	mkdir -p $(XTP_MANUAL)
-	echo "Installing to ${XTP_MANUAL}"
-	cp -v $< $(XTP_MANUAL)/xtp_manual.pdf
+check:
+	@if [ -z '$(XTP_SCRIPTS)' ] || [ -z '$(XTP_PROGS)' ]; then \
+	  echo '#################################';\
+	  echo '#                               #';\
+	  echo '#  XTP_SCRIPTS or XTP_PROGS not #';\
+	  echo '#  defined, call "make manual"  #';\
+	  echo '#  in the main directory !!     #';\
+	  echo '#                               #';\
+	  echo '#################################';\
+	  exit 1;\
+	fi
+
+install_check:
+	@if [ -z '$(XTP_MANUAL_LOCATION)' ]; then \
+	  echo '######################################';\
+	  echo '#                                    #';\
+	  echo '#  XTP_MANUAL_LOCATION not defined   #';\
+	  echo '#  call "make installmanual" in the  #';\
+	  echo '#  main directory !!                 #';\
+	  echo '#                                    #';\
+	  echo '######################################';\
+	  exit 1;\
+	fi
+install: install_check xtp_manual.pdf
+	mkdir -p $(DESTDIR)$(XTP_MANUAL_LOCATION)
+	echo "Installing to $(DESTDIR)${XTP_MANUAL_LOCATION}"
+	cp -v $< $(DESTDIR)$(XTP_MANUAL_LOCATION)/xtp_manual.pdf
 
 clean: qclean reference_subclean fig_subclean programs_subclean theory_subclean reference_subclean input_subclean
 	rm -f $(NAME).fdb_latexmk $(NAME).brf literature_short.bib literature.bib
