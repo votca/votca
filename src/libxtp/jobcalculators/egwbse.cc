@@ -120,8 +120,8 @@ namespace votca {
         void EGWBSE::WriteJobFile(Topology *top) {
 
     cout << endl << "... ... Writing job file: " << flush;
-    ofstream ofs;
-    ofs.open(_jobfile.c_str(), ofstream::out);
+    std::ofstream ofs;
+    ofs.open(_jobfile.c_str(), std::ofstream::out);
     if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
  
     ofs << "<jobs>" << endl;   
@@ -361,9 +361,9 @@ namespace votca {
                 _gwbse.Evaluate();
                 _gwbse.addoutput(_segment_summary);
                 // write logger to log file
-                ofstream ofs;
+                std::ofstream ofs;
                 string gwbse_logfile = _qmpackage_work_dir + "/gwbse.log";
-                ofs.open(gwbse_logfile.c_str(), ofstream::out);
+                ofs.open(gwbse_logfile.c_str(), std::ofstream::out);
                 if (!ofs.is_open()) {
                     throw runtime_error("Bad file handle: " + gwbse_logfile);
                 }    
