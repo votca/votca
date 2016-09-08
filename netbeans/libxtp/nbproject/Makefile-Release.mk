@@ -92,6 +92,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/qmmachine.o \
 	${OBJECTDIR}/_ext/484478074/qmnblist.o \
 	${OBJECTDIR}/_ext/484478074/qmpackagefactory.o \
+	${OBJECTDIR}/_ext/1619336126/cpmd.o \
 	${OBJECTDIR}/_ext/1619336126/gaussian.o \
 	${OBJECTDIR}/_ext/1619336126/nwchem.o \
 	${OBJECTDIR}/_ext/1619336126/orca.o \
@@ -429,6 +430,11 @@ ${OBJECTDIR}/_ext/484478074/qmpackagefactory.o: nbproject/Makefile-${CND_CONF}.m
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/qmpackagefactory.o ../../src/libxtp/qmpackagefactory.cc
+
+${OBJECTDIR}/_ext/1619336126/cpmd.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/qmpackages/cpmd.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1619336126
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1619336126/cpmd.o ../../src/libxtp/qmpackages/cpmd.cc
 
 ${OBJECTDIR}/_ext/1619336126/gaussian.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/qmpackages/gaussian.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1619336126

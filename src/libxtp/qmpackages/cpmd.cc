@@ -521,7 +521,7 @@ namespace votca {
 
             // check if the log file exists
             boost::filesystem::path arg_path;
-            char ch;
+           
 
             std::string _full_name = (arg_path / _run_dir / _log_file_name).c_str();
             ifstream _input_file(_full_name.c_str());
