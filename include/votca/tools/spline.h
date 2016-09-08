@@ -1,8 +1,18 @@
 /* 
- * File:   spline.h
- * Author: hahng
+ * Copyright 2010-2016 The VOTCA Development Team (http://www.votca.org)
  *
- * Created on December 10, 2010, 1:42 PM
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  */
 
 #ifndef __VOTCA_SPLINE_H
@@ -64,8 +74,8 @@ public:
     /// enum for type of boundary condition
     enum eBoundary {
         splineNormal = 0,  ///< normal boundary conditions: \f$f_0=f_N=0\f$
-        splinePeriodic,    ///< periodic boundary conditions: \f$f_0=f_N\f$
-        splineDerivativeZero ///< derivatives and end-points are zero.
+        splinePeriodic = 1,    ///< periodic boundary conditions: \f$f_0=f_N\f$
+        splineDerivativeZero = 2 ///< derivatives and end-points are zero.
     };
 
     /**
@@ -73,6 +83,24 @@ public:
      * \param boundary of type eBoundary
      */
     void setBC(eBoundary bc) {_boundaries = bc;}
+    
+        /**
+     * \brief Set the boundary type of the spline
+     * \param boundary of type int
+     */
+    void setBCInt(int bc) {        
+        switch(bc){
+            case 0:
+                _boundaries = splineNormal;
+                break;
+            case 1:
+                _boundaries = splinePeriodic;
+                break;
+            case 2:
+                _boundaries = splineDerivativeZero;
+                break;                    
+        }         
+    }
 
     /**
      * \brief Get the grid point of certain index
