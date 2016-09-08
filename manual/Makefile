@@ -21,7 +21,8 @@ $(NAME).tex: hgid.tex fig_submake programs_submake theory_submake reference_subm
 
 %.dvi: %.tex dummy
 	./abbreviate_journals.pl 
-	$(LATEXMK) $(LATEXMKOPTS) -dvi $<
+	$(LATEXMK) $(LATEXMKOPTS) -dvi $< || rm -vf $*.dvi
+	@[ -f $@ ]
 
 %.pdf: %.dvi
 ifeq ($(OSTYPE),darwin)
