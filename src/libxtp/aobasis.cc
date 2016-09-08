@@ -509,7 +509,7 @@ int AOBasis::NumFuncShell(string shell_type) {
                 else if ( shell_type == "H" ){ _nbf = 25;}
                 else if ( shell_type == "I" ){ _nbf = 36;}
                 else{
-                    throw runtime_error("Num Func Shell shell_type not known");
+                    throw runtime_error("AOBasis::NumFuncShell shell_type not known");
                 }
             } else {
                 // for combined shells, sum over all contributions
@@ -535,7 +535,9 @@ int AOBasis::OffsetFuncShell( string shell_type ) {
        else if ( shell_type == "G" ){ _nbf = 16;}
        else if ( shell_type == "H" ){ _nbf = 25;}
        else if ( shell_type == "I" ){ _nbf = 36;}
-       
+        else {
+                   throw runtime_error("AOBasis::OffsetFuncShell shell_type not known");
+               }
     } else {
         // for combined shells, go over all contributions and find minimal offset
         _nbf = 1000;
@@ -560,7 +562,7 @@ int AOBasis::NumFuncShell_cartesian( string shell_type ) {
        else if ( shell_type == "H" ){ _nbf = 21;}
        else if ( shell_type == "I" ){ _nbf = 28;}
        else {
-                    throw runtime_error("NumFuncShell shell_type not known");
+                    throw runtime_error("AOBasis::NumFuncShell_cartesian shell_type not known");
                 }
     } else {
         // for combined shells, sum over all contributions
@@ -590,7 +592,7 @@ int AOBasis::OffsetFuncShell_cartesian( string shell_type ) {
        else if ( shell_type == "H" ){ _nbf = 35;}
        else if ( shell_type == "I" ){ _nbf = 56;}
        else {
-                    throw runtime_error("NumFuncShell_cartesian shell_type not known");
+                    throw runtime_error("OBasis::OffsetFuncShell_cartesian shell_type not known");
                 }
     } else {
         // for combined shells, go over all contributions and find minimal offset
