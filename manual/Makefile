@@ -70,7 +70,7 @@ install_check:
 install: install_check xtp_manual.pdf
 	mkdir -p $(DESTDIR)$(XTP_MANUAL_LOCATION)
 	echo "Installing to $(DESTDIR)${XTP_MANUAL_LOCATION}"
-	cp -v $< $(DESTDIR)$(XTP_MANUAL_LOCATION)/xtp_manual.pdf
+	cp -v xtp_manual.pdf $(DESTDIR)$(XTP_MANUAL_LOCATION)/xtp_manual.pdf
 
 clean: qclean reference_subclean fig_subclean programs_subclean theory_subclean reference_subclean input_subclean
 	rm -f $(NAME).fdb_latexmk $(NAME).brf literature_short.bib literature.bib
