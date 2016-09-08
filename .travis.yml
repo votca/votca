@@ -47,8 +47,8 @@ env:
     - CCACHE_CPP2=yes #for clang
     - GVER=4.8
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
-    - XTP=yes WERROR=yes J=4
-    - XTP=yes WALL=yes J=4
+#    - XTP=yes WERROR=yes J=4
+    - XTP=yes WALL=yes J=1
 
 before_script:
   - rm -vrf * .git
