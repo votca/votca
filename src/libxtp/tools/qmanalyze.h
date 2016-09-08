@@ -313,13 +313,13 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     if ( _orbitals.hasQPdiag() ){
         LOG(logDEBUG, _log) << "      diagonalized QP levels: " << _orbitals.QPdiagEnergies().size() << flush;
         if(_print_QP_energies){
-            int _qpmin=_orbitals.getGWAmin();
-            int _homo=_orbitals.getNumberOfElectrons()-1;
+            unsigned _qpmin=_orbitals.getGWAmin();
+            unsigned _homo=_orbitals.getNumberOfElectrons()-1;
             const ub::vector<double>& _qp_diag_energies=_orbitals.QPdiagEnergies();
              const ub::matrix<double>& _qp_energies=_orbitals.QPpertEnergies();
                     LOG(logDEBUG, _log) << TimeStamp() << " Full quasiparticle Hamiltonian  " << flush;
                     LOG(logDEBUG, _log) << (format("  ====== Diagonalized quasiparticle energies (Rydberg) ====== ")).str() << flush;
-                    for (unsigned _i = 0; _i < _qp_diag_energies.size(); _i++) {
+                    for (unsigned _i = 0; _i <  _qp_diag_energies.size(); _i++) {
                         if (( _qpmin+ _i) == _homo) {
                             LOG(logDEBUG, _log) << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin,4 ) % _qp_diag_energies(_i)).str() << flush;
                         } else if ((_qpmin+ _i) == _homo + 1) {
