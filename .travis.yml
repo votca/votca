@@ -27,6 +27,7 @@ addons:
       - libhdf5-serial-dev
       - pkg-config
       - pgf
+      - python-lxml
       - texlive-fonts-recommended
       - texlive-latex-extra
       - transfig
