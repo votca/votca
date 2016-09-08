@@ -18,6 +18,12 @@
 #ifndef __VOTCA_TOOLS_LINALG_H
 #define	__VOTCA_TOOLS_LINALG_H
 #include <votca/tools/votca_config.h>
+#if defined(GSL)
+    #include "votca_gsl_boost_ublas_matrix_prod.h"
+#elif defined(MKL)
+    #include "mkl_boost_ublas_matrix_prod.hpp"
+#endif
+
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
