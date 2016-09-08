@@ -172,7 +172,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/manual/xtp_manual.pdf COMM
 	XTP_SCRIPTS="${XTP_SCRIPTS}"
 	XTP_PROGS="${XTP_PROGS}"
     XTP_MANUAL="${CMAKE_INSTALL_PREFIX}/${XTP_MANUAL}" VERBATIM)
-add_custom_target(manual DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/manual/xtp_manual.odf
+add_custom_target(manual DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/manual/xtp_manual.pdf)
 
 add_custom_target(cleanmanual COMMAND make clean -C ${CMAKE_SOURCE_DIR}/manual
 	XTP_SCRIPTS="${XTP_SCRIPTS}"
