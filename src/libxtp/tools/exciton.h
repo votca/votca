@@ -551,9 +551,9 @@ bool Exciton::Evaluate() {
     votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
     LOG(logDEBUG,_log) << "Writing output to " << _xml_output << flush;
     std::ofstream ofout (_xml_output.c_str(), std::ofstream::out);
-
+    if ( _do_gwbse ){
         ofout << (_summary.get("output"));    
-   
+    }
     ofout.close();
     
     return true;
