@@ -17,85 +17,85 @@ In the following \sect{theory}, we summarize the \slink{sec:theory}{theoretical 
 
 
 
-\tikzstyle{decision} = [diamond, draw, fill=mygray]
-\tikzstyle{line} = [draw, -stealth, thick]
-\tikzstyle{block} = [draw, rectangle, fill=mygray, text width=0.5\linewidth]
-\tikzstyle{smallblock} = [draw, rectangle, fill=mygray, text width=0.4\linewidth]
-\tikzstyle{info} = [text width=0.35\linewidth]
-\tikzstyle{smallinfo} = [text width=0.25\linewidth]
-\tikzstyle{biginfo} = [text width=0.9\linewidth]
+%\tikzstyle{decision} = [diamond, draw, fill=mygray]
+%\tikzstyle{line} = [draw, -stealth, thick]
+%\tikzstyle{block} = [draw, rectangle, fill=mygray, text width=0.5\linewidth]
+%\tikzstyle{smallblock} = [draw, rectangle, fill=mygray, text width=0.4\linewidth]
+%\tikzstyle{info} = [text width=0.35\linewidth]
+%\tikzstyle{smallinfo} = [text width=0.25\linewidth]
+%\tikzstyle{biginfo} = [text width=0.9\linewidth]
 \begin{figure}
 \centering
 \newcommand{\vgap}{0.5cm}
 \begin{scriptsize}
-\noindent\begin{tikzpicture}
-\node [block] (mapping) {{\bf Mapping}\\Converts and partitions atomistic \gromacs trajectory \vskip 0.1cm
-{\noindent  \cmdmap}
-\vskip 0.1cm};
-
-\node[smallinfo, left=0.0 of mapping] (input) {{\bf Input files:}\\\texttt{conf.gro}\\\,\hskip 0.1cm\gromacs trajectory\\\texttt{topol.tpr}\\\hskip0.1cm\gromacs topology\\\texttt{\xmlcsg}\\\hskip0.1cm mapping and energies\\\texttt{options.xml}\\\hskip0.1cm options for \slink{sec:calculators}{calculators}\vskip 0.2cm {\bf Output files:}\\\texttt{\sqlstate}\\\hskip0.1cm \sqlite database file for\\\hskip0.1cm data transfer between\\\hskip0.1cm modules};
-
-\node [block, below=\vgap of mapping] (nbl) {{\bf Neighbor list}\\Indentifies close molecular pairs between which charge transfer rates will be calculated \vskip 0.1cm
-{\noindent \cmdnbl}
-\vskip 0.1cm};
-
-
-\node [block, below=\vgap of nbl] (site_energies) {{\bf Site energies}\\Calculates electrostatic and polarization contribution to site energies \vskip 0.1cm
-{\noindent  \cmdemlt} };
-
-\node [block, below=\vgap of site_energies] (int_energies) {{\bf Internal site and reorganization energies}\\Imports internal site energy (IP, EA) and reorganization energies for charging and discharging to \sqlstate \vskip 0.1cm
-{\noindent  \cmdeint}
-\vskip 0.1cm};
-
-
-% above right=0.7cm and 4cm of A
-\node[decision, below=\vgap of int_energies](decision1){Transfer integrals};
-
-%\node (AuxNode01) [text width=6em, below of = decision1, node distance=7em ] {};
-
-\node [smallblock, below left=\vgap of decision1] (DFT_TI) {{\bf Monomers with DFT}\\Calculate the relevant transport orbitals of monomers \vskip 0.1cm
-{ \cmdedft \job\, ''\wrt \run'' }};
-
-\node [smallblock, below=\vgap of DFT_TI] (DFT_TI2) {{\bf Transfer integrals with DFT}\\Calculate electronic coupling elements for all pairs in the neighbor list \vskip 0.1cm
-{ \cmdidft \job\, ''\wrt \run \rd'' }
-\vskip 0.1cm};
-
-\node [smallblock, below right=\vgap of decision1] (DFT_ZINDO) {{\bf Transfer integrals with ZINDO}\\Calculate electronic coupling elements for all pairs in the neighbor list  \vskip 0.1cm
-{\noindent  \cmdizindo }
-\vskip 0.1cm};
-
-
-\node[info, below=0.2cm of DFT_ZINDO] (ti_info) {{One can choose between quantum-chemical (computationally expensive) or semi-empirical (fast, but not always sufficiently accurate) evaluation of transfer integrals.}};
-
-\node (AuxNode01) [below=\vgap of DFT_TI2, xshift=0.25\linewidth] {};
-
-
-\node [block, below=\vgap of DFT_TI2, xshift=0.275\linewidth] (outer_reorg) {{\bf Outersphere reorganization energies}\\Contribution to reorganization of surrounding molecules due to polarization. (optional for Marcus rates)  \vskip 0.1cm
-{\noindent  \cmdouter}
-\vskip 0.1cm};
-
-\node [block, below=\vgap of outer_reorg] (rates) {{\bf Charge transfer rates}\\Calculates rates for charge transfer among all pairs in the neighborlist \vskip 0.1cm
-{\noindent \cmdrates}
-};
-
-\node [block, below=\vgap of rates] (kmc) {{\bf Charge dynamics via kMC}\\Hopping of charge carriers simulated via kinetic Monte Carlo \vskip 0.1cm
-{\noindent \cmdkmc }
-};
-
-\node [biginfo, below=\vgap of kmc] (calc) {{\noindent Get list of available calculators: \xtprun/\xtpparallel/\kmcrun  \texttt{ -l}}\\ Get help and list of options for a calculator: \xtprun/\xtpparallel/\kmcrun  \texttt{ -d }\calc{neighborlist}};
-
-\path [line] (mapping) -- (nbl);
-\path [line] (nbl) -- (site_energies);
-\path [line] (site_energies) -- (int_energies);
-\path [line] (int_energies) -- (decision1);
-\path [line] (DFT_TI) -- (DFT_TI2);
-\path [line] (decision1) -| node[yshift=0.5em, xshift=1em] {DFT} (DFT_TI);
-\path [line] (decision1) -| node[yshift=0.5em, xshift=-1em] {ZINDO} (DFT_ZINDO);
-\path [line] (DFT_TI2.east) -| (outer_reorg.north);
-\path [line] (DFT_ZINDO.west) -| (outer_reorg);
-\path [line] (outer_reorg) -- (rates);
-\path [line] (rates) -- (kmc);
-\end{tikzpicture}
+%\noindent\begin{tikzpicture}
+%\node [block] (mapping) {{\bf Mapping}\\Converts and partitions atomistic \gromacs trajectory \vskip 0.1cm
+%{\noindent  \cmdmap}
+%\vskip 0.1cm};
+%
+%\node[smallinfo, left=0.0 of mapping] (input) {{\bf Input files:}\\\texttt{conf.gro}\\\,\hskip 0.1cm\gromacs trajectory\\\texttt{topol.tpr}\\\hskip0.1cm\gromacs topology\\\texttt{\xmlcsg}\\\hskip0.1cm mapping and energies\\\texttt{options.xml}\\\hskip0.1cm options for \slink{sec:calculators}{calculators}\vskip 0.2cm {\bf Output files:}\\\texttt{\sqlstate}\\\hskip0.1cm \sqlite database file for\\\hskip0.1cm data transfer between\\\hskip0.1cm modules};
+%
+%\node [block, below=\vgap of mapping] (nbl) {{\bf Neighbor list}\\Indentifies close molecular pairs between which charge transfer rates will be calculated \vskip 0.1cm
+%{\noindent \cmdnbl}
+%\vskip 0.1cm};
+%
+%
+%\node [block, below=\vgap of nbl] (site_energies) {{\bf Site energies}\\Calculates electrostatic and polarization contribution to site energies \vskip 0.1cm
+%{\noindent  \cmdemlt} };
+%
+%\node [block, below=\vgap of site_energies] (int_energies) {{\bf Internal site and reorganization energies}\\Imports internal site energy (IP, EA) and reorganization energies for charging and discharging to \sqlstate \vskip 0.1cm
+%{\noindent  \cmdeint}
+%\vskip 0.1cm};
+%
+%
+%% above right=0.7cm and 4cm of A
+%\node[decision, below=\vgap of int_energies](decision1){Transfer integrals};
+%
+%%\node (AuxNode01) [text width=6em, below of = decision1, node distance=7em ] {};
+%
+%\node [smallblock, below left=\vgap of decision1] (DFT_TI) {{\bf Monomers with DFT}\\Calculate the relevant transport orbitals of monomers \vskip 0.1cm
+%{ \cmdedft \job\, ''\wrt \run'' }};
+%
+%\node [smallblock, below=\vgap of DFT_TI] (DFT_TI2) {{\bf Transfer integrals with DFT}\\Calculate electronic coupling elements for all pairs in the neighbor list \vskip 0.1cm
+%{ \cmdidft \job\, ''\wrt \run \rd'' }
+%\vskip 0.1cm};
+%
+%\node [smallblock, below right=\vgap of decision1] (DFT_ZINDO) {{\bf Transfer integrals with ZINDO}\\Calculate electronic coupling elements for all pairs in the neighbor list  \vskip 0.1cm
+%{\noindent  \cmdizindo }
+%\vskip 0.1cm};
+%
+%
+%\node[info, below=0.2cm of DFT_ZINDO] (ti_info) {{One can choose between quantum-chemical (computationally expensive) or semi-empirical (fast, but not always sufficiently accurate) evaluation of transfer integrals.}};
+%
+%\node (AuxNode01) [below=\vgap of DFT_TI2, xshift=0.25\linewidth] {};
+%
+%
+%\node [block, below=\vgap of DFT_TI2, xshift=0.275\linewidth] (outer_reorg) {{\bf Outersphere reorganization energies}\\Contribution to reorganization of surrounding molecules due to polarization. (optional for Marcus rates)  \vskip 0.1cm
+%{\noindent  \cmdouter}
+%\vskip 0.1cm};
+%
+%\node [block, below=\vgap of outer_reorg] (rates) {{\bf Charge transfer rates}\\Calculates rates for charge transfer among all pairs in the neighborlist \vskip 0.1cm
+%{\noindent \cmdrates}
+%};
+%
+%\node [block, below=\vgap of rates] (kmc) {{\bf Charge dynamics via kMC}\\Hopping of charge carriers simulated via kinetic Monte Carlo \vskip 0.1cm
+%{\noindent \cmdkmc }
+%};
+%
+%\node [biginfo, below=\vgap of kmc] (calc) {{\noindent Get list of available calculators: \xtprun/\xtpparallel/\kmcrun  \texttt{ -l}}\\ Get help and list of options for a calculator: \xtprun/\xtpparallel/\kmcrun  \texttt{ -d }\calc{neighborlist}};
+%
+%\path [line] (mapping) -- (nbl);
+%\path [line] (nbl) -- (site_energies);
+%\path [line] (site_energies) -- (int_energies);
+%\path [line] (int_energies) -- (decision1);
+%\path [line] (DFT_TI) -- (DFT_TI2);
+%\path [line] (decision1) -| node[yshift=0.5em, xshift=1em] {DFT} (DFT_TI);
+%\path [line] (decision1) -| node[yshift=0.5em, xshift=-1em] {ZINDO} (DFT_ZINDO);
+%\path [line] (DFT_TI2.east) -| (outer_reorg.north);
+%\path [line] (DFT_ZINDO.west) -| (outer_reorg);
+%\path [line] (outer_reorg) -- (rates);
+%\path [line] (rates) -- (kmc);
+%\end{tikzpicture}
 
 
 \end{scriptsize}
