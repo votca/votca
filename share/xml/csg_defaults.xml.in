@@ -464,9 +464,6 @@
       <out_step>
 	      <DESC>Grid spacing for the output grid. Normally, one wants to have this parameter smaller than fmatch.step, to have a smooth curve, without additional spline interpolation. As a rule of thumb we normally use fmatch.out_step which is approximately 5 times smaller than fmatch.step.</DESC>
       </out_step>
-      <dist>1e-5
-        <DESC> Accuracy for evaluating the difference in bead positions. Default is 1e-5 </DESC>
-      </dist>
     </fmatch>
     <re>
       <DESC>Relative entropy options</DESC>
