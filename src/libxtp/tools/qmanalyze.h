@@ -320,9 +320,9 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
                     LOG(logDEBUG, _log) << TimeStamp() << " Full quasiparticle Hamiltonian  " << flush;
                     LOG(logDEBUG, _log) << (format("  ====== Diagonalized quasiparticle energies (Rydberg) ====== ")).str() << flush;
                     for (unsigned _i = 0; _i < _qp_diag_energies.size(); _i++) {
-                        if ((_i + _qpmin) == _homo) {
+                        if (( _qpmin+ _i) == _homo) {
                             LOG(logDEBUG, _log) << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin,4 ) % _qp_diag_energies(_i)).str() << flush;
-                        } else if ((_i + _qpmin) == _homo + 1) {
+                        } else if ((_qpmin+ _i) == _homo + 1) {
                             LOG(logDEBUG, _log) << (format("  LUMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin,4) % _qp_diag_energies(_i)).str() << flush;
 
                         } else {
