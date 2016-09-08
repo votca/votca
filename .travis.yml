@@ -30,7 +30,7 @@ addons:
       - python-lxml
       - texlive-fonts-recommended
       - texlive-latex-extra
-      - texlive-latex-recommended
+      - texlive-humanities
       - transfig
       - inkscape
       - doxygen
