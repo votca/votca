@@ -69,17 +69,18 @@ add_custom_target(manpages ALL)
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################
+
 find_package(GSL)
 find_package(MKL)
 
-if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+if (MKL_FOUND)
   message("-- MKL found, overloading uBLAS prod()")
   set(MKL TRUE) #used in votca_tools_config.h
 elseif(GSL_FOUND)
   message("-- GSL found, overloading uBLAS prod()")
   include_directories(${GSL_INCLUDE_DIRS})
   set(GSL_PKG "gsl")
-  set(GSL TRUE) #used in votca_xtp_config.h
+  set(GSL TRUE) #used in votca_tools_config.h
 endif()
 
 if(MKL_FOUND)
