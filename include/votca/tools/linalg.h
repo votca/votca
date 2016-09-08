@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,12 @@
 
 #ifndef __VOTCA_TOOLS_LINALG_H
 #define	__VOTCA_TOOLS_LINALG_H
+#include <votca/tools/votca_config.h>
+#if defined(GSL)
+    #include "votca_gsl_boost_ublas_matrix_prod.h"
+#elif defined(MKL)
+    #include "mkl_boost_ublas_matrix_prod.hpp"
+#endif
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
@@ -180,11 +186,19 @@ namespace votca { namespace tools {
    /**
      * \brief calculates loewdin transformation of matrices
      * @param J matrix to transform, returns transformed matrix
-     * @param S, overlap matrix, returns eigenvectors of S
+     * @param S, overlap matrix, returns S-1/2
      * @param returns smallest eigenvalue of S
      * This function calculates the loewdin transformation of a matrix
      */
    double linalg_loewdin(ub::matrix<double> &J, ub::matrix<double> &S);
+/**
+     * \brief calculates matrix sqrt of a matrix
+     * @param matrix to calculate sqrt of S, return S1/2
+   
+     * This function calculates the sqrt of a matrix
+     */
+   int linalg_matrixsqrt(ub::matrix<double> &S);
+   
    
    
 }}

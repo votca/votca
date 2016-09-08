@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.3)
 
 project(votca-tools)
 
@@ -65,6 +65,56 @@ endforeach(_blib)
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ON)
 #define this target here, so that individual man pages can append to it.
 add_custom_target(manpages ALL)
+
+########################################################################
+# Checks what linear algebra packages are installed                    #
+########################################################################
+
+find_package(GSL)
+find_package(MKL)
+
+if (MKL_FOUND)
+  message("-- MKL found, overloading uBLAS prod()")
+  set(MKL TRUE) #used in votca_config.h
+elseif(GSL_FOUND)
+  message("-- GSL found, overloading uBLAS prod()")
+  include_directories(${GSL_INCLUDE_DIRS})
+  set(GSL_PKG "gsl")
+  set(GSL TRUE) #used in votca_config.h
+endif()
+
+if(MKL_FOUND)
+  set(MKL_URL "http://software.intel.com/sites/default/files/managed/76/8c/intel-mkl-and-boost-example.zip")
+  set(MKL_MD5 B957EE63A2167AD21B650B47726CD55C )
+  set(MKL_FILE "intel-mkl-and-boost-example.zip")
+  
+  include(ExternalProject)
+  ExternalProject_add(intel
+          PREFIX intel
+          URL "${MKL_URL}" URL_MD5 "${MKL_MD5}"
+          CONFIGURE_COMMAND ""
+          BUILD_COMMAND ""
+          INSTALL_COMMAND ""
+          )
+  set(MKL_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/intel/src/intel/MKL_and_boost_example/headers")
+  include_directories(${MKL_INCLUDE_DIR})
+  file(GLOB_RECURSE MKL_HEADERS ${MKL_INCLUDE_DIR}/*.hpp )
+  install(FILES ${MKL_HEADERS} DESTINATION include/votca/tools)
+endif(MKL_FOUND)
+
+option(WITH_FFTW "Use FFTW3, disabling leads to reduced functionality!" ON)
+if (WITH_FFTW)
+  find_package(FFTW3)
+  if(NOT FFTW3_FOUND)
+    message(FATAL_ERROR "FFTW3 not found,  make sure you have also installed the fftw3 and it's dev package (it can be disable with -DWITH_FFTW=OFF)")
+  endif(NOT FFTW3_FOUND)
+  include_directories(${FFTW3_INCLUDE_DIRS})
+  set(FFTW3_PKG "fftw3")
+else(WITH_FFTW)
+  #used in votca_config.h
+  set(NOFFTW TRUE)
+  set(FFTW3_PKG)
+endif(WITH_FFTW)
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="95">
+<configurationDescriptor version="97">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -37,6 +37,10 @@
       <itemPath>../../include/votca/tools/types.h</itemPath>
       <itemPath>../../include/votca/tools/vec.h</itemPath>
       <itemPath>../../include/votca/tools/version.h</itemPath>
+      <itemPath>../../include/votca/tools/votca_config.h.in</itemPath>
+      <itemPath>../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h</itemPath>
+      <itemPath>../../include/votca/tools/votca_mkl_boost_ublas_gemm.hpp</itemPath>
+      <itemPath>../../include/votca/tools/votca_mkl_boost_ublas_matrix_prod.h</itemPath>
     </logicalFolder>
     <logicalFolder name="f1" displayName="Linalg" projectFiles="true">
       <logicalFolder name="f3" displayName="Dummy" projectFiles="true">
@@ -60,6 +64,7 @@
         <itemPath>../../src/libtools/linalg/mkl/qrsolve.cc</itemPath>
         <itemPath>../../src/libtools/linalg/mkl/svd.cc</itemPath>
       </logicalFolder>
+      <itemPath>../../src/libtools/gsl_boost_ublas_matrix_prod.cc</itemPath>
       <itemPath>../../src/libtools/linalg.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -91,6 +96,7 @@
       <itemPath>../../src/libtools/statement.cc</itemPath>
       <itemPath>../../src/libtools/table.cc</itemPath>
       <itemPath>../../src/libtools/thread.cc</itemPath>
+      <itemPath>../../src/libtools/version.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -269,6 +275,26 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/votca_config.h.in"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_mkl_boost_ublas_gemm.hpp"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_mkl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/akimaspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
@@ -290,6 +316,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/gsl_boost_ublas_matrix_prod.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -395,6 +426,8 @@
       <item path="../../src/libtools/table.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/thread.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="3">
@@ -559,6 +592,26 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/votca_config.h.in"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_mkl_boost_ublas_gemm.hpp"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_mkl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/akimaspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
@@ -580,6 +633,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/gsl_boost_ublas_matrix_prod.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -685,6 +743,8 @@
       <item path="../../src/libtools/table.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/thread.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="profile_release" type="3">
@@ -849,6 +909,26 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/votca_config.h.in"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_mkl_boost_ublas_gemm.hpp"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_mkl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/akimaspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
@@ -870,6 +950,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/gsl_boost_ublas_matrix_prod.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -975,6 +1060,8 @@
       <item path="../../src/libtools/table.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/thread.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>
