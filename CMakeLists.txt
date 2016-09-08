@@ -75,12 +75,12 @@ find_package(MKL)
 
 if (MKL_FOUND)
   message("-- MKL found, overloading uBLAS prod()")
-  set(MKL TRUE) #used in votca_tools_config.h
+  set(MKL TRUE) #used in votca_config.h
 elseif(GSL_FOUND)
   message("-- GSL found, overloading uBLAS prod()")
   include_directories(${GSL_INCLUDE_DIRS})
   set(GSL_PKG "gsl")
-  set(GSL TRUE) #used in votca_tools_config.h
+  set(GSL TRUE) #used in votca_config.h
 endif()
 
 if(MKL_FOUND)
@@ -115,8 +115,6 @@ else(WITH_FFTW)
   set(NOFFTW TRUE)
   set(FFTW3_PKG)
 endif(WITH_FFTW)
-
-#configure_file(config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
