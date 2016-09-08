@@ -1,16 +1,9 @@
 #ifndef _GSL_BOOST_UBLAS_MATRIX_PROD_
 #define _GSL_BOOST_UBLAS_MATRIX_PROD_
 
-#ifdef NDEBUG
-
-#include <boost/version.hpp>
-#if defined (BOOST_VERSION) && (BOOST_VERSION >= 103401)
-
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
-
-#define GSLDEBUG
 
 #include <gsl/gsl_blas.h>
 
@@ -227,6 +220,4 @@ namespace boost { namespace numeric { namespace ublas {
         
 }}}
 
-#endif  // BOOST_VERSION
-#endif  // NDEBUG
 #endif  // _GSL_BOOST_UBLAS_MATRIX_PROD_   
