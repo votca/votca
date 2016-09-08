@@ -46,8 +46,8 @@ qclean:
 
 install: xtp_manual.pdf
 	mkdir -p $(XTP_MANUAL)
-	cp $< $(XTP_MANUAL)/xtp_manual.pdf
 	echo "Installing to ${XTP_MANUAL}"
+	cp -v $< $(XTP_MANUAL)/xtp_manual.pdf
 
 clean: qclean reference_subclean fig_subclean programs_subclean theory_subclean reference_subclean input_subclean
 	rm -f $(NAME).fdb_latexmk $(NAME).brf literature_short.bib literature.bib
