@@ -235,7 +235,6 @@ namespace votca { namespace xtp {
     //derived class for atomic orbital Coulomb interaction
     class AOCoulomb : public AOMatrix{
     public:
-        int getExtraBlockSize( int lmax_row, int lmax_col  );
         void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         void Symmetrize( AOOverlap& _overlap , AOBasis& _basis, AOOverlap& _overlap_inverse , AOOverlap& _gwoverlap_cholesky_inverse );
        

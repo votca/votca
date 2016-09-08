@@ -1,5 +1,5 @@
-<basis name="6-311G">
-  <!--Basis set created by xtp_basisset from 6-311G.dat at Tue Sep  6 15:54:41 2016-->
+<basis name="6-311++G">
+  <!--Basis set created by xtp_basisset from 6-311++G.dat at Tue Sep  6 15:54:54 2016-->
   <element name="H">
     <shell scale="1.0" type="S">
       <constant decay="3.386500e+01">
@@ -19,6 +19,11 @@
     </shell>
     <shell scale="1.0" type="S">
       <constant decay="1.027410e-01">
+        <contractions factor="1.000000e+00" type="S"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="S">
+      <constant decay="3.600000e-02">
         <contractions factor="1.000000e+00" type="S"/>
       </constant>
     </shell>
@@ -66,6 +71,12 @@
     </shell>
     <shell scale="1.0" type="SP">
       <constant decay="2.436830e-02">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="7.400000e-03">
         <contractions factor="1.000000e+00" type="S"/>
         <contractions factor="1.000000e+00" type="P"/>
       </constant>
@@ -118,6 +129,12 @@
         <contractions factor="1.000000e+00" type="P"/>
       </constant>
     </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="2.070000e-02">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
+      </constant>
+    </shell>
   </element>
   <element name="B">
     <shell scale="1.0" type="S">
@@ -162,6 +179,12 @@
     </shell>
     <shell scale="1.0" type="SP">
       <constant decay="9.885630e-02">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="3.150000e-02">
         <contractions factor="1.000000e+00" type="S"/>
         <contractions factor="1.000000e+00" type="P"/>
       </constant>
@@ -214,6 +237,12 @@
         <contractions factor="1.000000e+00" type="P"/>
       </constant>
     </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="4.380000e-02">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
+      </constant>
+    </shell>
   </element>
   <element name="N">
     <shell scale="1.0" type="S">
@@ -258,6 +287,12 @@
     </shell>
     <shell scale="1.0" type="SP">
       <constant decay="2.008780e-01">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="6.390000e-02">
         <contractions factor="1.000000e+00" type="S"/>
         <contractions factor="1.000000e+00" type="P"/>
       </constant>
@@ -310,6 +345,12 @@
         <contractions factor="1.000000e+00" type="P"/>
       </constant>
     </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="8.450000e-02">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
+      </constant>
+    </shell>
   </element>
   <element name="F">
     <shell scale="1.0" type="S">
@@ -358,6 +399,12 @@
         <contractions factor="1.000000e+00" type="P"/>
       </constant>
     </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="1.076000e-01">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
+      </constant>
+    </shell>
   </element>
   <element name="Ne">
     <shell scale="1.0" type="S">
@@ -402,6 +449,12 @@
     </shell>
     <shell scale="1.0" type="SP">
       <constant decay="3.970570e-01">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="1.300000e-01">
         <contractions factor="1.000000e+00" type="S"/>
         <contractions factor="1.000000e+00" type="P"/>
       </constant>
@@ -496,6 +549,12 @@
         <contractions factor="1.000000e+00" type="S"/>
       </constant>
     </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="7.600000e-03">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
+      </constant>
+    </shell>
   </element>
   <element name="Mg">
     <shell scale="1.0" type="S">
@@ -584,6 +643,12 @@
     <shell scale="1.0" type="P">
       <constant decay="3.480900e-02">
         <contractions factor="1.000000e+00" type="S"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="1.460000e-02">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
       </constant>
     </shell>
   </element>
@@ -676,6 +741,12 @@
         <contractions factor="1.000000e+00" type="S"/>
       </constant>
     </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="3.180000e-02">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
+      </constant>
+    </shell>
   </element>
   <element name="Si">
     <shell scale="1.0" type="S">
@@ -764,6 +835,12 @@
     <shell scale="1.0" type="P">
       <constant decay="6.543200e-02">
         <contractions factor="1.000000e+00" type="S"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="3.310000e-02">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
       </constant>
     </shell>
   </element>
@@ -856,6 +933,12 @@
         <contractions factor="1.000000e+00" type="S"/>
       </constant>
     </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="3.480000e-02">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
+      </constant>
+    </shell>
   </element>
   <element name="S">
     <shell scale="1.0" type="S">
@@ -944,6 +1027,12 @@
     <shell scale="1.0" type="P">
       <constant decay="7.714100e-02">
         <contractions factor="1.000000e+00" type="S"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="4.050000e-02">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
       </constant>
     </shell>
   </element>
@@ -1039,6 +1128,12 @@
         <contractions factor="1.000000e+00" type="S"/>
       </constant>
     </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="4.830000e-02">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
+      </constant>
+    </shell>
   </element>
   <element name="Ar">
     <shell scale="1.0" type="S">
@@ -1130,6 +1225,12 @@
     <shell scale="1.0" type="P">
       <constant decay="1.454490e-01">
         <contractions factor="1.000000e+00" type="S"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="6.000000e-02">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
       </constant>
     </shell>
   </element>
@@ -1237,6 +1338,12 @@
     <shell scale="1.0" type="P">
       <constant decay="1.616000e-02">
         <contractions factor="1.000000e+00" type="S"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="4.700000e-03">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
       </constant>
     </shell>
     <shell scale="1.0" type="D">
@@ -1355,6 +1462,12 @@
     <shell scale="1.0" type="P">
       <constant decay="1.791000e-02">
         <contractions factor="1.000000e+00" type="S"/>
+      </constant>
+    </shell>
+    <shell scale="1.0" type="SP">
+      <constant decay="7.100000e-03">
+        <contractions factor="1.000000e+00" type="S"/>
+        <contractions factor="1.000000e+00" type="P"/>
       </constant>
     </shell>
     <shell scale="1.0" type="D">

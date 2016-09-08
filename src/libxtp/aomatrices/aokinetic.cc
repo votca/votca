@@ -161,7 +161,7 @@ namespace votca { namespace xtp {
             // s-s- kinetic energy integral
             kin(Cart::s,Cart::s)= ol(Cart::s,Cart::s)*xi*(3-2*xi*_distsq);
             
-         //Integral  p - s
+//Integrals     p - s
 if (_lmax_row > 0) {
   ol(Cart::x,0) = PmA0*ol(0,0);
   ol(Cart::y,0) = PmA1*ol(0,0);
@@ -169,7 +169,7 @@ if (_lmax_row > 0) {
 }
 //------------------------------------------------------
 
-//Integral  d - s
+//Integrals     d - s
 if (_lmax_row > 1) {
   double term = _fak*ol(0,0);
   ol(Cart::xx,0) = PmA0*ol(Cart::x,0) + term;
@@ -181,7 +181,7 @@ if (_lmax_row > 1) {
 }
 //------------------------------------------------------
 
-//Integral  f - s
+//Integrals     f - s
 if (_lmax_row > 2) {
   ol(Cart::xxx,0) = PmA0*ol(Cart::xx,0) + 2*_fak*ol(Cart::x,0);
   ol(Cart::xxy,0) = PmA1*ol(Cart::xx,0);
@@ -196,7 +196,7 @@ if (_lmax_row > 2) {
 }
 //------------------------------------------------------
 
-//Integral  g - s
+//Integrals     g - s
 if (_lmax_row > 3) {
   double term_xx = _fak*ol(Cart::xx,0);
   double term_yy = _fak*ol(Cart::yy,0);
@@ -223,19 +223,17 @@ if (_lmax_row > 3) {
 
 if (_lmax_col > 0) {
 
-  //Integral  s - p
+  //Integrals     s - p
   ol(0,Cart::x) = PmB0*ol(0,0);
   ol(0,Cart::y) = PmB1*ol(0,0);
   ol(0,Cart::z) = PmB2*ol(0,0);
   //------------------------------------------------------
 
   //Integrals     p - p     d - p     f - p     g - p
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-      ol(_i,Cart::x) = PmB0*ol(_i,0) + nx[_i]*_fak*ol(i_less_x[_i],0);
-      ol(_i,Cart::y) = PmB1*ol(_i,0) + ny[_i]*_fak*ol(i_less_y[_i],0);
-      ol(_i,Cart::z) = PmB2*ol(_i,0) + nz[_i]*_fak*ol(i_less_z[_i],0);
-    }
+  for (int _i =  1; _i < n_orbitals[_lmax_row]; _i++) {
+    ol(_i,Cart::x) = PmB0*ol(_i,0) + nx[_i]*_fak*ol(i_less_x[_i],0);
+    ol(_i,Cart::y) = PmB1*ol(_i,0) + ny[_i]*_fak*ol(i_less_y[_i],0);
+    ol(_i,Cart::z) = PmB2*ol(_i,0) + nz[_i]*_fak*ol(i_less_z[_i],0);
   }
   //------------------------------------------------------
 
@@ -244,7 +242,7 @@ if (_lmax_col > 0) {
 
 if (_lmax_col > 1) {
 
-  //Integral  s - d
+  //Integrals     s - d
   double term = _fak*ol(0,0);
   ol(0,Cart::xx) = PmB0*ol(0,Cart::x) + term;
   ol(0,Cart::xy) = PmB0*ol(0,Cart::y);
@@ -255,16 +253,14 @@ if (_lmax_col > 1) {
   //------------------------------------------------------
 
   //Integrals     p - d     d - d     f - d     g - d
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-      double term = _fak*ol(_i,0);
-      ol(_i,Cart::xx) = PmB0*ol(_i,Cart::x) + nx[_i]*_fak*ol(i_less_x[_i],Cart::x) + term;
-      ol(_i,Cart::xy) = PmB0*ol(_i,Cart::y) + nx[_i]*_fak*ol(i_less_x[_i],Cart::y);
-      ol(_i,Cart::xz) = PmB0*ol(_i,Cart::z) + nx[_i]*_fak*ol(i_less_x[_i],Cart::z);
-      ol(_i,Cart::yy) = PmB1*ol(_i,Cart::y) + ny[_i]*_fak*ol(i_less_y[_i],Cart::y) + term;
-      ol(_i,Cart::yz) = PmB1*ol(_i,Cart::z) + ny[_i]*_fak*ol(i_less_y[_i],Cart::z);
-      ol(_i,Cart::zz) = PmB2*ol(_i,Cart::z) + nz[_i]*_fak*ol(i_less_z[_i],Cart::z) + term;
-    }
+  for (int _i =  1; _i < n_orbitals[_lmax_row]; _i++) {
+    double term = _fak*ol(_i,0);
+    ol(_i,Cart::xx) = PmB0*ol(_i,Cart::x) + nx[_i]*_fak*ol(i_less_x[_i],Cart::x) + term;
+    ol(_i,Cart::xy) = PmB0*ol(_i,Cart::y) + nx[_i]*_fak*ol(i_less_x[_i],Cart::y);
+    ol(_i,Cart::xz) = PmB0*ol(_i,Cart::z) + nx[_i]*_fak*ol(i_less_x[_i],Cart::z);
+    ol(_i,Cart::yy) = PmB1*ol(_i,Cart::y) + ny[_i]*_fak*ol(i_less_y[_i],Cart::y) + term;
+    ol(_i,Cart::yz) = PmB1*ol(_i,Cart::z) + ny[_i]*_fak*ol(i_less_y[_i],Cart::z);
+    ol(_i,Cart::zz) = PmB2*ol(_i,Cart::z) + nz[_i]*_fak*ol(i_less_z[_i],Cart::z) + term;
   }
   //------------------------------------------------------
 
@@ -273,7 +269,7 @@ if (_lmax_col > 1) {
 
 if (_lmax_col > 2) {
 
-  //Integral  s - f
+  //Integrals     s - f
   ol(0,Cart::xxx) = PmB0*ol(0,Cart::xx) + 2*_fak*ol(0,Cart::x);
   ol(0,Cart::xxy) = PmB1*ol(0,Cart::xx);
   ol(0,Cart::xxz) = PmB2*ol(0,Cart::xx);
@@ -287,22 +283,20 @@ if (_lmax_col > 2) {
   //------------------------------------------------------
 
   //Integrals     p - f     d - f     f - f     g - f
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-      double term_x = 2*_fak*ol(_i,Cart::x);
-      double term_y = 2*_fak*ol(_i,Cart::y);
-      double term_z = 2*_fak*ol(_i,Cart::z);
-      ol(_i,Cart::xxx) = PmB0*ol(_i,Cart::xx) + nx[_i]*_fak*ol(i_less_x[_i],Cart::xx) + term_x;
-      ol(_i,Cart::xxy) = PmB1*ol(_i,Cart::xx) + ny[_i]*_fak*ol(i_less_y[_i],Cart::xx);
-      ol(_i,Cart::xxz) = PmB2*ol(_i,Cart::xx) + nz[_i]*_fak*ol(i_less_z[_i],Cart::xx);
-      ol(_i,Cart::xyy) = PmB0*ol(_i,Cart::yy) + nx[_i]*_fak*ol(i_less_x[_i],Cart::yy);
-      ol(_i,Cart::xyz) = PmB0*ol(_i,Cart::yz) + nx[_i]*_fak*ol(i_less_x[_i],Cart::yz);
-      ol(_i,Cart::xzz) = PmB0*ol(_i,Cart::zz) + nx[_i]*_fak*ol(i_less_x[_i],Cart::zz);
-      ol(_i,Cart::yyy) = PmB1*ol(_i,Cart::yy) + ny[_i]*_fak*ol(i_less_y[_i],Cart::yy) + term_y;
-      ol(_i,Cart::yyz) = PmB2*ol(_i,Cart::yy) + nz[_i]*_fak*ol(i_less_z[_i],Cart::yy);
-      ol(_i,Cart::yzz) = PmB1*ol(_i,Cart::zz) + ny[_i]*_fak*ol(i_less_y[_i],Cart::zz);
-      ol(_i,Cart::zzz) = PmB2*ol(_i,Cart::zz) + nz[_i]*_fak*ol(i_less_z[_i],Cart::zz) + term_z;
-    }
+  for (int _i =  1; _i < n_orbitals[_lmax_row]; _i++) {
+    double term_x = 2*_fak*ol(_i,Cart::x);
+    double term_y = 2*_fak*ol(_i,Cart::y);
+    double term_z = 2*_fak*ol(_i,Cart::z);
+    ol(_i,Cart::xxx) = PmB0*ol(_i,Cart::xx) + nx[_i]*_fak*ol(i_less_x[_i],Cart::xx) + term_x;
+    ol(_i,Cart::xxy) = PmB1*ol(_i,Cart::xx) + ny[_i]*_fak*ol(i_less_y[_i],Cart::xx);
+    ol(_i,Cart::xxz) = PmB2*ol(_i,Cart::xx) + nz[_i]*_fak*ol(i_less_z[_i],Cart::xx);
+    ol(_i,Cart::xyy) = PmB0*ol(_i,Cart::yy) + nx[_i]*_fak*ol(i_less_x[_i],Cart::yy);
+    ol(_i,Cart::xyz) = PmB0*ol(_i,Cart::yz) + nx[_i]*_fak*ol(i_less_x[_i],Cart::yz);
+    ol(_i,Cart::xzz) = PmB0*ol(_i,Cart::zz) + nx[_i]*_fak*ol(i_less_x[_i],Cart::zz);
+    ol(_i,Cart::yyy) = PmB1*ol(_i,Cart::yy) + ny[_i]*_fak*ol(i_less_y[_i],Cart::yy) + term_y;
+    ol(_i,Cart::yyz) = PmB2*ol(_i,Cart::yy) + nz[_i]*_fak*ol(i_less_z[_i],Cart::yy);
+    ol(_i,Cart::yzz) = PmB1*ol(_i,Cart::zz) + ny[_i]*_fak*ol(i_less_y[_i],Cart::zz);
+    ol(_i,Cart::zzz) = PmB2*ol(_i,Cart::zz) + nz[_i]*_fak*ol(i_less_z[_i],Cart::zz) + term_z;
   }
   //------------------------------------------------------
 
@@ -311,7 +305,7 @@ if (_lmax_col > 2) {
 
 if (_lmax_col > 3) {
 
-  //Integral  s - g
+  //Integrals     s - g
   double term_xx = _fak*ol(0,Cart::xx);
   double term_yy = _fak*ol(0,Cart::yy);
   double term_zz = _fak*ol(0,Cart::zz);
@@ -333,27 +327,25 @@ if (_lmax_col > 3) {
   //------------------------------------------------------
 
   //Integrals     p - g     d - g     f - g     g - g
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-      double term_xx = _fak*ol(_i,Cart::xx);
-      double term_yy = _fak*ol(_i,Cart::yy);
-      double term_zz = _fak*ol(_i,Cart::zz);
-      ol(_i,Cart::xxxx) = PmB0*ol(_i,Cart::xxx) + nx[_i]*_fak*ol(i_less_x[_i],Cart::xxx) + 3*term_xx;
-      ol(_i,Cart::xxxy) = PmB1*ol(_i,Cart::xxx) + ny[_i]*_fak*ol(i_less_y[_i],Cart::xxx);
-      ol(_i,Cart::xxxz) = PmB2*ol(_i,Cart::xxx) + nz[_i]*_fak*ol(i_less_z[_i],Cart::xxx);
-      ol(_i,Cart::xxyy) = PmB0*ol(_i,Cart::xyy) + nx[_i]*_fak*ol(i_less_x[_i],Cart::xyy) + term_yy;
-      ol(_i,Cart::xxyz) = PmB1*ol(_i,Cart::xxz) + ny[_i]*_fak*ol(i_less_y[_i],Cart::xxz);
-      ol(_i,Cart::xxzz) = PmB0*ol(_i,Cart::xzz) + nx[_i]*_fak*ol(i_less_x[_i],Cart::xzz) + term_zz;
-      ol(_i,Cart::xyyy) = PmB0*ol(_i,Cart::yyy) + nx[_i]*_fak*ol(i_less_x[_i],Cart::yyy);
-      ol(_i,Cart::xyyz) = PmB0*ol(_i,Cart::yyz) + nx[_i]*_fak*ol(i_less_x[_i],Cart::yyz);
-      ol(_i,Cart::xyzz) = PmB0*ol(_i,Cart::yzz) + nx[_i]*_fak*ol(i_less_x[_i],Cart::yzz);
-      ol(_i,Cart::xzzz) = PmB0*ol(_i,Cart::zzz) + nx[_i]*_fak*ol(i_less_x[_i],Cart::zzz);
-      ol(_i,Cart::yyyy) = PmB1*ol(_i,Cart::yyy) + ny[_i]*_fak*ol(i_less_y[_i],Cart::yyy) + 3*term_yy;
-      ol(_i,Cart::yyyz) = PmB2*ol(_i,Cart::yyy) + nz[_i]*_fak*ol(i_less_z[_i],Cart::yyy);
-      ol(_i,Cart::yyzz) = PmB1*ol(_i,Cart::yzz) + ny[_i]*_fak*ol(i_less_y[_i],Cart::yzz) + term_zz;
-      ol(_i,Cart::yzzz) = PmB1*ol(_i,Cart::zzz) + ny[_i]*_fak*ol(i_less_y[_i],Cart::zzz);
-      ol(_i,Cart::zzzz) = PmB2*ol(_i,Cart::zzz) + nz[_i]*_fak*ol(i_less_z[_i],Cart::zzz) + 3*term_zz;
-    }
+  for (int _i =  1; _i < n_orbitals[_lmax_row]; _i++) {
+    double term_xx = _fak*ol(_i,Cart::xx);
+    double term_yy = _fak*ol(_i,Cart::yy);
+    double term_zz = _fak*ol(_i,Cart::zz);
+    ol(_i,Cart::xxxx) = PmB0*ol(_i,Cart::xxx) + nx[_i]*_fak*ol(i_less_x[_i],Cart::xxx) + 3*term_xx;
+    ol(_i,Cart::xxxy) = PmB1*ol(_i,Cart::xxx) + ny[_i]*_fak*ol(i_less_y[_i],Cart::xxx);
+    ol(_i,Cart::xxxz) = PmB2*ol(_i,Cart::xxx) + nz[_i]*_fak*ol(i_less_z[_i],Cart::xxx);
+    ol(_i,Cart::xxyy) = PmB0*ol(_i,Cart::xyy) + nx[_i]*_fak*ol(i_less_x[_i],Cart::xyy) + term_yy;
+    ol(_i,Cart::xxyz) = PmB1*ol(_i,Cart::xxz) + ny[_i]*_fak*ol(i_less_y[_i],Cart::xxz);
+    ol(_i,Cart::xxzz) = PmB0*ol(_i,Cart::xzz) + nx[_i]*_fak*ol(i_less_x[_i],Cart::xzz) + term_zz;
+    ol(_i,Cart::xyyy) = PmB0*ol(_i,Cart::yyy) + nx[_i]*_fak*ol(i_less_x[_i],Cart::yyy);
+    ol(_i,Cart::xyyz) = PmB0*ol(_i,Cart::yyz) + nx[_i]*_fak*ol(i_less_x[_i],Cart::yyz);
+    ol(_i,Cart::xyzz) = PmB0*ol(_i,Cart::yzz) + nx[_i]*_fak*ol(i_less_x[_i],Cart::yzz);
+    ol(_i,Cart::xzzz) = PmB0*ol(_i,Cart::zzz) + nx[_i]*_fak*ol(i_less_x[_i],Cart::zzz);
+    ol(_i,Cart::yyyy) = PmB1*ol(_i,Cart::yyy) + ny[_i]*_fak*ol(i_less_y[_i],Cart::yyy) + 3*term_yy;
+    ol(_i,Cart::yyyz) = PmB2*ol(_i,Cart::yyy) + nz[_i]*_fak*ol(i_less_z[_i],Cart::yyy);
+    ol(_i,Cart::yyzz) = PmB1*ol(_i,Cart::yzz) + ny[_i]*_fak*ol(i_less_y[_i],Cart::yzz) + term_zz;
+    ol(_i,Cart::yzzz) = PmB1*ol(_i,Cart::zzz) + ny[_i]*_fak*ol(i_less_y[_i],Cart::zzz);
+    ol(_i,Cart::zzzz) = PmB2*ol(_i,Cart::zzz) + nz[_i]*_fak*ol(i_less_z[_i],Cart::zzz) + 3*term_zz;
   }
   //------------------------------------------------------
 
@@ -362,7 +354,7 @@ if (_lmax_col > 3) {
 
 
 
-//Integral  p - s
+//Integrals     p - s
 if (_lmax_row > 0) {
   kin(Cart::x,0) = xi2*ol(Cart::x,0) + PmA0*kin(0,0);
   kin(Cart::y,0) = xi2*ol(Cart::y,0) + PmA1*kin(0,0);
@@ -370,7 +362,7 @@ if (_lmax_row > 0) {
 }
 //------------------------------------------------------
 
-//Integral  d - s
+//Integrals     d - s
 if (_lmax_row > 1) {
   double term = _fak*kin(0,0)-_fak_a*ol(0,0);
   kin(Cart::xx,0) = xi2*ol(Cart::xx,0) + PmA0*kin(Cart::x,0) + term;
@@ -382,7 +374,7 @@ if (_lmax_row > 1) {
 }
 //------------------------------------------------------
 
-//Integral  f - s
+//Integrals     f - s
 if (_lmax_row > 2) {
   kin(Cart::xxx,0) = xi2*ol(Cart::xxx,0) + PmA0*kin(Cart::xx,0) + 2*(_fak*kin(Cart::x,0)-_fak_a*ol(Cart::x,0));
   kin(Cart::xxy,0) = xi2*ol(Cart::xxy,0) + PmA1*kin(Cart::xx,0);
@@ -397,7 +389,7 @@ if (_lmax_row > 2) {
 }
 //------------------------------------------------------
 
-//Integral  g - s
+//Integrals     g - s
 if (_lmax_row > 3) {
   double term_xx = _fak*kin(Cart::xx,0)-_fak_a*ol(Cart::xx,0);
   double term_yy = _fak*kin(Cart::yy,0)-_fak_a*ol(Cart::yy,0);
@@ -424,19 +416,17 @@ if (_lmax_row > 3) {
 
 if (_lmax_col > 0) {
 
-  //Integral  s - p
+  //Integrals     s - p
   kin(0,Cart::x) = xi2*ol(0,Cart::x) + PmB0*kin(0,0);
   kin(0,Cart::y) = xi2*ol(0,Cart::y) + PmB1*kin(0,0);
   kin(0,Cart::z) = xi2*ol(0,Cart::z) + PmB2*kin(0,0);
   //------------------------------------------------------
 
   //Integrals     p - p     d - p     f - p     g - p
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-      kin(_i,Cart::x) = xi2*ol(_i,Cart::x) + PmB0*kin(_i,0) + nx[_i]*_fak*kin(i_less_x[_i],0);
-      kin(_i,Cart::y) = xi2*ol(_i,Cart::y) + PmB1*kin(_i,0) + ny[_i]*_fak*kin(i_less_y[_i],0);
-      kin(_i,Cart::z) = xi2*ol(_i,Cart::z) + PmB2*kin(_i,0) + nz[_i]*_fak*kin(i_less_z[_i],0);
-    }
+  for (int _i = 1; _i < n_orbitals[_lmax_row]; _i++) {
+    kin(_i,Cart::x) = xi2*ol(_i,Cart::x) + PmB0*kin(_i,0) + nx[_i]*_fak*kin(i_less_x[_i],0);
+    kin(_i,Cart::y) = xi2*ol(_i,Cart::y) + PmB1*kin(_i,0) + ny[_i]*_fak*kin(i_less_y[_i],0);
+    kin(_i,Cart::z) = xi2*ol(_i,Cart::z) + PmB2*kin(_i,0) + nz[_i]*_fak*kin(i_less_z[_i],0);
   }
   //------------------------------------------------------
 
@@ -445,7 +435,7 @@ if (_lmax_col > 0) {
 
 if (_lmax_col > 1) {
 
-  //Integral  s - d
+  //Integrals     s - d
   double term = _fak*kin(0,0)-_fak_b*ol(0,0);
   kin(0,Cart::xx) = xi2*ol(0,Cart::xx) + PmB0*kin(0,Cart::x) + term;
   kin(0,Cart::xy) = xi2*ol(0,Cart::xy) + PmB0*kin(0,Cart::y);
@@ -456,16 +446,15 @@ if (_lmax_col > 1) {
   //------------------------------------------------------
 
   //Integrals     p - d     d - d     f - d     g - d
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-      double term = _fak*kin(_i,0)-_fak_b*ol(_i,0);
-      kin(_i,Cart::xx) = xi2*ol(_i,Cart::xx) + PmB0*kin(_i,Cart::x) + nx[_i]*_fak*kin(i_less_x[_i],Cart::x) + term;
-      kin(_i,Cart::xy) = xi2*ol(_i,Cart::xy) + PmB0*kin(_i,Cart::y) + nx[_i]*_fak*kin(i_less_x[_i],Cart::y);
-      kin(_i,Cart::xz) = xi2*ol(_i,Cart::xz) + PmB0*kin(_i,Cart::z) + nx[_i]*_fak*kin(i_less_x[_i],Cart::z);
-      kin(_i,Cart::yy) = xi2*ol(_i,Cart::yy) + PmB1*kin(_i,Cart::y) + ny[_i]*_fak*kin(i_less_y[_i],Cart::y) + term;
-      kin(_i,Cart::yz) = xi2*ol(_i,Cart::yz) + PmB1*kin(_i,Cart::z) + ny[_i]*_fak*kin(i_less_y[_i],Cart::z);
-      kin(_i,Cart::zz) = xi2*ol(_i,Cart::zz) + PmB2*kin(_i,Cart::z) + nz[_i]*_fak*kin(i_less_z[_i],Cart::z) + term;
-    }
+  for (int _i = 1; _i < n_orbitals[_lmax_row]; _i++) {
+    double term = _fak*kin(_i,0)-_fak_b*ol(_i,0);
+    kin(_i,Cart::xx) = xi2*ol(_i,Cart::xx) + PmB0*kin(_i,Cart::x) + nx[_i]*_fak*kin(i_less_x[_i],Cart::x) + term;
+    kin(_i,Cart::xy) = xi2*ol(_i,Cart::xy) + PmB0*kin(_i,Cart::y) + nx[_i]*_fak*kin(i_less_x[_i],Cart::y);
+    kin(_i,Cart::xz) = xi2*ol(_i,Cart::xz) + PmB0*kin(_i,Cart::z) + nx[_i]*_fak*kin(i_less_x[_i],Cart::z);
+    kin(_i,Cart::yy) = xi2*ol(_i,Cart::yy) + PmB1*kin(_i,Cart::y) + ny[_i]*_fak*kin(i_less_y[_i],Cart::y) + term;
+    kin(_i,Cart::yz) = xi2*ol(_i,Cart::yz) + PmB1*kin(_i,Cart::z) + ny[_i]*_fak*kin(i_less_y[_i],Cart::z);
+    kin(_i,Cart::zz) = xi2*ol(_i,Cart::zz) + PmB2*kin(_i,Cart::z) + nz[_i]*_fak*kin(i_less_z[_i],Cart::z) + term;
+//    }
   }
   //------------------------------------------------------
 
@@ -474,7 +463,7 @@ if (_lmax_col > 1) {
 
 if (_lmax_col > 2) {
 
-  //Integral  s - f
+  //Integrals     s - f
   kin(0,Cart::xxx) = xi2*ol(0,Cart::xxx) + PmB0*kin(0,Cart::xx) + 2*(_fak*kin(0,Cart::x)-_fak_b*ol(0,Cart::x));
   kin(0,Cart::xxy) = xi2*ol(0,Cart::xxy) + PmB1*kin(0,Cart::xx);
   kin(0,Cart::xxz) = xi2*ol(0,Cart::xxz) + PmB2*kin(0,Cart::xx);
@@ -488,22 +477,20 @@ if (_lmax_col > 2) {
   //------------------------------------------------------
 
   //Integrals     p - f     d - f     f - f     g - f
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-      double term_x = 2*(_fak*kin(_i,Cart::x)-_fak_b*ol(_i,Cart::x));
-      double term_y = 2*(_fak*kin(_i,Cart::y)-_fak_b*ol(_i,Cart::y));
-      double term_z = 2*(_fak*kin(_i,Cart::z)-_fak_b*ol(_i,Cart::z));
-      kin(_i,Cart::xxx) = xi2*ol(_i,Cart::xxx) + PmB0*kin(_i,Cart::xx) + nx[_i]*_fak*kin(i_less_x[_i],Cart::xx) + term_x;
-      kin(_i,Cart::xxy) = xi2*ol(_i,Cart::xxy) + PmB1*kin(_i,Cart::xx) + ny[_i]*_fak*kin(i_less_y[_i],Cart::xx);
-      kin(_i,Cart::xxz) = xi2*ol(_i,Cart::xxz) + PmB2*kin(_i,Cart::xx) + nz[_i]*_fak*kin(i_less_z[_i],Cart::xx);
-      kin(_i,Cart::xyy) = xi2*ol(_i,Cart::xyy) + PmB0*kin(_i,Cart::yy) + nx[_i]*_fak*kin(i_less_x[_i],Cart::yy);
-      kin(_i,Cart::xyz) = xi2*ol(_i,Cart::xyz) + PmB0*kin(_i,Cart::yz) + nx[_i]*_fak*kin(i_less_x[_i],Cart::yz);
-      kin(_i,Cart::xzz) = xi2*ol(_i,Cart::xzz) + PmB0*kin(_i,Cart::zz) + nx[_i]*_fak*kin(i_less_x[_i],Cart::zz);
-      kin(_i,Cart::yyy) = xi2*ol(_i,Cart::yyy) + PmB1*kin(_i,Cart::yy) + ny[_i]*_fak*kin(i_less_y[_i],Cart::yy) + term_y;
-      kin(_i,Cart::yyz) = xi2*ol(_i,Cart::yyz) + PmB2*kin(_i,Cart::yy) + nz[_i]*_fak*kin(i_less_z[_i],Cart::yy);
-      kin(_i,Cart::yzz) = xi2*ol(_i,Cart::yzz) + PmB1*kin(_i,Cart::zz) + ny[_i]*_fak*kin(i_less_y[_i],Cart::zz);
-      kin(_i,Cart::zzz) = xi2*ol(_i,Cart::zzz) + PmB2*kin(_i,Cart::zz) + nz[_i]*_fak*kin(i_less_z[_i],Cart::zz) + term_z;
-    }
+  for (int _i = 1; _i < n_orbitals[_lmax_row]; _i++) {
+    double term_x = 2*(_fak*kin(_i,Cart::x)-_fak_b*ol(_i,Cart::x));
+    double term_y = 2*(_fak*kin(_i,Cart::y)-_fak_b*ol(_i,Cart::y));
+    double term_z = 2*(_fak*kin(_i,Cart::z)-_fak_b*ol(_i,Cart::z));
+    kin(_i,Cart::xxx) = xi2*ol(_i,Cart::xxx) + PmB0*kin(_i,Cart::xx) + nx[_i]*_fak*kin(i_less_x[_i],Cart::xx) + term_x;
+    kin(_i,Cart::xxy) = xi2*ol(_i,Cart::xxy) + PmB1*kin(_i,Cart::xx) + ny[_i]*_fak*kin(i_less_y[_i],Cart::xx);
+    kin(_i,Cart::xxz) = xi2*ol(_i,Cart::xxz) + PmB2*kin(_i,Cart::xx) + nz[_i]*_fak*kin(i_less_z[_i],Cart::xx);
+    kin(_i,Cart::xyy) = xi2*ol(_i,Cart::xyy) + PmB0*kin(_i,Cart::yy) + nx[_i]*_fak*kin(i_less_x[_i],Cart::yy);
+    kin(_i,Cart::xyz) = xi2*ol(_i,Cart::xyz) + PmB0*kin(_i,Cart::yz) + nx[_i]*_fak*kin(i_less_x[_i],Cart::yz);
+    kin(_i,Cart::xzz) = xi2*ol(_i,Cart::xzz) + PmB0*kin(_i,Cart::zz) + nx[_i]*_fak*kin(i_less_x[_i],Cart::zz);
+    kin(_i,Cart::yyy) = xi2*ol(_i,Cart::yyy) + PmB1*kin(_i,Cart::yy) + ny[_i]*_fak*kin(i_less_y[_i],Cart::yy) + term_y;
+    kin(_i,Cart::yyz) = xi2*ol(_i,Cart::yyz) + PmB2*kin(_i,Cart::yy) + nz[_i]*_fak*kin(i_less_z[_i],Cart::yy);
+    kin(_i,Cart::yzz) = xi2*ol(_i,Cart::yzz) + PmB1*kin(_i,Cart::zz) + ny[_i]*_fak*kin(i_less_y[_i],Cart::zz);
+    kin(_i,Cart::zzz) = xi2*ol(_i,Cart::zzz) + PmB2*kin(_i,Cart::zz) + nz[_i]*_fak*kin(i_less_z[_i],Cart::zz) + term_z;
   }
   //------------------------------------------------------
 
@@ -512,7 +499,7 @@ if (_lmax_col > 2) {
 
 if (_lmax_col > 3) {
 
-  //Integral  s - g
+  //Integrals     s - g
   double term_xx = _fak*kin(0,Cart::xx)-_fak_b*ol(0,Cart::xx);
   double term_yy = _fak*kin(0,Cart::yy)-_fak_b*ol(0,Cart::yy);
   double term_zz = _fak*kin(0,Cart::zz)-_fak_b*ol(0,Cart::zz);
@@ -534,27 +521,25 @@ if (_lmax_col > 3) {
   //------------------------------------------------------
 
   //Integrals     p - g     d - g     f - g     g - g
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-      double term_xx = _fak*kin(_i,Cart::xx)-_fak_b*ol(_i,Cart::xx);
-      double term_yy = _fak*kin(_i,Cart::yy)-_fak_b*ol(_i,Cart::yy);
-      double term_zz = _fak*kin(_i,Cart::zz)-_fak_b*ol(_i,Cart::zz);
-      kin(_i,Cart::xxxx) = xi2*ol(_i,Cart::xxxx) + PmB0*kin(_i,Cart::xxx) + nx[_i]*_fak*kin(i_less_x[_i],Cart::xxx) + 3*term_xx;
-      kin(_i,Cart::xxxy) = xi2*ol(_i,Cart::xxxy) + PmB1*kin(_i,Cart::xxx) + ny[_i]*_fak*kin(i_less_y[_i],Cart::xxx);
-      kin(_i,Cart::xxxz) = xi2*ol(_i,Cart::xxxz) + PmB2*kin(_i,Cart::xxx) + nz[_i]*_fak*kin(i_less_z[_i],Cart::xxx);
-      kin(_i,Cart::xxyy) = xi2*ol(_i,Cart::xxyy) + PmB0*kin(_i,Cart::xyy) + nx[_i]*_fak*kin(i_less_x[_i],Cart::xyy) + term_yy;
-      kin(_i,Cart::xxyz) = xi2*ol(_i,Cart::xxyz) + PmB1*kin(_i,Cart::xxz) + ny[_i]*_fak*kin(i_less_y[_i],Cart::xxz);
-      kin(_i,Cart::xxzz) = xi2*ol(_i,Cart::xxzz) + PmB0*kin(_i,Cart::xzz) + nx[_i]*_fak*kin(i_less_x[_i],Cart::xzz) + term_zz;
-      kin(_i,Cart::xyyy) = xi2*ol(_i,Cart::xyyy) + PmB0*kin(_i,Cart::yyy) + nx[_i]*_fak*kin(i_less_x[_i],Cart::yyy);
-      kin(_i,Cart::xyyz) = xi2*ol(_i,Cart::xyyz) + PmB0*kin(_i,Cart::yyz) + nx[_i]*_fak*kin(i_less_x[_i],Cart::yyz);
-      kin(_i,Cart::xyzz) = xi2*ol(_i,Cart::xyzz) + PmB0*kin(_i,Cart::yzz) + nx[_i]*_fak*kin(i_less_x[_i],Cart::yzz);
-      kin(_i,Cart::xzzz) = xi2*ol(_i,Cart::xzzz) + PmB0*kin(_i,Cart::zzz) + nx[_i]*_fak*kin(i_less_x[_i],Cart::zzz);
-      kin(_i,Cart::yyyy) = xi2*ol(_i,Cart::yyyy) + PmB1*kin(_i,Cart::yyy) + ny[_i]*_fak*kin(i_less_y[_i],Cart::yyy) + 3*term_yy;
-      kin(_i,Cart::yyyz) = xi2*ol(_i,Cart::yyyz) + PmB2*kin(_i,Cart::yyy) + nz[_i]*_fak*kin(i_less_z[_i],Cart::yyy);
-      kin(_i,Cart::yyzz) = xi2*ol(_i,Cart::yyzz) + PmB1*kin(_i,Cart::yzz) + ny[_i]*_fak*kin(i_less_y[_i],Cart::yzz) + term_zz;
-      kin(_i,Cart::yzzz) = xi2*ol(_i,Cart::yzzz) + PmB1*kin(_i,Cart::zzz) + ny[_i]*_fak*kin(i_less_y[_i],Cart::zzz);
-      kin(_i,Cart::zzzz) = xi2*ol(_i,Cart::zzzz) + PmB2*kin(_i,Cart::zzz) + nz[_i]*_fak*kin(i_less_z[_i],Cart::zzz) + 3*term_zz;
-    }
+  for (int _i = 1; _i < n_orbitals[_lmax_row]; _i++) {
+    double term_xx = _fak*kin(_i,Cart::xx)-_fak_b*ol(_i,Cart::xx);
+    double term_yy = _fak*kin(_i,Cart::yy)-_fak_b*ol(_i,Cart::yy);
+    double term_zz = _fak*kin(_i,Cart::zz)-_fak_b*ol(_i,Cart::zz);
+    kin(_i,Cart::xxxx) = xi2*ol(_i,Cart::xxxx) + PmB0*kin(_i,Cart::xxx) + nx[_i]*_fak*kin(i_less_x[_i],Cart::xxx) + 3*term_xx;
+    kin(_i,Cart::xxxy) = xi2*ol(_i,Cart::xxxy) + PmB1*kin(_i,Cart::xxx) + ny[_i]*_fak*kin(i_less_y[_i],Cart::xxx);
+    kin(_i,Cart::xxxz) = xi2*ol(_i,Cart::xxxz) + PmB2*kin(_i,Cart::xxx) + nz[_i]*_fak*kin(i_less_z[_i],Cart::xxx);
+    kin(_i,Cart::xxyy) = xi2*ol(_i,Cart::xxyy) + PmB0*kin(_i,Cart::xyy) + nx[_i]*_fak*kin(i_less_x[_i],Cart::xyy) + term_yy;
+    kin(_i,Cart::xxyz) = xi2*ol(_i,Cart::xxyz) + PmB1*kin(_i,Cart::xxz) + ny[_i]*_fak*kin(i_less_y[_i],Cart::xxz);
+    kin(_i,Cart::xxzz) = xi2*ol(_i,Cart::xxzz) + PmB0*kin(_i,Cart::xzz) + nx[_i]*_fak*kin(i_less_x[_i],Cart::xzz) + term_zz;
+    kin(_i,Cart::xyyy) = xi2*ol(_i,Cart::xyyy) + PmB0*kin(_i,Cart::yyy) + nx[_i]*_fak*kin(i_less_x[_i],Cart::yyy);
+    kin(_i,Cart::xyyz) = xi2*ol(_i,Cart::xyyz) + PmB0*kin(_i,Cart::yyz) + nx[_i]*_fak*kin(i_less_x[_i],Cart::yyz);
+    kin(_i,Cart::xyzz) = xi2*ol(_i,Cart::xyzz) + PmB0*kin(_i,Cart::yzz) + nx[_i]*_fak*kin(i_less_x[_i],Cart::yzz);
+    kin(_i,Cart::xzzz) = xi2*ol(_i,Cart::xzzz) + PmB0*kin(_i,Cart::zzz) + nx[_i]*_fak*kin(i_less_x[_i],Cart::zzz);
+    kin(_i,Cart::yyyy) = xi2*ol(_i,Cart::yyyy) + PmB1*kin(_i,Cart::yyy) + ny[_i]*_fak*kin(i_less_y[_i],Cart::yyy) + 3*term_yy;
+    kin(_i,Cart::yyyz) = xi2*ol(_i,Cart::yyyz) + PmB2*kin(_i,Cart::yyy) + nz[_i]*_fak*kin(i_less_z[_i],Cart::yyy);
+    kin(_i,Cart::yyzz) = xi2*ol(_i,Cart::yyzz) + PmB1*kin(_i,Cart::yzz) + ny[_i]*_fak*kin(i_less_y[_i],Cart::yzz) + term_zz;
+    kin(_i,Cart::yzzz) = xi2*ol(_i,Cart::yzzz) + PmB1*kin(_i,Cart::zzz) + ny[_i]*_fak*kin(i_less_y[_i],Cart::zzz);
+    kin(_i,Cart::zzzz) = xi2*ol(_i,Cart::zzzz) + PmB2*kin(_i,Cart::zzz) + nz[_i]*_fak*kin(i_less_z[_i],Cart::zzz) + 3*term_zz;
   }
   //------------------------------------------------------
 

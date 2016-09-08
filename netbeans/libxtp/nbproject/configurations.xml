@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="90">
+<configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -171,7 +171,6 @@
                    projectFiles="true">
       <logicalFolder name="f5" displayName="aomatrices" projectFiles="true">
         <itemPath>../../src/libxtp/aomatrices/aocoulomb.cc</itemPath>
-        <itemPath>../../src/libxtp/aomatrices/aocoulomb_g.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aodipole.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aoecp.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aoesp.cc</itemPath>
@@ -352,8 +351,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/crgunit.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/dftengine.h"
             ex="false"
             tool="3"
@@ -528,8 +525,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/topology.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/units.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/version.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1144,8 +1139,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/crgunit.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/dftengine.h"
             ex="false"
             tool="3"
@@ -1320,8 +1313,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/topology.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/units.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/version.h" ex="false" tool="3" flavor2="0">
       </item>

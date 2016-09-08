@@ -39,11 +39,7 @@ using namespace votca::tools;
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
 
-    
-    int AOCoulomb::getExtraBlockSize(int _lmax_row, int _lmax_col){
-        int _block_size = _lmax_col + _lmax_row +1;
-        return _block_size;
-    }
+ 
 
     void AOCoulomb::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp) {
       
@@ -54,14 +50,12 @@ namespace votca { namespace xtp {
             // set size of internal block for recursion
             int _nrows = this->getBlockSize(_lmax_row);
             int _ncols = this->getBlockSize(_lmax_col);
-            int _nextra = this->getExtraBlockSize(_lmax_row, _lmax_col);
-            int _l_sum = _lmax_row + _lmax_col;
+            const int _mmax = _lmax_row + _lmax_col; 
+            const int _nextra = _mmax +1;
+            
 
             
-            int nmax=20; // This is hardcoded using getBlocksize leads to problems the if clauses are not that restrictive and so if you do use a smaller array it might lead to problems
-             if(_lmax_row>3 ||_lmax_col>3){
-                 nmax=35;
-             }
+           
             
             // get shell positions
             const vec& _pos_row = _shell_row->getPos();
@@ -160,12 +154,12 @@ namespace votca { namespace xtp {
                        
                       
                          
-                         //ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
-                         ma_type _cou(boost::extents[nmax][nmax][_nextra]);
+                         ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
+                         
                          
                                   
-                           for (index i = 0; i != nmax; ++i) {
-                               for (index j = 0; j != nmax; ++j) {
+                           for (index i = 0; i != _nrows; ++i) {
+                               for (index j = 0; j != _ncols; ++j) {
                                    for (index k = 0; k != _nextra; ++k) {
                                        _cou[i][j][k] = 0.0;
                                    }
@@ -174,12 +168,12 @@ namespace votca { namespace xtp {
 
                          
                          
-            const double _decay = _decay_row + _decay_col; ///////////////
-            const double r_decay = 0.5/_decay; /////////////////////
-            const double r_decay_2 = 2.*r_decay; /////////////////////
-            const double fac_a_ac = _decay_row/_decay; ///////////
-            const double fac_c_ac = _decay_col/_decay; ///////////
-            const int _mmax = _lmax_row + _lmax_col; //////////////
+            const double _decay = _decay_row + _decay_col; 
+            const double r_decay = 0.5/_decay; 
+            const double r_decay_2 = 2.*r_decay; 
+            const double fac_a_ac = _decay_row/_decay; 
+            const double fac_c_ac = _decay_col/_decay; 
+            
                        
 
             
@@ -220,7 +214,7 @@ namespace votca { namespace xtp {
 
 
          
-//Integral  p - s
+//Integrals     p - s
 if (_lmax_row > 0) {
   for (int m = 0; m < _mmax; m++) {
     _cou[Cart::x][0][m] = wmp0*_cou[0][0][m+1];
@@ -230,7 +224,7 @@ if (_lmax_row > 0) {
 }
 //------------------------------------------------------
 
-//Integral  d - s
+//Integrals     d - s
 if (_lmax_row > 1) {
   for (int m = 0; m < _mmax-1; m++) {
     double term = r_decay_row*(_cou[0][0][m]-fac_c_ac*_cou[0][0][m+1]);
@@ -244,7 +238,7 @@ if (_lmax_row > 1) {
 }
 //------------------------------------------------------
 
-//Integral  f - s
+//Integrals     f - s
 if (_lmax_row > 2) {
   for (int m = 0; m < _mmax-2; m++) {
     _cou[Cart::xxx][0][m] = wmp0*_cou[Cart::xx][0][m+1] + 2*r_decay_row*(_cou[Cart::x][0][m]-fac_c_ac*_cou[Cart::x][0][m+1]);
@@ -261,7 +255,7 @@ if (_lmax_row > 2) {
 }
 //------------------------------------------------------
 
-//Integral  g - s
+//Integrals     g - s
 if (_lmax_row > 3) {
   for (int m = 0; m < _mmax-3; m++) {
     double term_xx = r_decay_row*(_cou[Cart::xx][0][m]-fac_c_ac*_cou[Cart::xx][0][m+1]);
@@ -286,7 +280,7 @@ if (_lmax_row > 3) {
 }
 //------------------------------------------------------
 
-//Integral  h - s
+//Integrals     h - s
 if (_lmax_row > 4) {
   for (int m = 0; m < _mmax-4; m++) {
     double term_xxx = r_decay_row*(_cou[Cart::xxx][0][m]-fac_c_ac*_cou[Cart::xxx][0][m+1]);
@@ -317,7 +311,7 @@ if (_lmax_row > 4) {
 }
 //------------------------------------------------------
 
-//Integral  i - s
+//Integrals     i - s
 if (_lmax_row > 5) {
   for (int m = 0; m < _mmax-5; m++) {
     double term_xxxx = r_decay_row*(_cou[Cart::xxxx][0][m]-fac_c_ac*_cou[Cart::xxxx][0][m+1]);
@@ -362,17 +356,17 @@ if (_lmax_row > 5) {
 
 if (_lmax_col > 0) {
 
-  //Integral  s - p
-  for (int m = 0; m < _mmax; m++) {
+  //Integrals     s - p
+  for (int m = 0; m < _lmax_col; m++) {
     _cou[0][Cart::x][m] = wmq0*_cou[0][0][m+1];
     _cou[0][Cart::y][m] = wmq1*_cou[0][0][m+1];
     _cou[0][Cart::z][m] = wmq2*_cou[0][0][m+1];
   }
   //------------------------------------------------------
 
-  //Integral  p - p
+  //Integrals     p - p
   if (_lmax_row > 0) {
-    for (int m = 0; m < _mmax-1; m++) {
+    for (int m = 0; m < _lmax_col; m++) {
       double term = r_decay*_cou[0][0][m+1];
       for (int _i =  1; _i < 4; _i++) {
         _cou[_i][Cart::x][m] = wmq0*_cou[_i][0][m+1] + nx[_i]*term;
@@ -385,8 +379,8 @@ if (_lmax_col > 0) {
 
   //Integrals     d - p     f - p     g - p     h - p     i - p
   for (int _i_row = 2; _i_row < _lmax_row+1; _i_row++) {
-    for (int m = 0; m < _mmax-_i_row; m++) {
-      for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
+    for (int m = 0; m < _lmax_col; m++) {
+      for (int _i =  4; _i < n_orbitals[_lmax_row]; _i++) {
         _cou[_i][Cart::x][m] = wmq0*_cou[_i][0][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][0][m+1];
         _cou[_i][Cart::y][m] = wmq1*_cou[_i][0][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][0][m+1];
         _cou[_i][Cart::z][m] = wmq2*_cou[_i][0][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][0][m+1];
@@ -400,8 +394,8 @@ if (_lmax_col > 0) {
 
 if (_lmax_col > 1) {
 
-  //Integral  s - d
-  for (int m = 0; m < _mmax-1; m++) {
+  //Integrals     s - d
+  for (int m = 0; m < _lmax_col-1; m++) {
     double term = r_decay_col*(_cou[0][0][m]-fac_a_ac*_cou[0][0][m+1]);
     _cou[0][Cart::xx][m] = wmq0*_cou[0][Cart::x][m+1] + term;
     _cou[0][Cart::xy][m] = wmq0*_cou[0][Cart::y][m+1];
@@ -413,17 +407,15 @@ if (_lmax_col > 1) {
   //------------------------------------------------------
 
   //Integrals     p - d     d - d     f - d     g - d     h - d     i - d
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int m = 0; m < _mmax-_i_row-1; m++) {
-      for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-        double term = r_decay_col*(_cou[_i][0][m]-fac_a_ac*_cou[_i][0][m+1]);
-        _cou[_i][Cart::xx][m] = wmq0*_cou[_i][Cart::x][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::x][m+1] + term;
-        _cou[_i][Cart::xy][m] = wmq0*_cou[_i][Cart::y][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::y][m+1];
-        _cou[_i][Cart::xz][m] = wmq0*_cou[_i][Cart::z][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::z][m+1];
-        _cou[_i][Cart::yy][m] = wmq1*_cou[_i][Cart::y][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::y][m+1] + term;
-        _cou[_i][Cart::yz][m] = wmq1*_cou[_i][Cart::z][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::z][m+1];
-        _cou[_i][Cart::zz][m] = wmq2*_cou[_i][Cart::z][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::z][m+1] + term;
-      }
+  for (int m = 0; m < _lmax_col-1; m++) {
+    for (int _i =  1; _i < n_orbitals[_lmax_row]; _i++) {
+      double term = r_decay_col*(_cou[_i][0][m]-fac_a_ac*_cou[_i][0][m+1]);
+      _cou[_i][Cart::xx][m] = wmq0*_cou[_i][Cart::x][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::x][m+1] + term;
+      _cou[_i][Cart::xy][m] = wmq0*_cou[_i][Cart::y][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::y][m+1];
+      _cou[_i][Cart::xz][m] = wmq0*_cou[_i][Cart::z][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::z][m+1];
+      _cou[_i][Cart::yy][m] = wmq1*_cou[_i][Cart::y][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::y][m+1] + term;
+      _cou[_i][Cart::yz][m] = wmq1*_cou[_i][Cart::z][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::z][m+1];
+      _cou[_i][Cart::zz][m] = wmq2*_cou[_i][Cart::z][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::z][m+1] + term;
     }
   }
   //------------------------------------------------------
@@ -433,8 +425,8 @@ if (_lmax_col > 1) {
 
 if (_lmax_col > 2) {
 
-  //Integral  s - f
-  for (int m = 0; m < _mmax-2; m++) {
+  //Integrals     s - f
+  for (int m = 0; m < _lmax_col-2; m++) {
     _cou[0][Cart::xxx][m] = wmq0*_cou[0][Cart::xx][m+1] + 2*r_decay_col*(_cou[0][Cart::x][m]-fac_a_ac*_cou[0][Cart::x][m+1]);
     _cou[0][Cart::xxy][m] = wmq1*_cou[0][Cart::xx][m+1];
     _cou[0][Cart::xxz][m] = wmq2*_cou[0][Cart::xx][m+1];
@@ -449,23 +441,21 @@ if (_lmax_col > 2) {
   //------------------------------------------------------
 
   //Integrals     p - f     d - f     f - f     g - f     h - f     i - f
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int m = 0; m < _mmax-_i_row-2; m++) {
-      for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-        double term_x = 2*r_decay_col*(_cou[_i][Cart::x][m]-fac_a_ac*_cou[_i][Cart::x][m+1]);
-        double term_y = 2*r_decay_col*(_cou[_i][Cart::y][m]-fac_a_ac*_cou[_i][Cart::y][m+1]);
-        double term_z = 2*r_decay_col*(_cou[_i][Cart::z][m]-fac_a_ac*_cou[_i][Cart::z][m+1]);
-        _cou[_i][Cart::xxx][m] = wmq0*_cou[_i][Cart::xx][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xx][m+1] + term_x;
-        _cou[_i][Cart::xxy][m] = wmq1*_cou[_i][Cart::xx][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xx][m+1];
-        _cou[_i][Cart::xxz][m] = wmq2*_cou[_i][Cart::xx][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xx][m+1];
-        _cou[_i][Cart::xyy][m] = wmq0*_cou[_i][Cart::yy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yy][m+1];
-        _cou[_i][Cart::xyz][m] = wmq0*_cou[_i][Cart::yz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yz][m+1];
-        _cou[_i][Cart::xzz][m] = wmq0*_cou[_i][Cart::zz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::zz][m+1];
-        _cou[_i][Cart::yyy][m] = wmq1*_cou[_i][Cart::yy][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yy][m+1] + term_y;
-        _cou[_i][Cart::yyz][m] = wmq2*_cou[_i][Cart::yy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::yy][m+1];
-        _cou[_i][Cart::yzz][m] = wmq1*_cou[_i][Cart::zz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::zz][m+1];
-        _cou[_i][Cart::zzz][m] = wmq2*_cou[_i][Cart::zz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::zz][m+1] + term_z;
-      }
+  for (int m = 0; m < _lmax_col-2; m++) {
+    for (int _i =  1; _i < n_orbitals[_lmax_row]; _i++) {
+      double term_x = 2*r_decay_col*(_cou[_i][Cart::x][m]-fac_a_ac*_cou[_i][Cart::x][m+1]);
+      double term_y = 2*r_decay_col*(_cou[_i][Cart::y][m]-fac_a_ac*_cou[_i][Cart::y][m+1]);
+      double term_z = 2*r_decay_col*(_cou[_i][Cart::z][m]-fac_a_ac*_cou[_i][Cart::z][m+1]);
+      _cou[_i][Cart::xxx][m] = wmq0*_cou[_i][Cart::xx][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xx][m+1] + term_x;
+      _cou[_i][Cart::xxy][m] = wmq1*_cou[_i][Cart::xx][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xx][m+1];
+      _cou[_i][Cart::xxz][m] = wmq2*_cou[_i][Cart::xx][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xx][m+1];
+      _cou[_i][Cart::xyy][m] = wmq0*_cou[_i][Cart::yy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yy][m+1];
+      _cou[_i][Cart::xyz][m] = wmq0*_cou[_i][Cart::yz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yz][m+1];
+      _cou[_i][Cart::xzz][m] = wmq0*_cou[_i][Cart::zz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::zz][m+1];
+      _cou[_i][Cart::yyy][m] = wmq1*_cou[_i][Cart::yy][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yy][m+1] + term_y;
+      _cou[_i][Cart::yyz][m] = wmq2*_cou[_i][Cart::yy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::yy][m+1];
+      _cou[_i][Cart::yzz][m] = wmq1*_cou[_i][Cart::zz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::zz][m+1];
+      _cou[_i][Cart::zzz][m] = wmq2*_cou[_i][Cart::zz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::zz][m+1] + term_z;
     }
   }
   //------------------------------------------------------
@@ -475,8 +465,8 @@ if (_lmax_col > 2) {
 
 if (_lmax_col > 3) {
 
-  //Integral  s - g
-  for (int m = 0; m < _mmax-3; m++) {
+  //Integrals     s - g
+  for (int m = 0; m < _lmax_col-3; m++) {
     double term_xx = r_decay_col*(_cou[0][Cart::xx][m]-fac_a_ac*_cou[0][Cart::xx][m+1]);
     double term_yy = r_decay_col*(_cou[0][Cart::yy][m]-fac_a_ac*_cou[0][Cart::yy][m+1]);
     double term_zz = r_decay_col*(_cou[0][Cart::zz][m]-fac_a_ac*_cou[0][Cart::zz][m+1]);
@@ -499,28 +489,26 @@ if (_lmax_col > 3) {
   //------------------------------------------------------
 
   //Integrals     p - g     d - g     f - g     g - g     h - g     i - g
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int m = 0; m < _mmax-_i_row-3; m++) {
-      for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-        double term_xx = r_decay_col*(_cou[_i][Cart::xx][m]-fac_a_ac*_cou[_i][Cart::xx][m+1]);
-        double term_yy = r_decay_col*(_cou[_i][Cart::yy][m]-fac_a_ac*_cou[_i][Cart::yy][m+1]);
-        double term_zz = r_decay_col*(_cou[_i][Cart::zz][m]-fac_a_ac*_cou[_i][Cart::zz][m+1]);
-        _cou[_i][Cart::xxxx][m] = wmq0*_cou[_i][Cart::xxx][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xxx][m+1] + 3*term_xx;
-        _cou[_i][Cart::xxxy][m] = wmq1*_cou[_i][Cart::xxx][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxx][m+1];
-        _cou[_i][Cart::xxxz][m] = wmq2*_cou[_i][Cart::xxx][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxx][m+1];
-        _cou[_i][Cart::xxyy][m] = wmq0*_cou[_i][Cart::xyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xyy][m+1] + term_yy;
-        _cou[_i][Cart::xxyz][m] = wmq1*_cou[_i][Cart::xxz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxz][m+1];
-        _cou[_i][Cart::xxzz][m] = wmq0*_cou[_i][Cart::xzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xzz][m+1] + term_zz;
-        _cou[_i][Cart::xyyy][m] = wmq0*_cou[_i][Cart::yyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyy][m+1];
-        _cou[_i][Cart::xyyz][m] = wmq0*_cou[_i][Cart::yyz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyz][m+1];
-        _cou[_i][Cart::xyzz][m] = wmq0*_cou[_i][Cart::yzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yzz][m+1];
-        _cou[_i][Cart::xzzz][m] = wmq0*_cou[_i][Cart::zzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::zzz][m+1];
-        _cou[_i][Cart::yyyy][m] = wmq1*_cou[_i][Cart::yyy][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yyy][m+1] + 3*term_yy;
-        _cou[_i][Cart::yyyz][m] = wmq2*_cou[_i][Cart::yyy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::yyy][m+1];
-        _cou[_i][Cart::yyzz][m] = wmq1*_cou[_i][Cart::yzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yzz][m+1] + term_zz;
-        _cou[_i][Cart::yzzz][m] = wmq1*_cou[_i][Cart::zzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::zzz][m+1];
-        _cou[_i][Cart::zzzz][m] = wmq2*_cou[_i][Cart::zzz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::zzz][m+1] + 3*term_zz;
-      }
+  for (int m = 0; m < _lmax_col-3; m++) {
+    for (int _i =  1; _i < n_orbitals[_lmax_row]; _i++) {
+      double term_xx = r_decay_col*(_cou[_i][Cart::xx][m]-fac_a_ac*_cou[_i][Cart::xx][m+1]);
+      double term_yy = r_decay_col*(_cou[_i][Cart::yy][m]-fac_a_ac*_cou[_i][Cart::yy][m+1]);
+      double term_zz = r_decay_col*(_cou[_i][Cart::zz][m]-fac_a_ac*_cou[_i][Cart::zz][m+1]);
+      _cou[_i][Cart::xxxx][m] = wmq0*_cou[_i][Cart::xxx][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xxx][m+1] + 3*term_xx;
+      _cou[_i][Cart::xxxy][m] = wmq1*_cou[_i][Cart::xxx][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxx][m+1];
+      _cou[_i][Cart::xxxz][m] = wmq2*_cou[_i][Cart::xxx][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxx][m+1];
+      _cou[_i][Cart::xxyy][m] = wmq0*_cou[_i][Cart::xyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xyy][m+1] + term_yy;
+      _cou[_i][Cart::xxyz][m] = wmq1*_cou[_i][Cart::xxz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxz][m+1];
+      _cou[_i][Cart::xxzz][m] = wmq0*_cou[_i][Cart::xzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xzz][m+1] + term_zz;
+      _cou[_i][Cart::xyyy][m] = wmq0*_cou[_i][Cart::yyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyy][m+1];
+      _cou[_i][Cart::xyyz][m] = wmq0*_cou[_i][Cart::yyz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyz][m+1];
+      _cou[_i][Cart::xyzz][m] = wmq0*_cou[_i][Cart::yzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yzz][m+1];
+      _cou[_i][Cart::xzzz][m] = wmq0*_cou[_i][Cart::zzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::zzz][m+1];
+      _cou[_i][Cart::yyyy][m] = wmq1*_cou[_i][Cart::yyy][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yyy][m+1] + 3*term_yy;
+      _cou[_i][Cart::yyyz][m] = wmq2*_cou[_i][Cart::yyy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::yyy][m+1];
+      _cou[_i][Cart::yyzz][m] = wmq1*_cou[_i][Cart::yzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yzz][m+1] + term_zz;
+      _cou[_i][Cart::yzzz][m] = wmq1*_cou[_i][Cart::zzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::zzz][m+1];
+      _cou[_i][Cart::zzzz][m] = wmq2*_cou[_i][Cart::zzz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::zzz][m+1] + 3*term_zz;
     }
   }
   //------------------------------------------------------
@@ -530,8 +518,8 @@ if (_lmax_col > 3) {
 
 if (_lmax_col > 4) {
 
-  //Integral  s - h
-  for (int m = 0; m < _mmax-4; m++) {
+  //Integrals     s - h
+  for (int m = 0; m < _lmax_col-4; m++) {
     double term_xxx = r_decay_col*(_cou[0][Cart::xxx][m]-fac_a_ac*_cou[0][Cart::xxx][m+1]);
     double term_yyy = r_decay_col*(_cou[0][Cart::yyy][m]-fac_a_ac*_cou[0][Cart::yyy][m+1]);
     double term_zzz = r_decay_col*(_cou[0][Cart::zzz][m]-fac_a_ac*_cou[0][Cart::zzz][m+1]);
@@ -560,34 +548,32 @@ if (_lmax_col > 4) {
   //------------------------------------------------------
 
   //Integrals     p - h     d - h     f - h     g - h     h - h     i - h
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int m = 0; m < _mmax-_i_row-4; m++) {
-      for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-        double term_xxx = r_decay_col*(_cou[_i][Cart::xxx][m]-fac_a_ac*_cou[_i][Cart::xxx][m+1]);
-        double term_yyy = r_decay_col*(_cou[_i][Cart::yyy][m]-fac_a_ac*_cou[_i][Cart::yyy][m+1]);
-        double term_zzz = r_decay_col*(_cou[_i][Cart::zzz][m]-fac_a_ac*_cou[_i][Cart::zzz][m+1]);
-        _cou[_i][Cart::xxxxx][m] = wmq0*_cou[_i][Cart::xxxx][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xxxx][m+1] + 4*term_xxx;
-        _cou[_i][Cart::xxxxy][m] = wmq1*_cou[_i][Cart::xxxx][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxx][m+1];
-        _cou[_i][Cart::xxxxz][m] = wmq2*_cou[_i][Cart::xxxx][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxxx][m+1];
-        _cou[_i][Cart::xxxyy][m] = wmq1*_cou[_i][Cart::xxxy][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxy][m+1] + term_xxx;
-        _cou[_i][Cart::xxxyz][m] = wmq1*_cou[_i][Cart::xxxz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxz][m+1];
-        _cou[_i][Cart::xxxzz][m] = wmq2*_cou[_i][Cart::xxxz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxxz][m+1] + term_xxx;
-        _cou[_i][Cart::xxyyy][m] = wmq0*_cou[_i][Cart::xyyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xyyy][m+1] + term_yyy;
-        _cou[_i][Cart::xxyyz][m] = wmq2*_cou[_i][Cart::xxyy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxyy][m+1];
-        _cou[_i][Cart::xxyzz][m] = wmq1*_cou[_i][Cart::xxzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxzz][m+1];
-        _cou[_i][Cart::xxzzz][m] = wmq0*_cou[_i][Cart::xzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xzzz][m+1] + term_zzz;
-        _cou[_i][Cart::xyyyy][m] = wmq0*_cou[_i][Cart::yyyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyyy][m+1];
-        _cou[_i][Cart::xyyyz][m] = wmq0*_cou[_i][Cart::yyyz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyyz][m+1];
-        _cou[_i][Cart::xyyzz][m] = wmq0*_cou[_i][Cart::yyzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyzz][m+1];
-        _cou[_i][Cart::xyzzz][m] = wmq0*_cou[_i][Cart::yzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yzzz][m+1];
-        _cou[_i][Cart::xzzzz][m] = wmq0*_cou[_i][Cart::zzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::zzzz][m+1];
-        _cou[_i][Cart::yyyyy][m] = wmq1*_cou[_i][Cart::yyyy][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yyyy][m+1] + 4*term_yyy;
-        _cou[_i][Cart::yyyyz][m] = wmq2*_cou[_i][Cart::yyyy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::yyyy][m+1];
-        _cou[_i][Cart::yyyzz][m] = wmq2*_cou[_i][Cart::yyyz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::yyyz][m+1] + term_yyy;
-        _cou[_i][Cart::yyzzz][m] = wmq1*_cou[_i][Cart::yzzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yzzz][m+1] + term_zzz;
-        _cou[_i][Cart::yzzzz][m] = wmq1*_cou[_i][Cart::zzzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::zzzz][m+1];
-        _cou[_i][Cart::zzzzz][m] = wmq2*_cou[_i][Cart::zzzz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::zzzz][m+1] + 4*term_zzz;
-      }
+  for (int m = 0; m < _lmax_col-4; m++) {
+    for (int _i =  1; _i < n_orbitals[_lmax_row]; _i++) {
+      double term_xxx = r_decay_col*(_cou[_i][Cart::xxx][m]-fac_a_ac*_cou[_i][Cart::xxx][m+1]);
+      double term_yyy = r_decay_col*(_cou[_i][Cart::yyy][m]-fac_a_ac*_cou[_i][Cart::yyy][m+1]);
+      double term_zzz = r_decay_col*(_cou[_i][Cart::zzz][m]-fac_a_ac*_cou[_i][Cart::zzz][m+1]);
+      _cou[_i][Cart::xxxxx][m] = wmq0*_cou[_i][Cart::xxxx][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xxxx][m+1] + 4*term_xxx;
+      _cou[_i][Cart::xxxxy][m] = wmq1*_cou[_i][Cart::xxxx][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxx][m+1];
+      _cou[_i][Cart::xxxxz][m] = wmq2*_cou[_i][Cart::xxxx][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxxx][m+1];
+      _cou[_i][Cart::xxxyy][m] = wmq1*_cou[_i][Cart::xxxy][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxy][m+1] + term_xxx;
+      _cou[_i][Cart::xxxyz][m] = wmq1*_cou[_i][Cart::xxxz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxz][m+1];
+      _cou[_i][Cart::xxxzz][m] = wmq2*_cou[_i][Cart::xxxz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxxz][m+1] + term_xxx;
+      _cou[_i][Cart::xxyyy][m] = wmq0*_cou[_i][Cart::xyyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xyyy][m+1] + term_yyy;
+      _cou[_i][Cart::xxyyz][m] = wmq2*_cou[_i][Cart::xxyy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxyy][m+1];
+      _cou[_i][Cart::xxyzz][m] = wmq1*_cou[_i][Cart::xxzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxzz][m+1];
+      _cou[_i][Cart::xxzzz][m] = wmq0*_cou[_i][Cart::xzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xzzz][m+1] + term_zzz;
+      _cou[_i][Cart::xyyyy][m] = wmq0*_cou[_i][Cart::yyyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyyy][m+1];
+      _cou[_i][Cart::xyyyz][m] = wmq0*_cou[_i][Cart::yyyz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyyz][m+1];
+      _cou[_i][Cart::xyyzz][m] = wmq0*_cou[_i][Cart::yyzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyzz][m+1];
+      _cou[_i][Cart::xyzzz][m] = wmq0*_cou[_i][Cart::yzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yzzz][m+1];
+      _cou[_i][Cart::xzzzz][m] = wmq0*_cou[_i][Cart::zzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::zzzz][m+1];
+      _cou[_i][Cart::yyyyy][m] = wmq1*_cou[_i][Cart::yyyy][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yyyy][m+1] + 4*term_yyy;
+      _cou[_i][Cart::yyyyz][m] = wmq2*_cou[_i][Cart::yyyy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::yyyy][m+1];
+      _cou[_i][Cart::yyyzz][m] = wmq2*_cou[_i][Cart::yyyz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::yyyz][m+1] + term_yyy;
+      _cou[_i][Cart::yyzzz][m] = wmq1*_cou[_i][Cart::yzzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yzzz][m+1] + term_zzz;
+      _cou[_i][Cart::yzzzz][m] = wmq1*_cou[_i][Cart::zzzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::zzzz][m+1];
+      _cou[_i][Cart::zzzzz][m] = wmq2*_cou[_i][Cart::zzzz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::zzzz][m+1] + 4*term_zzz;
     }
   }
   //------------------------------------------------------
@@ -597,8 +583,8 @@ if (_lmax_col > 4) {
 
 if (_lmax_col > 5) {
 
-  //Integral  s - i
-  for (int m = 0; m < _mmax-5; m++) {
+  //Integrals     s - i
+  for (int m = 0; m < _lmax_col-5; m++) {
     double term_xxxx = r_decay_col*(_cou[0][Cart::xxxx][m]-fac_a_ac*_cou[0][Cart::xxxx][m+1]);
     double term_xyyy = r_decay_col*(_cou[0][Cart::xyyy][m]-fac_a_ac*_cou[0][Cart::xyyy][m+1]);
     double term_xzzz = r_decay_col*(_cou[0][Cart::xzzz][m]-fac_a_ac*_cou[0][Cart::xzzz][m+1]);
@@ -638,48 +624,48 @@ if (_lmax_col > 5) {
   //------------------------------------------------------
 
   //Integrals     p - i     d - i     f - i     g - i     h - i     i - i
-  for (int _i_row = 1; _i_row < _lmax_row+1; _i_row++) {
-    for (int m = 0; m < _mmax-_i_row-5; m++) {
-      for (int _i =  n_orbitals[_i_row-1]; _i < n_orbitals[_i_row]; _i++) {
-        double term_xxxx = r_decay_col*(_cou[_i][Cart::xxxx][m]-fac_a_ac*_cou[_i][Cart::xxxx][m+1]);
-        double term_xyyy = r_decay_col*(_cou[_i][Cart::xyyy][m]-fac_a_ac*_cou[_i][Cart::xyyy][m+1]);
-        double term_xzzz = r_decay_col*(_cou[_i][Cart::xzzz][m]-fac_a_ac*_cou[_i][Cart::xzzz][m+1]);
-        double term_yyyy = r_decay_col*(_cou[_i][Cart::yyyy][m]-fac_a_ac*_cou[_i][Cart::yyyy][m+1]);
-        double term_yyzz = r_decay_col*(_cou[_i][Cart::yyzz][m]-fac_a_ac*_cou[_i][Cart::yyzz][m+1]);
-        double term_yzzz = r_decay_col*(_cou[_i][Cart::yzzz][m]-fac_a_ac*_cou[_i][Cart::yzzz][m+1]);
-        double term_zzzz = r_decay_col*(_cou[_i][Cart::zzzz][m]-fac_a_ac*_cou[_i][Cart::zzzz][m+1]);
-        _cou[_i][Cart::xxxxxx][m] = wmq0*_cou[_i][Cart::xxxxx][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xxxxx][m+1] + 5*term_xxxx;
-        _cou[_i][Cart::xxxxxy][m] = wmq1*_cou[_i][Cart::xxxxx][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxxx][m+1];
-        _cou[_i][Cart::xxxxxz][m] = wmq2*_cou[_i][Cart::xxxxx][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxxxx][m+1];
-        _cou[_i][Cart::xxxxyy][m] = wmq1*_cou[_i][Cart::xxxxy][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxxy][m+1] + term_xxxx;
-        _cou[_i][Cart::xxxxyz][m] = wmq1*_cou[_i][Cart::xxxxz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxxz][m+1];
-        _cou[_i][Cart::xxxxzz][m] = wmq2*_cou[_i][Cart::xxxxz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxxxz][m+1] + term_xxxx;
-        _cou[_i][Cart::xxxyyy][m] = wmq0*_cou[_i][Cart::xxyyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xxyyy][m+1] + 2*term_xyyy;
-        _cou[_i][Cart::xxxyyz][m] = wmq2*_cou[_i][Cart::xxxyy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxxyy][m+1];
-        _cou[_i][Cart::xxxyzz][m] = wmq1*_cou[_i][Cart::xxxzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxzz][m+1];
-        _cou[_i][Cart::xxxzzz][m] = wmq0*_cou[_i][Cart::xxzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xxzzz][m+1] + 2*term_xzzz;
-        _cou[_i][Cart::xxyyyy][m] = wmq0*_cou[_i][Cart::xyyyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xyyyy][m+1] + term_yyyy;
-        _cou[_i][Cart::xxyyyz][m] = wmq2*_cou[_i][Cart::xxyyy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxyyy][m+1];
-        _cou[_i][Cart::xxyyzz][m] = wmq0*_cou[_i][Cart::xyyzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xyyzz][m+1] + term_yyzz;
-        _cou[_i][Cart::xxyzzz][m] = wmq1*_cou[_i][Cart::xxzzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxzzz][m+1];
-        _cou[_i][Cart::xxzzzz][m] = wmq0*_cou[_i][Cart::xzzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xzzzz][m+1] + term_zzzz;
-        _cou[_i][Cart::xyyyyy][m] = wmq0*_cou[_i][Cart::yyyyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyyyy][m+1];
-        _cou[_i][Cart::xyyyyz][m] = wmq0*_cou[_i][Cart::yyyyz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyyyz][m+1];
-        _cou[_i][Cart::xyyyzz][m] = wmq0*_cou[_i][Cart::yyyzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyyzz][m+1];
-        _cou[_i][Cart::xyyzzz][m] = wmq0*_cou[_i][Cart::yyzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyzzz][m+1];
-        _cou[_i][Cart::xyzzzz][m] = wmq0*_cou[_i][Cart::yzzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yzzzz][m+1];
-        _cou[_i][Cart::xzzzzz][m] = wmq0*_cou[_i][Cart::zzzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::zzzzz][m+1];
-        _cou[_i][Cart::yyyyyy][m] = wmq1*_cou[_i][Cart::yyyyy][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yyyyy][m+1] + 5*term_yyyy;
-        _cou[_i][Cart::yyyyyz][m] = wmq2*_cou[_i][Cart::yyyyy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::yyyyy][m+1];
-        _cou[_i][Cart::yyyyzz][m] = wmq2*_cou[_i][Cart::yyyyz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::yyyyz][m+1] + term_yyyy;
-        _cou[_i][Cart::yyyzzz][m] = wmq1*_cou[_i][Cart::yyzzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yyzzz][m+1] + 2*term_yzzz;
-        _cou[_i][Cart::yyzzzz][m] = wmq1*_cou[_i][Cart::yzzzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yzzzz][m+1] + term_zzzz;
-        _cou[_i][Cart::yzzzzz][m] = wmq1*_cou[_i][Cart::zzzzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::zzzzz][m+1];
-        _cou[_i][Cart::zzzzzz][m] = wmq2*_cou[_i][Cart::zzzzz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::zzzzz][m+1] + 5*term_zzzz;
-      }
+  for (int m = 0; m < _lmax_col-5; m++) {
+    for (int _i =  1; _i < n_orbitals[_lmax_row]; _i++) {
+      double term_xxxx = r_decay_col*(_cou[_i][Cart::xxxx][m]-fac_a_ac*_cou[_i][Cart::xxxx][m+1]);
+      double term_xyyy = r_decay_col*(_cou[_i][Cart::xyyy][m]-fac_a_ac*_cou[_i][Cart::xyyy][m+1]);
+      double term_xzzz = r_decay_col*(_cou[_i][Cart::xzzz][m]-fac_a_ac*_cou[_i][Cart::xzzz][m+1]);
+      double term_yyyy = r_decay_col*(_cou[_i][Cart::yyyy][m]-fac_a_ac*_cou[_i][Cart::yyyy][m+1]);
+      double term_yyzz = r_decay_col*(_cou[_i][Cart::yyzz][m]-fac_a_ac*_cou[_i][Cart::yyzz][m+1]);
+      double term_yzzz = r_decay_col*(_cou[_i][Cart::yzzz][m]-fac_a_ac*_cou[_i][Cart::yzzz][m+1]);
+      double term_zzzz = r_decay_col*(_cou[_i][Cart::zzzz][m]-fac_a_ac*_cou[_i][Cart::zzzz][m+1]);
+      _cou[_i][Cart::xxxxxx][m] = wmq0*_cou[_i][Cart::xxxxx][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xxxxx][m+1] + 5*term_xxxx;
+      _cou[_i][Cart::xxxxxy][m] = wmq1*_cou[_i][Cart::xxxxx][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxxx][m+1];
+      _cou[_i][Cart::xxxxxz][m] = wmq2*_cou[_i][Cart::xxxxx][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxxxx][m+1];
+      _cou[_i][Cart::xxxxyy][m] = wmq1*_cou[_i][Cart::xxxxy][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxxy][m+1] + term_xxxx;
+      _cou[_i][Cart::xxxxyz][m] = wmq1*_cou[_i][Cart::xxxxz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxxz][m+1];
+      _cou[_i][Cart::xxxxzz][m] = wmq2*_cou[_i][Cart::xxxxz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxxxz][m+1] + term_xxxx;
+      _cou[_i][Cart::xxxyyy][m] = wmq0*_cou[_i][Cart::xxyyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xxyyy][m+1] + 2*term_xyyy;
+      _cou[_i][Cart::xxxyyz][m] = wmq2*_cou[_i][Cart::xxxyy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxxyy][m+1];
+      _cou[_i][Cart::xxxyzz][m] = wmq1*_cou[_i][Cart::xxxzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxxzz][m+1];
+      _cou[_i][Cart::xxxzzz][m] = wmq0*_cou[_i][Cart::xxzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xxzzz][m+1] + 2*term_xzzz;
+      _cou[_i][Cart::xxyyyy][m] = wmq0*_cou[_i][Cart::xyyyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xyyyy][m+1] + term_yyyy;
+      _cou[_i][Cart::xxyyyz][m] = wmq2*_cou[_i][Cart::xxyyy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::xxyyy][m+1];
+      _cou[_i][Cart::xxyyzz][m] = wmq0*_cou[_i][Cart::xyyzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xyyzz][m+1] + term_yyzz;
+      _cou[_i][Cart::xxyzzz][m] = wmq1*_cou[_i][Cart::xxzzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::xxzzz][m+1];
+      _cou[_i][Cart::xxzzzz][m] = wmq0*_cou[_i][Cart::xzzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::xzzzz][m+1] + term_zzzz;
+      _cou[_i][Cart::xyyyyy][m] = wmq0*_cou[_i][Cart::yyyyy][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyyyy][m+1];
+      _cou[_i][Cart::xyyyyz][m] = wmq0*_cou[_i][Cart::yyyyz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyyyz][m+1];
+      _cou[_i][Cart::xyyyzz][m] = wmq0*_cou[_i][Cart::yyyzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyyzz][m+1];
+      _cou[_i][Cart::xyyzzz][m] = wmq0*_cou[_i][Cart::yyzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yyzzz][m+1];
+      _cou[_i][Cart::xyzzzz][m] = wmq0*_cou[_i][Cart::yzzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::yzzzz][m+1];
+      _cou[_i][Cart::xzzzzz][m] = wmq0*_cou[_i][Cart::zzzzz][m+1] + nx[_i]*r_decay*_cou[i_less_x[_i]][Cart::zzzzz][m+1];
+      _cou[_i][Cart::yyyyyy][m] = wmq1*_cou[_i][Cart::yyyyy][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yyyyy][m+1] + 5*term_yyyy;
+      _cou[_i][Cart::yyyyyz][m] = wmq2*_cou[_i][Cart::yyyyy][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::yyyyy][m+1];
+      _cou[_i][Cart::yyyyzz][m] = wmq2*_cou[_i][Cart::yyyyz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::yyyyz][m+1] + term_yyyy;
+      _cou[_i][Cart::yyyzzz][m] = wmq1*_cou[_i][Cart::yyzzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yyzzz][m+1] + 2*term_yzzz;
+      _cou[_i][Cart::yyzzzz][m] = wmq1*_cou[_i][Cart::yzzzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::yzzzz][m+1] + term_zzzz;
+      _cou[_i][Cart::yzzzzz][m] = wmq1*_cou[_i][Cart::zzzzz][m+1] + ny[_i]*r_decay*_cou[i_less_y[_i]][Cart::zzzzz][m+1];
+      _cou[_i][Cart::zzzzzz][m] = wmq2*_cou[_i][Cart::zzzzz][m+1] + nz[_i]*r_decay*_cou[i_less_z[_i]][Cart::zzzzz][m+1] + 5*term_zzzz;
     }
   }
-}
+  //------------------------------------------------------
+
+} // end if (_lmax_col > 5)
  
  
          

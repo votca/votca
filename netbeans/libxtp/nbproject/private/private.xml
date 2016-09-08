@@ -11,5 +11,9 @@
         <file>file:/home/jens/votca_git/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
         <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
         <group/>
+            <file>file:/home/jwehner/Programs/votca_dev/src/xtp/include/votca/xtp/aomatrix.h</file>
+            <file>file:/home/jwehner/Programs/votca_dev/src/xtp/include/votca/xtp/basisset.h</file>
+            <file>file:/home/jwehner/Programs/votca_dev/src/xtp/src/libxtp/mulliken.cc</file>
+            <file>file:/home/jwehner/Programs/votca_dev/src/xtp/include/votca/xtp/aoshell.h</file>
     </open-files>
 </project-private>

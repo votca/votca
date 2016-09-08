@@ -307,7 +307,8 @@ void GWBSE::addoutput(Property *_summary) {
     
             // set the parallelization 
             #ifdef _OPENMP
-            if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);           
+            if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);  
+            LOG(logDEBUG, *_pLog) << TimeStamp()  << " Using "<< omp_get_max_threads()<<" threads" << flush;
             #endif
 
             /* check which QC program was used for the DFT run 
@@ -462,7 +463,7 @@ void GWBSE::addoutput(Property *_summary) {
                 
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Integrating Vxc in VOTCA with gridsize: " << _grid << " and functional " << _functional << flush;
-                    ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
+                    ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
                     _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT, &dftbasis, _functional);
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated Vxc in VOTCA" << flush;
 
@@ -506,38 +507,7 @@ void GWBSE::addoutput(Property *_summary) {
                 }
             }
             
-            /******* TESTING VXC 
-            
-            // test total number of electrons
-            //ub::matrix<double> _ddft_orbitals = *(_orbitals->getOrbitals()); 
-            //ddftbasis.ReorderMOs(_ddft_orbitals, "gaussian", "votca" );
-            ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
-            NumericalIntegration                _numint;
-            _numint.GridSetup("medium",&dftbs,_atoms);
-            double Nelectrons = _numint.IntegrateDensity(DMAT,&dftbasis);
-            cout << " Number of electrons: " << Nelectrons << endl;
-
-            // test AOxcmatrix
-            //ub::matrix<double> AOXC = _numint.IntegrateVXC(DMAT,&dftbasis); 
-            double EXC = 0.0;
-            
-            //ub::matrix<double> AOXC_atomblock = _numint.IntegrateVXC(DMAT,&dftbasis); 
-            cout << "EXC " << EXC << endl;
-            for ( int i = 0 ; i < AOXC_atomblock.size1(); i++ ){
-                //for ( int j = 0 ; j < AOXC.size2(); j++ ){
-                    
-                    cout << i << " : " << i << " atomblock " << AOXC_atomblock(i,i) <<  endl;
-                    
-               // }
-                
-            }
-            
-            exit(0);
-             */
-            
-            
-            
-            /****************/
+        
          
             
             
@@ -872,7 +842,7 @@ void GWBSE::addoutput(Property *_summary) {
                         LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap._aomatrix.size1() << flush;
                         LOG(logDEBUG, *_pLog) << TimeStamp() << " Running Excitation fragment population analysis " << flush;
                         // ground state populations
-                        ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
+                        ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
                         double nucA;
                         double nucB;
                         _orbitals->FragmentNuclearCharges( _fragA , nucA, nucB );
@@ -884,7 +854,7 @@ void GWBSE::addoutput(Property *_summary) {
                         for (int _i_state = 0; _i_state < _bse_nprint; _i_state++) {
                         
                             // checking Density Matrices
-                            std::vector<ub::matrix<double> > &DMAT = _orbitals->DensityMatrixExcitedState(_dft_orbitals , _bse_triplet_coefficients, _i_state );
+                            std::vector<ub::matrix<double> > DMAT = _orbitals->DensityMatrixExcitedState(_dft_orbitals , _bse_triplet_coefficients, _i_state );
           
                             double _totalA;
                             double _totalB;
@@ -1030,7 +1000,7 @@ void GWBSE::addoutput(Property *_summary) {
                         LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap._aomatrix.size1() << flush;
                         LOG(logDEBUG, *_pLog) << TimeStamp() << " Running Excitation fragment population analysis " << flush;
                         // ground state populations
-                        ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
+                        ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
                         double nucA;
                         double nucB;
                         _orbitals->FragmentNuclearCharges( _fragA , nucA, nucB );
@@ -1042,7 +1012,7 @@ void GWBSE::addoutput(Property *_summary) {
                         for (int _i_state = 0; _i_state < _bse_nprint; _i_state++) {
                         
                             // checking Density Matrices
-                            std::vector<ub::matrix<double> > &DMAT = _orbitals->DensityMatrixExcitedState(_dft_orbitals , _bse_singlet_coefficients, _i_state );
+                            std::vector<ub::matrix<double> > DMAT = _orbitals->DensityMatrixExcitedState(_dft_orbitals , _bse_singlet_coefficients, _i_state );
           
                             double _totalA;
                             double _totalB;

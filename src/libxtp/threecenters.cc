@@ -138,7 +138,7 @@ namespace votca {
                 // iterate over Gaussians in this _shell_row
             for ( GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
             // iterate over Gaussians in this _shell_col
-                const double& _decay_alpha = (*italpha)->decay;
+                const double _decay_alpha = (*italpha)->decay;
             
                 for ( GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
                     const double& _decay_gamma = (*itgamma)->decay;
@@ -148,7 +148,7 @@ namespace votca {
                     
                     for ( GaussianIterator itgw = _shell_gw->firstGaussian(); itgw != _shell_gw->lastGaussian(); ++itgw){
             // get decay constants (this all is still valid only for uncontracted functions)
-                        const double& _decay_gw = (*itgw)->decay;
+                        const double _decay_gw = (*itgw)->decay;
             
  
             double threshold = -(_decay_alpha + _decay_gamma + _decay_gw) * log(gwaccuracy);

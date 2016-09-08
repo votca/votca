@@ -372,10 +372,10 @@ bool Orbitals::Load(string file_name) {
 
 
  // Determine ground state density matrix
- ub::matrix<double>& Orbitals::DensityMatrixGroundState( ub::matrix<double>& _MOs ) {   
+ ub::matrix<double> Orbitals::DensityMatrixGroundState( ub::matrix<double>& _MOs ) {   
      // first fill Density matrix, if required
     //  if ( _dmatGS.size1() != _basis_set_size ) {
-        _dmatGS = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
+         ub::matrix<double> _dmatGS = ub::zero_matrix<double>(_basis_set_size);
         #pragma omp parallel for
         for ( int _i=0; _i < _basis_set_size; _i++ ){
             for ( int _j=0; _j < _basis_set_size; _j++ ){
@@ -392,8 +392,8 @@ bool Orbitals::Load(string file_name) {
  }
  
  
- ub::matrix<double> & Orbitals::TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state){
-    _dmatTS=ub::zero_matrix<double>(_basis_set_size);
+ ub::matrix<double> Orbitals::TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state){
+    ub::matrix<double> _dmatTS=ub::zero_matrix<double>(_basis_set_size);
     // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
     double sqrt2=sqrt(2.0);
     /*Trying to implement D_{alpha,beta}= sqrt2*sum_{i}^{occ}sum_{j}^{virt}{BSEcoef(i,j)*MOcoef(alpha,i)*MOcoef(beta,j)} */
@@ -432,7 +432,7 @@ bool Orbitals::Load(string file_name) {
  
  
  // Excited state density matrix
-std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix<double>& _MOs, ub::matrix<real_gwbse>& _BSECoefs, int state ){
+std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState(ub::matrix<double>& _MOs, ub::matrix<real_gwbse>& _BSECoefs, int state ){
      
      
      /****** 
@@ -458,6 +458,7 @@ std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix
       *  
       */
              
+    std::vector< ub::matrix<double> >_dmatEX;
     _dmatEX.resize(2);
     _dmatEX[0] = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
     _dmatEX[1] = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
