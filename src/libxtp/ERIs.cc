@@ -73,14 +73,14 @@ namespace votca {
             for ( int _i=0; _i<_threecenter.getSize();_i++){
                 ub::vector<double>threecenterasarray=(_threecenter.getDatamatrix(_i)).data();
                 // Trace over prod::DMAT,I(l)=componentwise product over 
-                for ( int _j=0; _j<threecenterasarray.size();_j++){
+                for ( unsigned _j=0; _j<threecenterasarray.size();_j++){
                     Itilde(_i,0)+=dmatasarray[_j]*threecenterasarray[_j];
                 }
             }
             //cout << "Itilde " <<Itilde << endl;
             ub::matrix<double>K=ub::prod(_inverse_Coulomb,Itilde);
             //cout << "K " << K << endl;
-            for ( int _i = 0; _i < K.size1(); _i++){
+            for ( unsigned _i = 0; _i < K.size1(); _i++){
                 
             _ERIs+=_threecenter.getDatamatrix(_i)*K(_i,0);    
             //cout << "I " << _threecenter.getDatamatrix(_i) << endl;
