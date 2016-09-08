@@ -286,6 +286,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         LOG(logDEBUG, _log) << "      number of QP levels:    " << _orbitals.QPpertEnergies().size1() << flush;
         if (_print_GW_energies){
             int _qpmin=_orbitals.getGWAmin();
+            int _noqp=_orbitals.getGWAtot();
             int _homo=_orbitals.getNumberOfElectrons()-1;
          
             const ub::matrix<double>& _qp_energies=_orbitals.QPpertEnergies();
@@ -294,7 +295,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
             
             LOG(logDEBUG,_log) << (format("  ====== Perturbative quasiparticle energies (Rydberg) ====== ")).str() << flush;
             LOG(logDEBUG,_log) << (format("   DeltaHLGap = %1$+1.6f Ryd") % _shift ).str()  <<  flush;
-            for ( int _i = 0 ; _i < _orbitals.getGWAtot() ; _i++ ){
+            for ( int _i = 0 ; _i < _noqp ; _i++ ){
                 if ( (_i + _qpmin) == _homo ){
                     LOG(logINFO,_log) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _qp_energies( _i, 0 ) %_qp_energies( _i, 1 ) % _qp_energies( _i, 2 ) %_qp_energies( _i, 3 ) % _qp_energies( _i, 4 ) ).str() << flush;
                 } else if ( (_i + _qpmin) == _homo+1 ){
