@@ -69,44 +69,37 @@ add_custom_target(manpages ALL)
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################
+find_package(GSL)
+find_package(MKL)
 
+if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+  message("-- MKL found, overloading uBLAS prod()")
+  set(MKL TRUE) #used in votca_tools_config.h
+elseif(GSL_FOUND)
+  message("-- GSL found, overloading uBLAS prod()")
+  include_directories(${GSL_INCLUDE_DIRS})
+  set(GSL_PKG "gsl")
+  set(GSL TRUE) #used in votca_xtp_config.h
+endif()
 
+if(MKL_FOUND)
+  set(MKL_URL "http://software.intel.com/sites/default/files/managed/76/8c/intel-mkl-and-boost-example.zip")
+  set(MKL_MD5 B957EE63A2167AD21B650B47726CD55C )
+  set(MKL_FILE "intel-mkl-and-boost-example.zip")
   
-
-  find_package(GSL)
-  find_package(MKL)
-
-
-  if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    message("-- MKL found, overloading uBLAS prod()")
-    set(MKL TRUE) #used in votca_tools_config.h
-  elseif(GSL_FOUND)
-    message("-- GSL found, overloading uBLAS prod()")
-    include_directories(${GSL_INCLUDE_DIRS})
-    set(GSL_PKG "gsl")
-    set(GSL TRUE) #used in votca_xtp_config.h
-  endif()
-
-if (MKL_FOUND)
-set(MKL_URL "http://software.intel.com/sites/default/files/managed/76/8c/intel-mkl-and-boost-example.zip")
-set(MKL_MD5 B957EE63A2167AD21B650B47726CD55C )
-set(MKL_FILE "intel-mkl-and-boost-example.zip")
-
-include(ExternalProject)
-ExternalProject_add(intel
-        PREFIX intel
-        URL "${MKL_URL}" URL_MD5 "${MKL_MD5}"
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
-        )
-set(MKL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/intel/src/intel/MKL_and_boost_example/headers")
-include_directories(${MKL_INCLUDE_DIR})
-file(GLOB_RECURSE MKL_HEADERS ${MKL_INCLUDE_DIR}/*.hpp )
-install(FILES ${MKL_HEADERS} DESTINATION include/votca/tools)
-
-ENDIF(MKL_FOUND)
-
+  include(ExternalProject)
+  ExternalProject_add(intel
+          PREFIX intel
+          URL "${MKL_URL}" URL_MD5 "${MKL_MD5}"
+          CONFIGURE_COMMAND ""
+          BUILD_COMMAND ""
+          INSTALL_COMMAND ""
+          )
+  set(MKL_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/intel/src/intel/MKL_and_boost_example/headers")
+  include_directories(${MKL_INCLUDE_DIR})
+  file(GLOB_RECURSE MKL_HEADERS ${MKL_INCLUDE_DIR}/*.hpp )
+  install(FILES ${MKL_HEADERS} DESTINATION include/votca/tools)
+endif(MKL_FOUND)
 
 option(WITH_FFTW "Use FFTW3, disabling leads to reduced functionality!" ON)
 if (WITH_FFTW)
