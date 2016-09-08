@@ -30,6 +30,7 @@ addons:
       - texlive-fonts-recommended
       - texlive-latex-extra
       - transfig
+      - inkscape
       - doxygen
       - graphviz
       - python-numpy
