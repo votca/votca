@@ -74,7 +74,7 @@ after_success:
   - if [[ ${XTP_MAN} ]]; then
       cp "$HOME"/votca/{share/votca/manual,src/devdoc}/xtp_manual.pdf;
       cd "$HOME/votca/src/devdoc";
-      if [[ ${TRAVIS_BRANCH} = ci && ${encrypted_f4232b15402f_key} && ${encrypted_f4232b15402f_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then
+      if [[ ${TRAVIS_BRANCH} = master && ${encrypted_f4232b15402f_key} && ${encrypted_f4232b15402f_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then
         git config --global user.name "Automatic Deployment (Travis CI)";
         git config --global user.email "votca-commits@googlegroups.com";
         git add --all && git commit -m "Documentation Update";
