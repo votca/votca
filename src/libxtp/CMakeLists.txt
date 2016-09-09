@@ -1,23 +1,3 @@
-option(WITH_GSL "Use GSL, disabling leads to reduced functionality!" OFF)
-if (WITH_GSL)
-  find_package(GSL)
-  if(NOT GSL_FOUND)
-    message(FATAL_ERROR "GSL not found,  make sure you have also installed the gsl and it's dev package")
-  endif(NOT GSL_FOUND)
-  include_directories(${GSL_INCLUDE_DIRS})
-  set(GSL_PKG "gsl")
-else(WITH_GSL)
-  set(NOGSL TRUE)
-  set(GSL_PKG)
-endif(WITH_GSL)
-
-option(WITH_MKL "Checking if MKL is installed in order to improve UBLAS performance" ON)
-if (WITH_MKL)
-  find_package(MKL)
-  if(NOT MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    #TODO: try to append -mkl to cflags
-  endif(NOT MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-endif(WITH_MKL)
 
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
