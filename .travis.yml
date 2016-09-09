@@ -47,8 +47,8 @@ env:
     - CCACHE_CPP2=yes #for clang
     - GVER=4.8
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
-#    - XTP=yes WERROR=yes J=4
-    - XTP=yes WALL=yes J=1
+    - XTP=yes WERROR=yes J=4
+    - XTP=yes WALL=yes J=4 MAN=yes
 
 before_script:
   - rm -vrf * .git
@@ -69,7 +69,23 @@ script:
     --directory "$HOME/votca/src" --no-clean --depth 1 -DGMX_USE_RDTSCP=OFF ${GMX_DOUBLE:+-DGMX_DOUBLE=yes}
     tools $([[ ${MINIMAL} ]] || echo gromacs) csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
     ${CTP:+kmc moo ctp} ${XTP:+xtp}
-  - cd "$HOME/votca/src/xtp" && make installmanual DESTDIR=/tmp 
+
+after_success:
+  - if [[ ${MAN} ]]; then
+      cp "$HOME"/votca/{share/votca/manual,src/devdoc}/xtp_manual.pdf
+      cd "$HOME/votca/src/devdoc";
+      if [[ ${TRAVIS_BRANCH} = ci && ${encrypted_f4232b15402f_key} && ${encrypted_f4232b15402f_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then
+        git config --global user.name "Automatic Deployment (Travis CI)";
+        git config --global user.email "votca-commits@googlegroups.com";
+        git add --all && git commit -m "Documentation Update";
+        openssl aes-256-cbc -K $encrypted_f4232b15402f_key -iv $encrypted_f4232b15402f_iv -in deploy2.enc -out ~/.ssh/id_rsa -d;
+        chmod 600 ~/.ssh/id_rsa;
+        git push git@github.com:votca/doxygen.git gh-pages;
+      else
+        git status
+        git diff --no-color | head -n 500;
+      fi;
+    fi
 
 cache:
   - ccache
