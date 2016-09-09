@@ -48,7 +48,7 @@ env:
     - GVER=4.8
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
     - XTP=yes WERROR=yes J=4
-    - XTP=yes WALL=yes J=4 MAN=yes
+    - XTP=yes WALL=yes J=4 XTP_MAN=yes
 
 before_script:
   - rm -vrf * .git
@@ -59,20 +59,20 @@ before_script:
       wget -qO- https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xz &&
       cd hdf5-${HDF5_VERSION} && ./configure --prefix=$HOME/hdf5 && make -j4 &> /dev/null && make install && cd ..;
     fi
-  - if [[ ${MAN} ]]; then git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/votca/src/devdoc"; fi 
+  - if [[ ${XTP_MAN} ]]; then git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/votca/src/devdoc"; fi 
   - if [[ ${GVER} ]]; then export CC=gcc-${GVER}; export CXX=g++-${GVER}; fi
 
 script:
   - PATH="$HOME/hdf5:$PATH" ./build.sh -Wu --dev --prefix "$HOME/votca" ${MAN:+--devdoc}
-    ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} -DWITH_H5MD=ON ${MINIMAL:+--minimal} --build-manual
+    ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} -DWITH_H5MD=ON ${MINIMAL:+--minimal} ${XTP_MAN:+--build-manual}
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall} ${GMX_VERSION:+--gmx-release ${GMX_VERSION}}
     --directory "$HOME/votca/src" --no-clean --depth 1 -DGMX_USE_RDTSCP=OFF ${GMX_DOUBLE:+-DGMX_DOUBLE=yes}
     tools $([[ ${MINIMAL} ]] || echo gromacs) csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
     ${CTP:+kmc moo ctp} ${XTP:+xtp}
 
 after_success:
-  - if [[ ${MAN} ]]; then
-      cp "$HOME"/votca/{share/votca/manual,src/devdoc}/xtp_manual.pdf
+  - if [[ ${XTP_MAN} ]]; then
+      cp "$HOME"/votca/{share/votca/manual,src/devdoc}/xtp_manual.pdf;
       cd "$HOME/votca/src/devdoc";
       if [[ ${TRAVIS_BRANCH} = ci && ${encrypted_f4232b15402f_key} && ${encrypted_f4232b15402f_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then
         git config --global user.name "Automatic Deployment (Travis CI)";
