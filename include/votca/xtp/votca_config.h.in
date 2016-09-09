@@ -23,9 +23,9 @@
 
 
 #if defined(GSL)
-    #include <votca/xtp/gsl_boost_ublas_matrix_prod.h>
+    #include "gsl_boost_ublas_matrix_prod.h"
 #elif defined(MKL)
-    #include <votca/xtp/mkl_boost_ublas_matrix_prod.hpp>
+    #include "mkl_boost_ublas_matrix_prod.hpp"
 #endif
 
 #endif // _VOTCA_XTP_CONFIG_H

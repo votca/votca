@@ -2,7 +2,7 @@
 #define	__QMAPEMACHINE__H
 
 
-#include <votca/xtp/votca_xtp_config.h>
+#include <votca/xtp/votca_config.h>
 #include <votca/xtp/xjob.h>
 #include <votca/xtp/xinductor.h>
 #include <votca/xtp/gwbse.h>

@@ -53,7 +53,7 @@ if (NOT DEFINED XTP_MANUAL)
 endif(NOT DEFINED XTP_MANUAL)
 #option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
 
-#for votca_xtp_config.h
+#for votca_config.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 ########################################################################
@@ -104,12 +104,12 @@ find_package(MKL)
 
 if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 message("-- MKL found, overloading uBLAS prod()")
-set(MKL TRUE) #used in votca_xtp_config.h
+set(MKL TRUE) #used in votca_config.h
 elseif(GSL_FOUND)
 message("-- GSL found, overloading uBLAS prod()")
 include_directories(${GSL_INCLUDE_DIRS})
 set(GSL_PKG "gsl")
-set(GSL TRUE) #used in votca_xtp_config.h
+set(GSL TRUE) #used in votca_config.h
 endif()
 
 if(MKL_FOUND)

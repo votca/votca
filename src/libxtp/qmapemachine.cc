@@ -1,5 +1,5 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/xtp/votca_xtp_config.h>
+#include <votca/xtp/votca_config.h>
 
 #include <votca/xtp/qmapemachine.h>
 #include <sys/stat.h>
