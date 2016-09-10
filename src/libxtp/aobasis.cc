@@ -501,13 +501,13 @@ int AOBasis::NumFuncShell(string shell_type) {
             int _nbf;
             // single type shells defined here
             if (shell_type.length() == 1) {
-                if ( shell_type == "S" ){ _nbf = 0;}
-                else if ( shell_type == "P" ){ _nbf = 1;}
-                else if ( shell_type == "D" ){ _nbf = 4;}
-                else if ( shell_type == "F" ){ _nbf = 9;}
-                else if ( shell_type == "G" ){ _nbf = 16;}
-                else if ( shell_type == "H" ){ _nbf = 25;}
-                else if ( shell_type == "I" ){ _nbf = 36;}
+                if ( shell_type == "S" ){ _nbf = 1;}
+                else if ( shell_type == "P" ){ _nbf = 3;}
+                else if ( shell_type == "D" ){ _nbf = 5;}
+                else if ( shell_type == "F" ){ _nbf = 7;}
+                else if ( shell_type == "G" ){ _nbf = 9;}
+                else if ( shell_type == "H" ){ _nbf = 11;}
+                else if ( shell_type == "I" ){ _nbf = 13;}
                 else{
                     throw runtime_error("AOBasis::NumFuncShell shell_type not known");
                 }
