@@ -189,11 +189,12 @@ if os.path.isfile(OPTIONS.input):
                 continue
             elif entries[0] in elements:
                 element=getelemententry(basis,entries[0])
-                shell=lxml.SubElement(element,"shell",type=entries[1],scale="1.0")
+                shelltype=entries[1]
+                shell=lxml.SubElement(element,"shell",type=shelltype,scale="1.0")    
             elif len(entries)>1 and shell!=None:
                 constant=lxml.SubElement(shell,"constant",decay="{:1.6e}".format(convertofloat(entries[0])))
-                for i in range(len(entries[1:])):
-                    contraction=lxml.SubElement(constant,"contractions",type=shells[i],factor="{:1.6e}".format(convertofloat(entries[i+1])))
+                for contractionfactor,singleshell in zip(entries[1:],shelltype):
+                    contraction=lxml.SubElement(constant,"contractions",type=singleshell,factor="{:1.6e}".format(convertofloat(contractionfactor)))
                     #contraction.text=" "
             else:
                okquit("\nCannot understand line in file:{}".format(line)) 
