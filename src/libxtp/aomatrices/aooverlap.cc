@@ -134,9 +134,6 @@ namespace votca { namespace xtp {
              // initialize local matrix block for unnormalized cartesians
             ub::matrix<double> _ol = ub::zero_matrix<double>(_nrows,_ncols);
         
-            // some helpers
-            const double _fak3 = 3.0 * _fak;
-            const double _fak4 = 4.0 * _fak;
 
             
             const double PmA0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _pos_row.getX();

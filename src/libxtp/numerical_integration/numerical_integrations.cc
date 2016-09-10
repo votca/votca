@@ -1506,7 +1506,7 @@ namespace votca {
             } // atoms
 
 
-            
+           /* 
             ofstream points;
             points.open("molgrid.xyz", ofstream::out);
             points << _totalgridsize << endl;
@@ -1518,7 +1518,7 @@ namespace votca {
                 }
             }
             points.close();
-
+            */
 
         }
     

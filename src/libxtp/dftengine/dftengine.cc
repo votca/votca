@@ -120,12 +120,12 @@ namespace votca {
             #endif
 
             _atoms = _orbitals->QMAtoms();
-            LOG(logDEBUG, *_pLog) << TimeStamp() << "Molecule Coordinates [A] "  << flush;
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Molecule Coordinates [A] "  << flush;
             for(unsigned i=0;i<_atoms.size();i++){
-                LOG(logDEBUG, *_pLog) << "\t\t"<< _atoms[i]->type<<" "<<_atoms[i]->x<<" "<<_atoms[i]->y<<" "<<_atoms[i]->z<<" "<<flush;
+                LOG(logDEBUG, *_pLog) << "\t\t "<< _atoms[i]->type<<" "<<_atoms[i]->x<<" "<<_atoms[i]->y<<" "<<_atoms[i]->z<<" "<<flush;
             }
             
-            AOBasis* basis = &_dftbasis;
+       
             
            
 	    /**** PREPARATION (atoms, basis sets, numerical integrations) ****/
@@ -134,8 +134,7 @@ namespace votca {
             
 	    /**** Density-independent matrices ****/
             SetupInvariantMatrices();
-            ub::matrix<double> _inverse_Coulomb=ub::zero_matrix<double>( _auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension()); 
-            linalg_invert( _auxAOcoulomb.Matrix() , _inverse_Coulomb);
+            
             
             
             /**** Initial guess = one-electron Hamiltonian without interactions ****/
@@ -187,11 +186,11 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
 
 
-                _ERIs.CalculateERIs(_dftAOdmat, _inverse_Coulomb);
+                _ERIs.CalculateERIs(_dftAOdmat, _AuxAOcoulomb_inv);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
 
 
-		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis,_xc_functional_name);
+		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  &_dftbasis,_xc_functional_name);
          
        //cout << "ERIS"<<endl;
        //cout<<_ERIs.getERIs()<<endl;
@@ -230,7 +229,7 @@ namespace votca {
                 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
                 if (std::abs(totenergy-energyold)< _Econverged){
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculation has converged up to "<<_Econverged<<"."<<flush;
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculation has converged up to "<<_Econverged<<". after "<< _this_iter<<" iterations." <<flush;
                     break;
                 }
                 else{
@@ -291,14 +290,15 @@ namespace votca {
 	    // AUX AOoverlap
         
  
-   
+            { // this is just for info and not needed afterwards
+            AOOverlap _auxAOoverlap;
             _auxAOoverlap.Initialize(_auxbasis.AOBasisSize());
             _auxAOoverlap.Fill(&_auxbasis);
             
             
             linalg_eigenvalues(_auxAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Smallest eigenvalue of AUX Overlap matrix : " << _eigenvalues[0] << flush;
- 
+             }
             
             
             
@@ -306,14 +306,19 @@ namespace votca {
             
             // AUX AOcoulomb matrix
             //cout << " _auxAOcoulomb" <<endl;
+            {
+            AOCoulomb                           _auxAOcoulomb;
             _auxAOcoulomb.Initialize(_auxbasis.AOBasisSize());
             _auxAOcoulomb.Fill(&_auxbasis);
-            
+           
             //cout << _auxAOcoulomb._aomatrix<<endl;
             // _auxAOcoulomb.Print("COU");
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
-            //exit(0);
-       
+            _AuxAOcoulomb_inv=ub::zero_matrix<double>( _auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension()); 
+            linalg_invert( _auxAOcoulomb.Matrix() , _AuxAOcoulomb_inv);
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Inverted AUX Coulomb matrix" << flush;
+     
+            }
             // prepare invariant part of electron repulsion integrals
       
             _ERIs.Initialize(_dftbasis, _auxbasis);

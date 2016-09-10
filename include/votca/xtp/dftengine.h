@@ -123,9 +123,10 @@ public:
 
     // AO Matrices
     AOOverlap                           _dftAOoverlap;
-    AOOverlap                           _auxAOoverlap;
+   
    // AOCoulomb                           _dftAOcoulomb;
-    AOCoulomb                           _auxAOcoulomb;
+    
+    ub::matrix<double>                  _AuxAOcoulomb_inv;
     AOKinetic                           _dftAOkinetic;
     AOESP                               _dftAOESP;
     AOECP                               _dftAOECP;

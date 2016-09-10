@@ -108,7 +108,7 @@ namespace votca {
             ma_type::extent_gen extents;
             
             double _dist3 = (_pos_alpha - _pos_beta) * (_pos_alpha - _pos_beta);
-            int n_orb = ((_lmax_gamma + 1)*(_lmax_gamma + 2)*(_lmax_gamma + 3))/6;
+            //int n_orb = ((_lmax_gamma + 1)*(_lmax_gamma + 2)*(_lmax_gamma + 3))/6;
             int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84, 120, 165};
             
             int nx[] = { 0,

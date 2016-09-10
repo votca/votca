@@ -68,9 +68,6 @@ namespace votca { namespace xtp {
         const vec& _pos_col = _shell_col->getPos();
         const vec  _diff    = _pos_row - _pos_col;
         // initialize some helper
-        std::vector<double> PmA (3,0.0);
-        std::vector<double> PmB (3,0.0);
-        std::vector<double> PmC (3,0.0);
         double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
         
          typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
@@ -78,7 +75,7 @@ namespace votca { namespace xtp {
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
             // get decay constant
-            const double& _decay_row = (*itr)->decay;
+            const double _decay_row = (*itr)->decay;
             
             //if ( _decay_row > 0.08 ) continue;
             
@@ -99,7 +96,7 @@ namespace votca { namespace xtp {
 
                 for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
                 //get decay constant
-                const double& _decay_col = (*itc)->decay;
+                const double _decay_col = (*itc)->decay;
         // if (_decay_col > 0.16) continue;
                 const double _fak  = 0.5/(_decay_row + _decay_col);
                 const double _fak2 = 2.0 * _fak;
@@ -152,8 +149,8 @@ namespace votca { namespace xtp {
                                 i_fit++;
                                 
                                 // get info for this angular momentum shell
-                                const double& _decay_ecp = (*itecp)->decay;
-                                const double& _contraction_ecp = (*itecp)->contraction[0];
+                                const double _decay_ecp = (*itecp)->decay;
+                                const double _contraction_ecp = (*itecp)->contraction[0];
                                 //const int& _power_ecp = (*itecp)->power;
 
 

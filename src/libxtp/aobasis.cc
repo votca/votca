@@ -507,23 +507,15 @@ int AOBasis::NumFuncShell(string shell_type) {
             int _nbf;
             // single type shells defined here
             if (shell_type.length() == 1) {
-                if (shell_type == "S") {
-                    _nbf = 1;
-                }
-                else if (shell_type == "P") {
-                    _nbf = 3;
-                }
-                else if (shell_type == "D") {
-                    _nbf = 5;
-                }
-                else if (shell_type == "F") {
-                    _nbf = 7;
-                }
-                else if (shell_type == "G") {
-                    _nbf = 9;
-                }
-                else {
-                    throw runtime_error("Num Func Shell shell_type not known");
+                if ( shell_type == "S" ){ _nbf = 1;}
+                else if ( shell_type == "P" ){ _nbf = 3;}
+                else if ( shell_type == "D" ){ _nbf = 5;}
+                else if ( shell_type == "F" ){ _nbf = 7;}
+                else if ( shell_type == "G" ){ _nbf = 9;}
+                else if ( shell_type == "H" ){ _nbf = 11;}
+                else if ( shell_type == "I" ){ _nbf = 13;}
+                else{
+                    throw runtime_error("AOBasis::NumFuncShell shell_type not known");
                 }
             } else {
                 // for combined shells, sum over all contributions
@@ -537,6 +529,32 @@ int AOBasis::NumFuncShell(string shell_type) {
             return _nbf;
         }
     
+
+int AOBasis::OffsetFuncShell( string shell_type ) {
+    int _nbf;
+    // single type shells
+    if ( shell_type.length() == 1 ){
+       if ( shell_type == "S" ){ _nbf = 0;}
+       else if ( shell_type == "P" ){ _nbf = 1;}
+       else if ( shell_type == "D" ){ _nbf = 4;}
+       else if ( shell_type == "F" ){ _nbf = 9;}
+       else if ( shell_type == "G" ){ _nbf = 16;}
+       else if ( shell_type == "H" ){ _nbf = 25;}
+       else if ( shell_type == "I" ){ _nbf = 36;}
+        else {
+                   throw runtime_error("AOBasis::OffsetFuncShell shell_type not known");
+               }
+    } else {
+        // for combined shells, go over all contributions and find minimal offset
+        _nbf = 1000;
+        for(unsigned i = 0; i < shell_type.length(); ++i) {
+            string local_shell = string( shell_type, i, 1 );
+            int _test = this->OffsetFuncShell( local_shell  );
+            if ( _test < _nbf ) { _nbf = _test;} 
+        }   
+    }
+    return _nbf;
+        }
     
 int AOBasis::NumFuncShell_cartesian( string shell_type ) {
     int _nbf;
@@ -547,8 +565,10 @@ int AOBasis::NumFuncShell_cartesian( string shell_type ) {
        else if ( shell_type == "D" ){ _nbf = 6;}
        else if ( shell_type == "F" ){ _nbf = 10;}
        else if ( shell_type == "G" ){ _nbf = 15;}
+       else if ( shell_type == "H" ){ _nbf = 21;}
+       else if ( shell_type == "I" ){ _nbf = 28;}
        else {
-                    throw runtime_error("NumFuncShell shell_type not known");
+                    throw runtime_error("AOBasis::NumFuncShell_cartesian shell_type not known");
                 }
     } else {
         // for combined shells, sum over all contributions
@@ -575,8 +595,10 @@ int AOBasis::OffsetFuncShell_cartesian( string shell_type ) {
        else if ( shell_type == "D" ){ _nbf = 4;}
        else if ( shell_type == "F" ){ _nbf = 10;}
        else if ( shell_type == "G" ){ _nbf = 20;}
+       else if ( shell_type == "H" ){ _nbf = 35;}
+       else if ( shell_type == "I" ){ _nbf = 56;}
        else {
-                    throw runtime_error("NumFuncShell_cartesian shell_type not known");
+                    throw runtime_error("OBasis::OffsetFuncShell_cartesian shell_type not known");
                 }
     } else {
         // for combined shells, go over all contributions and find minimal offset
@@ -591,26 +613,7 @@ int AOBasis::OffsetFuncShell_cartesian( string shell_type ) {
 }
     
 
-int AOBasis::OffsetFuncShell( string shell_type ) {
-    int _nbf;
-    // single type shells
-    if ( shell_type.length() == 1 ){
-       if ( shell_type == "S" ){ _nbf = 0;}
-       else if ( shell_type == "P" ){ _nbf = 1;}
-       else if ( shell_type == "D" ){ _nbf = 4;}
-       else if ( shell_type == "F" ){ _nbf = 9;}
-       else if ( shell_type == "G" ){ _nbf = 16;}
-    } else {
-        // for combined shells, go over all contributions and find minimal offset
-        _nbf = 1000;
-        for(unsigned i = 0; i < shell_type.length(); ++i) {
-            string local_shell = string( shell_type, i, 1 );
-            int _test = this->OffsetFuncShell( local_shell  );
-            if ( _test < _nbf ) { _nbf = _test;} 
-        }   
-    }
-    return _nbf;
-        }
+
 
    
     

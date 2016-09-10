@@ -454,7 +454,7 @@ bool Turbomole::CheckLogFile() {
     char ch;
     path arg_path;
     std::string logFileName = (arg_path / _run_dir / _log_file_name ).string();
-    ifstream _input_file( logFileName.c_str() );
+    std::ifstream _input_file( logFileName.c_str() );
     //cout << (_run_dir + "/" + _log_file_name).c_str();
     if (_input_file.fail()) {
         LOG(logERROR,*_pLog) << "TURBOMOLE: "<< _log_file_name << " is not found" << flush;
@@ -527,7 +527,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     // Start parsing the file line by line
     path arg_path;
     std::string logFileName = (arg_path / _run_dir / _log_file_name ).string();
-    ifstream _input_file( logFileName.c_str() );
+    std::ifstream _input_file( logFileName.c_str() );
     
     while (_input_file) {
 
