@@ -206,14 +206,14 @@ namespace votca { namespace tools {
      */
    
    
-   double linalg_getMax( const ub::matrix<double>& _matrix )
+   double linalg_getMax( const ub::matrix<double>& _matrix );
    /**
     *  * \brief returns the rms value of a matrix
      * @param matrix to find  rms value of
    
      * returns the rms value of a matrix
      */
-   double linalg_getRMS(const ub::matrix<double>& _matrix )
+   double linalg_getRMS(const ub::matrix<double>& _matrix );
    
    
    
