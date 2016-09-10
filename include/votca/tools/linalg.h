@@ -198,6 +198,22 @@ namespace votca { namespace tools {
      * This function calculates the sqrt of a matrix
      */
    int linalg_matrixsqrt(ub::matrix<double> &S);
+   /**
+     * \brief returns the the element with the largest absolute value of a matrix
+     * @param matrix to find largest value of
+   
+     * returns the the element with the largest absolute value of a matrix
+     */
+   
+   
+   double linalg_getMax( const ub::matrix<double>& _matrix )
+   /**
+    *  * \brief returns the rms value of a matrix
+     * @param matrix to find  rms value of
+   
+     * returns the rms value of a matrix
+     */
+   double linalg_getRMS(const ub::matrix<double>& _matrix )
    
    
    

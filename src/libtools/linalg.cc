@@ -130,8 +130,42 @@ int linalg_matrixsqrt(ub::matrix<double> &S){
     
   
     return 1;
+} 
     
-}
+    double linalg_getMax( const ub::matrix<double>& _matrix ){
+
+   double _maximum = 0.0;
+
+   for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
+     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
+       if ( std::abs(_matrix(_i,_j)) > _maximum ) {
+	 _maximum = std::abs(_matrix(_i,_j));
+       }				   
+     }
+   }
+
+   return _maximum;
+   }
+    
+   double linalg_getRMS(const ub::matrix<double>& _matrix ){
+
+   double _rms = 0.0;
+   int _n = 0;
+
+   for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
+     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
+       _rms += _matrix(_i,_j) * _matrix(_i,_j);
+       _n++;
+     }
+   }
+
+   _rms = sqrt(_rms/_n);
+
+   return _rms;
+   }
+ 
+    
+
 
 
 }}
