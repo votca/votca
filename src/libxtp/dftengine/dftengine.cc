@@ -120,12 +120,12 @@ namespace votca {
             #endif
 
             _atoms = _orbitals->QMAtoms();
-            LOG(logDEBUG, *_pLog) << TimeStamp() << "Molecule Coordinates [A] "  << flush;
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Molecule Coordinates [A] "  << flush;
             for(unsigned i=0;i<_atoms.size();i++){
-                LOG(logDEBUG, *_pLog) << "\t\t"<< _atoms[i]->type<<" "<<_atoms[i]->x<<" "<<_atoms[i]->y<<" "<<_atoms[i]->z<<" "<<flush;
+                LOG(logDEBUG, *_pLog) << "\t\t "<< _atoms[i]->type<<" "<<_atoms[i]->x<<" "<<_atoms[i]->y<<" "<<_atoms[i]->z<<" "<<flush;
             }
             
-            AOBasis* basis = &_dftbasis;
+       
             
            
 	    /**** PREPARATION (atoms, basis sets, numerical integrations) ****/
@@ -191,7 +191,7 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
 
 
-		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  basis,_xc_functional_name);
+		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  &_dftbasis,_xc_functional_name);
          
        //cout << "ERIS"<<endl;
        //cout<<_ERIs.getERIs()<<endl;

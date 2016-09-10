@@ -11,8 +11,14 @@
         <file>file:/home/jens/votca_git/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
         <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
         <group>
-            <file>file:/data/isilon/wehnerj/votca_git/src/xtp/src/libxtp/bsecoupling.cc</file>
-            <file>file:/data/isilon/wehnerj/votca_git/src/xtp/src/libxtp/jobcalculators/xqmultipole.h</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/dftengine/dftengine.cc</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/aobasis.cc</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/aoshell.cc</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/elements.h</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/tools/dft.h</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/aoshell.h</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/aomatrices/aooverlap.cc</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/qmpackages/orca.cc</file>
         </group>
     </open-files>
 </project-private>

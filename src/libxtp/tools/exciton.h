@@ -113,7 +113,7 @@ private:
                                Orbitals *_orbitalsB, 
                                Orbitals *_orbitalsAB);
 
-    void OrthonormalizeGuess ( Segment* _segment, Orbitals* _orbitals );
+   
     
     
     void BFGSStep( int& _iteration, bool& _update_hessian,  ub::matrix<double>& _force, ub::matrix<double>& _force_old,  ub::matrix<double>& _current_xyz, ub::matrix<double>&  _old_xyz, ub::matrix<double>& _hessian ,ub::matrix<double>& _xyz_shift ,ub::matrix<double>& _trial_xyz  );
@@ -123,8 +123,7 @@ private:
     
     void WriteIteration( FILE* out, int _iteration, Segment* _segment, ub::matrix<double>& _force  );
     
-    double getMax( ub::matrix<double>& _matrix );
-    double getRMS( ub::matrix<double>& _matrix );
+
     
     string Convergence( bool _converged ) { 
         
@@ -399,7 +398,7 @@ bool Exciton::Evaluate() {
                int _i_atom = 0;
                for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
                    // put trial coordinates (_trial_xyz is in Bohr, segments in nm)
-                   vec _pos_displaced( _trial_xyz(_i_atom,0)*0.052917725 , _trial_xyz(_i_atom,1)*0.052917725, _trial_xyz(_i_atom,2)*0.052917725 );
+                   vec _pos_displaced( _trial_xyz(_i_atom,0)*tools::conv::bohr2nm , _trial_xyz(_i_atom,1)*tools::conv::bohr2nm, _trial_xyz(_i_atom,2)*tools::conv::bohr2nm );
                    (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
                    _i_atom++;
                }
@@ -454,10 +453,10 @@ bool Exciton::Evaluate() {
 
            _xyz_shift = _current_xyz - _old_xyz;
            
-           _RMSForce = getRMS( _force );
-           _MaxForce = getMax( _force );
-           _RMSStep  = getRMS( _xyz_shift );
-           _MaxStep  = getMax( _xyz_shift );
+           _RMSForce = linalg_getRMS( _force );
+           _MaxForce = linalg_getMax( _force );
+           _RMSStep  = linalg_getRMS( _xyz_shift );
+           _MaxStep  = linalg_getMax( _xyz_shift );
 
 
            
@@ -564,7 +563,7 @@ bool Exciton::Evaluate() {
 
 
 void Exciton::Coord2Segment(Segment* _segment){
-    
+    double bohr2nm=tools::conv::bohr2nm;
     
             vector< Atom* > _atoms;
             vector< Atom* > ::iterator ait;
@@ -573,7 +572,7 @@ void Exciton::Coord2Segment(Segment* _segment){
             string type;
             int _i_atom = 0;
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-                vec position(_current_xyz(_i_atom,0)*0.052917725, _current_xyz(_i_atom,1)*0.052917725, _current_xyz(_i_atom,2)*0.052917725); // current_xyz has Bohr, votca stores nm
+                vec position(_current_xyz(_i_atom,0)*bohr2nm, _current_xyz(_i_atom,1)*bohr2nm, _current_xyz(_i_atom,2)*bohr2nm); // current_xyz has Bohr, votca stores nm
                 (*ait)->setQMPos(position);
                 _i_atom++;
                
@@ -687,7 +686,8 @@ void Exciton::ReloadState(){
 /* Calculate forces on atoms numerically by central differences */
 void Exciton::NumForceCentral(double energy, vector<Atom*> _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage, vector<Segment*> _molecule, Orbitals* _orbitals){
     
-
+    double nm2bohr=tools::conv::nm2bohr;
+    double bohr2nm=tools::conv::bohr2nm;
     vector< Atom* > ::iterator ait;
     int _i_atom = 0;
     for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
@@ -700,16 +700,16 @@ void Exciton::NumForceCentral(double energy, vector<Atom*> _atoms, ub::matrix<do
            // get displacement vector in positive direction
            vec _displaced(0, 0, 0);
            if (_i_cart == 0) {
-              _displaced.setX(_displacement / 18.897259886 ); // x, _displacement in Bohr
-              _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() * 18.897259886; // in Bohr
+              _displaced.setX(_displacement* bohr2nm ); // x, _displacement in Bohr
+              _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() *  nm2bohr; // in Bohr
            }
            if (_i_cart == 1) {
-              _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() * 18.897259886; // in Bohr
-              _displaced.setY(_displacement / 18.897259886 ); // y, _displacement in in Angstrom
+              _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() *  nm2bohr; // in Bohr
+              _displaced.setY(_displacement* bohr2nm ); // y, _displacement in in Angstrom
            }
            if (_i_cart == 2) {
-              _current_xyz(_i_atom,_i_cart ) = _current_pos.getZ() * 18.897259886; // in Bohr
-              _displaced.setZ(_displacement / 18.897259886 ); // z, _displacement in in Angstrom
+              _current_xyz(_i_atom,_i_cart ) = _current_pos.getZ() *  nm2bohr; // in Bohr
+              _displaced.setZ(_displacement* bohr2nm ); // z, _displacement in in Angstrom
            }
                             
            // update the coordinate
@@ -752,7 +752,8 @@ void Exciton::NumForceCentral(double energy, vector<Atom*> _atoms, ub::matrix<do
 
 /* Calculate forces on atoms numerically by forward differences */
 void Exciton::NumForceForward(double energy, vector<Atom*> _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage, vector<Segment*> _molecule, Orbitals* _orbitals){
-
+double nm2bohr=tools::conv::nm2bohr;
+    double bohr2nm=tools::conv::bohr2nm;
     
     // check if file "forces.resume" exists
     string _filename = "forces.resume";
@@ -794,13 +795,13 @@ void Exciton::NumForceForward(double energy, vector<Atom*> _atoms, ub::matrix<do
                 _force(_i_atom,_i_cart) = f_in;
                 in >> f_in;
                 if (_i_cart == 0) {
-                   _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() * 18.897259886; // in Bohr
+                   _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() * nm2bohr; // in Bohr
                 }
                 if (_i_cart == 1) {
-                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() * 18.897259886; // in Bohr
+                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() * nm2bohr; // in Bohr
                 }
                 if (_i_cart == 2) {
-                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getZ() * 18.897259886; // in Bohr
+                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getZ() * nm2bohr; // in Bohr
                 }
              } else {
         
@@ -820,16 +821,16 @@ void Exciton::NumForceForward(double energy, vector<Atom*> _atoms, ub::matrix<do
               // get displacement vector
               vec _displaced(0, 0, 0);
               if (_i_cart == 0) {
-                 _displaced.setX(_displacement / 18.897259886 ); // x, _displacement in Bohr
-                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() * 18.897259886; // in Bohr
+                 _displaced.setX(_displacement *bohr2nm ); // x, _displacement in Bohr
+                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() * nm2bohr; // in Bohr
               }
               if (_i_cart == 1) {
-                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() * 18.897259886; // in Bohr
-                 _displaced.setY(_displacement / 18.897259886 ); // y, _displacement in in Angstrom
+                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() * nm2bohr; // in Bohr
+                 _displaced.setY(_displacement *bohr2nm ); // y, _displacement in in Angstrom
               }
               if (_i_cart == 2) {
-                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getZ() * 18.897259886; // in Bohr
-                 _displaced.setZ(_displacement / 18.897259886 ); // z, _displacement in in Angstrom
+                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getZ() * nm2bohr; // in Bohr
+                 _displaced.setZ(_displacement *bohr2nm ); // z, _displacement in in Angstrom
               }
                             
               // update the coordinate
@@ -1235,40 +1236,7 @@ void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
 
 }
 
- double Exciton::getMax( ub::matrix<double>& _matrix ){
-
-   double _maximum = 0.0;
-
-   for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
-     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
-       if ( std::abs(_matrix(_i,_j)) > _maximum ) {
-	 _maximum = std::abs(_matrix(_i,_j));
-       }				   
-     }
-   }
-
-   return _maximum;
-
-   }
-
-  double Exciton::getRMS( ub::matrix<double>& _matrix ){
-
-   double _rms = 0.0;
-   int _n = 0;
-
-   for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
-     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
-       _rms += _matrix(_i,_j) * _matrix(_i,_j);
-       _n++;
-     }
-   }
-
-   _rms = sqrt(_rms/_n);
-
-   return _rms;
-
-   }
-
+ 
 
   
   // write iteration
@@ -1368,109 +1336,7 @@ void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
 }   
 
   
-  void Exciton::OrthonormalizeGuess(Segment* _segment, Orbitals* _orbitals){
-      
-    // Lowdin orthogonalize guess
-     // get atoms from segments
-      std::vector<Atom*> _segatoms = _segment->Atoms();
-      std::vector<QMAtom*> _atoms = _orbitals->QMAtoms();
-
-      vector< Atom* > ::iterator segait;
-      vector< QMAtom* > ::iterator ait;
-
-      _atoms = _orbitals->QMAtoms();
-
-            
-      string type;
-      //int id = 1;
-      for (segait = _segatoms.begin(); segait < _segatoms.end(); ++segait) {
-                
-                // Atom *pAtom = new Atom(id++, type);
-                
-                type    = (*segait)->getElement();
-                vec pos = (*segait)->getQMPos();
-                QMAtom *pAtom = new QMAtom();
-                pAtom->type = type;
-                pAtom->x = pos.getX()*10.0;
-                pAtom->y = pos.getY()*10.0;
-                pAtom->z = pos.getZ()*10.0;
-                _atoms.push_back(pAtom);
-
-            }
-
-            // load DFT basis set (element-wise information) from xml file
-            BasisSet dftbs;
-            dftbs.LoadBasisSet("ubecp");
-            _orbitals->setDFTbasis( "ubecp" );
-            cout << TimeStamp() << " Loaded DFT Basis Set " << endl;
-
-            // fill DFT AO basis by going through all atoms 
-            AOBasis dftbasis;
-            dftbasis.AOBasisFill(&dftbs, _atoms);
-            cout << TimeStamp() << " Filled DFT Basis of size " << dftbasis._AOBasisSize << endl;
-            
-            // calculate overlap of dimer AOs
-            
-            AOOverlap _AOoverlap;
-            // initialize overlap matrix
-            _AOoverlap.Initialize(dftbasis._AOBasisSize);
-            // Fill overlap
-            _AOoverlap.Fill(&dftbasis);
-            cout << TimeStamp() << " Filled AO Overlap matrix of dimension: " << _AOoverlap._aomatrix.size1() << endl;
-
-	    //for ( int i =0; i<_AOoverlap._aomatrix.size1(); i++){
-	    //for ( int j =0; j<_AOoverlap._aomatrix.size1(); j++){
-
-	      //cout << " S(" << i << "," << j << "): " << _AOoverlap._aomatrix(i,j) << endl; 
-	    //}
-
-
-	    //}
-    
-            // calculate overlap of guess MOs, needs overlap of AOs
-            
-            ub::matrix<double> &_orbs = _orbitals->MOCoefficients();
-
-	    //            vector<int> neworder;
-            //string _pack = "gaussian";
-            //dftbasis.getReorderVector(_pack, neworder);
-            // and reorder rows of _orbitals->_mo_coefficients() accordingly
-
-	    //            AOBasis::ReorderMOs(_orbs, neworder);
-            ub::matrix<double> _check = ub::prod(_AOoverlap._aomatrix,ub::trans(_orbs));
-            ub::matrix<double> _MOoverlap = ub::prod( _orbs,_check);
-            
-
-/*            for ( int i =0; i<_AOoverlap._aomatrix.size1(); i++){
-	    for ( int j =0; j<_AOoverlap._aomatrix.size1(); j++){
-            cout << " ON(" << i << "," << j << "): "<< _check2(i,j)  << endl;
-            }
-            } */
-            ub::matrix<double> _MOoverlap_backup = _MOoverlap;
-            // find EVs of MOoverlap
-            ub::vector<double> _MOoverlap_eigenvalues; 
-            linalg_eigenvalues( _MOoverlap_eigenvalues, _MOoverlap);
-
-            ub::matrix<double> _diagS = ub::zero_matrix<double>( _AOoverlap._aomatrix.size1(), _AOoverlap._aomatrix.size1());
-            for ( unsigned _i =0; _i <  _AOoverlap._aomatrix.size1(); _i++){
-                _diagS(_i,_i) = 1.0/sqrt(_MOoverlap_eigenvalues[_i]);
-            }
-            // ub::matrix<double> _transform = ub::prod( _MOoverlap, ub::prod( _diagS, ub::trans(_MOoverlap) )  );
-     // final coupling elements
-   /*   ub::matrix<double> _J = ub::prod( _transform, ub::prod(_MOoverlap_backup, _transform));
-                for ( int i =0; i<_AOoverlap._aomatrix.size1(); i++){
-	    for ( int j =0; j<_AOoverlap._aomatrix.size1(); j++){
-            cout << " ON(" << i << "," << j << "): "<< _MOoverlap_backup(i,j)  << "    " << _J(i,j) << endl;
-            }
-            } 
-     */       
-            exit(0);
-
-    // transform
-    // write...
-      
-      
-  }
+  
   
   
 
