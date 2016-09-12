@@ -242,7 +242,6 @@ namespace votca { namespace xtp {
     private:
         typedef boost::multi_array<double, 3> ma_type;
         typedef ma_type::index index;
-        void FillgOrbitals(std::vector<double> &_wmp,vector<double> &_wmq,ma_type &_cou, const double _decay_row,const  double _decay_col,const int _lmax_row, const int  _lmax_col);
         
         
         

@@ -185,7 +185,7 @@ namespace votca {
             double prefak = pow(8.0 * _decay_alpha * _decay_gamma * _decay_gw / pi, 0.75) * pow(fak2, 1.5);
 
             double value = prefak * exp(-fak2 * expo);
-            double fak3 = 3.0 * fak;
+            //double fak3 = 3.0 * fak;
             // check if it contributes
             if (value < gwaccuracy) { continue; }
 

@@ -53,7 +53,7 @@ namespace votca { namespace xtp {
     protected:
     typedef boost::multi_array<double, 3> ma_type;    
     bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
-    void FillThreeCenterOLBlock_g(ma_type &S,const vec gma,const vec gmc,const int _lmax_alpha,const int _lmax_gamma,const double fak);
+   
     bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
     //bool FillThreeCenterOLBlock(  ub::matrix<real_gwbse> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
     void getTrafo(ub::matrix<double>& _trafo,const  int _lmax, const double& _decay,const std::vector<double>& contractions);
