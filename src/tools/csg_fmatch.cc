@@ -25,6 +25,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
 #include <votca/csg/nblistgrid.h>
+#include <votca/csg/nblist_3body.h>
 #include <votca/csg/beadlist.h>
 #include "csg_fmatch.h"
 #include <votca/tools/table.h>
@@ -508,7 +509,7 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo)
         else
             nb = new NBList();
 
-   nb->setCutoff(sinfo->_options->get("fmatch.max").as<double>()); // implement different cutoffs for different interactions!
+    nb->setCutoff(sinfo->_options->get("fmatch.max").as<double>()); // implement different cutoffs for different interactions!
 
     // generate the bead lists
     BeadList beads1, beads2;

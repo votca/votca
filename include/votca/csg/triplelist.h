@@ -18,7 +18,7 @@
 #ifndef _TRIPLELIST_H
 #define	_TRIPLELIST_H
 
-#include <list>
+#include <vector>
 #include <map>
 
 namespace votca { namespace csg {
@@ -32,11 +32,11 @@ public:
            
     void AddTriple(triple_type *t);
     
-    typedef typename std::list<triple_type *>::iterator iterator;
+    typedef typename std::vector<triple_type *>::iterator iterator;
     
     iterator begin() { return _triples.begin(); }
     iterator end() { return _triples.end(); }
-    typename list<triple_type*>::size_type size() { return _triples.size(); }    
+    typename vector<triple_type*>::size_type size() { return _triples.size(); }    
     triple_type *front() { return _triples.front(); }
     triple_type *back() { return _triples.back(); }    
     bool empty() { return _triples.empty(); }
@@ -44,12 +44,13 @@ public:
     void Cleanup();
     
     triple_type *FindTriple(element_type e1, element_type e2, element_type e3);
+    
 
     typedef element_type element_t;
     typedef triple_type triple_t;
 
 protected:
-    list<triple_type *> _triples;
+    vector<triple_type *> _triples;
       
     map< element_type , map<element_type, map<element_type, triple_type *> > > _triple_map;
     
@@ -58,9 +59,14 @@ protected:
 template<typename element_type, typename triple_type>
 inline void TripleList<element_type, triple_type>::AddTriple(triple_type *t)
 {
-    /// \todo be careful, same triple object is used, some values might change (e.g. sign of distance vectors)
-    //experimental: So far only mapping '123' and '321' to the same triple
+    //experimental: be careful, if same triple object is used, some values might change (e.g. sign of distance vectors)
+    //(*t)[i] gives access to ith element of tuple object (i=0,1,2).
+    //there are 6 possible permutations of e1,e2,e3 -> still the same triple of elements
     _triple_map[ (*t)[0] ][ (*t)[1] ][ (*t)[2] ] = t;
+    _triple_map[ (*t)[0] ][ (*t)[2] ][ (*t)[1] ] = t;
+    _triple_map[ (*t)[1] ][ (*t)[0] ][ (*t)[2] ] = t;
+    _triple_map[ (*t)[1] ][ (*t)[2] ][ (*t)[0] ] = t;
+    _triple_map[ (*t)[2] ][ (*t)[0] ][ (*t)[1] ] = t;
     _triple_map[ (*t)[2] ][ (*t)[1] ][ (*t)[0] ] = t;
      /// \todo check if unique    
     _triples.push_back(t);    
