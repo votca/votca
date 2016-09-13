@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -64,7 +64,6 @@
         <itemPath>../../src/libtools/linalg/mkl/qrsolve.cc</itemPath>
         <itemPath>../../src/libtools/linalg/mkl/svd.cc</itemPath>
       </logicalFolder>
-      <itemPath>../../src/libtools/gsl_boost_ublas_matrix_prod.cc</itemPath>
       <itemPath>../../src/libtools/linalg.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -316,11 +315,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/gsl_boost_ublas_matrix_prod.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -634,11 +628,6 @@
       </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/gsl_boost_ublas_matrix_prod.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
@@ -950,11 +939,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/gsl_boost_ublas_matrix_prod.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>

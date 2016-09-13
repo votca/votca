@@ -163,6 +163,20 @@ int linalg_matrixsqrt(ub::matrix<double> &S){
 
    return _rms;
    }
+   
+   double linalg_traceofProd(const ub::matrix<double>& A,const ub::matrix<double>& B ){
+       double trace=0.0;
+       const ub::vector<double>& Aarray=A.data();
+       const ub::vector<double>& Barray=B.data();
+        if (Aarray.size()!=Barray.size() || A.size1()!=B.size2() || A.size2()!=B.size1()) {
+        cerr << " \ntraceofProd Matrcies have different number of indexes " << endl;
+        return -1;
+       }
+       for (unsigned i=0;i<Aarray.size();i++){
+           trace+=Aarray(i)*Barray(i);
+       }
+       return trace;
+   }
  
     
 

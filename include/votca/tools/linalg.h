@@ -215,6 +215,17 @@ namespace votca { namespace tools {
      */
    double linalg_getRMS(const ub::matrix<double>& _matrix );
    
+   /**
+    * \brief returns Tr(A*B)
+    * @param A, first matrix
+    * * @param B, second matrix
+     * @param returns smallest eigenvalue of S
+     * @param Trace of the product of two matrices
+    
+     * returns the the Trace of the product of two matrices
+     */
+   double linalg_traceofProd(const ub::matrix<double>& A,const ub::matrix<double>& B );
+   
    
    
 }}
