@@ -53,7 +53,19 @@ class DFTENGINE
 public:
 
     DFTENGINE() { };
-   ~DFTENGINE() { };
+   ~DFTENGINE() {
+     for (std::vector< ub::matrix<double>* >::iterator it = _mathist.begin() ; it !=_mathist.end(); ++it){
+         delete *it;
+     }
+     _mathist.clear();
+     for (std::vector< ub::matrix<double>* >::iterator it = _errormatrixhist.begin() ; it !=_errormatrixhist.end(); ++it){
+         delete *it;
+     }
+    _errormatrixhist.clear();
+   
+
+   
+   };
 
    
    
@@ -81,8 +93,8 @@ public:
     
     
     void NuclearRepulsion();
-    void EvolveDensityMatrix(Orbitals* _orbitals);
-    
+    bool EvolveDensityMatrix(Orbitals* _orbitals,const ub::matrix<double>& H);
+    ub::matrix<double>DmatfromFockmatrix(Orbitals* _orbitals,const ub::matrix<double>&H);
     //bool   _maverick;
     
     // program tasks
@@ -143,8 +155,17 @@ public:
     ub::matrix<double>                  _dftAOdmat;
     
     
-    std::list< ub::matrix<double> >   _dftdmathist;
-    std::list< ub::matrix<double> >   _errormatrixhist;
+    bool                              _usediis;
+    unsigned                               _histlength;
+    
+    bool                              _maxout;
+    bool                              _usefmat;
+    string                            _diismethod;
+    ub::matrix<double>                _Sminusonehalf;
+    double                              _maxerror;
+    unsigned                            _maxerrorindex;
+    std::vector< ub::matrix<double>* >   _mathist;
+    std::vector< ub::matrix<double>* >   _errormatrixhist;
     //Electron repulsion integrals
     ERIs                                _ERIs;
     

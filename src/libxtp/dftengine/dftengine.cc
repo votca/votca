@@ -86,21 +86,84 @@ namespace votca {
             
 	    // numerical integrations
 	    _grid_name = options->get(key + ".integration_grid").as<string>();
-            _Econverged = options->get(key + ".convergence").as<double>();
+            
 	    // exchange and correlation as in libXC
         
             _xc_functional_name = options->get(key + ".xc_functional").as<string> ();
         
 	   
             _numofelectrons =0;
-            _mixingparameter = options->get(key + ".density_mixing").as<double>();
+            
 	    _max_iter = options->get(key + ".max_iterations").as<int>();
             
             
+            if ( options->exists(key+".convergence")) {
+                
+            if ( options->exists(key+".convergence.energy")) {
+                  _Econverged=options->get(key+".convergence.energy").as<double>();
+               }
+               else{
+                    _Econverged=1e-7;
+               }    
+            
+                
+             if ( options->exists(key+".convergence.method")) {
+               string method= options->get(key+".method").as<string>();
+               if (method=="DIIS"){
+                   _usediis=true;
+               }
+               else if(method=="mixing"){
+                   _usediis=false;
+               }
+               else{
+                   cout<< "WARNING method not known" <<endl;
+                   _usediis=false;
+               }
+             }
+             else{
+                 _usediis=true;
+             }
+               if ( options->exists(key+".convergence.mixing")) {
+                   _mixingparameter=options->get(key+".convergence.mixing").as<double>();
+               }
+               else{
+                    _mixingparameter=0.5;
+               }
+            
+            if ( options->exists(key+".convergence.maxout")) {
+                    _maxout=options->get(key+".convergence.maxout").as<bool>();
+               }
+               else{
+                     _maxout=false;
+               }
+             
+              if ( options->exists(key+".convergence.diislength")) {
+                   _histlength=options->get(key+".convergence.diislength").as<int>();
+               }
+               
+               else{
+                    _histlength=10;         
+               }
+               if ( options->exists(key+".convergence.usefockmat")) {
+                   _usefmat=options->get(key+".convergence.usefockmat").as<bool>();
+               }
+               else{
+                    _usefmat=false;
+               } 
         }
-        
-        
-        
+        if(!_usediis){
+                _histlength=1;
+                _maxout=false;
+                
+                
+            }
+        else{
+                _maxerrorindex=0;
+                _maxerror=0.0;
+            }
+            
+            return;
+        }
         
         
         /* 
@@ -237,7 +300,7 @@ namespace votca {
                 }
 
 
-                EvolveDensityMatrix(_orbitals ) ;
+                EvolveDensityMatrix(_orbitals,H ) ;
                 //LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity_Atomblock(_dftAOdmat, basis) << flush;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
             }
@@ -256,7 +319,7 @@ namespace votca {
             ub::vector<double> _eigenvalues;
             ub::matrix<double> _eigenvectors;
 
-
+            {
 	    // DFT AOOverlap matrix
 	    _dftAOoverlap.Initialize(_dftbasis.AOBasisSize());
             _dftAOoverlap.Fill(&_dftbasis);
@@ -264,8 +327,18 @@ namespace votca {
 
 	    // check DFT basis for linear dependence
             linalg_eigenvalues(_dftAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Smallest eigenvalue of DFT Overlap matrix : " << _eigenvalues[0] << flush;
+            
+            //Not brilliant but we need S-1/2 for DIIS and I do not want to calculate it each time
+            ub::matrix<double> _diagS = ub::zero_matrix<double>(_eigenvectors.size1(),_eigenvectors.size1() );
+            for ( unsigned _i =0; _i < _eigenvalues.size() ; _i++){
 
+                _diagS(_i,_i) = 1.0/sqrt(_eigenvalues[_i]);
+            }
+            ub::matrix<double> _temp = ub::prod( _diagS, ub::trans(_eigenvectors));
+             _Sminusonehalf = ub::prod(_eigenvectors,_temp );
+            
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Smallest eigenvalue of DFT Overlap matrix : " << _eigenvalues[0] << flush;
+      }
             _dftAOkinetic.Initialize(_dftbasis.AOBasisSize());
             _dftAOkinetic.Fill(&_dftbasis);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
@@ -405,15 +478,117 @@ namespace votca {
       
       
       
-      void DFTENGINE::EvolveDensityMatrix(Orbitals* _orbitals ){
+      bool DFTENGINE::EvolveDensityMatrix(Orbitals* _orbitals,const ub::matrix<double>& H ){
           
-      ub::matrix<double> dftdmat_old=_dftAOdmat;
-      _dftAOdmat=_orbitals->DensityMatrixGroundState(_orbitals->MOCoefficients());;
-      if (_this_iter > 0) _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*dftdmat_old;
+      if(_errormatrixhist.size()>_histlength){
+          delete _mathist[_maxerrorindex];
+          delete _errormatrixhist[+_maxerrorindex];
+              _mathist.erase(_mathist.begin()+_maxerrorindex);
+              _errormatrixhist.erase(_errormatrixhist.begin()+_maxerrorindex);
+          }
+          
       
-      /*DIIS or mixing can be implemented here*/
+          
+          
+      bool has_converged=false;    
+      _dftAOdmat=_orbitals->DensityMatrixGroundState(_orbitals->MOCoefficients());
       
+      //Calculate errormatrix and orthogonalize
+      ub::matrix<double>temp=ub::prod(H,_dftAOdmat);
+      
+      ub::matrix<double> errormatrix=ub::prod(temp,_dftAOoverlap._aomatrix);
+      temp=ub::prod(_dftAOdmat,H);
+      errormatrix-=ub::prod(_dftAOoverlap._aomatrix,temp);
+     
+      temp=ub::prod(errormatrix,_Sminusonehalf);
+      errormatrix=ub::prod(ub::trans(_Sminusonehalf),temp);
+      
+      temp.resize(0,0);
+      
+      double max=linalg_getMax(errormatrix);
+      ub::matrix<double>* old=new ub::matrix<double>;     
+      if(_usefmat){
+          *old=H;         
       }
+      else{
+          *old=_dftAOdmat;
+      }
+       _mathist.push_back(old);
+      ub::matrix<double>* olderror=new ub::matrix<double>; 
+      *olderror=errormatrix;
+       _errormatrixhist.push_back(olderror);
+       if(_maxout){
+          double error=linalg_getMax(errormatrix);
+          if (error>_maxerror){
+              _maxerror=error;
+              _maxerrorindex=_mathist.size();
+          }
+      } 
+       
+      if (max<0.1 && _this_iter>4 && _usediis){
+          
+          ub::matrix<double> B=ub::zero_matrix<double>(_mathist.size()+1);
+          ub::vector<double> a=ub::zero_vector<double>(_mathist.size()+1);
+          a(0)=-1;
+          for (unsigned i=1;i<B.size1();i++){
+              B(i,0)=-1;
+          }
+          #pragma omp parallel for
+          for (unsigned i=1;i<B.size1();i++){
+              for (unsigned j=1;j<=i;j++){
+                  B(i,j)=linalg_traceofProd(*_errormatrixhist[i-1],ub::trans(*_errormatrixhist[j-1]));
+                  if(i!=j){
+                    B(j,i)=B(i,j);
+                  }
+              }
+          }
+          
+          
+          ub::vector<double> c;
+          linalg_qrsolve(c, B, a);
+          if(_usefmat){
+                ub::matrix<double>H_guess=ub::zero_matrix<double>(_mathist[0]->size1()); 
+                 for (unsigned i=0;i<_mathist.size();i++){  
+                H_guess+=c(i+1)*(*_mathist[i]);
+                 }
+                _dftAOdmat=DmatfromFockmatrix(_orbitals,H_guess);
+              }
+          else{
+             _dftAOdmat=ub::zero_matrix<double>(_mathist[0]->size1()); 
+            for (unsigned i=0;i<_mathist.size();i++){  
+            _dftAOdmat+=c(i+1)*(*_mathist[i]);
+            }
+          }
+          
+            
+      }
+      else if(_this_iter > 0 && _mathist.size()>0){
+          if(_usefmat){
+              
+              ub::matrix<double>H_guess=_mixingparameter*H+(1.0-_mixingparameter)*(*(_mathist.back()));
+              _dftAOdmat=DmatfromFockmatrix(_orbitals,H_guess);
+          }
+          else{
+          _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*(*(_mathist.back()));
+          }
+      }
+      else if(max<_Econverged){
+          has_converged=true;
+      }
+  
+      return has_converged;
+      }
+      
+      ub::matrix<double> DFTENGINE::DmatfromFockmatrix(Orbitals* _orbitals,const ub::matrix<double>&H){
+          ub::vector<double> MOEnergies;
+           ub::matrix<double> temp;
+           linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, temp);
+           ub::matrix<double> MOCoeff=ub::trans(temp);
+           
+           
+           return _orbitals->DensityMatrixGroundState(MOCoeff);
+      }
+      
       
       void DFTENGINE::NuclearRepulsion(){
           Elements element;
