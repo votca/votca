@@ -15,7 +15,7 @@ html: $(XMLSHTML)
 
 $(XMLST2T): xml2t2t.sh
 %.t2t: 
-	./xml2t2t.sh ../../../share/xml/$* > $@
+	CSG_PROPERTY="$(CSG_PROPERTY)" ./xml2t2t.sh ../../../share/xml/$* > $@
 
 config.t2t: ../config.t2t
 	cp $< .
