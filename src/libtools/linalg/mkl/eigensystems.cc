@@ -282,7 +282,7 @@ bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<
 
 
 /* calculate the eigenvalues and vectors of the generalized eigenvalue problem */
-bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V)
+bool linalg_eigenvalues_general(const ub::matrix<double> &A,const ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V)
 {
     // cout << " \n I'm really using MKL! " << endl;
     //check to see if matrices have same size
