@@ -4,6 +4,7 @@
 *.backup
 hgid.tex
 reference/*/*.t2t
+reference/*/Makefile.incl
 reference/calculators/calculators.tex
 fig/chemical_structure/dcv2t.eps
 fig/chemical_structure/figtex2eps-preamble.tex
@@ -34,6 +35,7 @@ xtp_manual.ind
 xtp_manual.log
 xtp_manual.out
 xtp_manual.toc
+xtp_manual.fls
 xtp_manual.pdf
 reference/programs/*.tex
 reference/*/*.xml.tex

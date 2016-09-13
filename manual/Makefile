@@ -2,7 +2,7 @@ SHELL=/bin/bash
 VER=1.3-dev
 HGID:=$(shell git rev-parse --short HEAD 2> /dev/null | sed 's/.*/\\newcommand{\\hgid}{${VER} (&)}/')
 LATEXMK=./scripts/latexmk.pl
-LATEXMKOPTS=-e '$$latex=q/latex --halt-on-error %O %S/'
+LATEXMKOPTS=-halt-on-error
 
 NAME=xtp_manual
 ifeq ($(OSTYPE),darwin)

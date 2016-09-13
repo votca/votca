@@ -2,6 +2,7 @@ SHELL=/bin/bash
 TRUNC=$(shell git rev-parse --show-toplevel)
 TXT2TAGS=$(TRUNC)/manual/scripts/txt2tags
 
+all:
 #this is a hack to generate Makefile.incl
 HAKE:= $(shell $(MAKE) -f Makefile.XMLS Makefile.incl)
 include Makefile.incl
