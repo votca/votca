@@ -2,8 +2,8 @@ set(XTP_SCRIPTS)
 if(WITH_DIPRO)
   foreach(SCRIPT xtp_dipro)
     configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out @ONLY)
-    add_custom_command(OUTPUT ${SCRIPT} DEPENDS ${SCRIPT})
-    add_custom_target(${SCRIPT} ALL COMMAND ${CMAKE_COMMAND}
+    add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT})
+    add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}
       -DINPUT="${SCRIPT}.out" -DOUTPUT="${SCRIPT}"
       -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
       -DMERCURIAL_EXECUTABLE="${MERCURIAL_EXECUTABLE}"
@@ -17,8 +17,8 @@ endif(WITH_DIPRO)
 
 foreach(SCRIPT xtp_testsuite xtp_update xtp_update_exciton xtp_basisset)
   configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out @ONLY)
-  add_custom_command(OUTPUT ${SCRIPT} DEPENDS ${SCRIPT})
-  add_custom_target(${SCRIPT} ALL COMMAND ${CMAKE_COMMAND}
+  add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT})
+  add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}
     -DINPUT="${SCRIPT}.out" -DOUTPUT="${SCRIPT}"
     -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
     -DMERCURIAL_EXECUTABLE="${MERCURIAL_EXECUTABLE}"
