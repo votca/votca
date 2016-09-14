@@ -92,3 +92,7 @@ cache:
 
 compiler:
   - gcc
+
+notifications:
+  email:
+    - votca-xtp@googlegroups.com 
