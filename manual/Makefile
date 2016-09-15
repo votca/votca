@@ -1,9 +1,6 @@
 SHELL=/bin/bash
 
-ifeq ($(GIT),)
-GIT=true
-endif
-GITID_PLAIN:=$(shell $(GIT) rev-parse --short HEAD 2> /dev/null)
+GITID_PLAIN:=$(shell git rev-parse --short HEAD 2> /dev/null)
 GITID:=$(shell echo $(GITID_PLAIN) | sed -e 's/.*/\\newcommand{\\gitid}{${VER} (&)}/' -e 's/_rc/\\&/' -e 's/()//' )
 LATEXMK=./scripts/latexmk.pl
 LATEXMKOPTS=-halt-on-error
