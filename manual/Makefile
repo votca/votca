@@ -3,7 +3,8 @@ SHELL=/bin/bash
 ifeq ($(GIT),)
 GIT=true
 endif
-HGID:=$(shell $(GIT) rev-parse --short HEAD 2> /dev/null | sed 's/.*/\\newcommand{\\hgid}{${VER} (&)}/')
+GITID_PLAIN:=$(shell $(GIT) rev-parse --short HEAD 2> /dev/null)
+GITID:=$(shell echo $(GITID_PLAIN) | sed -e 's/.*/\\newcommand{\\gitid}{${VER} (&)}/' -e 's/_rc/\\&/' -e 's/()//' )
 LATEXMK=./scripts/latexmk.pl
 LATEXMKOPTS=-halt-on-error
 
@@ -17,7 +18,7 @@ all: check $(NAME).pdf
 dvi: $(NAME).dvi
 ps: $(NAME).ps
 
-$(NAME).tex: hgid.tex fig_submake programs_submake theory_submake reference_submake input_submake appendix_submake titlepage.tex xtp_manual.bib           
+$(NAME).tex: gitid.tex fig_submake programs_submake theory_submake reference_submake input_submake appendix_submake titlepage.tex xtp_manual.bib           
 
 %.dvi: %.tex dummy
 	./abbreviate_journals.pl 
@@ -75,7 +76,7 @@ install: install_check xtp_manual.pdf
 
 clean: qclean reference_subclean fig_subclean programs_subclean theory_subclean reference_subclean input_subclean
 	rm -f $(NAME).fdb_latexmk $(NAME).brf literature_short.bib literature.bib
-	rm -f hgid.tex
+	rm -f gitid.tex
 	rm -f *~
 
 tar: all
@@ -84,8 +85,8 @@ tar: all
 	tar cvzhf $(NAME).tar.gz $(NAME).pdf \
   	   `sed -n 's/^[[:space:]]*"\([^/][^"]*\.\(bib\|tex\|eps\|cls\)\)".*$$/\1/p' $(NAME).fdb_latexmk` 
 
-hgid.tex: dummy
-	[ -f hgid.tex ] || touch hgid.tex
-	echo '$(HGID)' | cmp -s hgid.tex - || echo '$(HGID)' > hgid.tex
+gitid.tex: dummy
+	[ -f gitid.tex ] || touch gitid.tex
+	echo '$(GITID)' | cmp -s gitid.tex - || echo '$(GITID)' > gitid.tex
 
 dummy: ;

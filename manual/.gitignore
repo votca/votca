@@ -2,7 +2,7 @@
 *.aux
 .*.swp
 *.backup
-hgid.tex
+gitid.tex
 reference/*/*.t2t
 reference/*/Makefile.incl
 reference/calculators/calculators.tex
