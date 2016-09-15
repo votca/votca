@@ -4,6 +4,7 @@ Makefile
 libvotca*.pc
 libvotca*.a
 libvotca*.so
+libvotca*.so.*
 
 share/doc/html
 share/doc/Doxyfile
