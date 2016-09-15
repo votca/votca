@@ -108,7 +108,7 @@ namespace votca {
             
                 
              if ( options->exists(key+".convergence.method")) {
-               string method= options->get(key+".method").as<string>();
+               string method= options->get(key+".convergence.method").as<string>();
                if (method=="DIIS"){
                    _usediis=true;
                }
@@ -488,25 +488,35 @@ namespace votca {
           }
           
       
-          
+      cout<<"H\n"<<H<<endl;    
           
       bool has_converged=false;    
       _dftAOdmat=_orbitals->DensityMatrixGroundState(_orbitals->MOCoefficients());
-      
+      cout<<"D\n"<<_dftAOdmat<<endl; 
       //Calculate errormatrix and orthogonalize
       ub::matrix<double>temp=ub::prod(H,_dftAOdmat);
       
+      cout<<"S\n"<<_dftAOoverlap._aomatrix<<endl; 
       ub::matrix<double> errormatrix=ub::prod(temp,_dftAOoverlap._aomatrix);
+      cout <<"FDS"<<endl;
+      cout << errormatrix<<endl;
       temp=ub::prod(_dftAOdmat,H);
+      cout <<"SDF"<<endl;
+      cout<<ub::prod(_dftAOoverlap._aomatrix,temp)<<endl; 
       errormatrix-=ub::prod(_dftAOoverlap._aomatrix,temp);
-     
+       cout<<"before"<<endl;
+     cout<<errormatrix<<endl;
       temp=ub::prod(errormatrix,_Sminusonehalf);
       errormatrix=ub::prod(ub::trans(_Sminusonehalf),temp);
       
       temp.resize(0,0);
+      cout<<"after"<<endl;
+      cout<<errormatrix<<endl;
       
       double max=linalg_getMax(errormatrix);
+      LOG(logDEBUG, *_pLog) << TimeStamp() << " Maximum error is:"<<max<<"[Ha]" << flush;
       ub::matrix<double>* old=new ub::matrix<double>;     
+      exit(0);
       if(_usefmat){
           *old=H;         
       }
@@ -514,9 +524,13 @@ namespace votca {
           *old=_dftAOdmat;
       }
        _mathist.push_back(old);
+       cout<<endl;
+       cout<<"mathhist" <<_mathist.size()<<endl;
       ub::matrix<double>* olderror=new ub::matrix<double>; 
       *olderror=errormatrix;
        _errormatrixhist.push_back(olderror);
+        cout<<endl;
+       cout<<"merrorhist" <<_errormatrixhist.size()<<endl;
        if(_maxout){
           double error=linalg_getMax(errormatrix);
           if (error>_maxerror){
@@ -526,7 +540,7 @@ namespace votca {
       } 
        
       if (max<0.1 && _this_iter>4 && _usediis){
-          
+          LOG(logDEBUG, *_pLog) << TimeStamp() << " Using DIIs " << flush;
           ub::matrix<double> B=ub::zero_matrix<double>(_mathist.size()+1);
           ub::vector<double> a=ub::zero_vector<double>(_mathist.size()+1);
           a(0)=-1;
@@ -547,7 +561,7 @@ namespace votca {
           ub::vector<double> c;
           linalg_qrsolve(c, B, a);
           if(_usefmat){
-                ub::matrix<double>H_guess=ub::zero_matrix<double>(_mathist[0]->size1()); 
+                ub::matrix<double>H_guess=ub::zero_matrix<double>(_mathist[0]->size1(),_mathist[0]->size2()); 
                  for (unsigned i=0;i<_mathist.size();i++){  
                 H_guess+=c(i+1)*(*_mathist[i]);
                  }
@@ -563,6 +577,7 @@ namespace votca {
             
       }
       else if(_this_iter > 0 && _mathist.size()>0){
+          LOG(logDEBUG, *_pLog) << TimeStamp() << " Using Mxing " << flush;
           if(_usefmat){
               
               ub::matrix<double>H_guess=_mixingparameter*H+(1.0-_mixingparameter)*(*(_mathist.back()));
