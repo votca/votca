@@ -172,14 +172,14 @@ add_subdirectory(src/tools)
 #add_subdirectory(share/scripts/dipro) 
 add_subdirectory(share)  
 
-add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/manual/xtp_manual.pdf COMMAND make -C ${CMAKE_SOURCE_DIR}/manual
+add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/manual/xtp-manual.pdf COMMAND make -C ${CMAKE_SOURCE_DIR}/manual
 	XTP_SCRIPTS="${XTP_SCRIPTS}"
 	CSG_PROPERTY="${VOTCA_CSG_PROPERTY}"
 	GIT="${GIT_EXECUTABLE}"
 	VER="${PROJECT_VERSION}"
 	ROOTDIR="${CMAKE_CURRENT_SOURCE_DIR}/manual"
 	XTP_PROGS="${XTP_PROGS}" VERBATIM)
-add_custom_target(manual DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/manual/xtp_manual.pdf)
+add_custom_target(manual DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/manual/xtp-manual.pdf)
 
 add_custom_target(cleanmanual COMMAND make clean -C ${CMAKE_SOURCE_DIR}/manual
 	XTP_SCRIPTS="${XTP_SCRIPTS}"

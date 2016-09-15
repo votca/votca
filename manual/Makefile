@@ -8,7 +8,7 @@ GITID:=$(shell echo $(GITID_PLAIN) | sed -e 's/.*/\\newcommand{\\gitid}{${VER} (
 LATEXMK=./scripts/latexmk.pl
 LATEXMKOPTS=-halt-on-error
 
-NAME=xtp_manual
+NAME=xtp-manual
 ifeq ($(OSTYPE),darwin)
 CWD=$(shell pwd)
 ND=$(subst work/votca_xtp,Dropbox,$(CWD))
@@ -18,7 +18,7 @@ all: check $(NAME).pdf
 dvi: $(NAME).dvi
 ps: $(NAME).ps
 
-$(NAME).tex: gitid.tex fig_submake programs_submake theory_submake reference_submake input_submake appendix_submake titlepage.tex xtp_manual.bib           
+$(NAME).tex: gitid.tex fig_submake programs_submake theory_submake reference_submake input_submake appendix_submake titlepage.tex $(NAME).bib
 
 %.dvi: %.tex dummy
 	./abbreviate_journals.pl 
@@ -69,10 +69,10 @@ install_check:
 	  echo '######################################';\
 	  exit 1;\
 	fi
-install: install_check xtp_manual.pdf
+install: install_check $(NAME).pdf
 	mkdir -p $(DESTDIR)$(XTP_MANUAL_LOCATION)
 	echo "Installing to $(DESTDIR)${XTP_MANUAL_LOCATION}"
-	cp -v xtp_manual.pdf $(DESTDIR)$(XTP_MANUAL_LOCATION)/xtp_manual.pdf
+	cp -v $(NAME).pdf $(DESTDIR)$(XTP_MANUAL_LOCATION)/$(NAME).pdf
 
 clean: qclean reference_subclean fig_subclean programs_subclean theory_subclean reference_subclean input_subclean
 	rm -f $(NAME).fdb_latexmk $(NAME).brf literature_short.bib literature.bib
