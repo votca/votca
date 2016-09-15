@@ -1,6 +1,9 @@
 SHELL=/bin/bash
-VER=1.3-dev
-HGID:=$(shell git rev-parse --short HEAD 2> /dev/null | sed 's/.*/\\newcommand{\\hgid}{${VER} (&)}/')
+
+ifeq ($(GIT),)
+GIT=true
+endif
+HGID:=$(shell $(GIT) rev-parse --short HEAD 2> /dev/null | sed 's/.*/\\newcommand{\\hgid}{${VER} (&)}/')
 LATEXMK=./scripts/latexmk.pl
 LATEXMKOPTS=-halt-on-error
 

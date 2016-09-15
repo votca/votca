@@ -1,6 +1,5 @@
 SHELL=/bin/bash
-TRUNC=$(shell git rev-parse --show-toplevel)
-TXT2TAGS=$(TRUNC)/manual/scripts/txt2tags
+TXT2TAGS=../../scripts/txt2tags
 
 all:
 #this is a hack to generate Makefile.incl
