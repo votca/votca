@@ -95,4 +95,4 @@ compiler:
 
 notifications:
   email:
-    - votca-xtp@googlegroups.com 
+    - votca-commits@googlegroups.com 
