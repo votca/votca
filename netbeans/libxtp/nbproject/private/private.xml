@@ -12,16 +12,11 @@
         <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
         <group>
             <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/aobasis.h</file>
-            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/aomatrices/aomatrix.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/dftengine/dftengine.cc</file>
-            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/aobasis.cc</file>
-            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/aoshell.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/basisset.h</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/tools/exciton.h</file>
-            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/tools/dft.h</file>
-            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/aomatrices/aooverlap.cc</file>
-            <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/dftengine.h</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/orbitals.cc</file>
         </group>
     </open-files>
 </project-private>

@@ -660,7 +660,7 @@ void Orca::CleanUp() {
  */
 bool Orca::ParseLogFile( Orbitals* _orbitals )
 {
-    static const double _conv_Hrt_eV = 27.21138386;
+    const double _conv_Hrt_eV = tools::conv::hrt2ev;
     
     _orbitals->setQMpackage("orca");
     

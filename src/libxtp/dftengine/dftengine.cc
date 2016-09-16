@@ -207,7 +207,10 @@ namespace votca {
             /**** Construct initial density  ****/
 
             ub::matrix<double> H0 = _dftAOkinetic._aomatrix + _dftAOESP._nuclearpotential; 
-            
+            cout << "H_kin"<<endl;
+            cout << _dftAOkinetic._aomatrix<< endl;
+            cout << "H_one"<<endl;
+            cout << H0<<endl;
             if(_with_ecp){
             H0+=_dftAOECP.Matrix();
             cout<< "WARNING ecps are not correctly sorted" <<endl;
@@ -265,10 +268,13 @@ namespace votca {
                 
                 // this temp is necessary because eigenvalues_general returns MO^T and not MO
                 ub::matrix<double> temp;
-                linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, temp);
+                bool info=linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, temp);
+                if (!info){
+                    throw runtime_error("Generalized eigenvalue problem did not work.");
+                }
                 MOCoeff=ub::trans(temp);
           
-                
+                cout<<"MOCoeff"<<MOCoeff<<endl;
                 double totenergy=E_nucnuc;
        
 
@@ -491,6 +497,7 @@ namespace votca {
       cout<<"H\n"<<H<<endl;    
           
       bool has_converged=false;    
+      cout<<"MOs"<< _orbitals->MOCoefficients()<< endl;
       _dftAOdmat=_orbitals->DensityMatrixGroundState(_orbitals->MOCoefficients());
       cout<<"D\n"<<_dftAOdmat<<endl; 
       //Calculate errormatrix and orthogonalize
@@ -505,7 +512,7 @@ namespace votca {
       cout<<ub::prod(_dftAOoverlap._aomatrix,temp)<<endl; 
       errormatrix-=ub::prod(_dftAOoverlap._aomatrix,temp);
        cout<<"before"<<endl;
-     cout<<errormatrix<<endl;
+     //cout<<errormatrix<<endl;
       temp=ub::prod(errormatrix,_Sminusonehalf);
       errormatrix=ub::prod(ub::trans(_Sminusonehalf),temp);
       
@@ -516,7 +523,7 @@ namespace votca {
       double max=linalg_getMax(errormatrix);
       LOG(logDEBUG, *_pLog) << TimeStamp() << " Maximum error is:"<<max<<"[Ha]" << flush;
       ub::matrix<double>* old=new ub::matrix<double>;     
-      exit(0);
+      //exit(0);
       if(_usefmat){
           *old=H;         
       }
@@ -546,20 +553,27 @@ namespace votca {
           a(0)=-1;
           for (unsigned i=1;i<B.size1();i++){
               B(i,0)=-1;
+              B(0,i)=-1;
           }
-          #pragma omp parallel for
+          cout <<"Hello"<<endl;
+          cout<<"_errormatrixhist "<<_errormatrixhist.size()<<endl;
+          //#pragma omp parallel for
           for (unsigned i=1;i<B.size1();i++){
               for (unsigned j=1;j<=i;j++){
+                  cout<<"i "<<i<<" j "<<j<<endl;
                   B(i,j)=linalg_traceofProd(*_errormatrixhist[i-1],ub::trans(*_errormatrixhist[j-1]));
                   if(i!=j){
                     B(j,i)=B(i,j);
                   }
               }
           }
+          cout <<"solve"<<endl;
           
-          
-          ub::vector<double> c;
+          ub::vector<double> c=ub::zero_vector<double>((_mathist.size()+1)*(_mathist.size()+1));
+          cout<<a<<endl;
+          cout<<B<<endl;
           linalg_qrsolve(c, B, a);
+          cout<<c<<endl;
           if(_usefmat){
                 ub::matrix<double>H_guess=ub::zero_matrix<double>(_mathist[0]->size1(),_mathist[0]->size2()); 
                  for (unsigned i=0;i<_mathist.size();i++){  
