@@ -236,7 +236,7 @@ bool linalg_eigenvalues_general(const ub::matrix<double> &A, const ub::matrix<do
   
         }
     
-	return (status != 0);
+	return (status == 0);
 };
 
 }}
