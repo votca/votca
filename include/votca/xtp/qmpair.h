@@ -48,7 +48,7 @@ public:
                 _ghost(NULL), 
                 _top(NULL),
                 _id(-1),   
-                _hasGhost(0),
+                _hasGhost(false),
                 _rate12_e(0),
                 _rate21_e(0),
                 _rate12_h(0),
@@ -75,6 +75,7 @@ public:
 
 
    int       getId() { return _id; }
+   void      setId(int id) { _id=id; }
    Topology *getTopology() { return _top; }
    void      setTopology(Topology *top) { _top = top; }
    vec      &R() { return _R; }
@@ -99,11 +100,13 @@ public:
    double   getRate21(int state);
    vec      getR();
 
+   //only used for compability reasons with izindo
    void     setJs(const std::vector <double> Js, int state);
+   
    double   calcJeff2(int state);
    double   getJeff2(int state) ;
    void     setJeff2(double Jeff2, int state);
-   std::vector<double> &Js(int state);
+  
 
    double   getdE12(int state) { return second->getSiteEnergy(state)
                                        -first->getSiteEnergy(state); }
@@ -137,13 +140,11 @@ protected:
     double _rate21_e;    // from ::Rates        output    DEFAULT 0
     double _rate12_h;
     double _rate21_h;
-    double _has_e;       // from ::Rates        input     DEFAULT 0
-    double _has_h;
+    bool _has_e;       // from ::Rates        input     DEFAULT 0
+    bool _has_h;
     double _lambdaO_e;   // from ::EOutersphere output    DEFAULT 0
     double _lambdaO_h;
     
-    std::vector <double> _Js_e;
-    std::vector <double> _Js_h;
     double          _Jeff2_e;
     double          _Jeff2_h;
     //excition part s:singlet t:triplet
@@ -155,13 +156,10 @@ protected:
     double _rate21_s; 
     double _rate12_t;
     double _rate21_t;
-    double _has_s;       
-    double _has_t;
+    bool _has_s;       
+    bool _has_t;
     double _lambdaO_s;   
-    double _lambdaO_t;
-    
-    std::vector <double> _Js_s;
-    std::vector <double> _Js_t;
+    double _lambdaO_t; 
     double          _Jeff2_s;
     double          _Jeff2_t;
 

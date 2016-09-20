@@ -29,8 +29,8 @@ using namespace votca::tools;
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
 
-void AOCoulomb::FillgOrbitals(std::vector<double> &_wmp,std::vector<double> &_wmq,ma_type &_cou,const double &_decay_row,const double &_decay_col, const int &_lmax_row, const int  &_lmax_col){
-
+void AOCoulomb::FillgOrbitals(std::vector<double> &_wmp,std::vector<double> &_wmq,ma_type &_cou,const double _decay_row,const double _decay_col, const int _lmax_row, const int  _lmax_col){
+    //cout << "g in "<< endl;  
     const double _fakac = 0.5 / (_decay_row + _decay_col);
     const double _fakac2 = 1. / (_decay_row + _decay_col);
     const double _faka = 0.5 / _decay_row;
@@ -45,9 +45,9 @@ void AOCoulomb::FillgOrbitals(std::vector<double> &_wmp,std::vector<double> &_wm
     const double _fakc2 = 2.0 * _fakc;
     const double _fakc3 = 3.0 * _fakc;
 
- 
-
-  if((_lmax_row)+(_lmax_col)>4) {
+    //cout << _lmax_row << ": "<<  _lmax_col<< endl;
+    //cout << _cou.shape()[0]<< " : "<< _cou.shape()[1]<< " : "<< _cou.shape()[2]<< " : "<<endl;
+  if((_lmax_row+_lmax_col)>=4) {
      _cou[1][0][3] = _wmp[0]*_cou[0][0][4];
      _cou[0][1][3] = _wmq[0]*_cou[0][0][4];
      _cou[2][0][3] = _wmp[1]*_cou[0][0][4];
@@ -228,7 +228,7 @@ void AOCoulomb::FillgOrbitals(std::vector<double> &_wmp,std::vector<double> &_wm
      _cou[2][19][0] = _wmp[1]*_cou[0][19][1] + _fakac * _cou[0][5][1];
      _cou[3][19][0] = _wmp[2]*_cou[0][19][1] + _fakac * _cou[0][4][1];
   }
-  if((_lmax_row)+(_lmax_col)>5) {
+  if((_lmax_row+_lmax_col)>=5) {
      _cou[1][0][4] = _wmp[0]*_cou[0][0][5];
      _cou[0][1][4] = _wmq[0]*_cou[0][0][5];
      _cou[2][0][4] = _wmp[1]*_cou[0][0][5];
@@ -529,7 +529,7 @@ void AOCoulomb::FillgOrbitals(std::vector<double> &_wmp,std::vector<double> &_wm
      _cou[12][8][0] = _wmp[2]*_cou[9][8][1]+    _faka2 * (_cou[3][8][0] - _fakaac * _cou[3][8][1] );
      _cou[12][9][0] = _wmp[2]*_cou[9][9][1]+_faka2 * (_cou[3][9][0] - _fakaac * _cou[3][9][1] ) + _fakac2 * _cou[9][3][1];
   }
-  if((_lmax_row)+(_lmax_col)>6) {
+  if((_lmax_row+_lmax_col)>=6) {
      _cou[1][0][5] = _wmp[0]*_cou[0][0][6];
      _cou[0][1][5] = _wmq[0]*_cou[0][0][6];
      _cou[2][0][5] = _wmp[1]*_cou[0][0][6];
@@ -930,7 +930,7 @@ void AOCoulomb::FillgOrbitals(std::vector<double> &_wmp,std::vector<double> &_wm
      _cou[12][18][0] = _wmp[2]*_cou[9][18][1]+_faka2 * (_cou[3][18][0] - _fakaac * _cou[3][18][1] ) + _fakac2 * _cou[9][6][1];
      _cou[12][19][0] = _wmp[2]*_cou[9][19][1]+_faka2 * (_cou[3][19][0] - _fakaac * _cou[3][19][1] ) + _fakac * _cou[9][4][1];
   }
-  if((_lmax_row)+(_lmax_col)>4) {
+  if((_lmax_row+_lmax_col)>=4) {
      _cou[20][0][0] = _wmp[0]*_cou[10][0][1]+    _faka3 * (_cou[7][0][0] - _fakaac * _cou[7][0][1] ) ;
      _cou[23][0][0] = _wmp[1]*_cou[10][0][1] ;
      _cou[25][0][0] = _wmp[2]*_cou[10][0][1] ;
@@ -962,7 +962,7 @@ void AOCoulomb::FillgOrbitals(std::vector<double> &_wmp,std::vector<double> &_wm
      _cou[0][34][0] = _wmq[1]*_cou[0][16][1] ;
      _cou[0][30][0] = _wmq[2]*_cou[0][17][1]+    _fakc * (_cou[0][8][0] - _fakaca * _cou[0][8][1] ) ;
   }
-  if((_lmax_row)+(_lmax_col)>5) {
+  if((_lmax_row+_lmax_col)>=5) {
      _cou[20][0][1] = _wmp[0]*_cou[10][0][2]+    _faka3 * (_cou[7][0][1] - _fakaac * _cou[7][0][2] ) ;
      _cou[23][0][1] = _wmp[1]*_cou[10][0][2] ;
      _cou[25][0][1] = _wmp[2]*_cou[10][0][2] ;
@@ -1084,7 +1084,7 @@ void AOCoulomb::FillgOrbitals(std::vector<double> &_wmp,std::vector<double> &_wm
      _cou[30][2][0] = _wmp[2]*_cou[17][2][1]+    _faka * (_cou[8][2][0] - _fakaac * _cou[8][2][1] ) ;
      _cou[30][3][0] = _wmp[2]*_cou[17][3][1]+   _faka * (_cou[8][3][0] - _fakaac * _cou[8][3][1] ) + _fakac * _cou[17][0][1];
   }
-  if((_lmax_row)+(_lmax_col)>6) {
+  if((_lmax_row+_lmax_col)>=6) {
      _cou[20][0][2] = _wmp[0]*_cou[10][0][3]+    _faka3 * (_cou[7][0][2] - _fakaac * _cou[7][0][3] ) ;
      _cou[23][0][2] = _wmp[1]*_cou[10][0][3] ;
      _cou[25][0][2] = _wmp[2]*_cou[10][0][3] ;
@@ -1386,7 +1386,7 @@ void AOCoulomb::FillgOrbitals(std::vector<double> &_wmp,std::vector<double> &_wm
      _cou[30][8][0] = _wmp[2]*_cou[17][8][1]+    _faka * (_cou[8][8][0] - _fakaac * _cou[8][8][1] ) ;
      _cou[30][9][0] = _wmp[2]*_cou[17][9][1]+  _faka * (_cou[8][9][0] - _fakaac * _cou[8][9][1] ) + _fakac2 * _cou[17][3][1];
   }
-  if((_lmax_row)+(_lmax_col)>7) {
+  if((_lmax_row+_lmax_col)>=7) {
      _cou[1][0][6] = _wmp[0]*_cou[0][0][7] ;
      _cou[0][1][6] = _wmq[0]*_cou[0][0][7] ;
      _cou[2][0][6] = _wmp[1]*_cou[0][0][7] ;
@@ -2387,7 +2387,7 @@ void AOCoulomb::FillgOrbitals(std::vector<double> &_wmp,std::vector<double> &_wm
      _cou[30][18][0] = _wmp[2]*_cou[17][18][1]+  _faka * (_cou[8][18][0] - _fakaac * _cou[8][18][1] ) + _fakac2 * _cou[17][6][1];
      _cou[30][19][0] = _wmp[2]*_cou[17][19][1]+  _faka * (_cou[8][19][0] - _fakaac * _cou[8][19][1] ) + _fakac * _cou[17][4][1];
   }
-  if((_lmax_row)+(_lmax_col)>8) {
+  if((_lmax_row+_lmax_col)>=8) {
      _cou[1][0][7] = _wmp[0]*_cou[0][0][8] ;
      _cou[0][1][7] = _wmq[0]*_cou[0][0][8] ;
      _cou[2][0][7] = _wmp[1]*_cou[0][0][8] ;
@@ -3614,7 +3614,7 @@ void AOCoulomb::FillgOrbitals(std::vector<double> &_wmp,std::vector<double> &_wm
      _cou[30][34][0] = _wmp[2]*_cou[17][34][1]+  _faka * (_cou[8][34][0] - _fakaac * _cou[8][34][1] ) + _fakac2 * _cou[17][19][1];
   }
 
-
+//cout << "g out"<< endl;  
     return;
 }
     

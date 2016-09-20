@@ -67,7 +67,7 @@ public:
 
 private:
 
-    int                 _number_excitons;
+ 
     //int                 _max_unoccupied_levels;     
     //int                 _trim_factor;
     
@@ -76,11 +76,7 @@ private:
     Property            _gwbse_options; 
     Property            _coupling_options; 
     
-    string              _spintype;
-    bool                _do_singlets;
-    bool                _do_triplets;
-    //GWBSE               _gwbse;
-    //BSECoupling         _bsecoupling; 
+ 
 
     // what to do
     bool                _do_dft_input;
@@ -91,12 +87,13 @@ private:
     bool                _do_trim;
     
     // what to write in the storage
-    bool                _store_orbitals;
-    bool                _store_overlap;
-    bool                _store_integrals;
+    bool                _store_dft;
+    bool                _store_singlets;
+    bool                _store_triplets;
     bool                _store_ehint;
+    bool                _write_orbfile;
     
-    double              _energy_difference;    
+    //double              _energy_difference;    
         
     string              _outParent;
     

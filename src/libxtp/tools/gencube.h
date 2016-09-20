@@ -120,7 +120,7 @@ namespace votca {
                 _do_triplet=true;
             }
             else{
-               throw std::runtime_error("Spin not known, only singlet and triplet possible"); 
+               throw std::runtime_error("Spin not known, only singlet or triplet possible"); 
             }
             
             _type = options->get(key + ".type").as<string> ();
@@ -307,7 +307,7 @@ namespace votca {
                     }
                     
                     if(_state>0){
-                        ub::matrix<float> BSECoefs;
+                        ub::matrix<real_gwbse> BSECoefs;
                         if (_spin=="singlet") BSECoefs = _orbitals.BSESingletCoefficients();
                         else if (_spin =="triplet") BSECoefs = _orbitals.BSETripletCoefficients();
                     

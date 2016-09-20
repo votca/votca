@@ -292,11 +292,11 @@ namespace votca {
             double energy___ex = 0.0;
 
             if (_do_gwbse) {
-                GWBSE _gwbse;
+                
 
                 // for GW-BSE, we also need to parse the orbitals file
                 _qmpack->ParseOrbitalsFile(&orb_iter_output);
-                
+                GWBSE _gwbse=GWBSE(&orb_iter_output);
                 std::vector<int> _state_index;
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 Logger gwbse_logger(logDEBUG);
@@ -327,7 +327,7 @@ namespace votca {
 
 
                     // actual GW-BSE run
-                    _gwbse.Evaluate(&orb_iter_output);
+                    _gwbse.Evaluate();
                     //bool _evaluate = _gwbse.Evaluate( &orb_iter_output );
 
 
@@ -349,10 +349,10 @@ namespace votca {
                     if (_has_osc_filter) {
 
                         // go through list of singlets
-                        const std::vector<std::vector<double> >& TDipoles = orb_iter_output.TransitionDipoles();
+                        const std::vector<ub::vector<double> >& TDipoles = orb_iter_output.TransitionDipoles();
                         for (unsigned _i = 0; _i < TDipoles.size(); _i++) {
 
-                            double osc = (TDipoles[_i][0] * TDipoles[_i][0] + TDipoles[_i][1] * TDipoles[_i][1] + TDipoles[_i][2] * TDipoles[_i][2]) * 1.0 / 3.0 * (orb_iter_output.BSESingletEnergies()[_i]);
+                            double osc = (ub::inner_prod(TDipoles[_i],TDipoles[_i])) * 1.0 / 3.0 * (orb_iter_output.BSESingletEnergies()(_i));
                             if (osc > _osc_threshold) _state_index.push_back(_i);
                         }
 
@@ -444,7 +444,7 @@ namespace votca {
                 ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
 
                 if (_state > 0) {
-                    ub::matrix<float>& BSECoefs = orb_iter_output.BSESingletCoefficients();
+                    ub::matrix<real_gwbse>& BSECoefs = orb_iter_output.BSESingletCoefficients();
                     std::vector<ub::matrix<double> > &DMAT = orb_iter_output.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state_index[_state - 1]);
                     DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
                 }

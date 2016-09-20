@@ -52,6 +52,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1355216796/eoutersphere.o \
 	${OBJECTDIR}/_ext/1355216796/jobwriter.o \
 	${OBJECTDIR}/_ext/1584959903/dftengine.o \
+	${OBJECTDIR}/_ext/484478074/esp2multipole.o \
 	${OBJECTDIR}/_ext/484478074/espfit.o \
 	${OBJECTDIR}/_ext/484478074/ewaldactor.o \
 	${OBJECTDIR}/_ext/484478074/extractorfactory.o \
@@ -71,6 +72,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/164445175/iexcitoncl.o \
 	${OBJECTDIR}/_ext/164445175/igwbse.o \
 	${OBJECTDIR}/_ext/484478074/molecule.o \
+	${OBJECTDIR}/_ext/484478074/nbo.o \
 	${OBJECTDIR}/_ext/1294340152/numerical_integrations.o \
 	${OBJECTDIR}/_ext/1294340152/radial_euler_maclaurin_rule.o \
 	${OBJECTDIR}/_ext/1294340152/sphere_lebedev_rule.o \
@@ -229,6 +231,11 @@ ${OBJECTDIR}/_ext/1584959903/dftengine.o: ../../src/libxtp/dftengine/dftengine.c
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1584959903/dftengine.o ../../src/libxtp/dftengine/dftengine.cc
 
+${OBJECTDIR}/_ext/484478074/esp2multipole.o: ../../src/libxtp/esp2multipole.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484478074/esp2multipole.o ../../src/libxtp/esp2multipole.cc
+
 ${OBJECTDIR}/_ext/484478074/espfit.o: ../../src/libxtp/espfit.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
@@ -323,6 +330,11 @@ ${OBJECTDIR}/_ext/484478074/molecule.o: ../../src/libxtp/molecule.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/molecule.o ../../src/libxtp/molecule.cc
+
+${OBJECTDIR}/_ext/484478074/nbo.o: ../../src/libxtp/nbo.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} $@.d
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484478074/nbo.o ../../src/libxtp/nbo.cc
 
 ${OBJECTDIR}/_ext/1294340152/numerical_integrations.o: ../../src/libxtp/numerical_integration/numerical_integrations.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1294340152

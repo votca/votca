@@ -47,7 +47,7 @@ public:
     void   Initialize(Property *options);
     bool   Evaluate();
 
-    GWBSE _gwbse;
+    
  
 
 private:
@@ -159,7 +159,7 @@ void Exciton::Initialize(Property* options) {
             _output_file = options->get(key + ".archive").as<string>();
             _reporting =  options->get(key + ".reporting").as<string> ();
             // options for GWBSE package
-            string _gwbse_xml = options->get(key + ".gwbse").as<string> ();
+            string _gwbse_xml = options->get(key + ".gwbse_options").as<string> ();
             //cout << endl << "... ... Parsing " << _gwbse_xml << endl ;
             load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
 
@@ -178,13 +178,13 @@ void Exciton::Initialize(Property* options) {
             // _package = options->get(key + ".package").as<string> ();
 
             // options for dft package
-            string _package_xml = options->get(key + ".package").as<string> ();
+            string _package_xml = options->get(key + ".dftpackage").as<string> ();
             //cout << endl << "... ... Parsing " << _package_xml << endl ;
             load_property_from_xml(_package_options, _package_xml.c_str());
             key = "package";
             _package = _package_options.get(key + ".name").as<string> ();
             //cout << endl << "... ... Parsing " << _package_xml << endl ;
-            
+             key = "options." + Identify();
             if ( options->exists(key+".guess")){
                 _do_guess=true;
                 _guess_orbA = options->get(key + ".guess.archiveA").as<string> ();
@@ -1113,11 +1113,12 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<Segment*> _segmen
      }
 
      if ( _do_gwbse ){
+         GWBSE _gwbse=GWBSE( _orbitals);
         _gwbse.setLogger(&_log);
         _gwbse.Initialize( &_gwbse_options );
-        _gwbse.Evaluate( _orbitals );
+        _gwbse.Evaluate();
         Property *_output_summary = &(_summary.add("output", ""));
-        _gwbse.addoutput(_output_summary, _orbitals);
+        _gwbse.addoutput(_output_summary);
        
         //bool _evaluate = _gwbse.Evaluate( _orbitals );
         // std::cout << _log;

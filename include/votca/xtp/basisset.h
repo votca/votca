@@ -67,7 +67,7 @@ public:
 
     std::string getType() { return _type; }
 
-    int getLmax(  ) {
+  /*  int getLmax(  ) {
         int _lmax;
         if ( _type == "S" ) _lmax = 0;
         if ( _type == "SP" ) _lmax = 1;
@@ -78,20 +78,103 @@ public:
         if ( _type == "F" ) _lmax = 3;
         if ( _type == "SPDF" ) _lmax = 3;
         return _lmax;
-    }; 
+    }; */
+    
+    
+    bool combined(){
+        if (_type.length()>1){
+            return true;
+        }
+        return false;
+    }
+    
+   
+    
+    int getLmax(  ) {
+        return FindLmax(_type);
+    }
+    
+    int FindLmax( string _type ){
+
+        int _lmax;
+        // single type shells
+        if ( _type.length() == 1 ){
+            if ( _type == "S" ){ _lmax = 0;}
+            if ( _type == "P" ){ _lmax = 1;}
+            if ( _type == "D" ){ _lmax = 2;}
+            if ( _type == "F" ){ _lmax = 3;}
+            if ( _type == "G" ){ _lmax = 4;}
+        } else {
+            _lmax = -1;
+            for(unsigned i = 0; i < _type.length(); ++i) {
+                string local_shell = string( _type, i, 1 );
+                int _test = this->FindLmax( local_shell  );
+                if ( _test > _lmax ) { _lmax = _test;} 
+            }   
+        }
+
+        return _lmax;
+        
+    }
+    
+    
+    
+    
+   
+    int OffsetFuncShell( string shell_type ) {
+    int _nbf;
+    // single type shells
+    if ( shell_type.length() == 1 ){
+       if ( shell_type == "S" ){ _nbf = 0;}
+       if ( shell_type == "P" ){ _nbf = 1;}
+       if ( shell_type == "D" ){ _nbf = 4;}
+       if ( shell_type == "F" ){ _nbf = 9;}
+       if ( shell_type == "G" ){ _nbf = 16;}
+    } else {
+        // for combined shells, go over all contributions and find minimal offset
+        _nbf = 1000;
+        for(unsigned i = 0; i < shell_type.length(); ++i) {
+            string local_shell = string( shell_type, i, 1 );
+            int _test = this->OffsetFuncShell( local_shell  );
+            if ( _test < _nbf ) { _nbf = _test;} 
+        }   
+    }
+    return _nbf;
+        } 
+    
+    
+    
+    
+    
+    
     
     int getnumofFunc() {
-        int _size;
-        if ( _type == "S" ) _size = 1;
-        if ( _type == "SP" ) _size = 4;
-        if ( _type == "SPD" ) _size = 9;
-        if ( _type == "P" ) _size = 3;
-        if ( _type == "PD" ) _size = 8;
-        if ( _type == "D" ) _size = 5;
-        if ( _type == "F" ) _size = 7;
-        if ( _type == "SPDF" ) _size = 16;
-        return _size;
+        return FindnumofFunc(_type);
     }; 
+    
+    
+    int FindnumofFunc( string shell_type) {
+        int _nbf = 0;
+        // single type shells
+        if ( shell_type.length() == 1 ){
+            if ( shell_type == "S" ){ _nbf = 1;}
+            if ( shell_type == "P" ){ _nbf = 3;}
+            if ( shell_type == "D" ){ _nbf = 5;}
+            if ( shell_type == "F" ){ _nbf = 7;}
+            if ( shell_type == "G" ){ _nbf = 9;}
+    } else {
+        // for combined shells, go over all contributions and add functions
+        _nbf = 0;
+        
+           for (unsigned i = 0; i < shell_type.length(); ++i) {
+                    string local_shell = string(shell_type, i, 1);
+                    _nbf += this->FindnumofFunc(local_shell);
+            }   
+    }
+    return _nbf;
+        
+    }
+    
     
     
     double getScale() { return _scale; }

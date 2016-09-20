@@ -21,7 +21,7 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=GNU-Linux-x86
+CND_PLATFORM=GNU-Linux
 CND_DLIB_EXT=so
 CND_CONF=Debug
 CND_DISTDIR=dist
@@ -35,7 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/715944016/xtp_tools.o
+	${OBJECTDIR}/_ext/2aac7050/xtp_tools.o
 
 
 # C Compiler Flags
@@ -52,7 +52,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=-L../../../tools/src/libtools -L../../src/libxtp/ -lvotca_xtp -lvotca_tools -lboost_program_options -lboost_serialization -lboost_filesystem -lboost_timer -lboost_system
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -60,12 +60,12 @@ LDLIBSOPTIONS=
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/xtp_app: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/xtp_app ${OBJECTFILES} ${LDLIBSOPTIONS} 
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/xtp_app ${OBJECTFILES} ${LDLIBSOPTIONS} -fopenmp
 
-${OBJECTDIR}/_ext/715944016/xtp_tools.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/xtp_tools.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} $@.d
-	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/xtp_tools.o ../../src/tools/xtp_tools.cc
+${OBJECTDIR}/_ext/2aac7050/xtp_tools.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/xtp_tools.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/2aac7050
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2aac7050/xtp_tools.o ../../src/tools/xtp_tools.cc
 
 # Subprojects
 .build-subprojects:

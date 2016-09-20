@@ -43,7 +43,7 @@ namespace votca { namespace xtp {
 
 void IGWBSE::Initialize(votca::tools::Property* options ) {
 
-    _energy_difference = 0.0;
+ 
     
     
     // tasks to be done by IBSE: dft_input, dft_run, dft_parse, mgbft, bse_coupling
@@ -54,17 +54,15 @@ void IGWBSE::Initialize(votca::tools::Property* options ) {
     _do_coupling  = false;
     _do_trim      = false;
     
-    _store_orbitals = false;
-    _store_overlap = false;
-    _store_integrals = false;
+    _store_dft = false;
+    _store_singlets = false;
+    _store_triplets = false;
     _store_ehint = false;
-    
-    
-    _do_singlets=false;
-    _do_triplets=false;
+    _write_orbfile=false;
+
 
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options, "xtp" );
+    //UpdateWithDefaults( options, "xtp" );
     ParseOptionsXML( options  );
     
     // register all QM packages (Gaussian, turbomole, etc))
@@ -77,20 +75,9 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
     
     // parsing general ibse options
     string key = "options." + Identify();
-    _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
-    // number of excited states per molecule to be considered in the coupling
-    _number_excitons = opt->get(key+".states").as<int> ();
-    // spin types for which to determine coupling
-    _spintype   = opt->get(key + ".type").as<string> ();
-    if (_spintype=="all"){
-        _do_singlets=true;
-        _do_triplets=true;
-    }
-    else if(_spintype=="singlets") _do_singlets=true;
-    else if(_spintype=="triplets") _do_triplets=true;
-    else{
-        throw std::runtime_error("Spin type not known. Input: singlets, triplets or all.");
-    }
+   // _energy_difference = opt->get( key + ".degeneracy" ).as< double > ();
+    
+ 
     // job tasks
     string _tasks_string = opt->get(key+".tasks").as<string> ();
     if (_tasks_string.find("input")    != std::string::npos) _do_dft_input = true;
@@ -101,31 +88,39 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
 
     // storage options
     string _store_string = opt->get(key+".store").as<string> ();
-    if (_store_string.find("orbitals") != std::string::npos) _store_orbitals = true;
-    if (_store_string.find("overlap") != std::string::npos) _store_overlap = true;
-    if (_store_string.find("integrals") != std::string::npos) _store_integrals = true;
+    if (_store_string.find("dft") != std::string::npos) _store_dft = true;
+    if (_store_string.find("singlets") != std::string::npos) _store_singlets = true;
+    if (_store_string.find("triplets") != std::string::npos) _store_triplets = true;
     if (_store_string.find("ehint") != std::string::npos) _store_ehint = true;
-
+    if (_store_dft || _store_singlets || _store_triplets || _store_ehint){
+        _write_orbfile=true;
+    }
     // options for gwbse
-    string _gwbse_xml = opt->get(key+".gwbse").as<string> ();
+    string _gwbse_xml = opt->get(key+".gwbse_options").as<string> ();
     //cout << endl << "... ... Parsing " << _package_xml << endl ;
     load_property_from_xml( _gwbse_options, _gwbse_xml.c_str() );
-    string _coupling_xml=opt->get(key + ".bsecoupling").as<string>();
+    string _coupling_xml=opt->get(key + ".bsecoupling_options").as<string>();
     load_property_from_xml(_coupling_options, _coupling_xml.c_str());
     
     // options for dft package
-    string _package_xml = opt->get(key+".package").as<string> ();
+    string _package_xml = opt->get(key+".dftpackage").as<string> ();
     //cout << endl << "... ... Parsing " << _package_xml << endl ;
     load_property_from_xml( _package_options, _package_xml.c_str() );    
     key = "package";
     _package = _package_options.get(key+".name").as<string> ();
     
     // job file specification
-    key = "options." + Identify() +".job";
-    _jobfile = opt->get(key + ".file").as<string>();    
+     key = "options."+Identify();
+
+        if ( opt->exists(key+".job_file")) {
+            _jobfile = opt->get(key+".job_file").as<string>();
+        }
+        else {
+            throw std::runtime_error("Job-file not set. Abort.");
+        }
     
     //options for parsing data into sql file   
-    key ="options." + Identify();
+    key ="options." + Identify()+".readjobfile";
     if ( opt->exists(key+".singlets")) {
             string _parse_string_s = opt->get(key+".singlets").as<string> ();
             _singlet_levels=FillParseMaps(_parse_string_s);       
@@ -143,15 +138,27 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
 
 std::map<std::string, int> IGWBSE::FillParseMaps(string Mapstring){
     std::vector<string> strings_vec;
-    boost::algorithm::split( strings_vec, Mapstring, boost::is_any_of("\t \n"),boost::token_compress_on );
+    boost::algorithm::split( strings_vec, Mapstring, boost::is_any_of("\t,\n"),boost::token_compress_on );
     std::vector<string>::iterator sit;
     std::map<std::string, int> type2level;
     for(sit=strings_vec.begin();sit<strings_vec.end();++sit){
-        std::vector<string>temp;
-        boost::algorithm::split( temp, (*sit), boost::is_any_of(":"),boost::token_compress_on );
-        int number=boost::lexical_cast<int>(temp[1]);
-        string type=temp[0];
-        type2level[type]=number; // -1 because default return if key is not found is 0, so if key is not found first exited state should be used number game
+        //std::vector<string>temp;
+        std::vector<string> segmentpnumber;
+        string temp=*sit;
+        boost::trim(temp);
+        boost::algorithm::split(segmentpnumber , temp, boost::is_any_of(": "),boost::token_compress_on );
+        if (segmentpnumber.size()!=2){
+            
+            throw runtime_error("Parser igwbse: Segment and exciton labels are not separated properly");
+        }
+        if (segmentpnumber[1].size()!=2){
+            throw runtime_error("State identifier "+segmentpnumber[1]+" unknown, right now only states up to number 9 are parsed. s1,s2,t1, etc..");
+        }
+         
+        //boost::algorithm::split( temp, (*sit), boost::is_any_of(""),boost::token_compress_on );
+        int number=boost::lexical_cast<int>(segmentpnumber[1].at(1));
+        string type=boost::lexical_cast<string>(segmentpnumber[0]);
+        type2level[type]=number; 
     }
     return type2level;
 }
@@ -342,15 +349,21 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
                     delete _qmpackage;
                     return jres;
             } 
-    } // end of the parse orbitals/log
+            
+  
 
+  
+    } // end of the parse orbitals/log
+    else{
+        LoadOrbitals( orbFileAB, &_orbitalsAB, pLog );
+    }
     BSECoupling         _bsecoupling; 
     // do excited states calculation
     if ( _do_gwbse ){
-        GWBSE               _gwbse;
+        GWBSE _gwbse=GWBSE(&_orbitalsAB); ;
         _gwbse.setLogger(pLog);
         _gwbse.Initialize( &_gwbse_options );
-        _gwbse.Evaluate( &_orbitalsAB );
+        _gwbse.Evaluate();
         //bool _evaluate = _gwbse.Evaluate( &_orbitalsAB );
         // std::cout << *pLog;
     } // end of excited state calculation, exciton data is in _orbitalsAB
@@ -403,32 +416,17 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        
     }
     
+    if ( _calculate_integrals ) {
+      // adding coupling elements
+       
+      _orbitalsAB.setSingletCouplings( _bsecoupling.getJAB_singletstorage());
+      _orbitalsAB.setTripletCouplings(_bsecoupling.getJAB_tripletstorage());
     
     
-    
+    }
    LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush; 
 
    
-   // save orbitals 
-   boost::filesystem::create_directories(_orb_dir);  
-
-   LOG(logDEBUG,*pLog) << "Saving orbitals to " << orbFileAB << flush;
-   std::ofstream ofs( orbFileAB.c_str() );
-   boost::archive::binary_oarchive oa( ofs );
-   if ( _calculate_integrals ) {
-      // adding coupling elements
-      _orbitalsAB.setSingletCouplings( _bsecoupling.getJAB_singletstorage());
-      _orbitalsAB.setTripletCouplings(_bsecoupling.getJAB_tripletstorage());
-      _orbitalsAB.setCoupledExcitonsA( _number_excitons );
-      _orbitalsAB.setCoupledExcitonsB( _number_excitons );
-   }
-   // serialization of electron-hole interaction only if explicitly requested
-   if ( !_store_ehint ){
-       _orbitalsAB.eh_d().resize(0,0);
-       _orbitalsAB.eh_x().resize(0,0);       
-   }
-   oa << _orbitalsAB;
-   ofs.close();
       Property *_job_output = &_job_summary.add("output","");
    if ( _calculate_integrals ){
 
@@ -442,7 +440,45 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
         sout <<  iomXML << _job_summary;
 
+if ( _write_orbfile){
+   // save orbitals 
+   boost::filesystem::create_directories(_orb_dir);  
 
+   LOG(logDEBUG,*pLog) << "Saving orbitals to " << orbFileAB << flush;
+   std::ofstream ofs( orbFileAB.c_str() );
+   boost::archive::binary_oarchive oa( ofs );
+   
+   
+        
+   if(!_store_dft){
+       _orbitalsAB.AOVxc().resize(0);
+       
+       _orbitalsAB.MOCoefficients().resize(0,0);
+   }    
+        
+   if(!_store_singlets){
+       _orbitalsAB.BSESingletCoefficients().resize(0,0);
+       _orbitalsAB.BSESingletEnergies().resize(0,0);
+   }    
+        
+    if(!_store_triplets){
+       _orbitalsAB.BSETripletCoefficients().resize(0,0);
+       _orbitalsAB.BSETripletEnergies().resize(0,0);
+   }  
+        
+   // serialization of electron-hole interaction only if explicitly requested
+   if ( !_store_ehint ){
+       _orbitalsAB.eh_d().resize(0,0);
+       _orbitalsAB.eh_x().resize(0,0);       
+   }
+   
+   
+   oa << _orbitalsAB;
+   ofs.close();
+   }
+   else{
+      LOG(logDEBUG,*pLog) << "Orb file is not saved according to options "<< flush; 
+   }
 
    // cleanup whatever is not needed
    _qmpackage->CleanUp();

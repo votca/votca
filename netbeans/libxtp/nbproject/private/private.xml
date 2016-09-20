@@ -12,6 +12,7 @@
         <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
         <group>
             <file>file:/home/jens/votca_git/src/xtp/src/libxtp/tools/qmanalyze.h</file>
+            <file>file:/data/isilon/wehnerj/votca_git/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
         </group>
     </open-files>
 </project-private>

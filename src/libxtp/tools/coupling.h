@@ -68,7 +68,7 @@ void Coupling::Initialize(Property* options)
     std::string key = "options." + Identify();    
     
     _degeneracy = options->get(key + ".degeneracy").as<double> ();
-    _package = options->get(key + ".package").as<string> ();
+    _package = options->get(key + ".dftpackage").as<string> ();
             
     _orbA  = options->get(key + ".moleculeA.orbitals").as<string> ();
     _orbB  = options->get(key + ".moleculeB.orbitals").as<string> ();

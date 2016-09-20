@@ -83,13 +83,14 @@ if OPTIONS.outputfile == '':
 
 def getelemententry(root,element):
     for e in root:
-	print e.get("name")
+	#print e.get("name")
         if e.get("name")==element:
             return e
     return lxml.SubElement(root,"element",name=entries[0])
-types=["S","P","D","F","G"]
+
+types=["S","P","D","F","G","H","I"]
 elements=['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'K', 'Ar', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Ni', 'Co', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'I', 'Te', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Pt', 'Ir', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Pa', 'Th', 'Np', 'U', 'Am', 'Pu', 'Bk', 'Cm', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Rf', 'Lr', 'Db', 'Bh', 'Sg', 'Mt', 'Ds', 'Rg', 'Hs', 'Uut', 'Uub', 'Uup', 'Uuq', 'Uuh', 'Uuo']
-keywords=["BASIS","end","basis"]
+keywords=["BASIS","end","basis","END"]
 basissetname=os.path.splitext(os.path.basename(OPTIONS.outputfile))[0]
 basis = lxml.Element("basis",name=basissetname)
 basis.append(lxml.Comment("Basis set created by xtp_basisset from {} at {}".format(os.path.basename(OPTIONS.nwchem),time.strftime("%c"))))    
@@ -99,7 +100,7 @@ with open(OPTIONS.nwchem,'r') as f:
             continue
         elif line in ["\n","\r\n"]:
             element=None
-	    continue
+            continue
         entries=line.split()
         if entries[0] in keywords:
             element=None

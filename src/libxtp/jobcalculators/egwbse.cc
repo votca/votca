@@ -82,18 +82,24 @@ namespace votca {
             if (_tasks_string.find("esp") != std::string::npos) _do_esp = true;
 
 
-            key = "options." + Identify() + ".job";
-            _jobfile = options->get(key + ".file").as<string>();
+            key = "options."+Identify();
+
+        if ( options->exists(key+".job_file")) {
+            _jobfile = options->get(key+".job_file").as<string>();
+        }
+        else {
+            throw std::runtime_error("Job-file not set. Abort.");
+        }
 
             // options for gwbse
             key = "options." + Identify();
-            string _gwbse_xml = options->get(key + ".gwbse").as<string> ();
+            string _gwbse_xml = options->get(key + ".gwbse_options").as<string> ();
             load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
-
+           
 
 
             // options for dft package
-            string _package_xml = options->get(key + ".package").as<string> ();
+            string _package_xml = options->get(key + ".dftpackage").as<string> ();
             //cout << endl << "... ... Parsing " << _package_xml << endl ;
             load_property_from_xml(_package_options, _package_xml.c_str());
             key = "package";
@@ -102,7 +108,7 @@ namespace votca {
             //options for esp/partialcharges
             if (_do_esp){
                 key = "options." + Identify();
-                string _esp_xml = options->get(key + ".esp").as<string> ();
+                string _esp_xml = options->get(key + ".esp_options").as<string> ();
                 load_property_from_xml(_esp_options, _esp_xml.c_str());
             }
             
@@ -120,7 +126,15 @@ namespace votca {
  
     ofs << "<jobs>" << endl;   
 
-    QMNBList::iterator pit;
+    
+    //QMNBList &nblist = top->NBList();    
+    
+      
+    int jobCount = 0;
+    
+/*
+
+   QMNBList::iterator pit;
     QMNBList &nblist = top->NBList();    
     
             
@@ -144,10 +158,10 @@ namespace votca {
 	segments[id1] = (*pit)->Seg1();
         segments[id2] = (*pit)->Seg2();
         
-        /* loop over bridging segments if any and add them to the map
-           this in principle is not needed since all pairs between 
-           donors, acceptors, and bridges are already in the list 
-         */
+       // loop over bridging segments if any and add them to the map
+       //    this in principle is not needed since all pairs between 
+       //    donors, acceptors, and bridges are already in the list 
+        
         vector<Segment*> bridges = (*pit)->getBridgingSegments();
         for ( vector<Segment*>::const_iterator bsit = bridges.begin(); bsit != bridges.end(); bsit++ ) {
             //cout << "Bridging segment " << (*bsit)->getId() << " : " <<  (*bsit)->getName() << endl;
@@ -171,7 +185,22 @@ namespace votca {
         Job job(id, tag, Input, Job::AVAILABLE );
         job.ToStream(ofs,"xml");
     }
-     
+*/
+    std::vector<Segment*> segments=top->Segments();    
+    std::vector<Segment*>::iterator sit;
+    for (sit = segments.begin(); sit != segments.end(); ++sit) {
+    
+        int id = ++jobCount;
+        string tag = "";
+
+        Property Input;
+        Property *pInput = &Input.add("input","");
+        Property *pSegment =  &pInput->add("segment" , (format("%1$s") % (*sit)->getId()).str() );
+        pSegment->setAttribute<string>("type", (*sit)->getName() );
+        pSegment->setAttribute<int>("id", (*sit)->getId() );
+        Job job(id, tag, Input, Job::AVAILABLE );
+        job.ToStream(ofs,"xml");
+    }
 
     // CLOSE STREAM
     ofs << "</jobs>" << endl;    
@@ -182,8 +211,8 @@ namespace votca {
 }
 
         Job::JobResult EGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
+            
 
-            cout << "Starting GW-BSE";
             Orbitals _orbitals;
             Job::JobResult jres = Job::JobResult();
             Property _job_input = job->getInput();
@@ -198,6 +227,7 @@ namespace votca {
             segments.push_back(seg);
 
             Logger* pLog = opThread->getLogger();
+            
             LOG(logINFO, *pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush;
 
             
@@ -206,6 +236,7 @@ namespace votca {
             // directories and files
             path arg_path;
             string egwbse_work_dir = "OR_FILES";
+            
             string frame_dir =  "frame_" + boost::lexical_cast<string>(top->getDatabaseId());     
             string orb_file = (format("%1%_%2%%3%") % "molecule" % segId % ".orb").str();
             
@@ -281,37 +312,40 @@ namespace votca {
                     jres.setStatus(Job::FAILED);
                     delete _qmpackage;
                     return jres;
-                }
-                
-                 
-                
+                }  
             } // end of the parse orbitals/log
+            else {
 
-
+                    // load the DFT data from serialized orbitals object
+                    string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
+                    std::ifstream ifs((DIR + "/" + orb_file).c_str());
+                    if (_do_gwbse){
+                    LOG(logDEBUG, *pLog) << TimeStamp() << " Loading DFT data from " << DIR << "/" << orb_file << flush;
+                    }
+                    else {
+                    LOG(logDEBUG, *pLog) << TimeStamp() << " Loading data from " << DIR << "/" << orb_file << flush;    
+                    }
+                    boost::archive::binary_iarchive ia(ifs);
+                    ia >> _orbitals;
+                    ifs.close();
+                }
             
  
             if (_do_gwbse) {
                 
               
-                if (!_do_dft_parse) {
-
-                    // load the DFT data from serialized orbitals object
-                    string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
-                    std::ifstream ifs((DIR + "/" + orb_file).c_str());
-                    LOG(logDEBUG, *pLog) << TimeStamp() << " Loading DFT data from " << DIR << "/" << orb_file << flush;
-                    boost::archive::binary_iarchive ia(ifs);
-                    ia >> _orbitals;
-                    ifs.close();
-                }
                 
                 
-                   
+                
+                //cout << "hallo" <<endl;
                    
                
-                GWBSE _gwbse; 
+                GWBSE _gwbse=GWBSE(&_orbitals); 
+               // cout << "hallo1" <<endl;
+                _gwbse.setLogger(pLog);    
                 _gwbse.Initialize(&_gwbse_options);
                 // _gwbse.setLogger(pLog);
-                
+                //cout << "hallo2" <<endl;
                 
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 Logger gwbse_logger(logDEBUG);
@@ -324,8 +358,8 @@ namespace votca {
                 
                 
                 //bool _evaluate = _gwbse.Evaluate(&_orbitals);
-                _gwbse.Evaluate(&_orbitals);
-                _gwbse.addoutput(_segment_summary, &_orbitals);
+                _gwbse.Evaluate();
+                _gwbse.addoutput(_segment_summary);
                 // write logger to log file
                 std::ofstream ofs;
                 string gwbse_logfile = _qmpackage_work_dir + "/gwbse.log";
@@ -335,58 +369,44 @@ namespace votca {
                 }    
                 ofs << gwbse_logger << endl;
                 ofs.close();
+                
+                
 
             }
 
+          
+            
+            if (_do_esp){
+                string mps_file="";
+                Esp2multipole esp2multipole=Esp2multipole(pLog);;
+                esp2multipole.Initialize(&_esp_options);
+                string ESPDIR="MP_FILES/"+frame_dir+"/"+esp2multipole.GetIdentifier();
+                esp2multipole.Extractingcharges(_orbitals);
+                
+
+                mps_file = (format("%1%_%2%_%3%.mps") % segType % segId % esp2multipole.GetIdentifier() ).str();
+                boost::filesystem::create_directories( ESPDIR );
+                esp2multipole.WritetoFile((ESPDIR + "/" + mps_file).c_str(),Identify());
+    
+    
+                LOG(logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
+                
+                _segment_summary->add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
+            }
             LOG(logINFO, *pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
 
-
-            
-            
+            if(_do_dft_parse ||_do_gwbse ){
             LOG(logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
             string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
             boost::filesystem::create_directories(DIR);  
             std::ofstream ofs((DIR + "/" + orb_file).c_str());
             boost::archive::binary_oarchive oa(ofs);
-
-            //  if ( !( _store_orbitals && _do_parse && _parse_orbitals_status) )   _store_orbitals = false;
-            //  if ( !( _store_overlap && _do_parse && _parse_log_status) )    _store_overlap = false;
-            //  if ( !( _store_integrals && _do_project && _calculate_integrals) )  {
-            //      _store_integrals = false; 
-            //  } else {
-            //      _orbitalsAB.setIntegrals( &_JAB );
-            //  }
-
-            //  _orbitalsAB.setStorage( _store_orbitals, _store_overlap, _store_integrals );
-            string mps_file="";
-            if (_do_esp){
-                Esp2multipole esp2multipole=Esp2multipole(pLog);;
-                esp2multipole.Initialize(&_esp_options);
-                esp2multipole.Extractingcharges(_orbitals);
-                
-                mps_file = (format("%1%_%2%_%3%_%4%") % "molecule" % esp2multipole.GetIdentifier() % segId % ".mps").str();
-                esp2multipole.WritetoFile(_orbitals,(DIR + "/" + mps_file).c_str(),Identify());
-    
-    
-                LOG(logDEBUG, *pLog) << "Written charges to " << mps_file << flush;
-                
-                _segment_summary->add("partialcharges", mps_file);
-            }
            
 
             oa << _orbitals;
             ofs.close();
+            }
 
-
-
-
-
-            
-            
-           
-               
-                
-           
             // output of the JOB 
             jres.setOutput(_job_summary);
             jres.setStatus(Job::COMPLETE);

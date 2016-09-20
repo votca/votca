@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2012 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -25,7 +25,7 @@
 
 
 
-
+using namespace std;
 using namespace votca::tools;
 
 namespace votca {
@@ -51,7 +51,7 @@ namespace votca {
         
       
         bool TCrawMatrix::FillThreeCenterRepBlock(ub::matrix<double>& _subvector,  AOShell* _shell_3, AOShell* _shell_1, AOShell* _shell_2) {
-          /*  
+            
             const double pi = boost::math::constants::pi<double>();
             
             bool _does_contribute=true;
@@ -64,6 +64,7 @@ namespace votca {
             int _lmax_3 = _shell_3->getLmax();
             
             int _mmax = _lmax_1+_lmax_2+_lmax_3;
+
 
             // set size of internal block for recursion
            
@@ -78,7 +79,7 @@ namespace votca {
                 _shell_alpha=_shell_2;
                 _shell_beta =_shell_1;
                 alphabetaswitch=true;
-                cout << "switched" << endl;    
+//               cout << "switched" << endl;   
 
                 
             }
@@ -106,8 +107,7 @@ namespace votca {
             typedef ma_type::index index;
             ma_type::extent_gen extents;
             
-            
-            
+                    
             
             double _dist1=(_pos_alpha - _pos_gamma)*(_pos_alpha - _pos_gamma);
             double _dist2=(_pos_gamma - _pos_beta) * (_pos_gamma - _pos_beta);
@@ -118,12 +118,12 @@ namespace votca {
             double amb1=0.0;
             double amb2=0.0;
          
-            if (_dist3<0.03){
+////////////////            if (_dist3<0.03){
+            if (_dist3>0.03){ ////////////////////////
                 amb0=amb.getX();
                 amb1=amb.getY();
                 amb2=amb.getZ();
             }
-            cout << "before contraction" << endl;
 
             //start vertical recurrence
             typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
@@ -137,8 +137,7 @@ namespace votca {
                     for ( GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
                         const double& _decay_gamma = (*itgamma)->decay;
             
-
-            
+          
             
             double _decay=_decay_alpha + _decay_beta + _decay_gamma;
             double rzeta=0.5/(_decay_alpha+_decay_beta);
@@ -188,14 +187,15 @@ namespace votca {
             wmc2 = wmc.getZ();
             }
             
-            cout << "los" << endl;
+//            cout << "los" << endl;
             ma_type R_temp;
             R_temp.resize(extents[ range(0, _ncombined ) ][ range(0, _ngamma ) ][ range(0, _mmax+1)]);
             //initialize to zero
             for (index i = 0; i != _ncombined; ++i) {
-                for (index j = 0; j != _nbeta; ++j) {
-                    for (index k = 0; k != _mmax; ++k) {
-
+//////////////                for (index j = 0; j != _nbeta; ++j) {
+                for (index j = 0; j != _ngamma; ++j) { ///////////////
+///////////////                    for (index k = 0; k != _mmax; ++k) {
+                    for (index k = 0; k != _mmax+1; ++k) { //////////////////////
                                        R_temp[i][j][k] = 0.0;
                                    }
                                }
@@ -212,22 +212,29 @@ namespace votca {
                                    }
                                }
                            }
+
             
-                   
-            std::vector<double> _FmT(_mmax, 0.0); 
+
+/////////////            vector<double> _FmT(_mmax, 0.0); 
+            vector<double> _FmT(_mmax+1, 0.0); ///////////////////////////
            
             XIntegrate(_FmT, _T);
-            
-            double sss = 8*pow(2*pi,0.25)*pow(_decay_alpha*_decay_beta*_decay_gamma,0.75)/((_decay_alpha+_decay_beta)*_decay_gamma);
+
+//////            double sss = 8*pow(2*pi,0.25)*pow(_decay_alpha*_decay_beta*_decay_gamma,0.75)/((_decay_alpha+_decay_beta)*_decay_gamma);
+            double sss = ( 2.0 * pow(pi, 0.25) * pow( 8.0 * _decay_alpha * _decay_beta * _decay_gamma, 0.75 ) )
+             / ( (_decay_alpha + _decay_beta) * _decay_gamma * sqrt(_decay_alpha + _decay_beta + _decay_gamma) ); ///////
+            sss = sss * exp( -2.0*_decay_alpha*_decay_beta*rzeta*_dist3 ); ////////
+
             //ss integrals
-            for (int _i=0;_i<_mmax;_i++){
+////////////////            for (int _i=0;_i<_mmax;_i++){
+            for (int _i=0;_i<_mmax+1;_i++){ //////////////////////
                 R_temp[Cart::s][Cart::s][_i]=sss*_FmT[_i];
             }
-            
-            cout << _mmax<< "mmax" << endl;
-          
+
+/*          
 //Integral s - s - p - m0
-if (_lmax_gamma>0){
+/////if (_lmax_gamma>0){
+if ((_lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ////////////
 R_temp[Cart::s][Cart::y][0]+=wmc1*R_temp[Cart::s][Cart::s][1];
 R_temp[Cart::s][Cart::x][0]+=wmc0*R_temp[Cart::s][Cart::s][1];
 R_temp[Cart::s][Cart::z][0]+=wmc2*R_temp[Cart::s][Cart::s][1];
@@ -237,7 +244,8 @@ R_temp[Cart::s][Cart::z][0]+=wmc2*R_temp[Cart::s][Cart::s][1];
 
 //Integral s - s - p - m1
 if (_mmax >1 ){
-if (_lmax_gamma>0){
+/////////////if (_lmax_gamma>0){
+if ((_lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ////////////
 R_temp[Cart::s][Cart::y][1]+=wmc1*R_temp[Cart::s][Cart::s][2];
 R_temp[Cart::s][Cart::x][1]+=wmc0*R_temp[Cart::s][Cart::s][2];
 R_temp[Cart::s][Cart::z][1]+=wmc2*R_temp[Cart::s][Cart::s][2];
@@ -247,7 +255,8 @@ R_temp[Cart::s][Cart::z][1]+=wmc2*R_temp[Cart::s][Cart::s][2];
            
 //Integral s - s - p - m2
 if (_mmax >2 ){
-if (_lmax_gamma>0){
+///////////if (_lmax_gamma>0){
+if ((_lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ////////////
 R_temp[Cart::s][Cart::y][2]+=wmc1*R_temp[Cart::s][Cart::s][3];
 R_temp[Cart::s][Cart::x][2]+=wmc0*R_temp[Cart::s][Cart::s][3];
 R_temp[Cart::s][Cart::z][2]+=wmc2*R_temp[Cart::s][Cart::s][3];
@@ -257,7 +266,8 @@ R_temp[Cart::s][Cart::z][2]+=wmc2*R_temp[Cart::s][Cart::s][3];
 
 //Integral s - s - p - m3
 if (_mmax >3 ){
-if (_lmax_gamma>0){
+/////////////if (_lmax_gamma>0){
+if ((_lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ////////////
 R_temp[Cart::s][Cart::y][3]+=wmc1*R_temp[Cart::s][Cart::s][4];
 R_temp[Cart::s][Cart::x][3]+=wmc0*R_temp[Cart::s][Cart::s][4];
 R_temp[Cart::s][Cart::z][3]+=wmc2*R_temp[Cart::s][Cart::s][4];
@@ -267,7 +277,8 @@ R_temp[Cart::s][Cart::z][3]+=wmc2*R_temp[Cart::s][Cart::s][4];
 
 //Integral s - s - p - m4
 if (_mmax >4 ){
-if (_lmax_gamma>0){
+////////////////if (_lmax_gamma>0){
+if ((_lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ////////////
 R_temp[Cart::s][Cart::y][4]+=wmc1*R_temp[Cart::s][Cart::s][5];
 R_temp[Cart::s][Cart::x][4]+=wmc0*R_temp[Cart::s][Cart::s][5];
 R_temp[Cart::s][Cart::z][4]+=wmc2*R_temp[Cart::s][Cart::s][5];
@@ -277,7 +288,8 @@ R_temp[Cart::s][Cart::z][4]+=wmc2*R_temp[Cart::s][Cart::s][5];
 
 //Integral s - s - p - m5
 if (_mmax >5 ){
-if (_lmax_gamma>0){
+///////////////if (_lmax_gamma>0){
+if ((_lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ////////////
 R_temp[Cart::s][Cart::y][5]+=wmc1*R_temp[Cart::s][Cart::s][6];
 R_temp[Cart::s][Cart::x][5]+=wmc0*R_temp[Cart::s][Cart::s][6];
 R_temp[Cart::s][Cart::z][5]+=wmc2*R_temp[Cart::s][Cart::s][6];
@@ -287,14 +299,28 @@ R_temp[Cart::s][Cart::z][5]+=wmc2*R_temp[Cart::s][Cart::s][6];
 
 //Integral s - s - p - m6
 if (_mmax >6 ){
-if (_lmax_gamma>0){
+/////////////////if (_lmax_gamma>0){
+if ((_lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ////////////
 R_temp[Cart::s][Cart::y][6]+=wmc1*R_temp[Cart::s][Cart::s][7];
 R_temp[Cart::s][Cart::x][6]+=wmc0*R_temp[Cart::s][Cart::s][7];
 R_temp[Cart::s][Cart::z][6]+=wmc2*R_temp[Cart::s][Cart::s][7];
 }
 }
 //------------------------------------------------------
+*/
 
+//Integral s - s - p
+if (_lmax_gamma>0){
+////////////if ((_lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+R_temp[Cart::s][Cart::y][m]+=wmc1*R_temp[Cart::s][Cart::s][m+1];
+R_temp[Cart::s][Cart::x][m]+=wmc0*R_temp[Cart::s][Cart::s][m+1];
+R_temp[Cart::s][Cart::z][m]+=wmc2*R_temp[Cart::s][Cart::s][m+1];
+}
+}
+//------------------------------------------------------
+
+/*
 //Integral s - s - d - m0
 if (_lmax_gamma>1){
 R_temp[Cart::s][Cart::yy][0]+=wmc1*R_temp[Cart::s][Cart::y][1];
@@ -370,7 +396,27 @@ R_temp[Cart::s][Cart::zz][5]+=wmc2*R_temp[Cart::s][Cart::z][6];
 }
 }
 //------------------------------------------------------
+*/
 
+
+
+//Integral s - s - d
+if (_lmax_gamma>1){
+for (int m = 0; m < _mmax; m++){ //////////////////////
+double term = (0.5/_decay_gamma)*(R_temp[0][0][m]-cfak*R_temp[0][0][m+1]); ////////
+R_temp[Cart::s][Cart::yy][m]+=wmc1*R_temp[Cart::s][Cart::y][m+1]+term; /////
+R_temp[Cart::s][Cart::xy][m]+=wmc0*R_temp[Cart::s][Cart::y][m+1];
+R_temp[Cart::s][Cart::yz][m]+=wmc1*R_temp[Cart::s][Cart::z][m+1];
+R_temp[Cart::s][Cart::xx][m]+=wmc0*R_temp[Cart::s][Cart::x][m+1]+term; /////
+R_temp[Cart::s][Cart::xz][m]+=wmc0*R_temp[Cart::s][Cart::z][m+1];
+R_temp[Cart::s][Cart::zz][m]+=wmc2*R_temp[Cart::s][Cart::z][m+1]+term; /////
+}
+}
+//------------------------------------------------------
+
+
+
+/*
 //Integral s - s - f - m0
 if (_lmax_gamma>2){
 R_temp[Cart::s][Cart::yyy][0]+=wmc1*R_temp[Cart::s][Cart::yy][1]+1/_decay_gamma*(R_temp[Cart::s][Cart::y][0]-cfak*R_temp[Cart::s][Cart::y][1]);
@@ -453,9 +499,30 @@ R_temp[Cart::s][Cart::zzz][4]+=wmc2*R_temp[Cart::s][Cart::zz][5]+1/_decay_gamma*
 }
 }
 //------------------------------------------------------
+*/
 
+//Integral s - s - f
+if (_lmax_gamma>2){
+for (int m = 0; m < _mmax; m++){ //////////////////////
+R_temp[Cart::s][Cart::yyy][m]+=wmc1*R_temp[Cart::s][Cart::yy][m+1]+1/_decay_gamma*(R_temp[Cart::s][Cart::y][m]-cfak*R_temp[Cart::s][Cart::y][m+1]);
+R_temp[Cart::s][Cart::xyy][m]+=wmc0*R_temp[Cart::s][Cart::yy][m+1];
+R_temp[Cart::s][Cart::yyz][m]+=wmc2*R_temp[Cart::s][Cart::yy][m+1];
+R_temp[Cart::s][Cart::xxy][m]+=wmc1*R_temp[Cart::s][Cart::xx][m+1];
+R_temp[Cart::s][Cart::xyz][m]+=wmc0*R_temp[Cart::s][Cart::yz][m+1];
+R_temp[Cart::s][Cart::yzz][m]+=wmc1*R_temp[Cart::s][Cart::zz][m+1];
+R_temp[Cart::s][Cart::xxx][m]+=wmc0*R_temp[Cart::s][Cart::xx][m+1]+1/_decay_gamma*(R_temp[Cart::s][Cart::x][m]-cfak*R_temp[Cart::s][Cart::x][m+1]);
+R_temp[Cart::s][Cart::xxz][m]+=wmc2*R_temp[Cart::s][Cart::xx][m+1];
+R_temp[Cart::s][Cart::xzz][m]+=wmc0*R_temp[Cart::s][Cart::zz][m+1];
+R_temp[Cart::s][Cart::zzz][m]+=wmc2*R_temp[Cart::s][Cart::zz][m+1]+1/_decay_gamma*(R_temp[Cart::s][Cart::z][m]-cfak*R_temp[Cart::s][Cart::z][m+1]);
+}
+}
+//------------------------------------------------------
+
+
+/*
 //Integral p - s - s - m0
-if (_lmax_alpha>0){
+////////////if (_lmax_alpha>0){
+if ((_lmax_alpha>0)||(_lmax_beta>0)) { //////////////////
 R_temp[Cart::y][Cart::s][0]+=pma1*R_temp[Cart::s][Cart::s][0]+wmp1*R_temp[Cart::s][Cart::s][1];
 R_temp[Cart::x][Cart::s][0]+=pma0*R_temp[Cart::s][Cart::s][0]+wmp0*R_temp[Cart::s][Cart::s][1];
 R_temp[Cart::z][Cart::s][0]+=pma2*R_temp[Cart::s][Cart::s][0]+wmp2*R_temp[Cart::s][Cart::s][1];
@@ -464,7 +531,8 @@ R_temp[Cart::z][Cart::s][0]+=pma2*R_temp[Cart::s][Cart::s][0]+wmp2*R_temp[Cart::
 
 //Integral p - s - s - m1
 if (_mmax >1 ){
-if (_lmax_alpha>0){
+/////////if (_lmax_alpha>0){
+if ((_lmax_alpha>0)||(_lmax_beta>0)) { //////////////////
 R_temp[Cart::y][Cart::s][1]+=pma1*R_temp[Cart::s][Cart::s][1]+wmp1*R_temp[Cart::s][Cart::s][2];
 R_temp[Cart::x][Cart::s][1]+=pma0*R_temp[Cart::s][Cart::s][1]+wmp0*R_temp[Cart::s][Cart::s][2];
 R_temp[Cart::z][Cart::s][1]+=pma2*R_temp[Cart::s][Cart::s][1]+wmp2*R_temp[Cart::s][Cart::s][2];
@@ -474,7 +542,8 @@ R_temp[Cart::z][Cart::s][1]+=pma2*R_temp[Cart::s][Cart::s][1]+wmp2*R_temp[Cart::
 
 //Integral p - s - s - m2
 if (_mmax >2 ){
-if (_lmax_alpha>0){
+////////////if (_lmax_alpha>0){
+if ((_lmax_alpha>0)||(_lmax_beta>0)) { //////////////////
 R_temp[Cart::y][Cart::s][2]+=pma1*R_temp[Cart::s][Cart::s][2]+wmp1*R_temp[Cart::s][Cart::s][3];
 R_temp[Cart::x][Cart::s][2]+=pma0*R_temp[Cart::s][Cart::s][2]+wmp0*R_temp[Cart::s][Cart::s][3];
 R_temp[Cart::z][Cart::s][2]+=pma2*R_temp[Cart::s][Cart::s][2]+wmp2*R_temp[Cart::s][Cart::s][3];
@@ -484,7 +553,8 @@ R_temp[Cart::z][Cart::s][2]+=pma2*R_temp[Cart::s][Cart::s][2]+wmp2*R_temp[Cart::
 
 //Integral p - s - s - m3
 if (_mmax >3 ){
-if (_lmax_alpha>0){
+////////////if (_lmax_alpha>0){
+if ((_lmax_alpha>0)||(_lmax_beta>0)) { //////////////////
 R_temp[Cart::y][Cart::s][3]+=pma1*R_temp[Cart::s][Cart::s][3]+wmp1*R_temp[Cart::s][Cart::s][4];
 R_temp[Cart::x][Cart::s][3]+=pma0*R_temp[Cart::s][Cart::s][3]+wmp0*R_temp[Cart::s][Cart::s][4];
 R_temp[Cart::z][Cart::s][3]+=pma2*R_temp[Cart::s][Cart::s][3]+wmp2*R_temp[Cart::s][Cart::s][4];
@@ -494,7 +564,8 @@ R_temp[Cart::z][Cart::s][3]+=pma2*R_temp[Cart::s][Cart::s][3]+wmp2*R_temp[Cart::
 
 //Integral p - s - s - m4
 if (_mmax >4 ){
-if (_lmax_alpha>0){
+//////////if (_lmax_alpha>0){
+if ((_lmax_alpha>0)||(_lmax_beta>0)) { //////////////////
 R_temp[Cart::y][Cart::s][4]+=pma1*R_temp[Cart::s][Cart::s][4]+wmp1*R_temp[Cart::s][Cart::s][5];
 R_temp[Cart::x][Cart::s][4]+=pma0*R_temp[Cart::s][Cart::s][4]+wmp0*R_temp[Cart::s][Cart::s][5];
 R_temp[Cart::z][Cart::s][4]+=pma2*R_temp[Cart::s][Cart::s][4]+wmp2*R_temp[Cart::s][Cart::s][5];
@@ -504,7 +575,8 @@ R_temp[Cart::z][Cart::s][4]+=pma2*R_temp[Cart::s][Cart::s][4]+wmp2*R_temp[Cart::
 
 //Integral p - s - s - m5
 if (_mmax >5 ){
-if (_lmax_alpha>0){
+//////////////if (_lmax_alpha>0){
+if ((_lmax_alpha>0)||(_lmax_beta>0)) { //////////////////
 R_temp[Cart::y][Cart::s][5]+=pma1*R_temp[Cart::s][Cart::s][5]+wmp1*R_temp[Cart::s][Cart::s][6];
 R_temp[Cart::x][Cart::s][5]+=pma0*R_temp[Cart::s][Cart::s][5]+wmp0*R_temp[Cart::s][Cart::s][6];
 R_temp[Cart::z][Cart::s][5]+=pma2*R_temp[Cart::s][Cart::s][5]+wmp2*R_temp[Cart::s][Cart::s][6];
@@ -514,16 +586,33 @@ R_temp[Cart::z][Cart::s][5]+=pma2*R_temp[Cart::s][Cart::s][5]+wmp2*R_temp[Cart::
 
 //Integral p - s - s - m6
 if (_mmax >6 ){
-if (_lmax_alpha>0){
+/////////////if (_lmax_alpha>0){
+if ((_lmax_alpha>0)||(_lmax_beta>0)) { //////////////////
 R_temp[Cart::y][Cart::s][6]+=pma1*R_temp[Cart::s][Cart::s][6]+wmp1*R_temp[Cart::s][Cart::s][7];
 R_temp[Cart::x][Cart::s][6]+=pma0*R_temp[Cart::s][Cart::s][6]+wmp0*R_temp[Cart::s][Cart::s][7];
 R_temp[Cart::z][Cart::s][6]+=pma2*R_temp[Cart::s][Cart::s][6]+wmp2*R_temp[Cart::s][Cart::s][7];
 }
 }
 //------------------------------------------------------
+*/
 
+
+
+//Integral p - s - s
+////////////if (_lmax_alpha>0){
+if ((_lmax_alpha>0)||(_lmax_beta>0)) { //////////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+R_temp[Cart::y][Cart::s][m]+=pma1*R_temp[Cart::s][Cart::s][m]+wmp1*R_temp[Cart::s][Cart::s][m+1];
+R_temp[Cart::x][Cart::s][m]+=pma0*R_temp[Cart::s][Cart::s][m]+wmp0*R_temp[Cart::s][Cart::s][m+1];
+R_temp[Cart::z][Cart::s][m]+=pma2*R_temp[Cart::s][Cart::s][m]+wmp2*R_temp[Cart::s][Cart::s][m+1];
+}
+}
+//------------------------------------------------------
+
+/*
 //Integral p - s - p - m0
-if (_lmax_alpha>0 && _lmax_gamma>0){
+////////////////////if (_lmax_alpha>0 && _lmax_gamma>0){
+if ((_lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ///////////////////
 R_temp[Cart::y][Cart::y][0]+=pma1*R_temp[Cart::s][Cart::y][0]+wmp1*R_temp[Cart::s][Cart::y][1]+0.5/_decay*1*R_temp[Cart::s][Cart::s][1];
 R_temp[Cart::y][Cart::x][0]+=pma1*R_temp[Cart::s][Cart::x][0]+wmp1*R_temp[Cart::s][Cart::x][1];
 R_temp[Cart::y][Cart::z][0]+=pma1*R_temp[Cart::s][Cart::z][0]+wmp1*R_temp[Cart::s][Cart::z][1];
@@ -538,7 +627,8 @@ R_temp[Cart::z][Cart::z][0]+=pma2*R_temp[Cart::s][Cart::z][0]+wmp2*R_temp[Cart::
 
 //Integral p - s - p - m1
 if (_mmax >1 ){
-if (_lmax_alpha>0 && _lmax_gamma>0){
+///////////if (_lmax_alpha>0 && _lmax_gamma>0){
+if ((_lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ///////////////////
 R_temp[Cart::y][Cart::y][1]+=pma1*R_temp[Cart::s][Cart::y][1]+wmp1*R_temp[Cart::s][Cart::y][2]+0.5/_decay*1*R_temp[Cart::s][Cart::s][2];
 R_temp[Cart::y][Cart::x][1]+=pma1*R_temp[Cart::s][Cart::x][1]+wmp1*R_temp[Cart::s][Cart::x][2];
 R_temp[Cart::y][Cart::z][1]+=pma1*R_temp[Cart::s][Cart::z][1]+wmp1*R_temp[Cart::s][Cart::z][2];
@@ -554,7 +644,8 @@ R_temp[Cart::z][Cart::z][1]+=pma2*R_temp[Cart::s][Cart::z][1]+wmp2*R_temp[Cart::
 
 //Integral p - s - p - m2
 if (_mmax >2 ){
-if (_lmax_alpha>0 && _lmax_gamma>0){
+///////////////////if (_lmax_alpha>0 && _lmax_gamma>0){
+if ((_lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ///////////////////
 R_temp[Cart::y][Cart::y][2]+=pma1*R_temp[Cart::s][Cart::y][2]+wmp1*R_temp[Cart::s][Cart::y][3]+0.5/_decay*1*R_temp[Cart::s][Cart::s][3];
 R_temp[Cart::y][Cart::x][2]+=pma1*R_temp[Cart::s][Cart::x][2]+wmp1*R_temp[Cart::s][Cart::x][3];
 R_temp[Cart::y][Cart::z][2]+=pma1*R_temp[Cart::s][Cart::z][2]+wmp1*R_temp[Cart::s][Cart::z][3];
@@ -570,7 +661,8 @@ R_temp[Cart::z][Cart::z][2]+=pma2*R_temp[Cart::s][Cart::z][2]+wmp2*R_temp[Cart::
 
 //Integral p - s - p - m3
 if (_mmax >3 ){
-if (_lmax_alpha>0 && _lmax_gamma>0){
+////////////////if (_lmax_alpha>0 && _lmax_gamma>0){
+if ((_lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ///////////////////
 R_temp[Cart::y][Cart::y][3]+=pma1*R_temp[Cart::s][Cart::y][3]+wmp1*R_temp[Cart::s][Cart::y][4]+0.5/_decay*1*R_temp[Cart::s][Cart::s][4];
 R_temp[Cart::y][Cart::x][3]+=pma1*R_temp[Cart::s][Cart::x][3]+wmp1*R_temp[Cart::s][Cart::x][4];
 R_temp[Cart::y][Cart::z][3]+=pma1*R_temp[Cart::s][Cart::z][3]+wmp1*R_temp[Cart::s][Cart::z][4];
@@ -586,7 +678,8 @@ R_temp[Cart::z][Cart::z][3]+=pma2*R_temp[Cart::s][Cart::z][3]+wmp2*R_temp[Cart::
 
 //Integral p - s - p - m4
 if (_mmax >4 ){
-if (_lmax_alpha>0 && _lmax_gamma>0){
+///////////////////if (_lmax_alpha>0 && _lmax_gamma>0){
+if ((_lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ///////////////////
 R_temp[Cart::y][Cart::y][4]+=pma1*R_temp[Cart::s][Cart::y][4]+wmp1*R_temp[Cart::s][Cart::y][5]+0.5/_decay*1*R_temp[Cart::s][Cart::s][5];
 R_temp[Cart::y][Cart::x][4]+=pma1*R_temp[Cart::s][Cart::x][4]+wmp1*R_temp[Cart::s][Cart::x][5];
 R_temp[Cart::y][Cart::z][4]+=pma1*R_temp[Cart::s][Cart::z][4]+wmp1*R_temp[Cart::s][Cart::z][5];
@@ -602,7 +695,8 @@ R_temp[Cart::z][Cart::z][4]+=pma2*R_temp[Cart::s][Cart::z][4]+wmp2*R_temp[Cart::
 
 //Integral p - s - p - m5
 if (_mmax >5 ){
-if (_lmax_alpha>0 && _lmax_gamma>0){
+////////////////if (_lmax_alpha>0 && _lmax_gamma>0){
+if ((_lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ///////////////////
 R_temp[Cart::y][Cart::y][5]+=pma1*R_temp[Cart::s][Cart::y][5]+wmp1*R_temp[Cart::s][Cart::y][6]+0.5/_decay*1*R_temp[Cart::s][Cart::s][6];
 R_temp[Cart::y][Cart::x][5]+=pma1*R_temp[Cart::s][Cart::x][5]+wmp1*R_temp[Cart::s][Cart::x][6];
 R_temp[Cart::y][Cart::z][5]+=pma1*R_temp[Cart::s][Cart::z][5]+wmp1*R_temp[Cart::s][Cart::z][6];
@@ -615,132 +709,204 @@ R_temp[Cart::z][Cart::z][5]+=pma2*R_temp[Cart::s][Cart::z][5]+wmp2*R_temp[Cart::
 }
 }
 //------------------------------------------------------
+*/
 
+//Integral p - s - p
+////////////////////if (_lmax_alpha>0 && _lmax_gamma>0){
+if ((_lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_gamma>0)) { ///////////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+R_temp[Cart::y][Cart::y][m]+=pma1*R_temp[Cart::s][Cart::y][m]+wmp1*R_temp[Cart::s][Cart::y][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::s][m+1];
+R_temp[Cart::y][Cart::x][m]+=pma1*R_temp[Cart::s][Cart::x][m]+wmp1*R_temp[Cart::s][Cart::x][m+1];
+R_temp[Cart::y][Cart::z][m]+=pma1*R_temp[Cart::s][Cart::z][m]+wmp1*R_temp[Cart::s][Cart::z][m+1];
+R_temp[Cart::x][Cart::y][m]+=pma0*R_temp[Cart::s][Cart::y][m]+wmp0*R_temp[Cart::s][Cart::y][m+1];
+R_temp[Cart::x][Cart::x][m]+=pma0*R_temp[Cart::s][Cart::x][m]+wmp0*R_temp[Cart::s][Cart::x][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::s][m+1];
+R_temp[Cart::x][Cart::z][m]+=pma0*R_temp[Cart::s][Cart::z][m]+wmp0*R_temp[Cart::s][Cart::z][m+1];
+R_temp[Cart::z][Cart::y][m]+=pma2*R_temp[Cart::s][Cart::y][m]+wmp2*R_temp[Cart::s][Cart::y][m+1];
+R_temp[Cart::z][Cart::x][m]+=pma2*R_temp[Cart::s][Cart::x][m]+wmp2*R_temp[Cart::s][Cart::x][m+1];
+R_temp[Cart::z][Cart::z][m]+=pma2*R_temp[Cart::s][Cart::z][m]+wmp2*R_temp[Cart::s][Cart::z][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::s][m+1];
+}
+}
+//------------------------------------------------------
+
+/*
 //Integral p - s - d - m0
-if (_lmax_alpha>0 && _lmax_gamma>1){
-R_temp[Cart::y][Cart::yy][0]+=wmc1*R_temp[Cart::y][Cart::y][1]+0.5/_decay*1*R_temp[Cart::s][Cart::y][1];
+/////////////////if (_lmax_alpha>0 && _lmax_gamma>1){
+if ((_lmax_alpha>0 && _lmax_gamma>1)||(_lmax_beta>0 && _lmax_gamma>1)||(_lmax_beta>1 && _lmax_gamma>1)) { ////////////
+double term_x = (0.5/_decay_gamma) * ( R_temp[Cart::x][0][0] - cfak * R_temp[Cart::x][0][1] ); ///////
+double term_y = (0.5/_decay_gamma) * ( R_temp[Cart::y][0][0] - cfak * R_temp[Cart::y][0][1] ); ///////
+double term_z = (0.5/_decay_gamma) * ( R_temp[Cart::z][0][0] - cfak * R_temp[Cart::z][0][1] ); ///////
+R_temp[Cart::y][Cart::yy][0]+=wmc1*R_temp[Cart::y][Cart::y][1]+0.5/_decay*1*R_temp[Cart::s][Cart::y][1] + term_y; ///////
 R_temp[Cart::y][Cart::xy][0]+=wmc0*R_temp[Cart::y][Cart::y][1];
 R_temp[Cart::y][Cart::yz][0]+=wmc1*R_temp[Cart::y][Cart::z][1]+0.5/_decay*1*R_temp[Cart::s][Cart::z][1];
-R_temp[Cart::y][Cart::xx][0]+=wmc0*R_temp[Cart::y][Cart::x][1];
+R_temp[Cart::y][Cart::xx][0]+=wmc0*R_temp[Cart::y][Cart::x][1] + term_x; ///////
 R_temp[Cart::y][Cart::xz][0]+=wmc0*R_temp[Cart::y][Cart::z][1];
-R_temp[Cart::y][Cart::zz][0]+=wmc2*R_temp[Cart::y][Cart::z][1];
-R_temp[Cart::x][Cart::yy][0]+=wmc1*R_temp[Cart::x][Cart::y][1];
+R_temp[Cart::y][Cart::zz][0]+=wmc2*R_temp[Cart::y][Cart::z][1] + term_z; ///////
+R_temp[Cart::x][Cart::yy][0]+=wmc1*R_temp[Cart::x][Cart::y][1] + term_y; ///////
 R_temp[Cart::x][Cart::xy][0]+=wmc0*R_temp[Cart::x][Cart::y][1]+0.5/_decay*1*R_temp[Cart::s][Cart::y][1];
 R_temp[Cart::x][Cart::yz][0]+=wmc1*R_temp[Cart::x][Cart::z][1];
-R_temp[Cart::x][Cart::xx][0]+=wmc0*R_temp[Cart::x][Cart::x][1]+0.5/_decay*1*R_temp[Cart::s][Cart::x][1];
+R_temp[Cart::x][Cart::xx][0]+=wmc0*R_temp[Cart::x][Cart::x][1]+0.5/_decay*1*R_temp[Cart::s][Cart::x][1] + term_x; ///////
 R_temp[Cart::x][Cart::xz][0]+=wmc0*R_temp[Cart::x][Cart::z][1]+0.5/_decay*1*R_temp[Cart::s][Cart::z][1];
-R_temp[Cart::x][Cart::zz][0]+=wmc2*R_temp[Cart::x][Cart::z][1];
-R_temp[Cart::z][Cart::yy][0]+=wmc1*R_temp[Cart::z][Cart::y][1];
+R_temp[Cart::x][Cart::zz][0]+=wmc2*R_temp[Cart::x][Cart::z][1] + term_z; ///////
+R_temp[Cart::z][Cart::yy][0]+=wmc1*R_temp[Cart::z][Cart::y][1] + term_y; ///////
 R_temp[Cart::z][Cart::xy][0]+=wmc0*R_temp[Cart::z][Cart::y][1];
 R_temp[Cart::z][Cart::yz][0]+=wmc1*R_temp[Cart::z][Cart::z][1];
-R_temp[Cart::z][Cart::xx][0]+=wmc0*R_temp[Cart::z][Cart::x][1];
+R_temp[Cart::z][Cart::xx][0]+=wmc0*R_temp[Cart::z][Cart::x][1] + term_x; ///////
 R_temp[Cart::z][Cart::xz][0]+=wmc0*R_temp[Cart::z][Cart::z][1];
-R_temp[Cart::z][Cart::zz][0]+=wmc2*R_temp[Cart::z][Cart::z][1]+0.5/_decay*1*R_temp[Cart::s][Cart::z][1];
+R_temp[Cart::z][Cart::zz][0]+=wmc2*R_temp[Cart::z][Cart::z][1]+0.5/_decay*1*R_temp[Cart::s][Cart::z][1] + term_z; ///////
 }
 //------------------------------------------------------
 
 //Integral p - s - d - m1
 if (_mmax >1 ){
-if (_lmax_alpha>0 && _lmax_gamma>1){
-R_temp[Cart::y][Cart::yy][1]+=wmc1*R_temp[Cart::y][Cart::y][2]+0.5/_decay*1*R_temp[Cart::s][Cart::y][2];
+///////////////if (_lmax_alpha>0 && _lmax_gamma>1){
+if ((_lmax_alpha>0 && _lmax_gamma>1)||(_lmax_beta>0 && _lmax_gamma>1)||(_lmax_beta>1 && _lmax_gamma>1)) { ////////////
+double term_x = (0.5/_decay_gamma) * ( R_temp[Cart::x][0][1] - cfak * R_temp[Cart::x][0][2] ); ///////
+double term_y = (0.5/_decay_gamma) * ( R_temp[Cart::y][0][1] - cfak * R_temp[Cart::y][0][2] ); ///////
+double term_z = (0.5/_decay_gamma) * ( R_temp[Cart::z][0][1] - cfak * R_temp[Cart::z][0][2] ); ///////
+R_temp[Cart::y][Cart::yy][1]+=wmc1*R_temp[Cart::y][Cart::y][2]+0.5/_decay*1*R_temp[Cart::s][Cart::y][2] + term_y; ///////
 R_temp[Cart::y][Cart::xy][1]+=wmc0*R_temp[Cart::y][Cart::y][2];
 R_temp[Cart::y][Cart::yz][1]+=wmc1*R_temp[Cart::y][Cart::z][2]+0.5/_decay*1*R_temp[Cart::s][Cart::z][2];
-R_temp[Cart::y][Cart::xx][1]+=wmc0*R_temp[Cart::y][Cart::x][2];
+R_temp[Cart::y][Cart::xx][1]+=wmc0*R_temp[Cart::y][Cart::x][2] + term_x; ///////
 R_temp[Cart::y][Cart::xz][1]+=wmc0*R_temp[Cart::y][Cart::z][2];
-R_temp[Cart::y][Cart::zz][1]+=wmc2*R_temp[Cart::y][Cart::z][2];
-R_temp[Cart::x][Cart::yy][1]+=wmc1*R_temp[Cart::x][Cart::y][2];
+R_temp[Cart::y][Cart::zz][1]+=wmc2*R_temp[Cart::y][Cart::z][2] + term_z; ///////
+R_temp[Cart::x][Cart::yy][1]+=wmc1*R_temp[Cart::x][Cart::y][2] + term_y; ///////
 R_temp[Cart::x][Cart::xy][1]+=wmc0*R_temp[Cart::x][Cart::y][2]+0.5/_decay*1*R_temp[Cart::s][Cart::y][2];
 R_temp[Cart::x][Cart::yz][1]+=wmc1*R_temp[Cart::x][Cart::z][2];
-R_temp[Cart::x][Cart::xx][1]+=wmc0*R_temp[Cart::x][Cart::x][2]+0.5/_decay*1*R_temp[Cart::s][Cart::x][2];
+R_temp[Cart::x][Cart::xx][1]+=wmc0*R_temp[Cart::x][Cart::x][2]+0.5/_decay*1*R_temp[Cart::s][Cart::x][2] + term_x; ///////
 R_temp[Cart::x][Cart::xz][1]+=wmc0*R_temp[Cart::x][Cart::z][2]+0.5/_decay*1*R_temp[Cart::s][Cart::z][2];
-R_temp[Cart::x][Cart::zz][1]+=wmc2*R_temp[Cart::x][Cart::z][2];
-R_temp[Cart::z][Cart::yy][1]+=wmc1*R_temp[Cart::z][Cart::y][2];
+R_temp[Cart::x][Cart::zz][1]+=wmc2*R_temp[Cart::x][Cart::z][2] + term_z; ///////
+R_temp[Cart::z][Cart::yy][1]+=wmc1*R_temp[Cart::z][Cart::y][2] + term_y; ///////
 R_temp[Cart::z][Cart::xy][1]+=wmc0*R_temp[Cart::z][Cart::y][2];
 R_temp[Cart::z][Cart::yz][1]+=wmc1*R_temp[Cart::z][Cart::z][2];
-R_temp[Cart::z][Cart::xx][1]+=wmc0*R_temp[Cart::z][Cart::x][2];
+R_temp[Cart::z][Cart::xx][1]+=wmc0*R_temp[Cart::z][Cart::x][2] + term_x; ///////
 R_temp[Cart::z][Cart::xz][1]+=wmc0*R_temp[Cart::z][Cart::z][2];
-R_temp[Cart::z][Cart::zz][1]+=wmc2*R_temp[Cart::z][Cart::z][2]+0.5/_decay*1*R_temp[Cart::s][Cart::z][2];
+R_temp[Cart::z][Cart::zz][1]+=wmc2*R_temp[Cart::z][Cart::z][2]+0.5/_decay*1*R_temp[Cart::s][Cart::z][2] + term_z; ///////
 }
 }
 //------------------------------------------------------
 
 //Integral p - s - d - m2
 if (_mmax >2 ){
-if (_lmax_alpha>0 && _lmax_gamma>1){
-R_temp[Cart::y][Cart::yy][2]+=wmc1*R_temp[Cart::y][Cart::y][3]+0.5/_decay*1*R_temp[Cart::s][Cart::y][3];
+////////////if (_lmax_alpha>0 && _lmax_gamma>1){
+if ((_lmax_alpha>0 && _lmax_gamma>1)||(_lmax_beta>0 && _lmax_gamma>1)||(_lmax_beta>1 && _lmax_gamma>1)) { ////////////
+double term_x = (0.5/_decay_gamma) * ( R_temp[Cart::x][0][2] - cfak * R_temp[Cart::x][0][3] ); ///////
+double term_y = (0.5/_decay_gamma) * ( R_temp[Cart::y][0][2] - cfak * R_temp[Cart::y][0][3] ); ///////
+double term_z = (0.5/_decay_gamma) * ( R_temp[Cart::z][0][2] - cfak * R_temp[Cart::z][0][3] ); ///////
+R_temp[Cart::y][Cart::yy][2]+=wmc1*R_temp[Cart::y][Cart::y][3]+0.5/_decay*1*R_temp[Cart::s][Cart::y][3] + term_y; ///////
 R_temp[Cart::y][Cart::xy][2]+=wmc0*R_temp[Cart::y][Cart::y][3];
 R_temp[Cart::y][Cart::yz][2]+=wmc1*R_temp[Cart::y][Cart::z][3]+0.5/_decay*1*R_temp[Cart::s][Cart::z][3];
-R_temp[Cart::y][Cart::xx][2]+=wmc0*R_temp[Cart::y][Cart::x][3];
+R_temp[Cart::y][Cart::xx][2]+=wmc0*R_temp[Cart::y][Cart::x][3] + term_x; ///////
 R_temp[Cart::y][Cart::xz][2]+=wmc0*R_temp[Cart::y][Cart::z][3];
-R_temp[Cart::y][Cart::zz][2]+=wmc2*R_temp[Cart::y][Cart::z][3];
-R_temp[Cart::x][Cart::yy][2]+=wmc1*R_temp[Cart::x][Cart::y][3];
+R_temp[Cart::y][Cart::zz][2]+=wmc2*R_temp[Cart::y][Cart::z][3] + term_z; ///////
+R_temp[Cart::x][Cart::yy][2]+=wmc1*R_temp[Cart::x][Cart::y][3] + term_y; ///////
 R_temp[Cart::x][Cart::xy][2]+=wmc0*R_temp[Cart::x][Cart::y][3]+0.5/_decay*1*R_temp[Cart::s][Cart::y][3];
 R_temp[Cart::x][Cart::yz][2]+=wmc1*R_temp[Cart::x][Cart::z][3];
-R_temp[Cart::x][Cart::xx][2]+=wmc0*R_temp[Cart::x][Cart::x][3]+0.5/_decay*1*R_temp[Cart::s][Cart::x][3];
+R_temp[Cart::x][Cart::xx][2]+=wmc0*R_temp[Cart::x][Cart::x][3]+0.5/_decay*1*R_temp[Cart::s][Cart::x][3] + term_x; ///////
 R_temp[Cart::x][Cart::xz][2]+=wmc0*R_temp[Cart::x][Cart::z][3]+0.5/_decay*1*R_temp[Cart::s][Cart::z][3];
-R_temp[Cart::x][Cart::zz][2]+=wmc2*R_temp[Cart::x][Cart::z][3];
-R_temp[Cart::z][Cart::yy][2]+=wmc1*R_temp[Cart::z][Cart::y][3];
+R_temp[Cart::x][Cart::zz][2]+=wmc2*R_temp[Cart::x][Cart::z][3] + term_z; ///////
+R_temp[Cart::z][Cart::yy][2]+=wmc1*R_temp[Cart::z][Cart::y][3] + term_y; ///////
 R_temp[Cart::z][Cart::xy][2]+=wmc0*R_temp[Cart::z][Cart::y][3];
 R_temp[Cart::z][Cart::yz][2]+=wmc1*R_temp[Cart::z][Cart::z][3];
-R_temp[Cart::z][Cart::xx][2]+=wmc0*R_temp[Cart::z][Cart::x][3];
+R_temp[Cart::z][Cart::xx][2]+=wmc0*R_temp[Cart::z][Cart::x][3] + term_x; ///////
 R_temp[Cart::z][Cart::xz][2]+=wmc0*R_temp[Cart::z][Cart::z][3];
-R_temp[Cart::z][Cart::zz][2]+=wmc2*R_temp[Cart::z][Cart::z][3]+0.5/_decay*1*R_temp[Cart::s][Cart::z][3];
+R_temp[Cart::z][Cart::zz][2]+=wmc2*R_temp[Cart::z][Cart::z][3]+0.5/_decay*1*R_temp[Cart::s][Cart::z][3] + term_z; ///////
 }
 }
 //------------------------------------------------------
 
 //Integral p - s - d - m3
 if (_mmax >3 ){
-if (_lmax_alpha>0 && _lmax_gamma>1){
-R_temp[Cart::y][Cart::yy][3]+=wmc1*R_temp[Cart::y][Cart::y][4]+0.5/_decay*1*R_temp[Cart::s][Cart::y][4];
+///////////////if (_lmax_alpha>0 && _lmax_gamma>1){
+if ((_lmax_alpha>0 && _lmax_gamma>1)||(_lmax_beta>0 && _lmax_gamma>1)||(_lmax_beta>1 && _lmax_gamma>1)) { ////////////
+double term_x = (0.5/_decay_gamma) * ( R_temp[Cart::x][0][3] - cfak * R_temp[Cart::x][0][4] ); ///////
+double term_y = (0.5/_decay_gamma) * ( R_temp[Cart::y][0][3] - cfak * R_temp[Cart::y][0][4] ); ///////
+double term_z = (0.5/_decay_gamma) * ( R_temp[Cart::z][0][3] - cfak * R_temp[Cart::z][0][4] ); ///////
+R_temp[Cart::y][Cart::yy][3]+=wmc1*R_temp[Cart::y][Cart::y][4]+0.5/_decay*1*R_temp[Cart::s][Cart::y][4] + term_y; ///////
 R_temp[Cart::y][Cart::xy][3]+=wmc0*R_temp[Cart::y][Cart::y][4];
 R_temp[Cart::y][Cart::yz][3]+=wmc1*R_temp[Cart::y][Cart::z][4]+0.5/_decay*1*R_temp[Cart::s][Cart::z][4];
-R_temp[Cart::y][Cart::xx][3]+=wmc0*R_temp[Cart::y][Cart::x][4];
+R_temp[Cart::y][Cart::xx][3]+=wmc0*R_temp[Cart::y][Cart::x][4] + term_x; ///////
 R_temp[Cart::y][Cart::xz][3]+=wmc0*R_temp[Cart::y][Cart::z][4];
-R_temp[Cart::y][Cart::zz][3]+=wmc2*R_temp[Cart::y][Cart::z][4];
-R_temp[Cart::x][Cart::yy][3]+=wmc1*R_temp[Cart::x][Cart::y][4];
+R_temp[Cart::y][Cart::zz][3]+=wmc2*R_temp[Cart::y][Cart::z][4] + term_z; ///////
+R_temp[Cart::x][Cart::yy][3]+=wmc1*R_temp[Cart::x][Cart::y][4] + term_y; ///////
 R_temp[Cart::x][Cart::xy][3]+=wmc0*R_temp[Cart::x][Cart::y][4]+0.5/_decay*1*R_temp[Cart::s][Cart::y][4];
 R_temp[Cart::x][Cart::yz][3]+=wmc1*R_temp[Cart::x][Cart::z][4];
-R_temp[Cart::x][Cart::xx][3]+=wmc0*R_temp[Cart::x][Cart::x][4]+0.5/_decay*1*R_temp[Cart::s][Cart::x][4];
+R_temp[Cart::x][Cart::xx][3]+=wmc0*R_temp[Cart::x][Cart::x][4]+0.5/_decay*1*R_temp[Cart::s][Cart::x][4] + term_x; ///////
 R_temp[Cart::x][Cart::xz][3]+=wmc0*R_temp[Cart::x][Cart::z][4]+0.5/_decay*1*R_temp[Cart::s][Cart::z][4];
-R_temp[Cart::x][Cart::zz][3]+=wmc2*R_temp[Cart::x][Cart::z][4];
-R_temp[Cart::z][Cart::yy][3]+=wmc1*R_temp[Cart::z][Cart::y][4];
+R_temp[Cart::x][Cart::zz][3]+=wmc2*R_temp[Cart::x][Cart::z][4] + term_z; ///////
+R_temp[Cart::z][Cart::yy][3]+=wmc1*R_temp[Cart::z][Cart::y][4] + term_y; ///////
 R_temp[Cart::z][Cart::xy][3]+=wmc0*R_temp[Cart::z][Cart::y][4];
 R_temp[Cart::z][Cart::yz][3]+=wmc1*R_temp[Cart::z][Cart::z][4];
-R_temp[Cart::z][Cart::xx][3]+=wmc0*R_temp[Cart::z][Cart::x][4];
+R_temp[Cart::z][Cart::xx][3]+=wmc0*R_temp[Cart::z][Cart::x][4] + term_x; ///////
 R_temp[Cart::z][Cart::xz][3]+=wmc0*R_temp[Cart::z][Cart::z][4];
-R_temp[Cart::z][Cart::zz][3]+=wmc2*R_temp[Cart::z][Cart::z][4]+0.5/_decay*1*R_temp[Cart::s][Cart::z][4];
+R_temp[Cart::z][Cart::zz][3]+=wmc2*R_temp[Cart::z][Cart::z][4]+0.5/_decay*1*R_temp[Cart::s][Cart::z][4] + term_z; ///////
 }
 }
 //------------------------------------------------------
 
 //Integral p - s - d - m4
 if (_mmax >4 ){
-if (_lmax_alpha>0 && _lmax_gamma>1){
-R_temp[Cart::y][Cart::yy][4]+=wmc1*R_temp[Cart::y][Cart::y][5]+0.5/_decay*1*R_temp[Cart::s][Cart::y][5];
+///////////////if (_lmax_alpha>0 && _lmax_gamma>1){
+if ((_lmax_alpha>0 && _lmax_gamma>1)||(_lmax_beta>0 && _lmax_gamma>1)||(_lmax_beta>1 && _lmax_gamma>1)) { ////////////
+double term_x = (0.5/_decay_gamma) * ( R_temp[Cart::x][0][4] - cfak * R_temp[Cart::x][0][5] ); ///////
+double term_y = (0.5/_decay_gamma) * ( R_temp[Cart::y][0][4] - cfak * R_temp[Cart::y][0][5] ); ///////
+double term_z = (0.5/_decay_gamma) * ( R_temp[Cart::z][0][4] - cfak * R_temp[Cart::z][0][5] ); ///////
+R_temp[Cart::y][Cart::yy][4]+=wmc1*R_temp[Cart::y][Cart::y][5]+0.5/_decay*1*R_temp[Cart::s][Cart::y][5] + term_y; ///////
 R_temp[Cart::y][Cart::xy][4]+=wmc0*R_temp[Cart::y][Cart::y][5];
 R_temp[Cart::y][Cart::yz][4]+=wmc1*R_temp[Cart::y][Cart::z][5]+0.5/_decay*1*R_temp[Cart::s][Cart::z][5];
-R_temp[Cart::y][Cart::xx][4]+=wmc0*R_temp[Cart::y][Cart::x][5];
+R_temp[Cart::y][Cart::xx][4]+=wmc0*R_temp[Cart::y][Cart::x][5] + term_x; ///////
 R_temp[Cart::y][Cart::xz][4]+=wmc0*R_temp[Cart::y][Cart::z][5];
-R_temp[Cart::y][Cart::zz][4]+=wmc2*R_temp[Cart::y][Cart::z][5];
-R_temp[Cart::x][Cart::yy][4]+=wmc1*R_temp[Cart::x][Cart::y][5];
+R_temp[Cart::y][Cart::zz][4]+=wmc2*R_temp[Cart::y][Cart::z][5] + term_z; ///////
+R_temp[Cart::x][Cart::yy][4]+=wmc1*R_temp[Cart::x][Cart::y][5] + term_y; ///////
 R_temp[Cart::x][Cart::xy][4]+=wmc0*R_temp[Cart::x][Cart::y][5]+0.5/_decay*1*R_temp[Cart::s][Cart::y][5];
 R_temp[Cart::x][Cart::yz][4]+=wmc1*R_temp[Cart::x][Cart::z][5];
-R_temp[Cart::x][Cart::xx][4]+=wmc0*R_temp[Cart::x][Cart::x][5]+0.5/_decay*1*R_temp[Cart::s][Cart::x][5];
+R_temp[Cart::x][Cart::xx][4]+=wmc0*R_temp[Cart::x][Cart::x][5]+0.5/_decay*1*R_temp[Cart::s][Cart::x][5] + term_x; ///////
 R_temp[Cart::x][Cart::xz][4]+=wmc0*R_temp[Cart::x][Cart::z][5]+0.5/_decay*1*R_temp[Cart::s][Cart::z][5];
-R_temp[Cart::x][Cart::zz][4]+=wmc2*R_temp[Cart::x][Cart::z][5];
-R_temp[Cart::z][Cart::yy][4]+=wmc1*R_temp[Cart::z][Cart::y][5];
+R_temp[Cart::x][Cart::zz][4]+=wmc2*R_temp[Cart::x][Cart::z][5] + term_z; ///////
+R_temp[Cart::z][Cart::yy][4]+=wmc1*R_temp[Cart::z][Cart::y][5] + term_y; ///////
 R_temp[Cart::z][Cart::xy][4]+=wmc0*R_temp[Cart::z][Cart::y][5];
 R_temp[Cart::z][Cart::yz][4]+=wmc1*R_temp[Cart::z][Cart::z][5];
-R_temp[Cart::z][Cart::xx][4]+=wmc0*R_temp[Cart::z][Cart::x][5];
+R_temp[Cart::z][Cart::xx][4]+=wmc0*R_temp[Cart::z][Cart::x][5] + term_x; ///////
 R_temp[Cart::z][Cart::xz][4]+=wmc0*R_temp[Cart::z][Cart::z][5];
-R_temp[Cart::z][Cart::zz][4]+=wmc2*R_temp[Cart::z][Cart::z][5]+0.5/_decay*1*R_temp[Cart::s][Cart::z][5];
+R_temp[Cart::z][Cart::zz][4]+=wmc2*R_temp[Cart::z][Cart::z][5]+0.5/_decay*1*R_temp[Cart::s][Cart::z][5] + term_z; ///////
+}
+}
+//------------------------------------------------------
+*/
+
+
+//Integral p - s - d
+/////////////////if (_lmax_alpha>0 && _lmax_gamma>1){
+if ((_lmax_alpha>0 && _lmax_gamma>1)||(_lmax_beta>0 && _lmax_gamma>1)) { ////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+double term_x = (0.5/_decay_gamma) * ( R_temp[Cart::x][0][m] - cfak * R_temp[Cart::x][0][m+1] ); ///////
+double term_y = (0.5/_decay_gamma) * ( R_temp[Cart::y][0][m] - cfak * R_temp[Cart::y][0][m+1] ); ///////
+double term_z = (0.5/_decay_gamma) * ( R_temp[Cart::z][0][m] - cfak * R_temp[Cart::z][0][m+1] ); ///////
+R_temp[Cart::y][Cart::yy][m]+=wmc1*R_temp[Cart::y][Cart::y][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::y][m+1] + term_y; ///////
+R_temp[Cart::y][Cart::xy][m]+=wmc0*R_temp[Cart::y][Cart::y][m+1];
+R_temp[Cart::y][Cart::yz][m]+=wmc1*R_temp[Cart::y][Cart::z][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::z][m+1];
+R_temp[Cart::y][Cart::xx][m]+=wmc0*R_temp[Cart::y][Cart::x][m+1] + term_x; ///////
+R_temp[Cart::y][Cart::xz][m]+=wmc0*R_temp[Cart::y][Cart::z][m+1];
+R_temp[Cart::y][Cart::zz][m]+=wmc2*R_temp[Cart::y][Cart::z][m+1] + term_z; ///////
+R_temp[Cart::x][Cart::yy][m]+=wmc1*R_temp[Cart::x][Cart::y][m+1] + term_y; ///////
+R_temp[Cart::x][Cart::xy][m]+=wmc0*R_temp[Cart::x][Cart::y][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::y][m+1];
+R_temp[Cart::x][Cart::yz][m]+=wmc1*R_temp[Cart::x][Cart::z][m+1];
+R_temp[Cart::x][Cart::xx][m]+=wmc0*R_temp[Cart::x][Cart::x][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::x][m+1] + term_x; ///////
+R_temp[Cart::x][Cart::xz][m]+=wmc0*R_temp[Cart::x][Cart::z][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::z][m+1];
+R_temp[Cart::x][Cart::zz][m]+=wmc2*R_temp[Cart::x][Cart::z][m+1] + term_z; ///////
+R_temp[Cart::z][Cart::yy][m]+=wmc1*R_temp[Cart::z][Cart::y][m+1] + term_y; ///////
+R_temp[Cart::z][Cart::xy][m]+=wmc0*R_temp[Cart::z][Cart::y][m+1];
+R_temp[Cart::z][Cart::yz][m]+=wmc1*R_temp[Cart::z][Cart::z][m+1];
+R_temp[Cart::z][Cart::xx][m]+=wmc0*R_temp[Cart::z][Cart::x][m+1] + term_x; ///////
+R_temp[Cart::z][Cart::xz][m]+=wmc0*R_temp[Cart::z][Cart::z][m+1];
+R_temp[Cart::z][Cart::zz][m]+=wmc2*R_temp[Cart::z][Cart::z][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::z][m+1] + term_z; ///////
 }
 }
 //------------------------------------------------------
 
+/*
 //Integral p - s - f - m0
-if (_lmax_alpha>0 && _lmax_gamma>2){
+///////////////////if (_lmax_alpha>0 && _lmax_gamma>2){
+if ((_lmax_alpha>0 && _lmax_gamma>2)||(_lmax_beta>0 && _lmax_gamma>2)) { /////////////
 R_temp[Cart::y][Cart::yyy][0]+=wmc1*R_temp[Cart::y][Cart::yy][1]+1/_decay_gamma*(R_temp[Cart::y][Cart::y][0]-cfak*R_temp[Cart::y][Cart::y][1])+0.5/_decay*1*R_temp[Cart::s][Cart::yy][1];
 R_temp[Cart::y][Cart::xyy][0]+=wmc0*R_temp[Cart::y][Cart::yy][1];
 R_temp[Cart::y][Cart::yyz][0]+=wmc2*R_temp[Cart::y][Cart::yy][1];
@@ -776,7 +942,8 @@ R_temp[Cart::z][Cart::zzz][0]+=wmc2*R_temp[Cart::z][Cart::zz][1]+1/_decay_gamma*
 
 //Integral p - s - f - m1
 if (_mmax >1 ){
-if (_lmax_alpha>0 && _lmax_gamma>2){
+///////////if (_lmax_alpha>0 && _lmax_gamma>2){
+if ((_lmax_alpha>0 && _lmax_gamma>2)||(_lmax_beta>0 && _lmax_gamma>2)) { /////////////
 R_temp[Cart::y][Cart::yyy][1]+=wmc1*R_temp[Cart::y][Cart::yy][2]+1/_decay_gamma*(R_temp[Cart::y][Cart::y][1]-cfak*R_temp[Cart::y][Cart::y][2])+0.5/_decay*1*R_temp[Cart::s][Cart::yy][2];
 R_temp[Cart::y][Cart::xyy][1]+=wmc0*R_temp[Cart::y][Cart::yy][2];
 R_temp[Cart::y][Cart::yyz][1]+=wmc2*R_temp[Cart::y][Cart::yy][2];
@@ -813,7 +980,8 @@ R_temp[Cart::z][Cart::zzz][1]+=wmc2*R_temp[Cart::z][Cart::zz][2]+1/_decay_gamma*
 
 //Integral p - s - f - m2
 if (_mmax >2 ){
-if (_lmax_alpha>0 && _lmax_gamma>2){
+///////////////if (_lmax_alpha>0 && _lmax_gamma>2){
+if ((_lmax_alpha>0 && _lmax_gamma>2)||(_lmax_beta>0 && _lmax_gamma>2)) { /////////////
 R_temp[Cart::y][Cart::yyy][2]+=wmc1*R_temp[Cart::y][Cart::yy][3]+1/_decay_gamma*(R_temp[Cart::y][Cart::y][2]-cfak*R_temp[Cart::y][Cart::y][3])+0.5/_decay*1*R_temp[Cart::s][Cart::yy][3];
 R_temp[Cart::y][Cart::xyy][2]+=wmc0*R_temp[Cart::y][Cart::yy][3];
 R_temp[Cart::y][Cart::yyz][2]+=wmc2*R_temp[Cart::y][Cart::yy][3];
@@ -850,7 +1018,8 @@ R_temp[Cart::z][Cart::zzz][2]+=wmc2*R_temp[Cart::z][Cart::zz][3]+1/_decay_gamma*
 
 //Integral p - s - f - m3
 if (_mmax >3 ){
-if (_lmax_alpha>0 && _lmax_gamma>2){
+////////////////////if (_lmax_alpha>0 && _lmax_gamma>2){
+if ((_lmax_alpha>0 && _lmax_gamma>2)||(_lmax_beta>0 && _lmax_gamma>2)) { /////////////
 R_temp[Cart::y][Cart::yyy][3]+=wmc1*R_temp[Cart::y][Cart::yy][4]+1/_decay_gamma*(R_temp[Cart::y][Cart::y][3]-cfak*R_temp[Cart::y][Cart::y][4])+0.5/_decay*1*R_temp[Cart::s][Cart::yy][4];
 R_temp[Cart::y][Cart::xyy][3]+=wmc0*R_temp[Cart::y][Cart::yy][4];
 R_temp[Cart::y][Cart::yyz][3]+=wmc2*R_temp[Cart::y][Cart::yy][4];
@@ -884,206 +1053,328 @@ R_temp[Cart::z][Cart::zzz][3]+=wmc2*R_temp[Cart::z][Cart::zz][4]+1/_decay_gamma*
 }
 }
 //------------------------------------------------------
+*/
 
+
+//Integral p - s - f
+///////////////////if (_lmax_alpha>0 && _lmax_gamma>2){
+if ((_lmax_alpha>0 && _lmax_gamma>2)||(_lmax_beta>0 && _lmax_gamma>2)) { /////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+R_temp[Cart::y][Cart::yyy][m]+=wmc1*R_temp[Cart::y][Cart::yy][m+1]+1/_decay_gamma*(R_temp[Cart::y][Cart::y][m]-cfak*R_temp[Cart::y][Cart::y][m+1])+0.5/_decay*1*R_temp[Cart::s][Cart::yy][m+1];
+R_temp[Cart::y][Cart::xyy][m]+=wmc0*R_temp[Cart::y][Cart::yy][m+1];
+R_temp[Cart::y][Cart::yyz][m]+=wmc2*R_temp[Cart::y][Cart::yy][m+1];
+R_temp[Cart::y][Cart::xxy][m]+=wmc1*R_temp[Cart::y][Cart::xx][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::xx][m+1];
+R_temp[Cart::y][Cart::xyz][m]+=wmc0*R_temp[Cart::y][Cart::yz][m+1];
+R_temp[Cart::y][Cart::yzz][m]+=wmc1*R_temp[Cart::y][Cart::zz][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::zz][m+1];
+R_temp[Cart::y][Cart::xxx][m]+=wmc0*R_temp[Cart::y][Cart::xx][m+1]+1/_decay_gamma*(R_temp[Cart::y][Cart::x][m]-cfak*R_temp[Cart::y][Cart::x][m+1]);
+R_temp[Cart::y][Cart::xxz][m]+=wmc2*R_temp[Cart::y][Cart::xx][m+1];
+R_temp[Cart::y][Cart::xzz][m]+=wmc0*R_temp[Cart::y][Cart::zz][m+1];
+R_temp[Cart::y][Cart::zzz][m]+=wmc2*R_temp[Cart::y][Cart::zz][m+1]+1/_decay_gamma*(R_temp[Cart::y][Cart::z][m]-cfak*R_temp[Cart::y][Cart::z][m+1]);
+R_temp[Cart::x][Cart::yyy][m]+=wmc1*R_temp[Cart::x][Cart::yy][m+1]+1/_decay_gamma*(R_temp[Cart::x][Cart::y][m]-cfak*R_temp[Cart::x][Cart::y][m+1]);
+R_temp[Cart::x][Cart::xyy][m]+=wmc0*R_temp[Cart::x][Cart::yy][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::yy][m+1];
+R_temp[Cart::x][Cart::yyz][m]+=wmc2*R_temp[Cart::x][Cart::yy][m+1];
+R_temp[Cart::x][Cart::xxy][m]+=wmc1*R_temp[Cart::x][Cart::xx][m+1];
+R_temp[Cart::x][Cart::xyz][m]+=wmc0*R_temp[Cart::x][Cart::yz][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::yz][m+1];
+R_temp[Cart::x][Cart::yzz][m]+=wmc1*R_temp[Cart::x][Cart::zz][m+1];
+R_temp[Cart::x][Cart::xxx][m]+=wmc0*R_temp[Cart::x][Cart::xx][m+1]+1/_decay_gamma*(R_temp[Cart::x][Cart::x][m]-cfak*R_temp[Cart::x][Cart::x][m+1])+0.5/_decay*1*R_temp[Cart::s][Cart::xx][m+1];
+R_temp[Cart::x][Cart::xxz][m]+=wmc2*R_temp[Cart::x][Cart::xx][m+1];
+R_temp[Cart::x][Cart::xzz][m]+=wmc0*R_temp[Cart::x][Cart::zz][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::zz][m+1];
+R_temp[Cart::x][Cart::zzz][m]+=wmc2*R_temp[Cart::x][Cart::zz][m+1]+1/_decay_gamma*(R_temp[Cart::x][Cart::z][m]-cfak*R_temp[Cart::x][Cart::z][m+1]);
+R_temp[Cart::z][Cart::yyy][m]+=wmc1*R_temp[Cart::z][Cart::yy][m+1]+1/_decay_gamma*(R_temp[Cart::z][Cart::y][m]-cfak*R_temp[Cart::z][Cart::y][m+1]);
+R_temp[Cart::z][Cart::xyy][m]+=wmc0*R_temp[Cart::z][Cart::yy][m+1];
+R_temp[Cart::z][Cart::yyz][m]+=wmc2*R_temp[Cart::z][Cart::yy][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::yy][m+1];
+R_temp[Cart::z][Cart::xxy][m]+=wmc1*R_temp[Cart::z][Cart::xx][m+1];
+R_temp[Cart::z][Cart::xyz][m]+=wmc0*R_temp[Cart::z][Cart::yz][m+1];
+R_temp[Cart::z][Cart::yzz][m]+=wmc1*R_temp[Cart::z][Cart::zz][m+1];
+R_temp[Cart::z][Cart::xxx][m]+=wmc0*R_temp[Cart::z][Cart::xx][m+1]+1/_decay_gamma*(R_temp[Cart::z][Cart::x][m]-cfak*R_temp[Cart::z][Cart::x][m+1]);
+R_temp[Cart::z][Cart::xxz][m]+=wmc2*R_temp[Cart::z][Cart::xx][m+1]+0.5/_decay*1*R_temp[Cart::s][Cart::xx][m+1];
+R_temp[Cart::z][Cart::xzz][m]+=wmc0*R_temp[Cart::z][Cart::zz][m+1];
+R_temp[Cart::z][Cart::zzz][m]+=wmc2*R_temp[Cart::z][Cart::zz][m+1]+1/_decay_gamma*(R_temp[Cart::z][Cart::z][m]-cfak*R_temp[Cart::z][Cart::z][m+1])+0.5/_decay*1*R_temp[Cart::s][Cart::zz][m+1];
+}
+}
+//------------------------------------------------------
+
+/*
 //Integral d - s - s - m0
-if (_lmax_alpha>1){
-R_temp[Cart::yy][Cart::s][0]+=pma1*R_temp[Cart::y][Cart::s][0]+wmp1*R_temp[Cart::y][Cart::s][1];
+////////////if (_lmax_alpha>1){
+if ((_lmax_alpha>1)||(_lmax_beta>0 && _lmax_alpha>0)||(_lmax_beta>1)) { ///////////////
+double term = rzeta * ( R_temp[0][0][0] - gfak * R_temp[0][0][1]); ///////
+R_temp[Cart::yy][Cart::s][0]+=pma1*R_temp[Cart::y][Cart::s][0]+wmp1*R_temp[Cart::y][Cart::s][1] + term; ////
 R_temp[Cart::xy][Cart::s][0]+=pma0*R_temp[Cart::y][Cart::s][0]+wmp0*R_temp[Cart::y][Cart::s][1];
 R_temp[Cart::yz][Cart::s][0]+=pma1*R_temp[Cart::z][Cart::s][0]+wmp1*R_temp[Cart::z][Cart::s][1];
-R_temp[Cart::xx][Cart::s][0]+=pma0*R_temp[Cart::x][Cart::s][0]+wmp0*R_temp[Cart::x][Cart::s][1];
+R_temp[Cart::xx][Cart::s][0]+=pma0*R_temp[Cart::x][Cart::s][0]+wmp0*R_temp[Cart::x][Cart::s][1] + term; /////
 R_temp[Cart::xz][Cart::s][0]+=pma0*R_temp[Cart::z][Cart::s][0]+wmp0*R_temp[Cart::z][Cart::s][1];
-R_temp[Cart::zz][Cart::s][0]+=pma2*R_temp[Cart::z][Cart::s][0]+wmp2*R_temp[Cart::z][Cart::s][1];
+R_temp[Cart::zz][Cart::s][0]+=pma2*R_temp[Cart::z][Cart::s][0]+wmp2*R_temp[Cart::z][Cart::s][1] + term; /////
 }
 //------------------------------------------------------
 
 //Integral d - s - s - m1
 if (_mmax >1 ){
-if (_lmax_alpha>1){
-R_temp[Cart::yy][Cart::s][1]+=pma1*R_temp[Cart::y][Cart::s][1]+wmp1*R_temp[Cart::y][Cart::s][2];
+////////////if (_lmax_alpha>1){
+if ((_lmax_alpha>1)||(_lmax_beta>0 && _lmax_alpha>0)||(_lmax_beta>1)) { ///////////////
+double term = rzeta * ( R_temp[0][0][1] - gfak * R_temp[0][0][2]); ///////
+R_temp[Cart::yy][Cart::s][1]+=pma1*R_temp[Cart::y][Cart::s][1]+wmp1*R_temp[Cart::y][Cart::s][2] + term; ////
 R_temp[Cart::xy][Cart::s][1]+=pma0*R_temp[Cart::y][Cart::s][1]+wmp0*R_temp[Cart::y][Cart::s][2];
 R_temp[Cart::yz][Cart::s][1]+=pma1*R_temp[Cart::z][Cart::s][1]+wmp1*R_temp[Cart::z][Cart::s][2];
-R_temp[Cart::xx][Cart::s][1]+=pma0*R_temp[Cart::x][Cart::s][1]+wmp0*R_temp[Cart::x][Cart::s][2];
+R_temp[Cart::xx][Cart::s][1]+=pma0*R_temp[Cart::x][Cart::s][1]+wmp0*R_temp[Cart::x][Cart::s][2] + term; ////
 R_temp[Cart::xz][Cart::s][1]+=pma0*R_temp[Cart::z][Cart::s][1]+wmp0*R_temp[Cart::z][Cart::s][2];
-R_temp[Cart::zz][Cart::s][1]+=pma2*R_temp[Cart::z][Cart::s][1]+wmp2*R_temp[Cart::z][Cart::s][2];
+R_temp[Cart::zz][Cart::s][1]+=pma2*R_temp[Cart::z][Cart::s][1]+wmp2*R_temp[Cart::z][Cart::s][2] + term; ////
 }
 }
 //------------------------------------------------------
 
 //Integral d - s - s - m2
 if (_mmax >2 ){
-if (_lmax_alpha>1){
-R_temp[Cart::yy][Cart::s][2]+=pma1*R_temp[Cart::y][Cart::s][2]+wmp1*R_temp[Cart::y][Cart::s][3];
+//////////////if (_lmax_alpha>1){
+if ((_lmax_alpha>1)||(_lmax_beta>0 && _lmax_alpha>0)||(_lmax_beta>1)) { ///////////////
+double term = rzeta * ( R_temp[0][0][2] - gfak * R_temp[0][0][3]); ///////
+R_temp[Cart::yy][Cart::s][2]+=pma1*R_temp[Cart::y][Cart::s][2]+wmp1*R_temp[Cart::y][Cart::s][3] + term; ////
 R_temp[Cart::xy][Cart::s][2]+=pma0*R_temp[Cart::y][Cart::s][2]+wmp0*R_temp[Cart::y][Cart::s][3];
 R_temp[Cart::yz][Cart::s][2]+=pma1*R_temp[Cart::z][Cart::s][2]+wmp1*R_temp[Cart::z][Cart::s][3];
-R_temp[Cart::xx][Cart::s][2]+=pma0*R_temp[Cart::x][Cart::s][2]+wmp0*R_temp[Cart::x][Cart::s][3];
+R_temp[Cart::xx][Cart::s][2]+=pma0*R_temp[Cart::x][Cart::s][2]+wmp0*R_temp[Cart::x][Cart::s][3] + term; ////
 R_temp[Cart::xz][Cart::s][2]+=pma0*R_temp[Cart::z][Cart::s][2]+wmp0*R_temp[Cart::z][Cart::s][3];
-R_temp[Cart::zz][Cart::s][2]+=pma2*R_temp[Cart::z][Cart::s][2]+wmp2*R_temp[Cart::z][Cart::s][3];
+R_temp[Cart::zz][Cart::s][2]+=pma2*R_temp[Cart::z][Cart::s][2]+wmp2*R_temp[Cart::z][Cart::s][3] + term; ////
 }
 }
 //------------------------------------------------------
 
 //Integral d - s - s - m3
 if (_mmax >3 ){
-if (_lmax_alpha>1){
-R_temp[Cart::yy][Cart::s][3]+=pma1*R_temp[Cart::y][Cart::s][3]+wmp1*R_temp[Cart::y][Cart::s][4];
+///////////////if (_lmax_alpha>1){
+if ((_lmax_alpha>1)||(_lmax_beta>0 && _lmax_alpha>0)||(_lmax_beta>1)) { ///////////////
+double term = rzeta * ( R_temp[0][0][3] - gfak * R_temp[0][0][4]); ///////
+R_temp[Cart::yy][Cart::s][3]+=pma1*R_temp[Cart::y][Cart::s][3]+wmp1*R_temp[Cart::y][Cart::s][4] + term; ////
 R_temp[Cart::xy][Cart::s][3]+=pma0*R_temp[Cart::y][Cart::s][3]+wmp0*R_temp[Cart::y][Cart::s][4];
 R_temp[Cart::yz][Cart::s][3]+=pma1*R_temp[Cart::z][Cart::s][3]+wmp1*R_temp[Cart::z][Cart::s][4];
-R_temp[Cart::xx][Cart::s][3]+=pma0*R_temp[Cart::x][Cart::s][3]+wmp0*R_temp[Cart::x][Cart::s][4];
+R_temp[Cart::xx][Cart::s][3]+=pma0*R_temp[Cart::x][Cart::s][3]+wmp0*R_temp[Cart::x][Cart::s][4] + term; ////
 R_temp[Cart::xz][Cart::s][3]+=pma0*R_temp[Cart::z][Cart::s][3]+wmp0*R_temp[Cart::z][Cart::s][4];
-R_temp[Cart::zz][Cart::s][3]+=pma2*R_temp[Cart::z][Cart::s][3]+wmp2*R_temp[Cart::z][Cart::s][4];
+R_temp[Cart::zz][Cart::s][3]+=pma2*R_temp[Cart::z][Cart::s][3]+wmp2*R_temp[Cart::z][Cart::s][4] + term; ////
 }
 }
 //------------------------------------------------------
 
 //Integral d - s - s - m4
 if (_mmax >4 ){
-if (_lmax_alpha>1){
-R_temp[Cart::yy][Cart::s][4]+=pma1*R_temp[Cart::y][Cart::s][4]+wmp1*R_temp[Cart::y][Cart::s][5];
+////////////////if (_lmax_alpha>1){
+if ((_lmax_alpha>1)||(_lmax_beta>0 && _lmax_alpha>0)||(_lmax_beta>1)) { ///////////////
+double term = rzeta * ( R_temp[0][0][4] - gfak * R_temp[0][0][5]); ///////
+R_temp[Cart::yy][Cart::s][4]+=pma1*R_temp[Cart::y][Cart::s][4]+wmp1*R_temp[Cart::y][Cart::s][5] + term; ////
 R_temp[Cart::xy][Cart::s][4]+=pma0*R_temp[Cart::y][Cart::s][4]+wmp0*R_temp[Cart::y][Cart::s][5];
 R_temp[Cart::yz][Cart::s][4]+=pma1*R_temp[Cart::z][Cart::s][4]+wmp1*R_temp[Cart::z][Cart::s][5];
-R_temp[Cart::xx][Cart::s][4]+=pma0*R_temp[Cart::x][Cart::s][4]+wmp0*R_temp[Cart::x][Cart::s][5];
+R_temp[Cart::xx][Cart::s][4]+=pma0*R_temp[Cart::x][Cart::s][4]+wmp0*R_temp[Cart::x][Cart::s][5] + term; ////
 R_temp[Cart::xz][Cart::s][4]+=pma0*R_temp[Cart::z][Cart::s][4]+wmp0*R_temp[Cart::z][Cart::s][5];
-R_temp[Cart::zz][Cart::s][4]+=pma2*R_temp[Cart::z][Cart::s][4]+wmp2*R_temp[Cart::z][Cart::s][5];
+R_temp[Cart::zz][Cart::s][4]+=pma2*R_temp[Cart::z][Cart::s][4]+wmp2*R_temp[Cart::z][Cart::s][5] + term; ////
 }
 }
 //------------------------------------------------------
 
 //Integral d - s - s - m5
 if (_mmax >5 ){
-if (_lmax_alpha>1){
-R_temp[Cart::yy][Cart::s][5]+=pma1*R_temp[Cart::y][Cart::s][5]+wmp1*R_temp[Cart::y][Cart::s][6];
+////////////////if (_lmax_alpha>1){
+if ((_lmax_alpha>1)||(_lmax_beta>0 && _lmax_alpha>0)||(_lmax_beta>1)) { ///////////////
+double term = rzeta * ( R_temp[0][0][5] - gfak * R_temp[0][0][6]); ///////
+R_temp[Cart::yy][Cart::s][5]+=pma1*R_temp[Cart::y][Cart::s][5]+wmp1*R_temp[Cart::y][Cart::s][6] + term; ////
 R_temp[Cart::xy][Cart::s][5]+=pma0*R_temp[Cart::y][Cart::s][5]+wmp0*R_temp[Cart::y][Cart::s][6];
 R_temp[Cart::yz][Cart::s][5]+=pma1*R_temp[Cart::z][Cart::s][5]+wmp1*R_temp[Cart::z][Cart::s][6];
-R_temp[Cart::xx][Cart::s][5]+=pma0*R_temp[Cart::x][Cart::s][5]+wmp0*R_temp[Cart::x][Cart::s][6];
+R_temp[Cart::xx][Cart::s][5]+=pma0*R_temp[Cart::x][Cart::s][5]+wmp0*R_temp[Cart::x][Cart::s][6] + term; ////
 R_temp[Cart::xz][Cart::s][5]+=pma0*R_temp[Cart::z][Cart::s][5]+wmp0*R_temp[Cart::z][Cart::s][6];
-R_temp[Cart::zz][Cart::s][5]+=pma2*R_temp[Cart::z][Cart::s][5]+wmp2*R_temp[Cart::z][Cart::s][6];
+R_temp[Cart::zz][Cart::s][5]+=pma2*R_temp[Cart::z][Cart::s][5]+wmp2*R_temp[Cart::z][Cart::s][6] + term; ////
+}
+}
+//------------------------------------------------------
+*/
+
+//Integral d - s - s
+////////////if (_lmax_alpha>1){
+if ((_lmax_alpha>1)||(_lmax_beta>0 && _lmax_alpha>0)||(_lmax_beta>1)) { ///////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+double term = rzeta * ( R_temp[0][0][m] - gfak * R_temp[0][0][m+1]); ///////
+R_temp[Cart::yy][Cart::s][m]+=pma1*R_temp[Cart::y][Cart::s][m]+wmp1*R_temp[Cart::y][Cart::s][m+1] + term; ////
+R_temp[Cart::xy][Cart::s][m]+=pma0*R_temp[Cart::y][Cart::s][m]+wmp0*R_temp[Cart::y][Cart::s][m+1];
+R_temp[Cart::yz][Cart::s][m]+=pma1*R_temp[Cart::z][Cart::s][m]+wmp1*R_temp[Cart::z][Cart::s][m+1];
+R_temp[Cart::xx][Cart::s][m]+=pma0*R_temp[Cart::x][Cart::s][m]+wmp0*R_temp[Cart::x][Cart::s][m+1] + term; /////
+R_temp[Cart::xz][Cart::s][m]+=pma0*R_temp[Cart::z][Cart::s][m]+wmp0*R_temp[Cart::z][Cart::s][m+1];
+R_temp[Cart::zz][Cart::s][m]+=pma2*R_temp[Cart::z][Cart::s][m]+wmp2*R_temp[Cart::z][Cart::s][m+1] + term; /////
 }
 }
 //------------------------------------------------------
 
+/*
 //Integral d - s - p - m0
-if (_lmax_alpha>1 && _lmax_gamma>0){
-R_temp[Cart::yy][Cart::y][0]+=pma1*R_temp[Cart::y][Cart::y][0]+wmp1*R_temp[Cart::y][Cart::y][1]+0.5/_decay*1*R_temp[Cart::y][Cart::s][1];
-R_temp[Cart::yy][Cart::x][0]+=pma1*R_temp[Cart::y][Cart::x][0]+wmp1*R_temp[Cart::y][Cart::x][1];
-R_temp[Cart::yy][Cart::z][0]+=pma1*R_temp[Cart::y][Cart::z][0]+wmp1*R_temp[Cart::y][Cart::z][1];
+///////if (_lmax_alpha>1 && _lmax_gamma>0){
+if ((_lmax_alpha>1 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ///////////////////////////
+double term_x = rzeta * ( R_temp[0][Cart::x][0] - gfak * R_temp[0][Cart::x][1] ); ///////
+double term_y = rzeta * ( R_temp[0][Cart::y][0] - gfak * R_temp[0][Cart::y][1] ); ///////
+double term_z = rzeta * ( R_temp[0][Cart::z][0] - gfak * R_temp[0][Cart::z][1] ); ///////
+R_temp[Cart::yy][Cart::y][0]+=pma1*R_temp[Cart::y][Cart::y][0]+wmp1*R_temp[Cart::y][Cart::y][1]+0.5/_decay*1*R_temp[Cart::y][Cart::s][1] + term_y; ////
+R_temp[Cart::yy][Cart::x][0]+=pma1*R_temp[Cart::y][Cart::x][0]+wmp1*R_temp[Cart::y][Cart::x][1] + term_x; ////
+R_temp[Cart::yy][Cart::z][0]+=pma1*R_temp[Cart::y][Cart::z][0]+wmp1*R_temp[Cart::y][Cart::z][1] + term_z; ////
 R_temp[Cart::xy][Cart::y][0]+=pma0*R_temp[Cart::y][Cart::y][0]+wmp0*R_temp[Cart::y][Cart::y][1];
 R_temp[Cart::xy][Cart::x][0]+=pma0*R_temp[Cart::y][Cart::x][0]+wmp0*R_temp[Cart::y][Cart::x][1]+0.5/_decay*1*R_temp[Cart::y][Cart::s][1];
 R_temp[Cart::xy][Cart::z][0]+=pma0*R_temp[Cart::y][Cart::z][0]+wmp0*R_temp[Cart::y][Cart::z][1];
 R_temp[Cart::yz][Cart::y][0]+=pma1*R_temp[Cart::z][Cart::y][0]+wmp1*R_temp[Cart::z][Cart::y][1]+0.5/_decay*1*R_temp[Cart::z][Cart::s][1];
 R_temp[Cart::yz][Cart::x][0]+=pma1*R_temp[Cart::z][Cart::x][0]+wmp1*R_temp[Cart::z][Cart::x][1];
 R_temp[Cart::yz][Cart::z][0]+=pma1*R_temp[Cart::z][Cart::z][0]+wmp1*R_temp[Cart::z][Cart::z][1];
-R_temp[Cart::xx][Cart::y][0]+=pma0*R_temp[Cart::x][Cart::y][0]+wmp0*R_temp[Cart::x][Cart::y][1];
-R_temp[Cart::xx][Cart::x][0]+=pma0*R_temp[Cart::x][Cart::x][0]+wmp0*R_temp[Cart::x][Cart::x][1]+0.5/_decay*1*R_temp[Cart::x][Cart::s][1];
-R_temp[Cart::xx][Cart::z][0]+=pma0*R_temp[Cart::x][Cart::z][0]+wmp0*R_temp[Cart::x][Cart::z][1];
+R_temp[Cart::xx][Cart::y][0]+=pma0*R_temp[Cart::x][Cart::y][0]+wmp0*R_temp[Cart::x][Cart::y][1] + term_y; ////
+R_temp[Cart::xx][Cart::x][0]+=pma0*R_temp[Cart::x][Cart::x][0]+wmp0*R_temp[Cart::x][Cart::x][1]+0.5/_decay*1*R_temp[Cart::x][Cart::s][1] + term_x; ////
+R_temp[Cart::xx][Cart::z][0]+=pma0*R_temp[Cart::x][Cart::z][0]+wmp0*R_temp[Cart::x][Cart::z][1] + term_z; ////
 R_temp[Cart::xz][Cart::y][0]+=pma0*R_temp[Cart::z][Cart::y][0]+wmp0*R_temp[Cart::z][Cart::y][1];
 R_temp[Cart::xz][Cart::x][0]+=pma0*R_temp[Cart::z][Cart::x][0]+wmp0*R_temp[Cart::z][Cart::x][1]+0.5/_decay*1*R_temp[Cart::z][Cart::s][1];
 R_temp[Cart::xz][Cart::z][0]+=pma0*R_temp[Cart::z][Cart::z][0]+wmp0*R_temp[Cart::z][Cart::z][1];
-R_temp[Cart::zz][Cart::y][0]+=pma2*R_temp[Cart::z][Cart::y][0]+wmp2*R_temp[Cart::z][Cart::y][1];
-R_temp[Cart::zz][Cart::x][0]+=pma2*R_temp[Cart::z][Cart::x][0]+wmp2*R_temp[Cart::z][Cart::x][1];
-R_temp[Cart::zz][Cart::z][0]+=pma2*R_temp[Cart::z][Cart::z][0]+wmp2*R_temp[Cart::z][Cart::z][1]+0.5/_decay*1*R_temp[Cart::z][Cart::s][1];
+R_temp[Cart::zz][Cart::y][0]+=pma2*R_temp[Cart::z][Cart::y][0]+wmp2*R_temp[Cart::z][Cart::y][1] + term_y; ////
+R_temp[Cart::zz][Cart::x][0]+=pma2*R_temp[Cart::z][Cart::x][0]+wmp2*R_temp[Cart::z][Cart::x][1] + term_x; ////
+R_temp[Cart::zz][Cart::z][0]+=pma2*R_temp[Cart::z][Cart::z][0]+wmp2*R_temp[Cart::z][Cart::z][1]+0.5/_decay*1*R_temp[Cart::z][Cart::s][1] + term_z; ////
 }
 //------------------------------------------------------
 
 //Integral d - s - p - m1
 if (_mmax >1 ){
-if (_lmax_alpha>1 && _lmax_gamma>0){
-R_temp[Cart::yy][Cart::y][1]+=pma1*R_temp[Cart::y][Cart::y][1]+wmp1*R_temp[Cart::y][Cart::y][2]+0.5/_decay*1*R_temp[Cart::y][Cart::s][2];
-R_temp[Cart::yy][Cart::x][1]+=pma1*R_temp[Cart::y][Cart::x][1]+wmp1*R_temp[Cart::y][Cart::x][2];
-R_temp[Cart::yy][Cart::z][1]+=pma1*R_temp[Cart::y][Cart::z][1]+wmp1*R_temp[Cart::y][Cart::z][2];
+////////////////if (_lmax_alpha>1 && _lmax_gamma>0){
+if ((_lmax_alpha>1 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ///////////////////////////
+double term_x = rzeta * ( R_temp[0][Cart::x][1] - gfak * R_temp[0][Cart::x][2] ); ///////
+double term_y = rzeta * ( R_temp[0][Cart::y][1] - gfak * R_temp[0][Cart::y][2] ); ///////
+double term_z = rzeta * ( R_temp[0][Cart::z][1] - gfak * R_temp[0][Cart::z][2] ); ///////
+R_temp[Cart::yy][Cart::y][1]+=pma1*R_temp[Cart::y][Cart::y][1]+wmp1*R_temp[Cart::y][Cart::y][2]+0.5/_decay*1*R_temp[Cart::y][Cart::s][2] + term_y; ////
+R_temp[Cart::yy][Cart::x][1]+=pma1*R_temp[Cart::y][Cart::x][1]+wmp1*R_temp[Cart::y][Cart::x][2] + term_x; ////
+R_temp[Cart::yy][Cart::z][1]+=pma1*R_temp[Cart::y][Cart::z][1]+wmp1*R_temp[Cart::y][Cart::z][2] + term_z; ////
 R_temp[Cart::xy][Cart::y][1]+=pma0*R_temp[Cart::y][Cart::y][1]+wmp0*R_temp[Cart::y][Cart::y][2];
 R_temp[Cart::xy][Cart::x][1]+=pma0*R_temp[Cart::y][Cart::x][1]+wmp0*R_temp[Cart::y][Cart::x][2]+0.5/_decay*1*R_temp[Cart::y][Cart::s][2];
 R_temp[Cart::xy][Cart::z][1]+=pma0*R_temp[Cart::y][Cart::z][1]+wmp0*R_temp[Cart::y][Cart::z][2];
 R_temp[Cart::yz][Cart::y][1]+=pma1*R_temp[Cart::z][Cart::y][1]+wmp1*R_temp[Cart::z][Cart::y][2]+0.5/_decay*1*R_temp[Cart::z][Cart::s][2];
 R_temp[Cart::yz][Cart::x][1]+=pma1*R_temp[Cart::z][Cart::x][1]+wmp1*R_temp[Cart::z][Cart::x][2];
 R_temp[Cart::yz][Cart::z][1]+=pma1*R_temp[Cart::z][Cart::z][1]+wmp1*R_temp[Cart::z][Cart::z][2];
-R_temp[Cart::xx][Cart::y][1]+=pma0*R_temp[Cart::x][Cart::y][1]+wmp0*R_temp[Cart::x][Cart::y][2];
-R_temp[Cart::xx][Cart::x][1]+=pma0*R_temp[Cart::x][Cart::x][1]+wmp0*R_temp[Cart::x][Cart::x][2]+0.5/_decay*1*R_temp[Cart::x][Cart::s][2];
-R_temp[Cart::xx][Cart::z][1]+=pma0*R_temp[Cart::x][Cart::z][1]+wmp0*R_temp[Cart::x][Cart::z][2];
+R_temp[Cart::xx][Cart::y][1]+=pma0*R_temp[Cart::x][Cart::y][1]+wmp0*R_temp[Cart::x][Cart::y][2] + term_y; ////
+R_temp[Cart::xx][Cart::x][1]+=pma0*R_temp[Cart::x][Cart::x][1]+wmp0*R_temp[Cart::x][Cart::x][2]+0.5/_decay*1*R_temp[Cart::x][Cart::s][2] + term_x; ////
+R_temp[Cart::xx][Cart::z][1]+=pma0*R_temp[Cart::x][Cart::z][1]+wmp0*R_temp[Cart::x][Cart::z][2] + term_z; ////
 R_temp[Cart::xz][Cart::y][1]+=pma0*R_temp[Cart::z][Cart::y][1]+wmp0*R_temp[Cart::z][Cart::y][2];
 R_temp[Cart::xz][Cart::x][1]+=pma0*R_temp[Cart::z][Cart::x][1]+wmp0*R_temp[Cart::z][Cart::x][2]+0.5/_decay*1*R_temp[Cart::z][Cart::s][2];
 R_temp[Cart::xz][Cart::z][1]+=pma0*R_temp[Cart::z][Cart::z][1]+wmp0*R_temp[Cart::z][Cart::z][2];
-R_temp[Cart::zz][Cart::y][1]+=pma2*R_temp[Cart::z][Cart::y][1]+wmp2*R_temp[Cart::z][Cart::y][2];
-R_temp[Cart::zz][Cart::x][1]+=pma2*R_temp[Cart::z][Cart::x][1]+wmp2*R_temp[Cart::z][Cart::x][2];
-R_temp[Cart::zz][Cart::z][1]+=pma2*R_temp[Cart::z][Cart::z][1]+wmp2*R_temp[Cart::z][Cart::z][2]+0.5/_decay*1*R_temp[Cart::z][Cart::s][2];
+R_temp[Cart::zz][Cart::y][1]+=pma2*R_temp[Cart::z][Cart::y][1]+wmp2*R_temp[Cart::z][Cart::y][2] + term_y; ////
+R_temp[Cart::zz][Cart::x][1]+=pma2*R_temp[Cart::z][Cart::x][1]+wmp2*R_temp[Cart::z][Cart::x][2] + term_x; ////
+R_temp[Cart::zz][Cart::z][1]+=pma2*R_temp[Cart::z][Cart::z][1]+wmp2*R_temp[Cart::z][Cart::z][2]+0.5/_decay*1*R_temp[Cart::z][Cart::s][2] + term_z; ////
 }
 }
 //------------------------------------------------------
 
 //Integral d - s - p - m2
 if (_mmax >2 ){
-if (_lmax_alpha>1 && _lmax_gamma>0){
-R_temp[Cart::yy][Cart::y][2]+=pma1*R_temp[Cart::y][Cart::y][2]+wmp1*R_temp[Cart::y][Cart::y][3]+0.5/_decay*1*R_temp[Cart::y][Cart::s][3];
-R_temp[Cart::yy][Cart::x][2]+=pma1*R_temp[Cart::y][Cart::x][2]+wmp1*R_temp[Cart::y][Cart::x][3];
-R_temp[Cart::yy][Cart::z][2]+=pma1*R_temp[Cart::y][Cart::z][2]+wmp1*R_temp[Cart::y][Cart::z][3];
+//////////////////if (_lmax_alpha>1 && _lmax_gamma>0){
+if ((_lmax_alpha>1 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ///////////////////////////
+double term_x = rzeta * ( R_temp[0][Cart::x][2] - gfak * R_temp[0][Cart::x][3] ); ///////
+double term_y = rzeta * ( R_temp[0][Cart::y][2] - gfak * R_temp[0][Cart::y][3] ); ///////
+double term_z = rzeta * ( R_temp[0][Cart::z][2] - gfak * R_temp[0][Cart::z][3] ); ///////
+R_temp[Cart::yy][Cart::y][2]+=pma1*R_temp[Cart::y][Cart::y][2]+wmp1*R_temp[Cart::y][Cart::y][3]+0.5/_decay*1*R_temp[Cart::y][Cart::s][3] + term_y; ////
+R_temp[Cart::yy][Cart::x][2]+=pma1*R_temp[Cart::y][Cart::x][2]+wmp1*R_temp[Cart::y][Cart::x][3] + term_x; ////
+R_temp[Cart::yy][Cart::z][2]+=pma1*R_temp[Cart::y][Cart::z][2]+wmp1*R_temp[Cart::y][Cart::z][3] + term_z; ////
 R_temp[Cart::xy][Cart::y][2]+=pma0*R_temp[Cart::y][Cart::y][2]+wmp0*R_temp[Cart::y][Cart::y][3];
 R_temp[Cart::xy][Cart::x][2]+=pma0*R_temp[Cart::y][Cart::x][2]+wmp0*R_temp[Cart::y][Cart::x][3]+0.5/_decay*1*R_temp[Cart::y][Cart::s][3];
 R_temp[Cart::xy][Cart::z][2]+=pma0*R_temp[Cart::y][Cart::z][2]+wmp0*R_temp[Cart::y][Cart::z][3];
 R_temp[Cart::yz][Cart::y][2]+=pma1*R_temp[Cart::z][Cart::y][2]+wmp1*R_temp[Cart::z][Cart::y][3]+0.5/_decay*1*R_temp[Cart::z][Cart::s][3];
 R_temp[Cart::yz][Cart::x][2]+=pma1*R_temp[Cart::z][Cart::x][2]+wmp1*R_temp[Cart::z][Cart::x][3];
 R_temp[Cart::yz][Cart::z][2]+=pma1*R_temp[Cart::z][Cart::z][2]+wmp1*R_temp[Cart::z][Cart::z][3];
-R_temp[Cart::xx][Cart::y][2]+=pma0*R_temp[Cart::x][Cart::y][2]+wmp0*R_temp[Cart::x][Cart::y][3];
-R_temp[Cart::xx][Cart::x][2]+=pma0*R_temp[Cart::x][Cart::x][2]+wmp0*R_temp[Cart::x][Cart::x][3]+0.5/_decay*1*R_temp[Cart::x][Cart::s][3];
-R_temp[Cart::xx][Cart::z][2]+=pma0*R_temp[Cart::x][Cart::z][2]+wmp0*R_temp[Cart::x][Cart::z][3];
+R_temp[Cart::xx][Cart::y][2]+=pma0*R_temp[Cart::x][Cart::y][2]+wmp0*R_temp[Cart::x][Cart::y][3] + term_y; ////
+R_temp[Cart::xx][Cart::x][2]+=pma0*R_temp[Cart::x][Cart::x][2]+wmp0*R_temp[Cart::x][Cart::x][3]+0.5/_decay*1*R_temp[Cart::x][Cart::s][3] + term_x; ////
+R_temp[Cart::xx][Cart::z][2]+=pma0*R_temp[Cart::x][Cart::z][2]+wmp0*R_temp[Cart::x][Cart::z][3] + term_z; ////
 R_temp[Cart::xz][Cart::y][2]+=pma0*R_temp[Cart::z][Cart::y][2]+wmp0*R_temp[Cart::z][Cart::y][3];
 R_temp[Cart::xz][Cart::x][2]+=pma0*R_temp[Cart::z][Cart::x][2]+wmp0*R_temp[Cart::z][Cart::x][3]+0.5/_decay*1*R_temp[Cart::z][Cart::s][3];
 R_temp[Cart::xz][Cart::z][2]+=pma0*R_temp[Cart::z][Cart::z][2]+wmp0*R_temp[Cart::z][Cart::z][3];
-R_temp[Cart::zz][Cart::y][2]+=pma2*R_temp[Cart::z][Cart::y][2]+wmp2*R_temp[Cart::z][Cart::y][3];
-R_temp[Cart::zz][Cart::x][2]+=pma2*R_temp[Cart::z][Cart::x][2]+wmp2*R_temp[Cart::z][Cart::x][3];
-R_temp[Cart::zz][Cart::z][2]+=pma2*R_temp[Cart::z][Cart::z][2]+wmp2*R_temp[Cart::z][Cart::z][3]+0.5/_decay*1*R_temp[Cart::z][Cart::s][3];
+R_temp[Cart::zz][Cart::y][2]+=pma2*R_temp[Cart::z][Cart::y][2]+wmp2*R_temp[Cart::z][Cart::y][3] + term_y; ////
+R_temp[Cart::zz][Cart::x][2]+=pma2*R_temp[Cart::z][Cart::x][2]+wmp2*R_temp[Cart::z][Cart::x][3] + term_x; ////
+R_temp[Cart::zz][Cart::z][2]+=pma2*R_temp[Cart::z][Cart::z][2]+wmp2*R_temp[Cart::z][Cart::z][3]+0.5/_decay*1*R_temp[Cart::z][Cart::s][3] + term_z; ////
 }
 }
 //------------------------------------------------------
 
 //Integral d - s - p - m3
 if (_mmax >3 ){
-if (_lmax_alpha>1 && _lmax_gamma>0){
-R_temp[Cart::yy][Cart::y][3]+=pma1*R_temp[Cart::y][Cart::y][3]+wmp1*R_temp[Cart::y][Cart::y][4]+0.5/_decay*1*R_temp[Cart::y][Cart::s][4];
-R_temp[Cart::yy][Cart::x][3]+=pma1*R_temp[Cart::y][Cart::x][3]+wmp1*R_temp[Cart::y][Cart::x][4];
-R_temp[Cart::yy][Cart::z][3]+=pma1*R_temp[Cart::y][Cart::z][3]+wmp1*R_temp[Cart::y][Cart::z][4];
+//////////////////////if (_lmax_alpha>1 && _lmax_gamma>0){
+if ((_lmax_alpha>1 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ///////////////////////////
+double term_x = rzeta * ( R_temp[0][Cart::x][3] - gfak * R_temp[0][Cart::x][4] ); ///////
+double term_y = rzeta * ( R_temp[0][Cart::y][3] - gfak * R_temp[0][Cart::y][4] ); ///////
+double term_z = rzeta * ( R_temp[0][Cart::z][3] - gfak * R_temp[0][Cart::z][4] ); ///////
+R_temp[Cart::yy][Cart::y][3]+=pma1*R_temp[Cart::y][Cart::y][3]+wmp1*R_temp[Cart::y][Cart::y][4]+0.5/_decay*1*R_temp[Cart::y][Cart::s][4] + term_y; ////
+R_temp[Cart::yy][Cart::x][3]+=pma1*R_temp[Cart::y][Cart::x][3]+wmp1*R_temp[Cart::y][Cart::x][4] + term_x; ////
+R_temp[Cart::yy][Cart::z][3]+=pma1*R_temp[Cart::y][Cart::z][3]+wmp1*R_temp[Cart::y][Cart::z][4] + term_z; ////
 R_temp[Cart::xy][Cart::y][3]+=pma0*R_temp[Cart::y][Cart::y][3]+wmp0*R_temp[Cart::y][Cart::y][4];
 R_temp[Cart::xy][Cart::x][3]+=pma0*R_temp[Cart::y][Cart::x][3]+wmp0*R_temp[Cart::y][Cart::x][4]+0.5/_decay*1*R_temp[Cart::y][Cart::s][4];
 R_temp[Cart::xy][Cart::z][3]+=pma0*R_temp[Cart::y][Cart::z][3]+wmp0*R_temp[Cart::y][Cart::z][4];
 R_temp[Cart::yz][Cart::y][3]+=pma1*R_temp[Cart::z][Cart::y][3]+wmp1*R_temp[Cart::z][Cart::y][4]+0.5/_decay*1*R_temp[Cart::z][Cart::s][4];
 R_temp[Cart::yz][Cart::x][3]+=pma1*R_temp[Cart::z][Cart::x][3]+wmp1*R_temp[Cart::z][Cart::x][4];
 R_temp[Cart::yz][Cart::z][3]+=pma1*R_temp[Cart::z][Cart::z][3]+wmp1*R_temp[Cart::z][Cart::z][4];
-R_temp[Cart::xx][Cart::y][3]+=pma0*R_temp[Cart::x][Cart::y][3]+wmp0*R_temp[Cart::x][Cart::y][4];
-R_temp[Cart::xx][Cart::x][3]+=pma0*R_temp[Cart::x][Cart::x][3]+wmp0*R_temp[Cart::x][Cart::x][4]+0.5/_decay*1*R_temp[Cart::x][Cart::s][4];
-R_temp[Cart::xx][Cart::z][3]+=pma0*R_temp[Cart::x][Cart::z][3]+wmp0*R_temp[Cart::x][Cart::z][4];
+R_temp[Cart::xx][Cart::y][3]+=pma0*R_temp[Cart::x][Cart::y][3]+wmp0*R_temp[Cart::x][Cart::y][4] + term_y; ////
+R_temp[Cart::xx][Cart::x][3]+=pma0*R_temp[Cart::x][Cart::x][3]+wmp0*R_temp[Cart::x][Cart::x][4]+0.5/_decay*1*R_temp[Cart::x][Cart::s][4] + term_x; ////
+R_temp[Cart::xx][Cart::z][3]+=pma0*R_temp[Cart::x][Cart::z][3]+wmp0*R_temp[Cart::x][Cart::z][4] + term_z; ////
 R_temp[Cart::xz][Cart::y][3]+=pma0*R_temp[Cart::z][Cart::y][3]+wmp0*R_temp[Cart::z][Cart::y][4];
 R_temp[Cart::xz][Cart::x][3]+=pma0*R_temp[Cart::z][Cart::x][3]+wmp0*R_temp[Cart::z][Cart::x][4]+0.5/_decay*1*R_temp[Cart::z][Cart::s][4];
 R_temp[Cart::xz][Cart::z][3]+=pma0*R_temp[Cart::z][Cart::z][3]+wmp0*R_temp[Cart::z][Cart::z][4];
-R_temp[Cart::zz][Cart::y][3]+=pma2*R_temp[Cart::z][Cart::y][3]+wmp2*R_temp[Cart::z][Cart::y][4];
-R_temp[Cart::zz][Cart::x][3]+=pma2*R_temp[Cart::z][Cart::x][3]+wmp2*R_temp[Cart::z][Cart::x][4];
-R_temp[Cart::zz][Cart::z][3]+=pma2*R_temp[Cart::z][Cart::z][3]+wmp2*R_temp[Cart::z][Cart::z][4]+0.5/_decay*1*R_temp[Cart::z][Cart::s][4];
+R_temp[Cart::zz][Cart::y][3]+=pma2*R_temp[Cart::z][Cart::y][3]+wmp2*R_temp[Cart::z][Cart::y][4] + term_y; ////
+R_temp[Cart::zz][Cart::x][3]+=pma2*R_temp[Cart::z][Cart::x][3]+wmp2*R_temp[Cart::z][Cart::x][4] + term_x; ////
+R_temp[Cart::zz][Cart::z][3]+=pma2*R_temp[Cart::z][Cart::z][3]+wmp2*R_temp[Cart::z][Cart::z][4]+0.5/_decay*1*R_temp[Cart::z][Cart::s][4] + term_z; ////
 }
 }
 //------------------------------------------------------
 
 //Integral d - s - p - m4
 if (_mmax >4 ){
-if (_lmax_alpha>1 && _lmax_gamma>0){
-R_temp[Cart::yy][Cart::y][4]+=pma1*R_temp[Cart::y][Cart::y][4]+wmp1*R_temp[Cart::y][Cart::y][5]+0.5/_decay*1*R_temp[Cart::y][Cart::s][5];
-R_temp[Cart::yy][Cart::x][4]+=pma1*R_temp[Cart::y][Cart::x][4]+wmp1*R_temp[Cart::y][Cart::x][5];
-R_temp[Cart::yy][Cart::z][4]+=pma1*R_temp[Cart::y][Cart::z][4]+wmp1*R_temp[Cart::y][Cart::z][5];
+////////////////if (_lmax_alpha>1 && _lmax_gamma>0){
+if ((_lmax_alpha>1 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ///////////////////////////
+double term_x = rzeta * ( R_temp[0][Cart::x][4] - gfak * R_temp[0][Cart::x][5] ); ///////
+double term_y = rzeta * ( R_temp[0][Cart::y][4] - gfak * R_temp[0][Cart::y][5] ); ///////
+double term_z = rzeta * ( R_temp[0][Cart::z][4] - gfak * R_temp[0][Cart::z][5] ); ///////
+R_temp[Cart::yy][Cart::y][4]+=pma1*R_temp[Cart::y][Cart::y][4]+wmp1*R_temp[Cart::y][Cart::y][5]+0.5/_decay*1*R_temp[Cart::y][Cart::s][5] + term_y; ////
+R_temp[Cart::yy][Cart::x][4]+=pma1*R_temp[Cart::y][Cart::x][4]+wmp1*R_temp[Cart::y][Cart::x][5] + term_x; ////
+R_temp[Cart::yy][Cart::z][4]+=pma1*R_temp[Cart::y][Cart::z][4]+wmp1*R_temp[Cart::y][Cart::z][5] + term_z; ////
 R_temp[Cart::xy][Cart::y][4]+=pma0*R_temp[Cart::y][Cart::y][4]+wmp0*R_temp[Cart::y][Cart::y][5];
 R_temp[Cart::xy][Cart::x][4]+=pma0*R_temp[Cart::y][Cart::x][4]+wmp0*R_temp[Cart::y][Cart::x][5]+0.5/_decay*1*R_temp[Cart::y][Cart::s][5];
 R_temp[Cart::xy][Cart::z][4]+=pma0*R_temp[Cart::y][Cart::z][4]+wmp0*R_temp[Cart::y][Cart::z][5];
 R_temp[Cart::yz][Cart::y][4]+=pma1*R_temp[Cart::z][Cart::y][4]+wmp1*R_temp[Cart::z][Cart::y][5]+0.5/_decay*1*R_temp[Cart::z][Cart::s][5];
 R_temp[Cart::yz][Cart::x][4]+=pma1*R_temp[Cart::z][Cart::x][4]+wmp1*R_temp[Cart::z][Cart::x][5];
 R_temp[Cart::yz][Cart::z][4]+=pma1*R_temp[Cart::z][Cart::z][4]+wmp1*R_temp[Cart::z][Cart::z][5];
-R_temp[Cart::xx][Cart::y][4]+=pma0*R_temp[Cart::x][Cart::y][4]+wmp0*R_temp[Cart::x][Cart::y][5];
-R_temp[Cart::xx][Cart::x][4]+=pma0*R_temp[Cart::x][Cart::x][4]+wmp0*R_temp[Cart::x][Cart::x][5]+0.5/_decay*1*R_temp[Cart::x][Cart::s][5];
-R_temp[Cart::xx][Cart::z][4]+=pma0*R_temp[Cart::x][Cart::z][4]+wmp0*R_temp[Cart::x][Cart::z][5];
+R_temp[Cart::xx][Cart::y][4]+=pma0*R_temp[Cart::x][Cart::y][4]+wmp0*R_temp[Cart::x][Cart::y][5] + term_y; ////
+R_temp[Cart::xx][Cart::x][4]+=pma0*R_temp[Cart::x][Cart::x][4]+wmp0*R_temp[Cart::x][Cart::x][5]+0.5/_decay*1*R_temp[Cart::x][Cart::s][5] + term_x; ////
+R_temp[Cart::xx][Cart::z][4]+=pma0*R_temp[Cart::x][Cart::z][4]+wmp0*R_temp[Cart::x][Cart::z][5] + term_z; ////
 R_temp[Cart::xz][Cart::y][4]+=pma0*R_temp[Cart::z][Cart::y][4]+wmp0*R_temp[Cart::z][Cart::y][5];
 R_temp[Cart::xz][Cart::x][4]+=pma0*R_temp[Cart::z][Cart::x][4]+wmp0*R_temp[Cart::z][Cart::x][5]+0.5/_decay*1*R_temp[Cart::z][Cart::s][5];
 R_temp[Cart::xz][Cart::z][4]+=pma0*R_temp[Cart::z][Cart::z][4]+wmp0*R_temp[Cart::z][Cart::z][5];
-R_temp[Cart::zz][Cart::y][4]+=pma2*R_temp[Cart::z][Cart::y][4]+wmp2*R_temp[Cart::z][Cart::y][5];
-R_temp[Cart::zz][Cart::x][4]+=pma2*R_temp[Cart::z][Cart::x][4]+wmp2*R_temp[Cart::z][Cart::x][5];
-R_temp[Cart::zz][Cart::z][4]+=pma2*R_temp[Cart::z][Cart::z][4]+wmp2*R_temp[Cart::z][Cart::z][5]+0.5/_decay*1*R_temp[Cart::z][Cart::s][5];
+R_temp[Cart::zz][Cart::y][4]+=pma2*R_temp[Cart::z][Cart::y][4]+wmp2*R_temp[Cart::z][Cart::y][5] + term_y; ////
+R_temp[Cart::zz][Cart::x][4]+=pma2*R_temp[Cart::z][Cart::x][4]+wmp2*R_temp[Cart::z][Cart::x][5] + term_x; ////
+R_temp[Cart::zz][Cart::z][4]+=pma2*R_temp[Cart::z][Cart::z][4]+wmp2*R_temp[Cart::z][Cart::z][5]+0.5/_decay*1*R_temp[Cart::z][Cart::s][5] + term_z; ////
+}
+}
+//------------------------------------------------------
+*/
+
+
+//Integral d - s - p
+///////if (_lmax_alpha>1 && _lmax_gamma>0){
+if ((_lmax_alpha>1 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_gamma>0)) { ///////////////////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+double term_x = rzeta * ( R_temp[0][Cart::x][m] - gfak * R_temp[0][Cart::x][m+1] ); ///////
+double term_y = rzeta * ( R_temp[0][Cart::y][m] - gfak * R_temp[0][Cart::y][m+1] ); ///////
+double term_z = rzeta * ( R_temp[0][Cart::z][m] - gfak * R_temp[0][Cart::z][m+1] ); ///////
+R_temp[Cart::yy][Cart::y][m]+=pma1*R_temp[Cart::y][Cart::y][m]+wmp1*R_temp[Cart::y][Cart::y][m+1]+0.5/_decay*1*R_temp[Cart::y][Cart::s][m+1] + term_y; ////
+R_temp[Cart::yy][Cart::x][m]+=pma1*R_temp[Cart::y][Cart::x][m]+wmp1*R_temp[Cart::y][Cart::x][m+1] + term_x; ////
+R_temp[Cart::yy][Cart::z][m]+=pma1*R_temp[Cart::y][Cart::z][m]+wmp1*R_temp[Cart::y][Cart::z][m+1] + term_z; ////
+R_temp[Cart::xy][Cart::y][m]+=pma0*R_temp[Cart::y][Cart::y][m]+wmp0*R_temp[Cart::y][Cart::y][m+1];
+R_temp[Cart::xy][Cart::x][m]+=pma0*R_temp[Cart::y][Cart::x][m]+wmp0*R_temp[Cart::y][Cart::x][m+1]+0.5/_decay*1*R_temp[Cart::y][Cart::s][m+1];
+R_temp[Cart::xy][Cart::z][m]+=pma0*R_temp[Cart::y][Cart::z][m]+wmp0*R_temp[Cart::y][Cart::z][m+1];
+R_temp[Cart::yz][Cart::y][m]+=pma1*R_temp[Cart::z][Cart::y][m]+wmp1*R_temp[Cart::z][Cart::y][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::s][m+1];
+R_temp[Cart::yz][Cart::x][m]+=pma1*R_temp[Cart::z][Cart::x][m]+wmp1*R_temp[Cart::z][Cart::x][m+1];
+R_temp[Cart::yz][Cart::z][m]+=pma1*R_temp[Cart::z][Cart::z][m]+wmp1*R_temp[Cart::z][Cart::z][m+1];
+R_temp[Cart::xx][Cart::y][m]+=pma0*R_temp[Cart::x][Cart::y][m]+wmp0*R_temp[Cart::x][Cart::y][m+1] + term_y; ////
+R_temp[Cart::xx][Cart::x][m]+=pma0*R_temp[Cart::x][Cart::x][m]+wmp0*R_temp[Cart::x][Cart::x][m+1]+0.5/_decay*1*R_temp[Cart::x][Cart::s][m+1] + term_x; ////
+R_temp[Cart::xx][Cart::z][m]+=pma0*R_temp[Cart::x][Cart::z][m]+wmp0*R_temp[Cart::x][Cart::z][m+1] + term_z; ////
+R_temp[Cart::xz][Cart::y][m]+=pma0*R_temp[Cart::z][Cart::y][m]+wmp0*R_temp[Cart::z][Cart::y][m+1];
+R_temp[Cart::xz][Cart::x][m]+=pma0*R_temp[Cart::z][Cart::x][m]+wmp0*R_temp[Cart::z][Cart::x][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::s][m+1];
+R_temp[Cart::xz][Cart::z][m]+=pma0*R_temp[Cart::z][Cart::z][m]+wmp0*R_temp[Cart::z][Cart::z][m+1];
+R_temp[Cart::zz][Cart::y][m]+=pma2*R_temp[Cart::z][Cart::y][m]+wmp2*R_temp[Cart::z][Cart::y][m+1] + term_y; ////
+R_temp[Cart::zz][Cart::x][m]+=pma2*R_temp[Cart::z][Cart::x][m]+wmp2*R_temp[Cart::z][Cart::x][m+1] + term_x; ////
+R_temp[Cart::zz][Cart::z][m]+=pma2*R_temp[Cart::z][Cart::z][m]+wmp2*R_temp[Cart::z][Cart::z][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::s][m+1] + term_z; ////
 }
 }
 //------------------------------------------------------
 
+/*
 //Integral d - s - d - m0
 if (_lmax_alpha>1 && _lmax_gamma>1){
 R_temp[Cart::yy][Cart::yy][0]+=pma1*R_temp[Cart::y][Cart::yy][0]+wmp1*R_temp[Cart::y][Cart::yy][1]+0.5/_decay*2*R_temp[Cart::y][Cart::y][1];
@@ -1253,7 +1544,59 @@ R_temp[Cart::zz][Cart::zz][3]+=pma2*R_temp[Cart::z][Cart::zz][3]+wmp2*R_temp[Car
 }
 }
 //------------------------------------------------------
+*/
 
+//Integral d - s - d
+/////if (_lmax_alpha>1 && _lmax_gamma>1) { ///////////////
+if ((_lmax_alpha>1 && _lmax_gamma>1)||(_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>1)||(_lmax_beta>1 && _lmax_gamma>1)) { ///////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+double term_xy = rzeta * ( R_temp[0][Cart::xy][m] - gfak * R_temp[0][Cart::xy][m+1] ); ///////
+double term_xz = rzeta * ( R_temp[0][Cart::xz][m] - gfak * R_temp[0][Cart::xz][m+1] ); ///////
+double term_yz = rzeta * ( R_temp[0][Cart::yz][m] - gfak * R_temp[0][Cart::yz][m+1] ); ///////
+double term_xx = rzeta * ( R_temp[0][Cart::xx][m] - gfak * R_temp[0][Cart::xx][m+1] ); ///////
+double term_yy = rzeta * ( R_temp[0][Cart::yy][m] - gfak * R_temp[0][Cart::yy][m+1] ); ///////
+double term_zz = rzeta * ( R_temp[0][Cart::zz][m] - gfak * R_temp[0][Cart::zz][m+1] ); ///////
+R_temp[Cart::yy][Cart::yy][m]+=pma1*R_temp[Cart::y][Cart::yy][m]+wmp1*R_temp[Cart::y][Cart::yy][m+1]+0.5/_decay*2*R_temp[Cart::y][Cart::y][m+1]+term_yy; //////
+R_temp[Cart::yy][Cart::xy][m]+=pma1*R_temp[Cart::y][Cart::xy][m]+wmp1*R_temp[Cart::y][Cart::xy][m+1]+0.5/_decay*1*R_temp[Cart::y][Cart::x][m+1]+term_xy; //////
+R_temp[Cart::yy][Cart::yz][m]+=pma1*R_temp[Cart::y][Cart::yz][m]+wmp1*R_temp[Cart::y][Cart::yz][m+1]+0.5/_decay*1*R_temp[Cart::y][Cart::z][m+1]+term_yz; //////
+R_temp[Cart::yy][Cart::xx][m]+=pma1*R_temp[Cart::y][Cart::xx][m]+wmp1*R_temp[Cart::y][Cart::xx][m+1]+term_xx; //////
+R_temp[Cart::yy][Cart::xz][m]+=pma1*R_temp[Cart::y][Cart::xz][m]+wmp1*R_temp[Cart::y][Cart::xz][m+1]+term_xz; //////
+R_temp[Cart::yy][Cart::zz][m]+=pma1*R_temp[Cart::y][Cart::zz][m]+wmp1*R_temp[Cart::y][Cart::zz][m+1]+term_zz; //////
+R_temp[Cart::xy][Cart::yy][m]+=pma0*R_temp[Cart::y][Cart::yy][m]+wmp0*R_temp[Cart::y][Cart::yy][m+1];
+R_temp[Cart::xy][Cart::xy][m]+=pma0*R_temp[Cart::y][Cart::xy][m]+wmp0*R_temp[Cart::y][Cart::xy][m+1]+0.5/_decay*1*R_temp[Cart::y][Cart::y][m+1];
+R_temp[Cart::xy][Cart::yz][m]+=pma0*R_temp[Cart::y][Cart::yz][m]+wmp0*R_temp[Cart::y][Cart::yz][m+1];
+R_temp[Cart::xy][Cart::xx][m]+=pma0*R_temp[Cart::y][Cart::xx][m]+wmp0*R_temp[Cart::y][Cart::xx][m+1]+0.5/_decay*2*R_temp[Cart::y][Cart::x][m+1];
+R_temp[Cart::xy][Cart::xz][m]+=pma0*R_temp[Cart::y][Cart::xz][m]+wmp0*R_temp[Cart::y][Cart::xz][m+1]+0.5/_decay*1*R_temp[Cart::y][Cart::z][m+1];
+R_temp[Cart::xy][Cart::zz][m]+=pma0*R_temp[Cart::y][Cart::zz][m]+wmp0*R_temp[Cart::y][Cart::zz][m+1];
+R_temp[Cart::yz][Cart::yy][m]+=pma1*R_temp[Cart::z][Cart::yy][m]+wmp1*R_temp[Cart::z][Cart::yy][m+1]+0.5/_decay*2*R_temp[Cart::z][Cart::y][m+1];
+R_temp[Cart::yz][Cart::xy][m]+=pma1*R_temp[Cart::z][Cart::xy][m]+wmp1*R_temp[Cart::z][Cart::xy][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::x][m+1];
+R_temp[Cart::yz][Cart::yz][m]+=pma1*R_temp[Cart::z][Cart::yz][m]+wmp1*R_temp[Cart::z][Cart::yz][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::z][m+1];
+R_temp[Cart::yz][Cart::xx][m]+=pma1*R_temp[Cart::z][Cart::xx][m]+wmp1*R_temp[Cart::z][Cart::xx][m+1];
+R_temp[Cart::yz][Cart::xz][m]+=pma1*R_temp[Cart::z][Cart::xz][m]+wmp1*R_temp[Cart::z][Cart::xz][m+1];
+R_temp[Cart::yz][Cart::zz][m]+=pma1*R_temp[Cart::z][Cart::zz][m]+wmp1*R_temp[Cart::z][Cart::zz][m+1];
+R_temp[Cart::xx][Cart::yy][m]+=pma0*R_temp[Cart::x][Cart::yy][m]+wmp0*R_temp[Cart::x][Cart::yy][m+1]+term_yy; //////
+R_temp[Cart::xx][Cart::xy][m]+=pma0*R_temp[Cart::x][Cart::xy][m]+wmp0*R_temp[Cart::x][Cart::xy][m+1]+0.5/_decay*1*R_temp[Cart::x][Cart::y][m+1]+term_xy; //////
+R_temp[Cart::xx][Cart::yz][m]+=pma0*R_temp[Cart::x][Cart::yz][m]+wmp0*R_temp[Cart::x][Cart::yz][m+1]+term_yz; //////
+R_temp[Cart::xx][Cart::xx][m]+=pma0*R_temp[Cart::x][Cart::xx][m]+wmp0*R_temp[Cart::x][Cart::xx][m+1]+0.5/_decay*2*R_temp[Cart::x][Cart::x][m+1]+term_xx; //////
+R_temp[Cart::xx][Cart::xz][m]+=pma0*R_temp[Cart::x][Cart::xz][m]+wmp0*R_temp[Cart::x][Cart::xz][m+1]+0.5/_decay*1*R_temp[Cart::x][Cart::z][m+1]+term_xz; //////
+R_temp[Cart::xx][Cart::zz][m]+=pma0*R_temp[Cart::x][Cart::zz][m]+wmp0*R_temp[Cart::x][Cart::zz][m+1]+term_zz; //////
+R_temp[Cart::xz][Cart::yy][m]+=pma0*R_temp[Cart::z][Cart::yy][m]+wmp0*R_temp[Cart::z][Cart::yy][m+1];
+R_temp[Cart::xz][Cart::xy][m]+=pma0*R_temp[Cart::z][Cart::xy][m]+wmp0*R_temp[Cart::z][Cart::xy][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::y][m+1];
+R_temp[Cart::xz][Cart::yz][m]+=pma0*R_temp[Cart::z][Cart::yz][m]+wmp0*R_temp[Cart::z][Cart::yz][m+1];
+R_temp[Cart::xz][Cart::xx][m]+=pma0*R_temp[Cart::z][Cart::xx][m]+wmp0*R_temp[Cart::z][Cart::xx][m+1]+0.5/_decay*2*R_temp[Cart::z][Cart::x][m+1];
+R_temp[Cart::xz][Cart::xz][m]+=pma0*R_temp[Cart::z][Cart::xz][m]+wmp0*R_temp[Cart::z][Cart::xz][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::z][m+1];
+R_temp[Cart::xz][Cart::zz][m]+=pma0*R_temp[Cart::z][Cart::zz][m]+wmp0*R_temp[Cart::z][Cart::zz][m+1];
+R_temp[Cart::zz][Cart::yy][m]+=pma2*R_temp[Cart::z][Cart::yy][m]+wmp2*R_temp[Cart::z][Cart::yy][m+1]+term_yy; //////
+R_temp[Cart::zz][Cart::xy][m]+=pma2*R_temp[Cart::z][Cart::xy][m]+wmp2*R_temp[Cart::z][Cart::xy][m+1]+term_xy; //////
+R_temp[Cart::zz][Cart::yz][m]+=pma2*R_temp[Cart::z][Cart::yz][m]+wmp2*R_temp[Cart::z][Cart::yz][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::y][m+1]+term_yz; //////
+R_temp[Cart::zz][Cart::xx][m]+=pma2*R_temp[Cart::z][Cart::xx][m]+wmp2*R_temp[Cart::z][Cart::xx][m+1]+term_xx; //////
+R_temp[Cart::zz][Cart::xz][m]+=pma2*R_temp[Cart::z][Cart::xz][m]+wmp2*R_temp[Cart::z][Cart::xz][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::x][m+1]+term_xz; //////
+R_temp[Cart::zz][Cart::zz][m]+=pma2*R_temp[Cart::z][Cart::zz][m]+wmp2*R_temp[Cart::z][Cart::zz][m+1]+0.5/_decay*2*R_temp[Cart::z][Cart::z][m+1]+term_zz; //////
+}
+}
+//------------------------------------------------------
+
+/*
 //Integral d - s - f - m0
 if (_lmax_alpha>1 && _lmax_gamma>2){
 R_temp[Cart::yy][Cart::yyy][0]+=wmc1*R_temp[Cart::yy][Cart::yy][1]+1/_decay_gamma*(R_temp[Cart::yy][Cart::y][0]-cfak*R_temp[Cart::yy][Cart::y][1])+0.5/_decay*2*R_temp[Cart::y][Cart::yy][1];
@@ -1452,7 +1795,79 @@ R_temp[Cart::zz][Cart::zzz][2]+=wmc2*R_temp[Cart::zz][Cart::zz][3]+1/_decay_gamm
 }
 }
 //------------------------------------------------------
+*/
 
+
+//Integral d - s - f
+//////////if (_lmax_alpha>1 && _lmax_gamma>2){
+if ((_lmax_alpha>1 && _lmax_gamma>2)||(_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>2)||(_lmax_beta>1 && _lmax_gamma>2)) { /////////////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+R_temp[Cart::yy][Cart::yyy][m]+=wmc1*R_temp[Cart::yy][Cart::yy][m+1]+1/_decay_gamma*(R_temp[Cart::yy][Cart::y][m]-cfak*R_temp[Cart::yy][Cart::y][m+1])+0.5/_decay*2*R_temp[Cart::y][Cart::yy][m+1];
+R_temp[Cart::yy][Cart::xyy][m]+=wmc0*R_temp[Cart::yy][Cart::yy][m+1];
+R_temp[Cart::yy][Cart::yyz][m]+=wmc2*R_temp[Cart::yy][Cart::yy][m+1];
+R_temp[Cart::yy][Cart::xxy][m]+=wmc1*R_temp[Cart::yy][Cart::xx][m+1]+0.5/_decay*2*R_temp[Cart::y][Cart::xx][m+1];
+R_temp[Cart::yy][Cart::xyz][m]+=wmc0*R_temp[Cart::yy][Cart::yz][m+1];
+R_temp[Cart::yy][Cart::yzz][m]+=wmc1*R_temp[Cart::yy][Cart::zz][m+1]+0.5/_decay*2*R_temp[Cart::y][Cart::zz][m+1];
+R_temp[Cart::yy][Cart::xxx][m]+=wmc0*R_temp[Cart::yy][Cart::xx][m+1]+1/_decay_gamma*(R_temp[Cart::yy][Cart::x][m]-cfak*R_temp[Cart::yy][Cart::x][m+1]);
+R_temp[Cart::yy][Cart::xxz][m]+=wmc2*R_temp[Cart::yy][Cart::xx][m+1];
+R_temp[Cart::yy][Cart::xzz][m]+=wmc0*R_temp[Cart::yy][Cart::zz][m+1];
+R_temp[Cart::yy][Cart::zzz][m]+=wmc2*R_temp[Cart::yy][Cart::zz][m+1]+1/_decay_gamma*(R_temp[Cart::yy][Cart::z][m]-cfak*R_temp[Cart::yy][Cart::z][m+1]);
+R_temp[Cart::xy][Cart::yyy][m]+=wmc1*R_temp[Cart::xy][Cart::yy][m+1]+1/_decay_gamma*(R_temp[Cart::xy][Cart::y][m]-cfak*R_temp[Cart::xy][Cart::y][m+1])+0.5/_decay*1*R_temp[Cart::x][Cart::yy][m+1];
+R_temp[Cart::xy][Cart::xyy][m]+=wmc0*R_temp[Cart::xy][Cart::yy][m+1]+0.5/_decay*1*R_temp[Cart::y][Cart::yy][m+1];
+R_temp[Cart::xy][Cart::yyz][m]+=wmc2*R_temp[Cart::xy][Cart::yy][m+1];
+R_temp[Cart::xy][Cart::xxy][m]+=wmc1*R_temp[Cart::xy][Cart::xx][m+1]+0.5/_decay*1*R_temp[Cart::x][Cart::xx][m+1];
+R_temp[Cart::xy][Cart::xyz][m]+=wmc0*R_temp[Cart::xy][Cart::yz][m+1]+0.5/_decay*1*R_temp[Cart::y][Cart::yz][m+1];
+R_temp[Cart::xy][Cart::yzz][m]+=wmc1*R_temp[Cart::xy][Cart::zz][m+1]+0.5/_decay*1*R_temp[Cart::x][Cart::zz][m+1];
+R_temp[Cart::xy][Cart::xxx][m]+=wmc0*R_temp[Cart::xy][Cart::xx][m+1]+1/_decay_gamma*(R_temp[Cart::xy][Cart::x][m]-cfak*R_temp[Cart::xy][Cart::x][m+1])+0.5/_decay*1*R_temp[Cart::y][Cart::xx][m+1];
+R_temp[Cart::xy][Cart::xxz][m]+=wmc2*R_temp[Cart::xy][Cart::xx][m+1];
+R_temp[Cart::xy][Cart::xzz][m]+=wmc0*R_temp[Cart::xy][Cart::zz][m+1]+0.5/_decay*1*R_temp[Cart::y][Cart::zz][m+1];
+R_temp[Cart::xy][Cart::zzz][m]+=wmc2*R_temp[Cart::xy][Cart::zz][m+1]+1/_decay_gamma*(R_temp[Cart::xy][Cart::z][m]-cfak*R_temp[Cart::xy][Cart::z][m+1]);
+R_temp[Cart::yz][Cart::yyy][m]+=wmc1*R_temp[Cart::yz][Cart::yy][m+1]+1/_decay_gamma*(R_temp[Cart::yz][Cart::y][m]-cfak*R_temp[Cart::yz][Cart::y][m+1])+0.5/_decay*1*R_temp[Cart::z][Cart::yy][m+1];
+R_temp[Cart::yz][Cart::xyy][m]+=wmc0*R_temp[Cart::yz][Cart::yy][m+1];
+R_temp[Cart::yz][Cart::yyz][m]+=wmc2*R_temp[Cart::yz][Cart::yy][m+1]+0.5/_decay*1*R_temp[Cart::y][Cart::yy][m+1];
+R_temp[Cart::yz][Cart::xxy][m]+=wmc1*R_temp[Cart::yz][Cart::xx][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::xx][m+1];
+R_temp[Cart::yz][Cart::xyz][m]+=wmc0*R_temp[Cart::yz][Cart::yz][m+1];
+R_temp[Cart::yz][Cart::yzz][m]+=wmc1*R_temp[Cart::yz][Cart::zz][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::zz][m+1];
+R_temp[Cart::yz][Cart::xxx][m]+=wmc0*R_temp[Cart::yz][Cart::xx][m+1]+1/_decay_gamma*(R_temp[Cart::yz][Cart::x][m]-cfak*R_temp[Cart::yz][Cart::x][m+1]);
+R_temp[Cart::yz][Cart::xxz][m]+=wmc2*R_temp[Cart::yz][Cart::xx][m+1]+0.5/_decay*1*R_temp[Cart::y][Cart::xx][m+1];
+R_temp[Cart::yz][Cart::xzz][m]+=wmc0*R_temp[Cart::yz][Cart::zz][m+1];
+R_temp[Cart::yz][Cart::zzz][m]+=wmc2*R_temp[Cart::yz][Cart::zz][m+1]+1/_decay_gamma*(R_temp[Cart::yz][Cart::z][m]-cfak*R_temp[Cart::yz][Cart::z][m+1])+0.5/_decay*1*R_temp[Cart::y][Cart::zz][m+1];
+R_temp[Cart::xx][Cart::yyy][m]+=wmc1*R_temp[Cart::xx][Cart::yy][m+1]+1/_decay_gamma*(R_temp[Cart::xx][Cart::y][m]-cfak*R_temp[Cart::xx][Cart::y][m+1]);
+R_temp[Cart::xx][Cart::xyy][m]+=wmc0*R_temp[Cart::xx][Cart::yy][m+1]+0.5/_decay*2*R_temp[Cart::x][Cart::yy][m+1];
+R_temp[Cart::xx][Cart::yyz][m]+=wmc2*R_temp[Cart::xx][Cart::yy][m+1];
+R_temp[Cart::xx][Cart::xxy][m]+=wmc1*R_temp[Cart::xx][Cart::xx][m+1];
+R_temp[Cart::xx][Cart::xyz][m]+=wmc0*R_temp[Cart::xx][Cart::yz][m+1]+0.5/_decay*2*R_temp[Cart::x][Cart::yz][m+1];
+R_temp[Cart::xx][Cart::yzz][m]+=wmc1*R_temp[Cart::xx][Cart::zz][m+1];
+R_temp[Cart::xx][Cart::xxx][m]+=wmc0*R_temp[Cart::xx][Cart::xx][m+1]+1/_decay_gamma*(R_temp[Cart::xx][Cart::x][m]-cfak*R_temp[Cart::xx][Cart::x][m+1])+0.5/_decay*2*R_temp[Cart::x][Cart::xx][m+1];
+R_temp[Cart::xx][Cart::xxz][m]+=wmc2*R_temp[Cart::xx][Cart::xx][m+1];
+R_temp[Cart::xx][Cart::xzz][m]+=wmc0*R_temp[Cart::xx][Cart::zz][m+1]+0.5/_decay*2*R_temp[Cart::x][Cart::zz][m+1];
+R_temp[Cart::xx][Cart::zzz][m]+=wmc2*R_temp[Cart::xx][Cart::zz][m+1]+1/_decay_gamma*(R_temp[Cart::xx][Cart::z][m]-cfak*R_temp[Cart::xx][Cart::z][m+1]);
+R_temp[Cart::xz][Cart::yyy][m]+=wmc1*R_temp[Cart::xz][Cart::yy][m+1]+1/_decay_gamma*(R_temp[Cart::xz][Cart::y][m]-cfak*R_temp[Cart::xz][Cart::y][m+1]);
+R_temp[Cart::xz][Cart::xyy][m]+=wmc0*R_temp[Cart::xz][Cart::yy][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::yy][m+1];
+R_temp[Cart::xz][Cart::yyz][m]+=wmc2*R_temp[Cart::xz][Cart::yy][m+1]+0.5/_decay*1*R_temp[Cart::x][Cart::yy][m+1];
+R_temp[Cart::xz][Cart::xxy][m]+=wmc1*R_temp[Cart::xz][Cart::xx][m+1];
+R_temp[Cart::xz][Cart::xyz][m]+=wmc0*R_temp[Cart::xz][Cart::yz][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::yz][m+1];
+R_temp[Cart::xz][Cart::yzz][m]+=wmc1*R_temp[Cart::xz][Cart::zz][m+1];
+R_temp[Cart::xz][Cart::xxx][m]+=wmc0*R_temp[Cart::xz][Cart::xx][m+1]+1/_decay_gamma*(R_temp[Cart::xz][Cart::x][m]-cfak*R_temp[Cart::xz][Cart::x][m+1])+0.5/_decay*1*R_temp[Cart::z][Cart::xx][m+1];
+R_temp[Cart::xz][Cart::xxz][m]+=wmc2*R_temp[Cart::xz][Cart::xx][m+1]+0.5/_decay*1*R_temp[Cart::x][Cart::xx][m+1];
+R_temp[Cart::xz][Cart::xzz][m]+=wmc0*R_temp[Cart::xz][Cart::zz][m+1]+0.5/_decay*1*R_temp[Cart::z][Cart::zz][m+1];
+R_temp[Cart::xz][Cart::zzz][m]+=wmc2*R_temp[Cart::xz][Cart::zz][m+1]+1/_decay_gamma*(R_temp[Cart::xz][Cart::z][m]-cfak*R_temp[Cart::xz][Cart::z][m+1])+0.5/_decay*1*R_temp[Cart::x][Cart::zz][m+1];
+R_temp[Cart::zz][Cart::yyy][m]+=wmc1*R_temp[Cart::zz][Cart::yy][m+1]+1/_decay_gamma*(R_temp[Cart::zz][Cart::y][m]-cfak*R_temp[Cart::zz][Cart::y][m+1]);
+R_temp[Cart::zz][Cart::xyy][m]+=wmc0*R_temp[Cart::zz][Cart::yy][m+1];
+R_temp[Cart::zz][Cart::yyz][m]+=wmc2*R_temp[Cart::zz][Cart::yy][m+1]+0.5/_decay*2*R_temp[Cart::z][Cart::yy][m+1];
+R_temp[Cart::zz][Cart::xxy][m]+=wmc1*R_temp[Cart::zz][Cart::xx][m+1];
+R_temp[Cart::zz][Cart::xyz][m]+=wmc0*R_temp[Cart::zz][Cart::yz][m+1];
+R_temp[Cart::zz][Cart::yzz][m]+=wmc1*R_temp[Cart::zz][Cart::zz][m+1];
+R_temp[Cart::zz][Cart::xxx][m]+=wmc0*R_temp[Cart::zz][Cart::xx][m+1]+1/_decay_gamma*(R_temp[Cart::zz][Cart::x][m]-cfak*R_temp[Cart::zz][Cart::x][m+1]);
+R_temp[Cart::zz][Cart::xxz][m]+=wmc2*R_temp[Cart::zz][Cart::xx][m+1]+0.5/_decay*2*R_temp[Cart::z][Cart::xx][m+1];
+R_temp[Cart::zz][Cart::xzz][m]+=wmc0*R_temp[Cart::zz][Cart::zz][m+1];
+R_temp[Cart::zz][Cart::zzz][m]+=wmc2*R_temp[Cart::zz][Cart::zz][m+1]+1/_decay_gamma*(R_temp[Cart::zz][Cart::z][m]-cfak*R_temp[Cart::zz][Cart::z][m+1])+0.5/_decay*2*R_temp[Cart::z][Cart::zz][m+1];
+}
+}
+//------------------------------------------------------
+
+
+/*
 //Integral f - s - s - m0
 if (_lmax_alpha>2){
 R_temp[Cart::yyy][Cart::s][0]+=pma1*R_temp[Cart::yy][Cart::s][0]+wmp1*R_temp[Cart::yy][Cart::s][1]+1*rzeta*(R_temp[Cart::y][Cart::s][0]-gfak*R_temp[Cart::y][Cart::s][1]);
@@ -1535,7 +1950,28 @@ R_temp[Cart::zzz][Cart::s][4]+=pma2*R_temp[Cart::zz][Cart::s][4]+wmp2*R_temp[Car
 }
 }
 //------------------------------------------------------
+*/
 
+//Integral f - s - s
+/////////////////if (_lmax_alpha>2){
+if ((_lmax_alpha>2)||(_lmax_beta>0 && _lmax_alpha>1)||(_lmax_beta>1 && _lmax_alpha>0)) { ////////////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+R_temp[Cart::yyy][Cart::s][m]+=pma1*R_temp[Cart::yy][Cart::s][m]+wmp1*R_temp[Cart::yy][Cart::s][m+1]+2*rzeta*(R_temp[Cart::y][Cart::s][m]-gfak*R_temp[Cart::y][Cart::s][m+1]); /////
+R_temp[Cart::xyy][Cart::s][m]+=pma0*R_temp[Cart::yy][Cart::s][m]+wmp0*R_temp[Cart::yy][Cart::s][m+1];
+R_temp[Cart::yyz][Cart::s][m]+=pma2*R_temp[Cart::yy][Cart::s][m]+wmp2*R_temp[Cart::yy][Cart::s][m+1];
+R_temp[Cart::xxy][Cart::s][m]+=pma1*R_temp[Cart::xx][Cart::s][m]+wmp1*R_temp[Cart::xx][Cart::s][m+1];
+R_temp[Cart::xyz][Cart::s][m]+=pma0*R_temp[Cart::yz][Cart::s][m]+wmp0*R_temp[Cart::yz][Cart::s][m+1];
+R_temp[Cart::yzz][Cart::s][m]+=pma1*R_temp[Cart::zz][Cart::s][m]+wmp1*R_temp[Cart::zz][Cart::s][m+1];
+R_temp[Cart::xxx][Cart::s][m]+=pma0*R_temp[Cart::xx][Cart::s][m]+wmp0*R_temp[Cart::xx][Cart::s][m+1]+2*rzeta*(R_temp[Cart::x][Cart::s][m]-gfak*R_temp[Cart::x][Cart::s][m+1]); /////
+R_temp[Cart::xxz][Cart::s][m]+=pma2*R_temp[Cart::xx][Cart::s][m]+wmp2*R_temp[Cart::xx][Cart::s][m+1];
+R_temp[Cart::xzz][Cart::s][m]+=pma0*R_temp[Cart::zz][Cart::s][m]+wmp0*R_temp[Cart::zz][Cart::s][m+1];
+R_temp[Cart::zzz][Cart::s][m]+=pma2*R_temp[Cart::zz][Cart::s][m]+wmp2*R_temp[Cart::zz][Cart::s][m+1]+2*rzeta*(R_temp[Cart::z][Cart::s][m]-gfak*R_temp[Cart::z][Cart::s][m+1]); /////
+}
+}
+//------------------------------------------------------
+
+
+/*
 //Integral f - s - p - m0
 if (_lmax_alpha>2 && _lmax_gamma>0){
 R_temp[Cart::yyy][Cart::y][0]+=pma1*R_temp[Cart::yy][Cart::y][0]+wmp1*R_temp[Cart::yy][Cart::y][1]+1*rzeta*(R_temp[Cart::y][Cart::y][0]-gfak*R_temp[Cart::y][Cart::y][1])+0.5/_decay*1*R_temp[Cart::yy][Cart::s][1];
@@ -1681,7 +2117,56 @@ R_temp[Cart::zzz][Cart::z][3]+=pma2*R_temp[Cart::zz][Cart::z][3]+wmp2*R_temp[Car
 }
 }
 //------------------------------------------------------
+*/
 
+
+
+
+//Integral f - s - p
+///////////if (_lmax_alpha>2 && _lmax_gamma>0){
+if ((_lmax_alpha>2 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_alpha>1 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0 && _lmax_gamma>0)) { ///////////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+R_temp[Cart::yyy][Cart::y][m]+=pma1*R_temp[Cart::yy][Cart::y][m]+wmp1*R_temp[Cart::yy][Cart::y][m+1]+2*rzeta*(R_temp[Cart::y][Cart::y][m]-gfak*R_temp[Cart::y][Cart::y][m+1])+0.5/_decay*1*R_temp[Cart::yy][Cart::s][m+1]; /////
+R_temp[Cart::yyy][Cart::x][m]+=pma1*R_temp[Cart::yy][Cart::x][m]+wmp1*R_temp[Cart::yy][Cart::x][m+1]+2*rzeta*(R_temp[Cart::y][Cart::x][m]-gfak*R_temp[Cart::y][Cart::x][m+1]); /////
+R_temp[Cart::yyy][Cart::z][m]+=pma1*R_temp[Cart::yy][Cart::z][m]+wmp1*R_temp[Cart::yy][Cart::z][m+1]+2*rzeta*(R_temp[Cart::y][Cart::z][m]-gfak*R_temp[Cart::y][Cart::z][m+1]); /////
+R_temp[Cart::xyy][Cart::y][m]+=pma0*R_temp[Cart::yy][Cart::y][m]+wmp0*R_temp[Cart::yy][Cart::y][m+1];
+R_temp[Cart::xyy][Cart::x][m]+=pma0*R_temp[Cart::yy][Cart::x][m]+wmp0*R_temp[Cart::yy][Cart::x][m+1]+0.5/_decay*1*R_temp[Cart::yy][Cart::s][m+1];
+R_temp[Cart::xyy][Cart::z][m]+=pma0*R_temp[Cart::yy][Cart::z][m]+wmp0*R_temp[Cart::yy][Cart::z][m+1];
+R_temp[Cart::yyz][Cart::y][m]+=pma2*R_temp[Cart::yy][Cart::y][m]+wmp2*R_temp[Cart::yy][Cart::y][m+1];
+R_temp[Cart::yyz][Cart::x][m]+=pma2*R_temp[Cart::yy][Cart::x][m]+wmp2*R_temp[Cart::yy][Cart::x][m+1];
+R_temp[Cart::yyz][Cart::z][m]+=pma2*R_temp[Cart::yy][Cart::z][m]+wmp2*R_temp[Cart::yy][Cart::z][m+1]+0.5/_decay*1*R_temp[Cart::yy][Cart::s][m+1];
+R_temp[Cart::xxy][Cart::y][m]+=pma1*R_temp[Cart::xx][Cart::y][m]+wmp1*R_temp[Cart::xx][Cart::y][m+1]+0.5/_decay*1*R_temp[Cart::xx][Cart::s][m+1];
+R_temp[Cart::xxy][Cart::x][m]+=pma1*R_temp[Cart::xx][Cart::x][m]+wmp1*R_temp[Cart::xx][Cart::x][m+1];
+R_temp[Cart::xxy][Cart::z][m]+=pma1*R_temp[Cart::xx][Cart::z][m]+wmp1*R_temp[Cart::xx][Cart::z][m+1];
+R_temp[Cart::xyz][Cart::y][m]+=pma0*R_temp[Cart::yz][Cart::y][m]+wmp0*R_temp[Cart::yz][Cart::y][m+1];
+R_temp[Cart::xyz][Cart::x][m]+=pma0*R_temp[Cart::yz][Cart::x][m]+wmp0*R_temp[Cart::yz][Cart::x][m+1]+0.5/_decay*1*R_temp[Cart::yz][Cart::s][m+1];
+R_temp[Cart::xyz][Cart::z][m]+=pma0*R_temp[Cart::yz][Cart::z][m]+wmp0*R_temp[Cart::yz][Cart::z][m+1];
+R_temp[Cart::yzz][Cart::y][m]+=pma1*R_temp[Cart::zz][Cart::y][m]+wmp1*R_temp[Cart::zz][Cart::y][m+1]+0.5/_decay*1*R_temp[Cart::zz][Cart::s][m+1];
+R_temp[Cart::yzz][Cart::x][m]+=pma1*R_temp[Cart::zz][Cart::x][m]+wmp1*R_temp[Cart::zz][Cart::x][m+1];
+R_temp[Cart::yzz][Cart::z][m]+=pma1*R_temp[Cart::zz][Cart::z][m]+wmp1*R_temp[Cart::zz][Cart::z][m+1];
+R_temp[Cart::xxx][Cart::y][m]+=pma0*R_temp[Cart::xx][Cart::y][m]+wmp0*R_temp[Cart::xx][Cart::y][m+1]+2*rzeta*(R_temp[Cart::x][Cart::y][m]-gfak*R_temp[Cart::x][Cart::y][m+1]); /////
+R_temp[Cart::xxx][Cart::x][m]+=pma0*R_temp[Cart::xx][Cart::x][m]+wmp0*R_temp[Cart::xx][Cart::x][m+1]+2*rzeta*(R_temp[Cart::x][Cart::x][m]-gfak*R_temp[Cart::x][Cart::x][m+1])+0.5/_decay*1*R_temp[Cart::xx][Cart::s][m+1]; /////
+R_temp[Cart::xxx][Cart::z][m]+=pma0*R_temp[Cart::xx][Cart::z][m]+wmp0*R_temp[Cart::xx][Cart::z][m+1]+2*rzeta*(R_temp[Cart::x][Cart::z][m]-gfak*R_temp[Cart::x][Cart::z][m+1]); /////
+R_temp[Cart::xxz][Cart::y][m]+=pma2*R_temp[Cart::xx][Cart::y][m]+wmp2*R_temp[Cart::xx][Cart::y][m+1];
+R_temp[Cart::xxz][Cart::x][m]+=pma2*R_temp[Cart::xx][Cart::x][m]+wmp2*R_temp[Cart::xx][Cart::x][m+1];
+R_temp[Cart::xxz][Cart::z][m]+=pma2*R_temp[Cart::xx][Cart::z][m]+wmp2*R_temp[Cart::xx][Cart::z][m+1]+0.5/_decay*1*R_temp[Cart::xx][Cart::s][m+1];
+R_temp[Cart::xzz][Cart::y][m]+=pma0*R_temp[Cart::zz][Cart::y][m]+wmp0*R_temp[Cart::zz][Cart::y][m+1];
+R_temp[Cart::xzz][Cart::x][m]+=pma0*R_temp[Cart::zz][Cart::x][m]+wmp0*R_temp[Cart::zz][Cart::x][m+1]+0.5/_decay*1*R_temp[Cart::zz][Cart::s][m+1];
+R_temp[Cart::xzz][Cart::z][m]+=pma0*R_temp[Cart::zz][Cart::z][m]+wmp0*R_temp[Cart::zz][Cart::z][m+1];
+R_temp[Cart::zzz][Cart::y][m]+=pma2*R_temp[Cart::zz][Cart::y][m]+wmp2*R_temp[Cart::zz][Cart::y][m+1]+2*rzeta*(R_temp[Cart::z][Cart::y][m]-gfak*R_temp[Cart::z][Cart::y][m+1]); /////
+R_temp[Cart::zzz][Cart::x][m]+=pma2*R_temp[Cart::zz][Cart::x][m]+wmp2*R_temp[Cart::zz][Cart::x][m+1]+2*rzeta*(R_temp[Cart::z][Cart::x][m]-gfak*R_temp[Cart::z][Cart::x][m+1]); /////
+R_temp[Cart::zzz][Cart::z][m]+=pma2*R_temp[Cart::zz][Cart::z][m]+wmp2*R_temp[Cart::zz][Cart::z][m+1]+2*rzeta*(R_temp[Cart::z][Cart::z][m]-gfak*R_temp[Cart::z][Cart::z][m+1])+0.5/_decay*1*R_temp[Cart::zz][Cart::s][m+1]; /////
+}
+}
+//------------------------------------------------------
+
+
+
+
+
+
+
+/*
 //Integral f - s - d - m0
 if (_lmax_alpha>2 && _lmax_gamma>1){
 R_temp[Cart::yyy][Cart::yy][0]+=pma1*R_temp[Cart::yy][Cart::yy][0]+wmp1*R_temp[Cart::yy][Cart::yy][1]+1*rzeta*(R_temp[Cart::y][Cart::yy][0]-gfak*R_temp[Cart::y][Cart::yy][1])+0.5/_decay*2*R_temp[Cart::yy][Cart::y][1];
@@ -1880,9 +2365,88 @@ R_temp[Cart::zzz][Cart::zz][2]+=pma2*R_temp[Cart::zz][Cart::zz][2]+wmp2*R_temp[C
 }
 }
 //------------------------------------------------------
+*/
+
+
+
+
+
+//Integral f - s - d
+/////////////////if (_lmax_alpha>2 && _lmax_gamma>1){
+if ((_lmax_alpha>2 && _lmax_gamma>1)||(_lmax_beta>0 && _lmax_alpha>1 && _lmax_gamma>1)||(_lmax_beta>1 && _lmax_alpha>0 && _lmax_gamma>1)) { //////////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+R_temp[Cart::yyy][Cart::yy][m]+=pma1*R_temp[Cart::yy][Cart::yy][m]+wmp1*R_temp[Cart::yy][Cart::yy][m+1]+2*rzeta*(R_temp[Cart::y][Cart::yy][m]-gfak*R_temp[Cart::y][Cart::yy][m+1])+0.5/_decay*2*R_temp[Cart::yy][Cart::y][m+1]; ////
+R_temp[Cart::yyy][Cart::xy][m]+=pma1*R_temp[Cart::yy][Cart::xy][m]+wmp1*R_temp[Cart::yy][Cart::xy][m+1]+2*rzeta*(R_temp[Cart::y][Cart::xy][m]-gfak*R_temp[Cart::y][Cart::xy][m+1])+0.5/_decay*1*R_temp[Cart::yy][Cart::x][m+1]; ////
+R_temp[Cart::yyy][Cart::yz][m]+=pma1*R_temp[Cart::yy][Cart::yz][m]+wmp1*R_temp[Cart::yy][Cart::yz][m+1]+2*rzeta*(R_temp[Cart::y][Cart::yz][m]-gfak*R_temp[Cart::y][Cart::yz][m+1])+0.5/_decay*1*R_temp[Cart::yy][Cart::z][m+1]; ////
+R_temp[Cart::yyy][Cart::xx][m]+=pma1*R_temp[Cart::yy][Cart::xx][m]+wmp1*R_temp[Cart::yy][Cart::xx][m+1]+2*rzeta*(R_temp[Cart::y][Cart::xx][m]-gfak*R_temp[Cart::y][Cart::xx][m+1]); ////
+R_temp[Cart::yyy][Cart::xz][m]+=pma1*R_temp[Cart::yy][Cart::xz][m]+wmp1*R_temp[Cart::yy][Cart::xz][m+1]+2*rzeta*(R_temp[Cart::y][Cart::xz][m]-gfak*R_temp[Cart::y][Cart::xz][m+1]); ////
+R_temp[Cart::yyy][Cart::zz][m]+=pma1*R_temp[Cart::yy][Cart::zz][m]+wmp1*R_temp[Cart::yy][Cart::zz][m+1]+2*rzeta*(R_temp[Cart::y][Cart::zz][m]-gfak*R_temp[Cart::y][Cart::zz][m+1]); ////
+R_temp[Cart::xyy][Cart::yy][m]+=pma0*R_temp[Cart::yy][Cart::yy][m]+wmp0*R_temp[Cart::yy][Cart::yy][m+1];
+R_temp[Cart::xyy][Cart::xy][m]+=pma0*R_temp[Cart::yy][Cart::xy][m]+wmp0*R_temp[Cart::yy][Cart::xy][m+1]+0.5/_decay*1*R_temp[Cart::yy][Cart::y][m+1];
+R_temp[Cart::xyy][Cart::yz][m]+=pma0*R_temp[Cart::yy][Cart::yz][m]+wmp0*R_temp[Cart::yy][Cart::yz][m+1];
+R_temp[Cart::xyy][Cart::xx][m]+=pma0*R_temp[Cart::yy][Cart::xx][m]+wmp0*R_temp[Cart::yy][Cart::xx][m+1]+0.5/_decay*2*R_temp[Cart::yy][Cart::x][m+1];
+R_temp[Cart::xyy][Cart::xz][m]+=pma0*R_temp[Cart::yy][Cart::xz][m]+wmp0*R_temp[Cart::yy][Cart::xz][m+1]+0.5/_decay*1*R_temp[Cart::yy][Cart::z][m+1];
+R_temp[Cart::xyy][Cart::zz][m]+=pma0*R_temp[Cart::yy][Cart::zz][m]+wmp0*R_temp[Cart::yy][Cart::zz][m+1];
+R_temp[Cart::yyz][Cart::yy][m]+=pma2*R_temp[Cart::yy][Cart::yy][m]+wmp2*R_temp[Cart::yy][Cart::yy][m+1];
+R_temp[Cart::yyz][Cart::xy][m]+=pma2*R_temp[Cart::yy][Cart::xy][m]+wmp2*R_temp[Cart::yy][Cart::xy][m+1];
+R_temp[Cart::yyz][Cart::yz][m]+=pma2*R_temp[Cart::yy][Cart::yz][m]+wmp2*R_temp[Cart::yy][Cart::yz][m+1]+0.5/_decay*1*R_temp[Cart::yy][Cart::y][m+1];
+R_temp[Cart::yyz][Cart::xx][m]+=pma2*R_temp[Cart::yy][Cart::xx][m]+wmp2*R_temp[Cart::yy][Cart::xx][m+1];
+R_temp[Cart::yyz][Cart::xz][m]+=pma2*R_temp[Cart::yy][Cart::xz][m]+wmp2*R_temp[Cart::yy][Cart::xz][m+1]+0.5/_decay*1*R_temp[Cart::yy][Cart::x][m+1];
+R_temp[Cart::yyz][Cart::zz][m]+=pma2*R_temp[Cart::yy][Cart::zz][m]+wmp2*R_temp[Cart::yy][Cart::zz][m+1]+0.5/_decay*2*R_temp[Cart::yy][Cart::z][m+1];
+R_temp[Cart::xxy][Cart::yy][m]+=pma1*R_temp[Cart::xx][Cart::yy][m]+wmp1*R_temp[Cart::xx][Cart::yy][m+1]+0.5/_decay*2*R_temp[Cart::xx][Cart::y][m+1];
+R_temp[Cart::xxy][Cart::xy][m]+=pma1*R_temp[Cart::xx][Cart::xy][m]+wmp1*R_temp[Cart::xx][Cart::xy][m+1]+0.5/_decay*1*R_temp[Cart::xx][Cart::x][m+1];
+R_temp[Cart::xxy][Cart::yz][m]+=pma1*R_temp[Cart::xx][Cart::yz][m]+wmp1*R_temp[Cart::xx][Cart::yz][m+1]+0.5/_decay*1*R_temp[Cart::xx][Cart::z][m+1];
+R_temp[Cart::xxy][Cart::xx][m]+=pma1*R_temp[Cart::xx][Cart::xx][m]+wmp1*R_temp[Cart::xx][Cart::xx][m+1];
+R_temp[Cart::xxy][Cart::xz][m]+=pma1*R_temp[Cart::xx][Cart::xz][m]+wmp1*R_temp[Cart::xx][Cart::xz][m+1];
+R_temp[Cart::xxy][Cart::zz][m]+=pma1*R_temp[Cart::xx][Cart::zz][m]+wmp1*R_temp[Cart::xx][Cart::zz][m+1];
+R_temp[Cart::xyz][Cart::yy][m]+=pma0*R_temp[Cart::yz][Cart::yy][m]+wmp0*R_temp[Cart::yz][Cart::yy][m+1];
+R_temp[Cart::xyz][Cart::xy][m]+=pma0*R_temp[Cart::yz][Cart::xy][m]+wmp0*R_temp[Cart::yz][Cart::xy][m+1]+0.5/_decay*1*R_temp[Cart::yz][Cart::y][m+1];
+R_temp[Cart::xyz][Cart::yz][m]+=pma0*R_temp[Cart::yz][Cart::yz][m]+wmp0*R_temp[Cart::yz][Cart::yz][m+1];
+R_temp[Cart::xyz][Cart::xx][m]+=pma0*R_temp[Cart::yz][Cart::xx][m]+wmp0*R_temp[Cart::yz][Cart::xx][m+1]+0.5/_decay*2*R_temp[Cart::yz][Cart::x][m+1];
+R_temp[Cart::xyz][Cart::xz][m]+=pma0*R_temp[Cart::yz][Cart::xz][m]+wmp0*R_temp[Cart::yz][Cart::xz][m+1]+0.5/_decay*1*R_temp[Cart::yz][Cart::z][m+1];
+R_temp[Cart::xyz][Cart::zz][m]+=pma0*R_temp[Cart::yz][Cart::zz][m]+wmp0*R_temp[Cart::yz][Cart::zz][m+1];
+R_temp[Cart::yzz][Cart::yy][m]+=pma1*R_temp[Cart::zz][Cart::yy][m]+wmp1*R_temp[Cart::zz][Cart::yy][m+1]+0.5/_decay*2*R_temp[Cart::zz][Cart::y][m+1];
+R_temp[Cart::yzz][Cart::xy][m]+=pma1*R_temp[Cart::zz][Cart::xy][m]+wmp1*R_temp[Cart::zz][Cart::xy][m+1]+0.5/_decay*1*R_temp[Cart::zz][Cart::x][m+1];
+R_temp[Cart::yzz][Cart::yz][m]+=pma1*R_temp[Cart::zz][Cart::yz][m]+wmp1*R_temp[Cart::zz][Cart::yz][m+1]+0.5/_decay*1*R_temp[Cart::zz][Cart::z][m+1];
+R_temp[Cart::yzz][Cart::xx][m]+=pma1*R_temp[Cart::zz][Cart::xx][m]+wmp1*R_temp[Cart::zz][Cart::xx][m+1];
+R_temp[Cart::yzz][Cart::xz][m]+=pma1*R_temp[Cart::zz][Cart::xz][m]+wmp1*R_temp[Cart::zz][Cart::xz][m+1];
+R_temp[Cart::yzz][Cart::zz][m]+=pma1*R_temp[Cart::zz][Cart::zz][m]+wmp1*R_temp[Cart::zz][Cart::zz][m+1];
+R_temp[Cart::xxx][Cart::yy][m]+=pma0*R_temp[Cart::xx][Cart::yy][m]+wmp0*R_temp[Cart::xx][Cart::yy][m+1]+2*rzeta*(R_temp[Cart::x][Cart::yy][m]-gfak*R_temp[Cart::x][Cart::yy][m+1]); ////
+R_temp[Cart::xxx][Cart::xy][m]+=pma0*R_temp[Cart::xx][Cart::xy][m]+wmp0*R_temp[Cart::xx][Cart::xy][m+1]+2*rzeta*(R_temp[Cart::x][Cart::xy][m]-gfak*R_temp[Cart::x][Cart::xy][m+1])+0.5/_decay*1*R_temp[Cart::xx][Cart::y][m+1]; ////
+R_temp[Cart::xxx][Cart::yz][m]+=pma0*R_temp[Cart::xx][Cart::yz][m]+wmp0*R_temp[Cart::xx][Cart::yz][m+1]+2*rzeta*(R_temp[Cart::x][Cart::yz][m]-gfak*R_temp[Cart::x][Cart::yz][m+1]); ////
+R_temp[Cart::xxx][Cart::xx][m]+=pma0*R_temp[Cart::xx][Cart::xx][m]+wmp0*R_temp[Cart::xx][Cart::xx][m+1]+2*rzeta*(R_temp[Cart::x][Cart::xx][m]-gfak*R_temp[Cart::x][Cart::xx][m+1])+0.5/_decay*2*R_temp[Cart::xx][Cart::x][m+1]; ////
+R_temp[Cart::xxx][Cart::xz][m]+=pma0*R_temp[Cart::xx][Cart::xz][m]+wmp0*R_temp[Cart::xx][Cart::xz][m+1]+2*rzeta*(R_temp[Cart::x][Cart::xz][m]-gfak*R_temp[Cart::x][Cart::xz][m+1])+0.5/_decay*1*R_temp[Cart::xx][Cart::z][m+1]; ////
+R_temp[Cart::xxx][Cart::zz][m]+=pma0*R_temp[Cart::xx][Cart::zz][m]+wmp0*R_temp[Cart::xx][Cart::zz][m+1]+2*rzeta*(R_temp[Cart::x][Cart::zz][m]-gfak*R_temp[Cart::x][Cart::zz][m+1]); ////
+R_temp[Cart::xxz][Cart::yy][m]+=pma2*R_temp[Cart::xx][Cart::yy][m]+wmp2*R_temp[Cart::xx][Cart::yy][m+1];
+R_temp[Cart::xxz][Cart::xy][m]+=pma2*R_temp[Cart::xx][Cart::xy][m]+wmp2*R_temp[Cart::xx][Cart::xy][m+1];
+R_temp[Cart::xxz][Cart::yz][m]+=pma2*R_temp[Cart::xx][Cart::yz][m]+wmp2*R_temp[Cart::xx][Cart::yz][m+1]+0.5/_decay*1*R_temp[Cart::xx][Cart::y][m+1];
+R_temp[Cart::xxz][Cart::xx][m]+=pma2*R_temp[Cart::xx][Cart::xx][m]+wmp2*R_temp[Cart::xx][Cart::xx][m+1];
+R_temp[Cart::xxz][Cart::xz][m]+=pma2*R_temp[Cart::xx][Cart::xz][m]+wmp2*R_temp[Cart::xx][Cart::xz][m+1]+0.5/_decay*1*R_temp[Cart::xx][Cart::x][m+1];
+R_temp[Cart::xxz][Cart::zz][m]+=pma2*R_temp[Cart::xx][Cart::zz][m]+wmp2*R_temp[Cart::xx][Cart::zz][m+1]+0.5/_decay*2*R_temp[Cart::xx][Cart::z][m+1];
+R_temp[Cart::xzz][Cart::yy][m]+=pma0*R_temp[Cart::zz][Cart::yy][m]+wmp0*R_temp[Cart::zz][Cart::yy][m+1];
+R_temp[Cart::xzz][Cart::xy][m]+=pma0*R_temp[Cart::zz][Cart::xy][m]+wmp0*R_temp[Cart::zz][Cart::xy][m+1]+0.5/_decay*1*R_temp[Cart::zz][Cart::y][m+1];
+R_temp[Cart::xzz][Cart::yz][m]+=pma0*R_temp[Cart::zz][Cart::yz][m]+wmp0*R_temp[Cart::zz][Cart::yz][m+1];
+R_temp[Cart::xzz][Cart::xx][m]+=pma0*R_temp[Cart::zz][Cart::xx][m]+wmp0*R_temp[Cart::zz][Cart::xx][m+1]+0.5/_decay*2*R_temp[Cart::zz][Cart::x][m+1];
+R_temp[Cart::xzz][Cart::xz][m]+=pma0*R_temp[Cart::zz][Cart::xz][m]+wmp0*R_temp[Cart::zz][Cart::xz][m+1]+0.5/_decay*1*R_temp[Cart::zz][Cart::z][m+1];
+R_temp[Cart::xzz][Cart::zz][m]+=pma0*R_temp[Cart::zz][Cart::zz][m]+wmp0*R_temp[Cart::zz][Cart::zz][m+1];
+R_temp[Cart::zzz][Cart::yy][m]+=pma2*R_temp[Cart::zz][Cart::yy][m]+wmp2*R_temp[Cart::zz][Cart::yy][m+1]+2*rzeta*(R_temp[Cart::z][Cart::yy][m]-gfak*R_temp[Cart::z][Cart::yy][m+1]); ////
+R_temp[Cart::zzz][Cart::xy][m]+=pma2*R_temp[Cart::zz][Cart::xy][m]+wmp2*R_temp[Cart::zz][Cart::xy][m+1]+2*rzeta*(R_temp[Cart::z][Cart::xy][m]-gfak*R_temp[Cart::z][Cart::xy][m+1]); ////
+R_temp[Cart::zzz][Cart::yz][m]+=pma2*R_temp[Cart::zz][Cart::yz][m]+wmp2*R_temp[Cart::zz][Cart::yz][m+1]+2*rzeta*(R_temp[Cart::z][Cart::yz][m]-gfak*R_temp[Cart::z][Cart::yz][m+1])+0.5/_decay*1*R_temp[Cart::zz][Cart::y][m+1]; ////
+R_temp[Cart::zzz][Cart::xx][m]+=pma2*R_temp[Cart::zz][Cart::xx][m]+wmp2*R_temp[Cart::zz][Cart::xx][m+1]+2*rzeta*(R_temp[Cart::z][Cart::xx][m]-gfak*R_temp[Cart::z][Cart::xx][m+1]); ////
+R_temp[Cart::zzz][Cart::xz][m]+=pma2*R_temp[Cart::zz][Cart::xz][m]+wmp2*R_temp[Cart::zz][Cart::xz][m+1]+2*rzeta*(R_temp[Cart::z][Cart::xz][m]-gfak*R_temp[Cart::z][Cart::xz][m+1])+0.5/_decay*1*R_temp[Cart::zz][Cart::x][m+1]; ////
+R_temp[Cart::zzz][Cart::zz][m]+=pma2*R_temp[Cart::zz][Cart::zz][m]+wmp2*R_temp[Cart::zz][Cart::zz][m+1]+2*rzeta*(R_temp[Cart::z][Cart::zz][m]-gfak*R_temp[Cart::z][Cart::zz][m+1])+0.5/_decay*2*R_temp[Cart::zz][Cart::z][m+1]; ////
+}
+}
+//------------------------------------------------------
+
+
+
+
+
 
 //Integral f - s - f - m0
-if (_lmax_alpha>2 && _lmax_gamma>2){
+///////////////////if (_lmax_alpha>2 && _lmax_gamma>2){
+if ((_lmax_alpha>2 && _lmax_gamma>2)||(_lmax_beta>0 && _lmax_alpha>1 && _lmax_gamma>2)||(_lmax_beta>1 && _lmax_alpha>0 && _lmax_gamma>2)) { ///////////////
 R_temp[Cart::yyy][Cart::yyy][0]+=pma1*R_temp[Cart::yy][Cart::yyy][0]+wmp1*R_temp[Cart::yy][Cart::yyy][1]+1*rzeta*(R_temp[Cart::y][Cart::yyy][0]-gfak*R_temp[Cart::y][Cart::yyy][1])+0.5/_decay*3*R_temp[Cart::yy][Cart::yy][1];
 R_temp[Cart::yyy][Cart::xyy][0]+=pma1*R_temp[Cart::yy][Cart::xyy][0]+wmp1*R_temp[Cart::yy][Cart::xyy][1]+1*rzeta*(R_temp[Cart::y][Cart::xyy][0]-gfak*R_temp[Cart::y][Cart::xyy][1])+0.5/_decay*2*R_temp[Cart::yy][Cart::xy][1];
 R_temp[Cart::yyy][Cart::yyz][0]+=pma1*R_temp[Cart::yy][Cart::yyz][0]+wmp1*R_temp[Cart::yy][Cart::yyz][1]+1*rzeta*(R_temp[Cart::y][Cart::yyz][0]-gfak*R_temp[Cart::y][Cart::yyz][1])+0.5/_decay*2*R_temp[Cart::yy][Cart::yz][1];
@@ -1988,7 +2552,8 @@ R_temp[Cart::zzz][Cart::zzz][0]+=pma2*R_temp[Cart::zz][Cart::zzz][0]+wmp2*R_temp
 
 //Integral f - s - f - m1
 if (_mmax >1 ){
-if (_lmax_alpha>2 && _lmax_gamma>2){
+///////////////////if (_lmax_alpha>2 && _lmax_gamma>2){
+if ((_lmax_alpha>2 && _lmax_gamma>2)||(_lmax_beta>0 && _lmax_alpha>1 && _lmax_gamma>2)||(_lmax_beta>1 && _lmax_alpha>0 && _lmax_gamma>2)) { /////////////////
 R_temp[Cart::yyy][Cart::yyy][1]+=pma1*R_temp[Cart::yy][Cart::yyy][1]+wmp1*R_temp[Cart::yy][Cart::yyy][2]+1*rzeta*(R_temp[Cart::y][Cart::yyy][1]-gfak*R_temp[Cart::y][Cart::yyy][2])+0.5/_decay*3*R_temp[Cart::yy][Cart::yy][2];
 R_temp[Cart::yyy][Cart::xyy][1]+=pma1*R_temp[Cart::yy][Cart::xyy][1]+wmp1*R_temp[Cart::yy][Cart::xyy][2]+1*rzeta*(R_temp[Cart::y][Cart::xyy][1]-gfak*R_temp[Cart::y][Cart::xyy][2])+0.5/_decay*2*R_temp[Cart::yy][Cart::xy][2];
 R_temp[Cart::yyy][Cart::yyz][1]+=pma1*R_temp[Cart::yy][Cart::yyz][1]+wmp1*R_temp[Cart::yy][Cart::yyz][2]+1*rzeta*(R_temp[Cart::y][Cart::yyz][1]-gfak*R_temp[Cart::y][Cart::yyz][2])+0.5/_decay*2*R_temp[Cart::yy][Cart::yz][2];
@@ -2093,6 +2658,8 @@ R_temp[Cart::zzz][Cart::zzz][1]+=pma2*R_temp[Cart::zz][Cart::zzz][1]+wmp2*R_temp
 }
 //------------------------------------------------------
 
+
+/*
 //Integral g - s - s - m0
 if (_lmax_alpha>3){
 R_temp[Cart::yyyy][Cart::s][0]+=pma1*R_temp[Cart::yyy][Cart::s][0]+wmp1*R_temp[Cart::yyy][Cart::s][1]+2*rzeta*(R_temp[Cart::yy][Cart::s][0]-gfak*R_temp[Cart::yy][Cart::s][1]);
@@ -2178,7 +2745,36 @@ R_temp[Cart::zzzz][Cart::s][3]+=pma2*R_temp[Cart::zzz][Cart::s][3]+wmp2*R_temp[C
 }
 }
 //------------------------------------------------------
+*/
 
+
+//Integral g - s - s
+/////////if (_lmax_alpha>3){
+if ((_lmax_alpha>3)||(_lmax_beta>0 && _lmax_alpha>2)||(_lmax_beta>1 && _lmax_alpha>1)) { ///////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+R_temp[Cart::yyyy][Cart::s][m]+=pma1*R_temp[Cart::yyy][Cart::s][m]+wmp1*R_temp[Cart::yyy][Cart::s][m+1]+3*rzeta*(R_temp[Cart::yy][Cart::s][m]-gfak*R_temp[Cart::yy][Cart::s][m+1]); ////
+R_temp[Cart::xyyy][Cart::s][m]+=pma0*R_temp[Cart::yyy][Cart::s][m]+wmp0*R_temp[Cart::yyy][Cart::s][m+1];
+R_temp[Cart::yyyz][Cart::s][m]+=pma2*R_temp[Cart::yyy][Cart::s][m]+wmp2*R_temp[Cart::yyy][Cart::s][m+1];
+R_temp[Cart::xxyy][Cart::s][m]+=pma0*R_temp[Cart::xyy][Cart::s][m]+wmp0*R_temp[Cart::xyy][Cart::s][m+1]+1*rzeta*(R_temp[Cart::yy][Cart::s][m]-gfak*R_temp[Cart::yy][Cart::s][m+1]); ////
+R_temp[Cart::xyyz][Cart::s][m]+=pma0*R_temp[Cart::yyz][Cart::s][m]+wmp0*R_temp[Cart::yyz][Cart::s][m+1];
+R_temp[Cart::yyzz][Cart::s][m]+=pma1*R_temp[Cart::yzz][Cart::s][m]+wmp1*R_temp[Cart::yzz][Cart::s][m+1]+1*rzeta*(R_temp[Cart::zz][Cart::s][m]-gfak*R_temp[Cart::zz][Cart::s][m+1]); ////
+R_temp[Cart::xxxy][Cart::s][m]+=pma1*R_temp[Cart::xxx][Cart::s][m]+wmp1*R_temp[Cart::xxx][Cart::s][m+1];
+R_temp[Cart::xxyz][Cart::s][m]+=pma1*R_temp[Cart::xxz][Cart::s][m]+wmp1*R_temp[Cart::xxz][Cart::s][m+1];
+R_temp[Cart::xyzz][Cart::s][m]+=pma0*R_temp[Cart::yzz][Cart::s][m]+wmp0*R_temp[Cart::yzz][Cart::s][m+1];
+R_temp[Cart::yzzz][Cart::s][m]+=pma1*R_temp[Cart::zzz][Cart::s][m]+wmp1*R_temp[Cart::zzz][Cart::s][m+1];
+R_temp[Cart::xxxx][Cart::s][m]+=pma0*R_temp[Cart::xxx][Cart::s][m]+wmp0*R_temp[Cart::xxx][Cart::s][m+1]+3*rzeta*(R_temp[Cart::xx][Cart::s][m]-gfak*R_temp[Cart::xx][Cart::s][m+1]); ////
+R_temp[Cart::xxxz][Cart::s][m]+=pma2*R_temp[Cart::xxx][Cart::s][m]+wmp2*R_temp[Cart::xxx][Cart::s][m+1];
+R_temp[Cart::xxzz][Cart::s][m]+=pma0*R_temp[Cart::xzz][Cart::s][m]+wmp0*R_temp[Cart::xzz][Cart::s][m+1]+1*rzeta*(R_temp[Cart::zz][Cart::s][m]-gfak*R_temp[Cart::zz][Cart::s][m+1]); ////
+R_temp[Cart::xzzz][Cart::s][m]+=pma0*R_temp[Cart::zzz][Cart::s][m]+wmp0*R_temp[Cart::zzz][Cart::s][m+1];
+R_temp[Cart::zzzz][Cart::s][m]+=pma2*R_temp[Cart::zzz][Cart::s][m]+wmp2*R_temp[Cart::zzz][Cart::s][m+1]+3*rzeta*(R_temp[Cart::zz][Cart::s][m]-gfak*R_temp[Cart::zz][Cart::s][m+1]); ////
+}
+}
+//------------------------------------------------------
+
+
+
+
+/*
 //Integral g - s - p - m0
 if (_lmax_alpha>3 && _lmax_gamma>0){
 R_temp[Cart::yyyy][Cart::y][0]+=pma1*R_temp[Cart::yyy][Cart::y][0]+wmp1*R_temp[Cart::yyy][Cart::y][1]+2*rzeta*(R_temp[Cart::yy][Cart::y][0]-gfak*R_temp[Cart::yy][Cart::y][1])+0.5/_decay*1*R_temp[Cart::yyy][Cart::s][1];
@@ -2332,9 +2928,69 @@ R_temp[Cart::zzzz][Cart::z][2]+=pma2*R_temp[Cart::zzz][Cart::z][2]+wmp2*R_temp[C
 }
 }
 //------------------------------------------------------
+*/
+
+
+
+//Integral g - s - p
+////////////if (_lmax_alpha>3 && _lmax_gamma>0){
+if ((_lmax_alpha>3 && _lmax_gamma>0)||(_lmax_beta>0 && _lmax_alpha>2 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>1 && _lmax_gamma>0)) { //////////////////
+for (int m = 0; m < _mmax; m++){ //////////////////////
+R_temp[Cart::yyyy][Cart::y][m]+=pma1*R_temp[Cart::yyy][Cart::y][m]+wmp1*R_temp[Cart::yyy][Cart::y][m+1]+3*rzeta*(R_temp[Cart::yy][Cart::y][m]-gfak*R_temp[Cart::yy][Cart::y][m+1])+0.5/_decay*1*R_temp[Cart::yyy][Cart::s][m+1]; ////
+R_temp[Cart::yyyy][Cart::x][m]+=pma1*R_temp[Cart::yyy][Cart::x][m]+wmp1*R_temp[Cart::yyy][Cart::x][m+1]+3*rzeta*(R_temp[Cart::yy][Cart::x][m]-gfak*R_temp[Cart::yy][Cart::x][m+1]); ////
+R_temp[Cart::yyyy][Cart::z][m]+=pma1*R_temp[Cart::yyy][Cart::z][m]+wmp1*R_temp[Cart::yyy][Cart::z][m+1]+3*rzeta*(R_temp[Cart::yy][Cart::z][m]-gfak*R_temp[Cart::yy][Cart::z][m+1]); ////
+R_temp[Cart::xyyy][Cart::y][m]+=pma0*R_temp[Cart::yyy][Cart::y][m]+wmp0*R_temp[Cart::yyy][Cart::y][m+1];
+R_temp[Cart::xyyy][Cart::x][m]+=pma0*R_temp[Cart::yyy][Cart::x][m]+wmp0*R_temp[Cart::yyy][Cart::x][m+1]+0.5/_decay*1*R_temp[Cart::yyy][Cart::s][m+1];
+R_temp[Cart::xyyy][Cart::z][m]+=pma0*R_temp[Cart::yyy][Cart::z][m]+wmp0*R_temp[Cart::yyy][Cart::z][m+1];
+R_temp[Cart::yyyz][Cart::y][m]+=pma2*R_temp[Cart::yyy][Cart::y][m]+wmp2*R_temp[Cart::yyy][Cart::y][m+1];
+R_temp[Cart::yyyz][Cart::x][m]+=pma2*R_temp[Cart::yyy][Cart::x][m]+wmp2*R_temp[Cart::yyy][Cart::x][m+1];
+R_temp[Cart::yyyz][Cart::z][m]+=pma2*R_temp[Cart::yyy][Cart::z][m]+wmp2*R_temp[Cart::yyy][Cart::z][m+1]+0.5/_decay*1*R_temp[Cart::yyy][Cart::s][m+1];
+R_temp[Cart::xxyy][Cart::y][m]+=pma0*R_temp[Cart::xyy][Cart::y][m]+wmp0*R_temp[Cart::xyy][Cart::y][m+1]+1*rzeta*(R_temp[Cart::yy][Cart::y][m]-gfak*R_temp[Cart::yy][Cart::y][m+1]); ////
+R_temp[Cart::xxyy][Cart::x][m]+=pma0*R_temp[Cart::xyy][Cart::x][m]+wmp0*R_temp[Cart::xyy][Cart::x][m+1]+1*rzeta*(R_temp[Cart::yy][Cart::x][m]-gfak*R_temp[Cart::yy][Cart::x][m+1])+0.5/_decay*1*R_temp[Cart::xyy][Cart::s][m+1]; ////
+R_temp[Cart::xxyy][Cart::z][m]+=pma0*R_temp[Cart::xyy][Cart::z][m]+wmp0*R_temp[Cart::xyy][Cart::z][m+1]+1*rzeta*(R_temp[Cart::yy][Cart::z][m]-gfak*R_temp[Cart::yy][Cart::z][m+1]); ////
+R_temp[Cart::xyyz][Cart::y][m]+=pma0*R_temp[Cart::yyz][Cart::y][m]+wmp0*R_temp[Cart::yyz][Cart::y][m+1];
+R_temp[Cart::xyyz][Cart::x][m]+=pma0*R_temp[Cart::yyz][Cart::x][m]+wmp0*R_temp[Cart::yyz][Cart::x][m+1]+0.5/_decay*1*R_temp[Cart::yyz][Cart::s][m+1];
+R_temp[Cart::xyyz][Cart::z][m]+=pma0*R_temp[Cart::yyz][Cart::z][m]+wmp0*R_temp[Cart::yyz][Cart::z][m+1];
+R_temp[Cart::yyzz][Cart::y][m]+=pma1*R_temp[Cart::yzz][Cart::y][m]+wmp1*R_temp[Cart::yzz][Cart::y][m+1]+1*rzeta*(R_temp[Cart::zz][Cart::y][m]-gfak*R_temp[Cart::zz][Cart::y][m+1])+0.5/_decay*1*R_temp[Cart::yzz][Cart::s][m+1]; ////
+R_temp[Cart::yyzz][Cart::x][m]+=pma1*R_temp[Cart::yzz][Cart::x][m]+wmp1*R_temp[Cart::yzz][Cart::x][m+1]+1*rzeta*(R_temp[Cart::zz][Cart::x][m]-gfak*R_temp[Cart::zz][Cart::x][m+1]); ////
+R_temp[Cart::yyzz][Cart::z][m]+=pma1*R_temp[Cart::yzz][Cart::z][m]+wmp1*R_temp[Cart::yzz][Cart::z][m+1]+1*rzeta*(R_temp[Cart::zz][Cart::z][m]-gfak*R_temp[Cart::zz][Cart::z][m+1]); ////
+R_temp[Cart::xxxy][Cart::y][m]+=pma1*R_temp[Cart::xxx][Cart::y][m]+wmp1*R_temp[Cart::xxx][Cart::y][m+1]+0.5/_decay*1*R_temp[Cart::xxx][Cart::s][m+1];
+R_temp[Cart::xxxy][Cart::x][m]+=pma1*R_temp[Cart::xxx][Cart::x][m]+wmp1*R_temp[Cart::xxx][Cart::x][m+1];
+R_temp[Cart::xxxy][Cart::z][m]+=pma1*R_temp[Cart::xxx][Cart::z][m]+wmp1*R_temp[Cart::xxx][Cart::z][m+1];
+R_temp[Cart::xxyz][Cart::y][m]+=pma1*R_temp[Cart::xxz][Cart::y][m]+wmp1*R_temp[Cart::xxz][Cart::y][m+1]+0.5/_decay*1*R_temp[Cart::xxz][Cart::s][m+1];
+R_temp[Cart::xxyz][Cart::x][m]+=pma1*R_temp[Cart::xxz][Cart::x][m]+wmp1*R_temp[Cart::xxz][Cart::x][m+1];
+R_temp[Cart::xxyz][Cart::z][m]+=pma1*R_temp[Cart::xxz][Cart::z][m]+wmp1*R_temp[Cart::xxz][Cart::z][m+1];
+R_temp[Cart::xyzz][Cart::y][m]+=pma0*R_temp[Cart::yzz][Cart::y][m]+wmp0*R_temp[Cart::yzz][Cart::y][m+1];
+R_temp[Cart::xyzz][Cart::x][m]+=pma0*R_temp[Cart::yzz][Cart::x][m]+wmp0*R_temp[Cart::yzz][Cart::x][m+1]+0.5/_decay*1*R_temp[Cart::yzz][Cart::s][m+1];
+R_temp[Cart::xyzz][Cart::z][m]+=pma0*R_temp[Cart::yzz][Cart::z][m]+wmp0*R_temp[Cart::yzz][Cart::z][m+1];
+R_temp[Cart::yzzz][Cart::y][m]+=pma1*R_temp[Cart::zzz][Cart::y][m]+wmp1*R_temp[Cart::zzz][Cart::y][m+1]+0.5/_decay*1*R_temp[Cart::zzz][Cart::s][m+1];
+R_temp[Cart::yzzz][Cart::x][m]+=pma1*R_temp[Cart::zzz][Cart::x][m]+wmp1*R_temp[Cart::zzz][Cart::x][m+1];
+R_temp[Cart::yzzz][Cart::z][m]+=pma1*R_temp[Cart::zzz][Cart::z][m]+wmp1*R_temp[Cart::zzz][Cart::z][m+1];
+R_temp[Cart::xxxx][Cart::y][m]+=pma0*R_temp[Cart::xxx][Cart::y][m]+wmp0*R_temp[Cart::xxx][Cart::y][m+1]+3*rzeta*(R_temp[Cart::xx][Cart::y][m]-gfak*R_temp[Cart::xx][Cart::y][m+1]); ////
+R_temp[Cart::xxxx][Cart::x][m]+=pma0*R_temp[Cart::xxx][Cart::x][m]+wmp0*R_temp[Cart::xxx][Cart::x][m+1]+3*rzeta*(R_temp[Cart::xx][Cart::x][m]-gfak*R_temp[Cart::xx][Cart::x][m+1])+0.5/_decay*1*R_temp[Cart::xxx][Cart::s][m+1]; //// 
+R_temp[Cart::xxxx][Cart::z][m]+=pma0*R_temp[Cart::xxx][Cart::z][m]+wmp0*R_temp[Cart::xxx][Cart::z][m+1]+3*rzeta*(R_temp[Cart::xx][Cart::z][m]-gfak*R_temp[Cart::xx][Cart::z][m+1]); ////
+R_temp[Cart::xxxz][Cart::y][m]+=pma2*R_temp[Cart::xxx][Cart::y][m]+wmp2*R_temp[Cart::xxx][Cart::y][m+1];
+R_temp[Cart::xxxz][Cart::x][m]+=pma2*R_temp[Cart::xxx][Cart::x][m]+wmp2*R_temp[Cart::xxx][Cart::x][m+1];
+R_temp[Cart::xxxz][Cart::z][m]+=pma2*R_temp[Cart::xxx][Cart::z][m]+wmp2*R_temp[Cart::xxx][Cart::z][m+1]+0.5/_decay*1*R_temp[Cart::xxx][Cart::s][m+1];
+R_temp[Cart::xxzz][Cart::y][m]+=pma0*R_temp[Cart::xzz][Cart::y][m]+wmp0*R_temp[Cart::xzz][Cart::y][m+1]+1*rzeta*(R_temp[Cart::zz][Cart::y][m]-gfak*R_temp[Cart::zz][Cart::y][m+1]); ////
+R_temp[Cart::xxzz][Cart::x][m]+=pma0*R_temp[Cart::xzz][Cart::x][m]+wmp0*R_temp[Cart::xzz][Cart::x][m+1]+1*rzeta*(R_temp[Cart::zz][Cart::x][m]-gfak*R_temp[Cart::zz][Cart::x][m+1])+0.5/_decay*1*R_temp[Cart::xzz][Cart::s][m+1]; ////
+R_temp[Cart::xxzz][Cart::z][m]+=pma0*R_temp[Cart::xzz][Cart::z][m]+wmp0*R_temp[Cart::xzz][Cart::z][m+1]+1*rzeta*(R_temp[Cart::zz][Cart::z][m]-gfak*R_temp[Cart::zz][Cart::z][m+1]); ////
+R_temp[Cart::xzzz][Cart::y][m]+=pma0*R_temp[Cart::zzz][Cart::y][m]+wmp0*R_temp[Cart::zzz][Cart::y][m+1];
+R_temp[Cart::xzzz][Cart::x][m]+=pma0*R_temp[Cart::zzz][Cart::x][m]+wmp0*R_temp[Cart::zzz][Cart::x][m+1]+0.5/_decay*1*R_temp[Cart::zzz][Cart::s][m+1];
+R_temp[Cart::xzzz][Cart::z][m]+=pma0*R_temp[Cart::zzz][Cart::z][m]+wmp0*R_temp[Cart::zzz][Cart::z][m+1];
+R_temp[Cart::zzzz][Cart::y][m]+=pma2*R_temp[Cart::zzz][Cart::y][m]+wmp2*R_temp[Cart::zzz][Cart::y][m+1]+3*rzeta*(R_temp[Cart::zz][Cart::y][m]-gfak*R_temp[Cart::zz][Cart::y][m+1]); ////
+R_temp[Cart::zzzz][Cart::x][m]+=pma2*R_temp[Cart::zzz][Cart::x][m]+wmp2*R_temp[Cart::zzz][Cart::x][m+1]+3*rzeta*(R_temp[Cart::zz][Cart::x][m]-gfak*R_temp[Cart::zz][Cart::x][m+1]); ////
+R_temp[Cart::zzzz][Cart::z][m]+=pma2*R_temp[Cart::zzz][Cart::z][m]+wmp2*R_temp[Cart::zzz][Cart::z][m+1]+3*rzeta*(R_temp[Cart::zz][Cart::z][m]-gfak*R_temp[Cart::zz][Cart::z][m+1])+0.5/_decay*1*R_temp[Cart::zzz][Cart::s][m+1]; ////
+}
+}
+//------------------------------------------------------
+
+
+
 
 //Integral g - s - d - m0
-if (_lmax_alpha>3 && _lmax_gamma>1){
+//////////if (_lmax_alpha>3 && _lmax_gamma>1){
+if ((_lmax_alpha>3 && _lmax_gamma>1)||(_lmax_beta>0 && _lmax_alpha>2 && _lmax_gamma>1)||(_lmax_beta>1 && _lmax_alpha>1 && _lmax_gamma>1)) { //////////////////
 R_temp[Cart::yyyy][Cart::yy][0]+=pma1*R_temp[Cart::yyy][Cart::yy][0]+wmp1*R_temp[Cart::yyy][Cart::yy][1]+2*rzeta*(R_temp[Cart::yy][Cart::yy][0]-gfak*R_temp[Cart::yy][Cart::yy][1])+0.5/_decay*2*R_temp[Cart::yyy][Cart::y][1];
 R_temp[Cart::yyyy][Cart::xy][0]+=pma1*R_temp[Cart::yyy][Cart::xy][0]+wmp1*R_temp[Cart::yyy][Cart::xy][1]+2*rzeta*(R_temp[Cart::yy][Cart::xy][0]-gfak*R_temp[Cart::yy][Cart::xy][1])+0.5/_decay*1*R_temp[Cart::yyy][Cart::x][1];
 R_temp[Cart::yyyy][Cart::yz][0]+=pma1*R_temp[Cart::yyy][Cart::yz][0]+wmp1*R_temp[Cart::yyy][Cart::yz][1]+2*rzeta*(R_temp[Cart::yy][Cart::yz][0]-gfak*R_temp[Cart::yy][Cart::yz][1])+0.5/_decay*1*R_temp[Cart::yyy][Cart::z][1];
@@ -2430,7 +3086,8 @@ R_temp[Cart::zzzz][Cart::zz][0]+=pma2*R_temp[Cart::zzz][Cart::zz][0]+wmp2*R_temp
 
 //Integral g - s - d - m1
 if (_mmax >1 ){
-if (_lmax_alpha>3 && _lmax_gamma>1){
+//////////////if (_lmax_alpha>3 && _lmax_gamma>1){
+if ((_lmax_alpha>3 && _lmax_gamma>1)||(_lmax_beta>0 && _lmax_alpha>2 && _lmax_gamma>1)||(_lmax_beta>1 && _lmax_alpha>1 && _lmax_gamma>1)) { //////////////////
 R_temp[Cart::yyyy][Cart::yy][1]+=pma1*R_temp[Cart::yyy][Cart::yy][1]+wmp1*R_temp[Cart::yyy][Cart::yy][2]+2*rzeta*(R_temp[Cart::yy][Cart::yy][1]-gfak*R_temp[Cart::yy][Cart::yy][2])+0.5/_decay*2*R_temp[Cart::yyy][Cart::y][2];
 R_temp[Cart::yyyy][Cart::xy][1]+=pma1*R_temp[Cart::yyy][Cart::xy][1]+wmp1*R_temp[Cart::yyy][Cart::xy][2]+2*rzeta*(R_temp[Cart::yy][Cart::xy][1]-gfak*R_temp[Cart::yy][Cart::xy][2])+0.5/_decay*1*R_temp[Cart::yyy][Cart::x][2];
 R_temp[Cart::yyyy][Cart::yz][1]+=pma1*R_temp[Cart::yyy][Cart::yz][1]+wmp1*R_temp[Cart::yyy][Cart::yz][2]+2*rzeta*(R_temp[Cart::yy][Cart::yz][1]-gfak*R_temp[Cart::yy][Cart::yz][2])+0.5/_decay*1*R_temp[Cart::yyy][Cart::z][2];
@@ -2526,7 +3183,8 @@ R_temp[Cart::zzzz][Cart::zz][1]+=pma2*R_temp[Cart::zzz][Cart::zz][1]+wmp2*R_temp
 //------------------------------------------------------
 
 //Integral g - s - f - m0
-if (_lmax_alpha>3 && _lmax_gamma>2){
+///////////if (_lmax_alpha>3 && _lmax_gamma>2){
+if ((_lmax_alpha>3 && _lmax_gamma>2)||(_lmax_beta>0 && _lmax_alpha>2 && _lmax_gamma>2)||(_lmax_beta>1 && _lmax_alpha>1 && _lmax_gamma>2)) { //////////////////
 R_temp[Cart::yyyy][Cart::yyy][0]+=pma1*R_temp[Cart::yyy][Cart::yyy][0]+wmp1*R_temp[Cart::yyy][Cart::yyy][1]+2*rzeta*(R_temp[Cart::yy][Cart::yyy][0]-gfak*R_temp[Cart::yy][Cart::yyy][1])+0.5/_decay*3*R_temp[Cart::yyy][Cart::yy][1];
 R_temp[Cart::yyyy][Cart::xyy][0]+=pma1*R_temp[Cart::yyy][Cart::xyy][0]+wmp1*R_temp[Cart::yyy][Cart::xyy][1]+2*rzeta*(R_temp[Cart::yy][Cart::xyy][0]-gfak*R_temp[Cart::yy][Cart::xyy][1])+0.5/_decay*2*R_temp[Cart::yyy][Cart::xy][1];
 R_temp[Cart::yyyy][Cart::yyz][0]+=pma1*R_temp[Cart::yyy][Cart::yyz][0]+wmp1*R_temp[Cart::yyy][Cart::yyz][1]+2*rzeta*(R_temp[Cart::yy][Cart::yyz][0]-gfak*R_temp[Cart::yy][Cart::yyz][1])+0.5/_decay*2*R_temp[Cart::yyy][Cart::yz][1];
@@ -2681,7 +3339,7 @@ R_temp[Cart::zzzz][Cart::zzz][0]+=pma2*R_temp[Cart::zzz][Cart::zzz][0]+wmp2*R_te
 //------------------------------------------------------
 
 
-            cout << "halloende" << endl;
+//          cout << "halloende" << endl;
 
 
             
@@ -2698,7 +3356,6 @@ for (index i = 0; i != _ncombined; ++i) {
 
 
 
-
 //Integral s - p - s
 if (_lmax_beta>0){
 
@@ -2709,7 +3366,8 @@ R[Cart::s][Cart::z][Cart::s]=R[Cart::z][Cart::s][Cart::s]+amb2*R[Cart::s][Cart::
 //------------------------------------------------------
 
 //Integral p - p - s
-if (_lmax_beta>0 && _lmax_alpha>0){
+////////if (_lmax_beta>0 && _lmax_alpha>0){
+if ((_lmax_beta>0 && _lmax_alpha>0)||(_lmax_beta>1)) { //////////////////
 
 R[Cart::y][Cart::y][Cart::s]=R[Cart::yy][Cart::s][Cart::s]+amb1*R[Cart::y][Cart::s][Cart::s];
 R[Cart::x][Cart::y][Cart::s]=R[Cart::xy][Cart::s][Cart::s]+amb1*R[Cart::x][Cart::s][Cart::s];
@@ -2724,7 +3382,8 @@ R[Cart::z][Cart::z][Cart::s]=R[Cart::zz][Cart::s][Cart::s]+amb2*R[Cart::z][Cart:
 //------------------------------------------------------
 
 //Integral d - p - s
-if (_lmax_beta>0 && _lmax_alpha>1){
+/////////if (_lmax_beta>0 && _lmax_alpha>1){
+if ((_lmax_beta>0 && _lmax_alpha>1)||(_lmax_beta>1 && _lmax_alpha>0)) { //////////////////
 
 R[Cart::yy][Cart::y][Cart::s]=R[Cart::yyy][Cart::s][Cart::s]+amb1*R[Cart::yy][Cart::s][Cart::s];
 R[Cart::xy][Cart::y][Cart::s]=R[Cart::xyy][Cart::s][Cart::s]+amb1*R[Cart::xy][Cart::s][Cart::s];
@@ -2748,7 +3407,8 @@ R[Cart::zz][Cart::z][Cart::s]=R[Cart::zzz][Cart::s][Cart::s]+amb2*R[Cart::zz][Ca
 //------------------------------------------------------
 
 //Integral f - p - s
-if (_lmax_beta>0 && _lmax_alpha>2){
+///////////////if (_lmax_beta>0 && _lmax_alpha>2){
+if ((_lmax_beta>0 && _lmax_alpha>2)||(_lmax_beta>1 && _lmax_alpha>1)) { ////////////////
 
 R[Cart::yyy][Cart::y][Cart::s]=R[Cart::yyyy][Cart::s][Cart::s]+amb1*R[Cart::yyy][Cart::s][Cart::s];
 R[Cart::xyy][Cart::y][Cart::s]=R[Cart::xyyy][Cart::s][Cart::s]+amb1*R[Cart::xyy][Cart::s][Cart::s];
@@ -2784,7 +3444,8 @@ R[Cart::zzz][Cart::z][Cart::s]=R[Cart::zzzz][Cart::s][Cart::s]+amb2*R[Cart::zzz]
 //------------------------------------------------------
 
 //Integral s - p - p
-if (_lmax_beta>0 && _lmax_gamma>0){
+/////////////if (_lmax_beta>0 && _lmax_gamma>0){
+if ((_lmax_beta>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { /////////////////////
 
 R[Cart::s][Cart::y][Cart::y]=R[Cart::y][Cart::s][Cart::y]+amb1*R[Cart::s][Cart::s][Cart::y];
 R[Cart::s][Cart::x][Cart::y]=R[Cart::x][Cart::s][Cart::y]+amb0*R[Cart::s][Cart::s][Cart::y];
@@ -2799,7 +3460,9 @@ R[Cart::s][Cart::z][Cart::z]=R[Cart::z][Cart::s][Cart::z]+amb2*R[Cart::s][Cart::
 //------------------------------------------------------
 
 //Integral p - p - p
-if (_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>0){
+
+////////////if (_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>0){
+if ((_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0)) { ////////////
 
 R[Cart::y][Cart::y][Cart::y]=R[Cart::yy][Cart::s][Cart::y]+amb1*R[Cart::y][Cart::s][Cart::y];
 R[Cart::x][Cart::y][Cart::y]=R[Cart::xy][Cart::s][Cart::y]+amb1*R[Cart::x][Cart::s][Cart::y];
@@ -2832,7 +3495,8 @@ R[Cart::z][Cart::z][Cart::z]=R[Cart::zz][Cart::s][Cart::z]+amb2*R[Cart::z][Cart:
 //------------------------------------------------------
 
 //Integral d - p - p
-if (_lmax_beta>0 && _lmax_alpha>1 && _lmax_gamma>0){
+//////////////if (_lmax_beta>0 && _lmax_alpha>1 && _lmax_gamma>0){
+if ((_lmax_beta>0 && _lmax_alpha>1 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>0 && _lmax_gamma>0)) { //////
 
 R[Cart::yy][Cart::y][Cart::y]=R[Cart::yyy][Cart::s][Cart::y]+amb1*R[Cart::yy][Cart::s][Cart::y];
 R[Cart::xy][Cart::y][Cart::y]=R[Cart::xyy][Cart::s][Cart::y]+amb1*R[Cart::xy][Cart::s][Cart::y];
@@ -2892,7 +3556,8 @@ R[Cart::zz][Cart::z][Cart::z]=R[Cart::zzz][Cart::s][Cart::z]+amb2*R[Cart::zz][Ca
 //------------------------------------------------------
 
 //Integral f - p - p
-if (_lmax_beta>0 && _lmax_alpha>2 && _lmax_gamma>0){
+//////////////if (_lmax_beta>0 && _lmax_alpha>2 && _lmax_gamma>0){
+if ((_lmax_beta>0 && _lmax_alpha>2 && _lmax_gamma>0)||(_lmax_beta>1 && _lmax_alpha>1 && _lmax_gamma>0)) {///////////
 
 R[Cart::yyy][Cart::y][Cart::y]=R[Cart::yyyy][Cart::s][Cart::y]+amb1*R[Cart::yyy][Cart::s][Cart::y];
 R[Cart::xyy][Cart::y][Cart::y]=R[Cart::xyyy][Cart::s][Cart::y]+amb1*R[Cart::xyy][Cart::s][Cart::y];
@@ -3012,7 +3677,8 @@ R[Cart::s][Cart::z][Cart::zz]=R[Cart::z][Cart::s][Cart::zz]+amb2*R[Cart::s][Cart
 //------------------------------------------------------
 
 //Integral p - p - d
-if (_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>1){
+/////////////if (_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>1){
+if ((_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>1)||(_lmax_beta>1 && _lmax_gamma>1)) { /////////////
 
 R[Cart::y][Cart::y][Cart::yy]=R[Cart::yy][Cart::s][Cart::yy]+amb1*R[Cart::y][Cart::s][Cart::yy];
 R[Cart::x][Cart::y][Cart::yy]=R[Cart::xy][Cart::s][Cart::yy]+amb1*R[Cart::x][Cart::s][Cart::yy];
@@ -3072,7 +3738,8 @@ R[Cart::z][Cart::z][Cart::zz]=R[Cart::zz][Cart::s][Cart::zz]+amb2*R[Cart::z][Car
 //------------------------------------------------------
 
 //Integral d - p - d
-if (_lmax_beta>0 && _lmax_alpha>1 && _lmax_gamma>1){
+//////////if (_lmax_beta>0 && _lmax_alpha>1 && _lmax_gamma>1){
+if ((_lmax_beta>0 && _lmax_alpha>1 && _lmax_gamma>1)||(_lmax_beta>1 && _lmax_alpha>0 && _lmax_gamma>1)) { ///////////
 
 R[Cart::yy][Cart::y][Cart::yy]=R[Cart::yyy][Cart::s][Cart::yy]+amb1*R[Cart::yy][Cart::s][Cart::yy];
 R[Cart::xy][Cart::y][Cart::yy]=R[Cart::xyy][Cart::s][Cart::yy]+amb1*R[Cart::xy][Cart::s][Cart::yy];
@@ -3186,7 +3853,8 @@ R[Cart::zz][Cart::z][Cart::zz]=R[Cart::zzz][Cart::s][Cart::zz]+amb2*R[Cart::zz][
 //------------------------------------------------------
 
 //Integral f - p - d
-if (_lmax_beta>0 && _lmax_alpha>2 && _lmax_gamma>1){
+//////////if (_lmax_beta>0 && _lmax_alpha>2 && _lmax_gamma>1){
+if ((_lmax_beta>0 && _lmax_alpha>2 && _lmax_gamma>1)||(_lmax_beta>1 && _lmax_alpha>1 && _lmax_gamma>1)) { ///////
 
 R[Cart::yyy][Cart::y][Cart::yy]=R[Cart::yyyy][Cart::s][Cart::yy]+amb1*R[Cart::yyy][Cart::s][Cart::yy];
 R[Cart::xyy][Cart::y][Cart::yy]=R[Cart::xyyy][Cart::s][Cart::yy]+amb1*R[Cart::xyy][Cart::s][Cart::yy];
@@ -3408,7 +4076,8 @@ R[Cart::s][Cart::z][Cart::zzz]=R[Cart::z][Cart::s][Cart::zzz]+amb2*R[Cart::s][Ca
 //------------------------------------------------------
 
 //Integral p - p - f
-if (_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>2){
+//////////if (_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>2){
+if ((_lmax_beta>0 && _lmax_alpha>0 && _lmax_gamma>2)||(_lmax_beta>1 && _lmax_gamma>2)) { ////////
 
 R[Cart::y][Cart::y][Cart::yyy]=R[Cart::yy][Cart::s][Cart::yyy]+amb1*R[Cart::y][Cart::s][Cart::yyy];
 R[Cart::x][Cart::y][Cart::yyy]=R[Cart::xy][Cart::s][Cart::yyy]+amb1*R[Cart::x][Cart::s][Cart::yyy];
@@ -3504,7 +4173,8 @@ R[Cart::z][Cart::z][Cart::zzz]=R[Cart::zz][Cart::s][Cart::zzz]+amb2*R[Cart::z][C
 //------------------------------------------------------
 
 //Integral d - p - f
-if (_lmax_beta>0 && _lmax_alpha>1 && _lmax_gamma>2){
+///////////////if (_lmax_beta>0 && _lmax_alpha>1 && _lmax_gamma>2){
+if ((_lmax_beta>0 && _lmax_alpha>1 && _lmax_gamma>2)||(_lmax_beta>1 && _lmax_alpha>0 && _lmax_gamma>2)) { ////////
 
 R[Cart::yy][Cart::y][Cart::yyy]=R[Cart::yyy][Cart::s][Cart::yyy]+amb1*R[Cart::yy][Cart::s][Cart::yyy];
 R[Cart::xy][Cart::y][Cart::yyy]=R[Cart::xyy][Cart::s][Cart::yyy]+amb1*R[Cart::xy][Cart::s][Cart::yyy];
@@ -3690,7 +4360,8 @@ R[Cart::zz][Cart::z][Cart::zzz]=R[Cart::zzz][Cart::s][Cart::zzz]+amb2*R[Cart::zz
 //------------------------------------------------------
 
 //Integral f - p - f
-if (_lmax_beta>0 && _lmax_alpha>2 && _lmax_gamma>2){
+////////////if (_lmax_beta>0 && _lmax_alpha>2 && _lmax_gamma>2){
+if ((_lmax_beta>0 && _lmax_alpha>2 && _lmax_gamma>2)||(_lmax_beta>1 && _lmax_alpha>1 && _lmax_gamma>2)) { ///////
 
 R[Cart::yyy][Cart::y][Cart::yyy]=R[Cart::yyyy][Cart::s][Cart::yyy]+amb1*R[Cart::yyy][Cart::s][Cart::yyy];
 R[Cart::xyy][Cart::y][Cart::yyy]=R[Cart::xyyy][Cart::s][Cart::yyy]+amb1*R[Cart::xyy][Cart::s][Cart::yyy];
@@ -4649,6 +5320,7 @@ R[Cart::zz][Cart::zz][Cart::zz]=R[Cart::zzz][Cart::z][Cart::zz]+amb2*R[Cart::zz]
 }
 //------------------------------------------------------
 
+/*
 //Integral s - d - f
 if (_lmax_beta>1 && _lmax_gamma>2){
 
@@ -4714,7 +5386,23 @@ R[Cart::s][Cart::xz][Cart::zzz]=R[Cart::x][Cart::z][Cart::zzz]+amb0*R[Cart::s][C
 R[Cart::s][Cart::zz][Cart::zzz]=R[Cart::z][Cart::z][Cart::zzz]+amb2*R[Cart::s][Cart::z][Cart::zzz];
 }
 //------------------------------------------------------
+*/
 
+
+//Integral s - d - f
+if (_lmax_beta>1 && _lmax_gamma>2){
+for (int _i_f = 10; _i_f < 20; _i_f++) { /////// loop over f-orbitals
+R[Cart::s][Cart::yy][_i_f]=R[Cart::y][Cart::y][_i_f]+amb1*R[Cart::s][Cart::y][_i_f];
+R[Cart::s][Cart::xy][_i_f]=R[Cart::x][Cart::y][_i_f]+amb0*R[Cart::s][Cart::y][_i_f];
+R[Cart::s][Cart::yz][_i_f]=R[Cart::y][Cart::z][_i_f]+amb1*R[Cart::s][Cart::z][_i_f];
+R[Cart::s][Cart::xx][_i_f]=R[Cart::x][Cart::x][_i_f]+amb0*R[Cart::s][Cart::x][_i_f];
+R[Cart::s][Cart::xz][_i_f]=R[Cart::x][Cart::z][_i_f]+amb0*R[Cart::s][Cart::z][_i_f];
+R[Cart::s][Cart::zz][_i_f]=R[Cart::z][Cart::z][_i_f]+amb2*R[Cart::s][Cart::z][_i_f];
+}
+}
+//------------------------------------------------------
+
+/*
 //Integral p - d - f
 if (_lmax_beta>1 && _lmax_alpha>0 && _lmax_gamma>2){
 
@@ -4900,7 +5588,35 @@ R[Cart::x][Cart::zz][Cart::zzz]=R[Cart::xz][Cart::z][Cart::zzz]+amb2*R[Cart::x][
 R[Cart::z][Cart::zz][Cart::zzz]=R[Cart::zz][Cart::z][Cart::zzz]+amb2*R[Cart::z][Cart::z][Cart::zzz];
 }
 //------------------------------------------------------
+*/
 
+
+//Integral p - d - f
+if (_lmax_beta>1 && _lmax_alpha>0 && _lmax_gamma>2){
+for (int _i_f = 10; _i_f < 20; _i_f++) { /////// loop over f-orbitals
+R[Cart::y][Cart::yy][_i_f]=R[Cart::yy][Cart::y][_i_f]+amb1*R[Cart::y][Cart::y][_i_f];
+R[Cart::x][Cart::yy][_i_f]=R[Cart::xy][Cart::y][_i_f]+amb1*R[Cart::x][Cart::y][_i_f];
+R[Cart::z][Cart::yy][_i_f]=R[Cart::yz][Cart::y][_i_f]+amb1*R[Cart::z][Cart::y][_i_f];
+R[Cart::y][Cart::xy][_i_f]=R[Cart::xy][Cart::y][_i_f]+amb0*R[Cart::y][Cart::y][_i_f];
+R[Cart::x][Cart::xy][_i_f]=R[Cart::xx][Cart::y][_i_f]+amb0*R[Cart::x][Cart::y][_i_f];
+R[Cart::z][Cart::xy][_i_f]=R[Cart::xz][Cart::y][_i_f]+amb0*R[Cart::z][Cart::y][_i_f];
+R[Cart::y][Cart::yz][_i_f]=R[Cart::yy][Cart::z][_i_f]+amb1*R[Cart::y][Cart::z][_i_f];
+R[Cart::x][Cart::yz][_i_f]=R[Cart::xy][Cart::z][_i_f]+amb1*R[Cart::x][Cart::z][_i_f];
+R[Cart::z][Cart::yz][_i_f]=R[Cart::yz][Cart::z][_i_f]+amb1*R[Cart::z][Cart::z][_i_f];
+R[Cart::y][Cart::xx][_i_f]=R[Cart::xy][Cart::x][_i_f]+amb0*R[Cart::y][Cart::x][_i_f];
+R[Cart::x][Cart::xx][_i_f]=R[Cart::xx][Cart::x][_i_f]+amb0*R[Cart::x][Cart::x][_i_f];
+R[Cart::z][Cart::xx][_i_f]=R[Cart::xz][Cart::x][_i_f]+amb0*R[Cart::z][Cart::x][_i_f];
+R[Cart::y][Cart::xz][_i_f]=R[Cart::xy][Cart::z][_i_f]+amb0*R[Cart::y][Cart::z][_i_f];
+R[Cart::x][Cart::xz][_i_f]=R[Cart::xx][Cart::z][_i_f]+amb0*R[Cart::x][Cart::z][_i_f];
+R[Cart::z][Cart::xz][_i_f]=R[Cart::xz][Cart::z][_i_f]+amb0*R[Cart::z][Cart::z][_i_f];
+R[Cart::y][Cart::zz][_i_f]=R[Cart::yz][Cart::z][_i_f]+amb2*R[Cart::y][Cart::z][_i_f];
+R[Cart::x][Cart::zz][_i_f]=R[Cart::xz][Cart::z][_i_f]+amb2*R[Cart::x][Cart::z][_i_f];
+R[Cart::z][Cart::zz][_i_f]=R[Cart::zz][Cart::z][_i_f]+amb2*R[Cart::z][Cart::z][_i_f];
+}
+}
+//------------------------------------------------------
+
+/*
 //Integral d - d - f
 if (_lmax_beta>1 && _lmax_alpha>1 && _lmax_gamma>2){
 
@@ -5266,8 +5982,50 @@ R[Cart::xz][Cart::zz][Cart::zzz]=R[Cart::xzz][Cart::z][Cart::zzz]+amb2*R[Cart::x
 R[Cart::zz][Cart::zz][Cart::zzz]=R[Cart::zzz][Cart::z][Cart::zzz]+amb2*R[Cart::zz][Cart::z][Cart::zzz];
 }
 //------------------------------------------------------
+*/
 
-
+//Integral d - d - f
+if (_lmax_beta>1 && _lmax_alpha>1 && _lmax_gamma>2){
+for (int _i_f = 10; _i_f < 20; _i_f++) { /////// loop over f-orbitals
+R[Cart::yy][Cart::yy][_i_f]=R[Cart::yyy][Cart::y][_i_f]+amb1*R[Cart::yy][Cart::y][_i_f];
+R[Cart::xy][Cart::yy][_i_f]=R[Cart::xyy][Cart::y][_i_f]+amb1*R[Cart::xy][Cart::y][_i_f];
+R[Cart::yz][Cart::yy][_i_f]=R[Cart::yyz][Cart::y][_i_f]+amb1*R[Cart::yz][Cart::y][_i_f];
+R[Cart::xx][Cart::yy][_i_f]=R[Cart::xxy][Cart::y][_i_f]+amb1*R[Cart::xx][Cart::y][_i_f];
+R[Cart::xz][Cart::yy][_i_f]=R[Cart::xyz][Cart::y][_i_f]+amb1*R[Cart::xz][Cart::y][_i_f];
+R[Cart::zz][Cart::yy][_i_f]=R[Cart::yzz][Cart::y][_i_f]+amb1*R[Cart::zz][Cart::y][_i_f];
+R[Cart::yy][Cart::xy][_i_f]=R[Cart::xyy][Cart::y][_i_f]+amb0*R[Cart::yy][Cart::y][_i_f];
+R[Cart::xy][Cart::xy][_i_f]=R[Cart::xxy][Cart::y][_i_f]+amb0*R[Cart::xy][Cart::y][_i_f];
+R[Cart::yz][Cart::xy][_i_f]=R[Cart::xyz][Cart::y][_i_f]+amb0*R[Cart::yz][Cart::y][_i_f];
+R[Cart::xx][Cart::xy][_i_f]=R[Cart::xxx][Cart::y][_i_f]+amb0*R[Cart::xx][Cart::y][_i_f];
+R[Cart::xz][Cart::xy][_i_f]=R[Cart::xxz][Cart::y][_i_f]+amb0*R[Cart::xz][Cart::y][_i_f];
+R[Cart::zz][Cart::xy][_i_f]=R[Cart::xzz][Cart::y][_i_f]+amb0*R[Cart::zz][Cart::y][_i_f];
+R[Cart::yy][Cart::yz][_i_f]=R[Cart::yyy][Cart::z][_i_f]+amb1*R[Cart::yy][Cart::z][_i_f];
+R[Cart::xy][Cart::yz][_i_f]=R[Cart::xyy][Cart::z][_i_f]+amb1*R[Cart::xy][Cart::z][_i_f];
+R[Cart::yz][Cart::yz][_i_f]=R[Cart::yyz][Cart::z][_i_f]+amb1*R[Cart::yz][Cart::z][_i_f];
+R[Cart::xx][Cart::yz][_i_f]=R[Cart::xxy][Cart::z][_i_f]+amb1*R[Cart::xx][Cart::z][_i_f];
+R[Cart::xz][Cart::yz][_i_f]=R[Cart::xyz][Cart::z][_i_f]+amb1*R[Cart::xz][Cart::z][_i_f];
+R[Cart::zz][Cart::yz][_i_f]=R[Cart::yzz][Cart::z][_i_f]+amb1*R[Cart::zz][Cart::z][_i_f];
+R[Cart::yy][Cart::xx][_i_f]=R[Cart::xyy][Cart::x][_i_f]+amb0*R[Cart::yy][Cart::x][_i_f];
+R[Cart::xy][Cart::xx][_i_f]=R[Cart::xxy][Cart::x][_i_f]+amb0*R[Cart::xy][Cart::x][_i_f];
+R[Cart::yz][Cart::xx][_i_f]=R[Cart::xyz][Cart::x][_i_f]+amb0*R[Cart::yz][Cart::x][_i_f];
+R[Cart::xx][Cart::xx][_i_f]=R[Cart::xxx][Cart::x][_i_f]+amb0*R[Cart::xx][Cart::x][_i_f];
+R[Cart::xz][Cart::xx][_i_f]=R[Cart::xxz][Cart::x][_i_f]+amb0*R[Cart::xz][Cart::x][_i_f];
+R[Cart::zz][Cart::xx][_i_f]=R[Cart::xzz][Cart::x][_i_f]+amb0*R[Cart::zz][Cart::x][_i_f];
+R[Cart::yy][Cart::xz][_i_f]=R[Cart::xyy][Cart::z][_i_f]+amb0*R[Cart::yy][Cart::z][_i_f];
+R[Cart::xy][Cart::xz][_i_f]=R[Cart::xxy][Cart::z][_i_f]+amb0*R[Cart::xy][Cart::z][_i_f];
+R[Cart::yz][Cart::xz][_i_f]=R[Cart::xyz][Cart::z][_i_f]+amb0*R[Cart::yz][Cart::z][_i_f];
+R[Cart::xx][Cart::xz][_i_f]=R[Cart::xxx][Cart::z][_i_f]+amb0*R[Cart::xx][Cart::z][_i_f];
+R[Cart::xz][Cart::xz][_i_f]=R[Cart::xxz][Cart::z][_i_f]+amb0*R[Cart::xz][Cart::z][_i_f];
+R[Cart::zz][Cart::xz][_i_f]=R[Cart::xzz][Cart::z][_i_f]+amb0*R[Cart::zz][Cart::z][_i_f];
+R[Cart::yy][Cart::zz][_i_f]=R[Cart::yyz][Cart::z][_i_f]+amb2*R[Cart::yy][Cart::z][_i_f];
+R[Cart::xy][Cart::zz][_i_f]=R[Cart::xyz][Cart::z][_i_f]+amb2*R[Cart::xy][Cart::z][_i_f];
+R[Cart::yz][Cart::zz][_i_f]=R[Cart::yzz][Cart::z][_i_f]+amb2*R[Cart::yz][Cart::z][_i_f];
+R[Cart::xx][Cart::zz][_i_f]=R[Cart::xxz][Cart::z][_i_f]+amb2*R[Cart::xx][Cart::z][_i_f];
+R[Cart::xz][Cart::zz][_i_f]=R[Cart::xzz][Cart::z][_i_f]+amb2*R[Cart::xz][Cart::z][_i_f];
+R[Cart::zz][Cart::zz][_i_f]=R[Cart::zzz][Cart::z][_i_f]+amb2*R[Cart::zz][Cart::z][_i_f];
+}
+}
+//------------------------------------------------------
 
 
 
@@ -5330,7 +6088,7 @@ R[Cart::zz][Cart::zz][Cart::zzz]=R[Cart::zzz][Cart::z][Cart::zzz]+amb2*R[Cart::z
 
             
             if(alphabetaswitch==true){
-            cout << "switched back" << endl;    
+//            cout << "switched back" << endl;    
             // only store the parts, we need
            
                for (int _i_gamma = 0; _i_gamma < _shell_gamma->getNumFunc(); _i_gamma++) {
@@ -5367,7 +6125,6 @@ R[Cart::zz][Cart::zz][Cart::zzz]=R[Cart::zzz][Cart::z][Cart::zzz]+amb2*R[Cart::z
             
             
             
-            
 
 
                 }
@@ -5376,11 +6133,9 @@ R[Cart::zz][Cart::zz][Cart::zzz]=R[Cart::zzz][Cart::z][Cart::zzz]+amb2*R[Cart::z
 
                         
  
-                    cout << "ende" << endl;
+//       cout << "ende" << endl;
     
-       return _does_contribute;   
-           */
-            return 0;
+       return _does_contribute;     
     }  
           
         

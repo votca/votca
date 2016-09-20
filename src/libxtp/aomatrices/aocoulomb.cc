@@ -56,7 +56,12 @@ namespace votca { namespace xtp {
             int _ncols = this->getBlockSize(_lmax_col);
             int _nextra = this->getExtraBlockSize(_lmax_row, _lmax_col);
             int _l_sum = _lmax_row + _lmax_col;
-            int _ma_dim = this->getBlockSize(_l_sum);
+           // int _ma_dim = this->getBlockSize(_l_sum);
+            
+            int nmax=20; // This is hardcoded using getBlocksize leads to problems the if clauses are not that restrictive and so if you do use a smaller array it might lead to problems
+             if(_lmax_row>3 ||_lmax_col>3){
+                 nmax=35;
+             }
             
             // get shell positions
             const vec& _pos_row = _shell_row->getPos();
@@ -68,7 +73,8 @@ namespace votca { namespace xtp {
              // some helpers
             std::vector<double> _wmp;
             std::vector<double> _wmq;
-            
+            _wmp.resize(3);
+            _wmq.resize(3);
             
          
 
@@ -93,13 +99,13 @@ namespace votca { namespace xtp {
                                     // get a multi dimensional array
                          
                          //ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
-                         ma_type _cou(boost::extents[_ma_dim][_ma_dim][_nextra]);
+                         ma_type _cou(boost::extents[nmax][nmax][_nextra]);
                          
                                     // initialize to zero_cou[0][0][i] 
                            //       for(index i = 0; i != _nrows; ++i) {
                            //  for(index j = 0; j != _ncols; ++j){
-                           for (index i = 0; i != _ma_dim; ++i) {
-                               for (index j = 0; j != _ma_dim; ++j) {
+                           for (index i = 0; i != nmax; ++i) {
+                               for (index j = 0; j != nmax; ++j) {
                                    for (index k = 0; k != _nextra; ++k) {
                                        _cou[i][j][k] = 0.0;
                                    }
@@ -123,8 +129,7 @@ namespace votca { namespace xtp {
             const double _fakc2 = 2.0 * _fakc;
 
 
-            _wmp.resize(3);
-            _wmq.resize(3);
+            
             //bool ident;
             
             //if ( )
@@ -1047,9 +1052,11 @@ namespace votca { namespace xtp {
             }
 
 
-            
-    if(_lmax_row+_lmax_col>4) {
+          
+    if(_lmax_row>3 ||_lmax_col>3) {
+            //cout << "g"<< endl;  
            FillgOrbitals(_wmp, _wmq, _cou, _decay_row, _decay_col,_lmax_row,_lmax_col);
+          // cout << "g done"<< endl;  
     }
  
  
@@ -1102,7 +1109,7 @@ namespace votca { namespace xtp {
    
     
     void AOCoulomb::Symmetrize( AOOverlap& _gwoverlap, AOBasis& gwbasis, AOOverlap& _gwoverlap_inverse, AOOverlap& _gwoverlap_cholesky_inverse){
-        
+       
         //Logger* pLog = opThread->getLogger();
              
         if ( gwbasis._is_stable ){
@@ -1165,6 +1172,7 @@ namespace votca { namespace xtp {
             linalg_eigenvalues( this->_aomatrix , _eigenvalues, _eigenvectors);
             // calc sqrt(V')
             _temp.clear();
+            //cout << _eigenvalues<<endl;
             for ( int i = 0; i  < gwbasis._AOBasisSize; i++ ){
 
                 if ( _eigenvalues(i) < 0.0 ) {

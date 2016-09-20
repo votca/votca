@@ -392,7 +392,7 @@ bool Orbitals::Load(string file_name) {
  }
  
  
- ub::matrix<double> & Orbitals::TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<float>& _BSECoefs, int state){
+ ub::matrix<double> & Orbitals::TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state){
     _dmatTS=ub::zero_matrix<double>(_basis_set_size);
     // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
     double sqrt2=sqrt(2.0);
@@ -432,7 +432,7 @@ bool Orbitals::Load(string file_name) {
  
  
  // Excited state density matrix
-std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix<double>& _MOs, ub::matrix<float>& _BSECoefs, int state ){
+std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix<double>& _MOs, ub::matrix<real_gwbse>& _BSECoefs, int state ){
      
      
      /****** 
@@ -483,8 +483,8 @@ std::vector<ub::matrix<double> >& Orbitals::DensityMatrixExcitedState(ub::matrix
     //int _bse_total = this->_bse_size;
      
      // electron assist matrix A_{cc'}
-     ub::matrix<float> _Acc = ub::zero_matrix<float>( this->_bse_ctotal , this->_bse_ctotal );
-     ub::matrix<float> _Avv = ub::zero_matrix<float>( this->_bse_vtotal , this->_bse_vtotal );
+     ub::matrix<real_gwbse> _Acc = ub::zero_matrix<real_gwbse>( this->_bse_ctotal , this->_bse_ctotal );
+     ub::matrix<real_gwbse> _Avv = ub::zero_matrix<real_gwbse>( this->_bse_vtotal , this->_bse_vtotal );
   
      for ( unsigned _idx1 = 0 ; _idx1 < _bse_size ; _idx1++) {
          

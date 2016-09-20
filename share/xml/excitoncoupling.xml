@@ -1,9 +1,11 @@
 <options>
 
 <excitoncoupling help="Exciton couplings from serialized orbital files" section="sec:bsecoupling">
-
+        <classical>0</classical>
+        <mpsA></mpsA>
+        <mpsB></mpsB>
         <output help="Output file" default="excitoncoupling.out.xml">excitoncoupling.out.xml</output>
-        <bsecoupling>bsecoupling.xml</bsecoupling>
+        <bsecoupling_options>bsecoupling.xml</bsecoupling_options>
         <orbitalsA help="Serialized orbitals file" default="A.orb">molA.orb</orbitalsA>
         <orbitalsB help="Serialized orbitals file" default="B.orb">molB.orb</orbitalsB>
         <orbitalsAB help="Serialized orbitals file" default="AB.orb">system.orb</orbitalsAB>

@@ -7,21 +7,21 @@ CND_BASEDIR=`pwd`
 CND_BUILDDIR=build
 CND_DISTDIR=dist
 # Debug configuration
-CND_PLATFORM_Debug=GNU-Linux-x86
-CND_ARTIFACT_DIR_Debug=dist/Debug/GNU-Linux-x86
+CND_PLATFORM_Debug=GNU-Linux
+CND_ARTIFACT_DIR_Debug=dist/Debug/GNU-Linux
 CND_ARTIFACT_NAME_Debug=xtp_app
-CND_ARTIFACT_PATH_Debug=dist/Debug/GNU-Linux-x86/xtp_app
-CND_PACKAGE_DIR_Debug=dist/Debug/GNU-Linux-x86/package
+CND_ARTIFACT_PATH_Debug=dist/Debug/GNU-Linux/xtp_app
+CND_PACKAGE_DIR_Debug=dist/Debug/GNU-Linux/package
 CND_PACKAGE_NAME_Debug=xtpapp.tar
-CND_PACKAGE_PATH_Debug=dist/Debug/GNU-Linux-x86/package/xtpapp.tar
+CND_PACKAGE_PATH_Debug=dist/Debug/GNU-Linux/package/xtpapp.tar
 # Release configuration
-CND_PLATFORM_Release=GNU-Linux-x86
-CND_ARTIFACT_DIR_Release=dist/Release/GNU-Linux-x86
+CND_PLATFORM_Release=GNU-Linux
+CND_ARTIFACT_DIR_Release=dist/Release/GNU-Linux
 CND_ARTIFACT_NAME_Release=xtp_app
-CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux-x86/xtp_app
-CND_PACKAGE_DIR_Release=dist/Release/GNU-Linux-x86/package
+CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux/xtp_app
+CND_PACKAGE_DIR_Release=dist/Release/GNU-Linux/package
 CND_PACKAGE_NAME_Release=xtpapp.tar
-CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux-x86/package/xtpapp.tar
+CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux/package/xtpapp.tar
 #
 # include compiler specific variables
 #

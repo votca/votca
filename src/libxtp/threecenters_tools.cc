@@ -55,8 +55,8 @@ namespace votca {
             for (int _i_occ = 0; _i_occ < this->get_mtot(); _i_occ++) {
 	      // fist cast _matrix[_i_occ] to double for efficient prod() overloading
 	      ub::matrix<double> _matrix_double = _matrix[ _i_occ ];
-	      // ub::matrix<float> _temp = ub::prod(_coulomb, _matrix[ _i_occ ]);
-	      ub::matrix<float> _temp = ub::prod(_coulomb, _matrix_double);
+	      // ub::matrix<real_gwbse> _temp = ub::prod(_coulomb, _matrix[ _i_occ ]);
+	      ub::matrix<real_gwbse> _temp = ub::prod(_coulomb, _matrix_double);
 	      //_matrix[ _i_occ ] = ub::prod(_coulomb, _matrix[ _i_occ ]);
 	      _matrix[ _i_occ ] = _temp;
             }
@@ -85,7 +85,7 @@ namespace votca {
 
 
             //std::vector< ub::matrix<double> > _block(this->get_mtot());
-            //std::vector< ub::matrix<float> > _block(this->get_mtot());
+            //std::vector< ub::matrix<real_gwbse> > _block(this->get_mtot());
 
 
             // loop over all shells in the GW basis and get _Mmn for that shell
@@ -131,11 +131,11 @@ namespace votca {
          */
         
         void TCMatrix::FillBlock(std::vector< ub::matrix<double> >& _block, AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals) {
-	  //void TCMatrix::FillBlock(std::vector< ub::matrix<float> >& _block, AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals) {
+	  //void TCMatrix::FillBlock(std::vector< ub::matrix<real_gwbse> >& _block, AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals) {
 
             // prepare local storage for 3-center overlap x m-orbitals
             ub::matrix<double> _imstore = ub::zero_matrix<double>(this->mtotal * _shell->getNumFunc(), dftbasis._AOBasisSize);
-            //ub::matrix<float> _imstore = ub::zero_matrix<float>(this->mtotal * _shell->getNumFunc(), dftbasis._AOBasisSize);
+            //ub::matrix<real_gwbse> _imstore = ub::zero_matrix<real_gwbse>(this->mtotal * _shell->getNumFunc(), dftbasis._AOBasisSize);
 
             // alpha-loop over the "left" DFT basis function
             for (std::vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
@@ -154,14 +154,14 @@ namespace votca {
 
                     // get 3-center overlap directly as _subvector
                     ub::matrix<double> _subvector = ub::zero_matrix<double>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
-                    //ub::matrix<float> _subvector = ub::zero_matrix<float>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
+                    //ub::matrix<real_gwbse> _subvector = ub::zero_matrix<real_gwbse>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
                     bool nonzero = FillThreeCenterOLBlock(_subvector, _shell, _shell_row, _shell_col);
 
                     // if this contributes, multiply _subvector with _dft_orbitals and place in _imstore
                     if (nonzero) {
 
                         ub::matrix<double> _temp = ub::prod(_m_orbitals, _subvector);
-                        //ub::matrix<float> _temp = ub::prod(_m_orbitals, _subvector);
+                        //ub::matrix<real_gwbse> _temp = ub::prod(_m_orbitals, _subvector);
 
                         // put _temp into _imstore
                         for (unsigned _m_level = 0; _m_level < _temp.size1(); _m_level++) {
@@ -184,7 +184,7 @@ namespace votca {
 
             // Now, finally multiply _imstore with _n_orbitals
             ub::matrix<double> _temp = ub::prod(_imstore, _n_orbitals);
-            //ub::matrix<float> _temp = ub::prod(_imstore, _n_orbitals);
+            //ub::matrix<real_gwbse> _temp = ub::prod(_imstore, _n_orbitals);
 
             // and put it into the block it belongs to
             for (int _m_level = 0; _m_level < this->mtotal; _m_level++) {

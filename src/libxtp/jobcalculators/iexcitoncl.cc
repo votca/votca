@@ -41,7 +41,7 @@ namespace votca { namespace xtp {
 // IEXCITON MEMBER FUNCTIONS         //
 // +++++++++++++++++++++++++++++ //
 
-void IEXCITON::Initialize(votca::tools::Property* opt ) {
+void IEXCITON::Initialize(votca::tools::Property* options ) {
     
 
     
@@ -54,35 +54,38 @@ void IEXCITON::Initialize(votca::tools::Property* opt ) {
 
     _induce= false;
     _statenumber=1;
-    string key = "options." + Identify();
-    if ( opt->exists(key+".job_file")) {
-        _jobfile = opt->get(key+".job_file").as<string>();
+     
+    string key = "options."+Identify();
+
+        if ( options->exists(key+".job_file")) {
+            _jobfile = options->get(key+".job_file").as<string>();
         }
-    else {
+        else {
             throw std::runtime_error("Job-file not set. Abort.");
-    }
-    if ( opt->exists(key+".mapping")) {
-        _xml_file = opt->get(key+".mapping").as<string>();
+        }
+    key = "options." + Identify();
+    if ( options->exists(key+".mapping")) {
+        _xml_file = options->get(key+".mapping").as<string>();
         }
     else {
             throw std::runtime_error("Mapping-file not set. Abort.");
         }
-    if ( opt->exists(key+".emp_file")) {
-            _emp_file   = opt->get(key+".emp_file").as<string>();
+    if ( options->exists(key+".emp_file")) {
+            _emp_file   = options->get(key+".emp_file").as<string>();
         }
     else {
             throw std::runtime_error("Emp-file not set. Abort.");
         }
-    if ( opt->exists(key+".statenumber")) {
-            _statenumber=opt->get(key+".statenumber").as<int>();
+    if ( options->exists(key+".statenumber")) {
+            _statenumber=options->get(key+".statenumber").as<int>();
            
         }
     else {
         cout << endl << "Statenumber not specified, assume singlet s1 " << flush;
           _statenumber=1;
         }
-    if ( opt->exists(key+".induce")) {
-            _induce   = opt->get(key+".induce").as<bool>();
+    if ( options->exists(key+".induce")) {
+            _induce   = options->get(key+".induce").as<bool>();
         }     
     
     cout << "done"<< endl;
@@ -248,8 +251,8 @@ void IEXCITON::WriteJobFile(Topology *top) {
             int id = ++jobCount;
 
             
-            string mps_file1=(boost::format("MP_FILES/%s_n2s%2d.mps") % name1  % _statenumber).str();
-            string mps_file2=(boost::format("MP_FILES/%s_n2s%2d.mps") % name1  % _statenumber).str();
+            string mps_file1=(boost::format("MP_FILES/%s_n2s%d.mps") % name1  % _statenumber).str();
+            string mps_file2=(boost::format("MP_FILES/%s_n2s%d.mps") % name1  % _statenumber).str();
             
             Property Input;
             Property *pInput = &Input.add("input","");
@@ -306,7 +309,7 @@ void IEXCITON::ReadJobFile(Topology *top) {
         if ( (*it)->exists("output") && (*it)->exists("output.pair") ) {
             _current_pairs++;
             // get the output records
-            Property poutput = (*it)->get("output.pair");
+            Property& poutput = (*it)->get("output.pair");
             // id's of two segments of a pair
             int idA = poutput.getAttribute<int>("idA");
             int idB = poutput.getAttribute<int>("idB");
@@ -328,9 +331,9 @@ void IEXCITON::ReadJobFile(Topology *top) {
         }
     } // finished loading from the file
 
-    cout << "Readingdone"<<endl;
+
     // loop over all pairs in the neighbor list
-    std::cout << "Neighborlist size " << top->NBList().size() << std::endl;
+    LOG_SAVE(logINFO, _log) << "Neighborlist size " << top->NBList().size() << flush; 
     for (QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
         
         QMPair *pair = *ipair;
@@ -345,8 +348,8 @@ void IEXCITON::ReadJobFile(Topology *top) {
         
         //cout << "\nProcessing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
         
-        QMPair::PairType _ptype = pair->getType();
-        if ( _ptype == QMPair::Excitoncl){
+        
+        if ( pair->getType() == QMPair::Excitoncl){
         Property* pair_property = records[ pair->getId() ];
  
         list<Property*> pCoupling = pair_property->Select("Coupling");

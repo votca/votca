@@ -54,50 +54,51 @@ private:
 
 
 template<class EwaldMethod>
-void Ewald<EwaldMethod>::Initialize(Property *opt) {
+void Ewald<EwaldMethod>::Initialize(Property *options) {
 
     // NOTE These options are passed on to <EwaldMethod> in ::EvalJob
-    _options = opt;
+    _options = options;
     _maverick = (_nThreads == 1) ? true : false;
     
     cout << endl
          << "... ... Initialized with " << _nThreads << " threads. "
          << flush;
 
-    string key = "options.ewald.jobcontrol";
-        if ( opt->exists(key+".job_file")) {
-            _jobfile = opt->get(key+".job_file").as<string>();
+    string key = "options."+Identify();
+
+        if ( options->exists(key+".job_file")) {
+            _jobfile = options->get(key+".job_file").as<string>();
         }
         else {
-            cout << endl;
             throw std::runtime_error("Job-file not set. Abort.");
-        }    
+        }
+        
     
-    key = "options.ewald.multipoles";
-        if (opt->exists(key+".mapping")) {
-            _xml_file = opt->get(key+".mapping").as< string >();
+    key = "options."+Identify()+".multipoles";
+        if (options->exists(key+".mapping")) {
+            _xml_file = options->get(key+".mapping").as< string >();
         }
         else {
             cout << endl;
             throw std::runtime_error("Multipole mapping file not set. Abort.");
         }
-        if ( opt->exists(key+".mps_table")) {
-            _mps_table = opt->get(key+".mps_table").as<string>();
+        if ( options->exists(key+".mps_table")) {
+            _mps_table = options->get(key+".mps_table").as<string>();
         }
         else {
             cout << endl;
             throw std::runtime_error("Background mps table not set. Abort.");
         }
-        if ( opt->exists(key+".polar_bg")) {
-            _polar_bg_arch = opt->get(key+".polar_bg").as<string>();
+        if ( options->exists(key+".polar_bg")) {
+            _polar_bg_arch = options->get(key+".polar_bg").as<string>();
         }
         else { _polar_bg_arch = ""; }
-        if (opt->exists(key+".pdb_check")) {
-            _pdb_check = opt->get(key+".pdb_check").as<bool>();
+        if (options->exists(key+".pdb_check")) {
+            _pdb_check = options->get(key+".pdb_check").as<bool>();
         }
         else { _pdb_check = false; }
-        if (opt->exists(key+".ptop_check")) {
-            _ptop_check = opt->get(key+".ptop_check").as<bool>();
+        if (options->exists(key+".ptop_check")) {
+            _ptop_check = options->get(key+".ptop_check").as<bool>();
         }
         else { _ptop_check = false; }
     

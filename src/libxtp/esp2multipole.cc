@@ -20,18 +20,22 @@
 
 #include <votca/xtp/esp2multipole.h>
 #include <boost/format.hpp>
+#include <votca/xtp/orbitals.h>
 
 namespace votca { namespace xtp {
 
 void Esp2multipole::Initialize(Property* options) {
-    string key = "options." + Identify();
+    string key = Identify();
     _use_ecp=false;
     _do_svd=false;
     
     _use_mulliken=false;
     _use_CHELPG=false;
+    _use_bulkESP=false;
     _use_GDMA=false;
     _use_CHELPG_SVD=false;
+    _use_lowdin=false;     
+    _use_NBO=false;
          
     _state     = options->get(key + ".state").as<string> (); 
     _state_no     = options->get(key + ".statenumber").as<int> ();
@@ -41,19 +45,25 @@ void Esp2multipole::Initialize(Property* options) {
     }
     if ( options->exists(key+".method")) {
          _method = options->get(key + ".method").as<string> ();
-         if (_method=="Mulliken")_use_mulliken=true; 
-         else if(_method=="mulliken")_use_mulliken=true; 
+         if (_method=="Mulliken" || _method=="mulliken")_use_mulliken=true; 
+         else if(_method=="loewdin" || _method=="Loewdin") _use_lowdin=true;
          else if(_method=="CHELPG")_use_CHELPG=true; 
+         else if(_method=="bulkESP")_use_bulkESP=true; 
          else if(_method=="GDMA") throw std::runtime_error("GDMA not implemented yet");
          else if(_method=="CHELPG_SVD") throw std::runtime_error("CHELPG_SVD not implemented yet"); 
-         else  throw std::runtime_error("Method not recognized. Only Mulliken and CHELPG implemented");
+         else if(_method=="NBO") _use_NBO=true;
+         else  throw std::runtime_error("Method not recognized. Mulliken, Lowdin and CHELPG implemented");
          }
     else _use_CHELPG=true;
-    if (!_use_mulliken){
+    
+    
+   
+    
+    if (_use_CHELPG){
          _integrationmethod     = options->get(key + ".integrationmethod").as<string> ();
     }
     
-
+  
     if (!(_integrationmethod=="numeric" || _integrationmethod=="analytic")){
         std::runtime_error("Method not recognized. Only numeric and analytic available");
     }
@@ -107,7 +117,7 @@ string  Esp2multipole::GetIdentifier(){
     return identifier;
 }
 
-void Esp2multipole::WritetoFile(Orbitals& _orbitals,string _output_file, string identifier){
+void Esp2multipole::WritetoFile(string _output_file, string identifier){
     _use_mps=false;
     _use_pdb=false;
     string data_format  = boost::filesystem::extension(_output_file);  
@@ -118,12 +128,18 @@ void Esp2multipole::WritetoFile(Orbitals& _orbitals,string _output_file, string 
      string tag="TOOL:"+Identify()+"_"+_state+"_"+_spin+boost::lexical_cast<string>(_state_no);
     if(_use_mps){
         QMMInterface Converter;
-        PolarSeg* result=Converter.Convert(_orbitals.QMAtoms());
+        PolarSeg* result=Converter.Convert(_Atomlist);
         
         result->WriteMPS(_output_file,tag);
         }
     else if(_use_pdb){
         FILE *out;
+        Orbitals _orbitals;
+        std::vector< QMAtom* >::iterator at;
+         for (at=_Atomlist.begin();at<_Atomlist.end();++at){
+            
+            _orbitals.AddAtom(*(*at));
+        }
         out = fopen(_output_file.c_str(), "w");
        _orbitals.WritePDB(out, tag); 
     }
@@ -132,7 +148,7 @@ void Esp2multipole::WritetoFile(Orbitals& _orbitals,string _output_file, string 
 
 
 
-void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
+void Esp2multipole::Extractingcharges( Orbitals & _orbitals ){
     int threads=1;
 #ifdef _OPENMP
             if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads); 
@@ -141,36 +157,50 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
    LOG(logDEBUG, *_log) << "===== Running on "<< threads << " threads ===== " << flush;
 
         vector< QMAtom* > Atomlist =_orbitals.QMAtoms();
+        std::vector< QMAtom* >::iterator at;
+        for (at=Atomlist.begin();at<Atomlist.end();++at){
+            QMAtom * atom=new QMAtom(*(*at));
+            _Atomlist.push_back(atom);
+        }
         ub::matrix<double> DMAT_tot;
         BasisSet bs;
         bs.LoadBasisSet(_orbitals.getDFTbasis());
         AOBasis basis;
-        basis.AOBasisFill(&bs, Atomlist );
-        basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );  
+        basis.AOBasisFill(&bs, _Atomlist );
+        
+        
+        ub::matrix<double> _MO_Coefficients = *(_orbitals.getOrbitals()); // this is a copy?
+        
+        //basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );  
+        basis.ReorderMOs(_MO_Coefficients, _orbitals.getQMpackage(), "votca" );  
         bool _do_transition=false;
         if(_state=="transition"){
             _do_transition=true;
             if (_spin=="singlet"){
-                DMAT_tot=_orbitals.TransitionDensityMatrix(_orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
+                //DMAT_tot=_orbitals.TransitionDensityMatrix(_orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
+                DMAT_tot=_orbitals.TransitionDensityMatrix(_MO_Coefficients, _orbitals.BSESingletCoefficients(), _state_no-1);
             }
             else if (_spin=="triplet"){
-                DMAT_tot=_orbitals.TransitionDensityMatrix(_orbitals.MOCoefficients() , _orbitals.BSETripletCoefficients(), _state_no-1); 
+                //DMAT_tot=_orbitals.TransitionDensityMatrix(_orbitals.MOCoefficients() , _orbitals.BSETripletCoefficients(), _state_no-1); 
+                DMAT_tot=_orbitals.TransitionDensityMatrix(_MO_Coefficients, _orbitals.BSETripletCoefficients(), _state_no-1); 
             }
             else throw std::runtime_error("Spin entry not recognized");
         }
         else if (_state=="ground" || _state=="excited"){
             
         
-            ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState(_orbitals.MOCoefficients());
+            //ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState(_orbitals.MOCoefficients());
+            ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState(_MO_Coefficients);
             DMAT_tot=DMATGS;
             if ( _state_no > 0 && _state=="excited"){
                 std::vector<ub::matrix<double> > DMAT;
                 if (_spin=="singlet"){
-                    DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
-
+                    //DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
+                    DMAT = _orbitals.DensityMatrixExcitedState( _MO_Coefficients , _orbitals.BSESingletCoefficients(), _state_no-1);
                 }
                 else if (_spin=="triplet"){
-                    DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSETripletCoefficients(), _state_no-1);
+                    //DMAT = _orbitals.DensityMatrixExcitedState( _orbitals.MOCoefficients() , _orbitals.BSETripletCoefficients(), _state_no-1);
+                    DMAT = _orbitals.DensityMatrixExcitedState( _MO_Coefficients , _orbitals.BSETripletCoefficients(), _state_no-1);
                 }
                 else throw std::runtime_error("Spin entry not recognized");
                 DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1];
@@ -178,13 +208,18 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
 	   // Ground state + hole_contribution + electron contribution
 	}
         else throw std::runtime_error("State entry not recognized");
-        
-        
+
+
         if (_use_mulliken) {
             Mulliken mulliken;
             mulliken.setUseECPs(_use_ecp);
-            mulliken.EvaluateMulliken(Atomlist, DMAT_tot, basis, bs, _do_transition);
+            mulliken.EvaluateMulliken(_Atomlist, DMAT_tot, basis, bs, _do_transition);
                 
+        }   
+        else if (_use_lowdin) {
+            Lowdin lowdin;
+            lowdin.setUseECPs(_use_ecp);
+            lowdin.EvaluateLowdin(_Atomlist, DMAT_tot, basis, bs, _do_transition);              
         }
         else if (_use_CHELPG){         
             Espfit esp=Espfit(_log);
@@ -193,9 +228,32 @@ void Esp2multipole::Extractingcharges( Orbitals& _orbitals ){
                 esp.setUseSVD(_do_svd,_conditionnumber);
             }
             if (_integrationmethod=="numeric")  {
-                esp.Fit2Density(Atomlist, DMAT_tot, basis,bs,_gridsize); 
+                esp.Fit2Density(_Atomlist, DMAT_tot, basis,bs,_gridsize); 
             }
-            else if (_integrationmethod=="analytic")  esp.Fit2Density_analytic(Atomlist,DMAT_tot,basis);
+            else if (_integrationmethod=="analytic")  esp.Fit2Density_analytic(_Atomlist,DMAT_tot,basis);
+        }
+        else if (_use_bulkESP){         
+            Espfit esp=Espfit(_log);
+            esp.setUseECPs(_use_ecp);
+            if(_do_svd){
+                esp.setUseSVD(_do_svd,_conditionnumber);
+            }
+            if (_integrationmethod=="numeric")  {
+                esp.Fit2Density(_Atomlist, DMAT_tot, basis,bs,_gridsize); 
+            }
+            else if (_integrationmethod=="analytic")  esp.Fit2Density_analytic(_Atomlist,DMAT_tot,basis);
+        }
+        else if(_use_NBO){
+            
+            std::cout<<"WARNING: NBO analysis isn't fully implemented yet."<<std::endl;
+            //LOG(logDEBUG, _log) << "Initializing NBO" << flush;
+            NBO nbo=NBO(_log);
+            nbo.setUseECPs(_use_ecp);
+            //nbo.LoadMatrices("", "");
+            nbo.EvaluateNBO(_Atomlist, DMAT_tot, basis,bs);
+        }
+        else{
+            std::cout<<"Method not recognized."<<std::endl;
         }
 }       
 
