@@ -24,7 +24,7 @@
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/logger.h>
 #include <votca/tools/linalg.h>
-#include <votca/xtp/votca_xtp_config.h>
+#include <votca/xtp/votca_config.h>
 
 #ifdef _OPENMP
 #include <omp.h>

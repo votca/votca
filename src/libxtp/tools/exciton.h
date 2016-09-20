@@ -30,7 +30,7 @@
 #include <votca/xtp/segment.h>
 #include <votca/tools/constants.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/xtp/votca_xtp_config.h>
+#include <votca/xtp/votca_config.h>
 #include <votca/tools/constants.h>
 namespace votca { namespace xtp {
     using namespace std;
