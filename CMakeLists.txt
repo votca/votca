@@ -95,45 +95,6 @@ include_directories(${VOTCA_CSG_INCLUDE_DIRS})
 
 
 
-set(MKL FALSE)
-set(GSL FALSE)
-
-find_package(GSL)
-find_package(MKL)
-
-
-if (MKL_FOUND AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-message("-- MKL found, overloading uBLAS prod()")
-set(MKL TRUE) #used in votca_config.h
-elseif(GSL_FOUND)
-message("-- GSL found, overloading uBLAS prod()")
-include_directories(${GSL_INCLUDE_DIRS})
-set(GSL_PKG "gsl")
-set(GSL TRUE) #used in votca_config.h
-endif()
-
-if(MKL_FOUND)
-  set(MKL_URL "http://software.intel.com/sites/default/files/managed/76/8c/intel-mkl-and-boost-example.zip")
-  set(MKL_MD5 B957EE63A2167AD21B650B47726CD55C )
-  set(MKL_FILE "intel-mkl-and-boost-example.zip")
-  
-  include(ExternalProject)
-  ExternalProject_add(intel
-          PREFIX intel
-          URL "${MKL_URL}" URL_MD5 "${MKL_MD5}"
-          CONFIGURE_COMMAND ""
-          BUILD_COMMAND ""
-          INSTALL_COMMAND ""
-          )
-  set(MKL_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/intel/src/intel/MKL_and_boost_example/headers")
-  include_directories(${MKL_INCLUDE_DIR})
-  file(GLOB_RECURSE MKL_HEADERS ${MKL_INCLUDE_DIR}/*.hpp )
-  install(FILES ${MKL_HEADERS} DESTINATION include/votca/xtp)
-endif(MKL_FOUND)
-
-
-
-#configure_file(config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #

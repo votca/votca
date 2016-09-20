@@ -20,7 +20,7 @@
 #ifndef __VOTCA_XTP_ORBITALS_H
 #define	__VOTCA_XTP_ORBITALS_H
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/xtp/votca_config.h>
+#include <votca/tools/linalg.h>
 
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>

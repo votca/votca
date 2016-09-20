@@ -21,7 +21,7 @@
 #define	__XTP_NUMERICAL_INTEGRATION__H
 
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/xtp/votca_config.h>
+#include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/operation.hpp>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
