@@ -9,7 +9,7 @@ libvotca*.so.*
 share/doc/html
 share/doc/Doxyfile
 
-src/libxtp/votca_config.h
+include/votca/xtp/votca_config.h
 src/libxtp/gitversion.h
 
 src/tools/xtp_dump
@@ -33,8 +33,6 @@ scripts/xtp_update_exciton
 scripts/xtp_update_exciton.out
 scripts/xtp_basisset
 scripts/xtp_basisset.out
-
-intel/
 
 netbeans/*/build
 .dep.inc
