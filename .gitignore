@@ -4,13 +4,13 @@ Makefile
 libvotca*.pc
 libvotca*.a
 libvotca*.so
+libvotca*.so.*
 
 share/doc/html
 share/doc/Doxyfile
 
 src/libxtp/votca_config.h
-src/libxtp/hgversion.h
-
+src/libxtp/gitversion.h
 
 src/tools/xtp_dump
 src/tools/xtp_parallel
@@ -35,7 +35,6 @@ scripts/xtp_basisset
 scripts/xtp_basisset.out
 
 intel/
-include/votca/xtp/votca_config.h
 
 netbeans/*/build
 .dep.inc
