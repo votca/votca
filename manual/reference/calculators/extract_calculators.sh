@@ -1,4 +1,4 @@
-a#!/bin/bash -e
+#!/bin/bash -e
 
 texfile="$PWD/calculators.tex"
 rm -f $texfile; touch $texfile

@@ -22,11 +22,10 @@ endif(WITH_MKL)
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-add_custom_target(hgversion-xtp COMMAND ${CMAKE_COMMAND} -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+add_custom_target(gitversion-xtp COMMAND ${CMAKE_COMMAND} -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -DMERCURIAL_EXECUTABLE="${MERCURIAL_EXECUTABLE}"
-  -P ${CMAKE_MODULE_PATH}/hgversion.cmake)
-set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES hgversion.h)
+  -P ${CMAKE_MODULE_PATH}/gitversion.cmake)
+set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 
 file(GLOB_RECURSE VOTCA_SOURCES *.cc *.cpp)
@@ -34,7 +33,8 @@ file(GLOB_RECURSE NOT_VOTCA_SOURCES version_nb.cc segmenttype.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
 add_library(votca_xtp  ${VOTCA_SOURCES})
-add_dependencies(votca_xtp hgversion-xtp)
+set_target_properties(votca_xtp PROPERTIES SOVERSION ${SOVERSION})
+add_dependencies(votca_xtp gitversion-xtp)
 target_link_libraries(votca_xtp ${VOTCA_CSG_LIBRARIES} ${MKL_LIBRARIES} ${GSL_LIBRARIES} ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES} ${LIBXC_LIBRARIES})
 install(TARGETS votca_xtp LIBRARY DESTINATION ${LIB} ARCHIVE DESTINATION ${LIB})
 

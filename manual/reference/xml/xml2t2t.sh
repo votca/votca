@@ -47,7 +47,7 @@ if [ "$1" = "--help" ]; then
 fi
 
 [ -z "$1" ] && die "${0##*/}: Missing argument"
-[ -z "$(type -p csg_property)" ] && die "${0##*/}: csg_property not found"
+[ -x "${CSG_PROPERTY}" ] || die "${0##*/}: variable CSG_PROPERTY (value ${CSG_PROPERTY}) is wrong"
 
 xmlfile="$1"
 [ -f "$xmlfile" ] || die "${0##*/}: Error, did not find $xmlfile"
@@ -65,7 +65,7 @@ echo '%!includeconf: config.t2t'
 echo
 
 #get all items
-items="$(csg_property --file $xmlfile --path tags.item --print name --short)" || die "parsing xml failed"
+items="$(${CSG_PROPERTY} --file $xmlfile --path tags.item --print name --short)" || die "parsing xml failed"
 #check if a head node is missing
 #add_heads
 #sort them
@@ -77,7 +77,7 @@ for name in ${items}; do
   cut_heads "$name"
   head="$(echo $name | sed -e 's/'${item}'//')"
   #echo $head $name $item
-  desc="$(csg_property --file $xmlfile --path tags.item --filter "name=$name" --print desc --short)" || die "${0##*/}: Could not get desc for $name"
+  desc="$(${CSG_PROPERTY} --file $xmlfile --path tags.item --filter "name=$name" --print desc --short)" || die "${0##*/}: Could not get desc for $name"
 
   if [ "$name" = "sectionlink" ]; then
      link="$name($desc)"
