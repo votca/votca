@@ -32,6 +32,7 @@ addons:
       - texlive-latex-extra
       - texlive-humanities
       - texlive-pstricks
+      - texlive-latex3
       - transfig
       - inkscape
       - doxygen
