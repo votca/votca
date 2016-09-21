@@ -3,7 +3,7 @@ SHELL=/bin/bash
 GITID_PLAIN:=$(shell git rev-parse --short HEAD 2> /dev/null)
 GITID:=$(shell echo $(GITID_PLAIN) | sed -e 's/.*/\\newcommand{\\gitid}{${VER} (&)}/' -e 's/_rc/\\&/' -e 's/()//' )
 LATEXMK=./scripts/latexmk.pl
-LATEXMKOPTS=-halt-on-error
+LATEXMKOPTS=-halt-on-error --extra-mem-bot=100000000
 
 NAME=xtp-manual
 ifeq ($(OSTYPE),darwin)
@@ -19,7 +19,7 @@ $(NAME).tex: gitid.tex fig_submake programs_submake theory_submake reference_sub
 
 %.dvi: %.tex dummy
 	./abbreviate_journals.pl 
-	$(LATEXMK) $(LATEXMKOPTS) -dvi $< || rm -vf $*.dvi
+	$(LATEXMK) $(LATEXMKOPTS) -dvi  $< || rm -vf $*.dvi
 	@[ -f $@ ]
 
 %.pdf: %.dvi

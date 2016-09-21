@@ -1,4 +1,4 @@
-ROOTDIR := ../../scripts
+ROOTDIR := ../../
 
 JPGPICS :=
 PNGPICS := 
