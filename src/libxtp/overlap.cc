@@ -17,9 +17,6 @@
  *
  */
 
-#define NDEBUG
-#define OVERLAP_DEBUG
-
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
 

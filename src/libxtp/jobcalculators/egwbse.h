@@ -17,10 +17,6 @@
  *
  */
 
-// UBLAS stops checking types and array bounds if this flag is defined
-#define NDEBUG
-#define BOOST_UBLAS_NDEBUG
-
 #ifndef _CALC_GWBSE_TOOL_H
 #define	_CALC_GWBSE_TOOL_H
 

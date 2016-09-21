@@ -19,7 +19,6 @@
 
 #ifndef _VOTCA_XTP_EXCITON_H
 #define _VOTCA_XTP_EXCITON_H
-#define NDEBUG
 
 #include <stdio.h>
 

@@ -11,6 +11,15 @@ endif (NOT ${SOVERSION} MATCHES "[1-9]+")
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
+  #Release comes with -O3 by default
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+  add_definitions(-DDEBUG)
+elseif(CMAKE_BUILD_TYPE STREQUAL Release)
+  add_definitions(-DBOOST_UBLAS_NDEBUG)
+endif()
 
 enable_language(CXX)
 

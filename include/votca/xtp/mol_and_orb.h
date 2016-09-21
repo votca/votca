@@ -33,7 +33,6 @@
 #include <votca/tools/vec.h>
 #include <votca/tools/globals.h>
 
-////#define DEBUG
 namespace votca { namespace xtp {
 
 using namespace std;

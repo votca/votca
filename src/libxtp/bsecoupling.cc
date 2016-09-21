@@ -17,8 +17,6 @@
  *
  */
 
-#define NDEBUG
-
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
 
