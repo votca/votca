@@ -49,6 +49,7 @@ env:
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
     - XTP=yes WERROR=yes J=4
     - XTP=yes WALL=yes J=4 XTP_MAN=yes
+    - XTP=yes WALL=yes J=4 BDIR=build
 
 before_script:
   - rm -vrf * .git

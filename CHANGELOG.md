@@ -1,5 +1,8 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/xtp/commits/master).
 
+## Version 1.4-dev
+* include manual
+
 ## Version 1.3 (released XX.09.15)
 * new executables: xtp_tools, xtp_dump, xtp_parallel, xtp_testsuite, xtp_update
 * xtp_tools wraps light-weight tools that assist e.g. in generating the system mapping file
