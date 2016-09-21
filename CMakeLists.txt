@@ -42,6 +42,8 @@ endif(NOT DEFINED DATA)
 
 #this has to be the first include directive
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+#for votca_config.h
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 ########################################################################
 #Find external packages
