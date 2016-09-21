@@ -17,8 +17,9 @@ option(BUILD_XTP "Build xtp" OFF)
 ######################################
 add_subdirectory(tools)
 set(VOTCA_TOOLS_LIBRARY votca_tools CACHE STRING "tools library name")
-set(PC_VOTCA_TOOLS_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/tools/include
-	CACHE PATH "tools include path")
+set(VOTCA_TOOLS_INCLUDE_DIR
+  "${CMAKE_CURRENT_SOURCE_DIR}/tools/include;${CMAKE_CURRENT_BINARY_DIR}/tools/include"
+  CACHE PATH "tools include path")
 add_subdirectory(csg)
 set(VOTCA_CSG_LIBRARY votca_csg CACHE STRING "csg library name")
 set(VOTCA_CSG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/csg/include

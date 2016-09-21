@@ -8,16 +8,23 @@ sudo: false
 
 addons:
   apt:
-    sources: boost-latest 
+    sources:
+      - boost-latest 
+      - george-edison55-precise-backports
+      - ubuntu-toolchain-r-test
     packages:
-      - cmake
       - ccache
+      - gcc-4.8
+      - g++-4.8
       - libfftw3-dev
+      - cmake
+      - cmake-data
       - libgsl0-dev
       - txt2tags
       - libboost1.55-all-dev
       - libexpat1-dev
       - libsqlite3-dev
+      - libhdf5-serial-dev
       - pkg-config
       - pgf
       - texlive-fonts-recommended
@@ -27,36 +34,38 @@ addons:
       - python-numpy
       - gnuplot-nox
       - octave
-      - gromacs-dev
 
 env:
   global:
-    - CMAKE_VERSION=3.1.3-Linux-x86_64
-    - CCACHE_CPP2=yes
+    - HDF5_VERSION=1.8.14
+    - GMX_MAX_THREADS=8
+    - CCACHE_CPP2=yes #for clang
+    - GVER=4.8
 
 before_install:
   - git submodule update --init --recursive
 
 before_script:
-  - mkdir -p "$HOME/bin"
-  - ln -s /usr/bin/ccache "$HOME/bin/clang++"
-  - ln -s /usr/bin/ccache "$HOME/bin/clang"
-# download newer cmake for gmx
-  - wget --no-check-certificate -qO- http://www.cmake.org/files/v${CMAKE_VERSION:0:3}/cmake-${CMAKE_VERSION}.tar.gz | tar -xvz
-  - ln -vs $PWD/cmake-${CMAKE_VERSION}/bin/cmake "$HOME/bin/cmake"
-  - git clone --depth=1 --branch=global -b release-5-0 https://github.com/gromacs/gromacs.git &&
+  - if [[ ${MINIMAL} != yes ]]; then 
+      wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xz &&
+      cd hdf5-${HDF5_VERSION} && ./configure --prefix=$HOME/hdf5 && make -j4 &> /dev/null && make install && cd ..;
+    fi
+  - if [[ ${GVER} ]]; then export CC=gcc-${GVER}; export CXX=g++-${GVER}; fi
+  - git clone --depth=1 --branch=global -b release-5-1 https://github.com/gromacs/gromacs.git &&
     cd gromacs && PATH="$HOME/bin:/usr/lib/ccache:$PATH" cmake -DCMAKE_INSTALL_PREFIX=$HOME/gromacs . && 
     make -j5 && make install && source $HOME/gromacs/bin/GMXRC.bash && cd ..
 
 script:
   - mkdir build && cd build && 
-    PATH="$HOME/bin:/usr/lib/ccache:$PATH" cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=$HOME/votca .. &&
+    cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=$HOME/votca .. &&
     make -j4 && make install
 
 cache:
-  directories:
-    - $HOME/.ccache
+  - ccache
 
 compiler:
-  - clang
   - gcc
+
+notifications:
+  email:
+    - votca-commits@googlegroups.com 
