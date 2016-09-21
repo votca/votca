@@ -11,6 +11,7 @@ share/doc/Doxyfile
 
 src/libxtp/votca_config.h
 src/libxtp/gitversion.h
+include/votca/xtp/votca_config.h
 
 src/tools/xtp_dump
 src/tools/xtp_parallel
@@ -34,7 +35,6 @@ scripts/xtp_update_exciton.out
 scripts/xtp_basisset
 scripts/xtp_basisset.out
 
-intel/
 
 netbeans/*/build
 .dep.inc
