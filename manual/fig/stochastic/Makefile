@@ -2,12 +2,12 @@ ROOTDIR := ../../
 
 JPGPICS :=
 PNGPICS := 
-FIGPICS := workflow.eps
+FIGPICS := 
 AGRPICS :=
 GPPICS  := 
-SVGPICS :=
+SVGPICS := overview_stochastic.eps
 SUBDIRS :=
-LOCALCLEAN := figtex2eps-preamble.tex
+LOCALCLEAN := *.tex
 
 include ../../Makefile.incl
 
