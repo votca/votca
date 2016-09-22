@@ -23,6 +23,7 @@ fig/reorganization_energy/monomer_parabolas.eps
 fig/workflow/figtex2eps-preamble.tex
 fig/workflow/workflow.eps
 fig/workflow/workflow.fd
+fig/stochastic/overview_stochastic.eps
 literature.bib
 literature_short.bib
 xtp-manual.bbl
