@@ -486,8 +486,11 @@ namespace votca {
             if (std::system(NULL)) {
                 std::string _command;
                 _command = "cd " + _run_dir + "; rm -f LocalError*.log; " + _executable + " " + _input_file_name + ">" + _log_file_name;
-                std::system(_command.c_str());
-
+                int check=std::system(_command.c_str());
+                if (check==-1){
+                    LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+                    return false;
+                }
                 if (CheckLogFile()) {
                     LOG(logDEBUG, *_pLog) << "CPMD: finished job" << flush;
                     return true;

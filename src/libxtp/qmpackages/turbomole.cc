@@ -148,9 +148,11 @@ bool Turbomole::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbit
     // run "define" which prepares the input
     std::string _input_exe = "define";
     _command  = "cd " + _run_dir + "; " + _input_exe + " <  ./" + _input_file_name + " >& " + _input_file_name + ".log" ;
-    //cerr << _command << flush;
-    //int i = std::system ( _command.c_str() );
-    std::system ( _command.c_str() );
+    int check=std::system(_command.c_str());
+    if (check==-1){
+        LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+        return false;
+    }
     
     // postprocess the output of define - scratch dir
     //cout <<  "TEMP DIR: " << _scratch_dir + temp_suffix << endl;
