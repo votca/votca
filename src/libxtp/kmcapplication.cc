@@ -113,7 +113,7 @@ bool KMCApplication::EvaluateOptions() {
             //char char_outputfile[1024] = {_outputfile}; // max. 1024 characters for filename
             //char_outputfile = _outputfile;
             cout << "Output into file: " << _outputfile.c_str() << "." << endl;
-            freopen(_outputfile.c_str(),"w",stdout);   
+            //freopen(_outputfile.c_str(),"w",stdout);   
             //cout << "hier ist output" << endl;
         }
         else

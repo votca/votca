@@ -265,7 +265,9 @@ bool Turbomole::Run()
         _command  = "cd " + _run_dir + "; " + _executable + " >& " + _executable + ".log ";
         
         //int i = std::system ( _command.c_str() );
-        std::system ( _command.c_str() );
+        if (std::system(_command.c_str())){
+          throw runtime_error("Command "+ _command + "failed");
+        }
         LOG(logDEBUG,*_pLog) << "TURBOMOLE: Finished job" << flush;
         return true;
     }
