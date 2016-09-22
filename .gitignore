@@ -16,7 +16,6 @@ scripts/csg_inverse
 scripts/help2t2t
 scripts/csg_inverse.t2t
 scripts/*.out
-share/scripts/inverse/cma.py*
 share/doc/Doxyfile
 share/doc/html/*
 share/man/*.man

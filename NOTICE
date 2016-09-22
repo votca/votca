@@ -7,3 +7,5 @@ The VOTCA Development Team (http://www.votca.org).
 This software contains code, in particular function_common.sh, derived 
 from a script collection by C. Junghans.
 
+Thanks to Nikolaus Hansen (hansen@lri.fr, @nikohansen on github) for 
+providing the bundled version of cma.py, which is licensed under BSD 3-Clause.
