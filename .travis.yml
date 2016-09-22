@@ -44,9 +44,9 @@ env:
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
     - CTP=yes WERROR=yes J=4
     - CTP=yes WALL=yes J=4
-    - XTP=yes BDIR=build WERROR=yes J=4 TYPE=Debug
+    - BDIR=build WERROR=yes J=4 TYPE=Debug
     - XTP=yes BDIR=build WALL=yes J=4 TYPE=Debug
-    - XTP=yes BDIR=build WERROR=yes J=4 TYPE=Release
+    - BDIR=build WERROR=yes J=4 TYPE=Release
     - XTP=yes BDIR=build WALL=yes J=4 TYPE=Release
     - MINIMAL=yes J=4
     - CSG_MDRUN_STEPS=500 TEST=spce/cma/density J=4
