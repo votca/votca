@@ -45,7 +45,7 @@ env:
     - CTP=yes WERROR=yes J=4
     - CTP=yes WALL=yes J=4
     - XTP=yes WERROR=yes J=4
-    - XTP=yes WALL=yes J=4
+    - XTP=yes WALL=yes MAN=yes J=4
     - WALL=yes GMX_DOUBLE=yes J=4
     - WALL=yes GMX_VERSION=5.0 J=4
     - WALL=yes GMX_VERSION=5.0 GMX_DOUBLE=yes J=4
@@ -56,7 +56,6 @@ env:
     - J=1
     - BDIR=build J=4
     - BDIR=build J=1
-    - MAN=yes J=4
     - MINIMAL=yes J=4
     - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_bonded J=4
     - CSG_MDRUN_STEPS=500 TEST=hexane/ibi J=4
