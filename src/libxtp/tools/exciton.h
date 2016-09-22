@@ -302,7 +302,7 @@ bool Exciton::Evaluate() {
       
       // convergence checks
       bool _converged          = false;
-      double energy;
+      double energy=0;
       if ( _restart_opt ){
           // reload data from restart.opt
           ReloadState();
@@ -364,7 +364,7 @@ bool Exciton::Evaluate() {
            
            
            // writing current coordinates and forces
-           FILE *out;
+           FILE *out = NULL;
            vector<Segment*> ::iterator sit;
            string FILENAME = "geometry_optimization.xyz";
            for (sit = _molecule.begin(); sit < _molecule.end(); ++sit) {

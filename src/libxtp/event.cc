@@ -119,9 +119,9 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
     //double rightnode2pos = eventinfo->simboxsize.z() - leftnode2pos;
     
     double prefactor = 1.0; // total prefactor
-    double charge;
-    double static_node_energy_from;
-    double static_node_energy_to;
+    double charge=0;
+    double static_node_energy_from=0;
+    double static_node_energy_to=0;
 
     const double hbar = 6.58211928E-16; // eV*s
     const double Pi   = 3.14159265358979323846264338327950288419716939937510;
@@ -157,8 +157,8 @@ void Event::Determine_rate(StateReservoir* state, Longrange* longrange, Eventinf
 
     double _transferfactor = 1.0;
     votca::tools::vec distancevector = _link->r12();
-    double Reorg;
-    double Jeff2;
+    double Reorg=0;
+    double Jeff2=0;
     double distance;
 
     if (eventinfo->formalism == "Miller") {
