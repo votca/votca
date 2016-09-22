@@ -166,7 +166,7 @@ int main(int argc, char** argv)
         ub::vector<double> y_copy;
         if (!vm.count("nocut")) {
             // determine vector size
-            int minindex=-1, maxindex;
+            int minindex=-1, maxindex=-1;
             for (size_t i=0; i<in.x().size(); i++) {
                 if(in.x(i)<sp_min) {
                     minindex = i;
