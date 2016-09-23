@@ -17,10 +17,8 @@
  *
  */
 
-#define NDEBUG
-
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/xtp/votca_xtp_config.h>
+#include <votca/tools/linalg.h>
 
 #include <votca/xtp/bsecoupling.h>
 #include <votca/tools/linalg.h>
@@ -1172,9 +1170,9 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
      //cout << _S_dimer.size1()<< " : "<<_S_dimer.size2()<<endl;
      
      #if (GWBSE_DOUBLE)
-        ub::matrix<double>& Htemp=_H;
+      const ub::matrix<double>& Htemp=_H;
 #else
-      ub::matrix<double> Htemp=_H;
+     ub::matrix<double> Htemp=_H;
      LOG(logDEBUG, *_pLog) << TimeStamp()  << " casting Hamiltonian to double  " << flush;
 
 #endif
@@ -1204,8 +1202,11 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
      
      ub::matrix<double> _temp=ub::prod(Htemp,ub::trans(projection));
      ub::matrix<double> _J_dimer=ub::prod(projection,_temp);
-     
+       #if (GWBSE_DOUBLE)
+    LOG(logDEBUG, *_pLog) << TimeStamp()  << " no Casting  " << flush;
+    #else
      Htemp.resize(0,0);
+     #endif
      _temp.resize(0,0);
      
 

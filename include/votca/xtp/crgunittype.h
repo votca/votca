@@ -18,8 +18,6 @@
 #ifndef _CRGUNITTYPE_H
 #define	_CRGUNITTYPE_H
 
-//#define DEBUG
-
 #include "mol_and_orb.h"
 #include "moo_orbitals.h"
 #include <string>

@@ -19,7 +19,6 @@
 
 
 #include <votca/xtp/extractorfactory.h>
-#include "votca_config.h"
 
 #include "extractors/energyextractor.h"
 #include "extractors/integralsextractor.h"

@@ -216,10 +216,12 @@ votca::tools::vec GraphKMC::Determine_Sim_Box_Size()
     
     //for determination of initial value of simboxsize
     bool initXfound = false; bool initYfound = false; bool initZfound = false;
-    double newX; double newY; double newZ;
+    double newX=0.0; double newY=0.0; double newZ=0.0;
     
     //dimensions of the simulation box
-    double simX; double simY; double simZ;
+    double simX=0.0;
+    double simY=0.0;
+    double simZ=0.0;
     
     //initial values for maximum and minimum coordinates
     votca::tools::vec initpos = this->_nodes[0]->position();
@@ -428,7 +430,7 @@ void GraphKMC::Resize(double dimX, bool breakX, double dimY, bool breakY, double
  
         votca::tools::vec link_r12 = probelink->r12();
 
-        int lx; int ly; int lz;
+        int lx=0; int ly=0; int lz=0;
 
         int crossxtype = probelink->crossxtype();
         int crossytype = probelink->crossytype();

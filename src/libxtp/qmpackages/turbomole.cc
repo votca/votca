@@ -148,9 +148,11 @@ bool Turbomole::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbit
     // run "define" which prepares the input
     std::string _input_exe = "define";
     _command  = "cd " + _run_dir + "; " + _input_exe + " <  ./" + _input_file_name + " >& " + _input_file_name + ".log" ;
-    //cerr << _command << flush;
-    //int i = std::system ( _command.c_str() );
-    std::system ( _command.c_str() );
+    int check=std::system(_command.c_str());
+    if (check==-1){
+        LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+        return false;
+    }
     
     // postprocess the output of define - scratch dir
     //cout <<  "TEMP DIR: " << _scratch_dir + temp_suffix << endl;
@@ -263,7 +265,9 @@ bool Turbomole::Run()
         _command  = "cd " + _run_dir + "; " + _executable + " >& " + _executable + ".log ";
         
         //int i = std::system ( _command.c_str() );
-        std::system ( _command.c_str() );
+        if (std::system(_command.c_str())){
+          throw runtime_error("Command "+ _command + "failed");
+        }
         LOG(logDEBUG,*_pLog) << "TURBOMOLE: Finished job" << flush;
         return true;
     }
@@ -326,7 +330,7 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
     
     std::string _line;
     unsigned _levels = 0;
-    unsigned _level;
+    unsigned _level=0;
     unsigned _basis_size = 0;
 
     path arg_path; 

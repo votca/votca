@@ -25,7 +25,8 @@
 #include <votca/xtp/radial_euler_maclaurin_rule.h>
 #include <votca/xtp/sphere_lebedev_rule.h>
 #include <votca/xtp/aoshell.h>
-#include<votca/tools/constants.h>
+#include <votca/tools/constants.h>
+#include <votca/xtp/votca_config.h>
 #ifdef LIBXC
 #include <xc.h>
 #endif

@@ -1,6 +1,7 @@
 SHELL=/bin/bash
 
-ref_calculators.tex: dummy
+DEPS=$(wildcard $(XTP_PROGS))
+calculators.tex: $(DEPS)
 	./extract_calculators.sh $(XTP_PROGS)
 
 dummy: ;

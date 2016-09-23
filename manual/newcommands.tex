@@ -1,4 +1,4 @@
-\input{hgid}
+\input{gitid}
 
 \newcommand{\equ}[1]{eq.~\eqref{equ:#1}}
 \newcommand{\Equ}[1]{Eq.~\eqref{equ:#1}}
@@ -44,6 +44,8 @@
 \newcommand{\xmlcsg}{\hyperref[sec:xmlmap]{\texttt{map.xml}}\xspace}
 \newcommand{\xmlsegments}{\hyperref[sec:xmlsegments]{\texttt{segments.xml}}\xspace}
 \newcommand{\sqlstate}{\hyperref[sec:statefile]{\texttt{state.sql}}\xspace}
+\newcommand{\sqlstateref}{\hyperref[sec:statefile]{\texttt{state\_ref.sql}}\xspace}
+\newcommand{\sqlstatecg}{\hyperref[sec:statefile]{\texttt{state\_cg.sql}}\xspace}
 \newcommand{\topology}{\texttt{topol.tpr}\xspace}
 \newcommand{\trajectory}{\texttt{traj.xtc}\xspace}
 
@@ -125,4 +127,12 @@
 \newcommand{\cmdmolpol}{\xtptools \opt \xmloptions \exe \toolref{molpol}}
 \newcommand{\cmdlogmps}{\xtptools \opt \xmloptions \exe \toolref{log2mps}}
 \newcommand{\cmdxqmult}{\xtpparallel \opt \xmloptions \sql \sqlstate \exe \calc{xqmultipole}}
+\newcommand{\cmdpanalyze}{ \xtprun \opt \xmloptions  \sql  \sqlstateref \exe  \calc{panalyze}}
+\newcommand{\cmdeanast}{\xtprun \opt \xmloptions  \sql  \sqlstateref \exe  \calc{eanalyze}}
+\newcommand{\cmdianalyze}{ \xtprun \opt \xmloptions  \sql  \sqlstateref \exe  \calc{ianalyze}}
+\newcommand{\cmdnblst}{\xtprun \opt \xmloptions  \sql  \sqlstatecg \exe  \calc{neighborlist}}
+\newcommand{\cmdeimport}{ \xtprun \opt \xmloptions  \sql  \sqlstateref \exe  \calc{eimport}}
+\newcommand{\cmdiimport}{ \xtprun \opt \xmloptions  \sql  \sqlstatecg \exe  \calc{iimport}}
+\newcommand{\cmdratesst}{\xtprun \opt \xmloptions  \sql  \sqlstatecg \exe  \calc{rates}}
+
 

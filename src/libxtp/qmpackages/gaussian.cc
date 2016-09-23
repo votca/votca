@@ -624,7 +624,11 @@ namespace votca {
                 }
 
                 //int i = std::system(_command.c_str());
-                std::system(_command.c_str());
+                int check=std::system(_command.c_str());
+                if (check==-1){
+                    LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+                    return false;
+                }
                 if (CheckLogFile()) {
                     LOG(logDEBUG, *_pLog) << "GAUSSIAN: finished job" << flush;
                     return true;
@@ -695,7 +699,7 @@ namespace votca {
 
             std::string _line;
             unsigned _levels = 0;
-            unsigned _level;
+            unsigned _level=0;
             unsigned _basis_size = 0;
 
             std::string _orb_file_name_full = _orb_file_name;

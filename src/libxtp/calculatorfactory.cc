@@ -19,7 +19,6 @@
 
 
 #include <votca/xtp/calculatorfactory.h>
-#include "votca_config.h"
 
 #include "calculators/sandbox.h"
 #include "calculators/neighborlist.h"

@@ -21,7 +21,7 @@
 #define	__VOTCA_XTP_ORBITALS_H
 
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/xtp/votca_xtp_config.h>
+#include <votca/tools/linalg.h>
 
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
@@ -198,9 +198,9 @@ public:
         _qpmax = qpmax;
         _qptotal = _qpmax - _qpmin +1 ;
     }
-    int getGWAmin() const { return _qpmin;}
-    int getGWAmax() const { return _qpmax;}
-    int getGWAtot() const { return _qptotal;}
+    unsigned getGWAmin() const { return _qpmin;}
+    unsigned getGWAmax() const { return _qpmax;}
+    unsigned getGWAtot() const { return (_qpmax - _qpmin +1);}
 
     // access to list of indices used in RPA
     bool hasRPAindices() { return ( _rpamax > 0 ) ? true : false; }

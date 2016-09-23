@@ -391,7 +391,11 @@ bool NWChem::Run()
         }
         
         //int i = std::system ( _command.c_str() );
-        std::system ( _command.c_str() );
+        int check=std::system(_command.c_str());
+        if (check==-1){
+            LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+            return false;
+        }
         
         if ( CheckLogFile() ) {
             LOG(logDEBUG,*_pLog) << "Finished NWChem job" << flush;

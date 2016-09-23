@@ -19,7 +19,6 @@
 
 #ifndef _VOTCA_XTP_EXCITON_H
 #define _VOTCA_XTP_EXCITON_H
-#define NDEBUG
 
 #include <stdio.h>
 
@@ -30,7 +29,7 @@
 #include <votca/xtp/segment.h>
 #include <votca/tools/constants.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/xtp/votca_xtp_config.h>
+#include <votca/xtp/votca_config.h>
 #include <votca/tools/constants.h>
 namespace votca { namespace xtp {
     using namespace std;
@@ -302,7 +301,7 @@ bool Exciton::Evaluate() {
       
       // convergence checks
       bool _converged          = false;
-      double energy;
+      double energy=0;
       if ( _restart_opt ){
           // reload data from restart.opt
           ReloadState();
@@ -364,7 +363,7 @@ bool Exciton::Evaluate() {
            
            
            // writing current coordinates and forces
-           FILE *out;
+           FILE *out = NULL;
            vector<Segment*> ::iterator sit;
            string FILENAME = "geometry_optimization.xyz";
            for (sit = _molecule.begin(); sit < _molecule.end(); ++sit) {

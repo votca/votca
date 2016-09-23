@@ -17,10 +17,6 @@
  *
  */
 
-// UBLAS stops checking types and array bounds if this flag is defined
-#define NDEBUG
-#define BOOST_UBLAS_NDEBUG
-
 #ifndef _VOTCA_XTP_DFTENGINE_H
 #define	_VOTCA_XTP_DFTENGINE_H
 

@@ -588,9 +588,12 @@ bool Orca::Run()
             _command = "cd " + _run_dir + "; sh " + _shell_file_name;
         }
         //LOG(logDEBUG,*_pLog) << _command << flush;
-        std::system ( _command.c_str() );
-       // int i = std::system ( _command.c_str() );
-        //LOG(logDEBUG,*_pLog) << "Orca job finished with "<<i << flush;
+       int check=std::system(_command.c_str());
+        if (check==-1){
+            LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+            return false;
+        }
+       
         if ( CheckLogFile() ) {
             LOG(logDEBUG,*_pLog) << "Finished Orca job" << flush;
             return true;

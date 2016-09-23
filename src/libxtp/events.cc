@@ -399,7 +399,7 @@ void Events:: Effect_injection_rates(int action, CarrierBulk* carrier, Node* nod
                 list<int>::iterator li1,li2,li3;
                 list<int> *eventmesh ;
                 
-                int IDelectrodeswitch;
+                int IDelectrodeswitch=0;
 
                 if(electrode->type() == (int) LeftElectrodeNode) {
                     eventmesh = &_left_injection_events_mesh[r_isx][r_isy][r_isz];

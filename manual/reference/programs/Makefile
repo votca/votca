@@ -1,12 +1,11 @@
 SHELL=/bin/bash
 DIR:=$(shell pwd | sed 's@^.*/\([^/]*/[^/]*\)$$@\1@' )
-TRUNC=$(shell git rev-parse --show-toplevel)
-TXT2TAGS=$(TRUNC)/manual/scripts/txt2tags
+TXT2TAGS=../../scripts/txt2tags
 
 .PHONY: clean bootstrap
 .SECONDARY:
 
-all: clean all.tex   
+all: all.tex   
 
 #this is a hack to generate Makefile.incl
 HACK:=$(shell $(MAKE) -f Makefile.BINS Makefile.incl)

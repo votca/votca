@@ -18,7 +18,7 @@
  */
 
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/xtp/votca_xtp_config.h>
+#include <votca/tools/linalg.h>
 
 #include "egwbse.h"
 #include <votca/xtp/esp2multipole.h>
@@ -223,7 +223,7 @@ namespace votca {
             string segType = lSegments.front()->getAttribute<string>("type");
 
             Segment *seg = top->getSegment(segId);
-            assert(seg->Name() == segType);
+            assert(seg->getName() == segType);
             segments.push_back(seg);
 
             Logger* pLog = opThread->getLogger();

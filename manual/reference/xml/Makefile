@@ -1,12 +1,12 @@
 SHELL=/bin/bash
-TRUNC=$(shell git rev-parse --show-toplevel)
-TXT2TAGS=$(TRUNC)/manual/scripts/txt2tags
+TXT2TAGS=../../scripts/txt2tags
 
+all:
 #this is a hack to generate Makefile.incl
 HAKE:= $(shell $(MAKE) -f Makefile.XMLS Makefile.incl)
 include Makefile.incl
 
-all: clean $(XMLSTEX) 
+all: $(XMLSTEX) 
 html: $(XMLSHTML)
 
 .PHONY: clean upload
@@ -14,7 +14,7 @@ html: $(XMLSHTML)
 
 $(XMLST2T): xml2t2t.sh
 %.t2t: 
-	./xml2t2t.sh ../../../share/xml/$* > $@
+	CSG_PROPERTY="$(CSG_PROPERTY)" ./xml2t2t.sh ../../../share/xml/$* > $@
 
 config.t2t: ../config.t2t
 	cp $< .

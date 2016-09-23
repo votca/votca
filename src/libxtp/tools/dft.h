@@ -19,7 +19,6 @@
 
 #ifndef _VOTCA_XTP_DFT_H
 #define _VOTCA_XTP_DFT_H
-#define NDEBUG
 
 #include <stdio.h>
 
@@ -29,7 +28,7 @@
 #include <votca/xtp/atom.h>
 #include <votca/xtp/segment.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/xtp/votca_xtp_config.h>
+#include <votca/xtp/votca_config.h>
 
 namespace votca { namespace xtp {
     using namespace std;

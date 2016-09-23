@@ -24,7 +24,7 @@
 #include <votca/xtp/elements.h>
 #include <votca/xtp/logger.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/xtp/votca_xtp_config.h>
+#include <votca/xtp/votca_config.h>
 #include <votca/tools/constants.h>
 
 namespace votca {

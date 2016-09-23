@@ -467,7 +467,7 @@ void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
           // cout << " Name " << name << endl;
           // and loop over all shells
           
-          int lmax;
+          int lmax=0;
           for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                Shell* shell = (*its);
                //cout << " Shell " << shell->getType() << endl;
@@ -476,7 +476,7 @@ void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
                //    cerr << "We have a contracted basis set!" << flush;
                //} else {
                string local_shell =    string( shell->getType(), 0, 1 );
-               int l;
+               int l=0;
                if ( local_shell == "S" ) l =0;
                if ( local_shell == "P" ) l =1;
                if ( local_shell == "D" ) l =2;

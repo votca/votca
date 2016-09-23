@@ -28,7 +28,7 @@
 
 
 \usepackage[tikz]{bclogo}
-% \usepackage[framemethod=tikz]{mdframed}
+\usepackage[framemethod=tikz]{mdframed}
 \usepackage{lipsum}
 
 
@@ -48,6 +48,11 @@
 \definecolor{webbrown}{rgb}{.6,0,0}
 \definecolor{invisiblegray}{rgb}{.97,0.97,0.97}
 \definecolor{mygray}{rgb}{0.86,0.86,0.86}
+
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+
 \usepackage
 [ps2pdf, %dvips, %dvipdf, %or dvips or pdftex 
 pagebackref, %or backref
@@ -99,6 +104,21 @@ pdfpagemode=UseNone]{hyperref}
 \addtolength{\topmargin}{0cm}
 \addtolength{\textheight}{0cm}
 
+
+
+
+\lstdefinelanguage{XML2}
+{
+  morestring=[b]",
+  morestring=[s]{>}{<},
+  morecomment=[s]{<?}{?>},
+  stringstyle=\color{black},
+  identifierstyle=\color{darkblue},
+  keywordstyle=\color{cyan},
+  morekeywords={xmlns,version,type}% list your attributes here
+}
+
+
 \lstset{
   language=XML,
   frame=lines,
@@ -109,6 +129,14 @@ pdfpagemode=UseNone]{hyperref}
   commentstyle=\color{gray}\rmfamily\itshape,
   mathescape=false
 }
+\lstset{language=Python, 
+        basicstyle=\ttfamily\small, 
+        keywordstyle=\color{keywords},
+        commentstyle=\color{comments},
+        stringstyle=\color{red},
+        showstringspaces=false,
+        identifierstyle=\color{green}}
+
 
 \setlength\parindent{0pt}
 \frontmatter
@@ -142,6 +170,7 @@ pdfpagemode=UseNone]{hyperref}
 \input{theory/rate}
 \input{theory/kmc}
 \input{theory/nondispersive}
+\input{theory/stochastic}
 \input{theory/analysis}
 \input{theory/correlations}
 %\input{theory/idft}

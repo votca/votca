@@ -10,4 +10,4 @@ all: programs_submake xml_submake calculators_submake
 dummy: ;
 
 clean: programs_subclean xml_subclean calculators_subclean
-	rm -f *~ hgid.tex *.log *.backup *.aux
+	rm -f *~ .log *.backup *.aux

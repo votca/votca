@@ -18,7 +18,7 @@
  */
 
 
-#include <votca/xtp/votca_xtp_config.h>
+#include <votca/xtp/votca_config.h>
 
 
 

@@ -411,7 +411,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
          string resname = (*atm)->getResname();
          resname.resize(3);
          int resnr = (*atm)->getResnr();
-         vec position;
+         vec position=vec(0,0,0);
          if (tag2 == "MD")      { position = (*atm)->getPos(); }
          else if (tag2 == "QM") { position = (*atm)->getQMPos(); }
          if (tag2 == "QM" && (*atm)->HasQMPart() == false) { continue; }

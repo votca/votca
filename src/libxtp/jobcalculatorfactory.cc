@@ -19,7 +19,6 @@
 
 
 #include <votca/xtp/jobcalculatorfactory.h>
-#include "votca_config.h"
 
 
 #include "jobcalculators/idft.h"
