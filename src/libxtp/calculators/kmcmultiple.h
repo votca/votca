@@ -837,7 +837,7 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
     cout << "number of charges: " << numberofcharges << endl;
     cout << "number of nodes: " << node.size() << endl;
     string stopcondition;
-    unsigned long maxsteps;
+    unsigned long maxsteps=0;
     int diffusionsteps = 0;
     unsigned diffusion_stepsize = 10000;
     matrix avgdiffusiontensor;
@@ -904,8 +904,8 @@ vector<double> KMCMultiple::RunVSSM(vector<GNode*> node, double runtime, unsigne
     // Injection
     cout << endl << "injection method: " << _injectionmethod << endl;
     double deltaE = 0;
-    double energypercarrier;
-    double totalenergy;
+    double energypercarrier=0;
+    double totalenergy=0;
     if(_injectionmethod == "equilibrated")
     {
         vector< double > energy;
