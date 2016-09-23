@@ -699,7 +699,7 @@ namespace votca {
 
             std::string _line;
             unsigned _levels = 0;
-            unsigned _level;
+            unsigned _level=0;
             unsigned _basis_size = 0;
 
             std::string _orb_file_name_full = _orb_file_name;

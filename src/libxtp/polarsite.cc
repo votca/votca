@@ -261,7 +261,7 @@ void PolarSite::WriteChkLine(FILE *out, vec &shift, bool split_dpl,
     }
 
     // Take care of unit conversion
-    double int2ext;
+    double int2ext=0;
 
     if (unit == "nanometer") {
         int2ext = 1.;

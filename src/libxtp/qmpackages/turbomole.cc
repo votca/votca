@@ -330,7 +330,7 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
     
     std::string _line;
     unsigned _levels = 0;
-    unsigned _level;
+    unsigned _level=0;
     unsigned _basis_size = 0;
 
     path arg_path; 
