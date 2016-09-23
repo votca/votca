@@ -516,7 +516,7 @@ namespace votca {
                     // determine which carrier will escape
                     GNode* oldnode=NULL;
                     GNode* newnode=NULL;
-                    Chargecarrier* affectedcarrier;
+                    Chargecarrier* affectedcarrier=NULL;
 
                     double u = 1 - RandomVariable->rand_uniform();
                     for (unsigned int i = 0; i < numberofcharges; i++) {
