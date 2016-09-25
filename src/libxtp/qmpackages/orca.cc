@@ -239,10 +239,10 @@ bool Orca::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_g
                                     for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                         GaussianPrimitive* gaussian = *itg;
                                         _sh_idx++;
-                                        _el_file << " " << _sh_idx << " " << FortranFormat(gaussian->decay);
+                                        _el_file << " " << _sh_idx << " " << indent(gaussian->decay);
                                         for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
                                             if (gaussian->contraction[_icontr] != 0.0) {
-                                                _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
+                                                _el_file << " " << indent(gaussian->contraction[_icontr]);
                                             }
                                         }
                                         _el_file << endl;
@@ -379,10 +379,10 @@ bool Orca::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_g
                                     for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                         GaussianPrimitive* gaussian = *itg;
                                         _sh_idx++;
-                                        _el_file << " " << _sh_idx << " " << FortranFormat(gaussian->decay);
+                                        _el_file << " " << _sh_idx << " " << indent(gaussian->decay);
                                         for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
                                             if (gaussian->contraction[_icontr] != 0.0) {
-                                                _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
+                                                _el_file << " " << indent(gaussian->contraction[_icontr]);
                                             }
                                         }
                                         _el_file << endl;
@@ -1048,16 +1048,9 @@ if (_basis_size==0 || _levels==0){
 
 
 
-/**
- * Converts the Orca data stored in the Orbitals object to GW input format
- */
-bool Orca::ConvertToGW( Orbitals* _orbitals ) {
-    cerr << "Tried to convert to GW from Orca package. ";
-    throw std::runtime_error( "Conversion not implemented yet!");
-}
 
 
-std::string Orca::FortranFormat( const double &number ) {
+std::string Orca::indent( const double &number ) {
     std::stringstream _ssnumber;
     if ( number >= 0) {
         _ssnumber << "    ";

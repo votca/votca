@@ -267,14 +267,18 @@ namespace votca {
                 double diiserror=Evolve(_orbitals,H);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
                 
-                for (int i=0;i<_numofelectrons;i++){
+                for (int i=0;i<_numofelectrons/2;i++){
+                    totenergy+=2*MOEnergies(i);
+                }
+                if(tools::globals::verbose){
+                for (int i=0;i<_numofelectrons/2;i++){
                     if ( i <= _numofelectrons/2-1) {
-                        LOG(logDEBUG, *_pLog) <<"\t\t" << i <<  " occ " << MOEnergies(i)  << flush;
-                        totenergy+=2*MOEnergies(i);
+                        LOG(logDEBUG, *_pLog) <<"\t\t" << i <<  " occ " << MOEnergies(i)  << flush;     
                     } else {
                         LOG(logDEBUG, *_pLog) <<"\t\t"<<   i <<  " vir " << MOEnergies(i)  << flush;
                         
                     }
+                }
                 }
                 LOG(logDEBUG, *_pLog) << "\t\tGAP " << MOEnergies(_numofelectrons/2)-MOEnergies(_numofelectrons/2-1) << flush;
                 

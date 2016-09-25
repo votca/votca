@@ -62,7 +62,7 @@ public:
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
 
-   bool ConvertToGW( Orbitals* _orbitals );
+
    
    std::string getScratchDir( ) { return _scratch_dir; }
    

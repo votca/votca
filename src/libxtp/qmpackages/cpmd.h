@@ -62,10 +62,6 @@ public:
 
    bool ParseOrbitalsFile( Orbitals* _orbitals ){return true;};
    
-   bool ConvertToGW( Orbitals* _orbitals ){
-       LOG(logDEBUG, *_pLog) << "CPMD: ConvertToGW is  not implemented." << flush;
-       throw std::runtime_error("Not implemented ConvertToGW");
-   };
       
    std::string getScratchDir( ) { return _scratch_dir; }
    

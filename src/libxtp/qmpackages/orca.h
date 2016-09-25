@@ -61,7 +61,7 @@ public:
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
 
-   bool ConvertToGW( Orbitals* _orbitals );
+ 
    
    std::string getScratchDir( ) { return _scratch_dir; }
    
@@ -76,7 +76,7 @@ private:
     int NumberOfElectrons( std::string _line ); 
     int BasisSetSize( std::string _line ); 
     int EnergiesFromLog( std::string _line, ifstream inputfile ); 
-    std::string FortranFormat( const double &number );
+    std::string indent( const double &number );
 
     
 };
