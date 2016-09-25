@@ -75,8 +75,8 @@ bool linalg_solve(const ub::matrix<double> &A, ub::vector<double> &b){
         
 	// Define all the used matrices
         gsl_matrix_view A_view = gsl_matrix_view_array(&work(0,0), N, N);
-        gsl_vector_view B_view = gsl_vector_view_array(&B(0), N);
-        gsl_vector_view X_view = gsl_vector_view_array(&X(0), N);
+        gsl_vector_view B_view = gsl_vector_view_array(&b(0), N);
+        gsl_vector_view X_view = gsl_vector_view_array(&x(0), N);
 	gsl_permutation * perm = gsl_permutation_alloc (N);
         
 	// Make LU decomposition of matrix A_view
