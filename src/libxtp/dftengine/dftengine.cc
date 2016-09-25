@@ -487,9 +487,16 @@ namespace votca {
           
       if(_errormatrixhist.size()>_histlength){
           delete _mathist[_maxerrorindex];
-          delete _errormatrixhist[+_maxerrorindex];
+          delete _errormatrixhist[_maxerrorindex];
+          delete _Diis_Bs[_maxerrorindex];
               _mathist.erase(_mathist.begin()+_maxerrorindex);
               _errormatrixhist.erase(_errormatrixhist.begin()+_maxerrorindex);
+              _Diis_Bs.erase( _Diis_Bs.begin()+_maxerrorindex);
+              for( std::vector< std::vector<double>* >::iterator it=_Diis_Bs.begin();it<_Diis_Bs.end();++it){
+                  std::vector<double>* vect=(*it);
+                  vect->erase(vect->begin()+_maxerrorindex);
+              }
+          
           }
           
       
@@ -537,6 +544,15 @@ namespace votca {
           }
       } 
        
+      std::vector<double>* Bijs=new std::vector<double>;
+       _Diis_Bs.push_back(Bijs);
+      for (unsigned i=0;i<_errormatrixhist.size()-1;i++){
+          double value=linalg_traceofProd(errormatrix,ub::trans(*_errormatrixhist[i]));
+          Bijs->push_back(value);
+          _Diis_Bs[i]->push_back(value);
+      }
+      Bijs->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
+       
       if (max<_diis_start && _this_iter>4 && _usediis){
           LOG(logDEBUG, *_pLog) << TimeStamp() << " Using DIIs " << flush;
           ub::matrix<double> B=ub::zero_matrix<double>(_mathist.size()+1);
@@ -552,7 +568,7 @@ namespace votca {
           for (unsigned i=1;i<B.size1();i++){
               for (unsigned j=1;j<=i;j++){
                   //cout<<"i "<<i<<" j "<<j<<endl;
-                  B(i,j)=linalg_traceofProd(*_errormatrixhist[i-1],ub::trans(*_errormatrixhist[j-1]));
+                  B(i,j)=_Diis_Bs[i-1]->at(j-1);
                   if(i!=j){
                     B(j,i)=B(i,j);
                   }

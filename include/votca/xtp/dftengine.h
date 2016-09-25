@@ -58,6 +58,11 @@ public:
          delete *it;
      }
     _errormatrixhist.clear();
+    
+    for (std::vector< std::vector<double>* >::iterator it = _Diis_Bs.begin() ; it !=_Diis_Bs.end(); ++it){
+         delete *it;
+     }
+    _Diis_Bs.clear();
    
 
    
@@ -163,6 +168,7 @@ public:
     unsigned                            _maxerrorindex;
     std::vector< ub::matrix<double>* >   _mathist;
     std::vector< ub::matrix<double>* >   _errormatrixhist;
+    std::vector< std::vector<double>* >  _Diis_Bs;
     //Electron repulsion integrals
     ERIs                                _ERIs;
     
