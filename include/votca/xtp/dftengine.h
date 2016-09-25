@@ -89,8 +89,8 @@ public:
     
     
     void NuclearRepulsion();
-    bool EvolveDensityMatrix(Orbitals* _orbitals,const ub::matrix<double>& H);
-    ub::matrix<double>DmatfromFockmatrix(Orbitals* _orbitals,const ub::matrix<double>&H);
+    double Evolve(Orbitals* _orbitals,const ub::matrix<double>& H);
+    ub::matrix<double>SolveFockmatrix(Orbitals* _orbitals,const ub::matrix<double>&H);
     //bool   _maverick;
     
     // program tasks
@@ -145,6 +145,7 @@ public:
     //
     double                              _mixingparameter;
     double                              _Econverged;
+    double                              _error_converged;
     int                                 _numofelectrons;
     int                                 _max_iter;
     int                                 _this_iter;
@@ -152,13 +153,13 @@ public:
     
     
     bool                              _usediis;
-    unsigned                               _histlength;
+    unsigned                          _histlength;
     
     bool                              _maxout;
-    bool                              _usefmat;
     string                            _diismethod;
     ub::matrix<double>                _Sminusonehalf;
     double                              _maxerror;
+    double                              _diis_start;                 
     unsigned                            _maxerrorindex;
     std::vector< ub::matrix<double>* >   _mathist;
     std::vector< ub::matrix<double>* >   _errormatrixhist;

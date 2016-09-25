@@ -105,6 +105,12 @@ namespace votca {
                else{
                     _Econverged=1e-7;
                }    
+            if ( options->exists(key+".convergence.error")) {
+                  _error_converged=options->get(key+".convergence.error").as<double>();
+               }
+               else{
+                    _error_converged=1e-7;
+               }    
             
                 
              if ( options->exists(key+".convergence.method")) {
@@ -130,25 +136,25 @@ namespace votca {
                     _mixingparameter=0.5;
                }
             
-            if ( options->exists(key+".convergence.maxout")) {
-                    _maxout=options->get(key+".convergence.maxout").as<bool>();
+            if ( options->exists(key+".convergence.DIIS_maxout")) {
+                    _maxout=options->get(key+".convergence.DIIS_maxout").as<bool>();
                }
                else{
                      _maxout=false;
                }
              
-              if ( options->exists(key+".convergence.diislength")) {
-                   _histlength=options->get(key+".convergence.diislength").as<int>();
+              if ( options->exists(key+".convergence.DIIS_length")) {
+                   _histlength=options->get(key+".convergence.DIIS_length").as<int>();
                }
                
                else{
                     _histlength=10;         
                }
-               if ( options->exists(key+".convergence.usefockmat")) {
-                   _usefmat=options->get(key+".convergence.usefockmat").as<bool>();
+               if ( options->exists(key+".convergence.DIIS_start")) {
+                  _diis_start=options->get(key+".convergence.DIIS_start").as<double>();
                }
                else{
-                    _usefmat=false;
+                    _diis_start=0.2;
                } 
         }
         if(!_usediis){
@@ -207,10 +213,7 @@ namespace votca {
             /**** Construct initial density  ****/
 
             ub::matrix<double> H0 = _dftAOkinetic._aomatrix + _dftAOESP._nuclearpotential; 
-            cout << "H_kin"<<endl;
-            cout << _dftAOkinetic._aomatrix<< endl;
-            cout << "H_one"<<endl;
-            cout << H0<<endl;
+
             if(_with_ecp){
             H0+=_dftAOECP.Matrix();
             cout<< "WARNING ecps are not correctly sorted" <<endl;
@@ -239,13 +242,7 @@ namespace votca {
             _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
 	    
 
-        
-	    
 
-
-           
-           //LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity_Atomblock(_dftAOdmat, basis) << flush;
-	   
            double energyold=totinit;
            
             for ( _this_iter=0; _this_iter<_max_iter; _this_iter++){
@@ -257,27 +254,19 @@ namespace votca {
 
 
 		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  &_dftbasis,_xc_functional_name);
-         
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;
        //cout << "ERIS"<<endl;
        //cout<<_ERIs.getERIs()<<endl;
                 
                 
                 ub::matrix<double> H=H0+_ERIs.getERIs()+VXC;
-             
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;
-                
-                // this temp is necessary because eigenvalues_general returns MO^T and not MO
-                ub::matrix<double> temp;
-                bool info=linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, temp);
-                if (!info){
-                    throw runtime_error("Generalized eigenvalue problem did not work.");
-                }
-                MOCoeff=ub::trans(temp);
-          
-                cout<<"MOCoeff"<<MOCoeff<<endl;
+                             
                 double totenergy=E_nucnuc;
-       
-
+                
+                //this updates the desnity matrix as well
+                double diiserror=Evolve(_orbitals,H);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
+                
                 for (int i=0;i<_numofelectrons;i++){
                     if ( i <= _numofelectrons/2-1) {
                         LOG(logDEBUG, *_pLog) <<"\t\t" << i <<  " occ " << MOEnergies(i)  << flush;
@@ -294,11 +283,12 @@ namespace votca {
 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Exc contribution "<<_gridIntegration.getTotEcontribution()<<flush;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " E_H contribution "<<0.5*_ERIs.getERIsenergy()<<flush;
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<totenergy<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<std::setprecision(9)<<totenergy<<flush;
                 
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
-                if (std::abs(totenergy-energyold)< _Econverged){
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculation has converged up to "<<_Econverged<<". after "<< _this_iter<<" iterations." <<flush;
+              //  LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
+                if (std::abs(totenergy-energyold)< _Econverged && diiserror<_error_converged){
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculation has converged up to "<<std::setprecision(9)<<_Econverged<<"[Ha] after "<< _this_iter<<
+                            " iterations. DIIS error is converged up to "<<_error_converged<<"[Ha]" <<flush;
                     break;
                 }
                 else{
@@ -306,9 +296,18 @@ namespace votca {
                 }
 
 
-                EvolveDensityMatrix(_orbitals,H ) ;
+                
+                
+                ub::vector<double> DMATasarray=_dftAOdmat.data();
+                ub::vector<double> AOOasarray=_dftAOoverlap._aomatrix.data();
+                 double N_comp=0.0;
+                    #pragma omp parallel for reduction(+:N_comp) 
+                    for ( unsigned _i =0; _i < DMATasarray.size(); _i++ ){
+                        N_comp =N_comp+ DMATasarray(_i)*AOOasarray(_i);
+                    } 
+                LOG(logDEBUG, *_pLog) << TimeStamp() <<" Density Matrix gives N="<<std::setprecision(9)<<N_comp<<" electrons."<<flush;
                 //LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity_Atomblock(_dftAOdmat, basis) << flush;
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
+                
             }
           
             return true;
@@ -484,7 +483,7 @@ namespace votca {
       
       
       
-      bool DFTENGINE::EvolveDensityMatrix(Orbitals* _orbitals,const ub::matrix<double>& H ){
+      double DFTENGINE::Evolve(Orbitals* _orbitals,const ub::matrix<double>& H ){
           
       if(_errormatrixhist.size()>_histlength){
           delete _mathist[_maxerrorindex];
@@ -494,50 +493,42 @@ namespace votca {
           }
           
       
-      cout<<"H\n"<<H<<endl;    
-          
-      bool has_converged=false;    
-      cout<<"MOs"<< _orbitals->MOCoefficients()<< endl;
-      _dftAOdmat=_orbitals->DensityMatrixGroundState(_orbitals->MOCoefficients());
-      cout<<"D\n"<<_dftAOdmat<<endl; 
+   
+     
+      //cout<<"MOs"<< _orbitals->MOCoefficients()<< endl;
+     
+      //cout<<"D\n"<<_dftAOdmat<<endl; 
       //Calculate errormatrix and orthogonalize
       ub::matrix<double>temp=ub::prod(H,_dftAOdmat);
       
-      cout<<"S\n"<<_dftAOoverlap._aomatrix<<endl; 
+      //cout<<"S\n"<<_dftAOoverlap._aomatrix<<endl; 
       ub::matrix<double> errormatrix=ub::prod(temp,_dftAOoverlap._aomatrix);
-      cout <<"FDS"<<endl;
-      cout << errormatrix<<endl;
+      //cout <<"FDS"<<endl;
+      //cout << errormatrix<<endl;
       temp=ub::prod(_dftAOdmat,H);
-      cout <<"SDF"<<endl;
-      cout<<ub::prod(_dftAOoverlap._aomatrix,temp)<<endl; 
+      //cout <<"SDF"<<endl;
+      //cout<<ub::prod(_dftAOoverlap._aomatrix,temp)<<endl; 
       errormatrix-=ub::prod(_dftAOoverlap._aomatrix,temp);
-       cout<<"before"<<endl;
+       //cout<<"before"<<endl;
      //cout<<errormatrix<<endl;
       temp=ub::prod(errormatrix,_Sminusonehalf);
       errormatrix=ub::prod(ub::trans(_Sminusonehalf),temp);
       
       temp.resize(0,0);
-      cout<<"after"<<endl;
-      cout<<errormatrix<<endl;
+      //cout<<"after"<<endl;
+      //cout<<errormatrix<<endl;
       
       double max=linalg_getMax(errormatrix);
       LOG(logDEBUG, *_pLog) << TimeStamp() << " Maximum error is:"<<max<<"[Ha]" << flush;
       ub::matrix<double>* old=new ub::matrix<double>;     
       //exit(0);
-      if(_usefmat){
-          *old=H;         
-      }
-      else{
-          *old=_dftAOdmat;
-      }
+      
+      *old=H;         
        _mathist.push_back(old);
-       cout<<endl;
-       cout<<"mathhist" <<_mathist.size()<<endl;
+  
       ub::matrix<double>* olderror=new ub::matrix<double>; 
       *olderror=errormatrix;
        _errormatrixhist.push_back(olderror);
-        cout<<endl;
-       cout<<"merrorhist" <<_errormatrixhist.size()<<endl;
        if(_maxout){
           double error=linalg_getMax(errormatrix);
           if (error>_maxerror){
@@ -546,7 +537,7 @@ namespace votca {
           }
       } 
        
-      if (max<0.1 && _this_iter>4 && _usediis){
+      if (max<_diis_start && _this_iter>4 && _usediis){
           LOG(logDEBUG, *_pLog) << TimeStamp() << " Using DIIs " << flush;
           ub::matrix<double> B=ub::zero_matrix<double>(_mathist.size()+1);
           ub::vector<double> a=ub::zero_vector<double>(_mathist.size()+1);
@@ -555,67 +546,66 @@ namespace votca {
               B(i,0)=-1;
               B(0,i)=-1;
           }
-          cout <<"Hello"<<endl;
-          cout<<"_errormatrixhist "<<_errormatrixhist.size()<<endl;
+          //cout <<"Hello"<<endl;
+          //cout<<"_errormatrixhist "<<_errormatrixhist.size()<<endl;
           //#pragma omp parallel for
           for (unsigned i=1;i<B.size1();i++){
               for (unsigned j=1;j<=i;j++){
-                  cout<<"i "<<i<<" j "<<j<<endl;
+                  //cout<<"i "<<i<<" j "<<j<<endl;
                   B(i,j)=linalg_traceofProd(*_errormatrixhist[i-1],ub::trans(*_errormatrixhist[j-1]));
                   if(i!=j){
                     B(j,i)=B(i,j);
                   }
               }
           }
-          cout <<"solve"<<endl;
+          //cout <<"solve"<<endl;
           
-          ub::vector<double> c=ub::zero_vector<double>((_mathist.size()+1)*(_mathist.size()+1));
-          cout<<a<<endl;
-          cout<<B<<endl;
-          linalg_qrsolve(c, B, a);
-          cout<<c<<endl;
-          if(_usefmat){
-                ub::matrix<double>H_guess=ub::zero_matrix<double>(_mathist[0]->size1(),_mathist[0]->size2()); 
+         
+          
+          
+          bool check=linalg_solve(B,a);
+          //cout<<"a"<<a<<endl;
+          if (!check){
+              LOG(logDEBUG, *_pLog) << TimeStamp() << " Solving DIIs failed, just solve current Fockmatrix" << flush;
+               _dftAOdmat=SolveFockmatrix(_orbitals,H);
+          }
+          else{
+                ub::matrix<double>H_guess=ub::zero_matrix<double>(H.size1(),H.size2()); 
                  for (unsigned i=0;i<_mathist.size();i++){  
-                H_guess+=c(i+1)*(*_mathist[i]);
+                     if(std::abs(a(i+1))<1e-8){ continue;}
+                    H_guess+=a(i+1)*(*_mathist[i]);
+                    //cout <<i<<" "<<a(i+1,0)<<" "<<(*_mathist[i])<<endl;
                  }
-                _dftAOdmat=DmatfromFockmatrix(_orbitals,H_guess);
+                //cout <<"H_guess"<<H_guess<<endl;
+                _dftAOdmat=SolveFockmatrix(_orbitals,H_guess);
               }
-          else{
-             _dftAOdmat=ub::zero_matrix<double>(_mathist[0]->size1()); 
-            for (unsigned i=0;i<_mathist.size();i++){  
-            _dftAOdmat+=c(i+1)*(*_mathist[i]);
+         
+      }
+      else{       
+          ub::matrix<double> olddmat=_dftAOdmat;
+          _dftAOdmat=SolveFockmatrix( _orbitals,H);
+          if(_this_iter > 0 && _mathist.size()>0){
+          LOG(logDEBUG, *_pLog) << TimeStamp() << " Using Mixing with mixingparamter="<<_mixingparameter << flush;
+          _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*olddmat;
             }
-          }
-          
-            
+      
       }
-      else if(_this_iter > 0 && _mathist.size()>0){
-          LOG(logDEBUG, *_pLog) << TimeStamp() << " Using Mxing " << flush;
-          if(_usefmat){
-              
-              ub::matrix<double>H_guess=_mixingparameter*H+(1.0-_mixingparameter)*(*(_mathist.back()));
-              _dftAOdmat=DmatfromFockmatrix(_orbitals,H_guess);
-          }
-          else{
-          _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*(*(_mathist.back()));
-          }
-      }
-      else if(max<_Econverged){
-          has_converged=true;
-      }
-  
-      return has_converged;
+     
+
+      return max;
       }
       
-      ub::matrix<double> DFTENGINE::DmatfromFockmatrix(Orbitals* _orbitals,const ub::matrix<double>&H){
-          ub::vector<double> MOEnergies;
+      ub::matrix<double> DFTENGINE::SolveFockmatrix(Orbitals* _orbitals,const ub::matrix<double>&H){
+          
            ub::matrix<double> temp;
-           linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, temp);
-           ub::matrix<double> MOCoeff=ub::trans(temp);
+           bool info=linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, _orbitals->MOEnergies(), temp);
+            if (!info){
+                    throw runtime_error("Generalized eigenvalue problem did not work.");
+                }
+           _orbitals->MOCoefficients()=ub::trans(temp);
            
            
-           return _orbitals->DensityMatrixGroundState(MOCoeff);
+           return _orbitals->DensityMatrixGroundState(_orbitals->MOCoefficients());
       }
       
       

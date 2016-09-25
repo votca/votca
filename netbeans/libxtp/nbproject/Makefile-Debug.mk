@@ -58,7 +58,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/fragment.o \
 	${OBJECTDIR}/_ext/484478074/gdma.o \
 	${OBJECTDIR}/_ext/484478074/grid.o \
-	${OBJECTDIR}/_ext/484478074/gsl_boost_ublas_matrix_prod.o \
 	${OBJECTDIR}/_ext/1763088751/bse.o \
 	${OBJECTDIR}/_ext/1763088751/gwa.o \
 	${OBJECTDIR}/_ext/1763088751/gwbse.o \
@@ -70,8 +69,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/164445175/idft.o \
 	${OBJECTDIR}/_ext/164445175/iexcitoncl.o \
 	${OBJECTDIR}/_ext/164445175/igwbse.o \
+	${OBJECTDIR}/_ext/484478074/lowdin.o \
 	${OBJECTDIR}/_ext/484478074/molecule.o \
-	${OBJECTDIR}/_ext/484478074/nbo.o \
 	${OBJECTDIR}/_ext/1294340152/numerical_integrations.o \
 	${OBJECTDIR}/_ext/1294340152/radial_euler_maclaurin_rule.o \
 	${OBJECTDIR}/_ext/1294340152/sphere_lebedev_rule.o \
@@ -106,7 +105,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/threecenter_rep.o \
 	${OBJECTDIR}/_ext/484478074/threecenters.o \
 	${OBJECTDIR}/_ext/484478074/threecenters_dft.o \
-	${OBJECTDIR}/_ext/484478074/threecenters_g.o \
 	${OBJECTDIR}/_ext/484478074/threecenters_tools.o \
 	${OBJECTDIR}/_ext/484478074/toolfactory.o \
 	${OBJECTDIR}/_ext/1774868486/molpol.o \
@@ -261,11 +259,6 @@ ${OBJECTDIR}/_ext/484478074/grid.o: ../../src/libxtp/grid.cc
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/grid.o ../../src/libxtp/grid.cc
 
-${OBJECTDIR}/_ext/484478074/gsl_boost_ublas_matrix_prod.o: ../../src/libxtp/gsl_boost_ublas_matrix_prod.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/gsl_boost_ublas_matrix_prod.o ../../src/libxtp/gsl_boost_ublas_matrix_prod.cc
-
 ${OBJECTDIR}/_ext/1763088751/bse.o: ../../src/libxtp/gwbse/bse.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1763088751
 	${RM} "$@.d"
@@ -321,15 +314,15 @@ ${OBJECTDIR}/_ext/164445175/igwbse.o: ../../src/libxtp/jobcalculators/igwbse.cc
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/164445175/igwbse.o ../../src/libxtp/jobcalculators/igwbse.cc
 
+${OBJECTDIR}/_ext/484478074/lowdin.o: ../../src/libxtp/lowdin.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/lowdin.o ../../src/libxtp/lowdin.cc
+
 ${OBJECTDIR}/_ext/484478074/molecule.o: ../../src/libxtp/molecule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/molecule.o ../../src/libxtp/molecule.cc
-
-${OBJECTDIR}/_ext/484478074/nbo.o: ../../src/libxtp/nbo.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/nbo.o ../../src/libxtp/nbo.cc
 
 ${OBJECTDIR}/_ext/1294340152/numerical_integrations.o: ../../src/libxtp/numerical_integration/numerical_integrations.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1294340152
@@ -500,11 +493,6 @@ ${OBJECTDIR}/_ext/484478074/threecenters_dft.o: ../../src/libxtp/threecenters_df
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/threecenters_dft.o ../../src/libxtp/threecenters_dft.cc
-
-${OBJECTDIR}/_ext/484478074/threecenters_g.o: ../../src/libxtp/threecenters_g.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/threecenters_g.o ../../src/libxtp/threecenters_g.cc
 
 ${OBJECTDIR}/_ext/484478074/threecenters_tools.o: ../../src/libxtp/threecenters_tools.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
