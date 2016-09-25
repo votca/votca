@@ -45,6 +45,9 @@ void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
     
     // solve
     info = LAPACKE_dgesv( LAPACK_ROW_MAJOR, n, n, pwork , n, ipiv, pV, n );
+    if(info!=0){
+         throw std::runtime_error("Matrix not symmetric positive definite");
+    }
 }
 
 
@@ -67,6 +70,33 @@ void linalg_invert( ub::matrix<float> &A, ub::matrix<float> &V){
     
     // solve
     info = LAPACKE_sgesv( LAPACK_ROW_MAJOR, n, n, pwork , n, ipiv, pV, n );
+     if(info!=0){
+         throw std::runtime_error("Matrix not symmetric positive definite");
+    }
+}
+
+
+bool linalg_solve(const ub::matrix<double> &A, ub::vector<double> &b){
+    // matrix inversion using MKL
+    // input matrix is destroyed, make local copy
+    ub::matrix<double> work = A;
+    
+    // define LAPACK variables
+    MKL_INT n = A.size1();
+    MKL_INT info;
+    MKL_INT ipiv[n];
+    MKL_INT bsize = 1;
+    // initialize V
+  
+
+    // pointers for LAPACK
+    double * pV = const_cast<double*>(&b.data().begin()[0]);
+    double * pwork = const_cast<double*>(&work.data().begin()[0]);
+    
+    // solve
+    info = LAPACKE_dgesv( LAPACK_ROW_MAJOR, n, bsize, pwork , n, ipiv, pV, bsize );
+    bool success=(info==0);
+    return success;
 }
 
 

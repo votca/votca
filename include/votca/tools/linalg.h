@@ -226,8 +226,15 @@ namespace votca { namespace tools {
      */
    double linalg_traceofProd(const ub::matrix<double>& A,const ub::matrix<double>& B );
    
-   
-   
+    /**
+    * \brief solves A*x=b
+    * @param A, first matrix
+    * * @param b,  inhomogenity, destroyed and contains the x afterwards
+    
+    
+     * returns the the solves A*x=b for a matrix of b.
+     */
+   bool linalg_solve(const ub::matrix<double> &A, ub::vector<double> &b);
 }}
 
 

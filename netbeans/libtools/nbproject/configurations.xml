@@ -39,8 +39,6 @@
       <itemPath>../../include/votca/tools/version.h</itemPath>
       <itemPath>../../include/votca/tools/votca_config.h.in</itemPath>
       <itemPath>../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h</itemPath>
-      <itemPath>../../include/votca/tools/votca_mkl_boost_ublas_gemm.hpp</itemPath>
-      <itemPath>../../include/votca/tools/votca_mkl_boost_ublas_matrix_prod.h</itemPath>
     </logicalFolder>
     <logicalFolder name="f1" displayName="Linalg" projectFiles="true">
       <logicalFolder name="f3" displayName="Dummy" projectFiles="true">
@@ -280,16 +278,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/votca_mkl_boost_ublas_gemm.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/votca_mkl_boost_ublas_matrix_prod.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -596,16 +584,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/votca_mkl_boost_ublas_gemm.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/votca_mkl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libtools/akimaspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
@@ -904,16 +882,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/votca_mkl_boost_ublas_gemm.hpp"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/votca_mkl_boost_ublas_matrix_prod.h"
             ex="false"
             tool="3"
             flavor2="0">

@@ -52,21 +52,26 @@ void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<dou
     double * pA = const_cast<double*>(&A.data().begin()[0]);
     double * pb = const_cast<double*>(&b.data()[0]);
 
-
+   
     
     info = LAPACKE_dgels( LAPACK_ROW_MAJOR , trans , sizeM, sizeN, nrhs , pA , sizeM , pb , sizeM );
 
     if ( info != 0 ) 
         throw std::runtime_error("QR least-squares solver failed");
 
-
     for (size_t i =0 ; i < x.size(); i++){
         x(i) = b(i);
     }
-    
+/*
+    std::cout <<" x "<<std::endl;
+    for (unsigned i=0;i<x.size();i++){
+        std::cout <<x(i)<<std::endl;
+    }
+  */if (residual!=NULL){
     for (size_t i = 0 ; i < b.size(); i++){
         (*residual)(i) = b(i + x.size() );
     }
+      }
 }
 
 

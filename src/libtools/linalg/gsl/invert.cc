@@ -60,6 +60,39 @@ void linalg_invert( ub::matrix<float> &A, ub::matrix<float> &V){
         throw std::runtime_error("linalg_invert (float) is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
 }
 
+// not really tested
+bool linalg_solve(const ub::matrix<double> &A, ub::vector<double> &b){
+    
+    
+   
+        gsl_error_handler_t *handler = gsl_set_error_handler_off();
+	const size_t N = A.size1();
+	// signum s (for LU decomposition)
+	int s;
+        //make copy of A as A is destroyed by GSL
+        ub::matrix<double> work=A;
+        ub::vector<double>x=ub::zero_vector<double>(N);
+        
+	// Define all the used matrices
+        gsl_matrix_view A_view = gsl_matrix_view_array(&work(0,0), N, N);
+        gsl_vector_view B_view = gsl_vector_view_array(&B(0), N);
+        gsl_vector_view X_view = gsl_vector_view_array(&X(0), N);
+	gsl_permutation * perm = gsl_permutation_alloc (N);
+        
+	// Make LU decomposition of matrix A_view
+	gsl_linalg_LU_decomp (&A_view.matrix, perm, &s);
+
+	// Invert the matrix A_view
+	int info=gsl_linalg_LU_solve (&A_view.matrix, perm, &B_view.vector,&X_view.vector);
+
+        gsl_set_error_handler(handler);
+
+        
+    b=x;    
+    bool success=(info==0);
+    return success;
+}
+
 
 
 
