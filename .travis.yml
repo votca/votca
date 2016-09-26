@@ -29,6 +29,8 @@ addons:
       - pgf
       - texlive-fonts-recommended
       - texlive-latex-extra
+      - texlive-latex-recommended
+      - cm-super
       - doxygen
       - graphviz
       - python-numpy
