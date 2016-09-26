@@ -29,6 +29,8 @@ addons:
       - pgf
       - texlive-fonts-recommended
       - texlive-latex-extra
+      - texlive-latex-recommended
+      - cm-super
       - doxygen
       - graphviz
       - python-numpy
@@ -42,29 +44,32 @@ env:
     - CCACHE_CPP2=yes #for clang
     - GVER=4.8
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
-    - WERROR=yes J=4
-    - WALL=yes J=4
-    - J=1
-    - BDIR=build J=4
-    - BDIR=build J=1
-    - MAN=yes J=4
+    - BDIR=build WERROR=yes J=4 TYPE=Debug
+    - BDIR=build WALL=yes J=4 TYPE=Debug
+    - BDIR=build WERROR=yes J=4 TYPE=Release
+    - BDIR=build WALL=yes J=4 TYPE=Release MAN=yes
     - MINIMAL=yes J=4
 
 before_script:
   - rm -vrf * .git
   - wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh && chmod 755 build.sh
-  - mkdir -p "$HOME/votca/src" "$HOME/votca/share/votca/scripts/inverse"
-  - wget -O "$HOME/votca/share/votca/scripts/inverse/cma.py" http://www.lri.fr/~hansen/cma.py
+  - mkdir -p "$HOME/votca/src"
   - if [[ ${MINIMAL} != yes ]]; then 
       wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xz &&
       cd hdf5-${HDF5_VERSION} && ./configure --prefix=$HOME/hdf5 && make -j4 &> /dev/null && make install && cd ..;
+    fi
+  - if [[ ${GMX_VERSION} = 9999 ]]; then
+      CMAKE_VERSION=3.4.3-Linux-x86_64 &&
+      wget --no-check-certificate -qO- http://www.cmake.org/files/v${CMAKE_VERSION:0:3}/cmake-${CMAKE_VERSION}.tar.gz | tar -xz &&
+      export CMAKE="$PWD/cmake-${CMAKE_VERSION}/bin/cmake" ;
     fi
   - if [[ ${MAN} ]]; then git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/votca/src/devdoc"; fi 
   - if [[ ${GVER} ]]; then export CC=gcc-${GVER}; export CXX=g++-${GVER}; fi
 
 script:
-  - PATH="$HOME/hdf5:$PATH" ./build.sh -Wu --dev --prefix "$HOME/votca" ${MAN:+--devdoc}
-    ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} -DWITH_H5MD=ON ${MINIMAL:+--minimal}
+  - PATH="$HOME/hdf5:$PATH" ./build.sh -Wu $([[ ${TRAVIS_BRANCH} = stable ]] || echo "--dev") --prefix "$HOME/votca"
+    ${TYPE:+-DCMAKE_BUILD_TYPE=${TYPE}}
+    ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} -DWITH_H5MD=ON ${MINIMAL:+--minimal} ${MAN:+--devdoc}
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall} ${GMX_VERSION:+--gmx-release ${GMX_VERSION}}
     --directory "$HOME/votca/src" --no-clean --depth 1 -DGMX_USE_RDTSCP=OFF ${GMX_DOUBLE:+-DGMX_DOUBLE=yes}
     tools $([[ ${MINIMAL} ]] || echo gromacs) csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
@@ -75,3 +80,7 @@ cache:
 
 compiler:
   - gcc
+
+notifications:
+  email:
+    - votca-commits@googlegroups.com 
