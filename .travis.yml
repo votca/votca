@@ -47,7 +47,7 @@ env:
     - XTP=yes BDIR=build WERROR=yes J=4 TYPE=Debug
     - XTP=yes BDIR=build WALL=yes J=4 TYPE=Debug
     - XTP=yes BDIR=build WERROR=yes J=4 TYPE=Release
-    - XTP=yes BDIR=build WALL=yes J=4 TYPE=Release
+    - XTP=yes BDIR=build WALL=yes J=4 TYPE=Release MAN=yes
     - WALL=yes GMX_DOUBLE=yes J=4
     - WALL=yes GMX_VERSION=5.0 J=4
     - WALL=yes GMX_VERSION=5.0 GMX_DOUBLE=yes J=4
