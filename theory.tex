@@ -177,7 +177,18 @@ and $S$ the histogram of a coarse-grained variable of interest. For example, in 
 %
 where $N$ is the number of atoms in the system ($\frac{1}{2} N(N-1)$ is then the number of all pairs), $\Delta r$ is the grid spacing, $r_{\text{cut}}/M$, $V$ is the total volume of the system. In other words, in this particular case the physical meaning of $S_{\alpha}$ is the number of particle pairs with interparticle distances $r_{ij} = r_{\alpha}$ which correspond to the tabulated value of the potential $U_{\alpha}$.
 
+\subsection{Regularization of Inverse Monte Carlo}
 
+To get a well defined cross correlation matrix, $A_{\alpha \gamma}$, enough sampling is needed. If there is not enough smapling or the initial potential guess is far from the real solution of the inverse problem, the algorithm might not converge to a stable solution. To overcome this instability problem one could reformulate equation \ref{eq:covariance} by addition of a penalty term. In this case the potential update is computed  as follows:\cite{Murtola:2007}
+\begin{equation}
+\label{eq:regularization}
+\Delta U_\gamma = \arg \min \Vert A_{\alpha \gamma} \Delta U_\gamma - \left(\left<S_{\alpha}\right> - S_{\alpha}^{\text{ref}}\right) \Vert^2 + \lambda \Vert R \Delta U_{\gamma} \Vert ^{2}
+\end{equation}
+%
+Equation \ref{eq:regularization} is known as Tikhonov regularization,
+where $R$ is the regularization operator, which here is the identity matrix and $\lambda >0 $ is the regularization parameter.
+The optimal choice for $\lambda$ can only be determined if the exact solution of the inverse problem is known, which in practice is not the case. To get a good initial guess on the magnitude of the regularization parameter a singular value decomposition of the matrix $A_{\alpha \gamma}$ might help. A good $\lambda$ parameter should dominate the smallest singular values (squared) but is itself small compared to the larger ones.\cite{Rosenberger:2016}
+ 
 \section{Force Matching}
 \label{sec:fm}
 

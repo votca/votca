@@ -175,6 +175,22 @@ Unlike \ibi, \imc also takes cross-correlations of interactions into account in 
   <non-bonded>
 \end{lstlisting}
 
+\subsection{Regularization}
+
+To use the regularized version of IMC a $\lambda$ value $>0$ has to be specified by setting \interopt{inverse.imc.reg}. 
+If set to $0$ (default value) the unregularized version of IMC is applied.
+\begin{lstlisting}
+ <non-bonded>
+   <name>CG-CG</name>
+    <type1>CG</type1>%
+   <type2>CG</type2>
+    ...
+    <imc>
+      <reg>300</reg>
+   </imc>
+ </non-bonded>
+ <non-bonded>
+\end{lstlisting}
 % #####################################################################################################################
 % #####################################################################################################################
 
