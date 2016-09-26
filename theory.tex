@@ -182,7 +182,7 @@ where $N$ is the number of atoms in the system ($\frac{1}{2} N(N-1)$ is then the
 To get a well defined cross correlation matrix, $A_{\alpha \gamma}$, enough sampling is needed. If there is not enough smapling or the initial potential guess is far from the real solution of the inverse problem, the algorithm might not converge to a stable solution. To overcome this instability problem one could reformulate equation \ref{eq:covariance} by addition of a penalty term. In this case the potential update is computed  as follows:\cite{Murtola:2007}
 \begin{equation}
 \label{eq:regularization}
-\Delta U_\gamma = \arg \min \Vert A_{\alpha \gamma} \Delta U_\gamma - \left(\left<S_{\alpha}\right> - S_{\alpha}^{\text{ref}}\right) \Vert^2 + \lambda \Vert R \Delta U_{\gamma} \Vert ^{2}
+\Delta U_\gamma = \arg \min \| A_{\alpha \gamma} \Delta U_\gamma - \left(\left<S_{\alpha}\right> - S_{\alpha}^{\text{ref}}\right) \|^2 + \lambda \| R \Delta U_{\gamma} \|^{2}
 \end{equation}
 %
 Equation \ref{eq:regularization} is known as Tikhonov regularization,
