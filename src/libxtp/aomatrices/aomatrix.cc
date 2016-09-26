@@ -49,7 +49,7 @@ namespace votca { namespace xtp {
         }
     }
     
-    void AOMatrix::Fill( AOBasis* aobasis, ub::vector<double> r, AOBasis* ecp ) {
+    void AOMatrix::Fill( AOBasis* aobasis, vec r, AOBasis* ecp ) {
         // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
 
           //      cout << aobasis->_aoshells.size();

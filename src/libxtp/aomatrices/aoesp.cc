@@ -156,9 +156,9 @@ namespace votca { namespace xtp {
         double PmB1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_col.getY();
         double PmB2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_col.getZ();
         
-        double PmC0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _gridpoint[0];
-        double PmC1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _gridpoint[1];
-        double PmC2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _gridpoint[2];
+        double PmC0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _gridpoint.getX();
+        double PmC1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _gridpoint.getY();
+        double PmC2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _gridpoint.getZ();
         
         
         const double _U = zeta*(PmC0*PmC0+PmC1*PmC1+PmC2*PmC2);
@@ -465,19 +465,18 @@ if (_lmax_col > 3) {
         //nuc.clear();
             }// _shell_col Gaussians
         }// _shell_row Gaussians
+         return;
     }
     
   // Calculates the electrostatic potential matrix element between two basis functions, for an array of atomcores.
     void AOESP::Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms, bool _with_ecp){
     Elements _elements;
     _nuclearpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
-    ub::vector<double> positionofatom=ub::zero_vector<double>(3);
+    
    for ( unsigned j = 0; j < _atoms.size(); j++){
 
-            
-            positionofatom(0) = _atoms[j]->x*tools::conv::ang2bohr;
-            positionofatom(1) = _atoms[j]->y*tools::conv::ang2bohr;
-            positionofatom(2) = _atoms[j]->z*tools::conv::ang2bohr;
+            vec positionofatom=vec(_atoms[j]->x*tools::conv::ang2bohr,_atoms[j]->y*tools::conv::ang2bohr,_atoms[j]->z*tools::conv::ang2bohr);
+
              //cout << "NUC POS" << positionofatom(0) << " " << positionofatom(1) << " " << positionofatom(2) << " " << endl;
             double Znuc=0.0;
             if (_with_ecp){
@@ -495,7 +494,27 @@ if (_lmax_col > 3) {
            // cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
     
     }
+    return;
+    }   
+    void AOESP::Fillextpotential( AOBasis* aobasis, std::vector<APolarSite*>& _sites){
+  
+    _externalpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
+   for ( std::vector<APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
+      
+       
+            vec positionofatom =  (*it)->getPos()*tools::conv::nm2bohr;
+            
+           
+            //cout << "NUCLEAR CHARGE" << Znuc << endl;
+            _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
+            Fill(aobasis,positionofatom);
+            //Print("TMAT");
+            
+            _nuclearpotential+=(*it)->getQ00() *_aomatrix;
+           // cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
     
+    }
+    return;
     }    
     
 }}

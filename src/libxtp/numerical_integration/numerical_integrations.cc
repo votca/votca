@@ -306,10 +306,8 @@ namespace votca {
                 for (unsigned j = 0; j < _grid[i].size(); j++) {
 
                     std::vector<int> _significant_atoms_gridpoint;
-                    vec grid;
-                    grid.setX( _grid[i][j].grid_x);
-                    grid.setY( _grid[i][j].grid_y);
-                    grid.setZ( _grid[i][j].grid_z);
+                    const vec& grid=_grid[i][j].grid_pos;
+                    
 
                     
                     
@@ -317,7 +315,7 @@ namespace votca {
                     for ( unsigned iatom = 0 ; iatom < _minimal_decay.size(); iatom++){
 
                         vec dist = grid - _positions[iatom];
-                        double distsq = dist.getX()*dist.getX() + dist.getY()*dist.getY()  + dist.getZ()*dist.getZ() ;
+                        double distsq = dist*dist ;
                         
                         // if contribution is smaller than -ln(1e-10), add atom to list
                         if ( (_minimal_decay[iatom] * distsq) < 20.7 ){
@@ -469,7 +467,7 @@ namespace votca {
                             //ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 3);
                             ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, 0, 3, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                             //(*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
-                            (*_row)->EvalAOspace(_AOgridsub, _gradAO , _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                            (*_row)->EvalAOspace(_AOgridsub, _gradAO , _grid[i][j].grid_pos);
                          //   boost::timer::cpu_times tendshells = cpu_t.elapsed();
                             
                             // _t_AOvals +=  (tendshells.wall-tstartshells.wall)/1e9;
@@ -720,12 +718,14 @@ namespace votca {
                     
             const ub::vector<double> DMAT_array = _density_matrix.data();
             const ub::vector<double> XCMAT_array = XCMAT.data();
-            cout <<"EXC"<<endl;
-            cout << EXC<< endl;
+            //cout <<"EXC"<<endl;
+            //cout << EXC<< endl;
+            double Comp=0.0;
+             #pragma omp parallel for reduction(+:Comp)
             for ( unsigned i = 0; i < DMAT_array.size(); i++ ){
-                EXC -= DMAT_array[i] * XCMAT_array[i];
+                Comp =Comp+ DMAT_array[i] * XCMAT_array[i];
             }
-
+            EXC-=Comp;
          //   boost::timer::cpu_times t9 = cpu_t.elapsed();
          //   _t_EXC2 += (t9.wall-t8.wall)/1e9;
                     
@@ -760,14 +760,14 @@ namespace votca {
 
       
             
-        double NumericalIntegration::IntegratePotential(const ub::vector<double> rvector){
+        double NumericalIntegration::IntegratePotential(const vec& rvector){
             
             double result = 0.0;
             
            if(density_set){
                 for (unsigned i = 0; i < _grid.size(); i++) {
                 for (unsigned j = 0; j < _grid[i].size(); j++) {
-                    double dist=sqrt((_grid[i][j].grid_x-rvector(0))*(_grid[i][j].grid_x-rvector(0))+(_grid[i][j].grid_y-rvector(1))*(_grid[i][j].grid_y-rvector(1))+(_grid[i][j].grid_z-rvector(2))*(_grid[i][j].grid_z-rvector(2)));
+                    double dist=abs((_grid[i][j].grid_pos-rvector));
                     result -= _grid[i][j].grid_weight * _grid[i][j].grid_density/dist;
                     }
                 }
@@ -912,16 +912,14 @@ namespace votca {
                 for (unsigned j = 0; j < _grid[i].size(); j++) {
 
                     vector<int> _significant_atoms_gridpoint;
-                    vec grid;
-                    grid.setX( _grid[i][j].grid_x);
-                    grid.setY( _grid[i][j].grid_y);
-                    grid.setZ( _grid[i][j].grid_z);
+                    const vec& grid=_grid[i][j].grid_pos;
+                   
                     
                     // check all atoms
                     for ( unsigned iatom = 0 ; iatom < _minimal_decay.size(); iatom++){
 
                         vec dist = grid - _positions[iatom];
-                        double distsq = dist.getX()*dist.getX() + dist.getY()*dist.getY()  + dist.getZ()*dist.getZ() ;
+                        double distsq = dist*dist ;
                         
                         // if contribution is smaller than -ln(1e-10), add atom to list
                         if ( (_minimal_decay[iatom] * distsq) < 20.7 ){
@@ -1037,7 +1035,7 @@ namespace votca {
 
                             //ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, 0, 3, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                             //(*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
-                            (*_row)->EvalAOspace(_AOgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                            (*_row)->EvalAOspace(_AOgridsub, _grid[i][j].grid_pos);
                             //boost::timer::cpu_times tendshells = cpu_t.elapsed();
                              //_t_AOvals +=  (tendshells.wall-tstartshells.wall)/1e9;
 
@@ -1121,7 +1119,7 @@ namespace votca {
                     for (vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
 
                         ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
-                        (*_row)->EvalAOspace(_submatrix, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                        (*_row)->EvalAOspace(_submatrix, _grid[i][j].grid_pos);
                     }
 
                     OLMAT += _grid[i][j].grid_weight * ub::prod( ub::trans(tmat),tmat);
@@ -1153,27 +1151,21 @@ namespace votca {
             
         }          
         
-        void NumericalIntegration::getGridpoints( ub::matrix<double>& _gridpoints ){
+        std::vector<vec const *> NumericalIntegration::getGridpoints(){
             
-            _gridpoints = ub::zero_matrix<double>(_totalgridsize,4);
+            std::vector<vec const *> gridpoints;
             
-            int _i_point = 0;
+            
             for ( unsigned i = 0 ; i < _grid.size(); i++){
                 for ( unsigned j = 0 ; j < _grid[i].size(); j++){
-                    
-                    _gridpoints(_i_point,0) = _grid[i][j].grid_x;
-                    _gridpoints(_i_point,1) = _grid[i][j].grid_y;
-                    _gridpoints(_i_point,2) = _grid[i][j].grid_z;
-                    _gridpoints(_i_point,3) = _grid[i][j].grid_weight;
-                    
-                    _i_point++;
+                    gridpoints.push_back(&_grid[i][j].grid_pos);
+                   
+               }
                 }
-                }
-            
-            
-            
-            
+            return gridpoints;
         }
+        
+        
                
         void NumericalIntegration::GridSetup(string type, BasisSet* bs, vector<QMAtom*> _atoms) {
             
@@ -1204,7 +1196,7 @@ namespace votca {
             // for the partitioning, we need all inter-center distances later, stored in one-directional list
             int ij = 0;
             Rij.push_back(0.0); // 1st center "self-distance"
-            Rij_mat = ub::zero_matrix<double>(_atoms.size(),_atoms.size());
+            
             vector< QMAtom* > ::iterator ait;
             vector< QMAtom* > ::iterator bit;
             int i = 1;
@@ -1224,7 +1216,7 @@ namespace votca {
                     Rij.push_back(1.0 / sqrt((x_a - x_b)*(x_a - x_b) + (y_a - y_b)*(y_a - y_b) + (z_a - z_b)*(z_a - z_b)));
 
 
-                    Rij_mat(i,j) = 1.0 / sqrt((x_a - x_b)*(x_a - x_b) + (y_a - y_b)*(y_a - y_b) + (z_a - z_b)*(z_a - z_b));
+                    
                                         
                     j++;
                 } // atoms
@@ -1243,9 +1235,8 @@ namespace votca {
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
                 // get center coordinates in Bohr
                 std::vector< GridContainers::integration_grid > _atomgrid;
-                double x_c = (*ait)->x * tools::conv::ang2bohr;
-                double y_c = (*ait)->y * tools::conv::ang2bohr;
-                double z_c = (*ait)->z * tools::conv::ang2bohr;
+                const vec atomA_pos =vec((*ait)->x * tools::conv::ang2bohr,(*ait)->y * tools::conv::ang2bohr,(*ait)->z * tools::conv::ang2bohr);
+             
                 string name = (*ait)->type;
 
                 // get radial grid information for this atom type
@@ -1325,15 +1316,12 @@ namespace votca {
                         double t   = _theta[_i_sph] * pi / 180.0; // back to rad
                         double ws  = _weight[_i_sph];
 
-                        double x_s = sin(p) * cos(t);
-                        double y_s = sin(p) * sin(t);
-                        double z_s = cos(p);
+                        const vec s = vec(sin(p) * cos(t), sin(p) * sin(t),cos(p));
+                     
 
 
                         GridContainers::integration_grid _gridpoint;
-                        _gridpoint.grid_x = x_c + r * x_s;
-                        _gridpoint.grid_y = y_c + r * y_s;
-                        _gridpoint.grid_z = z_c + r * z_s;
+                        _gridpoint.grid_pos = atomA_pos+r*s;
 
                         _gridpoint.grid_weight = _radial_grid.weight[_i_rad] * ws;
 
@@ -1360,19 +1348,14 @@ namespace votca {
                 // for each center
                 for (bit = _atoms.begin(); bit < _atoms.end(); ++bit) {
                     // get center coordinates
-                    double x_b = (*bit)->x * tools::conv::ang2bohr;
-                    double y_b = (*bit)->y * tools::conv::ang2bohr;
-                    double z_b = (*bit)->z * tools::conv::ang2bohr;
+                   const vec atom_pos = vec((*bit)->x * tools::conv::ang2bohr,(*bit)->y * tools::conv::ang2bohr,(*bit)->z * tools::conv::ang2bohr);
+
 
                     std::vector<double> temp;
                     // for each gridpoint
                     for (std::vector<GridContainers::integration_grid >::iterator git = _atomgrid.begin(); git != _atomgrid.end(); ++git) {
 
-                        double x = (*git).grid_x - x_b;
-                        double y = (*git).grid_y - y_b;
-                        double z = (*git).grid_z - z_b;
-
-                        temp.push_back(sqrt(x * x + y * y + z * z));
+                        temp.push_back(abs(git->grid_pos-atom_pos));
 
                     } // gridpoint of _atomgrid
                     rq.push_back(temp); // rq[center][gridpoint]
@@ -1392,11 +1375,9 @@ namespace votca {
 
                     if (bit != ait) {
                         // get center coordinates
-                        double x_b = (*bit)->x * tools::conv::ang2bohr;
-                        double y_b = (*bit)->y * tools::conv::ang2bohr;
-                        double z_b = (*bit)->z * tools::conv::ang2bohr;
-
-                        double distSQ = (x_c - x_b)*(x_c - x_b) + (y_c - y_b)*(y_c - y_b) + (z_c - z_b)*(z_c - z_b);
+                       
+                        const vec atomB_pos=vec((*bit)->x * tools::conv::ang2bohr,(*bit)->y * tools::conv::ang2bohr,(*bit)->z * tools::conv::ang2bohr);
+                        double distSQ = (atomA_pos-atomB_pos)*(atomA_pos-atomB_pos);
 
                         // update NN distance and iterator
                         if ( distSQ < distNN ) {

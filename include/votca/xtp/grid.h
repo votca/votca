@@ -68,7 +68,7 @@ namespace votca { namespace xtp {
         
         Grid& operator=(const Grid &obj);
         
-        std::vector< ub::vector<double> > &getGrid() {return _gridpoints;}
+        std::vector< vec > &getGrid() {return _gridpoints;}
         std::vector< APolarSite* > &Sites() {return _gridsites;}
         std::vector< APolarSite*>* getSites() {return &_gridsites;} 
         PolarSeg* getSeg(){return _sites_seg;}
@@ -112,7 +112,7 @@ namespace votca { namespace xtp {
       
   private:
      
-      std::vector< ub::vector<double> > _gridpoints;
+      std::vector< vec > _gridpoints;
       std::vector< APolarSite* > _gridsites;
       std::vector< APolarSite* > _all_gridsites;
       

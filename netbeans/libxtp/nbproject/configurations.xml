@@ -287,7 +287,6 @@
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
-    <itemPath>../../src/libxtp/mol_and_orb.cpp</itemPath>
   </logicalFolder>
   <sourceRootList>
     <Elem>../../include</Elem>
@@ -882,8 +881,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/mol_and_orb.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1658,8 +1655,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/mol_and_orb.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>

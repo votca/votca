@@ -53,15 +53,17 @@ int AOShell::detlmax( string shell_type ) {
 
 
     
-void AOShell::EvalAOGradspace(ub::matrix_range<ub::matrix<double> >& gradAOvalues, double x, double y, double z, string type ){
+void AOShell::EvalAOGradspace(ub::matrix_range<ub::matrix<double> >& gradAOvalues,const vec& grid_pos, string type ){
 
      // need type of shell
      string shell_type = this->_type;
      // need position of shell
-     double center_x = x - this->_pos.getX();
-     double center_y = y - this->_pos.getY();
-     double center_z = z - this->_pos.getZ();
-     double distsq = center_x*center_x + center_y*center_y +  center_z*center_z;
+     
+     const vec center=grid_pos-this->_pos;
+     const double center_x = center.getX();
+     const double center_y = center.getY();
+     const double center_z = center.getZ();
+     const double distsq =  center*center;
      const double pi = boost::math::constants::pi<double>();
             
             
@@ -295,17 +297,16 @@ void AOShell::EvalAOGradspace(ub::matrix_range<ub::matrix<double> >& gradAOvalue
        
        
        
-void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::matrix_range<ub::matrix<double> >& gradAOvalues, double x, double y, double z){
+void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::matrix_range<ub::matrix<double> >& gradAOvalues, const vec& grid_pos){
 
             // need type of shell
             string shell_type = this->_type;
             // need position of shell
-            double center_x = x - this->_pos.getX();
-            double center_y = y - this->_pos.getY();
-            double center_z = z - this->_pos.getZ();
-            // need decay constant
-            
-            double distsq = center_x*center_x + center_y*center_y +  center_z*center_z;
+          const vec center=grid_pos-this->_pos;
+          const double center_x = center.getX();
+          const double center_y = center.getY();
+          const double center_z = center.getZ();
+          const double distsq =  center*center;
             const double pi = boost::math::constants::pi<double>();
 
 
@@ -564,18 +565,17 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
            
            
            
-void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x,double y, double z ){
+void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const vec& grid_pos ){
 
             // need type of shell
             string  shell_type = this->_type;
             // need position of shell
-            double center_x = x - this->_pos.getX();
-            double center_y = y - this->_pos.getY();
-            double center_z = z - this->_pos.getZ();
-            // need decay constant
-            
-            double distsq = center_x*center_x + center_y*center_y +  center_z*center_z;
-            const double pi = boost::math::constants::pi<double>();
+             const vec center=grid_pos-this->_pos;
+             const double center_x = center.getX();
+             const double center_y = center.getY();
+             const double center_z = center.getZ();
+             const double distsq =  center*center;
+             const double pi = boost::math::constants::pi<double>();
 
             typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
             // iterate over Gaussians in this shell

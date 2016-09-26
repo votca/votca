@@ -56,7 +56,7 @@ namespace votca {
         
         
         void DFTENGINE::Initialize(Property* options){
-
+            
            // setting some defaults
            // _do_qp_diag = false;
             _openmp_threads = 0; // take all available
@@ -159,14 +159,9 @@ namespace votca {
         }
         if(!_usediis){
                 _histlength=1;
-                _maxout=false;
-                
-                
+                _maxout=false;                
             }
-        else{
-                _maxerrorindex=0;
-                _maxerror=0.0;
-            }
+
             
             return;
         }
@@ -213,6 +208,9 @@ namespace votca {
             /**** Construct initial density  ****/
 
             ub::matrix<double> H0 = _dftAOkinetic._aomatrix + _dftAOESP._nuclearpotential; 
+            if(_addexternalsites){
+               H0+= _dftAOESP._externalpotential;
+            }
 
             if(_with_ecp){
             H0+=_dftAOECP.Matrix();
@@ -358,9 +356,15 @@ namespace votca {
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
             //_dftAOESP.Print("NUC");
 
+            
+            if (_addexternalsites){
+                _dftAOESP.Fillextpotential(&_dftbasis, _externalsites);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled <DFT external electrostatic potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+            }
+            
             if (_with_ecp) {
                 _dftAOECP.Initialize(_dftbasis.AOBasisSize());
-                _dftAOECP.Fill(&_dftbasis, ub::zero_vector<double>(3), &_ecp);
+                _dftAOECP.Fill(&_dftbasis, vec(0,0,0), &_ecp);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
                 //_dftAOECP.Print("ECP");
                 

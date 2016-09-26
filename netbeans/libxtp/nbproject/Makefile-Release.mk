@@ -70,7 +70,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/164445175/iexcitoncl.o \
 	${OBJECTDIR}/_ext/164445175/igwbse.o \
 	${OBJECTDIR}/_ext/484478074/lowdin.o \
-	${OBJECTDIR}/_ext/484478074/mol_and_orb.o \
 	${OBJECTDIR}/_ext/484478074/molecule.o \
 	${OBJECTDIR}/_ext/1294340152/numerical_integrations.o \
 	${OBJECTDIR}/_ext/1294340152/radial_euler_maclaurin_rule.o \
@@ -319,11 +318,6 @@ ${OBJECTDIR}/_ext/484478074/lowdin.o: nbproject/Makefile-${CND_CONF}.mk ../../sr
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/lowdin.o ../../src/libxtp/lowdin.cc
-
-${OBJECTDIR}/_ext/484478074/mol_and_orb.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/mol_and_orb.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/mol_and_orb.o ../../src/libxtp/mol_and_orb.cpp
 
 ${OBJECTDIR}/_ext/484478074/molecule.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/molecule.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074

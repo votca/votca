@@ -83,7 +83,7 @@ namespace votca { namespace xtp {
     class AOMatrix : public AOSuperMatrix {
     public:
         ub::matrix<double> _aomatrix; 
-        ub::vector<double> _gridpoint;
+        vec _gridpoint;
 
 	// Access functions
 	int Dimension(){ return  _aomatrix.size1();};
@@ -95,7 +95,7 @@ namespace votca { namespace xtp {
             this->_aomatrix = ub::zero_matrix<double>(size,size);
         }
         
-        void Fill( AOBasis* aobasis, ub::vector<double> r = ub::zero_vector<double>(3) , AOBasis* ecp = NULL );
+        void Fill( AOBasis* aobasis, vec r = vec(0,0,0) , AOBasis* ecp = NULL );
         
         // matrix print 
         void Print( std::string _ident);
@@ -176,8 +176,9 @@ namespace votca { namespace xtp {
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         //void Print();
         void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms,bool _with_ecp=false );
-        
+        void Fillextpotential( AOBasis* aobasis, std::vector<APolarSite*>& _sites);
         ub::matrix<double> _nuclearpotential;
+        ub::matrix<double> _externalpotential;
         // ~AOESP();
         
         

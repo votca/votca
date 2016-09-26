@@ -48,7 +48,9 @@ class DFTENGINE
 {
 public:
 
-    DFTENGINE() { };
+    DFTENGINE() {_addexternalsites=false; 
+                _maxerrorindex=0;
+                _maxerror=0.0; };
    ~DFTENGINE() {
      for (std::vector< ub::matrix<double>* >::iterator it = _mathist.begin() ; it !=_mathist.end(); ++it){
          delete *it;
@@ -76,6 +78,15 @@ public:
     void    CleanUp();
 
     void setLogger( Logger* pLog ) { _pLog = pLog; }
+    
+    void setExternalcharges(std::vector<APolarSite*> externalsites){
+        _externalsites=externalsites;
+        _addexternalsites=true;
+    }
+    
+    void setNumericalfield();
+    
+    void addNumericalfield();
     
     bool Evaluate(   Orbitals* _orbitals );
 
@@ -130,9 +141,15 @@ public:
     
     bool                                _with_ecp;
     
-    // numerical integration 
+    // numerical integration Vxc
     std::string                              _grid_name;
     NumericalIntegration                _gridIntegration;
+    
+    //numerical integration externalfield;
+    bool                                    _do_externalfield;
+    std::string                              _grid_name_ext;
+    NumericalIntegration                _gridIntegration_ext;
+    
 
     // AO Matrices
     AOOverlap                           _dftAOoverlap;
@@ -140,6 +157,7 @@ public:
    // AOCoulomb                           _dftAOcoulomb;
     
     ub::matrix<double>                  _AuxAOcoulomb_inv;
+    ub::matrix<double>                  _dftAOdmat;
     AOKinetic                           _dftAOkinetic;
     AOESP                               _dftAOESP;
     AOECP                               _dftAOECP;
@@ -147,19 +165,18 @@ public:
     bool                                _with_guess;
     double                              E_nucnuc;
     
-    //
+    // COnvergence 
     double                              _mixingparameter;
     double                              _Econverged;
     double                              _error_converged;
     int                                 _numofelectrons;
     int                                 _max_iter;
     int                                 _this_iter;
-    ub::matrix<double>                  _dftAOdmat;
     
     
+    //DIIS variables
     bool                              _usediis;
     unsigned                          _histlength;
-    
     bool                              _maxout;
     string                            _diismethod;
     ub::matrix<double>                _Sminusonehalf;
@@ -172,9 +189,9 @@ public:
     //Electron repulsion integrals
     ERIs                                _ERIs;
     
-
-    
-    
+    // external charges
+     std::vector<APolarSite*>        _externalsites;
+     bool                            _addexternalsites;
     
     // exchange and correlation
     std::string                              _xc_functional_name;

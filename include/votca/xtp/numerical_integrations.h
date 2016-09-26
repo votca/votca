@@ -41,15 +41,17 @@ namespace votca { namespace xtp {
             NumericalIntegration():density_set(false) {};
 
             void GridSetup(std::string type, BasisSet* bs , std::vector<QMAtom* > _atoms  );
-
+            //used for test purposes
             double StupidIntegrate( std::vector<double>& _data );
             
-            void getGridpoints( ub::matrix<double>& _gridpoints );
+            std::vector<vec const *> getGridpoints();
             
             ub::matrix<double> numAOoverlap ( AOBasis* basis  );
             
             double IntegrateDensity_Atomblock(const ub::matrix<double>& _density_matrix, AOBasis* basis);
-            double IntegratePotential(const ub::vector<double> rvector);
+            double IntegratePotential(const vec& rvector);
+            
+            double IntegrateField(const std::vector<double>& externalfield);
             
             double getExactExchange(const std::string _functional);
             

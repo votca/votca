@@ -85,12 +85,12 @@ public:
     
     
     
-    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z );
-    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z );
+    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const vec& grid_pos );
+    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, const vec& grid_pos );
     
    
     
-    void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z , std::string type = "");
+    void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODervalues, const vec& grid_pos , std::string type = "");
     // iterator over pairs (decay constant; contraction coefficient)
     typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
     GaussianIterator firstGaussian() { return _gaussians.begin(); }

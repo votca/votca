@@ -70,9 +70,9 @@ void Grid::printGridtoxyzfile(const char* _filename){
         points << _gridpoints.size() << endl;
         points << endl;
         for ( unsigned i = 0 ; i < _gridpoints.size(); i++){
-            points << "X " << _gridpoints[i](0)*conv::nm2ang << " " 
-                    << _gridpoints[i](1)*conv::nm2ang << " " 
-                    << _gridpoints[i](2)*conv::nm2ang << endl;
+            points << "X " << _gridpoints[i].getX()*conv::nm2ang << " " 
+                    << _gridpoints[i].getY()*conv::nm2ang << " " 
+                    << _gridpoints[i].getZ()*conv::nm2ang << endl;
 
         }
         points.close();
@@ -150,7 +150,7 @@ void Grid::readgridfromCubeFile(std::string filename, bool ignore_zeros){
                 double posz=(zstart+_iz*zincr)*conv::bohr2nm;
                 in1 >> potential;
                 vec temp=vec(posx,posy,posz);
-                ub::vector<double> temppos=temp.converttoub();
+                
                 APolarSite *apolarsite= new APolarSite(0,name);
                 apolarsite->setRank(0);        
                 apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
@@ -159,7 +159,7 @@ void Grid::readgridfromCubeFile(std::string filename, bool ignore_zeros){
                 apolarsite->setPhi(potential,0);
                 if(potential!=0.0 || !ignore_zeros){
                 _gridsites.push_back(apolarsite);
-                _gridpoints.push_back(temppos);
+                _gridpoints.push_back(temp);
                 }
                 else {apolarsite->setIsVirtual(true);}
                  _all_gridsites.push_back(apolarsite);
@@ -319,7 +319,7 @@ void Grid::setupradialgrid(const int depth) {
     std::vector<vec>::const_iterator git;
     for (git = spherepoints.begin(); git != spherepoints.end(); ++git) {
         vec position=((*git)*_cutoff+centerofmolecule)*conv::ang2nm;
-        _gridpoints.push_back(position.converttoub());
+        _gridpoints.push_back(position);
         if(_createpolarsites){                   
             string name="H";
             APolarSite *apolarsite= new APolarSite(0,name);
@@ -381,7 +381,7 @@ void Grid::setupgrid(){
     double padding_y=(steps.getY()-_ysteps)*_gridspacing*0.5+_padding;
     double padding_z=(steps.getZ()-_zsteps)*_gridspacing*0.5+_padding;
 
-    ub::vector<double> temppos= ub::zero_vector<double>(3);
+    
     for(int i=0;i<=_xsteps;i++){
         double x=xmin-padding_x+i*_gridspacing; 
         for(int j=0;j<=_ysteps;j++){
@@ -405,12 +405,11 @@ void Grid::setupgrid(){
                         else if ( distance2<pow(_cutoff,2))  _is_valid = true;
                     }
                     if (_is_valid || _cubegrid){
-                        temppos(0)=conv::ang2nm*x;
-                        temppos(1)=conv::ang2nm*y;        
-                        temppos(2)=conv::ang2nm*z;   
+                        vec temp=vec(conv::ang2nm*x,conv::ang2nm*y,conv::ang2nm*z);
+                         
                         if(_createpolarsites){
                             // APolarSite are in nm so convert
-                            vec temp=vec(temppos);
+                           
                             string name="H";
                             APolarSite *apolarsite= new APolarSite(0,name);
                             apolarsite->setRank(0);        
@@ -419,12 +418,12 @@ void Grid::setupgrid(){
                             apolarsite->setPos(temp);
                             if(_is_valid){
                                 _gridsites.push_back(apolarsite);
-                                _gridpoints.push_back(temppos);
+                                _gridpoints.push_back(temp);
                                 }
                             else {apolarsite->setIsVirtual(true);}
                             _all_gridsites.push_back(apolarsite);
                             }
-                        else if(!_createpolarsites){_gridpoints.push_back(temppos);}
+                        else if(!_createpolarsites){_gridpoints.push_back(temp);}
                     }                    
                 }                          
             }                  

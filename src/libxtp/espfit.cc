@@ -153,13 +153,13 @@ ub::vector<double> Espfit::EvalNuclearPotential(std::vector< QMAtom* >& _atoms, 
     ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_grid.getsize());
 
     double Znuc=0.0;
-    std::vector< ub::vector<double> >& _gridpoints = _grid.getGrid();
+    std::vector< vec >& _gridpoints = _grid.getGrid();
     LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points" << flush;
     
     for (unsigned i = 0; i < _gridpoints.size(); i++) {
-        double x_k = _gridpoints[i](0);
-        double y_k = _gridpoints[i](1);
-        double z_k = _gridpoints[i](2);
+        double x_k = _gridpoints[i].getX();
+        double y_k = _gridpoints[i].getY();
+        double z_k = _gridpoints[i].getZ();
         for (unsigned j = 0; j < _atoms.size(); j++) {
 
             double x_j = tools::conv::ang2nm * _atoms[j]->x;
@@ -294,7 +294,7 @@ void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<
 std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
     LOG(logDEBUG, *_log) << TimeStamp() << " Setting up Matrices for fitting of size "<< _fitcenters.size()+1 <<" x " << _fitcenters.size()+1<< flush;    
 
-    std::vector< ub::vector<double> >& _gridpoints=_grid.getGrid();   
+    std::vector< vec >& _gridpoints=_grid.getGrid();   
     //cout << "x " << _gridpoints[0](0)<< " y " << _gridpoints[0](1)<< " z " << _gridpoints[0](1);
     //cout << "x " << _fitcenters[0](0)<< " y " << _fitcenters[0](1)<< " z " << _fitcenters[0](1);
     // Fitting atomic partial charges
@@ -317,9 +317,9 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
             double z_j = _fitcenters[_j](2);
             for ( unsigned _k=0; _k < _gridpoints.size(); _k++){
             
-                double x_k = _gridpoints[_k](0);
-                double y_k = _gridpoints[_k](1);
-                double z_k = _gridpoints[_k](2);
+                double x_k = _gridpoints[_k].getX();
+                double y_k = _gridpoints[_k].getY();
+                double z_k = _gridpoints[_k].getZ();
                 
                 double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*tools::conv::nm2bohr;
                 double dist_j = sqrt( (x_j - x_k)*(x_j - x_k) +  (y_j - y_k)*(y_j - y_k) + (z_j - z_k)*(z_j - z_k)     )*tools::conv::nm2bohr;
@@ -344,9 +344,9 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
         double z_i = _fitcenters[_i](2);
         for ( unsigned _k=0; _k < _gridpoints.size(); _k++){
             
-                double x_k = _gridpoints[_k](0);
-                double y_k = _gridpoints[_k](1);
-                double z_k = _gridpoints[_k](2);
+                double x_k = _gridpoints[_k].getX();
+                double y_k = _gridpoints[_k].getY();
+                double z_k = _gridpoints[_k].getZ();
                 
                 double dist_i = sqrt( (x_i - x_k)*(x_i - x_k) +  (y_i - y_k)*(y_i - y_k) + (z_i - z_k)*(z_i - z_k)     )*tools::conv::nm2bohr;                
                 _Bvec(_i,0) += _potential(_k)/dist_i;                
@@ -393,9 +393,9 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< ub::vector<double> >
     double _rmse = 0.0;
     double _totalPotSq = 0.0;
     for ( unsigned _k=0 ; _k < _gridpoints.size(); _k++ ){
-        double x_k = _gridpoints[_k](0);
-        double y_k = _gridpoints[_k](1);
-        double z_k = _gridpoints[_k](2);
+        double x_k = _gridpoints[_k].getX();
+        double y_k = _gridpoints[_k].getY();
+        double z_k = _gridpoints[_k].getZ();
         double temp = 0.0;
         for ( unsigned _i=0; _i < _fitcenters.size(); _i++ ){
             double x_i = _fitcenters[_i](0);

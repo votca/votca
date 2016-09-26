@@ -346,7 +346,7 @@ namespace votca {
                                 for (vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
                                    
                                     ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
-                                    (*_row)->EvalAOspace(_submatrix, _x, _y, _z);
+                                    (*_row)->EvalAOspace(_submatrix, vec(_x, _y, _z));
 
                                 }
                                 
@@ -425,7 +425,7 @@ namespace votca {
                                 for (vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
 
                                     ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
-                                    (*_row)->EvalAOspace(_submatrix, _x, _y, _z);
+                                    (*_row)->EvalAOspace(_submatrix,vec( _x, _y, _z));
                                 }
 
                                 double QP_at_grid = 0.0;
