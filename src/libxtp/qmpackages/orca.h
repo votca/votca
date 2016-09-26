@@ -77,7 +77,7 @@ private:
     int BasisSetSize( std::string _line ); 
     int EnergiesFromLog( std::string _line, ifstream inputfile ); 
     std::string indent( const double &number );
-
+    std::string getLName(int lnum);
     
 };
 

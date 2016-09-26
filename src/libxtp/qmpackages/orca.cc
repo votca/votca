@@ -36,44 +36,7 @@
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
     
-/******** Defining a class for l->number and number->l*****************************/
-    class Angularmom
-{
-public:   
-    Angularmom() { FillMaps(); };
-   ~Angularmom() { };
 
-    const int        &getLNum(std::string lname) const {return _LNum.at(lname); }
-    const std::string     &getLName(int lnum) const {return _LName.at(lnum); }
-    private:
-    std::map<std::string, int> _LNum;
-    std::map<int, std::string> _LName;
-        inline void FillMaps(){
-        
-        FillLNum();
-        FillLName();
-        }
-        
-        inline void FillLName(){
-    
-        _LName[0]  = "S";
-        _LName[1]  = "P";
-        _LName[2]  = "D";
-        _LName[3]  = "F";
-        };
-        
-        inline void FillLNum(){
-    
-        _LNum["S"]  = 0;
-        _LNum["P"]  = 1;
-        _LNum["D"]  = 2;
-        _LNum["F"]  = 3;
-        };
-     
- };
-    
-    
-    /************************************************************/
 void Orca::Initialize( Property *options ) {
     
     //good luck
@@ -263,7 +226,7 @@ bool Orca::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_g
                 if ( _write_pseudopotentials ){
                     std::string pseudopotential_name("ecp");
                     _com_file << endl;
-                    Angularmom lmaxnum; //defining lmaxnum for lmaxNum2lmaxName
+                  
                     list<std::string> elements;
                     elements.push_back("H");
                     elements.push_back("He");
@@ -283,7 +246,7 @@ bool Orca::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_g
                                 _com_file << "\n" << "NewECP" << " " <<  element_name  << endl;
                                 _com_file << "N_core" << " " << element->getNcore()  << endl;
                                 //lmaxnum2lmaxname 
-                                _com_file << "lmax" << " " << lmaxnum.getLName(element->getLmax()) << endl;
+                                _com_file << "lmax" << " " << getLName(element->getLmax()) << endl;
                              
                                 //For Orca the order doesn't matter but let's write it in ascending order
                                 // write remaining shells in ascending order s,p,d...
@@ -404,7 +367,7 @@ bool Orca::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_g
                 if ( _write_pseudopotentials ){
                     std::string pseudopotential_name("ecp");
                     _com_file << endl;
-                    Angularmom lmaxnum; //defining lmaxnum for lmaxNum2lmaxName
+                   
                     list<std::string> elements;
                     elements.push_back("H");
                     elements.push_back("He");
@@ -427,7 +390,7 @@ bool Orca::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_g
                                 _com_file << "\n" << "NewECP" << " " <<  element_name  << endl;
                                 _com_file << "N_core" << " " << element->getNcore()  << endl;
                                 //lmaxnum2lmaxname 
-                                _com_file << "lmax" << " " << lmaxnum.getLName(element->getLmax()) << endl;
+                                _com_file << "lmax" << " " << getLName(element->getLmax()) << endl;
                              
                                 //For Orca the order doesn't matter but let's write it in ascending order
                                 // write remaining shells in ascending order s,p,d...
@@ -1046,7 +1009,16 @@ if (_basis_size==0 || _levels==0){
     return true;
 }
 
-
+std::string Orca::getLName(int lnum){
+if ( lnum==0){return "S";}
+else if( lnum==1){return "P";}
+else if( lnum==2){return "D";}
+else if( lnum==3){return "F";}
+else {
+    throw runtime_error("Orca::getLName functions higher than F not implemented");
+}
+    return "0";
+}
 
 
 
