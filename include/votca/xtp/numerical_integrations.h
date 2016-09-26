@@ -41,6 +41,7 @@ namespace votca { namespace xtp {
             NumericalIntegration():density_set(false) {};
 
             void GridSetup(std::string type, BasisSet* bs , std::vector<QMAtom* > _atoms  );
+            void FindsignificantAtoms(AOBasis* basis);
             //used for test purposes
             double StupidIntegrate( std::vector<double>& _data );
             
@@ -56,6 +57,8 @@ namespace votca { namespace xtp {
             double getExactExchange(const std::string _functional);
             
             ub::matrix<double> IntegrateVXC_Atomblock (const ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
+            
+             
             
             // this gives int (e_xc-V_xc)*rho d3r
             double getTotEcontribution(){return EXC;}
@@ -74,6 +77,12 @@ namespace votca { namespace xtp {
             std::vector< std::vector< GridContainers::integration_grid > > _grid;
             double EXC;
             bool density_set;
+            vector< vector< vector<int> > > _significant_atoms;
+            vector < int > _startIdx;
+            vector < int > _blocksize;
+            typedef vector< AOShell* >::iterator AOShellIterator;
+            vector< vector< AOShellIterator > > _atomshells;
+            vector< AOShellIterator > _singleatom;
 
         };
 

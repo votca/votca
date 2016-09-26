@@ -252,9 +252,7 @@ namespace votca {
 
 
 		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  &_dftbasis,_xc_functional_name);
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;
-       //cout << "ERIS"<<endl;
-       //cout<<_ERIs.getERIs()<<endl;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;              
                 
                 
                 ub::matrix<double> H=H0+_ERIs.getERIs()+VXC;
@@ -449,6 +447,8 @@ namespace votca {
             
 	    // setup numerical integration grid
             _gridIntegration.GridSetup(_grid_name,&_dftbasisset,_atoms);
+            _gridIntegration.FindsignificantAtoms( &_dftbasis);
+            
 	    LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name << " for vxc functional " << _xc_functional_name<< flush;
         
 	

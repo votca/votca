@@ -455,6 +455,7 @@ void GWBSE::addoutput(Property *_summary) {
                         throw std::runtime_error((boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
                     }
                     _numint.GridSetup(_grid, &dftbs, _atoms);
+                    _numint.FindsignificantAtoms( &dftbasis);
                 // LOG(logDEBUG, *_pLog) << TimeStamp() << " Trying DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
                
                 
