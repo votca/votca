@@ -8,16 +8,20 @@ sudo: false
 
 addons:
   apt:
-    sources: boost-latest 
+    sources:
+      - boost-latest 
+      - george-edison55-precise-backports
     packages:
-      - cmake
       - ccache
       - libfftw3-dev
+      - cmake
+      - cmake-data
       - libgsl0-dev
       - txt2tags
       - libboost1.55-all-dev
       - libexpat1-dev
       - libsqlite3-dev
+      - libhdf5-serial-dev
       - pkg-config
       - pgf
       - texlive-fonts-recommended
@@ -27,12 +31,12 @@ addons:
       - python-numpy
       - gnuplot-nox
       - octave
-      - gromacs-dev
 
 env:
   global:
+    - HDF5_VERSION=1.8.14
     - GMX_MAX_THREADS=8
-    - CCACHE_CPP2=yes
+    - CCACHE_CPP2=yes #for clang
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
     - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_bonded J=4
     - CSG_MDRUN_STEPS=500 TEST=hexane/ibi J=4
@@ -47,7 +51,7 @@ env:
     - CSG_MDRUN_STEPS=500 TEST=propane/ibi J=4
     - CSG_MDRUN_STEPS=10000 TEST=propane/imc J=4
     - CSG_MDRUN_STEPS=500 TEST=spce/cma/density J=4
-    - CSG_MDRUN_STEPS=500 TEST=spce/cma/simple J=4 GROMACS=yes
+    - CSG_MDRUN_STEPS=500 TEST=spce/cma/simple J=4
     - CSG_MDRUN_STEPS=500 TEST=spce/ibi J=4
     - CSG_MDRUN_STEPS=500 TEST=spce/ibi_pressure J=4
     - CSG_MDRUN_STEPS=10000 TEST=spce/imc J=4
@@ -56,29 +60,30 @@ env:
     - CSG_MDRUN_STEPS=500 TEST=spce/simplex/density J=4
     - CSG_MDRUN_STEPS=500 TEST=spce/simplex/pressure J=4
     - CSG_MDRUN_STEPS=500 TEST=spce/simplex/simple J=4
-    - CSG_MDRUN_STEPS=500 TEST=spce/tf J=4 GROMACS=yes
     - CSG_MDRUN_STEPS=500 TEST=urea-water/ibi J=4
     - CSG_MDRUN_STEPS=500 TEST=urea-water/kb-ibi J=4
+    - CSG_MDRUN_STEPS=500 TEST=He-Ar/imc J=4
 
 before_script:
+  - rm -vrf * .git
   - wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh && chmod 755 build.sh
-  - mkdir -p "$HOME/votca/src" "$HOME/votca/share/votca/scripts/inverse" "$HOME/bin"
+  - mkdir -p "$HOME/votca/src" "$HOME/votca/share/votca/scripts/inverse"
   - wget -O "$HOME/votca/share/votca/scripts/inverse/cma.py" http://www.lri.fr/~hansen/cma.py
-  - ln -s /usr/bin/ccache "$HOME/bin/clang++"
-  - ln -s /usr/bin/ccache "$HOME/bin/clang"
+  - if [[ ${MINIMAL} != yes ]]; then 
+      wget -qO- https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xz &&
+      cd hdf5-${HDF5_VERSION} && ./configure --prefix=$HOME/hdf5 && make -j4 &> /dev/null && make install && cd ..;
+    fi
 
 script:
-  - PATH="$HOME/bin:/usr/lib/ccache:$PATH" ./build.sh -Wu --prefix "$HOME/votca" ${MAN:+--devdoc}
-    ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} ${MINIMAL:+--minimal}
-    ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall}
-    --directory "$HOME/votca/src" --no-clean --depth 1 --gmx-release 4.6.7
-    tools ${GROMACS:+gromacs} csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
-    ${CTP:+kmc moo ctp} ${GROMACS:+-DGMX_USE_RDTSCP=OFF} ${GROMACS:+-DGROMACS_PKG_OVERWRITE=libgmx}
+  - PATH="$HOME/hdf5:$PATH" ./build.sh -Wu --dev --prefix "$HOME/votca" ${MAN:+--devdoc}
+    ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} -DWITH_H5MD=ON ${MINIMAL:+--minimal}
+    ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall} ${GMX_VERSION:+--gmx-release ${GMX_VERSION}}
+    --directory "$HOME/votca/src" --no-clean --depth 1 -DGMX_USE_RDTSCP=OFF ${GMX_DOUBLE:+-DGMX_DOUBLE=yes}
+    tools $([[ ${MINIMAL} ]] || echo gromacs) csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
+    ${CTP:+kmc moo ctp} ${XTP:+xtp}
 
 cache:
-  directories:
-    - $HOME/.ccache
+  - ccache
 
 compiler:
-  - clang
   - gcc

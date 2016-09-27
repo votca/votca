@@ -8,7 +8,7 @@
     <type1>1</type1>
     <type2>1</type2>
     <!-- min, max and step size distance for pot (max=cutoff) -->
-    <min>0.22</min>
+    <min>0.00</min>
     <max>0.9</max>
     <step>0.01</step>
     <re>
@@ -25,7 +25,7 @@
       <lammps>
         <!-- name of the table for lammps run -->
 	<table>CG_CG.pot</table>
-	<table_begin>0.10</table_begin>
+	<table_begin>0.05</table_begin>
 	<table_bins>0.002</table_bins>
       </lammps>
       <!-- do convergence -->
@@ -52,6 +52,7 @@
     <program>lammps</program>
     <!-- lammps specific options -->
     <lammps>
+      <command>mpirun -np 4 ../lmp_mpi</command>
       <!-- lammps script to run !-->
       <script>spce.in</script>
       <!-- topology to be used by  csg_stat !-->
@@ -66,6 +67,9 @@
     <iterations_max>300</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo re: relative entropy-->
     <method>re</method>
+    <re>
+      <command>csg_reupdate --nt 4</command>
+    </re>
     <!-- scaling parameter for the update-->
     <scale>0.5</scale>
     <!-- convergence check options -->
