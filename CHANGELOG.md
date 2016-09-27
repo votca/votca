@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
-## Version 1.4-dev
+## Version 1.4_rc1 (released 26.09.16)
  * switch to c++-11
  * dihedral support in csg_fmatch
  * support for tabulated bond in >=gmx-5
