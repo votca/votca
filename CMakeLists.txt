@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6)
 project(votca)
 
 #cmake policy CMP0048
-#set(PROJECT_VERSION "1.3-dev")
+#set(PROJECT_VERSION "1.4.1")
 
 ########################################################################
 # User input options                                                   #
@@ -26,14 +26,6 @@ set(VOTCA_CSG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/csg/include
 	CACHE PATH "csg include path")
 if(BUILD_CSGAPPS)
   add_subdirectory(csgapps)
-endif()
-if(BUILD_CTP)
-  add_subdirectory(kmc)
-  add_subdirectory(moo)
-  set(VOTCA_MOO_LIBRARY votca_moo CACHE STRING "moo library name")
-  set(VOTCA_MOO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/moo/include
-	  CACHE PATH "moo include path")
-  add_subdirectory(ctp)
 endif()
 if(BUILD_XTP)
   add_subdirectory(xtp)
