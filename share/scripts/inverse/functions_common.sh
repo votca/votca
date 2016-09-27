@@ -280,8 +280,6 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
       done
       [[ -z $ret ]] && die "${FUNCNAME[0]}: Could not find a bonded definition with name '$bondname' in the mapping file(s) '$mapping'. Make sure to use the same name in the settings file (or --ia-name when calling from csg_call) and the mapping file."
       echo "$ret"
-    elif [[ -n $CSGXMLFILE && $(csg_get_property --allow-empty cg.inverse.method) = "tf" ]]; then
-      echo "thermforce"
     else
       echo "$bondtype"
     fi
@@ -294,7 +292,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
 
   #map bondtype back to tags in xml file (for csg_call)
   case "$bondtype" in
-    "non-bonded"|"thermforce")
+    "non-bonded")
       xmltype="non-bonded";;
     "bonded"|"bond"|"angle"|"dihedral")
       xmltype="bonded";;
@@ -880,7 +878,8 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
     cg.inverse.espresso.blockfile cg.inverse.espresso.blockfile_out cg.inverse.espresso.n_steps \
     cg.inverse.espresso.exclusions cg.inverse.espresso.debug cg.inverse.espresso.n_snapshots \
     cg.non-bonded.inverse.espresso.index1 cg.non-bonded.inverse.espresso.index2 cg.inverse.espresso.success \
-    cg.inverse.espresso.scriptdir \
+    cg.inverse.espresso.scriptdir cg.non-bonded.inverse.post_update_options.kbibi.type \
+    cg.inverse.imc.numpy.bin \
     ; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
     new=""

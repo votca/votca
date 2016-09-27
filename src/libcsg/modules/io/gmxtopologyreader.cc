@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,25 +33,6 @@
         #include <gromacs/topology/topology.h>
 #elif GMX == 50
         #include <gromacs/fileio/tpxio.h>
-#elif GMX == 45
-        #include <gromacs/statutil.h>
-        #include <gromacs/typedefs.h>
-        #include <gromacs/smalloc.h>
-        #include <gromacs/vec.h>
-        #include <gromacs/copyrite.h>
-        #include <gromacs/statutil.h>
-        #include <gromacs/tpxio.h>
-#elif GMX == 40
-    extern "C"
-    {
-        #include <statutil.h>
-        #include <typedefs.h>
-        #include <smalloc.h>
-        #include <vec.h>
-        #include <copyrite.h>
-        #include <statutil.h>
-        #include <tpxio.h>
-    }
 #else
 #error Unsupported GMX version
 #endif
@@ -68,30 +49,13 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     // cleanup topology to store new data
     top.Cleanup();
 
+    t_inputrec ir;
+    ::matrix gbox;
+
 #if GMX == 52
-    t_inputrec ir;
-    ::matrix gbox;
-
     (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,&mtop);
-#elif (GMX == 50) || (GMX == 51)
-    t_inputrec ir;
-    ::matrix gbox;
-
-    (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
-#elif GMX == 45
-    set_program_name("VOTCA");
-
-    t_inputrec ir;
-    ::matrix gbox;
-    (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
-#elif GMX == 40
-    set_program_name("VOTCA");
-
-    int sss;   // wtf is this
-    ::real    ttt,lll; // wtf is this
-    (void)read_tpx((char *)file.c_str(),&sss,&ttt,&lll,NULL,NULL,&natoms,NULL,NULL,NULL,&mtop);
 #else
-#error Unsupported GMX version
+    (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
 #endif
 
     int count=0;
@@ -117,15 +81,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
         t_atoms *atoms=&(mol->atoms);
 
         for(int i=0; i < atoms->nres; i++) {
-#if (GMX == 50)|| (GMX == 51) || (GMX == 52)
                 top.CreateResidue(*(atoms->resinfo[i].name));
-#elif GMX == 45
-                top.CreateResidue(*(atoms->resinfo[i].name));
-#elif GMX == 40
-                top.CreateResidue(*(atoms->resname[i]));
-#else
-#error Unsupported GMX version
-#endif
         }
 
         for(int imol=0; imol<mtop.molblock[iblock].nmol; ++imol) {
@@ -136,15 +92,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
                 t_atom *a = &(atoms->atom[iatom]);
 
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
-#if (GMX == 50)||(GMX == 51)||(GMX == 52)
                 Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind + res_offset, a->m, a->q);
-#elif GMX == 45
-                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind + res_offset, a->m, a->q);
-#elif GMX == 40
-                Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resnr + res_offset, a->m, a->q);
-#else
-#error Unsupported GMX version
-#endif
 
                 stringstream nm;
                 nm << bead->getResnr() + 1 - res_offset << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();
@@ -166,13 +114,11 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
         }
     }
 
-#if GMX != 40
     matrix m;
     for(int i=0; i<3; i++)
         for(int j=0; j<3; j++)
             m[i][j] = gbox[j][i];
     top.setBox(m);
-#endif
 
     return true;
 }

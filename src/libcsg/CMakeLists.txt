@@ -1,6 +1,4 @@
 file(GLOB GMX_SOURCES modules/io/gmx*.cc)
-file(GLOB NOT_GMX_SOURCES modules/io/gmx_print_version.cc modules/io/gmx_version_nb.cc)
-list(REMOVE_ITEM GMX_SOURCES ${NOT_GMX_SOURCES})
 
 file(GLOB H5MD_SOURCES modules/io/h5md*.cc)
 
@@ -9,17 +7,10 @@ file(GLOB NOT_IO_SOURCES modules/io/mdp*.cc)
 list(REMOVE_ITEM IO_SOURCES ${GMX_SOURCES} ${NOT_GMX_SOURCES} ${H5MD_SOURCES} ${NOT_IO_SOURCES})
 
 if (WITH_GMX)
-  if (NOT GROMACS_FOUND)
-    message(FATAL_ERROR "gromacs not found,  make sure you have installed at least the gromacs-4.0.7 and it's dev package. If the gromacs module was not found above, make sure you have sourced GMXRC or set PKG_CONFIG_PATH yourself. (use option -DGROMACS_PKG_OVERWRITE=libgmx/_d for gromacs<5.0 and -DGROMACS_PKG_OVERWRITE=libgromacs/_d for gromacs>=5.0 to influence the search.")
-  endif(NOT GROMACS_FOUND)
   #general to a gmx builds
   add_definitions(${GROMACS_DEFINITIONS})
   include_directories(${GROMACS_INCLUDE_DIRS})
   set(GMX ${GROMACS_VERSION})
-  add_executable(gmx_print_version modules/io/gmx_print_version.cc)
-  target_link_libraries(gmx_print_version ${GROMACS_LIBRARIES})
-  add_custom_command(OUTPUT gmx_libs_version.h COMMAND gmx_print_version > gmx_libs_version.h DEPENDS gmx_print_version)
-  list(APPEND GMX_SOURCES gmx_libs_version.h)
 else(WITH_GMX)
   set(GMX)
   set(GMX_SOURCES)
@@ -29,7 +20,7 @@ endif(WITH_GMX)
 
 option(WITH_H5MD "Build H5MD reader!" OFF)
 if(WITH_H5MD)
-  find_package(HDF5 REQUIRED COMPONENTS "CXX")
+    find_package(HDF5 REQUIRED COMPONENTS "C")
   set(H5MD true)
   include_directories (${HDF5_INCLUDE_DIRS})
 else(WITH_H5MD)

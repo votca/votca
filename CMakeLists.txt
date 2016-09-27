@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.11)
 
 project(votca-csg)
 
-set(PROJECT_VERSION "1.3.1")
+set(PROJECT_VERSION "1.4-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
 string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "[1-9]+")
@@ -28,6 +28,12 @@ enable_language(CXX)
 #####################################################################
 
 include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if(COMPILER_SUPPORTS_CXX11)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else()
+	message(FATAL_ERROR "Could not find a C++-11 compiler")
+endif()
 
 ########################################################################
 # User input options                                                   #
@@ -79,12 +85,7 @@ include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
 
 option(WITH_GMX "Build gromacs reader/writer, disabling leads to reduced functionality!" ON)
 if (WITH_GMX)
-  foreach(LIBGMX libgmx_d libgmx libgromacs_d libgromacs)
-    find_package(GROMACS COMPONENTS "${LIBGMX}")
-    if (GROMACS_FOUND)
-      break()
-    endif(GROMACS_FOUND)
-  endforeach(LIBGMX)
+  find_package(GROMACS REQUIRED)
 endif(WITH_GMX) 
 
 ########################################################################
@@ -136,3 +137,6 @@ if(NOT TARGET uninstall)
   add_custom_target(uninstall)
 endif()
 add_dependencies(uninstall uninstall-csg)
+
+include(FeatureSummary)
+feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)

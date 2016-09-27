@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@
 
 #include <votca/csg/topology.h>
 #include <votca/csg/trajectorywriter.h>
-#include "gmx_version_check.h"
 
 #if GMX == 52
         #include <gromacs/trajectory/trajectoryframe.h>
@@ -34,25 +33,6 @@
         #include <gromacs/fileio/trx.h>
 #elif GMX == 50
         #include <gromacs/fileio/trxio.h>
-#elif GMX == 45
-        #include <gromacs/statutil.h>
-        #include <gromacs/typedefs.h>
-        #include <gromacs/smalloc.h>
-        #include <gromacs/vec.h>
-        #include <gromacs/copyrite.h>
-        #include <gromacs/statutil.h>
-        #include <gromacs/tpxio.h>
-#elif GMX == 40
-   extern "C"
-   {
-        #include <statutil.h>
-        #include <typedefs.h>
-        #include <smalloc.h>
-        #include <vec.h>
-        #include <copyrite.h>
-        #include <statutil.h>
-        #include <tpxio.h>
-    }
 #else
 #error Unsupported GMX version
 #endif
@@ -68,22 +48,14 @@ class GMXTrajectoryWriter
     : public TrajectoryWriter
 {
 public:
-    GMXTrajectoryWriter() {
-        gmx::CheckVersion();
-    }
+    GMXTrajectoryWriter() {}
 
     void Open(string file, bool bAppend = false);
     void Close();
     void Write(Topology *conf);
 
     private:
-#if (GMX==52)||(GMX == 51)||(GMX == 50)||(GMX == 45)
        t_trxstatus* _file;
-#elif GMX == 40
-       int _file;
-#else
-#error Unsupported GMX version
-#endif
 };
 
 }}

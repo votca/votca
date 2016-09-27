@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@
 
 #include <string>
 #include <votca/csg/trajectoryreader.h>
-#include "gmx_version_check.h"
 
 #if GMX == 52
         #include <gromacs/fileio/oenv.h>
@@ -35,25 +34,6 @@
         #include <gromacs/fileio/trxio.h>
 #elif GMX == 50
         #include <gromacs/fileio/trxio.h>
-#elif GMX == 45
-        #include <gromacs/statutil.h>
-        #include <gromacs/typedefs.h>
-        #include <gromacs/smalloc.h>
-        #include <gromacs/vec.h>
-        #include <gromacs/copyrite.h>
-        #include <gromacs/statutil.h>
-        #include <gromacs/tpxio.h>
-#elif GMX == 40
-   extern "C"
-   {
-        #include <statutil.h>
-        #include <typedefs.h>
-        #include <smalloc.h>
-        #include <vec.h>
-        #include <copyrite.h>
-        #include <statutil.h>
-        #include <tpxio.h>
-    }
 #else
 #error Unsupported GMX version
 #endif
@@ -74,9 +54,7 @@ using namespace std;
 class GMXTrajectoryReader : public TrajectoryReader
 {
     public:
-        GMXTrajectoryReader() {
-            gmx::CheckVersion();
-        }
+        GMXTrajectoryReader() {}
 
         /// open a trejectory file
         bool Open(const string &file);
@@ -91,13 +69,7 @@ class GMXTrajectoryReader : public TrajectoryReader
         string _filename;
         
         // gmx status used in read_first_frame and _read_next_frame;
-#if (GMX == 52)||(GMX == 51)||(GMX == 50)||(GMX == 45)
        t_trxstatus* _gmx_status;
-#elif GMX == 40
-       int _gmx_status;
-#else
-#error Unsupported GMX version
-#endif
         /// gmx frame
         t_trxframe _gmx_frame;
         

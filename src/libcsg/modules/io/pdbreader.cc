@@ -66,6 +66,35 @@ bool PDBReader::NextFrame(Topology &top)
     string line;
     int i = 0 ;
     while ( std::getline(_fl, line) ){
+        if( wildcmp("CRYST1*",line.c_str())){
+	     string a, b, c, alpha, beta, gamma;
+	     try {
+               //1 -  6       Record name    "CRYST1"
+	       a=string(line,(7-1),9); //7 - 15       Real(9.3)      a (Angstroms)
+	       b=string(line,(16-1),9); //16 - 24       Real(9.3)      b (Angstroms)
+	       c=string(line,(25-1),9); //25 - 33       Real(9.3)      c (Angstroms)
+	       alpha=string(line,(34-1),7); //34 - 40       Real(7.2)      alpha (degrees)
+               beta=string(line,(41-1),7); //41 - 47       Real(7.2)      beta (degrees)
+	       gamma=string(line,(48-1),7); //48 - 54       Real(7.2)      gamma (degrees)
+               //56 - 66       LString        Space group
+	       //67 - 70       Integer        Z value
+	    } catch (std::out_of_range& err) {
+	      throw std::runtime_error("Misformated pdb file in CRYST1 line");
+	    }
+	    boost::algorithm::trim(a);
+	    boost::algorithm::trim(b);
+	    boost::algorithm::trim(c);
+	    boost::algorithm::trim(alpha);
+	    boost::algorithm::trim(beta);
+	    boost::algorithm::trim(gamma);
+	    if ((!wildcmp("90*",alpha.c_str()))||(!wildcmp("90*",alpha.c_str()))||(!wildcmp("90*",alpha.c_str()))){
+	         throw std::runtime_error("Non cubical box in pdb file not implemented, yet!");
+            }
+	    top.setBox(matrix(vec(boost::lexical_cast<double>(a)/10.0, 0, 0),
+	                      vec(0, boost::lexical_cast<double>(b)/10.0, 0),
+			      vec(0, 0, boost::lexical_cast<double>(c)/10.0)));
+
+	}
         if( wildcmp("ATOM*",line.c_str()) || wildcmp("HETATM*",line.c_str())){
             
             //      according to PDB format
@@ -91,7 +120,7 @@ bool PDBReader::NextFrame(Topology &top)
               //string atCharge   (line,(79-1),2); // str, Charge on the atom
 
 	    } catch (std::out_of_range& err) {
-	      throw std::runtime_error("Misformated pdb file");
+	      throw std::runtime_error("Misformated pdb file in atom line # "+ boost::lexical_cast<string>(i));
 	    }
             boost::algorithm::trim(atName);
             boost::algorithm::trim(resName);

@@ -126,7 +126,7 @@ void Map_Sphere::Apply()
     double max_dist = 0.5*top->ShortestBoxSize();
     vec r0 = vec(0,0,0);
     string name0;
-    int id0;
+    int id0=0;
     if(_matrix.size() > 0) {
         if(_matrix.front()._in->HasPos()) {
             r0=_matrix.front()._in->getPos();

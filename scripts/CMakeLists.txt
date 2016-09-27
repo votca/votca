@@ -7,7 +7,7 @@ add_custom_command(OUTPUT help2t2t ALL COMMAND ${CMAKE_COMMAND}
     -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/gitscript.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES help2t2t)
 
-foreach(SCRIPT csg_call csg_inverse multi_g_rdf)
+foreach(SCRIPT csg_call csg_inverse)
   configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out @ONLY)
   add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT})
   add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}

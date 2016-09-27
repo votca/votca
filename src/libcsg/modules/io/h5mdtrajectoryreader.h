@@ -19,11 +19,14 @@
 #define SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
 
 #include <votca/csg/trajectoryreader.h>
-#include "H5Cpp.h"
+#include <votca/csg/topologyreader.h>
 
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
+#include <cstdio>
+
+#include "hdf5.h"
 
 namespace votca {  // NOLINT
 namespace csg {
@@ -35,8 +38,7 @@ using namespace votca::tools;  // NOLINT
     This class implements the H5MD trajectory reading function. The format of the H5MD
     file is defined in
     Pierre de Buyl, Peter H. Colberg, Felix Höfling, H5MD: A structured, efficient, and portable file
-    format for molecular data, http://dx.doi.org/10.1016/j.cpc.2014.01.018.
-
+    format for molecular data, http://dx.doi.org/10.1016/j.cpc.2014.01.018
     The current reference is available here: http://nongnu.org/h5md/
 */
 class H5MDTrajectoryReader : public TrajectoryReader {
@@ -47,72 +49,120 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   /// Opens original trajectory file.
   bool Open(const string &file);
 
+  /// Initialize data structures.
+  void Initialize(Topology &top);
+
   /// Reads in the first frame.
   bool FirstFrame(Topology &conf);  // NOLINT
 
   /// Reads in the next frame.
   bool NextFrame(Topology &conf);  // NOLINT
 
-  /// close original trajectory file.
+  /// Closes original trajectory file.
   void Close();
 
  private:
+  enum DatasetState { NONE, STATIC, TIMEDEPENDENT };
+
   /// Reads dataset that contains vectors.
   template <typename T1>
-  T1* ReadVectorData(H5::DataSet *ds, H5::PredType ds_data_type, int row) {
-    hsize_t offset[3] = {row, 0, 0};
-    H5::DataSpace dsp = H5::DataSpace(ds->getSpace());
-    dsp.selectHyperslab(H5S_SELECT_SET, chunk_rows_, offset);
-    H5::DataSpace mspace1(variables_, chunk_rows_);
-    T1 *data_out = new T1[N_particles_ * variables_];
-    ds->read(data_out, ds_data_type, mspace1, dsp);
-    return data_out;
+  T1* ReadVectorData(hid_t ds, hid_t ds_data_type, int row) {
+    hsize_t offset[3]; offset[0] = row; offset[1] = 0; offset[2] = 0;
+    hsize_t chunk_rows[3]; chunk_rows[0] = 1; chunk_rows[1] = N_particles_; chunk_rows[2] = vec_components_;
+    hid_t dsp = H5Dget_space(ds);
+    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, chunk_rows, NULL);
+    hid_t mspace1 = H5Screate_simple(vec_components_, chunk_rows, NULL);
+    T1 *data_out = new T1[N_particles_ * vec_components_];
+    herr_t status = H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
+    if (status < 0) {
+      throw std::runtime_error("Error ReadVectorData: " + boost::lexical_cast<string>(status));
+    } else
+      return data_out;
   }
 
-  /// Reads dataset with scalar values
+  /// Reads dataset with scalar values.
   template <typename T1>
-  T1* ReadScalarData(H5::DataSet *ds, H5::PredType ds_data_type, int row) {
-    hsize_t offset[2] = {row, 0};
-    hsize_t ch_rows[2] = {1, N_particles_};
-    H5::DataSpace dsp = H5::DataSpace(ds->getSpace());
-    dsp.selectHyperslab(H5S_SELECT_SET, ch_rows, offset);
-    H5::DataSpace mspace1(2, ch_rows);
+  T1* ReadScalarData(hid_t ds, hid_t ds_data_type, int row) {
+    hsize_t offset[2]; offset[0] = row; offset[1] = 0;
+    hsize_t ch_rows[2]; ch_rows[0] = 1; ch_rows[1] = N_particles_;
+    hid_t dsp = H5Dget_space(ds);
+    H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, ch_rows, NULL);
+    hid_t mspace1 = H5Screate_simple(2, ch_rows, NULL);
     T1 *data_out = new T1[N_particles_];
-    ds->read(data_out, ds_data_type, mspace1, dsp);
-    return data_out;
+    herr_t status = H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
+    if (status < 0) {
+      throw std::runtime_error("Error ReadScalarData: " + boost::lexical_cast<string>(status));
+    } else {
+      return data_out;
+    }
   }
 
-  H5::H5File *h5file_;
-  H5::Group *particle_group_;
-  H5::Group *atom_position_group_;
-  H5::Group *atom_force_group_;
-  H5::Group *atom_velocity_group_;
-  H5::Group *atom_id_group_;
+  template<typename T1>
+  void ReadStaticData(hid_t ds, hid_t ds_data_type, T1 &outbuf) {
+    herr_t status = H5Dread(
+        ds,
+        ds_data_type,
+        H5S_ALL,
+        H5S_ALL,
+        H5P_DEFAULT, outbuf);
+    if (status < 0) {
+      H5Eprint(H5E_DEFAULT, stderr);
+    }
+  }
 
-  H5::DataSet *ds_atom_position_;
-  H5::DataSet *ds_atom_force_;
-  H5::DataSet *ds_atom_velocity_;
-  H5::DataSet *ds_atom_id_;
+  void CheckError(hid_t hid, std::string error_message) {
+    if (hid < 0) {
+      //H5Eprint(H5E_DEFAULT, stderr);
+      throw std::runtime_error(error_message);
+    }
+  }
 
-  H5::DataSet *ds_time_;
-  H5::DataSet *ds_step_;
+  bool GroupExists(hid_t file_id, std::string path) {
+    H5G_stat_t info;
+    herr_t status = H5Gget_objinfo (file_id, path.c_str(), 0, &info);
+    if (status < 0)
+      return false;
+    return info.type == H5G_GROUP;
+  }
+
+  hid_t file_id_;
+  hid_t ds_atom_position_;
+  hid_t ds_atom_force_;
+  hid_t ds_atom_velocity_;
+  hid_t ds_atom_id_;
+  hid_t ds_edges_group_;
+
+  hid_t particle_group_;
+  hid_t atom_position_group_;
+  hid_t atom_force_group_;
+  hid_t atom_velocity_group_;
+  hid_t atom_id_group_;
+  hid_t edges_group_;
 
   int rank_;
 
   string fname_;
   bool first_frame_;
-  bool has_velocity_;
-  bool has_force_;
-  bool has_id_group_;
 
+  // Flags about datasets.
+  DatasetState has_velocity_;
+  DatasetState has_force_;
+  DatasetState has_id_group_;
+  DatasetState has_box_;
+
+  bool file_opened_;
+
+  // Current frame indicator.
   int idx_frame_;
+  int max_idx_frame_;
 
-  double *time_set_;
-  int *step_set_;
-
+  // Number of particles. This is static among time.
   int N_particles_;
-  int variables_;
-  hsize_t chunk_rows_[3];
+  //
+  int vec_components_;
+
+  // Box matrix.
+  matrix m;
 };
 
 }  // namespace csg

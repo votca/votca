@@ -19,10 +19,11 @@ if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
 This script implemtents the post update routine for
-the ramp Kirkwood-Buff corrections as described in:
-P. Ganguly, D. Mukherji, C. Junghans, N. F. A. van der Vegt,
-Kirkwood-Buff coarse-grained force fields for aqueous solutions,
-J. Chem. Theo. Comp., 8, 1802 (2012), doi:10.1021/ct3000958
+the integral Kirkwood-Buff corrections described in:
+T. E. de Oliveira, P. A. Netz, K. Kremer, C. Junghans, and D. Mukherji,
+C-IBI: Targeting cumulative coordination within an iterative protocol
+to derive coarse-grained models of (multi-component) complex fluids,
+J. Chem. Phys. (in press).
 
 Usage: ${0##*/}
 EOF
@@ -35,7 +36,7 @@ min=$(csg_get_interaction_property min)
 max=$(csg_get_interaction_property max)
 step=$(csg_get_interaction_property step)
 
-[[ $(csg_get_interaction_property bondtype) = "non-bonded" ]] || die "${0##*/}: kbibi correction only makes sense for non-bonded interactions!"
+[[ $(csg_get_interaction_property bondtype) = "non-bonded" ]] || die "${0##*/}: cibi correction only makes sense for non-bonded interactions!"
 
 # always calculate the kbint as there could be cross interaction changes
 # needs current rdf and target rdf
@@ -46,7 +47,7 @@ if [[ ! -f ${name}.dist.tgt ]]; then
   do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
 fi
 do_external calc kbint ${name}.dist.tgt ${name}.kbint.tgt
-if [[ $(csg_get_interaction_property inverse.post_update_options.kbibi.kbint_with_errors) = "yes" ]]; then
+if [[ $(csg_get_interaction_property inverse.post_update_options.cibi.kbint_with_errors) = "yes" ]]; then
   sim_prog="$(csg_get_property cg.inverse.program)"
   rdf_with_errors=$(csg_get_property cg.inverse.$sim_prog.rdf.with_errors)
   [[ ${rdf_with_errors} != "yes" ]] && die "${0##*/}: kb integrals with errors need cg.inverse.${sim_prog}.rdf.with_errors to be yes"
@@ -59,17 +60,19 @@ else
   do_external calc kbint ${name}.dist.new ${name}.kbint.new
 fi
 
-kbibi=( $(csg_get_interaction_property inverse.post_update_options.kbibi.do) )
-kbibi_nr=$(( ($step_nr - 1 ) % ${#kbibi[@]} ))
-if [[ ${kbibi[$kbibi_nr]} = 1 ]]; then
-   echo "Apply kbibi correction for interaction ${name}"
-   tmpfile=$(critical mktemp ${name}.kbibi.XXX)
-   do_external kbibi ramp_correction "${name}.kbint.tgt" "${name}.kbint.new" "${tmpfile}"
+cibi=( $(csg_get_interaction_property inverse.post_update_options.cibi.do) )
+cibi_nr=$(( ($step_nr - 1 ) % ${#cibi[@]} ))
+if [[ ${cibi[$cibi_nr]} = 1 ]]; then
+   echo "Apply cibi correction for interaction ${name}"
+   tmpfile=$(critical mktemp ${name}.cibi.XXX)
+   do_external table integrate --sphere --from left "${name}.dist.tgt" "${name}.dist.tgt.int"
+   do_external table integrate --sphere --from left "${name}.dist.new" "${name}.dist.new.int"
+   do_external update ibi_pot "${name}.dist.tgt.int" "${name}.dist.new.int" "${name}.pot.cur" "${tmpfile}"
    comment="$(get_table_comment ${tmpfile})"
-   tmpfile2=$(critical mktemp ${name}.kbibi.resample.XXX)
+   tmpfile2=$(critical mktemp ${name}.cibi.resample.XXX)
    critical csg_resample --in "${tmpfile}" --out "${tmpfile2}" --grid $min:$step:$max --comment "$comment"
    do_external table add "$1" "${tmpfile2}" "$2"
 else
-   echo "No kbibi correction for interaction ${name}"
+   echo "No cibi correction for interaction ${name}"
    do_external postupd dummy "$1" "$2"
 fi

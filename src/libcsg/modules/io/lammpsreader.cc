@@ -32,6 +32,7 @@ bool LAMMPSReader::ReadTopology(string file,  Topology &top)
    _fl.open(file.c_str());
     if(!_fl.is_open())
         throw std::ios_base::failure("Error on open topology file: " + file);
+   _fname=file;
 
    NextFrame(top);
 
@@ -45,6 +46,7 @@ bool LAMMPSReader::Open(const string &file)
     _fl.open(file.c_str());
     if(!_fl.is_open())
         throw std::ios_base::failure("Error on open trajectory file: " + file);
+    _fname=file;
     return true;
 }
 
@@ -169,13 +171,18 @@ void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
     for(int i=0; i<_natoms; ++i) {
         string s;
         getline(_fl, s);
+        if (_fl.eof())
+           throw std::runtime_error("Error: unexpected end of lammps file '" + _fname + "' only " + boost::lexical_cast<string>(i) + " atoms of " + boost::lexical_cast<string>(_natoms) + " read.");
 
         Tokenizer tok(s, " ");
         Tokenizer::iterator itok= tok.begin();
         vector<string> fields2;
         tok.ToVector(fields2);
 	// internal numbering begins with 0
-        Bead *b = top.getBead((boost::lexical_cast<int>(fields2[id]))-1);
+	int atom_id = boost::lexical_cast<int>(fields2[id]);
+	if (atom_id > _natoms)
+           throw std::runtime_error("Error: found atom with id "+ boost::lexical_cast<string>(atom_id) + " but only "+ boost::lexical_cast<string>(_natoms) + " atoms defined in header of file '" + _fname + "'");
+        Bead *b = top.getBead(atom_id-1);
         b->HasPos(pos);
         b->HasF(force);
         b->HasVel(vel);

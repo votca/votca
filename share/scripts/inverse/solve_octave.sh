@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,10 +27,9 @@ EOF
    exit 0
 fi
 
-[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
-
+[[ -z $1 || -z $2 || -z $3 ]] && die "${0##*/}: Missing arguments"
 # initialize & run the octave file
-cat_external solve octave | sed -e "s/\$name_out/$2/"  -e "s/\$name/$1/" > solve_$1.octave || die "${0##*/}: sed failed"
+cat_external solve octave | sed -e "s/\$name_out/$2/"  -e "s/\$name/$1/" -e "s/\$reg/$3/" > solve_$1.octave || die "${0##*/}: sed failed"
 
 octave="$(csg_get_property cg.inverse.imc.octave.bin)"
 [ -n "$(type -p $octave)" ] || die "${0##*/}: octave binary '$octave' not found"

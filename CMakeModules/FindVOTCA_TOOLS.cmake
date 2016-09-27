@@ -26,7 +26,7 @@ find_package(PkgConfig)
 pkg_check_modules(PC_VOTCA_TOOLS libvotca_tools)
 find_path(VOTCA_TOOLS_INCLUDE_DIR votca/tools/version.h HINTS ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
 
-find_path(VOTCA_TOOLS_HAS_SQLITE3 votca/tools/database.h HINTS ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
+find_path(VOTCA_TOOLS_HAS_SQLITE3 votca/tools/database.h HINTS ${VOTCA_TOOLS_INCLUDE_DIR} ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
 if (VOTCA_TOOLS_HAS_SQLITE3)
   #due to include <sqlite3.h> in database.h
   find_package(SQLITE3 REQUIRED)

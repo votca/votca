@@ -49,7 +49,7 @@ Allowed options:
 --max MAX             Replace all pot value bigger MAX by MAX 
 
 
-Possible types: non-bonded (=C12), bond, thermforce, C12, C6, CB, angle, dihedral
+Possible types: non-bonded (=C12), bond, C12, C6, CB, angle, dihedral
 
 Examples:
 * $progname --type bond table.in table_b0.xvg
@@ -129,9 +129,6 @@ elsif ( "$type" eq "dihedral" ){
   $fmt="%15.10e   %15.10e %15.10e\n";
   $begin=-180;
   $end=180;
-}
-elsif ( "$type" eq "thermforce" ){
-  $fmt="%15.10e   %15.10e %15.10e\n";
 }
 else{
   die "$progname: Unsupported type of interatction: $type -> go and implement it\n";

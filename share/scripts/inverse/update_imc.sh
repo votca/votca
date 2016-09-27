@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,11 +33,13 @@ do_external imc_stat $sim_prog
 imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
 imc_groups=$(remove_duplicate $imc_groups)
 [[ -z ${imc_groups} ]] && die "${0##*/}: No imc groups defined"
+reg="$(csg_get_interaction_property --all inverse.imc.reg)"
+[[ ${reg} != 0 && ${solver} != "numpy" ]] && die "${0##*/}: regularization factor is only implement for 'numpy' solver, yet"
 for group in $imc_groups; do
   # currently this is a hack! need to create combined array
   msg "solving linear equations for imc group '$group'"
   critical csg_imcrepack --in ${group} --out ${group}.packed
-  do_external imcsolver $solver ${group}.packed ${group}.packed.sol
+  do_external imcsolver $solver  ${group}.packed ${group}.packed.sol $reg
   critical csg_imcrepack --in ${group}.packed --unpack ${group}.packed.sol
 done
 

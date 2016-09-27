@@ -1,5 +1,20 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
+## Version 1.4-dev
+ * switch to c++-11
+ * dihedral support in csg_fmatch
+ * support for tabulated bond in >=gmx-5
+ * added full featured XMLTopologyReader
+ * added regularization for IMC
+ * changed neighborlist from std::list to std::vector
+ * added cibi method
+ * tools: added support for mkl as gsl replacement
+ * lots of reader bug fixes
+ * dropped support for gromacs-4 and clean up
+ * dropped multi_g_rdf script
+ * dropped thermforce iteration method
+ * moved h5md reader to hdf5 without c++ api
+
 ## Version 1.3.1 (released 19.08.16)
 * histogram: use floor() on bin value
 * calculator: fixed namespace

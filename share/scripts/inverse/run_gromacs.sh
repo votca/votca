@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -97,21 +97,15 @@ fi
 
 #support for older mdp file, cutoff-scheme = Verlet is default for Gromacs 5.0, but does not work with tabulated interactions
 #XXX is returned if cutoff-scheme is not in mdp file
-if [[ $(critical ${grompp[@]} -h 2>&1) = *"VERSION 5."[01]* && $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
+gmx_ver="$(critical ${grompp[@]} -h 2>&1)"
+if [[ ${gmx_ver} = *"VERSION 5."[01]* || ${gmx_ver} = *"version 2016"* ]] && [[ $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
   echo "cutoff-scheme = Group" >> $mdp
   msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
 fi
 
 if [[ ${CSG_MDRUN_STEPS} ]]; then
-  #mdrun <4.6 does not have -nsteps options, remove this block whenever we drop support for <4.6
-  if [[ $(critical ${grompp[@]} -h 2>&1) = *"VERSION 4."[05]* ]]; then
-    nsteps=$(get_simulation_setting nsteps)
-    critical sed -i "/^nsteps/s/=.*/=${CSG_MDRUN_STEPS}/" $mdp
-    msg --color blue --to-stderr "Replace nsteps (=$nsteps) in '$mdp' to be ${CSG_MDRUN_STEPS}"
-  else
-    msg --color blue --to-stderr "Appending -nsteps ${CSG_MDRUN_STEPS} to mdrun options"
-    mdrun_opts+=" -nsteps $CSG_MDRUN_STEPS"
-  fi
+  msg --color blue --to-stderr "Appending -nsteps ${CSG_MDRUN_STEPS} to mdrun options"
+  mdrun_opts+=" -nsteps $CSG_MDRUN_STEPS"
 fi
 
 #see can run grompp again as checksum of tpr does not appear in the checkpoint
@@ -130,6 +124,18 @@ if [[ -n $CSGENDING ]]; then
   mdrun_opts="-cpi $checkpoint -maxh $wall_h ${mdrun_opts}"
 else
   echo "${0##*/}: No walltime defined, so no time limitation given to $mdrun"
+fi
+
+#>gmx-5.1 has new handling of bonded tables, remove this block we drop support for gmx-5.0 
+if [[ ${gmx_ver} = *"VERSION 5.1"* || ${gmx_ver} = *"version 2016"* ]] && [[ ${mdrun_opts} != *tableb* ]]; then
+  tables=
+  for i in table_[abd][0-9]*.xvg; do
+    [[ -f $i ]] && tables+=" $i"
+  done
+  if [[ -n ${tables} ]]; then
+	  msg --color blue --to-stderr "Automatically added '-tableb${tables} to mdrun options (add -tableb option to cg.inverse.gromacs.mdrun.opts yourself if this is wrong)"
+    mdrun_opts+=" -tableb${tables}"
+  fi
 fi
 
 critical $mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts} ${CSG_RUNTEST:+-v} 2>&1 | gromacs_log "$mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts}"

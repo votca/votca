@@ -63,6 +63,7 @@ class LAMMPSReader :
         void ReadAtoms(Topology &top, string itemline);
   
         ifstream _fl;
+        string _fname;
         bool _topology;
         int _natoms;
 };

@@ -76,7 +76,7 @@ my $comments;
 (readin_table($infile,@r,@dpot,@flag,$comments)) || die "$progname: error at readin_table\n";
 
 my $zero=undef;
-if (( "$type" eq "non-bonded" ) or ("$type" eq "thermforce" )) {
+if ( "$type" eq "non-bonded" ) {
   $zero=$dpot[$#r];
 } 
 elsif (( "$type" eq "bond" ) or ("$type" eq "dihedral") or ("$type" eq "angle") or ("$type" eq "bonded")) {

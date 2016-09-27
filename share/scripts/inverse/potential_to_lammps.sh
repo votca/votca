@@ -94,10 +94,19 @@ fi
 
 comment="$(get_table_comment $input)"
 
+scale_factor=$(csg_get_interaction_property inverse.lammps.scale)
+
 if [[ $bondtype = "angle" || $bondtype = "dihedral" ]] && [[ $r2d != 1 ]]; then
   scale="$(critical mktemp ${trunc}.pot.scale.XXXXX)"
   do_external table linearop --on-x "${input}" "${scale}" "$r2d" "0"
   step=$(csg_calc $r2d "*" $step)
+elif [[ ${scale_factor} != 1 ]]; then
+  step=$(csg_calc ${scale_factor} "*" $step)
+  bin_size=$(csg_calc ${scale_factor} "*" $bin_size)
+  table_begin=$(csg_calc ${scale_factor} "*" ${table_begin})
+  r_cut=$(csg_calc ${scale_factor} "*" ${r_cut})
+  scale="$(critical mktemp ${trunc}.pot.scale.XXXXX)"
+  do_external table linearop --on-x "${input}" "${scale}" "${scale_factor}" "0"
 else
   scale="${input}"
 fi

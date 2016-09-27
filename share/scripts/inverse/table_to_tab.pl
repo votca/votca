@@ -104,10 +104,26 @@ if ($sim_prog eq "espresso") {
     printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i],($r[$i]>0)?-$pot_deriv[$i]/$r[$i]:-$pot_deriv[$i], $pot[$i]);
   }
 } elsif ($sim_prog eq "lammps") {
-  printf(OUTFILE "VOTCA\n");
-  printf(OUTFILE "N %i R %f %f\n\n",$#r+1,$r[0],$r[$#r]);
-  for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], -$pot_deriv[$i]);
+  if ($type eq "non-bonded"){
+      printf(OUTFILE "VOTCA\n");
+      printf(OUTFILE "N %i R %f %f\n\n",$#r+1,$r[0],$r[$#r]);
+      for(my $i=0;$i<=$#r;$i++){
+        printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], -$pot_deriv[$i]);
+      }
+  } elsif ( $type eq "bond" ) {
+    printf(OUTFILE "VOTCA\n");
+    printf(OUTFILE "N %i\n\n",$#r+1);
+    for(my $i=0;$i<=$#r;$i++){
+      printf(OUTFILE "%i %12.5e %15.7e %15.7e\n",$i+1,$r[$i],$pot[$i],-$pot_deriv[$i]*$r[$i]);
+    }
+  } elsif ( $type eq "angle" ||  $type eq "dihedral" ) {
+    printf(OUTFILE "VOTCA\n");
+    printf(OUTFILE "N %i\n\n",$#r+1);
+    my $RadToDegree=180/3.14159265359;
+    for(my $i=0;$i<=$#r;$i++){
+      #rad -> degree: $r[$i]*$RadToDegree, and $pot_deriv[$i]/$RadToDegree
+      printf(OUTFILE "%i %12.5e %15.7e %15.7e\n",$i+1,$r[$i]*$RadToDegree, $pot[$i], -$pot_deriv[$i]/$RadToDegree);
+    }
   }
 } elsif ($sim_prog eq "dlpoly") {
   if ($type eq "non-bonded"){
