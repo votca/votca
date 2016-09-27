@@ -184,7 +184,7 @@ bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<
     return status;
 }
 
-bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V)
+bool linalg_eigenvalues_general(const ub::matrix<double> &A, const ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V)
 {
 	gsl_error_handler_t *handler = gsl_set_error_handler_off();
 	const size_t N = A.size1();
@@ -236,7 +236,7 @@ bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub
   
         }
     
-	return (status != 0);
+	return (status == 0);
 };
 
 }}

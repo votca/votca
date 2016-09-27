@@ -15,25 +15,23 @@
  *
  */
 
-#include <votca/tools/version.h>
-#include <votca/tools/votca_config.h>
+#ifndef __VOTCA_TOOLS_VOTCA_CONFIG_H
+#define __VOTCA_TOOLS_VOTCA_CONFIG_H
 
-extern "C" {
-   void VotcaToolsFromC(){
-     //do nothing - this just that we have a c function for autotools
-   }
-}
+/* Compile without fftw and disable CrossCorrelate class */
+#cmakedefine NOFFTW
 
-namespace votca { namespace tools {
+/* OpenMP */
 
-//defines gitversion
-#include "gitversion.h"
-static const std::string version_str = std::string(TOOLS_VERSION) + " " + gitversion + " (compiled " __DATE__ ", " __TIME__ ")";
+#if defined(_OPENMP)
+   #include <omp.h>
+#endif
 
-const std::string &ToolsVersionStr()
-{
-    return version_str;
-}
+/* Linear algebra packages */
+#cmakedefine MKL
+#cmakedefine GSL
 
-}}
+/* Version number of package */
+#define TOOLS_VERSION "@PROJECT_VERSION@"
 
+#endif // __VOTCA_TOOLS_VOTCA_CONFIG_H

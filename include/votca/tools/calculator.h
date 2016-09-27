@@ -90,7 +90,7 @@ public:
      * a default value exists in the corresponding XML file in VOTCASHARE
      * a tag is created and/or a default value is assigned to it
      */    
-    void UpdateWithDefaults(votca::tools::Property *options);
+    void UpdateWithDefaults(votca::tools::Property *options,std::string package="tools");
     
 protected:
 
@@ -104,7 +104,7 @@ protected:
 inline void Calculator::LoadDefaults() {
 }
 
-inline void Calculator::UpdateWithDefaults(votca::tools::Property *options) {
+inline void Calculator::UpdateWithDefaults(votca::tools::Property *options, std::string package) {
     
     // copy options from the object supplied by the Application
     std::string id = Identify();
@@ -114,8 +114,8 @@ inline void Calculator::UpdateWithDefaults(votca::tools::Property *options) {
     char *votca_share = getenv("VOTCASHARE");
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");       
     // load the xml description of the calculator (with defaults and test values)
-    std::string xmlFile = std::string(getenv("VOTCASHARE")) 
-            + std::string("/tools/xml/") + id + std::string(".xml");
+    std::string xmlFile = std::string(getenv("VOTCASHARE"))+std::string("/")
+            +package +std::string("/xml/") + id + std::string(".xml");
     
     votca::tools::Property defaults, _defaults;
     votca::tools::load_property_from_xml(_defaults, xmlFile);

@@ -44,6 +44,23 @@ void linalg_cholesky_decompose( ub::matrix<double> &A){
 }
 
 
+void linalg_cholesky_decompose( ub::matrix<float> &A){
+    // Cholesky decomposition using MKL
+    // input matrix A will be changed
+
+    // LAPACK variables
+    MKL_INT info;
+    MKL_INT n = A.size1();
+    char uplo = 'L';
+    
+    // pointer for LAPACK
+    float * pA = const_cast<float*>(&A.data().begin()[0]);
+    info = LAPACKE_spotrf( LAPACK_ROW_MAJOR , uplo , n, pA, n );
+    if ( info != 0 )
+        throw std::runtime_error("Matrix not symmetric positive definite");
+}
+
+
 
 
 void linalg_cholesky_solve( ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b ){

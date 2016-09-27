@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="90">
+<configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -7,7 +7,9 @@
       <itemPath>../../include/votca/tools/akimaspline.h</itemPath>
       <itemPath>../../include/votca/tools/application.h</itemPath>
       <itemPath>../../include/votca/tools/average.h</itemPath>
+      <itemPath>../../include/votca/tools/calculator.h</itemPath>
       <itemPath>../../include/votca/tools/colors.h</itemPath>
+      <itemPath>../../include/votca/tools/constants.h</itemPath>
       <itemPath>../../include/votca/tools/correlate.h</itemPath>
       <itemPath>../../include/votca/tools/crosscorrelate.h</itemPath>
       <itemPath>../../include/votca/tools/cubicspline.h</itemPath>
@@ -15,19 +17,16 @@
       <itemPath>../../include/votca/tools/datacollection.h</itemPath>
       <itemPath>../../include/votca/tools/getline.h</itemPath>
       <itemPath>../../include/votca/tools/globals.h</itemPath>
-      <itemPath>../../../ctp/include/votca/ctp/gsl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/tools/histogram.h</itemPath>
       <itemPath>../../include/votca/tools/histogramnew.h</itemPath>
       <itemPath>../../include/votca/tools/lexical_cast.h</itemPath>
       <itemPath>../../include/votca/tools/linalg.h</itemPath>
       <itemPath>../../include/votca/tools/linspline.h</itemPath>
       <itemPath>../../include/votca/tools/matrix.h</itemPath>
-      <itemPath>../../../ctp/include/votca/ctp/mkl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/tools/mutex.h</itemPath>
       <itemPath>../../include/votca/tools/objectfactory.h</itemPath>
       <itemPath>../../include/votca/tools/parsexml.h</itemPath>
       <itemPath>../../include/votca/tools/property.h</itemPath>
-      <itemPath>../../include/votca/tools/propertyformat.h</itemPath>
       <itemPath>../../include/votca/tools/random.h</itemPath>
       <itemPath>../../include/votca/tools/rangeparser.h</itemPath>
       <itemPath>../../include/votca/tools/spline.h</itemPath>
@@ -38,8 +37,17 @@
       <itemPath>../../include/votca/tools/types.h</itemPath>
       <itemPath>../../include/votca/tools/vec.h</itemPath>
       <itemPath>../../include/votca/tools/version.h</itemPath>
+      <itemPath>../../include/votca/tools/votca_config.h.in</itemPath>
+      <itemPath>../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h</itemPath>
     </logicalFolder>
     <logicalFolder name="f1" displayName="Linalg" projectFiles="true">
+      <logicalFolder name="f3" displayName="Dummy" projectFiles="true">
+        <itemPath>../../src/libtools/linalg/dummy/cholesky.cc</itemPath>
+        <itemPath>../../src/libtools/linalg/dummy/eigensystems.cc</itemPath>
+        <itemPath>../../src/libtools/linalg/dummy/invert.cc</itemPath>
+        <itemPath>../../src/libtools/linalg/dummy/qrsolve.cc</itemPath>
+        <itemPath>../../src/libtools/linalg/dummy/svd.cc</itemPath>
+      </logicalFolder>
       <logicalFolder name="f2" displayName="GSL" projectFiles="true">
         <itemPath>../../src/libtools/linalg/gsl/cholesky.cc</itemPath>
         <itemPath>../../src/libtools/linalg/gsl/eigensystems.cc</itemPath>
@@ -54,6 +62,7 @@
         <itemPath>../../src/libtools/linalg/mkl/qrsolve.cc</itemPath>
         <itemPath>../../src/libtools/linalg/mkl/svd.cc</itemPath>
       </logicalFolder>
+      <itemPath>../../src/libtools/linalg.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -69,9 +78,9 @@
       <itemPath>../../src/libtools/cubicspline.cc</itemPath>
       <itemPath>../../src/libtools/database.cc</itemPath>
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
+      <itemPath>../../src/libtools/globals.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/histogramnew.cc</itemPath>
-      <itemPath>../../src/libtools/linalg.cc</itemPath>
       <itemPath>../../src/libtools/linspline.cc</itemPath>
       <itemPath>../../src/libtools/matrix.cc</itemPath>
       <itemPath>../../src/libtools/mutex.cc</itemPath>
@@ -84,6 +93,7 @@
       <itemPath>../../src/libtools/statement.cc</itemPath>
       <itemPath>../../src/libtools/table.cc</itemPath>
       <itemPath>../../src/libtools/thread.cc</itemPath>
+      <itemPath>../../src/libtools/version.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -127,16 +137,6 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../../ctp/include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../ctp/include/votca/ctp/mkl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/akimaspline.h"
             ex="false"
             tool="3"
@@ -152,7 +152,17 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/calculator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/constants.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/tools/correlate.h"
             ex="false"
@@ -230,11 +240,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/propertyformat.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/random.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/rangeparser.h"
@@ -267,6 +272,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/votca_config.h.in"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/akimaspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
@@ -287,11 +302,38 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/linalg.cc" ex="true" tool="0" flavor2="0">
+      <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/cholesky.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/eigensystems.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/invert.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/qrsolve.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/svd.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libtools/linalg/gsl/cholesky.cc"
             ex="false"
@@ -366,6 +408,8 @@
       <item path="../../src/libtools/table.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/thread.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="3">
@@ -395,16 +439,6 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../../ctp/include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../ctp/include/votca/ctp/mkl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/akimaspline.h"
             ex="false"
             tool="3"
@@ -420,7 +454,17 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/calculator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/constants.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/tools/correlate.h"
             ex="false"
@@ -498,11 +542,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/propertyformat.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/random.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/rangeparser.h"
@@ -535,6 +574,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/votca_config.h.in"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/akimaspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
@@ -555,9 +604,38 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/cholesky.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/eigensystems.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/invert.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/qrsolve.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/svd.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libtools/linalg/gsl/cholesky.cc"
             ex="false"
@@ -632,6 +710,8 @@
       <item path="../../src/libtools/table.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/thread.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="profile_release" type="3">
@@ -661,16 +741,6 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../../ctp/include/votca/ctp/gsl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../ctp/include/votca/ctp/mkl_boost_ublas_matrix_prod.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/akimaspline.h"
             ex="false"
             tool="3"
@@ -686,7 +756,17 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/calculator.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/colors.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/constants.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/tools/correlate.h"
             ex="false"
@@ -764,11 +844,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/propertyformat.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/random.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/rangeparser.h"
@@ -801,6 +876,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/votca_config.h.in"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libtools/akimaspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
@@ -821,9 +906,38 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/cholesky.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/eigensystems.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/invert.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/qrsolve.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg/dummy/svd.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libtools/linalg/gsl/cholesky.cc"
             ex="false"
@@ -898,6 +1012,8 @@
       <item path="../../src/libtools/table.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/thread.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

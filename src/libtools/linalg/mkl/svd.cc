@@ -25,11 +25,46 @@ namespace votca { namespace tools {
 
 using namespace std;
 
+/**
+ * ublas binding to MKL  Singular Value Decomposition
+ * 
+ * A = U S V^T
+ * 
+ * @param A MxN matrix do decompose. Becomes an MxN orthogonal matrix U
+ * @param V NxN orthogonal square matrix
+ * @param S N vector of non-negative numbers forming a non-increasing sequence
+ * @return succeeded or not 
+ */
 
-bool linalg_singular_value_decomposition( ub::matrix<double> &A, ub::matrix<double> &V, ub::vector<double> &S ){
+
+bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<double> &VT, ub::vector<double> &S ){
         // matrix inversion using MKL
-    throw std::runtime_error("linalg_singular_value_decomposition is not compiled-in due to disabling of GSL - recompile Votca Tools with GSLsupport");
-    return false;
+    
+    
+    
+    // define LAPACK variables
+    MKL_INT m = A.size1();
+    MKL_INT n = A.size2();
+    
+    if (m>n){
+        throw runtime_error("Matrix for svd has the wrong shape first dimension must be equal or larger than second.");
+    }
+    //MKL_INT info;
+    //MKL_INT ipiv[n];
+    ub::matrix<double>work=ub::zero_matrix<double>(m,n);
+    // initialize V
+    S.resize(n, false);
+    VT.resize(n, n, false);
+    
+    // pointers for LAPACK
+    double * a = const_cast<double*>(&A.data().begin()[0]);
+    double * s = const_cast<double*>(&S.data().begin()[0]);
+    double * vt = const_cast<double*>(&VT.data().begin()[0]);   
+    double * superb = const_cast<double*>(&work.data().begin()[0]);
+    // solve
+    int status= LAPACKE_dgesvd( LAPACK_ROW_MAJOR, 'O', 'A',  m,  n,  a, n,  s,  NULL,m,  vt, n, superb );
+    return (status != 0);
+    
 }
 
 }}

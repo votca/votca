@@ -69,7 +69,7 @@ void matrix::RandomRotation()
 int cjcbi(matrix &a, matrix &v, double eps, int jt)
 { 
     int n=3;
-    int i,j,p,q,l;
+    int i,j,p=-1,q=-1,l;
     double fm,cn,sn,omega,x,y,d;
     l=1;
     

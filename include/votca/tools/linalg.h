@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,12 @@
 
 #ifndef __VOTCA_TOOLS_LINALG_H
 #define	__VOTCA_TOOLS_LINALG_H
+#include <votca/tools/votca_config.h>
+#if defined(GSL)
+    #include "votca_gsl_boost_ublas_matrix_prod.h"
+#elif defined(MKL)
+    #include "mkl_boost_ublas_matrix_prod.hpp"
+#endif
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
@@ -33,7 +39,7 @@ namespace votca { namespace tools {
      * This function wraps the inversion of a matrix
      */
     void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V );
-
+    void linalg_invert( ub::matrix<float> &A, ub::matrix<float> &V );
  
     /**
      * \brief determines Cholesky decomposition of matrix A
@@ -42,7 +48,7 @@ namespace votca { namespace tools {
      * This function wraps the Cholesky decomposition
      */
     void linalg_cholesky_decompose( ub::matrix<double> &A );
-    
+    void linalg_cholesky_decompose( ub::matrix<float> &A );
     /**
      * \brief solves A*x=b
      * @param x storage for x
@@ -152,13 +158,83 @@ namespace votca { namespace tools {
      * @param B input: overlap matrix
      * @param V output: eigenvectors      
      * 
+     * This function wrapps gsl_eigen_gensymmv / dsygv
+     * 
+     */
+    bool linalg_eigenvalues_general(const ub::matrix<double> &A,const ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V);
+    /**
+     * \brief computes Singular value decomposition A = U S V^T double precision
+     * @param S vector of singular values
+     * @param A input: matrix for SVD, is oerwritten with U
+     * @param B input: overlap matrix
+     * @param V output: eigenvectors      
+     * 
      * This function wrapps eigen_gensymmv / dsygv
      * 
      */
-    bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V);
+   bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<double> &VT, ub::vector<double> &S );
+    
+   /**
+     * \brief inverts A via svd
+     * @param A symmetric positive definite matrix
+     * @param V inverse matrix
+     * @param lower limit of condition number of the matrix, singular values below that will be set to zero
+     * This function wraps the inversion of a matrix via svd
+     */
+   int linalg_invert_svd(ub::matrix<double> &A, ub::matrix<double> &V,double limitCN);
+   
+   /**
+     * \brief calculates loewdin transformation of matrices
+     * @param J matrix to transform, returns transformed matrix
+     * @param S, overlap matrix, returns S-1/2
+     * @param returns smallest eigenvalue of S
+     * This function calculates the loewdin transformation of a matrix
+     */
+   double linalg_loewdin(ub::matrix<double> &J, ub::matrix<double> &S);
+/**
+     * \brief calculates matrix sqrt of a matrix
+     * @param matrix to calculate sqrt of S, return S1/2
+   
+     * This function calculates the sqrt of a matrix
+     */
+   int linalg_matrixsqrt(ub::matrix<double> &S);
+   /**
+     * \brief returns the the element with the largest absolute value of a matrix
+     * @param matrix to find largest value of
+   
+     * returns the the element with the largest absolute value of a matrix
+     */
+   
+   
+   double linalg_getMax( const ub::matrix<double>& _matrix );
+   /**
+    *  * \brief returns the rms value of a matrix
+     * @param matrix to find  rms value of
+   
+     * returns the rms value of a matrix
+     */
+   double linalg_getRMS(const ub::matrix<double>& _matrix );
+   
+   /**
+    * \brief returns Tr(A*B)
+    * @param A, first matrix
+    * * @param B, second matrix
+     * @param returns smallest eigenvalue of S
+     * @param Trace of the product of two matrices
+    
+     * returns the the Trace of the product of two matrices
+     */
+   double linalg_traceofProd(const ub::matrix<double>& A,const ub::matrix<double>& B );
+   
+    /**
+    * \brief solves A*x=b
+    * @param A, first matrix
+    * * @param b,  inhomogenity, destroyed and contains the x afterwards
     
     
-    
+     * returns the the solves A*x=b for a matrix of b.
+     */
+   bool linalg_solve(const ub::matrix<double> &A, ub::vector<double> &b);
 }}
 
 
