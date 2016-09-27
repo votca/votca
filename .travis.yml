@@ -57,7 +57,7 @@ before_script:
 
 script:
   - mkdir build && cd build && 
-    cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=$HOME/votca .. &&
+    cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=$HOME/votca .. &&
     make -j4 && make install
 
 cache:
