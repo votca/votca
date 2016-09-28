@@ -104,6 +104,20 @@ public:
             int offset1, int offset2=0, double scale=1);
 
     /**
+     * \brief Add a point (one entry) to fitting matrix
+     * \param pointer to matrix
+     * \param value x
+     * \param offsets relative to getInterval(x)
+     * \param scale1 parameters for terms "A,B,C,D"
+     * \param scale2 parameters for terms "AA,BB,CC,DD"
+     * When creating a matrix to fit data with a spline, this function creates
+     * one entry in that fitting matrix.
+    */
+    template<typename matrix_type>
+    void AddToFitMatrix(matrix_type &A, double x,
+            int offset1, int offset2, double scale1, double scale2);    
+    
+    /**
      * \brief Add a vector of points to fitting matrix
      * \param pointer to matrix
      * \param vector of x values
@@ -141,6 +155,12 @@ protected:
     double B(const double &r);
     double C(const double &r);
     double D(const double &r);
+    
+    //antiderivatives of A(r), B(r), C(r) and D(r) needed for threebody interactions
+    double AA(const double &r);
+    double BB(const double &r);
+    double CC(const double &r);
+    double DD(const double &r);
 
     double Aprime(const double &r);
     double Bprime(const double &r);
@@ -185,6 +205,23 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x,
     M(offset1, offset2 + spi+1) += B(x)*scale;
     M(offset1, offset2 + spi + _r.size()) += C(x)*scale;
     M(offset1, offset2 + spi + _r.size() + 1) += D(x)*scale;
+}
+
+//for adding f(x)*scale1 + F(x)*scale2
+template<typename matrix_type>
+inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, 
+            int offset1, int offset2, double scale1, double scale2)
+{
+    int spi = getInterval(x);
+    M(offset1, offset2 + spi) += A(x)*scale1;
+    M(offset1, offset2 + spi+1) += B(x)*scale1;
+    M(offset1, offset2 + spi + _r.size()) += C(x)*scale1;
+    M(offset1, offset2 + spi + _r.size() + 1) += D(x)*scale1;
+    
+    M(offset1, offset2 + spi) += AA(x)*scale2;
+    M(offset1, offset2 + spi+1) += BB(x)*scale2;
+    M(offset1, offset2 + spi + _r.size()) += CC(x)*scale2;
+    M(offset1, offset2 + spi + _r.size() + 1) += DD(x)*scale2;
 }
 
 template<typename matrix_type, typename vector_type>
@@ -261,6 +298,11 @@ inline double CubicSpline::A(const double &r)
     return ( 1.0 - (r -_r[getInterval(r)])/(_r[getInterval(r)+1]-_r[getInterval(r)]) );
 }
 
+inline double CubicSpline::AA(const double &r)
+{
+    return ( r - ( 0.5*(r -_r[getInterval(r)])*(r -_r[getInterval(r)]) )/(_r[getInterval(r)+1]-_r[getInterval(r)]) );
+}
+
 inline double CubicSpline::Aprime(const double &r)
 {
     return  -1.0/(_r[getInterval(r)+1]-_r[getInterval(r)]);
@@ -269,6 +311,11 @@ inline double CubicSpline::Aprime(const double &r)
 inline double CubicSpline::B(const double &r)
 {
     return  (r -_r[getInterval(r)])/(_r[getInterval(r)+1]-_r[getInterval(r)]) ;
+}
+
+inline double CubicSpline::BB(const double &r)
+{
+    return  ( 0.5*(r -_r[getInterval(r)])*(r -_r[getInterval(r)]) )/(_r[getInterval(r)+1]-_r[getInterval(r)]) ;
 }
 
 inline double CubicSpline::Bprime(const double &r)
@@ -284,6 +331,16 @@ inline double CubicSpline::C(const double &r)
     
     return ( 0.5*xxi*xxi - (1.0/6.0)*xxi*xxi*xxi/h - (1.0/3.0)*xxi*h) ;
 }
+
+inline double CubicSpline::CC(const double &r)
+{
+    double xxi, h;
+    xxi = r -_r[getInterval(r)];
+    h   = _r[getInterval(r)+1]-_r[getInterval(r)];
+    
+    return ( (1.0/6.0)*xxi*xxi*xxi - (1.0/24.0)*xxi*xxi*xxi*xxi/h - (1.0/6.0)*xxi*xxi*h) ;
+}
+
 inline double CubicSpline::Cprime(const double &r)
 {
     double xxi, h;
@@ -292,6 +349,7 @@ inline double CubicSpline::Cprime(const double &r)
 
     return (xxi - 0.5*xxi*xxi/h - h/3);
 }
+
 inline double CubicSpline::D(const double &r)
 {
     double xxi, h;
@@ -300,6 +358,16 @@ inline double CubicSpline::D(const double &r)
     
     return ( (1.0/6.0)*xxi*xxi*xxi/h - (1.0/6.0)*xxi*h ) ;
 }
+
+inline double CubicSpline::DD(const double &r)
+{
+    double xxi, h;
+    xxi = r -_r[getInterval(r)];
+    h   = _r[getInterval(r)+1]-_r[getInterval(r)]; 
+    
+    return ( (1.0/24.0)*xxi*xxi*xxi*xxi/h - (1.0/12.0)*xxi*xxi*h ) ;
+}
+
 inline double CubicSpline::Dprime(const double &r)
 {
     double xxi, h;
