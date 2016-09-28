@@ -62,12 +62,19 @@ inline void TripleList<element_type, triple_type>::AddTriple(triple_type *t)
     //experimental: be careful, if same triple object is used, some values might change (e.g. sign of distance vectors)
     //(*t)[i] gives access to ith element of tuple object (i=0,1,2).
     //there are 6 possible permutations of e1,e2,e3 -> still the same triple of elements
-    _triple_map[ (*t)[0] ][ (*t)[1] ][ (*t)[2] ] = t;
+    /*_triple_map[ (*t)[0] ][ (*t)[1] ][ (*t)[2] ] = t;
     _triple_map[ (*t)[0] ][ (*t)[2] ][ (*t)[1] ] = t;
     _triple_map[ (*t)[1] ][ (*t)[0] ][ (*t)[2] ] = t;
     _triple_map[ (*t)[1] ][ (*t)[2] ][ (*t)[0] ] = t;
     _triple_map[ (*t)[2] ][ (*t)[0] ][ (*t)[1] ] = t;
-    _triple_map[ (*t)[2] ][ (*t)[1] ][ (*t)[0] ] = t;
+    _triple_map[ (*t)[2] ][ (*t)[1] ][ (*t)[0] ] = t;*/
+    
+    //experimental: be careful, if same triple object is used, some values might change (e.g. sign of distance vectors)
+    //(*t)[i] gives access to ith element of tuple object (i=0,1,2).
+    //only consider the permutations of elements (1,2) of the tuple object -> 
+    //tuple objects of the form (*,1,2) and (*,2,1) are considered to be the same    
+    _triple_map[ std::get<0>(*t) ][ std::get<1>(*t) ][ std::get<2>(*t) ] = t;
+    _triple_map[ std::get<0>(*t) ][ std::get<2>(*t) ][ std::get<1>(*t) ] = t;  
      /// \todo check if unique    
     _triples.push_back(t);    
 }

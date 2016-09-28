@@ -69,6 +69,12 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
     _nbeads = top->BeadCount();
     // Set frame counter to zero
     _frame_counter = 0;
+    
+    //test
+    /*std::tuple<int, int, int> *test(1,2,3);
+    std::cout << "test[0]: " << std::get<0>(*test) << std::endl;
+    std::cout << "test[1]: " << std::get<1>(*test) << std::endl;
+    std::cout << "test[2]: " << std::get<2>(*test) << std::endl;*/
 
     // accuracy for evaluating the difference in bead positions (default 1e-5)
     _dist = 1e-5;
@@ -103,8 +109,12 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
             iter != _nonbonded.end(); ++iter) {
         SplineInfo *i = new SplineInfo(_splines.size(), false, _col_cntr, *iter);
         //adjust initial matrix dimensions:
+        //number of constraints/restraints
         _line_cntr += i->num_gridpoints;
+        //number of coefficients
         _col_cntr += 2 * i->num_gridpoints;
+        
+        //preliminary: use also spline functions for the threebody interaction. So far only angular interaction implemented
 
         // add spline to container
         _splines.push_back(i);
@@ -175,13 +185,43 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
     _options = options;
     splineName = options->get("name").value();
     bonded = bonded_;
-    //in general natural boundary conditions are used for splines
+    //in general natural boundary conditions are used for splines (default is no)
     periodic = 0;
+    //check if non-bonded 3-body interaction or not (default is no)
+    threebody = 0;
+    //initialize additional parameters for threebody interactions
+    //(values of Molinero water potential)
+    a = 0.37; //(0.37 nm)
+    sigma = 1; //(dimensionless)
+    gamma = 0.12; //(0.12 nm = 1.2 Ang)
 
     // get non-bonded information
     if (!bonded) {
-        type1 = options->get("type1").value();
-        type2 = options->get("type2").value(); 
+        //check if option threebody exists
+        if (options->exists("threebody")) {
+            threebody = options->get("threebody").as<bool>();            
+        }                
+        //check if threebody interaction or not
+        if (threebody){
+            type1 = options->get("type1").value();
+            type2 = options->get("type2").value();
+            type3 = options->get("type3").value();
+            //read in additional parameters for threebody interactions
+            if (options->exists("fmatch.a")) {
+                a = options->get("fmatch.a").as<double>();            
+            }            
+            if (options->exists("fmatch.sigma")) {
+                sigma = options->get("fmatch.sigma").as<bool>();            
+            }                        
+            if (options->exists("fmatch.gamma")) {
+                gamma = options->get("fmatch.gamma").as<bool>();            
+            }                        
+        }
+        //if not threebody only read in the two bead types
+        if (!threebody){
+            type1 = options->get("type1").value();
+            type2 = options->get("type2").value();             
+        }        
     }
     if (bonded) {
         //check if option periodic exists
@@ -309,7 +349,13 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
         if (sinfo->bonded) // bonded interaction
             EvalBonded(conf, sinfo);
         else // non-bonded interaction
-            EvalNonbonded(conf, sinfo);
+            //check if threebody interaction or not
+            if (sinfo->threebody){
+                EvalNonbonded_Threebody(conf, sinfo);
+            }
+            else{
+                EvalNonbonded(conf, sinfo);
+            }
     }
     
     // loop for the forces vector: 
@@ -491,23 +537,23 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo)
 
 void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) 
 {
+
     // generate the neighbour list
-            // generate the neighbour list
-        NBList *nb;
+    NBList *nb;
 
-        bool gridsearch=false;
+    bool gridsearch=false;
 
-        if(_options.exists("cg.nbsearch")) {
-            if(_options.get("cg.nbsearch").as<string>() == "grid")
-                gridsearch=true;
-            else if(_options.get("cg.nbsearch").as<string>() == "simple")
-                gridsearch=false;
-            else throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
-        }
-        if(gridsearch)
-            nb = new NBListGrid();
-        else
-            nb = new NBList();
+    if(_options.exists("cg.nbsearch")) {
+        if(_options.get("cg.nbsearch").as<string>() == "grid")
+            gridsearch=true;
+        else if(_options.get("cg.nbsearch").as<string>() == "simple")
+            gridsearch=false;
+        else throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
+    }
+    if(gridsearch)
+        nb = new NBListGrid();
+    else
+        nb = new NBList();
 
     nb->setCutoff(sinfo->_options->get("fmatch.max").as<double>()); // implement different cutoffs for different interactions!
 
@@ -552,4 +598,126 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo)
                 _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + jatom, mpos, -gradient.z());
     }
     delete nb;
+}
+
+void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo) 
+{
+    //so far option gridsearch ignored. Only simple search
+
+    // generate the neighbour list
+    std::cout << "a: " << sinfo->a << std::endl;
+    NBList_3Body *nb;   
+    
+    nb = new NBList_3Body();        
+    
+    nb->setCutoff(sinfo->a); // implement different cutoffs for different interactions!
+    //Here, a is the distance between two beads of a triple, where the 3-body interaction is zero
+    
+    // generate the bead lists
+    BeadList beads1, beads2, beads3;
+    beads1.Generate(*conf, sinfo->type1);
+    beads2.Generate(*conf, sinfo->type2);
+    beads3.Generate(*conf, sinfo->type3);
+    
+    //check if type1 and type2 are the same
+    if (sinfo->type1 == sinfo->type2){
+        //if all three types are the same
+        if (sinfo->type2 == sinfo->type3)
+            nb->Generate(beads1, true);            
+        //if type2 and type3 are different, use the Generate function for 2 bead types
+        else
+            nb->Generate(beads1, beads3, true); 
+    }
+    //if type1 != type2
+    if (sinfo->type1 != sinfo->type2){
+        //if the last two types are the same, use Generate function with them as the first two bead types
+        //Neighborlist_3body is constructed in a way that the two equal bead types have two be the first 2 types
+        if (sinfo->type2 == sinfo->type3){            
+            nb->Generate(beads2, beads1, true);         
+        }
+        if (sinfo->type2 != sinfo->type3){
+            //type1 = type3 !=type2
+            if (sinfo->type1 == sinfo->type3){
+                nb->Generate(beads1, beads2, true);
+            }
+            //type1 != type2 != type3
+            if (sinfo->type1 != sinfo->type3){
+                nb->Generate(beads1, beads2, beads3, true);
+            }
+        }
+    }
+    
+    NBList_3Body::iterator triple_iter;
+    // iterate over all triples
+    for (triple_iter = nb->begin(); triple_iter != nb->end(); ++triple_iter){
+        int iatom = (*triple_iter)->bead1()->getId();
+        int jatom = (*triple_iter)->bead2()->getId();
+        int katom = (*triple_iter)->bead3()->getId();
+        double distij = (*triple_iter)->dist12();
+        double distik = (*triple_iter)->dist13();        
+        vec rij  = (*triple_iter)->r12();
+        vec rik  = (*triple_iter)->r13();
+        std::cout << "rij: " << rij << std::endl;
+        std::cout << "rik: " << rik << std::endl;
+        
+        double gamma_sigma = (sinfo->gamma)*(sinfo->sigma);
+        double denomij = (distij-(sinfo->a)*(sinfo->sigma));
+        double denomik = (distik-(sinfo->a)*(sinfo->sigma));
+        double expij = exp(gamma_sigma/denomij);
+        double expik = exp(gamma_sigma/denomik);
+        
+        vec gradient1,gradient2;
+        
+        CubicSpline &SP = sinfo->Spline;
+
+        int &mpos = sinfo->matr_pos;
+        
+        double var = acos(rij*rik/sqrt((rij*rij) * (rik*rik)));
+        
+        double acos_prime = 1.0 / (sqrt(1 - (rij*rik) * (rij*rik)/( distij * distik * distij * distik ) ));
+        
+        //evaluate gradient1 and gradient2 for iatom:        
+        //gradient1 = (-grad_i theta) * exp()*exp()
+        gradient1 = acos_prime * ( (rij+rik)/(distij * distik) - (rij * rik) * ((rik*rik) * rij + (rij*rij) * rik ) / ( distij*distij*distij*distik*distik*distik ) ) * expij*expik;
+        //gradient2
+        gradient2 = ( (rij/distij)*( gamma_sigma/(denomij*denomij) )+ (rik/distik)*( gamma_sigma/(denomik*denomik) ) )*(-1)*expij*expik;      
+        
+        // add iatom
+        SP.AddToFitMatrix(_A, var,
+                _least_sq_offset + 3 * _nbeads * _frame_counter + iatom, mpos, gradient1.x(), gradient2.x());
+        SP.AddToFitMatrix(_A, var,
+                _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + iatom, mpos, gradient1.y(), gradient2.y());
+        SP.AddToFitMatrix(_A, var,
+                _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom, mpos, gradient1.z(), gradient2.z());
+        
+        //evaluate gradient1 and gradient2 for jatom:        
+        //gradient1 = (-grad_i theta) * exp()*exp()
+        gradient1 = acos_prime * (-rik / ( denomij*denomik ) +  (rij*rik) * rij / ( denomik*denomij*denomij*denomij ) ) * expij*expik;
+        //gradient2
+        gradient2 = ( (rij/distij)*( gamma_sigma/(denomij*denomij) ) )*expij*expik;
+        
+        // add jatom
+        SP.AddToFitMatrix(_A, var,
+                _least_sq_offset + 3 * _nbeads * _frame_counter + iatom, mpos, gradient1.x(), gradient2.x());
+        SP.AddToFitMatrix(_A, var,
+                _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + iatom, mpos, gradient1.y(), gradient2.y());
+        SP.AddToFitMatrix(_A, var,
+                _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom, mpos, gradient1.z(), gradient2.z());
+        
+        //evaluate gradient1 and gradient2 for katom:        
+        //gradient1 = (-grad_i theta) * exp()*exp()
+        gradient1 = acos_prime * (-rij / ( distij*distik ) +  (rij*rik) * rik / ( distij*distik*distik*distik ) ) * expij*expik;
+        //gradient2
+        gradient2 = ( (rik/distik)*( gamma_sigma/(denomik*denomik) ) )*expij*expik;
+        
+        // add jatom
+        SP.AddToFitMatrix(_A, var,
+                _least_sq_offset + 3 * _nbeads * _frame_counter + iatom, mpos, gradient1.x(), gradient2.x());
+        SP.AddToFitMatrix(_A, var,
+                _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + iatom, mpos, gradient1.y(), gradient2.y());
+        SP.AddToFitMatrix(_A, var,
+                _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom, mpos, gradient1.z(), gradient2.z());
+    }
+        
+    
 }

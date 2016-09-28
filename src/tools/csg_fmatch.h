@@ -82,6 +82,12 @@ protected:
         bool bonded;
         /// \brief true if tabulated forces are periodic (e.g. for dihedral interactions)
         bool periodic;
+        /// \brief true if non-bonded interaction is threebody interaction
+        bool threebody;
+        /// \brief additional variables for treating cutoff of 
+        double a;
+        double sigma;
+        double gamma;
         /// \brief CubicSpline object
         CubicSpline Spline;
         /// \brief position in the _A matrix (first coloumn which is occupied with this particular spline)
@@ -106,8 +112,8 @@ protected:
 
         /// \brief Spline Name
         string splineName;
-        /// \brief for non-bonded interactions: types of beads involved
-        string type1, type2; // 
+        /// \brief for non-bonded interactions: types of beads involved (type3 only used if threebody interaction)
+        string type1, type2, type3; // 
 
         /// \brief pointer to Property object to hande input options
         Property *_options;
@@ -164,6 +170,8 @@ protected:
   void EvalBonded(Topology *conf, SplineInfo *sinfo);
   /// \brief For each trajectory frame writes equations for non-bonded interactions to matrix _A
   void EvalNonbonded(Topology *conf, SplineInfo *sinfo);
+  /// \brief For each trajectory frame writes equations for non-bonded threebody interactions to matrix _A
+  void EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo);
   /// \brief Write results to output files
   void WriteOutFiles();
 
