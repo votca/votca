@@ -182,14 +182,15 @@ If set to $0$ (default value) the unregularized version of IMC is applied.
 \begin{lstlisting}
  <non-bonded>
    <name>CG-CG</name>
-    <type1>CG</type1>%
+   <type1>CG</type1>
    <type2>CG</type2>
     ...
-    <imc>
-      <reg>300</reg>
-   </imc>
+   <inverse>
+     <imc>
+       <reg>300</reg>
+     </imc>
+   </inverse>
  </non-bonded>
- <non-bonded>
 \end{lstlisting}
 % #####################################################################################################################
 % #####################################################################################################################
