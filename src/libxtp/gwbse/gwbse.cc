@@ -444,10 +444,10 @@ void GWBSE::addoutput(Property *_summary) {
                     } else {
                         _vxc_ao = _orbitals->AOVxc();
                     }
-                }
-
-                else if (_doVxc) {
-
+            } else if (_doVxc) {
+                    if (_orbitals->hasAOVxc()){
+                        cout <<"should not have happened!"<<endl;
+                    }
                     NumericalIntegration _numint;
                     double ScaHFX_temp = _numint.getExactExchange(_functional);
                     if (ScaHFX_temp != _ScaHFX) {
@@ -468,27 +468,9 @@ void GWBSE::addoutput(Property *_summary) {
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated Vxc in VOTCA" << flush;
 
                 } else {
-                    throw std::runtime_error("So your DFT data contains no Vxc and I am not supposed to calculate Vxc? Where should I get it from? I propose a break to let you think!");
+                    throw std::runtime_error("So your DFT data contains no Vxc, if you want to proceed use the dovxc option.");
                 }
-            /*
-            //test for printing the MO overlaps to check if it is correct
-            AOOverlap overlap;
-            overlap.Initialize(dftbasis._AOBasisSize);
-            overlap.Fill(&dftbasis);
-            cout << "AO overlap size: "<< overlap._aomatrix.size1() << " : " << overlap._aomatrix.size2()<< endl;
-            cout << "MO AO size: "<< _dft_orbitals.size1() << " : " << _dft_orbitals.size2()<< endl;
-            ub::matrix<double> _temp5=ub::prod(overlap._aomatrix,ub::trans(_dft_orbitals));
-            ub::matrix<double> results=ub::prod(_dft_orbitals,_temp5);
-            cout << "MO overlap size: "<< results.size1() << " : " << results.size2()<< endl;
-             
-            for (unsigned i=0;i<results.size1();i++){
-                for (unsigned j=0;j<=i;j++){
-                    
-                
-                cout << "MO overlap ["<<i<<":"<<j <<"] : "<< "["<<j<<":"<<i <<"] :"<< results(i,j) << " : " << results(j,i)<< endl;
-                }
-            }
-           */
+
             
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
             
