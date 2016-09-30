@@ -8,7 +8,7 @@ foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump xtp_overlap xtp_kmc
      add_executable(${PROG} ${${PROG}_SOURCES})
   endif()
 
-  target_link_libraries(${PROG} votca_xtp ${BOOST_LIBRARIES})
+  target_link_libraries(${PROG} votca_xtp)
   install(TARGETS ${PROG} RUNTIME DESTINATION bin)
 
   if (BUILD_MANPAGES)
