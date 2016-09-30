@@ -432,6 +432,7 @@ void GWBSE::addoutput(Property *_summary) {
             if (_orbitals->hasAOVxc()) {
                     if (_doVxc) {
                         LOG(logDEBUG, *_pLog) << TimeStamp() << "There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take the external implementation" << flush;
+                        _doVxc=false;
                     }
                     if (_dft_package == "gaussian") {
                         // we have to do some cartesian -> spherical transformation for Gaussian
@@ -445,9 +446,7 @@ void GWBSE::addoutput(Property *_summary) {
                         _vxc_ao = _orbitals->AOVxc();
                     }
             } else if (_doVxc) {
-                    if (_orbitals->hasAOVxc()){
-                        cout <<"should not have happened!"<<endl;
-                    }
+                    
                     NumericalIntegration _numint;
                     double ScaHFX_temp = _numint.getExactExchange(_functional);
                     if (ScaHFX_temp != _ScaHFX) {
