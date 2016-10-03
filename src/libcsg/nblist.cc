@@ -61,7 +61,7 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions)
             vec r = top->BCShortestConnection(u, v);
             double d = abs(r);
             if(d < _cutoff){
-            if(_do_exclusions)
+              if(_do_exclusions)
                 if(top->getExclusions().IsExcluded(*iter1, *iter2)) {
                     continue;
                 }
