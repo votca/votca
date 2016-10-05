@@ -68,6 +68,7 @@ env:
     - CSG_MDRUN_STEPS=500 TEST=spce/simplex/simple J=4
     - CSG_MDRUN_STEPS=500 TEST=urea-water/ibi J=4
     - CSG_MDRUN_STEPS=500 TEST=urea-water/kb-ibi J=4
+    - CSG_MDRUN_STEPS=500 TEST=urea-water/cibi J=4
     - CSG_MDRUN_STEPS=500 TEST=He-Ar/imc J=4
 
 before_script:
