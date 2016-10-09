@@ -8,26 +8,21 @@
   <step>0.01</step>
   <inverse>
    <target>A-A.dist.tgt</target>
-   <do_potential>0</do_potential>
-   <post_update>cibi</post_update>
+   <do_potential>1</do_potential>
+   <post_update>scale smooth</post_update>
    <post_update_options>
-     <cibi>
-       <do>1</do>
-     </cibi>
+          <scale>1</scale>
+   	<smooth>
+        	<iterations>2</iterations>
+   	</smooth>
    </post_update_options>
-   <post_add>acc_convergence</post_add>
-   <post_add_options>
-     <convergence>
-       <weight>1</weight>
-       <what>dist</what>
-     </convergence> 
-   </post_add_options>
+   <post_add></post_add>
    <gromacs>
     <table>table_A_A.xvg</table>
    </gromacs>
   </inverse>
  </non-bonded>
-   
+
  <non-bonded>
   <name>B-B</name>
   <type1>B</type1>
@@ -35,23 +30,18 @@
   <min>0</min>
   <max>1.4</max>
   <step>0.01</step>
-      
+
   <inverse>
    <target>B-B.dist.tgt</target>
-   <do_potential>0</do_potential>
-   <post_update>cibi</post_update>
+   <do_potential>1</do_potential>
+   <post_update>scale smooth</post_update>
    <post_update_options>
-     <cibi>
-       <do>1</do>
-     </cibi>
+    <scale>1</scale>
+    <smooth>
+     <iterations>2</iterations>
+    </smooth>
    </post_update_options>
-   <post_add>acc_convergence</post_add>
-   <post_add_options>
-     <convergence>
-       <weight>1</weight>
-       <what>dist</what>
-     </convergence>
-   </post_add_options>
+   <post_add></post_add>
    <gromacs>
     <table>table_B_B.xvg</table>
    </gromacs>
@@ -67,40 +57,36 @@
   <step>0.01</step>
   <inverse>
    <target>A-B.dist.tgt</target>
-   <do_potential>0</do_potential>
-   <post_update>cibi</post_update>
+   <do_potential>1</do_potential>
+   <post_update>scale smooth</post_update>
    <post_update_options>
-     <cibi>
-       <do>1</do>
-     </cibi>
+    <scale>1</scale>
+    <smooth>
+     <iterations>2</iterations>
+    </smooth>
    </post_update_options>
-   <post_add>acc_convergence</post_add>
-   <post_add_options>
-     <convergence>
-       <weight>1</weight>
-       <what>dist</what>
-     </convergence>
-   </post_add_options>
+   <post_add></post_add>
    <gromacs>
     <table>table_A_B.xvg</table>
    </gromacs>
   </inverse>
  </non-bonded>
 
-
  <inverse>
   <kBT>2.49435300</kBT>
   <initial_configuration>maindir</initial_configuration>
   <program>gromacs</program>
   <gromacs>
-    <equi_time>0</equi_time>
-    <table_bins>0.002</table_bins>
-    <pot_max>1000000</pot_max>
-    <table_end>5.0</table_end>
+     <equi_time>500</equi_time>
+     <table_bins>0.002</table_bins>
+     <pot_max>1000000</pot_max>
+     <table_end>5.0</table_end>
   </gromacs>
-  <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
-  <iterations_max>150</iterations_max>
+  <filelist>grompp.mdp topol.top index.ndx table.xvg</filelist>
+  <iterations_max>15</iterations_max>
   <cleanlist>traj.xtc</cleanlist>
   <method>ibi</method>
+  <log_file>inverse.log</log_file>
+  <restart_file>restart_points.log</restart_file>
  </inverse>
 </cg>

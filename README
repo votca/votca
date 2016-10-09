@@ -79,8 +79,9 @@ urea-water/kb-ibi             Kirkwood-Buff coarse-graining (see Ganguly et al.
                               J. Chem. Theo. Comp., 8, 1802 (2012) for details)
 urea-water/cibi               Coordination iterative Boltzmann inversion (see
                               T. E. de Oliveira et al., JCP 144, 174106 (2016) 
-                              for details) 
-urea-water/ibi                boltzmann inversion
+                              for details) - different molarity than kb-ibi
+urea-water/cibi/pre           IBI preparation run for cibi
+urea-water/ibi                boltzmann inversion (to compare to kb-ibi)
 
 each of the tutorials contains a run.sh which lists all commands
 needed to execute the tutorial. 

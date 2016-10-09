@@ -27,6 +27,7 @@ confout.gro
 \#*
 
 *.pot.*
+!*.pot.in
 *.force
 angle.dist.*
 bond.dist.*
