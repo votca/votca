@@ -6,7 +6,7 @@ git clone --recursive -b global https://github.com/votca/buildutil.git
 cd buildutil
 mkdir build
 cd build
-cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON ..
+cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON ..
 make -j5
 ```
 
