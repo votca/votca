@@ -26,3 +26,4 @@ RUN make install DESTDIR=${PWD}
 USER root
 RUN make install
 USER votca
+WORKDIR ../csg-tutorials
