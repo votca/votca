@@ -1,5 +1,5 @@
 FROM fedora:latest
-RUN dnf -y install make cmake git gcc-c++ gromacs-devel expat-devel fftw-devel gsl-devel boost-devel txt2tags sqlite-devel
+RUN dnf -y install make cmake git gcc-c++ gromacs-devel expat-devel fftw-devel gsl-devel boost-devel txt2tags sqlite-devel gromacs
 RUN useradd -m votca
 USER votca
 WORKDIR /home/votca
