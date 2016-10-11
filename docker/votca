@@ -20,7 +20,7 @@ RUN if [ ${TRAVIS} = true ]; then \
 fi
 RUN mkdir build
 WORKDIR build
-RUN cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr ..
+RUN cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr -DLIB=lib64 ..
 RUN make VERBOSE=1 -j2
 RUN make install DESTDIR=${PWD}
 USER root
