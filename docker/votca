@@ -1,4 +1,4 @@
-from votca/fedora-buildenv:latest
+from votca/buildenv:latest
 
 ARG TRAVIS
 ARG TRAVIS_PULL_REQUEST
