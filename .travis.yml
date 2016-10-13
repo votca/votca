@@ -13,7 +13,7 @@ script:
                  -t votca/votca:latest -f docker/votca docker/
 
 after_success:
-  - if [[ ${DOCKER_USERNAME} && ${DOCKER_PASSWORD} && ${TRAVIS_PULL_REQUEST} == false && ${TRAVIS_BRANCH} == docker ]]; then
+  - if [[ ${DOCKER_USERNAME} && ${DOCKER_PASSWORD} && ${TRAVIS_PULL_REQUEST} == false && ${TRAVIS_BRANCH} == stable ]]; then
         docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
         docker push "votca/votca:latest";
     fi
