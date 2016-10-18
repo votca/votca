@@ -101,8 +101,6 @@ if(MKL_FOUND)
   set(MKL_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/intel/src/intel/MKL_and_boost_example/headers")
   include_directories(${MKL_INCLUDE_DIR})
   set(MKL_HEADERS "${MKL_INCLUDE_DIR}/mkl_boost_ublas_matrix_prod.hpp" "${MKL_INCLUDE_DIR}/mkl_boost_ublas_gemm.hpp"  )
-  message("${MKL_HEADERS}")
-
   install(FILES ${MKL_HEADERS} DESTINATION include/votca/tools)
 endif(MKL_FOUND)
 
