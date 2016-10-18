@@ -34,7 +34,6 @@ imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
 imc_groups=$(remove_duplicate $imc_groups)
 [[ -z ${imc_groups} ]] && die "${0##*/}: No imc groups defined"
 reg="$(csg_get_interaction_property --all inverse.imc.reg)"
-[[ ${reg} != 0 && ${solver} != "numpy" ]] && die "${0##*/}: regularization factor is only implement for 'numpy' solver, yet"
 for group in $imc_groups; do
   # currently this is a hack! need to create combined array
   msg "solving linear equations for imc group '$group'"
