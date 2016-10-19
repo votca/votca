@@ -19,6 +19,7 @@
 
 #include <votca/xtp/apolarsite.h>
 #include <boost/math/special_functions/round.hpp>
+#include <boost/format.hpp>
 #include <fstream>
 #include <string>
 

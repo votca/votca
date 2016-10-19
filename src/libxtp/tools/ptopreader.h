@@ -20,6 +20,7 @@
 #ifndef VOTCA_XTP_PTOPREADER_H
 #define VOTCA_XTP_PTOPREADER_H
 
+#include <boost/format.hpp>
 #include <votca/xtp/qmtool.h>
 #include <votca/xtp/polartop.h>
 #include <votca/xtp/ewdspace.h>

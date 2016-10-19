@@ -26,6 +26,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 
 #include <stdio.h>
 #include <iomanip>
