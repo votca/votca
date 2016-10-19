@@ -10,12 +10,15 @@ script:
                  --build-arg TRAVIS_COMMIT=${TRAVIS_COMMIT}
                  --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}
                  --build-arg TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG}
+                 ${TRAVIS_TAG:+-t votca/votca:${TRAVIS_TAG}}
                  -t votca/votca:latest -t votca/votca:${TRAVIS_BRANCH} -f docker/votca docker/
 
 after_success:
   - if [[ ${DOCKER_USERNAME} && ${DOCKER_PASSWORD} && ${TRAVIS_PULL_REQUEST} == false && ${TRAVIS_BRANCH} == stable ]]; then
         docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
         docker push "votca/votca:latest";
+        docker push "votca/votca:${TRAVIS_BRANCH}";
+        [[ ${TRAVIS_TAG} ]] && docker push "votca/votca:${TRAVIS_TAG}" ;
     fi
 
 
