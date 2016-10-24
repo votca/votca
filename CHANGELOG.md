@@ -1,5 +1,10 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/xtp/commits/master).
 
+## Version 1.4 (released XX.10.16)
+* fixed a bug in gwbse
+* added missing copyright
+* cmake: fixed underlinking 
+
 ## Version 1.4_rc1 (released 26.09.16)
 * include manual
 * an extension of the whole workflow from electrons and holes, to singelt and triplet excitons
