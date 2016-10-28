@@ -212,7 +212,7 @@ void XMLTopologyReader::ParseBonded(Property &el) {
 void XMLTopologyReader::ParseBond(Property &p) {
     string name = p.get("name").as<string>();
     string beads = p.get("beads").as<string>();
-    Tokenizer tok(beads, " ");
+    Tokenizer tok(beads, " \n\t");
     vector<string> bead_list;
     tok.ToVector(bead_list);
     if (bead_list.size() % 2 == 1)
@@ -250,7 +250,7 @@ void XMLTopologyReader::ParseBond(Property &p) {
 void XMLTopologyReader::ParseAngle(Property &p) {
     string name = p.get("name").as<string>();
     string beads = p.get("beads").as<string>();
-    Tokenizer tok(beads, " ");
+    Tokenizer tok(beads, " \n\t");
     vector<string> bead_list;
     tok.ToVector(bead_list);
     if (bead_list.size() % 3 == 1)
@@ -288,7 +288,7 @@ void XMLTopologyReader::ParseAngle(Property &p) {
 void XMLTopologyReader::ParseDihedral(Property &p) {
     string name = p.get("name").as<string>();
     string beads = p.get("beads").as<string>();
-    Tokenizer tok(beads, " ");
+    Tokenizer tok(beads, " \n\t");
     vector<string> bead_list;
     tok.ToVector(bead_list);
     if (bead_list.size() % 4 == 1)
