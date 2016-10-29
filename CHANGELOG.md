@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/xtp/commits/master).
 
-## Version 1.4 (released XX.10.16)
+## Version 1.4 (released 29.10.16)
 * fixed a bug in gwbse
 * added missing copyright
 * cmake: fixed underlinking 
