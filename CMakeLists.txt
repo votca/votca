@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project(votca-tools)
 
-set(PROJECT_VERSION "1.4_rc1")
+set(PROJECT_VERSION "1.4")
 string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "[1-9]+")
   message(FATAL_ERROR "Could not determind SOVERSION from ${PROJECT_VERSION}")
