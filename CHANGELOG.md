@@ -4,6 +4,7 @@ For more detailed information about the changes see the history of the [reposito
 * added cibi tutorial and manual section
 * install mkl headers if mkl is enabled
 * updated copyright
+* xmltopologyparser: tokenize on \n and \t as well (#195)
 * tools: added support for boost-1.62
 
 ## Version 1.4_rc1 (released 26.09.16)
