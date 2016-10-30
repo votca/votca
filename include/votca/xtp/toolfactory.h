@@ -17,22 +17,23 @@
  *
  */
 
-#ifndef __QMTOOLFACTORY__H
-#define	__QMTOOLFACTORY__H
+#ifndef __XQMTOOLFACTORY__H
+#define	__XQMTOOLFACTORY__H
 
-#include <votca/tools/objectfactory.h>
+//#include <votca/tools/objectfactory.h>
+//#include <votca/ctp/toolfactory.h>
 #include <votca/xtp/qmtool.h>
 
 namespace votca { namespace xtp {
 
 class QMToolFactory : public votca::tools::ObjectFactory<std::string, QMTool>
 {
-    
-private:
+
+protected:
     QMToolFactory() {}
-    
+
 public:
-    
+
     static void RegisterAll(void);
 
     friend QMToolFactory &QMTools();
@@ -46,5 +47,5 @@ inline QMToolFactory &QMTools()
 
 }}
 
-#endif	/* __QMTOOLFACTORY__H */
+#endif	/* __xsQMTOOLFACTORY__H */
 

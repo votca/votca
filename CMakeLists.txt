@@ -100,6 +100,10 @@ include_directories(${VOTCA_CSG_INCLUDE_DIRS})
 find_package(VOTCA_MOO REQUIRED)
 include_directories(${VOTCA_MOO_INCLUDE_DIRS})
 
+find_package(VOTCA_CTP REQUIRED)
+include_directories(${VOTCA_CTP_INCLUDE_DIRS})
+
+
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################

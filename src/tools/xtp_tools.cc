@@ -22,6 +22,7 @@
 #include <iostream>
 #include <votca/tools/property.h>
 #include <votca/xtp/xtpapplication.h>
+#include <votca/ctp/toolfactory.h>
 #include <votca/xtp/toolfactory.h>
 
 
@@ -34,13 +35,16 @@ class XtpTools : public votca::xtp::XtpApplication
 {
 public:
     
-    XtpTools() { votca::xtp::QMToolFactory::RegisterAll(); }
+    XtpTools() { votca::ctp::QMToolFactory::RegisterAll(); }
 
     string  ProgramName() { return "xtp_tools"; }    
 
     void    HelpText(ostream &out) { out <<"Runs excitation/charge transport tools"<< endl; }
 
     void    AddTool(votca::xtp::QMTool *tool) { _tools.push_back(tool); }
+    void    AddTool(votca::ctp::QMTool *tool) { _ctp_tools.push_back(tool); }
+
+
     void    Initialize();
     bool    EvaluateOptions();
     void    Run(void);
@@ -53,14 +57,15 @@ private:
     
     votca::tools::Property _options;
     list< votca::xtp::QMTool* >   _tools;
-    
+    list< votca::ctp::QMTool* >   _ctp_tools;
 };
 
 
 
 void XtpTools::Initialize() {
     
-    QMToolFactory::RegisterAll();    
+    QMToolFactory::RegisterAll(); 
+    votca::ctp::QMToolFactory::RegisterAll();
 
     namespace propt = boost::program_options;    
     // Tools-related
@@ -87,6 +92,15 @@ bool XtpTools::EvaluateOptions() {
             iter != QMTools().getObjects().end(); ++iter) {
             PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpShort );
         }
+        
+        // also include the CTP Tools
+        for(votca::ctp::QMToolFactory::assoc_map::const_iterator iter=
+            votca::ctp::QMTools().getObjects().begin();
+            iter != votca::ctp::QMTools().getObjects().end(); ++iter) {
+            PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpShort );
+        }
+        
+        
         StopExecution();
         return true;
     }
@@ -108,6 +122,19 @@ bool XtpTools::EvaluateOptions() {
                     break;
                 }
              }
+            
+            // also check CTP tools
+            for(votca::ctp::QMToolFactory::assoc_map::const_iterator iter=votca::ctp::QMTools().getObjects().begin(); 
+                iter != votca::ctp::QMTools().getObjects().end(); ++iter) {
+
+                if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
+                    PrintDescription(std::cout, iter->first, "ctp/xml", Application::HelpLong );
+                    printerror = false;
+                    break;
+                }
+             }
+                        
+            
              if ( printerror ) cout << "Tool " << *n << " does not exist\n";
         }
         StopExecution();
@@ -121,9 +148,37 @@ bool XtpTools::EvaluateOptions() {
     Tokenizer tools(OptionsMap()["execute"].as<string>(), " ,\n\t");
     Tokenizer::iterator it;
     for (it = tools.begin(); it != tools.end(); it++) {
-        cout << "Registered " << (*it).c_str() << endl;
-        this->AddTool(QMTools().Create((*it).c_str()));
+       
+
+        // check if XTP or CTP tool
+        for(QMToolFactory::assoc_map::const_iterator iter=QMTools().getObjects().begin(); 
+                iter != QMTools().getObjects().end(); ++iter) {
+
+                if ( (*it).compare( (iter->first).c_str() ) == 0 ) {
+                    cout << "Registered XTP " << (*it).c_str() << endl;
+                    this->AddTool(QMTools().Create((*it).c_str()));
+                    //PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpLong );
+                    //printerror = false;
+                    break;
+                }
+            }
+
+
+        for(votca::ctp::QMToolFactory::assoc_map::const_iterator iter=votca::ctp::QMTools().getObjects().begin(); 
+                iter != votca::ctp::QMTools().getObjects().end(); ++iter) {
+
+                if ( (*it).compare( (iter->first).c_str() ) == 0 ) {
+                    cout << "Registered CTP " << (*it).c_str() << endl;
+                    this->AddTool(votca::ctp::QMTools().Create((*it).c_str()));
+                    //PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpLong );
+                    //printerror = false;
+                    break;
+                }
+            }
+        
     }
+
+    
     return 1;
 }
 
@@ -153,6 +208,15 @@ void XtpTools::BeginEvaluate(int nThreads = 1) {
         (*it)->Initialize(&_options);        
         cout << endl;
     }
+    
+    // CTP tools 
+    list< votca::ctp::QMTool* > ::iterator cit;
+    for (cit = _ctp_tools.begin(); cit != _ctp_tools.end(); cit++) {
+        cout << "... " << (*cit)->Identify() << " " << flush;
+        (*cit)->setnThreads(nThreads);
+        (*cit)->Initialize(&_options);        
+        cout << endl;
+    }    
 }
 
 bool XtpTools::Evaluate() {

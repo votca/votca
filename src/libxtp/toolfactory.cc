@@ -18,9 +18,14 @@
  */
 
 
+#include <votca/ctp/toolfactory.h>
 #include <votca/xtp/toolfactory.h>
+#include <votca/xtp/qmtool.h>
+
+
+
 #include "tools/molpol.h"
-#include "tools/pdb2map.h"
+/*#include "tools/pdb2map.h"
 #include "tools/coupling.h"
 #include "tools/log2mps.h"
 #include "tools/ptopreader.h"
@@ -34,28 +39,33 @@
 #include "tools/dft.h"
 #include "tools/gencube.h"
 #include "tools/partialcharges.h"
+*/
 
+namespace XTP = votca::xtp;
+namespace CTP = votca::ctp;
 
-namespace votca { namespace xtp {
+// votca::xtp::XQMToolFactory::
 
-void QMToolFactory::RegisterAll(void)
+//namespace votca { namespace xtp {
+
+void votca::xtp::QMToolFactory::RegisterAll(void)
 {
-        QMTools().Register<MolPolTool>         ("molpol");
-        QMTools().Register<PDB2Map>            ("pdb2map");
-        QMTools().Register<Coupling>           ("coupling");
-        QMTools().Register<Log2Mps>            ("log2mps");
-        QMTools().Register<PtopReader>         ("ptopreader");
-        QMTools().Register<Exciton>            ("exciton");
-        QMTools().Register<QMAnalyze>          ("qmanalyze");
-        QMTools().Register<QMSandbox>          ("qmsandbox");
-        QMTools().Register<Spectrum>           ("spectrum");
-        QMTools().Register<ExcitonCoupling>    ("excitoncoupling");
-        QMTools().Register<Orb2IsoGWA>         ("orb2isogwa"); 
-        QMTools().Register<PDB2Top>            ("pdb2top");
-        QMTools().Register<DFT>                ("dft");
-        QMTools().Register<GenCube>            ("gencube");
-        QMTools().Register<Partialcharges>     ("partialcharges");
-        
+        XTP::QMTools().Register<XTP::MolPolTool>         ("molpol");
+        /*QMTools().Register<XTP::PDB2Map>            ("pdb2map");
+        QMTools().Register<XTP::Coupling>           ("coupling");
+        QMTools().Register<XTP::Log2Mps>            ("log2mps");
+        QMTools().Register<XTP::PtopReader>         ("ptopreader");
+        QMTools().Register<XTP::Exciton>            ("exciton");
+        QMTools().Register<XTP::QMAnalyze>          ("qmanalyze");
+        QMTools().Register<XTP::QMSandbox>          ("qmsandbox");
+        QMTools().Register<XTP::Spectrum>           ("spectrum");
+        QMTools().Register<XTP::ExcitonCoupling>    ("excitoncoupling");
+        QMTools().Register<XTP::Orb2IsoGWA>         ("orb2isogwa"); 
+        QMTools().Register<XTP::PDB2Top>            ("pdb2top");
+        QMTools().Register<XTP::DFT>                ("dft");
+        QMTools().Register<XTP::GenCube>            ("gencube");
+        QMTools().Register<XTP::Partialcharges>     ("partialcharges");
+        */
 }
 
-}}
+//}}
