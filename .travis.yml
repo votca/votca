@@ -14,11 +14,11 @@ script:
                  -t votca/votca:latest -t votca/votca:${TRAVIS_BRANCH} -f docker/votca docker/
 
 after_success:
-  - if [[ ${DOCKER_USERNAME} && ${DOCKER_PASSWORD} && ${TRAVIS_PULL_REQUEST} == false && ${TRAVIS_BRANCH} == stable ]]; then
+  - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(global|stable|v1.*) ]] && DEPLOY=yes
+  - if [[ ${TRAVIS_BRANCH} = global ]]; then DOCKER_TAG=latest; else DOCKER_TAG="${TRAVIS_BRANCH}"; fi
+  - if [[ ${DOCKER_USERNAME} && ${DOCKER_PASSWORD} && ${TRAVIS_PULL_REQUEST} == false && ${DEPLOY} ]]; then
         docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-        docker push "votca/votca:latest";
-        docker push "votca/votca:${TRAVIS_BRANCH}";
-        [[ ${TRAVIS_TAG} ]] && docker push "votca/votca:${TRAVIS_TAG}" ;
+        docker push "votca/votca:${DOCKER_TAG}";
     fi
 
 
