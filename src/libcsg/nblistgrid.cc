@@ -163,9 +163,9 @@ void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead)
             if(_top->getExclusions().IsExcluded((*iter), bead)) {
                 continue;
             }
-            if((*_match_function)(*iter, bead, r, d))
-               if(!FindPair(*iter, bead))
-                    AddPair(_pair_creator(*iter, bead, r));
+          if((*_match_function)(*iter, bead, r, d))
+             if(!FindPair(*iter, bead))
+                  AddPair(_pair_creator(*iter, bead, r));
         }
     }
 }
