@@ -1,70 +1,26 @@
-#the original source of this file can be found in tools repository change it ther
-# changes in tools|csg tiggered a full rebuild
-# changes in csgapps|csg-manual|csg-tutorials only trigger tools+csg+ifself
+language: generic
 
-language: cpp
+sudo: required
 
-sudo: false
-
-addons:
-  apt:
-    sources:
-      - boost-latest 
-      - george-edison55-precise-backports
-      - ubuntu-toolchain-r-test
-    packages:
-      - ccache
-      - gcc-4.8
-      - g++-4.8
-      - libfftw3-dev
-      - cmake
-      - cmake-data
-      - libgsl0-dev
-      - txt2tags
-      - libboost1.55-all-dev
-      - libexpat1-dev
-      - libsqlite3-dev
-      - libhdf5-serial-dev
-      - pkg-config
-      - pgf
-      - texlive-fonts-recommended
-      - texlive-latex-extra
-      - doxygen
-      - graphviz
-      - python-numpy
-      - gnuplot-nox
-      - octave
-
-env:
-  global:
-    - HDF5_VERSION=1.8.14
-    - GMX_MAX_THREADS=8
-    - CCACHE_CPP2=yes #for clang
-    - GVER=4.8
-
-before_install:
-  - git submodule update --init --recursive
-
-before_script:
-  - if [[ ${MINIMAL} != yes ]]; then 
-      wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xz &&
-      cd hdf5-${HDF5_VERSION} && ./configure --prefix=$HOME/hdf5 && make -j4 &> /dev/null && make install && cd ..;
-    fi
-  - if [[ ${GVER} ]]; then export CC=gcc-${GVER}; export CXX=g++-${GVER}; fi
-  - git clone --depth=1 --branch=global -b release-5-1 https://github.com/gromacs/gromacs.git &&
-    cd gromacs && PATH="$HOME/bin:/usr/lib/ccache:$PATH" cmake -DCMAKE_INSTALL_PREFIX=$HOME/gromacs . && 
-    make -j5 && make install && source $HOME/gromacs/bin/GMXRC.bash && cd ..
+services:
+- docker
 
 script:
-  - mkdir build && cd build && 
-    cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=$HOME/votca .. &&
-    make -j4 && make install
+ - docker build  --build-arg TRAVIS=${TRAVIS} --build-arg TRAVIS_BRANCH=${TRAVIS_BRANCH}
+                 --build-arg TRAVIS_COMMIT=${TRAVIS_COMMIT}
+                 --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}
+                 --build-arg TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG}
+                 ${TRAVIS_TAG:+-t votca/votca:${TRAVIS_TAG}}
+                 -t votca/votca:latest -t votca/votca:${TRAVIS_BRANCH} -f docker/votca docker/
 
-cache:
-  - ccache
+after_success:
+  - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(global|stable|v1.*) ]] && DEPLOY=yes
+  - if [[ ${TRAVIS_BRANCH} = global ]]; then DOCKER_TAG=latest; else DOCKER_TAG="${TRAVIS_BRANCH}"; fi
+  - if [[ ${DOCKER_USERNAME} && ${DOCKER_PASSWORD} && ${TRAVIS_PULL_REQUEST} == false && ${DEPLOY} ]]; then
+        docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+        docker push "votca/votca:${DOCKER_TAG}";
+    fi
 
-compiler:
-  - gcc
 
 notifications:
   email:
