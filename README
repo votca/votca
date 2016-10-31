@@ -83,5 +83,8 @@ urea-water/cibi               Coordination iterative Boltzmann inversion (see
 urea-water/cibi/pre           IBI preparation run for cibi
 urea-water/ibi                boltzmann inversion (to compare to kb-ibi)
 
+He-Ar/imc                     regularization of inverse Monte-Carlo (see Rosenberger et al.
+                              Eur. Phys. J. Special Topics 225, 1323-1345 (2016) for details)
+
 each of the tutorials contains a run.sh which lists all commands
 needed to execute the tutorial. 
