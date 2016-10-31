@@ -20,8 +20,7 @@
 #ifndef __XQMTOOLFACTORY__H
 #define	__XQMTOOLFACTORY__H
 
-//#include <votca/tools/objectfactory.h>
-//#include <votca/ctp/toolfactory.h>
+#include <votca/tools/objectfactory.h>
 #include <votca/xtp/qmtool.h>
 
 namespace votca { namespace xtp {
@@ -47,5 +46,5 @@ inline QMToolFactory &QMTools()
 
 }}
 
-#endif	/* __xsQMTOOLFACTORY__H */
+#endif	/* __XQMTOOLFACTORY__H */
 

@@ -22,8 +22,9 @@
 #include <iostream>
 #include <votca/tools/property.h>
 #include <votca/xtp/xtpapplication.h>
-#include <votca/ctp/toolfactory.h>
 #include <votca/xtp/toolfactory.h>
+#include <votca/ctp/toolfactory.h>
+
 
 
 using namespace std;

@@ -17,10 +17,10 @@
  *
  */
 
-
-#include <votca/ctp/toolfactory.h>
 #include <votca/xtp/toolfactory.h>
-#include <votca/xtp/qmtool.h>
+//#include <votca/ctp/toolfactory.h>
+
+//#include <votca/xtp/qmtool.h>
 
 
 
@@ -33,16 +33,16 @@
 #include "tools/exciton.h"
 #include "tools/qmanalyze.h"
 #include "tools/qmsandbox.h"
-#include "tools/spectrum.h"
-#include "tools/excitoncoupling.h"
-#include "tools/orb2isogwa.h"
+#include "tools/spectrum.h"*/
+//#include "tools/excitoncoupling.h"
+/*#include "tools/orb2isogwa.h"
 #include "tools/dft.h"
 #include "tools/gencube.h"
 #include "tools/partialcharges.h"
 */
 
 namespace XTP = votca::xtp;
-namespace CTP = votca::ctp;
+//namespace CTP = votca::ctp;
 
 // votca::xtp::XQMToolFactory::
 
@@ -59,13 +59,14 @@ void votca::xtp::QMToolFactory::RegisterAll(void)
         QMTools().Register<XTP::QMAnalyze>          ("qmanalyze");
         QMTools().Register<XTP::QMSandbox>          ("qmsandbox");
         QMTools().Register<XTP::Spectrum>           ("spectrum");
-        QMTools().Register<XTP::ExcitonCoupling>    ("excitoncoupling");
-        QMTools().Register<XTP::Orb2IsoGWA>         ("orb2isogwa"); 
-        QMTools().Register<XTP::PDB2Top>            ("pdb2top");
-        QMTools().Register<XTP::DFT>                ("dft");
-        QMTools().Register<XTP::GenCube>            ("gencube");
-        QMTools().Register<XTP::Partialcharges>     ("partialcharges");
         */
+        //QMTools().Register<XTP::ExcitonCoupling>    ("excitoncoupling");
+        //QMTools().Register<XTP::Orb2IsoGWA>         ("orb2isogwa"); 
+        //QMTools().Register<XTP::PDB2Top>            ("pdb2top");
+        //QMTools().Register<XTP::DFT>                ("dft");
+        //QMTools().Register<XTP::GenCube>            ("gencube");
+        //QMTools().Register<XTP::Partialcharges>     ("partialcharges");
+        
 }
 
 //}}
