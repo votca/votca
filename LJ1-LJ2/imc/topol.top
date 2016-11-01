@@ -4,8 +4,8 @@
 
 [ atomtypes ]
 ;name  at.num      mass        charge   ptype     c6          c12
-   Ar    8       39.948002     0.000    A   0.00000E+00   1.00000E+00
-   He    2       20.00260      0.000    A   0.00000E+00  1.00000E+00
+   LJ1    8       39.948002     0.000    A   0.00000E+00   1.00000E+00
+   LJ2    2       20.00260      0.000    A   0.00000E+00  1.00000E+00
 
 [ bondtypes ]
 
@@ -22,7 +22,7 @@
   LJ1            1
 [ atoms ]
 ;   nr    type   resnr  residu       atom    cgnr    charge     mass
-    1     He      1     LJ1            He      1       0.000     4.00260
+    1     LJ1      1     LJ1          LJ1      1       0.000     39.948002   
 
 
 [ moleculetype ]
@@ -30,8 +30,8 @@
 LJ2        1
 
 [ atoms ]
-; nr type resnr residue atom cgnr charge mass
-   1   Ar   1     LJ2    Ar   1  0.000000 39.948002
+; nr type resnr residue atom cgnr charge     mass
+   1   LJ2   1     LJ2    LJ2   1  0.000000 20.00260
 
 [ system ]
 ;name
@@ -39,6 +39,6 @@ LJ_fluid
 
 [ molecules ]
 ;name   nmols
-LJ1     1000
 LJ2     1000
+LJ1     1000
 

@@ -24,11 +24,6 @@
       </post_update_options>
       <!-- additional post processing of U after dU added to potential -->
       <post_add></post_add>
-      <!-- inverse monte carlo specific stuff -->
-      <imc>
-        <reg>1000</reg> 
-       <group>group_1</group>
-       </imc>
       <!-- name of the table for gromacs run -->
       <gromacs>
         <table>table_LJ1_LJ1.xvg</table>
@@ -61,10 +56,6 @@
       <!-- additional post processing of U after dU added to potential -->
       <post_add></post_add>
       <!-- inverse monte carlo specific stuff -->
-      <imc>
-        <reg>1000</reg> 
-       <group>group_1</group>
-       </imc>
       <!-- name of the table for gromacs run -->
       <gromacs>
         <table>table_LJ2_LJ2.xvg</table>
@@ -97,11 +88,6 @@
       </post_update_options>
       <!-- additional post processing of U after dU added to potential -->
       <post_add></post_add>
-      <!-- inverse monte carlo specific stuff -->
-      <imc>
-        <reg>1000</reg> 
-       <group>group_1</group>
-       </imc>
       <!-- name of the table for gromacs run -->
       <gromacs>
         <table>table_LJ1_LJ2.xvg</table>
@@ -129,11 +115,8 @@
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top index.ndx table.xvg</filelist>
     <!-- do so many iterations -->
-    <iterations_max>20</iterations_max>
+    <iterations_max>10</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
-    <method>imc</method>
-    <imc>		   
-      <solver>numpy</solver>
-    </imc>
+    <method>ibi</method>
   </inverse>
 </cg>
