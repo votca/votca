@@ -22,7 +22,7 @@
 #include <votca/xtp/events.h>
 #include <votca/xtp/eventinfo.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
   
 using namespace std;
 

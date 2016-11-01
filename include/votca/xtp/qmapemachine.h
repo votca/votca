@@ -22,17 +22,17 @@
 
 
 #include <votca/xtp/votca_config.h>
-#include <votca/xtp/xjob.h>
-#include <votca/xtp/xinductor.h>
+#include <votca/ctp/xjob.h>
+#include <votca/ctp/xinductor.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/espfit.h>
-#include <votca/xtp/ewaldnd.h>
+#include <votca/ctp/ewaldnd.h>
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
     
 // ========================================================================== //

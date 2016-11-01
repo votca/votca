@@ -20,11 +20,11 @@
 #ifndef _VOTCA_XTP_JOBWRITER_H
 #define _VOTCA_XTP_JOBWRITER_H
 
-#include<votca/xtp/topology.h>
-#include<votca/xtp/qmcalculator.h>
+#include<votca/ctp/topology.h>
+#include<votca/ctp/qmcalculator.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
   
 class JobWriter : public QMCalculator

@@ -26,10 +26,10 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
-#include <votca/xtp/xmapper.h>
-#include <votca/xtp/xjob.h>
+#include <votca/ctp/xmapper.h>
+#include <votca/ctp/xjob.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 /**
 * \brief Evaluates Transition Charge distributions classically

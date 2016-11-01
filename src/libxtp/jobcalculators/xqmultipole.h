@@ -21,19 +21,19 @@
 #define XQMULTIPOLE_H
 
 
-#include <votca/xtp/parallelxjobcalc.h>
-#include <votca/xtp/xmapper.h>
-#include <votca/xtp/xjob.h>
-#include <votca/xtp/xinductor.h>
-#include <votca/xtp/xinteractor.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/parallelxjobcalc.h>
+#include <votca/ctp/xmapper.h>
+#include <votca/ctp/xjob.h>
+#include <votca/ctp/xinductor.h>
+#include <votca/ctp/xinteractor.h>
+#include <votca/ctp/logger.h>
 #include <boost/format.hpp>
 
 
 using boost::format;
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
     
 class XQMP : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >

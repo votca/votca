@@ -23,7 +23,7 @@
 #include "kmccalculator.h"
 #include <votca/xtp/graphsql.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class KMCApplication : public Application
 {

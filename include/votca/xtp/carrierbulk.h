@@ -20,7 +20,7 @@
 
 #include <votca/xtp/node.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 class CarrierBulk : public Carrier {
 public:

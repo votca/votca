@@ -23,7 +23,7 @@
 using namespace std;
 
 namespace votca {
-    namespace xtp {
+    namespace ctp {
 
         namespace conv=votca::tools::conv;
         const double Pi = boost::math::constants::pi<double>();

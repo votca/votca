@@ -20,7 +20,7 @@
 #include <cstdlib>
 
 namespace votca {
-    namespace xtp {
+    namespace ctp {
         
 void Bsumtree::initialize(int nr_elements) { // Must be called before use
 

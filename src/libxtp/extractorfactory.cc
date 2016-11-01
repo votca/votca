@@ -30,7 +30,7 @@
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 void ExtractorFactory::RegisterAll(void)
 {	

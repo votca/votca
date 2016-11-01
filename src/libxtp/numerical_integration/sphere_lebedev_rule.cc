@@ -25,7 +25,7 @@
 
 
 
-namespace votca { namespace xtp { 
+namespace votca { namespace ctp { 
 
     double pi=boost::math::constants::pi<double>();
     

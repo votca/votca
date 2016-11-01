@@ -22,7 +22,7 @@
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 // +++++++++++++++++++++++++++++ //
 // EOUTERSPHERE MEMBER FUNCTIONS //

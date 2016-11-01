@@ -27,7 +27,7 @@
 
 
 
-namespace votca { namespace xtp { 
+namespace votca { namespace ctp { 
     
     
     std::vector<double> EulerMaclaurinGrid::getPruningIntervals(string element){

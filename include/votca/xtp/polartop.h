@@ -25,7 +25,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
     
 class PolarTop

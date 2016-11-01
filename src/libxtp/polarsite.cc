@@ -22,7 +22,7 @@
 #include <fstream>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 void PolarSite::ImportFrom(PolarSite *templ, string tag) {

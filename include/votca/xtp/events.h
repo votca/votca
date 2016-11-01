@@ -26,7 +26,7 @@
 #include <votca/xtp/longrange.h>
 #include <votca/xtp/eventinfo.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
   
 using namespace std;
 

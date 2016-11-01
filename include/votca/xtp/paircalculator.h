@@ -22,7 +22,7 @@
 
 #include "qmcalculator.h"
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class PairCalculator2 : public QMCalculator
 {

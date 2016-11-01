@@ -21,14 +21,14 @@
 #define	__VOTCA_XTP_GAUSSIAN_H
 
 
-#include <votca/xtp/apolarsite.h>
+#include <votca/ctp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 
 #include <string> 
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 /**
     \brief Wrapper for the Gaussian program
  
@@ -36,7 +36,7 @@ namespace votca { namespace xtp {
     and extracts information from its log and io files
     
 */
-class Gaussian : public QMPackage
+class Gaussian : public XQMPackage
 {
 public:   
 

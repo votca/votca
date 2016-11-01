@@ -29,7 +29,7 @@
 namespace CSG = votca::csg;
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class Topology;
 

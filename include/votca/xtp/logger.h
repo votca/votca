@@ -24,7 +24,7 @@
 #include <sstream>
 #include <iostream>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 enum TLogLevel {logERROR, logWARNING, logINFO, logDEBUG};
  

@@ -20,12 +20,12 @@
 #ifndef _VOTCA_XTP_EANALYZE_H
 #define _VOTCA_XTP_EANALYZE_H
 
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 #include <math.h>
 #include <votca/tools/tokenizer.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class EAnalyze : public QMCalculator
 {

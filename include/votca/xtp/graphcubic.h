@@ -24,7 +24,7 @@
 #include <votca/xtp/link.h>
 #include <votca/xtp/dnode.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
  /* 
 class GraphCubic : public Graph<Node,Link> {
 

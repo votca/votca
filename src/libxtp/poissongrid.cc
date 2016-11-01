@@ -21,7 +21,7 @@
 
 
 namespace votca {
-namespace xtp {
+namespace ctp {
 namespace POI {
 
 PoissonGrid::PoissonGrid(Topology *top, std::vector<PolarSeg*> &fg, std::vector<PolarSeg*> &bg, 

@@ -22,13 +22,13 @@
 
 
 #include <votca/xtp/gwbse.h> // including GWBSE functionality
-#include <votca/xtp/segment.h>
+#include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/threecenters.h>
 
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/parallelxjobcalc.h>
+#include <votca/ctp/parallelxjobcalc.h>
 #include <unistd.h>
 
 #include <fstream>
@@ -43,7 +43,7 @@
 #include <boost/numeric/ublas/vector.hpp>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
 /**
 * \brief GWBSE implementation

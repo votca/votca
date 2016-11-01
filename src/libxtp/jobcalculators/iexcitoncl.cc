@@ -26,16 +26,16 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <votca/tools/propertyiomanipulator.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/xmapper.h>
-#include <votca/xtp/xinteractor.h>
+#include <votca/ctp/logger.h>
+#include <votca/ctp/xmapper.h>
+#include <votca/ctp/xinteractor.h>
 
 using namespace boost::filesystem;
 using namespace votca::tools;
 
 namespace ub = boost::numeric::ublas;
     
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 // +++++++++++++++++++++++++++++ //
 // IEXCITON MEMBER FUNCTIONS         //

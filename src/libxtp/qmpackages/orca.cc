@@ -18,8 +18,8 @@
  */
 
 #include "orca.h"
-#include "votca/xtp/segment.h"
-#include "votca/xtp/elements.h"
+#include <votca/ctp/segment.h>
+#include <votca/xtp/elements.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
@@ -33,7 +33,7 @@
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
 /******** Defining a class for l->number and number->l*****************************/

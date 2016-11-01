@@ -18,7 +18,7 @@
 #ifndef _UNITS_H
 #define	_UNITS_H
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 /// defines all constants necessary to convert from MD to QM units and back
 static const double RA=0.529189379; /// the Bohr radius in [Ang]

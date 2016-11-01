@@ -23,19 +23,19 @@
 
 
 #include <votca/tools/calculator.h>
-#include <votca/xtp/topology.h>
+#include <votca/ctp/topology.h>
 
-namespace XTP = votca::xtp;
+namespace XTP = votca::ctp;
 namespace TOOLS = votca::tools;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
-class QMCalculator : public Calculator
+class XQMCalculator : public Calculator
 {
 public:
 
-                    QMCalculator() {}
-    virtual        ~QMCalculator() {}
+                    XQMCalculator() {}
+    virtual        ~XQMCalculator() {}
 
     virtual std::string  Identify() = 0;
 

@@ -21,7 +21,7 @@
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
    
 /// Default constructor
 Segment::Segment(int id, string name)

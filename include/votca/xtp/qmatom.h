@@ -24,7 +24,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
     
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 /**
  *    \brief container for QM atoms 

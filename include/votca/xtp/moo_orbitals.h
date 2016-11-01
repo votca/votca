@@ -30,7 +30,7 @@
 #include "basis_set.h"
 #include "global.h"
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 using namespace std;
 using std::runtime_error;

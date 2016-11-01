@@ -25,7 +25,7 @@
 #include <votca/tools/matrix.h>
 #include <votca/tools/types.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 using namespace votca::tools;
 

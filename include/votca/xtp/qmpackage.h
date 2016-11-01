@@ -17,30 +17,30 @@
  *
  */
 
-#ifndef _XTP_QM_PACKAGE_H
-#define	_XTP_QM_PACKAGE_H
+#ifndef _XTP_XQM_PACKAGE_H
+#define	_XTP_XQM_PACKAGE_H
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/tools/property.h>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/qmpair.h>
-#include <votca/xtp/topology.h>
+#include <votca/ctp/segment.h>
+#include <votca/ctp/qmpair.h>
+#include <votca/ctp/topology.h>
 #include <boost/format.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
  
 // ========================================================================== //
 // QMPackage base class for wrappers of TURBOMOLE, GAUSSIAN, etc              //
 // ========================================================================== //
     
-class QMPackage
+class XQMPackage
 {
 
 public:
 
-   QMPackage(){};
-   virtual ~QMPackage(){}; 
+   XQMPackage(){};
+   virtual ~XQMPackage(){}; 
 
    virtual std::string getPackageName() = 0;
 
@@ -125,7 +125,7 @@ protected:
        
 };
 
-inline bool QMPackage::WriteInputFilePBC( QMPair* pair, Orbitals* orbitals) {
+inline bool XQMPackage::WriteInputFilePBC( QMPair* pair, Orbitals* orbitals) {
     
     //std::cout << "IDFT writes input with PBC" << std::endl;
     

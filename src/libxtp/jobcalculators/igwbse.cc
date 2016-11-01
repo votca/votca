@@ -25,7 +25,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/tools/constants.h>
 #include <votca/xtp/qmpackagefactory.h>
 
@@ -35,7 +35,7 @@ using namespace votca::tools;
 
 namespace ub = boost::numeric::ublas;
     
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 // +++++++++++++++++++++++++++++ //
 // IGWBSE MEMBER FUNCTIONS         //
@@ -66,7 +66,7 @@ void IGWBSE::Initialize(votca::tools::Property* options ) {
     ParseOptionsXML( options  );
     
     // register all QM packages (Gaussian, turbomole, etc))
-    QMPackageFactory::RegisterAll();
+    XQMPackageFactory::RegisterAll();
 
 }
 
@@ -236,7 +236,7 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     
     string _qmpackage_work_dir = (arg_path / igwbse_work_dir / _package_append / frame_dir / _pair_dir).c_str();    
     // get the corresponding object from the QMPackageFactory
-    QMPackage *_qmpackage =  QMPackages().Create( _package );
+    XQMPackage *_qmpackage =  XQMPackages().Create( _package );
     // set a log file for the package
     _qmpackage->setLog( pLog );       
     // set the run dir 

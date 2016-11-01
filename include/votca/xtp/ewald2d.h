@@ -20,14 +20,14 @@
 #define VOTCA_XTP_EWALD2D_H
 
 #include <votca/csg/boundarycondition.h>
-#include <votca/xtp/polartop.h>
-#include <votca/xtp/xjob.h>
-#include <votca/xtp/qmthread.h>
-#include <votca/xtp/ewaldnd.h>
+#include <votca/ctp/polartop.h>
+#include <votca/ctp/xjob.h>
+#include <votca/ctp/qmthread.h>
+#include <votca/ctp/ewaldnd.h>
 
 namespace CSG = votca::csg;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
     // NOTE: This is not a conventional 2D Ewald summation, so use carefully
     //       (tuned for the purpose of site-energy calculations)

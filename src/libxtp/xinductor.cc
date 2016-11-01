@@ -24,7 +24,7 @@
 
 using boost::format;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
     
 XInductor::~XInductor() {

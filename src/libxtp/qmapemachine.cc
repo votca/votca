@@ -24,17 +24,17 @@
 #include <sys/stat.h>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/elements.h>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/espfit.h>
 
 using boost::format;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
-template<class QMPackage>
-QMAPEMachine<QMPackage>::QMAPEMachine(XJob *job, Ewald3DnD *cape, QMPackage *qmpack,
+template<class XQMPackage>
+QMAPEMachine<XQMPackage>::QMAPEMachine(XJob *job, Ewald3DnD *cape, XQMPackage *qmpack,
 	 Property *opt, string sfx, int nst)
    : _subthreads(nst),_job(job), _qmpack(qmpack), _cape(cape), 
 	  _grid_fg(true,true,true), _grid_bg(true,true,true),
@@ -114,8 +114,8 @@ QMAPEMachine<QMPackage>::QMAPEMachine(XJob *job, Ewald3DnD *cape, QMPackage *qmp
 }
 
 
-template<class QMPackage>
-QMAPEMachine<QMPackage>::~QMAPEMachine() {
+template<class XQMPackage>
+QMAPEMachine<XQMPackage>::~QMAPEMachine() {
     
     std::vector<QMAPEIter*> ::iterator qit;
     for (qit = _iters.begin(); qit < _iters.end(); ++qit) {
@@ -125,8 +125,8 @@ QMAPEMachine<QMPackage>::~QMAPEMachine() {
 }
 
 
-template<class QMPackage>
-void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
+template<class XQMPackage>
+void QMAPEMachine<XQMPackage>::Evaluate(XJob *job) {
     
 	// PREPARE JOB DIRECTORY
 	string jobFolder = "job_" + boost::lexical_cast<string>(_job->getId())
@@ -216,8 +216,8 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
 }
 
 
-template<class QMPackage>
-bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
+template<class XQMPackage>
+bool QMAPEMachine<XQMPackage>::Iterate(string jobFolder, int iterCnt) {
 
     // CREATE ITERATION OBJECT & SETUP RUN DIRECTORY
     QMAPEIter *thisIter = this->CreateNewIter();
@@ -474,8 +474,8 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 }
 
 
-template<class QMPackage>
-QMAPEIter *QMAPEMachine<QMPackage>::CreateNewIter() {
+template<class XQMPackage>
+QMAPEIter *QMAPEMachine<XQMPackage>::CreateNewIter() {
     
     QMAPEIter *newIter = new QMAPEIter(_iters.size());
     this->_iters.push_back(newIter);
@@ -483,8 +483,8 @@ QMAPEIter *QMAPEMachine<QMPackage>::CreateNewIter() {
 }
 
 
-template<class QMPackage>
-bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
+template<class XQMPackage>
+bool QMAPEMachine<XQMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
 	// for GW-BSE, we also need to parse the orbitals file
         
@@ -651,8 +651,8 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 }
 
 
-template<class QMPackage>
-bool QMAPEMachine<QMPackage>::hasConverged() {
+template<class XQMPackage>
+bool QMAPEMachine<XQMPackage>::hasConverged() {
     
     _convg_dR = false;
     _convg_dQ = false;
@@ -751,8 +751,8 @@ void QMAPEIter::UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &qmatoms,
     this->setdRdQ(dR_RMS, dQ_RMS, dQ_SUM);
 }
 
-template<class QMPackage>
-void QMAPEMachine<QMPackage>::GenerateQMAtomsFromPolarSegs(std::vector<PolarSeg*> &qm,
+template<class XQMPackage>
+void QMAPEMachine<XQMPackage>::GenerateQMAtomsFromPolarSegs(std::vector<PolarSeg*> &qm,
 	std::vector<PolarSeg*> &mm, Orbitals &orb) {
     
     double AA_to_NM = 0.1; // Angstrom to nanometer
@@ -843,7 +843,7 @@ double QMAPEIter::getQMMMEnergy() {
 
 
 // REGISTER QM PACKAGES
-template class QMAPEMachine<QMPackage>;
+template class QMAPEMachine<XQMPackage>;
     
     
     

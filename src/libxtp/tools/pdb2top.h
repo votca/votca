@@ -34,7 +34,7 @@
 using boost::format;
 using boost::io::group;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     namespace ba = boost::algorithm;
     using namespace std;
     

@@ -22,7 +22,7 @@
 
 
 namespace votca {
-namespace xtp {
+namespace ctp {
 
     
 void EwdInteractor::FPU12_ShapeField_At_By(std::vector<PolarSeg*> &at,

@@ -28,7 +28,7 @@
 
 
 namespace votca {
-    namespace xtp {
+    namespace ctp {
 
         class LebedevGrid {
         public:

@@ -25,7 +25,7 @@
 #include <votca/tools/constants.h>
 
 namespace votca {
-namespace xtp {
+namespace ctp {
 namespace EWD {
 
     using namespace votca::tools::conv;

@@ -21,8 +21,8 @@
 #define	__XTP_AOBASIS__H
 
 #include <votca/tools/property.h>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/qmatom.h>
+#include <votca/ctp/segment.h>
+#include <votca/ctp/qmatom.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
@@ -32,7 +32,7 @@
 
 using namespace votca::tools;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 namespace ub = boost::numeric::ublas;
 
 class AOShell;

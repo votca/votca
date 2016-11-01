@@ -24,7 +24,7 @@
 #include <votca/xtp/linkdevice.h>
 #include <votca/xtp/eventinfo.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 enum NodeType{NormalNode, LeftElectrodeNode, RightElectrodeNode};
     

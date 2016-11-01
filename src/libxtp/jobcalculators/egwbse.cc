@@ -35,7 +35,7 @@ using boost::format;
 using namespace boost::filesystem;
 
 namespace votca {
-    namespace xtp {
+    namespace ctp {
         namespace ub = boost::numeric::ublas;
 
         // +++++++++++++++++++++++++++++ //
@@ -61,7 +61,7 @@ namespace votca {
             ParseOptionsXML(options);
 
             // register all QM packages (Gaussian, turbomole, etc))
-            QMPackageFactory::RegisterAll();
+            XQMPackageFactory::RegisterAll();
 
 
 
@@ -246,7 +246,7 @@ namespace votca {
 
     
             // get the corresponding object from the QMPackageFactory
-            QMPackage *_qmpackage = QMPackages().Create(_package);
+            XQMPackage *_qmpackage = XQMPackages().Create(_package);
             // set a log file for the package
             _qmpackage->setLog(pLog);
             // set the run dir 

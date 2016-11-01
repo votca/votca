@@ -21,14 +21,14 @@
 #ifndef VOTCA_XTP_EOUTERSPHERE_H
 #define	VOTCA_XTP_EOUTERSPHERE_H
 
-#include <votca/xtp/topology.h>
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/topology.h>
+#include <votca/ctp/qmcalculator.h>
 #include <votca/tools/thread.h>
 #include <votca/tools/mutex.h>
 #include <cstdlib>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 class EOutersphere : public QMCalculator

@@ -18,12 +18,12 @@
 #ifndef __XINDUCTOR__H
 #define	__XINDUCTOR__H
 
-#include <votca/xtp/topology.h>
-#include <votca/xtp/polarseg.h>
-#include <votca/xtp/apolarsite.h>
-#include <votca/xtp/xinteractor.h>
-#include <votca/xtp/xjob.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/topology.h>
+#include <votca/ctp/polarseg.h>
+#include <votca/ctp/apolarsite.h>
+#include <votca/ctp/xinteractor.h>
+#include <votca/ctp/xjob.h>
+#include <votca/ctp/logger.h>
 #include <votca/tools/thread.h>
 #include <votca/tools/mutex.h>
 
@@ -33,7 +33,7 @@
 // TODO No need for _top
 // TODO Initialize from Property object
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
     
 class XInductor

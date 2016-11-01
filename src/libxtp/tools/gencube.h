@@ -28,7 +28,7 @@
 #include <votca/tools/constants.h>
 
 namespace votca {
-    namespace xtp {
+    namespace ctp {
      
         using namespace std;
         namespace ub = boost::numeric::ublas;

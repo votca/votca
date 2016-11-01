@@ -22,10 +22,10 @@
 #include <votca/xtp/glink.h>
 
 using namespace std;
-using namespace votca::xtp;
+using namespace votca::ctp;
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class GNode
 {

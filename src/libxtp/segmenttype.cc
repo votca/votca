@@ -20,7 +20,7 @@
 
 #include <votca/xtp/segmenttype.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
     /**
 

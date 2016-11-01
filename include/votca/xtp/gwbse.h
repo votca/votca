@@ -20,11 +20,11 @@
 #ifndef _VOTCA_XTP_GWBSE_H
 #define	_VOTCA_XTP_GWBSE_H
 
-#include <votca/xtp/segment.h>
+#include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/threecenters.h>
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/parallelxjobcalc.h>
+#include <votca/ctp/parallelxjobcalc.h>
 #include <unistd.h>
 
 #include <fstream>
@@ -42,7 +42,7 @@
 // #include <gsl/gsl_linalg.h>
 // #include <gsl/gsl_cblas.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
 
         /**

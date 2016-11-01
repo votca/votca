@@ -28,11 +28,11 @@
 
 
 using namespace std;
-using namespace votca::xtp;
+using namespace votca::ctp;
 using namespace votca::tools;
+//namespace CTP = votca::ctp;
 
-
-class XtpTools : public votca::xtp::XtpApplication
+class XtpTools : public votca::ctp::XtpApplication
 {
 public:
     
@@ -42,8 +42,8 @@ public:
 
     void    HelpText(ostream &out) { out <<"Runs excitation/charge transport tools"<< endl; }
 
-    void    AddTool(votca::xtp::QMTool *tool) { _tools.push_back(tool); }
-    void    AddTool(votca::ctp::QMTool *tool) { _ctp_tools.push_back(tool); }
+    void    AddTool(votca::ctp::QMTool *tool) { _tools.push_back(tool); }
+    //void    AddTool(QMTool *tool) { _ctp_tools.push_back(tool); }
 
 
     void    Initialize();
@@ -57,15 +57,15 @@ public:
 private:
     
     votca::tools::Property _options;
-    list< votca::xtp::QMTool* >   _tools;
-    list< votca::ctp::QMTool* >   _ctp_tools;
+    list< votca::ctp::QMTool* >   _tools;
+    //list< votca::ctp::QMTool* >   _ctp_tools;
 };
 
 
 
 void XtpTools::Initialize() {
     
-    QMToolFactory::RegisterAll(); 
+    votca::ctp::XQMToolFactory::RegisterAll(); 
     votca::ctp::QMToolFactory::RegisterAll();
 
     namespace propt = boost::program_options;    
@@ -88,16 +88,16 @@ bool XtpTools::EvaluateOptions() {
 
     if (OptionsMap().count("list")) {
         cout << "Available tools: \n";
-        for(QMToolFactory::assoc_map::const_iterator iter=
-            QMTools().getObjects().begin();
-            iter != QMTools().getObjects().end(); ++iter) {
+        for(XQMToolFactory::assoc_map::const_iterator iter=
+            XQMTools().getObjects().begin();
+            iter != XQMTools().getObjects().end(); ++iter) {
             PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpShort );
         }
         
         // also include the CTP Tools
         for(votca::ctp::QMToolFactory::assoc_map::const_iterator iter=
-            votca::ctp::QMTools().getObjects().begin();
-            iter != votca::ctp::QMTools().getObjects().end(); ++iter) {
+            QMTools().getObjects().begin();
+            iter != QMTools().getObjects().end(); ++iter) {
             PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpShort );
         }
         
@@ -114,8 +114,8 @@ bool XtpTools::EvaluateOptions() {
         for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
             // loop over tools
             bool printerror = true;
-            for(QMToolFactory::assoc_map::const_iterator iter=QMTools().getObjects().begin(); 
-                iter != QMTools().getObjects().end(); ++iter) {
+            for(XQMToolFactory::assoc_map::const_iterator iter=XQMTools().getObjects().begin(); 
+                iter != XQMTools().getObjects().end(); ++iter) {
 
                 if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
                     PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpLong );
@@ -152,12 +152,12 @@ bool XtpTools::EvaluateOptions() {
        
 
         // check if XTP or CTP tool
-        for(QMToolFactory::assoc_map::const_iterator iter=QMTools().getObjects().begin(); 
-                iter != QMTools().getObjects().end(); ++iter) {
+        for(XQMToolFactory::assoc_map::const_iterator iter=XQMTools().getObjects().begin(); 
+                iter != XQMTools().getObjects().end(); ++iter) {
 
                 if ( (*it).compare( (iter->first).c_str() ) == 0 ) {
                     cout << "Registered XTP " << (*it).c_str() << endl;
-                    this->AddTool(QMTools().Create((*it).c_str()));
+                    this->AddTool(XQMTools().Create((*it).c_str()));
                     //PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpLong );
                     //printerror = false;
                     break;
@@ -202,7 +202,7 @@ void XtpTools::Run() {
 
 
 void XtpTools::BeginEvaluate(int nThreads = 1) {
-    list< QMTool* > ::iterator it;
+    list< votca::ctp::QMTool* > ::iterator it;
     for (it = _tools.begin(); it != _tools.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
         (*it)->setnThreads(nThreads);
@@ -211,17 +211,17 @@ void XtpTools::BeginEvaluate(int nThreads = 1) {
     }
     
     // CTP tools 
-    list< votca::ctp::QMTool* > ::iterator cit;
+    /* list< votca::ctp::QMTool* > ::iterator cit;
     for (cit = _ctp_tools.begin(); cit != _ctp_tools.end(); cit++) {
         cout << "... " << (*cit)->Identify() << " " << flush;
         (*cit)->setnThreads(nThreads);
         (*cit)->Initialize(&_options);        
         cout << endl;
-    }    
+    }  */  
 }
 
 bool XtpTools::Evaluate() {
-    list< QMTool* > ::iterator it;
+    list< votca::ctp::QMTool* > ::iterator it;
     for (it = _tools.begin(); it != _tools.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
         (*it)->Evaluate();
@@ -232,7 +232,7 @@ bool XtpTools::Evaluate() {
 }
 
 void XtpTools::EndEvaluate() {
-    list< QMTool* > ::iterator it;
+    list< votca::ctp::QMTool* > ::iterator it;
     for (it = _tools.begin(); it != _tools.end(); it++) {
         (*it)->EndEvaluate();
     }

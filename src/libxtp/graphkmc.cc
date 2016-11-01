@@ -21,7 +21,7 @@
 using namespace std;
 
 namespace votca {
-    namespace xtp {
+    namespace ctp {
 void GraphKMC::Setup_bulk_graph( Eventinfo* eventinfo)
 {
 

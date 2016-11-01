@@ -23,7 +23,7 @@
 #include <votca/xtp/molpolengine.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
     
     

@@ -22,10 +22,10 @@
 #define EMultipole_StdAl_H
 
 
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 #include <boost/progress.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 class EMultipole_StdAl : public QMCalculator

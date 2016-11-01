@@ -23,8 +23,8 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
 
-#include <votca/xtp/xjob.h>
-#include <votca/xtp/xinductor.h>
+#include <votca/ctp/xjob.h>
+#include <votca/ctp/xinductor.h>
 // add gwbse header for excited state support
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/qmpackagefactory.h>
@@ -33,7 +33,7 @@
 #include <votca/xtp/gdma.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
     
 // ========================================================================== //

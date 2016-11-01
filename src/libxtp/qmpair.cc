@@ -21,7 +21,7 @@
 #include <votca/xtp/qmpair.h>
 #include <votca/xtp/topology.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 QMPair::~QMPair() {
     if (_ghost != NULL) {

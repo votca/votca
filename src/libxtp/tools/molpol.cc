@@ -20,7 +20,7 @@
 #include "molpol.h"
 #include <votca/xtp/polartop.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 void MolPolTool::Initialize(Property *options) {
 

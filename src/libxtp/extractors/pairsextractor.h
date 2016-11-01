@@ -24,10 +24,10 @@
 #include <votca/xtp/qmcalculator.h>
 #include <boost/format.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
-class PairsExtractor : public QMCalculator
+class PairsExtractor : public XQMCalculator
 {
 public:
 

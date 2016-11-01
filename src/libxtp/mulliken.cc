@@ -20,7 +20,7 @@
 
 #include <votca/xtp/mulliken.h>
 #include <votca/xtp/aomatrix.h>
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 void Mulliken::EvaluateMulliken(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition){
     AOOverlap _overlap;

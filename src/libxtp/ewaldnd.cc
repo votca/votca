@@ -17,15 +17,15 @@
  *
  */
 
-#include <votca/xtp/ewaldnd.h>
-#include <votca/xtp/poissongrid.h>
+#include <votca/ctp/ewaldnd.h>
+#include <votca/ctp/poissongrid.h>
 #include <boost/format.hpp>
 #include <algorithm>
 #include <boost/math/special_functions/round.hpp>
 #include <boost/timer/timer.hpp>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 using boost::format;
 

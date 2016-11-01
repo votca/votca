@@ -21,7 +21,7 @@
 #include <boost/format.hpp>
 
 namespace votca {
-namespace xtp {
+namespace ctp {
 namespace EWD {
 
 using boost::format;

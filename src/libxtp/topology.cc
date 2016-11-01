@@ -22,7 +22,7 @@
 #include <votca/tools/globals.h>
 #include <boost/lexical_cast.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 Topology::Topology() : _db_id(-1), _hasPb(0), 
                        _bc(NULL), _nblist(this),

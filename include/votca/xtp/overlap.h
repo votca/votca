@@ -18,12 +18,12 @@
  */
 
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 
 #ifndef _VOTCA_XTP_OVERLAP_H
 #define	_VOTCA_XTP_OVERLAP_H
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 /**

@@ -24,10 +24,10 @@
 #include <stdio.h>
 #include <map>
 #include "qmdatabase.h"
-#include "topology.h"
+#include <votca/ctp/topology.h>
 #include <boost/interprocess/sync/file_lock.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 using namespace votca::tools;
 

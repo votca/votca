@@ -20,10 +20,10 @@
 #ifndef _VOTCA_XTP_DFTENGINE_H
 #define	_VOTCA_XTP_DFTENGINE_H
 
-#include <votca/xtp/segment.h>
+#include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 
 
 
@@ -33,7 +33,7 @@
 
 #include <votca/xtp/numerical_integrations.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
 
         /**

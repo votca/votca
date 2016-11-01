@@ -28,7 +28,7 @@
 #include "calculators/bulk.h"
 #include "calculators/kmclifetime.h"
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 void KMCCalculatorFactory::RegisterAll(void)
 {

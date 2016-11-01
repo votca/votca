@@ -25,7 +25,7 @@
 #include <votca/xtp/paircalculator.h>
 #include <votca/moo/mol_and_orb.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 namespace MOO = votca::moo;
 

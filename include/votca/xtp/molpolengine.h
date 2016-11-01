@@ -23,7 +23,7 @@
 #include <votca/xtp/polartop.h>
 
 namespace votca {
-namespace xtp {
+namespace ctp {
     
     
 class MolPolEngine

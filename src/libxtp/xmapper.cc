@@ -20,7 +20,7 @@
 #include <votca/xtp/xmapper.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 void XMpsMap::GenerateMap(string xml_file, 

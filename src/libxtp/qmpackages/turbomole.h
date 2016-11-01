@@ -21,17 +21,17 @@
 #define	__VOTCA_XTP_TURBOMOLE_H
 
 #include <votca/tools/property.h>
-#include <votca/xtp/segment.h>
+#include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/apolarsite.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/apolarsite.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/qmpackage.h>
 
 #include <string> 
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 /**
     \brief Wrapper for the Gaussian program
  
@@ -39,7 +39,7 @@ namespace votca { namespace xtp {
     and extracts information from its log and io files
     
 */
-class Turbomole : public QMPackage
+class Turbomole : public XQMPackage
 {
 public:   
 

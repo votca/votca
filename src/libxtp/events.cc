@@ -21,7 +21,7 @@
 using namespace std;
 
 namespace votca {
-    namespace xtp {
+    namespace ctp {
         
 void Events::On_execute(Event* event, GraphKMC* graph, StateReservoir* state, Longrange* longrange, Bsumtree* non_injection_rates, 
                           Bsumtree* left_injection_rates, Bsumtree* right_injection_rates, Eventinfo* eventinfo) {

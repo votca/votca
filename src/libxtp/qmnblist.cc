@@ -22,7 +22,7 @@
 #include <votca/tools/globals.h>
 #include <votca/xtp/topology.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 QMPair *QMNBList::Add(Segment* seg1, Segment* seg2,bool safe) {
     

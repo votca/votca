@@ -19,7 +19,7 @@
 #include <votca/xtp/kmcapplication.h>
 #include <string>
 
-using namespace votca::xtp;
+using namespace votca::ctp;
 
 //using namespace votca::xtp;
 

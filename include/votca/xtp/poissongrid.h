@@ -20,11 +20,11 @@
 #ifndef VOTCA_XTP_POISSONGRID_H
 #define VOTCA_XTP_POISSONGRID_H
 
-#include <votca/xtp/polartop.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/polartop.h>
+#include <votca/ctp/logger.h>
 
 namespace votca { 
-namespace xtp {
+namespace ctp {
 namespace POI {
     
    

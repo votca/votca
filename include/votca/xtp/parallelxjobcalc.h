@@ -21,11 +21,11 @@
 #define __PARALLELXJOBCALC__H
 
 
-#include <votca/xtp/jobcalculator.h>
-#include <votca/xtp/qmthread.h>
+#include <votca/ctp/jobcalculator.h>
+#include <votca/ctp/qmthread.h>
 #include <votca/tools/mutex.h>
-#include <votca/xtp/job.h>
-#include <votca/xtp/progressobserver.h>
+#include <votca/ctp/job.h>
+#include <votca/ctp/progressobserver.h>
 
 
 // PATHWAYS TO A NEW THREADED CALCULATOR
@@ -38,7 +38,7 @@
 // pJob::JobResult (struct)
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 template<typename JobContainer, typename pJob, typename rJob> 
 class ParallelXJobCalc : public JobCalculator

@@ -23,17 +23,17 @@
 #include <votca/xtp/version.h>
 #include <boost/format.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 SqlApplication::SqlApplication() {
-    Calculatorfactory::RegisterAll();
+    XCalculatorfactory::RegisterAll();
 }
 
 
 void SqlApplication::Initialize(void) {
     XtpApplication::Initialize();
 
-    Calculatorfactory::RegisterAll();
+    XCalculatorfactory::RegisterAll();
 
     namespace propt = boost::program_options;
 
@@ -101,13 +101,13 @@ void SqlApplication::Run() {
 
 
 
-void SqlApplication::AddCalculator(QMCalculator* calculator) {
+void SqlApplication::AddCalculator(XQMCalculator* calculator) {
     _calculators.push_back(calculator);
 }
 
 
 void SqlApplication::BeginEvaluate(int nThreads = 1) {
-    list< QMCalculator* > ::iterator it;
+    list< XQMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";
         (*it)->setnThreads(nThreads);
@@ -117,7 +117,7 @@ void SqlApplication::BeginEvaluate(int nThreads = 1) {
 }
 
 bool SqlApplication::EvaluateFrame() {
-    list< QMCalculator* > ::iterator it;
+    list< XQMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
         (*it)->EvaluateFrame(&_top);
@@ -127,7 +127,7 @@ bool SqlApplication::EvaluateFrame() {
 }
 
 void SqlApplication::EndEvaluate() {
-    list< QMCalculator* > ::iterator it;
+    list< XQMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         (*it)->EndEvaluate(&_top);
     }

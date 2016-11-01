@@ -26,7 +26,7 @@
 #include <votca/xtp/overlap.h>
 #include <votca/xtp/qmpackagefactory.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     using namespace std;
     
 class Coupling : public QMTool

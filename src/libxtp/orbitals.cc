@@ -33,7 +33,7 @@
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 template <class VEC>
 class vector_less

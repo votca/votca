@@ -21,13 +21,13 @@
 #define _VOTCA_XTP_PANALYZE_H
 
 #include <votca/tools/globals.h>
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/qmpair.h>
+#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/qmpair.h>
 
 #include <math.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class PAnalyze : public QMCalculator
 {

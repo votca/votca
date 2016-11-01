@@ -22,14 +22,14 @@
 
 
 #include <votca/xtp/parallelxjobcalc.h>
-#include <votca/xtp/xmapper.h>
-#include <votca/xtp/xjob.h>
-#include <votca/xtp/xinductor.h>
-#include <votca/xtp/xinteractor.h>
-#include <votca/xtp/ewald2d.h>
-#include <votca/xtp/ewald3d.h>
-#include <votca/xtp/pewald3d.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/xmapper.h>
+#include <votca/ctp/xjob.h>
+#include <votca/ctp/xinductor.h>
+#include <votca/ctp/xinteractor.h>
+#include <votca/ctp/ewald2d.h>
+#include <votca/ctp/ewald3d.h>
+#include <votca/ctp/pewald3d.h>
+#include <votca/ctp/logger.h>
 #include <boost/format.hpp>
 #include <boost/timer/timer.hpp>
 
@@ -37,7 +37,7 @@
 using boost::format;
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 template<class EwaldMethod>

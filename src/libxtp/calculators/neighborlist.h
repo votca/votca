@@ -22,8 +22,8 @@
 #define __VOTCA_XTP_NEIGHBORLIST_H
 
 #include <votca/tools/globals.h>
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/qmpair.h>
+#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/qmpair.h>
 #include <boost/progress.hpp>
 #include <boost/format.hpp>
 #include <votca/tools/random2.h>
@@ -31,7 +31,7 @@
 #include <omp.h>
 #endif
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 namespace TOOLS = votca::tools;
     

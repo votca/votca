@@ -31,9 +31,9 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/xtp/votca_config.h>
 #include <votca/tools/constants.h>
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     using namespace std;
-    
+    using namespace votca::ctp;
 class Exciton : public QMTool
 {
 public:

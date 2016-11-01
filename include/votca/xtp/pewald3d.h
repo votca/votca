@@ -28,7 +28,7 @@
 
 namespace CSG = votca::csg;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
     // NOTE: This is not a conventional 3D Ewald summation, so use carefully
     //       (tuned for the purpose of site-energy calculations)

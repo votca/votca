@@ -29,7 +29,7 @@
 #include <boost/format.hpp>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     namespace ba = boost::algorithm;
     using namespace std;
     

@@ -21,7 +21,7 @@
 using namespace std;
 
 namespace votca {
-    namespace xtp {
+    namespace ctp {
 
 void Profile::Initialize_storage_arrays(Eventinfo* eventinfo) {
     

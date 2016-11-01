@@ -23,14 +23,14 @@
 
 #include <votca/xtp/xtpapplication.h>
 
-#include <votca/xtp/progressobserver.h>
-#include <votca/xtp/topology.h>
+#include <votca/ctp/progressobserver.h>
+#include <votca/ctp/topology.h>
 
-#include "statesaversqlite.h"
-#include "jobcalculator.h"
+#include <votca/ctp/statesaversqlite.h>
+#include <votca/ctp/jobcalculator.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 
@@ -52,7 +52,7 @@ public:
 protected:
     
     bool _generate_input, _run, _import;
-    XTP::Topology           _top;
+    CTP::Topology           _top;
     std::list< JobCalculator* >   _calculators;
 
 };

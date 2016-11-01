@@ -23,17 +23,17 @@
 #include <votca/xtp/version.h>
 #include <boost/format.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 JobApplication::JobApplication() {
-    JobCalculatorfactory::RegisterAll();
+    XJobCalculatorfactory::RegisterAll();
 }
 
 
 void JobApplication::Initialize(void) {
     XtpApplication::Initialize();
 
-    JobCalculatorfactory::RegisterAll();
+    XJobCalculatorfactory::RegisterAll();
 
     namespace propt = boost::program_options;
 

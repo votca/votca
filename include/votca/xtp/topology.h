@@ -45,7 +45,7 @@
 namespace CSG = votca::csg;
 namespace MOO = votca::moo;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 /**
  * \brief Container for molecules, conjugated segments, rigid fragments,

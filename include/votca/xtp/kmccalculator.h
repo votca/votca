@@ -20,7 +20,7 @@
 
 #include <votca/tools/property.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
     using namespace tools;
 

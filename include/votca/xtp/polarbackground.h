@@ -28,7 +28,7 @@
 #include <votca/tools/globals.h>
 
 
-namespace votca { namespace xtp {    
+namespace votca { namespace ctp {    
 namespace EWD {
 
 class PolarBackground

@@ -27,7 +27,7 @@
 #include <votca/xtp/qmmachine.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 class Log2Mps : public QMTool

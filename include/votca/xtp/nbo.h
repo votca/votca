@@ -23,8 +23,8 @@
 
 #include <votca/xtp/elements.h>
 #include <votca/xtp/aobasis.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmatom.h>
+#include <votca/ctp/logger.h>
+#include <votca/ctp/qmatom.h>
 
 
 /**
@@ -36,7 +36,7 @@
 using namespace votca::tools;
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
 class NBO{

@@ -23,7 +23,7 @@
 #include <iomanip>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
   
 using namespace std;
 

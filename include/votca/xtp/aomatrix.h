@@ -23,7 +23,7 @@
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
 
-#include <votca/xtp/segment.h>
+#include <votca/ctp/segment.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -43,7 +43,7 @@ namespace Cart {
                 };
 }
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
     

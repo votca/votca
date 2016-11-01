@@ -25,7 +25,7 @@
 
 
 using namespace std;
-using namespace votca::xtp;
+using namespace votca::ctp;
 
 
 class XtpParallel : public JobApplication
@@ -64,9 +64,9 @@ bool XtpParallel::EvaluateOptions() {
 
     if (OptionsMap().count("list")) {
             cout << "Available calculators: \n";
-            for(JobCalculatorfactory::assoc_map::const_iterator iter=
-                    JobCalculators().getObjects().begin();
-                    iter != JobCalculators().getObjects().end(); ++iter) {
+            for(XJobCalculatorfactory::assoc_map::const_iterator iter=
+                    XJobCalculators().getObjects().begin();
+                    iter != XJobCalculators().getObjects().end(); ++iter) {
                     PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpShort );
             }
             StopExecution();
@@ -81,8 +81,8 @@ bool XtpParallel::EvaluateOptions() {
             for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
                 // loop over calculators
                 bool printerror = true;
-                for(JobCalculatorfactory::assoc_map::const_iterator iter=JobCalculators().getObjects().begin(); 
-                        iter != JobCalculators().getObjects().end(); ++iter) {
+                for(XJobCalculatorfactory::assoc_map::const_iterator iter=XJobCalculators().getObjects().begin(); 
+                        iter != XJobCalculators().getObjects().end(); ++iter) {
 
                     if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
                         PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpLong ); 
@@ -102,7 +102,7 @@ bool XtpParallel::EvaluateOptions() {
     Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
     Tokenizer::iterator it;
     for (it = calcs.begin(); it != calcs.end(); it++) {
-        JobApplication::AddCalculator(JobCalculators().Create((*it).c_str()));
+        JobApplication::AddCalculator(XJobCalculators().Create((*it).c_str()));
     }
     return true;
 }

@@ -23,7 +23,7 @@
 #include <string>
 #include <stdexcept>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class CrgUnit;
 

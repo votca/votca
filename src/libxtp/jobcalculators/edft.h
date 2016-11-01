@@ -21,7 +21,7 @@
 #ifndef _VOTCA_XTP_EDFT_H
 #define	_VOTCA_XTP_EDFT_H
 
-#include <votca/xtp/segment.h>
+#include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
 
 #include <votca/xtp/qmpackagefactory.h>
@@ -38,7 +38,7 @@
 
 using boost::format;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 /**
 * \brief Site energies and orbitals for QM molecules
@@ -128,7 +128,7 @@ void EDFT::Initialize(Property *options) {
     
     
     // register all QM packages (Gaussian, Turbomole, NWChem))
-    QMPackageFactory::RegisterAll(); 
+    XQMPackageFactory::RegisterAll(); 
 
 }
 
@@ -235,7 +235,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string ID   = boost::lexical_cast<string>( seg->getId() );
 
     // get the corresponding object from the QMPackageFactory
-    QMPackage *_qmpackage =  QMPackages().Create( _package );
+    XQMPackage *_qmpackage =  XQMPackages().Create( _package );
     
    _qmpackage->setLog( pLog );  
    _qmpackage->Initialize( &_package_options );

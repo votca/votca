@@ -25,7 +25,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/elements.h>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/espfit.h>
@@ -34,10 +34,10 @@
 using boost::format;
 
 namespace votca {
-    namespace xtp {
+    namespace ctp {
 
-        template<class QMPackage>
-        QMMachine<QMPackage>::QMMachine(XJob *job, XInductor *xind, QMPackage *qmpack,
+        template<class XQMPackage>
+        QMMachine<XQMPackage>::QMMachine(XJob *job, XInductor *xind, XQMPackage *qmpack,
                 Property *opt, string sfx, int nst, bool mav)
         : _job(job), _xind(xind), _qmpack(qmpack), _subthreads(nst),
         _isConverged(false) {
@@ -130,8 +130,8 @@ namespace votca {
 
         }
 
-        template<class QMPackage>
-        QMMachine<QMPackage>::~QMMachine() {
+        template<class XQMPackage>
+        QMMachine<XQMPackage>::~QMMachine() {
 
             std::vector<QMMIter*> ::iterator qit;
             for (qit = _iters.begin(); qit < _iters.end(); ++qit) {
@@ -140,8 +140,8 @@ namespace votca {
             _iters.clear();
         }
 
-        template<class QMPackage>
-        void QMMachine<QMPackage>::Evaluate(XJob *job) {
+        template<class XQMPackage>
+        void QMMachine<XQMPackage>::Evaluate(XJob *job) {
 
             LOG(logINFO, *_log)
                     << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
@@ -194,8 +194,8 @@ namespace votca {
             return;
         }
 
-        template<class QMPackage>
-        bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
+        template<class XQMPackage>
+        bool QMMachine<XQMPackage>::Iterate(string jobFolder, int iterCnt) {
 
             // CREATE ITERATION OBJECT & SETUP RUN DIRECTORY
             QMMIter *thisIter = this->CreateNewIter();
@@ -565,8 +565,8 @@ namespace votca {
 
         }
 
-        template<class QMPackage>
-        QMMIter *QMMachine<QMPackage>::CreateNewIter() {
+        template<class XQMPackage>
+        QMMIter *QMMachine<XQMPackage>::CreateNewIter() {
 
             QMMIter *newIter = new QMMIter(_iters.size());
             this->_iters.push_back(newIter);
@@ -589,8 +589,8 @@ namespace votca {
         }
          */
 
-        template<class QMPackage>
-        bool QMMachine<QMPackage>::hasConverged() {
+        template<class XQMPackage>
+        bool QMMachine<XQMPackage>::hasConverged() {
 
             _convg_dR = false;
             _convg_dQ = false;
@@ -876,7 +876,7 @@ namespace votca {
 
 
         // REGISTER QM PACKAGES
-        template class QMMachine<QMPackage>;
+        template class QMMachine<XQMPackage>;
 
 
 

@@ -26,7 +26,7 @@
 // #include <votca/xtp/mbgft.h>
 // #include <votca/xtp/qmpackagefactory.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     using namespace std;
     
 class Orb2IsoGWA : public QMTool

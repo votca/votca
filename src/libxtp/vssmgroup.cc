@@ -21,7 +21,7 @@
 using namespace std;
 
 namespace votca {
-    namespace xtp {
+    namespace ctp {
 double Vssmgroup::Timestep(votca::tools::Random2 *RandomVariable){
     double timestep;
     

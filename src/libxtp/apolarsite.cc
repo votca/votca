@@ -23,7 +23,7 @@
 #include <string>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 APolarSite::APolarSite(APolarSite *templ, bool do_depolarize) 

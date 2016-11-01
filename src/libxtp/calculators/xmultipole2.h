@@ -21,9 +21,9 @@
 #define XMULTIPOLE2_H
 
 
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class XMP : public QMCalculator
 {

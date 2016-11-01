@@ -21,10 +21,10 @@
 #define VOTCA_XTP_VAVERAGE_H
 
 
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
     
 class VAverage : public QMCalculator

@@ -25,7 +25,7 @@
 #include <votca/xtp/ewdspace.h>
 
 namespace votca {
-namespace xtp {
+namespace ctp {
 
 
 class PtopReader : public QMTool

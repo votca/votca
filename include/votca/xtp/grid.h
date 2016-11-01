@@ -27,10 +27,10 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
-#include <votca/xtp/qmatom.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/apolarsite.h>
-#include <votca/xtp/polarseg.h>
+#include <votca/ctp/qmatom.h>
+#include <votca/ctp/logger.h>
+#include <votca/ctp/apolarsite.h>
+#include <votca/ctp/polarseg.h>
 /**
 * \brief Takes a list of atoms, and creates different grids for it. Right now only CHELPG grid.
 *
@@ -41,7 +41,7 @@ using namespace std;
 using namespace votca::tools;
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
   class Grid{

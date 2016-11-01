@@ -25,7 +25,7 @@
 #include <votca/xtp/logger.h>
 #include <boost/filesystem.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     using namespace std;
     
 class Partialcharges : public QMTool

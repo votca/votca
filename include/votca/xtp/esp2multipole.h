@@ -25,11 +25,11 @@
 #include <votca/xtp/mulliken.h>
 #include <votca/xtp/lowdin.h>
 #include <votca/xtp/nbo.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/qmmachine.h>
 #include <boost/filesystem.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     using namespace std;
     
 class Esp2multipole 

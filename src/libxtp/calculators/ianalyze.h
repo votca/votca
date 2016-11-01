@@ -20,11 +20,11 @@
 #ifndef VOTCA_XTP_IANALYZE_H
 #define VOTCA_XTP_IANALYZE_H
 
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 #include <math.h>
-#include <votca/xtp/qmpair.h>
+#include <votca/ctp/qmpair.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class IAnalyze : public QMCalculator
 {

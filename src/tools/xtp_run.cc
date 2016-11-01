@@ -25,7 +25,7 @@
 
 
 using namespace std;
-using namespace votca::xtp;
+using namespace votca::ctp;
 
 
 class XtpRun : public SqlApplication
@@ -66,9 +66,9 @@ bool XtpRun::EvaluateOptions() {
     
     if (OptionsMap().count("list")) {
             cout << "Available calculators: \n";
-            for(Calculatorfactory::assoc_map::const_iterator iter=
-                    Calculators().getObjects().begin();
-                    iter != Calculators().getObjects().end(); ++iter) {
+            for(XCalculatorfactory::assoc_map::const_iterator iter=
+                    XCalculators().getObjects().begin();
+                    iter != XCalculators().getObjects().end(); ++iter) {
                 PrintDescription( std::cout, (iter->first), helpdir, Application::HelpShort );
             }
             StopExecution();
@@ -83,8 +83,8 @@ bool XtpRun::EvaluateOptions() {
             for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
                 // loop over calculators
                 bool printerror = true;
-                for(Calculatorfactory::assoc_map::const_iterator iter=Calculators().getObjects().begin(); 
-                        iter != Calculators().getObjects().end(); ++iter) {
+                for(XCalculatorfactory::assoc_map::const_iterator iter=XCalculators().getObjects().begin(); 
+                        iter != XCalculators().getObjects().end(); ++iter) {
 
                     if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
                         PrintDescription( std::cout, (iter->first), helpdir, Application::HelpLong );
@@ -105,7 +105,7 @@ bool XtpRun::EvaluateOptions() {
     Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
     Tokenizer::iterator it;
     for (it = calcs.begin(); it != calcs.end(); it++) {
-        SqlApplication::AddCalculator(Calculators().Create((*it).c_str()));
+        SqlApplication::AddCalculator(XCalculators().Create((*it).c_str()));
     }
     
     load_property_from_xml(_options, _op_vm["options"].as<string>());

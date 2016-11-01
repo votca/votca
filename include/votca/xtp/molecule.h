@@ -28,7 +28,7 @@
 
 class Topology;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class Molecule {
 public:

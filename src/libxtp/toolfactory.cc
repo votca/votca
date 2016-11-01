@@ -24,15 +24,15 @@
 
 
 
-#include "tools/molpol.h"
+//#include "tools/molpol.h"
 /*#include "tools/pdb2map.h"
 #include "tools/coupling.h"
 #include "tools/log2mps.h"
 #include "tools/ptopreader.h"
-#include "tools/pdb2top.h"
-#include "tools/exciton.h"
+#include "tools/pdb2top.h"*/
+//#include "tools/exciton.h"
 #include "tools/qmanalyze.h"
-#include "tools/qmsandbox.h"
+/*#include "tools/qmsandbox.h"
 #include "tools/spectrum.h"*/
 //#include "tools/excitoncoupling.h"
 /*#include "tools/orb2isogwa.h"
@@ -41,23 +41,23 @@
 #include "tools/partialcharges.h"
 */
 
-namespace XTP = votca::xtp;
-//namespace CTP = votca::ctp;
+#include "tools/testtool.h"
 
-// votca::xtp::XQMToolFactory::
 
-//namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
-void votca::xtp::QMToolFactory::RegisterAll(void)
+void XQMToolFactory::RegisterAll(void)
 {
-        XTP::QMTools().Register<XTP::MolPolTool>         ("molpol");
+    
+    XQMTools().Register<TestTool>            ("testtool");
+        //XTP::QMTools().Register<XTP::MolPolTool>         ("molpol");
         /*QMTools().Register<XTP::PDB2Map>            ("pdb2map");
         QMTools().Register<XTP::Coupling>           ("coupling");
         QMTools().Register<XTP::Log2Mps>            ("log2mps");
-        QMTools().Register<XTP::PtopReader>         ("ptopreader");
-        QMTools().Register<XTP::Exciton>            ("exciton");
-        QMTools().Register<XTP::QMAnalyze>          ("qmanalyze");
-        QMTools().Register<XTP::QMSandbox>          ("qmsandbox");
+        QMTools().Register<XTP::PtopReader>         ("ptopreader");*/
+        //QMTools().Register<XTP::Exciton>            ("exciton");
+    //XQMTools().Register<XTP::QMAnalyze>          ("qmanalyze");
+        /*QMTools().Register<XTP::QMSandbox>          ("qmsandbox");
         QMTools().Register<XTP::Spectrum>           ("spectrum");
         */
         //QMTools().Register<XTP::ExcitonCoupling>    ("excitoncoupling");
@@ -69,4 +69,4 @@ void votca::xtp::QMToolFactory::RegisterAll(void)
         
 }
 
-//}}
+}}

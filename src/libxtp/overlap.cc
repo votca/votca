@@ -32,7 +32,7 @@
 #include <boost/format.hpp>
 #include <boost/progress.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 namespace ub = boost::numeric::ublas;
 

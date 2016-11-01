@@ -27,7 +27,7 @@
 #include <boost/format.hpp>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 class QMTool : public votca::tools::Calculator
 {

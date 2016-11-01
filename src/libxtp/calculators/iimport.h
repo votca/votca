@@ -20,12 +20,12 @@
 #ifndef _VOTCA_XTP_IIMPORT_H
 #define _VOTCA_XTP_IIMPORT_H
 
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 #include <sys/stat.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/tools/random2.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class IImport : public QMCalculator
 {

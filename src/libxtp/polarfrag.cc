@@ -21,7 +21,7 @@
 #include <votca/xtp/dmaspace.h>
 
 namespace votca {
-namespace xtp {
+namespace ctp {
 
 
 PolarFrag::~PolarFrag()  { 

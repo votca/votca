@@ -22,7 +22,7 @@
 //#define BOOST_DISABLE_ASSERTS //could be used to slighlty speed up calculation but the compile time simply goes boom
 #include <boost/multi_array.hpp>
 #include <votca/xtp/aomatrix.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/votca_config.h>
 #include <votca/xtp/orbitals.h>
@@ -44,7 +44,7 @@ using namespace votca::tools;
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     // due to different requirements for the data format for DFT and GW we have two different classes TCMatrix and TCMatrix_dft which inherit from TCrawMatrix
     

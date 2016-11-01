@@ -21,7 +21,7 @@
 #include <votca/xtp/nodesql.h>
 #include <votca/xtp/eventinfo.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class NodeDevice : public NodeSQL
 {

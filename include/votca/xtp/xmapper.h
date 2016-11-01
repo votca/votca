@@ -28,7 +28,7 @@
 // TODO Confirm thread safety
 // TODO Add "const" keyword
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 class XMpsMap
 {

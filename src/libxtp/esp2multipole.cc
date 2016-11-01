@@ -22,7 +22,7 @@
 #include <boost/format.hpp>
 #include <votca/xtp/orbitals.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 void Esp2multipole::Initialize(Property* options) {
     string key = Identify();

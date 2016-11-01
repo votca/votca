@@ -26,7 +26,7 @@
 #include <votca/xtp/node.h>
 #include <votca/xtp/graph.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 template <class TGraph, class TCarrier>
 class State {    

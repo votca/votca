@@ -24,7 +24,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/overlap.h>
 
@@ -34,7 +34,7 @@ using namespace votca::tools;
 
 namespace ub = boost::numeric::ublas;
     
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 // +++++++++++++++++++++++++++++ //
 // IDFT MEMBER FUNCTIONS         //
@@ -60,7 +60,7 @@ void IDFT::Initialize(votca::tools::Property* options ) {
     ParseOptionsXML( options  );
     
     // register all QM packages (Gaussian, turbomole, etc))
-    QMPackageFactory::RegisterAll();
+    XQMPackageFactory::RegisterAll();
 
 }
 
@@ -194,7 +194,7 @@ Job::JobResult IDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
     string _qmpackage_work_dir = (arg_path / idft_work_dir / _package / frame_dir / _pair_dir).c_str();    
     // get the corresponding object from the QMPackageFactory
-    QMPackage *_qmpackage =  QMPackages().Create( _package );
+    XQMPackage *_qmpackage =  XQMPackages().Create( _package );
     // set a log file for the package
     _qmpackage->setLog( pLog );       
     // set the run dir 

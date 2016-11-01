@@ -23,7 +23,7 @@
 #include <votca/tools/thread.h>
 
 namespace votca {
-namespace xtp {
+namespace ctp {
 
 template
 <

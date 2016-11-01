@@ -24,13 +24,13 @@
 
 #include <votca/xtp/qmcalculator.h>
 #include <votca/tools/thread.h>
-#include <votca/xtp/qmthread.h>
+#include <votca/ctp/qmthread.h>
 #include <votca/tools/mutex.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
-class ParallelPairCalculator : public QMCalculator
+class ParallelPairCalculator : public XQMCalculator
 {
 
 public:

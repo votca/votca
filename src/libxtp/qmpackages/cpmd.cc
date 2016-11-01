@@ -18,7 +18,7 @@
  */
 
 #include "cpmd.h"
-#include "votca/xtp/segment.h"
+#include <votca/ctp/segment.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -35,7 +35,7 @@
 
 
 namespace votca {
-    namespace xtp {
+    namespace ctp {
         namespace ub = boost::numeric::ublas;
 
         void Cpmd::Initialize(Property *options) {

@@ -18,7 +18,7 @@
  */
 
 #include "turbomole.h"
-#include "votca/xtp/segment.h"
+#include <votca/ctp/segment.h>
 #include <votca/tools/globals.h>
 
 #include <boost/algorithm/string.hpp>
@@ -34,7 +34,7 @@
 
 using namespace boost::filesystem;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     namespace ub = boost::numeric::ublas;
     
 void Turbomole::Initialize( Property *opt ) { 

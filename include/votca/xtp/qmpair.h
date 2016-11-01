@@ -25,7 +25,7 @@
 #include <utility>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class Topology;
 

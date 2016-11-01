@@ -17,7 +17,7 @@
  *
  */
 
-#include <votca/xtp/pewald3d.h>
+#include <votca/ctp/pewald3d.h>
 #include <boost/format.hpp>
 #include <algorithm>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -27,7 +27,7 @@
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 using boost::format;
     

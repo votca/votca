@@ -22,7 +22,7 @@
 #include <votca/xtp/graph.h>
 #include <votca/xtp/visualisation.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class Numoutput
 {

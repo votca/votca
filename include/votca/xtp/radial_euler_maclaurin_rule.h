@@ -23,13 +23,13 @@
 
 #include <votca/tools/property.h>
 #include <votca/xtp/basisset.h>
-#include <votca/xtp/qmatom.h>
+#include <votca/ctp/qmatom.h>
 #include <votca/tools/constants.h>
 #include <votca/xtp/grid_containers.h>
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
     
         class EulerMaclaurinGrid {

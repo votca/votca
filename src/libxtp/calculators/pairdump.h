@@ -20,11 +20,11 @@
 #ifndef PAIRDUMP_H
 #define PAIRDUMP_H
 
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 #include <sys/stat.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class PairDump : public QMCalculator
 {

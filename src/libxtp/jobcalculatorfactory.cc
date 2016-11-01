@@ -32,21 +32,21 @@
 #include "jobcalculators/iexcitoncl.h"
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
-void JobCalculatorfactory::RegisterAll(void)
+void XJobCalculatorfactory::RegisterAll(void)
 {	
-        JobCalculators().Register<EDFT>                ("edft");
-        JobCalculators().Register<IDFT>                ("idft");
-        JobCalculators().Register<XQMP>                ("xqmultipole");
-        JobCalculators().Register<QMMM>                ("qmmm");
-        JobCalculators().Register< Ewald<Ewald3D2D> >  ("ewald2d");
-        JobCalculators().Register< Ewald<Ewald3D3D> >  ("ewald3d");
-        JobCalculators().Register< Ewald<PEwald3D3D> > ("pewald3d");
-        JobCalculators().Register<EGWBSE>              ("egwbse");
-        JobCalculators().Register<IGWBSE>              ("igwbse");
-        JobCalculators().Register<QMAPE>               ("qmape");
-        JobCalculators().Register<IEXCITON>            ("iexcitoncl");
+        XJobCalculators().Register<EDFT>                ("edft");
+        XJobCalculators().Register<IDFT>                ("idft");
+        XJobCalculators().Register<XQMP>                ("xqmultipole");
+        XJobCalculators().Register<QMMM>                ("qmmm");
+        XJobCalculators().Register< Ewald<Ewald3D2D> >  ("ewald2d");
+        XJobCalculators().Register< Ewald<Ewald3D3D> >  ("ewald3d");
+        XJobCalculators().Register< Ewald<PEwald3D3D> > ("pewald3d");
+        XJobCalculators().Register<EGWBSE>              ("egwbse");
+        XJobCalculators().Register<IGWBSE>              ("igwbse");
+        XJobCalculators().Register<QMAPE>               ("qmape");
+        XJobCalculators().Register<IEXCITON>            ("iexcitoncl");
 }
 
 }}

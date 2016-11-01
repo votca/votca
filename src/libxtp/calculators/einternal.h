@@ -21,9 +21,9 @@
 #ifndef _VOTCA_XTP_EINTERNAL_H
 #define _VOTCA_XTP_EINTERNAL_H
 
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 class EInternal : public QMCalculator

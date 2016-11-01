@@ -20,17 +20,17 @@
 #define VOTCA_XTP_EWALDND_H
 
 
-#include <votca/xtp/polartop.h>
-#include <votca/xtp/ewaldactor.h>
-#include <votca/xtp/xjob.h>
-#include <votca/xtp/xinteractor.h>
-#include <votca/xtp/xinductor.h>
-#include <votca/xtp/qmthread.h>
+#include <votca/ctp/polartop.h>
+#include <votca/ctp/ewaldactor.h>
+#include <votca/ctp/xjob.h>
+#include <votca/ctp/xinteractor.h>
+#include <votca/ctp/xinductor.h>
+#include <votca/ctp/qmthread.h>
 #include <boost/multi_array.hpp>
 
 namespace CSG = votca::csg;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 // NOTE: This is not a conventional 3D Ewald summation, so use carefully
 //       (tuned for the purpose of cluster energy calculations)

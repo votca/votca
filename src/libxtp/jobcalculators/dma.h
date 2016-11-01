@@ -21,7 +21,7 @@
 #ifndef _VOTCA_XTP_DMA_H
 #define	_VOTCA_XTP_DMA_H
 
-#include <votca/xtp/segment.h>
+#include <votca/ctp/segment.h>
 
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/parallelxjobcalc.h>
@@ -35,7 +35,7 @@
 
 using boost::format;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 /**
 * \brief Distributed multipole analysis using Gaussian input

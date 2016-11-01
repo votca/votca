@@ -19,9 +19,9 @@
 #ifndef VOTCA_XTP_PROFILE_H
 #define VOTCA_XTP_PROFILE_H
 
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class Profile : public QMCalculator
 {

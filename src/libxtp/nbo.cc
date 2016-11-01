@@ -21,7 +21,7 @@
 #include <votca/xtp/nbo.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/tools/linalg.h>
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,  ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs){
     AOOverlap _overlap;

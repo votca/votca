@@ -28,7 +28,7 @@
 #include "global.h"
 #include "mol_and_orb.h"
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 /// this class will contain the fock matrix and pointers to the molecules involved in calculating it
 class fock {

@@ -22,7 +22,7 @@
 #include <votca/xtp/polartop.h>
 #include <votca/xtp/job.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
   
 
 class XJob

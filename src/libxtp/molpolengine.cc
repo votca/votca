@@ -20,7 +20,7 @@
 #include <votca/xtp/molpolengine.h>
 
 namespace votca {
-namespace xtp {
+namespace ctp {
 
     
 matrix MolPolEngine::CalculateMolPol(vector<APolarSite*> &poles, bool verbose) {

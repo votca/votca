@@ -20,7 +20,7 @@
 #include "votca/xtp/aoshell.h"
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
  AOBasis::~AOBasis() { 
         for (vector< AOShell* >::iterator it = _aoshells.begin(); it != _aoshells.end() ; it++ ) delete (*it); 

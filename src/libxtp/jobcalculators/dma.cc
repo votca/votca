@@ -20,7 +20,7 @@
 
 #include "dma.h"
 
-#include <votca/xtp/segment.h>
+#include <votca/ctp/segment.h>
 
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/parallelxjobcalc.h>
@@ -36,7 +36,7 @@
 
 using boost::format;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 /**
 * \brief Distributed multipole analysis using Gaussian input
@@ -81,7 +81,7 @@ void DMA::Initialize(Property *options) {
 
     
     // register all QM packages (Gaussian, Turbomole, NWChem))
-    QMPackageFactory::RegisterAll(); 
+    XQMPackageFactory::RegisterAll(); 
 
 }
 
@@ -155,7 +155,7 @@ Job::JobResult DMA::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string ID   = boost::lexical_cast<string>( seg->getId() );
 
     // get the corresponding object from the QMPackageFactory
-    QMPackage *_qmpackage =  QMPackages().Create( _package );
+    XQMPackage *_qmpackage =  XQMPackages().Create( _package );
     
    _qmpackage->setLog( pLog );  
    _qmpackage->Initialize( &_package_options );

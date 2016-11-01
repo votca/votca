@@ -27,7 +27,7 @@
 #include<votca/xtp/aomatrix.h>
 #include<boost/numeric/ublas/matrix.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     using namespace std;
     
 class QMSandbox : public QMTool

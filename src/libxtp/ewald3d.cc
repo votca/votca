@@ -17,7 +17,7 @@
  *
  */
 
-#include <votca/xtp/ewald3d.h>
+#include <votca/ctp/ewald3d.h>
 #include <boost/format.hpp>
 #include <algorithm>
 #include <votca/tools/constants.h>
@@ -25,7 +25,7 @@
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 using namespace votca::tools;
 using boost::format;
 Ewald3D3D::~Ewald3D3D() { ; }

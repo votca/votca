@@ -25,7 +25,7 @@
 #include <votca/tools/random2.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 template<class TNode, class TLink>
 class Graph {

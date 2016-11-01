@@ -21,7 +21,7 @@
 #include <votca/xtp/statesaversqlite.h>
 #include <votca/tools/statement.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 void StateSaverSQLite::Open(Topology& qmtop, const string &file, bool lock) {
     _sqlfile = file;

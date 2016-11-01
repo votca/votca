@@ -25,7 +25,7 @@
 #include <votca/xtp/longrange.h>
 #include <votca/xtp/statereservoir.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
   
 using namespace std;
 

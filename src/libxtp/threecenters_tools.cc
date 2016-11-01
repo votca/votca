@@ -22,14 +22,14 @@
 
 #include <votca/xtp/threecenters.h>
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/tools/linalg.h>
 
 
 using namespace votca::tools;
 
 namespace votca {
-    namespace xtp {
+    namespace ctp {
         namespace ub = boost::numeric::ublas;
 
         /*

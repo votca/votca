@@ -20,14 +20,14 @@
 #ifndef VOTCA_XTP_CGPOLAR_H
 #define VOTCA_XTP_CGPOLAR_H
 
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/xmapper.h>
-#include <votca/xtp/dmaspace.h>
-#include <votca/xtp/molpolengine.h>
+#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/xmapper.h>
+#include <votca/ctp/dmaspace.h>
+#include <votca/ctp/molpolengine.h>
 #include <boost/filesystem.hpp>
 
 namespace votca { 
-namespace xtp {
+namespace ctp {
   
 class CgPolar : public QMCalculator
 {

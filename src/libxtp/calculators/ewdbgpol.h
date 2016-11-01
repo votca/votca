@@ -20,15 +20,15 @@
 #ifndef VOTCA_XTP_EWDBGPOL_H
 #define VOTCA_XTP_EWDBGPOL_H
 
-#include <votca/xtp/qmthread.h>
-#include <votca/xtp/qmcalculator.h>
-#include <votca/xtp/xmapper.h>
-#include <votca/xtp/polarbackground.h>
+#include <votca/ctp/qmthread.h>
+#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/xmapper.h>
+#include <votca/ctp/polarbackground.h>
 #include <votca/tools/tokenizer.h>
 #include <boost/filesystem.hpp>
 
 namespace votca { 
-namespace xtp {
+namespace ctp {
   
 class EwaldBgPolarizer : public QMCalculator
 {

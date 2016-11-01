@@ -21,7 +21,7 @@
 #include <votca/xtp/fragment.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 Fragment::Fragment(Fragment *stencil)
          : _id(stencil->getId()), _name(stencil->getName()+"_ghost"),

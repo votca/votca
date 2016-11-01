@@ -25,12 +25,12 @@
 #include <votca/xtp/qmcalculator.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 
 
-class TrajExtractor : public QMCalculator
+class TrajExtractor : public XQMCalculator
 {
 
 public:

@@ -20,7 +20,7 @@
 
 #include <votca/xtp/event.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 class HoleTransfer : public Event {
 public:

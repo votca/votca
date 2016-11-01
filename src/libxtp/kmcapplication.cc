@@ -18,7 +18,7 @@
 #include <votca/xtp/kmcapplication.h>
 #include <votca/xtp/kmccalculatorfactory.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 KMCApplication::KMCApplication()
 {
@@ -50,7 +50,7 @@ void KMCApplication::ShowHelpText(std::ostream &out)
     if(VersionString() != "")
          name = name + ", version " + VersionString();
 
-    votca::xtp::HelpTextHeader(name);
+    votca::ctp::HelpTextHeader(name);
     HelpText(out);
     out << "\n\n" << VisibleOptions() << endl;
 }

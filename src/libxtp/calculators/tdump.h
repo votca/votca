@@ -22,10 +22,10 @@
 #define _TDUMP2_H
 
 #include <cstdlib>
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 class TDump : public QMCalculator

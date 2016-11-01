@@ -21,7 +21,7 @@
 #include <votca/tools/vec.h>
 #include <votca/xtp/linksql.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 enum CrossxType{NoxCross, PosxCross, NegxCross };        
 enum CrossyType{NoyCross, PosyCross, NegyCross };        

@@ -25,7 +25,7 @@
 
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
-#include <votca/xtp/qmatom.h>
+#include <votca/ctp/qmatom.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
@@ -35,7 +35,7 @@
 #include <votca/tools/property.h>
 #include <votca/tools/vec.h>
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <boost/format.hpp>
 // Text archive that defines boost::archive::text_oarchive
 // and boost::archive::text_iarchive
@@ -72,7 +72,7 @@
 
 namespace ub = boost::numeric::ublas;
     
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
  
 /**
@@ -665,7 +665,7 @@ private:
 
 }}
 
-BOOST_CLASS_VERSION(votca::xtp::Orbitals, 2)
+BOOST_CLASS_VERSION(votca::ctp::Orbitals, 2)
         
 #endif	/* __VOTCA_XTP_ORBITALS_H */
 

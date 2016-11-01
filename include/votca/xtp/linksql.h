@@ -21,7 +21,7 @@
 #include <votca/tools/vec.h>
 #include <votca/xtp/link.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 /**
  * \brief A link between two nodes

@@ -27,7 +27,7 @@
 #include <votca/xtp/ewdspace.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 // UNITS IN INPUT FILES
 // ... ... Positions as required by format

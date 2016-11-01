@@ -22,12 +22,12 @@
 
 #include <votca/tools/property.h>
 #include <votca/xtp/basisset.h>
-#include <votca/xtp/qmatom.h>
+#include <votca/ctp/qmatom.h>
 
 using namespace std;
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
     
     

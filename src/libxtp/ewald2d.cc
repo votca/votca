@@ -25,7 +25,7 @@
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 using namespace votca::tools;
 using boost::format;

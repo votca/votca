@@ -22,12 +22,12 @@
 #define __STATESERVER_H
 
 
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 #include <boost/format.hpp>
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class StateServer : public QMCalculator
 {

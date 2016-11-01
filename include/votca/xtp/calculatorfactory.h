@@ -24,15 +24,15 @@
 #include <votca/tools/objectfactory.h>
 #include <votca/xtp/qmcalculator.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 
-class Calculatorfactory
-: public ObjectFactory<std::string, QMCalculator>
+class XCalculatorfactory
+: public ObjectFactory<std::string, XQMCalculator>
 {
 private:
-    Calculatorfactory() {}
+    XCalculatorfactory() {}
 public:
     
     static void RegisterAll(void);
@@ -41,23 +41,23 @@ public:
        Create an instance of the object identified by key.
     *  Overwritten to load calculator defaults
     */
-    QMCalculator *Create(const std::string &key);
+    XQMCalculator *Create(const std::string &key);
 
-    friend Calculatorfactory &Calculators();
+    friend XCalculatorfactory &XCalculators();
     
 };
 
-inline Calculatorfactory &Calculators()
+inline XCalculatorfactory &XCalculators()
 {
-    static Calculatorfactory _instance;
+    static XCalculatorfactory _instance;
     return _instance;
 }
 
-inline QMCalculator* Calculatorfactory::Create(const std::string &key)
+inline XQMCalculator* XCalculatorfactory::Create(const std::string &key)
 {
     assoc_map::const_iterator it(getObjects().find(key));
     if (it != getObjects().end()) {
-        QMCalculator* calc = (it->second)();
+        XQMCalculator* calc = (it->second)();
         calc->LoadDefaults();
         return calc;
     } else

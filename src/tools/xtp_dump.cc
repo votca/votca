@@ -25,7 +25,7 @@
 
 
 using namespace std;
-using namespace votca::xtp;
+using namespace votca::ctp;
 
 
 class XtpDump : public SqlApplication

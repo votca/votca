@@ -20,7 +20,7 @@
 
 #include <votca/xtp/node.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 enum CarrierType{ Reservoir, Electron, Hole, Singlet, Triplet};    
     

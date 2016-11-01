@@ -27,7 +27,7 @@
 // #include <votca/xtp/mbgft.h>
 // #include <votca/xtp/qmpackagefactory.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     using namespace std;
     namespace ub = boost::numeric::ublas;
 

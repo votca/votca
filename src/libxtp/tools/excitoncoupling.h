@@ -28,7 +28,7 @@
 #include <votca/xtp/xinteractor.h>
 #include <votca/xtp/qmpackagefactory.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     using namespace std;
     
 class ExcitonCoupling : public QMTool

@@ -24,7 +24,7 @@
 #include <votca/tools/application.h>
 #include <votca/tools/property.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
 

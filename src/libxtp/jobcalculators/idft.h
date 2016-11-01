@@ -30,7 +30,7 @@
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 /**
 * \brief Density-functional-based electronic coupling elements

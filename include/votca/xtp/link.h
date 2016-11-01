@@ -20,7 +20,7 @@
 
 //#include <votca/xtp/node.h>
  using namespace std;
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
    
 class Node;
 

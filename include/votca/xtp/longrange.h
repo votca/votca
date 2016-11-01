@@ -23,7 +23,7 @@
 #include <votca/xtp/profile.h>
 #include <votca/xtp/statereservoir.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
   
 using namespace std;
 

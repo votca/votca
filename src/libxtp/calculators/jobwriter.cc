@@ -24,7 +24,7 @@
 #include <votca/tools/tokenizer.h>
 
 using boost::format;
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
     
 void JobWriter::Initialize(Property *options) {   

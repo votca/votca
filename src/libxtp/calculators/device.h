@@ -32,7 +32,7 @@
 
 using namespace std;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 
     
