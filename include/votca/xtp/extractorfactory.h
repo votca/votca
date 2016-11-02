@@ -28,11 +28,11 @@ namespace votca { namespace ctp {
 
 using namespace std;
 
-class ExtractorFactory
+class XExtractorFactory
 : public ObjectFactory<std::string, XQMCalculator>
 {
 private:
-    ExtractorFactory() {}
+    XExtractorFactory() {}
 public:
     
     static void RegisterAll(void);
@@ -43,17 +43,17 @@ public:
     */
     XQMCalculator *Create(const std::string &key);
 
-    friend ExtractorFactory &Extractors();
+    friend XExtractorFactory &XExtractors();
     
 };
 
-inline ExtractorFactory &Extractors()
+inline XExtractorFactory &XExtractors()
 {
-    static ExtractorFactory _instance;
+    static XExtractorFactory _instance;
     return _instance;
 }
 
-inline XQMCalculator* ExtractorFactory::Create(const std::string &key)
+inline XQMCalculator* XExtractorFactory::Create(const std::string &key)
 {
     assoc_map::const_iterator it(getObjects().find(key));
     if (it != getObjects().end()) {

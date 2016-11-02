@@ -30,7 +30,6 @@
 using namespace std;
 using namespace votca::ctp;
 using namespace votca::tools;
-//namespace CTP = votca::ctp;
 
 class XtpTools : public votca::ctp::XtpApplication
 {

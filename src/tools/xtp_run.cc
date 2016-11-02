@@ -28,7 +28,7 @@ using namespace std;
 using namespace votca::ctp;
 
 
-class XtpRun : public SqlApplication
+class XtpRun : public XSqlApplication
 {
 public:
 
@@ -50,7 +50,7 @@ namespace propt = boost::program_options;
 
 void XtpRun::Initialize() {
 
-    SqlApplication::Initialize();
+    XSqlApplication::Initialize();
 
     AddProgramOptions("Calculators") ("execute,e", propt::value<string>(),
                       "List of calculators separated by ',' or ' '");
@@ -98,14 +98,14 @@ bool XtpRun::EvaluateOptions() {
             return true;     
     }
 
-    SqlApplication::EvaluateOptions();
+    XSqlApplication::EvaluateOptions();
     CheckRequired("options", "Please provide an xml file with calculator options");
     CheckRequired("execute", "Nothing to do here: Abort.");
 
     Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
     Tokenizer::iterator it;
     for (it = calcs.begin(); it != calcs.end(); it++) {
-        SqlApplication::AddCalculator(XCalculators().Create((*it).c_str()));
+        XSqlApplication::AddCalculator(XCalculators().Create((*it).c_str()));
     }
     
     load_property_from_xml(_options, _op_vm["options"].as<string>());

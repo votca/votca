@@ -18,7 +18,7 @@
  */
 
 #include <votca/xtp/toolfactory.h>
-#include <votca/ctp/toolfactory.h>
+// #include <votca/ctp/toolfactory.h>
 
 //#include "tools/testtool.h"
 //#include "tools/coupling.h"

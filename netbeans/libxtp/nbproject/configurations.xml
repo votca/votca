@@ -28,13 +28,7 @@
         <itemPath>../../src/libxtp/calculators/zmultipole.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f5" displayName="Extractors" projectFiles="true">
-        <itemPath>../../src/libxtp/extractors/energyextractor.h</itemPath>
-        <itemPath>../../src/libxtp/extractors/integralsextractor.h</itemPath>
-        <itemPath>../../src/libxtp/extractors/occupationsextractor.h</itemPath>
-        <itemPath>../../src/libxtp/extractors/pairsextractor.h</itemPath>
-        <itemPath>../../src/libxtp/extractors/ratesextractor.h</itemPath>
-        <itemPath>../../src/libxtp/extractors/segmentsextractor.h</itemPath>
-        <itemPath>../../src/libxtp/extractors/trajextractor.h</itemPath>
+        <itemPath>../../src/libxtp/extractors/testextractor.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
         <itemPath>../../src/libxtp/jobcalculators/edft.h</itemPath>
@@ -618,37 +612,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/extractors/energyextractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/extractors/integralsextractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/extractors/occupationsextractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/extractors/pairsextractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/extractors/ratesextractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/extractors/segmentsextractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/extractors/trajextractor.h"
+      <item path="../../src/libxtp/extractors/testextractor.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1247,37 +1211,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/extractors/energyextractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/extractors/integralsextractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/extractors/occupationsextractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/extractors/pairsextractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/extractors/ratesextractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/extractors/segmentsextractor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/extractors/trajextractor.h"
+      <item path="../../src/libxtp/extractors/testextractor.h"
             ex="false"
             tool="3"
             flavor2="0">

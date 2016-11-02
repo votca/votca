@@ -31,11 +31,11 @@
 namespace votca { namespace ctp {
 
 
-class SqlApplication : public XtpApplication
+class XSqlApplication : public XtpApplication
 {
 public:
-    SqlApplication();
-   ~SqlApplication() { };
+    XSqlApplication();
+   ~XSqlApplication() { };
 
    void Initialize();
    bool EvaluateOptions();

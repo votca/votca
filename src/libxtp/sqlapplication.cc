@@ -25,12 +25,12 @@
 
 namespace votca { namespace ctp {
 
-SqlApplication::SqlApplication() {
+XSqlApplication::XSqlApplication() {
     XCalculatorfactory::RegisterAll();
 }
 
 
-void SqlApplication::Initialize(void) {
+void XSqlApplication::Initialize(void) {
     XtpApplication::Initialize();
 
     XCalculatorfactory::RegisterAll();
@@ -50,13 +50,13 @@ void SqlApplication::Initialize(void) {
 }
 
 
-bool SqlApplication::EvaluateOptions(void) {
+bool XSqlApplication::EvaluateOptions(void) {
     CheckRequired("file", "Please provide the state file");
     return true;
 }
 
 
-void SqlApplication::Run() {
+void XSqlApplication::Run() {
 
     // load_property_from_xml(_options, _op_vm["options"].as<string>());
 
@@ -101,12 +101,12 @@ void SqlApplication::Run() {
 
 
 
-void SqlApplication::AddCalculator(XQMCalculator* calculator) {
+void XSqlApplication::AddCalculator(XQMCalculator* calculator) {
     _calculators.push_back(calculator);
 }
 
 
-void SqlApplication::BeginEvaluate(int nThreads = 1) {
+void XSqlApplication::BeginEvaluate(int nThreads = 1) {
     list< XQMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";
@@ -116,7 +116,7 @@ void SqlApplication::BeginEvaluate(int nThreads = 1) {
     }
 }
 
-bool SqlApplication::EvaluateFrame() {
+bool XSqlApplication::EvaluateFrame() {
     list< XQMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
@@ -126,7 +126,7 @@ bool SqlApplication::EvaluateFrame() {
     return true;
 }
 
-void SqlApplication::EndEvaluate() {
+void XSqlApplication::EndEvaluate() {
     list< XQMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         (*it)->EndEvaluate(&_top);
