@@ -22,11 +22,11 @@
 
 #include <stdio.h>
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/segment.h>
+#include <votca/ctp/atom.h>
+#include <votca/ctp/segment.h>
 #include <votca/tools/constants.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/xtp/votca_config.h>
@@ -51,8 +51,8 @@ public:
 
 private:
     
-    string      _orbfile; // file containining the MOs from qmpackage...
-    string      _logfile; // file containining the Energies etc... from qmpackage...
+    string      _orbfile; // file containing the MOs from qmpackage...
+    string      _logfile; // file containing the Energies etc... from qmpackage...
     string      _xyzfile;
 
     string      _package;
@@ -102,7 +102,7 @@ private:
     bool _update_hessian;
     bool _restart_opt;
     
-    void ExcitationEnergies( QMPackage* _qmpackage, vector <Segment* > _segments, Orbitals* _orbitals );
+    void ExcitationEnergies( XQMPackage* _qmpackage, vector <Segment* > _segments, Orbitals* _orbitals );
     void ReadXYZ( Segment* _segment, string filename);
     void Orbitals2Segment(Segment* _segment, Orbitals* _orbitals);
     void Coord2Segment(Segment* _segment );
@@ -117,8 +117,8 @@ private:
     
     void BFGSStep( int& _iteration, bool& _update_hessian,  ub::matrix<double>& _force, ub::matrix<double>& _force_old,  ub::matrix<double>& _current_xyz, ub::matrix<double>&  _old_xyz, ub::matrix<double>& _hessian ,ub::matrix<double>& _xyz_shift ,ub::matrix<double>& _trial_xyz  );
     void ReloadState();
-    void NumForceForward(double energy, vector <Atom* > _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage,vector <Segment* > _segments, Orbitals* _orbitals );
-    void NumForceCentral(double energy, vector <Atom* > _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage,vector <Segment* > _segments, Orbitals* _orbitals );
+    void NumForceForward(double energy, vector <Atom* > _atoms, ub::matrix<double>& _force, XQMPackage* _qmpackage,vector <Segment* > _segments, Orbitals* _orbitals );
+    void NumForceCentral(double energy, vector <Atom* > _atoms, ub::matrix<double>& _force, XQMPackage* _qmpackage,vector <Segment* > _segments, Orbitals* _orbitals );
     
     void WriteIteration( FILE* out, int _iteration, Segment* _segment, ub::matrix<double>& _force  );
     
@@ -224,7 +224,7 @@ void Exciton::Initialize(Property* options) {
             //load_property_from_xml(_package_options, xmlFile);
 
             // register all QM packages (Gaussian, TURBOMOLE, etc)
-            QMPackageFactory::RegisterAll();
+            XQMPackageFactory::RegisterAll();
 
 
            
@@ -270,7 +270,7 @@ bool Exciton::Evaluate() {
     }
     
     // get the corresponding object from the QMPackageFactory
-    QMPackage *_qmpackage =  QMPackages().Create( _package );
+    XQMPackage *_qmpackage =  XQMPackages().Create( _package );
     _qmpackage->setLog( &_log );       
     _qmpackage->Initialize( &_package_options );
     // set the run dir 
@@ -684,7 +684,7 @@ void Exciton::ReloadState(){
 
 
 /* Calculate forces on atoms numerically by central differences */
-void Exciton::NumForceCentral(double energy, vector<Atom*> _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage, vector<Segment*> _molecule, Orbitals* _orbitals){
+void Exciton::NumForceCentral(double energy, vector<Atom*> _atoms, ub::matrix<double>& _force, XQMPackage* _qmpackage, vector<Segment*> _molecule, Orbitals* _orbitals){
     
 
     vector< Atom* > ::iterator ait;
@@ -750,7 +750,7 @@ void Exciton::NumForceCentral(double energy, vector<Atom*> _atoms, ub::matrix<do
 
 
 /* Calculate forces on atoms numerically by forward differences */
-void Exciton::NumForceForward(double energy, vector<Atom*> _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage, vector<Segment*> _molecule, Orbitals* _orbitals){
+void Exciton::NumForceForward(double energy, vector<Atom*> _atoms, ub::matrix<double>& _force, XQMPackage* _qmpackage, vector<Segment*> _molecule, Orbitals* _orbitals){
 
     
     // check if file "forces.resume" exists
@@ -1048,7 +1048,7 @@ void Exciton::BFGSStep(int& _iteration, bool& _update_hessian, ub::matrix<double
 }
 
 
-void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<Segment*> _segments, Orbitals* _orbitals){
+void Exciton::ExcitationEnergies(XQMPackage* _qmpackage, vector<Segment*> _segments, Orbitals* _orbitals){
 
 
   if ( _do_dft_input ){

@@ -22,11 +22,11 @@
 
 #include <stdio.h>
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/dftengine.h>
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/segment.h>
+#include <votca/ctp/atom.h>
+#include <votca/ctp/segment.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/xtp/votca_config.h>
 
@@ -196,7 +196,7 @@ key = "options." + Identify();
             //load_property_from_xml(_package_options, xmlFile);
 
             // register all QM packages (Gaussian, TURBOMOLE, etc)
-            QMPackageFactory::RegisterAll();
+            XQMPackageFactory::RegisterAll();
 
 
            
@@ -269,7 +269,7 @@ bool DFT::Evaluate() {
 
     //cout << "here" << endl;
     // get the corresponding object from the QMPackageFactory
-        QMPackage *_qmpackage =  QMPackages().Create( _package );
+        XQMPackage *_qmpackage =  XQMPackages().Create( _package );
     _qmpackage->setLog( &_log );       
     _qmpackage->Initialize( &_package_options );
     // set the run dir 

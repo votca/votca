@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 #include <votca/xtp/esp2multipole.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <boost/filesystem.hpp>
 
 namespace votca { namespace ctp {

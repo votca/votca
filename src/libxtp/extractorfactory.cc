@@ -20,27 +20,30 @@
 
 #include <votca/xtp/extractorfactory.h>
 
-#include "extractors/energyextractor.h"
+/*#include "extractors/energyextractor.h"
 #include "extractors/integralsextractor.h"
 #include "extractors/ratesextractor.h"
 #include "extractors/trajextractor.h"
 #include "extractors/segmentsextractor.h"
 #include "extractors/pairsextractor.h"
 #include "extractors/occupationsextractor.h"
-
+*/
 
 
 namespace votca { namespace ctp {
 
 void ExtractorFactory::RegisterAll(void)
 {	
-        Extractors().Register<EnergyExtractor>             ("energy2xml");
+    /*
+    Extractors().Register<EnergyExtractor>             ("energy2xml");
         Extractors().Register<IntegralsExtractor>          ("integrals2xml");
         Extractors().Register<RatesExtractor>              ("rates2xml");
         Extractors().Register<OccupationsExtractor>        ("occupations2xml");
         Extractors().Register<TrajExtractor>               ("trajectory2pdb");
         Extractors().Register<SegmentsExtractor>           ("segments2xml");
         Extractors().Register<PairsExtractor>              ("pairs2xml");
-}
+
+     * 
+     */ }
 
 }}

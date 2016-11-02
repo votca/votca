@@ -18,30 +18,20 @@
  */
 
 #include <votca/xtp/toolfactory.h>
-//#include <votca/ctp/toolfactory.h>
+#include <votca/ctp/toolfactory.h>
 
-//#include <votca/xtp/qmtool.h>
-
-
-
-//#include "tools/molpol.h"
-/*#include "tools/pdb2map.h"
-#include "tools/coupling.h"
-#include "tools/log2mps.h"
-#include "tools/ptopreader.h"
-#include "tools/pdb2top.h"*/
-//#include "tools/exciton.h"
+//#include "tools/testtool.h"
+//#include "tools/coupling.h"
+#include "tools/exciton.h"
 #include "tools/qmanalyze.h"
-/*#include "tools/qmsandbox.h"
-#include "tools/spectrum.h"*/
-//#include "tools/excitoncoupling.h"
-/*#include "tools/orb2isogwa.h"
+#include "tools/spectrum.h"
+#include "tools/excitoncoupling.h"
 #include "tools/dft.h"
 #include "tools/gencube.h"
 #include "tools/partialcharges.h"
-*/
 
-#include "tools/testtool.h"
+
+
 
 
 namespace votca { namespace ctp {
@@ -49,23 +39,15 @@ namespace votca { namespace ctp {
 void XQMToolFactory::RegisterAll(void)
 {
     
-    XQMTools().Register<TestTool>            ("testtool");
-        //XTP::QMTools().Register<XTP::MolPolTool>         ("molpol");
-        /*QMTools().Register<XTP::PDB2Map>            ("pdb2map");
-        QMTools().Register<XTP::Coupling>           ("coupling");
-        QMTools().Register<XTP::Log2Mps>            ("log2mps");
-        QMTools().Register<XTP::PtopReader>         ("ptopreader");*/
-        //QMTools().Register<XTP::Exciton>            ("exciton");
-    //XQMTools().Register<XTP::QMAnalyze>          ("qmanalyze");
-        /*QMTools().Register<XTP::QMSandbox>          ("qmsandbox");
-        QMTools().Register<XTP::Spectrum>           ("spectrum");
-        */
-        //QMTools().Register<XTP::ExcitonCoupling>    ("excitoncoupling");
-        //QMTools().Register<XTP::Orb2IsoGWA>         ("orb2isogwa"); 
-        //QMTools().Register<XTP::PDB2Top>            ("pdb2top");
-        //QMTools().Register<XTP::DFT>                ("dft");
-        //QMTools().Register<XTP::GenCube>            ("gencube");
-        //QMTools().Register<XTP::Partialcharges>     ("partialcharges");
+    //XQMTools().Register<TestTool>            ("testtool");
+    //QMTools().Register<XTP::Coupling>           ("coupling");
+    XQMTools().Register<Exciton>            ("exciton");
+    XQMTools().Register<QMAnalyze>          ("qmanalyze");
+    XQMTools().Register<Spectrum>           ("spectrum");
+    XQMTools().Register<ExcitonCoupling>    ("excitoncoupling");
+    XQMTools().Register<DFT>                ("dft");
+    XQMTools().Register<GenCube>            ("gencube");
+    XQMTools().Register<Partialcharges>     ("partialcharges");
         
 }
 

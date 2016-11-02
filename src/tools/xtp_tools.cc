@@ -87,12 +87,13 @@ void XtpTools::Initialize() {
 bool XtpTools::EvaluateOptions() {
 
     if (OptionsMap().count("list")) {
-        cout << "Available tools: \n";
+        cout << "Available XTP tools: \n";
         for(XQMToolFactory::assoc_map::const_iterator iter=
             XQMTools().getObjects().begin();
             iter != XQMTools().getObjects().end(); ++iter) {
             PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpShort );
         }
+        cout << "Available (wrapped) CTP tools: \n";
         
         // also include the CTP Tools
         for(votca::ctp::QMToolFactory::assoc_map::const_iterator iter=

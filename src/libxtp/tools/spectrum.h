@@ -23,9 +23,7 @@
 #include <stdio.h>
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/constants.h>
-#include <votca/xtp/logger.h>
-// #include <votca/xtp/mbgft.h>
-// #include <votca/xtp/qmpackagefactory.h>
+#include <votca/ctp/logger.h>
 
 namespace votca { namespace ctp {
     using namespace std;

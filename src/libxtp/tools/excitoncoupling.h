@@ -22,11 +22,12 @@
 
 #include <stdio.h>
 #include <votca/tools/constants.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/tools/constants.h>
 #include <votca/xtp/bsecoupling.h>
-#include <votca/xtp/xinteractor.h>
+#include <votca/ctp/xinteractor.h>
 #include <votca/xtp/qmpackagefactory.h>
+#include <votca/ctp/polarseg.h>
 
 namespace votca { namespace ctp {
     using namespace std;

@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 #include <votca/xtp/elements.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/xtp/votca_config.h>
 #include <votca/tools/constants.h>
@@ -326,7 +326,7 @@ namespace votca {
                     
    
                     LOG(logDEBUG, _log) << " Calculating cube data ... \n" << flush;
-                    _log.setPreface(logDEBUG,   (format(" ... ...") ).str());
+                    _log.setPreface(logDEBUG,   (boost::format(" ... ...") ).str());
                     float progress = 0.0;
                     const ub::vector<double> DMAT_array = DMAT_tot.data();
                     // eval density at cube grid points
@@ -394,7 +394,7 @@ namespace votca {
 
 
                 } // ground or excited state
-                _log.setPreface(logDEBUG,   (format("\n ... ...") ).str());
+                _log.setPreface(logDEBUG,   (boost::format("\n ... ...") ).str());
                 
                 // diagonalized QP, if requested
                 if ( _do_qp && _state > 0 ){
