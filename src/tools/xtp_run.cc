@@ -22,7 +22,8 @@
 #include <iostream>
 #include <votca/xtp/sqlapplication.h>
 #include <votca/xtp/calculatorfactory.h>
-
+//#include <votca/ctp/sqlapplication.h>
+#include <votca/ctp/calculatorfactory.h>
 
 using namespace std;
 using namespace votca::ctp;
@@ -39,6 +40,7 @@ public:
 
     void    Initialize();
     bool    EvaluateOptions();
+    
     
 private:
     
@@ -65,10 +67,17 @@ bool XtpRun::EvaluateOptions() {
     string helpdir = "xtp/xml";
     
     if (OptionsMap().count("list")) {
-            cout << "Available calculators: \n";
+            cout << "Available XTP calculators: \n";
             for(XCalculatorfactory::assoc_map::const_iterator iter=
                     XCalculators().getObjects().begin();
                     iter != XCalculators().getObjects().end(); ++iter) {
+                PrintDescription( std::cout, (iter->first), helpdir, Application::HelpShort );
+            }
+            
+            cout << "Available (wrapped) CTP calculators: \n";
+            for(Calculatorfactory::assoc_map::const_iterator iter=
+                    Calculators().getObjects().begin();
+                    iter != Calculators().getObjects().end(); ++iter) {
                 PrintDescription( std::cout, (iter->first), helpdir, Application::HelpShort );
             }
             StopExecution();
@@ -92,6 +101,16 @@ bool XtpRun::EvaluateOptions() {
                         break;
                     }
                  }
+                
+                for(Calculatorfactory::assoc_map::const_iterator iter=Calculators().getObjects().begin(); 
+                        iter != Calculators().getObjects().end(); ++iter) {
+
+                    if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
+                        PrintDescription( std::cout, (iter->first), helpdir, Application::HelpLong );
+                        printerror = false;
+                        break;
+                    }
+                 }               
                  if ( printerror ) cout << "Calculator " << *n << " does not exist\n";
             }
             StopExecution();
@@ -105,7 +124,22 @@ bool XtpRun::EvaluateOptions() {
     Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
     Tokenizer::iterator it;
     for (it = calcs.begin(); it != calcs.end(); it++) {
-        XSqlApplication::AddCalculator(XCalculators().Create((*it).c_str()));
+        
+        // check if XTP calculator
+        bool _found_calc = false;
+        for(XCalculatorfactory::assoc_map::const_iterator iter=XCalculators().getObjects().begin(); 
+                        iter != XCalculators().getObjects().end(); ++iter) {
+        
+            if ( (*it).compare( (iter->first).c_str() ) == 0 ) {
+                cout << " This is a XTP app" << endl;
+                XSqlApplication::AddCalculator(XCalculators().Create((*it).c_str()));
+                _found_calc = true;
+            } 
+        }
+        
+        if ( !_found_calc ){
+            XSqlApplication::AddCalculator(Calculators().Create((*it).c_str()));    
+        }
     }
     
     load_property_from_xml(_options, _op_vm["options"].as<string>());

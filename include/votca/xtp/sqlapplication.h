@@ -26,7 +26,7 @@
 
 #include <votca/ctp/statesaversqlite.h>
 #include <votca/xtp/qmcalculator.h>
-
+#include <votca/ctp/qmcalculator.h>
 
 namespace votca { namespace ctp {
 
@@ -46,11 +46,13 @@ public:
    virtual void EndEvaluate();
 
    void AddCalculator(XQMCalculator *calculator);
+   void AddCalculator(QMCalculator *calculator);
 
 protected:
 
    votca::ctp::Topology           _top;
     list< XQMCalculator* >   _calculators;
+    list< QMCalculator* >    _ctp_calculators;
 
 };
 

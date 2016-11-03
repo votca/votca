@@ -23,10 +23,14 @@
 #include <votca/xtp/version.h>
 #include <boost/format.hpp>
 
+#include <votca/ctp/calculatorfactory.h>
+
+
 namespace votca { namespace ctp {
 
 XSqlApplication::XSqlApplication() {
     XCalculatorfactory::RegisterAll();
+    Calculatorfactory::RegisterAll();
 }
 
 
@@ -34,6 +38,7 @@ void XSqlApplication::Initialize(void) {
     XtpApplication::Initialize();
 
     XCalculatorfactory::RegisterAll();
+    Calculatorfactory::RegisterAll();
 
     namespace propt = boost::program_options;
 
@@ -105,6 +110,9 @@ void XSqlApplication::AddCalculator(XQMCalculator* calculator) {
     _calculators.push_back(calculator);
 }
 
+void XSqlApplication::AddCalculator(QMCalculator* calculator) {
+    _ctp_calculators.push_back(calculator);
+}
 
 void XSqlApplication::BeginEvaluate(int nThreads = 1) {
     list< XQMCalculator* > ::iterator it;
@@ -114,6 +122,16 @@ void XSqlApplication::BeginEvaluate(int nThreads = 1) {
         (*it)->Initialize(&_options); 
         cout << endl;
     }
+    
+
+    list< QMCalculator* > ::iterator cit;
+    for (cit = _ctp_calculators.begin(); cit != _ctp_calculators.end(); cit++) {
+        cout << "... " << (*cit)->Identify() << " ";
+        (*cit)->setnThreads(nThreads);
+        (*cit)->Initialize(&_options); 
+        cout << endl;
+    }
+    
 }
 
 bool XSqlApplication::EvaluateFrame() {
@@ -123,6 +141,14 @@ bool XSqlApplication::EvaluateFrame() {
         (*it)->EvaluateFrame(&_top);
         cout << endl;
     }
+    list< QMCalculator* > ::iterator cit;
+    for (cit = _ctp_calculators.begin(); cit != _ctp_calculators.end(); cit++) {
+        cout << "... " << (*cit)->Identify() << " " << flush;
+        (*cit)->EvaluateFrame(&_top);
+        cout << endl;
+    }   
+    
+    
     return true;
 }
 
@@ -131,6 +157,13 @@ void XSqlApplication::EndEvaluate() {
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         (*it)->EndEvaluate(&_top);
     }
+    
+    list< QMCalculator* > ::iterator cit;
+    for (cit = _ctp_calculators.begin(); cit != _ctp_calculators.end(); cit++) {
+        (*cit)->EndEvaluate(&_top);
+    }
+    
+    
 }
 
 }}
