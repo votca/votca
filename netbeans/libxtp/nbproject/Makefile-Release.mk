@@ -48,8 +48,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce08c7a/aoshell.o \
 	${OBJECTDIR}/_ext/1ce08c7a/bsecoupling.o \
 	${OBJECTDIR}/_ext/1ce08c7a/calculatorfactory.o \
-	${OBJECTDIR}/_ext/50c6f79c/eoutersphere.o \
-	${OBJECTDIR}/_ext/50c6f79c/jobwriter.o \
 	${OBJECTDIR}/_ext/5e78919f/dftengine.o \
 	${OBJECTDIR}/_ext/1ce08c7a/espfit.o \
 	${OBJECTDIR}/_ext/1ce08c7a/extractorfactory.o \
@@ -183,16 +181,6 @@ ${OBJECTDIR}/_ext/1ce08c7a/calculatorfactory.o: nbproject/Makefile-${CND_CONF}.m
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/calculatorfactory.o ../../src/libxtp/calculatorfactory.cc
-
-${OBJECTDIR}/_ext/50c6f79c/eoutersphere.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/calculators/eoutersphere.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/50c6f79c
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/50c6f79c/eoutersphere.o ../../src/libxtp/calculators/eoutersphere.cc
-
-${OBJECTDIR}/_ext/50c6f79c/jobwriter.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/calculators/jobwriter.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/50c6f79c
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/50c6f79c/jobwriter.o ../../src/libxtp/calculators/jobwriter.cc
 
 ${OBJECTDIR}/_ext/5e78919f/dftengine.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/dftengine/dftengine.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/5e78919f

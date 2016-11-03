@@ -35,20 +35,20 @@ namespace votca { namespace ctp {
 
 namespace TOOLS = votca::tools;
     
-class Neighborlist : public QMCalculator
+class XNeighborlist : public XQMCalculator
 {
 
 public:
 
-    Neighborlist() { };
-   ~Neighborlist() {
+    XNeighborlist() { };
+   ~XNeighborlist() {
        // cleanup the list of superexchange pair types
        for ( std::list<QMNBList::SuperExchangeType*>::iterator it = _superexchange.begin() ; it != _superexchange.end(); it++  ) {
            delete *it;
        }
     };
 
-    string Identify() { return "neighborlist"; }
+    string Identify() { return "xneighborlist"; }
     
     void Initialize(Property *options);
     bool EvaluateFrame(Topology *top);
@@ -74,7 +74,7 @@ private:
 };
     
 
-void Neighborlist::Initialize(Property *options) {
+void XNeighborlist::Initialize(Property *options) {
 
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options, "xtp" );
@@ -162,7 +162,7 @@ void Neighborlist::Initialize(Property *options) {
             
 }
 
-bool Neighborlist::EvaluateFrame(Topology *top) {
+bool XNeighborlist::EvaluateFrame(Topology *top) {
   
 
     top->NBList().Cleanup();
@@ -357,7 +357,7 @@ bool Neighborlist::EvaluateFrame(Topology *top) {
     return true;        
 }
 
-bool Neighborlist::StochasticConnectOrNot(double thisdistance, vector<double> distances, vector<double> probabilities, votca::tools::Random2 *RandomVariable){
+bool XNeighborlist::StochasticConnectOrNot(double thisdistance, vector<double> distances, vector<double> probabilities, votca::tools::Random2 *RandomVariable){
     double MINR = distances[0];
     double MAXR = distances[distances.size()-1];
     if(thisdistance == 0){
@@ -392,7 +392,7 @@ bool Neighborlist::StochasticConnectOrNot(double thisdistance, vector<double> di
     }
 }
 
-void Neighborlist::StochasticConnectivity(Topology *top, string filename) {
+void XNeighborlist::StochasticConnectivity(Topology *top, string filename) {
     cout << endl << "... ... Creating connectivity based on the provided probability function that" << endl;
     cout << "... ... describes the centre of mass-dependent probability of two sites being" << endl;
     cout << "... ... conncected (coarse grained model). This file can be generated using the" << endl;
@@ -472,7 +472,7 @@ void Neighborlist::StochasticConnectivity(Topology *top, string filename) {
 }
 
 
-void Neighborlist::GenerateFromFile(Topology *top, string filename) {
+void XNeighborlist::GenerateFromFile(Topology *top, string filename) {
     
     std::string line;
     std::ifstream intt;

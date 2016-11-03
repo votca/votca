@@ -21,31 +21,17 @@
 #include <votca/xtp/calculatorfactory.h>
 
 #include "calculators/sandbox.h"
-/*#include "calculators/neighborlist.h"
+#include "calculators/neighborlist.h"
 #include "calculators/stateserver.h"
-#include "calculators/tdump.h"
 #include "calculators/rates.h"
-#include "calculators/izindo.h"
 #include "calculators/einternal.h"
-#include "calculators/eoutersphere.h"
-#include "calculators/emultipole.h"
-#include "calculators/emultipole_stdal.h"
 #include "calculators/eanalyze.h"
 #include "calculators/panalyze.h"
 #include "calculators/eimport.h"
-#include "calculators/pairdump.h"
 #include "calculators/iimport.h"
 #include "calculators/ianalyze.h"
-#include "calculators/profile.h"
-#include "calculators/xmultipole2.h"
-#include "calculators/velocity.h"
-#include "calculators/zmultipole.h"
-#include "calculators/qmultipole.h"
-#include "calculators/jobwriter.h"
-#include "calculators/ewdbgpol.h"
-#include "calculators/cgpolar.h"
-#include "calculators/vaverage.h"
-*/
+
+
 
 
 
@@ -54,30 +40,17 @@ namespace votca { namespace ctp {
 void XCalculatorfactory::RegisterAll(void)
 {	
         XCalculators().Register<Sandbox>             ("sandbox");
-	/*        XCalculators().Register<Neighborlist>        ("neighborlist");
-        XCalculators().Register<StateServer>         ("stateserver");
-        XCalculators().Register<TDump>               ("tdump");
-        XCalculators().Register<IZindo>              ("izindo");
+	XCalculators().Register<XNeighborlist>       ("xneighborlist");
+        XCalculators().Register<XStateServer>        ("xstateserver");
         XCalculators().Register<Rates>               ("rates");
-        XCalculators().Register<EInternal>           ("einternal");
-        XCalculators().Register<EOutersphere>        ("eoutersphere");
-        XCalculators().Register<EMultipole>          ("emultipole");
-        XCalculators().Register<EAnalyze>            ("eanalyze");
+        XCalculators().Register<XEInternal>          ("xeinternal");
+        XCalculators().Register<XEAnalyze>           ("xeanalyze");
         XCalculators().Register<PAnalyze>            ("panalyze");
-        XCalculators().Register<EImport>             ("eimport");
-        XCalculators().Register<PairDump>            ("pairdump");        
-        XCalculators().Register<IImport>             ("iimport");
-        XCalculators().Register<IAnalyze>            ("ianalyze");
-        XCalculators().Register<Profile>             ("profile");
-        XCalculators().Register<XMP>                 ("xmultipole");
-        XCalculators().Register<Velocity>            ("velocity");
-        XCalculators().Register<ZMultipole>          ("zmultipole");
-        XCalculators().Register<QMultipole>          ("qmultipole");
-        XCalculators().Register<JobWriter>           ("jobwriter");
-        XCalculators().Register<EwaldBgPolarizer>    ("ewdbgpol");
-        XCalculators().Register<CgPolar>             ("cgpolar");
-        XCalculators().Register<VAverage>            ("vaverage");
-	*/
+        XCalculators().Register<XEImport>            ("xeimport");
+        XCalculators().Register<XIImport>            ("xiimport");
+        XCalculators().Register<XIAnalyze>           ("ianalyze");
+        
+
 }
 
 }}

@@ -65,7 +65,7 @@ void XtpRun::Initialize() {
 bool XtpRun::EvaluateOptions() {
 
     string helpdir = "xtp/xml";
-    
+    string chelpdir = "ctp/xml";
     if (OptionsMap().count("list")) {
             cout << "Available XTP calculators: \n";
             for(XCalculatorfactory::assoc_map::const_iterator iter=
@@ -78,7 +78,7 @@ bool XtpRun::EvaluateOptions() {
             for(Calculatorfactory::assoc_map::const_iterator iter=
                     Calculators().getObjects().begin();
                     iter != Calculators().getObjects().end(); ++iter) {
-                PrintDescription( std::cout, (iter->first), helpdir, Application::HelpShort );
+                PrintDescription( std::cout, (iter->first), chelpdir, Application::HelpShort );
             }
             StopExecution();
             return true;
@@ -106,7 +106,7 @@ bool XtpRun::EvaluateOptions() {
                         iter != Calculators().getObjects().end(); ++iter) {
 
                     if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
-                        PrintDescription( std::cout, (iter->first), helpdir, Application::HelpLong );
+                        PrintDescription( std::cout, (iter->first), chelpdir, Application::HelpLong );
                         printerror = false;
                         break;
                     }

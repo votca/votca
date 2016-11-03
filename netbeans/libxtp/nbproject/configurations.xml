@@ -3,29 +3,16 @@
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
-        <itemPath>../../src/libxtp/calculators/cgpolar.h</itemPath>
         <itemPath>../../src/libxtp/calculators/eanalyze.h</itemPath>
         <itemPath>../../src/libxtp/calculators/eimport.h</itemPath>
         <itemPath>../../src/libxtp/calculators/einternal.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/emultipole.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/eoutersphere.cc</itemPath>
-        <itemPath>../../src/libxtp/calculators/eoutersphere.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/ewdbgpol.h</itemPath>
         <itemPath>../../src/libxtp/calculators/ianalyze.h</itemPath>
         <itemPath>../../src/libxtp/calculators/iimport.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/izindo.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/jobwriter.cc</itemPath>
-        <itemPath>../../src/libxtp/calculators/jobwriter.h</itemPath>
         <itemPath>../../src/libxtp/calculators/neighborlist.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/pairdump.h</itemPath>
         <itemPath>../../src/libxtp/calculators/panalyze.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/profile.h</itemPath>
         <itemPath>../../src/libxtp/calculators/rates.h</itemPath>
         <itemPath>../../src/libxtp/calculators/sandbox.h</itemPath>
         <itemPath>../../src/libxtp/calculators/stateserver.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/tdump.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/vaverage.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/zmultipole.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f5" displayName="Extractors" projectFiles="true">
         <itemPath>../../src/libxtp/extractors/testextractor.h</itemPath>
@@ -90,7 +77,6 @@
       <itemPath>../../include/votca/xtp/parallelpaircalc.h</itemPath>
       <itemPath>../../include/votca/xtp/parallelsitecalc.h</itemPath>
       <itemPath>../../include/votca/xtp/parallelxjobcalc.h</itemPath>
-      <itemPath>../../include/votca/xtp/pewald3d.h</itemPath>
       <itemPath>../../include/votca/xtp/qmapemachine.h</itemPath>
       <itemPath>../../include/votca/xtp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
@@ -450,11 +436,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/cgpolar.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/calculators/eanalyze.h"
             ex="false"
             tool="3"
@@ -475,27 +456,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/emultipole.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/calculators/emultipole_stdal.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/eoutersphere.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/eoutersphere.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/ewdbgpol.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -510,21 +471,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/izindo.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/jobwriter.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/jobwriter.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/calculators/molpol.h"
             ex="false"
             tool="3"
@@ -535,17 +481,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/pairdump.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/calculators/panalyze.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/profile.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -570,16 +506,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/tdump.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/vaverage.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/calculators/velocity.h"
             ex="false"
             tool="3"
@@ -591,11 +517,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/xmultipole2.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/zmultipole.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1049,11 +970,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/cgpolar.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/calculators/eanalyze.h"
             ex="false"
             tool="3"
@@ -1074,27 +990,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/emultipole.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/calculators/emultipole_stdal.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/eoutersphere.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/eoutersphere.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/ewdbgpol.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1109,21 +1005,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/izindo.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/jobwriter.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/jobwriter.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/calculators/molpol.h"
             ex="false"
             tool="3"
@@ -1134,17 +1015,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/pairdump.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/calculators/panalyze.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/profile.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1169,16 +1040,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/tdump.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/vaverage.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/calculators/velocity.h"
             ex="false"
             tool="3"
@@ -1190,11 +1051,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/xmultipole2.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/zmultipole.h"
             ex="false"
             tool="3"
             flavor2="0">

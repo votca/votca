@@ -21,11 +21,10 @@
 #ifndef Rates_H
 #define Rates_H
 
-#include <votca/ctp/paircalculator.h>
+#include <votca/xtp/paircalculator.h>
 #include <math.h>
 #include <cmath>
 #include <complex>
-//#include <boost/math/special_functions/gamma.hpp>
 
 namespace votca { namespace ctp {
 
