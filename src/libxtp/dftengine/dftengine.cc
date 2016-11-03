@@ -68,7 +68,16 @@ namespace votca {
             
             // basis sets
 	    _dftbasis_name = options->get(key + ".dftbasis").as<string>();
-	    _auxbasis_name = options->get(key + ".auxbasis").as<string>();
+            
+            if ( options->exists(key+".auxbasis")) {
+                _auxbasis_name = options->get(key + ".auxbasis").as<string>();
+                _with_RI=true;
+               
+             } else {
+                 
+                 _with_RI=false;
+             }
+	   
              if ( options->exists(key+".ecp")) {
                _ecp_name = options->get(key+".ecp").as<string>();
                _with_ecp = true;
@@ -246,8 +255,12 @@ namespace votca {
             for ( _this_iter=0; _this_iter<_max_iter; _this_iter++){
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
 
-
+                if(_with_RI){
                 _ERIs.CalculateERIs(_dftAOdmat, _AuxAOcoulomb_inv);
+                }
+                else{
+                _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
+                }
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
 
 
@@ -287,7 +300,7 @@ namespace votca {
                 
               //  LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
                 if (std::abs(totenergy-energyold)< _Econverged && diiserror<_error_converged){
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculation has converged up to "<<std::setprecision(9)<<_Econverged<<"[Ha] after "<< _this_iter<<
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculation has converged up to "<<std::setprecision(9)<<_Econverged<<"[Ha] after "<< _this_iter+1<<
                             " iterations. DIIS error is converged up to "<<_error_converged<<"[Ha]" <<flush;
                     break;
                 }
@@ -373,7 +386,7 @@ namespace votca {
             
 	    // AUX AOoverlap
         
- 
+            if(_with_RI){
             { // this is just for info and not needed afterwards
             AOOverlap _auxAOoverlap;
             _auxAOoverlap.Initialize(_auxbasis.AOBasisSize());
@@ -410,6 +423,11 @@ namespace votca {
             
             
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
+            }
+            else{
+               _ERIs.Initialize_4c_small_molecule(_dftbasis); 
+               LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated 4c integrals. " << flush;
+            }
 
       }
 
@@ -429,12 +447,13 @@ namespace votca {
 	    _dftbasis.AOBasisFill( &_dftbasisset, _atoms);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
 
+            if(_with_RI){
 	    // load and fill AUX basis set
             _auxbasisset.LoadBasisSet(_auxbasis_name);
             //_orbitals->setDFTbasis( _dftbasis_name );
 	    _auxbasis.AOBasisFill( &_auxbasisset, _atoms);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded AUX Basis Set " << _auxbasis_name << flush;
-
+            }
             if(_with_ecp){
             // load ECP (element-wise information) from xml file
             _ecpbasisset.LoadPseudopotentialSet("ecp");

@@ -38,12 +38,14 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/ERIs.o \
 	${OBJECTDIR}/_ext/484478074/aobasis.o \
 	${OBJECTDIR}/_ext/708574269/aodipole.o \
+	${OBJECTDIR}/_ext/708574269/aodipole_potential.o \
 	${OBJECTDIR}/_ext/708574269/aoecp.o \
 	${OBJECTDIR}/_ext/708574269/aoesp.o \
 	${OBJECTDIR}/_ext/708574269/aokinetic.o \
 	${OBJECTDIR}/_ext/708574269/aomatrix.o \
 	${OBJECTDIR}/_ext/708574269/aomomentum.o \
 	${OBJECTDIR}/_ext/708574269/aooverlap.o \
+	${OBJECTDIR}/_ext/708574269/aoquadrupole_potential.o \
 	${OBJECTDIR}/_ext/484478074/aoshell.o \
 	${OBJECTDIR}/_ext/484478074/apolarsite.o \
 	${OBJECTDIR}/_ext/484478074/bsecoupling.o \
@@ -55,6 +57,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/espfit.o \
 	${OBJECTDIR}/_ext/484478074/ewaldactor.o \
 	${OBJECTDIR}/_ext/484478074/extractorfactory.o \
+	${OBJECTDIR}/_ext/484478074/fourcenter_rep.o \
+	${OBJECTDIR}/_ext/484478074/fourcenters_dft.o \
 	${OBJECTDIR}/_ext/484478074/fragment.o \
 	${OBJECTDIR}/_ext/484478074/gdma.o \
 	${OBJECTDIR}/_ext/484478074/grid.o \
@@ -159,6 +163,11 @@ ${OBJECTDIR}/_ext/708574269/aodipole.o: ../../src/libxtp/aomatrices/aodipole.cc
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/708574269/aodipole.o ../../src/libxtp/aomatrices/aodipole.cc
 
+${OBJECTDIR}/_ext/708574269/aodipole_potential.o: ../../src/libxtp/aomatrices/aodipole_potential.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/708574269
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/708574269/aodipole_potential.o ../../src/libxtp/aomatrices/aodipole_potential.cc
+
 ${OBJECTDIR}/_ext/708574269/aoecp.o: ../../src/libxtp/aomatrices/aoecp.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/708574269
 	${RM} "$@.d"
@@ -188,6 +197,11 @@ ${OBJECTDIR}/_ext/708574269/aooverlap.o: ../../src/libxtp/aomatrices/aooverlap.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/708574269
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/708574269/aooverlap.o ../../src/libxtp/aomatrices/aooverlap.cc
+
+${OBJECTDIR}/_ext/708574269/aoquadrupole_potential.o: ../../src/libxtp/aomatrices/aoquadrupole_potential.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/708574269
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/708574269/aoquadrupole_potential.o ../../src/libxtp/aomatrices/aoquadrupole_potential.cc
 
 ${OBJECTDIR}/_ext/484478074/aoshell.o: ../../src/libxtp/aoshell.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
@@ -243,6 +257,16 @@ ${OBJECTDIR}/_ext/484478074/extractorfactory.o: ../../src/libxtp/extractorfactor
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/extractorfactory.o ../../src/libxtp/extractorfactory.cc
+
+${OBJECTDIR}/_ext/484478074/fourcenter_rep.o: ../../src/libxtp/fourcenter_rep.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/fourcenter_rep.o ../../src/libxtp/fourcenter_rep.cc
+
+${OBJECTDIR}/_ext/484478074/fourcenters_dft.o: ../../src/libxtp/fourcenters_dft.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/fourcenters_dft.o ../../src/libxtp/fourcenters_dft.cc
 
 ${OBJECTDIR}/_ext/484478074/fragment.o: ../../src/libxtp/fragment.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
