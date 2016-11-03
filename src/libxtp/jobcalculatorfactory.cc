@@ -21,11 +21,7 @@
 #include <votca/xtp/jobcalculatorfactory.h>
 
 
-//#include "jobcalculators/idft.h"
-#include "jobcalculators/edft.h"
-#include "jobcalculators/xqmultipole.h"
 #include "jobcalculators/qmmm.h"
-#include "jobcalculators/ewald.h"
 #include "jobcalculators/egwbse.h"
 #include "jobcalculators/igwbse.h"
 #include "jobcalculators/qmape.h"
@@ -36,13 +32,7 @@ namespace votca { namespace ctp {
 
 void XJobCalculatorfactory::RegisterAll(void)
 {	
-        XJobCalculators().Register<EDFT>                ("edft");
-        //XJobCalculators().Register<IDFT>                ("idft");
-        XJobCalculators().Register<XQMP>                ("xqmultipole");
-        XJobCalculators().Register<QMMM>                ("qmmm");
-        XJobCalculators().Register< Ewald<Ewald3D2D> >  ("ewald2d");
-        XJobCalculators().Register< Ewald<Ewald3D3D> >  ("ewald3d");
-        XJobCalculators().Register< Ewald<PEwald3D3D> > ("pewald3d");
+        XJobCalculators().Register<QMMM>                ("xqmmm");
         XJobCalculators().Register<EGWBSE>              ("egwbse");
         XJobCalculators().Register<IGWBSE>              ("igwbse");
         XJobCalculators().Register<QMAPE>               ("qmape");

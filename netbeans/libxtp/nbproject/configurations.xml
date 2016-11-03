@@ -18,17 +18,14 @@
         <itemPath>../../src/libxtp/extractors/testextractor.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
-        <itemPath>../../src/libxtp/jobcalculators/edft.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/egwbse.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/egwbse.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/ewald.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/igwbse.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/igwbse.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/qmape.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/qmmm.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/xqmultipole.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f4" displayName="Obsolete" projectFiles="true">
         <itemPath>../../src/libxtp/calculators/ecoulomb.h</itemPath>
@@ -559,22 +556,12 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/edft.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/jobcalculators/egwbse.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/egwbse.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/ewald.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -605,11 +592,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/qmmm.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/xqmultipole.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1093,22 +1075,12 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/edft.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/jobcalculators/egwbse.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/egwbse.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/ewald.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1139,11 +1111,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/qmmm.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/xqmultipole.h"
             ex="false"
             tool="3"
             flavor2="0">

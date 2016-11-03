@@ -20,6 +20,7 @@
 
 #include <votca/xtp/jobapplication.h>
 #include <votca/xtp/jobcalculatorfactory.h>
+#include <votca/ctp/jobcalculatorfactory.h>
 #include <votca/xtp/version.h>
 #include <boost/format.hpp>
 
@@ -34,7 +35,7 @@ void JobApplication::Initialize(void) {
     XtpApplication::Initialize();
 
     XJobCalculatorfactory::RegisterAll();
-
+    JobCalculatorfactory::RegisterAll();
     namespace propt = boost::program_options;
 
     AddProgramOptions() ("file,f", propt::value<string>(),
