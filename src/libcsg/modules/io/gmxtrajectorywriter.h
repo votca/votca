@@ -31,8 +31,6 @@
 #elif GMX == 51
         #include <gromacs/fileio/trxio.h>
         #include <gromacs/fileio/trx.h>
-#elif GMX == 50
-        #include <gromacs/fileio/trxio.h>
 #else
 #error Unsupported GMX version
 #endif
