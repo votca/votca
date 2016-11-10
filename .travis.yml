@@ -132,4 +132,5 @@ compiler:
 
 notifications:
   email:
-    - votca-commits@googlegroups.com 
+    recipients: #encrypted votca-commits@googlegroups.com so that fork don't notify us (travis-ci/travis-ci#6100)
+      secure: yAYhUIO6l2FKfapQNhde+nTH2tGbOj4yWgzcYXyw8Hw/mtZ84uShUeB7asGklr0JFQ8zXw7vg1HT1a2uU09OCx2RcKXnlJ66yFRnBqvzC80yTxlJhYjJsHSXo5/pmT5d045k6WTH3IxHc9Flx2szbavQPz/HLxxI+fN4kfNJxtOVghiQqlUdNDEnwq1raliPOAxS/ANQt3phPmrZUS7I/QGfEOQlwEzzgV7NWPpwR3L83hIfu4dOM5FTFkKHqXQXxjMxvI1KnEr8o+yU7m/l4ruYkEw8Axsnd4NjiF8JsWPZOkee24+cspRl6bTgTb3w7l4beuWTfcQKg8svGeeoMM5RWjwZJnUhYywSwkuMdeeZ5i0RJAIbq1tcoWYSL5KdwGs3NPLu1J1OR3ArUUXFVN/m7njgnr/3XRNx5tXYZ9A1blAMBTAFMzik3yKhERA4QJz9aUXZEwfPQ1FTZEuYm8fhnY5+n+NgKzXgLPbVcgAxoTmseSf+rnvZXltlX6Dxql09iqGhxJlRBw8PJuepFf+J+wU28g+dcm6N8U/TNTOCmO6WgqKw/65Hbv8Xhd6pMC/oTVeal20GRT1dUBAgG2sb0Ht9jX56G+WZ0GRUr1vYMONvEX3NNiIHyyA8iGOpBL/+P1TOucXYyKNZcfV10NugUO2NevPny54vQr2kDnA=
