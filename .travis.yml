@@ -1,4 +1,4 @@
-language: generic
+language: c 
 
 sudo: required
 
@@ -6,12 +6,15 @@ services:
 - docker
 
 script:
- - docker build  --build-arg TRAVIS=${TRAVIS} --build-arg TRAVIS_BRANCH=${TRAVIS_BRANCH}
-                 --build-arg TRAVIS_COMMIT=${TRAVIS_COMMIT}
-                 --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST}
-                 --build-arg TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG}
-                 ${TRAVIS_TAG:+-t votca/votca:${TRAVIS_TAG}}
-                 -t votca/votca:latest -t votca/votca:${TRAVIS_BRANCH} -f docker/votca docker/
+ - cp -vr docker ${HOME}
+ - cd ../../
+ - mv -v ${TRAVIS_REPO_SLUG} $HOME/docker
+ - cp -r $HOME/.ccache ${HOME}/docker/ccache
+ - docker build  ${TRAVIS_TAG:+-t votca/votca:${TRAVIS_TAG}}
+                 -t votca/votca:latest -t votca/votca:${TRAVIS_BRANCH} ${HOME}/docker/ &&
+   rm -rf $HOME/.ccache &&
+   CON=$(docker run -d votca/votca:${TRAVIS_BRANCH} /bin/bash) &&
+   docker cp ${CON}:/home/votca/.ccache ${HOME}/
 
 after_success:
   - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(global|stable|v1.*) ]] && DEPLOY=yes
@@ -21,6 +24,8 @@ after_success:
         docker push "votca/votca:${DOCKER_TAG}";
     fi
 
+cache:
+  - ccache
 
 notifications:
   email:
