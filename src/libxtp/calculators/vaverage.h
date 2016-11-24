@@ -21,6 +21,7 @@
 #define VOTCA_XTP_VAVERAGE_H
 
 
+#include <boost/format.hpp>
 #include <votca/xtp/qmcalculator.h>
 
 

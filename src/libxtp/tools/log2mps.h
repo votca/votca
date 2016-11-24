@@ -21,6 +21,7 @@
 #define VOTCA_XTP_LOG2MPS_H
 
 
+#include <boost/format.hpp>
 #include <votca/xtp/qmtool.h>
 #include <votca/xtp/topology.h>
 #include <votca/xtp/qmpackagefactory.h>
