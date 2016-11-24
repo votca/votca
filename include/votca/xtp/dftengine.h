@@ -140,6 +140,7 @@ public:
     AOBasis                             _ecp;
     
     bool                                _with_ecp;
+    bool                                _with_RI;
     
     // numerical integration Vxc
     std::string                              _grid_name;

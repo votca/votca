@@ -22,6 +22,7 @@
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
+#include <votca/xtp/apolarsite.h>
 
 #include <votca/xtp/segment.h>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -230,6 +231,41 @@ namespace votca { namespace xtp {
 	//        ~AOOverlap();
         
     };
+    
+    class AODipole_Potential : public AOMatrix{
+    public:
+        //block fill for overlap, implementation in aooverlap.cc
+        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
+        
+        void setAPolarSite(APolarSite* site){
+            site=apolarsite;
+        };
+        //void Print();
+        
+	//        ~AOOverlap();
+    private: 
+        
+        APolarSite* apolarsite;
+        
+    };
+    
+    class AOQuadrupole_Potential : public AOMatrix{
+    public:
+        //block fill for overlap, implementation in aooverlap.cc
+        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
+        //void Print();
+         void setAPolarSite(APolarSite* site){
+            site=apolarsite;
+        };
+        //void Print();
+        
+	//        ~AOOverlap();
+    private: 
+        
+        APolarSite* apolarsite;
+        
+    };
+    
     
  
     

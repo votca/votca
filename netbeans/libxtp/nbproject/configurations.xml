@@ -171,12 +171,14 @@
       <logicalFolder name="f5" displayName="aomatrices" projectFiles="true">
         <itemPath>../../src/libxtp/aomatrices/aocoulomb.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aodipole.cc</itemPath>
+        <itemPath>../../src/libxtp/aomatrices/aodipole_potential.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aoecp.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aoesp.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aokinetic.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aomatrix.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aomomentum.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aooverlap.cc</itemPath>
+        <itemPath>../../src/libxtp/aomatrices/aoquadrupole_potential.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="Applications" projectFiles="true">
         <itemPath>../../src/libxtp/jobapplication.cc</itemPath>
@@ -224,6 +226,8 @@
       <itemPath>../../src/libxtp/ewald3d.cc</itemPath>
       <itemPath>../../src/libxtp/ewaldactor.cc</itemPath>
       <itemPath>../../src/libxtp/ewaldnd.cc</itemPath>
+      <itemPath>../../src/libxtp/fourcenter_rep.cc</itemPath>
+      <itemPath>../../src/libxtp/fourcenters_dft.cc</itemPath>
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
@@ -550,6 +554,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/aomatrices/aodipole_potential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/aomatrices/aoecp.cc"
             ex="false"
             tool="1"
@@ -576,6 +585,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aooverlap.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/aomatrices/aoquadrupole_potential.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -790,6 +804,13 @@
       <item path="../../src/libxtp/extractors/trajextractor.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/fourcenters_dft.cc"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/fragment.cc" ex="false" tool="1" flavor2="0">
@@ -1324,6 +1345,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/aomatrices/aodipole_potential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/aomatrices/aoecp.cc"
             ex="false"
             tool="1"
@@ -1350,6 +1376,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aooverlap.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/aomatrices/aoquadrupole_potential.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1564,6 +1595,13 @@
       <item path="../../src/libxtp/extractors/trajextractor.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/fourcenters_dft.cc"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/fragment.cc" ex="false" tool="1" flavor2="0">

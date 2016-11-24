@@ -51,11 +51,16 @@ namespace votca { namespace xtp {
     class TCrawMatrix{    
         
     protected:
-    typedef boost::multi_array<double, 3> ma_type;    
+    typedef boost::multi_array<double, 3> ma_type;
+    typedef boost::multi_array<ub::matrix<double>, 2> ma2_matrix_type; ////////////////////////////
+            typedef boost::multi_array_types::extent_range range; //////////////////
+            typedef ma_type::index index; /////////////////////
+            ma_type::extent_gen extents; /////////////////////
     bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
-   
+    void FillThreeCenterOLBlock_g(ma_type &S,const vec gma,const vec gmc,const int _lmax_alpha,const int _lmax_gamma,const double fak);
     bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
     //bool FillThreeCenterOLBlock(  ub::matrix<real_gwbse> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
+    bool FillFourCenterRepBlock(ub::matrix<double>& _subvector, AOShell* _shell_1, AOShell* _shell_2, AOShell* _shell_3, AOShell* _shell_4); ////////
     void getTrafo(ub::matrix<double>& _trafo,const  int _lmax, const double& _decay,const std::vector<double>& contractions);
     
     int getBlockSize(const int size );
@@ -88,6 +93,37 @@ namespace votca { namespace xtp {
         void FillBlock(AOShell* _shell, AOBasis& dftbasis) ; 
         
     };
+
+
+
+
+
+    class FCMatrix_dft : public TCrawMatrix{
+    public:
+    
+    void Fill_4c_small_molecule(AOBasis& dftbasis); ///////////////////
+    
+    void Cleanup();
+    
+    int getSize(){return _matrix.size();}
+
+    std::vector< ub::matrix<double> >& getData(){return  _matrix;}
+    ub::matrix<double>& getDatamatrix( int i ){return  _matrix[i];}
+
+    ub::vector<double>& get_4c_vector() { return _4c_vector;} ////////////////////
+
+    
+    private:
+        std::vector< ub::matrix<double> > _matrix;
+        ub::vector<double> _4c_vector; /////////////
+
+//////        void FillBlock(AOShell* _shell, AOBasis& dftbasis) ; 
+        
+    };
+
+
+
+
     
     
     
