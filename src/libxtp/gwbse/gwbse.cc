@@ -322,10 +322,10 @@ void GWBSE::addoutput(Property *_summary) {
             // load DFT basis set (element-wise information) from xml file
             BasisSet dftbs;
             
-            /*if (_dftbasis_name!=_orbitals->getDFTbasis()){
+            if (_dftbasis_name!=_orbitals->getDFTbasis()){
                 throw std::runtime_error("Name of the Basisset from .orb file: "+_orbitals->getDFTbasis()+" and from GWBSE optionfile "+_dftbasis_name+" do not agree. To avoid further noise we stop here. Save the planet and avoid unnecessary calculations.");
             }
-             */
+             
             dftbs.LoadBasisSet(_dftbasis_name);
             _orbitals->setDFTbasis( _dftbasis_name );
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
@@ -437,8 +437,11 @@ void GWBSE::addoutput(Property *_summary) {
                     if (_dft_package == "gaussian") {
                         // we have to do some cartesian -> spherical transformation for Gaussian
                         const ub::matrix<double>& vxc_cart = _orbitals->AOVxc();
+                        //cout<< vxc_cart.size1()<<"x"<<vxc_cart.size2()<<endl;
                         ub::matrix<double> _carttrafo;
                         dftbasis.getTransformationCartToSpherical(_dft_package, _carttrafo);
+                        //cout<< _carttrafo.size1()<<"x"<<_carttrafo.size2()<<endl;
+                        
                         ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_cart);
                         _vxc_ao = ub::prod(_temp, ub::trans(_carttrafo));
 
