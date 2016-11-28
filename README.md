@@ -1,9 +1,9 @@
-This is VOTCA's next generation buildutil. 
+This is VOTCA's next generation build system. 
 
 Usage:
 ```
-git clone --recursive -b global https://github.com/votca/buildutil.git
-cd buildutil
+git clone --recursive https://github.com/votca/votca.git
+cd votca
 mkdir build
 cd build
 cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON ..
