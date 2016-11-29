@@ -17,8 +17,8 @@ script:
    docker cp ${CON}:/home/votca/.ccache ${HOME}/
 
 after_success:
-  - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(global|stable|v1.*) ]] && DEPLOY=yes
-  - if [[ ${TRAVIS_BRANCH} = global ]]; then DOCKER_TAG=latest; else DOCKER_TAG="${TRAVIS_BRANCH}"; fi
+  - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(master|stable|v1.*) ]] && DEPLOY=yes
+  - if [[ ${TRAVIS_BRANCH} = master ]]; then DOCKER_TAG=latest; else DOCKER_TAG="${TRAVIS_BRANCH}"; fi
   - if [[ ${DOCKER_USERNAME} && ${DOCKER_PASSWORD} && ${TRAVIS_PULL_REQUEST} == false && ${DEPLOY} ]]; then
         docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
         docker push "votca/votca:${DOCKER_TAG}";
