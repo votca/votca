@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 #include <votca/tools/linalg.h>
 
 #include <iostream>
-
+#include <sstream>
 namespace votca { namespace tools {
 
 using namespace std;
@@ -75,29 +75,111 @@ int linalg_invert_svd(ub::matrix<double> &A, ub::matrix<double> &V,double limitC
     return S.size()-dimensions;
 }
 
+
+
+
 double linalg_loewdin(ub::matrix<double> &J, ub::matrix<double> &S){
     if (J.size1()!=J.size2() ||S.size1()!=S.size2() || J.size1()!=S.size1() ){
         cerr << " \n Loewdin transformation only works for quadratic matrices " << endl;
         return -1;
     }
-    
+  
     ub::vector<double> S_eigenvalues;
     linalg_eigenvalues( S_eigenvalues, S);
     if ( S_eigenvalues[0] < 0.0 ) {
         cerr << " \n Negative eigenvalues in Loewdin transformation " << endl;
         return -1;
     }
+
     ub::matrix<double> _diagS = ub::zero_matrix<double>(J.size1(),J.size2() );
      for ( unsigned _i =0; _i < J.size1() ; _i++){
 
          _diagS(_i,_i) = 1.0/sqrt(S_eigenvalues[_i]);
      }
-    ub::matrix<double> _transtemp = ub::prod( _diagS, ub::trans(S));
-    ub::matrix<double> _transform = ub::prod( S,_transtemp );
-    ub::matrix<double> _J_temp = ub::prod(J, _transform);
-    J = ub::prod( _transform, _J_temp);
+    ub::matrix<double> _temp = ub::prod( _diagS, ub::trans(S));
+    S = ub::prod( S,_temp );
+    
+    _temp = ub::prod(J, S);
+    J = ub::prod( S, _temp);
     return S_eigenvalues[0];
+    
 }
+
+
+
+int linalg_matrixsqrt(ub::matrix<double> &S){
+    if (S.size1()!=S.size2()) {
+        cerr << " \nMatrix sqrt only works for quadratic matrices " << endl;
+        return -1;
+    }
+  
+    ub::vector<double> S_eigenvalues;
+    linalg_eigenvalues( S_eigenvalues, S);
+    if ( S_eigenvalues[0] < 0.0 ) {
+        cerr << " \n Negative eigenvalues in matrix_sqrt transformation " << endl;
+        return -1;
+    }
+
+    ub::matrix<double> _diagS = ub::zero_matrix<double>(S.size1(),S.size2() );
+     for ( unsigned _i =0; _i < S.size1() ; _i++){
+
+         _diagS(_i,_i) = sqrt(S_eigenvalues[_i]);
+     }
+    ub::matrix<double> _temp = ub::prod( _diagS, ub::trans(S));
+    S = ub::prod( S,_temp );
+    
+  
+    return 1;
+} 
+    
+    double linalg_getMax( const ub::matrix<double>& _matrix ){
+
+   double _maximum = 0.0;
+
+   for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
+     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
+       if ( std::abs(_matrix(_i,_j)) > _maximum ) {
+	 _maximum = std::abs(_matrix(_i,_j));
+       }				   
+     }
+   }
+
+   return _maximum;
+   }
+    
+   double linalg_getRMS(const ub::matrix<double>& _matrix ){
+
+   double _rms = 0.0;
+   int _n = 0;
+
+   for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
+     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
+       _rms += _matrix(_i,_j) * _matrix(_i,_j);
+       _n++;
+     }
+   }
+
+   _rms = sqrt(_rms/_n);
+
+   return _rms;
+   }
+   
+   double linalg_traceofProd(const ub::matrix<double>& A,const ub::matrix<double>& B ){
+       double trace=0.0;
+       const ub::vector<double>& Aarray=A.data();
+       const ub::vector<double>& Barray=B.data();
+        if (Aarray.size()!=Barray.size() || A.size1()!=B.size2() || A.size2()!=B.size1()) {
+        cerr << " \ntraceofProd Matrcies have different number of indexes " << endl;
+        return -1;
+       }
+       for (unsigned i=0;i<Aarray.size();i++){
+           trace+=Aarray(i)*Barray(i);
+       }
+       return trace;
+   }
+ 
+    
+
 
 
 }}

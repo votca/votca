@@ -282,12 +282,12 @@ bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<
 
 
 /* calculate the eigenvalues and vectors of the generalized eigenvalue problem */
-bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V)
+bool linalg_eigenvalues_general(const ub::matrix<double> &A,const ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V)
 {
     // cout << " \n I'm really using MKL! " << endl;
     //check to see if matrices have same size
-    int n = A.size1();
-    int lda = n ;
+    int lda = A.size1();
+    MKL_INT n = lda ;
     int ldb =B.size1();
     ub::matrix<double> _B(ldb,ldb);
     _B=B;
@@ -296,15 +296,13 @@ bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub
         exit(1);
     }
     // make sure that containers for eigenvalues and eigenvectors are of correct size
-    E.resize(n);
-    V.resize(n, n);
+    E.resize(lda);
+    V.resize(lda, lda);
     // Query and allocate the optimal workspace 
-    double wkopt;
-    double* work;
-    int info;
-    int lwork;
-    lwork = -1;
-
+   
+    MKL_INT info=0;
+    MKL_INT LDA=lda;
+    MKL_INT LDB=ldb;
     // MKL is different to GSL because it overwrites the input matrix
     V = A; // make a copy (might actually be unnecessary in most cases!)
 
@@ -316,7 +314,7 @@ bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub
     // call LAPACK via C interface
     info = LAPACKE_dsygv( LAPACK_ROW_MAJOR,1,'V', 'U', n, pV , lda,pB,ldb, pE );
 
-    if( info > 0 ) {
+    if( info != 0 ) {
         return false;
     } else {
         return true;

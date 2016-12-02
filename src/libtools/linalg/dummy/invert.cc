@@ -27,4 +27,11 @@ void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
     throw std::runtime_error("linalg_invert is not compiled-in due to disabling of GSL and MKL - recompile Votca Tools with GSL or MKL support");
 }
 
+
+bool linalg_solve(const ub::matrix<double> &A, ub::matrix<double> &B){
+   throw std::runtime_error("linalg_solve is not compiled-in due to disabling of GSL and MKL - recompile Votca Tools with GSL or MKL support");
+}
+
 }}
+
+

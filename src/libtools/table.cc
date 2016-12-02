@@ -82,7 +82,7 @@ void Table::clear(void)
 // TODO: modify function to work properly, when _has_yerr is true
 istream &operator>>(istream &in, Table& t)
 {
-    size_t N;
+    size_t N=0;
     bool bHasN=false;
     string line;
     int line_number=0;

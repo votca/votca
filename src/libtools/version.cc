@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  */
 
 #include <votca/tools/version.h>
-#include <votca_config.h>
+#include <votca/tools/votca_config.h>
 
 extern "C" {
    void VotcaToolsFromC(){
@@ -28,7 +28,7 @@ namespace votca { namespace tools {
 
 //defines gitversion
 #include "gitversion.h"
-static const std::string version_str = std::string(VERSION) + " " + gitversion + " (compiled " __DATE__ ", " __TIME__ ")";
+static const std::string version_str = std::string(TOOLS_VERSION) + " " + gitversion + " (compiled " __DATE__ ", " __TIME__ ")";
 
 const std::string &ToolsVersionStr()
 {
