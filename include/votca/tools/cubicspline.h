@@ -201,24 +201,7 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x,
     M(offset1, offset2 + spi + _r.size() + 1) += D(x)*scale;
 }
 
-//for adding f(x)*scale1 + F(x)*scale2
-/*template<typename matrix_type>
-inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, 
-            int offset1, int offset2, double scale1, double scale2)
-{
-    int spi = getInterval(x);
-    M(offset1, offset2 + spi) += A(x)*scale1;
-    M(offset1, offset2 + spi+1) += B(x)*scale1;
-    M(offset1, offset2 + spi + _r.size()) += C(x)*scale1;
-    M(offset1, offset2 + spi + _r.size() + 1) += D(x)*scale1;
-    
-    M(offset1, offset2 + spi) += AA(x)*scale2;
-    M(offset1, offset2 + spi+1) += BB(x)*scale2;
-    M(offset1, offset2 + spi + _r.size()) += CC(x)*scale2;
-    M(offset1, offset2 + spi + _r.size() + 1) += DD(x)*scale2;
-}*/
-
-//for adding f(x)*scale1 + F(x)*scale2
+//for adding f'(x)*scale1 + f(x)*scale2 as needed for threebody interactions
 template<typename matrix_type>
 inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, 
             int offset1, int offset2, double scale1, double scale2)
