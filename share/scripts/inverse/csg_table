@@ -135,7 +135,6 @@ optimizer_target pressure optimizer_target_pressure.sh
 simplex precede_state simplex_downhill_processor.pl
 
 # cma specific stuff
-cma get cma_get.sh
 cma precede_state cma_processor.py
 
 # relative entroy (re) specific stuff

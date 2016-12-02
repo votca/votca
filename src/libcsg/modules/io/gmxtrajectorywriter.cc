@@ -38,8 +38,8 @@ void GMXTrajectoryWriter::Write(Topology *conf)
     int N = conf->BeadCount();
     t_trxframe frame;
     rvec *x = new rvec[N];
-    rvec *v;
-    rvec *f;
+    rvec *v = NULL;
+    rvec *f = NULL;
     matrix box = conf->getBox();
     
     frame.natoms = N;

@@ -95,10 +95,9 @@ if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation) = "yes" && $1 != "--
   msg "Doing main simulation"
 fi
 
-#support for older mdp file, cutoff-scheme = Verlet is default for Gromacs 5.0, but does not work with tabulated interactions
+#support for older mdp file, cutoff-scheme = Verlet is default for >=gmx-5 now, but does not work with tabulated interactions
 #XXX is returned if cutoff-scheme is not in mdp file
-gmx_ver="$(critical ${grompp[@]} -h 2>&1)"
-if [[ ${gmx_ver} = *"VERSION 5."[01]* || ${gmx_ver} = *"version 2016"* ]] && [[ $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
+if [[ $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
   echo "cutoff-scheme = Group" >> $mdp
   msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
 fi
@@ -126,8 +125,8 @@ else
   echo "${0##*/}: No walltime defined, so no time limitation given to $mdrun"
 fi
 
-#>gmx-5.1 has new handling of bonded tables, remove this block we drop support for gmx-5.0 
-if [[ ${gmx_ver} = *"VERSION 5.1"* || ${gmx_ver} = *"version 2016"* ]] && [[ ${mdrun_opts} != *tableb* ]]; then
+#>gmx-5.1 has new handling of bonded tables
+if [[ ${mdrun_opts} != *tableb* ]]; then
   tables=
   for i in table_[abd][0-9]*.xvg; do
     [[ -f $i ]] && tables+=" $i"

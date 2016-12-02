@@ -250,7 +250,7 @@ namespace votca {
             // Here trajectory parsing starts
             //////////////////////////////////////////////////
             if (DoTrajectory() && _op_vm.count("trj")) {
-                double begin;
+                double begin=0;
                 int first_frame;
                 bool has_begin = false;
 
@@ -304,7 +304,7 @@ namespace votca {
                 //seek first frame, let thread0 do that
                 bool bok;
                 for (bok = true; bok == true; bok = _traj_reader->NextFrame(master->_top)) {
-                    if (((master->_top.getTime() < begin) && has_begin) || first_frame > 1) {
+                    if ((has_begin && (master->_top.getTime() < begin)) || first_frame > 1) {
                         first_frame--;
                         continue;
                     }

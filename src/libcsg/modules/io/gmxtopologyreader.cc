@@ -31,8 +31,6 @@
         #include <gromacs/fileio/tpxio.h>
         #include <gromacs/topology/atoms.h>
         #include <gromacs/topology/topology.h>
-#elif GMX == 50
-        #include <gromacs/fileio/tpxio.h>
 #else
 #error Unsupported GMX version
 #endif
