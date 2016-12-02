@@ -252,11 +252,17 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
     resSum2.resize(num_outgrid, false);
     resSum2.clear();
     
-    //for testing
-    resultDer.resize(num_outgrid, false);
-    resultDer.clear(); 
-    resSumDer.resize(num_outgrid, false);
-    resSumDer.clear();
+    //Only if threebody interaction, the derivatives are explicitly calculated
+    if (threebody){
+        resultDer.resize(num_outgrid, false);
+        resultDer.clear(); 
+        errorDer.resize(num_outgrid, false);
+        errorDer.clear();
+        resSumDer.resize(num_outgrid, false);
+        resSumDer.clear();
+        resSumDer2.resize(num_outgrid, false);
+        resSumDer2.clear();        
+    }
     
     block_res_f.resize(num_gridpoints, false);
     block_res_f2.resize(num_gridpoints, false);
@@ -265,10 +271,10 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
 void CGForceMatching::EndEvaluate()
 {
     cout << "\nWe are done, thank you very much!" << endl;
-     if(_has_existing_forces) {
+    if(_has_existing_forces) {
          _trjreader_force->Close();
         delete _trjreader_force;
-     }
+    }
 }
 
 void CGForceMatching::WriteOutFiles()
@@ -282,28 +288,43 @@ void CGForceMatching::WriteOutFiles()
     }
 
     string file_extension = ".force";
+    string file_extension_pot = ".pot";
     string file_name;
+    string file_nameDer;
     Table force_tab;
     Table force_tabDer;
 
     // table with error column
     force_tab.SetHasYErr(true);
+    force_tabDer.SetHasYErr(true);
 
     SplineContainer::iterator is;
 
     for (is = _splines.begin(); is != _splines.end(); ++is) {
         // construct meaningful outfile name
         file_name = (*is)->splineName;
-        file_name = file_name + file_extension;
         
         // resize table
         force_tab.resize((*is)->num_outgrid, false);
         
-        //for testing       
-        force_tabDer.resize((*is)->num_outgrid, false);
-
-        // print output file names on stdout
-        cout << "Updating file: " << file_name << endl;
+        //If not threebody, the result represents the force
+        if ( !((*is)->threebody) ){   
+            file_name = file_name + file_extension;
+            // print output file names on stdout
+            cout << "Updating file: " << file_name << endl;   
+        }
+        
+        //If threebody interaction, the result represents the potential and (-1) the derivative represents the force
+        //Only then, the derivatives are explicitly calculated
+        if ((*is)->threebody){   
+            file_name = file_name + file_extension_pot;
+            file_nameDer = (*is)->splineName;
+            file_nameDer = file_nameDer + file_extension;
+            
+            force_tabDer.resize((*is)->num_outgrid, false);         
+            // print output file names on stdout
+            cout << "Updating files: " << file_name << " and: " << file_nameDer << endl;                
+        }
 
         // loop over output grid points
         for (int i = 0; i < (*is)->num_outgrid; i++) {
@@ -312,34 +333,49 @@ void CGForceMatching::WriteOutFiles()
             // standard deviation of the average
             (*is)->error[i] = sqrt( ((*is)->resSum2[i] / _nblocks - (*is)->result[i] * (*is)->result[i])/_nblocks );
             
-            // for testing
-            (*is)->resultDer[i] = (*is)->resSumDer[i] / _nblocks;         
+            //Only if threebody interaction, the derivatives are explicitly calculated
+            if ((*is)->threebody){
+                // average value
+                (*is)->resultDer[i] = (*is)->resSumDer[i] / _nblocks;
+                // standard deviation of the average
+                (*is)->errorDer[i] = sqrt( ((*is)->resSumDer2[i] / _nblocks - (*is)->resultDer[i] * (*is)->resultDer[i])/_nblocks );
+            }
         }
 
         // first output point = first grid point
         double out_x = (*is)->Spline.getGridPoint(0);
         // loop over output grid
         for (int i = 0; i < (*is)->num_outgrid; i++) {
-            // put point, result, flag and accuracy at point out_x into the table
-            force_tab.set(i, out_x, (-1.0) * (*is)->result[i], 'i', (*is)->error[i]);
-  
-            //for testing
-            force_tabDer.set(i, out_x, (-1.0) * (*is)->resultDer[i], 'i');
+            
+            //If not threebody the result is (-1) the force
+            if ( !((*is)->threebody) ){                            
+                // put point, result, flag and accuracy at point out_x into the table
+                force_tab.set(i, out_x, (-1.0) * (*is)->result[i], 'i', (*is)->error[i]);
+            }            
+            
+            //If threebody interaction, force_tab represents the potential (-1) which is the Antiderivative of the force
+            //Only if threebody interaction, the derivatives are explicitly calculated            
+            if ((*is)->threebody){       
+                // put point, result, flag and accuracy at point out_x into the table
+                force_tab.set(i, out_x, (+1.0) * (*is)->result[i], 'i', (*is)->error[i]);
+                force_tabDer.set(i, out_x, (-1.0) * (*is)->resultDer[i], 'i', (*is)->errorDer[i]);
+            }
             
             // update out_x for the next iteration
             out_x += (*is)->dx_out;
         }
         // save table in the file
         force_tab.Save(file_name);
-
-        //for testing        
-        force_tabDer.Save(file_name+"_Der");
-        
+                
         // clear the table for the next spline
         force_tab.clear();
-        
-        //for testing
-        force_tabDer.clear();     
+
+        //Only if threebody interaction, the derivatives are explicitly calculated            
+        if ((*is)->threebody){  
+            force_tabDer.Save(file_nameDer);
+            // clear the table for the next spline
+            force_tabDer.clear();
+        }
     }
 }
 
@@ -381,13 +417,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
     if (conf->getBead(0)->HasF()) {
         vec Force(0., 0., 0.);
         for (int iatom = 0; iatom < _nbeads; ++iatom) {
-            Force = conf->getBead(iatom)->getF();
-            //std::cout << "iatom: " << iatom << std::endl;
-            //std::cout << "_nbeads: " << _nbeads << std::endl;    
-            //std::cout << "_frame_counter: " << _frame_counter << std::endl;    
-            //std::cout << "Force.x(): " << Force.x() << std::endl;            
-            //std::cout << "Force.y(): " << Force.y() << std::endl;    
-            //std::cout << "Force.z(): " << Force.z() << std::endl;                
+            Force = conf->getBead(iatom)->getF();               
             _b(_least_sq_offset + 3 * _nbeads * _frame_counter + iatom) = Force.x();
             _b(_least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + iatom) = Force.y();
             _b(_least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom) = Force.z();
@@ -483,14 +513,19 @@ void CGForceMatching::FmatchAccumulateData()
         for (int i = 0; i < (*is)->num_outgrid; i++) {
             // update resSum (add result of a particular block)
             (*is)->resSum[i] += (*is)->Spline.Calculate(out_x);
-
-            //for testing
-            (*is)->resSumDer[i] += (*is)->Spline.CalculateDerivative(out_x);
-            
-            // print useful debug information
-            if (i == grid_point_debug) cout << "This should be a number: " << (*is)->Spline.Calculate(out_x) << " " << endl;
             // update resSum2 (add result of a particular block)
             (*is)->resSum2[i] += (*is)->Spline.Calculate(out_x) * (*is)->Spline.Calculate(out_x);
+
+            //Only if threebody interaction, the derivatives are explicitly calculated
+            if ((*is)->threebody){
+                (*is)->resSumDer[i] += (*is)->Spline.CalculateDerivative(out_x);
+                // update resSumDer2 (add result of a particular block)
+                (*is)->resSumDer2[i] += (*is)->Spline.CalculateDerivative(out_x) * (*is)->Spline.CalculateDerivative(out_x);
+            }
+
+            // print useful debug information
+            if (i == grid_point_debug) cout << "This should be a number: " << (*is)->Spline.Calculate(out_x) << " " << endl;
+
             // output point for the next iteration
             out_x += (*is)->dx_out;
         }
@@ -508,13 +543,9 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(ub::matrix<double> &Matrix
 
     Matrix.clear();
 
-
     SplineContainer::iterator is;
     for (is = _splines.begin(); is != _splines.end(); ++is) {
         int sfnum = (*is)->num_splinefun;
-        //std::cout << "line_tmp: " << line_tmp << std::endl;
-        //std::cout << "col_tmp: " << col_tmp << std::endl;        
-        //std::cout << "sfnum: " << sfnum << std::endl;
         (*is)->Spline.AddBCToFitMatrix(Matrix, line_tmp, col_tmp);
         //if periodic potential, one additional constraint has to be taken into account!
         if ((*is)->periodic != 0){
@@ -637,22 +668,12 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
 {
     //so far option gridsearch ignored. Only simple search
 
-    // generate the neighbour list
-    //std::cout << "a: " << sinfo->a << std::endl;
-    //std::cout << "sigma: " << sinfo->sigma << std::endl;
-    //std::cout << "gamma: " << sinfo->gamma << std::endl;
-    
+    // generate the neighbour list    
     NBList_3Body *nb;   
-    //std::cout << "test1" << std::endl;
     nb = new NBList_3Body();    
-    //std::cout << "test2" << std::endl;    
     
     nb->setCutoff(sinfo->a); // implement different cutoffs for different interactions!
     //Here, a is the distance between two beads of a triple, where the 3-body interaction is zero
-    
-    std::cout << "type1: " << sinfo->type1 << std::endl;   
-    std::cout << "type2: " << sinfo->type2 << std::endl;   
-    std::cout << "type3: " << sinfo->type3 << std::endl;   
     
     // generate the bead lists
     BeadList beads1, beads2, beads3;
@@ -662,42 +683,33 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
     
     //check if type1 and type2 are the same
     if (sinfo->type1 == sinfo->type2){
-        std::cout << "type1 == type2" << std::endl;
         //if all three types are the same
-        if (sinfo->type2 == sinfo->type3){
-            std::cout << "type2 == type3" << std::endl;            
+        if (sinfo->type2 == sinfo->type3){        
             nb->Generate(beads1, true);
         }
         //if type2 and type3 are different, use the Generate function for 2 bead types
-        if (sinfo->type2 != sinfo->type3){
-            std::cout << "type2 != type3" << std::endl;            
+        if (sinfo->type2 != sinfo->type3){           
             nb->Generate(beads1, beads3, true); 
         }
     }
     //if type1 != type2
     if (sinfo->type1 != sinfo->type2){   
-        std::cout << "type1 != type2" << std::endl;
         //if the last two types are the same, use Generate function with them as the first two bead types
         //Neighborlist_3body is constructed in a way that the two equal bead types have two be the first 2 types
         if (sinfo->type2 == sinfo->type3){
-            std::cout << "type2 == type3" << std::endl;
             nb->Generate(beads1, beads2, true);         
         }
         if (sinfo->type2 != sinfo->type3){
-            std::cout << "type2 != type3" << std::endl;
             //type1 = type3 !=type2
-            if (sinfo->type1 == sinfo->type3){
-                std::cout << "type1 == type3" << std::endl;                
+            if (sinfo->type1 == sinfo->type3){          
                 nb->Generate(beads2, beads1, true);
             }
             //type1 != type2 != type3
-            if (sinfo->type1 != sinfo->type3){
-                std::cout << "type1 != type3" << std::endl;                
+            if (sinfo->type1 != sinfo->type3){              
                 nb->Generate(beads1, beads2, beads3, true);
             }
         }
     }
-    //std::cout << "test3" << std::endl;
     
     NBList_3Body::iterator triple_iter;
     // iterate over all triples
@@ -709,63 +721,28 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
         double distik = (*triple_iter)->dist13();        
         vec rij  = (*triple_iter)->r12();
         vec rik  = (*triple_iter)->r13();
-        //std::cout << "iatom: " << iatom << std::endl;
-        //std::cout << "jatom: " << jatom << std::endl;
-        //std::cout << "katom: " << katom << std::endl;
-        //std::cout << "rij: " << rij << std::endl;
-        //std::cout << "rik: " << rik << std::endl;
-        //std::cout << "distij: " << distij << std::endl;
-        //std::cout << "distik: " << distik << std::endl;
         
         double gamma_sigma = (sinfo->gamma)*(sinfo->sigma);
         double denomij = (distij-(sinfo->a)*(sinfo->sigma));
         double denomik = (distik-(sinfo->a)*(sinfo->sigma));
         double expij = exp(gamma_sigma/denomij);
         double expik = exp(gamma_sigma/denomik);
-        //std::cout << "gamma_sigma: " << gamma_sigma << std::endl;     
-        //std::cout << "denomij: " << denomij << std::endl;  
-        //std::cout << "denomik: " << denomik << std::endl;  
-        //std::cout << "expij: " << expij << std::endl;  
-        //std::cout << "expik: " << expik << std::endl;  
         
         vec gradient1,gradient2;
-        //for debugging
-        vec force1,force2,force;
-        double sw,swprime;
-        double epsilon = 0.3;
-        double lambda = 10.0;
-        double costheta0 = 0.0;
-        //sw = lambda*epsilon*(cos(theta)-costheta0)**2
-        sw = lambda*epsilon*( (rij*rik/sqrt((rij*rij) * (rik*rik))) - costheta0 )*( (rij*rik/sqrt((rij*rij) * (rik*rik))) - costheta0 );
-        //swprime = 2*lambda*epsilon*(cos(theta)-costheta0)*(-sin(theta))
-        swprime = 2*lambda*epsilon*( (rij*rik/sqrt((rij*rij) * (rik*rik))) - costheta0 )*((-1.0)*sqrt( 1 - ( (rij*rik/sqrt((rij*rij) * (rik*rik)))*(rij*rik/sqrt((rij*rij) * (rik*rik))) ) ) );
-        //std::cout << "sw: " << sw << std::endl;
-        //std::cout << "swprime: " << swprime << std::endl;
         
         CubicSpline &SP = sinfo->Spline;
 
         int &mpos = sinfo->matr_pos;
         
         double var = acos(rij*rik/sqrt((rij*rij) * (rik*rik)));
-        //std::cout << "var: " << var << std::endl;  
         
         double acos_prime = 1.0 / (sqrt(1 - (rij*rik) * (rij*rik)/( distij * distik * distij * distik ) ));
-        //std::cout << "acos_prime: " << acos_prime << std::endl;  
         
         //evaluate gradient1 and gradient2 for iatom:        
         //gradient1 = (-grad_i theta) * exp()*exp()
         gradient1 = acos_prime * ( (rij+rik)/(distij * distik) - (rij * rik) * ((rik*rik) * rij + (rij*rij) * rik ) / ( distij*distij*distij*distik*distik*distik ) ) * expij*expik;
         //gradient2
         gradient2 = ( (rij/distij)*( gamma_sigma/(denomij*denomij) )+ (rik/distik)*( gamma_sigma/(denomik*denomik) ) )*expij*expik;   
-        //gradient2 = gradient2*0;
-        //std::cout << "gradient1: " << gradient1 << std::endl;  
-        //std::cout << "gradient2: " << gradient2 << std::endl;  
-        force1 = (-1.0)*swprime*gradient1;
-        force2 = (-1.0)*sw*gradient2;
-        force = force1+force2;
-        //std::cout << "force1: " << force1 << std::endl;
-        //std::cout << "force2: " << force2 << std::endl;
-        //std::cout << "force: " << force << std::endl;
         
         // add iatom
         SP.AddToFitMatrix(_A, var,
@@ -780,15 +757,6 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
         gradient1 = acos_prime * (-rik / ( distij*distik ) +  (rij*rik) * rij / ( distik*distij*distij*distij ) ) * expij*expik;
         //gradient2
         gradient2 = ( (rij/distij)*( -1.0*gamma_sigma/(denomij*denomij) ) )*expij*expik;
-        //gradient2 = gradient2*0;
-        //std::cout << "gradient1: " << gradient1 << std::endl;  
-        //std::cout << "gradient2: " << gradient2 << std::endl;  
-        force1 = (-1.0)*swprime*gradient1;        
-        force2 = (-1.0)*sw*gradient2;
-        force = force1+force2;
-        //std::cout << "force1: " << force1 << std::endl;
-        //std::cout << "force2: " << force2 << std::endl;
-        //std::cout << "force: " << force << std::endl;
         
         // add jatom
         SP.AddToFitMatrix(_A, var,
@@ -802,16 +770,7 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
         //gradient1 = (-grad_k theta) * exp()*exp()
         gradient1 = acos_prime * (-rij / ( distij*distik ) +  (rij*rik) * rik / ( distij*distik*distik*distik ) ) * expij*expik;
         //gradient2
-        gradient2 = ( (rik/distik)*( -1.0*gamma_sigma/(denomik*denomik) ) )*expij*expik;
-        //gradient2 = gradient2*0;
-        //std::cout << "gradient1: " << gradient1 << std::endl;  
-        //std::cout << "gradient2: " << gradient2 << std::endl;  
-        force1 = (-1.0)*swprime*gradient1;        
-        force2 = (-1.0)*sw*gradient2;
-        force = force1+force2;
-        //std::cout << "force1: " << force1 << std::endl;
-        //std::cout << "force2: " << force2 << std::endl;
-        //std::cout << "force: " << force << std::endl;        
+        gradient2 = ( (rik/distik)*( -1.0*gamma_sigma/(denomik*denomik) ) )*expij*expik;    
         
         // add jatom
         SP.AddToFitMatrix(_A, var,

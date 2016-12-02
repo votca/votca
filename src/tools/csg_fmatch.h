@@ -110,12 +110,15 @@ protected:
         /// \brief sum of all squares of block_res (used to calculate error)
         ub::vector<double> resSum2;
         
-        //for testing
-        
-        /// \brief Final result: average over all blocks
+        //only needed for 3body nonbonded interactions as here force and potential are calculated simultaneously        
+        /// \brief Final result of derivatives: average over all blocks
         ub::vector<double> resultDer;
+        /// \brief accuracy of the final result
+        ub::vector<double> errorDer;
         /// \brief sum of all block_res
         ub::vector<double> resSumDer;    
+        /// \brief sum of all squares of block_res (used to calculate error)
+        ub::vector<double> resSumDer2;  
 
         /// \brief Spline Name
         string splineName;
