@@ -109,6 +109,13 @@ protected:
         ub::vector<double> resSum;
         /// \brief sum of all squares of block_res (used to calculate error)
         ub::vector<double> resSum2;
+        
+        //for testing
+        
+        /// \brief Final result: average over all blocks
+        ub::vector<double> resultDer;
+        /// \brief sum of all block_res
+        ub::vector<double> resSumDer;    
 
         /// \brief Spline Name
         string splineName;

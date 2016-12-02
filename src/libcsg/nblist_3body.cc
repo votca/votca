@@ -24,7 +24,7 @@ NBList_3Body::NBList_3Body()
   : _do_exclusions(false), _match_function(0)
 {
     setTripleType<BeadTriple>();
-    SetMatchFunction(NBList_3Body::match_always);
+    SetMatchFunction(NBList_3Body::match_always);    
 }
 
 NBList_3Body::~NBList_3Body()
@@ -57,24 +57,33 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3, b
         //if both lists are the same (the 3 bead types are the same),
         //still necessary as both permutations (1,2,*) (2,1,*) included in neighbor list! (i,jneqi,k>j)
         iter2 = list2.begin();
-            
-        //do not include the same beads twice in one triple!
-        if(*iter1 == *iter2) continue;
-    
-        for(; iter2 != list2.end(); ++iter2) { 
-            //if list2 and list3 are the same, set iter3 to "iter2+1" (i,jneqi,k>j)
-            if(&list2 == &list3) {        
-                iter3=iter2;
-                ++iter3;
-            }
-            else
-                iter3 = list3.begin();         
+                
+        for(; iter2 != list2.end(); ++iter2) {
             
             //do not include the same beads twice in one triple!
-            if(*iter1 == *iter3) continue;
-            if(*iter2 == *iter3) continue;
+            if(*iter1 == *iter2) {
+                continue;
+            }
             
+            //if list2 and list3 are the same, set iter3 to "iter2+1" (i,jneqi,k>j)
+            if(&list2 == &list3) {   
+                iter3=iter2;
+                ++iter3;
+            }          
+            else{
+                iter3 = list3.begin();        
+            }
+
             for(; iter3 != list3.end(); ++iter3) {
+
+                //do not include the same beads twice in one triple!
+                if(*iter1 == *iter3) {
+                    continue;
+                }
+                if(*iter2 == *iter3) {
+                    continue;
+                }
+                
                 vec u = (*iter1)->getPos();
                 vec v = (*iter2)->getPos();
                 vec z = (*iter3)->getPos();

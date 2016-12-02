@@ -49,8 +49,8 @@ public:
     /// Generate the 3body neighbour list based on three bead lists (e.g. bead types)
     virtual void Generate(BeadList &list1, BeadList &list2, BeadList &list3, bool do_exclusions = true);
     /// Generate the 3body neighbour list based on two bead lists (e.g. bead types)
-    /// Experimental: here the first two bead lists are the same (nblist will have the structure bead type 1, bead type 1, bead type 2) 
-    virtual void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true) { Generate(list1, list1, list2, do_exclusions); };
+    /// Experimental: here the second and the third bead list are the same (nblist will have the structure bead type 1, bead type 2, bead type 2) 
+    virtual void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true) { Generate(list1, list2, list2, do_exclusions); };
     /// Generate the 3body neighbour list based on a single bead list (nblist will have the structure bead type 1, bead type 1, bead type 1)
     virtual void Generate(BeadList &list, bool do_exclusions = true) { Generate(list, list, list, do_exclusions); }
     
