@@ -147,6 +147,7 @@ public:
     NumericalIntegration                _gridIntegration;
     
     //numerical integration externalfield;
+    //this will not remain here but be moved to qmape
     bool                                    _do_externalfield;
     std::string                              _grid_name_ext;
     NumericalIntegration                _gridIntegration_ext;
@@ -163,6 +164,8 @@ public:
     AOESP                               _dftAOESP;
     AOECP                               _dftAOECP;
     
+    AODipole_Potential                  _dftAODipole_Potential;
+    AOQuadrupole_Potential              _dftAOQuadrupole_Potential;
     bool                                _with_guess;
     double                              E_nucnuc;
     

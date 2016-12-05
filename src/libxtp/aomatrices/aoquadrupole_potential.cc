@@ -51,12 +51,20 @@ namespace votca { namespace xtp {
 
         const double pi = boost::math::constants::pi<double>();
 
-        // Get components of quadrupole tensor somehow
-        double q_01 = .02;
-        double q_02 = .04;
-        double q_12 = .06;
-        double q_00 = .08;
-        double q_11 = .1; // tensor is traceless, q_22 = - (q_00 + q_11)
+        
+        
+        std::vector<double> quadrople=apolarsite->getQ2();
+        
+        double ang22bohr2=tools::conv::ang2bohr*tools::conv::ang2bohr;
+        for(std::vector<double>::iterator it=quadrople.begin();it<quadrople.end();++it){
+            (*it)=ang22bohr2*(*it);
+        }
+        // I am not sure the order definition or anything is correct apolarsite object orders them as Q20, Q21c, Q21s, Q22c, Q22s
+        double q_01 = quadrople[0];
+        double q_02 = quadrople[1];
+        double q_12 = quadrople[2];
+        double q_00 = quadrople[3];
+        double q_11 = quadrople[4]; // tensor is traceless, q_22 = - (q_00 + q_11)
 
         // cout << _gridpoint << endl;
         // shell info, only lmax tells how far to go
@@ -1164,7 +1172,28 @@ for (int _i = 0; _i < _nrows; _i++) {
         }// _shell_row Gaussians
     }
 
+void AOQuadrupole_Potential::Fillextpotential( AOBasis* aobasis, std::vector<APolarSite*>& _sites){
+  
+    _externalpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
+   for ( std::vector<APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
+      
+        if((*it)->getRank()>1){
+             vec positionofsite =  (*it)->getPos()*tools::conv::nm2bohr;
 
+
+             //cout << "NUCLEAR CHARGE" << Znuc << endl;
+             _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
+             setAPolarSite((*it));
+             Fill(aobasis,positionofsite);
+             //Print("TMAT");
+
+             _externalpotential+=_aomatrix;
+            // cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
+
+     }
+   }
+    return;
+    }    
 
 
 

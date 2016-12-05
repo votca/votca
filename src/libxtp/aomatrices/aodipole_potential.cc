@@ -52,9 +52,12 @@ namespace votca { namespace xtp {
         const double pi = boost::math::constants::pi<double>();
 
         // Get components of dipole vector somehow
-        double d_0 = .1;
-        double d_1 = .2;
-        double d_2 = .3;
+        
+        vec dipole=(apolarsite->getU1()+apolarsite->getQ1())*tools::conv::ang2bohr;
+       
+        double d_0 = dipole.getX();
+        double d_1 = dipole.getY();
+        double d_2 = dipole.getZ();
 
         // cout << _gridpoint << endl;
         // shell info, only lmax tells how far to go
@@ -817,7 +820,28 @@ for (int _i = 0; _i < _nrows; _i++) {
         }// _shell_row Gaussians
     }
 
+ void AODipole_Potential::Fillextpotential( AOBasis* aobasis, std::vector<APolarSite*>& _sites){
+  
+    _externalpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
+   for ( std::vector<APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
+      
+        if((*it)->getRank()>0){
+             vec positionofsite =  (*it)->getPos()*tools::conv::nm2bohr;
 
+
+             //cout << "NUCLEAR CHARGE" << Znuc << endl;
+             _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
+             setAPolarSite((*it));
+             Fill(aobasis,positionofsite);
+             //Print("TMAT");
+
+             _externalpotential+=_aomatrix;
+            // cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
+
+     }
+   }
+    return;
+    }    
 
 
 

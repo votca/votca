@@ -108,9 +108,22 @@ public:
     vector<double> &getQs(int state) { return _Qs[state+1]; }
     void            setQs(vector<double> Qs, int state) { while(Qs.size() < 9) Qs.push_back(0.0); _Qs[state+1] = Qs; }
     void            setQ00(double q, int s) { Q00 = q; if (_Qs[s+1].size() < 1) _Qs[s+1].resize(1); _Qs[s+1][0] = q; }
+    
+    //these are apparently set in charge function of apolarsite
     double         &getQ00() { return Q00; }
     void            setQ1(const vec &dpl) { Q1x=dpl.getX(); Q1y=dpl.getY(); Q1z=dpl.getZ(); }
     vec             getQ1() { return vec(Q1x, Q1y, Q1z); }  // Only IOP
+    //this is really ugly I apologize but I do not know who designed these objects
+    vector<double>  getQ2() {
+                                vector<double> temp=vector<double>(5);
+                                temp[0]=Q20;
+                                temp[1]=Q21c;
+                                temp[2]=Q21s;
+                                temp[3]=Q22c;
+                                temp[4]=Q22s;
+                                   return temp;
+    }
+    
     // POLARIZABILITIES
     bool            IsPolarizable();
     void            setPs(matrix polar, int state) { _Ps[state+1] = polar; }

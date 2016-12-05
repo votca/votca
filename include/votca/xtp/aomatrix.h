@@ -178,11 +178,14 @@ namespace votca { namespace xtp {
         //void Print();
         void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms,bool _with_ecp=false );
         void Fillextpotential( AOBasis* aobasis, std::vector<APolarSite*>& _sites);
+        ub::matrix<double> &getNuclearpotential(){ return _nuclearpotential;}
+        const ub::matrix<double> &getNuclearpotential()const{ return _nuclearpotential;}
+        ub::matrix<double> &getExternalpotential(){ return _externalpotential;}
+        const ub::matrix<double> &getExternalpotential()const{ return _externalpotential;}
+        // ~AOESP();
+    private:    
         ub::matrix<double> _nuclearpotential;
         ub::matrix<double> _externalpotential;
-        // ~AOESP();
-        
-        
     };
     
     
@@ -237,16 +240,19 @@ namespace votca { namespace xtp {
         //block fill for overlap, implementation in aooverlap.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         
-        void setAPolarSite(APolarSite* site){
-            site=apolarsite;
-        };
+        void Fillextpotential( AOBasis* aobasis, std::vector<APolarSite*>& _sites);
+        ub::matrix<double> &getExternalpotential(){ return _externalpotential;}
+        const ub::matrix<double> &getExternalpotential()const{ return _externalpotential;}
+        
         //void Print();
         
 	//        ~AOOverlap();
     private: 
-        
+        void setAPolarSite(APolarSite* site){
+            apolarsite=site;
+        };
         APolarSite* apolarsite;
-        
+        ub::matrix<double> _externalpotential;
     };
     
     class AOQuadrupole_Potential : public AOMatrix{
@@ -254,16 +260,19 @@ namespace votca { namespace xtp {
         //block fill for overlap, implementation in aooverlap.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         //void Print();
-         void setAPolarSite(APolarSite* site){
-            site=apolarsite;
-        };
+        
+        void Fillextpotential( AOBasis* aobasis, std::vector<APolarSite*>& _sites);
+        ub::matrix<double> &getExternalpotential(){ return _externalpotential;}
+        const ub::matrix<double> &getExternalpotential()const{ return _externalpotential;}
         //void Print();
         
 	//        ~AOOverlap();
     private: 
-        
+        void setAPolarSite(APolarSite* site){
+            apolarsite=site;
+        };
         APolarSite* apolarsite;
-        
+        ub::matrix<double> _externalpotential;
     };
     
     

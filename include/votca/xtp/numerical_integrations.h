@@ -57,7 +57,7 @@ namespace votca { namespace xtp {
             double getExactExchange(const std::string _functional);
             
             ub::matrix<double> IntegrateVXC_Atomblock (const ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
-            
+            ub::matrix<double> IntegrateExternalPotential_Atomblock(AOBasis* basis,std::vector<double> Potentialvalues);
              
             
             // this gives int (e_xc-V_xc)*rho d3r

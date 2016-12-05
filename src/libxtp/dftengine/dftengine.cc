@@ -93,6 +93,14 @@ namespace votca {
              }
             
             
+             if ( options->exists(key+".externalfield_grid")) {
+                 _do_externalfield=true;
+                 _grid_name_ext=options->get(key + ".externalfield_grid").as<string>();
+             }else{
+                 _do_externalfield = false;
+             }
+            
+            
 	    // numerical integrations
 	    _grid_name = options->get(key + ".integration_grid").as<string>();
             
@@ -209,6 +217,11 @@ namespace votca {
             SetupInvariantMatrices();
             
             
+            if(_do_externalfield){
+            std::vector<double> externalgrid;
+            _gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,externalgrid);
+            }
+            
             
             /**** Initial guess = one-electron Hamiltonian without interactions ****/
             ub::vector<double>& MOEnergies=_orbitals->MOEnergies();
@@ -216,9 +229,11 @@ namespace votca {
 
             /**** Construct initial density  ****/
 
-            ub::matrix<double> H0 = _dftAOkinetic._aomatrix + _dftAOESP._nuclearpotential; 
+            ub::matrix<double> H0 = _dftAOkinetic.Matrix() + _dftAOESP.getNuclearpotential(); 
             if(_addexternalsites){
-               H0+= _dftAOESP._externalpotential;
+               H0+= _dftAOESP.getExternalpotential();
+               H0+= _dftAODipole_Potential.getExternalpotential();
+               H0+= _dftAOQuadrupole_Potential.getExternalpotential();
             }
 
             if(_with_ecp){
@@ -231,7 +246,7 @@ namespace votca {
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
              // this temp is necessary because eigenvalues_general returns MO^T and not MO
             ub::matrix<double> temp;
-            linalg_eigenvalues_general(H0, _dftAOoverlap._aomatrix, MOEnergies,temp);
+            linalg_eigenvalues_general(H0, _dftAOoverlap.Matrix(), MOEnergies,temp);
             MOCoeff=ub::trans(temp);
             }
             double totinit = 0;
@@ -370,7 +385,21 @@ namespace votca {
             
             if (_addexternalsites){
                 _dftAOESP.Fillextpotential(&_dftbasis, _externalsites);
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled <DFT external electrostatic potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT external pointcharge potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+                
+                _dftAODipole_Potential.Fillextpotential(&_dftbasis, _externalsites);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT external dipole potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+                _dftAOQuadrupole_Potential.Fillextpotential(&_dftbasis, _externalsites);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT external quadrupole potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+                
+            }
+            
+            
+            //this will not remain here but be moved to qmape
+            if(_do_externalfield){
+                _gridIntegration_ext.GridSetup(_grid_name_ext,&_dftbasisset,_atoms);
+                _gridIntegration_ext.FindsignificantAtoms( &_dftbasis);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name << " for external field "<< flush;
             }
             
             if (_with_ecp) {
@@ -379,7 +408,7 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
                 //_dftAOECP.Print("ECP");
                 
-                _dftAOESP._nuclearpotential += _dftAOECP.Matrix();
+                _dftAOESP.getNuclearpotential() += _dftAOECP.Matrix();
                 
             }
             // exit(0);

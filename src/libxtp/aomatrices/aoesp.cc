@@ -502,15 +502,15 @@ if (_lmax_col > 3) {
    for ( std::vector<APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
       
        
-            vec positionofatom =  (*it)->getPos()*tools::conv::nm2bohr;
+            vec positionofsite =  (*it)->getPos()*tools::conv::nm2bohr;
             
            
             //cout << "NUCLEAR CHARGE" << Znuc << endl;
             _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
-            Fill(aobasis,positionofatom);
+            Fill(aobasis,positionofsite);
             //Print("TMAT");
             
-            _nuclearpotential+=(*it)->getQ00() *_aomatrix;
+            _externalpotential+=(*it)->getQ00() *_aomatrix;
            // cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
     
     }
