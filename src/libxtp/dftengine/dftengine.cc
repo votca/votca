@@ -315,7 +315,7 @@ namespace votca {
                 
               //  LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
                 if (std::abs(totenergy-energyold)< _Econverged && diiserror<_error_converged){
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculation has converged up to "<<std::setprecision(9)<<_Econverged<<"[Ha] after "<< _this_iter+1<<
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Energy has converged up to "<<std::setprecision(9)<<_Econverged<<"[Ha] after "<< _this_iter+1<<
                             " iterations. DIIS error is converged up to "<<_error_converged<<"[Ha]" <<flush;
                     break;
                 }
@@ -391,6 +391,15 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT external dipole potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
                 _dftAOQuadrupole_Potential.Fillextpotential(&_dftbasis, _externalsites);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT external quadrupole potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " External sites\t Name \t Coordinates \t charge \t dipole \t quadrupole" << flush;
+                for(unsigned i=0;i<_externalsites.size();i++){
+                LOG(logDEBUG, *_pLog) << "\t\t "<< _externalsites[i]->getName()<<"\t"<< _externalsites[i]->getPos().getX()
+                                        <<" "<<_externalsites[i]->getPos().getY()<<" "<<_externalsites[i]->getPos().getZ()
+                                        <<"\t"<<_externalsites[i]->getQ00()<<"\t"<<_externalsites[i]->getQ1().getX()
+                                        <<" "<<_externalsites[i]->getQ1().getY()<<" "<<_externalsites[i]->getQ1().getZ()<<"\t"
+                                        <<_externalsites[i]->getQ2()[0]<<" "<<_externalsites[i]->getQ2()[1]<<" "<<_externalsites[i]->getQ2()[2]<<" "
+                                                <<_externalsites[i]->getQ2()[3]<<" "<<_externalsites[i]->getQ2()[4]<<flush;
+            }
                 
             }
             

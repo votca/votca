@@ -825,7 +825,7 @@ for (int _i = 0; _i < _nrows; _i++) {
     _externalpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
    for ( std::vector<APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
       
-        if((*it)->getRank()>0){
+        if((*it)->getRank()>0 || (*it)->IsPolarizable()){
              vec positionofsite =  (*it)->getPos()*tools::conv::nm2bohr;
 
 
