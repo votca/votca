@@ -21,6 +21,7 @@
 #define _VOTCA_XTP_QMANALYZE_H
 
 #include <stdio.h>
+#include <boost/format.hpp>
 #include <votca/tools/constants.h>
 #include <votca/xtp/logger.h>
 // #include <votca/xtp/mbgft.h>

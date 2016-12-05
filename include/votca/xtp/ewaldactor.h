@@ -485,8 +485,13 @@ inline void EwdInteractor::UpdateAllGls(APolarSite& p1, APolarSite& p2) {
     double u_mu2_r = 0.0;
     
     // Dot product Q * r
-    double Q1_rx, Q1_ry, Q1_rz = 0.0;
-    double Q2_rx, Q2_ry, Q2_rz = 0.0;
+    double Q1_rx=0.0;
+    double Q1_ry=0.0;
+    double Q1_rz = 0.0;
+    
+    double Q2_rx=0.0;
+    double Q2_ry=0.0;
+    double Q2_rz = 0.0;
     
     // Dyadic product Q : R
     double Q1__R = 0.0;

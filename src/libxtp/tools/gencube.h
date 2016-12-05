@@ -21,6 +21,7 @@
 #define _VOTCA_XTP_GENCUBE_H
 
 #include <stdio.h>
+#include <boost/format.hpp>
 #include <votca/xtp/elements.h>
 #include <votca/xtp/logger.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
