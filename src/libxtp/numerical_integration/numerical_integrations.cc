@@ -168,7 +168,7 @@ namespace votca {
 
                 
                    // yeah storin potential values in a vector is weird but I did not want to cram it into gridpoint, because that will blow the structure more than necessary
-                    ub::matrix<double> _addExt = _grid[i][j].grid_weight * AOgrid* Potentialvalues[i*_grid[i].size()+j];
+                    ub::matrix<double> _addExt = 0.5*_grid[i][j].grid_weight * AOgrid* Potentialvalues[i*_grid[i].size()+j];
 
                     // combine/sum atom-block wise, only trigonal part, symmetrize later
                     // for each significant atom for this grid point
@@ -855,31 +855,7 @@ namespace votca {
             return result;
          }
         
-        // numerically integrate the elements of the AOOverlap matrix as check
-        ub::matrix<double> NumericalIntegration::numAOoverlap(AOBasis* basis) {
 
-
-            ub::matrix<double> OLMAT = ub::zero_matrix<double>(basis->_AOBasisSize, basis->_AOBasisSize);
-            // for every gridpoint
-            for (unsigned i = 0; i < _grid.size(); i++) {
-                for (unsigned j = 0; j < _grid[i].size(); j++) {
-                    // get value of orbitals at each gridpoint
-                    ub::matrix<double> tmat = ub::zero_matrix<double>(basis->_AOBasisSize, 1);
-
-                    for (vector< AOShell* >::iterator _row = basis->firstShell(); _row != basis->lastShell(); _row++) {
-
-                        ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
-                        (*_row)->EvalAOspace(_submatrix, _grid[i][j].grid_pos);
-                    }
-
-                    OLMAT += _grid[i][j].grid_weight * ub::prod( ub::trans(tmat),tmat);
-                }
-            } // gridpoints end
-
-
-            return OLMAT;
-
-        } // numAOoverlap
   
         double NumericalIntegration::StupidIntegrate(std::vector<double>& _data){
             

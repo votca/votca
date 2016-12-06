@@ -217,10 +217,7 @@ namespace votca {
             SetupInvariantMatrices();
             
             
-            if(_do_externalfield){
-            std::vector<double> externalgrid;
-            _gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,externalgrid);
-            }
+           
             
             
             /**** Initial guess = one-electron Hamiltonian without interactions ****/
@@ -230,10 +227,29 @@ namespace votca {
             /**** Construct initial density  ****/
 
             ub::matrix<double> H0 = _dftAOkinetic.Matrix() + _dftAOESP.getNuclearpotential(); 
+            
             if(_addexternalsites){
-               H0+= _dftAOESP.getExternalpotential();
-               H0+= _dftAODipole_Potential.getExternalpotential();
-               H0+= _dftAOQuadrupole_Potential.getExternalpotential();
+               //H0+= _dftAOESP.getExternalpotential();
+               cout<<"analytic"<<_dftAOESP.getExternalpotential()<<endl;
+               //H0+= _dftAODipole_Potential.getExternalpotential();
+               //H0+= _dftAOQuadrupole_Potential.getExternalpotential();
+            }
+            
+             if(_do_externalfield){
+            std::vector<double> externalgrid;     
+            std::vector<const vec*> grid=_gridIntegration_ext.getGridpoints();
+            for(std::vector<const vec*>::const_iterator gt=grid.begin();gt<grid.end();++gt){
+                double value=0.0;
+                for(std::vector<APolarSite*>::iterator it=_externalsites.begin();it<_externalsites.end();++it){
+                    vec pos=(*it)->getPos();
+                    double charge=(*it)->getQ00();
+                    value+=charge/abs(pos*tools::conv::nm2bohr-*(*gt));
+                }
+                externalgrid.push_back(value);
+            }
+            LOG(logDEBUG, *_pLog) << TimeStamp() << "Integrated external potential on grid "<< flush;
+            cout<<"grid"<<_gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,externalgrid)<<endl;
+            H0-=_gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,externalgrid);
             }
 
             if(_with_ecp){
@@ -357,7 +373,7 @@ namespace votca {
 	    _dftAOoverlap.Initialize(_dftbasis.AOBasisSize());
             _dftAOoverlap.Fill(&_dftbasis);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
-
+            cout<<"overlap"<<_dftAOoverlap.Matrix()<<endl;
 	    // check DFT basis for linear dependence
             linalg_eigenvalues(_dftAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
             
@@ -402,13 +418,12 @@ namespace votca {
             }
                 
             }
-            
-            
             //this will not remain here but be moved to qmape
             if(_do_externalfield){
                 _gridIntegration_ext.GridSetup(_grid_name_ext,&_dftbasisset,_atoms);
                 _gridIntegration_ext.FindsignificantAtoms( &_dftbasis);
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name << " for external field "<< flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name_ext 
+                        << " for external field with "<<_gridIntegration_ext.getGridpoints().size()<<" points"<< flush;
             }
             
             if (_with_ecp) {
@@ -506,7 +521,8 @@ namespace votca {
             _gridIntegration.GridSetup(_grid_name,&_dftbasisset,_atoms);
             _gridIntegration.FindsignificantAtoms( &_dftbasis);
             
-	    LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name << " for vxc functional " << _xc_functional_name<< flush;
+	    LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name << " for vxc functional " 
+                    << _xc_functional_name<<" with " <<_gridIntegration.getGridpoints().size()<<" points"<< flush;
         
 	
            Elements _elements; 

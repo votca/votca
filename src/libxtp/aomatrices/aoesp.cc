@@ -490,7 +490,7 @@ if (_lmax_col > 3) {
             Fill(aobasis,positionofatom);
             //Print("TMAT");
             
-            _nuclearpotential+=(-1)*(Znuc)*_aomatrix;
+            _nuclearpotential-=(Znuc)*_aomatrix;
            // cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
     
     }
@@ -510,7 +510,7 @@ if (_lmax_col > 3) {
             Fill(aobasis,positionofsite);
             //Print("TMAT");
             
-            _externalpotential+=(*it)->getQ00() *_aomatrix;
+            _externalpotential-=(*it)->getQ00() *_aomatrix;
            // cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
     
     }

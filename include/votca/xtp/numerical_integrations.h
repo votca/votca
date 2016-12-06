@@ -47,7 +47,7 @@ namespace votca { namespace xtp {
             
             std::vector<vec const *> getGridpoints();
             
-            ub::matrix<double> numAOoverlap ( AOBasis* basis  );
+            
             
             double IntegrateDensity_Atomblock(const ub::matrix<double>& _density_matrix, AOBasis* basis);
             double IntegratePotential(const vec& rvector);
@@ -58,7 +58,7 @@ namespace votca { namespace xtp {
             
             ub::matrix<double> IntegrateVXC_Atomblock (const ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
             ub::matrix<double> IntegrateExternalPotential_Atomblock(AOBasis* basis,std::vector<double> Potentialvalues);
-             
+         
             
             // this gives int (e_xc-V_xc)*rho d3r
             double getTotEcontribution(){return EXC;}
