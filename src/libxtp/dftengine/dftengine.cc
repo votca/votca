@@ -243,8 +243,8 @@ namespace votca {
             
              if(_do_externalfield){
                  //This was for testing purposes, now it works. :D
+                
                  /*
-            std::vector<double> externalgrid;     
             std::vector<const vec*> grid=_gridIntegration_ext.getGridpoints();
             for(std::vector<const vec*>::const_iterator gt=grid.begin();gt<grid.end();++gt){
                 double value=0.0;
@@ -256,7 +256,7 @@ namespace votca {
                 externalgrid.push_back(value);
             }
             
-             std::vector<double> externalpotential_nuc;
+             std::vector<double> externalgrid_nuc;
              for(std::vector<QMAtom*>::const_iterator at=_atoms.begin();at<_atoms.end();++at){
                 double value=0.0;
                 for(std::vector<APolarSite*>::iterator it=_externalsites.begin();it<_externalsites.end();++it){
@@ -264,14 +264,14 @@ namespace votca {
                     double charge=(*it)->getQ00();
                     value+=charge/abs(pos*tools::conv::nm2bohr-vec((*at)->x,(*at)->y,(*at)->z)*tools::conv::ang2bohr);
                 }
-                externalpotential_nuc.push_back(value);
+                externalgrid_nuc.push_back(value);
             }
-                  */
+              */   
             LOG(logDEBUG, *_pLog) << TimeStamp() << "Integrated external potential on grid "<< flush;
             //cout<<"grid"<<_gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,externalgrid)<<endl;
-            H0-=_gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,externalgrid);
+            H0-=_gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,_externalgrid);
             
-            E_nucnuc+=ExternalGridRepulsion(externalpotential_nuc);
+            E_nucnuc+=ExternalGridRepulsion(_externalgrid_nuc);
             
             }
              

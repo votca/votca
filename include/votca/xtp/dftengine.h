@@ -84,9 +84,12 @@ public:
         _addexternalsites=true;
     }
     
-    void setNumericalfield();
+    void setExternalGrid(std::vector<double> electrongrid,std::vector<double> nucleigrid){
+        _externalgrid=electrongrid;
+       _externalgrid_nuc=nucleigrid;
+    }
     
-    void addNumericalfield();
+ 
     
     bool Evaluate(   Orbitals* _orbitals );
 
@@ -154,6 +157,8 @@ public:
     bool                                    _do_externalfield;
     std::string                              _grid_name_ext;
     NumericalIntegration                _gridIntegration_ext;
+    std::vector<double>                     _externalgrid;
+    std::vector<double>                     _externalgrid_nuc;
     
 
     // AO Matrices
@@ -176,7 +181,7 @@ public:
     double                              _mixingparameter;
     double                              _Econverged;
     double                              _error_converged;
-    int                                 _numofelectrons;
+    unsigned                            _numofelectrons;
     int                                 _max_iter;
     int                                 _this_iter;
     
