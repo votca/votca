@@ -48,7 +48,7 @@ class DFTENGINE
 {
 public:
 
-    DFTENGINE() {_addexternalsites=false; 
+    DFTENGINE() {_addexternalsites=false;
                 _maxerrorindex=0;
                 _maxerror=0.0; };
    ~DFTENGINE() {
@@ -105,6 +105,8 @@ public:
     
     
     void NuclearRepulsion();
+    double ExternalRepulsion();
+     double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
     double Evolve(Orbitals* _orbitals,const ub::matrix<double>& H);
     ub::matrix<double>SolveFockmatrix(Orbitals* _orbitals,const ub::matrix<double>&H);
     //bool   _maverick;
@@ -145,7 +147,8 @@ public:
     // numerical integration Vxc
     std::string                              _grid_name;
     NumericalIntegration                _gridIntegration;
-    
+    //used to store Vxc after final iteration
+  
     //numerical integration externalfield;
     //this will not remain here but be moved to qmape
     bool                                    _do_externalfield;

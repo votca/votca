@@ -228,14 +228,22 @@ namespace votca {
 
             ub::matrix<double> H0 = _dftAOkinetic.Matrix() + _dftAOESP.getNuclearpotential(); 
             
+            NuclearRepulsion();
             if(_addexternalsites){
                //H0+= _dftAOESP.getExternalpotential();
-               cout<<"analytic"<<_dftAOESP.getExternalpotential()<<endl;
+               //cout<<"analytic"<<_dftAOESP.getExternalpotential()<<endl;
                //H0+= _dftAODipole_Potential.getExternalpotential();
                //H0+= _dftAOQuadrupole_Potential.getExternalpotential();
+               
+                double estat=ExternalRepulsion();
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " E_electrostatic "<<estat<<flush;
+                //E_nucnuc+=estat;
+                
             }
             
              if(_do_externalfield){
+                 //This was for testing purposes, now it works. :D
+                 /*
             std::vector<double> externalgrid;     
             std::vector<const vec*> grid=_gridIntegration_ext.getGridpoints();
             for(std::vector<const vec*>::const_iterator gt=grid.begin();gt<grid.end();++gt){
@@ -247,10 +255,27 @@ namespace votca {
                 }
                 externalgrid.push_back(value);
             }
-            LOG(logDEBUG, *_pLog) << TimeStamp() << "Integrated external potential on grid "<< flush;
-            cout<<"grid"<<_gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,externalgrid)<<endl;
-            H0-=_gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,externalgrid);
+            
+             std::vector<double> externalpotential_nuc;
+             for(std::vector<QMAtom*>::const_iterator at=_atoms.begin();at<_atoms.end();++at){
+                double value=0.0;
+                for(std::vector<APolarSite*>::iterator it=_externalsites.begin();it<_externalsites.end();++it){
+                    vec pos=(*it)->getPos();
+                    double charge=(*it)->getQ00();
+                    value+=charge/abs(pos*tools::conv::nm2bohr-vec((*at)->x,(*at)->y,(*at)->z)*tools::conv::ang2bohr);
+                }
+                externalpotential_nuc.push_back(value);
             }
+                  */
+            LOG(logDEBUG, *_pLog) << TimeStamp() << "Integrated external potential on grid "<< flush;
+            //cout<<"grid"<<_gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,externalgrid)<<endl;
+            H0-=_gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,externalgrid);
+            
+            E_nucnuc+=ExternalGridRepulsion(externalpotential_nuc);
+            
+            }
+             
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Nuclear Repulsion Energy is " << E_nucnuc << flush;
 
             if(_with_ecp){
             H0+=_dftAOECP.Matrix();
@@ -273,8 +298,7 @@ namespace votca {
             }
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy " << totinit << flush;
             
-            NuclearRepulsion();
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Nuclear Repulsion Energy is " << E_nucnuc << flush;
+            
 
          
             _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
@@ -295,15 +319,15 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
 
 
-		ub::matrix<double> VXC=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  &_dftbasis,_xc_functional_name);
+		_orbitals->AOVxc()=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  &_dftbasis,_xc_functional_name);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;              
                 
                 
-                ub::matrix<double> H=H0+_ERIs.getERIs()+VXC;
+                ub::matrix<double> H=H0+_ERIs.getERIs()+_orbitals->AOVxc();
                              
                 double totenergy=E_nucnuc;
                 
-                //this updates the desnity matrix as well
+                //this updates the density matrix as well
                 double diiserror=Evolve(_orbitals,H);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
                 
@@ -311,7 +335,7 @@ namespace votca {
                     totenergy+=2*MOEnergies(i);
                 }
                 if(tools::globals::verbose){
-                for (int i=0;i<_numofelectrons/2;i++){
+                for (unsigned i=0;i<MOEnergies.size();i++){
                     if ( i <= _numofelectrons/2-1) {
                         LOG(logDEBUG, *_pLog) <<"\t\t" << i <<  " occ " << MOEnergies(i)  << flush;     
                     } else {
@@ -320,6 +344,7 @@ namespace votca {
                     }
                 }
                 }
+                
                 LOG(logDEBUG, *_pLog) << "\t\tGAP " << MOEnergies(_numofelectrons/2)-MOEnergies(_numofelectrons/2-1) << flush;
                 
                  LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy "<<totenergy<<flush;
@@ -327,6 +352,8 @@ namespace votca {
 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Exc contribution "<<_gridIntegration.getTotEcontribution()<<flush;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " E_H contribution "<<0.5*_ERIs.getERIsenergy()<<flush;
+                
+                
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<std::setprecision(9)<<totenergy<<flush;
                 
               //  LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
@@ -338,18 +365,7 @@ namespace votca {
                 else{
                     energyold=totenergy;
                 }
-
-
-                
-                
-                ub::vector<double> DMATasarray=_dftAOdmat.data();
-                ub::vector<double> AOOasarray=_dftAOoverlap._aomatrix.data();
-                 double N_comp=0.0;
-                    #pragma omp parallel for reduction(+:N_comp) 
-                    for ( unsigned _i =0; _i < DMATasarray.size(); _i++ ){
-                        N_comp =N_comp+ DMATasarray(_i)*AOOasarray(_i);
-                    } 
-                LOG(logDEBUG, *_pLog) << TimeStamp() <<" Density Matrix gives N="<<std::setprecision(9)<<N_comp<<" electrons."<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() <<" Density Matrix gives N="<<std::setprecision(9)<<linalg_traceofProd(_dftAOdmat,_dftAOoverlap.Matrix())<<" electrons."<<flush;
                 //LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity_Atomblock(_dftAOdmat, basis) << flush;
                 
             }
@@ -373,7 +389,7 @@ namespace votca {
 	    _dftAOoverlap.Initialize(_dftbasis.AOBasisSize());
             _dftAOoverlap.Fill(&_dftbasis);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
-            cout<<"overlap"<<_dftAOoverlap.Matrix()<<endl;
+            //cout<<"overlap"<<_dftAOoverlap.Matrix()<<endl;
 	    // check DFT basis for linear dependence
             linalg_eigenvalues(_dftAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
             
@@ -731,6 +747,63 @@ namespace votca {
           }
 
           return;
+      }
+      
+      
+      double DFTENGINE::ExternalRepulsion(){
+          Elements element;
+          double E_ext=0.0;
+          
+          if(_externalsites.size()==0){
+              return 0;
+          }
+          
+          std::vector<double> charge;
+          for(unsigned i=0;i<_atoms.size();i++){
+              if(_with_ecp){
+                  charge.push_back(element.getNucCrgECP(_atoms[i]->type));
+              }
+              else{
+                  charge.push_back(element.getNucCrg(_atoms[i]->type));
+              }
+          }      
+              
+          for(unsigned i=0;i<_atoms.size();i++){
+              vec r1=vec(_atoms[i]->x*tools::conv::ang2bohr,_atoms[i]->y*tools::conv::ang2bohr,_atoms[i]->z*tools::conv::ang2bohr);
+              double charge1=charge[i];
+              for(std::vector<APolarSite*>::iterator ext=_externalsites.begin();ext<_externalsites.end();++ext){
+                  vec r2=(*ext)->getPos()*tools::conv::nm2bohr;
+                  double charge2=(*ext)->getQ00();
+                  E_ext+=charge1*charge2/(abs(r1-r2));
+              }
+          }
+          cout <<endl;
+          cout<<"WARNING: external multipoles higher than charges are not yet taken into account!"<<endl;
+          return E_ext;
+      }
+      
+      
+      double DFTENGINE::ExternalGridRepulsion(std::vector<double> externalpotential_nuc){
+          Elements element;
+          double E_ext=0.0;
+          
+          if(!_do_externalfield){
+              return 0;
+          }
+
+          for(unsigned i=0;i<_atoms.size();i++){
+              double charge=0.0;
+               if(_with_ecp){
+                  charge=(element.getNucCrgECP(_atoms[i]->type));
+              }
+              else{
+                  charge=(element.getNucCrg(_atoms[i]->type));
+              }
+                  E_ext+=charge*externalpotential_nuc[i];
+              }
+          
+
+          return E_ext;
       }
       
       
