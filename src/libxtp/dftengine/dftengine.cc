@@ -230,14 +230,14 @@ namespace votca {
             
             NuclearRepulsion();
             if(_addexternalsites){
-               //H0+= _dftAOESP.getExternalpotential();
+               H0+= _dftAOESP.getExternalpotential();
                //cout<<"analytic"<<_dftAOESP.getExternalpotential()<<endl;
-               //H0+= _dftAODipole_Potential.getExternalpotential();
+               H0+= _dftAODipole_Potential.getExternalpotential();
                //H0+= _dftAOQuadrupole_Potential.getExternalpotential();
                
                 double estat=ExternalRepulsion();
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " E_electrostatic "<<estat<<flush;
-                //E_nucnuc+=estat;
+                E_nucnuc+=estat;
                 
             }
             
@@ -292,7 +292,7 @@ namespace votca {
             }
             double totinit = 0;
 
-            for (int i = 0; i < (_numofelectrons / 2); i++) {
+            for (unsigned i = 0; i < (_numofelectrons / 2); i++) {
                 //cout << MOEnergies(i) << " eigenwert " << i << endl;
                 totinit += 2 * MOEnergies(i);
             }
@@ -425,10 +425,10 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT external quadrupole potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " External sites\t Name \t Coordinates \t charge \t dipole \t quadrupole" << flush;
                 for(unsigned i=0;i<_externalsites.size();i++){
-                LOG(logDEBUG, *_pLog) << "\t\t "<< _externalsites[i]->getName()<<"\t"<< _externalsites[i]->getPos().getX()
+                LOG(logDEBUG, *_pLog) << "\t\t "<< _externalsites[i]->getName()<<" | "<< _externalsites[i]->getPos().getX()
                                         <<" "<<_externalsites[i]->getPos().getY()<<" "<<_externalsites[i]->getPos().getZ()
-                                        <<"\t"<<_externalsites[i]->getQ00()<<"\t"<<_externalsites[i]->getQ1().getX()
-                                        <<" "<<_externalsites[i]->getQ1().getY()<<" "<<_externalsites[i]->getQ1().getZ()<<"\t"
+                                        <<" | "<<_externalsites[i]->getQ00()<<" | "<<_externalsites[i]->getQ1().getX()
+                                        <<" "<<_externalsites[i]->getQ1().getY()<<" "<<_externalsites[i]->getQ1().getZ()<<" | "
                                         <<_externalsites[i]->getQ2()[0]<<" "<<_externalsites[i]->getQ2()[1]<<" "<<_externalsites[i]->getQ2()[2]<<" "
                                                 <<_externalsites[i]->getQ2()[3]<<" "<<_externalsites[i]->getQ2()[4]<<flush;
             }
@@ -775,10 +775,20 @@ namespace votca {
                   vec r2=(*ext)->getPos()*tools::conv::nm2bohr;
                   double charge2=(*ext)->getQ00();
                   E_ext+=charge1*charge2/(abs(r1-r2));
+                  if ((*ext)->getRank()>0 || (*ext)->IsPolarizable()){
+                      vec dipole=((*ext)->getU1()+(*ext)->getQ1())*tools::conv::nm2bohr;
+                      E_ext-=charge1*dipole*(r2-r1)/pow(abs(r2-r1),3);
+                      cout <<endl;
+                      cout<<"WARNING: dipoles not tested yet!"<<endl;
+                  }
+                  if((*ext)->getRank()>1){
+                      cout <<endl;
+                      cout<<"WARNING: external multipoles higher than dipoles are not yet taken into account!"<<endl;
+                  }
+                  
               }
           }
-          cout <<endl;
-          cout<<"WARNING: external multipoles higher than charges are not yet taken into account!"<<endl;
+          
           return E_ext;
       }
       

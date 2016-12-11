@@ -53,7 +53,7 @@ namespace votca { namespace xtp {
 
         // Get components of dipole vector somehow
         
-        vec dipole=(apolarsite->getU1()+apolarsite->getQ1())*tools::conv::ang2bohr;
+        vec dipole=-(apolarsite->getU1()+apolarsite->getQ1())*tools::conv::nm2bohr;
        
         double d_0 = dipole.getX();
         double d_1 = dipole.getY();
@@ -831,6 +831,7 @@ for (int _i = 0; _i < _nrows; _i++) {
 
              //cout << "NUCLEAR CHARGE" << Znuc << endl;
              _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
+            
              setAPolarSite((*it));
              Fill(aobasis,positionofsite);
              //Print("TMAT");

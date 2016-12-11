@@ -507,6 +507,7 @@ if (_lmax_col > 3) {
            
             //cout << "NUCLEAR CHARGE" << Znuc << endl;
             _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
+          
             Fill(aobasis,positionofsite);
             //Print("TMAT");
             
