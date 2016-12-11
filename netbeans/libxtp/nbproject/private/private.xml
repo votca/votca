@@ -11,13 +11,15 @@
         <file>file:/home/jens/votca_git/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
         <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
         <group>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/aomatrices/aodipole_potential.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/aomatrices/aoesp.cc</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/apolarsite.cc</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/apolarsite.h</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/dftengine/dftengine.cc</file>
-            <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/qmapemachine.h</file>
-            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/qmapemachine.cc</file>
-            <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/ERIs.h</file>
-            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/numerical_integration/numerical_integrations.cc</file>
-            <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/radial_euler_maclaurin_rule.h</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/aomatrix.h</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/tools/dft.h</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/qmmachine.cc</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/ERIs.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/dftengine.h</file>
         </group>
     </open-files>

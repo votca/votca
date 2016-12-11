@@ -89,7 +89,7 @@ namespace votca {
             //cout << "Itilde " <<Itilde << endl;
             ub::matrix<double>K=ub::prod(_inverse_Coulomb,Itilde);
             //cout << "K " << K << endl;
-            for ( int _i = 0; _i < K.size1(); _i++){
+            for ( unsigned _i = 0; _i < K.size1(); _i++){
                 
             _ERIs+=_threecenter.getDatamatrix(_i)*K(_i,0);    
             //cout << "I " << _threecenter.getDatamatrix(_i) << endl;

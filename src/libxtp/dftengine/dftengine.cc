@@ -292,7 +292,7 @@ namespace votca {
             }
             double totinit = 0;
 
-            for (unsigned i = 0; i < (_numofelectrons / 2); i++) {
+            for (int i = 0; i < (_numofelectrons / 2); i++) {
                 //cout << MOEnergies(i) << " eigenwert " << i << endl;
                 totinit += 2 * MOEnergies(i);
             }
@@ -335,7 +335,7 @@ namespace votca {
                     totenergy+=2*MOEnergies(i);
                 }
                 if(tools::globals::verbose){
-                for (unsigned i=0;i<MOEnergies.size();i++){
+                for (int i=0;i<int(MOEnergies.size());i++){
                     if ( i <= _numofelectrons/2-1) {
                         LOG(logDEBUG, *_pLog) <<"\t\t" << i <<  " occ " << MOEnergies(i)  << flush;     
                     } else {

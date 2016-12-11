@@ -181,7 +181,7 @@ public:
     double                              _mixingparameter;
     double                              _Econverged;
     double                              _error_converged;
-    unsigned                            _numofelectrons;
+    int                            _numofelectrons;
     int                                 _max_iter;
     int                                 _this_iter;
     
