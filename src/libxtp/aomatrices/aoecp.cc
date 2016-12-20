@@ -705,16 +705,29 @@ namespace votca { namespace xtp {
       cout << matrix << endl;
       
       
+       ub::matrix<double> matrix_tmp = ub::zero_matrix<double>(10,10); 
       
         for (unsigned i = 0; i < matrix.size1(); i++) {
                 for (unsigned j = 0; j < matrix.size2(); j++) {
 
-                    matrix(i,j) = matrix(i,j) * GAUSS * NormA[i] * NormB[j];
+         
+                    matrix_tmp(i,j) = matrix(i,j) * GAUSS * NormA[i] * NormB[j]; 
 
                 }
         }
-        //cout << matrix(0,0) <<  " " << matrix(9,9) << endl;
-      //exit(0);
+     
+
+
+        int ij[] = {0, 3, 2, 1, 7, 5, 4, 6, 8, 9}; 
+
+        for (unsigned i = 0; i < matrix.size1(); i++) {
+                for (unsigned j = 0; j < matrix.size2(); j++) {
+
+                    matrix(i,j) = matrix_tmp(ij[i],ij[j]); 
+
+                } 
+        } 
+
       
         return matrix;
         
