@@ -12,6 +12,11 @@ option(BUILD_CSGAPPS "Build csgapps" OFF)
 option(BUILD_CTP "Build ctp" OFF)
 option(BUILD_XTP "Build xtp" OFF)
 
+option(ENABLE_TESTING "Build and copy testing stuff" OFF)
+if(ENABLE_TESTING)
+  enable_testing()
+endif()
+
 ######################################
 # Include the following subdirectory # 
 ######################################
@@ -21,6 +26,10 @@ set(VOTCA_TOOLS_INCLUDE_DIR
   "${CMAKE_CURRENT_SOURCE_DIR}/tools/include;${CMAKE_CURRENT_BINARY_DIR}/tools/include"
   CACHE PATH "tools include path")
 add_subdirectory(csg)
+set(VOTCA_SHARE ${CMAKE_SOURCE_DIR}/csg/share)
+set(VOTCA_CSG_INVERSE ${CMAKE_BINARY_DIR}/csg/scripts/csg_inverse)
+execute_process(COMMAND chmod +x ${VOTCA_CSG_INVERSE} ${CMAKE_BINARY_DIR}/csg/scripts/csg_call)
+set(VOTCA_PATH "${CMAKE_BINARY_DIR}/csg/scripts:${CMAKE_BINARY_DIR}/csg/src/tools")
 add_subdirectory(csg-tutorials)
 set(VOTCA_CSG_LIBRARY votca_csg CACHE STRING "csg library name")
 set(VOTCA_CSG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/csg/include
@@ -39,3 +48,6 @@ endif()
 if(BUILD_XTP)
   add_subdirectory(xtp)
 endif()
+
+include(FeatureSummary)
+feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
