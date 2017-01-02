@@ -28,7 +28,6 @@ set(VOTCA_TOOLS_INCLUDE_DIR
 add_subdirectory(csg)
 set(VOTCA_SHARE ${CMAKE_SOURCE_DIR}/csg/share)
 set(VOTCA_CSG_INVERSE ${CMAKE_BINARY_DIR}/csg/scripts/csg_inverse)
-execute_process(COMMAND chmod +x ${VOTCA_CSG_INVERSE} ${CMAKE_BINARY_DIR}/csg/scripts/csg_call)
 set(VOTCA_PATH "${CMAKE_BINARY_DIR}/csg/scripts:${CMAKE_BINARY_DIR}/csg/src/tools")
 add_subdirectory(csg-tutorials)
 set(VOTCA_CSG_LIBRARY votca_csg CACHE STRING "csg library name")
