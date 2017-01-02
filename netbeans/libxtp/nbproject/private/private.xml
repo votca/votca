@@ -10,6 +10,7 @@
         <file>file:/home/jens/votca_git/src/xtp/src/libxtp/tools/exciton.h</file>
         <file>file:/home/jens/votca_git/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
         <file>file:/home/bbaumeie/votca/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
+<<<<<<< HEAD
         <group>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/dftengine/dftengine.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/apolarsite.h</file>
@@ -26,5 +27,8 @@
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/qmpackages/orca.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/qmmachine.cc</file>
         </group>
+=======
+        <group/>
+>>>>>>> master
     </open-files>
 </project-private>
