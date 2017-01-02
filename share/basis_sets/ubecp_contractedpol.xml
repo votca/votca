@@ -152,9 +152,9 @@
     <shell scale="1.0" type="S">
       <constant decay="1.027410e-01">
         <contractions factor="1.000000e+00" type="S"/>
-      </constant>
-
-<shell type="P" scale="1.00">
+	  </constant>
+	</shell>
+		<shell type="P" scale="1.00">
 			<constant decay="0.75">
 				<contractions type="P" factor="1.0"></contractions>
 			</constant> 
