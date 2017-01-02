@@ -5,12 +5,17 @@ sudo: required
 services:
 - docker
 
+env:
+  matrix:
+    - TESTOPTS="-V" 
+
 script:
  - cp -vr docker ${HOME}
  - cd ../../
  - mv -v ${TRAVIS_REPO_SLUG} $HOME/docker
  - cp -r $HOME/.ccache ${HOME}/docker/ccache
- - docker build  ${TRAVIS_TAG:+-t votca/votca:${TRAVIS_TAG}}
+ - docker build  --build-arg TESTOPTS="${TESTOPTS}"
+                 ${TRAVIS_TAG:+-t votca/votca:${TRAVIS_TAG}}
                  -t votca/votca:latest -t votca/votca:${TRAVIS_BRANCH} ${HOME}/docker/ &&
    rm -rf $HOME/.ccache &&
    CON=$(docker run -d votca/votca:${TRAVIS_BRANCH} /bin/bash) &&

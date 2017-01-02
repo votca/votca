@@ -1,5 +1,7 @@
 from votca/buildenv:latest
 
+ARG TESTOPTS
+
 COPY votca/ /home/votca/votca
 COPY ccache/ /home/votca/.ccache
 USER root
@@ -12,6 +14,7 @@ WORKDIR build
 RUN ccache -z
 RUN cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CTP=ON -DCMAKE_INSTALL_PREFIX=/usr -DLIB=lib64 -DENABLE_TESTING=ON ..
 RUN make VERBOSE=1 -j2
+RUN make test ARGS="${TESTOPTS}"
 RUN make install DESTDIR=${PWD}
 USER root
 RUN make install
