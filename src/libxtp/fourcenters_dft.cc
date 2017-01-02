@@ -50,8 +50,8 @@ namespace votca {
 
         void FCMatrix_dft::Fill_4c_small_molecule(AOBasis& dftbasis) {
 
-          cout << endl;
-          cout << "fourcenters_dft.cc FCMatrix_dft::Fill_4c_small_molecule" << endl;
+          //cout << endl;
+          //cout << "fourcenters_dft.cc FCMatrix_dft::Fill_4c_small_molecule" << endl;
           int dftBasisSize = dftbasis._AOBasisSize;
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
           _4c_vector = ub::zero_vector<double>((vectorSize*(vectorSize+1))/2);
@@ -62,7 +62,7 @@ namespace votca {
             int _start_3 = _shell_3->getStartIndex();
             int NumFunc_3 = _shell_3->getNumFunc();
             _ishell++;
-            cout << "_ishell = " << _ishell << endl;
+            //cout << "_ishell = " << _ishell << endl;
 
             for (std::vector< AOShell* >::iterator _it_4 = _it_3; _it_4 != dftbasis.lastShell(); _it_4++) {
               AOShell* _shell_4 = dftbasis.getShell(_it_4);

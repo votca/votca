@@ -79,7 +79,7 @@ namespace votca {
             ub::matrix<double> Itilde=ub::zero_matrix<double>(_threecenter.getSize(),1);
             //cout << _threecenter.getSize() << " Size-Threecenter"<<endl;
             //check Efficiency !!!! someday 
-            for ( unsigned _i=0; _i<_threecenter.getSize();_i++){
+            for ( int _i=0; _i<_threecenter.getSize();_i++){
                 ub::vector<double>threecenterasarray=(_threecenter.getDatamatrix(_i)).data();
                 // Trace over prod::DMAT,I(l)=componentwise product over 
                 for ( unsigned _j=0; _j<threecenterasarray.size();_j++){

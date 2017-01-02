@@ -134,7 +134,7 @@ namespace votca { namespace xtp {
                  --final_iter;
                 vec _ecp_eval_pos;
                 for (std::vector< AOShell* >::iterator _ecp = ecp->firstShell(); _ecp != ecp->lastShell() ; _ecp++ ) {
-            
+                    
                    AOShell* _shell_ecp = ecp->getShell( _ecp );
                    const vec& _ecp_pos = _shell_ecp->getPos();
                    
@@ -203,25 +203,11 @@ namespace votca { namespace xtp {
                     } // all ecp_shells
 
 
-                   // evaluate collected data 
-                         //          ub::matrix<double> VNL_ECP =  calcVNLmatrix(_pos_row,_pos_col,_ecp_pos,_decay_row,_decay_col,_decay_matrix,_coef_matrix);
-
-                //exit(0);
-
-
-
-
-             
-        
-       // boost::timer::cpu_times t11 = cpu_t.elapsed();
-        
-        //cout << "Done with unnormalized matrix " << endl;
-        
-      
-        //}
-        //nuc.clear();
+                  
             }// _shell_col Gaussians
         }// _shell_row Gaussians
+         
+         
     }
    
     
@@ -702,7 +688,7 @@ namespace votca { namespace xtp {
             }
 
           
-      cout << matrix << endl;
+      //cout << matrix << endl;
       
       
        ub::matrix<double> matrix_tmp = ub::zero_matrix<double>(10,10); 

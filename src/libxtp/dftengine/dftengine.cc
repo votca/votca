@@ -86,8 +86,7 @@ namespace votca {
              }
             
              if ( options->exists(key+".guess")) {
-               _ecp_name = options->get(key+".guess").as<bool>();
-               _with_guess = true;
+               _with_guess = options->get(key+".guess").as<bool>();
              } else {
                  _with_guess = false;
              }
@@ -279,6 +278,7 @@ namespace votca {
 
             if(_with_ecp){
             H0+=_dftAOECP.Matrix();
+            cout<<endl;
             cout<< "WARNING ecps correctly sorted but not tested" <<endl;
             }
             
@@ -445,7 +445,7 @@ namespace votca {
             if (_with_ecp) {
                 _dftAOECP.Initialize(_dftbasis.AOBasisSize());
                 _dftAOECP.Fill(&_dftbasis, vec(0,0,0), &_ecp);
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOECP.Dimension() << flush;
                 //_dftAOECP.Print("ECP");
                 
                 _dftAOESP.getNuclearpotential() += _dftAOECP.Matrix();
@@ -552,7 +552,12 @@ namespace votca {
             // if ECP
             if (_with_ecp) {
                 for (unsigned i = 0; i < _atoms.size(); i++) {
+                    if (_atoms[i]->type=="H" || _atoms[i]->type=="He"){
+                        continue;
+                    }
+                    else{
                     _numofelectrons-= _ecpbasisset.getElement(_atoms[i]->type)->getNcore() ;
+                    }
                 }
             }
            

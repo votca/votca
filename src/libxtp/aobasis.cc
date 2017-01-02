@@ -463,6 +463,7 @@ void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
           // get element type of the atom
           string  name = (*ait)->type;
           // get the basis set entry for this element
+          if(name=="H" || name=="He"){continue;}
           Element* element = bs->getElement(name);
           // cout << " Name " << name << endl;
           // and loop over all shells
