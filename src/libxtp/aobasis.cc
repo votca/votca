@@ -320,7 +320,7 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
        
        
        //votca order is z,y,x e.g. Y1,0 Y1,-1 Y1,1
-       if (shell_type == "P") {
+       else if (shell_type == "P") {
                 if (start == "orca") {
                     neworder.push_back(_cur_pos + 1);
                     neworder.push_back(_cur_pos + 3);
@@ -366,7 +366,7 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
            }
        }
        else{
-           cerr << "Tried to reorder functions  higher than D. ";
+           cerr << "Tried to reorder functions  of shell type "<<shell_type<<endl;
            throw std::runtime_error( "Reordering not implemented yet!");
        } 
     } else {
