@@ -26,7 +26,7 @@
 #include <votca/tools/matrix.h>
 #include <votca/tools/types.h>
 #include <map>
-
+#include <boost/format.hpp>
 
 namespace votca { namespace xtp {
     
