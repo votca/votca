@@ -40,7 +40,8 @@ addons:
 env:
   global:
     - HDF5_VERSION=1.8.14
-    - GMX_MAX_THREADS=8
+    - GMX_MAX_THREADS=4
+    - CSG_MDRUN_OPTS="-ntmpi 4"
     - CCACHE_CPP2=yes #for clang
     - GVER=4.8
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
@@ -99,4 +100,5 @@ compiler:
 
 notifications:
   email:
-    - votca-commits@googlegroups.com 
+    recipients: #encrypted votca-commits@googlegroups.com so that fork don't notify us (travis-ci/travis-ci#6100)
+      secure: nescWy1bYq2ALU5ue3Bi7OFpSzUtOkPjitjqH0pUfC/ixfAdl77Iy5xlkaakj4G2J+0bzyIVKuqTeb9uitJ1dauO3yMoRBWvjrYi1BspjPNRtumKIcRBL8TazLxOrBeiVJORrXfjT/p3xTvqSrRd6ngTXU25gEoZxGKeMFWHyQg=
