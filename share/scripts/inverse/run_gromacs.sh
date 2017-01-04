@@ -108,6 +108,11 @@ if [[ ${CSG_MDRUN_STEPS} ]]; then
   mdrun_opts+=" -nsteps $CSG_MDRUN_STEPS"
 fi
 
+if [[ ${CSG_MDRUN_OPTS} ]]; then
+  msg --color blue --to-stderr "Appending ${CSG_MDRUN_OPTS} to mdrun options"
+  mdrun_opts+=" ${CSG_MDRUN_OPTS}"
+fi
+
 #see can run grompp again as checksum of tpr does not appear in the checkpoint
 critical ${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
 [[ -f $tpr ]] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
