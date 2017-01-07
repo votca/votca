@@ -24,12 +24,12 @@
 #include <votca/xtp/xtpapplication.h>
 #include <votca/ctp/topology.h>
 
-#include <votca/ctp/statesaversqlite.h>
+#include <votca/xtp/statesaversqlite.h>
 #include <votca/xtp/qmcalculator.h>
 #include <votca/ctp/qmcalculator.h>
 
-namespace votca { namespace ctp {
-
+namespace muscet { namespace xtp {
+    namespace CTP = votca::ctp;
 
 class XSqlApplication : public XtpApplication
 {
@@ -46,13 +46,13 @@ public:
    virtual void EndEvaluate();
 
    void AddCalculator(XQMCalculator *calculator);
-   void AddCalculator(QMCalculator *calculator);
+   void AddCalculator(CTP::QMCalculator *calculator);
 
 protected:
 
    votca::ctp::Topology           _top;
     list< XQMCalculator* >   _calculators;
-    list< QMCalculator* >    _ctp_calculators;
+    list< CTP::QMCalculator* >    _ctp_calculators;
 
 };
 

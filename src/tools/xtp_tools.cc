@@ -31,7 +31,8 @@ using namespace std;
 using namespace votca::ctp;
 using namespace votca::tools;
 
-class XtpTools : public votca::ctp::XtpApplication
+//class XtpTools : public votca::ctp::XtpApplication
+class XtpTools : public muscet::xtp::XtpApplication
 {
 public:
     
@@ -64,7 +65,7 @@ private:
 
 void XtpTools::Initialize() {
     
-    votca::ctp::XQMToolFactory::RegisterAll(); 
+    muscet::xtp::XQMToolFactory::RegisterAll(); 
     votca::ctp::QMToolFactory::RegisterAll();
 
     namespace propt = boost::program_options;    
@@ -85,17 +86,19 @@ void XtpTools::Initialize() {
 
 bool XtpTools::EvaluateOptions() {
 
+    namespace XTP=muscet::xtp;
+    
     if (OptionsMap().count("list")) {
         cout << "Available XTP tools: \n";
-        for(XQMToolFactory::assoc_map::const_iterator iter=
-            XQMTools().getObjects().begin();
-            iter != XQMTools().getObjects().end(); ++iter) {
+        for(XTP::XQMToolFactory::assoc_map::const_iterator iter=
+            XTP::XQMTools().getObjects().begin();
+            iter != XTP::XQMTools().getObjects().end(); ++iter) {
             PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpShort );
         }
         cout << "Available (wrapped) CTP tools: \n";
         
         // also include the CTP Tools
-        for(votca::ctp::QMToolFactory::assoc_map::const_iterator iter=
+        for(CTP::QMToolFactory::assoc_map::const_iterator iter=
             QMTools().getObjects().begin();
             iter != QMTools().getObjects().end(); ++iter) {
             PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpShort );
@@ -114,8 +117,8 @@ bool XtpTools::EvaluateOptions() {
         for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
             // loop over tools
             bool printerror = true;
-            for(XQMToolFactory::assoc_map::const_iterator iter=XQMTools().getObjects().begin(); 
-                iter != XQMTools().getObjects().end(); ++iter) {
+            for(XTP::XQMToolFactory::assoc_map::const_iterator iter=XTP::XQMTools().getObjects().begin(); 
+                iter != XTP::XQMTools().getObjects().end(); ++iter) {
 
                 if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
                     PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpLong );
@@ -152,12 +155,12 @@ bool XtpTools::EvaluateOptions() {
        
 
         // check if XTP or CTP tool
-        for(XQMToolFactory::assoc_map::const_iterator iter=XQMTools().getObjects().begin(); 
-                iter != XQMTools().getObjects().end(); ++iter) {
+        for(XTP::XQMToolFactory::assoc_map::const_iterator iter=XTP::XQMTools().getObjects().begin(); 
+                iter != XTP::XQMTools().getObjects().end(); ++iter) {
 
                 if ( (*it).compare( (iter->first).c_str() ) == 0 ) {
                     cout << "Registered XTP " << (*it).c_str() << endl;
-                    this->AddTool(XQMTools().Create((*it).c_str()));
+                    this->AddTool(XTP::XQMTools().Create((*it).c_str()));
                     //PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpLong );
                     //printerror = false;
                     break;

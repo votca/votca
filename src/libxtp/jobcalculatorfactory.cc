@@ -21,22 +21,24 @@
 #include <votca/xtp/jobcalculatorfactory.h>
 
 
-#include "jobcalculators/qmmm.h"
+/* #include "jobcalculators/qmmm.h"
 #include "jobcalculators/egwbse.h"
 #include "jobcalculators/igwbse.h"
 #include "jobcalculators/qmape.h"
 #include "jobcalculators/iexcitoncl.h"
+*/
 
-
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
 
 void XJobCalculatorfactory::RegisterAll(void)
 {	
-        XJobCalculators().Register<QMMM>                ("xqmmm");
+      /*  XJobCalculators().Register<QMMM>                ("xqmmm");
         XJobCalculators().Register<EGWBSE>              ("egwbse");
         XJobCalculators().Register<IGWBSE>              ("igwbse");
         XJobCalculators().Register<QMAPE>               ("qmape");
         XJobCalculators().Register<IEXCITON>            ("iexcitoncl");
+
+       */
 }
 
 }}

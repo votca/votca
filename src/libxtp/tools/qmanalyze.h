@@ -26,10 +26,11 @@
 #include <votca/xtp/orbitals.h>
 
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
     using namespace std;
     namespace ub = boost::numeric::ublas;
     namespace CTP = votca::ctp;
+    
 class QMAnalyze : public CTP::QMTool
 {
 public:
@@ -56,7 +57,7 @@ private:
     
     CTP::Logger      _log;
     
-    void CheckContent(  Orbitals& _orbitals );
+    void CheckContent(  CTP::Orbitals& _orbitals );
 
 };
 
@@ -129,7 +130,7 @@ bool QMAnalyze::Evaluate() {
 
     LOG(CTP::logDEBUG, _log) << "Analyzing serialized QM data in " << _orbfile << flush;
 
-    Orbitals _orbitals;
+    CTP::Orbitals _orbitals;
     // load the QM data from serialized orbitals object
 
     std::ifstream ifs( (_orbfile).c_str());
@@ -153,12 +154,13 @@ bool QMAnalyze::Evaluate() {
 
 
 
-void QMAnalyze::CheckContent( Orbitals& _orbitals ){
+void QMAnalyze::CheckContent( CTP::Orbitals& _orbitals ){
 
 
    
     LOG(CTP::logDEBUG, _log) << "===== Summary of serialized content ===== " << flush;
     LOG(CTP::logDEBUG, _log) << "   Information about DFT:" << flush;
+    
     
           
     // DFT atoms
@@ -255,9 +257,6 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     } else {
          LOG(CTP::logDEBUG, _log) << "      DFT transfer integrals: not stored "<< flush;
     }    
-    
-    
-    
 
     LOG(CTP::logDEBUG, _log) << "   Information about GWA:" << flush;
     
@@ -298,12 +297,12 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
             LOG(CTP::logDEBUG,_log) << (boost::format("   DeltaHLGap = %1$+1.6f Ryd") % _shift ).str()  <<  flush;
             for ( int _i = 0 ; _i < _noqp ; _i++ ){
                 if ( (_i + _qpmin) == _homo ){
-                    LOG(logINFO,_log) << (boost::format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _qp_energies( _i, 0 ) %_qp_energies( _i, 1 ) % _qp_energies( _i, 2 ) %_qp_energies( _i, 3 ) % _qp_energies( _i, 4 ) ).str() << flush;
+                    LOG(CTP::logINFO,_log) << (boost::format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _qp_energies( _i, 0 ) %_qp_energies( _i, 1 ) % _qp_energies( _i, 2 ) %_qp_energies( _i, 3 ) % _qp_energies( _i, 4 ) ).str() << flush;
                 } else if ( (_i + _qpmin) == _homo+1 ){
-                    LOG(logINFO,_log) << (boost::format("  LUMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _qp_energies( _i, 0 ) % _qp_energies( _i, 1 ) % _qp_energies( _i, 2 ) % _qp_energies( _i, 3 ) % _qp_energies( _i, 4 ) ).str() << flush;                    
+                    LOG(CTP::logINFO,_log) << (boost::format("  LUMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _qp_energies( _i, 0 ) % _qp_energies( _i, 1 ) % _qp_energies( _i, 2 ) % _qp_energies( _i, 3 ) % _qp_energies( _i, 4 ) ).str() << flush;                    
                     
                 }else {
-                LOG(logINFO,_log) << (boost::format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _qp_energies( _i, 0 ) % _qp_energies( _i, 1 ) % _qp_energies( _i, 2 ) %_qp_energies( _i, 3) % _qp_energies( _i, 4 ) ).str() << flush;
+                LOG(CTP::logINFO,_log) << (boost::format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _qp_energies( _i, 0 ) % _qp_energies( _i, 1 ) % _qp_energies( _i, 2 ) %_qp_energies( _i, 3) % _qp_energies( _i, 4 ) ).str() << flush;
                 }
             }
         }
@@ -319,7 +318,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
             unsigned _homo=_orbitals.getNumberOfElectrons()-1;
             const ub::vector<double>& _qp_diag_energies=_orbitals.QPdiagEnergies();
              const ub::matrix<double>& _qp_energies=_orbitals.QPpertEnergies();
-                    LOG(CTP::logDEBUG, _log) << TimeStamp() << " Full quasiparticle Hamiltonian  " << flush;
+                    LOG(CTP::logDEBUG, _log) << CTP::TimeStamp() << " Full quasiparticle Hamiltonian  " << flush;
                     LOG(CTP::logDEBUG, _log) << (boost::format("  ====== Diagonalized quasiparticle energies (Rydberg) ====== ")).str() << flush;
                     for (unsigned _i = 0; _i <  _qp_diag_energies.size(); _i++) {
                         if (( _qpmin+ _i) == _homo) {
@@ -360,7 +359,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         LOG(CTP::logDEBUG, _log) << "      BSE singlet excitons:   " << _orbitals.getBSESingletEnergies()->size() << flush;
         
         if (_print_BSE_singlets){
-            LOG(logINFO, _log) << (boost::format("  ====== singlet energies (eV) ====== ")).str() << flush;
+            LOG(CTP::logINFO, _log) << (boost::format("  ====== singlet energies (eV) ====== ")).str() << flush;
             const ub::vector<real_gwbse> &  _bse_singlet_energies = _orbitals.BSESingletEnergies();
             const std::vector<ub::vector<double> > & _transition_dipoles=_orbitals.TransitionDipoles();
             unsigned size=_bse_singlet_energies.size();
@@ -369,13 +368,13 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
             }
             for (unsigned _i=0;_i<size;_i++){
                 
-                LOG(logINFO, _log) << (boost::format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
-                    % (_i + 1) % (tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0/(tools::conv::ryd2ev * _bse_singlet_energies(_i)))).str() << flush;
+                LOG(CTP::logINFO, _log) << (boost::format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+                    % (_i + 1) % (votca::tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0/(votca::tools::conv::ryd2ev * _bse_singlet_energies(_i)))).str() << flush;
                 if ( _orbitals.hasTransitionDipoles()){
                     double trstrength =ub::inner_prod(_transition_dipoles[_i],_transition_dipoles[_i]);
                     
                     double oscstrength =trstrength/3.0*_bse_singlet_energies[_i];
-                    LOG(logINFO, _log) << (boost::format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") 
+                    LOG(CTP::logINFO, _log) << (boost::format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") 
                                     % (_transition_dipoles[_i](0)) % (_transition_dipoles[_i](1)) % (_transition_dipoles[_i](2)) % (trstrength) 
                                     % oscstrength).str() << flush;
                 }
@@ -409,12 +408,12 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         
         
         if(_print_BSE_triplets){
-             LOG(logINFO, _log) << (boost::format("  ====== triplet energies (eV) ====== ")).str() << flush;
+             LOG(CTP::logINFO, _log) << (boost::format("  ====== triplet energies (eV) ====== ")).str() << flush;
              const ub::vector<real_gwbse> &  _bse_triplet_energies = _orbitals.BSETripletEnergies();
              cout << _bse_triplet_energies.size()<<endl;
              for (unsigned _i=0;_i<_bse_triplet_energies.size();_i++){
-             LOG(logINFO, _log) << (boost::format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
-                                % (_i + 1) % (tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i)))).str() << flush;
+             LOG(CTP::logINFO, _log) << (boost::format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+                                % (_i + 1) % (votca::tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i)))).str() << flush;
              
             }
         }

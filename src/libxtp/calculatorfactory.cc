@@ -20,9 +20,10 @@
 
 #include <votca/xtp/calculatorfactory.h>
 
-#include "calculators/sandbox.h"
+//#include "calculators/sandbox.h"
 #include "calculators/neighborlist.h"
-#include "calculators/stateserver.h"
+/*
+ #include "calculators/stateserver.h"
 #include "calculators/rates.h"
 #include "calculators/einternal.h"
 #include "calculators/eanalyze.h"
@@ -30,18 +31,19 @@
 #include "calculators/eimport.h"
 #include "calculators/iimport.h"
 #include "calculators/ianalyze.h"
+*/
 
 
 
 
-
-namespace votca { namespace ctp {
-
+namespace muscet { namespace xtp {
+    namespace CTP = votca::ctp;
+    
 void XCalculatorfactory::RegisterAll(void)
 {	
-        XCalculators().Register<Sandbox>             ("sandbox");
+        //XCalculators().Register<votca::ctp::Sandbox>             ("sandbox");
 	XCalculators().Register<XNeighborlist>       ("xneighborlist");
-        XCalculators().Register<XStateServer>        ("xstateserver");
+        /* XCalculators().Register<XStateServer>        ("xstateserver");
         XCalculators().Register<Rates>               ("rates");
         XCalculators().Register<XEInternal>          ("xeinternal");
         XCalculators().Register<XEAnalyze>           ("xeanalyze");
@@ -49,7 +51,7 @@ void XCalculatorfactory::RegisterAll(void)
         XCalculators().Register<XEImport>            ("xeimport");
         XCalculators().Register<XIImport>            ("xiimport");
         XCalculators().Register<XIAnalyze>           ("ianalyze");
-        
+        */
 
 }
 

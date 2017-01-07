@@ -26,11 +26,13 @@
 #include <votca/ctp/calculatorfactory.h>
 
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
 
+    namespace CTP = votca::ctp;
+    
 XSqlApplication::XSqlApplication() {
     XCalculatorfactory::RegisterAll();
-    Calculatorfactory::RegisterAll();
+    CTP::Calculatorfactory::RegisterAll();
 }
 
 
@@ -38,7 +40,7 @@ void XSqlApplication::Initialize(void) {
     XtpApplication::Initialize();
 
     XCalculatorfactory::RegisterAll();
-    Calculatorfactory::RegisterAll();
+    CTP::Calculatorfactory::RegisterAll();
 
     namespace propt = boost::program_options;
 
@@ -110,7 +112,7 @@ void XSqlApplication::AddCalculator(XQMCalculator* calculator) {
     _calculators.push_back(calculator);
 }
 
-void XSqlApplication::AddCalculator(QMCalculator* calculator) {
+void XSqlApplication::AddCalculator(CTP::QMCalculator* calculator) {
     _ctp_calculators.push_back(calculator);
 }
 
@@ -124,7 +126,7 @@ void XSqlApplication::BeginEvaluate(int nThreads = 1) {
     }
     
 
-    list< QMCalculator* > ::iterator cit;
+    list< CTP::QMCalculator* > ::iterator cit;
     for (cit = _ctp_calculators.begin(); cit != _ctp_calculators.end(); cit++) {
         cout << "... " << (*cit)->Identify() << " ";
         (*cit)->setnThreads(nThreads);
@@ -141,7 +143,7 @@ bool XSqlApplication::EvaluateFrame() {
         (*it)->EvaluateFrame(&_top);
         cout << endl;
     }
-    list< QMCalculator* > ::iterator cit;
+    list< CTP::QMCalculator* > ::iterator cit;
     for (cit = _ctp_calculators.begin(); cit != _ctp_calculators.end(); cit++) {
         cout << "... " << (*cit)->Identify() << " " << flush;
         (*cit)->EvaluateFrame(&_top);
@@ -158,7 +160,7 @@ void XSqlApplication::EndEvaluate() {
         (*it)->EndEvaluate(&_top);
     }
     
-    list< QMCalculator* > ::iterator cit;
+    list< CTP::QMCalculator* > ::iterator cit;
     for (cit = _ctp_calculators.begin(); cit != _ctp_calculators.end(); cit++) {
         (*cit)->EndEvaluate(&_top);
     }

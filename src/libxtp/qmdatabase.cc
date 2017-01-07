@@ -20,7 +20,7 @@
 
 #include <votca/xtp/qmdatabase.h>
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
 
 void QMDatabase::onCreate()
 {

@@ -24,12 +24,13 @@
 #include <votca/tools/objectfactory.h>
 #include <votca/xtp/qmcalculator.h>
 
-namespace votca { namespace ctp {
+//namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
 
 using namespace std;
 
 class XExtractorFactory
-: public ObjectFactory<std::string, XQMCalculator>
+: public CTP::ObjectFactory<std::string, XQMCalculator>
 {
 private:
     XExtractorFactory() {}

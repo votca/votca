@@ -25,12 +25,12 @@
 #include <votca/tools/calculator.h>
 #include <votca/ctp/topology.h>
 
-namespace XTP = votca::ctp;
+namespace CTP = votca::ctp;
 namespace TOOLS = votca::tools;
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
 
-class XQMCalculator : public Calculator
+class XQMCalculator : public CTP::Calculator
 {
 public:
 
@@ -39,9 +39,9 @@ public:
 
     virtual std::string  Identify() = 0;
 
-    virtual void    Initialize(Property *options) = 0;
-    virtual bool    EvaluateFrame(XTP::Topology *top) { return true; }
-    virtual void    EndEvaluate(XTP::Topology *top) { }
+    virtual void    Initialize(CTP::Property *options) = 0;
+    virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
+    virtual void    EndEvaluate(CTP::Topology *top) { }
 
 protected:
 

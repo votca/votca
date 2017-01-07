@@ -30,9 +30,9 @@
 #include <votca/ctp/jobcalculator.h>
 
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
 
-
+    namespace CTP = votca::ctp;
 
 class JobApplication : public XtpApplication
 {
@@ -44,16 +44,16 @@ public:
    bool EvaluateOptions();
    void Run(void);
 
-   virtual void BeginEvaluate(int nThreads, ProgObserver< std::vector<Job*>, Job*, Job::JobResult> *obs);
+   virtual void BeginEvaluate(int nThreads, CTP::ProgObserver< std::vector<CTP::Job*>, CTP::Job*, CTP::Job::JobResult> *obs);
    virtual bool EvaluateFrame();
    virtual void EndEvaluate();
-   void AddCalculator(JobCalculator *calculator);
+   void AddCalculator(CTP::JobCalculator *calculator);
 
 protected:
     
     bool _generate_input, _run, _import;
     CTP::Topology           _top;
-    std::list< JobCalculator* >   _calculators;
+    std::list< CTP::JobCalculator* >   _calculators;
 
 };
 
