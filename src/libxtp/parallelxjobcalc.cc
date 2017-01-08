@@ -24,11 +24,11 @@
 using boost::format;
 
 
-namespace votca { namespace ctp {
-
+namespace muscet { namespace xtp {
+    namespace CTP = votca::ctp;
     
 template<typename JobContainer, typename pJob, typename rJob> 
-bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {    
+bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(CTP::Topology *top) {    
    
     // RIGIDIFY TOPOLOGY (=> LOCAL FRAMES)
     if (!top->isRigid()) {
@@ -52,12 +52,12 @@ bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {
     string progFile = _jobfile;
     assert(_jobfile != "__NOFILE__");    
     JobOperator* master = new JobOperator(-1, top, this);    
-    master->getLogger()->setReportLevel(logDEBUG);
+    master->getLogger()->setReportLevel(CTP::logDEBUG);
     master->getLogger()->setMultithreading(true);
-    master->getLogger()->setPreface(logINFO,    "\nMST INF");
-    master->getLogger()->setPreface(logERROR,   "\nMST ERR");
-    master->getLogger()->setPreface(logWARNING, "\nMST WAR");
-    master->getLogger()->setPreface(logDEBUG,   "\nMST DBG");    
+    master->getLogger()->setPreface(CTP::logINFO,    "\nMST INF");
+    master->getLogger()->setPreface(CTP::logERROR,   "\nMST ERR");
+    master->getLogger()->setPreface(CTP::logWARNING, "\nMST WAR");
+    master->getLogger()->setPreface(CTP::logDEBUG,   "\nMST DBG");    
     _progObs->InitFromProgFile(progFile, master);
 
     // PRE-PROCESS (OVERWRITTEN IN CHILD OBJECT)
@@ -125,23 +125,23 @@ void ParallelXJobCalc<JobContainer,pJob,rJob>::JobOperator::Run(void) {
 }
 
 template<typename JobContainer, typename pJob, typename rJob>
-void ParallelXJobCalc<JobContainer,pJob,rJob>::CustomizeLogger(QMThread *thread) {
+void ParallelXJobCalc<JobContainer,pJob,rJob>::CustomizeLogger(CTP::QMThread *thread) {
     
     // CONFIGURE LOGGER
-    Logger* log = thread->getLogger();
-    log->setReportLevel(logDEBUG);
+    CTP::Logger* log = thread->getLogger();
+    log->setReportLevel(CTP::logDEBUG);
     log->setMultithreading(_maverick);
 
-    log->setPreface(logINFO,    (format("\nT%1$02d INF ...") % thread->getId()).str());
-    log->setPreface(logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
-    log->setPreface(logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
-    log->setPreface(logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());        
+    log->setPreface(CTP::logINFO,    (format("\nT%1$02d INF ...") % thread->getId()).str());
+    log->setPreface(CTP::logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
+    log->setPreface(CTP::logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
+    log->setPreface(CTP::logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());        
 }
 
 // REGISTER PARALLEL CALCULATORS
 //template class ParallelXJobCalc< vector<XJob*>, XJob* >;
 //template class ParallelXJobCalc< vector<Segment*>, Segment* >;
 //template class ParallelXJobCalc< QMNBList, QMPair* >;
-template class ParallelXJobCalc< std::vector<Job*>, Job*, Job::JobResult >;
+template class ParallelXJobCalc< std::vector<CTP::Job*>, CTP::Job*, CTP::Job::JobResult >;
 
 }}

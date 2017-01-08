@@ -44,7 +44,7 @@ using namespace votca::tools;
 
 
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
     namespace ub = boost::numeric::ublas;
     // due to different requirements for the data format for DFT and GW we have two different classes TCMatrix and TCMatrix_dft which inherit from TCrawMatrix
     

@@ -34,10 +34,11 @@
 using boost::format;
 using namespace boost::filesystem;
 
-namespace votca {
-    namespace ctp {
+namespace muscet {
+    namespace xtp {
         namespace ub = boost::numeric::ublas;
-
+        namespace CTP = votca::ctp;
+        
         // +++++++++++++++++++++++++++++ //
         // GWBSE MEMBER FUNCTIONS         //
         // +++++++++++++++++++++++++++++ //
@@ -117,7 +118,7 @@ namespace votca {
         }
         
         
-        void EGWBSE::WriteJobFile(Topology *top) {
+        void EGWBSE::WriteJobFile(CTP::Topology *top) {
 
     cout << endl << "... ... Writing job file: " << flush;
     std::ofstream ofs;
@@ -186,8 +187,8 @@ namespace votca {
         job.ToStream(ofs,"xml");
     }
 */
-    std::vector<Segment*> segments=top->Segments();    
-    std::vector<Segment*>::iterator sit;
+    std::vector<CTP::Segment*> segments=top->Segments();    
+    std::vector<CTP::Segment*>::iterator sit;
     for (sit = segments.begin(); sit != segments.end(); ++sit) {
     
         int id = ++jobCount;
@@ -198,7 +199,7 @@ namespace votca {
         Property *pSegment =  &pInput->add("segment" , (format("%1$s") % (*sit)->getId()).str() );
         pSegment->setAttribute<string>("type", (*sit)->getName() );
         pSegment->setAttribute<int>("id", (*sit)->getId() );
-        Job job(id, tag, Input, Job::AVAILABLE );
+        CTP::Job job(id, tag, Input, CTP::Job::AVAILABLE );
         job.ToStream(ofs,"xml");
     }
 
@@ -210,25 +211,25 @@ namespace votca {
     
 }
 
-        Job::JobResult EGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
+        CTP::Job::JobResult EGWBSE::EvalJob(CTP::Topology *top, CTP::Job *job, CTP::QMThread *opThread) {
             
 
             Orbitals _orbitals;
-            Job::JobResult jres = Job::JobResult();
+            CTP::Job::JobResult jres = CTP::Job::JobResult();
             Property _job_input = job->getInput();
             list<Property*> lSegments = _job_input.Select("segment");
 
-            vector < Segment* > segments;
+            vector < CTP::Segment* > segments;
             int segId = lSegments.front()->getAttribute<int>("id");
             string segType = lSegments.front()->getAttribute<string>("type");
 
-            Segment *seg = top->getSegment(segId);
+            CTP::Segment *seg = top->getSegment(segId);
             assert(seg->getName() == segType);
             segments.push_back(seg);
 
-            Logger* pLog = opThread->getLogger();
+            CTP::Logger* pLog = opThread->getLogger();
             
-            LOG(logINFO, *pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush;
+            LOG(CTP::logINFO, *pLog) << CTP::TimeStamp() << " Evaluating site " << seg->getId() << flush;
 
             
             string output;
@@ -277,10 +278,10 @@ namespace votca {
                 _run_dft_status = _qmpackage->Run();
                 if (!_run_dft_status) {
                     output += "run failed; ";
-                    LOG(logERROR, *pLog) << _qmpackage->getPackageName() << " run failed" << flush;
+                    LOG(CTP::logERROR, *pLog) << _qmpackage->getPackageName() << " run failed" << flush;
                     cout << *pLog;
                     jres.setOutput(output);
-                    jres.setStatus(Job::FAILED);
+                    jres.setStatus(CTP::Job::FAILED);
                     delete _qmpackage;
                     return jres;
                 }
@@ -294,10 +295,10 @@ namespace votca {
 
                 if (!_parse_log_status) {
                     output += "log incomplete; ";
-                    LOG(logERROR, *pLog) << "LOG parsing failed" << flush;
+                    LOG(CTP::logERROR, *pLog) << "LOG parsing failed" << flush;
                     cout << *pLog;
                     jres.setOutput(output);
-                    jres.setStatus(Job::FAILED);
+                    jres.setStatus(CTP::Job::FAILED);
                     delete _qmpackage;
                     return jres;
                 }
@@ -306,10 +307,10 @@ namespace votca {
 
                 if (!_parse_orbitals_status) {
                     output += "orbfile failed; ";
-                    LOG(logERROR, *pLog) << "Orbitals parsing failed" << flush;
+                    LOG(CTP::logERROR, *pLog) << "Orbitals parsing failed" << flush;
                     cout << *pLog;
                     jres.setOutput(output);
-                    jres.setStatus(Job::FAILED);
+                    jres.setStatus(CTP::Job::FAILED);
                     delete _qmpackage;
                     return jres;
                 }  
@@ -320,10 +321,10 @@ namespace votca {
                     string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
                     std::ifstream ifs((DIR + "/" + orb_file).c_str());
                     if (_do_gwbse){
-                    LOG(logDEBUG, *pLog) << TimeStamp() << " Loading DFT data from " << DIR << "/" << orb_file << flush;
+                    LOG(CTP::logDEBUG, *pLog) << CTP::TimeStamp() << " Loading DFT data from " << DIR << "/" << orb_file << flush;
                     }
                     else {
-                    LOG(logDEBUG, *pLog) << TimeStamp() << " Loading data from " << DIR << "/" << orb_file << flush;    
+                    LOG(CTP::logDEBUG, *pLog) << CTP::TimeStamp() << " Loading data from " << DIR << "/" << orb_file << flush;    
                     }
                     boost::archive::binary_iarchive ia(ifs);
                     ia >> _orbitals;
@@ -348,13 +349,13 @@ namespace votca {
                 //cout << "hallo2" <<endl;
                 
                 // define own logger for GW-BSE that is written into a runFolder logfile
-                Logger gwbse_logger(logDEBUG);
+                CTP::Logger gwbse_logger(CTP::logDEBUG);
                 gwbse_logger.setMultithreading(false);
                 _gwbse.setLogger(&gwbse_logger);
-                gwbse_logger.setPreface(logINFO,    (format("\nGWBSE INF ...") ).str());
-                gwbse_logger.setPreface(logERROR,   (format("\nGWBSE ERR ...") ).str());
-                gwbse_logger.setPreface(logWARNING, (format("\nGWBSE WAR ...") ).str());
-                gwbse_logger.setPreface(logDEBUG,   (format("\nGWBSE DBG ...") ).str());
+                gwbse_logger.setPreface(CTP::logINFO,    (format("\nGWBSE INF ...") ).str());
+                gwbse_logger.setPreface(CTP::logERROR,   (format("\nGWBSE ERR ...") ).str());
+                gwbse_logger.setPreface(CTP::logWARNING, (format("\nGWBSE WAR ...") ).str());
+                gwbse_logger.setPreface(CTP::logDEBUG,   (format("\nGWBSE DBG ...") ).str());
                 
                 
                 //bool _evaluate = _gwbse.Evaluate(&_orbitals);
@@ -389,14 +390,14 @@ namespace votca {
                 esp2multipole.WritetoFile((ESPDIR + "/" + mps_file).c_str(),Identify());
     
     
-                LOG(logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
+                LOG(CTP::logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
                 
                 _segment_summary->add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
             }
-            LOG(logINFO, *pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
+            LOG(CTP::logINFO, *pLog) << CTP::TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
 
             if(_do_dft_parse ||_do_gwbse ){
-            LOG(logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
+            LOG(CTP::logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
             string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
             boost::filesystem::create_directories(DIR);  
             std::ofstream ofs((DIR + "/" + orb_file).c_str());
@@ -409,7 +410,7 @@ namespace votca {
 
             // output of the JOB 
             jres.setOutput(_job_summary);
-            jres.setStatus(Job::COMPLETE);
+            jres.setStatus(CTP::Job::COMPLETE);
 
             // dump the LOG
 

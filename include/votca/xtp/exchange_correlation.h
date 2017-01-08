@@ -25,8 +25,8 @@
 using namespace std;
 
 
-namespace votca {
-    namespace ctp {
+namespace muscet {
+    namespace xtp {
 
         class ExchangeCorrelation {
         public:

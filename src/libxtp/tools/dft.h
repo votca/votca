@@ -30,10 +30,11 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/xtp/votca_config.h>
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
     using namespace std;
+    namespace CTP = votca::ctp;
     
-class DFT : public QMTool
+class DFT : public CTP::QMTool
 {
 public:
 
@@ -62,7 +63,7 @@ private:
     string      _output_file;
 
     string      _reporting;    
-    Logger      _log;
+    CTP::Logger      _log;
     
     /*
     bool _do_dft_input;
@@ -130,7 +131,7 @@ private:
     */
     void XYZ2Orbitals( Orbitals* _orbitals, string filename);
     //void Coord2Segment(Segment* _segment );
-    void Orbitals2Segment(Segment* _segment, Orbitals* _orbitals);
+    void Orbitals2Segment(CTP::Segment* _segment, Orbitals* _orbitals);
 
 };
 
@@ -206,15 +207,15 @@ key = "options." + Identify();
 bool DFT::Evaluate() {
 
     
-    if ( _reporting == "silent")   _log.setReportLevel( logERROR ); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
-    if ( _reporting == "noisy")    _log.setReportLevel( logDEBUG ); // OUTPUT ALL THE THINGS
-    if ( _reporting == "default")  _log.setReportLevel( logINFO );  // 
+    if ( _reporting == "silent")   _log.setReportLevel( CTP::logERROR ); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
+    if ( _reporting == "noisy")    _log.setReportLevel( CTP::logDEBUG ); // OUTPUT ALL THE THINGS
+    if ( _reporting == "default")  _log.setReportLevel( CTP::logINFO );  // 
     
     _log.setMultithreading( true );
-    _log.setPreface(logINFO,    "\n... ...");
-    _log.setPreface(logERROR,   "\n... ...");
-    _log.setPreface(logWARNING, "\n... ...");
-    _log.setPreface(logDEBUG,   "\n... ..."); 
+    _log.setPreface(CTP::logINFO,    "\n... ...");
+    _log.setPreface(CTP::logERROR,   "\n... ...");
+    _log.setPreface(CTP::logWARNING, "\n... ...");
+    _log.setPreface(CTP::logDEBUG,   "\n... ..."); 
 
     //TLogLevel _ReportLevel = _log.getReportLevel( ); // backup report level
 
@@ -222,9 +223,9 @@ bool DFT::Evaluate() {
     Orbitals _orbitals;
     XYZ2Orbitals( &_orbitals, _xyzfile );
 
-    vector <Segment* > _segments;
+    vector <CTP::Segment* > _segments;
     // Create a new segment
-    Segment _segment(0, "mol");
+    CTP::Segment _segment(0, "mol");
                 
     //    if (_do_dft_input) {
     //       ReadXYZ( &_segment, _xyzfile );
@@ -236,7 +237,7 @@ bool DFT::Evaluate() {
                 string label, type;
                 vec pos;
 
-                LOG(logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
+                LOG(CTP::logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
                 in.open(_xyzfile.c_str(), ios::in);
                 if (!in) throw runtime_error(string("Error reading coordinates from: ")
                         + _xyzfile);
@@ -251,7 +252,7 @@ bool DFT::Evaluate() {
                     // cout << type << ":" << x << ":" << y << ":" << z << endl;
 
                     // creating atoms and adding them to the molecule
-                    Atom *pAtom = new Atom(id++, type);
+                    CTP::Atom *pAtom = new CTP::Atom(id++, type);
                     vec position(x / 10, y / 10, z / 10); // xyz has Angstrom, votca stores nm
                     pAtom->setPos(position);
                     pAtom->setQMPart(id, position);
@@ -282,7 +283,7 @@ bool DFT::Evaluate() {
 
       // parse DFT data, if required
       //if ( _do_dft_parse ){
-        LOG(logDEBUG,_log) << "Parsing DFT data " << _output_file << flush;
+        LOG(CTP::logDEBUG,_log) << "Parsing DFT data " << _output_file << flush;
         _qmpackage->setOrbitalsFileName( _orbfile );
         //int _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
         _qmpackage->ParseOrbitalsFile( &_orbitals );
@@ -304,7 +305,7 @@ bool DFT::Evaluate() {
     _dft.Evaluate( &_orbitals );
 
             
-       LOG(logDEBUG,_log) << "Saving data to " << _output_file << flush;
+       LOG(CTP::logDEBUG,_log) << "Saving data to " << _output_file << flush;
        std::ofstream ofs( ( _output_file).c_str() );
        boost::archive::binary_oarchive oa( ofs );
 
@@ -366,7 +367,7 @@ void DFT::XYZ2Orbitals(Orbitals* _orbitals, string filename){
                 string label, type;
                 vec pos;
 
-                LOG(logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
+                LOG(CTP::logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
                 in.open(_xyzfile.c_str(), ios::in);
                 if (!in) throw runtime_error(string("Error reading coordinates from: ")
                         + _xyzfile);
@@ -412,10 +413,10 @@ void DFT::XYZ2Orbitals(Orbitals* _orbitals, string filename){
     
 }
 
-void DFT::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
+void DFT::Orbitals2Segment(CTP::Segment* _segment, Orbitals* _orbitals){
     
-            vector< QMAtom* > _atoms;
-            vector< QMAtom* > ::iterator ait;
+            vector< CTP::QMAtom* > _atoms;
+            vector< CTP::QMAtom* > ::iterator ait;
             _atoms = _orbitals->QMAtoms();
             
             string type;
@@ -428,7 +429,7 @@ void DFT::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
                 double x = (*ait)->x;
                 double y = (*ait)->y;
                 double z = (*ait)->z;
-                Atom *pAtom = new Atom(id++, type);
+                CTP::Atom *pAtom = new CTP::Atom(id++, type);
                 // cout << type << " " << x << " " << y << " " << z << endl;
                 vec position(x/10, y/10, z/10); // xyz has Angstrom, votca stores nm
                 pAtom->setPos(position);

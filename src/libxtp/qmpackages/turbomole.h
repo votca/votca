@@ -31,7 +31,7 @@
 
 
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
 /**
     \brief Wrapper for the Gaussian program
  
@@ -39,6 +39,8 @@ namespace votca { namespace ctp {
     and extracts information from its log and io files
     
 */
+    
+    namespace CTP = votca::ctp;
 class Turbomole : public XQMPackage
 {
 public:   
@@ -51,7 +53,7 @@ public:
     * and guess for the dimer orbitals (if given) constructed from the
     * orbitals of monomers 
     */
-   bool WriteInputFile( std::vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( std::vector< CTP::Segment* > segments, Orbitals* orbitals_guess = NULL);
 
    bool Run();
 

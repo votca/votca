@@ -32,8 +32,9 @@
 
 using namespace votca::tools;
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
 namespace ub = boost::numeric::ublas;
+namespace CTP = votca::ctp;
 
 class AOShell;
 
@@ -56,8 +57,8 @@ public:
       void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
 
     // void AOBasisFill( BasisSet* bs , std::vector<Segment* > segments);
-    void AOBasisFill( BasisSet* bs , std::vector<QMAtom* > segments, int fragbreak = -1);
-    void ECPFill( BasisSet* bs , std::vector<QMAtom* > segments); 
+    void AOBasisFill( BasisSet* bs , std::vector<CTP::QMAtom* > segments, int fragbreak = -1);
+    void ECPFill( BasisSet* bs , std::vector<CTP::QMAtom* > segments); 
     
     int NumFuncShell( std::string shell );
     int NumFuncShell_cartesian( std::string shell );

@@ -38,10 +38,11 @@
 // pJob::JobResult (struct)
 
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
 
+    namespace CTP = votca::ctp;
 template<typename JobContainer, typename pJob, typename rJob> 
-class ParallelXJobCalc : public JobCalculator
+class ParallelXJobCalc : public CTP::JobCalculator
 {
 
 public:
@@ -53,12 +54,12 @@ public:
 
     std::string       Identify() { return "Parallel XJob Calculator"; }
 
-    bool         EvaluateFrame(Topology *top);
+    bool         EvaluateFrame(CTP::Topology *top);
     virtual void LoadJobs() { ; }
-    virtual void CustomizeLogger(QMThread* thread);
-    virtual void PreProcess(Topology *top) { ; } 
-    virtual rJob EvalJob(Topology *top, const pJob job, QMThread *thread) = 0;
-    virtual void PostProcess(Topology *top) { ; }
+    virtual void CustomizeLogger(CTP::QMThread* thread);
+    virtual void PreProcess(CTP::Topology *top) { ; } 
+    virtual rJob EvalJob(CTP::Topology *top, const pJob job, CTP::QMThread *thread) = 0;
+    virtual void PostProcess(CTP::Topology *top) { ; }
     
     void         LockCout() { _coutMutex.Lock(); }
     void         UnlockCout() { _coutMutex.Unlock(); }
@@ -71,21 +72,21 @@ public:
     // ======================================== //
     
 
-    class JobOperator : public QMThread
+    class JobOperator : public CTP::QMThread
     {
     public:
 
-        JobOperator(int id,   Topology *top, ParallelXJobCalc<JobContainer,pJob,rJob> *master)
+        JobOperator(int id,   CTP::Topology *top, ParallelXJobCalc<JobContainer,pJob,rJob> *master)
                       : _top(top),          _master(master) { _id = id; };
        ~JobOperator() {};
 
-        void        InitData(Topology *top) { ; }
+        void        InitData(CTP::Topology *top) { ; }
         void        Run(void);
         
 
     public:
 
-        Topology         *_top;
+        CTP::Topology         *_top;
         ParallelXJobCalc<JobContainer,pJob,rJob> *_master;
         pJob              _job;
 

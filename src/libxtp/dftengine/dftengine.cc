@@ -42,10 +42,10 @@
 using boost::format;
 using namespace boost::filesystem;
 
-namespace votca {
-    namespace ctp {
+namespace muscet {
+    namespace xtp {
         namespace ub = boost::numeric::ublas;
-
+        namespace CTP = votca::ctp;
         // +++++++++++++++++++++++++++++ //
         // DFTENGINE MEMBER FUNCTIONS        //
         // +++++++++++++++++++++++++++++ //
@@ -55,7 +55,7 @@ namespace votca {
         }
         
         
-        void DFTENGINE::Initialize(Property* options){
+        void DFTENGINE::Initialize(CTP::Property* options){
 
            // setting some defaults
            // _do_qp_diag = false;
@@ -246,11 +246,11 @@ namespace votca {
 
            //int size4c=_dftbasis.AOBasisSize();
 
-           LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
-           LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
+           LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Setup Initial Guess "<< flush;
+           LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
 	   
             for ( _this_iter=0; _this_iter<_max_iter; _this_iter++){
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
 
 
                 _ERIs.CalculateERIs(_dftAOdmat, _auxAOoverlap, _AOIntegrals);
@@ -320,7 +320,7 @@ namespace votca {
                 cout << "_ERIs ("<< i <<":"<< j<<")="<<_ERIs.getERIs()(i,j)<<endl;
 		}}
                 exit(0);
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT Vxc matrix "<<flush;
                 linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, MOEnergies, MOCoeff);
                 
                 
@@ -349,21 +349,21 @@ namespace votca {
                 }
                 cout << " GAP " << MOEnergies(_numofelectrons/2)-MOEnergies(_numofelectrons/2-1) << endl;
                 
-                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy "<<totenergy<<flush;
+                 LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Total KS orbital Energy "<<totenergy<<flush;
                 totenergy+=_gridIntegration.getTotEcontribution()-0.5*_ERIs.getERIsenergy();
 
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Exc contribution "<<_gridIntegration.getTotEcontribution()<<flush;
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " E_H contribution "<<-0.5*_ERIs.getERIsenergy()<<flush;
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<totenergy<<flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Exc contribution "<<_gridIntegration.getTotEcontribution()<<flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " E_H contribution "<<-0.5*_ERIs.getERIsenergy()<<flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Total Energy "<<totenergy<<flush;
                 
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Solved general eigenproblem "<<flush;
 
 
 
 
                 EvolveDensityMatrix( MOCoeff, _numofelectrons/2 ) ;
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity(_dftAOdmat, basis) << flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Updated Density Matrix "<<flush;
             }
           
             return true;
@@ -384,27 +384,27 @@ namespace votca {
 	    // DFT AOOverlap matrix
 	    _dftAOoverlap.Initialize(_dftbasis.AOBasisSize());
             _dftAOoverlap.Fill(&_dftbasis);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
 
 	    // check DFT basis for linear dependence
             linalg_eigenvalues(_dftAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Smallest eigenvalue of DFT Overlap matrix : " << _eigenvalues[0] << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Smallest eigenvalue of DFT Overlap matrix : " << _eigenvalues[0] << flush;
 
 
             _dftAOkinetic.Initialize(_dftbasis.AOBasisSize());
             _dftAOkinetic.Fill(&_dftbasis);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
 
             
             _dftAOESP.Initialize(_dftbasis.AOBasisSize());
             _dftAOESP.Fillnucpotential(&_dftbasis, _atoms);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
             //_dftAOESP.Print("NUC");
 
             if (_with_ecp) {
                 _dftAOECP.Initialize(_dftbasis.AOBasisSize());
                 _dftAOECP.Fill(&_dftbasis, ub::zero_vector<double>(3), &_ecp);
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
                 //_dftAOECP.Print("ECP");
 
                 _dftAOESP._nuclearpotential += _dftAOECP.Matrix();
@@ -415,12 +415,12 @@ namespace votca {
 	    // AUX AOoverlap
             _auxAOoverlap.Initialize(_auxbasis.AOBasisSize());
             _auxAOoverlap.Fill(&_auxbasis);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled AUX Overlap matrix of dimension: " << _auxAOoverlap.Dimension() << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled AUX Overlap matrix of dimension: " << _auxAOoverlap.Dimension() << flush;
  
             //exit(0);
 	    // check AUX basis for linear dependence
             linalg_eigenvalues(_auxAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Smallest eigenvalue of AUX Overlap matrix : " << _eigenvalues[0] << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Smallest eigenvalue of AUX Overlap matrix : " << _eigenvalues[0] << flush;
  
             // checking integrals of AOfunctions !!!! not NORM !!!!
             _AOIntegrals = ub::zero_matrix<double>(1, _auxbasis._AOBasisSize); // TRY MORE USEFUL DATA
@@ -446,7 +446,7 @@ namespace votca {
             _auxAOcoulomb.Initialize(_auxbasis.AOBasisSize());
             _auxAOcoulomb.Fill(&_auxbasis);
             // _auxAOcoulomb.Print("COU");
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
             //exit(0);
        
             // prepare invariant part of electron repulsion integrals
@@ -455,7 +455,7 @@ namespace votca {
           
             
             
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
 
       }
 
@@ -469,27 +469,27 @@ namespace votca {
             _dftbasisset.LoadBasisSet(_dftbasis_name);
             _orbitals->setDFTbasis( _dftbasis_name );    
 	    _dftbasis.AOBasisFill( &_dftbasisset, _atoms);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
 
 	    // load and fill AUX basis set
             _auxbasisset.LoadBasisSet(_auxbasis_name);
             //_orbitals->setDFTbasis( _dftbasis_name );
 	    _auxbasis.AOBasisFill( &_auxbasisset, _atoms);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded AUX Basis Set " << _auxbasis_name << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Loaded AUX Basis Set " << _auxbasis_name << flush;
 
 
             // load ECP (element-wise information) from xml file
             _ecpbasisset.LoadPseudopotentialSet("ecp");
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded ECP library " << "ecp" << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Loaded ECP library " << "ecp" << flush;
 
             // fill auxiliary ECP basis by going through all atoms
             _ecp.ECPFill(&_ecpbasisset, _atoms);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled ECP Basis of size " << _ecp._aoshells.size() << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled ECP Basis of size " << _ecp._aoshells.size() << flush;
 
             
 	    // setup numerical integration grid
             _gridIntegration.GridSetup(_grid_name,&_dftbasisset,_atoms);
-	    LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name << flush;
+	    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Setup numerical integration grid " << _grid_name << flush;
 	
            Elements _elements; 
             //set number of electrons and such
@@ -507,7 +507,7 @@ namespace votca {
             }
            
            
-           LOG(logDEBUG, *_pLog) << TimeStamp() << " Total number of electrons: " << _numofelectrons << flush;
+           LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Total number of electrons: " << _numofelectrons << flush;
            _orbitals->setNumberOfElectrons(_numofelectrons);
            _orbitals->setNumberOfLevels(_numofelectrons/2,_dftbasis.AOBasisSize()-_numofelectrons/2);
            

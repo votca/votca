@@ -42,8 +42,8 @@
 
 
 
-namespace votca {
-    namespace ctp {
+namespace muscet {
+    namespace xtp {
         namespace ub = boost::numeric::ublas;
 
         double NumericalIntegration::getExactExchange(const string _functional){
@@ -1811,7 +1811,7 @@ namespace votca {
             
         }
                
-        void NumericalIntegration::GridSetup(string type, BasisSet* bs, vector<QMAtom*> _atoms) {
+        void NumericalIntegration::GridSetup(string type, BasisSet* bs, vector<CTP::QMAtom*> _atoms) {
             
             const double pi = boost::math::constants::pi<double>();
             // get GridContainer
@@ -1841,21 +1841,21 @@ namespace votca {
             int ij = 0;
             Rij.push_back(0.0); // 1st center "self-distance"
             Rij_mat = ub::zero_matrix<double>(_atoms.size(),_atoms.size());
-            vector< QMAtom* > ::iterator ait;
-            vector< QMAtom* > ::iterator bit;
+            vector< CTP::QMAtom* > ::iterator ait;
+            vector< CTP::QMAtom* > ::iterator bit;
             int i = 1;
             for (ait = _atoms.begin() + 1; ait != _atoms.end(); ++ait) {
                 // get center coordinates in Bohr
-                double x_a = (*ait)->x * tools::conv::ang2bohr;
-                double y_a = (*ait)->y * tools::conv::ang2bohr;
-                double z_a = (*ait)->z * tools::conv::ang2bohr;
+                double x_a = (*ait)->x * votca::tools::conv::ang2bohr;
+                double y_a = (*ait)->y * votca::tools::conv::ang2bohr;
+                double z_a = (*ait)->z * votca::tools::conv::ang2bohr;
                 int j = 0;
                 for (bit = _atoms.begin(); bit != ait; ++bit) {
                     ij++;
                     // get center coordinates in Bohr
-                    double x_b = (*bit)->x * tools::conv::ang2bohr;
-                    double y_b = (*bit)->y * tools::conv::ang2bohr;
-                    double z_b = (*bit)->z * tools::conv::ang2bohr;
+                    double x_b = (*bit)->x * votca::tools::conv::ang2bohr;
+                    double y_b = (*bit)->y * votca::tools::conv::ang2bohr;
+                    double z_b = (*bit)->z * votca::tools::conv::ang2bohr;
 
                     Rij.push_back(1.0 / sqrt((x_a - x_b)*(x_a - x_b) + (y_a - y_b)*(y_a - y_b) + (z_a - z_b)*(z_a - z_b)));
 
@@ -1879,9 +1879,9 @@ namespace votca {
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
                 // get center coordinates in Bohr
                 std::vector< GridContainers::integration_grid > _atomgrid;
-                double x_c = (*ait)->x * tools::conv::ang2bohr;
-                double y_c = (*ait)->y * tools::conv::ang2bohr;
-                double z_c = (*ait)->z * tools::conv::ang2bohr;
+                double x_c = (*ait)->x * votca::tools::conv::ang2bohr;
+                double y_c = (*ait)->y * votca::tools::conv::ang2bohr;
+                double z_c = (*ait)->z * votca::tools::conv::ang2bohr;
                 string name = (*ait)->type;
 
                 // get radial grid information for this atom type
@@ -1996,9 +1996,9 @@ namespace votca {
                 // for each center
                 for (bit = _atoms.begin(); bit < _atoms.end(); ++bit) {
                     // get center coordinates
-                    double x_b = (*bit)->x * tools::conv::ang2bohr;
-                    double y_b = (*bit)->y * tools::conv::ang2bohr;
-                    double z_b = (*bit)->z * tools::conv::ang2bohr;
+                    double x_b = (*bit)->x * votca::tools::conv::ang2bohr;
+                    double y_b = (*bit)->y * votca::tools::conv::ang2bohr;
+                    double z_b = (*bit)->z * votca::tools::conv::ang2bohr;
 
                     std::vector<double> temp;
                     // for each gridpoint
@@ -2019,7 +2019,7 @@ namespace votca {
                 // find nearest-neighbor of this atom
                 double distNN = 1e10;
 
-                vector< QMAtom* > ::iterator NNit;
+                vector< CTP::QMAtom* > ::iterator NNit;
                 //int i_NN;
 
                 // now check all other centers
@@ -2028,9 +2028,9 @@ namespace votca {
 
                     if (bit != ait) {
                         // get center coordinates
-                        double x_b = (*bit)->x * tools::conv::ang2bohr;
-                        double y_b = (*bit)->y * tools::conv::ang2bohr;
-                        double z_b = (*bit)->z * tools::conv::ang2bohr;
+                        double x_b = (*bit)->x * votca::tools::conv::ang2bohr;
+                        double y_b = (*bit)->y * votca::tools::conv::ang2bohr;
+                        double z_b = (*bit)->z * votca::tools::conv::ang2bohr;
 
                         double distSQ = (x_c - x_b)*(x_c - x_b) + (y_c - y_b)*(y_c - y_b) + (z_c - z_b)*(z_c - z_b);
 
@@ -2150,8 +2150,8 @@ namespace votca {
             points << endl;
             for ( unsigned i = 0 ; i < _grid.size(); i++){
                 for ( unsigned j = 0 ; j < _grid[i].size(); j++){
-                points << "X " << _grid[i][j].grid_x/tools::conv::ang2bohr << " " << _grid[i][j].grid_y/tools::conv::ang2bohr
-                        << " " << _grid[i][j].grid_z/tools::conv::ang2bohr << " "  << _grid[i][j].grid_weight << endl;
+                points << "X " << _grid[i][j].grid_x/votca::tools::conv::ang2bohr << " " << _grid[i][j].grid_y/votca::tools::conv::ang2bohr
+                        << " " << _grid[i][j].grid_z/votca::tools::conv::ang2bohr << " "  << _grid[i][j].grid_weight << endl;
                 }
             }
             points.close();

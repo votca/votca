@@ -18,6 +18,8 @@
         <itemPath>../../src/libxtp/extractors/testextractor.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
+        <itemPath>../../src/libxtp/jobcalculators/dma.cc</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/dma.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/egwbse.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/egwbse.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.cc</itemPath>
@@ -51,21 +53,26 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>../../include/votca/xtp/ERIs.h</itemPath>
       <itemPath>../../include/votca/xtp/aobasis.h</itemPath>
       <itemPath>../../include/votca/xtp/aomatrix.h</itemPath>
       <itemPath>../../include/votca/xtp/aoshell.h</itemPath>
       <itemPath>../../include/votca/xtp/basisset.h</itemPath>
+      <itemPath>../../include/votca/xtp/bsecoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/elements.h</itemPath>
+      <itemPath>../../include/votca/xtp/esp2multipole.h</itemPath>
       <itemPath>../../include/votca/xtp/espfit.h</itemPath>
       <itemPath>../../include/votca/xtp/exchange_correlation.h</itemPath>
       <itemPath>../../include/votca/xtp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/gdma.h</itemPath>
       <itemPath>../../include/votca/xtp/grid.h</itemPath>
+      <itemPath>../../include/votca/xtp/grid_containers.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbse.h</itemPath>
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculator.h</itemPath>
+      <itemPath>../../include/votca/xtp/lowdin.h</itemPath>
       <itemPath>../../include/votca/xtp/mulliken.h</itemPath>
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
@@ -92,6 +99,8 @@
       <itemPath>../../include/votca/xtp/xtpapplication.h</itemPath>
     </logicalFolder>
     <logicalFolder name="f2" displayName="QMPackages" projectFiles="true">
+      <itemPath>../../src/libxtp/qmpackages/cpmd.cc</itemPath>
+      <itemPath>../../src/libxtp/qmpackages/cpmd.h</itemPath>
       <itemPath>../../src/libxtp/qmpackages/gaussian.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackages/gaussian.h</itemPath>
       <itemPath>../../src/libxtp/qmpackages/nwchem.cc</itemPath>
@@ -149,10 +158,15 @@
       <itemPath>../../src/libxtp/aobasis.cc</itemPath>
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
+      <itemPath>../../src/libxtp/bulkesp.cc</itemPath>
+      <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
+      <itemPath>../../src/libxtp/lowdin.cc</itemPath>
+      <itemPath>../../src/libxtp/mulliken.cc</itemPath>
+      <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
       <itemPath>../../src/libxtp/parallelpaircalc.cc</itemPath>
       <itemPath>../../src/libxtp/parallelxjobcalc.cc</itemPath>
@@ -232,6 +246,8 @@
           <output>../../src/libxtp/libxtp.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/aobasis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/aomatrix.h" ex="false" tool="3" flavor2="0">
@@ -239,6 +255,11 @@
       <item path="../../include/votca/xtp/aoshell.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/bsecoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/calculatorfactory.h"
             ex="false"
@@ -251,6 +272,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/esp2multipole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/espfit.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -268,6 +294,11 @@
       </item>
       <item path="../../include/votca/xtp/grid.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/grid_containers.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobapplication.h"
@@ -279,6 +310,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -428,6 +461,8 @@
       </item>
       <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/bulkesp.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/calculatorfactory.cc"
             ex="false"
             tool="1"
@@ -523,6 +558,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/extractorfactory.cc"
@@ -554,6 +591,16 @@
       <item path="../../src/libxtp/jobcalculatorfactory.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/dma.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/dma.h"
+            ex="false"
+            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/egwbse.cc"
@@ -596,6 +643,12 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
             tool="1"
@@ -635,6 +688,13 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpackages/cpmd.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpackages/cpmd.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackages/gaussian.cc"
             ex="false"
@@ -751,6 +811,8 @@
         <archiverTool>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/aobasis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/aomatrix.h" ex="false" tool="3" flavor2="0">
@@ -758,6 +820,11 @@
       <item path="../../include/votca/xtp/aoshell.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/bsecoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/calculatorfactory.h"
             ex="false"
@@ -770,6 +837,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/esp2multipole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/espfit.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -787,6 +859,11 @@
       </item>
       <item path="../../include/votca/xtp/grid.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/grid_containers.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobapplication.h"
@@ -798,6 +875,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -947,6 +1026,8 @@
       </item>
       <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/bulkesp.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/calculatorfactory.cc"
             ex="false"
             tool="1"
@@ -1042,6 +1123,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/extractorfactory.cc"
@@ -1073,6 +1156,16 @@
       <item path="../../src/libxtp/jobcalculatorfactory.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/dma.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/dma.h"
+            ex="false"
+            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/egwbse.cc"
@@ -1115,6 +1208,12 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
             tool="1"
@@ -1154,6 +1253,13 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpackages/cpmd.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpackages/cpmd.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackages/gaussian.cc"
             ex="false"

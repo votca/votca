@@ -26,7 +26,7 @@
 #include "qmpackages/cpmd.h"
 
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
 
 void XQMPackageFactory::RegisterAll(void)
 {

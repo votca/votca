@@ -23,9 +23,10 @@
 #ifndef _VOTCA_XTP_BSECOUPLING_H
 #define	_VOTCA_XTP_BSECOUPLING_H
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
 
 namespace ub = boost::numeric::ublas;
+namespace CTP  = votca::ctp;
 /**
 * \brief Evaluates electronic coupling elements
 *
@@ -69,11 +70,11 @@ public:
     real_gwbse getTripletCouplingElement( int levelA, int levelB);
     real_gwbse getSingletDimerEnergy( int level);
     real_gwbse getTripletDimerEnergy( int level);
-    void setLogger( Logger* pLog ) { _pLog = pLog; }
+    void setLogger( CTP::Logger* pLog ) { _pLog = pLog; }
     
 private:
     
-    Logger *_pLog;
+    CTP::Logger *_pLog;
   
     
     bool ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::matrix<real_gwbse>& _kbp, 

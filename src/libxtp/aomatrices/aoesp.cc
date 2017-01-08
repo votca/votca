@@ -40,9 +40,9 @@ using namespace votca::tools;
 
 
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
     namespace ub = boost::numeric::ublas;
-    
+    namespace CTP = votca::ctp;
     
 
     
@@ -81,9 +81,9 @@ namespace votca { namespace ctp {
       
         
         // get shell positions
-        const vec& _pos_row = _shell_row->getPos();
-        const vec& _pos_col = _shell_col->getPos();
-        const vec  _diff    = _pos_row - _pos_col;
+        const CTP::vec& _pos_row = _shell_row->getPos();
+        const CTP::vec& _pos_col = _shell_col->getPos();
+        const CTP::vec  _diff    = _pos_row - _pos_col;
         // initialize some helper
         std::vector<double> PmA (3,0.0);
         std::vector<double> PmB (3,0.0);
@@ -488,7 +488,7 @@ namespace votca { namespace ctp {
     }
     
   // Calculates the electrostatic potential matrix element between two basis functions, for an array of atomcores.
-    void AOESP::Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms){
+    void AOESP::Fillnucpotential( AOBasis* aobasis, std::vector<CTP::QMAtom*>& _atoms){
     Elements _elements;
     _nuclearpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
     ub::vector<double> positionofatom=ub::zero_vector<double>(3);

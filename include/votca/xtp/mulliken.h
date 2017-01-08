@@ -35,9 +35,9 @@
 using namespace votca::tools;
 
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
     namespace ub = boost::numeric::ublas;
-    
+    namespace CTP = votca::ctp;
 class Mulliken{
 public:
     
@@ -45,7 +45,7 @@ public:
    ~Mulliken(){};
     
     void setUseECPs(bool use_ecp){_use_ecp=use_ecp;}
-    void EvaluateMulliken(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
+    void EvaluateMulliken(std::vector< CTP::QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
   
    
 private:

@@ -28,7 +28,7 @@
 
 
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
 /**
     \brief Wrapper for the Gaussian program
  
@@ -36,6 +36,7 @@ namespace votca { namespace ctp {
     and extracts information from its log and io files
     
 */
+    namespace CTP = votca::ctp;
 class Orca : public XQMPackage
 {
 public:   
@@ -47,7 +48,7 @@ public:
    /* Writes Orca input file with coordinates of segments
   
     */
-   bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( vector< CTP::Segment* > segments, Orbitals* orbitals_guess = NULL);
 
    bool WriteShellScript();
 

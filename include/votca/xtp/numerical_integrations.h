@@ -29,7 +29,7 @@
 
 
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
 
     namespace ub = boost::numeric::ublas;
     
@@ -40,7 +40,7 @@ namespace votca { namespace ctp {
             
             NumericalIntegration():density_set(false) {};
 
-            void GridSetup(std::string type, BasisSet* bs , std::vector<QMAtom* > _atoms  );
+            void GridSetup(std::string type, BasisSet* bs , std::vector<CTP::QMAtom* > _atoms  );
 
             double StupidIntegrate( std::vector<double>& _data );
             

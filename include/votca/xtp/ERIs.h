@@ -29,7 +29,7 @@
 using namespace std;
 using namespace votca::tools;
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
     namespace ub = boost::numeric::ublas;
 /**
 * \brief Takes a density matrix and and an auxillary basis set and calculates the electron repulsion integrals. 

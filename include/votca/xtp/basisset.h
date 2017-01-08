@@ -28,7 +28,8 @@
 
 using namespace votca::tools;
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
+    //namespace CTP = votca::ctp;
 
 class Shell;  
 class Element;

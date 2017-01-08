@@ -37,8 +37,8 @@
 using boost::format;
 using namespace boost::filesystem;
 
-namespace votca {
-    namespace ctp {
+namespace muscet {
+    namespace xtp {
         namespace ub = boost::numeric::ublas;
 
         

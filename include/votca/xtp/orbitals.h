@@ -72,7 +72,7 @@
 
 namespace ub = boost::numeric::ublas;
     
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
     
  
 /**
@@ -134,7 +134,7 @@ public:
     ub::vector<double>* getEnergies() { return &_mo_energies; } // OLD
 
     // access to DFT molecular orbital energy of a specific level (in eV)
-    double getEnergy( int level) { return ( hasMOEnergies() ) ? tools::conv::hrt2ev*_mo_energies[level-1] : 0; }
+    double getEnergy( int level) { return ( hasMOEnergies() ) ? votca::tools::conv::hrt2ev*_mo_energies[level-1] : 0; }
 
     // access to DFT molecular orbital coefficients, new, tested
     bool          hasMOCoefficients() { return ( _mo_coefficients.size1() > 0 ) ? true : false ;}
@@ -156,9 +156,9 @@ public:
     //bool hasQMAtoms() { return _has_atoms;}
     bool hasQMAtoms() { return ( _atoms.size() > 0 ) ? true : false ;}
     // void setQMAtoms( bool inp ) { _has_atoms = inp;}
-    const std::vector< QMAtom* > &QMAtoms() const { return _atoms ;}
-    std::vector< QMAtom* > &QMAtoms()  { return _atoms ;}
-    std::vector< QMAtom* >* getAtoms() { return &_atoms; } //OLD
+    const std::vector< CTP::QMAtom* > &QMAtoms() const { return _atoms ;}
+    std::vector< CTP::QMAtom* > &QMAtoms()  { return _atoms ;}
+    std::vector< CTP::QMAtom* >* getAtoms() { return &_atoms; } //OLD
     
     // access to classical self-energy in MM environment, new, tested
     bool hasSelfEnergy() { return ( _self_energy != 0.0 ) ? true : false ; }
@@ -358,17 +358,17 @@ public:
     void SortEnergies( std::vector<int>* index );
     
     /** Adds a QM atom to the atom list */
-    QMAtom* AddAtom (std::string _type, 
+    CTP::QMAtom* AddAtom (std::string _type, 
                      double _x, double _y, double _z, 
                      double _charge = 0, bool _from_environment = false)
     {
-        QMAtom* pAtom = new QMAtom(_type, _x, _y, _z, _charge, _from_environment);
+        CTP::QMAtom* pAtom = new CTP::QMAtom(_type, _x, _y, _z, _charge, _from_environment);
         _atoms.push_back( pAtom );
         return pAtom;
     }
-    QMAtom* AddAtom (QMAtom atom)
+    CTP::QMAtom* AddAtom (CTP::QMAtom atom)
     {
-        QMAtom* pAtom = new QMAtom(atom);
+        CTP::QMAtom* pAtom = new CTP::QMAtom(atom);
         _atoms.push_back( pAtom );
         return pAtom;
     }
@@ -412,7 +412,7 @@ private:
     ub::symmetric_matrix<double>            _overlap;
     ub::symmetric_matrix<double>            _vxc;
     
-    std::vector< QMAtom* >                  _atoms;   
+    std::vector< CTP::QMAtom* >                  _atoms;   
 
     double                                  _qm_energy;
     double                                  _self_energy;
@@ -665,7 +665,7 @@ private:
 
 }}
 
-BOOST_CLASS_VERSION(votca::ctp::Orbitals, 2)
+BOOST_CLASS_VERSION(muscet::xtp::Orbitals, 2)
         
 #endif	/* __VOTCA_XTP_ORBITALS_H */
 

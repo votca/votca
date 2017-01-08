@@ -29,21 +29,18 @@
 
 
 
-
-//namespace votca { namespace ctp {
 namespace muscet { namespace xtp {
-    namespace XTP = muscet::xtp;
-    namespace CTP = votca::ctp;
+    
 void XQMToolFactory::RegisterAll(void)
 {
     
-    //XQMTools().Register<CTP::Exciton>            ("exciton");
-    XQMTools().Register<XTP::QMAnalyze>          ("qmanalyze");
-   // XQMTools().Register<CTP::Spectrum>           ("spectrum");
-    //XQMTools().Register<CTP::ExcitonCoupling>    ("excitoncoupling");
-    //XQMTools().Register<CTP::DFT>                ("dft");
-    //XQMTools().Register<CTP::GenCube>            ("gencube");
-    //XQMTools().Register<CTP::Partialcharges>     ("partialcharges");
+    XQMTools().Register<Exciton>            ("exciton");
+    XQMTools().Register<QMAnalyze>          ("qmanalyze");
+    XQMTools().Register<Spectrum>           ("spectrum");
+    XQMTools().Register<ExcitonCoupling>    ("excitoncoupling");
+    XQMTools().Register<DFT>                ("dft");
+    XQMTools().Register<GenCube>            ("gencube");
+    XQMTools().Register<Partialcharges>     ("partialcharges");
         
 }
 

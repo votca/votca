@@ -43,10 +43,10 @@ namespace Cart {
                 };
 }
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
     namespace ub = boost::numeric::ublas;
     
-    
+    namespace CTP = votca::ctp;
     
     
     /* "superclass" AOSuperMatrix contains all common functionality for
@@ -162,7 +162,7 @@ namespace votca { namespace ctp {
         //block fill for overlap, implementation in aoesp.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         //void Print();
-        void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms );
+        void Fillnucpotential( AOBasis* aobasis, std::vector<CTP::QMAtom*>& _atoms );
         
         ub::matrix<double> _nuclearpotential;
         // ~AOESP();

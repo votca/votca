@@ -35,9 +35,9 @@
 using namespace votca::tools;
 
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
     namespace ub = boost::numeric::ublas;
-    
+    namespace CTP = votca::ctp;
 class Lowdin{
 public:
     
@@ -45,7 +45,7 @@ public:
    ~Lowdin(){};
     
     void setUseECPs(bool use_ecp){_use_ecp=use_ecp;}
-    void EvaluateLowdin(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
+    void EvaluateLowdin(std::vector< CTP::QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
   
    
 private:

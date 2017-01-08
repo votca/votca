@@ -42,9 +42,9 @@
 // #include <gsl/gsl_linalg.h>
 // #include <gsl/gsl_cblas.h>
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
     namespace ub = boost::numeric::ublas;
-
+    namespace CTP = votca::ctp;
         /**
          * \brief Electronic excitations from GW-BSE
          *
@@ -91,7 +91,7 @@ public:
     // int getMlower(){ return mmin -1; };
     // int getMupper(){ return mmax -1; };
     
-    void setLogger( Logger* pLog ) { _pLog = pLog; }
+    void setLogger( CTP::Logger* pLog ) { _pLog = pLog; }
     
     bool Evaluate();
 
@@ -179,7 +179,7 @@ public:
     
     private:
 
-    Logger *_pLog;
+    CTP::Logger *_pLog;
     
 
     

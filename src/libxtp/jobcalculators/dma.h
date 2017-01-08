@@ -35,7 +35,8 @@
 
 using boost::format;
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
+    namespace CTP = votca::ctp;
 
 /**
 * \brief Distributed multipole analysis using Gaussian input
@@ -46,7 +47,7 @@ namespace votca { namespace ctp {
 * Callname: dma
 */
 
-class DMA : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
+class DMA : public ParallelXJobCalc< vector<CTP::Job*>, CTP::Job*, CTP::Job::JobResult >
 {
 public:
 
@@ -55,9 +56,9 @@ public:
 
     string   Identify() { return "dma"; }
     void     Initialize(Property *options);
-    void     WriteJobFile(Topology *top);
+    void     WriteJobFile(CTP::Topology *top);
     
-    Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
+    CTP::Job::JobResult EvalJob(CTP::Topology *top, CTP::Job *job, CTP::QMThread *thread);
 
 private:
 

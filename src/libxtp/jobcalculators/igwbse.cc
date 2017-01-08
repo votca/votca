@@ -35,7 +35,8 @@ using namespace votca::tools;
 
 namespace ub = boost::numeric::ublas;
     
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
+    namespace CTP = votca::ctp;
     
 // +++++++++++++++++++++++++++++ //
 // IGWBSE MEMBER FUNCTIONS         //
@@ -163,25 +164,25 @@ std::map<std::string, int> IGWBSE::FillParseMaps(string Mapstring){
     return type2level;
 }
 
-void IGWBSE::LoadOrbitals(string file_name, Orbitals* orbitals, Logger *log ) {
+void IGWBSE::LoadOrbitals(string file_name, Orbitals* orbitals, CTP::Logger *log ) {
 
-    LOG(logDEBUG, *log) << "Loading " << file_name << flush; 
+    LOG(CTP::logDEBUG, *log) << "Loading " << file_name << flush; 
     std::ifstream ifs( file_name.c_str() );
     boost::archive::binary_iarchive ia( ifs );
     try {
         ia >> *orbitals;
     } catch(std::exception &err) {
-        LOG(logDEBUG, *log) << "Could not load orbitals from " << file_name << flush; 
+        LOG(CTP::logDEBUG, *log) << "Could not load orbitals from " << file_name << flush; 
         std::cerr << "An error occurred:\n" << err.what() << endl;
     } 
     ifs.close();
 
 }
 
-Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
+CTP::Job::JobResult IGWBSE::EvalJob(CTP::Topology *top, CTP::Job *job, CTP::QMThread *opThread) {
     
     // report back to the progress observer
-    Job::JobResult jres = Job::JobResult();
+    CTP::Job::JobResult jres = CTP::Job::JobResult();
     
     string igwbse_work_dir = "OR_FILES";
     string egwbse_work_dir = "OR_FILES";
@@ -196,7 +197,7 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     
  
     // get the logger from the thread
-    Logger* pLog = opThread->getLogger();   
+    CTP::Logger* pLog = opThread->getLogger();   
    
     // get the information about the job executed by the thread
     int _job_ID = job->getId();
@@ -217,18 +218,18 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string orbFileAB = (arg_pathAB / igwbse_work_dir / "pairs_gwbse" / frame_dir / (format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb" ).str()).c_str();
     string _orb_dir  = (arg_path / igwbse_work_dir / "pairs_gwbse" / frame_dir).c_str();
     
-    Segment *seg_A = top->getSegment( ID_A );   
+    CTP::Segment *seg_A = top->getSegment( ID_A );   
     assert( seg_A->getName() == type_A );
     
-    Segment *seg_B = top->getSegment( ID_B );
+    CTP::Segment *seg_B = top->getSegment( ID_B );
     assert( seg_B->getName() == type_B );
     
-    vector < Segment* > segments;
+    vector < CTP::Segment* > segments;
     segments.push_back( seg_A );
     segments.push_back( seg_B );
     
 
-    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating pair "  
+    LOG(CTP::logINFO,*pLog) << CTP::TimeStamp() << " Evaluating pair "  
             << _job_ID << " ["  << ID_A << ":" << ID_B << "] out of " << 
            (top->NBList()).size()  << flush; 
 
@@ -249,28 +250,28 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         boost::filesystem::create_directories( _qmpackage_work_dir );
         Orbitals *_orbitalsAB = NULL;        
         if ( _qmpackage->GuessRequested() ) { // do not want to do an SCF loop for a dimer
-            LOG(logINFO,*pLog) << "Guess requested, reading molecular orbitals" << flush;
+            LOG(CTP::logINFO,*pLog) << "Guess requested, reading molecular orbitals" << flush;
             Orbitals _orbitalsA, _orbitalsB;   
             _orbitalsAB = new Orbitals();
             // load the corresponding monomer orbitals and prepare the dimer guess 
             
             // failed to load; wrap-up and finish current job
             if ( !_orbitalsA.Load( orbFileA ) ) {
-               LOG(logERROR,*pLog) << "Do input: failed loading orbitals from " << orbFileA << flush; 
+               LOG(CTP::logERROR,*pLog) << "Do input: failed loading orbitals from " << orbFileA << flush; 
                cout << *pLog;
                output += "failed on " + orbFileA;
                jres.setOutput( output ); 
-               jres.setStatus(Job::FAILED);
+               jres.setStatus(CTP::Job::FAILED);
                delete _qmpackage;
                return jres;
             }
             
             if ( !_orbitalsB.Load( orbFileB ) ) {
-               LOG(logERROR,*pLog) << "Do input: failed loading orbitals from " << orbFileB << flush; 
+               LOG(CTP::logERROR,*pLog) << "Do input: failed loading orbitals from " << orbFileB << flush; 
                cout << *pLog;
                output += "failed on " + orbFileB;
                jres.setOutput( output ); 
-               jres.setStatus(Job::FAILED);
+               jres.setStatus(CTP::Job::FAILED);
                delete _qmpackage;
                return jres;
             }
@@ -284,14 +285,14 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         
          
         // if a pair object is available, take into account PBC, otherwise write as is
-        QMNBList* nblist = &top->NBList();
-        QMPair* pair = nblist->FindPair(seg_A, seg_B);
+        CTP::QMNBList* nblist = &top->NBList();
+        CTP::QMPair* pair = nblist->FindPair(seg_A, seg_B);
     
         if ( pair == NULL ) {
-            vector < Segment* > segments;
+            vector < CTP::Segment* > segments;
             segments.push_back( seg_A );
             segments.push_back( seg_B );
-            LOG(logWARNING,*pLog) << "PBCs are not taken into account when writing the coordinate file!" << flush; 
+            LOG(CTP::logWARNING,*pLog) << "PBCs are not taken into account when writing the coordinate file!" << flush; 
             _qmpackage->WriteInputFile(segments, _orbitalsAB);
         } else {
             _qmpackage->WriteInputFilePBC(pair, _orbitalsAB);
@@ -311,10 +312,10 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             _run_dft_status = _qmpackage->Run( );
             if ( !_run_dft_status ) {
                     output += "run failed; " ;
-                    LOG(logERROR,*pLog) << _qmpackage->getPackageName() << " run failed" << flush;
+                    LOG(CTP::logERROR,*pLog) << _qmpackage->getPackageName() << " run failed" << flush;
                     cout << *pLog;
                     jres.setOutput( output ); 
-                    jres.setStatus(Job::FAILED);
+                    jres.setStatus(CTP::Job::FAILED);
                     delete _qmpackage;
                     return jres;
             } 
@@ -330,10 +331,10 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
             if ( !_parse_log_status ) {
                     output += "log incomplete; ";
-                    LOG(logERROR,*pLog) << "LOG parsing failed" << flush;
+                    LOG(CTP::logERROR,*pLog) << "LOG parsing failed" << flush;
                     cout << *pLog;
                     jres.setOutput( output ); 
-                    jres.setStatus(Job::FAILED);
+                    jres.setStatus(CTP::Job::FAILED);
                     delete _qmpackage;
                     return jres;
             } 
@@ -342,10 +343,10 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
             if ( !_parse_orbitals_status ) {
                     output += "fort7 failed; " ;
-                    LOG(logERROR,*pLog) << "Orbitals parsing failed" << flush;
+                    LOG(CTP::logERROR,*pLog) << "Orbitals parsing failed" << flush;
                     cout << *pLog;
                     jres.setOutput( output ); 
-                    jres.setStatus(Job::FAILED);
+                    jres.setStatus(CTP::Job::FAILED);
                     delete _qmpackage;
                     return jres;
             } 
@@ -380,21 +381,21 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        
        // failed to load; wrap-up and finish current job
        if ( !_orbitalsA.Load( orbFileA ) ) {
-               LOG(logERROR,*pLog) << "Failed loading orbitals from " << orbFileA << flush; 
+               LOG(CTP::logERROR,*pLog) << "Failed loading orbitals from " << orbFileA << flush; 
                cout << *pLog;
                output += "failed on " + orbFileA;
                jres.setOutput( output ); 
-               jres.setStatus(Job::FAILED);
+               jres.setStatus(CTP::Job::FAILED);
                delete _qmpackage;
                return jres;
        }
        
         if ( !_orbitalsB.Load( orbFileB ) ) {
-              LOG(logERROR,*pLog) << "Failed loading orbitals from " << orbFileB << flush; 
+              LOG(CTP::logERROR,*pLog) << "Failed loading orbitals from " << orbFileB << flush; 
                cout << *pLog;
                output += "failed on " + orbFileB;
                jres.setOutput( output ); 
-               jres.setStatus(Job::FAILED);
+               jres.setStatus(CTP::Job::FAILED);
                delete _qmpackage;
                return jres;
         }
@@ -407,10 +408,10 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        
        if ( !_calculate_integrals ) {
                 output += "integrals failed; " ;
-                LOG(logERROR,*pLog) << "Calculating integrals failed" << flush;
+                LOG(CTP::logERROR,*pLog) << "Calculating integrals failed" << flush;
                 cout << *pLog;
                 jres.setOutput( output ); 
-                jres.setStatus(Job::FAILED);
+                jres.setStatus(CTP::Job::FAILED);
                 return jres;
        } 
        
@@ -424,7 +425,7 @@ Job::JobResult IGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     
     
     }
-   LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush; 
+   LOG(CTP::logINFO,*pLog) << CTP::TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush; 
 
    
       Property *_job_output = &_job_summary.add("output","");
@@ -444,7 +445,7 @@ if ( _write_orbfile){
    // save orbitals 
    boost::filesystem::create_directories(_orb_dir);  
 
-   LOG(logDEBUG,*pLog) << "Saving orbitals to " << orbFileAB << flush;
+   LOG(CTP::logDEBUG,*pLog) << "Saving orbitals to " << orbFileAB << flush;
    std::ofstream ofs( orbFileAB.c_str() );
    boost::archive::binary_oarchive oa( ofs );
    
@@ -477,7 +478,7 @@ if ( _write_orbfile){
    ofs.close();
    }
    else{
-      LOG(logDEBUG,*pLog) << "Orb file is not saved according to options "<< flush; 
+      LOG(CTP::logDEBUG,*pLog) << "Orb file is not saved according to options "<< flush; 
    }
 
    // cleanup whatever is not needed
@@ -485,16 +486,16 @@ if ( _write_orbfile){
    delete _qmpackage;
    
     jres.setOutput( _job_summary );    
-    jres.setStatus(Job::COMPLETE);
+    jres.setStatus(CTP::Job::COMPLETE);
     
     return jres;
 }
 
 
-void IGWBSE::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, Logger *log ) 
+void IGWBSE::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, CTP::Logger *log ) 
 {
     
-    LOG(logDEBUG,*log)  << "Constructing the guess for dimer orbitals" << flush;   
+    LOG(CTP::logDEBUG,*log)  << "Constructing the guess for dimer orbitals" << flush;   
    
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
@@ -539,7 +540,7 @@ void IGWBSE::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals*
 
 }   
 
-void IGWBSE::WriteJobFile(Topology *top) {
+void IGWBSE::WriteJobFile(CTP::Topology *top) {
 
     cout << endl << "... ... Writing job file " << flush;
     std::ofstream ofs;
@@ -547,8 +548,8 @@ void IGWBSE::WriteJobFile(Topology *top) {
     if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
 
  
-    QMNBList::iterator pit;
-    QMNBList &nblist = top->NBList();    
+    CTP::QMNBList::iterator pit;
+    CTP::QMNBList &nblist = top->NBList();    
 
     int jobCount = 0;
     if (nblist.size() == 0) {
@@ -578,7 +579,7 @@ void IGWBSE::WriteJobFile(Topology *top) {
         pSegment->setAttribute<string>("type", name2 );
         pSegment->setAttribute<int>("id", id2 );
         
-        Job job(id, tag, Input, Job::AVAILABLE );
+        CTP::Job job(id, tag, Input, CTP::Job::AVAILABLE );
         job.ToStream(ofs,"xml");
         //}
     }
@@ -681,21 +682,21 @@ void IDFT::ReadJobFile( Topology *top )
  * Imports electronic couplings with superexchange
  */  
 
-void IGWBSE::ReadJobFile(Topology *top) {
+void IGWBSE::ReadJobFile(CTP::Topology *top) {
 
     Property xml;
 
     vector<Property*> records;
     
     // gets the neighborlist from the topology
-    QMNBList &nblist = top->NBList();
+    CTP::QMNBList &nblist = top->NBList();
     int _number_of_pairs = nblist.size();
     int _current_pairs = 0;
     int _incomplete_jobs = 0;
     
     // output using logger
-    Logger _log;
-    _log.setReportLevel(logINFO);
+    CTP::Logger _log;
+    _log.setReportLevel(CTP::logINFO);
     
 
     // load the QC results in a vector indexed by the pair ID
@@ -729,13 +730,13 @@ void IGWBSE::ReadJobFile(Topology *top) {
             double idB=id[1];
                            
             // segments which correspond to these ids           
-            Segment *segA = top->getSegment(idA);
-            Segment *segB = top->getSegment(idB);
+            CTP::Segment *segA = top->getSegment(idA);
+            CTP::Segment *segB = top->getSegment(idB);
             // pair that corresponds to the two segments
-            QMPair *qmp = nblist.FindPair(segA,segB);
+            CTP::QMPair *qmp = nblist.FindPair(segA,segB);
             
             if (qmp == NULL) { // there is no pair in the neighbor list with this name
-                LOG_SAVE(logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
+                LOG_SAVE(CTP::logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
                 //LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
                 records[qmp->getId()] = & ((*it)->get("output.pair.type"));
@@ -748,25 +749,25 @@ void IGWBSE::ReadJobFile(Topology *top) {
 
     // loop over all pairs in the neighbor list
     std::cout << "Neighborlist size " << top->NBList().size() << std::endl;
-    for (QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
+    for (CTP::QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
         
-        QMPair *pair = *ipair;
+        CTP::QMPair *pair = *ipair;
         if (records[ pair->getId() ]==NULL) continue; //skip pairs which are not in the jobfile
         
-        Segment* segmentA = pair->Seg1();
-        Segment* segmentB = pair->Seg2();
+        CTP::Segment* segmentA = pair->Seg1();
+        CTP::Segment* segmentB = pair->Seg2();
         
         
         
         //cout << "Processing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
         
-        QMPair::PairType _ptype = pair->getType();
+        CTP::QMPair::PairType _ptype = pair->getType();
         Property* pair_property = records[ pair->getId() ];
  
         
        
         // If a pair is of a direct type 
-        if ( _ptype == QMPair::Hopping ||  _ptype == QMPair::SuperExchangeAndHopping ) {
+        if ( _ptype == CTP::QMPair::Hopping ||  _ptype == CTP::QMPair::SuperExchangeAndHopping ) {
             //cout << ":hopping" ;
             
             if(pair_property->exists("singlets")){
@@ -811,7 +812,7 @@ void IGWBSE::ReadJobFile(Topology *top) {
 
     }
                     
-    LOG_SAVE(logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
+    LOG_SAVE(CTP::logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
     cout << _log;
 }
 

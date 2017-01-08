@@ -57,7 +57,7 @@ private:
     
     CTP::Logger      _log;
     
-    void CheckContent(  CTP::Orbitals& _orbitals );
+    void CheckContent(  Orbitals& _orbitals );
 
 };
 
@@ -130,7 +130,7 @@ bool QMAnalyze::Evaluate() {
 
     LOG(CTP::logDEBUG, _log) << "Analyzing serialized QM data in " << _orbfile << flush;
 
-    CTP::Orbitals _orbitals;
+    Orbitals _orbitals;
     // load the QM data from serialized orbitals object
 
     std::ifstream ifs( (_orbfile).c_str());
@@ -154,7 +154,7 @@ bool QMAnalyze::Evaluate() {
 
 
 
-void QMAnalyze::CheckContent( CTP::Orbitals& _orbitals ){
+void QMAnalyze::CheckContent( Orbitals& _orbitals ){
 
 
    

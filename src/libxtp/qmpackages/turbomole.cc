@@ -34,8 +34,9 @@
 
 using namespace boost::filesystem;
 
-namespace votca { namespace ctp {
+namespace muscet { namespace xtp {
     namespace ub = boost::numeric::ublas;
+    namespace CTP = votca::ctp;
     
 void Turbomole::Initialize( Property *opt ) { 
                
@@ -82,16 +83,16 @@ void Turbomole::Initialize( Property *opt ) {
  * Prepares the com file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied
  */
-bool Turbomole::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_guess )
+bool Turbomole::WriteInputFile( std::vector<CTP::Segment* > segments, Orbitals* orbitals_guess )
 {
-    std::vector< Atom* > _atoms;
-    std::vector< Atom* > ::iterator ait;
-    std::vector< Segment* >::iterator sit;
+    std::vector< CTP::Atom* > _atoms;
+    std::vector< CTP::Atom* > ::iterator ait;
+    std::vector< CTP::Segment* >::iterator sit;
     string temp_suffix = "/id";
     
     double nm2Bohr = 18.897259886;
     
-    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Preparing input " << flush;
+    LOG(CTP::logDEBUG,*_pLog) << "TURBOMOLE: Preparing input " << flush;
     
     std::ofstream _coord_file;
 
@@ -150,7 +151,7 @@ bool Turbomole::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbit
     _command  = "cd " + _run_dir + "; " + _input_exe + " <  ./" + _input_file_name + " >& " + _input_file_name + ".log" ;
     int check=std::system(_command.c_str());
     if (check==-1){
-        LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+        LOG(CTP::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
         return false;
     }
     
@@ -159,7 +160,7 @@ bool Turbomole::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbit
     
     if ( _scratch_dir != "" ) {
         
-        LOG(logDEBUG,*_pLog) << "TURBOMOLE: scratch dir " << _scratch_dir + temp_suffix << flush;
+        LOG(CTP::logDEBUG,*_pLog) << "TURBOMOLE: scratch dir " << _scratch_dir + temp_suffix << flush;
 
         boost::filesystem::create_directories( _scratch_dir + temp_suffix );
     
@@ -234,7 +235,7 @@ bool Turbomole::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbit
         }
     }
 
-    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Finished with input" << flush;
+    LOG(CTP::logDEBUG,*_pLog) << "TURBOMOLE: Finished with input" << flush;
     return true;    
     
 }
@@ -256,7 +257,7 @@ std::string Turbomole::FortranFormat( const double &number ) {
 bool Turbomole::Run()
 {
 
-    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Running job [" << _executable << "]" << flush;
+    LOG(CTP::logDEBUG,*_pLog) << "TURBOMOLE: Running job [" << _executable << "]" << flush;
     
     if (std::system(NULL)) {
         // if scratch is provided, run the shell script; 
@@ -268,11 +269,11 @@ bool Turbomole::Run()
         if (std::system(_command.c_str())){
           throw runtime_error("Command "+ _command + "failed");
         }
-        LOG(logDEBUG,*_pLog) << "TURBOMOLE: Finished job" << flush;
+        LOG(CTP::logDEBUG,*_pLog) << "TURBOMOLE: Finished job" << flush;
         return true;
     }
     else {
-        LOG(logERROR,*_pLog) << "TURBOMOLE: " <<  _input_file_name << " failed to start" << flush; 
+        LOG(CTP::logERROR,*_pLog) << "TURBOMOLE: " <<  _input_file_name << " failed to start" << flush; 
         return false;
     }
     
@@ -286,7 +287,7 @@ bool Turbomole::Run()
  */
 void Turbomole::CleanUp() {
     
-    LOG(logDEBUG,*_pLog) << "Removing files " << _cleanup << flush;
+    LOG(CTP::logDEBUG,*_pLog) << "Removing files " << _cleanup << flush;
     
     // cleaning up the generated files
     if ( _cleanup.size() != 0 ) {
@@ -339,10 +340,10 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
     //cout << endl << (_run_dir + "/" + _orb_file_name).c_str();
 
     if (_input_file.fail()) {
-        LOG( logERROR, *_pLog ) << "File " << _orb_file_name << " with molecular orbitals is not found " << flush;
+        LOG( CTP::logERROR, *_pLog ) << "File " << _orb_file_name << " with molecular orbitals is not found " << flush;
         return false;
     } else {
-        LOG(logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name << flush;
+        LOG(CTP::logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name << flush;
     }
 
     // get the first line with $
@@ -400,19 +401,19 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
     } 
 
     // some sanity checks
-    LOG( logDEBUG, *_pLog ) << "Energy levels: " << _levels << flush;
+    LOG( CTP::logDEBUG, *_pLog ) << "Energy levels: " << _levels << flush;
 
     std::map< int, std::vector<double> >::iterator iter = _coefficients.begin();
     _basis_size = iter->second.size();
 
     for (iter = _coefficients.begin()++; iter != _coefficients.end(); iter++) {
         if (iter->second.size() != _basis_size) {
-            LOG( logERROR, *_pLog ) << "Error reading " << _orb_file_name << ". Basis set size change from level to level." << flush;
+            LOG( CTP::logERROR, *_pLog ) << "Error reading " << _orb_file_name << ". Basis set size change from level to level." << flush;
             return false;
         }
     }
     
-    LOG( logDEBUG, *_pLog ) << "Basis set size: " << _basis_size << flush;
+    LOG( CTP::logDEBUG, *_pLog ) << "Basis set size: " << _basis_size << flush;
 
     // copying information to the orbitals object
     _orbitals->setBasisSetSize( _basis_size );
@@ -444,7 +445,7 @@ bool Turbomole::ParseOrbitalsFile( Orbitals* _orbitals )
    _energies.clear();
    
      
-   LOG(logDEBUG, *_pLog) << "Done reading MOs" << flush;
+   LOG(CTP::logDEBUG, *_pLog) << "Done reading MOs" << flush;
 
    return true;
 }
@@ -461,7 +462,7 @@ bool Turbomole::CheckLogFile() {
     std::ifstream _input_file( logFileName.c_str() );
     //cout << (_run_dir + "/" + _log_file_name).c_str();
     if (_input_file.fail()) {
-        LOG(logERROR,*_pLog) << "TURBOMOLE: "<< _log_file_name << " is not found" << flush;
+        LOG(CTP::logERROR,*_pLog) << "TURBOMOLE: "<< _log_file_name << " is not found" << flush;
         return false;
     };
 
@@ -488,10 +489,10 @@ bool Turbomole::CheckLogFile() {
         
     std::string::size_type self_energy_pos = _line.find("ended normally");
     if (self_energy_pos == std::string::npos) {
-            LOG(logERROR,*_pLog) << "TURBOMOLE: " <<  _log_file_name << " is incomplete" << flush;
+            LOG(CTP::logERROR,*_pLog) << "TURBOMOLE: " <<  _log_file_name << " is incomplete" << flush;
             return false;      
     } else {
-            //LOG(logDEBUG,*_pLog) << "Gaussian LOG is complete" << flush;
+            //LOG(CTP::logDEBUG,*_pLog) << "Gaussian LOG is complete" << flush;
             return true;
     }
 }
@@ -520,7 +521,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     int _basis_set_size = 0;
 
     
-    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Parsing " << _log_file_name << flush;
+    LOG(CTP::logDEBUG,*_pLog) << "TURBOMOLE: Parsing " << _log_file_name << flush;
 
     // check if LOG file is complete
     if ( !CheckLogFile() ) return false;
@@ -552,7 +553,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
             boost::trim( _oo );
             _number_of_electrons =  boost::lexical_cast<int>(_oo) ;
             _orbitals->setNumberOfElectrons( _number_of_electrons );
-            LOG(logDEBUG,*_pLog) << "Alpha electrons: " << _number_of_electrons << flush ;
+            LOG(CTP::logDEBUG,*_pLog) << "Alpha electrons: " << _number_of_electrons << flush ;
         }
 
         /*
@@ -568,7 +569,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
             boost::trim( _bf );
             _basis_set_size = boost::lexical_cast<int>(_bf);
             _orbitals->setBasisSetSize( _basis_set_size );
-            LOG(logDEBUG,*_pLog) << "Basis functions: " << _basis_set_size << flush;
+            LOG(CTP::logDEBUG,*_pLog) << "Basis functions: " << _basis_set_size << flush;
         }
 
         /*
@@ -590,7 +591,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
             (_orbitals->_overlap).resize( _basis_set_size );
             
             _has_overlap_matrix = true;
-            LOG(logDEBUG,*_pLog) << "Read the overlap matrix" << flush;
+            LOG(CTP::logDEBUG,*_pLog) << "Read the overlap matrix" << flush;
             
             // skip the next line with "----"
             getline(_input_file, _line);
@@ -643,7 +644,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         std::string::size_type charge_pos = _line.find("Charges from ESP fit, RMS");
         
         if (charge_pos != std::string::npos && _get_charges ) {        
-                LOG(logDEBUG,*_pLog) << "Getting charges" << flush;
+                LOG(CTP::logDEBUG,*_pLog) << "Getting charges" << flush;
                 _has_charges = true;
                 //_orbitals->_has_atoms = true;
         }
@@ -655,9 +656,9 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
          std::string::size_type coordinates_pos = _line.find("Test job not archived");
         
         if (coordinates_pos != std::string::npos) {
-            LOG(logDEBUG,*_pLog) << "Getting the coordinates" << flush;
+            LOG(CTP::logDEBUG,*_pLog) << "Getting the coordinates" << flush;
             //_has_coordinates = true;
-            LOG(logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
+            LOG(CTP::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
                     
             //_orbitals->_has_atoms = true;
             // _orbitals->_has_qm_energy = true;
@@ -670,9 +671,9 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
          std::string::size_type self_energy_pos = _line.find("Self energy of the charges");
         
         if (self_energy_pos != std::string::npos) {
-            LOG(logDEBUG,*_pLog) << "Getting the self energy\n";  
+            LOG(CTP::logDEBUG,*_pLog) << "Getting the self energy\n";  
             _has_self_energy = true;
-            LOG(logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() <<  flush;
+            LOG(CTP::logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() <<  flush;
             
             // _orbitals->_has_self_energy = true;
         }
@@ -689,7 +690,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
         
     } // end of reading the file line-by-line
    
-    LOG(logDEBUG,*_pLog) << "TURBOMOLE: Done parsing" << flush;
+    LOG(CTP::logDEBUG,*_pLog) << "TURBOMOLE: Done parsing" << flush;
     return true;
 }
 
