@@ -271,7 +271,7 @@ namespace votca { namespace xtp {
                 
 
                 double DFAK = 0.5 * double(N + 3);
-                //double DFAKP1 = DFAK + 1.0;
+                double DFAKP1 = DFAK + 1.0;
 
                  //cout << np << " " << DFAK << " " << DFAKP1 << " " <<  DGAMAF << endl;
                 
@@ -285,14 +285,14 @@ namespace votca { namespace xtp {
                     /***** ONLY r^2 powers in ECP ********************************/
                     XI(L, np-1) = 0.0;
                     for (int I = 0; I < nnonsep; I++) {
-                        double DLI = (alpha + beta + _gamma_ecp(I, L)); // r^0 terms
-                        //double DLJ = (beta + alpha + _gamma_ecp(I , L)); // r^2 terms (here!)
-                        XI(L, np-1) += _pref_ecp(I, L) / pow(DLI, DFAK);// + _pref_ecp(I + nnonsep, L) * DFAK / pow(DLJ, DFAKP1);
-                        //XI(L, np-1) +=  _pref_ecp(I , L) * DFAK / pow(DLJ, DFAKP1);
+                        //ouble DLI = (alpha + beta + _gamma_ecp(I, L)); // r^0 terms
+                        double DLJ = (beta + alpha + _gamma_ecp(I , L)); // r^2 terms (here!)
+                        //XI(L, np-1) += _pref_ecp(I, L) / pow(DLI, DFAK);// + _pref_ecp(I + nnonsep, L) * DFAK / pow(DLJ, DFAKP1);
+                        XI(L, np-1) +=  _pref_ecp(I , L) * DFAK / pow(DLJ, DFAKP1);
                         
                     }
 
-                    XI(L,np-1) = XI(L,np-1)*DGAMAF*0.5;
+                    XI(L,np-1) = XI(L,np-1)*DGAMAF;
                     
                 }
 

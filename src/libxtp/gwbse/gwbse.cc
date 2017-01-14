@@ -494,7 +494,7 @@ void GWBSE::addoutput(Property *_summary) {
             }
             
         
-         
+       //  cout << _dft_orbitals<< endl;
             
             
             /// ------- actual calculation begins here -------
@@ -521,7 +521,7 @@ void GWBSE::addoutput(Property *_summary) {
             _gwoverlap.Initialize(gwbasis._AOBasisSize);
             // Fill overlap
             _gwoverlap.Fill(&gwbasis);
-            
+            //cout<<_gwoverlap.Matrix()<<endl;
             //_gwoverlap.Print("AOOL");
             
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() << flush;
@@ -575,6 +575,7 @@ void GWBSE::addoutput(Property *_summary) {
             TCMatrix _Mmn;
             _Mmn.Initialize(gwbasis._AOBasisSize, _rpamin, _qpmax, _rpamin, _rpamax);
             _Mmn.Fill(gwbasis, dftbasis, _dft_orbitals);
+            
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
             
 
