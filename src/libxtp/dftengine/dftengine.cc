@@ -451,7 +451,7 @@ namespace votca {
                 _dftAOESP.getNuclearpotential() += _dftAOECP.Matrix();
                 
             }
-            // exit(0);
+             
             
 	    // AUX AOoverlap
         
@@ -783,8 +783,8 @@ namespace votca {
                   if ((*ext)->getRank()>0 || (*ext)->IsPolarizable()){
                       vec dipole=((*ext)->getU1()+(*ext)->getQ1())*tools::conv::nm2bohr;
                       E_ext-=charge1*dipole*(r2-r1)/pow(abs(r2-r1),3);
-                      cout <<endl;
-                      cout<<"WARNING: dipoles not tested yet!"<<endl;
+                      
+                      
                   }
                   if((*ext)->getRank()>1){
                       cout <<endl;
