@@ -19,7 +19,7 @@
 
 #ifndef __XTP_THREECENTERS__H
 #define	__XTP_THREECENTERS__H
-//#define BOOST_DISABLE_ASSERTS //could be used to slighlty speed up calculation but the compile time simply goes boom
+#define BOOST_DISABLE_ASSERTS //could be used to slighlty speed up calculation but the compile time simply goes boom
 #include <boost/multi_array.hpp>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/logger.h>

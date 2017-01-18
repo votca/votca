@@ -278,6 +278,7 @@ namespace votca {
 
             if(_with_ecp){
             H0+=_dftAOECP.Matrix();
+            //cout<<_dftAOECP.Matrix()<<endl;
             cout<<endl;
             cout<< "WARNING ecps are up to numercis correct" <<endl;
             }

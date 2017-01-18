@@ -30,7 +30,6 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/math/special_functions/factorials.hpp>
-#include <boost/multi_array.hpp>
 #include <votca/xtp/logger.h>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/elements.h>
@@ -311,21 +310,21 @@ namespace votca { namespace xtp {
          ma_type COEF;
          COEF.resize(extents[ range(1, 4) ][ range(1, 4) ][ range(1, 6)][range(1,43)]);
          
-         for ( index i4 = 1; i4 <=42; i4++ ){
+         
 
              // init it all to 0
              for ( index i1 = 1; i1 <=3; i1++ ){
                  for ( index i2 = 1; i2 <=3; i2++ ){
                      for ( index i3 = 1; i3 <=5; i3++ ){
-                         
+                          for ( index i4 = 1; i4 <=42; i4++ ){
                          COEF[i1][i2][i3][i4] = 0.0;
-                         
+                          }
                          
                      }
                  }
                  
              } 
-             
+              for ( index i4 = 1; i4 <=42; i4++ ){
             /********** ORIGINAL CKOEF SUBROUTINE *************************/
                 int N = i4 - 1;
                 int NU = N % 2;
@@ -393,11 +392,20 @@ namespace votca { namespace xtp {
          } else {
              
              double AMAX = 0.0;  
+             double fak=2.0*alpha*AVSSQ;
+             double Pow=1;
+             double factorialNN=1;
              for ( int N=1; N<=43; N++ ){
                  
                  int NN = N-1;
-                 double factorialNN = boost::math::factorial<double>(double(NN));
-                 double AF=pow(2.0*alpha*AVSSQ,NN)/factorialNN*G1;
+                 
+                 
+                 if(NN!=0){
+                     Pow=Pow*fak;
+                     factorialNN=factorialNN*NN;
+                 }
+                 
+                 double AF=Pow/factorialNN*G1;
                  double AF1 = std::abs(AF * XI(0,NN + 4));
                  double AF2 = std::abs(AF * XI(1,NN + 4));
                  double AF3 = std::abs(AF * XI(2,NN + 4));
@@ -421,11 +429,18 @@ namespace votca { namespace xtp {
          } else {
              
              double BMAX = 0.0;  
+             double fak=2.0*beta*BVSSQ;
+             double Pow=1;
+             double factorialNN=1;
              for ( int N=1; N<=42; N++ ){
                  
                  int NN = N-1;
-                 double factorialNN = boost::math::factorial<double>(double(NN));
-                 double BF=pow(2.0*beta*BVSSQ,NN)/factorialNN*G2;
+                 
+                 if(NN!=0){
+                     Pow=Pow*fak;
+                     factorialNN=factorialNN*NN;
+                 }
+                 double BF=Pow/factorialNN*G2;
                  double BF1 = std::abs(BF * XI(0,NN + 4));
                  double BF2 = std::abs(BF * XI(1,NN + 4));
                  double BF3 = std::abs(BF * XI(2,NN + 4));
@@ -547,21 +562,37 @@ namespace votca { namespace xtp {
                                 switch (INULL) {
                                     case 1:
                                     {
+                                        double fak1=2.0*alpha*AVSSQ;
+                                        double pow1=1;
+                                        double factorialN=1;
                                         for ( int N1 = 1; N1 <= NMAX1; N1++ ){
                                             int N = N1-1;
-                                            double factorialN = boost::math::factorial<double>(double(N));
-                                            double VAR1 = COEF[L][L1][M1][N1]*pow(2.0*alpha*AVSSQ,N)/factorialN;
+                                            if (N!=0){
+                                                pow1=pow1*fak1;
+                                                factorialN=factorialN*N;
+                                            }
+                                            
+                                            
+                                            double VAR1 = COEF[L][L1][M1][N1]*pow1/factorialN;
                                             double VAR2 = 0.0;
                                             double VAR2D = 0.0;
                                             double VAR2N = 0.0;
-                                            for ( int N2 = 1; N2 <= NMAX1; N2++ ){
+                                            double fak2=2.0*beta*BVSSQ;
+                                            double pow2=1;
+                                            double factorialNN=1;
+                                            for ( int N2 = 1; N2 <= NMAX2; N2++ ){
                                                 
                                                 int NN   = N2 -1;
                                                 int NPNS = N+NN-1+L1+L2;
                                                 int NSN  = NPNS+2;
                                                 int NSD = NPNS+4;
-                                                double factorialNN = boost::math::factorial<double>(double(NN));
-                                                double XDUM = COEF[L][L2][M2][N2]*pow(2.0*beta*BVSSQ,NN)/factorialNN;
+                                                
+                                                if (NN!=0){
+                                                pow2=pow2*fak2;
+                                                factorialNN=factorialNN*NN;
+                                                }
+                                                
+                                                double XDUM = COEF[L][L2][M2][N2]*pow2/factorialNN;
                                                 VAR2  += XDUM*XI(L-1,NPNS-1); // L index of XI starts with 0 !!
                                                 VAR2N += XDUM*XI(L-1,NSN-1);  // N index of XI starts with 0 !!
                                                 VAR2D += XDUM*XI(L-1,NSD-1);
@@ -596,13 +627,21 @@ namespace votca { namespace xtp {
                                         double VAR2 = 0.0;
                                         double VAR2N = 0.0;
                                         double VAR2D = 0.0;
+                                        
+                                        double fak=2.0 * beta*BVSSQ;
+                                        double pow=1;
+                                        double factorialNN=1;
                                         for (int N2 = 1; N2 <= NMAX2; N2++) {
                                             int NN = N2 - 1;
                                             int NL = N2 + L2 + L1 - 2;
                                             int NLN = NL + 2;
                                             int NLD = NL + 4;
-                                            double factorialNN = boost::math::factorial<double>(double(NN));
-                                            double XDUM = COEF[L][L2][M2][N2] * pow(2.0 * beta*BVSSQ, NN) / factorialNN;
+                                            if(NN!=0){
+                                                pow=pow*fak;
+                                                factorialNN=factorialNN*NN;
+                                            }
+                                            
+                                            double XDUM = COEF[L][L2][M2][N2] * pow / factorialNN;
                                             VAR2 += XDUM * XI(L - 1, NL - 1);
                                             VAR2N += XDUM * XI(L - 1, NLN - 1);
                                             VAR2D += XDUM * XI(L - 1, NLD - 1);
@@ -619,14 +658,20 @@ namespace votca { namespace xtp {
                                         double VAR1 = 0.0;
                                         double VAR1N = 0.0;
                                         double VAR1D = 0.0;
-
+                                        double fak=2.0 * alpha*AVSSQ;
+                                        double pow=1;
+                                        double factorialN=1;
                                         for (int N1 = 1; N1 <= NMAX1; N1++) {
                                             int N = N1 - 1;
                                             int NL = N1 + L1 + L2 - 2;
                                             int NLN = NL + 2;
                                             int NLD = NL + 4;
-                                            double factorialN = boost::math::factorial<double>(double(N));
-                                            double XDUM = COEF[L][L1][M1][N1] * pow(2.0 * alpha*AVSSQ, N) / factorialN;
+                                            if(N!=0){
+                                                pow=pow*fak;
+                                                factorialN=factorialN*N;
+                                            }
+                                            
+                                            double XDUM = COEF[L][L1][M1][N1] * pow / factorialN;
                                             VAR1 += XDUM * XI(L - 1, NL - 1);
                                             VAR1N += XDUM * XI(L - 1, NLN - 1);
                                             VAR1D += XDUM * XI(L - 1, NLD - 1);

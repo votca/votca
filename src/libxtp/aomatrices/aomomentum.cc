@@ -29,7 +29,6 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
-#include <boost/multi_array.hpp>
 #include <votca/xtp/logger.h>
 #include <votca/tools/linalg.h>
 
