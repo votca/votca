@@ -89,6 +89,7 @@
       <itemPath>../../include/votca/xtp/basisset.h</itemPath>
       <itemPath>../../include/votca/xtp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
+      <itemPath>../../include/votca/xtp/diis.h</itemPath>
       <itemPath>../../include/votca/xtp/elements.h</itemPath>
       <itemPath>../../include/votca/xtp/espfit.h</itemPath>
       <itemPath>../../include/votca/xtp/ewald2d.h</itemPath>
@@ -187,6 +188,7 @@
       </logicalFolder>
       <logicalFolder name="f7" displayName="dftengine" projectFiles="true">
         <itemPath>../../src/libxtp/dftengine/dftengine.cc</itemPath>
+        <itemPath>../../src/libxtp/diis.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="Factories" projectFiles="true">
         <itemPath>../../src/libxtp/calculatorfactory.cc</itemPath>
@@ -353,6 +355,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -760,6 +764,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
@@ -1144,6 +1150,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1550,6 +1558,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
       </item>

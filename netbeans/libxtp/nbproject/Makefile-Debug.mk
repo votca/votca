@@ -53,6 +53,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1355216796/eoutersphere.o \
 	${OBJECTDIR}/_ext/1355216796/jobwriter.o \
 	${OBJECTDIR}/_ext/1584959903/dftengine.o \
+	${OBJECTDIR}/_ext/484478074/diis.o \
 	${OBJECTDIR}/_ext/484478074/esp2multipole.o \
 	${OBJECTDIR}/_ext/484478074/espfit.o \
 	${OBJECTDIR}/_ext/484478074/ewaldactor.o \
@@ -237,6 +238,11 @@ ${OBJECTDIR}/_ext/1584959903/dftengine.o: ../../src/libxtp/dftengine/dftengine.c
 	${MKDIR} -p ${OBJECTDIR}/_ext/1584959903
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1584959903/dftengine.o ../../src/libxtp/dftengine/dftengine.cc
+
+${OBJECTDIR}/_ext/484478074/diis.o: ../../src/libxtp/diis.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/diis.o ../../src/libxtp/diis.cc
 
 ${OBJECTDIR}/_ext/484478074/esp2multipole.o: ../../src/libxtp/esp2multipole.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
