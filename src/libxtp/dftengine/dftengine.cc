@@ -102,7 +102,14 @@ namespace votca {
             
 	    // numerical integrations
 	    _grid_name = options->get(key + ".integration_grid").as<string>();
-            
+            if ( options->exists(key+".integration_grid_small")) {
+                 _use_small_grid=options->get(key+".integration_grid_small").as<bool>();
+               }
+               else{
+                    _use_small_grid=true;
+               }    
+            _grid_name_small=Choosesmallgrid(_grid_name);
+           
 	    // exchange and correlation as in libXC
         
             _xc_functional_name = options->get(key + ".xc_functional").as<string> ();
@@ -290,6 +297,11 @@ namespace votca {
             ub::matrix<double> temp;
             linalg_eigenvalues_general(H0, _dftAOoverlap.Matrix(), MOEnergies,temp);
             MOCoeff=ub::trans(temp);
+            AtomicGuess( _orbitals);
+            }
+            else{
+                _dftbasis.ReorderMOs(MOCoeff, _orbitals->getQMpackage(), "votca");
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _orbitals->getQMpackage() << " to VOTCA" << flush;
             }
             double totinit = 0;
 
@@ -307,7 +319,7 @@ namespace votca {
 
 
            double energyold=totinit;
-           
+           double diiserror=100;//is evolved in DIIs scheme
             for ( _this_iter=0; _this_iter<_max_iter; _this_iter++){
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
 
@@ -319,17 +331,21 @@ namespace votca {
                 }
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
 
-
+                if(_use_small_grid && diiserror>20*_error_converged){
+                    _orbitals->AOVxc()=_gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat,  &_dftbasis,_xc_functional_name);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled approximate DFT Vxc matrix "<<flush;           
+                }
+                else{
 		_orbitals->AOVxc()=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  &_dftbasis,_xc_functional_name);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;              
-                
+                }
                 
                 ub::matrix<double> H=H0+_ERIs.getERIs()+_orbitals->AOVxc();
                              
                 double totenergy=E_nucnuc;
                 
                 //this updates the density matrix as well
-                double diiserror=Evolve(_orbitals,H);
+                diiserror=Evolve(_orbitals,H);
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
                 
                 for (int i=0;i<_numofelectrons/2;i++){
@@ -375,6 +391,7 @@ namespace votca {
         }
 
       
+      
 
       // SETUP INVARIANT AOMatrices
       void DFTENGINE::SetupInvariantMatrices(){
@@ -407,23 +424,23 @@ namespace votca {
       }
             _dftAOkinetic.Initialize(_dftbasis.AOBasisSize());
             _dftAOkinetic.Fill(&_dftbasis);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOkinetic.Dimension() << flush;
 
             
             _dftAOESP.Initialize(_dftbasis.AOBasisSize());
             _dftAOESP.Fillnucpotential(&_dftbasis, _atoms,_with_ecp);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOESP.Dimension() << flush;
             //_dftAOESP.Print("NUC");
 
             
             if (_addexternalsites){
                 _dftAOESP.Fillextpotential(&_dftbasis, _externalsites);
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT external pointcharge potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT external pointcharge potential matrix of dimension: " << _dftAOESP.Dimension() << flush;
                 
                 _dftAODipole_Potential.Fillextpotential(&_dftbasis, _externalsites);
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT external dipole potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT external dipole potential matrix of dimension: " << _dftAODipole_Potential.Dimension() << flush;
                 _dftAOQuadrupole_Potential.Fillextpotential(&_dftbasis, _externalsites);
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT external quadrupole potential matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT external quadrupole potential matrix of dimension: " << _dftAOQuadrupole_Potential.Dimension() << flush;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " External sites\t Name \t Coordinates \t charge \t dipole \t quadrupole" << flush;
                 for(unsigned i=0;i<_externalsites.size();i++){
                 LOG(logDEBUG, *_pLog) << "\t\t "<< _externalsites[i]->getName()<<" | "<< _externalsites[i]->getPos().getX()
@@ -500,8 +517,153 @@ namespace votca {
             }
 
       }
+ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
+            ub::matrix<double> guess = ub::zero_matrix<double>(_dftbasis.AOBasisSize());
+            const std::vector<QMAtom*> atoms = _orbitals->QMAtoms();
+            std::vector<QMAtom*> uniqueelements;
+            std::vector<QMAtom*>::const_iterator at;
+            std::vector<QMAtom*>::iterator st;
+            std::vector< ub::matrix<double> > uniqueatom_guesses;
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Scanning molecule of size " << atoms.size() << " for unique elements" << flush;
+            for (at = atoms.begin(); at < atoms.end(); ++at) {
+                bool exists = false;
+                if (uniqueelements.size() == 0) {
+                    exists = false;
+                } else {
+                    for (st = uniqueelements.begin(); st < uniqueelements.end(); ++st) {
+                        if ((*at)->type == (*st)->type) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                }
+                if (!exists) {
+                    uniqueelements.push_back((*at));
+                }
+            }
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " " << uniqueelements.size() << " unique elements found" << flush;
+            Elements _elements;
+            for (st = uniqueelements.begin(); st < uniqueelements.end(); ++st) {
+
+                Orbitals orb;
+
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculating atom density for " << (*st)->type << flush;
+                bool with_ecp = _with_ecp;
+                if ((*st)->type == "H" || (*st)->type == "He") {
+                    with_ecp = false;
+                }
+                std::vector<QMAtom*> atom;
+                atom.push_back(*st);
+
+                AOBasis dftbasis;
+                AOBasis ecp;
+                NumericalIntegration gridIntegration;
+                dftbasis.AOBasisFill(&_dftbasisset, atom);
+                if (with_ecp) {
+                    ecp.ECPFill(&_ecpbasisset, atom);
+                }
+                gridIntegration.GridSetup(_grid_name, &_dftbasisset, atom);
+                gridIntegration.FindsignificantAtoms(&dftbasis);
+
+                double numofelectrons = _elements.getNucCrg((*st)->type);
+                if (with_ecp) {
+                    numofelectrons -= _ecpbasisset.getElement((*st)->type)->getNcore();
+                }
+
+                orb.setNumberOfElectrons(numofelectrons);
+                orb.setNumberOfLevels(numofelectrons / 2, dftbasis.AOBasisSize() - numofelectrons / 2);
+                orb.setBasisSetSize(dftbasis.AOBasisSize());
+                AOOverlap dftAOoverlap;
+                AOKinetic dftAOkinetic;
+                AOESP dftAOESP;
+                AOECP dftAOECP;
+                ub::vector<double> eigenvalues;
+                ub::matrix<double> eigenvectors;
+                ub::matrix<double> Sminusonehalf;
+                ERIs ERIs_atom;
 
 
+                // DFT AOOverlap matrix
+                dftAOoverlap.Initialize(dftbasis.AOBasisSize());
+                dftAOoverlap.Fill(&dftbasis);
+
+
+                linalg_eigenvalues(dftAOoverlap.Matrix(), eigenvalues, eigenvectors);
+
+                //Not brilliant but we need S-1/2 for DIIS and I do not want to calculate it each time
+                ub::matrix<double> _diagS = ub::zero_matrix<double>(eigenvectors.size1(), eigenvectors.size1());
+                for (unsigned _i = 0; _i < eigenvalues.size(); _i++) {
+
+                    _diagS(_i, _i) = 1.0 / sqrt(eigenvalues[_i]);
+                }
+                ub::matrix<double> _temp = ub::prod(_diagS, ub::trans(eigenvectors));
+                Sminusonehalf = ub::prod(eigenvectors, _temp);
+
+
+
+                dftAOkinetic.Initialize(dftbasis.AOBasisSize());
+                dftAOkinetic.Fill(&dftbasis);
+                dftAOESP.Initialize(dftbasis.AOBasisSize());
+                dftAOESP.Fillnucpotential(&dftbasis, atom, with_ecp);
+                ERIs_atom.Initialize_4c_small_molecule(dftbasis);
+
+                ub::vector<double>& MOEnergies = orb.MOEnergies();
+                ub::matrix<double>& MOCoeff = orb.MOCoefficients();
+
+                /**** Construct initial density  ****/
+
+                ub::matrix<double> H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
+                if (with_ecp) {
+                    H0 += dftAOECP.Matrix();
+                }
+                ub::matrix<double> temp;
+                linalg_eigenvalues_general(H0, dftAOoverlap.Matrix(), MOEnergies, temp);
+                MOCoeff = ub::trans(temp);
+
+                double totinit = 0;
+                for (int i = 0; i < (numofelectrons / 2); i++) {
+                    //cout << MOEnergies(i) << " eigenwert " << i << endl;
+                    totinit += 2 * MOEnergies(i);
+
+                    ub::matrix<double>dftAOdmat = orb.DensityMatrixGroundState(MOCoeff);
+                    double energyold = totinit;
+                    double diiserror = 100; //is evolved in DIIs scheme
+                    for (int this_iter = 0; this_iter < 100; this_iter++) {
+
+                        ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat);
+                        orb.AOVxc() = gridIntegration.IntegrateVXC_Atomblock(dftAOdmat, &dftbasis, _xc_functional_name);
+                        ub::matrix<double> H = H0 + ERIs_atom.getERIs() + orb.AOVxc();
+                        double totenergy = 0;
+                        //this updates the density matrix as well
+                        diiserror = Evolve(&orb, H);
+
+                        for (int i = 0; i < numofelectrons / 2; i++) {
+                            totenergy += 2 * MOEnergies(i);
+                        }
+
+                        totenergy += gridIntegration.getTotEcontribution() - 0.5 * ERIs_atom.getERIsenergy();
+
+                        if (std::abs(totenergy - energyold) < _Econverged && diiserror < _error_converged) {
+                            uniqueatom_guesses.push_back(orb.MOCoefficients());
+                            break;
+                        } else {
+                            energyold = totenergy;
+                        }
+
+
+                    }
+
+
+
+                }
+
+
+            }
+
+
+
+            return guess;
+        }
 
 
       // PREPARATION 
@@ -526,8 +688,8 @@ namespace votca {
             }
             if(_with_ecp){
             // load ECP (element-wise information) from xml file
-            _ecpbasisset.LoadPseudopotentialSet("ecp");
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded ECP library " << "ecp" << flush;
+            _ecpbasisset.LoadPseudopotentialSet(_ecp_name);
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded ECP library " <<  _ecp_name << flush;
 
             // fill auxiliary ECP basis by going through all atoms
             _ecp.ECPFill(&_ecpbasisset, _atoms);
@@ -538,8 +700,19 @@ namespace votca {
             _gridIntegration.GridSetup(_grid_name,&_dftbasisset,_atoms);
             _gridIntegration.FindsignificantAtoms( &_dftbasis);
             
+            
+            
 	    LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup numerical integration grid " << _grid_name << " for vxc functional " 
                     << _xc_functional_name<<" with " <<_gridIntegration.getGridpoints().size()<<" points"<< flush;
+            
+            if(_use_small_grid){
+                 _gridIntegration_small.GridSetup(_grid_name_small,&_dftbasisset,_atoms);
+            _gridIntegration_small.FindsignificantAtoms( &_dftbasis);
+
+	    LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup small numerical integration grid " << _grid_name_small << " for vxc functional " 
+                    << _xc_functional_name<<" with " <<_gridIntegration_small.getGridpoints().size()<<" points"<< flush;
+            }
+            
         
 	
            Elements _elements; 
@@ -612,13 +785,13 @@ namespace votca {
       ub::matrix<double>temp=ub::prod(H,_dftAOdmat);
       
       //cout<<"S\n"<<_dftAOoverlap._aomatrix<<endl; 
-      ub::matrix<double> errormatrix=ub::prod(temp,_dftAOoverlap._aomatrix);
+      ub::matrix<double> errormatrix=ub::prod(temp,_dftAOoverlap.Matrix());
       //cout <<"FDS"<<endl;
       //cout << errormatrix<<endl;
       temp=ub::prod(_dftAOdmat,H);
       //cout <<"SDF"<<endl;
       //cout<<ub::prod(_dftAOoverlap._aomatrix,temp)<<endl; 
-      errormatrix-=ub::prod(_dftAOoverlap._aomatrix,temp);
+      errormatrix-=ub::prod(_dftAOoverlap.Matrix(),temp);
        //cout<<"before"<<endl;
      //cout<<errormatrix<<endl;
       temp=ub::prod(errormatrix,_Sminusonehalf);
@@ -686,7 +859,7 @@ namespace votca {
           //cout<<"a"<<a<<endl;
           if (!check){
               LOG(logDEBUG, *_pLog) << TimeStamp() << " Solving DIIs failed, just solve current Fockmatrix" << flush;
-               _dftAOdmat=SolveFockmatrix(_orbitals,H);
+               _dftAOdmat=SolveFockmatrix(_orbitals,H,_dftAOoverlap.Matrix());
           }
           else{
                 ub::matrix<double>H_guess=ub::zero_matrix<double>(H.size1(),H.size2()); 
@@ -696,13 +869,13 @@ namespace votca {
                     //cout <<i<<" "<<a(i+1,0)<<" "<<(*_mathist[i])<<endl;
                  }
                 //cout <<"H_guess"<<H_guess<<endl;
-                _dftAOdmat=SolveFockmatrix(_orbitals,H_guess);
+                _dftAOdmat=SolveFockmatrix(_orbitals,H_guess,_dftAOoverlap.Matrix());
               }
          
       }
       else{       
           ub::matrix<double> olddmat=_dftAOdmat;
-          _dftAOdmat=SolveFockmatrix( _orbitals,H);
+          _dftAOdmat=SolveFockmatrix( _orbitals,H,_dftAOoverlap.Matrix());
           if(_this_iter > 0 && _mathist.size()>0){
           LOG(logDEBUG, *_pLog) << TimeStamp() << " Using Mixing with mixingparamter="<<_mixingparameter << flush;
           _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*olddmat;
@@ -714,10 +887,10 @@ namespace votca {
       return max;
       }
       
-      ub::matrix<double> DFTENGINE::SolveFockmatrix(Orbitals* _orbitals,const ub::matrix<double>&H){
+      ub::matrix<double> DFTENGINE::SolveFockmatrix(Orbitals* _orbitals,const ub::matrix<double>&H,const ub::matrix<double>&S){
           
            ub::matrix<double> temp;
-           bool info=linalg_eigenvalues_general( H,_dftAOoverlap._aomatrix, _orbitals->MOEnergies(), temp);
+           bool info=linalg_eigenvalues_general( H,S, _orbitals->MOEnergies(), temp);
             if (!info){
                     throw runtime_error("Generalized eigenvalue problem did not work.");
                 }
@@ -822,6 +995,32 @@ namespace votca {
           return E_ext;
       }
       
+      
+      string DFTENGINE::Choosesmallgrid(string largegrid){
+          string smallgrid;
+          
+          if (largegrid=="xfine"){
+            smallgrid="fine";  
+          }
+          else if(largegrid=="fine"){
+            smallgrid="medium";  
+          }
+          else if(largegrid=="medium"){
+            smallgrid="coarse";  
+          }
+          else if(largegrid=="coarse"){
+            smallgrid="xcoarse";  
+          }
+          else if(largegrid=="xcoarse"){
+            _use_small_grid=false;
+            smallgrid="xcoarse";  
+          }
+          else{
+               throw runtime_error("Grid name for Vxc integration not known.");
+          }
+          
+          return smallgrid;
+      }
       
 
       

@@ -104,14 +104,14 @@ public:
     
     void Prepare( Orbitals* _orbitals );
     void SetupInvariantMatrices();
+    ub::matrix<double> AtomicGuess(Orbitals* _orbitals);
     
-    
-    
+    string Choosesmallgrid(string largegrid);
     void NuclearRepulsion();
     double ExternalRepulsion();
      double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
     double Evolve(Orbitals* _orbitals,const ub::matrix<double>& H);
-    ub::matrix<double>SolveFockmatrix(Orbitals* _orbitals,const ub::matrix<double>&H);
+    ub::matrix<double>SolveFockmatrix(Orbitals* _orbitals,const ub::matrix<double>&H,const ub::matrix<double>&S);
     //bool   _maverick;
     
     // program tasks
@@ -149,7 +149,10 @@ public:
     
     // numerical integration Vxc
     std::string                              _grid_name;
+    std::string                             _grid_name_small;
+    bool                                _use_small_grid;
     NumericalIntegration                _gridIntegration;
+    NumericalIntegration                 _gridIntegration_small;
     //used to store Vxc after final iteration
   
     //numerical integration externalfield;
