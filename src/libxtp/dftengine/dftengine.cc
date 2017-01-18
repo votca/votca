@@ -565,12 +565,24 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 gridIntegration.GridSetup(_grid_name, &_dftbasisset, atom);
                 gridIntegration.FindsignificantAtoms(&dftbasis);
 
-                double numofelectrons = _elements.getNucCrg((*st)->type);
+                int numofelectrons = int(_elements.getNucCrg((*st)->type));
+                int alpha_e=0;
+                int beta_e=0;
                 if (with_ecp) {
-                    numofelectrons -= _ecpbasisset.getElement((*st)->type)->getNcore();
+                    numofelectrons -= int(_ecpbasisset.getElement((*st)->type)->getNcore());
                 }
 
                 orb.setNumberOfElectrons(numofelectrons);
+                if ((numofelectrons%2)!=0){
+                    alpha_e=numofelectrons/2+numofelectrons%2;
+                    beta_e=numofelectrons/2-numofelectrons%2;
+                }
+                else{
+                    alpha_e=numofelectrons/2;
+                    beta_e=alpha_e;
+                }
+                orb.setNumberOfalphaElectrons(alpha_e);
+                orb.setNumberOfbetaElectrons(beta_e);
                 orb.setNumberOfLevels(numofelectrons / 2, dftbasis.AOBasisSize() - numofelectrons / 2);
                 orb.setBasisSetSize(dftbasis.AOBasisSize());
                 AOOverlap dftAOoverlap;
@@ -607,8 +619,10 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 dftAOESP.Fillnucpotential(&dftbasis, atom, with_ecp);
                 ERIs_atom.Initialize_4c_small_molecule(dftbasis);
 
-                ub::vector<double>& MOEnergies = orb.MOEnergies();
-                ub::matrix<double>& MOCoeff = orb.MOCoefficients();
+                ub::vector<double>MOEnergies_alpha;
+                ub::matrix<double>MOCoeff_alpha;
+                 ub::vector<double>MOEnergies_beta;
+                ub::matrix<double>MOCoeff_beta;
 
                 /**** Construct initial density  ****/
 
@@ -617,34 +631,44 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                     H0 += dftAOECP.Matrix();
                 }
                 ub::matrix<double> temp;
-                linalg_eigenvalues_general(H0, dftAOoverlap.Matrix(), MOEnergies, temp);
-                MOCoeff = ub::trans(temp);
+                linalg_eigenvalues_general(H0, dftAOoverlap.Matrix(), MOEnergies_alpha, temp);
+                MOCoeff_alpha = ub::trans(temp);
 
                 double totinit = 0;
                 for (int i = 0; i < (numofelectrons / 2); i++) {
                     //cout << MOEnergies(i) << " eigenwert " << i << endl;
-                    totinit += 2 * MOEnergies(i);
+                    totinit += 2 * MOEnergies_alpha(i);
 
-                    ub::matrix<double>dftAOdmat = orb.DensityMatrixGroundState(MOCoeff);
+                    ub::matrix<double>dftAOdmat_alpha = orb.DensityMatrixGroundState(MOCoeff_alpha);
+                    ub::matrix<double>dftAOdmat_beta = orb.DensityMatrixGroundState(MOCoeff_alpha);
+                    
                     double energyold = totinit;
-                    double diiserror = 100; //is evolved in DIIs scheme
+                    
                     for (int this_iter = 0; this_iter < 100; this_iter++) {
 
-                        ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat);
-                        orb.AOVxc() = gridIntegration.IntegrateVXC_Atomblock(dftAOdmat, &dftbasis, _xc_functional_name);
-                        ub::matrix<double> H = H0 + ERIs_atom.getERIs() + orb.AOVxc();
+                        ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha+dftAOdmat_beta);
+                        ub::matrix<double> AOVxc_alpha = gridIntegration.IntegrateVXC_Atomblock(dftAOdmat_alpha, &dftbasis, _xc_functional_name);
+                        double E_vxc_alpha= gridIntegration.getTotEcontribution();
+                        ub::matrix<double> AOVxc_beta = gridIntegration.IntegrateVXC_Atomblock(dftAOdmat_beta, &dftbasis, _xc_functional_name);
+                        double E_vxc_beta= gridIntegration.getTotEcontribution();
+                        ub::matrix<double> H_alpha = H0 + ERIs_atom.getERIs() + AOVxc_alpha;
+                        ub::matrix<double> H_beta = H0 + ERIs_atom.getERIs() + AOVxc_beta;
                         double totenergy = 0;
                         //this updates the density matrix as well
-                        diiserror = Evolve(&orb, H);
-
-                        for (int i = 0; i < numofelectrons / 2; i++) {
-                            totenergy += 2 * MOEnergies(i);
+                        
+                       double diiserror_alpha = Evolve(&orb, H_alpha);
+                       double diiserror_beta= Evolve(&orb, H_beta);
+                        for (int i = 0; i < alpha_e; i++) {
+                            totenergy +=  MOEnergies_alpha(i);
+                        }
+                        for (int i = 0; i < beta_e; i++) {
+                            totenergy +=  MOEnergies_beta(i);
                         }
 
-                        totenergy += gridIntegration.getTotEcontribution() - 0.5 * ERIs_atom.getERIsenergy();
+                        totenergy += E_vxc_alpha+ E_vxc_beta - 0.5 * ERIs_atom.getERIsenergy();
 
-                        if (std::abs(totenergy - energyold) < _Econverged && diiserror < _error_converged) {
-                            uniqueatom_guesses.push_back(orb.MOCoefficients());
+                        if (std::abs(totenergy - energyold) < _Econverged && diiserror_alpha < _error_converged && diiserror_beta < _error_converged) {
+                            uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
                             break;
                         } else {
                             energyold = totenergy;

@@ -111,6 +111,15 @@ public:
     int            getNumberOfElectrons() { return  _number_of_electrons ; } ;
     void           setNumberOfElectrons( const int &electrons ) { _number_of_electrons = electrons;}
     
+    bool           hasNumberOfalphaElectrons() { return ( _number_of_alpha_e > 0 ) ? true : false ; }
+    int            getNumberOfalphaElectrons() { return  _number_of_alpha_e ; } ;
+    void           setNumberOfalphaElectrons( const int &ealpha ) { _number_of_alpha_e = ealpha;}
+    
+    bool           hasNumberOfbetaElectrons() { return ( _number_of_beta_e > 0 ) ? true : false ; }
+    int            getNumberOfbetaElectrons() { return  _number_of_beta_e ; } ;
+    void           setNumberOfbetaElectrons( const int &ebeta ) { _number_of_beta_e = ebeta;}
+    
+    
     
     /* To be uncommented in next version
     bool           getWithECP() {return _with_ECP;};
@@ -303,6 +312,8 @@ public:
     std::vector<ub::matrix<double> > DensityMatrixExcitedState( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0 ) ;
     ub::matrix<double > TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0);
     
+     ub::matrix<double> DensityMatrixGroundState_alpha( ub::matrix<double>& _MOs );
+     ub::matrix<double> DensityMatrixGroundState_beta( ub::matrix<double>& _MOs );
     
     // functions for analyzing fragment charges via Mulliken populations
     void MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag, double& _PopA, double& _PopB  );
@@ -401,6 +412,8 @@ private:
     int                                     _occupied_levels;
     int                                     _unoccupied_levels;
     int                                     _number_of_electrons;
+    int                                     _number_of_alpha_e;
+    int                                     _number_of_beta_e;
     /* To be uncommented in next version
     bool                                    _with_ECP;
     */
