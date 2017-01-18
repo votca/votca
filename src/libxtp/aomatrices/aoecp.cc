@@ -397,7 +397,7 @@ namespace votca { namespace xtp {
                  
                  int NN = N-1;
                  double factorialNN = boost::math::factorial<double>(double(NN));
-                 double AF=pow(2.0*alpha*AVSSQ,NN/factorialNN)*G1;
+                 double AF=pow(2.0*alpha*AVSSQ,NN)/factorialNN*G1;
                  double AF1 = std::abs(AF * XI(0,NN + 4));
                  double AF2 = std::abs(AF * XI(1,NN + 4));
                  double AF3 = std::abs(AF * XI(2,NN + 4));
