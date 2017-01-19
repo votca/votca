@@ -29,7 +29,7 @@
 
 #include <boost/filesystem.hpp>
 #include <votca/xtp/ERIs.h>
-
+#include <votca/xtp/diis.h>
 
 #include <votca/xtp/numerical_integrations.h>
 
@@ -51,24 +51,7 @@ public:
     DFTENGINE() {_addexternalsites=false;
                 _maxerrorindex=0;
                 _maxerror=0.0; };
-   ~DFTENGINE() {
-     for (std::vector< ub::matrix<double>* >::iterator it = _mathist.begin() ; it !=_mathist.end(); ++it){
-         delete *it;
-     }
-     _mathist.clear();
-     for (std::vector< ub::matrix<double>* >::iterator it = _errormatrixhist.begin() ; it !=_errormatrixhist.end(); ++it){
-         delete *it;
-     }
-    _errormatrixhist.clear();
-    
-    for (std::vector< std::vector<double>* >::iterator it = _Diis_Bs.begin() ; it !=_Diis_Bs.end(); ++it){
-         delete *it;
-     }
-    _Diis_Bs.clear();
-   
-
-   
-   };
+   ~DFTENGINE(){};
 
    
    
@@ -110,8 +93,7 @@ public:
     void NuclearRepulsion();
     double ExternalRepulsion();
      double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
-    double Evolve(Orbitals* _orbitals,const ub::matrix<double>& H);
-    ub::matrix<double>SolveFockmatrix(Orbitals* _orbitals,const ub::matrix<double>&H,const ub::matrix<double>&S);
+  
     //bool   _maverick;
     
     // program tasks
@@ -178,6 +160,7 @@ public:
     AODipole_Potential                  _dftAODipole_Potential;
     AOQuadrupole_Potential              _dftAOQuadrupole_Potential;
     bool                                _with_guess;
+    string                              _initial_guess;
     double                              E_nucnuc;
     
     // COnvergence 
@@ -190,6 +173,7 @@ public:
     
     
     //DIIS variables
+    Diis                               _diis;
     bool                              _usediis;
     unsigned                          _histlength;
     bool                              _maxout;
@@ -198,9 +182,7 @@ public:
     double                              _maxerror;
     double                              _diis_start;                 
     unsigned                            _maxerrorindex;
-    std::vector< ub::matrix<double>* >   _mathist;
-    std::vector< ub::matrix<double>* >   _errormatrixhist;
-    std::vector< std::vector<double>* >  _Diis_Bs;
+    
     //Electron repulsion integrals
     ERIs                                _ERIs;
     

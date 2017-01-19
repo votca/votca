@@ -76,6 +76,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/164445175/igwbse.o \
 	${OBJECTDIR}/_ext/484478074/lowdin.o \
 	${OBJECTDIR}/_ext/484478074/molecule.o \
+	${OBJECTDIR}/_ext/484478074/nbo.o \
 	${OBJECTDIR}/_ext/1294340152/numerical_integrations.o \
 	${OBJECTDIR}/_ext/1294340152/radial_euler_maclaurin_rule.o \
 	${OBJECTDIR}/_ext/1294340152/sphere_lebedev_rule.o \
@@ -353,6 +354,11 @@ ${OBJECTDIR}/_ext/484478074/molecule.o: ../../src/libxtp/molecule.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/molecule.o ../../src/libxtp/molecule.cc
+
+${OBJECTDIR}/_ext/484478074/nbo.o: ../../src/libxtp/nbo.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/nbo.o ../../src/libxtp/nbo.cc
 
 ${OBJECTDIR}/_ext/1294340152/numerical_integrations.o: ../../src/libxtp/numerical_integration/numerical_integrations.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1294340152

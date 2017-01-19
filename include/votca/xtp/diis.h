@@ -17,21 +17,85 @@
  *
  */
 
-#ifndef __XTP_DIIS__H
-#define	__XTP_DIIS__H
+#ifndef _VOTCA_XTP_DIIS__H
+#define _VOTCA_XTP_DIIS__H
 
-
+#include <votca/tools/linalg.h>
 #include <votca/xtp/aomatrix.h>
-
+#include <votca/xtp/orbitals.h>
+#include <votca/xtp/logger.h>
 
 
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
+ namespace ub = boost::numeric::ublas;
+  
+ 
+ class Diis{
+public:
 
+    Diis() {_maxerrorindex=0;
+                _maxerror=0.0; };
+   ~Diis() {
+     for (std::vector< ub::matrix<double>* >::iterator it = _mathist.begin() ; it !=_mathist.end(); ++it){
+         delete *it;
+     }
+     _mathist.clear();
+     for (std::vector< ub::matrix<double>* >::iterator it = _errormatrixhist.begin() ; it !=_errormatrixhist.end(); ++it){
+         delete *it;
+     }
+    _errormatrixhist.clear();
+    
+    for (std::vector< std::vector<double>* >::iterator it = _Diis_Bs.begin() ; it !=_Diis_Bs.end(); ++it){
+         delete *it;
+     }
+    _Diis_Bs.clear(); 
+   }
+   
+   void Configure(bool usediis, unsigned histlength, bool maxout, string diismethod, double maxerror, double diis_start, unsigned maxerrorindex){
+       _usediis=usediis;
+       _histlength=histlength;
+       _maxout=maxout;
+       _diismethod=diismethod;
+       _maxerror=maxerror;
+       _diis_start=diis_start;
+       _maxerrorindex=maxerrorindex;
+       }
+   
+   void setOverlap(ub::matrix<double>* _S){
+       S=_S;
+   }
+   void setSqrtOverlap(ub::matrix<double>* _Sminusahalf){
+       Sminusahalf=_Sminusahalf;
+   }
+    void setLogger(Logger *pLog){_pLog=pLog;}
+    double Evolve(const ub::matrix<double>& dmat,const ub::matrix<double>& H,ub::vector<double> &MOenergies,ub::matrix<double> &MOs, int this_iter);
+    void SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,const ub::matrix<double>&H);
 
+    unsigned gethistlength(){return _mathist.size();}
+   
+ private:
+     
+    Logger *_pLog;
+    ub::matrix<double>* S;
+    ub::matrix<double>* Sminusahalf;
+    bool                              _usediis;
+    unsigned                          _histlength;
+    bool                              _maxout;
+    string                            _diismethod;
+    ub::matrix<double>                _Sminusonehalf;
+    double                              _maxerror;
+    double                              _diis_start;                 
+    unsigned                            _maxerrorindex;
+    std::vector< ub::matrix<double>* >   _mathist;
+    std::vector< ub::matrix<double>* >   _errormatrixhist;
+    std::vector< std::vector<double>* >  _Diis_Bs;
+    
+  
+ };
     
 }}
 
-#endif	/* AOSHELL_H */
+#endif	
 

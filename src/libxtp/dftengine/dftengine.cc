@@ -34,6 +34,7 @@
 #include <votca/tools/linalg.h>
 
 #include "votca/xtp/elements.h"
+#include "votca/xtp/diis.h"
 
 // #include <omp.h>
 
@@ -85,10 +86,15 @@ namespace votca {
                  _with_ecp = false;
              }
             
-             if ( options->exists(key+".guess")) {
-               _with_guess = options->get(key+".guess").as<bool>();
+             if ( options->exists(key+".read_guess")) {
+               _with_guess = options->get(key+".read_guess").as<bool>();
              } else {
                  _with_guess = false;
+             }
+             if ( options->exists(key+".initial_guess")) {
+               _initial_guess = options->get(key+".initial_guess").as<string>();
+             } else {
+                 _initial_guess = "atom";
              }
             
             
@@ -292,33 +298,33 @@ namespace votca {
             
             // if we have a guess we do not need this. 
             if(!_with_guess){
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess "<< flush;
-             // this temp is necessary because eigenvalues_general returns MO^T and not MO
-            ub::matrix<double> temp;
-            linalg_eigenvalues_general(H0, _dftAOoverlap.Matrix(), MOEnergies,temp);
-            MOCoeff=ub::trans(temp);
-            AtomicGuess( _orbitals);
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup Initial Guess using: "<<_initial_guess<< flush;
+                 // this temp is necessary because eigenvalues_general returns MO^T and not MO
+                if(_initial_guess=="independent"){
+                _diis.SolveFockmatrix(MOEnergies,MOCoeff,H0);
+                _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
+                }
+                else if(_initial_guess=="atom"){
+                    
+                _dftAOdmat=AtomicGuess( _orbitals);
+                }
+                else{
+                    throw runtime_error("Initial guess method not known/implemented");
+                }
             }
             else{
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Reading guess from orbitals object/file"<< flush;
                 _dftbasis.ReorderMOs(MOCoeff, _orbitals->getQMpackage(), "votca");
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _orbitals->getQMpackage() << " to VOTCA" << flush;
+                _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
             }
-            double totinit = 0;
-
-            for (int i = 0; i < (_numofelectrons / 2); i++) {
-                //cout << MOEnergies(i) << " eigenwert " << i << endl;
-                totinit += 2 * MOEnergies(i);
-            }
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy " << totinit << flush;
-            
-            
-
+           
          
-            _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
+            
 	    
 
 
-           double energyold=totinit;
+           double energyold=0;
            double diiserror=100;//is evolved in DIIs scheme
             for ( _this_iter=0; _this_iter<_max_iter; _this_iter++){
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
@@ -330,13 +336,15 @@ namespace votca {
                 _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
                 }
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
-
-                if(_use_small_grid && diiserror>20*_error_converged){
+                double vxcenergy=0.0;
+                if(_use_small_grid && diiserror>0.01){
                     _orbitals->AOVxc()=_gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat,  &_dftbasis,_xc_functional_name);
+                    vxcenergy=_gridIntegration_small.getTotEcontribution();
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled approximate DFT Vxc matrix "<<flush;           
                 }
                 else{
 		_orbitals->AOVxc()=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  &_dftbasis,_xc_functional_name);
+                vxcenergy=_gridIntegration.getTotEcontribution();
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Vxc matrix "<<flush;              
                 }
                 
@@ -345,7 +353,20 @@ namespace votca {
                 double totenergy=E_nucnuc;
                 
                 //this updates the density matrix as well
-                diiserror=Evolve(_orbitals,H);
+                diiserror=_diis.Evolve(_dftAOdmat,H,MOEnergies,MOCoeff,_this_iter);
+                
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " DIIs error "<<diiserror << flush;
+                 if (!(diiserror<_diis_start && _usediis && _this_iter>4)){
+                     ub::matrix<double> olddmat=_dftAOdmat;
+                     _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
+                     _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*olddmat;
+                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Using Mixing with mixingparamter="<<_mixingparameter << flush;
+                 }
+                 else{
+                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Using DIIs" << flush;
+                    _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
+                 }
+                
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
                 
                 for (int i=0;i<_numofelectrons/2;i++){
@@ -365,9 +386,11 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << "\t\tGAP " << MOEnergies(_numofelectrons/2)-MOEnergies(_numofelectrons/2-1) << flush;
                 
                  LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy "<<totenergy<<flush;
-                totenergy+=_gridIntegration.getTotEcontribution()-0.5*_ERIs.getERIsenergy();
-
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Exc contribution "<<_gridIntegration.getTotEcontribution()<<flush;
+                
+                totenergy+=vxcenergy-0.5*_ERIs.getERIsenergy();
+         
+                
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Exc contribution "<<vxcenergy<<flush;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " E_H contribution "<<0.5*_ERIs.getERIsenergy()<<flush;
                 
                 
@@ -471,6 +494,10 @@ namespace votca {
             }
              
             
+            _diis.Configure(_usediis, _histlength, _maxout, _diismethod, _maxerror, _diis_start, _maxerrorindex);
+            _diis.setLogger(_pLog);
+            _diis.setOverlap(&_dftAOoverlap.Matrix());
+            _diis.setSqrtOverlap(&_Sminusonehalf);
 	    // AUX AOoverlap
         
             if(_with_RI){
@@ -517,6 +544,7 @@ namespace votca {
             }
 
       }
+      
 ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             ub::matrix<double> guess = ub::zero_matrix<double>(_dftbasis.AOBasisSize());
             const std::vector<QMAtom*> atoms = _orbitals->QMAtoms();
@@ -575,12 +603,14 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 orb.setNumberOfElectrons(numofelectrons);
                 if ((numofelectrons%2)!=0){
                     alpha_e=numofelectrons/2+numofelectrons%2;
-                    beta_e=numofelectrons/2-numofelectrons%2;
+                    beta_e=numofelectrons/2;
                 }
                 else{
                     alpha_e=numofelectrons/2;
                     beta_e=alpha_e;
                 }
+                //cout<<"alpha"<<alpha_e<<endl;
+                //cout<<"beta"<<beta_e<<endl;
                 orb.setNumberOfalphaElectrons(alpha_e);
                 orb.setNumberOfbetaElectrons(beta_e);
                 orb.setNumberOfLevels(numofelectrons / 2, dftbasis.AOBasisSize() - numofelectrons / 2);
@@ -617,35 +647,57 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 dftAOkinetic.Fill(&dftbasis);
                 dftAOESP.Initialize(dftbasis.AOBasisSize());
                 dftAOESP.Fillnucpotential(&dftbasis, atom, with_ecp);
+                
+                
+                    
+                  
                 ERIs_atom.Initialize_4c_small_molecule(dftbasis);
 
                 ub::vector<double>MOEnergies_alpha;
                 ub::matrix<double>MOCoeff_alpha;
                  ub::vector<double>MOEnergies_beta;
                 ub::matrix<double>MOCoeff_beta;
-
+                Diis diis_alpha;
+                Diis diis_beta;
+                diis_alpha.Configure(_usediis, _histlength, _maxout, _diismethod, _maxerror, _diis_start, _maxerrorindex);
+                diis_alpha.setLogger(_pLog);
+                diis_alpha.setOverlap(&dftAOoverlap.Matrix());
+                diis_alpha.setSqrtOverlap(&Sminusonehalf);
+                diis_beta.Configure(_usediis, _histlength, _maxout, _diismethod, _maxerror, _diis_start, _maxerrorindex);
+                diis_beta.setLogger(_pLog);
+                diis_beta.setOverlap(&dftAOoverlap.Matrix());
+                diis_beta.setSqrtOverlap(&Sminusonehalf);
                 /**** Construct initial density  ****/
-
+               
                 ub::matrix<double> H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
                 if (with_ecp) {
+                    dftAOECP.Initialize(dftbasis.AOBasisSize());
+                    dftAOECP.Fill(&dftbasis, vec(0,0,0), &ecp);
+                    
                     H0 += dftAOECP.Matrix();
+                    
                 }
-                ub::matrix<double> temp;
-                linalg_eigenvalues_general(H0, dftAOoverlap.Matrix(), MOEnergies_alpha, temp);
-                MOCoeff_alpha = ub::trans(temp);
+                diis_alpha.SolveFockmatrix(MOEnergies_alpha,MOCoeff_alpha,H0);
+             
+               MOEnergies_beta=MOEnergies_alpha;
+               MOCoeff_beta=MOCoeff_alpha;
 
                 double totinit = 0;
-                for (int i = 0; i < (numofelectrons / 2); i++) {
-                    //cout << MOEnergies(i) << " eigenwert " << i << endl;
-                    totinit += 2 * MOEnergies_alpha(i);
-
-                    ub::matrix<double>dftAOdmat_alpha = orb.DensityMatrixGroundState(MOCoeff_alpha);
-                    ub::matrix<double>dftAOdmat_beta = orb.DensityMatrixGroundState(MOCoeff_alpha);
+                
+                        for (int i = 0; i < alpha_e; i++) {
+                            totinit +=  MOEnergies_alpha(i);
+                        }
+                        for (int i = 0; i < beta_e; i++) {
+                            totinit +=  MOEnergies_beta(i);
+                        }
+                    ub::matrix<double>dftAOdmat_alpha = orb.DensityMatrixGroundState_alpha(MOCoeff_alpha);
+                    ub::matrix<double>dftAOdmat_beta = orb.DensityMatrixGroundState_beta(MOCoeff_beta);
                     
+                   
                     double energyold = totinit;
-                    
-                    for (int this_iter = 0; this_iter < 100; this_iter++) {
-
+                    int maxiter=31;
+                    for (int this_iter = 0; this_iter < maxiter; this_iter++) {
+                        //cout<<this_iter<<endl;
                         ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha+dftAOdmat_beta);
                         ub::matrix<double> AOVxc_alpha = gridIntegration.IntegrateVXC_Atomblock(dftAOdmat_alpha, &dftbasis, _xc_functional_name);
                         double E_vxc_alpha= gridIntegration.getTotEcontribution();
@@ -656,8 +708,36 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                         double totenergy = 0;
                         //this updates the density matrix as well
                         
-                       double diiserror_alpha = Evolve(&orb, H_alpha);
-                       double diiserror_beta= Evolve(&orb, H_beta);
+                        //evolve alpha
+                      double diiserror_alpha=diis_alpha.Evolve(dftAOdmat_alpha,H_alpha,MOEnergies_alpha,MOCoeff_alpha,this_iter);
+                        if (!(diiserror_alpha<_diis_start && _usediis && this_iter>4)){
+                            ub::matrix<double> olddmat=dftAOdmat_alpha;
+                           dftAOdmat_alpha=orb.DensityMatrixGroundState_alpha(MOCoeff_alpha);
+                            dftAOdmat_alpha=_mixingparameter*dftAOdmat_alpha+(1.0-_mixingparameter)*olddmat;  
+                            //cout<<"mixing_alpha"<<endl;
+                        }
+                        else{
+                          dftAOdmat_alpha=orb.DensityMatrixGroundState_alpha(MOCoeff_alpha);
+                        } 
+                      //evolve beta
+                      
+                       double diiserror_beta=0.0;
+                       if(beta_e>0){
+                       diiserror_beta=diis_beta.Evolve(dftAOdmat_beta,H_beta,MOEnergies_beta,MOCoeff_beta,this_iter);
+                        if (!(diiserror_beta<_diis_start && _usediis && this_iter>4)){
+                            ub::matrix<double> olddmat=dftAOdmat_beta;
+                           dftAOdmat_beta=orb.DensityMatrixGroundState_beta(MOCoeff_beta);
+                            dftAOdmat_beta=_mixingparameter*dftAOdmat_beta+(1.0-_mixingparameter)*olddmat;  
+                            //cout<<"mixing_beta"<<endl;
+                        }
+                        else{
+                          dftAOdmat_beta=orb.DensityMatrixGroundState_beta(MOCoeff_beta);
+                        } 
+                       }
+                       
+                       //cout<<"Err_alpha:"<<diiserror_alpha<<endl;
+                       //cout<<"Err_beta:"<<diiserror_beta<<endl;
+                      
                         for (int i = 0; i < alpha_e; i++) {
                             totenergy +=  MOEnergies_alpha(i);
                         }
@@ -666,9 +746,11 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                         }
 
                         totenergy += E_vxc_alpha+ E_vxc_beta - 0.5 * ERIs_atom.getERIsenergy();
+                        //cout <<"Etot "<<totenergy<<endl;
 
-                        if (std::abs(totenergy - energyold) < _Econverged && diiserror_alpha < _error_converged && diiserror_beta < _error_converged) {
+                        if ((std::abs(totenergy - energyold) < _Econverged && diiserror_alpha < _error_converged && diiserror_beta < _error_converged) || this_iter==maxiter-1) {
                             uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
+                            LOG(logDEBUG, *_pLog) << TimeStamp() << " Converged after " << this_iter<<" iterations" << flush;
                             break;
                         } else {
                             energyold = totenergy;
@@ -676,16 +758,29 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
 
 
                     }
-
-
-
-                }
-
-
             }
-
-
-
+            unsigned start=0;
+            unsigned end=0;
+            for (at = atoms.begin(); at < atoms.end(); ++at) {
+                unsigned index=0;
+                for (unsigned i=0; i<uniqueelements.size();i++) {
+                    if((*at)->type==uniqueelements[i]->type){
+                        index=i;
+                        break;
+                    }
+                }
+                
+                Element* element = _dftbasisset.getElement((*at)->type);
+                for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                    end+=(*its)->getnumofFunc();
+                }
+                ub::project(guess, ub::range ( start, end ),ub::range (start, end )  )=uniqueatom_guesses[index];
+                
+                
+                start=end;
+            }
+        
+ 
             return guess;
         }
 
@@ -737,7 +832,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                     << _xc_functional_name<<" with " <<_gridIntegration_small.getGridpoints().size()<<" points"<< flush;
             }
             
-        
+            
 	
            Elements _elements; 
             //set number of electrons and such
@@ -783,146 +878,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
       
       
       
-      double DFTENGINE::Evolve(Orbitals* _orbitals,const ub::matrix<double>& H ){
-          
-      if(_errormatrixhist.size()>_histlength){
-          delete _mathist[_maxerrorindex];
-          delete _errormatrixhist[_maxerrorindex];
-          delete _Diis_Bs[_maxerrorindex];
-              _mathist.erase(_mathist.begin()+_maxerrorindex);
-              _errormatrixhist.erase(_errormatrixhist.begin()+_maxerrorindex);
-              _Diis_Bs.erase( _Diis_Bs.begin()+_maxerrorindex);
-              for( std::vector< std::vector<double>* >::iterator it=_Diis_Bs.begin();it<_Diis_Bs.end();++it){
-                  std::vector<double>* vect=(*it);
-                  vect->erase(vect->begin()+_maxerrorindex);
-              }
-          
-          }
-          
-      
-   
      
-      //cout<<"MOs"<< _orbitals->MOCoefficients()<< endl;
-     
-      //cout<<"D\n"<<_dftAOdmat<<endl; 
-      //Calculate errormatrix and orthogonalize
-      ub::matrix<double>temp=ub::prod(H,_dftAOdmat);
-      
-      //cout<<"S\n"<<_dftAOoverlap._aomatrix<<endl; 
-      ub::matrix<double> errormatrix=ub::prod(temp,_dftAOoverlap.Matrix());
-      //cout <<"FDS"<<endl;
-      //cout << errormatrix<<endl;
-      temp=ub::prod(_dftAOdmat,H);
-      //cout <<"SDF"<<endl;
-      //cout<<ub::prod(_dftAOoverlap._aomatrix,temp)<<endl; 
-      errormatrix-=ub::prod(_dftAOoverlap.Matrix(),temp);
-       //cout<<"before"<<endl;
-     //cout<<errormatrix<<endl;
-      temp=ub::prod(errormatrix,_Sminusonehalf);
-      errormatrix=ub::prod(ub::trans(_Sminusonehalf),temp);
-      
-      temp.resize(0,0);
-      //cout<<"after"<<endl;
-      //cout<<errormatrix<<endl;
-      
-      double max=linalg_getMax(errormatrix);
-      LOG(logDEBUG, *_pLog) << TimeStamp() << " Maximum error is:"<<max<<"[Ha]" << flush;
-      ub::matrix<double>* old=new ub::matrix<double>;     
-      //exit(0);
-      
-      *old=H;         
-       _mathist.push_back(old);
-  
-      ub::matrix<double>* olderror=new ub::matrix<double>; 
-      *olderror=errormatrix;
-       _errormatrixhist.push_back(olderror);
-       if(_maxout){
-          double error=linalg_getMax(errormatrix);
-          if (error>_maxerror){
-              _maxerror=error;
-              _maxerrorindex=_mathist.size();
-          }
-      } 
-       
-      std::vector<double>* Bijs=new std::vector<double>;
-       _Diis_Bs.push_back(Bijs);
-      for (unsigned i=0;i<_errormatrixhist.size()-1;i++){
-          double value=linalg_traceofProd(errormatrix,ub::trans(*_errormatrixhist[i]));
-          Bijs->push_back(value);
-          _Diis_Bs[i]->push_back(value);
-      }
-      Bijs->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
-       
-      if (max<_diis_start && _this_iter>4 && _usediis){
-          LOG(logDEBUG, *_pLog) << TimeStamp() << " Using DIIs " << flush;
-          ub::matrix<double> B=ub::zero_matrix<double>(_mathist.size()+1);
-          ub::vector<double> a=ub::zero_vector<double>(_mathist.size()+1);
-          a(0)=-1;
-          for (unsigned i=1;i<B.size1();i++){
-              B(i,0)=-1;
-              B(0,i)=-1;
-          }
-          //cout <<"Hello"<<endl;
-          //cout<<"_errormatrixhist "<<_errormatrixhist.size()<<endl;
-          //#pragma omp parallel for
-          for (unsigned i=1;i<B.size1();i++){
-              for (unsigned j=1;j<=i;j++){
-                  //cout<<"i "<<i<<" j "<<j<<endl;
-                  B(i,j)=_Diis_Bs[i-1]->at(j-1);
-                  if(i!=j){
-                    B(j,i)=B(i,j);
-                  }
-              }
-          }
-          //cout <<"solve"<<endl;
-          
-         
-          
-          
-          bool check=linalg_solve(B,a);
-          //cout<<"a"<<a<<endl;
-          if (!check){
-              LOG(logDEBUG, *_pLog) << TimeStamp() << " Solving DIIs failed, just solve current Fockmatrix" << flush;
-               _dftAOdmat=SolveFockmatrix(_orbitals,H,_dftAOoverlap.Matrix());
-          }
-          else{
-                ub::matrix<double>H_guess=ub::zero_matrix<double>(H.size1(),H.size2()); 
-                 for (unsigned i=0;i<_mathist.size();i++){  
-                     if(std::abs(a(i+1))<1e-8){ continue;}
-                    H_guess+=a(i+1)*(*_mathist[i]);
-                    //cout <<i<<" "<<a(i+1,0)<<" "<<(*_mathist[i])<<endl;
-                 }
-                //cout <<"H_guess"<<H_guess<<endl;
-                _dftAOdmat=SolveFockmatrix(_orbitals,H_guess,_dftAOoverlap.Matrix());
-              }
-         
-      }
-      else{       
-          ub::matrix<double> olddmat=_dftAOdmat;
-          _dftAOdmat=SolveFockmatrix( _orbitals,H,_dftAOoverlap.Matrix());
-          if(_this_iter > 0 && _mathist.size()>0){
-          LOG(logDEBUG, *_pLog) << TimeStamp() << " Using Mixing with mixingparamter="<<_mixingparameter << flush;
-          _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*olddmat;
-            }
-      
-      }
-     
-
-      return max;
-      }
-      
-      ub::matrix<double> DFTENGINE::SolveFockmatrix(Orbitals* _orbitals,const ub::matrix<double>&H,const ub::matrix<double>&S){
-          
-           ub::matrix<double> temp;
-           bool info=linalg_eigenvalues_general( H,S, _orbitals->MOEnergies(), temp);
-            if (!info){
-                    throw runtime_error("Generalized eigenvalue problem did not work.");
-                }
-           _orbitals->MOCoefficients()=ub::trans(temp);
-           
-           
-           return _orbitals->DensityMatrixGroundState(_orbitals->MOCoefficients());
-      }
       
       
       void DFTENGINE::NuclearRepulsion(){

@@ -109,6 +109,7 @@
       <itemPath>../../include/votca/xtp/logger.h</itemPath>
       <itemPath>../../include/votca/xtp/molecule.h</itemPath>
       <itemPath>../../include/votca/xtp/mulliken.h</itemPath>
+      <itemPath>../../include/votca/xtp/nbo.h</itemPath>
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
       <itemPath>../../include/votca/xtp/overlap.h</itemPath>
@@ -234,6 +235,7 @@
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
       <itemPath>../../src/libxtp/lowdin.cc</itemPath>
+      <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
       <itemPath>../../src/libxtp/overlap.cc</itemPath>
       <itemPath>../../src/libxtp/parallelpaircalc.cc</itemPath>
@@ -399,6 +401,8 @@
       <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
             ex="false"
@@ -911,6 +915,8 @@
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
             tool="1"
@@ -1194,6 +1200,8 @@
       <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
             ex="false"
@@ -1705,6 +1713,8 @@
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
