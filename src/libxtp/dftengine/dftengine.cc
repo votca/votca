@@ -319,7 +319,7 @@ namespace votca {
                 _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
             }
            
-         
+            _orbitals->setQMpackage("votca");
             
 	    
 

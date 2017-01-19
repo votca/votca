@@ -528,7 +528,7 @@ bool Turbomole::ParseLogFile( Orbitals* _orbitals ) {
     // save qmpackage name
     //_orbitals->_has_qm_package = true;
     _orbitals->setQMpackage("turbomole");
-    
+    _orbitals->setDFTbasis( _basisset_name);
     // Start parsing the file line by line
     path arg_path;
     std::string logFileName = (arg_path / _run_dir / _log_file_name ).string();

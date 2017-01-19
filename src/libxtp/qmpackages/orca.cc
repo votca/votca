@@ -629,7 +629,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
     const double _conv_Hrt_eV = tools::conv::hrt2ev;
     
     _orbitals->setQMpackage("orca");
-    
+    _orbitals->setDFTbasis( _basisset_name);
     LOG(logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
       // return true;
   std::string _log_file_name_full =  _run_dir + "/" + _log_file_name;

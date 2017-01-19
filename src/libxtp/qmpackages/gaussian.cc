@@ -885,6 +885,7 @@ namespace votca {
             // save qmpackage name
             //_orbitals->_has_qm_package = true;
             _orbitals->setQMpackage("gaussian");
+            _orbitals->setDFTbasis( _basisset_name);
             
             _read_vxc=_output_Vxc;
             bool vxc_found=false;
