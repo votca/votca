@@ -794,8 +794,14 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             // load and fill DFT basis set
             _dftbasisset.LoadBasisSet(_dftbasis_name);
             
-            if(_with_guess && _orbitals->getDFTbasis()!=_dftbasis_name){
-                throw runtime_error((boost::format("Basisset Name in guess orb file and in dftengine option file differ.% vs %") %_orbitals->getDFTbasis() % _dftbasis_name).str() );
+            if(_with_guess){
+                if (_orbitals->hasDFTbasis()){
+                    if( _orbitals->getDFTbasis()!=_dftbasis_name){
+                    throw runtime_error((boost::format("Basisset Name in guess orb file and in dftengine option file differ.% vs %") %_orbitals->getDFTbasis() %_dftbasis_name).str() );
+                    }
+                }else{
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << "WARNING: Orbital file has no basisset information,using it as a guess might work or not for calculation with" << _dftbasis_name << flush;
+                }        
             }
             _orbitals->setDFTbasis( _dftbasis_name );    
 	    _dftbasis.AOBasisFill( &_dftbasisset, _atoms);
