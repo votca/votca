@@ -240,7 +240,7 @@ void AOBasis::getMultiplierVector( string& start, string& target, vector<int>& m
 void AOBasis::addMultiplierShell(string& start, string& target, string& shell_type, vector<int>& multiplier) {
 
 
-    if (target == "votca") {
+    if (target == "xtp") {
         // current length of vector
         //int _cur_pos = multiplier.size() - 1;
 
@@ -310,7 +310,7 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
     // current length of vector
     int _cur_pos = neworder.size() -1 ;
     
-    if ( target == "votca" ){
+    if ( target == "xtp" ){
     
     // single type shells defined here
     if ( shell_type.length() == 1 ){
