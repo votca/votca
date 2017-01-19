@@ -695,7 +695,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                     
                    
                     double energyold = totinit;
-                    int maxiter=31;
+                    int maxiter=81;
                     for (int this_iter = 0; this_iter < maxiter; this_iter++) {
                         //cout<<this_iter<<endl;
                         ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha+dftAOdmat_beta);
@@ -780,7 +780,10 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 start=end;
             }
         
- 
+            ub::vector<double> _eigenvalues;
+            ub::matrix<double> _eigenvectors;
+            linalg_eigenvalues(guess,_eigenvalues,_eigenvectors);
+            cout<<_eigenvalues<<endl;
             return guess;
         }
 
@@ -792,7 +795,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             _dftbasisset.LoadBasisSet(_dftbasis_name);
             
             if(_with_guess && _orbitals->getDFTbasis()!=_dftbasis_name){
-                throw runtime_error("Basisset Name in guess orb file and in dftengine option file differ.");
+                throw runtime_error((boost::format("Basisset Name in guess orb file and in dftengine option file differ.% vs %") %_orbitals->getDFTbasis() % _dftbasis_name).str() );
             }
             _orbitals->setDFTbasis( _dftbasis_name );    
 	    _dftbasis.AOBasisFill( &_dftbasisset, _atoms);
