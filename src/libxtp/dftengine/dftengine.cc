@@ -868,16 +868,16 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
            
            if(_with_guess){
                if(_orbitals->getNumberOfElectrons()!=_numofelectrons){
-               throw runtime_error("Number of electron in guess orb file and in dftengine differ.");
+               throw runtime_error((boost::format("Number of electron in guess orb file % and in dftengine differ %.")%_orbitals->getNumberOfElectrons() %_numofelectrons ).str());
                }
                if(_orbitals->getNumberOfLevels()!=_dftbasis.AOBasisSize()){
-               throw runtime_error("Number of levels in guess orb file and in dftengine differ.");
+               throw runtime_error((boost::format("Number of levels in guess orb file % and in dftengine differ %.")%_orbitals->getNumberOfLevels() %_dftbasis.AOBasisSize()).str());
                }
             }
-           
+           else{
            _orbitals->setNumberOfElectrons(_numofelectrons);
            _orbitals->setNumberOfLevels(_numofelectrons/2,_dftbasis.AOBasisSize()-_numofelectrons/2);
-           
+           }
            
 
             // _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());

@@ -525,7 +525,7 @@ private:
           ar & floatordouble;
           
           if (test!=floatordouble){ 
-              throw std::runtime_error((boost::format("This votca is compiled with %. The orbitals file you want to read in is compield with %") %test %floatordouble).str());
+              throw std::runtime_error((boost::format("This votca is compiled with %. The orbitals file you want to read in is compiled with %") %test %floatordouble).str());
           }
       }
           else{
