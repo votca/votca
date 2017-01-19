@@ -862,20 +862,20 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                     }
                 }
             }
-           
+           // here number of electrons is actually the total number, everywhere else in votca it is just alpha_electrons
            
            LOG(logDEBUG, *_pLog) << TimeStamp() << " Total number of electrons: " << _numofelectrons << flush;
            
            if(_with_guess){
-               if(_orbitals->getNumberOfElectrons()!=_numofelectrons){
-               throw runtime_error((boost::format("Number of electron in guess orb file % and in dftengine differ %.")%_orbitals->getNumberOfElectrons() %_numofelectrons ).str());
+               if(_orbitals->getNumberOfElectrons()!=_numofelectrons/2){
+               throw runtime_error((boost::format("Number of electron in guess orb file % and in dftengine differ %.")%_orbitals->getNumberOfElectrons() %(_numofelectrons/2) ).str());
                }
                if(_orbitals->getNumberOfLevels()!=_dftbasis.AOBasisSize()){
                throw runtime_error((boost::format("Number of levels in guess orb file % and in dftengine differ %.")%_orbitals->getNumberOfLevels() %_dftbasis.AOBasisSize()).str());
                }
             }
            else{
-           _orbitals->setNumberOfElectrons(_numofelectrons);
+           _orbitals->setNumberOfElectrons(_numofelectrons/2);
            _orbitals->setNumberOfLevels(_numofelectrons/2,_dftbasis.AOBasisSize()-_numofelectrons/2);
            }
            

@@ -411,6 +411,7 @@ private:
     int                                     _basis_set_size;   
     int                                     _occupied_levels;
     int                                     _unoccupied_levels;
+    //number of electrons actually is number of alpha_e
     int                                     _number_of_electrons;
     int                                     _number_of_alpha_e;
     int                                     _number_of_beta_e;
