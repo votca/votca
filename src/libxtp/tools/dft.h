@@ -55,7 +55,8 @@ private:
     string      _xyzfile;
 
     string      _logfile;
-    
+    string      _guess_file;
+    bool        _do_guess;
     string      _package;
     Property    _package_options;
     Property    _dftengine_options;
@@ -103,6 +104,15 @@ void DFT::Initialize(Property* options) {
             // options for dftengine
 key = "options." + Identify();
 
+
+
+if(options->exists(key+".guess")){
+    _do_guess=true;
+    _guess_file = options->get(key + ".guess").as<string> ();
+   
+}else{
+    _do_guess=false;
+}
 if(options->exists(key+".dftengine")){
     string _dftengine_xml = options->get(key + ".dftengine").as<string> ();
     load_property_from_xml(_dftengine_options, _dftengine_xml.c_str());
@@ -118,9 +128,9 @@ else if( options->exists(key+".package")){
         }
 
         
-          if(options->exists(key+".mpsfile")){
-              _do_external=true;
-            _mpsfile = options->get(key + ".mpsfile").as<string> (); 
+if(options->exists(key+".mpsfile")){
+    _do_external=true;
+  _mpsfile = options->get(key + ".mpsfile").as<string> (); 
 }  else{
        _do_external=false;       
 }
@@ -161,8 +171,17 @@ bool DFT::Evaluate() {
 
     // Create new orbitals object and fill with atom coordinates
     Orbitals _orbitals;
+    
+    if(_do_guess){
+        LOG(logDEBUG,_log) << "Reading guess from " << _guess_file << flush;
+        _orbitals.Load(_guess_file);
+        
+    }
+    else{
+        LOG(logDEBUG,_log) << "Reading structure from " << _xyzfile << flush;
     XYZ2Orbitals( &_orbitals, _xyzfile );
-
+    
+    }
  
 
 

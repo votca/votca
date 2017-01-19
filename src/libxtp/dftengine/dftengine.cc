@@ -800,7 +800,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                     throw runtime_error((boost::format("Basisset Name in guess orb file and in dftengine option file differ.% vs %") %_orbitals->getDFTbasis() %_dftbasis_name).str() );
                     }
                 }else{
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << "WARNING: Orbital file has no basisset information,using it as a guess might work or not for calculation with" << _dftbasis_name << flush;
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " WARNING: Orbital file has no basisset information,using it as a guess might work or not for calculation with " << _dftbasis_name << flush;
                 }        
             }
             _orbitals->setDFTbasis( _dftbasis_name );    
