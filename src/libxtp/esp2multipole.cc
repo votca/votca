@@ -172,7 +172,7 @@ void Esp2multipole::Extractingcharges( Orbitals & _orbitals ){
         ub::matrix<double> _MO_Coefficients = *(_orbitals.getOrbitals()); // this is a copy?
         
         //basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );  
-        basis.ReorderMOs(_MO_Coefficients, _orbitals.getQMpackage(), "votca" );  
+        basis.ReorderMOs(_MO_Coefficients, _orbitals.getQMpackage(), "xtp" );  
         bool _do_transition=false;
         if(_state=="transition"){
             _do_transition=true;

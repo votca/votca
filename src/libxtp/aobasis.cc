@@ -329,11 +329,18 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
                     neworder.push_back(_cur_pos + 3);
                     neworder.push_back(_cur_pos + 2);
                     neworder.push_back(_cur_pos + 1);
-                } else if (start == "votca") {
+                } else if (start == "votca") {//for usage with old orb files
+                    neworder.push_back(_cur_pos + 3);
+                    neworder.push_back(_cur_pos + 2);
+                    neworder.push_back(_cur_pos + 1);
+                } else if (start == "xtp") {
                     neworder.push_back(_cur_pos + 1);
                     neworder.push_back(_cur_pos + 2);
                     neworder.push_back(_cur_pos + 3);
-                }
+                }else {
+               cerr << "Tried to reorder p-functions from package " << start << ".";
+               throw std::runtime_error( "Reordering not implemented yet!");
+           }
         } //for P
        //votca order is d3z2-r2 dyz dxz dxy dx2-y2 e.g. Y2,0 Y2,-1 Y2,1 Y2,-2 Y2,2                                                                                                                                                
        else if ( shell_type == "D" ){ 
@@ -353,7 +360,14 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
                neworder.push_back( _cur_pos + 3 ); 
                neworder.push_back( _cur_pos + 5 );               
            
-           }else if ( start == "votca") {
+           }else if ( start == "votca") { //for usage with old orb files
+               
+               neworder.push_back( _cur_pos + 1 ); 
+               neworder.push_back( _cur_pos + 2 );
+               neworder.push_back( _cur_pos + 3 );
+               neworder.push_back( _cur_pos + 4 ); 
+               neworder.push_back( _cur_pos + 5 );               
+            }else if ( start == "xtp") {
                
                neworder.push_back( _cur_pos + 1 ); 
                neworder.push_back( _cur_pos + 2 );

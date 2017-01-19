@@ -437,7 +437,7 @@ namespace votca {
                 // fill DFT AO basis by going through all atoms 
                 AOBasis dftbasis;
                 dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms());
-                dftbasis.ReorderMOs(_dft_orbitals, orb_iter_output.getQMpackage(), "votca");
+                dftbasis.ReorderMOs(_dft_orbitals, orb_iter_output.getQMpackage(), "xtp");
                 // TBD: Need to switch between singlets and triplets depending on _type
                 ub::matrix<double> DMATGS = orb_iter_output.DensityMatrixGroundState(_dft_orbitals);
 

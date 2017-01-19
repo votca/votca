@@ -626,7 +626,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	// fill DFT AO basis by going through all atoms
 	AOBasis dftbasis;
 	dftbasis.AOBasisFill(&dftbs, orb.QMAtoms() );
-	dftbasis.ReorderMOs(_dft_orbitals, orb.getQMpackage(), "votca" );
+	dftbasis.ReorderMOs(_dft_orbitals, orb.getQMpackage(), "xtp" );
 	// TBD: Need to switch between singlets and triplets depending on _type
 	ub::matrix<double> DMATGS=orb.DensityMatrixGroundState(_dft_orbitals);
 

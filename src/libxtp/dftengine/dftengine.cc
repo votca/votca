@@ -314,12 +314,12 @@ namespace votca {
             }
             else{
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Reading guess from orbitals object/file"<< flush;
-                _dftbasis.ReorderMOs(MOCoeff, _orbitals->getQMpackage(), "votca");
+                _dftbasis.ReorderMOs(MOCoeff, _orbitals->getQMpackage(), "xtp");
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _orbitals->getQMpackage() << " to VOTCA" << flush;
                 _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
             }
            
-            _orbitals->setQMpackage("votca");
+            _orbitals->setQMpackage("xtp");
             
 	    
 

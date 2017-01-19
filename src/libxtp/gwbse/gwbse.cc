@@ -461,7 +461,7 @@ void GWBSE::addoutput(Property *_summary) {
                 // LOG(logDEBUG, *_pLog) << TimeStamp() << " Trying DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
                
                 
-                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca");
+                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
                 
                 
                 
@@ -488,7 +488,7 @@ void GWBSE::addoutput(Property *_summary) {
                   
             // b) reorder MO coefficients depending on the QM package used to obtain the DFT data
             if (_dft_package != "votca" && !_doVxc) {
-                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca");
+                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
                 }
             }
