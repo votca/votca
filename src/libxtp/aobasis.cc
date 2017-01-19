@@ -362,10 +362,10 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
            
            }else if ( start == "votca") { //for usage with old orb files
                
-               neworder.push_back( _cur_pos + 1 ); 
-               neworder.push_back( _cur_pos + 2 );
-               neworder.push_back( _cur_pos + 3 );
                neworder.push_back( _cur_pos + 4 ); 
+               neworder.push_back( _cur_pos + 2 );
+               neworder.push_back( _cur_pos + 1 );
+               neworder.push_back( _cur_pos + 3 ); 
                neworder.push_back( _cur_pos + 5 );               
             }else if ( start == "xtp") {
                
