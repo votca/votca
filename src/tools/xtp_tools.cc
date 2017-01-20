@@ -32,7 +32,7 @@ using namespace votca::ctp;
 using namespace votca::tools;
 
 //class XtpTools : public votca::ctp::XtpApplication
-class XtpTools : public muscet::xtp::XtpApplication
+class XtpTools : public votca::xtp::XtpApplication
 {
 public:
     
@@ -65,7 +65,7 @@ private:
 
 void XtpTools::Initialize() {
     
-    muscet::xtp::XQMToolFactory::RegisterAll(); 
+    votca::xtp::XQMToolFactory::RegisterAll(); 
     votca::ctp::QMToolFactory::RegisterAll();
 
     namespace propt = boost::program_options;    
@@ -86,7 +86,7 @@ void XtpTools::Initialize() {
 
 bool XtpTools::EvaluateOptions() {
 
-    namespace XTP=muscet::xtp;
+    namespace XTP=votca::xtp;
     
     if (OptionsMap().count("list")) {
         cout << "Available XTP tools: \n";

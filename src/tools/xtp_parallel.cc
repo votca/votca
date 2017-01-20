@@ -27,7 +27,7 @@
 
 using namespace std;
 using namespace votca::ctp;
-using namespace muscet::xtp;
+using namespace votca::xtp;
 
 
 class XtpParallel : public JobApplication
