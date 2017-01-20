@@ -23,7 +23,7 @@
 #include <votca/tools/objectfactory.h>
 #include "qmpackage.h"
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 
 

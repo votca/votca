@@ -72,7 +72,7 @@
 
 namespace ub = boost::numeric::ublas;
     
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     
  
 /**
@@ -665,7 +665,7 @@ private:
 
 }}
 
-BOOST_CLASS_VERSION(muscet::xtp::Orbitals, 2)
+BOOST_CLASS_VERSION(votca::xtp::Orbitals, 2)
         
 #endif	/* __VOTCA_XTP_ORBITALS_H */
 

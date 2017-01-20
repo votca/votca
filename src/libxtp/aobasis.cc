@@ -20,7 +20,7 @@
 #include "votca/xtp/aoshell.h"
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     namespace CTP = votca::ctp;
     
  AOBasis::~AOBasis() { 

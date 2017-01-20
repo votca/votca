@@ -25,7 +25,7 @@
 #include <votca/tools/constants.h>
 #include <votca/ctp/logger.h>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     using namespace std;
     namespace ub = boost::numeric::ublas;
     namespace CTP = votca::ctp;

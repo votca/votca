@@ -29,7 +29,7 @@
 #include <votca/ctp/xmapper.h>
 #include <votca/ctp/xjob.h>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     
     namespace CTP = votca::ctp;
 /**

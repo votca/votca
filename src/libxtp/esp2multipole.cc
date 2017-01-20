@@ -22,7 +22,7 @@
 #include <boost/format.hpp>
 #include <votca/xtp/orbitals.h>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     namespace CTP = votca::ctp;
 
     void Esp2multipole::Initialize(Property* options) {

@@ -20,7 +20,7 @@
 
 #include <votca/xtp/extractorfactory.h>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 void XExtractorFactory::RegisterAll(void)
 {	

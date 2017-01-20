@@ -30,7 +30,7 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/xtp/votca_config.h>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     using namespace std;
     namespace CTP = votca::ctp;
     

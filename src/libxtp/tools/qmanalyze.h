@@ -26,7 +26,7 @@
 #include <votca/xtp/orbitals.h>
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     using namespace std;
     namespace ub = boost::numeric::ublas;
     namespace CTP = votca::ctp;

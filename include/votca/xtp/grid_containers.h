@@ -27,7 +27,7 @@
 using namespace std;
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
     
     

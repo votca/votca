@@ -33,7 +33,7 @@
 
 using boost::format;
 
-namespace muscet {
+namespace votca {
     namespace xtp {
 
         namespace CTP = votca::ctp;

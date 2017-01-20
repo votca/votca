@@ -31,7 +31,7 @@
 
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 /**
     \brief Wrapper for the Gaussian program
  

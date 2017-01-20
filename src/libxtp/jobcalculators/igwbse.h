@@ -31,7 +31,7 @@
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     namespace CTP = votca::ctp;
 /**
 * \brief GWBSE-based exciton coupling elements

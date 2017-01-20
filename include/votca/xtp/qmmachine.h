@@ -33,7 +33,7 @@
 #include <votca/xtp/gdma.h>
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
     namespace CTP = votca::ctp;
     

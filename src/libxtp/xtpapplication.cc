@@ -24,7 +24,7 @@
 #include <votca/xtp/version.h>
 #include <boost/format.hpp>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 XtpApplication::XtpApplication() {
     ;

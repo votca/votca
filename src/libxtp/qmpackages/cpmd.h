@@ -28,7 +28,7 @@
 
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 /**
     \brief Wrapper for the CPMD program
  

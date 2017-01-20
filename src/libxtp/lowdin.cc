@@ -20,7 +20,7 @@
 #include <votca/tools/linalg.h>
 #include <votca/xtp/lowdin.h>
 #include <votca/xtp/aomatrix.h>
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 void Lowdin::EvaluateLowdin(vector< CTP::QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition){
     AOOverlap _overlap;

@@ -42,7 +42,7 @@
 // #include <gsl/gsl_linalg.h>
 // #include <gsl/gsl_cblas.h>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
     namespace CTP = votca::ctp;
         /**

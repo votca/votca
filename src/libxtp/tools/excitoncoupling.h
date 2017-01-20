@@ -29,7 +29,7 @@
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/ctp/polarseg.h>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     using namespace std;
     namespace CTP = votca::ctp;
     

@@ -27,7 +27,7 @@
 #include <votca/xtp/votca_config.h>
 #include <votca/tools/constants.h>
 
-namespace muscet {
+namespace votca {
     namespace xtp {
      
         using namespace std;

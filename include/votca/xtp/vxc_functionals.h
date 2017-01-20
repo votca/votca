@@ -25,7 +25,7 @@
 
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 
 

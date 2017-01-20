@@ -25,7 +25,7 @@
 #include <votca/xtp/qmcalculator.h>
 
 //namespace votca { namespace ctp {
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 
 

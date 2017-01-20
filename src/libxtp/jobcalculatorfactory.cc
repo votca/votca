@@ -28,7 +28,7 @@
 #include "jobcalculators/iexcitoncl.h"
 */
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 void XJobCalculatorfactory::RegisterAll(void)
 {	

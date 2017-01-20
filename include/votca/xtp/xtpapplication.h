@@ -26,7 +26,7 @@
 
 //namespace votca { namespace ctp {
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 
 class XtpApplication : public votca::tools::Application

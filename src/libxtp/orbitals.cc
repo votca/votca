@@ -33,7 +33,7 @@
 
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 template <class VEC>
 class vector_less

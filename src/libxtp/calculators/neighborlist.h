@@ -31,7 +31,7 @@
 #include <omp.h>
 #endif
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 namespace TOOLS = votca::tools;
 namespace CTP = votca::ctp;

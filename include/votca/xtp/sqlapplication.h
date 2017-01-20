@@ -28,7 +28,7 @@
 #include <votca/xtp/qmcalculator.h>
 #include <votca/ctp/qmcalculator.h>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     namespace CTP = votca::ctp;
 
 class XSqlApplication : public XtpApplication

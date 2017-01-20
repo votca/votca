@@ -25,7 +25,7 @@
 
 
 
-namespace muscet { namespace xtp { 
+namespace votca { namespace xtp { 
     namespace CTP = votca::ctp;
 
     double pi=boost::math::constants::pi<double>();

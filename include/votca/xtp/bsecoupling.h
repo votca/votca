@@ -23,7 +23,7 @@
 #ifndef _VOTCA_XTP_BSECOUPLING_H
 #define	_VOTCA_XTP_BSECOUPLING_H
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 namespace ub = boost::numeric::ublas;
 namespace CTP  = votca::ctp;

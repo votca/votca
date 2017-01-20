@@ -36,7 +36,7 @@
 
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     namespace CTP = votca::ctp;
     
 void XCalculatorfactory::RegisterAll(void)

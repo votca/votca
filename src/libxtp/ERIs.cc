@@ -24,7 +24,7 @@
 
 using namespace votca::tools;
 
-namespace muscet {
+namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
         

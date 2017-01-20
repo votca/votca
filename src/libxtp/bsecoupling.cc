@@ -35,7 +35,7 @@
 
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 namespace ub = boost::numeric::ublas;
 namespace CTP = votca::ctp;

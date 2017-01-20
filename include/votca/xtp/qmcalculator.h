@@ -28,7 +28,7 @@
 namespace CTP = votca::ctp;
 namespace TOOLS = votca::tools;
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 class XQMCalculator : public CTP::Calculator
 {

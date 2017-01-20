@@ -28,7 +28,7 @@
 #include <votca/tools/mutex.h>
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 class ParallelPairCalculator : public XQMCalculator
 {

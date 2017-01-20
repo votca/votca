@@ -33,7 +33,7 @@
 
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
     namespace CTP = votca::ctp;
 /******** Defining a class for l->number and number->l*****************************/

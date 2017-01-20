@@ -24,7 +24,7 @@
 #include <votca/tools/objectfactory.h>
 #include <votca/ctp/jobcalculator.h>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 using namespace std;
 namespace CTP = votca::ctp;

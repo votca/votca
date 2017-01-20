@@ -29,7 +29,7 @@
 
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     
 void XQMToolFactory::RegisterAll(void)
 {

@@ -20,7 +20,7 @@
 
 #include <votca/xtp/parallelpaircalc.h>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     namespace CTP = votca::ctp;
 bool ParallelPairCalculator::EvaluateFrame(CTP::Topology *top) {
 

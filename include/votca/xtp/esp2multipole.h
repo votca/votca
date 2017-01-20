@@ -29,7 +29,7 @@
 #include <votca/xtp/qmmachine.h>
 #include <boost/filesystem.hpp>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     using namespace std;
     namespace CTP = votca::ctp;
     

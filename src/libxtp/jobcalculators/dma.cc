@@ -36,7 +36,7 @@
 
 using boost::format;
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 /**
 * \brief Distributed multipole analysis using Gaussian input

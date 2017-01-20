@@ -21,7 +21,7 @@
 #include <votca/xtp/statesaversqlite.h>
 #include <votca/tools/statement.h>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
     namespace CTP = votca::ctp;
     

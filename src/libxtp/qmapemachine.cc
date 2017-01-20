@@ -31,7 +31,7 @@
 
 using boost::format;
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     namespace CTP = votca::ctp;
 
 template<class XQMPackage>

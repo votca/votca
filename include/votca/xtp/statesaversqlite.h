@@ -27,7 +27,7 @@
 #include <votca/ctp/topology.h>
 #include <boost/interprocess/sync/file_lock.hpp>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 using namespace votca::tools;
 namespace CTP = votca::ctp;

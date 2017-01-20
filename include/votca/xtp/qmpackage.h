@@ -28,7 +28,7 @@
 #include <votca/ctp/topology.h>
 #include <boost/format.hpp>
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     namespace CTP = votca::ctp;
  
 // ========================================================================== //

@@ -45,7 +45,7 @@
 #include <boost/numeric/ublas/vector.hpp>
 
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
     namespace CTP = votca::ctp;
        // namespace ub = boost::numeric::ublas;
 

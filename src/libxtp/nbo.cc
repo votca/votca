@@ -21,7 +21,7 @@
 #include <votca/xtp/nbo.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/tools/linalg.h>
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
     namespace CTP = votca::ctp;
 void NBO::EvaluateNBO(std::vector< CTP::QMAtom* >& _atomlist,  ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs){

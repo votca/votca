@@ -25,7 +25,7 @@
 
 using namespace votca::tools;
 
-namespace muscet { namespace xtp {
+namespace votca { namespace xtp {
 
 /**
  * \brief the state database
