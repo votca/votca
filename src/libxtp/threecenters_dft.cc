@@ -69,12 +69,7 @@ namespace votca {
                
                 
             } // shells of aux basis set
-            //for (int i=0;i<_matrix.size();i++){
-                  //  cout<< "Matrix(" << i<<"):\n"<<_matrix[i]<< endl;
-            for (unsigned i=0;i<_matrix.size();i++){
-                 cout <<_matrix[i](0,1)<<" vs "<<_matrix[i](1,0)<<endl;   
-            }
-                //}
+          
         } // TCMatrix_dft::Fill
 
 

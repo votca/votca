@@ -76,12 +76,12 @@ namespace votca {
             _ERIs=ub::zero_matrix<double>(DMAT.size1());
            
         
-            const ub::vector<double> & dmatasarray=DMAT.data();
+            const ub::vector<double>& dmatasarray=DMAT.data();
           
             ub::matrix<double> Itilde=ub::zero_matrix<double>(_threecenter.getSize(),1);
             //cout << _threecenter.getSize() << " Size-Threecenter"<<endl;
             //check Efficiency !!!! someday 
-            //#pragma omp parallel for
+            #pragma omp parallel for
             for ( int _i=0; _i<_threecenter.getSize();_i++){
                 ub::symmetric_matrix<double> &threecenter=_threecenter.getDatamatrix(_i);
                 // Trace over prod::DMAT,I(l)=componentwise product over 
@@ -102,7 +102,7 @@ namespace votca {
             }
 
             CalculateEnergy(dmatasarray);
-            
+            //cout<<_ERIs<<endl;
         }
 
 
@@ -168,12 +168,12 @@ namespace votca {
             
             const ub::vector<double>& ERIsasarray=_ERIs.data();
             double energy=0.0;
-           //#pragma omp parallel for reduction(+:energy)
+           #pragma omp parallel for reduction(+:energy)
             for (unsigned _i=0;_i<ERIsasarray.size();_i++){
                 energy+=dmatasarray[_i]*ERIsasarray[_i];
                 
             }
-            energy=_ERIsenergy;
+            _ERIsenergy=energy;
 
         }
         
