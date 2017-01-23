@@ -21,7 +21,7 @@
 #define	__VOTCA_XTP_ORCA_H
 
 
-#include <votca/xtp/apolarsite.h>
+#include <votca/ctp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 
 #include <string> 
@@ -36,7 +36,8 @@ namespace votca { namespace xtp {
     and extracts information from its log and io files
     
 */
-class Orca : public QMPackage
+    namespace CTP = votca::ctp;
+class Orca : public XQMPackage
 {
 public:   
 
@@ -47,7 +48,7 @@ public:
    /* Writes Orca input file with coordinates of segments
   
     */
-   bool WriteInputFile( vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( vector< CTP::Segment* > segments, Orbitals* orbitals_guess = NULL);
 
    bool WriteShellScript();
 

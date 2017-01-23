@@ -21,7 +21,7 @@
 #define	__VOTCA_XTP_CPMD_H
 
 
-#include <votca/xtp/apolarsite.h>
+#include <votca/ctp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 
 #include <string> 
@@ -36,7 +36,9 @@ namespace votca { namespace xtp {
     and extracts information from its log and io files
     
 */
-class Cpmd : public QMPackage
+    
+    namespace CTP = votca::ctp;
+class Cpmd : public XQMPackage
 {
 public:   
 
@@ -48,7 +50,7 @@ public:
     * and a guess for the dimer (if requested) constructed from the
     * monomer orbitals
     */
-   bool WriteInputFile( std::vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( std::vector< CTP::Segment* > segments, Orbitals* orbitals_guess = NULL);
    
    bool WriteShellScript();
 
@@ -63,7 +65,7 @@ public:
    bool ParseOrbitalsFile( Orbitals* _orbitals ){return true;};
    
    bool ConvertToGW( Orbitals* _orbitals ){
-       LOG(logDEBUG, *_pLog) << "CPMD: ConvertToGW is  not implemented." << flush;
+       LOG(CTP::logDEBUG, *_pLog) << "CPMD: ConvertToGW is  not implemented." << flush;
        throw std::runtime_error("Not implemented ConvertToGW");
    };
       
@@ -128,7 +130,7 @@ private:
     int NumbfQC( std::string _shell_type);
     int NumbfGW( std::string _shell_type);
     int NumbfQC_cart( std::string _shell_type);
-    void WriteBasisSet(std::vector<Segment* > segments, ofstream &_com_file);
+    void WriteBasisSet(std::vector<CTP::Segment* > segments, ofstream &_com_file);
 
     
     

@@ -65,7 +65,7 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/xtp_app: ${OBJECTFILES}
 ${OBJECTDIR}/_ext/2aac7050/xtp_tools.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/xtp_tools.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/2aac7050
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2aac7050/xtp_tools.o ../../src/tools/xtp_tools.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I../../../ctp/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2aac7050/xtp_tools.o ../../src/tools/xtp_tools.cc
 
 # Subprojects
 .build-subprojects:

@@ -21,7 +21,7 @@
 #define _MOLPOL_H
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 #include <votca/xtp/qmcalculator.h>
 

@@ -29,6 +29,7 @@
 
 namespace votca {
     namespace xtp {
+        namespace CTP = votca::ctp;
 
         class LebedevGrid {
         public:
@@ -39,7 +40,7 @@ namespace votca {
                 FillIndex2Order();
             };
 
-            void getSphericalGrid(std::vector<QMAtom* > _atoms, std::string type, GridContainers& _grids);
+            void getSphericalGrid(std::vector<CTP::QMAtom* > _atoms, std::string type, GridContainers& _grids);
             void getUnitSphereGrid(std::string element, std::string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight);
             void getUnitSphereGrid(int order, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight);
 

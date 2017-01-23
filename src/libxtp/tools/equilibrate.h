@@ -30,7 +30,7 @@
 #include <votca/csg/topologyreader.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 namespace CSG = votca::csg;
 

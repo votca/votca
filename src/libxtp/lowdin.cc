@@ -22,7 +22,7 @@
 #include <votca/xtp/aomatrix.h>
 namespace votca { namespace xtp {
 
-void Lowdin::EvaluateLowdin(vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition){
+void Lowdin::EvaluateLowdin(vector< CTP::QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition){
     AOOverlap _overlap;
     // initialize overlap matrix
     _overlap.Initialize(basis._AOBasisSize);
@@ -32,7 +32,7 @@ void Lowdin::EvaluateLowdin(vector< QMAtom* >& _atomlist, ub::matrix<double> &_d
     linalg_matrixsqrt(_overlap._aomatrix);
     ub::matrix<double> temp = ub::prod( _dmat, _overlap._aomatrix );
     ub::matrix<double> _prodmat=ub::prod(_overlap._aomatrix,temp);
-    vector < QMAtom* > :: iterator atom;
+    vector < CTP::QMAtom* > :: iterator atom;
 
     int id =0;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){

@@ -30,10 +30,10 @@
 #include <votca/tools/globals.h>
 #include <votca/tools/random.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 using namespace std;
-using namespace votca::xtp;
+using namespace votca::ctp;
 using namespace votca::tools;
 
 struct link_t;

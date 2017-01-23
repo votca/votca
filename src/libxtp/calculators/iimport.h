@@ -20,18 +20,17 @@
 #ifndef _VOTCA_XTP_IIMPORT_H
 #define _VOTCA_XTP_IIMPORT_H
 
-#include <votca/xtp/qmcalculator.h>
 #include <sys/stat.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/tools/random2.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
-class IImport : public QMCalculator
+class XIImport : public XQMCalculator
 {
 public:
 
-    string      Identify() { return "iimport"; }
+    string      Identify() { return "xiimport"; }
 
     void        Initialize(Property *options);
     bool        EvaluateFrame(Topology *top);
@@ -57,7 +56,7 @@ private:
 };
 
 
-void IImport::Initialize(Property *options) {
+void XIImport::Initialize(Property *options) {
     
     _importFromDirs = false;
     _importFromList = false;
@@ -111,7 +110,7 @@ void IImport::Initialize(Property *options) {
     
 }
 
-bool IImport::EvaluateFrame(Topology *top) {
+bool XIImport::EvaluateFrame(Topology *top) {
   QMNBList &nblist = top->NBList();
   QMNBList ::iterator nit;
     
@@ -150,7 +149,7 @@ bool IImport::EvaluateFrame(Topology *top) {
 }
 
 
-void IImport::List2PairsTI(Topology *top, string &ti_file) {
+void XIImport::List2PairsTI(Topology *top, string &ti_file) {
 
     QMNBList &nblist = top->NBList();
     int pair_count = 0;
@@ -225,7 +224,7 @@ void IImport::List2PairsTI(Topology *top, string &ti_file) {
          << flush;
 }
 
-double IImport::StochasticMakeJ(double thisdistance, vector<double> distances, vector<double> means, vector<double> sigmas, votca::tools::Random2 *RandomVariable){
+double XIImport::StochasticMakeJ(double thisdistance, vector<double> distances, vector<double> means, vector<double> sigmas, votca::tools::Random2 *RandomVariable){
     double offset = 0.5*(distances[distances.size()-1] - distances[0])/distances.size();
     thisdistance -= offset;
     double MINR = distances[0];
@@ -265,7 +264,7 @@ double IImport::StochasticMakeJ(double thisdistance, vector<double> distances, v
 }
 
 
-void IImport::StochasticTI(Topology *top, string &filename, int state) {
+void XIImport::StochasticTI(Topology *top, string &filename, int state) {
     if(state == 1){
         cout << endl << "... ... calculating stochastic hole TI." << endl;
     }
@@ -346,7 +345,7 @@ void IImport::StochasticTI(Topology *top, string &filename, int state) {
 }
 
 
-void IImport::XML2PairTI(QMPair *qmpair, string &xmlDirFile) {
+void XIImport::XML2PairTI(QMPair *qmpair, string &xmlDirFile) {
 
     printf("\n... ... Import TIs for pair %5d (ID1 %4d    ID2 %4d) ",
             qmpair->getId(), qmpair->Seg1()->getId(), qmpair->Seg2()->getId());
@@ -410,7 +409,7 @@ void IImport::XML2PairTI(QMPair *qmpair, string &xmlDirFile) {
 }
 
 
-void IImport::FromIDFT(Topology *top, string &_idft_jobs_file) {
+void XIImport::FromIDFT(Topology *top, string &_idft_jobs_file) {
 
     Property xml;
 
@@ -490,7 +489,7 @@ void IImport::FromIDFT(Topology *top, string &_idft_jobs_file) {
 }
 
     
-void IImport::FromIDFTWithSuperExchange(Topology *top, string &_idft_jobs_file) {
+void XIImport::FromIDFTWithSuperExchange(Topology *top, string &_idft_jobs_file) {
 
     Property xml;
 

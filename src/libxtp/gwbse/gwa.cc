@@ -150,7 +150,7 @@ namespace votca {
                   }
               }
             if (energies_converged){
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Converged after "<< _i_iter<< " qp_energy iterations." << flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Converged after "<< _i_iter<< " qp_energy iterations." << flush;
                 break;
             }
             else{
@@ -162,7 +162,7 @@ namespace votca {
              double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
              double _shift_new = _QPgap - _DFTgap;
              
-            LOG(logDEBUG, *_pLog) << TimeStamp() << (format(" New shift [Ryd] : %1$+1.6f ") % _shift_new ).str() << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << (format(" New shift [Ryd] : %1$+1.6f ") % _shift_new ).str() << flush;
             //cout << " shift new " << _shift_new << endl;
             if (std::abs((_shift_new - _shift)) > _shift_limit) {
                 _shift = _shift_new;

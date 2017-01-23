@@ -20,13 +20,12 @@
 #ifndef VOTCA_XTP_IANALYZE_H
 #define VOTCA_XTP_IANALYZE_H
 
-#include <votca/xtp/qmcalculator.h>
 #include <math.h>
-#include <votca/xtp/qmpair.h>
+#include <votca/ctp/qmpair.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
-class IAnalyze : public QMCalculator
+class XIAnalyze : public XQMCalculator
 {
 public:
 
@@ -49,7 +48,7 @@ private:
 };
 
 
-void IAnalyze::Initialize(Property *opt) {
+void XIAnalyze::Initialize(Property *opt) {
     _do_pairtype=false;
     _do_IRdependence=false;
     // update options with the VOTCASHARE defaults   
@@ -80,7 +79,7 @@ void IAnalyze::Initialize(Property *opt) {
 }
 
 
-bool IAnalyze::EvaluateFrame(Topology *top) {
+bool XIAnalyze::EvaluateFrame(Topology *top) {
 
     QMNBList &nblist = top->NBList();
 
@@ -116,7 +115,7 @@ bool IAnalyze::EvaluateFrame(Topology *top) {
 }
 
 
-void IAnalyze::IHist(Topology *top, int state) {
+void XIAnalyze::IHist(Topology *top, int state) {
 
     QMNBList &nblist = top->NBList();
     QMNBList::iterator nit;
@@ -189,7 +188,7 @@ void IAnalyze::IHist(Topology *top, int state) {
     fclose(out);
 }
 
-void IAnalyze::IRdependence(Topology *top, int state) {
+void XIAnalyze::IRdependence(Topology *top, int state) {
     
     QMNBList &nblist = top->NBList();
     QMNBList::iterator nit;

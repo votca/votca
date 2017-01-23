@@ -45,7 +45,8 @@ using namespace boost::filesystem;
 namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
-
+        namespace CTP = votca::ctp;
+         
         // +++++++++++++++++++++++++++++ //
         // GWBSE MEMBER FUNCTIONS        //
         // +++++++++++++++++++++++++++++ //
@@ -58,9 +59,9 @@ namespace votca {
         void GWBSE::Initialize(Property* options){
             
             #if (GWBSE_DOUBLE)
-                LOG(logDEBUG, *_pLog) <<  " Compiled with full double support" << flush;   
+                LOG(CTP::logDEBUG, *_pLog) <<  " Compiled with full double support" << flush;   
             #else
-                LOG(logDEBUG, *_pLog) <<  " Compiled with float/double mixture (standard)" << flush;   
+                LOG(CTP::logDEBUG, *_pLog) <<  " Compiled with float/double mixture (standard)" << flush;   
             #endif
             
             
@@ -124,11 +125,11 @@ namespace votca {
                 string BSEtype = options->get(key + ".BSEtype" ).as< string >();
                 if ( BSEtype == "full" ) {
                   _do_full_BSE = true;
-                  LOG(logDEBUG, *_pLog) <<  " BSE type: full" << flush;   
-                  LOG(logDEBUG, *_pLog) <<  "           ATTENTION: only full BSE energies supported. UNDER DEVELOPMENT!" << flush;   
+                  LOG(CTP::logDEBUG, *_pLog) <<  " BSE type: full" << flush;   
+                  LOG(CTP::logDEBUG, *_pLog) <<  "           ATTENTION: only full BSE energies supported. UNDER DEVELOPMENT!" << flush;   
                 }
             } else {
-                LOG(logDEBUG, *_pLog) <<  " BSE type: TDA" << flush;
+                LOG(CTP::logDEBUG, *_pLog) <<  " BSE type: TDA" << flush;
             }
             
             if ( options->exists( key + ".qp_limit") ) {
@@ -158,10 +159,10 @@ namespace votca {
             _shift = options->get(key + ".shift").as<double> ();
             string _shift_type = options->get(key + ".shift_type").as<string> ();
             if ( _shift_type != "fixed" ) _iterate_shift = true;
-            LOG(logDEBUG, *_pLog) <<  " Shift: "<< _shift_type << flush;
-            LOG(logDEBUG, *_pLog) <<  " qp_limit [Ryd]: "<< _qp_limit << flush;
+            LOG(CTP::logDEBUG, *_pLog) <<  " Shift: "<< _shift_type << flush;
+            LOG(CTP::logDEBUG, *_pLog) <<  " qp_limit [Ryd]: "<< _qp_limit << flush;
             if (_iterate_shift){
-                LOG(logDEBUG, *_pLog) <<  " shift_limit [Ryd]: "<< _shift_limit << flush;
+                LOG(CTP::logDEBUG, *_pLog) <<  " shift_limit [Ryd]: "<< _shift_limit << flush;
             }
             // possible tasks
             // diagQP, singlets, triplets, all, ibse
@@ -201,15 +202,15 @@ namespace votca {
             if (_store_string.find("ehint") != std::string::npos) _store_eh_interaction = true;
 
             
-            LOG(logDEBUG, *_pLog) <<  " Tasks: " << flush;
-            if (_do_qp_diag){ LOG(logDEBUG, *_pLog) <<  " qpdiag " <<  flush;}
-            if (_do_bse_singlets){ LOG(logDEBUG, *_pLog) <<  " singlets " <<  flush;}
-            if (_do_bse_triplets){ LOG(logDEBUG, *_pLog) <<  " triplets " <<  flush;}
-            LOG(logDEBUG, *_pLog) <<  " Store: " << flush;
-            if (_store_qp_diag){ LOG(logDEBUG, *_pLog) <<  " qpdiag " <<  flush;}
-            if (_store_bse_singlets){ LOG(logDEBUG, *_pLog) <<  " singlets " <<  flush;}
-            if (_store_bse_triplets){ LOG(logDEBUG, *_pLog) <<  " triplets " <<  flush;}
-            if (_store_eh_interaction){ LOG(logDEBUG, *_pLog) <<  " ehint " <<  flush;}
+            LOG(CTP::logDEBUG, *_pLog) <<  " Tasks: " << flush;
+            if (_do_qp_diag){ LOG(CTP::logDEBUG, *_pLog) <<  " qpdiag " <<  flush;}
+            if (_do_bse_singlets){ LOG(CTP::logDEBUG, *_pLog) <<  " singlets " <<  flush;}
+            if (_do_bse_triplets){ LOG(CTP::logDEBUG, *_pLog) <<  " triplets " <<  flush;}
+            LOG(CTP::logDEBUG, *_pLog) <<  " Store: " << flush;
+            if (_store_qp_diag){ LOG(CTP::logDEBUG, *_pLog) <<  " qpdiag " <<  flush;}
+            if (_store_bse_singlets){ LOG(CTP::logDEBUG, *_pLog) <<  " singlets " <<  flush;}
+            if (_store_bse_triplets){ LOG(CTP::logDEBUG, *_pLog) <<  " triplets " <<  flush;}
+            if (_store_eh_interaction){ LOG(CTP::logDEBUG, *_pLog) <<  " ehint " <<  flush;}
 
 
             
@@ -218,8 +219,8 @@ namespace votca {
         
         
 void GWBSE::addoutput(Property *_summary) {
-    const double ryd2ev = tools::conv::ryd2ev;
-    const double ha2ev = tools::conv::hrt2ev;
+    const double ryd2ev = votca::tools::conv::ryd2ev;
+    const double ha2ev = votca::tools::conv::hrt2ev;
     Property *_gwbse_summary = &_summary->add("GWBSE", "");
     _gwbse_summary->setAttribute("units", "eV");
     _gwbse_summary->setAttribute("DeltaHLGap",(format("%1$+1.6f ") % (_shift * ryd2ev)).str());
@@ -315,9 +316,9 @@ void GWBSE::addoutput(Property *_summary) {
              * -> implicit info about MO coefficient storage order 
              */
             string _dft_package = _orbitals->getQMpackage();
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " DFT data was created by " << _dft_package << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " DFT data was created by " << _dft_package << flush;
 
-            std::vector<QMAtom*> _atoms = _orbitals->QMAtoms();
+            std::vector<CTP::QMAtom*> _atoms = _orbitals->QMAtoms();
 
             // load DFT basis set (element-wise information) from xml file
             BasisSet dftbs;
@@ -328,15 +329,15 @@ void GWBSE::addoutput(Property *_summary) {
              
             dftbs.LoadBasisSet(_dftbasis_name);
             _orbitals->setDFTbasis( _dftbasis_name );
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
             
             // fill DFT AO basis by going through all atoms 
             AOBasis dftbasis;
             dftbasis.AOBasisFill(&dftbs, _atoms, _fragA );
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Basis of size " << dftbasis._AOBasisSize << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT Basis of size " << dftbasis._AOBasisSize << flush;
             if ( dftbasis._AOBasisFragB > 0 ) {
-               LOG(logDEBUG, *_pLog) << TimeStamp() << " FragmentA size " << dftbasis._AOBasisFragA << flush;
-               LOG(logDEBUG, *_pLog) << TimeStamp() << " FragmentB size " << dftbasis._AOBasisFragB << flush;
+               LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " FragmentA size " << dftbasis._AOBasisFragA << flush;
+               LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " FragmentB size " << dftbasis._AOBasisFragB << flush;
             }
             
             /* Preparation of calculation parameters:
@@ -414,16 +415,16 @@ void GWBSE::addoutput(Property *_summary) {
             _ScaHFX=-1;
 	    
                     
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Set RPA level range [" << _rpamin +1 << ":" << _rpamax +1 << "]" << flush;
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Set QP  level range [" << _qpmin +1 << ":" << _qpmax +1 << "]" << flush;
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Set BSE level range occ[" << _bse_vmin +1 << ":" << _bse_vmax +1 << "]  virt[" << _bse_cmin +1 << ":" << _bse_cmax +1 << "]" << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Set RPA level range [" << _rpamin +1 << ":" << _rpamax +1 << "]" << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Set QP  level range [" << _qpmin +1 << ":" << _qpmax +1 << "]" << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Set BSE level range occ[" << _bse_vmin +1 << ":" << _bse_vmax +1 << "]  virt[" << _bse_cmin +1 << ":" << _bse_cmax +1 << "]" << flush;
             
             
             // process the DFT data
             // a) form the expectation value of the XC functional in MOs
             ub::matrix<double> _dft_orbitals = *(_orbitals->getOrbitals()); //
             
-            //LOG(logDEBUG, *_pLog) << TimeStamp() << " size of DFT orbitals [" << _dft_orbitals.size1() << ":" << _dft_orbitals.size2() << "]" << flush;
+            //LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " size of DFT orbitals [" << _dft_orbitals.size1() << ":" << _dft_orbitals.size2() << "]" << flush;
             
             
             _ScaHFX = _orbitals->getScaHFX();
@@ -431,7 +432,7 @@ void GWBSE::addoutput(Property *_summary) {
             ub::matrix<double> _vxc_ao;
             if (_orbitals->hasAOVxc()) {
                     if (_doVxc) {
-                        LOG(logDEBUG, *_pLog) << TimeStamp() << "There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take the external implementation" << flush;
+                        LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << "There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take the external implementation" << flush;
                         _doVxc=false;
                     }
                     if (_dft_package == "gaussian") {
@@ -456,25 +457,25 @@ void GWBSE::addoutput(Property *_summary) {
                         throw std::runtime_error((boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
                     }
                     _numint.GridSetup(_grid, &dftbs, _atoms);
-                // LOG(logDEBUG, *_pLog) << TimeStamp() << " Trying DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
+                // LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Trying DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
                
                 
                     dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca");
                 
                 
                 
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Integrating Vxc in VOTCA with gridsize: " << _grid << " and functional " << _functional << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Integrating Vxc in VOTCA with gridsize: " << _grid << " and functional " << _functional << flush;
                     ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
                     _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT, &dftbasis, _functional);
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated Vxc in VOTCA" << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Calculated Vxc in VOTCA" << flush;
 
                 } else {
                     throw std::runtime_error("So your DFT data contains no Vxc, if you want to proceed use the dovxc option.");
                 }
 
             
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
             
             
             // now get expectation values but only for those in _qpmin:_qpmax range
@@ -482,12 +483,12 @@ void GWBSE::addoutput(Property *_summary) {
             ub::matrix<double> _temp  = ub::prod( _vxc_ao, ub::trans( _mos ) ) ;
             _vxc  = ub::prod( _mos  , _temp );
             _vxc = 2.0 * _vxc;
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
                   
             // b) reorder MO coefficients depending on the QM package used to obtain the DFT data
             if (_dft_package != "votca" && !_doVxc) {
                     dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca");
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
                 }
             }
             
@@ -532,13 +533,13 @@ void GWBSE::addoutput(Property *_summary) {
             // load auxiliary GW basis set (element-wise information) from xml file
             BasisSet gwbs;
             gwbs.LoadBasisSet(_gwbasis_name);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded GW Basis Set " << _gwbasis_name << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Loaded GW Basis Set " << _gwbasis_name << flush;
 
             // fill auxiliary GW AO basis by going through all atoms
             AOBasis gwbasis;
             gwbasis.AOBasisFill(&gwbs, _atoms);
             _orbitals->setGWbasis( _gwbasis_name );
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled GW Basis of size " << gwbasis._AOBasisSize << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled GW Basis of size " << gwbasis._AOBasisSize << flush;
 
             /* 
              * for the representation of 2-point functions with the help of the 
@@ -553,13 +554,13 @@ void GWBSE::addoutput(Property *_summary) {
             
             //_gwoverlap.Print("AOOL");
             
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() << flush;
             // exit(0);
             // check eigenvalues of overlap matrix, if too small basis might have linear dependencies
             ub::vector<double> _eigenvalues;
             ub::matrix<double> _eigenvectors;
             linalg_eigenvalues(_gwoverlap._aomatrix, _eigenvalues, _eigenvectors);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Smallest eigenvalue of GW Overlap matrix : " << _eigenvalues[0] << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Smallest eigenvalue of GW Overlap matrix : " << _eigenvalues[0] << flush;
 
 
             /*
@@ -576,7 +577,7 @@ void GWBSE::addoutput(Property *_summary) {
             _gwcoulomb.Initialize(gwbasis._AOBasisSize);
             // Fill Coulomb matrix
             _gwcoulomb.Fill(&gwbasis);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled GW Coulomb matrix of dimension: " << _gwcoulomb._aomatrix.size1() << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled GW Coulomb matrix of dimension: " << _gwcoulomb._aomatrix.size1() << flush;
             //cout << _gwcoulomb._aomatrix << endl;
             //_gwcoulomb.Print("Cou");
             //exit(0);
@@ -586,7 +587,7 @@ void GWBSE::addoutput(Property *_summary) {
             AOOverlap _gwoverlap_cholesky_inverse;      // will also be needed in PPM itself
             _gwoverlap_inverse.Initialize( gwbasis._AOBasisSize);
             _gwcoulomb.Symmetrize(  _gwoverlap , gwbasis, _gwoverlap_inverse , _gwoverlap_cholesky_inverse );
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM " << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM " << flush;
 
             /* calculate 3-center integrals,  convoluted with DFT eigenvectors
              * 
@@ -604,7 +605,7 @@ void GWBSE::addoutput(Property *_summary) {
             TCMatrix _Mmn;
             _Mmn.Initialize(gwbasis._AOBasisSize, _rpamin, _qpmax, _rpamin, _rpamax);
             _Mmn.Fill(gwbasis, dftbasis, _dft_orbitals);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
             
 
 
@@ -612,17 +613,17 @@ void GWBSE::addoutput(Property *_summary) {
             TCMatrix _Mmn_RPA;
             _Mmn_RPA.Initialize(gwbasis._AOBasisSize, _rpamin, _homo , _homo +1 , _rpamax);
             RPA_prepare_threecenters( _Mmn_RPA, _Mmn, gwbasis, _gwoverlap, _gwoverlap_inverse );
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Prepared Mmn_beta for RPA  " << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Prepared Mmn_beta for RPA  " << flush;
 
 	    //exit(0);
 
             // make _Mmn_RPA symmetric for use in RPA
             _Mmn_RPA.Symmetrize( _gwcoulomb._aomatrix  );
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Symmetrize Mmn_beta for RPA  " << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Symmetrize Mmn_beta for RPA  " << flush;
 
             // make _Mmn symmetric for use in self-energy calculation
             _Mmn.Symmetrize( _gwcoulomb._aomatrix  );
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Symmetrize Mmn_beta for self-energy  " << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Symmetrize Mmn_beta for self-energy  " << flush;
 
             // fix the frequencies for PPM
             _screening_freq = ub::zero_matrix<double>(2,2); // two frequencies
@@ -660,7 +661,7 @@ void GWBSE::addoutput(Property *_summary) {
                 for (int _i = 0; _i < _mnsize; _i++) {
                    _Mmn_backup[ _i ] = _Mmn[ _i ];
                 }
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Made backup of _Mmn  " << flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Made backup of _Mmn  " << flush;
             }
             
             while ( ! _shift_converged ){
@@ -675,29 +676,29 @@ void GWBSE::addoutput(Property *_summary) {
             
                 // determine epsilon from RPA
                 RPA_calculate_epsilon( _Mmn_RPA, _screening_freq, _shift, _dft_energies );
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated epsilon via RPA  " << flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Calculated epsilon via RPA  " << flush;
   
                 // _Mmn_RPA is not needed any further, if no shift iteration
                 if ( ! _iterate_shift) _Mmn_RPA.Cleanup();
             
                 // construct PPM parameters
                 PPM_construct_parameters( _gwoverlap_cholesky_inverse._aomatrix );
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Constructed PPM parameters  " << flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Constructed PPM parameters  " << flush;
             
                 // prepare threecenters for Sigma
                 sigma_prepare_threecenters(  _Mmn );
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Prepared threecenters for sigma  " << flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Prepared threecenters for sigma  " << flush;
 
                 // calculate exchange part of sigma
                 sigma_x_setup( _Mmn );
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated exchange part of Sigma  " << flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Calculated exchange part of Sigma  " << flush;
             
                 // TOCHECK: get rid of _ppm_phi?
   
             
                 // calculate correlation part of sigma
                 sigma_c_setup( _Mmn, _dft_energies   );
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated correlation part of Sigma  " << flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Calculated correlation part of Sigma  " << flush;
                 
                 // restore _Mmn, if shift has not converged
                 if ( _iterate_shift &&  ! _shift_converged){
@@ -725,18 +726,18 @@ void GWBSE::addoutput(Property *_summary) {
             
             
             // Output of quasiparticle energies after all is done:
-            // _pLog->setPreface(logINFO, "\n");
+            // _pLog->setPreface(CTP::logINFO, "\n");
             
-            LOG(logINFO,*_pLog) << (format("  ====== Perturbative quasiparticle energies (Rydberg) ====== ")).str() << flush;
-            LOG(logINFO,*_pLog) << (format("   DeltaHLGap = %1$+1.6f Ryd") % _shift ).str()  <<  flush;
+            LOG(CTP::logINFO,*_pLog) << (format("  ====== Perturbative quasiparticle energies (Rydberg) ====== ")).str() << flush;
+            LOG(CTP::logINFO,*_pLog) << (format("   DeltaHLGap = %1$+1.6f Ryd") % _shift ).str()  <<  flush;
             for ( unsigned _i = 0 ; _i < _qptotal ; _i++ ){
                 if ( (_i + _qpmin) == _homo ){
-                    LOG(logINFO,*_pLog) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i + _qpmin ) ).str() << flush;
+                    LOG(CTP::logINFO,*_pLog) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i + _qpmin ) ).str() << flush;
                 } else if ( (_i + _qpmin) == _homo+1 ){
-                    LOG(logINFO,*_pLog) << (format("  LUMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i + _qpmin ) ).str() << flush;                    
+                    LOG(CTP::logINFO,*_pLog) << (format("  LUMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i + _qpmin ) ).str() << flush;                    
                     
                 }else {
-                LOG(logINFO,*_pLog) << (format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i + _qpmin ) ).str() << flush;
+                LOG(CTP::logINFO,*_pLog) << (format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _dft_energies( _i + _qpmin ) % _vxc(_i,_i) % _sigma_x(_i,_i) % _sigma_c(_i,_i) % _qp_energies(_i + _qpmin ) ).str() << flush;
                 }
             }
 
@@ -761,16 +762,16 @@ void GWBSE::addoutput(Property *_summary) {
             if (_do_qp_diag || _do_bse_singlets || _do_bse_triplets) {
                 FullQPHamiltonian();
                 if (_do_qp_diag) {
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Full quasiparticle Hamiltonian  " << flush;
-                    LOG(logINFO, *_pLog) << (format("  ====== Diagonalized quasiparticle energies (Rydberg) ====== ")).str() << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Full quasiparticle Hamiltonian  " << flush;
+                    LOG(CTP::logINFO, *_pLog) << (format("  ====== Diagonalized quasiparticle energies (Rydberg) ====== ")).str() << flush;
                     for (unsigned _i = 0; _i < _qptotal; _i++) {
                         if ((_i + _qpmin) == _homo) {
-                            LOG(logINFO, *_pLog) << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin ) % _qp_diag_energies(_i)).str() << flush;
+                            LOG(CTP::logINFO, *_pLog) << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin ) % _qp_diag_energies(_i)).str() << flush;
                         } else if ((_i + _qpmin) == _homo + 1) {
-                            LOG(logINFO, *_pLog) << (format("  LUMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin ) % _qp_diag_energies(_i)).str() << flush;
+                            LOG(CTP::logINFO, *_pLog) << (format("  LUMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin ) % _qp_diag_energies(_i)).str() << flush;
 
                         } else {
-                            LOG(logINFO, *_pLog) << (format("  Level = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin ) % _qp_diag_energies(_i)).str() << flush;
+                            LOG(CTP::logINFO, *_pLog) << (format("  Level = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin ) % _qp_diag_energies(_i)).str() << flush;
                         }
                     }
                     
@@ -796,27 +797,27 @@ void GWBSE::addoutput(Property *_summary) {
                 // add qp part to Eh_d
                 BSE_Add_qp2H( _eh_d );
                 // Only if verbose do we use this really
-                if(tools::globals::verbose){
+                if(votca::tools::globals::verbose){
                     BSE_qp_setup();
                 }
                 
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Direct part of e-h interaction " << flush;
+                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Direct part of e-h interaction " << flush;
                 
                 if ( _do_full_BSE ){
                     BSE_d2_setup(_Mmn);
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Direct part of e-h interaction RARC " << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Direct part of e-h interaction RARC " << flush;
                 }
                 
                
                 if (_do_bse_triplets  && _do_bse_diag ) {
                     BSE_solve_triplets();
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved BSE for triplets " << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Solved BSE for triplets " << flush;
                     
                     // expectation values, contributions from e-h coupling for _n_print lowest excitations
                     std::vector<real_gwbse> _contrib_d(_bse_nprint, 0.0);
                     std::vector<real_gwbse> _contrib_qp(_bse_nprint, 0.0);
                     
-                    if(tools::globals::verbose){
+                    if(votca::tools::globals::verbose){
                         for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
                             // get slice of _bse_triplet_coefficients
                             ub::matrix<real_gwbse> _slice = ub::project(_bse_triplet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
@@ -854,8 +855,8 @@ void GWBSE::addoutput(Property *_summary) {
                         _dftoverlap.Initialize(dftbasis._AOBasisSize);
                         // Fill overlap
                         _dftoverlap.Fill(&dftbasis);
-                        LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap._aomatrix.size1() << flush;
-                        LOG(logDEBUG, *_pLog) << TimeStamp() << " Running Excitation fragment population analysis " << flush;
+                        LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap._aomatrix.size1() << flush;
+                        LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Running Excitation fragment population analysis " << flush;
                         // ground state populations
                         ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
                         double nucA;
@@ -891,7 +892,7 @@ void GWBSE::addoutput(Property *_summary) {
                            
                         }
 
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " --- complete! " << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " --- complete! " << flush;
            
                 }
          
@@ -900,32 +901,32 @@ void GWBSE::addoutput(Property *_summary) {
                     
 
 
-                    LOG(logINFO, *_pLog) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
+                    LOG(CTP::logINFO, *_pLog) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
                     for (int _i = 0; _i < _bse_nprint; _i++) {
                         
-                        if(tools::globals::verbose){
-                            LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %6$+1.4f")
-                                    % (_i + 1) % (tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i))) 
-                                    % (tools::conv::ryd2ev * _contrib_qp[_i])  % (tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
+                        if(votca::tools::globals::verbose){
+                            LOG(CTP::logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %6$+1.4f")
+                                    % (_i + 1) % (votca::tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i))) 
+                                    % (votca::tools::conv::ryd2ev * _contrib_qp[_i])  % (votca::tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
                             }
                         else{
-                            LOG(logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
-                                % (_i + 1) % (tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i))) ).str() << flush;
+                            LOG(CTP::logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+                                % (_i + 1) % (votca::tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i))) ).str() << flush;
                         }
                         
                         for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                             // if contribution is larger than 0.2, print
                             real_gwbse _weight = pow(_bse_triplet_coefficients(_i_bse, _i), 2);
                             if (_weight > 0.2) {
-                                LOG(logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
+                                LOG(CTP::logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                             }
                         }
                         // results of fragment population analysis 
                         if ( _fragA > 0 ){
-                            LOG(logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHA[_i]) % (100.0 * _popEA[_i]) % (_CrgsA[_i]) % ( _CrgsA[_i] + _popA ) ).str() << flush;
-                            LOG(logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHB[_i]) % (100.0 * _popEB[_i]) % (_CrgsB[_i]) % ( _CrgsB[_i] + _popB ) ).str() << flush;
+                            LOG(CTP::logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHA[_i]) % (100.0 * _popEA[_i]) % (_CrgsA[_i]) % ( _CrgsA[_i] + _popA ) ).str() << flush;
+                            LOG(CTP::logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f") % (100.0 * _popHB[_i]) % (100.0 * _popEB[_i]) % (_CrgsB[_i]) % ( _CrgsB[_i] + _popB ) ).str() << flush;
                         }
-                        LOG(logINFO, *_pLog) << (format("   ")).str() << flush;
+                        LOG(CTP::logINFO, *_pLog) << (format("   ")).str() << flush;
                     }
                     
                   
@@ -949,7 +950,7 @@ void GWBSE::addoutput(Property *_summary) {
                 if (_do_bse_singlets) {
                     // calculate exchange part of eh interaction, only needed for singlets
                     BSE_x_setup(_Mmn);
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Exchange part of e-h interaction " << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Exchange part of e-h interaction " << flush;
                 }
 
 
@@ -963,14 +964,14 @@ void GWBSE::addoutput(Property *_summary) {
                        BSE_solve_singlets();
                     }
                     
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved BSE for singlets " << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Solved BSE for singlets " << flush;
 
 
                     // expectation values, contributions from e-h coupling
                     std::vector<real_gwbse> _contrib_x(_bse_nprint, 0.0);
                     std::vector<real_gwbse> _contrib_d(_bse_nprint, 0.0);
                     std::vector<real_gwbse> _contrib_qp(_bse_nprint, 0.0);
-                    if(tools::globals::verbose){
+                    if(votca::tools::globals::verbose){
                         for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
 
                             ub::matrix<real_gwbse> _slice = ub::project(_bse_singlet_coefficients, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
@@ -1012,8 +1013,8 @@ void GWBSE::addoutput(Property *_summary) {
                         _dftoverlap.Initialize(dftbasis._AOBasisSize);
                         // Fill overlap
                         _dftoverlap.Fill(&dftbasis);
-                        LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap._aomatrix.size1() << flush;
-                        LOG(logDEBUG, *_pLog) << TimeStamp() << " Running Excitation fragment population analysis " << flush;
+                        LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap._aomatrix.size1() << flush;
+                        LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Running Excitation fragment population analysis " << flush;
                         // ground state populations
                         ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
                         double nucA;
@@ -1049,7 +1050,7 @@ void GWBSE::addoutput(Property *_summary) {
                            
                         }
 
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " --- complete! " << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " --- complete! " << flush;
            
                 }
          
@@ -1077,7 +1078,7 @@ void GWBSE::addoutput(Property *_summary) {
                     }
                     _temp.resize(0, 0);
                     _dft_dipole.Cleanup();
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;
 
 
 
@@ -1111,36 +1112,36 @@ void GWBSE::addoutput(Property *_summary) {
                     }
 
 
-                    LOG(logINFO, *_pLog) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
+                    LOG(CTP::logINFO, *_pLog) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
                     for (int _i = 0; _i < _bse_nprint; _i++) {
-                        if(tools::globals::verbose){
-                        LOG(logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
-                                % (_i + 1) % (tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0/(tools::conv::ryd2ev * _bse_singlet_energies(_i))) 
-                                % (tools::conv::ryd2ev * _contrib_qp[_i]) % (tools::conv::ryd2ev * _contrib_x[_i]) % (tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
+                        if(votca::tools::globals::verbose){
+                        LOG(CTP::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
+                                % (_i + 1) % (votca::tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0/(votca::tools::conv::ryd2ev * _bse_singlet_energies(_i))) 
+                                % (votca::tools::conv::ryd2ev * _contrib_qp[_i]) % (votca::tools::conv::ryd2ev * _contrib_x[_i]) % (votca::tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
                         }
                         else{
-                        LOG(logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
-                            % (_i + 1) % (tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0/(tools::conv::ryd2ev * _bse_singlet_energies(_i))) ).str() << flush;
+                        LOG(CTP::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+                            % (_i + 1) % (votca::tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0/(votca::tools::conv::ryd2ev * _bse_singlet_energies(_i))) ).str() << flush;
                         }
-                        LOG(logINFO, *_pLog) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") 
+                        LOG(CTP::logINFO, *_pLog) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") 
                                 % (_transition_dipoles[_i](0)) % (_transition_dipoles[_i](1)) % (_transition_dipoles[_i](2)) % (_transition_dipole_strength[_i]) 
                                 % (_oscillator_strength[_i])).str() << flush;
                         for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                             // if contribution is larger than 0.2, print
                             double _weight = pow(_bse_singlet_coefficients(_i_bse, _i), 2);
                             if (_weight > 0.2) {
-                                LOG(logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
+                                LOG(CTP::logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
                                         % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                             }
                         }
                         // results of fragment population analysis 
                         if ( _fragA > 0 ){
-                            LOG(logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+                            LOG(CTP::logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
                                     % (100.0 * _popHA[_i]) % (100.0 * _popEA[_i]) % (_CrgsA[_i]) % ( _CrgsA[_i] + _popA ) ).str() << flush;
-                            LOG(logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+                            LOG(CTP::logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
                                     % (100.0 * _popHB[_i]) % (100.0 * _popEB[_i]) % (_CrgsB[_i]) % ( _CrgsB[_i] + _popB ) ).str() << flush;
                         }
-                        LOG(logINFO, *_pLog) << (format("   ")).str() << flush;
+                        LOG(CTP::logINFO, *_pLog) << (format("   ")).str() << flush;
                     }
 
                      // storage to orbitals object
@@ -1172,7 +1173,7 @@ void GWBSE::addoutput(Property *_summary) {
             
             
 
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " GWBSE calculation finished " << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " GWBSE calculation finished " << flush;
             return true;
         }
 

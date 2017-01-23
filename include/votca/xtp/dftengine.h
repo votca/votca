@@ -20,10 +20,10 @@
 #ifndef _VOTCA_XTP_DFTENGINE_H
 #define	_VOTCA_XTP_DFTENGINE_H
 
-#include <votca/xtp/segment.h>
+#include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 
 
 
@@ -35,7 +35,8 @@
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
-
+    namespace CTP = votca::ctp;
+    
         /**
          * \brief Electronic ground-state via Density-Functional Theory
          *
@@ -53,12 +54,12 @@ public:
 
    
    
-    void    Initialize( Property *options);
+    void    Initialize( CTP::Property *options);
     std::string  Identify() { return "dftengine"; }
    
     void    CleanUp();
 
-    void setLogger( Logger* pLog ) { _pLog = pLog; }
+    void setLogger( CTP::Logger* pLog ) { _pLog = pLog; }
     
     bool Evaluate(   Orbitals* _orbitals );
 
@@ -69,7 +70,7 @@ public:
     
     private:
 
-    Logger *_pLog;
+    CTP::Logger *_pLog;
     
     void Prepare( Orbitals* _orbitals );
     void SetupInvariantMatrices();
@@ -98,7 +99,7 @@ public:
     Property _dftengine_options; 
     
     // atoms
-    std::vector<QMAtom*>                _atoms;
+    std::vector<CTP::QMAtom*>                _atoms;
 
     // basis sets
     std::string                              _auxbasis_name;

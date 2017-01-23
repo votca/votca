@@ -21,6 +21,7 @@
 
 
 namespace votca { namespace xtp {
+    namespace CTP = votca::ctp;
     
  AOBasis::~AOBasis() { 
         for (vector< AOShell* >::iterator it = _aoshells.begin(); it != _aoshells.end() ; it++ ) delete (*it); 
@@ -382,10 +383,10 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
 
 
 
-void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fragbreak  ) {
+void AOBasis::AOBasisFill(BasisSet* bs , vector<CTP::QMAtom* > _atoms, int _fragbreak  ) {
     
-        vector< QMAtom* > :: iterator ait;
-        std::vector < QMAtom* > :: iterator atom;
+        vector< CTP::QMAtom* > :: iterator ait;
+        std::vector < CTP::QMAtom* > :: iterator atom;
 
        _AOBasisSize = 0;
        _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false. 
@@ -436,10 +437,10 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fragbreak
 
 
 
-void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
+void AOBasis::ECPFill(BasisSet* bs , vector<CTP::QMAtom* > _atoms  ) {
     
-        vector< QMAtom* > :: iterator ait;
-        std::vector < QMAtom* > :: iterator atom;
+        vector< CTP::QMAtom* > :: iterator ait;
+        std::vector < CTP::QMAtom* > :: iterator atom;
 
        _AOBasisSize = 0;
        _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false. 

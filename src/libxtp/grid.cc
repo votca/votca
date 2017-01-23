@@ -26,6 +26,7 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
+    namespace   CTP = votca::ctp;
     
 Grid::Grid(const Grid &obj)
     :_cutoff(obj._cutoff),_gridspacing(obj._gridspacing),_cutoff_inside(obj._cutoff_inside),_shift_cutoff(obj._shift_cutoff),
@@ -34,19 +35,19 @@ Grid::Grid(const Grid &obj)
     _xsteps(obj._xsteps),_ysteps(obj._ysteps),_zsteps(obj._zsteps) {
     _lowerbound=obj._lowerbound;
     _gridpoints=obj._gridpoints;
-    std::vector<APolarSite*>::const_iterator pit;
+    std::vector<CTP::APolarSite*>::const_iterator pit;
     for(pit=obj._all_gridsites.begin();pit<obj._all_gridsites.end();++pit){
-       APolarSite *apolarsite= new APolarSite(*pit,false);
+       CTP::APolarSite *apolarsite= new CTP::APolarSite(*pit,false);
        if(!apolarsite->getIsVirtual()) _gridsites.push_back(apolarsite);
        _all_gridsites.push_back(apolarsite);   
     }     
-     _sites_seg = new PolarSeg(0, _gridsites);
+     _sites_seg = new CTP::PolarSeg(0, _gridsites);
      _atomlist=obj._atomlist;
     };
         
         
 Grid::~Grid() {
-        std::vector<APolarSite*>::iterator pit;
+        std::vector<CTP::APolarSite*>::iterator pit;
         for(pit=_all_gridsites.begin();pit!=_all_gridsites.end();++pit){
              delete *pit;
         }
@@ -70,13 +71,13 @@ Grid &Grid::operator=(const Grid & obj){
     _xsteps=obj._xsteps;
     _ysteps=obj._ysteps;
     _zsteps=obj._zsteps;
-    std::vector<APolarSite*>::const_iterator pit;
+    std::vector<CTP::APolarSite*>::const_iterator pit;
     for(pit=obj._all_gridsites.begin();pit<obj._all_gridsites.end();++pit){
-       APolarSite *apolarsite= new APolarSite(*pit,false);
+       CTP::APolarSite *apolarsite= new CTP::APolarSite(*pit,false);
        if(!apolarsite->getIsVirtual()) _gridsites.push_back(apolarsite);
        _all_gridsites.push_back(apolarsite);   
     }     
-     _sites_seg = new PolarSeg(0, _gridsites);
+     _sites_seg = new CTP::PolarSeg(0, _gridsites);
      _atomlist=obj._atomlist;
      return *this;
 }
@@ -137,7 +138,7 @@ void Grid::readgridfromCubeFile(std::string filename, bool ignore_zeros){
         _lowerbound=vec(xstart*conv::bohr2ang,ystart*conv::bohr2ang,zstart*conv::bohr2ang);
         
         
-        _atomlist= new std::vector< QMAtom* >;
+        _atomlist= new std::vector< CTP::QMAtom* >;
         for (int iatom =0; iatom < std::abs(natoms); iatom++) {
                  // get center coordinates in Bohr
                  double x ;
@@ -153,7 +154,7 @@ void Grid::readgridfromCubeFile(std::string filename, bool ignore_zeros){
                  in1 >> y;
                  in1 >> z;
                  
-                 QMAtom *qmatom=new QMAtom(_elements.getEleName(atnum),x*conv::bohr2ang,y*conv::bohr2ang,z*conv::bohr2ang,crg,false);
+                 CTP::QMAtom *qmatom=new CTP::QMAtom(_elements.getEleName(atnum),x*conv::bohr2ang,y*conv::bohr2ang,z*conv::bohr2ang,crg,false);
                  _atomlist->push_back(qmatom);
         }
         double potential=0.0;
@@ -170,7 +171,7 @@ void Grid::readgridfromCubeFile(std::string filename, bool ignore_zeros){
                 in1 >> potential;
                 vec temp=vec(posx,posy,posz);
                 ub::vector<double> temppos=temp.converttoub();
-                APolarSite *apolarsite= new APolarSite(0,name);
+                CTP::APolarSite *apolarsite= new CTP::APolarSite(0,name);
                 apolarsite->setRank(0);        
                 apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
                 apolarsite->setIsoP(0.0);
@@ -186,7 +187,7 @@ void Grid::readgridfromCubeFile(std::string filename, bool ignore_zeros){
 
               }}}
         if (_sites_seg != NULL) delete _sites_seg;
-        _sites_seg = new PolarSeg(0, _gridsites);
+        _sites_seg = new CTP::PolarSeg(0, _gridsites);
 
         }         
 
@@ -215,7 +216,7 @@ void Grid::printgridtoCubefile(std::string filename){
             fprintf(out, "%d 0.0 %f 0.0 \n",  _ysteps, _gridspacing*conv::ang2bohr);
             fprintf(out, "%d 0.0 0.0 %f \n", _zsteps, _gridspacing*conv::ang2bohr);
             
-            std::vector<QMAtom* >::const_iterator ait;
+            std::vector<CTP::QMAtom* >::const_iterator ait;
             for (ait=_atomlist->begin(); ait != _atomlist->end(); ++ait) {
                     
                     double x = (*ait)->x*conv::ang2bohr;
@@ -228,7 +229,7 @@ void Grid::printgridtoCubefile(std::string filename){
 
                     fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, y, z);
                 }
-            std::vector< APolarSite* >::iterator pit;
+            std::vector< CTP::APolarSite* >::iterator pit;
             int Nrecord=0.0;
             for(pit=_all_gridsites.begin();pit!=_all_gridsites.end();++pit){
                 Nrecord++;
@@ -300,7 +301,7 @@ void Grid::setupradialgrid(const int depth) {
     double x = 0.0;
     double y = 0.0;
     double z = 0.0;
-    std::vector<QMAtom* >::const_iterator ait;
+    std::vector<CTP::QMAtom* >::const_iterator ait;
     for (ait = _atomlist->begin(); ait != _atomlist->end(); ++ait) {
         x += (*ait)->x;
         y += (*ait)->y;
@@ -341,7 +342,7 @@ void Grid::setupradialgrid(const int depth) {
         _gridpoints.push_back(position.converttoub());
         if(_createpolarsites){                   
             string name="H";
-            APolarSite *apolarsite= new APolarSite(0,name);
+            CTP::APolarSite *apolarsite= new CTP::APolarSite(0,name);
             apolarsite->setRank(0);        
             apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
             apolarsite->setIsoP(0.0);
@@ -351,7 +352,7 @@ void Grid::setupradialgrid(const int depth) {
         }
     }
     if (_sites_seg != NULL) delete _sites_seg;
-           _sites_seg = new PolarSeg(0, _gridsites);
+           _sites_seg = new CTP::PolarSeg(0, _gridsites);
 
 }
 
@@ -370,13 +371,13 @@ void Grid::setupgrid(){
 
     if(_useVdWcutoff){
         _padding=0.0;
-        for (std::vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ){
+        for (std::vector<CTP::QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ){
             if(_elements.getVdWChelpG((*atom)->type)+_shift_cutoff>_padding) _padding=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff; 
         }
     } 
 
 
-    for (std::vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
+    for (std::vector<CTP::QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
         xtemp=(*atom)->x;
         ytemp=(*atom)->y;
         ztemp=(*atom)->z;
@@ -408,7 +409,7 @@ void Grid::setupgrid(){
             for(int k=0;k<=_zsteps;k++){
                 double z=zmin-padding_z+k*_gridspacing; 
                 bool _is_valid = false;
-                    for (std::vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
+                    for (std::vector<CTP::QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
                         //cout << "Punkt " << x <<":"<< y << ":"<<z << endl;
                         xtemp=(*atom)->x;
                         ytemp=(*atom)->y;
@@ -431,7 +432,7 @@ void Grid::setupgrid(){
                             // APolarSite are in nm so convert
                             vec temp=vec(temppos);
                             string name="H";
-                            APolarSite *apolarsite= new APolarSite(0,name);
+                            CTP::APolarSite *apolarsite= new CTP::APolarSite(0,name);
                             apolarsite->setRank(0);        
                             apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
                             apolarsite->setIsoP(0.0);
@@ -449,7 +450,7 @@ void Grid::setupgrid(){
             }                  
         }
     if (_sites_seg != NULL) delete _sites_seg;
-    _sites_seg = new PolarSeg(0, _gridsites);
+    _sites_seg = new CTP::PolarSeg(0, _gridsites);
 }
     
     

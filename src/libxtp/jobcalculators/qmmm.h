@@ -20,10 +20,10 @@
 #define	__QMMMCALC__H
 
 #include <votca/xtp/parallelxjobcalc.h>
-#include <votca/xtp/xmapper.h>
-#include <votca/xtp/xjob.h>
-#include <votca/xtp/xinductor.h>
-#include <votca/xtp/xinteractor.h>
+#include <votca/ctp/xmapper.h>
+#include <votca/ctp/xjob.h>
+#include <votca/ctp/xinductor.h>
+#include <votca/ctp/xinteractor.h>
 // add gwbse header of excited state support
 #include <votca/xtp/gwbse.h>
 // --------
@@ -33,7 +33,7 @@
 
 using boost::format;
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
    
 class QMMM : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
@@ -44,7 +44,7 @@ public:
     QMMM() {};
    ~QMMM() {};
    
-    string          Identify() { return "qmmm"; }
+    string          Identify() { return "xqmmm"; }
     void            Initialize(Property *);
 
     void            CustomizeLogger(QMThread *thread);
@@ -251,7 +251,7 @@ void QMMM::Initialize(Property *options) {
     //cout << TXT << _options;
     
     // register all QM packages (Gaussian, turbomole, etc))
-    QMPackageFactory::RegisterAll();
+    XQMPackageFactory::RegisterAll();
     
 }
 
@@ -355,13 +355,13 @@ Job::JobResult QMMM::EvalJob(Topology *top, Job *job, QMThread *thread) {
     //Gaussian qmpack = Gaussian(&_qmpack_opt);
 
     // get the corresponding object from the QMPackageFactory
-    QMPackage *qmpack =  QMPackages().Create( _package );
+    XQMPackage *qmpack =  XQMPackages().Create( _package );
     
     qmpack->Initialize( &_qmpack_opt );
     
     qmpack->setLog(qlog);
     
-    QMMachine<QMPackage> machine = QMMachine<QMPackage>(&xjob, &xind, qmpack, 
+    QMMachine<XQMPackage> machine = QMMachine<XQMPackage>(&xjob, &xind, qmpack, 
         &_options, "options.qmmm", _subthreads, _maverick);
     machine.setLog(thread->getLogger());
     

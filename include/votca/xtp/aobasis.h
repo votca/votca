@@ -21,8 +21,8 @@
 #define	__XTP_AOBASIS__H
 
 #include <votca/tools/property.h>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/qmatom.h>
+#include <votca/ctp/segment.h>
+#include <votca/ctp/qmatom.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
@@ -34,6 +34,7 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
 namespace ub = boost::numeric::ublas;
+namespace CTP = votca::ctp;
 
 class AOShell;
 
@@ -56,8 +57,8 @@ public:
       void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
 
     // void AOBasisFill( BasisSet* bs , std::vector<Segment* > segments);
-    void AOBasisFill( BasisSet* bs , std::vector<QMAtom* > segments, int fragbreak = -1);
-    void ECPFill( BasisSet* bs , std::vector<QMAtom* > segments); 
+    void AOBasisFill( BasisSet* bs , std::vector<CTP::QMAtom* > segments, int fragbreak = -1);
+    void ECPFill( BasisSet* bs , std::vector<CTP::QMAtom* > segments); 
     
     int NumFuncShell( std::string shell );
     int NumFuncShell_cartesian( std::string shell );

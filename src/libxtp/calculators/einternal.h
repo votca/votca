@@ -21,19 +21,19 @@
 #ifndef _VOTCA_XTP_EINTERNAL_H
 #define _VOTCA_XTP_EINTERNAL_H
 
-#include <votca/xtp/qmcalculator.h>
+//#include <votca/ctp/qmcalculator.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 
-class EInternal : public QMCalculator
+class XEInternal : public XQMCalculator
 {
 public:
 
-    EInternal() { };
-   ~EInternal() { };
+    XEInternal() { };
+   ~XEInternal() { };
 
-    std::string Identify() { return "einternal"; }
+    std::string Identify() { return "xeinternal"; }
     void Initialize(Property *options);
     void ParseEnergiesXML(Property *options);
     bool EvaluateFrame(Topology *top);
@@ -66,7 +66,7 @@ private:
 
 };
 
-void EInternal::Initialize(Property *options) {
+void XEInternal::Initialize(Property *options) {
 
     /* ---- OPTIONS.XML Structure -----
      *
@@ -81,7 +81,7 @@ void EInternal::Initialize(Property *options) {
     this->ParseEnergiesXML(options);
 }
 
-void EInternal::ParseEnergiesXML(Property *opt) {
+void XEInternal::ParseEnergiesXML(Property *opt) {
 
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt, "xtp" );
@@ -230,7 +230,7 @@ void EInternal::ParseEnergiesXML(Property *opt) {
     }
 }
 
-bool EInternal::EvaluateFrame(Topology *top) {
+bool XEInternal::EvaluateFrame(Topology *top) {
 
     std::vector< Segment* > ::iterator sit;
     int count = 0;

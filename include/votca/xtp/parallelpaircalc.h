@@ -24,13 +24,13 @@
 
 #include <votca/xtp/qmcalculator.h>
 #include <votca/tools/thread.h>
-#include <votca/xtp/qmthread.h>
+#include <votca/ctp/qmthread.h>
 #include <votca/tools/mutex.h>
 
 
 namespace votca { namespace xtp {
 
-class ParallelPairCalculator : public QMCalculator
+class ParallelPairCalculator : public XQMCalculator
 {
 
 public:
@@ -40,14 +40,14 @@ public:
     ParallelPairCalculator() : _nextPair(NULL) {};
    ~ParallelPairCalculator() {};
 
-    string       Identify() { return "Parallel pair calculator"; }
+    std::string       Identify() { return "Parallel pair calculator"; }
 
-    bool         EvaluateFrame(Topology *top);
-    virtual void InitSlotData(Topology *top) { ; }
-    virtual void PostProcess(Topology *top) { ; }
-    virtual void EvalPair(Topology *top, QMPair *qmpair, PairOperator* opThread) { ; }
+    bool         EvaluateFrame(CTP::Topology *top);
+    virtual void InitSlotData(CTP::Topology *top) { ; }
+    virtual void PostProcess(CTP::Topology *top) { ; }
+    virtual void EvalPair(CTP::Topology *top, CTP::QMPair *qmpair, PairOperator* opThread) { ; }
 
-    QMPair     *RequestNextPair(int opId, Topology *top);
+    CTP::QMPair     *RequestNextPair(int opId, CTP::Topology *top);
     void         LockCout() { _coutMutex.Lock(); }
     void         UnlockCout() { _coutMutex.Unlock(); }
 
@@ -56,11 +56,11 @@ public:
     // Pair workers (i.e. individual threads) //
     // ++++++++++++++++++++++++++++++++++++++ //
 
-    class PairOperator : public QMThread
+    class PairOperator : public CTP::QMThread
     {
     public:
 
-        PairOperator(int id, Topology *top,
+        PairOperator(int id, CTP::Topology *top,
                      ParallelPairCalculator *master)
                    : _top(top), _pair(NULL),
                      _master(master)      { _id = id; };
@@ -72,17 +72,17 @@ public:
 
     protected:
 
-        Topology                *_top;
-        QMPair                 *_pair;
+        CTP::Topology                *_top;
+        CTP::QMPair                 *_pair;
         ParallelPairCalculator  *_master;
     };
 
 
 protected:
 
-    QMNBList::iterator   _nextPair;
-    Mutex                 _nextPairMutex;
-    Mutex                 _coutMutex;
+    CTP::QMNBList::iterator   _nextPair;
+    CTP::Mutex                 _nextPairMutex;
+    CTP::Mutex                 _coutMutex;
 
 
 };

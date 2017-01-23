@@ -20,21 +20,22 @@
 
 #include <votca/xtp/jobapplication.h>
 #include <votca/xtp/jobcalculatorfactory.h>
+#include <votca/ctp/jobcalculatorfactory.h>
 #include <votca/xtp/version.h>
 #include <boost/format.hpp>
 
 namespace votca { namespace xtp {
 
 JobApplication::JobApplication() {
-    JobCalculatorfactory::RegisterAll();
+    XJobCalculatorfactory::RegisterAll();
 }
 
 
 void JobApplication::Initialize(void) {
     XtpApplication::Initialize();
 
-    JobCalculatorfactory::RegisterAll();
-
+    XJobCalculatorfactory::RegisterAll();
+    CTP::JobCalculatorfactory::RegisterAll();
     namespace propt = boost::program_options;
 
     AddProgramOptions() ("file,f", propt::value<string>(),
@@ -85,11 +86,11 @@ void JobApplication::Run() {
 
     // STATESAVER & PROGRESS OBSERVER
     string statefile = OptionsMap()["file"].as<string>();
-    StateSaverSQLite statsav;
+    CTP::StateSaverSQLite statsav;
     statsav.Open(_top, statefile);    
 
-    ProgObserver< std::vector<Job*>, Job*, Job::JobResult > progObs
-        = ProgObserver< std::vector<Job*>, Job*, Job::JobResult >();
+    CTP::ProgObserver< std::vector<CTP::Job*>, CTP::Job*, CTP::Job::JobResult > progObs
+        = CTP::ProgObserver< std::vector<CTP::Job*>, CTP::Job*, CTP::Job::JobResult >();
     progObs.InitCmdLineOpts(OptionsMap());
     
     // INITIALIZE & RUN CALCULATORS
@@ -120,14 +121,14 @@ void JobApplication::Run() {
 
 
 
-void JobApplication::AddCalculator(JobCalculator* calculator) {
+void JobApplication::AddCalculator(CTP::JobCalculator* calculator) {
     _calculators.push_back(calculator);
 }
 
 
 void JobApplication::BeginEvaluate(int nThreads = 1, 
-        ProgObserver< std::vector<Job*>, Job*, Job::JobResult > *obs = NULL) {
-    list< JobCalculator* > ::iterator it;
+        CTP::ProgObserver< std::vector<CTP::Job*>, CTP::Job*, CTP::Job::JobResult > *obs = NULL) {
+    list< CTP::JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";
         (*it)->setnThreads(nThreads);
@@ -138,7 +139,7 @@ void JobApplication::BeginEvaluate(int nThreads = 1,
 }
 
 bool JobApplication::EvaluateFrame() {
-    list< JobCalculator* > ::iterator it;
+    list< CTP::JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
         if (_generate_input) (*it)->WriteJobFile(&_top);
@@ -150,7 +151,7 @@ bool JobApplication::EvaluateFrame() {
 }
 
 void JobApplication::EndEvaluate() {
-    list< JobCalculator* > ::iterator it;
+    list< CTP::JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         (*it)->EndEvaluate(&_top);
     }

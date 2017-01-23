@@ -100,7 +100,7 @@ namespace votca {
             for ( unsigned _i = 0; _i < _eigenvalues.size(); _i++ ) {
                 
                 if ( _eigenvalues(_i) < 0.0 ) {
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " KAA-KAB has negative eigenvalues! : " << _i << " : " << _eigenvalues[_i] << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " KAA-KAB has negative eigenvalues! : " << _i << " : " << _eigenvalues[_i] << flush;
                 }
 
             }
@@ -109,7 +109,7 @@ namespace votca {
             
             
             linalg_cholesky_decompose( _AmB );
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Cholesky decomposition of KAA-KAB" << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Cholesky decomposition of KAA-KAB" << flush;
 
             // remove L^T from Cholesky
             for (unsigned i =0; i < _AmB.size1(); i++ ){
@@ -118,20 +118,20 @@ namespace votca {
                 }
             }
             
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Removed L^T" << flush;
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Removed L^T" << flush;
           // determine H = L^T(A-B)L
           ub::matrix<real_gwbse> _temp = ub::prod( _ApB , _AmB );
           ub::matrix<real_gwbse> _H = ub::prod( ub::trans(_AmB), _temp );
           _temp.resize(0,0);
-          LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated H = L^T(A-B)L " << flush;
+          LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Calculated H = L^T(A-B)L " << flush;
           
           // solve eigenvalue problem: HR_l = eps_l^2 R_l
           linalg_eigenvalues(_H, _eigenvalues, _eigenvectors, dim);
-          LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
+          LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
 
           // reconstruct real eigenvalues eps_l = sqrt(eps_l^2)
           for ( unsigned _i = 0; _i < _eigenvalues.size(); _i++) {
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Eigenvalue: " << _eigenvalues(_i) << " : " << sqrt(_eigenvalues(_i))*13.6058 <<  flush;  
+            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Eigenvalue: " << _eigenvalues(_i) << " : " << sqrt(_eigenvalues(_i))*13.6058 <<  flush;  
           }
           
           
@@ -162,7 +162,7 @@ namespace votca {
               ub::matrix<real_gwbse> Y = ub::project( _Y_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
               ub::matrix<real_gwbse> norm = ub::prod(ub::trans(X),X) - ub::prod(ub::trans(Y),Y);
               
-              LOG(logDEBUG, *_pLog) << TimeStamp() << " Norm of Eigenvector: " << norm(0,0) << "[" << norm.size1() << ":" << norm.size2() <<  flush;  */
+              LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Norm of Eigenvector: " << norm(0,0) << "[" << norm.size1() << ":" << norm.size2() <<  flush;  */
               
               
           }
@@ -182,7 +182,7 @@ namespace votca {
               ub::matrix<real_gwbse> Y2 = ub::project( _Y_evec, ub::range (0, dim ), ub::range ( _j, _j+1 ) );
               ub::matrix<real_gwbse> norm = ub::prod(ub::trans(X1),X2) - ub::prod(ub::trans(Y1),Y2);
               
-              LOG(logDEBUG, *_pLog) << TimeStamp() << " Orthogonality: (" << _i << " : " << _j << ") = " <<  norm(0,0) <<  flush;  
+              LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Orthogonality: (" << _i << " : " << _j << ") = " <<  norm(0,0) <<  flush;  
                   
               }
           }

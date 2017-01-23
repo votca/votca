@@ -22,13 +22,13 @@
 
 #include <stdio.h>
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/overlap.h>
 #include <votca/xtp/qmpackagefactory.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     using namespace std;
-    
+
 class Coupling : public QMTool
 {
 public:

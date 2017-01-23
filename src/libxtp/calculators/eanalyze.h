@@ -20,21 +20,21 @@
 #ifndef _VOTCA_XTP_EANALYZE_H
 #define _VOTCA_XTP_EANALYZE_H
 
-#include <votca/xtp/qmcalculator.h>
+//#include <votca/ctp/qmcalculator.h>
 #include <math.h>
 #include <votca/tools/tokenizer.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
-class EAnalyze : public QMCalculator
+class XEAnalyze : public XQMCalculator
 {
 public:
 
-    EAnalyze() { };
-   ~EAnalyze() { };
+    XEAnalyze() { };
+   ~XEAnalyze() { };
 
-    std::string Identify() { return "eanalyze"; }
+    std::string Identify() { return "xeanalyze"; }
 
     void Initialize(Property *opt);
     bool EvaluateFrame(Topology *top);
@@ -68,7 +68,7 @@ private:
 
 
 
-void EAnalyze::Initialize( Property *opt ) {
+void XEAnalyze::Initialize( Property *opt ) {
     _skip_corr=false;
     _skip_sites=false;
     _skip_pairs=false;
@@ -135,7 +135,7 @@ void EAnalyze::Initialize( Property *opt ) {
 
 }
 
-bool EAnalyze::EvaluateFrame(Topology *top) {
+bool XEAnalyze::EvaluateFrame(Topology *top) {
     
     // Short-list segments according to pattern
     std::vector<Segment*>::iterator sit;
@@ -206,7 +206,7 @@ bool EAnalyze::EvaluateFrame(Topology *top) {
     return true;
 }
 
-void EAnalyze::SiteHist(Topology *top, int state) {
+void XEAnalyze::SiteHist(Topology *top, int state) {
 
     vector< double > Es;
     Es.reserve(_seg_shortlist.size());
@@ -318,7 +318,7 @@ void EAnalyze::SiteHist(Topology *top, int state) {
 }
 
 
-void EAnalyze::PairHist(Topology *top, int state) {
+void XEAnalyze::PairHist(Topology *top, int state) {
 
     QMNBList &nblist = top->NBList();
     QMNBList::iterator pit;
@@ -409,7 +409,7 @@ void EAnalyze::PairHist(Topology *top, int state) {
 }
 
 
-void EAnalyze::SiteCorr(Topology *top, int state) {
+void XEAnalyze::SiteCorr(Topology *top, int state) {
 
     double AVG = 0.0;
     double AVGESTATIC = 0.0;

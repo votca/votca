@@ -23,7 +23,7 @@
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
 
-#include <votca/xtp/segment.h>
+#include <votca/ctp/segment.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -46,7 +46,7 @@ namespace Cart {
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
     
-    
+    namespace CTP = votca::ctp;
     
     
     /* "superclass" AOSuperMatrix contains all common functionality for
@@ -162,7 +162,7 @@ namespace votca { namespace xtp {
         //block fill for overlap, implementation in aoesp.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         //void Print();
-        void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms );
+        void Fillnucpotential( AOBasis* aobasis, std::vector<CTP::QMAtom*>& _atoms );
         
         ub::matrix<double> _nuclearpotential;
         // ~AOESP();

@@ -20,7 +20,7 @@
 
 #include "dma.h"
 
-#include <votca/xtp/segment.h>
+#include <votca/ctp/segment.h>
 
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/parallelxjobcalc.h>
@@ -81,11 +81,11 @@ void DMA::Initialize(Property *options) {
 
     
     // register all QM packages (Gaussian, Turbomole, NWChem))
-    QMPackageFactory::RegisterAll(); 
+    XQMPackageFactory::RegisterAll(); 
 
 }
 
-void DMA::WriteJobFile(Topology *top) {
+void DMA::WriteJobFile(CTP::Topology *top) {
 
     cout << endl << "... ... Writing job file: " << flush;
     ofstream ofs;
@@ -94,8 +94,8 @@ void DMA::WriteJobFile(Topology *top) {
  
     ofs << "<jobs>" << endl;   
 
-    std::vector<Segment*> &segments = top->Segments();
-    std::vector<Segment*>::iterator sit;
+    std::vector<CTP::Segment*> &segments = top->Segments();
+    std::vector<CTP::Segment*>::iterator sit;
  
     int jobCount = 0;
 
@@ -111,7 +111,7 @@ void DMA::WriteJobFile(Topology *top) {
         Property *pSegment =  &pInput->add("segment" , boost::lexical_cast<string>(segment_id)  ) ;
         pSegment->setAttribute<string>("type", (*sit)->getName() );
         pSegment->setAttribute<int>("id", segment_id );
-        Job job(id, tag, Input, Job::AVAILABLE );
+        CTP::Job job(id, tag, Input, CTP::Job::AVAILABLE );
         job.ToStream(ofs,"xml");
     }
      
@@ -125,7 +125,7 @@ void DMA::WriteJobFile(Topology *top) {
 }
 
 
-Job::JobResult DMA::EvalJob(Topology *top, Job *job, QMThread *opThread) {
+CTP::Job::JobResult DMA::EvalJob(CTP::Topology *top, CTP::Job *job, CTP::QMThread *opThread) {
 
     string output;
     
@@ -133,19 +133,19 @@ Job::JobResult DMA::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     //bool _formchk_status;
     bool _dma_status;
 
-    Job::JobResult jres = Job::JobResult();
+    CTP::Job::JobResult jres = CTP::Job::JobResult();
     Property _job_input = job->getInput();  
     list<Property*> lSegments = _job_input.Select( "segment" );  
     
-    vector < Segment* > segments;    
+    vector < CTP::Segment* > segments;    
     int segId = lSegments.front()->getAttribute<int>( "id" );
     string segType = lSegments.front()->getAttribute<string>( "type" );
     
-    Segment *seg = top->getSegment( segId );
+    CTP::Segment *seg = top->getSegment( segId );
     assert( seg->getName() == segType ); 
     segments.push_back( seg );
-    Logger* pLog = opThread->getLogger();
-    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush; 
+    CTP::Logger* pLog = opThread->getLogger();
+    LOG(CTP::logINFO,*pLog) << CTP::TimeStamp() << " Evaluating site " << seg->getId() << flush; 
 
     // log, com, and orbital files will be stored in ORB_FILES/package_name/frame_x/mol_ID/
     // extracted information will be stored in  ORB_FILES/molecules/frame_x/molecule_ID.orb
@@ -155,7 +155,7 @@ Job::JobResult DMA::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     string ID   = boost::lexical_cast<string>( seg->getId() );
 
     // get the corresponding object from the QMPackageFactory
-    QMPackage *_qmpackage =  QMPackages().Create( _package );
+    XQMPackage *_qmpackage =  XQMPackages().Create( _package );
     
    _qmpackage->setLog( pLog );  
    _qmpackage->Initialize( &_package_options );
@@ -177,9 +177,9 @@ Job::JobResult DMA::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         _orbitals_status = _qmpackage->Run( );
         if ( !_orbitals_status ) {
             output += "run failed; " ;
-            LOG(logERROR,*pLog) << _package << " run failed" << flush;
+            LOG(CTP::logERROR,*pLog) << _package << " run failed" << flush;
             jres.setOutput( output ); 
-            jres.setStatus(Job::FAILED);
+            jres.setStatus(CTP::Job::FAILED);
             delete _qmpackage;
             return jres;
         } else {
@@ -191,7 +191,7 @@ Job::JobResult DMA::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     if ( _do_dma ) {
         
         
-        LOG(logDEBUG,*pLog) << "DMA: running formcheck on [" << _chkFile << "]" << flush;
+        LOG(CTP::logDEBUG,*pLog) << "DMA: running formcheck on [" << _chkFile << "]" << flush;
 
         if (std::system(NULL)) {
             string _command;
@@ -236,7 +236,7 @@ Job::JobResult DMA::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
                  _command  = "cd " + qmpackage_work_dir + "; " + _executable + " < gdma.in > gdma.out";
 
-                LOG(logINFO,*pLog) << _command << flush;
+                LOG(CTP::logINFO,*pLog) << _command << flush;
 
                 int j = std::system ( _command.c_str() );
 
@@ -244,15 +244,15 @@ Job::JobResult DMA::EvalJob(Topology *top, Job *job, QMThread *opThread) {
             
             }
             else {
-                LOG(logDEBUG,*pLog) << "Error opening file " << _dma_input_file << flush;
+                LOG(CTP::logDEBUG,*pLog) << "Error opening file " << _dma_input_file << flush;
                 _dma_status = false;
             }
 
             if ( !_dma_status ) {
                 output += "DMA job incomplete; ";
-                LOG(logERROR,*pLog) << "DMA job incomplete" << flush;
+                LOG(CTP::logERROR,*pLog) << "DMA job incomplete" << flush;
                 jres.setOutput( output ); 
-                jres.setStatus(Job::FAILED);
+                jres.setStatus(CTP::Job::FAILED);
                return jres;
             } else {
                 output += "DMA complete; " ;
@@ -267,7 +267,7 @@ Job::JobResult DMA::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    _qmpackage->CleanUp();
    delete _qmpackage;
         
-    LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
+    LOG(CTP::logINFO,*pLog) << CTP::TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
  
     Property _job_summary;
         Property *_output_summary = &_job_summary.add("output","");
@@ -278,7 +278,7 @@ Job::JobResult DMA::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     
     // output of the JOB 
     jres.setOutput( _job_summary );
-    jres.setStatus(Job::COMPLETE);
+    jres.setStatus(CTP::Job::COMPLETE);
 
     
     return jres;
