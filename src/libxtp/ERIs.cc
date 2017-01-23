@@ -73,17 +73,22 @@ namespace votca {
             //cout << "inverse Coulomb"<< endl;
             //cout << _inverse_Coulomb<<endl;
             
-            _ERIs=ub::zero_matrix<double>(DMAT.size1(),DMAT.size2());
-            const ub::vector<double> dmatasarray=DMAT.data();
-            
+            _ERIs=ub::zero_matrix<double>(DMAT.size1());
+           
+        
+            const ub::vector<double> & dmatasarray=DMAT.data();
+          
             ub::matrix<double> Itilde=ub::zero_matrix<double>(_threecenter.getSize(),1);
             //cout << _threecenter.getSize() << " Size-Threecenter"<<endl;
             //check Efficiency !!!! someday 
+            //#pragma omp parallel for
             for ( int _i=0; _i<_threecenter.getSize();_i++){
-                ub::vector<double>threecenterasarray=(_threecenter.getDatamatrix(_i)).data();
+                ub::symmetric_matrix<double> &threecenter=_threecenter.getDatamatrix(_i);
                 // Trace over prod::DMAT,I(l)=componentwise product over 
-                for ( unsigned _j=0; _j<threecenterasarray.size();_j++){
-                    Itilde(_i,0)+=dmatasarray[_j]*threecenterasarray[_j];
+                for ( unsigned _j=0; _j<DMAT.size1();_j++){
+                    for(unsigned _k=0;_k<DMAT.size2();_k++){
+                    Itilde(_i,0)+=DMAT(_j,_k)*threecenter(_j,_k);
+                    }
                 }
             }
             //cout << "Itilde " <<Itilde << endl;
@@ -160,13 +165,15 @@ namespace votca {
 
         
          void ERIs::CalculateEnergy(const ub::vector<double> &dmatasarray){
-            _ERIsenergy=0;
+            
             const ub::vector<double>& ERIsasarray=_ERIs.data();
+            double energy=0.0;
+           //#pragma omp parallel for reduction(+:energy)
             for (unsigned _i=0;_i<ERIsasarray.size();_i++){
-                _ERIsenergy+=dmatasarray[_i]*ERIsasarray[_i];
+                energy+=dmatasarray[_i]*ERIsasarray[_i];
                 
             }
-
+            energy=_ERIsenergy;
 
         }
         

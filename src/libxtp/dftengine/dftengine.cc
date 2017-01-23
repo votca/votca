@@ -315,7 +315,7 @@ namespace votca {
             else{
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Reading guess from orbitals object/file"<< flush;
                 _dftbasis.ReorderMOs(MOCoeff, _orbitals->getQMpackage(), "xtp");
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _orbitals->getQMpackage() << " to VOTCA" << flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _orbitals->getQMpackage() << " to xtp" << flush;
                 _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
             }
            
@@ -356,7 +356,7 @@ namespace votca {
                 diiserror=_diis.Evolve(_dftAOdmat,H,MOEnergies,MOCoeff,_this_iter);
                 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " DIIs error "<<diiserror << flush;
-                 if (!(diiserror<_diis_start && _usediis && _this_iter>4)){
+                 if (!(diiserror<_diis_start && _usediis && _this_iter>2)){
                      ub::matrix<double> olddmat=_dftAOdmat;
                      _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
                      _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*olddmat;
@@ -710,7 +710,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                         
                         //evolve alpha
                       double diiserror_alpha=diis_alpha.Evolve(dftAOdmat_alpha,H_alpha,MOEnergies_alpha,MOCoeff_alpha,this_iter);
-                        if (!(diiserror_alpha<_diis_start && _usediis && this_iter>4)){
+                        if (!(diiserror_alpha<_diis_start && _usediis && this_iter>2)){
                             ub::matrix<double> olddmat=dftAOdmat_alpha;
                            dftAOdmat_alpha=orb.DensityMatrixGroundState_alpha(MOCoeff_alpha);
                             dftAOdmat_alpha=_mixingparameter*dftAOdmat_alpha+(1.0-_mixingparameter)*olddmat;  
@@ -724,7 +724,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                        double diiserror_beta=0.0;
                        if(beta_e>0){
                        diiserror_beta=diis_beta.Evolve(dftAOdmat_beta,H_beta,MOEnergies_beta,MOCoeff_beta,this_iter);
-                        if (!(diiserror_beta<_diis_start && _usediis && this_iter>4)){
+                        if (!(diiserror_beta<_diis_start && _usediis && this_iter>2)){
                             ub::matrix<double> olddmat=dftAOdmat_beta;
                            dftAOdmat_beta=orb.DensityMatrixGroundState_beta(MOCoeff_beta);
                             dftAOdmat_beta=_mixingparameter*dftAOdmat_beta+(1.0-_mixingparameter)*olddmat;  

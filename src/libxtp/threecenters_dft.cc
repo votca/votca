@@ -46,9 +46,15 @@ namespace votca {
         void TCMatrix_dft::Fill(AOBasis& _auxbasis, AOBasis& _dftbasis) {
 
             for (int i=0; i< _auxbasis._AOBasisSize; i++){
-                _matrix.push_back(ub::zero_matrix<double>(_dftbasis._AOBasisSize, _dftbasis._AOBasisSize));        
+                _matrix.push_back(ub::symmetric_matrix<double>(_dftbasis._AOBasisSize));   
+              
+                for(unsigned k=0;k<_matrix[i].size1();k++){
+                    for(unsigned j=0;j<_matrix[i].size2();j++){
+                
+                    _matrix[i](k,j)=0.0;
+                }
+                }
             }
-         
             // loop over all shells in the GW basis and get _Mmn for that shell
             #pragma omp parallel for //private(_block)
             for ( unsigned _is= 0; _is <  _auxbasis._aoshells.size() ; _is++ ){
@@ -95,7 +101,9 @@ namespace votca {
                     AOShell* _shell_col = dftbasis.getShell(_col);
                     int _col_start = _shell_col->getStartIndex();
                     //int _col_end = _col_start + _shell_col->getNumFunc();
-
+                    
+                    //symmetry
+                    //if(_shell_col>_shell_row){ continue;}
                     // get 3-center overlap directly as _subvector
                     ub::matrix<double> _subvector = ub::zero_matrix<double>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
                     //ub::matrix<float> _subvector = ub::zero_matrix<float>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
@@ -116,7 +124,8 @@ namespace votca {
                                     
                                              //for (int _i_row = 0; _i_row < _shell_row->getNumFunc(); _i_row++) {
                     for (int _row = 0; _row < _shell_row->getNumFunc(); _row++) {
-                                                 
+                        //symmetry
+                       // if(_col_start + _col>_row_start + _row){continue;}
                                                 //cout << "MAGIC " << _start+_aux << " : " << _row_start + _i_row << " : " << _col_start + _i_col << endl;
                                                 _matrix[_start+_aux](_row_start + _row, _col_start + _col) = _subvector(_row, _index);
                                                 

@@ -490,6 +490,8 @@ namespace votca {
                     
                         ub::matrix_range< ub::matrix<double> > _rowXC = ub::subrange( _addXC, 0 , 1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);    
 
+                        //ub::matrix<double> _rowXC=ub::subrange( _addXC, 0 , 1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);  
+                 
                         for (unsigned sigcol = 0; sigcol < _significant_atoms[i][j].size(); sigcol++) {
                             int colatom = _significant_atoms[i][j][sigcol];
                             // if (colatom > rowatom) break;
@@ -498,6 +500,7 @@ namespace votca {
                             
                             // update block reference of XCMAT
                             ub::matrix_range<ub::matrix<double> > _XCmatblock = ub::subrange( XCMAT_thread[i_thread],_startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom] );
+                            
                             //_XCmatblock += ub::prod( _rowXC, ub::trans(_AOcol)  );
                             _XCmatblock += ub::prod( ub::trans(_rowXC), _AOcol  );
 
@@ -533,8 +536,8 @@ namespace votca {
             //    }
            // }
 
-            const ub::vector<double> DMAT_array = _density_matrix.data();
-            const ub::vector<double> XCMAT_array = XCMAT.data();
+            const ub::vector<double>& DMAT_array = _density_matrix.data();
+            const ub::vector<double>& XCMAT_array = XCMAT.data();
             //cout <<"EXC"<<endl;
             //cout << EXC<< endl;
             double Comp=0.0;

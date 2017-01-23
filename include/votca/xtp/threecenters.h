@@ -84,11 +84,11 @@ namespace votca { namespace xtp {
     
     int getSize(){return _matrix.size();}
     
-    std::vector< ub::matrix<double> >& getData(){return  _matrix;}
-    ub::matrix<double>& getDatamatrix( int i ){return  _matrix[i];}
+    std::vector< ub::symmetric_matrix<double> >& getData(){return  _matrix;}
+    ub::symmetric_matrix<double>& getDatamatrix( int i ){return  _matrix[i];}
     
     private:
-        std::vector< ub::matrix<double> > _matrix;
+        std::vector< ub::symmetric_matrix<double> > _matrix;
     
         void FillBlock(AOShell* _shell, AOBasis& dftbasis) ; 
         
