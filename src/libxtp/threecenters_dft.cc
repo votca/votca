@@ -71,7 +71,9 @@ namespace votca {
             } // shells of aux basis set
             //for (int i=0;i<_matrix.size();i++){
                   //  cout<< "Matrix(" << i<<"):\n"<<_matrix[i]<< endl;
-                
+            for (unsigned i=0;i<_matrix.size();i++){
+                 cout <<_matrix[i](0,1)<<" vs "<<_matrix[i](1,0)<<endl;   
+            }
                 //}
         } // TCMatrix_dft::Fill
 
@@ -86,7 +88,7 @@ namespace votca {
         void TCMatrix_dft::FillBlock(AOShell* _shell, AOBasis& dftbasis) {
 	  //void TCMatrix_dft::FillBlock(std::vector< ub::matrix<float> >& _block, AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals) {
 
-
+          
 
            int _start=_shell->getStartIndex();
            //cout << " FB start " << _start << endl;
@@ -103,14 +105,15 @@ namespace votca {
                     //int _col_end = _col_start + _shell_col->getNumFunc();
                     
                     //symmetry
-                    //if(_shell_col>_shell_row){ continue;}
+                    if(_col>_row){continue;}
                     // get 3-center overlap directly as _subvector
                     ub::matrix<double> _subvector = ub::zero_matrix<double>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
                     //ub::matrix<float> _subvector = ub::zero_matrix<float>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
                     
                     //bool nonzero = FillThreeCenterOLBlock(_subvector, _shell, _shell_row, _shell_col);
                     bool nonzero=FillThreeCenterRepBlock(_subvector, _shell, _shell_row, _shell_col);
-             
+                  
+                
                     
                     if (nonzero) {
                         // and put it into the block it belongs to
@@ -125,7 +128,7 @@ namespace votca {
                                              //for (int _i_row = 0; _i_row < _shell_row->getNumFunc(); _i_row++) {
                     for (int _row = 0; _row < _shell_row->getNumFunc(); _row++) {
                         //symmetry
-                       // if(_col_start + _col>_row_start + _row){continue;}
+                        if((_col_start + _col)>(_row_start + _row)){continue;}
                                                 //cout << "MAGIC " << _start+_aux << " : " << _row_start + _i_row << " : " << _col_start + _i_col << endl;
                                                 _matrix[_start+_aux](_row_start + _row, _col_start + _col) = _subvector(_row, _index);
                                                 
@@ -135,7 +138,7 @@ namespace votca {
                    }
                 } // DFT col
             } // DFT row
-           
+          
         } // TCMatrix_dft::FillBlock
 
 
