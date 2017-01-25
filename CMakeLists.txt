@@ -98,9 +98,10 @@ if(MKL_FOUND)
           BUILD_COMMAND ""
           INSTALL_COMMAND ""
           )
-  set(MKL_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/intel/src/intel/MKL_and_boost_example/headers")
-  include_directories(${MKL_INCLUDE_DIR})
-  set(MKL_HEADERS "${MKL_INCLUDE_DIR}/mkl_boost_ublas_matrix_prod.hpp" "${MKL_INCLUDE_DIR}/mkl_boost_ublas_gemm.hpp"  )
+  set(MKL_BOOST_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/intel/src/intel/MKL_and_boost_example/headers")
+  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "${CMAKE_CURRENT_BINARY_DIR}/intel/src/intel")
+  include_directories(${MKL_BOOST_INCLUDE_DIR})
+  set(MKL_HEADERS "${MKL_BOOST_INCLUDE_DIR}/mkl_boost_ublas_matrix_prod.hpp" "${MKL_BOOST_INCLUDE_DIR}/mkl_boost_ublas_gemm.hpp"  )
   install(FILES ${MKL_HEADERS} DESTINATION include/votca/tools)
 endif(MKL_FOUND)
 
