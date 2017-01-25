@@ -796,11 +796,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 
                 start=end;
             }
-            cout<<guess<<endl;
-            ub::vector<double> _eigenvalues;
-            ub::matrix<double> _eigenvectors;
-            linalg_eigenvalues(guess,_eigenvalues,_eigenvectors);
-            cout<<_eigenvalues<<endl;
+            
             return guess;
         }
 
