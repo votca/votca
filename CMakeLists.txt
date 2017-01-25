@@ -87,7 +87,7 @@ endif()
 
 if(MKL_FOUND)
   set(MKL_URL "http://software.intel.com/sites/default/files/managed/76/8c/intel-mkl-and-boost-example.zip")
-  set(MKL_MD5 B957EE63A2167AD21B650B47726CD55C )
+  set(MKL_MD5 b957ee63a2167ad21b650b47726cd55c )
   set(MKL_FILE "intel-mkl-and-boost-example.zip")
   
   include(ExternalProject)
@@ -98,9 +98,10 @@ if(MKL_FOUND)
           BUILD_COMMAND ""
           INSTALL_COMMAND ""
           )
-  set(MKL_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/intel/src/intel/MKL_and_boost_example/headers")
-  include_directories(${MKL_INCLUDE_DIR})
-  set(MKL_HEADERS "${MKL_INCLUDE_DIR}/mkl_boost_ublas_matrix_prod.hpp" "${MKL_INCLUDE_DIR}/mkl_boost_ublas_gemm.hpp"  )
+  set(MKL_BOOST_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/intel/src/intel/MKL_and_boost_example/headers")
+  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "${CMAKE_CURRENT_BINARY_DIR}/intel/src/intel")
+  include_directories(${MKL_BOOST_INCLUDE_DIR})
+  set(MKL_HEADERS "${MKL_BOOST_INCLUDE_DIR}/mkl_boost_ublas_matrix_prod.hpp" "${MKL_BOOST_INCLUDE_DIR}/mkl_boost_ublas_gemm.hpp"  )
   install(FILES ${MKL_HEADERS} DESTINATION include/votca/tools)
 endif(MKL_FOUND)
 
