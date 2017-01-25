@@ -25,7 +25,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
 #include <votca/csg/nblistgrid.h>
-#include <votca/csg/nblist_3body.h>
+#include <votca/csg/nblistgrid_3body.h>
 #include <votca/csg/beadlist.h>
 #include "csg_fmatch.h"
 #include <votca/tools/table.h>
@@ -224,6 +224,7 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
             Spline.setBCInt(1);            
         }        
     }
+    std::cout << "a: " << a << " ,sigma: " << sigma << " ,gamma: " << gamma << std::endl;
 
     // initialize the grid
     double grid_min = options->get("fmatch.min").as<double>();
@@ -636,7 +637,7 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo)
     // iterate over all pairs
     for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
         int iatom = (*pair_iter)->first->getId();
-        int jatom = (*pair_iter)->second->getId();
+        int jatom = (*pair_iter)->second->getId();        
         double var = (*pair_iter)->dist();
         vec gradient = (*pair_iter)->r();
         gradient.normalize();
@@ -669,8 +670,22 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
     //so far option gridsearch ignored. Only simple search
 
     // generate the neighbour list    
-    NBList_3Body *nb;   
-    nb = new NBList_3Body();    
+    NBList_3Body *nb; 
+    
+    bool gridsearch=false;    
+    
+    if(_options.exists("cg.nbsearch")) {
+    if(_options.get("cg.nbsearch").as<string>() == "grid")
+        gridsearch=true;
+    else if(_options.get("cg.nbsearch").as<string>() == "simple")
+        gridsearch=false;
+    else throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
+    }
+    if(gridsearch)
+        nb = new NBListGrid_3Body();
+    else
+        nb = new NBList_3Body();
+    //nb = new NBList_3Body();    
     
     nb->setCutoff(sinfo->a); // implement different cutoffs for different interactions!
     //Here, a is the distance between two beads of a triple, where the 3-body interaction is zero
@@ -716,7 +731,7 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
     for (triple_iter = nb->begin(); triple_iter != nb->end(); ++triple_iter){
         int iatom = (*triple_iter)->bead1()->getId();
         int jatom = (*triple_iter)->bead2()->getId();
-        int katom = (*triple_iter)->bead3()->getId();
+        int katom = (*triple_iter)->bead3()->getId();        
         double distij = (*triple_iter)->dist12();
         double distik = (*triple_iter)->dist13();        
         vec rij  = (*triple_iter)->r12();
@@ -727,6 +742,8 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
         double denomik = (distik-(sinfo->a)*(sinfo->sigma));
         double expij = exp(gamma_sigma/denomij);
         double expik = exp(gamma_sigma/denomik);
+        
+        //std::cout << "iatom: " << iatom << " , jatom: " << jatom << " , katom: " << katom << std::endl;
         
         vec gradient1,gradient2;
         
@@ -780,6 +797,6 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
         SP.AddToFitMatrix(_A, var,
                 _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + katom, mpos, -gradient1.z(), -gradient2.z());
     }
-        
+    delete nb;        
     
 }

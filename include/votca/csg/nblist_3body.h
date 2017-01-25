@@ -20,7 +20,6 @@
 
 #include "beadlist.h"
 #include "beadtriple.h"
-#include "pairlist.h"
 #include "triplelist.h"
 #include "exclusionlist.h"
 

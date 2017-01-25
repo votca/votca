@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,30 @@
  *
  */
 
-#ifndef _NBLISTGRID_H
-#define	_NBLISTGRID_H
+#ifndef NBLISTGRID_3BODY_H
+#define	NBLISTGRID_3BODY_H
 
 #include <votca/tools/matrix.h>
 #include <votca/tools/vec.h>
-#include "nblist.h"
+#include "nblist_3body.h"
 #include <vector>
 
 namespace votca { namespace csg {
 using namespace votca::tools;
 
-class NBListGrid
-    : public NBList
+class NBListGrid_3Body
+    : public NBList_3Body
 {
 public:
+    void Generate(BeadList &list1, BeadList &list2, BeadList &list3, bool do_exclusions = true);
     void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
     void Generate(BeadList &list, bool do_exclusions = true);
 
 protected:
     struct cell_t {
-        BeadList _beads;
+        BeadList _beads1;
+        BeadList _beads2;
+        BeadList _beads3;        
         std::vector<cell_t*> _neighbours;
     };
 
@@ -52,15 +55,14 @@ protected:
     cell_t &getCell(const int &a, const int &b, const int &c);
 
     void TestBead(cell_t &cell, Bead *bead);
-    void TestCell(cell_t &cell, Bead *bead);
 };
 
-inline NBListGrid::cell_t &NBListGrid::getCell(const int &a, const int &b, const int &c)
+inline NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const int &a, const int &b, const int &c)
 {
     return _grid[a + _box_Na*b + _box_Na*_box_Nb*c];
 }
 
 }}
 
-#endif	/* _NBLISTGRID_H */
+#endif	/* NBLISTGRID_3BODY_H */
 
