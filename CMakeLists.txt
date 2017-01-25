@@ -87,7 +87,7 @@ endif()
 
 if(MKL_FOUND)
   set(MKL_URL "http://software.intel.com/sites/default/files/managed/76/8c/intel-mkl-and-boost-example.zip")
-  set(MKL_MD5 B957EE63A2167AD21B650B47726CD55C )
+  set(MKL_MD5 b957ee63a2167ad21b650b47726cd55c )
   set(MKL_FILE "intel-mkl-and-boost-example.zip")
   
   include(ExternalProject)
