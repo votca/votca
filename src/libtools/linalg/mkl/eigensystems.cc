@@ -218,7 +218,7 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
     // call LAPACK via C interface
     info = LAPACKE_dsyevx( LAPACK_ROW_MAJOR, 'V', 'I', 'U', n, pA , lda, vl, vu, il, iu, abstol, &m, pE, pV, nmax,  ifail );
 
-    if( info > 0 ) {
+    if( info != 0 ) {
         return false;
     } else {
         return true;
@@ -272,7 +272,7 @@ bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<
     // call LAPACK via C interface
     info = LAPACKE_ssyevx( LAPACK_ROW_MAJOR, 'V', 'I', 'U', n, pA , lda, vl, vu, il, iu, abstol, &m, pE, pV, nmax,  ifail );
 
-    if( info > 0 ) {
+    if( info != 0 ) {
         return false;
     } else {
         return true;
