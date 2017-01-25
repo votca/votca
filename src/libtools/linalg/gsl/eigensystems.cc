@@ -171,6 +171,8 @@ bool linalg_eigenvalues( ub::vector<double> &E, ub::matrix<double> &V)
 bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
 {
     bool status = linalg_eigenvalues( A , E, V );
+
+    return status;
 }
 
 /*
