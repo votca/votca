@@ -50,6 +50,12 @@ namespace votca {
           return;
         }
 
+         void ERIs::Initialize_4c_large_molecule(AOBasis &_dftbasis) {
+
+          _fourcenter.Fill_4c_large_molecule( _dftbasis );
+
+          return;
+        }
         
         
 
@@ -122,11 +128,11 @@ namespace votca {
 
           _ERIs = ub::zero_matrix<double>(DMAT.size1(), DMAT.size2());
           const ub::vector<double> dmatasarray = DMAT.data();
-          ub::vector<double> _4c_vector = _fourcenter.get_4c_vector();
+          const ub::vector<double>& _4c_vector = _fourcenter.get_4c_vector();
 
           int dftBasisSize = DMAT.size1();
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
-
+          #pragma omp parallel for
           for (unsigned _i = 0; _i < DMAT.size1(); _i++) {
             unsigned sum_i = (_i*(_i+1))/2;
             for (unsigned _j = _i; _j < DMAT.size2(); _j++) {
@@ -149,6 +155,30 @@ namespace votca {
                 }
               }
               _ERIs(_j, _i) = _ERIs(_i, _j);
+            }
+          }
+
+          CalculateEnergy(dmatasarray);
+
+        }
+        
+        void ERIs::CalculateERIs_4c_large_molecule(const ub::matrix<double> &DMAT) {
+
+          _ERIs = ub::zero_matrix<double>(DMAT.size1(), DMAT.size2());
+          const ub::vector<double> dmatasarray = DMAT.data();
+
+          for (int _i = 0; _i < DMAT.size2(); _i++) {
+            int sum_i = (_i*(_i+1))/2;
+//            for (int _j = 0; _j < DMAT.size2(); _j++) {
+            for (int _j = _i; _j < DMAT.size2(); _j++) {
+
+              int _index_ij = DMAT.size1() * _i - sum_i + _j; /////////////////////////////
+              ub::vector<double> fourcenterasarray = (_fourcenter.getDatamatrix(_index_ij)).data();
+              for (int _k = 0; _k < fourcenterasarray.size(); _k++) {
+                _ERIs(_i, _j) += dmatasarray[_k] * fourcenterasarray[_k];
+              }
+              _ERIs(_j, _i) = _ERIs(_i, _j);
+
             }
           }
 

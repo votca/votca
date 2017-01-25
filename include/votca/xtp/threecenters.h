@@ -102,7 +102,7 @@ namespace votca { namespace xtp {
     public:
     
     void Fill_4c_small_molecule(AOBasis& dftbasis); ///////////////////
-    
+    void Fill_4c_large_molecule(AOBasis& dftbasis);
     void Cleanup();
     
     int getSize(){return _matrix.size();}
@@ -110,7 +110,7 @@ namespace votca { namespace xtp {
     std::vector< ub::matrix<double> >& getData(){return  _matrix;}
     ub::matrix<double>& getDatamatrix( int i ){return  _matrix[i];}
 
-    ub::vector<double>& get_4c_vector() { return _4c_vector;} ////////////////////
+    const ub::vector<double>& get_4c_vector() { return _4c_vector;} ////////////////////
 
     
     private:

@@ -394,43 +394,7 @@ bool Orbitals::Load(string file_name) {
  }
  
  
- ub::matrix<double> Orbitals::DensityMatrixGroundState_alpha( ub::matrix<double>& _MOs ) {   
-     // first fill Density matrix, if required
-    //  if ( _dmatGS.size1() != _basis_set_size ) {
-         ub::matrix<double> _dmatGS = ub::zero_matrix<double>(_basis_set_size);
-        #pragma omp parallel for
-        for ( int _i=0; _i < _basis_set_size; _i++ ){
-            for ( int _j=0; _j < _basis_set_size; _j++ ){
-                for ( int _level=0; _level < _number_of_alpha_e ; _level++ ){
-                 
-                    _dmatGS(_i,_j) += _MOs( _level , _i ) * _MOs( _level , _j );
-                 
-                }
-            }
-         }
-     //}    
-     // return     
-     return _dmatGS;  
- }
  
-  ub::matrix<double> Orbitals::DensityMatrixGroundState_beta( ub::matrix<double>& _MOs ) {   
-     // first fill Density matrix, if required
-    //  if ( _dmatGS.size1() != _basis_set_size ) {
-         ub::matrix<double> _dmatGS = ub::zero_matrix<double>(_basis_set_size);
-        #pragma omp parallel for
-        for ( int _i=0; _i < _basis_set_size; _i++ ){
-            for ( int _j=0; _j < _basis_set_size; _j++ ){
-                for ( int _level=0; _level < _number_of_beta_e ; _level++ ){
-                 
-                    _dmatGS(_i,_j) += _MOs( _level , _i ) * _MOs( _level , _j );
-                 
-                }
-            }
-         }
-     //}    
-     // return     
-     return _dmatGS;  
- }
  
  
  ub::matrix<double> Orbitals::TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state){

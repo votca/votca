@@ -78,6 +78,15 @@ namespace votca {
                  
                  _with_RI=false;
              }
+            
+            if ( options->exists(key+".fourcmethod")) {
+                _4cmethod = options->get(key + ".fourcmethod").as<string>();
+                //direct or ram
+               
+             } else {
+                 
+                _4cmethod="direct";
+             }
 	   
              if ( options->exists(key+".ecp")) {
                _ecp_name = options->get(key+".ecp").as<string>();
@@ -333,7 +342,12 @@ namespace votca {
                 _ERIs.CalculateERIs(_dftAOdmat, _AuxAOcoulomb_inv);
                 }
                 else{
+                    if(_4cmethod=="ram"){
                 _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
+                    }
+               //     else if(_4cmethod=="direct"){
+               // _ERIs.CalculateERIs_4c_large_molecule(_dftAOdmat);
+                //    }
                 }
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
                 double vxcenergy=0.0;
@@ -539,8 +553,10 @@ namespace votca {
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
             }
             else{
+                if(_4cmethod=="ram"){
                _ERIs.Initialize_4c_small_molecule(_dftbasis); 
                LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculated 4c integrals. " << flush;
+                }
             }
 
       }
@@ -573,7 +589,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             Elements _elements;
             for (st = uniqueelements.begin(); st < uniqueelements.end(); ++st) {
 
-                Orbitals orb;
+                
 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Calculating atom density for " << (*st)->type << flush;
                 bool with_ecp = _with_ecp;
@@ -600,7 +616,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                     numofelectrons -= int(_ecpbasisset.getElement((*st)->type)->getNcore());
                 }
 
-                orb.setNumberOfElectrons(numofelectrons);
+               
                 if ((numofelectrons%2)!=0){
                     alpha_e=numofelectrons/2+numofelectrons%2;
                     beta_e=numofelectrons/2;
@@ -611,10 +627,8 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 }
                 //cout<<"alpha"<<alpha_e<<endl;
                 //cout<<"beta"<<beta_e<<endl;
-                orb.setNumberOfalphaElectrons(alpha_e);
-                orb.setNumberOfbetaElectrons(beta_e);
-                orb.setNumberOfLevels(numofelectrons / 2, dftbasis.AOBasisSize() - numofelectrons / 2);
-                orb.setBasisSetSize(dftbasis.AOBasisSize());
+              
+             
                 AOOverlap dftAOoverlap;
                 AOKinetic dftAOkinetic;
                 AOESP dftAOESP;
@@ -682,16 +696,19 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                MOEnergies_beta=MOEnergies_alpha;
                MOCoeff_beta=MOCoeff_alpha;
 
+               ub::vector<double> occupation_alpha;
+               ub::vector<double> occupation_beta;
+               ub::matrix<double>dftAOdmat_alpha = DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,occupation_alpha,alpha_e);
+               ub::matrix<double>dftAOdmat_beta = DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,occupation_beta,beta_e);
+                    
                 double totinit = 0;
-                
-                        for (int i = 0; i < alpha_e; i++) {
-                            totinit +=  MOEnergies_alpha(i);
-                        }
-                        for (int i = 0; i < beta_e; i++) {
-                            totinit +=  MOEnergies_beta(i);
-                        }
-                    ub::matrix<double>dftAOdmat_alpha = orb.DensityMatrixGroundState_alpha(MOCoeff_alpha);
-                    ub::matrix<double>dftAOdmat_beta = orb.DensityMatrixGroundState_beta(MOCoeff_beta);
+
+                   for (unsigned i = 0; i < MOEnergies_alpha.size(); i++) {
+                       totinit +=occupation_alpha(i)*MOEnergies_alpha(i);
+                   }
+                   for (unsigned i = 0; i < MOEnergies_beta.size(); i++) {
+                       totinit +=occupation_beta(i)*MOEnergies_beta(i);
+                   }
                     
                    
                     double energyold = totinit;
@@ -712,12 +729,12 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                       double diiserror_alpha=diis_alpha.Evolve(dftAOdmat_alpha,H_alpha,MOEnergies_alpha,MOCoeff_alpha,this_iter);
                         if (!(diiserror_alpha<_diis_start && _usediis && this_iter>2)){
                             ub::matrix<double> olddmat=dftAOdmat_alpha;
-                           dftAOdmat_alpha=orb.DensityMatrixGroundState_alpha(MOCoeff_alpha);
+                           dftAOdmat_alpha=DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,occupation_alpha,alpha_e);
                             dftAOdmat_alpha=_mixingparameter*dftAOdmat_alpha+(1.0-_mixingparameter)*olddmat;  
                             //cout<<"mixing_alpha"<<endl;
                         }
                         else{
-                          dftAOdmat_alpha=orb.DensityMatrixGroundState_alpha(MOCoeff_alpha);
+                          dftAOdmat_alpha=DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,occupation_alpha,alpha_e);
                         } 
                       //evolve beta
                       
@@ -726,25 +743,25 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                        diiserror_beta=diis_beta.Evolve(dftAOdmat_beta,H_beta,MOEnergies_beta,MOCoeff_beta,this_iter);
                         if (!(diiserror_beta<_diis_start && _usediis && this_iter>2)){
                             ub::matrix<double> olddmat=dftAOdmat_beta;
-                           dftAOdmat_beta=orb.DensityMatrixGroundState_beta(MOCoeff_beta);
+                           dftAOdmat_beta=DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,occupation_beta,beta_e);
                             dftAOdmat_beta=_mixingparameter*dftAOdmat_beta+(1.0-_mixingparameter)*olddmat;  
                             //cout<<"mixing_beta"<<endl;
                         }
                         else{
-                          dftAOdmat_beta=orb.DensityMatrixGroundState_beta(MOCoeff_beta);
+                          dftAOdmat_beta=DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,occupation_beta,beta_e);
                         } 
                        }
                        
                        //cout<<"Err_alpha:"<<diiserror_alpha<<endl;
                        //cout<<"Err_beta:"<<diiserror_beta<<endl;
                       
-                        for (int i = 0; i < alpha_e; i++) {
-                            totenergy +=  MOEnergies_alpha(i);
+                         for (unsigned i = 0; i < MOEnergies_alpha.size(); i++) {
+                            totenergy +=occupation_alpha(i)*MOEnergies_alpha(i);
                         }
-                        for (int i = 0; i < beta_e; i++) {
-                            totenergy +=  MOEnergies_beta(i);
+                        for (unsigned i = 0; i < MOEnergies_beta.size(); i++) {
+                       totenergy +=occupation_beta(i)*MOEnergies_beta(i);
                         }
-
+                       
                         totenergy += E_vxc_alpha+ E_vxc_beta - 0.5 * ERIs_atom.getERIsenergy();
                         //cout <<"Etot "<<totenergy<<endl;
 
@@ -779,7 +796,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 
                 start=end;
             }
-        
+            cout<<guess<<endl;
             ub::vector<double> _eigenvalues;
             ub::matrix<double> _eigenvectors;
             linalg_eigenvalues(guess,_eigenvalues,_eigenvectors);
@@ -887,7 +904,43 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
       
       
       
-     
+      ub::matrix<double> DFTENGINE::DensityMatrix_frac( const ub::matrix<double>& _MOs,const ub::vector<double>& MOenergies, ub::vector<double>& occupation, int numofelec ) {   
+         occupation.resize(MOenergies.size());
+         double buffer=0.0001;
+         double homo_energy=MOenergies(numofelec-1);
+         std::vector<unsigned> degeneracies;
+           for ( unsigned _level=0; _level < occupation.size(); _level++ ){
+               if (MOenergies(_level)<(homo_energy-buffer)){
+                   occupation(_level)=1.0;
+               }
+               else if(std::abs(MOenergies(_level)-homo_energy)<buffer){
+                   degeneracies.push_back(_level);
+               }
+               else if(MOenergies(_level)>(homo_energy+buffer)){
+                   occupation(_level)=0.0;
+               }
+           } 
+         double deg_occupation=1.0/double(degeneracies.size());
+         for ( unsigned _level=0; _level < degeneracies.size(); _level++ ){
+             occupation(degeneracies[_level])=deg_occupation;         
+         }
+         
+         ub::matrix<double> _dmatGS = ub::zero_matrix<double>(MOenergies.size());
+        #pragma omp parallel for
+        for ( unsigned _i=0; _i < MOenergies.size(); _i++ ){
+            for ( unsigned _j=0; _j < MOenergies.size(); _j++ ){
+                for ( unsigned _level=0; _level < occupation.size(); _level++ ){
+                 
+                    _dmatGS(_i,_j) += occupation(_level)* _MOs( _level , _i ) * _MOs( _level , _j );
+                 
+                }
+            }
+         }
+     //}    
+     // return     
+     return _dmatGS;  
+ }
+ 
       
       
       void DFTENGINE::NuclearRepulsion(){
@@ -995,10 +1048,12 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             smallgrid="medium";  
           }
           else if(largegrid=="medium"){
-            smallgrid="coarse";  
+            _use_small_grid=false;
+            smallgrid="medium";  
           }
           else if(largegrid=="coarse"){
-            smallgrid="xcoarse";  
+             _use_small_grid=false;
+            smallgrid="coarse";  
           }
           else if(largegrid=="xcoarse"){
             _use_small_grid=false;

@@ -16,11 +16,12 @@
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/qmpackages/turbomole.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/qmpackages/gaussian.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/tools/dft.h</file>
-            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/qmpackages/gaussian.h</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/qmpackage.h</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/orbitals.cc</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/ERIs.cc</file>
+            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/threecenters_dft.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/nbo.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/bsecoupling.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/tools/gencube.h</file>
@@ -28,7 +29,6 @@
             <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/orbitals.h</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/numerical_integrations.h</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/aobasis.cc</file>
-            <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/numerical_integration/numerical_integrations.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/esp2multipole.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/src/libxtp/qmpackages/orca.cc</file>
             <file>file:/home/jens/votca_git_dft/src/xtp/include/votca/xtp/dftengine.h</file>

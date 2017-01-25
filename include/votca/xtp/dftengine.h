@@ -88,7 +88,7 @@ public:
     void Prepare( Orbitals* _orbitals );
     void SetupInvariantMatrices();
     ub::matrix<double> AtomicGuess(Orbitals* _orbitals);
-    
+    ub::matrix<double> DensityMatrix_frac( const ub::matrix<double>& _MOs,const ub::vector<double>& MOenergies, ub::vector<double>& occupation, int numofelec );
     string Choosesmallgrid(string largegrid);
     void NuclearRepulsion();
     double ExternalRepulsion();
@@ -128,6 +128,7 @@ public:
     
     bool                                _with_ecp;
     bool                                _with_RI;
+    string                              _4cmethod;
     
     // numerical integration Vxc
     std::string                              _grid_name;
