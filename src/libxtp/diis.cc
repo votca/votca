@@ -93,7 +93,7 @@ namespace votca { namespace xtp {
       }
       Bijs->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
        
-      if (max<_diis_start && _usediis && this_iter>4){
+      if (max<_diis_start && _usediis && this_iter>2){
          
           ub::matrix<double> B=ub::zero_matrix<double>(_mathist.size()+1);
           ub::vector<double> a=ub::zero_vector<double>(_mathist.size()+1);

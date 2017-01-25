@@ -313,15 +313,30 @@ namespace votca {
                 _diis.SolveFockmatrix(MOEnergies,MOCoeff,H0);
                 _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
                 }
-                else if(_initial_guess=="atom"){
+                else if (_initial_guess == "atom") {
+
+                    _dftAOdmat = AtomicGuess(_orbitals);
+                    if (_with_RI) {
+                        _ERIs.CalculateERIs(_dftAOdmat, _AuxAOcoulomb_inv);
+                    } else {
+                        if (_4cmethod == "ram") {
+                            _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
+                        }
+                    }
+                        if (_use_small_grid) {
+                            _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat, &_dftbasis, _xc_functional_name);
+
+                        } else {
+                            _orbitals->AOVxc() = _gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat, &_dftbasis, _xc_functional_name);
+                        }
+                       ub::matrix<double> H=H0+_ERIs.getERIs()+_orbitals->AOVxc();
+                      _diis.SolveFockmatrix(MOEnergies,MOCoeff,H);
+                      _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
+                    } else {
+                        throw runtime_error("Initial guess method not known/implemented");
                     
-                _dftAOdmat=AtomicGuess( _orbitals);
-                }
-                else{
-                    throw runtime_error("Initial guess method not known/implemented");
-                }
-            }
-            else{
+                    }
+                }else{
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Reading guess from orbitals object/file"<< flush;
                 _dftbasis.ReorderMOs(MOCoeff, _orbitals->getQMpackage(), "xtp");
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Converted DFT orbital coefficient order from " << _orbitals->getQMpackage() << " to xtp" << flush;
