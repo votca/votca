@@ -540,8 +540,10 @@ namespace votca {
             // _auxAOcoulomb.Print("COU");
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
             _AuxAOcoulomb_inv=ub::zero_matrix<double>( _auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension()); 
-            linalg_invert( _auxAOcoulomb.Matrix() , _AuxAOcoulomb_inv);
-            LOG(logDEBUG, *_pLog) << TimeStamp() << " Inverted AUX Coulomb matrix" << flush;
+            ub::matrix<double> _AuxAOcoulomb_inv2=ub::zero_matrix<double>( _auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension()); 
+            int dimensions=linalg_invert_svd( _auxAOcoulomb.Matrix() , _AuxAOcoulomb_inv,1e7);
+            
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " Inverted AUX Coulomb matrix, removed "<<dimensions<<" functions from aux basis" << flush;
      
             }
             // prepare invariant part of electron repulsion integrals
