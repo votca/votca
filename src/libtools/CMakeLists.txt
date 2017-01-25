@@ -49,6 +49,9 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_SQL_SOURCES} ${VOTCA_LINALG_SOURCES})
 add_dependencies(votca_tools gitversion)
+if(MKL_FOUND)
+  add_dependencies(votca_tools intel)
+endif(MKL_FOUND)
 set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_tools ${Boost_LIBRARIES} ${LINALG_LIBRARIES} ${SQLITE3_LIBRARIES}
   ${FFTW3_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES} ${MATH_LIBRARIES})
