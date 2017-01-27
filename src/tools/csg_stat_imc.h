@@ -73,7 +73,9 @@ protected:
         HistogramNew _average;
         double _min, _max, _step;
         double _norm;
+        double _cut;
         bool _is_bonded;
+        bool _threebody;
     };
     
     // a pair of interactions which are correlated

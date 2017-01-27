@@ -22,6 +22,7 @@
 #include <votca/tools/rangeparser.h>
 #include <votca/csg/beadlist.h>
 #include <votca/csg/nblistgrid.h>
+#include <votca/csg/nblistgrid_3body.h>
 #include "csg_stat_imc.h"
 #include <votca/csg/imcio.h>
 
@@ -59,7 +60,7 @@ void Imc::Initialize()
         i->_is_bonded = false;
     }
 
-    // initialize non-bonded structures
+    // initialize bonded structures
    for (list<Property*>::iterator iter = _bonded.begin();
         iter != _bonded.end(); ++iter) {
             interaction_t *i = AddInteraction(*iter);
@@ -84,25 +85,51 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom)
         string name = (*iter)->get("name").value();
 
         interaction_t &i = *_interactions[name];
+        
+        //Preleminary: Quickest way to incorporate 3 body correlations
+        if (i._threebody){
+            
+            // generate the bead lists
+            BeadList beads1, beads2, beads3;
 
-        // generate the bead lists
-        BeadList beads1, beads2;
+            beads1.Generate(*top, (*iter)->get("type1").value());
+            beads2.Generate(*top, (*iter)->get("type2").value());
+            beads3.Generate(*top, (*iter)->get("type3").value());
 
-        beads1.Generate(*top, (*iter)->get("type1").value());
-        beads2.Generate(*top, (*iter)->get("type2").value());
+            if(beads1.size() == 0)
+                throw std::runtime_error("Topology does not have beads of type \"" + (*iter)->get("type1").value() + "\"\n"
+                        "This was specified in type1 of interaction \"" + name+ "\"");
+            if(beads2.size() == 0)
+                throw std::runtime_error("Topology does not have beads of type \"" + (*iter)->get("type2").value() + "\"\n"
+                        "This was specified in type2 of interaction \"" + name + "\"");
+            if(beads3.size() == 0)
+                throw std::runtime_error("Topology does not have beads of type \"" + (*iter)->get("type3").value() + "\"\n"
+                        "This was specified in type3 of interaction \"" + name + "\"");             
+        }
+        //2body
+        if (!i._threebody){
 
-        if(beads1.size() == 0)
-            throw std::runtime_error("Topology does not have beads of type \"" + (*iter)->get("type1").value() + "\"\n"
-                    "This was specified in type1 of interaction \"" + name+ "\"");
-        if(beads2.size() == 0)
-            throw std::runtime_error("Topology does not have beads of type \"" + (*iter)->get("type2").value() + "\"\n"
-                    "This was specified in type2 of interaction \"" + name + "\"");
-        // calculate normalization factor for rdf
+            // generate the bead lists
+            BeadList beads1, beads2;
 
-        if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
-            i._norm = 1. / (beads1.size()*(beads2.size()) / 2.);
-        else
-            i._norm = 1. / (beads1.size() * beads2.size());
+            beads1.Generate(*top, (*iter)->get("type1").value());
+            beads2.Generate(*top, (*iter)->get("type2").value());
+
+            if(beads1.size() == 0)
+                throw std::runtime_error("Topology does not have beads of type \"" + (*iter)->get("type1").value() + "\"\n"
+                        "This was specified in type1 of interaction \"" + name+ "\"");
+            if(beads2.size() == 0)
+                throw std::runtime_error("Topology does not have beads of type \"" + (*iter)->get("type2").value() + "\"\n"
+                        "This was specified in type2 of interaction \"" + name + "\"");
+            // calculate normalization factor for rdf
+
+            if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+                i._norm = 1. / (beads1.size()*(beads2.size()) / 2.);
+            else
+                i._norm = 1. / (beads1.size() * beads2.size());            
+        }
+
+
     }
 
     for (list<Property*>::iterator iter = _bonded.begin();
@@ -135,6 +162,17 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
     i->_max = p->get("max").as<double>();
     i->_norm = 1.0;
     i->_p=p;
+    i->_threebody=0;
+    //check if option threebody exists
+    if (p->exists("threebody")) {
+        i->_threebody = p->get("threebody").as<bool>();            
+    }
+    //preliminary. should be changed
+    i->_cut = 0.37; //(0.37 nm)
+    //check if option threebody exists
+    if (p->exists("cut")) {
+        i->_cut = p->get("cut").as<double>();            
+    }    
     
     // initialize the current and average histogram
     int n = (int)((i->_max - i->_min) / i->_step + 1.000000001);
@@ -215,16 +253,10 @@ void Imc::Worker::DoNonbonded(Topology *top)
         string name = (*iter)->get("name").value();
         
         interaction_t &i = *_imc->_interactions[name];
-        
-        // generate the bead lists
-        BeadList beads1, beads2;
-        
-        beads1.Generate(*top, (*iter)->get("type1").value());
-        beads2.Generate(*top, (*iter)->get("type2").value());
-               
-        // generate the neighbour list
-        NBList *nb;
 
+        // clear the current histogram
+        _current_hists[i._index].Clear();
+        
         bool gridsearch=true;
 
         if(_imc->_options.exists("cg.nbsearch")) {
@@ -233,34 +265,108 @@ void Imc::Worker::DoNonbonded(Topology *top)
             else if(_imc->_options.get("cg.nbsearch").as<string>() == "simple")
                 gridsearch=false;
             else throw std::runtime_error("cg.nbsearch invalid, can be grid or simple");
+        }    
+        
+        //Preleminary: Quickest way to incorporate 3 body correlations
+        if (i._threebody){
+            
+            // generate the bead lists
+            BeadList beads1, beads2, beads3;
+        
+            beads1.Generate(*top, (*iter)->get("type1").value());
+            beads2.Generate(*top, (*iter)->get("type2").value());            
+            beads3.Generate(*top, (*iter)->get("type3").value());            
+            
+            // generate the neighbour list    
+            NBList_3Body *nb; 
+ 
+            if(gridsearch) 
+                nb = new NBListGrid_3Body();            
+            else
+                nb = new NBList_3Body();                        
+            
+            nb->setCutoff(i._cut); // implement different cutoffs for different interactions!
+            //Here, a is the distance between two beads of a triple, where the 3-body interaction is zero              
+            
+            //check if type1 and type2 are the same
+            if ((*iter)->get("type1").value() == (*iter)->get("type2").value()){
+                //if all three types are the same
+                if ((*iter)->get("type2").value() == (*iter)->get("type3").value()){        
+                    nb->Generate(beads1, true);
+                }
+                //if type2 and type3 are different, use the Generate function for 2 bead types
+                if ((*iter)->get("type2").value() != (*iter)->get("type3").value()){           
+                    nb->Generate(beads1, beads3, true); 
+                }
+            }
+            //if type1 != type2
+            if ((*iter)->get("type1").value() != (*iter)->get("type2").value()){   
+                //if the last two types are the same, use Generate function with them as the first two bead types
+                //Neighborlist_3body is constructed in a way that the two equal bead types have two be the first 2 types
+                if ((*iter)->get("type2").value() == (*iter)->get("type3").value()){
+                    nb->Generate(beads1, beads2, true);         
+                }
+                if ((*iter)->get("type2").value() != (*iter)->get("type3").value()){
+                    //type1 = type3 !=type2
+                    if ((*iter)->get("type1").value() == (*iter)->get("type3").value()){          
+                        nb->Generate(beads2, beads1, true);
+                    }
+                    //type1 != type2 != type3
+                    if ((*iter)->get("type1").value() != (*iter)->get("type3").value()){              
+                        nb->Generate(beads1, beads2, beads3, true);
+                    }
+                }
+            }            
+            
+            NBList_3Body::iterator triple_iter;
+            // iterate over all triples
+            for (triple_iter = nb->begin(); triple_iter != nb->end(); ++triple_iter){
+                vec rij  = (*triple_iter)->r12();
+                vec rik  = (*triple_iter)->r13();
+                double var = acos(rij*rik/sqrt((rij*rij) * (rik*rik))); 
+                _current_hists[i._index].Process(var);               
+            }
+
+            delete nb;   
+            
         }
-        if(gridsearch)
-            nb = new NBListGrid();
-        else
-            nb = new NBList();
+        //2body interaction
+        if (!i._threebody){
+            
+            // generate the bead lists
+            BeadList beads1, beads2;
+        
+            beads1.Generate(*top, (*iter)->get("type1").value());
+            beads2.Generate(*top, (*iter)->get("type2").value());
+               
+            // generate the neighbour list
+            NBList *nb;
 
-        nb->setCutoff(i._max + i._step);
-                
-        // clear the current histogram
-        _current_hists[i._index].Clear();
+            if(gridsearch)
+                nb = new NBListGrid();
+            else
+                nb = new NBList();
 
-        IMCNBSearchHandler h(&(_current_hists[i._index]));
+            nb->setCutoff(i._max + i._step);
 
-        nb->SetMatchFunction(&h, &IMCNBSearchHandler::FoundPair);
+            IMCNBSearchHandler h(&(_current_hists[i._index]));
 
-        // is it same types or different types?
-        if((*iter)->get("type1").value() == (*iter)->get("type2").value())
-            nb->Generate(beads1);
-        else
-            nb->Generate(beads1, beads2);
+            nb->SetMatchFunction(&h, &IMCNBSearchHandler::FoundPair);
 
-        // process all pairs
-        /*NBList::iterator pair_iter;
-        for(pair_iter = nb->begin(); pair_iter!=nb->end();++pair_iter) {
-                _current_hists[i._index].Process((*pair_iter)->dist());
-        }*/
+            // is it same types or different types?
+            if((*iter)->get("type1").value() == (*iter)->get("type2").value())
+                nb->Generate(beads1);
+            else
+                nb->Generate(beads1, beads2);
 
-        delete nb;
+            // process all pairs
+            /*NBList::iterator pair_iter;
+            for(pair_iter = nb->begin(); pair_iter!=nb->end();++pair_iter) {
+                    _current_hists[i._index].Process((*pair_iter)->dist());
+            }*/
+
+            delete nb;            
+        }
     }    
 }
 
@@ -383,24 +489,38 @@ void Imc::WriteDist(const string &suffix)
         Table &t = iter->second->_average.data();            
         Table dist(t);
         if(!iter->second->_is_bonded) {
-            // normalization is calculated using exact shell volume (difference of spheres)
-            for(unsigned int i=0; i<dist.y().size(); ++i) {
-                double x1 = dist.x()[i] - 0.5*iter->second->_step;
-                double x2 = x1 + iter->second->_step;
-                if(x1<0) {
-                    dist.y()[i]=0;
-                }
-                else {
-                    dist.y()[i] = _avg_vol.getAvg()*iter->second->_norm *
-                        dist.y()[i]/(4./3.*M_PI*(x2*x2*x2 - x1*x1*x1));                
-                }
+            //Preleminary: Quickest way to incorporate 3 body correlations
+            if (iter->second->_threebody){
+	        // \TODO normalize bond and angle differently....
+                double norm=ub::norm_1(dist.y());
+                if ( norm > 0 ) {
+                    dist.y() = iter->second->_norm * dist.y() / ( norm * iter->second->_step );
+                }           
+                
             }
+            
+            //2body
+            if (!iter->second->_threebody){
+                // normalization is calculated using exact shell volume (difference of spheres)
+                for(unsigned int i=0; i<dist.y().size(); ++i) {
+                    double x1 = dist.x()[i] - 0.5*iter->second->_step;
+                    double x2 = x1 + iter->second->_step;
+                    if(x1<0) {
+                        dist.y()[i]=0;
+                    }
+                    else {
+                        dist.y()[i] = _avg_vol.getAvg()*iter->second->_norm *
+                            dist.y()[i]/(4./3.*M_PI*(x2*x2*x2 - x1*x1*x1));                
+                    }
+                }               
+            }
+
         }
         else {
 	    // \TODO normalize bond and angle differently....
             double norm=ub::norm_1(dist.y());
             if ( norm > 0 ) {
-              dist.y() = iter->second->_norm * dist.y() / ( norm * iter->second->_step );
+                dist.y() = iter->second->_norm * dist.y() / ( norm * iter->second->_step );
             }
         }
         
