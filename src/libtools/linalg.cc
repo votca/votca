@@ -57,8 +57,8 @@ int linalg_invert_svd(ub::matrix<double> &A, ub::matrix<double> &V,double limitC
             break;
         }
         double CN=S(0)/S(i);
-        cout<< CN<<endl;
-        cout << limitCN << endl;
+        //cout<< CN<<endl;
+        //cout << limitCN << endl;
         if(CN>limitCN){
             break;
         }
