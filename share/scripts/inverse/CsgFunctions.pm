@@ -1,6 +1,6 @@
 package CsgFunctions;
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ use vars qw(@ISA @EXPORT);
 
 sub csg_function_help() {
   print <<EOF;
-CsgSimplexFunctions, version %version%
+CsgFunctions, version %version%
 Provides useful function for VOTCA's iterative framework written in perl:
 csg_get_property(\$;\$):             get a value from xml file
 csg_get_interaction_property(\$;\$): get a interaction property from xmlfile
