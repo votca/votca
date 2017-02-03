@@ -102,19 +102,17 @@ namespace votca { namespace xtp {
     public:
     
     void Fill_4c_small_molecule(AOBasis& dftbasis); ///////////////////
-    void Fill_4c_large_molecule(AOBasis& dftbasis);
-    void Cleanup();
-    
-    int getSize(){return _matrix.size();}
+   
+   
 
-    std::vector< ub::matrix<double> >& getData(){return  _matrix;}
-    ub::matrix<double>& getDatamatrix( int i ){return  _matrix[i];}
+
+ 
 
     const ub::vector<double>& get_4c_vector() { return _4c_vector;} ////////////////////
 
     
     private:
-        std::vector< ub::matrix<double> > _matrix;
+     
         ub::vector<double> _4c_vector; /////////////
 
 //////        void FillBlock(AOShell* _shell, AOBasis& dftbasis) ; 

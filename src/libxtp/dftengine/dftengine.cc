@@ -85,7 +85,7 @@ namespace votca {
                
              } else {
                  
-                _4cmethod="direct";
+                _4cmethod="ram";
              }
 	   
              if ( options->exists(key+".ecp")) {
@@ -132,7 +132,7 @@ namespace votca {
 	   
             _numofelectrons =0;
             
-	    _max_iter = options->get(key + ".max_iterations").as<int>();
+	   
             
             
             if ( options->exists(key+".convergence")) {
@@ -150,7 +150,14 @@ namespace votca {
                     _error_converged=1e-7;
                }    
             
-                
+             if ( options->exists(key+".convergence.max_iterations")) {
+                  _max_iter=options->get(key+".convergence.max_iterations").as<int>();
+               }
+               else{
+                   _max_iter=100;
+               }    
+            
+  
              if ( options->exists(key+".convergence.method")) {
                string method= options->get(key+".convergence.method").as<string>();
                if (method=="DIIS"){
@@ -171,7 +178,7 @@ namespace votca {
                    _mixingparameter=options->get(key+".convergence.mixing").as<double>();
                }
                else{
-                    _mixingparameter=0.5;
+                    _mixingparameter=0.3;
                }
             
             if ( options->exists(key+".convergence.DIIS_maxout")) {
@@ -192,9 +199,19 @@ namespace votca {
                   _diis_start=options->get(key+".convergence.DIIS_start").as<double>();
                }
                else{
-                    _diis_start=0.2;
+                    _diis_start=0.5;
                } 
         }
+            else{
+                _Econverged=1e-7;
+                _error_converged=1e-7;
+                 _maxout=false;
+                 _diis_start=0.5;
+                  _histlength=10;
+                  _mixingparameter=0.3;
+                   _usediis=true;
+                   _max_iter=100;
+            }
         if(!_usediis){
                 _histlength=1;
                 _maxout=false;                
@@ -825,14 +842,16 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             _dftbasisset.LoadBasisSet(_dftbasis_name);
             
             if(_with_guess){
+                
                 if (_orbitals->hasDFTbasis()){
                     if( _orbitals->getDFTbasis()!=_dftbasis_name){
-                    throw runtime_error((boost::format("Basisset Name in guess orb file and in dftengine option file differ.% vs %") %_orbitals->getDFTbasis() %_dftbasis_name).str() );
+                    throw runtime_error((boost::format("Basisset Name in guess orb file and in dftengine option file differ %1% vs %2%") %_orbitals->getDFTbasis() %_dftbasis_name).str() );
                     }
                 }else{
                     LOG(logDEBUG, *_pLog) << TimeStamp() << " WARNING: Orbital file has no basisset information,using it as a guess might work or not for calculation with " << _dftbasis_name << flush;
                 }        
             }
+            
             _orbitals->setDFTbasis( _dftbasis_name );    
 	    _dftbasis.AOBasisFill( &_dftbasisset, _atoms);
             LOG(logDEBUG, *_pLog) << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
@@ -898,10 +917,10 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
            
            if(_with_guess){
                if(_orbitals->getNumberOfElectrons()!=_numofelectrons/2){
-               throw runtime_error((boost::format("Number of electron in guess orb file % and in dftengine differ %.")%_orbitals->getNumberOfElectrons() %(_numofelectrons/2) ).str());
+               throw runtime_error((boost::format("Number of electron in guess orb file %1% and in dftengine differ %2%.")%_orbitals->getNumberOfElectrons() %(_numofelectrons/2) ).str());
                }
                if(_orbitals->getNumberOfLevels()!=_dftbasis.AOBasisSize()){
-               throw runtime_error((boost::format("Number of levels in guess orb file % and in dftengine differ %.")%_orbitals->getNumberOfLevels() %_dftbasis.AOBasisSize()).str());
+               throw runtime_error((boost::format("Number of levels in guess orb file %1% and in dftengine differ %2%.")%_orbitals->getNumberOfLevels() %_dftbasis.AOBasisSize()).str());
                }
             }
            else{

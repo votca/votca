@@ -53,7 +53,7 @@ namespace votca { namespace xtp {
         
         void CalculateERIs(const ub::matrix<double> &DMAT, const ub::matrix<double> &_inverse_Coulomb);
         void CalculateERIs_4c_small_molecule(const ub::matrix<double> &DMAT); ///////////////////////////////////////
-        void CalculateERIs_4c_large_molecule(const ub::matrix<double> &DMAT); 
+        
         
         int getSize1(){return _ERIs.size1();}
         int getSize2(){return _ERIs.size2();}
