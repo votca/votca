@@ -94,11 +94,11 @@ namespace votca {
                 //int _row_end = _row_start + _shell_row->getNumFunc();
 
                 // gamma-loop over the "right" DFT basis function with symmetry
-                for (std::vector< AOShell* >::iterator _col = dftbasis.firstShell(); _col < _row; _col++) {
+                for (std::vector< AOShell* >::iterator _col = dftbasis.firstShell(); _col <=_row; _col++) {
                     AOShell* _shell_col = dftbasis.getShell(_col);
                     int _col_start = _shell_col->getStartIndex();
                     //int _col_end = _col_start + _shell_col->getNumFunc();
-                    
+                 
    
                     // get 3-center overlap directly as _subvector
                     ub::matrix<double> _subvector = ub::zero_matrix<double>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());

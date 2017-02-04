@@ -395,7 +395,7 @@ namespace votca {
                 }
                 
                 ub::matrix<double> H=H0+_ERIs.getERIs()+_orbitals->AOVxc();
-                             
+                cout<<_orbitals->AOVxc()<<endl;
                 double totenergy=E_nucnuc;
                 
                 //this updates the density matrix as well
@@ -751,7 +751,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                         //cout<<this_iter<<endl;
                         ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha+dftAOdmat_beta);
                         ub::matrix<double> AOVxc_alpha = gridIntegration.IntegrateVXC_Atomblock(dftAOdmat_alpha, &dftbasis, _xc_functional_name);
-                        cout<<AOVxc_alpha<<endl;
+                        //cout<<AOVxc_alpha<<endl;
                         double E_vxc_alpha= gridIntegration.getTotEcontribution();
                         ub::matrix<double> AOVxc_beta = gridIntegration.IntegrateVXC_Atomblock(dftAOdmat_beta, &dftbasis, _xc_functional_name);
                         double E_vxc_beta= gridIntegration.getTotEcontribution();

@@ -30,7 +30,7 @@
 #ifdef LIBXC
 #include <xc.h>
 #endif
-
+#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/exchange_correlation.h>
 #include <fstream>
 #include <boost/timer/timer.hpp>
@@ -413,9 +413,9 @@ namespace votca {
                             ub::matrix_range< ub::matrix<double> > _gradAOgridcol = ub::subrange(gradAOgrid, 0, 3, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
 
                             //ub::matrix_range< ub::matrix<double> > DMAT_here = ub::subrange( _density_matrix, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
-               
+                            //cout<<"dmat "<<ub::subrange( _density_matrix, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom])<<endl;
                             const ub::matrix<double> & DMAT_here = dmat_vector[rowatom][colatom];
- 
+                            //cout<<"vector "<<DMAT_here<<endl;
                              if ( colatom == rowatom ){
                                 _temp     += 0.5 * ub::prod( _AOgridcol, DMAT_here);
                                 _tempgrad += 0.5 * ub::prod( _gradAOgridcol, DMAT_here);
@@ -528,7 +528,7 @@ namespace votca {
                             
                             //_XCmatblock += ub::prod( _rowXC, ub::trans(_AOcol)  );
                             _XCmatblock += ub::prod( ub::trans(_rowXC), _AOcol  );
-
+                            
                             // update the other block
   
                         } // significant col
@@ -549,7 +549,7 @@ namespace votca {
                 for (unsigned _i = 0; _i < xcmat_vector.size(); _i++) {
                     for (unsigned _j = 0; _j <=_i; _j++) {
                    
-                       
+                      
                     xcmat_vector[_i][_j] += xcmat_vector_thread[i_thread][_i][_j];
                     }
                 }
@@ -559,9 +559,9 @@ namespace votca {
              #pragma omp parallel for
              for (unsigned rowatom=0;rowatom<_grid.size();rowatom++){
                 for (unsigned colatom=0;colatom<=rowatom;colatom++){
-         
+                    
             
-            ub::subrange( XCMAT, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom])=dmat_vector[rowatom][colatom];
+            ub::subrange( XCMAT, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom])=xcmat_vector[rowatom][colatom];
             }
         }
             
