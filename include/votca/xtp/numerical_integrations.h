@@ -42,6 +42,7 @@ namespace votca { namespace xtp {
 
             void GridSetup(std::string type, BasisSet* bs , std::vector<QMAtom* > _atoms  );
             void FindsignificantAtoms(AOBasis* basis);
+            //void FindsignificantAtoms2(AOBasis* basis);
             //used for test purposes
             double StupidIntegrate( std::vector<double>& _data );
             
@@ -56,7 +57,8 @@ namespace votca { namespace xtp {
             
             double getExactExchange(const std::string _functional);
             
-            ub::matrix<double> IntegrateVXC_Atomblock (const ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
+            ub::symmetric_matrix<double> IntegrateVXC_Atomblock (const ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
+            //ub::matrix<double> IntegrateVXC_Atomblock2 (const ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
             ub::matrix<double> IntegrateExternalPotential_Atomblock(AOBasis* basis,std::vector<double> Potentialvalues);
          
             
@@ -83,7 +85,10 @@ namespace votca { namespace xtp {
             typedef vector< AOShell* >::iterator AOShellIterator;
             vector< vector< AOShellIterator > > _atomshells;
             vector< AOShellIterator > _singleatom;
-
+            std::vector< std::vector< ub::matrix<double> > >dmat_vector;
+            std::vector< std::vector< std::vector< ub::matrix<double> > > > xcmat_vector_thread;
+            std::vector< std::vector< ub::matrix<double> > > xcmat_vector;
+           //vector< vector<int> > _atomsforshells;
         };
 
     }}

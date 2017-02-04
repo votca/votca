@@ -221,7 +221,7 @@ namespace votca {
         
         
         
-        ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(const ub::matrix<double>& _density_matrix, AOBasis* basis,const string _functional){
+        ub::symmetric_matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(const ub::matrix<double>& _density_matrix, AOBasis* basis,const string _functional){
             EXC = 0;
             if(_significant_atoms.size()<1){
                 throw runtime_error("NumericalIntegration::IntegrateVXC_Atomblock:significant atoms not found yet.");
@@ -285,8 +285,17 @@ namespace votca {
                 throw std::runtime_error("Please specify one combined or an exchange and a correlation functionals");
          }
 #endif
-
-            ub::matrix<double> XCMAT = ub::zero_matrix<double>(basis->_AOBasisSize, basis->_AOBasisSize);
+            
+            //split dmat into atomsize protions so that access is faster later on
+             #pragma omp parallel for
+            for (unsigned rowatom=0;rowatom<_grid.size();rowatom++){
+                for (unsigned colatom=0;colatom<=rowatom;colatom++){
+            
+            dmat_vector[rowatom][colatom] = ub::subrange( _density_matrix, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);
+            }
+        }
+            
+           
             
             // parallelization: distribute over threads inside one atom
             int nthreads = 1;
@@ -295,14 +304,28 @@ namespace votca {
             #endif
 
             // separate storage for each thread
-            std::vector< ub::matrix<double> > XCMAT_thread;
+            //same as for dmat for vxc mat
             std::vector<double> EXC_thread;
+             for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
+                  EXC_thread.push_back(0.0);
+            }
+            #pragma omp parallel for
             for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                 
-                XCMAT_thread.push_back( ub::zero_matrix<double>(basis->_AOBasisSize, basis->_AOBasisSize) );
-                EXC_thread.push_back(0.0);
+                for (unsigned rowatom=0;rowatom<_grid.size();rowatom++){
+                for (unsigned colatom=0;colatom<=rowatom;colatom++){
+                    xcmat_vector_thread[i_thread][rowatom][colatom]= ub::zero_matrix<double>(_blocksize[colatom], _blocksize[rowatom]);
+                }
+                }
             }
-
+            #pragma omp parallel for
+            for (unsigned rowatom=0;rowatom<_grid.size();rowatom++){
+                for (unsigned colatom=0;colatom<=rowatom;colatom++){
+                    xcmat_vector[rowatom][colatom]= ub::zero_matrix<double>(_blocksize[colatom], _blocksize[rowatom]);
+                    }
+                }
+            
+        
             // for every atom
             for (unsigned i = 0; i < _grid.size(); i++) {
 	      // for each point in atom grid
@@ -390,7 +413,8 @@ namespace votca {
                             ub::matrix_range< ub::matrix<double> > _gradAOgridcol = ub::subrange(gradAOgrid, 0, 3, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
 
                             //ub::matrix_range< ub::matrix<double> > DMAT_here = ub::subrange( _density_matrix, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
-                            ub::matrix_range<const ub::matrix<double> > DMAT_here = ub::subrange( _density_matrix, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);
+               
+                            const ub::matrix<double> & DMAT_here = dmat_vector[rowatom][colatom];
  
                              if ( colatom == rowatom ){
                                 _temp     += 0.5 * ub::prod( _AOgridcol, DMAT_here);
@@ -488,18 +512,19 @@ namespace votca {
                         // this atom
                         int rowatom = _significant_atoms[i][j][sigrow];
                     
-                        ub::matrix_range< ub::matrix<double> > _rowXC = ub::subrange( _addXC, 0 , 1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);    
+                        const ub::matrix_range< ub::matrix<double> > _rowXC = ub::subrange( _addXC, 0 , 1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);    
 
                         //ub::matrix<double> _rowXC=ub::subrange( _addXC, 0 , 1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);  
                  
-                        for (unsigned sigcol = 0; sigcol < _significant_atoms[i][j].size(); sigcol++) {
+                        for (unsigned sigcol = 0; sigcol <=sigrow; sigcol++) {
                             int colatom = _significant_atoms[i][j][sigcol];
-                            // if (colatom > rowatom) break;
+                            
 
-                            ub::matrix_range< ub::matrix<double> > _AOcol = ub::subrange( AOgrid, 0,1,  _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
+                            const ub::matrix_range< ub::matrix<double> > _AOcol = ub::subrange( AOgrid, 0,1,  _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
                             
                             // update block reference of XCMAT
-                            ub::matrix_range<ub::matrix<double> > _XCmatblock = ub::subrange( XCMAT_thread[i_thread],_startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom] );
+                    
+                            ub::matrix<double>& _XCmatblock = xcmat_vector_thread[i_thread][rowatom][colatom];
                             
                             //_XCmatblock += ub::prod( _rowXC, ub::trans(_AOcol)  );
                             _XCmatblock += ub::prod( ub::trans(_rowXC), _AOcol  );
@@ -517,16 +542,28 @@ namespace votca {
             // sum thread matrices
             for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                 EXC += EXC_thread[i_thread];
+            }
+            
+            for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                 #pragma omp parallel for
-                for (unsigned _i = 0; _i < XCMAT.size1(); _i++) {
-                    //for (int _j = 0; _j <= _i; _j++) {
-                        for (unsigned _j = 0; _j <XCMAT.size2(); _j++) {
-                    XCMAT( _i, _j ) += XCMAT_thread[i_thread](_i, _j);
+                for (unsigned _i = 0; _i < xcmat_vector.size(); _i++) {
+                    for (unsigned _j = 0; _j <=_i; _j++) {
+                   
+                       
+                    xcmat_vector[_i][_j] += xcmat_vector_thread[i_thread][_i][_j];
                     }
                 }
             }
+             ub::symmetric_matrix<double> XCMAT(basis->AOBasisSize());
+             
+             #pragma omp parallel for
+             for (unsigned rowatom=0;rowatom<_grid.size();rowatom++){
+                for (unsigned colatom=0;colatom<=rowatom;colatom++){
+         
             
-            XCMAT += ub::trans(XCMAT);
+            ub::subrange( XCMAT, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom])=dmat_vector[rowatom][colatom];
+            }
+        }
             
             // symmetrize 
             //#pragma omp parallel for
@@ -536,14 +573,15 @@ namespace votca {
             //    }
            // }
 
-            const ub::vector<double>& DMAT_array = _density_matrix.data();
-            const ub::vector<double>& XCMAT_array = XCMAT.data();
+             
             //cout <<"EXC"<<endl;
             //cout << EXC<< endl;
             double Comp=0.0;
              #pragma omp parallel for reduction(+:Comp)
-            for ( unsigned i = 0; i < DMAT_array.size(); i++ ){
-                Comp =Comp+ DMAT_array[i] * XCMAT_array[i];
+            for ( unsigned i = 0; i < _density_matrix.size1(); i++ ){
+                for ( unsigned j = 0; j < _density_matrix.size2(); j++ ){
+                Comp =Comp+ XCMAT(i,j)*_density_matrix(i,j);
+            }
             }
             EXC-=Comp;
 
@@ -551,9 +589,155 @@ namespace votca {
 
         }
         
-    
+        
+        /*
+          ub::symmetric_matrix<double> NumericalIntegration::IntegrateVXC_Atomblock2(const ub::matrix<double>& _density_matrix, AOBasis* basis,const string _functional){
+            EXC = 0;
+            if(_significant_atoms.size()<1){
+                throw runtime_error("NumericalIntegration::IntegrateVXC_Atomblock:significant atoms not found yet.");
+            }
+            // TODO: switch XC functionals implementation from LIBXC to base own calculation
+            ExchangeCorrelation _xc;
+            Vxc_Functionals map;
+            std::vector<string> strs;           
+            boost::split(strs, _functional, boost::is_any_of(" "));
+            int xfunc_id = 0;
+            
+#ifdef LIBXC
+            bool _use_votca = false;
+            bool _use_separate = false;
+            int cfunc_id = 0;
 
-      
+            if (strs.size() == 1) {
+                xfunc_id = map.getID(strs[0]);
+                if (xfunc_id < 0) _use_votca = true;
+            }
+
+            else if (strs.size() == 2) {
+                cfunc_id = map.getID(strs[0]);
+                xfunc_id = map.getID(strs[1]);
+                _use_separate = true;
+            }
+            else {
+                throw std::runtime_error("Please specify one combined or an exchange and a correlation functionals");
+
+            }
+            xc_func_type xfunc; // handle for exchange functional
+            xc_func_type cfunc; // handle for correlation functional
+            if (!_use_votca){
+            if (xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED) != 0) {
+                fprintf(stderr, "Functional '%d' not found\n", xfunc_id);
+                exit(1);
+            }
+            
+            xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
+            if (xfunc.info->kind!=2 && !_use_separate){
+                throw std::runtime_error("Your functional misses either correlation or exchange, please specify another functional, separated by whitespace");
+            }
+            
+            if (_use_separate) {
+                if (xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED) != 0) {
+                    fprintf(stderr, "Functional '%d' not found\n", cfunc_id);
+                    exit(1);
+                }
+                xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED);
+                xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
+                if ((xfunc.info->kind+cfunc.info->kind)!=1){
+                    throw std::runtime_error("Your functionals are not one exchange and one correlation");
+                }
+            }
+            }
+#else
+         if (strs.size() == 1) {
+                xfunc_id = map.getID(strs[0]);
+            }   
+         else {
+                throw std::runtime_error("Please specify one combined or an exchange and a correlation functionals");
+         }
+#endif
+
+            ub::symmetric_matrix<double> XCMAT = ub::zero_matrix<double>(basis->_AOBasisSize);
+            for(unsigned i=0;i<XCMAT.size1();i++){
+                for(unsigned j=0;j<=i;j++){
+                    XCMAT(i,j)=0.0;
+                }
+            }
+            
+            
+            
+            
+            
+            
+            
+        //iterate for first shell
+           #pragma omp parallel for
+           for (int _row = 0;_row<basis->AOBasisSize(); _row++) {
+               
+               
+               
+                AOShell* _shell_row = basis->getShell(_row);
+                int _row_start = _shell_row->getStartIndex();
+                int _row_end   = _row_start + _shell_row->getNumFunc();
+                ub::matrix<double> ao_row=ub::matrix<double>(1,_shell_row->getNumFunc());
+                ub::matrix<double> ao_row_grad=ub::matrix<double>(3,_shell_row->getNumFunc());
+                const std::vector<unsigned>& _row_atoms=_atomsforshells[_row];
+                //iterate over second shell
+                for (int _col =0; _col <= _row; _col++) {
+                    const std::vector<unsigned>& _col_atoms=_atomsforshells[_col];
+                    bool check=false;
+                    for(unsigned i=0;i<_row_atoms.size();i++){
+                       for(unsigned j=0;j<_col_atoms.size();j++){
+                           if(_row_atoms[i]==_col_atoms[j]){check=true;}     
+                       }
+                    }
+                    if(!check){continue;}
+                    
+                    AOShell* _shell_col = basis->getShell(_col);
+                    ub::matrix<double> ao_col=ub::matrix<double>(1,_shell_col->getNumFunc());
+                    ub::matrix<double> ao_col_grad=ub::matrix<double>(3,_shell_col->getNumFunc());
+                    
+                    int _col_start = _shell_col->getStartIndex();
+                    int _col_end   = _col_start + _shell_col->getNumFunc();
+                    ub::matrix<double> xclocal = ub::zero_matrix<double>(_shell_row->getNumFunc(),_shell_col->getNumFunc());
+                    ub::matrix<double> lokaldmat= ub::subrange( _row_start, _row_end, _col_start, _col_end );
+                    
+                    //iterate over atoms for each shell to find those which belong to both
+                    for(unsigned i=0;i<_row_atoms.size();i++){
+                       for(unsigned j=0;j<_col_atoms.size();j++){
+                           //sort out the unnecessary atoms
+                           if(_row_atoms[i]!=_col_atoms[j]){continue;}
+                           for(unsigned k=0;k<_grid[i].size();k++){
+                               const vec& gridpos=_grid[i][k].grid_pos;
+                               ao_row=ub::zero_matrix<double>(1,_shell_row->getNumFunc());
+                               ao_row_grad=ub::zero_matrix<double>(3,_shell_row->getNumFunc());
+                               ao_col=ub::zero_matrix<double>(1,_shell_col->getNumFunc());
+                               ao_col_grad=ub::zero_matrix<double>(3,_shell_col->getNumFunc());
+                                _shell_row->EvalAOspace(ao_row, ao_row_grad, gridpos);
+                                _shell_col->EvalAOspace(ao_col, ao_col_grad , gridpos);
+                                ub::matrix<double> temp=ub::prod(ao_row,lokaldmat);
+                                double rho=ub::prod(temp,ub::trans(ao_col))(0,0);
+                                
+                               grad_rho += ub::prod(_temp, ub::trans(_gradAOgridrow)) +  ub::prod(_AOgridrow,ub::trans(_tempgrad)) ;
+                                
+                                
+                           }
+                           
+                       }
+                    }
+                    
+                    
+                    
+                    
+                    ub::subrange(XCMAT, _row_start, _row_end, _col_start, _col_end)=ub::matrix<double> xclocal;
+              
+                }
+          
+           }
+           
+            
+           return XCMAT;
+          } 
+         */   
             
         double NumericalIntegration::IntegratePotential(const vec& rvector){
             
@@ -721,13 +905,93 @@ namespace votca {
                 } 
             }
             int natoms = _grid.size();
-            
+          
             total_grid = total_grid * ( natoms*(natoms+1) ) / 2;
             
-        
+         for (unsigned rowatom=0;rowatom<_grid.size();rowatom++){
+            std::vector< ub::matrix<double> > rowmatrix; 
+                      for (unsigned colatom=0;colatom<=rowatom;colatom++){
+                         rowmatrix.push_back(ub::zero_matrix<double>(_blocksize[colatom],_blocksize[rowatom]));
+                 }
+            dmat_vector.push_back(rowmatrix);
+         }
             
+            
+            
+             // parallelization: distribute over threads inside one atom
+            int nthreads = 1;
+            #ifdef _OPENMP
+               nthreads = omp_get_max_threads();
+            #endif
+
+             
+               for(int i=0;i<nthreads;i++){
+               
+            std::vector< std::vector< ub::matrix<double> > > matrix; 
+              for (unsigned rowatom=0;rowatom<_grid.size();rowatom++){
+            std::vector< ub::matrix<double> > rowmatrix; 
+                      for (unsigned colatom=0;colatom<=rowatom;colatom++){
+                          rowmatrix.push_back(ub::zero_matrix<double>(_blocksize[colatom],_blocksize[rowatom])); 
+                 }
+           matrix.push_back(rowmatrix);
+         } 
+            xcmat_vector_thread.push_back(matrix);
+               }
+               
+    for (unsigned rowatom=0;rowatom<_grid.size();rowatom++){
+        std::vector< ub::matrix<double> > rowmatrix; 
+          for (unsigned colatom=0;colatom<=rowatom;colatom++){
+              rowmatrix.push_back(ub::zero_matrix<double>(_blocksize[colatom],_blocksize[rowatom]));
+             }
+       xcmat_vector.push_back(rowmatrix);
+     } 
         return;
         }
+        
+        
+        /*
+          void NumericalIntegration::FindsignificantAtoms2(AOBasis* basis){
+            
+
+             //find smalles decay e.g. largest extend of shell;
+              _atomsforshells.resize(basis->AOBasisSize());
+              #pragma omp parallel for
+           for (int _row = 0;_row<basis->AOBasisSize(); _row++) {
+                
+                AOShell* _shell_row = basis->getShell(_row);
+        
+                double _decaymin = 1e7;
+                for (AOShell::GaussianIterator itg = _shell_row->firstGaussian(); itg != _shell_row->lastGaussian(); itg++) {
+                         AOGaussianPrimitive* gaussian = *itg;
+                         double _decay = gaussian->decay;
+                         if (_decay < _decaymin) {
+                             _decaymin = _decay;
+                         } // decay min check
+                }
+                
+             
+             
+                vec pos_row =_shell_row->getPos();
+                std::vector<unsigned> atoms_for_shell;
+      
+
+                    for (unsigned k = 0; k < _grid.size(); k++) {
+                    
+                        for (unsigned l = 0; l < _grid[k].size();l++) {
+                               vec dist = _grid[k][l].grid_pos-pos_row; 
+                                double distsq = dist*dist ;
+                            if ( (_decaymin* distsq) < 20.7 ){
+                                atoms_for_shell.pop_back(k);
+                                break;
+                            }                   
+                        }
+                    }
+                _atomsforshells[_row]=atoms_for_shell;
+              
+            }
+        return;
+        }
+        */
         
         
         
