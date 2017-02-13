@@ -110,20 +110,15 @@ if ($sim_prog eq "espresso") {
       for(my $i=0;$i<=$#r;$i++){
         printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], -$pot_deriv[$i]);
       }
-  } elsif ( $type eq "bond" ) {
+  } elsif ( $type eq "bond" || $type eq "angle" ||  $type eq "dihedral" ) {
     printf(OUTFILE "VOTCA\n");
     printf(OUTFILE "N %i\n\n",$#r+1);
     for(my $i=0;$i<=$#r;$i++){
       printf(OUTFILE "%i %12.5e %15.7e %15.7e\n",$i+1,$r[$i],$pot[$i],-$pot_deriv[$i]*$r[$i]);
     }
-  } elsif ( $type eq "angle" ||  $type eq "dihedral" ) {
-    printf(OUTFILE "VOTCA\n");
-    printf(OUTFILE "N %i\n\n",$#r+1);
-    my $RadToDegree=180/3.14159265359;
-    for(my $i=0;$i<=$#r;$i++){
-      #rad -> degree: $r[$i]*$RadToDegree, and $pot_deriv[$i]/$RadToDegree
-      printf(OUTFILE "%i %12.5e %15.7e %15.7e\n",$i+1,$r[$i]*$RadToDegree, $pot[$i], -$pot_deriv[$i]/$RadToDegree);
-    }
+  } else {
+    #should never happen
+    die "$progname: tabulated potentials/forces for lammps $type not implemented\n";
   }
 } elsif ($sim_prog eq "dlpoly") {
   if ($type eq "non-bonded"){
