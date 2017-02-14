@@ -319,7 +319,7 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
                 const double alpha = (*itr)->decay;
                 std::vector<double>& _contractions = (*itr)->contraction;
 
-                double _expofactor = pow(2.0 * alpha / pi, 0.75) * exp(-alpha * distsq);
+                double _expofactor = (*itr)->powfactor * exp(-alpha * distsq);
 
                 // split combined shells
                 int _i_func = -1;

@@ -46,18 +46,20 @@ public:
     double decay;
     std::vector<double> contraction;
     AOShell* aoshell;
+    //used in evalspace
+    double powfactor;
 private:
     // private constructor, only a shell can create a primitive
     AOGaussianPrimitive( double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
     : decay(_decay),
             contraction(_contraction),
-            aoshell(_aoshell) { ; }
+            aoshell(_aoshell) {powfactor=pow(2.0 * decay / boost::math::constants::pi<double>(), 0.75) ; }
 
     AOGaussianPrimitive( int _power, double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
     : power(_power),
     decay(_decay),
     contraction(_contraction),
-    aoshell(_aoshell) { ; }
+    aoshell(_aoshell) {powfactor=pow(2.0 * decay / boost::math::constants::pi<double>(), 0.75) ; }
 };      
     
 /*

@@ -144,13 +144,13 @@ namespace votca { namespace xtp {
             // iterate over Gaussians in this _shell_col
                 const double _decay_row = (*itr)->decay;
                 const double r_decay_row = 0.5/_decay_row;
-                
+                const double powfactor_row=(*itr)->powfactor;
                 for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
                     
                      // get decay constants 
                         const double _decay_col = (*itc)->decay;
                         const double r_decay_col = 0.5/_decay_col; 
-                       
+                       const double powfactor_col=(*itc)->powfactor;
                       
                          
                          ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
@@ -200,7 +200,7 @@ namespace votca { namespace xtp {
             
 
             double _fak = 2.0 * pow(pi, 2.5) / (_decay_row * _decay_col * sqrt(_decay_row + _decay_col));
-            _fak = _fak * pow(4.0 * _decay_row * _decay_col / (pi * pi), 0.75);
+            _fak = _fak *  powfactor_col*powfactor_row;
 
             std::vector<double> _FmT(_nextra, 0.0); // that size needs to be checked!
             // call xint01(FmT,8,T,u_lower)
