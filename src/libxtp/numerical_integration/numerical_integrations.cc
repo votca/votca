@@ -221,7 +221,7 @@ namespace votca {
         
         
         
-        ub::symmetric_matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(const ub::matrix<double>& _density_matrix, AOBasis* basis,const string _functional){
+        ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(const ub::matrix<double>& _density_matrix, AOBasis* basis,const string _functional){
             EXC = 0;
             if(_significant_atoms.size()<1){
                 throw runtime_error("NumericalIntegration::IntegrateVXC_Atomblock:significant atoms not found yet.");
@@ -305,27 +305,29 @@ namespace votca {
 
             // separate storage for each thread
             //same as for dmat for vxc mat
+            std::vector< ub::matrix<double> > XCMAT_thread;
             std::vector<double> EXC_thread;
              for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                   EXC_thread.push_back(0.0);
+                  
             }
             #pragma omp parallel for
             for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                 
                 for (unsigned rowatom=0;rowatom<_grid.size();rowatom++){
-                for (unsigned colatom=0;colatom<=rowatom;colatom++){
-                    xcmat_vector_thread[i_thread][rowatom][colatom]= ub::zero_matrix<double>(_blocksize[colatom], _blocksize[rowatom]);
+                for (unsigned colatom=0;colatom<_grid.size();colatom++){
+                    xcmat_vector_thread[i_thread][rowatom][colatom]= ub::zero_matrix<double>(_blocksize[rowatom], _blocksize[colatom]);
                 }
                 }
             }
             #pragma omp parallel for
             for (unsigned rowatom=0;rowatom<_grid.size();rowatom++){
-                for (unsigned colatom=0;colatom<=rowatom;colatom++){
-                    xcmat_vector[rowatom][colatom]= ub::zero_matrix<double>(_blocksize[colatom], _blocksize[rowatom]);
+                for (unsigned colatom=0;colatom<_grid.size();colatom++){
+                    xcmat_vector[rowatom][colatom]= ub::zero_matrix<double>(_blocksize[rowatom], _blocksize[colatom]);
                     }
                 }
             
-        
+          
             // for every atom
             for (unsigned i = 0; i < _grid.size(); i++) {
 	      // for each point in atom grid
@@ -516,20 +518,22 @@ namespace votca {
 
                         //ub::matrix<double> _rowXC=ub::subrange( _addXC, 0 , 1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);  
                  
-                        for (unsigned sigcol = 0; sigcol <=sigrow; sigcol++) {
+                        for (unsigned sigcol = 0; sigcol <_significant_atoms[i][j].size(); sigcol++) {
                             int colatom = _significant_atoms[i][j][sigcol];
                             
 
                             const ub::matrix_range< ub::matrix<double> > _AOcol = ub::subrange( AOgrid, 0,1,  _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
                             
                             // update block reference of XCMAT
-                    
+                          
                             ub::matrix<double>& _XCmatblock = xcmat_vector_thread[i_thread][rowatom][colatom];
                             
-                            //_XCmatblock += ub::prod( _rowXC, ub::trans(_AOcol)  );
-                            _XCmatblock += ub::prod( ub::trans(_rowXC), _AOcol  );
+                          
+                          
+                            _XCmatblock+= ub::prod( ub::trans(_rowXC), _AOcol  );
                             
-                            // update the other block
+                         
+                          
   
                         } // significant col
                     } // significant row 
@@ -542,29 +546,39 @@ namespace votca {
             // sum thread matrices
             for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                 EXC += EXC_thread[i_thread];
+                
             }
             
             for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                 #pragma omp parallel for
                 for (unsigned _i = 0; _i < xcmat_vector.size(); _i++) {
-                    for (unsigned _j = 0; _j <=_i; _j++) {
+                    for (unsigned _j = 0; _j < xcmat_vector[_i].size(); _j++) {
                    
                       
                     xcmat_vector[_i][_j] += xcmat_vector_thread[i_thread][_i][_j];
                     }
                 }
             }
-             ub::symmetric_matrix<double> XCMAT(basis->AOBasisSize());
+             
+             
+            
+             
+             ub::matrix<double> XCMAT = ub::zero_matrix<double>(basis->_AOBasisSize, basis->_AOBasisSize);
              
              #pragma omp parallel for
-             for (unsigned rowatom=0;rowatom<_grid.size();rowatom++){
-                for (unsigned colatom=0;colatom<=rowatom;colatom++){
+             for (unsigned rowatom=0;rowatom<xcmat_vector.size();rowatom++){
+                for (unsigned colatom=0;colatom<xcmat_vector[rowatom].size();colatom++){
                     
+                    //cout<<"["<<rowatom<<","<<colatom<<"]="<<xcmat_vector[rowatom][colatom]<<endl;
+                  
+            ub::subrange( XCMAT, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom])=xcmat_vector[rowatom][colatom];
             
-            ub::subrange( XCMAT, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom])=xcmat_vector[rowatom][colatom];
             }
         }
-            
+         
+            XCMAT+=ub::trans(XCMAT);   
+
+ 
             // symmetrize 
             //#pragma omp parallel for
             //for (int _i = 0; _i < XCMAT.size1(); _i++) {
@@ -573,9 +587,20 @@ namespace votca {
             //    }
            // }
 
+         
+         const ub::vector<double>& DMAT_array = _density_matrix.data();
+           const ub::vector<double>& XCMAT_array = XCMAT.data();
+
+            double Comp=0.0;
+              #pragma omp parallel for reduction(+:Comp)
+           for ( unsigned i = 0; i < DMAT_array.size(); i++ ){
+            Comp =Comp+ DMAT_array[i] * XCMAT_array[i];
+             }
+             EXC-=Comp;
              
             //cout <<"EXC"<<endl;
             //cout << EXC<< endl;
+             /*
             double Comp=0.0;
              #pragma omp parallel for reduction(+:Comp)
             for ( unsigned i = 0; i < _density_matrix.size1(); i++ ){
@@ -584,7 +609,9 @@ namespace votca {
             }
             }
             EXC-=Comp;
-
+              */
+             
+             
             return XCMAT;
 
         }
@@ -930,8 +957,8 @@ namespace votca {
             std::vector< std::vector< ub::matrix<double> > > matrix; 
               for (unsigned rowatom=0;rowatom<_grid.size();rowatom++){
             std::vector< ub::matrix<double> > rowmatrix; 
-                      for (unsigned colatom=0;colatom<=rowatom;colatom++){
-                          rowmatrix.push_back(ub::zero_matrix<double>(_blocksize[colatom],_blocksize[rowatom])); 
+                      for (unsigned colatom=0;colatom<_grid.size();colatom++){
+                          rowmatrix.push_back(ub::zero_matrix<double>(_blocksize[rowatom],_blocksize[colatom])); 
                  }
            matrix.push_back(rowmatrix);
          } 
@@ -940,7 +967,7 @@ namespace votca {
                
     for (unsigned rowatom=0;rowatom<_grid.size();rowatom++){
         std::vector< ub::matrix<double> > rowmatrix; 
-          for (unsigned colatom=0;colatom<=rowatom;colatom++){
+          for (unsigned colatom=0;colatom<_grid.size();colatom++){
               rowmatrix.push_back(ub::zero_matrix<double>(_blocksize[colatom],_blocksize[rowatom]));
              }
        xcmat_vector.push_back(rowmatrix);

@@ -46,7 +46,7 @@ public:
     double decay;
     std::vector<double> contraction;
     AOShell* aoshell;
-    //used in evalspace
+    //used in evalspace to spped up DFT
     double powfactor;
 private:
     // private constructor, only a shell can create a primitive

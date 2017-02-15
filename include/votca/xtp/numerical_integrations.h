@@ -56,8 +56,8 @@ namespace votca { namespace xtp {
             double IntegrateField(const std::vector<double>& externalfield);
             
             double getExactExchange(const std::string _functional);
-            
-            ub::symmetric_matrix<double> IntegrateVXC_Atomblock (const ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
+            // in principle a symmetric matrix would be nicer but we calculate whole vxc matrix because of numerics and symmetrize explicitly 
+            ub::matrix<double> IntegrateVXC_Atomblock (const ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
             //ub::matrix<double> IntegrateVXC_Atomblock2 (const ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
             ub::matrix<double> IntegrateExternalPotential_Atomblock(AOBasis* basis,std::vector<double> Potentialvalues);
          

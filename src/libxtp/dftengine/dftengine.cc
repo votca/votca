@@ -395,7 +395,7 @@ namespace votca {
                 }
                 
                 ub::matrix<double> H=H0+_ERIs.getERIs()+_orbitals->AOVxc();
-                cout<<_orbitals->AOVxc()<<endl;
+                //cout<<_orbitals->AOVxc()<<endl;
                 double totenergy=E_nucnuc;
                 
                 //this updates the density matrix as well
