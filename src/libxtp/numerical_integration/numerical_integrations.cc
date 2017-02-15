@@ -392,10 +392,7 @@ namespace votca {
                             ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, 0, 3, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                             //(*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
                             (*_row)->EvalAOspace(_AOgridsub, _gradAO , _grid[i][j].grid_pos);
-                         //   boost::timer::cpu_times tendshells = cpu_t.elapsed();
-                            
-                            // _t_AOvals +=  (tendshells.wall-tstartshells.wall)/1e9;
-
+                      
                         }  // shell in atom
                 
                         ub::matrix<double> _temp     = ub::zero_matrix<double>(1,_blocksize[rowatom]);
@@ -517,23 +514,12 @@ namespace votca {
                         const ub::matrix_range< ub::matrix<double> > _rowXC = ub::subrange( _addXC, 0 , 1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);    
 
                         //ub::matrix<double> _rowXC=ub::subrange( _addXC, 0 , 1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);  
-                 
+                        std::vector< ub::matrix<double> >& _XCmatblock = xcmat_vector_thread[i_thread][rowatom];
                         for (unsigned sigcol = 0; sigcol <_significant_atoms[i][j].size(); sigcol++) {
                             int colatom = _significant_atoms[i][j][sigcol];
                             
-
-                            const ub::matrix_range< ub::matrix<double> > _AOcol = ub::subrange( AOgrid, 0,1,  _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
-                            
-                            // update block reference of XCMAT
-                          
-                            ub::matrix<double>& _XCmatblock = xcmat_vector_thread[i_thread][rowatom][colatom];
-                            
-                          
-                          
-                            _XCmatblock+= ub::prod( ub::trans(_rowXC), _AOcol  );
-                            
-                         
-                          
+                            const ub::matrix_range< ub::matrix<double> > _AOcol = ub::subrange( AOgrid, 0,1,  _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);                         
+                            _XCmatblock[colatom]+= ub::prod( ub::trans(_rowXC), _AOcol  );
   
                         } // significant col
                     } // significant row 
@@ -578,14 +564,6 @@ namespace votca {
          
             XCMAT+=ub::trans(XCMAT);   
 
- 
-            // symmetrize 
-            //#pragma omp parallel for
-            //for (int _i = 0; _i < XCMAT.size1(); _i++) {
-            //    for (int _j = 0; _j < _i; _j++) {
-            //        XCMAT(_j, _i) = XCMAT(_i, _j);
-            //    }
-           // }
 
          
          const ub::vector<double>& DMAT_array = _density_matrix.data();
@@ -597,23 +575,8 @@ namespace votca {
             Comp =Comp+ DMAT_array[i] * XCMAT_array[i];
              }
              EXC-=Comp;
-             
-            //cout <<"EXC"<<endl;
-            //cout << EXC<< endl;
-             /*
-            double Comp=0.0;
-             #pragma omp parallel for reduction(+:Comp)
-            for ( unsigned i = 0; i < _density_matrix.size1(); i++ ){
-                for ( unsigned j = 0; j < _density_matrix.size2(); j++ ){
-                Comp =Comp+ XCMAT(i,j)*_density_matrix(i,j);
-            }
-            }
-            EXC-=Comp;
-              */
-             
-             
+  
             return XCMAT;
-
         }
         
         
