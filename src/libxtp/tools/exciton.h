@@ -453,9 +453,9 @@ bool Exciton::Evaluate() {
            _xyz_shift = _current_xyz - _old_xyz;
            
            _RMSForce = linalg_getRMS( _force );
-           _MaxForce = linalg_getMax( _force );
+           _MaxForce = linalg_getMax( _force,true );
            _RMSStep  = linalg_getRMS( _xyz_shift );
-           _MaxStep  = linalg_getMax( _xyz_shift );
+           _MaxStep  = linalg_getMax( _xyz_shift,true );
 
 
            

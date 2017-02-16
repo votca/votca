@@ -66,7 +66,7 @@ namespace votca { namespace xtp {
       //cout<<"after"<<endl;
       //cout<<errormatrix<<endl;
       
-      double max=linalg_getMax(errormatrix);
+      double max=linalg_getMax(errormatrix,true);
       ub::matrix<double>* old=new ub::matrix<double>;     
       //exit(0);
       
@@ -77,7 +77,7 @@ namespace votca { namespace xtp {
       *olderror=errormatrix;
        _errormatrixhist.push_back(olderror);
        if(_maxout){
-          double error=linalg_getMax(errormatrix);
+          double error=linalg_getMax(errormatrix,true);
           if (error>_maxerror){
               _maxerror=error;
               _maxerrorindex=_mathist.size();
@@ -94,7 +94,13 @@ namespace votca { namespace xtp {
       Bijs->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
        
       if (max<_diis_start && _usediis && this_iter>2){
-         
+          bool _useold=false;
+          bool check=false;
+          //old Pulat DIIs
+          
+          ub::vector<double> coeffs=ub::zero_vector<double>(_mathist.size());
+          if(_useold) {
+          
           ub::matrix<double> B=ub::zero_matrix<double>(_mathist.size()+1);
           ub::vector<double> a=ub::zero_vector<double>(_mathist.size()+1);
           a(0)=-1;
@@ -115,21 +121,93 @@ namespace votca { namespace xtp {
               }
           }
           //cout <<"solve"<<endl;
+          check=linalg_solve(B,a);
+          for(unsigned i=0;i<coeffs.size();i++){
+              coeffs(i)=a(i+1);
+          }
+          }
+          else{
+              // C2-DIIS
           
-         
+            
+            ub::matrix<double> B=ub::zero_matrix<double>(_mathist.size());
+            ub::vector<double> eigenvalues=ub::zero_vector<double>(_mathist.size());
+            ub::matrix<double> eigenvectors=ub::zero_matrix<double>(_mathist.size());
+            
           
+          for (unsigned i=0;i<B.size1();i++){
+              for (unsigned j=0;j<=i;j++){
+                  //cout<<"i "<<i<<" j "<<j<<endl;
+                  B(i,j)=_Diis_Bs[i]->at(j);
+                  if(i!=j){
+                    B(j,i)=B(i,j);
+                  }
+              }
+          }
+          linalg_eigenvalues(B,eigenvalues,eigenvectors);
+          // Normalize weights
+           for (unsigned i=0;i<B.size1();i++){
+         double norm=0.0;
+         for (unsigned j=0;j<B.size2();j++){
+         norm+=eigenvectors(i,j);    
+         }
+         for (unsigned j=0;j<B.size2();j++){
+            eigenvectors(i,j)=eigenvectors(i,j)/norm;    
+         }
+          }
           
-          bool check=linalg_solve(B,a);
+          // Choose solution by picking out solution with smallest error
+          ub::vector<double> errors=ub::zero_vector<double>(B.size1());
+          ub::matrix<double> eq=ub::prod(B,eigenvectors);
+          
+          for (unsigned i=0;i<eq.size1();i++){
+         double error=0.0;
+         for (unsigned j=0;j<eq.size2();j++){
+         error+=eigenvectors(i,j);    
+         }
+         errors(i)=error;
+          }
+          
+          double MaxWeight=10.0;
+          
+          double min=std::numeric_limits<double>::max();
+          int minloc=-1;
+          for(int i=0;i<errors.size();i++) {
+      if(errors(i)<min) {
+          
+          bool ok=true;
+          for(unsigned k=0;k<eigenvectors.size2();k++){
+              if(eigenvectors(i,k)>MaxWeight){
+                  ok=false;
+                  break;
+              }
+          }
+          if(ok){
+              min=errors(i);
+              minloc=int(i);
+          }           
+      }
+          }
+     
+      if(minloc!=-1){
+     for(unsigned k=0;k<eigenvectors.size2();k++){
+       coeffs(k)=eigenvectors(minloc,k);   
+     }
+      }
+      else{
+          check=false;
+       }
+          }
           //cout<<"a"<<a<<endl;
           if (!check){
-              LOG(logDEBUG, *_pLog) << TimeStamp() << " Solving DIIs failed, just solve current Fockmatrix" << flush;
-               SolveFockmatrix( MOenergies,MOs,H);
+              LOG(logDEBUG, *_pLog) << TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
+               SolveFockmatrix( MOenergies,MOs,0.5*(*_mathist[0])+0.5*(*_mathist[1]));
           }
           else{
                 ub::matrix<double>H_guess=ub::zero_matrix<double>(H.size1(),H.size2()); 
                  for (unsigned i=0;i<_mathist.size();i++){  
-                     if(std::abs(a(i+1))<1e-8){ continue;}
-                    H_guess+=a(i+1)*(*_mathist[i]);
+                     if(std::abs(coeffs(i))<1e-8){ continue;}
+                    H_guess+=coeffs(i)*(*_mathist[i]);
                     //cout <<i<<" "<<a(i+1,0)<<" "<<(*_mathist[i])<<endl;
                  }
                 //cout <<"H_guess"<<H_guess<<endl;
