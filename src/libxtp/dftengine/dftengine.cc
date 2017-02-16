@@ -340,13 +340,15 @@ namespace votca {
                             _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
                         }
                     }
+                    /*
                         if (_use_small_grid) {
                             _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat, &_dftbasis, _xc_functional_name);
 
                         } else {
                             _orbitals->AOVxc() = _gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat, &_dftbasis, _xc_functional_name);
                         }
-                       ub::matrix<double> H=H0+_ERIs.getERIs()+_orbitals->AOVxc();
+                     */
+                       ub::matrix<double> H=H0+_ERIs.getERIs();//+_orbitals->AOVxc();
                       _diis.SolveFockmatrix(MOEnergies,MOCoeff,H);
                       _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
                     } else {
