@@ -199,20 +199,46 @@ namespace votca { namespace tools {
      */
    int linalg_matrixsqrt(ub::matrix<double> &S);
    /**
-     * \brief returns the the element with the largest absolute value of a matrix
+     * \brief returns the the element with the largest (absolute) value of a matrix
      * @param matrix to find largest value of
-   
-     * returns the the element with the largest absolute value of a matrix
+   * @param bool to determine if maximum or maximum of absolute values should be found
+     * returns the the element with the largest (absolute) value of a matrix
      */
    
-   
-   double linalg_getMax( const ub::matrix<double>& _matrix );
+   double linalg_getMax( const ub::matrix<double>& _matrix, bool absolut=false );
    /**
+    *  * \brief returns the matrix of abs values of a matrix
+     * @param matrix to find  abs value of
+   
+     * returns the matrix of abs values of a matrix
+     */
+   
+   ub::matrix<double> linalg_abs( const ub::matrix<double>& _matrix );
+   
+      /**
+     * \brief returns the the element with the largest (absolute) value of a vector
+     * @param vector to find largest value of
+   * @param bool to determine if maximum or maximum of absolute values should be found
+     * returns the the element with the largest (absolute) value of a matrix
+     */
+   
+   double linalg_getMax( const ub::vector<double>& _vector, bool absolut=false );
+   /**
+    *  * \brief returns the vector of abs values of a vector
+     * @param vector to find  abs value of
+   
+     * returns the vector of abs values of a vector
+     */
+   
+   ub::vector<double> linalg_abs( const ub::vector<double>& _vector );
+   
+    /**
     *  * \brief returns the rms value of a matrix
      * @param matrix to find  rms value of
    
      * returns the rms value of a matrix
      */
+   
    double linalg_getRMS(const ub::matrix<double>& _matrix );
    
    /**
@@ -235,6 +261,8 @@ namespace votca { namespace tools {
      * returns the the solves A*x=b for a matrix of b.
      */
    bool linalg_solve(const ub::matrix<double> &A, ub::vector<double> &b);
+   
+   
 }}
 
 
