@@ -1,5 +1,5 @@
 #
-# Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -197,6 +197,7 @@ run gromacs run_gromacs.sh
 clean gromacs clean_generic.sh
 presimulation gromacs run_gromacs.sh --pre
 pressure gromacs calc_pressure_gromacs.sh
+pressure lammps calc_pressure_lammps.sh
 rdf gromacs calc_rdf_generic.sh
 imc_stat gromacs imc_stat_generic.sh
 

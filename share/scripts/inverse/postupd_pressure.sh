@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ fi
 
 step_nr="$(get_current_step_nr)"
 sim_prog="$(csg_get_property cg.inverse.program)"
-[[ $sim_prog != gromacs ]] && die "${0##*/}: pressure correction for ${sim_prog} is not implemented yet!"
+[[ $sim_prog != @(gromacs||lammps) ]] && die "${0##*/}: pressure correction for ${sim_prog} is not implemented yet!"
 
 name=$(csg_get_interaction_property name)
 min=$(csg_get_interaction_property min)
