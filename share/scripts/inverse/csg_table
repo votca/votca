@@ -197,6 +197,7 @@ run gromacs run_gromacs.sh
 clean gromacs clean_generic.sh
 presimulation gromacs run_gromacs.sh --pre
 pressure gromacs calc_pressure_gromacs.sh
+pressure lammps calc_pressure_lammps.sh
 rdf gromacs calc_rdf_generic.sh
 imc_stat gromacs imc_stat_generic.sh
 
