@@ -94,7 +94,7 @@ namespace votca { namespace xtp {
       Bijs->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
        
       if (max<_diis_start && _usediis && this_iter>2){
-          bool _useold=false;
+          bool _useold=true;
           bool check=false;
           //old Pulat DIIs
           
