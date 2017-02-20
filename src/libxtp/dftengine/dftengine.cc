@@ -333,24 +333,9 @@ namespace votca {
                 else if (_initial_guess == "atom") {
 
                     _dftAOdmat = AtomicGuess(_orbitals);
-                    if (_with_RI) {
-                        _ERIs.CalculateERIs(_dftAOdmat, _AuxAOcoulomb_inv);
-                    } else {
-                        if (_4cmethod == "ram") {
-                            _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
-                        }
-                    }
-                    
-                        if (_use_small_grid) {
-                            _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat, &_dftbasis, _xc_functional_name);
-
-                        } else {
-                            _orbitals->AOVxc() = _gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat, &_dftbasis, _xc_functional_name);
-                        }
-                     
-                       ub::matrix<double> H=H0+_ERIs.getERIs()+_orbitals->AOVxc();
-                      _diis.SolveFockmatrix(MOEnergies,MOCoeff,H);
-                      _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
+                    //cout<<_dftAOdmat<<endl;
+                    LOG(logDEBUG, *_pLog) << TimeStamp() <<"Full atomic density Matrix gives N="<<std::setprecision(9)<<linalg_traceofProd(_dftAOdmat,_dftAOoverlap.Matrix())<<" electrons."<<flush;
+                   
                     } else {
                         throw runtime_error("Initial guess method not known/implemented");
                     
@@ -365,11 +350,13 @@ namespace votca {
             _orbitals->setQMpackage("xtp");
             
 	    
-
+            LOG(logDEBUG, *_pLog) << TimeStamp() << " STARTING SCF cycle" << flush;
+            LOG(logDEBUG, *_pLog) << " --------------------------------------------------------------------------" << flush;
 
            double energyold=0;
            double diiserror=100;//is evolved in DIIs scheme
             for ( _this_iter=0; _this_iter<_max_iter; _this_iter++){
+                LOG(logDEBUG, *_pLog)<< flush;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
 
                 if(_with_RI){
@@ -383,7 +370,7 @@ namespace votca {
                // _ERIs.CalculateERIs_4c_large_molecule(_dftAOdmat);
                 //    }
                 }
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<< flush<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<<flush;
                 double vxcenergy=0.0;
                 if(_use_small_grid && diiserror>0.01){
                     _orbitals->AOVxc()=_gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat,  &_dftbasis,_xc_functional_name);
@@ -736,6 +723,9 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                ub::vector<double> occupation_beta;
                ub::matrix<double>dftAOdmat_alpha = DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,occupation_alpha,alpha_e);
                ub::matrix<double>dftAOdmat_beta = DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,occupation_beta,beta_e);
+               if(beta_e<1){
+                   dftAOdmat_beta=ub::zero_matrix<double>(dftAOdmat_alpha.size1());
+               }
                     
                 double totinit = 0;
 
@@ -805,8 +795,18 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                         if ((std::abs(totenergy - energyold) < _Econverged && diiserror_alpha < _error_converged && diiserror_beta < _error_converged) || this_iter==maxiter-1) {
                             uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
                             LOG(logDEBUG, *_pLog) << TimeStamp() << " Converged after " << this_iter<<" iterations" << flush;
+                            LOG(logDEBUG, *_pLog) << TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(dftAOdmat_alpha+dftAOdmat_beta,dftAOoverlap.Matrix())<<" electrons."<<flush;
                             break;
-                        } else {
+                          
+                        }
+                        else if( this_iter==maxiter-1){
+                            uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
+                            LOG(logDEBUG, *_pLog) << TimeStamp() << " Not converged after " << this_iter<<" iterations. Using unconverged density." << flush;
+                            break;
+                            
+                            
+                        }
+                        else {
                             energyold = totenergy;
                         }
 
