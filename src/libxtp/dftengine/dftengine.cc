@@ -648,8 +648,8 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                     alpha_e=numofelectrons/2;
                     beta_e=alpha_e;
                 }
-                //cout<<"alpha"<<alpha_e<<endl;
-                //cout<<"beta"<<beta_e<<endl;
+                //cout<<"alpha "<<alpha_e<<endl;
+                //cout<<"beta "<<beta_e<<endl;
               
              
                 AOOverlap dftAOoverlap;
@@ -692,7 +692,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
 
                 ub::vector<double>MOEnergies_alpha;
                 ub::matrix<double>MOCoeff_alpha;
-                 ub::vector<double>MOEnergies_beta;
+                ub::vector<double>MOEnergies_beta;
                 ub::matrix<double>MOCoeff_beta;
                 Diis diis_alpha;
                 Diis diis_beta;
@@ -723,9 +723,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                ub::vector<double> occupation_beta;
                ub::matrix<double>dftAOdmat_alpha = DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,occupation_alpha,alpha_e);
                ub::matrix<double>dftAOdmat_beta = DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,occupation_beta,beta_e);
-               if(beta_e<1){
-                   dftAOdmat_beta=ub::zero_matrix<double>(dftAOdmat_alpha.size1());
-               }
+               
                     
                 double totinit = 0;
 
@@ -735,8 +733,18 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                    for (unsigned i = 0; i < MOEnergies_beta.size(); i++) {
                        totinit +=occupation_beta(i)*MOEnergies_beta(i);
                    }
-                    
-                   
+                /*  
+                double e_a=0.0;
+                double e_b=0.0;
+                 for (unsigned i = 0; i < MOEnergies_alpha.size(); i++) {
+                       e_a+=occupation_alpha(i);
+                   }
+                   for (unsigned i = 0; i < MOEnergies_beta.size(); i++) {
+                       e_b+=occupation_beta(i);
+                   }
+                cout <<"e_a "<<e_a<<endl;
+                cout <<"e_b "<<e_b<<endl;
+                 */  
                     double energyold = totinit;
                     int maxiter=81;
                     for (int this_iter = 0; this_iter < maxiter; this_iter++) {
@@ -939,7 +947,11 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
       
       
       
-      ub::matrix<double> DFTENGINE::DensityMatrix_frac( const ub::matrix<double>& _MOs,const ub::vector<double>& MOenergies, ub::vector<double>& occupation, int numofelec ) {   
+      ub::matrix<double> DFTENGINE::DensityMatrix_frac( const ub::matrix<double>& _MOs,const ub::vector<double>& MOenergies, ub::vector<double>& occupation, int numofelec ) { 
+          if(numofelec==0){
+              occupation=ub::zero_vector<double>(MOenergies.size());
+              return ub::zero_matrix<double>(MOenergies.size());
+          }
          occupation.resize(MOenergies.size());
          double buffer=0.0001;
          double homo_energy=MOenergies(numofelec-1);
@@ -947,6 +959,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
            for ( unsigned _level=0; _level < occupation.size(); _level++ ){
                if (MOenergies(_level)<(homo_energy-buffer)){
                    occupation(_level)=1.0;
+                   numofelec--;
                }
                else if(std::abs(MOenergies(_level)-homo_energy)<buffer){
                    degeneracies.push_back(_level);
@@ -955,7 +968,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                    occupation(_level)=0.0;
                }
            } 
-         double deg_occupation=1.0/double(degeneracies.size());
+         double deg_occupation=double(numofelec)/double(degeneracies.size());
          for ( unsigned _level=0; _level < degeneracies.size(); _level++ ){
              occupation(degeneracies[_level])=deg_occupation;         
          }
