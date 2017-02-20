@@ -49,8 +49,7 @@ class DFTENGINE
 public:
 
     DFTENGINE() {_addexternalsites=false;
-                _maxerrorindex=0;
-                _maxerror=0.0; };
+            };
    ~DFTENGINE(){};
 
    
@@ -180,9 +179,7 @@ public:
     bool                              _maxout;
     string                            _diismethod;
     ub::matrix<double>                _Sminusonehalf;
-    double                              _maxerror;
     double                              _diis_start;                 
-    unsigned                            _maxerrorindex;
     
     //Electron repulsion integrals
     ERIs                                _ERIs;

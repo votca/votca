@@ -53,14 +53,12 @@ public:
     _Diis_Bs.clear(); 
    }
    
-   void Configure(bool usediis, unsigned histlength, bool maxout, string diismethod, double maxerror, double diis_start, unsigned maxerrorindex){
+   void Configure(bool usediis, unsigned histlength, bool maxout, string diismethod, double diis_start){
        _usediis=usediis;
        _histlength=histlength;
        _maxout=maxout;
        _diismethod=diismethod;
-       _maxerror=maxerror;
        _diis_start=diis_start;
-       _maxerrorindex=maxerrorindex;
        }
    
    void setOverlap(ub::matrix<double>* _S){

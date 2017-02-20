@@ -529,7 +529,7 @@ namespace votca {
             }
              
             
-            _diis.Configure(_usediis, _histlength, _maxout, _diismethod, _maxerror, _diis_start, _maxerrorindex);
+            _diis.Configure(_usediis, _histlength, _maxout, _diismethod, _diis_start);
             _diis.setLogger(_pLog);
             _diis.setOverlap(&_dftAOoverlap.Matrix());
             _diis.setSqrtOverlap(&_Sminusonehalf);
@@ -696,11 +696,11 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 ub::matrix<double>MOCoeff_beta;
                 Diis diis_alpha;
                 Diis diis_beta;
-                diis_alpha.Configure(_usediis, _histlength, _maxout, _diismethod, _maxerror, _diis_start, _maxerrorindex);
+                diis_alpha.Configure(true, 20, 0, "",  0.2 );
                 diis_alpha.setLogger(_pLog);
                 diis_alpha.setOverlap(&dftAOoverlap.Matrix());
                 diis_alpha.setSqrtOverlap(&Sminusonehalf);
-                diis_beta.Configure(_usediis, _histlength, _maxout, _diismethod, _maxerror, _diis_start, _maxerrorindex);
+                diis_beta.Configure(true, 20, 0, "",  0.2 );
                 diis_beta.setLogger(_pLog);
                 diis_beta.setOverlap(&dftAOoverlap.Matrix());
                 diis_beta.setSqrtOverlap(&Sminusonehalf);
@@ -733,7 +733,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                    for (unsigned i = 0; i < MOEnergies_beta.size(); i++) {
                        totinit +=occupation_beta(i)*MOEnergies_beta(i);
                    }
-                /*  
+               /* 
                 double e_a=0.0;
                 double e_b=0.0;
                  for (unsigned i = 0; i < MOEnergies_alpha.size(); i++) {
@@ -744,9 +744,9 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                    }
                 cout <<"e_a "<<e_a<<endl;
                 cout <<"e_b "<<e_b<<endl;
-                 */  
+                 */ 
                     double energyold = totinit;
-                    int maxiter=81;
+                    int maxiter=201;
                     for (int this_iter = 0; this_iter < maxiter; this_iter++) {
                         //cout<<this_iter<<endl;
                         ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha+dftAOdmat_beta);
@@ -798,9 +798,10 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                         }
                        
                         totenergy += E_vxc_alpha+ E_vxc_beta - 0.5 * ERIs_atom.getERIsenergy();
-                        //cout <<"Etot "<<totenergy<<endl;
-
-                        if ((std::abs(totenergy - energyold) < _Econverged && diiserror_alpha < _error_converged && diiserror_beta < _error_converged) || this_iter==maxiter-1) {
+                         if(tools::globals::verbose){
+                        LOG(logDEBUG, *_pLog) << TimeStamp() <<"Etot "<<totenergy<<" diiserror_alpha "<<diiserror_alpha<<" diiserror_beta "<<diiserror_beta<< flush;
+                         }
+                        if ((std::abs(totenergy - energyold) < _Econverged && diiserror_alpha < _error_converged && diiserror_beta < _error_converged)) {
                             uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
                             LOG(logDEBUG, *_pLog) << TimeStamp() << " Converged after " << this_iter<<" iterations" << flush;
                             LOG(logDEBUG, *_pLog) << TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(dftAOdmat_alpha+dftAOdmat_beta,dftAOoverlap.Matrix())<<" electrons."<<flush;

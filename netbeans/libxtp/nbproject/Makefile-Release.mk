@@ -76,6 +76,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/164445175/igwbse.o \
 	${OBJECTDIR}/_ext/484478074/lowdin.o \
 	${OBJECTDIR}/_ext/484478074/molecule.o \
+	${OBJECTDIR}/_ext/484478074/mulliken.o \
 	${OBJECTDIR}/_ext/484478074/nbo.o \
 	${OBJECTDIR}/_ext/1294340152/numerical_integrations.o \
 	${OBJECTDIR}/_ext/1294340152/radial_euler_maclaurin_rule.o \
@@ -354,6 +355,11 @@ ${OBJECTDIR}/_ext/484478074/molecule.o: nbproject/Makefile-${CND_CONF}.mk ../../
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/molecule.o ../../src/libxtp/molecule.cc
+
+${OBJECTDIR}/_ext/484478074/mulliken.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/mulliken.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/mulliken.o ../../src/libxtp/mulliken.cc
 
 ${OBJECTDIR}/_ext/484478074/nbo.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/nbo.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
