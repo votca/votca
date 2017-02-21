@@ -18,6 +18,9 @@
  */
 #include "votca/xtp/diis.h"
 
+#if defined(GSL)
+    #include "gsl/gsl_multimin.h"
+#endif
 
 
 namespace votca { namespace xtp {

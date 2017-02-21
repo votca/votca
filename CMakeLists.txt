@@ -50,6 +50,15 @@ else()
 	set(LIBXC_LIBRARIES)
 endif()
 
+find_package(GSL)
+
+if(GSL_FOUND)
+  message("-- GSL found for DFT")
+  include_directories(${GSL_INCLUDE_DIRS})
+  set(GSL_PKG "gsl")
+  set(GSL TRUE)
+endif()
+
 
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 if (NOT DEFINED LIB)
