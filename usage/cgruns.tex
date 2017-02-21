@@ -63,7 +63,8 @@ Finally, the table is exported to \progopt{xvg}. The conversion procedure requir
 \begin{verbatim}
   <cg>
     <non-bonded>
-      ...
+      <name>XXX</name>
+      <step>0.01</step>
     </non-bonded>
     <inverse>
       <gromacs>
@@ -88,7 +89,7 @@ To obtain a bond table, run
   csg_call --ia-type bond --ia-name XXX --options table.xml \
   convert_potential gromacs table_extrapolate.pot table.xvg
 \end{verbatim}
-It is also possible to use \texttt{angle} and \texttt{dihedral} as type as well.
+It is also possible to use \texttt{angle} and \texttt{dihedral} as type as well, but make to sure to have a \texttt{bonded} section similar to the \texttt{non-bonded} section above with the corresponding interaction name.
 
 Internally \progopt{convert\_potential gromacs} will do the following steps:
 \begin{itemize}
