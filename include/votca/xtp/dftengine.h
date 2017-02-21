@@ -30,7 +30,7 @@
 #include <boost/filesystem.hpp>
 #include <votca/xtp/ERIs.h>
 #include <votca/xtp/diis.h>
-
+#include <votca/xtp/mixing.h>
 #include <votca/xtp/numerical_integrations.h>
 
 namespace votca { namespace xtp {
@@ -50,7 +50,9 @@ public:
 
     DFTENGINE() {_addexternalsites=false;
             };
-   ~DFTENGINE(){};
+   ~DFTENGINE(){
+    
+   };
 
    
    
@@ -92,7 +94,7 @@ public:
     void NuclearRepulsion();
     double ExternalRepulsion();
      double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
-  
+   
     //bool   _maverick;
     
     // program tasks
@@ -180,7 +182,7 @@ public:
     string                            _diismethod;
     ub::matrix<double>                _Sminusonehalf;
     double                              _diis_start;                 
-    
+    bool                        _useautomaticmixing;
     //Electron repulsion integrals
     ERIs                                _ERIs;
     
@@ -192,7 +194,6 @@ public:
     std::string                              _xc_functional_name;
 
 
-    
   
     
 };

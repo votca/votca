@@ -175,10 +175,12 @@ namespace votca {
                  _usediis=true;
              }
                if ( options->exists(key+".convergence.mixing")) {
+                   _useautomaticmixing=false;
                    _mixingparameter=options->get(key+".convergence.mixing").as<double>();
                }
                else{
-                    _mixingparameter=0.3;
+                   _useautomaticmixing=true;
+                    _mixingparameter=-10;
                }
             
             if ( options->exists(key+".convergence.DIIS_maxout")) {
@@ -208,7 +210,8 @@ namespace votca {
                  _maxout=false;
                  _diis_start=0.5;
                   _histlength=10;
-                  _mixingparameter=0.3;
+                  _useautomaticmixing=true;
+                  _mixingparameter=-10;
                    _usediis=true;
                    _max_iter=100;
             }
@@ -334,7 +337,7 @@ namespace votca {
 
                     _dftAOdmat = AtomicGuess(_orbitals);
                     //cout<<_dftAOdmat<<endl;
-                    LOG(logDEBUG, *_pLog) << TimeStamp() <<"Full atomic density Matrix gives N="<<std::setprecision(9)<<linalg_traceofProd(_dftAOdmat,_dftAOoverlap.Matrix())<<" electrons."<<flush;
+                    LOG(logDEBUG, *_pLog) << TimeStamp() <<" Full atomic density Matrix gives N="<<std::setprecision(9)<<linalg_traceofProd(_dftAOdmat,_dftAOoverlap.Matrix())<<" electrons."<<flush;
                    
                     } else {
                         throw runtime_error("Initial guess method not known/implemented");
@@ -355,6 +358,7 @@ namespace votca {
 
            double energyold=0;
            double diiserror=100;//is evolved in DIIs scheme
+           Mixing Mixer(_useautomaticmixing,_mixingparameter,&_dftAOoverlap.Matrix(),  _pLog);
             for ( _this_iter=0; _this_iter<_max_iter; _this_iter++){
                 LOG(logDEBUG, *_pLog)<< flush;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
@@ -391,15 +395,16 @@ namespace votca {
                 diiserror=_diis.Evolve(_dftAOdmat,H,MOEnergies,MOCoeff,_this_iter);
                 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " DIIs error "<<diiserror << flush;
-                 if (!(diiserror<_diis_start && _usediis && _this_iter>2)){
-                     ub::matrix<double> olddmat=_dftAOdmat;
+                
+                     ub::matrix<double> dmatin=_dftAOdmat;
                      _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
-                     _dftAOdmat=_mixingparameter*_dftAOdmat+(1.0-_mixingparameter)*olddmat;
-                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Using Mixing with mixingparamter="<<_mixingparameter << flush;
-                 }
-                 else{
-                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Using DIIs" << flush;
-                    _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
+                if (!(diiserror<_diis_start && _usediis && _this_iter>2)){
+                    _dftAOdmat=Mixer.MixDmat(dmatin,_dftAOdmat); 
+                            //cout<<"mixing_beta"<<endl;
+                        }
+                    else{
+                    Mixer.Updatemix(dmatin,_dftAOdmat);
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Using DIIs "<<flush;
                  }
                 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
@@ -696,6 +701,9 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 ub::matrix<double>MOCoeff_beta;
                 Diis diis_alpha;
                 Diis diis_beta;
+                
+                Mixing Mix_alpha(false,0.7,&dftAOoverlap.Matrix(),_pLog);
+                Mixing Mix_beta(false,0.7,&dftAOoverlap.Matrix(),_pLog);
                 diis_alpha.Configure(true, 20, 0, "",  0.2 );
                 diis_alpha.setLogger(_pLog);
                 diis_alpha.setOverlap(&dftAOoverlap.Matrix());
@@ -762,28 +770,29 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                         
                         //evolve alpha
                       double diiserror_alpha=diis_alpha.Evolve(dftAOdmat_alpha,H_alpha,MOEnergies_alpha,MOCoeff_alpha,this_iter);
-                        if (!(diiserror_alpha<_diis_start && _usediis && this_iter>2)){
-                            ub::matrix<double> olddmat=dftAOdmat_alpha;
+                       
+                            ub::matrix<double> dmatin=dftAOdmat_alpha;
                            dftAOdmat_alpha=DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,occupation_alpha,alpha_e);
-                            dftAOdmat_alpha=_mixingparameter*dftAOdmat_alpha+(1.0-_mixingparameter)*olddmat;  
+                             if (!(diiserror_alpha<_diis_start && _usediis && this_iter>2)){
+                                  dftAOdmat_alpha=Mix_alpha.MixDmat(dmatin,dftAOdmat_alpha,false); 
                             //cout<<"mixing_alpha"<<endl;
                         }
                         else{
-                          dftAOdmat_alpha=DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,occupation_alpha,alpha_e);
+                         Mix_alpha.Updatemix(dmatin,dftAOdmat_alpha);
                         } 
                       //evolve beta
                       
                        double diiserror_beta=0.0;
                        if(beta_e>0){
                        diiserror_beta=diis_beta.Evolve(dftAOdmat_beta,H_beta,MOEnergies_beta,MOCoeff_beta,this_iter);
-                        if (!(diiserror_beta<_diis_start && _usediis && this_iter>2)){
-                            ub::matrix<double> olddmat=dftAOdmat_beta;
+                            ub::matrix<double> dmatin=dftAOdmat_beta;
                            dftAOdmat_beta=DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,occupation_beta,beta_e);
-                            dftAOdmat_beta=_mixingparameter*dftAOdmat_beta+(1.0-_mixingparameter)*olddmat;  
+                        if (!(diiserror_beta<_diis_start && _usediis && this_iter>2)){   
+                            dftAOdmat_beta=Mix_beta.MixDmat(dmatin,dftAOdmat_beta,false); 
                             //cout<<"mixing_beta"<<endl;
                         }
                         else{
-                          dftAOdmat_beta=DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,occupation_beta,beta_e);
+                            Mix_beta.Updatemix(dmatin,dftAOdmat_beta);
                         } 
                        }
                        
@@ -1086,6 +1095,8 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
           return E_ext;
       }
       
+      
+    
       
       string DFTENGINE::Choosesmallgrid(string largegrid){
           string smallgrid;
