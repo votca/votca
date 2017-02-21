@@ -94,7 +94,7 @@ namespace votca { namespace xtp {
       Bijs->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
        
       if (max<_diis_start && _usediis && this_iter>2){
-          bool _useold=true;
+          bool _useold=false;
           bool check=false;
           //old Pulat DIIs
           
@@ -127,6 +127,7 @@ namespace votca { namespace xtp {
           }
           }
           else{
+          
               // C2-DIIS
           
             
@@ -144,61 +145,69 @@ namespace votca { namespace xtp {
                   }
               }
           }
+          //cout<<"B:"<<B<<endl;
           linalg_eigenvalues(B,eigenvalues,eigenvectors);
+          //cout<<"eigenvectors_b:"<<eigenvectors<<endl;
           // Normalize weights
-           for (unsigned i=0;i<B.size1();i++){
+          
+        
+          
+         for (unsigned i=0;i<B.size1();i++){
          double norm=0.0;
+
          for (unsigned j=0;j<B.size2();j++){
-         norm+=eigenvectors(i,j);    
+         norm+=eigenvectors(j,i);    
+        
          }
+       
          for (unsigned j=0;j<B.size2();j++){
-            eigenvectors(i,j)=eigenvectors(i,j)/norm;    
+            eigenvectors(j,i)=eigenvectors(j,i)/norm;    
          }
           }
-          
+          //cout<<"eigenvectors_a:"<<eigenvectors<<endl;
           // Choose solution by picking out solution with smallest error
           ub::vector<double> errors=ub::zero_vector<double>(B.size1());
-          ub::matrix<double> eq=ub::prod(B,eigenvectors);
-          
+          ub::matrix<double> temp=ub::prod(B,eigenvectors);
+          ub::matrix<double> eq=ub::prod(ub::trans(eigenvectors),temp);
           for (unsigned i=0;i<eq.size1();i++){
-         double error=0.0;
-         for (unsigned j=0;j<eq.size2();j++){
-         error+=eigenvectors(i,j);    
-         }
-         errors(i)=error;
+      
+            errors(i)=eq(i,i);
           }
-          
+          //cout<<"Errors:"<<eq<<endl;
           double MaxWeight=10.0;
-          
+          //cout<<"eigenvectors"<<eigenvectors<<endl;
           double min=std::numeric_limits<double>::max();
           int minloc=-1;
-          for(int i=0;i<errors.size();i++) {
-      if(errors(i)<min) {
           
-          bool ok=true;
-          for(unsigned k=0;k<eigenvectors.size2();k++){
-              if(eigenvectors(i,k)>MaxWeight){
-                  ok=false;
-                  break;
-              }
-          }
-          if(ok){
-              min=errors(i);
-              minloc=int(i);
-          }           
-      }
-          }
-     
+            for (int i = 0; i < errors.size(); i++) {
+                if (std::abs(errors(i)) < min) {
+
+                    bool ok = true;
+                    for (unsigned k = 0; k < eigenvectors.size2(); k++) {
+                        if (eigenvectors(k, i) > MaxWeight) {
+                            ok = false;
+                            break;
+                        }
+                    }
+                    if (ok) {
+                        min = std::abs(errors(i));
+                        minloc = int(i);
+                    }
+                }
+            }
+    
       if(minloc!=-1){
+          check=true;
      for(unsigned k=0;k<eigenvectors.size2();k++){
-       coeffs(k)=eigenvectors(minloc,k);   
+       coeffs(k)=eigenvectors(k,minloc);   
      }
       }
       else{
           check=false;
        }
           }
-          //cout<<"a"<<a<<endl;
+     
+        
           if (!check){
               LOG(logDEBUG, *_pLog) << TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
                SolveFockmatrix( MOenergies,MOs,0.5*(*_mathist[0])+0.5*(*_mathist[1]));
