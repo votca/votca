@@ -89,7 +89,7 @@ public:
     void Prepare( Orbitals* _orbitals );
     void SetupInvariantMatrices();
     ub::matrix<double> AtomicGuess(Orbitals* _orbitals);
-    ub::matrix<double> DensityMatrix_frac( const ub::matrix<double>& _MOs,const ub::vector<double>& MOenergies, ub::vector<double>& occupation, int numofelec );
+    ub::matrix<double> DensityMatrix_unres( const ub::matrix<double>& _MOs, int numofelec);
     string Choosesmallgrid(string largegrid);
     void NuclearRepulsion();
     double ExternalRepulsion();
