@@ -53,13 +53,16 @@ public:
     _Diis_Bs.clear(); 
    }
    
-   void Configure(bool usediis, unsigned histlength, bool maxout, string diismethod, double diis_start){
+   void Configure(bool usediis, unsigned histlength, bool maxout, string diismethod, double diis_start,double levelshift,bool unrestricted, unsigned nocclevels){
        _usediis=usediis;
        _histlength=histlength;
        _maxout=maxout;
        _diismethod=diismethod;
        _diis_start=diis_start;
-       }
+       _levelshift=levelshift;
+       _unrestricted=unrestricted;
+       _nocclevels=nocclevels;
+   }
    
    void setOverlap(ub::matrix<double>* _S){
        S=_S;
@@ -70,7 +73,7 @@ public:
     void setLogger(Logger *pLog){_pLog=pLog;}
     double Evolve(const ub::matrix<double>& dmat,const ub::matrix<double>& H,ub::vector<double> &MOenergies,ub::matrix<double> &MOs, int this_iter);
     void SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,const ub::matrix<double>&H);
-
+    void Levelshift(ub::matrix<double>& H,const ub::matrix<double> & dmat,double levelshift,bool unrestricted);
     unsigned gethistlength(){return _mathist.size();}
    
  private:
@@ -89,6 +92,11 @@ public:
     std::vector< ub::matrix<double>* >   _mathist;
     std::vector< ub::matrix<double>* >   _errormatrixhist;
     std::vector< std::vector<double>* >  _Diis_Bs;
+    unsigned                        _nocclevels; 
+  
+    
+    double _levelshift;
+    bool _unrestricted;
     
   
  };

@@ -28,7 +28,7 @@ namespace votca { namespace xtp {
    
    
     double Diis::Evolve(const ub::matrix<double>& dmat,const ub::matrix<double>& H,ub::vector<double> &MOenergies,ub::matrix<double> &MOs, int this_iter){
-          
+      ub::matrix<double>H_guess=ub::zero_matrix<double>(H.size1(),H.size2());    
       if(_errormatrixhist.size()>_histlength){
           delete _mathist[_maxerrorindex];
           delete _errormatrixhist[_maxerrorindex];
@@ -70,6 +70,7 @@ namespace votca { namespace xtp {
       //cout<<errormatrix<<endl;
       
       double max=linalg_getMax(errormatrix,true);
+   
       ub::matrix<double>* old=new ub::matrix<double>;     
       //exit(0);
       
@@ -80,9 +81,9 @@ namespace votca { namespace xtp {
       *olderror=errormatrix;
        _errormatrixhist.push_back(olderror);
        if(_maxout){
-          double error=linalg_getMax(errormatrix,true);
-          if (error>_maxerror){
-              _maxerror=error;
+         
+          if (max>_maxerror){
+              _maxerror=max;
               _maxerrorindex=_mathist.size();
           }
       } 
@@ -210,30 +211,37 @@ namespace votca { namespace xtp {
        }
           }
      
-        
+          
           if (!check){
+              H_guess=0.5*(*_mathist[0])+0.5*(*_mathist[1]);
               LOG(logDEBUG, *_pLog) << TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
-               SolveFockmatrix( MOenergies,MOs,0.5*(*_mathist[0])+0.5*(*_mathist[1]));
+               
           }
           else{
-                ub::matrix<double>H_guess=ub::zero_matrix<double>(H.size1(),H.size2()); 
+                
                  for (unsigned i=0;i<_mathist.size();i++){  
                      if(std::abs(coeffs(i))<1e-8){ continue;}
                     H_guess+=coeffs(i)*(*_mathist[i]);
                     //cout <<i<<" "<<a(i+1,0)<<" "<<(*_mathist[i])<<endl;
                  }
                 //cout <<"H_guess"<<H_guess<<endl;
-               SolveFockmatrix( MOenergies,MOs,H_guess);
-              }
+          }
+        
+              
          
       }
       else{       
-          SolveFockmatrix( MOenergies,MOs,H);
-                      }
+          H_guess=H;     
+          }
       
+      double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
       
-     
-
+      if(max>0.2 || (_levelshift>0.00001 && gap<0.01)){
+        Levelshift(H_guess,dmat,_levelshift,_unrestricted);
+      }
+      SolveFockmatrix( MOenergies,MOs,H_guess);
+      cout<<"after"<<MOenergies<<endl;
+      cout<<endl;
       return max;
       }
       
@@ -248,6 +256,17 @@ namespace votca { namespace xtp {
            MOs=ub::trans(temp);
            
            return;
+      }
+      
+      void Diis::Levelshift(ub::matrix<double>& H,const ub::matrix<double> & dmat,double levelshift,bool unrestricted){
+          ub::matrix<double> I=ub::identity_matrix<double>(dmat.size1());
+          double occupation=2.0;
+          if(unrestricted){
+              occupation=1.0;
+          }
+          H+=levelshift*(occupation*I-dmat);
+                  
+                  return;
       }
 
 }}

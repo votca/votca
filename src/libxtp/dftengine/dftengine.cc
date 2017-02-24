@@ -534,7 +534,7 @@ namespace votca {
             }
              
             
-            _diis.Configure(_usediis, _histlength, _maxout, _diismethod, _diis_start);
+            _diis.Configure(_usediis, _histlength, _maxout, _diismethod, _diis_start,0.0,false, _numofelectrons/2);
             _diis.setLogger(_pLog);
             _diis.setOverlap(&_dftAOoverlap.Matrix());
             _diis.setSqrtOverlap(&_Sminusonehalf);
@@ -704,11 +704,11 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 
                 Mixing Mix_alpha(false,0.7,&dftAOoverlap.Matrix(),_pLog);
                 Mixing Mix_beta(false,0.7,&dftAOoverlap.Matrix(),_pLog);
-                diis_alpha.Configure(true, 20, 0, "",  0.2 );
+                diis_alpha.Configure(true, 20, 0, "",  0.2,0.3,true,alpha_e );
                 diis_alpha.setLogger(_pLog);
                 diis_alpha.setOverlap(&dftAOoverlap.Matrix());
                 diis_alpha.setSqrtOverlap(&Sminusonehalf);
-                diis_beta.Configure(true, 20, 0, "",  0.2 );
+                diis_beta.Configure(true, 20, 0, "",  0.2,0.3,true,beta_e );
                 diis_beta.setLogger(_pLog);
                 diis_beta.setOverlap(&dftAOoverlap.Matrix());
                 diis_beta.setSqrtOverlap(&Sminusonehalf);
@@ -722,6 +722,8 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                     H0 += dftAOECP.Matrix();
                     
                 }
+                
+               
                 diis_alpha.SolveFockmatrix(MOEnergies_alpha,MOCoeff_alpha,H0);
  
                MOEnergies_beta=MOEnergies_alpha;
@@ -807,11 +809,11 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                        
                         totenergy += E_vxc_alpha+ E_vxc_beta - 0.5 * ERIs_atom.getERIsenergy();
                          if(tools::globals::verbose){
-                        LOG(logDEBUG, *_pLog) << TimeStamp() <<"Etot "<<totenergy<<" diiserror_alpha "<<diiserror_alpha<<" diiserror_beta "<<diiserror_beta<< flush;
+                        LOG(logDEBUG, *_pLog) << TimeStamp() <<" Etot "<<totenergy<<" diiserror_alpha "<<diiserror_alpha<<" diiserror_beta "<<diiserror_beta
+                                <<" alpha_gap "<<MOEnergies_alpha(alpha_e)-MOEnergies_alpha(alpha_e-1)<<" beta_gap "<<MOEnergies_beta(beta_e)-MOEnergies_beta(beta_e-1)<<flush;
                          }
                         if ((std::abs(totenergy - energyold) < _Econverged && diiserror_alpha < _error_converged && diiserror_beta < _error_converged)) {
-                            cout<<occupation_alpha<<MOEnergies_alpha<<endl;
-                            cout<<occupation_beta<<MOEnergies_beta<<endl;
+                          
                             uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
                             LOG(logDEBUG, *_pLog) << TimeStamp() << " Converged after " << this_iter<<" iterations" << flush;
                             LOG(logDEBUG, *_pLog) << TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(dftAOdmat_alpha+dftAOdmat_beta,dftAOoverlap.Matrix())<<" electrons."<<flush;
@@ -819,8 +821,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                           
                         }
                         else if( this_iter==maxiter-1){
-                            cout<<occupation_alpha<<MOEnergies_alpha<<endl;
-                            cout<<occupation_beta<<MOEnergies_beta<<endl;
+                            
                             uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
                             LOG(logDEBUG, *_pLog) << TimeStamp() << " Not converged after " << this_iter<<" iterations. Using unconverged density." << flush;
                             break;
