@@ -44,15 +44,10 @@ namespace votca {
         // MBPT MEMBER FUNCTIONS         //
         // +++++++++++++++++++++++++++++ //
 
-
         
         void GWBSE::BSE_qp_setup(){
             _eh_qp = ub::zero_matrix<real_gwbse>( _bse_size , _bse_size );
-            
-            
             BSE_Add_qp2H( _eh_qp );
-            
-            
         }
         
     
@@ -78,18 +73,13 @@ namespace votca {
         // Nuclear Physics A146(1970)449, Nuclear Physics A163(1971)257.
         
           // setup resonant (A) and RARC blocks (B)
+          // TOCHECK: Isn't that memory overkill here? _A and _B are never needed again?
+           // ub::matrix<real_gwbse> _A = _eh_d + 2.0 * _eh_x;
+           // ub::matrix<real_gwbse> _B = _eh_d2 + 2.0 * _eh_x;
+          ub::matrix<real_gwbse> _ApB = _eh_d + _eh_d2 + 4.0 * _eh_x;
+           ub::matrix<real_gwbse> _AmB = _eh_d - _eh_d2;
 
-            ub::matrix<real_gwbse> _A = _eh_d + 2.0 * _eh_x;
-            BSE_Add_qp2H( _A );
-
-            // add full QP Hamiltonian contributions to free transitions
             
-          
-            ub::matrix<real_gwbse> _B = _eh_d2 + 2.0 * _eh_x;
-
-            ub::matrix<real_gwbse> _ApB = _A + _B;
-            ub::matrix<real_gwbse> _AmB = _A - _B;
-   
           // check for positive definiteness of A-B
             ub::vector<real_gwbse> _eigenvalues;
             ub::matrix<real_gwbse> _eigenvectors;
@@ -126,12 +116,13 @@ namespace votca {
           LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Calculated H = L^T(A-B)L " << flush;
           
           // solve eigenvalue problem: HR_l = eps_l^2 R_l
-          linalg_eigenvalues(_H, _eigenvalues, _eigenvectors, dim);
+          linalg_eigenvalues(_H, _eigenvalues, _eigenvectors, _bse_nmax);
           LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
 
           // reconstruct real eigenvalues eps_l = sqrt(eps_l^2)
-          for ( unsigned _i = 0; _i < _eigenvalues.size(); _i++) {
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Eigenvalue: " << _eigenvalues(_i) << " : " << sqrt(_eigenvalues(_i))*13.6058 <<  flush;  
+          _bse_singlet_energies.resize(_bse_nmax);
+          for ( unsigned _i = 0; _i < _bse_nmax; _i++) {
+            _bse_singlet_energies(_i) = sqrt(_eigenvalues(_i)); // store positive energies in orbitals objects
           }
           
           
@@ -143,58 +134,48 @@ namespace votca {
           ub::matrix<real_gwbse> _cholesky_transposed =ub::trans(_AmB);
           linalg_invert( _cholesky_transposed , _cholesky_transposed_invert );
           
-          ub::matrix<real_gwbse> _X_evec(dim,dim);
-          ub::matrix<real_gwbse> _Y_evec(dim,dim);
+          _bse_singlet_coefficients.resize(dim, _bse_nmax);     // resonant part (_X_evec)
+          _bse_singlet_coefficients_AR.resize(dim, _bse_nmax);  // anti-resonant part (_Y_evec)
           
-          for ( int _i = 0; _i < dim; _i++) {
-              
+          //for ( int _i = 0; _i < dim; _i++) {
+          for ( int _i = 0; _i < _bse_nmax; _i++) {
               real_gwbse sqrt_eval = sqrt(_eigenvalues(_i));
               // get l-th reduced EV
               ub::matrix<real_gwbse> _reduced_evec = ub::project(_eigenvectors,  ub::range(0, dim), ub::range(_i, _i + 1)); // potentially col<->row
 
               ub::matrix<real_gwbse> _transform = 0.5*( sqrt_eval * _cholesky_transposed_invert + 1.0/sqrt_eval * _AmB  );
-              ub::project( _X_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) ) = ub::prod(_transform,_reduced_evec);
+              ub::project( _bse_singlet_coefficients, ub::range (0, dim ), ub::range ( _i, _i+1 ) ) = ub::prod(_transform,_reduced_evec);
               _transform = 0.5*( sqrt_eval * _cholesky_transposed_invert - 1.0/sqrt_eval * _AmB  );
-              ub::project( _Y_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) ) = ub::prod(_transform,_reduced_evec);
-              
-             /* // check normalization:
-              ub::matrix<real_gwbse> X = ub::project( _X_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
-              ub::matrix<real_gwbse> Y = ub::project( _Y_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
+              ub::project( _bse_singlet_coefficients_AR, ub::range (0, dim ), ub::range ( _i, _i+1 ) ) = ub::prod(_transform,_reduced_evec);
+
+              /*
+              // check normalization:
+              ub::matrix<real_gwbse> X = ub::project( _bse_singlet_coefficients, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
+              ub::matrix<real_gwbse> Y = ub::project( _bse_singlet_coefficients_AR, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
               ub::matrix<real_gwbse> norm = ub::prod(ub::trans(X),X) - ub::prod(ub::trans(Y),Y);
               
-              LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Norm of Eigenvector: " << norm(0,0) << "[" << norm.size1() << ":" << norm.size2() <<  flush;  */
-              
+              LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Norm of Eigenvector: " << norm(0,0) << "[" << norm.size1() << ":" << norm.size2() <<  std::flush; 
+              */
               
           }
-          
-          
-          exit(0);
-          
-          
+
+          /*
           // check orthogonality
-          for ( int _i = 0; _i < dim; _i++) {
+          for ( int _i = 0; _i < _bse_nmax; _i++) {
               
-              for ( int _j = 0; _j < dim; _j++) {
+              for ( int _j = 0; _j < _bse_nmax; _j++) {
                    // check normalization:
-              ub::matrix<real_gwbse> X1 = ub::project( _X_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
-              ub::matrix<real_gwbse> X2 = ub::project( _X_evec, ub::range (0, dim ), ub::range ( _j, _j+1 ) );
-              ub::matrix<real_gwbse> Y1 = ub::project( _Y_evec, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
-              ub::matrix<real_gwbse> Y2 = ub::project( _Y_evec, ub::range (0, dim ), ub::range ( _j, _j+1 ) );
+              ub::matrix<real_gwbse> X1 = ub::project( _bse_singlet_coefficients, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
+              ub::matrix<real_gwbse> X2 = ub::project( _bse_singlet_coefficients, ub::range (0, dim ), ub::range ( _j, _j+1 ) );
+              ub::matrix<real_gwbse> Y1 = ub::project( _bse_singlet_coefficients_AR, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
+              ub::matrix<real_gwbse> Y2 = ub::project( _bse_singlet_coefficients_AR, ub::range (0, dim ), ub::range ( _j, _j+1 ) );
               ub::matrix<real_gwbse> norm = ub::prod(ub::trans(X1),X2) - ub::prod(ub::trans(Y1),Y2);
               
               LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Orthogonality: (" << _i << " : " << _j << ") = " <<  norm(0,0) <<  flush;  
                   
               }
-          }
-         
-          
-          exit(0);
-          
-          
-
-          
-          
-          
+          }*/
+          return;
           
       }
         
@@ -381,7 +362,7 @@ namespace votca {
             }
             
             //cout << " ======= check 1 ======= " << endl;
-                    
+            //cout << " storage_cv " << _storage_cv.size1() << " : " << _storage_cv.size2() <<  endl;        
             
             
             
@@ -398,8 +379,9 @@ namespace votca {
             }
             
             
-           // cout << " ======= check 2 ========= " << endl;
-            
+           //cout << " ======= check 2 ========= " << endl;
+           //cout << " storage_vc " << _storage_vc.size1() << " : " << _storage_vc.size2() <<  endl;        
+
             
             if ( ! _do_bse_singlets )  _Mmn.Cleanup();
             
@@ -407,22 +389,26 @@ namespace votca {
             // cout << "BSE_d_setup 1 [" << _storage_v.size1() << "x" << _storage_v.size2() << "]\n" << std::flush;
             ub::matrix<real_gwbse> _storage_prod = ub::prod( _storage_cv , _storage_vc );
             
-           // cout << " ======= check 3 ========== PASSED" << endl;
+            //cout << " ======= check 3 ========== PASSED" << endl;
             
             // now patch up _storage for screened interaction
             #pragma omp parallel for
             for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){  
                 double _ppm_factor = sqrt( _ppm_weight( _i_gw ));
-                for ( size_t _v = 0 ; _v < (_bse_vtotal* _bse_vtotal) ; _v++){
+                for ( size_t _v = 0 ; _v < (_bse_vtotal* _bse_ctotal) ; _v++){
                     _storage_vc(  _i_gw , _v ) = _ppm_factor * _storage_vc( _i_gw , _v );
                 }
-                for ( size_t _c = 0 ; _c < (_bse_ctotal*_bse_ctotal) ; _c++){
+                for ( size_t _c = 0 ; _c < (_bse_ctotal*_bse_vtotal) ; _c++){
                     _storage_cv( _c, _i_gw  ) = _ppm_factor * _storage_cv( _c , _i_gw  );
                 }
             }
             
+            //cout << " vtot^2 " << _bse_vtotal*_bse_vtotal << endl;
+            //cout << " ctot^2 " << _bse_ctotal*_bse_ctotal << endl;
+            
+            
             // multiply and subtract from _storage_prod
-            // cout << "BSE_d_setup 2 [" << _storage_c.size1() << "x" << _storage_c.size2() << "]\n" << std::flush;
+            //cout << "BSE_d_setup 2 []\n" << std::flush;
             _storage_prod -= ub::prod( _storage_cv , _storage_vc );
             
             // free storage_v and storage_c
@@ -430,7 +416,7 @@ namespace votca {
             _storage_vc.resize(0,0);
             
             
-           // cout << " ==== check 4 ====== " << endl;
+           //cout << " ==== check 4 ====== " << endl;
             
             
             // finally resort into _eh_d and multiply by two for Rydbergs
@@ -463,7 +449,7 @@ namespace votca {
                     }
                 }
             }
-              //          cout << " ==== check 5 ====== " << endl;
+            //cout << " ==== check 5 ====== " << endl;
             
              /* for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
                 for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){

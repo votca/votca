@@ -269,6 +269,10 @@ public:
     ub::vector<real_gwbse> &BSESingletEnergies()  { return _BSE_singlet_energies; }
     const ub::matrix<real_gwbse> &BSESingletCoefficients() const { return _BSE_singlet_coefficients;}
     ub::matrix<real_gwbse> &BSESingletCoefficients() { return _BSE_singlet_coefficients;}
+    
+    // for anti-resonant part in full BSE
+    const ub::matrix<real_gwbse> &BSESingletCoefficientsAR() const { return _BSE_singlet_coefficients_AR;}
+    ub::matrix<real_gwbse> &BSESingletCoefficientsAR() { return _BSE_singlet_coefficients_AR;}
 
     // access to transition dipole moments
     bool hasTransitionDipoles() {return (_transition_dipoles.size() > 0 ) ? true : false ;}
@@ -461,6 +465,8 @@ private:
     ub::matrix<real_gwbse>                      _eh_x;
     ub::vector<real_gwbse>                     _BSE_singlet_energies;
     ub::matrix<real_gwbse>                      _BSE_singlet_coefficients;
+    ub::matrix<real_gwbse>                      _BSE_singlet_coefficients_AR;
+
     std::vector<ub::vector<double> >      _transition_dipoles;
     ub::vector<real_gwbse>                     _BSE_triplet_energies;
     ub::matrix<real_gwbse>                      _BSE_triplet_coefficients;   
