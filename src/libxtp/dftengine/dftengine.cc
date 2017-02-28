@@ -434,7 +434,7 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " E_H contribution "<<0.5*_ERIs.getERIsenergy()<<flush;
                 
                 
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<std::setprecision(9)<<totenergy<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<std::setprecision(12)<<totenergy<<flush;
                 
               //  LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
                 if (std::abs(totenergy-energyold)< _Econverged && diiserror<_error_converged){
