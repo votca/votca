@@ -35,7 +35,7 @@
 #include <votca/tools/random2.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 using namespace std;
 

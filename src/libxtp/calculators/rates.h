@@ -25,9 +25,8 @@
 #include <math.h>
 #include <cmath>
 #include <complex>
-//#include <boost/math/special_functions/gamma.hpp>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
 class Rates : public PairCalculator2
 {

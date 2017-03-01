@@ -26,12 +26,13 @@
 
 
 namespace votca { namespace xtp { 
+    namespace CTP = votca::ctp;
 
     double pi=boost::math::constants::pi<double>();
     
-    void LebedevGrid::getSphericalGrid(std::vector<QMAtom*> _atoms, string type, GridContainers& _grids){
+    void LebedevGrid::getSphericalGrid(std::vector<CTP::QMAtom*> _atoms, string type, GridContainers& _grids){
 
-            std::vector< QMAtom* > ::iterator ait;
+            std::vector< CTP::QMAtom* > ::iterator ait;
             map<string,GridContainers::spherical_grid>::iterator it;
 
 

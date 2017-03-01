@@ -22,21 +22,21 @@
 #define __STATESERVER_H
 
 
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 #include <boost/format.hpp>
 
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
 
-class StateServer : public QMCalculator
+class XStateServer : public XQMCalculator
 {
 public:
 
-    StateServer() { };
-   ~StateServer() { };
+    XStateServer() { };
+   ~XStateServer() { };
 
-    string Identify() { return "stateserver"; }
+    string Identify() { return "xstateserver"; }
 
     void Initialize(Property *options);
     bool EvaluateFrame(Topology *top);
@@ -68,7 +68,7 @@ private:
 };
 
 
-void StateServer::Initialize(Property *opt) {
+void XStateServer::Initialize(Property *opt) {
     
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt, "xtp" );
@@ -100,7 +100,7 @@ void StateServer::Initialize(Property *opt) {
 
 }
 
-bool StateServer::EvaluateFrame(Topology *top) {
+bool XStateServer::EvaluateFrame(Topology *top) {
 
     // ++++++++++++++++++++++++ //
     // Topology - Sites - Pairs //
@@ -264,7 +264,7 @@ bool StateServer::EvaluateFrame(Topology *top) {
     return true;
 }
 
-void StateServer::DownloadTopology(FILE *out, Topology *top) {
+void XStateServer::DownloadTopology(FILE *out, Topology *top) {
 
     fprintf(out, "Topology Database ID %3d \n", top->getDatabaseId());
     fprintf(out, "  Periodic Box: %2.4f %2.4f %2.4f | %2.4f %2.4f %2.4f "
@@ -294,7 +294,7 @@ void StateServer::DownloadTopology(FILE *out, Topology *top) {
     
 }
 
-void StateServer::DownloadSegments(FILE *out, Topology *top) {
+void XStateServer::DownloadSegments(FILE *out, Topology *top) {
 
     vector< Segment* > ::iterator segit;
 
@@ -333,7 +333,7 @@ void StateServer::DownloadSegments(FILE *out, Topology *top) {
     }
 }
 
-void StateServer::DownloadPairs(FILE *out, Topology *top) {
+void XStateServer::DownloadPairs(FILE *out, Topology *top) {
     QMNBList::iterator nit;
 
     for (nit = top->NBList().begin();
@@ -382,7 +382,7 @@ void StateServer::DownloadPairs(FILE *out, Topology *top) {
     }
 }
 
-void StateServer::DownloadIList(FILE *out, Topology *top) {
+void XStateServer::DownloadIList(FILE *out, Topology *top) {
     QMNBList::iterator nit;
     for (nit = top->NBList().begin();
          nit != top->NBList().end();
@@ -402,13 +402,13 @@ void StateServer::DownloadIList(FILE *out, Topology *top) {
     }
 }
 
-void StateServer::DownloadEList(FILE *out, Topology *top) {
+void XStateServer::DownloadEList(FILE *out, Topology *top) {
     ;
 }
 
 
 
-void StateServer::WriteEMP(FILE *out, Topology *top) {
+void XStateServer::WriteEMP(FILE *out, Topology *top) {
 
     fprintf(out, "# ID   TYPE    _n.mps    _e.mps    _h.mps \n");
 
@@ -424,7 +424,7 @@ void StateServer::WriteEMP(FILE *out, Topology *top) {
     }
 }
 
-void StateServer::WriteEXCITED(FILE *out, Topology *top) {
+void XStateServer::WriteEXCITED(FILE *out, Topology *top) {
 
     fprintf(out, "# ID   TYPE    _t.mps \n");
 
@@ -439,7 +439,7 @@ void StateServer::WriteEXCITED(FILE *out, Topology *top) {
     }
 }
 
-void StateServer::WriteXQM(FILE *out, Topology *top) {
+void XStateServer::WriteXQM(FILE *out, Topology *top) {
 
     fprintf(out, "<jobs>\n");
 
@@ -518,7 +518,7 @@ void StateServer::WriteXQM(FILE *out, Topology *top) {
     fprintf(out, "</jobs>\n");
 }
 
-void StateServer::WriteULM(Topology *top) {
+void XStateServer::WriteULM(Topology *top) {
 
     FILE *out_ulm;
     string ulm_file = "vertices_channel_e.dat";

@@ -22,16 +22,18 @@
 
 #include <stdio.h>
 #include <votca/tools/constants.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/tools/constants.h>
 #include <votca/xtp/bsecoupling.h>
-#include <votca/xtp/xinteractor.h>
+#include <votca/ctp/xinteractor.h>
 #include <votca/xtp/qmpackagefactory.h>
+#include <votca/ctp/polarseg.h>
 
 namespace votca { namespace xtp {
     using namespace std;
+    namespace CTP = votca::ctp;
     
-class ExcitonCoupling : public QMTool
+class ExcitonCoupling : public CTP::QMTool
 {
 public:
 
@@ -58,7 +60,7 @@ private:
     //bool        _doTriplets;
     string      _mpsA;
     string      _mpsB;  
-    Logger      _log;
+    CTP::Logger      _log;
 
 };
 
@@ -105,13 +107,13 @@ void ExcitonCoupling::Initialize(Property* options)
 bool ExcitonCoupling::Evaluate() {
     Property *_job_output=NULL;
     Property _summary; 
-    _log.setReportLevel( logDEBUG );
+    _log.setReportLevel( CTP::logDEBUG );
     _log.setMultithreading( true );
     
-    _log.setPreface(logINFO,    "\n... ...");
-    _log.setPreface(logERROR,   "\n... ...");
-    _log.setPreface(logWARNING, "\n... ...");
-    _log.setPreface(logDEBUG,   "\n... ..."); 
+    _log.setPreface(CTP::logINFO,    "\n... ...");
+    _log.setPreface(CTP::logERROR,   "\n... ...");
+    _log.setPreface(CTP::logWARNING, "\n... ...");
+    _log.setPreface(CTP::logDEBUG,   "\n... ..."); 
 
     // get the corresponding object from the QMPackageFactory
     if(!_classical){
@@ -119,20 +121,20 @@ bool ExcitonCoupling::Evaluate() {
     // load the QM data from serialized orbitals objects
 
     std::ifstream ifa( (_orbA ).c_str());
-    LOG(logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
+    LOG(CTP::logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
     boost::archive::binary_iarchive ia(ifa);
     ia >> _orbitalsA;
     ifa.close();
     
     std::ifstream ifb( (_orbB ).c_str());
-    LOG(logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
+    LOG(CTP::logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
     boost::archive::binary_iarchive ib(ifb);
     ib >> _orbitalsB;
     ifb.close();
     
     
     std::ifstream ifab( (_orbAB ).c_str());
-    LOG(logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
+    LOG(CTP::logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
     boost::archive::binary_iarchive iab(ifab);
     iab >> _orbitalsAB;
     ifab.close();
@@ -162,19 +164,19 @@ bool ExcitonCoupling::Evaluate() {
     }
     
     else if (_classical){
-        LOG(logDEBUG, _log) << "Calculating electronic coupling using classical transition charges." << _orbB << flush;
-        std::vector<APolarSite*> seg1=APS_FROM_MPS(_mpsA, 0);
-        std::vector<APolarSite*> seg2=APS_FROM_MPS(_mpsB, 0);
+        LOG(CTP::logDEBUG, _log) << "Calculating electronic coupling using classical transition charges." << _orbB << flush;
+        std::vector<CTP::APolarSite*> seg1=CTP::APS_FROM_MPS(_mpsA, 0);
+        std::vector<CTP::APolarSite*> seg2=CTP::APS_FROM_MPS(_mpsB, 0);
         
-        PolarSeg* Seg1 = new PolarSeg(1,seg1);
-        PolarSeg* Seg2 = new PolarSeg(2,seg2);
-        XInteractor actor;
+        CTP::PolarSeg* Seg1 = new CTP::PolarSeg(1,seg1);
+        CTP::PolarSeg* Seg2 = new CTP::PolarSeg(2,seg2);
+        CTP::XInteractor actor;
         actor.ResetEnergy();
         vec s = vec(0,0,0);
         
-        //LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
-        PolarSeg::iterator pit1;
-        PolarSeg::iterator pit2;
+        //LOG(CTP::logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
+        CTP::PolarSeg::iterator pit1;
+        CTP::PolarSeg::iterator pit2;
         double E = 0.0;
         for (pit1 = Seg1->begin(); pit1 < Seg1->end(); ++pit1) {
             for (pit2 = Seg2->begin(); pit2 < Seg2->end(); ++pit2) {

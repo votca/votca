@@ -23,7 +23,7 @@
 #include <votca/xtp/qmcalculator.h>
 
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 
 class ECoulomb : public QMCalculator

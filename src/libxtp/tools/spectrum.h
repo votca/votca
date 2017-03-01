@@ -23,15 +23,14 @@
 #include <stdio.h>
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/constants.h>
-#include <votca/xtp/logger.h>
-// #include <votca/xtp/mbgft.h>
-// #include <votca/xtp/qmpackagefactory.h>
+#include <votca/ctp/logger.h>
 
 namespace votca { namespace xtp {
     using namespace std;
     namespace ub = boost::numeric::ublas;
+    namespace CTP = votca::ctp;
 
-class Spectrum : public QMTool
+class Spectrum : public CTP::QMTool
 {
 public:
 
@@ -49,7 +48,7 @@ private:
     string      _orbfile;
     string      _output_file;
     
-    Logger      _log;
+    CTP::Logger      _log;
     
     void CheckContent(  Orbitals& _orbitals );
     
@@ -121,21 +120,21 @@ void Spectrum::Initialize(Property* options) {
 
 bool Spectrum::Evaluate() {
 
-    _log.setReportLevel( logDEBUG );
+    _log.setReportLevel( CTP::logDEBUG );
     _log.setMultithreading( true );
     
-    _log.setPreface(logINFO,    "\n... ...");
-    _log.setPreface(logERROR,   "\n... ...");
-    _log.setPreface(logWARNING, "\n... ...");
-    _log.setPreface(logDEBUG,   "\n... ..."); 
+    _log.setPreface(CTP::logINFO,    "\n... ...");
+    _log.setPreface(CTP::logERROR,   "\n... ...");
+    _log.setPreface(CTP::logWARNING, "\n... ...");
+    _log.setPreface(CTP::logDEBUG,   "\n... ..."); 
 
-    LOG(logDEBUG, _log) << "Calculating absorption spectrum plot " << _orbfile << flush;
+    LOG(CTP::logDEBUG, _log) << "Calculating absorption spectrum plot " << _orbfile << flush;
 
     Orbitals _orbitals;
     // load the QM data from serialized orbitals object
 
     std::ifstream ifs( (_orbfile).c_str());
-    LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+    LOG(CTP::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
     boost::archive::binary_iarchive ia(ifs);
     ia >> _orbitals;
     ifs.close();
@@ -160,12 +159,12 @@ bool Spectrum::Evaluate() {
     int _n_exc = _maxexc - _minexc +1;
 
     if ( _maxexc > int(TransitionDipoles.size()) ) {
-      LOG(logDEBUG, _log) << " Transition dipoles for some excitations missing! " << flush;
+      LOG(CTP::logDEBUG, _log) << " Transition dipoles for some excitations missing! " << flush;
       exit(1);
     }
  
   
-    LOG(logDEBUG, _log) << " Considering " << _n_exc << " excitation with max energy " << BSESingletEnergies(_maxexc) * tools::conv::ryd2ev << " eV / min wave length " <<  evtonm(BSESingletEnergies[_maxexc-1] * tools::conv::ryd2ev) << " nm" << flush;
+    LOG(CTP::logDEBUG, _log) << " Considering " << _n_exc << " excitation with max energy " << BSESingletEnergies(_maxexc) * votca::tools::conv::ryd2ev << " eV / min wave length " <<  evtonm(BSESingletEnergies[_maxexc-1] * votca::tools::conv::ryd2ev) << " nm" << flush;
     
     /*
      * 
@@ -213,11 +212,11 @@ bool Spectrum::Evaluate() {
     
     
     if ( _spectrum_type == "energy"){
-        _fwhm = _fwhm / tools::conv::ryd2ev;
+        _fwhm = _fwhm / votca::tools::conv::ryd2ev;
         ofs << "# E(eV)    epsGaussian    IM(eps)Gaussian   epsLorentz    Im(esp)Lorentz\n";
         for ( int _i_pt = 0 ; _i_pt <= _n_pt; _i_pt++ ){
     
-           double _e = (_lower + _i_pt * ( _upper - _lower)/_n_pt)/tools::conv::ryd2ev;
+           double _e = (_lower + _i_pt * ( _upper - _lower)/_n_pt)/votca::tools::conv::ryd2ev;
         
            double _eps_Gaussian     = 0.0;
            double _imeps_Gaussian   = 0.0;
@@ -227,7 +226,7 @@ bool Spectrum::Evaluate() {
            double _imeps_TruncLorentzian = 0.0;
            
            for ( int _i_exc = _minexc ; _i_exc <= _maxexc ; _i_exc++){
-              _eps_Gaussian     +=  _osc[_i_exc-_minexc] * Gaussian(_e, BSESingletEnergies(_i_exc)+_shiftby/tools::conv::ryd2ev, _fwhm);
+              _eps_Gaussian     +=  _osc[_i_exc-_minexc] * Gaussian(_e, BSESingletEnergies(_i_exc)+_shiftby/votca::tools::conv::ryd2ev, _fwhm);
               _imeps_Gaussian   +=  _osc[_i_exc-_minexc] *  BSESingletEnergies(_i_exc) * Gaussian(_e, BSESingletEnergies(_i_exc), _fwhm);
               _eps_Lorentzian   +=  _osc[_i_exc-_minexc] * Lorentzian(_e, BSESingletEnergies(_i_exc), _fwhm);
               _imeps_Lorentzian +=  _osc[_i_exc-_minexc] *  BSESingletEnergies(_i_exc) * Lorentzian(_e, BSESingletEnergies(_i_exc), _fwhm);
@@ -235,11 +234,11 @@ bool Spectrum::Evaluate() {
               _imeps_TruncLorentzian +=  _osc[_i_exc-_minexc] *  BSESingletEnergies(_i_exc) * TruncatedLorentzian(_e, BSESingletEnergies(_i_exc), _fwhm);
            }
         
-           ofs << _e*tools::conv::ryd2ev << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << "  " << _eps_TruncLorentzian << "   " << _imeps_TruncLorentzian  << endl;
+           ofs << _e*votca::tools::conv::ryd2ev << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << "  " << _eps_TruncLorentzian << "   " << _imeps_TruncLorentzian  << endl;
     
        }
         
-        LOG(logDEBUG, _log) << " Spectrum in energy range from  " << _lower << " to " << _upper << " eV and with broadening of FWHM " << _fwhm*tools::conv::ryd2ev << " eV written to file  " << _output_file << flush;
+        LOG(CTP::logDEBUG, _log) << " Spectrum in energy range from  " << _lower << " to " << _upper << " eV and with broadening of FWHM " << _fwhm*votca::tools::conv::ryd2ev << " eV written to file  " << _output_file << flush;
     }
     
     if ( _spectrum_type == "wavelength"){
@@ -259,8 +258,8 @@ bool Spectrum::Evaluate() {
             double _imeps_TruncLorentzian = 0.0;
             
             for ( int _i_exc = _minexc ; _i_exc <= _maxexc ; _i_exc++){
-                //cout << BSESingletEnergies(_i_exc)*tools::conv::ryd2ev << "  " << nmtoev(BSESingletEnergies(_i_exc)*tools::conv::ryd2ev) << endl;
-              double _exc_lambda = nmtoev(BSESingletEnergies(_i_exc)*tools::conv::ryd2ev + _shiftby);
+                //cout << BSESingletEnergies(_i_exc)*votca::tools::conv::ryd2ev << "  " << nmtoev(BSESingletEnergies(_i_exc)*votca::tools::conv::ryd2ev) << endl;
+              double _exc_lambda = nmtoev(BSESingletEnergies(_i_exc)*votca::tools::conv::ryd2ev + _shiftby);
               _eps_Gaussian     +=  _osc[_i_exc-_minexc] * Gaussian(_lambda, _exc_lambda, _fwhm);
               _imeps_Gaussian   +=  _osc[_i_exc-_minexc] *  _exc_lambda * Gaussian(_lambda, _exc_lambda, _fwhm);
               _eps_Lorentzian   +=  _osc[_i_exc-_minexc] * Lorentzian(_lambda, _exc_lambda, _fwhm);
@@ -271,7 +270,7 @@ bool Spectrum::Evaluate() {
 
             ofs << _lambda << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << "   " << _eps_TruncLorentzian << "   " << _imeps_TruncLorentzian << endl;
         }    
-    LOG(logDEBUG, _log) << " Spectrum in wavelength range from  " << _lower << " to " << _upper << " nm and with broadening of FWHM " << _fwhm << " nm written to file  " << _output_file << flush;        
+    LOG(CTP::logDEBUG, _log) << " Spectrum in wavelength range from  " << _lower << " to " << _upper << " nm and with broadening of FWHM " << _fwhm << " nm written to file  " << _output_file << flush;        
     }
 
 
@@ -297,8 +296,8 @@ bool Spectrum::Evaluate() {
         double _eps = 0.0;
         double _imeps = 0.0;
         for ( int _i_exc = 0 ; _i_exc < _n_exc ; _i_exc++){
-           _eps += 2.175e8 * _osc[_i_exc]/_fwhm * exp(-2.772 * pow(( _nu - evtoinvcm(tools::conv::ryd2ev * BSESingletEnergies(_i_exc)) )/_fwhm,2));
-           _imeps += 2.175e8 * _osc[_i_exc]/_fwhm / evtoinvcm(tools::conv::ryd2ev * BSESingletEnergies(_i_exc)) * exp(-2.772 * pow(( _nu - evtoinvcm(tools::conv::ryd2ev * BSESingletEnergies(_i_exc)) )/_fwhm,2));
+           _eps += 2.175e8 * _osc[_i_exc]/_fwhm * exp(-2.772 * pow(( _nu - evtoinvcm(votca::tools::conv::ryd2ev * BSESingletEnergies(_i_exc)) )/_fwhm,2));
+           _imeps += 2.175e8 * _osc[_i_exc]/_fwhm / evtoinvcm(votca::tools::conv::ryd2ev * BSESingletEnergies(_i_exc)) * exp(-2.772 * pow(( _nu - evtoinvcm(votca::tools::conv::ryd2ev * BSESingletEnergies(_i_exc)) )/_fwhm,2));
         }
         
         _wave_number.push_back( _nu );

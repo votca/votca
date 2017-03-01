@@ -18,7 +18,7 @@
  */
 
 #include "cpmd.h"
-#include "votca/xtp/segment.h"
+#include <votca/ctp/segment.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -37,7 +37,8 @@
 namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
-
+        namespace CTP = votca::ctp;
+        
         void Cpmd::Initialize(Property *options) {
 
             // NWChem file names
@@ -113,7 +114,7 @@ namespace votca {
                 _symmetry = options->get(key + ".symmetry").as<int> ();
             }
             else
-                LOG(logDEBUG, *_pLog) << "CPMD: no symmetry provided, assuming simple cubic." << flush;
+                LOG(CTP::logDEBUG, *_pLog) << "CPMD: no symmetry provided, assuming simple cubic." << flush;
             
             //cell
             _cell="20.0   1.0   1.0  0.0  0.0  0.0";
@@ -121,7 +122,7 @@ namespace votca {
                 _cell = options->get(key + ".cell").as<std::string> ();
             }
             else
-                LOG(logDEBUG, *_pLog) << "CPMD: no cell provided, assuming cube with side length of 20 Bohr." << flush;
+                LOG(CTP::logDEBUG, *_pLog) << "CPMD: no cell provided, assuming cube with side length of 20 Bohr." << flush;
             
             //plane wave cutoff
             _pwCutoff=80.0;
@@ -129,7 +130,7 @@ namespace votca {
                 _pwCutoff = options->get(key + ".pwcutoff").as<double> ();
             }
             else
-                LOG(logDEBUG, *_pLog) << "CPMD: no plane wave cutoff provided, assuming "<< _pwCutoff <<" Ry." << flush;
+                LOG(CTP::logDEBUG, *_pLog) << "CPMD: no plane wave cutoff provided, assuming "<< _pwCutoff <<" Ry." << flush;
 
             //output electrostatic potential?
             _elpot=false;
@@ -169,17 +170,17 @@ namespace votca {
                 cerr << "Error: Wavefunction optimization and projection onto atom-centric orbitals can not be done together.\nCPMD would crash.\n";
                 cerr << "Do Wavefunction optimization first and then do projection/population analysis\n";
                 cerr << "in a separate run with <restart>WAVEFUNCTION</restart>\n" << flush;
-                LOG(logDEBUG, *_pLog) << "CPMD: Wavefunction optimization and projection onto atom-centric orbitals can not be done together." << flush;
+                LOG(CTP::logDEBUG, *_pLog) << "CPMD: Wavefunction optimization and projection onto atom-centric orbitals can not be done together." << flush;
                 throw std::runtime_error("Mutually exclusive options");
             }
 
         }
 
-        bool Cpmd::WriteInputFile(std::vector<Segment* > segments, Orbitals* orbitals_guess) {
+        bool Cpmd::WriteInputFile(std::vector<CTP::Segment* > segments, Orbitals* orbitals_guess) {
 
-            std::vector< Atom* > _atoms;
-            std::vector< Atom* > ::iterator ait;
-            std::vector< Segment* >::iterator sit;
+            std::vector< CTP::Atom* > _atoms;
+            std::vector< CTP::Atom* > ::iterator ait;
+            std::vector< CTP::Segment* >::iterator sit;
             std::string temp_suffix = "/id";
             std::string scratch_dir_backup = _scratch_dir;
 
@@ -332,21 +333,21 @@ namespace votca {
         /**
          * Writes the basis set files to disk in a format that CPMD can understand
          */
-        void Cpmd::WriteBasisSet(std::vector<Segment* > segments, ofstream &_com_file) {
+        void Cpmd::WriteBasisSet(std::vector<CTP::Segment* > segments, ofstream &_com_file) {
             
-            std::vector< Atom* > _atoms;
-            std::vector< Atom* > ::iterator ait;
-            std::vector< Segment* >::iterator sit;
+            std::vector< CTP::Atom* > _atoms;
+            std::vector< CTP::Atom* > ::iterator ait;
+            std::vector< CTP::Segment* >::iterator sit;
             list<std::string> elements;
             
             BasisSet _bs;
             _bs.LoadBasisSet(_basisset_name);
-            LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
+            LOG(CTP::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
             for (sit = segments.begin(); sit != segments.end(); ++sit) {
 
-                std::vector< Atom* > atoms = (*sit)-> Atoms();
-                std::vector< Atom* >::iterator it;
+                std::vector< CTP::Atom* > atoms = (*sit)-> Atoms();
+                std::vector< CTP::Atom* >::iterator it;
 
                 for (it = atoms.begin(); it < atoms.end(); it++) {
 
@@ -397,7 +398,7 @@ namespace votca {
                                 if(shell->getType().size()>1){
                                     cerr << "CPMD does not support " << shell->getType() << " basis functions." << endl;
                                     cerr << "Please break the basis set into basis functions with only one L-value each." << endl << flush;
-                                    LOG(logDEBUG, *_pLog) << "CPMD: multi-L basis functions not supported." << flush;
+                                    LOG(CTP::logDEBUG, *_pLog) << "CPMD: multi-L basis functions not supported." << flush;
                                     throw std::runtime_error("Unsupported basis function");
                                 }
 
@@ -481,24 +482,24 @@ namespace votca {
          */
         bool Cpmd::Run() {
 
-            LOG(logDEBUG, *_pLog) << "CPMD: running [" << _executable << " " << _input_file_name << "]" << flush;
+            LOG(CTP::logDEBUG, *_pLog) << "CPMD: running [" << _executable << " " << _input_file_name << "]" << flush;
 
             if (std::system(NULL)) {
                 std::string _command;
                 _command = "cd " + _run_dir + "; rm -f LocalError*.log; " + _executable + " " + _input_file_name + ">" + _log_file_name;
                 int check=std::system(_command.c_str());
                 if (check==-1){
-                    LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+                    LOG(CTP::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
                     return false;
                 }
                 if (CheckLogFile()) {
-                    LOG(logDEBUG, *_pLog) << "CPMD: finished job" << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << "CPMD: finished job" << flush;
                     return true;
                 } else {
-                    LOG(logDEBUG, *_pLog) << "CPMD: job failed" << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << "CPMD: job failed" << flush;
                 }
             } else {
-                LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+                LOG(CTP::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
                 return false;
             }
 
@@ -530,7 +531,7 @@ namespace votca {
             ifstream _input_file(_full_name.c_str());
 
             if (_input_file.fail()) {
-                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << endl << flush;
+                LOG(CTP::logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << endl << flush;
                 return false;
             };
 
@@ -546,10 +547,10 @@ namespace votca {
             _input_file.close();
 
             if (self_energy_pos == std::string::npos) {
-                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is incomplete."<< endl << flush;
+                LOG(CTP::logERROR, *_pLog) << "CPMD: " << _full_name << " is incomplete."<< endl << flush;
                 return false;
             } else {
-                LOG(logDEBUG,*_pLog) << "CPMD LOG is complete." <<endl << flush;
+                LOG(CTP::logDEBUG,*_pLog) << "CPMD LOG is complete." <<endl << flush;
                 return true;
             }
         }
@@ -561,7 +562,7 @@ namespace votca {
             std::string _line;
             std::vector<std::string> results;
             
-            LOG(logDEBUG, *_pLog) << "CPMD: parsing " << _log_file_name << flush;
+            LOG(CTP::logDEBUG, *_pLog) << "CPMD: parsing " << _log_file_name << flush;
             
             std::string _log_file_name_full = _log_file_name;
             if (_run_dir != "") _log_file_name_full = _run_dir + "/" + _log_file_name;
@@ -587,11 +588,11 @@ namespace votca {
                     boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     int _number_of_electrons = (int) boost::lexical_cast<double>(results.back());
                     _orbitals->setNumberOfElectrons(_number_of_electrons);
-                    LOG(logDEBUG, *_pLog) << "Alpha electrons: " << _number_of_electrons << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << "Alpha electrons: " << _number_of_electrons << flush;
                 }
                 
             }
-            LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
+            LOG(CTP::logDEBUG, *_pLog) << "Done parsing" << flush;
             _input_file.close();
             
             
@@ -615,7 +616,7 @@ namespace votca {
                 else
                 {
                     cerr << "CPMD: _orbitals already has some atoms. Need to implement atom reordering for this case." << flush;
-                    LOG(logDEBUG, *_pLog) << "CPMD: _orbitals already has some atoms. Need to implement atom reordering for this case." << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << "CPMD: _orbitals already has some atoms. Need to implement atom reordering for this case." << flush;
                     throw std::runtime_error("Unimplemented case");
                     return false;
                 }
@@ -626,7 +627,7 @@ namespace votca {
             if(_orbitals->hasGWbasis()){
                 if(_orbitals->getGWbasis().compare(_basisset_name)!=0){
                     cerr << "CPMD: _orbitals already has a basis set and it does not match the basis set CPMD was initialized with." << flush;
-                    LOG(logDEBUG, *_pLog) << "CPMD: _orbitals already has a basis set and it does not match the basis set CPMD was initialized with." << flush;
+                    LOG(CTP::logDEBUG, *_pLog) << "CPMD: _orbitals already has a basis set and it does not match the basis set CPMD was initialized with." << flush;
                     throw std::runtime_error("Basis set mismatch");
                     return false;
                 }
@@ -647,9 +648,9 @@ namespace votca {
             ifstream wf_file(_full_name.c_str());
             if(wf_file.fail())
             {
-                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << endl << flush;
+                LOG(CTP::logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << endl << flush;
             }
-            LOG(logDEBUG, *_pLog) << "CPMD: parsing " << _full_name << flush;
+            LOG(CTP::logDEBUG, *_pLog) << "CPMD: parsing " << _full_name << flush;
             
             //read WFNCOEF
             //variable names in all CAPS are variables from CPMD source code
@@ -661,7 +662,7 @@ namespace votca {
             wf_file.read((char*)&NATTOT, 4);    //number of basis functions
             bl-=4;
             _orbitals->setBasisSetSize(NATTOT);
-            LOG(logDEBUG, *_pLog) << "Basis functions: " << NATTOT << flush;
+            LOG(CTP::logDEBUG, *_pLog) << "Basis functions: " << NATTOT << flush;
 
             _NSP=0;                  //number of atom types
             wf_file.read((char*)&_NSP, 4);
@@ -692,7 +693,7 @@ namespace votca {
             wf_file.read((char*)&endcount, 4);
             if(bl!=0 || endcount!=count){ //number of bytes read was wrong
                 cerr << "CPMD: " << "could not parse record in "<< _full_name << endl << flush;
-                LOG(logERROR, *_pLog) << "CPMD: " << "could not parse record in "<< _full_name << flush;
+                LOG(CTP::logERROR, *_pLog) << "CPMD: " << "could not parse record in "<< _full_name << flush;
                 throw std::runtime_error("IO error");
                 return false;
             }
@@ -702,7 +703,7 @@ namespace votca {
             bl=count;
 
             int NUMORB=count/8/NATTOT;          //number of MOs (energy levels))
-            LOG(logDEBUG, *_pLog) << "number of energy levels: " << NATTOT << flush;
+            LOG(CTP::logDEBUG, *_pLog) << "number of energy levels: " << NATTOT << flush;
                 //resize the coefficient matrix
             ub::matrix<double> &mo_coefficients = _orbitals->MOCoefficients();
             mo_coefficients.resize(NUMORB, NATTOT);
@@ -721,13 +722,13 @@ namespace votca {
             wf_file.read((char*)&endcount, 4);
             if(bl!=0 || endcount!=count){ //number of bytes read was wrong
                 cerr << "CPMD: " << "could not parse record in "<< _full_name << endl << flush;
-                LOG(logERROR, *_pLog) << "CPMD: " << "could not parse record in "<< _full_name << endl << flush;
+                LOG(CTP::logERROR, *_pLog) << "CPMD: " << "could not parse record in "<< _full_name << endl << flush;
                 throw std::runtime_error("IO error");
                 return false;
             }
             
             wf_file.close();
-            LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
+            LOG(CTP::logDEBUG, *_pLog) << "Done parsing" << flush;
             
             
             
@@ -737,9 +738,9 @@ namespace votca {
             ifstream ov_file(_full_name.c_str());
             if(ov_file.fail())
             {
-                LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << endl << flush;
+                LOG(CTP::logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << endl << flush;
             }
-            LOG(logDEBUG, *_pLog) << "CPMD: parsing " << _full_name << flush;
+            LOG(CTP::logDEBUG, *_pLog) << "CPMD: parsing " << _full_name << flush;
             
             //read OVERLAP
             count=0, endcount=0;
@@ -749,7 +750,7 @@ namespace votca {
             if(NATTOT*NATTOT!=count/8)
             {
                 cerr << "CPMD: " << "Number of basis functions in the overlap and coefficient matrices do not match."<< endl << flush;
-                LOG(logERROR, *_pLog) << "CPMD: " << "Number of basis functions in the overlap and coefficient matrices do not match."<< endl << flush;
+                LOG(CTP::logERROR, *_pLog) << "CPMD: " << "Number of basis functions in the overlap and coefficient matrices do not match."<< endl << flush;
                 throw std::runtime_error("IO error");
                 return false;
             }
@@ -773,13 +774,13 @@ namespace votca {
             ov_file.read((char*)&endcount, 4);
             if(bl!=0 || endcount!=count){ //number of bytes read was wrong
                 cerr << "CPMD: " << "could not parse record in "<< _full_name << endl << flush;
-                LOG(logERROR, *_pLog) << "CPMD: " << "could not parse record in "<< _full_name << flush;
+                LOG(CTP::logERROR, *_pLog) << "CPMD: " << "could not parse record in "<< _full_name << flush;
                 throw std::runtime_error("IO error");
                 return false;
             }
             
             ov_file.close();
-            LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
+            LOG(CTP::logDEBUG, *_pLog) << "Done parsing" << flush;
             
             
            // #warning "TODO: Reorder Overlap and MOcoeefficient matrices so that the order of basis functions (like d_xx) matches the VOTCA order."

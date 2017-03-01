@@ -22,19 +22,20 @@
 
 #include <stdio.h>
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/dftengine.h>
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/apolarsite.h>
+#include <votca/ctp/atom.h>
+#include <votca/ctp/segment.h>
+#include <votca/ctp/apolarsite.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/xtp/votca_config.h>
 
 namespace votca { namespace xtp {
     using namespace std;
+    namespace CTP = votca::ctp;
     
-class DFT : public QMTool
+class DFT : public CTP::QMTool
 {
 public:
 
@@ -64,7 +65,7 @@ private:
     string      _output_file;
 
     string      _reporting;    
-    Logger      _log;
+    CTP::Logger      _log;
     
     string      _mpsfile;
     bool        _do_external;
@@ -147,7 +148,7 @@ if(options->exists(key+".mpsfile")){
             //load_property_from_xml(_package_options, xmlFile);
 
             // register all QM packages (Gaussian, TURBOMOLE, etc)
-            QMPackageFactory::RegisterAll();
+            XQMPackageFactory::RegisterAll();
 
 
            
@@ -157,15 +158,15 @@ if(options->exists(key+".mpsfile")){
 bool DFT::Evaluate() {
 
     
-    if ( _reporting == "silent")   _log.setReportLevel( logERROR ); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
-    if ( _reporting == "noisy")    _log.setReportLevel( logDEBUG ); // OUTPUT ALL THE THINGS
-    if ( _reporting == "default")  _log.setReportLevel( logINFO );  // 
+    if ( _reporting == "silent")   _log.setReportLevel( CTP::logERROR ); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
+    if ( _reporting == "noisy")    _log.setReportLevel( CTP::logDEBUG ); // OUTPUT ALL THE THINGS
+    if ( _reporting == "default")  _log.setReportLevel( CTP::logINFO );  // 
     
     _log.setMultithreading( true );
-    _log.setPreface(logINFO,    "\n... ...");
-    _log.setPreface(logERROR,   "\n... ...");
-    _log.setPreface(logWARNING, "\n... ...");
-    _log.setPreface(logDEBUG,   "\n... ..."); 
+    _log.setPreface(CTP::logINFO,    "\n... ...");
+    _log.setPreface(CTP::logERROR,   "\n... ...");
+    _log.setPreface(CTP::logWARNING, "\n... ...");
+    _log.setPreface(CTP::logDEBUG,   "\n... ..."); 
 
     //TLogLevel _ReportLevel = _log.getReportLevel( ); // backup report level
 
@@ -173,12 +174,12 @@ bool DFT::Evaluate() {
     Orbitals _orbitals;
     
     if(_do_guess){
-        LOG(logDEBUG,_log) << "Reading guess from " << _guess_file << flush;
+        LOG(CTP::logDEBUG,_log) << "Reading guess from " << _guess_file << flush;
         _orbitals.Load(_guess_file);
         
     }
     else{
-        LOG(logDEBUG,_log) << "Reading structure from " << _xyzfile << flush;
+        LOG(CTP::logDEBUG,_log) << "Reading structure from " << _xyzfile << flush;
     XYZ2Orbitals( &_orbitals, _xyzfile );
     
     }
@@ -191,7 +192,7 @@ bool DFT::Evaluate() {
     _dft.setLogger(&_log);
     
      if(_do_external){
-      vector<APolarSite*> sites=APS_FROM_MPS(_mpsfile,0);
+      vector<CTP::APolarSite*> sites=CTP::APS_FROM_MPS(_mpsfile,0);
       _dft.setExternalcharges(sites);
        }
     
@@ -199,7 +200,7 @@ bool DFT::Evaluate() {
     _dft.Evaluate( &_orbitals );
 
             
-       LOG(logDEBUG,_log) << "Saving data to " << _output_file << flush;
+       LOG(CTP::logDEBUG,_log) << "Saving data to " << _output_file << flush;
        std::ofstream ofs( ( _output_file).c_str() );
        boost::archive::binary_oarchive oa( ofs );
 
@@ -261,7 +262,7 @@ void DFT::XYZ2Orbitals(Orbitals* _orbitals, string filename){
                 string label, type;
                 vec pos;
 
-                LOG(logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
+                LOG(CTP::logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
                 in.open(_xyzfile.c_str(), ios::in);
                 if (!in) throw runtime_error(string("Error reading coordinates from: ")
                         + _xyzfile);

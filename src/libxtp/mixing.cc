@@ -59,7 +59,7 @@ namespace votca { namespace xtp {
           }
           }
           if(noisy){
-          LOG(logDEBUG, *_pLog) << TimeStamp() << " Using Mixing with mixingparamter="<<alpha<< flush;
+          LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Using Mixing with mixingparamter="<<alpha<< flush;
           }
           
           ub::matrix<double> dmatnew=alpha*dmatin+(1.0-alpha)*dmatout;

@@ -30,7 +30,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/math/special_functions/factorials.hpp>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/elements.h>
 //#include <boost/timer/timer.hpp>

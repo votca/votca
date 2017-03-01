@@ -23,8 +23,9 @@
 #include <votca/xtp/orbitals.h>
 
 namespace votca { namespace xtp {
+    namespace CTP = votca::ctp;
 
-void Esp2multipole::Initialize(Property* options) {
+    void Esp2multipole::Initialize(Property* options) {
     string key = Identify();
     _use_ecp=false;
     _do_svd=false;
@@ -128,14 +129,14 @@ void Esp2multipole::WritetoFile(string _output_file, string identifier){
      string tag="TOOL:"+Identify()+"_"+_state+"_"+_spin+boost::lexical_cast<string>(_state_no);
     if(_use_mps){
         QMMInterface Converter;
-        PolarSeg* result=Converter.Convert(_Atomlist);
+        CTP::PolarSeg* result=Converter.Convert(_Atomlist);
         
         result->WriteMPS(_output_file,tag);
         }
     else if(_use_pdb){
         FILE *out;
         Orbitals _orbitals;
-        std::vector< QMAtom* >::iterator at;
+        std::vector< CTP::QMAtom* >::iterator at;
          for (at=_Atomlist.begin();at<_Atomlist.end();++at){
             
             _orbitals.AddAtom(*(*at));
@@ -154,12 +155,12 @@ void Esp2multipole::Extractingcharges( Orbitals & _orbitals ){
             if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads); 
             threads=omp_get_max_threads();
 #endif
-   LOG(logDEBUG, *_log) << "===== Running on "<< threads << " threads ===== " << flush;
+   LOG(CTP::logDEBUG, *_log) << "===== Running on "<< threads << " threads ===== " << flush;
 
-        vector< QMAtom* > Atomlist =_orbitals.QMAtoms();
-        std::vector< QMAtom* >::iterator at;
+        vector< CTP::QMAtom* > Atomlist =_orbitals.QMAtoms();
+        std::vector< CTP::QMAtom* >::iterator at;
         for (at=Atomlist.begin();at<Atomlist.end();++at){
-            QMAtom * atom=new QMAtom(*(*at));
+            CTP::QMAtom * atom=new CTP::QMAtom(*(*at));
             _Atomlist.push_back(atom);
         }
         ub::matrix<double> DMAT_tot;
@@ -246,7 +247,7 @@ void Esp2multipole::Extractingcharges( Orbitals & _orbitals ){
         else if(_use_NBO){
             
             std::cout<<"WARNING: NBO analysis isn't fully implemented yet."<<std::endl;
-            //LOG(logDEBUG, _log) << "Initializing NBO" << flush;
+            //LOG(CTP::logDEBUG, _log) << "Initializing NBO" << flush;
             NBO nbo=NBO(_log);
             nbo.setUseECPs(_use_ecp);
             //nbo.LoadMatrices("", "");

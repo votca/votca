@@ -22,13 +22,13 @@
 
 #include <stdio.h>
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/overlap.h>
 #include <votca/xtp/qmpackagefactory.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     using namespace std;
-    
+
 class Coupling : public QMTool
 {
 public:
@@ -168,10 +168,10 @@ bool Coupling::Evaluate() {
         std::vector<int> list_levelsBL  = (*_orbitalsB.getDegeneracy( _orbitalsB.getNumberOfElectrons(), _degeneracy ));
         _degBL = list_levelsBL.size();  
         
-        LOG(logDEBUG,_log) << "Trimming orbitals to minimal set " << flush;
-        LOG(logDEBUG,_log) <<   "HOMO(A)-" << _degAH << " to " << "LUMO(A)+" << _degAL << flush;
+        LOG(CTP::logDEBUG,_log) << "Trimming orbitals to minimal set " << flush;
+        LOG(CTP::logDEBUG,_log) <<   "HOMO(A)-" << _degAH << " to " << "LUMO(A)+" << _degAL << flush;
         _orbitalsA.Trim(_degAH,_degAL);
-        LOG(logDEBUG,_log) <<   "HOMO(B)-" << _degBH << " to " << "LUMO(B)+" << _degBL << flush;
+        LOG(CTP::logDEBUG,_log) <<   "HOMO(B)-" << _degBH << " to " << "LUMO(B)+" << _degBL << flush;
         _orbitalsB.Trim(_degBH,_degBL);
     
         
@@ -182,15 +182,15 @@ bool Coupling::Evaluate() {
                 if (_orbitalsA.getNumberOfElectrons()*(_trimA - 1) < _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons()) {
 
 
-                    LOG(logDEBUG, _log) << "Trimming virtual orbitals A:"
+                    LOG(CTP::logDEBUG, _log) << "Trimming virtual orbitals A:"
                             << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << "->"
                             << _orbitalsA.getNumberOfElectrons()*(_trimA - 1) << std::flush;
                     _orbitalsA.Trim(_trimA);
                 }
-                LOG(logDEBUG, _log) << "DONE!" << std::flush;
+                LOG(CTP::logDEBUG, _log) << "DONE!" << std::flush;
                 if (_orbitalsB.getNumberOfElectrons()*(_trimB - 1) < _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons()) {
 
-                    LOG(logDEBUG, _log) << "Trimming virtual orbitals B:"
+                    LOG(CTP::logDEBUG, _log) << "Trimming virtual orbitals B:"
                             << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << "->"
                             << _orbitalsB.getNumberOfElectrons()*(_trimB - 1) << std::flush;
                     _orbitalsB.Trim(_trimB);

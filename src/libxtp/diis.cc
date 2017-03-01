@@ -228,7 +228,7 @@ namespace votca { namespace xtp {
           
           if (!check){
               H_guess=0.5*(*_mathist[0])+0.5*(*_mathist[1]);
-              LOG(logDEBUG, *_pLog) << TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
+              LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
                
           }
           else{

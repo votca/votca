@@ -32,7 +32,7 @@
 #include <boost/filesystem.hpp>
 
 namespace votca { namespace xtp {
-    
+    namespace CTP = votca::ctp;
 /**
 * \brief GWBSE-based exciton coupling elements
 *
@@ -43,22 +43,22 @@ namespace votca { namespace xtp {
 * Callname: igwbse
 */
 
-class IGWBSE : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
+class IGWBSE : public ParallelXJobCalc< vector<CTP::Job*>, CTP::Job*, CTP::Job::JobResult >
 {
 public:
 
     IGWBSE() {};
    ~IGWBSE() {};
    
-    void    Initialize(tools::Property *options );
+    void    Initialize(votca::tools::Property *options );
     
     string  Identify() { return "igwbse"; }
     
-    Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
+    CTP::Job::JobResult EvalJob(CTP::Topology *top, CTP::Job *job, CTP::QMThread *Thread);
 
-    void WriteJobFile(Topology *top);
+    void WriteJobFile(CTP::Topology *top);
 
-    void ReadJobFile( Topology *top );
+    void ReadJobFile( CTP::Topology *top );
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);
@@ -102,7 +102,7 @@ private:
     std::map<std::string, int> _singlet_levels;
     std::map<std::string, int> _triplet_levels;
 
-    void ParseOptionsXML( tools::Property *opt);    
+    void ParseOptionsXML( votca::tools::Property *opt);    
     
     std::map<std::string, int> FillParseMaps(string Mapstring);
     
@@ -117,9 +117,9 @@ private:
     void PrepareGuess(         Orbitals *_orbitalsA, 
                                Orbitals *_orbitalsB, 
                                Orbitals *_orbitalsAB, 
-                               Logger *log = NULL );
+                               CTP::Logger *log = NULL );
     
-    void LoadOrbitals(string file_name, Orbitals* orbitals, Logger *log = NULL );
+    void LoadOrbitals(string file_name, Orbitals* orbitals, CTP::Logger *log = NULL );
         
 };
 

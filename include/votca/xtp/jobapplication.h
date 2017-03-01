@@ -23,16 +23,16 @@
 
 #include <votca/xtp/xtpapplication.h>
 
-#include <votca/xtp/progressobserver.h>
-#include <votca/xtp/topology.h>
+#include <votca/ctp/progressobserver.h>
+#include <votca/ctp/topology.h>
 
-#include "statesaversqlite.h"
-#include "jobcalculator.h"
+#include <votca/ctp/statesaversqlite.h>
+#include <votca/ctp/jobcalculator.h>
 
 
 namespace votca { namespace xtp {
 
-
+    namespace CTP = votca::ctp;
 
 class JobApplication : public XtpApplication
 {
@@ -44,16 +44,16 @@ public:
    bool EvaluateOptions();
    void Run(void);
 
-   virtual void BeginEvaluate(int nThreads, ProgObserver< std::vector<Job*>, Job*, Job::JobResult> *obs);
+   virtual void BeginEvaluate(int nThreads, CTP::ProgObserver< std::vector<CTP::Job*>, CTP::Job*, CTP::Job::JobResult> *obs);
    virtual bool EvaluateFrame();
    virtual void EndEvaluate();
-   void AddCalculator(JobCalculator *calculator);
+   void AddCalculator(CTP::JobCalculator *calculator);
 
 protected:
     
     bool _generate_input, _run, _import;
-    XTP::Topology           _top;
-    std::list< JobCalculator* >   _calculators;
+    CTP::Topology           _top;
+    std::list< CTP::JobCalculator* >   _calculators;
 
 };
 

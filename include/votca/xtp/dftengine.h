@@ -20,13 +20,13 @@
 #ifndef _VOTCA_XTP_DFTENGINE_H
 #define	_VOTCA_XTP_DFTENGINE_H
 
-#include <votca/xtp/segment.h>
+#include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 
 
-
+#include <votca/ctp/apolarsite.h>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/ERIs.h>
 #include <votca/xtp/diis.h>
@@ -35,7 +35,8 @@
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
-
+    namespace CTP = votca::ctp;
+    
         /**
          * \brief Electronic ground-state via Density-Functional Theory
          *
@@ -61,9 +62,9 @@ public:
    
     void    CleanUp();
 
-    void setLogger( Logger* pLog ) { _pLog = pLog; }
+    void setLogger( CTP::Logger* pLog ) { _pLog = pLog; }
     
-    void setExternalcharges(std::vector<APolarSite*> externalsites){
+    void setExternalcharges(std::vector<CTP::APolarSite*> externalsites){
         _externalsites=externalsites;
         _addexternalsites=true;
     }
@@ -84,7 +85,7 @@ public:
     
     private:
 
-    Logger *_pLog;
+    CTP::Logger *_pLog;
     
     void Prepare( Orbitals* _orbitals );
     void SetupInvariantMatrices();
@@ -114,7 +115,7 @@ public:
     Property _dftengine_options; 
     
     // atoms
-    std::vector<QMAtom*>                _atoms;
+    std::vector<CTP::QMAtom*>                _atoms;
 
     // basis sets
     std::string                              _auxbasis_name;
@@ -187,7 +188,7 @@ public:
     ERIs                                _ERIs;
     
     // external charges
-     std::vector<APolarSite*>        _externalsites;
+     std::vector<CTP::APolarSite*>        _externalsites;
      bool                            _addexternalsites;
     
     // exchange and correlation

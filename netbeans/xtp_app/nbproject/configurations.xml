@@ -44,6 +44,7 @@
             <pElem>../../../tools/include</pElem>
             <pElem>../../../csg/include</pElem>
             <pElem>../../../xtp/include</pElem>
+            <pElem>../../../ctp/include</pElem>
           </incDir>
         </ccTool>
         <linkerTool>

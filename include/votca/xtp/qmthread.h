@@ -27,7 +27,7 @@
 #include <string>
 #include <ctime>
 
-namespace votca { namespace xtp {
+namespace votca { namespace ctp {
     
 
     // ++++++++++++++++++++++++++++++++++++++ //
