@@ -355,7 +355,7 @@ namespace votca {
 	    
             LOG(logDEBUG, *_pLog) << TimeStamp() << " STARTING SCF cycle" << flush;
             LOG(logDEBUG, *_pLog) << " --------------------------------------------------------------------------" << flush;
-
+           double totenergy=0;
            double energyold=0;
            double diiserror=100;//is evolved in DIIs scheme
            Mixing Mixer(_useautomaticmixing,_mixingparameter,&_dftAOoverlap.Matrix(),  _pLog);
@@ -389,11 +389,11 @@ namespace votca {
                 
                 ub::matrix<double> H=H0+_ERIs.getERIs()+_orbitals->AOVxc();
                 //cout<<_orbitals->AOVxc()<<endl;
-                double totenergy=E_nucnuc;
+                
                 
                 //this updates the density matrix as well
-                diiserror=_diis.Evolve(_dftAOdmat,H,MOEnergies,MOCoeff,_this_iter);
-                
+                diiserror=_diis.Evolve(_dftAOdmat,H,MOEnergies,MOCoeff,_this_iter,totenergy);
+                totenergy=E_nucnuc;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " DIIs error "<<diiserror << flush;
                 
                      ub::matrix<double> dmatin=_dftAOdmat;
@@ -430,15 +430,15 @@ namespace votca {
                 totenergy+=vxcenergy-0.5*_ERIs.getERIsenergy();
          
                 
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Exc contribution "<<vxcenergy<<flush;
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " E_H contribution "<<0.5*_ERIs.getERIsenergy()<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() <<std::setprecision(12)<< " Exc contribution "<<vxcenergy<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() <<std::setprecision(12)<< " E_H contribution "<<0.5*_ERIs.getERIsenergy()<<flush;
                 
                 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<std::setprecision(12)<<totenergy<<flush;
                 
               //  LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
                 if (std::abs(totenergy-energyold)< _Econverged && diiserror<_error_converged){
-                    LOG(logDEBUG, *_pLog) << TimeStamp() << " Energy has converged up to "<<std::setprecision(9)<<_Econverged<<"[Ha] after "<< _this_iter+1<<
+                    LOG(logDEBUG, *_pLog) << TimeStamp() << "Total Energy has converged to "<<std::setprecision(9)<<std::abs(totenergy-energyold)<<"[Ha] after "<< _this_iter+1<<
                             " iterations. DIIS error is converged up to "<<_error_converged<<"[Ha]" <<flush;
                     break;
                 }
@@ -771,7 +771,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                         //this updates the density matrix as well
                         
                         //evolve alpha
-                      double diiserror_alpha=diis_alpha.Evolve(dftAOdmat_alpha,H_alpha,MOEnergies_alpha,MOCoeff_alpha,this_iter);
+                      double diiserror_alpha=diis_alpha.Evolve(dftAOdmat_alpha,H_alpha,MOEnergies_alpha,MOCoeff_alpha,this_iter,energyold);
                        
                             ub::matrix<double> dmatin=dftAOdmat_alpha;
                            dftAOdmat_alpha=DensityMatrix_unres(MOCoeff_alpha,alpha_e);
@@ -786,7 +786,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                       
                        double diiserror_beta=0.0;
                        if(beta_e>0){
-                       diiserror_beta=diis_beta.Evolve(dftAOdmat_beta,H_beta,MOEnergies_beta,MOCoeff_beta,this_iter);
+                       diiserror_beta=diis_beta.Evolve(dftAOdmat_beta,H_beta,MOEnergies_beta,MOCoeff_beta,this_iter,energyold);
                             ub::matrix<double> dmatin=dftAOdmat_beta;
                            dftAOdmat_beta=DensityMatrix_unres(MOCoeff_beta,beta_e);
                         if (!(diiserror_beta<_diis_start && _usediis && this_iter>2)){   

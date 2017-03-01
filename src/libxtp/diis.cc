@@ -27,23 +27,31 @@ namespace votca { namespace xtp {
    namespace ub = boost::numeric::ublas;
    
    
-    double Diis::Evolve(const ub::matrix<double>& dmat,const ub::matrix<double>& H,ub::vector<double> &MOenergies,ub::matrix<double> &MOs, int this_iter){
+    double Diis::Evolve(const ub::matrix<double>& dmat,const ub::matrix<double>& H,ub::vector<double> &MOenergies,ub::matrix<double> &MOs, int this_iter, double totE){
       ub::matrix<double>H_guess=ub::zero_matrix<double>(H.size1(),H.size2());    
       if(_errormatrixhist.size()>_histlength){
           delete _mathist[_maxerrorindex];
           delete _errormatrixhist[_maxerrorindex];
           delete _Diis_Bs[_maxerrorindex];
+          delete _dmathist[_maxerrorindex];
+                _totE.erase(_totE.begin()+_maxerrorindex);
               _mathist.erase(_mathist.begin()+_maxerrorindex);
+              _dmathist.erase(_mathist.begin()+_maxerrorindex);
               _errormatrixhist.erase(_errormatrixhist.begin()+_maxerrorindex);
               _Diis_Bs.erase( _Diis_Bs.begin()+_maxerrorindex);
               for( std::vector< std::vector<double>* >::iterator it=_Diis_Bs.begin();it<_Diis_Bs.end();++it){
                   std::vector<double>* vect=(*it);
                   vect->erase(vect->begin()+_maxerrorindex);
               }
+               _FDs.erase(_FDs.begin()+_maxerrorindex);
+              for( std::vector< std::vector<double>* >::iterator it=_FDs.begin();it<_FDs.end();++it){
+                  std::vector<double>* vect=(*it);
+                  vect->erase(vect->begin()+_maxerrorindex);
+              }
           
           }
           
-      
+      _totE.push_back(totE);
    
      
       //cout<<"MOs"<< _orbitals->MOCoefficients()<< endl;
@@ -76,6 +84,12 @@ namespace votca { namespace xtp {
       
       *old=H;         
        _mathist.push_back(old);
+       
+        ub::matrix<double>* dold=new ub::matrix<double>;     
+      //exit(0);
+      
+      *dold=dmat;         
+       _dmathist.push_back(dold);
   
       ub::matrix<double>* olderror=new ub::matrix<double>; 
       *olderror=errormatrix;
@@ -240,8 +254,8 @@ namespace votca { namespace xtp {
         Levelshift(H_guess,dmat,_levelshift,_unrestricted);
       }
       SolveFockmatrix( MOenergies,MOs,H_guess);
-      cout<<"after"<<MOenergies<<endl;
-      cout<<endl;
+      //cout<<"after"<<MOenergies<<endl;
+      //cout<<endl;
       return max;
       }
       
