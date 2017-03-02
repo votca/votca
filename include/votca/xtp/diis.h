@@ -20,6 +20,13 @@
 #ifndef _VOTCA_XTP_DIIS__H
 #define _VOTCA_XTP_DIIS__H
 
+
+
+   
+#include <gsl/gsl_multimin.h>
+#include <gsl/gsl_vector.h>
+
+
 #include <votca/tools/linalg.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/orbitals.h>
@@ -84,6 +91,12 @@ public:
     void SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,const ub::matrix<double>&H);
     void Levelshift(ub::matrix<double>& H,const ub::matrix<double> & dmat,double levelshift,bool unrestricted);
     unsigned gethistlength(){return _mathist.size();}
+    
+    
+    double get_E_ediis(const gsl_vector * x) const;
+
+void get_dEdx_ediis(const gsl_vector * x, gsl_vector * dEdx) const;
+void get_E_dEdx_ediis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const;
    
  private:
      
@@ -106,12 +119,42 @@ public:
     std::vector<double>                 _totE;
 
   
+    ub::vector<double> EDIIsCoeff();
+    
+    
+ ub::vector<double> compute_c(const gsl_vector * x);
+ /// Compute jacobian
+ ub::matrix<double> compute_jac(const gsl_vector * x);
+ /// Compute energy
+ double min_f(const gsl_vector * x, void * params);
+ /// Compute derivative
+ void min_df(const gsl_vector * x, void * params, gsl_vector * g);
+ /// Compute energy and derivative
+void min_fdf(const gsl_vector * x, void * params, double * f, gsl_vector * g);
+
+
+    
     unsigned _nocclevels;
     double _levelshift;
     bool _unrestricted;
     
   
  };
+ 
+ 
+ namespace ediis {
+  /// Compute weights
+  ub::vector<double> compute_c(const gsl_vector * x);
+  /// Compute jacobian
+  ub::matrix<double> compute_jac(const gsl_vector * x);
+
+  /// Compute energy
+  double min_f(const gsl_vector * x, void * params);
+  /// Compute derivative
+  void min_df(const gsl_vector * x, void * params, gsl_vector * g);
+  /// Compute energy and derivative
+  void min_fdf(const gsl_vector * x, void * params, double * f, gsl_vector * g);
+};
     
 }}
 

@@ -50,7 +50,7 @@ else()
 	set(LIBXC_LIBRARIES)
 endif()
 
-find_package(GSL)
+find_package(GSL REQUIRED)
 
 if(GSL_FOUND)
   message("-- GSL found for DFT")

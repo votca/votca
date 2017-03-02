@@ -18,9 +18,7 @@
  */
 #include "votca/xtp/diis.h"
 
-#if defined(GSL)
-    #include "gsl/gsl_multimin.h"
-#endif
+
 
 
 namespace votca { namespace xtp {
@@ -117,11 +115,14 @@ namespace votca { namespace xtp {
       std::vector<double>* FD=new std::vector<double>;
        _FDs.push_back(FD);
       for (unsigned i=0;i<_errormatrixhist.size()-1;i++){
-          double value=linalg_traceofProd(errormatrix,ub::trans(*_errormatrixhist[i]));
+          ub::matrix<double> FimFj=H-*_mathist[i];
+          ub::matrix<double> DimDj=dmat-*_dmathist[i];
+          double value=linalg_traceofProd(FimFj,DimDj);
           FD->push_back(value);
           _FDs[i]->push_back(value);
       }
-      FD->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
+       //diagonal elements
+      FD->push_back(0.0);
       
       
        
@@ -296,5 +297,233 @@ namespace votca { namespace xtp {
                   
                   return;
       }
+      
+      
+   ub::vector<double> Diis::EDIIsCoeff(){
+          
+   size_t N=_FDs.size();
+          
+  const gsl_multimin_fdfminimizer_type *T;
+  gsl_multimin_fdfminimizer *s;
+
+  gsl_vector *x;
+  gsl_multimin_function_fdf minfunc;
+  minfunc.f = ediis::min_f;
+  minfunc.df = ediis::min_df;
+  minfunc.fdf = ediis::min_fdf;
+  minfunc.n = N;
+  minfunc.params = (void *) this;
+
+  T=gsl_multimin_fdfminimizer_vector_bfgs2;
+  s=gsl_multimin_fdfminimizer_alloc(T,N);
+
+  // Starting point: equal weights on all matrices
+    x=gsl_vector_alloc(N);
+    gsl_vector_set_all(x,1.0/N);
+
+  // Initialize the optimizer. Use initial step size 0.02, and an
+  // orthogonality tolerance of 0.1 in the line searches (recommended
+  // by GSL manual for bfgs).
+  gsl_multimin_fdfminimizer_set(s, &minfunc, x, 0.02, 0.1);
+
+  size_t iter=0;
+  int status;
+  do {
+    iter++;
+    //    printf("iteration %lu\n",iter);
+    status = gsl_multimin_fdfminimizer_iterate(s);
+
+    if (status) {
+      //      printf("Error %i in minimization\n",status);
+      break;
+    }
+
+    status = gsl_multimin_test_gradient(s->gradient, 1e-7);
+
+    /*
+    if (status == GSL_SUCCESS)
+      printf ("Minimum found at:\n");
+    printf("%5lu ", iter);
+    for(size_t i=0;i<N;i++)
+      printf("%.5g ",gsl_vector_get(s->x,i));
+    printf("%10.5g\n",s->f);
+    */
+  }
+  while (status == GSL_CONTINUE && iter < 1000);
+
+  // Final estimate
+  // double E_final=get_E(s->x);
+
+  // Form minimum
+  ub::vector<double> c=ediis::compute_c(s->x);
+
+  gsl_multimin_fdfminimizer_free(s);
+  gsl_vector_free (x);
+
+  
+
+  return c;
+}
+
+ 
+ 
+ 
+ double Diis::get_E_ediis(const gsl_vector * x) const {
+  // Consistency check
+  if(x->size != _FDs.size()) {
+   
+    throw std::runtime_error("Incorrect number of parameters.");
+  }
+
+  ub::vector<double> c=ediis::compute_c(x);
+  
+  ub::matrix<double> TrFD=ub::zero_matrix<double>(_mathist.size());
+            
+            
+          
+          for (unsigned i=0;i<TrFD.size1();i++){
+              for (unsigned j=0;j<=i;j++){
+                  //cout<<"i "<<i<<" j "<<j<<endl;
+                  TrFD(i,j)=_FDs[i]->at(j);
+                  if(i!=j){
+                     TrFD(j,i)=TrFD(i,j);
+                  }
+              }
+          }
+
+  // Compute energy
+  double Eval=0.0;
+  for(unsigned i=0;i<c.size();i++){
+  Eval+=c(i)*_totE[i];
+  }
+  // this can be optimized using symmetry of TrFD
+  double cTBc=0.0;
+  for(unsigned i=0;i<c.size();i++){
+      for(unsigned j=0;j<c.size();j++){
+          cTBc+=c(i)*c(j)*TrFD(i,j);
+      }
+  }
+  Eval-=0.5*cTBc;
+
+  return Eval;
+}
+
+void Diis::get_dEdx_ediis(const gsl_vector * x, gsl_vector * dEdx) const {
+  // Compute contraction coefficients
+  ub::vector<double> c=ediis::compute_c(x);
+  ub::matrix<double> TrFD=ub::zero_matrix<double>(_mathist.size());
+    for (unsigned i=0;i<TrFD.size1();i++){
+              for (unsigned j=0;j<=i;j++){
+                  //cout<<"i "<<i<<" j "<<j<<endl;
+                  TrFD(i,j)=_FDs[i]->at(j);
+                  if(i!=j){
+                     TrFD(j,i)=TrFD(i,j);
+                  }
+              }
+          }
+  
+
+  ub::vector<double> dEdc=ub::zero_vector<double>(c.size());
+  for(unsigned i=0;i<dEdc.size();i++){
+      dEdc(i)=_totE[i];
+  }
+  
+  dEdc-=ub::prod(TrFD,c);
+  // Compute derivative of energy
+ 
+
+  // Compute jacobian of transformation: jac(i,j) = dc_i / dx_j
+  ub::matrix<double> jac=ediis::compute_jac(x);
+
+  // Finally, compute dEdx by plugging in Jacobian of transformation
+  // dE/dx_i = dc_j/dx_i dE/dc_j
+  ub::vector<double> dEdxv=ub::prod(ub::trans(jac),dEdc);
+  for(size_t i=0;i< _FDs.size();i++)
+    gsl_vector_set(dEdx,i,dEdxv(i));
+}
+
+void Diis::get_E_dEdx_ediis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const {
+  // Consistency check
+   if(x->size != _FDs.size()) {
+   
+    throw std::runtime_error("Incorrect number of parameters.");
+  }
+  if(x->size != dEdx->size) {
+    throw std::domain_error("x and dEdx have different sizes!\n");
+  }
+
+  // Compute energy
+  *Eval=get_E_ediis(x);
+  // and its derivative
+  get_dEdx_ediis(x,dEdx);
+}
+
+
+ub::vector<double> ediis::compute_c(const gsl_vector * x) {
+  // Compute contraction coefficients
+  ub::vector<double> c=ub::zero_vector<double>(x->size);
+
+  double xnorm=0.0;
+  for(size_t i=0;i<x->size;i++) {
+    c[i]=gsl_vector_get(x,i);
+    c[i]=c[i]*c[i]; // c_i = x_i^2
+    xnorm+=c[i];
+  }
+  for(size_t i=0;i<x->size;i++)
+    c[i]/=xnorm; // c_i = x_i^2 / \sum_j x_j^2
+
+  return c;
+}  
+
+ub::matrix<double> ediis::compute_jac(const gsl_vector * x) {
+  // Compute jacobian of transformation: jac(i,j) = dc_i / dx_j
+
+  // Compute coefficients
+  std::vector<double> c(x->size);
+
+  double xnorm=0.0;
+  for(size_t i=0;i<x->size;i++) {
+    c[i]=gsl_vector_get(x,i);
+    c[i]=c[i]*c[i]; // c_i = x_i^2
+    xnorm+=c[i];
+  }
+  for(size_t i=0;i<x->size;i++)
+    c[i]/=xnorm; // c_i = x_i^2 / \sum_j x_j^2
+
+ ub::matrix<double> jac=ub::zero_matrix<double>(c.size());
+  for(size_t i=0;i<c.size();i++) {
+    double xi=gsl_vector_get(x,i);
+
+    for(size_t j=0;j<c.size();j++) {
+      double xj=gsl_vector_get(x,j);
+
+      jac(i,j)=-c[i]*2.0*xj/xnorm;
+    }
+
+    // Extra term on diagonal
+    jac(i,i)+=2.0*xi/xnorm;
+  }
+
+  return jac;
+}
+
+double ediis::min_f(const gsl_vector * x, void * params) {
+  Diis * a=(Diis *) params;
+  return a->get_E_ediis(x);
+}
+
+void ediis::min_df(const gsl_vector * x, void * params, gsl_vector * g) {
+  Diis * a=(Diis *) params;
+  a->get_dEdx_ediis(x,g);
+}
+
+void ediis::min_fdf(const gsl_vector *x, void * params, double * f, gsl_vector * g) {
+  Diis * a=(Diis *) params;
+  a->get_E_dEdx_ediis(x,f,g);
+}
+      
+      
+          
+      
 
 }}
