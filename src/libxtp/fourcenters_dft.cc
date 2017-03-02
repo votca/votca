@@ -45,35 +45,41 @@ namespace votca {
 
           //cout << endl;
           //cout << "fourcenters_dft.cc FCMatrix_dft::Fill_4c_small_molecule" << endl;
-          int dftBasisSize = dftbasis._AOBasisSize;
+          int dftBasisSize = dftbasis.AOBasisSize();
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
           _4c_vector = ub::zero_vector<double>((vectorSize*(vectorSize+1))/2);
 
-
+          int shellsize=dftbasis._aoshells.size();
           #pragma omp parallel for
-          for(int i=0;i<dftbasis.AOBasisSize();++i){
+          for(int i=0;i<shellsize;++i){
           
             AOShell* _shell_3 = dftbasis.getShell(i);
             int _start_3 = _shell_3->getStartIndex();
             int NumFunc_3 = _shell_3->getNumFunc();
+   
 
-            for (int j=i;j<dftbasis.AOBasisSize();++j) {
+            for (int j=i;j<shellsize;++j) {
               AOShell* _shell_4 = dftbasis.getShell(j);
               int _start_4 = _shell_4->getStartIndex();
               int NumFunc_4 = _shell_4->getNumFunc();                
-
-              for (int k=i;k<dftbasis.AOBasisSize();++k) {
+       
+              for (int k=i;k<shellsize;++k) {
                 AOShell* _shell_1 = dftbasis.getShell(k);
                 int _start_1 = _shell_1->getStartIndex();
                 int NumFunc_1 = _shell_1->getNumFunc();
-
-               for (int l=k;l<dftbasis.AOBasisSize();++l)  {
+         
+               for (int l=k;l<shellsize;++l)  {
                   AOShell* _shell_2 = dftbasis.getShell(l);
                   int _start_2 = _shell_2->getStartIndex();
                   int NumFunc_2 = _shell_2->getNumFunc();
-
+                  //cout<<i<<" "<<j<<" "<<k<<" "<<l<<" "<<dftBasisSize<<endl;
+                  //cout<<_shell_3->getType()<<" 3 "<<_start_3<<" NumFunc_3 "<<NumFunc_3<<endl;
+                  //cout<<_shell_4->getType()<<" 4 "<<_start_4<<" NumFunc_4 "<<NumFunc_4<<endl;
+                  //cout<<_shell_1->getType()<<" 1 "<<_start_1<<" NumFunc_1 "<<NumFunc_1<<endl;
+                  //cout<<_shell_2->getType()<<" 2 "<<_start_2<<" NumFunc_2 "<<NumFunc_2<<endl;
                   // get 4-center directly as _subvector
                   ub::matrix<double> _subvector = ub::zero_matrix<double>(NumFunc_1 * NumFunc_2, NumFunc_3 * NumFunc_4);
+                  
                   bool nonzero=FillFourCenterRepBlock(_subvector, _shell_1, _shell_2, _shell_3, _shell_4);
 
                   if (nonzero) {
@@ -103,9 +109,8 @@ namespace votca {
                         } // _i_1
                       } // _i_4
                     } // _i_3
-
+                    
                   } // end if
-
                 } // DFT shell_2
               } // DFT shell_1
             } // DFT shell_4

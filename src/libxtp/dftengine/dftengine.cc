@@ -390,9 +390,10 @@ namespace votca {
                 ub::matrix<double> H=H0+_ERIs.getERIs()+_orbitals->AOVxc();
                 //cout<<_orbitals->AOVxc()<<endl;
                 
-                
+       
                 //this updates the density matrix as well
                 diiserror=_diis.Evolve(_dftAOdmat,H,MOEnergies,MOCoeff,_this_iter,totenergy);
+        
                 totenergy=E_nucnuc;
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " DIIs error "<<diiserror << flush;
                 

@@ -29,14 +29,15 @@ namespace votca { namespace xtp {
    
     double Diis::Evolve(const ub::matrix<double>& dmat,const ub::matrix<double>& H,ub::vector<double> &MOenergies,ub::matrix<double> &MOs, int this_iter, double totE){
       ub::matrix<double>H_guess=ub::zero_matrix<double>(H.size1(),H.size2());    
+    
       if(_errormatrixhist.size()>_histlength){
           delete _mathist[_maxerrorindex];
           delete _errormatrixhist[_maxerrorindex];
           delete _Diis_Bs[_maxerrorindex];
           delete _dmathist[_maxerrorindex];
-                _totE.erase(_totE.begin()+_maxerrorindex);
+               _totE.erase(_totE.begin()+_maxerrorindex);
               _mathist.erase(_mathist.begin()+_maxerrorindex);
-              _dmathist.erase(_mathist.begin()+_maxerrorindex);
+              _dmathist.erase(_dmathist.begin()+_maxerrorindex);
               _errormatrixhist.erase(_errormatrixhist.begin()+_maxerrorindex);
               _Diis_Bs.erase( _Diis_Bs.begin()+_maxerrorindex);
               for( std::vector< std::vector<double>* >::iterator it=_Diis_Bs.begin();it<_Diis_Bs.end();++it){
@@ -52,6 +53,7 @@ namespace votca { namespace xtp {
           }
           
       _totE.push_back(totE);
+      
    
      
       //cout<<"MOs"<< _orbitals->MOCoefficients()<< endl;
@@ -110,6 +112,18 @@ namespace votca { namespace xtp {
           _Diis_Bs[i]->push_back(value);
       }
       Bijs->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
+      
+      
+      std::vector<double>* FD=new std::vector<double>;
+       _FDs.push_back(FD);
+      for (unsigned i=0;i<_errormatrixhist.size()-1;i++){
+          double value=linalg_traceofProd(errormatrix,ub::trans(*_errormatrixhist[i]));
+          FD->push_back(value);
+          _FDs[i]->push_back(value);
+      }
+      FD->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
+      
+      
        
       if (max<_diis_start && _usediis && this_iter>2){
           bool _useold=false;
@@ -197,7 +211,7 @@ namespace votca { namespace xtp {
           double min=std::numeric_limits<double>::max();
           int minloc=-1;
           
-            for (int i = 0; i < errors.size(); i++) {
+            for (unsigned i = 0; i < errors.size(); i++) {
                 if (std::abs(errors(i)) < min) {
 
                     bool ok = true;

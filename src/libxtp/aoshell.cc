@@ -34,10 +34,7 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
           const double center_y = center.getY();
           const double center_z = center.getZ();
           const double distsq =  center*center;
-            const double pi = boost::math::constants::pi<double>();
 
-
-            
             
             typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
             // iterate over Gaussians in this shell
