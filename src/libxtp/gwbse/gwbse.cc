@@ -863,16 +863,9 @@ namespace votca {
                 }
 
 
-
+            }
                 LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " GWBSE calculation finished " << flush;
                 return true;
-            }
-
-
-
-
-
-
 
 
         }

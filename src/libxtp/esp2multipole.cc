@@ -191,7 +191,7 @@ void Esp2multipole::Extractingcharges( Orbitals & _orbitals ){
             
         
             //ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState(_orbitals.MOCoefficients());
-            ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState(_MO_Coefficients);
+            ub::matrix<double> DMATGS=_orbitals.DensityMatrixGroundState(_MO_Coefficients);
             DMAT_tot=DMATGS;
             if ( _state_no > 0 && _state=="excited"){
                 std::vector<ub::matrix<double> > DMAT;

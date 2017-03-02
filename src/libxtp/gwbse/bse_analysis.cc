@@ -61,8 +61,8 @@ namespace votca {
 
             // REPORTING
             // read ground state fragment charges from orbitals object
-            double &_popA = _orbitals->FragmentAChargesGS();
-            double &_popB = _orbitals->FragmentBChargesGS();
+            //double &_popA = _orbitals->FragmentAChargesGS();
+            //double &_popB = _orbitals->FragmentBChargesGS();
             std::vector<ub::vector<double> >& _transition_dipoles = _orbitals->TransitionDipoles();
             
             LOG(CTP::logINFO, *_pLog) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
