@@ -88,13 +88,13 @@ namespace votca {
            int _start=_shell->getStartIndex();
            //cout << " FB start " << _start << endl;
             // alpha-loop over the "left" DFT basis function
-            for (std::vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
+            for (std::vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); ++_row) {
                 AOShell* _shell_row = dftbasis.getShell(_row);
                 int _row_start = _shell_row->getStartIndex();
                 //int _row_end = _row_start + _shell_row->getNumFunc();
 
                 // gamma-loop over the "right" DFT basis function with symmetry
-                for (std::vector< AOShell* >::iterator _col = dftbasis.firstShell(); _col <=_row; _col++) {
+                for (std::vector< AOShell* >::iterator _col = dftbasis.firstShell(); _col <=_row; ++_col) {
                     AOShell* _shell_col = dftbasis.getShell(_col);
                     int _col_start = _shell_col->getStartIndex();
                     //int _col_end = _col_start + _shell_col->getNumFunc();
