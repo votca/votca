@@ -28,9 +28,9 @@ namespace votca { namespace xtp {
         _aoshells.clear();
          }    
  
-AOShell* AOBasis::addShell( string shellType, double shellScale, int shellFunc, int startIndex, int offset, vec pos, string name, int index )
+AOShell* AOBasis::addShell( string shellType,int Lmax,int Lmin, double shellScale, int shellFunc, int startIndex, int offset, vec pos, string name, int index )
     { 
-        AOShell* aoshell = new AOShell( shellType, shellScale, shellFunc, startIndex, offset, pos, name, index, this );
+        AOShell* aoshell = new AOShell( shellType,Lmax,Lmin, shellScale, shellFunc, startIndex, offset, pos, name, index, this );
         _aoshells.push_back(aoshell); 
         return aoshell;
     }
@@ -431,7 +431,7 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fragbreak
                //if ( shell->getSize() > 1 ) {
                //    cerr << "We have a contracted basis set!" << flush;
                //} else {
-                   AOShell* aoshell = addShell( shell->getType(), shell->getScale(), NumFuncShell( shell->getType() ), _AOBasisSize, OffsetFuncShell( shell->getType() ), pos, name, _atomidx );
+                   AOShell* aoshell = addShell( shell->getType(),shell->getLmax(),shell->getLmin(), shell->getScale(), NumFuncShell( shell->getType() ), _AOBasisSize, OffsetFuncShell( shell->getType() ), pos, name, _atomidx );
                    _AOBasisSize += NumFuncShell( shell->getType() );
                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                       GaussianPrimitive* gaussian = *itg;
@@ -499,8 +499,8 @@ void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
                if (its == element->firstShell()) lmax = l;
                // first shell is local component, identification my negative angular momentum
                
-               
-                   AOShell* aoshell = addShell( shell->getType(), shell->getScale(), lmax, l, l, pos, name, _atomidx );
+                //why is the shell not properly used, apparently it is only used in aoecp.cc and there it is iterated over so l and l make no difference CHECK!!
+                   AOShell* aoshell = addShell( shell->getType(),l,l, shell->getScale(), lmax, l, l, pos, name, _atomidx );
                    _AOBasisSize += NumFuncShell( shell->getType() );
                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                       GaussianPrimitive* gaussian = *itg;

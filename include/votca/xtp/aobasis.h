@@ -73,7 +73,7 @@ public:
     
     AOShell* getShell( int idx ){ return _aoshells[idx] ;}
     
-    AOShell* addShell( std::string shellType, double shellScale, int shellFunc, int startIndex, int offset, vec pos, std::string name, int index ); 
+    AOShell* addShell( std::string shellType,int Lmax,int Lmin, double shellScale, int shellFunc, int startIndex, int offset, vec pos, std::string name, int index ); 
   
     
     std::vector<AOShell*> getShells() { return _aoshells; }

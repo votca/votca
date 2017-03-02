@@ -78,7 +78,8 @@ public:
     int    getIndex() { return _atomindex;}
     std::string getName() { return _atomname;}
     
-    int getLmax(  ) { return detlmax( _type );}
+    int getLmax(  ) { return _Lmax;}
+    int getLmin(  ) { return _Lmin;}
     
     vec getPos() { return _pos; }
     double getScale() { return _scale; }
@@ -92,7 +93,7 @@ public:
     
    
     
-    void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODervalues, const vec& grid_pos , std::string type = "");
+   
     // iterator over pairs (decay constant; contraction coefficient)
     typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
     GaussianIterator firstGaussian() { return _gaussians.begin(); }
@@ -110,7 +111,7 @@ public:
 private:   
 
     // only class Element can construct shells    
-    AOShell( string type, double scale, int numFunc, int startIndex, int offset, vec pos, string atomname, int atomindex, AOBasis* aobasis = NULL ) : _type(type), _scale(scale), _numFunc(numFunc), _startIndex(startIndex), _offset(offset), _pos(pos) , _atomname(atomname), _atomindex(atomindex) { ; }
+    AOShell( string type,int Lmax,int Lmin, double scale, int numFunc, int startIndex, int offset, vec pos, string atomname, int atomindex, AOBasis* aobasis = NULL ) : _type(type),_Lmax(Lmax),_Lmin(Lmin), _scale(scale), _numFunc(numFunc), _startIndex(startIndex), _offset(offset), _pos(pos) , _atomname(atomname), _atomindex(atomindex) { ; }
     
     // only class Element can destruct shells
    ~AOShell() 
@@ -121,10 +122,13 @@ private:
     
     // shell type (S, P, D))
     string _type;
+    int _Lmax;
+    int _Lmin;
     // scaling factor
     double _scale;
     // number of functions in shell
     int _numFunc;
+
     int _startIndex;
     int _offset;
     vec _pos;
@@ -132,7 +136,7 @@ private:
     int _atomindex;
      
     //AOBasis* _aobasis;
-    int detlmax( string shell );
+    
     // vector of pairs of decay constants and contraction coefficients
     std::vector< AOGaussianPrimitive* > _gaussians;
     

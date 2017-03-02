@@ -67,18 +67,7 @@ public:
 
     std::string getType() { return _type; }
 
-  /*  int getLmax(  ) {
-        int _lmax;
-        if ( _type == "S" ) _lmax = 0;
-        if ( _type == "SP" ) _lmax = 1;
-        if ( _type == "SPD" ) _lmax = 2;
-        if ( _type == "P" ) _lmax = 1;
-        if ( _type == "PD" ) _lmax = 2;
-        if ( _type == "D" ) _lmax = 2;
-        if ( _type == "F" ) _lmax = 3;
-        if ( _type == "SPDF" ) _lmax = 3;
-        return _lmax;
-    }; */
+ 
     
     
     bool combined(){
@@ -92,6 +81,10 @@ public:
     
     int getLmax(  ) {
         return FindLmax(_type);
+    }
+    
+    int getLmin(  ) {
+        return FindLmin(_type);
     }
     
     int FindLmax( string _type ){
@@ -119,6 +112,35 @@ public:
         }
 
         return _lmax;
+        
+    }
+    
+    int FindLmin( string _type ){
+
+        int _lmin;
+        // single type shells
+        if ( _type.length() == 1 ){
+            if ( _type == "S" ){ _lmin = 0;}
+            else if ( _type == "P" ){ _lmin = 1;}
+            else if ( _type == "D" ){ _lmin = 2;}
+            else if ( _type == "F" ){ _lmin = 3;}
+            else if ( _type == "G" ){ _lmin = 4;}
+            else if ( _type == "H" ){ _lmin = 5;}
+            else if ( _type == "I" ){ _lmin = 6;}
+            else{
+                throw runtime_error("FindLmax: Shelltype not known");
+            }
+        } else {
+            _lmin = 10;
+            for(unsigned i = 0; i < _type.length(); ++i) {
+                string local_shell = string( _type, i, 1 );
+                int _test = this->FindLmin( local_shell  );
+                if(_test==0){return 0;}
+                if ( _test < _lmin ) { _lmin = _test;} 
+            }   
+        }
+
+        return _lmin;
         
     }
     
