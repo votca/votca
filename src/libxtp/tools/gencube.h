@@ -303,7 +303,7 @@ namespace votca {
 
                     // ground state only if requested
                     if ( _do_groundstate ) {
-                        ub::matrix<double> &DMATGS = _orbitals.DensityMatrixGroundState(_dft_orbitals);
+                        ub::matrix<double> DMATGS = _orbitals.DensityMatrixGroundState(_dft_orbitals);
                         DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
                         LOG(CTP::logDEBUG, _log) << " Calculated ground state density matrix " << flush;
                     }
