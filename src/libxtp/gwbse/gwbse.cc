@@ -863,18 +863,9 @@ namespace votca {
                 }
 
 
-
+            }
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " GWBSE calculation finished " << flush;
                 return true;
-            }
-
-
-
-
-
-
-
-
         }
     }
 };

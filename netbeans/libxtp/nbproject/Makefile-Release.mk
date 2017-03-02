@@ -48,6 +48,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/708574269/aoquadrupole_potential.o \
 	${OBJECTDIR}/_ext/484478074/aoshell.o \
 	${OBJECTDIR}/_ext/484478074/apolarsite.o \
+	${OBJECTDIR}/_ext/484478074/basisset.o \
 	${OBJECTDIR}/_ext/484478074/bsecoupling.o \
 	${OBJECTDIR}/_ext/484478074/calculatorfactory.o \
 	${OBJECTDIR}/_ext/1355216796/eoutersphere.o \
@@ -64,6 +65,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/gdma.o \
 	${OBJECTDIR}/_ext/484478074/grid.o \
 	${OBJECTDIR}/_ext/1763088751/bse.o \
+	${OBJECTDIR}/_ext/1763088751/bse_analysis.o \
 	${OBJECTDIR}/_ext/1763088751/gwa.o \
 	${OBJECTDIR}/_ext/1763088751/gwbse.o \
 	${OBJECTDIR}/_ext/1763088751/rpa.o \
@@ -216,6 +218,11 @@ ${OBJECTDIR}/_ext/484478074/apolarsite.o: nbproject/Makefile-${CND_CONF}.mk ../.
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/apolarsite.o ../../src/libxtp/apolarsite.cc
 
+${OBJECTDIR}/_ext/484478074/basisset.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/basisset.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/basisset.o ../../src/libxtp/basisset.cc
+
 ${OBJECTDIR}/_ext/484478074/bsecoupling.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/bsecoupling.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
@@ -295,6 +302,11 @@ ${OBJECTDIR}/_ext/1763088751/bse.o: nbproject/Makefile-${CND_CONF}.mk ../../src/
 	${MKDIR} -p ${OBJECTDIR}/_ext/1763088751
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1763088751/bse.o ../../src/libxtp/gwbse/bse.cc
+
+${OBJECTDIR}/_ext/1763088751/bse_analysis.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/gwbse/bse_analysis.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1763088751
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1763088751/bse_analysis.o ../../src/libxtp/gwbse/bse_analysis.cc
 
 ${OBJECTDIR}/_ext/1763088751/gwa.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/gwbse/gwa.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1763088751

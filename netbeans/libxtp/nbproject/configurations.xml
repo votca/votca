@@ -607,6 +607,8 @@
       </item>
       <item path="../../src/libxtp/apolarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/basisset.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/calculatorfactory.cc"
@@ -831,6 +833,11 @@
       <item path="../../src/libxtp/grid.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/bse_analysis.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gwa.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1408,6 +1415,8 @@
       </item>
       <item path="../../src/libxtp/apolarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/basisset.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/calculatorfactory.cc"
@@ -1632,6 +1641,11 @@
       <item path="../../src/libxtp/grid.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/bse_analysis.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gwa.cc" ex="false" tool="1" flavor2="0">
       </item>
