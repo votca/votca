@@ -78,12 +78,12 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P,ub::ma
            // for loop because shells can also consist of SP shells or alike
             for(unsigned i = 0; i <(*its)->getType().length(); ++i) {
             string local_shell = string( (*its)->getType(), i, 1 );
-            int l= (*its)->FindLmax(local_shell);
+            int l=FindLmax(local_shell);
             std::vector< int >& index =shellsort[l];
            
             index.push_back(functionindex);
             
-            functionindex+=(*its)->FindnumofFunc(local_shell);
+            functionindex+=NumFuncShell(local_shell);
             }
         }
         sorting.push_back(shellsort);

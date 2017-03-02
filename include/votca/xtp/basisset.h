@@ -30,6 +30,20 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
 
+    int FindLmax(string _type);
+
+    int FindLmin(string _type);
+
+    int OffsetFuncShell(string shell_type);
+
+    int NumFuncShell(string shell_type);
+    int NumFuncShell_cartesian(string shell_type);
+
+    int OffsetFuncShell_cartesian(string shell_type);
+    
+    
+ 
+
 class Shell;  
 class Element;
 class BasisSet;
@@ -87,130 +101,14 @@ public:
         return FindLmin(_type);
     }
     
-    int FindLmax( string _type ){
 
-        int _lmax;
-        // single type shells
-        if ( _type.length() == 1 ){
-            if ( _type == "S" ){ _lmax = 0;}
-            else if ( _type == "P" ){ _lmax = 1;}
-            else if ( _type == "D" ){ _lmax = 2;}
-            else if ( _type == "F" ){ _lmax = 3;}
-            else if ( _type == "G" ){ _lmax = 4;}
-            else if ( _type == "H" ){ _lmax = 5;}
-            else if ( _type == "I" ){ _lmax = 6;}
-            else{
-                throw runtime_error("FindLmax: Shelltype not known");
-            }
-        } else {
-            _lmax = -1;
-            for(unsigned i = 0; i < _type.length(); ++i) {
-                string local_shell = string( _type, i, 1 );
-                int _test = this->FindLmax( local_shell  );
-                if ( _test > _lmax ) { _lmax = _test;} 
-            }   
-        }
-
-        return _lmax;
-        
-    }
-    
-    int FindLmin( string _type ){
-
-        int _lmin;
-        // single type shells
-        if ( _type.length() == 1 ){
-            if ( _type == "S" ){ _lmin = 0;}
-            else if ( _type == "P" ){ _lmin = 1;}
-            else if ( _type == "D" ){ _lmin = 2;}
-            else if ( _type == "F" ){ _lmin = 3;}
-            else if ( _type == "G" ){ _lmin = 4;}
-            else if ( _type == "H" ){ _lmin = 5;}
-            else if ( _type == "I" ){ _lmin = 6;}
-            else{
-                throw runtime_error("FindLmax: Shelltype not known");
-            }
-        } else {
-            _lmin = 10;
-            for(unsigned i = 0; i < _type.length(); ++i) {
-                string local_shell = string( _type, i, 1 );
-                int _test = this->FindLmin( local_shell  );
-                if(_test==0){return 0;}
-                if ( _test < _lmin ) { _lmin = _test;} 
-            }   
-        }
-
-        return _lmin;
-        
-    }
-    
-    
-    
-    
-   
-    int OffsetFuncShell( string shell_type ) {
-    int _nbf;
-    // single type shells
-    if ( shell_type.length() == 1 ){
-       if ( shell_type == "S" ){ _nbf = 0;}
-       else if ( shell_type == "P" ){ _nbf = 1;}
-       else if ( shell_type == "D" ){ _nbf = 4;}
-       else if ( shell_type == "F" ){ _nbf = 9;}
-       else if ( shell_type == "G" ){ _nbf = 16;}
-       else if ( shell_type == "H" ){ _nbf = 25;}
-       else if ( shell_type == "I" ){ _nbf = 36;}
-       else{
-                throw runtime_error("OffsetFuncShell: Shelltype not known");
-            }
-    } else {
-        // for combined shells, go over all contributions and find minimal offset
-        _nbf = 1000;
-        for(unsigned i = 0; i < shell_type.length(); ++i) {
-            string local_shell = string( shell_type, i, 1 );
-            int _test = this->OffsetFuncShell( local_shell  );
-            if ( _test < _nbf ) { _nbf = _test;} 
-        }   
-    }
-    return _nbf;
-        } 
-    
-    
-    
-    
-    
-    
     
     int getnumofFunc() {
-        return FindnumofFunc(_type);
+        return NumFuncShell(_type);
     }; 
     
     
-    int FindnumofFunc( string shell_type) {
-        int _nbf = 0;
-        // single type shells
-        if ( shell_type.length() == 1 ){
-            if ( shell_type == "S" ){ _nbf = 1;}
-            else if ( shell_type == "P" ){ _nbf = 3;}
-            else if ( shell_type == "D" ){ _nbf = 5;}
-            else if ( shell_type == "F" ){ _nbf = 7;}
-            else if ( shell_type == "G" ){ _nbf = 9;}
-            else if ( shell_type == "H" ){ _nbf = 11;}
-            else if ( shell_type == "I" ){ _nbf = 13;}
-            else{
-                throw runtime_error("FindnumofFunc: Shelltype not known");
-            }
-    } else {
-        // for combined shells, go over all contributions and add functions
-        _nbf = 0;
-        
-           for (unsigned i = 0; i < shell_type.length(); ++i) {
-                    string local_shell = string(shell_type, i, 1);
-                    _nbf += this->FindnumofFunc(local_shell);
-            }   
-    }
-    return _nbf;
-        
-    }
+  
     
     
     
@@ -347,154 +245,6 @@ public:
 private:    
     
     map<std::string,Element*> _elements;
-};
-
-
-inline void BasisSet::LoadBasisSet ( std::string name ) 
-{    
-    Property basis_property;
- 
-    // get the path to the shared folders with xml files
-    char *votca_share = getenv("VOTCASHARE");
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open basisset files.");
-    std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
-    
-    bool success = load_property_from_xml(basis_property, xmlFile);
-    
-    if ( !success ) {; }
-    
-    list<Property*> elementProps = basis_property.Select("basis.element");
-        
-    for (list<Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
-    {       
-        std::string elementName = (*ite)->getAttribute<std::string>("name");
-        Element *element = addElement( elementName );
-        //cout << "\nElement " << elementName;
-        
-        list<Property*> shellProps = (*ite)->Select("shell");
-        for (list<Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
-        {            
-            std::string shellType = (*its)->getAttribute<std::string>("type");
-            double shellScale = (*its)->getAttribute<double>("scale");
-            
-            Shell* shell = element->addShell( shellType, shellScale );
-            //cout << "\n\tShell " << shellType;
-            
-            list<Property*> constProps = (*its)->Select("constant");
-            for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
-            {
-                double decay = (*itc)->getAttribute<double>("decay");
-                // << " decay "<<decay<<endl;
-                std::vector<double> contraction;
-                contraction.resize(shell->getLmax()+1); 
-                list<Property*> contrProps = (*itc)->Select("contractions");
-                for (list<Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont)
-                {
-                    std::string contrType = (*itcont)->getAttribute<std::string>("type");
-                    double contrFactor = (*itcont)->getAttribute<double>("factor");
-                    //cout << " factor " << contrFactor << endl;
-                    if ( contrType == "S" ) contraction[0] = contrFactor;
-                    else if ( contrType == "P" ) contraction[1] = contrFactor;
-                    else if ( contrType == "D" ) contraction[2] = contrFactor;
-                    else if ( contrType == "F" ) contraction[3] = contrFactor;
-                    else if ( contrType == "G" ) contraction[4] = contrFactor;
-                    else if ( contrType == "H" ) contraction[5] = contrFactor;
-                    else if ( contrType == "I" ) contraction[6] = contrFactor;
-                    else{
-                        throw runtime_error("LoadBasiset:Contractiontype not known");
-                    }
-                }    
-                //cout<<"contraction ";
-               // for( int i=0;i<contraction.size();i++){
-               //     cout<<contraction[i];
-               //  }
-                //    cout<<std::endl;     
-                shell->addGaussian(decay, contraction);
-            }
-            
-        }
-       
-    }
-    
-}
-
-
-inline void BasisSet::LoadPseudopotentialSet ( std::string name ) 
-{    
-    Property basis_property;
- 
-    // get the path to the shared folders with xml files
-    char *votca_share = getenv("VOTCASHARE");
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open pseudopotential files.");
-    std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
-    
-    bool success = load_property_from_xml(basis_property, xmlFile);
-    
-    if ( !success ) {; }
-    
-    list<Property*> elementProps = basis_property.Select("pseudopotential.element");
-        
-    for (list<Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
-    {       
-        std::string elementName = (*ite)->getAttribute<std::string>("name");
-        int lmax = (*ite)->getAttribute<int>("lmax");
-        int ncore = (*ite)->getAttribute<int>("ncore");
-        
-        Element *element = addElement( elementName, lmax, ncore );
-        //cout << "\nElement " << elementName;
-        
-        list<Property*> shellProps = (*ite)->Select("shell");
-        for (list<Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
-        {            
-            std::string shellType = (*its)->getAttribute<std::string>("type");
-            double shellScale = 1.0;
-            
-            Shell* shell = element->addShell( shellType, shellScale );
-            //cout << "\n\tShell " << shellType;
-            
-            list<Property*> constProps = (*its)->Select("constant");
-            for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
-            {
-                int power = (*itc)->getAttribute<int>("power");
-                double decay = (*itc)->getAttribute<double>("decay");
-                //double contraction = (*itc)->getAttribute<double>("contraction");
-                std::vector<double> contraction;
-                // just testing here with single value 
-                contraction.push_back((*itc)->getAttribute<double>("contraction"));
-                //shell->addGaussian(decay, contraction);
-                shell->addGaussian(power, decay, contraction);
-                //cout << "\n\t\t" << decay << " " << contraction << endl;
-            }
-            
-        }
-       
-    }
-
-}
-
-
-// adding an Element to a Basis Set
-inline Element* BasisSet::addElement( std::string elementType ) {
-    Element *element = new Element( elementType );
-    _elements[elementType] = element;
-    return element;
-};
-
-// adding an Element to a Pseudopotential Library
-inline Element* BasisSet::addElement( std::string elementType, int lmax, int ncore ) {
-    Element *element = new Element( elementType, lmax, ncore );
-    _elements[elementType] = element;
-    return element;
-};
-
-// cleanup the basis set
-inline BasisSet::~BasisSet() {
-    
-    for ( map< std::string,Element* >::iterator it = _elements.begin(); it !=  _elements.end(); it++ ) {
-         delete (*it).second;
-     }
-    
-    _elements.clear();
 };
 
 
