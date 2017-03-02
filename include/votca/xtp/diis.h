@@ -95,8 +95,8 @@ public:
     
     double get_E_ediis(const gsl_vector * x) const;
 
-void get_dEdx_ediis(const gsl_vector * x, gsl_vector * dEdx) const;
-void get_E_dEdx_ediis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const;
+    void get_dEdx_ediis(const gsl_vector * x, gsl_vector * dEdx) const;
+    void get_E_dEdx_ediis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const;
    
  private:
      
@@ -132,7 +132,7 @@ void get_E_dEdx_ediis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) co
  /// Compute energy and derivative
 void min_fdf(const gsl_vector * x, void * params, double * f, gsl_vector * g);
 
-
+ub::vector<double> DIIsCoeff();
     
     unsigned _nocclevels;
     double _levelshift;

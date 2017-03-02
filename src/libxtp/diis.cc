@@ -127,6 +127,67 @@ namespace votca { namespace xtp {
       
        
       if (max<_diis_start && _usediis && this_iter>2){
+          ub::vector<double> coeffs;
+          if(max<0.0001){
+         
+          coeffs=DIIsCoeff();
+          }
+          else if(max>0.0001 && max<0.1){
+              ub::vector<double> coeffs1=DIIsCoeff();
+              ub::vector<double> coeffs2=EDIIsCoeff();
+              coeffs=10*max*coeffs2+(1-10*max)*coeffs1;
+          }
+          else{
+               coeffs=EDIIsCoeff();
+          }
+                 for (unsigned i=0;i<_mathist.size();i++){  
+                     if(std::abs(coeffs(i))<1e-8){ continue;}
+                    H_guess+=coeffs(i)*(*_mathist[i]);
+                    //cout <<i<<" "<<a(i+1,0)<<" "<<(*_mathist[i])<<endl;
+                 }
+                //cout <<"H_guess"<<H_guess<<endl;
+          }
+      else{       
+          H_guess=H;     
+          }
+      
+      double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
+      
+      if(max>0.2 || (_levelshift>0.00001 && gap<0.01)){
+        Levelshift(H_guess,dmat,_levelshift,_unrestricted);
+      }
+      SolveFockmatrix( MOenergies,MOs,H_guess);
+      //cout<<"after"<<MOenergies<<endl;
+      //cout<<endl;
+      return max;
+      }
+      
+      void Diis::SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,const ub::matrix<double>&H){
+          
+           ub::matrix<double> temp;
+           bool info=linalg_eigenvalues_general( H,(*S), MOenergies, temp);
+            if (!info){
+                    throw runtime_error("Generalized eigenvalue problem did not work.");
+                }
+           
+           MOs=ub::trans(temp);
+           
+           return;
+      }
+      
+      void Diis::Levelshift(ub::matrix<double>& H,const ub::matrix<double> & dmat,double levelshift,bool unrestricted){
+          ub::matrix<double> I=ub::identity_matrix<double>(dmat.size1());
+          double occupation=2.0;
+          if(unrestricted){
+              occupation=1.0;
+          }
+          H+=levelshift*(occupation*I-dmat);
+                  
+                  return;
+      }
+      
+      
+   ub::vector<double>Diis::DIIsCoeff(){
           bool _useold=false;
           bool check=false;
           //old Pulat DIIs
@@ -239,64 +300,16 @@ namespace votca { namespace xtp {
           check=false;
        }
           }
-     
           
-          if (!check){
-              H_guess=0.5*(*_mathist[0])+0.5*(*_mathist[1]);
-              LOG(logDEBUG, *_pLog) << TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
-               
+          if(!check){
+               LOG(logDEBUG, *_pLog) << TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
+               coeffs=ub::zero_vector<double>(_mathist.size());
+               coeffs[0]=0.5;
+               coeffs[1]=0.5;
           }
-          else{
-                
-                 for (unsigned i=0;i<_mathist.size();i++){  
-                     if(std::abs(coeffs(i))<1e-8){ continue;}
-                    H_guess+=coeffs(i)*(*_mathist[i]);
-                    //cout <<i<<" "<<a(i+1,0)<<" "<<(*_mathist[i])<<endl;
-                 }
-                //cout <<"H_guess"<<H_guess<<endl;
-          }
-        
-              
-         
-      }
-      else{       
-          H_guess=H;     
-          }
+     return coeffs;  
+   }   
       
-      double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
-      
-      if(max>0.2 || (_levelshift>0.00001 && gap<0.01)){
-        Levelshift(H_guess,dmat,_levelshift,_unrestricted);
-      }
-      SolveFockmatrix( MOenergies,MOs,H_guess);
-      //cout<<"after"<<MOenergies<<endl;
-      //cout<<endl;
-      return max;
-      }
-      
-      void Diis::SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,const ub::matrix<double>&H){
-          
-           ub::matrix<double> temp;
-           bool info=linalg_eigenvalues_general( H,(*S), MOenergies, temp);
-            if (!info){
-                    throw runtime_error("Generalized eigenvalue problem did not work.");
-                }
-           
-           MOs=ub::trans(temp);
-           
-           return;
-      }
-      
-      void Diis::Levelshift(ub::matrix<double>& H,const ub::matrix<double> & dmat,double levelshift,bool unrestricted){
-          ub::matrix<double> I=ub::identity_matrix<double>(dmat.size1());
-          double occupation=2.0;
-          if(unrestricted){
-              occupation=1.0;
-          }
-          H+=levelshift*(occupation*I-dmat);
-                  
-                  return;
-      }
       
       
    ub::vector<double> Diis::EDIIsCoeff(){
