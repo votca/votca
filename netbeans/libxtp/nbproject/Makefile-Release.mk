@@ -48,7 +48,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/708574269/aoquadrupole_potential.o \
 	${OBJECTDIR}/_ext/484478074/aoshell.o \
 	${OBJECTDIR}/_ext/484478074/apolarsite.o \
-	${OBJECTDIR}/_ext/484478074/basisset.o \
 	${OBJECTDIR}/_ext/484478074/bsecoupling.o \
 	${OBJECTDIR}/_ext/484478074/calculatorfactory.o \
 	${OBJECTDIR}/_ext/1355216796/eoutersphere.o \
@@ -59,7 +58,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/espfit.o \
 	${OBJECTDIR}/_ext/484478074/ewaldactor.o \
 	${OBJECTDIR}/_ext/484478074/extractorfactory.o \
-	${OBJECTDIR}/_ext/484478074/fock.o \
 	${OBJECTDIR}/_ext/484478074/fourcenter_rep.o \
 	${OBJECTDIR}/_ext/484478074/fourcenters_dft.o \
 	${OBJECTDIR}/_ext/484478074/fragment.o \
@@ -218,11 +216,6 @@ ${OBJECTDIR}/_ext/484478074/apolarsite.o: nbproject/Makefile-${CND_CONF}.mk ../.
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/apolarsite.o ../../src/libxtp/apolarsite.cc
 
-${OBJECTDIR}/_ext/484478074/basisset.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/basisset.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/basisset.o ../../src/libxtp/basisset.cc
-
 ${OBJECTDIR}/_ext/484478074/bsecoupling.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/bsecoupling.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
@@ -272,11 +265,6 @@ ${OBJECTDIR}/_ext/484478074/extractorfactory.o: nbproject/Makefile-${CND_CONF}.m
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/extractorfactory.o ../../src/libxtp/extractorfactory.cc
-
-${OBJECTDIR}/_ext/484478074/fock.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/fock.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/fock.o ../../src/libxtp/fock.cc
 
 ${OBJECTDIR}/_ext/484478074/fourcenter_rep.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/fourcenter_rep.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074

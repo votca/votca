@@ -51,23 +51,24 @@ namespace votca {
 
 
           #pragma omp parallel for
-          for (std::vector< AOShell* >::iterator _it_3 = dftbasis.firstShell(); _it_3 != dftbasis.lastShell(); ++_it_3) {
-            AOShell* _shell_3 = dftbasis.getShell(_it_3);
+          for(int i=0;i<dftbasis.AOBasisSize();++i){
+          
+            AOShell* _shell_3 = dftbasis.getShell(i);
             int _start_3 = _shell_3->getStartIndex();
             int NumFunc_3 = _shell_3->getNumFunc();
 
-            for (std::vector< AOShell* >::iterator _it_4 = _it_3; _it_4 != dftbasis.lastShell(); ++_it_4) {
-              AOShell* _shell_4 = dftbasis.getShell(_it_4);
+            for (int j=i;j<dftbasis.AOBasisSize();++j) {
+              AOShell* _shell_4 = dftbasis.getShell(j);
               int _start_4 = _shell_4->getStartIndex();
               int NumFunc_4 = _shell_4->getNumFunc();                
 
-              for (std::vector< AOShell* >::iterator _it_1 = _it_3; _it_1 != dftbasis.lastShell(); ++_it_1) {
-                AOShell* _shell_1 = dftbasis.getShell(_it_1);
+              for (int k=i;k<dftbasis.AOBasisSize();++k) {
+                AOShell* _shell_1 = dftbasis.getShell(k);
                 int _start_1 = _shell_1->getStartIndex();
                 int NumFunc_1 = _shell_1->getNumFunc();
 
-                for (std::vector< AOShell* >::iterator _it_2 = _it_1; _it_2 != dftbasis.lastShell(); ++_it_2) {
-                  AOShell* _shell_2 = dftbasis.getShell(_it_2);
+               for (int l=k;l<dftbasis.AOBasisSize();++l)  {
+                  AOShell* _shell_2 = dftbasis.getShell(l);
                   int _start_2 = _shell_2->getStartIndex();
                   int NumFunc_2 = _shell_2->getNumFunc();
 
@@ -110,7 +111,7 @@ namespace votca {
             } // DFT shell_4
           } // DFT shell_3
 
-
+          return;
         } // FCMatrix_dft::Fill_4c_small_molecule
         
        
