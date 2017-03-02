@@ -121,7 +121,7 @@ namespace votca {
 
           // reconstruct real eigenvalues eps_l = sqrt(eps_l^2)
           _bse_singlet_energies.resize(_bse_nmax);
-          for ( unsigned _i = 0; _i < _bse_nmax; _i++) {
+          for ( int _i = 0; _i < _bse_nmax; _i++) {
             _bse_singlet_energies(_i) = sqrt(_eigenvalues(_i)); // store positive energies in orbitals objects
           }
           

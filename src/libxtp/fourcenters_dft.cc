@@ -49,26 +49,24 @@ namespace votca {
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
           _4c_vector = ub::zero_vector<double>((vectorSize*(vectorSize+1))/2);
 
-          int _ishell = 0;
+
           #pragma omp parallel for
-          for (std::vector< AOShell* >::iterator _it_3 = dftbasis.firstShell(); _it_3 != dftbasis.lastShell(); _it_3++) {
+          for (std::vector< AOShell* >::iterator _it_3 = dftbasis.firstShell(); _it_3 != dftbasis.lastShell(); ++_it_3) {
             AOShell* _shell_3 = dftbasis.getShell(_it_3);
             int _start_3 = _shell_3->getStartIndex();
             int NumFunc_3 = _shell_3->getNumFunc();
-            _ishell++;
-            //cout << "_ishell = " << _ishell << endl;
 
-            for (std::vector< AOShell* >::iterator _it_4 = _it_3; _it_4 != dftbasis.lastShell(); _it_4++) {
+            for (std::vector< AOShell* >::iterator _it_4 = _it_3; _it_4 != dftbasis.lastShell(); ++_it_4) {
               AOShell* _shell_4 = dftbasis.getShell(_it_4);
               int _start_4 = _shell_4->getStartIndex();
               int NumFunc_4 = _shell_4->getNumFunc();                
 
-              for (std::vector< AOShell* >::iterator _it_1 = _it_3; _it_1 != dftbasis.lastShell(); _it_1++) {
+              for (std::vector< AOShell* >::iterator _it_1 = _it_3; _it_1 != dftbasis.lastShell(); ++_it_1) {
                 AOShell* _shell_1 = dftbasis.getShell(_it_1);
                 int _start_1 = _shell_1->getStartIndex();
                 int NumFunc_1 = _shell_1->getNumFunc();
 
-                for (std::vector< AOShell* >::iterator _it_2 = _it_1; _it_2 != dftbasis.lastShell(); _it_2++) {
+                for (std::vector< AOShell* >::iterator _it_2 = _it_1; _it_2 != dftbasis.lastShell(); ++_it_2) {
                   AOShell* _shell_2 = dftbasis.getShell(_it_2);
                   int _start_2 = _shell_2->getStartIndex();
                   int NumFunc_2 = _shell_2->getNumFunc();

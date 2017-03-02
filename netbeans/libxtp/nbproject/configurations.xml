@@ -819,6 +819,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/fock.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/fourcenters_dft.cc"
@@ -833,11 +835,6 @@
       <item path="../../src/libxtp/grid.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/gwbse/bse_analysis.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gwa.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1627,6 +1624,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/fock.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/fourcenters_dft.cc"
@@ -1641,11 +1640,6 @@
       <item path="../../src/libxtp/grid.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/gwbse/bse_analysis.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gwa.cc" ex="false" tool="1" flavor2="0">
       </item>

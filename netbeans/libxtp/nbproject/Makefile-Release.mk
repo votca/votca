@@ -59,13 +59,13 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/espfit.o \
 	${OBJECTDIR}/_ext/484478074/ewaldactor.o \
 	${OBJECTDIR}/_ext/484478074/extractorfactory.o \
+	${OBJECTDIR}/_ext/484478074/fock.o \
 	${OBJECTDIR}/_ext/484478074/fourcenter_rep.o \
 	${OBJECTDIR}/_ext/484478074/fourcenters_dft.o \
 	${OBJECTDIR}/_ext/484478074/fragment.o \
 	${OBJECTDIR}/_ext/484478074/gdma.o \
 	${OBJECTDIR}/_ext/484478074/grid.o \
 	${OBJECTDIR}/_ext/1763088751/bse.o \
-	${OBJECTDIR}/_ext/1763088751/bse_analysis.o \
 	${OBJECTDIR}/_ext/1763088751/gwa.o \
 	${OBJECTDIR}/_ext/1763088751/gwbse.o \
 	${OBJECTDIR}/_ext/1763088751/rpa.o \
@@ -273,6 +273,11 @@ ${OBJECTDIR}/_ext/484478074/extractorfactory.o: nbproject/Makefile-${CND_CONF}.m
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/extractorfactory.o ../../src/libxtp/extractorfactory.cc
 
+${OBJECTDIR}/_ext/484478074/fock.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/fock.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/fock.o ../../src/libxtp/fock.cc
+
 ${OBJECTDIR}/_ext/484478074/fourcenter_rep.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/fourcenter_rep.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
@@ -302,11 +307,6 @@ ${OBJECTDIR}/_ext/1763088751/bse.o: nbproject/Makefile-${CND_CONF}.mk ../../src/
 	${MKDIR} -p ${OBJECTDIR}/_ext/1763088751
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1763088751/bse.o ../../src/libxtp/gwbse/bse.cc
-
-${OBJECTDIR}/_ext/1763088751/bse_analysis.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/gwbse/bse_analysis.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1763088751
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1763088751/bse_analysis.o ../../src/libxtp/gwbse/bse_analysis.cc
 
 ${OBJECTDIR}/_ext/1763088751/gwa.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/gwbse/gwa.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1763088751
