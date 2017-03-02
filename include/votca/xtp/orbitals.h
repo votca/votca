@@ -303,9 +303,9 @@ public:
 
     
     // functions for calculating density matrices
-    ub::matrix<double> &DensityMatrixGroundState( ub::matrix<double>& _MOs ) ;
-    std::vector<ub::matrix<double> > &DensityMatrixExcitedState( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0 ) ;
-    ub::matrix<double > &TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0);
+    ub::matrix<double> DensityMatrixGroundState( ub::matrix<double>& _MOs ) ;
+    std::vector<ub::matrix<double> > DensityMatrixExcitedState( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0 ) ;
+    ub::matrix<double > TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0);
     
     
     // functions for analyzing fragment charges via Mulliken populations
