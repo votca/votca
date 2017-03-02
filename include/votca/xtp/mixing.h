@@ -23,19 +23,19 @@
 #include <votca/tools/linalg.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 
 
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
  namespace ub = boost::numeric::ublas;
-  
+  namespace CTP = votca::ctp;
  
  class Mixing{
 public:
 
-    Mixing(bool automaticmixing,double mixingparameter,ub::matrix<double>* _S,Logger *pLog) {
+    Mixing(bool automaticmixing,double mixingparameter,ub::matrix<double>* _S,CTP::Logger *pLog) {
         _mixingparameter=mixingparameter;
         _automaticmixing=automaticmixing;
         S=_S;
@@ -63,7 +63,7 @@ public:
     
    ub::vector<double> Mullikencharges(const ub::matrix<double>& dmat);
   
-    Logger *_pLog;
+    CTP::Logger *_pLog;
     ub::matrix<double>* S;
     bool _automaticmixing;
     double _mixingparameter;

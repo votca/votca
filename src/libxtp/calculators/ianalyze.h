@@ -22,8 +22,12 @@
 
 #include <math.h>
 #include <votca/ctp/qmpair.h>
+#include <boost/format.hpp>
+#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmpair.h>
+#include <votca/tools/property.h>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class XIAnalyze : public XQMCalculator
 {

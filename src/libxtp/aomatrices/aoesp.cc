@@ -29,7 +29,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/elements.h>
 #include <votca/tools/constants.h>
@@ -468,7 +468,7 @@ if (_lmax_col > 3) {
     }
     
   // Calculates the electrostatic potential matrix element between two basis functions, for an array of atomcores.
-    void AOESP::Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms, bool _with_ecp){
+    void AOESP::Fillnucpotential( AOBasis* aobasis, std::vector<CTP::QMAtom*>& _atoms, bool _with_ecp){
     Elements _elements;
     _nuclearpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
     
@@ -495,10 +495,10 @@ if (_lmax_col > 3) {
     }
     return;
     }   
-    void AOESP::Fillextpotential( AOBasis* aobasis, std::vector<APolarSite*>& _sites){
+    void AOESP::Fillextpotential( AOBasis* aobasis, std::vector<CTP::APolarSite*>& _sites){
   
     _externalpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
-   for ( std::vector<APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
+   for ( std::vector<CTP::APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
       
        
             vec positionofsite =  (*it)->getPos()*tools::conv::nm2bohr;

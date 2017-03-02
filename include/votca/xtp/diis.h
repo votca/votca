@@ -23,14 +23,14 @@
 #include <votca/tools/linalg.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 
 
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
  namespace ub = boost::numeric::ublas;
-  
+  namespace CTP = votca::ctp;
  
  class Diis{
 public:
@@ -79,7 +79,7 @@ public:
    void setSqrtOverlap(ub::matrix<double>* _Sminusahalf){
        Sminusahalf=_Sminusahalf;
    }
-    void setLogger(Logger *pLog){_pLog=pLog;}
+    void setLogger(CTP::Logger *pLog){_pLog=pLog;}
     double Evolve(const ub::matrix<double>& dmat,const ub::matrix<double>& H,ub::vector<double> &MOenergies,ub::matrix<double> &MOs, int this_iter,double totE);
     void SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,const ub::matrix<double>&H);
     void Levelshift(ub::matrix<double>& H,const ub::matrix<double> & dmat,double levelshift,bool unrestricted);
@@ -87,7 +87,7 @@ public:
    
  private:
      
-    Logger *_pLog;
+    CTP::Logger *_pLog;
     ub::matrix<double>* S;
     ub::matrix<double>* Sminusahalf;
     bool                              _usediis;

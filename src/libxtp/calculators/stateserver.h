@@ -22,12 +22,14 @@
 #define __STATESERVER_H
 
 
-#include <votca/ctp/qmcalculator.h>
+
 #include <boost/format.hpp>
+#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/qmpair.h>
+#include <votca/tools/property.h>
 
 
-
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class XStateServer : public XQMCalculator
 {
@@ -38,8 +40,8 @@ public:
 
     string Identify() { return "xstateserver"; }
 
-    void Initialize(Property *options);
-    bool EvaluateFrame(Topology *top);
+    void Initialize(TOOLS::Property *options);
+    bool EvaluateFrame(CTP::Topology *top);
 
     void DownloadTopology(FILE *out, Topology *top);
     void DownloadSegments(FILE *out, Topology *top);
@@ -68,7 +70,7 @@ private:
 };
 
 
-void XStateServer::Initialize(Property *opt) {
+void XStateServer::Initialize(TOOLS::Property *opt) {
     
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt, "xtp" );
@@ -95,12 +97,12 @@ void XStateServer::Initialize(Property *opt) {
         keys = opt->get(tag+".keys").as< string > ();
     }
 
-    Tokenizer tok_keys(keys, " ");
+    TOOLS::Tokenizer tok_keys(keys, " ");
     tok_keys.ToVector(_keys);
 
 }
 
-bool XStateServer::EvaluateFrame(Topology *top) {
+bool XStateServer::EvaluateFrame(CTP::Topology *top) {
 
     // ++++++++++++++++++++++++ //
     // Topology - Sites - Pairs //
@@ -264,7 +266,7 @@ bool XStateServer::EvaluateFrame(Topology *top) {
     return true;
 }
 
-void XStateServer::DownloadTopology(FILE *out, Topology *top) {
+void XStateServer::DownloadTopology(FILE *out, CTP::Topology *top) {
 
     fprintf(out, "Topology Database ID %3d \n", top->getDatabaseId());
     fprintf(out, "  Periodic Box: %2.4f %2.4f %2.4f | %2.4f %2.4f %2.4f "

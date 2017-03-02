@@ -22,8 +22,8 @@
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
-#include <votca/xtp/apolarsite.h>
-
+#include <votca/ctp/apolarsite.h>
+#include <votca/tools/linalg.h>
 #include <votca/ctp/segment.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
@@ -31,7 +31,7 @@
 #define BOOST_DISABLE_ASSERTS //could be used to slighlty speed up calculation but the compile time simply goes boom
 #include <boost/multi_array.hpp>
 #include "basisset.h"
-//#include "linalg_tools.h"
+
 
 
 using namespace votca::tools;
@@ -177,8 +177,8 @@ namespace votca { namespace xtp {
         //block fill for overlap, implementation in aoesp.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         //void Print();
-        void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms,bool _with_ecp=false );
-        void Fillextpotential( AOBasis* aobasis, std::vector<APolarSite*>& _sites);
+        void Fillnucpotential( AOBasis* aobasis, std::vector<CTP::QMAtom*>& _atoms,bool _with_ecp=false );
+        void Fillextpotential( AOBasis* aobasis, std::vector<CTP::APolarSite*>& _sites);
         ub::matrix<double> &getNuclearpotential(){ return _nuclearpotential;}
         const ub::matrix<double> &getNuclearpotential()const{ return _nuclearpotential;}
         ub::matrix<double> &getExternalpotential(){ return _externalpotential;}
@@ -241,7 +241,7 @@ namespace votca { namespace xtp {
         //block fill for overlap, implementation in aooverlap.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         
-        void Fillextpotential( AOBasis* aobasis, std::vector<APolarSite*>& _sites);
+        void Fillextpotential( AOBasis* aobasis, std::vector<CTP::APolarSite*>& _sites);
         ub::matrix<double> &getExternalpotential(){ return _externalpotential;}
         const ub::matrix<double> &getExternalpotential()const{ return _externalpotential;}
         
@@ -249,10 +249,10 @@ namespace votca { namespace xtp {
         
 	//        ~AOOverlap();
     private: 
-        void setAPolarSite(APolarSite* site){
+        void setAPolarSite(CTP::APolarSite* site){
             apolarsite=site;
         };
-        APolarSite* apolarsite;
+        CTP::APolarSite* apolarsite;
         ub::matrix<double> _externalpotential;
     };
     
@@ -262,17 +262,17 @@ namespace votca { namespace xtp {
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         //void Print();
         
-        void Fillextpotential( AOBasis* aobasis, std::vector<APolarSite*>& _sites);
+        void Fillextpotential( AOBasis* aobasis, std::vector<CTP::APolarSite*>& _sites);
         ub::matrix<double> &getExternalpotential(){ return _externalpotential;}
         const ub::matrix<double> &getExternalpotential()const{ return _externalpotential;}
         //void Print();
         
 	//        ~AOOverlap();
     private: 
-        void setAPolarSite(APolarSite* site){
+        void setAPolarSite(CTP::APolarSite* site){
             apolarsite=site;
         };
-        APolarSite* apolarsite;
+        CTP::APolarSite* apolarsite;
         ub::matrix<double> _externalpotential;
     };
     

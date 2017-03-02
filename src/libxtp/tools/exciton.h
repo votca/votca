@@ -691,14 +691,14 @@ void Exciton::NumForceCentral(double energy, vector<CTP::Atom*> _atoms, ub::matr
     int _i_atom = 0;
     for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
        // get its current coordinates
-       CTP::vec _current_pos = (*ait)->getQMPos(); // in nm
+     
        vec _current_pos = (*ait)->getQMPos(); // in nm
     
        // go through all cartesian components
        for ( int _i_cart = 0 ; _i_cart < 3; _i_cart++ ){
            
            // get displacement vector in positive direction
-           CTP::vec _displaced(0, 0, 0);
+       
            vec _displaced(0, 0, 0);
            if (_i_cart == 0) {
               _displaced.setX(_displacement* bohr2nm ); // x, _displacement in Bohr
@@ -714,8 +714,8 @@ void Exciton::NumForceCentral(double energy, vector<CTP::Atom*> _atoms, ub::matr
            }
                             
            // update the coordinate
-           CTP::vec _pos_displaced = _current_pos + _displaced;
            vec _pos_displaced = _current_pos + _displaced;
+           
            (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
 
            // run DFT and GW-BSE for this geometry
@@ -787,7 +787,7 @@ double nm2bohr=tools::conv::nm2bohr;
         
 
           // get its current coordinates
-          CTP::vec _current_pos = (*ait)->getQMPos(); // in nm
+          vec _current_pos = (*ait)->getQMPos(); // in nm
           //       if ( _i_atom < 2 ) {        
           for ( int _i_cart = 0 ; _i_cart < 3; _i_cart++ ){
 
@@ -821,7 +821,7 @@ double nm2bohr=tools::conv::nm2bohr;
                  cout << " calculating " << _i_atom << " " << _i_cart << endl;
               
               // get displacement vector
-              CTP::vec _displaced(0, 0, 0);
+              vec _displaced(0, 0, 0);
               if (_i_cart == 0) {
                  _displaced.setX(_displacement *bohr2nm ); // x, _displacement in Bohr
                  _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() * nm2bohr; // in Bohr

@@ -23,7 +23,7 @@
 
 #include <votca/xtp/parallelpaircalc.h>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class Sandbox : public ParallelPairCalculator
 {

@@ -23,7 +23,7 @@
 
 //#include <votca/ctp/qmcalculator.h>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 
 class XEInternal : public XQMCalculator

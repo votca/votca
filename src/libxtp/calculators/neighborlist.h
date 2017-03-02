@@ -22,11 +22,15 @@
 #define __VOTCA_XTP_NEIGHBORLIST_H
 
 #include <votca/tools/globals.h>
-#include <votca/ctp/qmcalculator.h>
+#include <votca/tools/vec.h>
+
+#include <votca/xtp/qmcalculator.h>
 #include <votca/ctp/qmpair.h>
+#include <votca/tools/property.h>
 #include <boost/progress.hpp>
 #include <boost/format.hpp>
 #include <votca/tools/random2.h>
+#include <votca/tools/tokenizer.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -53,7 +57,7 @@ public:
 
     std::string Identify() { return "xneighborlist"; }
     
-    void Initialize(Property *options);
+    void Initialize(TOOLS::Property *options);
     bool EvaluateFrame(CTP::Topology *top);
     void GenerateFromFile(CTP::Topology *top, std::string filename);
     void StochasticConnectivity(CTP::Topology *top, std::string filename);
@@ -77,7 +81,7 @@ private:
 };
     
 
-void XNeighborlist::Initialize(Property *options) {
+void XNeighborlist::Initialize(TOOLS::Property *options) {
 
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options, "xtp" );
@@ -94,8 +98,8 @@ void XNeighborlist::Initialize(Property *options) {
     
     
       
-    list< Property* > segs = options->Select(key+".segments");
-    list< Property* > ::iterator segsIt;
+    list< TOOLS::Property* > segs = options->Select(key+".segments");
+    list< TOOLS::Property* > ::iterator segsIt;
 
     for (segsIt = segs.begin();
          segsIt != segs.end();
@@ -104,7 +108,7 @@ void XNeighborlist::Initialize(Property *options) {
         string types = (*segsIt)->get("type").as<string>();
         double cutoff = (*segsIt)->get("cutoff").as<double>();
 
-        CTP::Tokenizer tok(types, " ");
+        TOOLS::Tokenizer tok(types, " ");
         vector< string > names;
         tok.ToVector(names);
 
@@ -150,8 +154,8 @@ void XNeighborlist::Initialize(Property *options) {
     
     
     
-        list< Property* > _se = options->Select(key + ".superexchange");
-        list< Property* > ::iterator seIt;
+        list< TOOLS::Property* > _se = options->Select(key + ".superexchange");
+        list< TOOLS::Property* > ::iterator seIt;
 
         for (seIt = _se.begin(); seIt != _se.end(); seIt++) {
             string types = (*seIt)->get("type").as<string>();
@@ -185,7 +189,7 @@ bool XNeighborlist::EvaluateFrame(CTP::Topology *top) {
         
      
         
-        if (TOOLS::globals::verbose) {
+        if (tools::globals::verbose) {
             cout << endl <<  "... ..." << flush;
         }
         boost::progress_display show_progress( top->Segments().size() ); 
@@ -203,7 +207,7 @@ bool XNeighborlist::EvaluateFrame(CTP::Topology *top) {
                 TOOLS::vec r2;
 
                 CTP::Segment *seg1 = *segit1;
-                if (TOOLS::globals::verbose) {
+                if (tools::globals::verbose) {
                     cout << "\r ... ... NB List Seg " << seg1->getId() << flush;
                     ++show_progress;
                 }
@@ -319,8 +323,8 @@ bool XNeighborlist::EvaluateFrame(CTP::Topology *top) {
     // DEBUG output
     if (votca::tools::globals::verbose) {
 
-	Property bridges_summary;
-        Property *_bridges = &bridges_summary.add("bridges","");
+	TOOLS::Property bridges_summary;
+        TOOLS::Property *_bridges = &bridges_summary.add("bridges","");
 
         cout << "Bridged Pairs \n [idA:idB] com distance" << endl;
         for (CTP::QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
@@ -337,7 +341,7 @@ bool XNeighborlist::EvaluateFrame(CTP::Topology *top) {
                 
                 vector<CTP::Segment*> bsegments = pair->getBridgingSegments();
  
-                Property *_pair_property = &_bridges->add("pair","");
+                TOOLS::Property *_pair_property = &_bridges->add("pair","");
                                    
                 _pair_property->setAttribute("id1", segment1->getId());
                 _pair_property->setAttribute("id2", segment2->getId());
@@ -345,7 +349,7 @@ bool XNeighborlist::EvaluateFrame(CTP::Topology *top) {
                 _pair_property->setAttribute("name2", segment2->getName());
                 _pair_property->setAttribute("r12", pair->Dist());
                                     
-                Property *_bridge_property = &_pair_property->add("bridge","");
+                TOOLS::Property *_bridge_property = &_pair_property->add("bridge","");
 
                 for ( vector<CTP::Segment*>::iterator itb = bsegments.begin(); itb != bsegments.end(); itb++ ) {
                     cout << (*itb)->getId() << " " ;
@@ -415,7 +419,7 @@ void XNeighborlist::StochasticConnectivity(CTP::Topology *top, string filename) 
             std::getline(intt, line);
             if (linenumber > 0){
                 vector<string> split;
-                CTP::Tokenizer toker(line, " \t");
+                TOOLS::Tokenizer toker(line, " \t");
                 toker.ToVector(split);
 
                 if ( !split.size()      ||
@@ -490,7 +494,7 @@ void XNeighborlist::GenerateFromFile(CTP::Topology *top, string filename) {
 
             std::getline(intt, line);
             vector<string> split;
-            CTP::Tokenizer toker(line, " \t");
+            TOOLS::Tokenizer toker(line, " \t");
             toker.ToVector(split);
 
             if ( !split.size()      ||

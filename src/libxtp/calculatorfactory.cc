@@ -22,7 +22,7 @@
 
 //#include "calculators/sandbox.h"
 #include "calculators/neighborlist.h"
-/*
+
  #include "calculators/stateserver.h"
 #include "calculators/rates.h"
 #include "calculators/einternal.h"
@@ -31,7 +31,7 @@
 #include "calculators/eimport.h"
 #include "calculators/iimport.h"
 #include "calculators/ianalyze.h"
-*/
+
 
 
 
@@ -43,15 +43,12 @@ void XCalculatorfactory::RegisterAll(void)
 {	
         //XCalculators().Register<votca::ctp::Sandbox>             ("sandbox");
 	XCalculators().Register<XNeighborlist>       ("xneighborlist");
-        /* XCalculators().Register<XStateServer>        ("xstateserver");
+       XCalculators().Register<XStateServer>        ("xstateserver");
         XCalculators().Register<Rates>               ("rates");
         XCalculators().Register<XEInternal>          ("xeinternal");
         XCalculators().Register<XEAnalyze>           ("xeanalyze");
-        XCalculators().Register<PAnalyze>            ("panalyze");
-        XCalculators().Register<XEImport>            ("xeimport");
-        XCalculators().Register<XIImport>            ("xiimport");
         XCalculators().Register<XIAnalyze>           ("ianalyze");
-        */
+       
 
 }
 

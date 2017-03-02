@@ -26,7 +26,7 @@
 #include <cmath>
 #include <complex>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class Rates : public PairCalculator2
 {

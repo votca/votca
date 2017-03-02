@@ -37,19 +37,21 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/ERIs.o \
 	${OBJECTDIR}/_ext/484478074/aobasis.o \
-	${OBJECTDIR}/_ext/708574269/aocoulomb_g.o \
 	${OBJECTDIR}/_ext/708574269/aodipole.o \
+	${OBJECTDIR}/_ext/708574269/aodipole_potential.o \
 	${OBJECTDIR}/_ext/708574269/aoecp.o \
 	${OBJECTDIR}/_ext/708574269/aoesp.o \
 	${OBJECTDIR}/_ext/708574269/aokinetic.o \
 	${OBJECTDIR}/_ext/708574269/aomatrix.o \
 	${OBJECTDIR}/_ext/708574269/aomomentum.o \
 	${OBJECTDIR}/_ext/708574269/aooverlap.o \
+	${OBJECTDIR}/_ext/708574269/aoquadrupole_potential.o \
 	${OBJECTDIR}/_ext/484478074/aoshell.o \
 	${OBJECTDIR}/_ext/484478074/bsecoupling.o \
 	${OBJECTDIR}/_ext/484478074/bulkesp.o \
 	${OBJECTDIR}/_ext/484478074/calculatorfactory.o \
 	${OBJECTDIR}/_ext/1584959903/dftengine.o \
+	${OBJECTDIR}/_ext/484478074/diis.o \
 	${OBJECTDIR}/_ext/484478074/esp2multipole.o \
 	${OBJECTDIR}/_ext/484478074/espfit.o \
 	${OBJECTDIR}/_ext/484478074/extractorfactory.o \
@@ -67,6 +69,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/164445175/iexcitoncl.o \
 	${OBJECTDIR}/_ext/164445175/igwbse.o \
 	${OBJECTDIR}/_ext/484478074/lowdin.o \
+	${OBJECTDIR}/_ext/484478074/mixing.o \
 	${OBJECTDIR}/_ext/484478074/mulliken.o \
 	${OBJECTDIR}/_ext/484478074/nbo.o \
 	${OBJECTDIR}/_ext/1294340152/numerical_integrations.o \
@@ -133,15 +136,15 @@ ${OBJECTDIR}/_ext/484478074/aobasis.o: nbproject/Makefile-${CND_CONF}.mk ../../s
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/aobasis.o ../../src/libxtp/aobasis.cc
 
-${OBJECTDIR}/_ext/708574269/aocoulomb_g.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/aomatrices/aocoulomb_g.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/708574269
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/708574269/aocoulomb_g.o ../../src/libxtp/aomatrices/aocoulomb_g.cc
-
 ${OBJECTDIR}/_ext/708574269/aodipole.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/aomatrices/aodipole.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/708574269
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/708574269/aodipole.o ../../src/libxtp/aomatrices/aodipole.cc
+
+${OBJECTDIR}/_ext/708574269/aodipole_potential.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/aomatrices/aodipole_potential.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/708574269
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/708574269/aodipole_potential.o ../../src/libxtp/aomatrices/aodipole_potential.cc
 
 ${OBJECTDIR}/_ext/708574269/aoecp.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/aomatrices/aoecp.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/708574269
@@ -173,6 +176,11 @@ ${OBJECTDIR}/_ext/708574269/aooverlap.o: nbproject/Makefile-${CND_CONF}.mk ../..
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/708574269/aooverlap.o ../../src/libxtp/aomatrices/aooverlap.cc
 
+${OBJECTDIR}/_ext/708574269/aoquadrupole_potential.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/aomatrices/aoquadrupole_potential.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/708574269
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/708574269/aoquadrupole_potential.o ../../src/libxtp/aomatrices/aoquadrupole_potential.cc
+
 ${OBJECTDIR}/_ext/484478074/aoshell.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/aoshell.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
@@ -197,6 +205,11 @@ ${OBJECTDIR}/_ext/1584959903/dftengine.o: nbproject/Makefile-${CND_CONF}.mk ../.
 	${MKDIR} -p ${OBJECTDIR}/_ext/1584959903
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1584959903/dftengine.o ../../src/libxtp/dftengine/dftengine.cc
+
+${OBJECTDIR}/_ext/484478074/diis.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/diis.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/diis.o ../../src/libxtp/diis.cc
 
 ${OBJECTDIR}/_ext/484478074/esp2multipole.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/esp2multipole.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
@@ -282,6 +295,11 @@ ${OBJECTDIR}/_ext/484478074/lowdin.o: nbproject/Makefile-${CND_CONF}.mk ../../sr
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/lowdin.o ../../src/libxtp/lowdin.cc
+
+${OBJECTDIR}/_ext/484478074/mixing.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/mixing.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/mixing.o ../../src/libxtp/mixing.cc
 
 ${OBJECTDIR}/_ext/484478074/mulliken.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/mulliken.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074

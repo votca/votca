@@ -20,12 +20,12 @@
 #ifndef _VOTCA_XTP_EANALYZE_H
 #define _VOTCA_XTP_EANALYZE_H
 
-//#include <votca/ctp/qmcalculator.h>
+
 #include <math.h>
-#include <votca/tools/tokenizer.h>
 
 
-namespace votca { namespace ctp {
+
+namespace votca { namespace xtp {
 
 class XEAnalyze : public XQMCalculator
 {
@@ -36,7 +36,7 @@ public:
 
     std::string Identify() { return "xeanalyze"; }
 
-    void Initialize(Property *opt);
+    void Initialize(TOOLS::Property *opt);
     bool EvaluateFrame(Topology *top);
     void SiteHist(Topology *top, int state);
     void PairHist(Topology *top, int state);
@@ -68,7 +68,7 @@ private:
 
 
 
-void XEAnalyze::Initialize( Property *opt ) {
+void XEAnalyze::Initialize( TOOLS::Property *opt ) {
     _skip_corr=false;
     _skip_sites=false;
     _skip_pairs=false;

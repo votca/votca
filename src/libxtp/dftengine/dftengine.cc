@@ -591,10 +591,10 @@ namespace votca {
       
 ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             ub::matrix<double> guess = ub::zero_matrix<double>(_dftbasis.AOBasisSize());
-            const std::vector<QMAtom*> atoms = _orbitals->QMAtoms();
-            std::vector<QMAtom*> uniqueelements;
-            std::vector<QMAtom*>::const_iterator at;
-            std::vector<QMAtom*>::iterator st;
+            const std::vector<CTP::QMAtom*> atoms = _orbitals->QMAtoms();
+            std::vector<CTP::QMAtom*> uniqueelements;
+            std::vector<CTP::QMAtom*>::const_iterator at;
+            std::vector<CTP::QMAtom*>::iterator st;
             std::vector< ub::matrix<double> > uniqueatom_guesses;
             LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Scanning molecule of size " << atoms.size() << " for unique elements" << flush;
             for (at = atoms.begin(); at < atoms.end(); ++at) {
@@ -624,7 +624,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 if ((*st)->type == "H" || (*st)->type == "He") {
                     with_ecp = false;
                 }
-                std::vector<QMAtom*> atom;
+                std::vector<CTP::QMAtom*> atom;
                 atom.push_back(*st);
 
                 AOBasis dftbasis;
@@ -1033,7 +1033,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
           for(unsigned i=0;i<_atoms.size();i++){
               vec r1=vec(_atoms[i]->x*tools::conv::ang2bohr,_atoms[i]->y*tools::conv::ang2bohr,_atoms[i]->z*tools::conv::ang2bohr);
               double charge1=charge[i];
-              for(std::vector<APolarSite*>::iterator ext=_externalsites.begin();ext<_externalsites.end();++ext){
+              for(std::vector<CTP::APolarSite*>::iterator ext=_externalsites.begin();ext<_externalsites.end();++ext){
                   vec r2=(*ext)->getPos()*tools::conv::nm2bohr;
                   double charge2=(*ext)->getQ00();
                   E_ext+=charge1*charge2/(abs(r1-r2));
