@@ -441,13 +441,13 @@ namespace votca {
                 dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms());
                 dftbasis.ReorderMOs(_dft_orbitals, orb_iter_output.getQMpackage(), "votca");
                 // TBD: Need to switch between singlets and triplets depending on _type
-                ub::matrix<double> &DMATGS = orb_iter_output.DensityMatrixGroundState(_dft_orbitals);
+                ub::matrix<double> DMATGS = orb_iter_output.DensityMatrixGroundState(_dft_orbitals);
 
                 ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
 
                 if (_state > 0) {
                     ub::matrix<real_gwbse>& BSECoefs = orb_iter_output.BSESingletCoefficients();
-                    std::vector<ub::matrix<double> > &DMAT = orb_iter_output.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state_index[_state - 1]);
+                    std::vector<ub::matrix<double> > DMAT = orb_iter_output.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state_index[_state - 1]);
                     DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
                 }
 
