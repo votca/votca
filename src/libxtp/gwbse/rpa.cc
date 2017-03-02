@@ -234,7 +234,7 @@ namespace votca {
         
         
    
-    
+    // this is apparently the fourier transform of the coulomb matrix, I am not sure
     void GWBSE::RPA_prepare_threecenters(TCMatrix& _Mmn_RPA,const TCMatrix& _Mmn_full, AOBasis& gwbasis,
              const AOMatrix& gwoverlap,const AOMatrix& gwoverlap_inverse ){
         
@@ -271,8 +271,11 @@ namespace votca {
                     
                     double _factor = pow((2.0 *pi/decay),0.75);
                     vector<double> chi( _size, 0.0 );
-                    chi[0] = _factor;
 
+                    // only do something for s- shells
+                    std::string _type = _shell->getType();
+                    std::size_t found_S = _type.find("S");
+                    if (found_S!=std::string::npos) chi[0] = _factor;
                     // some block from the fortran code that I'm not sure we need 
                     /*
                                   if ( lmax .ge. 0 ) then    
@@ -309,6 +312,7 @@ namespace votca {
                 if ( _m_level <= _Mmn_RPA.get_mmax() && _n_level >= _Mmn_RPA.get_nmin()  ){
                     
                     double target = std::sqrt( sc_plus * sc_minus );
+                    //cout << "s+: " << sc_plus << "  s-: " << sc_minus << " target " << target << endl;
                     sc_plus  = target / sc_plus;
                     sc_minus = target / sc_minus;
 
@@ -321,8 +325,12 @@ namespace votca {
                         vector<double> chi( _size, 0.0 );
                         
                         double _factor = pow((2.0 *pi/decay),0.75);
-                        chi[0] = _factor;
-                        // loop over all functions in shell
+                    // only do something for s- shells
+                    std::string _type = _shell->getType();
+                    std::size_t found_S = _type.find("S");
+                    if (found_S!=std::string::npos) chi[0] = _factor;
+                    
+                    // loop over all functions in shell
                         for ( int _i_gw = 0; _i_gw < _size ; _i_gw++ ){
                             if (std::abs( chi[_i_gw] ) > 1.e-10){
                                 

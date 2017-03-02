@@ -58,8 +58,6 @@ Orbitals::Orbitals() {
     _occupied_levels = 0;
     _unoccupied_levels = 0;
     _number_of_electrons = 0;
-    _number_of_beta_e=0;
-    _number_of_alpha_e=0;
     _self_energy = 0.0;
     _qm_energy = 0.0;
     _couplingsA = 0;

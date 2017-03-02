@@ -111,9 +111,6 @@ public:
     int            getNumberOfElectrons() { return  _number_of_electrons ; } ;
     void           setNumberOfElectrons( const int &electrons ) { _number_of_electrons = electrons;}
     
- 
-    
-    
     
     /* To be uncommented in next version
     bool           getWithECP() {return _with_ECP;};
@@ -137,7 +134,7 @@ public:
     ub::vector<double>* getEnergies() { return &_mo_energies; } // OLD
 
     // access to DFT molecular orbital energy of a specific level (in eV)
-    double getEnergy( int level) { return ( hasMOEnergies() ) ? tools::conv::hrt2ev*_mo_energies[level-1] : 0; }
+    double getEnergy( int level) { return ( hasMOEnergies() ) ? votca::tools::conv::hrt2ev*_mo_energies[level-1] : 0; }
 
     // access to DFT molecular orbital coefficients, new, tested
     bool          hasMOCoefficients() { return ( _mo_coefficients.size1() > 0 ) ? true : false ;}
@@ -272,6 +269,10 @@ public:
     ub::vector<real_gwbse> &BSESingletEnergies()  { return _BSE_singlet_energies; }
     const ub::matrix<real_gwbse> &BSESingletCoefficients() const { return _BSE_singlet_coefficients;}
     ub::matrix<real_gwbse> &BSESingletCoefficients() { return _BSE_singlet_coefficients;}
+    
+    // for anti-resonant part in full BSE
+    const ub::matrix<real_gwbse> &BSESingletCoefficientsAR() const { return _BSE_singlet_coefficients_AR;}
+    ub::matrix<real_gwbse> &BSESingletCoefficientsAR() { return _BSE_singlet_coefficients_AR;}
 
     // access to transition dipole moments
     bool hasTransitionDipoles() {return (_transition_dipoles.size() > 0 ) ? true : false ;}
@@ -306,7 +307,7 @@ public:
     std::vector<ub::matrix<double> > DensityMatrixExcitedState( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0 ) ;
     ub::matrix<double > TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0);
     
-
+    
     // functions for analyzing fragment charges via Mulliken populations
     void MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag, double& _PopA, double& _PopB  );
 
@@ -361,7 +362,7 @@ public:
     void SortEnergies( std::vector<int>* index );
     
     /** Adds a QM atom to the atom list */
-    QMAtom* AddAtom (std::string _type, 
+   QMAtom* AddAtom (std::string _type, 
                      double _x, double _y, double _z, 
                      double _charge = 0, bool _from_environment = false)
     {
@@ -403,10 +404,7 @@ private:
     int                                     _basis_set_size;   
     int                                     _occupied_levels;
     int                                     _unoccupied_levels;
-    //number of electrons actually is number of alpha_e
     int                                     _number_of_electrons;
-    int                                     _number_of_alpha_e;
-    int                                     _number_of_beta_e;
     /* To be uncommented in next version
     bool                                    _with_ECP;
     */
@@ -467,6 +465,8 @@ private:
     ub::matrix<real_gwbse>                      _eh_x;
     ub::vector<real_gwbse>                     _BSE_singlet_energies;
     ub::matrix<real_gwbse>                      _BSE_singlet_coefficients;
+    ub::matrix<real_gwbse>                      _BSE_singlet_coefficients_AR;
+
     std::vector<ub::vector<double> >      _transition_dipoles;
     ub::vector<real_gwbse>                     _BSE_triplet_energies;
     ub::matrix<real_gwbse>                      _BSE_triplet_coefficients;   
@@ -476,6 +476,9 @@ private:
     int                                    _couplingsA;
     int                                    _couplingsB;
     
+    ub::matrix<double>                     _dmatGS;
+    std::vector< ub::matrix<double> >      _dmatEX;
+    ub::matrix<double>                     _dmatTS;
     
     std::vector<double>                    _DqS_fragA; // fragment charge changes in exciton
     std::vector<double>                    _DqS_fragB;
@@ -518,7 +521,7 @@ private:
           ar & floatordouble;
           
           if (test!=floatordouble){ 
-              throw std::runtime_error((boost::format("This votca is compiled with %. The orbitals file you want to read in is compiled with %") %test %floatordouble).str());
+              throw std::runtime_error((boost::format("This votca is compiled with %. The orbitals file you want to read in is compield with %") %test %floatordouble).str());
           }
       }
           else{
