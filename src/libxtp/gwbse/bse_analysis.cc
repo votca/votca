@@ -231,7 +231,7 @@ namespace votca {
                 LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap._aomatrix.size1() << flush;
                 LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Running Excitation fragment population analysis " << flush;
                 // ground state populations
-                ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
+                ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
                 double nucA;
                 double nucB;
                 _orbitals->FragmentNuclearCharges(_fragA, nucA, nucB);
@@ -243,7 +243,7 @@ namespace votca {
                 for (int _i_state = 0; _i_state < _bse_nprint; _i_state++) {
 
                     // checking Density Matrices
-                    std::vector<ub::matrix<double> > &DMAT = _orbitals->DensityMatrixExcitedState(_dft_orbitals, _bse_coefficients, _i_state);
+                    std::vector<ub::matrix<double> > DMAT = _orbitals->DensityMatrixExcitedState(_dft_orbitals, _bse_coefficients, _i_state);
 
                     double _totalA;
                     double _totalB;
