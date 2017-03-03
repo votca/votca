@@ -389,6 +389,18 @@ namespace votca {
                 }
                 
                 ub::matrix<double> H=H0+_ERIs.getERIs()+_orbitals->AOVxc();
+                
+                double Eone=linalg_traceofProd(_dftAOdmat,H0);
+                double Etwo=0.5*_ERIs.getERIsenergy()+vxcenergy;
+                double totenergy=Eone+E_nucnuc+Etwo;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Single particle energy "<<std::setprecision(12)<<Eone<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Two particle energy "<<std::setprecision(12)<<Etwo<<flush;
+                
+                LOG(logDEBUG, *_pLog) << TimeStamp() <<std::setprecision(12)<< " Exc contribution "<<vxcenergy<<flush;
+               
+                
+                
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<std::setprecision(12)<<totenergy<<flush;
                 //cout<<_orbitals->AOVxc()<<endl;
                 
        
@@ -426,22 +438,13 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << "\t\tGAP " << MOEnergies(_numofelectrons/2)-MOEnergies(_numofelectrons/2-1) << flush;
                 
                  
-                double Eone=linalg_traceofProd(dmatin,H0);
-                double Etwo=0.5*_ERIs.getERIsenergy()+vxcenergy;
-                double totenergy=Eone+E_nucnuc+Etwo;
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Single particle energy "<<std::setprecision(12)<<Eone<<flush;
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Two particle energy "<<std::setprecision(12)<<Etwo<<flush;
                 
-                LOG(logDEBUG, *_pLog) << TimeStamp() <<std::setprecision(12)<< "Exc contribution "<<vxcenergy<<flush;
-               
-                
-                
-                LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<std::setprecision(12)<<totenergy<<flush;
                 
               //  LOG(logDEBUG, *_pLog) << TimeStamp() << " Solved general eigenproblem "<<flush;
                 if (std::abs(totenergy-energyold)< _Econverged && diiserror<_error_converged){
                     LOG(logDEBUG, *_pLog) << TimeStamp() << "Total Energy has converged to "<<std::setprecision(9)<<std::abs(totenergy-energyold)<<"[Ha] after "<< _this_iter+1<<
                             " iterations. DIIS error is converged up to "<<_error_converged<<"[Ha]" <<flush;
+                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Final Single Point Energy "<<std::setprecision(12)<<totenergy<<flush;
                     break;
                 }
                 else{
@@ -737,14 +740,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                ub::matrix<double>dftAOdmat_beta = DensityMatrix_unres(MOCoeff_beta,beta_e);
 
                     
-                double totinit = 0;
-
-                   for (int i = 0; i < alpha_e; i++) {
-                       totinit +=MOEnergies_alpha(i);
-                   }
-                   for (int i = 0; i < beta_e; i++) {
-                       totinit +=MOEnergies_beta(i);
-                   }
+              
                /* 
                 double e_a=0.0;
                 double e_b=0.0;
@@ -757,7 +753,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 cout <<"e_a "<<e_a<<endl;
                 cout <<"e_b "<<e_b<<endl;
                  */ 
-                    double energyold = totinit;
+                    double energyold = 0;
                     int maxiter=201;
                     for (int this_iter = 0; this_iter < maxiter; this_iter++) {
                         //cout<<this_iter<<endl;
@@ -769,11 +765,21 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                         double E_vxc_beta= gridIntegration.getTotEcontribution();
                         ub::matrix<double> H_alpha = H0 + ERIs_atom.getERIs() + AOVxc_alpha;
                         ub::matrix<double> H_beta = H0 + ERIs_atom.getERIs() + AOVxc_beta;
-                        double totenergy = 0;
-                        //this updates the density matrix as well
                         
+                        
+             
+                        double E_one_alpha=linalg_traceofProd(dftAOdmat_alpha,H0);
+                        double E_two_alpha=E_vxc_alpha+linalg_traceofProd(ERIs_atom.getERIs(),dftAOdmat_alpha);
+                        double E_one_beta=linalg_traceofProd(dftAOdmat_beta,H0);
+                        double E_two_beta=E_vxc_beta+linalg_traceofProd(ERIs_atom.getERIs(),dftAOdmat_beta);
+                        double E_alpha=E_one_alpha+E_two_alpha;
+                        double E_beta=E_one_beta+E_two_beta;
+                   
+                        
+                        
+                        double totenergy = E_alpha+E_beta;
                         //evolve alpha
-                      double diiserror_alpha=diis_alpha.Evolve(dftAOdmat_alpha,H_alpha,MOEnergies_alpha,MOCoeff_alpha,this_iter,energyold);
+                      double diiserror_alpha=diis_alpha.Evolve(dftAOdmat_alpha,H_alpha,MOEnergies_alpha,MOCoeff_alpha,this_iter,E_alpha);
                        
                             ub::matrix<double> dmatin=dftAOdmat_alpha;
                            dftAOdmat_alpha=DensityMatrix_unres(MOCoeff_alpha,alpha_e);
@@ -788,7 +794,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                       
                        double diiserror_beta=0.0;
                        if(beta_e>0){
-                       diiserror_beta=diis_beta.Evolve(dftAOdmat_beta,H_beta,MOEnergies_beta,MOCoeff_beta,this_iter,energyold);
+                       diiserror_beta=diis_beta.Evolve(dftAOdmat_beta,H_beta,MOEnergies_beta,MOCoeff_beta,this_iter,E_beta);
                             ub::matrix<double> dmatin=dftAOdmat_beta;
                            dftAOdmat_beta=DensityMatrix_unres(MOCoeff_beta,beta_e);
                         if (!(diiserror_beta<_diis_start && _usediis && this_iter>2)){   
@@ -800,16 +806,10 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                         } 
                        }
                        
-                       //cout<<"Err_alpha:"<<diiserror_alpha<<endl;
-                       //cout<<"Err_beta:"<<diiserror_beta<<endl;
-                       for (int i = 0; i < alpha_e; i++) {
-                       totenergy +=MOEnergies_alpha(i);
-                        }
-                    for (int i = 0; i < beta_e; i++) {
-                       totenergy +=MOEnergies_beta(i);
-                        }
+                  
+                 
                        
-                        totenergy += E_vxc_alpha+ E_vxc_beta - 0.5 * ERIs_atom.getERIsenergy();
+                        
                          if(tools::globals::verbose){
                         LOG(logDEBUG, *_pLog) << TimeStamp() <<" Etot "<<totenergy<<" diiserror_alpha "<<diiserror_alpha<<" diiserror_beta "<<diiserror_beta
                                 <<" alpha_gap "<<MOEnergies_alpha(alpha_e)-MOEnergies_alpha(alpha_e-1)<<" beta_gap "<<MOEnergies_beta(beta_e)-MOEnergies_beta(beta_e-1)<<flush;
