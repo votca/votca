@@ -444,7 +444,7 @@ namespace votca {
                 if (std::abs(totenergy-energyold)< _Econverged && diiserror<_error_converged){
                     LOG(logDEBUG, *_pLog) << TimeStamp() << "Total Energy has converged to "<<std::setprecision(9)<<std::abs(totenergy-energyold)<<"[Ha] after "<< _this_iter+1<<
                             " iterations. DIIS error is converged up to "<<_error_converged<<"[Ha]" <<flush;
-                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Final Single Point Energy "<<std::setprecision(12)<<totenergy<<flush;
+                     LOG(logDEBUG, *_pLog) << TimeStamp() << " Final Single Point Energy "<<std::setprecision(12)<<totenergy<<<<" Ha"<<flush;
                     break;
                 }
                 else{
@@ -811,8 +811,8 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                        
                         
                          if(tools::globals::verbose){
-                        LOG(logDEBUG, *_pLog) << TimeStamp() <<" Etot "<<totenergy<<" diiserror_alpha "<<diiserror_alpha<<" diiserror_beta "<<diiserror_beta
-                                <<" alpha_gap "<<MOEnergies_alpha(alpha_e)-MOEnergies_alpha(alpha_e-1)<<" beta_gap "<<MOEnergies_beta(beta_e)-MOEnergies_beta(beta_e-1)<<flush;
+                        LOG(logDEBUG, *_pLog) << TimeStamp()<<" Iter "<<this_iter<<" of "<<maxiter<< <<" Etot "<<totenergy<<" diise_a "<<diiserror_alpha<<" diise_b "<<diiserror_beta
+                                <<" a_gap "<<MOEnergies_alpha(alpha_e)-MOEnergies_alpha(alpha_e-1)<<" b_gap "<<MOEnergies_beta(beta_e)-MOEnergies_beta(beta_e-1)<<flush;
                          }
                         if ((std::abs(totenergy - energyold) < _Econverged && diiserror_alpha < _error_converged && diiserror_beta < _error_converged)) {
                           
