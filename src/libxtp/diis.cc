@@ -106,10 +106,20 @@ namespace votca { namespace xtp {
        _Diis_Bs.push_back(Bijs);
       for (unsigned i=0;i<_errormatrixhist.size()-1;i++){
           double value=linalg_traceofProd(errormatrix,ub::trans(*_errormatrixhist[i]));
+          if(!_unrestricted){
+              value=0.5*value;
+          }
           Bijs->push_back(value);
           _Diis_Bs[i]->push_back(value);
       }
-      Bijs->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
+       
+      if(_unrestricted){
+              Bijs->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
+          }
+      else{
+         Bijs->push_back(0.5*linalg_traceofProd(errormatrix,ub::trans(errormatrix))); 
+      }
+      
       
       
       std::vector<double>* FD=new std::vector<double>;
@@ -118,6 +128,9 @@ namespace votca { namespace xtp {
           ub::matrix<double> FimFj=H-*_mathist[i];
           ub::matrix<double> DimDj=dmat-*_dmathist[i];
           double value=linalg_traceofProd(FimFj,DimDj);
+           if(!_unrestricted){
+              value=0.5*value;
+          }
           FD->push_back(value);
           _FDs[i]->push_back(value);
       }
@@ -128,19 +141,31 @@ namespace votca { namespace xtp {
        
       if (max<_diis_start && _usediis && this_iter>2){
           ub::vector<double> coeffs;
-          //if(max<0.0001){
-         
-          coeffs=DIIsCoeff();
-          /*}
+          //use EDIIs if energy has risen a lot in current iteration
+          cout<<endl;
+          cout<<"E"<<flush;
+          for (unsigned i=0;i<_totE.size();i++){
+              cout<<_totE[i]<<" "<<flush;
+          }
+          cout<<endl;
+          
+          if(max>0.1 || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
+              coeffs=EDIIsCoeff();
+              cout<<"EDIIS "<<coeffs<<endl;
+          }
           else if(max>0.0001 && max<0.1){
               ub::vector<double> coeffs1=DIIsCoeff();
+              cout<<"DIIS "<<coeffs1<<endl;
               ub::vector<double> coeffs2=EDIIsCoeff();
+              cout<<"EDIIS "<<coeffs2<<endl;
               coeffs=10*max*coeffs2+(1-10*max)*coeffs1;
+              cout<<"EDIIS+DIIS "<<coeffs<<endl;
           }
           else{
-               coeffs=EDIIsCoeff();
+               coeffs=DIIsCoeff();
+               cout<<"DIIS "<<coeffs<<endl;
           }
-           */
+           
                  for (unsigned i=0;i<_mathist.size();i++){  
                      if(std::abs(coeffs(i))<1e-8){ continue;}
                     H_guess+=coeffs(i)*(*_mathist[i]);
@@ -410,6 +435,7 @@ namespace votca { namespace xtp {
   for(unsigned i=0;i<c.size();i++){
   Eval+=c(i)*_totE[i];
   }
+  
   // this can be optimized using symmetry of TrFD
   double cTBc=0.0;
   for(unsigned i=0;i<c.size();i++){
@@ -418,7 +444,7 @@ namespace votca { namespace xtp {
       }
   }
   Eval-=0.5*cTBc;
-
+ 
   return Eval;
 }
 
