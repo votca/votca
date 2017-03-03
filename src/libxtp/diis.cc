@@ -128,10 +128,10 @@ namespace votca { namespace xtp {
        
       if (max<_diis_start && _usediis && this_iter>2){
           ub::vector<double> coeffs;
-          if(max<0.0001){
+          //if(max<0.0001){
          
           coeffs=DIIsCoeff();
-          }
+          /*}
           else if(max>0.0001 && max<0.1){
               ub::vector<double> coeffs1=DIIsCoeff();
               ub::vector<double> coeffs2=EDIIsCoeff();
@@ -140,6 +140,7 @@ namespace votca { namespace xtp {
           else{
                coeffs=EDIIsCoeff();
           }
+           */
                  for (unsigned i=0;i<_mathist.size();i++){  
                      if(std::abs(coeffs(i))<1e-8){ continue;}
                     H_guess+=coeffs(i)*(*_mathist[i]);

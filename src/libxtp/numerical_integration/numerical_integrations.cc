@@ -566,15 +566,7 @@ namespace votca {
 
 
          
-         const ub::vector<double>& DMAT_array = _density_matrix.data();
-           const ub::vector<double>& XCMAT_array = XCMAT.data();
-
-            double Comp=0.0;
-              #pragma omp parallel for reduction(+:Comp)
-           for ( unsigned i = 0; i < DMAT_array.size(); i++ ){
-            Comp =Comp+ DMAT_array[i] * XCMAT_array[i];
-             }
-             EXC-=Comp;
+        
   
             return XCMAT;
         }

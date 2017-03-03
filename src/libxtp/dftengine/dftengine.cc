@@ -336,6 +336,7 @@ namespace votca {
                 else if (_initial_guess == "atom") {
 
                     _dftAOdmat = AtomicGuess(_orbitals);
+                    MOEnergies=ub::zero_vector<double>(_dftAOdmat.size1());
                     //cout<<_dftAOdmat<<endl;
                     LOG(logDEBUG, *_pLog) << TimeStamp() <<" Full atomic density Matrix gives N="<<std::setprecision(9)<<linalg_traceofProd(_dftAOdmat,_dftAOoverlap.Matrix())<<" electrons."<<flush;
                    
@@ -394,7 +395,7 @@ namespace votca {
                 //this updates the density matrix as well
                 diiserror=_diis.Evolve(_dftAOdmat,H,MOEnergies,MOCoeff,_this_iter,totenergy);
         
-                totenergy=E_nucnuc;
+                
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " DIIs error "<<diiserror << flush;
                 
                      ub::matrix<double> dmatin=_dftAOdmat;
@@ -410,9 +411,7 @@ namespace votca {
                 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Updated Density Matrix "<<flush;
                 
-                for (int i=0;i<_numofelectrons/2;i++){
-                    totenergy+=2*MOEnergies(i);
-                }
+                
                 if(tools::globals::verbose){
                 for (int i=0;i<int(MOEnergies.size());i++){
                     if ( i <= _numofelectrons/2-1) {
@@ -426,13 +425,15 @@ namespace votca {
                 
                 LOG(logDEBUG, *_pLog) << "\t\tGAP " << MOEnergies(_numofelectrons/2)-MOEnergies(_numofelectrons/2-1) << flush;
                 
-                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Total KS orbital Energy "<<totenergy<<flush;
+                 
+                double Eone=linalg_traceofProd(dmatin,H0);
+                double Etwo=0.5*_ERIs.getERIsenergy()+vxcenergy;
+                double totenergy=Eone+E_nucnuc+Etwo;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Single particle energy "<<std::setprecision(12)<<Eone<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() << " Two particle energy "<<std::setprecision(12)<<Etwo<<flush;
                 
-                totenergy+=vxcenergy-0.5*_ERIs.getERIsenergy();
-         
-                
-                LOG(logDEBUG, *_pLog) << TimeStamp() <<std::setprecision(12)<< " Exc contribution "<<vxcenergy<<flush;
-                LOG(logDEBUG, *_pLog) << TimeStamp() <<std::setprecision(12)<< " E_H contribution "<<0.5*_ERIs.getERIsenergy()<<flush;
+                LOG(logDEBUG, *_pLog) << TimeStamp() <<std::setprecision(12)<< "Exc contribution "<<vxcenergy<<flush;
+               
                 
                 
                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "<<std::setprecision(12)<<totenergy<<flush;
@@ -654,8 +655,8 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                     alpha_e=numofelectrons/2;
                     beta_e=alpha_e;
                 }
-                cout<<"alpha "<<alpha_e<<endl;
-                cout<<"beta "<<beta_e<<endl;
+                //cout<<"alpha "<<alpha_e<<endl;
+                //cout<<"beta "<<beta_e<<endl;
               
              
                 AOOverlap dftAOoverlap;
@@ -825,6 +826,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                             
                             uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
                             LOG(logDEBUG, *_pLog) << TimeStamp() << " Not converged after " << this_iter<<" iterations. Using unconverged density." << flush;
+                            LOG(logDEBUG, *_pLog) << TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(dftAOdmat_alpha+dftAOdmat_beta,dftAOoverlap.Matrix())<<" electrons."<<flush;
                             break;
                             
                             
