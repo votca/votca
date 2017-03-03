@@ -181,7 +181,8 @@ public:
     bool                              _maxout;
     string                            _diismethod;
     ub::matrix<double>                _Sminusonehalf;
-    double                              _diis_start;                 
+    double                              _diis_start; 
+    double                              _adiis_start;
     bool                        _useautomaticmixing;
     //Electron repulsion integrals
     ERIs                                _ERIs;

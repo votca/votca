@@ -65,11 +65,12 @@ public:
     
    }
    
-   void Configure(bool usediis, unsigned histlength, bool maxout, string diismethod, double diis_start,double levelshift,bool unrestricted,unsigned nocclevels){
+   void Configure(bool usediis, unsigned histlength, bool maxout, string diismethod, double adiis_start,double diis_start,double levelshift,bool unrestricted,unsigned nocclevels){
        _usediis=usediis;
        _histlength=histlength;
        _maxout=maxout;
        _diismethod=diismethod;
+       _adiis_start=adiis_start;
        _diis_start=diis_start;
        _levelshift=levelshift;
        _unrestricted=unrestricted;
@@ -106,7 +107,8 @@ public:
     string                            _diismethod;
     ub::matrix<double>                _Sminusonehalf;
     double                              _maxerror;
-    double                              _diis_start;                 
+    double                              _adiis_start;  
+    double                              _diis_start;
     unsigned                            _maxerrorindex;
     std::vector< ub::matrix<double>* >   _mathist;
     std::vector< ub::matrix<double>* >   _dmathist;

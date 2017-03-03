@@ -128,7 +128,7 @@ namespace votca { namespace xtp {
       
       
        
-      if (max<_diis_start && _usediis && this_iter>2){
+      if (max<_adiis_start && _usediis && this_iter>2){
           ub::vector<double> coeffs;
           //use EDIIs if energy has risen a lot in current iteration
           cout<<endl;
@@ -138,16 +138,17 @@ namespace votca { namespace xtp {
           }
           cout<<endl;
           
-          if(max>0.1 || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
+          if(max>_diis_start || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
               coeffs=ADIIsCoeff();
               cout<<"ADIIS "<<coeffs<<endl;
           }
-          else if(max>0.0001 && max<0.1){
+          else if(max>0.0001 && max<_diis_start){
               ub::vector<double> coeffs1=DIIsCoeff();
               cout<<"DIIS "<<coeffs1<<endl;
               ub::vector<double> coeffs2=ADIIsCoeff();
               cout<<"ADIIS "<<coeffs2<<endl;
-              coeffs=10*max*coeffs2+(1-10*max)*coeffs1;
+              double mixing=max/_diis_start;
+              coeffs=mixing*coeffs2+(1-mixing)*coeffs1;
               cout<<"ADIIS+DIIS "<<coeffs<<endl;
           }
           else{

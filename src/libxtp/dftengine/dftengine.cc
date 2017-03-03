@@ -201,14 +201,21 @@ namespace votca {
                   _diis_start=options->get(key+".convergence.DIIS_start").as<double>();
                }
                else{
-                    _diis_start=0.5;
+                    _diis_start=0.01;
+               } 
+             if ( options->exists(key+".convergence.ADIIS_start")) {
+                  _diis_start=options->get(key+".convergence.ADIIS_start").as<double>();
+               }
+               else{
+                    _adiis_start=2;
                } 
         }
             else{
                 _Econverged=1e-7;
                 _error_converged=1e-7;
                  _maxout=false;
-                 _diis_start=0.5;
+                 _diis_start=0.01;
+                 _adiis_start=2;
                   _histlength=10;
                   _useautomaticmixing=true;
                   _mixingparameter=-10;
@@ -247,7 +254,7 @@ namespace votca {
                 LOG(logDEBUG, *_pLog) << "\t\t "<< _atoms[i]->type<<" "<<_atoms[i]->x<<" "<<_atoms[i]->y<<" "<<_atoms[i]->z<<" "<<flush;
             }
             
-       
+            
             
            
 	    /**** PREPARATION (atoms, basis sets, numerical integrations) ****/
@@ -445,6 +452,15 @@ namespace votca {
                     LOG(logDEBUG, *_pLog) << TimeStamp() << "Total Energy has converged to "<<std::setprecision(9)<<std::abs(totenergy-energyold)<<"[Ha] after "<< _this_iter+1<<
                             " iterations. DIIS error is converged up to "<<_error_converged<<"[Ha]" <<flush;
                      LOG(logDEBUG, *_pLog) << TimeStamp() << " Final Single Point Energy "<<std::setprecision(12)<<totenergy<<" Ha"<<flush;
+                      LOG(logDEBUG, *_pLog) << TimeStamp() << " MO Energies "<<std::setprecision(12)<<totenergy<<" Ha"<<flush;
+                      for (int i=0;i<int(MOEnergies.size());i++){
+                    if ( i <= _numofelectrons/2-1) {
+                        LOG(logDEBUG, *_pLog) <<"\t\t" << i <<  " occ " << MOEnergies(i)  << flush;     
+                    } else {
+                        LOG(logDEBUG, *_pLog) <<"\t\t"<<   i <<  " vir " << MOEnergies(i)  << flush;
+                        
+                    }
+                }
                     break;
                 }
                 else{
@@ -539,7 +555,7 @@ namespace votca {
             }
              
             
-            _diis.Configure(_usediis, _histlength, _maxout, _diismethod, _diis_start,0.0,false, _numofelectrons/2);
+            _diis.Configure(_usediis, _histlength, _maxout, _diismethod, _adiis_start, _diis_start,0.0,false, _numofelectrons/2);
             _diis.setLogger(_pLog);
             _diis.setOverlap(&_dftAOoverlap.Matrix());
             _diis.setSqrtOverlap(&_Sminusonehalf);
@@ -709,11 +725,11 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 
                 Mixing Mix_alpha(false,0.7,&dftAOoverlap.Matrix(),_pLog);
                 Mixing Mix_beta(false,0.7,&dftAOoverlap.Matrix(),_pLog);
-                diis_alpha.Configure(true, 20, 0, "",  0.2,0.3,true,alpha_e );
+                diis_alpha.Configure(true, 20, 0, "",  1,0.01,0.3,true,alpha_e );
                 diis_alpha.setLogger(_pLog);
                 diis_alpha.setOverlap(&dftAOoverlap.Matrix());
                 diis_alpha.setSqrtOverlap(&Sminusonehalf);
-                diis_beta.Configure(true, 20, 0, "",  0.2,0.3,true,beta_e );
+                diis_beta.Configure(true, 20, 0, "",  1,0.01,0.3,true,beta_e );
                 diis_beta.setLogger(_pLog);
                 diis_beta.setOverlap(&dftAOoverlap.Matrix());
                 diis_beta.setSqrtOverlap(&Sminusonehalf);
