@@ -42,11 +42,7 @@ namespace votca { namespace xtp {
                   std::vector<double>* vect=(*it);
                   vect->erase(vect->begin()+_maxerrorindex);
               }
-               _FDs.erase(_FDs.begin()+_maxerrorindex);
-              for( std::vector< std::vector<double>* >::iterator it=_FDs.begin();it<_FDs.end();++it){
-                  std::vector<double>* vect=(*it);
-                  vect->erase(vect->begin()+_maxerrorindex);
-              }
+            
           
           }
           
@@ -106,36 +102,29 @@ namespace votca { namespace xtp {
        _Diis_Bs.push_back(Bijs);
       for (unsigned i=0;i<_errormatrixhist.size()-1;i++){
           double value=linalg_traceofProd(errormatrix,ub::trans(*_errormatrixhist[i]));
-          if(!_unrestricted){
-              value=0.5*value;
-          }
+         
           Bijs->push_back(value);
           _Diis_Bs[i]->push_back(value);
       }
+      Bijs->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
+         
+      
+      
+      _DiF=ub::zero_vector<double>(_dmathist.size());
+       _DiFj=ub::zero_matrix<double>(_dmathist.size());
        
-      if(_unrestricted){
-              Bijs->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
-          }
-      else{
-         Bijs->push_back(0.5*linalg_traceofProd(errormatrix,ub::trans(errormatrix))); 
-      }
+    
+  for(unsigned i=0;i<_dmathist.size();i++){
+    _DiF(i)=linalg_traceofProd((*_dmathist[i])-dmat,H);
+  }
+  
+  for(unsigned i=0;i<_dmathist.size();i++){
+    for(unsigned j=0;j<_dmathist.size();j++){
+        _DiFj(i,j)=linalg_traceofProd((*_dmathist[i])-dmat,(*_mathist[j])-H);
+        }
+        }
       
-      
-      
-      std::vector<double>* FD=new std::vector<double>;
-       _FDs.push_back(FD);
-      for (unsigned i=0;i<_errormatrixhist.size()-1;i++){
-          ub::matrix<double> FimFj=H-*_mathist[i];
-          ub::matrix<double> DimDj=dmat-*_dmathist[i];
-          double value=linalg_traceofProd(FimFj,DimDj);
-           if(!_unrestricted){
-              value=0.5*value;
-          }
-          FD->push_back(value);
-          _FDs[i]->push_back(value);
-      }
-       //diagonal elements
-      FD->push_back(0.0);
+     
       
       
        
@@ -150,16 +139,16 @@ namespace votca { namespace xtp {
           cout<<endl;
           
           if(max>0.1 || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
-              coeffs=EDIIsCoeff();
-              cout<<"EDIIS "<<coeffs<<endl;
+              coeffs=ADIIsCoeff();
+              cout<<"ADIIS "<<coeffs<<endl;
           }
           else if(max>0.0001 && max<0.1){
               ub::vector<double> coeffs1=DIIsCoeff();
               cout<<"DIIS "<<coeffs1<<endl;
-              ub::vector<double> coeffs2=EDIIsCoeff();
-              cout<<"EDIIS "<<coeffs2<<endl;
+              ub::vector<double> coeffs2=ADIIsCoeff();
+              cout<<"ADIIS "<<coeffs2<<endl;
               coeffs=10*max*coeffs2+(1-10*max)*coeffs1;
-              cout<<"EDIIS+DIIS "<<coeffs<<endl;
+              cout<<"ADIIS+DIIS "<<coeffs<<endl;
           }
           else{
                coeffs=DIIsCoeff();
@@ -338,18 +327,18 @@ namespace votca { namespace xtp {
       
       
       
-   ub::vector<double> Diis::EDIIsCoeff(){
+   ub::vector<double> Diis::ADIIsCoeff(){
           
-   size_t N=_FDs.size();
+   size_t N=_DiF.size();
           
   const gsl_multimin_fdfminimizer_type *T;
   gsl_multimin_fdfminimizer *s;
 
   gsl_vector *x;
   gsl_multimin_function_fdf minfunc;
-  minfunc.f = ediis::min_f;
-  minfunc.df = ediis::min_df;
-  minfunc.fdf = ediis::min_fdf;
+  minfunc.f = adiis::min_f;
+  minfunc.df = adiis::min_df;
+  minfunc.fdf = adiis::min_fdf;
   minfunc.n = N;
   minfunc.params = (void *) this;
 
@@ -394,7 +383,7 @@ namespace votca { namespace xtp {
   // double E_final=get_E(s->x);
 
   // Form minimum
-  ub::vector<double> c=ediis::compute_c(s->x);
+  ub::vector<double> c=adiis::compute_c(s->x);
 
   gsl_multimin_fdfminimizer_free(s);
   gsl_vector_free (x);
@@ -407,84 +396,53 @@ namespace votca { namespace xtp {
  
  
  
- double Diis::get_E_ediis(const gsl_vector * x) const {
+ double Diis::get_E_adiis(const gsl_vector * x) const {
   // Consistency check
-  if(x->size != _FDs.size()) {
+  if(x->size != _DiF.size()) {
    
     throw std::runtime_error("Incorrect number of parameters.");
   }
 
-  ub::vector<double> c=ediis::compute_c(x);
-  
-  ub::matrix<double> TrFD=ub::zero_matrix<double>(_mathist.size());
-            
-            
-          
-          for (unsigned i=0;i<TrFD.size1();i++){
-              for (unsigned j=0;j<=i;j++){
-                  //cout<<"i "<<i<<" j "<<j<<endl;
-                  TrFD(i,j)=_FDs[i]->at(j);
-                  if(i!=j){
-                     TrFD(j,i)=TrFD(i,j);
-                  }
-              }
-          }
-
-  // Compute energy
+  ub::vector<double> c=adiis::compute_c(x);
   double Eval=0.0;
   for(unsigned i=0;i<c.size();i++){
-  Eval+=c(i)*_totE[i];
+  Eval+=2.0*c(i)*_DiF(i);
   }
   
-  // this can be optimized using symmetry of TrFD
-  double cTBc=0.0;
-  for(unsigned i=0;i<c.size();i++){
-      for(unsigned j=0;j<c.size();j++){
-          cTBc+=c(i)*c(j)*TrFD(i,j);
-      }
+   for(unsigned i=0;i<c.size();i++){
+  for(unsigned j=0;j<c.size();j++){
+      Eval+=c(i)*c(j)*_DiFj(i,j);
   }
-  Eval-=0.5*cTBc;
+  }
+  
+
+  
  
   return Eval;
 }
 
-void Diis::get_dEdx_ediis(const gsl_vector * x, gsl_vector * dEdx) const {
+void Diis::get_dEdx_adiis(const gsl_vector * x, gsl_vector * dEdx) const {
   // Compute contraction coefficients
-  ub::vector<double> c=ediis::compute_c(x);
-  ub::matrix<double> TrFD=ub::zero_matrix<double>(_mathist.size());
-    for (unsigned i=0;i<TrFD.size1();i++){
-              for (unsigned j=0;j<=i;j++){
-                  //cout<<"i "<<i<<" j "<<j<<endl;
-                  TrFD(i,j)=_FDs[i]->at(j);
-                  if(i!=j){
-                     TrFD(j,i)=TrFD(i,j);
-                  }
-              }
-          }
+  ub::vector<double> c=adiis::compute_c(x);
   
-
-  ub::vector<double> dEdc=ub::zero_vector<double>(c.size());
-  for(unsigned i=0;i<dEdc.size();i++){
-      dEdc(i)=_totE[i];
-  }
+   
   
-  dEdc-=ub::prod(TrFD,c);
-  // Compute derivative of energy
+  ub::vector<double> dEdc=2.0*_DiF + ub::prod(_DiFj,c) + ub::prod(ub::trans(_DiFj),c);
  
 
   // Compute jacobian of transformation: jac(i,j) = dc_i / dx_j
-  ub::matrix<double> jac=ediis::compute_jac(x);
+  ub::matrix<double> jac=adiis::compute_jac(x);
 
   // Finally, compute dEdx by plugging in Jacobian of transformation
   // dE/dx_i = dc_j/dx_i dE/dc_j
   ub::vector<double> dEdxv=ub::prod(ub::trans(jac),dEdc);
-  for(size_t i=0;i< _FDs.size();i++)
+  for(size_t i=0;i< dEdxv.size();i++)
     gsl_vector_set(dEdx,i,dEdxv(i));
 }
 
-void Diis::get_E_dEdx_ediis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const {
+void Diis::get_E_dEdx_adiis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const {
   // Consistency check
-   if(x->size != _FDs.size()) {
+   if(x->size != _DiF.size()) {
    
     throw std::runtime_error("Incorrect number of parameters.");
   }
@@ -493,13 +451,13 @@ void Diis::get_E_dEdx_ediis(const gsl_vector * x, double * Eval, gsl_vector * dE
   }
 
   // Compute energy
-  *Eval=get_E_ediis(x);
+  *Eval=get_E_adiis(x);
   // and its derivative
-  get_dEdx_ediis(x,dEdx);
+  get_dEdx_adiis(x,dEdx);
 }
 
 
-ub::vector<double> ediis::compute_c(const gsl_vector * x) {
+ub::vector<double> adiis::compute_c(const gsl_vector * x) {
   // Compute contraction coefficients
   ub::vector<double> c=ub::zero_vector<double>(x->size);
 
@@ -515,7 +473,7 @@ ub::vector<double> ediis::compute_c(const gsl_vector * x) {
   return c;
 }  
 
-ub::matrix<double> ediis::compute_jac(const gsl_vector * x) {
+ub::matrix<double> adiis::compute_jac(const gsl_vector * x) {
   // Compute jacobian of transformation: jac(i,j) = dc_i / dx_j
 
   // Compute coefficients
@@ -547,19 +505,19 @@ ub::matrix<double> ediis::compute_jac(const gsl_vector * x) {
   return jac;
 }
 
-double ediis::min_f(const gsl_vector * x, void * params) {
+double adiis::min_f(const gsl_vector * x, void * params) {
   Diis * a=(Diis *) params;
-  return a->get_E_ediis(x);
+  return a->get_E_adiis(x);
 }
 
-void ediis::min_df(const gsl_vector * x, void * params, gsl_vector * g) {
+void adiis::min_df(const gsl_vector * x, void * params, gsl_vector * g) {
   Diis * a=(Diis *) params;
-  a->get_dEdx_ediis(x,g);
+  a->get_dEdx_adiis(x,g);
 }
 
-void ediis::min_fdf(const gsl_vector *x, void * params, double * f, gsl_vector * g) {
+void adiis::min_fdf(const gsl_vector *x, void * params, double * f, gsl_vector * g) {
   Diis * a=(Diis *) params;
-  a->get_E_dEdx_ediis(x,f,g);
+  a->get_E_dEdx_adiis(x,f,g);
 }
       
       

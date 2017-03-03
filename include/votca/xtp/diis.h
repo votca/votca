@@ -62,10 +62,7 @@ public:
          delete *it;
      }
     _Diis_Bs.clear(); 
-     for (std::vector< std::vector<double>* >::iterator it = _FDs.begin() ; it !=_FDs.end(); ++it){
-         delete *it;
-     }
-    _FDs.clear(); 
+    
    }
    
    void Configure(bool usediis, unsigned histlength, bool maxout, string diismethod, double diis_start,double levelshift,bool unrestricted,unsigned nocclevels){
@@ -93,10 +90,10 @@ public:
     unsigned gethistlength(){return _mathist.size();}
     
     
-    double get_E_ediis(const gsl_vector * x) const;
+    double get_E_adiis(const gsl_vector * x) const;
 
-    void get_dEdx_ediis(const gsl_vector * x, gsl_vector * dEdx) const;
-    void get_E_dEdx_ediis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const;
+    void get_dEdx_adiis(const gsl_vector * x, gsl_vector * dEdx) const;
+    void get_E_dEdx_adiis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const;
    
  private:
      
@@ -115,11 +112,12 @@ public:
     std::vector< ub::matrix<double>* >   _dmathist;
     std::vector< ub::matrix<double>* >   _errormatrixhist;
     std::vector< std::vector<double>* >  _Diis_Bs;
-    std::vector< std::vector<double>* >  _FDs;
+   
     std::vector<double>                 _totE;
-
+    ub::vector<double>                  _DiF;
+    ub::matrix<double>                  _DiFj;
   
-    ub::vector<double> EDIIsCoeff();
+    ub::vector<double> ADIIsCoeff();
     
     
  ub::vector<double> compute_c(const gsl_vector * x);
@@ -142,7 +140,7 @@ ub::vector<double> DIIsCoeff();
  };
  
  
- namespace ediis {
+ namespace adiis {
   /// Compute weights
   ub::vector<double> compute_c(const gsl_vector * x);
   /// Compute jacobian
