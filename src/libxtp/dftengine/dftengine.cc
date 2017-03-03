@@ -356,7 +356,7 @@ namespace votca {
 	    
             LOG(logDEBUG, *_pLog) << TimeStamp() << " STARTING SCF cycle" << flush;
             LOG(logDEBUG, *_pLog) << " --------------------------------------------------------------------------" << flush;
-           double totenergy=0;
+           
            double energyold=0;
            double diiserror=100;//is evolved in DIIs scheme
            Mixing Mixer(_useautomaticmixing,_mixingparameter,&_dftAOoverlap.Matrix(),  _pLog);
