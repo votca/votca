@@ -204,7 +204,7 @@ namespace votca {
                     _diis_start=0.01;
                } 
              if ( options->exists(key+".convergence.ADIIS_start")) {
-                  _diis_start=options->get(key+".convergence.ADIIS_start").as<double>();
+                  _adiis_start=options->get(key+".convergence.ADIIS_start").as<double>();
                }
                else{
                     _adiis_start=2;
@@ -452,12 +452,12 @@ namespace votca {
                     LOG(logDEBUG, *_pLog) << TimeStamp() << "Total Energy has converged to "<<std::setprecision(9)<<std::abs(totenergy-energyold)<<"[Ha] after "<< _this_iter+1<<
                             " iterations. DIIS error is converged up to "<<_error_converged<<"[Ha]" <<flush;
                      LOG(logDEBUG, *_pLog) << TimeStamp() << " Final Single Point Energy "<<std::setprecision(12)<<totenergy<<" Ha"<<flush;
-                      LOG(logDEBUG, *_pLog) << TimeStamp() << " MO Energies "<<std::setprecision(12)<<totenergy<<" Ha"<<flush;
+                      LOG(logDEBUG, *_pLog) << TimeStamp() << " MO Energies  [Ha]"<<flush;
                       for (int i=0;i<int(MOEnergies.size());i++){
                     if ( i <= _numofelectrons/2-1) {
-                        LOG(logDEBUG, *_pLog) <<"\t\t" << i <<  " occ " << MOEnergies(i)  << flush;     
+                        LOG(logDEBUG, *_pLog) <<"\t\t" << i <<  " occ "<<std::setprecision(12) << MOEnergies(i)  << flush;     
                     } else {
-                        LOG(logDEBUG, *_pLog) <<"\t\t"<<   i <<  " vir " << MOEnergies(i)  << flush;
+                        LOG(logDEBUG, *_pLog) <<"\t\t"<<   i <<  " vir "<<std::setprecision(12) << MOEnergies(i)  << flush;
                         
                     }
                 }
