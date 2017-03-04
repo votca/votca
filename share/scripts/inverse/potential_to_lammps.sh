@@ -96,7 +96,8 @@ comment="$(get_table_comment $input)"
 
 scale_factor=$(csg_get_interaction_property inverse.lammps.scale)
 
-if [[ $bondtype = "angle" || $bondtype = "dihedral" ]] && [[ $r2d != 1 ]]; then
+if [[ $bondtype = "angle" ]] && [[ $r2d != 1 ]]; then
+# see lammps manual; only tabulated angle potentials need to be in degrees and scaled; dihedrals can be in radians or degrees; here we are putting dihedrals in radians
   scale="$(critical mktemp ${trunc}.pot.scale.XXXXX)"
   do_external table linearop --on-x "${input}" "${scale}" "$r2d" "0"
   step=$(csg_calc $r2d "*" $step)

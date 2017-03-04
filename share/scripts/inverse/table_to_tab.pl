@@ -110,11 +110,19 @@ if ($sim_prog eq "espresso") {
       for(my $i=0;$i<=$#r;$i++){
         printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], -$pot_deriv[$i]);
       }
-  } elsif ( $type eq "bond"  || $type eq "angle" ||  $type eq "dihedral" ) {
+  } elsif ( $type eq "bond"  || $type eq "angle" ) {
     printf(OUTFILE "VOTCA\n");
     printf(OUTFILE "N %i\n\n",$#r+1);
     for(my $i=0;$i<=$#r;$i++){
       printf(OUTFILE "%i %12.5e %15.7e %15.7e\n",$i+1,$r[$i], $pot[$i], -$pot_deriv[$i]);
+    }
+  } elsif ( $type eq "dihedral" ) {
+    printf(OUTFILE "VOTCA\n");
+    # see lammps manual, NOF causes LAMMPS to calculate forces from potential
+    # see lammps manual RADIANS causes LAMMPS to assume units are in radians and not degrees
+    printf(OUTFILE "N %i RADIANS NOF\n\n",$#r+1);
+    for(my $i=0;$i<=$#r;$i++){
+      printf(OUTFILE "%i %12.5e %15.7e\n",$i+1,$r[$i], $pot[$i]);
     }
   } else {
     #should never happen
