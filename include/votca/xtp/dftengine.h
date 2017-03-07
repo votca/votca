@@ -94,6 +94,7 @@ public:
     void NuclearRepulsion();
     double ExternalRepulsion();
      double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
+     ub::matrix<double> AverageShells(const ub::matrix<double>& dmat,AOBasis& dftbasis);
    
     //bool   _maverick;
     

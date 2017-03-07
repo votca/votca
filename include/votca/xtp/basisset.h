@@ -41,6 +41,7 @@ namespace votca { namespace xtp {
 
     int OffsetFuncShell_cartesian(string shell_type);
     
+    std::vector<int> NumFuncSubShell(string shell_type);
     
  
 

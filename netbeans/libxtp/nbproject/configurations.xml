@@ -222,6 +222,7 @@
       <itemPath>../../src/libxtp/aobasis.cc</itemPath>
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/apolarsite.cc</itemPath>
+      <itemPath>../../src/libxtp/basisset.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
@@ -606,6 +607,8 @@
       <item path="../../src/libxtp/aoshell.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/apolarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/basisset.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1407,6 +1410,8 @@
       <item path="../../src/libxtp/aoshell.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/apolarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/basisset.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>

@@ -19,7 +19,7 @@
 
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
-
+#include "votca/xtp/aobasis.h"
 #include <votca/xtp/dftengine.h>
 
 #include <boost/format.hpp>
@@ -830,22 +830,21 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                         LOG(logDEBUG, *_pLog) << TimeStamp()<<" Iter "<<this_iter<<" of "<<maxiter<<" Etot "<<totenergy<<" diise_a "<<diiserror_alpha<<" diise_b "<<diiserror_beta
                                 <<" a_gap "<<MOEnergies_alpha(alpha_e)-MOEnergies_alpha(alpha_e-1)<<" b_gap "<<MOEnergies_beta(beta_e)-MOEnergies_beta(beta_e-1)<<flush;
                          }
-                        if ((std::abs(totenergy - energyold) < _Econverged && diiserror_alpha < _error_converged && diiserror_beta < _error_converged)) {
-                          
-                            uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
-                            LOG(logDEBUG, *_pLog) << TimeStamp() << " Converged after " << this_iter<<" iterations" << flush;
-                            LOG(logDEBUG, *_pLog) << TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(dftAOdmat_alpha+dftAOdmat_beta,dftAOoverlap.Matrix())<<" electrons."<<flush;
+                       bool converged=(std::abs(totenergy - energyold) < _Econverged && diiserror_alpha < _error_converged && diiserror_beta < _error_converged);
+                        if (converged || this_iter==maxiter-1) {
+                            
+                            if(converged){
+                                LOG(logDEBUG, *_pLog) << TimeStamp() << " Converged after " << this_iter<<" iterations" << flush;
+                            }
+                            else{
+                                LOG(logDEBUG, *_pLog) << TimeStamp() << " Not converged after " << this_iter<<" iterations. Using unconverged density." << flush;
+                            }
+                            ub::matrix<double> avdmat=AverageShells(dftAOdmat_alpha+dftAOdmat_beta,dftbasis);
+                                    uniqueatom_guesses.push_back(avdmat);
+                            
+                            LOG(logDEBUG, *_pLog) << TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(avdmat,dftAOoverlap.Matrix())<<" electrons."<<flush;
                             break;
-                          
-                        }
-                        else if( this_iter==maxiter-1){
-                            
-                            uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
-                            LOG(logDEBUG, *_pLog) << TimeStamp() << " Not converged after " << this_iter<<" iterations. Using unconverged density." << flush;
-                            LOG(logDEBUG, *_pLog) << TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(dftAOdmat_alpha+dftAOdmat_beta,dftAOoverlap.Matrix())<<" electrons."<<flush;
-                            break;
-                            
-                            
+                  
                         }
                         else {
                             energyold = totenergy;
@@ -1128,8 +1127,84 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
           return smallgrid;
       }
       
-
       
-    
-    }
-};
+      //average atom densities matrices, for SP and other combined shells average each subshell separately.
+      ub::matrix<double> DFTENGINE::AverageShells(const ub::matrix<double>& dmat, AOBasis& dftbasis){
+          ub::matrix<double> avdmat=ub::zero_matrix<double>(dmat.size1());
+          AOBasis::AOShellIterator it;
+          AOBasis::AOShellIterator jt;
+          int start1=0.0;
+          for(it=dftbasis.firstShell();it<dftbasis.lastShell();++it){
+            AOShell* shell1=dftbasis.getShell(it);
+            int end1=shell1->getNumFunc()+start1;
+            std::vector<int> starts1;
+            std::vector<int> ends1;
+            //cout<<shell1->getType()<<" Start1 "<<start1<<" End1 "<<end1<<endl;
+            //check if shell is combined
+            if(shell1->getLmax()!=shell1->getLmin()){
+                std::vector<int> temp1=NumFuncSubShell(shell1->getType());
+                int numfunc1=start1;
+                for(unsigned i=0;i<temp1.size();i++){
+                    
+                    starts1.push_back(numfunc1);
+                    numfunc1+=temp1[i];
+                    ends1.push_back(numfunc1);
+                }
+            }
+            else{
+                starts1.push_back(start1);
+                ends1.push_back(end1);
+            }
+            start1=end1;
+            int start2=0;
+              for(jt=dftbasis.firstShell();jt<dftbasis.lastShell();++jt){
+                AOShell* shell2=dftbasis.getShell(jt);
+               
+                int end2=shell2->getNumFunc()+start2;
+                //cout<<shell2->getType()<<" Start2 "<<start2<<" End2 "<<end2<<endl;
+                std::vector<int> starts2;
+                std::vector<int> ends2;
+                if(shell2->getLmax()!=shell2->getLmin()){
+                    std::vector<int> temp2=NumFuncSubShell(shell2->getType());
+                    int numfunc2=start2;
+                    for(unsigned i=0;i<temp2.size();i++){
+
+                        starts2.push_back(numfunc2);
+                        numfunc2+=temp2[i];
+                        ends2.push_back(numfunc2);
+                    }
+                }
+                else{
+                    starts2.push_back(start2);
+                    ends2.push_back(end2);
+                }
+                start2=end2;
+                for(unsigned k=0;k<starts1.size();k++){
+                    int s1=starts1[k];
+                    int e1=ends1[k];
+                    for(unsigned l=0;l<starts2.size();l++){
+                    int s2=starts2[l];
+                    int e2=ends2[l];
+
+                    double avg=0.0;
+                    int count=0.0;
+
+                    for(int i=s1;i<e1;++i){
+                       for(int j=s2;j<e2;++j){
+                               avg+=dmat(i,j);
+                               count++;   
+                          } 
+                    }
+                    avg=avg/double(count);
+                    for(int i=s1;i<e1;++i){
+                       for(int j=s2;j<e2;++j){
+                               avdmat(i,j)=avg;   
+                          } 
+                      }
+                    }
+                }
+            }     
+        }  
+        return avdmat;  
+        }
+    }}

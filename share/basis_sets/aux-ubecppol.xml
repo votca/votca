@@ -154,27 +154,33 @@
 		</constant>
 		</shell>
 
-<!--
+
     <shell type="F" scale="1.0">
     <constant decay="9.009025">
 		  <contractions type="F" factor="1.0"></contractions>                                        \
 		  </constant>                                                                                 \
 		</shell>
-	-->
+	
 		<shell type="F" scale="1.0">                                                                         \
 		<constant decay="2.619132">
 		  <contractions type="F" factor="1.0"></contractions>                                        \
 		  </constant>                                                                                 \
 		</shell> 
 
-<!--
+
 
 		<shell type="F" scale="1.0">  
 		<constant decay="0.962935">
 		  <contractions type="F" factor="1.0"></contractions>
 		  </constant>                                     
 		</shell>
-				-->
+
+ <shell type="G" scale="1.0">
+    <constant decay="1.252">
+		  <contractions type="G" factor="1.0"></contractions>                                        \
+		  </constant>                                                                                 \
+		</shell>
+				
 	</element>
 
 

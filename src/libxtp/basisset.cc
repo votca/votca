@@ -135,6 +135,22 @@ int FindLmax( string _type ){
         
     }
     
+    
+      std::vector<int> NumFuncSubShell( string shell_type) {
+          std::vector <int> subshells;
+        // single type shells
+        if ( shell_type.length() == 1 ){
+           subshells.push_back( NumFuncShell(shell_type));
+        // for combined shells, go over all contributions and add functions
+        }else{
+           for (unsigned i = 0; i < shell_type.length(); ++i) {
+                    string local_shell = string(shell_type, i, 1);
+                   subshells.push_back( NumFuncShell(local_shell));
+            }   
+    }
+    return subshells;        
+    }
+    
     int NumFuncShell_cartesian( string shell_type ) {
     int _nbf;
     // single type shells defined here
