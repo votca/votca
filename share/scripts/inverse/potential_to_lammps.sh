@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2014 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ Allowed options:
     --help       show this help
     --clean      remove all intermediate temp files
     --no-r2d     do not converts rad to degree (scale x axis with 180/3.1415)
-                 for angle and dihedral
-                 Note: VOTCA calcs in rad, but lammps in degree
+                 for angle interactions
+                 Note: VOTCA calcs in rad, but lammps uses degrees for angle
     --no-shift   do not shift the potential
 EOF
 }
