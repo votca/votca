@@ -158,6 +158,16 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
     // resize and clear _x
     _x.resize(_col_cntr);
     _x.clear();
+    
+    /*//resize and clear _A_metric
+    _A_metric.resize(_col_cntr,_col_cntr,false);
+    _A_metric.clear();
+    
+    //resize and clear _b_proj1 and _b_proj2
+    _b_proj1.resize(_col_cntr);
+    _b_proj2.resize(_col_cntr);*/
+    
+    
 
     if(_has_existing_forces) {
         _top_force.CopyTopologyData(top);
@@ -378,6 +388,16 @@ void CGForceMatching::WriteOutFiles()
             force_tabDer.clear();
         }
     }
+    /*//test
+    Table b1,b2;
+    b1.resize(_col_cntr);
+    b2.resize(_col_cntr);
+    for (int i=0; i<_col_cntr; ++i){
+        b1.set(i,i,_b_proj1[i]);
+        b2.set(i,i,_b_proj2[i]);        
+    }
+    b1.Save("b1");
+    b2.Save("b2");    */
 }
 
 void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) 
@@ -424,7 +444,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
             _b(_least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom) = Force.z();
         }
     } else {
-        cerr << "\nERROR in csg_fmatch::EvalConfiguration - No forces in configuration!\n" << endl;
+        cerr << "\nERROR in csg_fmatch::EvalConfiguration - No forces in figuration!\n" << endl;
         exit(-1);
     }
     // update the frame counter
@@ -462,14 +482,32 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
 void CGForceMatching::FmatchAccumulateData() 
 {
     _x.clear();
+    /*//copies of matrix _A and _A^T to compute the metric tensor _A_metric tensor (to be improved!)
+    ub::matrix<double> A;
+    ub::matrix<double> A_transpose;*/
+    
     if (_constr_least_sq) { // Constrained Least Squares
-        // Solving linear equations system
-        ub::matrix<double> B_constr = _B_constr;
-        votca::tools::linalg_constrained_qrsolve(_x, _A, _b, B_constr);
-        _x = -_x;
+        /*
+        std::cout << "hallo1" << std::endl;
+        //Assigning matrices to compute the metric tensor        
+        //here A is the whole matrix _A
+        A = _A;
+        std::cout << "hallo2" << std::endl;
+        A_transpose = trans(A);*/
         
+        // Solving linear equations system
+        ub::matrix<double> B_constr = _B_constr;        
+        votca::tools::linalg_constrained_qrsolve(_x, _A, _b, B_constr);
+        _x = -_x;        
 
     } else { // Simple Least Squares
+        
+        /*//Assigning matrices to compute the metric tensor        
+        //here A is the submatrix of _A starting at row _line_cntr and column 0
+        ub::range r1 (_line_cntr,_line_cntr + 3 * _nbeads *_nframes);
+        ub::range r2 (0,_col_cntr);
+        A = project(_A,r1,r2);
+        A_transpose = trans(A);*/
         
         ub::vector<double> residual(_b.size());
         votca::tools::linalg_qrsolve(_x, _A, _b, &residual);
@@ -490,6 +528,16 @@ void CGForceMatching::FmatchAccumulateData()
         cout << "#################################" << endl;
         cout << endl;
     }
+
+    /*std::cout << "hallo3" << std::endl;    
+    //the metric tensor is updated according to A*AT
+    _A_metric = prec_prod(A,A_transpose);
+
+    std::cout << "hallo4" << std::endl;    
+    _b_proj1 = prec_prod(_A_metric,_x);
+    std::cout << "hallo5" << std::endl;    
+    _b_proj2 = prec_prod(A_transpose,_b);
+    std::cout << "hallo6" << std::endl;*/
 
     SplineContainer::iterator is;
     for (is = _splines.begin(); is != _splines.end(); ++is) {
