@@ -86,10 +86,12 @@ bin_size="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_b
 
 if [[ $bondtype = "angle" ]]; then
   table_begin=0
-  r_cut=180
+  table_end=180
 else
   table_begin="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_begin)"
   [[ -z ${table_begin} ]] && table_begin="${r_min}"
+  table_end="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_end)"
+  [[ -z ${table_end} ]] && table_end="${r_cut}"
 fi
 
 comment="$(get_table_comment $input)"
@@ -105,7 +107,7 @@ elif [[ ${scale_factor} != 1 ]]; then
   step=$(csg_calc ${scale_factor} "*" $step)
   bin_size=$(csg_calc ${scale_factor} "*" $bin_size)
   table_begin=$(csg_calc ${scale_factor} "*" ${table_begin})
-  r_cut=$(csg_calc ${scale_factor} "*" ${r_cut})
+  table_end=$(csg_calc ${scale_factor} "*" ${table_end})
   scale="$(critical mktemp ${trunc}.pot.scale.XXXXX)"
   do_external table linearop --on-x "${input}" "${scale}" "${scale_factor}" "0"
 else
@@ -114,14 +116,14 @@ fi
 
 #keep the grid for now, so that extrapolate can calculate the right mean
 smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
-critical csg_resample --in ${scale} --out "$smooth" --grid "${table_begin}:${step}:${r_cut}"
+critical csg_resample --in ${scale} --out "$smooth" --grid "${table_begin}:${step}:${table_end}"
 
 extrapol="$(critical mktemp ${trunc}.pot.extrapol.XXXXX)"
 do_external potential extrapolate ${clean:+--clean} --type "$bondtype" "${smooth}" "${extrapol}"
 
 interpol="$(critical mktemp ${trunc}.pot.interpol.XXXXX)"
 deriv="$(critical mktemp ${trunc}.pot.deriv.XXXXX)"
-critical csg_resample --in "${extrapol}" --out "$interpol" --grid "${table_begin}:${bin_size}:${r_cut}" --der "${deriv}" --comment "$comment"
+critical csg_resample --in "${extrapol}" --out "$interpol" --grid "${table_begin}:${bin_size}:${table_end}" --der "${deriv}" --comment "$comment"
 
 if [[ $do_shift = "yes" ]]; then
   tshift="$(critical mktemp ${trunc}.pot.shift.XXXXX)"

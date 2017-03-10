@@ -514,6 +514,9 @@
         <table_begin>
 	        <DESC> Start of the tabulated potential of this interaction. (Automatic for gromacs)</DESC>
 	      </table_begin>
+        <table_end>
+	        <DESC> End of the tabulated potential of this interaction. (Automatic for gromacs)</DESC>
+	      </table_end>
         <table_bins>
 	        <DESC> Binszie of the tabulated potential of this interaction. (gromacs uses a non interaction specific option)</DESC>
 	      </table_bins>
