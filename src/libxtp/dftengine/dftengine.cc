@@ -772,8 +772,8 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
 
                ub::vector<double> occupation_alpha;
                ub::vector<double> occupation_beta;
-               ub::matrix<double>dftAOdmat_alpha = DensityMatrix_unres(MOCoeff_alpha,alpha_e);
-               ub::matrix<double>dftAOdmat_beta = DensityMatrix_unres(MOCoeff_beta,beta_e);
+               ub::matrix<double>dftAOdmat_alpha = DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,alpha_e);
+               ub::matrix<double>dftAOdmat_beta = DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,beta_e);
 
                     
               

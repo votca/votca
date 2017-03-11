@@ -157,7 +157,16 @@ namespace votca { namespace xtp {
                //cout<<"DIIS "<<coeffs<<endl;
           }
            
-                 for (unsigned i=0;i<_mathist.size();i++){  
+         //check if last element completely rejected use mixing
+           if(std::abs(coeffs(coeffs.size()-1))<0.001){ 
+                     
+          coeffs=ub::zero_vector<double>(coeffs.size());
+          coeffs(coeffs.size()-1)=0.5;
+          coeffs(coeffs.size()-2)=0.5;
+                 }
+          
+          
+                 for (unsigned i=0;i<coeffs.size();i++){  
                      if(std::abs(coeffs(i))<1e-8){ continue;}
                     H_guess+=coeffs(i)*(*_mathist[i]);
                     //cout <<i<<" "<<a(i+1,0)<<" "<<(*_mathist[i])<<endl;
