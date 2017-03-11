@@ -89,7 +89,8 @@ public:
     void Prepare( Orbitals* _orbitals );
     void SetupInvariantMatrices();
     ub::matrix<double> AtomicGuess(Orbitals* _orbitals);
-    ub::matrix<double> DensityMatrix_unres( const ub::matrix<double>& _MOs, int numofelec);
+    ub::matrix<double> DensityMatrix_unres( const ub::matrix<double>& MOs, int numofelec);
+    ub::matrix<double> DensityMatrix_frac( const ub::matrix<double>& MOs,const ub::vector<double>& MOEnergies, int numofelec);
     string Choosesmallgrid(string largegrid);
     void NuclearRepulsion();
     double ExternalRepulsion();
@@ -173,6 +174,11 @@ public:
     int                            _numofelectrons;
     int                                 _max_iter;
     int                                 _this_iter;
+    
+    //levelshift
+    
+    double                              _levelshiftend;
+    double                              _levelshift;
     
     
     //DIIS variables

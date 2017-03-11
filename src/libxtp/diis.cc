@@ -131,29 +131,30 @@ namespace votca { namespace xtp {
       if (max<_adiis_start && _usediis && this_iter>2){
           ub::vector<double> coeffs;
           //use EDIIs if energy has risen a lot in current iteration
+          /*
           cout<<endl;
           cout<<"E"<<flush;
           for (unsigned i=0;i<_totE.size();i++){
               cout<<_totE[i]<<" "<<flush;
           }
           cout<<endl;
-          
+          */
           if(max>_diis_start || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
               coeffs=ADIIsCoeff();
-              cout<<"ADIIS "<<coeffs<<endl;
+              //cout<<"ADIIS "<<coeffs<<endl;
           }
           else if(max>0.0001 && max<_diis_start){
               ub::vector<double> coeffs1=DIIsCoeff();
-              cout<<"DIIS "<<coeffs1<<endl;
+              //cout<<"DIIS "<<coeffs1<<endl;
               ub::vector<double> coeffs2=ADIIsCoeff();
-              cout<<"ADIIS "<<coeffs2<<endl;
+              //cout<<"ADIIS "<<coeffs2<<endl;
               double mixing=max/_diis_start;
               coeffs=mixing*coeffs2+(1-mixing)*coeffs1;
-              cout<<"ADIIS+DIIS "<<coeffs<<endl;
+              //cout<<"ADIIS+DIIS "<<coeffs<<endl;
           }
           else{
                coeffs=DIIsCoeff();
-               cout<<"DIIS "<<coeffs<<endl;
+               //cout<<"DIIS "<<coeffs<<endl;
           }
            
                  for (unsigned i=0;i<_mathist.size();i++){  
@@ -169,7 +170,7 @@ namespace votca { namespace xtp {
       
       double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
       
-      if(max>0.2 || (_levelshift>0.00001 && gap<0.01)){
+      if(max>_levelshiftend || _levelshift>0.00001){
         Levelshift(H_guess,dmat,_levelshift,_unrestricted);
       }
       SolveFockmatrix( MOenergies,MOs,H_guess);

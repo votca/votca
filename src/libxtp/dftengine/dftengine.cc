@@ -183,6 +183,24 @@ namespace votca {
                     _mixingparameter=-10;
                }
             
+             if ( options->exists(key+".convergence.levelshift")) {
+                 
+                   _levelshift=options->get(key+".convergence.levelshift").as<double>();
+               }
+               else{
+                   _levelshift=0.0;
+                    
+               }
+            
+             if ( options->exists(key+".convergence.levelshift_end")) {
+                 
+                   _levelshiftend=options->get(key+".convergence.levelshift_end").as<double>();
+               }
+               else{
+                   _levelshiftend=0.8;
+                    
+               }
+            
             if ( options->exists(key+".convergence.DIIS_maxout")) {
                     _maxout=options->get(key+".convergence.DIIS_maxout").as<bool>();
                }
@@ -221,6 +239,8 @@ namespace votca {
                   _mixingparameter=-10;
                    _usediis=true;
                    _max_iter=100;
+                   _levelshift=0.25;
+                   _levelshiftend=0.8;
             }
         if(!_usediis){
                 _histlength=1;
@@ -555,7 +575,7 @@ namespace votca {
             }
              
             
-            _diis.Configure(_usediis, _histlength, _maxout, _diismethod, _adiis_start, _diis_start,0.0,false, _numofelectrons/2);
+            _diis.Configure(_usediis, _histlength, _maxout, _diismethod, _adiis_start, _diis_start,_levelshift,_levelshiftend,false, _numofelectrons/2);
             _diis.setLogger(_pLog);
             _diis.setOverlap(&_dftAOoverlap.Matrix());
             _diis.setSqrtOverlap(&_Sminusonehalf);
@@ -725,11 +745,11 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 
                 Mixing Mix_alpha(false,0.7,&dftAOoverlap.Matrix(),_pLog);
                 Mixing Mix_beta(false,0.7,&dftAOoverlap.Matrix(),_pLog);
-                diis_alpha.Configure(true, 20, 0, "",  _adiis_start,0.01,0.3,true,alpha_e );
+                diis_alpha.Configure(true, 20, 0, "",  2,0.001,0.0,0.001,true,alpha_e );
                 diis_alpha.setLogger(_pLog);
                 diis_alpha.setOverlap(&dftAOoverlap.Matrix());
                 diis_alpha.setSqrtOverlap(&Sminusonehalf);
-                diis_beta.Configure(true, 20, 0, "",  _adiis_start,0.01,0.3,true,beta_e );
+                diis_beta.Configure(true, 20, 0, "",  2,0.001,0.0,0.001,true,beta_e );
                 diis_beta.setLogger(_pLog);
                 diis_beta.setOverlap(&dftAOoverlap.Matrix());
                 diis_beta.setSqrtOverlap(&Sminusonehalf);
@@ -798,7 +818,8 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                       double diiserror_alpha=diis_alpha.Evolve(dftAOdmat_alpha,H_alpha,MOEnergies_alpha,MOCoeff_alpha,this_iter,E_alpha);
                        
                             ub::matrix<double> dmatin=dftAOdmat_alpha;
-                           dftAOdmat_alpha=DensityMatrix_unres(MOCoeff_alpha,alpha_e);
+                           //dftAOdmat_alpha=DensityMatrix_unres(MOCoeff_alpha,alpha_e);
+                           dftAOdmat_alpha=DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,alpha_e);
                              if (!(diiserror_alpha<_adiis_start && _usediis && this_iter>2)){
                                   dftAOdmat_alpha=Mix_alpha.MixDmat(dmatin,dftAOdmat_alpha,false); 
                             //cout<<"mixing_alpha"<<endl;
@@ -812,7 +833,8 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                        if(beta_e>0){
                        diiserror_beta=diis_beta.Evolve(dftAOdmat_beta,H_beta,MOEnergies_beta,MOCoeff_beta,this_iter,E_beta);
                             ub::matrix<double> dmatin=dftAOdmat_beta;
-                           dftAOdmat_beta=DensityMatrix_unres(MOCoeff_beta,beta_e);
+                           //dftAOdmat_beta=DensityMatrix_unres(MOCoeff_beta,beta_e);
+                           dftAOdmat_beta=DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,beta_e);
                         if (!(diiserror_beta<_adiis_start && _usediis && this_iter>2)){   
                             dftAOdmat_beta=Mix_beta.MixDmat(dmatin,dftAOdmat_beta,false); 
                             //cout<<"mixing_beta"<<endl;
@@ -839,10 +861,13 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                             else{
                                 LOG(logDEBUG, *_pLog) << TimeStamp() << " Not converged after " << this_iter<<" iterations. Using unconverged density." << flush;
                             }
-                            ub::matrix<double> avdmat=AverageShells(dftAOdmat_alpha+dftAOdmat_beta,dftbasis);
-                                    uniqueatom_guesses.push_back(avdmat);
                             
-                            LOG(logDEBUG, *_pLog) << TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(avdmat,dftAOoverlap.Matrix())<<" electrons."<<flush;
+                            
+                            //ub::matrix<double> avdmat=AverageShells(dftAOdmat_alpha+dftAOdmat_beta,dftbasis);
+                            
+                                    uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
+                            //LOG(logDEBUG, *_pLog) << TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(avdmat,dftAOoverlap.Matrix())<<" electrons."<<flush;
+                            LOG(logDEBUG, *_pLog) << TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(dftAOdmat_alpha+dftAOdmat_beta,dftAOoverlap.Matrix())<<" electrons."<<flush;
                             break;
                   
                         }
@@ -979,18 +1004,63 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
       
       
       
-      ub::matrix<double> DFTENGINE::DensityMatrix_unres( const ub::matrix<double>& _MOs, int numofelec ) { 
+      ub::matrix<double> DFTENGINE::DensityMatrix_unres( const ub::matrix<double>& MOs, int numofelec ) { 
           if(numofelec==0){
-              return ub::zero_matrix<double>(_MOs.size1());
+              return ub::zero_matrix<double>(MOs.size1());
           }
          
-         ub::matrix<double> _dmatGS = ub::zero_matrix<double>(_MOs.size1());
+         ub::matrix<double> _dmatGS = ub::zero_matrix<double>(MOs.size1());
         #pragma omp parallel for
-        for ( unsigned _i=0; _i < _MOs.size1(); _i++ ){
-            for ( unsigned _j=0; _j < _MOs.size1(); _j++ ){
+        for ( unsigned _i=0; _i < MOs.size1(); _i++ ){
+            for ( unsigned _j=0; _j < MOs.size1(); _j++ ){
                 for ( int _level=0; _level < numofelec; _level++ ){
                  
-                    _dmatGS(_i,_j) +=  _MOs( _level , _i ) * _MOs( _level , _j );
+                    _dmatGS(_i,_j) +=  MOs( _level , _i ) * MOs( _level , _j );
+                 
+                }
+            }
+         }
+     //}    
+     // return     
+     return _dmatGS;  
+ }
+      
+      
+   ub::matrix<double> DFTENGINE::DensityMatrix_frac( const ub::matrix<double>& MOs,const ub::vector<double>& MOEnergies, int numofelec ) { 
+          if(numofelec==0){
+              return ub::zero_matrix<double>(MOs.size1());
+          }
+          
+         ub::vector<double>occupation=ub::zero_vector<double>(MOEnergies.size());
+         
+         double buffer=0.0001;
+         double homo_energy=MOEnergies(numofelec-1);
+         std::vector<unsigned> degeneracies;
+         
+         for ( unsigned _level=0; _level < occupation.size(); _level++ ){
+            if (MOEnergies(_level)<(homo_energy-buffer)){
+                   occupation(_level)=1.0;
+                   numofelec--;
+               }
+               else if(std::abs(MOEnergies(_level)-homo_energy)<buffer){
+                   degeneracies.push_back(_level);
+               }
+               else if(MOEnergies(_level)>(homo_energy+buffer)){
+                   occupation(_level)=0.0;
+               }
+           } 
+         double deg_occupation=double(numofelec)/double(degeneracies.size());
+         for ( unsigned _level=0; _level < degeneracies.size(); _level++ ){
+             occupation(degeneracies[_level])=deg_occupation;         
+         }
+        cout<<occupation<<endl;
+        ub::matrix<double> _dmatGS = ub::zero_matrix<double>(MOs.size1());
+        #pragma omp parallel for
+        for ( unsigned _i=0; _i < MOs.size1(); _i++ ){
+            for ( unsigned _j=0; _j < MOs.size1(); _j++ ){
+                for ( unsigned _level=0; _level < occupation.size(); _level++ ){
+                 
+                    _dmatGS(_i,_j) +=occupation(_level)*  MOs( _level , _i ) * MOs( _level , _j );
                  
                 }
             }
@@ -1128,7 +1198,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
       }
       
       
-      //average atom densities matrices, for SP and other combined shells average each subshell separately.
+      //average atom densities matrices, for SP and other combined shells average each subshell separately. Does not really work yet
       ub::matrix<double> DFTENGINE::AverageShells(const ub::matrix<double>& dmat, AOBasis& dftbasis){
           ub::matrix<double> avdmat=ub::zero_matrix<double>(dmat.size1());
           AOBasis::AOShellIterator it;
