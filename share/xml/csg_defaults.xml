@@ -517,6 +517,12 @@
         <table_end>
           <DESC> End of the tabulated potential of this interaction. (Automatic for gromacs)</DESC>
         </table_end>
+        <table_left_extrapolation>
+          <DESC> Extrapolation function to use on the left. Default: exponential(non-bonded), linear (bonded), Options: constant linear quadratic exponential sasha</DESC>
+        </table_left_extrapolation>
+        <table_right_extrapolation>
+          <DESC> Extrapolation function to use on the right. Default: constant(non-bonded), linear (bonded), Options: constant linear quadratic exponential sasha</DESC>
+        </table_right_extrapolation>
         <table_bins>
           <DESC> Binszie of the tabulated potential of this interaction. (gromacs uses a non interaction specific option)</DESC>
         </table_bins>
