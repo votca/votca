@@ -179,7 +179,10 @@ namespace votca { namespace xtp {
       
       double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
       
-      if(max>_levelshiftend || _levelshift>0.00001){
+      
+      
+      
+      if(max>_levelshiftend && _levelshift>0.00001){
         Levelshift(H_guess,dmat,_levelshift,_unrestricted);
       }
       SolveFockmatrix( MOenergies,MOs,H_guess);
@@ -201,13 +204,29 @@ namespace votca { namespace xtp {
            return;
       }
       
-      void Diis::Levelshift(ub::matrix<double>& H,const ub::matrix<double> & dmat,double levelshift,bool unrestricted){
-          ub::matrix<double> I=ub::identity_matrix<double>(dmat.size1());
+      void Diis::Levelshift(ub::matrix<double>& H,const ub::matrix<double> & MOs,double levelshift,bool unrestricted){
+        
           double occupation=2.0;
           if(unrestricted){
               occupation=1.0;
           }
-          H+=levelshift*(occupation*I-dmat);
+          
+           
+         ub::matrix<double> virt = ub::zero_matrix<double>(H.size1());
+        #pragma omp parallel for
+        for ( unsigned _i=0; _i < MOs.size1(); _i++ ){
+            for ( unsigned _j=0; _j < MOs.size1(); _j++ ){
+                for ( unsigned _level=_nocclevels; _level < MOs.size1(); _level++ ){
+                 
+                    virt(_i,_j) += occupation* MOs( _level , _i ) * MOs( _level , _j );
+                 
+                }
+            }
+         }
+         
+        LOG(logDEBUG, *_pLog) << TimeStamp() << " Using levelshift:"<<levelshift<<" Ha" << flush;
+
+          H+=levelshift*virt/occupation; // half the levelshift because our dmat has a factor of two
                   
                   return;
       }
