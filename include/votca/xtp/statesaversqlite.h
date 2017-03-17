@@ -24,13 +24,12 @@
 #include <stdio.h>
 #include <map>
 #include "qmdatabase.h"
-#include <votca/ctp/topology.h>
+#include "topology.h"
 #include <boost/interprocess/sync/file_lock.hpp>
 
 namespace votca { namespace xtp {
 
 using namespace votca::tools;
-namespace CTP = votca::ctp;
 
 class StateSaverSQLite
 {
@@ -38,7 +37,7 @@ public:
     StateSaverSQLite() { };
    ~StateSaverSQLite() { _db.Close(); }
 
-    void Open(CTP::Topology &qmtop, const std::string &file, bool lock = true);
+    void Open(Topology &qmtop, const std::string &file, bool lock = true);
     void Close() { _db.Close(); }
     bool NextFrame();
 
@@ -63,14 +62,14 @@ public:
     void ReadSuperExchange(int topId);
 
     int  FramesInDatabase();
-    CTP::Topology *getTopology() { return _qmtop; }
-    bool HasTopology(CTP::Topology *top);
+    Topology *getTopology() { return _qmtop; }
+    bool HasTopology(Topology *top);
     
     void LockStateFile();
     void UnlockStateFile();
     
 private:
-    CTP::Topology       *_qmtop;
+    Topology       *_qmtop;
     QMDatabase      _db;
 
     int             _frame;

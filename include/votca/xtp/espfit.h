@@ -37,11 +37,11 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
-    namespace CTP = votca::ctp;
+    
 class Espfit{
 public:
     
-    Espfit(CTP::Logger *log):_ECP(false),_do_Transition(false),_do_svd(false) {_log = log;}
+    Espfit(Logger *log):_ECP(false),_do_Transition(false),_do_svd(false) {_log = log;}
    ~Espfit(){};
     
    void setUseECPs(bool ECP){_ECP=ECP;}
@@ -52,12 +52,12 @@ public:
   
     void FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge);
     // on grid very fast
-    void Fit2Density(std::vector< CTP::QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,std::string gridsize);
+    void Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,std::string gridsize);
     // not so fast
-    void Fit2Density_analytic(std::vector< CTP::QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis);
+    void Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis);
 private:
     
-     CTP::Logger *_log;
+     Logger *_log;
      Elements _elements; 
      bool _ECP;
      bool _do_Transition;
@@ -65,9 +65,9 @@ private:
      double _conditionnumber;
      
      
-    double getNetcharge( std::vector< CTP::QMAtom* >& _atoms, double N );
+    double getNetcharge( std::vector< QMAtom* >& _atoms, double N );
  
-    ub::vector<double> EvalNuclearPotential( std::vector< CTP::QMAtom* >& _atoms, Grid _grid );
+    ub::vector<double> EvalNuclearPotential( std::vector< QMAtom* >& _atoms, Grid _grid );
    
      // Fits partial charges to Potential on a grid, constrains net charge
     std::vector<double> FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge );

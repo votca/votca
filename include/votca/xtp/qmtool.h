@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2016 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -17,35 +17,34 @@
  *
  */
 
-#ifndef __XTP_HUECKEL__H
-#define	__XTP_HUECKEL__H
 
-#include <string>
-#include <map>
-#include <vector>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/math/constants/constants.hpp>
+#ifndef __VOTCA_XTP_QMTOOL__H
+#define __VOTCA_XTP_QMTOOL__H
 
 
-using namespace std;
-using namespace votca::tools;
-
-namespace votca { namespace ctp {
-namespace ub = boost::numeric::ublas;
+#include <votca/tools/property.h>
+#include <votca/tools/calculator.h>
+#include <boost/format.hpp>
 
 
-
-
-
-
-
-
-
-       
+namespace votca { namespace xtp {
     
-    
-    
+class QMTool : public votca::tools::Calculator
+{
+public:
+
+    QMTool() { };
+    virtual        ~QMTool() { };
+
+    virtual std::string  Identify() = 0;
+    virtual void    Initialize(votca::tools::Property *options) = 0;    
+    virtual bool    Evaluate() = 0;
+    virtual bool    EndEvaluate() { return true; }
+
+protected:
+
+};
+
 }}
 
-#endif	/* HUECKEL_H */
+#endif /* _VOTCA_XTP_QMTOOL_H */

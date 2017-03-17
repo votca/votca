@@ -21,16 +21,16 @@
 #include <votca/xtp/parallelpaircalc.h>
 
 namespace votca { namespace xtp {
-    namespace CTP = votca::ctp;
-bool ParallelPairCalculator::EvaluateFrame(CTP::Topology *top) {
+
+bool ParallelPairCalculator::EvaluateFrame(Topology *top) {
 
     // Rigidify if (a) not rigid yet (b) rigidification at all possible
     if (!top->isRigid()) {
         bool isRigid = top->Rigidify();
         if (!isRigid) { return 0; }
     }
-    else { std::cout << std::endl << "... ... System is already rigidified."; }
-    std::cout << std::endl;        
+    else { cout << endl << "... ... System is already rigidified."; }
+    cout << endl;        
 
     std::vector<PairOperator*> pairOps;
     this->InitSlotData(top);
@@ -65,17 +65,17 @@ bool ParallelPairCalculator::EvaluateFrame(CTP::Topology *top) {
 // Thread Management //
 // +++++++++++++++++ //
 
-CTP::QMPair *ParallelPairCalculator::RequestNextPair(int opId, CTP::Topology *top) {
+QMPair *ParallelPairCalculator::RequestNextPair(int opId, Topology *top) {
 
     _nextPairMutex.Lock();
 
-    CTP::QMPair *workOnThis;
+    QMPair *workOnThis;
 
     if (_nextPair == top->NBList().end()) {
         workOnThis = NULL;
     }
     else {
-        CTP::QMPair *workOnThat = *_nextPair;
+        QMPair *workOnThat = *_nextPair;
         _nextPair++;
         workOnThis = workOnThat;
     }
@@ -93,7 +93,7 @@ void ParallelPairCalculator::PairOperator::Run(void) {
 
     while (true) {
 
-        CTP::QMPair *qmpair = _master->RequestNextPair(_id, _top);
+        QMPair *qmpair = _master->RequestNextPair(_id, _top);
 
         if (qmpair == NULL) { break; }
         else { this->_master->EvalPair(_top, qmpair, this); }

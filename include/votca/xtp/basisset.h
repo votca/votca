@@ -29,7 +29,6 @@
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
-    //namespace CTP = votca::ctp;
 
 class Shell;  
 class Element;
@@ -101,15 +100,10 @@ public:
         // single type shells
         if ( _type.length() == 1 ){
             if ( _type == "S" ){ _lmax = 0;}
-            else if ( _type == "P" ){ _lmax = 1;}
-            else if ( _type == "D" ){ _lmax = 2;}
-            else if ( _type == "F" ){ _lmax = 3;}
-            else if ( _type == "G" ){ _lmax = 4;}
-            else if ( _type == "H" ){ _lmax = 5;}
-            else if ( _type == "I" ){ _lmax = 6;}
-            else{
-                throw runtime_error("FindLmax: Shelltype not known");
-            }
+            if ( _type == "P" ){ _lmax = 1;}
+            if ( _type == "D" ){ _lmax = 2;}
+            if ( _type == "F" ){ _lmax = 3;}
+            if ( _type == "G" ){ _lmax = 4;}
         } else {
             _lmax = -1;
             for(unsigned i = 0; i < _type.length(); ++i) {
@@ -132,15 +126,10 @@ public:
     // single type shells
     if ( shell_type.length() == 1 ){
        if ( shell_type == "S" ){ _nbf = 0;}
-       else if ( shell_type == "P" ){ _nbf = 1;}
-       else if ( shell_type == "D" ){ _nbf = 4;}
-       else if ( shell_type == "F" ){ _nbf = 9;}
-       else if ( shell_type == "G" ){ _nbf = 16;}
-       else if ( shell_type == "H" ){ _nbf = 25;}
-       else if ( shell_type == "I" ){ _nbf = 36;}
-       else{
-                throw runtime_error("OffsetFuncShell: Shelltype not known");
-            }
+       if ( shell_type == "P" ){ _nbf = 1;}
+       if ( shell_type == "D" ){ _nbf = 4;}
+       if ( shell_type == "F" ){ _nbf = 9;}
+       if ( shell_type == "G" ){ _nbf = 16;}
     } else {
         // for combined shells, go over all contributions and find minimal offset
         _nbf = 1000;
@@ -169,15 +158,10 @@ public:
         // single type shells
         if ( shell_type.length() == 1 ){
             if ( shell_type == "S" ){ _nbf = 1;}
-            else if ( shell_type == "P" ){ _nbf = 3;}
-            else if ( shell_type == "D" ){ _nbf = 5;}
-            else if ( shell_type == "F" ){ _nbf = 7;}
-            else if ( shell_type == "G" ){ _nbf = 9;}
-            else if ( shell_type == "H" ){ _nbf = 11;}
-            else if ( shell_type == "I" ){ _nbf = 13;}
-            else{
-                throw runtime_error("FindnumofFunc: Shelltype not known");
-            }
+            if ( shell_type == "P" ){ _nbf = 3;}
+            if ( shell_type == "D" ){ _nbf = 5;}
+            if ( shell_type == "F" ){ _nbf = 7;}
+            if ( shell_type == "G" ){ _nbf = 9;}
     } else {
         // for combined shells, go over all contributions and add functions
         _nbf = 0;
@@ -335,7 +319,7 @@ inline void BasisSet::LoadBasisSet ( std::string name )
  
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open basisset files.");
+    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
     std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
     
     bool success = load_property_from_xml(basis_property, xmlFile);
@@ -373,21 +357,11 @@ inline void BasisSet::LoadBasisSet ( std::string name )
                     double contrFactor = (*itcont)->getAttribute<double>("factor");
                     //cout << " factor " << contrFactor << endl;
                     if ( contrType == "S" ) contraction[0] = contrFactor;
-                    else if ( contrType == "P" ) contraction[1] = contrFactor;
-                    else if ( contrType == "D" ) contraction[2] = contrFactor;
-                    else if ( contrType == "F" ) contraction[3] = contrFactor;
-                    else if ( contrType == "G" ) contraction[4] = contrFactor;
-                    else if ( contrType == "H" ) contraction[5] = contrFactor;
-                    else if ( contrType == "I" ) contraction[6] = contrFactor;
-                    else{
-                        throw runtime_error("LoadBasiset:Contractiontype not known");
-                    }
+                    if ( contrType == "P" ) contraction[1] = contrFactor;
+                    if ( contrType == "D" ) contraction[2] = contrFactor;
+                    if ( contrType == "F" ) contraction[3] = contrFactor;
+                    if ( contrType == "G" ) contraction[4] = contrFactor;
                 }    
-                //cout<<"contraction ";
-               // for( int i=0;i<contraction.size();i++){
-               //     cout<<contraction[i];
-               //  }
-                //    cout<<std::endl;     
                 shell->addGaussian(decay, contraction);
             }
             
@@ -404,7 +378,7 @@ inline void BasisSet::LoadPseudopotentialSet ( std::string name )
  
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open pseudopotential files.");
+    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
     std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
     
     bool success = load_property_from_xml(basis_property, xmlFile);

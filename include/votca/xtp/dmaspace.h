@@ -26,11 +26,11 @@
 #include <votca/tools/vec.h>
 
 namespace votca {
-namespace ctp {
+namespace xtp {
 namespace DMA {
 
 // TODO Maybe move cmplx to separate header - or use C++ <complex> class
-typedef votca::ctp::EWD::cmplx cmplx;
+typedef votca::xtp::EWD::cmplx cmplx;
     
 // BINOMIAL COEFFICIENT
 inline double binom(int upper, int lower) {

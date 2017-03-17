@@ -20,23 +20,22 @@
 #ifndef _VOTCA_XTP_DFTENGINE_H
 #define	_VOTCA_XTP_DFTENGINE_H
 
-#include <votca/ctp/segment.h>
+#include <votca/xtp/segment.h>
 #include <votca/xtp/orbitals.h>
 
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 
 
-#include <votca/ctp/apolarsite.h>
+
 #include <boost/filesystem.hpp>
 #include <votca/xtp/ERIs.h>
-#include <votca/xtp/diis.h>
-#include <votca/xtp/mixing.h>
+
+
 #include <votca/xtp/numerical_integrations.h>
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
-    namespace CTP = votca::ctp;
-    
+
         /**
          * \brief Electronic ground-state via Density-Functional Theory
          *
@@ -49,11 +48,8 @@ class DFTENGINE
 {
 public:
 
-    DFTENGINE() {_addexternalsites=false;
-            };
-   ~DFTENGINE(){
-    
-   };
+    DFTENGINE() { };
+   ~DFTENGINE() { };
 
    
    
@@ -62,19 +58,7 @@ public:
    
     void    CleanUp();
 
-    void setLogger( CTP::Logger* pLog ) { _pLog = pLog; }
-    
-    void setExternalcharges(std::vector<CTP::APolarSite*> externalsites){
-        _externalsites=externalsites;
-        _addexternalsites=true;
-    }
-    
-    void setExternalGrid(std::vector<double> electrongrid,std::vector<double> nucleigrid){
-        _externalgrid=electrongrid;
-       _externalgrid_nuc=nucleigrid;
-    }
-    
- 
+    void setLogger( Logger* pLog ) { _pLog = pLog; }
     
     bool Evaluate(   Orbitals* _orbitals );
 
@@ -85,17 +69,16 @@ public:
     
     private:
 
-    CTP::Logger *_pLog;
+    Logger *_pLog;
     
     void Prepare( Orbitals* _orbitals );
     void SetupInvariantMatrices();
-    ub::matrix<double> AtomicGuess(Orbitals* _orbitals);
-    ub::matrix<double> DensityMatrix_unres( const ub::matrix<double>& _MOs, int numofelec);
-    string Choosesmallgrid(string largegrid);
-    void NuclearRepulsion();
-    double ExternalRepulsion();
-     double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
-   
+    
+    void DensityMatrixGroundState( ub::matrix<double>& _MOs, int occulevels ) ;
+    
+
+    void EvolveDensityMatrix(ub::matrix<double>& MOCoeff, int occulevels);
+    
     //bool   _maverick;
     
     // program tasks
@@ -115,7 +98,7 @@ public:
     Property _dftengine_options; 
     
     // atoms
-    std::vector<CTP::QMAtom*>                _atoms;
+    std::vector<QMAtom*>                _atoms;
 
     // basis sets
     std::string                              _auxbasis_name;
@@ -129,73 +112,42 @@ public:
     AOBasis                             _ecp;
     
     bool                                _with_ecp;
-    bool                                _with_RI;
-    string                              _4cmethod;
     
-    // numerical integration Vxc
+    // numerical integration 
     std::string                              _grid_name;
-    std::string                             _grid_name_small;
-    bool                                _use_small_grid;
     NumericalIntegration                _gridIntegration;
-    NumericalIntegration                 _gridIntegration_small;
-    //used to store Vxc after final iteration
-  
-    //numerical integration externalfield;
-    //this will not remain here but be moved to qmape
-    bool                                    _do_externalfield;
-    std::string                              _grid_name_ext;
-    NumericalIntegration                _gridIntegration_ext;
-    std::vector<double>                     _externalgrid;
-    std::vector<double>                     _externalgrid_nuc;
-    
 
     // AO Matrices
     AOOverlap                           _dftAOoverlap;
-   
-   // AOCoulomb                           _dftAOcoulomb;
-    
-    ub::matrix<double>                  _AuxAOcoulomb_inv;
-    ub::matrix<double>                  _dftAOdmat;
+    AOOverlap                           _auxAOoverlap;
+    AOCoulomb                           _dftAOcoulomb;
+    AOCoulomb                           _auxAOcoulomb;
     AOKinetic                           _dftAOkinetic;
     AOESP                               _dftAOESP;
     AOECP                               _dftAOECP;
     
-    AODipole_Potential                  _dftAODipole_Potential;
-    AOQuadrupole_Potential              _dftAOQuadrupole_Potential;
-    bool                                _with_guess;
-    string                              _initial_guess;
-    double                              E_nucnuc;
-    
-    // COnvergence 
+    //
     double                              _mixingparameter;
-    double                              _Econverged;
-    double                              _error_converged;
-    int                            _numofelectrons;
+    int                                 _numofelectrons;
     int                                 _max_iter;
     int                                 _this_iter;
-    
-    
-    //DIIS variables
-    Diis                               _diis;
-    bool                              _usediis;
-    unsigned                          _histlength;
-    bool                              _maxout;
-    string                            _diismethod;
-    ub::matrix<double>                _Sminusonehalf;
-    double                              _diis_start;                 
-    bool                        _useautomaticmixing;
+    ub::matrix<double>                  _dftAOdmat;
+    std::vector< ub::matrix<double> >   _dftdmathist;
     //Electron repulsion integrals
     ERIs                                _ERIs;
     
-    // external charges
-     std::vector<CTP::APolarSite*>        _externalsites;
-     bool                            _addexternalsites;
+     ub::matrix<double>                 _AOIntegrals ; // TRY MORE USEFUL DATA
+    
+    
     
     // exchange and correlation
-    std::string                              _xc_functional_name;
+    std::string                              _x_functional_name;
+    std::string                              _c_functional_name;
 
-
-  
+    
+   typedef boost::multi_array<double, 4> fourdim;
+   //fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
+    //fourdim  fourcenter;
     
 };
 

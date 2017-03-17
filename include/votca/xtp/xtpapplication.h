@@ -24,9 +24,8 @@
 #include <votca/tools/application.h>
 #include <votca/tools/property.h>
 
-//namespace votca { namespace ctp {
-
 namespace votca { namespace xtp {
+
 
 
 class XtpApplication : public votca::tools::Application

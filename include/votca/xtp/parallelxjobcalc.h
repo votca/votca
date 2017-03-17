@@ -21,11 +21,11 @@
 #define __PARALLELXJOBCALC__H
 
 
-#include <votca/ctp/jobcalculator.h>
-#include <votca/ctp/qmthread.h>
+#include <votca/xtp/jobcalculator.h>
+#include <votca/xtp/qmthread.h>
 #include <votca/tools/mutex.h>
-#include <votca/ctp/job.h>
-#include <votca/ctp/progressobserver.h>
+#include <votca/xtp/job.h>
+#include <votca/xtp/progressobserver.h>
 
 
 // PATHWAYS TO A NEW THREADED CALCULATOR
@@ -40,9 +40,8 @@
 
 namespace votca { namespace xtp {
 
-    namespace CTP = votca::ctp;
 template<typename JobContainer, typename pJob, typename rJob> 
-class ParallelXJobCalc : public CTP::JobCalculator
+class ParallelXJobCalc : public JobCalculator
 {
 
 public:
@@ -54,12 +53,12 @@ public:
 
     std::string       Identify() { return "Parallel XJob Calculator"; }
 
-    bool         EvaluateFrame(CTP::Topology *top);
+    bool         EvaluateFrame(Topology *top);
     virtual void LoadJobs() { ; }
-    virtual void CustomizeLogger(CTP::QMThread* thread);
-    virtual void PreProcess(CTP::Topology *top) { ; } 
-    virtual rJob EvalJob(CTP::Topology *top, const pJob job, CTP::QMThread *thread) = 0;
-    virtual void PostProcess(CTP::Topology *top) { ; }
+    virtual void CustomizeLogger(QMThread* thread);
+    virtual void PreProcess(Topology *top) { ; } 
+    virtual rJob EvalJob(Topology *top, const pJob job, QMThread *thread) = 0;
+    virtual void PostProcess(Topology *top) { ; }
     
     void         LockCout() { _coutMutex.Lock(); }
     void         UnlockCout() { _coutMutex.Unlock(); }
@@ -72,21 +71,21 @@ public:
     // ======================================== //
     
 
-    class JobOperator : public CTP::QMThread
+    class JobOperator : public QMThread
     {
     public:
 
-        JobOperator(int id,   CTP::Topology *top, ParallelXJobCalc<JobContainer,pJob,rJob> *master)
+        JobOperator(int id,   Topology *top, ParallelXJobCalc<JobContainer,pJob,rJob> *master)
                       : _top(top),          _master(master) { _id = id; };
        ~JobOperator() {};
 
-        void        InitData(CTP::Topology *top) { ; }
+        void        InitData(Topology *top) { ; }
         void        Run(void);
         
 
     public:
 
-        CTP::Topology         *_top;
+        Topology         *_top;
         ParallelXJobCalc<JobContainer,pJob,rJob> *_master;
         pJob              _job;
 

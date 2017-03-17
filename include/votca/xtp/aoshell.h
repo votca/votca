@@ -24,7 +24,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/basisset.h>
-#include <votca/tools/constants.h>
+
 
 
 using namespace votca::tools;
@@ -46,20 +46,18 @@ public:
     double decay;
     std::vector<double> contraction;
     AOShell* aoshell;
-    //used in evalspace to spped up DFT
-    double powfactor;
 private:
     // private constructor, only a shell can create a primitive
     AOGaussianPrimitive( double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
     : decay(_decay),
             contraction(_contraction),
-            aoshell(_aoshell) {powfactor=pow(2.0 * decay / boost::math::constants::pi<double>(), 0.75) ; }
+            aoshell(_aoshell) { ; }
 
     AOGaussianPrimitive( int _power, double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
     : power(_power),
     decay(_decay),
     contraction(_contraction),
-    aoshell(_aoshell) {powfactor=pow(2.0 * decay / boost::math::constants::pi<double>(), 0.75) ; }
+    aoshell(_aoshell) { ; }
 };      
     
 /*
@@ -79,6 +77,18 @@ public:
     std::string getName() { return _atomname;}
     
     int getLmax(  ) { return detlmax( _type );}
+    /*
+        int _lmax;
+        if ( _type == "S" ) _lmax = 0;
+        if ( _type == "SP" ) _lmax = 1;
+        if ( _type == "SPD" ) _lmax = 2;
+        if ( _type == "P" ) _lmax = 1;
+        if ( _type == "PD" ) _lmax = 2;
+        if ( _type == "D" ) _lmax = 2;
+        
+        
+        return _lmax;
+    };*/ 
     
     vec getPos() { return _pos; }
     double getScale() { return _scale; }
@@ -86,13 +96,17 @@ public:
     int getSize() { return _gaussians.size(); }
     
     
+    //vector<double> evalAOspace( double x, double y, double z , string type = "");
+    //void EvalAOspace( ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z , string type = "");
+    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x, double y, double z );
+    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z );
+    //void EvalAOspace(ub::matrix<double>& AOvalues, double x, double y, double z , string type = "");
     
-    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const vec& grid_pos );
-    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, const vec& grid_pos );
-    
-   
-    
-    void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODervalues, const vec& grid_pos , std::string type = "");
+    void EvalAOIntegral(ub::matrix_range<ub::matrix<double> >& AOvalues);
+    //vector< vector<double> > evalAOGradspace( double x, double y, double z , string type = "");
+    //void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODerXvalues,ub::matrix_range<ub::matrix<double> >& AODerYvalues,ub::matrix_range<ub::matrix<double> >& AODerZvalues, double x, double y, double z , string type = "");
+    void EvalAOGradspace( ub::matrix_range<ub::matrix<double> >& AODervalues, double x, double y, double z , std::string type = "");
+    //void EvalAOGradspace( ub::matrix<double>& AODervalues, double x, double y, double z , string type = "");
     // iterator over pairs (decay constant; contraction coefficient)
     typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
     GaussianIterator firstGaussian() { return _gaussians.begin(); }

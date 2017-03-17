@@ -20,19 +20,19 @@
 #ifndef VOTCA_XTP_QMAPECALC_H
 #define	VOTCA_XTP_QMAPECALC_H
 
-#include <votca/ctp/pewald3d.h>
+#include <votca/xtp/pewald3d.h>
 #include <votca/xtp/parallelxjobcalc.h>
-#include <votca/ctp/xmapper.h>
-#include <votca/ctp/xjob.h>
-#include <votca/ctp/xinductor.h>
-#include <votca/ctp/xinteractor.h>
+#include <votca/xtp/xmapper.h>
+#include <votca/xtp/xjob.h>
+#include <votca/xtp/xinductor.h>
+#include <votca/xtp/xinteractor.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/qmapemachine.h>
 #include <boost/format.hpp>
 
 using boost::format;
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
    
 class QMAPE : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
@@ -175,7 +175,7 @@ void QMAPE::Initialize(Property *options) {
         cout << endl << "... ... Configure for ground states (DFT)" << flush;
     }
 
-    XQMPackageFactory::RegisterAll();
+    QMPackageFactory::RegisterAll();
 }
 
 
@@ -281,12 +281,12 @@ Job::JobResult QMAPE::EvalJob(Topology *top, Job *job, QMThread *thread) {
 		cape.WriteDensitiesPDB(xjob.getTag()+".densities.pdb");
 
     // SETUP QM HANDLERS
-    XQMPackage *qmpack =  XQMPackages().Create(_package);
+    QMPackage *qmpack =  QMPackages().Create(_package);
     qmpack->Initialize(&_qmpack_opt);
     qmpack->setLog(qlog);
     
     // SETUP QMAPE
-    QMAPEMachine<XQMPackage> machine = QMAPEMachine<XQMPackage>(&xjob, &cape, qmpack,
+    QMAPEMachine<QMPackage> machine = QMAPEMachine<QMPackage>(&xjob, &cape, qmpack,
         _options, "options.qmape", _subthreads);
     machine.setLog(thread->getLogger());
     

@@ -27,7 +27,7 @@
 #include <votca/tools/mutex.h>
 
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class ParallelSiteCalculator : public QMCalculator
 {

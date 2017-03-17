@@ -22,10 +22,10 @@
 #define XMULTIPOLE_H
 
 
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 #include <boost/progress.hpp>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 
 class XMultipole : public QMCalculator

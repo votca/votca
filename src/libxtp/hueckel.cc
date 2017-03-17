@@ -24,14 +24,14 @@
 
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/tools/linalg.h>
 
 using namespace std;
 using namespace votca::tools;
 
 namespace votca {
-    namespace ctp {
+    namespace xtp {
         namespace ub = boost::numeric::ublas;
         
         

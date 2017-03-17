@@ -18,32 +18,32 @@
  */
 
 #include <votca/tools/propertyiomanipulator.h>
-#include <votca/ctp/job.h>
+#include <votca/xtp/job.h>
 #include <boost/format.hpp>
-#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string.hpp> 
 
 
 using boost::format;
 
-namespace votca { namespace ctp {
-
-
-
+namespace votca { namespace xtp {    
+    
+    
+    
 Job::Job(Property *prop)
   : _has_host(false), _has_time(false), _has_error(false),
     _has_output(false), _has_sqlcmd(false) {
-
+   
      // DEFINED BY USER
     _id = prop->get("id").as<int>();
     _tag = prop->get("tag").as<string>();
     _input = prop->get("input");
     _attemptsCount = 0;
-
+    
     if (prop->exists("status"))
         _status = ConvertStatus(prop->get("status").as<string>());
-    else
+    else 
         _status = AVAILABLE;
-
+    
     if (prop->exists("sqlcmd")) {
         _sqlcmd = prop->get("sqlcmd").as<string>();
         _has_sqlcmd = true;

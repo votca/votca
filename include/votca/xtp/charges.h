@@ -15,39 +15,41 @@
  *
  */
 
-#ifndef FILE_GLOB
-#define FILE_GLOB
+#ifndef FILE_CHARGES
+#define FILE_CHARGES
 
+#include <string>
+#include <fstream>
 #include <iostream>
+#include <vector>
+#include <stdlib.h>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 using namespace std;
 
-template<typename T>
-inline void clearListList(T&obj)
+class multipoles
 {
-    typename T::iterator it = obj.begin();
-    for ( ; it != obj.end() ; ++it){
-        it->clear();
-    }
-    obj.clear();
-}
+public: 
+    vector<double> mpls; // bear charges for the molecules
 
-template<typename T>
-inline void safe_delete(T& obj)
-{
-        typename T::iterator it =obj.begin();
-        for( ; it != obj.end() ; ++it ){
-//                cout << "call safe_delete" <<endl;
-                delete *it;
- //               cout << "called safe_delete" <<endl;
+    void cp_mpls( const multipoles &A)
+    {
+        if (mpls.size() != A.mpls.size() ){
+            mpls.resize(A.mpls.size());
         }
-  //      cout << "About to clear safedelete" <<endl;
-        obj.clear();
-  //      cout << "Cleared safedelete" <<endl;
-}
+        copy( A.mpls.begin(), A.mpls.end(), mpls.begin());
+    }
+	
+    int read_crg_eps(const char *);
+
+    const double & get_mpl(const int & i) const {
+	return mpls[i];
+    }
+
+};
 
 }}
 
-#endif //FILE_GLOB
+#endif //FILE_CHARGES
+

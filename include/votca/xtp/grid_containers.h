@@ -22,7 +22,7 @@
 
 #include <votca/tools/property.h>
 #include <votca/xtp/basisset.h>
-#include <votca/ctp/qmatom.h>
+#include <votca/xtp/qmatom.h>
 
 using namespace std;
 
@@ -57,7 +57,9 @@ namespace votca { namespace xtp {
             
             // container for cartesian grid points and weights
             struct integration_grid {
-                vec grid_pos;
+                double grid_x;
+                double grid_y;
+                double grid_z;
                 double grid_weight;
                 double grid_density;
             };

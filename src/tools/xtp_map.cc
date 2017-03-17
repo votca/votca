@@ -25,7 +25,7 @@
 #include <votca/csg/trajectorywriter.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/topologyreader.h>
-#include <votca/ctp/statesaversqlite.h>
+#include <votca/xtp/statesaversqlite.h>
 #include <votca/xtp/version.h>
 #include <votca/tools/globals.h>
 #include "Md2QmEngine.h"
@@ -33,7 +33,7 @@
 using namespace std;
 
 namespace CSG = votca::csg;
-namespace CTP = votca::ctp;
+namespace XTP = votca::xtp;
 namespace TOOLS = votca::tools;
 
 class XtpMap : public Application
@@ -57,10 +57,10 @@ public:
 protected:
     Property               _options;
     CSG::Topology          _mdtopol;
-    CTP::Topology          _qmtopol;
+    XTP::Topology          _qmtopol;
 
     Md2QmEngine            _md2qm;
-    CTP::StateSaverSQLite  _statsav;
+    XTP::StateSaverSQLite  _statsav;
     string                 _outdb;
 
 };
@@ -218,7 +218,7 @@ void XtpMap::Save(string mode) {
     _statsav.WriteFrame();
 
     if (TOOLS::globals::verbose) {
-        CTP::Topology *TopSQL = NULL;
+        XTP::Topology *TopSQL = NULL;
         TopSQL = _statsav.getTopology();
         cout << endl << "Checking topology read from SQL file." << endl;
         string pdbfile = "system.pdb";
@@ -232,7 +232,7 @@ void XtpMap::Save(string mode) {
 void XtpMap::ShowHelpText(std::ostream &out) {
     string name = ProgramName();
     if (VersionString() != "") name = name + ", version " + VersionString();
-    votca::ctp::HelpTextHeader(name);
+    votca::xtp::HelpTextHeader(name);
     HelpText(out);
     //out << "\n\n" << OptionsDesc() << endl;
     out << "\n\n" << VisibleOptions() << endl;

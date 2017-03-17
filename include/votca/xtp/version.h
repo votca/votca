@@ -20,12 +20,12 @@
 
 #include <string>
 /**
- * \namespace votca::ctp
+ * \namespace votca::xtp
  * \brief Charge transport classes
  * 
  * Classes used for charge and exciton transport simulations
  */
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
     const std::string & XtpVersionStr();
     void HelpTextHeader(const std::string &tool_name);
 }}

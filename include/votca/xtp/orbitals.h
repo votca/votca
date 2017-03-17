@@ -25,7 +25,7 @@
 
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
-#include <votca/ctp/qmatom.h>
+#include <votca/xtp/qmatom.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
@@ -35,7 +35,7 @@
 #include <votca/tools/property.h>
 #include <votca/tools/vec.h>
 
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <boost/format.hpp>
 // Text archive that defines boost::archive::text_oarchive
 // and boost::archive::text_iarchive
@@ -111,9 +111,6 @@ public:
     int            getNumberOfElectrons() { return  _number_of_electrons ; } ;
     void           setNumberOfElectrons( const int &electrons ) { _number_of_electrons = electrons;}
     
- 
-    
-    
     
     /* To be uncommented in next version
     bool           getWithECP() {return _with_ECP;};
@@ -137,7 +134,7 @@ public:
     ub::vector<double>* getEnergies() { return &_mo_energies; } // OLD
 
     // access to DFT molecular orbital energy of a specific level (in eV)
-    double getEnergy( int level) { return ( hasMOEnergies() ) ? votca::tools::conv::hrt2ev*_mo_energies[level-1] : 0; }
+    double getEnergy( int level) { return ( hasMOEnergies() ) ? tools::conv::hrt2ev*_mo_energies[level-1] : 0; }
 
     // access to DFT molecular orbital coefficients, new, tested
     bool          hasMOCoefficients() { return ( _mo_coefficients.size1() > 0 ) ? true : false ;}
@@ -159,9 +156,9 @@ public:
     //bool hasQMAtoms() { return _has_atoms;}
     bool hasQMAtoms() { return ( _atoms.size() > 0 ) ? true : false ;}
     // void setQMAtoms( bool inp ) { _has_atoms = inp;}
-    const std::vector< CTP::QMAtom* > &QMAtoms() const { return _atoms ;}
-    std::vector< CTP::QMAtom* > &QMAtoms()  { return _atoms ;}
-    std::vector< CTP::QMAtom* >* getAtoms() { return &_atoms; } //OLD
+    const std::vector< QMAtom* > &QMAtoms() const { return _atoms ;}
+    std::vector< QMAtom* > &QMAtoms()  { return _atoms ;}
+    std::vector< QMAtom* >* getAtoms() { return &_atoms; } //OLD
     
     // access to classical self-energy in MM environment, new, tested
     bool hasSelfEnergy() { return ( _self_energy != 0.0 ) ? true : false ; }
@@ -302,11 +299,11 @@ public:
 
     
     // functions for calculating density matrices
-    ub::matrix<double> DensityMatrixGroundState( ub::matrix<double>& _MOs ) ;
-    std::vector<ub::matrix<double> > DensityMatrixExcitedState( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0 ) ;
-    ub::matrix<double > TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0);
+    ub::matrix<double> &DensityMatrixGroundState( ub::matrix<double>& _MOs ) ;
+    std::vector<ub::matrix<double> > &DensityMatrixExcitedState( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0 ) ;
+    ub::matrix<double > &TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0);
     
-
+    
     // functions for analyzing fragment charges via Mulliken populations
     void MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag, double& _PopA, double& _PopB  );
 
@@ -361,17 +358,17 @@ public:
     void SortEnergies( std::vector<int>* index );
     
     /** Adds a QM atom to the atom list */
-    CTP::QMAtom* AddAtom (std::string _type, 
+    QMAtom* AddAtom (std::string _type, 
                      double _x, double _y, double _z, 
                      double _charge = 0, bool _from_environment = false)
     {
-        CTP::QMAtom* pAtom = new CTP::QMAtom(_type, _x, _y, _z, _charge, _from_environment);
+        QMAtom* pAtom = new QMAtom(_type, _x, _y, _z, _charge, _from_environment);
         _atoms.push_back( pAtom );
         return pAtom;
     }
-    CTP::QMAtom* AddAtom (CTP::QMAtom atom)
+    QMAtom* AddAtom (QMAtom atom)
     {
-        CTP::QMAtom* pAtom = new CTP::QMAtom(atom);
+        QMAtom* pAtom = new QMAtom(atom);
         _atoms.push_back( pAtom );
         return pAtom;
     }
@@ -403,10 +400,7 @@ private:
     int                                     _basis_set_size;   
     int                                     _occupied_levels;
     int                                     _unoccupied_levels;
-    //number of electrons actually is number of alpha_e
     int                                     _number_of_electrons;
-    int                                     _number_of_alpha_e;
-    int                                     _number_of_beta_e;
     /* To be uncommented in next version
     bool                                    _with_ECP;
     */
@@ -418,7 +412,7 @@ private:
     ub::symmetric_matrix<double>            _overlap;
     ub::symmetric_matrix<double>            _vxc;
     
-    std::vector< CTP::QMAtom* >                  _atoms;   
+    std::vector< QMAtom* >                  _atoms;   
 
     double                                  _qm_energy;
     double                                  _self_energy;
@@ -476,6 +470,9 @@ private:
     int                                    _couplingsA;
     int                                    _couplingsB;
     
+    ub::matrix<double>                     _dmatGS;
+    std::vector< ub::matrix<double> >      _dmatEX;
+    ub::matrix<double>                     _dmatTS;
     
     std::vector<double>                    _DqS_fragA; // fragment charge changes in exciton
     std::vector<double>                    _DqS_fragB;
@@ -518,7 +515,7 @@ private:
           ar & floatordouble;
           
           if (test!=floatordouble){ 
-              throw std::runtime_error((boost::format("This votca is compiled with %. The orbitals file you want to read in is compiled with %") %test %floatordouble).str());
+              throw std::runtime_error((boost::format("This votca is compiled with %. The orbitals file you want to read in is compield with %") %test %floatordouble).str());
           }
       }
           else{

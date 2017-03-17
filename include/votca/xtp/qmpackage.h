@@ -17,31 +17,30 @@
  *
  */
 
-#ifndef _XTP_XQM_PACKAGE_H
-#define	_XTP_XQM_PACKAGE_H
+#ifndef _XTP_QM_PACKAGE_H
+#define	_XTP_QM_PACKAGE_H
 
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/tools/property.h>
-#include <votca/ctp/segment.h>
-#include <votca/ctp/qmpair.h>
-#include <votca/ctp/topology.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/qmpair.h>
+#include <votca/xtp/topology.h>
 #include <boost/format.hpp>
 
 namespace votca { namespace xtp {
-    namespace CTP = votca::ctp;
  
 // ========================================================================== //
 // QMPackage base class for wrappers of TURBOMOLE, GAUSSIAN, etc              //
 // ========================================================================== //
     
-class XQMPackage
+class QMPackage
 {
 
 public:
 
-   XQMPackage(){};
-   virtual ~XQMPackage(){}; 
+   QMPackage(){};
+   virtual ~QMPackage(){}; 
 
    virtual std::string getPackageName() = 0;
 
@@ -49,10 +48,10 @@ public:
    virtual void Initialize( Property *options ) = 0;
    
    /// writes a coordinate file WITHOUT taking into account PBCs
-   virtual bool WriteInputFile( std::vector< CTP::Segment* > segments, Orbitals* orbitals = NULL) = 0;
+   virtual bool WriteInputFile( std::vector< Segment* > segments, Orbitals* orbitals = NULL) = 0;
 
    /// writes a coordinate file of a pair WITH PBCs and the orbital guess [if needed]
-   bool WriteInputFilePBC( CTP::QMPair* pair, Orbitals* orbitals = NULL);
+   bool WriteInputFilePBC( QMPair* pair, Orbitals* orbitals = NULL);
    
    virtual bool Run() = 0;
 
@@ -62,6 +61,7 @@ public:
    
    virtual void CleanUp() = 0;
    
+   virtual bool ConvertToGW( Orbitals* _orbitals ) = 0;
 
    void setRunDir( std::string run_dir ) { _run_dir = run_dir; }
    
@@ -71,7 +71,7 @@ public:
 
    void setOrbitalsFileName( string orb_file ) { _orb_file_name = orb_file; }
    
-   void setLog( CTP::Logger* pLog ) { _pLog = pLog; }
+   void setLog( Logger* pLog ) { _pLog = pLog; }
       
    bool GuessRequested( ) { return _write_guess; }
    
@@ -121,36 +121,36 @@ protected:
     
     bool                                _output_Vxc;
     
-    CTP::Logger*                             _pLog;
+    Logger*                             _pLog;
        
 };
 
-inline bool XQMPackage::WriteInputFilePBC( CTP::QMPair* pair, Orbitals* orbitals) {
+inline bool QMPackage::WriteInputFilePBC( QMPair* pair, Orbitals* orbitals) {
     
     //std::cout << "IDFT writes input with PBC" << std::endl;
     
-    CTP::Segment* seg1 = pair->Seg1();
-    CTP::Segment* seg2 = pair->Seg2();
-    CTP::Segment* ghost = NULL;
+    Segment* seg1 = pair->Seg1();
+    Segment* seg2 = pair->Seg2();
+    Segment* ghost = NULL;
     
-    CTP::Topology* _top = seg1->getTopology();
+    Topology* _top = seg1->getTopology();
 
-    CTP::vec r1 = seg1->getPos();
-    CTP::vec r2 = seg2->getPos();
+    vec r1 = seg1->getPos();
+    vec r2 = seg2->getPos();
 
-    CTP::vec _R = _top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
+    vec _R = _top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
 
     // Check whether pair formed across periodic boundary
     if ( abs(r2 - r1 - _R) > 1e-8 ) {
-        ghost = new CTP::Segment(seg2);
+        ghost = new Segment(seg2);
         //ghost->TranslateBy(r1 - r2 + _R); // DO NOT USE THIS METHOD !
-	std::vector<CTP::Atom*>::iterator ait;
+	std::vector<Atom*>::iterator ait;
 	for (ait = ghost->Atoms().begin(); ait != ghost->Atoms().end(); ++ait) {
 		(*ait)->setQMPos((*ait)->getQMPos()+r1-r2+_R);
 	}
     }
  
-    std::vector< CTP::Segment* > segments;
+    std::vector< Segment* > segments;
     segments.push_back(seg1);
     
     if ( ghost ) {

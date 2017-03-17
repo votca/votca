@@ -1,34 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="95">
+<configurationDescriptor version="90">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
+        <itemPath>../../src/libxtp/calculators/cgpolar.h</itemPath>
         <itemPath>../../src/libxtp/calculators/eanalyze.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/eimport.h</itemPath>
         <itemPath>../../src/libxtp/calculators/einternal.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/emultipole.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/eoutersphere.cc</itemPath>
+        <itemPath>../../src/libxtp/calculators/eoutersphere.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/ewdbgpol.h</itemPath>
         <itemPath>../../src/libxtp/calculators/ianalyze.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/kmclifetime.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/kmcmultiple.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/iimport.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/izindo.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/jobwriter.cc</itemPath>
+        <itemPath>../../src/libxtp/calculators/jobwriter.h</itemPath>
         <itemPath>../../src/libxtp/calculators/neighborlist.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/pairdump.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/panalyze.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/profile.h</itemPath>
         <itemPath>../../src/libxtp/calculators/rates.h</itemPath>
         <itemPath>../../src/libxtp/calculators/sandbox.h</itemPath>
         <itemPath>../../src/libxtp/calculators/stateserver.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/tdump.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/vaverage.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/zmultipole.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f5" displayName="Extractors" projectFiles="true">
+        <itemPath>../../src/libxtp/extractors/energyextractor.h</itemPath>
+        <itemPath>../../src/libxtp/extractors/integralsextractor.h</itemPath>
+        <itemPath>../../src/libxtp/extractors/occupationsextractor.h</itemPath>
+        <itemPath>../../src/libxtp/extractors/pairsextractor.h</itemPath>
+        <itemPath>../../src/libxtp/extractors/ratesextractor.h</itemPath>
+        <itemPath>../../src/libxtp/extractors/segmentsextractor.h</itemPath>
+        <itemPath>../../src/libxtp/extractors/trajextractor.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
-        <itemPath>../../src/libxtp/jobcalculators/dma.cc</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/dma.h</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/edft.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/egwbse.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/egwbse.h</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/ewald.h</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/idft.cc</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/idft.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/igwbse.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/igwbse.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/qmape.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/qmmm.h</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/xqmultipole.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f4" displayName="Obsolete" projectFiles="true">
+        <itemPath>../../src/libxtp/calculators/ecoulomb.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/emultipole_stdal.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/molpol.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/qmultipole.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/velocity.h</itemPath>
         <itemPath>../../src/libxtp/calculators/xmultipole.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/xmultipole2.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
         <itemPath>../../src/libxtp/tools/coupling.h</itemPath>
@@ -36,61 +66,93 @@
         <itemPath>../../src/libxtp/tools/exciton.h</itemPath>
         <itemPath>../../src/libxtp/tools/excitoncoupling.h</itemPath>
         <itemPath>../../src/libxtp/tools/gencube.h</itemPath>
+        <itemPath>../../src/libxtp/tools/log2mps.h</itemPath>
+        <itemPath>../../src/libxtp/tools/molpol.cc</itemPath>
+        <itemPath>../../src/libxtp/tools/molpol.h</itemPath>
+        <itemPath>../../src/libxtp/tools/orb2isogwa.h</itemPath>
         <itemPath>../../src/libxtp/tools/partialcharges.h</itemPath>
+        <itemPath>../../src/libxtp/tools/pdb2map.h</itemPath>
+        <itemPath>../../src/libxtp/tools/pdb2top.h</itemPath>
         <itemPath>../../src/libxtp/tools/qmanalyze.h</itemPath>
+        <itemPath>../../src/libxtp/tools/qmsandbox.h</itemPath>
         <itemPath>../../src/libxtp/tools/spectrum.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>../../include/votca/xtp/ERIs.h</itemPath>
       <itemPath>../../include/votca/xtp/aobasis.h</itemPath>
       <itemPath>../../include/votca/xtp/aomatrix.h</itemPath>
       <itemPath>../../include/votca/xtp/aoshell.h</itemPath>
+      <itemPath>../../include/votca/xtp/apolarsite.h</itemPath>
+      <itemPath>../../include/votca/xtp/atom.h</itemPath>
       <itemPath>../../include/votca/xtp/basisset.h</itemPath>
-      <itemPath>../../include/votca/xtp/bsecoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/elements.h</itemPath>
-      <itemPath>../../include/votca/xtp/esp2multipole.h</itemPath>
       <itemPath>../../include/votca/xtp/espfit.h</itemPath>
+      <itemPath>../../include/votca/xtp/ewald2d.h</itemPath>
+      <itemPath>../../include/votca/xtp/ewald3d.h</itemPath>
+      <itemPath>../../include/votca/xtp/ewaldactor.h</itemPath>
+      <itemPath>../../include/votca/xtp/ewaldnd.h</itemPath>
+      <itemPath>../../include/votca/xtp/ewdspace.h</itemPath>
       <itemPath>../../include/votca/xtp/exchange_correlation.h</itemPath>
       <itemPath>../../include/votca/xtp/extractorfactory.h</itemPath>
+      <itemPath>../../include/votca/xtp/fragment.h</itemPath>
       <itemPath>../../include/votca/xtp/gdma.h</itemPath>
       <itemPath>../../include/votca/xtp/grid.h</itemPath>
-      <itemPath>../../include/votca/xtp/grid_containers.h</itemPath>
+      <itemPath>../../include/votca/xtp/gsl_boost_ublas_matrix_prod.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbse.h</itemPath>
+      <itemPath>../../include/votca/xtp/job.h</itemPath>
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculator.h</itemPath>
-      <itemPath>../../include/votca/xtp/lowdin.h</itemPath>
+      <itemPath>../../include/votca/xtp/logger.h</itemPath>
+      <itemPath>../../include/votca/xtp/mkl_boost_ublas_matrix_prod.h</itemPath>
+      <itemPath>../../include/votca/xtp/molecule.h</itemPath>
       <itemPath>../../include/votca/xtp/mulliken.h</itemPath>
-      <itemPath>../../include/votca/xtp/nbo.h</itemPath>
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
+      <itemPath>../../include/votca/xtp/overlap.h</itemPath>
       <itemPath>../../include/votca/xtp/paircalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/parallelpaircalc.h</itemPath>
       <itemPath>../../include/votca/xtp/parallelsitecalc.h</itemPath>
       <itemPath>../../include/votca/xtp/parallelxjobcalc.h</itemPath>
+      <itemPath>../../include/votca/xtp/pewald3d.h</itemPath>
+      <itemPath>../../include/votca/xtp/poissongrid.h</itemPath>
+      <itemPath>../../include/votca/xtp/polarbackground.h</itemPath>
+      <itemPath>../../include/votca/xtp/polarseg.h</itemPath>
+      <itemPath>../../include/votca/xtp/polarsite.h</itemPath>
+      <itemPath>../../include/votca/xtp/polartop.h</itemPath>
+      <itemPath>../../include/votca/xtp/progressobserver.h</itemPath>
       <itemPath>../../include/votca/xtp/qmapemachine.h</itemPath>
+      <itemPath>../../include/votca/xtp/qmatom.h</itemPath>
       <itemPath>../../include/votca/xtp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/xtp/qmmachine.h</itemPath>
+      <itemPath>../../include/votca/xtp/qmnblist.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackage.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackagefactory.h</itemPath>
+      <itemPath>../../include/votca/xtp/qmpair.h</itemPath>
       <itemPath>../../include/votca/xtp/qmthread.h</itemPath>
+      <itemPath>../../include/votca/xtp/qmtool.h</itemPath>
       <itemPath>../../include/votca/xtp/radial_euler_maclaurin_rule.h</itemPath>
+      <itemPath>../../include/votca/xtp/segment.h</itemPath>
+      <itemPath>../../include/votca/xtp/segmenttype.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaversqlite.h</itemPath>
       <itemPath>../../include/votca/xtp/threecenters.h</itemPath>
+      <itemPath>../../include/votca/xtp/topology.h</itemPath>
       <itemPath>../../include/votca/xtp/version.h</itemPath>
+      <itemPath>../../include/votca/xtp/votca_config.h</itemPath>
       <itemPath>../../include/votca/xtp/vxc_functionals.h</itemPath>
+      <itemPath>../../include/votca/xtp/xinductor.h</itemPath>
+      <itemPath>../../include/votca/xtp/xinteractor.h</itemPath>
+      <itemPath>../../include/votca/xtp/xjob.h</itemPath>
+      <itemPath>../../include/votca/xtp/xmapper.h</itemPath>
       <itemPath>../../include/votca/xtp/xtpapplication.h</itemPath>
     </logicalFolder>
     <logicalFolder name="f2" displayName="QMPackages" projectFiles="true">
-      <itemPath>../../src/libxtp/qmpackages/cpmd.cc</itemPath>
-      <itemPath>../../src/libxtp/qmpackages/cpmd.h</itemPath>
       <itemPath>../../src/libxtp/qmpackages/gaussian.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackages/gaussian.h</itemPath>
       <itemPath>../../src/libxtp/qmpackages/nwchem.cc</itemPath>
@@ -109,15 +171,14 @@
                    projectFiles="true">
       <logicalFolder name="f5" displayName="aomatrices" projectFiles="true">
         <itemPath>../../src/libxtp/aomatrices/aocoulomb.cc</itemPath>
+        <itemPath>../../src/libxtp/aomatrices/aocoulomb_g.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aodipole.cc</itemPath>
-        <itemPath>../../src/libxtp/aomatrices/aodipole_potential.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aoecp.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aoesp.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aokinetic.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aomatrix.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aomomentum.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aooverlap.cc</itemPath>
-        <itemPath>../../src/libxtp/aomatrices/aoquadrupole_potential.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="Applications" projectFiles="true">
         <itemPath>../../src/libxtp/jobapplication.cc</itemPath>
@@ -126,8 +187,6 @@
       </logicalFolder>
       <logicalFolder name="f7" displayName="dftengine" projectFiles="true">
         <itemPath>../../src/libxtp/dftengine/dftengine.cc</itemPath>
-        <itemPath>../../src/libxtp/diis.cc</itemPath>
-        <itemPath>../../src/libxtp/mixing.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="Factories" projectFiles="true">
         <itemPath>../../src/libxtp/calculatorfactory.cc</itemPath>
@@ -147,26 +206,47 @@
         <itemPath>../../src/libxtp/numerical_integration/radial_euler_maclaurin_rule.cc</itemPath>
         <itemPath>../../src/libxtp/numerical_integration/sphere_lebedev_rule.cc</itemPath>
       </logicalFolder>
+      <logicalFolder name="f3" displayName="Topology" projectFiles="true">
+        <itemPath>../../src/libxtp/fragment.cc</itemPath>
+        <itemPath>../../src/libxtp/molecule.cc</itemPath>
+        <itemPath>../../src/libxtp/qmnblist.cc</itemPath>
+        <itemPath>../../src/libxtp/qmpair.cc</itemPath>
+        <itemPath>../../src/libxtp/segment.cc</itemPath>
+        <itemPath>../../src/libxtp/segmenttype.cc</itemPath>
+        <itemPath>../../src/libxtp/topology.cc</itemPath>
+      </logicalFolder>
       <itemPath>../../src/libxtp/ERIs.cc</itemPath>
       <itemPath>../../src/libxtp/aobasis.cc</itemPath>
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
+      <itemPath>../../src/libxtp/apolarsite.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
-      <itemPath>../../src/libxtp/bulkesp.cc</itemPath>
-      <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
+      <itemPath>../../src/libxtp/ewald2d.cc</itemPath>
+      <itemPath>../../src/libxtp/ewald3d.cc</itemPath>
+      <itemPath>../../src/libxtp/ewaldactor.cc</itemPath>
+      <itemPath>../../src/libxtp/ewaldnd.cc</itemPath>
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
       <itemPath>../../src/libxtp/grid.cc</itemPath>
+      <itemPath>../../src/libxtp/gsl_boost_ublas_matrix_prod.cc</itemPath>
+      <itemPath>../../src/libxtp/hgversion.h</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
-      <itemPath>../../src/libxtp/lowdin.cc</itemPath>
-      <itemPath>../../src/libxtp/mulliken.cc</itemPath>
-      <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
+      <itemPath>../../src/libxtp/overlap.cc</itemPath>
       <itemPath>../../src/libxtp/parallelpaircalc.cc</itemPath>
       <itemPath>../../src/libxtp/parallelxjobcalc.cc</itemPath>
+      <itemPath>../../src/libxtp/pewald3d.cc</itemPath>
+      <itemPath>../../src/libxtp/poissongrid.cc</itemPath>
+      <itemPath>../../src/libxtp/polarbackground.cc</itemPath>
+      <itemPath>../../src/libxtp/polarfrag.cc</itemPath>
+      <itemPath>../../src/libxtp/polarseg.cc</itemPath>
+      <itemPath>../../src/libxtp/polarsite.cc</itemPath>
+      <itemPath>../../src/libxtp/polartop.cc</itemPath>
+      <itemPath>../../src/libxtp/progressobserver.cc</itemPath>
       <itemPath>../../src/libxtp/qmapemachine.cc</itemPath>
       <itemPath>../../src/libxtp/qmcalculator.cc</itemPath>
       <itemPath>../../src/libxtp/qmdatabase.cc</itemPath>
       <itemPath>../../src/libxtp/qmmachine.cc</itemPath>
+      <itemPath>../../src/libxtp/qmtool.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libxtp/threecenter_rep.cc</itemPath>
       <itemPath>../../src/libxtp/threecenters.cc</itemPath>
@@ -174,33 +254,88 @@
       <itemPath>../../src/libxtp/threecenters_tools.cc</itemPath>
       <itemPath>../../src/libxtp/version.cc</itemPath>
       <itemPath>../../src/libxtp/version_nb.cc</itemPath>
+      <itemPath>../../src/libxtp/votca_config.h</itemPath>
+      <itemPath>../../src/libxtp/votca_config.h.in</itemPath>
+      <itemPath>../../src/libxtp/xinductor.cc</itemPath>
+      <itemPath>../../src/libxtp/xinteractor.cc</itemPath>
+      <itemPath>../../src/libxtp/xjob.cc</itemPath>
+      <itemPath>../../src/libxtp/xmapper.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false">
+      <itemPath>Makefile</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false">
+      <itemPath>Makefile</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false">
+      <itemPath>Makefile</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false">
+      <itemPath>Makefile</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false">
+      <itemPath>Makefile</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false">
+      <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+    <itemPath>../../src/libxtp/threecenters_g.cc</itemPath>
   </logicalFolder>
   <sourceRootList>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
     <Elem>../../include</Elem>
     <Elem>../../../../include</Elem>
     <Elem>../../include</Elem>
@@ -231,27 +366,26 @@
             <pElem>../../../xtp/include</pElem>
             <pElem>/usr/include/libxml2</pElem>
             <pElem>/sw/linux/intel/XE13u2/mkl/include</pElem>
-            <pElem>../../../ctp/include</pElem>
           </incDir>
         </ccTool>
         <archiverTool>
           <output>../../src/libxtp/libxtp.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/aobasis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/aomatrix.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/aoshell.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/bsecoupling.h"
+      <item path="../../include/votca/xtp/apolarsite.h"
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/atom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/calculatorfactory.h"
             ex="false"
@@ -265,12 +399,9 @@
       </item>
       <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/esp2multipole.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/espfit.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/ewdspace.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/exchange_correlation.h"
             ex="false"
@@ -282,16 +413,20 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/fragment.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/grid.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/grid_containers.h"
+      <item path="../../include/votca/xtp/gsl_boost_ublas_matrix_prod.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/job.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobapplication.h"
             ex="false"
@@ -303,11 +438,16 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
+      <item path="../../include/votca/xtp/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/mkl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
             ex="false"
@@ -315,6 +455,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/overlap.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/paircalculator.h"
             ex="false"
@@ -336,6 +478,28 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/poissongrid.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/polarbackground.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/polarseg.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/polarsite.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/progressobserver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/qmapemachine.h"
             ex="false"
             tool="3"
@@ -351,6 +515,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/qmnblist.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/qmpackage.h"
             ex="false"
             tool="3"
@@ -361,9 +527,20 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/qmpair.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/qmthread.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/qmtool.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/radial_euler_maclaurin_rule.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/segment.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/segmenttype.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -388,12 +565,33 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/topology.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/version.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/votca_config.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/vxc_functionals.h"
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/xinductor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/xinteractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/xjob.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/xmapper.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/xtpapplication.h"
             ex="false"
@@ -404,12 +602,12 @@
       </item>
       <item path="../../src/libxtp/aobasis.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/aomatrices/aodipole.cc"
+      <item path="../../src/libxtp/aomatrices/aocoulomb_g.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/aomatrices/aodipole_potential.cc"
+      <item path="../../src/libxtp/aomatrices/aodipole.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -444,23 +642,33 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/aomatrices/aoquadrupole_potential.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/aoshell.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/apolarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/bulkesp.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/calculatorfactory.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/calculators/cgpolar.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/calculators/eanalyze.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/ecoulomb.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/eimport.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -470,22 +678,82 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/calculators/emultipole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/emultipole_stdal.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/eoutersphere.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/eoutersphere.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/ewdbgpol.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/calculators/ianalyze.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/kmclifetime.h"
+      <item path="../../src/libxtp/calculators/iimport.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/kmcmultiple.h"
+      <item path="../../src/libxtp/calculators/izindo.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/jobwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/jobwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/molpol.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/neighborlist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/pairdump.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/panalyze.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/profile.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/qmultipole.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -505,7 +773,32 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/calculators/tdump.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/vaverage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/velocity.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/calculators/xmultipole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/xmultipole2.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/zmultipole.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -515,20 +808,60 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/extractorfactory.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/extractors/energyextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/integralsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/occupationsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/pairsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/ratesextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/segmentsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/trajextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/fragment.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/grid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gsl_boost_ublas_matrix_prod.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -537,6 +870,8 @@
       <item path="../../src/libxtp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -547,12 +882,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/dma.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/dma.h"
+      <item path="../../src/libxtp/jobcalculators/edft.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -563,6 +893,21 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/egwbse.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/ewald.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/idft.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/idft.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -597,13 +942,12 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/jobcalculators/xqmultipole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
-      <item path="../../src/libxtp/mixing.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
@@ -622,12 +966,34 @@
       </item>
       <item path="../../src/libxtp/orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/overlap.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/parallelpaircalc.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/parallelxjobcalc.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/poissongrid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polarbackground.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polarfrag.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polarseg.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polartop.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/progressobserver.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -640,17 +1006,12 @@
       </item>
       <item path="../../src/libxtp/qmmachine.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/qmnblist.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/qmpackagefactory.cc"
             ex="false"
             tool="1"
             flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmpackages/cpmd.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmpackages/cpmd.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackages/gaussian.cc"
             ex="false"
@@ -689,6 +1050,14 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmtool.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/segmenttype.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
@@ -707,6 +1076,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/threecenters_g.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/threecenters_tools.cc"
             ex="false"
@@ -728,18 +1099,49 @@
       </item>
       <item path="../../src/libxtp/tools/gencube.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/molpol.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/orb2isogwa.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/partialcharges.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/pdb2top.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/qmsandbox.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/version.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/version_nb.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/votca_config.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/votca_config.h.in" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/xinductor.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/xinteractor.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/xjob.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/xmapper.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -763,20 +1165,20 @@
         <archiverTool>
         </archiverTool>
       </compileType>
-      <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/aobasis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/aomatrix.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/aoshell.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/bsecoupling.h"
+      <item path="../../include/votca/xtp/apolarsite.h"
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/atom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/calculatorfactory.h"
             ex="false"
@@ -790,12 +1192,9 @@
       </item>
       <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/esp2multipole.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/espfit.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/ewdspace.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/exchange_correlation.h"
             ex="false"
@@ -807,16 +1206,20 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/fragment.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/grid.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/grid_containers.h"
+      <item path="../../include/votca/xtp/gsl_boost_ublas_matrix_prod.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/job.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobapplication.h"
             ex="false"
@@ -828,11 +1231,16 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
+      <item path="../../include/votca/xtp/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/mkl_boost_ublas_matrix_prod.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
             ex="false"
@@ -840,6 +1248,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/overlap.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/paircalculator.h"
             ex="false"
@@ -861,6 +1271,28 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/poissongrid.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/polarbackground.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/polarseg.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/polarsite.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/progressobserver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/qmapemachine.h"
             ex="false"
             tool="3"
@@ -876,6 +1308,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/qmnblist.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/qmpackage.h"
             ex="false"
             tool="3"
@@ -886,9 +1320,20 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/qmpair.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/qmthread.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/qmtool.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/radial_euler_maclaurin_rule.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/segment.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/segmenttype.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -913,12 +1358,33 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/topology.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/version.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/votca_config.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/vxc_functionals.h"
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/xinductor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/xinteractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/xjob.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/xmapper.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/xtpapplication.h"
             ex="false"
@@ -929,12 +1395,12 @@
       </item>
       <item path="../../src/libxtp/aobasis.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/aomatrices/aodipole.cc"
+      <item path="../../src/libxtp/aomatrices/aocoulomb_g.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/aomatrices/aodipole_potential.cc"
+      <item path="../../src/libxtp/aomatrices/aodipole.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -969,23 +1435,33 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/aomatrices/aoquadrupole_potential.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/aoshell.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/apolarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/bulkesp.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/calculatorfactory.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/calculators/cgpolar.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/calculators/eanalyze.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/ecoulomb.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/eimport.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -995,22 +1471,82 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/calculators/emultipole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/emultipole_stdal.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/eoutersphere.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/eoutersphere.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/ewdbgpol.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/calculators/ianalyze.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/kmclifetime.h"
+      <item path="../../src/libxtp/calculators/iimport.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/kmcmultiple.h"
+      <item path="../../src/libxtp/calculators/izindo.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/jobwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/jobwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/molpol.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/neighborlist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/pairdump.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/panalyze.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/profile.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/qmultipole.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1030,7 +1566,32 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/calculators/tdump.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/vaverage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/velocity.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/calculators/xmultipole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/xmultipole2.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/zmultipole.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1040,20 +1601,60 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/ewaldactor.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/extractorfactory.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/extractors/energyextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/integralsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/occupationsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/pairsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/ratesextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/segmentsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/trajextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/fragment.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/grid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gsl_boost_ublas_matrix_prod.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1062,6 +1663,8 @@
       <item path="../../src/libxtp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/hgversion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/job.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1072,12 +1675,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/dma.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/dma.h"
+      <item path="../../src/libxtp/jobcalculators/edft.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1088,6 +1686,21 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/egwbse.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/ewald.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/idft.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/idft.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1122,13 +1735,12 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/jobcalculators/xqmultipole.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
-      <item path="../../src/libxtp/mixing.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
             ex="false"
@@ -1147,12 +1759,34 @@
       </item>
       <item path="../../src/libxtp/orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/overlap.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/parallelpaircalc.cc"
             ex="false"
             tool="0"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/parallelxjobcalc.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/poissongrid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polarbackground.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polarfrag.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polarseg.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polartop.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/progressobserver.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1165,17 +1799,12 @@
       </item>
       <item path="../../src/libxtp/qmmachine.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/qmnblist.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/qmpackagefactory.cc"
             ex="false"
             tool="1"
             flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmpackages/cpmd.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmpackages/cpmd.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackages/gaussian.cc"
             ex="false"
@@ -1214,6 +1843,14 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmtool.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/segmenttype.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
@@ -1232,6 +1869,8 @@
             ex="false"
             tool="0"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/threecenters_g.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/threecenters_tools.cc"
             ex="false"
@@ -1253,18 +1892,49 @@
       </item>
       <item path="../../src/libxtp/tools/gencube.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/molpol.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/orb2isogwa.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/partialcharges.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/pdb2top.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/qmsandbox.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/topology.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/version.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/version_nb.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/votca_config.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/votca_config.h.in" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/xinductor.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/xinteractor.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/xjob.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/xmapper.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>

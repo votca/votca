@@ -1,7 +1,7 @@
 <options>
 
 <!-- xtp_tools -e coupling options.xml -->
-<spectrum help="Calculate optical spectrum from serizalized orb file">
+<spectrum>
 
     <input>system.orb</input>
     <output>spectrum.dat</output>

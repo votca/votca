@@ -1,6 +1,6 @@
 <options>
 
-<exciton help="Standalone GW-BSE calculator">
+<exciton>
 
         <dftpackage>gaussian_egwbse_molecule.xml</dftpackage>
 

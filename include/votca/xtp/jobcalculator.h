@@ -22,11 +22,11 @@
 #define VOTCA_XTP_JOBCALCULATOR_H
 
 
-#include <votca/ctp/qmcalculator.h>
-#include <votca/ctp/topology.h>
-#include <votca/ctp/progressobserver.h>
+#include <votca/xtp/qmcalculator.h>
+#include <votca/xtp/topology.h>
+#include <votca/xtp/progressobserver.h>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class JobCalculator : public QMCalculator
 {
@@ -37,12 +37,11 @@ public:
 
     virtual std::string  Identify() { return "Generic Job calculator"; }
 
-    virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
-    virtual void    EndEvaluate(CTP::Topology *top) { }
-    
+    virtual bool    EvaluateFrame(XTP::Topology *top) { return true; }
+    virtual void    EndEvaluate(XTP::Topology *top) { }
 
-    virtual void    WriteJobFile(CTP::Topology *top)  { ; }
-    virtual void    ReadJobFile(CTP::Topology *top) { ; }
+    virtual void    WriteJobFile(XTP::Topology *top)  { ; }
+    virtual void    ReadJobFile(XTP::Topology *top) { ; }
 
     void            setProgObserver(ProgObserver< std::vector<Job*>, Job*, Job::JobResult > *obs) { _progObs = obs; }
 

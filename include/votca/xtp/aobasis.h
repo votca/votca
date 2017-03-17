@@ -21,8 +21,8 @@
 #define	__XTP_AOBASIS__H
 
 #include <votca/tools/property.h>
-#include <votca/ctp/segment.h>
-#include <votca/ctp/qmatom.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/qmatom.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
@@ -34,7 +34,6 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
 namespace ub = boost::numeric::ublas;
-namespace CTP = votca::ctp;
 
 class AOShell;
 
@@ -48,14 +47,17 @@ class AOBasis
 public:
         AOBasis( ) { ; }
         ~AOBasis(); 
-      
+       // template< class T >
+       //static void ReorderMOs(ub::matrix<T> &v, std::vector<int> const &order )  {
+       //static void ReorderMOs(ub::matrix<T> &v, std::string start, std::string target )  { 
        void ReorderMOs(ub::matrix<double> &v, std::string start, std::string target ); 
-     
+       
+      //template< class T >   
       void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
 
     // void AOBasisFill( BasisSet* bs , std::vector<Segment* > segments);
-    void AOBasisFill( BasisSet* bs , std::vector<CTP::QMAtom* > segments, int fragbreak = -1);
-    void ECPFill( BasisSet* bs , std::vector<CTP::QMAtom* > segments); 
+    void AOBasisFill( BasisSet* bs , std::vector<QMAtom* > segments, int fragbreak = -1);
+    void ECPFill( BasisSet* bs , std::vector<QMAtom* > segments); 
     
     int NumFuncShell( std::string shell );
     int NumFuncShell_cartesian( std::string shell );
@@ -69,6 +71,8 @@ public:
 
     
     
+    // std::string getType() { return _type; }
+    // int    getNumFunc() { return _numFunc ;}
         
     AOShell* getShell( AOShellIterator it ) { return (*it); }
     
@@ -89,13 +93,13 @@ public:
    
     std::vector<AOShell*> _aoshells;
 
-  
+    // void getReorderVector( std::string& package, std::vector<int>& neworder );
     void getReorderVector( std::string& start, std::string& target, std::vector<int>& neworder );
-   
+    //void addReorderShell( std::string& package, std::string& shell, std::vector<int>& neworder );
     void addReorderShell( std::string& start, std::string& target, std::string& shell, std::vector<int>& neworder );
-  
+    //void getMultiplierVector( std::string& package, std::vector<int>& multiplier );
     void getMultiplierVector( std::string& start, std::string& target, std::vector<int>& multiplier );
-    
+    //void addMultiplierShell( std::string& package, std::string& shell, std::vector<int>& multiplier );  
     void addMultiplierShell( std::string& start, std::string& target, std::string& shell, std::vector<int>& multiplier );  
     
     

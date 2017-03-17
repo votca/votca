@@ -20,11 +20,11 @@
 #ifndef _PAIRCALCULATOR2_H
 #define	_PAIRCALCULATOR2_H
 
-#include <votca/xtp/qmcalculator.h>
+#include "qmcalculator.h"
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
-class PairCalculator2 : public XQMCalculator
+class PairCalculator2 : public QMCalculator
 {
 public:
 

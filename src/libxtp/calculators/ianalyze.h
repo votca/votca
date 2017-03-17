@@ -20,16 +20,13 @@
 #ifndef VOTCA_XTP_IANALYZE_H
 #define VOTCA_XTP_IANALYZE_H
 
-#include <math.h>
-#include <votca/ctp/qmpair.h>
-#include <boost/format.hpp>
 #include <votca/xtp/qmcalculator.h>
-#include <votca/ctp/qmpair.h>
-#include <votca/tools/property.h>
+#include <math.h>
+#include <votca/xtp/qmpair.h>
 
 namespace votca { namespace xtp {
 
-class XIAnalyze : public XQMCalculator
+class IAnalyze : public QMCalculator
 {
 public:
 
@@ -52,7 +49,7 @@ private:
 };
 
 
-void XIAnalyze::Initialize(Property *opt) {
+void IAnalyze::Initialize(Property *opt) {
     _do_pairtype=false;
     _do_IRdependence=false;
     // update options with the VOTCASHARE defaults   
@@ -83,7 +80,7 @@ void XIAnalyze::Initialize(Property *opt) {
 }
 
 
-bool XIAnalyze::EvaluateFrame(Topology *top) {
+bool IAnalyze::EvaluateFrame(Topology *top) {
 
     QMNBList &nblist = top->NBList();
 
@@ -119,7 +116,7 @@ bool XIAnalyze::EvaluateFrame(Topology *top) {
 }
 
 
-void XIAnalyze::IHist(Topology *top, int state) {
+void IAnalyze::IHist(Topology *top, int state) {
 
     QMNBList &nblist = top->NBList();
     QMNBList::iterator nit;
@@ -192,7 +189,7 @@ void XIAnalyze::IHist(Topology *top, int state) {
     fclose(out);
 }
 
-void XIAnalyze::IRdependence(Topology *top, int state) {
+void IAnalyze::IRdependence(Topology *top, int state) {
     
     QMNBList &nblist = top->NBList();
     QMNBList::iterator nit;

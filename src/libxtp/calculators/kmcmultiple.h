@@ -44,7 +44,7 @@
 
 using namespace std;
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
     const static double kB   = 8.617332478E-5; // eV/K
     const static double hbar = 6.5821192815E-16; // eV*s
