@@ -18,9 +18,7 @@
  */
 #include "votca/xtp/diis.h"
 
-#if defined(GSL)
-    #include "gsl/gsl_multimin.h"
-#endif
+
 
 
 namespace votca { namespace xtp {
@@ -29,29 +27,27 @@ namespace votca { namespace xtp {
    
     double Diis::Evolve(const ub::matrix<double>& dmat,const ub::matrix<double>& H,ub::vector<double> &MOenergies,ub::matrix<double> &MOs, int this_iter, double totE){
       ub::matrix<double>H_guess=ub::zero_matrix<double>(H.size1(),H.size2());    
+    
       if(_errormatrixhist.size()>_histlength){
           delete _mathist[_maxerrorindex];
           delete _errormatrixhist[_maxerrorindex];
           delete _Diis_Bs[_maxerrorindex];
           delete _dmathist[_maxerrorindex];
-                _totE.erase(_totE.begin()+_maxerrorindex);
+               _totE.erase(_totE.begin()+_maxerrorindex);
               _mathist.erase(_mathist.begin()+_maxerrorindex);
-              _dmathist.erase(_mathist.begin()+_maxerrorindex);
+              _dmathist.erase(_dmathist.begin()+_maxerrorindex);
               _errormatrixhist.erase(_errormatrixhist.begin()+_maxerrorindex);
               _Diis_Bs.erase( _Diis_Bs.begin()+_maxerrorindex);
               for( std::vector< std::vector<double>* >::iterator it=_Diis_Bs.begin();it<_Diis_Bs.end();++it){
                   std::vector<double>* vect=(*it);
                   vect->erase(vect->begin()+_maxerrorindex);
               }
-               _FDs.erase(_FDs.begin()+_maxerrorindex);
-              for( std::vector< std::vector<double>* >::iterator it=_FDs.begin();it<_FDs.end();++it){
-                  std::vector<double>* vect=(*it);
-                  vect->erase(vect->begin()+_maxerrorindex);
-              }
+            
           
           }
           
       _totE.push_back(totE);
+      
    
      
       //cout<<"MOs"<< _orbitals->MOCoefficients()<< endl;
@@ -106,12 +102,137 @@ namespace votca { namespace xtp {
        _Diis_Bs.push_back(Bijs);
       for (unsigned i=0;i<_errormatrixhist.size()-1;i++){
           double value=linalg_traceofProd(errormatrix,ub::trans(*_errormatrixhist[i]));
+         
           Bijs->push_back(value);
           _Diis_Bs[i]->push_back(value);
       }
       Bijs->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
+         
+      
+      
+      _DiF=ub::zero_vector<double>(_dmathist.size());
+       _DiFj=ub::zero_matrix<double>(_dmathist.size());
        
-      if (max<_diis_start && _usediis && this_iter>2){
+    
+  for(unsigned i=0;i<_dmathist.size();i++){
+    _DiF(i)=linalg_traceofProd((*_dmathist[i])-dmat,H);
+  }
+  
+  for(unsigned i=0;i<_dmathist.size();i++){
+    for(unsigned j=0;j<_dmathist.size();j++){
+        _DiFj(i,j)=linalg_traceofProd((*_dmathist[i])-dmat,(*_mathist[j])-H);
+        }
+        }
+      
+     
+      
+      
+       
+      if (max<_adiis_start && _usediis && this_iter>2){
+          ub::vector<double> coeffs;
+          //use EDIIs if energy has risen a lot in current iteration
+          /*
+          cout<<endl;
+          cout<<"E"<<flush;
+          for (unsigned i=0;i<_totE.size();i++){
+              cout<<_totE[i]<<" "<<flush;
+          }
+          cout<<endl;
+          */
+          if(max>_diis_start || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
+              coeffs=ADIIsCoeff();
+              //cout<<"ADIIS "<<coeffs<<endl;
+          }
+          else if(max>0.0001 && max<_diis_start){
+              ub::vector<double> coeffs1=DIIsCoeff();
+              //cout<<"DIIS "<<coeffs1<<endl;
+              ub::vector<double> coeffs2=ADIIsCoeff();
+              //cout<<"ADIIS "<<coeffs2<<endl;
+              double mixing=max/_diis_start;
+              coeffs=mixing*coeffs2+(1-mixing)*coeffs1;
+              //cout<<"ADIIS+DIIS "<<coeffs<<endl;
+          }
+          else{
+               coeffs=DIIsCoeff();
+               //cout<<"DIIS "<<coeffs<<endl;
+          }
+           
+         //check if last element completely rejected use mixing
+           if(std::abs(coeffs(coeffs.size()-1))<0.001){ 
+                     
+          coeffs=ub::zero_vector<double>(coeffs.size());
+          coeffs(coeffs.size()-1)=0.5;
+          coeffs(coeffs.size()-2)=0.5;
+                 }
+          
+          
+                 for (unsigned i=0;i<coeffs.size();i++){  
+                     if(std::abs(coeffs(i))<1e-8){ continue;}
+                    H_guess+=coeffs(i)*(*_mathist[i]);
+                    //cout <<i<<" "<<a(i+1,0)<<" "<<(*_mathist[i])<<endl;
+                 }
+                //cout <<"H_guess"<<H_guess<<endl;
+          }
+      else{       
+          H_guess=H;     
+          }
+      
+      double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
+      
+      
+      
+      
+      if(max>_levelshiftend && _levelshift>0.00001){
+        Levelshift(H_guess,dmat,_levelshift,_unrestricted);
+      }
+      SolveFockmatrix( MOenergies,MOs,H_guess);
+      //cout<<"after"<<MOenergies<<endl;
+      //cout<<endl;
+      return max;
+      }
+      
+      void Diis::SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,const ub::matrix<double>&H){
+          
+           ub::matrix<double> temp;
+           bool info=linalg_eigenvalues_general( H,(*S), MOenergies, temp);
+            if (!info){
+                    throw runtime_error("Generalized eigenvalue problem did not work.");
+                }
+           
+           MOs=ub::trans(temp);
+           
+           return;
+      }
+      
+      void Diis::Levelshift(ub::matrix<double>& H,const ub::matrix<double> & MOs,double levelshift,bool unrestricted){
+        
+          double occupation=2.0;
+          if(unrestricted){
+              occupation=1.0;
+          }
+          
+           
+         ub::matrix<double> virt = ub::zero_matrix<double>(H.size1());
+        #pragma omp parallel for
+        for ( unsigned _i=0; _i < MOs.size1(); _i++ ){
+            for ( unsigned _j=0; _j < MOs.size1(); _j++ ){
+                for ( unsigned _level=_nocclevels; _level < MOs.size1(); _level++ ){
+                 
+                    virt(_i,_j) += occupation* MOs( _level , _i ) * MOs( _level , _j );
+                 
+                }
+            }
+         }
+         
+        LOG(logDEBUG, *_pLog) << TimeStamp() << " Using levelshift:"<<levelshift<<" Ha" << flush;
+
+          H+=levelshift*virt/occupation; // half the levelshift because our dmat has a factor of two
+                  
+                  return;
+      }
+      
+      
+   ub::vector<double>Diis::DIIsCoeff(){
           bool _useold=false;
           bool check=false;
           //old Pulat DIIs
@@ -197,7 +318,7 @@ namespace votca { namespace xtp {
           double min=std::numeric_limits<double>::max();
           int minloc=-1;
           
-            for (int i = 0; i < errors.size(); i++) {
+            for (unsigned i = 0; i < errors.size(); i++) {
                 if (std::abs(errors(i)) < min) {
 
                     bool ok = true;
@@ -224,63 +345,213 @@ namespace votca { namespace xtp {
           check=false;
        }
           }
-     
           
-          if (!check){
-              H_guess=0.5*(*_mathist[0])+0.5*(*_mathist[1]);
-              LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
-               
+          if(!check){
+               LOG(logDEBUG, *_pLog) << TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
+               coeffs=ub::zero_vector<double>(_mathist.size());
+               coeffs[0]=0.5;
+               coeffs[1]=0.5;
           }
-          else{
-                
-                 for (unsigned i=0;i<_mathist.size();i++){  
-                     if(std::abs(coeffs(i))<1e-8){ continue;}
-                    H_guess+=coeffs(i)*(*_mathist[i]);
-                    //cout <<i<<" "<<a(i+1,0)<<" "<<(*_mathist[i])<<endl;
-                 }
-                //cout <<"H_guess"<<H_guess<<endl;
-          }
-        
-              
-         
-      }
-      else{       
-          H_guess=H;     
-          }
+     return coeffs;  
+   }   
       
-      double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
       
-      if(max>0.2 || (_levelshift>0.00001 && gap<0.01)){
-        Levelshift(H_guess,dmat,_levelshift,_unrestricted);
-      }
-      SolveFockmatrix( MOenergies,MOs,H_guess);
-      //cout<<"after"<<MOenergies<<endl;
-      //cout<<endl;
-      return max;
-      }
       
-      void Diis::SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,const ub::matrix<double>&H){
+   ub::vector<double> Diis::ADIIsCoeff(){
           
-           ub::matrix<double> temp;
-           bool info=linalg_eigenvalues_general( H,(*S), MOenergies, temp);
-            if (!info){
-                    throw runtime_error("Generalized eigenvalue problem did not work.");
-                }
-           
-           MOs=ub::trans(temp);
-           
-           return;
-      }
+   size_t N=_DiF.size();
+          
+  const gsl_multimin_fdfminimizer_type *T;
+  gsl_multimin_fdfminimizer *s;
+
+  gsl_vector *x;
+  gsl_multimin_function_fdf minfunc;
+  minfunc.f = adiis::min_f;
+  minfunc.df = adiis::min_df;
+  minfunc.fdf = adiis::min_fdf;
+  minfunc.n = N;
+  minfunc.params = (void *) this;
+
+  T=gsl_multimin_fdfminimizer_vector_bfgs2;
+  s=gsl_multimin_fdfminimizer_alloc(T,N);
+
+  // Starting point: equal weights on all matrices
+    x=gsl_vector_alloc(N);
+    gsl_vector_set_all(x,1.0/N);
+
+  // Initialize the optimizer. Use initial step size 0.02, and an
+  // orthogonality tolerance of 0.1 in the line searches (recommended
+  // by GSL manual for bfgs).
+  gsl_multimin_fdfminimizer_set(s, &minfunc, x, 0.02, 0.1);
+
+  size_t iter=0;
+  int status;
+  do {
+    iter++;
+    //    printf("iteration %lu\n",iter);
+    status = gsl_multimin_fdfminimizer_iterate(s);
+
+    if (status) {
+      //      printf("Error %i in minimization\n",status);
+      break;
+    }
+
+    status = gsl_multimin_test_gradient(s->gradient, 1e-7);
+
+    /*
+    if (status == GSL_SUCCESS)
+      printf ("Minimum found at:\n");
+    printf("%5lu ", iter);
+    for(size_t i=0;i<N;i++)
+      printf("%.5g ",gsl_vector_get(s->x,i));
+    printf("%10.5g\n",s->f);
+    */
+  }
+  while (status == GSL_CONTINUE && iter < 1000);
+
+  // Final estimate
+  // double E_final=get_E(s->x);
+
+  // Form minimum
+  ub::vector<double> c=adiis::compute_c(s->x);
+
+  gsl_multimin_fdfminimizer_free(s);
+  gsl_vector_free (x);
+
+  
+
+  return c;
+}
+
+ 
+ 
+ 
+ double Diis::get_E_adiis(const gsl_vector * x) const {
+  // Consistency check
+  if(x->size != _DiF.size()) {
+   
+    throw std::runtime_error("Incorrect number of parameters.");
+  }
+
+  ub::vector<double> c=adiis::compute_c(x);
+  double Eval=0.0;
+  for(unsigned i=0;i<c.size();i++){
+  Eval+=2.0*c(i)*_DiF(i);
+  }
+  
+   for(unsigned i=0;i<c.size();i++){
+  for(unsigned j=0;j<c.size();j++){
+      Eval+=c(i)*c(j)*_DiFj(i,j);
+  }
+  }
+  
+
+  
+ 
+  return Eval;
+}
+
+void Diis::get_dEdx_adiis(const gsl_vector * x, gsl_vector * dEdx) const {
+  // Compute contraction coefficients
+  ub::vector<double> c=adiis::compute_c(x);
+  
+   
+  
+  ub::vector<double> dEdc=2.0*_DiF + ub::prod(_DiFj,c) + ub::prod(ub::trans(_DiFj),c);
+ 
+
+  // Compute jacobian of transformation: jac(i,j) = dc_i / dx_j
+  ub::matrix<double> jac=adiis::compute_jac(x);
+
+  // Finally, compute dEdx by plugging in Jacobian of transformation
+  // dE/dx_i = dc_j/dx_i dE/dc_j
+  ub::vector<double> dEdxv=ub::prod(ub::trans(jac),dEdc);
+  for(size_t i=0;i< dEdxv.size();i++)
+    gsl_vector_set(dEdx,i,dEdxv(i));
+}
+
+void Diis::get_E_dEdx_adiis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const {
+  // Consistency check
+   if(x->size != _DiF.size()) {
+   
+    throw std::runtime_error("Incorrect number of parameters.");
+  }
+  if(x->size != dEdx->size) {
+    throw std::domain_error("x and dEdx have different sizes!\n");
+  }
+
+  // Compute energy
+  *Eval=get_E_adiis(x);
+  // and its derivative
+  get_dEdx_adiis(x,dEdx);
+}
+
+
+ub::vector<double> adiis::compute_c(const gsl_vector * x) {
+  // Compute contraction coefficients
+  ub::vector<double> c=ub::zero_vector<double>(x->size);
+
+  double xnorm=0.0;
+  for(size_t i=0;i<x->size;i++) {
+    c[i]=gsl_vector_get(x,i);
+    c[i]=c[i]*c[i]; // c_i = x_i^2
+    xnorm+=c[i];
+  }
+  for(size_t i=0;i<x->size;i++)
+    c[i]/=xnorm; // c_i = x_i^2 / \sum_j x_j^2
+
+  return c;
+}  
+
+ub::matrix<double> adiis::compute_jac(const gsl_vector * x) {
+  // Compute jacobian of transformation: jac(i,j) = dc_i / dx_j
+
+  // Compute coefficients
+  std::vector<double> c(x->size);
+
+  double xnorm=0.0;
+  for(size_t i=0;i<x->size;i++) {
+    c[i]=gsl_vector_get(x,i);
+    c[i]=c[i]*c[i]; // c_i = x_i^2
+    xnorm+=c[i];
+  }
+  for(size_t i=0;i<x->size;i++)
+    c[i]/=xnorm; // c_i = x_i^2 / \sum_j x_j^2
+
+ ub::matrix<double> jac=ub::zero_matrix<double>(c.size());
+  for(size_t i=0;i<c.size();i++) {
+    double xi=gsl_vector_get(x,i);
+
+    for(size_t j=0;j<c.size();j++) {
+      double xj=gsl_vector_get(x,j);
+
+      jac(i,j)=-c[i]*2.0*xj/xnorm;
+    }
+
+    // Extra term on diagonal
+    jac(i,i)+=2.0*xi/xnorm;
+  }
+
+  return jac;
+}
+
+double adiis::min_f(const gsl_vector * x, void * params) {
+  Diis * a=(Diis *) params;
+  return a->get_E_adiis(x);
+}
+
+void adiis::min_df(const gsl_vector * x, void * params, gsl_vector * g) {
+  Diis * a=(Diis *) params;
+  a->get_dEdx_adiis(x,g);
+}
+
+void adiis::min_fdf(const gsl_vector *x, void * params, double * f, gsl_vector * g) {
+  Diis * a=(Diis *) params;
+  a->get_E_dEdx_adiis(x,f,g);
+}
       
-      void Diis::Levelshift(ub::matrix<double>& H,const ub::matrix<double> & dmat,double levelshift,bool unrestricted){
-          ub::matrix<double> I=ub::identity_matrix<double>(dmat.size1());
-          double occupation=2.0;
-          if(unrestricted){
-              occupation=1.0;
-          }
-          H+=levelshift*(occupation*I-dmat);
-                  
-                  return;
-      }
+      
+          
+      
 
 }}

@@ -59,10 +59,7 @@ public:
     void AOBasisFill( BasisSet* bs , std::vector<QMAtom* > segments, int fragbreak = -1);
     void ECPFill( BasisSet* bs , std::vector<QMAtom* > segments); 
     
-    int NumFuncShell( std::string shell );
-    int NumFuncShell_cartesian( std::string shell );
-    int OffsetFuncShell( std::string shell );
-    int OffsetFuncShell_cartesian( std::string shell );
+    
     int AOBasisSize() {return _AOBasisSize; }
     
     typedef std::vector< AOShell* >::iterator AOShellIterator;
@@ -78,7 +75,7 @@ public:
     
     AOShell* getShell( int idx ){ return _aoshells[idx] ;}
     
-    AOShell* addShell( std::string shellType, double shellScale, int shellFunc, int startIndex, int offset, vec pos, std::string name, int index ); 
+    AOShell* addShell( std::string shellType,int Lmax,int Lmin, double shellScale, int shellFunc, int startIndex, int offset, vec pos, std::string name, int index ); 
   
     
     std::vector<AOShell*> getShells() { return _aoshells; }

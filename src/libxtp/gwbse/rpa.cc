@@ -234,7 +234,7 @@ namespace votca {
         
         
    
-    
+    // this is apparently the fourier transform of the coulomb matrix, I am not sure
     void GWBSE::RPA_prepare_threecenters(TCMatrix& _Mmn_RPA,const TCMatrix& _Mmn_full, AOBasis& gwbasis,
              const AOMatrix& gwoverlap,const AOMatrix& gwoverlap_inverse ){
         
@@ -265,50 +265,32 @@ namespace votca {
                     AOShell* _shell = gwbasis.getShell(_is);
                     double decay = (*_shell->firstGaussian())->decay;
                     //int _lmax    = _shell->getLmax();
-                    int _size    = _shell->getNumFunc();
+                    
                     int _start  = _shell->getStartIndex();
 
+                    if(_shell->getLmin()==0){
                     
                     double _factor = pow((2.0 *pi/decay),0.75);
-                    vector<double> chi( _size, 0.0 );
-                    chi[0] = _factor;
-
-                    // some block from the fortran code that I'm not sure we need 
-                    /*
-                                  if ( lmax .ge. 0 ) then    
-                      if(lmax .ge. 2 ) then
-                       chi(10)= 6.d0*factor/sqrt(15.d0)   
-                       if( lmax .ge. 4) then
-                          fak = 0.25d0*factor*sqrt(beta_gwa) 
-                          ! xxxx, yyyy, zzzz
-                          chi(21) = fak*3.d0
-                          chi(22) = chi(21)
-                          chi(23) = chi(21)
-                           ! xxzz, yyzz, xxyy
-                           chi(30) = fak
-                          chi(31) = fak
-                          chi(32) = fak
-                       end if
-                    endif
-                   end if
+                   
                      
-                     */
+                  
 
-                    // loop over all functions in shell
-                    for ( int _i_gw = 0; _i_gw < _size ; _i_gw++ ){
-                        double _test = _temp( _i_gw + _start, _n_level   );
+                  //look at s function only
+                  
+                        double _test = _temp(_start, _n_level   );
                         if ( _test > 0.0  ){
-                            sc_plus += chi[ _i_gw ]* _test;
+                            sc_plus += _factor* _test;
                         } else if ( _test < 0.0 ){
-                            sc_minus -= chi[ _i_gw ]* _test;
+                            sc_minus -= _factor* _test;
                         }
-                    } // end loop over functions in shell
+                    }
 
-                } // end loop over all shells
+                } 
 
                 if ( _m_level <= _Mmn_RPA.get_mmax() && _n_level >= _Mmn_RPA.get_nmin()  ){
                     
                     double target = std::sqrt( sc_plus * sc_minus );
+                    //cout << "s+: " << sc_plus << "  s-: " << sc_minus << " target " << target << endl;
                     sc_plus  = target / sc_plus;
                     sc_minus = target / sc_minus;
 
@@ -316,26 +298,28 @@ namespace votca {
                     for (vector< AOShell* >::iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
                         AOShell* _shell = gwbasis.getShell(_is);
                         double decay = (*_shell->firstGaussian())->decay;
-                        int _size    = _shell->getNumFunc();
+                       
                         int _start  = _shell->getStartIndex();
-                        vector<double> chi( _size, 0.0 );
-                        
+                       
+                         if(_shell->getLmin()==0){
                         double _factor = pow((2.0 *pi/decay),0.75);
-                        chi[0] = _factor;
-                        // loop over all functions in shell
-                        for ( int _i_gw = 0; _i_gw < _size ; _i_gw++ ){
-                            if (std::abs( chi[_i_gw] ) > 1.e-10){
-                                
-                            double _test = _temp( _i_gw + _start, _n_level   );
-                            if ( _test > 0.0  ){
-                               _temp( _i_gw + _start, _n_level   ) = _temp( _i_gw + _start, _n_level   ) * sc_plus;
-                            } else{
-                               _temp( _i_gw + _start, _n_level   ) = _temp( _i_gw + _start, _n_level   ) * sc_minus;
-                            }
-                            }
-                        } // end loop over functions in shell
-                    } // end loop over all shells
+                    // only do something for s- shells
                     
+                    
+                    // loop over all functions in shell
+                        
+                            if (std::abs(  _factor) > 1.e-10){
+                                
+                            double _test = _temp( _start, _n_level   );
+                            if ( _test > 0.0  ){
+                               _temp(  _start, _n_level   ) = _temp(  _start, _n_level   ) * sc_plus;
+                            } else{
+                               _temp(  _start, _n_level   ) = _temp( _start, _n_level   ) * sc_minus;
+                            }
+                            }
+                       
+                    } 
+                    }// end loop over all shells
                 }                
                 
             }// loop n-levels

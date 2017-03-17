@@ -20,6 +20,13 @@
 #ifndef _VOTCA_XTP_DIIS__H
 #define _VOTCA_XTP_DIIS__H
 
+
+
+   
+#include <gsl/gsl_multimin.h>
+#include <gsl/gsl_vector.h>
+
+
 #include <votca/tools/linalg.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/orbitals.h>
@@ -55,19 +62,18 @@ public:
          delete *it;
      }
     _Diis_Bs.clear(); 
-     for (std::vector< std::vector<double>* >::iterator it = _FDs.begin() ; it !=_FDs.end(); ++it){
-         delete *it;
-     }
-    _FDs.clear(); 
+    
    }
    
-   void Configure(bool usediis, unsigned histlength, bool maxout, string diismethod, double diis_start,double levelshift,bool unrestricted,unsigned nocclevels){
+   void Configure(bool usediis, unsigned histlength, bool maxout, string diismethod, double adiis_start,double diis_start,double levelshift,double levelshiftend,bool unrestricted,unsigned nocclevels){
        _usediis=usediis;
        _histlength=histlength;
        _maxout=maxout;
        _diismethod=diismethod;
+       _adiis_start=adiis_start;
        _diis_start=diis_start;
        _levelshift=levelshift;
+       _levelshiftend=levelshiftend;
        _unrestricted=unrestricted;
        _nocclevels=nocclevels;
   
@@ -84,6 +90,12 @@ public:
     void SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,const ub::matrix<double>&H);
     void Levelshift(ub::matrix<double>& H,const ub::matrix<double> & dmat,double levelshift,bool unrestricted);
     unsigned gethistlength(){return _mathist.size();}
+    
+    
+    double get_E_adiis(const gsl_vector * x) const;
+
+    void get_dEdx_adiis(const gsl_vector * x, gsl_vector * dEdx) const;
+    void get_E_dEdx_adiis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const;
    
  private:
      
@@ -96,22 +108,55 @@ public:
     string                            _diismethod;
     ub::matrix<double>                _Sminusonehalf;
     double                              _maxerror;
-    double                              _diis_start;                 
+    double                              _adiis_start;  
+    double                              _diis_start;
+    double                              _levelshiftend;
     unsigned                            _maxerrorindex;
     std::vector< ub::matrix<double>* >   _mathist;
     std::vector< ub::matrix<double>* >   _dmathist;
     std::vector< ub::matrix<double>* >   _errormatrixhist;
     std::vector< std::vector<double>* >  _Diis_Bs;
-    std::vector< std::vector<double>* >  _FDs;
+   
     std::vector<double>                 _totE;
-
+    ub::vector<double>                  _DiF;
+    ub::matrix<double>                  _DiFj;
   
+    ub::vector<double> ADIIsCoeff();
+    
+    
+ ub::vector<double> compute_c(const gsl_vector * x);
+ /// Compute jacobian
+ ub::matrix<double> compute_jac(const gsl_vector * x);
+ /// Compute energy
+ double min_f(const gsl_vector * x, void * params);
+ /// Compute derivative
+ void min_df(const gsl_vector * x, void * params, gsl_vector * g);
+ /// Compute energy and derivative
+void min_fdf(const gsl_vector * x, void * params, double * f, gsl_vector * g);
+
+ub::vector<double> DIIsCoeff();
+    
     unsigned _nocclevels;
     double _levelshift;
     bool _unrestricted;
     
   
  };
+ 
+ 
+ namespace adiis {
+  /// Compute weights
+  ub::vector<double> compute_c(const gsl_vector * x);
+  /// Compute jacobian
+  ub::matrix<double> compute_jac(const gsl_vector * x);
+
+  /// Compute energy
+  double min_f(const gsl_vector * x, void * params);
+  /// Compute derivative
+  void min_df(const gsl_vector * x, void * params, gsl_vector * g);
+  /// Compute energy and derivative
+  void min_fdf(const gsl_vector * x, void * params, double * f, gsl_vector * g);
+};
     
 }}
 

@@ -29,8 +29,8 @@
 
 #include <boost/filesystem.hpp>
 #include <votca/xtp/ERIs.h>
-
-
+#include <votca/xtp/diis.h>
+#include <votca/xtp/mixing.h>
 #include <votca/xtp/numerical_integrations.h>
 
 namespace votca { namespace xtp {
@@ -48,8 +48,11 @@ class DFTENGINE
 {
 public:
 
-    DFTENGINE() { };
-   ~DFTENGINE() { };
+    DFTENGINE() {_addexternalsites=false;
+            };
+   ~DFTENGINE(){
+    
+   };
 
    
    
@@ -59,6 +62,18 @@ public:
     void    CleanUp();
 
     void setLogger( Logger* pLog ) { _pLog = pLog; }
+    
+    void setExternalcharges(std::vector<APolarSite*> externalsites){
+        _externalsites=externalsites;
+        _addexternalsites=true;
+    }
+    
+    void setExternalGrid(std::vector<double> electrongrid,std::vector<double> nucleigrid){
+        _externalgrid=electrongrid;
+       _externalgrid_nuc=nucleigrid;
+    }
+    
+ 
     
     bool Evaluate(   Orbitals* _orbitals );
 
@@ -73,12 +88,15 @@ public:
     
     void Prepare( Orbitals* _orbitals );
     void SetupInvariantMatrices();
-    
-    void DensityMatrixGroundState( ub::matrix<double>& _MOs, int occulevels ) ;
-    
-
-    void EvolveDensityMatrix(ub::matrix<double>& MOCoeff, int occulevels);
-    
+    ub::matrix<double> AtomicGuess(Orbitals* _orbitals);
+    ub::matrix<double> DensityMatrix_unres( const ub::matrix<double>& MOs, int numofelec);
+    ub::matrix<double> DensityMatrix_frac( const ub::matrix<double>& MOs,const ub::vector<double>& MOEnergies, int numofelec);
+    string Choosesmallgrid(string largegrid);
+    void NuclearRepulsion();
+    double ExternalRepulsion();
+     double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
+     ub::matrix<double> AverageShells(const ub::matrix<double>& dmat,AOBasis& dftbasis);
+   
     //bool   _maverick;
     
     // program tasks
@@ -112,42 +130,79 @@ public:
     AOBasis                             _ecp;
     
     bool                                _with_ecp;
+    bool                                _with_RI;
+    string                              _4cmethod;
     
-    // numerical integration 
+    // numerical integration Vxc
     std::string                              _grid_name;
+    std::string                             _grid_name_small;
+    bool                                _use_small_grid;
     NumericalIntegration                _gridIntegration;
+    NumericalIntegration                 _gridIntegration_small;
+    //used to store Vxc after final iteration
+  
+    //numerical integration externalfield;
+    //this will not remain here but be moved to qmape
+    bool                                    _do_externalfield;
+    std::string                              _grid_name_ext;
+    NumericalIntegration                _gridIntegration_ext;
+    std::vector<double>                     _externalgrid;
+    std::vector<double>                     _externalgrid_nuc;
+    
 
     // AO Matrices
     AOOverlap                           _dftAOoverlap;
-    AOOverlap                           _auxAOoverlap;
-    AOCoulomb                           _dftAOcoulomb;
-    AOCoulomb                           _auxAOcoulomb;
+   
+   // AOCoulomb                           _dftAOcoulomb;
+    
+    ub::matrix<double>                  _AuxAOcoulomb_inv;
+    ub::matrix<double>                  _dftAOdmat;
     AOKinetic                           _dftAOkinetic;
     AOESP                               _dftAOESP;
     AOECP                               _dftAOECP;
     
-    //
+    AODipole_Potential                  _dftAODipole_Potential;
+    AOQuadrupole_Potential              _dftAOQuadrupole_Potential;
+    bool                                _with_guess;
+    string                              _initial_guess;
+    double                              E_nucnuc;
+    
+    // COnvergence 
     double                              _mixingparameter;
-    int                                 _numofelectrons;
+    double                              _Econverged;
+    double                              _error_converged;
+    int                            _numofelectrons;
     int                                 _max_iter;
     int                                 _this_iter;
-    ub::matrix<double>                  _dftAOdmat;
-    std::vector< ub::matrix<double> >   _dftdmathist;
+    
+    //levelshift
+    
+    double                              _levelshiftend;
+    double                              _levelshift;
+    
+    
+    //DIIS variables
+    Diis                               _diis;
+    bool                              _usediis;
+    unsigned                          _histlength;
+    bool                              _maxout;
+    string                            _diismethod;
+    ub::matrix<double>                _Sminusonehalf;
+    double                              _diis_start; 
+    double                              _adiis_start;
+    bool                        _useautomaticmixing;
     //Electron repulsion integrals
     ERIs                                _ERIs;
     
-     ub::matrix<double>                 _AOIntegrals ; // TRY MORE USEFUL DATA
-    
-    
+    // external charges
+     std::vector<APolarSite*>        _externalsites;
+     bool                            _addexternalsites;
     
     // exchange and correlation
-    std::string                              _x_functional_name;
-    std::string                              _c_functional_name;
+    std::string                              _xc_functional_name;
 
-    
-   typedef boost::multi_array<double, 4> fourdim;
-   //fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
-    //fourdim  fourcenter;
+
+  
     
 };
 

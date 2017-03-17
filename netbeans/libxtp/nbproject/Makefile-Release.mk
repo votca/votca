@@ -47,6 +47,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/708574269/aooverlap.o \
 	${OBJECTDIR}/_ext/484478074/aoshell.o \
 	${OBJECTDIR}/_ext/484478074/apolarsite.o \
+	${OBJECTDIR}/_ext/484478074/basisset.o \
 	${OBJECTDIR}/_ext/484478074/bsecoupling.o \
 	${OBJECTDIR}/_ext/484478074/calculatorfactory.o \
 	${OBJECTDIR}/_ext/1355216796/eoutersphere.o \
@@ -203,6 +204,11 @@ ${OBJECTDIR}/_ext/484478074/apolarsite.o: nbproject/Makefile-${CND_CONF}.mk ../.
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484478074/apolarsite.o ../../src/libxtp/apolarsite.cc
+
+${OBJECTDIR}/_ext/484478074/basisset.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/basisset.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/basisset.o ../../src/libxtp/basisset.cc
 
 ${OBJECTDIR}/_ext/484478074/bsecoupling.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/bsecoupling.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074

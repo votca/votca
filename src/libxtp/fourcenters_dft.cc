@@ -45,36 +45,41 @@ namespace votca {
 
           //cout << endl;
           //cout << "fourcenters_dft.cc FCMatrix_dft::Fill_4c_small_molecule" << endl;
-          int dftBasisSize = dftbasis._AOBasisSize;
+          int dftBasisSize = dftbasis.AOBasisSize();
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
           _4c_vector = ub::zero_vector<double>((vectorSize*(vectorSize+1))/2);
 
-          int _ishell = 0;
+          int shellsize=dftbasis._aoshells.size();
           #pragma omp parallel for
-          for (std::vector< AOShell* >::iterator _it_3 = dftbasis.firstShell(); _it_3 != dftbasis.lastShell(); _it_3++) {
-            AOShell* _shell_3 = dftbasis.getShell(_it_3);
+          for(int i=0;i<shellsize;++i){
+          
+            AOShell* _shell_3 = dftbasis.getShell(i);
             int _start_3 = _shell_3->getStartIndex();
             int NumFunc_3 = _shell_3->getNumFunc();
-            _ishell++;
-            //cout << "_ishell = " << _ishell << endl;
+   
 
-            for (std::vector< AOShell* >::iterator _it_4 = _it_3; _it_4 != dftbasis.lastShell(); _it_4++) {
-              AOShell* _shell_4 = dftbasis.getShell(_it_4);
+            for (int j=i;j<shellsize;++j) {
+              AOShell* _shell_4 = dftbasis.getShell(j);
               int _start_4 = _shell_4->getStartIndex();
               int NumFunc_4 = _shell_4->getNumFunc();                
-
-              for (std::vector< AOShell* >::iterator _it_1 = _it_3; _it_1 != dftbasis.lastShell(); _it_1++) {
-                AOShell* _shell_1 = dftbasis.getShell(_it_1);
+       
+              for (int k=i;k<shellsize;++k) {
+                AOShell* _shell_1 = dftbasis.getShell(k);
                 int _start_1 = _shell_1->getStartIndex();
                 int NumFunc_1 = _shell_1->getNumFunc();
-
-                for (std::vector< AOShell* >::iterator _it_2 = _it_1; _it_2 != dftbasis.lastShell(); _it_2++) {
-                  AOShell* _shell_2 = dftbasis.getShell(_it_2);
+         
+               for (int l=k;l<shellsize;++l)  {
+                  AOShell* _shell_2 = dftbasis.getShell(l);
                   int _start_2 = _shell_2->getStartIndex();
                   int NumFunc_2 = _shell_2->getNumFunc();
-
+                  //cout<<i<<" "<<j<<" "<<k<<" "<<l<<" "<<dftBasisSize<<endl;
+                  //cout<<_shell_3->getType()<<" 3 "<<_start_3<<" NumFunc_3 "<<NumFunc_3<<endl;
+                  //cout<<_shell_4->getType()<<" 4 "<<_start_4<<" NumFunc_4 "<<NumFunc_4<<endl;
+                  //cout<<_shell_1->getType()<<" 1 "<<_start_1<<" NumFunc_1 "<<NumFunc_1<<endl;
+                  //cout<<_shell_2->getType()<<" 2 "<<_start_2<<" NumFunc_2 "<<NumFunc_2<<endl;
                   // get 4-center directly as _subvector
                   ub::matrix<double> _subvector = ub::zero_matrix<double>(NumFunc_1 * NumFunc_2, NumFunc_3 * NumFunc_4);
+                  
                   bool nonzero=FillFourCenterRepBlock(_subvector, _shell_1, _shell_2, _shell_3, _shell_4);
 
                   if (nonzero) {
@@ -104,15 +109,14 @@ namespace votca {
                         } // _i_1
                       } // _i_4
                     } // _i_3
-
+                    
                   } // end if
-
                 } // DFT shell_2
               } // DFT shell_1
             } // DFT shell_4
           } // DFT shell_3
 
-
+          return;
         } // FCMatrix_dft::Fill_4c_small_molecule
         
        
