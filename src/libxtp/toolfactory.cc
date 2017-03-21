@@ -30,7 +30,7 @@
 #include "tools/qmsandbox.h"
 #include "tools/spectrum.h"
 #include "tools/excitoncoupling.h"
-#include "tools/orb2isogwa.h"
+//#include "tools/orb2isogwa.h"
 #include "tools/dft.h"
 #include "tools/gencube.h"
 #include "tools/partialcharges.h"
@@ -50,7 +50,7 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<QMSandbox>          ("qmsandbox");
         QMTools().Register<Spectrum>           ("spectrum");
         QMTools().Register<ExcitonCoupling>    ("excitoncoupling");
-        QMTools().Register<Orb2IsoGWA>         ("orb2isogwa"); 
+  //      QMTools().Register<Orb2IsoGWA>         ("orb2isogwa"); 
         QMTools().Register<PDB2Top>            ("pdb2top");
         QMTools().Register<DFT>                ("dft");
         QMTools().Register<GenCube>            ("gencube");

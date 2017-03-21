@@ -35,7 +35,7 @@
 #include <votca/tools/property.h>
 #include <votca/tools/vec.h>
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <boost/format.hpp>
 // Text archive that defines boost::archive::text_oarchive
 // and boost::archive::text_iarchive

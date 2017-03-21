@@ -41,23 +41,29 @@ namespace votca { namespace xtp {
             NumericalIntegration():density_set(false) {};
 
             void GridSetup(std::string type, BasisSet* bs , std::vector<QMAtom* > _atoms  );
-
+            void FindsignificantAtoms(AOBasis* basis);
+            //void FindsignificantAtoms2(AOBasis* basis);
+            //used for test purposes
             double StupidIntegrate( std::vector<double>& _data );
             
-            void getGridpoints( ub::matrix<double>& _gridpoints );
+            std::vector<vec const *> getGridpoints();
             
-            ub::matrix<double> numAOoverlap ( AOBasis* basis  );
-            double IntegrateDensity(ub::matrix<double>& _density_matrix, AOBasis* basis);
-            double IntegrateDensity_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis);
-            double IntegratePotential(ub::vector<double> rvector);
+            
+            
+            double IntegrateDensity_Atomblock(const ub::matrix<double>& _density_matrix, AOBasis* basis);
+            double IntegratePotential(const vec& rvector);
+            
+            double IntegrateField(const std::vector<double>& externalfield);
             
             double getExactExchange(const std::string _functional);
-            ub::matrix<double> IntegrateVXC ( ub::matrix<double>& _density_matrix, AOBasis* basis  );
-            ub::matrix<double> IntegrateVXC_block ( ub::matrix<double>& _density_matrix, AOBasis* basis   );
-            ub::matrix<double> IntegrateVXC_Atomblock ( ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
+            // in principle a symmetric matrix would be nicer but we calculate whole vxc matrix because of numerics and symmetrize explicitly 
+            ub::matrix<double> IntegrateVXC_Atomblock (const ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
+            //ub::matrix<double> IntegrateVXC_Atomblock2 (const ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
+            ub::matrix<double> IntegrateExternalPotential_Atomblock(AOBasis* basis,std::vector<double> Potentialvalues);
+         
             
             // this gives int (e_xc-V_xc)*rho d3r
-            double& getTotEcontribution(){return EXC;}
+            double getTotEcontribution(){return EXC;}
             //ub::matrix<double> StupidIntegrateVXC ( ub::matrix<double>& _density_matrix, AOBasis* basis  );
             
         private:
@@ -73,7 +79,16 @@ namespace votca { namespace xtp {
             std::vector< std::vector< GridContainers::integration_grid > > _grid;
             double EXC;
             bool density_set;
-
+            vector< vector< vector<int> > > _significant_atoms;
+            vector < int > _startIdx;
+            vector < int > _blocksize;
+            typedef vector< AOShell* >::iterator AOShellIterator;
+            vector< vector< AOShellIterator > > _atomshells;
+            vector< AOShellIterator > _singleatom;
+            std::vector< std::vector< ub::matrix<double> > >dmat_vector;
+            std::vector< std::vector< std::vector< ub::matrix<double> > > > xcmat_vector_thread;
+            std::vector< std::vector< ub::matrix<double> > > xcmat_vector;
+           //vector< vector<int> > _atomsforshells;
         };
 
     }}

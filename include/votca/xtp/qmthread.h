@@ -22,7 +22,7 @@
 
 #include "votca/tools/thread.h"
 #include "votca/tools/globals.h"
-#include "votca/xtp/logger.h"
+#include "votca/ctp/logger.h"
 #include <iostream>
 #include <string>
 #include <ctime>

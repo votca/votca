@@ -29,7 +29,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/elements.h>
 #include <votca/tools/constants.h>
@@ -42,7 +42,7 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
-    
+    namespace CTP = votca::ctp;
     
 
     
@@ -1171,10 +1171,10 @@ for (int _i = 0; _i < _nrows; _i++) {
         }// _shell_row Gaussians
     }
 
-void AOQuadrupole_Potential::Fillextpotential( AOBasis* aobasis, std::vector<APolarSite*>& _sites){
+void AOQuadrupole_Potential::Fillextpotential( AOBasis* aobasis, std::vector<CTP::APolarSite*>& _sites){
   
     _externalpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
-   for ( std::vector<APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
+   for ( std::vector<CTP::APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
       
         if((*it)->getRank()>1){
              vec positionofsite =  (*it)->getPos()*tools::conv::nm2bohr;

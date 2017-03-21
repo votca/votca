@@ -495,10 +495,10 @@ if (_lmax_col > 3) {
     }
     return;
     }   
-    void AOESP::Fillextpotential( AOBasis* aobasis, std::vector<APolarSite*>& _sites){
+    void AOESP::Fillextpotential( AOBasis* aobasis, std::vector<votca::ctp::APolarSite*>& _sites){
   
     _externalpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
-   for ( std::vector<APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
+   for ( std::vector<votca::ctp::APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
       
        
             vec positionofsite =  (*it)->getPos()*tools::conv::nm2bohr;

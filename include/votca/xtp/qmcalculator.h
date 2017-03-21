@@ -23,7 +23,7 @@
 
 
 #include <votca/tools/calculator.h>
-#include <votca/xtp/topology.h>
+#include <votca/ctp/topology.h>
 
 namespace XTP = votca::xtp;
 namespace TOOLS = votca::tools;

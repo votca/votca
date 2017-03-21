@@ -18,7 +18,6 @@
  */
 
 #include "turbomole.h"
-#include "votca/xtp/segment.h"
 #include <votca/tools/globals.h>
 
 #include <boost/algorithm/string.hpp>
@@ -83,7 +82,7 @@ void Turbomole::Initialize( Property *opt ) {
  * Prepares the com file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied
  */
-bool Turbomole::WriteInputFile( std::vector<Segment* > segments, Orbitals* orbitals_guess )
+bool Turbomole::WriteInputFile( std::vector<votca::ctp::Segment* > segments, Orbitals* orbitals_guess )
 {
     std::vector< Atom* > _atoms;
     std::vector< Atom* > ::iterator ait;

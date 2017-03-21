@@ -28,9 +28,9 @@
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <votca/xtp/qmatom.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/apolarsite.h>
-#include <votca/xtp/polarseg.h>
+#include <votca/ctp/logger.h>
+#include <votca/ctp/apolarsite.h>
+#include <votca/ctp/polarseg.h>
 /**
 * \brief Takes a list of atoms, and creates different grids for it. Right now only CHELPG grid.
 *
@@ -43,7 +43,7 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
-    
+    namespace CTP=votca::ctp;
   class Grid{
     public:
         
@@ -69,9 +69,9 @@ namespace votca { namespace xtp {
         Grid& operator=(const Grid &obj);
         
         std::vector< ub::vector<double> > &getGrid() {return _gridpoints;}
-        std::vector< APolarSite* > &Sites() {return _gridsites;}
-        std::vector< APolarSite*>* getSites() {return &_gridsites;} 
-        PolarSeg* getSeg(){return _sites_seg;}
+        std::vector< CTP::APolarSite* > &Sites() {return _gridsites;}
+        std::vector< CTP::APolarSite*>* getSites() {return &_gridsites;} 
+        CTP::PolarSeg* getSeg(){return _sites_seg;}
 
         
         void setCutoffs(double cutoff, double cutoff_inside){_cutoff=cutoff;_cutoff_inside=cutoff_inside;}
@@ -113,8 +113,8 @@ namespace votca { namespace xtp {
   private:
      
       std::vector< ub::vector<double> > _gridpoints;
-      std::vector< APolarSite* > _gridsites;
-      std::vector< APolarSite* > _all_gridsites;
+      std::vector< CTP::APolarSite* > _gridsites;
+      std::vector< CTP::APolarSite* > _all_gridsites;
       
       
       double _cutoff;
@@ -127,7 +127,7 @@ namespace votca { namespace xtp {
       bool   _cubegrid;
       double _padding;
       bool   _createpolarsites; 
-      PolarSeg *_sites_seg;
+      CTP::PolarSeg *_sites_seg;
       std::vector< QMAtom* >* _atomlist;
       vec _lowerbound;
       int _xsteps, _ysteps, _zsteps;

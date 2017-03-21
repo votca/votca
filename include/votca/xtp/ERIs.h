@@ -43,14 +43,16 @@ namespace votca { namespace xtp {
       
         
         
-        
-        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis, AOOverlap &_auxAOoverlap, AOCoulomb &_auxAOcoulomb);
-        void Initialize_Symmetric(AOBasis &_dftbasis, AOBasis &_auxbasis, AOOverlap &_auxAOoverlap, AOCoulomb &_auxAOcoulomb);
+        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis);
+        void Initialize_4c_small_molecule(AOBasis &_dftbasis); ///////////
+        void Initialize_4c_large_molecule(AOBasis &_dftbasis); ///////////
+      
         
         ub::matrix<double> getERIs(){return _ERIs;}
         double& getERIsenergy(){return _ERIsenergy;}
         
-        void CalculateERIs(ub::matrix<double> &DMAT, AOOverlap &_auxAOoverlap, ub::matrix<double>& _AOIntegrals);
+        void CalculateERIs(const ub::matrix<double> &DMAT, const ub::matrix<double> &_inverse_Coulomb);
+        void CalculateERIs_4c_small_molecule(const ub::matrix<double> &DMAT); ///////////////////////////////////////
         
         
         int getSize1(){return _ERIs.size1();}
@@ -61,11 +63,11 @@ namespace votca { namespace xtp {
     private:
         
         TCMatrix_dft _threecenter;
-        ub::matrix<double> _Vcoulomb; //resolution of the 1/r operator in aux basis functions
+        FCMatrix_dft _fourcenter; ////////////////////////
+       
         ub::matrix<double> _ERIs;
-        ub::matrix<double> _ERIs_Symmetric;
         double _ERIsenergy;
-        void CalculateEnergy(ub::vector<double> &dmatasarray);
+        void CalculateEnergy(const ub::vector<double> &dmatasarray);
     };
     
     

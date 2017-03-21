@@ -24,7 +24,7 @@
 #include <votca/xtp/elements.h>
 #include <votca/xtp/grid.h>
 #include <votca/xtp/aobasis.h>
-
+#include <votca/ctp/apolarsite.h>
 
 /**
 * \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of partial charges
@@ -37,11 +37,11 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
-    
+    namespace CTP = votca::ctp;
 class Espfit{
 public:
     
-    Espfit(Logger *log):_ECP(false),_do_Transition(false),_do_svd(false) {_log = log;}
+    Espfit(CTP::Logger *log):_ECP(false),_do_Transition(false),_do_svd(false) {_log = log;}
    ~Espfit(){};
     
    void setUseECPs(bool ECP){_ECP=ECP;}
@@ -57,7 +57,7 @@ public:
     void Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis);
 private:
     
-     Logger *_log;
+     CTP::Logger *_log;
      Elements _elements; 
      bool _ECP;
      bool _do_Transition;

@@ -18,7 +18,7 @@
  */
 
 #include "cpmd.h"
-#include "votca/xtp/segment.h"
+
 
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>

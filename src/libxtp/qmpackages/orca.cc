@@ -18,7 +18,6 @@
  */
 
 #include "orca.h"
-#include "votca/xtp/segment.h"
 #include "votca/xtp/elements.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
