@@ -86,7 +86,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1619336126/orca.o \
 	${OBJECTDIR}/_ext/1619336126/turbomole.o \
 	${OBJECTDIR}/_ext/484478074/qmpair.o \
-	${OBJECTDIR}/_ext/484478074/qmtool.o \
 	${OBJECTDIR}/_ext/484478074/segment.o \
 	${OBJECTDIR}/_ext/484478074/segmenttype.o \
 	${OBJECTDIR}/_ext/484478074/sqlapplication.o \
@@ -384,11 +383,6 @@ ${OBJECTDIR}/_ext/484478074/qmpair.o: ../../src/libxtp/qmpair.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/qmpair.o ../../src/libxtp/qmpair.cc
-
-${OBJECTDIR}/_ext/484478074/qmtool.o: ../../src/libxtp/qmtool.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/qmtool.o ../../src/libxtp/qmtool.cc
 
 ${OBJECTDIR}/_ext/484478074/segment.o: ../../src/libxtp/segment.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074

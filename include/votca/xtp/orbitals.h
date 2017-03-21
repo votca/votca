@@ -156,8 +156,8 @@ public:
     //bool has::QMAtoms() { return _has_atoms;}
     bool hasQMAtoms() { return ( _atoms.size() > 0 ) ? true : false ;}
     // void set::QMAtoms( bool inp ) { _has_atoms = inp;}
-    const std::vector< ctp::QMAtom* > &::QMAtoms() const { return _atoms ;}
-    std::vector< ctp::QMAtom* > &::QMAtoms()  { return _atoms ;}
+    const std::vector< ctp::QMAtom* > &QMAtoms() const { return _atoms ;}
+    std::vector< ctp::QMAtom* > &QMAtoms()  { return _atoms ;}
     std::vector< ctp::QMAtom* >* getAtoms() { return &_atoms; } //OLD
     
     // access to classical self-energy in MM environment, new, tested
@@ -370,7 +370,7 @@ public:
         _atoms.push_back( pAtom );
         return pAtom;
     }
-    ctp::QMAtom* AddAtom (::QMAtom atom)
+    ctp::QMAtom* AddAtom (ctp::QMAtom atom)
     {
         ctp::QMAtom* pAtom = new ctp::QMAtom(atom);
         _atoms.push_back( pAtom );

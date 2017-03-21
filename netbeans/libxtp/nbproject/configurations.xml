@@ -893,8 +893,6 @@
       </item>
       <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/qmtool.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/segmenttype.cc" ex="false" tool="1" flavor2="0">
@@ -1560,8 +1558,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmtool.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
       </item>

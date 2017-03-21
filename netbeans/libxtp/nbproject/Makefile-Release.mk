@@ -86,7 +86,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1619336126/orca.o \
 	${OBJECTDIR}/_ext/1619336126/turbomole.o \
 	${OBJECTDIR}/_ext/484478074/qmpair.o \
-	${OBJECTDIR}/_ext/484478074/qmtool.o \
 	${OBJECTDIR}/_ext/484478074/segment.o \
 	${OBJECTDIR}/_ext/484478074/segmenttype.o \
 	${OBJECTDIR}/_ext/484478074/sqlapplication.o \
@@ -384,11 +383,6 @@ ${OBJECTDIR}/_ext/484478074/qmpair.o: nbproject/Makefile-${CND_CONF}.mk ../../sr
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/qmpair.o ../../src/libxtp/qmpair.cc
-
-${OBJECTDIR}/_ext/484478074/qmtool.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/qmtool.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/qmtool.o ../../src/libxtp/qmtool.cc
 
 ${OBJECTDIR}/_ext/484478074/segment.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/segment.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074

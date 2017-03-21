@@ -20,11 +20,8 @@
 #ifndef __XTP_GRID_CONTAINERS__H
 #define	__XTP_GRID_CONTAINERS__H
 
-#include <votca/tools/property.h>
-#include <votca/xtp/basisset.h>
-#include <votca//qmatom.h>
 
-using namespace std;
+
 
 
 namespace votca { namespace xtp {

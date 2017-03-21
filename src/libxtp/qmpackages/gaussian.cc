@@ -331,8 +331,8 @@ namespace votca {
 
             } else {
 
-                std::vector< ::QMAtom* > *qmatoms = orbitals_guess->getAtoms();
-                std::vector< ::QMAtom* >::iterator it;
+                std::vector< ctp::QMAtom* > *qmatoms = orbitals_guess->getAtoms();
+                std::vector< ctp::QMAtom* >::iterator it;
 
                 // This is needed for the QM/MM scheme, since only orbitals have 
                 // updated positions of the QM region, hence vector<Segments*> is 

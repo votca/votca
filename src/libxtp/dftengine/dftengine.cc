@@ -46,7 +46,6 @@ using namespace boost::filesystem;
 namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
-        namespace CTP = votca::ctp;
         // +++++++++++++++++++++++++++++ //
         // DFTENGINE MEMBER FUNCTIONS        //
         // +++++++++++++++++++++++++++++ //
@@ -264,14 +263,14 @@ namespace votca {
             #ifdef _OPENMP
             if ( _openmp_threads > 0 ) {
                 omp_set_num_threads(_openmp_threads);
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp()  << " Using "<< omp_get_max_threads()<<" threads" << flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << " Using "<< omp_get_max_threads()<<" threads" << flush;
             }
             #endif
 
-            _atoms = _orbitals->::QMAtoms();
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Molecule Coordinates [A] "  << flush;
+            _atoms = _orbitals->QMAtoms();
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Molecule Coordinates [A] "  << flush;
             for(unsigned i=0;i<_atoms.size();i++){
-                LOG(CTP::logDEBUG, *_pLog) << "\t\t "<< _atoms[i]->type<<" "<<_atoms[i]->x<<" "<<_atoms[i]->y<<" "<<_atoms[i]->z<<" "<<flush;
+                LOG(ctp::logDEBUG, *_pLog) << "\t\t "<< _atoms[i]->type<<" "<<_atoms[i]->x<<" "<<_atoms[i]->y<<" "<<_atoms[i]->z<<" "<<flush;
             }
             
             
@@ -304,7 +303,7 @@ namespace votca {
                //H0+= _dftAOQuadrupole_Potential.getExternalpotential();
                
                 double estat=ExternalRepulsion();
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " E_electrostatic "<<estat<<flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " E_electrostatic "<<estat<<flush;
                 E_nucnuc+=estat;
                 
             }
@@ -335,7 +334,7 @@ namespace votca {
                 externalgrid_nuc.push_back(value);
             }
               */   
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << "Integrated external potential on grid "<< flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "Integrated external potential on grid "<< flush;
             //cout<<"grid"<<_gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,externalgrid)<<endl;
             H0-=_gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,_externalgrid);
             
@@ -343,7 +342,7 @@ namespace votca {
             
             }
              
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Nuclear Repulsion Energy is " << E_nucnuc << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Nuclear Repulsion Energy is " << E_nucnuc << flush;
 
             if(_with_ecp){
             H0+=_dftAOECP.Matrix();
@@ -354,7 +353,7 @@ namespace votca {
             
             // if we have a guess we do not need this. 
             if(!_with_guess){
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Setup Initial Guess using: "<<_initial_guess<< flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup Initial Guess using: "<<_initial_guess<< flush;
                  // this temp is necessary because eigenvalues_general returns MO^T and not MO
                 if(_initial_guess=="independent"){
                 _diis.SolveFockmatrix(MOEnergies,MOCoeff,H0);
@@ -365,31 +364,31 @@ namespace votca {
                     _dftAOdmat = AtomicGuess(_orbitals);
                     MOEnergies=ub::zero_vector<double>(_dftAOdmat.size1());
                     //cout<<_dftAOdmat<<endl;
-                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() <<" Full atomic density Matrix gives N="<<std::setprecision(9)<<linalg_traceofProd(_dftAOdmat,_dftAOoverlap.Matrix())<<" electrons."<<flush;
+                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Full atomic density Matrix gives N="<<std::setprecision(9)<<linalg_traceofProd(_dftAOdmat,_dftAOoverlap.Matrix())<<" electrons."<<flush;
                    
                     } else {
                         throw runtime_error("Initial guess method not known/implemented");
                     
                     }
                 }else{
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Reading guess from orbitals object/file"<< flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Reading guess from orbitals object/file"<< flush;
                 _dftbasis.ReorderMOs(MOCoeff, _orbitals->getQMpackage(), "xtp");
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Converted DFT orbital coefficient order from " << _orbitals->getQMpackage() << " to xtp" << flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _orbitals->getQMpackage() << " to xtp" << flush;
                 _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
             }
            
             _orbitals->setQMpackage("xtp");
             
 	    
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " STARTING SCF cycle" << flush;
-            LOG(CTP::logDEBUG, *_pLog) << " --------------------------------------------------------------------------" << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " STARTING SCF cycle" << flush;
+            LOG(ctp::logDEBUG, *_pLog) << " --------------------------------------------------------------------------" << flush;
            
            double energyold=0;
            double diiserror=100;//is evolved in DIIs scheme
            Mixing Mixer(_useautomaticmixing,_mixingparameter,&_dftAOoverlap.Matrix(),  _pLog);
             for ( _this_iter=0; _this_iter<_max_iter; _this_iter++){
-                LOG(CTP::logDEBUG, *_pLog)<< flush;
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
+                LOG(ctp::logDEBUG, *_pLog)<< flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
 
                 if(_with_RI){
                 _ERIs.CalculateERIs(_dftAOdmat, _AuxAOcoulomb_inv);
@@ -402,17 +401,17 @@ namespace votca {
                // _ERIs.CalculateERIs_4c_large_molecule(_dftAOdmat);
                 //    }
                 }
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<<flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2()<<flush;
                 double vxcenergy=0.0;
                 if(_use_small_grid && diiserror>0.01){
                     _orbitals->AOVxc()=_gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat,  &_dftbasis,_xc_functional_name);
                     vxcenergy=_gridIntegration_small.getTotEcontribution();
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled approximate DFT Vxc matrix "<<flush;           
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix "<<flush;           
                 }
                 else{
 		_orbitals->AOVxc()=_gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat,  &_dftbasis,_xc_functional_name);
                 vxcenergy=_gridIntegration.getTotEcontribution();
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT Vxc matrix "<<flush;              
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix "<<flush;              
                 }
                 
                 ub::matrix<double> H=H0+_ERIs.getERIs()+_orbitals->AOVxc();
@@ -420,14 +419,14 @@ namespace votca {
                 double Eone=linalg_traceofProd(_dftAOdmat,H0);
                 double Etwo=0.5*_ERIs.getERIsenergy()+vxcenergy;
                 double totenergy=Eone+E_nucnuc+Etwo;
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Single particle energy "<<std::setprecision(12)<<Eone<<flush;
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Two particle energy "<<std::setprecision(12)<<Etwo<<flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Single particle energy "<<std::setprecision(12)<<Eone<<flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Two particle energy "<<std::setprecision(12)<<Etwo<<flush;
                 
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() <<std::setprecision(12)<< " Exc contribution "<<vxcenergy<<flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<std::setprecision(12)<< " Exc contribution "<<vxcenergy<<flush;
                
                 
                 
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Total Energy "<<std::setprecision(12)<<totenergy<<flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Total Energy "<<std::setprecision(12)<<totenergy<<flush;
                 //cout<<_orbitals->AOVxc()<<endl;
                 
        
@@ -435,7 +434,7 @@ namespace votca {
                 diiserror=_diis.Evolve(_dftAOdmat,H,MOEnergies,MOCoeff,_this_iter,totenergy);
         
                 
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " DIIs error "<<diiserror << flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIs error "<<diiserror << flush;
                 
                      ub::matrix<double> dmatin=_dftAOdmat;
                      _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
@@ -450,39 +449,39 @@ namespace votca {
                         }
                     else{
                     Mixer.Updatemix(dmatin,_dftAOdmat);
-                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Using DIIs "<<flush;
+                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using DIIs "<<flush;
                  }
                 
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Updated Density Matrix "<<flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Updated Density Matrix "<<flush;
                 
                 
                 if(tools::globals::verbose){
                 for (int i=0;i<int(MOEnergies.size());i++){
                     if ( i <= _numofelectrons/2-1) {
-                        LOG(CTP::logDEBUG, *_pLog) <<"\t\t" << i <<  " occ " << MOEnergies(i)  << flush;     
+                        LOG(ctp::logDEBUG, *_pLog) <<"\t\t" << i <<  " occ " << MOEnergies(i)  << flush;     
                     } else {
-                        LOG(CTP::logDEBUG, *_pLog) <<"\t\t"<<   i <<  " vir " << MOEnergies(i)  << flush;
+                        LOG(ctp::logDEBUG, *_pLog) <<"\t\t"<<   i <<  " vir " << MOEnergies(i)  << flush;
                         
                     }
                 }
                 }
                 
-                LOG(CTP::logDEBUG, *_pLog) << "\t\tGAP " << MOEnergies(_numofelectrons/2)-MOEnergies(_numofelectrons/2-1) << flush;
+                LOG(ctp::logDEBUG, *_pLog) << "\t\tGAP " << MOEnergies(_numofelectrons/2)-MOEnergies(_numofelectrons/2-1) << flush;
                 
                  
                 
                 
-              //  LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Solved general eigenproblem "<<flush;
+              //  LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solved general eigenproblem "<<flush;
                 if (std::abs(totenergy-energyold)< _Econverged && diiserror<_error_converged){
-                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << "Total Energy has converged to "<<std::setprecision(9)<<std::abs(totenergy-energyold)<<"[Ha] after "<< _this_iter+1<<
+                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "Total Energy has converged to "<<std::setprecision(9)<<std::abs(totenergy-energyold)<<"[Ha] after "<< _this_iter+1<<
                             " iterations. DIIS error is converged up to "<<_error_converged<<"[Ha]" <<flush;
-                     LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Final Single Point Energy "<<std::setprecision(12)<<totenergy<<" Ha"<<flush;
-                      LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " MO Energies  [Ha]"<<flush;
+                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Final Single Point Energy "<<std::setprecision(12)<<totenergy<<" Ha"<<flush;
+                      LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " MO Energies  [Ha]"<<flush;
                       for (int i=0;i<int(MOEnergies.size());i++){
                     if ( i <= _numofelectrons/2-1) {
-                        LOG(CTP::logDEBUG, *_pLog) <<"\t\t" << i <<  " occ "<<std::setprecision(12) << MOEnergies(i)  << flush;     
+                        LOG(ctp::logDEBUG, *_pLog) <<"\t\t" << i <<  " occ "<<std::setprecision(12) << MOEnergies(i)  << flush;     
                     } else {
-                        LOG(CTP::logDEBUG, *_pLog) <<"\t\t"<<   i <<  " vir "<<std::setprecision(12) << MOEnergies(i)  << flush;
+                        LOG(ctp::logDEBUG, *_pLog) <<"\t\t"<<   i <<  " vir "<<std::setprecision(12) << MOEnergies(i)  << flush;
                         
                     }
                 }
@@ -491,8 +490,8 @@ namespace votca {
                 else{
                     energyold=totenergy;
                 }
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() <<" Density Matrix gives N="<<std::setprecision(9)<<linalg_traceofProd(_dftAOdmat,_dftAOoverlap.Matrix())<<" electrons."<<flush;
-                //LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity_Atomblock(_dftAOdmat, basis) << flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Density Matrix gives N="<<std::setprecision(9)<<linalg_traceofProd(_dftAOdmat,_dftAOoverlap.Matrix())<<" electrons."<<flush;
+                //LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Num of electrons "<< _gridIntegration.IntegrateDensity_Atomblock(_dftAOdmat, basis) << flush;
                 
             }
           
@@ -515,7 +514,7 @@ namespace votca {
 	    // DFT AOOverlap matrix
 	    _dftAOoverlap.Initialize(_dftbasis.AOBasisSize());
             _dftAOoverlap.Fill(&_dftbasis);
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
             //cout<<"overlap"<<_dftAOoverlap.Matrix()<<endl;
 	    // check DFT basis for linear dependence
             linalg_eigenvalues(_dftAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
@@ -529,30 +528,30 @@ namespace votca {
             ub::matrix<double> _temp = ub::prod( _diagS, ub::trans(_eigenvectors));
              _Sminusonehalf = ub::prod(_eigenvectors,_temp );
             
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Smallest eigenvalue of DFT Overlap matrix : " << _eigenvalues[0] << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of DFT Overlap matrix : " << _eigenvalues[0] << flush;
       }
             _dftAOkinetic.Initialize(_dftbasis.AOBasisSize());
             _dftAOkinetic.Fill(&_dftbasis);
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOkinetic.Dimension() << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOkinetic.Dimension() << flush;
 
             
             _dftAOESP.Initialize(_dftbasis.AOBasisSize());
             _dftAOESP.Fillnucpotential(&_dftbasis, _atoms,_with_ecp);
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOESP.Dimension() << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOESP.Dimension() << flush;
             //_dftAOESP.Print("NUC");
 
             
             if (_addexternalsites){
                 _dftAOESP.Fillextpotential(&_dftbasis, _externalsites);
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT external pointcharge potential matrix of dimension: " << _dftAOESP.Dimension() << flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT external pointcharge potential matrix of dimension: " << _dftAOESP.Dimension() << flush;
                 
                 _dftAODipole_Potential.Fillextpotential(&_dftbasis, _externalsites);
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT external dipole potential matrix of dimension: " << _dftAODipole_Potential.Dimension() << flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT external dipole potential matrix of dimension: " << _dftAODipole_Potential.Dimension() << flush;
                 _dftAOQuadrupole_Potential.Fillextpotential(&_dftbasis, _externalsites);
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT external quadrupole potential matrix of dimension: " << _dftAOQuadrupole_Potential.Dimension() << flush;
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " External sites\t Name \t Coordinates \t charge \t dipole \t quadrupole" << flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT external quadrupole potential matrix of dimension: " << _dftAOQuadrupole_Potential.Dimension() << flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " External sites\t Name \t Coordinates \t charge \t dipole \t quadrupole" << flush;
                 for(unsigned i=0;i<_externalsites.size();i++){
-                LOG(CTP::logDEBUG, *_pLog) << "\t\t "<< _externalsites[i]->getName()<<" | "<< _externalsites[i]->getPos().getX()
+                LOG(ctp::logDEBUG, *_pLog) << "\t\t "<< _externalsites[i]->getName()<<" | "<< _externalsites[i]->getPos().getX()
                                         <<" "<<_externalsites[i]->getPos().getY()<<" "<<_externalsites[i]->getPos().getZ()
                                         <<" | "<<_externalsites[i]->getQ00()<<" | "<<_externalsites[i]->getQ1().getX()
                                         <<" "<<_externalsites[i]->getQ1().getY()<<" "<<_externalsites[i]->getQ1().getZ()<<" | "
@@ -565,14 +564,14 @@ namespace votca {
             if(_do_externalfield){
                 _gridIntegration_ext.GridSetup(_grid_name_ext,&_dftbasisset,_atoms);
                 _gridIntegration_ext.FindsignificantAtoms( &_dftbasis);
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Setup numerical integration grid " << _grid_name_ext 
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup numerical integration grid " << _grid_name_ext 
                         << " for external field with "<<_gridIntegration_ext.getGridpoints().size()<<" points"<< flush;
             }
             
             if (_with_ecp) {
                 _dftAOECP.Initialize(_dftbasis.AOBasisSize());
                 _dftAOECP.Fill(&_dftbasis, vec(0,0,0), &_ecp);
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOECP.Dimension() << flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOECP.Dimension() << flush;
                 //_dftAOECP.Print("ECP");
                 
                 _dftAOESP.getNuclearpotential() += _dftAOECP.Matrix();
@@ -594,7 +593,7 @@ namespace votca {
             
             
             linalg_eigenvalues(_auxAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Smallest eigenvalue of AUX Overlap matrix : " << _eigenvalues[0] << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of AUX Overlap matrix : " << _eigenvalues[0] << flush;
              }
             
             
@@ -610,12 +609,12 @@ namespace votca {
            
             //cout << _auxAOcoulomb._aomatrix<<endl;
             // _auxAOcoulomb.Print("COU");
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
             _AuxAOcoulomb_inv=ub::zero_matrix<double>( _auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension()); 
             ub::matrix<double> _AuxAOcoulomb_inv2=ub::zero_matrix<double>( _auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension()); 
             int dimensions=linalg_invert_svd( _auxAOcoulomb.Matrix() , _AuxAOcoulomb_inv,1e8);
             
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Inverted AUX Coulomb matrix, removed "<<dimensions<<" functions from aux basis" << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inverted AUX Coulomb matrix, removed "<<dimensions<<" functions from aux basis" << flush;
      
             }
             // prepare invariant part of electron repulsion integrals
@@ -624,12 +623,12 @@ namespace votca {
           
             
             
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
             }
             else{
                 if(_4cmethod=="ram"){
                _ERIs.Initialize_4c_small_molecule(_dftbasis); 
-               LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Calculated 4c integrals. " << flush;
+               LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c integrals. " << flush;
                 }
             }
 
@@ -637,12 +636,12 @@ namespace votca {
       
 ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             ub::matrix<double> guess = ub::zero_matrix<double>(_dftbasis.AOBasisSize());
-            const std::vector<::QMAtom*> atoms = _orbitals->::QMAtoms();
-            std::vector<::QMAtom*> uniqueelements;
-            std::vector<::QMAtom*>::const_iterator at;
-            std::vector<::QMAtom*>::iterator st;
+            const std::vector<ctp::QMAtom*> atoms = _orbitals->QMAtoms();
+            std::vector<ctp::QMAtom*> uniqueelements;
+            std::vector<ctp::QMAtom*>::const_iterator at;
+            std::vector<ctp::QMAtom*>::iterator st;
             std::vector< ub::matrix<double> > uniqueatom_guesses;
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Scanning molecule of size " << atoms.size() << " for unique elements" << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Scanning molecule of size " << atoms.size() << " for unique elements" << flush;
             for (at = atoms.begin(); at < atoms.end(); ++at) {
                 bool exists = false;
                 if (uniqueelements.size() == 0) {
@@ -659,18 +658,18 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                     uniqueelements.push_back((*at));
                 }
             }
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " " << uniqueelements.size() << " unique elements found" << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " " << uniqueelements.size() << " unique elements found" << flush;
             Elements _elements;
             for (st = uniqueelements.begin(); st < uniqueelements.end(); ++st) {
 
                 
 
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Calculating atom density for " << (*st)->type << flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating atom density for " << (*st)->type << flush;
                 bool with_ecp = _with_ecp;
                 if ((*st)->type == "H" || (*st)->type == "He") {
                     with_ecp = false;
                 }
-                std::vector<::QMAtom*> atom;
+                std::vector<ctp::QMAtom*> atom;
                 atom.push_back(*st);
 
                 AOBasis dftbasis;
@@ -855,25 +854,25 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                        cout<<MOEnergies_alpha(alpha_e)<<" "<<MOEnergies_alpha(alpha_e-1)<<endl;
                         
                          if(tools::globals::verbose){
-                        LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp()<<" Iter "<<this_iter<<" of "<<maxiter<<" Etot "<<totenergy<<" diise_a "<<diiserror_alpha<<" diise_b "<<diiserror_beta
+                        LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()<<" Iter "<<this_iter<<" of "<<maxiter<<" Etot "<<totenergy<<" diise_a "<<diiserror_alpha<<" diise_b "<<diiserror_beta
                                 <<" a_gap "<<MOEnergies_alpha(alpha_e)-MOEnergies_alpha(alpha_e-1)<<" b_gap "<<MOEnergies_beta(beta_e)-MOEnergies_beta(beta_e-1)<<flush;
                          }
                        bool converged=(std::abs(totenergy - energyold) < _Econverged && diiserror_alpha < _error_converged && diiserror_beta < _error_converged);
                         if (converged || this_iter==maxiter-1) {
                             
                             if(converged){
-                                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Converged after " << this_iter<<" iterations" << flush;
+                                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << this_iter<<" iterations" << flush;
                             }
                             else{
-                                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Not converged after " << this_iter<<" iterations. Using unconverged density." << flush;
+                                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Not converged after " << this_iter<<" iterations. Using unconverged density." << flush;
                             }
                             
                             
                             //ub::matrix<double> avdmat=AverageShells(dftAOdmat_alpha+dftAOdmat_beta,dftbasis);
                             
                                     uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
-                            //LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(avdmat,dftAOoverlap.Matrix())<<" electrons."<<flush;
-                            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(dftAOdmat_alpha+dftAOdmat_beta,dftAOoverlap.Matrix())<<" electrons."<<flush;
+                            //LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(avdmat,dftAOoverlap.Matrix())<<" electrons."<<flush;
+                            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(dftAOdmat_alpha+dftAOdmat_beta,dftAOoverlap.Matrix())<<" electrons."<<flush;
                             break;
                   
                         }
@@ -922,29 +921,29 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                     throw runtime_error((boost::format("Basisset Name in guess orb file and in dftengine option file differ %1% vs %2%") %_orbitals->getDFTbasis() %_dftbasis_name).str() );
                     }
                 }else{
-                    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " WARNING: Orbital file has no basisset information,using it as a guess might work or not for calculation with " << _dftbasis_name << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " WARNING: Orbital file has no basisset information,using it as a guess might work or not for calculation with " << _dftbasis_name << flush;
                 }        
             }
             
             _orbitals->setDFTbasis( _dftbasis_name );    
 	    _dftbasis.AOBasisFill( &_dftbasisset, _atoms);
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
 
             if(_with_RI){
 	    // load and fill AUX basis set
             _auxbasisset.LoadBasisSet(_auxbasis_name);
             //_orbitals->setDFTbasis( _dftbasis_name );
 	    _auxbasis.AOBasisFill( &_auxbasisset, _atoms);
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Loaded AUX Basis Set " << _auxbasis_name << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded AUX Basis Set " << _auxbasis_name << flush;
             }
             if(_with_ecp){
             // load ECP (element-wise information) from xml file
             _ecpbasisset.LoadPseudopotentialSet(_ecp_name);
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Loaded ECP library " <<  _ecp_name << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded ECP library " <<  _ecp_name << flush;
 
             // fill auxiliary ECP basis by going through all atoms
             _ecp.ECPFill(&_ecpbasisset, _atoms);
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Filled ECP Basis of size " << _ecp._aoshells.size() << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled ECP Basis of size " << _ecp._aoshells.size() << flush;
             }
             
 	    // setup numerical integration grid
@@ -953,14 +952,14 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             
             
             
-	    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Setup numerical integration grid " << _grid_name << " for vxc functional " 
+	    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup numerical integration grid " << _grid_name << " for vxc functional " 
                     << _xc_functional_name<<" with " <<_gridIntegration.getGridpoints().size()<<" points"<< flush;
             
             if(_use_small_grid){
                  _gridIntegration_small.GridSetup(_grid_name_small,&_dftbasisset,_atoms);
             _gridIntegration_small.FindsignificantAtoms( &_dftbasis);
 
-	    LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Setup small numerical integration grid " << _grid_name_small << " for vxc functional " 
+	    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup small numerical integration grid " << _grid_name_small << " for vxc functional " 
                     << _xc_functional_name<<" with " <<_gridIntegration_small.getGridpoints().size()<<" points"<< flush;
             }
             
@@ -987,7 +986,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             }
            // here number of electrons is actually the total number, everywhere else in votca it is just alpha_electrons
            
-           LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Total number of electrons: " << _numofelectrons << flush;
+           LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Total number of electrons: " << _numofelectrons << flush;
            
            if(_with_guess){
                if(_orbitals->getNumberOfElectrons()!=_numofelectrons/2){
@@ -1127,7 +1126,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
           for(unsigned i=0;i<_atoms.size();i++){
               vec r1=vec(_atoms[i]->x*tools::conv::ang2bohr,_atoms[i]->y*tools::conv::ang2bohr,_atoms[i]->z*tools::conv::ang2bohr);
               double charge1=charge[i];
-              for(std::vector<CTP::APolarSite*>::iterator ext=_externalsites.begin();ext<_externalsites.end();++ext){
+              for(std::vector<ctp::APolarSite*>::iterator ext=_externalsites.begin();ext<_externalsites.end();++ext){
                   vec r2=(*ext)->getPos()*tools::conv::nm2bohr;
                   double charge2=(*ext)->getQ00();
                   E_ext+=charge1*charge2/(abs(r1-r2));
