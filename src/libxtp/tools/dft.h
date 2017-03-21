@@ -397,7 +397,7 @@ void DFT::XYZ2Orbitals(Orbitals* _orbitals, string filename){
                 if ( _has_atoms == false ) {
                         _orbitals->AddAtom( _atom_type, _x, _y, _z );
                 } else {
-                         QMAtom* pAtom = _orbitals->_atoms.at( aindex );
+                         ::QMAtom* pAtom = _orbitals->_atoms.at( aindex );
                          pAtom->type = _atom_type;
                          pAtom->x = _x;
                          pAtom->y = _y;
@@ -414,9 +414,9 @@ void DFT::XYZ2Orbitals(Orbitals* _orbitals, string filename){
 
 void DFT::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
     
-            vector< QMAtom* > _atoms;
-            vector< QMAtom* > ::iterator ait;
-            _atoms = _orbitals->QMAtoms();
+            vector< ::QMAtom* > _atoms;
+            vector< ::QMAtom* > ::iterator ait;
+            _atoms = _orbitals->::QMAtoms();
             
             string type;
             int id = 1;

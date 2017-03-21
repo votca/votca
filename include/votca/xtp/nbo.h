@@ -23,8 +23,8 @@
 
 #include <votca/xtp/elements.h>
 #include <votca/xtp/aobasis.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmatom.h>
+#include <votca/ctp/logger.h>
+#include <votca/ctp/qmatom.h>
 
 
 /**
@@ -42,22 +42,22 @@ namespace votca { namespace xtp {
 class NBO{
 public:
     
-    NBO(Logger *log):_ECP(false) {_log = log;}
+    NBO(ctp::Logger *log):_ECP(false) {_log = log;}
    ~NBO(){};
     
    void setUseECPs(bool ECP){_ECP=ECP;}
    
-   void EvaluateNBO(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis, BasisSet &bs);
+   void EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis, BasisSet &bs);
    
    void LoadMatrices(std::string fn_projectionMatrix, std::string fn_overlapMatrix);
 
 private:
     
-     Logger *_log;
+     ctp::Logger *_log;
      Elements _elements; 
      bool _ECP;
     
-    ub::matrix<double> IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< QMAtom* >& _atomlist, BasisSet &bs);
+    ub::matrix<double> IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< ctp::QMAtom* >& _atomlist, BasisSet &bs);
     void TransformMatrixtoNewBasis(ub::matrix<double>& Matrix,const ub::matrix<double>& transformation);
 };
 }}

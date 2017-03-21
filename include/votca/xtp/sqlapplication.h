@@ -22,7 +22,7 @@
 #define	VOTCA_XTP_SQLAPPLICATION_H
 
 #include <votca/xtp/xtpapplication.h>
-#include <votca/xtp/topology.h>
+#include <votca/ctp/topology.h>
 
 #include "statesaversqlite.h"
 #include "qmcalculator.h"

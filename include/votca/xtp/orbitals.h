@@ -25,7 +25,7 @@
 
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
-#include <votca/xtp/qmatom.h>
+#include <votca/ctp/qmatom.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
@@ -153,12 +153,12 @@ public:
     std::vector<int>* getDegeneracy( int level, double _energy_difference );
 
     // access to QM atoms
-    //bool hasQMAtoms() { return _has_atoms;}
+    //bool has::QMAtoms() { return _has_atoms;}
     bool hasQMAtoms() { return ( _atoms.size() > 0 ) ? true : false ;}
-    // void setQMAtoms( bool inp ) { _has_atoms = inp;}
-    const std::vector< QMAtom* > &QMAtoms() const { return _atoms ;}
-    std::vector< QMAtom* > &QMAtoms()  { return _atoms ;}
-    std::vector< QMAtom* >* getAtoms() { return &_atoms; } //OLD
+    // void set::QMAtoms( bool inp ) { _has_atoms = inp;}
+    const std::vector< ctp::QMAtom* > &::QMAtoms() const { return _atoms ;}
+    std::vector< ctp::QMAtom* > &::QMAtoms()  { return _atoms ;}
+    std::vector< ctp::QMAtom* >* getAtoms() { return &_atoms; } //OLD
     
     // access to classical self-energy in MM environment, new, tested
     bool hasSelfEnergy() { return ( _self_energy != 0.0 ) ? true : false ; }
@@ -362,17 +362,17 @@ public:
     void SortEnergies( std::vector<int>* index );
     
     /** Adds a QM atom to the atom list */
-   QMAtom* AddAtom (std::string _type, 
+   ctp::QMAtom* AddAtom (std::string _type, 
                      double _x, double _y, double _z, 
                      double _charge = 0, bool _from_environment = false)
     {
-        QMAtom* pAtom = new QMAtom(_type, _x, _y, _z, _charge, _from_environment);
+        ctp::QMAtom* pAtom = new ctp::QMAtom(_type, _x, _y, _z, _charge, _from_environment);
         _atoms.push_back( pAtom );
         return pAtom;
     }
-    QMAtom* AddAtom (QMAtom atom)
+    ctp::QMAtom* AddAtom (::QMAtom atom)
     {
-        QMAtom* pAtom = new QMAtom(atom);
+        ctp::QMAtom* pAtom = new ctp::QMAtom(atom);
         _atoms.push_back( pAtom );
         return pAtom;
     }
@@ -416,7 +416,7 @@ private:
     ub::symmetric_matrix<double>            _overlap;
     ub::symmetric_matrix<double>            _vxc;
     
-    std::vector< QMAtom* >                  _atoms;   
+    std::vector< ctp::QMAtom* >                  _atoms;   
 
     double                                  _qm_energy;
     double                                  _self_energy;

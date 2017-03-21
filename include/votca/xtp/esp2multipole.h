@@ -25,7 +25,7 @@
 #include <votca/xtp/mulliken.h>
 #include <votca/xtp/lowdin.h>
 #include <votca/xtp/nbo.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/qmmachine.h>
 #include <boost/filesystem.hpp>
 
@@ -36,10 +36,10 @@ class Esp2multipole
 {
 public:
 
-    Esp2multipole (Logger* log) {_log=log; }
+    Esp2multipole (ctp::Logger* log) {_log=log; }
    ~Esp2multipole () { 
    
-   std::vector< QMAtom* >::iterator it;
+   std::vector< ctp::QMAtom* >::iterator it;
     for ( it = _Atomlist.begin(); it != _Atomlist.end(); ++it ) delete *it;};
 
     string Identify() { return "esp2multipole"; }
@@ -72,9 +72,9 @@ private:
     bool        _use_ecp;
     bool        _do_svd;
     double      _conditionnumber;
-    vector< QMAtom* > _Atomlist;
+    vector< ctp::QMAtom* > _Atomlist;
     
-    Logger*      _log;
+    ctp::Logger*      _log;
     
     
 

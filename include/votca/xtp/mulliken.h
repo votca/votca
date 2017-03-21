@@ -23,7 +23,7 @@
 
 #include <votca/xtp/elements.h>
 #include <votca/xtp/aobasis.h>
-#include <votca/xtp/qmatom.h>
+#include <votca/ctp/qmatom.h>
 
 
 /**
@@ -45,7 +45,7 @@ public:
    ~Mulliken(){};
     
     void setUseECPs(bool use_ecp){_use_ecp=use_ecp;}
-    void EvaluateMulliken(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
+    void EvaluateMulliken(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
   
    
 private:

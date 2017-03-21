@@ -162,8 +162,8 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     
           
     // DFT atoms
-    if ( _orbitals.hasQMAtoms() ) {
-        LOG(logDEBUG, _log) << "      atoms:                  " << _orbitals.QMAtoms().size() << flush;
+    if ( _orbitals.has::QMAtoms() ) {
+        LOG(logDEBUG, _log) << "      atoms:                  " << _orbitals.::QMAtoms().size() << flush;
     } else {
         LOG(logDEBUG, _log) << "      atoms:                  not stored "<< flush;
     } 

@@ -22,7 +22,7 @@
 
 #include <votca/tools/property.h>
 #include <votca/xtp/basisset.h>
-#include <votca/xtp/qmatom.h>
+#include <votca//qmatom.h>
 
 using namespace std;
 

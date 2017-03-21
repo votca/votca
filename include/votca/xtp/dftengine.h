@@ -35,7 +35,7 @@
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
-    namespace CTP = votca::ctp;
+    
         /**
          * \brief Electronic ground-state via Density-Functional Theory
          *
@@ -61,9 +61,9 @@ public:
    
     void    CleanUp();
 
-    void setLogger( CTP::Logger* pLog ) { _pLog = pLog; }
+    void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
     
-    void setExternalcharges(std::vector<CTP::APolarSite*> externalsites){
+    void setExternalcharges(std::vector<ctp::APolarSite*> externalsites){
         _externalsites=externalsites;
         _addexternalsites=true;
     }
@@ -84,7 +84,7 @@ public:
     
     private:
 
-    CTP::Logger *_pLog;
+    ctp::Logger *_pLog;
     
     void Prepare( Orbitals* _orbitals );
     void SetupInvariantMatrices();
@@ -116,7 +116,7 @@ public:
     Property _dftengine_options; 
     
     // atoms
-    std::vector<QMAtom*>                _atoms;
+    std::vector<ctp::QMAtom*>                _atoms;
 
     // basis sets
     std::string                              _auxbasis_name;
@@ -195,7 +195,7 @@ public:
     ERIs                                _ERIs;
     
     // external charges
-     std::vector<CTP::APolarSite*>        _externalsites;
+     std::vector<ctp::APolarSite*>        _externalsites;
      bool                            _addexternalsites;
     
     // exchange and correlation

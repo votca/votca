@@ -1209,9 +1209,9 @@ return;
 
 void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
     
-            vector< QMAtom* > _atoms;
-            vector< QMAtom* > ::iterator ait;
-            _atoms = _orbitals->QMAtoms();
+            vector< ::QMAtom* > _atoms;
+            vector< ::QMAtom* > ::iterator ait;
+            _atoms = _orbitals->::QMAtoms();
             
             string type;
             int id = 1;
@@ -1372,12 +1372,12 @@ void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
     // Lowdin orthogonalize guess
      // get atoms from segments
       std::vector<Atom*> _segatoms = _segment->Atoms();
-      std::vector<QMAtom*> _atoms = _orbitals->QMAtoms();
+      std::vector<::QMAtom*> _atoms = _orbitals->::QMAtoms();
 
       vector< Atom* > ::iterator segait;
-      vector< QMAtom* > ::iterator ait;
+      vector< ::QMAtom* > ::iterator ait;
 
-      _atoms = _orbitals->QMAtoms();
+      _atoms = _orbitals->::QMAtoms();
 
             
       string type;
@@ -1388,7 +1388,7 @@ void Exciton::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
                 
                 type    = (*segait)->getElement();
                 vec pos = (*segait)->getQMPos();
-                QMAtom *pAtom = new QMAtom();
+                ::QMAtom *pAtom = new ::QMAtom();
                 pAtom->type = type;
                 pAtom->x = pos.getX()*10.0;
                 pAtom->y = pos.getY()*10.0;

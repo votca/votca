@@ -23,8 +23,8 @@
 
 #include <stdio.h>
 #include <map>
-#include "qmdatabase.h"
-#include "topology.h"
+#include <votca/ctp/qmdatabase.h>
+#include <votca/ctp/topology.h>
 #include <boost/interprocess/sync/file_lock.hpp>
 
 namespace votca { namespace xtp {
@@ -69,8 +69,8 @@ public:
     void UnlockStateFile();
     
 private:
-    Topology       *_qmtop;
-    QMDatabase      _db;
+    ctp::Topology       *_qmtop;
+    ctp::QMDatabase      _db;
 
     int             _frame;
     int             _current_frame;

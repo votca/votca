@@ -23,7 +23,7 @@
 
 namespace votca { namespace xtp {
 
-void StateSaverSQLite::Open(Topology& qmtop, const string &file, bool lock) {
+void StateSaverSQLite::Open(ctp::Topology& qmtop, const string &file, bool lock) {
     _sqlfile = file;
     if (lock) this->LockStateFile();
     _db.OpenHelper(file.c_str());
@@ -189,12 +189,12 @@ void StateSaverSQLite::WriteSegTypes(bool update) {
         return; // nothing to do here
     }
 
-    std::vector < SegmentType* > ::iterator typeit;
+    std::vector < ctp::SegmentType* > ::iterator typeit;
     for (typeit = _qmtop->SegmentTypes().begin();
             typeit < _qmtop->SegmentTypes().end();
             typeit++) {
 
-        SegmentType *type = *typeit;
+        ctp::SegmentType *type = *typeit;
 
         if (!update) {
             stmt->Bind(1, _qmtop->getDatabaseId());
@@ -282,11 +282,11 @@ void StateSaverSQLite::WriteSegments(bool update) {
                            ")");
 
 
-    std::vector < Segment* > ::iterator sit;
+    std::vector < ctp::Segment* > ::iterator sit;
     for (sit = _qmtop->Segments().begin();
             sit < _qmtop->Segments().end();
             sit++) {
-        Segment *seg = *sit;
+        ctp::Segment *seg = *sit;
 
         
 
@@ -367,11 +367,11 @@ void StateSaverSQLite::WriteFragments(bool update) {
 
     stmt->Bind(1, _qmtop->getDatabaseId());
 
-    std::vector < Fragment* > ::iterator fit;
+    std::vector < ctp::Fragment* > ::iterator fit;
     for (fit = _qmtop->Fragments().begin();
             fit < _qmtop->Fragments().end();
             fit++) {
-        Fragment *frag = *fit;
+        ctp::Fragment *frag = *fit;
 
         stmt->Bind(2, frag->getTopology()->getDatabaseId());
         stmt->Bind(3, frag->getId());
@@ -425,11 +425,11 @@ void StateSaverSQLite::WriteAtoms(bool update) {
 
     stmt->Bind(1, _qmtop->getDatabaseId());
 
-    std::vector < Atom* > ::iterator ait;
+    std::vector < ctp::Atom* > ::iterator ait;
     for (ait = _qmtop->Atoms().begin();
             ait < _qmtop->Atoms().end();
             ait++) {
-        Atom *atm = *ait;
+        ctp::Atom *atm = *ait;
         stmt->Bind(2, atm->getTopology()->getDatabaseId());
         stmt->Bind(3, atm->getId());
         stmt->Bind(4, atm->getName());
@@ -513,7 +513,7 @@ void StateSaverSQLite::WritePairs(bool update) {
          nit != _qmtop->NBList().end();
          nit++) {
 
-        QMPair *pair = *nit;
+        ctp::QMPair *pair = *nit;
             int has_e = (pair->isPathCarrier(-1)) ? 1 : 0;
             int has_h = (pair->isPathCarrier(+1)) ? 1 : 0;
             int has_s = (pair->isPathCarrier(+2)) ? 1 : 0;
@@ -931,7 +931,7 @@ void StateSaverSQLite::ReadSegments(int topId) {
         bool has_s = (hs == 1) ? true : false;
         bool has_t = (ht == 1) ? true : false;
 
-        Segment *seg = _qmtop->AddSegment(name);
+        ctp::Segment *seg = _qmtop->AddSegment(name);
         seg->setMolecule(_qmtop->getMolecule(mId));
         seg->setType(_qmtop->getSegmentType(type));
         seg->setPos(vec(X, Y, Z));
@@ -1004,7 +1004,7 @@ void StateSaverSQLite::ReadFragments(int topId) {
         if (leg2 >= 0) {trihedron.push_back(leg2);}
         if (leg3 >= 0) {trihedron.push_back(leg3);}
 
-        Fragment *frag = _qmtop->AddFragment(name);
+        ctp::Fragment *frag = _qmtop->AddFragment(name);
         frag->setSegment(_qmtop->getSegment(segid));
         frag->setMolecule(_qmtop->getMolecule(molid));
         frag->setPos(vec(posX, posY, posZ));
@@ -1053,7 +1053,7 @@ void StateSaverSQLite::ReadAtoms(int topId) {
         double  qmPosZ = stmt->Column<double>(13);
         string  element = stmt->Column<string>(14);
 
-        Atom *atm = _qmtop->AddAtom(name);
+        ctp::Atom *atm = _qmtop->AddAtom(name);
         atm->setWeight(weight);
         atm->setQMPart(qmid, vec(qmPosX,qmPosY,qmPosZ));
         atm->setElement(element);
@@ -1191,7 +1191,7 @@ void StateSaverSQLite::ReadSuperExchange(int topId) {
 }
 
 
-bool StateSaverSQLite::HasTopology(Topology *top) {
+bool StateSaverSQLite::HasTopology(ctp::Topology *top) {
 
     // Determine from topology ID whether database already stores a
     // (previous) copy

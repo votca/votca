@@ -176,7 +176,7 @@ namespace votca { namespace xtp {
         //block fill for overlap, implementation in aoesp.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         //void Print();
-        void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms,bool _with_ecp=false );
+        void Fillnucpotential( AOBasis* aobasis, std::vector<::QMAtom*>& _atoms,bool _with_ecp=false );
         void Fillextpotential( AOBasis* aobasis, std::vector<CTP::APolarSite*>& _sites);
         ub::matrix<double> &getNuclearpotential(){ return _nuclearpotential;}
         const ub::matrix<double> &getNuclearpotential()const{ return _nuclearpotential;}
@@ -196,7 +196,7 @@ namespace votca { namespace xtp {
         //block fill for overlap, implementation in aoesp.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
         //void Print();
-        //void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms );
+        //void Fillnucpotential( AOBasis* aobasis, std::vector<::QMAtom*>& _atoms );
         
         ub::matrix<double> calcVNLmatrix(  const vec& posA, const vec& posB, const vec& posC, const double& alpha, const double& beta, ub::matrix<double>& _gamma_ecp, ub::matrix<double>& _pref_ecp   );
         typedef boost::multi_array<double, 3> type_3D;

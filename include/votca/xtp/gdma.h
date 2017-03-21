@@ -63,7 +63,7 @@ public:
    void SetRadius( double radius ) { _radius = radius;};
    void SetSwitch( double sw ) { _switch = sw; };
    
-   void setLog( Logger* pLog ) { _log = pLog; };
+   void setLog( ctp::Logger* pLog ) { _log = pLog; };
    std::vector< std::vector<double> > &GetMultipoles() { return _multipoles; };
    
    
@@ -81,7 +81,7 @@ private:
     double  _radius; 
     double  _switch; 
     std::string  _outFile; 
-    Logger*                             _log;
+    ctp::Logger*                             _log;
     
  
 };

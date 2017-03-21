@@ -19,10 +19,10 @@
 #define	__XMAPPER__H
 
 #include <votca/tools/mutex.h>
-#include <votca/xtp/topology.h>
-#include <votca/xtp/xjob.h>
-#include <votca/xtp/apolarsite.h>
-#include <votca/xtp/qmthread.h>
+#include <votca/ctp/topology.h>
+#include <votca/ctp/job.h>
+#include <votca/ctp/apolarsite.h>
+#include <votca/ctp/qmthread.h>
 
 // TODO Change maps to _alloc_xmlfile_fragsegmol_***
 // TODO Confirm thread safety
@@ -39,22 +39,22 @@ public:
    ~XMpsMap() {};
 
     // User interface:
-    void GenerateMap(std::string xml_file, std::string alloc_table, Topology *top);
-    void EquipWithPolSites(Topology *top);
+    void GenerateMap(std::string xml_file, std::string alloc_table, ctp::Topology *top);
+    void EquipWithPolSites(ctp::Topology *top);
     
     // Adapt to XJob
-    PolarSeg *MapPolSitesToSeg(const std::vector<APolarSite*> &pols_n, Segment *seg, bool only_active_sites = true);
-    std::vector<APolarSite*> GetOrCreateRawSites(const std::string &mpsfile, QMThread *thread = NULL);
-    void Gen_QM_MM1_MM2(Topology *top, XJob *job, double co1, double co2, QMThread *thread = NULL);
-    void Gen_FGC_FGN_BGN(Topology *top, XJob *job, QMThread *thread = NULL);
-    void Gen_BGN(Topology *top, PolarTop *ptop, QMThread *thread = NULL);
-    void Gen_FGC_Load_FGN_BGN(Topology *top, XJob *job, std::string archfile, QMThread *thread = NULL);
+    ctp::PolarSeg *MapPolSitesToSeg(const std::vector<ctp::APolarSite*> &pols_n, ctp::Segment *seg, bool only_active_sites = true);
+    std::vector<ctp::APolarSite*> GetOrCreateRawSites(const std::string &mpsfile, ctp::QMThread *thread = NULL);
+    void Gen_QM_MM1_MM2(Topology *top, ctp::XJob *job, double co1, double co2, ctp::QMThread *thread = NULL);
+    void Gen_FGC_FGN_BGN(Topology *top, ctp::XJob *job, QMThread *thread = NULL);
+    void Gen_BGN(Topology *top, ctp::PolarTop *ptop, ctp::QMThread *thread = NULL);
+    void Gen_FGC_Load_FGN_BGN(Topology *top, ctp::XJob *job, std::string archfile, ctp::QMThread *thread = NULL);
     
     void setEstaticsOnly(bool estatics_only) { _estatics_only = estatics_only; }
     
     // Called by GenerateMap(...)
     void CollectMapFromXML(std::string xml_file);
-    void CollectSegMpsAlloc(std::string alloc_table, Topology *top);
+    void CollectSegMpsAlloc(std::string alloc_table, ctp::Topology *top);
     void CollectSitesFromMps();
     
     
@@ -78,8 +78,8 @@ private:
     std::map<int,std::string>                 _segId_mpsFile_h;
 
     // Raw polar sites collected from mps-files
-    std::map<std::string,std::vector<APolarSite*> > _mpsFile_pSites;
-    std::map<std::string,std::vector<APolarSite*> > _mpsFile_pSites_job;
+    std::map<std::string,std::vector<ctp::APolarSite*> > _mpsFile_pSites;
+    std::map<std::string,std::vector<ctp::APolarSite*> > _mpsFile_pSites_job;
 };
     
     

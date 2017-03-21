@@ -121,7 +121,7 @@ bool QMSandbox::Evaluate() {
     //_qmpackage->setOrbitalsFileName( _orbfile );
     //int _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
 
-                std::vector<QMAtom*> _atoms = _orbitals.QMAtoms();
+                std::vector<::QMAtom*> _atoms = _orbitals.::QMAtoms();
             
             // load DFT basis set (element-wise information) from xml file
             BasisSet dftbs;
@@ -163,8 +163,8 @@ void QMSandbox::CheckContent( Orbitals& _orbitals ){
     
           
     // DFT atoms
-    if ( _orbitals.hasQMAtoms() ) {
-        LOG(logDEBUG, _log) << "      atoms:                  " << _orbitals.QMAtoms().size() << flush;
+    if ( _orbitals.has::QMAtoms() ) {
+        LOG(logDEBUG, _log) << "      atoms:                  " << _orbitals.::QMAtoms().size() << flush;
     } else {
         LOG(logDEBUG, _log) << "      atoms:                  not stored "<< flush;
     } 

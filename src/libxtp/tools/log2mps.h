@@ -95,8 +95,8 @@ bool Log2Mps::Evaluate() {
         cout << "\nERROR Parsing " << _logfile << "failed. Abort." << endl;
         throw std::runtime_error("(see above, parsing error)");
     }    
-    vector<QMAtom*> &qmatoms = *orbs.getAtoms();
-    vector<QMAtom*>::iterator it;
+    vector<::QMAtom*> &qmatoms = *orbs.getAtoms();
+    vector<::QMAtom*>::iterator it;
     
     // Sanity checks, total charge
     double Q = 0.0;

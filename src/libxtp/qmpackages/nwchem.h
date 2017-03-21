@@ -22,7 +22,7 @@
 
 
 #include <votca/ctp/apolarsite.h>
-#include <votca/ctp/qmpackage.h>
+#include <votca/xtp/qmpackage.h>
 
 #include <string> 
 
@@ -36,7 +36,7 @@ namespace votca { namespace xtp {
     and extracts information from its log and io files
     
 */
-class NWChem : public votca::ctp::QMPackage
+class NWChem : public QMPackage
 {
 public:   
 
@@ -48,7 +48,7 @@ public:
     * and a guess for the dimer (if requested) constructed from the
     * monomer orbitals
     */
-   bool WriteInputFile( std::vector< votca::ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
 
    bool WriteShellScript();
 
@@ -62,7 +62,7 @@ public:
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
 
-   bool ConvertToGW( Orbitals* _orbitals );
+
    
    std::string getScratchDir( ) { return _scratch_dir; }
    

@@ -158,16 +158,16 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     // GENERATE GRIDS
     // ... TODO ...
     // Generate QM atoms from _job->getPolarTop()->QM0();
-    // Move Iter::GenerateQMAtomsFromPolarSegs to QMMachine
+    // Move Iter::Generate::QMAtomsFromPolarSegs to QMMachine
     // Generate grids, store as member
     Orbitals basisforgrid;
     std::vector<PolarSeg*> dummy;
     
-    GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
+    Generate::QMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
     
     
     _grid_bg = Grid(true,true,true);   
-    _grid_bg.setAtomlist(&basisforgrid.QMAtoms());
+    _grid_bg.setAtomlist(&basisforgrid.::QMAtoms());
     _grid_bg.setCutoffshifts(0,-0.5);    
     _grid_bg.setSpacing(0.2);   
     _grid_bg.setCubegrid(true);   
@@ -182,7 +182,7 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
 
             
     _fitted_charges = Grid(true,false,false);
-    _fitted_charges.setAtomlist(&basisforgrid.QMAtoms());
+    _fitted_charges.setAtomlist(&basisforgrid.::QMAtoms());
     _fitted_charges.setCutoffs(7,0);
     _fitted_charges.setupradialgrid(1);
     //_fitted_charges.setCutoffshifts(8,2);
@@ -309,7 +309,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
     std::vector<PolarSeg*> dummy;
     Orbitals basisforgrid;
-    GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
+    Generate::QMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
     Grid visgrid_fit=Grid(_grid_bg);
   
     fitcharges.EvaluateAPECharges(visgrid_fit,_fitted_charges);
@@ -326,7 +326,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     // Run DFT
     Orbitals orb_iter_input;
     std::vector<Segment*> empty;
-    GenerateQMAtomsFromPolarSegs(qm, mm_fitted, orb_iter_input);
+    Generate::QMAtomsFromPolarSegs(qm, mm_fitted, orb_iter_input);
    
 	_qmpack->setRunDir(runFolder);
 	_qmpack->WriteInputFile(empty, &orb_iter_input);
@@ -352,7 +352,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 	if (_run_ape) {
 		// Update QM0 density: QM0(n) => QM0(n+1)
 		// ...
-        thisIter->UpdatePosChrgFromQMAtoms(orb_iter_output.QMAtoms(),
+        thisIter->UpdatePosChrgFrom::QMAtoms(orb_iter_output.::QMAtoms(),
             _job->getPolarTop()->QM0());
 
 		// Do not reset FGC (= only reset FU), do not use BGP state, nor apply FP fields (BG & FG)
@@ -431,9 +431,9 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
                          thisIter->getQMMMEnergy());
     
     // EXTRACT & SAVE QMATOM DATA
-    std::vector< QMAtom* > &atoms = *(orb_iter_output.getAtoms());
+    std::vector< ::QMAtom* > &atoms = *(orb_iter_output.getAtoms());
     
-    thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
+    thisIter->UpdatePosChrgFrom::QMAtoms(atoms, _job->getPolarTop()->QM0());
 
     LOG(logINFO,*_log) 
         << format("Summary - iteration %1$d:") % (iterCnt+1) << flush;
@@ -625,7 +625,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
 	// fill DFT AO basis by going through all atoms
 	AOBasis dftbasis;
-	dftbasis.AOBasisFill(&dftbs, orb.QMAtoms() );
+	dftbasis.AOBasisFill(&dftbs, orb.::QMAtoms() );
 	dftbasis.ReorderMOs(_dft_orbitals, orb.getQMpackage(), "votca" );
 	// TBD: Need to switch between singlets and triplets depending on _type
 	ub::matrix<double> &DMATGS=orb.DensityMatrixGroundState(_dft_orbitals);
@@ -639,7 +639,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	}
 
 	// fill DFT AO basis by going through all atoms
-	std::vector< QMAtom* >& Atomlist= orb.QMAtoms();
+	std::vector< ::QMAtom* >& Atomlist= orb.::QMAtoms();
 
 	Espfit esp=Espfit(_log);
         if (_run_gwbse){
@@ -692,22 +692,22 @@ bool QMAPEMachine<QMPackage>::hasConverged() {
 }
 
 
-void QMAPEIter::ConvertPSitesToQMAtoms(std::vector< PolarSeg* > &psegs,
-                                       std::vector< QMAtom * > &qmatoms) {
+void QMAPEIter::ConvertPSitesTo::QMAtoms(std::vector< PolarSeg* > &psegs,
+                                       std::vector< ::QMAtom * > &qmatoms) {
     
     assert(qmatoms.size() == 0);    
     return;   
 }
 
 
-void QMAPEIter::ConvertQMAtomsToPSites(std::vector< QMAtom* > &qmatoms,
+void QMAPEIter::Convert::QMAtomsToPSites(std::vector< ::QMAtom* > &qmatoms,
                                        std::vector< PolarSeg* > &psegs) {
     assert(qmatoms.size() == 0);
     return;
 }
 
 
-void QMAPEIter::UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &qmatoms,
+void QMAPEIter::UpdatePosChrgFrom::QMAtoms(std::vector< ::QMAtom* > &qmatoms,
                                          std::vector< PolarSeg* > &psegs) {
     
     double AA_to_NM = 0.1; // Angstrom to nanometer
@@ -720,8 +720,8 @@ void QMAPEIter::UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &qmatoms,
         PolarSeg *pseg = psegs[i];
         for (unsigned j = 0; j < pseg->size(); ++j, ++qac) {
             
-            // Retrieve info from QMAtom
-            QMAtom *qmatm = qmatoms[qac];
+            // Retrieve info from ::QMAtom
+            ::QMAtom *qmatm = qmatoms[qac];
             vec upd_r = vec(qmatm->x, qmatm->y, qmatm->z);
             upd_r *= AA_to_NM;
             double upd_Q00 = qmatm->charge;
@@ -752,7 +752,7 @@ void QMAPEIter::UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &qmatoms,
 }
 
 template<class QMPackage>
-void QMAPEMachine<QMPackage>::GenerateQMAtomsFromPolarSegs(std::vector<PolarSeg*> &qm,
+void QMAPEMachine<QMPackage>::Generate::QMAtomsFromPolarSegs(std::vector<PolarSeg*> &qm,
 	std::vector<PolarSeg*> &mm, Orbitals &orb) {
     
     double AA_to_NM = 0.1; // Angstrom to nanometer

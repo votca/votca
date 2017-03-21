@@ -55,15 +55,14 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1355216796/jobwriter.o \
 	${OBJECTDIR}/_ext/1584959903/dftengine.o \
 	${OBJECTDIR}/_ext/484478074/espfit.o \
-	${OBJECTDIR}/_ext/484478074/extractorfactory.o \
 	${OBJECTDIR}/_ext/484478074/fragment.o \
 	${OBJECTDIR}/_ext/484478074/gdma.o \
 	${OBJECTDIR}/_ext/484478074/grid.o \
 	${OBJECTDIR}/_ext/1763088751/bse.o \
+	${OBJECTDIR}/_ext/1763088751/bse_analysis.o \
 	${OBJECTDIR}/_ext/1763088751/gwa.o \
 	${OBJECTDIR}/_ext/1763088751/gwbse.o \
 	${OBJECTDIR}/_ext/1763088751/rpa.o \
-	${OBJECTDIR}/_ext/484478074/job.o \
 	${OBJECTDIR}/_ext/484478074/jobapplication.o \
 	${OBJECTDIR}/_ext/484478074/jobcalculatorfactory.o \
 	${OBJECTDIR}/_ext/164445175/egwbse.o \
@@ -76,11 +75,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1294340152/radial_euler_maclaurin_rule.o \
 	${OBJECTDIR}/_ext/1294340152/sphere_lebedev_rule.o \
 	${OBJECTDIR}/_ext/484478074/orbitals.o \
-	${OBJECTDIR}/_ext/484478074/parallelpaircalc.o \
-	${OBJECTDIR}/_ext/484478074/parallelxjobcalc.o \
-	${OBJECTDIR}/_ext/484478074/progressobserver.o \
 	${OBJECTDIR}/_ext/484478074/qmapemachine.o \
-	${OBJECTDIR}/_ext/484478074/qmcalculator.o \
 	${OBJECTDIR}/_ext/484478074/qmdatabase.o \
 	${OBJECTDIR}/_ext/484478074/qmmachine.o \
 	${OBJECTDIR}/_ext/484478074/qmnblist.o \
@@ -235,11 +230,6 @@ ${OBJECTDIR}/_ext/484478074/espfit.o: ../../src/libxtp/espfit.cc
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/espfit.o ../../src/libxtp/espfit.cc
 
-${OBJECTDIR}/_ext/484478074/extractorfactory.o: ../../src/libxtp/extractorfactory.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/extractorfactory.o ../../src/libxtp/extractorfactory.cc
-
 ${OBJECTDIR}/_ext/484478074/fragment.o: ../../src/libxtp/fragment.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
@@ -260,6 +250,11 @@ ${OBJECTDIR}/_ext/1763088751/bse.o: ../../src/libxtp/gwbse/bse.cc
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1763088751/bse.o ../../src/libxtp/gwbse/bse.cc
 
+${OBJECTDIR}/_ext/1763088751/bse_analysis.o: ../../src/libxtp/gwbse/bse_analysis.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1763088751
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1763088751/bse_analysis.o ../../src/libxtp/gwbse/bse_analysis.cc
+
 ${OBJECTDIR}/_ext/1763088751/gwa.o: ../../src/libxtp/gwbse/gwa.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1763088751
 	${RM} "$@.d"
@@ -274,11 +269,6 @@ ${OBJECTDIR}/_ext/1763088751/rpa.o: ../../src/libxtp/gwbse/rpa.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1763088751
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1763088751/rpa.o ../../src/libxtp/gwbse/rpa.cc
-
-${OBJECTDIR}/_ext/484478074/job.o: ../../src/libxtp/job.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/job.o ../../src/libxtp/job.cc
 
 ${OBJECTDIR}/_ext/484478074/jobapplication.o: ../../src/libxtp/jobapplication.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
@@ -340,30 +330,10 @@ ${OBJECTDIR}/_ext/484478074/orbitals.o: ../../src/libxtp/orbitals.cc
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/orbitals.o ../../src/libxtp/orbitals.cc
 
-${OBJECTDIR}/_ext/484478074/parallelpaircalc.o: ../../src/libxtp/parallelpaircalc.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/parallelpaircalc.o ../../src/libxtp/parallelpaircalc.cc
-
-${OBJECTDIR}/_ext/484478074/parallelxjobcalc.o: ../../src/libxtp/parallelxjobcalc.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/parallelxjobcalc.o ../../src/libxtp/parallelxjobcalc.cc
-
-${OBJECTDIR}/_ext/484478074/progressobserver.o: ../../src/libxtp/progressobserver.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/progressobserver.o ../../src/libxtp/progressobserver.cc
-
 ${OBJECTDIR}/_ext/484478074/qmapemachine.o: ../../src/libxtp/qmapemachine.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/qmapemachine.o ../../src/libxtp/qmapemachine.cc
-
-${OBJECTDIR}/_ext/484478074/qmcalculator.o: ../../src/libxtp/qmcalculator.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/qmcalculator.o ../../src/libxtp/qmcalculator.cc
 
 ${OBJECTDIR}/_ext/484478074/qmdatabase.o: ../../src/libxtp/qmdatabase.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074

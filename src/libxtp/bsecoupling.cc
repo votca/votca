@@ -585,13 +585,13 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     _orbitalsAB->setCoupledExcitonsA(_levA);
     _orbitalsAB->setCoupledExcitonsB(_levB);
     //check to see if ordering of atoms agrees
-    const std::vector<QMAtom*> atomsA=_orbitalsA->QMAtoms();
-    const std::vector<QMAtom*> atomsB=_orbitalsB->QMAtoms();
-    const std::vector<QMAtom*> atomsAB=_orbitalsAB->QMAtoms();
+    const std::vector<::QMAtom*> atomsA=_orbitalsA->::QMAtoms();
+    const std::vector<::QMAtom*> atomsB=_orbitalsB->::QMAtoms();
+    const std::vector<::QMAtom*> atomsAB=_orbitalsAB->::QMAtoms();
     
     for (unsigned i=0;i<atomsAB.size();i++){
-        QMAtom* dimer=atomsAB[i];
-        QMAtom* monomer=NULL;
+        ::QMAtom* dimer=atomsAB[i];
+        ::QMAtom* monomer=NULL;
         if (i<atomsA.size()){
             monomer=atomsA[i];
         }

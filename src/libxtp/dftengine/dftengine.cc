@@ -268,7 +268,7 @@ namespace votca {
             }
             #endif
 
-            _atoms = _orbitals->QMAtoms();
+            _atoms = _orbitals->::QMAtoms();
             LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Molecule Coordinates [A] "  << flush;
             for(unsigned i=0;i<_atoms.size();i++){
                 LOG(CTP::logDEBUG, *_pLog) << "\t\t "<< _atoms[i]->type<<" "<<_atoms[i]->x<<" "<<_atoms[i]->y<<" "<<_atoms[i]->z<<" "<<flush;
@@ -325,7 +325,7 @@ namespace votca {
             }
             
              std::vector<double> externalgrid_nuc;
-             for(std::vector<QMAtom*>::const_iterator at=_atoms.begin();at<_atoms.end();++at){
+             for(std::vector<::QMAtom*>::const_iterator at=_atoms.begin();at<_atoms.end();++at){
                 double value=0.0;
                 for(std::vector<APolarSite*>::iterator it=_externalsites.begin();it<_externalsites.end();++it){
                     vec pos=(*it)->getPos();
@@ -637,10 +637,10 @@ namespace votca {
       
 ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             ub::matrix<double> guess = ub::zero_matrix<double>(_dftbasis.AOBasisSize());
-            const std::vector<QMAtom*> atoms = _orbitals->QMAtoms();
-            std::vector<QMAtom*> uniqueelements;
-            std::vector<QMAtom*>::const_iterator at;
-            std::vector<QMAtom*>::iterator st;
+            const std::vector<::QMAtom*> atoms = _orbitals->::QMAtoms();
+            std::vector<::QMAtom*> uniqueelements;
+            std::vector<::QMAtom*>::const_iterator at;
+            std::vector<::QMAtom*>::iterator st;
             std::vector< ub::matrix<double> > uniqueatom_guesses;
             LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Scanning molecule of size " << atoms.size() << " for unique elements" << flush;
             for (at = atoms.begin(); at < atoms.end(); ++at) {
@@ -670,7 +670,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 if ((*st)->type == "H" || (*st)->type == "He") {
                     with_ecp = false;
                 }
-                std::vector<QMAtom*> atom;
+                std::vector<::QMAtom*> atom;
                 atom.push_back(*st);
 
                 AOBasis dftbasis;

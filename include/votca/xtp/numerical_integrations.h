@@ -40,7 +40,7 @@ namespace votca { namespace xtp {
             
             NumericalIntegration():density_set(false) {};
 
-            void GridSetup(std::string type, BasisSet* bs , std::vector<QMAtom* > _atoms  );
+            void GridSetup(std::string type, BasisSet* bs , std::vector<::QMAtom* > _atoms  );
             void FindsignificantAtoms(AOBasis* basis);
             //void FindsignificantAtoms2(AOBasis* basis);
             //used for test purposes

@@ -21,8 +21,6 @@
 #include <votca/tools/linalg.h>
 
 #include <votca/xtp/threecenters.h>
-
-#include <votca/xtp/logger.h>
 #include <votca/tools/linalg.h>
 
 

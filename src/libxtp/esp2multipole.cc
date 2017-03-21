@@ -135,7 +135,7 @@ void Esp2multipole::WritetoFile(string _output_file, string identifier){
     else if(_use_pdb){
         FILE *out;
         Orbitals _orbitals;
-        std::vector< QMAtom* >::iterator at;
+        std::vector< ::QMAtom* >::iterator at;
          for (at=_Atomlist.begin();at<_Atomlist.end();++at){
             
             _orbitals.AddAtom(*(*at));
@@ -156,10 +156,10 @@ void Esp2multipole::Extractingcharges( Orbitals & _orbitals ){
 #endif
    LOG(logDEBUG, *_log) << "===== Running on "<< threads << " threads ===== " << flush;
 
-        vector< QMAtom* > Atomlist =_orbitals.QMAtoms();
-        std::vector< QMAtom* >::iterator at;
+        vector< ::QMAtom* > Atomlist =_orbitals.::QMAtoms();
+        std::vector< ::QMAtom* >::iterator at;
         for (at=Atomlist.begin();at<Atomlist.end();++at){
-            QMAtom * atom=new QMAtom(*(*at));
+            ::QMAtom * atom=new ::QMAtom(*(*at));
             _Atomlist.push_back(atom);
         }
         ub::matrix<double> DMAT_tot;

@@ -22,7 +22,7 @@
 
 #include <votca/tools/property.h>
 
-#include <votca/xtp/qmatom.h>
+#include <votca/ctp/qmatom.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
@@ -53,8 +53,8 @@ public:
       void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
 
     // void AOBasisFill( BasisSet* bs , std::vector<Segment* > segments);
-    void AOBasisFill( BasisSet* bs , std::vector<QMAtom* > segments, int fragbreak = -1);
-    void ECPFill( BasisSet* bs , std::vector<QMAtom* > segments); 
+    void AOBasisFill( BasisSet* bs , std::vector<ctp::QMAtom* > segments, int fragbreak = -1);
+    void ECPFill( BasisSet* bs , std::vector<ctp::QMAtom* > segments); 
     
     
     int AOBasisSize() {return _AOBasisSize; }

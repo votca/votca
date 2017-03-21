@@ -137,7 +137,7 @@ void Grid::readgridfromCubeFile(std::string filename, bool ignore_zeros){
         _lowerbound=vec(xstart*conv::bohr2ang,ystart*conv::bohr2ang,zstart*conv::bohr2ang);
         
         
-        _atomlist= new std::vector< QMAtom* >;
+        _atomlist= new std::vector< ::QMAtom* >;
         for (int iatom =0; iatom < std::abs(natoms); iatom++) {
                  // get center coordinates in Bohr
                  double x ;
@@ -153,7 +153,7 @@ void Grid::readgridfromCubeFile(std::string filename, bool ignore_zeros){
                  in1 >> y;
                  in1 >> z;
                  
-                 QMAtom *qmatom=new QMAtom(_elements.getEleName(atnum),x*conv::bohr2ang,y*conv::bohr2ang,z*conv::bohr2ang,crg,false);
+                 ::QMAtom *qmatom=new ::QMAtom(_elements.getEleName(atnum),x*conv::bohr2ang,y*conv::bohr2ang,z*conv::bohr2ang,crg,false);
                  _atomlist->push_back(qmatom);
         }
         double potential=0.0;
@@ -215,7 +215,7 @@ void Grid::printgridtoCubefile(std::string filename){
             fprintf(out, "%d 0.0 %f 0.0 \n",  _ysteps, _gridspacing*conv::ang2bohr);
             fprintf(out, "%d 0.0 0.0 %f \n", _zsteps, _gridspacing*conv::ang2bohr);
             
-            std::vector<QMAtom* >::const_iterator ait;
+            std::vector<::QMAtom* >::const_iterator ait;
             for (ait=_atomlist->begin(); ait != _atomlist->end(); ++ait) {
                     
                     double x = (*ait)->x*conv::ang2bohr;
@@ -300,7 +300,7 @@ void Grid::setupradialgrid(const int depth) {
     double x = 0.0;
     double y = 0.0;
     double z = 0.0;
-    std::vector<QMAtom* >::const_iterator ait;
+    std::vector<::QMAtom* >::const_iterator ait;
     for (ait = _atomlist->begin(); ait != _atomlist->end(); ++ait) {
         x += (*ait)->x;
         y += (*ait)->y;
@@ -370,13 +370,13 @@ void Grid::setupgrid(){
 
     if(_useVdWcutoff){
         _padding=0.0;
-        for (std::vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ){
+        for (std::vector<::QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ){
             if(_elements.getVdWChelpG((*atom)->type)+_shift_cutoff>_padding) _padding=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff; 
         }
     } 
 
 
-    for (std::vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
+    for (std::vector<::QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
         xtemp=(*atom)->x;
         ytemp=(*atom)->y;
         ztemp=(*atom)->z;
@@ -408,7 +408,7 @@ void Grid::setupgrid(){
             for(int k=0;k<=_zsteps;k++){
                 double z=zmin-padding_z+k*_gridspacing; 
                 bool _is_valid = false;
-                    for (std::vector<QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
+                    for (std::vector<::QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
                         //cout << "Punkt " << x <<":"<< y << ":"<<z << endl;
                         xtemp=(*atom)->x;
                         ytemp=(*atom)->y;

@@ -23,8 +23,9 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
 
-#include <votca/xtp/xjob.h>
-#include <votca/xtp/xinductor.h>
+#include <votca/ctp/xjob.h>
+#include <votca/ctp/xinductor.h>
+
 // add gwbse header for excited state support
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/qmpackagefactory.h>
@@ -44,11 +45,11 @@ class QMMInterface
 {
 public:
     
-    QMMInterface() { _polar_table = POLAR_TABLE(); };
+    QMMInterface() { _polar_table = ctp::POLAR_TABLE(); };
    ~QMMInterface() {};
     
     // CONVERSION QM -> MM
-    APolarSite *Convert(QMAtom *atm, int id = -1) {
+    ctp::APolarSite *Convert(ctp::QMAtom *atm, int id = -1) {
         double A_to_nm = 0.1;
         vec pos = A_to_nm*vec(atm->x, atm->y, atm->z);
         double q = atm->charge;
@@ -63,7 +64,7 @@ public:
             pol = 1e-3;
         }
 
-        APolarSite *new_aps = new APolarSite(id, elem);
+        ctp::APolarSite *new_aps = new ctp::APolarSite(id, elem);
         new_aps->setRank(0);
         new_aps->setPos(pos);
         new_aps->setQ00(q,0); // <- charge state 0 <> 'neutral'
@@ -72,9 +73,9 @@ public:
         return new_aps;
     }
     
-    PolarSeg *Convert(std::vector<QMAtom*> &atms) {        
+    PolarSeg *Convert(std::vector<::QMAtom*> &atms) {        
         PolarSeg *new_pseg = new PolarSeg();
-        std::vector<QMAtom*>::iterator it;
+        std::vector<::QMAtom*>::iterator it;
         for (it = atms.begin(); it < atms.end(); ++it) {
             APolarSite *new_site = this->Convert(*it);
             new_pseg->push_back(new_site);
@@ -83,8 +84,8 @@ public:
     }
     
     // TODO CONVERSION MM -> QM
-    QMAtom *Convert(APolarSite*);
-    std::vector<QMAtom*> Convert(PolarSeg*);
+    ::QMAtom *Convert(APolarSite*);
+    std::vector<::QMAtom*> Convert(PolarSeg*);
     
 private:
     
@@ -107,11 +108,11 @@ public:
     QMMIter(int id) : _id(id), _hasdRdQ(false), _hasQM(false), _hasMM(false)  { ; }
    ~QMMIter() { ; }
 
-   void ConvertPSitesToQMAtoms(std::vector< PolarSeg* > &, std::vector< QMAtom* > &);
-   void ConvertQMAtomsToPSites(std::vector< QMAtom* > &, std::vector< PolarSeg* > &);
-   void UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &, std::vector< PolarSeg* > &);  
+   void ConvertPSitesTo::QMAtoms(std::vector< PolarSeg* > &, std::vector< ::QMAtom* > &);
+   void Convert::QMAtomsToPSites(std::vector< ::QMAtom* > &, std::vector< PolarSeg* > &);
+   void UpdatePosChrgFrom::QMAtoms(std::vector< ::QMAtom* > &, std::vector< PolarSeg* > &);  
    void UpdateMPSFromGDMA( std::vector<std::vector<double> > &multipoles,  std::vector< PolarSeg* > &psegs);
-   void GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb, bool split_dpl, double dpl_spacing);   
+   void Generate::QMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb, bool split_dpl, double dpl_spacing);   
 
    void setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM);
    void setQMSF(double energy_QM, double energy_SF, double energy_GWBSE);

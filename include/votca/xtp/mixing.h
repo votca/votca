@@ -63,7 +63,7 @@ public:
     
    ub::vector<double> Mullikencharges(const ub::matrix<double>& dmat);
   
-    votca::ctp::Logger *_pLog;
+    ctp::Logger *_pLog;
     ub::matrix<double>* S;
     bool _automaticmixing;
     double _mixingparameter;

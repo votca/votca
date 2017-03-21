@@ -193,7 +193,7 @@ namespace votca {
               
 
                 // get atoms
-                std::vector<QMAtom*> _atoms = _orbitals.QMAtoms();
+                std::vector<::QMAtom*> _atoms = _orbitals.::QMAtoms();
 
                 // determine min and max in each cartesian direction
                 double xmin = std::numeric_limits<double>::max();
@@ -203,7 +203,7 @@ namespace votca {
                 double zmin = xmin;
                 double zmax = xmax;
 
-                vector< QMAtom* > ::iterator ait;
+                vector< ::QMAtom* > ::iterator ait;
                 for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
                     // get center coordinates in Bohr
                     double x = (*ait)->x * tools::conv::ang2bohr;
@@ -290,7 +290,7 @@ namespace votca {
 
                 // fill DFT AO basis by going through all atoms 
                 AOBasis dftbasis;
-                dftbasis.AOBasisFill(&dftbs, _orbitals.QMAtoms());
+                dftbasis.AOBasisFill(&dftbs, _orbitals.::QMAtoms());
                 dftbasis.ReorderMOs(_dft_orbitals, _orbitals.getQMpackage(), "votca");
 
                 

@@ -227,7 +227,7 @@ namespace votca {
             Orbitals orb_iter_input;
 
             std::vector<Segment*> empty;
-            thisIter->GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input, _split_dpl, _dpl_spacing);
+            thisIter->Generate::QMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input, _split_dpl, _dpl_spacing);
 
             _qmpack->setRunDir(runFolder);
 
@@ -270,14 +270,14 @@ namespace votca {
     
             // fill DFT AO basis by going through all atoms 
             AOBasis dftbasis;
-            dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms() );
+            dftbasis.AOBasisFill(&dftbs, orb_iter_output.::QMAtoms() );
             dftbasis.ReorderMOs(_dft_orbitals_GS, orb_iter_output.getQMpackage(), "votca" );
             ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals_GS);
-            std::vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
+            std::vector< ::QMAtom* >& Atomlist= orb_iter_output.::QMAtoms();
     
             Espfit esp;
             // Espfit esp
-            //Espfit esp(std::vector< QMAtom* >& Atomlist, ub::matrix<double> &DMATGS, AOBasis &dftbasis);
+            //Espfit esp(std::vector< ::QMAtom* >& Atomlist, ub::matrix<double> &DMATGS, AOBasis &dftbasis);
             esp.setLog(_log);
             esp.FittoDensity(Atomlist, DMATGS, dftbasis); */
 
@@ -436,7 +436,7 @@ namespace votca {
 
                 // fill DFT AO basis by going through all atoms 
                 AOBasis dftbasis;
-                dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms());
+                dftbasis.AOBasisFill(&dftbs, orb_iter_output.::QMAtoms());
                 dftbasis.ReorderMOs(_dft_orbitals, orb_iter_output.getQMpackage(), "votca");
                 // TBD: Need to switch between singlets and triplets depending on _type
                 ub::matrix<double> &DMATGS = orb_iter_output.DensityMatrixGroundState(_dft_orbitals);
@@ -450,7 +450,7 @@ namespace votca {
                 }
 
                 // fill DFT AO basis by going through all atoms 
-                std::vector< QMAtom* >& Atomlist = orb_iter_output.QMAtoms();
+                std::vector< ::QMAtom* >& Atomlist = orb_iter_output.::QMAtoms();
 
 
 
@@ -512,9 +512,9 @@ namespace votca {
                     thisIter->getQMMMEnergy());
 
             // EXTRACT & SAVE QMATOM DATA
-            std::vector< QMAtom* > &atoms = *(orb_iter_output.getAtoms());
+            std::vector< ::QMAtom* > &atoms = *(orb_iter_output.getAtoms());
 
-            thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
+            thisIter->UpdatePosChrgFrom::QMAtoms(atoms, _job->getPolarTop()->QM0());
 
             if (_do_gdma) {
 
@@ -634,14 +634,14 @@ namespace votca {
             return _isConverged;
         }
 
-        void QMMIter::ConvertPSitesToQMAtoms(std::vector< PolarSeg* > &psegs,
-                std::vector< QMAtom * > &qmatoms) {
+        void QMMIter::ConvertPSitesTo::QMAtoms(std::vector< PolarSeg* > &psegs,
+                std::vector< ::QMAtom * > &qmatoms) {
 
             assert(qmatoms.size() == 0);
             return;
         }
 
-        void QMMIter::ConvertQMAtomsToPSites(std::vector< QMAtom* > &qmatoms,
+        void QMMIter::Convert::QMAtomsToPSites(std::vector< ::QMAtom* > &qmatoms,
                 std::vector< PolarSeg* > &psegs) {
             assert(qmatoms.size() == 0);
             return;
@@ -698,7 +698,7 @@ namespace votca {
 
         }
 
-        void QMMIter::UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &qmatoms,
+        void QMMIter::UpdatePosChrgFrom::QMAtoms(std::vector< ::QMAtom* > &qmatoms,
                 std::vector< PolarSeg* > &psegs) {
 
             double AA_to_NM = 0.1; // Angstrom to nanometer
@@ -711,8 +711,8 @@ namespace votca {
                 PolarSeg *pseg = psegs[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j, ++qac) {
 
-                    // Retrieve info from QMAtom
-                    QMAtom *qmatm = qmatoms[qac];
+                    // Retrieve info from ::QMAtom
+                    ::QMAtom *qmatm = qmatoms[qac];
                     vec upd_r = vec(qmatm->x, qmatm->y, qmatm->z);
                     upd_r *= AA_to_NM;
                     double upd_Q00 = qmatm->charge;
@@ -748,7 +748,7 @@ namespace votca {
             this->setdRdQ(dR_RMS, dQ_RMS, dQ_SUM);
         }
 
-        void QMMIter::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb,
+        void QMMIter::Generate::QMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb,
                 bool split_dpl, double dpl_spacing) {
 
             double AA_to_NM = 0.1; // Angstrom to nanometer

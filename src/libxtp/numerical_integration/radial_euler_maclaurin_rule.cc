@@ -93,11 +93,11 @@ namespace votca { namespace xtp {
     
     
     
-void EulerMaclaurinGrid::getRadialCutoffs(std::vector<QMAtom* > _atoms, BasisSet* bs, string gridtype) {
+void EulerMaclaurinGrid::getRadialCutoffs(std::vector<::QMAtom* > _atoms, BasisSet* bs, string gridtype) {
 
             map<string, min_exp>::iterator it;
-            std::vector< QMAtom* > ::iterator ait;
-            std::vector< QMAtom* > ::iterator bit;
+            std::vector< ::QMAtom* > ::iterator ait;
+            std::vector< ::QMAtom* > ::iterator bit;
             
             double eps = Accuracy[gridtype];
             double _decaymin;
@@ -293,7 +293,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<QMAtom* > _atoms, BasisSet
     
     
     
-    void EulerMaclaurinGrid::getRadialGrid(BasisSet* bs , std::vector<QMAtom* > _atoms, string type, GridContainers& _grid) {
+    void EulerMaclaurinGrid::getRadialGrid(BasisSet* bs , std::vector<::QMAtom* > _atoms, string type, GridContainers& _grid) {
 
         
             map<string, min_exp>::iterator it;

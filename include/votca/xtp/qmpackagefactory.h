@@ -21,7 +21,7 @@
 #define	__QMPACKAGEFACTORY__H
 
 #include <votca/tools/objectfactory.h>
-#include "qmpackage.h"
+#include <votca/xtp/qmpackage.h>
 
 namespace votca { namespace xtp {
 
