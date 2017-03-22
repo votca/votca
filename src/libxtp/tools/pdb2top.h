@@ -21,9 +21,9 @@
 #define _PDB2Top__H
 
 
-#include <votca/xtp/topology.h>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/topology.h>
+#include <votca/ctp/atom.h>
+#include <votca/ctp/logger.h>
 #include <boost/algorithm/string.hpp>
 #include <votca/tools/vec.h>
 #include <boost/format.hpp>
@@ -38,7 +38,7 @@ namespace votca { namespace xtp {
     namespace ba = boost::algorithm;
     using namespace std;
     
-class PDB2Top : public QMTool
+class PDB2Top : public ctp::QMTool
 {
 public:
 
@@ -47,7 +47,7 @@ public:
    
     string Identify() { return "pdb2top"; }
     // run sequence
-    void   Initialize(Property *options);
+    void   Initialize(tools::Property *options);
     bool   Evaluate();
 
     // helpful guys
@@ -70,10 +70,10 @@ private:
     
     int         _numMol;
     
-    Topology    _top;
+    ctp::Topology    _top;
 };
 
-void PDB2Top::Initialize(Property* options) {
+void PDB2Top::Initialize(tools::Property* options) {
     // read options    
     string key = "options.pdb2top.";
 
@@ -132,7 +132,7 @@ bool PDB2Top::Evaluate() {
 void PDB2Top::top2txt(){
 
     // generating part
-    Topology * _topPtr = &_top;
+   ctp::Topology * _topPtr = &_top;
 
     // preps
     stringstream ss, sbody, stype;
@@ -143,22 +143,22 @@ void PDB2Top::top2txt(){
     vector <char> atTypesLst;
     
     // iterations
-    vector <Fragment*> _fragsPtr = _topPtr->Fragments();
-    vector <Fragment*>::iterator _fragIt;
+    vector <ctp::Fragment*> _fragsPtr = _topPtr->Fragments();
+    vector <ctp::Fragment*>::iterator _fragIt;
     for (_fragIt = _fragsPtr.begin(); _fragIt!=_fragsPtr.end(); _fragIt++){
         
         // read atoms from fragments
         // iterate
-        Fragment* _frag = *(_fragIt);
-        vector <Atom*> _atsPtr = _frag->Atoms();
-        vector <Atom*>::iterator _atIt;
+        ctp::Fragment* _frag = *(_fragIt);
+        vector <ctp::Atom*> _atsPtr = _frag->Atoms();
+        vector <ctp::Atom*>::iterator _atIt;
         
         // print name as comment
         sbody << "; res " << _frag->getName() << endl;
         
         for (_atIt = _atsPtr.begin(); _atIt!=_atsPtr.end(); _atIt++){
             
-            Atom* _at = *(_atIt);
+            ctp::Atom* _at = *(_atIt);
 
             // print  name, mass, charge, ptype, sigma, eps
             // if not found add, else dont
@@ -246,16 +246,16 @@ void PDB2Top::readPDB(){
     
     // set molecule >> segment >> fragment
     // reconnect them all
-    Topology * _topPtr = 0;
+    ctp::Topology * _topPtr = 0;
     _topPtr = &_top;
     
-    Molecule * _molPtr = 0;
+    ctp::Molecule * _molPtr = 0;
     // direct
     _molPtr = _topPtr->AddMolecule("M1");
                 // inverse
                 _molPtr->setTopology(_topPtr);
     
-    Segment  * _segPtr  = 0;
+    ctp::Segment  * _segPtr  = 0;
     // direct
     _segPtr = _topPtr->AddSegment("S1");
                _molPtr->AddSegment(_segPtr);
@@ -339,11 +339,11 @@ void PDB2Top::readPDB(){
                         "... ... Make sure this line is PDB style\n");
             }
             
-            vec r(_xd , _yd , _zd);
+            tools:vec r(_xd , _yd , _zd);
 
             // set fragment
             // reconnect to topology, molecule, segment
-            Fragment * _fragPtr = 0;
+            ctp::Fragment * _fragPtr = 0;
             // make new frag for new res number
             // otherwise use last created
             if ( _newResNum != _resNumInt ){
@@ -367,7 +367,7 @@ void PDB2Top::readPDB(){
                         
             // set atom
             // reconnect to topology, molecule, segment, fragment
-            Atom * _atmPtr = 0;
+            ctp::Atom * _atmPtr = 0;
             // direct
             _atmPtr = _topPtr->AddAtom(_atName);
                       _molPtr->AddAtom(_atmPtr);
@@ -393,16 +393,16 @@ void PDB2Top::readGRO(){
 
     // set molecule >> segment >> fragment
     // reconnect them all
-    Topology * _topPtr = 0;
+    ctp::Topology * _topPtr = 0;
     _topPtr = &_top;
     
-    Molecule * _molPtr = 0;
+    ctp::Molecule * _molPtr = 0;
     // direct
     _molPtr = _topPtr->AddMolecule("M1");
                 // inverse
                 _molPtr->setTopology(_topPtr);
     
-    Segment  * _segPtr  = 0;
+    ctp::Segment  * _segPtr  = 0;
     // direct
     _segPtr = _topPtr->AddSegment("S1");
                _molPtr->AddSegment(_segPtr);
@@ -488,11 +488,11 @@ void PDB2Top::readGRO(){
                         "... ... Make sure this line is GRO style\n");
             }
             
-            vec r(_xd , _yd , _zd);
+            tools:vec r(_xd , _yd , _zd);
                 
             // set fragment
             // reconnect to topology, molecule, segment
-            Fragment * _fragPtr = 0;
+            ctp::Fragment * _fragPtr = 0;
             // make new frag for new res number
             // otherwise use last created
             if ( _newResNum != _resNumInt ){
@@ -516,7 +516,7 @@ void PDB2Top::readGRO(){
                         
             // set atom
             // reconnect to topology, molecule, segment, fragment
-            Atom * _atmPtr = 0;
+            ctp::Atom * _atmPtr = 0;
             // direct
             _atmPtr = _topPtr->AddAtom(_atName);
                       _molPtr->AddAtom(_atmPtr);

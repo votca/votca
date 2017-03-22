@@ -18,13 +18,13 @@
  */
 
 
-#include <votca/xtp/votca_config.h>
+
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/algorithm/string.hpp>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/gdma.h>
 
 
@@ -114,7 +114,7 @@ namespace votca {
             // check if the input file exists
             string fullInput = _runFolder + "/gdma.in";
             if (!boost::filesystem::exists(fullInput)) {
-                LOG(logINFO, *_log) << "GDMA input file has not been found!" << flush;
+                LOG(ctp::logINFO, *_log) << "GDMA input file has not been found!" << flush;
                 throw runtime_error(" GDMA cannot be run! ");
             }
 
@@ -132,12 +132,12 @@ namespace votca {
                     }
                     // check again for fchk
                     if (!boost::filesystem::exists(fullFChk)) {
-                        LOG(logINFO, *_log) << "Formatted Checkpoint file has not been found and cannot be created!" << flush;
+                        LOG(ctp::logINFO, *_log) << "Formatted Checkpoint file has not been found and cannot be created!" << flush;
                         throw runtime_error(" GDMA cannot be run! ");
 
                     }
                 } else {
-                    LOG(logINFO, *_log) << "Formatted Checkpoint file has not been found and cannot be created!" << flush;
+                    LOG(ctp::logINFO, *_log) << "Formatted Checkpoint file has not been found and cannot be created!" << flush;
                     throw runtime_error(" GDMA cannot be run! ");
                 }
             }

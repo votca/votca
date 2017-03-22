@@ -22,25 +22,16 @@
 
 
 #include <votca/xtp/gwbse.h> // including GWBSE functionality
-#include <votca/xtp/segment.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/threecenters.h>
-
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/parallelxjobcalc.h>
-#include <unistd.h>
 
-#include <fstream>
-#include <sys/stat.h>
+#include <votca/ctp/parallelxjobcalc.h>
+#include <votca/ctp/segment.h>
 
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/filesystem.hpp>
 #include <votca/tools/linalg.h>
 
-#include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/vector.hpp>
 
 
 namespace votca { namespace xtp {
@@ -53,7 +44,7 @@ namespace votca { namespace xtp {
 * Callname: egwbse
 */
 
-class EGWBSE : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
+class EGWBSE : public ctp::ParallelXJobCalc< vector< ctp::Job*>,  ctp::Job*,  ctp::Job::JobResult >
 {
 public:
 
@@ -62,7 +53,7 @@ public:
 
     string  Identify() { return "egwbse"; }
     void    Initialize( Property *options);
-    Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
+     ctp::Job::JobResult EvalJob( ctp::Topology *top,  ctp::Job *job,  ctp::QMThread *thread);
     
     string              _package;
     Property            _package_options; 
@@ -70,7 +61,7 @@ public:
     Property            _esp_options;
     
     void    CleanUp();
-    void WriteJobFile(Topology *top);
+    void WriteJobFile( ctp::Topology *top);
 
     
     // what to do

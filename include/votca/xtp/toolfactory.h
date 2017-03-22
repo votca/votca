@@ -21,11 +21,11 @@
 #define	__QMTOOLFACTORY__H
 
 #include <votca/tools/objectfactory.h>
-#include <votca/xtp/qmtool.h>
+#include <votca/ctp/qmtool.h>
 
 namespace votca { namespace xtp {
 
-class QMToolFactory : public votca::tools::ObjectFactory<std::string, QMTool>
+class QMToolFactory : public votca::tools::ObjectFactory<std::string, ctp::QMTool>
 {
     
 private:

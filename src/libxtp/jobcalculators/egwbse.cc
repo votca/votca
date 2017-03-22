@@ -18,16 +18,15 @@
  */
 
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 
 #include "egwbse.h"
 #include <votca/xtp/esp2multipole.h>
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/numeric/ublas/operation.hpp>
-// #include <votca/xtp/logger.h>
-#include <votca/xtp/qmpackagefactory.h>
+
+
+
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 
@@ -117,7 +116,7 @@ namespace votca {
         }
         
         
-        void EGWBSE::WriteJobFile(Topology *top) {
+        void EGWBSE::WriteJobFile(ctp::Topology *top) {
 
     cout << endl << "... ... Writing job file: " << flush;
     std::ofstream ofs;
@@ -186,8 +185,8 @@ namespace votca {
         job.ToStream(ofs,"xml");
     }
 */
-    std::vector<Segment*> segments=top->Segments();    
-    std::vector<Segment*>::iterator sit;
+    std::vector<ctp::Segment*> segments=top->Segments();    
+    std::vector<ctp::Segment*>::iterator sit;
     for (sit = segments.begin(); sit != segments.end(); ++sit) {
     
         int id = ++jobCount;
@@ -198,7 +197,7 @@ namespace votca {
         Property *pSegment =  &pInput->add("segment" , (format("%1$s") % (*sit)->getId()).str() );
         pSegment->setAttribute<string>("type", (*sit)->getName() );
         pSegment->setAttribute<int>("id", (*sit)->getId() );
-        Job job(id, tag, Input, Job::AVAILABLE );
+        ctp::Job job(id, tag, Input, ctp::Job::AVAILABLE );
         job.ToStream(ofs,"xml");
     }
 
@@ -210,25 +209,25 @@ namespace votca {
     
 }
 
-        Job::JobResult EGWBSE::EvalJob(Topology *top, Job *job, QMThread *opThread) {
+        ctp::Job::JobResult EGWBSE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *opThread) {
             
 
             Orbitals _orbitals;
-            Job::JobResult jres = Job::JobResult();
+            ctp::Job::JobResult jres = ctp::Job::JobResult();
             Property _job_input = job->getInput();
             list<Property*> lSegments = _job_input.Select("segment");
 
-            vector < Segment* > segments;
+            vector < ctp::Segment* > segments;
             int segId = lSegments.front()->getAttribute<int>("id");
             string segType = lSegments.front()->getAttribute<string>("type");
 
-            Segment *seg = top->getSegment(segId);
+            ctp::Segment *seg = top->getSegment(segId);
             assert(seg->getName() == segType);
             segments.push_back(seg);
 
-            Logger* pLog = opThread->getLogger();
+            ctp::Logger* pLog = opThread->getLogger();
             
-            LOG(logINFO, *pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush;
+            LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Evaluating site " << seg->getId() << flush;
 
             
             string output;
@@ -277,10 +276,10 @@ namespace votca {
                 _run_dft_status = _qmpackage->Run();
                 if (!_run_dft_status) {
                     output += "run failed; ";
-                    LOG(logERROR, *pLog) << _qmpackage->getPackageName() << " run failed" << flush;
+                    LOG(ctp::logERROR, *pLog) << _qmpackage->getPackageName() << " run failed" << flush;
                     cout << *pLog;
                     jres.setOutput(output);
-                    jres.setStatus(Job::FAILED);
+                    jres.setStatus(ctp::Job::FAILED);
                     delete _qmpackage;
                     return jres;
                 }
@@ -294,10 +293,10 @@ namespace votca {
 
                 if (!_parse_log_status) {
                     output += "log incomplete; ";
-                    LOG(logERROR, *pLog) << "LOG parsing failed" << flush;
+                    LOG(ctp::logERROR, *pLog) << "LOG parsing failed" << flush;
                     cout << *pLog;
                     jres.setOutput(output);
-                    jres.setStatus(Job::FAILED);
+                    jres.setStatus(ctp::Job::FAILED);
                     delete _qmpackage;
                     return jres;
                 }
@@ -306,10 +305,10 @@ namespace votca {
 
                 if (!_parse_orbitals_status) {
                     output += "orbfile failed; ";
-                    LOG(logERROR, *pLog) << "Orbitals parsing failed" << flush;
+                    LOG(ctp::logERROR, *pLog) << "Orbitals parsing failed" << flush;
                     cout << *pLog;
                     jres.setOutput(output);
-                    jres.setStatus(Job::FAILED);
+                    jres.setStatus(ctp::Job::FAILED);
                     delete _qmpackage;
                     return jres;
                 }  
@@ -320,10 +319,10 @@ namespace votca {
                     string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
                     std::ifstream ifs((DIR + "/" + orb_file).c_str());
                     if (_do_gwbse){
-                    LOG(logDEBUG, *pLog) << TimeStamp() << " Loading DFT data from " << DIR << "/" << orb_file << flush;
+                    LOG(ctp::logDEBUG, *pLog) << ctp::TimeStamp() << " Loading DFT data from " << DIR << "/" << orb_file << flush;
                     }
                     else {
-                    LOG(logDEBUG, *pLog) << TimeStamp() << " Loading data from " << DIR << "/" << orb_file << flush;    
+                    LOG(ctp::logDEBUG, *pLog) << ctp::TimeStamp() << " Loading data from " << DIR << "/" << orb_file << flush;    
                     }
                     boost::archive::binary_iarchive ia(ifs);
                     ia >> _orbitals;
@@ -348,13 +347,13 @@ namespace votca {
                 //cout << "hallo2" <<endl;
                 
                 // define own logger for GW-BSE that is written into a runFolder logfile
-                Logger gwbse_logger(logDEBUG);
+                ctp::Logger gwbse_logger(ctp::logDEBUG);
                 gwbse_logger.setMultithreading(false);
                 _gwbse.setLogger(&gwbse_logger);
-                gwbse_logger.setPreface(logINFO,    (format("\nGWBSE INF ...") ).str());
-                gwbse_logger.setPreface(logERROR,   (format("\nGWBSE ERR ...") ).str());
-                gwbse_logger.setPreface(logWARNING, (format("\nGWBSE WAR ...") ).str());
-                gwbse_logger.setPreface(logDEBUG,   (format("\nGWBSE DBG ...") ).str());
+                gwbse_logger.setPreface(ctp::logINFO,    (format("\nGWBSE INF ...") ).str());
+                gwbse_logger.setPreface(ctp::logERROR,   (format("\nGWBSE ERR ...") ).str());
+                gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...") ).str());
+                gwbse_logger.setPreface(ctp::logDEBUG,   (format("\nGWBSE DBG ...") ).str());
                 
                 
                 //bool _evaluate = _gwbse.Evaluate(&_orbitals);
@@ -389,14 +388,14 @@ namespace votca {
                 esp2multipole.WritetoFile((ESPDIR + "/" + mps_file).c_str(),Identify());
     
     
-                LOG(logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
+                LOG(ctp::logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
                 
                 _segment_summary->add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
             }
-            LOG(logINFO, *pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
+            LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
 
             if(_do_dft_parse ||_do_gwbse ){
-            LOG(logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
+            LOG(ctp::logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
             string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
             boost::filesystem::create_directories(DIR);  
             std::ofstream ofs((DIR + "/" + orb_file).c_str());
@@ -409,7 +408,7 @@ namespace votca {
 
             // output of the JOB 
             jres.setOutput(_job_summary);
-            jres.setStatus(Job::COMPLETE);
+            jres.setStatus(ctp::Job::COMPLETE);
 
             // dump the LOG
 

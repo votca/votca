@@ -29,7 +29,7 @@ namespace votca { namespace xtp {
 
 
 class Calculatorfactory
-: public ObjectFactory<std::string, ctp::QMCalculator>
+: public tools::ObjectFactory< std::string, ctp::QMCalculator >
 {
 private:
     Calculatorfactory() {}
@@ -55,7 +55,7 @@ inline Calculatorfactory &Calculators()
 
 inline ctp::QMCalculator* Calculatorfactory::Create(const std::string &key)
 {
-    assoc_map::const_iterator it(getObjects().find(key));
+     assoc_map::const_iterator it(getObjects().find(key));
     if (it != getObjects().end()) {
         ctp::QMCalculator* calc = (it->second)();
         calc->LoadDefaults();

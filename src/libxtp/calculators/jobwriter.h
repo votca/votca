@@ -20,40 +20,39 @@
 #ifndef _VOTCA_XTP_JOBWRITER_H
 #define _VOTCA_XTP_JOBWRITER_H
 
-#include<votca/xtp/topology.h>
-#include<votca/xtp/qmcalculator.h>
+#include<votca/ctp/topology.h>
+#include<votca/ctp/qmcalculator.h>
 
 
 namespace votca { namespace xtp {
     
   
-class JobWriter : public QMCalculator
+class JobWriter : public ctp::QMCalculator
 {
 
 public:
 
-    typedef void (JobWriter::*WriteFunct)(Topology*);
+    typedef void (JobWriter::*WriteFunct)(ctp::Topology*);
     
-    string Identify() { return "jobwriter"; }
-    void Initialize(Property *options);
-    bool EvaluateFrame(Topology *top);    
+    std::string Identify() { return "jobwriter"; }
+    void Initialize(tools::Property *options);
+    bool EvaluateFrame(ctp::Topology *top);    
     
     // NEED TO REGISTER ALL WRITE MEMBERS IN ::Initialize
-    void mps_ct(Topology *top);
-    void mps_chrg(Topology *top);
-    void mps_kmc(Topology *top);
-    void mps_background(Topology *top);
-    void mps_single(Topology *top);
+    void mps_ct(ctp::Topology *top);
+    void mps_chrg(ctp::Topology *top);
+    void mps_kmc(ctp::Topology *top);
+    void mps_background(ctp::Topology *top);
+    void mps_single(ctp::Topology *top);
     
-    void edft(Topology *top);
-    void idft(Topology *top);
+
     
 
 private:
 
-    Property *_options;
-    vector<string> _keys;
-    map<string,WriteFunct> _key_funct;
+    tools::Property *_options;
+    std::vector<std::string> _keys;
+    std::map<std::string,WriteFunct> _key_funct;
 };
 
 

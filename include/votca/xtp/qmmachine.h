@@ -73,19 +73,19 @@ public:
         return new_aps;
     }
     
-    PolarSeg *Convert(std::vector<::QMAtom*> &atms) {        
-        PolarSeg *new_pseg = new PolarSeg();
-        std::vector<::QMAtom*>::iterator it;
+    ctp::PolarSeg *Convert(std::vector<ctp::QMAtom*> &atms) {        
+        ctp::PolarSeg *new_pseg = new ctp::PolarSeg();
+        std::vector<ctp::QMAtom*>::iterator it;
         for (it = atms.begin(); it < atms.end(); ++it) {
-            APolarSite *new_site = this->Convert(*it);
+            ctp::APolarSite *new_site = this->Convert(*it);
             new_pseg->push_back(new_site);
         }
         return new_pseg;
     }
     
     // TODO CONVERSION MM -> QM
-    ::QMAtom *Convert(APolarSite*);
-    std::vector<::QMAtom*> Convert(PolarSeg*);
+    ctp::QMAtom *Convert(ctp::APolarSite*);
+    std::vector<ctp::QMAtom*> Convert(ctp::PolarSeg*);
     
 private:
     
@@ -108,11 +108,11 @@ public:
     QMMIter(int id) : _id(id), _hasdRdQ(false), _hasQM(false), _hasMM(false)  { ; }
    ~QMMIter() { ; }
 
-   void ConvertPSitesTo::QMAtoms(std::vector< PolarSeg* > &, std::vector< ::QMAtom* > &);
-   void Convert::QMAtomsToPSites(std::vector< ::QMAtom* > &, std::vector< PolarSeg* > &);
-   void UpdatePosChrgFrom::QMAtoms(std::vector< ::QMAtom* > &, std::vector< PolarSeg* > &);  
-   void UpdateMPSFromGDMA( std::vector<std::vector<double> > &multipoles,  std::vector< PolarSeg* > &psegs);
-   void Generate::QMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb, bool split_dpl, double dpl_spacing);   
+   void ConvertPSitesToQMAtoms(std::vector< ctp::PolarSeg* > &, std::vector< ctp::QMAtom* > &);
+   void ConvertQMAtomsToPSites(std::vector< ctp::QMAtom* > &, std::vector< ctp::PolarSeg* > &);
+   void UpdatePosChrgFromQMAtoms(std::vector< ctp::QMAtom* > &, std::vector< ctp::PolarSeg* > &);  
+   void UpdateMPSFromGDMA( std::vector<std::vector<double> > &multipoles,  std::vector< ctp::PolarSeg* > &psegs);
+   void GenerateQMAtomsFromPolarSegs(ctp::PolarTop *ptop, Orbitals &orb, bool split_dpl, double dpl_spacing);   
 
    void setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM);
    void setQMSF(double energy_QM, double energy_SF, double energy_GWBSE);
@@ -175,11 +175,11 @@ class QMMachine
     
 public:
 
-    QMMachine(XJob *job, XInductor *xind, QMPackage *qmpack,
+    QMMachine(ctp::XJob *job, ctp::XInductor *xind, QMPackage *qmpack,
               Property *opt, string sfx, int nst, bool mav);
    ~QMMachine();
     
-    void Evaluate(XJob *job);
+    void Evaluate(ctp::XJob *job);
     //void WriteQMPackInputFile(string inputFile, QMPackage *qmpack, XJob *job);
     
     bool Iterate(string jobFolder, int iterCnt);    
@@ -187,14 +187,14 @@ public:
     bool hasConverged();
     bool AssertConvergence() { return _isConverged; }
     
-    void setLog(Logger *log) { _log = log; }
+    void setLog(ctp::Logger *log) { _log = log; }
     
 private:    
     
-    XJob *_job;
-    XInductor *_xind;
+    ctp::XJob *_job;
+    ctp::XInductor *_xind;
     QMPackage *_qmpack;
-    Logger *_log;
+    ctp::Logger *_log;
     int _subthreads;
     
     std::vector<QMMIter*> _iters;

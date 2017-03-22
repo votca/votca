@@ -22,7 +22,7 @@
 
 #include <votca/tools/property.h>
 
-#include <votca/xtp/parallelxjobcalc.h>
+#include <votca/ctp/parallelxjobcalc.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/overlap.h>
 
@@ -45,7 +45,7 @@ namespace votca { namespace xtp {
 * Callname: idft
 */
 
-class IDFT : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
+class IDFT : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
 {
 public:
 
@@ -56,11 +56,11 @@ public:
     
     string  Identify() { return "idft"; }
     
-    Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
+    ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *Thread);
 
-    void WriteJobFile(Topology *top);
+    void WriteJobFile(ctp::Topology *top);
 
-    void ReadJobFile( Topology *top );
+    void ReadJobFile( ctp::Topology *top );
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);
@@ -106,9 +106,9 @@ private:
     void PrepareGuess(         Orbitals *_orbitalsA, 
                                Orbitals *_orbitalsB, 
                                Orbitals *_orbitalsAB, 
-                               Logger *log = NULL );
+                               ctp::Logger *log = NULL );
     
-    void LoadOrbitals(string file_name, Orbitals* orbitals, Logger *log = NULL );
+    void LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log = NULL );
         
 };
 

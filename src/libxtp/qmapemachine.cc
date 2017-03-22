@@ -24,7 +24,7 @@
 #include <sys/stat.h>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <votca/xtp/logger.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/elements.h>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/espfit.h>
@@ -34,7 +34,7 @@ using boost::format;
 namespace votca { namespace xtp {
 
 template<class QMPackage>
-QMAPEMachine<QMPackage>::QMAPEMachine(XJob *job, Ewald3DnD *cape, QMPackage *qmpack,
+QMAPEMachine<QMPackage>::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape, QMPackage *qmpack,
 	 Property *opt, string sfx, int nst)
    : _subthreads(nst),_job(job), _qmpack(qmpack), _cape(cape), 
 	  _grid_fg(true,true,true), _grid_bg(true,true,true),
@@ -126,19 +126,19 @@ QMAPEMachine<QMPackage>::~QMAPEMachine() {
 
 
 template<class QMPackage>
-void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
+void QMAPEMachine<QMPackage>::Evaluate(ctp::XJob *job) {
     
 	// PREPARE JOB DIRECTORY
 	string jobFolder = "job_" + boost::lexical_cast<string>(_job->getId())
 					 + "_" + _job->getTag();
 	bool created = boost::filesystem::create_directory(jobFolder);
 
-	LOG(logINFO,*_log) << flush;
+	LOG(ctp::logINFO,*_log) << flush;
 	if (created) {
-		LOG(logINFO,*_log) << "Created directory " << jobFolder << flush;
+		LOG(ctp::logINFO,*_log) << "Created directory " << jobFolder << flush;
         }
 
-    LOG(logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
        << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
        % _crit_dR % _crit_dQ % _crit_dE_QM % _crit_dE_MM % _maxIter << flush;
     
@@ -149,7 +149,7 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     }
     int chrg = round(dQ);
     int spin = ( (chrg < 0) ? -chrg:chrg ) % 2 + 1;
-    LOG(logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
+    LOG(ctp::logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
 
     // SET ITERATION-TIME CONSTANTS
     _qmpack->setCharge(chrg);
@@ -173,11 +173,11 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     _grid_bg.setCubegrid(true);   
     _grid_bg.setupgrid();
     
-    LOG(logINFO,*_log) << "Created internal background grid with " << _grid_bg.getsize() <<" points."<< flush;
+    LOG(ctp::logINFO,*_log) << "Created internal background grid with " << _grid_bg.getsize() <<" points."<< flush;
 
     _grid_fg=_grid_bg;
     
-    LOG(logINFO,*_log) << "Created internal foreground grid with " << _grid_fg.getsize() <<" points."<< flush;
+    LOG(ctp::logINFO,*_log) << "Created internal foreground grid with " << _grid_fg.getsize() <<" points."<< flush;
     
 
             
@@ -190,8 +190,8 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     
     //_fitted_charges.setupgrid();
     
-    LOG(logINFO,*_log) << "Created " << _fitted_charges.getsize() <<" charge positions."<< flush;
-    LOG(logINFO,*_log) << flush;
+    LOG(ctp::logINFO,*_log) << "Created " << _fitted_charges.getsize() <<" charge positions."<< flush;
+    LOG(ctp::logINFO,*_log) << flush;
     _exportgridtofile=true;
     if (_exportgridtofile){
     _grid_bg.printGridtoxyzfile("grid.xyz");
@@ -208,7 +208,7 @@ void QMAPEMachine<QMPackage>::Evaluate(XJob *job) {
     }
     
     if (iterCnt == iterMax-1 && !_isConverged) {
-        LOG(logWARNING,*_log)
+        LOG(ctp::logWARNING,*_log)
             << format("Not converged within %1$d iterations.") % iterMax;
     }
     
@@ -224,12 +224,12 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     int iter = iterCnt;
     string runFolder = jobFolder + "/iter_" + boost::lexical_cast<string>(iter);
        
-    LOG(logINFO,*_log) << flush;
+    LOG(ctp::logINFO,*_log) << flush;
     bool created = boost::filesystem::create_directory(runFolder);
     if (created) 
-        LOG(logDEBUG,*_log) << "Created directory " << runFolder << flush;
+        LOG(ctp::logDEBUG,*_log) << "Created directory " << runFolder << flush;
     else
-        LOG(logWARNING,*_log) << "Could not create directory " << runFolder << flush;
+        LOG(ctp::logWARNING,*_log) << "Could not create directory " << runFolder << flush;
 
     // COMPUTE POLARIZATION STATE WITH QM0(0)
     if (_run_ape) {
@@ -298,8 +298,8 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     // COMPUTE WAVEFUNCTION & QM ENERGY
     // Generate charge shell from potentials
     
-    std::vector<PolarSeg*> &qm =_job->getPolarTop()->QM0();
-    std::vector<PolarSeg*> mm_fitted;
+    std::vector<ctp::PolarSeg*> &qm =_job->getPolarTop()->QM0();
+    std::vector<ctp::PolarSeg*> mm_fitted;
     Espfit fitcharges=Espfit(_log);
     double netchargefit=0.0;
 
@@ -307,9 +307,9 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     mm_fitted.push_back(_fitted_charges.getSeg());
 
     
-    std::vector<PolarSeg*> dummy;
+    std::vector<ctp::PolarSeg*> dummy;
     Orbitals basisforgrid;
-    Generate::QMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
+    GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
     Grid visgrid_fit=Grid(_grid_bg);
   
     fitcharges.EvaluateAPECharges(visgrid_fit,_fitted_charges);
@@ -325,8 +325,8 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
     // Run DFT
     Orbitals orb_iter_input;
-    std::vector<Segment*> empty;
-    Generate::QMAtomsFromPolarSegs(qm, mm_fitted, orb_iter_input);
+    std::vector<ctp::Segment*> empty;
+    GenerateQMAtomsFromPolarSegs(qm, mm_fitted, orb_iter_input);
    
 	_qmpack->setRunDir(runFolder);
 	_qmpack->WriteInputFile(empty, &orb_iter_input);
@@ -352,7 +352,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 	if (_run_ape) {
 		// Update QM0 density: QM0(n) => QM0(n+1)
 		// ...
-        thisIter->UpdatePosChrgFrom::QMAtoms(orb_iter_output.::QMAtoms(),
+        thisIter->UpdatePosChrgFromQMAtoms(orb_iter_output.QMAtoms(),
             _job->getPolarTop()->QM0());
 
 		// Do not reset FGC (= only reset FU), do not use BGP state, nor apply FP fields (BG & FG)
@@ -389,7 +389,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
     _qmpack->setRunDir(runFolder);
     
-    LOG(logDEBUG,*_log) << "Writing input file " << runFolder << flush;
+    LOG(ctp::logDEBUG,*_log) << "Writing input file " << runFolder << flush;
     
     _qmpack->WriteInputFile(empty, &orb_iter_input);
          
@@ -431,31 +431,31 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
                          thisIter->getQMMMEnergy());
     
     // EXTRACT & SAVE QMATOM DATA
-    std::vector< ::QMAtom* > &atoms = *(orb_iter_output.getAtoms());
+    std::vector< ctp::QMAtom* > &atoms = *(orb_iter_output.getAtoms());
     
-    thisIter->UpdatePosChrgFrom::QMAtoms(atoms, _job->getPolarTop()->QM0());
+    thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
 
-    LOG(logINFO,*_log) 
+    LOG(ctp::logINFO,*_log) 
         << format("Summary - iteration %1$d:") % (iterCnt+1) << flush;
-    LOG(logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... QM Size  = %1$d atoms") % int(atoms.size()) << flush;
-    LOG(logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... E(QM)    = %1$+4.9e") % thisIter->getQMEnergy() << flush;
-    LOG(logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... E(GWBSE) = %1$+4.9e") % thisIter->getGWBSEEnergy() << flush;
-    LOG(logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... E(SF)    = %1$+4.9e") % thisIter->getSFEnergy() << flush;
-    LOG(logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... E(FM)    = %1$+4.9e") % thisIter->getFMEnergy() << flush;
-    LOG(logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... E(MM)    = %1$+4.9e") % thisIter->getMMEnergy() << flush;
-    LOG(logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... E(QMMM)  = %1$+4.9e") % thisIter->getQMMMEnergy() << flush;
-    LOG(logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... RMS(dR)  = %1$+4.9e") % thisIter->getRMSdR() << flush;
-    LOG(logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... RMS(dQ)  = %1$+4.9e") % thisIter->getRMSdQ() << flush;
-    LOG(logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
     
     // CLEAN DIRECTORY
@@ -465,9 +465,9 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     /*
     int removed = boost::filesystem::remove_all(runFolder);
     if (removed > 0) 
-        LOG(logDEBUG,*_log) << "Removed directory " << runFolder << flush;
+        LOG(ctp::logDEBUG,*_log) << "Removed directory " << runFolder << flush;
     else 
-        LOG(logWARNING,*_log) << "Could not remove dir " << runFolder << flush;
+        LOG(ctp::logWARNING,*_log) << "Could not remove dir " << runFolder << flush;
     */
     return 0;
      
@@ -494,24 +494,24 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
         GWBSE _gwbse(&orb);
 	_gwbse.Initialize( &_gwbse_options );
 	if ( _state > 0 ){
-	LOG(logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
-	LOG(logDEBUG,*_log) << "  --- type:              " << _type << flush;
-	LOG(logDEBUG,*_log) << "  --- state:             " << _state << flush;
-	if ( _has_osc_filter) { LOG(logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush; }
-	if ( _has_dQ_filter) { LOG(logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush; }
+	LOG(ctp::logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
+	LOG(ctp::logDEBUG,*_log) << "  --- type:              " << _type << flush;
+	LOG(ctp::logDEBUG,*_log) << "  --- state:             " << _state << flush;
+	if ( _has_osc_filter) { LOG(ctp::logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush; }
+	if ( _has_dQ_filter) { LOG(ctp::logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush; }
 
 	if ( _has_osc_filter && _has_dQ_filter ){
-		LOG(logDEBUG,*_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... "  << flush;
+		LOG(ctp::logDEBUG,*_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... "  << flush;
 	}
 
 	// define own logger for GW-BSE that is written into a runFolder logfile
-	Logger gwbse_logger(logDEBUG);
+	ctp::Logger gwbse_logger(ctp::logDEBUG);
 	gwbse_logger.setMultithreading(false);
 	_gwbse.setLogger(&gwbse_logger);
-	gwbse_logger.setPreface(logINFO,    (format("\nGWBSE INF ...") ).str());
-	gwbse_logger.setPreface(logERROR,   (format("\nGWBSE ERR ...") ).str());
-	gwbse_logger.setPreface(logWARNING, (format("\nGWBSE WAR ...") ).str());
-	gwbse_logger.setPreface(logDEBUG,   (format("\nGWBSE DBG ...") ).str());
+	gwbse_logger.setPreface(ctp::logINFO,    (format("\nGWBSE INF ...") ).str());
+	gwbse_logger.setPreface(ctp::logERROR,   (format("\nGWBSE ERR ...") ).str());
+	gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...") ).str());
+	gwbse_logger.setPreface(ctp::logDEBUG,   (format("\nGWBSE DBG ...") ).str());
 
 	// actual GW-BSE run
 
@@ -617,7 +617,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	dftbs.LoadBasisSet( _gwbse.get_dftbasis_name() );
 
 	}
-	LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb.getDFTbasis()  << flush;
+	LOG(ctp::logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb.getDFTbasis()  << flush;
 
 
 
@@ -625,8 +625,8 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
 	// fill DFT AO basis by going through all atoms
 	AOBasis dftbasis;
-	dftbasis.AOBasisFill(&dftbs, orb.::QMAtoms() );
-	dftbasis.ReorderMOs(_dft_orbitals, orb.getQMpackage(), "votca" );
+	dftbasis.AOBasisFill(&dftbs, orb.QMAtoms() );
+	dftbasis.ReorderMOs(_dft_orbitals, orb.getQMpackage(), "xtp" );
 	// TBD: Need to switch between singlets and triplets depending on _type
 	ub::matrix<double> &DMATGS=orb.DensityMatrixGroundState(_dft_orbitals);
 
@@ -677,22 +677,22 @@ bool QMAPEMachine<QMPackage>::hasConverged() {
     
     _isConverged = ((_convg_dR && _convg_dQ) && (_convg_dE_QM && _convg_dE_MM));
     
-    LOG(logINFO,*_log) 
+    LOG(ctp::logINFO,*_log) 
         << (format("Convergence check")) << flush;
-    LOG(logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("  o Converged dR ? %s") % (_convg_dR ? "True" : "False") << flush;
-    LOG(logINFO,*_log) 
+    LOG(ctp::logINFO,*_log) 
         << format("  o Converged dQ ? %s") % (_convg_dQ ? "True" : "False") << flush;
-    LOG(logINFO,*_log) 
+    LOG(ctp::logINFO,*_log) 
         << format("  o Converged QM ? %s") % (_convg_dE_QM ? "True" : "False") << flush;
-    LOG(logINFO,*_log) 
+    LOG(ctp::logINFO,*_log) 
         << format("  o Converged MM ? %s") % (_convg_dE_MM ? "True" : "False") << flush;
     
     return _isConverged;
 }
 
 
-void QMAPEIter::ConvertPSitesTo::QMAtoms(std::vector< PolarSeg* > &psegs,
+void QMAPEIter::ConvertPSitesToQMAtoms(std::vector< PolarSeg* > &psegs,
                                        std::vector< ::QMAtom * > &qmatoms) {
     
     assert(qmatoms.size() == 0);    
@@ -700,14 +700,14 @@ void QMAPEIter::ConvertPSitesTo::QMAtoms(std::vector< PolarSeg* > &psegs,
 }
 
 
-void QMAPEIter::Convert::QMAtomsToPSites(std::vector< ::QMAtom* > &qmatoms,
+void QMAPEIter::ConvertQMAtomsToPSites(std::vector< ::QMAtom* > &qmatoms,
                                        std::vector< PolarSeg* > &psegs) {
     assert(qmatoms.size() == 0);
     return;
 }
 
 
-void QMAPEIter::UpdatePosChrgFrom::QMAtoms(std::vector< ::QMAtom* > &qmatoms,
+void QMAPEIter::UpdatePosChrgFromQMAtoms(std::vector< ::QMAtom* > &qmatoms,
                                          std::vector< PolarSeg* > &psegs) {
     
     double AA_to_NM = 0.1; // Angstrom to nanometer

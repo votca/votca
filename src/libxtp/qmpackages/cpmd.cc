@@ -600,7 +600,7 @@ namespace votca {
                 if(!loadMatrices(_orbitals)) return false;
 
                 //atom info
-                if(!(_orbitals->has::QMAtoms())){ //no atoms defined for the orbitals
+                if(!(_orbitals->hasQMAtoms())){ //no atoms defined for the orbitals
                     //lets fill them in, in CPMD's order
 
                     //iterate over elements

@@ -84,7 +84,7 @@ public:
     
     // TODO CONVERSION MM -> QM
     ctp::QMAtom *Convert(ctp::APolarSite*);
-    std::vector<ctp::QMAtom*> Convert(PolarSeg*);
+    std::vector<ctp::QMAtom*> Convert(ctp::PolarSeg*);
     
 private:
     
@@ -107,9 +107,9 @@ public:
     QMAPEIter(int id) : _id(id), _hasdRdQ(false), _hasQM(false), _hasMM(false) { ; }
    ~QMAPEIter() { ; }
 
-   void ConvertPSitesTo::QMAtoms(std::vector< ctp::PolarSeg* > &, std::vector< ctp::QMAtom* > &);
-   void Convert::QMAtomsToPSites(std::vector< ctp::QMAtom* > &, std::vector< ctp::PolarSeg* > &);
-   void UpdatePosChrgFrom::QMAtoms(std::vector< ctp::QMAtom* > &, std::vector< ctp::PolarSeg* > &);   
+   void ConvertPSitesToQMAtoms(std::vector< ctp::PolarSeg* > &, std::vector< ctp::QMAtom* > &);
+   void ConvertQMAtomsToPSites(std::vector< ctp::QMAtom* > &, std::vector< ctp::PolarSeg* > &);
+   void UpdatePosChrgFromQMAtoms(std::vector< ctp::QMAtom* > &, std::vector< ctp::PolarSeg* > &);   
   
 
    void setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM);
@@ -183,7 +183,7 @@ public:
     bool EvaluateGWBSE(Orbitals &orb, std::string runFolder);
     QMAPEIter *CreateNewIter();
     bool hasConverged();
-    void Generate::QMAtomsFromPolarSegs(std::vector<ctp::PolarSeg*> &qm, std::vector<ctp::PolarSeg*> &mm, Orbitals &orb);
+    void GenerateQMAtomsFromPolarSegs(std::vector<ctp::PolarSeg*> &qm, std::vector<ctp::PolarSeg*> &mm, Orbitals &orb);
     bool AssertConvergence() { return _isConverged; }
     
     void setLog(ctp::Logger *log) { _log = log; }

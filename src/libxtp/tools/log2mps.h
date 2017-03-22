@@ -22,8 +22,8 @@
 
 
 #include <boost/format.hpp>
-#include <votca/xtp/qmtool.h>
-#include <votca/xtp/topology.h>
+#include <votca/ctp/qmtool.h>
+#include <votca/ctp/topology.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/qmmachine.h>
 
@@ -31,7 +31,7 @@
 namespace votca { namespace xtp {
 
 
-class Log2Mps : public QMTool
+class Log2Mps : public ctp::QMTool
 {
 public:
 
@@ -74,14 +74,14 @@ void Log2Mps::Initialize(Property *opt) {
 bool Log2Mps::Evaluate() {
     
     // Logger (required for QM package, so we can just as well use it)
-    Logger log;
-    log.setPreface(logINFO, "\n... ...");
-    log.setPreface(logDEBUG, "\n... ...");
-    log.setReportLevel(logDEBUG);
+    ctp::Logger log;
+    log.setPreface(ctp::logINFO, "\n... ...");
+    log.setPreface(ctp::logDEBUG, "\n... ...");
+    log.setReportLevel(ctp::logDEBUG);
     log.setMultithreading(true);  
     
     // Set-up QM package
-    LOG_SAVE(logINFO,log) << "Using package <" << _package << ">" << flush;
+    LOG_SAVE(ctp::logINFO,log) << "Using package <" << _package << ">" << flush;
     QMPackage *qmpack = QMPackages().Create(_package);    
     qmpack->doGetCharges(true);
     qmpack->setLog(&log);
@@ -95,8 +95,8 @@ bool Log2Mps::Evaluate() {
         cout << "\nERROR Parsing " << _logfile << "failed. Abort." << endl;
         throw std::runtime_error("(see above, parsing error)");
     }    
-    vector<::QMAtom*> &qmatoms = *orbs.getAtoms();
-    vector<::QMAtom*>::iterator it;
+    vector<ctp::QMAtom*> &qmatoms = *orbs.getAtoms();
+    vector<ctp::QMAtom*>::iterator it;
     
     // Sanity checks, total charge
     double Q = 0.0;
@@ -109,13 +109,13 @@ bool Log2Mps::Evaluate() {
             << ". Abort.\n" << flush;
         throw std::runtime_error("(see above, input or parsing error)");
     }
-    LOG_SAVE(logINFO,log) 
+    LOG_SAVE(ctp::logINFO,log) 
         << qmatoms.size() << " QM atoms, total charge Q = " << Q << flush;    
     
     
     // Convert to polar segment & write mps-file
     QMMInterface qmmface;
-    PolarSeg *pseg = qmmface.Convert(qmatoms);
+    ctp::PolarSeg *pseg = qmmface.Convert(qmatoms);
     
     string tag = "::LOG2MPS " 
         + (boost::format("(log-file='%1$s' : %2$d QM atoms)")

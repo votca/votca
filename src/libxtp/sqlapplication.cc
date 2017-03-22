@@ -101,13 +101,13 @@ void SqlApplication::Run() {
 
 
 
-void SqlApplication::AddCalculator(QMCalculator* calculator) {
+void SqlApplication::AddCalculator(ctp::QMCalculator* calculator) {
     _calculators.push_back(calculator);
 }
 
 
 void SqlApplication::BeginEvaluate(int nThreads = 1) {
-    list< QMCalculator* > ::iterator it;
+    list< ctp::QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";
         (*it)->setnThreads(nThreads);
@@ -117,7 +117,7 @@ void SqlApplication::BeginEvaluate(int nThreads = 1) {
 }
 
 bool SqlApplication::EvaluateFrame() {
-    list< QMCalculator* > ::iterator it;
+    list< ctp::QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
         (*it)->EvaluateFrame(&_top);
@@ -127,7 +127,7 @@ bool SqlApplication::EvaluateFrame() {
 }
 
 void SqlApplication::EndEvaluate() {
-    list< QMCalculator* > ::iterator it;
+    list< ctp::QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         (*it)->EndEvaluate(&_top);
     }

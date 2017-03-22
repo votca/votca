@@ -23,7 +23,7 @@
 
 #include <votca/tools/property.h>
 #include <votca/xtp/basisset.h>
-#include <votca//qmatom.h>
+#include <votca/ctp/qmatom.h>
 #include <votca/tools/constants.h>
 #include <votca/xtp/grid_containers.h>
 
@@ -37,7 +37,7 @@ namespace votca { namespace xtp {
             
             EulerMaclaurinGrid() { FillGrids(); };
             
-            void getRadialGrid( BasisSet* bs , vector<::QMAtom* > _atoms , std::string type, GridContainers& _grids );
+            void getRadialGrid( BasisSet* bs , vector<ctp::QMAtom* > _atoms , std::string type, GridContainers& _grids );
             std::vector<double> getPruningIntervals( std::string element );
             
 
@@ -67,7 +67,7 @@ namespace votca { namespace xtp {
             double getNeglected( double alpha, int l, double cutoff);
             double RadialIntegral(double alpha, int l, double cutoff);
             
-            void getRadialCutoffs( std::vector<::QMAtom* > _atoms ,  BasisSet* bs ,std::string gridtype );
+            void getRadialCutoffs( std::vector<ctp::QMAtom* > _atoms ,  BasisSet* bs ,std::string gridtype );
             void setGrid(int numberofpoints, double cutoff, std::vector<double>& point, std::vector<double>& weight );
             
             std::map<std::string, int>    MediumGrid;

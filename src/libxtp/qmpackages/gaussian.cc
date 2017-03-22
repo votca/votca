@@ -1089,7 +1089,7 @@ namespace votca {
                     getline(_input_file, _line);
                     getline(_input_file, _line);
 
-                    bool _has_atoms = _orbitals->has::QMAtoms();
+                    bool _has_atoms = _orbitals->hasQMAtoms();
 
                     std::vector<std::string> _row;
                     getline(_input_file, _line);
@@ -1113,7 +1113,7 @@ namespace votca {
                         if (_has_atoms == false) {
                             _orbitals->AddAtom(atom_type, 0, 0, 0, atom_charge);
                         } else {
-                            ::QMAtom* pAtom = _orbitals->_atoms.at(atom_id - 1);
+                            ctp::QMAtom* pAtom = _orbitals->_atoms.at(atom_id - 1);
                             pAtom->type = atom_type;
                             pAtom->charge = atom_charge;
                         }
@@ -1142,7 +1142,7 @@ namespace votca {
                         archive += _line;
                     }
 
-                    bool _has_atoms = _orbitals->has::QMAtoms();
+                    bool _has_atoms = _orbitals->hasQMAtoms();
                     std::list<std::string> stringList;
                     std::vector<std::string> results;
                     boost::iter_split(stringList, archive, boost::first_finder("\\\\"));
@@ -1171,7 +1171,7 @@ namespace votca {
                         if (_has_atoms == false) {
                             _orbitals->AddAtom(_atom_type, _x, _y, _z);
                         } else {
-                            ::QMAtom* pAtom = _orbitals->_atoms.at(aindex);
+                            ctp::QMAtom* pAtom = _orbitals->_atoms.at(aindex);
                             pAtom->type = _atom_type;
                             pAtom->x = _x;
                             pAtom->y = _y;

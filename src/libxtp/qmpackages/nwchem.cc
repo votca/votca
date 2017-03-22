@@ -175,8 +175,8 @@ bool NWChem::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orb
        
        // part of QM coordinates
        
-                std::vector< ::QMAtom* > *qmatoms = orbitals_guess->getAtoms();
-                std::vector< ::QMAtom* >::iterator it;
+                std::vector< ctp::QMAtom* > *qmatoms = orbitals_guess->getAtoms();
+                std::vector< ctp::QMAtom* >::iterator it;
 
                 // This is needed for the QM/MM scheme, since only orbitals have 
                 // updated positions of the QM region, hence vector<Segments*> is 
@@ -945,10 +945,10 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                     boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);  
                     nfields =  _row.size();
                     
-                     if ( _orbitals->has::QMAtoms() == false ) {
+                     if ( _orbitals->hasQMAtoms() == false ) {
                          _orbitals->AddAtom( atom_type, 0, 0, 0, atom_charge );
                      } else {
-                         ::QMAtom* pAtom = _orbitals->_atoms.at( atom_id - 1 );
+                         ctp::QMAtom* pAtom = _orbitals->_atoms.at( atom_id - 1 );
                          pAtom->type = atom_type;
                          pAtom->charge = atom_charge;
                      }
@@ -977,7 +977,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
             LOG(ctp::logDEBUG,*_pLog) << "Getting the coordinates" << flush;
             
             //_has_coordinates = true;
-            bool _has_::QMAtoms = _orbitals->has::QMAtoms();
+            bool _has_QMAtoms = _orbitals->hasQMAtoms();
 
             // three garbage lines
             getline(_input_file, _line);
@@ -1006,11 +1006,11 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);  
                 nfields =  _row.size();
 
-                if ( _has_::QMAtoms == false ) {
+                if ( _has_QMAtoms == false ) {
                     _orbitals->AddAtom( _atom_type, _x, _y, _z );
                 } else {
                                        
-                    ::QMAtom* pAtom = _orbitals->_atoms.at( atom_id - 1 );
+                    ctp::QMAtom* pAtom = _orbitals->_atoms.at( atom_id - 1 );
                     pAtom->type = _atom_type;
                     pAtom->x = _x;
                     pAtom->y = _y;

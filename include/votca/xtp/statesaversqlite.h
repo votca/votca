@@ -37,7 +37,7 @@ public:
     StateSaverSQLite() { };
    ~StateSaverSQLite() { _db.Close(); }
 
-    void Open(Topology &qmtop, const std::string &file, bool lock = true);
+    void Open(ctp::Topology &qmtop, const std::string &file, bool lock = true);
     void Close() { _db.Close(); }
     bool NextFrame();
 
@@ -62,8 +62,8 @@ public:
     void ReadSuperExchange(int topId);
 
     int  FramesInDatabase();
-    Topology *getTopology() { return _qmtop; }
-    bool HasTopology(Topology *top);
+    ctp::Topology *getTopology() { return _qmtop; }
+    bool HasTopology(ctp::Topology *top);
     
     void LockStateFile();
     void UnlockStateFile();
