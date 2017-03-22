@@ -22,18 +22,18 @@
 
 #include <stdio.h>
 
-#include <votca/xtp/logger.h>
+#include <votca/ctp/atom.h>
+#include <votca/ctp/segment.h>
+
+#include <votca/ctp/logger.h>
 #include <votca/xtp/dftengine.h>
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/segment.h>
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/xtp/votca_config.h>
+
 
 namespace votca { namespace xtp {
     using namespace std;
     
-class DFT : public QMTool
+class DFT : public ctp::QMTool
 {
 public:
 
@@ -62,75 +62,12 @@ private:
     string      _output_file;
 
     string      _reporting;    
-    Logger      _log;
+    ctp::Logger      _log;
     
-    /*
-    bool _do_dft_input;
-    bool _do_dft_run;
-    bool _do_dft_parse;
-    bool _do_gwbse;
-    bool _do_optimize;
-    
-    int _opt_state;
-    double _displacement;
-    double _convergence;
-    double _trust_radius;
-    double _trust_radius_max;
-    double _delta_energy_estimate;
-    double _norm_delta_pos;
-    string _spintype;
-    string _forces; 
-    string _opt_type;    
-    
-    int _natoms;
-    int _iteration;
-    ub::matrix<double> _force;
-    ub::matrix<double> _force_old;
-    ub::matrix<double> _xyz_shift;
-    ub::matrix<double> _speed;
-    ub::matrix<double> _current_xyz;
-    ub::matrix<double> _old_xyz; 
-    ub::matrix<double> _trial_xyz; 
-    ub::matrix<double> _hessian;
-    
-    bool _step_accepted;
-    bool _update_hessian;
-    bool _restart_opt;
-    
-    void ExcitationEnergies( QMPackage* _qmpackage, vector <Segment* > _segments, Orbitals* _orbitals );
-    
-    double GetTotalEnergy( Orbitals* _orbitals, string _spintype, int _opt_state );
-
-    void PrepareGuess(         Orbitals *_orbitalsA, 
-                               Orbitals *_orbitalsB, 
-                               Orbitals *_orbitalsAB);
-
-    void OrthonormalizeGuess ( Segment* _segment, Orbitals* _orbitals );
-    
-    
-    void BFGSStep( int& _iteration, bool& _update_hessian,  ub::matrix<double>& _force, ub::matrix<double>& _force_old,  ub::matrix<double>& _current_xyz, ub::matrix<double>&  _old_xyz, ub::matrix<double>& _hessian ,ub::matrix<double>& _xyz_shift ,ub::matrix<double>& _trial_xyz  );
-    void ReloadState();
-    void NumForceForward(double energy, vector <Atom* > _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage,vector <Segment* > _segments, Orbitals* _orbitals );
-    void NumForceCentral(double energy, vector <Atom* > _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage,vector <Segment* > _segments, Orbitals* _orbitals );
-    
-    void WriteIteration( FILE* out, int _iteration, Segment* _segment, ub::matrix<double>& _force  );
-    
-    double getMax( ub::matrix<double>& _matrix );
-    double getRMS( ub::matrix<double>& _matrix );
-    
-    string Convergence( bool _converged ) { 
-        
-        string _converged_string;
-        if ( _converged )  _converged_string = " (converged)";
-        if ( !_converged )  _converged_string = " (not converged)";
-        
-        
-        return _converged_string;
-    }
-    */
+  
     void XYZ2Orbitals( Orbitals* _orbitals, string filename);
     //void Coord2Segment(Segment* _segment );
-    void Orbitals2Segment(Segment* _segment, Orbitals* _orbitals);
+    
 
 };
 
@@ -206,15 +143,15 @@ key = "options." + Identify();
 bool DFT::Evaluate() {
 
     
-    if ( _reporting == "silent")   _log.setReportLevel( logERROR ); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
-    if ( _reporting == "noisy")    _log.setReportLevel( logDEBUG ); // OUTPUT ALL THE THINGS
-    if ( _reporting == "default")  _log.setReportLevel( logINFO );  // 
+    if ( _reporting == "silent")   _log.setReportLevel( ctp::logERROR ); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
+    if ( _reporting == "noisy")    _log.setReportLevel( ctp::logDEBUG ); // OUTPUT ALL THE THINGS
+    if ( _reporting == "default")  _log.setReportLevel( ctp::logINFO );  // 
     
     _log.setMultithreading( true );
-    _log.setPreface(logINFO,    "\n... ...");
-    _log.setPreface(logERROR,   "\n... ...");
-    _log.setPreface(logWARNING, "\n... ...");
-    _log.setPreface(logDEBUG,   "\n... ..."); 
+    _log.setPreface(ctp::logINFO,    "\n... ...");
+    _log.setPreface(ctp::logERROR,   "\n... ...");
+    _log.setPreface(ctp::logWARNING, "\n... ...");
+    _log.setPreface(ctp::logDEBUG,   "\n... ..."); 
 
     //TLogLevel _ReportLevel = _log.getReportLevel( ); // backup report level
 
@@ -222,9 +159,9 @@ bool DFT::Evaluate() {
     Orbitals _orbitals;
     XYZ2Orbitals( &_orbitals, _xyzfile );
 
-    vector <Segment* > _segments;
+    vector <ctp::Segment* > _segments;
     // Create a new segment
-    Segment _segment(0, "mol");
+    ctp::Segment _segment(0, "mol");
                 
     //    if (_do_dft_input) {
     //       ReadXYZ( &_segment, _xyzfile );
@@ -236,7 +173,7 @@ bool DFT::Evaluate() {
                 string label, type;
                 vec pos;
 
-                LOG(logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
+                LOG(ctp::logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
                 in.open(_xyzfile.c_str(), ios::in);
                 if (!in) throw runtime_error(string("Error reading coordinates from: ")
                         + _xyzfile);
@@ -251,7 +188,7 @@ bool DFT::Evaluate() {
                     // cout << type << ":" << x << ":" << y << ":" << z << endl;
 
                     // creating atoms and adding them to the molecule
-                    Atom *pAtom = new Atom(id++, type);
+                    ctp::Atom *pAtom = new ctp::Atom(id++, type);
                     vec position(x / 10, y / 10, z / 10); // xyz has Angstrom, votca stores nm
                     pAtom->setPos(position);
                     pAtom->setQMPart(id, position);
@@ -282,7 +219,7 @@ bool DFT::Evaluate() {
 
       // parse DFT data, if required
       //if ( _do_dft_parse ){
-        LOG(logDEBUG,_log) << "Parsing DFT data " << _output_file << flush;
+        LOG(ctp::logDEBUG,_log) << "Parsing DFT data " << _output_file << flush;
         _qmpackage->setOrbitalsFileName( _orbfile );
         //int _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
         _qmpackage->ParseOrbitalsFile( &_orbitals );
@@ -304,7 +241,7 @@ bool DFT::Evaluate() {
     _dft.Evaluate( &_orbitals );
 
             
-       LOG(logDEBUG,_log) << "Saving data to " << _output_file << flush;
+       LOG(ctp::logDEBUG,_log) << "Saving data to " << _output_file << flush;
        std::ofstream ofs( ( _output_file).c_str() );
        boost::archive::binary_oarchive oa( ofs );
 
@@ -333,26 +270,6 @@ bool DFT::Evaluate() {
 
 
 
-/* void DFT::Coord2Segment(Segment* _segment){
-    
-    
-            vector< Atom* > _atoms;
-            vector< Atom* > ::iterator ait;
-            _atoms = _segment->Atoms();
-            
-            string type;
-            int _i_atom = 0;
-            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-                vec position(_current_xyz(_i_atom,0)*0.052917725, _current_xyz(_i_atom,1)*0.052917725, _current_xyz(_i_atom,2)*0.052917725); // current_xyz has Bohr, votca stores nm
-                (*ait)->setQMPos(position);
-                _i_atom++;
-               
-            }
-
-    
-	    } */
-
-
 
 
 
@@ -366,7 +283,7 @@ void DFT::XYZ2Orbitals(Orbitals* _orbitals, string filename){
                 string label, type;
                 vec pos;
 
-                LOG(logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
+                LOG(ctp::logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
                 in.open(_xyzfile.c_str(), ios::in);
                 if (!in) throw runtime_error(string("Error reading coordinates from: ")
                         + _xyzfile);
@@ -388,55 +305,8 @@ void DFT::XYZ2Orbitals(Orbitals* _orbitals, string filename){
                 in.close();
 
 
-    // get segment into _atoms of orbitals!
 
-		/*                double _z =  boost::lexical_cast<double>( *(--it_atom) );
-                double _y =  boost::lexical_cast<double>( *(--it_atom) );
-                double _x =  boost::lexical_cast<double>( *(--it_atom) );
-                
-                if ( _has_atoms == false ) {
-                        _orbitals->AddAtom( _atom_type, _x, _y, _z );
-                } else {
-                         ::QMAtom* pAtom = _orbitals->_atoms.at( aindex );
-                         pAtom->type = _atom_type;
-                         pAtom->x = _x;
-                         pAtom->y = _y;
-                         pAtom->z = _z;
-                         aindex++;
-                }
-
-		*/
-
-
-
-    
-}
-
-void DFT::Orbitals2Segment(Segment* _segment, Orbitals* _orbitals){
-    
-            vector< ::QMAtom* > _atoms;
-            vector< ::QMAtom* > ::iterator ait;
-            _atoms = _orbitals->::QMAtoms();
-            
-            string type;
-            int id = 1;
-            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-                
-                // Atom *pAtom = new Atom(id++, type);
-                
-                type = (*ait)->type;
-                double x = (*ait)->x;
-                double y = (*ait)->y;
-                double z = (*ait)->z;
-                Atom *pAtom = new Atom(id++, type);
-                // cout << type << " " << x << " " << y << " " << z << endl;
-                vec position(x/10, y/10, z/10); // xyz has Angstrom, votca stores nm
-                pAtom->setPos(position);
-                pAtom->setQMPart(id, position);
-                pAtom->setElement(type);
-                _segment->AddAtom(pAtom);
-            }
-
+                return;
 }
 
   

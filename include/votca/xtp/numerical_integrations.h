@@ -27,6 +27,7 @@
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/grid_containers.h>
 
+#include <votca/ctp/qmatom.h>
 
 
 namespace votca { namespace xtp {

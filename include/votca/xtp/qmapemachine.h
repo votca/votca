@@ -21,7 +21,7 @@
 #define	__QMAPEMACHINE__H
 
 
-#include <votca/xtp/votca_config.h>
+
 
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/qmpackagefactory.h>

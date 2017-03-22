@@ -224,7 +224,7 @@ namespace votca { namespace xtp {
             }
          }
          
-        LOG(logDEBUG, *_pLog) << TimeStamp() << " Using levelshift:"<<levelshift<<" Ha" << flush;
+        LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:"<<levelshift<<" Ha" << flush;
 
           H+=levelshift*virt/occupation; // half the levelshift because our dmat has a factor of two
                   
@@ -347,7 +347,7 @@ namespace votca { namespace xtp {
           }
           
           if(!check){
-               LOG(logDEBUG, *_pLog) << TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
+               LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
                coeffs=ub::zero_vector<double>(_mathist.size());
                coeffs[0]=0.5;
                coeffs[1]=0.5;

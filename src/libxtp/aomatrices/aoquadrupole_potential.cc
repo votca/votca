@@ -17,23 +17,16 @@
  *
  */
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/xtp/votca_config.h>
-
+#include <votca/tools/linalg.h>
 #include <votca/xtp/aomatrix.h>
 
 #include <votca/xtp/aobasis.h>
-#include <string>
-#include <map>
+
 #include <vector>
-#include <votca/tools/property.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/math/constants/constants.hpp>
-#include <votca/ctp/logger.h>
-#include <votca/tools/linalg.h>
+
+
 #include <votca/xtp/elements.h>
 #include <votca/tools/constants.h>
-//#include <boost/timer/timer.hpp>
 
 
 using namespace votca::tools;

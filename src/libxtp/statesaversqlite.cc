@@ -150,12 +150,12 @@ void StateSaverSQLite::WriteMolecules(bool update) {
 
     stmt->Bind(1, _qmtop->getDatabaseId());
 
-    std::vector < Molecule* > ::iterator mit;
+    std::vector < ctp::Molecule* > ::iterator mit;
     for (mit = _qmtop->Molecules().begin();
             mit < _qmtop->Molecules().end();
             mit++) {
 
-        Molecule *mol = *mit;
+        ctp::Molecule *mol = *mit;
 
         stmt->Bind(2, mol->getTopology()->getDatabaseId());
         stmt->Bind(3, mol->getId());
@@ -507,7 +507,7 @@ void StateSaverSQLite::WritePairs(bool update) {
                            "? "
                            ")");
      
-      QMNBList::iterator nit;
+      ctp::QMNBList::iterator nit;
 
     for (nit = _qmtop->NBList().begin();
          nit != _qmtop->NBList().end();
@@ -554,127 +554,6 @@ void StateSaverSQLite::WritePairs(bool update) {
         }
     
 
-    
-    /*
-    if (!update) {
-        stmt = _db.Prepare("INSERT INTO pairs ("
-                           "frame, top, id, "
-                           "seg1, seg2, drX, "
-                           "drY, drZ, "
-                           "has_e, has_h,has_s,has_t, "
-                           "lOe, lOh, lOs, lOt,"
-                           "rate12e, rate21e, rate12h, rate21h,"
-                           "rate12s, rate21s, rate12t, rate21t,"
-                           "Jeff2e,  Jeff2h, Jeff2s, Jeff2t,"
-                           "type "
-                           ") VALUES ("
-                           "?, ?, ?, "
-                           "?, ?, ?, "
-                           "?, ?, "
-                           "?, ?, ?, ?, "
-                           "?, ?, ?, ?, "
-                           "?, ?, ?, ?, "
-                           "?, ?, ?, ?, "
-                           "?, ?, ?, ?, "
-                           "? "
-                           ")");
-    }
-    else {
-        stmt = _db.Prepare("UPDATE pairs "
-                           "SET "
-                           "has_e = ?, has_h = ?, has_s = ?, has_t = ?,"
-                           "lOe = ?, lOh = ?, lOs = ?, lOt = ?,"
-                           "rate12e = ?, rate21e = ?, rate12h = ?, rate21h = ?,"
-                           "rate12s = ?, rate21s = ?, rate12t = ?, rate21t = ?,"
-                           "Jeff2e = ?,  Jeff2h = ?,Jeff2s = ?,Jeff2t = ?, "
-                           "type = ? "
-                           "WHERE top = ? AND id = ?");
-    }
-
-    QMNBList::iterator nit;
-
-    for (nit = _qmtop->NBList().begin();
-         nit != _qmtop->NBList().end();
-         nit++) {
-
-        QMPair *pair = *nit;
-
-        if (!update) {
-
-            int has_e = (pair->isPathCarrier(-1)) ? 1 : 0;
-            int has_h = (pair->isPathCarrier(+1)) ? 1 : 0;
-            int has_s = (pair->isPathCarrier(+2)) ? 1 : 0;
-            int has_t = (pair->isPathCarrier(+3)) ? 1 : 0;
-
-            stmt->Bind(1, _qmtop->getDatabaseId());
-            stmt->Bind(2, pair->getTopology()->getDatabaseId());
-            stmt->Bind(3, pair->getId());
-            stmt->Bind(4, pair->Seg1PbCopy()->getId());
-            stmt->Bind(5, pair->Seg2PbCopy()->getId());
-            stmt->Bind(6, pair->R().getX());
-            stmt->Bind(7, pair->R().getY());
-            stmt->Bind(8, pair->R().getZ());
-            stmt->Bind(9, has_e);
-            stmt->Bind(10, has_h);
-            stmt->Bind(11, has_s);
-            stmt->Bind(12, has_t);
-            stmt->Bind(13, pair->getLambdaO(-1));
-            stmt->Bind(14, pair->getLambdaO(+1));
-            stmt->Bind(15, pair->getLambdaO(+2));
-            stmt->Bind(16, pair->getLambdaO(+3));
-            stmt->Bind(17, pair->getRate12(-1));
-            stmt->Bind(18, pair->getRate21(-1));
-            stmt->Bind(19, pair->getRate12(+1));
-            stmt->Bind(20, pair->getRate21(+1));
-            stmt->Bind(21, pair->getRate12(+2));
-            stmt->Bind(22, pair->getRate21(+2));
-            stmt->Bind(23, pair->getRate12(+3));
-            stmt->Bind(24, pair->getRate21(+3));
-            stmt->Bind(25, pair->getJeff2(-1));
-            stmt->Bind(26, pair->getJeff2(+1));
-            stmt->Bind(27, pair->getJeff2(+2));
-            stmt->Bind(28, pair->getJeff2(+3));
-            stmt->Bind(29, (int)(pair->getType()) );
-        }
-        
-        else {
-
-            // cout << "\r " << pair->getId() << flush;
-
-                int has_e = (pair->isPathCarrier(-1)) ? 1 : 0;
-                int has_h = (pair->isPathCarrier(+1)) ? 1 : 0;
-                int has_s = (pair->isPathCarrier(+2)) ? 1 : 0;
-                int has_t = (pair->isPathCarrier(+3)) ? 1 : 0;
-
-                stmt->Bind(1, has_e);
-                stmt->Bind(2, has_h);
-                stmt->Bind(3, has_s);
-                stmt->Bind(4, has_t);
-                stmt->Bind(5, pair->getLambdaO(-1));
-                stmt->Bind(6, pair->getLambdaO(+1));
-                stmt->Bind(7, pair->getLambdaO(+2));
-                stmt->Bind(8, pair->getLambdaO(+3));
-                stmt->Bind(9, pair->getRate12(-1));
-                stmt->Bind(10, pair->getRate21(-1));
-                stmt->Bind(11, pair->getRate12(+1));
-                stmt->Bind(12, pair->getRate21(+1));
-                stmt->Bind(13, pair->getRate12(+2));
-                stmt->Bind(14, pair->getRate21(+2));
-                stmt->Bind(15, pair->getRate12(+3));
-                stmt->Bind(16, pair->getRate21(+3));
-                stmt->Bind(17, pair->getJeff2(-1));
-                stmt->Bind(18, pair->getJeff2(+1));
-                stmt->Bind(19, pair->getJeff2(+2));
-                stmt->Bind(20, pair->getJeff2(+3));
-                stmt->Bind(21, (int)pair->getType());
-                stmt->Bind(22, pair->getTopology()->getDatabaseId());
-                stmt->Bind(23, pair->getId());          
-        }
-
-        stmt->InsertStep();
-        stmt->Reset();
-    }
-*/
     delete stmt;
     stmt = NULL;
 }
@@ -713,13 +592,13 @@ void StateSaverSQLite::WriteSuperExchange(bool update) {
                            "?, ?, ?"
                            ")");
 
-    list< QMNBList::SuperExchangeType* >::const_iterator seit;
+    list< ctp::QMNBList::SuperExchangeType* >::const_iterator seit;
 
     for (seit = _qmtop->NBList().getSuperExchangeTypes().begin();
          seit != _qmtop->NBList().getSuperExchangeTypes().end();
          seit++) {
 
-        QMNBList::SuperExchangeType *seType = *seit;
+        ctp::QMNBList::SuperExchangeType *seType = *seit;
 
         stmt->Bind(1, _qmtop->getDatabaseId());
         stmt->Bind(2, _qmtop->getDatabaseId());
@@ -840,7 +719,7 @@ void StateSaverSQLite::ReadSegTypes(int topId) {
 
     stmt->Bind(1, topId);
     while (stmt->Step() != SQLITE_DONE) {
-        SegmentType *type = _qmtop->AddSegmentType(stmt->Column<string>(0));
+        ctp::SegmentType *type = _qmtop->AddSegmentType(stmt->Column<string>(0));
         type->setBasisName(stmt->Column<string>(1));
         type->setOrbitalsFile(stmt->Column<string>(2));
         type->setQMCoordsFile(stmt->Column<string>(4));
@@ -1091,7 +970,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
                                   "WHERE top = ?;");
 
     stmt->Bind(1, topId);
-    QMNBList & nblist=_qmtop->NBList();
+    ctp::QMNBList & nblist=_qmtop->NBList();
 
     
     //QMNBList nblisttemp;
@@ -1123,7 +1002,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
         double  jt  = stmt->Column<double>(21);
         int     tp  = stmt->Column<int>(22);
         
-        QMPair *newPair = nblist.Add(_qmtop->getSegment(s1),
+        ctp::QMPair *newPair = nblist.Add(_qmtop->getSegment(s1),
                                                 _qmtop->getSegment(s2),false);
         
         bool has_e = (he == 0) ? false : true;

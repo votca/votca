@@ -20,18 +20,23 @@
 #ifndef _VOTCA_XTP_EXCITONCOUPLINGH_H
 #define _VOTCA_XTP_EXCITONCOUPLINGH_H
 
+
+#include <votca/ctp/qmtool.h>
+#include <votca/ctp/logger.h>
+#include <votca/ctp/xinteractor.h>
+
 #include <stdio.h>
 #include <votca/tools/constants.h>
-#include <votca/xtp/logger.h>
+
 #include <votca/tools/constants.h>
 #include <votca/xtp/bsecoupling.h>
-#include <votca/xtp/xinteractor.h>
+
 #include <votca/xtp/qmpackagefactory.h>
 
 namespace votca { namespace xtp {
     using namespace std;
     
-class ExcitonCoupling : public QMTool
+class ExcitonCoupling : public  ctp::QMTool
 {
 public:
 
@@ -58,7 +63,7 @@ private:
     //bool        _doTriplets;
     string      _mpsA;
     string      _mpsB;  
-    Logger      _log;
+    ctp::Logger      _log;
 
 };
 
@@ -105,13 +110,13 @@ void ExcitonCoupling::Initialize(Property* options)
 bool ExcitonCoupling::Evaluate() {
     Property *_job_output=NULL;
     Property _summary; 
-    _log.setReportLevel( logDEBUG );
+    _log.setReportLevel(  ctp::logDEBUG );
     _log.setMultithreading( true );
     
-    _log.setPreface(logINFO,    "\n... ...");
-    _log.setPreface(logERROR,   "\n... ...");
-    _log.setPreface(logWARNING, "\n... ...");
-    _log.setPreface(logDEBUG,   "\n... ..."); 
+    _log.setPreface( ctp::logINFO,    "\n... ...");
+    _log.setPreface( ctp::logERROR,   "\n... ...");
+    _log.setPreface( ctp::logWARNING, "\n... ...");
+    _log.setPreface( ctp::logDEBUG,   "\n... ..."); 
 
     // get the corresponding object from the QMPackageFactory
     if(!_classical){
@@ -119,20 +124,20 @@ bool ExcitonCoupling::Evaluate() {
     // load the QM data from serialized orbitals objects
 
     std::ifstream ifa( (_orbA ).c_str());
-    LOG(logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
+    LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
     boost::archive::binary_iarchive ia(ifa);
     ia >> _orbitalsA;
     ifa.close();
     
     std::ifstream ifb( (_orbB ).c_str());
-    LOG(logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
+    LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
     boost::archive::binary_iarchive ib(ifb);
     ib >> _orbitalsB;
     ifb.close();
     
     
     std::ifstream ifab( (_orbAB ).c_str());
-    LOG(logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
+    LOG( ctp::logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
     boost::archive::binary_iarchive iab(ifab);
     iab >> _orbitalsAB;
     ifab.close();
@@ -162,19 +167,19 @@ bool ExcitonCoupling::Evaluate() {
     }
     
     else if (_classical){
-        LOG(logDEBUG, _log) << "Calculating electronic coupling using classical transition charges." << _orbB << flush;
-        std::vector<APolarSite*> seg1=APS_FROM_MPS(_mpsA, 0);
-        std::vector<APolarSite*> seg2=APS_FROM_MPS(_mpsB, 0);
+        LOG( ctp::logDEBUG, _log) << "Calculating electronic coupling using classical transition charges." << _orbB << flush;
+        std::vector< ctp::APolarSite*> seg1= ctp::APS_FROM_MPS(_mpsA, 0);
+        std::vector< ctp::APolarSite*> seg2= ctp::APS_FROM_MPS(_mpsB, 0);
         
-        PolarSeg* Seg1 = new PolarSeg(1,seg1);
-        PolarSeg* Seg2 = new PolarSeg(2,seg2);
-        XInteractor actor;
+        ctp::PolarSeg* Seg1 = new  ctp::PolarSeg(1,seg1);
+         ctp::PolarSeg* Seg2 = new  ctp::PolarSeg(2,seg2);
+         ctp::XInteractor actor;
         actor.ResetEnergy();
         vec s = vec(0,0,0);
         
         //LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
-        PolarSeg::iterator pit1;
-        PolarSeg::iterator pit2;
+         ctp::PolarSeg::iterator pit1;
+         ctp::PolarSeg::iterator pit2;
         double E = 0.0;
         for (pit1 = Seg1->begin(); pit1 < Seg1->end(); ++pit1) {
             for (pit2 = Seg2->begin(); pit2 < Seg2->end(); ++pit2) {
@@ -202,7 +207,7 @@ bool ExcitonCoupling::Evaluate() {
     _coupling_summary->setAttribute("jABstatic", J);
     }
     
-    votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
+    tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
      
     std::ofstream ofs (_output_file.c_str(), std::ofstream::out);
     ofs << *_job_output;    

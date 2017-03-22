@@ -144,7 +144,7 @@ private:
 void Exciton::Initialize(Property* options) {
 
             // update options with the VOTCASHARE defaults   
-            tools::UpdateWithDefaults( options, "xtp" );
+            UpdateWithDefaults( options, "xtp" );
 
             _do_dft_input = false;
             _do_dft_run = false;
@@ -244,7 +244,7 @@ bool Exciton::Evaluate() {
     _log.setPreface(ctp::logWARNING, "\n... ...");
     _log.setPreface(ctp::logDEBUG,   "\n... ..."); 
 
-    TLogLevel _ReportLevel = _log.getReportLevel( ); // backup report level
+    ctp::TLogLevel _ReportLevel = _log.getReportLevel( ); // backup report level
     
     if ( _do_optimize ){
         _trust_radius = _trust_radius * tools::conv::ang2bohr; // initial trust radius in a.u.
@@ -323,8 +323,8 @@ bool Exciton::Evaluate() {
            _log.setPreface(ctp::logINFO, _geoopt_preface );
            
            
-           vector <Segment* > _molecule;
-           Segment _current_coordinates(0, "mol");
+           vector <ctp::Segment* > _molecule;
+           ctp::Segment _current_coordinates(0, "mol");
            if ( _restart_opt) {
                // fill current coordinates from reloaded data
                ReadXYZ( &_current_coordinates, _xyzfile ); // to initialize
@@ -342,8 +342,8 @@ bool Exciton::Evaluate() {
            
            // displace all atoms in each cartesian coordinate and get new energy
            // for each atom
-           vector< Atom* > _atoms;
-           vector< Atom* > ::iterator ait;
+           vector< ctp::Atom* > _atoms;
+           vector< ctp::Atom* > ::iterator ait;
            _atoms = _current_coordinates.Atoms();
            
            if ( _iteration == 0 ){
@@ -365,7 +365,7 @@ bool Exciton::Evaluate() {
            
            // writing current coordinates and forces
            FILE *out = NULL;
-           vector<Segment*> ::iterator sit;
+           vector<ctp::Segment*> ::iterator sit;
            string FILENAME = "geometry_optimization.xyz";
            for (sit = _molecule.begin(); sit < _molecule.end(); ++sit) {
              if ( _iteration == 0 ) {
@@ -577,7 +577,7 @@ void Exciton::Coord2Segment( ctp::Segment* _segment){
                 _i_atom++;
                
             }
-            tools::conv::bohr2nm
+            
             return;
 }
 
@@ -684,10 +684,11 @@ void Exciton::ReloadState(){
 
 
 /* Calculate forces on atoms numerically by central differences */
-void Exciton::NumForceCentral(double energy, vector<ctp::Atom*> _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage, vector<Segment*> _molecule, Orbitals* _orbitals){
+void Exciton::NumForceCentral(double energy, vector<ctp::Atom*> _atoms, ub::matrix<double>& _force, 
+        QMPackage* _qmpackage, vector<ctp::Segment*> _molecule, Orbitals* _orbitals){
     
 
-    vector< Atom* > ::iterator ait;
+    vector< ctp::Atom* > ::iterator ait;
     int _i_atom = 0;
     for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
        // get its current coordinates
@@ -750,7 +751,8 @@ void Exciton::NumForceCentral(double energy, vector<ctp::Atom*> _atoms, ub::matr
 
 
 /* Calculate forces on atoms numerically by forward differences */
-void Exciton::NumForceForward(double energy, vector<ctp::Atom*> _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage, vector<Segment*> _molecule, Orbitals* _orbitals){
+void Exciton::NumForceForward(double energy, vector<ctp::Atom*> _atoms, ub::matrix<double>& _force, 
+        QMPackage* _qmpackage, vector<ctp::Segment*> _molecule, Orbitals* _orbitals){
 
     
     // check if file "forces.resume" exists
@@ -777,7 +779,7 @@ void Exciton::NumForceForward(double energy, vector<ctp::Atom*> _atoms, ub::matr
 
 
     ofstream out;
-    vector< Atom* > ::iterator ait;
+    vector< ctp::Atom* > ::iterator ait;
     int _i_atom = 0;
     for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
         
@@ -820,10 +822,10 @@ void Exciton::NumForceForward(double energy, vector<ctp::Atom*> _atoms, ub::matr
               vec _displaced(0, 0, 0);
               if (_i_cart == 0) {
                  _displaced.setX(_displacement / tools::conv::nm2bohr ); // x, _displacement in Bohr
-                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() tools::conv::nm2bohr; // in Bohr
+                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getX()*tools::conv::nm2bohr; // in Bohr
               }
               if (_i_cart == 1) {
-                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() tools::conv::nm2bohr; // in Bohr
+                 _current_xyz(_i_atom,_i_cart ) = _current_pos.getY()* tools::conv::nm2bohr; // in Bohr
                  _displaced.setY(_displacement /  tools::conv::nm2bohr ); // y, _displacement in in Angstrom
               }
               if (_i_cart == 2) {
@@ -1239,10 +1241,10 @@ void Exciton::Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals){
 
   
   // write iteration
-  void Exciton::WriteIteration(FILE *out, int _iteration, Segment* _segment, ub::matrix<double>& _force) {
+  void Exciton::WriteIteration(FILE *out, int _iteration, ctp::Segment* _segment, ub::matrix<double>& _force) {
 
-    vector< Atom* > ::iterator ait;
-    vector< Atom* > _atoms = _segment->Atoms();
+    vector< ctp::Atom* > ::iterator ait;
+    vector< ctp::Atom* > _atoms = _segment->Atoms();
     int qmatoms = 0;
     for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
         ++qmatoms;

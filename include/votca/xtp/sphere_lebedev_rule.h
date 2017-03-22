@@ -24,7 +24,7 @@
 #include <votca/tools/property.h>
 #include <votca/xtp/grid_containers.h>
 #include <boost/math/constants/constants.hpp>
-
+#include <votca/ctp/qmatom.h>
 
 
 namespace votca {

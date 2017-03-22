@@ -23,15 +23,15 @@
 #include <stdio.h>
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/constants.h>
-#include <votca/xtp/logger.h>
-// #include <votca/xtp/mbgft.h>
-// #include <votca/xtp/qmpackagefactory.h>
+#include <votca/ctp/logger.h>
+#include <votca/ctp/qmtool.h>
+
 
 namespace votca { namespace xtp {
     using namespace std;
     namespace ub = boost::numeric::ublas;
 
-class Spectrum : public QMTool
+class Spectrum : public ctp::QMTool
 {
 public:
 
@@ -49,7 +49,7 @@ private:
     string      _orbfile;
     string      _output_file;
     
-    Logger      _log;
+    ctp::Logger      _log;
     
     void CheckContent(  Orbitals& _orbitals );
     
@@ -121,21 +121,21 @@ void Spectrum::Initialize(Property* options) {
 
 bool Spectrum::Evaluate() {
 
-    _log.setReportLevel( logDEBUG );
+    _log.setReportLevel( ctp::logDEBUG );
     _log.setMultithreading( true );
     
-    _log.setPreface(logINFO,    "\n... ...");
-    _log.setPreface(logERROR,   "\n... ...");
-    _log.setPreface(logWARNING, "\n... ...");
-    _log.setPreface(logDEBUG,   "\n... ..."); 
+    _log.setPreface(ctp::logINFO,    "\n... ...");
+    _log.setPreface(ctp::logERROR,   "\n... ...");
+    _log.setPreface(ctp::logWARNING, "\n... ...");
+    _log.setPreface(ctp::logDEBUG,   "\n... ..."); 
 
-    LOG(logDEBUG, _log) << "Calculating absorption spectrum plot " << _orbfile << flush;
+    LOG(ctp::logDEBUG, _log) << "Calculating absorption spectrum plot " << _orbfile << flush;
 
     Orbitals _orbitals;
     // load the QM data from serialized orbitals object
 
     std::ifstream ifs( (_orbfile).c_str());
-    LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+    LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
     boost::archive::binary_iarchive ia(ifs);
     ia >> _orbitals;
     ifs.close();
@@ -160,12 +160,12 @@ bool Spectrum::Evaluate() {
     int _n_exc = _maxexc - _minexc +1;
 
     if ( _maxexc > int(TransitionDipoles.size()) ) {
-      LOG(logDEBUG, _log) << " Transition dipoles for some excitations missing! " << flush;
+      LOG(ctp::logDEBUG, _log) << " Transition dipoles for some excitations missing! " << flush;
       exit(1);
     }
  
   
-    LOG(logDEBUG, _log) << " Considering " << _n_exc << " excitation with max energy " << BSESingletEnergies(_maxexc) * tools::conv::ryd2ev << " eV / min wave length " <<  evtonm(BSESingletEnergies[_maxexc-1] * tools::conv::ryd2ev) << " nm" << flush;
+    LOG(ctp::logDEBUG, _log) << " Considering " << _n_exc << " excitation with max energy " << BSESingletEnergies(_maxexc) * tools::conv::ryd2ev << " eV / min wave length " <<  evtonm(BSESingletEnergies[_maxexc-1] * tools::conv::ryd2ev) << " nm" << flush;
     
     /*
      * 
@@ -239,7 +239,7 @@ bool Spectrum::Evaluate() {
     
        }
         
-        LOG(logDEBUG, _log) << " Spectrum in energy range from  " << _lower << " to " << _upper << " eV and with broadening of FWHM " << _fwhm*tools::conv::ryd2ev << " eV written to file  " << _output_file << flush;
+        LOG(ctp::logDEBUG, _log) << " Spectrum in energy range from  " << _lower << " to " << _upper << " eV and with broadening of FWHM " << _fwhm*tools::conv::ryd2ev << " eV written to file  " << _output_file << flush;
     }
     
     if ( _spectrum_type == "wavelength"){
@@ -271,51 +271,12 @@ bool Spectrum::Evaluate() {
 
             ofs << _lambda << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << "   " << _eps_TruncLorentzian << "   " << _imeps_TruncLorentzian << endl;
         }    
-    LOG(logDEBUG, _log) << " Spectrum in wavelength range from  " << _lower << " to " << _upper << " nm and with broadening of FWHM " << _fwhm << " nm written to file  " << _output_file << flush;        
+    LOG(ctp::logDEBUG, _log) << " Spectrum in wavelength range from  " << _lower << " to " << _upper << " nm and with broadening of FWHM " << _fwhm << " nm written to file  " << _output_file << flush;        
     }
 
 
     ofs.close();
     
-/* exit(0);    
-    
-    
-    
-    
-    // setup a grid in wave-number space
-    // for each grid point, sum over all excitations
-    std::vector<double> _wave_number;
-    std::vector<double> _epsilon;
-    std::vector<double> _im_epsilon;
-    double _lower_invcm = nmtoinvcm(_upper);
-    double _upper_invcm = nmtoinvcm(_lower);
-
-    for ( int _i_pt = 0 ; _i_pt <= _n_pt; _i_pt++ ){
-        
-        double _nu = _lower_invcm + _i_pt * ( _upper_invcm - _lower_invcm )/_n_pt;
-        
-        double _eps = 0.0;
-        double _imeps = 0.0;
-        for ( int _i_exc = 0 ; _i_exc < _n_exc ; _i_exc++){
-           _eps += 2.175e8 * _osc[_i_exc]/_fwhm * exp(-2.772 * pow(( _nu - evtoinvcm(tools::conv::ryd2ev * BSESingletEnergies(_i_exc)) )/_fwhm,2));
-           _imeps += 2.175e8 * _osc[_i_exc]/_fwhm / evtoinvcm(tools::conv::ryd2ev * BSESingletEnergies(_i_exc)) * exp(-2.772 * pow(( _nu - evtoinvcm(tools::conv::ryd2ev * BSESingletEnergies(_i_exc)) )/_fwhm,2));
-        }
-        
-        _wave_number.push_back( _nu );
-        _epsilon.push_back( _eps );
-        _im_epsilon.push_back( _imeps );
-    } 
-    
-    
-    // output converted back to wave length
-    cout << "\n";
-    for ( int _i_pt = 0; _i_pt <= _n_pt; _i_pt++ ){
-        cout << invcmtonm( _wave_number[ _i_pt ] ) << "   " << _epsilon[ _i_pt ] <<  "   " << _im_epsilon[ _i_pt ] <<  endl;
-    }
-    
-    
-    
-    */
 
 
     

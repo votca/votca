@@ -88,8 +88,8 @@ void JobApplication::Run() {
     StateSaverSQLite statsav;
     statsav.Open(_top, statefile);    
 
-    ProgObserver< std::vector<Job*>, Job*, Job::JobResult > progObs
-        = ProgObserver< std::vector<Job*>, Job*, Job::JobResult >();
+    ctp::ProgObserver< std::vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult > progObs
+        = ctp::ProgObserver< std::vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >();
     progObs.InitCmdLineOpts(OptionsMap());
     
     // INITIALIZE & RUN CALCULATORS
@@ -120,14 +120,14 @@ void JobApplication::Run() {
 
 
 
-void JobApplication::AddCalculator(JobCalculator* calculator) {
+void JobApplication::AddCalculator(ctp::JobCalculator* calculator) {
     _calculators.push_back(calculator);
 }
 
 
 void JobApplication::BeginEvaluate(int nThreads = 1, 
-        ProgObserver< std::vector<Job*>, Job*, Job::JobResult > *obs = NULL) {
-    list< JobCalculator* > ::iterator it;
+        ctp::ProgObserver< std::vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult > *obs = NULL) {
+    list< ctp::JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";
         (*it)->setnThreads(nThreads);
@@ -138,7 +138,7 @@ void JobApplication::BeginEvaluate(int nThreads = 1,
 }
 
 bool JobApplication::EvaluateFrame() {
-    list< JobCalculator* > ::iterator it;
+    list< ctp::JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
         if (_generate_input) (*it)->WriteJobFile(&_top);
@@ -150,7 +150,7 @@ bool JobApplication::EvaluateFrame() {
 }
 
 void JobApplication::EndEvaluate() {
-    list< JobCalculator* > ::iterator it;
+    list< ctp::JobCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         (*it)->EndEvaluate(&_top);
     }

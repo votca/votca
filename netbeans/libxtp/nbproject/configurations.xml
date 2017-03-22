@@ -67,6 +67,7 @@
       <itemPath>../../include/votca/xtp/grid.h</itemPath>
       <itemPath>../../include/votca/xtp/grid_containers.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbse.h</itemPath>
+      <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/lowdin.h</itemPath>
       <itemPath>../../include/votca/xtp/mixing.h</itemPath>
@@ -75,6 +76,7 @@
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
       <itemPath>../../include/votca/xtp/qmapemachine.h</itemPath>
+      <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/xtp/qmmachine.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackage.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackagefactory.h</itemPath>
@@ -127,6 +129,7 @@
       </logicalFolder>
       <logicalFolder name="f7" displayName="dftengine" projectFiles="true">
         <itemPath>../../src/libxtp/dftengine/dftengine.cc</itemPath>
+        <itemPath>../../src/libxtp/diis.cc</itemPath>
         <itemPath>../../src/libxtp/mixing.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="Factories" projectFiles="true">
@@ -153,7 +156,6 @@
       <itemPath>../../src/libxtp/basisset.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libxtp/bulkesp.cc</itemPath>
-      <itemPath>../../src/libxtp/diis.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
       <itemPath>../../src/libxtp/fourcenter_rep.cc</itemPath>
@@ -345,6 +347,11 @@
       </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/jobapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/jobcalculatorfactory.h"
             ex="false"
             tool="3"
@@ -366,6 +373,11 @@
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmapemachine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmdatabase.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -873,6 +885,11 @@
       </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/jobapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/jobcalculatorfactory.h"
             ex="false"
             tool="3"
@@ -894,6 +911,11 @@
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmapemachine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmdatabase.h"
             ex="false"
             tool="3"
             flavor2="0">

@@ -17,7 +17,7 @@
  *
  */
 // Overload of uBLAS prod function with MKL/GSL implementations
-
+#include <votca/tools/linalg.h>
 
 
 #include <votca/xtp/numerical_integrations.h>
@@ -26,7 +26,7 @@
 #include <votca/xtp/sphere_lebedev_rule.h>
 #include <votca/xtp/aoshell.h>
 #include <votca/tools/constants.h>
-#include <votca/xtp/votca_config.h>
+
 #ifdef LIBXC
 #include <xc.h>
 #endif
@@ -38,7 +38,7 @@
 #include <votca/xtp/vxc_functionals.h>
 #include <iterator>
 #include <string>
-// #include <xc.h>
+
 
 
 
@@ -1142,7 +1142,7 @@ namespace votca {
         
         
                
-        void NumericalIntegration::GridSetup(string type, BasisSet* bs, vector<::QMAtom*> _atoms) {
+        void NumericalIntegration::GridSetup(string type, BasisSet* bs, vector<ctp::QMAtom*> _atoms) {
             
             const double pi = boost::math::constants::pi<double>();
             // get GridContainer
@@ -1172,8 +1172,8 @@ namespace votca {
             int ij = 0;
             Rij.push_back(0.0); // 1st center "self-distance"
             
-            vector< ::QMAtom* > ::iterator ait;
-            vector< ::QMAtom* > ::iterator bit;
+            vector< ctp::QMAtom* > ::iterator ait;
+            vector< ctp::QMAtom* > ::iterator bit;
             int i = 1;
             for (ait = _atoms.begin() + 1; ait != _atoms.end(); ++ait) {
                 // get center coordinates in Bohr
@@ -1341,7 +1341,7 @@ namespace votca {
                 // find nearest-neighbor of this atom
                 double distNN = 1e10;
 
-                vector< ::QMAtom* > ::iterator NNit;
+                vector< ctp::QMAtom* > ::iterator NNit;
                 //int i_NN;
 
                 // now check all other centers

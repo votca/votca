@@ -22,18 +22,11 @@
 #include <votca/xtp/aomatrix.h>
 
 #include <votca/xtp/aobasis.h>
-#include <string>
-#include <map>
 #include <vector>
-#include <votca/tools/property.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
+
 #include <boost/math/constants/constants.hpp>
-#include <boost/math/special_functions/factorials.hpp>
-#include <votca/xtp/logger.h>
-#include <votca/tools/linalg.h>
-#include <votca/xtp/elements.h>
-//#include <boost/timer/timer.hpp>
+
+
 
 
 using namespace votca::tools;
