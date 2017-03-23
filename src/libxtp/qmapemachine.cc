@@ -534,13 +534,13 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	dftbasis.AOBasisFill(&dftbs, orb.QMAtoms() );
 	dftbasis.ReorderMOs(_dft_orbitals, orb.getQMpackage(), "xtp" );
 	// TBD: Need to switch between singlets and triplets depending on _type
-	ub::matrix<double> &DMATGS=orb.DensityMatrixGroundState(_dft_orbitals);
+	ub::matrix<double> DMATGS=orb.DensityMatrixGroundState(_dft_orbitals);
 
 	ub::matrix<double> DMAT_tot=DMATGS; // Ground state + hole_contribution + electron contribution
 
 	if ( _state > 0 ){
 	ub::matrix<real_gwbse>& BSECoefs = orb.BSESingletCoefficients();
-	std::vector<ub::matrix<double> > &DMAT = orb.DensityMatrixExcitedState( _dft_orbitals , BSECoefs, _state_index[_state-1]);
+	std::vector<ub::matrix<double> > DMAT = orb.DensityMatrixExcitedState( _dft_orbitals , BSECoefs, _state_index[_state-1]);
 	DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1]; // Ground state + hole_contribution + electron contribution
 	}
 

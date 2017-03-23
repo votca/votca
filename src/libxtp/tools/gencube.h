@@ -302,7 +302,7 @@ namespace votca {
 
                     // ground state only if requested
                     if ( _do_groundstate ) {
-                        ub::matrix<double> &DMATGS = _orbitals.DensityMatrixGroundState(_dft_orbitals);
+                        ub::matrix<double> DMATGS = _orbitals.DensityMatrixGroundState(_dft_orbitals);
                         DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
                         LOG(ctp::logDEBUG, _log) << " Calculated ground state density matrix " << flush;
                     }
@@ -319,7 +319,7 @@ namespace votca {
 
                     // excited state if requested
                         else if ( _do_bse  ) {    
-                            std::vector< ub::matrix<double> > &DMAT=_orbitals.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state - 1);
+                            std::vector< ub::matrix<double> > DMAT=_orbitals.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state - 1);
                             DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
                             LOG(ctp::logDEBUG, _log) << " Calculated excited state density matrix " << flush;
                         }
