@@ -58,7 +58,6 @@ namespace votca { namespace xtp {
             typedef ma_type::index index; /////////////////////
             ma_type::extent_gen extents; /////////////////////
     bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
-    void FillThreeCenterOLBlock_g(ma_type &S,const vec gma,const vec gmc,const int _lmax_alpha,const int _lmax_gamma,const double fak);
     bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
     //bool FillThreeCenterOLBlock(  ub::matrix<real_gwbse> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
     bool FillFourCenterRepBlock(ub::matrix<double>& _subvector, AOShell* _shell_1, AOShell* _shell_2, AOShell* _shell_3, AOShell* _shell_4); ////////
