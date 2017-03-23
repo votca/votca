@@ -25,6 +25,7 @@
 #include <votca/xtp/toolfactory.h>
 
 
+
 using namespace std;
 using namespace votca::xtp;
 using namespace votca::tools;
@@ -40,7 +41,7 @@ public:
 
     void    HelpText(ostream &out) { out <<"Runs excitation/charge transport tools"<< endl; }
 
-    void    AddTool(votca::xtp::QMTool *tool) { _tools.push_back(tool); }
+    void    AddTool(votca::ctp::QMTool *tool) { _tools.push_back(tool); }
     void    Initialize();
     bool    EvaluateOptions();
     void    Run(void);
@@ -52,7 +53,7 @@ public:
 private:
     
     votca::tools::Property _options;
-    list< votca::xtp::QMTool* >   _tools;
+    list< votca::ctp::QMTool* >   _tools;
     
 };
 
@@ -146,7 +147,7 @@ void XtpTools::Run() {
 
 
 void XtpTools::BeginEvaluate(int nThreads = 1) {
-    list< QMTool* > ::iterator it;
+    list< votca::ctp::QMTool* > ::iterator it;
     for (it = _tools.begin(); it != _tools.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
         (*it)->setnThreads(nThreads);
@@ -156,7 +157,7 @@ void XtpTools::BeginEvaluate(int nThreads = 1) {
 }
 
 bool XtpTools::Evaluate() {
-    list< QMTool* > ::iterator it;
+    list< votca::ctp::QMTool* > ::iterator it;
     for (it = _tools.begin(); it != _tools.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
         (*it)->Evaluate();
@@ -167,7 +168,7 @@ bool XtpTools::Evaluate() {
 }
 
 void XtpTools::EndEvaluate() {
-    list< QMTool* > ::iterator it;
+    list< votca::ctp::QMTool* > ::iterator it;
     for (it = _tools.begin(); it != _tools.end(); it++) {
         (*it)->EndEvaluate();
     }

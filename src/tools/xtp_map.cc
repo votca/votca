@@ -34,6 +34,7 @@ using namespace std;
 
 namespace CSG = votca::csg;
 namespace XTP = votca::xtp;
+namespace CTP = votca::ctp;
 namespace TOOLS = votca::tools;
 
 class XtpMap : public Application
@@ -57,7 +58,7 @@ public:
 protected:
     Property               _options;
     CSG::Topology          _mdtopol;
-    XTP::Topology          _qmtopol;
+    CTP::Topology          _qmtopol;
 
     Md2QmEngine            _md2qm;
     XTP::StateSaverSQLite  _statsav;
@@ -218,7 +219,7 @@ void XtpMap::Save(string mode) {
     _statsav.WriteFrame();
 
     if (TOOLS::globals::verbose) {
-        XTP::Topology *TopSQL = NULL;
+        CTP::Topology *TopSQL = NULL;
         TopSQL = _statsav.getTopology();
         cout << endl << "Checking topology read from SQL file." << endl;
         string pdbfile = "system.pdb";

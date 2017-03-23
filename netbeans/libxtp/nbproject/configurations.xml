@@ -147,6 +147,7 @@
       </logicalFolder>
       <logicalFolder name="f1" displayName="Factories" projectFiles="true">
         <itemPath>../../src/libxtp/calculatorfactory.cc</itemPath>
+        <itemPath>../../src/libxtp/extractorfactory.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculatorfactory.cc</itemPath>
         <itemPath>../../src/libxtp/qmpackagefactory.cc</itemPath>
         <itemPath>../../src/libxtp/toolfactory.cc</itemPath>
@@ -171,7 +172,6 @@
       <itemPath>../../src/libxtp/bulkesp.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
-      <itemPath>../../src/libxtp/extractorfactory.cc</itemPath>
       <itemPath>../../src/libxtp/fourcenter_rep.cc</itemPath>
       <itemPath>../../src/libxtp/fourcenters_dft.cc</itemPath>
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
