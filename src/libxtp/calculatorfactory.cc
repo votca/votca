@@ -21,18 +21,21 @@
 #include <votca/xtp/calculatorfactory.h>
 
 #include "calculators/neighborlist.h"
-
-
-
-
+#include "calculators/rates.h"
+#include "calculators/ianalyze.h"
+#include "calculators/eanalyze.h"
+#include "calculators/jobwriter.h"
 
 namespace votca { namespace xtp {
 
 void Calculatorfactory::RegisterAll(void)
 {	
        
-        Calculators().Register<Neighborlist>        ("neighborlist");
-        
+        Calculators().Register<Neighborlist>        ("xneighborlist");
+        Calculators().Register<Rates>               ("xrates");
+        Calculators().Register<IAnalyze>            ("xianalyze");
+        Calculators().Register<EAnalyze>            ("xeanalyze");
+        Calculators().Register<JobWriter>           ("xjobwriter");
 }
 
 }}

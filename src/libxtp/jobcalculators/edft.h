@@ -21,11 +21,11 @@
 #ifndef _VOTCA_XTP_EDFT_H
 #define	_VOTCA_XTP_EDFT_H
 
-#include <votca/xtp/segment.h>
+#include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
 
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/parallelxjobcalc.h>
+#include <votca/ctp/parallelxjobcalc.h>
 #include <unistd.h>
 
 #include <fstream>
@@ -49,7 +49,7 @@ namespace votca { namespace xtp {
 * Callname: edft
 */
 
-class EDFT : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
+class EDFT : public ctp::ParallelXJobCalc< vector<ctp::Job*>,ctp::Job*, ctp::Job::JobResult >
 {
 public:
 
@@ -58,9 +58,9 @@ public:
 
     string   Identify() { return "edft"; }
     void     Initialize(Property *options);
-    void     WriteJobFile(Topology *top);
+    void     WriteJobFile(ctp::Topology *top);
     
-    Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
+    ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *thread);
 
 private:
 
@@ -132,7 +132,7 @@ void EDFT::Initialize(Property *options) {
 
 }
 
-void EDFT::WriteJobFile(Topology *top) {
+void EDFT::WriteJobFile(ctp::Topology *top) {
 
     cout << endl << "... ... Writing job file: " << flush;
     ofstream ofs;
@@ -141,8 +141,8 @@ void EDFT::WriteJobFile(Topology *top) {
  
     ofs << "<jobs>" << endl;   
 
-    QMNBList::iterator pit;
-    QMNBList &nblist = top->NBList();    
+    ctp::QMNBList::iterator pit;
+    ctp::QMNBList &nblist = top->NBList();    
     
             
     int jobCount = 0;
@@ -155,8 +155,8 @@ void EDFT::WriteJobFile(Topology *top) {
     // (Donor - Bridge1 - Bridge2 - ... - Acceptor) type
     nblist.GenerateSuperExchange();
     
-    map< int,Segment* > segments;
-    map< int,Segment* >::iterator sit;
+    map< int,ctp::Segment* > segments;
+    map< int,ctp::Segment* >::iterator sit;
 
     for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
         
@@ -169,8 +169,8 @@ void EDFT::WriteJobFile(Topology *top) {
            this in principle is not needed since all pairs between 
            donors, acceptors, and bridges are already in the list 
          */
-        vector<Segment*> bridges = (*pit)->getBridgingSegments();
-        for ( vector<Segment*>::const_iterator bsit = bridges.begin(); bsit != bridges.end(); bsit++ ) {
+        vector<ctp::Segment*> bridges = (*pit)->getBridgingSegments();
+        for ( vector<ctp::Segment*>::const_iterator bsit = bridges.begin(); bsit != bridges.end(); bsit++ ) {
             //cout << "Bridging segment " << (*bsit)->getId() << " : " <<  (*bsit)->getName() << endl;
             segments[ (*bsit)->getId() ] = (*bsit);
         }
@@ -189,7 +189,7 @@ void EDFT::WriteJobFile(Topology *top) {
         Property *pSegment =  &pInput->add("segment" , (format("%1$s") % sit->first).str() );
         pSegment->setAttribute<string>("type", sit->second->getName() );
         pSegment->setAttribute<int>("id", sit->second->getId() );
-        Job job(id, tag, Input, Job::AVAILABLE );
+        ctp::Job job(id, tag, Input, ctp::Job::AVAILABLE );
         job.ToStream(ofs,"xml");
     }
      
@@ -203,7 +203,7 @@ void EDFT::WriteJobFile(Topology *top) {
 }
 
 
-Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
+ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *opThread) {
 
     string output;
     
@@ -214,18 +214,18 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    
     
     Orbitals _orbitals;
-    Job::JobResult jres = Job::JobResult();
+    ctp::Job::JobResult jres = ctp::Job::JobResult();
     Property _job_input = job->getInput();  
     list<Property*> lSegments = _job_input.Select( "segment" );  
-    vector < Segment* > segments;    
+    vector < ctp::Segment* > segments;    
     int segId = lSegments.front()->getAttribute<int>( "id" );
     string segType = lSegments.front()->getAttribute<string>( "type" );
 
-    Segment *seg = top->getSegment( segId );
+    ctp::Segment *seg = top->getSegment( segId );
     assert( seg->getName() == segType ); 
     segments.push_back( seg );
-    Logger* pLog = opThread->getLogger();
-    LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush; 
+    ctp::Logger* pLog = opThread->getLogger();
+    LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Evaluating site " << seg->getId() << flush; 
 
     // log, com, and orbital files will be stored in ORB_FILES/package_name/frame_x/mol_ID/
     // extracted information will be stored in  ORB_FILES/molecules/frame_x/molecule_ID.orb
@@ -264,9 +264,9 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         _run_status = _qmpackage->Run( );
         if ( !_run_status ) {
             output += "run failed; " ;
-            LOG(logERROR,*pLog) << _package << " run failed" << flush;
+            LOG(ctp::logERROR,*pLog) << _package << " run failed" << flush;
             jres.setOutput( output ); 
-            jres.setStatus(Job::FAILED);
+            jres.setStatus(ctp::Job::FAILED);
             delete _qmpackage;
             return jres;
         } else {
@@ -279,9 +279,9 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
         _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
         if ( !_parse_log_status ) {
             output += "log incomplete; ";
-            LOG(logERROR,*pLog) << "QM log incomplete" << flush;
+            LOG(ctp::logERROR,*pLog) << "QM log incomplete" << flush;
             jres.setOutput( output ); 
-            jres.setStatus(Job::FAILED);
+            jres.setStatus(ctp::Job::FAILED);
             delete _qmpackage;
             return jres;
         } else {
@@ -292,9 +292,9 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
         if ( !_parse_orbitals_status ) {
             output += "orbitals failed; " ;
-            LOG(logERROR,*pLog) << "QM orbitals not parsed" << flush;
+            LOG(ctp::logERROR,*pLog) << "QM orbitals not parsed" << flush;
             jres.setOutput( output ); 
-            jres.setStatus(Job::FAILED);
+            jres.setStatus(ctp::Job::FAILED);
             delete _qmpackage;
             return jres;
         } else {
@@ -309,19 +309,19 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
        if ( !_do_parse ) { // orbitals must be loaded from a file
            boost::filesystem::path arg_path;
            string ORB_FILE = ( arg_path / ORB_DIR / (format("molecule_%1%.orb") % ID ).str() ).c_str() ;
-           LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;  
+           LOG(ctp::logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;  
            if ( ! _orbitals.Load(ORB_FILE) ) { // did not manage to load
-               LOG(logERROR,*pLog) << "Failed loading orbitals from " << ORB_FILE << flush; 
+               LOG(ctp::logERROR,*pLog) << "Failed loading orbitals from " << ORB_FILE << flush; 
                output += "failed loading " + ORB_FILE;
                jres.setOutput( output ); 
-               jres.setStatus(Job::FAILED);
+               jres.setStatus(ctp::Job::FAILED);
                delete _qmpackage;
                return jres;
            }
         }        
        
        _orbitals.Trim(factor);   
-        LOG(logDEBUG,*pLog) << "Trimming virtual orbitals from " 
+        LOG(ctp::logDEBUG,*pLog) << "Trimming virtual orbitals from " 
          << _orbitals.getNumberOfLevels() - _orbitals.getNumberOfElectrons() << " to " 
          << _orbitals.getNumberOfElectrons()*factor << flush;   
        output += "orbitals trimmed; " ;
@@ -331,13 +331,13 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    if ( _do_parse ){
     // save orbitals
     string ORB_FILE = "molecule_" + ID + ".orb";
-    LOG(logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
+    LOG(ctp::logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
     std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
     boost::archive::binary_oarchive oa( ofs );
     oa << _orbitals;
     // ofs.close();
     
-    LOG(logDEBUG,*pLog) << "Done serializing " <<  ORB_FILE << flush;
+    LOG(ctp::logDEBUG,*pLog) << "Done serializing " <<  ORB_FILE << flush;
    }
    
   
@@ -346,7 +346,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
    _qmpackage->CleanUp();
    delete _qmpackage;
         
-    LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
+    LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
  
     Property _job_summary;
         Property *_output_summary = &_job_summary.add("output","");
@@ -360,7 +360,7 @@ Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
     
     // output of the JOB 
     jres.setOutput( _job_summary );
-    jres.setStatus(Job::COMPLETE);
+    jres.setStatus(ctp::Job::COMPLETE);
 
     // dump the LOG
     //cout << *pLog;

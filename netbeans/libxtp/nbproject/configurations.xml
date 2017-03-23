@@ -9,7 +9,6 @@
         <itemPath>../../src/libxtp/calculators/jobwriter.cc</itemPath>
         <itemPath>../../src/libxtp/calculators/jobwriter.h</itemPath>
         <itemPath>../../src/libxtp/calculators/neighborlist.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/pairdump.h</itemPath>
         <itemPath>../../src/libxtp/calculators/rates.h</itemPath>
         <itemPath>../../src/libxtp/calculators/sandbox.h</itemPath>
         <itemPath>../../src/libxtp/calculators/stateserver.h</itemPath>
@@ -20,7 +19,6 @@
         <itemPath>../../src/libxtp/jobcalculators/edft.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/egwbse.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/egwbse.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/ewald.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/idft.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/idft.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.cc</itemPath>
@@ -44,10 +42,7 @@
         <itemPath>../../src/libxtp/tools/spectrum.h</itemPath>
       </logicalFolder>
     </logicalFolder>
-    <logicalFolder name="f3"
-                   displayName="Extractors"
-                   projectFiles="true"
-                   kind="ROOT">
+    <logicalFolder name="f3" displayName="Extractors" projectFiles="true">
       <itemPath>../../src/libxtp/extractors/energyextractor.h</itemPath>
       <itemPath>../../src/libxtp/extractors/integralsextractor.h</itemPath>
       <itemPath>../../src/libxtp/extractors/occupationsextractor.h</itemPath>
@@ -550,11 +545,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/pairdump.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/calculators/rates.h"
             ex="false"
             tool="3"
@@ -675,11 +665,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/egwbse.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/ewald.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1133,11 +1118,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/calculators/pairdump.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/calculators/rates.h"
             ex="false"
             tool="3"
@@ -1258,11 +1238,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/egwbse.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/ewald.h"
             ex="false"
             tool="3"
             flavor2="0">
