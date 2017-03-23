@@ -56,6 +56,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/diis.o \
 	${OBJECTDIR}/_ext/484478074/esp2multipole.o \
 	${OBJECTDIR}/_ext/484478074/espfit.o \
+	${OBJECTDIR}/_ext/484478074/extractorfactory.o \
 	${OBJECTDIR}/_ext/484478074/fourcenter_rep.o \
 	${OBJECTDIR}/_ext/484478074/fourcenters_dft.o \
 	${OBJECTDIR}/_ext/484478074/gdma.o \
@@ -233,6 +234,11 @@ ${OBJECTDIR}/_ext/484478074/espfit.o: nbproject/Makefile-${CND_CONF}.mk ../../sr
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/espfit.o ../../src/libxtp/espfit.cc
+
+${OBJECTDIR}/_ext/484478074/extractorfactory.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/extractorfactory.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/extractorfactory.o ../../src/libxtp/extractorfactory.cc
 
 ${OBJECTDIR}/_ext/484478074/fourcenter_rep.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/fourcenter_rep.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074

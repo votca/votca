@@ -17,22 +17,22 @@
  *
  */
 
-#ifndef VOTCA_XTP_JOBCALCULATORFACTORY_H
-#define	VOTCA_XTP_JOBCALCULATORFACTORY_H
+#ifndef VOTCA_XTP_EXTRACTORFACTORY_H
+#define	VOTCA_XTP_EXTRACTORFACTORY_H
 
 #include <map>
 #include <votca/tools/objectfactory.h>
-#include <votca/ctp/jobcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 
 namespace votca { namespace xtp {
 
 using namespace std;
 
-class JobCalculatorfactory
-: public tools::ObjectFactory<std::string, ctp::JobCalculator>
+class ExtractorFactory
+: public tools::ObjectFactory< std::string, ctp::QMCalculator >
 {
 private:
-    JobCalculatorfactory() {}
+    ExtractorFactory() {}
 public:
     
     static void RegisterAll(void);
@@ -41,24 +41,24 @@ public:
        Create an instance of the object identified by key.
     *  Overwritten to load calculator defaults
     */
-    ctp::JobCalculator *Create(const string &key);
+    ctp::QMCalculator *Create(const std::string &key);
 
-    friend JobCalculatorfactory &JobCalculators();
+    friend ExtractorFactory &Extractors();
     
 };
 
-inline JobCalculatorfactory &JobCalculators()
+inline ExtractorFactory &Extractors()
 {
-    static JobCalculatorfactory _instance;
+    static ExtractorFactory _instance;
     return _instance;
 }
 
-inline ctp::JobCalculator* JobCalculatorfactory::Create(const string &key)
+inline ctp::QMCalculator* ExtractorFactory::Create(const std::string &key)
 {
     assoc_map::const_iterator it(getObjects().find(key));
     if (it != getObjects().end()) {
-        ctp::JobCalculator* calc = (it->second)();
-        calc->LoadDefaults();
+        ctp::QMCalculator* calc = (it->second)();
+        // calc->LoadDefaults();
         return calc;
     } else
         throw std::runtime_error("factory key " + key + " not found.");
@@ -66,5 +66,5 @@ inline ctp::JobCalculator* JobCalculatorfactory::Create(const string &key)
 
 }}
 
-#endif	/* _Calculatorfactory_H */
+#endif	/* VOTCA_XTP_EXTRACTORFACTORY_H.h */
 

@@ -27,7 +27,7 @@ namespace votca { namespace xtp {
 
 
 
-class QMPackageFactory : public ObjectFactory<std::string, QMPackage>
+class QMPackageFactory : public tools::ObjectFactory<std::string, QMPackage>
 {
 private:
     QMPackageFactory() {

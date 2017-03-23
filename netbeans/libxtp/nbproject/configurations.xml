@@ -44,6 +44,18 @@
         <itemPath>../../src/libxtp/tools/spectrum.h</itemPath>
       </logicalFolder>
     </logicalFolder>
+    <logicalFolder name="f3"
+                   displayName="Extractors"
+                   projectFiles="true"
+                   kind="ROOT">
+      <itemPath>../../src/libxtp/extractors/energyextractor.h</itemPath>
+      <itemPath>../../src/libxtp/extractors/integralsextractor.h</itemPath>
+      <itemPath>../../src/libxtp/extractors/occupationsextractor.h</itemPath>
+      <itemPath>../../src/libxtp/extractors/pairsextractor.h</itemPath>
+      <itemPath>../../src/libxtp/extractors/ratesextractor.h</itemPath>
+      <itemPath>../../src/libxtp/extractors/segmentsextractor.h</itemPath>
+      <itemPath>../../src/libxtp/extractors/trajextractor.h</itemPath>
+    </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
@@ -61,6 +73,7 @@
       <itemPath>../../include/votca/xtp/esp2multipole.h</itemPath>
       <itemPath>../../include/votca/xtp/espfit.h</itemPath>
       <itemPath>../../include/votca/xtp/exchange_correlation.h</itemPath>
+      <itemPath>../../include/votca/xtp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/gdma.h</itemPath>
       <itemPath>../../include/votca/xtp/glink.h</itemPath>
       <itemPath>../../include/votca/xtp/gnode.h</itemPath>
@@ -158,6 +171,7 @@
       <itemPath>../../src/libxtp/bulkesp.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
+      <itemPath>../../src/libxtp/extractorfactory.cc</itemPath>
       <itemPath>../../src/libxtp/fourcenter_rep.cc</itemPath>
       <itemPath>../../src/libxtp/fourcenters_dft.cc</itemPath>
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
@@ -328,6 +342,11 @@
       <item path="../../include/votca/xtp/espfit.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/exchange_correlation.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/extractorfactory.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -561,6 +580,46 @@
       <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractorfactory.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/energyextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/integralsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/occupationsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/pairsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/ratesextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/segmentsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/trajextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -870,6 +929,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/extractorfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/glink.h" ex="false" tool="3" flavor2="0">
@@ -1099,6 +1163,46 @@
       <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractorfactory.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/energyextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/integralsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/occupationsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/pairsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/ratesextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/segmentsextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/extractors/trajextractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
