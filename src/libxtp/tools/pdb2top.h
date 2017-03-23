@@ -488,7 +488,7 @@ void PDB2Top::readGRO(){
                         "... ... Make sure this line is GRO style\n");
             }
             
-            tools:vec r(_xd , _yd , _zd);
+            tools::vec r(_xd , _yd , _zd);
                 
             // set fragment
             // reconnect to topology, molecule, segment

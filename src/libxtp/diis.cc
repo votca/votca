@@ -182,7 +182,7 @@ namespace votca { namespace xtp {
       
       
       
-      if(max>_levelshiftend && _levelshift>0.00001){
+      if(max>_levelshiftend && _levelshift>0.00001 || gap<1e-7){
         Levelshift(H_guess,dmat,_levelshift,_unrestricted);
       }
       SolveFockmatrix( MOenergies,MOs,H_guess);
