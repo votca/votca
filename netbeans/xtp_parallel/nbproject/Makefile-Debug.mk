@@ -72,8 +72,8 @@ LDLIBSOPTIONS=../libxtp/dist/Debug/GNU-Linux-x86/liblibxtp.a ../../../csg/netbea
 
 ${OBJECTDIR}/_ext/715944016/xtp_parallel.o: ../../src/tools/xtp_parallel.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} $@.d
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../xtp/include -I../../../csg/include -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/xtp_parallel.o ../../src/tools/xtp_parallel.cc
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../xtp/include -I../../../csg/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/715944016/xtp_parallel.o ../../src/tools/xtp_parallel.cc
 
 # Subprojects
 .build-subprojects:

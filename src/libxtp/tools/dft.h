@@ -22,13 +22,12 @@
 
 #include <stdio.h>
 
-#include <votca/ctp/atom.h>
-#include <votca/ctp/segment.h>
-
 #include <votca/ctp/logger.h>
 #include <votca/xtp/dftengine.h>
 #include <votca/xtp/qmpackagefactory.h>
-
+#include <votca/ctp/atom.h>
+#include <votca/ctp/segment.h>
+#include <votca/ctp/apolarsite.h>
 
 namespace votca { namespace xtp {
     using namespace std;
@@ -54,7 +53,8 @@ private:
     string      _xyzfile;
 
     string      _logfile;
-
+    string      _guess_file;
+    bool        _do_guess;
     string      _package;
     Property    _package_options;
     Property    _dftengine_options;
@@ -64,10 +64,11 @@ private:
     string      _reporting;    
     ctp::Logger      _log;
     
-  
-    void XYZ2Orbitals( Orbitals* _orbitals, string filename);
-    //void Coord2Segment(Segment* _segment );
+    string      _mpsfile;
+    bool        _do_external;
     
+    void XYZ2Orbitals( Orbitals* _orbitals, string filename);
+   
 
 };
 
@@ -92,35 +93,46 @@ void DFT::Initialize(Property* options) {
             _reporting =  options->get(key + ".reporting").as<string> ();
 
             // options for dft package
-            string _package_xml = options->get(key + ".package").as<string> ();
+            
             //cout << endl << "... ... Parsing " << _package_xml << endl ;
-            load_property_from_xml(_package_options, _package_xml.c_str());
-            key = "package";
-            _package = _package_options.get(key + ".name").as<string> ();
+            
 
     
 
-            // options for GWBSE package
+            // options for dftengine
 key = "options." + Identify();
+
+
+
+if(options->exists(key+".guess")){
+    _do_guess=true;
+    _guess_file = options->get(key + ".guess").as<string> ();
+   
+}else{
+    _do_guess=false;
+}
+if(options->exists(key+".dftengine")){
+    string _dftengine_xml = options->get(key + ".dftengine").as<string> ();
+    load_property_from_xml(_dftengine_options, _dftengine_xml.c_str());
+}
+else if( options->exists(key+".package")){
+        string _package_xml = options->get(key + ".package").as<string> ();
+        key = "package";
+        _package = _package_options.get(key + ".name").as<string> ();
+        load_property_from_xml(_package_options, _package_xml.c_str());
+        key = "options." + Identify();
         _logfile = options->get(key + ".molecule.log").as<string> ();
         _orbfile = options->get(key + ".molecule.orbitals").as<string> ();
-            string _dftengine_xml = options->get(key + ".dftengine").as<string> ();
-            //cout << endl << "... ... Parsing " << _package_xml << endl ;
-            load_property_from_xml(_dftengine_options, _dftengine_xml.c_str());
+        }
 
-            
-            // job tasks
-            /*string _tasks_string = options->get(key + ".tasks").as<string> ();
-            if (_tasks_string.find("input") != std::string::npos) _do_dft_input = true;
-            if (_tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
-            if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
-            if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
-            if (_tasks_string.find("optimize") != std::string::npos) _do_optimize = true;
-	    */           
- 
-            
-            // something unique
-            // _package = options->get(key + ".package").as<string> ();
+        
+if(options->exists(key+".mpsfile")){
+    _do_external=true;
+  _mpsfile = options->get(key + ".mpsfile").as<string> (); 
+}  else{
+       _do_external=false;       
+}
+         
 
             // initial coordinates
 	    _xyzfile = options->get(key + ".xyz").as<string>();
@@ -157,86 +169,30 @@ bool DFT::Evaluate() {
 
     // Create new orbitals object and fill with atom coordinates
     Orbitals _orbitals;
-    XYZ2Orbitals( &_orbitals, _xyzfile );
-
-    vector <ctp::Segment* > _segments;
-    // Create a new segment
-    ctp::Segment _segment(0, "mol");
-                
-    //    if (_do_dft_input) {
-    //       ReadXYZ( &_segment, _xyzfile );
-
-                ifstream in;
-                double x, y, z;
-                //int natoms, id;
-                int id;
-                string label, type;
-                vec pos;
-
-                LOG(ctp::logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
-                in.open(_xyzfile.c_str(), ios::in);
-                if (!in) throw runtime_error(string("Error reading coordinates from: ")
-                        + _xyzfile);
-
-                id = 1;
-                while (in.good()) { // keep reading until end-of-file
-                    in >> type;
-                    in >> x;
-                    in >> y;
-                    in >> z;
-                    if (in.eof()) break;
-                    // cout << type << ":" << x << ":" << y << ":" << z << endl;
-
-                    // creating atoms and adding them to the molecule
-                    ctp::Atom *pAtom = new ctp::Atom(id++, type);
-                    vec position(x / 10, y / 10, z / 10); // xyz has Angstrom, votca stores nm
-                    pAtom->setPos(position);
-                    pAtom->setQMPart(id, position);
-                    pAtom->setElement(type);
-                    _segment.AddAtom(pAtom);
-
-                }
-                in.close();
-
-
-
-       _segments.push_back(&_segment);
-       //}
-
-
-    //cout << "here" << endl;
-    // get the corresponding object from the QMPackageFactory
-        QMPackage *_qmpackage =  QMPackages().Create( _package );
-    _qmpackage->setLog( &_log );       
-    _qmpackage->Initialize( &_package_options );
-    // set the run dir 
-    _qmpackage->setRunDir(".");
-          _qmpackage->WriteInputFile( _segments, &_orbitals );
-
-	  //       if ( _do_dft_run ){
-          _qmpackage->Run();
-	  //}
-
-      // parse DFT data, if required
-      //if ( _do_dft_parse ){
-        LOG(ctp::logDEBUG,_log) << "Parsing DFT data " << _output_file << flush;
-        _qmpackage->setOrbitalsFileName( _orbfile );
-        //int _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
-        _qmpackage->ParseOrbitalsFile( &_orbitals );
-        _qmpackage->setLogFileName( _logfile );
-        _qmpackage->ParseLogFile( &_orbitals );
-        //int _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
-        _orbitals.setDFTbasis(_qmpackage->getBasisSetName());
- 
+    
+    if(_do_guess){
+        LOG(ctp::logDEBUG,_log) << "Reading guess from " << _guess_file << flush;
+        _orbitals.Load(_guess_file);
         
-
-
+    }
+    else{
+        LOG(ctp::logDEBUG,_log) << "Reading structure from " << _xyzfile << flush;
+    XYZ2Orbitals( &_orbitals, _xyzfile );
+    
+    }
+ 
 
 
     // initialize the DFTENGINE
     DFTENGINE _dft;
     _dft.Initialize( &_dftengine_options );
     _dft.setLogger(&_log);
+    
+     if(_do_external){
+      vector<ctp::APolarSite*> sites=ctp::APS_FROM_MPS(_mpsfile,0);
+      _dft.setExternalcharges(sites);
+       }
+    
     // RUN
     _dft.Evaluate( &_orbitals );
 
@@ -257,7 +213,7 @@ bool DFT::Evaluate() {
     Property _summary; 
     _summary.add("output","");
     //Property *_job_output = &_summary.add("output","");
-    votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
+    tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
      
     //ofs (_output_file.c_str(), std::ofstream::out);
     //ofs << *_job_output;    
@@ -265,9 +221,6 @@ bool DFT::Evaluate() {
     
     return true;
 }
-
-
-
 
 
 
@@ -305,9 +258,11 @@ void DFT::XYZ2Orbitals(Orbitals* _orbitals, string filename){
                 in.close();
 
 
-
-                return;
+  
+    
 }
+
+
 
   
   

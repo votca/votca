@@ -468,11 +468,11 @@ namespace votca {
                     // LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Trying DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
 
 
-                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca");
+                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
 
 
 
-                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Integrating Vxc in VOTCA with gridsize: " << _grid << " and functional " << _functional << flush;
                     ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
                     _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT, &dftbasis, _functional);
@@ -494,9 +494,9 @@ namespace votca {
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
 
                 // b) reorder MO coefficients depending on the QM package used to obtain the DFT data
-                if (_dft_package != "votca" && !_doVxc) {
-                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "votca");
-                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
+                if (_dft_package != "xtp" && !_doVxc) {
+                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
+                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;
                 }
             }
 

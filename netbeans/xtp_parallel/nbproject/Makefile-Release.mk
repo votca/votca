@@ -64,8 +64,8 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/xtp_parallel: ${OBJECTFILES}
 
 ${OBJECTDIR}/_ext/715944016/xtp_parallel.o: ../../src/tools/xtp_parallel.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
-	${RM} $@.d
-	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/715944016/xtp_parallel.o ../../src/tools/xtp_parallel.cc
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/715944016/xtp_parallel.o ../../src/tools/xtp_parallel.cc
 
 # Subprojects
 .build-subprojects:

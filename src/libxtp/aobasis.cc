@@ -96,7 +96,7 @@ void AOBasis::MultiplyMOs(ub::matrix<double> &v, vector<int> const &multiplier )
                
            }
        } 
-
+//this is for gaussian only to transform from gaussian ordering cartesian to spherical in gaussian ordering not more
 void AOBasis::getTransformationCartToSpherical( string& package, ub::matrix<double>& _trafomatrix ){
 
     if ( package != "gaussian" ){

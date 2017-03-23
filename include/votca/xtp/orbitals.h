@@ -22,7 +22,8 @@
 
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
-
+//for openmp
+#include <votca/xtp/votca_config.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/ctp/qmatom.h>

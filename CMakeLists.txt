@@ -44,6 +44,7 @@ endif()
 
 find_package(LIBXC)
 if (LIBXC_FOUND)
+    message("-- LIBXC found")
 	include_directories(${LIBXC_INCLUDE_DIRS})
 	set (LIBXC TRUE )
 else()

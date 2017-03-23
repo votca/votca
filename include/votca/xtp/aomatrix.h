@@ -23,7 +23,7 @@
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
 #include <votca/ctp/apolarsite.h>
-
+#include <votca/xtp/votca_config.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>

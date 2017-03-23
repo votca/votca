@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2016 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -10,15 +10,16 @@
  *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "A_ol I_ol" BA_olI_ol,
- * WITHOUT WARRANTIE_ol OR CONDITION_ol OF ANY KIND, either express or implied.
- * _olee the License for the specific language governing permissions and
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  */
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
-
+//for libxc
+#include <votca/xtp/votca_config.h>
 
 #include <votca/xtp/numerical_integrations.h>
 #include <boost/math/constants/constants.hpp>
@@ -249,7 +250,8 @@ namespace votca {
                 _use_separate = true;
             }
             else {
-                throw std::runtime_error("Please specify one combined or an exchange and a correlation functionals");
+                cout<<"LIBXC "<<strs.size()<<endl;
+                throw std::runtime_error("With LIBXC. Please specify one combined or an exchange and a correlation functionals");
 
             }
             xc_func_type xfunc; // handle for exchange functional
@@ -282,7 +284,7 @@ namespace votca {
                 xfunc_id = map.getID(strs[0]);
             }   
          else {
-                throw std::runtime_error("Please specify one combined or an exchange and a correlation functionals");
+                throw std::runtime_error("Running without LIBXC, Please specify one combined or an exchange and a correlation functionals");
          }
 #endif
             

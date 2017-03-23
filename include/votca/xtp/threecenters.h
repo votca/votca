@@ -22,7 +22,10 @@
 #define BOOST_DISABLE_ASSERTS //could be used to slighlty speed up calculation but the compile time simply goes boom
 #include <boost/multi_array.hpp>
 #include <votca/xtp/aomatrix.h>
+//matrix prod overload
 #include <votca/tools/linalg.h>
+//openmp 
+#include <votca/xtp/votca_config.h>
 #include <votca/xtp/orbitals.h>
 #ifdef _OPENMP
 #include <omp.h>

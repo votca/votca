@@ -291,7 +291,7 @@ namespace votca {
                 // fill DFT AO basis by going through all atoms 
                 AOBasis dftbasis;
                 dftbasis.AOBasisFill(&dftbs, _orbitals.QMAtoms());
-                dftbasis.ReorderMOs(_dft_orbitals, _orbitals.getQMpackage(), "votca");
+                dftbasis.ReorderMOs(_dft_orbitals, _orbitals.getQMpackage(), "xtp");
 
                 
                 // now depending on the type of cube
