@@ -22,13 +22,14 @@
 #include <iostream>
 #include <votca/xtp/sqlapplication.h>
 #include <votca/xtp/calculatorfactory.h>
+#include <votca/ctp/calculatorfactory.h>
 
 
 using namespace std;
-using namespace votca::xtp;
+using namespace votca;
 
 
-class XtpRun : public SqlApplication
+class XtpRun : public xtp::SqlApplication
 {
 public:
 
@@ -49,8 +50,9 @@ private:
 namespace propt = boost::program_options;
 
 void XtpRun::Initialize() {
-
-    SqlApplication::Initialize();
+    xtp::Calculatorfactory::RegisterAll();
+    ctp::Calculatorfactory::RegisterAll();
+    xtp::SqlApplication::Initialize();
 
     AddProgramOptions("Calculators") ("execute,e", propt::value<string>(),
                       "List of calculators separated by ',' or ' '");
@@ -63,13 +65,19 @@ void XtpRun::Initialize() {
 bool XtpRun::EvaluateOptions() {
 
     string helpdir = "xtp/xml";
-    
+    string ctphelpdir="ctp/xml";
     if (OptionsMap().count("list")) {
-            cout << "Available calculators: \n";
-            for(Calculatorfactory::assoc_map::const_iterator iter=
-                    Calculators().getObjects().begin();
-                    iter != Calculators().getObjects().end(); ++iter) {
+            cout << "Available XTP calculators: \n";
+            for(xtp::Calculatorfactory::assoc_map::const_iterator iter=
+                    xtp::Calculators().getObjects().begin();
+                    iter != xtp::Calculators().getObjects().end(); ++iter) {
                 PrintDescription( std::cout, (iter->first), helpdir, Application::HelpShort );
+            }
+            cout << "Available (wrapped) CTP calculators: \n";
+            for(ctp::Calculatorfactory::assoc_map::const_iterator iter=
+                    ctp::Calculators().getObjects().begin();
+                    iter != ctp::Calculators().getObjects().end(); ++iter) {
+                PrintDescription( std::cout, (iter->first), ctphelpdir, Application::HelpShort );
             }
             StopExecution();
             return true;
@@ -83,11 +91,20 @@ bool XtpRun::EvaluateOptions() {
             for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
                 // loop over calculators
                 bool printerror = true;
-                for(Calculatorfactory::assoc_map::const_iterator iter=Calculators().getObjects().begin(); 
-                        iter != Calculators().getObjects().end(); ++iter) {
+                for(xtp::Calculatorfactory::assoc_map::const_iterator iter=xtp::Calculators().getObjects().begin(); 
+                        iter != xtp::Calculators().getObjects().end(); ++iter) {
 
                     if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
                         PrintDescription( std::cout, (iter->first), helpdir, Application::HelpLong );
+                        printerror = false;
+                        break;
+                    }
+                 }
+                for(ctp::Calculatorfactory::assoc_map::const_iterator iter=ctp::Calculators().getObjects().begin(); 
+                        iter != ctp::Calculators().getObjects().end(); ++iter) {
+
+                    if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
+                        PrintDescription( std::cout, (iter->first), ctphelpdir, Application::HelpLong );
                         printerror = false;
                         break;
                     }
@@ -98,14 +115,14 @@ bool XtpRun::EvaluateOptions() {
             return true;     
     }
 
-    SqlApplication::EvaluateOptions();
+    xtp::SqlApplication::EvaluateOptions();
     CheckRequired("options", "Please provide an xml file with calculator options");
     CheckRequired("execute", "Nothing to do here: Abort.");
 
     Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
     Tokenizer::iterator it;
     for (it = calcs.begin(); it != calcs.end(); it++) {
-        SqlApplication::AddCalculator(Calculators().Create((*it).c_str()));
+        xtp::SqlApplication::AddCalculator(xtp::Calculators().Create((*it).c_str()));
     }
     
     load_property_from_xml(_options, _op_vm["options"].as<string>());

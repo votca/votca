@@ -23,12 +23,14 @@
 #include <votca/xtp/sqlapplication.h>
 #include <votca/xtp/extractorfactory.h>
 
+#include <votca/ctp/extractorfactory.h>
+
 
 using namespace std;
-using namespace votca::xtp;
+using namespace votca;
 
 
-class XtpDump : public SqlApplication
+class XtpDump : public xtp::SqlApplication
 {
 public:
 
@@ -49,8 +51,10 @@ private:
 namespace propt = boost::program_options;
 
 void XtpDump::Initialize() {
-    ExtractorFactory::RegisterAll();
-    SqlApplication::Initialize();
+    xtp::ExtractorFactory::RegisterAll();
+    ctp::ExtractorFactory::RegisterAll();
+    xtp::SqlApplication::Initialize();
+   
 
     AddProgramOptions("Extractors") ("extract,e", propt::value<string>(),
                       "List of extractors separated by ',' or ' '");
@@ -63,11 +67,17 @@ void XtpDump::Initialize() {
 bool XtpDump::EvaluateOptions() {
 
     if (OptionsMap().count("list")) {
-            cout << "Available extractors: \n";
-            for(ExtractorFactory::assoc_map::const_iterator iter=
-                    Extractors().getObjects().begin();
-                    iter != Extractors().getObjects().end(); ++iter) {
+            cout << "Available XTP extractors: \n";
+            for(xtp::ExtractorFactory::assoc_map::const_iterator iter=
+                    xtp::Extractors().getObjects().begin();
+                    iter != xtp::Extractors().getObjects().end(); ++iter) {
                     PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpShort );
+            }
+            cout << "Available (wrapped) CTP calculators: \n";
+            for(ctp::ExtractorFactory::assoc_map::const_iterator iter=
+                    ctp::Extractors().getObjects().begin();
+                    iter != ctp::Extractors().getObjects().end(); ++iter) {
+                    PrintDescription(std::cout, iter->first, "ctp/xml", Application::HelpShort );
             }
             StopExecution();
             return true;
@@ -76,16 +86,25 @@ bool XtpDump::EvaluateOptions() {
     
     if (OptionsMap().count("description")) {
             CheckRequired("description", "no extractor is given");
- 	    Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
+ 	    tools::Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
             // loop over the names in the description string
-            for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
+            for (tools::Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
                 // loop over calculators
                 bool printerror = true;
-                for(ExtractorFactory::assoc_map::const_iterator iter=Extractors().getObjects().begin(); 
-                        iter != Extractors().getObjects().end(); ++iter) {
+                for(xtp::ExtractorFactory::assoc_map::const_iterator iter=xtp::Extractors().getObjects().begin(); 
+                        iter != xtp::Extractors().getObjects().end(); ++iter) {
 
                     if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
                         PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpLong );
+                        printerror = false;
+                        break;
+                    }
+                 }
+                for(ctp::ExtractorFactory::assoc_map::const_iterator iter=ctp::Extractors().getObjects().begin(); 
+                        iter != ctp::Extractors().getObjects().end(); ++iter) {
+
+                    if ( (*n).compare( (iter->first).c_str() ) == 0 ) {
+                        PrintDescription(std::cout, iter->first, "ctp/xml", Application::HelpLong );
                         printerror = false;
                         break;
                     }
@@ -96,13 +115,26 @@ bool XtpDump::EvaluateOptions() {
             return true;
     }
 
-    SqlApplication::EvaluateOptions();
+    xtp::SqlApplication::EvaluateOptions();
     CheckRequired("extract", "Nothing to do here: Abort.");
 
-    Tokenizer calcs(OptionsMap()["extract"].as<string>(), " ,\n\t");
-    Tokenizer::iterator it;
+    tools::Tokenizer calcs(OptionsMap()["extract"].as<string>(), " ,\n\t");
+    tools::Tokenizer::iterator it;
     for (it = calcs.begin(); it != calcs.end(); it++) {
-        SqlApplication::AddCalculator(Extractors().Create((*it).c_str()));
+        bool _found_calc = false;
+       for(xtp::ExtractorFactory::assoc_map::const_iterator iter=xtp::Extractors().getObjects().begin(); 
+                        iter != xtp::Extractors().getObjects().end(); ++iter) {
+        
+            if ( (*it).compare( (iter->first).c_str() ) == 0 ) {
+                cout << " This is a XTP app" << endl;
+                xtp::SqlApplication::AddCalculator(xtp::Extractors().Create((*it).c_str()));
+                _found_calc = true;
+            } 
+        }
+        
+         if ( !_found_calc ){
+            xtp::SqlApplication::AddCalculator(ctp::Extractors().Create((*it).c_str()));    
+        }
     }
     return true;
 }

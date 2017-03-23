@@ -52,7 +52,7 @@ public:
 protected:
     
     bool _generate_input, _run, _import;
-   ctp::Topology           _top;
+    ctp::Topology           _top;
     std::list< ctp::JobCalculator* >   _calculators;
 
 };
