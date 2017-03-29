@@ -34,7 +34,7 @@ public:
 
     typedef void (JobWriter::*WriteFunct)(ctp::Topology*);
     
-    std::string Identify() { return "jobwriter"; }
+    std::string Identify() { return "xjobwriter"; }
     void Initialize(tools::Property *options);
     bool EvaluateFrame(ctp::Topology *top);    
     

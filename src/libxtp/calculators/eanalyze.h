@@ -34,7 +34,7 @@ public:
     EAnalyze() { };
    ~EAnalyze() { };
 
-    std::string Identify() { return "eanalyze"; }
+    std::string Identify() { return "xeanalyze"; }
 
     void Initialize(tools::Property *opt);
     bool EvaluateFrame(ctp::Topology *top);

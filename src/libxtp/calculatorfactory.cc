@@ -25,6 +25,7 @@
 #include "calculators/ianalyze.h"
 #include "calculators/eanalyze.h"
 #include "calculators/jobwriter.h"
+#include "calculators/einternal.h"
 
 namespace votca { namespace xtp {
 
@@ -36,6 +37,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<IAnalyze>            ("xianalyze");
         Calculators().Register<EAnalyze>            ("xeanalyze");
         Calculators().Register<JobWriter>           ("xjobwriter");
+        Calculators().Register<EInternal>           ("xeinternal");
 }
 
 }}

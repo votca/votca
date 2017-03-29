@@ -36,7 +36,7 @@ public:
     StateServer() { };
    ~StateServer() { };
 
-    string Identify() { return "stateserver"; }
+    string Identify() { return "xstateserver"; }
 
     void Initialize(Property *options);
     bool EvaluateFrame(ctp::Topology *top);

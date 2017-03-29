@@ -35,7 +35,7 @@ public:
     Rates() { };
    ~Rates() { };
 
-    std::string Identify() { return "rates"; }
+    std::string Identify() { return "xrates"; }
 
     void Initialize(tools::Property *options);
     void ParseEnergiesXML(ctp::Topology *top, tools::Property *opt);

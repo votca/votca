@@ -1,6 +1,6 @@
 <options>
 
-<eanalyze help="Histogram and correlation function of site energies and pair energy differences" section="sec:eanalyze">
+<xeanalyze help="Histogram and correlation function of site energies and pair energy differences" section="sec:xeanalyze">
 
 	<resolution_sites help="Bin size for site energy histogram" unit="eV">0.01</resolution_sites>
 	<resolution_pairs help="Bin size for pair energy histogram" unit="eV">0.01</resolution_pairs>
@@ -10,6 +10,6 @@
 	<!--atomic_first>1</atomic_first-->
 	<!--atomic_last>-1</atomic_last-->
 
-</eanalyze>
+</xeanalyze>
 
 </options>
