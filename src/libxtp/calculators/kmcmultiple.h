@@ -52,34 +52,9 @@ namespace votca { namespace xtp {
     const static double epsr = 3.0; // relative material permittivity
     const static double Pi   = 3.14159265358979323846;
 
-//int OMPinfo() 
-//{
-//    int nthreads=1, tid=0, procs, inpar=0;
-//    printf("\n||\n|| openMP PARALLEL COMPUTATION STATUS:\n");
-//    #pragma omp parallel private(tid)
-//    {
-//        # ifdef _OPENMP
-//        tid = omp_get_thread_num();
-//        if (tid == 0) 
-//        {
-//            procs = omp_get_num_procs();
-//            nthreads = omp_get_num_threads();
-//            inpar = omp_in_parallel();
-//            printf("|| Number of processors = %d\n", procs);
-//            printf("|| Number of threads = %d\n", nthreads);
-//    
-//        }
-//        # endif
-//        if (tid == 0) 
-//        {
-//            printf("|| In parallel? = %d\n||\n", inpar);
-//        }
-//    }
-//    return nthreads;
-//}
 
 
-class KMCMultiple : public KMCCalculator 
+class KMCMultiple : public ctp::QMCalculator 
 {
 public:
     KMCMultiple() {};
