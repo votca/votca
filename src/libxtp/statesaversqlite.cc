@@ -234,7 +234,7 @@ void StateSaverSQLite::WriteSegments(bool update) {
     cout << ", segments" << flush;
     Statement *stmt;
     
-     // Find out whether pairs for this topology have already been created
+     // Find out whether segments for this topology have already been created
     stmt = _db.Prepare("SELECT id FROM segments WHERE top = ?;");
     stmt->Bind(1, _qmtop->getDatabaseId());
     if (stmt->Step() == SQLITE_DONE) {        
@@ -254,7 +254,7 @@ void StateSaverSQLite::WriteSegments(bool update) {
     delete stmt;
     stmt = NULL;
     
-    
+   
 
     
     stmt = _db.Prepare("INSERT INTO segments ("
@@ -280,14 +280,13 @@ void StateSaverSQLite::WriteSegments(bool update) {
                            "?, ?, ?, ?, "
                            "?, ?, ?, ? "
                            ")");
-
-
+   
     std::vector < ctp::Segment* > ::iterator sit;
     for (sit = _qmtop->Segments().begin();
             sit < _qmtop->Segments().end();
             sit++) {
         ctp::Segment *seg = *sit;
-
+        
         
 
             stmt->Bind(1, _qmtop->getDatabaseId());
@@ -300,10 +299,7 @@ void StateSaverSQLite::WriteSegments(bool update) {
             stmt->Bind(8, seg->getPos().getY());
             stmt->Bind(9, seg->getPos().getZ());
        
-            int has_e = (seg->hasState(-1)) ? 1 : 0;
-            int has_h = (seg->hasState(+1)) ? 1 : 0;
-            int has_s = (seg->hasState(+2)) ? 1 : 0;
-            int has_t = (seg->hasState(+3)) ? 1 : 0;
+            
             
             stmt->Bind(10, seg->getU_nC_nN(-1));
             stmt->Bind(11, seg->getU_nC_nN(+1));
@@ -326,11 +322,16 @@ void StateSaverSQLite::WriteSegments(bool update) {
             stmt->Bind(28,seg->getOcc(+1));
             stmt->Bind(29,seg->getOcc(+2));
             stmt->Bind(30,seg->getOcc(+3));
+            
+            int has_e = (seg->hasState(-1)) ? 1 : 0;
+            int has_h = (seg->hasState(+1)) ? 1 : 0;
+            int has_s = (seg->hasState(+2)) ? 1 : 0;
+            int has_t = (seg->hasState(+3)) ? 1 : 0;
             stmt->Bind(31,has_e);
             stmt->Bind(32,has_h);
             stmt->Bind(33,has_s);
             stmt->Bind(34,has_t);
-            //cout << seg->getU_nX_nN(+2) << seg->getU_xN_xX(+2) << endl;
+           //cout << seg->getU_nX_nN(+2) << seg->getU_xN_xX(+2) << endl;
             
         stmt->InsertStep();
         stmt->Reset();

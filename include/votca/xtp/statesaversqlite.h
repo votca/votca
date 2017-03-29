@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 #include <map>
-#include <votca/ctp/qmdatabase.h>
+#include <votca/xtp/qmdatabase.h>
 #include <votca/ctp/topology.h>
 #include <boost/interprocess/sync/file_lock.hpp>
 
@@ -70,7 +70,7 @@ public:
     
 private:
     ctp::Topology       *_qmtop;
-    ctp::QMDatabase      _db;
+    QMDatabase      _db;
 
     int             _frame;
     int             _current_frame;

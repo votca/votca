@@ -106,6 +106,7 @@ bool IAnalyze::EvaluateFrame(ctp::Topology *top) {
     }
 
     for (unsigned int i = 0; i < _states.size(); ++i) {
+        
         this->IHist(top, _states[i]);
         if (_do_IRdependence){
         this->IRdependence(top, _states[i]);
@@ -137,7 +138,7 @@ void IAnalyze::IHist(ctp::Topology *top, int state) {
             }
         }
         double test = (*nit)->getJeff2(state);
-        double J2;
+        double J2=0.0;
  
         if(test <= 0) {continue;} // avoid -inf in output
         J2=log10(test);
@@ -145,14 +146,18 @@ void IAnalyze::IHist(ctp::Topology *top, int state) {
         
         MIN = (J2 < MIN) ? J2 : MIN;
         MAX = (J2 > MAX) ? J2 : MAX;
-
         J2s.push_back(J2);
        
+    }
+    
+    if(J2s.size()<1){
+        std::cerr <<"Error: Couplings are all zero. You have not yet imported them! "<<std::endl;
+        std::exit(0);
     }
 
     // Prepare bins
     int BIN = ( (MAX-MIN)/_resolution_logJ2 + 0.5 ) + 1;
-
+    std::cout<<BIN<<std::endl;
     std::vector< std::vector<double> > histJ2;
 
     histJ2.resize(BIN);
@@ -178,7 +183,7 @@ void IAnalyze::IHist(ctp::Topology *top, int state) {
     else if (state==3) name="t";
     std::string tag = boost::lexical_cast<std::string>("ianalyze.ihist_") +name + ".out";
     out = fopen(tag.c_str(), "w");
-
+    std::cout << std::endl << "... Printing to tag.c_str()";
     fprintf(out, "# IANALYZE: PAIR-INTEGRAL J2 HISTOGRAM\n");
     fprintf(out, "# STATE %1d\n", state);
 
