@@ -22,10 +22,8 @@
 #include <votca/xtp/aomatrix.h>
 
 #include <votca/xtp/aobasis.h>
+
 #include <vector>
-
-#include <boost/math/constants/constants.hpp>
-
 
 
 
@@ -335,7 +333,8 @@ namespace votca { namespace xtp {
                 COEF[1][3][3][i4] = NG/2.0*sqrt(5.0)*(3.0/FN3-1.0/FN1);
                 COEF[2][1][3][i4] = COEF[1][2][3][i4];
                 COEF[2][2][3][i4] = NG*3.0/FN3;
-                COEF[2][2][4][i4] = 3.0/2.0*NG*(1.0/FN1-1.0/FN3);
+/////////                COEF[2][2][4][i4] = 3.0/2.0*NG*(1.0/FN1-1.0/FN3);    (3/2) * ( M0(x) - M2(x) )     factor (3/2) wrong !
+                COEF[2][2][4][i4] = NG*(1.0/FN1-1.0/FN3);     ////////          M0(x) - M2(x) 
                 COEF[2][2][2][i4] = COEF[2][2][4][i4];
                 COEF[2][3][3][i4] = sqrt(15.0)/2.0*NU*(3.0/FN4-1.0/FN2);
                 COEF[2][3][4][i4] = sqrt(45.0)/2.0*NU*(1.0/FN2-1.0/FN4);
