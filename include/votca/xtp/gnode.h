@@ -21,8 +21,7 @@
 #include <votca/tools/vec.h>
 #include <votca/xtp/glink.h>
 
-using namespace std;
-using namespace votca::xtp;
+
 
 
 namespace votca { namespace xtp {
@@ -31,25 +30,28 @@ class GNode
 {
     public:
         GNode():hasdecay(false){};
+        
         ~GNode(){};
 
         int id;
         int occupied;
         int injectable;
         double occupationtime;
-        double escaperate;
+        double escape_rate;
         bool hasdecay;
-        votca::tools::vec position;
-        vector<GLink> event;
+        tools::vec position;
+        std::vector<GLink> events;
         // stuff for Coulomb interaction:
         double siteenergy;
         double reorg_intorig; // UnCnN
         double reorg_intdest; // UcNcC
     
-        void AddEvent(int seg2, double rate12, votca::tools::vec dr, double Jeff2, double reorg_out);
-        const double &getEscapeRate(){return escaperate;}
+        void AddEvent(int seg2, double rate12, tools::vec dr, double Jeff2, double reorg_out);
+        const double &getEscapeRate(){return escape_rate;}
         void InitEscapeRate();
         void AddDecayEvent(double _decayrate);
+        void ReadfromSegment(ctp::Segment* seg,std::string carriertype);
+        
 };
 
 

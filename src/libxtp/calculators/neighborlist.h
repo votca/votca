@@ -174,7 +174,7 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
        
         for (std::vector< ctp::Segment* > ::iterator segit1 = top->Segments().begin();              
                 segit1 < top->Segments().end();
-                segit1++) {
+                ++segit1) {
                 
                 ctp::QMNBList templist=ctp::QMNBList();
                 std::vector< ctp::Segment* > ::iterator segit2;
@@ -192,7 +192,7 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
 
             for (segit2 = segit1 + 1;
                     segit2 < top->Segments().end();
-                    segit2++) {
+                    ++segit2) {
 
                 ctp::Segment *seg2 = *segit2;
 

@@ -16,8 +16,10 @@
  */
 
 #include "votca/xtp/gnode.h"
+#include <votca/ctp/segments.h>
 #include <votca/tools/property.h>
 #include <boost/format.hpp>
+#include <segment.h>
 
 using namespace std;
 
@@ -33,11 +35,11 @@ void GNode::AddDecayEvent(double _decayrate)
     newEvent.Jeff2 = 0.0;
     newEvent.decayevent=true;
     newEvent.reorg_out = 0.0;
-    this->event.push_back(newEvent);
+    this->events.push_back(newEvent);
     hasdecay=true;
 }
 
-void GNode::AddEvent(int seg2, double rate12, votca::tools::vec dr, double Jeff2, double reorg_out)
+void GNode::AddEvent(int seg2, double rate12, tools::vec dr, double Jeff2, double reorg_out)
 {
     GLink newEvent;
     newEvent.destination = seg2;
@@ -47,22 +49,36 @@ void GNode::AddEvent(int seg2, double rate12, votca::tools::vec dr, double Jeff2
     newEvent.Jeff2 = Jeff2;
     newEvent.decayevent=false;
     newEvent.reorg_out = reorg_out;
-    this->event.push_back(newEvent);
+    this->events.push_back(newEvent);
 }
 
 
 void GNode::InitEscapeRate()
 {
     double newEscapeRate = 0.0;
-    for(unsigned int i=0; i<this->event.size();i++)
+    for(unsigned int i=0; i<this->events.size();i++)
     {
-        newEscapeRate += this->event[i].rate;
+        newEscapeRate += this->events[i].rate;
     }
-    this->escaperate = newEscapeRate;
+    this->escape_rate = newEscapeRate;
     // cout << "Escape rate for segment " << this->id << " was set to " << newEscapeRate << endl;
 }
 
-
+ void GNode::ReadfromSegment(ctp::Segment* seg,int carriertype){
+     
+     position=seg->getPos()*conv::;
+     id=seg->getId();
+     siteenergy=seg->getSiteEnergy(carriertype);
+     if (carriertype<2){
+         reorg_intorig=seg->getU_nC_nN(carriertype);
+         reorg_intdest=seg->getU_cN_cC(carriertype);
+     }
+     else{
+          reorg_intorig=seg->getU_nX_nN(carriertype);
+         reorg_intdest=seg->getU_xN_xX(carriertype);
+     }
+    return; 
+ }
         
     }
 }

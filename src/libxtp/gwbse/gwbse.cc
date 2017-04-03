@@ -125,7 +125,7 @@ namespace votca {
                 if (BSEtype == "full") {
                     _do_full_BSE = true;
                     LOG(ctp::logDEBUG, *_pLog) << " BSE type: full" << flush;
-                    LOG(ctp::logDEBUG, *_pLog) << "           ATTENTION: only full BSE energies supported. UNDER DEVELOPMENT!" << flush;
+                    
                 }
             } else {
                 LOG(ctp::logDEBUG, *_pLog) << " BSE type: TDA" << flush;

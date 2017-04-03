@@ -37,7 +37,6 @@
 #include <votca/tools/tokenizer.h>
 #include <votca/tools/globals.h>
 #include <votca/tools/random2.h>
-#include <votca/xtp/kmccalculator.h>
 
 #include <tr1/unordered_map>
 #include <votca/xtp/gnode.h>
@@ -50,13 +49,13 @@ namespace votca { namespace xtp {
    
 
 
-class KMCLifetime : public KMCCalculator 
+class KMCLifetime : public ctp::QMCalculator 
 {
 public:
     KMCLifetime() {};
    ~KMCLifetime() {};
-
-    void Initialize(const char *filename, Property *options, const char *outputfile );
+   std::string Identify() { return "kmclifetime"; }
+    void Initialize(Property *options);
     bool EvaluateFrame();
 
 private:
@@ -86,23 +85,21 @@ private:
             
             
 	    vector<GNode*>  LoadGraph();
-            vector<double>  RunVSSM(vector<GNode*> node, unsigned int insertions, unsigned int numberofcharges, votca::tools::Random2 *RandomVariable);
-            void InitialRates(vector<GNode*> node);
-            void InitBoxSize(vector<GNode*> node);
+            vector<double>  RunVSSM(tools::Random2 *RandomVariable);
+            void InitialRates();
+            void InitBoxSize();
             void progressbar(double fraction);
-            void ReadLifetimeFile( string filename,vector<GNode*> node);
-            double Promotetime(double cumulated_rate,votca::tools::Random2 * RandomVariable);
+            void ReadLifetimeFile( string filename);
+            double Promotetime(double cumulated_rate,tools::Random2 * RandomVariable);
             void ResetForbiddenlist(vector<int> &forbiddenid);
             void AddtoForbiddenlist(int id, vector<int> &forbiddenid);
             bool CheckForbidden(int id,const vector<int> &forbiddenlist);
             bool CheckSurrounded(GNode* node,const vector<int> &forbiddendests);
             GLink* ChooseHoppingDest(GNode* node,votca::tools::Random2 * RandomVariable);
-            void printtime(int seconds_t);
-            void WriteOcc(vector<double> occP, vector<GNode*> node);
             
             //vec _field;
             
-            
+            std::vector<GNode*> _nodes;
             bool _do_carrierenergy;
             string _energy_outputfile;
             double _alpha;
@@ -110,12 +107,12 @@ private:
             string _injectionmethod;
             unsigned _outputsteps;
             unsigned int _insertions;
-            string _lifetimefile;
+            std::string _lifetimefile;
             double _maxrealtime;
             int _seed;
             int _numberofcharges;
             string _trajectoryfile;
-            string _carriertype;
+            int _carriertype;
             double _temperature;
             string _outputfile;
             string _filename;

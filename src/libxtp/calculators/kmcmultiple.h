@@ -32,8 +32,7 @@
 
 #include <votca/tools/vec.h>
 #include <votca/tools/matrix.h>
-#include <votca/tools/statement.h>
-#include <votca/tools/database.h>
+
 #include <votca/tools/tokenizer.h>
 #include <votca/tools/globals.h>
 #include <votca/tools/random2.h>
@@ -46,12 +45,9 @@ using namespace std;
 
 namespace votca { namespace xtp {
 
-    const static double kB   = 8.617332478E-5; // eV/K
-    const static double hbar = 6.5821192815E-16; // eV*s
-    const static double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
+  
     const static double epsr = 3.0; // relative material permittivity
-    const static double Pi   = 3.14159265358979323846;
-
+   
 
 
 class KMCMultiple : public ctp::QMCalculator 
@@ -59,13 +55,13 @@ class KMCMultiple : public ctp::QMCalculator
 public:
     KMCMultiple() {};
    ~KMCMultiple() {};
-
-    void Initialize(const char *filename, Property *options, const char *outputfile );
+   std::string Identify() { return "kmcmultiple"; }
+    void Initialize(Property *options);
     bool EvaluateFrame();
 
 
 
-protected:
+private:
         
         
             class Chargecarrier

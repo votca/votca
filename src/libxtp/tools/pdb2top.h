@@ -339,7 +339,7 @@ void PDB2Top::readPDB(){
                         "... ... Make sure this line is PDB style\n");
             }
             
-            tools:vec r(_xd , _yd , _zd);
+            tools::vec r(_xd , _yd , _zd);
 
             // set fragment
             // reconnect to topology, molecule, segment
