@@ -93,6 +93,7 @@
       <itemPath>../../src/libtools/statement.cc</itemPath>
       <itemPath>../../src/libtools/table.cc</itemPath>
       <itemPath>../../src/libtools/thread.cc</itemPath>
+      <itemPath>../../src/libtools/tokenizer.cc</itemPath>
       <itemPath>../../src/libtools/version.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
@@ -409,6 +410,8 @@
       </item>
       <item path="../../src/libtools/thread.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libtools/tokenizer.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
@@ -711,6 +714,8 @@
       </item>
       <item path="../../src/libtools/thread.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libtools/tokenizer.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
@@ -1012,6 +1017,8 @@
       <item path="../../src/libtools/table.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/thread.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/tokenizer.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
