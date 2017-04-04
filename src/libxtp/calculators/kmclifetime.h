@@ -23,7 +23,7 @@
 
 
 
-#include <votca/xtp/kmc.h>
+#include <votca/xtp/kmccalculator.h>
 using namespace std;
 
 namespace votca { namespace xtp {
