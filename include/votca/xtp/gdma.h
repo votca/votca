@@ -33,7 +33,6 @@ namespace votca { namespace xtp {
 
 using namespace std;
 using namespace votca::tools;
-namespace CTP = votca::ctp;
 
 /**
     \brief information about an element
@@ -64,7 +63,7 @@ public:
    void SetRadius( double radius ) { _radius = radius;};
    void SetSwitch( double sw ) { _switch = sw; };
    
-   void setLog( CTP::Logger* pLog ) { _log = pLog; };
+   void setLog( ctp::Logger* pLog ) { _log = pLog; };
    std::vector< std::vector<double> > &GetMultipoles() { return _multipoles; };
    
    
@@ -82,7 +81,7 @@ private:
     double  _radius; 
     double  _switch; 
     std::string  _outFile; 
-    CTP::Logger*                             _log;
+    ctp::Logger*                             _log;
     
  
 };

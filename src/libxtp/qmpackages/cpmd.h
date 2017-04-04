@@ -36,9 +36,7 @@ namespace votca { namespace xtp {
     and extracts information from its log and io files
     
 */
-    
-    namespace CTP = votca::ctp;
-class Cpmd : public XQMPackage
+class Cpmd : public QMPackage
 {
 public:   
 
@@ -50,7 +48,7 @@ public:
     * and a guess for the dimer (if requested) constructed from the
     * monomer orbitals
     */
-   bool WriteInputFile( std::vector< CTP::Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
    
    bool WriteShellScript();
 
@@ -64,10 +62,6 @@ public:
 
    bool ParseOrbitalsFile( Orbitals* _orbitals ){return true;};
    
-   bool ConvertToGW( Orbitals* _orbitals ){
-       LOG(CTP::logDEBUG, *_pLog) << "CPMD: ConvertToGW is  not implemented." << flush;
-       throw std::runtime_error("Not implemented ConvertToGW");
-   };
       
    std::string getScratchDir( ) { return _scratch_dir; }
    
@@ -130,7 +124,7 @@ private:
     int NumbfQC( std::string _shell_type);
     int NumbfGW( std::string _shell_type);
     int NumbfQC_cart( std::string _shell_type);
-    void WriteBasisSet(std::vector<CTP::Segment* > segments, ofstream &_com_file);
+    void WriteBasisSet(std::vector<ctp::Segment* > segments, ofstream &_com_file);
 
     
     

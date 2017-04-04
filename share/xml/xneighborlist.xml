@@ -1,7 +1,7 @@
 <options>
 
 
-<xneighborlist  help="Evaluates neighborlist, including long-range neighbors for energy transfer">
+<xneighborlist help="Determines neighbouring pairs for exciton transport" section="sec:xneighborlist">
         <segments>
                 <type>DCV5T_ME3 DCV5T_ME3</type>
                 <cutoff>3</cutoff>

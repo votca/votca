@@ -38,26 +38,26 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
-    namespace CTP = votca::ctp;
+    
 class NBO{
 public:
     
-    NBO(CTP::Logger *log):_ECP(false) {_log = log;}
+    NBO(ctp::Logger *log):_ECP(false) {_log = log;}
    ~NBO(){};
     
    void setUseECPs(bool ECP){_ECP=ECP;}
    
-   void EvaluateNBO(std::vector< CTP::QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis, BasisSet &bs);
+   void EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis, BasisSet &bs);
    
    void LoadMatrices(std::string fn_projectionMatrix, std::string fn_overlapMatrix);
 
 private:
     
-     CTP::Logger *_log;
+     ctp::Logger *_log;
      Elements _elements; 
      bool _ECP;
     
-    ub::matrix<double> IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< CTP::QMAtom* >& _atomlist, BasisSet &bs);
+    ub::matrix<double> IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< ctp::QMAtom* >& _atomlist, BasisSet &bs);
     void TransformMatrixtoNewBasis(ub::matrix<double>& Matrix,const ub::matrix<double>& transformation);
 };
 }}

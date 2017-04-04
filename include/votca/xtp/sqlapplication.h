@@ -21,21 +21,24 @@
 #ifndef VOTCA_XTP_SQLAPPLICATION_H
 #define	VOTCA_XTP_SQLAPPLICATION_H
 
-#include <votca/xtp/xtpapplication.h>
-#include <votca/ctp/topology.h>
 
-#include <votca/xtp/statesaversqlite.h>
-#include <votca/xtp/qmcalculator.h>
+#include <votca/ctp/topology.h>
 #include <votca/ctp/qmcalculator.h>
 
-namespace votca { namespace xtp {
-    namespace CTP = votca::ctp;
+#include <votca/xtp/xtpapplication.h>
+#include <votca/xtp/statesaversqlite.h>
 
-class XSqlApplication : public XtpApplication
+
+
+
+namespace votca { namespace xtp {
+
+
+class SqlApplication : public XtpApplication
 {
 public:
-    XSqlApplication();
-   ~XSqlApplication() { };
+    SqlApplication();
+   ~SqlApplication() { };
 
    void Initialize();
    bool EvaluateOptions();
@@ -45,14 +48,12 @@ public:
    virtual bool EvaluateFrame();
    virtual void EndEvaluate();
 
-   void AddCalculator(XQMCalculator *calculator);
-   void AddCalculator(CTP::QMCalculator *calculator);
+   void AddCalculator(ctp::QMCalculator *calculator);
 
 protected:
 
-   votca::ctp::Topology           _top;
-    list< XQMCalculator* >   _calculators;
-    list< CTP::QMCalculator* >    _ctp_calculators;
+    ctp::Topology           _top;
+    list< ctp::QMCalculator* >   _calculators;
 
 };
 

@@ -27,11 +27,9 @@
 #include <boost/timer/timer.hpp>
 
 #include <boost/numeric/ublas/operation.hpp>
-// #include <votca/xtp/logger.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
-#include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
 
 //#include "mathimf.h"
@@ -150,7 +148,7 @@ namespace votca {
                   }
               }
             if (energies_converged){
-                LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << " Converged after "<< _i_iter<< " qp_energy iterations." << flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after "<< _i_iter<< " qp_energy iterations." << flush;
                 break;
             }
             else{
@@ -162,7 +160,7 @@ namespace votca {
              double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
              double _shift_new = _QPgap - _DFTgap;
              
-            LOG(CTP::logDEBUG, *_pLog) << CTP::TimeStamp() << (format(" New shift [Ryd] : %1$+1.6f ") % _shift_new ).str() << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << (format(" New shift [Ryd] : %1$+1.6f ") % _shift_new ).str() << flush;
             //cout << " shift new " << _shift_new << endl;
             if (std::abs((_shift_new - _shift)) > _shift_limit) {
                 _shift = _shift_new;

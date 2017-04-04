@@ -22,7 +22,7 @@
 
 #include <votca/tools/property.h>
 
-#include <votca/xtp/parallelxjobcalc.h>
+#include <votca/ctp/parallelxjobcalc.h>
 #include <votca/xtp/orbitals.h>
 //#include <votca/xtp/overlap.h>
 #include <votca/xtp/gwbse.h>
@@ -32,7 +32,7 @@
 #include <boost/filesystem.hpp>
 
 namespace votca { namespace xtp {
-    namespace CTP = votca::ctp;
+    
 /**
 * \brief GWBSE-based exciton coupling elements
 *
@@ -43,22 +43,22 @@ namespace votca { namespace xtp {
 * Callname: igwbse
 */
 
-class IGWBSE : public ParallelXJobCalc< vector<CTP::Job*>, CTP::Job*, CTP::Job::JobResult >
+class IGWBSE : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
 {
 public:
 
     IGWBSE() {};
    ~IGWBSE() {};
    
-    void    Initialize(votca::tools::Property *options );
+    void    Initialize(tools::Property *options );
     
     string  Identify() { return "igwbse"; }
     
-    CTP::Job::JobResult EvalJob(CTP::Topology *top, CTP::Job *job, CTP::QMThread *Thread);
+    ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *Thread);
 
-    void WriteJobFile(CTP::Topology *top);
+    void WriteJobFile(ctp::Topology *top);
 
-    void ReadJobFile( CTP::Topology *top );
+    void ReadJobFile( ctp::Topology *top );
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);
@@ -102,7 +102,7 @@ private:
     std::map<std::string, int> _singlet_levels;
     std::map<std::string, int> _triplet_levels;
 
-    void ParseOptionsXML( votca::tools::Property *opt);    
+    void ParseOptionsXML( tools::Property *opt);    
     
     std::map<std::string, int> FillParseMaps(string Mapstring);
     
@@ -117,9 +117,9 @@ private:
     void PrepareGuess(         Orbitals *_orbitalsA, 
                                Orbitals *_orbitalsB, 
                                Orbitals *_orbitalsAB, 
-                               CTP::Logger *log = NULL );
+                               ctp::Logger *log = NULL );
     
-    void LoadOrbitals(string file_name, Orbitals* orbitals, CTP::Logger *log = NULL );
+    void LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log = NULL );
         
 };
 

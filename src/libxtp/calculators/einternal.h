@@ -21,22 +21,22 @@
 #ifndef _VOTCA_XTP_EINTERNAL_H
 #define _VOTCA_XTP_EINTERNAL_H
 
-//#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 
-class XEInternal : public XQMCalculator
+class EInternal : public ctp::QMCalculator
 {
 public:
 
-    XEInternal() { };
-   ~XEInternal() { };
+    EInternal() { };
+   ~EInternal() { };
 
     std::string Identify() { return "xeinternal"; }
-    void Initialize(Property *options);
-    void ParseEnergiesXML(Property *options);
-    bool EvaluateFrame(Topology *top);
+    void Initialize(tools::Property *options);
+    void ParseEnergiesXML(tools::Property *options);
+    bool EvaluateFrame(ctp::Topology *top);
 
 private:
 
@@ -66,7 +66,7 @@ private:
 
 };
 
-void XEInternal::Initialize(Property *options) {
+void EInternal::Initialize(tools::Property *options) {
 
     /* ---- OPTIONS.XML Structure -----
      *
@@ -81,7 +81,7 @@ void XEInternal::Initialize(Property *options) {
     this->ParseEnergiesXML(options);
 }
 
-void XEInternal::ParseEnergiesXML(Property *opt) {
+void EInternal::ParseEnergiesXML(tools::Property *opt) {
 
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt, "xtp" );
@@ -89,12 +89,12 @@ void XEInternal::ParseEnergiesXML(Property *opt) {
 
     std::string energiesXML = opt->get(key+".energiesXML").as<std::string> ();
 
-    cout << endl
+    std::cout << std::endl
          << "... ... Site, reorg. energies from " << energiesXML << ". "
-         << flush;
+         << std::flush;
 
-    Property alloc;
-    load_property_from_xml(alloc, energiesXML.c_str());
+    tools::Property alloc;
+    tools::load_property_from_xml(alloc, energiesXML.c_str());
 
     /* --- ENERGIES.XML Structure ---
      *
@@ -128,13 +128,13 @@ void XEInternal::ParseEnergiesXML(Property *opt) {
      */
 
     key = "topology.molecules.molecule";
-    list<Property*> mols = alloc.Select(key);
-    list<Property*> ::iterator molit;
+    std::list<tools::Property*> mols = alloc.Select(key);
+    std::list<tools::Property*> ::iterator molit;
     for (molit = mols.begin(); molit != mols.end(); ++molit) {
 
         key = "segments.segment";
-        list<Property*> segs = (*molit)->Select(key);
-        list<Property*> ::iterator segit;
+        std::list<tools::Property*> segs = (*molit)->Select(key);
+        std::list<tools::Property*> ::iterator segit;
 
         for (segit = segs.begin(); segit != segs.end(); ++segit) {
 
@@ -203,7 +203,7 @@ void XEInternal::ParseEnergiesXML(Property *opt) {
 
                 has_t = true;
             }
-            //cout <<  U_xX_nN_s << U_nX_nN_s << U_xN_xX_s << endl;
+            //std::cout <<  U_xX_nN_s << U_nX_nN_s << U_xN_xX_s << std::endl;
             _seg_U_cC_nN_e[segName] = U_cC_nN_e;
             _seg_U_nC_nN_e[segName] = U_nC_nN_e;
             _seg_U_cN_cC_e[segName] = U_cN_cC_e;
@@ -230,9 +230,9 @@ void XEInternal::ParseEnergiesXML(Property *opt) {
     }
 }
 
-bool XEInternal::EvaluateFrame(Topology *top) {
+bool EInternal::EvaluateFrame(ctp::Topology *top) {
 
-    std::vector< Segment* > ::iterator sit;
+    std::vector< ctp::Segment* > ::iterator sit;
     int count = 0;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
 
@@ -241,8 +241,8 @@ bool XEInternal::EvaluateFrame(Topology *top) {
         try {
             //bool has_seg = _has_seg.at(segName);
         }
-        catch (out_of_range) {
-            cout << endl << "... ... WARNING: No energy information for seg ["
+        catch (std::out_of_range) {
+            std::cout << std::endl << "... ... WARNING: No energy information for seg ["
                          << segName << "]. Skipping... ";
             continue;
         }
@@ -280,7 +280,7 @@ bool XEInternal::EvaluateFrame(Topology *top) {
             double l1 = _seg_U_nX_nN_s[segName];
             double l2 = _seg_U_xN_xX_s[segName];
             bool has_s = true;
-            //cout << u << l1 << l2<<endl;
+            //std::cout << u << l1 << l2<<std::endl;
             (*sit)->setU_xX_nN(u, +2);
             (*sit)->setU_nX_nN(l1, +2);
             (*sit)->setU_xN_xX(l2, +2);
@@ -300,9 +300,9 @@ bool XEInternal::EvaluateFrame(Topology *top) {
         }
     }
 
-    cout << endl
+    std::cout << std::endl
          << "... ... Read in site, reorg. energies for " 
-         << count << " segments. " << flush;
+         << count << " segments. " << std::flush;
 
 
     return 1;

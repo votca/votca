@@ -19,11 +19,12 @@
 
 #ifndef __XTP_THREECENTERS__H
 #define	__XTP_THREECENTERS__H
-//#define BOOST_DISABLE_ASSERTS //could be used to slighlty speed up calculation but the compile time simply goes boom
+#define BOOST_DISABLE_ASSERTS //could be used to slighlty speed up calculation but the compile time simply goes boom
 #include <boost/multi_array.hpp>
 #include <votca/xtp/aomatrix.h>
-#include <votca/ctp/logger.h>
+//matrix prod overload
 #include <votca/tools/linalg.h>
+//openmp 
 #include <votca/xtp/votca_config.h>
 #include <votca/xtp/orbitals.h>
 #ifdef _OPENMP
@@ -51,14 +52,18 @@ namespace votca { namespace xtp {
     class TCrawMatrix{    
         
     protected:
-    typedef boost::multi_array<double, 3> ma_type;    
+    typedef boost::multi_array<double, 3> ma_type;
+    typedef boost::multi_array<ub::matrix<double>, 2> ma2_matrix_type; ////////////////////////////
+            typedef boost::multi_array_types::extent_range range; //////////////////
+            typedef ma_type::index index; /////////////////////
+            ma_type::extent_gen extents; /////////////////////
     bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
-    void FillThreeCenterOLBlock_g(ma_type &S,vec &gma, vec &gmc,int &_lmax_alpha, int &_lmax_gamma,double &fak);
     bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
     //bool FillThreeCenterOLBlock(  ub::matrix<real_gwbse> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
-    void getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay,std::vector<double>& contractions);
+    bool FillFourCenterRepBlock(ub::matrix<double>& _subvector, AOShell* _shell_1, AOShell* _shell_2, AOShell* _shell_3, AOShell* _shell_4); ////////
+    void getTrafo(ub::matrix<double>& _trafo,const  int _lmax, const double& _decay,const std::vector<double>& contractions);
     
-    int getBlockSize( int size );
+    int getBlockSize(const int size );
     
     void XIntegrate( vector<double>& _FmT, const double& _T );
     
@@ -79,15 +84,44 @@ namespace votca { namespace xtp {
     
     int getSize(){return _matrix.size();}
     
-    std::vector< ub::matrix<double> >& getData(){return  _matrix;}
-    ub::matrix<double>& getDatamatrix( int i ){return  _matrix[i];}
+    std::vector< ub::symmetric_matrix<double> >& getData(){return  _matrix;}
+    ub::symmetric_matrix<double>& getDatamatrix( int i ){return  _matrix[i];}
     
     private:
-        std::vector< ub::matrix<double> > _matrix;
+        std::vector< ub::symmetric_matrix<double> > _matrix;
     
         void FillBlock(AOShell* _shell, AOBasis& dftbasis) ; 
         
     };
+
+
+
+
+
+    class FCMatrix_dft : public TCrawMatrix{
+    public:
+    
+    void Fill_4c_small_molecule(AOBasis& dftbasis); ///////////////////
+   
+   
+
+
+ 
+
+    const ub::vector<double>& get_4c_vector() { return _4c_vector;} ////////////////////
+
+    
+    private:
+     
+        ub::vector<double> _4c_vector; /////////////
+
+//////        void FillBlock(AOShell* _shell, AOBasis& dftbasis) ; 
+        
+    };
+
+
+
+
     
     
     

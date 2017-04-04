@@ -38,14 +38,11 @@
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector.hpp>
-// #include <gsl/gsl_eigen.h>
-// #include <gsl/gsl_linalg.h>
-// #include <gsl/gsl_cblas.h>
 
 namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
-        namespace CTP = votca::ctp;
+       
 
 /**
          * \brief Electronic excitations from GW-BSE
@@ -98,7 +95,7 @@ namespace votca {
             // int getMlower(){ return mmin -1; };
             // int getMupper(){ return mmax -1; };
 
-            void setLogger(CTP::Logger* pLog) {
+            void setLogger(ctp::Logger* pLog) {
                 _pLog = pLog;
             }
 
@@ -318,7 +315,7 @@ namespace votca {
 
         private:
 
-            CTP::Logger *_pLog;
+            ctp::Logger *_pLog;
 
 
 

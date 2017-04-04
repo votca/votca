@@ -20,39 +20,27 @@
 
 #include <votca/xtp/calculatorfactory.h>
 
-//#include "calculators/sandbox.h"
 #include "calculators/neighborlist.h"
-/*
- #include "calculators/stateserver.h"
 #include "calculators/rates.h"
-#include "calculators/einternal.h"
-#include "calculators/eanalyze.h"
-#include "calculators/panalyze.h"
-#include "calculators/eimport.h"
-#include "calculators/iimport.h"
 #include "calculators/ianalyze.h"
-*/
-
-
-
+#include "calculators/eanalyze.h"
+#include "calculators/jobwriter.h"
+#include "calculators/einternal.h"
+#include "calculators/kmclifetime.h"
+#include "calculators/kmcmultiple.h"
 
 namespace votca { namespace xtp {
-    namespace CTP = votca::ctp;
-    
-void XCalculatorfactory::RegisterAll(void)
+
+void Calculatorfactory::RegisterAll(void)
 {	
-        //XCalculators().Register<votca::ctp::Sandbox>             ("sandbox");
-	XCalculators().Register<XNeighborlist>       ("xneighborlist");
-        /* XCalculators().Register<XStateServer>        ("xstateserver");
-        XCalculators().Register<Rates>               ("rates");
-        XCalculators().Register<XEInternal>          ("xeinternal");
-        XCalculators().Register<XEAnalyze>           ("xeanalyze");
-        XCalculators().Register<PAnalyze>            ("panalyze");
-        XCalculators().Register<XEImport>            ("xeimport");
-        XCalculators().Register<XIImport>            ("xiimport");
-        XCalculators().Register<XIAnalyze>           ("ianalyze");
-        */
-
+       
+        Calculators().Register<Neighborlist>        ("xneighborlist");
+        Calculators().Register<Rates>               ("xrates");
+        Calculators().Register<IAnalyze>            ("xianalyze");
+        Calculators().Register<EAnalyze>            ("xeanalyze");
+        Calculators().Register<JobWriter>           ("xjobwriter");
+        Calculators().Register<EInternal>           ("xeinternal");
+        Calculators().Register<KMCLifetime>         ("kmclifetime");
+        Calculators().Register<KMCMultiple>         ("kmcmultiple");
 }
-
 }}

@@ -26,19 +26,18 @@
 
 
 namespace votca { namespace xtp { 
-    namespace CTP = votca::ctp;
 
     double pi=boost::math::constants::pi<double>();
     
-    void LebedevGrid::getSphericalGrid(std::vector<CTP::QMAtom*> _atoms, string type, GridContainers& _grids){
+    void LebedevGrid::getSphericalGrid(std::vector<ctp::QMAtom*> _atoms, std::string type, GridContainers& _grids){
 
-            std::vector< CTP::QMAtom* > ::iterator ait;
-            map<string,GridContainers::spherical_grid>::iterator it;
+            std::vector< ctp::QMAtom* > ::iterator ait;
+            std::map<std::string,GridContainers::spherical_grid>::iterator it;
 
 
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
-                 string name = (*ait)->type;
+                 std::string name = (*ait)->type;
                  // is this element already in map?
                  it = _grids._spherical_grids.find(name);
                   // only proceed, if element data does not exist yet
@@ -60,7 +59,7 @@ namespace votca { namespace xtp {
     }
     
     
-    void LebedevGrid::getUnitSphereGrid(string element, string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight){
+    void LebedevGrid::getUnitSphereGrid(std::string element, std::string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight){
               
               double *w;
               double *x;
@@ -122,7 +121,7 @@ namespace votca { namespace xtp {
     }
     
     
-        int LebedevGrid::Type2MaxOrder(string element, string type){
+        int LebedevGrid::Type2MaxOrder(std::string element, std::string type){
             
            return  this->getOrder(element, type);
             
@@ -130,7 +129,7 @@ namespace votca { namespace xtp {
         }
     
     
-    int LebedevGrid::getOrder(string element, string type){
+    int LebedevGrid::getOrder(std::string element, std::string type){
         
         if ( type == "medium"){
             
@@ -819,9 +818,9 @@ int LebedevGrid::gen_oh ( int code, double a, double b, double v, double *x,
   }
   else
   {
-    cerr << "\n";
-    cerr << "GEN_OH - Fatal error!\n";
-    cerr << "  Illegal value of code.\n";
+    std::cerr << "\n";
+    std::cerr << "GEN_OH - Fatal error!\n";
+    std::cerr << "  Illegal value of code.\n";
     exit ( 1 );
   }
   return num;
@@ -994,9 +993,9 @@ void LebedevGrid::ld_by_order ( int order, double *x, double *y, double *z, doub
   }
   else
   {
-    cerr << "\n";
-    cerr << "LD_BY_ORDER - Fatal error!\n";
-    cerr << "  Unexpected value of ORDER.\n";
+    std::cerr << "\n";
+    std::cerr << "LD_BY_ORDER - Fatal error!\n";
+    std::cerr << "  Unexpected value of ORDER.\n";
     exit ( 1 );
   }
 
@@ -6896,16 +6895,16 @@ int LebedevGrid::order_table ( int rule )
 
   if ( rule < 1 )
   {
-    cerr << "\n";
-    cerr << "ORDER_TABLE - Fatal error!\n";
-    cerr << "  RULE < 1.\n";
+    std::cerr << "\n";
+    std::cerr << "ORDER_TABLE - Fatal error!\n";
+    std::cerr << "  RULE < 1.\n";
     exit ( 1 );
   }
   else if ( rule_max < rule )
   {
-    cerr << "\n";
-    cerr << "ORDER_TABLE - Fatal error!\n";
-    cerr << "  RULE_MAX < RULE.\n";
+    std::cerr << "\n";
+    std::cerr << "ORDER_TABLE - Fatal error!\n";
+    std::cerr << "  RULE_MAX < RULE.\n";
     exit ( 1 );
   }
 
@@ -6959,16 +6958,16 @@ int LebedevGrid::precision_table ( int rule )
 
   if ( rule < 1 )
   {
-    cerr << "\n";
-    cerr << "PRECISION_TABLE - Fatal error!\n";
-    cerr << "  RULE < 1.\n";
+    std::cerr << "\n";
+    std::cerr << "PRECISION_TABLE - Fatal error!\n";
+    std::cerr << "  RULE < 1.\n";
     exit ( 1 );
   }
   else if ( rule_max < rule )
   {
-    cerr << "\n";
-    cerr << "PRECISION_TABLE - Fatal error!\n";
-    cerr << "  RULE_MAX < RULE.\n";
+    std::cerr << "\n";
+    std::cerr << "PRECISION_TABLE - Fatal error!\n";
+    std::cerr << "  RULE_MAX < RULE.\n";
     exit ( 1 );
   }
 

@@ -20,27 +20,27 @@
 #ifndef _VOTCA_XTP_EANALYZE_H
 #define _VOTCA_XTP_EANALYZE_H
 
-//#include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/qmcalculator.h>
 #include <math.h>
 #include <votca/tools/tokenizer.h>
 
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
-class XEAnalyze : public XQMCalculator
+class EAnalyze : public ctp::QMCalculator
 {
 public:
 
-    XEAnalyze() { };
-   ~XEAnalyze() { };
+    EAnalyze() { };
+   ~EAnalyze() { };
 
     std::string Identify() { return "xeanalyze"; }
 
-    void Initialize(Property *opt);
-    bool EvaluateFrame(Topology *top);
-    void SiteHist(Topology *top, int state);
-    void PairHist(Topology *top, int state);
-    void SiteCorr(Topology *top, int state);
+    void Initialize(tools::Property *opt);
+    bool EvaluateFrame(ctp::Topology *top);
+    void SiteHist(ctp::Topology *top, int state);
+    void PairHist(ctp::Topology *top, int state);
+    void SiteCorr(ctp::Topology *top, int state);
 
 private:
 
@@ -62,13 +62,13 @@ private:
     int  _atomic_last;
     
     std::string _seg_pattern;
-    std::vector<Segment*> _seg_shortlist;
+    std::vector<ctp::Segment*> _seg_shortlist;
 
 };
 
 
 
-void XEAnalyze::Initialize( Property *opt ) {
+void EAnalyze::Initialize( tools::Property *opt ) {
     _skip_corr=false;
     _skip_sites=false;
     _skip_pairs=false;
@@ -100,7 +100,7 @@ void XEAnalyze::Initialize( Property *opt ) {
     else _seg_pattern = "*";
     
     if (opt->exists(key+".states")) {
-        _states = opt->get(key+".states").as< vector<int> >();
+        _states = opt->get(key+".states").as< std::vector<int> >();
     }
     else {
         _states.push_back(-1);
@@ -135,10 +135,10 @@ void XEAnalyze::Initialize( Property *opt ) {
 
 }
 
-bool XEAnalyze::EvaluateFrame(Topology *top) {
+bool EAnalyze::EvaluateFrame(ctp::Topology *top) {
     
     // Short-list segments according to pattern
-    std::vector<Segment*>::iterator sit;
+    std::vector<ctp::Segment*>::iterator sit;
     for (sit=top->Segments().begin(); sit!=top->Segments().end(); ++sit) {
         std::string seg_name = (*sit)->getName();
         if (votca::tools::wildcmp(_seg_pattern.c_str(), seg_name.c_str())) {
@@ -159,12 +159,12 @@ bool XEAnalyze::EvaluateFrame(Topology *top) {
     // ... Pair-energy histogram, mean, width
     // ... Site-energy correlation
 
-    QMNBList &nblist = top->NBList();
+    ctp::QMNBList &nblist = top->NBList();
 
     for (unsigned i = 0; i < _states.size(); ++i) {
 
         int state = _states[i];
-        cout << std::endl << "... ... Charge state " << state << std::flush;
+        std::cout << std::endl << "... ... Charge state " << state << std::flush;
 
         if (!_seg_shortlist.size()) {            
             std::cout << std::endl << "... ... ... No segments short-listed. Skip ... "
@@ -206,9 +206,9 @@ bool XEAnalyze::EvaluateFrame(Topology *top) {
     return true;
 }
 
-void XEAnalyze::SiteHist(Topology *top, int state) {
+void EAnalyze::SiteHist(ctp::Topology *top, int state) {
 
-    vector< double > Es;
+    std::vector< double > Es;
     Es.reserve(_seg_shortlist.size());
 
     double MIN = _seg_shortlist[0]->getSiteEnergy(state);
@@ -218,7 +218,7 @@ void XEAnalyze::SiteHist(Topology *top, int state) {
     double STD = 0.0;
 
     // Collect energies from segments, calc AVG
-    vector< Segment* > ::iterator sit;
+    std::vector< ctp::Segment* > ::iterator sit;
     for (sit = _seg_shortlist.begin(); 
          sit < _seg_shortlist.end();
          ++sit) {
@@ -236,11 +236,11 @@ void XEAnalyze::SiteHist(Topology *top, int state) {
 
     // Prepare bins
     int BIN = int( (MAX-MIN)/_resolution_sites + 0.5 ) + 1;
-    vector< vector<double> > histE;
+    std::vector< std::vector<double> > histE;
     histE.resize(BIN);
 
     // Execute binning, calc VAR
-    vector< double > ::iterator eit;
+    std::vector< double > ::iterator eit;
     for (eit = Es.begin(); eit < Es.end(); ++eit) {
 
         int bin = int( (*eit-MIN)/_resolution_sites + 0.5 );
@@ -248,7 +248,7 @@ void XEAnalyze::SiteHist(Topology *top, int state) {
         VAR += ((*eit) - AVG)*((*eit) - AVG) / _seg_shortlist.size();
     }
 
-    vector< int > histN;
+    std::vector< int > histN;
     histN.resize(BIN);
     for (int bin = 0; bin < BIN; ++bin) {
         histN[bin] = histE[bin].size();
@@ -298,12 +298,12 @@ void XEAnalyze::SiteHist(Topology *top, int state) {
             if ((*sit)->getId() == _atomic_last) { break; }
             double E = (*sit)->getSiteEnergy(state);
 
-            vector< Atom* > ::iterator ait;
+            std::vector< ctp::Atom* > ::iterator ait;
             for (ait = (*sit)->Atoms().begin();
                  ait < (*sit)->Atoms().end();
                  ++ait) {
 
-                Atom *atm = *ait;
+                ctp::Atom *atm = *ait;
 
                 fprintf(out, "%3s %4.7f %4.7f %4.7f %4.7f\n",
                               (*sit)->getName().c_str(),
@@ -318,10 +318,10 @@ void XEAnalyze::SiteHist(Topology *top, int state) {
 }
 
 
-void XEAnalyze::PairHist(Topology *top, int state) {
+void EAnalyze::PairHist(ctp::Topology *top, int state) {
 
-    QMNBList &nblist = top->NBList();
-    QMNBList::iterator pit;
+    ctp::QMNBList &nblist = top->NBList();
+    ctp::QMNBList::iterator pit;
 
     double MIN = nblist.front()->Seg1()->getSiteEnergy(state)
                - nblist.front()->Seg2()->getSiteEnergy(state);
@@ -336,11 +336,11 @@ void XEAnalyze::PairHist(Topology *top, int state) {
     out_dEs = fopen(tag_dEs.c_str(), "w");
 
     // Collect site-energy differences from neighbourlist
-    vector< double > dEs;    
+    std::vector< double > dEs;    
     for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
 
-        Segment *seg1 = (*pit)->Seg1();
-        Segment *seg2 = (*pit)->Seg2();
+        ctp::Segment *seg1 = (*pit)->Seg1();
+        ctp::Segment *seg2 = (*pit)->Seg2();
 
         double dE = seg2->getSiteEnergy(state) - seg1->getSiteEnergy(state);
 
@@ -359,11 +359,11 @@ void XEAnalyze::PairHist(Topology *top, int state) {
     
     // Prepare bins
     int BIN = int( (MAX-MIN)/_resolution_pairs + 0.5 ) + 1;
-    vector< vector<double> > histE;
+    std::vector< std::vector<double> > histE;
     histE.resize(BIN);
     
     // Execute binning, calc VAR
-    vector< double > ::iterator eit;
+    std::vector< double > ::iterator eit;
     for (eit = dEs.begin(); eit < dEs.end(); ++eit) {
 
         int bin = int( ((*eit)-MIN)/_resolution_pairs + 0.5 );
@@ -372,7 +372,7 @@ void XEAnalyze::PairHist(Topology *top, int state) {
         VAR += ((*eit) - AVG)*((*eit) - AVG) / nblist.size();
     }
 
-    vector< int > histN;
+    std::vector< int > histN;
     histN.resize(BIN);
     for (int bin = 0; bin < BIN; ++bin) {
         histN[bin] = histE[bin].size();
@@ -409,20 +409,20 @@ void XEAnalyze::PairHist(Topology *top, int state) {
 }
 
 
-void XEAnalyze::SiteCorr(Topology *top, int state) {
+void EAnalyze::SiteCorr(ctp::Topology *top, int state) {
 
     double AVG = 0.0;
     double AVGESTATIC = 0.0;
     double VAR = 0.0;
     double STD = 0.0;
 
-    vector< Segment* > ::iterator sit1;
-    vector< Segment* > ::iterator sit2;    
+    std::vector< ctp::Segment* > ::iterator sit1;
+    std::vector< ctp::Segment* > ::iterator sit2;    
 
     // Calculate mean site energy
-    vector< double > Es;
+    std::vector< double > Es;
 
-    vector< Segment* > ::iterator sit;
+    std::vector< ctp::Segment* > ::iterator sit;
     for (sit = _seg_shortlist.begin();
          sit < _seg_shortlist.end();
          ++sit) {
@@ -436,7 +436,7 @@ void XEAnalyze::SiteCorr(Topology *top, int state) {
     }
     
     // Calculate variance
-    vector< double > ::iterator eit;
+    std::vector< double > ::iterator eit;
     for (eit = Es.begin(); eit < Es.end(); ++eit) {
 
         VAR += ((*eit) - AVG)*((*eit) - AVG) / _seg_shortlist.size();
@@ -445,14 +445,14 @@ void XEAnalyze::SiteCorr(Topology *top, int state) {
     STD = sqrt(VAR);
 
     // Collect inter-site distances, correlation product
-    vector< double > Rs;
-    vector< double > Cs;
+    std::vector< double > Rs;
+    std::vector< double > Cs;
 
     double MIN = +1e15;
     double MAX = -1e15;
 
-    vector< Fragment* > ::iterator fit1;
-    vector< Fragment* > ::iterator fit2;
+    std::vector< ctp::Fragment* > ::iterator fit1;
+    std::vector< ctp::Fragment* > ::iterator fit2;
 
     std::cout << std::endl;
     
@@ -516,7 +516,7 @@ void XEAnalyze::SiteCorr(Topology *top, int state) {
 
     // Prepare bins
     int BIN = int( (MAX-MIN)/_resolution_space + 0.5 ) + 1;
-    vector< vector<double> > histCs;
+    std::vector< std::vector<double> > histCs;
     histCs.resize(BIN);
 
     for (unsigned i = 0; i < Rs.size(); ++i) {
@@ -526,8 +526,8 @@ void XEAnalyze::SiteCorr(Topology *top, int state) {
     }
 
     // Calculate spatial correlation
-    vector< double > histC;
-    vector< double > histC_error;
+    std::vector< double > histC;
+    std::vector< double > histC_error;
     histC.resize(BIN);
     histC_error.resize(BIN);
     for (int bin = 0; bin < BIN; ++bin) {

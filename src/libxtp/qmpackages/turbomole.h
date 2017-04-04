@@ -21,12 +21,15 @@
 #define	__VOTCA_XTP_TURBOMOLE_H
 
 #include <votca/tools/property.h>
+
+
 #include <votca/ctp/segment.h>
-#include <votca/xtp/orbitals.h>
 #include <votca/ctp/apolarsite.h>
 #include <votca/ctp/logger.h>
-#include <votca/xtp/qmpackage.h>
 
+
+#include <votca/xtp/qmpackage.h>
+#include <votca/xtp/orbitals.h>
 #include <string> 
 
 
@@ -39,9 +42,7 @@ namespace votca { namespace xtp {
     and extracts information from its log and io files
     
 */
-    
-    namespace CTP = votca::ctp;
-class Turbomole : public XQMPackage
+class Turbomole : public QMPackage
 {
 public:   
 
@@ -53,7 +54,7 @@ public:
     * and guess for the dimer orbitals (if given) constructed from the
     * orbitals of monomers 
     */
-   bool WriteInputFile( std::vector< CTP::Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
 
    bool Run();
 
@@ -65,14 +66,10 @@ public:
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
 
-   bool ConvertToGW( Orbitals* _orbitals );
    
 private:  
 
-    //static const double _conv_Hrt_eV = 27.21138386;
-    
-    //int                                 _charge;
-    //int                                 _spin; // 2S+1
+
     string                              _options;
     
     string                              _memory;

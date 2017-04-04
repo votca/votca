@@ -31,16 +31,15 @@
 
 namespace votca { namespace xtp {
     using namespace std;
-    namespace CTP = votca::ctp;
     
 class Esp2multipole 
 {
 public:
 
-    Esp2multipole (CTP::Logger* log) {_log=log; }
+    Esp2multipole (ctp::Logger* log) {_log=log; }
    ~Esp2multipole () { 
    
-   std::vector< CTP::QMAtom* >::iterator it;
+   std::vector< ctp::QMAtom* >::iterator it;
     for ( it = _Atomlist.begin(); it != _Atomlist.end(); ++it ) delete *it;};
 
     string Identify() { return "esp2multipole"; }
@@ -73,9 +72,9 @@ private:
     bool        _use_ecp;
     bool        _do_svd;
     double      _conditionnumber;
-    vector< CTP::QMAtom* > _Atomlist;
+    vector< ctp::QMAtom* > _Atomlist;
     
-    CTP::Logger*      _log;
+    ctp::Logger*      _log;
     
     
 

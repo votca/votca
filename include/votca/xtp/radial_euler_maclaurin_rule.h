@@ -31,14 +31,13 @@
 
 namespace votca { namespace xtp {
 
-    namespace CTP = votca::ctp;
     
         class EulerMaclaurinGrid {
         public: 
             
             EulerMaclaurinGrid() { FillGrids(); };
             
-            void getRadialGrid( BasisSet* bs , vector<CTP::QMAtom* > _atoms , std::string type, GridContainers& _grids );
+            void getRadialGrid( BasisSet* bs , vector<ctp::QMAtom* > _atoms , std::string type, GridContainers& _grids );
             std::vector<double> getPruningIntervals( std::string element );
             
 
@@ -68,7 +67,7 @@ namespace votca { namespace xtp {
             double getNeglected( double alpha, int l, double cutoff);
             double RadialIntegral(double alpha, int l, double cutoff);
             
-            void getRadialCutoffs( std::vector<CTP::QMAtom* > _atoms ,  BasisSet* bs ,std::string gridtype );
+            void getRadialCutoffs( std::vector<ctp::QMAtom* > _atoms ,  BasisSet* bs ,std::string gridtype );
             void setGrid(int numberofpoints, double cutoff, std::vector<double>& point, std::vector<double>& weight );
             
             std::map<std::string, int>    MediumGrid;

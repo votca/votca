@@ -22,7 +22,8 @@
 
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
-
+//for openmp
+#include <votca/xtp/votca_config.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/ctp/qmatom.h>
@@ -153,12 +154,12 @@ public:
     std::vector<int>* getDegeneracy( int level, double _energy_difference );
 
     // access to QM atoms
-    //bool hasQMAtoms() { return _has_atoms;}
+    //bool has::QMAtoms() { return _has_atoms;}
     bool hasQMAtoms() { return ( _atoms.size() > 0 ) ? true : false ;}
-    // void setQMAtoms( bool inp ) { _has_atoms = inp;}
-    const std::vector< CTP::QMAtom* > &QMAtoms() const { return _atoms ;}
-    std::vector< CTP::QMAtom* > &QMAtoms()  { return _atoms ;}
-    std::vector< CTP::QMAtom* >* getAtoms() { return &_atoms; } //OLD
+    // void set::QMAtoms( bool inp ) { _has_atoms = inp;}
+    const std::vector< ctp::QMAtom* > &QMAtoms() const { return _atoms ;}
+    std::vector< ctp::QMAtom* > &QMAtoms()  { return _atoms ;}
+    std::vector< ctp::QMAtom* >* getAtoms() { return &_atoms; } //OLD
     
     // access to classical self-energy in MM environment, new, tested
     bool hasSelfEnergy() { return ( _self_energy != 0.0 ) ? true : false ; }
@@ -362,17 +363,17 @@ public:
     void SortEnergies( std::vector<int>* index );
     
     /** Adds a QM atom to the atom list */
-    CTP::QMAtom* AddAtom (std::string _type, 
+   ctp::QMAtom* AddAtom (std::string _type, 
                      double _x, double _y, double _z, 
                      double _charge = 0, bool _from_environment = false)
     {
-        CTP::QMAtom* pAtom = new CTP::QMAtom(_type, _x, _y, _z, _charge, _from_environment);
+        ctp::QMAtom* pAtom = new ctp::QMAtom(_type, _x, _y, _z, _charge, _from_environment);
         _atoms.push_back( pAtom );
         return pAtom;
     }
-    CTP::QMAtom* AddAtom (CTP::QMAtom atom)
+    ctp::QMAtom* AddAtom (ctp::QMAtom atom)
     {
-        CTP::QMAtom* pAtom = new CTP::QMAtom(atom);
+        ctp::QMAtom* pAtom = new ctp::QMAtom(atom);
         _atoms.push_back( pAtom );
         return pAtom;
     }
@@ -416,7 +417,7 @@ private:
     ub::symmetric_matrix<double>            _overlap;
     ub::symmetric_matrix<double>            _vxc;
     
-    std::vector< CTP::QMAtom* >                  _atoms;   
+    std::vector< ctp::QMAtom* >                  _atoms;   
 
     double                                  _qm_energy;
     double                                  _self_energy;
@@ -476,9 +477,7 @@ private:
     int                                    _couplingsA;
     int                                    _couplingsB;
     
-    ub::matrix<double>                     _dmatGS;
-    std::vector< ub::matrix<double> >      _dmatEX;
-    ub::matrix<double>                     _dmatTS;
+   
     
     std::vector<double>                    _DqS_fragA; // fragment charge changes in exciton
     std::vector<double>                    _DqS_fragB;

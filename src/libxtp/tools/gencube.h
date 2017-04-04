@@ -25,7 +25,7 @@
 #include <votca/xtp/elements.h>
 #include <votca/ctp/logger.h>
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/xtp/votca_config.h>
+#include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
 
 namespace votca {
@@ -33,9 +33,8 @@ namespace votca {
      
         using namespace std;
         namespace ub = boost::numeric::ublas;
-        namespace CTP = votca::ctp;
-        
-        class GenCube : public CTP::QMTool {
+
+        class GenCube : public ctp::QMTool {
         public:
 
             GenCube() {
@@ -79,7 +78,7 @@ namespace votca {
             string _spin;
             string _type;
             string _mode;
-            CTP::Logger _log;
+            ctp::Logger _log;
 
         };
 
@@ -168,11 +167,11 @@ namespace votca {
         
         void GenCube::calculateCube(){
             
-                LOG(CTP::logDEBUG, _log) << "Reading serialized QM data from " << _orbfile << flush;
+                LOG(ctp::logDEBUG, _log) << "Reading serialized QM data from " << _orbfile << flush;
 
                 Orbitals _orbitals;
                 
-                  LOG(CTP::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+                  LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
                _orbitals.Load(_orbfile);
                 
                 if (_do_qp && !_orbitals.hasQPdiag()){
@@ -194,7 +193,7 @@ namespace votca {
               
 
                 // get atoms
-                std::vector<CTP::QMAtom*> _atoms = _orbitals.QMAtoms();
+                std::vector<ctp::QMAtom*> _atoms = _orbitals.QMAtoms();
 
                 // determine min and max in each cartesian direction
                 double xmin = std::numeric_limits<double>::max();
@@ -204,12 +203,12 @@ namespace votca {
                 double zmin = xmin;
                 double zmax = xmax;
 
-                vector< CTP::QMAtom* > ::iterator ait;
+                vector< ctp::QMAtom* > ::iterator ait;
                 for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
                     // get center coordinates in Bohr
-                    double x = (*ait)->x * votca::tools::conv::ang2bohr;
-                    double y = (*ait)->y * votca::tools::conv::ang2bohr;
-                    double z = (*ait)->z * votca::tools::conv::ang2bohr;
+                    double x = (*ait)->x * tools::conv::ang2bohr;
+                    double y = (*ait)->y * tools::conv::ang2bohr;
+                    double z = (*ait)->z * tools::conv::ang2bohr;
 
                     if (x > xmax) xmax = x;
                     if (x < xmin) xmin = x;
@@ -266,9 +265,9 @@ namespace votca {
                 Elements _elements;
                 for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
                     // get center coordinates in Bohr
-                    double x = (*ait)->x * votca::tools::conv::ang2bohr;
-                    double y = (*ait)->y * votca::tools::conv::ang2bohr;
-                    double z = (*ait)->z * votca::tools::conv::ang2bohr;
+                    double x = (*ait)->x * tools::conv::ang2bohr;
+                    double y = (*ait)->y * tools::conv::ang2bohr;
+                    double z = (*ait)->z * tools::conv::ang2bohr;
 
                     string element = (*ait)->type;
                     int atnum =_elements.getEleNum(element);
@@ -287,12 +286,12 @@ namespace votca {
                 // load DFT basis set (element-wise information) from xml file
                 BasisSet dftbs;
                 dftbs.LoadBasisSet(_orbitals.getDFTbasis());
-                LOG(CTP::logDEBUG, _log) << " Loaded DFT Basis Set " << _orbitals.getDFTbasis() << flush;
+                LOG(ctp::logDEBUG, _log) << " Loaded DFT Basis Set " << _orbitals.getDFTbasis() << flush;
 
                 // fill DFT AO basis by going through all atoms 
                 AOBasis dftbasis;
                 dftbasis.AOBasisFill(&dftbs, _orbitals.QMAtoms());
-                dftbasis.ReorderMOs(_dft_orbitals, _orbitals.getQMpackage(), "votca");
+                dftbasis.ReorderMOs(_dft_orbitals, _orbitals.getQMpackage(), "xtp");
 
                 
                 // now depending on the type of cube
@@ -305,7 +304,7 @@ namespace votca {
                     if ( _do_groundstate ) {
                         ub::matrix<double> DMATGS = _orbitals.DensityMatrixGroundState(_dft_orbitals);
                         DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
-                        LOG(CTP::logDEBUG, _log) << " Calculated ground state density matrix " << flush;
+                        LOG(ctp::logDEBUG, _log) << " Calculated ground state density matrix " << flush;
                     }
                     
                     if(_state>0){
@@ -315,20 +314,20 @@ namespace votca {
                     
                         if ( _do_transition ){
                              DMAT_tot=_orbitals.TransitionDensityMatrix(_dft_orbitals, BSECoefs, _state - 1);
-                             LOG(CTP::logDEBUG, _log) << " Calculated transition state density matrix " << flush;
+                             LOG(ctp::logDEBUG, _log) << " Calculated transition state density matrix " << flush;
                         }
 
                     // excited state if requested
                         else if ( _do_bse  ) {    
                             std::vector< ub::matrix<double> > DMAT=_orbitals.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state - 1);
                             DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
-                            LOG(CTP::logDEBUG, _log) << " Calculated excited state density matrix " << flush;
+                            LOG(ctp::logDEBUG, _log) << " Calculated excited state density matrix " << flush;
                         }
                     }
                     
    
-                    LOG(CTP::logDEBUG, _log) << " Calculating cube data ... \n" << flush;
-                    _log.setPreface(CTP::logDEBUG,   (boost::format(" ... ...") ).str());
+                    LOG(ctp::logDEBUG, _log) << " Calculating cube data ... \n" << flush;
+                    _log.setPreface(ctp::logDEBUG,   (format(" ... ...") ).str());
                     float progress = 0.0;
                     const ub::vector<double> DMAT_array = DMAT_tot.data();
                     // eval density at cube grid points
@@ -341,31 +340,21 @@ namespace votca {
                             for (int _iz = 0; _iz <= _zsteps; _iz++) {
                                 double _z = zstart + double(_iz) * zincr;
                                 Nrecord++;
-
+                                vec pos=vec(_x, _y, _z);
                                 // get value of orbitals at each gridpoint
                                 ub::matrix<double> tmat = ub::zero_matrix<double>( 1,dftbasis.AOBasisSize());
 
                                 for (vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
                                    
                                     ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
-                                    (*_row)->EvalAOspace(_submatrix, _x, _y, _z);
+                                    (*_row)->EvalAOspace(_submatrix, pos);
 
                                 }
                                 
                                 
              		    ub::matrix<double> _tempmat = ub::prod( tmat,DMAT_tot); // tempmat can be reused for density gradient
 		            double density_at_grid = ub::prod(_tempmat,ub::trans(tmat))(0,0);
-                            /* inefficient 
-                                ub::matrix<double> _AOmatrix_at_grid = ub::prod(tmat, ub::trans(tmat));
-
-                                // density at grid point is sum of element-wise product of density matrix x _AOmatrix
-                                ub::vector<double> _AO_array = _AOmatrix_at_grid.data();
-                                double density_at_grid = 0.0;
-                                for (int _i = 0; _i < DMAT_array.size(); _i++) {
-                                    density_at_grid += DMAT_array(_i) * _AO_array(_i);
-                                }
-
-                             */
+                          
                                 if (Nrecord == 6 || _iz == _zsteps) {
                                     fprintf(out, "%E \n", density_at_grid);
                                     Nrecord = 0;
@@ -381,22 +370,22 @@ namespace votca {
                         
                         progress += 1.0/((_xsteps+1));
                         int barWidth = 70;
-                        LOG(CTP::logDEBUG, _log) << "[";
+                        LOG(ctp::logDEBUG, _log) << "[";
                         int pos = barWidth * progress;
                         for (int i = 0; i < barWidth; ++i) {
-                            if (i < pos) LOG(CTP::logDEBUG, _log) << "=";
-                            else if (i == pos) LOG(CTP::logDEBUG, _log) << ">";
-                            else LOG(CTP::logDEBUG, _log) << " ";
+                            if (i < pos) LOG(ctp::logDEBUG, _log) << "=";
+                            else if (i == pos) LOG(ctp::logDEBUG, _log) << ">";
+                            else LOG(ctp::logDEBUG, _log) << " ";
                         }
                         int percent = progress * 100.0;
-                        LOG(CTP::logDEBUG, _log) << "] " << percent << " %\r";
-                        LOG(CTP::logDEBUG, _log) << flush;
+                        LOG(ctp::logDEBUG, _log) << "] " << percent << " %\r";
+                        LOG(ctp::logDEBUG, _log) << flush;
                         
                     } // x-component
 
 
                 } // ground or excited state
-                _log.setPreface(CTP::logDEBUG,   (boost::format("\n ... ...") ).str());
+                _log.setPreface(ctp::logDEBUG,   (format("\n ... ...") ).str());
                 
                 // diagonalized QP, if requested
                 if ( _do_qp && _state > 0 ){
@@ -423,11 +412,11 @@ namespace votca {
                                 Nrecord++;
                                 // get value of orbitals at each gridpoint
                                 ub::matrix<double> tmat = ub::zero_matrix<double>(1,dftbasis.AOBasisSize());
-
+                                vec pos=vec(_x, _y, _z);
                                 for (vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
 
                                     ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
-                                    (*_row)->EvalAOspace(_submatrix, _x, _y, _z);
+                                    (*_row)->EvalAOspace(_submatrix,pos);
                                 }
 
                                 double QP_at_grid = 0.0;
@@ -453,9 +442,9 @@ namespace votca {
                 fclose(out);
 
 
-                LOG(CTP::logDEBUG, _log) << "Wrote cube data to " << _output_file << flush;
+                LOG(ctp::logDEBUG, _log) << "Wrote cube data to " << _output_file << flush;
 
-            
+         return;   
         }
         
         
@@ -468,10 +457,10 @@ namespace votca {
             
             // open infiles for reading
             ifstream in1;
-            LOG(CTP::logDEBUG,_log) << " Reading first cube from " << _infile1 << flush;
+            LOG(ctp::logDEBUG,_log) << " Reading first cube from " << _infile1 << flush;
             in1.open(_infile1.c_str(), ios::in);
             ifstream in2;
-            LOG(CTP::logDEBUG,_log) << " Reading second cube from " << _infile2 << flush;
+            LOG(ctp::logDEBUG,_log) << " Reading second cube from " << _infile2 << flush;
             in2.open(_infile2.c_str(), ios::in);
             string s;
             
@@ -629,19 +618,19 @@ namespace votca {
             
             
             fclose(out);
-            LOG(CTP::logDEBUG, _log) << "Wrote subtracted cube data to " << _output_file << flush;
+            LOG(ctp::logDEBUG, _log) << "Wrote subtracted cube data to " << _output_file << flush;
             
         }
         
 bool GenCube::Evaluate() {
 
-    _log.setReportLevel( CTP::logDEBUG );
+    _log.setReportLevel( ctp::logDEBUG );
     _log.setMultithreading( true );
     
-    _log.setPreface(CTP::logINFO,    "\n... ...");
-    _log.setPreface(CTP::logERROR,   "\n... ...");
-    _log.setPreface(CTP::logWARNING, "\n... ...");
-    _log.setPreface(CTP::logDEBUG,   "\n... ..."); 
+    _log.setPreface(ctp::logINFO,    "\n... ...");
+    _log.setPreface(ctp::logERROR,   "\n... ...");
+    _log.setPreface(ctp::logWARNING, "\n... ...");
+    _log.setPreface(ctp::logDEBUG,   "\n... ..."); 
 
     
 

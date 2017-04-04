@@ -20,11 +20,9 @@
 #ifndef __XTP_GRID_CONTAINERS__H
 #define	__XTP_GRID_CONTAINERS__H
 
-#include <votca/tools/property.h>
-#include <votca/xtp/basisset.h>
-#include <votca/ctp/qmatom.h>
 
-using namespace std;
+
+
 
 
 namespace votca { namespace xtp {
@@ -43,7 +41,7 @@ namespace votca { namespace xtp {
                 std::vector<double> weight;
             };
        
-            map<string,radial_grid> _radial_grids;
+            std::map<std::string,radial_grid> _radial_grids;
 
             // containers for spherical grids on a unit sphere per element
             struct spherical_grid{
@@ -53,13 +51,11 @@ namespace votca { namespace xtp {
                 
             };
             
-            map<string,spherical_grid> _spherical_grids;
+            std::map<std::string,spherical_grid> _spherical_grids;
             
             // container for cartesian grid points and weights
             struct integration_grid {
-                double grid_x;
-                double grid_y;
-                double grid_z;
+                tools::vec grid_pos;
                 double grid_weight;
                 double grid_density;
             };

@@ -50,10 +50,10 @@ env:
     - CCACHE_CPP2=yes #for clang
     - GVER=4.8
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
-    - CPT=yes XTP=yes WERROR=yes J=4 TYPE=Release
-    - CPT=yes XTP=yes WALL=yes J=4 XTP_MAN=yes TYPE=Release
-    - CPT=yes XTP=yes WERROR=yes J=4 BDIR=build TYPE=Debug
-    - CPT=yes XTP=yes WALL=yes J=4 BDIR=build TYPE=Debug
+    - XTP=yes WERROR=yes J=4 TYPE=Release
+    - XTP=yes WALL=yes J=4 XTP_MAN=yes TYPE=Release
+    - XTP=yes WERROR=yes J=4 BDIR=build TYPE=Debug
+    - XTP=yes WALL=yes J=4 BDIR=build TYPE=Debug
 
 before_script:
   - rm -vrf * .git

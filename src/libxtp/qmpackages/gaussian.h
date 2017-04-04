@@ -36,9 +36,7 @@ namespace votca { namespace xtp {
     and extracts information from its log and io files
     
 */
-    
-    namespace CTP = votca::ctp;
-class Gaussian : public XQMPackage
+class Gaussian : public QMPackage
 {
 public:   
 
@@ -50,7 +48,7 @@ public:
     * and a guess for the dimer (if requested) constructed from the
     * monomer orbitals
     */
-   bool WriteInputFile( std::vector< CTP::Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
 
    bool WriteShellScript();
 
@@ -64,7 +62,7 @@ public:
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
    
-   bool ConvertToGW( Orbitals* _orbitals );
+  
       
    std::string getScratchDir( ) { return _scratch_dir; }
    
@@ -80,10 +78,7 @@ private:
     int NumberOfElectrons( std::string _line ); 
     int BasisSetSize( std::string _line ); 
     int EnergiesFromLog( std::string _line, std::ifstream inputfile ); 
-    std::string FortranFormat( const double &number );
-    int NumbfQC( std::string _shell_type);
-    int NumbfGW( std::string _shell_type);
-    int NumbfQC_cart( std::string _shell_type);
+    std::string FortranFormat(double number);
 
     
     

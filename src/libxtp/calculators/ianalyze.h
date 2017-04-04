@@ -20,55 +20,56 @@
 #ifndef VOTCA_XTP_IANALYZE_H
 #define VOTCA_XTP_IANALYZE_H
 
+#include <votca/ctp/qmcalculator.h>
 #include <math.h>
 #include <votca/ctp/qmpair.h>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
-class XIAnalyze : public XQMCalculator
+class IAnalyze : public ctp::QMCalculator
 {
 public:
 
-    string  Identify() { return "ianalyze"; }
+    std::string  Identify() { return "xianalyze"; }
 
-    void    Initialize(Property *options);
-    bool    EvaluateFrame(Topology *top);
-    void    IHist(Topology *top, int state);
-    void    IRdependence(Topology *top, int state);
+    void    Initialize(tools::Property *options);
+    bool    EvaluateFrame(ctp::Topology *top);
+    void    IHist(ctp::Topology *top, int state);
+    void    IRdependence(ctp::Topology *top, int state);
 
 private:
 
     double      _resolution_logJ2;
-    vector<int> _states;
+    std::vector<int> _states;
     double      _resolution_space;
-    vector<QMPair::PairType> _pairtype;
+    std::vector<ctp::QMPair::PairType> _pairtype;
     bool        _do_pairtype;
     bool        _do_IRdependence;
 
 };
 
 
-void XIAnalyze::Initialize(Property *opt) {
+void IAnalyze::Initialize(tools::Property *opt) {
     _do_pairtype=false;
     _do_IRdependence=false;
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt, "xtp" );
-    string key = "options." + Identify();
-    _states = opt->get(key+".states").as< vector<int> >();
+    std::string key = "options." + Identify();
+    _states = opt->get(key+".states").as< std::vector<int> >();
     _resolution_logJ2 = opt->get(key+".resolution_logJ2").as< double >();
     
     if ( opt->exists(key+".pairtype")) {
         _do_pairtype=true;
-        string _store_string = opt->get(key+".pairtype").as<string> ();
-        if (_store_string.find("Hopping") != std::string::npos) _pairtype.push_back(QMPair::Hopping);
-        if (_store_string.find("SuperExchange") != std::string::npos) _pairtype.push_back(QMPair::SuperExchange);
-        if (_store_string.find("SuperExchangeAndHopping") != std::string::npos) _pairtype.push_back(QMPair::SuperExchangeAndHopping);
-        if (_store_string.find("Excitoncl") != std::string::npos) _pairtype.push_back(QMPair::Excitoncl);
+        std::string _store_stdstring = opt->get(key+".pairtype").as<std::string> ();
+        if (_store_stdstring.find("Hopping") != std::string::npos) _pairtype.push_back(ctp::QMPair::Hopping);
+        if (_store_stdstring.find("SuperExchange") != std::string::npos) _pairtype.push_back(ctp::QMPair::SuperExchange);
+        if (_store_stdstring.find("SuperExchangeAndHopping") != std::string::npos) _pairtype.push_back(ctp::QMPair::SuperExchangeAndHopping);
+        if (_store_stdstring.find("Excitoncl") != std::string::npos) _pairtype.push_back(ctp::QMPair::Excitoncl);
         if (!_pairtype.size()){
-            cout << endl << "... ... No pairtypes recognized will output all pairs. ";
+            std::cout << std::endl << "... ... No pairtypes recognized will output all pairs. ";
              _do_pairtype=false;
         }
-        //cout <<_pairtype.size()<<endl;
+        //std::cout <<_pairtype.size()<<std::endl;
     }
     if ( opt->exists(key+".resolution_space")) {
         
@@ -79,32 +80,33 @@ void XIAnalyze::Initialize(Property *opt) {
 }
 
 
-bool XIAnalyze::EvaluateFrame(Topology *top) {
+bool IAnalyze::EvaluateFrame(ctp::Topology *top) {
 
-    QMNBList &nblist = top->NBList();
+    ctp::QMNBList &nblist = top->NBList();
 
     if (!nblist.size()) {
-        cout << endl << "... ... No pairs in topology. Skip...";
+        std::cout << std::endl << "... ... No pairs in topology. Skip...";
         return 0;
     }
     
     if (_do_pairtype){
         bool pairs_exist=false;
-        QMNBList::iterator nit;
+        ctp::QMNBList::iterator nit;
         for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
-            QMPair::PairType pairtype=(*nit)->getType();
+            ctp::QMPair::PairType pairtype=(*nit)->getType();
             if(std::find(_pairtype.begin(), _pairtype.end(), pairtype) != _pairtype.end()) {
                 pairs_exist=true;
                 break;
             }
         }
         if (!pairs_exist) {
-        cout << endl << "... ... No pairs of given pairtypes in topology. Skip...";
+        std::cout << std::endl << "... ... No pairs of given pairtypes in topology. Skip...";
         return 0;
     }
     }
 
     for (unsigned int i = 0; i < _states.size(); ++i) {
+        
         this->IHist(top, _states[i]);
         if (_do_IRdependence){
         this->IRdependence(top, _states[i]);
@@ -115,28 +117,28 @@ bool XIAnalyze::EvaluateFrame(Topology *top) {
 }
 
 
-void XIAnalyze::IHist(Topology *top, int state) {
+void IAnalyze::IHist(ctp::Topology *top, int state) {
 
-    QMNBList &nblist = top->NBList();
-    QMNBList::iterator nit;
+    ctp::QMNBList &nblist = top->NBList();
+    ctp::QMNBList::iterator nit;
    
 
     double MIN = std::numeric_limits<double>::max();
     double MAX = 0.0;
     
     // Collect J2s from pairs
-    vector< double > J2s;
+    std::vector< double > J2s;
     //J2s.reserve(nblist.size()); //does not make a difference 
    
     for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
         if(_do_pairtype){
-            QMPair::PairType pairtype=(*nit)->getType();
+            ctp::QMPair::PairType pairtype=(*nit)->getType();
             if(!(std::find(_pairtype.begin(), _pairtype.end(), pairtype) != _pairtype.end())){
                 continue;
             }
         }
         double test = (*nit)->getJeff2(state);
-        double J2;
+        double J2=0.0;
  
         if(test <= 0) {continue;} // avoid -inf in output
         J2=log10(test);
@@ -144,40 +146,44 @@ void XIAnalyze::IHist(Topology *top, int state) {
         
         MIN = (J2 < MIN) ? J2 : MIN;
         MAX = (J2 > MAX) ? J2 : MAX;
-
         J2s.push_back(J2);
        
+    }
+    
+    if(J2s.size()<1){
+        std::cerr <<"Error: Couplings are all zero. You have not yet imported them! "<<std::endl;
+        std::exit(0);
     }
 
     // Prepare bins
     int BIN = ( (MAX-MIN)/_resolution_logJ2 + 0.5 ) + 1;
-
-    vector< vector<double> > histJ2;
+    std::cout<<BIN<<std::endl;
+    std::vector< std::vector<double> > histJ2;
 
     histJ2.resize(BIN);
 
     // Execute binning
-    vector< double > ::iterator jit;
+    std::vector< double > ::iterator jit;
     for (jit = J2s.begin(); jit < J2s.end(); ++jit) {
 
         int bin = int( (*jit-MIN)/_resolution_logJ2 + 0.5 );
         histJ2[bin].push_back(*jit);
     }
 
-    vector< int > histN;
+    std::vector< int > histN;
     histN.resize(BIN);
     for (int bin = 0; bin < BIN; ++bin) {
         histN[bin] = histJ2[bin].size();
     }
     FILE *out;
-    string name;
+    std::string name;
     if (state==-1) name="e";
     else if (state==1) name="h";
     else if (state==2) name="s";
     else if (state==3) name="t";
-    string tag = boost::lexical_cast<string>("ianalyze.ihist_") +name + ".out";
+    std::string tag = boost::lexical_cast<std::string>("ianalyze.ihist_") +name + ".out";
     out = fopen(tag.c_str(), "w");
-
+    std::cout << std::endl << "... Printing to tag.c_str()";
     fprintf(out, "# IANALYZE: PAIR-INTEGRAL J2 HISTOGRAM\n");
     fprintf(out, "# STATE %1d\n", state);
 
@@ -188,10 +194,10 @@ void XIAnalyze::IHist(Topology *top, int state) {
     fclose(out);
 }
 
-void XIAnalyze::IRdependence(Topology *top, int state) {
+void IAnalyze::IRdependence(ctp::Topology *top, int state) {
     
-    QMNBList &nblist = top->NBList();
-    QMNBList::iterator nit;
+    ctp::QMNBList &nblist = top->NBList();
+    ctp::QMNBList::iterator nit;
 
     double MIN  = log10(nblist.front()->getJeff2(state));
     double MAX  = log10(nblist.front()->getJeff2(state));
@@ -199,9 +205,9 @@ void XIAnalyze::IRdependence(Topology *top, int state) {
     double MAXR = abs(nblist.front()->getR());
     
     // Collect J2s from pairs
-    vector< double > J2s;
+    std::vector< double > J2s;
     J2s.reserve(nblist.size());
-    vector< double > distances;
+    std::vector< double > distances;
     distances.reserve(nblist.size());
 
     for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
@@ -221,7 +227,7 @@ void XIAnalyze::IRdependence(Topology *top, int state) {
     
     // Prepare R bins
     int _pointsR = (MAXR-MINR)/_resolution_space;
-    vector< vector<double> > rJ2;
+    std::vector< std::vector<double> > rJ2;
     rJ2.resize(_pointsR);
 
 
@@ -235,7 +241,7 @@ void XIAnalyze::IRdependence(Topology *top, int state) {
         //double sigmaJ2 = 0;
         //int noJ2 = 0;
         
-        vector< double > ::iterator jit;
+        std::vector< double > ::iterator jit;
         int j = 0;
         for (jit = J2s.begin(); jit < J2s.end(); ++jit) {
             if(thisMINR < distances[j] && distances[j] < thisMAXR){
@@ -246,8 +252,8 @@ void XIAnalyze::IRdependence(Topology *top, int state) {
     }
     
     // make plot values
-    vector< double > avgJ2;
-    for (vector< vector<double> > ::iterator it = rJ2.begin() ; it != rJ2.end(); ++it){
+    std::vector< double > avgJ2;
+    for (std::vector< std::vector<double> > ::iterator it = rJ2.begin() ; it != rJ2.end(); ++it){
         double thisavgJ2 = 0;
         for(unsigned i=0; i < (*it).size(); i++){
             thisavgJ2 += (*it)[i];
@@ -255,9 +261,9 @@ void XIAnalyze::IRdependence(Topology *top, int state) {
         thisavgJ2 /= (*it).size();
         avgJ2.push_back(thisavgJ2);
     }
-    vector< double > errJ2;
+    std::vector< double > errJ2;
     int j = 0;
-    for (vector< vector<double> > ::iterator it = rJ2.begin() ; it != rJ2.end(); ++it){
+    for (std::vector< std::vector<double> > ::iterator it = rJ2.begin() ; it != rJ2.end(); ++it){
         double thiserrJ2 = 0;
         for(unsigned i=0; i < (*it).size(); i++){
             thiserrJ2 += ((*it)[i]-avgJ2[j])*((*it)[i]-avgJ2[j]);
@@ -271,12 +277,12 @@ void XIAnalyze::IRdependence(Topology *top, int state) {
     
     // print to file
     FILE *out;
-    string name;
+    std::string name;
     if (state==-1) name="e";
     else if (state==1) name="h";
     else if (state==2) name="s";
     else if (state==3) name="t";
-    string tag = boost::lexical_cast<string>("ianalyze.ispatial_") + name + ".out";
+    std::string tag = boost::lexical_cast<std::string>("ianalyze.ispatial_") + name + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# IANALYZE: SPATIAL DEPENDENCE OF log10(J2) [r,log10(J),error]\n");

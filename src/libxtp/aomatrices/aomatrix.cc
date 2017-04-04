@@ -22,17 +22,9 @@
 #include <votca/xtp/aomatrix.h>
 
 #include <votca/xtp/aobasis.h>
-#include <string>
-#include <map>
+
 #include <vector>
-#include <votca/tools/property.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/math/constants/constants.hpp>
-#include <boost/multi_array.hpp>
-#include <votca/ctp/logger.h>
-#include <votca/tools/linalg.h>
-// #include <omp.h>
+
 
 
 using namespace votca::tools;
@@ -49,7 +41,7 @@ namespace votca { namespace xtp {
         }
     }
     
-    void AOMatrix::Fill( AOBasis* aobasis, ub::vector<double> r, AOBasis* ecp ) {
+    void AOMatrix::Fill( AOBasis* aobasis, vec r, AOBasis* ecp ) {
         // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
 
           //      cout << aobasis->_aoshells.size();
@@ -74,10 +66,10 @@ namespace votca { namespace xtp {
                 int _col_end   = _col_start + _shell_col->getNumFunc();
                 //cout << _row << ":" << _row_start << ":" << _row_end << "/" << _col << ":" <<  _col_start << ":" << _col_end << endl;
                 ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(this->_aomatrix, _row_start, _row_end, _col_start, _col_end);
-
+                
                 // Fill block
                 FillBlock( _submatrix, _shell_row, _shell_col, ecp );
-
+                //cout << _submatrix<<endl;
             }
         }
         
@@ -120,7 +112,7 @@ namespace votca { namespace xtp {
         // loop row
         #pragma omp parallel for
         for ( unsigned _row = 0; _row <  aobasis->_aoshells.size() ; _row++ ){
-        // for (vector< AOShell* >::iterator _row = aobasis->firstShell(); _row != aobasis->lastShell() ; _row++ ) {
+       
             AOShell* _shell_row = aobasis->getShell( _row );
             int _row_start = _shell_row->getStartIndex();
             int _row_end   = _row_start + _shell_row->getNumFunc();
@@ -135,7 +127,7 @@ namespace votca { namespace xtp {
                 std::vector< ub::matrix_range< ub::matrix<double> > > _submatrix;
                 for ( int _i = 0; _i < 3; _i++){
                    _submatrix.push_back(   ub::subrange(this->_aomatrix[_i], _row_start, _row_end, _col_start, _col_end) );
-                //ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(this->_aomatrix, _row_start, _row_end, _col_start, _col_end);
+               
                 }
                 // Fill block
                 FillBlock( _submatrix, _shell_row, _shell_col);
@@ -163,12 +155,7 @@ namespace votca { namespace xtp {
     
     
     
-    
-    //    AOMatrix::~AOMatrix() {
-    // ;
-      //_aomatrix.clear();
-    //    _aomatrix.resize(0,0);
-    // };
+   
     
     
     void AOMatrix::Print( string _ident){
@@ -193,280 +180,113 @@ namespace votca { namespace xtp {
        
        void AOSuperMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay, std::vector<double> contractions){
         // s-functions
-        _trafo(0,0) = 1.0*contractions[0]; // s
-       
-        // p-functions
-        if ( _lmax > 0 ){
-            //cout << _trafo_row.size1() << ":" << _trafo_row.size2() << endl;
-            _trafo(1,1) = 2.0*sqrt(_decay)*contractions[1];
-            _trafo(2,2) = 2.0*sqrt(_decay)*contractions[1];
-            _trafo(3,3) = 2.0*sqrt(_decay)*contractions[1];
-        }
-        //votca order is dxz dyz dxy d3z2-r2 dx2-y2
-        // d-functions
-        if ( _lmax > 1 ){
-            _trafo(4,5) = 4.0*_decay*contractions[2];             // dxz
-            _trafo(5,6) = _trafo(4,5);            // dyz
-            _trafo(6,4) = _trafo(4,5);            // dxy
-            _trafo(7,7) = -2.0*_decay/sqrt(3.0)*contractions[2];  // d3z2-r2 (dxx)
-            _trafo(7,8) = _trafo(7,7);            // d3z2-r2 (dyy)
-            _trafo(7,9) = -2.0*_trafo(7,7);       // d3z2-r2 (dzz)
-            _trafo(8,7) = 2.0*_decay*contractions[2];             // dx2-y2 (dxx)
-            _trafo(8,8) = -_trafo(8,7);           // dx2-y2 (dzz)
-        }
-        
-        // f-functions
-        if ( _lmax > 2 ){
-            _trafo(9,12) = 4.0 * 2.0 *pow(_decay,1.5)/sqrt(15.)*contractions[3]; // f1 (f??)
-            _trafo(9,15) = -1.5 * _trafo(9,12);        // f1 (f??)
-            _trafo(9,17) = _trafo(9,15);               // f1 (f??)
-            
-            _trafo(10,16) = 4.0 * 2.0 * sqrt(2.0)/sqrt(5.0) * pow(_decay,1.5)*contractions[3]; // f2 (f??)
-            _trafo(10,10) = -0.25 * _trafo(10,16);                             // f2 f(??)
-            _trafo(10,14) = _trafo(10,10);                                     // f2 f(??)
-            
-            _trafo(11,18) = _trafo(10,16);                                     // f3 (f??)
-            _trafo(11,13) = -0.25 * _trafo(11,18);                             // f3 f(??)
-            _trafo(11,11) = _trafo(11,13);                                     // f3 f(??)            
-                   
-            _trafo(12,13) = 3.0 * 2.0 * sqrt(2.0)/sqrt(3.0) * pow(_decay,1.5)*contractions[3]; // f4 (f??)
-            _trafo(12,11) = -_trafo(12,13)/3.0;                                // f4 (f??)
-            
-            _trafo(13,10) = -_trafo(12,11);                                    // f5 (f??)
-            _trafo(13,14) = -_trafo(12,13);                                    // f5 (f??)
-            
-            _trafo(14,19) = 8.0 * pow(_decay,1.5)*contractions[3];                             // f6 (f??)
-            
-            _trafo(15,15) = 0.5 * _trafo(14,19);                               // f7 (f??)
-            _trafo(15,17) = -_trafo(15,15);                                    // f7 (f??)
-        }
-        
-        // g-functions
-        if ( _lmax > 3 ){
-            _trafo(16,22) = 8.0 * 2.0/sqrt(105.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(16,21) = 3.0 * 2.0/sqrt(105.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(16,20) = _trafo(16,21);
-            _trafo(16,29) = -3.0 * _trafo(16,22);
-            _trafo(16,31) = 2.0 * _trafo(16,21);
-            _trafo(16,30) = _trafo(16,29);
-            _trafo(16,5)  = _trafo(16,31);
-            
-             /* vv(17,:) =  (/   23,  22, 21, 30, 32, 31,   6 /) ! g
-                cc(17,:) =  (/    8,  3, 3, -24, 6, -24,    6 /)
-                normConst(17,:) = (/ 2.d0/sqrt(105.d0) ,2.d0  /)
-              */
-            _trafo(17,26) = 4.0 * 4.0*sqrt(2.0)/sqrt(21.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(17,25) = -0.75 * _trafo(17,26);
-            _trafo(17,33) = _trafo(17,25);
-             
-             /* vv(18,:) =  (/   27,  26, 34,  0,  0,  0,   3 /) ! g
-                cc(18,:) =  (/    4,  -3, -3,  0,  0,  0,   3 /)
-                normConst(18,:) = (/ 4.d0*sqrt(2.d0)/sqrt(21.d0) ,2.d0  /)
-              */
-            
-            _trafo(18,28) = _trafo(17,26);
-            _trafo(18,32) = _trafo(17,25);
-            _trafo(18,27) = _trafo(17,25);
-             
-            /* vv(19,:) =  (/   29,  33, 28,  0,  0,  0,   3 /) ! g 
-               cc(19,:) =  (/    4,  -3, -3,  0,  0,  0,   3 /)
-               normConst(19,:) = (/ 4.d0*sqrt(2.d0)/sqrt(21.d0) ,2.d0  /)
-             */
-     
-            _trafo(19,34) = 6.0 * 8.0/sqrt(21.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(19,23) = -_trafo(19,34)/6.0;
-            _trafo(19,24) = _trafo(19,23);
-             
-            /* vv(20,:) =  (/   35,  24, 25,  0,  0,  0,   3 /) ! g
-               cc(20,:) =  (/    6,  -1, -1,  0,  0,  0,   3 /)
-               normConst(20,:) = (/ 8.d0/sqrt(21.d0) ,2.d0  /)
-             */
-    
-            _trafo(20,29) = 6.0 * 4.0/sqrt(21.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(20,20) = -_trafo(20,29)/6.0;
-            _trafo(20,30) = -_trafo(20,29);
-            _trafo(20,21) = -_trafo(20,20);
-
-            /* vv(21,:) =  (/   30,  21, 31, 22,  0,  0,   4 /) ! g
-               cc(21,:) =  (/    6,  -1, -6, 1,  0,  0,    4 /)
-               normConst(21,:) = (/ 4.d0/sqrt(21.d0) ,2.d0  /)
-             */
-    
-            _trafo(21,25) = 4.0 * sqrt(2.0)/sqrt(3.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(21,33) = -3.0 * _trafo(21,25);
-             
-            /* vv(22,:) =  (/   26,  34,  0,  0,  0,  0,   2 /) ! g
-               cc(22,:) =  (/    1,  -3,  0,  0,  0,  0,   2 /)
-               normConst(22,:) = (/ 4.d0*sqrt(2.d0)/sqrt(3.d0) ,2.d0  /)
-             */
-    
-            _trafo(22,32) = -_trafo(21,33);
-            _trafo(22,27) = -_trafo(21,25);
-            
-            /* vv(23,:) =  (/   33,  28,  0,  0,  0,  0,   2 /) ! g
-               cc(23,:) =  (/    3,  -1,  0,  0,  0,  0,   2 /)
-               normConst(23,:) = (/ 4.d0*sqrt(2.d0)/sqrt(3.d0) ,2.d0  /)
-             */
-    
-            _trafo(23,23) = 8.0/sqrt(3.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(23,24) = -_trafo(23,23);
-             
-            /* vv(24,:) =  (/   24,  25,  0,  0,  0,  0,   2 /) ! g 
-               cc(24,:) =  (/    1,  -1,  0,  0,  0,  0,   2 /)
-               normConst(24,:) = (/ 8.d0/sqrt(3.d0) ,2.d0  /)
-             */
-    
-            _trafo(24,20) = 2.0/sqrt(3.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(24,21) = _trafo(24,20);
-            _trafo(24,31) = -6.0 * _trafo(24,20);
-             
-            /* vv(25,:) =  (/   21,  22, 32,  0,  0,  0,   3 /) ! g
-               cc(25,:) =  (/    1,  1, -6,  0,  0,  0,   3  /)
-               normConst(25,:) = (/ 2.d0/sqrt(3.d0) ,2.d0  /)
-             */
-           
-       
-       }
-       }
-       
-    void AOSuperMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay) {
-        // s-functions
-        _trafo(0,0) = 1.0; // s
-       
-        // p-functions
-        if ( _lmax > 0 ){
-            //cout << _trafo_row.size1() << ":" << _trafo_row.size2() << endl;
-            _trafo(1,1) = 2.0*sqrt(_decay);
-            _trafo(2,2) = 2.0*sqrt(_decay);
-            _trafo(3,3) = 2.0*sqrt(_decay);
+        _trafo(0,0) = 1.0*contractions[0]; //  // s  Y 0,0
+       // p-functions
+        if ( _lmax > 0 ){ // order of functions changed
+          double factor = 2.*sqrt(_decay)*contractions[1];
+          _trafo(1,3) = factor;  // Y 1,0
+          _trafo(2,2) = factor;  // Y 1,-1
+          _trafo(3,1) = factor;  // Y 1,1
         }
 
         // d-functions
-        if ( _lmax > 1 ){
-            _trafo(4,5) = 4.0*_decay;             // dxz
-            _trafo(5,6) = _trafo(4,5);            // dyz
-            _trafo(6,4) = _trafo(4,5);            // dxy
-            _trafo(7,7) = -2.0*_decay/sqrt(3.0);  // d3z2-r2 (dxx)
-            _trafo(7,8) = _trafo(7,7);            // d3z2-r2 (dyy)
-            _trafo(7,9) = -2.0*_trafo(7,7);       // d3z2-r2 (dzz)
-            _trafo(8,7) = 2.0*_decay;             // dx2-y2 (dxx)
-            _trafo(8,8) = -_trafo(8,7);           // dx2-y2 (dzz)
-        }
-        
-        // f-functions
-        if ( _lmax > 2 ){
-            _trafo(9,12) = 4.0 * 2.0 *pow(_decay,1.5)/sqrt(15.); // f1 (f??)
-            _trafo(9,15) = -1.5 * _trafo(9,12);        // f1 (f??)
-            _trafo(9,17) = _trafo(9,15);               // f1 (f??)
-            
-            _trafo(10,16) = 4.0 * 2.0 * sqrt(2.0)/sqrt(5.0) * pow(_decay,1.5); // f2 (f??)
-            _trafo(10,10) = -0.25 * _trafo(10,16);                             // f2 f(??)
-            _trafo(10,14) = _trafo(10,10);                                     // f2 f(??)
-            
-            _trafo(11,18) = _trafo(10,16);                                     // f3 (f??)
-            _trafo(11,13) = -0.25 * _trafo(11,18);                             // f3 f(??)
-            _trafo(11,11) = _trafo(11,13);                                     // f3 f(??)            
-                   
-            _trafo(12,13) = 3.0 * 2.0 * sqrt(2.0)/sqrt(3.0) * pow(_decay,1.5); // f4 (f??)
-            _trafo(12,11) = -_trafo(12,13)/3.0;                                // f4 (f??)
-            
-            _trafo(13,10) = -_trafo(12,11);                                    // f5 (f??)
-            _trafo(13,14) = -_trafo(12,13);                                    // f5 (f??)
-            
-            _trafo(14,19) = 8.0 * pow(_decay,1.5);                             // f6 (f??)
-            
-            _trafo(15,15) = 0.5 * _trafo(14,19);                               // f7 (f??)
-            _trafo(15,17) = -_trafo(15,15);                                    // f7 (f??)
-        }
-        
-        // g-functions
-        if ( _lmax > 3 ){
-            _trafo(16,22) = 8.0 * 2.0/sqrt(105.0) * pow(_decay,2.0);
-            _trafo(16,21) = 3.0 * 2.0/sqrt(105.0) * pow(_decay,2.0);
-            _trafo(16,20) = _trafo(16,21);
-            _trafo(16,29) = -3.0 * _trafo(16,22);
-            _trafo(16,31) = 2.0 * _trafo(16,21);
-            _trafo(16,30) = _trafo(16,29);
-            _trafo(16,5)  = _trafo(16,31);
-            
-             /* vv(17,:) =  (/   23,  22, 21, 30, 32, 31,   6 /) ! g
-                cc(17,:) =  (/    8,  3, 3, -24, 6, -24,    6 /)
-                normConst(17,:) = (/ 2.d0/sqrt(105.d0) ,2.d0  /)
-              */
-            _trafo(17,26) = 4.0 * 4.0*sqrt(2.0)/sqrt(21.0) * pow(_decay,2.0);
-            _trafo(17,25) = -0.75 * _trafo(17,26);
-            _trafo(17,33) = _trafo(17,25);
-             
-             /* vv(18,:) =  (/   27,  26, 34,  0,  0,  0,   3 /) ! g
-                cc(18,:) =  (/    4,  -3, -3,  0,  0,  0,   3 /)
-                normConst(18,:) = (/ 4.d0*sqrt(2.d0)/sqrt(21.d0) ,2.d0  /)
-              */
-            
-            _trafo(18,28) = _trafo(17,26);
-            _trafo(18,32) = _trafo(17,25);
-            _trafo(18,27) = _trafo(17,25);
-             
-            /* vv(19,:) =  (/   29,  33, 28,  0,  0,  0,   3 /) ! g 
-               cc(19,:) =  (/    4,  -3, -3,  0,  0,  0,   3 /)
-               normConst(19,:) = (/ 4.d0*sqrt(2.d0)/sqrt(21.d0) ,2.d0  /)
-             */
-     
-            _trafo(19,34) = 6.0 * 8.0/sqrt(21.0) * pow(_decay,2.0);
-            _trafo(19,23) = -_trafo(19,34)/6.0;
-            _trafo(19,24) = _trafo(19,23);
-             
-            /* vv(20,:) =  (/   35,  24, 25,  0,  0,  0,   3 /) ! g
-               cc(20,:) =  (/    6,  -1, -1,  0,  0,  0,   3 /)
-               normConst(20,:) = (/ 8.d0/sqrt(21.d0) ,2.d0  /)
-             */
-    
-            _trafo(20,29) = 6.0 * 4.0/sqrt(21.0) * pow(_decay,2.0);
-            _trafo(20,20) = -_trafo(20,29)/6.0;
-            _trafo(20,30) = -_trafo(20,29);
-            _trafo(20,21) = -_trafo(20,20);
+        if ( _lmax > 1 ){ // order of functions changed
+          double factor = 2.*_decay*contractions[2];
+          double factor_1 =  factor/sqrt(3.);
+          _trafo(4,Cart::xx) = -factor_1;    // d3z2-r2 (dxx)
+          _trafo(4,Cart::yy) = -factor_1;    // d3z2-r2 (dyy)  Y 2,0
+          _trafo(4,Cart::zz) = 2.*factor_1;  // d3z2-r2 (dzz)
 
-            /* vv(21,:) =  (/   30,  21, 31, 22,  0,  0,   4 /) ! g
-               cc(21,:) =  (/    6,  -1, -6, 1,  0,  0,    4 /)
-               normConst(21,:) = (/ 4.d0/sqrt(21.d0) ,2.d0  /)
-             */
-    
-            _trafo(21,25) = 4.0 * sqrt(2.0)/sqrt(3.0) * pow(_decay,2.0);
-            _trafo(21,33) = -3.0 * _trafo(21,25);
-             
-            /* vv(22,:) =  (/   26,  34,  0,  0,  0,  0,   2 /) ! g
-               cc(22,:) =  (/    1,  -3,  0,  0,  0,  0,   2 /)
-               normConst(22,:) = (/ 4.d0*sqrt(2.d0)/sqrt(3.d0) ,2.d0  /)
-             */
-    
-            _trafo(22,32) = -_trafo(21,33);
-            _trafo(22,27) = -_trafo(21,25);
-            
-            /* vv(23,:) =  (/   33,  28,  0,  0,  0,  0,   2 /) ! g
-               cc(23,:) =  (/    3,  -1,  0,  0,  0,  0,   2 /)
-               normConst(23,:) = (/ 4.d0*sqrt(2.d0)/sqrt(3.d0) ,2.d0  /)
-             */
-    
-            _trafo(23,23) = 8.0/sqrt(3.0) * pow(_decay,2.0);
-            _trafo(23,24) = -_trafo(23,23);
-             
-            /* vv(24,:) =  (/   24,  25,  0,  0,  0,  0,   2 /) ! g 
-               cc(24,:) =  (/    1,  -1,  0,  0,  0,  0,   2 /)
-               normConst(24,:) = (/ 8.d0/sqrt(3.d0) ,2.d0  /)
-             */
-    
-            _trafo(24,20) = 2.0/sqrt(3.0) * pow(_decay,2.0);
-            _trafo(24,21) = _trafo(24,20);
-            _trafo(24,31) = -6.0 * _trafo(24,20);
-             
-            /* vv(25,:) =  (/   21,  22, 32,  0,  0,  0,   3 /) ! g
-               cc(25,:) =  (/    1,  1, -6,  0,  0,  0,   3  /)
-               normConst(25,:) = (/ 2.d0/sqrt(3.d0) ,2.d0  /)
-             */
-               
+          _trafo(5,Cart::yz) = 2.*factor;     // dyz           Y 2,-1
+
+          _trafo(6,Cart::xz) = 2.*factor;     // dxz           Y 2,1
+
+          _trafo(7,Cart::xy) = 2.*factor;     // dxy           Y 2,-2
+
+          _trafo(8,Cart::xx) = factor;       // dx2-y2 (dxx)   Y 2,2
+          _trafo(8,Cart::yy) = -factor;      // dx2-y2 (dzz)
         }
-        
-        
-    }
+       
+        // f-functions
+        if ( _lmax > 2 ){ // order of functions changed
+          double factor = 2.*pow(_decay,1.5)*contractions[3];
+          double factor_1 = factor*2./sqrt(15.);
+          double factor_2 = factor*sqrt(2.)/sqrt(5.);
+          double factor_3 = factor*sqrt(2.)/sqrt(3.);
+
+          _trafo(9,Cart::xxz) = -3.*factor_1;        // f1 (f??) xxz 13
+          _trafo(9,Cart::yyz) = -3.*factor_1;        // f1 (f??) yyz 15        Y 3,0
+          _trafo(9,Cart::zzz) = 2.*factor_1;         // f1 (f??) zzz 19
+
+          _trafo(10,Cart::xxy) = -factor_2;          // f3 xxy 10
+          _trafo(10,Cart::yyy) = -factor_2;          // f3 yyy 18   Y 3,-1
+          _trafo(10,Cart::yzz) = 4.*factor_2;        // f3 yzz 16
+
+          _trafo(11,Cart::xxx) = -factor_2;          // f2 xxx 17
+          _trafo(11,Cart::xyy) = -factor_2;          // f2 xyy 11   Y 3,1
+          _trafo(11,Cart::xzz) = 4.*factor_2;        // f2 xzz 14
+
+          _trafo(12,Cart::xyz) = 4.*factor;          // f6 xyz 12     Y 3,-2
+
+          _trafo(13,Cart::xxz) = 2.*factor;          // f7 (f??)   xxz   13
+          _trafo(13,Cart::yyz) = -2.*factor;         // f7 (f??)   yyz   15   Y 3,2
+
+          _trafo(14,Cart::xxy) = 3.*factor_3;        // f4 xxy 10
+          _trafo(14,Cart::yyy) = -factor_3;          // f4 yyy 18   Y 3,-3
+
+          _trafo(15,Cart::xxx) = factor_3;           // f5 (f??) xxx 17
+          _trafo(15,Cart::xyy) = -3.*factor_3;       // f5 (f??) xyy 11     Y 3,3
+        }
+
+        // g-functions
+        if ( _lmax > 3 ) {
+          double factor = 2./sqrt(3.)*_decay*_decay*contractions[4];
+          double factor_1 = factor/sqrt(35.);
+          double factor_2 = factor*4./sqrt(14.);
+          double factor_3 = factor*2./sqrt(7.);
+          double factor_4 = factor*2.*sqrt(2.);
+
+          _trafo(16,Cart::xxxx) = 3.*factor_1;   /// Y 4,0
+          _trafo(16,Cart::xxyy) = 6.*factor_1;
+          _trafo(16,Cart::xxzz) = -24.*factor_1;
+          _trafo(16,Cart::yyyy) = 3.*factor_1;
+          _trafo(16,Cart::yyzz) = -24.*factor_1;
+          _trafo(16,Cart::zzzz) = 8.*factor_1;
+
+          _trafo(17,Cart::xxyz) = -3.*factor_2;  /// Y 4,-1
+          _trafo(17,Cart::yyyz) = -3.*factor_2;
+          _trafo(17,Cart::yzzz) = 4.*factor_2;
+
+          _trafo(18,Cart::xxxz) = -3.*factor_2;  /// Y 4,1
+          _trafo(18,Cart::xyyz) = -3.*factor_2;
+          _trafo(18,Cart::xzzz) = 4.*factor_2;
+
+          _trafo(19,Cart::xxxy) = -2.*factor_3;  /// Y 4,-2
+          _trafo(19,Cart::xyyy) = -2.*factor_3;
+          _trafo(19,Cart::xyzz) = 12.*factor_3;
+
+          _trafo(20,Cart::xxxx) = -factor_3;     /// Y 4,2
+          _trafo(20,Cart::xxzz) = 6.*factor_3;
+          _trafo(20,Cart::yyyy) = factor_3;
+          _trafo(20,Cart::yyzz) = -6.*factor_3;
+
+          _trafo(21,Cart::xxyz) = 3.*factor_4;   /// Y 4,-3
+          _trafo(21,Cart::yyyz) = -factor_4;
+
+          _trafo(22,Cart::xxxz) = factor_4;      /// Y 4,3
+          _trafo(22,Cart::xyyz) = -3.*factor_4;
+
+          _trafo(23,Cart::xxxy) = 4.*factor;     /// Y 4,-4
+          _trafo(23,Cart::xyyy) = -4.*factor;
+
+          _trafo(24,Cart::xxxx) = factor;        /// Y 4,4
+          _trafo(24,Cart::xxyy) = -6.*factor;
+          _trafo(24,Cart::yyyy) = factor;
+        }
+        return;
+       }
+       
+    
 
     void AOMatrix::XIntegrate(vector<double>& _FmT, const double& _T  ){
         
@@ -523,14 +343,13 @@ namespace votca { namespace xtp {
         else if ( _lmax == 4 ) { _block_size = 35 ;}  // g
         else if ( _lmax == 5 ) { _block_size = 56 ;}  // h
         else if ( _lmax == 6 ) { _block_size = 84 ;}  // i
+        else if ( _lmax == 7 ) { _block_size = 120 ;} // j //////
+        else if ( _lmax == 8 ) { _block_size = 165 ;} // k //////
         else{
-            cerr << "GetBlocksize for l greater 6 not implemented!" << flush;
+            cerr << "GetBlocksize for l greater 8 not implemented!" << flush;
             exit(1);
         }
         return _block_size;
-        //cout <<"_lmax"<<_lmax<<endl;
-        //cout <<"blocksize"<<  _block_size<<endl;
-        //return 35;
     }
     
     

@@ -21,14 +21,14 @@
 #ifndef _VOTCA_XTP_DMA_H
 #define	_VOTCA_XTP_DMA_H
 
-#include <votca/ctp/segment.h>
+
 
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/parallelxjobcalc.h>
-#include <unistd.h>
+
+#include <votca/ctp/parallelxjobcalc.h>
+#include <votca/ctp/segment.h>
 
 #include <fstream>
-#include <sys/stat.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -36,7 +36,6 @@
 using boost::format;
 
 namespace votca { namespace xtp {
-    namespace CTP = votca::ctp;
 
 /**
 * \brief Distributed multipole analysis using Gaussian input
@@ -47,7 +46,7 @@ namespace votca { namespace xtp {
 * Callname: dma
 */
 
-class DMA : public ParallelXJobCalc< vector<CTP::Job*>, CTP::Job*, CTP::Job::JobResult >
+class DMA : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
 {
 public:
 
@@ -56,9 +55,9 @@ public:
 
     string   Identify() { return "dma"; }
     void     Initialize(Property *options);
-    void     WriteJobFile(CTP::Topology *top);
+    void     WriteJobFile(ctp::Topology *top);
     
-    CTP::Job::JobResult EvalJob(CTP::Topology *top, CTP::Job *job, CTP::QMThread *thread);
+    ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *thread);
 
 private:
 

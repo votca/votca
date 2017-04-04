@@ -28,7 +28,7 @@
 
 
 namespace votca { namespace xtp { 
-    namespace CTP = votca::ctp;
+    
     
     std::vector<double> EulerMaclaurinGrid::getPruningIntervals(string element){
         
@@ -93,11 +93,11 @@ namespace votca { namespace xtp {
     
     
     
-void EulerMaclaurinGrid::getRadialCutoffs(std::vector<CTP::QMAtom* > _atoms, BasisSet* bs, string gridtype) {
+void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, BasisSet* bs, string gridtype) {
 
             map<string, min_exp>::iterator it;
-            std::vector< CTP::QMAtom* > ::iterator ait;
-            std::vector< CTP::QMAtom* > ::iterator bit;
+            std::vector< ctp::QMAtom* > ::iterator ait;
+            std::vector< ctp::QMAtom* > ::iterator bit;
             
             double eps = Accuracy[gridtype];
             double _decaymin;
@@ -293,7 +293,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<CTP::QMAtom* > _atoms, Bas
     
     
     
-    void EulerMaclaurinGrid::getRadialGrid(BasisSet* bs , std::vector<CTP::QMAtom* > _atoms, string type, GridContainers& _grid) {
+    void EulerMaclaurinGrid::getRadialGrid(BasisSet* bs , std::vector<ctp::QMAtom* > _atoms, string type, GridContainers& _grid) {
 
         
             map<string, min_exp>::iterator it;

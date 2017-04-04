@@ -27,32 +27,32 @@
 
 
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
-class XStateServer : public XQMCalculator
+class StateServer : public ctp::QMCalculator
 {
 public:
 
-    XStateServer() { };
-   ~XStateServer() { };
+    StateServer() { };
+   ~StateServer() { };
 
     string Identify() { return "xstateserver"; }
 
     void Initialize(Property *options);
-    bool EvaluateFrame(Topology *top);
+    bool EvaluateFrame(ctp::Topology *top);
 
-    void DownloadTopology(FILE *out, Topology *top);
-    void DownloadSegments(FILE *out, Topology *top);
-    void DownloadPairs(FILE *out, Topology *top);
-    void DownloadEList(FILE *out, Topology *top);
-    void DownloadIList(FILE *out, Topology *top);
-    void DownloadCoords(FILE *out, Topology *top) { };
+    void DownloadTopology(FILE *out, ctp::Topology *top);
+    void DownloadSegments(FILE *out, ctp::Topology *top);
+    void DownloadPairs(FILE *out, ctp::Topology *top);
+    void DownloadEList(FILE *out, ctp::Topology *top);
+    void DownloadIList(FILE *out, ctp::Topology *top);
+    void DownloadCoords(FILE *out, ctp::Topology *top) { };
 
 
-    void WriteXQM(FILE *out, Topology *top);
-    void WriteEMP(FILE *out, Topology *top);
-    void WriteEXCITED(FILE *out, Topology *top);
-    void WriteULM(Topology *top);
+    void WriteXQM(FILE *out, ctp::Topology *top);
+    void WriteEMP(FILE *out, ctp::Topology *top);
+    void WriteEXCITED(FILE *out, ctp::Topology *top);
+    void WriteULM(ctp::Topology *top);
 
 private:
 
@@ -68,7 +68,7 @@ private:
 };
 
 
-void XStateServer::Initialize(Property *opt) {
+void StateServer::Initialize(Property *opt) {
     
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt, "xtp" );
@@ -100,7 +100,7 @@ void XStateServer::Initialize(Property *opt) {
 
 }
 
-bool XStateServer::EvaluateFrame(Topology *top) {
+bool StateServer::EvaluateFrame(ctp::Topology *top) {
 
     // ++++++++++++++++++++++++ //
     // Topology - Sites - Pairs //
@@ -202,24 +202,7 @@ bool XStateServer::EvaluateFrame(Topology *top) {
                 fclose(out_emp);
         }
         
-        else if (*key == "excited_mps") {
-
-                cout << "excited state mps files ";
-
-                FILE *out_excited;
-                string excited_file = "excited_mps.tab";
-                out_excited = fopen(excited_file.c_str(), "w");
-
-                WriteEXCITED(out_excited , top);
-
-                fclose(out_excited );
-        }
-
-        else if (*key == "ulm") {
-                cout << "ULM input, ";
-                WriteULM(top);
-        }
-
+      
         else {
                 cout << "ERROR (Invalid key " << *key << ") ";
         }
@@ -250,11 +233,11 @@ bool XStateServer::EvaluateFrame(Topology *top) {
                          + "_rigid_" + _pdbfile;
 
         out = fopen(pdbfile.c_str(), "w");
-        vector<Segment*> ::iterator segIt;
+        vector<ctp::Segment*> ::iterator segIt;
         for (segIt = top->Segments().begin();
              segIt < top->Segments().end();
              segIt++) {
-            Segment *seg = *segIt;
+            ctp::Segment *seg = *segIt;
             seg->WritePDB(out);
         }
         fclose(out);
@@ -264,7 +247,7 @@ bool XStateServer::EvaluateFrame(Topology *top) {
     return true;
 }
 
-void XStateServer::DownloadTopology(FILE *out, Topology *top) {
+void StateServer::DownloadTopology(FILE *out, ctp::Topology *top) {
 
     fprintf(out, "Topology Database ID %3d \n", top->getDatabaseId());
     fprintf(out, "  Periodic Box: %2.4f %2.4f %2.4f | %2.4f %2.4f %2.4f "
@@ -291,18 +274,18 @@ void XStateServer::DownloadTopology(FILE *out, Topology *top) {
     fprintf(out, "  # Segments  %7d \n", N_seg);
     fprintf(out, "  # Atoms     %7d \n", N_atm);
     fprintf(out, "  # Pairs     %7d \n", N_nbs);
-    
+ return;   
 }
 
-void XStateServer::DownloadSegments(FILE *out, Topology *top) {
+void StateServer::DownloadSegments(FILE *out, ctp::Topology *top) {
 
-    vector< Segment* > ::iterator segit;
+    vector< ctp::Segment* >::iterator segit;
 
     for (segit = top->Segments().begin();
             segit < top->Segments().end();
             segit++) {
 
-        Segment *seg = *segit;
+        ctp::Segment *seg = *segit;
         fprintf(out, "SiteID %5d %5s | xyz %8.3f %8.3f %8.3f "
                      "| SiteE(intra) C %2.4f A %2.4f S %2.4f T %2.4f "
                      "| Lambdas: NC %2.4f CN %2.4f NA %2.4f AN %2.4f "
@@ -331,16 +314,17 @@ void XStateServer::DownloadSegments(FILE *out, Topology *top) {
                 seg->getEMpoles(2),
                 seg->getEMpoles(3));
     }
+    return;
 }
 
-void XStateServer::DownloadPairs(FILE *out, Topology *top) {
-    QMNBList::iterator nit;
+void StateServer::DownloadPairs(FILE *out,ctp::Topology *top) {
+    ctp::QMNBList::iterator nit;
 
     for (nit = top->NBList().begin();
          nit != top->NBList().end();
          nit++) {
 
-        QMPair *pair = *nit;
+        ctp::QMPair *pair = *nit;
 
         int ghost = (pair->HasGhost()) ? 1 : 0;
 
@@ -380,14 +364,15 @@ void XStateServer::DownloadPairs(FILE *out, Topology *top) {
                 pair->getRate21(+3)
                 );
     }
+    return;
 }
 
-void XStateServer::DownloadIList(FILE *out, Topology *top) {
-    QMNBList::iterator nit;
+void StateServer::DownloadIList(FILE *out, ctp::Topology *top) {
+    ctp::QMNBList::iterator nit;
     for (nit = top->NBList().begin();
          nit != top->NBList().end();
          ++nit) {
-        QMPair *pair = *nit;
+        ctp::QMPair *pair = *nit;
 
         fprintf(out, "%5d %5d %5d e %4.7e h %4.7e s %4.7e t %4.7e edr %4.7f pbc %1i\n",
         pair->getId(), 
@@ -400,15 +385,14 @@ void XStateServer::DownloadIList(FILE *out, Topology *top) {
         pair->Dist(),
         (pair->HasGhost()) ? 1 : 0);
     }
-}
-
-void XStateServer::DownloadEList(FILE *out, Topology *top) {
-    ;
+    return;
 }
 
 
 
-void XStateServer::WriteEMP(FILE *out, Topology *top) {
+
+
+void StateServer::WriteEMP(FILE *out, ctp::Topology *top) {
 
     fprintf(out, "# ID   TYPE    _n.mps    _e.mps    _h.mps \n");
 
@@ -422,24 +406,12 @@ void XStateServer::WriteEMP(FILE *out, Topology *top) {
                      ("MP_FILES/"+(*sit)->getName()+"_e.mps").c_str(),
                      ("MP_FILES/"+(*sit)->getName()+"_h.mps").c_str());
     }
+    return;
 }
 
-void XStateServer::WriteEXCITED(FILE *out, Topology *top) {
 
-    fprintf(out, "# ID   TYPE    _t.mps \n");
 
-    vector< Segment* > ::iterator sit;
-    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {        
-
-        fprintf(out, "%4d %15s %-30s \n",
-                     (*sit)->getId(),
-                     (*sit)->getName().c_str(),
-                     ("MP_FILES/"+(*sit)->getName()+"_n.mps").c_str()
-                );
-    }
-}
-
-void XStateServer::WriteXQM(FILE *out, Topology *top) {
+void StateServer::WriteXQM(FILE *out, ctp::Topology *top) {
 
     fprintf(out, "<jobs>\n");
 
@@ -468,10 +440,10 @@ void XStateServer::WriteXQM(FILE *out, Topology *top) {
 //    }
     
     int jobId = 0;    
-    vector< Segment* > ::iterator sit;
+    vector< ctp::Segment* > ::iterator sit;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
         
-        Segment *seg = *sit;        
+        ctp::Segment *seg = *sit;        
         int segId = seg->getId();
         string segName = seg->getName();
         
@@ -516,84 +488,9 @@ void XStateServer::WriteXQM(FILE *out, Topology *top) {
     }
     
     fprintf(out, "</jobs>\n");
+    return;
 }
 
-void XStateServer::WriteULM(Topology *top) {
-
-    FILE *out_ulm;
-    string ulm_file = "vertices_channel_e.dat";
-    out_ulm = fopen(ulm_file.c_str(), "w");
-
-    vector< Segment* > ::iterator sit;
-    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
-        fprintf(out_ulm, "%4d %+4.5f %+4.5f %+4.5f %+4.5f %-1s \n",
-                (*sit)->getId(),
-                (*sit)->getPos().getX(),
-                (*sit)->getPos().getY(),
-                (*sit)->getPos().getZ(),
-                (*sit)->getSiteEnergy(-1),
-                (*sit)->getName().c_str());
-    }
-    fclose(out_ulm);
-
-
-    ulm_file = "vertices_channel_h.dat";
-    out_ulm = fopen(ulm_file.c_str(), "w");
-    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
-        fprintf(out_ulm, "%4d %+4.5f %+4.5f %+4.5f %+4.5f %-1s \n",
-                (*sit)->getId(),
-                (*sit)->getPos().getX(),
-                (*sit)->getPos().getY(),
-                (*sit)->getPos().getZ(),
-                (*sit)->getSiteEnergy(+1),
-                (*sit)->getName().c_str());
-    }
-    fclose(out_ulm);
-
-
-    ulm_file = "edges_channel_e.dat";
-    out_ulm = fopen(ulm_file.c_str(), "w");
-    QMNBList::iterator nit;
-    for (nit = top->NBList().begin();
-         nit != top->NBList().end();
-         nit++) {
-
-        QMPair *qmpair = *nit;
-
-        fprintf(out_ulm, "%4d %4d %+4.7e %+4.7e %+4.7e %+4.7f %+4.7f %+4.7f \n",
-                     qmpair->Seg1()->getId(),
-                     qmpair->Seg2()->getId(),
-                     qmpair->getJeff2(-1),
-                     qmpair->getRate12(-1),
-                     qmpair->getRate21(-1),
-                     qmpair->R().getX(),
-                     qmpair->R().getY(),
-                     qmpair->R().getZ());
-    }
-    fclose(out_ulm);
-
-
-    ulm_file = "edges_channel_h.dat";
-    out_ulm = fopen(ulm_file.c_str(), "w");
-    for (nit = top->NBList().begin();
-         nit != top->NBList().end();
-         nit++) {
-
-        QMPair *qmpair = *nit;
-
-        fprintf(out_ulm, "%4d %4d %+4.7e %+4.7e %+4.7e %+4.7f %+4.7f %+4.7f \n",
-                     qmpair->Seg1()->getId(),
-                     qmpair->Seg2()->getId(),
-                     qmpair->getJeff2(+1),
-                     qmpair->getRate12(+1),
-                     qmpair->getRate21(+1),
-                     qmpair->R().getX(),
-                     qmpair->R().getY(),
-                     qmpair->R().getZ());
-    }
-    fclose(out_ulm);
-
-}
 
 
 

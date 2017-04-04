@@ -29,20 +29,19 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
-#include <boost/multi_array.hpp>
-#include <votca/ctp/logger.h>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/elements.h>
+#include <votca/tools/constants.h>
 //#include <boost/timer/timer.hpp>
 
 
-using namespace votca::tools;
+
 
 
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
-    namespace CTP = votca::ctp;
+    using namespace votca::tools;
     
 
     
@@ -57,17 +56,14 @@ namespace votca { namespace xtp {
         // shell info, only lmax tells how far to go
         int _lmax_row = _shell_row->getLmax();
         int _lmax_col = _shell_col->getLmax();
-
+        int _lsum = _lmax_row + _lmax_col;
         // set size of internal block for recursion
         int _nrows = this->getBlockSize( _lmax_row ); 
         int _ncols = this->getBlockSize( _lmax_col ); 
     
         // initialize local matrix block for unnormalized cartesians
         ub::matrix<double> nuc   = ub::zero_matrix<double>(_nrows,_ncols);
-        ub::matrix<double> nucm1 = ub::zero_matrix<double>(_nrows,_ncols);
-        ub::matrix<double> nucm2 = ub::zero_matrix<double>(_nrows,_ncols);
-        ub::matrix<double> nucm3 = ub::zero_matrix<double>(_nrows,_ncols);
-        ub::matrix<double> nucm4 = ub::zero_matrix<double>(_nrows,_ncols);
+        
 
         //cout << nuc.size1() << ":" << nuc.size2() << endl;
         
@@ -76,18 +72,51 @@ namespace votca { namespace xtp {
          * COEFFICIENTS, AND ADD TO matrix(i,j)
          */
         
-      
-       
+      int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84};
+      int nx[] = { 0,
+              1, 0, 0,
+              2, 1, 1, 0, 0, 0,
+              3, 2, 2, 1, 1, 1, 0, 0, 0, 0,
+              4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0 };
+
+ int ny[] = { 0,
+              0, 1, 0,
+              0, 1, 0, 2, 1, 0,
+              0, 1, 0, 2, 1, 0, 3, 2, 1, 0,
+              0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 4, 3, 2, 1, 0 };
+
+ int nz[] = { 0,
+              0, 0, 1,
+              0, 0, 1, 0, 1, 2,
+              0, 0, 1, 0, 1, 2, 0, 1, 2, 3,
+              0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4 };
+
+
+ int i_less_x[] = {  0,
+                     0,  0,  0,
+                     1,  2,  3,  0,  0,  0,
+                     4,  5,  6,  7,  8,  9,  0,  0,  0,  0,
+                    10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  0,  0,  0,  0,  0 };
+
+ int i_less_y[] = {  0,
+                     0,  0,  0,
+                     0,  1,  0,  2,  3,  0,
+                     0,  4,  0,  5,  6,  0,  7,  8,  9,  0,
+                     0, 10,  0, 11, 12,  0, 13, 14, 15,  0, 16, 17, 18, 19,  0 };
+
+ int i_less_z[] = {  0,
+                     0,  0,  0,
+                     0,  0,  1,  0,  2,  3,
+                     0,  0,  4,  0,  5,  6,  0,  7,  8,  9,
+                     0,  0, 10,  0, 11, 12,  0, 13, 14, 15,  0, 16, 17, 18, 19 };
       
         
         // get shell positions
-        const CTP::vec& _pos_row = _shell_row->getPos();
-        const CTP::vec& _pos_col = _shell_col->getPos();
-        const CTP::vec  _diff    = _pos_row - _pos_col;
+        const vec& _pos_row = _shell_row->getPos();
+        const vec& _pos_col = _shell_col->getPos();
+        const vec  _diff    = _pos_row - _pos_col;
         // initialize some helper
-        std::vector<double> PmA (3,0.0);
-        std::vector<double> PmB (3,0.0);
-        std::vector<double> PmC (3,0.0);
+      
         double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
         
          typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
@@ -117,22 +146,22 @@ namespace votca { namespace xtp {
 
         const double zeta = _decay_row + _decay_col;
 
-        PmA[0] = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _pos_row.getX();
-        PmA[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_row.getY();
-        PmA[2] = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_row.getZ();
+        double PmA0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _pos_row.getX();
+        double PmA1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_row.getY();
+        double PmA2 = _fak2*(_decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_row.getZ();
 
-        PmB[0] = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _pos_col.getX();
-        PmB[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_col.getY();
-        PmB[2] = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_col.getZ();
+        double PmB0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _pos_col.getX();
+        double PmB1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_col.getY();
+        double PmB2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_col.getZ();
         
-        PmC[0] = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _gridpoint[0];
-        PmC[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _gridpoint[1];
-        PmC[2] = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _gridpoint[2];
+        double PmC0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _gridpoint.getX();
+        double PmC1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _gridpoint.getY();
+        double PmC2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _gridpoint.getZ();
         
         
-        const double _U = zeta*(PmC[0]*PmC[0]+PmC[1]*PmC[1]+PmC[2]*PmC[2]);
+        const double _U = zeta*(PmC0*PmC0+PmC1*PmC1+PmC2*PmC2);
         
-        std::vector<double> _FmU(5, 0.0); // that size needs to be checked!
+        std::vector<double> _FmU(_lsum+1, 0.0); // that size needs to be checked!
 
         XIntegrate(_FmU,_U );
         //cout << endl;
@@ -141,309 +170,261 @@ namespace votca { namespace xtp {
         // (s-s element normiert )
         double _prefactor = 2*sqrt(1.0/pi)*pow(4.0*_decay_row*_decay_col,0.75) * _fak2 * exp(-_exparg);
         nuc(Cart::s,Cart::s)   = _prefactor * _FmU[0];
-        nucm1(Cart::s,Cart::s) = _prefactor * _FmU[1];
-        nucm2(Cart::s,Cart::s) = _prefactor * _FmU[2];
-        nucm3(Cart::s,Cart::s) = _prefactor * _FmU[3];
-        nucm4(Cart::s,Cart::s) = _prefactor * _FmU[4];
-        double _lsum=_lmax_row + _lmax_col;
         
-        if (_lmax_col >2 || _lmax_row >2){
-            cerr << "Orbitals higher than d are not yet implemented. This should not have happened!" << flush;
-             exit(1);
-        }
-        
+        typedef boost::multi_array<double, 3> ma_type;
+                         ma_type nuc3(boost::extents[_nrows][_ncols][_lsum+1]);
+                         typedef ma_type::index index;
 
-        // s-p-0
-        if ( _lmax_col > 0 ) {
-                nuc(Cart::s,Cart::y) =PmB[1]*nuc(Cart::s,Cart::s)-PmC[1]*nucm1(Cart::s,Cart::s);
-                nuc(Cart::s,Cart::x) =PmB[0]*nuc(Cart::s,Cart::s)-PmC[0]*nucm1(Cart::s,Cart::s);
-                nuc(Cart::s,Cart::z) =PmB[2]*nuc(Cart::s,Cart::s)-PmC[2]*nucm1(Cart::s,Cart::s);
+                           for (index i = 0; i < _nrows; ++i) {
+                               for (index j = 0; j < _ncols; ++j) {
+                                   for (index k = 0; k < _lsum+1; ++k) {
+                                       nuc3[i][j][k] = 0.;
+                                   }
+                               }
+                           }
 
 
-          // cout << "\t setting s-p" << flush;
-  
-        }
-        
-        // p-s-0
-        if ( _lmax_row > 0 ) {
-           //cout << "\t setting p-s" << flush;
-                nuc(Cart::y,Cart::s) =PmA[1]*nuc(Cart::s,Cart::s)-PmC[1]*nucm1(Cart::s,Cart::s);
-                nuc(Cart::x,Cart::s) =PmA[0]*nuc(Cart::s,Cart::s)-PmC[0]*nucm1(Cart::s,Cart::s);
-                nuc(Cart::z,Cart::s) =PmA[2]*nuc(Cart::s,Cart::s)-PmC[2]*nucm1(Cart::s,Cart::s);
-
-        }
-        
-
-        if ( _lsum > 1 ) {
-          // cout << "\t setting p-p" << endl; 
-            
-            //m=1
-            //s-p-1
-           if (_lmax_col>0){
-            
-                nucm1(Cart::s,Cart::y) =PmB[1]*nucm1(Cart::s,Cart::s)-PmC[1]*nucm2(Cart::s,Cart::s);
-                nucm1(Cart::s,Cart::x) =PmB[0]*nucm1(Cart::s,Cart::s)-PmC[0]*nucm2(Cart::s,Cart::s);
-                nucm1(Cart::s,Cart::z) =PmB[2]*nucm1(Cart::s,Cart::s)-PmC[2]*nucm2(Cart::s,Cart::s);
-           }
-              
-            // p-s-1
-             if (_lmax_row>0){   
-                nucm1(Cart::y,Cart::s) =PmA[1]*nucm1(Cart::s,Cart::s)-PmC[1]*nucm2(Cart::s,Cart::s);
-                nucm1(Cart::x,Cart::s) =PmA[0]*nucm1(Cart::s,Cart::s)-PmC[0]*nucm2(Cart::s,Cart::s);
-                nucm1(Cart::z,Cart::s) =PmA[2]*nucm1(Cart::s,Cart::s)-PmC[2]*nucm2(Cart::s,Cart::s);
-            }      
-        }
-                
-        if ( _lmax_row > 0 && _lmax_col > 0 ) {
-           //cout << "\t setting p-p" << endl; 
-            
-            // p-p-0 
-                nuc(Cart::y,Cart::y) =PmA[1]*nuc(Cart::s,Cart::y)-PmC[1]*nucm1(Cart::s,Cart::y)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
-                nuc(Cart::y,Cart::x) =PmA[1]*nuc(Cart::s,Cart::x)-PmC[1]*nucm1(Cart::s,Cart::x);
-                nuc(Cart::y,Cart::z) =PmA[1]*nuc(Cart::s,Cart::z)-PmC[1]*nucm1(Cart::s,Cart::z);
-                nuc(Cart::x,Cart::y) =PmA[0]*nuc(Cart::s,Cart::y)-PmC[0]*nucm1(Cart::s,Cart::y);
-                nuc(Cart::x,Cart::x) =PmA[0]*nuc(Cart::s,Cart::x)-PmC[0]*nucm1(Cart::s,Cart::x)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
-                nuc(Cart::x,Cart::z) =PmA[0]*nuc(Cart::s,Cart::z)-PmC[0]*nucm1(Cart::s,Cart::z);
-                nuc(Cart::z,Cart::y) =PmA[2]*nuc(Cart::s,Cart::y)-PmC[2]*nucm1(Cart::s,Cart::y);
-                nuc(Cart::z,Cart::x) =PmA[2]*nuc(Cart::s,Cart::x)-PmC[2]*nucm1(Cart::s,Cart::x);
-                nuc(Cart::z,Cart::z) =PmA[2]*nuc(Cart::s,Cart::z)-PmC[2]*nucm1(Cart::s,Cart::z)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
-
-        } 
-      
-        // s-d
-       if ( _lmax_col > 1){
-            //cout << "\t setting s-d" << endl;
-          // s-d-0
-                nuc(Cart::s,Cart::yy) =PmB[1]*nuc(Cart::s,Cart::y)-PmC[1]*nucm1(Cart::s,Cart::y)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
-                nuc(Cart::s,Cart::xy) =PmB[0]*nuc(Cart::s,Cart::y)-PmC[0]*nucm1(Cart::s,Cart::y);
-                nuc(Cart::s,Cart::yz) =PmB[1]*nuc(Cart::s,Cart::z)-PmC[1]*nucm1(Cart::s,Cart::z);
-                nuc(Cart::s,Cart::xx) =PmB[0]*nuc(Cart::s,Cart::x)-PmC[0]*nucm1(Cart::s,Cart::x)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
-                nuc(Cart::s,Cart::xz) =PmB[0]*nuc(Cart::s,Cart::z)-PmC[0]*nucm1(Cart::s,Cart::z);
-                nuc(Cart::s,Cart::zz) =PmB[2]*nuc(Cart::s,Cart::z)-PmC[2]*nucm1(Cart::s,Cart::z)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
-
-            
-        }
-        
-        
-         // d-s
-        if ( _lmax_row > 1){
-           //cout << "\t setting d-s" << endl;
-                nuc(Cart::yy,Cart::s) =PmA[1]*nuc(Cart::y,Cart::s)-PmC[1]*nucm1(Cart::y,Cart::s)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
-                nuc(Cart::xy,Cart::s) =PmA[0]*nuc(Cart::y,Cart::s)-PmC[0]*nucm1(Cart::y,Cart::s);
-                nuc(Cart::yz,Cart::s) =PmA[1]*nuc(Cart::z,Cart::s)-PmC[1]*nucm1(Cart::z,Cart::s);
-                nuc(Cart::xx,Cart::s) =PmA[0]*nuc(Cart::x,Cart::s)-PmC[0]*nucm1(Cart::x,Cart::s)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
-                nuc(Cart::xz,Cart::s) =PmA[0]*nuc(Cart::z,Cart::s)-PmC[0]*nucm1(Cart::z,Cart::s);
-                nuc(Cart::zz,Cart::s) =PmA[2]*nuc(Cart::z,Cart::s)-PmC[2]*nucm1(Cart::z,Cart::s)+_fak*(nuc(Cart::s,Cart::s)-nucm1(Cart::s,Cart::s));
-
-         
-        }
-        
-        
-        if ( _lsum > 2 ){
-            //cout << "\t setting p-d" << endl;
-            if ( _lmax_col > 0){
-            //s-p-2
-                nucm2(Cart::s,Cart::y) =PmB[1]*nucm2(Cart::s,Cart::s)-PmC[1]*nucm3(Cart::s,Cart::s);
-                nucm2(Cart::s,Cart::x) =PmB[0]*nucm2(Cart::s,Cart::s)-PmC[0]*nucm3(Cart::s,Cart::s);
-                nucm2(Cart::s,Cart::z) =PmB[2]*nucm2(Cart::s,Cart::s)-PmC[2]*nucm3(Cart::s,Cart::s);
+            for (int _i = 0; _i < _lsum+1; _i++){ //////////////////////
+                nuc3[0][0][_i] = _prefactor*_FmU[_i];
             }
-            if ( _lmax_row > 0){    
-            //p-s-2
-                nucm2(Cart::y,Cart::s) =PmA[1]*nucm2(Cart::s,Cart::s)-PmC[1]*nucm3(Cart::s,Cart::s);
-                nucm2(Cart::x,Cart::s) =PmA[0]*nucm2(Cart::s,Cart::s)-PmC[0]*nucm3(Cart::s,Cart::s);
-                nucm2(Cart::z,Cart::s) =PmA[2]*nucm2(Cart::s,Cart::s)-PmC[2]*nucm3(Cart::s,Cart::s);
-            }
-
-            if ( _lmax_row > 0 && _lmax_col > 0 ) {
-            //p-p-1
-                nucm1(Cart::y,Cart::y) =PmA[1]*nucm1(Cart::s,Cart::y)-PmC[1]*nucm2(Cart::s,Cart::y)+_fak*(nucm1(Cart::s,Cart::s)-nucm2(Cart::s,Cart::s));
-                nucm1(Cart::y,Cart::x) =PmA[1]*nucm1(Cart::s,Cart::x)-PmC[1]*nucm2(Cart::s,Cart::x);
-                nucm1(Cart::y,Cart::z) =PmA[1]*nucm1(Cart::s,Cart::z)-PmC[1]*nucm2(Cart::s,Cart::z);
-                nucm1(Cart::x,Cart::y) =PmA[0]*nucm1(Cart::s,Cart::y)-PmC[0]*nucm2(Cart::s,Cart::y);
-                nucm1(Cart::x,Cart::x) =PmA[0]*nucm1(Cart::s,Cart::x)-PmC[0]*nucm2(Cart::s,Cart::x)+_fak*(nucm1(Cart::s,Cart::s)-nucm2(Cart::s,Cart::s));
-                nucm1(Cart::x,Cart::z) =PmA[0]*nucm1(Cart::s,Cart::z)-PmC[0]*nucm2(Cart::s,Cart::z);
-                nucm1(Cart::z,Cart::y) =PmA[2]*nucm1(Cart::s,Cart::y)-PmC[2]*nucm2(Cart::s,Cart::y);
-                nucm1(Cart::z,Cart::x) =PmA[2]*nucm1(Cart::s,Cart::x)-PmC[2]*nucm2(Cart::s,Cart::x);
-                nucm1(Cart::z,Cart::z) =PmA[2]*nucm1(Cart::s,Cart::z)-PmC[2]*nucm2(Cart::s,Cart::z)+_fak*(nucm1(Cart::s,Cart::s)-nucm2(Cart::s,Cart::s));
-        }
-        }
         
-        
-        
-        
-         //p-d
-        if ( _lmax_row > 0 && _lmax_col > 1){
-            //cout << "\t setting p-d" << endl;
-            
-        
-            // p-d-0
-                nuc(Cart::y,Cart::yy) =PmB[1]*nuc(Cart::y,Cart::y)-PmC[1]*nucm1(Cart::y,Cart::y)+_fak*(nuc(Cart::y,Cart::s)-nucm1(Cart::y,Cart::s))+_fak*(nuc(Cart::s,Cart::y)-nucm1(Cart::s,Cart::y));
-                nuc(Cart::y,Cart::xy) =PmB[0]*nuc(Cart::y,Cart::y)-PmC[0]*nucm1(Cart::y,Cart::y);
-                nuc(Cart::y,Cart::yz) =PmB[1]*nuc(Cart::y,Cart::z)-PmC[1]*nucm1(Cart::y,Cart::z)+_fak*(nuc(Cart::s,Cart::z)-nucm1(Cart::s,Cart::z));
-                nuc(Cart::y,Cart::xx) =PmB[0]*nuc(Cart::y,Cart::x)-PmC[0]*nucm1(Cart::y,Cart::x)+_fak*(nuc(Cart::y,Cart::s)-nucm1(Cart::y,Cart::s));
-                nuc(Cart::y,Cart::xz) =PmB[0]*nuc(Cart::y,Cart::z)-PmC[0]*nucm1(Cart::y,Cart::z);
-                nuc(Cart::y,Cart::zz) =PmB[2]*nuc(Cart::y,Cart::z)-PmC[2]*nucm1(Cart::y,Cart::z)+_fak*(nuc(Cart::y,Cart::s)-nucm1(Cart::y,Cart::s));
-                nuc(Cart::x,Cart::yy) =PmB[1]*nuc(Cart::x,Cart::y)-PmC[1]*nucm1(Cart::x,Cart::y)+_fak*(nuc(Cart::x,Cart::s)-nucm1(Cart::x,Cart::s));
-                nuc(Cart::x,Cart::xy) =PmB[0]*nuc(Cart::x,Cart::y)-PmC[0]*nucm1(Cart::x,Cart::y)+_fak*(nuc(Cart::s,Cart::y)-nucm1(Cart::s,Cart::y));
-                nuc(Cart::x,Cart::yz) =PmB[1]*nuc(Cart::x,Cart::z)-PmC[1]*nucm1(Cart::x,Cart::z);
-                nuc(Cart::x,Cart::xx) =PmB[0]*nuc(Cart::x,Cart::x)-PmC[0]*nucm1(Cart::x,Cart::x)+_fak*(nuc(Cart::x,Cart::s)-nucm1(Cart::x,Cart::s))+_fak*(nuc(Cart::s,Cart::x)-nucm1(Cart::s,Cart::x));
-                nuc(Cart::x,Cart::xz) =PmB[0]*nuc(Cart::x,Cart::z)-PmC[0]*nucm1(Cart::x,Cart::z)+_fak*(nuc(Cart::s,Cart::z)-nucm1(Cart::s,Cart::z));
-                nuc(Cart::x,Cart::zz) =PmB[2]*nuc(Cart::x,Cart::z)-PmC[2]*nucm1(Cart::x,Cart::z)+_fak*(nuc(Cart::x,Cart::s)-nucm1(Cart::x,Cart::s));
-                nuc(Cart::z,Cart::yy) =PmB[1]*nuc(Cart::z,Cart::y)-PmC[1]*nucm1(Cart::z,Cart::y)+_fak*(nuc(Cart::z,Cart::s)-nucm1(Cart::z,Cart::s));
-                nuc(Cart::z,Cart::xy) =PmB[0]*nuc(Cart::z,Cart::y)-PmC[0]*nucm1(Cart::z,Cart::y);
-                nuc(Cart::z,Cart::yz) =PmB[1]*nuc(Cart::z,Cart::z)-PmC[1]*nucm1(Cart::z,Cart::z);
-                nuc(Cart::z,Cart::xx) =PmB[0]*nuc(Cart::z,Cart::x)-PmC[0]*nucm1(Cart::z,Cart::x)+_fak*(nuc(Cart::z,Cart::s)-nucm1(Cart::z,Cart::s));
-                nuc(Cart::z,Cart::xz) =PmB[0]*nuc(Cart::z,Cart::z)-PmC[0]*nucm1(Cart::z,Cart::z);
-                nuc(Cart::z,Cart::zz) =PmB[2]*nuc(Cart::z,Cart::z)-PmC[2]*nucm1(Cart::z,Cart::z)+_fak*(nuc(Cart::z,Cart::s)-nucm1(Cart::z,Cart::s))+_fak*(nuc(Cart::s,Cart::z)-nucm1(Cart::s,Cart::z));
-
-         
-        }
-
-       
-        
-        
-        // d-p
-        if ( _lmax_row >1 && _lmax_col > 0){
-           //cout << "\t setting d-p" << endl;
-            
-                nuc(Cart::yy,Cart::y) =PmA[1]*nuc(Cart::y,Cart::y)-PmC[1]*nucm1(Cart::y,Cart::y)+_fak*(nuc(Cart::s,Cart::y)-nucm1(Cart::s,Cart::y))+_fak*(nuc(Cart::y,Cart::s)-nucm1(Cart::y,Cart::s));
-                nuc(Cart::yy,Cart::x) =PmA[1]*nuc(Cart::y,Cart::x)-PmC[1]*nucm1(Cart::y,Cart::x)+_fak*(nuc(Cart::s,Cart::x)-nucm1(Cart::s,Cart::x));
-                nuc(Cart::yy,Cart::z) =PmA[1]*nuc(Cart::y,Cart::z)-PmC[1]*nucm1(Cart::y,Cart::z)+_fak*(nuc(Cart::s,Cart::z)-nucm1(Cart::s,Cart::z));
-                nuc(Cart::xy,Cart::y) =PmA[0]*nuc(Cart::y,Cart::y)-PmC[0]*nucm1(Cart::y,Cart::y);
-                nuc(Cart::xy,Cart::x) =PmA[0]*nuc(Cart::y,Cart::x)-PmC[0]*nucm1(Cart::y,Cart::x)+_fak*(nuc(Cart::y,Cart::s)-nucm1(Cart::y,Cart::s));
-                nuc(Cart::xy,Cart::z) =PmA[0]*nuc(Cart::y,Cart::z)-PmC[0]*nucm1(Cart::y,Cart::z);
-                nuc(Cart::yz,Cart::y) =PmA[1]*nuc(Cart::z,Cart::y)-PmC[1]*nucm1(Cart::z,Cart::y)+_fak*(nuc(Cart::z,Cart::s)-nucm1(Cart::z,Cart::s));
-                nuc(Cart::yz,Cart::x) =PmA[1]*nuc(Cart::z,Cart::x)-PmC[1]*nucm1(Cart::z,Cart::x);
-                nuc(Cart::yz,Cart::z) =PmA[1]*nuc(Cart::z,Cart::z)-PmC[1]*nucm1(Cart::z,Cart::z);
-                nuc(Cart::xx,Cart::y) =PmA[0]*nuc(Cart::x,Cart::y)-PmC[0]*nucm1(Cart::x,Cart::y)+_fak*(nuc(Cart::s,Cart::y)-nucm1(Cart::s,Cart::y));
-                nuc(Cart::xx,Cart::x) =PmA[0]*nuc(Cart::x,Cart::x)-PmC[0]*nucm1(Cart::x,Cart::x)+_fak*(nuc(Cart::s,Cart::x)-nucm1(Cart::s,Cart::x))+_fak*(nuc(Cart::x,Cart::s)-nucm1(Cart::x,Cart::s));
-                nuc(Cart::xx,Cart::z) =PmA[0]*nuc(Cart::x,Cart::z)-PmC[0]*nucm1(Cart::x,Cart::z)+_fak*(nuc(Cart::s,Cart::z)-nucm1(Cart::s,Cart::z));
-                nuc(Cart::xz,Cart::y) =PmA[0]*nuc(Cart::z,Cart::y)-PmC[0]*nucm1(Cart::z,Cart::y);
-                nuc(Cart::xz,Cart::x) =PmA[0]*nuc(Cart::z,Cart::x)-PmC[0]*nucm1(Cart::z,Cart::x)+_fak*(nuc(Cart::z,Cart::s)-nucm1(Cart::z,Cart::s));
-                nuc(Cart::xz,Cart::z) =PmA[0]*nuc(Cart::z,Cart::z)-PmC[0]*nucm1(Cart::z,Cart::z);
-                nuc(Cart::zz,Cart::y) =PmA[2]*nuc(Cart::z,Cart::y)-PmC[2]*nucm1(Cart::z,Cart::y)+_fak*(nuc(Cart::s,Cart::y)-nucm1(Cart::s,Cart::y));
-                nuc(Cart::zz,Cart::x) =PmA[2]*nuc(Cart::z,Cart::x)-PmC[2]*nucm1(Cart::z,Cart::x)+_fak*(nuc(Cart::s,Cart::x)-nucm1(Cart::s,Cart::x));
-                nuc(Cart::zz,Cart::z) =PmA[2]*nuc(Cart::z,Cart::z)-PmC[2]*nucm1(Cart::z,Cart::z)+_fak*(nuc(Cart::s,Cart::z)-nucm1(Cart::s,Cart::z))+_fak*(nuc(Cart::z,Cart::s)-nucm1(Cart::z,Cart::s));
-
-
-        }
-        
-         
-        if ( _lsum > 2 && _lmax_col>1 && _lmax_row>1){
-            
-            
-           if (  _lmax_col > 0){
-            //s-p-3
-            
-            nucm3(Cart::s, Cart::y) = PmB[1] * nucm3(Cart::s, Cart::s) - PmC[1] * nucm4(Cart::s, Cart::s);
-            nucm3(Cart::s, Cart::x) = PmB[0] * nucm3(Cart::s, Cart::s) - PmC[0] * nucm4(Cart::s, Cart::s);
-            nucm3(Cart::s, Cart::z) = PmB[2] * nucm3(Cart::s, Cart::s) - PmC[2] * nucm4(Cart::s, Cart::s);
-            }
-            
-             if ( _lmax_row > 0 && _lmax_col > 0 ) {
-            //p-p-2
-            
-            nucm2(Cart::y,Cart::y) =PmA[1]*nucm2(Cart::s,Cart::y)-PmC[1]*nucm3(Cart::s,Cart::y)+_fak*(nucm2(Cart::s,Cart::s)-nucm3(Cart::s,Cart::s));
-            nucm2(Cart::y,Cart::x) =PmA[1]*nucm2(Cart::s,Cart::x)-PmC[1]*nucm3(Cart::s,Cart::x);
-            nucm2(Cart::y,Cart::z) =PmA[1]*nucm2(Cart::s,Cart::z)-PmC[1]*nucm3(Cart::s,Cart::z);
-            nucm2(Cart::x,Cart::y) =PmA[0]*nucm2(Cart::s,Cart::y)-PmC[0]*nucm3(Cart::s,Cart::y);
-            nucm2(Cart::x,Cart::x) =PmA[0]*nucm2(Cart::s,Cart::x)-PmC[0]*nucm3(Cart::s,Cart::x)+_fak*(nucm2(Cart::s,Cart::s)-nucm3(Cart::s,Cart::s));
-            nucm2(Cart::x,Cart::z) =PmA[0]*nucm2(Cart::s,Cart::z)-PmC[0]*nucm3(Cart::s,Cart::z);
-            nucm2(Cart::z,Cart::y) =PmA[2]*nucm2(Cart::s,Cart::y)-PmC[2]*nucm3(Cart::s,Cart::y);
-            nucm2(Cart::z,Cart::x) =PmA[2]*nucm2(Cart::s,Cart::x)-PmC[2]*nucm3(Cart::s,Cart::x);
-            nucm2(Cart::z,Cart::z) =PmA[2]*nucm2(Cart::s,Cart::z)-PmC[2]*nucm3(Cart::s,Cart::z)+_fak*(nucm2(Cart::s,Cart::s)-nucm3(Cart::s,Cart::s));
-             }
-            
-            
-              if ( _lmax_row > 0 && _lmax_col > 1){
-                  //s-d-1
-             
-            nucm1(Cart::s,Cart::yy) =PmB[1]*nucm1(Cart::s,Cart::y)-PmC[1]*nucm2(Cart::s,Cart::y)+_fak*(nucm1(Cart::s,Cart::s)-nucm2(Cart::s,Cart::s));
-            nucm1(Cart::s,Cart::xy) =PmB[0]*nucm1(Cart::s,Cart::y)-PmC[0]*nucm2(Cart::s,Cart::y);
-            nucm1(Cart::s,Cart::yz) =PmB[1]*nucm1(Cart::s,Cart::z)-PmC[1]*nucm2(Cart::s,Cart::z);
-            nucm1(Cart::s,Cart::xx) =PmB[0]*nucm1(Cart::s,Cart::x)-PmC[0]*nucm2(Cart::s,Cart::x)+_fak*(nucm1(Cart::s,Cart::s)-nucm2(Cart::s,Cart::s));
-            nucm1(Cart::s,Cart::xz) =PmB[0]*nucm1(Cart::s,Cart::z)-PmC[0]*nucm2(Cart::s,Cart::z);
-            nucm1(Cart::s,Cart::zz) =PmB[2]*nucm1(Cart::s,Cart::z)-PmC[2]*nucm2(Cart::s,Cart::z)+_fak*(nucm1(Cart::s,Cart::s)-nucm2(Cart::s,Cart::s));
-        }
-            
-             if ( _lmax_row > 0 && _lmax_col > 1){
-            //p-d-1
-            nucm1(Cart::y,Cart::yy) =PmB[1]*nucm1(Cart::y,Cart::y)-PmC[1]*nucm2(Cart::y,Cart::y)+_fak*(nucm1(Cart::y,Cart::s)-nucm2(Cart::y,Cart::s))+_fak*(nucm1(Cart::s,Cart::y)-nucm2(Cart::s,Cart::y));
-            nucm1(Cart::y,Cart::xy) =PmB[0]*nucm1(Cart::y,Cart::y)-PmC[0]*nucm2(Cart::y,Cart::y);
-            nucm1(Cart::y,Cart::yz) =PmB[1]*nucm1(Cart::y,Cart::z)-PmC[1]*nucm2(Cart::y,Cart::z)+_fak*(nucm1(Cart::s,Cart::z)-nucm2(Cart::s,Cart::z));
-            nucm1(Cart::y,Cart::xx) =PmB[0]*nucm1(Cart::y,Cart::x)-PmC[0]*nucm2(Cart::y,Cart::x)+_fak*(nucm1(Cart::y,Cart::s)-nucm2(Cart::y,Cart::s));
-            nucm1(Cart::y,Cart::xz) =PmB[0]*nucm1(Cart::y,Cart::z)-PmC[0]*nucm2(Cart::y,Cart::z);
-            nucm1(Cart::y,Cart::zz) =PmB[2]*nucm1(Cart::y,Cart::z)-PmC[2]*nucm2(Cart::y,Cart::z)+_fak*(nucm1(Cart::y,Cart::s)-nucm2(Cart::y,Cart::s));
-            nucm1(Cart::x,Cart::yy) =PmB[1]*nucm1(Cart::x,Cart::y)-PmC[1]*nucm2(Cart::x,Cart::y)+_fak*(nucm1(Cart::x,Cart::s)-nucm2(Cart::x,Cart::s));
-            nucm1(Cart::x,Cart::xy) =PmB[0]*nucm1(Cart::x,Cart::y)-PmC[0]*nucm2(Cart::x,Cart::y)+_fak*(nucm1(Cart::s,Cart::y)-nucm2(Cart::s,Cart::y));
-            nucm1(Cart::x,Cart::yz) =PmB[1]*nucm1(Cart::x,Cart::z)-PmC[1]*nucm2(Cart::x,Cart::z);
-            nucm1(Cart::x,Cart::xx) =PmB[0]*nucm1(Cart::x,Cart::x)-PmC[0]*nucm2(Cart::x,Cart::x)+_fak*(nucm1(Cart::x,Cart::s)-nucm2(Cart::x,Cart::s))+_fak*(nucm1(Cart::s,Cart::x)-nucm2(Cart::s,Cart::x));
-            nucm1(Cart::x,Cart::xz) =PmB[0]*nucm1(Cart::x,Cart::z)-PmC[0]*nucm2(Cart::x,Cart::z)+_fak*(nucm1(Cart::s,Cart::z)-nucm2(Cart::s,Cart::z));
-            nucm1(Cart::x,Cart::zz) =PmB[2]*nucm1(Cart::x,Cart::z)-PmC[2]*nucm2(Cart::x,Cart::z)+_fak*(nucm1(Cart::x,Cart::s)-nucm2(Cart::x,Cart::s));
-            nucm1(Cart::z,Cart::yy) =PmB[1]*nucm1(Cart::z,Cart::y)-PmC[1]*nucm2(Cart::z,Cart::y)+_fak*(nucm1(Cart::z,Cart::s)-nucm2(Cart::z,Cart::s));
-            nucm1(Cart::z,Cart::xy) =PmB[0]*nucm1(Cart::z,Cart::y)-PmC[0]*nucm2(Cart::z,Cart::y);
-            nucm1(Cart::z,Cart::yz) =PmB[1]*nucm1(Cart::z,Cart::z)-PmC[1]*nucm2(Cart::z,Cart::z);
-            nucm1(Cart::z,Cart::xx) =PmB[0]*nucm1(Cart::z,Cart::x)-PmC[0]*nucm2(Cart::z,Cart::x)+_fak*(nucm1(Cart::z,Cart::s)-nucm2(Cart::z,Cart::s));
-            nucm1(Cart::z,Cart::xz) =PmB[0]*nucm1(Cart::z,Cart::z)-PmC[0]*nucm2(Cart::z,Cart::z);
-            nucm1(Cart::z,Cart::zz) =PmB[2]*nucm1(Cart::z,Cart::z)-PmC[2]*nucm2(Cart::z,Cart::z)+_fak*(nucm1(Cart::z,Cart::s)-nucm2(Cart::z,Cart::s))+_fak*(nucm1(Cart::s,Cart::z)-nucm2(Cart::s,Cart::z));
-             }
-            
-        }
      
-            
-            
-            
-            
-            
-            
-        
-        
-        // d-d
-        if ( _lmax_row > 1 && _lmax_col > 1 ){
-             // cout << "\t setting d-d" << endl;
- 
-            
-            //d-d-0
-            nuc(Cart::yy,Cart::yy) =PmA[1]*nuc(Cart::y,Cart::yy)-PmC[1]*nucm1(Cart::y,Cart::yy)+_fak*(nuc(Cart::s,Cart::yy)-nucm1(Cart::s,Cart::yy))+_fak2*(nuc(Cart::y,Cart::y)-nucm1(Cart::y,Cart::y));
-            nuc(Cart::yy,Cart::xy) =PmA[1]*nuc(Cart::y,Cart::xy)-PmC[1]*nucm1(Cart::y,Cart::xy)+_fak*(nuc(Cart::s,Cart::xy)-nucm1(Cart::s,Cart::xy))+_fak*(nuc(Cart::y,Cart::x)-nucm1(Cart::y,Cart::x));
-            nuc(Cart::yy,Cart::yz) =PmA[1]*nuc(Cart::y,Cart::yz)-PmC[1]*nucm1(Cart::y,Cart::yz)+_fak*(nuc(Cart::s,Cart::yz)-nucm1(Cart::s,Cart::yz))+_fak*(nuc(Cart::y,Cart::z)-nucm1(Cart::y,Cart::z));
-            nuc(Cart::yy,Cart::xx) =PmA[1]*nuc(Cart::y,Cart::xx)-PmC[1]*nucm1(Cart::y,Cart::xx)+_fak*(nuc(Cart::s,Cart::xx)-nucm1(Cart::s,Cart::xx));
-            nuc(Cart::yy,Cart::xz) =PmA[1]*nuc(Cart::y,Cart::xz)-PmC[1]*nucm1(Cart::y,Cart::xz)+_fak*(nuc(Cart::s,Cart::xz)-nucm1(Cart::s,Cart::xz));
-            nuc(Cart::yy,Cart::zz) =PmA[1]*nuc(Cart::y,Cart::zz)-PmC[1]*nucm1(Cart::y,Cart::zz)+_fak*(nuc(Cart::s,Cart::zz)-nucm1(Cart::s,Cart::zz));
-            nuc(Cart::xy,Cart::yy) =PmA[0]*nuc(Cart::y,Cart::yy)-PmC[0]*nucm1(Cart::y,Cart::yy);
-            nuc(Cart::xy,Cart::xy) =PmA[0]*nuc(Cart::y,Cart::xy)-PmC[0]*nucm1(Cart::y,Cart::xy)+_fak*(nuc(Cart::y,Cart::y)-nucm1(Cart::y,Cart::y));
-            nuc(Cart::xy,Cart::yz) =PmA[0]*nuc(Cart::y,Cart::yz)-PmC[0]*nucm1(Cart::y,Cart::yz);
-            nuc(Cart::xy,Cart::xx) =PmA[0]*nuc(Cart::y,Cart::xx)-PmC[0]*nucm1(Cart::y,Cart::xx)+_fak2*(nuc(Cart::y,Cart::x)-nucm1(Cart::y,Cart::x));
-            nuc(Cart::xy,Cart::xz) =PmA[0]*nuc(Cart::y,Cart::xz)-PmC[0]*nucm1(Cart::y,Cart::xz)+_fak*(nuc(Cart::y,Cart::z)-nucm1(Cart::y,Cart::z));
-            nuc(Cart::xy,Cart::zz) =PmA[0]*nuc(Cart::y,Cart::zz)-PmC[0]*nucm1(Cart::y,Cart::zz);
-            nuc(Cart::yz,Cart::yy) =PmA[1]*nuc(Cart::z,Cart::yy)-PmC[1]*nucm1(Cart::z,Cart::yy)+_fak2*(nuc(Cart::z,Cart::y)-nucm1(Cart::z,Cart::y));
-            nuc(Cart::yz,Cart::xy) =PmA[1]*nuc(Cart::z,Cart::xy)-PmC[1]*nucm1(Cart::z,Cart::xy)+_fak*(nuc(Cart::z,Cart::x)-nucm1(Cart::z,Cart::x));
-            nuc(Cart::yz,Cart::yz) =PmA[1]*nuc(Cart::z,Cart::yz)-PmC[1]*nucm1(Cart::z,Cart::yz)+_fak*(nuc(Cart::z,Cart::z)-nucm1(Cart::z,Cart::z));
-            nuc(Cart::yz,Cart::xx) =PmA[1]*nuc(Cart::z,Cart::xx)-PmC[1]*nucm1(Cart::z,Cart::xx);
-            nuc(Cart::yz,Cart::xz) =PmA[1]*nuc(Cart::z,Cart::xz)-PmC[1]*nucm1(Cart::z,Cart::xz);
-            nuc(Cart::yz,Cart::zz) =PmA[1]*nuc(Cart::z,Cart::zz)-PmC[1]*nucm1(Cart::z,Cart::zz);
-            nuc(Cart::xx,Cart::yy) =PmA[0]*nuc(Cart::x,Cart::yy)-PmC[0]*nucm1(Cart::x,Cart::yy)+_fak*(nuc(Cart::s,Cart::yy)-nucm1(Cart::s,Cart::yy));
-            nuc(Cart::xx,Cart::xy) =PmA[0]*nuc(Cart::x,Cart::xy)-PmC[0]*nucm1(Cart::x,Cart::xy)+_fak*(nuc(Cart::s,Cart::xy)-nucm1(Cart::s,Cart::xy))+_fak*(nuc(Cart::x,Cart::y)-nucm1(Cart::x,Cart::y));
-            nuc(Cart::xx,Cart::yz) =PmA[0]*nuc(Cart::x,Cart::yz)-PmC[0]*nucm1(Cart::x,Cart::yz)+_fak*(nuc(Cart::s,Cart::yz)-nucm1(Cart::s,Cart::yz));
-            nuc(Cart::xx,Cart::xx) =PmA[0]*nuc(Cart::x,Cart::xx)-PmC[0]*nucm1(Cart::x,Cart::xx)+_fak*(nuc(Cart::s,Cart::xx)-nucm1(Cart::s,Cart::xx))+_fak2*(nuc(Cart::x,Cart::x)-nucm1(Cart::x,Cart::x));
-            nuc(Cart::xx,Cart::xz) =PmA[0]*nuc(Cart::x,Cart::xz)-PmC[0]*nucm1(Cart::x,Cart::xz)+_fak*(nuc(Cart::s,Cart::xz)-nucm1(Cart::s,Cart::xz))+_fak*(nuc(Cart::x,Cart::z)-nucm1(Cart::x,Cart::z));
-            nuc(Cart::xx,Cart::zz) =PmA[0]*nuc(Cart::x,Cart::zz)-PmC[0]*nucm1(Cart::x,Cart::zz)+_fak*(nuc(Cart::s,Cart::zz)-nucm1(Cart::s,Cart::zz));
-            nuc(Cart::xz,Cart::yy) =PmA[0]*nuc(Cart::z,Cart::yy)-PmC[0]*nucm1(Cart::z,Cart::yy);
-            nuc(Cart::xz,Cart::xy) =PmA[0]*nuc(Cart::z,Cart::xy)-PmC[0]*nucm1(Cart::z,Cart::xy)+_fak*(nuc(Cart::z,Cart::y)-nucm1(Cart::z,Cart::y));
-            nuc(Cart::xz,Cart::yz) =PmA[0]*nuc(Cart::z,Cart::yz)-PmC[0]*nucm1(Cart::z,Cart::yz);
-            nuc(Cart::xz,Cart::xx) =PmA[0]*nuc(Cart::z,Cart::xx)-PmC[0]*nucm1(Cart::z,Cart::xx)+_fak2*(nuc(Cart::z,Cart::x)-nucm1(Cart::z,Cart::x));
-            nuc(Cart::xz,Cart::xz) =PmA[0]*nuc(Cart::z,Cart::xz)-PmC[0]*nucm1(Cart::z,Cart::xz)+_fak*(nuc(Cart::z,Cart::z)-nucm1(Cart::z,Cart::z));
-            nuc(Cart::xz,Cart::zz) =PmA[0]*nuc(Cart::z,Cart::zz)-PmC[0]*nucm1(Cart::z,Cart::zz);
-            nuc(Cart::zz,Cart::yy) =PmA[2]*nuc(Cart::z,Cart::yy)-PmC[2]*nucm1(Cart::z,Cart::yy)+_fak*(nuc(Cart::s,Cart::yy)-nucm1(Cart::s,Cart::yy));
-            nuc(Cart::zz,Cart::xy) =PmA[2]*nuc(Cart::z,Cart::xy)-PmC[2]*nucm1(Cart::z,Cart::xy)+_fak*(nuc(Cart::s,Cart::xy)-nucm1(Cart::s,Cart::xy));
-            nuc(Cart::zz,Cart::yz) =PmA[2]*nuc(Cart::z,Cart::yz)-PmC[2]*nucm1(Cart::z,Cart::yz)+_fak*(nuc(Cart::s,Cart::yz)-nucm1(Cart::s,Cart::yz))+_fak*(nuc(Cart::z,Cart::y)-nucm1(Cart::z,Cart::y));
-            nuc(Cart::zz,Cart::xx) =PmA[2]*nuc(Cart::z,Cart::xx)-PmC[2]*nucm1(Cart::z,Cart::xx)+_fak*(nuc(Cart::s,Cart::xx)-nucm1(Cart::s,Cart::xx));
-            nuc(Cart::zz,Cart::xz) =PmA[2]*nuc(Cart::z,Cart::xz)-PmC[2]*nucm1(Cart::z,Cart::xz)+_fak*(nuc(Cart::s,Cart::xz)-nucm1(Cart::s,Cart::xz))+_fak*(nuc(Cart::z,Cart::x)-nucm1(Cart::z,Cart::x));
-            nuc(Cart::zz,Cart::zz) =PmA[2]*nuc(Cart::z,Cart::zz)-PmC[2]*nucm1(Cart::z,Cart::zz)+_fak*(nuc(Cart::s,Cart::zz)-nucm1(Cart::s,Cart::zz))+_fak2*(nuc(Cart::z,Cart::z)-nucm1(Cart::z,Cart::z));
+//Integrals     p - s
+if (_lmax_row > 0) {
+  for (int m = 0; m < _lsum; m++) {
+    nuc3[Cart::x][0][m] = PmA0*nuc3[0][0][m] - PmC0*nuc3[0][0][m+1];
+    nuc3[Cart::y][0][m] = PmA1*nuc3[0][0][m] - PmC1*nuc3[0][0][m+1];
+    nuc3[Cart::z][0][m] = PmA2*nuc3[0][0][m] - PmC2*nuc3[0][0][m+1];
+  }
+}
+//------------------------------------------------------
+
+//Integrals     d - s
+if (_lmax_row > 1) {
+  for (int m = 0; m < _lsum-1; m++) {
+    double term = _fak*(nuc3[0][0][m]-nuc3[0][0][m+1]);
+    nuc3[Cart::xx][0][m] = PmA0*nuc3[Cart::x][0][m] - PmC0*nuc3[Cart::x][0][m+1] + term;
+    nuc3[Cart::xy][0][m] = PmA0*nuc3[Cart::y][0][m] - PmC0*nuc3[Cart::y][0][m+1];
+    nuc3[Cart::xz][0][m] = PmA0*nuc3[Cart::z][0][m] - PmC0*nuc3[Cart::z][0][m+1];
+    nuc3[Cart::yy][0][m] = PmA1*nuc3[Cart::y][0][m] - PmC1*nuc3[Cart::y][0][m+1] + term;
+    nuc3[Cart::yz][0][m] = PmA1*nuc3[Cart::z][0][m] - PmC1*nuc3[Cart::z][0][m+1];
+    nuc3[Cart::zz][0][m] = PmA2*nuc3[Cart::z][0][m] - PmC2*nuc3[Cart::z][0][m+1] + term;
+  }
+}
+//------------------------------------------------------
+
+//Integrals     f - s
+if (_lmax_row > 2) {
+  for (int m = 0; m < _lsum-2; m++) {
+    nuc3[Cart::xxx][0][m] = PmA0*nuc3[Cart::xx][0][m] - PmC0*nuc3[Cart::xx][0][m+1] + 2*_fak*(nuc3[Cart::x][0][m]-nuc3[Cart::x][0][m+1]);
+    nuc3[Cart::xxy][0][m] = PmA1*nuc3[Cart::xx][0][m] - PmC1*nuc3[Cart::xx][0][m+1];
+    nuc3[Cart::xxz][0][m] = PmA2*nuc3[Cart::xx][0][m] - PmC2*nuc3[Cart::xx][0][m+1];
+    nuc3[Cart::xyy][0][m] = PmA0*nuc3[Cart::yy][0][m] - PmC0*nuc3[Cart::yy][0][m+1];
+    nuc3[Cart::xyz][0][m] = PmA0*nuc3[Cart::yz][0][m] - PmC0*nuc3[Cart::yz][0][m+1];
+    nuc3[Cart::xzz][0][m] = PmA0*nuc3[Cart::zz][0][m] - PmC0*nuc3[Cart::zz][0][m+1];
+    nuc3[Cart::yyy][0][m] = PmA1*nuc3[Cart::yy][0][m] - PmC1*nuc3[Cart::yy][0][m+1] + 2*_fak*(nuc3[Cart::y][0][m]-nuc3[Cart::y][0][m+1]);
+    nuc3[Cart::yyz][0][m] = PmA2*nuc3[Cart::yy][0][m] - PmC2*nuc3[Cart::yy][0][m+1];
+    nuc3[Cart::yzz][0][m] = PmA1*nuc3[Cart::zz][0][m] - PmC1*nuc3[Cart::zz][0][m+1];
+    nuc3[Cart::zzz][0][m] = PmA2*nuc3[Cart::zz][0][m] - PmC2*nuc3[Cart::zz][0][m+1] + 2*_fak*(nuc3[Cart::z][0][m]-nuc3[Cart::z][0][m+1]);
+  }
+}
+//------------------------------------------------------
+
+//Integrals     g - s
+if (_lmax_row > 3) {
+  for (int m = 0; m < _lsum-3; m++) {
+    double term_xx = _fak*(nuc3[Cart::xx][0][m]-nuc3[Cart::xx][0][m+1]);
+    double term_yy = _fak*(nuc3[Cart::yy][0][m]-nuc3[Cart::yy][0][m+1]);
+    double term_zz = _fak*(nuc3[Cart::zz][0][m]-nuc3[Cart::zz][0][m+1]);
+    nuc3[Cart::xxxx][0][m] = PmA0*nuc3[Cart::xxx][0][m] - PmC0*nuc3[Cart::xxx][0][m+1] + 3*term_xx;
+    nuc3[Cart::xxxy][0][m] = PmA1*nuc3[Cart::xxx][0][m] - PmC1*nuc3[Cart::xxx][0][m+1];
+    nuc3[Cart::xxxz][0][m] = PmA2*nuc3[Cart::xxx][0][m] - PmC2*nuc3[Cart::xxx][0][m+1];
+    nuc3[Cart::xxyy][0][m] = PmA0*nuc3[Cart::xyy][0][m] - PmC0*nuc3[Cart::xyy][0][m+1] + term_yy;
+    nuc3[Cart::xxyz][0][m] = PmA1*nuc3[Cart::xxz][0][m] - PmC1*nuc3[Cart::xxz][0][m+1];
+    nuc3[Cart::xxzz][0][m] = PmA0*nuc3[Cart::xzz][0][m] - PmC0*nuc3[Cart::xzz][0][m+1] + term_zz;
+    nuc3[Cart::xyyy][0][m] = PmA0*nuc3[Cart::yyy][0][m] - PmC0*nuc3[Cart::yyy][0][m+1];
+    nuc3[Cart::xyyz][0][m] = PmA0*nuc3[Cart::yyz][0][m] - PmC0*nuc3[Cart::yyz][0][m+1];
+    nuc3[Cart::xyzz][0][m] = PmA0*nuc3[Cart::yzz][0][m] - PmC0*nuc3[Cart::yzz][0][m+1];
+    nuc3[Cart::xzzz][0][m] = PmA0*nuc3[Cart::zzz][0][m] - PmC0*nuc3[Cart::zzz][0][m+1];
+    nuc3[Cart::yyyy][0][m] = PmA1*nuc3[Cart::yyy][0][m] - PmC1*nuc3[Cart::yyy][0][m+1] + 3*term_yy;
+    nuc3[Cart::yyyz][0][m] = PmA2*nuc3[Cart::yyy][0][m] - PmC2*nuc3[Cart::yyy][0][m+1];
+    nuc3[Cart::yyzz][0][m] = PmA1*nuc3[Cart::yzz][0][m] - PmC1*nuc3[Cart::yzz][0][m+1] + term_zz;
+    nuc3[Cart::yzzz][0][m] = PmA1*nuc3[Cart::zzz][0][m] - PmC1*nuc3[Cart::zzz][0][m+1];
+    nuc3[Cart::zzzz][0][m] = PmA2*nuc3[Cart::zzz][0][m] - PmC2*nuc3[Cart::zzz][0][m+1] + 3*term_zz;
+  }
+}
+//------------------------------------------------------
 
 
-            
-        }
+
+
+if (_lmax_col > 0) {
+
+  //Integrals     s - p
+  for (int m = 0; m < _lmax_col; m++) {
+    nuc3[0][Cart::x][m] = PmB0*nuc3[0][0][m] - PmC0*nuc3[0][0][m+1];
+    nuc3[0][Cart::y][m] = PmB1*nuc3[0][0][m] - PmC1*nuc3[0][0][m+1];
+    nuc3[0][Cart::z][m] = PmB2*nuc3[0][0][m] - PmC2*nuc3[0][0][m+1];
+  }
+  //------------------------------------------------------
+
+  //Integrals     p - p
+  if (_lmax_row > 0) {
+    for (int m = 0; m < _lmax_col; m++) {
+      double term = _fak*(nuc3[0][0][m]-nuc3[0][0][m+1]);
+      for (int _i =  1; _i < 4; _i++) {
+        nuc3[_i][Cart::x][m] = PmB0*nuc3[_i][0][m] - PmC0*nuc3[_i][0][m+1] + nx[_i]*term;
+        nuc3[_i][Cart::y][m] = PmB1*nuc3[_i][0][m] - PmC1*nuc3[_i][0][m+1] + ny[_i]*term;
+        nuc3[_i][Cart::z][m] = PmB2*nuc3[_i][0][m] - PmC2*nuc3[_i][0][m+1] + nz[_i]*term;
+      }
+    }
+  }
+  //------------------------------------------------------
+
+  //Integrals     d - p     f - p     g - p
+  for (int m = 0; m < _lmax_col; m++) {
+    for (int _i = 4; _i < n_orbitals[_lmax_row]; _i++) {
+      nuc3[_i][Cart::x][m] = PmB0*nuc3[_i][0][m] - PmC0*nuc3[_i][0][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][0][m] - nuc3[i_less_x[_i]][0][m+1]);
+      nuc3[_i][Cart::y][m] = PmB1*nuc3[_i][0][m] - PmC1*nuc3[_i][0][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][0][m] - nuc3[i_less_y[_i]][0][m+1]);
+      nuc3[_i][Cart::z][m] = PmB2*nuc3[_i][0][m] - PmC2*nuc3[_i][0][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][0][m] - nuc3[i_less_z[_i]][0][m+1]);
+    }
+  }
+  //------------------------------------------------------
+
+} // end if (_lmax_col > 0)
+
+
+if (_lmax_col > 1) {
+
+  //Integrals     s - d
+  for (int m = 0; m < _lmax_col-1; m++) {
+    double term = _fak*(nuc3[0][0][m]-nuc3[0][0][m+1]);
+    nuc3[0][Cart::xx][m] = PmB0*nuc3[0][Cart::x][m] - PmC0*nuc3[0][Cart::x][m+1] + term;
+    nuc3[0][Cart::xy][m] = PmB0*nuc3[0][Cart::y][m] - PmC0*nuc3[0][Cart::y][m+1];
+    nuc3[0][Cart::xz][m] = PmB0*nuc3[0][Cart::z][m] - PmC0*nuc3[0][Cart::z][m+1];
+    nuc3[0][Cart::yy][m] = PmB1*nuc3[0][Cart::y][m] - PmC1*nuc3[0][Cart::y][m+1] + term;
+    nuc3[0][Cart::yz][m] = PmB1*nuc3[0][Cart::z][m] - PmC1*nuc3[0][Cart::z][m+1];
+    nuc3[0][Cart::zz][m] = PmB2*nuc3[0][Cart::z][m] - PmC2*nuc3[0][Cart::z][m+1] + term;
+  }
+  //------------------------------------------------------
+
+  //Integrals     p - d     d - d     f - d     g - d
+  for (int m = 0; m < _lmax_col-1; m++) {
+    for (int _i = 1; _i < n_orbitals[_lmax_row]; _i++) {
+      double term = _fak*(nuc3[_i][0][m]-nuc3[_i][0][m+1]);
+      nuc3[_i][Cart::xx][m] = PmB0*nuc3[_i][Cart::x][m] - PmC0*nuc3[_i][Cart::x][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::x][m] - nuc3[i_less_x[_i]][Cart::x][m+1]) + term;
+      nuc3[_i][Cart::xy][m] = PmB0*nuc3[_i][Cart::y][m] - PmC0*nuc3[_i][Cart::y][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::y][m] - nuc3[i_less_x[_i]][Cart::y][m+1]);
+      nuc3[_i][Cart::xz][m] = PmB0*nuc3[_i][Cart::z][m] - PmC0*nuc3[_i][Cart::z][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::z][m] - nuc3[i_less_x[_i]][Cart::z][m+1]);
+      nuc3[_i][Cart::yy][m] = PmB1*nuc3[_i][Cart::y][m] - PmC1*nuc3[_i][Cart::y][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::y][m] - nuc3[i_less_y[_i]][Cart::y][m+1]) + term;
+      nuc3[_i][Cart::yz][m] = PmB1*nuc3[_i][Cart::z][m] - PmC1*nuc3[_i][Cart::z][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::z][m] - nuc3[i_less_y[_i]][Cart::z][m+1]);
+      nuc3[_i][Cart::zz][m] = PmB2*nuc3[_i][Cart::z][m] - PmC2*nuc3[_i][Cart::z][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::z][m] - nuc3[i_less_z[_i]][Cart::z][m+1]) + term;
+    }
+  }
+  //------------------------------------------------------
+
+} // end if (_lmax_col > 1)
+
+
+if (_lmax_col > 2) {
+
+  //Integrals     s - f
+  for (int m = 0; m < _lmax_col-2; m++) {
+    nuc3[0][Cart::xxx][m] = PmB0*nuc3[0][Cart::xx][m] - PmC0*nuc3[0][Cart::xx][m+1] + 2*_fak*(nuc3[0][Cart::x][m]-nuc3[0][Cart::x][m+1]);
+    nuc3[0][Cart::xxy][m] = PmB1*nuc3[0][Cart::xx][m] - PmC1*nuc3[0][Cart::xx][m+1];
+    nuc3[0][Cart::xxz][m] = PmB2*nuc3[0][Cart::xx][m] - PmC2*nuc3[0][Cart::xx][m+1];
+    nuc3[0][Cart::xyy][m] = PmB0*nuc3[0][Cart::yy][m] - PmC0*nuc3[0][Cart::yy][m+1];
+    nuc3[0][Cart::xyz][m] = PmB0*nuc3[0][Cart::yz][m] - PmC0*nuc3[0][Cart::yz][m+1];
+    nuc3[0][Cart::xzz][m] = PmB0*nuc3[0][Cart::zz][m] - PmC0*nuc3[0][Cart::zz][m+1];
+    nuc3[0][Cart::yyy][m] = PmB1*nuc3[0][Cart::yy][m] - PmC1*nuc3[0][Cart::yy][m+1] + 2*_fak*(nuc3[0][Cart::y][m]-nuc3[0][Cart::y][m+1]);
+    nuc3[0][Cart::yyz][m] = PmB2*nuc3[0][Cart::yy][m] - PmC2*nuc3[0][Cart::yy][m+1];
+    nuc3[0][Cart::yzz][m] = PmB1*nuc3[0][Cart::zz][m] - PmC1*nuc3[0][Cart::zz][m+1];
+    nuc3[0][Cart::zzz][m] = PmB2*nuc3[0][Cart::zz][m] - PmC2*nuc3[0][Cart::zz][m+1] + 2*_fak*(nuc3[0][Cart::z][m]-nuc3[0][Cart::z][m+1]);
+  }
+  //------------------------------------------------------
+
+  //Integrals     p - f     d - f     f - f     g - f
+  for (int m = 0; m < _lmax_col-2; m++) {
+    for (int _i = 1; _i < n_orbitals[_lmax_row]; _i++) {
+      double term_x = 2*_fak*(nuc3[_i][Cart::x][m]-nuc3[_i][Cart::x][m+1]);
+      double term_y = 2*_fak*(nuc3[_i][Cart::y][m]-nuc3[_i][Cart::y][m+1]);
+      double term_z = 2*_fak*(nuc3[_i][Cart::z][m]-nuc3[_i][Cart::z][m+1]);
+      nuc3[_i][Cart::xxx][m] = PmB0*nuc3[_i][Cart::xx][m] - PmC0*nuc3[_i][Cart::xx][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::xx][m] - nuc3[i_less_x[_i]][Cart::xx][m+1]) + term_x;
+      nuc3[_i][Cart::xxy][m] = PmB1*nuc3[_i][Cart::xx][m] - PmC1*nuc3[_i][Cart::xx][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::xx][m] - nuc3[i_less_y[_i]][Cart::xx][m+1]);
+      nuc3[_i][Cart::xxz][m] = PmB2*nuc3[_i][Cart::xx][m] - PmC2*nuc3[_i][Cart::xx][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::xx][m] - nuc3[i_less_z[_i]][Cart::xx][m+1]);
+      nuc3[_i][Cart::xyy][m] = PmB0*nuc3[_i][Cart::yy][m] - PmC0*nuc3[_i][Cart::yy][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yy][m] - nuc3[i_less_x[_i]][Cart::yy][m+1]);
+      nuc3[_i][Cart::xyz][m] = PmB0*nuc3[_i][Cart::yz][m] - PmC0*nuc3[_i][Cart::yz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yz][m] - nuc3[i_less_x[_i]][Cart::yz][m+1]);
+      nuc3[_i][Cart::xzz][m] = PmB0*nuc3[_i][Cart::zz][m] - PmC0*nuc3[_i][Cart::zz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::zz][m] - nuc3[i_less_x[_i]][Cart::zz][m+1]);
+      nuc3[_i][Cart::yyy][m] = PmB1*nuc3[_i][Cart::yy][m] - PmC1*nuc3[_i][Cart::yy][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::yy][m] - nuc3[i_less_y[_i]][Cart::yy][m+1]) + term_y;
+      nuc3[_i][Cart::yyz][m] = PmB2*nuc3[_i][Cart::yy][m] - PmC2*nuc3[_i][Cart::yy][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::yy][m] - nuc3[i_less_z[_i]][Cart::yy][m+1]);
+      nuc3[_i][Cart::yzz][m] = PmB1*nuc3[_i][Cart::zz][m] - PmC1*nuc3[_i][Cart::zz][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::zz][m] - nuc3[i_less_y[_i]][Cart::zz][m+1]);
+      nuc3[_i][Cart::zzz][m] = PmB2*nuc3[_i][Cart::zz][m] - PmC2*nuc3[_i][Cart::zz][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::zz][m] - nuc3[i_less_z[_i]][Cart::zz][m+1]) + term_z;
+    }
+  }
+  //------------------------------------------------------
+
+} // end if (_lmax_col > 2)
+
+
+if (_lmax_col > 3) {
+
+  //Integrals     s - g
+  for (int m = 0; m < _lmax_col-3; m++) {
+    double term_xx = _fak*(nuc3[0][Cart::xx][m]-nuc3[0][Cart::xx][m+1]);
+    double term_yy = _fak*(nuc3[0][Cart::yy][m]-nuc3[0][Cart::yy][m+1]);
+    double term_zz = _fak*(nuc3[0][Cart::zz][m]-nuc3[0][Cart::zz][m+1]);
+    nuc3[0][Cart::xxxx][m] = PmB0*nuc3[0][Cart::xxx][m] - PmC0*nuc3[0][Cart::xxx][m+1] + 3*term_xx;
+    nuc3[0][Cart::xxxy][m] = PmB1*nuc3[0][Cart::xxx][m] - PmC1*nuc3[0][Cart::xxx][m+1];
+    nuc3[0][Cart::xxxz][m] = PmB2*nuc3[0][Cart::xxx][m] - PmC2*nuc3[0][Cart::xxx][m+1];
+    nuc3[0][Cart::xxyy][m] = PmB0*nuc3[0][Cart::xyy][m] - PmC0*nuc3[0][Cart::xyy][m+1] + term_yy;
+    nuc3[0][Cart::xxyz][m] = PmB1*nuc3[0][Cart::xxz][m] - PmC1*nuc3[0][Cart::xxz][m+1];
+    nuc3[0][Cart::xxzz][m] = PmB0*nuc3[0][Cart::xzz][m] - PmC0*nuc3[0][Cart::xzz][m+1] + term_zz;
+    nuc3[0][Cart::xyyy][m] = PmB0*nuc3[0][Cart::yyy][m] - PmC0*nuc3[0][Cart::yyy][m+1];
+    nuc3[0][Cart::xyyz][m] = PmB0*nuc3[0][Cart::yyz][m] - PmC0*nuc3[0][Cart::yyz][m+1];
+    nuc3[0][Cart::xyzz][m] = PmB0*nuc3[0][Cart::yzz][m] - PmC0*nuc3[0][Cart::yzz][m+1];
+    nuc3[0][Cart::xzzz][m] = PmB0*nuc3[0][Cart::zzz][m] - PmC0*nuc3[0][Cart::zzz][m+1];
+    nuc3[0][Cart::yyyy][m] = PmB1*nuc3[0][Cart::yyy][m] - PmC1*nuc3[0][Cart::yyy][m+1] + 3*term_yy;
+    nuc3[0][Cart::yyyz][m] = PmB2*nuc3[0][Cart::yyy][m] - PmC2*nuc3[0][Cart::yyy][m+1];
+    nuc3[0][Cart::yyzz][m] = PmB1*nuc3[0][Cart::yzz][m] - PmC1*nuc3[0][Cart::yzz][m+1] + term_zz;
+    nuc3[0][Cart::yzzz][m] = PmB1*nuc3[0][Cart::zzz][m] - PmC1*nuc3[0][Cart::zzz][m+1];
+    nuc3[0][Cart::zzzz][m] = PmB2*nuc3[0][Cart::zzz][m] - PmC2*nuc3[0][Cart::zzz][m+1] + 3*term_zz;
+  }
+  //------------------------------------------------------
+
+  //Integrals     p - g     d - g     f - g     g - g
+  for (int m = 0; m < _lmax_col-3; m++) {
+    for (int _i = 1; _i < n_orbitals[_lmax_row]; _i++) {
+      double term_xx = _fak*(nuc3[_i][Cart::xx][m]-nuc3[_i][Cart::xx][m+1]);
+      double term_yy = _fak*(nuc3[_i][Cart::yy][m]-nuc3[_i][Cart::yy][m+1]);
+      double term_zz = _fak*(nuc3[_i][Cart::zz][m]-nuc3[_i][Cart::zz][m+1]);
+      nuc3[_i][Cart::xxxx][m] = PmB0*nuc3[_i][Cart::xxx][m] - PmC0*nuc3[_i][Cart::xxx][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::xxx][m] - nuc3[i_less_x[_i]][Cart::xxx][m+1]) + 3*term_xx;
+      nuc3[_i][Cart::xxxy][m] = PmB1*nuc3[_i][Cart::xxx][m] - PmC1*nuc3[_i][Cart::xxx][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::xxx][m] - nuc3[i_less_y[_i]][Cart::xxx][m+1]);
+      nuc3[_i][Cart::xxxz][m] = PmB2*nuc3[_i][Cart::xxx][m] - PmC2*nuc3[_i][Cart::xxx][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::xxx][m] - nuc3[i_less_z[_i]][Cart::xxx][m+1]);
+      nuc3[_i][Cart::xxyy][m] = PmB0*nuc3[_i][Cart::xyy][m] - PmC0*nuc3[_i][Cart::xyy][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::xyy][m] - nuc3[i_less_x[_i]][Cart::xyy][m+1]) + term_yy;
+      nuc3[_i][Cart::xxyz][m] = PmB1*nuc3[_i][Cart::xxz][m] - PmC1*nuc3[_i][Cart::xxz][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::xxz][m] - nuc3[i_less_y[_i]][Cart::xxz][m+1]);
+      nuc3[_i][Cart::xxzz][m] = PmB0*nuc3[_i][Cart::xzz][m] - PmC0*nuc3[_i][Cart::xzz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::xzz][m] - nuc3[i_less_x[_i]][Cart::xzz][m+1]) + term_zz;
+      nuc3[_i][Cart::xyyy][m] = PmB0*nuc3[_i][Cart::yyy][m] - PmC0*nuc3[_i][Cart::yyy][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yyy][m] - nuc3[i_less_x[_i]][Cart::yyy][m+1]);
+      nuc3[_i][Cart::xyyz][m] = PmB0*nuc3[_i][Cart::yyz][m] - PmC0*nuc3[_i][Cart::yyz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yyz][m] - nuc3[i_less_x[_i]][Cart::yyz][m+1]);
+      nuc3[_i][Cart::xyzz][m] = PmB0*nuc3[_i][Cart::yzz][m] - PmC0*nuc3[_i][Cart::yzz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::yzz][m] - nuc3[i_less_x[_i]][Cart::yzz][m+1]);
+      nuc3[_i][Cart::xzzz][m] = PmB0*nuc3[_i][Cart::zzz][m] - PmC0*nuc3[_i][Cart::zzz][m+1] + nx[_i]*_fak*(nuc3[i_less_x[_i]][Cart::zzz][m] - nuc3[i_less_x[_i]][Cart::zzz][m+1]);
+      nuc3[_i][Cart::yyyy][m] = PmB1*nuc3[_i][Cart::yyy][m] - PmC1*nuc3[_i][Cart::yyy][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::yyy][m] - nuc3[i_less_y[_i]][Cart::yyy][m+1]) + 3*term_yy;
+      nuc3[_i][Cart::yyyz][m] = PmB2*nuc3[_i][Cart::yyy][m] - PmC2*nuc3[_i][Cart::yyy][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::yyy][m] - nuc3[i_less_z[_i]][Cart::yyy][m+1]);
+      nuc3[_i][Cart::yyzz][m] = PmB1*nuc3[_i][Cart::yzz][m] - PmC1*nuc3[_i][Cart::yzz][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::yzz][m] - nuc3[i_less_y[_i]][Cart::yzz][m+1]) + term_zz;
+      nuc3[_i][Cart::yzzz][m] = PmB1*nuc3[_i][Cart::zzz][m] - PmC1*nuc3[_i][Cart::zzz][m+1] + ny[_i]*_fak*(nuc3[i_less_y[_i]][Cart::zzz][m] - nuc3[i_less_y[_i]][Cart::zzz][m+1]);
+      nuc3[_i][Cart::zzzz][m] = PmB2*nuc3[_i][Cart::zzz][m] - PmC2*nuc3[_i][Cart::zzz][m+1] + nz[_i]*_fak*(nuc3[i_less_z[_i]][Cart::zzz][m] - nuc3[i_less_z[_i]][Cart::zzz][m+1]) + 3*term_zz;
+    }
+  }
+  //------------------------------------------------------
+
+} // end if (_lmax_col > 3)
+                         
+                         
+         for (int i = 0; i < _nrows; i++) {
+            for (int j = 0; j < _ncols; j++) {
+               nuc(i,j) = nuc3[i][j][0];
+            }
+         }                
+
+        
         
        // boost::timer::cpu_times t11 = cpu_t.elapsed();
         
@@ -471,10 +452,7 @@ namespace votca { namespace xtp {
         ub::matrix<double> _trafo_col_tposed = ub::trans( _trafo_col );
         ub::matrix<double> _nuc_sph = ub::prod( _nuc_tmp, _trafo_col_tposed );
         // save to _matrix
-        // if (_lmax_row > 1 || _lmax_col > 1 ){
-        //_matrix = ub::project(_nuc_sph, ub::range(_shell_row->getOffset(), _matrix.size1() + 1), ub::range(_shell_col->getOffset(), _matrix.size2()));
-        //}
-        //else {
+        
         for ( unsigned i = 0; i< _matrix.size1(); i++ ) {
             for (unsigned j = 0; j < _matrix.size2(); j++){
                 _matrix(i,j) += _nuc_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
@@ -485,32 +463,57 @@ namespace votca { namespace xtp {
         //nuc.clear();
             }// _shell_col Gaussians
         }// _shell_row Gaussians
+         return;
     }
     
   // Calculates the electrostatic potential matrix element between two basis functions, for an array of atomcores.
-    void AOESP::Fillnucpotential( AOBasis* aobasis, std::vector<CTP::QMAtom*>& _atoms){
+    void AOESP::Fillnucpotential( AOBasis* aobasis, std::vector<ctp::QMAtom*>& _atoms, bool _with_ecp){
     Elements _elements;
     _nuclearpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
-    ub::vector<double> positionofatom=ub::zero_vector<double>(3);
+    
    for ( unsigned j = 0; j < _atoms.size(); j++){
 
-            
-            positionofatom(0) = _atoms[j]->x*1.8897259886;
-            positionofatom(1) = _atoms[j]->y*1.8897259886;
-            positionofatom(2) = _atoms[j]->z*1.8897259886;
+            vec positionofatom=vec(_atoms[j]->x*tools::conv::ang2bohr,_atoms[j]->y*tools::conv::ang2bohr,_atoms[j]->z*tools::conv::ang2bohr);
+
              //cout << "NUC POS" << positionofatom(0) << " " << positionofatom(1) << " " << positionofatom(2) << " " << endl;
-	    double Znuc = _elements.getNucCrg(_atoms[j]->type);
+            double Znuc=0.0;
+            if (_with_ecp){
+               Znuc= _elements.getNucCrgECP(_atoms[j]->type); 
+            }
+            else{
+	     Znuc= _elements.getNucCrg(_atoms[j]->type);
+            }
             //cout << "NUCLEAR CHARGE" << Znuc << endl;
             _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
             Fill(aobasis,positionofatom);
             //Print("TMAT");
-            double Zecp =2 ;
-            cout << " Warning, Zecp set to " << Zecp << endl;
-            _nuclearpotential+=(-1)*(Znuc-Zecp)*_aomatrix;
+            
+            _nuclearpotential-=(Znuc)*_aomatrix;
            // cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
     
     }
+    return;
+    }   
+    void AOESP::Fillextpotential( AOBasis* aobasis, std::vector<ctp::APolarSite*>& _sites){
+  
+    _externalpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
+   for ( std::vector<ctp::APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
+      
+       
+            vec positionofsite =  (*it)->getPos()*tools::conv::nm2bohr;
+            
+           
+            //cout << "NUCLEAR CHARGE" << Znuc << endl;
+            _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
+          
+            Fill(aobasis,positionofsite);
+            //Print("TMAT");
+            
+            _externalpotential-=(*it)->getQ00() *_aomatrix;
+           // cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
     
+    }
+    return;
     }    
     
 }}

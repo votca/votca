@@ -1,6 +1,6 @@
 <options>
 
-<egwbse>
+<egwbse help="Executes qm calculations for individual molecules" section="sec:egwbse">
 
 <tasks>input,dft,parse,gwbse,esp</tasks>
 

@@ -23,12 +23,12 @@
 #include <votca/xtp/calculatorfactory.h>
 #include <votca/tools/property.h>
 #include <votca/xtp/statesaversqlite.h>
-#include <votca/xtp/units.h>
+#include <votca/moo/units.h>
 #include <votca/ctp/topology.h>
 #include <votca/csg/topology.h>
 
-
 namespace CTP = votca::ctp;
+namespace XTP = votca::xtp;
 namespace CSG = votca::csg;
 namespace TOOLS = votca::tools;
 

@@ -21,8 +21,6 @@
 #include <votca/tools/linalg.h>
 
 #include <votca/xtp/threecenters.h>
-
-#include <votca/ctp/logger.h>
 #include <votca/tools/linalg.h>
 
 
@@ -138,7 +136,7 @@ namespace votca {
             //ub::matrix<real_gwbse> _imstore = ub::zero_matrix<real_gwbse>(this->mtotal * _shell->getNumFunc(), dftbasis._AOBasisSize);
 
             // alpha-loop over the "left" DFT basis function
-            for (std::vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
+            for (std::vector< AOShell* >::iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); ++_row) {
                 AOShell* _shell_row = dftbasis.getShell(_row);
                 int _row_start = _shell_row->getStartIndex();
                 int _row_end = _row_start + _shell_row->getNumFunc();
@@ -147,7 +145,7 @@ namespace votca {
                 ub::matrix_range< ub::matrix<double> > _m_orbitals = ub::subrange(_dft_orbitals, this->mmin, this->mmax + 1, _row_start, _row_end);
 
                 // gamma-loop over the "right" DFT basis function
-                for (std::vector< AOShell* >::iterator _col = dftbasis.firstShell(); _col != dftbasis.lastShell(); _col++) {
+                for (std::vector< AOShell* >::iterator _col = dftbasis.firstShell(); _col != dftbasis.lastShell(); ++_col) {
                     AOShell* _shell_col = dftbasis.getShell(_col);
                     int _col_start = _shell_col->getStartIndex();
                     int _col_end = _col_start + _shell_col->getNumFunc();

@@ -23,8 +23,7 @@
 #include <votca/tools/linalg.h>
 namespace votca { namespace xtp {
 
-    namespace CTP = votca::ctp;
-void NBO::EvaluateNBO(std::vector< CTP::QMAtom* >& _atomlist,  ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs){
+void NBO::EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist,  ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs){
     AOOverlap _overlap;
     // initialize overlap matrix
     _overlap.Initialize(basis._AOBasisSize);
@@ -42,7 +41,7 @@ void NBO::EvaluateNBO(std::vector< CTP::QMAtom* >& _atomlist,  ub::matrix<double
     cout<<P<<endl;
     cout<<_overlap._aomatrix<<endl;
     
-    vector < CTP::QMAtom* > :: iterator atom;
+    vector < ctp::QMAtom* > :: iterator atom;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
     
     std::vector<int> func=_elements.getMinimalBasis((*atom)->type,_ECP);
@@ -59,10 +58,10 @@ void NBO::EvaluateNBO(std::vector< CTP::QMAtom* >& _atomlist,  ub::matrix<double
 }
 
 
-ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< CTP::QMAtom* >& _atomlist ,BasisSet &bs){
+ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< ctp::QMAtom* >& _atomlist ,BasisSet &bs){
     
     
-    vector< CTP::QMAtom* >::iterator atom;
+    vector< ctp::QMAtom* >::iterator atom;
 
 // make an array which stores for each atom the the starting point for all s functions, p functions, d functions etc...   
     
@@ -79,12 +78,12 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P,ub::ma
            // for loop because shells can also consist of SP shells or alike
             for(unsigned i = 0; i <(*its)->getType().length(); ++i) {
             string local_shell = string( (*its)->getType(), i, 1 );
-            int l= (*its)->FindLmax(local_shell);
+            int l=FindLmax(local_shell);
             std::vector< int >& index =shellsort[l];
            
             index.push_back(functionindex);
             
-            functionindex+=(*its)->FindnumofFunc(local_shell);
+            functionindex+=NumFuncShell(local_shell);
             }
         }
         sorting.push_back(shellsort);

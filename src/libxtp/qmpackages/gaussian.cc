@@ -37,7 +37,6 @@
 namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
-        namespace CTP = votca::ctp;
 
         void Gaussian::Initialize(Property *options) {
 
@@ -132,10 +131,10 @@ namespace votca {
          * Prepares the com file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied
          */
-        bool Gaussian::WriteInputFile(std::vector<CTP::Segment* > segments, Orbitals* orbitals_guess) {
-            std::vector< CTP::Atom* > _atoms;
-            std::vector< CTP::Atom* > ::iterator ait;
-            std::vector< CTP::Segment* >::iterator sit;
+        bool Gaussian::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
+            std::vector< ctp::Atom* > _atoms;
+            std::vector< ctp::Atom* > ::iterator ait;
+            std::vector< ctp::Segment* >::iterator sit;
             std::string temp_suffix = "/id";
             std::string scratch_dir_backup = _scratch_dir;
             //int qmatoms = 0;
@@ -194,12 +193,12 @@ namespace votca {
                     // std::string basis_name(_basis);
 
                     bs.LoadBasisSet(_basisset_name);
-                    LOG(CTP::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
                     for (sit = segments.begin(); sit != segments.end(); ++sit) {
 
-                        std::vector< CTP::Atom* > atoms = (*sit)-> Atoms();
-                        std::vector< CTP::Atom* >::iterator it;
+                        std::vector< ctp::Atom* > atoms = (*sit)-> Atoms();
+                        std::vector< ctp::Atom* >::iterator it;
 
                         for (it = atoms.begin(); it < atoms.end(); it++) {
 
@@ -265,12 +264,12 @@ namespace votca {
                     BasisSet ecp;
                     ecp.LoadPseudopotentialSet(pseudopotential_name);
 
-                    LOG(CTP::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << pseudopotential_name << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << pseudopotential_name << flush;
 
                     for (sit = segments.begin(); sit != segments.end(); ++sit) {
 
-                        std::vector< CTP::Atom* > atoms = (*sit)-> Atoms();
-                        std::vector< CTP::Atom* >::iterator it;
+                        std::vector< ctp::Atom* > atoms = (*sit)-> Atoms();
+                        std::vector< ctp::Atom* >::iterator it;
 
                         for (it = atoms.begin(); it < atoms.end(); it++) {
 
@@ -332,8 +331,8 @@ namespace votca {
 
             } else {
 
-                std::vector< CTP::QMAtom* > *qmatoms = orbitals_guess->getAtoms();
-                std::vector< CTP::QMAtom* >::iterator it;
+                std::vector< ctp::QMAtom* > *qmatoms = orbitals_guess->getAtoms();
+                std::vector< ctp::QMAtom* >::iterator it;
 
                 // This is needed for the QM/MM scheme, since only orbitals have 
                 // updated positions of the QM region, hence vector<Segments*> is 
@@ -361,7 +360,7 @@ namespace votca {
                     // std::string basis_name(_basis);
 
                     bs.LoadBasisSet(_basisset_name);
-                    LOG(CTP::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
                     for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
                         if (!(*it)->from_environment) {
@@ -428,7 +427,7 @@ namespace votca {
                     BasisSet ecp;
                     ecp.LoadPseudopotentialSet(pseudopotential_name);
 
-                    LOG(CTP::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << pseudopotential_name << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << pseudopotential_name << flush;
 
                     //for (sit = segments.begin(); sit != segments.end(); ++sit) {
 
@@ -569,7 +568,7 @@ namespace votca {
             _com_file << endl;
             _com_file.close();
             // and now generate a shell script to run both jobs
-            LOG(CTP::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
+            LOG(ctp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
             _scratch_dir = scratch_dir_backup + temp_suffix;
             
@@ -611,7 +610,7 @@ namespace votca {
          */
         bool Gaussian::Run() {
 
-            LOG(CTP::logDEBUG, *_pLog) << "GAUSSIAN: running [" << _executable << " " << _input_file_name << "]" << flush;
+            LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: running [" << _executable << " " << _input_file_name << "]" << flush;
 
             if (std::system(NULL)) {
                 // if scratch is provided, run the shell script; 
@@ -627,17 +626,17 @@ namespace votca {
                 //int i = std::system(_command.c_str());
                 int check=std::system(_command.c_str());
                 if (check==-1){
-                    LOG(CTP::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+                    LOG(ctp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
                     return false;
                 }
                 if (CheckLogFile()) {
-                    LOG(CTP::logDEBUG, *_pLog) << "GAUSSIAN: finished job" << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: finished job" << flush;
                     return true;
                 } else {
-                    LOG(CTP::logDEBUG, *_pLog) << "GAUSSIAN: job failed" << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: job failed" << flush;
                 }
             } else {
-                LOG(CTP::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+                LOG(ctp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
                 return false;
             }
 
@@ -653,7 +652,7 @@ namespace votca {
             // cleaning up the generated files
             if (_cleanup.size() != 0) {
 
-                LOG(CTP::logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
+                LOG(ctp::logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
                 Tokenizer tok_cleanup(_cleanup, ", ");
                 std::vector <std::string> _cleanup_info;
                 tok_cleanup.ToVector(_cleanup_info);
@@ -708,10 +707,10 @@ namespace votca {
             std::ifstream _input_file(_orb_file_name_full.c_str());
 
             if (_input_file.fail()) {
-                LOG(CTP::logERROR, *_pLog) << "File " << _orb_file_name << " with molecular orbitals is not found " << flush;
+                LOG(ctp::logERROR, *_pLog) << "File " << _orb_file_name << " with molecular orbitals is not found " << flush;
                 return false;
             } else {
-                LOG(CTP::logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name << flush;
+                LOG(ctp::logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name << flush;
             }
 
             // number of coefficients per line is  in the first line of the file (5D15.8)
@@ -761,19 +760,19 @@ namespace votca {
             }
 
             // some sanity checks
-            LOG(CTP::logDEBUG, *_pLog) << "Energy levels: " << _levels << flush;
+            LOG(ctp::logDEBUG, *_pLog) << "Energy levels: " << _levels << flush;
 
             std::map< int, std::vector<double> >::iterator iter = _coefficients.begin();
             _basis_size = iter->second.size();
 
             for (iter = _coefficients.begin()++; iter != _coefficients.end(); iter++) {
                 if (iter->second.size() != _basis_size) {
-                    LOG(CTP::logERROR, *_pLog) << "Error reading " << _orb_file_name << ". Basis set size change from level to level." << flush;
+                    LOG(ctp::logERROR, *_pLog) << "Error reading " << _orb_file_name << ". Basis set size change from level to level." << flush;
                     return false;
                 }
             }
 
-            LOG(CTP::logDEBUG, *_pLog) << "Basis set size: " << _basis_size << flush;
+            LOG(ctp::logDEBUG, *_pLog) << "Basis set size: " << _basis_size << flush;
 
             // copying information to the orbitals object
             _orbitals->setBasisSetSize(_basis_size); // = _basis_size;
@@ -797,7 +796,7 @@ namespace votca {
             //cout << _mo_energies << endl;   
             //cout << _mo_coefficients << endl; 
 
-            LOG(CTP::logDEBUG, *_pLog) << "GAUSSIAN: done reading MOs" << flush;
+            LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: done reading MOs" << flush;
 
             return true;
         }
@@ -812,7 +811,7 @@ namespace votca {
             ifstream _input_file(_full_name.c_str());
 
             if (_input_file.fail()) {
-                LOG(CTP::logERROR, *_pLog) << "GAUSSIAN: " << _full_name << " is not found" << flush;
+                LOG(ctp::logERROR, *_pLog) << "GAUSSIAN: " << _full_name << " is not found" << flush;
                 return false;
             };
 
@@ -839,10 +838,10 @@ namespace votca {
 
             std::string::size_type self_energy_pos = _line.find("Normal termination of Gaussian");
             if (self_energy_pos == std::string::npos) {
-                LOG(CTP::logERROR, *_pLog) << "GAUSSIAN: " << _full_name << " is incomplete" << flush;
+                LOG(ctp::logERROR, *_pLog) << "GAUSSIAN: " << _full_name << " is incomplete" << flush;
                 return false;
             } else {
-                //LOG(CTP::logDEBUG,*_pLog) << "Gaussian LOG is complete" << flush;
+                //LOG(logDEBUG,*_pLog) << "Gaussian LOG is complete" << flush;
                 return true;
             }
         }
@@ -875,7 +874,7 @@ namespace votca {
             int _basis_set_size = 0;
             int _cart_basis_set_size = 0;
 
-            LOG(CTP::logDEBUG, *_pLog) << "GAUSSIAN: parsing " << _log_file_name << flush;
+            LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: parsing " << _log_file_name << flush;
 
             std::string _log_file_name_full = _log_file_name;
             if (_run_dir != "") _log_file_name_full = _run_dir + "/" + _log_file_name;
@@ -886,6 +885,7 @@ namespace votca {
             // save qmpackage name
             //_orbitals->_has_qm_package = true;
             _orbitals->setQMpackage("gaussian");
+            _orbitals->setDFTbasis( _basisset_name);
             
             _read_vxc=_output_Vxc;
             bool vxc_found=false;
@@ -914,7 +914,7 @@ namespace votca {
                     double _ScaHFX = boost::lexical_cast<double>(results.back());
                     _orbitals->setScaHFX(_ScaHFX);
                     vxc_found=true;
-                    LOG(CTP::logDEBUG, *_pLog) << "DFT with " << _ScaHFX << " of HF exchange!" << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "DFT with " << _ScaHFX << " of HF exchange!" << flush;
                 }
                
 
@@ -930,7 +930,7 @@ namespace votca {
                     _number_of_electrons = boost::lexical_cast<int>(results.front());
                     _orbitals->setNumberOfElectrons(_number_of_electrons);
                     // _orbitals->_has_number_of_electrons = true;
-                    LOG(CTP::logDEBUG, *_pLog) << "Alpha electrons: " << _number_of_electrons << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "Alpha electrons: " << _number_of_electrons << flush;
                 }
 
                 /*
@@ -945,9 +945,9 @@ namespace votca {
                     _orbitals->setBasisSetSize(_basis_set_size);
                     // _orbitals->_has_basis_set_size = true;
                     _cart_basis_set_size = boost::lexical_cast<int>(results[6]);
-                    LOG(CTP::logDEBUG, *_pLog) << "Basis functions: " << _basis_set_size << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "Basis functions: " << _basis_set_size << flush;
                     if (_read_vxc) {
-                        LOG(CTP::logDEBUG, *_pLog) << "Cartesian functions: " << _cart_basis_set_size << flush;
+                        LOG(ctp::logDEBUG, *_pLog) << "Cartesian functions: " << _cart_basis_set_size << flush;
                     }
                 }
 
@@ -996,8 +996,8 @@ namespace votca {
                             // _orbitals->_unoccupied_levels = _unoccupied_levels;
                             // _orbitals->_has_occupied_levels = true;
                             // _orbitals->_has_unoccupied_levels = true;
-                            LOG(CTP::logDEBUG, *_pLog) << "Occupied levels: " << _occupied_levels << flush;
-                            LOG(CTP::logDEBUG, *_pLog) << "Unoccupied levels: " << _unoccupied_levels << flush;
+                            LOG(ctp::logDEBUG, *_pLog) << "Occupied levels: " << _occupied_levels << flush;
+                            LOG(ctp::logDEBUG, *_pLog) << "Unoccupied levels: " << _unoccupied_levels << flush;
                         }
                     } // end of the while loop              
                 } // end of the eigenvalue parsing
@@ -1074,7 +1074,7 @@ namespace votca {
                         // clear the index for the next block
                         _j_indeces.clear();
                     } // end of the blocks
-                    LOG(CTP::logDEBUG, *_pLog) << "Read the overlap matrix" << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "Read the overlap matrix" << flush;
                 } // end of the if "Overlap" found   
 
 
@@ -1084,7 +1084,7 @@ namespace votca {
                 std::string::size_type charge_pos = _line.find("Charges from ESP fit, RMS");
 
                 if (charge_pos != std::string::npos && _get_charges) {
-                    LOG(CTP::logDEBUG, *_pLog) << "Getting charges" << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "Getting charges" << flush;
                     _has_charges = true;
                     getline(_input_file, _line);
                     getline(_input_file, _line);
@@ -1113,7 +1113,7 @@ namespace votca {
                         if (_has_atoms == false) {
                             _orbitals->AddAtom(atom_type, 0, 0, 0, atom_charge);
                         } else {
-                            CTP::QMAtom* pAtom = _orbitals->_atoms.at(atom_id - 1);
+                            ctp::QMAtom* pAtom = _orbitals->_atoms.at(atom_id - 1);
                             pAtom->type = atom_type;
                             pAtom->charge = atom_charge;
                         }
@@ -1132,7 +1132,7 @@ namespace votca {
 
                 if (coordinates_pos != std::string::npos && cpn == 0) {
                     ++cpn; // updates but ignores
-                    LOG(CTP::logDEBUG, *_pLog) << "Getting the coordinates" << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "Getting the coordinates" << flush;
                     //_has_coordinates = true;
                     boost::trim(_line);
                     std::string archive = _line;
@@ -1171,7 +1171,7 @@ namespace votca {
                         if (_has_atoms == false) {
                             _orbitals->AddAtom(_atom_type, _x, _y, _z);
                         } else {
-                            CTP::QMAtom* pAtom = _orbitals->_atoms.at(aindex);
+                            ctp::QMAtom* pAtom = _orbitals->_atoms.at(aindex);
                             pAtom->type = _atom_type;
                             pAtom->x = _x;
                             pAtom->y = _y;
@@ -1195,15 +1195,15 @@ namespace votca {
                         boost::algorithm::split(property, *block_it, boost::is_any_of("="), boost::algorithm::token_compress_on);
                         properties[property[0]] = property[1];
                     }
-                    LOG(CTP::logDEBUG, *_pLog) << "QM energy check before reading energy, should be 0 " << _orbitals->getQMEnergy() << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "QM energy check before reading energy, should be 0 " << _orbitals->getQMEnergy() << flush;
                     //_has_qm_energy = true;
                     //_orbitals->_has_atoms = true;
                     //_orbitals->_has_qm_energy = true;
                     if (properties.count("HF") > 0) {
                         double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
                         //_orbitals->setQMEnergy(_has_qm_energy = true;
-                        _orbitals-> setQMEnergy(votca::tools::conv::hrt2ev * energy_hartree);
-                        LOG(CTP::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
+                        _orbitals-> setQMEnergy(tools::conv::hrt2ev * energy_hartree);
+                        LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
                     } else {
                         cout << endl;
                         throw std::runtime_error("ERROR No energy in archive");
@@ -1213,7 +1213,7 @@ namespace votca {
                     //            cout << endl << energy[1] << endl;
                     //            _orbitals->_qm_energy = tools::conv::ha2ev * boost::lexical_cast<double> ( energy[1] );
                     //            
-                    //            LOG(CTP::logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
+                    //            LOG(logDEBUG, *_pLog) << "QM energy " << _orbitals->_qm_energy <<  flush;
                     //            _has_qm_energy = true;
 
                 }
@@ -1224,16 +1224,16 @@ namespace votca {
                 std::string::size_type self_energy_pos = _line.find("Self energy of the charges");
 
                 if (self_energy_pos != std::string::npos) {
-                    LOG(CTP::logDEBUG, *_pLog) << "Getting the self energy\n";
+                    LOG(ctp::logDEBUG, *_pLog) << "Getting the self energy\n";
                     std::vector<std::string> block;
                     std::vector<std::string> energy;
                     boost::algorithm::split(block, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
                     boost::algorithm::split(energy, block[1], boost::is_any_of("\t "), boost::algorithm::token_compress_on);
 
                     // _orbitals->_has_self_energy = true;
-                    _orbitals->setSelfEnergy(votca::tools::conv::hrt2ev * boost::lexical_cast<double> (energy[1]));
+                    _orbitals->setSelfEnergy(tools::conv::hrt2ev * boost::lexical_cast<double> (energy[1]));
 
-                    LOG(CTP::logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() << flush;
 
                 }
 
@@ -1249,11 +1249,11 @@ namespace votca {
 
             } // end of reading the file line-by-line
 
-            LOG(CTP::logDEBUG, *_pLog) << "Done parsing" << flush;
+            LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;
             _input_file.close();
             
              if(!vxc_found){
-                    LOG(CTP::logDEBUG, *_pLog) << "WARNING === WARNING \n, could not find ScaHFX= entry in log.\n probably you forgt #P in the beginning of the input file.\n If you are running a hybrid functional calculation redo it! Now! Please!\n ===WARNING=== \n" 
+                    LOG(ctp::logDEBUG, *_pLog) << "WARNING === WARNING \n, could not find ScaHFX= entry in log.\n probably you forgt #P in the beginning of the input file.\n If you are running a hybrid functional calculation redo it! Now! Please!\n ===WARNING=== \n" 
                              << flush;
                     _orbitals->setScaHFX(0.0);
                 }
@@ -1264,7 +1264,7 @@ namespace votca {
              * implies a GW-BSE run. For this, we have to 
              * - parse atomic orbitals Vxc matrix */
             if (_read_vxc) {
-                LOG(CTP::logDEBUG, *_pLog) << "Parsing fort.24 for Vxc" << flush;
+                LOG(ctp::logDEBUG, *_pLog) << "Parsing fort.24 for Vxc" << flush;
                 std::string _log_file_name_full;
                 if (_run_dir == "") {
                     _log_file_name_full = "fort.24";
@@ -1301,7 +1301,7 @@ namespace votca {
                     _vxc(_i_index - 1, _j_index - 1) = boost::lexical_cast<double>(_row[2]);
                 }
 
-                LOG(CTP::logDEBUG, *_pLog) << "Done parsing" << flush;
+                LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;
                 _input_file.close();
                 }
             else{
@@ -1314,426 +1314,15 @@ namespace votca {
             return true;
         }
 
-        /**
-         * Converts the Gaussian data stored in the Orbitals object to GW input format
-         * This includes - writing out the orbitals with additional zeros and permutations
-         *               - rewriting the Vxc matrix from cartesian to spherical AOs
-         *               - forming the expectation value of the MOs with Vxc
-         *               - writing out basis set information
-         */
-        bool Gaussian::ConvertToGW(Orbitals * _orbitals) {
-
-            LOG(CTP::logDEBUG, *_pLog) << "Converting Gaussian to GW " << flush;
-            // prepare file names
-            std::string _orb_file_name_full = _run_dir + "/orbitals.votca";
-            std::string _vxc_file_name_full = _run_dir + "/vxc.votca";
-
-            // reload the basis set
-            list<std::string> elements;
-            BasisSet bs;
-            // std::string _basisset_name("ubecppol");
-
-            bs.LoadBasisSet(_basisset_name);
-            LOG(CTP::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
-
-            // rewriting the molecular orbitals
-            ofstream _orb_file;
-            _orb_file.open(_orb_file_name_full.c_str());
-            _orb_file.precision(8);
-            // getting the basis set sizes
-            //int _basis_size      = _orbitals->getBasisSetSize();
-            std::vector<double>::size_type _basis_size = _orbitals->getBasisSetSize();
-            //int _cart_basis_size = _orbitals->_vxc.size1();
-            //ub::matrix<double>::size_type _cart_basis_size = _orbitals->AOVxc().size1();
-            //cout << "\nSpherical basis size is " << _basis_size << endl;
-            //cout << "\nCartesian basis size is " << _cart_basis_size << endl;
-
-            ub::matrix<double> mo_coefficients = (*_orbitals->getOrbitals());
-            ub::vector<double> energies = (*_orbitals->getEnergies());
-
-            // Sanity checks
-            if (mo_coefficients.size1() != _basis_size) {
-                cerr << "Incompatible basis size in molecular orbitals " << mo_coefficients.size1() << " vs basis set " << _basis_size;
-                throw std::runtime_error("Conversion failed!");
-                return false;
-            }
-            if (energies.size() != _basis_size) {
-                cerr << "Incompatible basis size in energies " << energies.size() << " vs basis set " << _basis_size;
-                throw std::runtime_error("Conversion failed!");
-                return false;
-            }
-
-            // orbital energies in GW are in Rydberg
-            energies = 2.0 * energies;
-
-            // get atoms from orbitals and define iterator
-            std::vector< CTP::QMAtom* > atoms = (*_orbitals->getAtoms());
-            std::vector< CTP::QMAtom* >::iterator ita;
-            LOG(CTP::logDEBUG, *_pLog) << "Rewriting molecular orbitals " << flush;
-            // Loop over all molecular orbitals
-            for (unsigned _i_orbital = 0; _i_orbital < _basis_size; _i_orbital++) {
-                _orb_file << _i_orbital + 1 << " " << FortranFormat(energies(_i_orbital)) << endl;
-                int _i_coef_qc = 0;
-                int _i_coef_gw = 0;
-
-                // Loop over all atoms
-                for (ita = atoms.begin(); ita < atoms.end(); ita++) {
-
-                    std::string element_name = (*ita)->type;
-                    Element* element = bs.getElement(element_name);
-                    //cout << "Atom " << element_name << endl;
-                    // go through all shell types of this element
-                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                        std::string shell_type = (*its)->getType();
-
-                        // write out coefficients as needed
-                        if (shell_type == "S") {
-                            // write the s function coefficient
-                            _orb_file << _i_orbital + 1 << " " << _i_coef_gw + 1 << " " << mo_coefficients(_i_orbital, _i_coef_qc) << endl;
-                        } else if (shell_type == "P") {
-                            // add one zero for unused s function
-                            _orb_file << _i_orbital + 1 << " " << _i_coef_gw + 1 << " " << 0.0 << endl;
-                            // write the px, py, pz function coefficients
-                            for (int j = 0; j < 3; j++) {
-                                _orb_file << _i_orbital + 1 << " " << _i_coef_gw + j + 2 << " " << mo_coefficients(_i_orbital, _i_coef_qc + j) << endl;
-                            }
-                        } else if (shell_type == "D") {
-                            // add four zeros for unused s, px, py, pz functions
-                            for (int j = 1; j < 5; j++) {
-                                _orb_file << _i_orbital + 1 << " " << _i_coef_gw + j << " " << 0.0 << endl;
-                            }
-                            /* write the d function coefficients
-                             * Gaussian has 5 spherical d functions (3z2-r2,xz,yz,x2-y2,xy)
-                             * isogwa   has 5 spherical d functions (xz,yz,xy,3zz-rr,xx-yy)
-                             */
-                            _orb_file << _i_orbital + 1 << " " << _i_coef_gw + 5 << " " << mo_coefficients(_i_orbital, _i_coef_qc + 1) << endl;
-                            _orb_file << _i_orbital + 1 << " " << _i_coef_gw + 6 << " " << mo_coefficients(_i_orbital, _i_coef_qc + 2) << endl;
-                            _orb_file << _i_orbital + 1 << " " << _i_coef_gw + 7 << " " << mo_coefficients(_i_orbital, _i_coef_qc + 4) << endl;
-                            _orb_file << _i_orbital + 1 << " " << _i_coef_gw + 8 << " " << mo_coefficients(_i_orbital, _i_coef_qc) << endl;
-                            _orb_file << _i_orbital + 1 << " " << _i_coef_gw + 9 << " " << mo_coefficients(_i_orbital, _i_coef_qc + 3) << endl;
-
-                            // add one zeros for unused s* function
-                            _orb_file << _i_orbital + 1 << " " << _i_coef_gw + 10 << " " << 0.0 << endl;
-                        } else {
-                            cerr << "Conversion of shell type " << shell_type << " is not implemented!";
-                            throw std::runtime_error("Conversion failed!");
-                            return false;
-                        }
-                        _i_coef_gw += NumbfGW(shell_type);
-                        _i_coef_qc += NumbfQC(shell_type);
-                    }
-                }
-            }
-            _orb_file.close();
-
-
-            /* The AO Vxc matrix is expressed in cartesian Gaussians, while the MO are 
-             * in spherical Gaussians. The AO matrix has first to be transformed to
-             * sphericals.
-             */
-
-            ub::matrix<double> vxc = ub::zero_matrix<double> (_basis_size, _basis_size);
-            const ub::matrix<double> vxc_cart = _orbitals->AOVxc();
-            std::vector< CTP::QMAtom* >::iterator jta;
-
-            int _isp = 0;
-            int _jsp = 0;
-            int _ica = 0;
-            int _jca = 0;
-            LOG(CTP::logDEBUG, *_pLog) << "Rewriting Vxc from cartesian to spherical functions " << flush;
-            // loop over all i_atoms
-            for (ita = atoms.begin(); ita < atoms.end(); ita++) {
-
-                std::string i_element_name = (*ita)->type;
-                Element* i_element = bs.getElement(i_element_name);
-                // go through all shell types of this element
-                for (Element::ShellIterator its = i_element->firstShell(); its != i_element->lastShell(); its++) {
-                    std::string i_shell_type = (*its)->getType();
-                    _jsp = 0;
-                    _jca = 0;
-                    // loop over all j_atoms
-                    for (jta = atoms.begin(); jta < atoms.end(); jta++) {
-
-                        std::string j_element_name = (*jta)->type;
-                        Element* j_element = bs.getElement(j_element_name);
-                        // go through all shell types of this element
-                        for (Element::ShellIterator jts = j_element->firstShell(); jts != j_element->lastShell(); jts++) {
-                            std::string j_shell_type = (*jts)->getType();
-
-                            //cout << i_shell_type << "   "  << j_shell_type << endl;
-                            if ((i_shell_type == "S" || i_shell_type == "P") && (j_shell_type == "S" || j_shell_type == "P")) {
-                                // <s,p|vxc|s,p> elements are just copy and paste jobs
-                                for (int i = 0; i < NumbfQC(i_shell_type); i++) {
-                                    for (int j = 0; j < NumbfQC_cart(j_shell_type); j++) {
-                                        vxc(_isp + i, _jsp + j) = vxc_cart(_ica + i, _jca + j);
-                                    }
-                                }
-                            } else if ((i_shell_type == "S" || i_shell_type == "P") && j_shell_type == "D") {
-                                // <s,p|V_xc|d> must be rewritten
-                                for (int i = 0; i < NumbfQC(i_shell_type); i++) {
-                                    // <s,p|Vxc|d3z2-r2>
-                                    vxc(_isp + i, _jsp) = -0.5 * vxc_cart(_ica + i, _jca)
-                                            - 0.5 * vxc_cart(_ica + i, _jca + 1)
-                                            + vxc_cart(_ica + i, _jca + 2);
-                                    // <s,p|Vxc|dxz>
-                                    vxc(_isp + i, _jsp + 1) = vxc_cart(_ica + i, _jca + 4);
-
-                                    // <s,p|Vxc|dyz>
-                                    vxc(_isp + i, _jsp + 2) = vxc_cart(_ica + i, _jca + 5);
-
-                                    // <s,p|Vxc|dx2-y2>
-                                    vxc(_isp + i, _jsp + 3) = 0.5 * sqrt(3.0)
-                                            *(vxc_cart(_ica + i, _jca)
-                                            - vxc_cart(_ica + i, _jca + 1));
-                                    // <s,p|Vxc|dxy>
-                                    vxc(_isp + i, _jsp + 4) = vxc_cart(_ica + i, _jca + 3);
-                                }
-                            } else if (i_shell_type == "D" && (j_shell_type == "S" || j_shell_type == "P")) {
-                                // <d|V_xc|s,p> must be rewritten
-                                for (int j = 0; j < NumbfQC(j_shell_type); j++) {
-                                    // <d3z2-r2|v_xc|s,p>
-                                    vxc(_isp, _jsp + j) = -0.5 * vxc_cart(_ica, _jca + j)
-                                            - 0.5 * vxc_cart(_ica + 1, _jca + j)
-                                            + vxc_cart(_ica + 2, _jca + j);
-                                    // <dxz|v_xc|s,p> 
-                                    vxc(_isp + 1, _jsp + j) = vxc_cart(_ica + 4, _jca + j);
-
-                                    // <dyz|v_xc|s,p>
-                                    vxc(_isp + 2, _jsp + j) = vxc_cart(_ica + 5, _jca + j);
-
-                                    // <dx2-y2|v_xc|s,p>
-                                    vxc(_isp + 3, _jsp + j) = 0.5 * sqrt(3.0)
-                                            *(vxc_cart(_ica, _jca + j)
-                                            - vxc_cart(_ica + 1, _jca + j));
-                                    // <dxy|v_xc|s,p>
-                                    vxc(_isp + 4, _jsp + j) = vxc_cart(_ica + 3, _jca + j);
-
-                                }
-
-                            } else if (i_shell_type == "D" && j_shell_type == "D") {
-                                // <d|Vxc|d> has to be rewritten
-
-                                // <d3z2-r2|Vxc|d3z2-r2>
-                                vxc(_isp, _jsp) = 0.25 * (vxc_cart(_ica, _jca)
-                                        + vxc_cart(_ica, _jca + 1)
-                                        + vxc_cart(_ica + 1, _jca)
-                                        + vxc_cart(_ica + 1, _jca + 1))
-                                        - 0.5 * (vxc_cart(_ica, _jca + 2)
-                                        + vxc_cart(_ica + 1, _jca + 2)
-                                        + vxc_cart(_ica + 2, _jca)
-                                        + vxc_cart(_ica + 2, _jca + 1))
-                                        + vxc_cart(_ica + 2, _jca + 2);
-
-                                // <d3z2-r2|Vxc|dxz>
-                                vxc(_isp, _jsp + 1) = -0.5 * (vxc_cart(_ica, _jca + 4)
-                                        + vxc_cart(_ica + 1, _jca + 4))
-                                        + vxc_cart(_ica + 2, _jca + 4);
-
-                                // <d3z2-r2|Vxc|dyz>
-                                vxc(_isp, _jsp + 2) = -0.5 * (vxc_cart(_ica, _jca + 5)
-                                        + vxc_cart(_ica + 1, _jca + 5))
-                                        + vxc_cart(_ica + 2, _jca + 5);
-
-                                // <d3z2-r2|Vxc|dx2-y2>
-                                vxc(_isp, _jsp + 3) = 0.25 * sqrt(3.0)
-                                        *(-vxc_cart(_ica, _jca)
-                                        + vxc_cart(_ica, _jca + 1)
-                                        - vxc_cart(_ica + 1, _jca)
-                                        + vxc_cart(_ica + 1, _jca + 1)
-                                        + 2.0 * vxc_cart(_ica + 2, _jca)
-                                        - 2.0 * vxc_cart(_ica + 2, _jca + 1));
-
-                                //  <d3z2-r2|Vxc|dxy>  
-                                vxc(_isp, _jsp + 4) = -0.5 * (vxc_cart(_ica, _jca + 3)
-                                        + vxc_cart(_ica + 1, _jca + 3))
-                                        + vxc_cart(_ica + 2, _jca + 3);
-
-                                // <dxz|V|d3z2-r2>
-                                vxc(_isp + 1, _jsp) = -0.5 * (vxc_cart(_ica + 4, _jca)
-                                        + vxc_cart(_ica + 4, _jca + 1))
-                                        + vxc_cart(_ica + 4, _jca + 2);
-
-                                // <dxz|V|dxz>
-                                vxc(_isp + 1, _jsp + 1) = vxc_cart(_ica + 4, _jca + 4);
-
-                                // <dxz|V|dyz>
-                                vxc(_isp + 1, _jsp + 2) = vxc_cart(_ica + 4, _jca + 5);
-
-                                // <dxz|V|dx2-y2>
-                                vxc(_isp + 1, _jsp + 3) = 0.5 * sqrt(3.0)
-                                        *(vxc_cart(_ica + 4, _jca)
-                                        - vxc_cart(_ica + 4, _jca + 1));
-
-                                // <dxz|V|dxy>
-                                vxc(_isp + 1, _jsp + 4) = vxc_cart(_ica + 4, _jca + 3);
-
-                                // <dyz|V|d3z2-r2>
-                                vxc(_isp + 2, _jsp) = -0.5 * (vxc_cart(_ica + 5, _jca)
-                                        + vxc_cart(_ica + 5, _jca + 1))
-                                        + vxc_cart(_ica + 5, _jca + 2);
-
-                                // <dyz|V|dxz>
-                                vxc(_isp + 2, _jsp + 1) = vxc_cart(_ica + 5, _jca + 4);
-
-                                // <dyz|V|dyz>
-                                vxc(_isp + 2, _jsp + 2) = vxc_cart(_ica + 5, _jca + 5);
-
-                                // <dyz|V|dx2-y2>
-                                vxc(_isp + 2, _jsp + 3) = 0.5 * sqrt(3.0)
-                                        * (vxc_cart(_ica + 5, _jca)
-                                        - vxc_cart(_ica + 5, _jca + 1));
-
-                                // <dyz|V|dxy>
-                                vxc(_isp + 2, _jsp + 4) = vxc_cart(_ica + 5, _jca + 3);
-
-                                // <dx2-y2|V|d3z2-r2>
-                                vxc(_isp + 3, _jsp) = 0.25 * sqrt(3.0)
-                                        *(-vxc_cart(_ica, _jca)
-                                        - vxc_cart(_ica, _jca + 1)
-                                        + vxc_cart(_ica + 1, _jca)
-                                        + vxc_cart(_ica + 1, _jca + 1)
-                                        + 2.0 * vxc_cart(_ica, _jca + 2)
-                                        - 2.0 * vxc_cart(_ica + 1, _jca + 2));
-
-                                // <dx2-y2|V|dxz>
-                                vxc(_isp + 3, _jsp + 1) = 0.5 * sqrt(3.0)
-                                        *(vxc_cart(_ica, _jca + 4)
-                                        - vxc_cart(_ica + 1, _jca + 4));
-                                // <dx2-y2|V|dyz>
-                                vxc(_isp + 3, _jsp + 2) = 0.5 * sqrt(3.0)
-                                        *(vxc_cart(_ica, _jca + 5)
-                                        - vxc_cart(_ica + 1, _jca + 5));
-
-                                // <dx2-y2|V|dx2-y2>
-                                vxc(_isp + 3, _jsp + 3) = 0.75 * (vxc_cart(_ica, _jca)
-                                        - vxc_cart(_ica, _jca + 1)
-                                        - vxc_cart(_ica + 1, _jca)
-                                        + vxc_cart(_ica + 1, _jca + 1));
-
-                                // <dx2-y2|V|dxy>
-                                vxc(_isp + 3, _jsp + 4) = 0.5 * sqrt(3.0)
-                                        *(vxc_cart(_ica, _jca + 3)
-                                        - vxc_cart(_ica + 1, _jca + 3));
-
-                                // <dxy|V|d3z2-r2>
-                                vxc(_isp + 4, _jsp) = -0.5 * (vxc_cart(_ica + 3, _jca)
-                                        + vxc_cart(_ica + 3, _jca + 1))
-                                        + vxc_cart(_ica + 3, _jca + 2);
-                                // <dxy|V|dxz>
-                                vxc(_isp + 4, _jsp + 1) = vxc_cart(_ica + 3, _jca + 4);
-
-                                // <dxy|V|dyz>
-                                vxc(_isp + 4, _jsp + 2) = vxc_cart(_ica + 3, _jca + 5);
-
-
-                                // <dxy|V|dx2-y2>
-                                vxc(_isp + 4, _jsp + 3) = 0.5 * sqrt(3.0)
-                                        *(vxc_cart(_ica + 3, _jca)
-                                        - vxc_cart(_ica + 3, _jca + 1));
-                                // <dxy|V|dxy>
-                                vxc(_isp + 4, _jsp + 4) = vxc_cart(_ica + 3, _jca + 3);
-
-                            }
-                            // update matrix indices
-                            _jsp += NumbfQC(j_shell_type);
-                            _jca += NumbfQC_cart(j_shell_type);
-                        } // j_shells
-                    } // j_atoms
-                    _isp += NumbfQC(i_shell_type);
-                    _ica += NumbfQC_cart(i_shell_type);
-                } // i_shells
-            } // i_atoms
-
-            /* Finally, with the rewritten AO Vxc matrix, we have to determine the
-             * expectation values of the MOs with Vxc and write them to file
-             */
-
-            /* calculating the expectation values for all orbitals is overkill,
-             * this should be limited to the range of orbitals included in the 
-             * GW and BSE steps, according to options (LATER!)
-             */
-            LOG(CTP::logDEBUG, *_pLog) << "Calculating MO Vxc matrix " << flush;
-            ub::matrix<double> vxc_expect = ub::zero_matrix<double> (_basis_size, _basis_size);
-            ub::matrix<double> _temp = ub::zero_matrix<double> (_basis_size, _basis_size);
-            _temp = ub::prod(vxc, ub::trans(mo_coefficients));
-            vxc_expect = ub::prod(mo_coefficients, _temp);
-
-            // write to file vxc.votca
-            LOG(CTP::logDEBUG, *_pLog) << "Writing MO Vxc matrix " << flush;
-            // output to file
-            ofstream _vxc_file;
-            _vxc_file.open(_vxc_file_name_full.c_str());
-            for (unsigned _i_orbital = 0; _i_orbital < _basis_size; _i_orbital++) {
-                for (unsigned _j_orbital = 0; _j_orbital < _basis_size; _j_orbital++) {
-                    _vxc_file << _i_orbital + 1 << "  " << _j_orbital + 1 << "  " << FortranFormat(2.0 * vxc_expect(_i_orbital, _j_orbital)) << endl;
-                }
-            }
-            _vxc_file.close();
-
-            // 
-
-
-
-            LOG(CTP::logDEBUG, *_pLog) << "Done converting to GW" << flush;
-            return true;
-        }
-
-        std::string Gaussian::FortranFormat(const double &number) {
+std::string Gaussian::FortranFormat(double number) {
             std::stringstream _ssnumber;
             if (number >= 0) _ssnumber << " ";
             _ssnumber << setiosflags(ios::fixed) << setprecision(8) << std::scientific << number;
             std::string _snumber = _ssnumber.str();
             boost::replace_first(_snumber, "e", "D");
-            return _snumber;
-        }
+           return _snumber;
+       }
 
-        int Gaussian::NumbfGW(std::string shell_type) {
-            int _nbf=0;
-            if (shell_type == "S") {
-                _nbf = 1;
-            } else if (shell_type == "P") {
-                _nbf = 4;
-            } else if (shell_type == "D") {
-                _nbf = 10;
-            } else if (shell_type == "SP") {
-                _nbf = 4;
-            } else if (shell_type == "SPD") {
-                _nbf = 10;
-            }
-            return _nbf;
-        }
-
-        int Gaussian::NumbfQC(std::string shell_type) {
-            int _nbf=0;
-            if (shell_type == "S") {
-                _nbf = 1;
-            } else if (shell_type == "P") {
-                _nbf = 3;
-            } else if (shell_type == "D") {
-                _nbf = 5;
-            } else if (shell_type == "SP") {
-                _nbf = 4;
-            } else if (shell_type == "SPD") {
-                _nbf = 9;
-            }
-            return _nbf;
-        }
-
-        int Gaussian::NumbfQC_cart(std::string shell_type) {
-            int _nbf=0;
-            if (shell_type == "S") {
-                _nbf = 1;
-            } else if (shell_type == "P") {
-                _nbf = 3;
-            } else if (shell_type == "D") {
-                _nbf = 6;
-            } else if (shell_type == "SP") {
-                _nbf = 4;
-            } else if (shell_type == "SPD") {
-                _nbf = 10;
-            }
-            return _nbf;
-        }
 
 
 

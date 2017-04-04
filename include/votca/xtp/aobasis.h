@@ -21,7 +21,7 @@
 #define	__XTP_AOBASIS__H
 
 #include <votca/tools/property.h>
-#include <votca/ctp/segment.h>
+
 #include <votca/ctp/qmatom.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
@@ -34,7 +34,6 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
 namespace ub = boost::numeric::ublas;
-namespace CTP = votca::ctp;
 
 class AOShell;
 
@@ -48,22 +47,16 @@ class AOBasis
 public:
         AOBasis( ) { ; }
         ~AOBasis(); 
-       // template< class T >
-       //static void ReorderMOs(ub::matrix<T> &v, std::vector<int> const &order )  {
-       //static void ReorderMOs(ub::matrix<T> &v, std::string start, std::string target )  { 
+      
        void ReorderMOs(ub::matrix<double> &v, std::string start, std::string target ); 
-       
-      //template< class T >   
+     
       void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
 
     // void AOBasisFill( BasisSet* bs , std::vector<Segment* > segments);
-    void AOBasisFill( BasisSet* bs , std::vector<CTP::QMAtom* > segments, int fragbreak = -1);
-    void ECPFill( BasisSet* bs , std::vector<CTP::QMAtom* > segments); 
+    void AOBasisFill( BasisSet* bs , std::vector<ctp::QMAtom* > segments, int fragbreak = -1);
+    void ECPFill( BasisSet* bs , std::vector<ctp::QMAtom* > segments); 
     
-    int NumFuncShell( std::string shell );
-    int NumFuncShell_cartesian( std::string shell );
-    int OffsetFuncShell( std::string shell );
-    int OffsetFuncShell_cartesian( std::string shell );
+    
     int AOBasisSize() {return _AOBasisSize; }
     
     typedef std::vector< AOShell* >::iterator AOShellIterator;
@@ -72,14 +65,12 @@ public:
 
     
     
-    // std::string getType() { return _type; }
-    // int    getNumFunc() { return _numFunc ;}
         
     AOShell* getShell( AOShellIterator it ) { return (*it); }
     
     AOShell* getShell( int idx ){ return _aoshells[idx] ;}
     
-    AOShell* addShell( std::string shellType, double shellScale, int shellFunc, int startIndex, int offset, vec pos, std::string name, int index ); 
+    AOShell* addShell( std::string shellType,int Lmax,int Lmin, double shellScale, int shellFunc, int startIndex, int offset, vec pos, std::string name, int index ); 
   
     
     std::vector<AOShell*> getShells() { return _aoshells; }
@@ -94,13 +85,13 @@ public:
    
     std::vector<AOShell*> _aoshells;
 
-    // void getReorderVector( std::string& package, std::vector<int>& neworder );
+  
     void getReorderVector( std::string& start, std::string& target, std::vector<int>& neworder );
-    //void addReorderShell( std::string& package, std::string& shell, std::vector<int>& neworder );
+   
     void addReorderShell( std::string& start, std::string& target, std::string& shell, std::vector<int>& neworder );
-    //void getMultiplierVector( std::string& package, std::vector<int>& multiplier );
+  
     void getMultiplierVector( std::string& start, std::string& target, std::vector<int>& multiplier );
-    //void addMultiplierShell( std::string& package, std::string& shell, std::vector<int>& multiplier );  
+    
     void addMultiplierShell( std::string& start, std::string& target, std::string& shell, std::vector<int>& multiplier );  
     
     

@@ -1,0 +1,359 @@
+/* 
+ * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#include "kmclifetime.h"
+#include <votca/xtp/gnode.h>
+#include <votca/tools/property.h>
+#include <votca/tools/constants.h>
+#include <boost/format.hpp>
+#include <votca/ctp/topology.h>
+#include <locale>
+
+
+using namespace std;
+
+namespace votca {
+    namespace xtp {
+
+        
+        
+    void KMCLifetime::Initialize( tools::Property *options) {
+            
+    std::string key = "options." + Identify();
+
+    _insertions=options->ifExistsReturnElseThrowRuntimeError<unsigned int>(key+".numberofinsertions");
+    _seed=options->ifExistsReturnElseThrowRuntimeError<int>(key+"seed");
+    _numberofcharges=options->ifExistsReturnElseThrowRuntimeError<int>(key+".numberofcharges");
+    _injection_name=options->ifExistsReturnElseThrowRuntimeError<int>(key+".injectionpattern");
+    _lifetimefile=options->ifExistsReturnElseThrowRuntimeError<int>(key+".lifetimefile");
+
+    _maxrealtime=options->ifExistsReturnElseReturnDefault<double>(key+".maxrealtime",1E10);
+     _trajectoryfile=options->ifExistsReturnElseReturnDefault<std::string>(key+".trajectoryfile","trajectory.csv");
+    _temperature=options->ifExistsReturnElseReturnDefault<double>(key+".temperature",300);
+    _rates=options->ifExistsReturnElseReturnDefault<std::string>(key+".rates","statefile");
+
+     std::string subkey=key+".carrierenergy";
+    if (options->exists(subkey)) {
+        _do_carrierenergy=options->ifExistsReturnElseReturnDefault<bool>(subkey+".run",false);
+        _energy_outputfile = options->ifExistsReturnElseReturnDefault<std::string>(subkey+".outputfile","energy.tab");
+         _alpha = options->ifExistsReturnElseReturnDefault<double>(subkey+".alpha",0.3);
+         _outputsteps=options->ifExistsReturnElseReturnDefault<double>(subkey+".outputsteps",100);
+
+    } else {
+        _do_carrierenergy=false;
+    }
+
+    _carriertype = 2;
+    cout << "carrier type: singlets" << endl;
+    _field=tools::vec(0.0,0.0,0.0);
+
+
+    if (_rates != "statefile" && _rates != "calculate") {
+        cout << "WARNING in kmclifetime: Invalid option rates. Valid options are 'statefile' or 'calculate'. Setting it to 'statefile'." << endl;
+        _rates = "statefile";
+    }
+    
+    return;
+    }
+
+
+        
+    void KMCLifetime::ReadLifetimeFile(std::string filename){
+        tools::Property xml;
+        load_property_from_xml(xml, filename);
+        list<tools::Property*> jobProps = xml.Select("lifetimes.site");
+        if (jobProps.size()!=_nodes.size()){
+            throw  runtime_error((boost::format("The number of sites in the sqlfile: %i does not match the number in the lifetimefile: %i")
+                    % _nodes.size() % jobProps.size()).str()); 
+        }
+
+        for (list<tools::Property*> ::iterator  it = jobProps.begin(); it != jobProps.end(); ++it) {
+            int site_id =(*it)->getAttribute<int>("id");
+            double lifetime=boost::lexical_cast<double>((*it)->value());
+            bool check=false;
+            for (unsigned i=0;i<_nodes.size();i++){
+                if (_nodes[i]->id==site_id-1 && !(_nodes[i]->hasdecay)){
+                    _nodes[i]->AddDecayEvent(1.0/lifetime);
+                    check=true;
+                    break;
+                }
+                else if(_nodes[i]->id==site_id && _nodes[i]->hasdecay){
+                    throw runtime_error((boost::format("Node %i appears twice in your list") %site_id).str());
+                } 
+
+            }
+            if (!check){
+            throw runtime_error((boost::format("Site from file with id: %i not found in sql") %site_id).str());
+            }
+        }
+
+        return;
+    }
+
+        
+    void  KMCLifetime::RunVSSM(ctp::Topology *top) {
+
+        int realtime_start = time(NULL);
+        cout << endl << "Algorithm: VSSM for Multiple Charges with finite Lifetime" << endl;
+        cout << "number of charges: " << _numberofcharges << endl;
+        cout << "number of nodes: " << _nodes.size() << endl;
+
+        if (_numberofcharges > _nodes.size()) {
+            throw runtime_error("ERROR in kmclifetime: specified number of charges is greater than the number of nodes. This conflicts with single occupation.");
+        }
+
+        fstream traj;
+        fstream energyfile;
+
+        cout << "Writing trajectory to " <<  _trajectoryfile << "." << endl; 
+        traj.open ( _trajectoryfile.c_str(), fstream::out);
+        traj << "#Simtime [s]\t Insertion\t Carrier ID\t Lifetime[s]\tSteps\t Last Segment\t x_travelled[nm]\t y_travelled[nm]\t z_travelled[nm]"<<endl;
+
+        if(_do_carrierenergy){
+
+            cout << "Tracking the energy of one charge carrier and exponential average with alpha=" << _alpha << " to "<<_energy_outputfile << endl;
+            energyfile.open(_energy_outputfile.c_str(),fstream::out);
+            energyfile << "Simtime [s]\tSteps\tCarrier ID\tEnergy_a="<<_alpha<<"[eV]"<<endl;
+        }
+
+        // Injection
+        cout << endl << "injection method: " << _injectionmethod << endl;
+
+        std::vector< Chargecarrier* > carriers;
+        
+        cout << "looking for injectable nodes..." << endl;
+        for (unsigned int i = 0; i < _numberofcharges; i++) {
+            Chargecarrier *newCharge = new Chargecarrier;
+            newCharge->id = i;
+            do {
+            newCharge->node = _nodes[_RandomVariable->rand_uniform_int(_nodes.size())];     
+            }
+            while (newCharge->node->occupied == 1 || newCharge->node->injectable != 1 ); // maybe already occupied? or maybe not injectable?
+
+            newCharge->node->occupied = 1;
+            cout << "starting position for charge " << i + 1 << ": segment " << newCharge->node->id + 1 << endl;
+            carriers.push_back(newCharge);
+        }
+
+        unsigned insertioncount = 0;
+        unsigned long step=0;
+        double simtime=0.0;
+
+        std::vector<int> forbiddennodes;
+        std::vector<int> forbiddendests;
+
+        time_t now = time(0);
+        tm* localtm = localtime(&now);
+        cout << "Run started at " << asctime(localtm) << endl;
+
+        double avlifetime=0.0;
+        double meanfreepath=0.0;
+        tools::vec difflength=tools::vec(0,0,0);
+        unsigned steps=0;
+        double avgenergy=carriers[0]->node->siteenergy;
+        int     carrieridold=carriers[0]->id;
+
+        while (insertioncount < _insertions) {
+            if ((time(NULL) - realtime_start) > _maxrealtime * 60. * 60.) {
+                cout << endl << "Real time limit of " << _maxrealtime << " hours (" << int(_maxrealtime * 60 * 60 + 0.5) << " seconds) has been reached. Stopping here." << endl << endl;
+                break;
+            }
+
+            step += 1;
+            double cumulated_rate = 0;
+
+            for (unsigned int i = 0; i < carriers.size(); i++) {
+                cumulated_rate += carriers[i]->node->getEscapeRate();
+            }
+            if (cumulated_rate == 0) { // this should not happen: no possible jumps defined for a node
+                throw runtime_error("ERROR in kmclifetime: Incorrect rates in the database file. All the escape rates for the current setting are 0.");
+            }
+            // go forward in time
+            double dt=Promotetime(cumulated_rate);
+
+            if(_do_carrierenergy){
+                bool print=false;
+                if (carriers[0]->id>carrieridold){
+                    avgenergy=carriers[0]->node->siteenergy;
+                    print=true;
+                    carrieridold=carriers[0]->id;
+                }
+                else if(step%_outputsteps==0){
+                    avgenergy=_alpha*carriers[0]->node->siteenergy+(1-_alpha)*avgenergy;
+                    print=true;
+                }
+                if(print){
+                    energyfile << simtime<<"\t"<<steps <<"\t"<<carriers[0]->id<<"\t"<<avgenergy<<endl;                  
+                }
+            }
+
+            simtime += dt;
+            steps++;
+            for (unsigned int i = 0; i < carriers.size(); i++) {
+                carriers[i]->updateLifetime(dt);
+                carriers[i]->updateSteps(1);
+                carriers[i]->node->occupationtime += dt;
+            }
+
+            ResetForbiddenlist(forbiddennodes);
+            bool secondlevel=true;
+            while (secondlevel){
+
+                // determine which carrier will escape
+                GNode* oldnode=NULL;
+                GNode* newnode=NULL;
+                Chargecarrier* affectedcarrier=NULL;
+
+                double u = 1 - _RandomVariable->rand_uniform();
+                for (unsigned int i = 0; i < _numberofcharges; i++) {
+                    u -= carriers[i]->node->getEscapeRate() / cumulated_rate;
+
+                    if (u <= 0 || i==_numberofcharges-1) {
+                        oldnode = carriers[i]->node;
+                        affectedcarrier = carriers[i];
+                        break;}  
+
+                }
+
+                if (CheckForbidden(oldnode->id, forbiddennodes)) {
+                    continue;
+                }
+
+                // determine where it will jump to
+                ResetForbiddenlist(forbiddendests);
+
+                while (true) {
+                    // LEVEL 2
+
+                    newnode = NULL;
+                    GLink* event=ChooseHoppingDest(oldnode);
+
+                    if (event->decayevent){
+                        oldnode->occupied = 0;
+                        avlifetime+=affectedcarrier->getLifetime();
+                        meanfreepath+=tools::abs(affectedcarrier->dr_travelled);
+                        difflength+=tools::elementwiseproduct(affectedcarrier->dr_travelled,affectedcarrier->dr_travelled);
+                        traj << simtime<<"\t"<<insertioncount<< "\t"<< affectedcarrier->id<<"\t"<< affectedcarrier->getLifetime()<<"\t"<<affectedcarrier->getSteps()<<"\t"<< (oldnode->id)+1<<"\t"<<affectedcarrier->dr_travelled.getX()<<"\t"<<affectedcarrier->dr_travelled.getY()<<"\t"<<affectedcarrier->dr_travelled.getZ()<<endl;
+                        if(_insertions<1500 ||insertioncount% (_insertions/1000)==0 || insertioncount<0.001*_insertions){
+                        std::cout << "\rInsertion " << insertioncount<<" of "<<_insertions;
+                        std::cout << std::flush;
+                        }
+                        do {
+                            affectedcarrier->node = _nodes[_RandomVariable->rand_uniform_int(_nodes.size())];     
+                        }
+                        while (affectedcarrier->node->occupied == 1 || affectedcarrier->node->injectable != 1 );
+                        affectedcarrier->node->occupied=1;
+                        affectedcarrier->resetCarrier();
+                        insertioncount++;
+                        affectedcarrier->id=_numberofcharges-1+insertioncount;
+                        secondlevel=false;
+                        break;
+                            }
+                    else{
+                    newnode = _nodes[event->destination];
+                    }
+
+                    // check after the event if this was allowed
+                    if (CheckForbidden(newnode->id, forbiddendests)) {
+                        continue;
+                    }
+
+                    // if the new segment is unoccupied: jump; if not: add to forbidden list and choose new hopping destination
+                    if (newnode->occupied == 1) {
+                        if (CheckSurrounded(oldnode, forbiddendests)) {     
+                            AddtoForbiddenlist(oldnode->id, forbiddennodes);
+                            break; // select new escape node (ends level 2 but without setting level1step to 1)
+                        }
+                        AddtoForbiddenlist(newnode->id, forbiddendests);
+                        continue; // select new destination
+                    } else {
+                        newnode->occupied = 1;
+                        oldnode->occupied = 0;
+                        affectedcarrier->node = newnode;
+                        affectedcarrier->dr_travelled += event->dr;
+                        secondlevel=false;
+
+                        break; // this ends LEVEL 2 , so that the time is updated and the next MC step started
+                    }
+
+
+                    // END LEVEL 2
+                }
+                // END LEVEL 1
+            }
+        }
+
+
+        cout<<endl;
+        cout << "Total runtime:\t\t\t\t\t"<< simtime << " s"<< endl;
+        cout << "Total KMC steps:\t\t\t\t"<< steps << endl;
+        cout << "Average lifetime:\t\t\t\t"<<avlifetime/_insertions<< " s"<<endl;
+        cout << "Mean freepath\t l=<|r_x-r_o|> :\t\t"<<(meanfreepath/_insertions)<< " nm"<<endl;
+        cout << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"<<sqrt(abs(difflength)/_insertions)<< " nm"<<endl;
+        cout<<endl;
+
+        vector< ctp::Segment* >& seg = top->Segments();
+
+        for (unsigned i = 0; i < seg.size(); i++) {
+            double occupationprobability=_nodes[i]->occupationtime / simtime;
+            seg[i]->setOcc(occupationprobability,_carriertype);
+        }
+        traj.close();
+        if(_do_carrierenergy){
+            energyfile.close();
+        }
+        return;
+    }
+
+
+
+    bool KMCLifetime::EvaluateFrame(ctp::Topology *top) {
+        std::cout << "-----------------------------------" << std::endl;
+        std::cout << "      KMCLIFETIME started" << std::endl;
+        std::cout << "-----------------------------------" << std::endl << std::endl;
+
+        // Initialise random number generator
+        if (votca::tools::globals::verbose) {
+            cout << endl << "Initialising random number generator" << endl;
+        }
+        std::srand(_seed); // srand expects any integer in order to initialise the random number generator
+        _RandomVariable = new tools::Random2();
+        _RandomVariable->init(rand(), rand(), rand(), rand());
+
+        LoadGraph(top);
+        ReadLifetimeFile(_lifetimefile);
+        
+        if(_rates == "calculate")
+        {
+           cout << "Calculating rates (i.e. rates from state file are not used)." << endl;
+            InitialRates();
+        }
+        else
+        {
+            cout << "Using rates from state file." << endl;
+        }
+        RunVSSM(top);
+
+        time_t now = time(0);
+        tm* localtm = localtime(&now);
+        std::cout << "      KMCLIFETIME finished at:" <<asctime(localtm) <<  std::endl;
+
+        return true;
+    }
+    
+    }
+}

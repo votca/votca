@@ -21,9 +21,8 @@
 #include <votca/xtp/mulliken.h>
 #include <votca/xtp/aomatrix.h>
 namespace votca { namespace xtp {
-    namespace CTP = votca::ctp;
 
-void Mulliken::EvaluateMulliken(vector< CTP::QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition){
+void Mulliken::EvaluateMulliken(vector< ctp::QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition){
     AOOverlap _overlap;
     // initialize overlap matrix
     _overlap.Initialize(basis._AOBasisSize);
@@ -32,7 +31,7 @@ void Mulliken::EvaluateMulliken(vector< CTP::QMAtom* >& _atomlist, ub::matrix<do
     
     ub::matrix<double> _prodmat = ub::prod( _dmat, _overlap._aomatrix );
     
-    vector < CTP::QMAtom* > :: iterator atom;
+    vector < ctp::QMAtom* > :: iterator atom;
 
     int id =0;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){

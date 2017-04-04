@@ -22,19 +22,9 @@
 #include <votca/xtp/aomatrix.h>
 
 #include <votca/xtp/aobasis.h>
-#include <string>
-#include <map>
+
 #include <vector>
-#include <votca/tools/property.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/math/constants/constants.hpp>
-#include <boost/math/special_functions/factorials.hpp>
-#include <boost/multi_array.hpp>
-#include <votca/ctp/logger.h>
-#include <votca/tools/linalg.h>
-#include <votca/xtp/elements.h>
-//#include <boost/timer/timer.hpp>
+
 
 
 using namespace votca::tools;
@@ -68,9 +58,6 @@ namespace votca { namespace xtp {
         const vec& _pos_col = _shell_col->getPos();
         const vec  _diff    = _pos_row - _pos_col;
         // initialize some helper
-        std::vector<double> PmA (3,0.0);
-        std::vector<double> PmB (3,0.0);
-        std::vector<double> PmC (3,0.0);
         double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
         
          typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
@@ -78,7 +65,7 @@ namespace votca { namespace xtp {
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
             // get decay constant
-            const double& _decay_row = (*itr)->decay;
+            const double _decay_row = (*itr)->decay;
             
             //if ( _decay_row > 0.08 ) continue;
             
@@ -99,7 +86,7 @@ namespace votca { namespace xtp {
 
                 for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
                 //get decay constant
-                const double& _decay_col = (*itc)->decay;
+                const double _decay_col = (*itc)->decay;
         // if (_decay_col > 0.16) continue;
                 const double _fak  = 0.5/(_decay_row + _decay_col);
                 const double _fak2 = 2.0 * _fak;
@@ -137,7 +124,7 @@ namespace votca { namespace xtp {
                  --final_iter;
                 vec _ecp_eval_pos;
                 for (std::vector< AOShell* >::iterator _ecp = ecp->firstShell(); _ecp != ecp->lastShell() ; _ecp++ ) {
-            
+                    
                    AOShell* _shell_ecp = ecp->getShell( _ecp );
                    const vec& _ecp_pos = _shell_ecp->getPos();
                    
@@ -152,8 +139,8 @@ namespace votca { namespace xtp {
                                 i_fit++;
                                 
                                 // get info for this angular momentum shell
-                                const double& _decay_ecp = (*itecp)->decay;
-                                const double& _contraction_ecp = (*itecp)->contraction[0];
+                                const double _decay_ecp = (*itecp)->decay;
+                                const double _contraction_ecp = (*itecp)->contraction[0];
                                 //const int& _power_ecp = (*itecp)->power;
 
 
@@ -206,25 +193,11 @@ namespace votca { namespace xtp {
                     } // all ecp_shells
 
 
-                   // evaluate collected data 
-                         //          ub::matrix<double> VNL_ECP =  calcVNLmatrix(_pos_row,_pos_col,_ecp_pos,_decay_row,_decay_col,_decay_matrix,_coef_matrix);
-
-                //exit(0);
-
-
-
-
-             
-        
-       // boost::timer::cpu_times t11 = cpu_t.elapsed();
-        
-        //cout << "Done with unnormalized matrix " << endl;
-        
-      
-        //}
-        //nuc.clear();
+                  
             }// _shell_col Gaussians
         }// _shell_row Gaussians
+         
+         
     }
    
     
@@ -288,7 +261,7 @@ namespace votca { namespace xtp {
                 
 
                 double DFAK = 0.5 * double(N + 3);
-                //double DFAKP1 = DFAK + 1.0;
+                double DFAKP1 = DFAK + 1.0;
 
                  //cout << np << " " << DFAK << " " << DFAKP1 << " " <<  DGAMAF << endl;
                 
@@ -302,14 +275,14 @@ namespace votca { namespace xtp {
                     /***** ONLY r^2 powers in ECP ********************************/
                     XI(L, np-1) = 0.0;
                     for (int I = 0; I < nnonsep; I++) {
-                        double DLI = (alpha + beta + _gamma_ecp(I, L)); // r^0 terms
-                        //double DLJ = (beta + alpha + _gamma_ecp(I , L)); // r^2 terms (here!)
-                        XI(L, np-1) += _pref_ecp(I, L) / pow(DLI, DFAK);// + _pref_ecp(I + nnonsep, L) * DFAK / pow(DLJ, DFAKP1);
-                        //XI(L, np-1) +=  _pref_ecp(I , L) * DFAK / pow(DLJ, DFAKP1);
+                        //ouble DLI = (alpha + beta + _gamma_ecp(I, L)); // r^0 terms
+                        double DLJ = (beta + alpha + _gamma_ecp(I , L)); // r^2 terms (here!)
+                        //XI(L, np-1) += _pref_ecp(I, L) / pow(DLI, DFAK);// + _pref_ecp(I + nnonsep, L) * DFAK / pow(DLJ, DFAKP1);
+                        XI(L, np-1) +=  _pref_ecp(I , L) * DFAK / pow(DLJ, DFAKP1);
                         
                     }
 
-                    XI(L,np-1) = XI(L,np-1)*DGAMAF*0.5;
+                    XI(L,np-1) = XI(L,np-1)*DGAMAF;
                     
                 }
 
@@ -328,21 +301,21 @@ namespace votca { namespace xtp {
          ma_type COEF;
          COEF.resize(extents[ range(1, 4) ][ range(1, 4) ][ range(1, 6)][range(1,43)]);
          
-         for ( index i4 = 1; i4 <=42; i4++ ){
+         
 
              // init it all to 0
              for ( index i1 = 1; i1 <=3; i1++ ){
                  for ( index i2 = 1; i2 <=3; i2++ ){
                      for ( index i3 = 1; i3 <=5; i3++ ){
-                         
+                          for ( index i4 = 1; i4 <=42; i4++ ){
                          COEF[i1][i2][i3][i4] = 0.0;
-                         
+                          }
                          
                      }
                  }
                  
              } 
-             
+              for ( index i4 = 1; i4 <=42; i4++ ){
             /********** ORIGINAL CKOEF SUBROUTINE *************************/
                 int N = i4 - 1;
                 int NU = N % 2;
@@ -360,7 +333,8 @@ namespace votca { namespace xtp {
                 COEF[1][3][3][i4] = NG/2.0*sqrt(5.0)*(3.0/FN3-1.0/FN1);
                 COEF[2][1][3][i4] = COEF[1][2][3][i4];
                 COEF[2][2][3][i4] = NG*3.0/FN3;
-                COEF[2][2][4][i4] = 3.0/2.0*NG*(1.0/FN1-1.0/FN3);
+/////////                COEF[2][2][4][i4] = 3.0/2.0*NG*(1.0/FN1-1.0/FN3);    (3/2) * ( M0(x) - M2(x) )     factor (3/2) wrong !
+                COEF[2][2][4][i4] = NG*(1.0/FN1-1.0/FN3);     ////////          M0(x) - M2(x) 
                 COEF[2][2][2][i4] = COEF[2][2][4][i4];
                 COEF[2][3][3][i4] = sqrt(15.0)/2.0*NU*(3.0/FN4-1.0/FN2);
                 COEF[2][3][4][i4] = sqrt(45.0)/2.0*NU*(1.0/FN2-1.0/FN4);
@@ -410,11 +384,20 @@ namespace votca { namespace xtp {
          } else {
              
              double AMAX = 0.0;  
+             double fak=2.0*alpha*AVSSQ;
+             double Pow=1;
+             double factorialNN=1;
              for ( int N=1; N<=43; N++ ){
                  
                  int NN = N-1;
-                 double factorialNN = boost::math::factorial<double>(double(NN));
-                 double AF=pow(2.0*alpha*AVSSQ,NN/factorialNN)*G1;
+                 
+                 
+                 if(NN!=0){
+                     Pow=Pow*fak;
+                     factorialNN=factorialNN*NN;
+                 }
+                 
+                 double AF=Pow/factorialNN*G1;
                  double AF1 = std::abs(AF * XI(0,NN + 4));
                  double AF2 = std::abs(AF * XI(1,NN + 4));
                  double AF3 = std::abs(AF * XI(2,NN + 4));
@@ -438,11 +421,18 @@ namespace votca { namespace xtp {
          } else {
              
              double BMAX = 0.0;  
+             double fak=2.0*beta*BVSSQ;
+             double Pow=1;
+             double factorialNN=1;
              for ( int N=1; N<=42; N++ ){
                  
                  int NN = N-1;
-                 double factorialNN = boost::math::factorial<double>(double(NN));
-                 double BF=pow(2.0*beta*BVSSQ,NN)/factorialNN*G2;
+                 
+                 if(NN!=0){
+                     Pow=Pow*fak;
+                     factorialNN=factorialNN*NN;
+                 }
+                 double BF=Pow/factorialNN*G2;
                  double BF1 = std::abs(BF * XI(0,NN + 4));
                  double BF2 = std::abs(BF * XI(1,NN + 4));
                  double BF3 = std::abs(BF * XI(2,NN + 4));
@@ -564,21 +554,37 @@ namespace votca { namespace xtp {
                                 switch (INULL) {
                                     case 1:
                                     {
+                                        double fak1=2.0*alpha*AVSSQ;
+                                        double pow1=1;
+                                        double factorialN=1;
                                         for ( int N1 = 1; N1 <= NMAX1; N1++ ){
                                             int N = N1-1;
-                                            double factorialN = boost::math::factorial<double>(double(N));
-                                            double VAR1 = COEF[L][L1][M1][N1]*pow(2.0*alpha*AVSSQ,N)/factorialN;
+                                            if (N!=0){
+                                                pow1=pow1*fak1;
+                                                factorialN=factorialN*N;
+                                            }
+                                            
+                                            
+                                            double VAR1 = COEF[L][L1][M1][N1]*pow1/factorialN;
                                             double VAR2 = 0.0;
                                             double VAR2D = 0.0;
                                             double VAR2N = 0.0;
-                                            for ( int N2 = 1; N2 <= NMAX1; N2++ ){
+                                            double fak2=2.0*beta*BVSSQ;
+                                            double pow2=1;
+                                            double factorialNN=1;
+                                            for ( int N2 = 1; N2 <= NMAX2; N2++ ){
                                                 
                                                 int NN   = N2 -1;
                                                 int NPNS = N+NN-1+L1+L2;
                                                 int NSN  = NPNS+2;
                                                 int NSD = NPNS+4;
-                                                double factorialNN = boost::math::factorial<double>(double(NN));
-                                                double XDUM = COEF[L][L2][M2][N2]*pow(2.0*beta*BVSSQ,NN)/factorialNN;
+                                                
+                                                if (NN!=0){
+                                                pow2=pow2*fak2;
+                                                factorialNN=factorialNN*NN;
+                                                }
+                                                
+                                                double XDUM = COEF[L][L2][M2][N2]*pow2/factorialNN;
                                                 VAR2  += XDUM*XI(L-1,NPNS-1); // L index of XI starts with 0 !!
                                                 VAR2N += XDUM*XI(L-1,NSN-1);  // N index of XI starts with 0 !!
                                                 VAR2D += XDUM*XI(L-1,NSD-1);
@@ -613,13 +619,21 @@ namespace votca { namespace xtp {
                                         double VAR2 = 0.0;
                                         double VAR2N = 0.0;
                                         double VAR2D = 0.0;
+                                        
+                                        double fak=2.0 * beta*BVSSQ;
+                                        double pow=1;
+                                        double factorialNN=1;
                                         for (int N2 = 1; N2 <= NMAX2; N2++) {
                                             int NN = N2 - 1;
                                             int NL = N2 + L2 + L1 - 2;
                                             int NLN = NL + 2;
                                             int NLD = NL + 4;
-                                            double factorialNN = boost::math::factorial<double>(double(NN));
-                                            double XDUM = COEF[L][L2][M2][N2] * pow(2.0 * beta*BVSSQ, NN) / factorialNN;
+                                            if(NN!=0){
+                                                pow=pow*fak;
+                                                factorialNN=factorialNN*NN;
+                                            }
+                                            
+                                            double XDUM = COEF[L][L2][M2][N2] * pow / factorialNN;
                                             VAR2 += XDUM * XI(L - 1, NL - 1);
                                             VAR2N += XDUM * XI(L - 1, NLN - 1);
                                             VAR2D += XDUM * XI(L - 1, NLD - 1);
@@ -636,14 +650,20 @@ namespace votca { namespace xtp {
                                         double VAR1 = 0.0;
                                         double VAR1N = 0.0;
                                         double VAR1D = 0.0;
-
+                                        double fak=2.0 * alpha*AVSSQ;
+                                        double pow=1;
+                                        double factorialN=1;
                                         for (int N1 = 1; N1 <= NMAX1; N1++) {
                                             int N = N1 - 1;
                                             int NL = N1 + L1 + L2 - 2;
                                             int NLN = NL + 2;
                                             int NLD = NL + 4;
-                                            double factorialN = boost::math::factorial<double>(double(N));
-                                            double XDUM = COEF[L][L1][M1][N1] * pow(2.0 * alpha*AVSSQ, N) / factorialN;
+                                            if(N!=0){
+                                                pow=pow*fak;
+                                                factorialN=factorialN*N;
+                                            }
+                                            
+                                            double XDUM = COEF[L][L1][M1][N1] * pow / factorialN;
                                             VAR1 += XDUM * XI(L - 1, NL - 1);
                                             VAR1N += XDUM * XI(L - 1, NLN - 1);
                                             VAR1D += XDUM * XI(L - 1, NLD - 1);
@@ -705,19 +725,32 @@ namespace votca { namespace xtp {
             }
 
           
-      //cout << matrix(0,0) <<  " " << matrix(9,9) << endl;
+      //cout << matrix << endl;
       
       
+       ub::matrix<double> matrix_tmp = ub::zero_matrix<double>(10,10); 
       
         for (unsigned i = 0; i < matrix.size1(); i++) {
                 for (unsigned j = 0; j < matrix.size2(); j++) {
 
-                    matrix(i,j) = matrix(i,j) * GAUSS * NormA[i] * NormB[j];
+         
+                    matrix_tmp(i,j) = matrix(i,j) * GAUSS * NormA[i] * NormB[j]; 
 
                 }
         }
-        //cout << matrix(0,0) <<  " " << matrix(9,9) << endl;
-      //exit(0);
+     
+
+
+        int ij[] = {0, 3, 2, 1, 7, 5, 4, 6, 8, 9}; 
+
+        for (unsigned i = 0; i < matrix.size1(); i++) {
+                for (unsigned j = 0; j < matrix.size2(); j++) {
+
+                    matrix(i,j) = matrix_tmp(ij[i],ij[j]); 
+
+                } 
+        } 
+
       
         return matrix;
         

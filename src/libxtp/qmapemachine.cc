@@ -21,25 +21,20 @@
 #include <votca/tools/linalg.h>
 
 #include <votca/xtp/qmapemachine.h>
-#include <sys/stat.h>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/xtp/elements.h>
-#include <votca/tools/linalg.h>
 #include <votca/xtp/espfit.h>
 
 using boost::format;
 
 namespace votca { namespace xtp {
-    namespace CTP = votca::ctp;
 
-template<class XQMPackage>
-QMAPEMachine<XQMPackage>::QMAPEMachine(CTP::XJob *job, CTP::Ewald3DnD *cape, XQMPackage *qmpack,
+template<class QMPackage>
+QMAPEMachine<QMPackage>::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape, QMPackage *qmpack,
 	 Property *opt, string sfx, int nst)
-   : _subthreads(nst),_job(job), _qmpack(qmpack), _cape(cape), 
-	  _grid_fg(true,true,true), _grid_bg(true,true,true),
-     _fitted_charges(true,true,true),_isConverged(false) {
+   : _subthreads(nst),_job(job), _qmpack(qmpack), _cape(cape),_isConverged(false) {
     
 	// CONVERGENCE THRESHOLDS
     string key = sfx + ".convergence";
@@ -115,8 +110,8 @@ QMAPEMachine<XQMPackage>::QMAPEMachine(CTP::XJob *job, CTP::Ewald3DnD *cape, XQM
 }
 
 
-template<class XQMPackage>
-QMAPEMachine<XQMPackage>::~QMAPEMachine() {
+template<class QMPackage>
+QMAPEMachine<QMPackage>::~QMAPEMachine() {
     
     std::vector<QMAPEIter*> ::iterator qit;
     for (qit = _iters.begin(); qit < _iters.end(); ++qit) {
@@ -126,20 +121,20 @@ QMAPEMachine<XQMPackage>::~QMAPEMachine() {
 }
 
 
-template<class XQMPackage>
-void QMAPEMachine<XQMPackage>::Evaluate(CTP::XJob *job) {
+template<class QMPackage>
+void QMAPEMachine<QMPackage>::Evaluate(ctp::XJob *job) {
     
 	// PREPARE JOB DIRECTORY
 	string jobFolder = "job_" + boost::lexical_cast<string>(_job->getId())
 					 + "_" + _job->getTag();
 	bool created = boost::filesystem::create_directory(jobFolder);
 
-	LOG(CTP::logINFO,*_log) << flush;
+	LOG(ctp::logINFO,*_log) << flush;
 	if (created) {
-		LOG(CTP::logINFO,*_log) << "Created directory " << jobFolder << flush;
+		LOG(ctp::logINFO,*_log) << "Created directory " << jobFolder << flush;
         }
 
-    LOG(CTP::logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
        << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
        % _crit_dR % _crit_dQ % _crit_dE_QM % _crit_dE_MM % _maxIter << flush;
     
@@ -150,7 +145,7 @@ void QMAPEMachine<XQMPackage>::Evaluate(CTP::XJob *job) {
     }
     int chrg = round(dQ);
     int spin = ( (chrg < 0) ? -chrg:chrg ) % 2 + 1;
-    LOG(CTP::logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
+    LOG(ctp::logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
 
     // SET ITERATION-TIME CONSTANTS
     _qmpack->setCharge(chrg);
@@ -159,45 +154,14 @@ void QMAPEMachine<XQMPackage>::Evaluate(CTP::XJob *job) {
     // GENERATE GRIDS
     // ... TODO ...
     // Generate QM atoms from _job->getPolarTop()->QM0();
-    // Move Iter::GenerateQMAtomsFromPolarSegs to QMMachine
+    // Move Iter::Generate::QMAtomsFromPolarSegs to QMMachine
     // Generate grids, store as member
     Orbitals basisforgrid;
-    std::vector<CTP::PolarSeg*> dummy;
+    std::vector<ctp::PolarSeg*> dummy;
     
     GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
     
-    
-    _grid_bg = Grid(true,true,true);   
-    _grid_bg.setAtomlist(&basisforgrid.QMAtoms());
-    _grid_bg.setCutoffshifts(0,-0.5);    
-    _grid_bg.setSpacing(0.2);   
-    _grid_bg.setCubegrid(true);   
-    _grid_bg.setupgrid();
-    
-    LOG(CTP::logINFO,*_log) << "Created internal background grid with " << _grid_bg.getsize() <<" points."<< flush;
-
-    _grid_fg=_grid_bg;
-    
-    LOG(CTP::logINFO,*_log) << "Created internal foreground grid with " << _grid_fg.getsize() <<" points."<< flush;
-    
-
-            
-    _fitted_charges = Grid(true,false,false);
-    _fitted_charges.setAtomlist(&basisforgrid.QMAtoms());
-    _fitted_charges.setCutoffs(7,0);
-    _fitted_charges.setupradialgrid(1);
-    //_fitted_charges.setCutoffshifts(8,2);
-    //_fitted_charges.setSpacing(3);
-    
-    //_fitted_charges.setupgrid();
-    
-    LOG(CTP::logINFO,*_log) << "Created " << _fitted_charges.getsize() <<" charge positions."<< flush;
-    LOG(CTP::logINFO,*_log) << flush;
-    _exportgridtofile=true;
-    if (_exportgridtofile){
-    _grid_bg.printGridtoxyzfile("grid.xyz");
-    _fitted_charges.printGridtoxyzfile("grid2.xyz");
-    }
+  
     
     int iterCnt = 0;
     int iterMax = _maxIter;
@@ -209,7 +173,7 @@ void QMAPEMachine<XQMPackage>::Evaluate(CTP::XJob *job) {
     }
     
     if (iterCnt == iterMax-1 && !_isConverged) {
-        LOG(CTP::logWARNING,*_log)
+        LOG(ctp::logWARNING,*_log)
             << format("Not converged within %1$d iterations.") % iterMax;
     }
     
@@ -217,117 +181,58 @@ void QMAPEMachine<XQMPackage>::Evaluate(CTP::XJob *job) {
 }
 
 
-template<class XQMPackage>
-bool QMAPEMachine<XQMPackage>::Iterate(string jobFolder, int iterCnt) {
+template<class QMPackage>
+bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
     // CREATE ITERATION OBJECT & SETUP RUN DIRECTORY
     QMAPEIter *thisIter = this->CreateNewIter();
     int iter = iterCnt;
     string runFolder = jobFolder + "/iter_" + boost::lexical_cast<string>(iter);
        
-    LOG(CTP::logINFO,*_log) << flush;
+    LOG(ctp::logINFO,*_log) << flush;
     bool created = boost::filesystem::create_directory(runFolder);
     if (created) 
-        LOG(CTP::logDEBUG,*_log) << "Created directory " << runFolder << flush;
+        LOG(ctp::logDEBUG,*_log) << "Created directory " << runFolder << flush;
     else
-        LOG(CTP::logWARNING,*_log) << "Could not create directory " << runFolder << flush;
+        LOG(ctp::logWARNING,*_log) << "Could not create directory " << runFolder << flush;
 
     // COMPUTE POLARIZATION STATE WITH QM0(0)
     if (_run_ape) {
 		if (iterCnt == 0) {
 			_cape->ShowAgenda(_log);
 			// Reset FGC, start from BGP state, apply FP fields (BG & FG)
-			//_cape->EvaluateInductionQMMM(true, true, true, true, true);
+			_cape->EvaluateInductionQMMM(true, true, true, true, true);
 		}
     
-     
-        //vec pos1=0.5*(vec(_fitted_charges.getGrid()[0])+vec(_fitted_charges.getGrid()[1]));
-        //vec pos2=0.5*(vec(_fitted_charges.getGrid()[10])+vec(_fitted_charges.getGrid()[11]));
-        double q1=-1.0;
-        //double q2=1.0;
-     vec pos=vec(45.135,2.484,-5.54117);
-		
-       
-        std::vector<CTP::APolarSite*>::iterator pit;
-        for (pit=_grid_bg.Sites().begin();pit!=_grid_bg.Sites().end();++pit){
-            //double dist1=abs((*pit)->getPos()-pos1);
-            //double dist2=abs((*pit)->getPos()-pos2);
-            double dist=abs((*pit)->getPos()-pos);
-            //double potential=q1/dist1+q2/dist2;  
-            double potential=q1/dist;
-            (*pit)->setPhi(potential,0.0);
-        }         
+    
         
-        
-		std::vector< CTP::PolarSeg* > target_bg;     
-        target_bg.push_back(_grid_bg.getSeg());
-        
-        std::vector< CTP::PolarSeg* > target_fg;
-        target_fg.push_back(_grid_fg.getSeg());
+		std::vector< ctp::PolarSeg* > target_bg;     
+                std::vector< ctp::PolarSeg* > target_fg;     
         
        
 		if (iterCnt == 0) {
 			// Add BG, do not add MM1 & QM0
-			//_cape->EvaluatePotential(target_bg, true, false, false);
+			_cape->EvaluatePotential(target_bg, true, false, false);
 		}
 		// Do not add BG & QM0, add MM1
-		//_cape->EvaluatePotential(target_fg, false, true, false);
+		_cape->EvaluatePotential(target_fg, false, true, false);
     }
     
     
-      /*
-        _grid_bg.getSeg()->WriteMPS("test_bg.mps", "TEST");
-        cout << endl << "Done bg. " << endl;
-        
-        cout << endl << "Done ... " << endl;
-        _grid_fg.getSeg()->WriteMPS("test_fg.mps", "TEST");
-        cout << endl << "Done fg. " << endl;
-        
-         cout << endl << "Done ... " << endl;
-        _fitted_charges.getSeg()->WriteMPS("test_charges.mps", "TEST");
-        cout << endl << "Done charges. " << endl;
-    */  
-        
-    //_grid_fg.readgridfromCubeFile("cubefile_fg.cub");
-    //_grid_bg.readgridfromCubeFile("cubefile_bg.cub");
-    _grid_fg.printgridtoCubefile("cubefile_fg.cub");
-    _grid_bg.printgridtoCubefile("cubefile_bg.cub");
-    Grid test;
-    test.readgridfromCubeFile("cubefile_fg.cub");
-    test.printgridtoCubefile("cubefile_fg_out.cub");
 
     // COMPUTE WAVEFUNCTION & QM ENERGY
     // Generate charge shell from potentials
     
-    std::vector<CTP::PolarSeg*> &qm =_job->getPolarTop()->QM0();
-    std::vector<CTP::PolarSeg*> mm_fitted;
-    Espfit fitcharges=Espfit(_log);
-    double netchargefit=0.0;
-
-    fitcharges.FitAPECharges(_grid_bg,_grid_fg,_fitted_charges,netchargefit);
-    mm_fitted.push_back(_fitted_charges.getSeg());
-
     
-    std::vector<CTP::PolarSeg*> dummy;
-    Orbitals basisforgrid;
-    GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
-    Grid visgrid_fit=Grid(_grid_bg);
-  
-    fitcharges.EvaluateAPECharges(visgrid_fit,_fitted_charges);
-
-    visgrid_fit.printgridtoCubefile("cubefile_fit.cub");
-
-  
     
-  
-    exit(0);
+   
        
     
     
     // Run DFT
     Orbitals orb_iter_input;
-    std::vector<CTP::Segment*> empty;
-    GenerateQMAtomsFromPolarSegs(qm, mm_fitted, orb_iter_input);
+    std::vector<ctp::Segment*> empty;
+   
    
 	_qmpack->setRunDir(runFolder);
 	_qmpack->WriteInputFile(empty, &orb_iter_input);
@@ -369,10 +274,10 @@ bool QMAPEMachine<XQMPackage>::Iterate(string jobFolder, int iterCnt) {
 
 
     // THIS IS A SHORT VERSION OF PEWALD3D WITH QM/MM ENERGY SPLITTING
-    //_cape->ShowAgenda(_log);
-    //_cape->EvaluateInductionQMMM(true, true, true, true, true);
-    //_cape->EvaluateEnergyQMMM();
-    //_cape->ShowEnergySplitting(_log);
+    _cape->ShowAgenda(_log);
+    _cape->EvaluateInductionQMMM(true, true, true, true, true);
+    _cape->EvaluateEnergyQMMM();
+    _cape->ShowEnergySplitting(_log);
 
     return true;
 
@@ -390,7 +295,7 @@ bool QMAPEMachine<XQMPackage>::Iterate(string jobFolder, int iterCnt) {
 
     _qmpack->setRunDir(runFolder);
     
-    LOG(CTP::logDEBUG,*_log) << "Writing input file " << runFolder << flush;
+    LOG(ctp::logDEBUG,*_log) << "Writing input file " << runFolder << flush;
     
     _qmpack->WriteInputFile(empty, &orb_iter_input);
          
@@ -432,31 +337,31 @@ bool QMAPEMachine<XQMPackage>::Iterate(string jobFolder, int iterCnt) {
                          thisIter->getQMMMEnergy());
     
     // EXTRACT & SAVE QMATOM DATA
-    std::vector< CTP::QMAtom* > &atoms = *(orb_iter_output.getAtoms());
+    std::vector< ctp::QMAtom* > &atoms = *(orb_iter_output.getAtoms());
     
     thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
 
-    LOG(CTP::logINFO,*_log) 
+    LOG(ctp::logINFO,*_log) 
         << format("Summary - iteration %1$d:") % (iterCnt+1) << flush;
-    LOG(CTP::logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... QM Size  = %1$d atoms") % int(atoms.size()) << flush;
-    LOG(CTP::logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... E(QM)    = %1$+4.9e") % thisIter->getQMEnergy() << flush;
-    LOG(CTP::logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... E(GWBSE) = %1$+4.9e") % thisIter->getGWBSEEnergy() << flush;
-    LOG(CTP::logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... E(SF)    = %1$+4.9e") % thisIter->getSFEnergy() << flush;
-    LOG(CTP::logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... E(FM)    = %1$+4.9e") % thisIter->getFMEnergy() << flush;
-    LOG(CTP::logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... E(MM)    = %1$+4.9e") % thisIter->getMMEnergy() << flush;
-    LOG(CTP::logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... E(QMMM)  = %1$+4.9e") % thisIter->getQMMMEnergy() << flush;
-    LOG(CTP::logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... RMS(dR)  = %1$+4.9e") % thisIter->getRMSdR() << flush;
-    LOG(CTP::logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... RMS(dQ)  = %1$+4.9e") % thisIter->getRMSdQ() << flush;
-    LOG(CTP::logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
     
     // CLEAN DIRECTORY
@@ -466,17 +371,17 @@ bool QMAPEMachine<XQMPackage>::Iterate(string jobFolder, int iterCnt) {
     /*
     int removed = boost::filesystem::remove_all(runFolder);
     if (removed > 0) 
-        LOG(CTP::logDEBUG,*_log) << "Removed directory " << runFolder << flush;
+        LOG(ctp::logDEBUG,*_log) << "Removed directory " << runFolder << flush;
     else 
-        LOG(CTP::logWARNING,*_log) << "Could not remove dir " << runFolder << flush;
+        LOG(ctp::logWARNING,*_log) << "Could not remove dir " << runFolder << flush;
     */
     return 0;
      
 }
 
 
-template<class XQMPackage>
-QMAPEIter *QMAPEMachine<XQMPackage>::CreateNewIter() {
+template<class QMPackage>
+QMAPEIter *QMAPEMachine<QMPackage>::CreateNewIter() {
     
     QMAPEIter *newIter = new QMAPEIter(_iters.size());
     this->_iters.push_back(newIter);
@@ -484,8 +389,8 @@ QMAPEIter *QMAPEMachine<XQMPackage>::CreateNewIter() {
 }
 
 
-template<class XQMPackage>
-bool QMAPEMachine<XQMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
+template<class QMPackage>
+bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
 	// for GW-BSE, we also need to parse the orbitals file
         
@@ -495,24 +400,24 @@ bool QMAPEMachine<XQMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
         GWBSE _gwbse(&orb);
 	_gwbse.Initialize( &_gwbse_options );
 	if ( _state > 0 ){
-	LOG(CTP::logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
-	LOG(CTP::logDEBUG,*_log) << "  --- type:              " << _type << flush;
-	LOG(CTP::logDEBUG,*_log) << "  --- state:             " << _state << flush;
-	if ( _has_osc_filter) { LOG(CTP::logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush; }
-	if ( _has_dQ_filter) { LOG(CTP::logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush; }
+	LOG(ctp::logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
+	LOG(ctp::logDEBUG,*_log) << "  --- type:              " << _type << flush;
+	LOG(ctp::logDEBUG,*_log) << "  --- state:             " << _state << flush;
+	if ( _has_osc_filter) { LOG(ctp::logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush; }
+	if ( _has_dQ_filter) { LOG(ctp::logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush; }
 
 	if ( _has_osc_filter && _has_dQ_filter ){
-		LOG(CTP::logDEBUG,*_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... "  << flush;
+		LOG(ctp::logDEBUG,*_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... "  << flush;
 	}
 
 	// define own logger for GW-BSE that is written into a runFolder logfile
-	CTP::Logger gwbse_logger(CTP::logDEBUG);
+	ctp::Logger gwbse_logger(ctp::logDEBUG);
 	gwbse_logger.setMultithreading(false);
 	_gwbse.setLogger(&gwbse_logger);
-	gwbse_logger.setPreface(CTP::logINFO,    (format("\nGWBSE INF ...") ).str());
-	gwbse_logger.setPreface(CTP::logERROR,   (format("\nGWBSE ERR ...") ).str());
-	gwbse_logger.setPreface(CTP::logWARNING, (format("\nGWBSE WAR ...") ).str());
-	gwbse_logger.setPreface(CTP::logDEBUG,   (format("\nGWBSE DBG ...") ).str());
+	gwbse_logger.setPreface(ctp::logINFO,    (format("\nGWBSE INF ...") ).str());
+	gwbse_logger.setPreface(ctp::logERROR,   (format("\nGWBSE ERR ...") ).str());
+	gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...") ).str());
+	gwbse_logger.setPreface(ctp::logDEBUG,   (format("\nGWBSE DBG ...") ).str());
 
 	// actual GW-BSE run
 
@@ -618,7 +523,7 @@ bool QMAPEMachine<XQMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	dftbs.LoadBasisSet( _gwbse.get_dftbasis_name() );
 
 	}
-	LOG(CTP::logDEBUG, *_log) << CTP::TimeStamp() << " Loaded DFT Basis Set " <<  orb.getDFTbasis()  << flush;
+	LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " <<  orb.getDFTbasis()  << flush;
 
 
 
@@ -627,7 +532,7 @@ bool QMAPEMachine<XQMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	// fill DFT AO basis by going through all atoms
 	AOBasis dftbasis;
 	dftbasis.AOBasisFill(&dftbs, orb.QMAtoms() );
-	dftbasis.ReorderMOs(_dft_orbitals, orb.getQMpackage(), "votca" );
+	dftbasis.ReorderMOs(_dft_orbitals, orb.getQMpackage(), "xtp" );
 	// TBD: Need to switch between singlets and triplets depending on _type
 	ub::matrix<double> DMATGS=orb.DensityMatrixGroundState(_dft_orbitals);
 
@@ -640,7 +545,7 @@ bool QMAPEMachine<XQMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	}
 
 	// fill DFT AO basis by going through all atoms
-	std::vector< CTP::QMAtom* >& Atomlist= orb.QMAtoms();
+	std::vector< ctp::QMAtom* >& Atomlist= orb.QMAtoms();
 
 	Espfit esp=Espfit(_log);
         if (_run_gwbse){
@@ -652,8 +557,8 @@ bool QMAPEMachine<XQMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 }
 
 
-template<class XQMPackage>
-bool QMAPEMachine<XQMPackage>::hasConverged() {
+template<class QMPackage>
+bool QMAPEMachine<QMPackage>::hasConverged() {
     
     _convg_dR = false;
     _convg_dQ = false;
@@ -678,38 +583,38 @@ bool QMAPEMachine<XQMPackage>::hasConverged() {
     
     _isConverged = ((_convg_dR && _convg_dQ) && (_convg_dE_QM && _convg_dE_MM));
     
-    LOG(CTP::logINFO,*_log) 
+    LOG(ctp::logINFO,*_log) 
         << (format("Convergence check")) << flush;
-    LOG(CTP::logINFO,*_log)
+    LOG(ctp::logINFO,*_log)
         << format("  o Converged dR ? %s") % (_convg_dR ? "True" : "False") << flush;
-    LOG(CTP::logINFO,*_log) 
+    LOG(ctp::logINFO,*_log) 
         << format("  o Converged dQ ? %s") % (_convg_dQ ? "True" : "False") << flush;
-    LOG(CTP::logINFO,*_log) 
+    LOG(ctp::logINFO,*_log) 
         << format("  o Converged QM ? %s") % (_convg_dE_QM ? "True" : "False") << flush;
-    LOG(CTP::logINFO,*_log) 
+    LOG(ctp::logINFO,*_log) 
         << format("  o Converged MM ? %s") % (_convg_dE_MM ? "True" : "False") << flush;
     
     return _isConverged;
 }
 
 
-void QMAPEIter::ConvertPSitesToQMAtoms(std::vector< CTP::PolarSeg* > &psegs,
-                                       std::vector< CTP::QMAtom * > &qmatoms) {
+void QMAPEIter::ConvertPSitesToQMAtoms(std::vector< ctp::PolarSeg* > &psegs,
+                                       std::vector< ctp::QMAtom * > &qmatoms) {
     
     assert(qmatoms.size() == 0);    
     return;   
 }
 
 
-void QMAPEIter::ConvertQMAtomsToPSites(std::vector< CTP::QMAtom* > &qmatoms,
-                                       std::vector< CTP::PolarSeg* > &psegs) {
+void QMAPEIter::ConvertQMAtomsToPSites(std::vector< ctp::QMAtom* > &qmatoms,
+                                       std::vector< ctp::PolarSeg* > &psegs) {
     assert(qmatoms.size() == 0);
     return;
 }
 
 
-void QMAPEIter::UpdatePosChrgFromQMAtoms(std::vector< CTP::QMAtom* > &qmatoms,
-                                         std::vector< CTP::PolarSeg* > &psegs) {
+void QMAPEIter::UpdatePosChrgFromQMAtoms(std::vector< ctp::QMAtom* > &qmatoms,
+                                         std::vector< ctp::PolarSeg* > &psegs) {
     
     double AA_to_NM = 0.1; // Angstrom to nanometer
     
@@ -718,17 +623,17 @@ void QMAPEIter::UpdatePosChrgFromQMAtoms(std::vector< CTP::QMAtom* > &qmatoms,
     double dQ_SUM = 0.0;
     
     for (unsigned i = 0, qac = 0; i < psegs.size(); ++i) {
-        CTP::PolarSeg *pseg = psegs[i];
+        ctp::PolarSeg *pseg = psegs[i];
         for (unsigned j = 0; j < pseg->size(); ++j, ++qac) {
             
-            // Retrieve info from QMAtom
-            CTP::QMAtom *qmatm = qmatoms[qac];
+            // Retrieve info from ::QMAtom
+            ctp::QMAtom *qmatm = qmatoms[qac];
             vec upd_r = vec(qmatm->x, qmatm->y, qmatm->z);
             upd_r *= AA_to_NM;
             double upd_Q00 = qmatm->charge;
             
             // Compare to previous r, Q00
-            CTP::APolarSite *aps = (*pseg)[j];
+            ctp::APolarSite *aps = (*pseg)[j];
             vec old_r = aps->getPos();
             double old_Q00 = aps->getQ00();
             double dR = abs(upd_r - old_r);
@@ -752,17 +657,17 @@ void QMAPEIter::UpdatePosChrgFromQMAtoms(std::vector< CTP::QMAtom* > &qmatoms,
     this->setdRdQ(dR_RMS, dQ_RMS, dQ_SUM);
 }
 
-template<class XQMPackage>
-void QMAPEMachine<XQMPackage>::GenerateQMAtomsFromPolarSegs(std::vector<CTP::PolarSeg*> &qm,
-	std::vector<CTP::PolarSeg*> &mm, Orbitals &orb) {
+template<class QMPackage>
+void QMAPEMachine<QMPackage>::GenerateQMAtomsFromPolarSegs(std::vector<ctp::PolarSeg*> &qm,
+	std::vector<ctp::PolarSeg*> &mm, Orbitals &orb) {
     
     double AA_to_NM = 0.1; // Angstrom to nanometer
     
     // QM REGION
     for (unsigned i = 0; i < qm.size(); ++i) {
-        std::vector<CTP::APolarSite*> *pseg = qm[i];
+        std::vector<ctp::APolarSite*> *pseg = qm[i];
         for (unsigned j = 0; j < pseg->size(); ++j) {
-            CTP::APolarSite *aps = (*pseg)[j];
+            ctp::APolarSite *aps = (*pseg)[j];
             string type = "qm";
             vec pos = aps->getPos()/AA_to_NM;
             double Q = 0.0;
@@ -772,9 +677,9 @@ void QMAPEMachine<XQMPackage>::GenerateQMAtomsFromPolarSegs(std::vector<CTP::Pol
     
     // MM REGION (EXPANDED VIA PARTIAL CHARGES)
     for (unsigned i = 0; i < mm.size(); ++i) {
-    	std::vector<CTP::APolarSite*> *pseg = mm[i];
+    	std::vector<ctp::APolarSite*> *pseg = mm[i];
         for (unsigned j = 0; j < pseg->size(); ++j) {
-            CTP::APolarSite *aps = (*pseg)[j];
+            ctp::APolarSite *aps = (*pseg)[j];
             string type = "mm";
             vec pos = aps->getPos()/AA_to_NM;
             double Q = aps->getQ00();
@@ -844,7 +749,7 @@ double QMAPEIter::getQMMMEnergy() {
 
 
 // REGISTER QM PACKAGES
-template class QMAPEMachine<XQMPackage>;
+template class QMAPEMachine<QMPackage>;
     
     
     

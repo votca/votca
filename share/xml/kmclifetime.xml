@@ -1,6 +1,6 @@
 <options>
 
-<kmclifetime help="Kinetic Monte Carlo simulations of multiple singlets or triplets in periodic boundary conditions with finite lifetime" label="calc:kmclifetime" section="sec:kmc">
+<kmclifetime help="Kinetic Monte Carlo simulations of multiple singletsin periodic boundary conditions with finite lifetime" label="calc:kmclifetime" section="sec:kmc">
 
 <insertions help="How often charges are allowed to decay" unit="integer" default="0">100000</insertions>
 <maxrealtime help="Maximum realtime after which the run should abort" unit="hours" default="1E10">10000</maxrealtime>

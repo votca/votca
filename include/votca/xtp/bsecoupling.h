@@ -26,12 +26,11 @@
 namespace votca { namespace xtp {
 
 namespace ub = boost::numeric::ublas;
-namespace CTP  = votca::ctp;
 /**
 * \brief Evaluates electronic coupling elements
 *
-* B. Baumeier, J. Kirkpatrick, D. Andrienko, 
-* Phys. Chem. Chem. Phys., 12, 11103-11113, 2010
+* J. Wehner,B. Baumeier, 
+* JCTC DOI: 10.1021/acs.jctc.6b00935
 * 
 */
 
@@ -57,11 +56,7 @@ public:
                                Orbitals* _orbitalsAB 
                              );  
     
-    bool CalculateCouplings_OLD(   Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB, 
-                               ub::matrix<real_gwbse>* _JAB_singlet);  
-    
+  
     
 
      
@@ -70,11 +65,11 @@ public:
     real_gwbse getTripletCouplingElement( int levelA, int levelB);
     real_gwbse getSingletDimerEnergy( int level);
     real_gwbse getTripletDimerEnergy( int level);
-    void setLogger( CTP::Logger* pLog ) { _pLog = pLog; }
+    void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
     
 private:
     
-    CTP::Logger *_pLog;
+    ctp::Logger *_pLog;
   
     
     bool ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::matrix<real_gwbse>& _kbp, 

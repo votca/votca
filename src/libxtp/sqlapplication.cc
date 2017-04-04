@@ -23,24 +23,17 @@
 #include <votca/xtp/version.h>
 #include <boost/format.hpp>
 
-#include <votca/ctp/calculatorfactory.h>
-
-
 namespace votca { namespace xtp {
 
-    namespace CTP = votca::ctp;
-    
-XSqlApplication::XSqlApplication() {
-    XCalculatorfactory::RegisterAll();
-    CTP::Calculatorfactory::RegisterAll();
+SqlApplication::SqlApplication() {
+    Calculatorfactory::RegisterAll();
 }
 
 
-void XSqlApplication::Initialize(void) {
+void SqlApplication::Initialize(void) {
     XtpApplication::Initialize();
 
-    XCalculatorfactory::RegisterAll();
-    CTP::Calculatorfactory::RegisterAll();
+    Calculatorfactory::RegisterAll();
 
     namespace propt = boost::program_options;
 
@@ -57,13 +50,13 @@ void XSqlApplication::Initialize(void) {
 }
 
 
-bool XSqlApplication::EvaluateOptions(void) {
+bool SqlApplication::EvaluateOptions(void) {
     CheckRequired("file", "Please provide the state file");
     return true;
 }
 
 
-void XSqlApplication::Run() {
+void SqlApplication::Run() {
 
     // load_property_from_xml(_options, _op_vm["options"].as<string>());
 
@@ -108,64 +101,36 @@ void XSqlApplication::Run() {
 
 
 
-void XSqlApplication::AddCalculator(XQMCalculator* calculator) {
+void SqlApplication::AddCalculator(ctp::QMCalculator* calculator) {
     _calculators.push_back(calculator);
 }
 
-void XSqlApplication::AddCalculator(CTP::QMCalculator* calculator) {
-    _ctp_calculators.push_back(calculator);
-}
 
-void XSqlApplication::BeginEvaluate(int nThreads = 1) {
-    list< XQMCalculator* > ::iterator it;
+void SqlApplication::BeginEvaluate(int nThreads = 1) {
+    list< ctp::QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " ";
         (*it)->setnThreads(nThreads);
         (*it)->Initialize(&_options); 
         cout << endl;
     }
-    
-
-    list< CTP::QMCalculator* > ::iterator cit;
-    for (cit = _ctp_calculators.begin(); cit != _ctp_calculators.end(); cit++) {
-        cout << "... " << (*cit)->Identify() << " ";
-        (*cit)->setnThreads(nThreads);
-        (*cit)->Initialize(&_options); 
-        cout << endl;
-    }
-    
 }
 
-bool XSqlApplication::EvaluateFrame() {
-    list< XQMCalculator* > ::iterator it;
+bool SqlApplication::EvaluateFrame() {
+    list< ctp::QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         cout << "... " << (*it)->Identify() << " " << flush;
         (*it)->EvaluateFrame(&_top);
         cout << endl;
     }
-    list< CTP::QMCalculator* > ::iterator cit;
-    for (cit = _ctp_calculators.begin(); cit != _ctp_calculators.end(); cit++) {
-        cout << "... " << (*cit)->Identify() << " " << flush;
-        (*cit)->EvaluateFrame(&_top);
-        cout << endl;
-    }   
-    
-    
     return true;
 }
 
-void XSqlApplication::EndEvaluate() {
-    list< XQMCalculator* > ::iterator it;
+void SqlApplication::EndEvaluate() {
+    list< ctp::QMCalculator* > ::iterator it;
     for (it = _calculators.begin(); it != _calculators.end(); it++) {
         (*it)->EndEvaluate(&_top);
     }
-    
-    list< CTP::QMCalculator* > ::iterator cit;
-    for (cit = _ctp_calculators.begin(); cit != _ctp_calculators.end(); cit++) {
-        (*cit)->EndEvaluate(&_top);
-    }
-    
-    
 }
 
 }}

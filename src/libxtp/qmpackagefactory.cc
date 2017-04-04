@@ -28,13 +28,13 @@
 
 namespace votca { namespace xtp {
 
-void XQMPackageFactory::RegisterAll(void)
+void QMPackageFactory::RegisterAll(void)
 {
-        XQMPackages().Register<Gaussian>         ("gaussian");
-        XQMPackages().Register<Turbomole>        ("turbomole");
-        XQMPackages().Register<NWChem>           ("nwchem");
-        XQMPackages().Register<Orca>             ("orca");
-        XQMPackages().Register<Cpmd>             ("cpmd");
+        QMPackages().Register<Gaussian>         ("gaussian");
+        QMPackages().Register<Turbomole>        ("turbomole");
+        QMPackages().Register<NWChem>           ("nwchem");
+        QMPackages().Register<Orca>             ("orca");
+        QMPackages().Register<Cpmd>             ("cpmd");
         
 
 }

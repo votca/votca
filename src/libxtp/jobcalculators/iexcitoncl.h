@@ -22,7 +22,7 @@
 
 #include <votca/tools/property.h>
 
-#include <votca/xtp/parallelxjobcalc.h>
+#include <votca/ctp/parallelxjobcalc.h>
 #include <boost/numeric/ublas/io.hpp>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
@@ -31,7 +31,6 @@
 
 namespace votca { namespace xtp {
     
-    namespace CTP = votca::ctp;
 /**
 * \brief Evaluates Transition Charge distributions classically
 *
@@ -43,21 +42,21 @@ namespace votca { namespace xtp {
 * Callname: iexcitoncl
 */
 
-class IEXCITON : public ParallelXJobCalc< vector<CTP::Job*>, CTP::Job*, CTP::Job::JobResult >
+class IEXCITON : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
 {
 public:
 
     IEXCITON() {};
    ~IEXCITON() {};
    
-    void    Initialize(votca::tools::Property *options );
+    void    Initialize(tools::Property *options );
     
     string  Identify() { return "iexcitoncl"; }
     
-    CTP::Job::JobResult EvalJob(CTP::Topology *top, CTP::Job *job, CTP::QMThread *Thread);
+    ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *Thread);
 
-    void WriteJobFile(CTP::Topology *top);
-    void ReadJobFile(CTP::Topology *top);
+    void WriteJobFile(ctp::Topology *top);
+    void ReadJobFile(ctp::Topology *top);
 
     
 
@@ -66,7 +65,7 @@ private:
     
     
    
-    CTP::XMpsMap                        _mps_mapper;
+    ctp::XMpsMap                        _mps_mapper;
     bool                           _induce;
     int                           _statenumber;
     string                         _emp_file;
@@ -76,9 +75,9 @@ private:
 
         
     
-    void PreProcess(CTP::Topology *top);
-    void CustomizeLogger(CTP::QMThread *thread);
-    double EvaluatePair(CTP::Topology *top, CTP::PolarSeg* Seg1, CTP::PolarSeg* Seg2, CTP::Logger* pLog);
+    void PreProcess(ctp::Topology *top);
+    void CustomizeLogger(ctp::QMThread *thread);
+    double EvaluatePair(ctp::Topology *top,ctp::PolarSeg* Seg1,ctp::PolarSeg* Seg2, ctp::Logger* pLog);
  
     
  

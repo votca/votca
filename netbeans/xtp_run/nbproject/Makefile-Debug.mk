@@ -21,7 +21,7 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=GNU-Linux
+CND_PLATFORM=GNU-Linux-x86
 CND_DLIB_EXT=so
 CND_CONF=Debug
 CND_DISTDIR=dist
@@ -35,7 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/2aac7050/xtp_run.o
+	${OBJECTDIR}/_ext/715944016/xtp_run.o
 
 
 # C Compiler Flags
@@ -70,10 +70,10 @@ LDLIBSOPTIONS=../libxtp/dist/Debug/GNU-Linux-x86/liblibxtp.a ../../../csg/netbea
 	${MKDIR} -p ../../src/tools
 	${LINK.cc} -o ../../src/tools/xtp_run ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/_ext/2aac7050/xtp_run.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/xtp_run.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/2aac7050
+${OBJECTDIR}/_ext/715944016/xtp_run.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/xtp_run.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/715944016
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../xtp/include -I../../../csg/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2aac7050/xtp_run.o ../../src/tools/xtp_run.cc
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../xtp/include -I../../../csg/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/715944016/xtp_run.o ../../src/tools/xtp_run.cc
 
 # Subprojects
 .build-subprojects:

@@ -1,6 +1,6 @@
 <options>
 
-<dft help="Standalone DFT calculator (experimental)">
+<dft>
 
         <package>gaussian_egwbse_molecule.xml</package>
 

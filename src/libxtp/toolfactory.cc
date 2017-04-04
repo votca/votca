@@ -17,9 +17,15 @@
  *
  */
 
+
 #include <votca/xtp/toolfactory.h>
+
+#include "tools/pdb2map.h"
+#include "tools/log2mps.h"
+#include "tools/pdb2top.h"
 #include "tools/exciton.h"
 #include "tools/qmanalyze.h"
+#include "tools/qmsandbox.h"
 #include "tools/spectrum.h"
 #include "tools/excitoncoupling.h"
 #include "tools/dft.h"
@@ -27,20 +33,22 @@
 #include "tools/partialcharges.h"
 
 
-
-
 namespace votca { namespace xtp {
-    
-void XQMToolFactory::RegisterAll(void)
+
+void QMToolFactory::RegisterAll(void)
 {
-    
-    XQMTools().Register<Exciton>            ("exciton");
-    XQMTools().Register<QMAnalyze>          ("qmanalyze");
-    XQMTools().Register<Spectrum>           ("spectrum");
-    XQMTools().Register<ExcitonCoupling>    ("excitoncoupling");
-    XQMTools().Register<DFT>                ("dft");
-    XQMTools().Register<GenCube>            ("gencube");
-    XQMTools().Register<Partialcharges>     ("partialcharges");
+      
+        QMTools().Register<PDB2Map>            ("xpdb2map");
+        QMTools().Register<Log2Mps>            ("xlog2mps");
+        QMTools().Register<Exciton>            ("exciton");
+        QMTools().Register<QMAnalyze>          ("qmanalyze");
+        QMTools().Register<QMSandbox>          ("qmsandbox");
+        QMTools().Register<Spectrum>           ("spectrum");
+        QMTools().Register<ExcitonCoupling>    ("excitoncoupling");
+        QMTools().Register<PDB2Top>            ("xpdb2top");
+        QMTools().Register<DFT>                ("dft");
+        QMTools().Register<GenCube>            ("gencube");
+        QMTools().Register<Partialcharges>     ("partialcharges");
         
 }
 

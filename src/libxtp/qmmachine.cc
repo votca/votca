@@ -25,7 +25,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <votca/ctp/logger.h>
 #include <votca/xtp/elements.h>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/espfit.h>
@@ -36,10 +35,8 @@ using boost::format;
 namespace votca {
     namespace xtp {
 
-        namespace CTP = votca::ctp;
-        
-        template<class XQMPackage>
-        QMMachine<XQMPackage>::QMMachine(CTP::XJob *job, CTP::XInductor *xind, XQMPackage *qmpack,
+        template<class QMPackage>
+        QMMachine<QMPackage>::QMMachine(ctp::XJob *job, ctp::XInductor *xind, QMPackage *qmpack,
                 Property *opt, string sfx, int nst, bool mav)
         : _job(job), _xind(xind), _qmpack(qmpack), _subthreads(nst),
         _isConverged(false) {
@@ -132,8 +129,8 @@ namespace votca {
 
         }
 
-        template<class XQMPackage>
-        QMMachine<XQMPackage>::~QMMachine() {
+        template<class QMPackage>
+        QMMachine<QMPackage>::~QMMachine() {
 
             std::vector<QMMIter*> ::iterator qit;
             for (qit = _iters.begin(); qit < _iters.end(); ++qit) {
@@ -142,10 +139,10 @@ namespace votca {
             _iters.clear();
         }
 
-        template<class XQMPackage>
-        void QMMachine<XQMPackage>::Evaluate(CTP::XJob *job) {
+        template<class QMPackage>
+        void QMMachine<QMPackage>::Evaluate(ctp::XJob *job) {
 
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
                     % _crit_dR % _crit_dQ % _crit_dE_QM % _crit_dE_MM % _maxIter << flush;
 
@@ -156,7 +153,7 @@ namespace votca {
             }
             int chrg = round(dQ);
             int spin = ((chrg < 0) ? -chrg : chrg) % 2 + 1;
-            LOG(CTP::logINFO, *_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
+            LOG(ctp::logINFO, *_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
 
 
             // PREPARE JOB DIRECTORY
@@ -164,7 +161,7 @@ namespace votca {
                     + "_" + _job->getTag();
             bool created = boost::filesystem::create_directory(jobFolder);
             if (created) {
-                LOG(CTP::logINFO, *_log) << "Created directory " << jobFolder << flush;
+                LOG(ctp::logINFO, *_log) << "Created directory " << jobFolder << flush;
             }
 
 
@@ -189,15 +186,15 @@ namespace votca {
             }
 
             if (iterCnt == iterMax - 1 && !_isConverged) {
-                LOG(CTP::logWARNING, *_log)
+                LOG(ctp::logWARNING, *_log)
                         << format("Not converged within %1$d iterations.") % iterMax;
             }
 
             return;
         }
 
-        template<class XQMPackage>
-        bool QMMachine<XQMPackage>::Iterate(string jobFolder, int iterCnt) {
+        template<class QMPackage>
+        bool QMMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
             // CREATE ITERATION OBJECT & SETUP RUN DIRECTORY
             QMMIter *thisIter = this->CreateNewIter();
@@ -206,9 +203,9 @@ namespace votca {
 
             bool created = boost::filesystem::create_directory(runFolder);
             if (created)
-                LOG(CTP::logDEBUG, *_log) << "Created directory " << runFolder << flush;
+                LOG(ctp::logDEBUG, *_log) << "Created directory " << runFolder << flush;
             else
-                LOG(CTP::logWARNING, *_log) << "Could not create directory " << runFolder << flush;
+                LOG(ctp::logWARNING, *_log) << "Could not create directory " << runFolder << flush;
 
 
             // RUN CLASSICAL INDUCTION & SAVE
@@ -228,12 +225,12 @@ namespace votca {
             // WRITE AND SET QM INPUT FILE
             Orbitals orb_iter_input;
 
-            std::vector<CTP::Segment*> empty;
+            std::vector<ctp::Segment*> empty;
             thisIter->GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input, _split_dpl, _dpl_spacing);
 
             _qmpack->setRunDir(runFolder);
 
-            LOG(CTP::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
+            LOG(ctp::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
 
             _qmpack->WriteInputFile(empty, &orb_iter_input);
 
@@ -268,18 +265,18 @@ namespace votca {
             BasisSet dftbs;
             //dftbs.LoadBasisSet( orb_iter_output.getDFTbasis() );
             dftbs.LoadBasisSet( "ubecppol" );
-            //LOG(CTP::logDEBUG, *_log) << CTP::TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
+            //LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " <<  orb_iter_output.getDFTbasis()  << flush;
     
             // fill DFT AO basis by going through all atoms 
             AOBasis dftbasis;
-            dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms() );
-            dftbasis.ReorderMOs(_dft_orbitals_GS, orb_iter_output.getQMpackage(), "votca" );
+            dftbasis.AOBasisFill(&dftbs, orb_iter_output.::QMAtoms() );
+            dftbasis.ReorderMOs(_dft_orbitals_GS, orb_iter_output.getQMpackage(), "xtp" );
             ub::matrix<double> &DMATGS=orb_iter_output.DensityMatrixGroundState(_dft_orbitals_GS);
-            std::vector< QMAtom* >& Atomlist= orb_iter_output.QMAtoms();
+            std::vector< ctp::QMAtom* >& Atomlist= orb_iter_output.::QMAtoms();
     
             Espfit esp;
             // Espfit esp
-            //Espfit esp(std::vector< QMAtom* >& Atomlist, ub::matrix<double> &DMATGS, AOBasis &dftbasis);
+            //Espfit esp(std::vector< ctp::QMAtom* >& Atomlist, ub::matrix<double> &DMATGS, AOBasis &dftbasis);
             esp.setLog(_log);
             esp.FittoDensity(Atomlist, DMATGS, dftbasis); */
 
@@ -301,29 +298,29 @@ namespace votca {
                 GWBSE _gwbse=GWBSE(&orb_iter_output);
                 std::vector<int> _state_index;
                 // define own logger for GW-BSE that is written into a runFolder logfile
-                CTP::Logger gwbse_logger(CTP::logDEBUG);
+                ctp::Logger gwbse_logger(ctp::logDEBUG);
                 gwbse_logger.setMultithreading(false);
                 _gwbse.setLogger(&gwbse_logger);
-                gwbse_logger.setPreface(CTP::logINFO, (format("\nGWBSE INF ...")).str());
-                gwbse_logger.setPreface(CTP::logERROR, (format("\nGWBSE ERR ...")).str());
-                gwbse_logger.setPreface(CTP::logWARNING, (format("\nGWBSE WAR ...")).str());
-                gwbse_logger.setPreface(CTP::logDEBUG, (format("\nGWBSE DBG ...")).str());
+                gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
+                gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
+                gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
+                gwbse_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
              
                 _gwbse.Initialize(&_gwbse_options);                   
                 
                 if (_state > 0) {
-                    LOG(CTP::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
-                    LOG(CTP::logDEBUG, *_log) << "  --- type:              " << _type << flush;
-                    LOG(CTP::logDEBUG, *_log) << "  --- state:             " << _state << flush;
+                    LOG(ctp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
+                    LOG(ctp::logDEBUG, *_log) << "  --- type:              " << _type << flush;
+                    LOG(ctp::logDEBUG, *_log) << "  --- state:             " << _state << flush;
                     if (_has_osc_filter) {
-                        LOG(CTP::logDEBUG, *_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
+                        LOG(ctp::logDEBUG, *_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
                     }
                     if (_has_dQ_filter) {
-                        LOG(CTP::logDEBUG, *_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
+                        LOG(ctp::logDEBUG, *_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
                     }
 
                     if (_has_osc_filter && _has_dQ_filter) {
-                        LOG(CTP::logDEBUG, *_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... " << flush;
+                        LOG(ctp::logDEBUG, *_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... " << flush;
                     }
 
 
@@ -425,10 +422,10 @@ namespace votca {
                 BasisSet dftbs;
                 if (orb_iter_output.getDFTbasis() != "") {
                     dftbs.LoadBasisSet(orb_iter_output.getDFTbasis());
-                    LOG(CTP::logDEBUG, *_log) << CTP::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_output.getDFTbasis() << flush;
+                    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_output.getDFTbasis() << flush;
                 } else {
                     dftbs.LoadBasisSet(_gwbse.get_dftbasis_name());
-                    LOG(CTP::logDEBUG, *_log) << CTP::TimeStamp() << " Loaded DFT Basis Set " << _gwbse.get_dftbasis_name() << flush;
+                    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _gwbse.get_dftbasis_name() << flush;
                 }
                 
 
@@ -439,7 +436,7 @@ namespace votca {
                 // fill DFT AO basis by going through all atoms 
                 AOBasis dftbasis;
                 dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms());
-                dftbasis.ReorderMOs(_dft_orbitals, orb_iter_output.getQMpackage(), "votca");
+                dftbasis.ReorderMOs(_dft_orbitals, orb_iter_output.getQMpackage(), "xtp");
                 // TBD: Need to switch between singlets and triplets depending on _type
                 ub::matrix<double> DMATGS = orb_iter_output.DensityMatrixGroundState(_dft_orbitals);
 
@@ -452,7 +449,7 @@ namespace votca {
                 }
 
                 // fill DFT AO basis by going through all atoms 
-                std::vector< CTP::QMAtom* >& Atomlist = orb_iter_output.QMAtoms();
+                std::vector< ctp::QMAtom* >& Atomlist = orb_iter_output.QMAtoms();
 
 
 
@@ -483,7 +480,7 @@ namespace votca {
                     _gdma.setLog(_log);
                     _gdma.SetRunDir(runFolder);
 
-                    LOG(CTP::logINFO, *_log) << "Running GDMA " << flush;
+                    LOG(ctp::logINFO, *_log) << "Running GDMA " << flush;
                     // prepare a GDMA input file
                     _gdma.WriteInputFile();
 
@@ -514,7 +511,7 @@ namespace votca {
                     thisIter->getQMMMEnergy());
 
             // EXTRACT & SAVE QMATOM DATA
-            std::vector< CTP::QMAtom* > &atoms = *(orb_iter_output.getAtoms());
+            std::vector< ctp::QMAtom* > &atoms = *(orb_iter_output.getAtoms());
 
             thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
 
@@ -529,27 +526,27 @@ namespace votca {
 
 
 
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("Summary - iteration %1$d:") % (iterCnt + 1) << flush;
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... QM Size  = %1$d atoms") % int(atoms.size()) << flush;
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... E(QM)    = %1$+4.9e") % thisIter->getQMEnergy() << flush;
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... E(GWBSE) = %1$+4.9e") % thisIter->getGWBSEEnergy() << flush;
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... E(SF)    = %1$+4.9e") % thisIter->getSFEnergy() << flush;
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... E(FM)    = %1$+4.9e") % thisIter->getFMEnergy() << flush;
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... E(MM)    = %1$+4.9e") % thisIter->getMMEnergy() << flush;
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... E(QMMM)  = %1$+4.9e") % thisIter->getQMMMEnergy() << flush;
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... RMS(dR)  = %1$+4.9e") % thisIter->getRMSdR() << flush;
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... RMS(dQ)  = %1$+4.9e") % thisIter->getRMSdQ() << flush;
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
 
             // CLEAN DIRECTORY
@@ -559,16 +556,16 @@ namespace votca {
             /*
             int removed = boost::filesystem::remove_all(runFolder);
             if (removed > 0) 
-                LOG(CTP::logDEBUG,*_log) << "Removed directory " << runFolder << flush;
+                LOG(ctp::logDEBUG,*_log) << "Removed directory " << runFolder << flush;
             else 
-                LOG(CTP::logWARNING,*_log) << "Could not remove dir " << runFolder << flush;
+                LOG(ctp::logWARNING,*_log) << "Could not remove dir " << runFolder << flush;
              */
             return 0;
 
         }
 
-        template<class XQMPackage>
-        QMMIter *QMMachine<XQMPackage>::CreateNewIter() {
+        template<class QMPackage>
+        QMMIter *QMMachine<QMPackage>::CreateNewIter() {
 
             QMMIter *newIter = new QMMIter(_iters.size());
             this->_iters.push_back(newIter);
@@ -591,8 +588,8 @@ namespace votca {
         }
          */
 
-        template<class XQMPackage>
-        bool QMMachine<XQMPackage>::hasConverged() {
+        template<class QMPackage>
+        bool QMMachine<QMPackage>::hasConverged() {
 
             _convg_dR = false;
             _convg_dQ = false;
@@ -609,9 +606,9 @@ namespace votca {
                 double dE_QM = iter_1->getQMEnergy() - iter_0->getQMEnergy();
                 double dE_MM = iter_1->getMMEnergy() - iter_0->getMMEnergy();
 
-                LOG(CTP::logINFO, *_log)
+                LOG(ctp::logINFO, *_log)
                         << format("... dE_QM  = %1$+4.9e") % dE_QM << flush;
-                LOG(CTP::logINFO, *_log)
+                LOG(ctp::logINFO, *_log)
                         << format("... dE_MM  = %1$+4.9e") % dE_MM << flush;
 
                 if (dR <= _crit_dR) _convg_dR = true;
@@ -624,36 +621,36 @@ namespace votca {
 
 
 
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... Convg dR = %s") % (_convg_dR ? "true" : "false") << flush;
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... Convg dQ = %s") % (_convg_dQ ? "true" : "false") << flush;
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... Convg QM = %s") % (_convg_dE_QM ? "true" : "false") << flush;
-            LOG(CTP::logINFO, *_log)
+            LOG(ctp::logINFO, *_log)
                     << format("... Convg MM = %s") % (_convg_dE_MM ? "true" : "false") << flush;
 
             return _isConverged;
         }
 
-        void QMMIter::ConvertPSitesToQMAtoms(std::vector< CTP::PolarSeg* > &psegs,
-                std::vector< CTP::QMAtom * > &qmatoms) {
+        void QMMIter::ConvertPSitesToQMAtoms(std::vector< ctp::PolarSeg* > &psegs,
+                std::vector< ctp::QMAtom * > &qmatoms) {
 
             assert(qmatoms.size() == 0);
             return;
         }
 
-        void QMMIter::ConvertQMAtomsToPSites(std::vector< CTP::QMAtom* > &qmatoms,
-                std::vector< CTP::PolarSeg* > &psegs) {
+        void QMMIter::ConvertQMAtomsToPSites(std::vector< ctp::QMAtom* > &qmatoms,
+                std::vector< ctp::PolarSeg* > &psegs) {
             assert(qmatoms.size() == 0);
             return;
         }
 
-        void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, std::vector< CTP::PolarSeg* > &psegs) {
+        void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, std::vector< ctp::PolarSeg* > &psegs) {
 
 
             for (unsigned int i = 0, qac = 0; i < psegs.size(); ++i) {
-                CTP::PolarSeg *pseg = psegs[i];
+                ctp::PolarSeg *pseg = psegs[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j, ++qac) {
 
                     // Retrieve multipole info of this atom
@@ -674,7 +671,7 @@ namespace votca {
                     //cout << "updating quadru of atom " << qac << " to " << update[4] << " : " << update[5] << " : " << update[6] << " : " << update[7] << " : " << update[8] << endl;
 
                     // Compare to previous r, Q00
-                    CTP::APolarSite *aps = (*pseg)[j];
+                    ctp::APolarSite *aps = (*pseg)[j];
                     //vec old_r = aps->getPos();
                     //double old_Q00 = aps->getQ00();
                     //vec old_Q1 = aps->getQ1();
@@ -700,8 +697,8 @@ namespace votca {
 
         }
 
-        void QMMIter::UpdatePosChrgFromQMAtoms(std::vector< CTP::QMAtom* > &qmatoms,
-                std::vector< CTP::PolarSeg* > &psegs) {
+        void QMMIter::UpdatePosChrgFromQMAtoms(std::vector< ctp::QMAtom* > &qmatoms,
+                std::vector< ctp::PolarSeg* > &psegs) {
 
             double AA_to_NM = 0.1; // Angstrom to nanometer
 
@@ -710,18 +707,18 @@ namespace votca {
             double dQ_SUM = 0.0;
 
             for (unsigned int i = 0, qac = 0; i < psegs.size(); ++i) {
-                CTP::PolarSeg *pseg = psegs[i];
+                ctp::PolarSeg *pseg = psegs[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j, ++qac) {
 
-                    // Retrieve info from QMAtom
-                    CTP::QMAtom *qmatm = qmatoms[qac];
+                    // Retrieve info from ctp::QMAtom
+                    ctp::QMAtom *qmatm = qmatoms[qac];
                     vec upd_r = vec(qmatm->x, qmatm->y, qmatm->z);
                     upd_r *= AA_to_NM;
                     double upd_Q00 = qmatm->charge;
                     //cout << "updating charge to " << qmatm->charge << endl;
 
                     // Compare to previous r, Q00
-                    CTP::APolarSite *aps = (*pseg)[j];
+                    ctp::APolarSite *aps = (*pseg)[j];
                     vec old_r = aps->getPos();
                     double old_Q00 = aps->getQ00();
                     double dR = abs(upd_r - old_r);
@@ -750,17 +747,17 @@ namespace votca {
             this->setdRdQ(dR_RMS, dQ_RMS, dQ_SUM);
         }
 
-        void QMMIter::GenerateQMAtomsFromPolarSegs(CTP::PolarTop *ptop, Orbitals &orb,
+        void QMMIter::GenerateQMAtomsFromPolarSegs(ctp::PolarTop *ptop, Orbitals &orb,
                 bool split_dpl, double dpl_spacing) {
 
-            double AA_to_NM = 0.1; // Angstrom to nanometer
+            double AA_to_NM = tools::conv::ang2nm;
 
             // INNER SHELL QM0
             for (unsigned int i = 0; i < ptop->QM0().size(); ++i) {
-                CTP::PolarSeg *pseg = ptop->QM0()[i];
+                ctp::PolarSeg *pseg = ptop->QM0()[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j) {
 
-                    CTP::APolarSite *aps = (*pseg)[j];
+                    ctp::APolarSite *aps = (*pseg)[j];
                     vec pos = aps->getPos() / AA_to_NM;
                     double Q = aps->getQ00();
                     string type = "qm";
@@ -772,10 +769,10 @@ namespace votca {
 
             // MIDDLE SHELL MM1
             for (unsigned int i = 0; i < ptop->MM1().size(); ++i) {
-                CTP::PolarSeg *pseg = ptop->MM1()[i];
+                ctp::PolarSeg *pseg = ptop->MM1()[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j) {
 
-                    CTP::APolarSite *aps = (*pseg)[j];
+                    ctp::APolarSite *aps = (*pseg)[j];
                     vec pos = aps->getPos() / AA_to_NM;
                     double Q = aps->getQ00();
                     string type = "mm";
@@ -783,10 +780,8 @@ namespace votca {
                     orb.AddAtom(aps->getName(), pos.x(), pos.y(), pos.z(), Q, true);
 
                     if (split_dpl) {
-                        //vec tot_dpl = vec(aps->U1x, aps->U1y, aps->U1z);
-                        vec tot_dpl = aps->getU1(); // access function
+                        vec tot_dpl = aps->getU1();
                         if (aps->getRank() > 0) {
-                            //tot_dpl += vec(aps->Q1x, aps->Q1y, aps->Q1z);
                             tot_dpl += aps->getQ1();
                         }
                         // Calculate virtual charge positions
@@ -813,10 +808,10 @@ namespace votca {
 
             // OUTER SHELL MM2
             for (unsigned int i = 0; i < ptop->MM2().size(); ++i) {
-                CTP::PolarSeg *pseg = ptop->MM2()[i];
+                ctp::PolarSeg *pseg = ptop->MM2()[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j) {
 
-                    CTP::APolarSite *aps = (*pseg)[j];
+                    ctp::APolarSite *aps = (*pseg)[j];
                     vec pos = aps->getPos() / AA_to_NM;
                     double Q = aps->getQ00();
                     string type = "mm";
@@ -880,7 +875,7 @@ namespace votca {
 
 
         // REGISTER QM PACKAGES
-        template class QMMachine<XQMPackage>;
+        template class QMMachine<QMPackage>;
 
 
 
