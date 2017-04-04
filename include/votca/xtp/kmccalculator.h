@@ -111,7 +111,7 @@ protected:
             unsigned _outputsteps;
             
             int _seed;
-            int _numberofcharges;
+            unsigned _numberofcharges;
             tools::vec _field;
             int _carriertype;
             double _temperature;

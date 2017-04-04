@@ -228,7 +228,6 @@ namespace votca {
                         break;}  
 
                 }
-                tools::vec *dr= NULL;
 
                 if (CheckForbidden(oldnode->id, forbiddennodes)) {
                     continue;
@@ -266,7 +265,6 @@ namespace votca {
                             }
                     else{
                     newnode = _nodes[event->destination];
-                    dr = &(event->dr);
                     }
 
                     // check after the event if this was allowed
@@ -286,7 +284,7 @@ namespace votca {
                         newnode->occupied = 1;
                         oldnode->occupied = 0;
                         affectedcarrier->node = newnode;
-                        affectedcarrier->dr_travelled += *(dr);
+                        affectedcarrier->dr_travelled += event->dr;
                         secondlevel=false;
 
                         break; // this ends LEVEL 2 , so that the time is updated and the next MC step started
