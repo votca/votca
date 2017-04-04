@@ -27,6 +27,7 @@
 #include "calculators/jobwriter.h"
 #include "calculators/einternal.h"
 #include "calculators/kmclifetime.h"
+#include "calculators/kmcmultiple.h"
 
 namespace votca { namespace xtp {
 
@@ -40,5 +41,6 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<JobWriter>           ("xjobwriter");
         Calculators().Register<EInternal>           ("xeinternal");
         Calculators().Register<KMCLifetime>         ("kmclifetime");
+        Calculators().Register<KMCMultiple>         ("kmcmultiple");
 }
 }}

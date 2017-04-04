@@ -108,7 +108,7 @@ protected:
            
             std::string _injection_name;
             std::string _injectionmethod;
-            unsigned _outputsteps;
+            
             
             int _seed;
             unsigned _numberofcharges;

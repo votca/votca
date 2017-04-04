@@ -312,7 +312,10 @@ namespace votca {
             double occupationprobability=_nodes[i]->occupationtime / simtime;
             seg[i]->setOcc(occupationprobability,_carriertype);
         }
-
+        traj.close();
+        if(_do_carrierenergy){
+            energyfile.close();
+        }
         return;
     }
 
@@ -333,7 +336,16 @@ namespace votca {
 
         LoadGraph(top);
         ReadLifetimeFile(_lifetimefile);
-        InitialRates();
+        
+        if(_rates == "calculate")
+        {
+           cout << "Calculating rates (i.e. rates from state file are not used)." << endl;
+            InitialRates();
+        }
+        else
+        {
+            cout << "Using rates from state file." << endl;
+        }
         RunVSSM(top);
 
         time_t now = time(0);
