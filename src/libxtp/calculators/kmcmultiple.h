@@ -233,7 +233,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
         cout << "Average energy per charge carrier: " << energypercarrier << " eV."<< endl;
         
         double stepwidth = std::abs(fermienergy)/1000;
-        int inside = 0;
+        unsigned inside = 0;
         while(inside < _numberofcharges){
             inside = 0;
             deltaE += stepwidth;
@@ -370,16 +370,14 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
 
             
             // determine which electron will escape
-            GNode* do_oldnode;
-            GNode* do_newnode;
-            Chargecarrier* do_affectedcarrier;
+            GNode* do_oldnode= NULL;
+            GNode* do_newnode= NULL;
+            Chargecarrier* do_affectedcarrier=NULL;
             
             double u = 1 - _RandomVariable->rand_uniform();
-            for(unsigned int i=0; i<_numberofcharges; i++)
-            {
+            for(unsigned int i=0; i<_numberofcharges; i++){
                 u -= carriers[i]->node->getEscapeRate()/cumulated_rate;
-                if(u <= 0)
-                {
+                if(u <= 0){
                     do_oldnode = carriers[i]->node;
                     do_affectedcarrier = carriers[i];
                     break;
@@ -409,7 +407,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
                 }
 
 
-                do_newnode = NULL;
+             
                 u = 1 - _RandomVariable->rand_uniform();
                 for(unsigned int j=0; j<do_oldnode->events.size(); j++){
                     if(tools::globals::verbose) { cout << " " << do_oldnode->events[j].destination+1 ; }
