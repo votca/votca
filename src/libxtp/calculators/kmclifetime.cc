@@ -15,7 +15,7 @@
  *
  */
 
-#include "calculators/kmclifetime.h"
+#include "kmclifetime.h"
 #include <votca/xtp/gnode.h>
 #include <votca/tools/property.h>
 #include <votca/tools/constants.h>
