@@ -37,7 +37,7 @@
 #include <votca/tools/globals.h>
 #include <votca/tools/random2.h>
 
-#include <tr1/unordered_map>
+
 #include <votca/xtp/gnode.h>
 #include <math.h> // needed for fmod()
 
@@ -46,7 +46,6 @@ using namespace std;
 namespace votca { namespace xtp {
 
   
-    const static double epsr = 3.0; // relative material permittivity
    
 
 
@@ -73,8 +72,7 @@ private:
                     double tof_travelled;
                     
             };
-            typedef std::tr1::unordered_map<unsigned long, double> CoulombMap;
-            typedef CoulombMap::const_iterator CoulombIt;
+          
 
 	    vector<GNode*>  LoadGraph();
 	    KMCMultiple::CoulombMap LoadCoulomb(int numberofnodes);

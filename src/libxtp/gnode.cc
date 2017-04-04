@@ -16,10 +16,9 @@
  */
 
 #include "votca/xtp/gnode.h"
-#include <votca/ctp/segments.h>
+
 #include <votca/tools/property.h>
 #include <boost/format.hpp>
-#include <segment.h>
 
 using namespace std;
 
@@ -66,7 +65,7 @@ void GNode::InitEscapeRate()
 
  void GNode::ReadfromSegment(ctp::Segment* seg,int carriertype){
      
-     position=seg->getPos()*conv::;
+     position=seg->getPos();
      id=seg->getId();
      siteenergy=seg->getSiteEnergy(carriertype);
      if (carriertype<2){
@@ -77,6 +76,18 @@ void GNode::InitEscapeRate()
           reorg_intorig=seg->getU_nX_nN(carriertype);
          reorg_intdest=seg->getU_xN_xX(carriertype);
      }
+    return; 
+ }
+ 
+ 
+ void GNode::AddEventfromQmPair(ctp::QMPair* pair,int carriertype){
+    int destination=pair->Seg2()->getId();
+    tools::vec dr=pair->getR();
+    double rate12=pair->getRate12(carriertype);
+    double Jeff2=pair->getJeff2(carriertype);
+    double reorg_out=pair->getLambdaO(carriertype);
+    AddEvent(destination,rate12,dr,Jeff2,reorg_out);
+     
     return; 
  }
         

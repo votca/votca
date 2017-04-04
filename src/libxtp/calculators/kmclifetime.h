@@ -32,16 +32,14 @@
 
 #include <votca/tools/vec.h>
 #include <votca/tools/matrix.h>
-#include <votca/tools/statement.h>
-#include <votca/tools/database.h>
 #include <votca/tools/tokenizer.h>
 #include <votca/tools/globals.h>
 #include <votca/tools/random2.h>
 
-#include <tr1/unordered_map>
+
 #include <votca/xtp/gnode.h>
 #include <math.h> // needed for fmod()
-
+#include <votca/ctp/qmcalculator.h>
 using namespace std;
 
 namespace votca { namespace xtp {
@@ -55,8 +53,8 @@ public:
     KMCLifetime() {};
    ~KMCLifetime() {};
    std::string Identify() { return "kmclifetime"; }
-    void Initialize(Property *options);
-    bool EvaluateFrame();
+    void Initialize(tools::Property *options);
+    bool EvaluateFrame(ctp::Topology *top);
 
 private:
        
@@ -66,40 +64,43 @@ private:
                 public:
                     Chargecarrier(): lifetime(0.0),steps(0) 
                     {
-                        dr_travelled=vec(0.0,0.0,0.0);
+                        dr_travelled=tools::vec(0.0,0.0,0.0);
                     }
                     void updateLifetime(double dt) { lifetime+=dt;}
                     void updateSteps(unsigned t) { steps+=t;}
-                    void resetCarrier() { lifetime=0;steps=0; dr_travelled=vec(0.0,0.0,0.0);}
+                    void resetCarrier() { lifetime=0;steps=0; dr_travelled=tools::vec(0.0,0.0,0.0);}
                     const double& getLifetime(){return lifetime;}
                     const unsigned& getSteps(){return steps;}
                     
                     int id;
                     GNode *node;
-                    vec dr_travelled;
+                    tools::vec dr_travelled;
                     
                 private:
                     double lifetime;
                     unsigned steps;
             };
             
+            std::string CarrierInttoLongString(int carriertype);
+            std::string CarrierInttoShortString(int carriertype);
+            int StringtoCarriertype(std::string name);
             
-	    vector<GNode*>  LoadGraph();
-            vector<double>  RunVSSM(tools::Random2 *RandomVariable);
+	    void LoadGraph(ctp::Topology *top);
+            void  RunVSSM(ctp::Topology *top);
             void InitialRates();
-            void InitBoxSize();
             void progressbar(double fraction);
             void ReadLifetimeFile( string filename);
-            double Promotetime(double cumulated_rate,tools::Random2 * RandomVariable);
-            void ResetForbiddenlist(vector<int> &forbiddenid);
-            void AddtoForbiddenlist(int id, vector<int> &forbiddenid);
-            bool CheckForbidden(int id,const vector<int> &forbiddenlist);
-            bool CheckSurrounded(GNode* node,const vector<int> &forbiddendests);
-            GLink* ChooseHoppingDest(GNode* node,votca::tools::Random2 * RandomVariable);
+            double Promotetime(double cumulated_rate);
+            void ResetForbiddenlist(std::vector<int> &forbiddenid);
+            void AddtoForbiddenlist(int id, std::vector<int> &forbiddenid);
+            bool CheckForbidden(int id,const std::vector<int> &forbiddenlist);
+            bool CheckSurrounded(GNode* node,const std::vector<int> &forbiddendests);
+            GLink* ChooseHoppingDest(GNode* node);
             
-            //vec _field;
+            //tools::vec _field;
             
             std::vector<GNode*> _nodes;
+            tools::Random2 * _RandomVariable;
             bool _do_carrierenergy;
             string _energy_outputfile;
             double _alpha;

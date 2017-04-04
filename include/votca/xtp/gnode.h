@@ -20,7 +20,8 @@
 
 #include <votca/tools/vec.h>
 #include <votca/xtp/glink.h>
-
+#include <votca/ctp/segment.h>
+#include <votca/ctp/qmpair.h>
 
 
 
@@ -50,8 +51,8 @@ class GNode
         const double &getEscapeRate(){return escape_rate;}
         void InitEscapeRate();
         void AddDecayEvent(double _decayrate);
-        void ReadfromSegment(ctp::Segment* seg,std::string carriertype);
-        
+        void ReadfromSegment(ctp::Segment* seg, int carriertype);
+        void AddEventfromQmPair(ctp::QMPair* pair,int carriertype);
 };
 
 
