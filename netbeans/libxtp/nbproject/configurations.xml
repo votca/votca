@@ -80,6 +80,7 @@
       <itemPath>../../include/votca/xtp/gwbse.h</itemPath>
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
+      <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/lowdin.h</itemPath>
       <itemPath>../../include/votca/xtp/mixing.h</itemPath>
       <itemPath>../../include/votca/xtp/mulliken.h</itemPath>
@@ -152,6 +153,7 @@
       </logicalFolder>
       <logicalFolder name="f3" displayName="kmc" projectFiles="true">
         <itemPath>../../src/libxtp/gnode.cc</itemPath>
+        <itemPath>../../src/libxtp/kmccalculator.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f4" displayName="mbgft" projectFiles="true">
         <itemPath>../../src/libxtp/gwbse/bse.cc</itemPath>
@@ -372,6 +374,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobcalculatorfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/kmccalculator.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -729,6 +736,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/mixing.cc" ex="false" tool="1" flavor2="0">
@@ -960,6 +969,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobcalculatorfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/kmccalculator.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1316,6 +1330,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>

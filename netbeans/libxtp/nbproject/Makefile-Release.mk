@@ -75,6 +75,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/164445175/idft.o \
 	${OBJECTDIR}/_ext/164445175/iexcitoncl.o \
 	${OBJECTDIR}/_ext/164445175/igwbse.o \
+	${OBJECTDIR}/_ext/484478074/kmccalculator.o \
 	${OBJECTDIR}/_ext/484478074/lowdin.o \
 	${OBJECTDIR}/_ext/484478074/mixing.o \
 	${OBJECTDIR}/_ext/484478074/mulliken.o \
@@ -330,6 +331,11 @@ ${OBJECTDIR}/_ext/164445175/igwbse.o: nbproject/Makefile-${CND_CONF}.mk ../../sr
 	${MKDIR} -p ${OBJECTDIR}/_ext/164445175
 	${RM} $@.d
 	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/164445175/igwbse.o ../../src/libxtp/jobcalculators/igwbse.cc
+
+${OBJECTDIR}/_ext/484478074/kmccalculator.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/kmccalculator.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/_ext/484478074/kmccalculator.o ../../src/libxtp/kmccalculator.cc
 
 ${OBJECTDIR}/_ext/484478074/lowdin.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/lowdin.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
