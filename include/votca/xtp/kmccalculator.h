@@ -35,7 +35,7 @@
 #include <votca/tools/tokenizer.h>
 #include <votca/tools/globals.h>
 #include <votca/tools/random2.h>
-
+#include <votca/xtp/chargecarrier.h>
 
 #include <votca/xtp/gnode.h>
 #include <votca/ctp/qmcalculator.h>
@@ -62,29 +62,7 @@ public:
    
 protected:
        
-        
-            class Chargecarrier
-            {
-                public:
-                    Chargecarrier(): lifetime(0.0),steps(0) 
-                    {
-                        dr_travelled=tools::vec(0.0,0.0,0.0);
-                    }
-                    ~Chargecarrier(){};
-                    void updateLifetime(double dt) { lifetime+=dt;}
-                    void updateSteps(unsigned t) { steps+=t;}
-                    void resetCarrier() { lifetime=0;steps=0; dr_travelled=tools::vec(0.0,0.0,0.0);}
-                    const double& getLifetime(){return lifetime;}
-                    const unsigned& getSteps(){return steps;}
-                    
-                    int id;
-                    GNode *node;
-                    tools::vec dr_travelled;
-                    
-                private:
-                    double lifetime;
-                    unsigned steps;
-            };
+       
             
             std::string CarrierInttoLongString(int carriertype);
             std::string CarrierInttoShortString(int carriertype);
@@ -100,10 +78,15 @@ protected:
             bool CheckForbidden(int id,const std::vector<int> &forbiddenlist);
             bool CheckSurrounded(GNode* node,const std::vector<int> &forbiddendests);
             GLink* ChooseHoppingDest(GNode* node);
+            Chargecarrier* ChooseAffectedCarrier(double cumulated_rate);
             
+            
+            void RandomlyCreateCharges();
+            void RandomlyAssignCarriertoSite(Chargecarrier* Charge);
             //tools::vec _field;
             
             std::vector<GNode*> _nodes;
+            std::vector< Chargecarrier* > _carriers;
             tools::Random2 * _RandomVariable;
            
             std::string _injection_name;

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="90">
+<configurationDescriptor version="95">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -10,6 +10,7 @@
         <itemPath>../../src/libxtp/calculators/jobwriter.h</itemPath>
         <itemPath>../../src/libxtp/calculators/kmclifetime.cc</itemPath>
         <itemPath>../../src/libxtp/calculators/kmclifetime.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/kmcmultiple.cc</itemPath>
         <itemPath>../../src/libxtp/calculators/kmcmultiple.h</itemPath>
         <itemPath>../../src/libxtp/calculators/neighborlist.h</itemPath>
         <itemPath>../../src/libxtp/calculators/rates.h</itemPath>
@@ -65,6 +66,7 @@
       <itemPath>../../include/votca/xtp/bsecoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/bulkesp.h</itemPath>
       <itemPath>../../include/votca/xtp/calculatorfactory.h</itemPath>
+      <itemPath>../../include/votca/xtp/chargecarrier.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/diis.h</itemPath>
       <itemPath>../../include/votca/xtp/elements.h</itemPath>
@@ -327,6 +329,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/chargecarrier.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/dftengine.h"
             ex="false"
             tool="3"
@@ -560,6 +567,11 @@
       <item path="../../src/libxtp/calculators/kmclifetime.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/kmcmultiple.cc"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/kmcmultiple.h"
@@ -922,6 +934,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/chargecarrier.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/dftengine.h"
             ex="false"
             tool="3"
@@ -1155,6 +1172,11 @@
       <item path="../../src/libxtp/calculators/kmclifetime.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/kmcmultiple.cc"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/kmcmultiple.h"

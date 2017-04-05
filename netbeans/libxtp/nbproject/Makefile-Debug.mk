@@ -53,6 +53,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/calculatorfactory.o \
 	${OBJECTDIR}/_ext/1355216796/jobwriter.o \
 	${OBJECTDIR}/_ext/1355216796/kmclifetime.o \
+	${OBJECTDIR}/_ext/1355216796/kmcmultiple.o \
 	${OBJECTDIR}/_ext/1584959903/dftengine.o \
 	${OBJECTDIR}/_ext/484478074/diis.o \
 	${OBJECTDIR}/_ext/484478074/esp2multipole.o \
@@ -221,6 +222,11 @@ ${OBJECTDIR}/_ext/1355216796/kmclifetime.o: ../../src/libxtp/calculators/kmclife
 	${MKDIR} -p ${OBJECTDIR}/_ext/1355216796
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1355216796/kmclifetime.o ../../src/libxtp/calculators/kmclifetime.cc
+
+${OBJECTDIR}/_ext/1355216796/kmcmultiple.o: ../../src/libxtp/calculators/kmcmultiple.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1355216796
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1355216796/kmcmultiple.o ../../src/libxtp/calculators/kmcmultiple.cc
 
 ${OBJECTDIR}/_ext/1584959903/dftengine.o: ../../src/libxtp/dftengine/dftengine.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1584959903

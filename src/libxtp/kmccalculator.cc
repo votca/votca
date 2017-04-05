@@ -41,9 +41,9 @@ namespace votca {
             _nodes.push_back(newNode);
             _nodes[i]->ReadfromSegment(seg[i], _carriertype);
             if (tools::wildcmp(_injection_name.c_str(), seg[i]->getName().c_str())) {
-                _nodes[i]->injectable = 1;
+                _nodes[i]->injectable = true;
             } else {
-                _nodes[i]->injectable = 0;
+                _nodes[i]->injectable = false;
             }
         }
 
@@ -171,6 +171,37 @@ namespace votca {
             }
             return carriertype;
         }
+         
+         
+         void KMCCalculator::RandomlyCreateCharges(){
+         
+        
+        cout << "looking for injectable nodes..." << endl;
+        for (unsigned int i = 0; i < _numberofcharges; i++) {
+            Chargecarrier *newCharge = new Chargecarrier;
+            newCharge->id = i;
+            RandomlyAssignCarriertoSite(newCharge);
+            
+            cout << "starting position for charge " << i + 1 << ": segment " << newCharge->getCurrentNodeId()+1 << endl;
+            _carriers.push_back(newCharge);
+        }
+        return;
+         }
+         
+         void KMCCalculator::RandomlyAssignCarriertoSite(Chargecarrier* Charge){
+            int nodeId_guess=-1;
+            do{
+            nodeId_guess=_RandomVariable->rand_uniform_int(_nodes.size());   
+            }
+            while (_nodes[nodeId_guess]->occupied || _nodes[nodeId_guess]->injectable==false ); // maybe already occupied? or maybe not injectable?
+            if (Charge->hasNode()){
+                Charge->jumpfromCurrentNodetoNode(_nodes[nodeId_guess]);
+            }
+            else{
+            Charge->settoNote(_nodes[nodeId_guess]);
+            }
+             return;
+         }
         
         void KMCCalculator::InitialRates() {
             
@@ -277,8 +308,20 @@ namespace votca {
             return NULL;
         }
         
+        Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate){
+            Chargecarrier* carrier=NULL;
+                double u = 1 - _RandomVariable->rand_uniform();
+                for (unsigned int i = 0; i < _numberofcharges; i++) {
+                    u -= _carriers[i]->getCurrentEscapeRate() / cumulated_rate;
 
+                    if (u <= 0 || i==_numberofcharges-1) {
+                       
+                        carrier = _carriers[i];
+                        break;}  
 
+                }
+                return carrier;
+        }
     
     }
 }

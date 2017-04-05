@@ -35,8 +35,8 @@ class GNode
         ~GNode(){};
 
         int id;
-        int occupied;
-        int injectable;
+        bool occupied;
+        bool injectable;
         double occupationtime;
         double escape_rate;
         bool hasdecay;
