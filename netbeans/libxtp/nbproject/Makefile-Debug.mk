@@ -88,6 +88,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/overlap.o \
 	${OBJECTDIR}/_ext/484478074/qmapemachine.o \
 	${OBJECTDIR}/_ext/484478074/qmdatabase.o \
+	${OBJECTDIR}/_ext/484478074/qminterface.o \
+	${OBJECTDIR}/_ext/484478074/qmiter.o \
 	${OBJECTDIR}/_ext/484478074/qmmachine.o \
 	${OBJECTDIR}/_ext/484478074/qmpackagefactory.o \
 	${OBJECTDIR}/_ext/1619336126/cpmd.o \
@@ -397,6 +399,16 @@ ${OBJECTDIR}/_ext/484478074/qmdatabase.o: ../../src/libxtp/qmdatabase.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/qmdatabase.o ../../src/libxtp/qmdatabase.cc
+
+${OBJECTDIR}/_ext/484478074/qminterface.o: ../../src/libxtp/qminterface.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/qminterface.o ../../src/libxtp/qminterface.cc
+
+${OBJECTDIR}/_ext/484478074/qmiter.o: ../../src/libxtp/qmiter.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/qmiter.o ../../src/libxtp/qmiter.cc
 
 ${OBJECTDIR}/_ext/484478074/qmmachine.o: ../../src/libxtp/qmmachine.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074

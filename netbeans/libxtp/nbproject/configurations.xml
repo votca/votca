@@ -91,6 +91,8 @@
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
       <itemPath>../../include/votca/xtp/qmapemachine.h</itemPath>
       <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
+      <itemPath>../../include/votca/xtp/qminterface.h</itemPath>
+      <itemPath>../../include/votca/xtp/qmiter.h</itemPath>
       <itemPath>../../include/votca/xtp/qmmachine.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackage.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackagefactory.h</itemPath>
@@ -188,6 +190,8 @@
       <itemPath>../../src/libxtp/overlap.cc</itemPath>
       <itemPath>../../src/libxtp/qmapemachine.cc</itemPath>
       <itemPath>../../src/libxtp/qmdatabase.cc</itemPath>
+      <itemPath>../../src/libxtp/qminterface.cc</itemPath>
+      <itemPath>../../src/libxtp/qmiter.cc</itemPath>
       <itemPath>../../src/libxtp/qmmachine.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libxtp/threecenter_rep.cc</itemPath>
@@ -414,6 +418,13 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qminterface.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmiter.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmpackage.h"
             ex="false"
@@ -781,6 +792,10 @@
       </item>
       <item path="../../src/libxtp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/qminterface.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmiter.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/qmmachine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackagefactory.cc"
@@ -1019,6 +1034,13 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qminterface.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmiter.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmpackage.h"
             ex="false"
@@ -1385,6 +1407,10 @@
       <item path="../../src/libxtp/qmapemachine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qminterface.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmiter.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmmachine.cc" ex="false" tool="1" flavor2="0">
       </item>
