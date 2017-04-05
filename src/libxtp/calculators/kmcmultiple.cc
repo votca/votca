@@ -84,7 +84,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
     bool checkifoutput=(_outputtime != 0);
     double nexttrajoutput=_runtime;
     unsigned long maxsteps=_runtime;
-    unsigned long outputsteps=_outputtime;
+    unsigned long outputstep=_outputtime;
     bool stopontime=false;
 
     if(_runtime > 100){ 
@@ -272,7 +272,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
         }
         
         
-        bool outputsteps=(!stopontime && step%outputsteps==0);
+        bool outputsteps=(!stopontime && step%outputstep==0);
         bool outputtime=(stopontime && simtime>nexttrajoutput);
         if(checkifoutput && (outputsteps || outputtime)){
             // write to trajectory file
