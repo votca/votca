@@ -286,7 +286,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
     return 0
   fi
 
-  [[ -n $CSGXMLFILE ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
+  [[ -n "$CSGXMLFILE" ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n $bondtype ]] || die "${FUNCNAME[0]}: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
   [[ -n $bondname ]] || die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"
 
@@ -331,11 +331,11 @@ csg_get_property () { #get an property from the xml file
     allow_empty="no"
   fi
   [[ -n $1 ]] || die "${FUNCNAME[0]}: Missing argument"
-  [[ -n $CSGXMLFILE ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
+  [[ -n "$CSGXMLFILE" ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n "$(type -p csg_property)" ]] || die "${FUNCNAME[0]}: Could not find csg_property"
   #csg_property only fails if xml file is bad otherwise result is empty
   #leave the -q here to avoid flooding with messages
-  ret="$(critical -q csg_property --file $CSGXMLFILE --path ${1} --short --print . | trim_all)"
+  ret="$(critical -q csg_property --file "$CSGXMLFILE" --path ${1} --short --print . | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
   [[ -z $ret ]] && echo "${FUNCNAME[0]}: No value for '$1' found in $CSGXMLFILE, trying $VOTCASHARE/xml/csg_defaults.xml" >&2
@@ -587,7 +587,7 @@ get_table_comment() { #get comment lines from a table and add common information
   version="$(csg_call --version)" || die "${FUNCNAME[0]}: csg_call --version failed"
   echo "Created on $(date) by $USER@$HOSTNAME"
   echo "called from $version" | sed "s/csg_call/${0##*/}/"
-  [[ -n ${CSGXMLFILE} ]] && echo "settings file: $(globalize_file $CSGXMLFILE)"
+  [[ -n "${CSGXMLFILE}" ]] && echo "settings file: $(globalize_file \"$CSGXMLFILE\")"
   echo "working directory: $PWD"
   if [[ -f $1 ]]; then 
     co=$(sed -n 's/^[#@][[:space:]]*//p' "$1") || die "${FUNCNAME[0]}: sed failed"
