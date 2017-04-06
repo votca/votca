@@ -587,7 +587,7 @@ get_table_comment() { #get comment lines from a table and add common information
   version="$(csg_call --version)" || die "${FUNCNAME[0]}: csg_call --version failed"
   echo "Created on $(date) by $USER@$HOSTNAME"
   echo "called from $version" | sed "s/csg_call/${0##*/}/"
-  [[ -n "${CSGXMLFILE}" ]] && echo "settings file: $(globalize_file \"$CSGXMLFILE\")"
+  [[ -n "${CSGXMLFILE}" ]] && echo "settings file: '$(globalize_file "${CSGXMLFILE}")'"
   echo "working directory: $PWD"
   if [[ -f $1 ]]; then 
     co=$(sed -n 's/^[#@][[:space:]]*//p' "$1") || die "${FUNCNAME[0]}: sed failed"
