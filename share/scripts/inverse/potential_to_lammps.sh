@@ -119,7 +119,9 @@ smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
 critical csg_resample --in ${scale} --out "$smooth" --grid "${table_begin}:${step}:${table_end}"
 
 extrapol="$(critical mktemp ${trunc}.pot.extrapol.XXXXX)"
-do_external potential extrapolate ${clean:+--clean} --type "$bondtype" "${smooth}" "${extrapol}"
+lfct="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_left_extrapolation)"
+rfct="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_right_extrapolation)"
+do_external potential extrapolate ${clean:+--clean} ${lfct:+--lfct ${lfct}} ${rfct:+--rfct ${rfct}} --type "$bondtype" "${smooth}" "${extrapol}"
 
 interpol="$(critical mktemp ${trunc}.pot.interpol.XXXXX)"
 deriv="$(critical mktemp ${trunc}.pot.deriv.XXXXX)"

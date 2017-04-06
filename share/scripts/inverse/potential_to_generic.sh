@@ -54,7 +54,9 @@ else
   smooth2="$(critical mktemp ${trunc}.pot.extended.XXXXX)"
   critical csg_resample --in ${input} --out "${smooth2}" --grid "${table_begin}:${step}:${table_end}" --comment "$comment"
   extrapolate="$(critical mktemp ${trunc}.pot.extrapolated.XXXXX)"
-  do_external potential extrapolate --type "$bondtype" "${smooth2}" "${extrapolate}"
+  lfct="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_left_extrapolation)"
+  rfct="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_right_extrapolation)"
+  do_external potential extrapolate ${lfct:+--lfct ${lfct}} ${rfct:+--rfct ${rfct}} --type "$bondtype" "${smooth2}" "${extrapolate}"
   input="${extrapolate}"
 fi
 
