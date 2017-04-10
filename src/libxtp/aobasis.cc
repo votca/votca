@@ -150,7 +150,7 @@ void AOBasis::getTransformationCartToSpherical( string& package, ub::matrix<doub
 
 
 
-
+//only for gaussian package
 void AOBasis::addTrafoCartShell( AOShell* shell , ub::matrix_range< ub::matrix<double> >& _trafo ){
     
     // cout << "getting trafo of shell type :" << shell->getType() << endl;

@@ -200,9 +200,9 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
                 double exp_iat = _element_ranges.at((*ait)->type).alpha;
                 int    l_iat   = _element_ranges.at((*ait)->type).l;
                 
-                double x_a = (*ait)->x * 1.8897259886 ;
-                double y_a = (*ait)->y * 1.8897259886 ;
-                double z_a = (*ait)->z * 1.8897259886 ;
+                double x_a = (*ait)->x * tools::conv::bohr2ang;
+                double y_a = (*ait)->y * tools::conv::bohr2ang;
+                double z_a = (*ait)->z * tools::conv::bohr2ang;
                 
                 //int iat_diff;
                 string type_diff;
@@ -211,9 +211,9 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
                 
                       int _b_start = idxstart[bidx];
                       int _b_stop  = idxstop[bidx];
-                      double x_b = (*bit)->x * 1.8897259886 ;
-                      double y_b = (*bit)->y * 1.8897259886 ;
-                      double z_b = (*bit)->z * 1.8897259886 ;
+                      double x_b = (*bit)->x * tools::conv::bohr2ang;
+                      double y_b = (*bit)->y * tools::conv::bohr2ang;
+                      double z_b = (*bit)->z * tools::conv::bohr2ang;
                       // now do some overlap gymnastics
                       double s_max = 10.0;
                       if ( aidx != bidx ){

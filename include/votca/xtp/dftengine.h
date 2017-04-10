@@ -97,13 +97,7 @@ public:
      double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
      ub::matrix<double> AverageShells(const ub::matrix<double>& dmat,AOBasis& dftbasis);
    
-    //bool   _maverick;
-    
-    // program tasks
-    //bool                                _do_qp_diag;
-    
-    // storage tasks
-    //bool                                _store_qp_pert;
+ 
     
     int                                 _openmp_threads;
     

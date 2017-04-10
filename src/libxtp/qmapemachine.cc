@@ -151,13 +151,7 @@ void QMAPEMachine<QMPackage>::Evaluate(ctp::XJob *job) {
     _qmpack->setCharge(chrg);
     _qmpack->setSpin(spin);
 
-    // GENERATE GRIDS
-    // ... TODO ...
-    // Generate QM atoms from _job->getPolarTop()->QM0();
-    // Move Iter::Generate::QMAtomsFromPolarSegs to QMMachine
-    // Generate grids, store as member
-    Orbitals basisforgrid;
-    std::vector<ctp::PolarSeg*> dummy;
+  
     
  
     

@@ -42,7 +42,7 @@ namespace votca { namespace xtp {
             NumericalIntegration():density_set(false) {};
 
             void GridSetup(std::string type, BasisSet* bs , std::vector<ctp::QMAtom* > _atoms  );
-            void FindsignificantAtoms(AOBasis* basis);
+            
             //void FindsignificantAtoms2(AOBasis* basis);
             //used for test purposes
             double StupidIntegrate( std::vector<double>& _data );
@@ -65,27 +65,30 @@ namespace votca { namespace xtp {
             
             // this gives int (e_xc-V_xc)*rho d3r
             double getTotEcontribution(){return EXC;}
-            //ub::matrix<double> StupidIntegrateVXC ( ub::matrix<double>& _density_matrix, AOBasis* basis  );
+          
             
         private:
             
-           
             
-            std::vector<double> SSWpartition( int ngrid, int igrid, int ncenters ,  std::vector< std::vector<double> >& rq, double ass );
-            std::vector<double> Rij;
-            ub::matrix<double> Rij_mat;
-            int _totalgridsize;
-            double erf1c(double x);
+            
+           void FindsignificantAtoms(AOBasis* basis);
+           double erf1c(double x);
             double erfcc(double x);
+            std::vector<double> SSWpartition( int ngrid, int igrid, int ncenters ,  std::vector< std::vector<double> >& rq );
+            
+            
+            std::vector<double> Rij;
+
+            double  _totalgridsize;
             std::vector< std::vector< GridContainers::integration_grid > > _grid;
             double EXC;
             bool density_set;
-            vector< vector< vector<int> > > _significant_atoms;
-            vector < int > _startIdx;
-            vector < int > _blocksize;
-            typedef vector< AOShell* >::iterator AOShellIterator;
-            vector< vector< AOShellIterator > > _atomshells;
-            vector< AOShellIterator > _singleatom;
+            std::vector< std::vector< std::vector<int> > > _significant_atoms;
+            std::vector < int > _startIdx;
+            std::vector < int > _blocksize;
+            typedef std::vector< AOShell* >::iterator AOShellIterator;
+            std::vector< std::vector< AOShellIterator > > _atomshells;
+            std::vector< AOShellIterator > _singleatom;
             std::vector< std::vector< ub::matrix<double> > >dmat_vector;
             std::vector< std::vector< std::vector< ub::matrix<double> > > > xcmat_vector_thread;
             std::vector< std::vector< ub::matrix<double> > > xcmat_vector;

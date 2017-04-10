@@ -27,14 +27,14 @@
 #include <boost/numeric/ublas/operation.hpp>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/threecenters.h>
-// #include <votca/xtp/logger.h>
+
 #include <votca/xtp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
 
-#include "votca/xtp/elements.h"
-#include "votca/xtp/diis.h"
+#include <votca/xtp/elements.h>
+#include <votca/xtp/diis.h>
 
 // #include <omp.h>
 
@@ -563,7 +563,6 @@ namespace votca {
             //this will not remain here but be moved to qmape
             if(_do_externalfield){
                 _gridIntegration_ext.GridSetup(_grid_name_ext,&_dftbasisset,_atoms);
-                _gridIntegration_ext.FindsignificantAtoms( &_dftbasis);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup numerical integration grid " << _grid_name_ext 
                         << " for external field with "<<_gridIntegration_ext.getGridpoints().size()<<" points"<< flush;
             }
@@ -680,7 +679,6 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                     ecp.ECPFill(&_ecpbasisset, atom);
                 }
                 gridIntegration.GridSetup(_grid_name, &_dftbasisset, atom);
-                gridIntegration.FindsignificantAtoms(&dftbasis);
 
                 int numofelectrons = int(_elements.getNucCrg((*st)->type));
                 int alpha_e=0;
@@ -870,7 +868,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                             
                             //ub::matrix<double> avdmat=AverageShells(dftAOdmat_alpha+dftAOdmat_beta,dftbasis);
                             
-                                    uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
+                            uniqueatom_guesses.push_back(dftAOdmat_alpha+dftAOdmat_beta);
                             //LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(avdmat,dftAOoverlap.Matrix())<<" electrons."<<flush;
                             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(dftAOdmat_alpha+dftAOdmat_beta,dftAOoverlap.Matrix())<<" electrons."<<flush;
                             break;
@@ -948,7 +946,6 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             
 	    // setup numerical integration grid
             _gridIntegration.GridSetup(_grid_name,&_dftbasisset,_atoms);
-            _gridIntegration.FindsignificantAtoms( &_dftbasis);
             
             
             
@@ -957,7 +954,6 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             
             if(_use_small_grid){
                  _gridIntegration_small.GridSetup(_grid_name_small,&_dftbasisset,_atoms);
-            _gridIntegration_small.FindsignificantAtoms( &_dftbasis);
 
 	    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup small numerical integration grid " << _grid_name_small << " for vxc functional " 
                     << _xc_functional_name<<" with " <<_gridIntegration_small.getGridpoints().size()<<" points"<< flush;

@@ -347,14 +347,7 @@ namespace votca {
                 // final stop must be size
                 _thread_stop[nthreads-1] = atom_points;
                 
-               /*
-                
-               for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
-                    
-                    cout << "Thread " << i_thread << " start " << _thread_start[i_thread] << " stop " << _thread_stop[i_thread] << endl; 
-                    
-                }
-                */ 
+             
                 #pragma omp parallel for
                 for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                 for (int j = _thread_start[i_thread]; j < _thread_stop[i_thread]; j++) {
@@ -428,11 +421,9 @@ namespace votca {
 
                         } //col shells
                                              
-                        //ub::matrix_range< ub::matrix<double> > _gradAOgridrow = ub::subrange(gradAOgrid, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], 0, 3);
+                       
                         ub::matrix_range< ub::matrix<double> > _gradAOgridrow = ub::subrange(gradAOgrid, 0,3, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);
-                        
-                        //rho_mat  += ub::prod(ub::trans(    _AOgridrow),_temp);
-                        //grad_rho += ub::prod(ub::trans(_gradAOgridrow),_temp) +  ub::prod(ub::trans(_tempgrad),_AOgridrow) ;
+                   
 
                         rho_mat  += ub::prod(_temp, ub::trans( _AOgridrow) );
                         grad_rho += ub::prod(_temp, ub::trans(_gradAOgridrow)) +  ub::prod(_AOgridrow,ub::trans(_tempgrad)) ;
@@ -460,7 +451,7 @@ namespace votca {
                     }                        // evaluate via LIBXC, if compiled, otherwise, go via own implementation
 
                     else {
-                        //double sigma = ub::prod(ub::trans(grad_rho),grad_rho)(0,0);
+                     
 
                         double sigma = ub::prod(grad_rho, ub::trans(grad_rho))(0, 0);
 
@@ -515,7 +506,7 @@ namespace votca {
                     
                         const ub::matrix_range< ub::matrix<double> > _rowXC = ub::subrange( _addXC, 0 , 1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);    
 
-                        //ub::matrix<double> _rowXC=ub::subrange( _addXC, 0 , 1, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom]);  
+                     
                         std::vector< ub::matrix<double> >& _XCmatblock = xcmat_vector_thread[i_thread][rowatom];
                         for (unsigned sigcol = 0; sigcol <_significant_atoms[i][j].size(); sigcol++) {
                             int colatom = _significant_atoms[i][j][sigcol];
@@ -548,9 +539,7 @@ namespace votca {
                 }
             }
              
-             
-            
-             
+
              ub::matrix<double> XCMAT = ub::zero_matrix<double>(basis->_AOBasisSize, basis->_AOBasisSize);
              
              #pragma omp parallel for
@@ -565,163 +554,11 @@ namespace votca {
         }
          
             XCMAT+=ub::trans(XCMAT);   
-
-
-         
-        
   
             return XCMAT;
         }
         
-        
-        /*
-          ub::symmetric_matrix<double> NumericalIntegration::IntegrateVXC_Atomblock2(const ub::matrix<double>& _density_matrix, AOBasis* basis,const string _functional){
-            EXC = 0;
-            if(_significant_atoms.size()<1){
-                throw runtime_error("NumericalIntegration::IntegrateVXC_Atomblock:significant atoms not found yet.");
-            }
-            // TODO: switch XC functionals implementation from LIBXC to base own calculation
-            ExchangeCorrelation _xc;
-            Vxc_Functionals map;
-            std::vector<string> strs;           
-            boost::split(strs, _functional, boost::is_any_of(" "));
-            int xfunc_id = 0;
-            
-#ifdef LIBXC
-            bool _use_votca = false;
-            bool _use_separate = false;
-            int cfunc_id = 0;
 
-            if (strs.size() == 1) {
-                xfunc_id = map.getID(strs[0]);
-                if (xfunc_id < 0) _use_votca = true;
-            }
-
-            else if (strs.size() == 2) {
-                cfunc_id = map.getID(strs[0]);
-                xfunc_id = map.getID(strs[1]);
-                _use_separate = true;
-            }
-            else {
-                throw std::runtime_error("Please specify one combined or an exchange and a correlation functionals");
-
-            }
-            xc_func_type xfunc; // handle for exchange functional
-            xc_func_type cfunc; // handle for correlation functional
-            if (!_use_votca){
-            if (xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED) != 0) {
-                fprintf(stderr, "Functional '%d' not found\n", xfunc_id);
-                exit(1);
-            }
-            
-            xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
-            if (xfunc.info->kind!=2 && !_use_separate){
-                throw std::runtime_error("Your functional misses either correlation or exchange, please specify another functional, separated by whitespace");
-            }
-            
-            if (_use_separate) {
-                if (xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED) != 0) {
-                    fprintf(stderr, "Functional '%d' not found\n", cfunc_id);
-                    exit(1);
-                }
-                xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED);
-                xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
-                if ((xfunc.info->kind+cfunc.info->kind)!=1){
-                    throw std::runtime_error("Your functionals are not one exchange and one correlation");
-                }
-            }
-            }
-#else
-         if (strs.size() == 1) {
-                xfunc_id = map.getID(strs[0]);
-            }   
-         else {
-                throw std::runtime_error("Please specify one combined or an exchange and a correlation functionals");
-         }
-#endif
-
-            ub::symmetric_matrix<double> XCMAT = ub::zero_matrix<double>(basis->_AOBasisSize);
-            for(unsigned i=0;i<XCMAT.size1();i++){
-                for(unsigned j=0;j<=i;j++){
-                    XCMAT(i,j)=0.0;
-                }
-            }
-            
-            
-            
-            
-            
-            
-            
-        //iterate for first shell
-           #pragma omp parallel for
-           for (int _row = 0;_row<basis->AOBasisSize(); _row++) {
-               
-               
-               
-                AOShell* _shell_row = basis->getShell(_row);
-                int _row_start = _shell_row->getStartIndex();
-                int _row_end   = _row_start + _shell_row->getNumFunc();
-                ub::matrix<double> ao_row=ub::matrix<double>(1,_shell_row->getNumFunc());
-                ub::matrix<double> ao_row_grad=ub::matrix<double>(3,_shell_row->getNumFunc());
-                const std::vector<unsigned>& _row_atoms=_atomsforshells[_row];
-                //iterate over second shell
-                for (int _col =0; _col <= _row; _col++) {
-                    const std::vector<unsigned>& _col_atoms=_atomsforshells[_col];
-                    bool check=false;
-                    for(unsigned i=0;i<_row_atoms.size();i++){
-                       for(unsigned j=0;j<_col_atoms.size();j++){
-                           if(_row_atoms[i]==_col_atoms[j]){check=true;}     
-                       }
-                    }
-                    if(!check){continue;}
-                    
-                    AOShell* _shell_col = basis->getShell(_col);
-                    ub::matrix<double> ao_col=ub::matrix<double>(1,_shell_col->getNumFunc());
-                    ub::matrix<double> ao_col_grad=ub::matrix<double>(3,_shell_col->getNumFunc());
-                    
-                    int _col_start = _shell_col->getStartIndex();
-                    int _col_end   = _col_start + _shell_col->getNumFunc();
-                    ub::matrix<double> xclocal = ub::zero_matrix<double>(_shell_row->getNumFunc(),_shell_col->getNumFunc());
-                    ub::matrix<double> lokaldmat= ub::subrange( _row_start, _row_end, _col_start, _col_end );
-                    
-                    //iterate over atoms for each shell to find those which belong to both
-                    for(unsigned i=0;i<_row_atoms.size();i++){
-                       for(unsigned j=0;j<_col_atoms.size();j++){
-                           //sort out the unnecessary atoms
-                           if(_row_atoms[i]!=_col_atoms[j]){continue;}
-                           for(unsigned k=0;k<_grid[i].size();k++){
-                               const vec& gridpos=_grid[i][k].grid_pos;
-                               ao_row=ub::zero_matrix<double>(1,_shell_row->getNumFunc());
-                               ao_row_grad=ub::zero_matrix<double>(3,_shell_row->getNumFunc());
-                               ao_col=ub::zero_matrix<double>(1,_shell_col->getNumFunc());
-                               ao_col_grad=ub::zero_matrix<double>(3,_shell_col->getNumFunc());
-                                _shell_row->EvalAOspace(ao_row, ao_row_grad, gridpos);
-                                _shell_col->EvalAOspace(ao_col, ao_col_grad , gridpos);
-                                ub::matrix<double> temp=ub::prod(ao_row,lokaldmat);
-                                double rho=ub::prod(temp,ub::trans(ao_col))(0,0);
-                                
-                               grad_rho += ub::prod(_temp, ub::trans(_gradAOgridrow)) +  ub::prod(_AOgridrow,ub::trans(_tempgrad)) ;
-                                
-                                
-                           }
-                           
-                       }
-                    }
-                    
-                    
-                    
-                    
-                    ub::subrange(XCMAT, _row_start, _row_end, _col_start, _col_end)=ub::matrix<double> xclocal;
-              
-                }
-          
-           }
-           
-            
-           return XCMAT;
-          } 
-         */   
             
         double NumericalIntegration::IntegratePotential(const vec& rvector){
             
@@ -775,12 +612,7 @@ namespace votca {
             _atomshells.push_back(_singleatom);
             _startIdx.push_back( _Idx );
                     _blocksize.push_back(_size);
-            //cout << " Number of atoms " << _atomshells.size() << endl;
-            
-            //for ( unsigned iatom = 0 ; iatom < _atomshells.size(); iatom++ ){
-            //    cout << "atom " << iatom << " number of shells " << _atomshells[iatom].size() << " block start " << _startIdx[iatom] << " functions in atom " << _blocksize[iatom] << endl; 
-            //}
-
+          
            
             // setup a list of min decay constants per atom
             // for every shell
@@ -828,17 +660,10 @@ namespace votca {
             // push final atom
             _minimal_decay.push_back(_decaymin);
             _positions.push_back( _localpos );
-             
-            /* for ( int i =0; i < _minimal_decay.size(); i++){
-                 
-                 cout << "Atom " << i << " min decay " << _minimal_decay[i] <<  " at " << _positions[i] << endl; 
-                 
-             } */
+            
                           
              // for each gridpoint, check the value of exp(-a*(r-R)^2) < 1e-10
              //                             = alpha*(r-R)^2 >~ 20.7
-            
-            
             
             // each atomic grid
             for (unsigned i = 0; i < _grid.size(); i++) {
@@ -932,53 +757,7 @@ namespace votca {
         return;
         }
         
-        
-        /*
-          void NumericalIntegration::FindsignificantAtoms2(AOBasis* basis){
-            
 
-             //find smalles decay e.g. largest extend of shell;
-              _atomsforshells.resize(basis->AOBasisSize());
-              #pragma omp parallel for
-           for (int _row = 0;_row<basis->AOBasisSize(); _row++) {
-                
-                AOShell* _shell_row = basis->getShell(_row);
-        
-                double _decaymin = 1e7;
-                for (AOShell::GaussianIterator itg = _shell_row->firstGaussian(); itg != _shell_row->lastGaussian(); itg++) {
-                         AOGaussianPrimitive* gaussian = *itg;
-                         double _decay = gaussian->decay;
-                         if (_decay < _decaymin) {
-                             _decaymin = _decay;
-                         } // decay min check
-                }
-                
-             
-             
-                vec pos_row =_shell_row->getPos();
-                std::vector<unsigned> atoms_for_shell;
-      
-
-                    for (unsigned k = 0; k < _grid.size(); k++) {
-                    
-                        for (unsigned l = 0; l < _grid[k].size();l++) {
-                               vec dist = _grid[k][l].grid_pos-pos_row; 
-                                double distsq = dist*dist ;
-                            if ( (_decaymin* distsq) < 20.7 ){
-                                atoms_for_shell.pop_back(k);
-                                break;
-                            }                   
-                        }
-                    }
-                _atomsforshells[_row]=atoms_for_shell;
-              
-            }
-        return;
-        }
-        */
-        
-        
-        
         double NumericalIntegration::IntegrateDensity_Atomblock(const ub::matrix<double>& _density_matrix, AOBasis* basis){   
             if(_significant_atoms.size()<1){
                 throw runtime_error("NumericalIntegration::IntegrateDensity_Atomblock:significant atoms not found yet.");
@@ -1156,11 +935,7 @@ namespace votca {
 
          //   cout << "Radial grid summary " << endl;
            map<string, GridContainers::radial_grid>::iterator it;
-         //   for (it = _grids._radial_grids.begin(); it != _grids._radial_grids.end(); ++it) {
-         //       cout << " Element " << it->first << " Number of points " << it->second.radius.size() << endl;
-         //  }
 
-            // get angular grid per element
             LebedevGrid _sphericalgrid;
            // cout << "Spherical grid summary " << endl;
             for (it = _grids._radial_grids.begin(); it != _grids._radial_grids.end(); ++it) {
@@ -1201,11 +976,7 @@ namespace votca {
                 i++;
             } // atoms
             
-            //cout << " Determined all inter-center distances " << endl;
-            
 
-            // combine the element-based information with the geometry
-        
 
             int i_atom = 0;
             _totalgridsize = 0;
@@ -1285,10 +1056,7 @@ namespace votca {
                     // for (int _i_sph = 0; _i_sph < _spherical_grid.phi.size(); _i_sph++) {
 
                     for (unsigned _i_sph = 0; _i_sph < _phi.size(); _i_sph++) {
-                        /* double p   = _spherical_grid.phi[_i_sph] * pi / 180.0; // back to rad
-                        double t   = _spherical_grid.theta[_i_sph] * pi / 180.0; // back to rad
-                        double ws  = _spherical_grid.weight[_i_sph];
-                         */
+
                         double p   = _phi[_i_sph] * pi / 180.0; // back to rad
                         double t   = _theta[_i_sph] * pi / 180.0; // back to rad
                         double ws  = _weight[_i_sph];
@@ -1308,18 +1076,7 @@ namespace votca {
                     } // spherical gridpoints
                 } // radial gridpoint
 
-                // cout << " Constructed full grid of atom " << i_atom << " of size " << _atomgrid.size() <<  endl;
-                
-                //int fullsize = _atomgrid.size();
-                
-                
-                if ( 0 == 0 ){
-                
-                // now the partition function magic for this _atomgrid
-                // some parameters
-                //double eps = 0.002;
-                double ass = 0.725;
-                
+
                 // get all distances from grid points to centers
                 std::vector< std::vector<double> > rq;
                 // for each center
@@ -1366,63 +1123,11 @@ namespace votca {
                     } // if ( ait != bit) 
                     i_b++;
                 }// bit centers
-                 // cout << " Nearest neighbor of atom " << i_atom << " is atom " << i_NN << " at distance " << distNN << endl;
-                
-                //double radwgh = (1.0 - ass ) * sqrt(distNN) * 0.5;
-                /* according to SSW scheme, all gridpoints within radwgh 
-                 * of its parent center have weight one, and we can skip
-                 * calculating the weighting function explicitly.
-                 * Since the gridpoints in _atomgrid are sorted with increasing
-                 * distance from the center, we can go through the list easily
-                 */
-                
-             /*   int _idx_left = 0;
-                for ( int i_grid  = 0 ; i_grid < _atomgrid.size(); i_grid++) {
-                    if ( rq[i_atom][i_grid] > (radwgh + eps)  ) {
-                        _idx_left = i_grid;
-                        break; // out of the for-loop
-                    }
-                    i_grid++;
-                } */
-                
-                //cout << " First forward non-unity weight is for gridpoint " << _idx_left << endl;
-                
-                /* Similarly, all gridpoints g for which 
-                 * 
-                 *      mu_ij = (r_ig - r_jg)/R_ij > a
-                 *   
-                 *   for i = parent atom and j = next neighbor
-                 * 
-                 * have zero weight. So we start from the end of the 
-                 * gridpoint list and set all weights to zero until 
-                 * we find the first non-zero contribution.
-                 */
-
-                // update NN distance
-             /*   distNN = (ass-eps) * sqrt(distNN) ;
-                // reduce "checklist" backward
-                int _idx_right;
-                for (int i_grid = _atomgrid.size()-1; i_grid >= _idx_left; i_grid--) {
-                    cout << i_grid << "  is " <<  rq[i_atom][i_grid] - rq[i_NN][i_grid] << " vs " << distNN << endl;
-                    
-                    if (  (rq[i_atom][i_grid] - rq[i_NN][i_grid] ) > distNN   ) {
-                        // set weight to zero
-                        _atomgrid[i_grid].grid_weight = 0.0;
-                    } else {
-                        _idx_right = i_grid;
-                        break;
-                    }
-                } // right index
-                cout << " First backward non-zero weight is for gridpoint " << _idx_right << endl; */
-                
-                /* only for the remaining gridpoint [_idx_left:_idx_right], we
-                 * have to evaluate the weights explicitly
-                 */
-                //for ( int i_grid = _idx_left; i_grid <= _idx_right ; i_grid++){
+              
                 for ( unsigned i_grid = 0; i_grid < _atomgrid.size() ; i_grid++){
                     //cout << " modifying point " << i_grid << endl;
                     // call some shit called grid_ssw0 in NWChem
-                    std::vector<double> _p = SSWpartition( _atomgrid.size(), i_grid, _atoms.size(),rq, ass );
+                    std::vector<double> _p = SSWpartition( _atomgrid.size(), i_grid, _atoms.size(),rq);
                     //cout << " partition for gridpoint " << i_grid << endl;
                     // check weight sum
                     double wsum = 0.0;
@@ -1455,7 +1160,7 @@ namespace votca {
                     }
                 }
                 
-                } // 1 == 0
+              
                 
                // cout << " Total size of integration grid for atom: " << i_atom << " : " << _atomgrid.size() << " from " << fullsize << endl;
 
@@ -1464,25 +1169,14 @@ namespace votca {
                 i_atom++;
             } // atoms
 
-
-           /* 
-            ofstream points;
-            points.open("molgrid.xyz", ofstream::out);
-            points << _totalgridsize << endl;
-            points << endl;
-            for ( unsigned i = 0 ; i < _grid.size(); i++){
-                for ( unsigned j = 0 ; j < _grid[i].size(); j++){
-                points << "X " << _grid[i][j].grid_x/tools::conv::ang2bohr << " " << _grid[i][j].grid_y/tools::conv::ang2bohr
-                        << " " << _grid[i][j].grid_z/tools::conv::ang2bohr << " "  << _grid[i][j].grid_weight << endl;
-                }
-            }
-            points.close();
-            */
-
+            AOBasis aobasis;
+            aobasis.AOBasisFill(bs, _atoms);
+            FindsignificantAtoms(&aobasis);
+            return;
         }
     
-        std::vector<double> NumericalIntegration::SSWpartition(int ngrid, int igrid, int ncenters, std::vector< std::vector<double> >& rq,  double ass){
-            
+        std::vector<double> NumericalIntegration::SSWpartition(int ngrid, int igrid, int ncenters, std::vector< std::vector<double> >& rq){
+            const double ass = 0.725;
             // initialize partition vector to 1.0
             std::vector<double> p(ncenters,1.0);
             
@@ -1518,33 +1212,20 @@ namespace votca {
                             if ( mu > 0.0 ) sk = 1.0 - sk;
                             p[j] = p[j] * sk;
                             p[i] = p[i] * (1.0-sk);
-                            
-                            
-                        }
-                        
-                    }
-                    
-                    
+                                                
+                        }   
+                    }  
                 }
-                
-                
-                
-                
+
             }
             
             return p;
-            
-            
-            
-            
-            
         }
 
         double NumericalIntegration::erf1c(double x){
              
             const static double alpha_erf1=1.0/0.30;
-            return 0.5*erfcc((x/(1.0-x*x))*alpha_erf1);    
-            
+            return 0.5*erfcc((x/(1.0-x*x))*alpha_erf1);              
         }
               
         double NumericalIntegration::erfcc(double x){
@@ -1554,8 +1235,7 @@ namespace votca {
             return tau*exp(-x*x-1.26551223 + 1.00002368*tau + 0.37409196*tau*tau 
             + 0.09678418*pow(tau,3) - 0.18628806*pow(tau,4) + 0.27886807*pow(tau,5) 
             -1.13520398*pow(tau,6) + 1.48851587*pow(tau,7)  -0.82215223*pow(tau,8) 
-            + 0.17087277*pow(tau,9));
-            
+            + 0.17087277*pow(tau,9));   
         }
                                                                                                 
     }
