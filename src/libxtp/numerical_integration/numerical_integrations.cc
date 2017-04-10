@@ -1127,7 +1127,7 @@ namespace votca {
                 for ( unsigned i_grid = 0; i_grid < _atomgrid.size() ; i_grid++){
                     //cout << " modifying point " << i_grid << endl;
                     // call some shit called grid_ssw0 in NWChem
-                    std::vector<double> _p = SSWpartition( _atomgrid.size(), i_grid, _atoms.size(),rq);
+                    std::vector<double> _p = SSWpartition( i_grid, _atoms.size(),rq);
                     //cout << " partition for gridpoint " << i_grid << endl;
                     // check weight sum
                     double wsum = 0.0;
@@ -1175,7 +1175,7 @@ namespace votca {
             return;
         }
     
-        std::vector<double> NumericalIntegration::SSWpartition(int ngrid, int igrid, int ncenters, std::vector< std::vector<double> >& rq){
+        std::vector<double> NumericalIntegration::SSWpartition(int igrid, int ncenters, std::vector< std::vector<double> >& rq){
             const double ass = 0.725;
             // initialize partition vector to 1.0
             std::vector<double> p(ncenters,1.0);
