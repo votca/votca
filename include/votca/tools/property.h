@@ -282,7 +282,7 @@ inline T Property::as() const
   template<typename T>
   inline T Property::ifExistsAndinListReturnElseThrowRuntimeError(const string &key,std::vector<T> possibleReturns){
      T result;
-     result=ifExistsReturnElseThrowRuntimeError(key);
+     result=ifExistsReturnElseThrowRuntimeError<T>(key);
      if(std::find(possibleReturns.begin(), possibleReturns.end(), result) == possibleReturns.end()){
     cerr<<"Allowed options are: ";
     for(unsigned i=0;i<possibleReturns.size();++i){
