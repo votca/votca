@@ -119,7 +119,7 @@ void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<doub
 
     NumericalIntegration numway;
 
-    numway.GridSetup(gridsize,&bs,_atomlist);
+    numway.GridSetup(gridsize,&bs,_atomlist,&_basis);
     LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculate Densities at Numerical Grid with gridsize "<<gridsize  << flush; 
     double N=numway.IntegrateDensity_Atomblock(_dmat,&_basis);
     LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculated Densities at Numerical Grid, Number of electrons is "<< N << flush; 

@@ -63,7 +63,7 @@ namespace votca {
             }
             
             for (unsigned i=0;i<strs.size();i++){
-                //cout << strs[i] << endl;
+               
                 int func_id = map.getID(strs[i]); 
                 if (func_id<0){
                     exactexchange=0.0;
@@ -126,14 +126,7 @@ namespace votca {
                 // final stop must be size
                 _thread_stop[nthreads-1] = atom_points;
                 
-               /*
-                
-               for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
-                    
-                    cout << "Thread " << i_thread << " start " << _thread_start[i_thread] << " stop " << _thread_stop[i_thread] << endl; 
-                    
-                }
-                */ 
+           
                 #pragma omp parallel for
                 for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                 for (int j = _thread_start[i_thread]; j < _thread_stop[i_thread]; j++) {
@@ -329,7 +322,6 @@ namespace votca {
                     }
                 }
             
-          
             // for every atom
             for (unsigned i = 0; i < _grid.size(); i++) {
 	      // for each point in atom grid
@@ -347,15 +339,13 @@ namespace votca {
                 // final stop must be size
                 _thread_stop[nthreads-1] = atom_points;
                 
-             
+               
                 #pragma omp parallel for
                 for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
                 for (int j = _thread_start[i_thread]; j < _thread_stop[i_thread]; j++) {
 
                     // get value of orbitals at each gridpoint (vector as 1D boost matrix object -> prod )
-
                    ub::matrix<double> AOgrid = ub::zero_matrix<double>(1, basis->_AOBasisSize); // TRY MORE USEFUL DATA
-                   
 		    // get value of density gradient at each gridpoint
                  
                    ub::matrix<double> gradAOgrid = ub::zero_matrix<double>(3, basis->_AOBasisSize); // for Gradients of AOs
@@ -365,28 +355,29 @@ namespace votca {
                     
                    ub::matrix<double> grad_rho = ub::zero_matrix<double>(1,3);
 		    // evaluate AO Functions for all shells, NOW BLOCKWISE
-               
+                   
                     // for each significant atom for this grid point
                     for ( unsigned sigrow = 0; sigrow < _significant_atoms[i][j].size() ; sigrow++){
-                  
+                       
                         // this atom
                         int rowatom = _significant_atoms[i][j][sigrow];
                     
                         // for each shell in this atom
                         for ( unsigned ishell = 0 ; ishell < _atomshells[rowatom].size() ; ishell++ ){
                       
-                         //   boost::timer::cpu_times tstartshells = cpu_t.elapsed();
+                        
                             AOShellIterator _row = _atomshells[rowatom][ishell];
                             // for density, fill sub-part of AOatgrid
-                            //ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 1);
+                           
                             ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, 0, 1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
-                            // (*_row)->EvalAOspace(_AOgridsub, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                         
 
                             // gradient of density
-                            //ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 3);
+                        
                             ub::matrix_range< ub::matrix<double> > _gradAO = ub::subrange(gradAOgrid, 0, 3, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
-                            //(*_row)->EvalAOGradspace(_gradAO, _grid[i][j].grid_x, _grid[i][j].grid_y, _grid[i][j].grid_z);
+                           
                             (*_row)->EvalAOspace(_AOgridsub, _gradAO , _grid[i][j].grid_pos);
+                           
                       
                         }  // shell in atom
                 
@@ -398,6 +389,7 @@ namespace votca {
                         // for each atom
                         // for all significant atoms of triangular matrix
                         for ( unsigned sigcol = 0; sigcol < _significant_atoms[i][j].size() ; sigcol++){
+                          
                             int colatom = _significant_atoms[i][j][sigcol];
                             if ( colatom > rowatom ) break;
                             
@@ -406,10 +398,9 @@ namespace votca {
                             ub::matrix_range< ub::matrix<double> >     _AOgridcol = ub::subrange(    AOgrid, 0, 1, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
                             ub::matrix_range< ub::matrix<double> > _gradAOgridcol = ub::subrange(gradAOgrid, 0, 3, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
 
-                            //ub::matrix_range< ub::matrix<double> > DMAT_here = ub::subrange( _density_matrix, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom]);
-                            //cout<<"dmat "<<ub::subrange( _density_matrix, _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom], _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom])<<endl;
+                          
                             const ub::matrix<double> & DMAT_here = dmat_vector[rowatom][colatom];
-                            //cout<<"vector "<<DMAT_here<<endl;
+                            
                              if ( colatom == rowatom ){
                                 _temp     += 0.5 * ub::prod( _AOgridcol, DMAT_here);
                                 _tempgrad += 0.5 * ub::prod( _gradAOgridcol, DMAT_here);
@@ -431,8 +422,7 @@ namespace votca {
                     } // row shells 
 
                     double rho      = 2.0 * rho_mat(0,0);
-                 //   boost::timer::cpu_times t3 = cpu_t.elapsed();
-                    // +=  (t3.wall-t0.wall)/1e9;
+              
                     
 		    if ( rho < 1.e-15 ) continue; // skip the rest, if density is very small
                     grad_rho = 2.0 * grad_rho;
@@ -441,7 +431,7 @@ namespace votca {
                     double f_xc;      // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r }
                     double df_drho;   // v_xc_rho(r) = df/drho
                     double df_dsigma; // df/dsigma ( df/dgrad(rho) = df/dsigma * dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
-
+                   
  #ifdef LIBXC                   
                     if (_use_votca) {
 #endif                  
@@ -488,6 +478,7 @@ namespace votca {
                         }
                     }
 #endif
+                  
                     ub::matrix<double> _addXC = _grid[i][j].grid_weight * df_drho * AOgrid *0.5;
 
                     _addXC+=  2.0*df_dsigma * _grid[i][j].grid_weight * ub::prod(grad_rho,gradAOgrid);
@@ -546,9 +537,10 @@ namespace votca {
              for (unsigned rowatom=0;rowatom<xcmat_vector.size();rowatom++){
                 for (unsigned colatom=0;colatom<xcmat_vector[rowatom].size();colatom++){
                     
-                    //cout<<"["<<rowatom<<","<<colatom<<"]="<<xcmat_vector[rowatom][colatom]<<endl;
+                   
                   
-            ub::subrange( XCMAT, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom])=xcmat_vector[rowatom][colatom];
+            ub::subrange( XCMAT, _startIdx[rowatom], _startIdx[rowatom]+_blocksize[rowatom], _startIdx[colatom], _startIdx[colatom]+_blocksize[colatom])
+                    =xcmat_vector[rowatom][colatom];
             
             }
         }
@@ -796,10 +788,7 @@ namespace votca {
                 // final stop must be size
                 _thread_stop[nthreads-1] = atom_points;
 
-              //  for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
-                    
-               //     cout << "Thread " << i_thread << " start " << _thread_start[i_thread] << " stop " << _thread_stop[i_thread] << endl;                    
-               // }
+         
                 
                 #pragma omp parallel for
                 for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
@@ -878,7 +867,7 @@ namespace votca {
             } // i: for each atom grid
 
              for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){
-                 //cout << result << endl;
+                
                 result += Density_thread[i_thread]; 
                 }
             density_set=true;
@@ -923,7 +912,7 @@ namespace votca {
         
         
                
-        void NumericalIntegration::GridSetup(string type, BasisSet* bs, vector<ctp::QMAtom*> _atoms) {
+        void NumericalIntegration::GridSetup(string type, BasisSet* bs, vector<ctp::QMAtom*> _atoms,AOBasis* basis) {
             
             const double pi = boost::math::constants::pi<double>();
             // get GridContainer
@@ -933,15 +922,14 @@ namespace votca {
             EulerMaclaurinGrid _radialgrid;
             _radialgrid.getRadialGrid(bs, _atoms, type, _grids); // this checks out 1:1 with NWChem results! AWESOME
 
-         //   cout << "Radial grid summary " << endl;
+     
            map<string, GridContainers::radial_grid>::iterator it;
 
             LebedevGrid _sphericalgrid;
-           // cout << "Spherical grid summary " << endl;
+         
             for (it = _grids._radial_grids.begin(); it != _grids._radial_grids.end(); ++it) {
                _sphericalgrid.getSphericalGrid(_atoms, type, _grids);
-          //     cout << " Element " << it->first << " Number of points " << _grids._spherical_grids.at(it->first).weight.size() << endl;
-
+       
             }
 
             
@@ -1168,10 +1156,11 @@ namespace votca {
                 _grid.push_back(_atomgrid);
                 i_atom++;
             } // atoms
-            cout<<"hello"<<endl;
-            AOBasis aobasis;
-            aobasis.AOBasisFill(bs, _atoms);
-            FindsignificantAtoms(&aobasis);
+
+            
+           
+            
+            FindsignificantAtoms(basis);
             return;
         }
     
@@ -1194,7 +1183,7 @@ namespace votca {
                     ij++;
                     if ( ( std::abs(p[i]) > tol_scr  ) || ( std::abs(p[j]) > tol_scr  ) ){
                         
-                        // cout << "Rij " <<  Rij_mat(i,j) << " or " << Rij[ij] << endl;
+                      
                         
                         double mu = ( rag - rq[j][igrid] )*Rij[ij]; 
                         if ( mu > ass ) {

@@ -464,7 +464,7 @@ namespace votca {
                     if (ScaHFX_temp != _ScaHFX) {
                         throw std::runtime_error((boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
                     }
-                    _numint.GridSetup(_grid, &dftbs, _atoms);
+                    _numint.GridSetup(_grid, &dftbs, _atoms,&dftbasis);
                     // LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Trying DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
 
 

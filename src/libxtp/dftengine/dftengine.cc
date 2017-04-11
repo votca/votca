@@ -562,7 +562,7 @@ namespace votca {
             }
             //this will not remain here but be moved to qmape
             if(_do_externalfield){
-                _gridIntegration_ext.GridSetup(_grid_name_ext,&_dftbasisset,_atoms);
+                _gridIntegration_ext.GridSetup(_grid_name_ext,&_dftbasisset,_atoms,&_dftbasis);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup numerical integration grid " << _grid_name_ext 
                         << " for external field with "<<_gridIntegration_ext.getGridpoints().size()<<" points"<< flush;
             }
@@ -678,7 +678,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                 if (with_ecp) {
                     ecp.ECPFill(&_ecpbasisset, atom);
                 }
-                gridIntegration.GridSetup(_grid_name, &_dftbasisset, atom);
+                gridIntegration.GridSetup(_grid_name, &_dftbasisset, atom,&dftbasis);
 
                 int numofelectrons = int(_elements.getNucCrg((*st)->type));
                 int alpha_e=0;
@@ -945,7 +945,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             }
             
 	    // setup numerical integration grid
-            _gridIntegration.GridSetup(_grid_name,&_dftbasisset,_atoms);
+            _gridIntegration.GridSetup(_grid_name,&_dftbasisset,_atoms,&_dftbasis);
             
             
             
@@ -953,7 +953,7 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                     << _xc_functional_name<<" with " <<_gridIntegration.getGridpoints().size()<<" points"<< flush;
             
             if(_use_small_grid){
-                 _gridIntegration_small.GridSetup(_grid_name_small,&_dftbasisset,_atoms);
+                 _gridIntegration_small.GridSetup(_grid_name_small,&_dftbasisset,_atoms,&_dftbasis);
 
 	    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup small numerical integration grid " << _grid_name_small << " for vxc functional " 
                     << _xc_functional_name<<" with " <<_gridIntegration_small.getGridpoints().size()<<" points"<< flush;
