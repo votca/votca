@@ -50,7 +50,6 @@ public:
    ~QMMachine();
     
     void Evaluate(ctp::XJob *job);
-    //void WriteQMPackInputFile(string inputFile, QMPackage *qmpack, XJob *job);
     
     bool Iterate(string jobFolder, int iterCnt);    
     QMMIter *CreateNewIter();

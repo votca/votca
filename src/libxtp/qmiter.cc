@@ -24,6 +24,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <votca/tools/constants.h>
+#include <votca/ctp/apolarsite.h>
 
 using boost::format;
 
@@ -138,6 +139,9 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
                 for (unsigned int j = 0; j < pseg->size(); ++j) {
 
                     ctp::APolarSite *aps = (*pseg)[j];
+                    if(aps->getRank()>1){
+                        cerr<<"WARNING: Segments contain quadrupoles, votca cannot yet split them into charges. Your result will most likely be wrong."<<endl;
+                    }
                     vec pos = aps->getPos() / AA_to_NM;
                     double Q = aps->getQ00();
                     string type = "mm";

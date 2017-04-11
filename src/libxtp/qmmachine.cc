@@ -375,9 +375,9 @@ namespace votca {
                     }
                     // - output its energy
                     if (_type == "singlet") {
-                        energy___ex = orb_iter_output.BSESingletEnergies()[_state_index[_state - 1]]*13.6058; // to eV
+                        energy___ex = orb_iter_output.BSESingletEnergies()[_state_index[_state - 1]]*tools::conv::hrt2ev; // to eV
                     } else if (_type == "triplet") {
-                        energy___ex = orb_iter_output.BSETripletEnergies()[_state_index[_state - 1]]*13.6058; // to eV
+                        energy___ex = orb_iter_output.BSETripletEnergies()[_state_index[_state - 1]]*tools::conv::hrt2ev; // to eV
                     }
 
                     // ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
