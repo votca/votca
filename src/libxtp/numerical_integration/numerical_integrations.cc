@@ -1168,7 +1168,7 @@ namespace votca {
                 _grid.push_back(_atomgrid);
                 i_atom++;
             } // atoms
-
+            cout<<"hello"<<endl;
             AOBasis aobasis;
             aobasis.AOBasisFill(bs, _atoms);
             FindsignificantAtoms(&aobasis);

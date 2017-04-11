@@ -69,14 +69,11 @@ private:
     // ======================================== //
 
     // Induction, subthreading (-> base class)
-    //bool                            _induce;
-    //bool                            _induce_intra_pair;
+
 
     // Multipole Interaction parameters
     string                          _method;
-    //bool                            _useCutoff;
-    //double                          _cutoff1;
-    //double                          _cutoff2;
+   
     
     // QM Package options
     string                          _package;
