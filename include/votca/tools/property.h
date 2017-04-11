@@ -133,6 +133,10 @@ public:
     template<typename T>
     T ifExistsReturnElseThrowRuntimeError(const string &key);
     
+    template<typename T>
+    T ifExistsAndinListReturnElseThrowRuntimeError(const string &key,std::vector<T> possibleReturns);
+    
+    
     /**
      * \brief does the property has childs?
      * \return true or false
@@ -271,6 +275,22 @@ inline T Property::as() const
     else{
              throw runtime_error((boost::format("Error: %s is not found") %key).str());
             }
+     return result;
+  }
+ 
+ 
+  template<typename T>
+  inline T Property::ifExistsAndinListReturnElseThrowRuntimeError(const string &key,std::vector<T> possibleReturns){
+     T result;
+     result=ifExistsReturnElseThrowRuntimeError(key);
+     if(std::find(possibleReturns.begin(), possibleReturns.end(), result) == possibleReturns.end()){
+    cerr<<"Allowed options are: ";
+    for(unsigned i=0;i<possibleReturns.size();++i){
+        cerr<<possibleReturns[i]<<" ";
+    }
+    cerr<<endl;
+    throw runtime_error((boost::format("Error: %s is not allowed") %key).str());
+}
      return result;
   }
 
