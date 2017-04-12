@@ -212,11 +212,17 @@ void BasisSet::LoadBasisSet ( std::string name )
 {    
     Property basis_property;
  
-    // get the path to the shared folders with xml files
-    char *votca_share = getenv("VOTCASHARE");
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open basisset files.");
-    std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
-    
+    // if name contains .xml, assume a basisset .xml file is located in the working directory
+    std::size_t found_xml = name.find(".xml");
+    std::string xmlFile;
+    if (found_xml!=std::string::npos) {
+      xmlFile = name;
+    } else {
+      // get the path to the shared folders with xml files
+      char *votca_share = getenv("VOTCASHARE");
+      if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+      xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
+    }
     bool success = load_property_from_xml(basis_property, xmlFile);
     
     if ( !success ) {; }
@@ -281,11 +287,17 @@ void BasisSet::LoadPseudopotentialSet ( std::string name )
 {    
     Property basis_property;
  
-    // get the path to the shared folders with xml files
-    char *votca_share = getenv("VOTCASHARE");
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open pseudopotential files.");
-    std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
-    
+  // if name contains .xml, assume a basisset .xml file is located in the working directory
+    std::size_t found_xml = name.find(".xml");
+    std::string xmlFile;
+    if (found_xml!=std::string::npos) {
+      xmlFile = name;
+    } else {
+      // get the path to the shared folders with xml files
+      char *votca_share = getenv("VOTCASHARE");
+      if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+      xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
+    }
     bool success = load_property_from_xml(basis_property, xmlFile);
     
     if ( !success ) {; }
