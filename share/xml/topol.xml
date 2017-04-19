@@ -16,7 +16,8 @@
                 <DESC>
                     Define the bead in the molecule. Attributes are:
                     name - the name of bead, type - the type of bead,
-                    mass - the mass of bead and q - the value of charge.
+                    mass - the mass of bead, q - the value of charge and
+                    resid - the id of the residue the bead belongs to (>=1).
                 </DESC>
             </bead>
         </molecule>
