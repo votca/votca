@@ -138,19 +138,22 @@ void XMLTopologyReader::ParseMolecule(Property &p, string molname, int nbeads, i
             }
             try {
                 resid = it->getAttribute<int>("resid");
-                if (resid<=0)
-                    throw std::runtime_error(
+                if (resid<=0) {
+                    throw std::invalid_argument(
                         "Residue count for beads in topology.molecules.molecule has to be greater than zero");
+                }
             } catch (runtime_error) {
                 resid = -1;
             }
-            if (!xmlResidues.empty()){
-                if (!(xmlResidues.back()==resid || xmlResidues.back()==(resid-1)))
-                    throw std::runtime_error(
+            if (!xmlResidues.empty()) {
+                if (xmlResidues.back() != resid && xmlResidues.back() != resid-1) {
+                    throw std::invalid_argument(
                         "Residue count for beads in topology.molecules.molecule does not increase monotonically in steps of 1");
-                if (xmlResidues.back()!=-1 && resid==-1)
-                    throw std::runtime_error(
+                }
+                if (xmlResidues.back() != -1 && resid == -1) {
+                    throw std::invalid_argument(
                         "Residue count for beads in topology.molecules.molecule has to be declared for all beads or for none");
+                }
             }
             xmlResidues.push_back(resid);
             XMLBead *xmlBead = new XMLBead(atname, attype, atmass, atq);
@@ -165,10 +168,11 @@ void XMLTopologyReader::ParseMolecule(Property &p, string molname, int nbeads, i
             "Number of elements in bead-vector and residue-vector are not identical");
     // Create molecule in topology. Replicate data.
     int resnr = _top->ResidueCount();
-    if (!xmlResidues.empty()){
-        if (!(xmlResidues.front() == resnr+1 || xmlResidues.front() == -1))
+    if (!xmlResidues.empty()) {
+        if (xmlResidues.front() != resnr+1 && xmlResidues.front() != -1) {
         throw std::runtime_error(
             "Residue count for beads in topology.molecules.molecule has to be greater than the number of residues already in the topology");
+        }
     }
     for (int mn = 0; mn < nmols; mn++) {
         Molecule *mi = _top->CreateMolecule(molname);
@@ -180,12 +184,12 @@ void XMLTopologyReader::ParseMolecule(Property &p, string molname, int nbeads, i
         for (vector<XMLBead*>::iterator itb = xmlBeads.begin(); itb != xmlBeads.end(); ++itb, ++resit) {
             stringstream bname;
             XMLBead &b = **itb;
-            if (*resit != -1){
-                if (_top->ResidueCount() < *resit){
+            if (*resit != -1) {
+                if (_top->ResidueCount() < *resit) {
+                    resnr = *resit - 1;
                     _top->CreateResidue(molname, resnr);
-                resnr = *resit - 1;
                 }
-            }else{
+            } else {
                 _top->CreateResidue(molname, resnr);
             }
             BeadType *type = _top->GetOrCreateBeadType(b.type);
