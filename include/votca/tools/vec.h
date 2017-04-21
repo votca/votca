@@ -48,9 +48,9 @@ public:
     vec(const string &str);
     
     
-    double operator[](int i) const {return xyz[i];}
+    double operator[](int i) const;
 
-    double  &operator[](int i) {return xyz[i];}
+    double  &operator[](int i);
     
     vec &operator=(const vec &v);
     vec &operator+=(const vec &v);
@@ -175,7 +175,19 @@ inline vec::vec(const string &str)
 inline vec::vec(const double &x, const double &y, const double &z)
         : _x(x), _y(y), _z(z) {}
 
+ inline double vec::operator[](int i) const {
+ if(i>2){
+     throw std::runtime_error("vec[] integer larger than 2");
+ }
+ return xyz[i];
+ }
 
+ inline double  &vec::operator[](int i) {
+ if(i>2){
+     throw std::runtime_error("vec[] integer larger than 2");
+ }
+ return xyz[i];
+ }
 
     
 inline bool operator==(const vec &v1, const vec &v2)
