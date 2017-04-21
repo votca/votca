@@ -48,6 +48,10 @@ public:
     vec(const string &str);
     
     
+    double operator[](int i) const {return xyz[i];}
+
+    double  &operator[](int i) {return xyz[i];}
+    
     vec &operator=(const vec &v);
     vec &operator+=(const vec &v);
     vec &operator-=(const vec &v);
@@ -113,7 +117,17 @@ public:
     void serialize(Archive &arch, const unsigned int version) { arch & _x; arch & _y; arch & _z; }
     
     private:
-        double _x, _y, _z;
+        
+        union{
+            struct{
+                double _x;
+                double _y;
+                double _z;
+            };
+        
+        double xyz[3];
+        
+        };
 };
 
 inline vec::vec() {}
@@ -124,11 +138,11 @@ inline vec::vec(const vec &v)
 inline vec::vec(const double r[3])
     : _x(r[0]), _y(r[1]), _z(r[2]) {}
 
-inline vec::vec(const boost::numeric::ublas::vector<double> &v)
+inline vec::vec(const boost::numeric::ublas::vector<double> &ublas)
     {try
-    {_x=v(0);
-     _y=v(1);
-     _z=v(2);
+    {_x=ublas(0);
+     _y=ublas(1);
+     _z=ublas(2);
     }
     catch(std::exception &err){throw std::length_error("Conversion from ub::vector to votca-vec failed");} 
 }
@@ -154,8 +168,15 @@ inline vec::vec(const string &str)
     }
 }
 
+
+
+
+
 inline vec::vec(const double &x, const double &y, const double &z)
         : _x(x), _y(y), _z(z) {}
+
+
+
     
 inline bool operator==(const vec &v1, const vec &v2)
 {
