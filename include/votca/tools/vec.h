@@ -43,14 +43,14 @@ public:
     vec();
     vec(const vec &v);
     vec(const double r[3]);
-    vec(const double &x, const double &y, const double &z);
+    vec(const double x, const double y, const double z);
     vec(const boost::numeric::ublas::vector<double> &v);
     vec(const string &str);
     
     
-    double operator[](int i) const;
+    double operator[](std::size_t i) const;
 
-    double  &operator[](int i);
+    double  &operator[](std::size_t i);
     
     vec &operator=(const vec &v);
     vec &operator+=(const vec &v);
@@ -124,9 +124,7 @@ public:
                 double _y;
                 double _z;
             };
-        
-        double xyz[3];
-        
+            double xyz[3];
         };
 };
 
@@ -139,11 +137,12 @@ inline vec::vec(const double r[3])
     : _x(r[0]), _y(r[1]), _z(r[2]) {}
 
 inline vec::vec(const boost::numeric::ublas::vector<double> &ublas)
-    {try
-    {_x=ublas(0);
-     _y=ublas(1);
-     _z=ublas(2);
-    }
+{
+    try
+        {_x=ublas(0);
+         _y=ublas(1);
+         _z=ublas(2);
+        }
     catch(std::exception &err){throw std::length_error("Conversion from ub::vector to votca-vec failed");} 
 }
 
@@ -168,27 +167,18 @@ inline vec::vec(const string &str)
     }
 }
 
-
-
-
-
-inline vec::vec(const double &x, const double &y, const double &z)
+inline vec::vec(const double x, const double y, const double z)
         : _x(x), _y(y), _z(z) {}
 
- inline double vec::operator[](int i) const {
- if(i>2){
-     throw std::runtime_error("vec[] integer larger than 2");
- }
- return xyz[i];
+inline double vec::operator[](std::size_t i) const {
+    assert(i>2 && "vec[] integer larger than 2");
+    return xyz[i];
  }
 
- inline double  &vec::operator[](int i) {
- if(i>2){
-     throw std::runtime_error("vec[] integer larger than 2");
+inline double  &vec::operator[](std::size_t i) {
+    assert(i>2 && "vec[] integer larger than 2");
+    return xyz[i];
  }
- return xyz[i];
- }
-
     
 inline bool operator==(const vec &v1, const vec &v2)
 {
@@ -336,17 +326,14 @@ inline vec &vec::normalize()
     return ((*this)*=1./abs(*this));
 }
 
-
-
 inline boost::numeric::ublas::vector<double> vec::converttoub() {
     boost::numeric::ublas::vector<double> temp=boost::numeric::ublas::zero_vector<double>(3);
     temp(0)=_x;
     temp(1)=_y;
     temp(2)=_z;
     return temp;
-
-
 }
+
 }}
 #endif	/* _vec_H */
 
