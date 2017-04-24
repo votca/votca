@@ -84,12 +84,13 @@ namespace votca {
 
                 vec pos = (*ait)->getQMPos()*tools::conv::nm2ang;
                 std::string name = (*ait)->getElement();
-                ctp::QMAtom* qmatom=new ctp::QMAtom(name,pos,(*ait)->getQ(0),!(*ait)->HasQMPart());
+                //be careful charges are set to zero because most of the time ctp::Atom has getQ not set, the construct is very weird, ctp is shit
+                ctp::QMAtom* qmatom=new ctp::QMAtom(name,pos,0.0,!(*ait)->HasQMPart());
+               
                 qmatoms.push_back(qmatom);
                         
             }
         }
-        
         return qmatoms;
     }
 
