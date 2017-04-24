@@ -202,7 +202,7 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
                      _el_file << _elements.getEleFull(element_name) << endl; 
                      for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                          Shell* shell = (*its);
-                         _el_file  << shell->getType() << " " << shell->getSize() << endl; //<< " " << FortranFormat(shell->getScale()) << endl;
+                         _el_file  << shell->getType() << " " << shell->getSize() << endl; 
                          int _sh_idx =0;
                          for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                              GaussianPrimitive* gaussian = *itg;
