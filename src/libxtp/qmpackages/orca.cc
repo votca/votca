@@ -192,33 +192,39 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
         _el_file << "$DATA" << endl;
 
         for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-             if (!(*it)->from_environment) {
-                 std::string element_name = (*it)->type;
-                 list<std::string>::iterator ite;
-                 ite = find(elements.begin(), elements.end(), element_name);
-                 if (ite == elements.end()) {
-                     elements.push_back(element_name);
-                     Element* element = bs.getElement(element_name);
-                     _el_file << _elements.getEleFull(element_name) << endl; 
-                     for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                         Shell* shell = (*its);
-                         _el_file  << shell->getType() << " " << shell->getSize() << endl; 
-                         int _sh_idx =0;
-                         for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                             GaussianPrimitive* gaussian = *itg;
-                             _sh_idx++;
-                             _el_file << " " << _sh_idx << " " << indent(gaussian->decay);
-                             for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
-                                 if (gaussian->contraction[_icontr] != 0.0) {
-                                     _el_file << " " << indent(gaussian->contraction[_icontr]);
-                                 }
-                             }
-                             _el_file << endl;
-                         }
-                     }
+            if ((*it)->from_environment) { continue;}
+            
+            std::string element_name = (*it)->type;
+            list<std::string>::iterator ite;
+            ite = find(elements.begin(), elements.end(), element_name);
+            if (ite == elements.end()) {
+                elements.push_back(element_name);
+                Element* element = bs.getElement(element_name);
+                _el_file << _elements.getEleFull(element_name) << endl; 
+                for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                    Shell* shell = (*its);
+
+                    string type=shell->getType();
+                    // check combined shells
+
+                       for(unsigned i=0;i<type.size();++i){
+                           string subtype = string( type, i, 1 );
+                          _el_file  << subtype << " " << shell->getSize() << endl; 
+                          int _sh_idx =0;
+                          for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                              GaussianPrimitive* gaussian = *itg;
+                              _sh_idx++;
+                              _el_file << " " << _sh_idx << " " << indent(gaussian->decay);
+                              _el_file << " " << indent(gaussian->contraction[FindLmax(subtype)]);
+
+                              }
+                              _el_file << endl;
+                          }
+                    }
+
                  }
              }
-        }
+        
         _el_file << "STOP\n";
         _el_file.close();
 
