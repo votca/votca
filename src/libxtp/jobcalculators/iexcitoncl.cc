@@ -209,10 +209,9 @@ double IEXCITON::EvaluatePair(ctp::Topology *top,ctp::PolarSeg* Seg1,ctp::PolarS
             (*pit1)->Depolarize();
             (*pit2)->Depolarize();
 
-            //double dist=abs((*pit1)->getPos()-(*pit2)->getPos());
-            //LOG(logINFO,*pLog) <<"Q1 "<< (*pit1)->getQ00() <<" Q2 "<< (*pit2)->getQ00()<<" dist " <<dist << " comulative Energy "<< E << flush; 
+  
             E += actor.E_f(*(*pit1), *(*pit2));                           
-            //E+=(*pit1)->getQ00()*(*pit2)->getQ00()/dist;
+           
     }
     }
 

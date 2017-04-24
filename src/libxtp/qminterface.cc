@@ -59,12 +59,12 @@ namespace votca {
         return new_aps;
     }
         
-    ctp::PolarSeg *QMMInterface::Convert(std::vector<ctp::QMAtom*> &atms) {        
-        ctp::PolarSeg *new_pseg = new ctp::PolarSeg();
+    ctp::PolarSeg QMMInterface::Convert(std::vector<ctp::QMAtom*> &atms) {        
+        ctp::PolarSeg new_pseg =ctp::PolarSeg();
         std::vector<ctp::QMAtom*>::iterator it;
         for (it = atms.begin(); it < atms.end(); ++it) {
             ctp::APolarSite *new_site = this->Convert(*it);
-            new_pseg->push_back(new_site);
+            new_pseg.push_back(new_site);
         }
         return new_pseg;
     }

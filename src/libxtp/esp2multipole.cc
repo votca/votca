@@ -128,9 +128,9 @@ void Esp2multipole::WritetoFile(string _output_file, string identifier){
      string tag="TOOL:"+Identify()+"_"+_state+"_"+_spin+boost::lexical_cast<string>(_state_no);
     if(_use_mps){
         QMMInterface Converter;
-        ctp::PolarSeg* result=Converter.Convert(_Atomlist);
+        ctp::PolarSeg result=Converter.Convert(_Atomlist);
         
-        result->WriteMPS(_output_file,tag);
+        result.WriteMPS(_output_file,tag);
         }
     else if(_use_pdb){
         FILE *out;

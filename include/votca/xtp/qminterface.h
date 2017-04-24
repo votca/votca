@@ -53,7 +53,7 @@ public:
     // CONVERSION QM -> MM
     ctp::APolarSite *Convert(ctp::QMAtom *atm, int id = -1);
     
-    ctp::PolarSeg *Convert(std::vector<ctp::QMAtom*> &atms);
+    ctp::PolarSeg Convert(std::vector<ctp::QMAtom*> &atms);
   
     
     std::vector<ctp::QMAtom *> Convert( std::vector<ctp::Segment* > segments);

@@ -115,12 +115,12 @@ bool Log2Mps::Evaluate() {
     
     // Convert to polar segment & write mps-file
     QMMInterface qmmface;
-    ctp::PolarSeg *pseg = qmmface.Convert(qmatoms);
+    ctp::PolarSeg pseg = qmmface.Convert(qmatoms);
     
     string tag = "::LOG2MPS " 
         + (boost::format("(log-file='%1$s' : %2$d QM atoms)")
         % _logfile % qmatoms.size()).str();    
-    pseg->WriteMPS(_mpsfile, tag);
+    pseg.WriteMPS(_mpsfile, tag);
     return true;
 }
 
