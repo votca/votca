@@ -480,7 +480,7 @@ namespace votca {
                     thisIter->getQMMMEnergy());
 
             // EXTRACT & SAVE QMATOM DATA
-            std::vector< ctp::QMAtom* > &atoms = *(orb_iter_output.getAtoms());
+            std::vector< ctp::QMAtom* > &atoms = orb_iter_output.QMAtoms();
 
             thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
 

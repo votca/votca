@@ -68,6 +68,30 @@ namespace votca {
         }
         return new_pseg;
     }
+    
+    
+    std::vector<ctp::QMAtom *> QMMInterface::Convert( std::vector<ctp::Segment* > segments){
+        
+        std::vector<ctp::QMAtom *> qmatoms;
+        
+        std::vector< ctp::Atom* > ::iterator ait;
+        std::vector< ctp::Segment* >::iterator sit;
+        for (sit = segments.begin(); sit != segments.end(); ++sit) {
+            std::vector < ctp::Atom* >& _atoms = (*sit)->Atoms();
+
+            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+
+
+                vec pos = (*ait)->getQMPos()*tools::conv::nm2ang;
+                std::string name = (*ait)->getElement();
+                ctp::QMAtom* qmatom=new ctp::QMAtom(name,pos,(*ait)->getQ(0),!(*ait)->HasQMPart());
+                qmatoms.push_back(qmatom);
+                        
+            }
+        }
+        
+        return qmatoms;
+    }
 
 
     }

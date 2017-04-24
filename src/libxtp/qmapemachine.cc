@@ -331,7 +331,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
                          thisIter->getQMMMEnergy());
     
     // EXTRACT & SAVE QMATOM DATA
-    std::vector< ctp::QMAtom* > &atoms = *(orb_iter_output.getAtoms());
+    std::vector< ctp::QMAtom* > &atoms = orb_iter_output.QMAtoms();
     
     thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
 
