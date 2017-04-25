@@ -500,41 +500,6 @@ namespace votca {
                 }
             }
 
-            /******* TESTING VXC 
-            
-            // test total number of electrons
-            //ub::matrix<double> _ddft_orbitals = *(_orbitals->getOrbitals()); 
-            //ddftbasis.ReorderMOs(_ddft_orbitals, "gaussian", "votca" );
-            ub::matrix<double> &DMAT = _orbitals->DensityMatrixGroundState( _dft_orbitals );
-            NumericalIntegration                _numint;
-            _numint.GridSetup("medium",&dftbs,_atoms);
-            double Nelectrons = _numint.IntegrateDensity(DMAT,&dftbasis);
-            cout << " Number of electrons: " << Nelectrons << endl;
-
-            // test AOxcmatrix
-            //ub::matrix<double> AOXC = _numint.IntegrateVXC(DMAT,&dftbasis); 
-            double EXC = 0.0;
-            
-            //ub::matrix<double> AOXC_atomblock = _numint.IntegrateVXC(DMAT,&dftbasis); 
-            cout << "EXC " << EXC << endl;
-            for ( int i = 0 ; i < AOXC_atomblock.size1(); i++ ){
-                //for ( int j = 0 ; j < AOXC.size2(); j++ ){
-                    
-                    cout << i << " : " << i << " atomblock " << AOXC_atomblock(i,i) <<  endl;
-                    
-               // }
-                
-            }
-            
-            exit(0);
-             */
-
-
-
-            /****************/
-
-
-
             /// ------- actual calculation begins here -------
 
 
@@ -560,10 +525,9 @@ namespace votca {
             // Fill overlap
             _gwoverlap.Fill(&gwbasis);
 
-            //_gwoverlap.Print("AOOL");
 
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() << flush;
-            // exit(0);
+          
             // check eigenvalues of overlap matrix, if too small basis might have linear dependencies
             ub::vector<double> _eigenvalues;
             ub::matrix<double> _eigenvectors;
