@@ -104,11 +104,13 @@ namespace votca {
                 _qpmax = options->get(key + ".qpmax").as<unsigned int> ();
                 _bse_vmin = options->get(key + ".bsemin").as<unsigned int> ();
                 _bse_cmax = options->get(key + ".bsemax").as<unsigned int> ();
-            } else if (_ranges == "") {
+            } else if (_ranges == "" || _ranges=="default") {
                 _ranges = "default";
+            } else if(_ranges=="full"){
+                _ranges="full";
             } else {
                 cerr << "\nSpecified range option " << _ranges << " invalid. ";
-                throw std::runtime_error("\nValid options are: default,factor,explicit");
+                throw std::runtime_error("\nValid options are: default,factor,explicit,full");
             }
 
             _bse_nmax = options->get(key + ".exctotal").as<int> ();
@@ -360,7 +362,7 @@ namespace votca {
             // convert _rpamax if needed 
             _homo = _orbitals->getNumberOfElectrons() - 1; // indexed from 0
             _rpamin = 0; // lowest index occ min(gwa%mmin, screening%nsum_low) ! always 1
-            if (_ranges == "default") {
+            if (_ranges == "default" || _ranges=="full") {
                 _rpamax = _orbitals->getNumberOfLevels() - 1; // total number of levels
             } else if (_ranges == "factor") {
                 _rpamax = _rpamaxfactor * _orbitals->getNumberOfLevels() - 1; // total number of levels
@@ -371,13 +373,23 @@ namespace votca {
                 _qpmin = 0; // indexed from 0
                 _qpmax = 2 * _homo + 1; // indexed from 0
             } else if (_ranges == "factor") {
+                if(_orbitals->getNumberOfElectrons() - int( _qpminfactor * _orbitals->getNumberOfElectrons()) - 1<0){
+                    _qpmin=0;
+                }
+                else{
                 _qpmin = _orbitals->getNumberOfElectrons() - int( _qpminfactor * _orbitals->getNumberOfElectrons()) - 1;
+                }
                 _qpmax = _orbitals->getNumberOfElectrons() + int( _qpmaxfactor * _orbitals->getNumberOfElectrons()) - 1;
             } else if (_ranges == "explicit") {
                 _qpmin -= 1;
                 _qpmax -= 1;
+            }else if(_ranges=="full"){
+                _qpmin = 0;
+                _qpmax= _orbitals->getNumberOfLevels() - 1;
             }
-
+            if(_qpmax>_orbitals->getNumberOfLevels() - 1){
+                _qpmax=_orbitals->getNumberOfLevels() - 1;
+            }
 
             // set BSE band range indices 
             // anything else would be stupid!
@@ -389,11 +401,21 @@ namespace votca {
                 _bse_cmax = 2 * _homo + 1; // indexed from 0
             } else if (_ranges == "factor") {
                 _bse_vmin = _orbitals->getNumberOfElectrons() - int( _bseminfactor * _orbitals->getNumberOfElectrons()) - 1;
+                if(_orbitals->getNumberOfElectrons() - int( _bseminfactor * _orbitals->getNumberOfElectrons()) - 1<0){
+                     _bse_vmin = 0;
+                }
                 _bse_cmax = _orbitals->getNumberOfElectrons() + int( _bsemaxfactor * _orbitals->getNumberOfElectrons()) - 1;
             } else if (_ranges == "explicit") {
                 _bse_vmin -= 1;
                 _bse_cmax -= 1;
+            } else if(_ranges=="full"){
+                _bse_vmin = 0;
+                _bse_cmax = _orbitals->getNumberOfLevels() - 1;
             }
+             if(_bse_cmax>_orbitals->getNumberOfLevels() - 1){
+                _bse_cmax=_orbitals->getNumberOfLevels() - 1;
+            }
+            
             _bse_vtotal = _bse_vmax - _bse_vmin + 1;
             _bse_ctotal = _bse_cmax - _bse_cmin + 1;
             _bse_size = _bse_vtotal * _bse_ctotal;
