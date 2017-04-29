@@ -146,6 +146,10 @@ void QMAPEMachine<QMPackage>::Evaluate(ctp::XJob *job) {
     int chrg = round(dQ);
     int spin = ( (chrg < 0) ? -chrg:chrg ) % 2 + 1;
     LOG(ctp::logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
+    
+    if(dQ!=0){
+        throw runtime_error("Charged DFT calculations are not possible at the moment");
+    }
 
     // SET ITERATION-TIME CONSTANTS
     _qmpack->setCharge(chrg);
@@ -154,6 +158,10 @@ void QMAPEMachine<QMPackage>::Evaluate(ctp::XJob *job) {
   
     
  
+    
+    
+    
+    
     
   
     
@@ -200,8 +208,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
     
         
-		std::vector< ctp::PolarSeg* > target_bg;     
-                std::vector< ctp::PolarSeg* > target_fg;     
+		
         
        
 		if (iterCnt == 0) {
@@ -211,6 +218,9 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 		// Do not add BG & QM0, add MM1
 		_cape->EvaluatePotential(target_fg, false, true, false);
     }
+    
+    
+    
     
     
 
@@ -277,100 +287,6 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
 
 
-    // RUN CLASSICAL INDUCTION & SAVE
-    _job->getPolarTop()->PrintPDB(runFolder + "/QM0_MM1_MM2.pdb");
-    _xind->Evaluate(_job);
-    assert(_xind->hasConverged());
-    thisIter->setE_FM(_job->getEF00(), _job->getEF01(), _job->getEF02(),
-                      _job->getEF11(), _job->getEF12(), _job->getEM0(),
-                      _job->getEM1(),  _job->getEM2(),  _job->getETOT());
-    
-    // WRITE AND SET QM INPUT FILE
-
-    _qmpack->setRunDir(runFolder);
-    
-    LOG(ctp::logDEBUG,*_log) << "Writing input file " << runFolder << flush;
-    
-    _qmpack->WriteInputFile(empty, &orb_iter_input);
-         
-    // RUN HERE (OVERRIDE - COPY EXISTING LOG-FILE)
-    //string cpstr = "cp e_1_n.log " + path_logFile;
-    //int sig = std::system(cpstr.c_str());
-    //_qmpack->setLogFileName(path_logFile);
-    
-    //Commented out for test Jens 
-    _qmpack->Run();
-    
-    // EXTRACT LOG-FILE INFOS TO ORBITALS   
-
-    _qmpack->ParseLogFile(&orb_iter_output);
-    
-   
-    // GW-BSE starts here
-    bool _do_gwbse = true; // needs to be set by options!!!
-    
-    if (_do_gwbse){
-    	this->EvaluateGWBSE(orb_iter_output, runFolder);
-    }
-    
-    
-
-    out = fopen((runFolder + "/parsed.pdb").c_str(),"w");
-    orb_iter_input.WritePDB( out );
-    fclose(out);
-    
-    assert(orb_iter_output.hasSelfEnergy());
-    assert(orb_iter_output.hasQMEnergy());
-    double energy___ex = 0.0;
-    // EXTRACT & SAVE QM ENERGIES
-    double energy___sf = orb_iter_output.getSelfEnergy();
-    double energy_qmsf = orb_iter_output.getQMEnergy();
-    double energy_qm__ = energy_qmsf - energy___sf ;
-    thisIter->setQMSF(energy_qm__, energy___sf, energy___ex);
-    _job->setEnergy_QMMM(thisIter->getQMEnergy(),thisIter->getGWBSEEnergy(), thisIter->getSFEnergy(),
-                         thisIter->getQMMMEnergy());
-    
-    // EXTRACT & SAVE QMATOM DATA
-    std::vector< ctp::QMAtom* > &atoms = *(orb_iter_output.getAtoms());
-    
-    thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
-
-    LOG(ctp::logINFO,*_log) 
-        << format("Summary - iteration %1$d:") % (iterCnt+1) << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... QM Size  = %1$d atoms") % int(atoms.size()) << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... E(QM)    = %1$+4.9e") % thisIter->getQMEnergy() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... E(GWBSE) = %1$+4.9e") % thisIter->getGWBSEEnergy() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... E(SF)    = %1$+4.9e") % thisIter->getSFEnergy() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... E(FM)    = %1$+4.9e") % thisIter->getFMEnergy() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... E(MM)    = %1$+4.9e") % thisIter->getMMEnergy() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... E(QMMM)  = %1$+4.9e") % thisIter->getQMMMEnergy() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... RMS(dR)  = %1$+4.9e") % thisIter->getRMSdR() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... RMS(dQ)  = %1$+4.9e") % thisIter->getRMSdQ() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
-    
-    // CLEAN DIRECTORY
-    _qmpack->CleanUp();
-
-    
-    /*
-    int removed = boost::filesystem::remove_all(runFolder);
-    if (removed > 0) 
-        LOG(ctp::logDEBUG,*_log) << "Removed directory " << runFolder << flush;
-    else 
-        LOG(ctp::logWARNING,*_log) << "Could not remove dir " << runFolder << flush;
-    */
-    return 0;
-     
 }
 
 

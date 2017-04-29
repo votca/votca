@@ -107,6 +107,9 @@ private:
     double _dpl_spacing;
     
     bool   _exportgridtofile;
+    
+    std::vector< ctp::PolarSeg* > target_bg;     
+    std::vector< ctp::PolarSeg* > target_fg;     
 
 };
 
