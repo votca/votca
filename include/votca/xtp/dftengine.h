@@ -22,9 +22,9 @@
 
 #include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
-
+#include <votca/ctp/polarseg.h>
 #include <votca/ctp/logger.h>
-
+#include <votca/ctp/topology.h>
 
 #include <votca/ctp/apolarsite.h>
 #include <boost/filesystem.hpp>
@@ -63,7 +63,7 @@ public:
 
     void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
     
-    void setExternalcharges(std::vector<ctp::APolarSite*> externalsites){
+    void setExternalcharges(ctp::PolarSeg externalsites){
         _externalsites=externalsites;
         _addexternalsites=true;
     }
@@ -93,9 +93,9 @@ public:
     ub::matrix<double> DensityMatrix_frac( const ub::matrix<double>& MOs,const ub::vector<double>& MOEnergies, int numofelec);
     string Choosesmallgrid(string largegrid);
     void NuclearRepulsion();
-    double ExternalRepulsion();
-     double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
-     ub::matrix<double> AverageShells(const ub::matrix<double>& dmat,AOBasis& dftbasis);
+    double ExternalRepulsion(ctp::Topology* top=NULL);
+    double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
+    ub::matrix<double> AverageShells(const ub::matrix<double>& dmat,AOBasis& dftbasis);
    
  
     
@@ -189,7 +189,7 @@ public:
     ERIs                                _ERIs;
     
     // external charges
-     std::vector<ctp::APolarSite*>        _externalsites;
+     ctp::PolarSeg                   _externalsites;
      bool                            _addexternalsites;
     
     // exchange and correlation

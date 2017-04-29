@@ -52,11 +52,15 @@ namespace votca { namespace xtp {
             (*it)=ang22bohr2*(*it);
         }
         // I am not sure the order definition or anything is correct apolarsite object orders them as Q20, Q21c, Q21s, Q22c, Q22s
-        double q_01 = quadrople[0];
-        double q_02 = quadrople[1];
-        double q_12 = quadrople[2];
-        double q_00 = quadrople[3];
-        double q_11 = quadrople[4]; // tensor is traceless, q_22 = - (q_00 + q_11)
+        
+        // q_01 etc are cartesian tensor multipole moments according to https://en.wikipedia.org/wiki/Quadrupole
+        // so transform apolarsite into cartesian and then multiply by 2 (difference stone definition/wiki definition)
+        // not sure about unit conversion
+        double q_01 = sqrt(3)*quadrople[4];
+        double q_02 = sqrt(3)*quadrople[1];
+        double q_12 = sqrt(3)*quadrople[2];
+        double q_00 = -quadrople[0]+sqrt(3)*quadrople[3];
+        double q_11 = -quadrople[0]-sqrt(3)*quadrople[3]; // tensor is traceless, q_22 = - (q_00 + q_11)
 
         // cout << _gridpoint << endl;
         // shell info, only lmax tells how far to go

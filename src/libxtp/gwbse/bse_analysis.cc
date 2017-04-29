@@ -473,7 +473,7 @@ namespace votca {
             for (int _i = 0; _i < _bse_nprint; _i++) {
 
                 if (votca::tools::globals::verbose) {
-                    LOG(ctp::logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %6$+1.4f")
+                    LOG(ctp::logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %5$+1.4f")
                             % (_i + 1) % (votca::tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0 / (13.6058 * _bse_triplet_energies(_i)))
                             % (votca::tools::conv::ryd2ev * _contrib_qp[_i]) % (votca::tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
                 } else {

@@ -20,6 +20,7 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
 #include "votca/xtp/aobasis.h"
+#include "votca/xtp/qminterface.h"
 #include <votca/xtp/dftengine.h>
 
 #include <boost/format.hpp>
@@ -35,6 +36,8 @@
 
 #include <votca/xtp/elements.h>
 #include <votca/xtp/diis.h>
+
+#include <votca/ctp/xinteractor.h>
 
 // #include <omp.h>
 
@@ -1096,51 +1099,56 @@ ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
                   E_nucnuc+=charge1*charge2/(abs(r1-r2));
               }
           }
-
           return;
       }
       
       
-      double DFTENGINE::ExternalRepulsion(){
+      double DFTENGINE::ExternalRepulsion(ctp::Topology* top){
           Elements element;
-          double E_ext=0.0;
-          
+                 
           if(_externalsites.size()==0){
               return 0;
           }
           
-          std::vector<double> charge;
-          for(unsigned i=0;i<_atoms.size();i++){
+          QMMInterface qmminter;
+          ctp::PolarSeg nuclei=qmminter.Convert(_atoms);
+          ctp::PolarSeg::iterator pes;
+          for (pes=nuclei.begin();pes<nuclei.end();++pes){
+              (*pes)->setIsoP(0.0);
+              string name=(*pes)->getName();
               if(_with_ecp){
-                  charge.push_back(element.getNucCrgECP(_atoms[i]->type));
+                  (*pes)->setQ00(element.getNucCrgECP(name),0);
               }
               else{
-                  charge.push_back(element.getNucCrg(_atoms[i]->type));
-              }
-          }      
-              
-          for(unsigned i=0;i<_atoms.size();i++){
-              vec r1=vec(_atoms[i]->x*tools::conv::ang2bohr,_atoms[i]->y*tools::conv::ang2bohr,_atoms[i]->z*tools::conv::ang2bohr);
-              double charge1=charge[i];
-              for(std::vector<ctp::APolarSite*>::iterator ext=_externalsites.begin();ext<_externalsites.end();++ext){
-                  vec r2=(*ext)->getPos()*tools::conv::nm2bohr;
-                  double charge2=(*ext)->getQ00();
-                  E_ext+=charge1*charge2/(abs(r1-r2));
-                  if ((*ext)->getRank()>0 || (*ext)->IsPolarizable()){
-                      vec dipole=((*ext)->getU1()+(*ext)->getQ1())*tools::conv::nm2bohr;
-                      E_ext-=charge1*dipole*(r2-r1)/pow(abs(r2-r1),3);
-                      
-                      
-                  }
-                  if((*ext)->getRank()>1){
-                      cout <<endl;
-                      cout<<"WARNING: external multipoles higher than dipoles are not yet taken into account!"<<endl;
-                  }
-                  
+                  (*pes)->setQ00(element.getNucCrg(name),0);
               }
           }
           
-          return E_ext;
+        ctp::XInteractor actor;
+        actor.ResetEnergy();
+        nuclei.CalcPos();
+        _externalsites.CalcPos();
+        tools::vec s=tools::vec(0,0,0);
+        if(top==NULL){
+            s=nuclei.getPos()-_externalsites.getPos();
+        }
+        else{
+            s=top->PbShortestConnect(nuclei.getPos(),_externalsites.getPos())+nuclei.getPos()-_externalsites.getPos();
+        }
+        ctp::PolarSeg::iterator pit1;
+        ctp::PolarSeg::iterator pit2;
+        
+         double E_ext=0.0;
+        for (pit1=nuclei.begin();pit1<nuclei.end();++pit1){
+            for (pit2=_externalsites.begin();pit2<_externalsites.end();++pit2){
+                actor.BiasIndu(*(*pit1), *(*pit2),s);
+                (*pit1)->Depolarize();
+                E_ext += actor.E_f(*(*pit1), *(*pit2));                           
+           
+            }
+        }
+             
+          return E_ext*tools::conv::int2eV*tools::conv::ev2hrt;
       }
       
       

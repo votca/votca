@@ -190,7 +190,8 @@ bool DFT::Evaluate() {
     
      if(_do_external){
       vector<ctp::APolarSite*> sites=ctp::APS_FROM_MPS(_mpsfile,0);
-      _dft.setExternalcharges(sites);
+      ctp::PolarSeg polarseg=ctp::PolarSeg(0,sites);
+      _dft.setExternalcharges(polarseg);
        }
     
     // RUN

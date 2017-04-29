@@ -59,14 +59,39 @@ namespace votca {
         return new_aps;
     }
         
-    ctp::PolarSeg *QMMInterface::Convert(std::vector<ctp::QMAtom*> &atms) {        
-        ctp::PolarSeg *new_pseg = new ctp::PolarSeg();
+    ctp::PolarSeg QMMInterface::Convert(std::vector<ctp::QMAtom*> &atms) {        
+        ctp::PolarSeg new_pseg =ctp::PolarSeg();
         std::vector<ctp::QMAtom*>::iterator it;
         for (it = atms.begin(); it < atms.end(); ++it) {
             ctp::APolarSite *new_site = this->Convert(*it);
-            new_pseg->push_back(new_site);
+            new_pseg.push_back(new_site);
         }
         return new_pseg;
+    }
+    
+    
+    std::vector<ctp::QMAtom *> QMMInterface::Convert( std::vector<ctp::Segment* > segments){
+        
+        std::vector<ctp::QMAtom *> qmatoms;
+        
+        std::vector< ctp::Atom* > ::iterator ait;
+        std::vector< ctp::Segment* >::iterator sit;
+        for (sit = segments.begin(); sit != segments.end(); ++sit) {
+            std::vector < ctp::Atom* >& _atoms = (*sit)->Atoms();
+
+            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+
+
+                vec pos = (*ait)->getQMPos()*tools::conv::nm2ang;
+                std::string name = (*ait)->getElement();
+                //be careful charges are set to zero because most of the time ctp::Atom has getQ not set, the construct is very weird, ctp is shit
+                ctp::QMAtom* qmatom=new ctp::QMAtom(name,pos,0.0,!(*ait)->HasQMPart());
+               
+                qmatoms.push_back(qmatom);
+                        
+            }
+        }
+        return qmatoms;
     }
 
 

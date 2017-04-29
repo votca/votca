@@ -23,9 +23,11 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
 
-#include <votca/ctp/xjob.h>
-#include <votca/ctp/xinductor.h>
 
+#include <votca/ctp/apolarsite.h>
+#include <votca/ctp/qmatom.h>
+#include <votca/ctp/polarseg.h>
+#include <votca/ctp/segment.h>
 // add gwbse header for excited state support
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/qmpackagefactory.h>
@@ -51,8 +53,10 @@ public:
     // CONVERSION QM -> MM
     ctp::APolarSite *Convert(ctp::QMAtom *atm, int id = -1);
     
-    ctp::PolarSeg *Convert(std::vector<ctp::QMAtom*> &atms);
+    ctp::PolarSeg Convert(std::vector<ctp::QMAtom*> &atms);
   
+    
+    std::vector<ctp::QMAtom *> Convert( std::vector<ctp::Segment* > segments);
     
 private:
     

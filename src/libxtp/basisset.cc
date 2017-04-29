@@ -245,15 +245,13 @@ void BasisSet::LoadBasisSet ( std::string name )
             //cout << "\n\tShell " << shellType;
             
             list<Property*> constProps = (*its)->Select("constant");
-            for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
-            {
+            for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) {
                 double decay = (*itc)->getAttribute<double>("decay");
                 // << " decay "<<decay<<endl;
                 std::vector<double> contraction;
                 contraction.resize(shell->getLmax()+1); 
                 list<Property*> contrProps = (*itc)->Select("contractions");
-                for (list<Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont)
-                {
+                for (list<Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont){
                     std::string contrType = (*itcont)->getAttribute<std::string>("type");
                     double contrFactor = (*itcont)->getAttribute<double>("factor");
                     //cout << " factor " << contrFactor << endl;
