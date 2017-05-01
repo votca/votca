@@ -34,6 +34,8 @@ scripts/xtp_update_exciton
 scripts/xtp_update_exciton.out
 scripts/xtp_basisset
 scripts/xtp_basisset.out
+scripts/xtp_makeauxbasis
+scripts/xtp_makeauxbasis.out
 
 netbeans/*/build
 .dep.inc
