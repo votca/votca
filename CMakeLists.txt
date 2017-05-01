@@ -40,7 +40,13 @@ endif()
 ########################################################################
 # User input options                                                   #
 ########################################################################
-
+if(GWBSE_DOUBLE)
+   add_definitions(-DGWBSE_DOUBLE)
+    set(GWBSE_DOUBLE_VALUE 1)
+else()
+    set(GWBSE_DOUBLE_VALUE 0)
+endif()
+add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 
 find_package(LIBXC)
 if (LIBXC_FOUND)
