@@ -41,195 +41,178 @@ namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
 
-        
-        void GWBSE::PPM_construct_parameters(  ub::matrix<double>& _overlap_cholesky_inverse ){
-            
+        void GWBSE::PPM_construct_parameters(ub::matrix<double>& _overlap_cholesky_inverse) {
+
             // multiply with L-1^t from the right
-            ub::matrix<double> _overlap_cholesky_inverse_transposed = ub::trans( _overlap_cholesky_inverse );
-            ub::matrix<double> _temp = ub::prod( _epsilon[0] , _overlap_cholesky_inverse_transposed );
+            ub::matrix<double> _overlap_cholesky_inverse_transposed = ub::trans(_overlap_cholesky_inverse);
+            ub::matrix<double> _temp = ub::prod(_epsilon[0], _overlap_cholesky_inverse_transposed);
             // multiply with L-1 from the left
-            _temp = ub::prod( _overlap_cholesky_inverse, _temp );
-            
+            _temp = ub::prod(_overlap_cholesky_inverse, _temp);
+
             // get eigenvalues and eigenvectors of this matrix
             ub::vector<double> _eigenvalues;
             ub::matrix<double> _eigenvectors;
-            _eigenvalues.resize(_temp.size1());
-            _eigenvectors.resize(_temp.size1(), _temp.size1());
             linalg_eigenvalues(_temp, _eigenvalues, _eigenvectors);
-            
-            // multiply eigenvectors with overlap_cholesky_inverse_transpose and store as eigenvalues of epsilon
-            _ppm_phi = ub::prod( _overlap_cholesky_inverse_transposed , _eigenvectors ); 
 
- 
-            
+            // multiply eigenvectors with overlap_cholesky_inverse_transpose and store as eigenvalues of epsilon
+            _ppm_phi = ub::prod(_overlap_cholesky_inverse_transposed, _eigenvectors);
+
             // store PPM weights from eigenvalues
-            _ppm_weight.resize( _eigenvalues.size() );
-            for ( unsigned _i = 0 ; _i <  _eigenvalues.size(); _i++   ){
-                _ppm_weight(_i) = 1.0 - 1.0/_eigenvalues(_i);
+            _ppm_weight.resize(_eigenvalues.size());
+            for (unsigned _i = 0; _i < _eigenvalues.size(); _i++) {
+                _ppm_weight(_i) = 1.0 - 1.0 / _eigenvalues(_i);
             }
 
             // determine PPM frequencies
-            _ppm_freq.resize( _eigenvalues.size() );
+            _ppm_freq.resize(_eigenvalues.size());
             // a) phi^t * epsilon(1) * phi 
-            _temp = ub::prod( ub::trans( _ppm_phi ) , _epsilon[1] );
-            _eigenvectors  = ub::prod( _temp ,  _ppm_phi  );
+            _temp = ub::prod(ub::trans(_ppm_phi), _epsilon[1]);
+            _eigenvectors = ub::prod(_temp, _ppm_phi);
             // b) invert
-            _temp = ub::zero_matrix<double>( _eigenvalues.size(),_eigenvalues.size() )  ;
-            linalg_invert( _eigenvectors , _temp ); //eigenvectors is destroyed after!
+            _temp = ub::zero_matrix<double>(_eigenvalues.size(), _eigenvalues.size());
+            linalg_invert(_eigenvectors, _temp); //eigenvectors is destroyed after!
             // c) PPM parameters -> diagonal elements
-            for ( unsigned _i = 0 ; _i <  _eigenvalues.size(); _i++   ){
-                
-                if ( _screening_freq(1,0) == 0.0 ) {
-                    if ( _ppm_weight(_i) < 1.e-5 ){
-		      _ppm_weight(_i) = 0.0;
-		      _ppm_freq(_i)   = 1.0;
-                      continue;
-		    }
-                    else{
-                        double _nom  = _temp( _i, _i ) - 1.0;
-                        double _frac = -1.0 * _nom/(_nom + _ppm_weight( _i )) * _screening_freq(1,1) * _screening_freq(1,1) ;
-                        _ppm_freq ( _i ) =  sqrt( std::abs(_frac )) ;
-                        
+            for (unsigned _i = 0; _i < _eigenvalues.size(); _i++) {
+
+                if (_screening_freq(1, 0) == 0.0) {
+                    if (_ppm_weight(_i) < 1.e-5) {
+                        _ppm_weight(_i) = 0.0;
+                        _ppm_freq(_i) = 1.0;
+                        continue;
+                    } else {
+                        double _nom = _temp(_i, _i) - 1.0;
+                        double _frac = -1.0 * _nom / (_nom + _ppm_weight(_i)) * _screening_freq(1, 1) * _screening_freq(1, 1);
+                        _ppm_freq(_i) = sqrt(std::abs(_frac));
                     }
-                    
-                    
-                }
-                else{
-                
-                // only purely imaginary frequency assumed
-                    cerr << " mixed frequency! real part: " << _screening_freq( 1, 0 ) << " imaginary part: "  << _screening_freq( 1 , 1 ) << flush;
+
+                } else {
+                    // only purely imaginary frequency assumed
+                    cerr << " mixed frequency! real part: " << _screening_freq(1, 0) << " imaginary part: " << _screening_freq(1, 1) << flush;
                     exit(1);
                 }
-                    
-                
-                
 
             }
-            
+
             // will be needed transposed later
-            _ppm_phi = ub::trans( _ppm_phi );
-            
+            _ppm_phi = ub::trans(_ppm_phi);
+
             // epsilon can be deleted
-            _epsilon[0].resize(0,0);
-            _epsilon[1].resize(0,0);
-                   
-            
+            _epsilon[0].resize(0, 0);
+            _epsilon[1].resize(0, 0);
+
+            return;
         }
         
         
         //imaginary
-        
-        void GWBSE::RPA_imaginary(ub::matrix<double>& result,const TCMatrix& _Mmn_RPA, const double& _shift,const ub::vector<double>& _dft_energies, const double& screening_freq){
-             int _size = _Mmn_RPA[0].size1(); // size of gwbasis
-             
-             #pragma omp parallel for 
-                for ( int _m_level = 0; _m_level < _Mmn_RPA.get_mtot() ; _m_level++ ){
-                    //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
-                    int index_m = _Mmn_RPA.get_mmin();
-                    const ub::matrix<double>& Mmn_RPA =  _Mmn_RPA[ _m_level ];
+        void GWBSE::RPA_imaginary(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, const ub::vector<double>& _dft_energies, const double screening_freq) {
+            int _size = _Mmn_RPA[0].size1(); // size of gwbasis
 
-                    // a temporary matrix, that will get filled in empty levels loop
-                    ub::matrix<double> _temp = ub::zero_matrix<double>( _Mmn_RPA.get_ntot(), _size );
-                    
-                        
-                    // loop over empty levels
-                    for ( int _n_level = 0 ; _n_level < _Mmn_RPA.get_ntot() ; _n_level++ ){
-                        int index_n = _Mmn_RPA.get_nmin();
-                        
-                        
-                        double _deltaE = _shift + _dft_energies( _n_level + index_n ) - _dft_energies( _m_level + index_m ); // get indices and units right!!!
-                        
-                        // this only works, if we have either purely real or purely imaginary frequencies
-                       
-                            // purely imaginary
-                        double     _energy_factor = 8.0 * _deltaE / (_deltaE*_deltaE + screening_freq *  screening_freq);
-                        
-                        // _temp = _energy_factor * ub::trans( Mmn_RPA );
-                        for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
-                            _temp( _n_level , _i_gw ) = _energy_factor * Mmn_RPA( _i_gw , _n_level );
-                         } // matrix size
-                        
-                    } // empty levels
+#pragma omp parallel for 
+            for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
+                //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
+                int index_m = _Mmn_RPA.get_mmin();
+                const ub::matrix<double>& Mmn_RPA = _Mmn_RPA[ _m_level ];
 
-                   // now multiply and add to epsilon
-                    ub::matrix<double> _add = ub::prod( Mmn_RPA , _temp  );
-                   #pragma omp critical
-                    {
-                   result += _add;// ub::prod( Mmn_RPA , _temp  );
-                    }
-                } // occupied levels
-             return;
+                // a temporary matrix, that will get filled in empty levels loop
+                ub::matrix<double> _temp = ub::zero_matrix<double>(_Mmn_RPA.get_ntot(), _size);
+
+
+                // loop over empty levels
+                for (int _n_level = 0; _n_level < _Mmn_RPA.get_ntot(); _n_level++) {
+                    int index_n = _Mmn_RPA.get_nmin();
+
+
+                    double _deltaE = _shift + _dft_energies(_n_level + index_n) - _dft_energies(_m_level + index_m); // get indices and units right!!!
+
+                    // this only works, if we have either purely real or purely imaginary frequencies
+
+                    // purely imaginary
+                    double _energy_factor = 8.0 * _deltaE / (_deltaE * _deltaE + screening_freq * screening_freq);
+
+                    // _temp = _energy_factor * ub::trans( Mmn_RPA );
+                    for (int _i_gw = 0; _i_gw < _size; _i_gw++) {
+                        _temp(_n_level, _i_gw) = _energy_factor * Mmn_RPA(_i_gw, _n_level);
+                    } // matrix size
+
+                } // empty levels
+
+                // now multiply and add to epsilon
+                ub::matrix<double> _add = ub::prod(Mmn_RPA, _temp);
+                #pragma omp critical
+                {
+                    result += _add; // ub::prod( Mmn_RPA , _temp  );
+                }
+            } // occupied levels
+            return;
         }
         //real
-        void GWBSE::RPA_real(ub::matrix<double>& result,const TCMatrix& _Mmn_RPA,const double& _shift,const ub::vector<double>& _dft_energies,const double& screening_freq){
-             int _size = _Mmn_RPA[0].size1(); // size of gwbasis
-             
-             #pragma omp parallel for 
-                for ( int _m_level = 0; _m_level < _Mmn_RPA.get_mtot() ; _m_level++ ){
-                    //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
-                    int index_m = _Mmn_RPA.get_mmin();
-                    const ub::matrix<double>& Mmn_RPA =  _Mmn_RPA[ _m_level ];
 
-                    // a temporary matrix, that will get filled in empty levels loop
-                    ub::matrix<double> _temp = ub::zero_matrix<double>( _Mmn_RPA.get_ntot(), _size );
-                    
-                        
-                    // loop over empty levels
-                    for ( int _n_level = 0 ; _n_level < _Mmn_RPA.get_ntot() ; _n_level++ ){
-                        int index_n = _Mmn_RPA.get_nmin();
-                        
-                        
-                        double _deltaE = _shift + _dft_energies( _n_level + index_n ) - _dft_energies( _m_level + index_m ); // get indices and units right!!!
-                        
-                        // this only works, if we have either purely real or purely imaginary frequencies
-                       
-                            // purely real
-                        double _energy_factor = 4.0 * (1.0 / (_deltaE - screening_freq ) +  1.0 / (_deltaE + screening_freq ) );
-                        
-                        // _temp = _energy_factor * ub::trans( Mmn_RPA );
-                        for ( int _i_gw = 0 ; _i_gw < _size ; _i_gw++ ){
-                            _temp( _n_level , _i_gw ) = _energy_factor * Mmn_RPA( _i_gw , _n_level );
-                         } // matrix size
-                        
-                    } // empty levels
+        void GWBSE::RPA_real(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, const ub::vector<double>& _dft_energies, const double screening_freq) {
+            int _size = _Mmn_RPA[0].size1(); // size of gwbasis
 
-                   // now multiply and add to epsilon
-                    ub::matrix<double> _add = ub::prod( Mmn_RPA , _temp  );
-                   #pragma omp critical
-                    {
-                   result += _add;// ub::prod( Mmn_RPA , _temp  );
-                    }
-                } // occupied levels
-             return;
+            #pragma omp parallel for 
+            for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
+                
+                int index_m = _Mmn_RPA.get_mmin();
+                const ub::matrix<double>& Mmn_RPA = _Mmn_RPA[ _m_level ];
+
+                // a temporary matrix, that will get filled in empty levels loop
+                ub::matrix<double> _temp = ub::zero_matrix<double>(_Mmn_RPA.get_ntot(), _size);
+
+
+                // loop over empty levels
+                for (int _n_level = 0; _n_level < _Mmn_RPA.get_ntot(); _n_level++) {
+                    int index_n = _Mmn_RPA.get_nmin();
+
+
+                    double _deltaE = _shift + _dft_energies(_n_level + index_n) - _dft_energies(_m_level + index_m); // get indices and units right!!!
+
+                    // this only works, if we have either purely real or purely imaginary frequencies
+
+                    // purely real
+                    double _energy_factor = 4.0 * (1.0 / (_deltaE - screening_freq) + 1.0 / (_deltaE + screening_freq));
+
+                    // _temp = _energy_factor * ub::trans( Mmn_RPA );
+                    for (int _i_gw = 0; _i_gw < _size; _i_gw++) {
+                        _temp(_n_level, _i_gw) = _energy_factor * Mmn_RPA(_i_gw, _n_level);
+                    } // matrix size
+
+                } // empty levels
+
+                // now multiply and add to epsilon
+                ub::matrix<double> _add = ub::prod(Mmn_RPA, _temp);
+                #pragma omp critical
+                {
+                    result += _add; // ub::prod( Mmn_RPA , _temp  );
+                }
+            } // occupied levels
+            return;
         }
         
 
-        void GWBSE::RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA, const ub::matrix<double>& screening_freq,
-                const double& _shift, const ub::vector<double>& _dft_energies){
-            
-            
+        void GWBSE::RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA,const ub::vector<double>& _dft_energies){
             
             // loop over frequencies
-            for ( unsigned _i_freq = 0 ; _i_freq < screening_freq.size1() ; _i_freq++ ){
+            for ( unsigned _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
                 
-                 if ( screening_freq( _i_freq, 0) == 0.0 ) {
-                     RPA_imaginary(_epsilon[ _i_freq ],_Mmn_RPA, _shift, _dft_energies,screening_freq( _i_freq, 1));
+                 if ( _screening_freq( _i_freq, 0) == 0.0 ) {
+                     RPA_imaginary(_epsilon[ _i_freq ],_Mmn_RPA, _dft_energies,_screening_freq( _i_freq, 1));
                  }
                  
-                 else if ( screening_freq( _i_freq, 1) == 0.0  ) {
-                            // purely real
-                      RPA_real(_epsilon[ _i_freq ],_Mmn_RPA, _shift, _dft_energies,screening_freq( _i_freq, 0));
+                 else if ( _screening_freq( _i_freq, 1) == 0.0  ) {
+                      // purely real
+                      RPA_real(_epsilon[ _i_freq ],_Mmn_RPA, _dft_energies,_screening_freq( _i_freq, 0));
                         } 
                  else {
-                            // mixed -> FAIL
-                            cerr << " mixed frequency! real part: " << screening_freq( _i_freq, 0 ) << " imaginary part: "  << screening_freq( _i_freq, 1 ) << flush;
-                            exit(1);
+                        // mixed -> FAIL
+                        cerr << " mixed frequency! real part: " << _screening_freq( _i_freq, 0 ) << " imaginary part: "  << _screening_freq( _i_freq, 1 ) << flush;
+                        exit(1);
                         }   
-                 
-                
+
             } // loop over frequencies
             
-            
+            return;
         }
         
         
@@ -239,9 +222,6 @@ namespace votca {
              const AOMatrix& gwoverlap,const AOMatrix& gwoverlap_inverse ){
         
         const double pi = boost::math::constants::pi<double>();
-      //ub::matrix<double> _temp;
-      //ub::matrix<double> _temp2;
-
 
         // loop over m-levels in _Mmn_RPA
         #pragma omp parallel for 

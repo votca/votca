@@ -19,7 +19,7 @@
 
 #ifndef __XTP_THREECENTERS__H
 #define	__XTP_THREECENTERS__H
-#define BOOST_DISABLE_ASSERTS //could be used to slighlty speed up calculation but the compile time simply goes boom
+#define BOOST_DISABLE_ASSERTS 
 #include <boost/multi_array.hpp>
 #include <votca/xtp/aomatrix.h>
 //matrix prod overload
@@ -40,10 +40,6 @@ using namespace votca::tools;
 * 
 * 
 */
-
-
-
-
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
@@ -70,10 +66,6 @@ namespace votca { namespace xtp {
    
     };
     
-
-    
-    
-    
     
     class TCMatrix_dft : public TCrawMatrix{
     public:
@@ -95,37 +87,18 @@ namespace votca { namespace xtp {
     };
 
 
-
-
-
     class FCMatrix_dft : public TCrawMatrix{
     public:
     
     void Fill_4c_small_molecule(AOBasis& dftbasis); ///////////////////
-   
-   
-
-
- 
 
     const ub::vector<double>& get_4c_vector() { return _4c_vector;} ////////////////////
-
     
     private:
      
-        ub::vector<double> _4c_vector; /////////////
-
-//////        void FillBlock(AOShell* _shell, AOBasis& dftbasis) ; 
-        
+        ub::vector<double> _4c_vector;
     };
 
-
-
-
-    
-    
-    
-    
     class TCMatrix : public TCrawMatrix {
     public:
     
@@ -186,32 +159,18 @@ namespace votca { namespace xtp {
             }
         
         }
-        
-       
-        
+
         void Prune ( int _basissize, int min, int max);
-        
         void Print( std::string _ident);       
-        
-       
         void Fill( AOBasis& gwbasis, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals );
      
-
-        // matrix print 
-       
-
         void Symmetrize( const ub::matrix<double>& coulomb  );
-
-        // ~TCMatrix();
-        
+   
         void Cleanup();
-        
-        // ub::matrix<double> matrixProd( int m, ub::matrix<double>& matrix);
         
     private:
         
         // store vector of matrices
-        //std::vector< ub::matrix<double> > _matrix;
         std::vector< ub::matrix<real_gwbse> > _matrix;
         
         // band summation indices
@@ -221,19 +180,8 @@ namespace votca { namespace xtp {
         int nmax;
         int ntotal;
         int mtotal;
-        
-        
-        
-        
-        
-        
-        // void FillBlock(ub::vector_range< ub::vector< ub::matrix<double> > >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
-        
+          
         void FillBlock(std::vector< ub::matrix<double> >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
-        //void FillBlock(std::vector< ub::matrix<real_gwbse> >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
-        
-     
-        
         
     };
     

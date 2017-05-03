@@ -401,14 +401,13 @@ namespace votca {
             // container for frequencies in screening (index 0: real part, index 1: imaginary part)
             ub::matrix<double> _screening_freq;
             void symmetrize_threecenters(TCMatrix& _Mmn, ub::matrix<double>& _coulomb);
-            void RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA, const ub::matrix<double>& screening_freq,
-                    const double& _shift, const ub::vector<double>& _dft_energies);
+            void RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA, const ub::vector<double>& _dft_energies);
 
-            void RPA_real(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, const double& _shift,
-                    const ub::vector<double>& _dft_energies, const double& screening_freq);
+            void RPA_real(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, 
+                    const ub::vector<double>& _dft_energies, const double screening_freq);
 
-            void RPA_imaginary(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, const double& _shift,
-                    const ub::vector<double>& _dft_energies, const double& screening_freq);
+            void RPA_imaginary(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, 
+                    const ub::vector<double>& _dft_energies, const double screening_freq);
 
             void RPA_prepare_threecenters(TCMatrix& _Mmn_RPA, const TCMatrix& _Mmn_full, AOBasis& gwbasis,
                     const AOMatrix& gwoverlap, const AOMatrix& gwoverlap_inverse);

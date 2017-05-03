@@ -51,16 +51,16 @@ namespace votca { namespace xtp {
             
             
             
-            double IntegrateDensity_Atomblock(const ub::matrix<double>& _density_matrix, AOBasis* basis);
+            double IntegrateDensity_Atomblock(const ub::matrix<double>& _density_matrix);
             double IntegratePotential(const vec& rvector);
             
             double IntegrateField(const std::vector<double>& externalfield);
             
             double getExactExchange(const std::string _functional);
             // in principle a symmetric matrix would be nicer but we calculate whole vxc matrix because of numerics and symmetrize explicitly 
-            ub::matrix<double> IntegrateVXC_Atomblock (const ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
+            ub::matrix<double> IntegrateVXC_Atomblock (const ub::matrix<double>& _density_matrix,const std::string _functional);
             //ub::matrix<double> IntegrateVXC_Atomblock2 (const ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
-            ub::matrix<double> IntegrateExternalPotential_Atomblock(AOBasis* basis,std::vector<double> Potentialvalues);
+            ub::matrix<double> IntegrateExternalPotential_Atomblock(const std::vector<double>& Potentialvalues);
          
             
             // this gives int (e_xc-V_xc)*rho d3r
@@ -69,9 +69,9 @@ namespace votca { namespace xtp {
             
         private:
             
+            AOBasis* _basis;
             
-            
-           void FindsignificantAtoms(AOBasis* basis);
+           void FindsignificantAtoms();
            double erf1c(double x);
             double erfcc(double x);
             std::vector<double> SSWpartition(int igrid, int ncenters ,  std::vector< std::vector<double> >& rq );

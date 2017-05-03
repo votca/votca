@@ -319,7 +319,10 @@ namespace votca {
 
             // set the parallelization 
 #ifdef _OPENMP
-            if (_openmp_threads > 0) omp_set_num_threads(_openmp_threads);
+            if (_openmp_threads > 0){ 
+            omp_set_num_threads(_openmp_threads);
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << " Using "<< omp_get_max_threads()<<" threads" << flush;
+            }
 #endif
 
             /* check which QC program was used for the DFT run 
@@ -497,7 +500,7 @@ namespace votca {
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Integrating Vxc in VOTCA with gridsize: " << _grid << " and functional " << _functional << flush;
                     ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
-                    _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT, &dftbasis, _functional);
+                    _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT, _functional);
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Vxc in VOTCA" << flush;
 
                 } else {
@@ -669,7 +672,7 @@ namespace votca {
                 if (!_iterate_shift) _gwoverlap._aomatrix.resize(0, 0);
 
                 // determine epsilon from RPA
-                RPA_calculate_epsilon(_Mmn_RPA, _screening_freq, _shift, _dft_energies);
+                RPA_calculate_epsilon(_Mmn_RPA, _dft_energies);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated epsilon via RPA  " << flush;
 
                 // _Mmn_RPA is not needed any further, if no shift iteration
