@@ -332,10 +332,6 @@ namespace votca {
                     else{   
                         _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
                     }
-                    }
-                    else {
-                        throw runtime_error("Initial guess method not known/implemented");
-                    }
                     if(_use_small_grid){
                         _orbitals->AOVxc()=_gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat,_xc_functional_name);
                         LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix "<<flush;           
@@ -347,7 +343,12 @@ namespace votca {
                     ub::matrix<double> H=H0+_ERIs.getERIs()+_orbitals->AOVxc();
                     _diis.SolveFockmatrix(MOEnergies,MOCoeff,H);
                     _dftAOdmat=_orbitals->DensityMatrixGroundState(MOCoeff);
+                 
                 }
+                else {
+                        throw runtime_error("Initial guess method not known/implemented");
+                }
+            }
             else{
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Reading guess from orbitals object/file"<< flush;
                 _dftbasis.ReorderMOs(MOCoeff, _orbitals->getQMpackage(), "xtp");
