@@ -31,10 +31,9 @@ using boost::format;
 
 namespace votca { namespace xtp {
 
-template<class QMPackage>
-QMAPEMachine<QMPackage>::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape, QMPackage *qmpack,
+QMAPEMachine::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape,
 	 Property *opt, string sfx, int nst)
-   : _subthreads(nst),_job(job), _qmpack(qmpack), _cape(cape),_isConverged(false) {
+   : _subthreads(nst),_job(job), _cape(cape),_isConverged(false) {
     
 	// CONVERGENCE THRESHOLDS
     string key = sfx + ".convergence";
@@ -110,8 +109,7 @@ QMAPEMachine<QMPackage>::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape, QMPa
 }
 
 
-template<class QMPackage>
-QMAPEMachine<QMPackage>::~QMAPEMachine() {
+QMAPEMachine::~QMAPEMachine() {
     
     std::vector<QMMIter*> ::iterator qit;
     for (qit = _iters.begin(); qit < _iters.end(); ++qit) {
@@ -121,8 +119,7 @@ QMAPEMachine<QMPackage>::~QMAPEMachine() {
 }
 
 
-template<class QMPackage>
-void QMAPEMachine<QMPackage>::Evaluate(ctp::XJob *job) {
+void QMAPEMachine::Evaluate(ctp::XJob *job) {
     
 	// PREPARE JOB DIRECTORY
 	string jobFolder = "job_" + boost::lexical_cast<string>(_job->getId())
@@ -151,9 +148,6 @@ void QMAPEMachine<QMPackage>::Evaluate(ctp::XJob *job) {
         throw runtime_error("Charged DFT calculations are not possible at the moment");
     }
 
-    // SET ITERATION-TIME CONSTANTS
-    _qmpack->setCharge(chrg);
-    _qmpack->setSpin(spin);
 
   
     
@@ -183,8 +177,7 @@ void QMAPEMachine<QMPackage>::Evaluate(ctp::XJob *job) {
 }
 
 
-template<class QMPackage>
-bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
+bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
 
     // CREATE ITERATION OBJECT & SETUP RUN DIRECTORY
     QMMIter *thisIter = this->CreateNewIter();
@@ -238,8 +231,6 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     std::vector<ctp::Segment*> empty;
    
    
-	_qmpack->setRunDir(runFolder);
-	_qmpack->WriteInputFile(empty, &orb_iter_input);
 
 	FILE *out;
 	out = fopen((runFolder + "/system.pdb").c_str(),"w");
@@ -248,10 +239,9 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
 	Orbitals orb_iter_output;
 	if (_run_dft) {
-		_qmpack->Run();
+            cout<<"Hello"<<endl;
 	}
-	_qmpack->ParseLogFile(&orb_iter_output);
-
+	
 
     // Run GWBSE
 	if (_run_gwbse){
@@ -290,8 +280,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 }
 
 
-template<class QMPackage>
-QMMIter *QMAPEMachine<QMPackage>::CreateNewIter() {
+QMMIter *QMAPEMachine::CreateNewIter() {
     
     QMMIter *newIter = new QMMIter(_iters.size());
     this->_iters.push_back(newIter);
@@ -299,12 +288,12 @@ QMMIter *QMAPEMachine<QMPackage>::CreateNewIter() {
 }
 
 
-template<class QMPackage>
-bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
+
+bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
 	// for GW-BSE, we also need to parse the orbitals file
         
-        _qmpack->ParseOrbitalsFile(&orb);
+       
 	//int _parse_orbitals_status = _qmpack->ParseOrbitalsFile(&orb);
 	std::vector<int> _state_index;
         GWBSE _gwbse(&orb);
@@ -457,8 +446,8 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 }
 
 
-template<class QMPackage>
-bool QMAPEMachine<QMPackage>::hasConverged() {
+
+bool QMAPEMachine::hasConverged() {
     
     _convg_dR = false;
     _convg_dQ = false;
@@ -500,8 +489,6 @@ bool QMAPEMachine<QMPackage>::hasConverged() {
 
 
 
-// REGISTER QM PACKAGES
-template class QMAPEMachine<QMPackage>;
     
     
     

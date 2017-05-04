@@ -38,18 +38,13 @@
 namespace votca { namespace xtp {
 
 
-    
-// ========================================================================== //
-// QMMACHINE: REGISTER QMPACKAGE TYPE (E.G. GAUSSIAN) AT THE END OF .CC FILE  //
-// ========================================================================== //    
-    
-template< class QMPackage >
+
 class QMAPEMachine
 {
     
 public:
 
-	QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape, QMPackage *qmpack,
+	QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape, 
               Property *opt, std::string sfx, int nst);
    ~QMAPEMachine();
     
@@ -74,7 +69,6 @@ private:
 
     ctp::XJob *_job;
     ctp::XInductor *_xind;
-    QMPackage *_qmpack;
     ctp::Ewald3DnD *_cape;
     
     

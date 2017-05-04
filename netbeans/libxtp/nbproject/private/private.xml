@@ -13,6 +13,7 @@
             <file>file:/home/jens/votca_git/src/xtp/src/libxtp/dftengine/dftengine.cc</file>
             <file>file:/home/jens/votca_git/src/xtp/include/votca/xtp/numerical_integrations.h</file>
             <file>file:/home/jens/votca_git/src/xtp/include/votca/xtp/qmapemachine.h</file>
+            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/jobcalculators/qmape.h</file>
             <file>file:/home/jens/votca_git/src/xtp/include/votca/xtp/dftengine.h</file>
             <file>file:/home/jens/votca_git/src/xtp/src/libxtp/qmapemachine.cc</file>
         </group>

@@ -60,7 +60,7 @@ private:
 	string                         _xml_file;
 	string                         _mps_table;
 	string                         _polar_bg_arch;
-	ctp::XMpsMap                        _mps_mapper;
+	ctp::XMpsMap                   _mps_mapper;
 	bool                           _pdb_check;
 	bool                           _ptop_check;
     
@@ -75,9 +75,8 @@ private:
     string                          _method;
    
     
-    // QM Package options
-    string                          _package;
-    Property                        _qmpack_opt;
+  
+    Property                        _dft_opt;
     
     // GWBSE options
     string                          _gwbse;
@@ -145,10 +144,9 @@ void QMAPE::Initialize(Property *options) {
 
     
     key = "options."+Identify();
-        if ( options->exists(key+".dftpackage")) {
-            string package_xml = options->get(key+".dftpackage").as< string >();
-            load_property_from_xml(_qmpack_opt, package_xml.c_str());
-            _package = _qmpack_opt.get("package.name").as< string >();
+        if ( options->exists(key+".dftoptions")) {
+            string package_xml = options->get(key+".dftoptions").as< string >();
+            load_property_from_xml(_dft_opt, package_xml.c_str());
         }
         else {
             throw runtime_error("No DFT package specified.");
@@ -172,7 +170,6 @@ void QMAPE::Initialize(Property *options) {
         cout << endl << "... ... Configure for ground states (DFT)" << flush;
     }
 
-    QMPackageFactory::RegisterAll();
 }
 
 
@@ -277,14 +274,10 @@ ctp::Job::JobResult QMAPE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThr
 	if (_pdb_check)
 		cape.WriteDensitiesPDB(xjob.getTag()+".densities.pdb");
 
-    // SETUP QM HANDLERS
-    QMPackage *qmpack =  QMPackages().Create(_package);
-    qmpack->Initialize(&_qmpack_opt);
-    qmpack->setLog(qlog);
+   
     
     // SETUP QMAPE
-    QMAPEMachine<QMPackage> machine = QMAPEMachine<QMPackage>(&xjob, &cape, qmpack,
-        _options, "options.qmape", _subthreads);
+    QMAPEMachine machine = QMAPEMachine(&xjob, &cape, _options, "options.qmape", _subthreads);
     machine.setLog(thread->getLogger());
     
     // EVALUATE: ITERATE UNTIL CONVERGED
@@ -295,8 +288,7 @@ ctp::Job::JobResult QMAPE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThr
     jres.setOutput(xjob.getInfoLine());
     jres.setStatus(ctp::Job::COMPLETE);
     
-    // CLEAN-UP
-    delete qmpack;
+ 
     delete qlog;
 
     return jres;
