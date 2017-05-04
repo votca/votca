@@ -39,7 +39,7 @@ namespace votca {
                 _matrix[ _i ].resize(0, 0, false);
             }
             _matrix.clear();
-
+            return;
         } // TCMatrix::Cleanup
 
         
@@ -58,7 +58,7 @@ namespace votca {
 	      //_matrix[ _i_occ ] = ub::prod(_coulomb, _matrix[ _i_occ ]);
 	      _matrix[ _i_occ ] = _temp;
             }
-
+            return;
         } // TCMatrix::Symmetrize
         
            void TCMatrix::Print(string _ident) {
@@ -70,6 +70,7 @@ namespace votca {
                     }
                 }
             }
+            return;
         }
 
         
@@ -81,27 +82,16 @@ namespace votca {
          */
         void TCMatrix::Fill(AOBasis& _gwbasis, AOBasis& _dftbasis, ub::matrix<double>& _dft_orbitals) {
 
-
-            //std::vector< ub::matrix<double> > _block(this->get_mtot());
-            //std::vector< ub::matrix<real_gwbse> > _block(this->get_mtot());
-
-
             // loop over all shells in the GW basis and get _Mmn for that shell
             #pragma omp parallel for //private(_block)
-            for ( unsigned _is= 0; _is <  _gwbasis._aoshells.size() ; _is++ ){
-            // for (std::vector< AOShell* >::iterator _is = _gwbasis.firstShell(); _is != _gwbasis.lastShell(); _is++) {
-                //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
+            for ( unsigned _is= 0; _is <  _gwbasis._aoshells.size() ; _is++ ){ 
                 AOShell* _shell = _gwbasis.getShell(_is);
                 int _start = _shell->getStartIndex();
-               // int _end = _start + _shell->getNumFunc();
-
-
                 // each element is a shell_size-by-n matrix, initialize to zero
                 std::vector< ub::matrix<double> > _block(this->get_mtot());
                 for (int i = 0; i < this->get_mtot(); i++) {
                     _block[i] = ub::zero_matrix<double>(_shell->getNumFunc(), this->get_ntot());
                 }
-
                 // Fill block for this shell (3-center overlap with _dft_basis + multiplication with _dft_orbitals )
                 FillBlock(_block, _shell, _dftbasis, _dft_orbitals);
 
@@ -116,9 +106,8 @@ namespace votca {
                     } // GW basis function in shell
                 } // m-th DFT orbital
             } // shells of GW basis set
-
-        } // TCMatrix::Fill
-
+            return;
+        } 
 
         
         /*
@@ -193,30 +182,23 @@ namespace votca {
                     } // n-level
                 } // GW basis function in shell
             } // m-level
-            
+            return;
         } // TCMatrix::FillBlock
 
         
-             void TCMatrix::Prune ( int _basissize, int min, int max){
+        void TCMatrix::Prune ( int _basissize, int min, int max){
 
-            int size1 = _matrix[0].size1();
-            
+            int size1 = _matrix[0].size1();           
             // vector needs only max entries
             _matrix.resize( max + 1 );
-            
-            
-            
             // entries until min can be freed
             for ( int i = 0; i < min ; i++){
-                //_matrix[i] = ub::zero_matrix<double>(_basissize,ntotal);
                 _matrix[i].resize(0,0,false);
             }
-
             for ( unsigned i=min; i < _matrix.size(); i++){
                 _matrix[i].resize(size1,max+1);
             }
-
-            
+            return;
         }
         
  

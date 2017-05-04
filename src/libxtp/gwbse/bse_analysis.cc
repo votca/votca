@@ -69,11 +69,11 @@ namespace votca {
             for (int _i = 0; _i < _bse_nprint; _i++) {
                 if (votca::tools::globals::verbose) {
                     LOG(ctp::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
-                            % (_i + 1) % (votca::tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0 / (votca::tools::conv::ryd2ev * _bse_singlet_energies(_i)))
-                            % (votca::tools::conv::ryd2ev * _contrib_qp[_i]) % (votca::tools::conv::ryd2ev * _contrib_x[_i]) % (votca::tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
+                            % (_i + 1) % (votca::tools::conv::hrt2ev * _bse_singlet_energies(_i)) % (1240.0 / (votca::tools::conv::hrt2ev * _bse_singlet_energies(_i)))
+                            % (votca::tools::conv::hrt2ev * _contrib_qp[_i]) % (votca::tools::conv::hrt2ev * _contrib_x[_i]) % (votca::tools::conv::hrt2ev * _contrib_d[ _i ])).str() << flush;
                 } else {
                     LOG(ctp::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
-                            % (_i + 1) % (votca::tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0 / (votca::tools::conv::ryd2ev * _bse_singlet_energies(_i)))).str() << flush;
+                            % (_i + 1) % (votca::tools::conv::hrt2ev * _bse_singlet_energies(_i)) % (1240.0 / (votca::tools::conv::hrt2ev * _bse_singlet_energies(_i)))).str() << flush;
                 }
                 
                 LOG(ctp::logINFO, *_pLog) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
@@ -128,29 +128,14 @@ namespace votca {
                     ub::matrix<real_gwbse> _slice_AR = ub::project(_bse_coefficients_AR, ub::range(0, _bse_size), ub::range(_i_exc, _i_exc + 1));
 
                     ub::matrix<real_gwbse> _H_R = _eh_d + 2.0 * _eh_x;
-                    //ub::matrix<real_gwbse> _H_AR = _eh_d2 + 2.0 * _eh_x;
+                   
                     
                     ub::matrix<real_gwbse> tmp = ub::prod( _H_R, _slice_R );
                     ub::matrix<real_gwbse> XAX = ub::prod( ub::trans(_slice_R), tmp  );
-                    
-                   // tmp = ub::prod( _H_AR, _slice_AR );
-                   // ub::matrix<real_gwbse> XBY = ub::prod( ub::trans(_slice_R), tmp  );
-                    
-                   // tmp = ub::prod( _H_AR, _slice_R );
-                   // ub::matrix<real_gwbse> YBX = ub::prod( ub::trans(_slice_AR), tmp  );
-                    
+           
                     tmp = ub::prod( _H_R, _slice_AR );
                     ub::matrix<real_gwbse> YAY = ub::prod( ub::trans(_slice_AR), tmp  );
-                    
-                    /* cout << " Individual "<< endl;
-                    cout << "Explicit: " << _bse_energies(_i_exc) << endl;
-                    cout << " XAX    : " << XAX(0,0) << endl;
-                    //cout << " XBY    : " << XBY(0,0) << endl;
-                    //cout << " YBX    : " << YBX(0,0) << endl;
-                    cout << " YAY    : " << YAY(0,0) << endl;
-                    cout << " SUM    : " << XAX(0,0)+XBY(0,0)-YBX(0,0)-YAY(0,0) << endl;
-                    
-                    exit(0); */
+                  
                     
                     // get resonant contribution from direct Keh 
                     ub::matrix<real_gwbse> _temp = ub::prod(_eh_d - _eh_qp, _slice_R);
@@ -182,12 +167,11 @@ namespace votca {
                     
                 }
             }
-
+            return;
          }
         
 
         void GWBSE::BSE_analyze_electron_hole_interaction(ub::vector<real_gwbse>& _bse_energies, ub::matrix<real_gwbse>& _bse_coefficients, std::vector<real_gwbse>& _c_x, std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp) {
-
 
             if (votca::tools::globals::verbose) {
                 for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
@@ -211,13 +195,12 @@ namespace votca {
             }
 
 
-
+            return;
         }
+        
         void GWBSE::BSE_FragmentPopulations(AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals, ub::matrix<real_gwbse>& _bse_coefficients, std::vector<double>& popHA, std::vector<double>& popEA, std::vector<double>& popHB, std::vector<double>& popEB, std::vector<double> &_CrgsA, std::vector<double> &_CrgsB) {
             double &_popA = _orbitals->FragmentAChargesGS();
             double &_popB = _orbitals->FragmentBChargesGS();
-
-          
 
             // Mulliken fragment population analysis
             if (_fragA > 0) {
@@ -268,9 +251,7 @@ namespace votca {
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " --- complete! " << flush;
 
             }
-
-
-
+            return;
         }
         
         void GWBSE::BSE_FreeTransition_Dipoles(AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals){
@@ -290,19 +271,16 @@ namespace votca {
                 _levels = ub::project(_dft_orbitals, ub::range(_bse_vmin, _bse_vmax + 1), ub::range(0, dftbasis._AOBasisSize));
                 _interlevel_dipoles[ _i_comp ] = ub::prod(_levels, _temp);
             }
-            _temp.resize(0, 0);
-            _dft_dipole.Cleanup();
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;
             
-            
-            
+           return; 
         }
 
         void GWBSE::BSE_CoupledTransition_Dipoles_BTDA(ub::vector<real_gwbse>& _bse_energies,
-                ub::matrix<real_gwbse>& _bse_coefficients,
-                ub::matrix<real_gwbse>& _bse_coefficients_AR,
-                std::vector<double>& _oscillator_strength,
-                std::vector<double>& _transition_dipole_strength) {
+            ub::matrix<real_gwbse>& _bse_coefficients,
+            ub::matrix<real_gwbse>& _bse_coefficients_AR,
+            std::vector<double>& _oscillator_strength,
+            std::vector<double>& _transition_dipole_strength) {
 
             double sqrt2 = sqrt(2.0);
             std::vector<ub::vector<double> >& _transition_dipoles = _orbitals->TransitionDipoles();
@@ -331,12 +309,10 @@ namespace votca {
                 _oscillator_strength.push_back(_transition_dipole_strength[_i_exc] / 3.0 * (_bse_singlet_energies(_i_exc)));
             }
 
-
+            return;
         }
         
-        
-        
-        
+
         void GWBSE::BSE_CoupledTransition_Dipoles(ub::vector<real_gwbse>& _bse_energies,
                 ub::matrix<real_gwbse>& _bse_coefficients,
                 std::vector<double>& _oscillator_strength,
@@ -364,10 +340,10 @@ namespace votca {
                 _transition_dipoles.push_back(_tdipole);
                 _transition_dipole_strength.push_back((ub::inner_prod(_tdipole, _tdipole)));
                 //cout<< ub::inner_prod(_tdipole,_tdipole)<< " "<< _tdipole<< endl;
-                _oscillator_strength.push_back(_transition_dipole_strength[_i_exc] / 3.0 * (_bse_singlet_energies(_i_exc)));
+                _oscillator_strength.push_back(2*_transition_dipole_strength[_i_exc] / 3.0 * (_bse_singlet_energies(_i_exc)));
             }
 
-
+            return;
         }
         
         void GWBSE::BSE_analyze_singlets(AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals) {
@@ -405,11 +381,11 @@ namespace votca {
             for (int _i = 0; _i < _bse_nprint; _i++) {
                 if (votca::tools::globals::verbose) {
                     LOG(ctp::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
-                            % (_i + 1) % (votca::tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0 / (votca::tools::conv::ryd2ev * _bse_singlet_energies(_i)))
-                            % (votca::tools::conv::ryd2ev * _contrib_qp[_i]) % (votca::tools::conv::ryd2ev * _contrib_x[_i]) % (votca::tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
+                            % (_i + 1) % (votca::tools::conv::hrt2ev * _bse_singlet_energies(_i)) % (1240.0 / (votca::tools::conv::hrt2ev * _bse_singlet_energies(_i)))
+                            % (votca::tools::conv::hrt2ev * _contrib_qp[_i]) % (votca::tools::conv::hrt2ev * _contrib_x[_i]) % (votca::tools::conv::hrt2ev * _contrib_d[ _i ])).str() << flush;
                 } else {
                     LOG(ctp::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
-                            % (_i + 1) % (votca::tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0 / (votca::tools::conv::ryd2ev * _bse_singlet_energies(_i)))).str() << flush;
+                            % (_i + 1) % (votca::tools::conv::hrt2ev * _bse_singlet_energies(_i)) % (1240.0 / (votca::tools::conv::hrt2ev * _bse_singlet_energies(_i)))).str() << flush;
                 }
                 LOG(ctp::logINFO, *_pLog) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
                         % (_transition_dipoles[_i](0)) % (_transition_dipoles[_i](1)) % (_transition_dipoles[_i](2)) % (_transition_dipole_strength[_i])
@@ -474,11 +450,11 @@ namespace votca {
 
                 if (votca::tools::globals::verbose) {
                     LOG(ctp::logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %5$+1.4f")
-                            % (_i + 1) % (votca::tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0 / (13.6058 * _bse_triplet_energies(_i)))
-                            % (votca::tools::conv::ryd2ev * _contrib_qp[_i]) % (votca::tools::conv::ryd2ev * _contrib_d[ _i ])).str() << flush;
+                            % (_i + 1) % (votca::tools::conv::hrt2ev * _bse_triplet_energies(_i)) % (1240.0 / (votca::tools::conv::hrt2ev * _bse_triplet_energies(_i)))
+                            % (votca::tools::conv::hrt2ev * _contrib_qp[_i]) % (votca::tools::conv::hrt2ev * _contrib_d[ _i ])).str() << flush;
                 } else {
                     LOG(ctp::logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
-                            % (_i + 1) % (votca::tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0 / (13.6058 * _bse_triplet_energies(_i)))).str() << flush;
+                            % (_i + 1) % (votca::tools::conv::hrt2ev * _bse_triplet_energies(_i)) % (1240.0 / (votca::tools::conv::hrt2ev * _bse_triplet_energies(_i)))).str() << flush;
                 }
 
                 for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {

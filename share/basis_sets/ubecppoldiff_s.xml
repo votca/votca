@@ -1,4 +1,4 @@
-<basis name="ubecppoldiff">
+<basis name="ubecppoldiff_s">
 <!--Basis set created from uncontracting http://www.tc.uni-koeln.de/PP/clickpse.en.html MWB, adding polarisation and largest diffuse s from sp functions from 6-311+G(d,p) and uncontracted 6-311 for H -->
 	<element name="C">
 		<shell type="S" scale="1.00">

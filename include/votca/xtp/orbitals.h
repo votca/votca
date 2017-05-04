@@ -519,7 +519,7 @@ private:
           ar & floatordouble;
           
           if (test!=floatordouble){ 
-              throw std::runtime_error((boost::format("This votca is compiled with %. The orbitals file you want to read in is compield with %") %test %floatordouble).str());
+              throw std::runtime_error((boost::format("This votca is compiled with %. The orbitals file you want to read in is compiled with %") %test %floatordouble).str());
           }
       }
           else{
@@ -669,7 +669,7 @@ private:
 
 }}
 
-BOOST_CLASS_VERSION(votca::xtp::Orbitals, 2)
+BOOST_CLASS_VERSION(votca::xtp::Orbitals, 3)
         
 #endif	/* __VOTCA_XTP_ORBITALS_H */
 

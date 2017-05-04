@@ -401,14 +401,13 @@ namespace votca {
             // container for frequencies in screening (index 0: real part, index 1: imaginary part)
             ub::matrix<double> _screening_freq;
             void symmetrize_threecenters(TCMatrix& _Mmn, ub::matrix<double>& _coulomb);
-            void RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA, const ub::matrix<double>& screening_freq,
-                    const double& _shift, const ub::vector<double>& _dft_energies);
+            void RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA);
 
-            void RPA_real(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, const double& _shift,
-                    const ub::vector<double>& _dft_energies, const double& screening_freq);
+            void RPA_real(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, 
+                   const double screening_freq);
 
-            void RPA_imaginary(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, const double& _shift,
-                    const ub::vector<double>& _dft_energies, const double& screening_freq);
+            void RPA_imaginary(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, 
+                    const double screening_freq);
 
             void RPA_prepare_threecenters(TCMatrix& _Mmn_RPA, const TCMatrix& _Mmn_full, AOBasis& gwbasis,
                     const AOMatrix& gwoverlap, const AOMatrix& gwoverlap_inverse);
@@ -419,7 +418,7 @@ namespace votca {
             ub::vector<double> _ppm_freq;
             ub::vector<double> _ppm_weight;
 
-            void PPM_construct_parameters(ub::matrix<double>& _overlap_cholesky_inverse);
+            void PPM_construct_parameters(const ub::matrix<double>& _overlap_cholesky_inverse);
 
             // Sigma related variables and functions
             ub::symmetric_matrix<double> _sigma_x; // exchange term
@@ -427,7 +426,7 @@ namespace votca {
 
             void sigma_prepare_threecenters(TCMatrix& _Mmn);
             void sigma_x_setup(const TCMatrix& _Mmn);
-            void sigma_c_setup(const TCMatrix& _Mmn, const ub::vector<double>& _edft);
+            void sigma_c_setup(const TCMatrix& _Mmn);
 
             // QP variables and functions
             ub::vector<double> _qp_energies;
@@ -437,19 +436,12 @@ namespace votca {
             void FullQPHamiltonian();
 
             // BSE variables and functions
-            //ub::matrix<double> _eh_x;
-            //ub::matrix<double> _eh_d;
-            //ub::matrix<double> _eh_qp;
-
             ub::matrix<real_gwbse>& _eh_x; //stored in orbitals object
             ub::matrix<real_gwbse>& _eh_d; //stored in orbitals object
             ub::matrix<real_gwbse> _eh_d2; //because it is not stored in orbitals object
-            ub::matrix<real_gwbse> _eh_qp; //not used right now
+            ub::matrix<real_gwbse> _eh_qp; 
 
-            // ub::vector<double> _bse_singlet_energies;
-            // ub::matrix<double> _bse_singlet_coefficients;
-            //ub::vector<double> _bse_triplet_energies;
-            //ub::matrix<double> _bse_triplet_coefficients;
+           
             ub::vector<real_gwbse>& _bse_singlet_energies; //stored in orbitals object
             ub::matrix<real_gwbse>& _bse_singlet_coefficients; //stored in orbitals object
             ub::matrix<real_gwbse>& _bse_singlet_coefficients_AR; //stored in orbitals object

@@ -39,6 +39,7 @@ namespace votca { namespace xtp {
             string type = _shell_row->getType();
             cout << "Shell " << type << "starts at " << _row_start+1 << endl;
         }
+        return;
     }
     
     void AOMatrix::Fill( AOBasis* aobasis, vec r, AOBasis* ecp ) {
@@ -80,9 +81,6 @@ namespace votca { namespace xtp {
                        
             }
         }
-     
- 
-        
       
         // check symmetry
          bool _is_symmetric = true;
@@ -100,9 +98,8 @@ namespace votca { namespace xtp {
             }
         }
         if ( !_is_symmetric) {cerr << " Error: AOMatrix is not symmetric! "; exit(1);}
-        
        
-        
+        return;
     }
     
     
@@ -134,6 +131,7 @@ namespace votca { namespace xtp {
 
             }
         }
+        return;
     }
     
     void AOMatrix3D::Cleanup(){
@@ -144,7 +142,7 @@ namespace votca { namespace xtp {
             
         }
         _aomatrix.clear();
-        
+       return; 
     }
     
     
