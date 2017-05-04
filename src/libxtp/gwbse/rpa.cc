@@ -41,11 +41,10 @@ namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
 
-        void GWBSE::PPM_construct_parameters(ub::matrix<double>& _overlap_cholesky_inverse) {
+        void GWBSE::PPM_construct_parameters(const ub::matrix<double>& _overlap_cholesky_inverse) {
 
             // multiply with L-1^t from the right
-            ub::matrix<double> _overlap_cholesky_inverse_transposed = ub::trans(_overlap_cholesky_inverse);
-            ub::matrix<double> _temp = ub::prod(_epsilon[0], _overlap_cholesky_inverse_transposed);
+            ub::matrix<double> _temp = ub::prod(_epsilon[0], ub::trans(_overlap_cholesky_inverse));
             // multiply with L-1 from the left
             _temp = ub::prod(_overlap_cholesky_inverse, _temp);
 
@@ -54,8 +53,8 @@ namespace votca {
             ub::matrix<double> _eigenvectors;
             linalg_eigenvalues(_temp, _eigenvalues, _eigenvectors);
 
-            // multiply eigenvectors with overlap_cholesky_inverse_transpose and store as eigenvalues of epsilon
-            _ppm_phi = ub::prod(_overlap_cholesky_inverse_transposed, _eigenvectors);
+            // multiply eigenvectors with overlap_cholesky_inverse and store as eigenvalues of epsilon
+            _ppm_phi = ub::prod(ub::trans(_overlap_cholesky_inverse), _eigenvectors);
 
             // store PPM weights from eigenvalues
             _ppm_weight.resize(_eigenvalues.size());
@@ -77,7 +76,7 @@ namespace votca {
                 if (_screening_freq(1, 0) == 0.0) {
                     if (_ppm_weight(_i) < 1.e-5) {
                         _ppm_weight(_i) = 0.0;
-                        _ppm_freq(_i) = 1.0;
+                        _ppm_freq(_i) = 0.5;//Hartree
                         continue;
                     } else {
                         double _nom = _temp(_i, _i) - 1.0;
@@ -105,10 +104,11 @@ namespace votca {
         
         
         //imaginary
-        void GWBSE::RPA_imaginary(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, const ub::vector<double>& _dft_energies, const double screening_freq) {
+        void GWBSE::RPA_imaginary(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA,const double screening_freq) {
             int _size = _Mmn_RPA[0].size1(); // size of gwbasis
-
-#pragma omp parallel for 
+            
+            const ub::vector<double>& _dft_energies=_orbitals->MOEnergies();
+            #pragma omp parallel for 
             for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
                 //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
                 int index_m = _Mmn_RPA.get_mmin();
@@ -117,20 +117,16 @@ namespace votca {
                 // a temporary matrix, that will get filled in empty levels loop
                 ub::matrix<double> _temp = ub::zero_matrix<double>(_Mmn_RPA.get_ntot(), _size);
 
-
                 // loop over empty levels
                 for (int _n_level = 0; _n_level < _Mmn_RPA.get_ntot(); _n_level++) {
                     int index_n = _Mmn_RPA.get_nmin();
-
 
                     double _deltaE = _shift + _dft_energies(_n_level + index_n) - _dft_energies(_m_level + index_m); // get indices and units right!!!
 
                     // this only works, if we have either purely real or purely imaginary frequencies
 
                     // purely imaginary
-                    double _energy_factor = 8.0 * _deltaE / (_deltaE * _deltaE + screening_freq * screening_freq);
-
-                    // _temp = _energy_factor * ub::trans( Mmn_RPA );
+                    double _energy_factor = 2.0 * _deltaE / (_deltaE * _deltaE + screening_freq * screening_freq);//hartree
                     for (int _i_gw = 0; _i_gw < _size; _i_gw++) {
                         _temp(_n_level, _i_gw) = _energy_factor * Mmn_RPA(_i_gw, _n_level);
                     } // matrix size
@@ -141,16 +137,16 @@ namespace votca {
                 ub::matrix<double> _add = ub::prod(Mmn_RPA, _temp);
                 #pragma omp critical
                 {
-                    result += _add; // ub::prod( Mmn_RPA , _temp  );
+                    result += _add; 
                 }
             } // occupied levels
             return;
         }
         //real
 
-        void GWBSE::RPA_real(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, const ub::vector<double>& _dft_energies, const double screening_freq) {
+        void GWBSE::RPA_real(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, const double screening_freq) {
             int _size = _Mmn_RPA[0].size1(); // size of gwbasis
-
+            const ub::vector<double>& _dft_energies=_orbitals->MOEnergies();
             #pragma omp parallel for 
             for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
                 
@@ -171,9 +167,8 @@ namespace votca {
                     // this only works, if we have either purely real or purely imaginary frequencies
 
                     // purely real
-                    double _energy_factor = 4.0 * (1.0 / (_deltaE - screening_freq) + 1.0 / (_deltaE + screening_freq));
+                    double _energy_factor =  (1.0 / (_deltaE - screening_freq) + 1.0 / (_deltaE + screening_freq));//hartree
 
-                    // _temp = _energy_factor * ub::trans( Mmn_RPA );
                     for (int _i_gw = 0; _i_gw < _size; _i_gw++) {
                         _temp(_n_level, _i_gw) = _energy_factor * Mmn_RPA(_i_gw, _n_level);
                     } // matrix size
@@ -184,36 +179,36 @@ namespace votca {
                 ub::matrix<double> _add = ub::prod(Mmn_RPA, _temp);
                 #pragma omp critical
                 {
-                    result += _add; // ub::prod( Mmn_RPA , _temp  );
+                    result += _add; 
                 }
             } // occupied levels
             return;
         }
         
 
-        void GWBSE::RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA,const ub::vector<double>& _dft_energies){
-            
-            // loop over frequencies
-            for ( unsigned _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
-                
-                 if ( _screening_freq( _i_freq, 0) == 0.0 ) {
-                     RPA_imaginary(_epsilon[ _i_freq ],_Mmn_RPA, _dft_energies,_screening_freq( _i_freq, 1));
-                 }
-                 
-                 else if ( _screening_freq( _i_freq, 1) == 0.0  ) {
-                      // purely real
-                      RPA_real(_epsilon[ _i_freq ],_Mmn_RPA, _dft_energies,_screening_freq( _i_freq, 0));
-                        } 
-                 else {
-                        // mixed -> FAIL
-                        cerr << " mixed frequency! real part: " << _screening_freq( _i_freq, 0 ) << " imaginary part: "  << _screening_freq( _i_freq, 1 ) << flush;
-                        exit(1);
-                        }   
+    void GWBSE::RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA){
 
-            } // loop over frequencies
-            
-            return;
-        }
+        // loop over frequencies
+        for ( unsigned _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
+
+             if ( _screening_freq( _i_freq, 0) == 0.0 ) {
+                 RPA_imaginary(_epsilon[ _i_freq ],_Mmn_RPA, _screening_freq( _i_freq, 1));
+             }
+
+             else if ( _screening_freq( _i_freq, 1) == 0.0  ) {
+                  // purely real
+                  RPA_real(_epsilon[ _i_freq ],_Mmn_RPA, _screening_freq( _i_freq, 0));
+                    } 
+             else {
+                    // mixed -> FAIL
+                    cerr << " mixed frequency! real part: " << _screening_freq( _i_freq, 0 ) << " imaginary part: "  << _screening_freq( _i_freq, 1 ) << flush;
+                    exit(1);
+                    }   
+
+        } // loop over frequencies
+
+        return;
+    }
         
         
    
@@ -223,104 +218,94 @@ namespace votca {
         
         const double pi = boost::math::constants::pi<double>();
 
-        // loop over m-levels in _Mmn_RPA
-        #pragma omp parallel for 
-        for ( int _m_level = 0; _m_level < _Mmn_RPA.size() ; _m_level++ ){
-        
-	  //ub::matrix<double> _temp = ub::prod( gwoverlap_inverse._aomatrix , _Mmn_full[ _m_level ] );
-	  // try casting for efficient prod() overloading
-	  // cast _Mmn_full to double
-	  ub::matrix<double> _Mmn_double = _Mmn_full[ _m_level ];
-	  ub::matrix<double> _temp = ub::prod( gwoverlap_inverse.Matrix() , _Mmn_double );
-	 
+            // loop over m-levels in _Mmn_RPA
+            #pragma omp parallel for 
+            for (int _m_level = 0; _m_level < _Mmn_RPA.size(); _m_level++) {
 
-            // loop over n-levels in _Mmn_full 
-            for ( int _n_level = 0; _n_level < _Mmn_full.get_ntot() ; _n_level++ ){
-
-                double sc_plus  = 0.0;
-                double sc_minus = 0.0;
                 
-                // loop over gwbasis shells
-                for (vector< AOShell* >::iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); ++_is) {
-                    AOShell* _shell = gwbasis.getShell(_is);
-                    double decay = (*_shell->firstGaussian())->decay;
-                    //int _lmax    = _shell->getLmax();
-                    
-                    int _start  = _shell->getStartIndex();
+                // try casting for efficient prod() overloading
+                // cast _Mmn_full to double
+                ub::matrix<double> _Mmn_double = _Mmn_full[ _m_level ];
+                ub::matrix<double> _temp = ub::prod(gwoverlap_inverse.Matrix(), _Mmn_double);
 
-                    if(_shell->getLmin()==0){
-                    
-                    double _factor = pow((2.0 *pi/decay),0.75);
-                   
-                     
-                  
 
-                  //look at s function only
-                  
-                        double _test = _temp(_start, _n_level   );
-                        if ( _test > 0.0  ){
-                            sc_plus += _factor* _test;
-                        } else if ( _test < 0.0 ){
-                            sc_minus -= _factor* _test;
+                // loop over n-levels in _Mmn_full 
+                for (int _n_level = 0; _n_level < _Mmn_full.get_ntot(); _n_level++) {
+
+                    double sc_plus = 0.0;
+                    double sc_minus = 0.0;
+
+                    // loop over gwbasis shells
+                    for (vector< AOShell* >::iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); ++_is) {
+                        AOShell* _shell = gwbasis.getShell(_is);
+                        double decay = (*_shell->firstGaussian())->decay;
+                        //int _lmax    = _shell->getLmax();
+
+                        int _start = _shell->getStartIndex();
+
+                        if (_shell->getLmin() == 0) {
+
+                            double _factor = pow((2.0 * pi / decay), 0.75);
+
+                            //look at s function only
+
+                            double _test = _temp(_start, _n_level);
+                            if (_test > 0.0) {
+                                sc_plus += _factor* _test;
+                            } else if (_test < 0.0) {
+                                sc_minus -= _factor* _test;
+                            }
                         }
                     }
 
-                } 
+                    if (_m_level <= _Mmn_RPA.get_mmax() && _n_level >= _Mmn_RPA.get_nmin()) {
 
-                if ( _m_level <= _Mmn_RPA.get_mmax() && _n_level >= _Mmn_RPA.get_nmin()  ){
-                    
-                    double target = std::sqrt( sc_plus * sc_minus );
-                    //cout << "s+: " << sc_plus << "  s-: " << sc_minus << " target " << target << endl;
-                    sc_plus  = target / sc_plus;
-                    sc_minus = target / sc_minus;
+                        double target = std::sqrt(sc_plus * sc_minus);
+                        //cout << "s+: " << sc_plus << "  s-: " << sc_minus << " target " << target << endl;
+                        sc_plus = target / sc_plus;
+                        sc_minus = target / sc_minus;
 
-                    // loop over gwbasis shells
-                    for (vector< AOShell* >::iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
-                        AOShell* _shell = gwbasis.getShell(_is);
-                        double decay = (*_shell->firstGaussian())->decay;
-                       
-                        int _start  = _shell->getStartIndex();
-                       
-                         if(_shell->getLmin()==0){
-                        double _factor = pow((2.0 *pi/decay),0.75);
-                    // only do something for s- shells
-                    
-                    
-                    // loop over all functions in shell
-                        
-                            if (std::abs(  _factor) > 1.e-10){
-                                
-                            double _test = _temp( _start, _n_level   );
-                            if ( _test > 0.0  ){
-                               _temp(  _start, _n_level   ) = _temp(  _start, _n_level   ) * sc_plus;
-                            } else{
-                               _temp(  _start, _n_level   ) = _temp( _start, _n_level   ) * sc_minus;
+                        // loop over gwbasis shells
+                        for (vector< AOShell* >::iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
+                            AOShell* _shell = gwbasis.getShell(_is);
+                            double decay = (*_shell->firstGaussian())->decay;
+
+                            int _start = _shell->getStartIndex();
+
+                            if (_shell->getLmin() == 0) {
+                                double _factor = pow((2.0 * pi / decay), 0.75);
+                                // only do something for s- shells
+
+                                // loop over all functions in shell
+
+                                if (std::abs(_factor) > 1.e-10) {
+                                    double _test = _temp(_start, _n_level);
+                                    if (_test > 0.0) {
+                                        _temp(_start, _n_level) = _temp(_start, _n_level) * sc_plus;
+                                    } else {
+                                        _temp(_start, _n_level) = _temp(_start, _n_level) * sc_minus;
+                                    }
+                                }
+
                             }
-                            }
-                       
-                    } 
-                    }// end loop over all shells
-                }                
+                        }// end loop over all shells
+                    }
+
+                }// loop n-levels
+
+                // multiply _temp with overlap
+                ub::matrix<real_gwbse> _temp2 = ub::prod(gwoverlap.Matrix(), _temp);
                 
-            }// loop n-levels
+                // copy to _Mmn_RPA
+                _Mmn_RPA[ _m_level ] = ub::project(_temp2, ub::range(0, gwbasis._AOBasisSize), ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin(), _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() + 1));
+              
 
-            // multiply _temp with overlap
-            ub::matrix<real_gwbse> _temp2 = ub::prod( gwoverlap.Matrix() , _temp );
-	    //_temp2 = ub::prod( gwoverlap._aomatrix , _temp );
-            // copy to _Mmn_RPA
-                      
-            //ub::matrix<real_gwbse> _cut = ub::project( _temp2, ub::range(0, gwbasis._AOBasisSize) , ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin()  , _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() +1 ));
-            
-            _Mmn_RPA[ _m_level ] = ub::project( _temp2, ub::range(0, gwbasis._AOBasisSize) , ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin()  , _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() +1 ));
-            //_Mmn_RPA[ _m_level ] =  ub::zero_matrix<real_gwbse>(gwbasis._AOBasisSize,_Mmn_RPA[0].size2() );
-            //_Mmn_RPA[ _m_level ] = _cut;
-            
-        }// loop m-levels
-        
-    } // end RPA_prepare_threecenters
+            }// loop m-levels
+     return;   
+    } 
 
-
-    }
+    
+    
     
  
-};
+}};
