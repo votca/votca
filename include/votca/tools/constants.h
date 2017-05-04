@@ -45,11 +45,8 @@ namespace votca { namespace tools {
     const double bohr2ang =1.0/1.8897259886; //double 
     const double nm2ang=10.0; //double 10.0
     const double ang2nm=0.1; //double 0.1
-    
-    const double ryd2hrt=0.5; //double 0.5
-    const double hrt2ryd=2;  //double 2
-    const double ryd2ev= 13.60569253; //double 13.60569253
-    const double ev2ryd=1.0/13.60569253; //double
+  
+  
     const double hrt2ev=  27.21138602; //double 27.21138602
     const double ev2hrt=1.0/27.21138602; //double
     //ewald internal to eV conversion
@@ -59,9 +56,7 @@ namespace votca { namespace tools {
  
     
     
-    // floats for gwbse
-    
-    const float ryd2ev_f= 13.60569253; //float 13.60569253
+  
     
     }
 
