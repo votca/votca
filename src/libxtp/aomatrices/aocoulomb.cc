@@ -1170,7 +1170,7 @@ if (_lmax_col > 5) {
             AOOverlap _gwoverlap_cholesky;
             // make copy of _gwoverlap, because matrix is overwritten in GSL
             _gwoverlap_cholesky.Matrix() = _gwoverlap.Matrix();
-            linalg_cholesky_decompose( _gwoverlap_cholesky._aomatrix );
+            linalg_cholesky_decompose( _gwoverlap_cholesky.Matrix() );
            
             // remove L^T from Cholesky
             for (unsigned i =0; i < _gwoverlap_cholesky._aomatrix.size1(); i++ ){
@@ -1181,7 +1181,7 @@ if (_lmax_col > 5) {
             
             // invert L to get L^-1
             _gwoverlap_cholesky_inverse.Initialize(gwbasis._AOBasisSize);
-            linalg_invert(  _gwoverlap.Matrix() , _gwoverlap_cholesky_inverse.Matrix() );
+            linalg_invert(  _gwoverlap_cholesky.Matrix() , _gwoverlap_cholesky_inverse.Matrix() );
          
             
             // calculate V' = L^-1 V (L^-1)^T
@@ -1194,7 +1194,7 @@ if (_lmax_col > 5) {
             _temp = ub::prod( _gwoverlap_cholesky.Matrix() , _aomatrix );
             _aomatrix = ub::prod( _temp ,ub::trans( _gwoverlap_cholesky.Matrix() ));
             
-            _aomatrix = ub::prod( _aomatrix , _gwoverlap_inverse._aomatrix );
+            _aomatrix = ub::prod( _aomatrix , _gwoverlap_inverse.Matrix() );
  
 
         }
