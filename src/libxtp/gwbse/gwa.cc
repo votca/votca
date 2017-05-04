@@ -77,7 +77,7 @@ namespace votca {
             // TODO storage -> orbitals
 
             }
-            
+           return; 
         }
 
         void GWBSE::sigma_c_setup(const TCMatrix& _Mmn) {
@@ -121,7 +121,7 @@ namespace votca {
 
                             double _stab = 1.0;
                             if (std::abs(_denom) < 0.25) {
-                                _stab = 0.5 * (1.0 - std::cos(4.0 * pi * std::abs(_denom)));
+                                _stab = 0.25 * (1.0 - std::cos(4.0 * pi * std::abs(_denom)));
                             }
 
                             double _factor =0.5* fac * _stab / _denom; //Hartree
@@ -159,7 +159,7 @@ namespace votca {
              double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
              double _shift_new = _QPgap - _DFTgap;
              
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << (format(" New shift [Ryd] : %1$+1.6f ") % _shift_new ).str() << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << (format(" New shift [Hartree] : %1$+1.6f ") % _shift_new ).str() << flush;
             //cout << " shift new " << _shift_new << endl;
             if (std::abs((_shift_new - _shift)) > _shift_limit) {
                 _shift = _shift_new;
@@ -203,7 +203,7 @@ namespace votca {
 
                             double _stab = 1.0;
                             if (std::abs(_denom) < 0.25) {
-                                _stab = 0.5 * (1.0 - std::cos(4.0 * pi * std::abs(_denom)));
+                                _stab = 0.25 * (1.0 - std::cos(4.0 * pi * std::abs(_denom)));
                             }
 
                             double _factor = 0.5*fac * Mmn(_i_gw, _i) * _stab / _denom; //Hartree

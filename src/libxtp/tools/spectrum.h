@@ -259,8 +259,7 @@ bool Spectrum::Evaluate() {
             double _imeps_TruncLorentzian = 0.0;
             
             for ( int _i_exc = _minexc ; _i_exc <= _maxexc ; _i_exc++){
-                //cout << BSESingletEnergies(_i_exc)*tools::conv::ryd2ev << "  " << nmtoev(BSESingletEnergies(_i_exc)*tools::conv::ryd2ev) << endl;
-              double _exc_lambda = nmtoev(BSESingletEnergies(_i_exc)*tools::conv::ryd2ev + _shiftby);
+              double _exc_lambda = nmtoev(BSESingletEnergies(_i_exc)*tools::conv::hrt2ev + _shiftby);
               _eps_Gaussian     +=  _osc[_i_exc-_minexc] * Gaussian(_lambda, _exc_lambda, _fwhm);
               _imeps_Gaussian   +=  _osc[_i_exc-_minexc] *  _exc_lambda * Gaussian(_lambda, _exc_lambda, _fwhm);
               _eps_Lorentzian   +=  _osc[_i_exc-_minexc] * Lorentzian(_lambda, _exc_lambda, _fwhm);

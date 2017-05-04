@@ -48,6 +48,7 @@ namespace votca {
         void GWBSE::BSE_qp_setup(){
             _eh_qp = ub::zero_matrix<real_gwbse>( _bse_size , _bse_size );
             BSE_Add_qp2H( _eh_qp );
+            return;
         }
         
     
@@ -55,13 +56,12 @@ namespace votca {
 
         void GWBSE::BSE_solve_triplets(){
             
-          
-            
             // add full QP Hamiltonian contributions to free transitions
            
             ub::matrix<real_gwbse> _bse=_eh_d;
             
             linalg_eigenvalues(  _bse, _bse_triplet_energies, _bse_triplet_coefficients, _bse_nmax);
+            return;
         }
         
         
@@ -84,8 +84,8 @@ namespace votca {
             ub::vector<real_gwbse> _eigenvalues;
             ub::matrix<real_gwbse> _eigenvectors;
             int dim = _AmB.size1();
-            ub::matrix<real_gwbse> _test = _AmB;
-            linalg_eigenvalues(_test, _eigenvalues, _eigenvectors, dim);
+            
+            linalg_eigenvalues(_AmB, _eigenvalues, _eigenvectors, dim);
             
             for ( unsigned _i = 0; _i < _eigenvalues.size(); _i++ ) {
                 
@@ -217,16 +217,10 @@ namespace votca {
       void GWBSE::BSE_solve_singlets(){
             
             ub::matrix<real_gwbse> _bse = _eh_d + 2.0 * _eh_x;
-
-
-            // add full QP Hamiltonian contributions to free transitions
-           
             
             // _bse_singlet_energies.resize(_bse_singlet_coefficients.size1());
             linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients, _bse_nmax);
-            
-       
-            
+            return;
         } 
         
         
@@ -282,7 +276,7 @@ namespace votca {
             }
             
             // multiply and subtract from _storage_prod
-            // cout << "BSE_d_setup 2 [" << _storage_c.size1() << "x" << _storage_c.size2() << "]\n" << std::flush;
+         
             _storage_prod -= ub::prod( _storage_v , _storage_c );
             
             // free storage_v and storage_c
@@ -290,7 +284,7 @@ namespace votca {
             _storage_v.resize(0,0);
             
             
-            // finally resort into _eh_d and multiply by two for Rydbergs
+            // finally resort into _eh_d
             // can be limited to upper diagonal !
             _eh_d = ub::zero_matrix<real_gwbse>( _bse_size , _bse_size );
             #pragma omp parallel for
@@ -306,7 +300,7 @@ namespace votca {
                             size_t _index_vc2 = _bse_ctotal * _v2 + _c2 ;
                             size_t _index_cc  = _bse_ctotal * _c1 + _c2;
 
-                            _eh_d( _index_vc1 , _index_vc2 ) = -2.0 * _storage_prod( _index_vv , _index_cc ); 
+                            _eh_d( _index_vc1 , _index_vc2 ) = -_storage_prod( _index_vv , _index_cc ); 
 
                             
                         }
@@ -314,32 +308,7 @@ namespace votca {
                 }
             }
             
-            // print check
-            
-      /*                 for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
-                for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
-                    size_t _index_vv = _bse_vtotal * _v1 + _v2;
-                    
-                    for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
-                        size_t _index_vc1 = _bse_ctotal * _v1 + _c1 ;
-                              
-                        
-                        for ( size_t _c2 = 0 ; _c2 < _bse_ctotal ; _c2++){
-                            size_t _index_vc2 = _bse_ctotal * _v2 + _c2 ;
-                            size_t _index_cc  = _bse_ctotal * _c1 + _c2;
-
-                            
-                            
-                            cout << " eh_d1 : " << _index_vc1 << " : " << _index_vc2 << " = " <<  _eh_d( _index_vc1 , _index_vc2 ) << endl;
-     
-                            
-                        }
-                    }
-                }
-            } */
-            
-            
-            
+            return;
         }
         
         
@@ -419,7 +388,7 @@ namespace votca {
            //cout << " ==== check 4 ====== " << endl;
             
             
-            // finally resort into _eh_d and multiply by two for Rydbergs
+            // finally resort into _eh_d
             // can be limited to upper diagonal !
             _eh_d2 = ub::zero_matrix<real_gwbse>( _bse_size , _bse_size );
             #pragma omp parallel for
@@ -440,7 +409,7 @@ namespace votca {
                             
                             
                             
-                            _eh_d2( _index_v1c1 , _index_v2c2 ) = -2.0 * _storage_prod( _index_c1v2 , _index_v1c2 ); 
+                            _eh_d2( _index_v1c1 , _index_v2c2 ) = -_storage_prod( _index_c1v2 , _index_v1c2 ); 
 
                             
                            
@@ -449,37 +418,7 @@ namespace votca {
                     }
                 }
             }
-            //cout << " ==== check 5 ====== " << endl;
-            
-             /* for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
-                for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
-                    
-                    
-                    for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
-                        size_t _index_v1c1 = _bse_ctotal * _v1 + _c1 ;
-
-                        //// OK?
-
-                        
-                        
-                        for ( size_t _c2 = 0 ; _c2 < _bse_ctotal ; _c2++){
-                            size_t _index_v2c2 = _bse_ctotal * _v2 + _c2 ;
-                         
-            
-            
-            
-            // cout << " eh_d2 : " << _index_v1c1 << " : " << _index_v2c2 << " = " <<  _eh_d2( _index_v1c1 , _index_v2c2 ) << endl;
-            
-            
-                             }
-                    }
-                }
-            } */
-            
-            
-            
-            
-            
+         return;   
         }
         
         
@@ -520,18 +459,11 @@ namespace votca {
 
             
             // with this storage, _eh_x is obtained by matrix multiplication
-            //cout<< "nearly there"<< endl;
 	    _eh_x = ub::prod( ub::trans( _storage ), _storage ); 
-            _eh_x = 2.0 * _eh_x; // Rydberg
+            
   
-            //cout<<"_eh_x set up"<<endl;
             
-            
-            
-            
-            
-            
-            
+            return;
             
         }
         

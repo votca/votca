@@ -18,7 +18,6 @@
  */
 
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 
 #include <votca/xtp/gwbse.h>
 #include <votca/tools/constants.h>
@@ -299,7 +298,6 @@ namespace votca {
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << " Using "<< omp_get_max_threads()<<" threads" << flush;
             }
 #endif
-            cout<<omp_get_num_threads()<<endl;
             /* check which QC program was used for the DFT run 
              * -> implicit info about MO coefficient storage order 
              */
@@ -590,11 +588,11 @@ namespace votca {
             //exit(0);
 
             // make _Mmn_RPA symmetric for use in RPA
-            _Mmn_RPA.Symmetrize(_gwcoulomb._aomatrix);
+            _Mmn_RPA.Symmetrize(_gwcoulomb.Matrix());
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Symmetrize Mmn_beta for RPA  " << flush;
 
             // make _Mmn symmetric for use in self-energy calculation
-            _Mmn.Symmetrize(_gwcoulomb._aomatrix);
+            _Mmn.Symmetrize(_gwcoulomb.Matrix());
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Symmetrize Mmn_beta for self-energy  " << flush;
 
             // fix the frequencies for PPM
@@ -605,8 +603,6 @@ namespace votca {
             //second one
             _screening_freq(1, 0) = 0.0; // real part
             _screening_freq(1, 1) = 0.5; // imaginary part  //hartree
-
-            ub::vector<double> _dft_energies =  (*_orbitals->getEnergies()); // getEnergies
 
             // one entry to epsilon for each frequency
             _epsilon.resize(_screening_freq.size1());
@@ -696,7 +692,7 @@ namespace votca {
             _Mmn.Prune(gwbasis._AOBasisSize, _bse_vmin, _bse_cmax);
 
 
-
+            ub::vector<double>& _dft_energies=_orbitals->MOEnergies();
             // Output of quasiparticle energies after all is done:
             // _pLog->setPreface(ctp::logINFO, "\n");
 
@@ -704,12 +700,15 @@ namespace votca {
             LOG(ctp::logINFO, *_pLog) << (format("   DeltaHLGap = %1$+1.6f Hartree") % _shift).str() << flush;
             for (unsigned _i = 0; _i < _qptotal; _i++) {
                 if ((_i + _qpmin) == _homo) {
-                    LOG(ctp::logINFO, *_pLog) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i + _qpmin + 1) % _dft_energies(_i + _qpmin) % _vxc(_i, _i) % _sigma_x(_i, _i) % _sigma_c(_i, _i) % _qp_energies(_i + _qpmin)).str() << flush;
+                    LOG(ctp::logINFO, *_pLog) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") 
+                            % (_i + _qpmin + 1) % _dft_energies(_i + _qpmin) % _vxc(_i, _i) % _sigma_x(_i, _i) % _sigma_c(_i, _i) % _qp_energies(_i + _qpmin)).str() << flush;
                 } else if ((_i + _qpmin) == _homo + 1) {
-                    LOG(ctp::logINFO, *_pLog) << (format("  LUMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i + _qpmin + 1) % _dft_energies(_i + _qpmin) % _vxc(_i, _i) % _sigma_x(_i, _i) % _sigma_c(_i, _i) % _qp_energies(_i + _qpmin)).str() << flush;
+                    LOG(ctp::logINFO, *_pLog) << (format("  LUMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f")
+                            % (_i + _qpmin + 1) % _dft_energies(_i + _qpmin) % _vxc(_i, _i) % _sigma_x(_i, _i) % _sigma_c(_i, _i) % _qp_energies(_i + _qpmin)).str() << flush;
 
                 } else {
-                    LOG(ctp::logINFO, *_pLog) << (format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i + _qpmin + 1) % _dft_energies(_i + _qpmin) % _vxc(_i, _i) % _sigma_x(_i, _i) % _sigma_c(_i, _i) % _qp_energies(_i + _qpmin)).str() << flush;
+                    LOG(ctp::logINFO, *_pLog) << (format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") 
+                            % (_i + _qpmin + 1) % _dft_energies(_i + _qpmin) % _vxc(_i, _i) % _sigma_x(_i, _i) % _sigma_c(_i, _i) % _qp_energies(_i + _qpmin)).str() << flush;
                 }
             }
 

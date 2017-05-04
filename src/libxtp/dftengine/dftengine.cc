@@ -18,7 +18,7 @@
  */
 
 // Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/qminterface.h"
 #include <votca/xtp/dftengine.h>

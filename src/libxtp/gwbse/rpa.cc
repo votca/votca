@@ -126,7 +126,7 @@ namespace votca {
                     // this only works, if we have either purely real or purely imaginary frequencies
 
                     // purely imaginary
-                    double _energy_factor = 2.0 * _deltaE / (_deltaE * _deltaE + screening_freq * screening_freq);//hartree
+                    double _energy_factor = 4.0 * _deltaE / (_deltaE * _deltaE + screening_freq * screening_freq);//hartree
                     for (int _i_gw = 0; _i_gw < _size; _i_gw++) {
                         _temp(_n_level, _i_gw) = _energy_factor * Mmn_RPA(_i_gw, _n_level);
                     } // matrix size
@@ -167,7 +167,7 @@ namespace votca {
                     // this only works, if we have either purely real or purely imaginary frequencies
 
                     // purely real
-                    double _energy_factor =  (1.0 / (_deltaE - screening_freq) + 1.0 / (_deltaE + screening_freq));//hartree
+                    double _energy_factor =2.0*  (1.0 / (_deltaE - screening_freq) + 1.0 / (_deltaE + screening_freq));//hartree
 
                     for (int _i_gw = 0; _i_gw < _size; _i_gw++) {
                         _temp(_n_level, _i_gw) = _energy_factor * Mmn_RPA(_i_gw, _n_level);
