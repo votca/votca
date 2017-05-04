@@ -1186,7 +1186,7 @@ if (_lmax_col > 5) {
             
             // calculate V' = L^-1 V (L^-1)^T
             ub::matrix<double> _temp = ub::prod( _gwoverlap_cholesky_inverse.Matrix() , _aomatrix );
-            _aomatrix = ub::prod( _temp, ub::trans(_gwoverlap_cholesky_inverse.Matrix() ););
+            _aomatrix = ub::prod( _temp, ub::trans(_gwoverlap_cholesky_inverse.Matrix()));
             
             linalg_matrixsqrt(_aomatrix);
            
