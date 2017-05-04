@@ -176,7 +176,7 @@ bool linalg_eigenvalues(  ub::vector<float> &E, ub::matrix<float> &V)
 /*
  * use expert routine to calculate only a subrange of eigenvalues
  */
-bool linalg_eigenvalues(const ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
+bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
 {
     /*
      * INPUT:  matrix A (N,N)
@@ -230,7 +230,7 @@ bool linalg_eigenvalues(const ub::matrix<double> &A, ub::vector<double> &E, ub::
 /*
  * use expert routine to calculate only a subrange of eigenvalues
  */
-bool linalg_eigenvalues(const ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
+bool linalg_eigenvalues(ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
 {
     /*
      * INPUT:  matrix A (N,N)

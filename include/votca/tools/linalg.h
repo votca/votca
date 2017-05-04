@@ -138,7 +138,7 @@ namespace votca { namespace tools {
      * This function wrapps gsl_eigen_symmv / DSYEV
      * 
      */
-    bool linalg_eigenvalues(const ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax );
+    bool linalg_eigenvalues(ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax );
     
       /**
      * \brief eigenvalues of a symmetric matrix A*x=E*x single precision
@@ -149,7 +149,7 @@ namespace votca { namespace tools {
      * This function wrapps gsl_eigen_symmv / DSYEV
      * 
      */
-    bool linalg_eigenvalues(const ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax );
+    bool linalg_eigenvalues(ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax );
     
      /**
      * \brief eigenvalues of a symmetric matrix A*x=E*B*x double precision

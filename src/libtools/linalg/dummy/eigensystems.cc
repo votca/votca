@@ -81,7 +81,7 @@ bool linalg_eigenvalues( ub::vector<double> &E, ub::matrix<double> &V)
 /*
  * use expert routine to calculate only a subrange of eigenvalues
  */
-bool linalg_eigenvalues(const ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
+bool linalg_eigenvalues(ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
 {
     throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
 }
@@ -89,7 +89,7 @@ bool linalg_eigenvalues(const ub::matrix<double> &A, ub::vector<double> &E, ub::
 /*
  * use expert routine to calculate only a subrange of eigenvalues single precision
  */
-bool linalg_eigenvalues(const ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
+bool linalg_eigenvalues(ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
 {
     throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
 }
