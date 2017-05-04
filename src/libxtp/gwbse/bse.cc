@@ -77,27 +77,15 @@ namespace votca {
            // ub::matrix<real_gwbse> _A = _eh_d + 2.0 * _eh_x;
            // ub::matrix<real_gwbse> _B = _eh_d2 + 2.0 * _eh_x;
           ub::matrix<real_gwbse> _ApB = _eh_d + _eh_d2 + 4.0 * _eh_x;
-           ub::matrix<real_gwbse> _AmB = _eh_d - _eh_d2;
+          ub::matrix<real_gwbse> _AmB = _eh_d - _eh_d2;
 
             
           // check for positive definiteness of A-B
-            ub::vector<real_gwbse> _eigenvalues;
-            ub::matrix<real_gwbse> _eigenvectors;
-            int dim = _AmB.size1();
-            
-            linalg_eigenvalues(_AmB, _eigenvalues, _eigenvectors, dim);
-            
-            for ( unsigned _i = 0; _i < _eigenvalues.size(); _i++ ) {
-                
-                if ( _eigenvalues(_i) < 0.0 ) {
-                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " KAA-KAB has negative eigenvalues! : " << _i << " : " << _eigenvalues[_i] << flush;
-                }
-
-            }
-          // if, positive definite, calculate Cholesky decomposition of A-B = LL^T (A-B) is not needed any longer and can be overwritten
             
             
             
+          // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not positive definite
+            //(A-B) is not needed any longer and can be overwritten
             linalg_cholesky_decompose( _AmB );
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cholesky decomposition of KAA-KAB" << flush;
 
@@ -113,9 +101,12 @@ namespace votca {
           ub::matrix<real_gwbse> _temp = ub::prod( _ApB , _AmB );
           ub::matrix<real_gwbse> _H = ub::prod( ub::trans(_AmB), _temp );
           _temp.resize(0,0);
-          LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated H = L^T(A-B)L " << flush;
+          LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
           
           // solve eigenvalue problem: HR_l = eps_l^2 R_l
+          ub::vector<real_gwbse> _eigenvalues;
+            ub::matrix<real_gwbse> _eigenvectors;
+            
           linalg_eigenvalues(_H, _eigenvalues, _eigenvectors, _bse_nmax);
           LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
 
@@ -134,10 +125,11 @@ namespace votca {
           ub::matrix<real_gwbse> _cholesky_transposed =ub::trans(_AmB);
           linalg_invert( _cholesky_transposed , _cholesky_transposed_invert );
           
+          int dim = _AmB.size1();
           _bse_singlet_coefficients.resize(dim, _bse_nmax);     // resonant part (_X_evec)
           _bse_singlet_coefficients_AR.resize(dim, _bse_nmax);  // anti-resonant part (_Y_evec)
           
-          //for ( int _i = 0; _i < dim; _i++) {
+         
           for ( int _i = 0; _i < _bse_nmax; _i++) {
               real_gwbse sqrt_eval = sqrt(_eigenvalues(_i));
               // get l-th reduced EV
@@ -147,50 +139,19 @@ namespace votca {
               ub::project( _bse_singlet_coefficients, ub::range (0, dim ), ub::range ( _i, _i+1 ) ) = ub::prod(_transform,_reduced_evec);
               _transform = 0.5*( sqrt_eval * _cholesky_transposed_invert - 1.0/sqrt_eval * _AmB  );
               ub::project( _bse_singlet_coefficients_AR, ub::range (0, dim ), ub::range ( _i, _i+1 ) ) = ub::prod(_transform,_reduced_evec);
-
-              /*
-              // check normalization:
-              ub::matrix<real_gwbse> X = ub::project( _bse_singlet_coefficients, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
-              ub::matrix<real_gwbse> Y = ub::project( _bse_singlet_coefficients_AR, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
-              ub::matrix<real_gwbse> norm = ub::prod(ub::trans(X),X) - ub::prod(ub::trans(Y),Y);
-              
-              LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Norm of Eigenvector: " << norm(0,0) << "[" << norm.size1() << ":" << norm.size2() <<  std::flush; 
-              */
-              
           }
-
-          /*
-          // check orthogonality
-          for ( int _i = 0; _i < _bse_nmax; _i++) {
-              
-              for ( int _j = 0; _j < _bse_nmax; _j++) {
-                   // check normalization:
-              ub::matrix<real_gwbse> X1 = ub::project( _bse_singlet_coefficients, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
-              ub::matrix<real_gwbse> X2 = ub::project( _bse_singlet_coefficients, ub::range (0, dim ), ub::range ( _j, _j+1 ) );
-              ub::matrix<real_gwbse> Y1 = ub::project( _bse_singlet_coefficients_AR, ub::range (0, dim ), ub::range ( _i, _i+1 ) );
-              ub::matrix<real_gwbse> Y2 = ub::project( _bse_singlet_coefficients_AR, ub::range (0, dim ), ub::range ( _j, _j+1 ) );
-              ub::matrix<real_gwbse> norm = ub::prod(ub::trans(X1),X2) - ub::prod(ub::trans(Y1),Y2);
-              
-              LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Orthogonality: (" << _i << " : " << _j << ") = " <<  norm(0,0) <<  flush;  
-                  
-              }
-          }*/
           return;
-          
       }
         
         
       void GWBSE::BSE_Add_qp2H( ub::matrix<real_gwbse>& qp ){
-          
-          
+              
           #pragma omp parallel for
             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
                 for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
                     size_t _index_vc = _bse_ctotal * _v1 + _c1;
-
                     // diagonal
                     qp( _index_vc , _index_vc ) += _vxc(_c1 + _bse_vtotal ,_c1 + _bse_vtotal ) - _vxc(_v1,_v1);
-
                     // v->c
                     for ( size_t _c2 = 0 ; _c2 < _bse_ctotal ; _c2++){
                         size_t _index_vc2 = _bse_ctotal * _v1 + _c2;
@@ -205,9 +166,7 @@ namespace votca {
                         if ( _v1 != _v2 ){
                             qp( _index_vc , _index_vc2 ) -= _vxc(_v1,_v2);
                         }
-                    }
-                    
-                    
+                    } 
                 }
             }
             return;
@@ -261,8 +220,7 @@ namespace votca {
             // cout << "BSE_d_setup 1 [" << _storage_v.size1() << "x" << _storage_v.size2() << "]\n" << std::flush;
             ub::matrix<real_gwbse> _storage_prod = ub::prod( _storage_v , _storage_c );
             
-            
-            
+
             // now patch up _storage for screened interaction
             #pragma omp parallel for
             for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){  
@@ -283,7 +241,6 @@ namespace votca {
             _storage_c.resize(0,0);
             _storage_v.resize(0,0);
             
-            
             // finally resort into _eh_d
             // can be limited to upper diagonal !
             _eh_d = ub::zero_matrix<real_gwbse>( _bse_size , _bse_size );
@@ -301,8 +258,6 @@ namespace votca {
                             size_t _index_cc  = _bse_ctotal * _c1 + _c2;
 
                             _eh_d( _index_vc1 , _index_vc2 ) = -_storage_prod( _index_vv , _index_cc ); 
-
-                            
                         }
                     }
                 }
@@ -329,12 +284,7 @@ namespace votca {
                     }
                 }
             }
-            
-            //cout << " ======= check 1 ======= " << endl;
-            //cout << " storage_cv " << _storage_cv.size1() << " : " << _storage_cv.size2() <<  endl;        
-            
-            
-            
+         
             ub::matrix<real_gwbse> _storage_vc = ub::zero_matrix<real_gwbse>( _gwsize, _bse_vtotal * _bse_ctotal );
             #pragma omp parallel for
             for ( size_t _v1 = 0; _v1 < _bse_vtotal; _v1++){
@@ -347,18 +297,11 @@ namespace votca {
                 }
             }
             
-            
-           //cout << " ======= check 2 ========= " << endl;
-           //cout << " storage_vc " << _storage_vc.size1() << " : " << _storage_vc.size2() <<  endl;        
-
-            
             if ( ! _do_bse_singlets )  _Mmn.Cleanup();
             
             // store elements in a vtotal^2 x ctotal^2 matrix
-            // cout << "BSE_d_setup 1 [" << _storage_v.size1() << "x" << _storage_v.size2() << "]\n" << std::flush;
             ub::matrix<real_gwbse> _storage_prod = ub::prod( _storage_cv , _storage_vc );
-            
-            //cout << " ======= check 3 ========== PASSED" << endl;
+       
             
             // now patch up _storage for screened interaction
             #pragma omp parallel for
@@ -371,49 +314,30 @@ namespace votca {
                     _storage_cv( _c, _i_gw  ) = _ppm_factor * _storage_cv( _c , _i_gw  );
                 }
             }
-            
-            //cout << " vtot^2 " << _bse_vtotal*_bse_vtotal << endl;
-            //cout << " ctot^2 " << _bse_ctotal*_bse_ctotal << endl;
-            
-            
+         
             // multiply and subtract from _storage_prod
-            //cout << "BSE_d_setup 2 []\n" << std::flush;
             _storage_prod -= ub::prod( _storage_cv , _storage_vc );
             
             // free storage_v and storage_c
             _storage_cv.resize(0,0);
             _storage_vc.resize(0,0);
-            
-            
-           //cout << " ==== check 4 ====== " << endl;
-            
-            
             // finally resort into _eh_d
             // can be limited to upper diagonal !
             _eh_d2 = ub::zero_matrix<real_gwbse>( _bse_size , _bse_size );
             #pragma omp parallel for
             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
-                for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
-                    
-                    
+                for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){ 
                     for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
                         size_t _index_v1c1 = _bse_ctotal * _v1 + _c1 ;
-
-                        //// OK?
 
                         size_t _index_c1v2 =_bse_vtotal * _c1 + _v2;
                         
                         for ( size_t _c2 = 0 ; _c2 < _bse_ctotal ; _c2++){
                             size_t _index_v2c2 = _bse_ctotal * _v2 + _c2 ;
                             size_t _index_v1c2 = _bse_ctotal * _v1 + _c2;
-                            
-                            
-                            
+
                             _eh_d2( _index_v1c1 , _index_v2c2 ) = -_storage_prod( _index_c1v2 , _index_v1c2 ); 
 
-                            
-                           
-                            
                         }
                     }
                 }
@@ -428,8 +352,7 @@ namespace votca {
             /* unlike the fortran code, we store eh interaction directly in
              * a suitable matrix form instead of a four-index array
              */
-            
-            
+                        
             // gwbasis size
             size_t _gwsize = _Mmn[_homo].size1();
             
@@ -437,8 +360,7 @@ namespace votca {
             //cout<< "Starting to set up "<< endl;
             ub::matrix<real_gwbse> _storage = ub::zero_matrix<real_gwbse>( _gwsize , _bse_size);
             //cout<< "Storage set up"<< endl;
-
-            
+         
             // occupied levels
             #pragma omp parallel for
             for ( size_t _v = 0; _v < _bse_vtotal ; _v++ ){
@@ -452,19 +374,11 @@ namespace votca {
                     }
                 }
             }
-
             
-            _Mmn.Cleanup();
-            
-
-            
+            _Mmn.Cleanup();   
             // with this storage, _eh_x is obtained by matrix multiplication
 	    _eh_x = ub::prod( ub::trans( _storage ), _storage ); 
-            
-  
-            
-            return;
-            
+            return;    
         }
         
         

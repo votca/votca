@@ -746,16 +746,12 @@ namespace votca {
                         }
                     }
 
-
-
-
                     // free memory
 
                     if (!_store_qp_diag) {
                         _qp_diag_coefficients.resize(0, 0);
                         _qp_diag_energies.resize(0);
                     }
-                    //exit(0);
                 } // _do_qp_diag
             } // constructing full quasiparticle Hamiltonian
 
@@ -797,10 +793,7 @@ namespace votca {
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Exchange part of e-h interaction " << flush;
                 }
 
-
-
                 if (_do_bse_singlets && _do_bse_diag) {
-
 
                     if (_do_full_BSE) {
                         BSE_solve_singlets_BTDA();
@@ -812,25 +805,15 @@ namespace votca {
                         BSE_analyze_singlets(dftbasis, _dft_orbitals);
                     }
 
-
-
-
                     if (!_store_eh_interaction) {
                         _eh_d.resize(0, 0);
                         _eh_x.resize(0, 0);
                     }
-
-
-
-
+                    
                 }
-
-
             }
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " GWBSE calculation finished " << flush;
                 return true;
-
-
         }
     }
 };

@@ -306,7 +306,7 @@ namespace votca {
                 _transition_dipoles.push_back(_tdipole);
                 _transition_dipole_strength.push_back((ub::inner_prod(_tdipole, _tdipole)));
                 //cout<< ub::inner_prod(_tdipole,_tdipole)<< " "<< _tdipole<< endl;
-                _oscillator_strength.push_back(_transition_dipole_strength[_i_exc] / 3.0 * (_bse_singlet_energies(_i_exc)));
+                _oscillator_strength.push_back(2*_transition_dipole_strength[_i_exc] / 3.0 * (_bse_singlet_energies(_i_exc)));
             }
 
             return;
