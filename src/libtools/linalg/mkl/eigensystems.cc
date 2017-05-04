@@ -32,7 +32,7 @@ using namespace std;
  */
 
 
-bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
+bool linalg_eigenvalues( const ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
 {
     // cout << " \n I'm really using MKL! " << endl;
     
@@ -68,7 +68,7 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
 
 
 
-bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
+bool linalg_eigenvalues_symmetric( const ub::symmetric_matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
 {
     // cout << " \n I'm really using MKL! " << endl;
     
@@ -176,7 +176,7 @@ bool linalg_eigenvalues(  ub::vector<float> &E, ub::matrix<float> &V)
 /*
  * use expert routine to calculate only a subrange of eigenvalues
  */
-bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
+bool linalg_eigenvalues(const ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
 {
     /*
      * INPUT:  matrix A (N,N)
@@ -230,7 +230,7 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
 /*
  * use expert routine to calculate only a subrange of eigenvalues
  */
-bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
+bool linalg_eigenvalues(const ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
 {
     /*
      * INPUT:  matrix A (N,N)

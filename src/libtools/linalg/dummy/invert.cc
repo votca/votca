@@ -23,7 +23,7 @@ namespace votca { namespace tools {
 using namespace std;
 
 
-void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
+void linalg_invert( const ub::matrix<double> &A, ub::matrix<double> &V){
     throw std::runtime_error("linalg_invert is not compiled-in due to disabling of GSL and MKL - recompile Votca Tools with GSL or MKL support");
 }
 

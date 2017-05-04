@@ -26,7 +26,7 @@ namespace votca { namespace tools {
 using namespace std;
 
 
-void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
+void linalg_invert( const ub::matrix<double> &A, ub::matrix<double> &V){
     // matrix inversion using MKL
     // input matrix is destroyed, make local copy
     ub::matrix<double> work = A;
@@ -51,7 +51,7 @@ void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V){
 }
 
 
-void linalg_invert( ub::matrix<float> &A, ub::matrix<float> &V){
+void linalg_invert( const ub::matrix<float> &A, ub::matrix<float> &V){
     // matrix inversion using MKL
     // input matrix is destroyed, make local copy
     ub::matrix<float> work = A;
