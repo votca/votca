@@ -364,7 +364,7 @@ namespace votca {
                 _qpmin = 0;
                 _qpmax= _orbitals->getNumberOfLevels() - 1;
             }
-            if(_qpmax>_orbitals->getNumberOfLevels() - 1){
+            if(_qpmax>unsigned(_orbitals->getNumberOfLevels() - 1)){
                 _qpmax=_orbitals->getNumberOfLevels() - 1;
             }
 
@@ -389,7 +389,7 @@ namespace votca {
                 _bse_vmin = 0;
                 _bse_cmax = _orbitals->getNumberOfLevels() - 1;
             }
-             if(_bse_cmax>_orbitals->getNumberOfLevels() - 1){
+             if(_bse_cmax>unsigned(_orbitals->getNumberOfLevels() - 1)){
                 _bse_cmax=_orbitals->getNumberOfLevels() - 1;
             }
             
