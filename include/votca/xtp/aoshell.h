@@ -107,6 +107,13 @@ public:
         return gaussian;
     }
 
+    AOGaussianPrimitive*  addGaussian( int power, double decay, std::vector<double> contraction ) //////////////////
+    {                                                                                  //////////////// 
+        AOGaussianPrimitive* gaussian = new AOGaussianPrimitive(power, decay, contraction, this); //////////////
+        _gaussians.push_back( gaussian );                                                  ///////////// 
+        return gaussian;                                                                  /////////////
+    }                                                                                     ////////////
+
     
 private:   
 
