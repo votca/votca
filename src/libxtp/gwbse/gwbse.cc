@@ -62,12 +62,6 @@ namespace votca {
             LOG(ctp::logDEBUG, *_pLog) << " Compiled with float/double mixture (standard)" << flush;
 #endif
 
-
-      
-          
-            
-
-
             string key = Identify();
 
             // getting level ranges 
