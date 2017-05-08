@@ -143,18 +143,13 @@ public:
     std::vector<double>                     _externalgrid;
     std::vector<double>                     _externalgrid_nuc;
     
+     ub::matrix<double>                  _dftAOdmat;
 
     // AO Matrices
-    AOOverlap                           _dftAOoverlap;
-   
-   // AOCoulomb                           _dftAOcoulomb;
-    
-    ub::matrix<double>                  _AuxAOcoulomb_inv;
-    ub::matrix<double>                  _dftAOdmat;
+    AOOverlap                           _dftAOoverlap;   
     AOKinetic                           _dftAOkinetic;
     AOESP                               _dftAOESP;
     AOECP                               _dftAOECP;
-    
     AODipole_Potential                  _dftAODipole_Potential;
     AOQuadrupole_Potential              _dftAOQuadrupole_Potential;
     bool                                _with_guess;

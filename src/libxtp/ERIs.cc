@@ -30,13 +30,12 @@ namespace votca {
         
         
         
-    void ERIs::Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis) {
+    void ERIs::Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis,const ub::matrix<double> &inverse_Coulomb) {
 
-           
+           _inverse_Coulomb=_inverse_Coulomb;
            
             _threecenter.Fill( _auxbasis, _dftbasis );
-            //cout << "_threeceenter(0)"<<endl;
-            //cout << _threecenter.getDatamatrix(0)<<endl;
+          
 
             return;
         }
@@ -50,25 +49,9 @@ namespace votca {
           return;
         }
 
-         
         
         
-
-  /*  void Eris::Initialize_Symmetric(AOBasis &_dftbasis,AOBasis &_auxbasis, AOCoulomb &_auxcoulomb){
-        _threecenter.Fill(_auxbasis,_dftbasis);
-        eigenlinalg_matrixsqrt(_auxcoulomb.Matrix());
-        
-        for 
-        
-    }    
-        
- */       
-        
-        
-      
-        
-        
-        void ERIs::CalculateERIs (const ub::matrix<double> &DMAT, const ub::matrix<double> &_inverse_Coulomb){
+        void ERIs::CalculateERIs (const ub::matrix<double> &DMAT){
 
             //cout << _auxAOcoulomb.Matrix()<<endl;
             //cout << "inverse Coulomb"<< endl;
@@ -103,18 +86,8 @@ namespace votca {
             }
 
             CalculateEnergy(dmatasarray);
-            //cout<<_ERIs<<endl;
+            return;
         }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -154,18 +127,8 @@ namespace votca {
           }
 
           CalculateEnergy(dmatasarray);
-
+          return;
         }
-        
-    
-
-
-
-
-
-
-
-
         
          void ERIs::CalculateEnergy(const ub::vector<double> &dmatasarray){
             
@@ -177,7 +140,7 @@ namespace votca {
                 
             }
             _ERIsenergy=energy;
-
+            return;
         }
         
         
@@ -187,6 +150,7 @@ namespace votca {
                     cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<endl;
                 }
             }
+          return;
         }
         
         

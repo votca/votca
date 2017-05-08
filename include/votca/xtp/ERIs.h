@@ -43,15 +43,15 @@ namespace votca { namespace xtp {
       
         
         
-        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis);
+        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis, const ub::matrix<double> &inverse_Coulomb);
         void Initialize_4c_small_molecule(AOBasis &_dftbasis); ///////////
-        void Initialize_4c_large_molecule(AOBasis &_dftbasis); ///////////
+      
       
         
         ub::matrix<double> getERIs(){return _ERIs;}
         double& getERIsenergy(){return _ERIsenergy;}
         
-        void CalculateERIs(const ub::matrix<double> &DMAT, const ub::matrix<double> &_inverse_Coulomb);
+        void CalculateERIs(const ub::matrix<double> &DMAT);
         void CalculateERIs_4c_small_molecule(const ub::matrix<double> &DMAT); ///////////////////////////////////////
         
         
@@ -61,6 +61,7 @@ namespace votca { namespace xtp {
         void printERIs();
         
     private:
+        ub::matrix<double> _inverse_Coulomb;
         
         TCMatrix_dft _threecenter;
         FCMatrix_dft _fourcenter; ////////////////////////
