@@ -96,7 +96,7 @@ void AOBasis::MultiplyMOs(ub::matrix<double> &v, vector<int> const &multiplier )
                
            }
        } 
-
+//this is for gaussian only to transform from gaussian ordering cartesian to spherical in gaussian ordering not more
 void AOBasis::getTransformationCartToSpherical( string& package, ub::matrix<double>& _trafomatrix ){
 
     if ( package != "gaussian" ){
@@ -150,7 +150,7 @@ void AOBasis::getTransformationCartToSpherical( string& package, ub::matrix<doub
 
 
 
-
+//only for gaussian package
 void AOBasis::addTrafoCartShell( AOShell* shell , ub::matrix_range< ub::matrix<double> >& _trafo ){
     
     // cout << "getting trafo of shell type :" << shell->getType() << endl;
@@ -403,10 +403,10 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
 
 
 
-void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fragbreak  ) {
+void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _fragbreak  ) {
     
-        vector< QMAtom* > :: iterator ait;
-        std::vector < QMAtom* > :: iterator atom;
+        vector< ctp::QMAtom* > :: iterator ait;
+        std::vector < ctp::QMAtom* > :: iterator atom;
 
        _AOBasisSize = 0;
        _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false. 
@@ -457,10 +457,10 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fragbreak
 
 
 
-void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
+void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
     
-        vector< QMAtom* > :: iterator ait;
-        std::vector < QMAtom* > :: iterator atom;
+        vector< ctp::QMAtom* > :: iterator ait;
+        std::vector < ctp::QMAtom* > :: iterator atom;
 
        _AOBasisSize = 0;
        _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false. 
@@ -504,8 +504,7 @@ void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
                    _AOBasisSize += NumFuncShell( shell->getType() );
                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                       GaussianPrimitive* gaussian = *itg;
-////////                      aoshell->addGaussian( gaussian->decay, gaussian->contraction);
-                      aoshell->addGaussian(gaussian->power, gaussian->decay, gaussian->contraction); ///////////
+                      aoshell->addGaussian(gaussian->power, gaussian->decay, gaussian->contraction);
                 //   }
                }
           }

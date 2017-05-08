@@ -46,7 +46,7 @@ public:
     double decay;
     std::vector<double> contraction;
     AOShell* aoshell;
-    //used in evalspace to spped up DFT
+    //used in evalspace to speed up DFT
     double powfactor;
 private:
     // private constructor, only a shell can create a primitive
@@ -106,13 +106,14 @@ public:
         _gaussians.push_back( gaussian );
         return gaussian;
     }
+    // used for ecps
+    AOGaussianPrimitive*  addGaussian( int power, double decay, std::vector<double> contraction ) 
+    {                                                                                
+        AOGaussianPrimitive* gaussian = new AOGaussianPrimitive(power, decay, contraction, this); 
+        _gaussians.push_back( gaussian );                                                  
+        return gaussian;                                                                 
+    }                                                                                
 
-    AOGaussianPrimitive*  addGaussian( int power, double decay, std::vector<double> contraction ) //////////////////
-    {                                                                                  //////////////// 
-        AOGaussianPrimitive* gaussian = new AOGaussianPrimitive(power, decay, contraction, this); //////////////
-        _gaussians.push_back( gaussian );                                                  ///////////// 
-        return gaussian;                                                                  /////////////
-    }                                                                                     ////////////
 
     
 private:   
@@ -147,9 +148,6 @@ private:
     // vector of pairs of decay constants and contraction coefficients
     std::vector< AOGaussianPrimitive* > _gaussians;
     
-    
-
-
 };
 
     
