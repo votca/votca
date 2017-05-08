@@ -327,7 +327,7 @@ namespace votca {
                     _dftAOdmat = AtomicGuess(_orbitals);
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Full atomic density Matrix gives N="<<std::setprecision(9)<<linalg_traceofProd(_dftAOdmat,_dftAOoverlap.Matrix())<<" electrons."<<flush;
                    if(_with_RI){
-                        _ERIs.CalculateERIs(_dftAOdmat, _AuxAOcoulomb_inv);
+                        _ERIs.CalculateERIs(_dftAOdmat);
                     }
                     else{   
                         _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
@@ -357,8 +357,7 @@ namespace votca {
             }
            
             _orbitals->setQMpackage("xtp");
-            
-	    
+        
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " STARTING SCF cycle" << flush;
             LOG(ctp::logDEBUG, *_pLog) << " --------------------------------------------------------------------------" << flush;
            
@@ -370,7 +369,7 @@ namespace votca {
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Iteration "<< _this_iter+1 <<" of "<< _max_iter << flush;
 
                 if(_with_RI){
-                _ERIs.CalculateERIs(_dftAOdmat, _AuxAOcoulomb_inv);
+                _ERIs.CalculateERIs(_dftAOdmat);
                 }
                 else{
                 _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
@@ -551,32 +550,24 @@ namespace votca {
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of AUX Overlap matrix : " << _eigenvalues[0] << flush;
                 }
 
-            // AUX AOcoulomb matrix
-            //cout << " _auxAOcoulomb" <<endl;
-                {
                 AOCoulomb                           _auxAOcoulomb;
                 _auxAOcoulomb.Initialize(_auxbasis.AOBasisSize());
                 _auxAOcoulomb.Fill(&_auxbasis);
 
-                //cout << _auxAOcoulomb._aomatrix<<endl;
-                // _auxAOcoulomb.Print("COU");
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
-                _AuxAOcoulomb_inv=ub::zero_matrix<double>( _auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension()); 
-                ub::matrix<double> _AuxAOcoulomb_inv2=ub::zero_matrix<double>( _auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension()); 
-                int dimensions=linalg_invert_svd( _auxAOcoulomb.Matrix() , _AuxAOcoulomb_inv,1e8);
+                ub::matrix<double> AuxAOcoulomb_inv=ub::zero_matrix<double>( _auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension()); 
+                int dimensions=linalg_invert_svd( _auxAOcoulomb.Matrix() , AuxAOcoulomb_inv,1e8);
 
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inverted AUX Coulomb matrix, removed "<<dimensions<<" functions from aux basis" << flush;
      
-                }
+                
             // prepare invariant part of electron repulsion integrals
-                _ERIs.Initialize(_dftbasis, _auxbasis);
+                _ERIs.Initialize(_dftbasis, _auxbasis,AuxAOcoulomb_inv);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
             }
             else{
-                if(_4cmethod=="ram"){
                _ERIs.Initialize_4c_small_molecule(_dftbasis); 
                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c integrals. " << flush;
-                }
             }
             return;
       }
