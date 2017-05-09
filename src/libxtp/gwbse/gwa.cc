@@ -90,9 +90,9 @@ namespace votca {
 
             ub::vector<double>& dftenergies=_orbitals->MOEnergies();
             // initial _qp_energies are dft energies
-            _qp_energies = _orbitals->MOEnergies(); // RANGES!
+            ub::vector<double>_qp_old_rpa=_qp_energies;
             ub::vector<double>_qp_old=_qp_energies;
-            double _DFTgap =dftenergies(_homo + 1) - dftenergies(_homo);
+            
             bool energies_converged=false;
             _sigma_c.resize(_qptotal);
 	    // only diagonal elements except for in final iteration
@@ -148,7 +148,7 @@ namespace votca {
                     }
                 }
                 if (energies_converged) {
-                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << _i_iter << " qp_energy iterations." << flush;
+                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << _i_iter+1 << " qp_energy iterations." << flush;
                     break;
                 } else {
                     _qp_old = _qp_energies;
@@ -156,23 +156,24 @@ namespace votca {
 
             } // iterations
 
-             double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
-             double _shift_new = _QPgap - _DFTgap;
-             
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << (format(" New shift [Hartree] : %1$+1.6f ") % _shift_new ).str() << flush;
-            //cout << " shift new " << _shift_new << endl;
-            if (std::abs((_shift_new - _shift)) > _shift_limit) {
-                _shift = _shift_new;
-            } else {
-                _shift_converged = true;
-            }
+            _qp_converged = true;
+            _qp_old_rpa= _qp_old_rpa - _qp_energies;
+            for (unsigned l = 0; l < _qp_old_rpa.size(); l++) {
+                    if (std::abs(_qp_old_rpa(l)) > _shift_limit) {
+                        _qp_converged = false;
+                        break;
+                    }
+                } 
+            double _DFTgap =dftenergies(_homo + 1) - dftenergies(_homo);
+            double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
+            _shift = _QPgap - _DFTgap;
 
 
-	    if ( ! _iterate_shift  ) _shift_converged = true;
+	    if ( ! _iterate_qp  ) _qp_converged = true;
 
 
             // only if _shift is converged
-            if (_shift_converged) {
+            if (_qp_converged) {
                 // in final step, also calc offdiagonal elements
                 // initialize sigma_c to zero at the beginning
                 

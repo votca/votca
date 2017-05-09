@@ -335,8 +335,8 @@ namespace votca {
             bool _store_eh_interaction;
 
             // automatic scissors iteration
-            bool _iterate_shift;
-            bool _shift_converged;
+            bool _iterate_qp;
+            bool _qp_converged;
 
             // options for own Vxc calculation
             bool _doVxc;

@@ -125,12 +125,12 @@ namespace votca {
             _shift = options->ifExistsReturnElseThrowRuntimeError<double>(key + ".shift");
             _qp_limit = options->ifExistsReturnElseReturnDefault<double>(key + ".qp_limit", 0.00001);//convergence criteria for qp iteration [Hartree]]
             _shift_limit = options->ifExistsReturnElseReturnDefault<double>(key + ".shift_limit", 0.00001);//convergence criteria for shift it
-            _iterate_shift = false;
+            _iterate_qp = false;
             string _shift_type =options->ifExistsReturnElseThrowRuntimeError<string>(key + ".shift_type");
-            if (_shift_type != "fixed"){ _iterate_shift = true;}
+            if (_shift_type != "fixed"){ _iterate_qp = true;}
             LOG(ctp::logDEBUG, *_pLog) << " Shift: " << _shift_type << flush;
             LOG(ctp::logDEBUG, *_pLog) << " qp_limit [Hartree]: " << _qp_limit << flush;
-            if (_iterate_shift) {
+            if (_iterate_qp) {
                 LOG(ctp::logDEBUG, *_pLog) << " shift_limit [Hartree]: " << _shift_limit << flush;
             }
             
@@ -228,15 +228,12 @@ namespace votca {
                 Property *_level_summary = &_dft_summary->add("level", "");
                 _level_summary->setAttribute("number", state);
                 _level_summary->add("dft_energy", (format("%1$+1.6f ") % ((_orbitals->MOEnergies())(_qpmin + state) * hrt2ev)).str());
-
                 _level_summary->add("gw_energy", (format("%1$+1.6f ") % (_qp_energies(_qpmin + state) * hrt2ev)).str());
 
                 if (_do_qp_diag) {
                     //cout << "_do_qp_diag" <<_do_qp_diag<<endl;
                     _level_summary->add("qp_energy", (format("%1$+1.6f ") % (_qp_diag_energies(_qpmin + state) * hrt2ev)).str());
                 }
-                //cout <<"hellooo"<<state<<endl;
-
             }
 
             if (_do_bse_singlets) {
@@ -254,8 +251,6 @@ namespace votca {
                         Property *_dipol_summary = &_level_summary->add("Trdipole", (format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles[0] % dipoles[1] % dipoles[2]).str());
                         _dipol_summary->setAttribute("unit", "e*bohr");
                         _dipol_summary->setAttribute("gauge", "length");
-
-
                     }
                 }
             }
@@ -266,9 +261,9 @@ namespace votca {
                     Property *_level_summary = &_triplet_summary->add("level", "");
                     _level_summary->setAttribute("number", state + 1);
                     _level_summary->add("omega", (format("%1$+1.6f ") % (_bse_triplet_energies(state) * hrt2ev)).str());
-
                 }
             }
+            return;
         }
 
         /* 
@@ -426,10 +421,6 @@ namespace votca {
             // we do not link them because we have to reorder them afterwards and orbitals file has them in the order of the qmpackage
             
             ub::matrix<double> _dft_orbitals = _orbitals->MOCoefficients(); //
-
-            //LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " size of DFT orbitals [" << _dft_orbitals.size1() << ":" << _dft_orbitals.size2() << "]" << flush;
-
-
             _ScaHFX = _orbitals->getScaHFX();
             {// this bracket is there so that _vx_ao falls out of scope, like it more than resize
                 ub::matrix<double> _vxc_ao;
@@ -460,12 +451,7 @@ namespace votca {
                         throw std::runtime_error((boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
                     }
                     _numint.GridSetup(_grid, &dftbs, _atoms,&dftbasis);
-                    // LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Trying DFT orbital coefficient order from " << _dft_package << " to VOTCA" << flush;
-
-
                     dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
-
-
 
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Integrating Vxc in VOTCA with gridsize: " << _grid << " and functional " << _functional << flush;
@@ -477,9 +463,7 @@ namespace votca {
                     throw std::runtime_error("So your DFT data contains no Vxc, if you want to proceed use the dovxc option.");
                 }
 
-
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
-
 
                 // now get expectation values but only for those in _qpmin:_qpmax range
                 ub::matrix<double> _mos = ub::project(_dft_orbitals, ub::range(_qpmin, _qpmax + 1), ub::range(0, dftbasis._AOBasisSize));
@@ -565,13 +549,10 @@ namespace votca {
             // --- prepare a vector (gwdacay) of matrices (orbitals, orbitals) as container => M_mn
             // prepare 3-center integral object
 
-
             TCMatrix _Mmn;
             _Mmn.Initialize(gwbasis._AOBasisSize, _rpamin, _qpmax, _rpamin, _rpamax);
             _Mmn.Fill(gwbasis, dftbasis, _dft_orbitals);
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
-
-
 
             // for use in RPA, make a copy of _Mmn with dimensions (1:HOMO)(gwabasissize,LUMO:nmax)
             TCMatrix _Mmn_RPA;
@@ -579,7 +560,6 @@ namespace votca {
             RPA_prepare_threecenters(_Mmn_RPA, _Mmn, gwbasis, _gwoverlap, _gwoverlap_inverse);
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared Mmn_beta for RPA  " << flush;
 
-            //exit(0);
 
             // make _Mmn_RPA symmetric for use in RPA
             _Mmn_RPA.Symmetrize(_gwcoulomb.Matrix());
@@ -611,10 +591,20 @@ namespace votca {
              * - test for convergence
              * 
              */
-
-            _shift_converged = false;
+            
+            //initialize _qp_energies;
+            //shift unoccupied levels by the shift
+            _qp_energies=ub::zero_vector<double>(_orbitals->getNumberOfLevels());
+            for (size_t i=0;i<_qp_energies.size();++i){
+                    _qp_energies(i)=_orbitals->MOEnergies()(i);
+                if(i>_homo){
+                    _qp_energies(i)+=_shift;
+                }                
+            }
+            
+           
             TCMatrix _Mmn_backup;
-            if (_iterate_shift) {
+            if (_iterate_qp) {
 
                 // make copy of _Mmn, memory++
 
@@ -626,7 +616,7 @@ namespace votca {
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Made backup of _Mmn  " << flush;
             }
 
-            while (!_shift_converged) {
+            while (!_qp_converged) {
 
                 // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
                 for (unsigned _i_freq = 0; _i_freq < _screening_freq.size1(); _i_freq++) {
@@ -634,14 +624,14 @@ namespace votca {
                 }
 
                 // _gwoverlap is not needed further, if no shift iteration
-                if (!_iterate_shift) _gwoverlap._aomatrix.resize(0, 0);
+                if (!_iterate_qp) _gwoverlap._aomatrix.resize(0, 0);
 
                 // determine epsilon from RPA
                 RPA_calculate_epsilon(_Mmn_RPA);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated epsilon via RPA  " << flush;
 
                 // _Mmn_RPA is not needed any further, if no shift iteration
-                if (!_iterate_shift) _Mmn_RPA.Cleanup();
+                if (!_iterate_qp) _Mmn_RPA.Cleanup();
 
                 // construct PPM parameters
                 PPM_construct_parameters(_gwoverlap_cholesky_inverse.Matrix());
@@ -655,15 +645,13 @@ namespace votca {
                 sigma_x_setup(_Mmn);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated exchange part of Sigma  " << flush;
 
-                // TOCHECK: get rid of _ppm_phi?
-
-
+           
                 // calculate correlation part of sigma
                 sigma_c_setup(_Mmn);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated correlation part of Sigma  " << flush;
 
                 // restore _Mmn, if shift has not converged
-                if (_iterate_shift && !_shift_converged) {
+                if (_iterate_qp && !_qp_converged) {
                     int _mnsize = _Mmn_backup.get_mtot();
                     for (int _i = 0; _i < _mnsize; _i++) {
                         _Mmn[ _i ] = _Mmn_backup[ _i ];
@@ -671,12 +659,12 @@ namespace votca {
 
                 }
 
-                if (!_iterate_shift) _shift_converged = true;
+                if (!_iterate_qp) _qp_converged = true;
 
             }
 
             // free unused variable if shift is iterated
-            if (_iterate_shift) {
+            if (_iterate_qp) {
                 _gwoverlap._aomatrix.resize(0, 0);
                 _Mmn_RPA.Cleanup();
                 _Mmn_backup.Cleanup();
@@ -688,8 +676,9 @@ namespace votca {
 
             ub::vector<double>& _dft_energies=_orbitals->MOEnergies();
             // Output of quasiparticle energies after all is done:
-            // _pLog->setPreface(ctp::logINFO, "\n");
-
+            //cout<<_shift<<endl;
+            //cout<<_qptotal<<" "<<_qpmin<<" "<< _dft_energies.size()<<" "<< _qp_energies.size()<<endl;
+            
             LOG(ctp::logINFO, *_pLog) << (format("  ====== Perturbative quasiparticle energies (Hartree) ====== ")).str() << flush;
             LOG(ctp::logINFO, *_pLog) << (format("   DeltaHLGap = %1$+1.6f Hartree") % _shift).str() << flush;
             for (unsigned _i = 0; _i < _qptotal; _i++) {

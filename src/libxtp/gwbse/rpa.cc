@@ -107,7 +107,6 @@ namespace votca {
         void GWBSE::RPA_imaginary(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA,const double screening_freq) {
             int _size = _Mmn_RPA[0].size1(); // size of gwbasis
             
-            const ub::vector<double>& _dft_energies=_orbitals->MOEnergies();
             #pragma omp parallel for 
             for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
                 //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
@@ -121,7 +120,7 @@ namespace votca {
                 for (int _n_level = 0; _n_level < _Mmn_RPA.get_ntot(); _n_level++) {
                     int index_n = _Mmn_RPA.get_nmin();
 
-                    double _deltaE = _shift + _dft_energies(_n_level + index_n) - _dft_energies(_m_level + index_m); // get indices and units right!!!
+                    double _deltaE = _qp_energies(_n_level + index_n) - _qp_energies(_m_level + index_m); // get indices and units right!!!
 
                     // this only works, if we have either purely real or purely imaginary frequencies
 
@@ -146,7 +145,7 @@ namespace votca {
 
         void GWBSE::RPA_real(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, const double screening_freq) {
             int _size = _Mmn_RPA[0].size1(); // size of gwbasis
-            const ub::vector<double>& _dft_energies=_orbitals->MOEnergies();
+           
             #pragma omp parallel for 
             for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
                 
@@ -162,7 +161,7 @@ namespace votca {
                     int index_n = _Mmn_RPA.get_nmin();
 
 
-                    double _deltaE = _shift + _dft_energies(_n_level + index_n) - _dft_energies(_m_level + index_m); // get indices and units right!!!
+                    double _deltaE = _qp_energies(_n_level + index_n) - _qp_energies(_m_level + index_m); // get indices and units right!!!
 
                     // this only works, if we have either purely real or purely imaginary frequencies
 
