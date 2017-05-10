@@ -576,7 +576,15 @@ private:
         ar & _index2v;
         ar & _ScaHFX;    
         
-        ar & _QPpert_energies;
+        if(Archive::is_loading::value && version<3) {
+            ub::matrix<real_gwbse> temp;
+            ar &temp;
+            _QPpert_energies.resize(temp.size1(),temp.size2());
+            _QPpert_energies=0.5*temp; 
+        }else {
+            ar & _QPpert_energies;
+        }
+        
         if(Archive::is_loading::value && version==1){    
             std::vector<double> temp;
             ar &temp;
@@ -584,6 +592,12 @@ private:
             for (unsigned i=0;i<temp.size();i++){
               _QPdiag_energies(i)=temp[i] ;    
             }
+        }else if(Archive::is_loading::value && version==2){    
+            ub::vector<real_gwbse> temp;
+            ar &temp;
+            _QPdiag_energies.resize(temp.size());
+            _QPdiag_energies=0.5*temp; 
+             
         }
         else{
             ar & _QPdiag_energies; 
@@ -592,8 +606,24 @@ private:
         ar & _QPdiag_coefficients;
         
         
-        ar & _eh_d; 
-        ar & _eh_x;
+        
+        if(Archive::is_loading::value && version<3) {
+            ub::matrix<real_gwbse> temp;
+            ar &temp;
+            _eh_d.resize(temp.size1(),temp.size2());
+            _eh_d=0.5*temp; 
+        }else {
+            ar & _eh_d;
+        }
+        if(Archive::is_loading::value && version<3) {
+            ub::matrix<real_gwbse> temp;
+            ar &temp;
+            _eh_x.resize(temp.size1(),temp.size2());
+            _eh_x=0.5*temp; 
+        }else {
+            ar & _eh_x;
+        }
+      
         
         
         if(Archive::is_loading::value && version==1){    
@@ -603,6 +633,12 @@ private:
             for (unsigned i=0;i<temp.size();i++){
               _BSE_singlet_energies(i)=temp[i]; 
               }
+        }else if(Archive::is_loading::value && version==2){    
+            ub::vector<real_gwbse> temp;
+            ar &temp;
+            _BSE_singlet_energies.resize(temp.size());
+            _BSE_singlet_energies=0.5*temp; 
+             
         }else{
             ar & _BSE_singlet_energies; 
         }
@@ -631,16 +667,41 @@ private:
             ar &temp;
             _BSE_triplet_energies.resize(temp.size());
             for (unsigned i=0;i<temp.size();i++){
-              _BSE_triplet_energies(i)=temp[i] ; 
+              _BSE_triplet_energies(i)=0.5*temp[i]; 
             }
-        }else{
+        } else if(Archive::is_loading::value && version==2) {
+            ub::vector<real_gwbse> temp;
+            ar &temp;
+            _BSE_triplet_energies.resize(temp.size());
+              _BSE_triplet_energies=0.5*temp; 
+        } else {
              ar & _BSE_triplet_energies; 
         }
        
         ar & _BSE_triplet_coefficients;
         
-        ar & _BSE_singlet_couplings;
-        ar & _BSE_triplet_couplings;
+        
+        if(Archive::is_loading::value && version<3) {
+            ub::matrix<real_gwbse> temp;
+            ar &temp;
+            _BSE_singlet_couplings.resize(temp.size1(),temp.size2());
+            _BSE_singlet_couplings=0.5*temp; 
+        }else {
+            ar & _BSE_singlet_couplings;
+        }
+        
+        
+        if(Archive::is_loading::value && version<3) {
+            ub::matrix<real_gwbse> temp;
+            ar &temp;
+            _BSE_triplet_couplings.resize(temp.size1(),temp.size2());
+            _BSE_triplet_couplings=0.5*temp; 
+        }else {
+            ar & _BSE_triplet_couplings;
+        }
+        
+        
+       
         ar & _couplingsA;
         ar & _couplingsB;
             
