@@ -7,7 +7,7 @@
 #  VOTCA_TOOLS_HAS_SQLITE3  - True if votca tools was build with sqlite3 support
 #  VOTCA_TOOLS_HAS_GSL      - True if votca tools was build with gsl support
 #
-# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
