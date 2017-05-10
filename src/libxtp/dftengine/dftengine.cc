@@ -449,8 +449,6 @@ namespace votca {
                     AOOverlap _auxAOoverlap;
                     _auxAOoverlap.Initialize(_auxbasis.AOBasisSize());
                     _auxAOoverlap.Fill(&_auxbasis);
-
-
                     linalg_eigenvalues(_auxAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of AUX Overlap matrix : " << _eigenvalues[0] << flush;
                 }

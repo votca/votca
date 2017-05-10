@@ -32,7 +32,7 @@ namespace votca {
         
     void ERIs::Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis,const ub::matrix<double> &inverse_Coulomb) {
 
-           _inverse_Coulomb=_inverse_Coulomb;
+           _inverse_Coulomb=inverse_Coulomb;
            
             _threecenter.Fill( _auxbasis, _dftbasis );
           
