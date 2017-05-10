@@ -432,10 +432,7 @@ namespace votca {
                 _dftAOECP.Initialize(_dftbasis.AOBasisSize());
                 _dftAOECP.Fill(&_dftbasis, vec(0, 0, 0), &_ecp);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOECP.Dimension() << flush;
-                //_dftAOECP.Print("ECP");
-
                 _dftAOESP.getNuclearpotential() += _dftAOECP.Matrix();
-
             }
 
             _diis.Configure(_usediis, _histlength, _maxout, _diismethod, _adiis_start, _diis_start, _levelshift, _levelshiftend, false, _numofelectrons / 2);
@@ -468,6 +465,7 @@ namespace votca {
                 _ERIs.Initialize(_dftbasis, _auxbasis, AuxAOcoulomb_inv);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
             } else {
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c integrals. " << flush;
                 _ERIs.Initialize_4c_small_molecule(_dftbasis);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c integrals. " << flush;
             }

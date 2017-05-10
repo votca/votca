@@ -46,7 +46,14 @@ namespace votca {
         void TCMatrix_dft::Fill(AOBasis& _auxbasis, AOBasis& _dftbasis) {
 
             for (int i=0; i< _auxbasis._AOBasisSize; i++){
+                 try{
                 _matrix.push_back(ub::symmetric_matrix<double>(_dftbasis._AOBasisSize));   
+                }
+                catch(std::bad_alloc& ba){
+                    std::cerr << "Basisset/aux basis too large for 3c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << endl;
+                    exit(0);
+                }
+                
               
                 for(unsigned k=0;k<_matrix[i].size1();k++){
                     for(unsigned j=0;j<_matrix[i].size2();j++){

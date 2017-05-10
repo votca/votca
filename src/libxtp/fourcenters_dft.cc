@@ -20,7 +20,7 @@
 
 
 #include <votca/xtp/threecenters.h>
-
+#include <new>
 
 
 using namespace votca::tools;
@@ -47,8 +47,14 @@ namespace votca {
           //cout << "fourcenters_dft.cc FCMatrix_dft::Fill_4c_small_molecule" << endl;
           int dftBasisSize = dftbasis.AOBasisSize();
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
+          
+          try{
           _4c_vector = ub::zero_vector<double>((vectorSize*(vectorSize+1))/2);
-
+          }
+          catch(std::bad_alloc& ba){
+            std::cerr << "Basisset too large for 4c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << endl;
+            exit(0);
+          }
           int shellsize=dftbasis._aoshells.size();
           #pragma omp parallel for
           for(int i=0;i<shellsize;++i){
