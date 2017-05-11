@@ -122,7 +122,21 @@ bool XtpRun::EvaluateOptions() {
     Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
     Tokenizer::iterator it;
     for (it = calcs.begin(); it != calcs.end(); it++) {
-        xtp::SqlApplication::AddCalculator(xtp::Calculators().Create((*it).c_str()));
+       bool _found_calc = false;
+       for(xtp::Calculatorfactory::assoc_map::const_iterator iter=xtp::Calculators().getObjects().begin(); 
+                        iter != xtp::Calculators().getObjects().end(); ++iter) {
+        
+            if ( (*it).compare( (iter->first).c_str() ) == 0 ) {
+                cout << " This is a XTP app" << endl;
+                xtp::SqlApplication::AddCalculator(xtp::Calculators().Create((*it).c_str()));
+                _found_calc = true;
+            } 
+        }
+        
+         if ( !_found_calc ){
+             cout << " This is a CTP app" << endl;
+                xtp::SqlApplication::AddCalculator(ctp::Calculators().Create((*it).c_str()));    
+        }
     }
     
     load_property_from_xml(_options, _op_vm["options"].as<string>());

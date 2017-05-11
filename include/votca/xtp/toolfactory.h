@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __QMTOOLFACTORY__H
-#define	__QMTOOLFACTORY__H
+#ifndef __XTP_QMTOOLFACTORY__H
+#define	__XTP_QMTOOLFACTORY__H
 
 #include <votca/tools/objectfactory.h>
 #include <votca/ctp/qmtool.h>
