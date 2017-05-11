@@ -76,8 +76,7 @@ void XtpTools::Initialize() {
     // Options-related
     AddProgramOptions() ("nthreads,t", propt::value<int>()->default_value(1),
                          "  number of threads to create");
-    AddProgramOptions() ("options,o", propt::value<string>(),
-                         "  calculator options");
+    
 }
 
 
@@ -134,7 +133,7 @@ bool XtpTools::EvaluateOptions() {
         StopExecution();
         return true;
     }
-
+    Application::EvaluateOptions();
     CheckRequired("execute", "Nothing to do here: Abort.");
     CheckRequired("options", "Please provide an xml file with tool options");
 

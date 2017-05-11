@@ -164,9 +164,6 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
     else {        
 
        
-        
-     
-        
         if (tools::globals::verbose) {
             std::cout << std::endl <<  "... ..." << std::flush;
         }
@@ -208,6 +205,7 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
                         if(std::find(skippedpairs.begin(), skippedpairs.end(), pairstring) == skippedpairs.end()){
                             skippedpairs.push_back(pairstring);
                         }
+                        continue;
                     }
                 }
 

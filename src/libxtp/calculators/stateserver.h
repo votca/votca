@@ -73,7 +73,7 @@ void StateServer::Initialize(Property *opt) {
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt, "xtp" );
 
-    string tag = "options.stateserver";
+    string tag = "options."+Identify();
 
     // Tabular output
     if ( opt->exists(tag+".out") ) {
