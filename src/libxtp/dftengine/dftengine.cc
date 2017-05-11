@@ -571,11 +571,11 @@ namespace votca {
 
                 Mixing Mix_alpha(false, 0.7, &dftAOoverlap.Matrix(), _pLog);
                 Mixing Mix_beta(false, 0.7, &dftAOoverlap.Matrix(), _pLog);
-                diis_alpha.Configure(true, 20, 0, "", 0.01, 0.01, 0.2, 0.2, true, alpha_e);
+                diis_alpha.Configure(true, 20, 0, "", 0.005, 0.005, 0.2, 0.2, true, alpha_e);
                 diis_alpha.setLogger(_pLog);
                 diis_alpha.setOverlap(&dftAOoverlap.Matrix());
                 diis_alpha.setSqrtOverlap(&Sminusonehalf);
-                diis_beta.Configure(true, 20, 0, "", 0.01, 0.01, 0.2, 0.2, true, beta_e);
+                diis_beta.Configure(true, 20, 0, "", 0.005, 0.005, 0.2, 0.2, true, beta_e);
                 diis_beta.setLogger(_pLog);
                 diis_beta.setOverlap(&dftAOoverlap.Matrix());
                 diis_beta.setSqrtOverlap(&Sminusonehalf);
@@ -628,7 +628,7 @@ namespace votca {
                     ub::matrix<double> dmatin = dftAOdmat_alpha;
                     dftAOdmat_alpha = DensityMatrix_unres(MOCoeff_alpha, alpha_e);
                     //dftAOdmat_alpha=DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,alpha_e);
-                    if (!(diiserror_alpha < _adiis_start && _usediis && this_iter > 2)) {
+                    if (!(diiserror_alpha < 0.005  && this_iter > 2)) {
                         dftAOdmat_alpha = Mix_alpha.MixDmat(dmatin, dftAOdmat_alpha, false);
                         //cout<<"mixing_alpha"<<endl;
                     } else {
@@ -642,7 +642,7 @@ namespace votca {
                         ub::matrix<double> dmatin = dftAOdmat_beta;
                         dftAOdmat_beta = DensityMatrix_unres(MOCoeff_beta, beta_e);
                         //dftAOdmat_beta=DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,beta_e);
-                        if (!(diiserror_beta < _adiis_start && _usediis && this_iter > 2)) {
+                        if (!(diiserror_beta < 0.005  && this_iter > 2)) {
                             dftAOdmat_beta = Mix_beta.MixDmat(dmatin, dftAOdmat_beta, false);
                             //cout<<"mixing_beta"<<endl;
                         } else {
