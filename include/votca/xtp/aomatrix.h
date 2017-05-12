@@ -33,7 +33,7 @@
 //#include "linalg_tools.h"
 
 
-using namespace votca::tools;
+
 
 namespace Cart {
         enum Index {

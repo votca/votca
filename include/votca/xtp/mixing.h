@@ -26,7 +26,6 @@
 #include <votca/ctp/logger.h>
 
 
-using namespace votca::tools;
 
 namespace votca { namespace xtp {
  namespace ub = boost::numeric::ublas;
