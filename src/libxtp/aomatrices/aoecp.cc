@@ -113,10 +113,10 @@ namespace votca { namespace xtp {
                     ub::matrix<double> _decay_matrix = ub::zero_matrix<double>(5, 3); ///// // max 12 fit components, max non-local ECP l=0,1,2
                     ub::matrix<double> _coef_matrix = ub::zero_matrix<double>(5, 3); ///// // max 12 fit components, max non-local ECP l=0,1,2
 
-                    std::vector< AOShell* >::const_iterator final_iter = ecp->lastShell();
+                    AOBasis::AOShellIterator final_iter = ecp->lastShell();
                     --final_iter;
                     vec _ecp_eval_pos;
-                    for (std::vector< AOShell* >::const_iterator _ecp = ecp->firstShell(); _ecp != ecp->lastShell(); _ecp++) {
+                    for (AOBasis::AOShellIterator _ecp = ecp->firstShell(); _ecp != ecp->lastShell(); _ecp++) {
 
                         const AOShell* _shell_ecp = ecp->getShell(_ecp);
                         const vec& _ecp_pos = _shell_ecp->getPos();

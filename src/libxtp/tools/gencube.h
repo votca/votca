@@ -344,7 +344,7 @@ namespace votca {
                                 // get value of orbitals at each gridpoint
                                 ub::matrix<double> tmat = ub::zero_matrix<double>( 1,dftbasis.AOBasisSize());
 
-                                for (vector< AOShell* >::const_iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
+                                for (AOBasis::AOShellIterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
                                    
                                     ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                                     (*_row)->EvalAOspace(_submatrix, pos);
@@ -413,7 +413,7 @@ namespace votca {
                                 // get value of orbitals at each gridpoint
                                 ub::matrix<double> tmat = ub::zero_matrix<double>(1,dftbasis.AOBasisSize());
                                 vec pos=vec(_x, _y, _z);
-                                for (vector< AOShell* >::const_iterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
+                                for (AOBasis::AOShellIterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
 
                                     ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                                     (*_row)->EvalAOspace(_submatrix,pos);

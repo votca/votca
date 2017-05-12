@@ -145,7 +145,7 @@ namespace votca {
                         for ( unsigned ishell = 0 ; ishell < _atomshells[rowatom].size() ; ishell++ ){
                       
                          //   boost::timer::cpu_times tstartshells = cpu_t.elapsed();
-                            AOShellIterator _row = _atomshells[rowatom][ishell];
+                            AOBasis::AOShellIterator _row = _atomshells[rowatom][ishell];
                             // for density, fill sub-part of AOatgrid
                             //ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc(), 0, 1);
                             ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, 0, 1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
@@ -366,7 +366,7 @@ namespace votca {
                         for ( unsigned ishell = 0 ; ishell < _atomshells[rowatom].size() ; ishell++ ){
                       
                         
-                            AOShellIterator _row = _atomshells[rowatom][ishell];
+                            AOBasis::AOShellIterator _row = _atomshells[rowatom][ishell];
                             // for density, fill sub-part of AOatgrid
                            
                             ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, 0, 1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
@@ -575,7 +575,7 @@ namespace votca {
             int _Idx       = 0;
             int _size      = 0;
             
-            for (vector< AOShell* >::const_iterator _row = _basis->firstShell(); _row != _basis->lastShell(); _row++) {
+            for (AOBasis::AOShellIterator _row = _basis->firstShell(); _row != _basis->lastShell(); _row++) {
                  
                 if ( (*_row)->getIndex() == _atomindex ){
                     
@@ -610,7 +610,7 @@ namespace votca {
             vector< double > _minimal_decay;
             vector < vec > _positions;
             vec _localpos = (*_basis->firstShell())->getPos();
-            for ( vector< AOShell* >::const_iterator _row = _basis->firstShell(); _row != _basis->lastShell(); _row++   ) {
+            for ( AOBasis::AOShellIterator _row = _basis->firstShell(); _row != _basis->lastShell(); _row++   ) {
                                
                  if ( (*_row)->getIndex() == _atomindex ){
                      
@@ -812,7 +812,7 @@ namespace votca {
                         // for each shell in this atom
                         for ( unsigned ishell = 0 ; ishell < _atomshells[rowatom].size() ; ishell++ ){
                             //boost::timer::cpu_times tstartshells = cpu_t.elapsed();
-                            AOShellIterator _row = _atomshells[rowatom][ishell];
+                            AOBasis::AOShellIterator _row = _atomshells[rowatom][ishell];
                             // for density, fill sub-part of AOatgrid
                            
                             ub::matrix_range< ub::matrix<double> > _AOgridsub = ub::subrange(AOgrid, 0, 1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());

@@ -235,7 +235,7 @@ namespace votca {
                     double sc_minus = 0.0;
 
                     // loop over gwbasis shells
-                    for (vector< AOShell* >::const_iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); ++_is) {
+                    for (AOBasis::AOShellIterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); ++_is) {
                         const AOShell* _shell = gwbasis.getShell(_is);
                         double decay = (*_shell->firstGaussian())->decay;
                         //int _lmax    = _shell->getLmax();
@@ -265,7 +265,7 @@ namespace votca {
                         sc_minus = target / sc_minus;
 
                         // loop over gwbasis shells
-                        for (vector< AOShell* >::const_iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
+                        for (AOBasis::AOShellIterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
                             const AOShell* _shell = gwbasis.getShell(_is);
                             double decay = (*_shell->firstGaussian())->decay;
 

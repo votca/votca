@@ -33,7 +33,7 @@ namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
 
     void AOSuperMatrix::PrintIndexToFunction(const AOBasis& aobasis){
-        for (vector< AOShell* >::const_iterator _row = aobasis.firstShell(); _row != aobasis.lastShell() ; _row++ ) {
+        for (AOBasis::AOShellIterator _row = aobasis.firstShell(); _row != aobasis.lastShell() ; _row++ ) {
             const AOShell* _shell_row = aobasis.getShell( _row );
             int _row_start = _shell_row->getStartIndex();
             string type = _shell_row->getType();
@@ -109,7 +109,7 @@ namespace votca { namespace xtp {
             int _row_end   = _row_start + _shell_row->getNumFunc();
 
             // loop column
-            for (vector< AOShell* >::const_iterator _col = aobasis.firstShell(); _col != aobasis.lastShell() ; _col++ ) {
+            for (AOBasis::AOShellIterator _col = aobasis.firstShell(); _col != aobasis.lastShell() ; _col++ ) {
                 const AOShell* _shell_col = aobasis.getShell( _col );
                 
                 // figure out the submatrix

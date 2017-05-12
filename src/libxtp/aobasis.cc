@@ -105,7 +105,7 @@ void AOBasis::getTransformationCartToSpherical(const string& package, ub::matrix
         // go through basisset, determine function sizes
         int _dim_sph = 0;
         int _dim_cart = 0;
-        for (vector< AOShell* >::const_iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
+        for (AOShellIterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
             const AOShell* _shell = getShell( _is );
             const string& _type =  _shell->getType();
             
@@ -121,7 +121,7 @@ void AOBasis::getTransformationCartToSpherical(const string& package, ub::matrix
         // now fill it
         int _row_start = 0;
         int _col_start = 0;
-        for (vector< AOShell* >::const_iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
+        for (AOShellIterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
             const AOShell* _shell = getShell( _is );
             string _type =  _shell->getType();
             int _row_end = _row_start +NumFuncShell( _type );
@@ -193,16 +193,12 @@ void AOBasis::addTrafoCartShell(const AOShell* shell , ub::matrix_range< ub::mat
 }
 
 
-
-
-
-
 int AOBasis::getMaxFunctions () {
     
     int _maxfunc = 0;
     
     // go through basisset
-    for (vector< AOShell* >::const_iterator _is = firstShell(); _is != lastShell() ; _is++ ) {
+    for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
         const AOShell* _shell = this->getShell( _is );
         int _func_here = _shell->getNumFunc();
         if ( _func_here > _maxfunc ) _maxfunc = _func_here;
@@ -214,7 +210,7 @@ int AOBasis::getMaxFunctions () {
 void AOBasis::getMultiplierVector( const string& start, const string& target, vector<int>& multiplier){
 
     // go through basisset
-    for (vector< AOShell* >::const_iterator _is = firstShell(); _is != lastShell() ; _is++ ) {
+    for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
         const AOShell* _shell = this->getShell( _is );
         addMultiplierShell(  start, target, _shell->getType(), multiplier );
     }
@@ -280,7 +276,7 @@ void AOBasis::addMultiplierShell(const string& start, const string& target, cons
 void AOBasis::getReorderVector(const string& start,const string& target, vector<int>& neworder){
 
     // go through basisset
-    for (vector< AOShell* >::const_iterator _is = firstShell(); _is != lastShell() ; _is++ ) {
+    for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
         const AOShell* _shell = getShell( _is );
         addReorderShell( start, target, _shell->getType(), neworder );
     }

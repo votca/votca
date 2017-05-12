@@ -165,7 +165,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
             std::vector<int> idxstop;
             int start = 0;
             int end = 0;
-            for (std::vector< AOShell* >::const_iterator _row = aobasis.firstShell(); _row != aobasis.lastShell() ; _row++ ) {
+            for (AOBasis::AOShellIterator _row = aobasis.firstShell(); _row != aobasis.lastShell() ; _row++ ) {
                 
                  const AOShell* _shell_row = aobasis.getShell( _row );
                  

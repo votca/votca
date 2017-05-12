@@ -86,9 +86,8 @@ namespace votca { namespace xtp {
             std::vector< std::vector< std::vector<int> > > _significant_atoms;
             std::vector < int > _startIdx;
             std::vector < int > _blocksize;
-            typedef std::vector< AOShell* >::const_iterator AOShellIterator;
-            std::vector< std::vector< AOShellIterator > > _atomshells;
-            std::vector< AOShellIterator > _singleatom;
+            std::vector< std::vector< AOBasis::AOShellIterator > > _atomshells;
+            std::vector< AOBasis::AOShellIterator > _singleatom;
             std::vector< std::vector< ub::matrix<double> > >dmat_vector;
             std::vector< std::vector< std::vector< ub::matrix<double> > > > xcmat_vector_thread;
             std::vector< std::vector< ub::matrix<double> > > xcmat_vector;
