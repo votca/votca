@@ -66,42 +66,6 @@ bool linalg_eigenvalues( const ub::matrix<double> &A, ub::vector<double> &E, ub:
 };
 
 
-
-
-bool linalg_eigenvalues_symmetric( const ub::symmetric_matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
-{
-    // cout << " \n I'm really using MKL! " << endl;
-    
-    int n = A.size1();
-    int lda = n ;
-    // make sure that containers for eigenvalues and eigenvectors are of correct size
-    E.resize(n);
-    V.resize(n, n);
-    // Query and allocate the optimal workspace 
-    double wkopt;
-    double* work;
-    int info;
-    int lwork;
-    lwork = -1;
-
-    // MKL does not handle conversion of a symmetric_matrix 
-    V = A;
-    
-    // make a pointer to the ublas matrix so that LAPACK understands it
-    double * pV = const_cast<double*>(&V.data().begin()[0]);
-    double * pE = const_cast<double*>(&E.data()[0]);
-    
-    // call LAPACK via C interface
-    info = LAPACKE_dsyev( LAPACK_ROW_MAJOR, 'V', 'U', n, pV , lda, pE );
-
-    if( info > 0 ) {
-        return false;
-    } else {
-        return true;
-    }
-};
-
-
 bool linalg_eigenvalues(  ub::vector<double> &E, ub::matrix<double> &V)
 {
     // cout << " \n I'm really using MKL! " << endl;
