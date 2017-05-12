@@ -341,10 +341,10 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	if ( _has_osc_filter ){
 
 		// go through list of singlets
-		const std::vector<ub::vector<double> >& TDipoles = orb.TransitionDipoles();
+		const std::vector<tools::vec >& TDipoles = orb.TransitionDipoles();
 		for (unsigned _i=0; _i < TDipoles.size(); _i++ ) {
 
-			double osc = (ub::inner_prod(TDipoles[_i],TDipoles[_i])) * 1.0 / 3.0 * (orb.BSESingletEnergies()(_i)) ;
+			double osc = (TDipoles[_i]*TDipoles[_i]) * 2.0 / 3.0 * (orb.BSESingletEnergies()(_i)) ;
 			if ( osc > _osc_threshold ) _state_index.push_back(_i);
 		}
 

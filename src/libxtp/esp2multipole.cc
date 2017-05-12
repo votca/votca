@@ -169,7 +169,7 @@ void Esp2multipole::Extractingcharges( Orbitals & _orbitals ){
         basis.AOBasisFill(&bs, _Atomlist );
         
         
-        ub::matrix<double> _MO_Coefficients = *(_orbitals.getOrbitals()); // this is a copy?
+        ub::matrix<double> _MO_Coefficients = _orbitals.MOCoefficients();
         
         //basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );  
         basis.ReorderMOs(_MO_Coefficients, _orbitals.getQMpackage(), "xtp" );  

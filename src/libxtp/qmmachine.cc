@@ -94,7 +94,6 @@ namespace votca {
 
             // GWBSE options
             key = sfx + ".gwbse";
-
             if (opt->exists(key)) {
                 _do_gwbse = true;
                 cout << " Excited state QM/MM " << endl;
@@ -269,7 +268,7 @@ namespace votca {
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 ctp::Logger gwbse_logger(ctp::logDEBUG);
                 gwbse_logger.setMultithreading(false);
-                _gwbse.setLogger(&gwbse_logger);
+                _gwbse.setLogger(_log);
                 gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
                 gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
                 gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
@@ -296,7 +295,6 @@ namespace votca {
 
                     // actual GW-BSE run
                     _gwbse.Evaluate();
-                    //bool _evaluate = _gwbse.Evaluate( &orb_iter_output );
 
 
                     // write logger to log file
@@ -317,10 +315,10 @@ namespace votca {
                     if (_has_osc_filter) {
 
                         // go through list of singlets
-                        const std::vector<ub::vector<double> >& TDipoles = orb_iter_output.TransitionDipoles();
+                        const std::vector<tools::vec >& TDipoles = orb_iter_output.TransitionDipoles();
                         for (unsigned _i = 0; _i < TDipoles.size(); _i++) {
 
-                            double osc = (ub::inner_prod(TDipoles[_i],TDipoles[_i])) * 1.0 / 3.0 * (orb_iter_output.BSESingletEnergies()(_i));
+                            double osc = (TDipoles[_i]*TDipoles[_i]) * 2.0 / 3.0 * (orb_iter_output.BSESingletEnergies()(_i));
                             if (osc > _osc_threshold) _state_index.push_back(_i);
                         }
 
@@ -398,10 +396,6 @@ namespace votca {
                 }
                 
 
-
-
-
-
                 // fill DFT AO basis by going through all atoms 
                 AOBasis dftbasis;
                 dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms());
@@ -422,18 +416,13 @@ namespace votca {
 
 
 
-        Espfit esp=Espfit(_log);
-        if (_do_gwbse){
-        esp.setUseECPs(true);
-        }
-        esp.Fit2Density(Atomlist, DMAT_tot, dftbasis,dftbs,"medium");
+                Espfit esp=Espfit(_log);
+                if (_do_gwbse){
+                    esp.setUseECPs(true);
+                    }
+                esp.Fit2Density(Atomlist, DMAT_tot, dftbasis,dftbs,"medium");
 
-
-
-
-
-
-            } //_do_gwbse
+} //_do_gwbse
 
             // Test: go via GDMA instead of point charges, only for DFT with Gaussian!
             GDMA _gdma;
@@ -491,10 +480,6 @@ namespace votca {
 
             }
 
-
-
-
-
             LOG(ctp::logINFO, *_log)
                     << format("Summary - iteration %1$d:") % (iterCnt + 1) << flush;
             LOG(ctp::logINFO, *_log)
@@ -523,7 +508,6 @@ namespace votca {
 
 
             return 0;
-
         }
 
         template<class QMPackage>

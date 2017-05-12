@@ -62,8 +62,7 @@ Orbitals::Orbitals() {
     _qm_energy = 0.0;
     _couplingsA = 0;
     _couplingsB = 0;
-    //uncomment at next version
-    //_with_ECP=false;
+    _ECP="";
 
     //_has_atoms = false;
 
@@ -371,6 +370,8 @@ bool Orbitals::Load(string file_name) {
 }
 
 
+
+
  // Determine ground state density matrix
  ub::matrix<double> Orbitals::DensityMatrixGroundState( ub::matrix<double>& _MOs ) {   
      // first fill Density matrix, if required
@@ -480,8 +481,6 @@ std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState(ub::matrix<
            }
      }
      
-    //int _bse_total = this->_bse_size;
-     
      // electron assist matrix A_{cc'}
      ub::matrix<real_gwbse> _Acc = ub::zero_matrix<real_gwbse>( this->_bse_ctotal , this->_bse_ctotal );
      ub::matrix<real_gwbse> _Avv = ub::zero_matrix<real_gwbse>( this->_bse_vtotal , this->_bse_vtotal );
@@ -510,10 +509,6 @@ std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState(ub::matrix<
          
      }
      
-   
-   
-     
-     
      // hole part as matrix products
      // get slice of MOs of occs only
      ub::matrix<double> _occlevels = ub::project(_MOs, ub::range(_vmin, _vmax + 1), ub::range(0, _basis_set_size));
@@ -531,61 +526,98 @@ std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState(ub::matrix<
  }
  
 
- void Orbitals::MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag, double& _PopA, double& _PopB  ) {
+ ub::vector<double> Orbitals::MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag) {
      
+     ub::vector<double> fragmentCharges=ub::vector<double>(2,0.0);
      
-     _PopA = 0.0;
-     _PopB = 0.0;
      
      ub::matrix<double> _prodmat = ub::prod( _densitymatrix, _overlapmatrix );
          
      for ( int _i = 0 ; _i < _frag; _i++){
-        _PopA += _prodmat(_i,_i);
+        fragmentCharges(0) += _prodmat(_i,_i);
      }
      for ( unsigned _i = _frag ; _i < _overlapmatrix.size1(); _i++){
-       _PopB += _prodmat(_i,_i);
+       fragmentCharges(1) += _prodmat(_i,_i);
      }
            
-     
+   return fragmentCharges; 
  }
 
 
- void Orbitals::FragmentNuclearCharges(int _frag, double& _nucCrgA, double& _nucCrgB){
+ ub::vector<double> Orbitals::FragmentNuclearCharges(int _frag){
      Elements _elements;
      
      // go through atoms and count
     vector < ctp::QMAtom* > :: iterator atom;
     int id = 0;
     
-    //cout << "Natoms " << _atoms.size() << endl;
-    _nucCrgA = 0.0;
-    _nucCrgB = 0.0;
+    if ( _frag < 0 ) {
+        throw runtime_error("Orbitals::FragmentNuclearCharges Fragment index is smaller than zero");
+    }
+    
+    ub::vector<double> fragmentNuclearCharges=ub::vector<double>(2,0.0);
+    
     for (atom = _atoms.begin(); atom < _atoms.end(); ++atom){
          id++;      
          // get element type and determine its nuclear charge
          double crg = _elements.getNucCrgECP((*atom)->type);
          // add to either fragment
          if ( id <= _frag ) {
-             _nucCrgA += crg;
+             fragmentNuclearCharges(0) += crg;
          } else {
-             _nucCrgB += crg;
-         }
-         
-         
-         
-         
+             fragmentNuclearCharges(1) += crg;
+         }     
     }
-     
-    if ( _frag < 0 ) {
-           _nucCrgA = _nucCrgB;
-           _nucCrgB = 0;
-    }
-     
-     
-     
+
+    return fragmentNuclearCharges;
  }
  
- 
+  /** 
+     * \brief Guess for a dimer based on monomer orbitals
+     * 
+     * Given two monomer orbitals (A and B) constructs a guess for dimer
+     * orbitals: | A 0 | and energies: [EA, EB]
+     *           | 0 B |
+     */
+void Orbitals::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB) {
+       
+    // constructing the direct product orbA x orbB
+    int _basisA = _orbitalsA->getBasisSetSize();
+    int _basisB = _orbitalsB->getBasisSetSize();
+       
+    int _levelsA = _orbitalsA->getNumberOfLevels();
+    int _levelsB = _orbitalsB->getNumberOfLevels();
+    
+    int _electronsA = _orbitalsA->getNumberOfElectrons();
+    int _electronsB = _orbitalsB->getNumberOfElectrons();
+    
+    ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
+    ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
+    
+    ub::matrix<double>& _mo_coefficients = _orbitalsAB->MOCoefficients();    
+    
+    
+    // AxB = | A 0 |  //   A = [EA, EB]  //
+    //       | 0 B |  //                 //
+    _mo_coefficients.resize( _levelsA + _levelsB, _basisA + _basisB  );
+    _orbitalsAB->setBasisSetSize( _basisA + _basisB );
+    _orbitalsAB->setNumberOfLevels( _electronsA - _electronsB , 
+                                    _levelsA + _levelsB - _electronsA - _electronsB );
+    _orbitalsAB->setNumberOfElectrons( _electronsA + _electronsB );
+    
+    ub::project( _mo_coefficients, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
+    ub::project( _mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
+    ub::project( _mo_coefficients, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = _orbitalsA->MOCoefficients();
+    ub::project( _mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = _orbitalsB->MOCoefficients();   
+
+    ub::vector<double>& _energies = _orbitalsAB->MOEnergies();
+    _energies.resize( _levelsA + _levelsB );
+     
+    ub::project( _energies, ub::range (0, _levelsA ) ) = _orbitalsA->MOEnergies();
+    ub::project( _energies, ub::range (_levelsA, _levelsA + _levelsB ) ) = _orbitalsB->MOEnergies();
+    
+    return;
+}   
  
  
 

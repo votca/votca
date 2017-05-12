@@ -206,7 +206,7 @@ namespace votca {
 
         void GWBSE::addoutput(Property *_summary) {
             
-            const double hrt2ev = votca::tools::conv::hrt2ev;
+            const double hrt2ev = tools::conv::hrt2ev;
             Property *_gwbse_summary = &_summary->add("GWBSE", "");
             _gwbse_summary->setAttribute("units", "eV");
             _gwbse_summary->setAttribute("DeltaHLGap", (format("%1$+1.6f ") % (_shift * hrt2ev)).str());
@@ -244,11 +244,11 @@ namespace votca {
                     _level_summary->add("omega", (format("%1$+1.6f ") % (_bse_singlet_energies(state) * hrt2ev)).str());
                     if (_orbitals->hasTransitionDipoles()) {
 
-                        const ub::vector<double> dipoles = (_orbitals->TransitionDipoles())[state];
-                        double f =2* (ub::inner_prod(dipoles, dipoles)) * _bse_singlet_energies(state) / 3.0;
+                        const tools::vec & dipoles = (_orbitals->TransitionDipoles())[state];
+                        double f =2* dipoles*dipoles * _bse_singlet_energies(state) / 3.0;
 
                         _level_summary->add("f", (format("%1$+1.6f ") % f).str());
-                        Property *_dipol_summary = &_level_summary->add("Trdipole", (format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles[0] % dipoles[1] % dipoles[2]).str());
+                        Property *_dipol_summary = &_level_summary->add("Trdipole", (format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles.getX() % dipoles.getY() % dipoles.getZ()).str());
                         _dipol_summary->setAttribute("unit", "e*bohr");
                         _dipol_summary->setAttribute("gauge", "length");
                     }
@@ -310,7 +310,7 @@ namespace votca {
             // fill DFT AO basis by going through all atoms 
             AOBasis dftbasis;
             dftbasis.AOBasisFill(&dftbs, _atoms, _fragA);
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Basis of size " << dftbasis._AOBasisSize << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Basis of size " << dftbasis.AOBasisSize() << flush;
             if (dftbasis._AOBasisFragB > 0) {
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size " << dftbasis._AOBasisFragA << flush;
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size " << dftbasis._AOBasisFragB << flush;
@@ -333,7 +333,9 @@ namespace votca {
             } else if (_ranges == "factor") {
                 _rpamax = _rpamaxfactor * _orbitals->getNumberOfLevels() - 1; // total number of levels
             }
-
+            if(_rpamax>_orbitals->getNumberOfLevels() - 1){
+                _rpamax=_orbitals->getNumberOfLevels() - 1;
+            }
             // convert _qpmin and _qpmax if needed
             if (_ranges == "default") {
                 _qpmin = 0; // indexed from 0
@@ -419,8 +421,8 @@ namespace votca {
             // process the DFT data
             // a) form the expectation value of the XC functional in MOs
             // we do not link them because we have to reorder them afterwards and orbitals file has them in the order of the qmpackage
-            
-            ub::matrix<double> _dft_orbitals = _orbitals->MOCoefficients(); //
+            //make copy of orbitals MOs because we reorder them
+             _dft_orbitals = _orbitals->MOCoefficients(); //
             _ScaHFX = _orbitals->getScaHFX();
             {// this bracket is there so that _vx_ao falls out of scope, like it more than resize
                 ub::matrix<double> _vxc_ao;
@@ -466,7 +468,7 @@ namespace votca {
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
 
                 // now get expectation values but only for those in _qpmin:_qpmax range
-                ub::matrix<double> _mos = ub::project(_dft_orbitals, ub::range(_qpmin, _qpmax + 1), ub::range(0, dftbasis._AOBasisSize));
+                ub::matrix<double> _mos = ub::project(_dft_orbitals, ub::range(_qpmin, _qpmax + 1), ub::range(0, dftbasis.AOBasisSize()));
                 ub::matrix<double> _temp = ub::prod(_vxc_ao, ub::trans(_mos));
                 _vxc = ub::prod(_mos, _temp);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
@@ -490,7 +492,7 @@ namespace votca {
             AOBasis gwbasis;
             gwbasis.AOBasisFill(&gwbs, _atoms);
             _orbitals->setGWbasis(_gwbasis_name);
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Basis of size " << gwbasis._AOBasisSize << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Basis of size " << gwbasis.AOBasisSize() << flush;
 
             /* 
              * for the representation of 2-point functions with the help of the 
@@ -499,17 +501,17 @@ namespace votca {
              */
             AOOverlap _gwoverlap;
             // initialize overlap matrix
-            _gwoverlap.Initialize(gwbasis._AOBasisSize);
+            _gwoverlap.Initialize(gwbasis.AOBasisSize());
             // Fill overlap
-            _gwoverlap.Fill(&gwbasis);
+            _gwoverlap.Fill(gwbasis);
 
 
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap._aomatrix.size1() << flush;
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap.Matrix().size1() << flush;
           
             // check eigenvalues of overlap matrix, if too small basis might have linear dependencies
             ub::vector<double> _eigenvalues;
             ub::matrix<double> _eigenvectors;
-            linalg_eigenvalues(_gwoverlap._aomatrix, _eigenvalues, _eigenvectors);
+            linalg_eigenvalues(_gwoverlap.Matrix(), _eigenvalues, _eigenvectors);
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of GW Overlap matrix : " << _eigenvalues[0] << flush;
 
 
@@ -524,16 +526,16 @@ namespace votca {
             // get Coulomb matrix as AOCoulomb
             AOCoulomb _gwcoulomb;
             // initialize Coulomb matrix
-            _gwcoulomb.Initialize(gwbasis._AOBasisSize);
+            _gwcoulomb.Initialize(gwbasis.AOBasisSize());
             // Fill Coulomb matrix
-            _gwcoulomb.Fill(&gwbasis);
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Coulomb matrix of dimension: " << _gwcoulomb._aomatrix.size1() << flush;
+            _gwcoulomb.Fill(gwbasis);
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Coulomb matrix of dimension: " << _gwcoulomb.Matrix().size1() << flush;
           
 
             // PPM is symmetric, so we need to get the sqrt of the Coulomb matrix
             AOOverlap _gwoverlap_inverse; // will also be needed in PPM itself
             AOOverlap _gwoverlap_cholesky_inverse; // will also be needed in PPM itself
-            _gwoverlap_inverse.Initialize(gwbasis._AOBasisSize);
+            _gwoverlap_inverse.Initialize(gwbasis.AOBasisSize());
             _gwcoulomb.Symmetrize(_gwoverlap, gwbasis, _gwoverlap_inverse, _gwoverlap_cholesky_inverse);
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM " << flush;
 
@@ -550,13 +552,13 @@ namespace votca {
             // prepare 3-center integral object
 
             TCMatrix _Mmn;
-            _Mmn.Initialize(gwbasis._AOBasisSize, _rpamin, _qpmax, _rpamin, _rpamax);
+            _Mmn.Initialize(gwbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
             _Mmn.Fill(gwbasis, dftbasis, _dft_orbitals);
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
 
             // for use in RPA, make a copy of _Mmn with dimensions (1:HOMO)(gwabasissize,LUMO:nmax)
             TCMatrix _Mmn_RPA;
-            _Mmn_RPA.Initialize(gwbasis._AOBasisSize, _rpamin, _homo, _homo + 1, _rpamax);
+            _Mmn_RPA.Initialize(gwbasis.AOBasisSize(), _rpamin, _homo, _homo + 1, _rpamax);
             RPA_prepare_threecenters(_Mmn_RPA, _Mmn, gwbasis, _gwoverlap, _gwoverlap_inverse);
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared Mmn_beta for RPA  " << flush;
 
@@ -608,7 +610,7 @@ namespace votca {
 
                 // make copy of _Mmn, memory++
 
-                _Mmn_backup.Initialize(gwbasis._AOBasisSize, _rpamin, _qpmax, _rpamin, _rpamax);
+                _Mmn_backup.Initialize(gwbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
                 int _mnsize = _Mmn_backup.get_mtot();
                 for (int _i = 0; _i < _mnsize; _i++) {
                     _Mmn_backup[ _i ] = _Mmn[ _i ];
@@ -624,7 +626,7 @@ namespace votca {
                 }
 
                 // _gwoverlap is not needed further, if no shift iteration
-                if (!_iterate_qp) _gwoverlap._aomatrix.resize(0, 0);
+                if (!_iterate_qp) _gwoverlap.Matrix().resize(0, 0);
 
                 // determine epsilon from RPA
                 RPA_calculate_epsilon(_Mmn_RPA);
@@ -665,20 +667,18 @@ namespace votca {
 
             // free unused variable if shift is iterated
             if (_iterate_qp) {
-                _gwoverlap._aomatrix.resize(0, 0);
+                _gwoverlap.Matrix().resize(0, 0);
                 _Mmn_RPA.Cleanup();
                 _Mmn_backup.Cleanup();
             }
             // free no longer required three-center matrices in _Mmn
             // max required is _bse_cmax (could be smaller than _qpmax)
-            _Mmn.Prune(gwbasis._AOBasisSize, _bse_vmin, _bse_cmax);
+            _Mmn.Prune(gwbasis.AOBasisSize(), _bse_vmin, _bse_cmax);
 
 
-            ub::vector<double>& _dft_energies=_orbitals->MOEnergies();
+            const ub::vector<double>& _dft_energies=_orbitals->MOEnergies();
             // Output of quasiparticle energies after all is done:
-            //cout<<_shift<<endl;
-            //cout<<_qptotal<<" "<<_qpmin<<" "<< _dft_energies.size()<<" "<< _qp_energies.size()<<endl;
-            
+           
             LOG(ctp::logINFO, *_pLog) << (format("  ====== Perturbative quasiparticle energies (Hartree) ====== ")).str() << flush;
             LOG(ctp::logINFO, *_pLog) << (format("   DeltaHLGap = %1$+1.6f Hartree") % _shift).str() << flush;
             for (unsigned _i = 0; _i < _qptotal; _i++) {
@@ -763,7 +763,7 @@ namespace votca {
                     BSE_solve_triplets();
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solved BSE for triplets " << flush;
                     // analyze and report results
-                    BSE_analyze_triplets(dftbasis, _dft_orbitals);
+                    BSE_analyze_triplets();
 
                 } // do_triplets
 
@@ -781,11 +781,11 @@ namespace votca {
                     if (_do_full_BSE) {
                         BSE_solve_singlets_BTDA();
                         LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solved full BSE for singlets " << flush;
-                        BSE_analyze_singlets_BTDA(dftbasis, _dft_orbitals);
+                        BSE_analyze_singlets_BTDA();
                     } else {
                         BSE_solve_singlets();
                         LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solved BSE for singlets " << flush;
-                        BSE_analyze_singlets(dftbasis, _dft_orbitals);
+                        BSE_analyze_singlets();
                     }
 
                     if (!_store_eh_interaction) {

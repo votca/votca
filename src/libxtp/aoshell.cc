@@ -36,12 +36,12 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
           const double distsq =  center*center;
 
             
-            typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+            typedef vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
             // iterate over Gaussians in this shell
             for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
 
                 const double alpha = (*itr)->decay;
-                std::vector<double>& _contractions = (*itr)->contraction;
+                const std::vector<double>& _contractions = (*itr)->contraction;
 
                 double _expofactor = (*itr)->powfactor * exp(-alpha * distsq);
 
@@ -301,7 +301,7 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const
              const double distsq =  center*center;
              const double pi = boost::math::constants::pi<double>();
 
-            typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+            typedef vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
             // iterate over Gaussians in this shell
             for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
 

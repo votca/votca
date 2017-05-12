@@ -94,7 +94,7 @@ namespace votca {
             if(_significant_atoms.size()<1){
                 throw runtime_error("NumericalIntegration::IntegrateExternalPotential_Atomblock:significant atoms not found yet.");
             }
-            ub::matrix<double> ExternalMat = ub::zero_matrix<double>(_basis->_AOBasisSize, _basis->_AOBasisSize);
+            ub::matrix<double> ExternalMat = ub::zero_matrix<double>(_basis->AOBasisSize(), _basis->AOBasisSize());
             
             // parallelization: distribute over threads inside one atom
             int nthreads = 1;
@@ -106,7 +106,7 @@ namespace votca {
             std::vector< ub::matrix<double> > expot_thread;
             
             for ( int i_thread = 0 ; i_thread < nthreads; i_thread++ ){     
-                expot_thread.push_back( ub::zero_matrix<double>(_basis->_AOBasisSize, _basis->_AOBasisSize) );              
+                expot_thread.push_back( ub::zero_matrix<double>(_basis->AOBasisSize(), _basis->AOBasisSize()) );              
             }
 
             // for every atom
@@ -133,7 +133,7 @@ namespace votca {
 
                     // get value of orbitals at each gridpoint (vector as 1D boost matrix object -> prod )
 
-                   ub::matrix<double> AOgrid = ub::zero_matrix<double>(1, _basis->_AOBasisSize); // TRY MORE USEFUL DATA
+                   ub::matrix<double> AOgrid = ub::zero_matrix<double>(1, _basis->AOBasisSize()); // TRY MORE USEFUL DATA
                           
                     // for each significant atom for this grid point
                     for ( unsigned sigrow = 0; sigrow < _significant_atoms[i][j].size() ; sigrow++){
@@ -345,10 +345,10 @@ namespace votca {
                 for (int j = _thread_start[i_thread]; j < _thread_stop[i_thread]; j++) {
 
                     // get value of orbitals at each gridpoint (vector as 1D boost matrix object -> prod )
-                   ub::matrix<double> AOgrid = ub::zero_matrix<double>(1, _basis->_AOBasisSize); // TRY MORE USEFUL DATA
+                   ub::matrix<double> AOgrid = ub::zero_matrix<double>(1, _basis->AOBasisSize()); // TRY MORE USEFUL DATA
 		    // get value of density gradient at each gridpoint
                  
-                   ub::matrix<double> gradAOgrid = ub::zero_matrix<double>(3, _basis->_AOBasisSize); // for Gradients of AOs
+                   ub::matrix<double> gradAOgrid = ub::zero_matrix<double>(3, _basis->AOBasisSize()); // for Gradients of AOs
                     
                    ub::matrix<double>  rho_mat = ub::zero_matrix<double>(1,1);
                    //ub::matrix<double> grad_rho = ub::zero_matrix<double>(3,1);
@@ -530,7 +530,7 @@ namespace votca {
                 }
             }
              
-             ub::matrix<double> XCMAT = ub::zero_matrix<double>(_basis->_AOBasisSize, _basis->_AOBasisSize);
+             ub::matrix<double> XCMAT = ub::zero_matrix<double>(_basis->AOBasisSize(), _basis->AOBasisSize());
              
              #pragma omp parallel for
              for (unsigned rowatom=0;rowatom<xcmat_vector.size();rowatom++){
@@ -575,7 +575,7 @@ namespace votca {
             int _Idx       = 0;
             int _size      = 0;
             
-            for (vector< AOShell* >::iterator _row = _basis->firstShell(); _row != _basis->lastShell(); _row++) {
+            for (vector< AOShell* >::const_iterator _row = _basis->firstShell(); _row != _basis->lastShell(); _row++) {
                  
                 if ( (*_row)->getIndex() == _atomindex ){
                     
@@ -610,7 +610,7 @@ namespace votca {
             vector< double > _minimal_decay;
             vector < vec > _positions;
             vec _localpos = (*_basis->firstShell())->getPos();
-            for ( vector< AOShell* >::iterator _row = _basis->firstShell(); _row != _basis->lastShell(); _row++   ) {
+            for ( vector< AOShell* >::const_iterator _row = _basis->firstShell(); _row != _basis->lastShell(); _row++   ) {
                                
                  if ( (*_row)->getIndex() == _atomindex ){
                      
@@ -793,9 +793,9 @@ namespace votca {
                    //boost::timer::cpu_times t0 = cpu_t.elapsed();
 
                     // get value of orbitals at each gridpoint (vector as 1D boost matrix object -> prod )
-                    //ub::matrix<double> AOgrid = ub::zero_matrix<double>(basis->_AOBasisSize, 1);
+                    //ub::matrix<double> AOgrid = ub::zero_matrix<double>(basis->AOBasisSize(), 1);
 
-                   ub::matrix<double> AOgrid = ub::zero_matrix<double>(1, _basis->_AOBasisSize); // TRY MORE USEFUL DATA
+                   ub::matrix<double> AOgrid = ub::zero_matrix<double>(1, _basis->AOBasisSize()); // TRY MORE USEFUL DATA
                
                    ub::matrix<double>  rho_mat = ub::zero_matrix<double>(1,1);
             

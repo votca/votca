@@ -49,7 +49,8 @@ namespace votca {
          */
 
       
-        bool TCrawMatrix::FillFourCenterRepBlock(ub::matrix<double>& _subvector, AOShell* _shell_1, AOShell* _shell_2, AOShell* _shell_3, AOShell* _shell_4) {
+        bool TCrawMatrix::FillFourCenterRepBlock(ub::matrix<double>& _subvector,
+                const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3, const AOShell* _shell_4) {
 
             const double pi = boost::math::constants::pi<double>();
             
@@ -68,10 +69,10 @@ namespace votca {
 
             // set size of internal block for recursion
            
-            AOShell* _shell_alpha;
-            AOShell* _shell_beta;
-            AOShell* _shell_gamma;
-            AOShell* _shell_delta;
+            const AOShell* _shell_alpha;
+            const AOShell* _shell_beta;
+            const AOShell* _shell_gamma;
+            const AOShell* _shell_delta;
             bool alphabetaswitch = false;
             bool gammadeltaswitch = false;
             bool ab_cd_switch = false;
@@ -275,19 +276,19 @@ namespace votca {
 
 
 
-            typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+            typedef vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
 
             for ( GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha) {
-                const double& _decay_alpha = (*italpha)->decay;
+                const double _decay_alpha = (*italpha)->decay;
             
               for ( GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta) {
-                  const double& _decay_beta = (*itbeta)->decay;
+                  const double _decay_beta = (*itbeta)->decay;
                     
                 for ( GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma) {
-                    const double& _decay_gamma = (*itgamma)->decay;
+                    const double _decay_gamma = (*itgamma)->decay;
 
                   for ( GaussianIterator itdelta = _shell_delta->firstGaussian(); itdelta != _shell_delta->lastGaussian(); ++itdelta) {
-                      const double& _decay_delta = (*itdelta)->decay;
+                      const double _decay_delta = (*itdelta)->decay;
 
 
           

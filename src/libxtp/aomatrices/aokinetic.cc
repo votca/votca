@@ -33,11 +33,8 @@ namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
 
     
-    void AOKinetic::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp) {
-        //const double pi = boost::math::constants::pi<double>();
-            /*cout << "\nAO block: "<< endl;
-        cout << "\t row: " << _shell_row->getType() << " at " << _shell_row->getPos() << endl;
-        cout << "\t col: " << _shell_col->getType() << " at " << _shell_col->getPos() << endl;*/
+    void AOKinetic::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp) {
+       
        
         // shell info, only lmax tells how far to go
         int _lmax_row = _shell_row->getLmax();
@@ -105,7 +102,7 @@ namespace votca { namespace xtp {
        // cout << "row shell is " << _shell_row->getSize() << " -fold contracted!" << endl;
         //cout << "col shell is " << _shell_col->getSize() << " -fold contracted!" << endl;
         
-        typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+        typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
         // iterate over Gaussians in this _shell_row
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col

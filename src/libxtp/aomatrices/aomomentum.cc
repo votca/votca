@@ -33,7 +33,7 @@ namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
 
     
-    void AOMomentum::FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col , AOBasis* ecp) {
+    void AOMomentum::FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, const AOShell* _shell_row,const AOShell* _shell_col ,AOBasis* ecp) {
 
         
         /* Calculating the AO matrix of the gradient operator requires 
@@ -186,16 +186,16 @@ namespace votca { namespace xtp {
  };
 
 
-     typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+     typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
        // iterate over Gaussians in this _shell_row   
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
             // get decay constant
-            const double& _decay_row = (*itr)->decay;
+            const double _decay_row = (*itr)->decay;
             
             for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
                 //get decay constant
-                const double& _decay_col = (*itc)->decay;
+                const double _decay_col = (*itc)->decay;
         
         // some helpers
         

@@ -374,7 +374,7 @@ namespace votca {
             {
                 // DFT AOOverlap matrix
                 _dftAOoverlap.Initialize(_dftbasis.AOBasisSize());
-                _dftAOoverlap.Fill(&_dftbasis);
+                _dftAOoverlap.Fill(_dftbasis);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
                 //cout<<"overlap"<<_dftAOoverlap.Matrix()<<endl;
                 // check DFT basis for linear dependence
@@ -393,22 +393,22 @@ namespace votca {
             }
             
             _dftAOkinetic.Initialize(_dftbasis.AOBasisSize());
-            _dftAOkinetic.Fill(&_dftbasis);
+            _dftAOkinetic.Fill(_dftbasis);
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOkinetic.Dimension() << flush;
 
 
             _dftAOESP.Initialize(_dftbasis.AOBasisSize());
-            _dftAOESP.Fillnucpotential(&_dftbasis, _atoms, _with_ecp);
+            _dftAOESP.Fillnucpotential(_dftbasis, _atoms, _with_ecp);
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOESP.Dimension() << flush;
             //_dftAOESP.Print("NUC");
 
             if (_addexternalsites) {
-                _dftAOESP.Fillextpotential(&_dftbasis, _externalsites);
+                _dftAOESP.Fillextpotential(_dftbasis, _externalsites);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT external pointcharge potential matrix of dimension: " << _dftAOESP.Dimension() << flush;
 
-                _dftAODipole_Potential.Fillextpotential(&_dftbasis, _externalsites);
+                _dftAODipole_Potential.Fillextpotential(_dftbasis, _externalsites);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT external dipole potential matrix of dimension: " << _dftAODipole_Potential.Dimension() << flush;
-                _dftAOQuadrupole_Potential.Fillextpotential(&_dftbasis, _externalsites);
+                _dftAOQuadrupole_Potential.Fillextpotential(_dftbasis, _externalsites);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT external quadrupole potential matrix of dimension: " << _dftAOQuadrupole_Potential.Dimension() << flush;
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " External sites\t Name \t Coordinates \t charge \t dipole \t quadrupole" << flush;
                 for (unsigned i = 0; i < _externalsites.size(); i++) {
@@ -430,7 +430,7 @@ namespace votca {
 
             if (_with_ecp) {
                 _dftAOECP.Initialize(_dftbasis.AOBasisSize());
-                _dftAOECP.Fill(&_dftbasis, vec(0, 0, 0), &_ecp);
+                _dftAOECP.Fill(_dftbasis, vec(0, 0, 0), &_ecp);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOECP.Dimension() << flush;
                 _dftAOESP.getNuclearpotential() += _dftAOECP.Matrix();
             }
@@ -445,14 +445,14 @@ namespace votca {
                 { // this is just for info and not needed afterwards
                     AOOverlap _auxAOoverlap;
                     _auxAOoverlap.Initialize(_auxbasis.AOBasisSize());
-                    _auxAOoverlap.Fill(&_auxbasis);
+                    _auxAOoverlap.Fill(_auxbasis);
                     linalg_eigenvalues(_auxAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of AUX Overlap matrix : " << _eigenvalues[0] << flush;
                 }
 
                 AOCoulomb _auxAOcoulomb;
                 _auxAOcoulomb.Initialize(_auxbasis.AOBasisSize());
-                _auxAOcoulomb.Fill(&_auxbasis);
+                _auxAOcoulomb.Fill(_auxbasis);
 
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
                 ub::matrix<double> AuxAOcoulomb_inv = ub::zero_matrix<double>(_auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension());
@@ -544,7 +544,7 @@ namespace votca {
 
                 // DFT AOOverlap matrix
                 dftAOoverlap.Initialize(dftbasis.AOBasisSize());
-                dftAOoverlap.Fill(&dftbasis);
+                dftAOoverlap.Fill(dftbasis);
                 linalg_eigenvalues(dftAOoverlap.Matrix(), eigenvalues, eigenvectors);
 
                 //Not brilliant but we need S-1/2 for DIIS and I do not want to calculate it each time
@@ -557,9 +557,9 @@ namespace votca {
                 Sminusonehalf = ub::prod(eigenvectors, _temp);
 
                 dftAOkinetic.Initialize(dftbasis.AOBasisSize());
-                dftAOkinetic.Fill(&dftbasis);
+                dftAOkinetic.Fill(dftbasis);
                 dftAOESP.Initialize(dftbasis.AOBasisSize());
-                dftAOESP.Fillnucpotential(&dftbasis, atom, with_ecp);
+                dftAOESP.Fillnucpotential(dftbasis, atom, with_ecp);
                 ERIs_atom.Initialize_4c_small_molecule(dftbasis);
 
                 ub::vector<double>MOEnergies_alpha;
@@ -584,7 +584,7 @@ namespace votca {
                 ub::matrix<double> H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
                 if (with_ecp) {
                     dftAOECP.Initialize(dftbasis.AOBasisSize());
-                    dftAOECP.Fill(&dftbasis, vec(0, 0, 0), &ecp);
+                    dftAOECP.Fill(dftbasis, vec(0, 0, 0), &ecp);
 
                     H0 += dftAOECP.Matrix();
 
@@ -980,7 +980,7 @@ namespace votca {
           AOBasis::AOShellIterator jt;
           int start1=0.0;
           for(it=dftbasis.firstShell();it<dftbasis.lastShell();++it){
-            AOShell* shell1=dftbasis.getShell(it);
+            const AOShell* shell1=dftbasis.getShell(it);
             int end1=shell1->getNumFunc()+start1;
             std::vector<int> starts1;
             std::vector<int> ends1;
@@ -1003,7 +1003,7 @@ namespace votca {
             start1=end1;
             int start2=0;
               for(jt=dftbasis.firstShell();jt<dftbasis.lastShell();++jt){
-                AOShell* shell2=dftbasis.getShell(jt);
+                const AOShell* shell2=dftbasis.getShell(jt);
                
                 int end2=shell2->getNumFunc()+start2;
                 //cout<<shell2->getType()<<" Start2 "<<start2<<" End2 "<<end2<<endl;

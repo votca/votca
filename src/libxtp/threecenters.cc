@@ -45,8 +45,9 @@ namespace votca {
          *      S,P,D,F,G,H,I   functions in GW  basis
          * 
          */
-        bool TCrawMatrix::FillThreeCenterOLBlock(ub::matrix<double>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
-	  //bool TCrawMatrix::FillThreeCenterOLBlock(ub::matrix<float>& _subvector, AOShell* _shell_gw, AOShell* _shell_alpha, AOShell* _shell_gamma) {
+        bool TCrawMatrix::FillThreeCenterOLBlock(ub::matrix<double>& _subvector,const AOShell* _shell_gw,
+                const AOShell* _shell_alpha,const AOShell* _shell_gamma) {
+	  
             const double pi = boost::math::constants::pi<double>();
               // get shell positions
             const vec& _pos_gw = _shell_gw->getPos();
@@ -59,9 +60,9 @@ namespace votca {
             int _lmax_gamma = _shell_gamma->getLmax();
 
             // set size of internal block for recursion
-            int _ngw = this->getBlockSize(_lmax_gw);
-            int _nalpha = this->getBlockSize(_lmax_alpha);
-            int _ngamma = this->getBlockSize(_lmax_gamma);
+            int _ngw = getBlockSize(_lmax_gw);
+            int _nalpha = getBlockSize(_lmax_alpha);
+            int _ngamma = getBlockSize(_lmax_gamma);
             // definition of cutoff for contribution
             
             const double gwaccuracy = 1.e-9; // should become an OPTION
@@ -133,21 +134,21 @@ namespace votca {
 
 
 
-            typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+            typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
                 // iterate over Gaussians in this _shell_row
             for ( GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
             // iterate over Gaussians in this _shell_col
-                const double& _decay_alpha = (*italpha)->decay;
+                const double _decay_alpha = (*italpha)->decay;
             
                 for ( GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
-                    const double& _decay_gamma = (*itgamma)->decay;
+                    const double _decay_gamma = (*itgamma)->decay;
                     // check third threshold
                     vec _diff = _pos_alpha - _pos_gamma;
                     double test = _decay_alpha * _decay_gamma * _diff*_diff;
                     
                     for ( GaussianIterator itgw = _shell_gw->firstGaussian(); itgw != _shell_gw->lastGaussian(); ++itgw){
             // get decay constants (this all is still valid only for uncontracted functions)
-                        const double& _decay_gw = (*itgw)->decay;
+                        const double _decay_gw = (*itgw)->decay;
             
  
             double threshold = -(_decay_alpha + _decay_gamma + _decay_gw) * log(gwaccuracy);

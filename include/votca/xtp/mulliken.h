@@ -45,7 +45,7 @@ public:
    ~Mulliken(){};
     
     void setUseECPs(bool use_ecp){_use_ecp=use_ecp;}
-    void EvaluateMulliken(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
+    void EvaluateMulliken(std::vector< ctp::QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,const AOBasis &basis,BasisSet &bs,  bool _do_transition);
   
    
 private:

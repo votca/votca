@@ -45,7 +45,7 @@ public:
    ~Lowdin(){};
     
     void setUseECPs(bool use_ecp){_use_ecp=use_ecp;}
-    void EvaluateLowdin(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
+    void EvaluateLowdin(std::vector< ctp::QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
   
    
 private:

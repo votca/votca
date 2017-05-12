@@ -31,7 +31,7 @@ namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
 
     
-    void AODipole::FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col , AOBasis* ecp) {
+    void AODipole::FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp) {
 
         
         /* Calculating the AO matrix of the gradient operator requires 
@@ -119,16 +119,16 @@ namespace votca { namespace xtp {
         std::vector<double> _center(3,0.0); // here: origin, can be changed later
         std::vector<double> _pmc(3,0.0);
         
-        typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+        typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
         // iterate over Gaussians in this _shell_row
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
             // get decay constant
-            const double& _decay_row = (*itr)->decay;
+            const double _decay_row = (*itr)->decay;
             
             for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
                 //get decay constant
-                const double& _decay_col = (*itc)->decay;
+                const double _decay_col = (*itc)->decay;
         
        
                 const double _fak  = 0.5/(_decay_row + _decay_col);

@@ -429,18 +429,19 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     // constructing merged orbitals
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
-    ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = ub::project( *_orbitalsA->getOrbitals() , ub::range(_bseA_vmin, _bseA_cmax+1) , ub::range ( 0, _basisA ));
-    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = ub::project( *_orbitalsB->getOrbitals(), ub::range(_bseB_vmin, _bseB_cmax+1) , ub::range ( 0, _basisB )); 
+    ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = ub::project( _orbitalsA->MOCoefficients() , ub::range(_bseA_vmin, _bseA_cmax+1) , ub::range ( 0, _basisA ));
+    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = ub::project( _orbitalsA->MOCoefficients(), ub::range(_bseB_vmin, _bseB_cmax+1) , ub::range ( 0, _basisB )); 
     
     // psi_AxB * S_AB * psi_AB
     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "   projecting monomer onto dimer orbitals" << flush; 
-    ub::matrix<double> _orbitalsAB_Transposed = ub::trans( *_orbitalsAB->getOrbitals() );  
-    if ( (*_orbitalsAB->getOverlap()).size1() == 0 ) {
+    
+    if ( !_orbitalsAB->hasAOOverlap() ) {
             LOG(ctp::logERROR,*_pLog) << "Overlap matrix is not stored"; 
             return false;
     }
-   
-    ub::matrix<double> _psi_AB = ub::prod( *_orbitalsAB->getOverlap(), _orbitalsAB_Transposed );  
+    //convert to full matrix from symmetric
+    ub::matrix<double> _overlapAB =_orbitalsAB->AOOverlap();  
+    ub::matrix<double> _psi_AB = ub::prod( _overlapAB,ub::trans(_overlapAB) );  
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );  
     _psi_AB.clear();
     //cout<< "_psi_AxB_dimer"<<endl;
@@ -465,12 +466,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             LOG(ctp::logERROR,*_pLog) << "\nERROR: " << i << " Projection of orbital " << level << " of monomer " << monomer << " on dimer is insufficient,mag="<<mag<<" maybe the orbital order is screwed up, otherwise increase dimer basis.\n"<<flush;
         }
     }
-    //exit(0);
-    // _psi_AxB_dimer_basis = T in notes, dimension ( LA + LB, LD)
-    
-    
-   // cout << "Size of _psi_AxB_dimer_basis " << _psi_AxB_dimer_basis.size1() << " : " <<  _psi_AxB_dimer_basis.size2() << flush; 
-    
+   
     
     //notation AB is CT states with A+B-, BA is the counterpart
     //Setting up CT-states:

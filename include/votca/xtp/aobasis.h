@@ -48,36 +48,35 @@ public:
         AOBasis( ) { ; }
         ~AOBasis(); 
       
-       void ReorderMOs(ub::matrix<double> &v, std::string start, std::string target ); 
+       void ReorderMOs(ub::matrix<double> &v,const std::string& start, const std::string& target ); 
      
       void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
 
-    // void AOBasisFill( BasisSet* bs , std::vector<Segment* > segments);
     void AOBasisFill( BasisSet* bs , std::vector<ctp::QMAtom* > segments, int fragbreak = -1);
     void ECPFill( BasisSet* bs , std::vector<ctp::QMAtom* > segments); 
     
     
-    int AOBasisSize() {return _AOBasisSize; }
+    int AOBasisSize() const {return _AOBasisSize; }
     
-    typedef std::vector< AOShell* >::iterator AOShellIterator;
-    AOShellIterator firstShell() { return _aoshells.begin(); }
-    AOShellIterator lastShell(){ return _aoshells.end(); }
+    typedef std::vector< AOShell* >::const_iterator AOShellIterator;
+    AOShellIterator firstShell() const{ return _aoshells.begin(); }
+    AOShellIterator lastShell() const{ return _aoshells.end(); }
 
     
     
         
-    AOShell* getShell( AOShellIterator it ) { return (*it); }
+    const AOShell* getShell( AOShellIterator it ) const{ return (*it); }
     
-    AOShell* getShell( int idx ){ return _aoshells[idx] ;}
+    const AOShell* getShell( int idx )const{ return _aoshells[idx] ;}
     
     AOShell* addShell( std::string shellType,int Lmax,int Lmin, double shellScale, int shellFunc, int startIndex, int offset, vec pos, std::string name, int index ); 
   
     
-    std::vector<AOShell*> getShells() { return _aoshells; }
+    const std::vector<AOShell*>& getShells() const{ return _aoshells; }
     
- 
+    unsigned getNumofShells() const{return _aoshells.size();}
    
-   int _AOBasisSize;
+   
    int _AOBasisFragA;
    int _AOBasisFragB;
    
@@ -86,19 +85,23 @@ public:
     std::vector<AOShell*> _aoshells;
 
   
-    void getReorderVector( std::string& start, std::string& target, std::vector<int>& neworder );
+    void getReorderVector(const std::string& start,const std::string& target, std::vector<int>& neworder );
    
-    void addReorderShell( std::string& start, std::string& target, std::string& shell, std::vector<int>& neworder );
+    void addReorderShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& neworder );
   
-    void getMultiplierVector( std::string& start, std::string& target, std::vector<int>& multiplier );
+    void getMultiplierVector(const std::string& start,const std::string& target, std::vector<int>& multiplier );
     
-    void addMultiplierShell( std::string& start, std::string& target, std::string& shell, std::vector<int>& multiplier );  
+    void addMultiplierShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& multiplier );  
     
     
-    void getTransformationCartToSpherical( std::string& package, ub::matrix<double>& _trafomatrix );
-    void addTrafoCartShell(  AOShell* shell , ub::matrix_range< ub::matrix<double> >& _submatrix );
+    void getTransformationCartToSpherical(const std::string& package, ub::matrix<double>& _trafomatrix );
+    void addTrafoCartShell( const AOShell* shell , ub::matrix_range< ub::matrix<double> >& _submatrix );
     
     int getMaxFunctions ( );
+    
+private:
+    int _AOBasisSize;
+    
 };
 
 

@@ -32,7 +32,7 @@ namespace votca { namespace xtp {
 
  
 
-    void AOCoulomb::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp) {
+    void AOCoulomb::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp) {
       
             // shell info, only lmax tells how far to go
             const int _lmax_row = _shell_row->getLmax();
@@ -130,7 +130,7 @@ namespace votca { namespace xtp {
 
            
             
-            typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+            typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
         // iterate over Gaussians in this _shell_row
             for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
@@ -1157,7 +1157,7 @@ if (_lmax_col > 5) {
     
 
     
-    void AOCoulomb::Symmetrize( AOOverlap& _gwoverlap, AOBasis& gwbasis, AOOverlap& _gwoverlap_inverse, AOOverlap& _gwoverlap_cholesky_inverse){
+    void AOCoulomb::Symmetrize(const AOOverlap& _gwoverlap,const AOBasis& gwbasis, AOOverlap& _gwoverlap_inverse, AOOverlap& _gwoverlap_cholesky_inverse){
        
         if ( gwbasis._is_stable ){
             
@@ -1167,21 +1167,21 @@ if (_lmax_col > 5) {
             
 
             // getting Cholesky decomposition of AOOverlap matrix
-            AOOverlap _gwoverlap_cholesky;
+            ub::matrix<double> _gwoverlap_cholesky;
             // make copy of _gwoverlap, because matrix is overwritten in GSL
-            _gwoverlap_cholesky.Matrix() = _gwoverlap.Matrix();
-            linalg_cholesky_decompose( _gwoverlap_cholesky.Matrix() );
+            _gwoverlap_cholesky = _gwoverlap.Matrix();
+            linalg_cholesky_decompose( _gwoverlap_cholesky );
            
             // remove L^T from Cholesky
-            for (unsigned i =0; i < _gwoverlap_cholesky._aomatrix.size1(); i++ ){
-                for (unsigned j = i+1; j < _gwoverlap_cholesky._aomatrix.size1(); j++ ){
-                    _gwoverlap_cholesky._aomatrix(i,j) = 0.0;
+            for (unsigned i =0; i < _gwoverlap_cholesky.size1(); i++ ){
+                for (unsigned j = i+1; j < _gwoverlap_cholesky.size1(); j++ ){
+                    _gwoverlap_cholesky(i,j) = 0.0;
                 }
             }
             
             // invert L to get L^-1
-            _gwoverlap_cholesky_inverse.Initialize(gwbasis._AOBasisSize);
-            linalg_invert(  _gwoverlap_cholesky.Matrix() , _gwoverlap_cholesky_inverse.Matrix() );
+            _gwoverlap_cholesky_inverse.Initialize(gwbasis.AOBasisSize());
+            linalg_invert(  _gwoverlap_cholesky, _gwoverlap_cholesky_inverse.Matrix() );
          
             
             // calculate V' = L^-1 V (L^-1)^T
@@ -1191,8 +1191,8 @@ if (_lmax_col > 5) {
             linalg_matrixsqrt(_aomatrix);
            
             // multiply with L from the left and L+ from the right
-            _temp = ub::prod( _gwoverlap_cholesky.Matrix() , _aomatrix );
-            _aomatrix = ub::prod( _temp ,ub::trans( _gwoverlap_cholesky.Matrix() ));
+            _temp = ub::prod( _gwoverlap_cholesky , _aomatrix );
+            _aomatrix = ub::prod( _temp ,ub::trans( _gwoverlap_cholesky ));
             
             _aomatrix = ub::prod( _aomatrix , _gwoverlap_inverse.Matrix() );
  

@@ -53,10 +53,9 @@ namespace votca { namespace xtp {
             typedef boost::multi_array_types::extent_range range; //////////////////
             typedef ma_type::index index; /////////////////////
             ma_type::extent_gen extents; /////////////////////
-    bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
-    bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
-    //bool FillThreeCenterOLBlock(  ub::matrix<real_gwbse> & _subvector, AOShell* _shell, AOShell* _shell_row, AOShell* _shell_col);
-    bool FillFourCenterRepBlock(ub::matrix<double>& _subvector, AOShell* _shell_1, AOShell* _shell_2, AOShell* _shell_3, AOShell* _shell_4); ////////
+    bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col);
+    bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, const AOShell* _shell, const AOShell* _shell_row,const AOShell* _shell_col);
+    bool FillFourCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3,const AOShell* _shell_4); ////////
     void getTrafo(ub::matrix<double>& _trafo,const  int _lmax, const double& _decay,const std::vector<double>& contractions);
     
     int getBlockSize(const int size );
@@ -82,7 +81,7 @@ namespace votca { namespace xtp {
     private:
         std::vector< ub::symmetric_matrix<double> > _matrix;
     
-        void FillBlock(AOShell* _shell, AOBasis& dftbasis) ; 
+        void FillBlock(const AOShell* _shell,const AOBasis& dftbasis) ; 
         
     };
 
@@ -90,7 +89,7 @@ namespace votca { namespace xtp {
     class FCMatrix_dft : public TCrawMatrix{
     public:
     
-    void Fill_4c_small_molecule(AOBasis& dftbasis); ///////////////////
+    void Fill_4c_small_molecule(const AOBasis& dftbasis); ///////////////////
 
     const ub::vector<double>& get_4c_vector() { return _4c_vector;} ////////////////////
     
@@ -115,12 +114,12 @@ namespace votca { namespace xtp {
         
         //ub::vector< ub::matrix<double> >& matrix() { return this->_matrix ; }
 
-        int get_mmin() { return this->mmin ;}
-        int get_mmax() { return this->mmax ;}
-        int get_nmin() { return this->nmin ;}
-        int get_nmax() { return this->nmax ;}
-        int get_mtot() { return this->mtotal ;}
-        int get_ntot() { return this->ntotal ;}
+        int get_mmin() { return mmin ;}
+        int get_mmax() { return mmax ;}
+        int get_nmin() { return nmin ;}
+        int get_nmax() { return nmax ;}
+        int get_mtot() { return mtotal ;}
+        int get_ntot() { return ntotal ;}
         
         
          int get_mmin() const{ return mmin ;}
@@ -130,12 +129,12 @@ namespace votca { namespace xtp {
          int get_mtot() const{ return mtotal ;}
          int get_ntot() const{ return ntotal ;}
 
-        void set_mmin( int i ) { this->mmin = i ;}
-        void set_mmax( int i ) { this->mmax = i ;}
-        void set_nmin( int i ) { this->nmin = i ;}
-        void set_nmax( int i ) { this->nmax = i ;}
-        void set_mtot( int i ) { this->mtotal = i ;}
-        void set_ntot( int i ) { this->ntotal = i ;}
+        void set_mmin( int i ) { mmin = i ;}
+        void set_mmax( int i ) { mmax = i ;}
+        void set_nmin( int i ) { nmin = i ;}
+        void set_nmax( int i ) { nmax = i ;}
+        void set_mtot( int i ) { mtotal = i ;}
+        void set_ntot( int i ) { ntotal = i ;}
         
 
         void Initialize ( int _basissize, int mmin, int mmax, int nmin, int nmax){
@@ -154,7 +153,6 @@ namespace votca { namespace xtp {
             
             // each element is a gwabasis-by-n matrix, initialize to zero
             for ( int i = 0; i < this->get_mtot() ; i++){
-                //_matrix[i] = ub::zero_matrix<double>(_basissize,ntotal);
                 _matrix[i] = ub::zero_matrix<real_gwbse>(_basissize,ntotal);
             }
         
@@ -162,7 +160,7 @@ namespace votca { namespace xtp {
 
         void Prune ( int _basissize, int min, int max);
         void Print( std::string _ident);       
-        void Fill( AOBasis& gwbasis, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals );
+        void Fill(const AOBasis& gwbasis,const AOBasis& dftbasis, const ub::matrix<double>& _dft_orbitals );
      
         void Symmetrize( const ub::matrix<double>& coulomb  );
    
@@ -181,7 +179,7 @@ namespace votca { namespace xtp {
         int ntotal;
         int mtotal;
           
-        void FillBlock(std::vector< ub::matrix<double> >& _matrix,  AOShell* _shell, AOBasis& dftbasis, ub::matrix<double>& _dft_orbitals ) ;
+        void FillBlock(std::vector< ub::matrix<double> >& _matrix,const  AOShell* _shell, const AOBasis& dftbasis,const ub::matrix<double>& _dft_orbitals ) ;
         
     };
     

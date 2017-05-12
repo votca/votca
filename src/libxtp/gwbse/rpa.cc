@@ -235,8 +235,8 @@ namespace votca {
                     double sc_minus = 0.0;
 
                     // loop over gwbasis shells
-                    for (vector< AOShell* >::iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); ++_is) {
-                        AOShell* _shell = gwbasis.getShell(_is);
+                    for (vector< AOShell* >::const_iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); ++_is) {
+                        const AOShell* _shell = gwbasis.getShell(_is);
                         double decay = (*_shell->firstGaussian())->decay;
                         //int _lmax    = _shell->getLmax();
 
@@ -265,8 +265,8 @@ namespace votca {
                         sc_minus = target / sc_minus;
 
                         // loop over gwbasis shells
-                        for (vector< AOShell* >::iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
-                            AOShell* _shell = gwbasis.getShell(_is);
+                        for (vector< AOShell* >::const_iterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
+                            const AOShell* _shell = gwbasis.getShell(_is);
                             double decay = (*_shell->firstGaussian())->decay;
 
                             int _start = _shell->getStartIndex();
@@ -296,7 +296,7 @@ namespace votca {
                 ub::matrix<real_gwbse> _temp2 = ub::prod(gwoverlap.Matrix(), _temp);
                 
                 // copy to _Mmn_RPA
-                _Mmn_RPA[ _m_level ] = ub::project(_temp2, ub::range(0, gwbasis._AOBasisSize), ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin(), _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() + 1));
+                _Mmn_RPA[ _m_level ] = ub::project(_temp2, ub::range(0, gwbasis.AOBasisSize()), ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin(), _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() + 1));
               
 
             }// loop m-levels

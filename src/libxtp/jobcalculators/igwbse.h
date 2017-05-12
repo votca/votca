@@ -60,10 +60,7 @@ public:
 
     void ReadJobFile( ctp::Topology *top );
     
-/*  
-    void    EvalPair(Topology *top, QMPair *pair, int slot);
-    void    CleanUp();
-*/
+
 
 private:
 
@@ -106,18 +103,6 @@ private:
     
     std::map<std::string, int> FillParseMaps(string Mapstring);
     
-    
-    /** 
-     * \brief Guess for a dimer based on monomer orbitals
-     * 
-     * Given two monomer orbitals (A and B) constructs a guess for dimer
-     * orbitals: | A 0 | and energies: [EA, EB]
-     *           | 0 B |
-     */
-    void PrepareGuess(         Orbitals *_orbitalsA, 
-                               Orbitals *_orbitalsB, 
-                               Orbitals *_orbitalsAB, 
-                               ctp::Logger *log = NULL );
     
     void LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log = NULL );
         

@@ -153,7 +153,7 @@ bool Spectrum::Evaluate() {
     } 
     
     const ub::vector<real_gwbse>& BSESingletEnergies = _orbitals.BSESingletEnergies();
-    const std::vector<ub::vector<double> >& TransitionDipoles = _orbitals.TransitionDipoles();
+    const std::vector<tools::vec >& TransitionDipoles = _orbitals.TransitionDipoles();
     
 
     //int _n_exc = TransitionDipoles.size();
@@ -204,7 +204,7 @@ bool Spectrum::Evaluate() {
     // f = 2/3 * Omega(Hrt) * |td|^2
     std::vector<double> _osc;
     for ( int _i_exc = _minexc ; _i_exc <= _maxexc; _i_exc++ ){
-        _osc.push_back(  2*BSESingletEnergies(_i_exc ) * ub::inner_prod(TransitionDipoles[_i_exc], TransitionDipoles[_i_exc]) / 3.0  );
+        _osc.push_back(  2*BSESingletEnergies(_i_exc ) * (TransitionDipoles[_i_exc]*TransitionDipoles[_i_exc]) / 3.0  );
     }
     
         

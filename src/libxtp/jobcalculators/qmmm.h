@@ -227,8 +227,9 @@ void QMMM::Initialize(Property *options) {
     key = "options."+Identify()+".gwbse";
     
     if ( options->exists(key)) { 
-        cout << " Excited state QM/MM " << endl;
-        
+        cout << endl;
+        cout << " Excited state QM/MM " << flush;
+        cout <<"bla"<<endl;
          if ( options->exists(key+".gwbse_options")) {
             string gwbse_xml = options->get(key+".gwbse_options").as< string >();
             load_property_from_xml(_gwbse_opt, gwbse_xml.c_str());
@@ -242,7 +243,8 @@ void QMMM::Initialize(Property *options) {
         
         
     } else {
-        cout << " Ground state QM/MM " << endl;
+        cout << endl;
+        cout << " Ground state QM/MM " << flush;
     }
     
 
@@ -362,7 +364,7 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     qmpack->setLog(qlog);
     
     QMMachine<QMPackage> machine = QMMachine<QMPackage>(&xjob, &xind, qmpack, 
-        &_options, "options.qmmm", _subthreads, _maverick);
+        &_options, "options.xqmmm", _subthreads, _maverick);
     machine.setLog(thread->getLogger());
     
     // EVALUATE: ITERATE UNTIL CONVERGED

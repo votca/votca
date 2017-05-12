@@ -71,18 +71,18 @@ class AOShell
     friend class AOBasis;
 public:
 
-    std::string getType() { return _type; }
-    int    getNumFunc() { return _numFunc ;}
-    int    getStartIndex() { return _startIndex ;}
-    int    getOffset() { return _offset ;}
-    int    getIndex() { return _atomindex;}
-    std::string getName() { return _atomname;}
+    const std::string& getType() const{ return _type; }
+    int    getNumFunc() const{ return _numFunc ;}
+    int    getStartIndex() const{ return _startIndex ;}
+    int    getOffset() const{ return _offset ;}
+    int    getIndex() const{ return _atomindex;}
+    const std::string& getName() const{ return _atomname;}
     
-    int getLmax(  ) { return _Lmax;}
-    int getLmin(  ) { return _Lmin;}
+    int getLmax(  ) const{ return _Lmax;}
+    int getLmin(  ) const{ return _Lmin;}
     
-    vec getPos() { return _pos; }
-    double getScale() { return _scale; }
+    const vec& getPos() const{ return _pos; }
+    double getScale() const{ return _scale; }
     
     int getSize() { return _gaussians.size(); }
     
@@ -95,9 +95,9 @@ public:
     
    
     // iterator over pairs (decay constant; contraction coefficient)
-    typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
-    GaussianIterator firstGaussian() { return _gaussians.begin(); }
-    GaussianIterator lastGaussian(){ return _gaussians.end(); }
+    typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
+    GaussianIterator firstGaussian() const{ return _gaussians.begin(); }
+    GaussianIterator lastGaussian()const{ return _gaussians.end(); }
    
     // adds a Gaussian 
     AOGaussianPrimitive*  addGaussian( double decay, std::vector<double> contraction ) 
@@ -119,7 +119,11 @@ public:
 private:   
 
     // only class Element can construct shells    
-    AOShell( string type,int Lmax,int Lmin, double scale, int numFunc, int startIndex, int offset, vec pos, string atomname, int atomindex, AOBasis* aobasis = NULL ) : _type(type),_Lmax(Lmax),_Lmin(Lmin), _scale(scale), _numFunc(numFunc), _startIndex(startIndex), _offset(offset), _pos(pos) , _atomname(atomname), _atomindex(atomindex) { ; }
+    AOShell( string type,int Lmax,int Lmin, double scale, int numFunc, int startIndex, 
+            int offset, vec pos, string atomname, int atomindex, AOBasis* aobasis = NULL )
+            : _type(type),_Lmax(Lmax),_Lmin(Lmin), _scale(scale), _numFunc(numFunc),
+                    _startIndex(startIndex), _offset(offset), _pos(pos) , 
+                    _atomname(atomname), _atomindex(atomindex) { ; }
     
     // only class Element can destruct shells
    ~AOShell() 

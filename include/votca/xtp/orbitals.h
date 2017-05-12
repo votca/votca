@@ -89,6 +89,8 @@ public:
     Orbitals();
    ~Orbitals();
 
+   static void PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB);
+   
    /*
     * 
     *  ************** NEW ACCESS STRATEGY ****************
@@ -113,10 +115,10 @@ public:
     void           setNumberOfElectrons( const int &electrons ) { _number_of_electrons = electrons;}
     
     
-    /* To be uncommented in next version
-    bool           getWithECP() {return _with_ECP;};
-    void           setWithECP(const bool &value) {_with_ECP=value;};
-     */ 
+   
+    string          getECP() {return _ECP;};
+    void            setECP(const std::string &ECP) {_ECP=ECP;};
+    
     // access to QM package name, new, tested
     bool hasQMpackage() { return (!_qm_package.empty()); }
     std::string getQMpackage() { return _qm_package; }
@@ -126,13 +128,11 @@ public:
     bool           hasAOOverlap() { return ( _overlap.size1() > 0 ) ? true : false ;}
     const ub::symmetric_matrix<double> &AOOverlap() const { return _overlap; }
     ub::symmetric_matrix<double> &AOOverlap() { return _overlap; }
-    ub::symmetric_matrix<double>* getOverlap() { return &_overlap; } // OLD
 
     // access to DFT molecular orbital energies, new, tested
     bool          hasMOEnergies() { return ( _mo_energies.size() > 0 ) ? true : false ;}
     const ub::vector<double> &MOEnergies() const { return _mo_energies; }
     ub::vector<double> &MOEnergies() { return _mo_energies; }
-    ub::vector<double>* getEnergies() { return &_mo_energies; } // OLD
 
     // access to DFT molecular orbital energy of a specific level (in eV)
     double getEnergy( int level) { return ( hasMOEnergies() ) ? votca::tools::conv::hrt2ev*_mo_energies[level-1] : 0; }
@@ -141,7 +141,6 @@ public:
     bool          hasMOCoefficients() { return ( _mo_coefficients.size1() > 0 ) ? true : false ;}
     const ub::matrix<double> &MOCoefficients() const { return _mo_coefficients; }
     ub::matrix<double> &MOCoefficients() { return _mo_coefficients; }
-    ub::matrix<double>* getOrbitals() { return &_mo_coefficients; } //OLD
 
     // access to DFT transfer integrals, new, tested
     bool hasMOCouplings() { return ( _mo_couplings.size1() > 0 ) ? true : false ;}
@@ -154,9 +153,7 @@ public:
     std::vector<int>* getDegeneracy( int level, double _energy_difference );
 
     // access to QM atoms
-    //bool has::QMAtoms() { return _has_atoms;}
     bool hasQMAtoms() { return ( _atoms.size() > 0 ) ? true : false ;}
-    // void set::QMAtoms( bool inp ) { _has_atoms = inp;}
     const std::vector< ctp::QMAtom* > &QMAtoms() const { return _atoms ;}
     std::vector< ctp::QMAtom* > &QMAtoms()  { return _atoms ;}
     
@@ -176,6 +173,7 @@ public:
     const std::string getDFTbasis() const { return _dftbasis; }
     
     
+   
     /*
      *  ======= GW-BSE related functions =======
      */
@@ -228,6 +226,7 @@ public:
                 _index2c.push_back( _bse_cmin + _c );
             }
         }
+        return;
     }
     int getBSEvmin() const { return _bse_vmin;}
     int getBSEvmax() const { return _bse_vmax;}
@@ -276,8 +275,8 @@ public:
 
     // access to transition dipole moments
     bool hasTransitionDipoles() {return (_transition_dipoles.size() > 0 ) ? true : false ;}
-    const std::vector<ub::vector<double> > &TransitionDipoles() const { return _transition_dipoles; }
-    std::vector<ub::vector<double> > &TransitionDipoles()  { return _transition_dipoles; }
+    const std::vector< tools::vec > &TransitionDipoles() const { return _transition_dipoles; }
+    std::vector< tools::vec > &TransitionDipoles()  { return _transition_dipoles; }
 
 
     
@@ -309,7 +308,7 @@ public:
     
     
     // functions for analyzing fragment charges via Mulliken populations
-    void MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag, double& _PopA, double& _PopB  );
+    ub::vector<double> MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag);
 
     // access to fragment charges of singlet excitations
     bool hasFragmentAChargesSingEXC() {return (_DqS_fragA.size() > 0 ) ? true : false ;}
@@ -328,35 +327,16 @@ public:
     const std::vector<double> &FragmentBChargesTripEXC() const { return _DqT_fragB; }
     std::vector<double> &FragmentBChargesTripEXC()  { return _DqT_fragB; }
     
-    
-    
-    
-    
+
     // access to fragment charges in ground state
-    bool hasFragmentAChargesGS() {return (_GSq_fragA > -1000.0 ) ? true : false ;}
-    bool hasFragmentBChargesGS() {return (_GSq_fragB > -1000.0 ) ? true : false ;}
     const double &FragmentAChargesGS() const { return _GSq_fragA; }
     double &FragmentAChargesGS()  { return _GSq_fragA; }
     const double &FragmentBChargesGS() const { return _GSq_fragB; }
     double &FragmentBChargesGS()  { return _GSq_fragB; }
-    void FragmentNuclearCharges( int _frag , double& _nucCrgA, double& _nucCrgB );
+    ub::vector<double> FragmentNuclearCharges( int _frag);
     
-    
-    /* ===
-     *    OLD ACCESS FUNCTIONS
-     */    
-    ub::vector<double>* getQPdiagEnergies() {return  &_QPdiag_energies ;} 
-    ub::matrix<double>* getQPdiagCoefficients() {return  &_QPdiag_coefficients ;}
-
-
-    ub::vector<real_gwbse>* getBSESingletEnergies() {return &_BSE_singlet_energies;}
-    ub::matrix<real_gwbse>* getBSESingletCoefficients() {return &_BSE_singlet_coefficients;}
-
-    ub::vector<real_gwbse>* getBSETripletEnergies() {return &_BSE_triplet_energies;}
-    ub::matrix<real_gwbse>* getBSETripletCoefficients() {return &_BSE_triplet_coefficients; }   
     
    
-
     
     // returns indeces of a re-sorted in a descending order vector of energies
     void SortEnergies( std::vector<int>* index );
@@ -396,7 +376,8 @@ public:
      * Returns true if successful and does not throw an exception.
      * If exception is required, please use the << overload.
      */
-    bool Load(std::string file_name);    
+    bool Load(std::string file_name);
+    
     
 private:
     
@@ -405,9 +386,8 @@ private:
     int                                     _occupied_levels;
     int                                     _unoccupied_levels;
     int                                     _number_of_electrons;
-    /* To be uncommented in next version
-    bool                                    _with_ECP;
-    */
+    string                                  _ECP;
+    
     std::map<int, std::vector<int> >        _level_degeneracy;
     
     ub::vector<double>                      _mo_energies; 
@@ -467,7 +447,7 @@ private:
     ub::matrix<real_gwbse>                      _BSE_singlet_coefficients;
     ub::matrix<real_gwbse>                      _BSE_singlet_coefficients_AR;
 
-    std::vector<ub::vector<double> >      _transition_dipoles;
+    std::vector< tools::vec >      _transition_dipoles;
     ub::vector<real_gwbse>                     _BSE_triplet_energies;
     ub::matrix<real_gwbse>                      _BSE_triplet_coefficients;   
     
@@ -656,7 +636,15 @@ private:
                 vector_temp(2)=temp[_i][2];
                _transition_dipoles.push_back(vector_temp);    
             }
-        }else{
+        }else if(Archive::is_loading::value && version==2){  
+            std::vector< ub::vector<double> > temp;
+            ar &temp;
+            for (unsigned _i=0;_i<temp.size();_i++){
+                tools::vec vector_temp=tools::vec(temp[_i]);
+               _transition_dipoles.push_back(vector_temp);    
+            }
+        }
+            else{
             ar & _transition_dipoles; 
         }
         

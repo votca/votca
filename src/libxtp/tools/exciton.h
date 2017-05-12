@@ -1074,7 +1074,7 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<ctp::Segment*> _s
             }
             
 
-            PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
+          Orbitals::PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
           
         }
           
@@ -1279,62 +1279,7 @@ void Exciton::Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals){
   
   
   void Exciton::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB ) {
-    
-    cout << "Constructing the guess for dimer orbitals" << endl;   
-   
-    // constructing the direct product orbA x orbB
-    int _basisA = _orbitalsA->getBasisSetSize();
-    int _basisB = _orbitalsB->getBasisSetSize();
-       
-    cout << "basis size " << _basisA << " : " << _basisB << endl;
-    
-    int _levelsA = _orbitalsA->getNumberOfLevels();
-    int _levelsB = _orbitalsB->getNumberOfLevels();
-
-    cout << "levels " << _levelsA << " : " << _levelsB << endl;
-
-    
-    int _electronsA = _orbitalsA->getNumberOfElectrons();
-    int _electronsB = _orbitalsB->getNumberOfElectrons();
-
-    cout << "electrons " << _electronsA << " : " << _electronsB << endl;
-
-    
-    ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
-    ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
-    
-    ub::matrix<double>* _mo_coefficients = _orbitalsAB->getOrbitals();    
-    cout << "MO coefficients " << *_mo_coefficients << endl;
-    
-    // AxB = | A 0 |  //   A = [EA, EB]  //
-    //       | 0 B |  //                 //
-    _mo_coefficients->resize( _levelsA + _levelsB, _basisA + _basisB  );
-    _orbitalsAB->setBasisSetSize( _basisA + _basisB );
-    _orbitalsAB->setNumberOfLevels( _electronsA - _electronsB , 
-                                    _levelsA + _levelsB - _electronsA - _electronsB );
-    _orbitalsAB->setNumberOfElectrons( _electronsA + _electronsB );
-    
-    ub::project( *_mo_coefficients, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
-    ub::project( *_mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
-    ub::project( *_mo_coefficients, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
-    ub::project( *_mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB->getOrbitals();   
-
-    //cout << "MO coefficients " << *_mo_coefficients << endl;
-    
-    ub::vector<double>* _energies = _orbitalsAB->getEnergies();
-    _energies->resize( _levelsA + _levelsB );
-     
-    ub::project( *_energies, ub::range (0, _levelsA ) ) = *_orbitalsA->getEnergies();
-    ub::project( *_energies, ub::range (_levelsA, _levelsA + _levelsB ) ) = *_orbitalsB->getEnergies();
-
-   
-
-
-    
-    //cout << "MO energies " << *_energies << endl;
-    
-    ///"... ... Have now " >> _energies->size() >> " energies\n" >> *opThread;
-    return;
+  
 }   
 
   

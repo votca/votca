@@ -30,18 +30,18 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
  // shell type (S, P, D))
-    int FindLmax(string _type);
+    int FindLmax(const string& _type);
 
-    int FindLmin(string _type);
+    int FindLmin(const string& _type);
 
-    int OffsetFuncShell(string shell_type);
+    int OffsetFuncShell(const string& shell_type);
 
-    int NumFuncShell(string shell_type);
-    int NumFuncShell_cartesian(string shell_type);
+    int NumFuncShell(const string& shell_type);
+    int NumFuncShell_cartesian(const string& shell_type);
 
-    int OffsetFuncShell_cartesian(string shell_type);
+    int OffsetFuncShell_cartesian(const string& shell_type);
     
-    std::vector<int> NumFuncSubShell(string shell_type);
+    std::vector<int> NumFuncSubShell(const string& shell_type);
     
  
 
@@ -141,7 +141,6 @@ private:
     // scaling factor
     double _scale;
      
-    //Element* _element;
 
     // vector of pairs of decay constants and contraction coefficients
     vector< GaussianPrimitive* > _gaussians;

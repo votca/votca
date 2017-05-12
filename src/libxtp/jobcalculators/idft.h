@@ -95,19 +95,6 @@ private:
         
     void ParseOptionsXML( tools::Property *opt);    
     
-    
-    /** 
-     * \brief Guess for a dimer based on monomer orbitals
-     * 
-     * Given two monomer orbitals (A and B) constructs a guess for dimer
-     * orbitals: | A 0 | and energies: [EA, EB]
-     *           | 0 B |
-     */
-    void PrepareGuess(         Orbitals *_orbitalsA, 
-                               Orbitals *_orbitalsB, 
-                               Orbitals *_orbitalsAB, 
-                               ctp::Logger *log = NULL );
-    
     void LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log = NULL );
         
 };

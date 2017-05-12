@@ -22,14 +22,14 @@
 #include <votca/xtp/aomatrix.h>
 namespace votca { namespace xtp {
 
-void Mulliken::EvaluateMulliken(vector< ctp::QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition){
+void Mulliken::EvaluateMulliken(vector< ctp::QMAtom* >& _atomlist,const ub::matrix<double> &_dmat, const AOBasis &basis,BasisSet &bs,  bool _do_transition){
     AOOverlap _overlap;
     // initialize overlap matrix
-    _overlap.Initialize(basis._AOBasisSize);
+    _overlap.Initialize(basis.AOBasisSize());
     // Fill overlap
-    _overlap.Fill(&basis);
+    _overlap.Fill(basis);
     
-    ub::matrix<double> _prodmat = ub::prod( _dmat, _overlap._aomatrix );
+    ub::matrix<double> _prodmat = ub::prod( _dmat, _overlap.Matrix() );
     
     vector < ctp::QMAtom* > :: iterator atom;
 

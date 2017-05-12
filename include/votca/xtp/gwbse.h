@@ -393,6 +393,8 @@ namespace votca {
             int _bse_nprint;
 
             double _shift; // pre-shift of DFT energies
+            AOBasis _dftbasis;
+            ub::matrix<double> _dft_orbitals;
 
             Orbitals* _orbitals;
             // RPA related variables and functions
@@ -463,39 +465,30 @@ namespace votca {
 
 
             // some cleaner analysis
-            void BSE_analyze_triplets(AOBasis& basis, ub::matrix<double>& _dft_orbitals);
-            void BSE_analyze_singlets(AOBasis& basis, ub::matrix<double>& _dft_orbitals);
-            void BSE_analyze_singlets_BTDA(AOBasis& basis, ub::matrix<double>& _dft_orbitals);
+            void BSE_analyze_triplets();
+            void BSE_analyze_singlets();
+            void BSE_analyze_singlets_BTDA();
 
-            void BSE_analyze_electron_hole_interaction(ub::vector<real_gwbse>& _bse_energies,
-                    ub::matrix<real_gwbse>& _bse_coefficients, std::vector<real_gwbse>& _c_x,
+            void BSE_analyze_eh_interaction_Triplet(std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp);
+            void BSE_analyze_eh_interaction_Singlet(std::vector<real_gwbse>& _c_x,
                     std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp);
             
-            void BSE_analyze_electron_hole_interaction_BTDA(ub::vector<real_gwbse>& _bse_energies,
-                    ub::matrix<real_gwbse>& _bse_coefficients, 
-                    ub::matrix<real_gwbse>& _bse_coefficients_AR, 
-                    std::vector<real_gwbse>& _c_x,
+            void BSE_analyze_eh_interaction_BTDA_singlet(std::vector<real_gwbse>& _c_x,
                     std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp);
 
 
-            void BSE_FragmentPopulations(AOBasis& basis, ub::matrix<double>& _dft_orbitals,
+            void BSE_FragmentPopulations(
                     ub::matrix<real_gwbse>& _bse_coefficients, std::vector<double>& popHA,
                     std::vector<double>& popEA, std::vector<double>& popHB,
                     std::vector<double>& popEB, std::vector<double> &_CrgsA,
                     std::vector<double> &_CrgsB);
             
             
-            void BSE_FreeTransition_Dipoles(AOBasis& basis, ub::matrix<double>& _dft_orbitals);
+            void BSE_FreeTransition_Dipoles();
             
-            void BSE_CoupledTransition_Dipoles(ub::vector<real_gwbse>& _bse_energies,
-                    ub::matrix<real_gwbse>& _bse_coefficients, std::vector<double>& _osc_str, 
-                    std::vector<double>& _td_str);
+            void BSE_CoupledTransition_Dipoles();
             
-            void BSE_CoupledTransition_Dipoles_BTDA(ub::vector<real_gwbse>& _bse_energies,
-                    ub::matrix<real_gwbse>& _bse_coefficients,
-                    ub::matrix<real_gwbse>& _bse_coefficients_AR,
-                    std::vector<double>& _osc_str, 
-                    std::vector<double>& _td_str);
+            void BSE_CoupledTransition_Dipoles_BTDA();
 
         };
 

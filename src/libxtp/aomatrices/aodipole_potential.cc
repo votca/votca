@@ -39,7 +39,7 @@ namespace votca { namespace xtp {
     
 
     
-    void AODipole_Potential::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col , AOBasis* ecp) {
+    void AODipole_Potential::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp) {
 
         const double pi = boost::math::constants::pi<double>();
 
@@ -118,18 +118,18 @@ namespace votca { namespace xtp {
         const vec  _diff    = _pos_row - _pos_col;
         // initialize some helper
       
-        double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
+        double _distsq = _diff*_diff; 
         
-         typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+         typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
         // iterate over Gaussians in this _shell_row
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr) {
             // iterate over Gaussians in this _shell_col
             // get decay constant
-            const double& _decay_row = (*itr)->decay;
+            const double _decay_row = (*itr)->decay;
             
             for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc) {
                 //get decay constant
-                const double& _decay_col = (*itc)->decay;
+                const double _decay_col = (*itc)->decay;
 
                 const double zeta = _decay_row + _decay_col;
                 const double _fak  = 0.5/zeta;
@@ -772,19 +772,12 @@ for (int _i = 0; _i < _nrows; _i++) {
   }
 }                         
 
-
-        
-        
-       // boost::timer::cpu_times t11 = cpu_t.elapsed();
-        
-        //cout << "Done with unnormalized matrix " << endl;
         
         // normalization and cartesian -> spherical factors
         int _ntrafo_row = _shell_row->getNumFunc() + _shell_row->getOffset();
         int _ntrafo_col = _shell_col->getNumFunc() + _shell_col->getOffset();
         
-        //cout << " _ntrafo_row " << _ntrafo_row << ":" << _shell_row->getType() << endl;
-        //cout << " _ntrafo_col " << _ntrafo_col << ":" << _shell_col->getType() << endl;
+    
         ub::matrix<double> _trafo_row = ub::zero_matrix<double>(_ntrafo_row,_nrows);
         ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col,_ncols);
 
@@ -811,29 +804,21 @@ for (int _i = 0; _i < _nrows; _i++) {
             }// _shell_col Gaussians
         }// _shell_row Gaussians
     }
+    
+    void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, std::vector<CTP::APolarSite*>& _sites) {
 
- void AODipole_Potential::Fillextpotential( AOBasis* aobasis, std::vector<CTP::APolarSite*>& _sites){
-  
-    _externalpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
-   for ( std::vector<CTP::APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
-      
-        if((*it)->getRank()>0 || (*it)->IsPolarizable()){
-             vec positionofsite =  (*it)->getPos()*tools::conv::nm2bohr;
+        _externalpotential = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+        for (std::vector<CTP::APolarSite*>::iterator it = _sites.begin(); it < _sites.end(); ++it) {
 
-
-             //cout << "NUCLEAR CHARGE" << Znuc << endl;
-             _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
-            
-             setAPolarSite((*it));
-             Fill(aobasis,positionofsite);
-             //Print("TMAT");
-
-             _externalpotential+=_aomatrix;
-            // cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
-
-     }
-   }
-    return;
+            if ((*it)->getRank() > 0 || (*it)->IsPolarizable()) {
+                vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
+                _aomatrix = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+                setAPolarSite((*it));
+                Fill(aobasis, positionofsite);
+                _externalpotential += _aomatrix;
+            }
+        }
+        return;
     }    
 
 

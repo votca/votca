@@ -24,7 +24,7 @@ namespace votca { namespace xtp {
     
 
        
-int FindLmax( string _type ){
+int FindLmax(const string& _type ){
 
         int _lmax;
         // single type shells
@@ -52,7 +52,7 @@ int FindLmax( string _type ){
         
     }
  
- int FindLmin( string _type ){
+ int FindLmin(const string& _type ){
 
         int _lmin;
         // single type shells
@@ -81,7 +81,7 @@ int FindLmax( string _type ){
         
     }
  
-  int OffsetFuncShell( string shell_type ) {
+  int OffsetFuncShell(const string& shell_type ) {
     int _nbf;
     // single type shells
     if ( shell_type.length() == 1 ){
@@ -108,7 +108,7 @@ int FindLmax( string _type ){
         } 
   
   
-    int NumFuncShell( string shell_type) {
+    int NumFuncShell( const string& shell_type) {
         int _nbf = 0;
         // single type shells
         if ( shell_type.length() == 1 ){
@@ -136,7 +136,7 @@ int FindLmax( string _type ){
     }
     
     
-      std::vector<int> NumFuncSubShell( string shell_type) {
+      std::vector<int> NumFuncSubShell(const string& shell_type) {
           std::vector <int> subshells;
         // single type shells
         if ( shell_type.length() == 1 ){
@@ -151,7 +151,7 @@ int FindLmax( string _type ){
     return subshells;        
     }
     
-    int NumFuncShell_cartesian( string shell_type ) {
+    int NumFuncShell_cartesian(const string& shell_type ) {
     int _nbf;
     // single type shells defined here
     if ( shell_type.length() == 1 ){
@@ -181,7 +181,7 @@ int FindLmax( string _type ){
     
        
 
-int OffsetFuncShell_cartesian( string shell_type ) {
+int OffsetFuncShell_cartesian(const string& shell_type ) {
     int _nbf;
     // single type shells
     if ( shell_type.length() == 1 ){

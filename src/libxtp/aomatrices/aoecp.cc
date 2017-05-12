@@ -44,7 +44,7 @@ namespace votca { namespace xtp {
     
     
 
-    void AOECP::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp) {
+    void AOECP::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp) {
 
             // get shell positions
             const vec& _pos_row = _shell_row->getPos();
@@ -53,7 +53,7 @@ namespace votca { namespace xtp {
             // initialize some helper
             double _distsq = _diff*_diff;
 
-            typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+            typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
             // iterate over Gaussians in this _shell_row
             for (GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr) {
                 // iterate over Gaussians in this _shell_col
@@ -113,12 +113,12 @@ namespace votca { namespace xtp {
                     ub::matrix<double> _decay_matrix = ub::zero_matrix<double>(5, 3); ///// // max 12 fit components, max non-local ECP l=0,1,2
                     ub::matrix<double> _coef_matrix = ub::zero_matrix<double>(5, 3); ///// // max 12 fit components, max non-local ECP l=0,1,2
 
-                    std::vector< AOShell* >::iterator final_iter = ecp->lastShell();
+                    std::vector< AOShell* >::const_iterator final_iter = ecp->lastShell();
                     --final_iter;
                     vec _ecp_eval_pos;
-                    for (std::vector< AOShell* >::iterator _ecp = ecp->firstShell(); _ecp != ecp->lastShell(); _ecp++) {
+                    for (std::vector< AOShell* >::const_iterator _ecp = ecp->firstShell(); _ecp != ecp->lastShell(); _ecp++) {
 
-                        AOShell* _shell_ecp = ecp->getShell(_ecp);
+                        const AOShell* _shell_ecp = ecp->getShell(_ecp);
                         const vec& _ecp_pos = _shell_ecp->getPos();
 
                         int this_atom = _shell_ecp->getIndex();

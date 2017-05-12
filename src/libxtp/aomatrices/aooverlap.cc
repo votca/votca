@@ -33,7 +33,7 @@ namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
 
     
-    void AOOverlap::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp ) {
+    void AOOverlap::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp ) {
         /*cout << "\nAO block: "<< endl;
         cout << "\t row: " << _shell_row->getType() << " at " << _shell_row->getPos() << endl;
         cout << "\t col: " << _shell_col->getType() << " at " << _shell_col->getPos() << endl;*/
@@ -59,7 +59,7 @@ namespace votca { namespace xtp {
         std::vector<double> _pma (3,0.0);
         std::vector<double> _pmb (3,0.0);
           
-        double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ());   
+        double _distsq = (_diff*_diff);   
  int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84};
  
   int nx[] = { 0,
@@ -100,10 +100,8 @@ namespace votca { namespace xtp {
                      0,  0, 10,  0, 11, 12,  0, 13, 14, 15,  0, 16, 17, 18, 19 };
  
 
-       // cout << "row shell is " << _shell_row->getSize() << " -fold contracted!" << endl;
-        //cout << "col shell is " << _shell_col->getSize() << " -fold contracted!" << endl;
-        
-        typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+      
+        typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
         // iterate over Gaussians in this _shell_row
         for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
@@ -111,9 +109,7 @@ namespace votca { namespace xtp {
             
             for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
            
-            
-           
-
+    
             // get decay constants 
             const double _decay_col = (*itc)->decay;
             

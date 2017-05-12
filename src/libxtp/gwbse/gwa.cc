@@ -64,18 +64,9 @@ namespace votca {
             
             
             if ( _do_qp_diag ){
-            /* diagonalize, since _vxc will be needed in BSE, and GSL
-             * destroys the input array, we need to make a local copy first
-             */
-            
-            // get eigenvalues and eigenvectors of this matrix
-            ub::matrix<double> _temp = _vxc;
-            _qp_diag_energies.resize(_temp.size1());
-            _qp_diag_coefficients.resize(_temp.size1(), _temp.size1());
-            linalg_eigenvalues(_temp, _qp_diag_energies, _qp_diag_coefficients);
-
-            // TODO storage -> orbitals
-
+                _qp_diag_energies.resize(_vxc.size1());
+                _qp_diag_coefficients.resize(_vxc.size1(), _vxc.size1());
+                linalg_eigenvalues(_vxc, _qp_diag_energies, _qp_diag_coefficients);
             }
            return; 
         }

@@ -47,7 +47,7 @@ public:
     
    void setUseECPs(bool ECP){_ECP=ECP;}
    
-   void EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis, BasisSet &bs);
+   void EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,const AOBasis &_basis, BasisSet &bs);
    
    void LoadMatrices(std::string fn_projectionMatrix, std::string fn_overlapMatrix);
 
