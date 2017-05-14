@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -36,14 +36,14 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
           const double distsq =  center*center;
 
             
-            typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+            typedef vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
             // iterate over Gaussians in this shell
             for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
 
-                const double alpha = (*itr)->decay;
-                std::vector<double>& _contractions = (*itr)->contraction;
+                const double alpha = (*itr)->getDecay();
+                const std::vector<double>& _contractions = (*itr)->getContraction();
 
-                double _expofactor = (*itr)->powfactor * exp(-alpha * distsq);
+                double _expofactor = (*itr)->getPowfactor() * exp(-alpha * distsq);
 
                 // split combined shells
                 int _i_func = -1;
@@ -301,14 +301,14 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const
              const double distsq =  center*center;
              const double pi = boost::math::constants::pi<double>();
 
-            typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+            typedef vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
             // iterate over Gaussians in this shell
             for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
 
-                const double alpha = (*itr)->decay;
-                const std::vector<double>& _contractions = (*itr)->contraction;
+                const double alpha = (*itr)->getDecay();
+                const std::vector<double>& _contractions = (*itr)->getContraction();
 
-                double _expofactor = pow(2.0 * alpha / pi, 0.75) * exp(-alpha * distsq);
+                double _expofactor =(*itr)->getPowfactor() * exp(-alpha * distsq);
 
                 // split combined shells
                 int _i_func = -1;

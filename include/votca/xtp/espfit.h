@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -70,7 +70,7 @@ private:
     ub::vector<double> EvalNuclearPotential( std::vector< ctp::QMAtom* >& _atoms, Grid _grid );
    
      // Fits partial charges to Potential on a grid, constrains net charge
-    std::vector<double> FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge );
+    std::vector<double> FitPartialCharges( std::vector< tools::vec >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge );
     
 };
 }}

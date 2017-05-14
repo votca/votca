@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -209,7 +209,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
 
     // DFT orbital energies
     if ( _orbitals.hasMOEnergies() ) {
-        LOG(ctp::logDEBUG, _log) << "      MO energies:            " << _orbitals.getEnergies()->size() << flush;
+        LOG(ctp::logDEBUG, _log) << "      MO energies:            " << _orbitals.MOEnergies().size() << flush;
     } else {
          LOG(ctp::logDEBUG, _log) << "      MO energies:            not stored "<< flush;
     }    
@@ -223,7 +223,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     
     // DFT AO overlap matrix
     if ( _orbitals.hasAOOverlap() ) {
-        LOG(ctp::logDEBUG, _log) << "      AO overlap matrix:      " << _orbitals.getOverlap()->size1()  << " x " << _orbitals.getOverlap()->size2() << flush;
+        LOG(ctp::logDEBUG, _log) << "      AO overlap matrix:      " << _orbitals.AOOverlap().size1()  << " x " << _orbitals.AOOverlap().size2() << flush;
     } else {
         LOG(ctp::logDEBUG, _log) << "      AO overlap matrix:      not stored "<< flush;
     }    
@@ -295,8 +295,8 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
            
             double _shift= _qp_energies( _homo+1-_qpmin,4) - _qp_energies( _homo-_qpmin,4 )-_qp_energies( _homo+1-_qpmin,0) + _qp_energies( _homo-_qpmin,0 ); 
             
-            LOG(ctp::logDEBUG,_log) << (format("  ====== Perturbative quasiparticle energies (Rydberg) ====== ")).str() << flush;
-            LOG(ctp::logDEBUG,_log) << (format("   DeltaHLGap = %1$+1.6f Ryd") % _shift ).str()  <<  flush;
+            LOG(ctp::logDEBUG,_log) << (format("  ====== Perturbative quasiparticle energies (Hartree) ====== ")).str() << flush;
+            LOG(ctp::logDEBUG,_log) << (format("   DeltaHLGap = %1$+1.6f Hartree") % _shift ).str()  <<  flush;
             for ( int _i = 0 ; _i < _noqp ; _i++ ){
                 if ( (_i + _qpmin) == _homo ){
                     LOG(ctp::logINFO,_log) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") % (_i+_qpmin+1) % _qp_energies( _i, 0 ) %_qp_energies( _i, 1 ) % _qp_energies( _i, 2 ) %_qp_energies( _i, 3 ) % _qp_energies( _i, 4 ) ).str() << flush;
@@ -321,7 +321,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
             const ub::vector<double>& _qp_diag_energies=_orbitals.QPdiagEnergies();
              const ub::matrix<double>& _qp_energies=_orbitals.QPpertEnergies();
                     LOG(ctp::logDEBUG, _log)  << " Full quasiparticle Hamiltonian  " << flush;
-                    LOG(ctp::logDEBUG, _log) << (format("  ====== Diagonalized quasiparticle energies (Rydberg) ====== ")).str() << flush;
+                    LOG(ctp::logDEBUG, _log) << (format("  ====== Diagonalized quasiparticle energies (Hartree) ====== ")).str() << flush;
                     for (unsigned _i = 0; _i <  _qp_diag_energies.size(); _i++) {
                         if (( _qpmin+ _i) == _homo) {
                             LOG(ctp::logDEBUG, _log) << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") % (_i + _qpmin + 1) % _qp_energies(_i + _qpmin,4 ) % _qp_diag_energies(_i)).str() << flush;
@@ -358,12 +358,12 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     
     // BSE singlet excitons
     if ( _orbitals.hasBSESinglets()){
-        LOG(ctp::logDEBUG, _log) << "      BSE singlet excitons:   " << _orbitals.getBSESingletEnergies()->size() << flush;
+        LOG(ctp::logDEBUG, _log) << "      BSE singlet excitons:   " << _orbitals.BSESingletEnergies().size() << flush;
         
         if (_print_BSE_singlets){
             LOG(ctp::logINFO, _log) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
             const ub::vector<real_gwbse> &  _bse_singlet_energies = _orbitals.BSESingletEnergies();
-            const std::vector<ub::vector<double> > & _transition_dipoles=_orbitals.TransitionDipoles();
+            const std::vector<tools::vec > & _transition_dipoles=_orbitals.TransitionDipoles();
             unsigned size=_bse_singlet_energies.size();
             if (_transition_dipoles.size()<_bse_singlet_energies.size()){
                 size=_transition_dipoles.size();
@@ -371,13 +371,13 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
             for (unsigned _i=0;_i<size;_i++){
                 
                 LOG(ctp::logINFO, _log) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
-                    % (_i + 1) % (tools::conv::ryd2ev * _bse_singlet_energies(_i)) % (1240.0/(tools::conv::ryd2ev * _bse_singlet_energies(_i)))).str() << flush;
+                    % (_i + 1) % (tools::conv::hrt2ev * _bse_singlet_energies(_i)) % (1240.0/(tools::conv::hrt2ev * _bse_singlet_energies(_i)))).str() << flush;
                 if ( _orbitals.hasTransitionDipoles()){
-                    double trstrength =ub::inner_prod(_transition_dipoles[_i],_transition_dipoles[_i]);
+                    double trstrength =(_transition_dipoles[_i]*_transition_dipoles[_i]);
                     
-                    double oscstrength =trstrength/3.0*_bse_singlet_energies[_i];
+                    double oscstrength =2*trstrength/3.0*_bse_singlet_energies[_i];
                     LOG(ctp::logINFO, _log) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") 
-                                    % (_transition_dipoles[_i](0)) % (_transition_dipoles[_i](1)) % (_transition_dipoles[_i](2)) % (trstrength) 
+                                    % (_transition_dipoles[_i].getX()) % (_transition_dipoles[_i].getY()) % (_transition_dipoles[_i].getZ()) % (trstrength) 
                                     % oscstrength).str() << flush;
                 }
                 
@@ -385,11 +385,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
                 
             }
         }    
-        
-            
-        
-        
-        
+
         
     } else {
         LOG(ctp::logDEBUG, _log) << "      BSE singlet excitons:   not stored" << flush;
@@ -406,7 +402,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     
     // BSE triplet excitons
     if ( _orbitals.hasBSETriplets()){
-        LOG(ctp::logDEBUG, _log) << "      BSE triplet excitons:   " << _orbitals.getBSETripletEnergies()->size() << flush;
+        LOG(ctp::logDEBUG, _log) << "      BSE triplet excitons:   " << _orbitals.BSETripletEnergies().size() << flush;
         
         
         if(_print_BSE_triplets){
@@ -415,7 +411,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
              cout << _bse_triplet_energies.size()<<endl;
              for (unsigned _i=0;_i<_bse_triplet_energies.size();_i++){
              LOG(ctp::logINFO, _log) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
-                                % (_i + 1) % (tools::conv::ryd2ev * _bse_triplet_energies(_i)) % (1240.0/(13.6058 * _bse_triplet_energies(_i)))).str() << flush;
+                                % (_i + 1) % (tools::conv::hrt2ev * _bse_triplet_energies(_i)) % (1240.0/(tools::conv::hrt2ev * _bse_triplet_energies(_i)))).str() << flush;
              
             }
         }
@@ -442,7 +438,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
    
     
     
-    
+return;    
 }
 
 }}

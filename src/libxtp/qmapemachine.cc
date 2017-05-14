@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -31,10 +31,9 @@ using boost::format;
 
 namespace votca { namespace xtp {
 
-template<class QMPackage>
-QMAPEMachine<QMPackage>::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape, QMPackage *qmpack,
+QMAPEMachine::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape,
 	 Property *opt, string sfx, int nst)
-   : _subthreads(nst),_job(job), _qmpack(qmpack), _cape(cape),_isConverged(false) {
+   : _subthreads(nst),_job(job), _cape(cape),_isConverged(false) {
     
 	// CONVERGENCE THRESHOLDS
     string key = sfx + ".convergence";
@@ -110,10 +109,9 @@ QMAPEMachine<QMPackage>::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape, QMPa
 }
 
 
-template<class QMPackage>
-QMAPEMachine<QMPackage>::~QMAPEMachine() {
+QMAPEMachine::~QMAPEMachine() {
     
-    std::vector<QMAPEIter*> ::iterator qit;
+    std::vector<QMMIter*> ::iterator qit;
     for (qit = _iters.begin(); qit < _iters.end(); ++qit) {
         delete *qit;
     }
@@ -121,8 +119,7 @@ QMAPEMachine<QMPackage>::~QMAPEMachine() {
 }
 
 
-template<class QMPackage>
-void QMAPEMachine<QMPackage>::Evaluate(ctp::XJob *job) {
+void QMAPEMachine::Evaluate(ctp::XJob *job) {
     
 	// PREPARE JOB DIRECTORY
 	string jobFolder = "job_" + boost::lexical_cast<string>(_job->getId())
@@ -146,20 +143,19 @@ void QMAPEMachine<QMPackage>::Evaluate(ctp::XJob *job) {
     int chrg = round(dQ);
     int spin = ( (chrg < 0) ? -chrg:chrg ) % 2 + 1;
     LOG(ctp::logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
-
-    // SET ITERATION-TIME CONSTANTS
-    _qmpack->setCharge(chrg);
-    _qmpack->setSpin(spin);
-
-    // GENERATE GRIDS
-    // ... TODO ...
-    // Generate QM atoms from _job->getPolarTop()->QM0();
-    // Move Iter::Generate::QMAtomsFromPolarSegs to QMMachine
-    // Generate grids, store as member
-    Orbitals basisforgrid;
-    std::vector<ctp::PolarSeg*> dummy;
     
-    GenerateQMAtomsFromPolarSegs(_job->getPolarTop()->QM0(),dummy,basisforgrid);
+    if(dQ!=0){
+        throw runtime_error("Charged DFT calculations are not possible at the moment");
+    }
+
+
+  
+    
+ 
+    
+    
+    
+    
     
   
     
@@ -181,11 +177,10 @@ void QMAPEMachine<QMPackage>::Evaluate(ctp::XJob *job) {
 }
 
 
-template<class QMPackage>
-bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
+bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
 
     // CREATE ITERATION OBJECT & SETUP RUN DIRECTORY
-    QMAPEIter *thisIter = this->CreateNewIter();
+    QMMIter *thisIter = this->CreateNewIter();
     int iter = iterCnt;
     string runFolder = jobFolder + "/iter_" + boost::lexical_cast<string>(iter);
        
@@ -206,8 +201,7 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     
     
         
-		std::vector< ctp::PolarSeg* > target_bg;     
-                std::vector< ctp::PolarSeg* > target_fg;     
+		
         
        
 		if (iterCnt == 0) {
@@ -217,6 +211,9 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 		// Do not add BG & QM0, add MM1
 		_cape->EvaluatePotential(target_fg, false, true, false);
     }
+    
+    
+    
     
     
 
@@ -234,8 +231,6 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
     std::vector<ctp::Segment*> empty;
    
    
-	_qmpack->setRunDir(runFolder);
-	_qmpack->WriteInputFile(empty, &orb_iter_input);
 
 	FILE *out;
 	out = fopen((runFolder + "/system.pdb").c_str(),"w");
@@ -244,10 +239,9 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
 	Orbitals orb_iter_output;
 	if (_run_dft) {
-		_qmpack->Run();
+            cout<<"Hello"<<endl;
 	}
-	_qmpack->ParseLogFile(&orb_iter_output);
-
+	
 
     // Run GWBSE
 	if (_run_gwbse){
@@ -283,118 +277,23 @@ bool QMAPEMachine<QMPackage>::Iterate(string jobFolder, int iterCnt) {
 
 
 
-    // RUN CLASSICAL INDUCTION & SAVE
-    _job->getPolarTop()->PrintPDB(runFolder + "/QM0_MM1_MM2.pdb");
-    _xind->Evaluate(_job);
-    assert(_xind->hasConverged());
-    thisIter->setE_FM(_job->getEF00(), _job->getEF01(), _job->getEF02(),
-                      _job->getEF11(), _job->getEF12(), _job->getEM0(),
-                      _job->getEM1(),  _job->getEM2(),  _job->getETOT());
-    
-    // WRITE AND SET QM INPUT FILE
-
-    _qmpack->setRunDir(runFolder);
-    
-    LOG(ctp::logDEBUG,*_log) << "Writing input file " << runFolder << flush;
-    
-    _qmpack->WriteInputFile(empty, &orb_iter_input);
-         
-    // RUN HERE (OVERRIDE - COPY EXISTING LOG-FILE)
-    //string cpstr = "cp e_1_n.log " + path_logFile;
-    //int sig = std::system(cpstr.c_str());
-    //_qmpack->setLogFileName(path_logFile);
-    
-    //Commented out for test Jens 
-    _qmpack->Run();
-    
-    // EXTRACT LOG-FILE INFOS TO ORBITALS   
-
-    _qmpack->ParseLogFile(&orb_iter_output);
-    
-   
-    // GW-BSE starts here
-    bool _do_gwbse = true; // needs to be set by options!!!
-    
-    if (_do_gwbse){
-    	this->EvaluateGWBSE(orb_iter_output, runFolder);
-    }
-    
-    
-
-    out = fopen((runFolder + "/parsed.pdb").c_str(),"w");
-    orb_iter_input.WritePDB( out );
-    fclose(out);
-    
-    assert(orb_iter_output.hasSelfEnergy());
-    assert(orb_iter_output.hasQMEnergy());
-    double energy___ex = 0.0;
-    // EXTRACT & SAVE QM ENERGIES
-    double energy___sf = orb_iter_output.getSelfEnergy();
-    double energy_qmsf = orb_iter_output.getQMEnergy();
-    double energy_qm__ = energy_qmsf - energy___sf ;
-    thisIter->setQMSF(energy_qm__, energy___sf, energy___ex);
-    _job->setEnergy_QMMM(thisIter->getQMEnergy(),thisIter->getGWBSEEnergy(), thisIter->getSFEnergy(),
-                         thisIter->getQMMMEnergy());
-    
-    // EXTRACT & SAVE QMATOM DATA
-    std::vector< ctp::QMAtom* > &atoms = *(orb_iter_output.getAtoms());
-    
-    thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
-
-    LOG(ctp::logINFO,*_log) 
-        << format("Summary - iteration %1$d:") % (iterCnt+1) << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... QM Size  = %1$d atoms") % int(atoms.size()) << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... E(QM)    = %1$+4.9e") % thisIter->getQMEnergy() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... E(GWBSE) = %1$+4.9e") % thisIter->getGWBSEEnergy() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... E(SF)    = %1$+4.9e") % thisIter->getSFEnergy() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... E(FM)    = %1$+4.9e") % thisIter->getFMEnergy() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... E(MM)    = %1$+4.9e") % thisIter->getMMEnergy() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... E(QMMM)  = %1$+4.9e") % thisIter->getQMMMEnergy() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... RMS(dR)  = %1$+4.9e") % thisIter->getRMSdR() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... RMS(dQ)  = %1$+4.9e") % thisIter->getRMSdQ() << flush;
-    LOG(ctp::logINFO,*_log)
-        << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
-    
-    // CLEAN DIRECTORY
-    _qmpack->CleanUp();
-
-    
-    /*
-    int removed = boost::filesystem::remove_all(runFolder);
-    if (removed > 0) 
-        LOG(ctp::logDEBUG,*_log) << "Removed directory " << runFolder << flush;
-    else 
-        LOG(ctp::logWARNING,*_log) << "Could not remove dir " << runFolder << flush;
-    */
-    return 0;
-     
 }
 
 
-template<class QMPackage>
-QMAPEIter *QMAPEMachine<QMPackage>::CreateNewIter() {
+QMMIter *QMAPEMachine::CreateNewIter() {
     
-    QMAPEIter *newIter = new QMAPEIter(_iters.size());
+    QMMIter *newIter = new QMMIter(_iters.size());
     this->_iters.push_back(newIter);
     return newIter;
 }
 
 
-template<class QMPackage>
-bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
+
+bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
 	// for GW-BSE, we also need to parse the orbitals file
         
-        _qmpack->ParseOrbitalsFile(&orb);
+       
 	//int _parse_orbitals_status = _qmpack->ParseOrbitalsFile(&orb);
 	std::vector<int> _state_index;
         GWBSE _gwbse(&orb);
@@ -442,10 +341,10 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	if ( _has_osc_filter ){
 
 		// go through list of singlets
-		const std::vector<ub::vector<double> >& TDipoles = orb.TransitionDipoles();
+		const std::vector<tools::vec >& TDipoles = orb.TransitionDipoles();
 		for (unsigned _i=0; _i < TDipoles.size(); _i++ ) {
 
-			double osc = (ub::inner_prod(TDipoles[_i],TDipoles[_i])) * 1.0 / 3.0 * (orb.BSESingletEnergies()(_i)) ;
+			double osc = (TDipoles[_i]*TDipoles[_i]) * 2.0 / 3.0 * (orb.BSESingletEnergies()(_i)) ;
 			if ( osc > _osc_threshold ) _state_index.push_back(_i);
 		}
 
@@ -499,17 +398,7 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 		throw runtime_error("Excited state filter yields no states! ");
 
 	}
-	// - output its energy
-        /*
-	double energy___ex = 0.0;
-	if ( _type == "singlet" ){
-		energy___ex = orb.BSESingletEnergies()[_state_index[_state-1]]*13.6058; // to eV
-	} else if ( _type == "triplet" ) {
-		energy___ex = orb.BSETripletEnergies()[_state_index[_state-1]]*13.6058; // to eV
-	}
-*/
-	// ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
-	// int _parse_orbitals_status_GS = _qmpack->ParseOrbitalsFile( &orb_iter_output );
+	
 
 	} // only if state >0
 
@@ -557,8 +446,8 @@ bool QMAPEMachine<QMPackage>::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 }
 
 
-template<class QMPackage>
-bool QMAPEMachine<QMPackage>::hasConverged() {
+
+bool QMAPEMachine::hasConverged() {
     
     _convg_dR = false;
     _convg_dQ = false;
@@ -567,8 +456,8 @@ bool QMAPEMachine<QMPackage>::hasConverged() {
     
     if (_iters.size() > 1) {
         
-        QMAPEIter *iter_0 = _iters[_iters.size()-2];
-        QMAPEIter *iter_1 = _iters[_iters.size()-1];
+        QMMIter *iter_0 = _iters[_iters.size()-2];
+        QMMIter *iter_1 = _iters[_iters.size()-1];
         
         double dR = iter_1->getRMSdR();
         double dQ = iter_1->getRMSdQ();
@@ -598,158 +487,8 @@ bool QMAPEMachine<QMPackage>::hasConverged() {
 }
 
 
-void QMAPEIter::ConvertPSitesToQMAtoms(std::vector< ctp::PolarSeg* > &psegs,
-                                       std::vector< ctp::QMAtom * > &qmatoms) {
-    
-    assert(qmatoms.size() == 0);    
-    return;   
-}
 
 
-void QMAPEIter::ConvertQMAtomsToPSites(std::vector< ctp::QMAtom* > &qmatoms,
-                                       std::vector< ctp::PolarSeg* > &psegs) {
-    assert(qmatoms.size() == 0);
-    return;
-}
-
-
-void QMAPEIter::UpdatePosChrgFromQMAtoms(std::vector< ctp::QMAtom* > &qmatoms,
-                                         std::vector< ctp::PolarSeg* > &psegs) {
-    
-    double AA_to_NM = 0.1; // Angstrom to nanometer
-    
-    double dR_RMS = 0.0;
-    double dQ_RMS = 0.0;
-    double dQ_SUM = 0.0;
-    
-    for (unsigned i = 0, qac = 0; i < psegs.size(); ++i) {
-        ctp::PolarSeg *pseg = psegs[i];
-        for (unsigned j = 0; j < pseg->size(); ++j, ++qac) {
-            
-            // Retrieve info from ::QMAtom
-            ctp::QMAtom *qmatm = qmatoms[qac];
-            vec upd_r = vec(qmatm->x, qmatm->y, qmatm->z);
-            upd_r *= AA_to_NM;
-            double upd_Q00 = qmatm->charge;
-            
-            // Compare to previous r, Q00
-            ctp::APolarSite *aps = (*pseg)[j];
-            vec old_r = aps->getPos();
-            double old_Q00 = aps->getQ00();
-            double dR = abs(upd_r - old_r);
-            double dQ00 = upd_Q00 - old_Q00;
-            
-            dR_RMS += dR*dR;
-            dQ_RMS += dQ00*dQ00;
-            dQ_SUM += dQ00;
-            
-            // Forward updated r, Q00 to APS
-            aps->setPos(upd_r);
-            aps->setQ00(upd_Q00, 0);            
-        }
-    }
-    
-    dR_RMS /= qmatoms.size();
-    dQ_RMS /= qmatoms.size();
-    dR_RMS = sqrt(dR_RMS);
-    dQ_RMS = sqrt(dQ_RMS);
-
-    this->setdRdQ(dR_RMS, dQ_RMS, dQ_SUM);
-}
-
-template<class QMPackage>
-void QMAPEMachine<QMPackage>::GenerateQMAtomsFromPolarSegs(std::vector<ctp::PolarSeg*> &qm,
-	std::vector<ctp::PolarSeg*> &mm, Orbitals &orb) {
-    
-    double AA_to_NM = 0.1; // Angstrom to nanometer
-    
-    // QM REGION
-    for (unsigned i = 0; i < qm.size(); ++i) {
-        std::vector<ctp::APolarSite*> *pseg = qm[i];
-        for (unsigned j = 0; j < pseg->size(); ++j) {
-            ctp::APolarSite *aps = (*pseg)[j];
-            string type = "qm";
-            vec pos = aps->getPos()/AA_to_NM;
-            double Q = 0.0;
-            orb.AddAtom(aps->getName(), pos.x(), pos.y(), pos.z(), Q, false);
-        }
-    }
-    
-    // MM REGION (EXPANDED VIA PARTIAL CHARGES)
-    for (unsigned i = 0; i < mm.size(); ++i) {
-    	std::vector<ctp::APolarSite*> *pseg = mm[i];
-        for (unsigned j = 0; j < pseg->size(); ++j) {
-            ctp::APolarSite *aps = (*pseg)[j];
-            string type = "mm";
-            vec pos = aps->getPos()/AA_to_NM;
-            double Q = aps->getQ00();
-            orb.AddAtom(aps->getName(), pos.x(), pos.y(), pos.z(), Q, true);
-        }
-    }
-    
-    return;
-}\
-
-
-
-
-
-void QMAPEIter::setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM) {
-    
-    _hasdRdQ = true;    
-    _dR_RMS = dR_RMS;
-    _dQ_RMS = dQ_RMS;
-    _dQ_SUM = dQ_SUM;
-    return;
-}
-
-
-void QMAPEIter::setQMSF(double energy_QM, double energy_SF, double energy_GWBSE) {
-    
-    _hasQM = true;
-    _e_QM = energy_QM;
-    _e_SF = energy_SF;    
-
-    _hasGWBSE = true;
-    _e_GWBSE = energy_GWBSE;
-   
-    return;
-}
-
-
-void QMAPEIter::setE_FM(double ef00, double ef01, double ef02, 
-    double ef11, double ef12, double em0, double em1,  double em2, double efm) {
-    
-    _hasMM = true;
-    _ef_00 = ef00;
-    _ef_01 = ef01;
-    _ef_02 = ef02;
-    _ef_11 = ef11;
-    _ef_12 = ef12;
-    _em_0_ = em0;
-    _em_1_ = em1;
-    _em_2_ = em2;
-    _e_fm_ = efm;
-    return;
-}
-
-
-double QMAPEIter::getMMEnergy() {
-    
-    assert(_hasMM);
-    return _ef_11 + _ef_12 + _em_1_ + _em_2_;
-}
-
-
-double QMAPEIter::getQMMMEnergy() {
-    
-    assert(_hasQM && _hasMM && _hasGWBSE);    
-    return _e_QM + + _e_GWBSE + _ef_11 + _ef_12 + _em_1_ + _em_2_;    
-}
-
-
-// REGISTER QM PACKAGES
-template class QMAPEMachine<QMPackage>;
     
     
     

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,16 +22,16 @@
 #include <votca/xtp/aomatrix.h>
 namespace votca { namespace xtp {
 
-void Lowdin::EvaluateLowdin(vector< ctp::QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition){
+void Lowdin::EvaluateLowdin(vector< ctp::QMAtom* >& _atomlist,const ub::matrix<double> &_dmat, AOBasis &basis,BasisSet &bs,  bool _do_transition){
     AOOverlap _overlap;
     // initialize overlap matrix
-    _overlap.Initialize(basis._AOBasisSize);
+    _overlap.Initialize(basis.AOBasisSize());
     // Fill overlap
-    _overlap.Fill(&basis);
+    _overlap.Fill(basis);
     
-    linalg_matrixsqrt(_overlap._aomatrix);
-    ub::matrix<double> temp = ub::prod( _dmat, _overlap._aomatrix );
-    ub::matrix<double> _prodmat=ub::prod(_overlap._aomatrix,temp);
+    linalg_matrixsqrt(_overlap.Matrix());
+    ub::matrix<double> temp = ub::prod( _dmat, _overlap.Matrix() );
+    ub::matrix<double> _prodmat=ub::prod(_overlap.Matrix(),temp);
     vector < ctp::QMAtom* > :: iterator atom;
 
     int id =0;
@@ -64,9 +64,7 @@ void Lowdin::EvaluateLowdin(vector< ctp::QMAtom* >& _atomlist, ub::matrix<double
         }
          id+=nooffunc;
     }
-    //cout << id << " " << _dmat.size1() << endl;
-
-
+       return;
 }
 
 }}

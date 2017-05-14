@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -33,7 +33,7 @@ namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
 
     
-    void AOOverlap::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp ) {
+    void AOOverlap::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp ) {
         /*cout << "\nAO block: "<< endl;
         cout << "\t row: " << _shell_row->getType() << " at " << _shell_row->getPos() << endl;
         cout << "\t col: " << _shell_col->getType() << " at " << _shell_col->getPos() << endl;*/
@@ -45,7 +45,11 @@ namespace votca { namespace xtp {
         // set size of internal block for recursion
         int _nrows = this->getBlockSize( _lmax_row ); 
         int _ncols = this->getBlockSize( _lmax_col ); 
-    
+        
+        if (_lmax_col >4 || _lmax_row >4){
+            cerr << "Orbitals higher than g are not yet implemented. This should not have happened!" << flush;
+             exit(1);
+        }
         
         /* FOR CONTRACTED FUNCTIONS, ADD LOOP OVER ALL DECAYS IN CONTRACTION
          * MULTIPLY THE TRANSFORMATION MATRICES BY APPROPRIATE CONTRACTION 
@@ -59,7 +63,7 @@ namespace votca { namespace xtp {
         std::vector<double> _pma (3,0.0);
         std::vector<double> _pmb (3,0.0);
           
-        double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ());   
+        double _distsq = (_diff*_diff);   
  int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84};
  
   int nx[] = { 0,
@@ -100,22 +104,18 @@ namespace votca { namespace xtp {
                      0,  0, 10,  0, 11, 12,  0, 13, 14, 15,  0, 16, 17, 18, 19 };
  
 
-       // cout << "row shell is " << _shell_row->getSize() << " -fold contracted!" << endl;
-        //cout << "col shell is " << _shell_col->getSize() << " -fold contracted!" << endl;
+      
         
-        typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
         // iterate over Gaussians in this _shell_row
-        for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
+        for ( AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
-            const double _decay_row = (*itr)->decay;
+            const double _decay_row = (*itr)->getDecay();
             
-            for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
+            for ( AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
            
-            
-           
-
+    
             // get decay constants 
-            const double _decay_col = (*itc)->decay;
+            const double _decay_col = (*itc)->getDecay();
             
             // some helpers
             const double _fak  = 0.5/(_decay_row + _decay_col);
@@ -352,8 +352,8 @@ if (_lmax_col > 3) {
         ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col,_ncols);
 
         // get transformation matrices including contraction coefficients
-        std::vector<double> _contractions_row = (*itr)->contraction;
-        std::vector<double> _contractions_col = (*itc)->contraction;
+        const std::vector<double>& _contractions_row = (*itr)->getContraction();
+        const std::vector<double>& _contractions_col = (*itc)->getContraction();
         
         this->getTrafo( _trafo_row, _lmax_row, _decay_row, _contractions_row);
         this->getTrafo( _trafo_col, _lmax_col, _decay_col, _contractions_col);

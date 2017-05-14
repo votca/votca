@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,7 +24,7 @@ namespace votca { namespace xtp {
     
 
        
-int FindLmax( string _type ){
+int FindLmax(const string& _type ){
 
         int _lmax;
         // single type shells
@@ -52,7 +52,7 @@ int FindLmax( string _type ){
         
     }
  
- int FindLmin( string _type ){
+ int FindLmin(const string& _type ){
 
         int _lmin;
         // single type shells
@@ -81,7 +81,7 @@ int FindLmax( string _type ){
         
     }
  
-  int OffsetFuncShell( string shell_type ) {
+  int OffsetFuncShell(const string& shell_type ) {
     int _nbf;
     // single type shells
     if ( shell_type.length() == 1 ){
@@ -108,7 +108,7 @@ int FindLmax( string _type ){
         } 
   
   
-    int NumFuncShell( string shell_type) {
+    int NumFuncShell( const string& shell_type) {
         int _nbf = 0;
         // single type shells
         if ( shell_type.length() == 1 ){
@@ -136,7 +136,7 @@ int FindLmax( string _type ){
     }
     
     
-      std::vector<int> NumFuncSubShell( string shell_type) {
+      std::vector<int> NumFuncSubShell(const string& shell_type) {
           std::vector <int> subshells;
         // single type shells
         if ( shell_type.length() == 1 ){
@@ -151,7 +151,7 @@ int FindLmax( string _type ){
     return subshells;        
     }
     
-    int NumFuncShell_cartesian( string shell_type ) {
+    int NumFuncShell_cartesian(const string& shell_type ) {
     int _nbf;
     // single type shells defined here
     if ( shell_type.length() == 1 ){
@@ -181,7 +181,7 @@ int FindLmax( string _type ){
     
        
 
-int OffsetFuncShell_cartesian( string shell_type ) {
+int OffsetFuncShell_cartesian(const string& shell_type ) {
     int _nbf;
     // single type shells
     if ( shell_type.length() == 1 ){
@@ -212,11 +212,17 @@ void BasisSet::LoadBasisSet ( std::string name )
 {    
     Property basis_property;
  
-    // get the path to the shared folders with xml files
-    char *votca_share = getenv("VOTCASHARE");
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open basisset files.");
-    std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
-    
+    // if name contains .xml, assume a basisset .xml file is located in the working directory
+    std::size_t found_xml = name.find(".xml");
+    std::string xmlFile;
+    if (found_xml!=std::string::npos) {
+      xmlFile = name;
+    } else {
+      // get the path to the shared folders with xml files
+      char *votca_share = getenv("VOTCASHARE");
+      if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+      xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
+    }
     bool success = load_property_from_xml(basis_property, xmlFile);
     
     if ( !success ) {; }
@@ -239,15 +245,13 @@ void BasisSet::LoadBasisSet ( std::string name )
             //cout << "\n\tShell " << shellType;
             
             list<Property*> constProps = (*its)->Select("constant");
-            for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
-            {
+            for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) {
                 double decay = (*itc)->getAttribute<double>("decay");
                 // << " decay "<<decay<<endl;
                 std::vector<double> contraction;
                 contraction.resize(shell->getLmax()+1); 
                 list<Property*> contrProps = (*itc)->Select("contractions");
-                for (list<Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont)
-                {
+                for (list<Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont){
                     std::string contrType = (*itcont)->getAttribute<std::string>("type");
                     double contrFactor = (*itcont)->getAttribute<double>("factor");
                     //cout << " factor " << contrFactor << endl;
@@ -281,11 +285,17 @@ void BasisSet::LoadPseudopotentialSet ( std::string name )
 {    
     Property basis_property;
  
-    // get the path to the shared folders with xml files
-    char *votca_share = getenv("VOTCASHARE");
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open pseudopotential files.");
-    std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
-    
+  // if name contains .xml, assume a basisset .xml file is located in the working directory
+    std::size_t found_xml = name.find(".xml");
+    std::string xmlFile;
+    if (found_xml!=std::string::npos) {
+      xmlFile = name;
+    } else {
+      // get the path to the shared folders with xml files
+      char *votca_share = getenv("VOTCASHARE");
+      if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+      xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
+    }
     bool success = load_property_from_xml(basis_property, xmlFile);
     
     if ( !success ) {; }

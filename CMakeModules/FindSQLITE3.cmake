@@ -5,7 +5,7 @@
 #  SQLITE3_LIBRARIES    - List of libraries when using sqlite3.
 #  SQLITE3_FOUND        - True if sqlite3 found.
 #
-# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

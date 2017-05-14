@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -42,13 +42,22 @@ class AOGaussianPrimitive
 {
     friend class AOShell;
 public:
+    
+    
+    
+    AOShell* aoshell;
+   
+    
+    double getPowfactor()const {return powfactor;}
+    int    getPower()const{return power;}
+    double getDecay()const {return decay;}
+    const std::vector<double>& getContraction()const {return contraction;}
+private:
+     //used in evalspace to speed up DFT
     int power; // used in pseudopotenials only
+    double powfactor;
     double decay;
     std::vector<double> contraction;
-    AOShell* aoshell;
-    //used in evalspace to spped up DFT
-    double powfactor;
-private:
     // private constructor, only a shell can create a primitive
     AOGaussianPrimitive( double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
     : decay(_decay),
@@ -71,18 +80,18 @@ class AOShell
     friend class AOBasis;
 public:
 
-    std::string getType() { return _type; }
-    int    getNumFunc() { return _numFunc ;}
-    int    getStartIndex() { return _startIndex ;}
-    int    getOffset() { return _offset ;}
-    int    getIndex() { return _atomindex;}
-    std::string getName() { return _atomname;}
+    const std::string& getType() const{ return _type; }
+    int    getNumFunc() const{ return _numFunc ;}
+    int    getStartIndex() const{ return _startIndex ;}
+    int    getOffset() const{ return _offset ;}
+    int    getIndex() const{ return _atomindex;}
+    const std::string& getName() const{ return _atomname;}
     
-    int getLmax(  ) { return _Lmax;}
-    int getLmin(  ) { return _Lmin;}
+    int getLmax(  ) const{ return _Lmax;}
+    int getLmin(  ) const{ return _Lmin;}
     
-    vec getPos() { return _pos; }
-    double getScale() { return _scale; }
+    const vec& getPos() const{ return _pos; }
+    double getScale() const{ return _scale; }
     
     int getSize() { return _gaussians.size(); }
     
@@ -95,9 +104,9 @@ public:
     
    
     // iterator over pairs (decay constant; contraction coefficient)
-    typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
-    GaussianIterator firstGaussian() { return _gaussians.begin(); }
-    GaussianIterator lastGaussian(){ return _gaussians.end(); }
+    typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
+    GaussianIterator firstGaussian() const{ return _gaussians.begin(); }
+    GaussianIterator lastGaussian()const{ return _gaussians.end(); }
    
     // adds a Gaussian 
     AOGaussianPrimitive*  addGaussian( double decay, std::vector<double> contraction ) 
@@ -106,12 +115,24 @@ public:
         _gaussians.push_back( gaussian );
         return gaussian;
     }
+    // used for ecps
+    AOGaussianPrimitive*  addGaussian( int power, double decay, std::vector<double> contraction ) 
+    {                                                                                
+        AOGaussianPrimitive* gaussian = new AOGaussianPrimitive(power, decay, contraction, this); 
+        _gaussians.push_back( gaussian );                                                  
+        return gaussian;                                                                 
+    }                                                                                
+
 
     
 private:   
 
     // only class Element can construct shells    
-    AOShell( string type,int Lmax,int Lmin, double scale, int numFunc, int startIndex, int offset, vec pos, string atomname, int atomindex, AOBasis* aobasis = NULL ) : _type(type),_Lmax(Lmax),_Lmin(Lmin), _scale(scale), _numFunc(numFunc), _startIndex(startIndex), _offset(offset), _pos(pos) , _atomname(atomname), _atomindex(atomindex) { ; }
+    AOShell( string type,int Lmax,int Lmin, double scale, int numFunc, int startIndex, 
+            int offset, vec pos, string atomname, int atomindex, AOBasis* aobasis = NULL )
+            : _type(type),_Lmax(Lmax),_Lmin(Lmin), _scale(scale), _numFunc(numFunc),
+                    _startIndex(startIndex), _offset(offset), _pos(pos) , 
+                    _atomname(atomname), _atomindex(atomindex) { ; }
     
     // only class Element can destruct shells
    ~AOShell() 
@@ -140,9 +161,6 @@ private:
     // vector of pairs of decay constants and contraction coefficients
     std::vector< AOGaussianPrimitive* > _gaussians;
     
-    
-
-
 };
 
     

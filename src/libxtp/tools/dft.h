@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -190,7 +190,8 @@ bool DFT::Evaluate() {
     
      if(_do_external){
       vector<ctp::APolarSite*> sites=ctp::APS_FROM_MPS(_mpsfile,0);
-      _dft.setExternalcharges(sites);
+      ctp::PolarSeg polarseg=ctp::PolarSeg(0,sites);
+      _dft.setExternalcharges(polarseg);
        }
     
     // RUN

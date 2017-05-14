@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -75,7 +75,7 @@ double Overlap::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitals
 /**
  * \brief evaluates electronic couplings  
  * 
- * This is a slow version with a rather large block matrix AxB
+ * This is a fast version with a rather large block matrix AxB
  * 
  * @param _orbitalsA molecular orbitals of molecule A
  * @param _orbitalsB molecular orbitals of molecule B
@@ -115,9 +115,6 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         
     }
     
-    
-    
-        
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
     int _basisB = _orbitalsB->getBasisSetSize();
@@ -154,18 +151,17 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
-    ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
-    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB->getOrbitals(); 
+    ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = _orbitalsA->MOCoefficients();
+    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = _orbitalsB->MOCoefficients(); 
 
     // psi_AxB * S_AB * psi_AB
     LOG(ctp::logDEBUG,*_pLog) << "Projecting dimer onto monomer orbitals" << flush; 
-    ub::matrix<double> _orbitalsAB_Transposed = ub::trans( *_orbitalsAB->getOrbitals() );  
-    if ( (*_orbitalsAB->getOverlap()).size1() == 0 ) {
+    if (_orbitalsAB->hasAOOverlap() ) {
             LOG(ctp::logERROR,*_pLog) << "Overlap matrix is not stored"; 
             return false;
     }
-     
-    ub::matrix<double> _psi_AB = ub::prod( *_orbitalsAB->getOverlap(), _orbitalsAB_Transposed );  
+     ub::matrix<double> overlap= _orbitalsAB->AOOverlap();
+    ub::matrix<double> _psi_AB = ub::prod(overlap, ub::trans( _orbitalsAB->MOCoefficients()) ); 
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );  
     _psi_AB.clear();
     
@@ -184,19 +180,13 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
      
     // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
     LOG(ctp::logDEBUG,*_pLog) << "Projecting the Fock matrix onto the dimer basis" << flush;   
-    ub::diagonal_matrix<double> _fock_AB( _orbitalsAB->getNumberOfLevels(), (*_orbitalsAB->getEnergies()).data() ); 
+    ub::diagonal_matrix<double> _fock_AB( _orbitalsAB->getNumberOfLevels(), _orbitalsAB->MOEnergies().data() ); 
     ub::matrix<double> _temp = ub::prod( _fock_AB, ub::trans( _psi_AxB_dimer_basis ) ) ; 
     ub::matrix<double> JAB_dimer = ub::prod( _psi_AxB_dimer_basis, _temp);  
  
     // S = psi_AxB_dimer_basis * psi_AxB_dimer_basis^T
     LOG(ctp::logDEBUG,*_pLog) << "Constructing Overlap matrix" << flush;    
     ub::matrix<double> _S_AxB = ub::prod( _psi_AxB_dimer_basis, ub::trans( _psi_AxB_dimer_basis ));  
-   
-
-  
-   
-
- 
      
    LOG(ctp::logDEBUG,*_pLog) << "Calculating the effective overlap JAB [" 
               << JAB_dimer.size1() << "x" 
@@ -207,6 +197,7 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     
     LOG(ctp::logDEBUG,*_pLog) << "Done with electronic couplings" << flush;
+    
     return true;   
 
 }

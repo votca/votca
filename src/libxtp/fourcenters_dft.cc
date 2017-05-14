@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,7 +20,7 @@
 
 
 #include <votca/xtp/threecenters.h>
-
+#include <new>
 
 
 using namespace votca::tools;
@@ -41,42 +41,43 @@ namespace votca {
 
 
 
-        void FCMatrix_dft::Fill_4c_small_molecule(AOBasis& dftbasis) {
+        void FCMatrix_dft::Fill_4c_small_molecule(const AOBasis& dftbasis) {
 
           //cout << endl;
           //cout << "fourcenters_dft.cc FCMatrix_dft::Fill_4c_small_molecule" << endl;
           int dftBasisSize = dftbasis.AOBasisSize();
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
+          
+          try{
           _4c_vector = ub::zero_vector<double>((vectorSize*(vectorSize+1))/2);
-
+          }
+          catch(std::bad_alloc& ba){
+            std::cerr << "Basisset too large for 4c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << endl;
+            exit(0);
+          }
           int shellsize=dftbasis._aoshells.size();
           #pragma omp parallel for
           for(int i=0;i<shellsize;++i){
           
-            AOShell* _shell_3 = dftbasis.getShell(i);
+            const AOShell* _shell_3 = dftbasis.getShell(i);
             int _start_3 = _shell_3->getStartIndex();
             int NumFunc_3 = _shell_3->getNumFunc();
    
 
             for (int j=i;j<shellsize;++j) {
-              AOShell* _shell_4 = dftbasis.getShell(j);
+              const AOShell* _shell_4 = dftbasis.getShell(j);
               int _start_4 = _shell_4->getStartIndex();
               int NumFunc_4 = _shell_4->getNumFunc();                
        
               for (int k=i;k<shellsize;++k) {
-                AOShell* _shell_1 = dftbasis.getShell(k);
+                const AOShell* _shell_1 = dftbasis.getShell(k);
                 int _start_1 = _shell_1->getStartIndex();
                 int NumFunc_1 = _shell_1->getNumFunc();
          
                for (int l=k;l<shellsize;++l)  {
-                  AOShell* _shell_2 = dftbasis.getShell(l);
+                  const AOShell* _shell_2 = dftbasis.getShell(l);
                   int _start_2 = _shell_2->getStartIndex();
                   int NumFunc_2 = _shell_2->getNumFunc();
-                  //cout<<i<<" "<<j<<" "<<k<<" "<<l<<" "<<dftBasisSize<<endl;
-                  //cout<<_shell_3->getType()<<" 3 "<<_start_3<<" NumFunc_3 "<<NumFunc_3<<endl;
-                  //cout<<_shell_4->getType()<<" 4 "<<_start_4<<" NumFunc_4 "<<NumFunc_4<<endl;
-                  //cout<<_shell_1->getType()<<" 1 "<<_start_1<<" NumFunc_1 "<<NumFunc_1<<endl;
-                  //cout<<_shell_2->getType()<<" 2 "<<_start_2<<" NumFunc_2 "<<NumFunc_2<<endl;
                   // get 4-center directly as _subvector
                   ub::matrix<double> _subvector = ub::zero_matrix<double>(NumFunc_1 * NumFunc_2, NumFunc_3 * NumFunc_4);
                   
@@ -101,8 +102,6 @@ namespace votca {
                             if (ind_1 > ind_2) continue;
                             int _index_12 = dftBasisSize * ind_1 - sum_ind_1 + ind_2;
                             if (_index_34 > _index_12) continue;
-                            //int _index_subv_12 = NumFunc_1 * _i_2 + _i_1;
-
                             _4c_vector(_index_34_12_a + _index_12) = _subvector(NumFunc_1 * _i_2 + _i_1, _index_subv_34);
 
                           } // _i_2

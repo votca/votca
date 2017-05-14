@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -32,44 +32,41 @@ using namespace votca::tools;
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
 
-    void AOSuperMatrix::PrintIndexToFunction( AOBasis* aobasis){
-        for (vector< AOShell* >::iterator _row = aobasis->firstShell(); _row != aobasis->lastShell() ; _row++ ) {
-            AOShell* _shell_row = aobasis->getShell( _row );
+    void AOSuperMatrix::PrintIndexToFunction(const AOBasis& aobasis){
+        for (AOBasis::AOShellIterator _row = aobasis.firstShell(); _row != aobasis.lastShell() ; _row++ ) {
+            const AOShell* _shell_row = aobasis.getShell( _row );
             int _row_start = _shell_row->getStartIndex();
             string type = _shell_row->getType();
             cout << "Shell " << type << "starts at " << _row_start+1 << endl;
         }
+        return;
     }
     
-    void AOMatrix::Fill( AOBasis* aobasis, vec r, AOBasis* ecp ) {
-        // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
-
-          //      cout << aobasis->_aoshells.size();
+    void AOMatrix::Fill(const AOBasis& aobasis,vec r, AOBasis* ecp ) {
       
         _gridpoint = r;
         // loop row
         #pragma omp parallel for
-        for (unsigned _row = 0; _row <  aobasis->_aoshells.size() ; _row++ ){
-        //for (vector< AOShell* >::iterator _row = aobasis->firstShell(); _row != aobasis->lastShell() ; _row++ ) {
-            //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
-            AOShell* _shell_row = aobasis->getShell( _row );
+        for (unsigned _row = 0; _row <  aobasis.getNumofShells() ; _row++ ){
+       
+            const AOShell* _shell_row = aobasis.getShell( _row );
             int _row_start = _shell_row->getStartIndex();
             int _row_end   = _row_start + _shell_row->getNumFunc();
            
             // AOMatrix is symmetric, restrict explicit calculation to triangular matrix
             for ( unsigned _col = 0; _col <= _row ; _col++ ){
 
-                AOShell* _shell_col = aobasis->getShell( _col );
+                const AOShell* _shell_col = aobasis.getShell( _col );
                 
                 // figure out the submatrix
                 int _col_start = _shell_col->getStartIndex();
                 int _col_end   = _col_start + _shell_col->getNumFunc();
-                //cout << _row << ":" << _row_start << ":" << _row_end << "/" << _col << ":" <<  _col_start << ":" << _col_end << endl;
-                ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(this->_aomatrix, _row_start, _row_end, _col_start, _col_end);
+                
+                ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(_aomatrix, _row_start, _row_end, _col_start, _col_end);
                 
                 // Fill block
                 FillBlock( _submatrix, _shell_row, _shell_col, ecp );
-                //cout << _submatrix<<endl;
+                
             }
         }
         
@@ -80,9 +77,6 @@ namespace votca { namespace xtp {
                        
             }
         }
-     
- 
-        
       
         // check symmetry
          bool _is_symmetric = true;
@@ -100,33 +94,32 @@ namespace votca { namespace xtp {
             }
         }
         if ( !_is_symmetric) {cerr << " Error: AOMatrix is not symmetric! "; exit(1);}
-        
        
-        
+        return;
     }
     
     
-    void AOMatrix3D::Fill( AOBasis* aobasis ) {
+    void AOMatrix3D::Fill(const AOBasis& aobasis ) {
         // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
         
         // loop row
         #pragma omp parallel for
-        for ( unsigned _row = 0; _row <  aobasis->_aoshells.size() ; _row++ ){
+        for ( unsigned _row = 0; _row <  aobasis.getNumofShells() ; _row++ ){
        
-            AOShell* _shell_row = aobasis->getShell( _row );
+            const AOShell* _shell_row = aobasis.getShell( _row );
             int _row_start = _shell_row->getStartIndex();
             int _row_end   = _row_start + _shell_row->getNumFunc();
 
             // loop column
-            for (vector< AOShell* >::iterator _col = aobasis->firstShell(); _col != aobasis->lastShell() ; _col++ ) {
-                AOShell* _shell_col = aobasis->getShell( _col );
+            for (AOBasis::AOShellIterator _col = aobasis.firstShell(); _col != aobasis.lastShell() ; _col++ ) {
+                const AOShell* _shell_col = aobasis.getShell( _col );
                 
                 // figure out the submatrix
                 int _col_start = _shell_col->getStartIndex();
                 int _col_end   = _col_start + _shell_col->getNumFunc();
                 std::vector< ub::matrix_range< ub::matrix<double> > > _submatrix;
                 for ( int _i = 0; _i < 3; _i++){
-                   _submatrix.push_back(   ub::subrange(this->_aomatrix[_i], _row_start, _row_end, _col_start, _col_end) );
+                   _submatrix.push_back(   ub::subrange(_aomatrix[_i], _row_start, _row_end, _col_start, _col_end) );
                
                 }
                 // Fill block
@@ -134,6 +127,7 @@ namespace votca { namespace xtp {
 
             }
         }
+        return;
     }
     
     void AOMatrix3D::Cleanup(){
@@ -144,7 +138,7 @@ namespace votca { namespace xtp {
             
         }
         _aomatrix.clear();
-        
+       return; 
     }
     
     
@@ -178,7 +172,7 @@ namespace votca { namespace xtp {
         }
     }
        
-       void AOSuperMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay, std::vector<double> contractions){
+       void AOSuperMatrix::getTrafo(ub::matrix<double>& _trafo,const int _lmax, const double _decay,const std::vector<double>& contractions){
         // s-functions
         _trafo(0,0) = 1.0*contractions[0]; //  // s  Y 0,0
        // p-functions
@@ -288,7 +282,7 @@ namespace votca { namespace xtp {
        
     
 
-    void AOMatrix::XIntegrate(vector<double>& _FmT, const double& _T  ){
+    void AOMatrix::XIntegrate(vector<double>& _FmT, double _T  ){
         
         const int _mm = _FmT.size() - 1;
         const double pi = boost::math::constants::pi<double>();
@@ -330,7 +324,7 @@ namespace votca { namespace xtp {
             }
         }
         
-
+        return;
     }
     
     

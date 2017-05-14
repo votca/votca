@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,6 +19,7 @@
 
 #include "gaussian.h"
 #include <votca/ctp/segment.h>
+#include <votca/xtp/qminterface.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -132,8 +133,7 @@ namespace votca {
          * Appends a guess constructed from monomer orbitals if supplied
          */
         bool Gaussian::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
-            std::vector< ctp::Atom* > _atoms;
-            std::vector< ctp::Atom* > ::iterator ait;
+
             std::vector< ctp::Segment* >::iterator sit;
             std::string temp_suffix = "/id";
             std::string scratch_dir_backup = _scratch_dir;
@@ -159,647 +159,469 @@ namespace votca {
             _com_file << endl << endl;
             _com_file << setw(2) << _charge << setw(2) << _spin << endl;
 
-            // write coordinates!
-            if (!_write_charges) {
+             // This is needed for the QM/MM scheme, since only orbitals have 
+            // updated positions of the QM region, hence vector<Segments*> is 
+            // NULL in the QMMachine and the QM region is also printed here
+            
+    std::vector< ctp::QMAtom* > qmatoms;
 
-                for (sit = segments.begin(); sit != segments.end(); ++sit) {
-                    temp_suffix = temp_suffix + "_" + boost::lexical_cast<std::string>((*sit)->getId());
-                    _atoms = (*sit)-> Atoms();
+    if(_write_charges){
+        qmatoms= orbitals_guess->QMAtoms();
+    }
+    else{
+        QMMInterface qmmface;
+        qmatoms=qmmface.Convert(segments);
+    }
+           
+    std::vector< ctp::QMAtom* >::iterator it;
 
-                    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-
-                        if ((*ait)->HasQMPart() == false) {
-                            continue;
-                        }
-
-                        vec pos = (*ait)->getQMPos();
-                        std::string name = (*ait)->getElement();
-
-                        //fprintf(out, "%2s %4.7f %4.7f %4.7f \n"
-                        _com_file << setw(3) << name.c_str()
-                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()*10
-                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()*10
-                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()*10
-                                << endl;
-                    }
-                }
-
-                // BASISSET
-                if (_write_basis_set) {
-
-                    _com_file << endl;
-                    list<std::string> elements;
-                    BasisSet bs;
-                    // std::string basis_name(_basis);
-
-                    bs.LoadBasisSet(_basisset_name);
-                    LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
-
-                    for (sit = segments.begin(); sit != segments.end(); ++sit) {
-
-                        std::vector< ctp::Atom* > atoms = (*sit)-> Atoms();
-                        std::vector< ctp::Atom* >::iterator it;
-
-                        for (it = atoms.begin(); it < atoms.end(); it++) {
-
-                            std::string element_name = (*it)->getElement();
-
-                            list<std::string>::iterator ite;
-                            ite = find(elements.begin(), elements.end(), element_name);
-
-                            if (ite == elements.end()) {
-                                elements.push_back(element_name);
-
-                                Element* element = bs.getElement(element_name);
-                                /* Alternative is to write each basis set to a element_name.gbs file
-                                 * and include the gbs file in the com-file via Gaussian's @ function
-                                 * Advantage: *gbs files can be reused by isogwa later
-                                 */
-                                ofstream _el_file;
-                                std::string _el_file_name = _run_dir + "/" + element_name + ".gbs";
-                                _el_file.open(_el_file_name.c_str());
-                                // element name, [possibly indeces of centers], zero to indicate the end
-                                //_com_file << element_name << " 0" << endl;
-                                _com_file << "@" << element_name << ".gbs" << endl;
-                                _el_file << element_name << " 0" << endl;
-                                for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-
-                                    Shell* shell = (*its);
-                                    // shell type, number primitives, scale factor
-                                    //_com_file << shell->getType() << " " << shell->getSize() << " " << shell->getScale() << endl;
-                                    _el_file << shell->getType() << " " << shell->getSize() << " " << FortranFormat(shell->getScale()) << endl;
-                                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                        GaussianPrimitive* gaussian = *itg;
-                                        //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
-                                        _el_file << FortranFormat(gaussian->decay);
-                                        for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
-                                            if (gaussian->contraction[_icontr] != 0.0) {
-                                                _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
-                                            }
-                                        }
-                                        _el_file << endl;
-                                    }
-                                }
-
-                                //_com_file << "****\n";
-                                _el_file << "****\n";
-                                _el_file.close();
-
-                            }
-                        }
-                    }
-                } // end BASISSET
+   
+    for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
+        if (!(*it)->from_environment) {
+            _com_file << setw(3) << (*it)->type.c_str()
+                    << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
+                    << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
+                    << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->z
+                    << endl;
 
 
-                // ECP
-                if (_write_pseudopotentials) {
-                    std::string pseudopotential_name("ecp");
+            //_com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
+        }
+    }
 
-                    _com_file << endl;
-                    list<std::string> elements;
+    _com_file << endl;
 
-                    elements.push_back("H");
-                    elements.push_back("He");
+    // if we need to write basis sets, do it now
+    if (_write_basis_set) {
 
-                    BasisSet ecp;
-                    ecp.LoadPseudopotentialSet(pseudopotential_name);
+        list<std::string> elements;
+        BasisSet bs;
+        // std::string basis_name(_basis);
 
-                    LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << pseudopotential_name << flush;
+        bs.LoadBasisSet(_basisset_name);
+        LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
-                    for (sit = segments.begin(); sit != segments.end(); ++sit) {
+        for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
+            if (!(*it)->from_environment) {
+                std::string element_name = (*it)->type;
 
-                        std::vector< ctp::Atom* > atoms = (*sit)-> Atoms();
-                        std::vector< ctp::Atom* >::iterator it;
+                //cout << "looking up basis set for element " << element_name << endl;
 
-                        for (it = atoms.begin(); it < atoms.end(); it++) {
+                list<std::string>::iterator ite;
+                ite = find(elements.begin(), elements.end(), element_name);
 
-                            std::string element_name = (*it)->getElement();
+                if (ite == elements.end()) {
+                    elements.push_back(element_name);
 
-                            list<std::string>::iterator ite;
-                            ite = find(elements.begin(), elements.end(), element_name);
+                    Element* element = bs.getElement(element_name);
+                    /* Alternative is to write each basis set to a element_name.gbs file
+                     * and include the gbs file in the com-file via Gaussian's @ function
+                     * Advantage: *gbs files can be reused by isogwa later
+                     */
+                    std::ofstream _el_file;
+                    std::string _el_file_name = _run_dir + "/" + element_name + ".gbs";
+                    _el_file.open(_el_file_name.c_str());
+                    // element name, [possibly indeces of centers], zero to indicate the end
+                    //_com_file << element_name << " 0" << endl;
+                    _com_file << "@" << element_name << ".gbs" << endl;
+                    _el_file << element_name << " 0" << endl;
+                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
 
-                            if (ite == elements.end()) {
-                                elements.push_back(element_name);
-
-                                Element* element = ecp.getElement(element_name);
-                                   
-                                // element name, [possibly indeces of centers], zero to indicate the end
-                                _com_file << element_name << " 0\n"
-                                        << pseudopotential_name << " "
-                                        << element->getLmax() << " " << element->getNcore() << endl;
-                                //write local component
-                                for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-
-                                    Shell* shell = (*its);
-                                    // shell type, number primitives, scale factor
-                                    if (shell->getLmax() == element->getLmax()) {
-                                        _com_file << shell->getType() << endl;
-                                        _com_file << shell->getSize() << endl;
-
-                                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                            GaussianPrimitive* gaussian = *itg;
-                                            _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction[0] << endl;
-                                        }
-                                    }
-                                }
-                                // write remaining shells in ascending order s,p,d...
-                                for (int i = 0; i < element->getLmax(); i++) {
-                                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                                        Shell* shell = (*its);
-                                        if (shell->getLmax() == i) {
-                                            // shell type, number primitives, scale factor
-                                            _com_file << shell->getType() << endl;
-                                            _com_file << shell->getSize() << endl;
-
-                                            for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                                GaussianPrimitive* gaussian = *itg;
-                                                _com_file << gaussian->power << " " << gaussian->decay << " " << gaussian->contraction[0] << endl;
-                                            }
-                                        }
-                                    }
+                        Shell* shell = (*its);
+                        // shell type, number primitives, scale factor
+                        //_com_file << shell->getType() << " " << shell->getSize() << " " << shell->getScale() << endl;
+                        _el_file << shell->getType() << " " << shell->getSize() << " " << FortranFormat(shell->getScale()) << endl;
+                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                            GaussianPrimitive* gaussian = *itg;
+                            //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
+                            _el_file << FortranFormat(gaussian->decay);
+                            for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
+                                if (gaussian->contraction[_icontr] != 0.0) {
+                                    _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
                                 }
                             }
+                            _el_file << endl;
                         }
                     }
-                }// end ECP
 
-                
-
-
-
-
-
-            } else {
-
-                std::vector< ctp::QMAtom* > *qmatoms = orbitals_guess->getAtoms();
-                std::vector< ctp::QMAtom* >::iterator it;
-
-                // This is needed for the QM/MM scheme, since only orbitals have 
-                // updated positions of the QM region, hence vector<Segments*> is 
-                // NULL in the QMMachine and the QM region is also printed here
-                for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
-                    if (!(*it)->from_environment) {
-                        _com_file << setw(3) << (*it)->type.c_str()
-                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
-                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
-                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->z
-                                << endl;
-
-
-                        //_com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
-                    }
-                }
-
-                _com_file << endl;
-
-                // if we need to write basis sets, do it now
-                if (_write_basis_set) {
-
-                    list<std::string> elements;
-                    BasisSet bs;
-                    // std::string basis_name(_basis);
-
-                    bs.LoadBasisSet(_basisset_name);
-                    LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
-
-                    for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
-                        if (!(*it)->from_environment) {
-                            std::string element_name = (*it)->type;
-
-                            //cout << "looking up basis set for element " << element_name << endl;
-
-                            list<std::string>::iterator ite;
-                            ite = find(elements.begin(), elements.end(), element_name);
-
-                            if (ite == elements.end()) {
-                                elements.push_back(element_name);
-
-                                Element* element = bs.getElement(element_name);
-                                /* Alternative is to write each basis set to a element_name.gbs file
-                                 * and include the gbs file in the com-file via Gaussian's @ function
-                                 * Advantage: *gbs files can be reused by isogwa later
-                                 */
-                                std::ofstream _el_file;
-                                std::string _el_file_name = _run_dir + "/" + element_name + ".gbs";
-                                _el_file.open(_el_file_name.c_str());
-                                // element name, [possibly indeces of centers], zero to indicate the end
-                                //_com_file << element_name << " 0" << endl;
-                                _com_file << "@" << element_name << ".gbs" << endl;
-                                _el_file << element_name << " 0" << endl;
-                                for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-
-                                    Shell* shell = (*its);
-                                    // shell type, number primitives, scale factor
-                                    //_com_file << shell->getType() << " " << shell->getSize() << " " << shell->getScale() << endl;
-                                    _el_file << shell->getType() << " " << shell->getSize() << " " << FortranFormat(shell->getScale()) << endl;
-                                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                        GaussianPrimitive* gaussian = *itg;
-                                        //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
-                                        _el_file << FortranFormat(gaussian->decay);
-                                        for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
-                                            if (gaussian->contraction[_icontr] != 0.0) {
-                                                _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
-                                            }
-                                        }
-                                        _el_file << endl;
-                                    }
-                                }
-
-                                //_com_file << "****\n";
-                                _el_file << "****\n";
-                                _el_file.close();
-
-                            }
-                        }
-                    }
+                    //_com_file << "****\n";
+                    _el_file << "****\n";
+                    _el_file.close();
 
                 }
+            }
+        }
 
-                if (_write_pseudopotentials) {
-                    std::string pseudopotential_name("ecp");
+    }
 
-                    _com_file << endl;
-                    list<std::string> elements;
+    if (_write_pseudopotentials) {
+        std::string pseudopotential_name("ecp");
 
-                    elements.push_back("H");
-                    elements.push_back("He");
+        _com_file << endl;
+        list<std::string> elements;
 
-                    BasisSet ecp;
-                    ecp.LoadPseudopotentialSet(pseudopotential_name);
+        elements.push_back("H");
+        elements.push_back("He");
 
-                    LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << pseudopotential_name << flush;
+        BasisSet ecp;
+        ecp.LoadPseudopotentialSet(pseudopotential_name);
 
-                    //for (sit = segments.begin(); sit != segments.end(); ++sit) {
+        LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << pseudopotential_name << flush;
 
-                    //  std::vector< Atom* > atoms = (*sit)-> Atoms();
-                    // std::vector< Atom* >::iterator it;
+      
 
-                    for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
-                        if (!(*it)->from_environment) {
-                            std::string element_name = (*it)->type;
+        for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
+            if (!(*it)->from_environment) {
+                std::string element_name = (*it)->type;
 
-                            list<std::string>::iterator ite;
-                            ite = find(elements.begin(), elements.end(), element_name);
+                list<std::string>::iterator ite;
+                ite = find(elements.begin(), elements.end(), element_name);
 
-                            if (ite == elements.end()) {
-                                elements.push_back(element_name);
+                if (ite == elements.end()) {
+                    elements.push_back(element_name);
 
-                                Element* element = ecp.getElement(element_name);
+                    Element* element = ecp.getElement(element_name);
 
-                                // element name, [possibly indeces of centers], zero to indicate the end
-                                _com_file << element_name << " 0\n"
-                                        << pseudopotential_name << " "
-                                        << element->getLmax() << " " << element->getNcore() << endl;
+                    // element name, [possibly indeces of centers], zero to indicate the end
+                    _com_file << element_name << " 0\n"
+                            << pseudopotential_name << " "
+                            << element->getLmax() << " " << element->getNcore() << endl;
 
-                                for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
 
-                                    Shell* shell = (*its);
-                                    // shell type, number primitives, scale factor
-                                    _com_file << shell->getType() << endl;
-                                    _com_file << shell->getSize() << endl;
+                        Shell* shell = (*its);
+                        // shell type, number primitives, scale factor
+                        _com_file << shell->getType() << endl;
+                        _com_file << shell->getSize() << endl;
 
-                                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                        GaussianPrimitive* gaussian = *itg;
-                                        _com_file << gaussian->power << " " << FortranFormat(gaussian->decay) << " " << FortranFormat(gaussian->contraction[0]) << endl;
-                                    }
-                                }
-                            }
+                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                            GaussianPrimitive* gaussian = *itg;
+                            _com_file << gaussian->power << " " << FortranFormat(gaussian->decay) << " " << FortranFormat(gaussian->contraction[0]) << endl;
                         }
                     }
-                    // }
-                    _com_file << endl;
-                } // ECP
+                }
+            }
+        }
+        // }
+        _com_file << endl;
+    } // ECP
 
 
                 // actually write the charges
-
-                for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
-                    if ((*it)->from_environment) {
-                        boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-                        fmt % (*it)->x % (*it)->y % (*it)->z % (*it)->charge;
-                        if ((*it)->charge != 0.0) _com_file << fmt << endl;
-                    }
-                }
-
-                _com_file << endl;
-            } // end writing coordinates depending on atoms or qmatoms presence
-
-            if (_write_guess) {
-                if (orbitals_guess == NULL) {
-                    throw std::runtime_error("A guess for dimer orbitals has not been prepared.");
-                } else {
-                    std::vector<int> _sort_index;
-
-                    orbitals_guess->SortEnergies(&_sort_index);
-
-                    _com_file << endl << "(5D15.8)" << endl;
-
-                    int level = 1;
-                    int ncolumns = 5;
-
-                    for (std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++soi) {
-
-                        double _energy = (orbitals_guess->_mo_energies)[*soi];
-
-                        _com_file << setw(5) << level << " Alpha MO OE=" << FortranFormat(_energy) << endl;
-
-                        ub::matrix_row< ub::matrix<double> > mr(orbitals_guess->_mo_coefficients, *soi);
-
-                        int column = 1;
-                        for (unsigned j = 0; j < mr.size(); ++j) {
-                            _com_file << FortranFormat(mr[j]);
-                            if (column == ncolumns) {
-                                _com_file << std::endl;
-                                column = 0;
-                            }
-                            column++;
-                        }
-
-                        level++;
-                        if (column != 1) _com_file << endl;
-                    }
-                }
+    if(_write_charges){
+        for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
+            if ((*it)->from_environment) {
+                boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
+                fmt % (*it)->x % (*it)->y % (*it)->z % (*it)->charge;
+                if ((*it)->charge != 0.0) _com_file << fmt << endl;
             }
-
-
-
-
-
-            if (_output_Vxc) {
-             
-
-                ofstream _com_file2;
-
-                std::string _com_file_name_full2 = _run_dir + "/" + _input_vxc_file_name;
-
-                _com_file2.open(_com_file_name_full2.c_str());
-                // header 
-                if (_chk_file_name.size()) _com_file2 << "%chk=" << _chk_file_name << endl;
-                if (_memory.size()) _com_file2 << "%mem=" << _memory << endl;
-                _com_file2 << "%nprocshared=1" << endl;
-
-                // adjusting the options line to Vxc output only
-                std::string _options_vxc = _options;
-                boost::algorithm::replace_all(_options_vxc, "pseudo=read", "Geom=AllCheck");
-                boost::algorithm::replace_all(_options_vxc, "/gen", " chkbasis");
-                boost::algorithm::replace_all(_options_vxc, "punch=mo", "guess=read");
-                boost::algorithm::replace_all(_options_vxc, "guess=tcheck", "");
-                boost::algorithm::replace_all(_options_vxc, "guess=huckel", "");
-                boost::algorithm::replace_all(_options_vxc, "charge", "charge=check");
-                if (_options_vxc.size()) _com_file2 << _options_vxc << endl;
-
-                // # pop=minimal pbepbe/gen pseudo=read scf=tight punch=mo
-                // # pop=minimal pbepbe chkbasis nosymm Geom=AllCheck Guess=Read
-
-
-                _com_file2 << endl;
-                _com_file2 << "VXC output run \n";
-                _com_file2 << endl;
-                _com_file2.close();
-
-
-
-
-            }
-
-            _com_file << _vdWfooter << endl;
-
-
-            _com_file << endl;
-            _com_file.close();
-            // and now generate a shell script to run both jobs
-            LOG(ctp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
-
-            _scratch_dir = scratch_dir_backup + temp_suffix;
-            
-            //boost::filesystem::create_directories(_scratch_dir + temp_suffix);
-            //std::string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
-            //_com_file << _temp;
-            WriteShellScript();
-            _scratch_dir = scratch_dir_backup;
-            
-            
-            return true;
         }
 
-        bool Gaussian::WriteShellScript() {
-            ofstream _shell_file;
+        _com_file << endl;
+    }      
 
-            std::string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
+    if (_write_guess) {
+        if (orbitals_guess == NULL) {
+            throw std::runtime_error("A guess for dimer orbitals has not been prepared.");
+        } else {
+            std::vector<int> _sort_index;
 
-            _shell_file.open(_shell_file_name_full.c_str());
+            orbitals_guess->SortEnergies(&_sort_index);
 
-            _shell_file << "#!/bin/tcsh" << endl;
-            _shell_file << "mkdir -p " << _scratch_dir << endl;
-            _shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
-            _shell_file << _executable << " " << _input_file_name << endl;
-            if (_output_Vxc) {
-                _shell_file << "rm fort.22" << endl;
-                _shell_file << "setenv DoPrtXC YES" << endl;
-                _shell_file << _executable << " " << _input_vxc_file_name << " >& /dev/null " << endl;
-                _shell_file << "setenv DoPrtXC NO" << endl;
-                _shell_file << "rm $GAUSS_SCRDIR/*" << endl;
+            _com_file << endl << "(5D15.8)" << endl;
+
+            int level = 1;
+            int ncolumns = 5;
+
+            for (std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++soi) {
+
+                double _energy = (orbitals_guess->_mo_energies)[*soi];
+
+                _com_file << setw(5) << level << " Alpha MO OE=" << FortranFormat(_energy) << endl;
+
+                ub::matrix_row< ub::matrix<double> > mr(orbitals_guess->_mo_coefficients, *soi);
+
+                int column = 1;
+                for (unsigned j = 0; j < mr.size(); ++j) {
+                    _com_file << FortranFormat(mr[j]);
+                    if (column == ncolumns) {
+                        _com_file << std::endl;
+                        column = 0;
+                    }
+                    column++;
+                }
+
+                level++;
+                if (column != 1) _com_file << endl;
             }
-            _shell_file.close();
-
-            return true;
         }
+    }
 
-        /**
-         * Runs the Gaussian job. 
-         */
-        bool Gaussian::Run() {
+    if (_output_Vxc) {
 
-            LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: running [" << _executable << " " << _input_file_name << "]" << flush;
+        ofstream _com_file2;
 
-            if (std::system(NULL)) {
-                // if scratch is provided, run the shell script; 
-                // otherwise run gaussian directly and rely on global variables 
-                std::string _command;
-                if (_scratch_dir.size() != 0 || _output_Vxc) {
-                    _command = "cd " + _run_dir + "; tcsh " + _shell_file_name;
-                    //            _command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir +"; " + _executable + " " + _input_file_name;
-                } else {
-                    _command = "cd " + _run_dir + "; mkdir -p $GAUSS_SCRDIR; " + _executable + " " + _input_file_name;
-                }
+        std::string _com_file_name_full2 = _run_dir + "/" + _input_vxc_file_name;
 
-                //int i = std::system(_command.c_str());
-                int check=std::system(_command.c_str());
-                if (check==-1){
-                    LOG(ctp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
-                    return false;
-                }
-                if (CheckLogFile()) {
-                    LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: finished job" << flush;
-                    return true;
-                } else {
-                    LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: job failed" << flush;
-                }
+        _com_file2.open(_com_file_name_full2.c_str());
+        // header 
+        if (_chk_file_name.size()) _com_file2 << "%chk=" << _chk_file_name << endl;
+        if (_memory.size()) _com_file2 << "%mem=" << _memory << endl;
+        _com_file2 << "%nprocshared=1" << endl;
+
+        // adjusting the options line to Vxc output only
+        std::string _options_vxc = _options;
+        boost::algorithm::replace_all(_options_vxc, "pseudo=read", "Geom=AllCheck");
+        boost::algorithm::replace_all(_options_vxc, "/gen", " chkbasis");
+        boost::algorithm::replace_all(_options_vxc, "punch=mo", "guess=read");
+        boost::algorithm::replace_all(_options_vxc, "guess=tcheck", "");
+        boost::algorithm::replace_all(_options_vxc, "guess=huckel", "");
+        boost::algorithm::replace_all(_options_vxc, "charge", "charge=check");
+        if (_options_vxc.size()) _com_file2 << _options_vxc << endl;
+
+        // # pop=minimal pbepbe/gen pseudo=read scf=tight punch=mo
+        // # pop=minimal pbepbe chkbasis nosymm Geom=AllCheck Guess=Read
+
+
+        _com_file2 << endl;
+        _com_file2 << "VXC output run \n";
+        _com_file2 << endl;
+        _com_file2.close();
+    }
+
+    _com_file << _vdWfooter << endl;
+
+
+    _com_file << endl;
+    _com_file.close();
+    // and now generate a shell script to run both jobs
+    LOG(ctp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
+
+    _scratch_dir = scratch_dir_backup + temp_suffix;
+
+    //boost::filesystem::create_directories(_scratch_dir + temp_suffix);
+    //std::string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
+    //_com_file << _temp;
+    WriteShellScript();
+    _scratch_dir = scratch_dir_backup;
+
+
+    return true;
+    }
+
+    bool Gaussian::WriteShellScript() {
+        ofstream _shell_file;
+
+        std::string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
+
+        _shell_file.open(_shell_file_name_full.c_str());
+
+        _shell_file << "#!/bin/tcsh" << endl;
+        _shell_file << "mkdir -p " << _scratch_dir << endl;
+        _shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
+        _shell_file << _executable << " " << _input_file_name << endl;
+        if (_output_Vxc) {
+            _shell_file << "rm fort.22" << endl;
+            _shell_file << "setenv DoPrtXC YES" << endl;
+            _shell_file << _executable << " " << _input_vxc_file_name << " >& /dev/null " << endl;
+            _shell_file << "setenv DoPrtXC NO" << endl;
+            _shell_file << "rm $GAUSS_SCRDIR/*" << endl;
+        }
+        _shell_file.close();
+
+        return true;
+    }
+
+    /**
+     * Runs the Gaussian job. 
+     */
+    bool Gaussian::Run() {
+
+        LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: running [" << _executable << " " << _input_file_name << "]" << flush;
+
+        if (std::system(NULL)) {
+            // if scratch is provided, run the shell script; 
+            // otherwise run gaussian directly and rely on global variables 
+            std::string _command;
+            if (_scratch_dir.size() != 0 || _output_Vxc) {
+                _command = "cd " + _run_dir + "; tcsh " + _shell_file_name;
+                //            _command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir +"; " + _executable + " " + _input_file_name;
             } else {
+                _command = "cd " + _run_dir + "; mkdir -p $GAUSS_SCRDIR; " + _executable + " " + _input_file_name;
+            }
+
+            //int i = std::system(_command.c_str());
+            int check=std::system(_command.c_str());
+            if (check==-1){
                 LOG(ctp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
                 return false;
             }
-
-            return true;
-
-        }
-
-        /**
-         * Cleans up after the Gaussian job
-         */
-        void Gaussian::CleanUp() {
-
-            // cleaning up the generated files
-            if (_cleanup.size() != 0) {
-
-                LOG(ctp::logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
-                Tokenizer tok_cleanup(_cleanup, ", ");
-                std::vector <std::string> _cleanup_info;
-                tok_cleanup.ToVector(_cleanup_info);
-
-                std::vector<std::string> ::iterator it;
-
-                for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
-
-                    if (*it == "com") {
-                        std::string file_name = _run_dir + "/" + _input_file_name;
-                        remove(file_name.c_str());
-                    }
-
-                    if (*it == "sh") {
-                        std::string file_name = _run_dir + "/" + _shell_file_name;
-                        remove(file_name.c_str());
-                    }
-
-                    if (*it == "log") {
-                        std::string file_name = _run_dir + "/" + _log_file_name;
-                        remove(file_name.c_str());
-                    }
-
-                    if (*it == "chk") {
-                        std::string file_name = _run_dir + "/" + _chk_file_name;
-                        remove(file_name.c_str());
-                    }
-
-                    if (*it == "fort.7") {
-                        std::string file_name = _run_dir + "/" + *it;
-                        remove(file_name.c_str());
-                    }
-                }
-            }
-
-        }
-
-        /**
-         * Reads in the MO coefficients from a GAUSSIAN fort.7 file
-         */
-        bool Gaussian::ParseOrbitalsFile(Orbitals * _orbitals) {
-            std::map <int, std::vector<double> > _coefficients;
-            std::map <int, double> _energies;
-
-            std::string _line;
-            unsigned _levels = 0;
-            unsigned _level=0;
-            unsigned _basis_size = 0;
-
-            std::string _orb_file_name_full = _orb_file_name;
-            if (_run_dir != "") _orb_file_name_full = _run_dir + "/" + _orb_file_name;
-            std::ifstream _input_file(_orb_file_name_full.c_str());
-
-            if (_input_file.fail()) {
-                LOG(ctp::logERROR, *_pLog) << "File " << _orb_file_name << " with molecular orbitals is not found " << flush;
-                return false;
+            if (CheckLogFile()) {
+                LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: finished job" << flush;
+                return true;
             } else {
-                LOG(ctp::logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name << flush;
+                LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: job failed" << flush;
             }
-
-            // number of coefficients per line is  in the first line of the file (5D15.8)
-            getline(_input_file, _line);
-            std::vector<std::string> strs;
-            boost::algorithm::split(strs, _line, boost::is_any_of("(D)"));
-            //clog << strs.at(1) << endl;
-            //int nrecords_in_line = boost::lexical_cast<int>(strs.at(1));
-            std::string format = strs.at(2);
-
-            //clog << endl << "Orbital file " << filename << " has " 
-            //        << nrecords_in_line << " records per line, in D"
-            //        << format << " format." << endl;
-
-            while (_input_file) {
-
-                getline(_input_file, _line);
-                // if a line has an equality sign, must be energy
-                std::string::size_type energy_pos = _line.find("=");
-
-                if (energy_pos != std::string::npos) {
-
-                    std::vector<std::string> results;
-                    boost::trim(_line);
-
-                    boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
-                            boost::algorithm::token_compress_on);
-                    //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << endl;
-
-                    _level = boost::lexical_cast<int>(results.front());
-                    boost::replace_first(results.back(), "D", "e");
-                    _energies[ _level ] = boost::lexical_cast<double>(results.back());
-                    _levels++;
-
-                } else {
-
-                    while (_line.size() > 1) {
-                        std::string _coefficient;
-                        _coefficient.assign(_line, 0, 15);
-                        boost::trim(_coefficient);
-                        boost::replace_first(_coefficient, "D", "e");
-                        double coefficient = boost::lexical_cast<double>(_coefficient);
-                        _coefficients[ _level ].push_back(coefficient);
-                        _line.erase(0, 15);
-                    }
-                }
-            }
-
-            // some sanity checks
-            LOG(ctp::logDEBUG, *_pLog) << "Energy levels: " << _levels << flush;
-
-            std::map< int, std::vector<double> >::iterator iter = _coefficients.begin();
-            _basis_size = iter->second.size();
-
-            for (iter = _coefficients.begin()++; iter != _coefficients.end(); iter++) {
-                if (iter->second.size() != _basis_size) {
-                    LOG(ctp::logERROR, *_pLog) << "Error reading " << _orb_file_name << ". Basis set size change from level to level." << flush;
-                    return false;
-                }
-            }
-
-            LOG(ctp::logDEBUG, *_pLog) << "Basis set size: " << _basis_size << flush;
-
-            // copying information to the orbitals object
-            _orbitals->setBasisSetSize(_basis_size); // = _basis_size;
-            // _orbitals->_has_basis_set_size = true;
-            // _orbitals->_has_mo_coefficients = true;
-            // _orbitals->_has_mo_energies = true;
-
-            // copying energies to the orbitals object  
-            ub::vector<double> &mo_energies = _orbitals->MOEnergies();
-            mo_energies.resize(_levels);
-            for (size_t i = 0; i < mo_energies.size(); i++) mo_energies[i] = _energies[ i + 1 ];
-
-            // copying mo coefficients to the orbitals object
-            ub::matrix<double> &mo_coefficients = _orbitals->MOCoefficients();
-            mo_coefficients.resize(_levels, _basis_size);
-            for (size_t i = 0; i < mo_coefficients.size1(); i++)
-                for (size_t j = 0; j < mo_coefficients.size2(); j++)
-                    _orbitals->_mo_coefficients(i, j) = _coefficients[i + 1][j];
-
-
-            //cout << _mo_energies << endl;   
-            //cout << _mo_coefficients << endl; 
-
-            LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: done reading MOs" << flush;
-
-            return true;
+        } else {
+            LOG(ctp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+            return false;
         }
+
+        return true;
+
+    }
+
+    /**
+     * Cleans up after the Gaussian job
+     */
+    void Gaussian::CleanUp() {
+
+        // cleaning up the generated files
+        if (_cleanup.size() != 0) {
+
+            LOG(ctp::logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
+            Tokenizer tok_cleanup(_cleanup, ", ");
+            std::vector <std::string> _cleanup_info;
+            tok_cleanup.ToVector(_cleanup_info);
+
+            std::vector<std::string> ::iterator it;
+
+            for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
+
+                if (*it == "com") {
+                    std::string file_name = _run_dir + "/" + _input_file_name;
+                    remove(file_name.c_str());
+                }
+
+                if (*it == "sh") {
+                    std::string file_name = _run_dir + "/" + _shell_file_name;
+                    remove(file_name.c_str());
+                }
+
+                if (*it == "log") {
+                    std::string file_name = _run_dir + "/" + _log_file_name;
+                    remove(file_name.c_str());
+                }
+
+                if (*it == "chk") {
+                    std::string file_name = _run_dir + "/" + _chk_file_name;
+                    remove(file_name.c_str());
+                }
+
+                if (*it == "fort.7") {
+                    std::string file_name = _run_dir + "/" + *it;
+                    remove(file_name.c_str());
+                }
+            }
+        }
+        return;
+    }
+
+    /**
+     * Reads in the MO coefficients from a GAUSSIAN fort.7 file
+     */
+    bool Gaussian::ParseOrbitalsFile(Orbitals * _orbitals) {
+        std::map <int, std::vector<double> > _coefficients;
+        std::map <int, double> _energies;
+
+        std::string _line;
+        unsigned _levels = 0;
+        unsigned _level=0;
+        unsigned _basis_size = 0;
+
+        std::string _orb_file_name_full = _orb_file_name;
+        if (_run_dir != "") _orb_file_name_full = _run_dir + "/" + _orb_file_name;
+        std::ifstream _input_file(_orb_file_name_full.c_str());
+
+        if (_input_file.fail()) {
+            LOG(ctp::logERROR, *_pLog) << "File " << _orb_file_name << " with molecular orbitals is not found " << flush;
+            return false;
+        } else {
+            LOG(ctp::logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name << flush;
+        }
+
+        // number of coefficients per line is  in the first line of the file (5D15.8)
+        getline(_input_file, _line);
+        std::vector<std::string> strs;
+        boost::algorithm::split(strs, _line, boost::is_any_of("(D)"));
+        std::string format = strs.at(2);
+
+
+        while (_input_file) {
+
+            getline(_input_file, _line);
+            // if a line has an equality sign, must be energy
+            std::string::size_type energy_pos = _line.find("=");
+
+            if (energy_pos != std::string::npos) {
+
+                std::vector<std::string> results;
+                boost::trim(_line);
+
+                boost::algorithm::split(results, _line, boost::is_any_of("\t ="),
+                        boost::algorithm::token_compress_on);
+                //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << endl;
+
+                _level = boost::lexical_cast<int>(results.front());
+                boost::replace_first(results.back(), "D", "e");
+                _energies[ _level ] = boost::lexical_cast<double>(results.back());
+                _levels++;
+
+            } else {
+
+                while (_line.size() > 1) {
+                    std::string _coefficient;
+                    _coefficient.assign(_line, 0, 15);
+                    boost::trim(_coefficient);
+                    boost::replace_first(_coefficient, "D", "e");
+                    double coefficient = boost::lexical_cast<double>(_coefficient);
+                    _coefficients[ _level ].push_back(coefficient);
+                    _line.erase(0, 15);
+                }
+            }
+        }
+
+        // some sanity checks
+        LOG(ctp::logDEBUG, *_pLog) << "Energy levels: " << _levels << flush;
+
+        std::map< int, std::vector<double> >::iterator iter = _coefficients.begin();
+        _basis_size = iter->second.size();
+
+        for (iter = _coefficients.begin()++; iter != _coefficients.end(); iter++) {
+            if (iter->second.size() != _basis_size) {
+                LOG(ctp::logERROR, *_pLog) << "Error reading " << _orb_file_name << ". Basis set size change from level to level." << flush;
+                return false;
+            }
+        }
+
+        LOG(ctp::logDEBUG, *_pLog) << "Basis set size: " << _basis_size << flush;
+
+        // copying information to the orbitals object
+        _orbitals->setBasisSetSize(_basis_size); // = _basis_size;
+        // _orbitals->_has_basis_set_size = true;
+        // _orbitals->_has_mo_coefficients = true;
+        // _orbitals->_has_mo_energies = true;
+
+        // copying energies to the orbitals object  
+        ub::vector<double> &mo_energies = _orbitals->MOEnergies();
+        mo_energies.resize(_levels);
+        for (size_t i = 0; i < mo_energies.size(); i++) mo_energies[i] = _energies[ i + 1 ];
+
+        // copying mo coefficients to the orbitals object
+        ub::matrix<double> &mo_coefficients = _orbitals->MOCoefficients();
+        mo_coefficients.resize(_levels, _basis_size);
+        for (size_t i = 0; i < mo_coefficients.size1(); i++)
+            for (size_t j = 0; j < mo_coefficients.size2(); j++)
+                _orbitals->_mo_coefficients(i, j) = _coefficients[i + 1][j];
+
+
+        //cout << _mo_energies << endl;   
+        //cout << _mo_coefficients << endl; 
+
+        LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: done reading MOs" << flush;
+
+        return true;
+    }
 
         bool Gaussian::CheckLogFile() {
 
@@ -896,17 +718,6 @@ namespace votca {
                 getline(_input_file, _line);
                 boost::trim(_line);
 
-                /*
-                 * Check is pseudo keyword is present in LOG file -> read vxc Not used anymore, now there is a flag in the qm package options.
-                 */
-                /*
-                std::string::size_type pseudo_pos = _line.find("pseudo=read");
-                if (pseudo_pos != std::string::npos) {
-                    _read_vxc = true;
-                    // Uncomment for next version
-                    //_orbitals->setWithECP(true);
-                }
-                 */
                 /* Check for ScaHFX = factor of HF exchange included in functional */
                 std::string::size_type HFX_pos = _line.find("ScaHFX=");
                 if (HFX_pos != std::string::npos) {

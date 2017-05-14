@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -128,9 +128,9 @@ void Esp2multipole::WritetoFile(string _output_file, string identifier){
      string tag="TOOL:"+Identify()+"_"+_state+"_"+_spin+boost::lexical_cast<string>(_state_no);
     if(_use_mps){
         QMMInterface Converter;
-        ctp::PolarSeg* result=Converter.Convert(_Atomlist);
+        ctp::PolarSeg result=Converter.Convert(_Atomlist);
         
-        result->WriteMPS(_output_file,tag);
+        result.WriteMPS(_output_file,tag);
         }
     else if(_use_pdb){
         FILE *out;
@@ -169,7 +169,7 @@ void Esp2multipole::Extractingcharges( Orbitals & _orbitals ){
         basis.AOBasisFill(&bs, _Atomlist );
         
         
-        ub::matrix<double> _MO_Coefficients = *(_orbitals.getOrbitals()); // this is a copy?
+        ub::matrix<double> _MO_Coefficients = _orbitals.MOCoefficients();
         
         //basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );  
         basis.ReorderMOs(_MO_Coefficients, _orbitals.getQMpackage(), "xtp" );  

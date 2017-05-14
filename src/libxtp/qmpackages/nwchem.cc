@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,6 +19,8 @@
 
 #include "nwchem.h"
 #include <votca/ctp/segment.h>
+#include <votca/xtp/qminterface.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
@@ -125,11 +127,8 @@ void NWChem::Initialize( Property *options ) {
  * Prepares the *.nw file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied
  */
-bool NWChem::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess )
-{
-    std::vector< ctp::Atom* > _atoms;
-    std::vector< ctp::Atom* > ::iterator ait;
-    std::vector< ctp::Segment* >::iterator sit;
+bool NWChem::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess ){
+ 
     std::vector<std::string> results;
     //int qmatoms = 0;
     std::string temp_suffix = "/id";
@@ -147,73 +146,48 @@ bool NWChem::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orb
    
    
    
-   if ( !_write_charges ) {
-   
-    for (sit = segments.begin() ; sit != segments.end(); ++sit) {
-        
-        _atoms = (*sit)-> Atoms();
-        temp_suffix = temp_suffix + "_" + boost::lexical_cast<std::string>( (*sit)->getId() );
-        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-
-            if ((*ait)->HasQMPart() == false) { continue; }
-
-            vec     pos = (*ait)->getQMPos();
-            std::string  name = (*ait)->getElement();
-
-            //fprintf(out, "%2s %4.7f %4.7f %4.7f \n"
-            _com_file << setw(3) << name.c_str() 
-                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()*10
-                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()*10
-                      << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()*10 
-                      << endl;
-        }
-    } 
-    
-    
-    
-   } else {
-       
-       // part of QM coordinates
-       
-                std::vector< ctp::QMAtom* > *qmatoms = orbitals_guess->getAtoms();
-                std::vector< ctp::QMAtom* >::iterator it;
-
+  std::vector< ctp::QMAtom* > qmatoms;
                 // This is needed for the QM/MM scheme, since only orbitals have 
                 // updated positions of the QM region, hence vector<Segments*> is 
                 // NULL in the QMMachine and the QM region is also printed here
-                for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
-                    if (!(*it)->from_environment) {
-                        _com_file << setw(3) << (*it)->type.c_str()
-                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
-                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
-                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->z
-                                << endl;
-
-
-                        //_com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
-                    }
-                }  
+    if(_write_charges){
+        qmatoms= orbitals_guess->QMAtoms();
+    }
+    else{
+        QMMInterface qmmface;
+        qmatoms=qmmface.Convert(segments);
+    }
+           
+    std::vector< ctp::QMAtom* >::iterator it;
        
-                
-                // part for the MM charge coordinates
-                _crg_file.open ( _crg_file_name_full.c_str() );
-                             for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
-                    if ((*it)->from_environment) {
-                        boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-                        fmt % (*it)->x % (*it)->y % (*it)->z % (*it)->charge;
-                        if ((*it)->charge != 0.0) _crg_file << fmt << endl;
-                    }
-                }
 
-                _crg_file << endl;
                 
+    for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
+        if (!(*it)->from_environment) {
+            _com_file << setw(3) << (*it)->type.c_str()
+                    << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
+                    << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
+                    << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->z
+                    << endl;
+        }
+    }  
                 
-                _crg_file.close();
+    if(_write_charges){
+        // part for the MM charge coordinates
+        _crg_file.open ( _crg_file_name_full.c_str() );
+                     for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
+            if ((*it)->from_environment) {
+                boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
+                fmt % (*it)->x % (*it)->y % (*it)->z % (*it)->charge;
+                if ((*it)->charge != 0.0) _crg_file << fmt << endl;
+            }
+        }
+
+        _crg_file << endl;
+        _crg_file.close();
+    }
        
-   } // end different coordinate file data depending on QM/MM or pure QM
-
     _com_file << "end\n";
-    
     // write charge of the molecule
     _com_file <<  "\ncharge " << _charge << "\n" ;
      
@@ -229,7 +203,6 @@ bool NWChem::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orb
 
     _com_file << _options << "\n";
 
-    
     if ( _write_guess ) { 
         if ( orbitals_guess == NULL ) {
             throw std::runtime_error( "A guess for dimer orbitals has not been prepared.");
@@ -249,9 +222,7 @@ bool NWChem::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orb
             // number of orbitals
             _orb_file << _size_of_basis << endl;
 
-            
-            std::vector<int> _sort_index;
-            
+            std::vector<int> _sort_index;            
             orbitals_guess->SortEnergies( &_sort_index );
             
             int level = 1;
@@ -292,7 +263,6 @@ bool NWChem::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orb
                         if (column == ncolumns) { _orb_file << endl; column = 0; }
                         column++;
                 }
-                
                 level++;
                 if ( column != 1 ) _orb_file << endl;
             } 
@@ -308,19 +278,13 @@ bool NWChem::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orb
             } else  {
                 LOG( ctp::logERROR, *_pLog ) << "Conversion of binary MO file to binary failed. " << flush;
                 return false;
-            }
-            
-            
+            }   
         }
-    
-    
     }   
 
     _com_file << endl;
     _com_file.close();
-    
-    
-    
+      
       // and now generate a shell script to run both jobs, if neccessary
       LOG(ctp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
@@ -331,11 +295,6 @@ bool NWChem::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orb
             //_com_file << _temp;
             WriteShellScript();
             _scratch_dir = scratch_dir_backup;
-    
-    
-    
-    
-    
     
     return true;
     

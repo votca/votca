@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -27,7 +27,7 @@
 
 
 using namespace std;
-using namespace votca::tools;
+
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
@@ -43,17 +43,17 @@ namespace votca { namespace xtp {
       
         
         
-        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis);
+        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis, const ub::matrix<double> &inverse_Coulomb);
         void Initialize_4c_small_molecule(AOBasis &_dftbasis); ///////////
-        void Initialize_4c_large_molecule(AOBasis &_dftbasis); ///////////
       
+        const ub::matrix<double>& getEXX() const{return _EXXs;}
         
-        ub::matrix<double> getERIs(){return _ERIs;}
+        const ub::matrix<double>& getERIs() const{return _ERIs;}
         double& getERIsenergy(){return _ERIsenergy;}
         
-        void CalculateERIs(const ub::matrix<double> &DMAT, const ub::matrix<double> &_inverse_Coulomb);
+        void CalculateERIs(const ub::matrix<double> &DMAT);
         void CalculateERIs_4c_small_molecule(const ub::matrix<double> &DMAT); ///////////////////////////////////////
-        
+        void CalculateEXX_4c_small_molecule(const ub::matrix<double> &DMAT);
         
         int getSize1(){return _ERIs.size1();}
         int getSize2(){return _ERIs.size2();}
@@ -61,13 +61,17 @@ namespace votca { namespace xtp {
         void printERIs();
         
     private:
+        ub::matrix<double> _inverse_Coulomb;
         
         TCMatrix_dft _threecenter;
         FCMatrix_dft _fourcenter; ////////////////////////
        
         ub::matrix<double> _ERIs;
+        ub::matrix<double> _EXXs;
         double _ERIsenergy;
+        double _EXXenergy;
         void CalculateEnergy(const ub::vector<double> &dmatasarray);
+        void CalculateEXXEnergy(const ub::vector<double> &dmatasarray);
     };
     
     

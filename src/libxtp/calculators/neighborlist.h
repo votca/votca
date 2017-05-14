@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -159,18 +159,16 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
     top->NBList().Cleanup();
 
     if (_generate_from_file) {        
-        this->GenerateFromFile(top, _generate_from);        
+        GenerateFromFile(top, _generate_from);        
     }    
     else {        
 
        
-        
-     
-        
         if (tools::globals::verbose) {
             std::cout << std::endl <<  "... ..." << std::flush;
         }
         
+        std::vector<std::string> skippedpairs;
        
         for (std::vector< ctp::Segment* > ::iterator segit1 = top->Segments().begin();              
                 segit1 < top->Segments().end();
@@ -203,10 +201,11 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
                                          .at(seg2->getName());
                     }
                     catch (std::out_of_range) {
-                        std::cout << "ERROR: No cut-off specified for segment pair "
-                             << seg1->getName() << " | " << seg2->getName() 
-                             << ". " << std::endl;
-                        throw std::runtime_error("Missing input in options.");
+                        std::string pairstring=seg1->getName()+"/"+seg2->getName();
+                        if(std::find(skippedpairs.begin(), skippedpairs.end(), pairstring) == skippedpairs.end()){
+                            skippedpairs.push_back(pairstring);
+                        }
+                        continue;
                     }
                 }
 
@@ -253,7 +252,12 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
 #
             
         } /* exit loop seg1 */       
-
+        
+        std::cout << "WARNING: No cut-off specified for segment pairs of type "<<std::endl;              
+        for(std::vector< std::string >::iterator st=skippedpairs.begin();st!=skippedpairs.end();++st){
+            std::cout<<(*st)<<std::endl;
+        }
+        std::cout << "pairs were skipped"<<std::endl;
     }
 
     std::cout << std::endl << " ... ... Created " << top->NBList().size() << " direct pairs.";

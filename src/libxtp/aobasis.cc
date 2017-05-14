@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -35,7 +35,7 @@ AOShell* AOBasis::addShell( string shellType,int Lmax,int Lmin, double shellScal
         return aoshell;
     }
 
-void AOBasis::ReorderMOs(ub::matrix<double> &v, string start, string target )  { 
+void AOBasis::ReorderMOs(ub::matrix<double> &v,const string& start,const string& target )  { 
        
           // cout << " Reordering MOs from " << start << " to " << target << endl;
            
@@ -97,7 +97,7 @@ void AOBasis::MultiplyMOs(ub::matrix<double> &v, vector<int> const &multiplier )
            }
        } 
 //this is for gaussian only to transform from gaussian ordering cartesian to spherical in gaussian ordering not more
-void AOBasis::getTransformationCartToSpherical( string& package, ub::matrix<double>& _trafomatrix ){
+void AOBasis::getTransformationCartToSpherical(const string& package, ub::matrix<double>& _trafomatrix ){
 
     if ( package != "gaussian" ){
         cout << " I should not have been called, will do nothing! " << endl;
@@ -105,19 +105,15 @@ void AOBasis::getTransformationCartToSpherical( string& package, ub::matrix<doub
         // go through basisset, determine function sizes
         int _dim_sph = 0;
         int _dim_cart = 0;
-        for (vector< AOShell* >::iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
-            AOShell* _shell = this->getShell( _is );
-            string _type =  _shell->getType();
+        for (AOShellIterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
+            const AOShell* _shell = getShell( _is );
+            const string& _type =  _shell->getType();
             
             _dim_sph  += NumFuncShell( _type );
             _dim_cart +=NumFuncShell_cartesian( _type );
-            
-            
-            //this->addTrafoShell( package,  _type, _trafomatrix );
+ 
         }   
-        
-        
-        // cout << " Filling trafo matrix of size : " << _dim_sph << " : " << _dim_cart << endl;
+ 
         
         // initialize _trafomatrix
         _trafomatrix = ub::zero_matrix<double>( _dim_sph , _dim_cart );
@@ -125,35 +121,27 @@ void AOBasis::getTransformationCartToSpherical( string& package, ub::matrix<doub
         // now fill it
         int _row_start = 0;
         int _col_start = 0;
-        for (vector< AOShell* >::iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
-            AOShell* _shell = this->getShell( _is );
+        for (AOShellIterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
+            const AOShell* _shell = getShell( _is );
             string _type =  _shell->getType();
             int _row_end = _row_start +NumFuncShell( _type );
             int _col_end = _col_start +NumFuncShell_cartesian( _type );
             
             ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange( _trafomatrix, _row_start, _row_end, _col_start, _col_end);
-            this->addTrafoCartShell(  _shell, _submatrix  );
+            addTrafoCartShell(  _shell, _submatrix  );
             
             _row_start = _row_end;
             _col_start = _col_end;
             
-        } 
-        
-        
+        }  
     }
-
+    return;
 }
 
-
-
-
-
-
-
-
-void AOBasis::addTrafoCartShell( AOShell* shell , ub::matrix_range< ub::matrix<double> >& _trafo ){
+//only for gaussian package
+void AOBasis::addTrafoCartShell(const AOShell* shell , ub::matrix_range< ub::matrix<double> >& _trafo ){
     
-    // cout << "getting trafo of shell type :" << shell->getType() << endl;
+   
     // fill _local according to _lmax;
     int _lmax = shell->getLmax();
     string _type = shell->getType();
@@ -201,13 +189,8 @@ void AOBasis::addTrafoCartShell( AOShell* shell , ub::matrix_range< ub::matrix<d
             
         }
     }
-
-    
+    return;
 }
-
-
-
-
 
 
 int AOBasis::getMaxFunctions () {
@@ -215,29 +198,26 @@ int AOBasis::getMaxFunctions () {
     int _maxfunc = 0;
     
     // go through basisset
-    for (vector< AOShell* >::iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
-        AOShell* _shell = this->getShell( _is );
+    for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
+        const AOShell* _shell = this->getShell( _is );
         int _func_here = _shell->getNumFunc();
         if ( _func_here > _maxfunc ) _maxfunc = _func_here;
     }
-
     return _maxfunc;
-    
 }
 
 
-void AOBasis::getMultiplierVector( string& start, string& target, vector<int>& multiplier){
+void AOBasis::getMultiplierVector( const string& start, const string& target, vector<int>& multiplier){
 
     // go through basisset
-    for (vector< AOShell* >::iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
-        AOShell* _shell = this->getShell( _is );
-        string _type =  _shell->getType();
-        this->addMultiplierShell(  start, target, _type, multiplier );
+    for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
+        const AOShell* _shell = this->getShell( _is );
+        addMultiplierShell(  start, target, _shell->getType(), multiplier );
     }
-    
-        }
+    return;
+    }
 
-void AOBasis::addMultiplierShell(string& start, string& target, string& shell_type, vector<int>& multiplier) {
+void AOBasis::addMultiplierShell(const string& start, const string& target, const string& shell_type, vector<int>& multiplier) {
 
 
     if (target == "xtp") {
@@ -279,7 +259,7 @@ void AOBasis::addMultiplierShell(string& start, string& target, string& shell_ty
             //_nbf = 0;
             for (unsigned i = 0; i < shell_type.length(); ++i) {
                 string local_shell = string(shell_type, i, 1);
-                this->addMultiplierShell(start, target, local_shell, multiplier);
+                addMultiplierShell(start, target, local_shell, multiplier);
             }
         }
     } else {
@@ -289,23 +269,22 @@ void AOBasis::addMultiplierShell(string& start, string& target, string& shell_ty
 
 
     }
-
+    return;
 }
 
 
-void AOBasis::getReorderVector( string& start, string& target, vector<int>& neworder){
+void AOBasis::getReorderVector(const string& start,const string& target, vector<int>& neworder){
 
     // go through basisset
-    for (vector< AOShell* >::iterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
-        AOShell* _shell = this->getShell( _is );
-        string _type =  _shell->getType();
-        this->addReorderShell( start, target, _type, neworder );
+    for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
+        const AOShell* _shell = getShell( _is );
+        addReorderShell( start, target, _shell->getType(), neworder );
     }
-    
+    return;
 }
 
 
-void AOBasis::addReorderShell( string& start, string& target,  string& shell_type, vector<int>& neworder ) {
+void AOBasis::addReorderShell(const string& start,const string& target,const string& shell_type, vector<int>& neworder ) {
     
     // current length of vector
     int _cur_pos = neworder.size() -1 ;
@@ -397,7 +376,7 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
         throw std::runtime_error( "Reordering not implemented yet!");
         
     } 
-    
+    return;
 }
 
 
@@ -406,7 +385,6 @@ void AOBasis::addReorderShell( string& start, string& target,  string& shell_typ
 void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _fragbreak  ) {
     
         vector< ctp::QMAtom* > :: iterator ait;
-        std::vector < ctp::QMAtom* > :: iterator atom;
 
        _AOBasisSize = 0;
        _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false. 
@@ -416,29 +394,23 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _frag
        // loop over atoms
        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
           // get coordinates of this atom and convert from Angstrom to Bohr
-          vec pos;
-          pos.setX( (*ait)->x * tools::conv::ang2bohr  );
-          pos.setY( (*ait)->y * tools::conv::ang2bohr  );
-          pos.setZ( (*ait)->z * tools::conv::ang2bohr );
+          vec pos=(*ait)->getPos()* tools::conv::ang2bohr;
           // get element type of the atom
           string  name = (*ait)->type;
           // get the basis set entry for this element
           Element* element = bs->getElement(name);
                     // and loop over all shells
           for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-               Shell* shell = (*its);
-               // we don't like contracted basis sets yet
-               //if ( shell->getSize() > 1 ) {
-               //    cerr << "We have a contracted basis set!" << flush;
-               //} else {
-                   AOShell* aoshell = addShell( shell->getType(),shell->getLmax(),shell->getLmin(), shell->getScale(), NumFuncShell( shell->getType() ), _AOBasisSize, OffsetFuncShell( shell->getType() ), pos, name, _atomidx );
-                   _AOBasisSize += NumFuncShell( shell->getType() );
-                   for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                      GaussianPrimitive* gaussian = *itg;
-                      aoshell->addGaussian(gaussian->decay, gaussian->contraction);
-                //   }
-               }
-          }
+                    Shell* shell = (*its);
+                    int numfuncshell=NumFuncShell(shell->getType());
+                    AOShell* aoshell = addShell(shell->getType(), shell->getLmax(), shell->getLmin(), shell->getScale(), 
+                            numfuncshell, _AOBasisSize, OffsetFuncShell(shell->getType()), pos, name, _atomidx);
+                    _AOBasisSize += numfuncshell;
+                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                        GaussianPrimitive* gaussian = *itg;
+                        aoshell->addGaussian(gaussian->decay, gaussian->contraction);
+                    }
+                }
           
           if ( _atomidx < _fragbreak ) _AOBasisFragA = _AOBasisSize;
           
@@ -451,9 +423,10 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _frag
        } else {
            _AOBasisFragB = _AOBasisSize - _AOBasisFragA;
        }
-           
-    
+       return;
 }
+
+
 
 
 
@@ -470,26 +443,19 @@ void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
        // loop over atoms
        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
           // get coordinates of this atom and convert from Angstrom to Bohr
-          vec pos;
-          pos.setX( (*ait)->x * tools::conv::ang2bohr  );
-          pos.setY( (*ait)->y * tools::conv::ang2bohr  );
-          pos.setZ( (*ait)->z * tools::conv::ang2bohr  );
+          vec pos=(*ait)->getPos()* tools::conv::ang2bohr;
           // get element type of the atom
           string  name = (*ait)->type;
           // get the basis set entry for this element
           if(name=="H" || name=="He"){continue;}
           Element* element = bs->getElement(name);
-          // cout << " Name " << name << endl;
+         
           // and loop over all shells
           
           int lmax=0;
           for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                Shell* shell = (*its);
-               //cout << " Shell " << shell->getType() << endl;
-               // we don't like contracted basis sets yet
-               //if ( shell->getSize() > 1 ) {
-               //    cerr << "We have a contracted basis set!" << flush;
-               //} else {
+              
                string local_shell =    string( shell->getType(), 0, 1 );
                int l=0;
                if ( local_shell == "S" ) l =0;
@@ -504,16 +470,14 @@ void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
                    _AOBasisSize += NumFuncShell( shell->getType() );
                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                       GaussianPrimitive* gaussian = *itg;
-                      aoshell->addGaussian( gaussian->decay, gaussian->contraction);
+                      aoshell->addGaussian(gaussian->power, gaussian->decay, gaussian->contraction);
                 //   }
                }
           }
-          
-        
-          
+
           _atomidx++;
       }
-        
+       return; 
 }
 
     

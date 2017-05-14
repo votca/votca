@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -30,13 +30,12 @@ namespace votca {
         
         
         
-    void ERIs::Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis) {
+    void ERIs::Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis,const ub::matrix<double> &inverse_Coulomb) {
 
-           
+           _inverse_Coulomb=inverse_Coulomb;
            
             _threecenter.Fill( _auxbasis, _dftbasis );
-            //cout << "_threeceenter(0)"<<endl;
-            //cout << _threecenter.getDatamatrix(0)<<endl;
+          
 
             return;
         }
@@ -50,25 +49,9 @@ namespace votca {
           return;
         }
 
-         
         
         
-
-  /*  void Eris::Initialize_Symmetric(AOBasis &_dftbasis,AOBasis &_auxbasis, AOCoulomb &_auxcoulomb){
-        _threecenter.Fill(_auxbasis,_dftbasis);
-        eigenlinalg_matrixsqrt(_auxcoulomb.Matrix());
-        
-        for 
-        
-    }    
-        
- */       
-        
-        
-      
-        
-        
-        void ERIs::CalculateERIs (const ub::matrix<double> &DMAT, const ub::matrix<double> &_inverse_Coulomb){
+        void ERIs::CalculateERIs (const ub::matrix<double> &DMAT){
 
             //cout << _auxAOcoulomb.Matrix()<<endl;
             //cout << "inverse Coulomb"<< endl;
@@ -103,18 +86,8 @@ namespace votca {
             }
 
             CalculateEnergy(dmatasarray);
-            //cout<<_ERIs<<endl;
+            return;
         }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -154,18 +127,50 @@ namespace votca {
           }
 
           CalculateEnergy(dmatasarray);
-
+          return;
         }
         
-    
+        
+        void ERIs::CalculateEXX_4c_small_molecule(const ub::matrix<double> &DMAT) {
 
+          _EXXs = ub::zero_matrix<double>(DMAT.size1(), DMAT.size2());
+          const ub::vector<double> dmatasarray = DMAT.data();
+          const ub::vector<double>& _4c_vector = _fourcenter.get_4c_vector();
 
+          int dftBasisSize = DMAT.size1();
+          int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
+          #pragma omp parallel for
+          for (unsigned _i = 0; _i < DMAT.size1(); _i++) {
+            unsigned sum_i = (_i*(_i+1))/2;
+            for (unsigned _j = _i; _j < DMAT.size2(); _j++) {
+              unsigned _index_ij = DMAT.size2() * _i - sum_i + _j;
+              unsigned _index_ij_kl_a = vectorSize * _index_ij - (_index_ij*(_index_ij+1))/2;
+              for (unsigned _k = 0; _k < DMAT.size1(); _k++) {
+                unsigned sum_k = (_k*(_k+1))/2;
+                for (unsigned _l = _k; _l < DMAT.size2(); _l++) {
+                  unsigned _index_kl = DMAT.size2() * _k - sum_k + _l;
 
+                  unsigned _index_ij_kl = _index_ij_kl_a + _index_kl;
+                  if (_index_ij > _index_kl) _index_ij_kl = vectorSize * _index_kl - (_index_kl*(_index_kl+1))/2 + _index_ij;
 
+                  if (_l == _k) {
+                    _EXXs(_i, _l) += DMAT(_j, _k) * _4c_vector(_index_ij_kl);
+                  } else {
+                    _EXXs(_i, _l) += 2. * DMAT(_j, _k) * _4c_vector(_index_ij_kl);
+                  }
 
+                }
+              }
+              _EXXs(_j, _i) = _EXXs(_i, _j);
+            }
+          }
 
-
-
+          CalculateEXXEnergy(dmatasarray);
+          return;
+        }
+        
+        
+        
         
          void ERIs::CalculateEnergy(const ub::vector<double> &dmatasarray){
             
@@ -177,7 +182,21 @@ namespace votca {
                 
             }
             _ERIsenergy=energy;
-
+            return;
+        }
+         
+         
+         void ERIs::CalculateEXXEnergy(const ub::vector<double> &dmatasarray){
+            
+            const ub::vector<double>& EXXsasarray=_EXXs.data();
+            double energy=0.0;
+           #pragma omp parallel for reduction(+:energy)
+            for (unsigned _i=0;_i<EXXsasarray.size();_i++){
+                energy+=dmatasarray[_i]*EXXsasarray[_i];
+                
+            }
+            _EXXenergy=energy;
+            return;
         }
         
         
@@ -187,6 +206,7 @@ namespace votca {
                     cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<endl;
                 }
             }
+          return;
         }
         
         

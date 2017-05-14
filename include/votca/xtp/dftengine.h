@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,9 +22,9 @@
 
 #include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
-
+#include <votca/ctp/polarseg.h>
 #include <votca/ctp/logger.h>
-
+#include <votca/ctp/topology.h>
 
 #include <votca/ctp/apolarsite.h>
 #include <boost/filesystem.hpp>
@@ -63,7 +63,7 @@ public:
 
     void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
     
-    void setExternalcharges(std::vector<ctp::APolarSite*> externalsites){
+    void setExternalcharges(ctp::PolarSeg externalsites){
         _externalsites=externalsites;
         _addexternalsites=true;
     }
@@ -93,17 +93,11 @@ public:
     ub::matrix<double> DensityMatrix_frac( const ub::matrix<double>& MOs,const ub::vector<double>& MOEnergies, int numofelec);
     string Choosesmallgrid(string largegrid);
     void NuclearRepulsion();
-    double ExternalRepulsion();
-     double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
-     ub::matrix<double> AverageShells(const ub::matrix<double>& dmat,AOBasis& dftbasis);
+    double ExternalRepulsion(ctp::Topology* top=NULL);
+    double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
+    ub::matrix<double> AverageShells(const ub::matrix<double>& dmat,AOBasis& dftbasis);
    
-    //bool   _maverick;
-    
-    // program tasks
-    //bool                                _do_qp_diag;
-    
-    // storage tasks
-    //bool                                _store_qp_pert;
+ 
     
     int                                 _openmp_threads;
     
@@ -149,18 +143,13 @@ public:
     std::vector<double>                     _externalgrid;
     std::vector<double>                     _externalgrid_nuc;
     
+     ub::matrix<double>                  _dftAOdmat;
 
     // AO Matrices
-    AOOverlap                           _dftAOoverlap;
-   
-   // AOCoulomb                           _dftAOcoulomb;
-    
-    ub::matrix<double>                  _AuxAOcoulomb_inv;
-    ub::matrix<double>                  _dftAOdmat;
+    AOOverlap                           _dftAOoverlap;   
     AOKinetic                           _dftAOkinetic;
     AOESP                               _dftAOESP;
     AOECP                               _dftAOECP;
-    
     AODipole_Potential                  _dftAODipole_Potential;
     AOQuadrupole_Potential              _dftAOQuadrupole_Potential;
     bool                                _with_guess;
@@ -195,7 +184,7 @@ public:
     ERIs                                _ERIs;
     
     // external charges
-     std::vector<ctp::APolarSite*>        _externalsites;
+     ctp::PolarSeg                   _externalsites;
      bool                            _addexternalsites;
     
     // exchange and correlation

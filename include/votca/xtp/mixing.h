@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,7 +26,6 @@
 #include <votca/ctp/logger.h>
 
 
-using namespace votca::tools;
 
 namespace votca { namespace xtp {
  namespace ub = boost::numeric::ublas;

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -60,10 +60,7 @@ public:
 
     void ReadJobFile( ctp::Topology *top );
     
-/*  
-    void    EvalPair(Topology *top, QMPair *pair, int slot);
-    void    CleanUp();
-*/
+
 
 private:
 
@@ -106,18 +103,6 @@ private:
     
     std::map<std::string, int> FillParseMaps(string Mapstring);
     
-    
-    /** 
-     * \brief Guess for a dimer based on monomer orbitals
-     * 
-     * Given two monomer orbitals (A and B) constructs a guess for dimer
-     * orbitals: | A 0 | and energies: [EA, EB]
-     *           | 0 B |
-     */
-    void PrepareGuess(         Orbitals *_orbitalsA, 
-                               Orbitals *_orbitalsB, 
-                               Orbitals *_orbitalsAB, 
-                               ctp::Logger *log = NULL );
     
     void LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log = NULL );
         

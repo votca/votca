@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -32,7 +32,7 @@ namespace votca { namespace xtp {
 
  
 
-    void AOCoulomb::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp) {
+    void AOCoulomb::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp) {
       
             // shell info, only lmax tells how far to go
             const int _lmax_row = _shell_row->getLmax();
@@ -130,19 +130,19 @@ namespace votca { namespace xtp {
 
            
             
-            typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+          
         // iterate over Gaussians in this _shell_row
-            for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
+            for ( AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
-                const double _decay_row = (*itr)->decay;
+                const double _decay_row = (*itr)->getDecay();
                 const double r_decay_row = 0.5/_decay_row;
-                const double powfactor_row=(*itr)->powfactor;
-                for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
+                const double powfactor_row=(*itr)->getPowfactor();
+                for ( AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
                     
                      // get decay constants 
-                        const double _decay_col = (*itc)->decay;
+                        const double _decay_col = (*itc)->getDecay();
                         const double r_decay_col = 0.5/_decay_col; 
-                       const double powfactor_col=(*itc)->powfactor;
+                       const double powfactor_col=(*itc)->getPowfactor();
                       
                          
                          ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
@@ -164,17 +164,7 @@ namespace votca { namespace xtp {
             const double r_decay_2 = 2.*r_decay; 
             const double fac_a_ac = _decay_row/_decay; 
             const double fac_c_ac = _decay_col/_decay; 
-            
-                       
-
-            
-
-
-            
-            //bool ident;
-            
-            //if ( )
-            
+ 
             
             const double wmp0 = r_decay_2 * (_decay_row * _pos_row.getX() + _decay_col * _pos_col.getX()) - _pos_row.getX();
             const double wmp1 = r_decay_2 * (_decay_row * _pos_row.getY() + _decay_col * _pos_col.getY()) - _pos_row.getY();
@@ -187,9 +177,6 @@ namespace votca { namespace xtp {
             
             const double _T = fac_a_ac * _decay_col * _distsq;
 
-        
-
-            
 
             double _fak = 2.0 * pow(pi, 2.5) / (_decay_row * _decay_col * sqrt(_decay_row + _decay_col));
             _fak = _fak *  powfactor_col*powfactor_row;
@@ -670,8 +657,8 @@ if (_lmax_col > 5) {
             ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col, _ncols);
 
             // get transformation matrices including contraction coefficients
-          std::vector<double> _contractions_row = (*itr)->contraction;
-          std::vector<double> _contractions_col = (*itc)->contraction;
+          const std::vector<double>& _contractions_row = (*itr)->getContraction();
+          const std::vector<double>& _contractions_col = (*itc)->getContraction();
 
           
 
@@ -1143,12 +1130,6 @@ if (_lmax_col > 5) {
 
 
 
-
-
-
-
-
-
             // save to _matrix
             for (unsigned i = 0; i < _matrix.size1(); i++) {
                 for (unsigned j = 0; j < _matrix.size2(); j++) {
@@ -1156,112 +1137,58 @@ if (_lmax_col > 5) {
                 }
             }
 
-
-            //_ol.clear();
-
                 } // _shell_col Gaussians
             } // _shell_row Gaussians
-            
+           return; 
             }    
     
 
     
-    void AOCoulomb::Symmetrize( AOOverlap& _gwoverlap, AOBasis& gwbasis, AOOverlap& _gwoverlap_inverse, AOOverlap& _gwoverlap_cholesky_inverse){
+    void AOCoulomb::Symmetrize(const AOOverlap& _gwoverlap,const AOBasis& gwbasis, AOOverlap& _gwoverlap_inverse, AOOverlap& _gwoverlap_cholesky_inverse){
        
-        //Logger* pLog = opThread->getLogger();
-             
         if ( gwbasis._is_stable ){
             
             // get inverse of _aooverlap
-            // Inversion of the matrix using GSL (much faster than boost)
-            ub::matrix<double> _overlap_copy = _gwoverlap._aomatrix;
-            linalg_invert( _overlap_copy, _gwoverlap_inverse._aomatrix );
-            // cout << TimeStamp() << " Inverted GW Overlap matrix " <<   endl;
-            _overlap_copy.resize(0,0);
-            //_gwoverlap_inverse.Print( "S^-1" );
+            
+            linalg_invert( _gwoverlap.Matrix(), _gwoverlap_inverse.Matrix() );
+            
 
             // getting Cholesky decomposition of AOOverlap matrix
-            AOOverlap _gwoverlap_cholesky;
+            ub::matrix<double> _gwoverlap_cholesky;
             // make copy of _gwoverlap, because matrix is overwritten in GSL
-            _gwoverlap_cholesky._aomatrix = _gwoverlap._aomatrix;
-            linalg_cholesky_decompose( _gwoverlap_cholesky._aomatrix );
-            // cout << TimeStamp() << " Calculated Cholesky decomposition of GW Overlap matrix " <<  endl;
-            //_gwoverlap_cholesky.Print( "ChoS" );
-
+            _gwoverlap_cholesky = _gwoverlap.Matrix();
+            linalg_cholesky_decompose( _gwoverlap_cholesky );
+           
             // remove L^T from Cholesky
-            for (unsigned i =0; i < _gwoverlap_cholesky._aomatrix.size1(); i++ ){
-                for (unsigned j = i+1; j < _gwoverlap_cholesky._aomatrix.size1(); j++ ){
-                    _gwoverlap_cholesky._aomatrix(i,j) = 0.0;
+            for (unsigned i =0; i < _gwoverlap_cholesky.size1(); i++ ){
+                for (unsigned j = i+1; j < _gwoverlap_cholesky.size1(); j++ ){
+                    _gwoverlap_cholesky(i,j) = 0.0;
                 }
             }
-            //_gwoverlap_cholesky.Print( "ChoS_zeroed" );
-
-            // invert L to get L^-1
-            //AOOverlap _gwoverlap_cholesky_inverse;
-            _gwoverlap_cholesky_inverse.Initialize(gwbasis._AOBasisSize);
-            _overlap_copy = _gwoverlap_cholesky._aomatrix;
-            linalg_invert( _overlap_copy , _gwoverlap_cholesky_inverse._aomatrix );
-            // cout << TimeStamp() << " Inverted Cholesky of GW Overlap " <<  endl;
-            //_gwoverlap_cholesky_inverse.Print( "L^-1" );
-            _overlap_copy.resize(0,0);
-
-   
             
+            // invert L to get L^-1
+            _gwoverlap_cholesky_inverse.Initialize(gwbasis.AOBasisSize());
+            linalg_invert(  _gwoverlap_cholesky, _gwoverlap_cholesky_inverse.Matrix() );
+         
             
             // calculate V' = L^-1 V (L^-1)^T
-            ub::matrix<double> _temp ( gwbasis._AOBasisSize, gwbasis._AOBasisSize);
-            //_temp = ub::prod( _gwoverlap_cholesky_inverse._aomatrix , _gwcoulomb._aomatrix );
-            _temp = ub::prod( _gwoverlap_cholesky_inverse._aomatrix , this->_aomatrix );
-
-
-            // boost standard, nesting prod and trans is superslow
-            //this->_aomatrix = ub::prod( _temp, ub::trans(_gwoverlap_cholesky_inverse._aomatrix ));
-            ub::matrix<double> _gwoverlap_cholesky_inverse_transposed = ub::trans(_gwoverlap_cholesky_inverse._aomatrix );
-            this->_aomatrix = ub::prod( _temp, _gwoverlap_cholesky_inverse_transposed);
+            ub::matrix<double> _temp = ub::prod( _gwoverlap_cholesky_inverse.Matrix() , _aomatrix );
+            _aomatrix = ub::prod( _temp, ub::trans(_gwoverlap_cholesky_inverse.Matrix()));
             
-            // cout << TimeStamp() << " Multiplied GW Coulomb with L^-1 and (L^-1)^T " <<  endl;
-            // this->Print( "CouSu" );
-
-            ub::vector<double>                  _eigenvalues;
-            ub::matrix<double>                  _eigenvectors;
-
-            // get eigenvectors and eigenvalues of V'
-            // LA_Eigenvalues( this->_aomatrix , _eigenvalues, _eigenvectors);
-            linalg_eigenvalues( this->_aomatrix , _eigenvalues, _eigenvectors);
-            // calc sqrt(V')
-            _temp.clear();
-            //cout << _eigenvalues<<endl;
-            for ( int i = 0; i  < gwbasis._AOBasisSize; i++ ){
-
-                if ( _eigenvalues(i) < 0.0 ) {
-                    cout << "Warning: negative eigenvalue!" << endl;
-                    _eigenvalues(i) = 0.0;
-                }
-                for ( int j = 0; j < gwbasis._AOBasisSize; j++){
-                    _temp(i,j) = _eigenvectors(j,i) * sqrt(_eigenvalues(i));
-                }
-            }
-            
-            this->_aomatrix = ub::prod(_eigenvectors, _temp);
-            // cout << TimeStamp() << " Calculated sqrt(V') matrix " <<  endl;
-            // this->Print( "CouEV" );
-
+            linalg_matrixsqrt(_aomatrix);
+           
             // multiply with L from the left and L+ from the right
-            _temp = ub::prod( _gwoverlap_cholesky._aomatrix , this->_aomatrix );
+            _temp = ub::prod( _gwoverlap_cholesky , _aomatrix );
+            _aomatrix = ub::prod( _temp ,ub::trans( _gwoverlap_cholesky ));
             
-            
-            ub::matrix<double> _gwoverlap_cholesky_transposed = ub::trans( _gwoverlap_cholesky._aomatrix );
-            this->_aomatrix = ub::prod( _temp ,_gwoverlap_cholesky_transposed);
-            
-            
-            // cout << TimeStamp() << " Coulomb matrix sqrt'ed " <<  endl;
-            // this->Print( "CouSqrt" );
-            // multiply _gwcoulomb with _gwoverlap_inverse
-            this->_aomatrix = ub::prod( this->_aomatrix , _gwoverlap_inverse._aomatrix );
-            // cout << TimeStamp() << " Final Coulomb matrix  " <<  endl;
-            // this->Print( " COUfinal ");
+            _aomatrix = ub::prod( _aomatrix , _gwoverlap_inverse.Matrix() );
+ 
+
         }
-        
+        else{
+            cout<<"WARNING: gwbasis is not stable."<<endl;
+        }
+      return;  
     }
     
     

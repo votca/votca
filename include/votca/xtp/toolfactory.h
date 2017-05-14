@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __QMTOOLFACTORY__H
-#define	__QMTOOLFACTORY__H
+#ifndef __XTP_QMTOOLFACTORY__H
+#define	__XTP_QMTOOLFACTORY__H
 
 #include <votca/tools/objectfactory.h>
 #include <votca/ctp/qmtool.h>

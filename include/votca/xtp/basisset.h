@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -29,19 +29,19 @@
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
+ // shell type (S, P, D))
+    int FindLmax(const string& _type);
 
-    int FindLmax(string _type);
+    int FindLmin(const string& _type);
 
-    int FindLmin(string _type);
+    int OffsetFuncShell(const string& shell_type);
 
-    int OffsetFuncShell(string shell_type);
+    int NumFuncShell(const string& shell_type);
+    int NumFuncShell_cartesian(const string& shell_type);
 
-    int NumFuncShell(string shell_type);
-    int NumFuncShell_cartesian(string shell_type);
-
-    int OffsetFuncShell_cartesian(string shell_type);
+    int OffsetFuncShell_cartesian(const string& shell_type);
     
-    std::vector<int> NumFuncSubShell(string shell_type);
+    std::vector<int> NumFuncSubShell(const string& shell_type);
     
  
 
@@ -72,18 +72,13 @@ private:
     shell(_shell) { ; }
 };      
     
-/*
- * S, P, or D functions in a Gaussian-basis expansion
- */
+
 class Shell 
 {
     friend class Element;   
 public:
 
     std::string getType() { return _type; }
-
- 
-    
     
     bool combined(){
         if (_type.length()>1){
@@ -91,8 +86,6 @@ public:
         }
         return false;
     }
-    
-   
     
     int getLmax(  ) {
         return FindLmax(_type);
@@ -102,17 +95,10 @@ public:
         return FindLmin(_type);
     }
     
-
-    
     int getnumofFunc() {
         return NumFuncShell(_type);
     }; 
-    
-    
-  
-    
-    
-    
+
     double getScale() { return _scale; }
     
     int getSize() { return _gaussians.size(); }
@@ -136,7 +122,7 @@ public:
         GaussianPrimitive* gaussian = new GaussianPrimitive(power, decay, contraction, this);
         _gaussians.push_back( gaussian );
         return gaussian;
-    }    
+    }     // shell type (S, P, D))
     
 private:   
 
@@ -150,12 +136,11 @@ private:
        _gaussians.clear();
    }
     
-    // shell type (S, P, D))
+   
     std::string _type;
     // scaling factor
     double _scale;
      
-    //Element* _element;
 
     // vector of pairs of decay constants and contraction coefficients
     vector< GaussianPrimitive* > _gaussians;

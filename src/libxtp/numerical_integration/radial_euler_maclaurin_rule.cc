@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -152,9 +152,9 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
             aobasis.AOBasisFill(bs, _atoms);
             AOOverlap _overlap;
             // initialize overlap matrix
-            _overlap.Initialize(aobasis._AOBasisSize);
+            _overlap.Initialize(aobasis.AOBasisSize());
             // Fill overlap
-            _overlap.Fill(&aobasis);
+            _overlap.Fill(aobasis);
             
             
             
@@ -165,9 +165,9 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
             std::vector<int> idxstop;
             int start = 0;
             int end = 0;
-            for (std::vector< AOShell* >::iterator _row = aobasis.firstShell(); _row != aobasis.lastShell() ; _row++ ) {
+            for (AOBasis::AOShellIterator _row = aobasis.firstShell(); _row != aobasis.lastShell() ; _row++ ) {
                 
-                 AOShell* _shell_row = aobasis.getShell( _row );
+                 const AOShell* _shell_row = aobasis.getShell( _row );
                  
                  if ( _shell_row->getIndex() == atidx ){
 
@@ -200,9 +200,9 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
                 double exp_iat = _element_ranges.at((*ait)->type).alpha;
                 int    l_iat   = _element_ranges.at((*ait)->type).l;
                 
-                double x_a = (*ait)->x * 1.8897259886 ;
-                double y_a = (*ait)->y * 1.8897259886 ;
-                double z_a = (*ait)->z * 1.8897259886 ;
+                double x_a = (*ait)->x * tools::conv::bohr2ang;
+                double y_a = (*ait)->y * tools::conv::bohr2ang;
+                double z_a = (*ait)->z * tools::conv::bohr2ang;
                 
                 //int iat_diff;
                 string type_diff;
@@ -211,15 +211,15 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
                 
                       int _b_start = idxstart[bidx];
                       int _b_stop  = idxstop[bidx];
-                      double x_b = (*bit)->x * 1.8897259886 ;
-                      double y_b = (*bit)->y * 1.8897259886 ;
-                      double z_b = (*bit)->z * 1.8897259886 ;
+                      double x_b = (*bit)->x * tools::conv::bohr2ang;
+                      double y_b = (*bit)->y * tools::conv::bohr2ang;
+                      double z_b = (*bit)->z * tools::conv::bohr2ang;
                       // now do some overlap gymnastics
                       double s_max = 10.0;
                       if ( aidx != bidx ){
                           
                           // find overlap block of these two atoms
-                          ub::matrix<double> _overlapblock = ub::project( _overlap._aomatrix ,  ub::range( _a_start , _a_stop ), ub::range(_b_start, _b_stop ) );
+                          ub::matrix<double> _overlapblock = ub::project( _overlap.Matrix() ,  ub::range( _a_start , _a_stop ), ub::range(_b_start, _b_stop ) );
                           // determine abs max of this block
                           s_max = 0.0;
                           for ( unsigned i = 0 ; i < _overlapblock.size1(); i++ ){

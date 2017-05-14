@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -39,7 +39,7 @@ namespace votca { namespace xtp {
     
 
     
-    void AOQuadrupole_Potential::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col , AOBasis* ecp) {
+    void AOQuadrupole_Potential::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col ,AOBasis* ecp) {
 
         const double pi = boost::math::constants::pi<double>();
 
@@ -52,11 +52,15 @@ namespace votca { namespace xtp {
             (*it)=ang22bohr2*(*it);
         }
         // I am not sure the order definition or anything is correct apolarsite object orders them as Q20, Q21c, Q21s, Q22c, Q22s
-        double q_01 = quadrople[0];
-        double q_02 = quadrople[1];
-        double q_12 = quadrople[2];
-        double q_00 = quadrople[3];
-        double q_11 = quadrople[4]; // tensor is traceless, q_22 = - (q_00 + q_11)
+        
+        // q_01 etc are cartesian tensor multipole moments according to https://en.wikipedia.org/wiki/Quadrupole
+        // so transform apolarsite into cartesian and then multiply by 2 (difference stone definition/wiki definition)
+        // not sure about unit conversion
+        double q_01 = sqrt(3)*quadrople[4];
+        double q_02 = sqrt(3)*quadrople[1];
+        double q_12 = sqrt(3)*quadrople[2];
+        double q_00 = -quadrople[0]+sqrt(3)*quadrople[3];
+        double q_11 = -quadrople[0]-sqrt(3)*quadrople[3]; // tensor is traceless, q_22 = - (q_00 + q_11)
 
         // cout << _gridpoint << endl;
         // shell info, only lmax tells how far to go
@@ -125,18 +129,18 @@ namespace votca { namespace xtp {
         const vec  _diff    = _pos_row - _pos_col;
         // initialize some helper
       
-        double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
+        double _distsq = (_diff*_diff); 
         
-         typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
+     
         // iterate over Gaussians in this _shell_row
-        for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr) {
+        for ( AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr) {
             // iterate over Gaussians in this _shell_col
             // get decay constant
-            const double& _decay_row = (*itr)->decay;
+            const double _decay_row = (*itr)->getDecay();
             
-            for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc) {
+            for ( AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc) {
                 //get decay constant
-                const double& _decay_col = (*itc)->decay;
+                const double _decay_col = (*itc)->getDecay();
 
                 const double zeta = _decay_row + _decay_col;
                 const double _fak  = 0.5/zeta;
@@ -1141,8 +1145,8 @@ for (int _i = 0; _i < _nrows; _i++) {
         ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col,_ncols);
 
         // get transformation matrices including contraction coefficients
-        std::vector<double> _contractions_row = (*itr)->contraction;
-        std::vector<double> _contractions_col = (*itc)->contraction;
+        const std::vector<double>& _contractions_row = (*itr)->getContraction();
+        const std::vector<double>& _contractions_col = (*itc)->getContraction();
         this->getTrafo( _trafo_row, _lmax_row, _decay_row, _contractions_row);
         this->getTrafo( _trafo_col, _lmax_col, _decay_col, _contractions_col);
         
@@ -1164,24 +1168,17 @@ for (int _i = 0; _i < _nrows; _i++) {
         }// _shell_row Gaussians
     }
 
-void AOQuadrupole_Potential::Fillextpotential( AOBasis* aobasis, std::vector<CTP::APolarSite*>& _sites){
+void AOQuadrupole_Potential::Fillextpotential(const AOBasis& aobasis, std::vector<CTP::APolarSite*>& _sites){
   
-    _externalpotential=ub::zero_matrix<double>(aobasis->AOBasisSize(),aobasis->AOBasisSize());
+    _externalpotential=ub::zero_matrix<double>(aobasis.AOBasisSize(),aobasis.AOBasisSize());
    for ( std::vector<CTP::APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
       
         if((*it)->getRank()>1){
              vec positionofsite =  (*it)->getPos()*tools::conv::nm2bohr;
-
-
-             //cout << "NUCLEAR CHARGE" << Znuc << endl;
-             _aomatrix = ub::zero_matrix<double>( aobasis->AOBasisSize(),aobasis->AOBasisSize() );
+             _aomatrix = ub::zero_matrix<double>( aobasis.AOBasisSize(),aobasis.AOBasisSize() );
              setAPolarSite((*it));
              Fill(aobasis,positionofsite);
-             //Print("TMAT");
-
-             _externalpotential+=_aomatrix;
-            // cout << "nucpotential(0,0) " << _nuclearpotential(0,0)<< endl;
-
+             _externalpotential+=_aomatrix;       
      }
    }
     return;

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,6 +18,7 @@
  */
 
 #include "orca.h"
+#include <votca/xtp/qminterface.h>
 
 #include <votca/ctp/segment.h>
 
@@ -126,11 +127,8 @@ void Orca::Initialize( Property *options ) {
  * Prepares the *.inp file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied
  */
-bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess )
-{
-    std::vector< ctp::Atom* > _atoms;
-    std::vector< ctp::Atom* > ::iterator ait;
-    std::vector< ctp::Segment* >::iterator sit;
+bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess ){
+   
     std::vector<std::string> results;
    // int qmatoms = 0;
     std::string temp_suffix = "/id";
@@ -145,330 +143,188 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
     _com_file.open ( _com_file_name_full.c_str() );
     // header 
    //_com_file << "* xyzfile  "  <<  _charge << " " << _spin << " " << _xyz_file_name << "\n" << endl;
-    
     _com_file << "* xyz  "  <<  _charge << " " << _spin << endl;
-    if (!_write_charges) {
-                for (sit = segments.begin(); sit != segments.end(); ++sit) {
-                    temp_suffix = temp_suffix + "_" + boost::lexical_cast<std::string>((*sit)->getId());
-                    _atoms = (*sit)-> Atoms();
+    
+    std::vector< ctp::QMAtom* > qmatoms;
+    
 
-                    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-
-                        if ((*ait)->HasQMPart() == false) {
-                            continue;
-                        }
-
-                        vec pos = (*ait)->getQMPos();
-                        std::string name = (*ait)->getElement();
-
-                        //fprintf(out, "%2s %4.7f %4.7f %4.7f \n"
-                        _com_file << setw(3) << name.c_str()
-                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()*10
-                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()*10
-                                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()*10
-                                << endl;
-                    }
-                }
-                    _com_file << "* \n" << endl;
-                _com_file << "%pal\n "  <<  "nprocs " <<  _threads  << "\nend" << "\n" << endl;
-                
-                // write basis set info to file
-                if ( _write_basis_set) {
-                     Elements _elements;
-   
-                    list<std::string> elements;
-                    BasisSet bs;
-                    bs.LoadBasisSet(_basisset_name);
-                    LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
-                    ofstream _el_file;
-                    std::string _el_file_name = _run_dir + "/" +  "system.bas";
-                    _el_file.open(_el_file_name.c_str());
-                    //_com_file << "@" << "system.bas" << endl;
-                    _el_file << "$DATA" << endl;
-                                                    
-                    for (sit = segments.begin(); sit != segments.end(); ++sit) {
-                        std::vector< ctp::Atom* > atoms = (*sit)-> Atoms();
-                        std::vector< ctp::Atom* >::iterator it;
-                        for (it = atoms.begin(); it < atoms.end(); it++) {
-                            std::string element_name = (*it)->getElement();
-                            list<std::string>::iterator ite;
-                            ite = find(elements.begin(), elements.end(), element_name);
-                            if (ite == elements.end()) {
-                                elements.push_back(element_name);
-                                Element* element = bs.getElement(element_name);
-                                _el_file << _elements.getEleFull(element_name) << endl; 
-                                for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                                    Shell* shell = (*its);
-                                    _el_file  << shell->getType() << " " << shell->getSize() << endl; //<< " " << FortranFormat(shell->getScale()) << endl;
-                                    int _sh_idx =0;
-                                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                        GaussianPrimitive* gaussian = *itg;
-                                        _sh_idx++;
-                                        _el_file << " " << _sh_idx << " " << indent(gaussian->decay);
-                                        for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
-                                            if (gaussian->contraction[_icontr] != 0.0) {
-                                                _el_file << " " << indent(gaussian->contraction[_icontr]);
-                                            }
-                                        }
-                                        _el_file << endl;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    _el_file << "STOP\n";
-                    _el_file.close();
-                
-                
-                    _com_file << "%basis\n "  << endl;
-                    _com_file << "GTOName" << " " << "=" << "\"system.bas\";"  << endl;
-                } // write_basis set
-                
-                /* WRITING ECP INTO system.inp FILE for ORCA**/
-                if ( _write_pseudopotentials ){
-                    std::string pseudopotential_name("ecp");
-                    _com_file << endl;
-                  
-                    list<std::string> elements;
-                    elements.push_back("H");
-                    elements.push_back("He");
-                    BasisSet ecp;
-                    ecp.LoadPseudopotentialSet(pseudopotential_name);
-                    LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << pseudopotential_name << flush;
-                    for (sit = segments.begin(); sit != segments.end(); ++sit) {
-                        std::vector< ctp::Atom* > atoms = (*sit)-> Atoms();
-                        std::vector< ctp::Atom* >::iterator it;
-                        for (it = atoms.begin(); it < atoms.end(); it++) {
-                            std::string element_name = (*it)->getElement();
-                            list<std::string>::iterator ite;
-                            ite = find(elements.begin(), elements.end(), element_name);
-                            if (ite == elements.end()) {
-                                elements.push_back(element_name);
-                                Element* element = ecp.getElement(element_name);
-                                _com_file << "\n" << "NewECP" << " " <<  element_name  << endl;
-                                _com_file << "N_core" << " " << element->getNcore()  << endl;
-                                //lmaxnum2lmaxname 
-                                _com_file << "lmax" << " " << getLName(element->getLmax()) << endl;
-                             
-                                //For Orca the order doesn't matter but let's write it in ascending order
-                                // write remaining shells in ascending order s,p,d...
-                                for (int i = 0; i < element->getLmax(); i++) {
-                                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                                        Shell* shell = (*its);
-                                        if (shell->getLmax() == i) {
-                                        // shell type, number primitives, scale factor
-                                        _com_file << shell->getType() << " " <<  shell->getSize() << endl;
-                                        int _sh_idx=0;
-                                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                            GaussianPrimitive* gaussian = *itg;
-                                            _sh_idx++;
-                                            _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
-                                        }
-                                    }
-                                }
-                            }
-                                
-                            for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                                Shell* shell = (*its);
-                                // shell type, number primitives, scale factor
-                                if (shell->getLmax() == element->getLmax()) {
-                                    _com_file << shell->getType() << " " <<  shell->getSize() << endl;
-                                    // _com_file << shell->getSize() << endl;
-                                    int _sh_idx=0;
-                                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                        GaussianPrimitive* gaussian = *itg;
-                                             _sh_idx++;
-                                        _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
-                                        }
-                                    }
-                                }
-                                
-                               _com_file << "end\n "  <<  "\n" << endl; 
-                            }
-                           
-                        }
-                    }  
-                        
-        }//if(_write_pseudopotentials)     
-        /* END   OF WRITING ECP INTO system.inp FILE for ORCA*************/                
-        _com_file << "end\n "  <<  "\n" << endl;   //This end is for the basis set block
-                
-    } else {
-            std::vector< ctp::QMAtom* > *qmatoms = orbitals_guess->getAtoms();
-            std::vector< ctp::QMAtom* >::iterator it;
-
-            // This is needed for the QM/MM scheme, since only orbitals have 
+       // This is needed for the QM/MM scheme, since only orbitals have 
             // updated positions of the QM region, hence vector<Segments*> is 
             // NULL in the QMMachine and the QM region is also printed here
-            for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
-                if (!(*it)->from_environment) {
-                    _com_file << setw(3) << (*it)->type.c_str()
-                              << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
-                              << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
-                              << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->z
-                              << endl;
-           //_com_file << (*it)->type << " " <<  (*it)->x << " " << (*it)->y << " " << (*it)->z << endl;
-                }
-            }
-            _com_file << "* \n" << endl;
-            _com_file << "%pal\n "  <<  "nprocs " <<  _threads  << "\nend" << "\n" << endl;
-
-            
-            // basis set info
-            if ( _write_basis_set) {
-                Elements _elements;
+    if(_write_charges){
+        qmatoms= orbitals_guess->QMAtoms();
+    }
+    else{
+        QMMInterface qmmface;
+        qmatoms=qmmface.Convert(segments);
+    }
+    
    
-                list<std::string> elements;
-                BasisSet bs;
-                bs.LoadBasisSet(_basisset_name);
-                LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
-                ofstream _el_file;
-                std::string _el_file_name = _run_dir + "/" +  "system.bas";
-                _el_file.open(_el_file_name.c_str());
-                //_com_file << "@" << "system.bas" << endl;
-                _el_file << "$DATA" << endl;
-                                                    
-                   for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
-                        if (!(*it)->from_environment) {
-                            std::string element_name = (*it)->type;
-                            list<std::string>::iterator ite;
-                            ite = find(elements.begin(), elements.end(), element_name);
-                            if (ite == elements.end()) {
-                                elements.push_back(element_name);
-                                Element* element = bs.getElement(element_name);
-                                _el_file << _elements.getEleFull(element_name) << endl; 
-                                for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                                    Shell* shell = (*its);
-                                    _el_file  << shell->getType() << " " << shell->getSize() << endl; //<< " " << FortranFormat(shell->getScale()) << endl;
-                                    int _sh_idx =0;
-                                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                        GaussianPrimitive* gaussian = *itg;
-                                        _sh_idx++;
-                                        _el_file << " " << _sh_idx << " " << indent(gaussian->decay);
-                                        for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
-                                            if (gaussian->contraction[_icontr] != 0.0) {
-                                                _el_file << " " << indent(gaussian->contraction[_icontr]);
-                                            }
-                                        }
-                                        _el_file << endl;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    _el_file << "STOP\n";
-                    _el_file.close();
-                
-                
-                    _com_file << "%basis\n "  << endl;
-                    _com_file << "GTOName" << " " << "=" << "\"system.bas\";"  << endl;
-                } // write_basis set
+    std::vector< ctp::QMAtom* >::iterator it;
+
+         
+    for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
+        if ((*it)->from_environment) {continue;}
+        
+        _com_file << setw(3) << (*it)->type.c_str()
+                  << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
+                  << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
+                  << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->z
+                  << endl;
+    }
+    _com_file << "* \n" << endl;
+    _com_file << "%pal\n "  <<  "nprocs " <<  _threads  << "\nend" << "\n" << endl;
+       
+    // basis set info
+    if ( _write_basis_set){
+        Elements _elements;
+
+        list<std::string> elements;
+        BasisSet bs;
+        bs.LoadBasisSet(_basisset_name);
+        LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
+        ofstream _el_file;
+        std::string _el_file_name = _run_dir + "/" +  "system.bas";
+        _el_file.open(_el_file_name.c_str());
+        //_com_file << "@" << "system.bas" << endl;
+        _el_file << "$DATA" << endl;
+
+        for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
+            if ((*it)->from_environment) { continue;}
             
-            // ECPs
-               /* WRITING ECP INTO system.inp FILE for ORCA**/
-                if ( _write_pseudopotentials ){
-                    std::string pseudopotential_name("ecp");
-                    _com_file << endl;
-                   
-                    list<std::string> elements;
-                    elements.push_back("H");
-                    elements.push_back("He");
-                    BasisSet ecp;
-                    ecp.LoadPseudopotentialSet(pseudopotential_name);
-                    LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << pseudopotential_name << flush;
-                    
-                    
-                    
-                     for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
-                        if (!(*it)->from_environment) {
-                            std::string element_name = (*it)->type;
-                            
-                            
-                            list<std::string>::iterator ite;
-                            ite = find(elements.begin(), elements.end(), element_name);
-                            if (ite == elements.end()) {
-                                elements.push_back(element_name);
-                                Element* element = ecp.getElement(element_name);
-                                _com_file << "\n" << "NewECP" << " " <<  element_name  << endl;
-                                _com_file << "N_core" << " " << element->getNcore()  << endl;
-                                //lmaxnum2lmaxname 
-                                _com_file << "lmax" << " " << getLName(element->getLmax()) << endl;
-                             
-                                //For Orca the order doesn't matter but let's write it in ascending order
-                                // write remaining shells in ascending order s,p,d...
-                                for (int i = 0; i < element->getLmax(); i++) {
-                                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                                        Shell* shell = (*its);
-                                        if (shell->getLmax() == i) {
-                                        // shell type, number primitives, scale factor
-                                        _com_file << shell->getType() << " " <<  shell->getSize() << endl;
-                                        int _sh_idx = 0;
-                                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                            GaussianPrimitive* gaussian = *itg;
-                                            _sh_idx++;
-                                            _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
-                                        }
-                                    }
-                                }
+            std::string element_name = (*it)->type;
+            list<std::string>::iterator ite;
+            ite = find(elements.begin(), elements.end(), element_name);
+            if (ite == elements.end()) {
+                elements.push_back(element_name);
+                Element* element = bs.getElement(element_name);
+                _el_file << _elements.getEleFull(element_name) << endl; 
+                for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                    Shell* shell = (*its);
+
+                    string type=shell->getType();
+                    // check combined shells
+
+                       for(unsigned i=0;i<type.size();++i){
+                           string subtype = string( type, i, 1 );
+                          _el_file  << subtype << " " << shell->getSize() << endl; 
+                          int _sh_idx =0;
+                          for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                              GaussianPrimitive* gaussian = *itg;
+                              _sh_idx++;
+                              _el_file << " " << _sh_idx << " " << indent(gaussian->decay);
+                              _el_file << " " << indent(gaussian->contraction[FindLmax(subtype)]);
+
+                              }
+                              _el_file << endl;
+                          }
+                    }
+
+                 }
+             }
+        
+        _el_file << "STOP\n";
+        _el_file.close();
+
+
+        _com_file << "%basis\n "  << endl;
+        _com_file << "GTOName" << " " << "=" << "\"system.bas\";"  << endl;
+    } // write_basis set
+            
+    // ECPs
+   /* WRITING ECP INTO system.inp FILE for ORCA**/
+    if ( _write_pseudopotentials ){
+        std::string pseudopotential_name("ecp");
+        _com_file << endl;
+
+        list<std::string> elements;
+        elements.push_back("H");
+        elements.push_back("He");
+        BasisSet ecp;
+        ecp.LoadPseudopotentialSet(pseudopotential_name);
+        LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << pseudopotential_name << flush;
+
+
+
+         for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
+            if (!(*it)->from_environment) {
+                std::string element_name = (*it)->type;
+
+
+                list<std::string>::iterator ite;
+                ite = find(elements.begin(), elements.end(), element_name);
+                if (ite == elements.end()) {
+                    elements.push_back(element_name);
+                    Element* element = ecp.getElement(element_name);
+                    _com_file << "\n" << "NewECP" << " " <<  element_name  << endl;
+                    _com_file << "N_core" << " " << element->getNcore()  << endl;
+                    //lmaxnum2lmaxname 
+                    _com_file << "lmax" << " " << getLName(element->getLmax()) << endl;
+
+                    //For Orca the order doesn't matter but let's write it in ascending order
+                    // write remaining shells in ascending order s,p,d...
+                    for (int i = 0; i < element->getLmax(); i++) {
+                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                            Shell* shell = (*its);
+                            if (shell->getLmax() == i) {
+                            // shell type, number primitives, scale factor
+                            _com_file << shell->getType() << " " <<  shell->getSize() << endl;
+                            int _sh_idx = 0;
+                            for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                                GaussianPrimitive* gaussian = *itg;
+                                _sh_idx++;
+                                _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
                             }
-                                
-                            for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                                Shell* shell = (*its);
-                                // shell type, number primitives, scale factor
-                                if (shell->getLmax() == element->getLmax()) {
-                                    _com_file << shell->getType() << " " <<  shell->getSize() << endl;
-                                    // _com_file << shell->getSize() << endl;
-                                    int _sh_idx = 0;
-                                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                        GaussianPrimitive* gaussian = *itg;
-                                        _sh_idx++;
-                                        _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
-                                        }
-                                    }
-                                }
-                                
-                               _com_file << "end\n "  <<  "\n" << endl; 
-                            }
-                           
                         }
                     }
-                } // write pseudopotentials
+                }
+
+                for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                    Shell* shell = (*its);
+                    // shell type, number primitives, scale factor
+                    if (shell->getLmax() == element->getLmax()) {
+                        _com_file << shell->getType() << " " <<  shell->getSize() << endl;
+                        // _com_file << shell->getSize() << endl;
+                        int _sh_idx = 0;
+                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                            GaussianPrimitive* gaussian = *itg;
+                            _sh_idx++;
+                            _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
+                            }
+                        }
+                    }
+
+                   _com_file << "end\n "  <<  "\n" << endl; 
+                }
+
+            }
+        }
+    } // write pseudopotentials
                 
                 
-                /* END   OF WRITING ECP INTO system.inp FILE for ORCA*************/                
-                _com_file << "end\n "  <<  "\n" << endl;   //This end is for the basis set block
+    /* END   OF WRITING ECP INTO system.inp FILE for ORCA*************/                
+    _com_file << "end\n "  <<  "\n" << endl;   //This end is for the basis set block
              
             
-            
-            // actual writing of charges    
-            _crg_file.open( _crg_file_name_full.c_str() ); 
-            int _total_background = 0;
-            for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
-                if ((*it)->from_environment) {
-                    if ((*it)->charge != 0.0) _total_background++;
-                }
+     if(_write_charges){      
+        // actual writing of charges    
+        _crg_file.open( _crg_file_name_full.c_str() ); 
+        int _total_background = 0;
+        for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
+            if ((*it)->from_environment) {
+                if ((*it)->charge != 0.0) _total_background++;
             }
+        }
 
-            _crg_file << _total_background << endl;
-            for (it = qmatoms->begin(); it < qmatoms->end(); it++) {
-                if ((*it)->from_environment) {
-                    boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-                    fmt % (*it)->charge % (*it)->x % (*it)->y % (*it)->z ;
-                    if ((*it)->charge != 0.0) _crg_file << fmt << endl;
-                }
+        _crg_file << _total_background << endl;
+        for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
+            if ((*it)->from_environment) {
+                boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
+                fmt % (*it)->charge % (*it)->x % (*it)->y % (*it)->z ;
+                if ((*it)->charge != 0.0) _crg_file << fmt << endl;
             }
-                
-         } // if (! _write_charges )
-    
-
-    
-    
- 
-   
-   /*************************************WRITING BASIS SET INTO system.bas FILE**********************************/
- 
-    /***************************** END OF WRITING BASIS SET INTO system.bas FILE**********************************************/
- 
+        }
+     }            
      
     // writing scratch_dir info
     if ( _scratch_dir != "" ) {
@@ -491,8 +347,6 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
     _com_file << endl;
     _com_file.close();
     
-    
-    
       // and now generate a shell script to run both jobs, if neccessary
     LOG(ctp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
@@ -506,6 +360,8 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
    
     return true;
 }
+
+
 
 bool Orca::WriteShellScript() {
     ofstream _shell_file;
@@ -618,14 +474,10 @@ void Orca::CleanUp() {
             }     
         }
     }
-    
+return; 
 }
 
 
-
-/**
- * Reads in the MO coefficients from an Orca gbw file
- */
 bool Orca::ParseLogFile( Orbitals* _orbitals )
 {
     const double _conv_Hrt_eV = tools::conv::hrt2ev;
@@ -651,8 +503,6 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
                
     std::vector<std::string> results;    
     
-
-    
     std::ifstream _input_file( _log_file_name_full.c_str() );
     
     if (_input_file.fail()) {
@@ -665,8 +515,6 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
       
           //Coordinates of the final configuration depending on whether it is an optimization or not
          
-
-    
         
         
     while (_input_file) {
@@ -727,11 +575,8 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
                     
             }
       
-           
-
         }
-        
-        
+              
         std::string::size_type energy_pos = _line.find("Total Energy");
        if (energy_pos != std::string::npos) {
             //cout << _line << endl;
@@ -768,11 +613,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
               LOG( ctp::logDEBUG, *_pLog ) << "Energy levels: " << _levels << flush;
         }
         /********************************************************/
-        
-        
-        
-        
-        
+         
         
         std::string::size_type OE_pos = _line.find("ORBITAL ENERGIES");
         if (OE_pos != std::string::npos) {
@@ -814,51 +655,89 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
             boost::trim( _e );
             _energies [i] = boost::lexical_cast<double>(_e) ;
         }
-        }
+    }
             /*
                  *  Partial charges from the input file
                  */
-                std::string::size_type charge_pos = _line.find("CHELPG Charges");
+        std::string::size_type charge_pos = _line.find("CHELPG Charges");
 
-                if (charge_pos != std::string::npos && _get_charges) {
-                    LOG(ctp::logDEBUG, *_pLog) << "Getting charges" << flush;
-                    //_has_charges = true;
-                    getline(_input_file, _line);
-                    //getline(_input_file, _line);
+        if (charge_pos != std::string::npos && _get_charges) {
+                LOG(ctp::logDEBUG, *_pLog) << "Getting charges" << flush;
+                //_has_charges = true;
+                getline(_input_file, _line);
+                //getline(_input_file, _line);
 
-                    bool _has_atoms = _orbitals->hasQMAtoms();
+                bool _has_atoms = _orbitals->hasQMAtoms();
 
-                    std::vector<std::string> _row;
+                std::vector<std::string> _row;
+                getline(_input_file, _line);
+                boost::trim(_line);
+                //cout << _line << endl;
+                boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+                int nfields = _row.size();
+                //cout << _row.size() << endl;
+
+                while (nfields == 4) {
+                    int atom_id = boost::lexical_cast< int >(_row.at(0));
+                    atom_id++;
+                    //int atom_number = boost::lexical_cast< int >(_row.at(0));
+                    std::string atom_type = _row.at(1);
+                    double atom_charge = boost::lexical_cast< double >(_row.at(3));
+                    if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
                     getline(_input_file, _line);
                     boost::trim(_line);
-                    //cout << _line << endl;
                     boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-                    int nfields = _row.size();
-                    //cout << _row.size() << endl;
+                    nfields = _row.size();
 
-                    while (nfields == 4) {
-                        int atom_id = boost::lexical_cast< int >(_row.at(0));
-                        atom_id++;
-                        //int atom_number = boost::lexical_cast< int >(_row.at(0));
-                        std::string atom_type = _row.at(1);
-                        double atom_charge = boost::lexical_cast< double >(_row.at(3));
-                        if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
-                        getline(_input_file, _line);
-                        boost::trim(_line);
-                        boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-                        nfields = _row.size();
+                    if (_has_atoms == false) {
+                        _orbitals->AddAtom(atom_type, 0, 0, 0, atom_charge);
+                    } if (charge_pos != std::string::npos && _get_charges) {
+                LOG(ctp::logDEBUG, *_pLog) << "Getting charges" << flush;
+                //_has_charges = true;
+                getline(_input_file, _line);
+                //getline(_input_file, _line);
 
-                        if (_has_atoms == false) {
-                            _orbitals->AddAtom(atom_type, 0, 0, 0, atom_charge);
-                        } else {
-                            ctp::QMAtom* pAtom = _orbitals->_atoms.at(atom_id - 1);
-                            pAtom->type = atom_type;
-                            pAtom->charge = atom_charge;
-                        }
+                bool _has_atoms = _orbitals->hasQMAtoms();
 
+                std::vector<std::string> _row;
+                getline(_input_file, _line);
+                boost::trim(_line);
+                //cout << _line << endl;
+                boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+                int nfields = _row.size();
+                //cout << _row.size() << endl;
+
+                while (nfields == 4) {
+                    int atom_id = boost::lexical_cast< int >(_row.at(0));
+                    atom_id++;
+                    //int atom_number = boost::lexical_cast< int >(_row.at(0));
+                    std::string atom_type = _row.at(1);
+                    double atom_charge = boost::lexical_cast< double >(_row.at(3));
+                    if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
+                    getline(_input_file, _line);
+                    boost::trim(_line);
+                    boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+                    nfields = _row.size();
+
+                    if (_has_atoms == false) {
+                        _orbitals->AddAtom(atom_type, 0, 0, 0, atom_charge);
+                    } else {
+                        ctp::QMAtom* pAtom = _orbitals->_atoms.at(atom_id - 1);
+                        pAtom->type = atom_type;
+                        pAtom->charge = atom_charge;
                     }
-                    //_orbitals->_has_atoms = true;
+
                 }
+                //_orbitals->_has_atoms = true;
+            }else {
+                        ctp::QMAtom* pAtom = _orbitals->_atoms.at(atom_id - 1);
+                        pAtom->type = atom_type;
+                        pAtom->charge = atom_charge;
+                    }
+
+                }
+                //_orbitals->_has_atoms = true;
+            }
         }
 
     
@@ -889,26 +768,11 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
     }
 
    
-   // copying orbitals to the matrix
-   
- 
-   
-   
-   //cout << _mo_energies << endl;   
-   // cout << _mo_coefficients << endl; 
-   
    // cleanup
   // _coefficients.clear();
    _energies.clear();
    _occ.clear();
-   
-   
-   
-   
 
-   
-   
-   
    LOG(ctp::logDEBUG, *_pLog) << "Done reading Log file" << flush;
 
    return true;

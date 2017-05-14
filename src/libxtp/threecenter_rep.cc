@@ -50,7 +50,7 @@ namespace votca {
          */
         
       
-        bool TCrawMatrix::FillThreeCenterRepBlock(ub::matrix<double>& _subvector,  AOShell* _shell_3, AOShell* _shell_1, AOShell* _shell_2) {
+        bool TCrawMatrix::FillThreeCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
 
             const double pi = boost::math::constants::pi<double>();
             
@@ -68,9 +68,9 @@ namespace votca {
 
             // set size of internal block for recursion
            
-            AOShell* _shell_alpha;
-            AOShell* _shell_beta;
-            AOShell* _shell_gamma;
+            const AOShell* _shell_alpha;
+            const AOShell* _shell_beta;
+            const AOShell* _shell_gamma;
             bool alphabetaswitch=false;
 
             // We need lmax_alpha > lmax_beta, so instead of calculating (sp,s) we calculate (ps,s), due to symmetry they are the same. 
@@ -216,17 +216,16 @@ namespace votca {
          
 
 
-            //start vertical recurrence
-            typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
-
-            for ( GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
-                const double& _decay_alpha = (*italpha)->decay;
             
-                for ( GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta){
-                    const double& _decay_beta = (*itbeta)->decay;
+
+            for ( AOShell::GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
+                const double _decay_alpha = (*italpha)->getDecay();
+            
+                for ( AOShell::GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta){
+                    const double _decay_beta = (*itbeta)->getDecay();
                     
-                    for ( GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
-                        const double& _decay_gamma = (*itgamma)->decay;
+                    for ( AOShell::GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
+                        const double _decay_gamma = (*itgamma)->getDecay();
             
           
             
@@ -894,7 +893,7 @@ if (_lmax_gamma > 5) {
 
 
 
-std::vector<double> _contractions_gamma = (*itgamma)->contraction;
+const std::vector<double>& _contractions_gamma = (*itgamma)->getContraction();
 
   // s-functions
 double factor = _contractions_gamma[0];
@@ -1235,9 +1234,9 @@ if (_lmax_beta > 3) {
 
 
             
-            std::vector<double> _contractions_alpha = (*italpha)->contraction;
+            const std::vector<double>& _contractions_alpha = (*italpha)->getContraction();
 
-            std::vector<double> _contractions_beta    = (*itbeta)->contraction;
+            const std::vector<double>& _contractions_beta    = (*itbeta)->getContraction();
             
             // get transformation matrices
             this->getTrafo(_trafo_beta, _lmax_beta, _decay_beta, _contractions_beta);
@@ -1320,9 +1319,7 @@ if (_lmax_beta > 3) {
             }
         }
 
-                        
  
-//       cout << "ende" << endl;
     
        return _does_contribute;     
     }  
@@ -1373,6 +1370,6 @@ if (_lmax_beta > 3) {
             }
         }
         
-
+        return;
     }
     }}

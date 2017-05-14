@@ -53,6 +53,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/calculatorfactory.o \
 	${OBJECTDIR}/_ext/1355216796/jobwriter.o \
 	${OBJECTDIR}/_ext/1355216796/kmclifetime.o \
+	${OBJECTDIR}/_ext/1355216796/kmcmultiple.o \
 	${OBJECTDIR}/_ext/1584959903/dftengine.o \
 	${OBJECTDIR}/_ext/484478074/diis.o \
 	${OBJECTDIR}/_ext/484478074/esp2multipole.o \
@@ -87,6 +88,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/overlap.o \
 	${OBJECTDIR}/_ext/484478074/qmapemachine.o \
 	${OBJECTDIR}/_ext/484478074/qmdatabase.o \
+	${OBJECTDIR}/_ext/484478074/qminterface.o \
+	${OBJECTDIR}/_ext/484478074/qmiter.o \
 	${OBJECTDIR}/_ext/484478074/qmmachine.o \
 	${OBJECTDIR}/_ext/484478074/qmpackagefactory.o \
 	${OBJECTDIR}/_ext/1619336126/cpmd.o \
@@ -221,6 +224,11 @@ ${OBJECTDIR}/_ext/1355216796/kmclifetime.o: nbproject/Makefile-${CND_CONF}.mk ..
 	${MKDIR} -p ${OBJECTDIR}/_ext/1355216796
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1355216796/kmclifetime.o ../../src/libxtp/calculators/kmclifetime.cc
+
+${OBJECTDIR}/_ext/1355216796/kmcmultiple.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/calculators/kmcmultiple.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1355216796
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1355216796/kmcmultiple.o ../../src/libxtp/calculators/kmcmultiple.cc
 
 ${OBJECTDIR}/_ext/1584959903/dftengine.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/dftengine/dftengine.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1584959903
@@ -391,6 +399,16 @@ ${OBJECTDIR}/_ext/484478074/qmdatabase.o: nbproject/Makefile-${CND_CONF}.mk ../.
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/qmdatabase.o ../../src/libxtp/qmdatabase.cc
+
+${OBJECTDIR}/_ext/484478074/qminterface.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/qminterface.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/qminterface.o ../../src/libxtp/qminterface.cc
+
+${OBJECTDIR}/_ext/484478074/qmiter.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/qmiter.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/qmiter.o ../../src/libxtp/qmiter.cc
 
 ${OBJECTDIR}/_ext/484478074/qmmachine.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/qmmachine.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074

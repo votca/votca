@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,21 +133,7 @@ namespace votca {
         // Injection
         cout << endl << "injection method: " << _injectionmethod << endl;
 
-        std::vector< Chargecarrier* > carriers;
-        
-        cout << "looking for injectable nodes..." << endl;
-        for (unsigned int i = 0; i < _numberofcharges; i++) {
-            Chargecarrier *newCharge = new Chargecarrier;
-            newCharge->id = i;
-            do {
-            newCharge->node = _nodes[_RandomVariable->rand_uniform_int(_nodes.size())];     
-            }
-            while (newCharge->node->occupied == 1 || newCharge->node->injectable != 1 ); // maybe already occupied? or maybe not injectable?
-
-            newCharge->node->occupied = 1;
-            cout << "starting position for charge " << i + 1 << ": segment " << newCharge->node->id + 1 << endl;
-            carriers.push_back(newCharge);
-        }
+        RandomlyCreateCharges();
 
         unsigned insertioncount = 0;
         unsigned long step=0;
@@ -164,8 +150,8 @@ namespace votca {
         double meanfreepath=0.0;
         tools::vec difflength=tools::vec(0,0,0);
         unsigned steps=0;
-        double avgenergy=carriers[0]->node->siteenergy;
-        int     carrieridold=carriers[0]->id;
+        double avgenergy=_carriers[0]->getCurrentEnergy();
+        int     carrieridold=_carriers[0]->id;
 
         while (insertioncount < _insertions) {
             if ((time(NULL) - realtime_start) > _maxrealtime * 60. * 60.) {
@@ -176,8 +162,8 @@ namespace votca {
             step += 1;
             double cumulated_rate = 0;
 
-            for (unsigned int i = 0; i < carriers.size(); i++) {
-                cumulated_rate += carriers[i]->node->getEscapeRate();
+            for (unsigned int i = 0; i < _carriers.size(); i++) {
+                cumulated_rate += _carriers[i]->getCurrentEscapeRate();
             }
             if (cumulated_rate == 0) { // this should not happen: no possible jumps defined for a node
                 throw runtime_error("ERROR in kmclifetime: Incorrect rates in the database file. All the escape rates for the current setting are 0.");
@@ -187,26 +173,26 @@ namespace votca {
 
             if(_do_carrierenergy){
                 bool print=false;
-                if (carriers[0]->id>carrieridold){
-                    avgenergy=carriers[0]->node->siteenergy;
+                if (_carriers[0]->id>carrieridold){
+                    avgenergy=_carriers[0]->getCurrentEnergy();
                     print=true;
-                    carrieridold=carriers[0]->id;
+                    carrieridold=_carriers[0]->id;
                 }
                 else if(step%_outputsteps==0){
-                    avgenergy=_alpha*carriers[0]->node->siteenergy+(1-_alpha)*avgenergy;
+                    avgenergy=_alpha*_carriers[0]->getCurrentEnergy()+(1-_alpha)*avgenergy;
                     print=true;
                 }
                 if(print){
-                    energyfile << simtime<<"\t"<<steps <<"\t"<<carriers[0]->id<<"\t"<<avgenergy<<endl;                  
+                    energyfile << simtime<<"\t"<<steps <<"\t"<<_carriers[0]->id<<"\t"<<avgenergy<<endl;                  
                 }
             }
 
             simtime += dt;
             steps++;
-            for (unsigned int i = 0; i < carriers.size(); i++) {
-                carriers[i]->updateLifetime(dt);
-                carriers[i]->updateSteps(1);
-                carriers[i]->node->occupationtime += dt;
+            for (unsigned int i = 0; i < _carriers.size(); i++) {
+                _carriers[i]->updateLifetime(dt);
+                _carriers[i]->updateSteps(1);
+                _carriers[i]->updateOccupationtime(dt);
             }
 
             ResetForbiddenlist(forbiddennodes);
@@ -214,22 +200,12 @@ namespace votca {
             while (secondlevel){
 
                 // determine which carrier will escape
-                GNode* oldnode=NULL;
                 GNode* newnode=NULL;
-                Chargecarrier* affectedcarrier=NULL;
+                Chargecarrier* affectedcarrier=ChooseAffectedCarrier(cumulated_rate);
 
-                double u = 1 - _RandomVariable->rand_uniform();
-                for (unsigned int i = 0; i < _numberofcharges; i++) {
-                    u -= carriers[i]->node->getEscapeRate() / cumulated_rate;
+               
 
-                    if (u <= 0 || i==_numberofcharges-1) {
-                        oldnode = carriers[i]->node;
-                        affectedcarrier = carriers[i];
-                        break;}  
-
-                }
-
-                if (CheckForbidden(oldnode->id, forbiddennodes)) {
+                if (CheckForbidden(affectedcarrier->getCurrentNodeId(), forbiddennodes)) {
                     continue;
                 }
 
@@ -240,23 +216,19 @@ namespace votca {
                     // LEVEL 2
 
                     newnode = NULL;
-                    GLink* event=ChooseHoppingDest(oldnode);
+                    GLink* event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
 
                     if (event->decayevent){
-                        oldnode->occupied = 0;
+                       
                         avlifetime+=affectedcarrier->getLifetime();
                         meanfreepath+=tools::abs(affectedcarrier->dr_travelled);
                         difflength+=tools::elementwiseproduct(affectedcarrier->dr_travelled,affectedcarrier->dr_travelled);
-                        traj << simtime<<"\t"<<insertioncount<< "\t"<< affectedcarrier->id<<"\t"<< affectedcarrier->getLifetime()<<"\t"<<affectedcarrier->getSteps()<<"\t"<< (oldnode->id)+1<<"\t"<<affectedcarrier->dr_travelled.getX()<<"\t"<<affectedcarrier->dr_travelled.getY()<<"\t"<<affectedcarrier->dr_travelled.getZ()<<endl;
+                        traj << simtime<<"\t"<<insertioncount<< "\t"<< affectedcarrier->id<<"\t"<< affectedcarrier->getLifetime()<<"\t"<<affectedcarrier->getSteps()<<"\t"<< affectedcarrier->getCurrentNodeId()+1<<"\t"<<affectedcarrier->dr_travelled.getX()<<"\t"<<affectedcarrier->dr_travelled.getY()<<"\t"<<affectedcarrier->dr_travelled.getZ()<<endl;
                         if(_insertions<1500 ||insertioncount% (_insertions/1000)==0 || insertioncount<0.001*_insertions){
-                        std::cout << "\rInsertion " << insertioncount<<" of "<<_insertions;
-                        std::cout << std::flush;
+                            std::cout << "\rInsertion " << insertioncount<<" of "<<_insertions;
+                            std::cout << std::flush;
                         }
-                        do {
-                            affectedcarrier->node = _nodes[_RandomVariable->rand_uniform_int(_nodes.size())];     
-                        }
-                        while (affectedcarrier->node->occupied == 1 || affectedcarrier->node->injectable != 1 );
-                        affectedcarrier->node->occupied=1;
+                        RandomlyAssignCarriertoSite(affectedcarrier);
                         affectedcarrier->resetCarrier();
                         insertioncount++;
                         affectedcarrier->id=_numberofcharges-1+insertioncount;
@@ -273,17 +245,15 @@ namespace votca {
                     }
 
                     // if the new segment is unoccupied: jump; if not: add to forbidden list and choose new hopping destination
-                    if (newnode->occupied == 1) {
-                        if (CheckSurrounded(oldnode, forbiddendests)) {     
-                            AddtoForbiddenlist(oldnode->id, forbiddennodes);
+                    if (newnode->occupied) {
+                        if (CheckSurrounded(affectedcarrier->getCurrentNode(), forbiddendests)) {     
+                            AddtoForbiddenlist(affectedcarrier->getCurrentNodeId(), forbiddennodes);
                             break; // select new escape node (ends level 2 but without setting level1step to 1)
                         }
                         AddtoForbiddenlist(newnode->id, forbiddendests);
                         continue; // select new destination
                     } else {
-                        newnode->occupied = 1;
-                        oldnode->occupied = 0;
-                        affectedcarrier->node = newnode;
+                        affectedcarrier->jumpfromCurrentNodetoNode(newnode);
                         affectedcarrier->dr_travelled += event->dr;
                         secondlevel=false;
 

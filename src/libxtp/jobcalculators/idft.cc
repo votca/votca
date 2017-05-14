@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -232,8 +232,8 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
                delete _qmpackage;
                return jres;
             }
-
-            PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB, pLog);
+            LOG(ctp::logERROR,*pLog) << "Writing guess from monomer orbitals"<< flush; 
+            Orbitals::PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
         }
         
         // if a pair object is available, take into account PBC, otherwise write as is
@@ -558,55 +558,6 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     
     return jres;
 }
-
-
-void IDFT::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB, ctp::Logger *log ) 
-{
-    
-    LOG(ctp::logDEBUG,*log)  << "Constructing the guess for dimer orbitals" << flush;   
-   
-    // constructing the direct product orbA x orbB
-    int _basisA = _orbitalsA->getBasisSetSize();
-    int _basisB = _orbitalsB->getBasisSetSize();
-       
-    int _levelsA = _orbitalsA->getNumberOfLevels();
-    int _levelsB = _orbitalsB->getNumberOfLevels();
-    
-    int _electronsA = _orbitalsA->getNumberOfElectrons();
-    int _electronsB = _orbitalsB->getNumberOfElectrons();
-    
-    ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
-    ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
-    
-    ub::matrix<double>* _mo_coefficients = _orbitalsAB->getOrbitals();    
-    //cout << "MO coefficients " << *_mo_coefficients << endl;
-    
-    // AxB = | A 0 |  //   A = [EA, EB]  //
-    //       | 0 B |  //                 //
-    _mo_coefficients->resize( _levelsA + _levelsB, _basisA + _basisB  );
-    _orbitalsAB->setBasisSetSize( _basisA + _basisB );
-    _orbitalsAB->setNumberOfLevels( _electronsA - _electronsB , 
-                                    _levelsA + _levelsB - _electronsA - _electronsB );
-    _orbitalsAB->setNumberOfElectrons( _electronsA + _electronsB );
-    
-    ub::project( *_mo_coefficients, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
-    ub::project( *_mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
-    ub::project( *_mo_coefficients, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = *_orbitalsA->getOrbitals();
-    ub::project( *_mo_coefficients, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = *_orbitalsB->getOrbitals();   
-
-    //cout << "MO coefficients " << *_mo_coefficients << endl;
-    
-    ub::vector<double>* _energies = _orbitalsAB->getEnergies();
-    _energies->resize( _levelsA + _levelsB );
-     
-    ub::project( *_energies, ub::range (0, _levelsA ) ) = *_orbitalsA->getEnergies();
-    ub::project( *_energies, ub::range (_levelsA, _levelsA + _levelsB ) ) = *_orbitalsB->getEnergies();
-    
-    //cout << "MO energies " << *_energies << endl;
-    
-    ///"... ... Have now " >> _energies->size() >> " energies\n" >> *opThread;
-    return;
-}   
 
 void IDFT::WriteJobFile(ctp::Topology *top) {
 

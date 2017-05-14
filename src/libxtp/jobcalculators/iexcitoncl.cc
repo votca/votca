@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -209,10 +209,9 @@ double IEXCITON::EvaluatePair(ctp::Topology *top,ctp::PolarSeg* Seg1,ctp::PolarS
             (*pit1)->Depolarize();
             (*pit2)->Depolarize();
 
-            //double dist=abs((*pit1)->getPos()-(*pit2)->getPos());
-            //LOG(logINFO,*pLog) <<"Q1 "<< (*pit1)->getQ00() <<" Q2 "<< (*pit2)->getQ00()<<" dist " <<dist << " comulative Energy "<< E << flush; 
+  
             E += actor.E_f(*(*pit1), *(*pit2));                           
-            //E+=(*pit1)->getQ00()*(*pit2)->getQ00()/dist;
+           
     }
     }
 

@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -95,7 +95,7 @@ bool Log2Mps::Evaluate() {
         cout << "\nERROR Parsing " << _logfile << "failed. Abort." << endl;
         throw std::runtime_error("(see above, parsing error)");
     }    
-    vector<ctp::QMAtom*> &qmatoms = *orbs.getAtoms();
+    vector<ctp::QMAtom*> &qmatoms = orbs.QMAtoms();
     vector<ctp::QMAtom*>::iterator it;
     
     // Sanity checks, total charge
@@ -115,12 +115,12 @@ bool Log2Mps::Evaluate() {
     
     // Convert to polar segment & write mps-file
     QMMInterface qmmface;
-    ctp::PolarSeg *pseg = qmmface.Convert(qmatoms);
+    ctp::PolarSeg pseg = qmmface.Convert(qmatoms);
     
     string tag = "::LOG2MPS " 
         + (boost::format("(log-file='%1$s' : %2$d QM atoms)")
         % _logfile % qmatoms.size()).str();    
-    pseg->WriteMPS(_mpsfile, tag);
+    pseg.WriteMPS(_mpsfile, tag);
     return true;
 }
 

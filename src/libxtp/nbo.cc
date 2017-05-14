@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,23 +23,23 @@
 #include <votca/tools/linalg.h>
 namespace votca { namespace xtp {
 
-void NBO::EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist,  ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs){
+void NBO::EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist,const  ub::matrix<double> &_dmat,const AOBasis &basis, BasisSet &bs){
     AOOverlap _overlap;
     // initialize overlap matrix
-    _overlap.Initialize(basis._AOBasisSize);
+    _overlap.Initialize(basis.AOBasisSize());
     // Fill overlap
-    _overlap.Fill(&basis);
+    _overlap.Fill(basis);
     
-    ub::matrix<double> _prodmat = ub::prod( _dmat, _overlap._aomatrix );
+    ub::matrix<double> _prodmat = ub::prod( _dmat, _overlap.Matrix() );
     
     
     
-    ub::matrix<double> P=ub::prod(_overlap._aomatrix,_prodmat);
+    ub::matrix<double> P=ub::prod(_overlap.Matrix(),_prodmat);
    
-    ub::matrix<double> PNAOs_trans=IntercenterOrthogonalisation(P,_overlap._aomatrix, _atomlist ,bs);
+    ub::matrix<double> PNAOs_trans=IntercenterOrthogonalisation(P,_overlap.Matrix(), _atomlist ,bs);
     
     cout<<P<<endl;
-    cout<<_overlap._aomatrix<<endl;
+    cout<<_overlap.Matrix()<<endl;
     
     vector < ctp::QMAtom* > :: iterator atom;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
@@ -58,7 +58,7 @@ void NBO::EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist,  ub::matrix<double
 }
 
 
-ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< ctp::QMAtom* >& _atomlist ,BasisSet &bs){
+ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::matrix<double> &Overlap,vector< ctp::QMAtom* >& _atomlist , BasisSet &bs){
     
     
     vector< ctp::QMAtom* >::iterator atom;
