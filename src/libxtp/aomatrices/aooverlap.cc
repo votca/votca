@@ -45,7 +45,11 @@ namespace votca { namespace xtp {
         // set size of internal block for recursion
         int _nrows = this->getBlockSize( _lmax_row ); 
         int _ncols = this->getBlockSize( _lmax_col ); 
-    
+        
+        if (_lmax_col >4 || _lmax_row >4){
+            cerr << "Orbitals higher than g are not yet implemented. This should not have happened!" << flush;
+             exit(1);
+        }
         
         /* FOR CONTRACTED FUNCTIONS, ADD LOOP OVER ALL DECAYS IN CONTRACTION
          * MULTIPLY THE TRANSFORMATION MATRICES BY APPROPRIATE CONTRACTION 
@@ -101,17 +105,17 @@ namespace votca { namespace xtp {
  
 
       
-        typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
+        
         // iterate over Gaussians in this _shell_row
-        for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
+        for ( AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
-            const double _decay_row = (*itr)->decay;
+            const double _decay_row = (*itr)->getDecay();
             
-            for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
+            for ( AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
            
     
             // get decay constants 
-            const double _decay_col = (*itc)->decay;
+            const double _decay_col = (*itc)->getDecay();
             
             // some helpers
             const double _fak  = 0.5/(_decay_row + _decay_col);
@@ -348,8 +352,8 @@ if (_lmax_col > 3) {
         ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col,_ncols);
 
         // get transformation matrices including contraction coefficients
-        std::vector<double> _contractions_row = (*itr)->contraction;
-        std::vector<double> _contractions_col = (*itc)->contraction;
+        const std::vector<double>& _contractions_row = (*itr)->getContraction();
+        const std::vector<double>& _contractions_col = (*itc)->getContraction();
         
         this->getTrafo( _trafo_row, _lmax_row, _decay_row, _contractions_row);
         this->getTrafo( _trafo_col, _lmax_col, _decay_col, _contractions_col);

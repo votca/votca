@@ -233,7 +233,8 @@ namespace votca {
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup Initial Guess using: " << _initial_guess << flush;
                 // this temp is necessary because eigenvalues_general returns MO^T and not MO
                 if (_initial_guess == "independent") {
-                    _diis.SolveFockmatrix(MOEnergies, MOCoeff, H0);
+                    ub::matrix<double> copy=H0;
+                    _diis.SolveFockmatrix(MOEnergies, MOCoeff, copy);
                     _dftAOdmat = _orbitals->DensityMatrixGroundState(MOCoeff);
                 } else if (_initial_guess == "atom") {
 
@@ -435,7 +436,7 @@ namespace votca {
                 _dftAOESP.getNuclearpotential() += _dftAOECP.Matrix();
             }
 
-            _diis.Configure(_usediis, _histlength, _maxout, _diismethod, _adiis_start, _diis_start, _levelshift, _levelshiftend, false, _numofelectrons / 2);
+            _diis.Configure(_usediis, _histlength, _maxout, _diismethod, _adiis_start, _diis_start, _levelshift, _levelshiftend, _numofelectrons / 2);
             _diis.setLogger(_pLog);
             _diis.setOverlap(&_dftAOoverlap.Matrix());
             _diis.setSqrtOverlap(&_Sminusonehalf);
@@ -558,6 +559,7 @@ namespace votca {
 
                 dftAOkinetic.Initialize(dftbasis.AOBasisSize());
                 dftAOkinetic.Fill(dftbasis);
+                
                 dftAOESP.Initialize(dftbasis.AOBasisSize());
                 dftAOESP.Fillnucpotential(dftbasis, atom, with_ecp);
                 ERIs_atom.Initialize_4c_small_molecule(dftbasis);
@@ -568,14 +570,15 @@ namespace votca {
                 ub::matrix<double>MOCoeff_beta;
                 Diis diis_alpha;
                 Diis diis_beta;
-
-                Mixing Mix_alpha(false, 0.7, &dftAOoverlap.Matrix(), _pLog);
-                Mixing Mix_beta(false, 0.7, &dftAOoverlap.Matrix(), _pLog);
-                diis_alpha.Configure(true, 20, 0, "", 0.005, 0.005, 0.2, 0.2, true, alpha_e);
+                double adiisstart=0;
+                double diisstart=0;
+                Mixing Mix_alpha(true, 0.7, &dftAOoverlap.Matrix(), _pLog);
+                Mixing Mix_beta(true, 0.7, &dftAOoverlap.Matrix(), _pLog);
+                diis_alpha.Configure(true, 20, 0, "", adiisstart, diisstart, 0.2, 0,  alpha_e);
                 diis_alpha.setLogger(_pLog);
                 diis_alpha.setOverlap(&dftAOoverlap.Matrix());
                 diis_alpha.setSqrtOverlap(&Sminusonehalf);
-                diis_beta.Configure(true, 20, 0, "", 0.005, 0.005, 0.2, 0.2, true, beta_e);
+                diis_beta.Configure(true, 20, 0, "", adiisstart, diisstart, 0.2, 0, beta_e);
                 diis_beta.setLogger(_pLog);
                 diis_beta.setOverlap(&dftAOoverlap.Matrix());
                 diis_beta.setSqrtOverlap(&Sminusonehalf);
@@ -585,39 +588,60 @@ namespace votca {
                 if (with_ecp) {
                     dftAOECP.Initialize(dftbasis.AOBasisSize());
                     dftAOECP.Fill(dftbasis, vec(0, 0, 0), &ecp);
-
                     H0 += dftAOECP.Matrix();
-
                 }
-
-                diis_alpha.SolveFockmatrix(MOEnergies_alpha, MOCoeff_alpha, H0);
+                ub::matrix<double> copy=H0;
+                diis_alpha.SolveFockmatrix(MOEnergies_alpha, MOCoeff_alpha, copy);
 
                 MOEnergies_beta = MOEnergies_alpha;
                 MOCoeff_beta = MOCoeff_alpha;
-                //cout<<MOEnergies_alpha<<endl;
+                
 
                 //ub::matrix<double>dftAOdmat_alpha = DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,alpha_e);
                 //ub::matrix<double>dftAOdmat_beta = DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,beta_e);
                 ub::matrix<double>dftAOdmat_alpha = DensityMatrix_unres(MOCoeff_alpha, alpha_e);
+                if ((*st)->type == "H"){
+                    uniqueatom_guesses.push_back(dftAOdmat_alpha);
+                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Atomic density Matrix for " << (*st)->type <<
+                                " gives N=" << std::setprecision(9) << linalg_traceofProd(dftAOdmat_alpha,dftAOoverlap.Matrix()) << " electrons." << flush;
+                    continue;                    
+                }
+                
                 ub::matrix<double>dftAOdmat_beta = DensityMatrix_unres(MOCoeff_beta, beta_e);
-
+                bool _HF=false;
                 double energyold = 0;
-                int maxiter = 201;
+                int maxiter = 200;
                 for (int this_iter = 0; this_iter < maxiter; this_iter++) {
-                    //cout<<this_iter<<endl;
+                   
                     ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);
-                    ub::matrix<double> AOVxc_alpha = gridIntegration.IntegrateVXC_Atomblock(dftAOdmat_alpha, _xc_functional_name);
-                    //cout<<AOVxc_alpha<<endl;
-                    double E_vxc_alpha = gridIntegration.getTotEcontribution();
-                    ub::matrix<double> AOVxc_beta = gridIntegration.IntegrateVXC_Atomblock(dftAOdmat_beta, _xc_functional_name);
-                    double E_vxc_beta = gridIntegration.getTotEcontribution();
-                    ub::matrix<double> H_alpha = H0 + ERIs_atom.getERIs() + AOVxc_alpha;
-                    ub::matrix<double> H_beta = H0 + ERIs_atom.getERIs() + AOVxc_beta;
-
+                    double E_two_alpha =  linalg_traceofProd(ERIs_atom.getERIs(), dftAOdmat_alpha);
+                    double E_two_beta =  linalg_traceofProd(ERIs_atom.getERIs(), dftAOdmat_beta);
+                    ub::matrix<double> H_alpha = H0 + ERIs_atom.getERIs();
+                    ub::matrix<double> H_beta = H0 + ERIs_atom.getERIs();
+                    if (_HF){
+                        ERIs_atom.CalculateEXX_4c_small_molecule(dftAOdmat_alpha);
+                        double E_exx_alpha= -linalg_traceofProd(ERIs_atom.getEXX(), dftAOdmat_alpha);
+                        H_alpha -= ERIs_atom.getEXX();
+                        E_two_alpha+=E_exx_alpha;
+                        ERIs_atom.CalculateEXX_4c_small_molecule(dftAOdmat_beta);
+                        double E_exx_beta= -linalg_traceofProd(ERIs_atom.getEXX(), dftAOdmat_beta);
+                        H_beta -= ERIs_atom.getEXX();
+                        E_two_beta+=E_exx_beta;
+                        
+                    }else{
+                        ub::matrix<double> AOVxc_alpha = gridIntegration.IntegrateVXC_Atomblock(dftAOdmat_alpha, _xc_functional_name);
+                        double E_vxc_alpha = gridIntegration.getTotEcontribution();
+                        ub::matrix<double> AOVxc_beta = gridIntegration.IntegrateVXC_Atomblock(dftAOdmat_beta, _xc_functional_name);
+                        double E_vxc_beta = gridIntegration.getTotEcontribution();
+                        H_alpha += AOVxc_alpha;
+                        H_beta += AOVxc_beta;
+                        E_two_alpha+=E_vxc_alpha;
+                        E_two_beta+=E_vxc_beta;
+                        
+                    }
                     double E_one_alpha = linalg_traceofProd(dftAOdmat_alpha, H0);
-                    double E_two_alpha = E_vxc_alpha + linalg_traceofProd(ERIs_atom.getERIs(), dftAOdmat_alpha);
                     double E_one_beta = linalg_traceofProd(dftAOdmat_beta, H0);
-                    double E_two_beta = E_vxc_beta + linalg_traceofProd(ERIs_atom.getERIs(), dftAOdmat_beta);
+                   
                     double E_alpha = E_one_alpha + E_two_alpha;
                     double E_beta = E_one_beta + E_two_beta;
 
@@ -625,30 +649,27 @@ namespace votca {
                     //evolve alpha
                     double diiserror_alpha = diis_alpha.Evolve(dftAOdmat_alpha, H_alpha, MOEnergies_alpha, MOCoeff_alpha, this_iter, E_alpha);
 
-                    ub::matrix<double> dmatin = dftAOdmat_alpha;
+                    ub::matrix<double> dmatin_alpha = dftAOdmat_alpha;
                     dftAOdmat_alpha = DensityMatrix_unres(MOCoeff_alpha, alpha_e);
                     //dftAOdmat_alpha=DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,alpha_e);
                     if (!(diiserror_alpha < 0.005  && this_iter > 2)) {
-                        dftAOdmat_alpha = Mix_alpha.MixDmat(dmatin, dftAOdmat_alpha, false);
+                        dftAOdmat_alpha = Mix_alpha.MixDmat(dmatin_alpha, dftAOdmat_alpha, false);
                         //cout<<"mixing_alpha"<<endl;
                     } else {
-                        Mix_alpha.Updatemix(dmatin, dftAOdmat_alpha);
+                        Mix_alpha.Updatemix(dmatin_alpha, dftAOdmat_alpha);
                     }
                     //evolve beta
-
-                    double diiserror_beta = 0.0;
-                    if (beta_e > 0) {
-                        diiserror_beta = diis_beta.Evolve(dftAOdmat_beta, H_beta, MOEnergies_beta, MOCoeff_beta, this_iter, E_beta);
-                        ub::matrix<double> dmatin = dftAOdmat_beta;
-                        dftAOdmat_beta = DensityMatrix_unres(MOCoeff_beta, beta_e);
-                        //dftAOdmat_beta=DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,beta_e);
-                        if (!(diiserror_beta < 0.005  && this_iter > 2)) {
-                            dftAOdmat_beta = Mix_beta.MixDmat(dmatin, dftAOdmat_beta, false);
-                            //cout<<"mixing_beta"<<endl;
-                        } else {
-                            Mix_beta.Updatemix(dmatin, dftAOdmat_beta);
-                        }
+                    double diiserror_beta = diis_beta.Evolve(dftAOdmat_beta, H_beta, MOEnergies_beta, MOCoeff_beta, this_iter, E_beta);
+                    ub::matrix<double> dmatin_beta = dftAOdmat_beta;
+                    dftAOdmat_beta = DensityMatrix_unres(MOCoeff_beta, beta_e);
+                    //dftAOdmat_beta=DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,beta_e);
+                    if (!(diiserror_beta < 0.005  && this_iter > 2)) {
+                        dftAOdmat_beta = Mix_beta.MixDmat(dmatin_beta, dftAOdmat_beta, false);
+                       
+                    } else {
+                        Mix_beta.Updatemix(dmatin_beta, dftAOdmat_beta);
                     }
+                    
 
                     if (tools::globals::verbose) {
                         LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Iter " << this_iter << " of " << maxiter

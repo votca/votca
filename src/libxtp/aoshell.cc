@@ -40,10 +40,10 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
             // iterate over Gaussians in this shell
             for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
 
-                const double alpha = (*itr)->decay;
-                const std::vector<double>& _contractions = (*itr)->contraction;
+                const double alpha = (*itr)->getDecay();
+                const std::vector<double>& _contractions = (*itr)->getContraction();
 
-                double _expofactor = (*itr)->powfactor * exp(-alpha * distsq);
+                double _expofactor = (*itr)->getPowfactor() * exp(-alpha * distsq);
 
                 // split combined shells
                 int _i_func = -1;
@@ -305,10 +305,10 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const
             // iterate over Gaussians in this shell
             for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
 
-                const double alpha = (*itr)->decay;
-                const std::vector<double>& _contractions = (*itr)->contraction;
+                const double alpha = (*itr)->getDecay();
+                const std::vector<double>& _contractions = (*itr)->getContraction();
 
-                double _expofactor = pow(2.0 * alpha / pi, 0.75) * exp(-alpha * distsq);
+                double _expofactor =(*itr)->getPowfactor() * exp(-alpha * distsq);
 
                 // split combined shells
                 int _i_func = -1;

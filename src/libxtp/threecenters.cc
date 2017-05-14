@@ -134,21 +134,21 @@ namespace votca {
 
 
 
-            typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
+         
                 // iterate over Gaussians in this _shell_row
-            for ( GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
+            for ( AOShell::GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
             // iterate over Gaussians in this _shell_col
-                const double _decay_alpha = (*italpha)->decay;
+                const double _decay_alpha = (*italpha)->getDecay();
             
-                for ( GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
-                    const double _decay_gamma = (*itgamma)->decay;
+                for ( AOShell::GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
+                    const double _decay_gamma = (*itgamma)->getDecay();
                     // check third threshold
                     vec _diff = _pos_alpha - _pos_gamma;
                     double test = _decay_alpha * _decay_gamma * _diff*_diff;
                     
-                    for ( GaussianIterator itgw = _shell_gw->firstGaussian(); itgw != _shell_gw->lastGaussian(); ++itgw){
+                    for ( AOShell::GaussianIterator itgw = _shell_gw->firstGaussian(); itgw != _shell_gw->lastGaussian(); ++itgw){
             // get decay constants (this all is still valid only for uncontracted functions)
-                        const double _decay_gw = (*itgw)->decay;
+                        const double _decay_gw = (*itgw)->getDecay();
             
  
             double threshold = -(_decay_alpha + _decay_gamma + _decay_gw) * log(gwaccuracy);
@@ -670,7 +670,7 @@ if (_lmax_gamma > 3) {
             int istop[] =  { 0,  3,  3,  3,  9,  9,  9,  9,  9, 19, 19, 19, 19, 19, 19, 19, 34, 34, 34, 34, 34, 34, 34, 34, 34, //////////////
                             55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83, 83 };   //////////////
 
-            // ub::vector<ub::matrix<double> >& _subvector
+           
             // which ones do we want to store
             int _offset_gw = _shell_gw->getOffset();
             int _offset_alpha = _shell_alpha->getOffset();
@@ -685,20 +685,15 @@ if (_lmax_gamma > 3) {
             ub::matrix<double> _trafo_alpha = ub::zero_matrix<double>(_ntrafo_alpha, _nalpha);
             ub::matrix<double> _trafo_gamma = ub::zero_matrix<double>(_ntrafo_gamma, _ngamma);
 
-            
-            //std::vector<double> _contractions_alpha = (*italpha)->contraction;
-            //std::vector<double> _contractions_gamma = (*itgamma)->contraction;
-            //std::vector<double> _contractions_gw    = (*itgw)->contraction;
-            
+       
             // get transformation matrices
-            this->getTrafo(_trafo_gw, _lmax_gw, _decay_gw, (*itgw)->contraction);
-            this->getTrafo(_trafo_alpha, _lmax_alpha, _decay_alpha, (*italpha)->contraction);
-            this->getTrafo(_trafo_gamma, _lmax_gamma, _decay_gamma, (*itgamma)->contraction);
+            this->getTrafo(_trafo_gw, _lmax_gw, _decay_gw, (*itgw)->getContraction());
+            this->getTrafo(_trafo_alpha, _lmax_alpha, _decay_alpha, (*italpha)->getContraction());
+            this->getTrafo(_trafo_gamma, _lmax_gamma, _decay_gamma, (*itgamma)->getContraction());
 
             // transform from unnormalized cartesians to normalized sphericals
             // container with indices starting at zero
-            //ma_type S_sph;
-            //S_sph.resize(extents[range(_offset_alpha, _ntrafo_alpha) ][range(_offset_gw, _ntrafo_gw) ][range(_offset_gamma,_ntrafo_gamma )]);
+           
             double S_sph;
             
             for (int _i_alpha = _offset_alpha; _i_alpha < _ntrafo_alpha; _i_alpha++) {
@@ -707,16 +702,14 @@ if (_lmax_gamma > 3) {
                     int g_w=_i_gw-_offset_gw;
                     for (int _i_gamma = _offset_gamma; _i_gamma < _ntrafo_gamma; _i_gamma++) {
 
-                        //S_sph[ _i_alpha ][  _i_gw ][ _i_gamma ] = 0.0;
+                       
                         S_sph=0.0;
                         
                         for (int _i_alpha_t = istart[ _i_alpha ]; _i_alpha_t <= istop[ _i_alpha ]; _i_alpha_t++) {
                             for (int _i_gw_t = istart[ _i_gw ]; _i_gw_t <= istop[ _i_gw ]; _i_gw_t++) {
                                 for (int _i_gamma_t = istart[ _i_gamma ]; _i_gamma_t <= istop[ _i_gamma ]; _i_gamma_t++) {
 
-                                    //S_sph[_i_alpha ][ _i_gw ][  _i_gamma ] += S[ _i_alpha_t + 1 ][ _i_gw_t + 1 ][ _i_gamma_t + 1]
-                                    //        * _trafo_alpha(_i_alpha, _i_alpha_t) * _trafo_gw(_i_gw, _i_gw_t) * _trafo_gamma(_i_gamma, _i_gamma_t);
-///////////                                    S_sph+= S[ _i_alpha_t + 1 ][ _i_gw_t + 1 ][ _i_gamma_t + 1]
+                                  
                                     S_sph+= S[ _i_alpha_t ][ _i_gw_t ][ _i_gamma_t ]  /////////////////
                                             * _trafo_alpha(_i_alpha, _i_alpha_t) * _trafo_gw(_i_gw, _i_gw_t) * _trafo_gamma(_i_gamma, _i_gamma_t);
 
@@ -727,26 +720,22 @@ if (_lmax_gamma > 3) {
                         }
                         int _i_index = _shell_gamma->getNumFunc() * g_w + _i_gamma-_offset_gamma;
 
-                        _subvector(alpha, _i_index) += S_sph;//[ _i_alpha ][ _i_gw ][ _i_gamma ];
+                        _subvector(alpha, _i_index) += S_sph;
                         
                     }
                 }
             }
-
-          
 
                     }
                 }
             }
 
             return _does_contribute;
-
-
         }
 
      
 
-        void TCrawMatrix::getTrafo(ub::matrix<double>& _trafo,const int _lmax, const double& _decay,const std::vector<double>& contractions) {
+        void TCrawMatrix::getTrafo(ub::matrix<double>& _trafo,const int _lmax, const double _decay,const std::vector<double>& contractions) {
         // s-functions
         _trafo(0,0) = contractions[0]; // s
         ///         0    1  2  3    4  5  6  7  8  9   10  11  12  13  14  15  16  17  18  19       20    21    22    23    24    25    26    27    28    29    30    31    32    33    34 

@@ -102,8 +102,6 @@ namespace votca {
                             if (ind_1 > ind_2) continue;
                             int _index_12 = dftBasisSize * ind_1 - sum_ind_1 + ind_2;
                             if (_index_34 > _index_12) continue;
-                            //int _index_subv_12 = NumFunc_1 * _i_2 + _i_1;
-
                             _4c_vector(_index_34_12_a + _index_12) = _subvector(NumFunc_1 * _i_2 + _i_1, _index_subv_34);
 
                           } // _i_2

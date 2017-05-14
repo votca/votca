@@ -616,8 +616,8 @@ namespace votca {
                      
                      // check all decay constants in this shell
                      for (AOShell::GaussianIterator itg = (*_row)->firstGaussian(); itg != (*_row)->lastGaussian(); itg++) {
-                         AOGaussianPrimitive* gaussian = *itg;
-                         double _decay = gaussian->decay;
+                         const AOGaussianPrimitive* gaussian = *itg;
+                         double _decay = gaussian->getDecay();
                          if (_decay < _decaymin) {
                              _decaymin = _decay;
                          } // decay min check
@@ -636,8 +636,8 @@ namespace votca {
                      
                      // check all decay constants in this shell
                      for (AOShell::GaussianIterator itg = (*_row)->firstGaussian(); itg != (*_row)->lastGaussian(); itg++) {
-                         AOGaussianPrimitive* gaussian = *itg;
-                         double _decay = gaussian->decay;
+                         const AOGaussianPrimitive* gaussian = *itg;
+                         double _decay = gaussian->getDecay();
                          if (_decay < _decaymin) {
                              _decaymin = _decay;
                          } // decay min check

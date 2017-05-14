@@ -10,20 +10,11 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/wehnerj/votca/src/xtp/include/votca/xtp/numerical_integrations.h</file>
-            <file>file:/home/wehnerj/votca/src/xtp/include/votca/xtp/aomatrix.h</file>
-            <file>file:/home/wehnerj/votca/src/xtp/src/libxtp/overlap.cc</file>
-            <file>file:/home/wehnerj/votca/src/xtp/include/votca/xtp/aobasis.h</file>
-            <file>file:/home/wehnerj/votca/src/xtp/src/libxtp/aobasis.cc</file>
-            <file>file:/home/wehnerj/votca/src/xtp/src/libxtp/orbitals.cc</file>
-            <file>file:/home/wehnerj/votca/src/xtp/src/libxtp/aomatrices/aocoulomb.cc</file>
-            <file>file:/home/wehnerj/votca/src/xtp/src/libxtp/threecenters.cc</file>
-            <file>file:/home/wehnerj/votca/src/xtp/include/votca/xtp/mixing.h</file>
-            <file>file:/home/wehnerj/votca/src/xtp/src/libxtp/gwbse/bse_analysis.cc</file>
-            <file>file:/home/wehnerj/votca/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
-            <file>file:/home/wehnerj/votca/src/xtp/src/libxtp/numerical_integration/numerical_integrations.cc</file>
-            <file>file:/home/wehnerj/votca/src/xtp/include/votca/xtp/gwbse.h</file>
-            <file>file:/home/wehnerj/votca/src/xtp/src/libxtp/mulliken.cc</file>
+            <file>file:/home/jens/votca_git/src/xtp/include/votca/xtp/diis.h</file>
+            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/dftengine/dftengine.cc</file>
+            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/diis.cc</file>
+            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/aomatrices/aomatrix.cc</file>
+            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/aomatrices/aooverlap.cc</file>
         </group>
     </open-files>
 </project-private>

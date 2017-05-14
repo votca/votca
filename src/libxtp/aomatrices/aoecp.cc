@@ -53,16 +53,16 @@ namespace votca { namespace xtp {
             // initialize some helper
             double _distsq = _diff*_diff;
 
-            typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
+           
             // iterate over Gaussians in this _shell_row
-            for (GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr) {
+            for (AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr) {
                 // iterate over Gaussians in this _shell_col
                 // get decay constant
-                const double _decay_row = (*itr)->decay;
+                const double _decay_row = (*itr)->getDecay();
 
                 //if ( _decay_row > 0.08 ) continue;
 
-                std::vector<double> _contractions_row = (*itr)->contraction;
+                const std::vector<double>& _contractions_row = (*itr)->getContraction();
                 // shitty magic
                 std::vector<double> _contractions_row_full(9);
                 _contractions_row_full[0] = _contractions_row[0];
@@ -77,9 +77,9 @@ namespace votca { namespace xtp {
                 _contractions_row_full[8] = _contractions_row[2];
 
 
-                for (GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc) {
+                for (AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc) {
                     //get decay constant
-                    const double _decay_col = (*itc)->decay;
+                    const double _decay_col = (*itc)->getDecay();
                     // if (_decay_col > 0.16) continue;
                     const double _fak = 0.5 / (_decay_row + _decay_col);
                     const double _fak2 = 2.0 * _fak;
@@ -93,7 +93,7 @@ namespace votca { namespace xtp {
                         continue;
                     }
 
-                    std::vector<double> _contractions_col = (*itc)->contraction;
+                    const std::vector<double>& _contractions_col = (*itc)->getContraction();
                     // shitty magic
                     std::vector<double> _contractions_col_full(9);
                     _contractions_col_full[0] = _contractions_col[0];
@@ -128,13 +128,13 @@ namespace votca { namespace xtp {
                         // only do the non-local parts
                         if (_ecp_l < _shell_ecp->getNumFunc()) {
                             int i_fit = -1;
-                            for (GaussianIterator itecp = _shell_ecp->firstGaussian(); itecp != _shell_ecp->lastGaussian(); ++itecp) {
+                            for (AOShell::GaussianIterator itecp = _shell_ecp->firstGaussian(); itecp != _shell_ecp->lastGaussian(); ++itecp) {
                                 i_fit++;
 
                                 // get info for this angular momentum shell
-                                const int _power_ecp = (*itecp)->power; ///////////////
-                                const double _decay_ecp = (*itecp)->decay;
-                                const double _contraction_ecp = (*itecp)->contraction[0];
+                                const int _power_ecp = (*itecp)->getPower(); ///////////////
+                                const double _decay_ecp = (*itecp)->getDecay();
+                                const double _contraction_ecp = (*itecp)->getContraction()[0];
 
                                 // collect atom ECP
                                 if (this_atom == _atomidx) {
@@ -161,7 +161,7 @@ namespace votca { namespace xtp {
 
 
                                     // reset atom ECP containers
-                                    _power_matrix = ub::zero_matrix<double>(5, 3); ///// // max 12 fit components, max non-local ECP l=0,1,2 /////////////////////
+                                    _power_matrix = ub::zero_matrix<int>(5, 3); ///// // max 12 fit components, max non-local ECP l=0,1,2 /////////////////////
                                     _decay_matrix = ub::zero_matrix<double>(5, 3); ///// // max 12 fit components, max non-local ECP l=0,1,2
                                     _coef_matrix = ub::zero_matrix<double>(5, 3); ///// // max 12 fit components, max non-local ECP l=0,1,2
                                     _atomidx++;
@@ -256,7 +256,7 @@ namespace votca { namespace xtp {
 
                     XI(L, N) = 0.0;
                     for (int I = 0; I < nnonsep; I++) {
-                        int power = int(_power_ecp(I, L) + .5);
+                        int power = _power_ecp(I, L);
                         double DLI = (alpha + beta + _gamma_ecp(I, L));
                         if (power == 2) {
                             XI(L, N) += DGAMAF_r2 * _pref_ecp(I, L) / pow(DLI, DFAK_r2); // r^2 terms

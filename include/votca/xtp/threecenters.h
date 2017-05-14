@@ -56,7 +56,7 @@ namespace votca { namespace xtp {
     bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col);
     bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, const AOShell* _shell, const AOShell* _shell_row,const AOShell* _shell_col);
     bool FillFourCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3,const AOShell* _shell_4); ////////
-    void getTrafo(ub::matrix<double>& _trafo,const  int _lmax, const double& _decay,const std::vector<double>& contractions);
+    void getTrafo(ub::matrix<double>& _trafo,const  int _lmax, const double _decay,const std::vector<double>& contractions);
     
     int getBlockSize(const int size );
     

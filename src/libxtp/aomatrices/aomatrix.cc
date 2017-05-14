@@ -42,7 +42,7 @@ namespace votca { namespace xtp {
         return;
     }
     
-    void AOMatrix::Fill(const AOBasis& aobasis,vec r,const AOBasis* ecp ) {
+    void AOMatrix::Fill(const AOBasis& aobasis,vec r, AOBasis* ecp ) {
       
         _gridpoint = r;
         // loop row
@@ -61,10 +61,12 @@ namespace votca { namespace xtp {
                 // figure out the submatrix
                 int _col_start = _shell_col->getStartIndex();
                 int _col_end   = _col_start + _shell_col->getNumFunc();
+                
                 ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(_aomatrix, _row_start, _row_end, _col_start, _col_end);
                 
                 // Fill block
                 FillBlock( _submatrix, _shell_row, _shell_col, ecp );
+                
             }
         }
         
@@ -170,7 +172,7 @@ namespace votca { namespace xtp {
         }
     }
        
-       void AOSuperMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay, std::vector<double> contractions){
+       void AOSuperMatrix::getTrafo(ub::matrix<double>& _trafo,const int _lmax, const double _decay,const std::vector<double>& contractions){
         // s-functions
         _trafo(0,0) = 1.0*contractions[0]; //  // s  Y 0,0
        // p-functions

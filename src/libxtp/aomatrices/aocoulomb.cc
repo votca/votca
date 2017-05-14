@@ -130,19 +130,19 @@ namespace votca { namespace xtp {
 
            
             
-            typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
+          
         // iterate over Gaussians in this _shell_row
-            for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
+            for ( AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
-                const double _decay_row = (*itr)->decay;
+                const double _decay_row = (*itr)->getDecay();
                 const double r_decay_row = 0.5/_decay_row;
-                const double powfactor_row=(*itr)->powfactor;
-                for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
+                const double powfactor_row=(*itr)->getPowfactor();
+                for ( AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
                     
                      // get decay constants 
-                        const double _decay_col = (*itc)->decay;
+                        const double _decay_col = (*itc)->getDecay();
                         const double r_decay_col = 0.5/_decay_col; 
-                       const double powfactor_col=(*itc)->powfactor;
+                       const double powfactor_col=(*itc)->getPowfactor();
                       
                          
                          ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
@@ -164,17 +164,7 @@ namespace votca { namespace xtp {
             const double r_decay_2 = 2.*r_decay; 
             const double fac_a_ac = _decay_row/_decay; 
             const double fac_c_ac = _decay_col/_decay; 
-            
-                       
-
-            
-
-
-            
-            //bool ident;
-            
-            //if ( )
-            
+ 
             
             const double wmp0 = r_decay_2 * (_decay_row * _pos_row.getX() + _decay_col * _pos_col.getX()) - _pos_row.getX();
             const double wmp1 = r_decay_2 * (_decay_row * _pos_row.getY() + _decay_col * _pos_col.getY()) - _pos_row.getY();
@@ -187,9 +177,6 @@ namespace votca { namespace xtp {
             
             const double _T = fac_a_ac * _decay_col * _distsq;
 
-        
-
-            
 
             double _fak = 2.0 * pow(pi, 2.5) / (_decay_row * _decay_col * sqrt(_decay_row + _decay_col));
             _fak = _fak *  powfactor_col*powfactor_row;
@@ -670,8 +657,8 @@ if (_lmax_col > 5) {
             ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col, _ncols);
 
             // get transformation matrices including contraction coefficients
-          std::vector<double> _contractions_row = (*itr)->contraction;
-          std::vector<double> _contractions_col = (*itc)->contraction;
+          const std::vector<double>& _contractions_row = (*itr)->getContraction();
+          const std::vector<double>& _contractions_col = (*itc)->getContraction();
 
           
 
@@ -1152,7 +1139,7 @@ if (_lmax_col > 5) {
 
                 } // _shell_col Gaussians
             } // _shell_row Gaussians
-            
+           return; 
             }    
     
 

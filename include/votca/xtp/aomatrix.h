@@ -72,7 +72,7 @@ namespace votca { namespace xtp {
         int getBlockSize( int size );
         
         
-        void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay , std::vector<double> contractions);
+        void getTrafo( ub::matrix<double>& _trafo,const int _lmax, const double _decay ,const std::vector<double>& contractions);
         
         void PrintIndexToFunction(const AOBasis& aobasis);
         
@@ -95,14 +95,14 @@ namespace votca { namespace xtp {
             this->_aomatrix = ub::zero_matrix<double>(size,size);
         }
         
-        void Fill(const AOBasis& aobasis, vec r = vec(0,0,0) ,const AOBasis* ecp = NULL );
+        void Fill(const AOBasis& aobasis, vec r = vec(0,0,0) , AOBasis* ecp = NULL );
         
         // matrix print 
         void Print( std::string _ident);
         // integrate F
         void XIntegrate( std::vector<double>& _FmT, double _T );
         // block fill prototype
-        virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col,const AOBasis* ecp = NULL) {} ;
+        virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp = NULL) {} ;
 
         // ~AOMatrix(){};
     protected:

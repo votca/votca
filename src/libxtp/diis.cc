@@ -150,47 +150,51 @@ namespace votca { namespace xtp {
       
     double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
       
-    if((max>_levelshiftend && _levelshift>0.00001) || gap<1e-7){
-        Levelshift(H_guess,dmat,_levelshift,_unrestricted);
+    if((max>_levelshiftend && _levelshift>0.00001) || gap<1e-6){
+        Levelshift(H_guess,MOs);
     }
     SolveFockmatrix( MOenergies,MOs,H_guess);
     return max;
     }
       
-    void Diis::SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,const ub::matrix<double>&H){
-
-        ub::matrix<double> temp;
-        bool info=linalg_eigenvalues_general( H,(*S), MOenergies, temp);
+    void Diis::SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,ub::matrix<double>&H){
+        //transform to orthogonal form
+        
+        
+        
+        
+        ub::matrix<double>temp=ub::prod(ub::trans(*Sminusahalf),H);
+        H=ub::prod(temp,*Sminusahalf);
+        
+        bool info=linalg_eigenvalues( MOenergies,H);
         if (!info){
-            throw runtime_error("Generalized eigenvalue problem did not work.");
+            throw runtime_error("eigenvalue problem did not work.");
         }
-
-        MOs=ub::trans(temp);
-
+        
+        
+        //H now stores the MOs
+        MOs=ub::prod(*Sminusahalf,H);
+        
+        MOs=ub::trans(MOs);
         return;
     }
-    void Diis::Levelshift(ub::matrix<double>& H, const ub::matrix<double> & MOs, double levelshift, bool unrestricted) {
-
-        double occupation = 2.0;
-        if (unrestricted) {
-            occupation = 1.0;
-        }
-
+    
+    void Diis::Levelshift(ub::matrix<double>& H,const ub::matrix<double>&MOs) {
+        
+        ub::matrix<double> transform=ub::trans(MOs);
+        ub::matrix<double> trans_inv=ub::zero_matrix<double>(MOs.size1());
+        linalg_invert(transform,trans_inv);
+       
         ub::matrix<double> virt = ub::zero_matrix<double>(H.size1());
-        #pragma omp parallel for
-        for (unsigned _i = 0; _i < MOs.size1(); _i++) {
-            for (unsigned _j = 0; _j < MOs.size1(); _j++) {
-                for (unsigned _level = _nocclevels; _level < MOs.size1(); _level++) {
-
-                    virt(_i, _j) += occupation * MOs(_level, _i) * MOs(_level, _j);
-
-                }
+        for (unsigned _i = _nocclevels; _i < H.size1(); _i++) {
+                        virt(_i, _i) = _levelshift; 
             }
-        }
-
-        LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << levelshift << " Ha" << flush;
-        H += levelshift * virt / occupation; // half the levelshift because our dmat has a factor of two
-
+        transform=ub::prod(ub::trans(trans_inv),virt);
+        virt=ub::prod(transform,trans_inv);
+       
+        LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << _levelshift << " Ha" << flush;
+        H +=  virt ; 
+        
         return;
     }
       

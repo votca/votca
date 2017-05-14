@@ -216,17 +216,16 @@ namespace votca {
          
 
 
-            //start vertical recurrence
-            typedef vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
-
-            for ( GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
-                const double _decay_alpha = (*italpha)->decay;
             
-                for ( GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta){
-                    const double _decay_beta = (*itbeta)->decay;
+
+            for ( AOShell::GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
+                const double _decay_alpha = (*italpha)->getDecay();
+            
+                for ( AOShell::GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta){
+                    const double _decay_beta = (*itbeta)->getDecay();
                     
-                    for ( GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
-                        const double _decay_gamma = (*itgamma)->decay;
+                    for ( AOShell::GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
+                        const double _decay_gamma = (*itgamma)->getDecay();
             
           
             
@@ -894,7 +893,7 @@ if (_lmax_gamma > 5) {
 
 
 
-std::vector<double> _contractions_gamma = (*itgamma)->contraction;
+const std::vector<double>& _contractions_gamma = (*itgamma)->getContraction();
 
   // s-functions
 double factor = _contractions_gamma[0];
@@ -1235,9 +1234,9 @@ if (_lmax_beta > 3) {
 
 
             
-            std::vector<double> _contractions_alpha = (*italpha)->contraction;
+            const std::vector<double>& _contractions_alpha = (*italpha)->getContraction();
 
-            std::vector<double> _contractions_beta    = (*itbeta)->contraction;
+            const std::vector<double>& _contractions_beta    = (*itbeta)->getContraction();
             
             // get transformation matrices
             this->getTrafo(_trafo_beta, _lmax_beta, _decay_beta, _contractions_beta);
@@ -1320,9 +1319,7 @@ if (_lmax_beta > 3) {
             }
         }
 
-                        
  
-//       cout << "ende" << endl;
     
        return _does_contribute;     
     }  
@@ -1373,6 +1370,6 @@ if (_lmax_beta > 3) {
             }
         }
         
-
+        return;
     }
     }}

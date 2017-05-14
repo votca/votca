@@ -38,7 +38,7 @@ namespace votca {
                 _matrix[ _i ].resize(0, 0, false);
             }
             _matrix.clear();
-
+            return;
         } // TCMatrix_dft::Cleanup
 
       

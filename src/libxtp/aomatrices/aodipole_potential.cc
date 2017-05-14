@@ -120,16 +120,16 @@ namespace votca { namespace xtp {
       
         double _distsq = _diff*_diff; 
         
-         typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
+        
         // iterate over Gaussians in this _shell_row
-        for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr) {
+        for (AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr) {
             // iterate over Gaussians in this _shell_col
             // get decay constant
-            const double _decay_row = (*itr)->decay;
+            const double _decay_row = (*itr)->getDecay();
             
-            for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc) {
+            for ( AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc) {
                 //get decay constant
-                const double _decay_col = (*itc)->decay;
+                const double _decay_col = (*itc)->getDecay();
 
                 const double zeta = _decay_row + _decay_col;
                 const double _fak  = 0.5/zeta;
@@ -149,7 +149,7 @@ namespace votca { namespace xtp {
         double PmB1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_col.getY();
         double PmB2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_col.getZ();
 
-       double PmC0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _gridpoint.getX();
+        double PmC0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _gridpoint.getX();
         double PmC1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _gridpoint.getY();
         double PmC2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _gridpoint.getZ();
 
@@ -782,8 +782,8 @@ for (int _i = 0; _i < _nrows; _i++) {
         ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col,_ncols);
 
         // get transformation matrices including contraction coefficients
-        std::vector<double> _contractions_row = (*itr)->contraction;
-        std::vector<double> _contractions_col = (*itc)->contraction;
+        const std::vector<double>& _contractions_row = (*itr)->getContraction();
+        const std::vector<double>& _contractions_col = (*itc)->getContraction();
         this->getTrafo( _trafo_row, _lmax_row, _decay_row, _contractions_row);
         this->getTrafo( _trafo_col, _lmax_col, _decay_col, _contractions_col);
         

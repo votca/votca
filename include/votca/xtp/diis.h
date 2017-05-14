@@ -65,7 +65,7 @@ public:
     
    }
    
-   void Configure(bool usediis, unsigned histlength, bool maxout, string diismethod, double adiis_start,double diis_start,double levelshift,double levelshiftend,bool unrestricted,unsigned nocclevels){
+   void Configure(bool usediis, unsigned histlength, bool maxout, string diismethod, double adiis_start,double diis_start,double levelshift,double levelshiftend,unsigned nocclevels){
        _usediis=usediis;
        _histlength=histlength;
        _maxout=maxout;
@@ -74,7 +74,7 @@ public:
        _diis_start=diis_start;
        _levelshift=levelshift;
        _levelshiftend=levelshiftend;
-       _unrestricted=unrestricted;
+      
        _nocclevels=nocclevels;
   
    }
@@ -87,8 +87,8 @@ public:
    }
     void setLogger(ctp::Logger *pLog){_pLog=pLog;}
     double Evolve(const ub::matrix<double>& dmat,const ub::matrix<double>& H,ub::vector<double> &MOenergies,ub::matrix<double> &MOs, int this_iter,double totE);
-    void SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,const ub::matrix<double>&H);
-    void Levelshift(ub::matrix<double>& H,const ub::matrix<double> & dmat,double levelshift,bool unrestricted);
+    void SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,ub::matrix<double>&H);
+    void Levelshift(ub::matrix<double>& H,const ub::matrix<double>&MOs);
     unsigned gethistlength(){return _mathist.size();}
     
     
@@ -138,7 +138,7 @@ ub::vector<double> DIIsCoeff();
     
     unsigned _nocclevels;
     double _levelshift;
-    bool _unrestricted;
+    
     
   
  };

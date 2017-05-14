@@ -276,19 +276,17 @@ namespace votca {
 
 
 
-            typedef vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
-
-            for ( GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha) {
-                const double _decay_alpha = (*italpha)->decay;
+            for ( AOShell::GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha) {
+                const double _decay_alpha = (*italpha)->getDecay();
             
-              for ( GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta) {
-                  const double _decay_beta = (*itbeta)->decay;
+              for ( AOShell::GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta) {
+                  const double _decay_beta = (*itbeta)->getDecay();
                     
-                for ( GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma) {
-                    const double _decay_gamma = (*itgamma)->decay;
+                for ( AOShell::GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma) {
+                    const double _decay_gamma = (*itgamma)->getDecay();
 
-                  for ( GaussianIterator itdelta = _shell_delta->firstGaussian(); itdelta != _shell_delta->lastGaussian(); ++itdelta) {
-                      const double _decay_delta = (*itdelta)->decay;
+                  for ( AOShell::GaussianIterator itdelta = _shell_delta->firstGaussian(); itdelta != _shell_delta->lastGaussian(); ++itdelta) {
+                      const double _decay_delta = (*itdelta)->getDecay();
 
 
           
@@ -776,8 +774,8 @@ for (int l = 4; l < _lmax_beta+1; l++) {
             ub::matrix<double> _trafo_alpha = ub::zero_matrix<double>(_ntrafo_alpha, _nalpha);
             ub::matrix<double> _trafo_beta = ub::zero_matrix<double>(_ntrafo_beta, _nbeta);
 
-            std::vector<double> _contractions_alpha = (*italpha)->contraction;
-            std::vector<double> _contractions_beta    = (*itbeta)->contraction;
+            const std::vector<double> _contractions_alpha = (*italpha)->getContraction();
+            const std::vector<double> _contractions_beta    = (*itbeta)->getContraction();
             
             // get transformation matrices
             this->getTrafo(_trafo_alpha, _lmax_alpha, _decay_alpha, _contractions_alpha);
@@ -938,8 +936,8 @@ for (int l = 4; l < _lmax_delta+1; l++) {
             ub::matrix<double> _trafo_gamma = ub::zero_matrix<double>(_ntrafo_gamma, _ngamma);
             ub::matrix<double> _trafo_delta = ub::zero_matrix<double>(_ntrafo_delta, _ndelta);
 
-            std::vector<double> _contractions_gamma = (*itgamma)->contraction;
-            std::vector<double> _contractions_delta    = (*itdelta)->contraction;
+            const std::vector<double>& _contractions_gamma = (*itgamma)->getContraction();
+            const std::vector<double>& _contractions_delta    = (*itdelta)->getContraction();
             
             // get transformation matrices
             this->getTrafo(_trafo_gamma, _lmax_gamma, _decay_gamma, _contractions_gamma);

@@ -42,13 +42,22 @@ class AOGaussianPrimitive
 {
     friend class AOShell;
 public:
+    
+    
+    
+    AOShell* aoshell;
+   
+    
+    double getPowfactor()const {return powfactor;}
+    int    getPower()const{return power;}
+    double getDecay()const {return decay;}
+    const std::vector<double>& getContraction()const {return contraction;}
+private:
+     //used in evalspace to speed up DFT
     int power; // used in pseudopotenials only
+    double powfactor;
     double decay;
     std::vector<double> contraction;
-    AOShell* aoshell;
-    //used in evalspace to speed up DFT
-    double powfactor;
-private:
     // private constructor, only a shell can create a primitive
     AOGaussianPrimitive( double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
     : decay(_decay),
