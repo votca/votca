@@ -155,8 +155,7 @@ namespace votca { namespace xtp {
 
         const double _U = zeta*(PmC0*PmC0+PmC1*PmC1+PmC2*PmC2);
 
-        std::vector<double> _FmU(_lsum+2, 0.0); // +2 instead of +1 !!!
-        XIntegrate(_FmU, _U );
+        const std::vector<double> _FmU=XIntegrate(_lsum+2, _U );
 
         typedef boost::multi_array<double, 3> ma_type;
         typedef boost::multi_array<double, 4> ma4_type; //////////////////
@@ -773,25 +772,10 @@ for (int _i = 0; _i < _nrows; _i++) {
 }                         
 
         
-        // normalization and cartesian -> spherical factors
-        int _ntrafo_row = _shell_row->getNumFunc() + _shell_row->getOffset();
-        int _ntrafo_col = _shell_col->getNumFunc() + _shell_col->getOffset();
-        
-    
-        ub::matrix<double> _trafo_row = ub::zero_matrix<double>(_ntrafo_row,_nrows);
-        ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col,_ncols);
-
-        // get transformation matrices including contraction coefficients
-        const std::vector<double>& _contractions_row = (*itr)->getContraction();
-        const std::vector<double>& _contractions_col = (*itc)->getContraction();
-        this->getTrafo( _trafo_row, _lmax_row, _decay_row, _contractions_row);
-        this->getTrafo( _trafo_col, _lmax_col, _decay_col, _contractions_col);
-        
-
-        // cartesian -> spherical
+        ub::matrix<double> _trafo_row = getTrafo(*itr);
+        ub::matrix<double> _trafo_col_tposed = ub::trans(getTrafo(*itc));      
              
         ub::matrix<double> _dip_tmp = ub::prod( _trafo_row, dip );
-        ub::matrix<double> _trafo_col_tposed = ub::trans( _trafo_col );
         ub::matrix<double> _dip_sph = ub::prod( _dip_tmp, _trafo_col_tposed );
         // save to _matrix
         

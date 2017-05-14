@@ -342,27 +342,12 @@ if (_lmax_col > 3) {
         
         //cout << "Done with unnormalized matrix " << endl;
         
-        // normalization and cartesian -> spherical factors
-        int _ntrafo_row = _shell_row->getNumFunc() + _shell_row->getOffset();
-        int _ntrafo_col = _shell_col->getNumFunc() + _shell_col->getOffset();
-        
-        //cout << " _ntrafo_row " << _ntrafo_row << ":" << _shell_row->getType() << endl;
-        //cout << " _ntrafo_col " << _ntrafo_col << ":" << _shell_col->getType() << endl;
-        ub::matrix<double> _trafo_row = ub::zero_matrix<double>(_ntrafo_row,_nrows);
-        ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col,_ncols);
-
-        // get transformation matrices including contraction coefficients
-        const std::vector<double>& _contractions_row = (*itr)->getContraction();
-        const std::vector<double>& _contractions_col = (*itc)->getContraction();
-        
-        this->getTrafo( _trafo_row, _lmax_row, _decay_row, _contractions_row);
-        this->getTrafo( _trafo_col, _lmax_col, _decay_col, _contractions_col);
-        
+        ub::matrix<double> _trafo_row = getTrafo(*itr);
+        ub::matrix<double> _trafo_col_tposed = ub::trans(getTrafo(*itc));      
 
         // cartesian -> spherical
              
         ub::matrix<double> _ol_tmp = ub::prod( _trafo_row, _ol );
-        ub::matrix<double> _trafo_col_tposed = ub::trans( _trafo_col );
         ub::matrix<double> _ol_sph = ub::prod( _ol_tmp, _trafo_col_tposed );
         // save to _matrix
         for ( unsigned i = 0; i< _matrix.size1(); i++ ) {

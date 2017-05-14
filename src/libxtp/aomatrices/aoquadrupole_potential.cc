@@ -166,8 +166,8 @@ namespace votca { namespace xtp {
 
         const double _U = zeta*(PmC0*PmC0+PmC1*PmC1+PmC2*PmC2);
 
-        std::vector<double> _FmU(_lsum+3, 0.0); // +3 quadrupole, +2 dipole, +1 nuclear attraction integrals
-        XIntegrate(_FmU, _U );
+        // +3 quadrupole, +2 dipole, +1 nuclear attraction integrals
+        const std::vector<double> _FmU=XIntegrate(_lsum+3, _U );
 
         typedef boost::multi_array<double, 3> ma_type;
         typedef boost::multi_array<double, 4> ma4_type; //////////////////
@@ -1135,26 +1135,10 @@ for (int _i = 0; _i < _nrows; _i++) {
         
         //cout << "Done with unnormalized matrix " << endl;
         
-        // normalization and cartesian -> spherical factors
-        int _ntrafo_row = _shell_row->getNumFunc() + _shell_row->getOffset();
-        int _ntrafo_col = _shell_col->getNumFunc() + _shell_col->getOffset();
-        
-        //cout << " _ntrafo_row " << _ntrafo_row << ":" << _shell_row->getType() << endl;
-        //cout << " _ntrafo_col " << _ntrafo_col << ":" << _shell_col->getType() << endl;
-        ub::matrix<double> _trafo_row = ub::zero_matrix<double>(_ntrafo_row,_nrows);
-        ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col,_ncols);
-
-        // get transformation matrices including contraction coefficients
-        const std::vector<double>& _contractions_row = (*itr)->getContraction();
-        const std::vector<double>& _contractions_col = (*itc)->getContraction();
-        this->getTrafo( _trafo_row, _lmax_row, _decay_row, _contractions_row);
-        this->getTrafo( _trafo_col, _lmax_col, _decay_col, _contractions_col);
-        
-
-        // cartesian -> spherical
+        ub::matrix<double> _trafo_row = getTrafo(*itr);
+        ub::matrix<double> _trafo_col_tposed = ub::trans(getTrafo(*itc));      
              
         ub::matrix<double> _quad_tmp = ub::prod( _trafo_row, quad );
-        ub::matrix<double> _trafo_col_tposed = ub::trans( _trafo_col );
         ub::matrix<double> _quad_sph = ub::prod( _quad_tmp, _trafo_col_tposed );
         // save to _matrix
         

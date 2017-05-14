@@ -32,7 +32,7 @@ namespace votca { namespace xtp {
           else{
               
           if(_Pout.size()<2){
-              alpha=0.5;             
+              alpha=0.7;             
           }
           else{
               
