@@ -185,8 +185,6 @@ namespace votca {
         
         void GWBSE::BSE_FragmentPopulations(ub::matrix<real_gwbse>& _bse_coefficients, std::vector<double>& popHA, std::vector<double>& popEA, 
                 std::vector<double>& popHB, std::vector<double>& popEB, std::vector<double> &_CrgsA, std::vector<double> &_CrgsB) {
-            double &_popA = _orbitals->FragmentAChargesGS();
-            double &_popB = _orbitals->FragmentBChargesGS();
 
             // Mulliken fragment population analysis
             if (_fragA > 0) {

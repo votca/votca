@@ -98,7 +98,6 @@ namespace votca {
             int _lmax_gamma = _shell_gamma->getLmax();
             
             int _ngamma = AOSuperMatrix::getBlockSize(_lmax_gamma);
-            int _nalpha = AOSuperMatrix::getBlockSize(_lmax_alpha);
             int _nbeta = AOSuperMatrix::getBlockSize(_lmax_beta);
             int _ncombined =AOSuperMatrix::getBlockSize(_lmax_alpha+_lmax_beta);
             

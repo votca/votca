@@ -237,9 +237,7 @@ namespace votca {
 
 
 
-            int _nalpha = AOSuperMatrix::getBlockSize(_lmax_alpha);
             int _nbeta = AOSuperMatrix::getBlockSize(_lmax_beta);
-            int _ngamma = AOSuperMatrix::getBlockSize(_lmax_gamma);
             int _ndelta = AOSuperMatrix::getBlockSize(_lmax_delta);
             int _ncombined_ab = AOSuperMatrix::getBlockSize(_lmax_alpha+_lmax_beta);
             int _ncombined_cd = AOSuperMatrix::getBlockSize(_lmax_gamma+_lmax_delta);

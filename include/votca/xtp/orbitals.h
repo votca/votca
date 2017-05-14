@@ -106,7 +106,7 @@ public:
 
     // access to DFT number of levels, new, tested
     bool           hasNumberOfLevels() { return ( (_occupied_levels > 0) && (_unoccupied_levels >0 ) ? true : false );}
-    int            getNumberOfLevels() { return ( _occupied_levels + _unoccupied_levels ) ; }
+    unsigned int   getNumberOfLevels() { return ( _occupied_levels + _unoccupied_levels ) ; }
     void           setNumberOfLevels( const int &occupied_levels, const int &unoccupied_levels );
     
     // access to DFT number of electrons, new, tested

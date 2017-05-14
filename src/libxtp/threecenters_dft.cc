@@ -45,7 +45,7 @@ namespace votca {
   
         void TCMatrix_dft::Fill(AOBasis& _auxbasis, AOBasis& _dftbasis) {
 
-            for (int i=0; i< _auxbasis.AOBasisSize(); i++){
+            for (unsigned int i=0; i< _auxbasis.AOBasisSize(); i++){
                  try{
                 _matrix.push_back(ub::symmetric_matrix<double>(_dftbasis.AOBasisSize()));   
                 }
