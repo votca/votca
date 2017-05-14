@@ -53,16 +53,7 @@ namespace votca { namespace xtp {
             typedef boost::multi_array_types::extent_range range; //////////////////
             typedef ma_type::index index; /////////////////////
             ma_type::extent_gen extents; /////////////////////
-    bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col);
-    bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, const AOShell* _shell, const AOShell* _shell_row,const AOShell* _shell_col);
-    bool FillFourCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3,const AOShell* _shell_4); ////////
-    void getTrafo(ub::matrix<double>& _trafo,const  int _lmax, const double _decay,const std::vector<double>& contractions);
     
-    int getBlockSize(const int size );
-    
-    void XIntegrate( vector<double>& _FmT, const double& _T );
-    
-   
     };
     
     
@@ -82,7 +73,7 @@ namespace votca { namespace xtp {
         std::vector< ub::symmetric_matrix<double> > _matrix;
     
         void FillBlock(const AOShell* _shell,const AOBasis& dftbasis) ; 
-        
+        bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, const AOShell* _shell, const AOShell* _shell_row,const AOShell* _shell_col);
     };
 
 
@@ -90,11 +81,12 @@ namespace votca { namespace xtp {
     public:
     
     void Fill_4c_small_molecule(const AOBasis& dftbasis); ///////////////////
-
+    
     const ub::vector<double>& get_4c_vector() { return _4c_vector;} ////////////////////
     
     private:
-     
+     bool FillFourCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3,const AOShell* _shell_4); ////////
+    
         ub::vector<double> _4c_vector;
     };
 
@@ -161,7 +153,7 @@ namespace votca { namespace xtp {
         void Prune ( int _basissize, int min, int max);
         void Print( std::string _ident);       
         void Fill(const AOBasis& gwbasis,const AOBasis& dftbasis, const ub::matrix<double>& _dft_orbitals );
-     
+        
         void Symmetrize( const ub::matrix<double>& coulomb  );
    
         void Cleanup();
@@ -178,7 +170,7 @@ namespace votca { namespace xtp {
         int nmax;
         int ntotal;
         int mtotal;
-          
+        bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col); 
         void FillBlock(std::vector< ub::matrix<double> >& _matrix,const  AOShell* _shell, const AOBasis& dftbasis,const ub::matrix<double>& _dft_orbitals ) ;
         
     };

@@ -69,10 +69,10 @@ namespace votca { namespace xtp {
         class AOSuperMatrix{
     public:
         
-        int getBlockSize( int size );
+        static int getBlockSize( int size );
         
         
-        void getTrafo( ub::matrix<double>& _trafo,const int _lmax, const double _decay ,const std::vector<double>& contractions);
+        static ub::matrix<double> getTrafo( const AOGaussianPrimitive* gaussian);
         
         void PrintIndexToFunction(const AOBasis& aobasis);
         
@@ -100,7 +100,7 @@ namespace votca { namespace xtp {
         // matrix print 
         void Print( std::string _ident);
         // integrate F
-        void XIntegrate( std::vector<double>& _FmT, double _T );
+        static std::vector<double> XIntegrate( int _n, double _T );
         // block fill prototype
         virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp = NULL) {} ;
 

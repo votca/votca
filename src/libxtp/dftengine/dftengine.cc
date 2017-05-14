@@ -610,7 +610,7 @@ namespace votca {
                 ub::matrix<double>dftAOdmat_beta = DensityMatrix_unres(MOCoeff_beta, beta_e);
                 bool _HF=false;
                 double energyold = 0;
-                int maxiter = 200;
+                int maxiter = 50;
                 for (int this_iter = 0; this_iter < maxiter; this_iter++) {
                    
                     ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);

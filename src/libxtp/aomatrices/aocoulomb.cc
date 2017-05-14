@@ -181,9 +181,8 @@ namespace votca { namespace xtp {
             double _fak = 2.0 * pow(pi, 2.5) / (_decay_row * _decay_col * sqrt(_decay_row + _decay_col));
             _fak = _fak *  powfactor_col*powfactor_row;
 
-            std::vector<double> _FmT(_nextra, 0.0); // that size needs to be checked!
-            // call xint01(FmT,8,T,u_lower)
-            XIntegrate(_FmT, _T);
+         
+            const std::vector<double> _FmT=XIntegrate(_nextra, _T);
 
             // get initial data from _FmT -> s-s element
             for (index i = 0; i != _nextra; ++i) {
