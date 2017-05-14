@@ -23,16 +23,6 @@ namespace votca { namespace tools {
 
 using namespace std;
  
-/**
-*
-* ublas binding for gsl_eigen_symmv
-* note that the eigenvalues/eigenvectors are UNSORTED 
-* 
-*/
-bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
-{
-    throw std::runtime_error("linalg_eigenvalues_symmetric is not compiled-in due to disabling of GSL and MKL - recompile Votca Tools with GSL and MKL support");
-};
 
 
 /**
@@ -42,7 +32,7 @@ bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<d
 * wrapping gsl_eigen_symmv 
 * 
 */
-bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
+bool linalg_eigenvalues(const ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
 {
     throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of GSL and MKL - recompile Votca Tools with GSL or MKL support");
 };
@@ -81,7 +71,7 @@ bool linalg_eigenvalues( ub::vector<double> &E, ub::matrix<double> &V)
 /*
  * use expert routine to calculate only a subrange of eigenvalues
  */
-bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
+bool linalg_eigenvalues(ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
 {
     throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
 }
@@ -89,12 +79,12 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
 /*
  * use expert routine to calculate only a subrange of eigenvalues single precision
  */
-bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
+bool linalg_eigenvalues(ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
 {
     throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
 }
 
-bool linalg_eigenvalues_general( ub::matrix<double> &A,ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V)
+bool linalg_eigenvalues_general(const ub::matrix<double> &A,const ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V)
 {
     throw std::runtime_error("linalg_eigenvalues is not compiled-in due to disabling of GSL and MKL - recompile Votca Tools with GSL or MKL support");
 };

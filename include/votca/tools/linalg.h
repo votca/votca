@@ -38,8 +38,8 @@ namespace votca { namespace tools {
      *
      * This function wraps the inversion of a matrix
      */
-    void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V );
-    void linalg_invert( ub::matrix<float> &A, ub::matrix<float> &V );
+    void linalg_invert( const ub::matrix<double> &A, ub::matrix<double> &V );
+    void linalg_invert( const ub::matrix<float> &A, ub::matrix<float> &V );
  
     /**
      * \brief determines Cholesky decomposition of matrix A
@@ -81,19 +81,7 @@ namespace votca { namespace tools {
      * This function wraps the qrsolver under constraints
      */
     void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::matrix<double> &constr);
-
-    /**
-     * \brief eigenvalues of a symmetric matrix A*x=E*x
-     * @param A symmetric matrix 
-     * @param E vector of eigenvalues
-     * @param V matrix of eigenvalues
-     * 
-     * This function wraps gsl_eigen_symmv / DSYEV
-     * note that the eigenvalues/eigenvectors are UNSORTED 
-     * 
-     */
-    bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V );
-    
+  
    /**
      * \brief eigenvalues of a symmetric matrix A*x=E*x
      * @param A matrix 
@@ -103,7 +91,7 @@ namespace votca { namespace tools {
      * This function wraps gsl_eigen_symmv / DSYEV
      * 
      */
-    bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V );
+    bool linalg_eigenvalues(const ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V );
     
     
    /**
@@ -138,7 +126,7 @@ namespace votca { namespace tools {
      * This function wrapps gsl_eigen_symmv / DSYEV
      * 
      */
-    bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax );
+    bool linalg_eigenvalues(ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax );
     
       /**
      * \brief eigenvalues of a symmetric matrix A*x=E*x single precision
@@ -149,7 +137,7 @@ namespace votca { namespace tools {
      * This function wrapps gsl_eigen_symmv / DSYEV
      * 
      */
-    bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax );
+    bool linalg_eigenvalues(ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax );
     
      /**
      * \brief eigenvalues of a symmetric matrix A*x=E*B*x double precision
