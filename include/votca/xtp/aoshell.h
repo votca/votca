@@ -51,12 +51,12 @@ public:
     const std::vector<double>& getContraction()const {return contraction;}
     const AOShell* getShell() const{return aoshell;}
 private:
-     //used in evalspace to speed up DFT
+     
     int power; // used in pseudopotenials only
     double decay;
     std::vector<double> contraction;
     AOShell* aoshell;
-    double powfactor;
+    double powfactor;//used in evalspace to speed up DFT
     // private constructor, only a shell can create a primitive
     AOGaussianPrimitive( double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
     : power(-1),decay(_decay),

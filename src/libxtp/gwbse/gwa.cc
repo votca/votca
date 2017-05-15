@@ -249,15 +249,18 @@ namespace votca {
 
 
         void GWBSE::sigma_prepare_threecenters(TCMatrix& _Mmn){
+            #if (GWBSE_DOUBLE)
+                const ub::matrix<double>& ppm_phi=_ppm_phi;
+            #else
+                const ub::matrix<float> ppm_phi=_ppm_phi;        
+            #endif
+            
+            
             #pragma omp parallel for
             for ( int _m_level = 0 ; _m_level < _Mmn.get_mtot(); _m_level++ ){
                 // get Mmn for this _m_level
                 // and multiply with _ppm_phi = eigenvectors of epsilon
-                // POTENTIAL BUG
-	      // casting _Mmn to double for efficint prod() overload
-	      ub::matrix<double> _Mmn_double = _Mmn[_m_level];
-              ub::matrix<real_gwbse> _temp = ub::prod(  _ppm_phi , _Mmn_double );
-                _Mmn[ _m_level ] = _temp;
+              _Mmn[ _m_level ] = ub::prod(  ppm_phi , _Mmn[_m_level] );
             }
             return;
         }        
