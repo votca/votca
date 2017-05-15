@@ -36,7 +36,7 @@ void KMCMultiple::Initialize(tools::Property *options){
     std::string key = "options." + Identify();
 
     _runtime=options->ifExistsReturnElseThrowRuntimeError<double>(key+".runtime");
-    _seed=options->ifExistsReturnElseThrowRuntimeError<int>(key+"seed");
+    _seed=options->ifExistsReturnElseThrowRuntimeError<int>(key+".seed");
     _numberofcharges=options->ifExistsReturnElseThrowRuntimeError<int>(key+".numberofcharges");
     _injection_name=options->ifExistsReturnElseThrowRuntimeError<int>(key+".injectionpattern");
   
