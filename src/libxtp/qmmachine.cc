@@ -343,20 +343,18 @@ namespace votca {
                         std::vector<int> _state_index_copy;
                         if (_type == "singlets") {
                             // go through list of singlets
-                            const std::vector<double>& dQ_fragA = orb_iter_output.FragmentAChargesSingEXC();
-                            //const std::vector<double>& dQ_fragB = orb_iter_output.FragmentBChargesSingEXC();
+                            const std::vector< ub::vector<double> >& dQ_frag = orb_iter_output.FragmentChargesSingEXC();
                             for (unsigned _i = 0; _i < _state_index.size(); _i++) {
-                                if (std::abs(dQ_fragA[_i]) > _dQ_threshold) {
+                                if (std::abs(dQ_frag[_i](0)) > _dQ_threshold) {
                                     _state_index_copy.push_back(_state_index[_i]);
                                 }
                             }
                             _state_index = _state_index_copy;
                         } else if (_type == "triplets") {
                             // go through list of triplets
-                            const std::vector<double>& dQ_fragA = orb_iter_output.FragmentAChargesTripEXC();
-                            //const std::vector<double>& dQ_fragB = orb_iter_output.FragmentBChargesTripEXC();
+                            const std::vector< ub::vector<double> >& dQ_frag = orb_iter_output.FragmentChargesTripEXC();
                             for (unsigned _i = 0; _i < _state_index.size(); _i++) {
-                                if (std::abs(dQ_fragA[_i]) > _dQ_threshold) {
+                                if (std::abs(dQ_frag[_i](0)) > _dQ_threshold) {
                                     _state_index_copy.push_back(_state_index[_i]);
                                 }
                             }

@@ -372,8 +372,10 @@ bool Orbitals::Load(string file_name) {
 
 
 
+
+
  // Determine ground state density matrix
- ub::matrix<double> Orbitals::DensityMatrixGroundState( ub::matrix<double>& _MOs ) {   
+ ub::matrix<double> Orbitals::DensityMatrixGroundState(const ub::matrix<double>& _MOs ) {   
      // first fill Density matrix, if required
     //  if ( _dmatGS.size1() != _basis_set_size ) {
         ub::matrix<double> dmatGS = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
@@ -393,7 +395,7 @@ bool Orbitals::Load(string file_name) {
  }
  
  
- ub::matrix<double>  Orbitals::TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state){
+ ub::matrix<double>  Orbitals::TransitionDensityMatrix(const ub::matrix<double>& _MOs ,const ub::matrix<real_gwbse>& _BSECoefs, int state){
     ub::matrix<double> dmatTS=ub::zero_matrix<double>(_basis_set_size);
     // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
     double sqrt2=sqrt(2.0);
@@ -433,7 +435,7 @@ bool Orbitals::Load(string file_name) {
  
  
  // Excited state density matrix
-std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState(ub::matrix<double>& _MOs, ub::matrix<real_gwbse>& _BSECoefs, int state ){
+std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState(const ub::matrix<double>& _MOs,const ub::matrix<real_gwbse>& _BSECoefs, int state ){
      
      
      /****** 

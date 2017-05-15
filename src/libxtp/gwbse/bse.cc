@@ -17,8 +17,6 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 
 #include <votca/xtp/gwbse.h>
 
@@ -96,20 +94,20 @@ namespace votca {
                 }
             }
             
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed L^T" << flush;
+          LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed L^T" << flush;
           // determine H = L^T(A-B)L
           ub::matrix<real_gwbse> _temp = ub::prod( _ApB , _AmB );
-          ub::matrix<real_gwbse> _H = ub::prod( ub::trans(_AmB), _temp );
+          _ApB= ub::prod( ub::trans(_AmB), _temp );
           _temp.resize(0,0);
           LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
           
           // solve eigenvalue problem: HR_l = eps_l^2 R_l
           ub::vector<real_gwbse> _eigenvalues;
-            ub::matrix<real_gwbse> _eigenvectors;
+          ub::matrix<real_gwbse> _eigenvectors;
             
-          linalg_eigenvalues(_H, _eigenvalues, _eigenvectors, _bse_nmax);
+          linalg_eigenvalues(_ApB, _eigenvalues, _eigenvectors, _bse_nmax);
           LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
-
+          _ApB.resize(0,0);
           // reconstruct real eigenvalues eps_l = sqrt(eps_l^2)
           _bse_singlet_energies.resize(_bse_nmax);
           for ( int _i = 0; _i < _bse_nmax; _i++) {

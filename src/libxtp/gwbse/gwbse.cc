@@ -308,12 +308,12 @@ namespace votca {
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
 
             // fill DFT AO basis by going through all atoms 
-            AOBasis dftbasis;
-            dftbasis.AOBasisFill(&dftbs, _atoms, _fragA);
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Basis of size " << dftbasis.AOBasisSize() << flush;
-            if (dftbasis._AOBasisFragB > 0) {
-                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size " << dftbasis._AOBasisFragA << flush;
-                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size " << dftbasis._AOBasisFragB << flush;
+           
+            _dftbasis.AOBasisFill(&dftbs, _atoms, _fragA);
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Basis of size " << _dftbasis.AOBasisSize() << flush;
+            if (_dftbasis._AOBasisFragB > 0) {
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size " << _dftbasis._AOBasisFragA << flush;
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size " << _dftbasis._AOBasisFragB << flush;
             }
 
             /* Preparation of calculation parameters:
@@ -436,7 +436,7 @@ namespace votca {
                         const ub::matrix<double>& vxc_cart = _orbitals->AOVxc();
                         //cout<< vxc_cart.size1()<<"x"<<vxc_cart.size2()<<endl;
                         ub::matrix<double> _carttrafo;
-                        dftbasis.getTransformationCartToSpherical(_dft_package, _carttrafo);
+                        _dftbasis.getTransformationCartToSpherical(_dft_package, _carttrafo);
                         //cout<< _carttrafo.size1()<<"x"<<_carttrafo.size2()<<endl;
 
                         ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_cart);
@@ -452,8 +452,8 @@ namespace votca {
                     if (ScaHFX_temp != _ScaHFX) {
                         throw std::runtime_error((boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
                     }
-                    _numint.GridSetup(_grid, &dftbs, _atoms,&dftbasis);
-                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
+                    _numint.GridSetup(_grid, &dftbs, _atoms,&_dftbasis);
+                    _dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
 
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Integrating Vxc in VOTCA with gridsize: " << _grid << " and functional " << _functional << flush;
@@ -468,14 +468,14 @@ namespace votca {
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
 
                 // now get expectation values but only for those in _qpmin:_qpmax range
-                ub::matrix<double> _mos = ub::project(_dft_orbitals, ub::range(_qpmin, _qpmax + 1), ub::range(0, dftbasis.AOBasisSize()));
+                ub::matrix<double> _mos = ub::project(_dft_orbitals, ub::range(_qpmin, _qpmax + 1), ub::range(0, _dftbasis.AOBasisSize()));
                 ub::matrix<double> _temp = ub::prod(_vxc_ao, ub::trans(_mos));
                 _vxc = ub::prod(_mos, _temp);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
 
                 // b) reorder MO coefficients depending on the QM package used to obtain the DFT data
                 if (_dft_package != "xtp" && !_doVxc) {
-                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
+                    _dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;
                 }
             }
@@ -553,7 +553,7 @@ namespace votca {
 
             TCMatrix _Mmn;
             _Mmn.Initialize(gwbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
-            _Mmn.Fill(gwbasis, dftbasis, _dft_orbitals);
+            _Mmn.Fill(gwbasis, _dftbasis, _dft_orbitals);
             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
 
             // for use in RPA, make a copy of _Mmn with dimensions (1:HOMO)(gwabasissize,LUMO:nmax)

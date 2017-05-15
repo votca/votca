@@ -302,37 +302,30 @@ public:
 
     
     // functions for calculating density matrices
-    ub::matrix<double> DensityMatrixGroundState( ub::matrix<double>& _MOs ) ;
-    std::vector<ub::matrix<double> > DensityMatrixExcitedState( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0 ) ;
-    ub::matrix<double > TransitionDensityMatrix( ub::matrix<double>& _MOs , ub::matrix<real_gwbse>& _BSECoefs, int state = 0);
+    ub::matrix<double> DensityMatrixGroundState(const ub::matrix<double>& _MOs ) ;
+    std::vector<ub::matrix<double> > DensityMatrixExcitedState(const ub::matrix<double>& _MOs ,const ub::matrix<real_gwbse>& _BSECoefs, int state = 0 ) ;
+    ub::matrix<double > TransitionDensityMatrix(const ub::matrix<double>& _MOs ,const ub::matrix<real_gwbse>& _BSECoefs, int state = 0);
     
     
     // functions for analyzing fragment charges via Mulliken populations
     ub::vector<double> MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag);
 
     // access to fragment charges of singlet excitations
-    bool hasFragmentAChargesSingEXC() {return (_DqS_fragA.size() > 0 ) ? true : false ;}
-    bool hasFragmentBChargesSingEXC() {return (_DqS_fragB.size() > 0 ) ? true : false ;}
-    const std::vector<double> &FragmentAChargesSingEXC() const { return _DqS_fragA; }
-    std::vector<double> &FragmentAChargesSingEXC()  { return _DqS_fragA; }
-    const std::vector<double> &FragmentBChargesSingEXC() const { return _DqS_fragB; }
-    std::vector<double> &FragmentBChargesSingEXC()  { return _DqS_fragB; }
+    bool hasFragmentChargesSingEXC() {return (_DqS_frag.size() > 0 ) ? true : false ;}  
+    const std::vector< ub::vector<double> > &FragmentChargesSingEXC() const { return _DqS_frag; }
+    std::vector< ub::vector<double> > &FragmentChargesSingEXC()  { return _DqS_frag; }
 
-    
     // access to fragment charges of triplet excitations
-    bool hasFragmentAChargesTripEXC() {return (_DqT_fragA.size() > 0 ) ? true : false ;}
-    bool hasFragmentBChargesTripEXC() {return (_DqT_fragB.size() > 0 ) ? true : false ;}
-    const std::vector<double> &FragmentAChargesTripEXC() const { return _DqT_fragA; }
-    std::vector<double> &FragmentAChargesTripEXC()  { return _DqT_fragA; }
-    const std::vector<double> &FragmentBChargesTripEXC() const { return _DqT_fragB; }
-    std::vector<double> &FragmentBChargesTripEXC()  { return _DqT_fragB; }
-    
+    bool hasFragmentChargesTripEXC() {return (_DqT_frag.size() > 0 ) ? true : false ;}
+    const std::vector< ub::vector<double> > &FragmentChargesTripEXC() const { return _DqT_frag; }
+    std::vector< ub::vector<double> > &FragmentChargesTripEXC()  { return _DqT_frag; }
 
     // access to fragment charges in ground state
-    const double &FragmentAChargesGS() const { return _GSq_fragA; }
-    double &FragmentAChargesGS()  { return _GSq_fragA; }
-    const double &FragmentBChargesGS() const { return _GSq_fragB; }
-    double &FragmentBChargesGS()  { return _GSq_fragB; }
+    const ub::vector<double> &FragmentChargesGS() const { return _GSq_frag; }
+    ub::vector<double> &FragmentChargesGS()  { return _GSq_frag; }
+    
+    
+    
     ub::vector<double> FragmentNuclearCharges( int _frag);
     
     
@@ -377,6 +370,7 @@ public:
      * If exception is required, please use the << overload.
      */
     bool Load(std::string file_name);
+    
     
     
 private:
@@ -458,13 +452,12 @@ private:
     
    
     
-    std::vector<double>                    _DqS_fragA; // fragment charge changes in exciton
-    std::vector<double>                    _DqS_fragB;
-        
-    std::vector<double>                    _DqT_fragA; // fragment charge changes in exciton
-    std::vector<double>                    _DqT_fragB;
-    double                                 _GSq_fragA; // ground state effective fragment charges
-    double                                 _GSq_fragB;
+    std::vector< ub::vector<double> >       _DqS_frag; // fragment charge changes in exciton
+   
+    std::vector< ub::vector<double> >       _DqT_frag;
+   
+    ub::vector<double>                     _GSq_frag; // ground state effective fragment charges
+    
 
 private:
 

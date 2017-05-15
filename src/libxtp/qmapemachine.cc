@@ -371,20 +371,20 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
             std::vector<int> _state_index_copy;
             if ( _type == "singlets" ){
              // go through list of singlets
-            const std::vector<double>& dQ_fragA = orb.FragmentAChargesSingEXC();
+            const std::vector< ub::vector<double> >& dQ_frag = orb.FragmentChargesSingEXC();
             //const std::vector<double>& dQ_fragB = orb.FragmentBChargesSingEXC();
             for (unsigned _i=0; _i < _state_index.size(); _i++ ) {
-                if ( std::abs(dQ_fragA[_i]) > _dQ_threshold ) {
+                if ( std::abs(dQ_frag[_i](0)) > _dQ_threshold ) {
                     _state_index_copy.push_back(_state_index[_i]);
                 }
             } 
             _state_index = _state_index_copy;
             } else if ( _type == "triplets"){
               // go through list of triplets
-            const std::vector<double>& dQ_fragA = orb.FragmentAChargesTripEXC();
+            const std::vector< ub::vector<double> >& dQ_frag = orb.FragmentChargesTripEXC();
             //const std::vector<double>& dQ_fragB = orb.FragmentBChargesTripEXC();
             for (unsigned _i=0; _i < _state_index.size(); _i++ ) {
-                if ( std::abs(dQ_fragA[_i]) > _dQ_threshold ) {
+                if ( std::abs(dQ_frag[_i](0)) > _dQ_threshold ) {
                     _state_index_copy.push_back(_state_index[_i]);
                 }
             } 
