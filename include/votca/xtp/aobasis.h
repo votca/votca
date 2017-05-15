@@ -56,7 +56,7 @@ public:
     void ECPFill( BasisSet* bs , std::vector<ctp::QMAtom* > segments); 
     
     
-    int AOBasisSize() const {return _AOBasisSize; }
+    unsigned int AOBasisSize() const {return _AOBasisSize; }
     
     typedef std::vector< AOShell* >::const_iterator AOShellIterator;
     AOShellIterator firstShell() const{ return _aoshells.begin(); }
@@ -100,7 +100,7 @@ public:
     int getMaxFunctions ( );
     
 private:
-    int _AOBasisSize;
+    unsigned int _AOBasisSize;
     
 };
 
