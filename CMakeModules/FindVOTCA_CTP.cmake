@@ -4,7 +4,6 @@
 #  VOTCA_CTP_INCLUDE_DIRS - where to find votca/ctp/version.h, etc.
 #  VOTCA_CTP_LIBRARIES    - List of libraries when using expat.
 #  VOTCA_CTP_FOUND        - True if expat found.
-#  VOTCA_CTP_HAS_SQLITE3  - True if votca ctp was build with sqlite3 support
 #
 # Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
@@ -24,23 +23,11 @@
 find_package(PkgConfig)
 
 pkg_check_modules(PC_VOTCA_CTP libvotca_ctp)
-find_path(VOTCA_CTP_INCLUDE_DIR votca/ctp/version.h HINTS ${PC_VOTCA_CTP_INCLUDE_DIRS})
+find_path(VOTCA_CTP_INCLUDE_DIR votca/ctp/ctpapplication.h HINTS ${PC_VOTCA_CTP_INCLUDE_DIRS})
 
 find_library(VOTCA_CTP_LIBRARY NAMES votca_ctp HINTS ${PC_VOTCA_CTP_LIBRARY_DIRS} )
 
-if("${VOTCA_CTP_LIBRARY}" MATCHES "libvotca_ctp[^;]*\\.a")
-    if(PC_VOTCA_CTP_LIBRARIES)
-      list(REMOVE_ITEM PC_VOTCA_CTP_LIBRARIES votca_ctp)
-      foreach (LIB ${PC_VOTCA_CTP_LIBRARIES})
-        find_library(VOTCA_CTP_${LIB} NAMES ${LIB} HINTS ${PC_VOTCA_CTP_LIBRARY_DIRS} )
-        list(APPEND VT_DEP_LIBRARIES ${VOTCA_CTP_${LIB}})
-        unset(VOTCA_CTP_${LIB} CACHE)
-      endforeach(LIB)
-    endif(PC_VOTCA_CTP_LIBRARIES)
-    set(VOTCA_CTP_DEP_LIBRARIES "${VT_DEP_LIBRARIES}" CACHE FILEPATH "votca ctp depency libs (only needed for static (.a) libvotca_ctp")
-endif("${VOTCA_CTP_LIBRARY}" MATCHES "libvotca_ctp[^;]*\\.a")
-
-set(VOTCA_CTP_LIBRARIES "${VOTCA_CTP_LIBRARY};${VOTCA_CTP_DEP_LIBRARIES}" )
+set(VOTCA_CTP_LIBRARIES "${VOTCA_CTP_LIBRARY}" )
 set(VOTCA_CTP_INCLUDE_DIRS "${VOTCA_CTP_INCLUDE_DIR}" )
 
 include(FindPackageHandleStandardArgs)
