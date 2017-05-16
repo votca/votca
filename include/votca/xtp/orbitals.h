@@ -307,6 +307,13 @@ public:
     ub::matrix<double > TransitionDensityMatrix(const ub::matrix<double>& _MOs ,const ub::matrix<real_gwbse>& _BSECoefs, int state = 0);
     
     
+    ub::matrix<double > TransitionDensityMatrix_BTDA(const ub::matrix<double>& _MOs ,const ub::matrix<real_gwbse>& _BSECoefs,
+    const ub::matrix<real_gwbse>& _BSECoefs_AR, int state = 0);
+    std::vector<ub::matrix<double> > DensityMatrixExcitedState_BTDA(const ub::matrix<double>& _MOs,
+    const ub::matrix<real_gwbse>& _BSECoefs,const ub::matrix<real_gwbse>& _BSECoefs_AR, int state=0 );
+    
+    
+    
     // functions for analyzing fragment charges via Mulliken populations
     ub::vector<double> MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag);
 
@@ -375,6 +382,7 @@ public:
     
 private:
     
+    std::vector<ub::matrix<double> >DensityMatrixExcitedState_AR(const ub::matrix<double>& _MOs,const ub::matrix<real_gwbse>& _BSECoefs_AR, int state=0 );
     
     int                                     _basis_set_size;   
     int                                     _occupied_levels;

@@ -45,9 +45,16 @@ namespace votca {
             BSE_FreeTransition_Dipoles();
    
             BSE_CoupledTransition_Dipoles_BTDA();
-      
-
+            std::vector< ub::vector<double> > _popH;
+            std::vector< ub::vector<double> > _popE;
+            std::vector< ub::vector<double> > _Chrg;
+           
+            
+            
+            BSE_FragmentPopulations_BTDA(_bse_singlet_coefficients,_bse_singlet_coefficients_AR,_popH, _popE, _Chrg);
+            _orbitals->FragmentChargesSingEXC()=_Chrg;
             // REPORTING
+            const ub::vector<double>& _pop= _orbitals->FragmentChargesGS();
             std::vector< tools::vec >& _transition_dipoles = _orbitals->TransitionDipoles();
             double hrt2ev=tools::conv::hrt2ev;
             LOG(ctp::logINFO, *_pLog) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
@@ -75,9 +82,17 @@ namespace votca {
                                 % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                     }
                 }
-                 
+                 // results of fragment population analysis 
+                if (_fragA > 0) {
+                    LOG(ctp::logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+                            % (100.0 * _popH[_i](0)) % (100.0 * _popE[_i](0)) % (_Chrg[_i](0)) % (_Chrg[_i](0) + _pop(0))).str() << flush;
+                    LOG(ctp::logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+                            % (100.0 * _popH[_i](1)) % (100.0 * _popE[_i](1)) % (_Chrg[_i](1)) % (_Chrg[_i](1) + _pop(1))).str() << flush;
+                }
+                
+                LOG(ctp::logINFO, *_pLog)  << flush;
               
-                LOG(ctp::logINFO, *_pLog) << (format("   ")).str() << flush;
+               
             }
             _bse_singlet_energies.resize(_bse_nmax);
             _transition_dipoles.resize(_bse_nprint);
@@ -185,9 +200,7 @@ namespace votca {
         
         void GWBSE::BSE_FragmentPopulations(const ub::matrix<real_gwbse>& _bse_coefficients,std::vector< ub::vector<double> >& popH,
                 std::vector< ub::vector<double> >& popE, std::vector< ub::vector<double> >& Crgs) {
-            
-            
-           
+                       
             // Mulliken fragment population analysis
             if (_fragA > 0) {
 
@@ -197,41 +210,67 @@ namespace votca {
                 _dftoverlap.Initialize(_dftbasis.AOBasisSize());
                 // Fill overlap
                 _dftoverlap.Fill(_dftbasis);
-                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().size1() << flush;
-                
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().size1() << flush;    
                 // ground state populations
                 ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
                 
                 ub::vector<double> nuccharges=_orbitals->FragmentNuclearCharges(_fragA);
                 ub::vector<double> pops=_orbitals->MullikenPopulation(DMAT, _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
-                // population to electron charges and add nuclear charges
-                
-                _orbitals->FragmentChargesGS()=nuccharges-pops;
-                
+                // population to electron charges and add nuclear charges         
+                _orbitals->FragmentChargesGS()=nuccharges-pops; 
                 for (int _i_state = 0; _i_state < _bse_nprint; _i_state++) {
 
                     // checking Density Matrices
                     std::vector< ub::matrix<double> > DMAT = _orbitals->DensityMatrixExcitedState(_dft_orbitals, _bse_coefficients, _i_state);
-
-                    
-
                     // hole part
                     ub::vector<double> popsH=_orbitals->MullikenPopulation(DMAT[0], _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
-
                     popH.push_back(popsH);
-
                     // electron part
-                    ub::vector<double> popsE=_orbitals->MullikenPopulation(DMAT[1], _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
+                    ub::vector<double> popsE=-_orbitals->MullikenPopulation(DMAT[1], _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
                     popE.push_back(popsE);
-                   
-
                     // update effective charges
                     ub::vector<double> diff=popsH-popsE;
                     Crgs.push_back(diff);
-
                 }
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Ran Excitation fragment population analysis " << flush;
+            }
+            return;
+        }
+        
+        void GWBSE::BSE_FragmentPopulations_BTDA(const ub::matrix<real_gwbse>& _bse_coefficients,const ub::matrix<real_gwbse>& _bse_coefficients_AR,std::vector< ub::vector<double> >& popH,
+                std::vector< ub::vector<double> >& popE, std::vector< ub::vector<double> >& Crgs) {
+                       
+            // Mulliken fragment population analysis
+            if (_fragA > 0) {
+                // get overlap matrix for DFT basisset
+                AOOverlap _dftoverlap;
+                // initialize overlap matrix
+                _dftoverlap.Initialize(_dftbasis.AOBasisSize());
+                // Fill overlap
+                _dftoverlap.Fill(_dftbasis);
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().size1() << flush;    
+                // ground state populations
+                ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
+                
+                ub::vector<double> nuccharges=_orbitals->FragmentNuclearCharges(_fragA);
+                ub::vector<double> pops=_orbitals->MullikenPopulation(DMAT, _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
+                // population to electron charges and add nuclear charges         
+                _orbitals->FragmentChargesGS()=nuccharges-pops; 
+                for (int _i_state = 0; _i_state < _bse_nprint; _i_state++) {
 
+                    // checking Density Matrices
+                    std::vector< ub::matrix<double> > DMAT = _orbitals->DensityMatrixExcitedState_BTDA(_dft_orbitals, _bse_coefficients,_bse_coefficients_AR, _i_state);
+                    // hole part
+                    ub::vector<double> popsH=_orbitals->MullikenPopulation(DMAT[0], _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
+                    popH.push_back(popsH);
+                    // electron part
+                    ub::vector<double> popsE=-_orbitals->MullikenPopulation(DMAT[1], _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
+                    popE.push_back(popsE);
+                    // update effective charges
+                    ub::vector<double> diff=popsH-popsE;
+                    Crgs.push_back(diff);
+                }
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Ran Excitation fragment population analysis " << flush;
             }
             return;
         }
@@ -322,9 +361,6 @@ namespace votca {
             std::vector< ub::vector<double> > _popH;
             std::vector< ub::vector<double> > _popE;
             std::vector< ub::vector<double> > _Chrg;
-            
-            
-            
             BSE_FragmentPopulations(_bse_singlet_coefficients,_popH, _popE, _Chrg);
             _orbitals->FragmentChargesSingEXC()=_Chrg;
             // for transition dipole moments

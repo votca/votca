@@ -288,6 +288,11 @@ namespace votca {
             std::vector< ub::vector<double> >& popH, std::vector< ub::vector<double> >& popE,
             std::vector< ub::vector<double> >& Crgs);
             
+            void BSE_FragmentPopulations_BTDA(const ub::matrix<real_gwbse>& _bse_coefficients,
+            const ub::matrix<real_gwbse>& _bse_coefficients_AR,
+            std::vector< ub::vector<double> >& popH, std::vector< ub::vector<double> >& popE,
+            std::vector< ub::vector<double> >& Crgs);
+            
             
             void BSE_FreeTransition_Dipoles();
             

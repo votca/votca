@@ -80,6 +80,7 @@ private:
     // GWBSE object
     
     Property _gwbse_options;
+    Property _dft_options;
     int      _state;
     std::string   _type;
     bool     _has_osc_filter;

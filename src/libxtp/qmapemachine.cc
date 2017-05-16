@@ -75,11 +75,11 @@ QMAPEMachine::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape,
 		_run_gwbse = opt->get(key+".run_gwbse").as<bool>();
         
         
-    // FITTING GRIDS
-   // key = sfx+ ".grids";    
-        
-
-
+    
+                key=sfx+".dft";
+                string dft_xml = opt->get(key + ".dft_options").as<string>();
+		load_property_from_xml(_dft_options, dft_xml.c_str());
+                
 	// GWBSE CONFIG
     key = sfx + ".gwbse";
 		string gwbse_xml = opt->get(key + ".gwbse_options").as<string>();
@@ -147,17 +147,7 @@ void QMAPEMachine::Evaluate(ctp::XJob *job) {
     if(dQ!=0){
         throw runtime_error("Charged DFT calculations are not possible at the moment");
     }
-
-
-  
     
- 
-    
-    
-    
-    
-    
-  
     
     int iterCnt = 0;
     int iterMax = _maxIter;
