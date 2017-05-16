@@ -17,17 +17,12 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/gwbse.h>
 
 #include <boost/format.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/timer/timer.hpp>
-
 #include <boost/numeric/ublas/operation.hpp>
-#include <votca/xtp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/constants.h>

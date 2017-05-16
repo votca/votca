@@ -120,7 +120,7 @@ namespace votca { namespace xtp {
     public:
         
         
-        void Initialize( int size ) {
+        void Initialize( unsigned size ) {
             _aomatrix.resize(3);
             for (int i = 0; i < 3 ; i++){
               _aomatrix[ i ] = ub::zero_matrix<double>(size,size);

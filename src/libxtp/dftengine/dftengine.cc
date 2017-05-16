@@ -193,7 +193,13 @@ namespace votca {
 
             ub::vector<double>& MOEnergies = _orbitals->MOEnergies();
             ub::matrix<double>& MOCoeff = _orbitals->MOCoefficients();
-
+            if(MOEnergies.size()!=_dftbasis.AOBasisSize()){
+            MOEnergies.resize(_dftbasis.AOBasisSize());
+            }
+            if(MOCoeff.size1()!=_dftbasis.AOBasisSize() || MOCoeff.size2()!=_dftbasis.AOBasisSize()){
+                MOCoeff.resize(_dftbasis.AOBasisSize(),_dftbasis.AOBasisSize());
+            }
+            
             /**** Construct initial density  ****/
 
             ub::matrix<double> H0 = _dftAOkinetic.Matrix() + _dftAOESP.getNuclearpotential();
@@ -239,7 +245,6 @@ namespace votca {
                 } else if (_initial_guess == "atom") {
 
                     _dftAOdmat = AtomicGuess(_orbitals);
-                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Full atomic density Matrix gives N=" << std::setprecision(9) << linalg_traceofProd(_dftAOdmat, _dftAOoverlap.Matrix()) << " electrons." << flush;
                     if (_with_RI) {
                         _ERIs.CalculateERIs(_dftAOdmat);
                     } else {
@@ -255,7 +260,9 @@ namespace votca {
                     ub::matrix<double> H = H0 + _ERIs.getERIs() + _orbitals->AOVxc();
                     _diis.SolveFockmatrix(MOEnergies, MOCoeff, H);
                     _dftAOdmat = _orbitals->DensityMatrixGroundState(MOCoeff);
-
+                    
+                    //Have to do one full iteration here, levelshift needs MOs;
+                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Full atomic density Matrix gives N=" << std::setprecision(9) << linalg_traceofProd(_dftAOdmat, _dftAOoverlap.Matrix()) << " electrons." << flush;
                 } else {
                     throw runtime_error("Initial guess method not known/implemented");
                 }
@@ -274,6 +281,7 @@ namespace votca {
             double energyold = 0;
             double diiserror = 100; //is evolved in DIIs scheme
             Mixing Mixer(_useautomaticmixing, _mixingparameter, &_dftAOoverlap.Matrix(), _pLog);
+            
             for (_this_iter = 0; _this_iter < _max_iter; _this_iter++) {
                 LOG(ctp::logDEBUG, *_pLog) << flush;
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Iteration " << _this_iter + 1 << " of " << _max_iter << flush;
@@ -286,7 +294,7 @@ namespace votca {
 
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2() << flush;
                 double vxcenergy = 0.0;
-                if (_use_small_grid && diiserror > 0.01) {
+                if (_use_small_grid && diiserror > 1e-5) {
                     _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat, _xc_functional_name);
                     vxcenergy = _gridIntegration_small.getTotEcontribution();
                     LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
@@ -317,7 +325,6 @@ namespace votca {
 
                 } else {
                     Mixer.Updatemix(dmatin, _dftAOdmat);
-                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using DIIs " << flush;
                 }
 
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Updated Density Matrix " << flush;
@@ -436,7 +443,7 @@ namespace votca {
                 _dftAOESP.getNuclearpotential() += _dftAOECP.Matrix();
             }
 
-            _diis.Configure(_usediis, _histlength, _maxout, _diismethod, _adiis_start, _diis_start, _levelshift, _levelshiftend, _numofelectrons / 2);
+            _diis.Configure(_usediis,true, _histlength, _maxout, _diismethod, _adiis_start, _diis_start, _levelshift, _levelshiftend, _numofelectrons / 2);
             _diis.setLogger(_pLog);
             _diis.setOverlap(&_dftAOoverlap.Matrix());
             _diis.setSqrtOverlap(&_Sminusonehalf);
@@ -574,11 +581,11 @@ namespace votca {
                 double diisstart=0;
                 Mixing Mix_alpha(true, 0.7, &dftAOoverlap.Matrix(), _pLog);
                 Mixing Mix_beta(true, 0.7, &dftAOoverlap.Matrix(), _pLog);
-                diis_alpha.Configure(true, 20, 0, "", adiisstart, diisstart, 0.2, 0,  alpha_e);
+                diis_alpha.Configure(true,false, 20, 0, "", adiisstart, diisstart, 0.2, 0,  alpha_e);
                 diis_alpha.setLogger(_pLog);
                 diis_alpha.setOverlap(&dftAOoverlap.Matrix());
                 diis_alpha.setSqrtOverlap(&Sminusonehalf);
-                diis_beta.Configure(true, 20, 0, "", adiisstart, diisstart, 0.2, 0, beta_e);
+                diis_beta.Configure(true,false, 20, 0, "", adiisstart, diisstart, 0.2, 0, beta_e);
                 diis_beta.setLogger(_pLog);
                 diis_beta.setOverlap(&dftAOoverlap.Matrix());
                 diis_beta.setSqrtOverlap(&Sminusonehalf);
@@ -680,19 +687,18 @@ namespace votca {
                     if (converged || this_iter == maxiter - 1) {
 
                         if (converged) {
-                            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << this_iter << " iterations" << flush;
+                            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << this_iter+1 << " iterations" << flush;
                         } else {
-                            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Not converged after " << this_iter <<
+                            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Not converged after " << this_iter+1 <<
                                     " iterations. Using unconverged density. DIIsError_alpha=" << diiserror_alpha << " DIIsError_beta=" << diiserror_beta << flush;
                         }
 
 
-                        //ub::matrix<double> avdmat=AverageShells(dftAOdmat_alpha+dftAOdmat_beta,dftbasis);
+                        ub::matrix<double> avdmat=AverageShells(dftAOdmat_alpha+dftAOdmat_beta,dftbasis);
 
-                        uniqueatom_guesses.push_back(dftAOdmat_alpha + dftAOdmat_beta);
-                        //LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="<<std::setprecision(9)<<linalg_traceofProd(avdmat,dftAOoverlap.Matrix())<<" electrons."<<flush;
-                        LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Atomic density Matrix for " << (*st)->type <<
-                                " gives N=" << std::setprecision(9) << linalg_traceofProd(dftAOdmat_alpha + dftAOdmat_beta, dftAOoverlap.Matrix()) << " electrons." << flush;
+                        uniqueatom_guesses.push_back(avdmat);
+                        LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="
+                                <<std::setprecision(9)<<linalg_traceofProd(avdmat,dftAOoverlap.Matrix())<<" electrons."<<flush;
                         break;
 
                     } else {
@@ -998,79 +1004,69 @@ namespace votca {
       ub::matrix<double> DFTENGINE::AverageShells(const ub::matrix<double>& dmat, AOBasis& dftbasis){
           ub::matrix<double> avdmat=ub::zero_matrix<double>(dmat.size1());
           AOBasis::AOShellIterator it;
-          AOBasis::AOShellIterator jt;
-          int start1=0.0;
+          int start=0.0;
+          std::vector<int> starts;
+          std::vector<int> ends;
           for(it=dftbasis.firstShell();it<dftbasis.lastShell();++it){
-            const AOShell* shell1=dftbasis.getShell(it);
-            int end1=shell1->getNumFunc()+start1;
-            std::vector<int> starts1;
-            std::vector<int> ends1;
-            //cout<<shell1->getType()<<" Start1 "<<start1<<" End1 "<<end1<<endl;
-            //check if shell is combined
-            if(shell1->getLmax()!=shell1->getLmin()){
-                std::vector<int> temp1=NumFuncSubShell(shell1->getType());
-                int numfunc1=start1;
-                for(unsigned i=0;i<temp1.size();i++){
+            const AOShell* shell=dftbasis.getShell(it);
+            int end=shell->getNumFunc()+start;
+            
+            if(shell->getLmax()!=shell->getLmin()){
+                std::vector<int> temp=NumFuncSubShell(shell->getType());
+                int numfunc=start;
+                for(unsigned i=0;i<temp.size();i++){
                     
-                    starts1.push_back(numfunc1);
-                    numfunc1+=temp1[i];
-                    ends1.push_back(numfunc1);
+                    starts.push_back(numfunc);
+                    numfunc+=temp[i];
+                    ends.push_back(numfunc);
                 }
             }
             else{
-                starts1.push_back(start1);
-                ends1.push_back(end1);
+                starts.push_back(start);
+                ends.push_back(end);
             }
-            start1=end1;
-            int start2=0;
-              for(jt=dftbasis.firstShell();jt<dftbasis.lastShell();++jt){
-                const AOShell* shell2=dftbasis.getShell(jt);
-               
-                int end2=shell2->getNumFunc()+start2;
-                //cout<<shell2->getType()<<" Start2 "<<start2<<" End2 "<<end2<<endl;
-                std::vector<int> starts2;
-                std::vector<int> ends2;
-                if(shell2->getLmax()!=shell2->getLmin()){
-                    std::vector<int> temp2=NumFuncSubShell(shell2->getType());
-                    int numfunc2=start2;
-                    for(unsigned i=0;i<temp2.size();i++){
-
-                        starts2.push_back(numfunc2);
-                        numfunc2+=temp2[i];
-                        ends2.push_back(numfunc2);
+            start=end;
+          }
+          for(unsigned k=0;k<starts.size();k++){
+                    int s1=starts[k];
+                    int e1=ends[k];
+                    int len1=e1-s1;
+                    for(unsigned l=0;l<starts.size();l++){
+                    int s2=starts[l];
+                    int e2=ends[l];
+                    int len2=e2-s2;
+                    double diag=0.0;
+                    double offdiag=0.0;
+                    for(int i=0;i<len1;++i){
+                       for(int j=0;j<len2;++j){
+                           if(i==j){
+                               diag+=dmat(s1+i,s2+j);
+                           }
+                           else{
+                                offdiag+=dmat(s1+i,s2+j);
+                            }
+                        }
                     }
-                }
-                else{
-                    starts2.push_back(start2);
-                    ends2.push_back(end2);
-                }
-                start2=end2;
-                for(unsigned k=0;k<starts1.size();k++){
-                    int s1=starts1[k];
-                    int e1=ends1[k];
-                    for(unsigned l=0;l<starts2.size();l++){
-                    int s2=starts2[l];
-                    int e2=ends2[l];
-
-                    double avg=0.0;
-                    int count=0.0;
-
-                    for(int i=s1;i<e1;++i){
-                       for(int j=s2;j<e2;++j){
-                               avg+=dmat(i,j);
-                               count++;   
-                          } 
+                    if(len1==len2){
+                        diag=diag/double(len1);
+                        offdiag=offdiag/double(len1*(len1-1));
+                    }else{
+                     double avg=(diag+offdiag)/double(len1*len2);
+                     diag=avg;
+                     offdiag=avg;
                     }
-                    avg=avg/double(count);
-                    for(int i=s1;i<e1;++i){
-                       for(int j=s2;j<e2;++j){
-                               avdmat(i,j)=avg;   
-                          } 
-                      }
-                    }
+                    for(int i=0;i<len1;++i){
+                       for(int j=0;j<len2;++j){
+                           if(i==j){
+                                avdmat(s1+i,s2+j)=diag;
+                           }else{
+                                avdmat(s1+i,s2+j)=offdiag;
+                           }
+                        }
+                    }  
                 }
-            }     
-        }  
+            }    
+          
         return avdmat;  
         }
     }}
