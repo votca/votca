@@ -117,6 +117,7 @@ namespace votca {
                 _dftbasis_name = inp;
             }
 
+            std::vector< ub::matrix<double> > getExcitedStateDmat(std::string singletortriplet, int state);
 
             void addoutput(Property *_summary);
 

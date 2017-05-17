@@ -480,7 +480,24 @@ namespace votca {
         }
 
 
-        
+        std::vector< ub::matrix<double> > GWBSE::getExcitedStateDmat(std::string singletortriplet, int state){
+            std::vector< ub::matrix<double> > dmat;
+            if(singletortriplet=="singlet"){
+                if(_do_full_BSE){
+                     dmat=_orbitals->DensityMatrixExcitedState_BTDA(_dft_orbitals, _bse_singlet_coefficients,_bse_singlet_coefficients_AR, state);
+                }
+                else{
+                    dmat=_orbitals->DensityMatrixExcitedState(_dft_orbitals, _bse_singlet_coefficients, state);
+                }
+            }
+            else if(singletortriplet=="triplet"){
+                dmat=_orbitals->DensityMatrixExcitedState(_dft_orbitals, _bse_triplet_coefficients, state);
+            }
+            else{
+                throw runtime_error("GWBSE::getExcitedStateDmat: type not know.");
+            }
+           return dmat; 
+        }
    
         
         

@@ -69,17 +69,21 @@ namespace votca {
             }
 
             key = sfx + ".control";
+            bool split_dpl;
+            double dpl_spacing;
             if (opt->exists(key + ".split_dpl")) {
-                _split_dpl = opt->get(key + ".split_dpl").as<bool>();
+                split_dpl = opt->get(key + ".split_dpl").as<bool>();
             } else {
-                _split_dpl = true;
+                split_dpl = true;
             }
             if (opt->exists(key + ".dpl_spacing")) {
-                _dpl_spacing = opt->get(key + ".dpl_spacing").as<double>();
+                dpl_spacing = opt->get(key + ".dpl_spacing").as<double>();
             } else {
-                _dpl_spacing = 1e-3;
+                dpl_spacing = 1e-3;
             }
-
+            qminterface.setMultipoleSplitting(split_dpl,dpl_spacing);
+            
+            
             // GDMA options
             key = sfx + ".gdma";
             if (opt->exists(key)) {
@@ -225,7 +229,7 @@ namespace votca {
             Orbitals orb_iter_input;
 
             std::vector<ctp::Segment*> empty;
-            thisIter->GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input, _split_dpl, _dpl_spacing);
+            qminterface.GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input);
 
             _qmpack->setRunDir(runFolder);
 
@@ -246,14 +250,6 @@ namespace votca {
             Orbitals orb_iter_output;
             _qmpack->ParseLogFile(&orb_iter_output);
 
-
-
-
-
-
-
-
-
             // GW-BSE starts here
 
             double energy___ex = 0.0;
@@ -268,7 +264,7 @@ namespace votca {
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 ctp::Logger gwbse_logger(ctp::logDEBUG);
                 gwbse_logger.setMultithreading(false);
-                _gwbse.setLogger(&gwbse_logger);
+                _gwbse.setLogger(_log);
                 gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
                 gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
                 gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
@@ -404,8 +400,7 @@ namespace votca {
                 ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
 
                 if (_state > 0) {
-                    ub::matrix<real_gwbse>& BSECoefs = orb_iter_output.BSESingletCoefficients();
-                    std::vector<ub::matrix<double> > DMAT = orb_iter_output.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state_index[_state - 1]);
+                    std::vector<ub::matrix<double> > DMAT = _gwbse.getExcitedStateDmat(_type, _state_index[_state - 1]);
                     DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
                 }
 
@@ -415,7 +410,7 @@ namespace votca {
 
 
                 Espfit esp=Espfit(_log);
-                if (_do_gwbse){
+                if (_qmpack->ECPRequested()){
                     esp.setUseECPs(true);
                     }
                 esp.Fit2Density(Atomlist, DMAT_tot, dftbasis,dftbs,"medium");
@@ -430,7 +425,6 @@ namespace votca {
                     throw runtime_error(" Invalid QMPackage! " + _type + " Gaussian 03 only!");
 
                 } else {
-
                     // get a GDMA object
                     _gdma.Initialize(&_gdma_options);
                     _gdma.setLog(_log);
@@ -439,7 +433,6 @@ namespace votca {
                     LOG(ctp::logINFO, *_log) << "Running GDMA " << flush;
                     // prepare a GDMA input file
                     _gdma.WriteInputFile();
-
 
                     // run GDMA external
                     _gdma.RunExternal();

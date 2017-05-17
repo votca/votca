@@ -350,6 +350,14 @@ public:
         _atoms.push_back( pAtom );
         return pAtom;
     }
+   ctp::QMAtom* AddAtom (std::string _type, tools::vec pos,
+                     double _charge = 0, bool _from_environment = false)
+    {
+        ctp::QMAtom* pAtom = new ctp::QMAtom(_type, pos, _charge, _from_environment);
+        _atoms.push_back( pAtom );
+        return pAtom;
+    }
+   
     ctp::QMAtom* AddAtom (ctp::QMAtom atom)
     {
         ctp::QMAtom* pAtom = new ctp::QMAtom(atom);
