@@ -51,6 +51,7 @@ namespace votca {
 
         for (ctp::QMNBList::iterator it = nblist.begin(); it < nblist.end(); ++it) {
             _nodes[(*it)->Seg1()->getId()]->AddEventfromQmPair(*it, _carriertype);
+            _nodes[(*it)->Seg2()->getId()]->AddEventfromQmPair(*it, _carriertype);
         }
 
 
