@@ -24,6 +24,7 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/ctp/logger.h>
+#include <votca/xtp/dftengine.h>
 #include <votca/xtp/elements.h>
 #include <votca/xtp/espfit.h>
 
@@ -106,7 +107,8 @@ QMAPEMachine::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape,
 		else {
 			_has_dQ_filter = false;
 		}
-}
+                return;
+    }
 
 
 QMAPEMachine::~QMAPEMachine() {
@@ -149,6 +151,7 @@ void QMAPEMachine::Evaluate(ctp::XJob *job) {
     }
     
     
+
     int iterCnt = 0;
     int iterMax = _maxIter;
     for ( ; iterCnt < iterMax; ++iterCnt) {
@@ -180,6 +183,12 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
         LOG(ctp::logDEBUG,*_log) << "Created directory " << runFolder << flush;
     else
         LOG(ctp::logWARNING,*_log) << "Could not create directory " << runFolder << flush;
+    
+    
+    DFTENGINE dftengine;
+     dftengine.Initialize(_dft_options);
+     dftengine.setLogger(_log);
+     dftengine.setExternalGrid()
 
     // COMPUTE POLARIZATION STATE WITH QM0(0)
     if (_run_ape) {
@@ -203,8 +212,9 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
     }
     
     
+   
     
-    
+     
     
 
     // COMPUTE WAVEFUNCTION & QM ENERGY

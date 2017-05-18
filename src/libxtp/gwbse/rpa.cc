@@ -109,7 +109,7 @@ namespace votca {
             for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
                 //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
                 int index_m = _Mmn_RPA.get_mmin();
-                const ub::matrix<double>& Mmn_RPA = _Mmn_RPA[ _m_level ];
+                const ub::matrix<real_gwbse>& Mmn_RPA = _Mmn_RPA[ _m_level ];
 
                 // a temporary matrix, that will get filled in empty levels loop
                 ub::matrix<double> _temp = ub::zero_matrix<double>(_Mmn_RPA.get_ntot(), _size);
@@ -148,7 +148,7 @@ namespace votca {
             for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
                 
                 int index_m = _Mmn_RPA.get_mmin();
-                const ub::matrix<double>& Mmn_RPA = _Mmn_RPA[ _m_level ];
+                const ub::matrix<real_gwbse>& Mmn_RPA = _Mmn_RPA[ _m_level ];
 
                 // a temporary matrix, that will get filled in empty levels loop
                 ub::matrix<double> _temp = ub::zero_matrix<double>(_Mmn_RPA.get_ntot(), _size);

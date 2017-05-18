@@ -77,7 +77,7 @@ private:
     int _maxIter;
     bool _isConverged;
 
-    // GWBSE object
+    
     
     Property _gwbse_options;
     Property _dft_options;
