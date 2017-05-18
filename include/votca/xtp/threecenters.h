@@ -94,13 +94,10 @@ namespace votca { namespace xtp {
     public:
     
         /// returns one level as a constant reference
-        // const ub::matrix<double>& operator[](const int i) const { return _matrix[i]; }
         const ub::matrix<real_gwbse>& operator[](const int i) const { return _matrix[i]; }
-        //const ub::matrix<double>& M_bn( const int m) const { return _matrix[m]; }
+     
         /// returns one level as a reference
-        //ub::matrix<double>& operator[](const int i) { return _matrix[i]; }
         ub::matrix<real_gwbse>& operator[](const int i) { return _matrix[i]; }
-        //ub::matrix<double>& M_bn( const int m) { return _matrix[m]; }
         
         int size() {  return _matrix.size(); }
         

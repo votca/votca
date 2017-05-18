@@ -342,16 +342,8 @@ void Orbitals::Trim( int degH, int degL ) {
     _unoccupied_levels = degL;        
 
 
-
+    return;
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -370,14 +362,8 @@ bool Orbitals::Load(string file_name) {
 }
 
 
-
-
-
-
  // Determine ground state density matrix
  ub::matrix<double> Orbitals::DensityMatrixGroundState(const ub::matrix<double>& _MOs ) {   
-     // first fill Density matrix, if required
-    //  if ( _dmatGS.size1() != _basis_set_size ) {
         ub::matrix<double> dmatGS = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
         #pragma omp parallel for
         for ( int _i=0; _i < _basis_set_size; _i++ ){
@@ -388,9 +374,7 @@ bool Orbitals::Load(string file_name) {
                  
                 }
             }
-         }
-     //}    
-     // return     
+         }  
      return dmatGS;  
  }
  
@@ -428,11 +412,60 @@ bool Orbitals::Load(string file_name) {
             }
         }     
     }
-
     return dmatTS;
 }
  
  
+ub::matrix<double>  Orbitals::TransitionDensityMatrix_BTDA(const ub::matrix<double>& _MOs ,
+        const ub::matrix<real_gwbse>& _BSECoefs,const ub::matrix<real_gwbse>& _BSECoefs_AR, int state){
+    ub::matrix<double> dmatTS=ub::zero_matrix<double>(_basis_set_size);
+    // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
+    double sqrt2=sqrt(2.0);
+    /*Trying to implement D_{alpha,beta}= sqrt2*sum_{i}^{occ}sum_{j}^{virt}{BSEcoef(i,j)*MOcoef(alpha,i)*MOcoef(beta,j)} */
+    // c stands for conduction band and thus virtual orbitals
+    // v stand for valence band and thus occupied orbitals
+
+//CHECK IF CORRECT!!
+     
+    if ( _bse_size == 0 ) {
+        _bse_vtotal = _bse_vmax - _bse_vmin +1 ;
+        _bse_ctotal = _bse_cmax - _bse_cmin +1 ;
+        _bse_size   = _bse_vtotal * _bse_ctotal;
+          // indexing info BSE vector index to occupied/virtual orbital
+        for ( unsigned _v = 0; _v < _bse_vtotal; _v++ ){
+            for ( unsigned _c = 0; _c < _bse_ctotal ; _c++){
+                  _index2v.push_back( _bse_vmin + _v );
+                  _index2c.push_back( _bse_cmin + _c );
+            }
+        }
+    }
+    
+    #pragma omp parallel for
+    for(unsigned a=0;a<dmatTS.size1();a++){
+        for(unsigned b=0;b<dmatTS.size2();b++){
+            for(unsigned i=0;i<_bse_size;i++){
+                int occ=_index2v[i];
+                int virt=_index2c[i];
+                dmatTS(a,b)+=sqrt2*(_BSECoefs(i,state)+_BSECoefs_AR(i,state))*_MOs( occ , a ) * _MOs( virt , b ); //check factor 2??
+            }
+        }     
+    }
+    return dmatTS;
+}
+ 
+ 
+ 
+ 
+ 
+std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState_BTDA(const ub::matrix<double>& _MOs,
+        const ub::matrix<real_gwbse>& _BSECoefs,const ub::matrix<real_gwbse>& _BSECoefs_AR, int state ){
+    
+    std::vector<ub::matrix<double> > dmat=DensityMatrixExcitedState( _MOs,_BSECoefs,state );
+    std::vector<ub::matrix<double> > dmat_AR=DensityMatrixExcitedState_AR( _MOs,_BSECoefs_AR,state );
+    dmat[0]-=dmat_AR[0];
+    dmat[1]-=dmat_AR[1];
+    return dmat;
+} 
  
  // Excited state density matrix
 std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState(const ub::matrix<double>& _MOs,const ub::matrix<real_gwbse>& _BSECoefs, int state ){
@@ -484,8 +517,8 @@ std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState(const ub::m
      }
      
      // electron assist matrix A_{cc'}
-     ub::matrix<real_gwbse> _Acc = ub::zero_matrix<real_gwbse>( this->_bse_ctotal , this->_bse_ctotal );
-     ub::matrix<real_gwbse> _Avv = ub::zero_matrix<real_gwbse>( this->_bse_vtotal , this->_bse_vtotal );
+     ub::matrix<real_gwbse> _Acc = ub::zero_matrix<real_gwbse>( _bse_ctotal , _bse_ctotal );
+     ub::matrix<real_gwbse> _Avv = ub::zero_matrix<real_gwbse>( _bse_vtotal , _bse_vtotal );
   
      for ( unsigned _idx1 = 0 ; _idx1 < _bse_size ; _idx1++) {
          
@@ -526,6 +559,99 @@ std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState(const ub::m
      
      return dmatEX;
  }
+
+ // Excited state density matrix
+std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState_AR(const ub::matrix<double>& _MOs,const ub::matrix<real_gwbse>& _BSECoefs_AR, int state ){
+     
+     
+     /****** 
+      * 
+      *    Density matrix for GW-BSE based excitations
+      * 
+      *    - electron contribution
+      *      D_ab = \sum{vc} \sum{v'} B_{vc}B_{v'c} mo_a(v)mo_b(v')
+      * 
+      *    - hole contribution 
+      *      D_ab = \sum{vc} \sum{c'} B_{vc}B_{vc'} mo_a(c)mo_b(c')
+      * 
+      * 
+      *   more efficient:
+      * 
+      *   - electron contribution
+      *      D_ab = \sum{v} \sum{v'} mo_a(v)mo_b(v') [ \sum{c} B_{vc}B_{v'c} ]
+      *           = \sum{v} \sum{v'} mo_a(v)mo_b(v') B_{vv'} 
+      *    
+      *   - hole contribution
+      *      D_ab = \sum{c} \sum{c'} mo_a(c)mo_b(c') [ \sum{v} B_{vc}B_{vc'} ]
+      *           = \sum{c} \sum{c'} mo_a(c)mo_b(c') B_{cc'} 
+      *  
+      */
+     std::vector<ub::matrix<double> > dmatAR;        
+    dmatAR.resize(2);
+    dmatAR[0] = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
+    dmatAR[1] = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
+
+    int _vmin = this->_bse_vmin;
+    int _vmax = this->_bse_vmax;
+    int _cmin = this->_bse_cmin;
+    int _cmax = this->_bse_cmax;
+     
+    if ( _bse_size == 0 ) {
+        _bse_vtotal = _bse_vmax - _bse_vmin +1 ;
+        _bse_ctotal = _bse_cmax - _bse_cmin +1 ;
+        _bse_size   = _bse_vtotal * _bse_ctotal;
+          // indexing info BSE vector index to occupied/virtual orbital
+          for ( unsigned _v = 0; _v < _bse_vtotal; _v++ ){
+              for ( unsigned _c = 0; _c < _bse_ctotal ; _c++){
+                  _index2v.push_back( _bse_vmin + _v );
+                  _index2c.push_back( _bse_cmin + _c );
+               }
+           }
+     }
+     
+     // hole assist matrix B_{cc'}
+     ub::matrix<real_gwbse> _Bcc = ub::zero_matrix<real_gwbse>( _bse_ctotal , _bse_ctotal );
+     ub::matrix<real_gwbse> _Bvv = ub::zero_matrix<real_gwbse>( _bse_vtotal , _bse_vtotal );
+  
+     for ( unsigned _idx1 = 0 ; _idx1 < _bse_size ; _idx1++) {
+         
+         int _v = this->_index2v[_idx1];
+         int _c = this->_index2c[_idx1];
+
+         // hole assist matrix B_{cc'}
+         #pragma omp parallel for
+         for ( int _c2=_cmin; _c2 <= _cmax; _c2++ ){
+             int _idx2 = (_cmax-_cmin+1)*(_v-_vmin)+(_c2-_cmin);
+             
+             _Bcc(_c - _cmin ,_c2 - _cmin) +=   _BSECoefs_AR(_idx1,state) * _BSECoefs_AR(_idx2,state) ;
+         }
+         
+         // electron assist matrix B_{vv'}
+         #pragma omp parallel for
+         for ( int _v2=_vmin; _v2 <= _vmax; _v2++ ){
+                int _idx2 = (_cmax-_cmin+1)*(_v2-_vmin)+(_c-_cmin);
+                
+                _Bvv(_v - _vmin ,_v2 - _vmin ) +=   _BSECoefs_AR(_idx1,state) *_BSECoefs_AR(_idx2,state) ;
+    
+            } 
+     }
+      
+     //hole part as matrix products
+     // get slice of MOs of virts only
+     ub::matrix<double> _virtlevels = ub::project(_MOs, ub::range(_cmin, _cmax + 1), ub::range(0, _basis_set_size));
+     ub::matrix<double> _temp = ub::prod( _Bcc, _virtlevels );
+     dmatAR[0] = ub::prod(ub::trans(_virtlevels), _temp);
+     
+     // electron part as matrix products
+     // get slice of MOs of occs only
+     ub::matrix<double> _occlevels = ub::project(_MOs, ub::range(_vmin, _vmax + 1), ub::range(0, _basis_set_size));
+      _temp = ub::prod( _Bvv, _occlevels );
+     dmatAR[1] = ub::prod(ub::trans(_occlevels), _temp);
+     
+     return dmatAR;
+ }
+
+
  
 
  ub::vector<double> Orbitals::MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag) {

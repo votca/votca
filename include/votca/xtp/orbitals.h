@@ -307,6 +307,13 @@ public:
     ub::matrix<double > TransitionDensityMatrix(const ub::matrix<double>& _MOs ,const ub::matrix<real_gwbse>& _BSECoefs, int state = 0);
     
     
+    ub::matrix<double > TransitionDensityMatrix_BTDA(const ub::matrix<double>& _MOs ,const ub::matrix<real_gwbse>& _BSECoefs,
+    const ub::matrix<real_gwbse>& _BSECoefs_AR, int state = 0);
+    std::vector<ub::matrix<double> > DensityMatrixExcitedState_BTDA(const ub::matrix<double>& _MOs,
+    const ub::matrix<real_gwbse>& _BSECoefs,const ub::matrix<real_gwbse>& _BSECoefs_AR, int state=0 );
+    
+    
+    
     // functions for analyzing fragment charges via Mulliken populations
     ub::vector<double> MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag);
 
@@ -343,6 +350,14 @@ public:
         _atoms.push_back( pAtom );
         return pAtom;
     }
+   ctp::QMAtom* AddAtom (std::string _type, tools::vec pos,
+                     double _charge = 0, bool _from_environment = false)
+    {
+        ctp::QMAtom* pAtom = new ctp::QMAtom(_type, pos, _charge, _from_environment);
+        _atoms.push_back( pAtom );
+        return pAtom;
+    }
+   
     ctp::QMAtom* AddAtom (ctp::QMAtom atom)
     {
         ctp::QMAtom* pAtom = new ctp::QMAtom(atom);
@@ -375,6 +390,7 @@ public:
     
 private:
     
+    std::vector<ub::matrix<double> >DensityMatrixExcitedState_AR(const ub::matrix<double>& _MOs,const ub::matrix<real_gwbse>& _BSECoefs_AR, int state=0 );
     
     int                                     _basis_set_size;   
     int                                     _occupied_levels;

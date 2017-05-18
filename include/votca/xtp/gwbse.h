@@ -117,6 +117,7 @@ namespace votca {
                 _dftbasis_name = inp;
             }
 
+            std::vector< ub::matrix<double> > getExcitedStateDmat(std::string singletortriplet, int state);
 
             void addoutput(Property *_summary);
 
@@ -285,6 +286,11 @@ namespace votca {
 
 
             void BSE_FragmentPopulations(const ub::matrix<real_gwbse>& _bse_coefficients,
+            std::vector< ub::vector<double> >& popH, std::vector< ub::vector<double> >& popE,
+            std::vector< ub::vector<double> >& Crgs);
+            
+            void BSE_FragmentPopulations_BTDA(const ub::matrix<real_gwbse>& _bse_coefficients,
+            const ub::matrix<real_gwbse>& _bse_coefficients_AR,
             std::vector< ub::vector<double> >& popH, std::vector< ub::vector<double> >& popE,
             std::vector< ub::vector<double> >& Crgs);
             
