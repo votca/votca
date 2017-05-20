@@ -186,9 +186,9 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
     
     
     DFTENGINE dftengine;
-     dftengine.Initialize(_dft_options);
+     dftengine.Initialize(&_dft_options);
      dftengine.setLogger(_log);
-     dftengine.setExternalGrid()
+    
 
     // COMPUTE POLARIZATION STATE WITH QM0(0)
     if (_run_ape) {
