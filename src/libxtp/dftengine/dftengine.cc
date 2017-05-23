@@ -180,12 +180,7 @@ namespace votca {
             
             #endif
 
-            _atoms = _orbitals->QMAtoms();
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Molecule Coordinates [A] " << flush;
-            for (unsigned i = 0; i < _atoms.size(); i++) {
-                LOG(ctp::logDEBUG, *_pLog) << "\t\t " << _atoms[i]->type << " " << _atoms[i]->x << " " << _atoms[i]->y << " " << _atoms[i]->z << " " << flush;
-            }
-
+           
 
           
             
@@ -446,7 +441,6 @@ namespace votca {
             _diis.setLogger(_pLog);
             _diis.setOverlap(&_dftAOoverlap.Matrix());
             _diis.setSqrtOverlap(&_Sminusonehalf);
-            // AUX AOoverlap
 
             if (_with_RI) {
                
@@ -725,6 +719,11 @@ namespace votca {
 
       // PREPARATION 
         void DFTENGINE::Prepare(Orbitals* _orbitals) {
+            _atoms = _orbitals->QMAtoms();
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Molecule Coordinates [A] " << flush;
+            for (unsigned i = 0; i < _atoms.size(); i++) {
+                LOG(ctp::logDEBUG, *_pLog) << "\t\t " << _atoms[i]->type << " " << _atoms[i]->x << " " << _atoms[i]->y << " " << _atoms[i]->z << " " << flush;
+            }
 
             // load and fill DFT basis set
             _dftbasisset.LoadBasisSet(_dftbasis_name);
