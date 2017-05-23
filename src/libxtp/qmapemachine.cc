@@ -118,6 +118,18 @@ QMAPEMachine::~QMAPEMachine() {
         delete *qit;
     }
     _iters.clear();
+    
+    std::vector<ctp::PolarSeg*> ::iterator pit;
+    for (pit = target_bg.begin(); pit < target_bg.end(); ++pit) {
+        delete *pit;
+    }
+    target_bg.clear();
+    
+   
+    for (pit = target_fg.begin(); pit < target_fg.end(); ++pit) {
+        delete *pit;
+    }
+    target_fg.clear();
 }
 
 
@@ -184,11 +196,17 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
     else
         LOG(ctp::logWARNING,*_log) << "Could not create directory " << runFolder << flush;
     
+    Orbitals orb_iter_input;
+    qminterface.GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input);
     
     DFTENGINE dftengine;
-     dftengine.Initialize(&_dft_options);
-     dftengine.setLogger(_log);
+    dftengine.Initialize(&_dft_options);
+    dftengine.setLogger(_log);
+    dftengine.Prepare(&orb_iter_input);
     
+    if (iterCnt == 0) {
+    SetupPolarSiteGrids(dftengine.getExternalGridpoints(),orb_iter_input.QMAtoms());
+    }
 
     // COMPUTE POLARIZATION STATE WITH QM0(0)
     if (_run_ape) {
@@ -211,48 +229,27 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
 		_cape->EvaluatePotential(target_fg, false, true, false);
     }
     
+    dftengine.setExternalGrid(ExtractElGrid_fromPolarsites(),ExtractNucGrid_fromPolarsites());
     
-   
-    
-     
-    
-
-    // COMPUTE WAVEFUNCTION & QM ENERGY
-    // Generate charge shell from potentials
-    
-    
-    
-   
-       
-    
-    
-    // Run DFT
-    Orbitals orb_iter_input;
-    std::vector<ctp::Segment*> empty;
-   
-   
-
-	FILE *out;
+    if (_run_dft) {
+    dftengine.Evaluate(&orb_iter_input);
+    }
+     FILE *out;
 	out = fopen((runFolder + "/system.pdb").c_str(),"w");
 	orb_iter_input.WritePDB(out);
 	fclose(out);
-
-	Orbitals orb_iter_output;
-	if (_run_dft) {
-            cout<<"Hello"<<endl;
-	}
-	
+    
 
     // Run GWBSE
 	if (_run_gwbse){
-		this->EvaluateGWBSE(orb_iter_output, runFolder);
+		this->EvaluateGWBSE(orb_iter_input, runFolder);
 	}
 
 	// COMPUTE POLARIZATION STATE WITH QM0(n+1)
 	if (_run_ape) {
 		// Update QM0 density: QM0(n) => QM0(n+1)
 		// ...
-        thisIter->UpdatePosChrgFromQMAtoms(orb_iter_output.QMAtoms(),
+        thisIter->UpdatePosChrgFromQMAtoms(orb_iter_input.QMAtoms(),
             _job->getPolarTop()->QM0());
 
 		// Do not reset FGC (= only reset FU), do not use BGP state, nor apply FP fields (BG & FG)
@@ -285,165 +282,207 @@ QMMIter *QMAPEMachine::CreateNewIter() {
     QMMIter *newIter = new QMMIter(_iters.size());
     this->_iters.push_back(newIter);
     return newIter;
-}
-
-
+        }
 
 bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
-	// for GW-BSE, we also need to parse the orbitals file
-        
-       
-	//int _parse_orbitals_status = _qmpack->ParseOrbitalsFile(&orb);
-	std::vector<int> _state_index;
-        GWBSE _gwbse(&orb);
-	_gwbse.Initialize( &_gwbse_options );
-	if ( _state > 0 ){
-	LOG(ctp::logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
-	LOG(ctp::logDEBUG,*_log) << "  --- type:              " << _type << flush;
-	LOG(ctp::logDEBUG,*_log) << "  --- state:             " << _state << flush;
-	if ( _has_osc_filter) { LOG(ctp::logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush; }
-	if ( _has_dQ_filter) { LOG(ctp::logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush; }
+    std::vector<int> _state_index;
+    GWBSE _gwbse(&orb);
+    _gwbse.Initialize(&_gwbse_options);
+    if (_state > 0) {
+        LOG(ctp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
+        LOG(ctp::logDEBUG, *_log) << "  --- type:              " << _type << flush;
+        LOG(ctp::logDEBUG, *_log) << "  --- state:             " << _state << flush;
+        if (_has_osc_filter) {
+            LOG(ctp::logDEBUG, *_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
+        }
+        if (_has_dQ_filter) {
+            LOG(ctp::logDEBUG, *_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
+        }
 
-	if ( _has_osc_filter && _has_dQ_filter ){
-		LOG(ctp::logDEBUG,*_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... "  << flush;
-	}
+        if (_has_osc_filter && _has_dQ_filter) {
+            LOG(ctp::logDEBUG, *_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... " << flush;
+        }
 
-	// define own logger for GW-BSE that is written into a runFolder logfile
-	ctp::Logger gwbse_logger(ctp::logDEBUG);
-	gwbse_logger.setMultithreading(false);
-	_gwbse.setLogger(&gwbse_logger);
-	gwbse_logger.setPreface(ctp::logINFO,    (format("\nGWBSE INF ...") ).str());
-	gwbse_logger.setPreface(ctp::logERROR,   (format("\nGWBSE ERR ...") ).str());
-	gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...") ).str());
-	gwbse_logger.setPreface(ctp::logDEBUG,   (format("\nGWBSE DBG ...") ).str());
+        // define own logger for GW-BSE that is written into a runFolder logfile
+        ctp::Logger gwbse_logger(ctp::logDEBUG);
+        gwbse_logger.setMultithreading(false);
+        _gwbse.setLogger(&gwbse_logger);
+        gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
+        gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
+        gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
+        gwbse_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
 
-	// actual GW-BSE run
+        // actual GW-BSE run
 
-	//bool _evaluate = _gwbse.Evaluate(&orb);
         _gwbse.Evaluate();
 
-	// write logger to log file
-	ofstream ofs;
-	string gwbse_logfile = runFolder + "/gwbse.log";
-	ofs.open(gwbse_logfile.c_str(), ofstream::out);
-	if (!ofs.is_open()) {
-		throw runtime_error("Bad file handle: " + gwbse_logfile);
-	}
-	ofs << gwbse_logger << endl;
-	ofs.close();
+        // write logger to log file
+        ofstream ofs;
+        string gwbse_logfile = runFolder + "/gwbse.log";
+        ofs.open(gwbse_logfile.c_str(), ofstream::out);
+        if (!ofs.is_open()) {
+            throw runtime_error("Bad file handle: " + gwbse_logfile);
+        }
+        ofs << gwbse_logger << endl;
+        ofs.close();
 
-	// PROCESSING the GW-BSE result
-	// - find the excited state of interest
-	// oscillator strength filter
-
-
-	if ( _has_osc_filter ){
-
-		// go through list of singlets
-		const std::vector<tools::vec >& TDipoles = orb.TransitionDipoles();
-		for (unsigned _i=0; _i < TDipoles.size(); _i++ ) {
-
-			double osc = (TDipoles[_i]*TDipoles[_i]) * 2.0 / 3.0 * (orb.BSESingletEnergies()(_i)) ;
-			if ( osc > _osc_threshold ) _state_index.push_back(_i);
-		}
+        // PROCESSING the GW-BSE result
+        // - find the excited state of interest
+        // oscillator strength filter
 
 
+        if (_has_osc_filter) {
 
-	} else {
+            // go through list of singlets
+            const std::vector<tools::vec >& TDipoles = orb.TransitionDipoles();
+            for (unsigned _i = 0; _i < TDipoles.size(); _i++) {
 
-		if ( _type == "singlet" ){
-		   for (unsigned _i=0; _i < orb.TransitionDipoles().size(); _i++ ) {
-			   _state_index.push_back(_i);
-		   }
-		} else {
-		   for (unsigned _i=0; _i < orb.BSETripletEnergies().size(); _i++ ) {
-			   _state_index.push_back(_i);
-		   }
-		}
-	}
-
-
-
+                double osc = (TDipoles[_i] * TDipoles[_i]) * 2.0 / 3.0 * (orb.BSESingletEnergies()(_i));
+                if (osc > _osc_threshold) _state_index.push_back(_i);
+            }
+        } else {
+            if (_type == "singlet") {
+                for (unsigned _i = 0; _i < orb.TransitionDipoles().size(); _i++) {
+                    _state_index.push_back(_i);
+                }
+            } else {
+                for (unsigned _i = 0; _i < orb.BSETripletEnergies().size(); _i++) {
+                    _state_index.push_back(_i);
+                }
+            }
+        }
 
         // filter according to charge transfer, go through list of excitations in _state_index
-         if  (_has_dQ_filter ) {
+        if (_has_dQ_filter) {
             std::vector<int> _state_index_copy;
-            if ( _type == "singlets" ){
-             // go through list of singlets
-            const std::vector< ub::vector<double> >& dQ_frag = orb.FragmentChargesSingEXC();
-            //const std::vector<double>& dQ_fragB = orb.FragmentBChargesSingEXC();
-            for (unsigned _i=0; _i < _state_index.size(); _i++ ) {
-                if ( std::abs(dQ_frag[_i](0)) > _dQ_threshold ) {
-                    _state_index_copy.push_back(_state_index[_i]);
+            if (_type == "singlets") {
+                // go through list of singlets
+                const std::vector< ub::vector<double> >& dQ_frag = orb.FragmentChargesSingEXC();
+                //const std::vector<double>& dQ_fragB = orb.FragmentBChargesSingEXC();
+                for (unsigned _i = 0; _i < _state_index.size(); _i++) {
+                    if (std::abs(dQ_frag[_i](0)) > _dQ_threshold) {
+                        _state_index_copy.push_back(_state_index[_i]);
+                    }
                 }
-            } 
-            _state_index = _state_index_copy;
-            } else if ( _type == "triplets"){
-              // go through list of triplets
-            const std::vector< ub::vector<double> >& dQ_frag = orb.FragmentChargesTripEXC();
-            //const std::vector<double>& dQ_fragB = orb.FragmentBChargesTripEXC();
-            for (unsigned _i=0; _i < _state_index.size(); _i++ ) {
-                if ( std::abs(dQ_frag[_i](0)) > _dQ_threshold ) {
-                    _state_index_copy.push_back(_state_index[_i]);
+                _state_index = _state_index_copy;
+            } else if (_type == "triplets") {
+                // go through list of triplets
+                const std::vector< ub::vector<double> >& dQ_frag = orb.FragmentChargesTripEXC();
+                //const std::vector<double>& dQ_fragB = orb.FragmentBChargesTripEXC();
+                for (unsigned _i = 0; _i < _state_index.size(); _i++) {
+                    if (std::abs(dQ_frag[_i](0)) > _dQ_threshold) {
+                        _state_index_copy.push_back(_state_index[_i]);
+                    }
                 }
-            } 
-            _state_index = _state_index_copy;               
-                
-                
+                _state_index = _state_index_copy;
             }
-         }
-
-	if ( _state_index.size() < 1 ){
-		throw runtime_error("Excited state filter yields no states! ");
-
-	}
-	
-
-	} // only if state >0
-
-	// calculate density matrix for this excited state
-	ub::matrix<double> &_dft_orbitals = orb.MOCoefficients();
-	// load DFT basis set (element-wise information) from xml file
-	BasisSet dftbs;
-	if ( orb.getDFTbasis() != "" ) {
-	  dftbs.LoadBasisSet(orb.getDFTbasis());
-	} else{
-	dftbs.LoadBasisSet( _gwbse.get_dftbasis_name() );
-
-	}
-	LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " <<  orb.getDFTbasis()  << flush;
-
-
-
-
-
-	// fill DFT AO basis by going through all atoms
-	AOBasis dftbasis;
-	dftbasis.AOBasisFill(&dftbs, orb.QMAtoms() );
-	dftbasis.ReorderMOs(_dft_orbitals, orb.getQMpackage(), "xtp" );
-	// TBD: Need to switch between singlets and triplets depending on _type
-	ub::matrix<double> DMATGS=orb.DensityMatrixGroundState(_dft_orbitals);
-
-	ub::matrix<double> DMAT_tot=DMATGS; // Ground state + hole_contribution + electron contribution
-
-	if ( _state > 0 ){
-	ub::matrix<real_gwbse>& BSECoefs = orb.BSESingletCoefficients();
-	std::vector<ub::matrix<double> > DMAT = orb.DensityMatrixExcitedState( _dft_orbitals , BSECoefs, _state_index[_state-1]);
-	DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1]; // Ground state + hole_contribution + electron contribution
-	}
-
-	// fill DFT AO basis by going through all atoms
-	std::vector< ctp::QMAtom* >& Atomlist= orb.QMAtoms();
-
-	Espfit esp=Espfit(_log);
-        if (_run_gwbse){
-        esp.setUseECPs(true);
         }
-	esp.Fit2Density(Atomlist, DMAT_tot, dftbasis,dftbs,"medium");
+        if (_state_index.size() < 1) {
+            throw runtime_error("Excited state filter yields no states! ");
+        }
+    } // only if state >0
 
-	return true;
+    // calculate density matrix for this excited state
+    ub::matrix<double> &_dft_orbitals = orb.MOCoefficients();
+    // load DFT basis set (element-wise information) from xml file
+    BasisSet dftbs;
+    if (orb.getDFTbasis() != "") {
+        dftbs.LoadBasisSet(orb.getDFTbasis());
+    } else {
+        dftbs.LoadBasisSet(_gwbse.get_dftbasis_name());
+
+    }
+    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb.getDFTbasis() << flush;
+
+    // fill DFT AO basis by going through all atoms
+    AOBasis dftbasis;
+    dftbasis.AOBasisFill(&dftbs, orb.QMAtoms());
+    dftbasis.ReorderMOs(_dft_orbitals, orb.getQMpackage(), "xtp");
+    // TBD: Need to switch between singlets and triplets depending on _type
+    ub::matrix<double> DMATGS = orb.DensityMatrixGroundState(_dft_orbitals);
+    ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
+
+    if (_state > 0) {
+        ub::matrix<real_gwbse>& BSECoefs = orb.BSESingletCoefficients();
+        std::vector<ub::matrix<double> > DMAT = orb.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state_index[_state - 1]);
+        DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
+    }
+
+    // fill DFT AO basis by going through all atoms
+    std::vector< ctp::QMAtom* >& Atomlist = orb.QMAtoms();
+    Espfit esp = Espfit(_log);
+    if (_run_gwbse) {
+        esp.setUseECPs(true);
+    }
+    esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, dftbs, "medium");
+
+    return true;
 }
+
+
+void QMAPEMachine::SetupPolarSiteGrids(const std::vector<const vec *>& gridpoints,const std::vector<ctp::QMAtom*>& atoms){
+    NumberofAtoms=atoms.size();
+    std::vector<ctp::QMAtom*>::const_iterator qmt;
+    std::vector<ctp::APolarSite*> sites1;
+    std::vector<ctp::APolarSite*> sites2;
+    
+    for(qmt=atoms.begin();qmt!=atoms.end();++qmt){
+        sites1.push_back(qminterface.Convert(*qmt));
+        sites2.push_back(qminterface.Convert(*qmt));
+    }
+    
+    
+    std::vector<const vec *>::const_iterator grt;
+    for (grt=gridpoints.begin();grt<gridpoints.end();++grt){
+        ctp::APolarSite* site1=new ctp::APolarSite();
+        ctp::APolarSite* site2=new ctp::APolarSite();
+        tools::vec pos=*(*grt)*tools::conv::bohr2nm;
+        site1->setPos(pos);
+        site2->setPos(pos);
+        sites1.push_back(site1);
+        sites2.push_back(site2);
+    }
+    
+    
+    target_bg.push_back( new ctp::PolarSeg(0, sites1));
+    target_fg.push_back( new ctp::PolarSeg(0, sites2));
+    
+    return;
+        }
+
+std::vector<double> QMAPEMachine::ExtractNucGrid_fromPolarsites() {
+    std::vector<double> gridpoints;
+    double int2hrt = tools::conv::int2V * tools::conv::ev2hrt;
+    for (unsigned i = 0; i < target_bg.size(); ++i) {
+        for (unsigned j = 0; j < NumberofAtoms; ++j) {
+            ctp::PolarSeg* seg1 = target_bg[i];
+            ctp::PolarSeg* seg2 = target_fg[i];
+            ctp::APolarSite* site1 = (*seg1)[j];
+            ctp::APolarSite* site2 = (*seg2)[j];
+            double value = (site1->getPhi() + site2->getPhi()) * int2hrt;
+            gridpoints.push_back(value);
+        }
+    }
+    return gridpoints;
+}
+
+std::vector<double> QMAPEMachine::ExtractElGrid_fromPolarsites() {
+    std::vector<double> gridpoints;
+    double int2hrt = tools::conv::int2V * tools::conv::ev2hrt;
+    for (unsigned i = 0; i < target_bg.size(); ++i) {
+        for (unsigned j = NumberofAtoms; j < target_bg[i]->size(); ++j) {
+            ctp::PolarSeg* seg1 = target_bg[i];
+            ctp::PolarSeg* seg2 = target_fg[i];
+            ctp::APolarSite* site1 = (*seg1)[j];
+            ctp::APolarSite* site2 = (*seg2)[j];
+            double value = (site1->getPhi() + site2->getPhi()) * int2hrt;
+            gridpoints.push_back(value);
+        }
+    }
+    return gridpoints;
+}
+
 
 
 

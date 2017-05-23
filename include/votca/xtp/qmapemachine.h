@@ -59,7 +59,7 @@ public:
     
 private:    
     
-
+    QMMInterface qminterface;
     ctp::Logger *_log;
     int _subthreads;
 
@@ -71,12 +71,16 @@ private:
     ctp::XInductor *_xind;
     ctp::Ewald3DnD *_cape;
     
+    void SetupPolarSiteGrids( const std::vector< const vec *>& gridpoints,const std::vector< ctp::QMAtom* >& atoms);
     
+    std::vector<double> ExtractNucGrid_fromPolarsites();
+    std::vector<double> ExtractElGrid_fromPolarsites();
 
     std::vector<QMMIter*> _iters;
     int _maxIter;
     bool _isConverged;
-
+    
+    unsigned NumberofAtoms;
     
     
     Property _gwbse_options;

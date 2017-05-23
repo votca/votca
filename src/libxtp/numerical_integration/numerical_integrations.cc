@@ -893,9 +893,9 @@ namespace votca {
             
         }          
         
-        std::vector<vec const *> NumericalIntegration::getGridpoints(){
+        std::vector<const vec *> NumericalIntegration::getGridpoints(){
             
-            std::vector<vec const *> gridpoints;
+            std::vector<const vec *> gridpoints;
             
             
             for ( unsigned i = 0 ; i < _grid.size(); i++){

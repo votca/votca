@@ -195,6 +195,7 @@ bool DFT::Evaluate() {
        }
     
     // RUN
+    _dft.Prepare(   &_orbitals);
     _dft.Evaluate( &_orbitals );
 
             
