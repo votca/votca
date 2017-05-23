@@ -187,15 +187,13 @@ namespace votca {
 
         // loop over frequencies
         for ( unsigned _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
-            cout<<"hello3"<<endl;
-             if ( _screening_freq( _i_freq, 0) == 0.0 ) {
-                 cout<<"hello_imag"<<endl;
+           
+             if ( _screening_freq( _i_freq, 0) == 0.0 ) {         
                  RPA_imaginary(_epsilon[ _i_freq ],_Mmn_RPA, _screening_freq( _i_freq, 1));
              }
 
              else if ( _screening_freq( _i_freq, 1) == 0.0  ) {
                   // purely real
-                 cout<<"hello_real"<<endl;
                   RPA_real(_epsilon[ _i_freq ],_Mmn_RPA, _screening_freq( _i_freq, 0));
                     } 
              else {

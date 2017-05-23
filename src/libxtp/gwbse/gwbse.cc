@@ -619,15 +619,13 @@ namespace votca {
             }
 
             while (!_qp_converged) {
-                cout<<"hello"<<endl;
+               
                 // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
                 for (unsigned _i_freq = 0; _i_freq < _screening_freq.size1(); _i_freq++) {
                     _epsilon[ _i_freq ] = _gwoverlap.Matrix();
                 }
-                cout<<"hello1"<<endl;
                 // _gwoverlap is not needed further, if no shift iteration
                 if (!_iterate_qp) _gwoverlap.Matrix().resize(0, 0);
-                cout<<"hello2"<<endl;
                 // determine epsilon from RPA
                 RPA_calculate_epsilon(_Mmn_RPA);
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated epsilon via RPA  " << flush;

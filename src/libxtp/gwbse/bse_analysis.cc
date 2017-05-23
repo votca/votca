@@ -226,7 +226,7 @@ namespace votca {
                     ub::vector<double> popsH=_orbitals->MullikenPopulation(DMAT[0], _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
                     popH.push_back(popsH);
                     // electron part
-                    ub::vector<double> popsE=-_orbitals->MullikenPopulation(DMAT[1], _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
+                    ub::vector<double> popsE=_orbitals->MullikenPopulation(DMAT[1], _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
                     popE.push_back(popsE);
                     // update effective charges
                     ub::vector<double> diff=popsH-popsE;
@@ -264,7 +264,7 @@ namespace votca {
                     ub::vector<double> popsH=_orbitals->MullikenPopulation(DMAT[0], _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
                     popH.push_back(popsH);
                     // electron part
-                    ub::vector<double> popsE=-_orbitals->MullikenPopulation(DMAT[1], _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
+                    ub::vector<double> popsE=_orbitals->MullikenPopulation(DMAT[1], _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
                     popE.push_back(popsE);
                     // update effective charges
                     ub::vector<double> diff=popsH-popsE;
