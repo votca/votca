@@ -213,12 +213,9 @@ namespace votca {
 
             // RUN CLASSICAL INDUCTION & SAVE
             _job->getPolarTop()->PrintPDB(runFolder + "/QM0_MM1_MM2.pdb");
-
-            _job->getPolarTop()->QM0()[0]->WriteMPS(runFolder + "/testMPS.mps");
-
             _xind->Evaluate(_job);
 
-            _job->getPolarTop()->QM0()[0]->WriteMPS(runFolder + "/testMPS2.mps");
+           
 
             assert(_xind->hasConverged());
             thisIter->setE_FM(_job->getEF00(), _job->getEF01(), _job->getEF02(),
@@ -311,10 +308,10 @@ namespace votca {
                     if (_has_osc_filter) {
 
                         // go through list of singlets
-                        const std::vector<tools::vec >& TDipoles = orb_iter_output.TransitionDipoles();
-                        for (unsigned _i = 0; _i < TDipoles.size(); _i++) {
+                        const std::vector<double>oscs = orb_iter_output.Oscillatorstrengths();
+                        for (unsigned _i = 0; _i < oscs.size(); _i++) {
 
-                            double osc = (TDipoles[_i]*TDipoles[_i]) * 2.0 / 3.0 * (orb_iter_output.BSESingletEnergies()(_i));
+                            double osc = oscs[_i];
                             if (osc > _osc_threshold) _state_index.push_back(_i);
                         }
 
@@ -362,8 +359,8 @@ namespace votca {
 
 
                     if (_state_index.size() < 1) {
-                        throw runtime_error("Excited state filter yields no states! ");
-
+                    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " WARNING: FILTER yielded no state. Taking lowest excitation"<< flush;
+                    _state_index.push_back(0);
                     }
                     // - output its energy
                     if (_type == "singlet") {
@@ -444,7 +441,7 @@ namespace votca {
             } // _do_gdma
 
 
-            out = fopen((runFolder + "/parsed.pdb").c_str(), "w");
+            out = fopen((runFolder + "/InputConfig.pdb").c_str(), "w");
             orb_iter_input.WritePDB(out);
             fclose(out);
 

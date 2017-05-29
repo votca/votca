@@ -364,6 +364,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
             LOG(ctp::logINFO, _log) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
             const ub::vector<real_gwbse> &  _bse_singlet_energies = _orbitals.BSESingletEnergies();
             const std::vector<tools::vec > & _transition_dipoles=_orbitals.TransitionDipoles();
+            std::vector<double> oscs=_orbitals.Oscillatorstrengths();
             unsigned size=_bse_singlet_energies.size();
             if (_transition_dipoles.size()<_bse_singlet_energies.size()){
                 size=_transition_dipoles.size();
@@ -375,7 +376,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
                 if ( _orbitals.hasTransitionDipoles()){
                     double trstrength =(_transition_dipoles[_i]*_transition_dipoles[_i]);
                     
-                    double oscstrength =2*trstrength/3.0*_bse_singlet_energies[_i];
+                    double oscstrength =oscs[_i];
                     LOG(ctp::logINFO, _log) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") 
                                     % (_transition_dipoles[_i].getX()) % (_transition_dipoles[_i].getY()) % (_transition_dipoles[_i].getZ()) % (trstrength) 
                                     % oscstrength).str() << flush;

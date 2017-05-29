@@ -278,7 +278,7 @@ public:
     const std::vector< tools::vec > &TransitionDipoles() const { return _transition_dipoles; }
     std::vector< tools::vec > &TransitionDipoles()  { return _transition_dipoles; }
 
-
+    std::vector<double> Oscillatorstrengths();
     
     // access to singlet coupling elements
     bool hasSingletCouplings() {return (_BSE_singlet_couplings.size1() > 0 ) ? true : false ;}
@@ -315,7 +315,7 @@ public:
     
     
     // functions for analyzing fragment charges via Mulliken populations
-    ub::vector<double> MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag);
+    ub::vector<double> LoewdinPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag);
 
     // access to fragment charges of singlet excitations
     bool hasFragmentChargesSingEXC() {return (_DqS_frag.size() > 0 ) ? true : false ;}  

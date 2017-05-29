@@ -142,43 +142,44 @@ const int     &Orbitals::getNumberOfElectrons() const {
 //    _has_number_of_electrons = true; 
 //    _number_of_electrons = electrons; 
 //}
-
 /**
- * 
- * @param _energy_difference [ev] Two levels are degenerate if their energy is smaller than this value
- * @return A map with key as a level and a vector which is a list of close lying orbitals
- */
-bool Orbitals::CheckDegeneracy( double _energy_difference ) {
-    
+         * 
+         * @param _energy_difference [ev] Two levels are degenerate if their energy is smaller than this value
+         * @return A map with key as a level and a vector which is a list of close lying orbitals
+         */
+bool Orbitals::CheckDegeneracy(double _energy_difference) {
+
     ub::vector<double>::iterator it1 = _mo_energies.begin();
     bool _degenerate = false;
-    
-    if ( tools::globals::verbose ) cout << endl <<"... ... Checking level degeneracy " << endl;
-    
+
+    if (tools::globals::verbose){
+        cout << endl << "... ... Checking level degeneracy " << endl;
+    }
+
     _level_degeneracy.clear();
-            
-    while ( it1 !=_mo_energies.end() ) {
-        
+
+    while (it1 != _mo_energies.end()) {
+
         // in all containers counters start with 0; real life - with 1
         int _level1 = std::distance(_mo_energies.begin(), it1) + 1;
-        
+
         // add the level itself - it is easier to loo over all levels later
-        _level_degeneracy[_level1].push_back( _level1 );        
-        
+        _level_degeneracy[_level1].push_back(_level1);
+
         ub::vector<double>::iterator it2 = it1;
         it2++;
-        
-        while (  it2 !=_mo_energies.end() ) {
+
+        while (it2 != _mo_energies.end()) {
             //cout << _level1 << ":" << *it1 << ":" << *it2 << endl;
             double energy1 = *it1;
             double energy2 = *it2;
-            
+
             // in all containers counters start with 0; real life - with 1
             int _level2 = std::distance(_mo_energies.begin(), it2) + 1;
-            
-            if ( std::abs(energy1 - energy2)*tools::conv::hrt2ev < _energy_difference ) {
-                _level_degeneracy[_level1].push_back( _level2 );
-                _level_degeneracy[_level2].push_back( _level1 );
+
+            if (std::abs(energy1 - energy2) * tools::conv::hrt2ev < _energy_difference) {
+                _level_degeneracy[_level1].push_back(_level2);
+                _level_degeneracy[_level2].push_back(_level1);
                 _degenerate = true;
             }
             it2++;
@@ -186,89 +187,63 @@ bool Orbitals::CheckDegeneracy( double _energy_difference ) {
         it1++;
     }
 
-    if ( tools::globals::verbose ){ 
+    if (tools::globals::verbose) {
 
-        if ( _degenerate ) {
-            cout << "... ... Some levels are degenerate" << endl; 
+        if (_degenerate) {
+            cout << "... ... Some levels are degenerate" << endl;
             for (std::map<int, std::vector<int> >::iterator it = _level_degeneracy.begin();
                     it != _level_degeneracy.end();
                     ++it) {
                 // output only degenerate levels
-                if ( (it->second).size() > 1 ) {
-                    std::cout << "... ... level  "<< it->first << " : ";
+                if ((it->second).size() > 1) {
+                    std::cout << "... ... level  " << it->first << " : ";
                     for (vector<int>::iterator lev = (it->second).begin(); lev != (it->second).end(); lev++)
-                            cout << *lev << " ";
+                        cout << *lev << " ";
                     cout << endl;
                 }
             }
         } else {
-            cout << "... ... No degeneracy found" << endl;  
+            cout << "... ... No degeneracy found" << endl;
         }
-
-        cout << "... ... Done checking level degeneracy" << endl;   
-    
+        cout << "... ... Done checking level degeneracy" << endl;
     }
-    
-    // _has_level_degeneracy = true;
     return _degenerate;
-    
 }    
 
 std::vector<int>* Orbitals::getDegeneracy( int level, double _energy_difference ) {
-    if ( ! hasDegeneracy() ) {
-        
+    if ( ! hasDegeneracy() ) {    
         CheckDegeneracy( _energy_difference );       
-        /* 
-
-        int _ld = _level_degeneracy.at(level).size();       
-        if ( _ld > 1 ) {
-                cout << "....level " << level << " degeneracy is: " <<  _ld << endl;
-        } else {
-                cout << "....level " << level << " is not degenerate" << endl;
-        }
-        */
-        
     }        
-    //cout << "Getting degeneracy for level " << level << endl;
+   
     return &_level_degeneracy.at(level);
 }
 
 void Orbitals::SortEnergies(  std::vector<int>* index ) {
     if ( tools::globals::verbose )  cout << "... ... Sorting energies" << endl ;
-    //cout << _mo_energies << endl;
-    //cout << "MO Energies size" << _mo_energies.size() << endl ;
-    //exit(0);
     index->resize( _mo_energies.size() );
     int i = 0;
-            for ( vector< int > ::iterator soi = index->begin(); soi != index->end(); ++soi ) {
-                index->at(i) = i;
-                i++;
-                //cout << *soi << " ";
-            } 
-    
-    //cout << _mo_energies;
-    
-    std::stable_sort(index->begin(), index->end(), vector_less< ub::vector<double> >( _mo_energies ));
+    for ( vector< int > ::iterator soi = index->begin(); soi != index->end(); ++soi ) {
+        index->at(i) = i;
+        i++;
 
+    } 
+    std::stable_sort(index->begin(), index->end(), vector_less< ub::vector<double> >( _mo_energies ));
+    return;
 }
 
 /// Writes a PDB file
 void Orbitals::WritePDB( FILE *out, string tag ) {
-    // out.setf(ios::fixed);
     string tag_extended="HEADER ! GENERATED BY VOTCA::XTP::"+tag+"\n";
     fprintf(out,"%s",tag_extended.c_str() );
     vector < ctp::QMAtom* > :: iterator atom;
     int id = 0;
-    
-    //cout << "Natoms " << _atoms.size() << endl;
+  
     
     for (atom = _atoms.begin(); atom < _atoms.end(); ++atom){
          id++;      
          string resname = ( (*atom)->from_environment ) ? "MM" : "QM";
          int resnr = 1;
-         
-         //cout << id << " " << (*atom)->type << " " << endl;
-         
+               
          fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s  %8.3f\n",
                  id,                    // Atom serial number           %5d 
                  (*atom)->type.c_str(), // Atom name                    %4s
@@ -286,7 +261,8 @@ void Orbitals::WritePDB( FILE *out, string tag ) {
                  (*atom)->type.c_str(), // Element symbol               %2s
                  (*atom)->charge        // Charge on the atom.          %2s
                  );
-    }  
+    }
+    return;
 }
 
 // reduces the number of virtual orbitals to factor*number_of_occupied_orbitals
@@ -298,49 +274,29 @@ void Orbitals::Trim( int factor ) {
     }
 
     if ( hasMOEnergies() ) {
-        //cout << "\nBefore: " << _mo_energies.size();
         _mo_energies.resize(  factor * _occupied_levels, true );
-        _unoccupied_levels = ( factor - 1) * _occupied_levels;
-        //cout << " and After: " << _mo_energies.size() << endl;   
+        _unoccupied_levels = ( factor - 1) * _occupied_levels; 
     }
+    return;
 }
 
 
 // reduces the number of orbitals to [HOMO-degH:LUMO+degL]
 void Orbitals::Trim( int degH, int degL ) {
-    
-    
-    
+
     if ( hasMOCoefficients() ) {
-        
-        //cout << " COEF Before " << _mo_coefficients.size1() << endl;   
-        
         _mo_coefficients = ub::project( _mo_coefficients , ub::range(_occupied_levels -degH , _occupied_levels + degL), ub::range ( 0, _basis_set_size ) ) ;
-        
-        //cout << " and After: " << _mo_coefficients.size1() << endl;   
-        
     }
 
-    if ( hasMOEnergies() ) {
-        
-        //cout << " EN Before " << _mo_energies.size() << endl;   
-        
+    if ( hasMOEnergies() ){  
         ub::vector<double> _temp(degH+degL); 
-        
-        for ( int i = 0; i< degH+degL ; i++ ) {
-            
-            _temp(i) = _mo_energies(_occupied_levels-degH + i);
-            
+        for ( int i = 0; i< degH+degL ; i++ ) {   
+            _temp(i) = _mo_energies(_occupied_levels-degH + i);  
         }
-        
-        
         _mo_energies = _temp;
-        //cout << " and After: " << _mo_energies.size() << endl;   
     }
-
     _occupied_levels = degH;
     _unoccupied_levels = degL;        
-
 
     return;
 }
@@ -387,8 +343,6 @@ bool Orbitals::Load(string file_name) {
     // c stands for conduction band and thus virtual orbitals
     // v stand for valence band and thus occupied orbitals
 
-
-     
     if ( _bse_size == 0 ) {
         _bse_vtotal = _bse_vmax - _bse_vmin +1 ;
         _bse_ctotal = _bse_cmax - _bse_cmin +1 ;
@@ -557,7 +511,7 @@ std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState(const ub::m
      _temp = ub::prod( _Acc, _virtlevels );
      dmatEX[1] = ub::prod(ub::trans(_virtlevels), _temp);
      
-     return dmatEX;
+    return dmatEX;
  }
 
  // Excited state density matrix
@@ -653,24 +607,38 @@ std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState_AR(const ub
 
 
  
+ub::vector<double> Orbitals::LoewdinPopulation(const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag) {
 
- ub::vector<double> Orbitals::MullikenPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag) {
-     
-     ub::vector<double> fragmentCharges=ub::vector<double>(2,0.0);
-     
-     
-     ub::matrix<double> _prodmat = ub::prod( _densitymatrix, _overlapmatrix );
-         
-     for ( int _i = 0 ; _i < _frag; _i++){
-        fragmentCharges(0) += _prodmat(_i,_i);
-     }
-     for ( unsigned _i = _frag ; _i < _overlapmatrix.size1(); _i++){
-       fragmentCharges(1) += _prodmat(_i,_i);
-     }
-           
-   return fragmentCharges; 
- }
+    ub::vector<double> fragmentCharges = ub::vector<double>(2, 0.0);
+    ub::matrix<double> overlap=_overlapmatrix;
 
+    
+    linalg_matrixsqrt(overlap);
+    ub::matrix<double> temp = ub::prod( _densitymatrix,overlap );
+    ub::matrix<double> _prodmat=ub::prod(overlap,temp);
+    for (int _i = 0; _i < _frag; _i++) {
+        fragmentCharges(0) += _prodmat(_i, _i);
+    }
+    for (unsigned _i = _frag; _i < _overlapmatrix.size1(); _i++) {
+        fragmentCharges(1) += _prodmat(_i, _i);
+    }
+
+    return fragmentCharges;
+}
+
+
+std::vector<double> Orbitals::Oscillatorstrengths(){
+    std::vector<double> oscs;
+    unsigned size=_transition_dipoles.size();
+    if (size>_BSE_singlet_energies.size()){
+        size=_BSE_singlet_energies.size();
+    }
+    for (unsigned i=0;i<size;++i){
+        double osc = (_transition_dipoles[i] * _transition_dipoles[i]) * 2.0 / 3.0 * (_BSE_singlet_energies(i));
+        oscs.push_back(osc);
+    }
+    return oscs;
+}
 
  ub::vector<double> Orbitals::FragmentNuclearCharges(int _frag){
      Elements _elements;
@@ -696,7 +664,6 @@ std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState_AR(const ub
              fragmentNuclearCharges(1) += crg;
          }     
     }
-
     return fragmentNuclearCharges;
  }
  

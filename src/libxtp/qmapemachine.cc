@@ -335,10 +335,10 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
         if (_has_osc_filter) {
 
             // go through list of singlets
-            const std::vector<tools::vec >& TDipoles = orb.TransitionDipoles();
-            for (unsigned _i = 0; _i < TDipoles.size(); _i++) {
+            const std::vector<double> oscs = orb.Oscillatorstrengths();
+            for (unsigned _i = 0; _i < oscs.size(); _i++) {
 
-                double osc = (TDipoles[_i] * TDipoles[_i]) * 2.0 / 3.0 * (orb.BSESingletEnergies()(_i));
+                double osc =oscs[_i];
                 if (osc > _osc_threshold) _state_index.push_back(_i);
             }
         } else {
@@ -379,7 +379,8 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
             }
         }
         if (_state_index.size() < 1) {
-            throw runtime_error("Excited state filter yields no states! ");
+            LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " WARNING: FILTER yielded no state. Taking lowest excitation"<< flush;
+            _state_index.push_back(0);
         }
     } // only if state >0
 
