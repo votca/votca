@@ -20,6 +20,7 @@
 #include <votca/xtp/grid.h>
 #include <math.h>       /* ceil */
 #include <votca/tools/constants.h>
+#include <fstream>
 
 using namespace votca::tools;
 
@@ -40,18 +41,16 @@ Grid::Grid(const Grid &obj)
        if(!apolarsite->getIsVirtual()) _gridsites.push_back(apolarsite);
        _all_gridsites.push_back(apolarsite);   
     }     
-     _sites_seg = new ctp::PolarSeg(0, _gridsites);
      _atomlist=obj._atomlist;
     };
         
         
 Grid::~Grid() {
+       
         std::vector<ctp::APolarSite*>::iterator pit;
         for(pit=_all_gridsites.begin();pit!=_all_gridsites.end();++pit){
-             delete *pit;
+            delete *pit;
         }
-        _all_gridsites.clear();
-        if (_sites_seg != NULL) delete _sites_seg;
     }
 
 Grid &Grid::operator=(const Grid & obj){
@@ -76,8 +75,11 @@ Grid &Grid::operator=(const Grid & obj){
        if(!apolarsite->getIsVirtual()) _gridsites.push_back(apolarsite);
        _all_gridsites.push_back(apolarsite);   
     }     
-     _sites_seg = new ctp::PolarSeg(0, _gridsites);
      _atomlist=obj._atomlist;
+     _periodic = obj._periodic;
+     _boxX = obj._boxX;
+     _boxY = obj._boxY;
+     _boxZ = obj._boxZ;
      return *this;
 }
     
@@ -185,9 +187,7 @@ void Grid::readgridfromCubeFile(std::string filename, bool ignore_zeros){
 
 
               }}}
-        if (_sites_seg != NULL) delete _sites_seg;
-        _sites_seg = new ctp::PolarSeg(0, _gridsites);
-
+        return;
         }         
 
 void Grid::printgridtoCubefile(std::string filename){
@@ -211,9 +211,18 @@ void Grid::printgridtoCubefile(std::string filename){
             fprintf(out, "Created by VOTCA-XTP \n");
             fprintf(out, "%lu %f %f %f \n", _atomlist->size(), _lowerbound.getX()*conv::ang2bohr,
                     _lowerbound.getY()*conv::ang2bohr,_lowerbound.getZ()*conv::ang2bohr);
-            fprintf(out, "%d %f 0.0 0.0 \n", _xsteps, _gridspacing*conv::ang2bohr); 
-            fprintf(out, "%d 0.0 %f 0.0 \n",  _ysteps, _gridspacing*conv::ang2bohr);
-            fprintf(out, "%d 0.0 0.0 %f \n", _zsteps, _gridspacing*conv::ang2bohr);
+            
+            //.cube format calls for number of voxels (points), not number of steps
+            if(_periodic){
+                fprintf(out, "%d %f 0.0 0.0 \n", _xsteps+1, _gridspacingX*conv::ang2bohr); 
+                fprintf(out, "%d 0.0 %f 0.0 \n", _ysteps+1, _gridspacingY*conv::ang2bohr);
+                fprintf(out, "%d 0.0 0.0 %f \n", _zsteps+1, _gridspacingZ*conv::ang2bohr);
+            }
+            else{
+                fprintf(out, "%d %f 0.0 0.0 \n", _xsteps+1, _gridspacing*conv::ang2bohr); 
+                fprintf(out, "%d 0.0 %f 0.0 \n", _ysteps+1, _gridspacing*conv::ang2bohr);
+                fprintf(out, "%d 0.0 0.0 %f \n", _zsteps+1, _gridspacing*conv::ang2bohr);
+            }
             
             std::vector<ctp::QMAtom* >::const_iterator ait;
             for (ait=_atomlist->begin(); ait != _atomlist->end(); ++ait) {
@@ -350,9 +359,7 @@ void Grid::setupradialgrid(const int depth) {
             _all_gridsites.push_back(apolarsite);       
         }
     }
-    if (_sites_seg != NULL) delete _sites_seg;
-           _sites_seg = new ctp::PolarSeg(0, _gridsites);
-
+    return;
 }
 
 void Grid::setupgrid(){
@@ -387,6 +394,14 @@ void Grid::setupgrid(){
         if (ztemp<zmin) zmin=ztemp;
         if (ztemp>zmax)  zmax=ztemp;
     }    
+    
+    if(_periodic){
+        xmin=ymin=zmin=0.0;
+        xmax=_boxX;
+        ymax=_boxY;
+        zmax=_boxZ;
+        _padding=0.0;
+    }
 
     _lowerbound=vec(xmin-_padding,ymin-_padding,zmin-_padding);
     vec _upperbound=vec(xmax+_padding,ymax+_padding,zmax+_padding);
@@ -399,21 +414,68 @@ void Grid::setupgrid(){
     double padding_x=(steps.getX()-_xsteps)*_gridspacing*0.5+_padding;
     double padding_y=(steps.getY()-_ysteps)*_gridspacing*0.5+_padding;
     double padding_z=(steps.getZ()-_zsteps)*_gridspacing*0.5+_padding;
-
     
+    _gridspacingX=_gridspacingY=_gridspacingZ=_gridspacing;
+    
+    if(_periodic){
+        //in a periodic grid we want the box to be exactly what we told it to be,
+        //so use no padding and adjust grid spacing on each axis so that the
+        //whole box divides into a grid uniformly even if the grid elements
+        //have to be non-cubic
+        padding_x=padding_y=padding_z=0.0;
+        _gridspacingX=_boxX/_xsteps;
+        _gridspacingY=_boxY/_ysteps;
+        _gridspacingZ=_boxZ/_zsteps;
+        
+        //In the loops below, the "<=" in "i<=_xsteps" is needed for
+        //non-periodic systems to keep the potential have the same number
+        //of points to the left and right of an atom (symmetric).
+        //For a periodic system, though, we don't want a point at the
+        //end of the box, as it's the same point as at the beginning.
+        //   *--------*
+        //   |        |
+        //   |        |
+        //   |        |
+        //   *--------*
+        // '*' are all the same point.
+        //So temporarily decrease the number of points on each axis.
+        //the "<=" will act like "<"
+        _xsteps--;
+        _ysteps--;
+        _zsteps--;
+    }
+
+    vec dif;
     for(int i=0;i<=_xsteps;i++){
-        double x=xmin-padding_x+i*_gridspacing; 
+        double x=xmin-padding_x+i*_gridspacingX; 
         for(int j=0;j<=_ysteps;j++){
-            double y=ymin-padding_y+j*_gridspacing; 
+            double y=ymin-padding_y+j*_gridspacingY; 
             for(int k=0;k<=_zsteps;k++){
-                double z=zmin-padding_z+k*_gridspacing; 
+                double z=zmin-padding_z+k*_gridspacingZ; 
                 bool _is_valid = false;
                     for (std::vector<ctp::QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
                         //cout << "Punkt " << x <<":"<< y << ":"<<z << endl;
-                        xtemp=(*atom)->x;
-                        ytemp=(*atom)->y;
-                        ztemp=(*atom)->z;
-                        double distance2=pow((x-xtemp),2)+pow((y-ytemp),2)+pow((z-ztemp),2);
+                        xtemp=fmod((*atom)->x, _boxX); //Angstroms
+                        ytemp=fmod((*atom)->y, _boxY);
+                        ztemp=fmod((*atom)->z, _boxZ);
+                        
+                        dif[0]=std::abs(x-xtemp);
+                        dif[1]=std::abs(y-ytemp);
+                        dif[2]=std::abs(z-ztemp);
+                        
+                        if(_periodic){ //adjust point to atom distance for periodicity
+                            if(dif[0]>_boxX*0.5){ //X
+                                dif[0]=_boxX-dif[0];
+                            }
+                            if(dif[1]>_boxY*0.5){ //Y
+                                dif[1]=_boxY-dif[1];
+                            }
+                            if(dif[2]>_boxZ*0.5){ //X
+                                dif[2]=_boxZ-dif[2];
+                            }
+                        }
+                        
+                        double distance2 = abs(dif);
                         if(_useVdWcutoff) _cutoff=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff;
                         if(_useVdWcutoff_inside)_cutoff_inside=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff_inside;
                         //cout << "Punkt " << x <<":"<< y << ":"<<z << ":"<< distance2 << ":"<< (*atom)->type <<":"<<pow(VdW,2)<< endl;
@@ -440,7 +502,9 @@ void Grid::setupgrid(){
                                 _gridsites.push_back(apolarsite);
                                 _gridpoints.push_back(temppos);
                                 }
-                            else {apolarsite->setIsVirtual(true);}
+                            else {
+								apolarsite->setIsVirtual(true);
+								}
                             _all_gridsites.push_back(apolarsite);
                             }
                         else if(!_createpolarsites){_gridpoints.push_back(temppos);}
@@ -448,9 +512,64 @@ void Grid::setupgrid(){
                 }                          
             }                  
         }
-    if (_sites_seg != NULL) delete _sites_seg;
-    _sites_seg = new ctp::PolarSeg(0, _gridsites);
+    return;
 }
+  
+void Grid::setup2D(std::vector< vec > points){
+    _gridpoints=points;
+    return;
+}
+
+
+
+void Grid::writeIrregularGrid(std::string _filename, std::vector< ctp::QMAtom* > &_atoms, bool _ECP){
     
+    if(_gridsites.size()!=_gridpoints.size()){
+        cout<<" Grid::writeIrregularGrid(): number of _gridpoints doesn't match number of _gridsites" << endl; 
+    }
+    
+    ofstream out;
+    out.open (_filename.c_str(), ios::out | ios::trunc);
+    
+    //cell dimensions in bohr
+    if(_periodic)
+        out << tools::conv::ang2bohr*_boxX << '\t' << tools::conv::ang2bohr*_boxY << '\t' << tools::conv::ang2bohr*_boxZ << '\n';
+    else
+        out << 0 << '\t' << 0 << '\t' << 0 << '\n';
+    
+    
+    //number of atoms
+    out << _atoms.size() << '\n';
+    
+    //atom type and coordinates in bohr and core charge
+    Elements _elements;
+    double nucQ;
+    for (std::vector< ctp::QMAtom* >::iterator i=_atoms.begin(); i!=_atoms.end(); ++i){
+        ctp::QMAtom* a = (*i);
+        if (_ECP) {
+            nucQ = _elements.getNucCrgECP(a->type);
+        } else {
+            nucQ = _elements.getNucCrg(a->type);
+        }
+        out << a->type << '\t' << a->x*tools::conv::ang2bohr << '\t'<< a->y*tools::conv::ang2bohr << '\t'<< a->z*tools::conv::ang2bohr
+            << '\t' << nucQ << '\n';
+    }
+    
+    //number of grid points
+    out << _gridpoints.size() << '\n';
+    
+    //data: x y z value
+    for(int i=0; i<_gridpoints.size(); i++){
+        //point coordinates in Bohr
+        vec point = _gridpoints[i]*tools::conv::nm2bohr;
+        out << point[0] << '\t' << point[1] << '\t' << point[2] << '\t' << _gridsites[i]->getPhi() <<  '\n';
+    }
+    out.flush();
+    out.close();
+    
+
+}
+
+
     
 }}
