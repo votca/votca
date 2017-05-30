@@ -172,15 +172,10 @@ namespace votca { namespace xtp {
                                     _coef_matrix(i_fit, _ecp_l) = _contraction_ecp;
                                 } // evaluate if new atom is found
 
-
-
-
                             } // all Gaussians in ecp_shell
                         } // only for non local parts
 
                     } // all ecp_shells
-
-
 
                 }// _shell_col Gaussians
             }// _shell_row Gaussians
@@ -278,60 +273,58 @@ namespace votca { namespace xtp {
             typedef ma_type::index index;
             ma_type::extent_gen extents;
             ma_type COEF;
-            COEF.resize(extents[ range(1, 4) ][ range(1, 4) ][ range(1, 6)][range(1, 43)]);
+            COEF.resize(extents[ range(0, 3) ][ range(0, 3) ][ range(1, 6)][range(0,42)]);
 
             // init it all to 0
-            for (index i1 = 1; i1 <= 3; i1++) {
-                for (index i2 = 1; i2 <= 3; i2++) {
-                    for (index i3 = 1; i3 <= 5; i3++) {
-                        for (index i4 = 1; i4 <= 42; i4++) {
-                            COEF[i1][i2][i3][i4] = 0.0;
-                        }
+            for ( index i1 = 0; i1 <=2; i1++ ){ //////////
+                 for ( index i2 = 0; i2 <=2; i2++ ){ ///////////////
+                     for ( index i3 = 1; i3 <=5; i3++ ){
+                         for ( index i4 = 0; i4 <=41; i4++ ){
+                           COEF[i1][i2][i3][i4] = 0.0;
+                         }
+                     }
+                 }
+             }
+            for ( index i4 = 0; i4 <=41; i4++ ){  ////// for ( index i4 = 1; i4 <=42; i4++ )
+            /********** ORIGINAL CKOEF SUBROUTINE *************************/
+                int NU = i4 % 2; ///
+                int NG = (i4 + 1) % 2;
+                double FN1 = double(i4 + 1);
+                double FN2 = double(i4 + 2);
+                double FN3 = double(i4 + 3);
+                double FN4 = double(i4 + 4);
+                double FN5 = double(i4 + 5);
+ 
+                COEF[0][0][3][i4] = NG/FN1;   /////////   M0(x)
+                COEF[0][1][3][i4] = NU/FN2*sqrt(3.0);   ////////  SQ(3) * M1(x)
+                COEF[0][2][3][i4] = NG/2.0*sqrt(5.0)*(3.0/FN3-1.0/FN1);   //////   SQ(5) * M2(x)
 
-                    }
-                }
+                COEF[1][0][3][i4] = COEF[0][1][3][i4];
+                COEF[1][1][3][i4] = NG*3.0/FN3;                        ///////    M0(x) + 2 * M2(x)
+                COEF[1][1][4][i4] = 3.0/2.0*NG*(1.0/FN1-1.0/FN3);     ////////    M0(x) - M2(x) 
+                COEF[1][1][2][i4] = COEF[1][1][4][i4];
+                COEF[1][2][3][i4] = sqrt(15.0)/2.0*NU*(3.0/FN4-1.0/FN2);     ///////   (2/5) * SQ(15) * ( M1(x) + (3/2) * M3(x) )
+                COEF[1][2][4][i4] = sqrt(45.0)/2.0*NU*(1.0/FN2-1.0/FN4);     ///////   (SQ(45)/5) * ( M1(x) - M3(x) )
+                COEF[1][2][2][i4] = COEF[1][2][4][i4];
 
-            }
-            for (index i4 = 1; i4 <= 42; i4++) {
-                /********** ORIGINAL CKOEF SUBROUTINE *************************/
-                int N = i4 - 1;
-                int NU = N % 2;
-                int NN = i4;
-                int NG = NN % 2;
-                double FN1 = double(N + 1);
-                double FN2 = double(N + 2);
-                double FN3 = double(N + 3);
-                double FN4 = double(N + 4);
-                double FN5 = double(N + 5);
-
-                COEF[1][1][3][i4] = NG / FN1; /////////   M0(x)
-                COEF[1][2][3][i4] = NU / FN2 * sqrt(3.0); ////////  SQ(3) * M1(x)
-                COEF[1][3][3][i4] = NG / 2.0 * sqrt(5.0)*(3.0 / FN3 - 1.0 / FN1); //////   SQ(5) * M2(x)
+                COEF[2][0][3][i4] = COEF[0][2][3][i4];
                 COEF[2][1][3][i4] = COEF[1][2][3][i4];
-                COEF[2][2][3][i4] = NG * 3.0 / FN3; ///////    M0(x) + 2 * M2(x)
-                COEF[2][2][4][i4] = 3.0 / 2.0 * NG * (1.0 / FN1 - 1.0 / FN3); ////////    M0(x) - M2(x) 
+                COEF[2][1][4][i4] = COEF[1][2][4][i4];
+                COEF[2][1][2][i4] = COEF[1][2][4][i4];
+                COEF[2][2][3][i4] = 5.0/4.0*NG*(9.0/FN5-6.0/FN3+1.0/FN1);   ///////  M0(x) + (10/7)*M2(x) + (18/7)*M4(x)
+                COEF[2][2][4][i4] = NG*15.0/2.0*(1.0/FN3-1.0/FN5);          ///////  M0(x) + (5/7)*M2(x) - (12/7)*M4(x)    
+                COEF[2][2][5][i4] = 15.0/8.0*NG*(1.0/FN1-2.0/FN3+1.0/FN5);  ///////  M0(x) - (10/7)*M2(x) + (3/7)*M4(x) 
+                COEF[2][2][1][i4] = COEF[2][2][5][i4];
                 COEF[2][2][2][i4] = COEF[2][2][4][i4];
-                COEF[2][3][3][i4] = sqrt(15.0) / 2.0 * NU * (3.0 / FN4 - 1.0 / FN2); ///////   (2/5) * SQ(15) * ( M1(x) + (3/2) * M3(x) )
-                COEF[2][3][4][i4] = sqrt(45.0) / 2.0 * NU * (1.0 / FN2 - 1.0 / FN4); ///////   (SQ(45)/5) * ( M1(x) - M3(x) )
-                COEF[2][3][2][i4] = COEF[2][3][4][i4];
-                COEF[3][1][3][i4] = COEF[1][3][3][i4];
-                COEF[3][2][3][i4] = COEF[2][3][3][i4];
-                COEF[3][2][4][i4] = COEF[2][3][4][i4];
-                COEF[3][2][2][i4] = COEF[2][3][4][i4];
-                COEF[3][3][3][i4] = 5.0 / 4.0 * NG * (9.0 / FN5 - 6.0 / FN3 + 1.0 / FN1); ///////  M0(x) + (10/7)*M2(x) + (18/7)*M4(x)
-                COEF[3][3][4][i4] = NG * 15.0 / 2.0 * (1.0 / FN3 - 1.0 / FN5); ///////  M0(x) + (5/7)*M2(x) - (12/7)*M4(x)    
-                COEF[3][3][5][i4] = 15.0 / 8.0 * NG * (1.0 / FN1 - 2.0 / FN3 + 1.0 / FN5); ///////  M0(x) - (10/7)*M2(x) + (3/7)*M4(x) 
-                COEF[3][3][1][i4] = COEF[3][3][5][i4];
-                COEF[3][3][2][i4] = COEF[3][3][4][i4];
-
+             
             } // i4 loop (== CKO )
 
             /**** PREPARATIONS DONE, NOW START ******/
             vec AVS = posA - posC;
             vec BVS = posB - posC;
 
-            double AVS2 = AVS.getX() * AVS.getX() + AVS.getY() * AVS.getY() + AVS.getZ() * AVS.getZ();
-            double BVS2 = BVS.getX() * BVS.getX() + BVS.getY() * BVS.getY() + BVS.getZ() * BVS.getZ();
+            double AVS2 = AVS*AVS;
+            double BVS2 = BVS*BVS;
 
             double AVSSQ = sqrt(AVS2);
             double BVSSQ = sqrt(BVS2);
@@ -432,142 +425,239 @@ namespace votca { namespace xtp {
             type_3D::extent_gen extents3D;
 
             type_3D CC;
-            CC.resize(extents3D[ range(1, 4)][range(1, 6)][range(1, 6)]);
-            for (index L = 1; L <= 3; L++) {
-                for (index M1 = 1; M1 <= 5; M1++) {
-                    for (index M2 = 1; M2 <= 5; M2++) {
+            CC.resize(extents3D[ range(0,3)][range(1,6)][range(1,6)]); ///////
+            for ( index L = 0; L<=2; L++){ ////
+                  for ( index M1 = 1; M1<=5; M1++){
+                      for ( index M2 = 1; M2<=5; M2++){
 
-                        CC[L][M1][M2] = 0.0;
-                        for (index M = 1; M <= 5; M++) {
+                           CC[L][M1][M2]=0.0;
+                           for ( index M = 1; M<=5; M++){
 
-                            CC[L][M1][M2] += CA[L][M][M1] * CB[L][M][M2];
-                        }
-                    }
-                }
+                             CC[L][M1][M2] += CA[L][M][M1]*CB[L][M][M2]; /////
+
+                           }
+                      }
+                  }
             }
 
             typedef boost::multi_array<double, 5> type_5D;
             type_5D::extent_gen extents5D;
             type_5D SUMCI;
-            SUMCI.resize(extents5D[ range(1, 4)][ range(1, 4)][ range(1, 4)][range(1, 6)][range(1, 6)]);
+            SUMCI.resize(extents5D[range(0,3)][range(0,3)][ range(0,3)][range(1,6)][range(1,6)]); ////
+            type_3D SUMCI3;
+            SUMCI3.resize(extents3D[range(0,3)][range(0,3)][range(1,6)]); ////
 
 
-            // awesome summations
-            for (index L = 1; L <= 3; L++) {
-                for (index L1 = 1; L1 <= 3; L1++) {
-                    for (index L2 = 1; L2 <= 3; L2++) {
+            switch (INULL) {
 
-                        for (index M1 = 1; M1 <= 5; M1++) {
-                            for (index M2 = 1; M2 <= 5; M2++) {
+          case 1:
+          {
+
+              for ( index L = 0; L <= 2; L++  ){ /////
+                  for ( index L1 = 0; L1 <= 2; L1++  ){ /////                
+                      for ( index L2 = 0; L2 <= 2; L2++  ){ /////          
+                          for ( index M1 = 3-L; M1 <= 3+L; M1++ ){
+                              for ( index M2 = 3-L; M2 <= 3+L; M2++ ){
+
+                                  SUMCI[L][L1][L2][M1][M2]  = 0.0; ////////////
+
+                                  double fak1=2.0*alpha*AVSSQ;
+                                  double pow1=1;
+                                  double factorialN=1;
+
+                                  for ( int N = 0; N <= NMAX1-1; N++ ) { ///
+
+                                      if (N!=0) {
+                                          pow1=pow1*fak1;
+                                          factorialN=factorialN*N;
+                                      }
+                                            
+                                      double VAR1 = COEF[L][L1][M1][N]*pow1/factorialN; ///////////
+                                      double VAR2 = 0.0;
+                                      double fak2=2.0*beta*BVSSQ;
+                                      double pow2=1;
+                                      double factorialNN=1;
+
+                                      for ( int NN = 0; NN <= NMAX2-1; NN++ ) {
+
+                                          if (NN!=0) {
+                                              pow2=pow2*fak2;
+                                              factorialNN=factorialNN*NN;
+                                          }
+                                          double XDUM = COEF[L][L2][M2][NN]*pow2/factorialNN;  //////
+                                          VAR2  += XDUM*XI(L,N+NN+L1+L2); // L index of XI starts with 0 !! /////////
+
+                                      }
+      
+                                      SUMCI[L][L1][L2][M1][M2]  += VAR1*VAR2; /////
+
+                                  }
+
+                              } // end M2
+                          } // end M1
+                      } // end L2
+                  } // end L1 
+              } // end L
+
+              // now finally calculate matrix
+
+              for (unsigned i = 0; i < matrix.size1(); i++) {   // matrix.size1() = 10
+                  for (unsigned j = 0; j < matrix.size2(); j++) {   // matrix.size2() = 10
+
+                      for (index L = 0; L <= 2; L++) { ////
+                          for (index L1 = 0; L1 <= 2; L1++) { ////
+                              for (index L2 = 0; L2 <= 2; L2++) { /////
+
+                                  for (index M1 = 3-L; M1 <= 3+L; M1++) {
+                                      for (index M2 = 3-L; M2 <= 3+L; M2++) {
+
+                                          matrix(i,j) += BLMA[i][L1][M1] * BLMB[j][L2][M2] * SUMCI[L][L1][L2][M1][M2]*CC[L][M1][M2]; ////////////////
+
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+
+              break;
+          }
 
 
-                                SUMCI[L][L1][L2][M1][M2] = 0.0;
-                                switch (INULL) {
-                                    case 1:
-                                    {
-                                        double fak1 = 2.0 * alpha*AVSSQ;
-                                        double pow1 = 1;
-                                        double factorialN = 1;
-                                        for (int N1 = 1; N1 <= NMAX1; N1++) {
-                                            int N = N1 - 1;
-                                            if (N != 0) {
-                                                pow1 = pow1*fak1;
-                                                factorialN = factorialN*N;
-                                            }
+          case 2:  //  AVSSQ<=1.e-1 && BVSSQ <= 1.e-1
+          {
 
-                                            double VAR1 = COEF[L][L1][M1][N1] * pow1 / factorialN;
-                                            double VAR2 = 0.0;
-                                            double fak2 = 2.0 * beta*BVSSQ;
-                                            double pow2 = 1;
-                                            double factorialNN = 1;
-                                            for (int N2 = 1; N2 <= NMAX2; N2++) {
+              for (unsigned i = 0; i < matrix.size1(); i++) {
+                  for (unsigned j = 0; j < matrix.size2(); j++) {
 
-                                                int NN = N2 - 1;
-                                                int NPNS = N + NN - 1 + L1 + L2;
+                      for (index L = 0; L <= 2; L++) {
+                          double XI_L = XI(L,L+L);
+                          for (index M = 3-L; M <= 3+L; M++) {
 
-                                                if (NN != 0) {
-                                                    pow2 = pow2*fak2;
-                                                    factorialNN = factorialNN*NN;
-                                                }
+                              matrix(i,j) += BLMA[i][L][M] * BLMB[j][L][M] * XI_L;
 
-                                                double XDUM = COEF[L][L2][M2][N2] * pow2 / factorialNN;
-                                                VAR2 += XDUM * XI(L - 1, NPNS - 1); // L index of XI starts with 0 !!
+                          }
+                      }
 
-                                            }
-
-                                            SUMCI[L][L1][L2][M1][M2] += VAR1*VAR2;
-
-                                        }
+                  }
+              }
 
 
-                                        break;
-                                    }
-                                    case 2: //  AVSSQ<=1.e-1 && BVSSQ <= 1.e-1
-                                    {
+              break;
+          }
 
-                                        int NL = L1 + L2 - 1;
-                                        SUMCI[L][L1][L2][M1][M2] = COEF[L][L1][M1][1] * COEF[L][L2][M2][1] * XI(L - 1, NL - 1);
 
-                                        break;
-                                    }
-                                    case 3: //  AVSSQ <= 1.e-1
-                                    {
-                                        double VAR2 = 0.0;
+          case 3:  //  AVSSQ <= 1.e-1
+          {
 
-                                        double fak = 2.0 * beta*BVSSQ;
-                                        double pow = 1;
-                                        double factorialNN = 1;
-                                        for (int N2 = 1; N2 <= NMAX2; N2++) {
-                                            int NN = N2 - 1;
-                                            int NL = N2 + L2 + L1 - 2;
+              for ( index L = 0; L <= 2; L++  ) {
+                  for ( index L2 = 0; L2 <= 2; L2++  ) {
+                      for ( index M2 = 3-L; M2 <= 3+L; M2++ ) {
 
-                                            if (NN != 0) {
-                                                pow = pow*fak;
-                                                factorialNN = factorialNN*NN;
-                                            }
+                          double VAR2 = 0.0;
+                          double fak=2.0 * beta*BVSSQ;
+                          double pow=1;
+                          double factorialNN=1;
 
-                                            double XDUM = COEF[L][L2][M2][N2] * pow / factorialNN;
-                                            VAR2 += XDUM * XI(L - 1, NL - 1);
+                          for (int NN = 0; NN <= NMAX2-1; NN++) {
 
-                                        }
+                              if(NN!=0) {
+                                  pow=pow*fak;
+                                  factorialNN=factorialNN*NN;
+                              }
+                            
+                              double XDUM = COEF[L][L2][M2][NN] * pow / factorialNN;
+                              VAR2 += XDUM * XI(L, NN + L + L2);
 
-                                        SUMCI[L][L1][L2][M1][M2] = COEF[L][L1][M1][1] * VAR2;
+                          }
 
-                                        break;
-                                    }
-                                    case 4: //  BVSSQ <= 1.e-1
-                                    {
-                                        double VAR1 = 0.0;
+                          SUMCI3[L][L2][M2] = VAR2;
 
-                                        double fak = 2.0 * alpha*AVSSQ;
-                                        double pow = 1;
-                                        double factorialN = 1;
-                                        for (int N1 = 1; N1 <= NMAX1; N1++) {
-                                            int N = N1 - 1;
-                                            int NL = N1 + L1 + L2 - 2;
+                      } // end M2
+                  } // end L2
+              } // end L
 
-                                            if (N != 0) {
-                                                pow = pow*fak;
-                                                factorialN = factorialN*N;
-                                            }
 
-                                            double XDUM = COEF[L][L1][M1][N1] * pow / factorialN;
-                                            VAR1 += XDUM * XI(L - 1, NL - 1);
+              for (unsigned i = 0; i < matrix.size1(); i++) {
+                  for (unsigned j = 0; j < matrix.size2(); j++) {
 
-                                        }
-                                        SUMCI[L][L1][L2][M1][M2] = COEF[L][L2][M2][1] * VAR1;
-                                        break;
-                                    }
+                      for (index L = 0; L <= 2; L++) {
+                          for (index L2 = 0; L2 <= 2; L2++) {
 
-                                    default:
-                                        cout << "Wrong ECP summation mode";
-                                        exit(1);
-                                } // switch
-                            } // end M2
-                        } // end M1
-                    } // end L2
-                } // end L1 
-            } // end L 
+                              for (index M1 = 3-L; M1 <= 3+L; M1++) {
+                                  for (index M2 = 3-L; M2 <= 3+L; M2++) {
+
+                                      matrix(i,j) += BLMA[i][L][M1] * BLMB[j][L2][M2] * SUMCI3[L][L2][M2] * CC[L][M1][M2];
+
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+
+              break;
+          }
+
+
+          case 4:  //  BVSSQ <= 1.e-1
+          {
+
+              for ( index L = 0; L <= 2; L++  ) {
+                  for ( index L1 = 0; L1 <= 2; L1++  ) {
+                      for ( index M1 = 3-L; M1 <= 3+L; M1++ ) {
+
+                          double VAR1 = 0.0;
+                          double fak=2.0 * alpha*AVSSQ;
+                          double pow=1;
+                          double factorialN=1;
+
+                          for (int N = 0; N <= NMAX1-1; N++) {
+
+                              if(N!=0) {
+                                  pow=pow*fak;
+                                  factorialN=factorialN*N;
+                              }
+
+                              double XDUM = COEF[L][L1][M1][N] * pow / factorialN;
+                              VAR1 += XDUM * XI(L, N + L1 + L);
+
+                          }
+
+                          SUMCI3[L][L1][M1] = VAR1;
+
+                      } // end M1
+                  } // end L1
+              } // end L
+
+
+              for (unsigned i = 0; i < matrix.size1(); i++) {
+                  for (unsigned j = 0; j < matrix.size2(); j++) {
+
+                      for (index L = 0; L <= 2; L++) {
+                          for (index L1 = 0; L1 <= 2; L1++) {
+
+                              for (index M1 = 3-L; M1 <= 3+L; M1++) {
+                                  for (index M2 = 3-L; M2 <= 3+L; M2++) {
+
+                                      matrix(i,j) += BLMA[i][L1][M1] * BLMB[j][L][M2] * SUMCI3[L][L1][M1] * CC[L][M1][M2];
+
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+
+              break;
+          }
+
+
+          default:
+              cout << "Wrong ECP summation mode";
+              exit(1);
+          } // switch
 
 
             // GET TRAFO HERE ALREADY
@@ -577,42 +667,16 @@ namespace votca { namespace xtp {
             getNorms(NormB, beta);
 
 
-            // now finally calculate matrix
-
-            for (unsigned i = 0; i < matrix.size1(); i++) { // matrix.size1() = 10
-                for (unsigned j = 0; j < matrix.size2(); j++) { // matrix.size2() = 10
-
-                    for (index L = 1; L <= 3; L++) {
-                        for (index L1 = 1; L1 <= 3; L1++) {
-                            for (index L2 = 1; L2 <= 3; L2++) {
-
-                                for (index M1 = 1; M1 <= 5; M1++) {
-                                    for (index M2 = 1; M2 <= 5; M2++) {
-
-                                        matrix(i, j) += BLMA[i + 1][L1][M1] * BLMB[j + 1][L2][M2] * SUMCI[L][L1][L2][M1][M2] * CC[L][M1][M2];
-
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            ub::matrix<double> matrix_tmp = ub::zero_matrix<double>(10, 10);
             for (unsigned i = 0; i < matrix.size1(); i++) {
                 for (unsigned j = 0; j < matrix.size2(); j++) {
-                    matrix_tmp(i, j) = matrix(i, j) * GAUSS * NormA[i] * NormB[j];
-                }
-            }
 
-            int ij[] = {0, 3, 2, 1, 7, 5, 4, 6, 8, 9};
-            for (unsigned i = 0; i < matrix.size1(); i++) {
-                for (unsigned j = 0; j < matrix.size2(); j++) {
-                    matrix(i, j) = matrix_tmp(ij[i], ij[j]);
+                    matrix(i,j) = matrix(i,j) * GAUSS * NormA[i] * NormB[j];
+
                 }
-            }
-            return matrix;
+        }
+     
+      
+        return matrix;
         }
     
     
@@ -620,30 +684,30 @@ namespace votca { namespace xtp {
 
             const double PI = boost::math::constants::pi<double>();
             Norms[0] = pow(2.0 * decay / PI, 0.75);   ///  Y 00
-            Norms[1] = 2.0 * sqrt(decay) * Norms[0];  ///  Y 11
+            Norms[1] = 2.0 * sqrt(decay) * Norms[0];  ///  Y 10
             Norms[2] = Norms[1];                      ///  Y 1 -1
-            Norms[3] = Norms[1];                      ///  Y 10
-            Norms[4] = 4.00 * decay * Norms[0];       ///  Y 21
-            Norms[5] = Norms[4];                      ///  Y 2 -1
-            Norms[6] = Norms[4];                      ///  Y 2 -2
-            Norms[7] = 2.00 * decay * Norms[0] / sqrt(3.0);   ///  Y 20
-            Norms[8] = 2.00 * decay * Norms[0];               ///  Y 22
-            Norms[9] = Norms[4] / sqrt(15.0);
+            Norms[3] = Norms[1];                      ///  Y 11
+            Norms[4] = 2.00 * decay * Norms[0] / sqrt(3.0); ///  Y 20
+            Norms[5] = 4.00 * decay * Norms[0];             ///  Y 2 -1
+            Norms[6] = Norms[5];                            ///  Y 21
+            Norms[7] = Norms[5];                            ///  Y 2 -2
+            Norms[8] = 2.00 * decay * Norms[0];             ///  Y 22
+            Norms[9] = Norms[5] / sqrt(15.0);
         
             return;
     }
-    
-    void AOECP::getBLMCOF(const vec& pos, type_3D& BLC, type_3D& C) {
+
+        void AOECP::getBLMCOF(const vec& pos, type_3D& BLC, type_3D& C) {
 
             typedef boost::multi_array_types::extent_range range;
             typedef type_3D::index index;
             type_3D::extent_gen extents;
 
-            BLC.resize(extents[ range(1, 11) ][ range(1, 4) ][ range(1, 6)]);
-            C.resize(extents[ range(1, 4) ][ range(1, 6) ][ range(1, 6)]);
+            BLC.resize(extents[ range(0, 10) ][ range(0, 3) ][ range(1, 6)]); /////
+            C.resize(extents[ range(0, 3) ][ range(1, 6) ][ range(1, 6)]); /////////
 
             type_3D BLM;
-            BLM.resize(extents[ range(1, 11) ][ range(1, 4) ][ range(1, 6)]);
+            BLM.resize(extents[ range(0, 10) ][ range(0, 3) ][ range(1, 6)]); ////
 
             const double PI = boost::math::constants::pi<double>();
             double SPI = sqrt(PI);
@@ -653,151 +717,159 @@ namespace votca { namespace xtp {
             double XD2 = 4.0 * SPI / sqrt(5.0); ////////  4 * SQ(pi/5)         Y 20
             double XD3 = XD2 / sqrt(3.0); ////////      4 * SQ(pi/15)        Y 22
 
-            for (index I = 1; I <= 10; I++) {
-                for (index L = 1; L <= 3; L++) {
+            for (index I = 0; I <= 9; I++) { /////
+                for (index L = 0; L <= 2; L++) { ///
                     for (index M = 1; M <= 5; M++) {
+
                         BLM[I][L][M] = 0.0;
+
                     }
                 }
             }
 
-            std::vector<double> BVS(4);
-            BVS[0] = 0.0;
-            BVS[1] = pos.getX();
-            BVS[2] = pos.getY();
-            BVS[3] = pos.getZ();
-
-            BLM[1][1][3] = XS; ///  Y 00
-
-            BLM[2][1][3] = -BVS[1] * XS; ///  Y 11
-            BLM[2][2][4] = XP;
-
-            BLM[3][1][3] = -BVS[2] * XS; ///  Y 1 -1
-            BLM[3][2][2] = XP;
-
-            BLM[4][1][3] = -BVS[3] * XS; ///  Y 10
-            BLM[4][2][3] = XP;
-
-            BLM[5][1][3] = BVS[1] * BVS[3] * XS; ///  Y 21
-            BLM[5][2][4] = -BVS[3] * XP;
-            BLM[5][2][3] = -BVS[1] * XP;
-            BLM[5][3][4] = XD1;
-
-            BLM[6][1][3] = BVS[2] * BVS[3] * XS; ///  Y 2 -1
-            BLM[6][2][2] = -BVS[3] * XP;
-            BLM[6][2][3] = -BVS[2] * XP;
-            BLM[6][3][2] = XD1;
-
-            BLM[7][1][3] = BVS[1] * BVS[2] * XS; ///  Y 2 -2
-            BLM[7][2][4] = -BVS[2] * XP;
-            BLM[7][2][2] = -BVS[1] * XP;
-            BLM[7][3][1] = XD1;
-
-            BLM[8][1][3] = (2.0 * BVS[3] * BVS[3] - BVS[1] * BVS[1] - BVS[2] * BVS[2]) * XS; ///  Y 20
-            BLM[8][2][4] = 2.0 * BVS[1] * XP;
-            BLM[8][2][2] = 2.0 * BVS[2] * XP;
-            BLM[8][2][3] = -4.0 * BVS[3] * XP;
-            BLM[8][3][3] = XD2;
-
-            BLM[9][1][3] = (BVS[1] * BVS[1] - BVS[2] * BVS[2]) * XS; ///  Y 22
-            BLM[9][2][4] = -2.0 * BVS[1] * XP;
-            BLM[9][2][2] = 2.0 * BVS[2] * XP;
-            BLM[9][3][5] = XD3;
-
-            BLM[10][1][3] = (BVS[1] * BVS[1] + BVS[2] * BVS[2] + BVS[3] * BVS[3]) * XS;
-            BLM[10][2][4] = -2.0 * BVS[1] * XP;
-            BLM[10][2][2] = -2.0 * BVS[2] * XP;
-            BLM[10][2][3] = -2.0 * BVS[3] * XP;
-
-
-            for (index L = 1; L <= 3; L++) {
-                for (index M = 1; M <= 5; M++) {
-                    for (index MM = 1; MM <= 5; MM++) {
-                        C[L][M][MM] = 0.0;
-                    }
-                }
-            }
-
-            double XY = BVS[1] * BVS[1] + BVS[2] * BVS[2];
-            double XYZ = XY + BVS[3] * BVS[3];
+            const tools::vec& BVS = pos;
+            double XY = BVS[0] * BVS[0] + BVS[1] * BVS[1];
+            double XYZ = XY + BVS[2] * BVS[2];
             double SXY = sqrt(XY); //// SXY = r * sin(theta)
             double SXYZ = sqrt(XYZ); //// SXYZ = r
             double CP = 1.0;
             double SP = 0.0;
 
-            if (SXY > 1.e-4) {
-                CP = BVS[1] / SXY; //// CP = cos(phi)
-                SP = BVS[2] / SXY; //// SP = sin(phi)
-            }
+            BLM[0][0][3] = XS; ///  Y 00
 
-            if (SXYZ > 1.e-4) {
-                double CT = BVS[3] / SXYZ; /// CT = cos(theta)
-                double ST = SXY / SXYZ; /// ST = sin(theta)
+            BLM[1][0][3] = -BVS[2] * XS; ///  Y 10
+            BLM[1][1][3] = XP;
 
-                C[1][3][3] = 1.0; //                2*SQ(pi) * Y 00   ############################
-                C[2][2][2] = CP;
-                C[2][2][3] = ST*SP; //              2*SQ(pi/3) * Y 1,-1 ##########################
-                C[2][2][4] = CT*SP;
-                C[2][3][2] = 0.0;
-                C[2][3][3] = CT; //               2*SQ(pi/3) * Y 10 #############################
-                C[2][3][4] = -ST;
-                C[2][4][2] = -SP;
-                C[2][4][3] = CP*ST; //              2*SQ(pi/3) * Y 11 ###############################
-                C[2][4][4] = CT*CP;
-                C[3][1][1] = CT * (2.0 * CP * CP - 1.0);
-                C[3][1][2] = ST * (2.0 * CP * CP - 1.0);
-                double SQ3 = sqrt(3.0);
-                C[3][1][3] = SQ3 * CP * SP * ST*ST; //      2*SQ(pi/5) * Y 2 -2 #################################
-                C[3][1][4] = 2.0 * CT * CP * SP*ST;
-                C[3][1][5] = CP * SP * (1.0 + CT * CT);
-                C[3][2][1] = -CP*ST;
-                C[3][2][2] = CT*CP;
-                C[3][2][3] = SQ3 * CT * ST*SP; //           2*SQ(pi/5) * Y 2 -1  ################################
-                C[3][2][4] = SP * (2.0 * CT * CT - 1.0);
-                C[3][2][5] = -CT * ST*SP;
-                C[3][3][1] = 0.0;
-                C[3][3][2] = 0.0;
-                C[3][3][3] = 1.5 * CT * CT - 0.5; //          2*SQ(pi/5) * Y 20  ################################
-                C[3][3][4] = -SQ3 * CT*ST;
-                ///                C[3][3][5] = .5 * SQ3 * (1.0 - CT * CT);
-                C[3][3][5] = .5 * SQ3 * ST * ST;
-                C[3][4][1] = ST*SP;
-                C[3][4][2] = -CT*SP;
-                C[3][4][3] = SQ3 * CT * CP*ST; //             2*SQ(pi/5) * Y 21  #######################
-                C[3][4][4] = CP * (2.0 * CT * CT - 1.0);
-                C[3][4][5] = -CT * CP*ST;
-                C[3][5][1] = -2.0 * CT * CP*SP;
-                C[3][5][2] = -2.0 * CP * ST*SP;
-                //    /            C[3][5][3] = 0.5 * SQ3 * (CT * CT * (1.0 - 2.0 * CP * CP) + 2.0 * CP * CP - 1.0); //   2*SQ(pi/5) * Y 22 ########## 
-                C[3][5][3] = SQ3 * ST * ST * (CP * CP - .5); //////////   2*SQ(pi/5) * Y 22 ########## 
-                C[3][5][4] = CT * ST * (2.0 * CP * CP - 1.);
-                //////                C[3][5][5] = 0.5 * (CP * CP * (2.0 + 2.0 * CT * CT) - CT * CT - 1.0);
-                C[3][5][5] = (CP * CP - .5) * (1. + CT * CT);
-            } else {
-                C[1][3][3] = 1.0; //// CT = CP = 1,        ST = SP = 0
-                C[2][2][2] = 1.0;
-                C[2][3][3] = 1.0;
-                C[2][4][4] = 1.0;
+            BLM[2][0][3] = -BVS[1] * XS; ///  Y 1 -1
+            BLM[2][1][2] = XP;
 
+            BLM[3][0][3] = -BVS[0] * XS; ///  Y 11
+            BLM[3][1][4] = XP;
+
+            BLM[4][0][3] = (2.0 * BVS[2] * BVS[2] - XY) * XS; ///  Y 20
+            BLM[4][1][4] = 2.0 * BVS[0] * XP;
+            BLM[4][1][2] = 2.0 * BVS[1] * XP;
+            BLM[4][1][3] = -4.0 * BVS[2] * XP;
+            BLM[4][2][3] = XD2;
+
+            BLM[5][0][3] = BVS[1] * BVS[2] * XS; ///  Y 2 -1
+            BLM[5][1][2] = -BVS[2] * XP;
+            BLM[5][1][3] = -BVS[1] * XP;
+            BLM[5][2][2] = XD1;
+
+            BLM[6][0][3] = BVS[0] * BVS[2] * XS; ///  Y 21
+            BLM[6][1][4] = -BVS[2] * XP;
+            BLM[6][1][3] = -BVS[0] * XP;
+            BLM[6][2][4] = XD1;
+
+            BLM[7][0][3] = BVS[0] * BVS[1] * XS; ///  Y 2 -2
+            BLM[7][1][4] = -BVS[1] * XP;
+            BLM[7][1][2] = -BVS[0] * XP;
+            BLM[7][2][1] = XD1;
+
+            BLM[8][0][3] = (BVS[0] * BVS[0] - BVS[1] * BVS[1]) * XS; ///  Y 22
+            BLM[8][1][4] = -2.0 * BVS[0] * XP;
+            BLM[8][1][2] = 2.0 * BVS[1] * XP;
+            BLM[8][2][5] = XD3;
+
+            BLM[9][0][3] = (XYZ) * XS;
+            BLM[9][1][4] = -2.0 * BVS[0] * XP;
+            BLM[9][1][2] = -2.0 * BVS[1] * XP;
+            BLM[9][1][3] = -2.0 * BVS[2] * XP;
+
+
+            for (index L = 0; L <= 2; L++) { ///////
                 for (index M = 1; M <= 5; M++) {
-                    C[3][M][M] = 1.0;
+                    for (index MM = 1; MM <= 5; MM++) {
+
+                        C[L][M][MM] = 0.0;
+
+                    }
                 }
             }
 
-            for (index I = 1; I <= 10; I++) {
-                for (index L = 1; L <= 3; L++) {
+
+            if (SXY > 1.e-4) {
+                CP = BVS[0] / SXY; //// CP = cos(phi)
+                SP = BVS[1] / SXY; //// SP = sin(phi)
+            }
+
+            if (SXYZ > 1.e-4) {
+
+                double CT = BVS[2] / SXYZ; /// CT = cos(theta)
+                double ST = SXY / SXYZ; /// ST = sin(theta)
+
+                C[0][3][3] = 1.0; //                2*SQ(pi) * Y 00   ############################
+
+                C[1][2][2] = CP;
+                C[1][2][3] = ST *SP; //             2*SQ(pi/3) * Y 1 -1  ##########################
+                C[1][2][4] = CT * SP;
+
+                C[1][3][2] = 0.0;
+                C[1][3][3] = CT; //               2*SQ(pi/3) * Y 10  #############################
+                C[1][3][4] = -ST;
+
+                C[1][4][2] = -SP;
+                C[1][4][3] = CP * ST; //            2*SQ(pi/3) * Y 11  ###############################
+                C[1][4][4] = CT * CP;
+
+                C[2][1][1] = CT * (2.0 * CP * CP - 1.0);
+                C[2][1][2] = ST * (2.0 * CP * CP - 1.0);
+                double SQ3 = sqrt(3.0);
+                C[2][1][3] = SQ3 * CP * SP * ST * ST; //    2*SQ(pi/5) * Y 2 -2  #################################
+                C[2][1][4] = 2.0 * CT * CP * SP * ST;
+                C[2][1][5] = CP * SP * (1.0 + CT * CT);
+
+                C[2][2][1] = -CP*ST;
+                C[2][2][2] = CT*CP;
+                C[2][2][3] = SQ3 * CT * ST* SP; //          2*SQ(pi/5) * Y 2 -1  ################################
+                C[2][2][4] = SP * (2.0 * CT * CT - 1.0);
+                C[2][2][5] = -CT * ST*SP;
+
+                C[2][3][1] = 0.0;
+                C[2][3][2] = 0.0;
+                C[2][3][3] = 1.5 * CT * CT - 0.5; //          2*SQ(pi/5) * Y 20  ################################
+                C[2][3][4] = -SQ3 * CT*ST;
+                C[2][3][5] = .5 * SQ3 * ST * ST; /// .5 * SQ3 * (1.0 - CT * CT)
+
+                C[2][4][1] = ST * SP;
+                C[2][4][2] = -CT * SP;
+                C[2][4][3] = SQ3 * CT * CP * ST; //           2*SQ(pi/5) * Y 21  #######################
+                C[2][4][4] = CP * (2.0 * CT * CT - 1.0);
+                C[2][4][5] = -CT * CP * ST;
+
+                C[2][5][1] = -2.0 * CT * CP * SP;
+                C[2][5][2] = -2.0 * CP * ST * SP;
+                C[2][5][3] = SQ3 * ST * ST * (CP * CP - .5); //////   2*SQ(pi/5) * Y 22 ##########   0.5 * SQ3 * (CT * CT * (1.0 - 2.0 * CP * CP) + 2.0 * CP * CP - 1.0)
+                C[2][5][4] = CT * ST * (2.0 * CP * CP - 1.);
+                C[2][5][5] = (CP * CP - .5) * (1. + CT * CT); /// 0.5 * (CP * CP * (2.0 + 2.0 * CT * CT) - CT * CT - 1.0)
+            } else {
+                C[0][3][3] = 1.0; //// CT = CP = 1,        ST = SP = 0
+                C[1][2][2] = 1.0;
+                C[1][3][3] = 1.0;
+                C[1][4][4] = 1.0;
+
+
+                for (index M = 1; M <= 5; M++) {
+                    C[2][M][M] = 1.0;
+                }
+            }
+            for (index I = 0; I <= 9; I++) { ////
+                for (index L = 0; L <= 2; L++) { ////
                     for (index M = 1; M <= 5; M++) {
 
                         BLC[I][L][M] = 0.0;
                         for (index M1 = 1; M1 <= 5; M1++) {
 
-                            BLC[I][L][M] += BLM[I][L][M1] * C[L][M1][M];
+                            BLC[I][L][M] += BLM[I][L][M1] * C[L][M1][M]; ///
 
                         }
+
                     }
                 }
+
             }
-            
+
             return;
         } // getBLMCOF
     
