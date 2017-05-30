@@ -73,20 +73,17 @@ public:
        _externalgrid_nuc=nucleigrid;
     }
     
+    std::vector< const vec *> getExternalGridpoints(){return _gridIntegration_ext.getGridpoints();}
  
     
     bool Evaluate(   Orbitals* _orbitals );
-
-    // interfaces for options getting/setting
-    //bool get_do_qp_diag(){ return _do_qp_diag ;}
-    //void set_do_qp_diag( bool inp ){ _do_qp_diag = inp;}
-    
-    
+    void Prepare( Orbitals* _orbitals );
+       
     private:
 
     ctp::Logger *_pLog;
     
-    void Prepare( Orbitals* _orbitals );
+    
     void SetupInvariantMatrices();
     ub::matrix<double> AtomicGuess(Orbitals* _orbitals);
     ub::matrix<double> DensityMatrix_unres( const ub::matrix<double>& MOs, int numofelec);

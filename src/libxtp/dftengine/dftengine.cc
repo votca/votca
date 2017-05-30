@@ -167,25 +167,23 @@ namespace votca {
          * 
          */
         
+        
+       
+        
         bool DFTENGINE::Evaluate(Orbitals* _orbitals) {
 
             // set the parallelization 
             #ifdef _OPENMP
-            if (_openmp_threads > 0) {
-                omp_set_num_threads(_openmp_threads);
-                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using " << omp_get_max_threads() << " threads" << flush;
-            }
+            
+            omp_set_num_threads(_openmp_threads);
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using " << omp_get_max_threads() << " threads" << flush;
+            
             #endif
 
-            _atoms = _orbitals->QMAtoms();
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Molecule Coordinates [A] " << flush;
-            for (unsigned i = 0; i < _atoms.size(); i++) {
-                LOG(ctp::logDEBUG, *_pLog) << "\t\t " << _atoms[i]->type << " " << _atoms[i]->x << " " << _atoms[i]->y << " " << _atoms[i]->z << " " << flush;
-            }
+           
 
-
-            /**** PREPARATION (atoms, basis sets, numerical integrations) ****/
-            Prepare(_orbitals);
+          
+            
             /**** END OF PREPARATION ****/
 
             /**** Density-independent matrices ****/
@@ -429,12 +427,8 @@ namespace votca {
                 }
             }
             
-            //this will not remain here but be moved to qmape
-            if (_do_externalfield) {
-                _gridIntegration_ext.GridSetup(_grid_name_ext, &_dftbasisset, _atoms, &_dftbasis);
-                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup numerical integration grid " << _grid_name_ext
-                        << " for external field with " << _gridIntegration_ext.getGridpoints().size() << " points" << flush;
-            }
+            
+            
 
             if (_with_ecp) {
                 _dftAOECP.Initialize(_dftbasis.AOBasisSize());
@@ -447,24 +441,16 @@ namespace votca {
             _diis.setLogger(_pLog);
             _diis.setOverlap(&_dftAOoverlap.Matrix());
             _diis.setSqrtOverlap(&_Sminusonehalf);
-            // AUX AOoverlap
 
             if (_with_RI) {
-                { // this is just for info and not needed afterwards
-                    AOOverlap _auxAOoverlap;
-                    _auxAOoverlap.Initialize(_auxbasis.AOBasisSize());
-                    _auxAOoverlap.Fill(_auxbasis);
-                    linalg_eigenvalues(_auxAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
-                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of AUX Overlap matrix : " << _eigenvalues[0] << flush;
-                }
-
+               
                 AOCoulomb _auxAOcoulomb;
                 _auxAOcoulomb.Initialize(_auxbasis.AOBasisSize());
                 _auxAOcoulomb.Fill(_auxbasis);
 
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
                 ub::matrix<double> AuxAOcoulomb_inv = ub::zero_matrix<double>(_auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension());
-                int dimensions = linalg_invert_svd(_auxAOcoulomb.Matrix(), AuxAOcoulomb_inv, 1e7);
+                int dimensions = linalg_invert_svd(_auxAOcoulomb.Matrix(), AuxAOcoulomb_inv, 5e7);
 
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inverted AUX Coulomb matrix, removed " << dimensions << " functions from aux basis" << flush;
 
@@ -733,6 +719,11 @@ namespace votca {
 
       // PREPARATION 
         void DFTENGINE::Prepare(Orbitals* _orbitals) {
+            _atoms = _orbitals->QMAtoms();
+            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Molecule Coordinates [A] " << flush;
+            for (unsigned i = 0; i < _atoms.size(); i++) {
+                LOG(ctp::logDEBUG, *_pLog) << "\t\t " << _atoms[i]->type << " " << _atoms[i]->x << " " << _atoms[i]->y << " " << _atoms[i]->z << " " << flush;
+            }
 
             // load and fill DFT basis set
             _dftbasisset.LoadBasisSet(_dftbasis_name);
@@ -780,6 +771,12 @@ namespace votca {
 
                 LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup small numerical integration grid " << _grid_name_small << " for vxc functional "
                         << _xc_functional_name << " with " << _gridIntegration_small.getGridpoints().size() << " points" << flush;
+            }
+            
+            if (_do_externalfield) {
+                _gridIntegration_ext.GridSetup(_grid_name_ext, &_dftbasisset, _atoms, &_dftbasis);
+                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup numerical integration grid " << _grid_name_ext
+                        << " for external field with " << _gridIntegration_ext.getGridpoints().size() << " points" << flush;
             }
 
             Elements _elements;
@@ -888,18 +885,21 @@ namespace votca {
 
             std::vector<double> charge;
             for (unsigned i = 0; i < _atoms.size(); i++) {
-                if (_with_ecp) {
-                    charge.push_back(element.getNucCrgECP(_atoms[i]->type));
-                } else {
-                    charge.push_back(element.getNucCrg(_atoms[i]->type));
+                string name=_atoms[i]->type;
+                double Q=element.getNucCrg(name);
+                bool HorHe=(name == "H" || name== "He");
+                if (_with_ecp && !HorHe) {  
+                        Q -= _ecpbasisset.getElement(name)->getNcore();
                 }
-            }
+                charge.push_back(Q);
+                }
+            
 
             for (unsigned i = 0; i < _atoms.size(); i++) {
-                vec r1 = vec(_atoms[i]->x * tools::conv::ang2bohr, _atoms[i]->y * tools::conv::ang2bohr, _atoms[i]->z * tools::conv::ang2bohr);
+                const tools::vec& r1 = _atoms[i]->getPos()* tools::conv::ang2bohr;
                 double charge1 = charge[i];
                 for (unsigned j = 0; j < i; j++) {
-                    vec r2 = vec(_atoms[j]->x * tools::conv::ang2bohr, _atoms[j]->y * tools::conv::ang2bohr, _atoms[j]->z * tools::conv::ang2bohr);
+                    const tools::vec& r2 = _atoms[j]->getPos()* tools::conv::ang2bohr;
                     double charge2 = charge[j];
                     E_nucnuc += charge1 * charge2 / (abs(r1 - r2));
                 }
@@ -920,12 +920,14 @@ namespace votca {
             for (pes = nuclei.begin(); pes < nuclei.end(); ++pes) {
                 (*pes)->setIsoP(0.0);
                 string name = (*pes)->getName();
-                if (_with_ecp) {
-                    (*pes)->setQ00(element.getNucCrgECP(name), 0);
-                } else {
-                    (*pes)->setQ00(element.getNucCrg(name), 0);
+                double Q=element.getNucCrg(name);
+                bool HorHe=(name == "H" || name== "He");
+                if (_with_ecp && !HorHe) {  
+                        Q -= _ecpbasisset.getElement(name)->getNcore();
                 }
+                    (*pes)->setQ00(Q, 0);
             }
+            
 
             ctp::XInteractor actor;
             actor.ResetEnergy();
@@ -962,13 +964,13 @@ namespace votca {
             }
 
             for (unsigned i = 0; i < _atoms.size(); i++) {
-                double charge = 0.0;
-                if (_with_ecp) {
-                    charge = (element.getNucCrgECP(_atoms[i]->type));
-                } else {
-                    charge = (element.getNucCrg(_atoms[i]->type));
+                string name=_atoms[i]->type;
+                double Q=element.getNucCrg(name);
+                bool HorHe=(name == "H" || name == "He");
+                if (_with_ecp && !HorHe) {  
+                        Q -= _ecpbasisset.getElement(name)->getNcore();
                 }
-                E_ext += charge * externalpotential_nuc[i];
+                E_ext += Q * externalpotential_nuc[i];
             }
 
             return E_ext;

@@ -187,8 +187,8 @@ namespace votca {
 
         // loop over frequencies
         for ( unsigned _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
-
-             if ( _screening_freq( _i_freq, 0) == 0.0 ) {
+           
+             if ( _screening_freq( _i_freq, 0) == 0.0 ) {         
                  RPA_imaginary(_epsilon[ _i_freq ],_Mmn_RPA, _screening_freq( _i_freq, 1));
              }
 

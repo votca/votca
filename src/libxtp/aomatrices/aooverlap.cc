@@ -34,9 +34,7 @@ namespace votca { namespace xtp {
 
     
     void AOOverlap::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp ) {
-        /*cout << "\nAO block: "<< endl;
-        cout << "\t row: " << _shell_row->getType() << " at " << _shell_row->getPos() << endl;
-        cout << "\t col: " << _shell_col->getType() << " at " << _shell_col->getPos() << endl;*/
+       
        
         // shell info, only lmax tells how far to go
         int _lmax_row = _shell_row->getLmax();

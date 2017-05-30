@@ -47,7 +47,7 @@ namespace votca { namespace xtp {
             //used for test purposes
             double StupidIntegrate( std::vector<double>& _data );
             
-            std::vector<vec const *> getGridpoints();
+            std::vector<const vec*> getGridpoints();
             
             
             

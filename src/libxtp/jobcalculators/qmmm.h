@@ -346,9 +346,9 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     LOG(ctp::logINFO,*log)
          << xjob.getPolarTop()->ShellInfoStr() << flush;
     
-    if (tools::globals::verbose)
-    xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_QM0_MM1_MM2.pdb");
-
+    if (tools::globals::verbose){
+        xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_QM0_MM1_MM2.pdb");
+    }
     // INDUCTOR, QM RUNNER, QM-MM MACHINE
     ctp::XInductor xind = ctp::XInductor(top, &_options, "options.qmmm",
         _subthreads, _maverick);    

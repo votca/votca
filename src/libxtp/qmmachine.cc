@@ -129,7 +129,7 @@ namespace votca {
                 _do_gwbse = false;
             }
 
-
+            return;
         }
 
         template<class QMPackage>
@@ -264,7 +264,7 @@ namespace votca {
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 ctp::Logger gwbse_logger(ctp::logDEBUG);
                 gwbse_logger.setMultithreading(false);
-                _gwbse.setLogger(_log);
+                _gwbse.setLogger(&gwbse_logger);
                 gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
                 gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
                 gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
