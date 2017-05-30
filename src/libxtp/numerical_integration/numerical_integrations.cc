@@ -746,6 +746,11 @@ namespace votca {
         return;
         }
         
+        
+       
+        
+        
+        
 
         double NumericalIntegration::IntegrateDensity_Atomblock(const ub::matrix<double>& _density_matrix){   
             if(_significant_atoms.size()<1){
@@ -940,21 +945,15 @@ namespace votca {
             int i = 1;
             for (ait = _atoms.begin() + 1; ait != _atoms.end(); ++ait) {
                 // get center coordinates in Bohr
-                double x_a = (*ait)->x * tools::conv::ang2bohr;
-                double y_a = (*ait)->y * tools::conv::ang2bohr;
-                double z_a = (*ait)->z * tools::conv::ang2bohr;
+                vec pos_a = (*ait)->getPos() * tools::conv::ang2bohr;
+                
                 int j = 0;
                 for (bit = _atoms.begin(); bit != ait; ++bit) {
                     ij++;
                     // get center coordinates in Bohr
-                    double x_b = (*bit)->x * tools::conv::ang2bohr;
-                    double y_b = (*bit)->y * tools::conv::ang2bohr;
-                    double z_b = (*bit)->z * tools::conv::ang2bohr;
-
-                    Rij.push_back(1.0 / sqrt((x_a - x_b)*(x_a - x_b) + (y_a - y_b)*(y_a - y_b) + (z_a - z_b)*(z_a - z_b)));
-
-
-                    
+                    vec pos_b = (*bit)->getPos() * tools::conv::ang2bohr;
+                   
+                    Rij.push_back(1.0 / abs(pos_a-pos_b));
                                         
                     j++;
                 } // atoms
@@ -969,7 +968,7 @@ namespace votca {
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
                 // get center coordinates in Bohr
                 std::vector< GridContainers::integration_grid > _atomgrid;
-                const vec atomA_pos =vec((*ait)->x * tools::conv::ang2bohr,(*ait)->y * tools::conv::ang2bohr,(*ait)->z * tools::conv::ang2bohr);
+                const vec atomA_pos =(*ait)->getPos() * tools::conv::ang2bohr;
              
                 string name = (*ait)->type;
 
@@ -1068,7 +1067,7 @@ namespace votca {
                 // for each center
                 for (bit = _atoms.begin(); bit < _atoms.end(); ++bit) {
                     // get center coordinates
-                   const vec atom_pos = vec((*bit)->x * tools::conv::ang2bohr,(*bit)->y * tools::conv::ang2bohr,(*bit)->z * tools::conv::ang2bohr);
+                   const vec atom_pos = (*bit)->getPos() * tools::conv::ang2bohr;
 
 
                     std::vector<double> temp;
@@ -1096,14 +1095,14 @@ namespace votca {
                     if (bit != ait) {
                         // get center coordinates
                        
-                        const vec atomB_pos=vec((*bit)->x * tools::conv::ang2bohr,(*bit)->y * tools::conv::ang2bohr,(*bit)->z * tools::conv::ang2bohr);
+                        const vec atomB_pos=(*bit)->getPos() * tools::conv::ang2bohr;
                         double distSQ = (atomA_pos-atomB_pos)*(atomA_pos-atomB_pos);
 
                         // update NN distance and iterator
                         if ( distSQ < distNN ) {
                             distNN = distSQ;
                             NNit = bit;
-                            //i_NN = i_b;
+                           
                         }
 
                     } // if ( ait != bit) 
@@ -1111,10 +1110,9 @@ namespace votca {
                 }// bit centers
               
                 for ( unsigned i_grid = 0; i_grid < _atomgrid.size() ; i_grid++){
-                    //cout << " modifying point " << i_grid << endl;
                     // call some shit called grid_ssw0 in NWChem
                     std::vector<double> _p = SSWpartition( i_grid, _atoms.size(),rq);
-                    //cout << " partition for gridpoint " << i_grid << endl;
+                 
                     // check weight sum
                     double wsum = 0.0;
                     for (unsigned i =0 ; i < _p.size(); i++ ){
@@ -1155,9 +1153,6 @@ namespace votca {
                 i_atom++;
             } // atoms
 
-            
-           
-            
             FindsignificantAtoms();
             return;
         }

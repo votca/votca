@@ -80,11 +80,8 @@ namespace votca { namespace xtp {
      &          0.1   , 0.4, 0.8, 2.5/
          
          */
-        
-        
-        
-        
-        
+
+       return; 
     }
     
     
@@ -200,9 +197,8 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
                 double exp_iat = _element_ranges.at((*ait)->type).alpha;
                 int    l_iat   = _element_ranges.at((*ait)->type).l;
                 
-                double x_a = (*ait)->x * tools::conv::bohr2ang;
-                double y_a = (*ait)->y * tools::conv::bohr2ang;
-                double z_a = (*ait)->z * tools::conv::bohr2ang;
+                vec pos_a = (*ait)->getPos() * tools::conv::bohr2ang;
+               
                 
                 //int iat_diff;
                 string type_diff;
@@ -211,9 +207,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
                 
                       int _b_start = idxstart[bidx];
                       int _b_stop  = idxstop[bidx];
-                      double x_b = (*bit)->x * tools::conv::bohr2ang;
-                      double y_b = (*bit)->y * tools::conv::bohr2ang;
-                      double z_b = (*bit)->z * tools::conv::bohr2ang;
+                      vec pos_b = (*bit)->getPos() * tools::conv::bohr2ang;
                       // now do some overlap gymnastics
                       double s_max = 10.0;
                       if ( aidx != bidx ){
@@ -233,7 +227,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
                               // cout << " Atom " << aidx << " neighbor " << bidx << " s-max " << s_max << " exponents " << exp_iat << " and " << _element_ranges.at((*bit)->type).alpha << endl;
                               double range = DetermineCutoff( exp_iat + _element_ranges.at((*bit)->type).alpha, l_iat + _element_ranges.at((*bit)->type).l +2 , eps);
                               // now do some update trickery from Gaussian product formula
-                              double dist = sqrt( (x_a - x_b)*(x_a-x_b) + (y_a - y_b)*(y_a-y_b) + (z_a - z_b)*(z_a-z_b)   );
+                              double dist = abs(pos_b-pos_a);
                               double shift_2g = dist*exp_iat/(exp_iat + _element_ranges.at((*bit)->type).alpha );
                               range += shift_2g;
                               
@@ -246,46 +240,20 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
                                   //iat_diff = bidx;
                                   type_diff = (*bit)->type;
                               }
-                              
-             
-                              
+ 
                           }
                       
-
                       bidx++;
                 }
                 
-                
-                                      
-                          
-                      // cout << "after atoms :" << endl;
-                      //cout << " zmins:     " << exp_iat  << " ---- " << _element_ranges.at(type_diff).alpha << endl;
-                      //cout << " lprod:     " << l_iat + _element_ranges.at(type_diff).l << endl;
-                      //cout << " range:     " << range_max << endl;
-                      //cout << " shiftm_2g: " << shiftm_2g << endl << endl;
-                      //exit(0);
-                      
-                      
-                    
-                
+      
                 if ( round(range_max) > _element_ranges.at((*ait)->type).range ){
-                    _element_ranges.at((*ait)->type).range = round(range_max) ;
-                    
+                    _element_ranges.at((*ait)->type).range = round(range_max) ;    
                 }
-                
-                
-                
                 aidx++;
             }
-            
-            
-            
-            for ( it = _element_ranges.begin() ; it != _element_ranges.end() ; ++it){
-                
-            //    cout << "Element " << it->first << " alpha " << it->second.alpha << " l " << it->second.l << " Rcut " << it->second.range <<  " Rcut (Ang) " <<  it->second.range  * 0.529177249 << endl;
-                
-            }
-            
+           
+          return;  
         } // getRadialCutoffs
     
     
