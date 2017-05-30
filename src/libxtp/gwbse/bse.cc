@@ -78,9 +78,7 @@ namespace votca {
           ub::matrix<real_gwbse> _AmB = _eh_d - _eh_d2;
 
             
-          // check for positive definiteness of A-B
-            
-            
+        
             
           // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not positive definite
             //(A-B) is not needed any longer and can be overwritten
@@ -129,7 +127,8 @@ namespace votca {
           
          
           for ( int _i = 0; _i < _bse_nmax; _i++) {
-              real_gwbse sqrt_eval = sqrt(_eigenvalues(_i));
+              //real_gwbse sqrt_eval = sqrt(_eigenvalues(_i));
+              real_gwbse sqrt_eval = sqrt(_bse_singlet_energies(_i));
               // get l-th reduced EV
               ub::matrix<real_gwbse> _reduced_evec = ub::project(_eigenvectors,  ub::range(0, dim), ub::range(_i, _i + 1)); // potentially col<->row
 
