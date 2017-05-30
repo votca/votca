@@ -104,6 +104,10 @@ public:
      */
     const double &getZ() const { return _z; }
     
+    
+    
+    
+    
     /**
      * \brief normalize the vector
      * @return normalized vector
@@ -310,6 +314,16 @@ return vec(
         v1.getX()*v2.getX() ,
         v1.getY()*v2.getY() ,
         v1.getZ()*v2.getZ() );
+}
+
+
+/// elementwise division
+inline vec elementwisedivison(const vec &v1, const vec &v2)
+{
+return vec(
+        v1.getX()/v2.getX() ,
+        v1.getY()/v2.getY() ,
+        v1.getZ()/v2.getZ() );
 }
 
 inline double abs(const vec &v)
