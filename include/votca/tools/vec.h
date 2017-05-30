@@ -41,6 +41,7 @@ class vec {
 public:
     
     vec();
+    vec(const double a);
     vec(const vec &v);
     vec(const double r[3]);
     vec(const double x, const double y, const double z);
@@ -129,6 +130,9 @@ public:
 };
 
 inline vec::vec() {}
+
+inline vec::vec(const double a)
+    : _x(a), _y(a), _z(a) {}
 
 inline vec::vec(const vec &v)
     : _x(v._x), _y(v._y), _z(v._z) {}
