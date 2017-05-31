@@ -73,8 +73,8 @@ namespace votca { namespace xtp {
         
         Grid& operator=(const Grid &obj);
         
-        std::vector< vec > &getGrid() {return _gridpoints;}
-		//std::vector< vec >* getPoints() {return &_gridpoints;}
+        const std::vector< vec > &getGrid() const {return _gridpoints;}
+
         std::vector< ctp::APolarSite* > &Sites() {return _gridsites;}
         std::vector< ctp::APolarSite*>* getSites() {return &_gridsites;} 
        

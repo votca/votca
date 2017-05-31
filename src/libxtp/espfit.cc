@@ -43,7 +43,7 @@ void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<doub
     Grid _grid;
     _grid.setAtomlist(&_atomlist);
     _grid.setupCHELPgrid();
-    //_grid.printGridtoxyzfile("grid.xyz");
+    _grid.printGridtoxyzfile("grid.xyz");
     LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl;
         
     // Calculating nuclear potential at gridpoints
@@ -186,7 +186,7 @@ void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::ma
     Grid _grid;
     _grid.setAtomlist(&_atomlist);
     _grid.setupCHELPgrid();
-    //_grid.printGridtoxyzfile("grid.xyz");
+   
     LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl; 
     // Calculating nuclear potential at gridpoints
     
@@ -205,8 +205,8 @@ void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::ma
     
     double netcharge=getNetcharge( _atomlist,N );
     if(!_do_Transition){
-    ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid);
-    _ESPatGrid += _NucPatGrid;
+        ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid);
+        _ESPatGrid += _NucPatGrid;
     }
     
     LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush; 
@@ -241,7 +241,7 @@ void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::ma
 std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
     LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Setting up Matrices for fitting of size "<< _fitcenters.size()+1 <<" x " << _fitcenters.size()+1<< flush;    
 
-    std::vector< tools::vec >& _gridpoints=_grid.getGrid();   
+    const std::vector< tools::vec >& _gridpoints=_grid.getGrid();   
    
     LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using "<< _fitcenters.size() <<" Fittingcenters and " << _gridpoints.size()<< " Gridpoints."<< flush;  
     

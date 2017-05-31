@@ -406,42 +406,39 @@ void Grid::setupgrid(){
             for(int k=0;k<=_zsteps;k++){
                 double z=zmin-padding_z+k*_gridspacing; 
                 bool _is_valid = false;
+                vec gridpos=vec(x,y,z);
                     for (std::vector<ctp::QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
-                        //cout << "Punkt " << x <<":"<< y << ":"<<z << endl;
-                        xtemp=(*atom)->x;
-                        ytemp=(*atom)->y;
-                        ztemp=(*atom)->z;
-                        double distance2=pow((x-xtemp),2)+pow((y-ytemp),2)+pow((z-ztemp),2);
+                        vec atompos=(*atom)->getPos();
+                        double distance=abs(gridpos-atompos);
                         if(_useVdWcutoff) _cutoff=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff;
                         if(_useVdWcutoff_inside)_cutoff_inside=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff_inside;
-                        //cout << "Punkt " << x <<":"<< y << ":"<<z << ":"<< distance2 << ":"<< (*atom)->type <<":"<<pow(VdW,2)<< endl;
-                        if ( distance2<pow(_cutoff_inside,2)){
+                       
+                        if ( distance<_cutoff_inside){
                             _is_valid = false;
                             break;
                             }
-                        else if ( distance2<pow(_cutoff,2))  _is_valid = true;
+                        else if ( distance<_cutoff)  _is_valid = true;
                     }
                     if (_is_valid || _cubegrid){
-                        vec temppos=vec(x,y,z);
-                        temppos=conv::ang2nm*temppos;
+                        
+                        gridpos*=conv::ang2nm;
                        
                         if(_createpolarsites){
                           
-                    
-                            string name="H";
+                            string name="X";
                             ctp::APolarSite *apolarsite= new ctp::APolarSite(0,name);
                             apolarsite->setRank(0);        
                             apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
                             apolarsite->setIsoP(0.0);
-                            apolarsite->setPos(temppos);
+                            apolarsite->setPos(gridpos);
                             if(_is_valid){
                                 _gridsites.push_back(apolarsite);
-                                _gridpoints.push_back(temppos);
+                                _gridpoints.push_back(gridpos);
                                 }
                             else {apolarsite->setIsVirtual(true);}
                             _all_gridsites.push_back(apolarsite);
                             }
-                        else if(!_createpolarsites){_gridpoints.push_back(temppos);}
+                        else if(!_createpolarsites){_gridpoints.push_back(gridpos);}
                     }                    
                 }                          
             }                  
