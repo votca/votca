@@ -410,6 +410,7 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _frag
                         GaussianPrimitive* gaussian = *itg;
                         aoshell->addGaussian(gaussian->decay, gaussian->contraction);
                     }
+                    aoshell->CalcMinDecay();
                 }
           
           if ( _atomidx < _fragbreak ) _AOBasisFragA = _AOBasisSize;
@@ -471,8 +472,8 @@ void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                       GaussianPrimitive* gaussian = *itg;
                       aoshell->addGaussian(gaussian->power, gaussian->decay, gaussian->contraction);
-                //   }
                }
+                   aoshell->CalcMinDecay();
           }
 
           _atomidx++;

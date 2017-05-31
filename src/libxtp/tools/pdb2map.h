@@ -174,7 +174,7 @@ bool PDB2Map::Evaluate() {
 
     topMdQm2xml();
     
-//    LOG( logINFO, _log ) << "Reading from: " << _input_file << flush;    
+//    CTP_LOG( logINFO, _log ) << "Reading from: " << _input_file << flush;    
 //    std::cout << _log;
     return true;
 }

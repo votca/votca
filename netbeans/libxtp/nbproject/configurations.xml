@@ -621,6 +621,11 @@
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/exchange_correlation.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/extractorfactory.cc"
             ex="false"
             tool="1"
@@ -1236,6 +1241,11 @@
       <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/exchange_correlation.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/extractorfactory.cc"
             ex="false"

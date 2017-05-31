@@ -124,20 +124,20 @@ bool ExcitonCoupling::Evaluate() {
     // load the QM data from serialized orbitals objects
 
     std::ifstream ifa( (_orbA ).c_str());
-    LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
+    CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
     boost::archive::binary_iarchive ia(ifa);
     ia >> _orbitalsA;
     ifa.close();
     
     std::ifstream ifb( (_orbB ).c_str());
-    LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
+    CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
     boost::archive::binary_iarchive ib(ifb);
     ib >> _orbitalsB;
     ifb.close();
     
     
     std::ifstream ifab( (_orbAB ).c_str());
-    LOG( ctp::logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
+    CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
     boost::archive::binary_iarchive iab(ifab);
     iab >> _orbitalsAB;
     ifab.close();
@@ -167,7 +167,7 @@ bool ExcitonCoupling::Evaluate() {
     }
     
     else if (_classical){
-        LOG( ctp::logDEBUG, _log) << "Calculating electronic coupling using classical transition charges." << _orbB << flush;
+        CTP_LOG( ctp::logDEBUG, _log) << "Calculating electronic coupling using classical transition charges." << _orbB << flush;
         std::vector< ctp::APolarSite*> seg1= ctp::APS_FROM_MPS(_mpsA, 0);
         std::vector< ctp::APolarSite*> seg2= ctp::APS_FROM_MPS(_mpsB, 0);
         
@@ -177,7 +177,7 @@ bool ExcitonCoupling::Evaluate() {
         actor.ResetEnergy();
         vec s = vec(0,0,0);
         
-        //LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
+        //CTP_LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
          ctp::PolarSeg::iterator pit1;
          ctp::PolarSeg::iterator pit2;
         double E = 0.0;

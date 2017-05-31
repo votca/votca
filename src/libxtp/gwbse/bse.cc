@@ -83,7 +83,7 @@ namespace votca {
           // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not positive definite
             //(A-B) is not needed any longer and can be overwritten
             linalg_cholesky_decompose( _AmB );
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cholesky decomposition of KAA-KAB" << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cholesky decomposition of KAA-KAB" << flush;
 
             // remove L^T from Cholesky
             for (unsigned i =0; i < _AmB.size1(); i++ ){
@@ -92,19 +92,19 @@ namespace votca {
                 }
             }
             
-          LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed L^T" << flush;
+          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed L^T" << flush;
           // determine H = L^T(A-B)L
           ub::matrix<real_gwbse> _temp = ub::prod( _ApB , _AmB );
           _ApB= ub::prod( ub::trans(_AmB), _temp );
           _temp.resize(0,0);
-          LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
+          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
           
           // solve eigenvalue problem: HR_l = eps_l^2 R_l
           ub::vector<real_gwbse> _eigenvalues;
           ub::matrix<real_gwbse> _eigenvectors;
             
           linalg_eigenvalues(_ApB, _eigenvalues, _eigenvectors, _bse_nmax);
-          LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
+          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
           _ApB.resize(0,0);
           // reconstruct real eigenvalues eps_l = sqrt(eps_l^2)
           _bse_singlet_energies.resize(_bse_nmax);

@@ -112,7 +112,7 @@ namespace votca { namespace xtp {
         if(max>_diis_start || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
             coeffs=ADIIsCoeff();
             if(_noisy){
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << flush;
             }
         }
         else if(max>0.0001 && max<_diis_start){
@@ -123,13 +123,13 @@ namespace votca { namespace xtp {
             double mixing=max/_diis_start;
             coeffs=mixing*coeffs2+(1-mixing)*coeffs1;
             if(_noisy){
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS+DIIS" << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS+DIIS" << flush;
             }
         }
         else{
              coeffs=DIIsCoeff();
              if(_noisy){
-             LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using DIIS" << flush;
+             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using DIIS" << flush;
              }
         }
 
@@ -139,7 +139,7 @@ namespace votca { namespace xtp {
             coeffs(coeffs.size()-1)=0.3;
             coeffs(coeffs.size()-2)=0.7;
             if(_noisy){
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Last coefficient is too small use mixing with alpha=0.7 instead" << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Last coefficient is too small use mixing with alpha=0.7 instead" << flush;
             }
             }
 
@@ -194,7 +194,7 @@ namespace votca { namespace xtp {
         transform=ub::prod(ub::trans(trans_inv),virt);
         virt=ub::prod(transform,trans_inv);
         if(_noisy){
-        LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << _levelshift << " Ha" << flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << _levelshift << " Ha" << flush;
         }
         H +=  virt ; 
         
@@ -317,7 +317,7 @@ namespace votca { namespace xtp {
           }
           
           if(!check){
-               LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
+               CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
                coeffs=ub::zero_vector<double>(_mathist.size());
                coeffs[coeffs.size()-1]=0.3;
                coeffs[coeffs.size()-2]=0.7;

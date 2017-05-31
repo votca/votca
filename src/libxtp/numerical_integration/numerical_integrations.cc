@@ -28,15 +28,12 @@
 #include <votca/xtp/aoshell.h>
 #include <votca/tools/constants.h>
 
-#ifdef LIBXC
-#include <xc.h>
-#endif
+
 #include <votca/xtp/aomatrix.h>
-#include <votca/xtp/exchange_correlation.h>
 #include <fstream>
 #include <boost/timer/timer.hpp>
 #include <boost/algorithm/string.hpp>
-#include <votca/xtp/vxc_functionals.h>
+
 #include <iterator>
 #include <string>
 
@@ -214,23 +211,17 @@ namespace votca {
         }
         
         
-        
-        ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(const ub::matrix<double>& _density_matrix,const string _functional){
-            EXC = 0;
-            if(_significant_atoms.size()<1){
-                throw runtime_error("NumericalIntegration::IntegrateVXC_Atomblock:significant atoms not found yet.");
-            }
-            // TODO: switch XC functionals implementation from LIBXC to base own calculation
-            ExchangeCorrelation _xc;
+        void NumericalIntegration::setXCfunctional(const string _functional){
+            
             Vxc_Functionals map;
             std::vector<string> strs;           
             boost::split(strs, _functional, boost::is_any_of(" "));
-            int xfunc_id = 0;
+            xfunc_id = 0;
             
 #ifdef LIBXC
-            bool _use_votca = false;
-            bool _use_separate = false;
-            int cfunc_id = 0;
+            _use_votca = false;
+            _use_separate = false;
+            cfunc_id = 0;
 
             if (strs.size() == 1) {
                 xfunc_id = map.getID(strs[0]);
@@ -247,8 +238,7 @@ namespace votca {
                 throw std::runtime_error("With LIBXC. Please specify one combined or an exchange and a correlation functionals");
 
             }
-            xc_func_type xfunc; // handle for exchange functional
-            xc_func_type cfunc; // handle for correlation functional
+            
             if (!_use_votca){
             if (xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED) != 0) {
                 fprintf(stderr, "Functional '%d' not found\n", xfunc_id);
@@ -280,6 +270,17 @@ namespace votca {
                 throw std::runtime_error("Running without LIBXC, Please specify one combined or an exchange and a correlation functionals");
          }
 #endif
+            if(_use_votca){
+                cout<<"Warning: VOTCA_PBE does give correct Vxc but incorrect E_xc"<<endl;
+            }
+            return;
+        }
+        
+        
+        
+        ub::matrix<double> NumericalIntegration::IntegrateVXC_Atomblock(const ub::matrix<double>& _density_matrix){
+            EXC = 0;
+            
             
             //split dmat into atomsize protions so that access is faster later on
              #pragma omp parallel for
@@ -435,7 +436,6 @@ namespace votca {
  #ifdef LIBXC                   
                     if (_use_votca) {
 #endif                  
-                        cout<<"Warning: VOTCA_PBE does give correct Vxc but incorrect E_xc"<<endl;
                         _xc.getXC(xfunc_id, rho, grad_rho(0, 0), grad_rho(0, 1), grad_rho(0, 2), f_xc, df_drho, df_dsigma);
 #ifdef LIBXC
                     }                        // evaluate via LIBXC, if compiled, otherwise, go via own implementation
@@ -747,7 +747,135 @@ namespace votca {
         }
         
         
-       
+        void NumericalIntegration::SortGridpointsintoBlocks(){
+            const double boxsize=4.0;
+            
+            std::vector< std::vector< std::vector< std::vector< GridContainers::integration_grid* > > > >  boxes;
+            
+            tools::vec min=vec(std::numeric_limits<double>::max());
+            tools::vec max=vec(std::numeric_limits<double>::min());
+                   
+            for ( unsigned i = 0 ; i < _grid.size(); i++){
+                for ( unsigned j = 0 ; j < _grid[i].size(); j++){
+                    tools::vec& pos= _grid[i][j].grid_pos;
+                    if(pos.getX()>max.getX()){
+                        max.x()=pos.getX();
+                    }
+                    else if(pos.getX()<min.getX()){
+                        min.x()=pos.getX();
+                    }
+                    if(pos.getY()>max.getY()){
+                        max.y()=pos.getY();
+                    }
+                    else if(pos.getY()<min.getY()){
+                        min.y()=pos.getY();
+                    }
+                    if(pos.getZ()>max.getZ()){
+                        max.z()=pos.getZ();
+                    }
+                    else if(pos.getZ()<min.getZ()){
+                        min.z()=pos.getZ();
+                        }
+                    }
+                }
+            
+            vec molextension=(max-min);
+            vec numberofboxes=molextension/boxsize;
+            vec roundednumofbox=vec(std::ceil(numberofboxes.getX()),std::ceil(numberofboxes.getY()),std::ceil(numberofboxes.getZ()));
+
+            
+            //creating temparray
+            for (unsigned i=0;i<unsigned(roundednumofbox.getX());i++){
+                std::vector< std::vector< std::vector< GridContainers::integration_grid* > > > boxes_yz;
+                for (unsigned j=0;j<unsigned(roundednumofbox.getY());j++){
+                    std::vector< std::vector< GridContainers::integration_grid* > >  boxes_z;
+                    for (unsigned k=0;k<unsigned(roundednumofbox.getZ());k++){
+                        std::vector< GridContainers::integration_grid* >  box;
+                        box.reserve(100);
+                        boxes_z.push_back(box);
+                    }
+                    boxes_yz.push_back(boxes_z);
+            }
+                boxes.push_back(boxes_yz);
+            }
+            
+             for ( auto & atomgrid : _grid){
+                for ( auto & gridpoint : atomgrid){
+                    tools::vec pos= gridpoint.grid_pos-min;
+                    tools::vec index=pos/boxsize;
+                    int i_x=int(index.getX());
+                    int i_y=int(index.getY());
+                    int i_z=int(index.getZ());
+                    boxes[i_x][i_y][i_z].push_back(&gridpoint);
+                }
+             }
+            
+            for ( auto& boxes_xy : boxes){
+                for( auto& boxes_z : boxes_xy){
+                    for ( auto& box : boxes_z){      
+                        if( box.size()<1){
+                            continue;
+                        }
+                        GridContainers::integration_box boxcontainer;
+                        boxcontainer.grid_pos.reserve(box.size());
+                        boxcontainer.weights.reserve(box.size());
+                        for(const auto&point:box){
+                            tools::vec pos=point->grid_pos;
+                            boxcontainer.grid_pos.push_back(pos);
+                            double weight=point->grid_weight;
+                            boxcontainer.weights.push_back(weight);
+                            boxcontainer.significant_shells.reserve(100);
+                        }
+                        _grid_boxes.push_back(boxcontainer);
+                    }
+                }
+            }
+            
+            return;
+        }
+        
+        
+        void NumericalIntegration::FindSignificantShells(){
+
+            for (unsigned i=0;i<_grid_boxes.size();++i){
+                GridContainers::integration_box & box=_grid_boxes[i];
+                for (AOBasis::AOShellIterator _row = _basis->firstShell(); _row != _basis->lastShell(); _row++) {
+                      AOBasis::AOShellIterator _store=_row;
+                      const double decay=(*_row)->getMinDecay();
+                      const tools::vec& shellpos=(*_row)->getPos();
+                      
+                      for(const auto& point : box.grid_pos){
+                          tools::vec dist=shellpos-point;
+                          double distsq=dist*dist;
+                          // if contribution is smaller than -ln(1e-10), add atom to list
+                        if ( (decay * distsq) < 20.7 ){
+                            box.significant_shells.push_back(_store);
+                            break;
+                        }
+                      }
+                }
+                cout<<box.significant_shells.size()<<" "<<box.grid_pos.size()<<endl;
+            }
+            std::vector< GridContainers::integration_box> _grid_boxes_copy=_grid_boxes;
+            _grid_boxes.resize(0);
+            for(auto& box: _grid_boxes_copy){
+                if(box.significant_shells.size()>0){
+                    GridContainers::integration_box newbox=box;
+                    _grid_boxes.push_back(newbox);
+                    cout<<newbox.significant_shells.size()<<" "<<newbox.grid_pos.size()<<endl;
+                }   
+            }
+            
+            return;
+        }
+        
+        
+        ub::matrix<double> NumericalIntegration::IntegrateVXC(const ub::matrix<double>& _density_matrix){
+            ub::matrix<double> Vxc;
+            
+            
+            return Vxc;
+        }
         
         
         
@@ -878,25 +1006,7 @@ namespace votca {
         
 
   
-        double NumericalIntegration::StupidIntegrate(std::vector<double>& _data){
-            
-            
-            double integral = 0.0;
-            int _i_point = 0;
-            for ( unsigned i = 0 ; i < _grid.size(); i++){
-                for ( unsigned j = 0 ; j < _grid[i].size(); j++){
-
-                    
-                    integral += _data[_i_point] * _grid[i][j].grid_weight;
-                    
-                    _i_point++;
-
-                }
-            }
-            
-            return integral;
-            
-        }          
+        
         
         std::vector<const vec *> NumericalIntegration::getGridpoints(){
             
@@ -1037,8 +1147,7 @@ namespace votca {
                         current_order = order;
                     }
                     
-                    // for each (theta,phi)
-                    // for (int _i_sph = 0; _i_sph < _spherical_grid.phi.size(); _i_sph++) {
+                  
 
                     for (unsigned _i_sph = 0; _i_sph < _phi.size(); _i_sph++) {
 
@@ -1077,7 +1186,7 @@ namespace votca {
                         temp.push_back(abs(git->grid_pos-atom_pos));
 
                     } // gridpoint of _atomgrid
-                    rq.push_back(temp); // rq[center][gridpoint]
+                    rq.push_back(temp); 
 
                 } // centers
                 // cout << " Calculated all gridpoint distances to centers for " << i_atom << endl;
@@ -1143,16 +1252,14 @@ namespace votca {
                         ++git;
                     }
                 }
-                
-              
-                
-               // cout << " Total size of integration grid for atom: " << i_atom << " : " << _atomgrid.size() << " from " << fullsize << endl;
+             
 
                 _totalgridsize += _atomgrid.size() ;
                 _grid.push_back(_atomgrid);
                 i_atom++;
             } // atoms
-
+            SortGridpointsintoBlocks();
+            FindSignificantShells();
             FindsignificantAtoms();
             return;
         }

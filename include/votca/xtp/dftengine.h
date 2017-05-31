@@ -20,18 +20,20 @@
 #ifndef _VOTCA_XTP_DFTENGINE_H
 #define	_VOTCA_XTP_DFTENGINE_H
 
+
+
 #include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/ctp/polarseg.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/topology.h>
 
+#include <votca/ctp/topology.h>
+#include <votca/xtp/numerical_integrations.h>
 #include <votca/ctp/apolarsite.h>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/ERIs.h>
 #include <votca/xtp/diis.h>
 #include <votca/xtp/mixing.h>
-#include <votca/xtp/numerical_integrations.h>
+#include <votca/ctp/logger.h>
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;

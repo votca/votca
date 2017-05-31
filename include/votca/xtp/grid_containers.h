@@ -20,8 +20,8 @@
 #ifndef __XTP_GRID_CONTAINERS__H
 #define	__XTP_GRID_CONTAINERS__H
 
-
-
+#include <votca/tools/vec.h>
+#include <votca/xtp/aobasis.h>
 
 
 
@@ -58,6 +58,15 @@ namespace votca { namespace xtp {
                 tools::vec grid_pos;
                 double grid_weight;
                 double grid_density;
+            };
+            
+            
+            struct integration_box{
+                std::vector< tools::vec > grid_pos;
+                std::vector< AOBasis::AOShellIterator > significant_shells;
+                std::vector< double > weights;
+                std::vector< double > densities;
+                
             };
 
         };

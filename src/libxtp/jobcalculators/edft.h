@@ -225,7 +225,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     assert( seg->getName() == segType ); 
     segments.push_back( seg );
     ctp::Logger* pLog = opThread->getLogger();
-    LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Evaluating site " << seg->getId() << flush; 
+    CTP_LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Evaluating site " << seg->getId() << flush; 
 
     // log, com, and orbital files will be stored in ORB_FILES/package_name/frame_x/mol_ID/
     // extracted information will be stored in  ORB_FILES/molecules/frame_x/molecule_ID.orb
@@ -264,7 +264,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         _run_status = _qmpackage->Run( );
         if ( !_run_status ) {
             output += "run failed; " ;
-            LOG(ctp::logERROR,*pLog) << _package << " run failed" << flush;
+            CTP_LOG(ctp::logERROR,*pLog) << _package << " run failed" << flush;
             jres.setOutput( output ); 
             jres.setStatus(ctp::Job::FAILED);
             delete _qmpackage;
@@ -279,7 +279,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
         if ( !_parse_log_status ) {
             output += "log incomplete; ";
-            LOG(ctp::logERROR,*pLog) << "QM log incomplete" << flush;
+            CTP_LOG(ctp::logERROR,*pLog) << "QM log incomplete" << flush;
             jres.setOutput( output ); 
             jres.setStatus(ctp::Job::FAILED);
             delete _qmpackage;
@@ -292,7 +292,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
        _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
         if ( !_parse_orbitals_status ) {
             output += "orbitals failed; " ;
-            LOG(ctp::logERROR,*pLog) << "QM orbitals not parsed" << flush;
+            CTP_LOG(ctp::logERROR,*pLog) << "QM orbitals not parsed" << flush;
             jres.setOutput( output ); 
             jres.setStatus(ctp::Job::FAILED);
             delete _qmpackage;
@@ -309,9 +309,9 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
        if ( !_do_parse ) { // orbitals must be loaded from a file
            boost::filesystem::path arg_path;
            string ORB_FILE = ( arg_path / ORB_DIR / (format("molecule_%1%.orb") % ID ).str() ).c_str() ;
-           LOG(ctp::logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;  
+           CTP_LOG(ctp::logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;  
            if ( ! _orbitals.Load(ORB_FILE) ) { // did not manage to load
-               LOG(ctp::logERROR,*pLog) << "Failed loading orbitals from " << ORB_FILE << flush; 
+               CTP_LOG(ctp::logERROR,*pLog) << "Failed loading orbitals from " << ORB_FILE << flush; 
                output += "failed loading " + ORB_FILE;
                jres.setOutput( output ); 
                jres.setStatus(ctp::Job::FAILED);
@@ -321,7 +321,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         }        
        
        _orbitals.Trim(factor);   
-        LOG(ctp::logDEBUG,*pLog) << "Trimming virtual orbitals from " 
+        CTP_LOG(ctp::logDEBUG,*pLog) << "Trimming virtual orbitals from " 
          << _orbitals.getNumberOfLevels() - _orbitals.getNumberOfElectrons() << " to " 
          << _orbitals.getNumberOfElectrons()*factor << flush;   
        output += "orbitals trimmed; " ;
@@ -331,13 +331,13 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
    if ( _do_parse ){
     // save orbitals
     string ORB_FILE = "molecule_" + ID + ".orb";
-    LOG(ctp::logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
+    CTP_LOG(ctp::logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
     std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
     boost::archive::binary_oarchive oa( ofs );
     oa << _orbitals;
     // ofs.close();
     
-    LOG(ctp::logDEBUG,*pLog) << "Done serializing " <<  ORB_FILE << flush;
+    CTP_LOG(ctp::logDEBUG,*pLog) << "Done serializing " <<  ORB_FILE << flush;
    }
    
   
@@ -346,7 +346,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
    _qmpackage->CleanUp();
    delete _qmpackage;
         
-    LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
+    CTP_LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
  
     Property _job_summary;
         Property *_output_summary = &_job_summary.add("output","");

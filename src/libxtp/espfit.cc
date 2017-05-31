@@ -17,12 +17,13 @@
  *
  */
 
-
+#include <votca/xtp/numerical_integrations.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/espfit.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/tools/linalg.h>
 //#include <boost/progress.hpp>
-#include <votca/xtp/numerical_integrations.h>
+
 #include <math.h> 
 #include <votca/tools/constants.h>
 
@@ -44,7 +45,7 @@ void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<doub
     _grid.setAtomlist(&_atomlist);
     _grid.setupCHELPgrid();
     _grid.printGridtoxyzfile("grid.xyz");
-    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl;
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl;
         
     // Calculating nuclear potential at gridpoints
     
@@ -64,21 +65,21 @@ void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<doub
     NumericalIntegration numway;
 
     numway.GridSetup(gridsize,&bs,_atomlist,&_basis);
-    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculate Densities at Numerical Grid with gridsize "<<gridsize  << flush; 
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculate Densities at Numerical Grid with gridsize "<<gridsize  << flush; 
     double N=numway.IntegrateDensity_Atomblock(_dmat);
-    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculated Densities at Numerical Grid, Number of electrons is "<< N << flush; 
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculated Densities at Numerical Grid, Number of electrons is "<< N << flush; 
     
     if(std::abs(N-N_comp)>0.001){
-        LOG(ctp::logDEBUG, *_log) <<"=======================" << flush; 
-        LOG(ctp::logDEBUG, *_log) <<"WARNING: Calculated Densities at Numerical Grid, Number of electrons "<< N <<" is far away from the the real value "<< N_comp<<", you should increase the accuracy of the integration grid."<< flush; 
+        CTP_LOG(ctp::logDEBUG, *_log) <<"=======================" << flush; 
+        CTP_LOG(ctp::logDEBUG, *_log) <<"WARNING: Calculated Densities at Numerical Grid, Number of electrons "<< N <<" is far away from the the real value "<< N_comp<<", you should increase the accuracy of the integration grid."<< flush; 
         N=N_comp;
-        LOG(ctp::logDEBUG, *_log) <<"WARNING: Electronnumber set to "<< N << flush; 
-        LOG(ctp::logDEBUG, *_log) <<"=======================" << flush; 
+        CTP_LOG(ctp::logDEBUG, *_log) <<"WARNING: Electronnumber set to "<< N << flush; 
+        CTP_LOG(ctp::logDEBUG, *_log) <<"=======================" << flush; 
     }
            
     double netcharge=getNetcharge( _atomlist,N );   
         
-    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;     
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;     
     //boost::progress_display show_progress( _grid.getsize() );
     #pragma omp parallel for
     for ( int i = 0 ; i < _grid.getsize(); i++){
@@ -86,7 +87,7 @@ void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<doub
         //++show_progress;
     }
     
-    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Electron contribution calculated"  << flush; 
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Electron contribution calculated"  << flush; 
     if (!_do_Transition){
     ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid );
     _ESPatGrid += _NucPatGrid;
@@ -114,7 +115,7 @@ ub::vector<double> Espfit::EvalNuclearPotential(std::vector< ctp::QMAtom* >& _at
 
     double Znuc=0.0;
     const std::vector< vec >& _gridpoints = _grid.getGrid();
-    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points" << flush;
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points" << flush;
     
     for (unsigned i = 0; i < _gridpoints.size(); i++) {
         for (unsigned j = 0; j < _atoms.size(); j++) {
@@ -135,7 +136,7 @@ ub::vector<double> Espfit::EvalNuclearPotential(std::vector< ctp::QMAtom* >& _at
 double Espfit::getNetcharge( std::vector< ctp::QMAtom* >& _atoms, double N ){
     double netcharge=0.0;
     if( std::abs(N)<0.05){
-        //LOG(ctp::logDEBUG, *_log) << "Number of Electrons is "<<N<< " transitiondensity is used for fit"  << flush;
+        //CTP_LOG(ctp::logDEBUG, *_log) << "Number of Electrons is "<<N<< " transitiondensity is used for fit"  << flush;
         _do_Transition=true;
     }
     else{
@@ -148,31 +149,31 @@ double Espfit::getNetcharge( std::vector< ctp::QMAtom* >& _atoms, double N ){
 
     if (_ECP){
         if (std::abs(Znuc_ECP-N)<4){
-            LOG(ctp::logDEBUG, *_log) <<"Number of Electrons minus ECP_Nucleus charge is "<<Znuc_ECP-N<< " you use ECPs, sounds good"  << flush;    
+            CTP_LOG(ctp::logDEBUG, *_log) <<"Number of Electrons minus ECP_Nucleus charge is "<<Znuc_ECP-N<< " you use ECPs, sounds good"  << flush;    
         }
         else if (std::abs(Znuc-N)<4){
-            LOG(ctp::logDEBUG, *_log) <<"Number of Electrons minus real Nucleus charge is "<<Znuc-N<< " you are sure you want ECPs?"  << flush;    
+            CTP_LOG(ctp::logDEBUG, *_log) <<"Number of Electrons minus real Nucleus charge is "<<Znuc-N<< " you are sure you want ECPs?"  << flush;    
         }
         else{
-            LOG(ctp::logDEBUG, *_log) <<"Warning: Your molecule is highly ionized and you want ECPs, sounds interesting" << flush;    
+            CTP_LOG(ctp::logDEBUG, *_log) <<"Warning: Your molecule is highly ionized and you want ECPs, sounds interesting" << flush;    
         }
         netcharge=Znuc_ECP-N;          
     }
     else{
         if (std::abs(Znuc-N)<4){
-            LOG(ctp::logDEBUG, *_log) <<"Number of Electrons minus Nucleus charge is "<<Znuc-N<< " you probably do not use ECPs, if you do use ECPs please use the option. Otherwise you are fine"  << flush;
+            CTP_LOG(ctp::logDEBUG, *_log) <<"Number of Electrons minus Nucleus charge is "<<Znuc-N<< " you probably do not use ECPs, if you do use ECPs please use the option. Otherwise you are fine"  << flush;
         }
         else if(std::abs(Znuc_ECP-N)<4){
-            LOG(ctp::logDEBUG, *_log) <<"Number of Electrons minus ECP_Nucleus charge is "<<Znuc_ECP-N<< " you probably use ECPs, if you do use ECPs please use the option to switch on"  << flush;
+            CTP_LOG(ctp::logDEBUG, *_log) <<"Number of Electrons minus ECP_Nucleus charge is "<<Znuc_ECP-N<< " you probably use ECPs, if you do use ECPs please use the option to switch on"  << flush;
         }
         else{
-            LOG(ctp::logDEBUG, *_log) <<"Warning: Your molecule is highly ionized and you use real core potentials, sounds interesting" << flush;    
+            CTP_LOG(ctp::logDEBUG, *_log) <<"Warning: Your molecule is highly ionized and you use real core potentials, sounds interesting" << flush;    
         }
     }
     _do_Transition=false;
     }
     netcharge=round(netcharge);
-    LOG(ctp::logDEBUG, *_log) <<"Netcharge constrained to " << netcharge<< flush; 
+    CTP_LOG(ctp::logDEBUG, *_log) <<"Netcharge constrained to " << netcharge<< flush; 
     
     return netcharge;
 }    
@@ -187,7 +188,7 @@ void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::ma
     _grid.setAtomlist(&_atomlist);
     _grid.setupCHELPgrid();
    
-    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl; 
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl; 
     // Calculating nuclear potential at gridpoints
     
     ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_grid.getsize());
@@ -209,7 +210,7 @@ void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::ma
         _ESPatGrid += _NucPatGrid;
     }
     
-    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush; 
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush; 
     #pragma omp parallel for
     for ( int i = 0 ; i < _grid.getsize(); i++){
         // AOESP matrix
@@ -239,11 +240,11 @@ void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::ma
     } 
 
 std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
-    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Setting up Matrices for fitting of size "<< _fitcenters.size()+1 <<" x " << _fitcenters.size()+1<< flush;    
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Setting up Matrices for fitting of size "<< _fitcenters.size()+1 <<" x " << _fitcenters.size()+1<< flush;    
 
     const std::vector< tools::vec >& _gridpoints=_grid.getGrid();   
    
-    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using "<< _fitcenters.size() <<" Fittingcenters and " << _gridpoints.size()<< " Gridpoints."<< flush;  
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using "<< _fitcenters.size() <<" Fittingcenters and " << _gridpoints.size()<< " Gridpoints."<< flush;  
     
     ub::matrix<double> _Amat = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
     ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1,1);
@@ -278,7 +279,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitce
        }
     
     _Bvec(_Bvec.size1()-1,0) = _netcharge; //netcharge!!!!
-    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << "  Inverting Matrices "<< flush;      
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << "  Inverting Matrices "<< flush;      
     // invert _Amat
     ub::matrix<double> _Amat_inverse = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
     
@@ -286,13 +287,13 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitce
     
     if(_do_svd){
         int notfittedatoms=linalg_invert_svd( _Amat , _Amat_inverse,_conditionnumber);
-        LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << "SVD Done. "<<notfittedatoms<<" could not be fitted and are set to zero."<< flush;
+        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << "SVD Done. "<<notfittedatoms<<" could not be fitted and are set to zero."<< flush;
     }
     else{
         linalg_invert( _Amat , _Amat_inverse);
     }
 
-    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices done."<< flush;    
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices done."<< flush;    
     //_Amat.resize(0,0);
 
     
@@ -307,11 +308,11 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitce
     double _sumcrg = 0.0;
     for ( unsigned _i =0 ; _i < _fitcenters.size(); _i++){
         
-        //LOG(logDEBUG, *_log) << " Center " << _i << " FitCharge: " << _result[_i] << flush;
+        //CTP_LOG(logDEBUG, *_log) << " Center " << _i << " FitCharge: " << _result[_i] << flush;
         _sumcrg += _result[_i];       
     }
     
-    LOG(ctp::logDEBUG, *_log) << " Sum of fitted charges: " << _sumcrg << flush;
+    CTP_LOG(ctp::logDEBUG, *_log) << " Sum of fitted charges: " << _sumcrg << flush;
     
     // get RMSE
     double _rmse = 0.0;
@@ -325,8 +326,8 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitce
         _rmse += (_potential(_k) - temp)*(_potential(_k) - temp);
         _totalPotSq += _potential(_k)*_potential(_k);        
     }
-    LOG(ctp::logDEBUG, *_log) << " RMSE of fit:  " << sqrt(_rmse/_gridpoints.size()) << flush;
-    LOG(ctp::logDEBUG, *_log) << " RRMSE of fit: " << sqrt(_rmse/_totalPotSq) << flush;
+    CTP_LOG(ctp::logDEBUG, *_log) << " RMSE of fit:  " << sqrt(_rmse/_gridpoints.size()) << flush;
+    CTP_LOG(ctp::logDEBUG, *_log) << " RRMSE of fit: " << sqrt(_rmse/_totalPotSq) << flush;
     
     return _result;     
    }     

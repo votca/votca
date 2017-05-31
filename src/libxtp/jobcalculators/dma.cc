@@ -134,7 +134,7 @@ ctp::Job::JobResult DMA::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThrea
     assert( seg->getName() == segType ); 
     segments.push_back( seg );
     ctp::Logger* pLog = opThread->getLogger();
-    LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Evaluating site " << seg->getId() << flush; 
+    CTP_LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Evaluating site " << seg->getId() << flush; 
 
     // log, com, and orbital files will be stored in ORB_FILES/package_name/frame_x/mol_ID/
     // extracted information will be stored in  ORB_FILES/molecules/frame_x/molecule_ID.orb
@@ -166,7 +166,7 @@ ctp::Job::JobResult DMA::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThrea
         _orbitals_status = _qmpackage->Run( );
         if ( !_orbitals_status ) {
             output += "run failed; " ;
-            LOG(ctp::logERROR,*pLog) << _package << " run failed" << flush;
+            CTP_LOG(ctp::logERROR,*pLog) << _package << " run failed" << flush;
             jres.setOutput( output ); 
             jres.setStatus(ctp::Job::FAILED);
             delete _qmpackage;
@@ -180,7 +180,7 @@ ctp::Job::JobResult DMA::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThrea
     if ( _do_dma ) {
         
         
-        LOG(ctp::logDEBUG,*pLog) << "DMA: running formcheck on [" << _chkFile << "]" << flush;
+        CTP_LOG(ctp::logDEBUG,*pLog) << "DMA: running formcheck on [" << _chkFile << "]" << flush;
 
         if (std::system(NULL)) {
             string _command;
@@ -225,7 +225,7 @@ ctp::Job::JobResult DMA::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThrea
 
                  _command  = "cd " + qmpackage_work_dir + "; " + _executable + " < gdma.in > gdma.out";
 
-                LOG(ctp::logINFO,*pLog) << _command << flush;
+                CTP_LOG(ctp::logINFO,*pLog) << _command << flush;
 
                 int j = std::system ( _command.c_str() );
 
@@ -233,13 +233,13 @@ ctp::Job::JobResult DMA::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThrea
             
             }
             else {
-                LOG(ctp::logDEBUG,*pLog) << "Error opening file " << _dma_input_file << flush;
+                CTP_LOG(ctp::logDEBUG,*pLog) << "Error opening file " << _dma_input_file << flush;
                 _dma_status = false;
             }
 
             if ( !_dma_status ) {
                 output += "DMA job incomplete; ";
-                LOG(ctp::logERROR,*pLog) << "DMA job incomplete" << flush;
+                CTP_LOG(ctp::logERROR,*pLog) << "DMA job incomplete" << flush;
                 jres.setOutput( output ); 
                 jres.setStatus(ctp::Job::FAILED);
                return jres;
@@ -256,7 +256,7 @@ ctp::Job::JobResult DMA::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThrea
    _qmpackage->CleanUp();
    delete _qmpackage;
         
-    LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
+    CTP_LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
  
     Property _job_summary;
         Property *_output_summary = &_job_summary.add("output","");

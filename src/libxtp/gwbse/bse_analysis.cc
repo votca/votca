@@ -58,40 +58,40 @@ namespace votca {
             std::vector< tools::vec >& _transition_dipoles = _orbitals->TransitionDipoles();
             std::vector<double> oscs=_orbitals->Oscillatorstrengths();
             double hrt2ev=tools::conv::hrt2ev;
-            LOG(ctp::logINFO, *_pLog) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
             for (int _i = 0; _i < _bse_nprint; _i++) {
                 
                 const tools::vec& trdip =_transition_dipoles[_i];
                 double osc=oscs[_i];
                 
                 if (tools::globals::verbose) {
-                    LOG(ctp::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
+                    CTP_LOG(ctp::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
                             % (_i + 1) % (hrt2ev * _bse_singlet_energies(_i)) % (1240.0 / (hrt2ev * _bse_singlet_energies(_i)))
                             % (hrt2ev * _contrib_qp[_i]) % (hrt2ev * _contrib_x[_i]) % (hrt2ev * _contrib_d[ _i ])).str() << flush;
                 } else {
-                    LOG(ctp::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+                    CTP_LOG(ctp::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
                             % (_i + 1) % (hrt2ev * _bse_singlet_energies(_i)) % (1240.0 / (hrt2ev * _bse_singlet_energies(_i)))).str() << flush;
                 }
                 
-                LOG(ctp::logINFO, *_pLog) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
+                CTP_LOG(ctp::logINFO, *_pLog) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
                         % trdip.getX() % trdip.getY() % trdip.getZ() % (trdip*trdip) % osc).str() << flush;
                 for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                     // if contribution is larger than 0.2, print
                     double _weight = pow(_bse_singlet_coefficients(_i_bse, _i), 2) -  pow(_bse_singlet_coefficients_AR(_i_bse, _i), 2);
                     if (_weight > 0.2) {
-                        LOG(ctp::logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
+                        CTP_LOG(ctp::logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
                                 % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                     }
                 }
                  // results of fragment population analysis 
                 if (_fragA > 0) {
-                    LOG(ctp::logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+                    CTP_LOG(ctp::logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
                             % (100.0 * _popH[_i](0)) % (100.0 * _popE[_i](0)) % (_Chrg[_i](0)) % (_Chrg[_i](0) + _pop(0))).str() << flush;
-                    LOG(ctp::logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+                    CTP_LOG(ctp::logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
                             % (100.0 * _popH[_i](1)) % (100.0 * _popE[_i](1)) % (_Chrg[_i](1)) % (_Chrg[_i](1) + _pop(1))).str() << flush;
                 }
                 
-                LOG(ctp::logINFO, *_pLog)  << flush;
+                CTP_LOG(ctp::logINFO, *_pLog)  << flush;
               
                
             }
@@ -211,7 +211,7 @@ namespace votca {
                 _dftoverlap.Initialize(_dftbasis.AOBasisSize());
                 // Fill overlap
                 _dftoverlap.Fill(_dftbasis);
-                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().size1() << flush;    
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().size1() << flush;    
                 // ground state populations
                 ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
                 
@@ -233,7 +233,7 @@ namespace votca {
                     ub::vector<double> diff=popsH-popsE;
                     Crgs.push_back(diff);
                 }
-                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Ran Excitation fragment population analysis " << flush;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Ran Excitation fragment population analysis " << flush;
             }
             return;
         }
@@ -249,7 +249,7 @@ namespace votca {
                 _dftoverlap.Initialize(_dftbasis.AOBasisSize());
                 // Fill overlap
                 _dftoverlap.Fill(_dftbasis);
-                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().size1() << flush;    
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().size1() << flush;    
                 // ground state populations
                 ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
                 
@@ -271,7 +271,7 @@ namespace votca {
                     ub::vector<double> diff=popsH-popsE;
                     Crgs.push_back(diff);
                 }
-                LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Ran Excitation fragment population analysis " << flush;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Ran Excitation fragment population analysis " << flush;
             }
             return;
         }
@@ -296,7 +296,7 @@ namespace votca {
                 _levels = ub::project(_dft_orbitals, ub::range(_bse_vmin, _bse_vmax + 1), ub::range(0, _dftbasis.AOBasisSize()));
                 _interlevel_dipoles[ _i_comp ] = ub::prod(_levels, _temp);
             }
-            LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;   
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;   
            return; 
         }
 
@@ -374,40 +374,40 @@ namespace votca {
             const ub::vector<double>& _pop= _orbitals->FragmentChargesGS();
             std::vector< tools::vec >& _transition_dipoles = _orbitals->TransitionDipoles();
             std::vector<double> oscs=_orbitals->Oscillatorstrengths();
-            LOG(ctp::logINFO, *_pLog) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
             for (int _i = 0; _i < _bse_nprint; _i++) {
                 
                 const tools::vec& trdip =_transition_dipoles[_i];
                 double osc=oscs[_i];
                 if (tools::globals::verbose) {
-                    LOG(ctp::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
+                    CTP_LOG(ctp::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
                             % (_i + 1) % (tools::conv::hrt2ev * _bse_singlet_energies(_i)) % (1240.0 / (tools::conv::hrt2ev * _bse_singlet_energies(_i)))
                             % (tools::conv::hrt2ev * _contrib_qp[_i]) % (tools::conv::hrt2ev * _contrib_x[_i]) % (tools::conv::hrt2ev * _contrib_d[ _i ])).str() << flush;
                 } else {
-                    LOG(ctp::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+                    CTP_LOG(ctp::logINFO, *_pLog) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
                             % (_i + 1) % (tools::conv::hrt2ev * _bse_singlet_energies(_i)) % (1240.0 / (tools::conv::hrt2ev * _bse_singlet_energies(_i)))).str() << flush;
                 }
                 
-                LOG(ctp::logINFO, *_pLog) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
+                CTP_LOG(ctp::logINFO, *_pLog) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
                         % trdip.getX() % trdip.getY() % trdip.getZ() % (trdip*trdip) % osc).str() << flush;
                 for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                     // if contribution is larger than 0.2, print
                     double _weight = pow(_bse_singlet_coefficients(_i_bse, _i), 2);
                     if (_weight > 0.2) {
-                        LOG(ctp::logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
+                        CTP_LOG(ctp::logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
                                 % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                     }
                 }
                 
                 // results of fragment population analysis 
                 if (_fragA > 0) {
-                    LOG(ctp::logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+                    CTP_LOG(ctp::logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
                             % (100.0 * _popH[_i](0)) % (100.0 * _popE[_i](0)) % (_Chrg[_i](0)) % (_Chrg[_i](0) + _pop(0))).str() << flush;
-                    LOG(ctp::logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+                    CTP_LOG(ctp::logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
                             % (100.0 * _popH[_i](1)) % (100.0 * _popE[_i](1)) % (_Chrg[_i](1)) % (_Chrg[_i](1) + _pop(1))).str() << flush;
                 }
                 
-                LOG(ctp::logINFO, *_pLog)  << flush;
+                CTP_LOG(ctp::logINFO, *_pLog)  << flush;
             }
             _bse_singlet_energies.resize(_bse_nmax);
             _transition_dipoles.resize(_bse_nprint);
@@ -440,15 +440,15 @@ namespace votca {
             BSE_FragmentPopulations(_bse_triplet_coefficients,_popH, _popE, _Chrg);
             _orbitals->FragmentChargesTripEXC()=_Chrg;
             const ub::vector<double>& _pop = _orbitals->FragmentChargesGS();
-            LOG(ctp::logINFO, *_pLog) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
             for (int _i = 0; _i < _bse_nprint; _i++) {
 
                 if (tools::globals::verbose) {
-                    LOG(ctp::logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %5$+1.4f")
+                    CTP_LOG(ctp::logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %5$+1.4f")
                             % (_i + 1) % (tools::conv::hrt2ev * _bse_triplet_energies(_i)) % (1240.0 / (tools::conv::hrt2ev * _bse_triplet_energies(_i)))
                             % (tools::conv::hrt2ev * _contrib_qp[_i]) % (tools::conv::hrt2ev * _contrib_d[ _i ])).str() << flush;
                 } else {
-                    LOG(ctp::logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+                    CTP_LOG(ctp::logINFO, *_pLog) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
                             % (_i + 1) % (tools::conv::hrt2ev * _bse_triplet_energies(_i)) % (1240.0 / (tools::conv::hrt2ev * _bse_triplet_energies(_i)))).str() << flush;
                 }
 
@@ -456,18 +456,18 @@ namespace votca {
                     // if contribution is larger than 0.2, print
                     real_gwbse _weight = pow(_bse_triplet_coefficients(_i_bse, _i), 2);
                     if (_weight > 0.2) {
-                        LOG(ctp::logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") % 
+                        CTP_LOG(ctp::logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") % 
                                 (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                     }
                 }
                 // results of fragment population analysis 
                 if (_fragA > 0) {
-                    LOG(ctp::logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+                    CTP_LOG(ctp::logINFO, *_pLog) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
                             % (100.0 * _popH[_i](0)) % (100.0 * _popE[_i](0)) % (_Chrg[_i](0)) % (_Chrg[_i](0) + _pop(0))).str() << flush;
-                    LOG(ctp::logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+                    CTP_LOG(ctp::logINFO, *_pLog) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
                             % (100.0 * _popH[_i](1)) % (100.0 * _popE[_i](1)) % (_Chrg[_i](1)) % (_Chrg[_i](1) + _pop(1))).str() << flush;
                 }
-                LOG(ctp::logINFO, *_pLog) << (format("   ")).str() << flush;
+                CTP_LOG(ctp::logINFO, *_pLog) << (format("   ")).str() << flush;
             }
 
             // storage to orbitals object
