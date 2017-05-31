@@ -113,7 +113,7 @@ ub::vector<double> Espfit::EvalNuclearPotential(std::vector< ctp::QMAtom* >& _at
     ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_grid.getsize());
 
     double Znuc=0.0;
-    std::vector< vec >& _gridpoints = _grid.getGrid();
+    const std::vector< vec >& _gridpoints = _grid.getGrid();
     LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points" << flush;
     
     for (unsigned i = 0; i < _gridpoints.size(); i++) {
