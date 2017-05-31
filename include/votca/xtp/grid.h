@@ -117,15 +117,7 @@ namespace votca { namespace xtp {
             _useVdWcutoff=false;
             setupgrid();
         }
-        
-        void writeIrregularGrid(std::string _filename, std::vector< ctp::QMAtom* > &_atoms, bool _ECP);
-        void setPeriodicity(vec BL){
-            _periodic=true;
-            _boxX=BL.getX();
-            _boxY=BL.getY();
-            _boxZ=BL.getZ();
-            _padding=0.0;
-        }
+       
       
   private:
      
@@ -144,14 +136,11 @@ namespace votca { namespace xtp {
       bool   _cubegrid;
       double _padding;
       bool   _createpolarsites; 
-      ctp::PolarSeg *_sites_seg;
       std::vector< ctp::QMAtom* >* _atomlist;
       vec _lowerbound;
       int _xsteps, _ysteps, _zsteps;
       
-      bool _periodic;
-      double _boxX, _boxY, _boxZ;
-      
+  
       
       void subdivide(const vec &v1, const vec &v2, const vec &v3, std::vector<vec> &spherepoints, const int depth);
       void initialize_sphere(std::vector<vec> &spherepoints, const int depth);
