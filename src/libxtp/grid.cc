@@ -92,6 +92,7 @@ void Grid::printGridtoxyzfile(const char* _filename){
 
         }
         points.close();
+        return;
     }    
 
 
@@ -182,9 +183,8 @@ void Grid::readgridfromCubeFile(std::string filename, bool ignore_zeros){
 
 
               }}}
-        if (_sites_seg != NULL) delete _sites_seg;
-        _sites_seg = new ctp::PolarSeg(0, _gridsites);
-
+        
+        return;
         }         
 
 void Grid::printgridtoCubefile(std::string filename){
@@ -241,7 +241,8 @@ void Grid::printgridtoCubefile(std::string filename){
                 
             }             
         
-        fclose(out);        
+        fclose(out);      
+        return;
         }    
 
 //Create a 12^depth geodesic grid for a sphere of a given radius/cutoff
@@ -260,6 +261,7 @@ void Grid::subdivide(const vec &v1, const vec &v2, const vec &v3, std::vector<ve
     subdivide(v2, v23, v12, spherepoints, depth - 1);
     subdivide(v3, v31, v23, spherepoints, depth - 1);
     subdivide(v12, v23, v31,spherepoints, depth - 1);
+    return;
 }
 
 void Grid::initialize_sphere(std::vector<vec> &spherepoints, const int depth) {

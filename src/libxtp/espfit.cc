@@ -32,57 +32,7 @@ using namespace votca::tools;
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
     
-void Espfit::EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions){
-    std::vector<ctp::APolarSite*> charges=_chargepositions.Sites();
-    std::vector<ctp::APolarSite*> positions=_targetgrid.Sites();
-    std::vector<ctp::APolarSite*>::iterator qit;
-    std::vector<ctp::APolarSite*>::iterator pit;
-    for (pit=positions.begin();pit!=positions.end();++pit){
-        double potential=0.0;
-        vec pos=(*pit)->getPos();
-        for (qit=charges.begin();qit!=charges.end();++qit){
-            double dist=abs((*qit)->getPos()-pos);
-            potential+=((*qit)->getQ00())/dist;                              
-            }
-        (*pit)->setPhi(potential,0.0);
-       }
-    }
 
-void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge){
-    double Nm2Bohr=tools::conv::nm2bohr;
-    double Int2Hartree=Nm2Bohr;
-    
-    if(_chargepositions.getsize() >_targetgrid_fg.getsize()){
-        throw std::runtime_error("Fit underdetermined, change grid options");
-    }
-
-    std::vector< ctp::APolarSite* > _charges= _chargepositions.Sites();
-    std::vector< ctp::APolarSite* > _target_fg= _targetgrid_fg.Sites();
-    std::vector< ctp::APolarSite* > _target_bg= _targetgrid_bg.Sites();
-    LOG(ctp::logDEBUG, *_log) << " Grid of size fg:" << _targetgrid_fg.getsize() << flush;
-    LOG(ctp::logDEBUG, *_log) << " Grid of size bg:" << _targetgrid_bg.getsize() << flush;
-    LOG(ctp::logDEBUG, *_log) << " Chargepositions:" << _chargepositions.getsize() << flush;
-
-    std::vector< tools::vec > _chargepos;
-    std::vector< ctp::APolarSite* >::iterator sit;
-    for (sit=_charges.begin(); sit!=_charges.end(); ++sit) {
-        tools::vec temp= (*sit)->getPos();
-        _chargepos.push_back(temp);    
-    }
-    ub::vector<double> _potential=ub::zero_vector<double>(_targetgrid_fg.getsize());
-    for( int i=0; i<_targetgrid_fg.getsize();i++){
-    _potential(i)=Int2Hartree*(_target_fg[i]->getPhi()+_target_bg[i]->getPhi());    
-    }
-
-    LOG(ctp::logDEBUG, *_log) << " Fitting APE to Chargeshell with netcharge " << netcharge <<"e."<< flush;
-    std::vector<double>_chargesfromfit=FitPartialCharges(_chargepos,_targetgrid_fg,_potential,netcharge);
-    int state=0;
-    for (unsigned i=0; i<_charges.size();i++) {
-        _charges[i]->setQ00(_chargesfromfit[i],state);
-    }   
-       LOG(ctp::logDEBUG, *_log) << " Fitting completed " << flush;
-       return;
-   }
        
 
 
