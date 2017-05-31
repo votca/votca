@@ -194,7 +194,7 @@ bool NWChem::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orb
     // writing scratch_dir info
     if ( _scratch_dir != "" ) {
         
-        LOG(ctp::logDEBUG,*_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
+        CTP_LOG(ctp::logDEBUG,*_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
         // boost::filesystem::create_directories( _scratch_dir + temp_suffix );
         std::string _temp( "scratch_dir " + _scratch_dir + temp_suffix + "\n" );
@@ -274,9 +274,9 @@ bool NWChem::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orb
             _command = "cd "  + _run_dir + "; asc2mov 5000 system.mos system.movecs > convert.log";
             int i = std::system ( _command.c_str() );
             if ( i == 0 ) {
-                LOG(ctp::logDEBUG, *_pLog) << "Converted MO file from ascii to binary"<< flush;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << "Converted MO file from ascii to binary"<< flush;
             } else  {
-                LOG( ctp::logERROR, *_pLog ) << "Conversion of binary MO file to binary failed. " << flush;
+                CTP_LOG( ctp::logERROR, *_pLog ) << "Conversion of binary MO file to binary failed. " << flush;
                 return false;
             }   
         }
@@ -286,7 +286,7 @@ bool NWChem::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orb
     _com_file.close();
       
       // and now generate a shell script to run both jobs, if neccessary
-      LOG(ctp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
+      CTP_LOG(ctp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
       _scratch_dir = scratch_dir_backup + temp_suffix;
             
@@ -326,7 +326,7 @@ bool NWChem::WriteShellScript() {
 bool NWChem::Run()
 {
 
-    LOG(ctp::logDEBUG,*_pLog) << "Running NWChem job" << flush;
+    CTP_LOG(ctp::logDEBUG,*_pLog) << "Running NWChem job" << flush;
     
     if (std::system(NULL)) {
         
@@ -352,20 +352,20 @@ bool NWChem::Run()
         //int i = std::system ( _command.c_str() );
         int check=std::system(_command.c_str());
         if (check==-1){
-            LOG(ctp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+            CTP_LOG(ctp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
             return false;
         }
         
         if ( CheckLogFile() ) {
-            LOG(ctp::logDEBUG,*_pLog) << "Finished NWChem job" << flush;
+            CTP_LOG(ctp::logDEBUG,*_pLog) << "Finished NWChem job" << flush;
             return true;
         } else {
-            LOG(ctp::logDEBUG,*_pLog) << "NWChem job failed" << flush;
+            CTP_LOG(ctp::logDEBUG,*_pLog) << "NWChem job failed" << flush;
             return false;
         }
     }
     else {
-        LOG(ctp::logERROR,*_pLog) << _input_file_name << " failed to start" << flush; 
+        CTP_LOG(ctp::logERROR,*_pLog) << _input_file_name << " failed to start" << flush; 
         return false;
     }
     
@@ -439,9 +439,9 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
     _command = "cd "  + _run_dir + "; mov2asc 10000 system.movecs system.mos > convert.log";
     int i = std::system ( _command.c_str() );
     if ( i == 0 ) {
-        LOG(ctp::logDEBUG, *_pLog) << "Converted MO file from binary to ascii"<< flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) << "Converted MO file from binary to ascii"<< flush;
     } else  {
-        LOG( ctp::logERROR, *_pLog ) << "Conversion of binary MO file to ascii failed. " << flush;
+        CTP_LOG( ctp::logERROR, *_pLog ) << "Conversion of binary MO file to ascii failed. " << flush;
         return false;
     }
         
@@ -450,10 +450,10 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
     std::ifstream _input_file( _orb_file_name_full.c_str() );
     
     if (_input_file.fail()) {
-        LOG( ctp::logERROR, *_pLog ) << "File " << _orb_file_name_full << " with molecular orbitals is not found " << flush;
+        CTP_LOG( ctp::logERROR, *_pLog ) << "File " << _orb_file_name_full << " with molecular orbitals is not found " << flush;
         return false;
     } else {
-        LOG(ctp::logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name_full << flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name_full << flush;
     }
     
     // the first 12 lines are garbage info
@@ -462,12 +462,12 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
     }
     // next line has basis set size
     _input_file >> _basis_size ;
-    LOG( ctp::logDEBUG, *_pLog ) << "Basis set size: " << _basis_size << flush;
+    CTP_LOG( ctp::logDEBUG, *_pLog ) << "Basis set size: " << _basis_size << flush;
 
 
     // next line has number of stored MOs
     _input_file >> _levels ;
-    LOG( ctp::logDEBUG, *_pLog ) << "Energy levels: " << _levels << flush;
+    CTP_LOG( ctp::logDEBUG, *_pLog ) << "Energy levels: " << _levels << flush;
 
     /* next lines contain information about occupation of the MOs
      *  - each line has 3 numbers 
@@ -491,12 +491,12 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
             _imo++;
         }
     }
-    LOG(ctp::logDEBUG,*_pLog) << "Alpha electrons: " << _number_of_electrons << flush ;
+    CTP_LOG(ctp::logDEBUG,*_pLog) << "Alpha electrons: " << _number_of_electrons << flush ;
 
     int _occupied_levels = _number_of_electrons;
     int _unoccupied_levels = _levels - _occupied_levels;
-    LOG(ctp::logDEBUG,*_pLog) << "Occupied levels: " << _occupied_levels << flush;
-    LOG(ctp::logDEBUG,*_pLog) << "Unoccupied levels: " << _unoccupied_levels << flush;  
+    CTP_LOG(ctp::logDEBUG,*_pLog) << "Occupied levels: " << _occupied_levels << flush;
+    CTP_LOG(ctp::logDEBUG,*_pLog) << "Unoccupied levels: " << _unoccupied_levels << flush;  
     
     // reset index and read MO energies the same way
     _imo = 0;
@@ -581,7 +581,7 @@ bool NWChem::ParseOrbitalsFile( Orbitals* _orbitals )
    
    
    
-   LOG(ctp::logDEBUG, *_pLog) << "Done reading MOs" << flush;
+   CTP_LOG(ctp::logDEBUG, *_pLog) << "Done reading MOs" << flush;
 
    return true;
 }
@@ -593,12 +593,12 @@ bool NWChem::CheckLogFile() {
     ifstream _input_file((_run_dir + "/" + _log_file_name).c_str());
     
     if (_input_file.fail()) {
-        LOG(ctp::logERROR,*_pLog) << "NWChem LOG is not found" << flush;
+        CTP_LOG(ctp::logERROR,*_pLog) << "NWChem LOG is not found" << flush;
         return false;
     };
 
    if (_input_file.peek() == std::ifstream::traits_type::eof()) {
-       LOG(ctp::logERROR,*_pLog) << "NWChem run failed. Check OpenMPI version!" << flush;
+       CTP_LOG(ctp::logERROR,*_pLog) << "NWChem run failed. Check OpenMPI version!" << flush;
        return false;
    };
     
@@ -631,7 +631,7 @@ bool NWChem::CheckLogFile() {
        if (total_energy_pos != std::string::npos) {
           return true;
        } else if (diis_pos != std::string::npos) {
-           LOG(ctp::logERROR,*_pLog) << "NWChem LOG is incomplete" << flush;
+           CTP_LOG(ctp::logERROR,*_pLog) << "NWChem LOG is incomplete" << flush;
            return false;
        } else {
            // go to previous line
@@ -670,7 +670,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
     bool _found_optimization = false;
     int _basis_set_size = 0;
      
-    LOG(ctp::logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
+    CTP_LOG(ctp::logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
        // return true;
     std::string _log_file_name_full =  _run_dir + "/" + _log_file_name;
     // check if LOG file is complete
@@ -705,7 +705,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
             boost::trim( _bf );
             _basis_set_size = boost::lexical_cast<int>(_bf);
             _orbitals->setBasisSetSize( _basis_set_size );
-            LOG(ctp::logDEBUG,*_pLog) << "Basis functions: " << _basis_set_size << flush;
+            CTP_LOG(ctp::logDEBUG,*_pLog) << "Basis functions: " << _basis_set_size << flush;
         }
 
       /*
@@ -718,7 +718,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
             std::string _energy = results.back();
             boost::trim( _energy );
             _orbitals->setQMEnergy ( _conv_Hrt_eV * boost::lexical_cast<double>(_energy) );
-            LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
             _has_qm_energy = true;
             // _orbitals->_has_qm_energy = true;
             
@@ -790,7 +790,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 // clear the index for the next block
                 _j_indeces.clear();        
             } // end of the blocks
-            LOG(ctp::logDEBUG,*_pLog) << "Read the Vxc matrix" << flush;
+            CTP_LOG(ctp::logDEBUG,*_pLog) << "Read the Vxc matrix" << flush;
                 
        }
        
@@ -800,7 +800,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                     boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     double _ScaHFX = boost::lexical_cast<double>(results.back());
                     _orbitals->setScaHFX(_ScaHFX);
-                    LOG(ctp::logDEBUG, *_pLog) << "DFT with " << _ScaHFX << " of HF exchange!" << flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << "DFT with " << _ScaHFX << " of HF exchange!" << flush;
                 }
        
        
@@ -866,7 +866,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
                 // clear the index for the next block
                 _j_indeces.clear();        
             } // end of the blocks
-            LOG(ctp::logDEBUG,*_pLog) << "Read the overlap matrix" << flush;
+            CTP_LOG(ctp::logDEBUG,*_pLog) << "Read the overlap matrix" << flush;
         } // end of the if "Overlap" found   
 
         
@@ -877,7 +877,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
         
 
         if (charge_pos != std::string::npos && _get_charges ) {        
-                LOG(ctp::logDEBUG,*_pLog) << "Getting charges" << flush;
+                CTP_LOG(ctp::logDEBUG,*_pLog) << "Getting charges" << flush;
                 _has_charges = true;
                 // two empty lines
                 getline(_input_file, _line);
@@ -933,7 +933,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
         std::string::size_type coordinates_pos = _line.find("Output coordinates");
         
         if ( _found_optimization && coordinates_pos != std::string::npos) {
-            LOG(ctp::logDEBUG,*_pLog) << "Getting the coordinates" << flush;
+            CTP_LOG(ctp::logDEBUG,*_pLog) << "Getting the coordinates" << flush;
             
             //_has_coordinates = true;
             bool _has_QMAtoms = _orbitals->hasQMAtoms();
@@ -988,7 +988,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
          std::string::size_type self_energy_pos = _line.find("Self energy of the charges");
         
         if (self_energy_pos != std::string::npos) {
-            LOG(ctp::logDEBUG,*_pLog) << "Getting the self energy\n";  
+            CTP_LOG(ctp::logDEBUG,*_pLog) << "Getting the self energy\n";  
             std::vector<std::string> block;
             std::vector<std::string> energy;
             boost::algorithm::split(block, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
@@ -997,7 +997,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
             // _orbitals->_has_self_energy = true;
             _orbitals->setSelfEnergy( _conv_Hrt_eV * boost::lexical_cast<double> ( energy[1] ) );
             
-            LOG(ctp::logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() <<  flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << "Self energy " << _orbitals->getSelfEnergy() <<  flush;
 
         }
         
@@ -1011,7 +1011,7 @@ bool NWChem::ParseLogFile( Orbitals* _orbitals ) {
         
     } // end of reading the file line-by-line
    
-    LOG(ctp::logDEBUG,*_pLog) << "Done parsing" << flush;
+    CTP_LOG(ctp::logDEBUG,*_pLog) << "Done parsing" << flush;
     return true;
 }
 

@@ -91,12 +91,12 @@ bool Partialcharges::Evaluate() {
     _log.setPreface(ctp::logWARNING, "\n... ...");
     _log.setPreface(ctp::logDEBUG,   "\n... ..."); 
 
-    LOG(ctp::logDEBUG, _log) << "Converting serialized QM data in " << _orbfile << flush;
+    CTP_LOG(ctp::logDEBUG, _log) << "Converting serialized QM data in " << _orbfile << flush;
 
     Orbitals _orbitals;
     // load the QM data from serialized orbitals object
 
-    LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+    CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
     _orbitals.Load(_orbfile.c_str());
 
     Esp2multipole esp2multipole=Esp2multipole(&_log);
@@ -106,7 +106,7 @@ bool Partialcharges::Evaluate() {
     esp2multipole.WritetoFile(_output_file);
     
     
-    LOG(ctp::logDEBUG, _log) << "Written charges to " << _output_file << flush;
+    CTP_LOG(ctp::logDEBUG, _log) << "Written charges to " << _output_file << flush;
     
     return true;
 }

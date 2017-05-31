@@ -141,7 +141,7 @@ namespace votca {
         template<class QMPackage>
         void QMMachine<QMPackage>::Evaluate(ctp::XJob *job) {
 
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
                     % _crit_dR % _crit_dQ % _crit_dE_QM % _crit_dE_MM % _maxIter << flush;
 
@@ -152,7 +152,7 @@ namespace votca {
             }
             int chrg = round(dQ);
             int spin = ((chrg < 0) ? -chrg : chrg) % 2 + 1;
-            LOG(ctp::logINFO, *_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
+            CTP_LOG(ctp::logINFO, *_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
 
 
             // PREPARE JOB DIRECTORY
@@ -160,7 +160,7 @@ namespace votca {
                     + "_" + _job->getTag();
             bool created = boost::filesystem::create_directory(jobFolder);
             if (created) {
-                LOG(ctp::logINFO, *_log) << "Created directory " << jobFolder << flush;
+                CTP_LOG(ctp::logINFO, *_log) << "Created directory " << jobFolder << flush;
             }
 
 
@@ -185,7 +185,7 @@ namespace votca {
             }
 
             if (iterCnt == iterMax - 1 && !_isConverged) {
-                LOG(ctp::logWARNING, *_log)
+                CTP_LOG(ctp::logWARNING, *_log)
                         << format("Not converged within %1$d iterations.") % iterMax;
             }
 
@@ -202,9 +202,9 @@ namespace votca {
 
             bool created = boost::filesystem::create_directory(runFolder);
             if (created)
-                LOG(ctp::logDEBUG, *_log) << "Created directory " << runFolder << flush;
+                CTP_LOG(ctp::logDEBUG, *_log) << "Created directory " << runFolder << flush;
             else
-                LOG(ctp::logWARNING, *_log) << "Could not create directory " << runFolder << flush;
+                CTP_LOG(ctp::logWARNING, *_log) << "Could not create directory " << runFolder << flush;
 
 
             // RUN CLASSICAL INDUCTION & SAVE
@@ -229,7 +229,7 @@ namespace votca {
 
             _qmpack->setRunDir(runFolder);
 
-            LOG(ctp::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
+            CTP_LOG(ctp::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
 
             _qmpack->WriteInputFile(empty, &orb_iter_input);
 
@@ -277,18 +277,18 @@ namespace votca {
                 _gwbse.Initialize(&_gwbse_options);                   
                 
                 if (_state > 0) {
-                    LOG(ctp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
-                    LOG(ctp::logDEBUG, *_log) << "  --- type:              " << _type << flush;
-                    LOG(ctp::logDEBUG, *_log) << "  --- state:             " << _state << flush;
+                    CTP_LOG(ctp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
+                    CTP_LOG(ctp::logDEBUG, *_log) << "  --- type:              " << _type << flush;
+                    CTP_LOG(ctp::logDEBUG, *_log) << "  --- state:             " << _state << flush;
                     if (_has_osc_filter) {
-                        LOG(ctp::logDEBUG, *_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
+                        CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
                     }
                     if (_has_dQ_filter) {
-                        LOG(ctp::logDEBUG, *_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
+                        CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
                     }
 
                     if (_has_osc_filter && _has_dQ_filter) {
-                        LOG(ctp::logDEBUG, *_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... " << flush;
+                        CTP_LOG(ctp::logDEBUG, *_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... " << flush;
                     }
 
 
@@ -389,10 +389,10 @@ namespace votca {
                 BasisSet dftbs;
                 if (orb_iter_output.getDFTbasis() != "") {
                     dftbs.LoadBasisSet(orb_iter_output.getDFTbasis());
-                    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_output.getDFTbasis() << flush;
+                    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_output.getDFTbasis() << flush;
                 } else {
                     dftbs.LoadBasisSet(_gwbse.get_dftbasis_name());
-                    LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _gwbse.get_dftbasis_name() << flush;
+                    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _gwbse.get_dftbasis_name() << flush;
                 }
                 
 
@@ -438,7 +438,7 @@ namespace votca {
                     _gdma.setLog(_log);
                     _gdma.SetRunDir(runFolder);
 
-                    LOG(ctp::logINFO, *_log) << "Running GDMA " << flush;
+                    CTP_LOG(ctp::logINFO, *_log) << "Running GDMA " << flush;
                     // prepare a GDMA input file
                     _gdma.WriteInputFile();
 
@@ -480,27 +480,27 @@ namespace votca {
 
             }
 
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("Summary - iteration %1$d:") % (iterCnt + 1) << flush;
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... QM Size  = %1$d atoms") % int(atoms.size()) << flush;
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... E(QM)    = %1$+4.9e") % thisIter->getQMEnergy() << flush;
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... E(GWBSE) = %1$+4.9e") % thisIter->getGWBSEEnergy() << flush;
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... E(SF)    = %1$+4.9e") % thisIter->getSFEnergy() << flush;
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... E(FM)    = %1$+4.9e") % thisIter->getFMEnergy() << flush;
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... E(MM)    = %1$+4.9e") % thisIter->getMMEnergy() << flush;
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... E(QMMM)  = %1$+4.9e") % thisIter->getQMMMEnergy() << flush;
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... RMS(dR)  = %1$+4.9e") % thisIter->getRMSdR() << flush;
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... RMS(dQ)  = %1$+4.9e") % thisIter->getRMSdQ() << flush;
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
 
             // CLEAN DIRECTORY
@@ -538,9 +538,9 @@ namespace votca {
                 double dE_QM = iter_1->getQMEnergy() - iter_0->getQMEnergy();
                 double dE_MM = iter_1->getMMEnergy() - iter_0->getMMEnergy();
 
-                LOG(ctp::logINFO, *_log)
+                CTP_LOG(ctp::logINFO, *_log)
                         << format("... dE_QM  = %1$+4.9e") % dE_QM << flush;
-                LOG(ctp::logINFO, *_log)
+                CTP_LOG(ctp::logINFO, *_log)
                         << format("... dE_MM  = %1$+4.9e") % dE_MM << flush;
 
                 if (dR <= _crit_dR) _convg_dR = true;
@@ -553,13 +553,13 @@ namespace votca {
 
 
 
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... Convg dR = %s") % (_convg_dR ? "true" : "false") << flush;
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... Convg dQ = %s") % (_convg_dQ ? "true" : "false") << flush;
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... Convg QM = %s") % (_convg_dE_QM ? "true" : "false") << flush;
-            LOG(ctp::logINFO, *_log)
+            CTP_LOG(ctp::logINFO, *_log)
                     << format("... Convg MM = %s") % (_convg_dE_MM ? "true" : "false") << flush;
 
             return _isConverged;

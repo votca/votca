@@ -225,7 +225,7 @@ ctp::XJob QMAPE::ProcessInputString(ctp::Job *job,ctp::Topology *top, ctp::QMThr
 
         ctp::Segment *seg = top->getSegment(segId);
         if (seg->getName() != segName) {
-            LOG(ctp::logERROR,*(thread->getLogger()))
+            CTP_LOG(ctp::logERROR,*(thread->getLogger()))
                 << "ERROR: Seg " << segId << ":" << seg->getName() << " "
                 << " maltagged as " << segName << ". Skip job ..." << flush;
             throw std::runtime_error("Input does not match topology.");
@@ -252,21 +252,21 @@ ctp::Job::JobResult QMAPE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThr
     qlog->setPreface(ctp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
 
     // CREATE XJOB FROM JOB INPUT STRING
-    LOG(ctp::logINFO,*log)
+    CTP_LOG(ctp::logINFO,*log)
         << "Job input = " << job->getInput().as<string>() << flush;
     ctp::XJob xjob = this->ProcessInputString(job, top, thread);  
 
 	// SETUP POLAR TOPOLOGY (GENERATE VS LOAD IF PREPOLARIZED)
 	if (_polar_bg_arch == "") {
-		LOG(ctp::logINFO,*log) << "Mps-Mapper: Generate FGC FGN BGN" << flush;
+		CTP_LOG(ctp::logINFO,*log) << "Mps-Mapper: Generate FGC FGN BGN" << flush;
 		_mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
 	}
 	else {
-		LOG(ctp::logINFO,*log) << "Mps-Mapper: Generate FGC, load FGN BGN from '"
+		CTP_LOG(ctp::logINFO,*log) << "Mps-Mapper: Generate FGC, load FGN BGN from '"
 				<< _polar_bg_arch << "'" << flush;
 		_mps_mapper.Gen_FGC_Load_FGN_BGN(top, &xjob, _polar_bg_arch, thread);
 	}
-    LOG(ctp::logINFO,*log) << xjob.getPolarTop()->ShellInfoStr() << flush;
+    CTP_LOG(ctp::logINFO,*log) << xjob.getPolarTop()->ShellInfoStr() << flush;
 
     // SETUP MM METHOD
     ctp::PEwald3D3D cape = ctp::PEwald3D3D(top, xjob.getPolarTop(), _options,

@@ -251,11 +251,11 @@ bool Exciton::Evaluate() {
         _trust_radius_max = 0.1; 
         _displacement = _displacement * tools::conv::ang2bohr; // initial trust radius in a.u.
         _log.setReportLevel( ctp::logINFO );
-        LOG(ctp::logINFO,_log) << "Requested geometry optimization of excited state " << _spintype << " " << _opt_state << flush; 
-        LOG(ctp::logINFO,_log) << "... forces calculation using " << _forces << " differences " << flush;
-        LOG(ctp::logINFO,_log) << "... displacement for numerical forces:           " << _displacement << " Bohr" << flush; 
-        LOG(ctp::logINFO,_log) << "... convergence of total energy:                 " << _convergence << " Hartree" << flush;
-        LOG(ctp::logINFO,_log) << "... initial trust radius:                        " << _trust_radius << " Bohr " << flush;
+        CTP_LOG(ctp::logINFO,_log) << "Requested geometry optimization of excited state " << _spintype << " " << _opt_state << flush; 
+        CTP_LOG(ctp::logINFO,_log) << "... forces calculation using " << _forces << " differences " << flush;
+        CTP_LOG(ctp::logINFO,_log) << "... displacement for numerical forces:           " << _displacement << " Bohr" << flush; 
+        CTP_LOG(ctp::logINFO,_log) << "... convergence of total energy:                 " << _convergence << " Hartree" << flush;
+        CTP_LOG(ctp::logINFO,_log) << "... initial trust radius:                        " << _trust_radius << " Bohr " << flush;
         _log.setReportLevel( _ReportLevel );
     }
     
@@ -311,8 +311,8 @@ bool Exciton::Evaluate() {
 
          // get total energy for this excited state
           energy = GetTotalEnergy( &_orbitals, _spintype, _opt_state );
-         LOG(ctp::logINFO,_log) << " Total energy at initial geometry for " << _spintype << " " << _opt_state << " is " << energy << " Hartree " << flush;
-         LOG(ctp::logINFO,_log) << "   " << flush;
+         CTP_LOG(ctp::logINFO,_log) << " Total energy at initial geometry for " << _spintype << " " << _opt_state << " is " << energy << " Hartree " << flush;
+         CTP_LOG(ctp::logINFO,_log) << "   " << flush;
          _log.setReportLevel( _ReportLevel ); // go silent again during numerical force calculation, if requested
       
       }
@@ -408,7 +408,7 @@ bool Exciton::Evaluate() {
                ExcitationEnergies(_qmpackage, _molecule, &_orbitals);
                energy_new  = GetTotalEnergy( &_orbitals, _spintype, _opt_state );
                
-               // LOG(ctp::logINFO,_log) << " Total energy of " << _spintype << " " << _opt_state << " is " << energy_new << " a.u. at " << _iteration << flush;
+               // CTP_LOG(ctp::logINFO,_log) << " Total energy of " << _spintype << " " << _opt_state << " is " << energy_new << " a.u. at " << _iteration << flush;
                energy_delta = energy_new - energy;
                _old_TR = _trust_radius;
                // check the energy at the trial coordinates
@@ -417,21 +417,21 @@ bool Exciton::Evaluate() {
                    _trust_radius = 0.5 * _trust_radius;
                    // Hessian should not be updated for reduced trust radius
                    _update_hessian = false;
-                   LOG(ctp::logINFO,_log) << " BFGS-TRM: total energy increased, this step is rejected and the new trust radius is: " << _trust_radius << endl;
+                   CTP_LOG(ctp::logINFO,_log) << " BFGS-TRM: total energy increased, this step is rejected and the new trust radius is: " << _trust_radius << endl;
                    // repeat BGFSStep with new trust radius
                } else {
                    // total energy has decreased, we accept the step but might update the trust radius
                    _step_accepted = true;
-                   LOG(ctp::logINFO,_log) << " BFGS-TRM: step accepted" << flush;
+                   CTP_LOG(ctp::logINFO,_log) << " BFGS-TRM: step accepted" << flush;
                    // adjust trust radius, if required
                    double _tr_check = energy_delta / _delta_energy_estimate;
                    if ( _tr_check > 0.75 && 1.25*sqrt(_norm_delta_pos) > _trust_radius ){
                       _trust_radius = 2.0 * _trust_radius;
                       // if ( _trust_radius > _trust_radius_max) _trust_radius = _trust_radius_max;
-		      LOG(ctp::logINFO,_log) << " BFGS-TRM: increasing trust radius to " << _trust_radius << endl; 
+		      CTP_LOG(ctp::logINFO,_log) << " BFGS-TRM: increasing trust radius to " << _trust_radius << endl; 
                    } else if ( _tr_check < 0.25 ) {
                       _trust_radius = 0.25*sqrt(_norm_delta_pos);
-                      LOG(ctp::logINFO,_log) << " BFGS-TRM: reducing trust radius to " << _trust_radius << endl;
+                      CTP_LOG(ctp::logINFO,_log) << " BFGS-TRM: reducing trust radius to " << _trust_radius << endl;
                    }
                
 		   }
@@ -510,17 +510,17 @@ bool Exciton::Evaluate() {
            
           
            
-           LOG(ctp::logINFO,_log) << " Summary of iteration " << _iteration +1 << flush;
-           LOG(ctp::logINFO,_log) << "    total energy of " << _spintype << " " << _opt_state << " is " << energy_new << " Hartree "  << flush;
-           LOG(ctp::logINFO,_log) << "    BFGS-TRM: trust radius was " << _old_TR << " Bohr" << flush;
-           LOG(ctp::logINFO,_log) << "    convergence: " << flush;
-           LOG(ctp::logINFO,_log) << "       energy change: " << setprecision(12) << energy_delta << " a.u. " << Convergence( _energy_converged ) << flush;
-           LOG(ctp::logINFO,_log) << "       RMS force:     " << setprecision(12) << _RMSForce << Convergence( _RMSForce_converged ) << flush;
-           LOG(ctp::logINFO,_log) << "       Max force:     " << setprecision(12) << _MaxForce << Convergence( _MaxForce_converged ) << flush;
-           LOG(ctp::logINFO,_log) << "       RMS step:      " << setprecision(12) << _RMSStep << Convergence( _RMSStep_converged ) << flush;
-           LOG(ctp::logINFO,_log) << "       Max step:      " << setprecision(12) << _MaxStep << Convergence( _MaxStep_converged ) << flush;
-           LOG(ctp::logINFO,_log) << "       Geometry       " << Convergence( _converged ) << flush;
-           LOG(ctp::logINFO,_log) << "   " << flush;
+           CTP_LOG(ctp::logINFO,_log) << " Summary of iteration " << _iteration +1 << flush;
+           CTP_LOG(ctp::logINFO,_log) << "    total energy of " << _spintype << " " << _opt_state << " is " << energy_new << " Hartree "  << flush;
+           CTP_LOG(ctp::logINFO,_log) << "    BFGS-TRM: trust radius was " << _old_TR << " Bohr" << flush;
+           CTP_LOG(ctp::logINFO,_log) << "    convergence: " << flush;
+           CTP_LOG(ctp::logINFO,_log) << "       energy change: " << setprecision(12) << energy_delta << " a.u. " << Convergence( _energy_converged ) << flush;
+           CTP_LOG(ctp::logINFO,_log) << "       RMS force:     " << setprecision(12) << _RMSForce << Convergence( _RMSForce_converged ) << flush;
+           CTP_LOG(ctp::logINFO,_log) << "       Max force:     " << setprecision(12) << _MaxForce << Convergence( _MaxForce_converged ) << flush;
+           CTP_LOG(ctp::logINFO,_log) << "       RMS step:      " << setprecision(12) << _RMSStep << Convergence( _RMSStep_converged ) << flush;
+           CTP_LOG(ctp::logINFO,_log) << "       Max step:      " << setprecision(12) << _MaxStep << Convergence( _MaxStep_converged ) << flush;
+           CTP_LOG(ctp::logINFO,_log) << "       Geometry       " << Convergence( _converged ) << flush;
+           CTP_LOG(ctp::logINFO,_log) << "   " << flush;
            _log.setReportLevel( _ReportLevel ); // go silent again
            
            
@@ -535,7 +535,7 @@ bool Exciton::Evaluate() {
   
            
        
-       LOG(ctp::logDEBUG,_log) << "Saving data to " << _output_file << flush;
+       CTP_LOG(ctp::logDEBUG,_log) << "Saving data to " << _output_file << flush;
        std::ofstream ofs( ( _output_file).c_str() );
        boost::archive::binary_oarchive oa( ofs );
 
@@ -548,7 +548,7 @@ bool Exciton::Evaluate() {
     
     //Property *_job_output = &_summary.add("output","");
     tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
-    LOG(ctp::logDEBUG,_log) << "Writing output to " << _xml_output << flush;
+    CTP_LOG(ctp::logDEBUG,_log) << "Writing output to " << _xml_output << flush;
     std::ofstream ofout (_xml_output.c_str(), std::ofstream::out);
     if ( _do_gwbse ){
         ofout << (_summary.get("output"));    
@@ -588,7 +588,7 @@ void Exciton::ReloadState(){
     // open restart.opt
     ifstream in;
     string _filename = "restart.opt";
-    LOG(ctp::logDEBUG,_log) << " Reloading from restart.opt " << flush;
+    CTP_LOG(ctp::logDEBUG,_log) << " Reloading from restart.opt " << flush;
     in.open(_filename.c_str(), ios::in);
     if (!in) throw runtime_error(string("Error reading coordinates from restart.opt"));
     string label;
@@ -767,10 +767,10 @@ void Exciton::NumForceForward(double energy, vector<ctp::Atom*> _atoms, ub::matr
         int _iter_resume;
         in >> _iter_resume;
         if ( _iter_resume != _iteration ){
-            LOG(ctp::logDEBUG,_log) << " Forces in " << _filename << " from iteration " << _iter_resume << " and not iteration " << _iteration << flush;
-            LOG(ctp::logDEBUG,_log) << "  discard data..." << flush;
+            CTP_LOG(ctp::logDEBUG,_log) << " Forces in " << _filename << " from iteration " << _iter_resume << " and not iteration " << _iteration << flush;
+            CTP_LOG(ctp::logDEBUG,_log) << "  discard data..." << flush;
         } else {
-            LOG(ctp::logDEBUG,_log) << " Resuming force calculation from  " << _filename << flush;
+            CTP_LOG(ctp::logDEBUG,_log) << " Resuming force calculation from  " << _filename << flush;
             _forces_resume = true;
             in >> f_in;
         }
@@ -878,15 +878,15 @@ void Exciton::BFGSStep(int& _iteration, bool& _update_hessian, ub::matrix<double
     cout << "Total force: " << _total_force(0) << " " << _total_force(1) << " " << _total_force(2) << endl;
             
     // remove CoM force
-    LOG(ctp::logINFO,_log) << " ----------------- Forces ------------------- " << flush;
-    LOG(ctp::logINFO,_log) << " Atom        x-comp       y-comp      z-comp  " << flush;
+    CTP_LOG(ctp::logINFO,_log) << " ----------------- Forces ------------------- " << flush;
+    CTP_LOG(ctp::logINFO,_log) << " Atom        x-comp       y-comp      z-comp  " << flush;
     for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
       for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
 	// _force(_i_atom,_i_cart) -= _total_force(_i_cart)/_natoms;
        }
-        LOG(ctp::logINFO,_log) <<  _i_atom << "   " <<  _force(_i_atom,0) << "   " <<  _force(_i_atom,1) << "   " <<  _force(_i_atom,2) << endl;
+        CTP_LOG(ctp::logINFO,_log) <<  _i_atom << "   " <<  _force(_i_atom,0) << "   " <<  _force(_i_atom,1) << "   " <<  _force(_i_atom,2) << endl;
     }
-    LOG(ctp::logINFO,_log) << " -------------------------------------------- " << flush;
+    CTP_LOG(ctp::logINFO,_log) << " -------------------------------------------- " << flush;
     // construct vectors
     int _dim = 3*_natoms;
     ub::vector<double> _previous_pos(_dim,0.0);
@@ -969,7 +969,7 @@ void Exciton::BFGSStep(int& _iteration, bool& _update_hessian, ub::matrix<double
         ub::vector<double> _eigenvalues;
         linalg_eigenvalues( _hessian, _eigenvalues, _eigenvectors);
         
-        LOG(ctp::logDEBUG, _log) << " BFGS-TRM: Lowest eigenvalue of Hessian is... " << _eigenvalues(0) << flush;
+        CTP_LOG(ctp::logDEBUG, _log) << " BFGS-TRM: Lowest eigenvalue of Hessian is... " << _eigenvalues(0) << flush;
     
         // start value for lambda  a bit lower than lowest eigenvalue of Hessian
         double _lambda;
@@ -998,7 +998,7 @@ void Exciton::BFGSStep(int& _iteration, bool& _update_hessian, ub::matrix<double
            }
         }
 
-        LOG(ctp::logDEBUG,_log) << " BFGS-TRM: with lambda " << _lambda << " max step sq is " << _max_step_squared << flush;
+        CTP_LOG(ctp::logDEBUG,_log) << " BFGS-TRM: with lambda " << _lambda << " max step sq is " << _max_step_squared << flush;
         
         _delta_pos = ub::zero_vector<double>(_dim);
         for ( int _i =0 ; _i < _dim; _i++ ){
@@ -1019,13 +1019,13 @@ void Exciton::BFGSStep(int& _iteration, bool& _update_hessian, ub::matrix<double
     
     
     ub::vector<double> _new_pos = _current_pos + _delta_pos;
-    LOG(ctp::logDEBUG,_log) << "BFGS-TRM: step " << sqrt(_norm_delta_pos) << " vs TR " << sqrt(_trust_radius_squared) << flush  ;
+    CTP_LOG(ctp::logDEBUG,_log) << "BFGS-TRM: step " << sqrt(_norm_delta_pos) << " vs TR " << sqrt(_trust_radius_squared) << flush  ;
 
     // get the energy estimate for a local quadratic surface
     ub::vector<double> _temp_ene = ub::prod( _hessian, _delta_pos );
     _delta_energy_estimate = ub::inner_prod( _current_gradient, _delta_pos ) + 0.5 * ub::inner_prod(_delta_pos,_temp_ene );
 
-    LOG(ctp::logINFO,_log) << " BFGS-TRM: estimated energy change: " << setprecision(12) << _delta_energy_estimate << endl;
+    CTP_LOG(ctp::logINFO,_log) << " BFGS-TRM: estimated energy change: " << setprecision(12) << _delta_energy_estimate << endl;
    
     // update atom coordinates
     ub::vector<double> _total_shift(3,0.0);
@@ -1057,7 +1057,7 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<ctp::Segment*> _s
   if ( _do_dft_input ){
                 Orbitals *_orbitalsAB = NULL;        
         if ( _qmpackage->GuessRequested() && _do_guess) { // do not want to do an SCF loop for a dimer
-            LOG(ctp::logINFO,_log) << "Guess requested, reading molecular orbitals" << endl;
+            CTP_LOG(ctp::logINFO,_log) << "Guess requested, reading molecular orbitals" << endl;
            
             Orbitals _orbitalsA, _orbitalsB;   
             _orbitalsAB = new Orbitals();
@@ -1093,7 +1093,7 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<ctp::Segment*> _s
 
       // parse DFT data, if required
       if ( _do_dft_parse ){
-        LOG(ctp::logDEBUG,_log) << "Parsing DFT data " << _output_file << flush;
+        CTP_LOG(ctp::logDEBUG,_log) << "Parsing DFT data " << _output_file << flush;
 
        //int _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( _orbitals );
         _qmpackage->setLogFileName( _logfile );
@@ -1109,7 +1109,7 @@ void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<ctp::Segment*> _s
 
      // if no parsing of DFT data is requested, reload serialized orbitals object
      if ( !_do_dft_parse ){
-         LOG(ctp::logDEBUG,_log) << "Loading serialized data from " << _output_file << flush;
+         CTP_LOG(ctp::logDEBUG,_log) << "Loading serialized data from " << _output_file << flush;
          _orbitals->Load( _output_file );
      }
 
@@ -1167,7 +1167,7 @@ void Exciton::ReadXYZ(ctp::Segment* _segment, string filename){
                 string label, type;
                 vec pos;
 
-                LOG(ctp::logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
+                CTP_LOG(ctp::logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
                 in.open(_xyzfile.c_str(), std::ios::in);
                 if (!in) throw runtime_error(string("Error reading coordinates from: ")
                         + _xyzfile);

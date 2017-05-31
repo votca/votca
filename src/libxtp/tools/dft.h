@@ -171,12 +171,12 @@ bool DFT::Evaluate() {
     Orbitals _orbitals;
     
     if(_do_guess){
-        LOG(ctp::logDEBUG,_log) << "Reading guess from " << _guess_file << flush;
+        CTP_LOG(ctp::logDEBUG,_log) << "Reading guess from " << _guess_file << flush;
         _orbitals.Load(_guess_file);
         
     }
     else{
-        LOG(ctp::logDEBUG,_log) << "Reading structure from " << _xyzfile << flush;
+        CTP_LOG(ctp::logDEBUG,_log) << "Reading structure from " << _xyzfile << flush;
     XYZ2Orbitals( &_orbitals, _xyzfile );
     
     }
@@ -198,7 +198,7 @@ bool DFT::Evaluate() {
     _dft.Evaluate( &_orbitals );
 
             
-       LOG(ctp::logDEBUG,_log) << "Saving data to " << _output_file << flush;
+       CTP_LOG(ctp::logDEBUG,_log) << "Saving data to " << _output_file << flush;
        std::ofstream ofs( ( _output_file).c_str() );
        boost::archive::binary_oarchive oa( ofs );
 
@@ -237,7 +237,7 @@ void DFT::XYZ2Orbitals(Orbitals* _orbitals, string filename){
                 string label, type;
                 vec pos;
 
-                LOG(ctp::logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
+                CTP_LOG(ctp::logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
                 in.open(_xyzfile.c_str(), ios::in);
                 if (!in) throw runtime_error(string("Error reading coordinates from: ")
                         + _xyzfile);

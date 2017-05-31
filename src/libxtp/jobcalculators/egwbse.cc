@@ -227,7 +227,7 @@ namespace votca {
 
             ctp::Logger* pLog = opThread->getLogger();
             
-            LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Evaluating site " << seg->getId() << flush;
+            CTP_LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Evaluating site " << seg->getId() << flush;
 
             
             string output;
@@ -276,7 +276,7 @@ namespace votca {
                 _run_dft_status = _qmpackage->Run();
                 if (!_run_dft_status) {
                     output += "run failed; ";
-                    LOG(ctp::logERROR, *pLog) << _qmpackage->getPackageName() << " run failed" << flush;
+                    CTP_LOG(ctp::logERROR, *pLog) << _qmpackage->getPackageName() << " run failed" << flush;
                     cout << *pLog;
                     jres.setOutput(output);
                     jres.setStatus(ctp::Job::FAILED);
@@ -293,7 +293,7 @@ namespace votca {
 
                 if (!_parse_log_status) {
                     output += "log incomplete; ";
-                    LOG(ctp::logERROR, *pLog) << "LOG parsing failed" << flush;
+                    CTP_LOG(ctp::logERROR, *pLog) << "LOG parsing failed" << flush;
                     cout << *pLog;
                     jres.setOutput(output);
                     jres.setStatus(ctp::Job::FAILED);
@@ -305,7 +305,7 @@ namespace votca {
 
                 if (!_parse_orbitals_status) {
                     output += "orbfile failed; ";
-                    LOG(ctp::logERROR, *pLog) << "Orbitals parsing failed" << flush;
+                    CTP_LOG(ctp::logERROR, *pLog) << "Orbitals parsing failed" << flush;
                     cout << *pLog;
                     jres.setOutput(output);
                     jres.setStatus(ctp::Job::FAILED);
@@ -319,10 +319,10 @@ namespace votca {
                     string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
                     std::ifstream ifs((DIR + "/" + orb_file).c_str());
                     if (_do_gwbse){
-                    LOG(ctp::logDEBUG, *pLog) << ctp::TimeStamp() << " Loading DFT data from " << DIR << "/" << orb_file << flush;
+                    CTP_LOG(ctp::logDEBUG, *pLog) << ctp::TimeStamp() << " Loading DFT data from " << DIR << "/" << orb_file << flush;
                     }
                     else {
-                    LOG(ctp::logDEBUG, *pLog) << ctp::TimeStamp() << " Loading data from " << DIR << "/" << orb_file << flush;    
+                    CTP_LOG(ctp::logDEBUG, *pLog) << ctp::TimeStamp() << " Loading data from " << DIR << "/" << orb_file << flush;    
                     }
                     boost::archive::binary_iarchive ia(ifs);
                     ia >> _orbitals;
@@ -388,14 +388,14 @@ namespace votca {
                 esp2multipole.WritetoFile((ESPDIR + "/" + mps_file).c_str(),Identify());
     
     
-                LOG(ctp::logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
+                CTP_LOG(ctp::logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
                 
                 _segment_summary->add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
             }
-            LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
+            CTP_LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
 
             if(_do_dft_parse ||_do_gwbse ){
-            LOG(ctp::logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
+            CTP_LOG(ctp::logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
             string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir;
             boost::filesystem::create_directories(DIR);  
             std::ofstream ofs((DIR + "/" + orb_file).c_str());

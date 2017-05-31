@@ -192,7 +192,7 @@ namespace votca { namespace xtp {
         transform=ub::prod(ub::trans(trans_inv),virt);
         virt=ub::prod(transform,trans_inv);
        
-        LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << _levelshift << " Ha" << flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << _levelshift << " Ha" << flush;
         H +=  virt ; 
         
         return;
@@ -314,7 +314,7 @@ namespace votca { namespace xtp {
           }
           
           if(!check){
-               LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
+               CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
                coeffs=ub::zero_vector<double>(_mathist.size());
                coeffs[0]=0.5;
                coeffs[1]=0.5;

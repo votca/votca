@@ -126,12 +126,12 @@ void QMAPEMachine::Evaluate(ctp::XJob *job) {
 					 + "_" + _job->getTag();
 	bool created = boost::filesystem::create_directory(jobFolder);
 
-	LOG(ctp::logINFO,*_log) << flush;
+	CTP_LOG(ctp::logINFO,*_log) << flush;
 	if (created) {
-		LOG(ctp::logINFO,*_log) << "Created directory " << jobFolder << flush;
+		CTP_LOG(ctp::logINFO,*_log) << "Created directory " << jobFolder << flush;
         }
 
-    LOG(ctp::logINFO,*_log)
+    CTP_LOG(ctp::logINFO,*_log)
        << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
        % _crit_dR % _crit_dQ % _crit_dE_QM % _crit_dE_MM % _maxIter << flush;
     
@@ -142,7 +142,7 @@ void QMAPEMachine::Evaluate(ctp::XJob *job) {
     }
     int chrg = round(dQ);
     int spin = ( (chrg < 0) ? -chrg:chrg ) % 2 + 1;
-    LOG(ctp::logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
+    CTP_LOG(ctp::logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
     
     if(dQ!=0){
         throw runtime_error("Charged DFT calculations are not possible at the moment");
@@ -169,7 +169,7 @@ void QMAPEMachine::Evaluate(ctp::XJob *job) {
     }
     
     if (iterCnt == iterMax-1 && !_isConverged) {
-        LOG(ctp::logWARNING,*_log)
+        CTP_LOG(ctp::logWARNING,*_log)
             << format("Not converged within %1$d iterations.") % iterMax;
     }
     
@@ -184,12 +184,12 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
     int iter = iterCnt;
     string runFolder = jobFolder + "/iter_" + boost::lexical_cast<string>(iter);
        
-    LOG(ctp::logINFO,*_log) << flush;
+    CTP_LOG(ctp::logINFO,*_log) << flush;
     bool created = boost::filesystem::create_directory(runFolder);
     if (created) 
-        LOG(ctp::logDEBUG,*_log) << "Created directory " << runFolder << flush;
+        CTP_LOG(ctp::logDEBUG,*_log) << "Created directory " << runFolder << flush;
     else
-        LOG(ctp::logWARNING,*_log) << "Could not create directory " << runFolder << flush;
+        CTP_LOG(ctp::logWARNING,*_log) << "Could not create directory " << runFolder << flush;
 
     // COMPUTE POLARIZATION STATE WITH QM0(0)
     if (_run_ape) {
@@ -299,14 +299,14 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
         GWBSE _gwbse(&orb);
 	_gwbse.Initialize( &_gwbse_options );
 	if ( _state > 0 ){
-	LOG(ctp::logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
-	LOG(ctp::logDEBUG,*_log) << "  --- type:              " << _type << flush;
-	LOG(ctp::logDEBUG,*_log) << "  --- state:             " << _state << flush;
-	if ( _has_osc_filter) { LOG(ctp::logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush; }
-	if ( _has_dQ_filter) { LOG(ctp::logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush; }
+	CTP_LOG(ctp::logDEBUG,*_log) << "Excited state via GWBSE: " <<  flush;
+	CTP_LOG(ctp::logDEBUG,*_log) << "  --- type:              " << _type << flush;
+	CTP_LOG(ctp::logDEBUG,*_log) << "  --- state:             " << _state << flush;
+	if ( _has_osc_filter) { CTP_LOG(ctp::logDEBUG,*_log) << "  --- filter: osc.str. > " << _osc_threshold << flush; }
+	if ( _has_dQ_filter) { CTP_LOG(ctp::logDEBUG,*_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush; }
 
 	if ( _has_osc_filter && _has_dQ_filter ){
-		LOG(ctp::logDEBUG,*_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... "  << flush;
+		CTP_LOG(ctp::logDEBUG,*_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... "  << flush;
 	}
 
 	// define own logger for GW-BSE that is written into a runFolder logfile
@@ -412,7 +412,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 	dftbs.LoadBasisSet( _gwbse.get_dftbasis_name() );
 
 	}
-	LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " <<  orb.getDFTbasis()  << flush;
+	CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " <<  orb.getDFTbasis()  << flush;
 
 
 
@@ -472,15 +472,15 @@ bool QMAPEMachine::hasConverged() {
     
     _isConverged = ((_convg_dR && _convg_dQ) && (_convg_dE_QM && _convg_dE_MM));
     
-    LOG(ctp::logINFO,*_log) 
+    CTP_LOG(ctp::logINFO,*_log) 
         << (format("Convergence check")) << flush;
-    LOG(ctp::logINFO,*_log)
+    CTP_LOG(ctp::logINFO,*_log)
         << format("  o Converged dR ? %s") % (_convg_dR ? "True" : "False") << flush;
-    LOG(ctp::logINFO,*_log) 
+    CTP_LOG(ctp::logINFO,*_log) 
         << format("  o Converged dQ ? %s") % (_convg_dQ ? "True" : "False") << flush;
-    LOG(ctp::logINFO,*_log) 
+    CTP_LOG(ctp::logINFO,*_log) 
         << format("  o Converged QM ? %s") % (_convg_dE_QM ? "True" : "False") << flush;
-    LOG(ctp::logINFO,*_log) 
+    CTP_LOG(ctp::logINFO,*_log) 
         << format("  o Converged MM ? %s") % (_convg_dE_MM ? "True" : "False") << flush;
     
     return _isConverged;

@@ -81,7 +81,7 @@ bool Log2Mps::Evaluate() {
     log.setMultithreading(true);  
     
     // Set-up QM package
-    LOG_SAVE(ctp::logINFO,log) << "Using package <" << _package << ">" << flush;
+    CTP_LOG_SAVE(ctp::logINFO,log) << "Using package <" << _package << ">" << flush;
     QMPackage *qmpack = QMPackages().Create(_package);    
     qmpack->doGetCharges(true);
     qmpack->setLog(&log);
@@ -109,7 +109,7 @@ bool Log2Mps::Evaluate() {
             << ". Abort.\n" << flush;
         throw std::runtime_error("(see above, input or parsing error)");
     }
-    LOG_SAVE(ctp::logINFO,log) 
+    CTP_LOG_SAVE(ctp::logINFO,log) 
         << qmatoms.size() << " QM atoms, total charge Q = " << Q << flush;    
     
     

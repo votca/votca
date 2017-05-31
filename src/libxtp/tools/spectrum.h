@@ -129,13 +129,13 @@ bool Spectrum::Evaluate() {
     _log.setPreface(ctp::logWARNING, "\n... ...");
     _log.setPreface(ctp::logDEBUG,   "\n... ..."); 
 
-    LOG(ctp::logDEBUG, _log) << "Calculating absorption spectrum plot " << _orbfile << flush;
+    CTP_LOG(ctp::logDEBUG, _log) << "Calculating absorption spectrum plot " << _orbfile << flush;
 
     Orbitals _orbitals;
     // load the QM data from serialized orbitals object
 
     std::ifstream ifs( (_orbfile).c_str());
-    LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+    CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
     boost::archive::binary_iarchive ia(ifs);
     ia >> _orbitals;
     ifs.close();
@@ -160,12 +160,12 @@ bool Spectrum::Evaluate() {
     int _n_exc = _maxexc - _minexc +1;
 
     if ( _maxexc > int(TransitionDipoles.size()) ) {
-      LOG(ctp::logDEBUG, _log) << " Transition dipoles for some excitations missing! " << flush;
+      CTP_LOG(ctp::logDEBUG, _log) << " Transition dipoles for some excitations missing! " << flush;
       exit(1);
     }
  
   
-    LOG(ctp::logDEBUG, _log) << " Considering " << _n_exc << " excitation with max energy " << BSESingletEnergies(_maxexc) * tools::conv::hrt2ev << " eV / min wave length " <<  evtonm(BSESingletEnergies[_maxexc-1] * tools::conv::hrt2ev) << " nm" << flush;
+    CTP_LOG(ctp::logDEBUG, _log) << " Considering " << _n_exc << " excitation with max energy " << BSESingletEnergies(_maxexc) * tools::conv::hrt2ev << " eV / min wave length " <<  evtonm(BSESingletEnergies[_maxexc-1] * tools::conv::hrt2ev) << " nm" << flush;
     
     /*
      * 
@@ -239,7 +239,7 @@ bool Spectrum::Evaluate() {
     
        }
         
-        LOG(ctp::logDEBUG, _log) << " Spectrum in energy range from  " << _lower << " to " << _upper << " eV and with broadening of FWHM " << _fwhm*tools::conv::hrt2ev << " eV written to file  " << _output_file << flush;
+        CTP_LOG(ctp::logDEBUG, _log) << " Spectrum in energy range from  " << _lower << " to " << _upper << " eV and with broadening of FWHM " << _fwhm*tools::conv::hrt2ev << " eV written to file  " << _output_file << flush;
     }
     
     if ( _spectrum_type == "wavelength"){
@@ -270,7 +270,7 @@ bool Spectrum::Evaluate() {
 
             ofs << _lambda << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << "   " << _eps_TruncLorentzian << "   " << _imeps_TruncLorentzian << endl;
         }    
-    LOG(ctp::logDEBUG, _log) << " Spectrum in wavelength range from  " << _lower << " to " << _upper << " nm and with broadening of FWHM " << _fwhm << " nm written to file  " << _output_file << flush;        
+    CTP_LOG(ctp::logDEBUG, _log) << " Spectrum in wavelength range from  " << _lower << " to " << _upper << " nm and with broadening of FWHM " << _fwhm << " nm written to file  " << _output_file << flush;        
     }
 
 

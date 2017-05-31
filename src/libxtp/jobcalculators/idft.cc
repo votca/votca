@@ -120,13 +120,13 @@ void IDFT::ParseOptionsXML( tools::Property *options ) {
 
 void IDFT::LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log ) {
 
-    LOG(ctp::logDEBUG, *log) << "Loading " << file_name << flush; 
+    CTP_LOG(ctp::logDEBUG, *log) << "Loading " << file_name << flush; 
     std::ifstream ifs( file_name.c_str() );
     boost::archive::binary_iarchive ia( ifs );
     try {
         ia >> *orbitals;
     } catch(std::exception &err) {
-        LOG(ctp::logDEBUG, *log) << "Could not load orbitals from " << file_name << flush; 
+        CTP_LOG(ctp::logDEBUG, *log) << "Could not load orbitals from " << file_name << flush; 
         std::cerr << "An error occurred:\n" << err.what() << endl;
     } 
     ifs.close();
@@ -187,7 +187,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     ctp::Segment *seg_B = top->getSegment( ID_B );
     assert( seg_B->getName() == type_B );
     
-    LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Evaluating pair "  
+    CTP_LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Evaluating pair "  
             << _job_ID << " ["  << ID_A << ":" << ID_B << "] out of " << 
            (top->NBList()).size()  << flush; 
 
@@ -207,14 +207,14 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         boost::filesystem::create_directories( _qmpackage_work_dir );
         Orbitals *_orbitalsAB = NULL;        
         if ( _qmpackage->GuessRequested() ) { // do not want to do an SCF loop for a dimer
-            LOG(ctp::logINFO,*pLog) << "Guess requested, reading molecular orbitals" << flush;
+            CTP_LOG(ctp::logINFO,*pLog) << "Guess requested, reading molecular orbitals" << flush;
             Orbitals _orbitalsA, _orbitalsB;   
             _orbitalsAB = new Orbitals();
             // load the corresponding monomer orbitals and prepare the dimer guess 
             
             // failed to load; wrap-up and finish current job
             if ( !_orbitalsA.Load( orbFileA ) ) {
-               LOG(ctp::logERROR,*pLog) << "Do input: failed loading orbitals from " << orbFileA << flush; 
+               CTP_LOG(ctp::logERROR,*pLog) << "Do input: failed loading orbitals from " << orbFileA << flush; 
                cout << *pLog;
                output += "failed on " + orbFileA;
                jres.setOutput( output ); 
@@ -224,7 +224,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
             }
             
             if ( !_orbitalsB.Load( orbFileB ) ) {
-               LOG(ctp::logERROR,*pLog) << "Do input: failed loading orbitals from " << orbFileB << flush; 
+               CTP_LOG(ctp::logERROR,*pLog) << "Do input: failed loading orbitals from " << orbFileB << flush; 
                cout << *pLog;
                output += "failed on " + orbFileB;
                jres.setOutput( output ); 
@@ -232,7 +232,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
                delete _qmpackage;
                return jres;
             }
-            LOG(ctp::logERROR,*pLog) << "Writing guess from monomer orbitals"<< flush; 
+            CTP_LOG(ctp::logERROR,*pLog) << "Writing guess from monomer orbitals"<< flush; 
             Orbitals::PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
         }
         
@@ -244,7 +244,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
             vector < ctp::Segment* > segments;
             segments.push_back( seg_A );
             segments.push_back( seg_B );
-            LOG(ctp::logWARNING,*pLog) << "PBCs are not taken into account when writing the coordinate file!" << flush; 
+            CTP_LOG(ctp::logWARNING,*pLog) << "PBCs are not taken into account when writing the coordinate file!" << flush; 
             _qmpackage->WriteInputFile(segments, _orbitalsAB);
         } else {
             _qmpackage->WriteInputFilePBC(pair, _orbitalsAB);
@@ -259,7 +259,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
             _run_status = _qmpackage->Run( );
             if ( !_run_status ) {
                     output += "run failed; " ;
-                    LOG(ctp::logERROR,*pLog) << _qmpackage->getPackageName() << " run failed" << flush;
+                    CTP_LOG(ctp::logERROR,*pLog) << _qmpackage->getPackageName() << " run failed" << flush;
                     cout << *pLog;
                     jres.setOutput( output ); 
                     jres.setStatus(ctp::Job::FAILED);
@@ -278,7 +278,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
 
             if ( !_parse_log_status ) {
                     output += "log incomplete; ";
-                    LOG(ctp::logERROR,*pLog) << "LOG parsing failed" << flush;
+                    CTP_LOG(ctp::logERROR,*pLog) << "LOG parsing failed" << flush;
                     cout << *pLog;
                     jres.setOutput( output ); 
                     jres.setStatus(ctp::Job::FAILED);
@@ -290,7 +290,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
 
             if ( !_parse_orbitals_status ) {
                     output += "fort7 failed; " ;
-                    LOG(ctp::logERROR,*pLog) << "Orbitals parsing failed" << flush;
+                    CTP_LOG(ctp::logERROR,*pLog) << "Orbitals parsing failed" << flush;
                     cout << *pLog;
                     jres.setOutput( output ); 
                     jres.setStatus(ctp::Job::FAILED);
@@ -320,7 +320,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
        
        // failed to load; wrap-up and finish current job
        if ( !_orbitalsA.Load( orbFileA ) ) {
-               LOG(ctp::logERROR,*pLog) << "Failed loading orbitals from " << orbFileA << flush; 
+               CTP_LOG(ctp::logERROR,*pLog) << "Failed loading orbitals from " << orbFileA << flush; 
                cout << *pLog;
                output += "failed on " + orbFileA;
                jres.setOutput( output ); 
@@ -330,7 +330,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
        }
        
         if ( !_orbitalsB.Load( orbFileB ) ) {
-              LOG(ctp::logERROR,*pLog) << "Failed loading orbitals from " << orbFileB << flush; 
+              CTP_LOG(ctp::logERROR,*pLog) << "Failed loading orbitals from " << orbFileB << flush; 
                cout << *pLog;
                output += "failed on " + orbFileB;
                jres.setOutput( output ); 
@@ -359,21 +359,21 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
           
     
             if (_trim_factor == -1 ) { 
-                LOG(ctp::logDEBUG,*pLog) << "Trimming orbitals to minimal set " << flush;
-                LOG(ctp::logDEBUG,*pLog) <<   "HOMO(A)-" << _degAH << " to " << "LUMO(A)+" << _degAL << flush;
+                CTP_LOG(ctp::logDEBUG,*pLog) << "Trimming orbitals to minimal set " << flush;
+                CTP_LOG(ctp::logDEBUG,*pLog) <<   "HOMO(A)-" << _degAH << " to " << "LUMO(A)+" << _degAL << flush;
                 _orbitalsA.Trim(_degAH,_degAL);
-                LOG(ctp::logDEBUG,*pLog) <<   "HOMO(B)-" << _degBH << " to " << "LUMO(B)+" << _degBL << flush;
+                CTP_LOG(ctp::logDEBUG,*pLog) <<   "HOMO(B)-" << _degBH << " to " << "LUMO(B)+" << _degBL << flush;
                 _orbitalsB.Trim(_degBH,_degBL);
                 
             } else {
             
             
-             LOG(ctp::logDEBUG,*pLog) << "Trimming virtual orbitals A:" 
+             CTP_LOG(ctp::logDEBUG,*pLog) << "Trimming virtual orbitals A:" 
                     << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << "->" 
                     << _orbitalsA.getNumberOfElectrons()*(_trim_factor-1);             
             _orbitalsA.Trim(_trim_factor);
             
-            LOG(ctp::logDEBUG,*pLog) << " B:" 
+            CTP_LOG(ctp::logDEBUG,*pLog) << " B:" 
                     << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << "->" 
                     << _orbitalsB.getNumberOfElectrons()*(_trim_factor-1) << flush;              
             _orbitalsB.Trim(_trim_factor);
@@ -390,7 +390,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
 
         if ( !_calculate_integrals ) {
                 output += "integrals failed; " ;
-                LOG(ctp::logERROR,*pLog) << "Calculating integrals failed" << flush;
+                CTP_LOG(ctp::logERROR,*pLog) << "Calculating integrals failed" << flush;
                 cout << *pLog;
                 jres.setOutput( output ); 
                 jres.setStatus(ctp::Job::FAILED);
@@ -412,30 +412,30 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
             J_h = _overlap.getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
             J_e = _overlap.getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );          
         }
-        LOG(ctp::logINFO,*pLog) << "Couplings h/e " << ID_A << ":" << ID_B << " " << J_h  << ":" << J_e  << flush; 
+        CTP_LOG(ctp::logINFO,*pLog) << "Couplings h/e " << ID_A << ":" << ID_B << " " << J_h  << ":" << J_e  << flush; 
        
         // Output the thread run summary and clean the Logger
-        LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush; 
+        CTP_LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush; 
         //cout << *pLog;
 
        // save orbitals 
        boost::filesystem::create_directories(_orb_dir);  
 
-       LOG(ctp::logDEBUG,*pLog) << "Saving orbitals to " << _pair_file << flush;
+       CTP_LOG(ctp::logDEBUG,*pLog) << "Saving orbitals to " << _pair_file << flush;
        std::ofstream ofs( orbFileAB.c_str() );
        boost::archive::binary_oarchive oa( ofs );
 
        if ( !( _store_orbitals && _do_parse && _parse_orbitals_status) )  {
            _store_orbitals = false; 
-           LOG(ctp::logINFO,*pLog) << "Not storing orbitals" << flush;
+           CTP_LOG(ctp::logINFO,*pLog) << "Not storing orbitals" << flush;
        }
        if ( !( _store_overlap && _do_parse && _parse_log_status) )  {
            _store_overlap = false;
-           LOG(ctp::logINFO,*pLog) << "Not storing overlap" << flush;
+           CTP_LOG(ctp::logINFO,*pLog) << "Not storing overlap" << flush;
        }
        if ( !( _store_integrals && _do_project && _calculate_integrals) )  {
            _store_integrals = false; 
-           LOG(ctp::logINFO,*pLog) << "Not storing integrals" << flush;           
+           CTP_LOG(ctp::logINFO,*pLog) << "Not storing integrals" << flush;           
        } else {
            // _orbitalsAB.setIntegrals( &_JAB );
            ub::matrix<double>& _JAB_store = _orbitalsAB.MOCouplings();
@@ -657,7 +657,7 @@ void IDFT::ReadJobFile( Topology *top )
             
             // there is no pair in the neighbor list with this name
             if (qmp == NULL) { 
-                LOG(logINFO, log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
+                CTP_LOG(logINFO, log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
                 
                 _current_pairs++;
@@ -688,11 +688,11 @@ void IDFT::ReadJobFile( Topology *top )
             
         } else { // output not found, job failed - report - throw an exception in the future
             _incomplete_jobs++;
-            LOG(logINFO, log) << "Job " << (*it)->get( "id" ).as<string>() << " status is: " << (*it)->get( "status" ).as<string>() << endl;
+            CTP_LOG(logINFO, log) << "Job " << (*it)->get( "id" ).as<string>() << " status is: " << (*it)->get( "status" ).as<string>() << endl;
         }
     }
     
-    LOG(logINFO, log) << "Pairs [total:saved] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
+    CTP_LOG(logINFO, log) << "Pairs [total:saved] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
     cout << log;
 }
 */
@@ -744,9 +744,9 @@ void IDFT::ReadJobFile(ctp::Topology *top) {
             ctp::QMPair *qmp = nblist.FindPair(segA,segB);
             
             if (qmp == NULL) { // there is no pair in the neighbor list with this name
-                LOG_SAVE(ctp::logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
+                CTP_LOG_SAVE(ctp::logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
-                //LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
+                //CTP_LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
                 records[qmp->getId()] = & ((*it)->get("output.pair"));
             }
         } else {
@@ -970,7 +970,7 @@ void IDFT::ReadJobFile(ctp::Topology *top) {
 
     }
                     
-    LOG_SAVE(ctp::logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
+    CTP_LOG_SAVE(ctp::logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
     cout << _log;
 }
 

@@ -139,7 +139,7 @@ namespace votca {
                     }
                 }
                 if (energies_converged) {
-                    LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << _i_iter+1 << " qp_energy iterations." << flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << _i_iter+1 << " qp_energy iterations." << flush;
                     break;
                 } else {
                     _qp_old = _qp_energies;
