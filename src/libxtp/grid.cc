@@ -397,7 +397,7 @@ void Grid::setupgrid(){
     double padding_x=(steps.getX()-_xsteps)*_gridspacing*0.5+_padding;
     double padding_y=(steps.getY()-_ysteps)*_gridspacing*0.5+_padding;
     double padding_z=(steps.getZ()-_zsteps)*_gridspacing*0.5+_padding;
-
+    
     
     for(int i=0;i<=_xsteps;i++){
         double x=xmin-padding_x+i*_gridspacing; 
@@ -409,15 +409,15 @@ void Grid::setupgrid(){
                 vec gridpos=vec(x,y,z);
                     for (std::vector<ctp::QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
                         vec atompos=(*atom)->getPos();
-                        double distance=abs(gridpos-atompos);
+                        double distance2=(gridpos-atompos)*(gridpos-atompos);
                         if(_useVdWcutoff) _cutoff=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff;
                         if(_useVdWcutoff_inside)_cutoff_inside=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff_inside;
                        
-                        if ( distance<_cutoff_inside){
+                        if ( distance2<(_cutoff_inside*_cutoff_inside)){
                             _is_valid = false;
                             break;
                             }
-                        else if ( distance<_cutoff)  _is_valid = true;
+                        else if ( distance2<(_cutoff*_cutoff))  _is_valid = true;
                     }
                     if (_is_valid || _cubegrid){
                         
