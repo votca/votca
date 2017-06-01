@@ -455,9 +455,16 @@ void Grid::setupgrid(){
                 bool _is_valid = false;
                     for (std::vector<ctp::QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
                         //cout << "Punkt " << x <<":"<< y << ":"<<z << endl;
-                        xtemp=fmod((*atom)->x, _boxX); //Angstroms
-                        ytemp=fmod((*atom)->y, _boxY);
-                        ztemp=fmod((*atom)->z, _boxZ);
+                        if(_periodic){
+                            xtemp=fmod((*atom)->x, _boxX); //Angstroms
+                            ytemp=fmod((*atom)->y, _boxY);
+                            ztemp=fmod((*atom)->z, _boxZ);
+                        }
+                        else{
+                            xtemp=(*atom)->x; //Angstroms
+                            ytemp=(*atom)->y;
+                            ztemp=(*atom)->z;
+                        }
                         
                         dif[0]=std::abs(x-xtemp);
                         dif[1]=std::abs(y-ytemp);
