@@ -92,7 +92,7 @@ public:
     const vec& getPos() const{ return _pos; }
     double getScale() const{ return _scale; }
     
-    int getSize() { return _gaussians.size(); }
+    int getSize() const{ return _gaussians.size(); }
     
     void CalcMinDecay(){
      _mindecay=std::numeric_limits<double>::max();
@@ -106,10 +106,10 @@ public:
     
     double getMinDecay() const{return _mindecay;}
     
-    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const vec& grid_pos );
-    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, const vec& grid_pos );
-    
-   
+    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const vec& grid_pos ) const;
+    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, const vec& grid_pos ) const;
+
+   void EvalAOspace(ub::matrix<double> & AOvalues,ub::matrix<double> & AODervalues, const vec& grid_pos ) const;
     
    
     // iterator over pairs (decay constant; contraction coefficient)

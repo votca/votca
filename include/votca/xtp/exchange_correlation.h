@@ -34,35 +34,35 @@ namespace votca {
             ExchangeCorrelation() {
             };
 
-            void getXC(int type, const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_dsigma);
+            void getXC(int type, const double rho, const double drho_dX, const double drho_dY, const double drho_dZ, double& f, double& df_drho, double& df_dsigma);
 
 
 
         private:
 
-            void set_rs(const double& rho, double& rs, double& drs_dr);
-            void set_fzeta(const double& zeta, double& fzeta, double& dfzeta_dzeta);
-            void set_s(const double& density, double& gradNorm, double& s, double& ds_drho, double& ds_dnrho);
-            void setNormGradient(const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& norm, double& drho_dX_normal, double& drho_dY_normal, double& drho_dZ_normal);
-            void set_gphi(const double& zeta, double& gphi, double& dgphi_dzeta);
-            void set_t(const double& rho, double& gphi, double& nrho, double& t, double& dt_drho, double& dt_dgphi, double& dt_dnrho  );
+            void set_rs(const double rho, double& rs, double& drs_dr);
+            void set_fzeta(const double zeta, double& fzeta, double& dfzeta_dzeta);
+            void set_s(const double density, double& gradNorm, double& s, double& ds_drho, double& ds_dnrho);
+            void setNormGradient(const double drho_dX, const double drho_dY, const double drho_dZ, double& norm, double& drho_dX_normal, double& drho_dY_normal, double& drho_dZ_normal);
+            void set_gphi(const double zeta, double& gphi, double& dgphi_dzeta);
+            void set_t(const double rho, double& gphi, double& nrho, double& t, double& dt_drho, double& dt_dgphi, double& dt_dnrho  );
 
-            void evalLDA(const double& rho, double& f, double& df_drho);
-            void evalLDA_exchange(const double& rho, double& fx, double& dfx_drho, const double& ex_par);
-            void evalLDA_correlation(const double& rho, double& fc, double& dfc_drho);
+            void evalLDA(const double rho, double& f, double& df_drho);
+            void evalLDA_exchange(const double rho, double& fx, double& dfx_drho, const double ex_par);
+            void evalLDA_correlation(const double rho, double& fc, double& dfc_drho);
 
-            void evalPW91_exchange(const double& rho, double& fx, double& dfx_drho);
-            void evalPW91_correlation_G1( const double& rs, double& G, double& dG_drs, const double& p);
-            void evalPW91_correlation_G2( const double& rs, double& G, double& dG_drs, const double& p);
-            void evalPW91_correlation_G3( const double& rs, double& G, double& dG_drs, const double& p);
-            void evalPW91_correlation_G( const double& rs, double& G, double& dG_drs, const double& A, const double& alpha1, const double& beta1, const double& beta2, const double& beta3, const double& beta4, const double& p);
-            void evalPW91_correlation_int( const double& rho, const double& zeta, double& ec, double& dec_drho, double& dec_dzeta );
+            void evalPW91_exchange(const double rho, double& fx, double& dfx_drho);
+            void evalPW91_correlation_G1( const double rs, double& G, double& dG_drs, const double p);
+            void evalPW91_correlation_G2( const double rs, double& G, double& dG_drs, const double p);
+            void evalPW91_correlation_G3( const double rs, double& G, double& dG_drs, const double p);
+            void evalPW91_correlation_G( const double rs, double& G, double& dG_drs, const double A, const double alpha1, const double beta1, const double beta2, const double beta3, const double beta4, const double p);
+            void evalPW91_correlation_int( const double rho, const double zeta, double& ec, double& dec_drho, double& dec_dzeta );
 
-            //void evalPBE(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_drho_dX, double& df_drho_dY, double& df_drho_dZ);
-            void evalPBE(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_dsigma);
-            void evalPBE_exchange(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& fx, double& dfx_drho, double& dfx_drho_dX, double& dfx_drho_dY, double& dfx_drho_dZ);
-            void evalPBE_correlation(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& fc, double& dfc_drho, double& dfc_drho_dX,double& dfc_drho_dY,double& dfc_drho_dZ);
-            void evalPBE_correlation_H(const double& rho,  double& zeta,  double& nrho,  double& eps,  double& deps_drho,  double& deps_dzeta, double& H, double& dH_drho, double& dH_dzeta, double& dH_dnrho);
+            //void evalPBE(const double rho, const double drho_dX, const double drho_dY, const double drho_dZ, double& f, double& df_drho, double& df_drho_dX, double& df_drho_dY, double& df_drho_dZ);
+            void evalPBE(const double rho, const double drho_dX, const double drho_dY, const double drho_dZ, double& f, double& df_drho, double& df_dsigma);
+            void evalPBE_exchange(const double rho, const double drho_dX, const double drho_dY, const double drho_dZ, double& fx, double& dfx_drho, double& dfx_drho_dX, double& dfx_drho_dY, double& dfx_drho_dZ);
+            void evalPBE_correlation(const double rho, const double drho_dX, const double drho_dY, const double drho_dZ, double& fc, double& dfc_drho, double& dfc_drho_dX,double& dfc_drho_dY,double& dfc_drho_dZ);
+            void evalPBE_correlation_H(const double rho,  double& zeta,  double& nrho,  double& eps,  double& deps_drho,  double& deps_dzeta, double& H, double& dH_drho, double& dH_dzeta, double& dH_dnrho);
 
         };
     }

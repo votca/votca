@@ -157,6 +157,8 @@ namespace votca {
             _do_bse_diag = true;
             _store_eh_interaction = false;
             _store_qp_diag = false;
+            _store_bse_triplets=false;
+            _store_bse_singlets=false;
             string _store_string = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".store");
             if ((_store_string.find("all") != std::string::npos) || (_store_string.find("") != std::string::npos)) {
                 // store according to tasks choice
@@ -441,12 +443,12 @@ namespace votca {
                 } else if (_doVxc) {
 
                     NumericalIntegration _numint;
+                    _numint.setXCfunctional(_functional);
                     double ScaHFX_temp = _numint.getExactExchange(_functional);
                     if (ScaHFX_temp != _ScaHFX) {
                         throw std::runtime_error((boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
                     }
                     _numint.GridSetup(_grid, &dftbs, _atoms,&_dftbasis);
-                    _numint.setXCfunctional(_functional);
                     _dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
 
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;

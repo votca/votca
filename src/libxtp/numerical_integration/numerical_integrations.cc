@@ -56,7 +56,7 @@ namespace votca {
                 throw std::runtime_error("Too many functional names");
             }
             else if (strs.size()<1 ) {
-                throw std::runtime_error("Specify at least one funcitonal");
+                throw std::runtime_error("Specify at least one functional");
             }
             
             for (unsigned i=0;i<strs.size();i++){
@@ -547,7 +547,59 @@ namespace votca {
             return XCMAT;
         }
         
+        
+        
+        void NumericalIntegration::EvaluateXC(const double rho,const ub::matrix<double>& grad_rho,double& f_xc, double& df_drho, double& df_dsigma){
+            
+                              
+ #ifdef LIBXC                   
+                    if (_use_votca) {
+#endif                  
+                        _xc.getXC(xfunc_id, rho, grad_rho(0,0), grad_rho(0,1), grad_rho(0,2), f_xc, df_drho, df_dsigma);
+#ifdef LIBXC
+                    }                        // evaluate via LIBXC, if compiled, otherwise, go via own implementation
 
+                    else {
+                     
+
+                        double sigma = ub::prod(grad_rho,ub::trans(grad_rho))(0,0);
+
+                        double exc[1];
+                        double vsigma[1]; // libxc 
+                        double vrho[1]; // libxc df/drho
+                        switch (xfunc.info->family) {
+                            case XC_FAMILY_LDA:
+                                xc_lda_exc_vxc(&xfunc, 1, &rho, exc, vrho);
+                                break;
+                            case XC_FAMILY_GGA:
+                            case XC_FAMILY_HYB_GGA:
+                                xc_gga_exc_vxc(&xfunc, 1, &rho, &sigma, exc, vrho, vsigma);
+                                break;
+                        }
+                        f_xc = exc[0];
+                        df_drho = vrho[0];
+                        df_dsigma = vsigma[0];
+                        if (_use_separate) {
+                            // via libxc correlation part only
+                            switch (cfunc.info->family) {
+                                case XC_FAMILY_LDA:
+                                    xc_lda_exc_vxc(&cfunc, 1, &rho, exc, vrho);
+                                    break;
+                                case XC_FAMILY_GGA:
+                                case XC_FAMILY_HYB_GGA:
+                                    xc_gga_exc_vxc(&cfunc, 1, &rho, &sigma, exc, vrho, vsigma);
+                                    break;
+                            }
+
+                            f_xc += exc[0];
+                            df_drho += vrho[0];
+                            df_dsigma += vsigma[0];
+                        }
+                    }
+#endif
+            
+            return;
+        }
             
         double NumericalIntegration::IntegratePotential(const vec& rvector){
             
@@ -757,7 +809,7 @@ namespace votca {
                    
             for ( unsigned i = 0 ; i < _grid.size(); i++){
                 for ( unsigned j = 0 ; j < _grid[i].size(); j++){
-                    tools::vec& pos= _grid[i][j].grid_pos;
+                    const tools::vec& pos= _grid[i][j].grid_pos;
                     if(pos.getX()>max.getX()){
                         max.x()=pos.getX();
                     }
@@ -816,7 +868,7 @@ namespace votca {
                         if( box.size()<1){
                             continue;
                         }
-                        GridContainers::integration_box boxcontainer;
+                        integration_box boxcontainer;
                         boxcontainer.grid_pos.reserve(box.size());
                         boxcontainer.weights.reserve(box.size());
                         for(const auto&point:box){
@@ -838,9 +890,9 @@ namespace votca {
         void NumericalIntegration::FindSignificantShells(){
 
             for (unsigned i=0;i<_grid_boxes.size();++i){
-                GridContainers::integration_box & box=_grid_boxes[i];
+                integration_box & box=_grid_boxes[i];
                 for (AOBasis::AOShellIterator _row = _basis->firstShell(); _row != _basis->lastShell(); _row++) {
-                      AOBasis::AOShellIterator _store=_row;
+                      AOShell* _store=(*_row);
                       const double decay=(*_row)->getMinDecay();
                       const tools::vec& shellpos=(*_row)->getPos();
                       
@@ -854,15 +906,15 @@ namespace votca {
                         }
                       }
                 }
-                cout<<box.significant_shells.size()<<" "<<box.grid_pos.size()<<endl;
+                //cout<<box.significant_shells.size()<<" "<<box.grid_pos.size()<<endl;
             }
-            std::vector< GridContainers::integration_box> _grid_boxes_copy=_grid_boxes;
+            std::vector< integration_box> _grid_boxes_copy=_grid_boxes;
             _grid_boxes.resize(0);
             for(auto& box: _grid_boxes_copy){
                 if(box.significant_shells.size()>0){
-                    GridContainers::integration_box newbox=box;
+                    integration_box newbox=box;
                     _grid_boxes.push_back(newbox);
-                    cout<<newbox.significant_shells.size()<<" "<<newbox.grid_pos.size()<<endl;
+                    //cout<<newbox.significant_shells.size()<<" "<<newbox.grid_pos.size()<<endl;
                 }   
             }
             
@@ -871,9 +923,135 @@ namespace votca {
         
         
         ub::matrix<double> NumericalIntegration::IntegrateVXC(const ub::matrix<double>& _density_matrix){
-            ub::matrix<double> Vxc;
+            ub::matrix<double> Vxc=ub::zero_matrix<double>(_density_matrix.size1());
+            EXC = 0;
             
+            for (unsigned i = 0; i < _grid_boxes.size(); ++i) {
+                
+                const integration_box& box = _grid_boxes[i];
+                std::vector<double> densities=std::vector<double>(box.grid_pos.size(),0.0);
+                std::vector< ub::matrix<double> > dens_grad;
+                dens_grad.reserve(box.grid_pos.size());
+                for (unsigned k=0;k<box.grid_pos.size();++k){
+                    dens_grad.push_back(ub::zero_matrix<double>(1,3));
+                }
+                
+                cout<<"box"<<box.grid_pos.size()<<" "<<box.significant_shells.size()<<endl;
+                    
+                std::vector< std::vector<ub::matrix<double> > > dao;
+                dao.reserve(box.significant_shells.size());
+                std::vector< std::vector<ub::matrix<double> > >dao_grad;
+                dao_grad.reserve(box.significant_shells.size());
+                for (unsigned k = 0; k< box.significant_shells.size(); ++k) {
+                    const AOShell& shell = *(box.significant_shells[k]);
+                    std::vector<ub::matrix<double> > d;
+                    d.reserve(box.grid_pos.size());
+                    std::vector<ub::matrix<double> > d_grad;
+                    d_grad.reserve(box.grid_pos.size());
+                    for (unsigned j = 0; j < box.grid_pos.size(); ++j) {
+                        
+                        ub::matrix<double> ao=ub::zero_matrix<double>(1,shell.getSize());
+                        ub::matrix<double> aograd=ub::zero_matrix<double>(3,shell.getSize());
+                        const vec& gridpoint = box.grid_pos[j];
+                        shell.EvalAOspace(ao,aograd,gridpoint);
+                        d.push_back(ao);
+                        d_grad.push_back(aograd);
+                        //diagonal elements
+                        const ub::matrix<double>  DMAT_here=ub::subrange(_density_matrix,
+                                shell.getOffset(), shell.getOffset()+shell.getNumFunc(), 
+                                shell.getOffset(), shell.getOffset()+shell.getNumFunc());
+                  
+                        ub::matrix<double> temp=ub::prod(ao  , DMAT_here);
+                        ub::matrix<double> temp_grad=ub::prod(aograd  , DMAT_here);
+                        dens_grad[j]+=0.5*(ub::prod(temp,ub::trans(aograd))+ub::prod(ao,ub::trans(temp_grad)));
+                        densities[j]+=0.5*ub::prod(temp,ub::trans(ao))(0,0);   
+                        
+                    }
+                    
+                    dao.push_back(d);
+                    dao_grad.push_back(d_grad);    
+                }
+                cout<<"dao"<< dao.size()<<" "<<dao_grad.size()<<endl;
+                //offdiagonal
+                if (box.significant_shells.size() > 1) {
+                    for (unsigned k = 0; k < dao.size(); ++k) {
+                        const AOShell& shell_row = *(box.significant_shells[k]);
+                        for (unsigned l = 0; l < k; ++l) {
+                            const AOShell& shell_col = *(box.significant_shells[l]);
+
+                                    const ub::matrix<double> DMAT_here = ub::subrange(_density_matrix,
+                                    shell_col.getOffset(), shell_col.getOffset() + shell_col.getNumFunc(),
+                                    shell_row.getOffset(), shell_row.getOffset() + shell_row.getNumFunc());
+
+                            for (unsigned j = 0; j < box.grid_pos.size(); ++j) {
+                                ub::matrix<double> grad = ub::zero_matrix<double>(1, 3);
+                                        ub::matrix<double> temp = ub::prod(dao[l][j], DMAT_here);
+                                        ub::matrix<double> temp_grad = ub::prod(dao_grad[l][j], DMAT_here);
+                                        dens_grad[j] += ub::prod(temp, ub::trans(dao_grad[k][j])) + ub::prod(dao[k][j], ub::trans(temp_grad));
+                                        densities[j] += ub::prod(temp, ub::trans(dao[k][j]))(0, 0);
+                            }
+                        }
+                    }
+                }
+                cout<<"den"<<densities.size()<<" "<<dens_grad.size()<<endl;
+                double EXC_box=0.0;
+                for (unsigned j = 0; j < box.grid_pos.size(); ++j) {   
+                    densities[j]     = 2.0 * densities[j];
+              
+                    
+		    if ( densities[j] < 1.e-15 ){
+                        cout<<"skipped"<<densities[j] <<endl;
+                        densities[j]=0.0;
+                        dens_grad[j]=ub::zero_matrix<double>(1,3);
+                        continue; // skip the rest, if density is very small      
+                    } 
+                    dens_grad[j] = 2.0 * dens_grad[j];
+                                     
+                    // get XC for this density_at_grid
+                    double f_xc;      // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r }
+                    double df_drho;   // v_xc_rho(r) = df/drho
+                    double df_dsigma; // df/dsigma ( df/dgrad(rho) = df/dsigma * dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
+                    EvaluateXC( densities[j],dens_grad[j],f_xc, df_drho, df_dsigma);
+                    
+                    EXC_box+=box.weights[j]*densities[j]*f_xc;
+                    densities[j]=box.weights[j]*0.5*df_drho;
+                    dens_grad[j]*=2*df_dsigma*box.weights[j];
+                
+                }
+                cout<<"EXC"<< EXC_box<<endl;
+                
+                std::vector< std::vector< ub::matrix<double> > > xcs;
+                xcs.reserve(dao.size());
+                for (unsigned k = 0; k < dao.size(); ++k) {
+                   std::vector< ub::matrix<double> > xc;
+                   xc.reserve(box.grid_pos.size());
+                   for (unsigned j = 0; j < box.grid_pos.size(); ++j) { 
+                       ub::matrix<double> xc_row=densities[j]*dao[k][j]+ub::prod(dens_grad[j],dao_grad[k][j]);
+                       xc.push_back(xc_row);
+                   }
+                   xcs.push_back(xc);
+                }
+                
+                for (unsigned k = 0; k < dao.size(); ++k) {
+                        const AOShell& shell_row = *(box.significant_shells[k]);
+                        for (unsigned l = 0; l < dao.size(); ++l) {
+                            const AOShell& shell_col = *(box.significant_shells[l]);
+                            ub::matrix<double> vxc_sub=ub::zero_matrix<double>(shell_col.getNumFunc(),shell_row.getNumFunc());
+                            for (unsigned j = 0; j < box.grid_pos.size(); ++j) {                                 
+                                vxc_sub+=ub::prod(xcs[k][j],dao[l][j]);
+                            }
+                            
+                            ub::matrix_range<ub::matrix<double> > Vxc_shells = ub::subrange(Vxc,
+                            shell_col.getOffset(), shell_col.getOffset() + shell_col.getNumFunc(),
+                            shell_row.getOffset(), shell_row.getOffset() + shell_row.getNumFunc());
+                            Vxc_shells+=vxc_sub;
+                                
+                        }
+                }
+                EXC+=EXC_box;
+        }           
             
+            Vxc+=ub::trans(Vxc);
             return Vxc;
         }
         
@@ -1029,19 +1207,19 @@ namespace votca {
             
             const double pi = boost::math::constants::pi<double>();
             // get GridContainer
-            GridContainers _grids;
+            GridContainers initialgrids;
 
             // get radial grid per element
             EulerMaclaurinGrid _radialgrid;
-            _radialgrid.getRadialGrid(bs, _atoms, type, _grids); // this checks out 1:1 with NWChem results! AWESOME
+            _radialgrid.getRadialGrid(bs, _atoms, type, initialgrids); // this checks out 1:1 with NWChem results! AWESOME
 
      
            map<string, GridContainers::radial_grid>::iterator it;
 
             LebedevGrid _sphericalgrid;
          
-            for (it = _grids._radial_grids.begin(); it != _grids._radial_grids.end(); ++it) {
-               _sphericalgrid.getSphericalGrid(_atoms, type, _grids);
+            for (it = initialgrids._radial_grids.begin(); it != initialgrids._radial_grids.end(); ++it) {
+               _sphericalgrid.getSphericalGrid(_atoms, type, initialgrids);
        
             }
 
@@ -1071,7 +1249,7 @@ namespace votca {
                 i++;
             } // atoms
             
-
+            
 
             int i_atom = 0;
             _totalgridsize = 0;
@@ -1081,13 +1259,13 @@ namespace votca {
                 const vec atomA_pos =(*ait)->getPos() * tools::conv::ang2bohr;
              
                 string name = (*ait)->type;
-
+                
                 // get radial grid information for this atom type
-                GridContainers::radial_grid _radial_grid = _grids._radial_grids.at(name);
+                GridContainers::radial_grid _radial_grid = initialgrids._radial_grids.at(name);
 
                 
                 // get spherical grid information for this atom type
-                GridContainers::spherical_grid _spherical_grid = _grids._spherical_grids.at(name);
+                GridContainers::spherical_grid _spherical_grid = initialgrids._spherical_grids.at(name);
 
                 // maximum order (= number of points) in spherical integration grid
                 int maxorder = _sphericalgrid.Type2MaxOrder(name,type);
@@ -1102,7 +1280,7 @@ namespace votca {
                 std::vector<double> _theta;
                 std::vector<double> _phi;
                 std::vector<double> _weight;
-
+                
                 // for each radial value
                 for (unsigned _i_rad = 0; _i_rad < _radial_grid.radius.size(); _i_rad++) {
                     double r = _radial_grid.radius[_i_rad];
@@ -1169,7 +1347,7 @@ namespace votca {
 
                     } // spherical gridpoints
                 } // radial gridpoint
-
+                
 
                 // get all distances from grid points to centers
                 std::vector< std::vector<double> > rq;
@@ -1196,7 +1374,7 @@ namespace votca {
 
                 vector< ctp::QMAtom* > ::iterator NNit;
                 //int i_NN;
-
+               
                 // now check all other centers
                 int i_b =0;
                 for (bit = _atoms.begin(); bit != _atoms.end(); ++bit) {
@@ -1217,7 +1395,7 @@ namespace votca {
                     } // if ( ait != bit) 
                     i_b++;
                 }// bit centers
-              
+                
                 for ( unsigned i_grid = 0; i_grid < _atomgrid.size() ; i_grid++){
                     // call some shit called grid_ssw0 in NWChem
                     std::vector<double> _p = SSWpartition( i_grid, _atoms.size(),rq);
@@ -1242,7 +1420,7 @@ namespace votca {
                     
 
                 } // partition weight for each gridpoint
-
+               
                 // now remove points from the grid with negligible weights
                 
                 for (std::vector<GridContainers::integration_grid >::iterator git = _atomgrid.begin(); git != _atomgrid.end();) {
@@ -1252,12 +1430,15 @@ namespace votca {
                         ++git;
                     }
                 }
-             
-
+                
                 _totalgridsize += _atomgrid.size() ;
+
                 _grid.push_back(_atomgrid);
+                
                 i_atom++;
+                
             } // atoms
+            
             SortGridpointsintoBlocks();
             FindSignificantShells();
             FindsignificantAtoms();

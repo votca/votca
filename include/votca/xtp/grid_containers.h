@@ -61,13 +61,7 @@ namespace votca { namespace xtp {
             };
             
             
-            struct integration_box{
-                std::vector< tools::vec > grid_pos;
-                std::vector< AOBasis::AOShellIterator > significant_shells;
-                std::vector< double > weights;
-                std::vector< double > densities;
-                
-            };
+            
 
         };
 

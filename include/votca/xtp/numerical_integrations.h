@@ -46,7 +46,15 @@ namespace votca { namespace xtp {
         public: 
             
             NumericalIntegration():density_set(false) {};
-
+            
+            
+            ~NumericalIntegration(){
+            #ifdef LIBXC
+                xc_func_end(&xfunc);
+                xc_func_end(&cfunc);
+            #endif
+            };
+            
             void GridSetup(std::string type, BasisSet* bs , std::vector<ctp::QMAtom* > _atoms,AOBasis* basis  );
             
          
@@ -71,9 +79,19 @@ namespace votca { namespace xtp {
           
             
         private:
+            struct integration_box{
+                std::vector< tools::vec > grid_pos;
+                std::vector<const AOShell* > significant_shells;
+                std::vector< double > weights;
+                std::vector< double > densities;
+                
+            };
             
            void FindSignificantShells();
             
+           void EvaluateXC(const double rho,const ub::matrix<double>& grad_rho,double& f_xc, double& df_drho, double& df_dsigma);
+           
+           
            void FindsignificantAtoms();
            double erf1c(double x);
            double erfcc(double x);
@@ -85,19 +103,14 @@ namespace votca { namespace xtp {
 
             double  _totalgridsize;
             
-            std::vector< GridContainers::integration_box> _grid_boxes;
+            std::vector< integration_box> _grid_boxes;
             
             
             ExchangeCorrelation _xc;
             bool _use_votca;
             int xfunc_id;
             
-            #ifdef LIBXC
-            bool _use_separate;
-            int cfunc_id;
-            xc_func_type xfunc; // handle for exchange functional
-            xc_func_type cfunc; // handle for correlation functional
-            #endif
+            
             
             std::vector< std::vector< GridContainers::integration_grid > > _grid;
             double EXC;
@@ -110,6 +123,14 @@ namespace votca { namespace xtp {
             std::vector< std::vector< ub::matrix<double> > >dmat_vector;
             std::vector< std::vector< std::vector< ub::matrix<double> > > > xcmat_vector_thread;
             std::vector< std::vector< ub::matrix<double> > > xcmat_vector;
+            
+            #ifdef LIBXC
+            bool _use_separate;
+            int cfunc_id;
+            xc_func_type xfunc; // handle for exchange functional
+            xc_func_type cfunc; // handle for correlation functional
+            #endif
+            
         };
 
     }}

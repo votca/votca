@@ -29,7 +29,7 @@ using namespace std;
     
         // Main interface function to calculate XC potential and it's gradient, depending on local rho and gradient of rho        
 
-         void ExchangeCorrelation::getXC(int type, const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_dsigma) {
+         void ExchangeCorrelation::getXC(int type, const double rho, const double drho_dX, const double drho_dY, const double drho_dZ, double& f, double& df_drho, double& df_dsigma) {
 
             if (type == -1) evalLDA(rho, f, df_drho);
             else if (type == -2) evalPBE(rho, drho_dX, drho_dY, drho_dZ, f, df_drho, df_dsigma );
@@ -39,7 +39,7 @@ using namespace std;
 
         /* ======= GGA PBE ======== */
 
-         void ExchangeCorrelation::evalPBE(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& f, double& df_drho, double& df_dsigma) {
+         void ExchangeCorrelation::evalPBE(const double rho, const double drho_dX, const double drho_dY, const double drho_dZ, double& f, double& df_drho, double& df_dsigma) {
 
             double fx = 0.0;
             double dfx_drho = 0.0;
@@ -76,7 +76,7 @@ using namespace std;
 
         // GGA PBE EXCHANGE
 
-         void ExchangeCorrelation::evalPBE_exchange(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& fx, double& dfx_drho, double& dfx_drho_dX, double& dfx_drho_dY, double& dfx_drho_dZ) {
+         void ExchangeCorrelation::evalPBE_exchange(const double rho, const double drho_dX, const double drho_dY, const double drho_dZ, double& fx, double& dfx_drho, double& dfx_drho_dX, double& dfx_drho_dY, double& dfx_drho_dZ) {
 
             double norm = 0.0;
             double drho_dX_normal = 0.0;
@@ -133,7 +133,7 @@ using namespace std;
 
 
         // GGA PBE CORRELATION
-         void ExchangeCorrelation::evalPBE_correlation(const double& rho, const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& fc, double& dfc_drho, double& dfc_drho_dX, double& dfc_drho_dY, double& dfc_drho_dZ) {
+         void ExchangeCorrelation::evalPBE_correlation(const double rho, const double drho_dX, const double drho_dY, const double drho_dZ, double& fc, double& dfc_drho, double& dfc_drho_dX, double& dfc_drho_dY, double& dfc_drho_dZ) {
 
             double norm = 0.0;
             double drho_dX_normal = 0.0;
@@ -176,7 +176,7 @@ using namespace std;
         
         
         
-         void ExchangeCorrelation::evalPBE_correlation_H(const double& rho,  double& zeta,  double& nrho,  double& eps, double& deps_drho, double& deps_dzeta, double& H, double& dH_drho, double& dH_dzeta, double& dH_dnrho){
+         void ExchangeCorrelation::evalPBE_correlation_H(const double rho,  double& zeta,  double& nrho,  double& eps, double& deps_drho, double& deps_dzeta, double& H, double& dH_drho, double& dH_dzeta, double& dH_dnrho){
             
         
             const double beta = 0.066725;
@@ -264,7 +264,7 @@ using namespace std;
         
         
         
-        void ExchangeCorrelation::evalPW91_correlation_int(const double& rho, const double& zeta, double& ec, double& dec_drho, double& dec_dzeta){
+        void ExchangeCorrelation::evalPW91_correlation_int(const double rho, const double zeta, double& ec, double& dec_drho, double& dec_dzeta){
             
                  const double f0_second = 1.709920934161365447;
 
@@ -325,7 +325,7 @@ using namespace std;
 
 
 
-        void ExchangeCorrelation::evalPW91_correlation_G(const double& rs, double& G, double& dG_drs, const double& A, const double& alpha1, const double& beta1, const double& beta2, const double& beta3, const double& beta4, const double& p){
+        void ExchangeCorrelation::evalPW91_correlation_G(const double rs, double& G, double& dG_drs, const double A, const double alpha1, const double beta1, const double beta2, const double beta3, const double beta4, const double p){
 
 
              double rs_1 = sqrt(rs);
@@ -346,7 +346,7 @@ using namespace std;
        } // evalPW91_correlation_G 
 
 
-        void ExchangeCorrelation::evalPW91_correlation_G1(const double& rs, double& G, double& dG_drs, const double& p){
+        void ExchangeCorrelation::evalPW91_correlation_G1(const double rs, double& G, double& dG_drs, const double p){
 
             const double PW91_A      = 0.031091;
             const double PW91_alpha1 = 0.21370;
@@ -360,7 +360,7 @@ using namespace std;
            return;
        }
 
-        void ExchangeCorrelation::evalPW91_correlation_G2(const double& rs, double& G, double& dG_drs, const double& p){
+        void ExchangeCorrelation::evalPW91_correlation_G2(const double rs, double& G, double& dG_drs, const double p){
 
             const double PW91_A      = 0.015545;
             const double PW91_alpha1 = 0.20548;
@@ -374,7 +374,7 @@ using namespace std;
            return;
        }
 
-        void ExchangeCorrelation::evalPW91_correlation_G3(const double& rs, double& G, double& dG_drs, const double& p){
+        void ExchangeCorrelation::evalPW91_correlation_G3(const double rs, double& G, double& dG_drs, const double p){
 
             const double PW91_A      = 0.016887;
             const double PW91_alpha1 = 0.11125;
@@ -392,7 +392,7 @@ using namespace std;
 
         // PW91 local-density parametrization of exchange
 
-         void ExchangeCorrelation::evalPW91_exchange(const double& rho, double& fx, double& dfx_drho) {
+         void ExchangeCorrelation::evalPW91_exchange(const double rho, double& fx, double& dfx_drho) {
 
             const double ex_par = -0.9163305865662857998 * 0.5; // in Hartree
 
@@ -416,7 +416,7 @@ using namespace std;
 
         // LDA exchange and correlation separate contributions
 
-         void ExchangeCorrelation::evalLDA(const double& rho, double& f, double& df_drho) {
+         void ExchangeCorrelation::evalLDA(const double rho, double& f, double& df_drho) {
 
             if (rho <= 0.0) {
                 return;
@@ -446,7 +446,7 @@ using namespace std;
 
         // LDA CORRELATION
 
-         void ExchangeCorrelation::evalLDA_exchange(const double& rho, double& fx, double& dfx_drho, const double& ex_par) {
+         void ExchangeCorrelation::evalLDA_exchange(const double rho, double& fx, double& dfx_drho, const double ex_par) {
 
             if (rho <= 0.0) {
                 return;
@@ -467,7 +467,7 @@ using namespace std;
         
         // LDA EXCHANGE
 
-         void ExchangeCorrelation::evalLDA_correlation(const double& rho, double& fc, double& dfc_drho) {
+         void ExchangeCorrelation::evalLDA_correlation(const double rho, double& fc, double& dfc_drho) {
 
 
             if (rho <= 0.0) {
@@ -522,7 +522,7 @@ using namespace std;
         /*    A SET OF HELPER FUNCTIONS FOR EVALUATION OF XC */
    
         
-         void ExchangeCorrelation::set_t(const double& rho, double& gphi, double& nrho, double& t, double& dt_drho, double& dt_dgphi, double& dt_dnrho  ){
+         void ExchangeCorrelation::set_t(const double rho, double& gphi, double& nrho, double& t, double& dt_drho, double& dt_dgphi, double& dt_dnrho  ){
             
             const double t_cf = 1.007715881368979474 / 4.0 ;
             const double c7_6 = 7.0/6.0;
@@ -536,7 +536,7 @@ using namespace std;
         }
         
         
-         void ExchangeCorrelation::set_gphi(const double& zeta, double& gphi, double& dgphi_dzeta){
+         void ExchangeCorrelation::set_gphi(const double zeta, double& gphi, double& dgphi_dzeta){
   
             const double c2_3 = 2.0/3.0;
             const double c1_3 = 1.0/3.0;
@@ -556,7 +556,7 @@ using namespace std;
            return; 
         } // set_gphi
 
-         void ExchangeCorrelation::set_fzeta(const double& zeta, double& fzeta, double& dfzeta_dzeta) {
+         void ExchangeCorrelation::set_fzeta(const double zeta, double& fzeta, double& dfzeta_dzeta) {
 
             const double c4_3 = 4.0 / 3.0;
             const double c1_3 = 1.0 / 3.0;
@@ -568,7 +568,7 @@ using namespace std;
             return;
         }
 
-         void ExchangeCorrelation::set_s(const double& density, double& gradNorm, double& s, double& ds_drho, double& ds_dnrho) {
+         void ExchangeCorrelation::set_s(const double density, double& gradNorm, double& s, double& ds_drho, double& ds_dnrho) {
 
             const double pisq3_cubroot = 3.093667726280135977;
             s = 0.0;
@@ -592,7 +592,7 @@ using namespace std;
             return;
         }
 
-         void ExchangeCorrelation::set_rs(const double& rho, double& rs, double& drs_drho) {
+         void ExchangeCorrelation::set_rs(const double rho, double& rs, double& drs_drho) {
             const double onethird = 1.0 / 3.0;
             const double pi = boost::math::constants::pi<double>();
 
@@ -610,7 +610,7 @@ using namespace std;
             return;
         }
 
-        void ExchangeCorrelation::setNormGradient(const double& drho_dX, const double& drho_dY, const double& drho_dZ, double& norm, double& drho_dX_normal, double& drho_dY_normal, double& drho_dZ_normal) {
+        void ExchangeCorrelation::setNormGradient(const double drho_dX, const double drho_dY, const double drho_dZ, double& norm, double& drho_dX_normal, double& drho_dY_normal, double& drho_dZ_normal) {
 
             // get norm of gradient
             norm = sqrt(drho_dX * drho_dX + drho_dY * drho_dY + drho_dZ * drho_dZ);

@@ -251,7 +251,9 @@ namespace votca {
                         _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat);
                         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
                     } else {
+                        cout<< _gridIntegration.IntegrateVXC(_dftAOdmat);
                         _orbitals->AOVxc() = _gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat);
+                        cout<<_orbitals->AOVxc()<<endl;
                         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix " << flush;
                     }
                     ub::matrix<double> H = H0 + _ERIs.getERIs() + _orbitals->AOVxc();
@@ -762,6 +764,7 @@ namespace votca {
             // setup numerical integration grid
             _gridIntegration.GridSetup(_grid_name, &_dftbasisset, _atoms, &_dftbasis);
             _gridIntegration.setXCfunctional(_xc_functional_name);
+
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup numerical integration grid " << _grid_name << " for vxc functional "
                     << _xc_functional_name << " with " << _gridIntegration.getGridpoints().size() << " points" << flush;
 
