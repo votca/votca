@@ -33,6 +33,7 @@
 #include <votca/xtp/grid_containers.h>
 #include <votca/xtp/vxc_functionals.h>
 #include <votca/xtp/exchange_correlation.h>
+#include <votca/xtp/gridbox.h>
 #include <votca/ctp/qmatom.h>
 
 
@@ -72,25 +73,20 @@ namespace votca { namespace xtp {
             ub::matrix<double> IntegrateVXC_Atomblock (const ub::matrix<double>& _density_matrix);
            
             ub::matrix<double> IntegrateVXC (const ub::matrix<double>& _density_matrix);
-         
+            
+           
             
             // this gives int (e_xc-V_xc)*rho d3r
             double getTotEcontribution(){return EXC;}
           
             
         private:
-            struct integration_box{
-                std::vector< tools::vec > grid_pos;
-                std::vector<const AOShell* > significant_shells;
-                std::vector< double > weights;
-                std::vector< double > densities;
-                
-            };
+            
             
            void FindSignificantShells();
             
            void EvaluateXC(const double rho,const ub::matrix<double>& grad_rho,double& f_xc, double& df_drho, double& df_dsigma);
-           
+          
            
            void FindsignificantAtoms();
            double erf1c(double x);
@@ -103,7 +99,7 @@ namespace votca { namespace xtp {
 
             double  _totalgridsize;
             
-            std::vector< integration_box> _grid_boxes;
+            std::vector< GridBox > _grid_boxes;
             
             
             ExchangeCorrelation _xc;

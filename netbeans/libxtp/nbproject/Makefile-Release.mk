@@ -58,13 +58,13 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce08c7a/diis.o \
 	${OBJECTDIR}/_ext/1ce08c7a/esp2multipole.o \
 	${OBJECTDIR}/_ext/1ce08c7a/espfit.o \
-	${OBJECTDIR}/_ext/1ce08c7a/exchange_correlation.o \
 	${OBJECTDIR}/_ext/1ce08c7a/extractorfactory.o \
 	${OBJECTDIR}/_ext/1ce08c7a/fourcenter_rep.o \
 	${OBJECTDIR}/_ext/1ce08c7a/fourcenters_dft.o \
 	${OBJECTDIR}/_ext/1ce08c7a/gdma.o \
 	${OBJECTDIR}/_ext/1ce08c7a/gnode.o \
 	${OBJECTDIR}/_ext/1ce08c7a/grid.o \
+	${OBJECTDIR}/_ext/1ce08c7a/gridbox.o \
 	${OBJECTDIR}/_ext/6916996f/bse.o \
 	${OBJECTDIR}/_ext/6916996f/bse_analysis.o \
 	${OBJECTDIR}/_ext/6916996f/gwa.o \
@@ -251,11 +251,6 @@ ${OBJECTDIR}/_ext/1ce08c7a/espfit.o: nbproject/Makefile-${CND_CONF}.mk ../../src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/espfit.o ../../src/libxtp/espfit.cc
 
-${OBJECTDIR}/_ext/1ce08c7a/exchange_correlation.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/exchange_correlation.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/exchange_correlation.o ../../src/libxtp/exchange_correlation.cc
-
 ${OBJECTDIR}/_ext/1ce08c7a/extractorfactory.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/extractorfactory.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
@@ -285,6 +280,11 @@ ${OBJECTDIR}/_ext/1ce08c7a/grid.o: nbproject/Makefile-${CND_CONF}.mk ../../src/l
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/grid.o ../../src/libxtp/grid.cc
+
+${OBJECTDIR}/_ext/1ce08c7a/gridbox.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/gridbox.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/gridbox.o ../../src/libxtp/gridbox.cc
 
 ${OBJECTDIR}/_ext/6916996f/bse.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/gwbse/bse.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/6916996f

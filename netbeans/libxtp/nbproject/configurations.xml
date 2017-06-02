@@ -79,6 +79,7 @@
       <itemPath>../../include/votca/xtp/gnode.h</itemPath>
       <itemPath>../../include/votca/xtp/grid.h</itemPath>
       <itemPath>../../include/votca/xtp/grid_containers.h</itemPath>
+      <itemPath>../../include/votca/xtp/gridbox.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbse.h</itemPath>
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
@@ -167,6 +168,7 @@
         <itemPath>../../src/libxtp/gwbse/rpa.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="NumInt" projectFiles="true">
+        <itemPath>../../src/libxtp/gridbox.cc</itemPath>
         <itemPath>../../src/libxtp/numerical_integration/numerical_integrations.cc</itemPath>
         <itemPath>../../src/libxtp/numerical_integration/radial_euler_maclaurin_rule.cc</itemPath>
         <itemPath>../../src/libxtp/numerical_integration/sphere_lebedev_rule.cc</itemPath>
@@ -376,6 +378,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/gridbox.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -621,11 +625,6 @@
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/exchange_correlation.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/extractorfactory.cc"
             ex="false"
             tool="1"
@@ -678,6 +677,8 @@
       <item path="../../src/libxtp/gnode.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/grid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gridbox.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -998,6 +999,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/gridbox.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobapplication.h"
@@ -1242,11 +1245,6 @@
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/exchange_correlation.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/extractorfactory.cc"
             ex="false"
             tool="1"
@@ -1299,6 +1297,8 @@
       <item path="../../src/libxtp/gnode.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/grid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gridbox.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
       </item>

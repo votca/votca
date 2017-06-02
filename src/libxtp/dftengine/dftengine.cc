@@ -251,7 +251,8 @@ namespace votca {
                         _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat);
                         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
                     } else {
-                        cout<< _gridIntegration.IntegrateVXC(_dftAOdmat);
+                        cout<< _gridIntegration.IntegrateVXC(_dftAOdmat)<<endl<<endl;
+                        
                         _orbitals->AOVxc() = _gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat);
                         cout<<_orbitals->AOVxc()<<endl;
                         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix " << flush;
