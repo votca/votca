@@ -304,7 +304,7 @@ void AOBasis::addReorderShell(const string& start,const string& target,const str
                     neworder.push_back(_cur_pos + 1);
                     neworder.push_back(_cur_pos + 3);
                     neworder.push_back(_cur_pos + 2);
-                } else if (start == "gaussian" || "nwchem") {
+                } else if (start == "gaussian" || start == "nwchem") {
                     neworder.push_back(_cur_pos + 3);
                     neworder.push_back(_cur_pos + 2);
                     neworder.push_back(_cur_pos + 1);
