@@ -204,9 +204,9 @@ namespace votca {
             NuclearRepulsion();
             if (_addexternalsites) {
                 H0 += _dftAOESP.getExternalpotential();
-                //cout<<"analytic"<<_dftAOESP.getExternalpotential()<<endl;
+               
                 H0 += _dftAODipole_Potential.getExternalpotential();
-                //H0+= _dftAOQuadrupole_Potential.getExternalpotential();
+                H0+= _dftAOQuadrupole_Potential.getExternalpotential();
 
                 double estat = ExternalRepulsion();
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " E_electrostatic " << estat << flush;
@@ -248,10 +248,10 @@ namespace votca {
                         _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
                     }
                     if (_use_small_grid) {
-                        _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat);
+                        _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
                         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
                     } else {
-                        _orbitals->AOVxc() = _gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat);
+                        _orbitals->AOVxc() = _gridIntegration.IntegrateVXC(_dftAOdmat);
                         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix " << flush;
                     }
                     ub::matrix<double> H = H0 + _ERIs.getERIs() + _orbitals->AOVxc();
@@ -296,12 +296,9 @@ namespace votca {
                     vxcenergy = _gridIntegration_small.getTotEcontribution();
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
                 } else {
-
-                    //_gridIntegration.IntegrateVXC(_dftAOdmat);
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix new" << flush;
-                    _orbitals->AOVxc() = _gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat);
+                    _orbitals->AOVxc() = _gridIntegration.IntegrateVXC(_dftAOdmat);
                     vxcenergy = _gridIntegration.getTotEcontribution();
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix old" << flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix " << flush;
                 }
 
                 ub::matrix<double> H = H0 + _ERIs.getERIs() + _orbitals->AOVxc();
@@ -605,7 +602,7 @@ namespace votca {
                 ub::matrix<double>dftAOdmat_beta = DensityMatrix_unres(MOCoeff_beta, beta_e);
                 bool _HF=false;
                 double energyold = 0;
-                int maxiter = 50;
+                int maxiter = 80;
                 for (int this_iter = 0; this_iter < maxiter; this_iter++) {
                    
                     ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);
@@ -624,9 +621,9 @@ namespace votca {
                         E_two_beta+=E_exx_beta;
                         
                     }else{
-                        ub::matrix<double> AOVxc_alpha = gridIntegration.IntegrateVXC_Atomblock(dftAOdmat_alpha);
+                        ub::matrix<double> AOVxc_alpha = gridIntegration.IntegrateVXC(dftAOdmat_alpha);
                         double E_vxc_alpha = gridIntegration.getTotEcontribution();
-                        ub::matrix<double> AOVxc_beta = gridIntegration.IntegrateVXC_Atomblock(dftAOdmat_beta);
+                        ub::matrix<double> AOVxc_beta = gridIntegration.IntegrateVXC(dftAOdmat_beta);
                         double E_vxc_beta = gridIntegration.getTotEcontribution();
                         H_alpha += AOVxc_alpha;
                         H_beta += AOVxc_beta;
@@ -767,8 +764,8 @@ namespace votca {
             _gridIntegration.setXCfunctional(_xc_functional_name);
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup numerical integration grid " << _grid_name << " for vxc functional "
-                    << _xc_functional_name << " with " << _gridIntegration.getGridpoints().size() << " points" << flush;
-
+                    << _xc_functional_name << " with " << _gridIntegration.getGridSize() << " points" << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) <<"\t\t"<<" divided into "<<_gridIntegration.getBoxesSize()<<" boxes"<<flush;
             if (_use_small_grid) {
                 _gridIntegration_small.GridSetup(_grid_name_small, &_dftbasisset, _atoms, &_dftbasis);
                 _gridIntegration_small.setXCfunctional(_xc_functional_name);

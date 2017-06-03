@@ -64,6 +64,9 @@ namespace votca { namespace xtp {
             double getExactExchange(const std::string _functional);
             std::vector<const vec*> getGridpoints();
             
+            unsigned getGridSize() const{return _totalgridsize;}
+            unsigned getBoxesSize() const{return _grid_boxes.size();}
+            
             void setXCfunctional(const string _functional);
             
             double IntegrateDensity_Atomblock(const ub::matrix<double>& _density_matrix);

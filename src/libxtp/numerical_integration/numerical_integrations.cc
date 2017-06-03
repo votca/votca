@@ -544,7 +544,7 @@ namespace votca {
         }
          
             XCMAT+=ub::trans(XCMAT);   
-            cout<<EXC<<endl;
+            //cout<<EXC<<endl;
             return XCMAT;
         }
         
@@ -801,7 +801,7 @@ namespace votca {
         
         
         void NumericalIntegration::SortGridpointsintoBlocks(){
-            const double boxsize=4.0;
+            const double boxsize=3;
             
             std::vector< std::vector< std::vector< std::vector< GridContainers::integration_grid* > > > >  boxes;
             
@@ -919,7 +919,7 @@ namespace votca {
             std::sort(indexes.begin(), indexes.end(),[&sizes](unsigned i1, unsigned i2) {return sizes[i1] > sizes[i2];});
             _grid_boxes.resize(0);
             for(unsigned& index: indexes){
-                if(_grid_boxes_copy[index].size()>0){
+                if(_grid_boxes_copy[index].Shellsize()>0){
                     GridBox newbox=_grid_boxes_copy[index];
                     newbox.PrepareForIntegration();
                     _grid_boxes.push_back(newbox);
@@ -936,7 +936,22 @@ namespace votca {
             ub::matrix<double> Vxc=ub::zero_matrix<double>(_density_matrix.size1());
             EXC = 0;
             
-            for (unsigned i = 0; i < _grid_boxes.size(); ++i) {
+            unsigned nthreads = 1;
+            #ifdef _OPENMP
+               nthreads = omp_get_max_threads();
+            #endif
+               std::vector<ub::matrix<double> >vxc_thread;
+               std::vector<double> Exc_thread=std::vector<double>(nthreads,0.0);
+               for(unsigned i=0;i<nthreads;++i){
+                   ub::matrix<double> Vxc_thread=ub::zero_matrix<double>(_density_matrix.size1());
+                   vxc_thread.push_back(Vxc_thread);
+               }
+               
+               
+            #pragma omp parallel for
+            for (unsigned thread=0;thread<nthreads;++thread){
+            for (unsigned i = thread; i < _grid_boxes.size(); i+=nthreads) {
+                
                 double EXC_box=0.0;
                 GridBox& box = _grid_boxes[i];
                 
@@ -953,6 +968,7 @@ namespace votca {
                 ub::matrix<double> _tempgrad = ub::zero_matrix<double>(3,box.Matrixsize());
                 ub::matrix<double> ao=ub::matrix<double>(1,box.Matrixsize());
                 ub::matrix<double> ao_grad=ub::matrix<double>(3,box.Matrixsize());
+                
                 
                 //iterate over gridpoints
                 for(unsigned p=0;p<box.size();p++){
@@ -983,19 +999,27 @@ namespace votca {
                     double df_dsigma; // df/dsigma ( df/dgrad(rho) = df/dsigma * dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
                     EvaluateXC( rho,rho_grad,f_xc, df_drho, df_dsigma);
                     
-                    ub::matrix<double> _addXC = weights[p] * df_drho * ao *0.5;
-
-                    _addXC+=  2.0*df_dsigma * weights[p] * ub::prod(rho_grad,ao_grad);
+                    double weight=weights[p];
+                    ub::matrix<double> _addXC = weight * df_drho * ao *0.5;
+                    
+                    _addXC+=  2.0*df_dsigma * weight * ub::prod(rho_grad,ao_grad);
 
                     // Exchange correlation energy
-                    EXC_box += weights[p]  * rho * f_xc;
+                    EXC_box += weight  * rho * f_xc;
                     
                     Vxc_here+=ub::prod( ub::trans(_addXC), ao);
                 }
-                box.AddtoBigMatrix(Vxc,Vxc_here);
-                EXC+=EXC_box;
+                
+                
+                box.AddtoBigMatrix(vxc_thread[thread],Vxc_here);
+                Exc_thread[thread]+=EXC_box;
+                
             }
-            cout<<EXC<<endl;
+            }   
+            for(int i=0;i<nthreads;++i){
+                Vxc+=vxc_thread[i];
+                EXC+=Exc_thread[i];
+               }   
             Vxc+=ub::trans(Vxc);
             return Vxc;
         }
