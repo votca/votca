@@ -251,10 +251,7 @@ namespace votca {
                         _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat);
                         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
                     } else {
-                        cout<< _gridIntegration.IntegrateVXC(_dftAOdmat)<<endl<<endl;
-                        
                         _orbitals->AOVxc() = _gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat);
-                        cout<<_orbitals->AOVxc()<<endl;
                         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix " << flush;
                     }
                     ub::matrix<double> H = H0 + _ERIs.getERIs() + _orbitals->AOVxc();
@@ -299,9 +296,12 @@ namespace votca {
                     vxcenergy = _gridIntegration_small.getTotEcontribution();
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
                 } else {
+
+                    //_gridIntegration.IntegrateVXC(_dftAOdmat);
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix new" << flush;
                     _orbitals->AOVxc() = _gridIntegration.IntegrateVXC_Atomblock(_dftAOdmat);
                     vxcenergy = _gridIntegration.getTotEcontribution();
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix " << flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix old" << flush;
                 }
 
                 ub::matrix<double> H = H0 + _ERIs.getERIs() + _orbitals->AOVxc();

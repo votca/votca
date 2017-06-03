@@ -109,9 +109,6 @@ public:
     void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const vec& grid_pos ) const;
     void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, const vec& grid_pos ) const;
 
-   void EvalAOspace(ub::matrix<double> & AOvalues,ub::matrix<double> & AODervalues, const vec& grid_pos ) const;
-    
-   
     // iterator over pairs (decay constant; contraction coefficient)
     typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
     GaussianIterator firstGaussian() const{ return _gaussians.begin(); }

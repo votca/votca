@@ -273,6 +273,7 @@ namespace votca {
             if(_use_votca){
                 cout<<"Warning: VOTCA_PBE does give correct Vxc but incorrect E_xc"<<endl;
             }
+            setXC=true;
             return;
         }
         
@@ -543,7 +544,7 @@ namespace votca {
         }
          
             XCMAT+=ub::trans(XCMAT);   
-  
+            cout<<EXC<<endl;
             return XCMAT;
         }
         
@@ -871,9 +872,9 @@ namespace votca {
                         GridBox gridbox;
                         
                         for(const auto&point:box){
-                            gridbox.addGridPoint(point);
+                            gridbox.addGridPoint(*point);
                         }
-                        _grid_boxes.push_back(boxcontainer);
+                        _grid_boxes.push_back(gridbox);
                     }
                 }
             }
@@ -918,7 +919,7 @@ namespace votca {
             std::sort(indexes.begin(), indexes.end(),[&sizes](unsigned i1, unsigned i2) {return sizes[i1] > sizes[i2];});
             _grid_boxes.resize(0);
             for(unsigned& index: indexes){
-                if(_grid_boxes_copy[index].weights.size()>0){
+                if(_grid_boxes_copy[index].size()>0){
                     GridBox newbox=_grid_boxes_copy[index];
                     newbox.PrepareForIntegration();
                     _grid_boxes.push_back(newbox);
@@ -941,35 +942,42 @@ namespace votca {
                 
                 
                 const ub::matrix<double>  DMAT_here=box.ReadFromBigMatrix(_density_matrix);
+                
                 ub::matrix<double> Vxc_here=ub::zero_matrix<double>(DMAT_here.size1());
                 const std::vector<tools::vec>& points=box.getGridPoints();
                 const std::vector<double>& weights=box.getGridWeights();
                 
                 ub::range one=ub::range(0,1);
                 ub::range three=ub::range(0,3);
-                ub::matrix<double> _temp     = ub::zero_matrix<double>(1,box.size());
-                ub::matrix<double> _tempgrad = ub::zero_matrix<double>(3,box.size());
-                ub::matrix<double> ao=ub::matrix<double>(1,box.size());
-                ub::matrix<double> ao_grad=ub::matrix<double>(3,box.size());
+                ub::matrix<double> _temp     = ub::zero_matrix<double>(1,box.Matrixsize());
+                ub::matrix<double> _tempgrad = ub::zero_matrix<double>(3,box.Matrixsize());
+                ub::matrix<double> ao=ub::matrix<double>(1,box.Matrixsize());
+                ub::matrix<double> ao_grad=ub::matrix<double>(3,box.Matrixsize());
                 
                 //iterate over gridpoints
                 for(unsigned p=0;p<box.size();p++){
-                    ao=ub::zero_matrix<double>(1,box.size());
-                    ao_grad=ub::zero_matrix<double>(3,box.size());
+                    ao=ub::zero_matrix<double>(1,box.Matrixsize());
+                    ao_grad=ub::zero_matrix<double>(3,box.Matrixsize());
                     const std::vector<ub::range>& aoranges=box.getAOranges();
                     const std::vector<const AOShell* > shells=box.getShells();
                     for(unsigned j=0;j<box.Shellsize();++j){
                         const AOShell* shell=shells[j];
-                        shell->EvalAOspace(ub::project(ao,one,aoranges[j]),ub::project(ao_grad,three,aoranges[j]),points[p]);
+                        ub::matrix_range< ub::matrix<double> > aoshell=ub::project(ao,one,aoranges[j]);
+                        ub::matrix_range< ub::matrix<double> > ao_grad_shell=ub::project(ao_grad,three,aoranges[j]);
+                        shell->EvalAOspace(aoshell,ao_grad_shell,points[p]);
                     }
+                    
                     _temp=ub::prod( ao, DMAT_here);
+                   
                     _tempgrad=ub::prod(ao_grad,DMAT_here);
+                    
                     double rho=ub::prod(_temp, ub::trans( ao) )(0,0);
+                    
                     ub::matrix<double> rho_grad=ub::prod(_temp, ub::trans(ao_grad))+ub::prod(ao,ub::trans(_tempgrad));
                     
-                    rho*= 2.0;
+                    
 		    if ( rho < 1.e-15 ) continue; // skip the rest, if density is very small
-                    rho_grad = 2.0 * rho_grad;
+                    
                     double f_xc;      // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r }
                     double df_drho;   // v_xc_rho(r) = df/drho
                     double df_dsigma; // df/dsigma ( df/dgrad(rho) = df/dsigma * dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
@@ -985,7 +993,9 @@ namespace votca {
                     Vxc_here+=ub::prod( ub::trans(_addXC), ao);
                 }
                 box.AddtoBigMatrix(Vxc,Vxc_here);
-              
+                EXC+=EXC_box;
+            }
+            cout<<EXC<<endl;
             Vxc+=ub::trans(Vxc);
             return Vxc;
         }

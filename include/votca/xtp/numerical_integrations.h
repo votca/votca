@@ -46,13 +46,15 @@ namespace votca { namespace xtp {
         class NumericalIntegration {
         public: 
             
-            NumericalIntegration():density_set(false) {};
+            NumericalIntegration():density_set(false),setXC(false) {};
             
             
             ~NumericalIntegration(){
             #ifdef LIBXC
-                xc_func_end(&xfunc);
-                xc_func_end(&cfunc);
+                if(setXC){
+                    xc_func_end(&xfunc);
+                    xc_func_end(&cfunc);
+                }
             #endif
             };
             
@@ -107,7 +109,7 @@ namespace votca { namespace xtp {
             int xfunc_id;
             
             
-            
+            bool setXC;
             std::vector< std::vector< GridContainers::integration_grid > > _grid;
             double EXC;
             bool density_set;

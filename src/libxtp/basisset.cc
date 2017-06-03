@@ -211,7 +211,7 @@ int OffsetFuncShell_cartesian(const string& shell_type ) {
 void BasisSet::LoadBasisSet ( std::string name ) 
 {    
     Property basis_property;
- 
+    _name=name;
     // if name contains .xml, assume a basisset .xml file is located in the working directory
     std::size_t found_xml = name.find(".xml");
     std::string xmlFile;
@@ -284,7 +284,7 @@ void BasisSet::LoadBasisSet ( std::string name )
 void BasisSet::LoadPseudopotentialSet ( std::string name ) 
 {    
     Property basis_property;
- 
+    _name=name;
   // if name contains .xml, assume a basisset .xml file is located in the working directory
     std::size_t found_xml = name.find(".xml");
     std::string xmlFile;
