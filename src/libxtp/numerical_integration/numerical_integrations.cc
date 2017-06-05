@@ -588,12 +588,10 @@ namespace votca {
                     
                     double rho=ub::prod(_temp, ub::trans( ao) )(0,0);
                     box.addDensity(rho);
-                    N_box+=rho;
+                    N_box+=rho*weights[p];
                     
                 }
-                
-                
-                
+
                 N_thread[thread]+=N_box;
                 
             }
