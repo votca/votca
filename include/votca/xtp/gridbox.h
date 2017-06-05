@@ -34,6 +34,8 @@ namespace votca { namespace xtp {
             
         public: 
             
+            
+            
             const std::vector<tools::vec>& getGridPoints() const{return grid_pos;}
             
             const std::vector<double>& getGridWeights() const{return weights;}
@@ -57,6 +59,15 @@ namespace votca { namespace xtp {
               significant_shells.push_back(shell);  
             };
             
+            void prepareDensity(){
+                densities.reserve(grid_pos.size());
+            }
+            
+            void addDensity(double density){
+                densities.push_back(density);
+            }
+            
+            const std::vector<double>& getGridDensities() const{return densities;}
             
             void PrepareForIntegration();
             
@@ -64,11 +75,15 @@ namespace votca { namespace xtp {
             
             void AddtoBigMatrix(ub::matrix<double>& bigmatrix,const ub::matrix<double>& smallmatrix);
             
+            void setIndexoffirstgridpoint(unsigned indexoffirstgridpoint){_indexoffirstgridpoint=indexoffirstgridpoint;}
+            unsigned getIndexoffirstgridpoint() const{return _indexoffirstgridpoint;}
+            
             
             
         private:
             
                 bool is_small;   
+                unsigned _indexoffirstgridpoint;
                 unsigned matrix_size;
                 std::vector<ub::range> aoranges;
                 std::vector<ub::range> ranges;

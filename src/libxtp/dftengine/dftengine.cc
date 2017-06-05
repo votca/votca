@@ -217,7 +217,7 @@ namespace votca {
             if (_do_externalfield) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "Integrated external potential on grid " << flush;
                 //cout<<"grid"<<_gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,externalgrid)<<endl;
-                H0 -= _gridIntegration_ext.IntegrateExternalPotential_Atomblock(_externalgrid);
+                H0 -= _gridIntegration_ext.IntegrateExternalPotential(_externalgrid);
 
                 E_nucnuc += ExternalGridRepulsion(_externalgrid_nuc);
             }
@@ -292,7 +292,7 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2() << flush;
                 double vxcenergy = 0.0;
                 if (_use_small_grid && diiserror > 1e-5) {
-                    _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC_Atomblock(_dftAOdmat);
+                    _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
                     vxcenergy = _gridIntegration_small.getTotEcontribution();
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
                 } else {

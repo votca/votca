@@ -57,7 +57,6 @@ namespace votca { namespace xtp {
             struct integration_grid {
                 tools::vec grid_pos;
                 double grid_weight;
-                double grid_density;
             };
             
             

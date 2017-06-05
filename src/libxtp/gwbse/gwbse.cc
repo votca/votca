@@ -455,7 +455,7 @@ namespace votca {
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Integrating Vxc in VOTCA with gridsize: " << _grid << " and functional " << _functional << flush;
                     ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
                     
-                    _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT);
+                    _vxc_ao = _numint.IntegrateVXC(DMAT);
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Vxc in VOTCA" << flush;
 
                 } else {

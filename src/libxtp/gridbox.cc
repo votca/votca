@@ -37,6 +37,8 @@ namespace votca { namespace xtp {
             return;
         }
 
+            
+
         ub::matrix<double> GridBox::ReadFromBigMatrix(const ub::matrix<double>& bigmatrix) {
             
             ub::matrix<double> _matrix = ub::zero_matrix<double>(matrix_size);

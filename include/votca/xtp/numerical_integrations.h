@@ -69,13 +69,13 @@ namespace votca { namespace xtp {
             
             void setXCfunctional(const string _functional);
             
-            double IntegrateDensity_Atomblock(const ub::matrix<double>& _density_matrix);
+            double IntegrateDensity(const ub::matrix<double>& _density_matrix);
             double IntegratePotential(const vec& rvector);
             double IntegrateField(const std::vector<double>& externalfield);
-            ub::matrix<double> IntegrateExternalPotential_Atomblock(const std::vector<double>& Potentialvalues);
+            ub::matrix<double> IntegrateExternalPotential(const std::vector<double>& Potentialvalues);
             
             
-            ub::matrix<double> IntegrateVXC_Atomblock (const ub::matrix<double>& _density_matrix);
+           
            
             ub::matrix<double> IntegrateVXC (const ub::matrix<double>& _density_matrix);
             
@@ -93,11 +93,11 @@ namespace votca { namespace xtp {
            void EvaluateXC(const double rho,const ub::matrix<double>& grad_rho,double& f_xc, double& df_drho, double& df_dsigma);
           
            
-           void FindsignificantAtoms();
+           
            double erf1c(double x);
            double erfcc(double x);
            std::vector<double> SSWpartition(int igrid, int ncenters ,  std::vector< std::vector<double> >& rq );
-           void SortGridpointsintoBlocks();
+           void SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::integration_grid > >& grid);
             
             std::vector<double> Rij;
             AOBasis* _basis;
@@ -112,18 +112,12 @@ namespace votca { namespace xtp {
             int xfunc_id;
             
             
-            bool setXC;
-            std::vector< std::vector< GridContainers::integration_grid > > _grid;
+            
+            
             double EXC;
             bool density_set;
-            std::vector< std::vector< std::vector<int> > > _significant_atoms;
-            std::vector < int > _startIdx;
-            std::vector < int > _blocksize;
-            std::vector< std::vector< AOBasis::AOShellIterator > > _atomshells;
-            std::vector< AOBasis::AOShellIterator > _singleatom;
-            std::vector< std::vector< ub::matrix<double> > >dmat_vector;
-            std::vector< std::vector< std::vector< ub::matrix<double> > > > xcmat_vector_thread;
-            std::vector< std::vector< ub::matrix<double> > > xcmat_vector;
+            bool setXC;
+            
             
             #ifdef LIBXC
             bool _use_separate;
