@@ -765,12 +765,13 @@ namespace votca {
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup numerical integration grid " << _grid_name << " for vxc functional "
                     << _xc_functional_name << " with " << _gridIntegration.getGridSize() << " points" << flush;
-            CTP_LOG(ctp::logDEBUG, *_pLog) <<"\t\t"<<" divided into "<<_gridIntegration.getBoxesSize()<<" boxes"<<flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog)<<"\t\t "<<" divided into "<<_gridIntegration.getBoxesSize()<<" boxes"<<flush;
             if (_use_small_grid) {
                 _gridIntegration_small.GridSetup(_grid_name_small, &_dftbasisset, _atoms, &_dftbasis);
                 _gridIntegration_small.setXCfunctional(_xc_functional_name);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup small numerical integration grid " << _grid_name_small << " for vxc functional "
                         << _xc_functional_name << " with " << _gridIntegration_small.getGridpoints().size() << " points" << flush;
+                        CTP_LOG(ctp::logDEBUG, *_pLog)<<"\t\t "<<" divided into "<<_gridIntegration_small.getBoxesSize()<<" boxes"<<flush;
             }
             
             if (_do_externalfield) {
