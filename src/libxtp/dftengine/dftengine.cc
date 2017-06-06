@@ -557,14 +557,14 @@ namespace votca {
                 Diis diis_alpha;
                 Diis diis_beta;
                 double adiisstart=0;
-                double diisstart=0;
+                double diisstart=0.0001;
                 Mixing Mix_alpha(true, 0.7, &dftAOoverlap.Matrix(), _pLog);
                 Mixing Mix_beta(true, 0.7, &dftAOoverlap.Matrix(), _pLog);
-                diis_alpha.Configure(true,false, 20, 0, "", adiisstart, diisstart, 0.2, 0,  alpha_e);
+                diis_alpha.Configure(true,false, 20, 0, "", adiisstart, diisstart, 0.1, 0.000,  alpha_e);
                 diis_alpha.setLogger(_pLog);
                 diis_alpha.setOverlap(&dftAOoverlap.Matrix());
                 diis_alpha.setSqrtOverlap(&Sminusonehalf);
-                diis_beta.Configure(true,false, 20, 0, "", adiisstart, diisstart, 0.2, 0, beta_e);
+                diis_beta.Configure(true,false, 20, 0, "", adiisstart, diisstart, 0.1, 0.000, beta_e);
                 diis_beta.setLogger(_pLog);
                 diis_beta.setOverlap(&dftAOoverlap.Matrix());
                 diis_beta.setSqrtOverlap(&Sminusonehalf);
@@ -596,7 +596,7 @@ namespace votca {
                 ub::matrix<double>dftAOdmat_beta = DensityMatrix_unres(MOCoeff_beta, beta_e);
                 bool _HF=false;
                 double energyold = 0;
-                int maxiter = 80;
+                int maxiter =400;
                 for (int this_iter = 0; this_iter < maxiter; this_iter++) {
                    
                     ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);
@@ -637,7 +637,7 @@ namespace votca {
 
                     ub::matrix<double> dmatin_alpha = dftAOdmat_alpha;
                     dftAOdmat_alpha = DensityMatrix_unres(MOCoeff_alpha, alpha_e);
-                    //dftAOdmat_alpha=DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,alpha_e);
+                    
                     if (!(diiserror_alpha < 0.005  && this_iter > 2)) {
                         dftAOdmat_alpha = Mix_alpha.MixDmat(dmatin_alpha, dftAOdmat_alpha, false);
                         //cout<<"mixing_alpha"<<endl;
