@@ -224,12 +224,6 @@ namespace votca {
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Nuclear Repulsion Energy is " << E_nucnuc << flush;
 
-            if (_with_ecp) {
-                H0 += _dftAOECP.Matrix();
-                //cout<<_dftAOECP.Matrix()<<endl;
-                cout << endl;
-                cout << "WARNING ecps are up to numercis correct" << endl;
-            }
 
             // if we have a guess we do not need this. 
             if (!_with_guess) {
