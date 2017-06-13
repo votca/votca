@@ -58,6 +58,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/diis.o \
 	${OBJECTDIR}/_ext/484478074/esp2multipole.o \
 	${OBJECTDIR}/_ext/484478074/espfit.o \
+	${OBJECTDIR}/_ext/484478074/exchange_correlation.o \
 	${OBJECTDIR}/_ext/484478074/extractorfactory.o \
 	${OBJECTDIR}/_ext/484478074/fourcenter_rep.o \
 	${OBJECTDIR}/_ext/484478074/fourcenters_dft.o \
@@ -105,6 +106,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/484478074/threecenters_dft.o \
 	${OBJECTDIR}/_ext/484478074/threecenters_tools.o \
 	${OBJECTDIR}/_ext/484478074/toolfactory.o \
+	${OBJECTDIR}/_ext/1774868486/exciton.o \
 	${OBJECTDIR}/_ext/484478074/version.o \
 	${OBJECTDIR}/_ext/484478074/version_nb.o \
 	${OBJECTDIR}/_ext/484478074/xtpapplication.o
@@ -250,6 +252,11 @@ ${OBJECTDIR}/_ext/484478074/espfit.o: nbproject/Makefile-${CND_CONF}.mk ../../sr
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/espfit.o ../../src/libxtp/espfit.cc
+
+${OBJECTDIR}/_ext/484478074/exchange_correlation.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/exchange_correlation.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/exchange_correlation.o ../../src/libxtp/exchange_correlation.cc
 
 ${OBJECTDIR}/_ext/484478074/extractorfactory.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/extractorfactory.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
@@ -485,6 +492,11 @@ ${OBJECTDIR}/_ext/484478074/toolfactory.o: nbproject/Makefile-${CND_CONF}.mk ../
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/484478074/toolfactory.o ../../src/libxtp/toolfactory.cc
+
+${OBJECTDIR}/_ext/1774868486/exciton.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/tools/exciton.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1774868486
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1774868486/exciton.o ../../src/libxtp/tools/exciton.cc
 
 ${OBJECTDIR}/_ext/484478074/version.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/version.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/484478074

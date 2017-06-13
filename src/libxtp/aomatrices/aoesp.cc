@@ -468,10 +468,10 @@ if (_lmax_col > 3) {
             return;
         }
 
-        void AOESP::Fillextpotential(const AOBasis& aobasis, std::vector<ctp::APolarSite*>& _sites) {
-
+        void AOESP::Fillextpotential(const AOBasis& aobasis,const ctp::PolarSeg & _sites) {
+            cout<<_sites.size()<<endl;
             _externalpotential = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-            for (std::vector<ctp::APolarSite*>::iterator it = _sites.begin(); it < _sites.end(); ++it) {
+            for (ctp::PolarSeg::const_iterator it = _sites.begin(); it < _sites.end(); ++it) {
                 vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
                 _aomatrix = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                 Fill(aobasis, positionofsite);

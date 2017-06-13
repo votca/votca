@@ -1152,10 +1152,10 @@ for (int _i = 0; _i < _nrows; _i++) {
         }// _shell_row Gaussians
     }
 
-void AOQuadrupole_Potential::Fillextpotential(const AOBasis& aobasis, std::vector<CTP::APolarSite*>& _sites){
+void AOQuadrupole_Potential::Fillextpotential(const AOBasis& aobasis, const ctp::PolarSeg & _sites){
   
     _externalpotential=ub::zero_matrix<double>(aobasis.AOBasisSize(),aobasis.AOBasisSize());
-   for ( std::vector<CTP::APolarSite*>::iterator it=_sites.begin();it<_sites.end();++it){
+   for ( ctp::PolarSeg::const_iterator it=_sites.begin();it<_sites.end();++it){
       
         if((*it)->getRank()>1){
              vec positionofsite =  (*it)->getPos()*tools::conv::nm2bohr;

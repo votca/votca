@@ -399,24 +399,36 @@ namespace votca {
             _dftAOESP.Initialize(_dftbasis.AOBasisSize());
             _dftAOESP.Fillnucpotential(_dftbasis, _atoms, _with_ecp);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOESP.Dimension() << flush;
-            //_dftAOESP.Print("NUC");
 
             if (_addexternalsites) {
                 _dftAOESP.Fillextpotential(_dftbasis, _externalsites);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT external pointcharge potential matrix of dimension: " << _dftAOESP.Dimension() << flush;
 
                 _dftAODipole_Potential.Fillextpotential(_dftbasis, _externalsites);
+                if(_dftAODipole_Potential.Dimension()>0){
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT external dipole potential matrix of dimension: " << _dftAODipole_Potential.Dimension() << flush;
+                }
                 _dftAOQuadrupole_Potential.Fillextpotential(_dftbasis, _externalsites);
+                if(_dftAOQuadrupole_Potential.Dimension()){
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT external quadrupole potential matrix of dimension: " << _dftAOQuadrupole_Potential.Dimension() << flush;
+                }
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " External sites\t Name \t Coordinates \t charge \t dipole \t quadrupole" << flush;
                 for (unsigned i = 0; i < _externalsites.size(); i++) {
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << _externalsites[i]->getName() << " | " << _externalsites[i]->getPos().getX()
-                            << " " << _externalsites[i]->getPos().getY() << " " << _externalsites[i]->getPos().getZ()
-                            << " | " << _externalsites[i]->getQ00() << " | " << _externalsites[i]->getQ1().getX()
-                            << " " << _externalsites[i]->getQ1().getY() << " " << _externalsites[i]->getQ1().getZ() << " | "
-                            << _externalsites[i]->getQ2()[0] << " " << _externalsites[i]->getQ2()[1] << " " << _externalsites[i]->getQ2()[2] << " "
-                            << _externalsites[i]->getQ2()[3] << " " << _externalsites[i]->getQ2()[4] << flush;
+                    ctp::APolarSite* site=_externalsites[i];
+                    
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << site->getName() << " | " << site->getPos().getX()
+                            << " " << site->getPos().getY() << " " <<site->getPos().getZ()<< " | " << site->getQ00();
+                            if(site->getRank()>0){
+                              tools::vec dipole=site->getQ1();
+                            cout<< " | " << dipole.getX()
+                            << " " << dipole.getY() << " " << dipole.getZ();
+                            }
+                            if(site->getRank()>1){
+                                std::vector<double> quadrupole=site->getQ2();
+                            cout<< " | "<< quadrupole[0] << " " << quadrupole[1] << " " << quadrupole[2] << " "
+                            << quadrupole[3] << " " << quadrupole[4];
+                            }
+                            cout<< flush;
                 }
             }
             
@@ -807,7 +819,7 @@ namespace votca {
                 _orbitals->setNumberOfElectrons(_numofelectrons / 2);
                 _orbitals->setNumberOfLevels(_numofelectrons / 2, _dftbasis.AOBasisSize() - _numofelectrons / 2);
             }
-
+            
             return;
         }
       

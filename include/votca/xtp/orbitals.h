@@ -312,7 +312,7 @@ public:
     std::vector<ub::matrix<double> > DensityMatrixExcitedState_BTDA(const ub::matrix<double>& _MOs,
     const ub::matrix<real_gwbse>& _BSECoefs,const ub::matrix<real_gwbse>& _BSECoefs_AR, int state=0 );
     
-    
+    double GetTotalEnergy( string _spintype, int _opt_state );
     
     // functions for analyzing fragment charges via Mulliken populations
     ub::vector<double> LoewdinPopulation( const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag);
@@ -386,7 +386,7 @@ public:
      */
     bool Load(std::string file_name);
     
-    
+    void LoadFromXYZ(std::string filename);
     
 private:
     

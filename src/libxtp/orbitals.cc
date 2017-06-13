@@ -640,6 +640,32 @@ std::vector<double> Orbitals::Oscillatorstrengths(){
     return oscs;
 }
 
+
+
+double Orbitals::GetTotalEnergy(string _spintype, int _opt_state){
+    
+    // total energy of the excited state
+    double _total_energy ;
+    double _omega=0.0;
+    
+    double _dft_energy = getQMEnergy();
+    
+    if ( _spintype == "singlet" ){
+       _omega      = BSESingletEnergies()[_opt_state - 1];
+    } else if ( _spintype == "triplet" ){
+        _omega      = BSETripletEnergies()[_opt_state - 1];
+    }
+    else{
+        throw std::runtime_error("GetTotalEnergy only knows spintypes:singlet,triplet");
+    }
+
+    
+    // DFT total energy is stored in eV
+    // singlet energies are stored in Ryd...
+  
+    return _total_energy = _dft_energy*tools::conv::ev2hrt + _omega; //  e.g. hartree
+}
+
  ub::vector<double> Orbitals::FragmentNuclearCharges(int _frag){
      Elements _elements;
      
@@ -713,8 +739,51 @@ void Orbitals::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbital
     
     return;
 }   
- 
- 
 
+
+ void Orbitals::LoadFromXYZ(std::string filename) {
+
+            string line;
+            std::ifstream in;
+
+
+            string type;
+
+
+            in.open(filename.c_str(), std::ios::in);
+            if (!in) throw runtime_error(string("Error reading coordinates from: ")
+                    + filename);
+
+
+            int atomCount = 1;
+
+            if (in.is_open()) {
+                while (in.good()) {
+                    std::getline(in, line);
+
+                    vector< string > split;
+                    Tokenizer toker(line, " \t");
+                    toker.ToVector(split);
+                    if (!split.size() ||
+                            split.size() != 4 ||
+                            split[0] == "#" ||
+                            split[0].substr(0, 1) == "#") {
+                        continue;
+                    }
+
+                    // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
+                    atomCount++;
+                    string element = split[0];
+                    double x = boost::lexical_cast<double>(split[1]) / 10.; //°A to NM
+                    double y = boost::lexical_cast<double>(split[2]) / 10.;
+                    double z = boost::lexical_cast<double>(split[3]) / 10.;
+                    AddAtom(element,x,y,z);
+
+                }
+            } else {
+                throw std::runtime_error("No such file: '" + filename + "'.");
+            }
+            return;
+        }
  
 }}
