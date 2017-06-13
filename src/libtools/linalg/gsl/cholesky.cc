@@ -34,12 +34,13 @@ void linalg_cholesky_decompose( ub::matrix<double> &A){
         
         // get the Cholesky matrices
         (void)gsl_linalg_cholesky_decomp ( &A_view.matrix );
+        return;
 }
 
 void linalg_cholesky_decompose( ub::matrix<float> &A){
         // Cholesky decomposition using GSL
     throw std::runtime_error("linalg_cholesky_decompose (float) is not compiled-in due to disabling of MKL - recompile Votca Tools with MKL support");
-   
+    return;
 }
 
 
@@ -72,6 +73,7 @@ void linalg_cholesky_solve(ub::vector<double> &x, ub::matrix<double> &A, ub::vec
         x(i) = gsl_vector_get(gsl_x, i);
 
     gsl_vector_free (gsl_x);
+    return;
 }
 
 
