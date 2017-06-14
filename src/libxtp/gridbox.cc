@@ -59,7 +59,7 @@ namespace votca { namespace xtp {
 
             for (unsigned i=0;i< significant_shells.size();++i) {
                 const AOShell* shell=significant_shells[i];
-                aoranges.push_back(ub::range(matrix_size, shell->getNumFunc()));
+                aoranges.push_back(ub::range(matrix_size, matrix_size+shell->getNumFunc()));
                 matrix_size += shell->getNumFunc();
                 start.push_back(shell->getStartIndex());
                 end.push_back(shell->getStartIndex() + shell->getNumFunc());
