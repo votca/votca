@@ -18,7 +18,7 @@
  */
 
 #include <votca/xtp/exchange_correlation.h>
-
+#include <stdexcept>
 
 
 
