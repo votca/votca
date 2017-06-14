@@ -179,12 +179,12 @@ inline vec::vec(const double x, const double y, const double z)
         : _x(x), _y(y), _z(z) {}
 
 inline double vec::operator[](std::size_t i) const {
-    assert(i>2 && "vec[] integer larger than 2");
+    assert(i<3 && "vec[] integer larger than 2");
     return xyz[i];
  }
 
 inline double  &vec::operator[](std::size_t i) {
-    assert(i>2 && "vec[] integer larger than 2");
+    assert(i<3 && "vec[] integer larger than 2");
     return xyz[i];
  }
     
