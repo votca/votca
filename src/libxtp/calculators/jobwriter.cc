@@ -41,7 +41,8 @@ void JobWriter::Initialize(Property *options) {
 
     
     // SPLIT KEYS
-    std::string keys = options->get("options.jobwriter.keys").as<string>();    
+    string key="options."+Identify();
+    std::string keys = options->get(key+".keys").as<string>();    
     Tokenizer tok_keys(keys, " ,\t\n");
     tok_keys.ToVector(_keys);
     
@@ -83,7 +84,7 @@ void JobWriter::mps_chrg(ctp::Topology *top) {
     
     // SET UP FILE STREAM
     ofstream ofs;
-    std::string jobFile = "jobwriter.mps.chrg.xml";
+    std::string jobFile = Identify()+".mps.chrg.xml";
     ofs.open(jobFile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
     
@@ -96,10 +97,10 @@ void JobWriter::mps_chrg(ctp::Topology *top) {
     std::vector<string> states;
     std::vector<string> ::iterator vit;
 
-    std::string str_states = _options->get("options.jobwriter.states").as<string>();
+    std::string str_states = _options->get("options.xjobwriter.states").as<string>();
     std::string seg_pattern = "*";
-    if (_options->exists("options.jobwriter.pattern")) {
-        seg_pattern = _options->get("options.jobwriter.pattern").as<string>();
+    if (_options->exists("options.xjobwriter.pattern")) {
+        seg_pattern = _options->get("options.xjobwriter.pattern").as<string>();
     }
     Tokenizer tok_states(str_states, " ,\t\n");
     tok_states.ToVector(states);
@@ -139,11 +140,11 @@ void JobWriter::mps_chrg(ctp::Topology *top) {
     
 void JobWriter::mps_kmc(ctp::Topology *top) {
 
-    double cutoff = _options->get("options.jobwriter.kmc_cutoff").as<double>();
+    double cutoff = _options->get("options.xjobwriter.kmc_cutoff").as<double>();
     
     // SET UP FILE STREAM
     ofstream ofs;
-    std::string jobFile = "jobwriter.mps.kmc.xml";    
+    std::string jobFile = Identify()+".mps.kmc.xml";    
     ofs.open(jobFile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
     
@@ -211,7 +212,7 @@ void JobWriter::mps_ct(ctp::Topology *top) {
 
     // SET UP FILE STREAM
     ofstream ofs;
-    std::string jobFile = "jobwriter.mps.ct.xml";
+    std::string jobFile = Identify()+".mps.ct.xml";
     ofs.open(jobFile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
     
@@ -272,7 +273,7 @@ void JobWriter::mps_ct(ctp::Topology *top) {
 void JobWriter::mps_background(ctp::Topology *top) {
     
     ofstream ofs;
-    string tabFile = "jobwriter.mps.background.tab";
+    string tabFile = Identify()+".mps.background.tab";
     ofs.open(tabFile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + tabFile);
     
@@ -295,7 +296,7 @@ void JobWriter::mps_single(ctp::Topology *top) {
     
     // SET UP FILE STREAM
     ofstream ofs;
-    std::string jobFile = "jobwriter.mps.single.xml";
+    std::string jobFile = Identify()+".mps.single.xml";
     ofs.open(jobFile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
     
@@ -307,19 +308,19 @@ void JobWriter::mps_single(ctp::Topology *top) {
     // DEFINE PAIR CHARGE STATES
     std::vector<std::string > states;
     std::vector<std::string> ::iterator vit;
-    std::string str_states = _options->get("options.jobwriter.states").as<std::string>();
+    std::string str_states = _options->get("options.xjobwriter.states").as<std::string>();
     Tokenizer tok_states(str_states, " ,\t\n");
     tok_states.ToVector(states);
     
     // CREATE JOBS FOR ALL SEGMENTS AND STATES
-    unsigned int single_id = _options->get("options.jobwriter.single_id").as<int>();
+    unsigned int single_id = _options->get("options.xjobwriter.single_id").as<int>();
     bool proceed = true;
     if (single_id < 1 || single_id > top->Segments().size()) {
         cout << endl 
-             << "... ... ERROR Corrupt value in options.jobwriter.single_id: "
+             << "... ... ERROR Corrupt value in options.xjobwriter.single_id: "
              << "No such segment ID = " << single_id << ". Return." 
              << flush;
-        ofs << "ERROR Corrupt value in options.jobwriter.single_id" << endl;
+        ofs << "ERROR Corrupt value in options.xjobwriter.single_id" << endl;
         proceed = false;
     }
     

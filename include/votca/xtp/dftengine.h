@@ -65,13 +65,14 @@ public:
 
     void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
     
-    void setExternalcharges(ctp::PolarSeg externalsites){
-        _externalsites=externalsites;
+    void setExternalcharges(ctp::PolarSeg* externalsites){
+        _externalsites=ctp::PolarSeg(externalsites,false);
+        
         _addexternalsites=true;
     }
     
     void setExternalGrid(std::vector<double> electrongrid,std::vector<double> nucleigrid){
-        _externalgrid=electrongrid;
+       _externalgrid=electrongrid;
        _externalgrid_nuc=nucleigrid;
     }
     
@@ -109,12 +110,12 @@ public:
     Property _dftengine_options; 
     
     // atoms
-    std::vector<ctp::QMAtom*>                _atoms;
+    std::vector<ctp::QMAtom*>           _atoms;
 
     // basis sets
-    std::string                              _auxbasis_name;
-    std::string                              _dftbasis_name;
-    std::string                              _ecp_name;
+    std::string                         _auxbasis_name;
+    std::string                         _dftbasis_name;
+    std::string                         _ecp_name;
     BasisSet                            _dftbasisset;
     BasisSet                            _auxbasisset;
     BasisSet                            _ecpbasisset;
@@ -183,7 +184,7 @@ public:
     ERIs                                _ERIs;
     
     // external charges
-     ctp::PolarSeg                   _externalsites;
+     ctp::PolarSeg                     _externalsites;
      bool                            _addexternalsites;
     
     // exchange and correlation
