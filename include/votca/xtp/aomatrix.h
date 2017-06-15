@@ -23,6 +23,7 @@
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
 #include <votca/ctp/apolarsite.h>
+#include <votca/ctp/polarseg.h>
 #include <votca/xtp/votca_config.h>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
@@ -181,7 +182,7 @@ namespace votca { namespace xtp {
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
         //void Print();
         void Fillnucpotential(const AOBasis& aobasis, std::vector<ctp::QMAtom*>& _atoms,bool _with_ecp=false );
-        void Fillextpotential(const AOBasis& aobasis, std::vector<ctp::APolarSite*>& _sites);
+        void Fillextpotential(const AOBasis& aobasis, const ctp::PolarSeg& _sites);
         ub::matrix<double> &getNuclearpotential(){ return _nuclearpotential;}
         const ub::matrix<double> &getNuclearpotential()const{ return _nuclearpotential;}
         ub::matrix<double> &getExternalpotential(){ return _externalpotential;}
@@ -235,7 +236,7 @@ namespace votca { namespace xtp {
         //block fill for overlap, implementation in aooverlap.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
         
-        void Fillextpotential(const AOBasis& aobasis, std::vector<ctp::APolarSite*>& _sites);
+        void Fillextpotential(const AOBasis& aobasis, const ctp::PolarSeg& _sites);
         ub::matrix<double> &getExternalpotential(){ return _externalpotential;}
         const ub::matrix<double> &getExternalpotential()const{ return _externalpotential;}
         
@@ -256,7 +257,7 @@ namespace votca { namespace xtp {
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
         //void Print();
         
-        void Fillextpotential(const AOBasis& aobasis, std::vector<ctp::APolarSite*>& _sites);
+        void Fillextpotential(const AOBasis& aobasis, const ctp::PolarSeg& _sites);
         ub::matrix<double> &getExternalpotential(){ return _externalpotential;}
         const ub::matrix<double> &getExternalpotential()const{ return _externalpotential;}
         //void Print();
