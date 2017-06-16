@@ -130,7 +130,7 @@ namespace votca {
                 int _row_end = _row_start + _shell_row->getNumFunc();
 
                 // get slice of _dft_orbitals for m-summation, belonging to this shell
-                const ub::matrix_range< const ub::matrix<double> > _m_orbitals = ub::subrange(_dft_orbitals, mmin, mmax + 1, _row_start, _row_end);
+                const ub::matrix<double>  _m_orbitals = ub::subrange(_dft_orbitals, mmin, mmax + 1, _row_start, _row_end);
 
                 // gamma-loop over the "right" DFT basis function
                 for (AOBasis::AOShellIterator _col = dftbasis.firstShell(); _col != dftbasis.lastShell(); ++_col) {
