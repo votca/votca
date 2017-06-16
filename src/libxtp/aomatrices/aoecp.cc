@@ -382,7 +382,7 @@ namespace votca { namespace xtp {
                 double fak = 2.0 * beta*BVSSQ;
                 double Pow = 1;
                 double factorialNN = 1;
-                for (int N = 1; N <= 42; N++) {
+                for (int N = 1; N <= 43; N++) {
 
                     int NN = N - 1;
 
@@ -619,7 +619,7 @@ namespace votca { namespace xtp {
                                   pow=pow*fak;
                                   factorialN=factorialN*N;
                               }
-
+                              
                               double XDUM = COEF[L][L1][M1][N] * pow / factorialN;
                               VAR1 += XDUM * XI(L, N + L1 + L);
 
