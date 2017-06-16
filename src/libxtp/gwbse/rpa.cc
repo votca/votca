@@ -235,12 +235,13 @@ namespace votca {
                     // loop over gwbasis shells
                     for (AOBasis::AOShellIterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); ++_is) {
                         const AOShell* _shell = gwbasis.getShell(_is);
-                        double decay = (*_shell->firstGaussian())->getDecay();
-                        //int _lmax    = _shell->getLmax();
-
-                        int _start = _shell->getStartIndex();
+                        
 
                         if (_shell->getLmin() == 0) {
+                            double decay = (*_shell->firstGaussian())->getDecay();
+                        
+
+                            int _start = _shell->getStartIndex();
 
                             double _factor = pow((2.0 * pi / decay), 0.75);
 
@@ -265,12 +266,14 @@ namespace votca {
                         // loop over gwbasis shells
                         for (AOBasis::AOShellIterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
                             const AOShell* _shell = gwbasis.getShell(_is);
-                            double decay = (*_shell->firstGaussian())->getDecay();
-
-                            int _start = _shell->getStartIndex();
+                            
 
                             if (_shell->getLmin() == 0) {
+                                double decay = (*_shell->firstGaussian())->getDecay();
+
+                                int _start = _shell->getStartIndex();
                                 double _factor = pow((2.0 * pi / decay), 0.75);
+                                
                                 // only do something for s- shells
 
                                 // loop over all functions in shell
