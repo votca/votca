@@ -248,8 +248,8 @@ void BasisSet::LoadBasisSet ( std::string name )
             for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) {
                 double decay = (*itc)->getAttribute<double>("decay");
                 // << " decay "<<decay<<endl;
-                std::vector<double> contraction;
-                contraction.resize(shell->getLmax()+1); 
+                std::vector<double> contraction=std::vector<double>(7,0.0);
+                //contraction.resize(shell->getLmax()+1); 
                 list<Property*> contrProps = (*itc)->Select("contractions");
                 for (list<Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont){
                     std::string contrType = (*itcont)->getAttribute<std::string>("type");
@@ -266,11 +266,7 @@ void BasisSet::LoadBasisSet ( std::string name )
                         throw runtime_error("LoadBasiset:Contractiontype not known");
                     }
                 }    
-                //cout<<"contraction ";
-               // for( int i=0;i<contraction.size();i++){
-               //     cout<<contraction[i];
-               //  }
-                //    cout<<std::endl;     
+                 
                 shell->addGaussian(decay, contraction);
             }
             
