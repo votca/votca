@@ -49,14 +49,7 @@ namespace votca { namespace xtp {
             NumericalIntegration():density_set(false),setXC(false) {};
             
             
-            ~NumericalIntegration(){
-            #ifdef LIBXC
-                if(setXC){
-                    xc_func_end(&xfunc);
-                    xc_func_end(&cfunc);
-                }
-            #endif
-            };
+            ~NumericalIntegration(){};
             
             void GridSetup(std::string type, BasisSet* bs , std::vector<ctp::QMAtom* > _atoms,AOBasis* basis  );
             
