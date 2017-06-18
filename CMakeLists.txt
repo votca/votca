@@ -69,7 +69,10 @@ else()
 	set(LIBXC_LIBRARIES)
 endif()
 
+
+find_package(MKL) #this line has to be here to reset the cblas path that is set by findpackageGSL if both are used at the same time.
 find_package(GSL)
+
 
 if(GSL_FOUND)
   message("-- GSL found for DFT")
@@ -77,7 +80,7 @@ if(GSL_FOUND)
   set(GSL_PKG "gsl")
   set(GSL TRUE)
 endif()
-find_package(MKL) #this line has to be here to reset the cblas path that is set by findpackageGSL if both are used at the same time. 
+
 
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 if (NOT DEFINED LIB)
@@ -165,15 +168,15 @@ foreach(FUNC sqrt)
 endforeach(FUNC)
 
 ######################################
-# Include the following subdirectory # 
+# Include the following subdirectory #
 ######################################
 add_subdirectory(include/votca/xtp)
 add_subdirectory(scripts)
 add_subdirectory(src/libxtp)
 add_subdirectory(src/tools)
 #add_subdirectory(src/dipro)
-#add_subdirectory(share/scripts/dipro) 
-add_subdirectory(share)  
+#add_subdirectory(share/scripts/dipro)
+add_subdirectory(share)
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/manual/xtp-manual.pdf COMMAND make -C ${CMAKE_SOURCE_DIR}/manual
 	XTP_SCRIPTS="${XTP_SCRIPTS}"
