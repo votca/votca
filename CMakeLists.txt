@@ -77,7 +77,7 @@ if(GSL_FOUND)
   set(GSL_PKG "gsl")
   set(GSL TRUE)
 endif()
-
+find_package(MKL)
 
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 if (NOT DEFINED LIB)

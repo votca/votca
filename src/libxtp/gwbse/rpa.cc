@@ -107,10 +107,12 @@ namespace votca {
             
             #pragma omp parallel for 
             for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
-                //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
                 int index_m = _Mmn_RPA.get_mmin();
-                const ub::matrix<real_gwbse>& Mmn_RPA = _Mmn_RPA[ _m_level ];
-
+#if (GWBSE_DOUBLE)
+                const ub::matrix<double>& Mmn_RPA = _Mmn_RPA[ _m_level ];
+#else
+                const ub::matrix<double> Mmn_RPA = _Mmn_RPA[ _m_level ];
+#endif
                 // a temporary matrix, that will get filled in empty levels loop
                 ub::matrix<double> _temp = ub::zero_matrix<double>(_Mmn_RPA.get_ntot(), _size);
 
@@ -148,7 +150,12 @@ namespace votca {
             for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
                 
                 int index_m = _Mmn_RPA.get_mmin();
-                const ub::matrix<real_gwbse>& Mmn_RPA = _Mmn_RPA[ _m_level ];
+                
+#if (GWBSE_DOUBLE)
+                const ub::matrix<double>& Mmn_RPA = _Mmn_RPA[ _m_level ];
+#else
+                const ub::matrix<double> Mmn_RPA = _Mmn_RPA[ _m_level ];
+#endif
 
                 // a temporary matrix, that will get filled in empty levels loop
                 ub::matrix<double> _temp = ub::zero_matrix<double>(_Mmn_RPA.get_ntot(), _size);
@@ -214,15 +221,20 @@ namespace votca {
              const AOMatrix& gwoverlap,const AOMatrix& gwoverlap_inverse ){
         
         const double pi = boost::math::constants::pi<double>();
-
+        ub::range full=ub::range(0, gwbasis.AOBasisSize());
+        ub::range RPA_cut=ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin(), _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() + 1);
             // loop over m-levels in _Mmn_RPA
             #pragma omp parallel for 
             for (int _m_level = 0; _m_level < _Mmn_RPA.size(); _m_level++) {
 
                 
-                // try casting for efficient prod() overloading
-                // cast _Mmn_full to double
-                ub::matrix<double> _Mmn_double = _Mmn_full[ _m_level ];
+
+                #if (GWBSE_DOUBLE)
+                const ub::matrix<double>&  _Mmn_double = _Mmn_full[ _m_level ];
+#else
+                const ub::matrix<double>  _Mmn_double = _Mmn_full[ _m_level ];
+#endif
+               
                 ub::matrix<double> _temp = ub::prod(gwoverlap_inverse.Matrix(), _Mmn_double);
 
 
@@ -297,7 +309,7 @@ namespace votca {
                 ub::matrix<real_gwbse> _temp2 = ub::prod(gwoverlap.Matrix(), _temp);
                 
                 // copy to _Mmn_RPA
-                _Mmn_RPA[ _m_level ] = ub::project(_temp2, ub::range(0, gwbasis.AOBasisSize()), ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin(), _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() + 1));
+                _Mmn_RPA[ _m_level ] = ub::project(_temp2, full, RPA_cut);
               
 
             }// loop m-levels
