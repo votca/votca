@@ -77,7 +77,7 @@ if(GSL_FOUND)
   set(GSL_PKG "gsl")
   set(GSL TRUE)
 endif()
-find_package(MKL)
+find_package(MKL) #this line has to be here to reset the cblas path that is set by findpackageGSL if both are used at the same time. 
 
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 if (NOT DEFINED LIB)
