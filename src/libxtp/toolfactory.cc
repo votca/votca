@@ -31,13 +31,13 @@
 #include "tools/dft.h"
 #include "tools/gencube.h"
 #include "tools/partialcharges.h"
-
+#include "tools/matrixproduct.h"
 
 namespace votca { namespace xtp {
 
 void QMToolFactory::RegisterAll(void)
 {
-      
+
         QMTools().Register<PDB2Map>            ("xpdb2map");
         QMTools().Register<Log2Mps>            ("xlog2mps");
         QMTools().Register<Exciton>            ("exciton");
@@ -49,7 +49,8 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<DFT>                ("dft");
         QMTools().Register<GenCube>            ("gencube");
         QMTools().Register<Partialcharges>     ("partialcharges");
-        
+        QMTools().Register<MatProd>            ("matrixproduct");
+
 }
 
 }}
