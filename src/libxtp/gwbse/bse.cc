@@ -86,16 +86,20 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cholesky decomposition of KAA-KAB" << flush;
 
             // remove L^T from Cholesky
+            #pragma omp parallel for
             for (unsigned i =0; i < _AmB.size1(); i++ ){
                 for (unsigned j = i+1; j < _AmB.size1(); j++ ){
-                    _AmB(i,j) = 0.0;
+                    _AmB(i,j) = _AmB(j,i);
+                    _AmB(j,i)=0;
                 }
             }
             
-          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed L^T" << flush;
+            
+            
+          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed non referenced part of Cholesky decompostion" << flush;
           // determine H = L^T(A-B)L
-          ub::matrix<real_gwbse> _temp = ub::prod( _ApB , _AmB );
-          _ApB= ub::prod( ub::trans(_AmB), _temp );
+          ub::matrix<real_gwbse> _temp = ub::prod( _ApB , ub::trans(_AmB) );
+          _ApB= ub::prod( _AmB, _temp );
           _temp.resize(0,0);
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
           
@@ -125,7 +129,7 @@ namespace votca {
           _bse_singlet_coefficients.resize(dim, _bse_nmax);     // resonant part (_X_evec)
           _bse_singlet_coefficients_AR.resize(dim, _bse_nmax);  // anti-resonant part (_Y_evec)
           
-         
+
           for ( int _i = 0; _i < _bse_nmax; _i++) {
               //real_gwbse sqrt_eval = sqrt(_eigenvalues(_i));
               real_gwbse sqrt_eval = sqrt(_bse_singlet_energies(_i));
