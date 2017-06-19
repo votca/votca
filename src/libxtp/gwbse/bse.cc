@@ -74,8 +74,8 @@ namespace votca {
           // TOCHECK: Isn't that memory overkill here? _A and _B are never needed again?
            // ub::matrix<real_gwbse> _A = _eh_d + 2.0 * _eh_x;
            // ub::matrix<real_gwbse> _B = _eh_d2 + 2.0 * _eh_x;
-          ub::matrix<real_gwbse> _ApB = _eh_d + _eh_d2 + 4.0 * _eh_x;
-          ub::matrix<real_gwbse> _AmB = _eh_d - _eh_d2;
+          ub::matrix<double> _ApB = _eh_d + _eh_d2 + 4.0 * _eh_x;
+          ub::matrix<double> _AmB = _eh_d - _eh_d2;
 
             
         
@@ -98,14 +98,14 @@ namespace votca {
             
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed non referenced part of Cholesky decompostion" << flush;
           // determine H = L^T(A-B)L
-          ub::matrix<real_gwbse> _temp = ub::prod( _ApB , ub::trans(_AmB) );
+          ub::matrix<double> _temp = ub::prod( _ApB , ub::trans(_AmB) );
           _ApB= ub::prod( _AmB, _temp );
           _temp.resize(0,0);
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
           
           // solve eigenvalue problem: HR_l = eps_l^2 R_l
-          ub::vector<real_gwbse> _eigenvalues;
-          ub::matrix<real_gwbse> _eigenvectors;
+          ub::vector<double> _eigenvalues;
+          ub::matrix<double> _eigenvectors;
             
           linalg_eigenvalues(_ApB, _eigenvalues, _eigenvectors, _bse_nmax);
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
@@ -121,8 +121,8 @@ namespace votca {
           //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 - 1/sqrt(eps_l)L ] R_l
 
           // determine inverse of L^T
-          ub::matrix<real_gwbse> _cholesky_transposed_invert;
-          ub::matrix<real_gwbse> _cholesky_transposed =ub::trans(_AmB);
+          ub::matrix<double> _cholesky_transposed_invert;
+          ub::matrix<double> _cholesky_transposed =ub::trans(_AmB);
           linalg_invert( _cholesky_transposed , _cholesky_transposed_invert );
           
           int dim = _AmB.size1();
@@ -132,11 +132,11 @@ namespace votca {
 
           for ( int _i = 0; _i < _bse_nmax; _i++) {
               //real_gwbse sqrt_eval = sqrt(_eigenvalues(_i));
-              real_gwbse sqrt_eval = sqrt(_bse_singlet_energies(_i));
+              double sqrt_eval = sqrt(_bse_singlet_energies(_i));
               // get l-th reduced EV
-              ub::matrix<real_gwbse> _reduced_evec = ub::project(_eigenvectors,  ub::range(0, dim), ub::range(_i, _i + 1)); // potentially col<->row
+              ub::matrix<double> _reduced_evec = ub::project(_eigenvectors,  ub::range(0, dim), ub::range(_i, _i + 1)); // potentially col<->row
 
-              ub::matrix<real_gwbse> _transform = 0.5*( sqrt_eval * _cholesky_transposed_invert + 1.0/sqrt_eval * _AmB  );
+              ub::matrix<double> _transform = 0.5*( sqrt_eval * _cholesky_transposed_invert + 1.0/sqrt_eval * _AmB  );
               ub::project( _bse_singlet_coefficients, ub::range (0, dim ), ub::range ( _i, _i+1 ) ) = ub::prod(_transform,_reduced_evec);
               _transform = 0.5*( sqrt_eval * _cholesky_transposed_invert - 1.0/sqrt_eval * _AmB  );
               ub::project( _bse_singlet_coefficients_AR, ub::range (0, dim ), ub::range ( _i, _i+1 ) ) = ub::prod(_transform,_reduced_evec);
