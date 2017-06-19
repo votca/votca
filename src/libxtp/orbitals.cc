@@ -774,9 +774,9 @@ void Orbitals::PrepareGuess( Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbital
                     // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
                     atomCount++;
                     string element = split[0];
-                    double x = boost::lexical_cast<double>(split[1]) / 10.; //°A to NM
-                    double y = boost::lexical_cast<double>(split[2]) / 10.;
-                    double z = boost::lexical_cast<double>(split[3]) / 10.;
+                    double x = boost::lexical_cast<double>(split[1]); //°A to NM
+                    double y = boost::lexical_cast<double>(split[2]);
+                    double z = boost::lexical_cast<double>(split[3]);
                     AddAtom(element,x,y,z);
 
                 }
