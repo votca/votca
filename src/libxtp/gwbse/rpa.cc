@@ -69,6 +69,7 @@ namespace votca {
             _temp = ub::zero_matrix<double>(_eigenvalues.size(), _eigenvalues.size());
             linalg_invert(_eigenvectors, _temp); //eigenvectors is destroyed after!
             // c) PPM parameters -> diagonal elements
+            #pragma omp parallel for 
             for (unsigned _i = 0; _i < _eigenvalues.size(); _i++) {
 
                 if (_screening_freq(1, 0) == 0.0) {

@@ -631,7 +631,7 @@ namespace votca {
                     _qp_converged = true;
                     _gwoverlap.Matrix().resize(0, 0);
                     _Mmn_RPA.Cleanup();
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "Cleaned up Overlap and MmnRPA" << flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cleaned up Overlap and MmnRPA" << flush;
                 }
 
                 // construct PPM parameters
@@ -667,7 +667,7 @@ namespace votca {
                 _gwoverlap.Matrix().resize(0, 0);
                 _Mmn_RPA.Cleanup();
                 _Mmn_backup.Cleanup();
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "Cleaned up Overlap,MmnRPA and Mmn_backup " << flush;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cleaned up Overlap,MmnRPA and Mmn_backup " << flush;
             }
             // free no longer required three-center matrices in _Mmn
             // max required is _bse_cmax (could be smaller than _qpmax)
