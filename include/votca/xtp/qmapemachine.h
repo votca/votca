@@ -102,10 +102,6 @@ private:
     bool _convg_dE_QM;
     bool _convg_dE_MM;
     
-    bool _split_dpl;
-    double _dpl_spacing;
-    
-    bool   _exportgridtofile;
     
     std::vector< ctp::PolarSeg* > target_bg;     
     std::vector< ctp::PolarSeg* > target_fg;     

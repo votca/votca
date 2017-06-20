@@ -85,7 +85,7 @@ private:
 
     // XJob logbook (file output)
     string                          _outFile;
-    //bool                            _energies2File;
+   
     
     Property                       *_options;
 };
@@ -107,69 +107,36 @@ void QMAPE::Initialize(Property *options) {
 
     string key = "options."+Identify();
 
-        if ( options->exists(key+".job_file")) {
-            _jobfile = options->get(key+".job_file").as<string>();
-        }
-        else {
-            throw std::runtime_error("Job-file not set. Abort.");
-        }
+        
+    _jobfile = options->ifExistsReturnElseThrowRuntimeError<string>(key+".job_file");
+        
 
-	key = "options"+Identify()+".ewald";
-		if (options->exists(key+".mapping")) {
-			_xml_file = options->get(key+".mapping").as< string >();
-		}
-		else {
-			cout << endl;
-			throw std::runtime_error("Multipole mapping file not set. Abort.");
-		}
-		if ( options->exists(key+".mps_table")) {
-			_mps_table = options->get(key+".mps_table").as<string>();
-		}
-		else {
-			cout << endl;
-			throw std::runtime_error("Background mps table not set. Abort.");
-		}
-		if (options->exists(key+".polar_bg")) {
-			_polar_bg_arch = options->get(key+".polar_bg").as<string>();
-		}
-		else { _polar_bg_arch = ""; }
-		if (options->exists(key+".pdb_check")) {
-			_pdb_check = options->get(key+".pdb_check").as<bool>();
-		}
-		else { _pdb_check = false; }
-		if (options->exists(key+".ptop_check")) {
-			_ptop_check = options->get(key+".ptop_check").as<bool>();
-		}
-		else { _ptop_check = false; }
+	key = "options"+Identify()+".ewald";	
+        _xml_file = options->ifExistsReturnElseThrowRuntimeError<string>(key+".mapping");
+        _mps_table = options->ifExistsReturnElseThrowRuntimeError<string>(key+".mps_table");
+        _polar_bg_arch = options->ifExistsReturnElseReturnDefault<string>(key+".polar_bg","");
+        _pdb_check = options->ifExistsReturnElseReturnDefault<bool>(key+".pdb_check",false);
+	_ptop_check = options->ifExistsReturnElseReturnDefault<bool>(key+".ptop_check",false);
 
     
     key = "options."+Identify();
-        if ( options->exists(key+".dftoptions")) {
-            string package_xml = options->get(key+".dftoptions").as< string >();
-            load_property_from_xml(_dft_opt, package_xml.c_str());
-        }
-        else {
-            throw runtime_error("No DFT package specified.");
-        }
     
-
+      
+    string package_xml = options->ifExistsReturnElseThrowRuntimeError<string>(key+".dftengine");
+    load_property_from_xml(_dft_opt, package_xml.c_str());
+       
     key = "options."+Identify()+".gwbse";
     if ( options->exists(key)) { 
     	cout << endl << "... ... Configure for excited states (DFT+GWBSE)" << flush;
-        if ( options->exists(key+".gwbse_options")) {
-            string gwbse_xml = options->get(key+".gwbse_options").as< string >();
-            load_property_from_xml(_gwbse_opt, gwbse_xml.c_str());
-            // _gwbse = _gwbse_opt.get("package.name").as< string >();
-        }
-        else {
-            throw runtime_error("GWBSE options not specified.");
-        }
-        _state = options->get(key+".state").as< int >();
+        string gwbse_xml = options->ifExistsReturnElseThrowRuntimeError<string>(key+".gwbse_options");
+        load_property_from_xml(_gwbse_opt, gwbse_xml.c_str());
+     
+        _state = options->ifExistsReturnElseReturnDefault<int>(key+".state",1);
     }
     else {
         cout << endl << "... ... Configure for ground states (DFT)" << flush;
     }
-
+    return;
 }
 
 
@@ -191,7 +158,8 @@ void QMAPE::CustomizeLogger(ctp::QMThread *thread) {
     log->setPreface(ctp::logINFO,    (format("\nT%1$02d INF ...") % thread->getId()).str());
     log->setPreface(ctp::logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
     log->setPreface(ctp::logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
-    log->setPreface(ctp::logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());        
+    log->setPreface(ctp::logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str()); 
+    return;
 }
 
 

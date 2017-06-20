@@ -42,45 +42,17 @@ namespace votca {
         _isConverged(false) {
 
             string key = sfx + ".qmmmconvg";
-            if (opt->exists(key + ".dR")) {
-                _crit_dR = opt->get(key + ".dR").as<double>();
-            } else {
-                _crit_dR = 0.01; // nm
-            }
-            if (opt->exists(key + ".dQ")) {
-                _crit_dQ = opt->get(key + ".dQ").as<double>();
-            } else {
-                _crit_dQ = 0.01; // e
-            }
-            if (opt->exists(key + ".dE_QM")) {
-                _crit_dE_QM = opt->get(key + ".dE_QM").as<double>();
-            } else {
-                _crit_dE_QM = 0.001; // eV
-            }
-            if (opt->exists(key + ".dE_MM")) {
-                _crit_dE_MM = opt->get(key + ".dE_MM").as<double>();
-            } else {
-                _crit_dE_MM = _crit_dE_QM; // eV
-            }
-            if (opt->exists(key + ".max_iter")) {
-                _maxIter = opt->get(key + ".max_iter").as<int>();
-            } else {
-                _maxIter = 32;
-            }
+            
+            _crit_dR =opt->ifExistsReturnElseReturnDefault<double>(key + ".dR",0.01);//nm
+            _crit_dQ =opt->ifExistsReturnElseReturnDefault<double>(key + ".dQ",0.01);//e
+            _crit_dE_QM =opt->ifExistsReturnElseReturnDefault<double>(key + ".dQdE_QM",0.001);//eV
+            _crit_dE_MM  =opt->ifExistsReturnElseReturnDefault<double>(key + ".dE_MM",_crit_dE_QM);//eV
+            _maxIter=opt->ifExistsReturnElseReturnDefault<int>(key + ".max_iter",32);
+           
 
             key = sfx + ".control";
-            bool split_dpl;
-            double dpl_spacing;
-            if (opt->exists(key + ".split_dpl")) {
-                split_dpl = opt->get(key + ".split_dpl").as<bool>();
-            } else {
-                split_dpl = true;
-            }
-            if (opt->exists(key + ".dpl_spacing")) {
-                dpl_spacing = opt->get(key + ".dpl_spacing").as<double>();
-            } else {
-                dpl_spacing = 1e-3;
-            }
+            bool split_dpl=opt->ifExistsReturnElseReturnDefault<bool>(key + ".split_dpl",true);
+            double dpl_spacing=opt->ifExistsReturnElseReturnDefault<double>(key + ".dpl_spacing",1e-3);
             qminterface.setMultipoleSplitting(split_dpl,dpl_spacing);
             
             

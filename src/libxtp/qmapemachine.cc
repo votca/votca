@@ -37,61 +37,36 @@ QMAPEMachine::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape,
    : _subthreads(nst),_job(job), _cape(cape),_isConverged(false) {
     
 	// CONVERGENCE THRESHOLDS
-    string key = sfx + ".convergence";
-		if (opt->exists(key+".dR")) {
-			_crit_dR = opt->get(key+".dR").as<double>();
-		}
-		else {
-			_crit_dR = 0.01; // nm
-		}
-		if (opt->exists(key+".dQ")) {
-			_crit_dQ = opt->get(key+".dQ").as<double>();
-		}
-		else {
-			_crit_dQ = 0.01; // e
-		}
-		if (opt->exists(key+".dE_QM")) {
-			_crit_dE_QM = opt->get(key+".dE_QM").as<double>();
-		}
-		else {
-			_crit_dE_QM = 0.001; // eV
-		}
-		if (opt->exists(key+".dE_MM")) {
-			_crit_dE_MM = opt->get(key+".dE_MM").as<double>();
-		}
-		else {
-			_crit_dE_MM = _crit_dE_QM; // eV
-		}
-		if (opt->exists(key+".max_iter")) {
-			_maxIter = opt->get(key+".max_iter").as<int>();
-		}
-		else {
-			_maxIter = 32;
-		}
+    string key = sfx + ".qmmmconvg";
+            _crit_dR =opt->ifExistsReturnElseReturnDefault<double>(key + ".dR",0.01);//nm
+            _crit_dQ =opt->ifExistsReturnElseReturnDefault<double>(key + ".dQ",0.01);//e
+            _crit_dE_QM =opt->ifExistsReturnElseReturnDefault<double>(key + ".dQdE_QM",0.001);//eV
+            _crit_dE_MM  =opt->ifExistsReturnElseReturnDefault<double>(key + ".dE_MM",_crit_dE_QM);//eV
+            _maxIter=opt->ifExistsReturnElseReturnDefault<int>(key + ".max_iter",32);
 
 	// TASKS
 	key = sfx + ".tasks";
-		_run_ape = opt->get(key+".run_ape").as<bool>();
-		_run_dft = opt->get(key+".run_dft").as<bool>();
-		_run_gwbse = opt->get(key+".run_gwbse").as<bool>();
+		_run_ape = opt->ifExistsReturnElseThrowRuntimeError<bool>(key+".run_ape");
+		_run_dft = opt->ifExistsReturnElseThrowRuntimeError<bool>(key+".run_dft");
+		_run_gwbse = opt->ifExistsReturnElseThrowRuntimeError<bool>(key+".run_gwbse");
         
         
-    
-                key=sfx+".dft";
-                string dft_xml = opt->get(key + ".dft_options").as<string>();
-		load_property_from_xml(_dft_options, dft_xml.c_str());
-                
+        if(_run_dft){
+            key=sfx+".dft";
+            string dft_xml = opt->ifExistsReturnElseThrowRuntimeError<string>(key + ".dftengine");
+            load_property_from_xml(_dft_options, dft_xml.c_str());
+        }
+                if(_run_gwbse){
 	// GWBSE CONFIG
-    key = sfx + ".gwbse";
-		string gwbse_xml = opt->get(key + ".gwbse_options").as<string>();
+        key = sfx + ".gwbse";
+		string gwbse_xml = opt->ifExistsReturnElseThrowRuntimeError<string>(key + ".gwbse_options");
 		load_property_from_xml(_gwbse_options, gwbse_xml.c_str());
 
-		_state = opt->get(key+".state").as<int>();
-		_type  = opt->get(key+".type").as<string>();
-		if ( _type != "singlet" && _type != "triplet") {
-			throw runtime_error(" Invalid excited state type! " + _type);
-		}
-
+		_state = opt->ifExistsReturnElseReturnDefault<int>(key+".state",1);
+                std::vector<string> choices={ "singlet","triplet"  };
+		_type  = opt->ifExistsAndinListReturnElseThrowRuntimeError<string>(key+".type",choices);
+		
+                
 		key = sfx + ".gwbse.filter";
 		if (opt->exists(key + ".oscillator_strength") && _type != "triplet") {
 			_has_osc_filter = true;
@@ -107,6 +82,7 @@ QMAPEMachine::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape,
 		else {
 			_has_dQ_filter = false;
 		}
+                }
                 return;
     }
 
@@ -136,7 +112,7 @@ QMAPEMachine::~QMAPEMachine() {
 void QMAPEMachine::Evaluate(ctp::XJob *job) {
     
 	// PREPARE JOB DIRECTORY
-	string jobFolder = "job_" + boost::lexical_cast<string>(_job->getId())
+	string jobFolder = "qmapejob_" + boost::lexical_cast<string>(_job->getId())
 					 + "_" + _job->getTag();
 	bool created = boost::filesystem::create_directory(jobFolder);
 
@@ -210,24 +186,16 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
 
     // COMPUTE POLARIZATION STATE WITH QM0(0)
     if (_run_ape) {
-		if (iterCnt == 0) {
-			_cape->ShowAgenda(_log);
-			// Reset FGC, start from BGP state, apply FP fields (BG & FG)
-			_cape->EvaluateInductionQMMM(true, true, true, true, true);
-		}
-    
-    
-        
-		
-        
-       
-		if (iterCnt == 0) {
-			// Add BG, do not add MM1 & QM0
-			_cape->EvaluatePotential(target_bg, true, false, false);
-		}
-		// Do not add BG & QM0, add MM1
-		_cape->EvaluatePotential(target_fg, false, true, false);
-    }
+        if (iterCnt == 0) {
+            _cape->ShowAgenda(_log);
+            // Reset FGC, start from BGP state, apply FP fields (BG & FG)
+            _cape->EvaluateInductionQMMM(true, true, true, true, true);
+            // Add BG, do not add MM1 & QM0
+            _cape->EvaluatePotential(target_bg, true, false, false);
+        }
+        // Do not add BG & QM0, add MM1
+        _cape->EvaluatePotential(target_fg, false, true, false);
+            }
     
     dftengine.setExternalGrid(ExtractElGrid_fromPolarsites(),ExtractNucGrid_fromPolarsites());
     
@@ -250,14 +218,12 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
 		// Update QM0 density: QM0(n) => QM0(n+1)
 		// ...
         thisIter->UpdatePosChrgFromQMAtoms(orb_iter_input.QMAtoms(),
-            _job->getPolarTop()->QM0());
-
+        _job->getPolarTop()->QM0());
 		// Do not reset FGC (= only reset FU), do not use BGP state, nor apply FP fields (BG & FG)
-		_cape->EvaluateInductionQMMM(false, false, false, false, false);
-
+        _cape->EvaluateInductionQMMM(false, false, false, false, false);
 		// COMPUTE MM ENERGY
-		_cape->EvaluateEnergyQMMM();
-		_cape->ShowEnergySplitting(_log);
+	_cape->EvaluateEnergyQMMM();
+	_cape->ShowEnergySplitting(_log);
 	}
 
 	// COMPILE HAMILTONIAN & CHECK FOR CONVERGENCE
