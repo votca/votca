@@ -7,8 +7,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/exchange_correlation.cc</file>
-            <file>file:/home/jens/votca_git/src/xtp/include/votca/xtp/exchange_correlation.h</file>
+            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/tools/exciton.h</file>
+            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/dftengine/dftengine.cc</file>
+            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/tools/dft.h</file>
+            <file>file:/home/jens/votca_git/src/xtp/include/votca/xtp/orbitals.h</file>
+            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/tools/exciton.cc</file>
+            <file>file:/home/jens/votca_git/src/xtp/include/votca/xtp/dftengine.h</file>
+            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/orbitals.cc</file>
+            <file>file:/home/jens/votca_git/src/xtp/include/votca/xtp/aomatrix.h</file>
         </group>
     </open-files>
 </project-private>

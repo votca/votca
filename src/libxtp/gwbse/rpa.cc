@@ -39,21 +39,24 @@ namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
 
-        void GWBSE::PPM_construct_parameters(const ub::matrix<double>& _overlap_cholesky_inverse) {
-
+        void GWBSE::PPM_construct_parameters(const ub::matrix<double>& _overlap_cholesky_inverse,const ub::matrix<double>& transcholeskyinverse) {
+            
             // multiply with L-1^t from the right
+             
             ub::matrix<double> _temp = ub::prod(_epsilon[0], ub::trans(_overlap_cholesky_inverse));
             // multiply with L-1 from the left
+            
             _temp = ub::prod(_overlap_cholesky_inverse, _temp);
 
             // get eigenvalues and eigenvectors of this matrix
             ub::vector<double> _eigenvalues;
             ub::matrix<double> _eigenvectors;
+           
             linalg_eigenvalues(_temp, _eigenvalues, _eigenvectors);
-
+            
             // multiply eigenvectors with overlap_cholesky_inverse and store as eigenvalues of epsilon
-            _ppm_phi = ub::prod(ub::trans(_overlap_cholesky_inverse), _eigenvectors);
-
+            _ppm_phi = ub::prod(transcholeskyinverse, _eigenvectors);
+            
             // store PPM weights from eigenvalues
             _ppm_weight.resize(_eigenvalues.size());
             for (unsigned _i = 0; _i < _eigenvalues.size(); _i++) {
@@ -63,12 +66,18 @@ namespace votca {
             // determine PPM frequencies
             _ppm_freq.resize(_eigenvalues.size());
             // a) phi^t * epsilon(1) * phi 
-            _temp = ub::prod(ub::trans(_ppm_phi), _epsilon[1]);
+            _temp=ub::trans(_ppm_phi);
+            _temp = ub::prod(_temp, _epsilon[1]);
+            
             _eigenvectors = ub::prod(_temp, _ppm_phi);
             // b) invert
+            
             _temp = ub::zero_matrix<double>(_eigenvalues.size(), _eigenvalues.size());
+            
             linalg_invert(_eigenvectors, _temp); //eigenvectors is destroyed after!
             // c) PPM parameters -> diagonal elements
+            
+            #pragma omp parallel for 
             for (unsigned _i = 0; _i < _eigenvalues.size(); _i++) {
 
                 if (_screening_freq(1, 0) == 0.0) {
@@ -90,12 +99,14 @@ namespace votca {
 
             }
 
+            
             // will be needed transposed later
             _ppm_phi = ub::trans(_ppm_phi);
-
+            
             // epsilon can be deleted
             _epsilon[0].resize(0, 0);
             _epsilon[1].resize(0, 0);
+            
 
             return;
         }
@@ -218,7 +229,7 @@ namespace votca {
    
     // this is apparently the fourier transform of the coulomb matrix, I am not sure
     void GWBSE::RPA_prepare_threecenters(TCMatrix& _Mmn_RPA,const TCMatrix& _Mmn_full, AOBasis& gwbasis,
-             const AOMatrix& gwoverlap,const AOMatrix& gwoverlap_inverse ){
+             const AOMatrix& gwoverlap,const ub::matrix<double>& gwoverlap_inverse ){
         
         const double pi = boost::math::constants::pi<double>();
         ub::range full=ub::range(0, gwbasis.AOBasisSize());
@@ -235,7 +246,7 @@ namespace votca {
                 const ub::matrix<double>  _Mmn_double = _Mmn_full[ _m_level ];
 #endif
                
-                ub::matrix<double> _temp = ub::prod(gwoverlap_inverse.Matrix(), _Mmn_double);
+                ub::matrix<double> _temp = ub::prod(gwoverlap_inverse, _Mmn_double);
 
 
                 // loop over n-levels in _Mmn_full 

@@ -455,7 +455,7 @@ namespace votca {
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
                 ub::matrix<double> AuxAOcoulomb_inv = ub::zero_matrix<double>(_auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension());
-                int dimensions = linalg_invert_svd(_auxAOcoulomb.Matrix(), AuxAOcoulomb_inv, 5e7);
+                int dimensions = linalg_invert_svd(_auxAOcoulomb.Matrix(), AuxAOcoulomb_inv, 1e7);
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inverted AUX Coulomb matrix, removed " << dimensions << " functions from aux basis" << flush;
 
@@ -608,7 +608,7 @@ namespace votca {
                 ub::matrix<double>dftAOdmat_beta = DensityMatrix_unres(MOCoeff_beta, beta_e);
                 bool _HF=false;
                 double energyold = 0;
-                int maxiter =400;
+                int maxiter =50;
                 for (int this_iter = 0; this_iter < maxiter; this_iter++) {
                    
                     ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);

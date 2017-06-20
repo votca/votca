@@ -53,10 +53,8 @@ namespace votca {
             for (int _i_occ = 0; _i_occ < this->get_mtot(); _i_occ++) {
 	      // fist cast _matrix[_i_occ] to double for efficient prod() overloading
 	      ub::matrix<double> _matrix_double = _matrix[ _i_occ ];
-	      // ub::matrix<real_gwbse> _temp = ub::prod(_coulomb, _matrix[ _i_occ ]);
-	      ub::matrix<real_gwbse> _temp = ub::prod(_coulomb, _matrix_double);
-	      //_matrix[ _i_occ ] = ub::prod(_coulomb, _matrix[ _i_occ ]);
-	      _matrix[ _i_occ ] = _temp;
+	      _matrix[ _i_occ ] = ub::prod(_coulomb, _matrix_double);
+	      
             }
             return;
         } // TCMatrix::Symmetrize
