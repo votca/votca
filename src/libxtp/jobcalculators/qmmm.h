@@ -350,7 +350,7 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_QM0_MM1_MM2.pdb");
     }
     // INDUCTOR, QM RUNNER, QM-MM MACHINE
-    ctp::XInductor xind = ctp::XInductor(top, &_options, "options.qmmm",
+    ctp::XInductor xind = ctp::XInductor(top, &_options, "options.xqmmm",
         _subthreads, _maverick);    
     xind.setLog(thread->getLogger());
     
