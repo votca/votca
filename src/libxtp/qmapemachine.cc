@@ -46,15 +46,16 @@ QMAPEMachine::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape,
 
 	// TASKS
 	key = sfx + ".tasks";
-		_run_ape = opt->ifExistsReturnElseThrowRuntimeError<bool>(key+".run_ape");
-		_run_dft = opt->ifExistsReturnElseThrowRuntimeError<bool>(key+".run_dft");
-		_run_gwbse = opt->ifExistsReturnElseThrowRuntimeError<bool>(key+".run_gwbse");
+		_run_ape = opt->ifExistsReturnElseReturnDefault<bool>(key+".run_ape",true);
+		_run_dft = opt->ifExistsReturnElseReturnDefault<bool>(key+".run_dft",true);
+		_run_gwbse = opt->ifExistsReturnElseReturnDefault<bool>(key+".run_gwbse",true);
         
         
         if(_run_dft){
             key=sfx+".dft";
             string dft_xml = opt->ifExistsReturnElseThrowRuntimeError<string>(key + ".dftengine");
             load_property_from_xml(_dft_options, dft_xml.c_str());
+            _externalgridaccuracy=opt->ifExistsReturnElseReturnDefault<string>(key+".externalgrid","medium");
         }
                 if(_run_gwbse){
 	// GWBSE CONFIG
@@ -134,7 +135,7 @@ void QMAPEMachine::Evaluate(ctp::XJob *job) {
     int spin = ( (chrg < 0) ? -chrg:chrg ) % 2 + 1;
     CTP_LOG(ctp::logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
     
-    if(dQ!=0){
+    if(chrg!=0){
         throw runtime_error("Charged DFT calculations are not possible at the moment");
     }
     
@@ -178,8 +179,9 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
     DFTENGINE dftengine;
     dftengine.Initialize(&_dft_options);
     dftengine.setLogger(_log);
+    dftengine.ConfigureExternalGrid(_externalgridaccuracy);  
     dftengine.Prepare(&orb_iter_input);
-    
+     
     if (iterCnt == 0) {
     SetupPolarSiteGrids(dftengine.getExternalGridpoints(),orb_iter_input.QMAtoms());
     }

@@ -111,7 +111,7 @@ void QMAPE::Initialize(Property *options) {
     _jobfile = options->ifExistsReturnElseThrowRuntimeError<string>(key+".job_file");
         
 
-	key = "options"+Identify()+".ewald";	
+	key = "options."+Identify()+".ewald";	
         _xml_file = options->ifExistsReturnElseThrowRuntimeError<string>(key+".mapping");
         _mps_table = options->ifExistsReturnElseThrowRuntimeError<string>(key+".mps_table");
         _polar_bg_arch = options->ifExistsReturnElseReturnDefault<string>(key+".polar_bg","");
@@ -122,7 +122,7 @@ void QMAPE::Initialize(Property *options) {
     key = "options."+Identify();
     
       
-    string package_xml = options->ifExistsReturnElseThrowRuntimeError<string>(key+".dftengine");
+    string package_xml = options->ifExistsReturnElseThrowRuntimeError<string>(key+".dft.dftengine");
     load_property_from_xml(_dft_opt, package_xml.c_str());
        
     key = "options."+Identify()+".gwbse";

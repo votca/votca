@@ -81,7 +81,7 @@ private:
     bool _isConverged;
     
     unsigned NumberofAtoms;
-    
+    string _externalgridaccuracy;
     
     Property _gwbse_options;
     Property _dft_options;

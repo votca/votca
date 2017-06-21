@@ -50,7 +50,7 @@ class DFTENGINE
 {
 public:
 
-    DFTENGINE() {_addexternalsites=false;
+    DFTENGINE() {_addexternalsites=false;_do_externalfield = false;
             };
    ~DFTENGINE(){
     
@@ -64,6 +64,8 @@ public:
     void    CleanUp();
 
     void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
+    
+    void ConfigureExternalGrid(string grid_name_ext){_grid_name_ext=grid_name_ext; _do_externalfield = true;}
     
     void setExternalcharges(ctp::PolarSeg* externalsites){
         _externalsites=ctp::PolarSeg(externalsites,false);

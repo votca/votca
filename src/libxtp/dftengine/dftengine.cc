@@ -83,12 +83,6 @@ namespace votca {
             _with_guess = options->ifExistsReturnElseReturnDefault<bool>(key + ".read_guess", false);
             _initial_guess = options->ifExistsReturnElseReturnDefault<string>(key + ".initial_guess", "atom");
 
-            if (options->exists(key + ".externalfield_grid")) {
-                _do_externalfield = true;
-                _grid_name_ext = options->get(key + ".externalfield_grid").as<string>();
-            } else {
-                _do_externalfield = false;
-            }
 
             // numerical integrations
             _grid_name = options->ifExistsReturnElseReturnDefault<string>(key + ".integration_grid", "medium");
@@ -215,10 +209,12 @@ namespace votca {
             }
 
             if (_do_externalfield) {
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "Integrated external potential on grid " << flush;
-                //cout<<"grid"<<_gridIntegration_ext.IntegrateExternalPotential_Atomblock(&_dftbasis,externalgrid)<<endl;
-                H0 -= _gridIntegration_ext.IntegrateExternalPotential(_externalgrid);
-
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Integrated external potential on grid " << flush;
+                //cout<<H0<<endl;
+                //cout<<_gridIntegration_ext.IntegrateExternalPotential(_externalgrid)<<endl;
+                //H0 -= _gridIntegration_ext.IntegrateExternalPotential(_externalgrid);
+                //cout<<H0<<endl;
+                cout<<ExternalGridRepulsion(_externalgrid_nuc)<<endl;
                 E_nucnuc += ExternalGridRepulsion(_externalgrid_nuc);
             }
 
@@ -474,13 +470,13 @@ namespace votca {
 
         ub::matrix<double> DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
             ub::matrix<double> guess = ub::zero_matrix<double>(_dftbasis.AOBasisSize());
-            const std::vector<ctp::QMAtom*> atoms = _orbitals->QMAtoms();
+            
             std::vector<ctp::QMAtom*> uniqueelements;
             std::vector<ctp::QMAtom*>::const_iterator at;
             std::vector<ctp::QMAtom*>::iterator st;
             std::vector< ub::matrix<double> > uniqueatom_guesses;
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Scanning molecule of size " << atoms.size() << " for unique elements" << flush;
-            for (at = atoms.begin(); at < atoms.end(); ++at) {
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Scanning molecule of size " << _atoms.size() << " for unique elements" << flush;
+            for (at = _atoms.begin(); at < _atoms.end(); ++at) {
                 bool exists = false;
                 if (uniqueelements.size() == 0) {
                     exists = false;
@@ -699,7 +695,7 @@ namespace votca {
             }
             unsigned start = 0;
             unsigned end = 0;
-            for (at = atoms.begin(); at < atoms.end(); ++at) {
+            for (at = _atoms.begin(); at < _atoms.end(); ++at) {
                 unsigned index = 0;
                 for (unsigned i = 0; i < uniqueelements.size(); i++) {
                     if ((*at)->type == uniqueelements[i]->type) {
@@ -724,7 +720,11 @@ namespace votca {
 
       // PREPARATION 
         void DFTENGINE::Prepare(Orbitals* _orbitals) {
-            _atoms = _orbitals->QMAtoms();
+            for(const auto& atom:_orbitals->QMAtoms()){
+                if(!atom->from_environment){
+                _atoms.push_back(atom);
+                }
+            }
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Molecule Coordinates [A] " << flush;
             for (unsigned i = 0; i < _atoms.size(); i++) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << _atoms[i]->type << " " << _atoms[i]->x << " " << _atoms[i]->y << " " << _atoms[i]->z << " " << flush;
