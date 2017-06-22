@@ -210,12 +210,10 @@ namespace votca {
 
             if (_do_externalfield) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Integrated external potential on grid " << flush;
-                //cout<<H0<<endl;
-                //cout<<_gridIntegration_ext.IntegrateExternalPotential(_externalgrid)<<endl;
-                //H0 -= _gridIntegration_ext.IntegrateExternalPotential(_externalgrid);
-                //cout<<H0<<endl;
-                cout<<ExternalGridRepulsion(_externalgrid_nuc)<<endl;
-                E_nucnuc += ExternalGridRepulsion(_externalgrid_nuc);
+                double extneralgrid_nucint=ExternalGridRepulsion(_externalgrid_nuc);
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Nuclei external potential interaction "<<extneralgrid_nucint<<" Hartree" << flush;
+                H0 += _gridIntegration_ext.IntegrateExternalPotential(_externalgrid);
+                E_nucnuc += extneralgrid_nucint;
             }
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Nuclear Repulsion Energy is " << E_nucnuc << flush;
@@ -229,9 +227,11 @@ namespace votca {
                     ub::matrix<double> copy=H0;
                     _diis.SolveFockmatrix(MOEnergies, MOCoeff, copy);
                     _dftAOdmat = _orbitals->DensityMatrixGroundState(MOCoeff);
+                   
                 } else if (_initial_guess == "atom") {
 
                     _dftAOdmat = AtomicGuess(_orbitals);
+                    //cout<<_dftAOdmat<<endl;
                     if (_with_RI) {
                         _ERIs.CalculateERIs(_dftAOdmat);
                     } else {
@@ -247,7 +247,7 @@ namespace votca {
                     ub::matrix<double> H = H0 + _ERIs.getERIs() + _orbitals->AOVxc();
                     _diis.SolveFockmatrix(MOEnergies, MOCoeff, H);
                     _dftAOdmat = _orbitals->DensityMatrixGroundState(MOCoeff);
-                    
+                    //cout<<_dftAOdmat<<endl;
                     //Have to do one full iteration here, levelshift needs MOs;
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Full atomic density Matrix gives N=" << std::setprecision(9) << linalg_traceofProd(_dftAOdmat, _dftAOoverlap.Matrix()) << " electrons." << flush;
                 } else {
@@ -259,7 +259,7 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _orbitals->getQMpackage() << " to xtp" << flush;
                 _dftAOdmat = _orbitals->DensityMatrixGroundState(MOCoeff);
             }
-
+            
             _orbitals->setQMpackage("xtp");
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " STARTING SCF cycle" << flush;
@@ -272,7 +272,7 @@ namespace votca {
             for (_this_iter = 0; _this_iter < _max_iter; _this_iter++) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << flush;
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Iteration " << _this_iter + 1 << " of " << _max_iter << flush;
-
+                
                 if (_with_RI) {
                     _ERIs.CalculateERIs(_dftAOdmat);
                 } else {
@@ -290,9 +290,10 @@ namespace votca {
                     vxcenergy = _gridIntegration.getTotEcontribution();
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix " << flush;
                 }
-
+                //cout<<_dftAOdmat<<endl;
                 ub::matrix<double> H = H0 + _ERIs.getERIs() + _orbitals->AOVxc();
-
+                //cout<<H0<<endl;
+                //exit(0);
                 double Eone = linalg_traceofProd(_dftAOdmat, H0);
                 double Etwo = 0.5 * _ERIs.getERIsenergy() + vxcenergy;
                 double totenergy = Eone + E_nucnuc + Etwo;
@@ -349,7 +350,6 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Density Matrix gives N=" << std::setprecision(9) << linalg_traceofProd(_dftAOdmat, _dftAOoverlap.Matrix()) << " electrons." << flush;
 
             }
-
             return true;
         }
 
@@ -682,7 +682,6 @@ namespace votca {
 
 
                         ub::matrix<double> avdmat=AverageShells(dftAOdmat_alpha+dftAOdmat_beta,dftbasis);
-
                         uniqueatom_guesses.push_back(avdmat);
                         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Atomic density Matrix for "<< (*st)->type<<" gives N="
                                 <<std::setprecision(9)<<linalg_traceofProd(avdmat,dftAOoverlap.Matrix())<<" electrons."<<flush;

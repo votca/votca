@@ -72,12 +72,9 @@ namespace votca {
             _bse_singlet_coefficients(orbitals->BSESingletCoefficients()),
             _bse_singlet_coefficients_AR(orbitals->BSESingletCoefficientsAR()),
             _bse_triplet_energies(orbitals->BSETripletEnergies()),
-            _bse_triplet_coefficients(orbitals->BSETripletCoefficients())
- {
-            };
+            _bse_triplet_coefficients(orbitals->BSETripletCoefficients()){};
 
-            ~GWBSE() {
-            };
+            ~GWBSE() {};
 
 
 

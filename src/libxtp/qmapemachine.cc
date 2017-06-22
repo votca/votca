@@ -144,10 +144,13 @@ void QMAPEMachine::Evaluate(ctp::XJob *job) {
     int iterCnt = 0;
     int iterMax = _maxIter;
     for ( ; iterCnt < iterMax; ++iterCnt) {
-        
+        CTP_LOG(ctp::logINFO,*_log) << "QMMM ITERATION:" << iterCnt+1<<" of "<<iterMax << flush;
         //bool code = Iterate(jobFolder, iterCnt);
         Iterate(jobFolder, iterCnt);
-        if (hasConverged()) { break; }
+        if (hasConverged()) {
+            CTP_LOG(ctp::logINFO,*_log) << "QMMM CONVERGED after:" << iterCnt+1<<" iterations."<< flush;
+        
+        break; }
     }
     
     if (iterCnt == iterMax-1 && !_isConverged) {
@@ -204,23 +207,32 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
     if (_run_dft) {
     dftengine.Evaluate(&orb_iter_input);
     }
-     FILE *out;
+    FILE *out;
 	out = fopen((runFolder + "/system.pdb").c_str(),"w");
-	orb_iter_input.WritePDB(out);
+	orb_iter_input.WritePDB(out,"Full structure");
 	fclose(out);
-    
 
     // Run GWBSE
 	if (_run_gwbse){
-		this->EvaluateGWBSE(orb_iter_input, runFolder);
+		EvaluateGWBSE(orb_iter_input, runFolder);
 	}
+        
+        
+	out = fopen((runFolder + "/system2.pdb").c_str(),"w");
+	orb_iter_input.WritePDB(out,"Full structure");
+	fclose(out);
 
 	// COMPUTE POLARIZATION STATE WITH QM0(n+1)
 	if (_run_ape) {
 		// Update QM0 density: QM0(n) => QM0(n+1)
 		// ...
-        thisIter->UpdatePosChrgFromQMAtoms(orb_iter_input.QMAtoms(),
-        _job->getPolarTop()->QM0());
+            std::vector< ctp::QMAtom* > Atomlist;
+    for(const auto& atom:orb_iter_input.QMAtoms()){
+                if(!atom->from_environment){
+                Atomlist.push_back(atom);
+                }
+            }
+        thisIter->UpdatePosChrgFromQMAtoms(Atomlist,_job->getPolarTop()->QM0());
 		// Do not reset FGC (= only reset FU), do not use BGP state, nor apply FP fields (BG & FG)
         _cape->EvaluateInductionQMMM(false, false, false, false, false);
 		// COMPUTE MM ENERGY
@@ -239,9 +251,6 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
     _cape->ShowEnergySplitting(_log);
 
     return true;
-
-
-
 }
 
 
@@ -256,7 +265,8 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
     std::vector<int> _state_index;
     GWBSE _gwbse(&orb);
-    _gwbse.Initialize(&_gwbse_options);
+    _gwbse.setLogger(_log);
+    
     if (_state > 0) {
         CTP_LOG(ctp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
         CTP_LOG(ctp::logDEBUG, *_log) << "  --- type:              " << _type << flush;
@@ -275,12 +285,11 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
         // define own logger for GW-BSE that is written into a runFolder logfile
         ctp::Logger gwbse_logger(ctp::logDEBUG);
         gwbse_logger.setMultithreading(false);
-        _gwbse.setLogger(&gwbse_logger);
-        gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
+        //gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
         gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
         gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
         gwbse_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
-
+        _gwbse.Initialize(&_gwbse_options);
         // actual GW-BSE run
 
         _gwbse.Evaluate();
@@ -351,6 +360,13 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
             _state_index.push_back(0);
         }
     } // only if state >0
+    
+    std::vector< ctp::QMAtom* > Atomlist;
+    for(const auto& atom:orb.QMAtoms()){
+                if(!atom->from_environment){
+                Atomlist.push_back(atom);
+                }
+            }
 
     // calculate density matrix for this excited state
     ub::matrix<double> &_dft_orbitals = orb.MOCoefficients();
@@ -366,7 +382,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
     // fill DFT AO basis by going through all atoms
     AOBasis dftbasis;
-    dftbasis.AOBasisFill(&dftbs, orb.QMAtoms());
+    dftbasis.AOBasisFill(&dftbs, Atomlist );
     dftbasis.ReorderMOs(_dft_orbitals, orb.getQMpackage(), "xtp");
     // TBD: Need to switch between singlets and triplets depending on _type
     ub::matrix<double> DMATGS = orb.DensityMatrixGroundState(_dft_orbitals);
@@ -379,24 +395,25 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
     }
 
     // fill DFT AO basis by going through all atoms
-    std::vector< ctp::QMAtom* >& Atomlist = orb.QMAtoms();
+    
     Espfit esp = Espfit(_log);
     if (_run_gwbse) {
         esp.setUseECPs(true);
     }
     esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, dftbs, "medium");
-
     return true;
 }
 
 
 void QMAPEMachine::SetupPolarSiteGrids(const std::vector<const vec *>& gridpoints,const std::vector<ctp::QMAtom*>& atoms){
-    NumberofAtoms=atoms.size();
+    NumberofAtoms=0;
     std::vector<ctp::QMAtom*>::const_iterator qmt;
     std::vector<ctp::APolarSite*> sites1;
     std::vector<ctp::APolarSite*> sites2;
     
     for(qmt=atoms.begin();qmt!=atoms.end();++qmt){
+        if((*qmt)->from_environment){continue;}
+        NumberofAtoms++;
         sites1.push_back(qminterface.Convert(*qmt));
         sites2.push_back(qminterface.Convert(*qmt));
     }

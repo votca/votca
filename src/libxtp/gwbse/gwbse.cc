@@ -288,8 +288,12 @@ namespace votca {
             string _dft_package = _orbitals->getQMpackage();
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DFT data was created by " << _dft_package << flush;
 
-            std::vector<ctp::QMAtom*> _atoms = _orbitals->QMAtoms();
-
+            std::vector<ctp::QMAtom*> _atoms;
+            for(const auto& atom:_orbitals->QMAtoms()){
+                            if(!atom->from_environment){
+                            _atoms.push_back(atom);
+                            }
+                        }
             // load DFT basis set (element-wise information) from xml file
             BasisSet dftbs;
 
@@ -466,6 +470,7 @@ namespace votca {
 
                 // now get expectation values but only for those in _qpmin:_qpmax range
                 ub::matrix<double> _mos = ub::project(_dft_orbitals, ub::range(_qpmin, _qpmax + 1), ub::range(0, _dftbasis.AOBasisSize()));
+                
                 ub::matrix<double> _temp = ub::prod(_vxc_ao, ub::trans(_mos));
                 _vxc = ub::prod(_mos, _temp);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated exchange-correlation expectation values " << flush;

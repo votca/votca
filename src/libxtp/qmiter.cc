@@ -77,7 +77,7 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
 
                     // Retrieve info from ctp::QMAtom
                     ctp::QMAtom *qmatm = qmatoms[qac];
-                    vec upd_r = vec(qmatm->x, qmatm->y, qmatm->z);
+                    vec upd_r = qmatm->getPos();
                     upd_r *= AA_to_NM;
                     double upd_Q00 = qmatm->charge;
                     //cout << "updating charge to " << qmatm->charge << endl;

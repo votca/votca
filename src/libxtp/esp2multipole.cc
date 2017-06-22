@@ -159,8 +159,10 @@ void Esp2multipole::Extractingcharges( Orbitals & _orbitals ){
         vector< ctp::QMAtom* > Atomlist =_orbitals.QMAtoms();
         std::vector< ctp::QMAtom* >::iterator at;
         for (at=Atomlist.begin();at<Atomlist.end();++at){
+            if(!(*at)->from_environment){
             ctp::QMAtom * atom=new ctp::QMAtom(*(*at));
             _Atomlist.push_back(atom);
+            }
         }
         ub::matrix<double> DMAT_tot;
         BasisSet bs;
