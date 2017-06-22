@@ -22,7 +22,7 @@
 
 
 
-
+#include <votca/xtp/dftengine.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/orbitals.h>
@@ -70,6 +70,8 @@ private:
     ctp::XJob *_job;
     ctp::XInductor *_xind;
     ctp::Ewald3DnD *_cape;
+    
+    DFTENGINE dftengine;
     
     void SetupPolarSiteGrids( const std::vector< const vec *>& gridpoints,const std::vector< ctp::QMAtom* >& atoms);
     

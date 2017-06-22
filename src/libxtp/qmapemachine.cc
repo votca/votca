@@ -24,7 +24,7 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/ctp/logger.h>
-#include <votca/xtp/dftengine.h>
+
 #include <votca/xtp/elements.h>
 #include <votca/xtp/espfit.h>
 
@@ -179,13 +179,14 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
     Orbitals orb_iter_input;
     qminterface.GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input);
     
-    DFTENGINE dftengine;
+    
+    
+     
+    if (iterCnt == 0) {
     dftengine.Initialize(&_dft_options);
     dftengine.setLogger(_log);
     dftengine.ConfigureExternalGrid(_externalgridaccuracy);  
     dftengine.Prepare(&orb_iter_input);
-     
-    if (iterCnt == 0) {
     SetupPolarSiteGrids(dftengine.getExternalGridpoints(),orb_iter_input.QMAtoms());
     }
 
@@ -217,10 +218,7 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
 		EvaluateGWBSE(orb_iter_input, runFolder);
 	}
         
-        
-	out = fopen((runFolder + "/system2.pdb").c_str(),"w");
-	orb_iter_input.WritePDB(out,"Full structure");
-	fclose(out);
+       
 
 	// COMPUTE POLARIZATION STATE WITH QM0(n+1)
 	if (_run_ape) {

@@ -164,7 +164,8 @@ namespace votca {
        
         
         bool DFTENGINE::Evaluate(Orbitals* _orbitals) {
-
+            
+            
             // set the parallelization 
             #ifdef _OPENMP
             
@@ -180,7 +181,8 @@ namespace votca {
             /**** END OF PREPARATION ****/
 
             /**** Density-independent matrices ****/
-            SetupInvariantMatrices();
+            
+            
 
             ub::vector<double>& MOEnergies = _orbitals->MOEnergies();
             ub::matrix<double>& MOCoeff = _orbitals->MOCoefficients();
@@ -220,7 +222,18 @@ namespace votca {
 
 
             // if we have a guess we do not need this. 
-            if (!_with_guess) {
+            if(_with_guess){
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Reading guess from orbitals object/file" << flush;
+                _dftbasis.ReorderMOs(MOCoeff, _orbitals->getQMpackage(), "xtp");
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _orbitals->getQMpackage() << " to xtp" << flush;
+                _dftAOdmat = _orbitals->DensityMatrixGroundState(MOCoeff);
+            }
+            else if(guess_set){
+                ConfigOrbfile(_orbitals);
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using starting guess from last iteration" << flush;
+                _dftAOdmat = last_dmat;
+            }
+            else{
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup Initial Guess using: " << _initial_guess << flush;
                 // this temp is necessary because eigenvalues_general returns MO^T and not MO
                 if (_initial_guess == "independent") {
@@ -253,12 +266,9 @@ namespace votca {
                 } else {
                     throw runtime_error("Initial guess method not known/implemented");
                 }
-            } else {
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Reading guess from orbitals object/file" << flush;
-                _dftbasis.ReorderMOs(MOCoeff, _orbitals->getQMpackage(), "xtp");
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _orbitals->getQMpackage() << " to xtp" << flush;
-                _dftAOdmat = _orbitals->DensityMatrixGroundState(MOCoeff);
+                
             }
+           
             
             _orbitals->setQMpackage("xtp");
 
@@ -303,7 +313,7 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Total Energy " << std::setprecision(12) << totenergy << flush;
 
                 diiserror = _diis.Evolve(_dftAOdmat, H, MOEnergies, MOCoeff, _this_iter, totenergy);
-
+                cout<<"Energies "<<MOEnergies<<endl;
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIs error " << diiserror << flush;
 
                 ub::matrix<double> dmatin = _dftAOdmat;
@@ -343,6 +353,8 @@ namespace votca {
                             CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t" << i << " vir " << std::setprecision(12) << MOEnergies(i) << flush;
                         }
                     }
+                    last_dmat=_dftAOdmat;
+                    guess_set=true;
                     break;
                 } else {
                     energyold = totenergy;
@@ -360,7 +372,7 @@ namespace votca {
 
       void DFTENGINE::SetupInvariantMatrices() {
 
-
+          
             // local variables for checks
             // check eigenvalues of overlap matrix, if too small basis might have linear dependencies
             ub::vector<double> _eigenvalues;
@@ -716,6 +728,34 @@ namespace votca {
             return guess;
         }
 
+        void DFTENGINE::ConfigOrbfile(Orbitals* _orbitals){
+             if (_with_guess) {
+
+                if (_orbitals->hasDFTbasis()) {
+                    if (_orbitals->getDFTbasis() != _dftbasis_name) {
+                        throw runtime_error((boost::format("Basisset Name in guess orb file and in dftengine option file differ %1% vs %2%") % _orbitals->getDFTbasis() % _dftbasis_name).str());
+                    }
+                } else {
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " WARNING: Orbital file has no basisset information,using it as a guess might work or not for calculation with " << _dftbasis_name << flush;
+                }
+            }
+            _orbitals->setDFTbasis(_dftbasis_name);
+            _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
+            
+            if (_with_guess) {
+                if (_orbitals->getNumberOfElectrons() != _numofelectrons / 2) {
+                    throw runtime_error((boost::format("Number of electron in guess orb file %1% and in dftengine differ %2%.") % _orbitals->getNumberOfElectrons() % (_numofelectrons / 2)).str());
+                }
+                if (_orbitals->getNumberOfLevels() != _dftbasis.AOBasisSize()) {
+                    throw runtime_error((boost::format("Number of levels in guess orb file %1% and in dftengine differ %2%.") % _orbitals->getNumberOfLevels() % _dftbasis.AOBasisSize()).str());
+                }
+            } else {
+                _orbitals->setNumberOfElectrons(_numofelectrons / 2);
+                _orbitals->setNumberOfLevels(_numofelectrons / 2, _dftbasis.AOBasisSize() - _numofelectrons / 2);
+            }
+            return;
+        }
+        
 
       // PREPARATION 
         void DFTENGINE::Prepare(Orbitals* _orbitals) {
@@ -731,19 +771,7 @@ namespace votca {
 
             // load and fill DFT basis set
             _dftbasisset.LoadBasisSet(_dftbasis_name);
-
-            if (_with_guess) {
-
-                if (_orbitals->hasDFTbasis()) {
-                    if (_orbitals->getDFTbasis() != _dftbasis_name) {
-                        throw runtime_error((boost::format("Basisset Name in guess orb file and in dftengine option file differ %1% vs %2%") % _orbitals->getDFTbasis() % _dftbasis_name).str());
-                    }
-                } else {
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " WARNING: Orbital file has no basisset information,using it as a guess might work or not for calculation with " << _dftbasis_name << flush;
-                }
-            }
-
-            _orbitals->setDFTbasis(_dftbasis_name);
+            
             _dftbasis.AOBasisFill(&_dftbasisset, _atoms);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
 
@@ -787,7 +815,7 @@ namespace votca {
 
             Elements _elements;
             //set number of electrons and such
-            _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
+            
 
             for (unsigned i = 0; i < _atoms.size(); i++) {
                 _numofelectrons += _elements.getNucCrg(_atoms[i]->type);
@@ -807,18 +835,8 @@ namespace votca {
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Total number of electrons: " << _numofelectrons << flush;
 
-            if (_with_guess) {
-                if (_orbitals->getNumberOfElectrons() != _numofelectrons / 2) {
-                    throw runtime_error((boost::format("Number of electron in guess orb file %1% and in dftengine differ %2%.") % _orbitals->getNumberOfElectrons() % (_numofelectrons / 2)).str());
-                }
-                if (_orbitals->getNumberOfLevels() != _dftbasis.AOBasisSize()) {
-                    throw runtime_error((boost::format("Number of levels in guess orb file %1% and in dftengine differ %2%.") % _orbitals->getNumberOfLevels() % _dftbasis.AOBasisSize()).str());
-                }
-            } else {
-                _orbitals->setNumberOfElectrons(_numofelectrons / 2);
-                _orbitals->setNumberOfLevels(_numofelectrons / 2, _dftbasis.AOBasisSize() - _numofelectrons / 2);
-            }
-            
+            ConfigOrbfile(_orbitals);
+            SetupInvariantMatrices();
             return;
         }
       

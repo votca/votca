@@ -50,7 +50,7 @@ class DFTENGINE
 {
 public:
 
-    DFTENGINE() {_addexternalsites=false;_do_externalfield = false;
+    DFTENGINE() {_addexternalsites=false;_do_externalfield = false; guess_set=false;
             };
    ~DFTENGINE(){
     
@@ -88,7 +88,7 @@ public:
 
     ctp::Logger *_pLog;
     
-    
+    void ConfigOrbfile(Orbitals* _orbitals);
     void SetupInvariantMatrices();
     ub::matrix<double> AtomicGuess(Orbitals* _orbitals);
     ub::matrix<double> DensityMatrix_unres( const ub::matrix<double>& MOs, int numofelec);
@@ -193,8 +193,8 @@ public:
     std::string                              _xc_functional_name;
 
 
-  
-    
+    ub::matrix<double> last_dmat;
+    bool guess_set;
 };
 
 
