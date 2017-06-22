@@ -35,23 +35,23 @@ namespace votca {
     void KMCCalculator::LoadGraph(ctp::Topology *top) {
 
         vector< ctp::Segment* >& seg = top->Segments();
-
+        
         for (unsigned i = 0; i < seg.size(); i++) {
             GNode *newNode = new GNode();
-            _nodes.push_back(newNode);
-            _nodes[i]->ReadfromSegment(seg[i], _carriertype);
+            newNode->ReadfromSegment(seg[i], _carriertype);
             if (tools::wildcmp(_injection_name.c_str(), seg[i]->getName().c_str())) {
-                _nodes[i]->injectable = true;
+                newNode->injectable = true;
             } else {
-                _nodes[i]->injectable = false;
+                newNode->injectable = false;
             }
+            _nodes.push_back(newNode);
         }
 
         ctp::QMNBList &nblist = top->NBList();
 
         for (ctp::QMNBList::iterator it = nblist.begin(); it < nblist.end(); ++it) {
-            _nodes[(*it)->Seg1()->getId()]->AddEventfromQmPair(*it, _carriertype);
-            _nodes[(*it)->Seg2()->getId()]->AddEventfromQmPair(*it, _carriertype);
+            _nodes[(*it)->Seg1()->getId()-1]->AddEventfromQmPair(*it, _carriertype);
+            _nodes[(*it)->Seg2()->getId()-1]->AddEventfromQmPair(*it, _carriertype);
         }
 
 

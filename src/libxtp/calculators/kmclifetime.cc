@@ -36,10 +36,10 @@ namespace votca {
     std::string key = "options." + Identify();
 
     _insertions=options->ifExistsReturnElseThrowRuntimeError<unsigned int>(key+".numberofinsertions");
-    _seed=options->ifExistsReturnElseThrowRuntimeError<int>(key+"seed");
+    _seed=options->ifExistsReturnElseThrowRuntimeError<int>(key+".seed");
     _numberofcharges=options->ifExistsReturnElseThrowRuntimeError<int>(key+".numberofcharges");
     _injection_name=options->ifExistsReturnElseThrowRuntimeError<std::string>(key+".injectionpattern");
-    _lifetimefile=options->ifExistsReturnElseThrowRuntimeError<int>(key+".lifetimefile");
+    _lifetimefile=options->ifExistsReturnElseThrowRuntimeError<string>(key+".lifetimefile");
 
     _maxrealtime=options->ifExistsReturnElseReturnDefault<double>(key+".maxrealtime",1E10);
      _trajectoryfile=options->ifExistsReturnElseReturnDefault<std::string>(key+".trajectoryfile","trajectory.csv");
@@ -58,8 +58,8 @@ namespace votca {
     }
 
     _carriertype = 2;
-    cout << "carrier type: singlets" << endl;
-    _field=tools::vec(0.0,0.0,0.0);
+    cout << "carrier type:"<<CarrierInttoLongString(_carriertype) << endl;
+    _field=tools::vec(0.0);
 
 
     if (_rates != "statefile" && _rates != "calculate") {
@@ -82,11 +82,11 @@ namespace votca {
         }
 
         for (list<tools::Property*> ::iterator  it = jobProps.begin(); it != jobProps.end(); ++it) {
-            int site_id =(*it)->getAttribute<int>("id");
+            int site_id =(*it)->getAttribute<int>("id")-1;
             double lifetime=boost::lexical_cast<double>((*it)->value());
             bool check=false;
             for (unsigned i=0;i<_nodes.size();i++){
-                if (_nodes[i]->id==site_id-1 && !(_nodes[i]->hasdecay)){
+                if (_nodes[i]->id==site_id && !(_nodes[i]->hasdecay)){
                     _nodes[i]->AddDecayEvent(1.0/lifetime);
                     check=true;
                     break;
@@ -303,7 +303,6 @@ namespace votca {
         std::srand(_seed); // srand expects any integer in order to initialise the random number generator
         _RandomVariable = new tools::Random2();
         _RandomVariable->init(rand(), rand(), rand(), rand());
-
         LoadGraph(top);
         ReadLifetimeFile(_lifetimefile);
         

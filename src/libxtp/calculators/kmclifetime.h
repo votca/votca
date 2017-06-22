@@ -60,7 +60,6 @@ private:
             std::string _lifetimefile;
             double _maxrealtime;
             string _trajectoryfile;
-            int _carriertype;
             string _outputfile;
             string _filename;
 };

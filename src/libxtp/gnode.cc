@@ -30,7 +30,7 @@ void GNode::AddDecayEvent(double _decayrate)
     newEvent.destination = -1;
     newEvent.rate = _decayrate;
     newEvent.initialrate = _decayrate;
-    newEvent.dr = votca::tools::vec(0,0,0);
+    newEvent.dr = votca::tools::vec(0.0);
     newEvent.Jeff2 = 0.0;
     newEvent.decayevent=true;
     newEvent.reorg_out = 0.0;
@@ -66,14 +66,15 @@ void GNode::InitEscapeRate()
  void GNode::ReadfromSegment(ctp::Segment* seg,int carriertype){
      
      position=seg->getPos();
-     id=seg->getId();
+     id=seg->getId()-1;
      siteenergy=seg->getSiteEnergy(carriertype);
+     
      if (carriertype<2){
          reorg_intorig=seg->getU_nC_nN(carriertype);
          reorg_intdest=seg->getU_cN_cC(carriertype);
      }
      else{
-          reorg_intorig=seg->getU_nX_nN(carriertype);
+         reorg_intorig=seg->getU_nX_nN(carriertype);
          reorg_intdest=seg->getU_xN_xX(carriertype);
      }
     return; 
@@ -81,7 +82,7 @@ void GNode::InitEscapeRate()
  
  
  void GNode::AddEventfromQmPair(ctp::QMPair* pair,int carriertype){
-    int destination=pair->Seg2()->getId();
+    int destination=pair->Seg2()->getId()-1;
     tools::vec dr=pair->getR();
     double rate12=pair->getRate12(carriertype);
     double Jeff2=pair->getJeff2(carriertype);
