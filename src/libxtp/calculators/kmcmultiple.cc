@@ -256,8 +256,6 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
         }    
         
         
-        
-        
         //outputstuff
         
         if(step%diffusionresolution==0){     

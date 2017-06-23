@@ -234,12 +234,7 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
                         else {
                             seg1->calcPos();
                             seg2->calcPos();
-                            
-                          
-                            
-                            {
                             top->NBList().Add(seg1, seg2);
-                            }
                             stopLoop = true;
                             break;
                         }                
