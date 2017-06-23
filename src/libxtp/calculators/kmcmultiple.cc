@@ -137,20 +137,15 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
     
     RandomlyCreateCharges();
     vector<tools::vec> startposition(_numberofcharges,tools::vec(0,0,0));
-    
-    for(unsigned i=0;i<_carriers.size();i++){
-        startposition[i] = _carriers[i]->getCurrentPosition();
-        cout << "starting position for charge " << i+1 << ": segment " << _carriers[i]->getCurrentNodeId()+1 << endl;
-        
-    }
-   
+  
     
     vector<int> forbiddennodes;
     vector<int> forbiddendests;
     
     tools::matrix avgdiffusiontensor;
     avgdiffusiontensor.ZeroMatrix();
-    const unsigned long diffusionresolution=1000;
+    
+    unsigned long diffusionresolution=1000;
     double simtime = 0.0;
     unsigned long step = 0;
     
@@ -209,7 +204,10 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
 
                 GLink* event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
                 newnode = _nodes[event->destination];
-              
+                if(newnode==affectedcarrier->getCurrentNode()){
+                    cout<<"bla"<<endl;
+                    cout<<event->dr<<endl;
+                }
 
                 if(newnode == NULL){
                     if(tools::globals::verbose) {
