@@ -39,7 +39,7 @@ addons:
 
 env:
   global:
-    - HDF5_VERSION=1.8.14
+    - HDF5_VERSION=1.8.18
     - GMX_MAX_THREADS=8
     - CCACHE_CPP2=yes #for clang
     - GVER=4.8
