@@ -78,9 +78,6 @@ void Neighborlist::Initialize(tools::Property *options) {
     UpdateWithDefaults( options, "xtp" );
     std::string key = "options." + Identify();
     
-    
-    
-    
       
      std::list< tools::Property* > segs = options->Select(key+".segments");
      std::list< tools::Property* > ::iterator segsIt;

@@ -1070,10 +1070,7 @@ namespace votca {
                 }
 
 
-            /* Now, again the somewhat ugly construction:
-             * if we request writing of pseudopotential data to the input file, this
-             * implies a GW-BSE run. For this, we have to 
-             * - parse atomic orbitals Vxc matrix */
+             // - parse atomic orbitals Vxc matrix 
             if (_read_vxc) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Parsing fort.24 for Vxc" << flush;
                 std::string _log_file_name_full;
