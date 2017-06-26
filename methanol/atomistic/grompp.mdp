@@ -1,16 +1,3 @@
-;
-;	File 'mdout.mdp' was generated
-;	By user: spoel (291)
-;	On host: chagall
-;	At date: Mon Dec 15 13:13:06 2003
-;
-
-; VARIOUS PREPROCESSING OPTIONS
-title                    = Yo
-cpp                      = /usr/bin/cpp
-include                  = 
-define                   =  
-
 ; RUN CONTROL PARAMETERS
 integrator               = md 
 ; Start time and timestep in ps
@@ -25,12 +12,6 @@ comm-mode                = Linear
 nstcomm                  = 1
 ; group(s) for center of mass motion removal
 comm-grps                = 
-
-; LANGEVIN DYNAMICS OPTIONS
-; Temperature, friction coefficient (amu/ps) and random seed
-;bd-temp                  = 300
-bd-fric                  = 0
-ld-seed                  = 1993
 
 ; ENERGY MINIMIZATION OPTIONS
 ; Force tolerance and initial step-size
@@ -52,8 +33,8 @@ nstfout                  = 1000
 ; Checkpointing helps you continue after crashes
 nstcheckpoint            = 1000
 ; Output frequency for energies to log file and energy file
-nstlog                   = 50
-nstenergy                = 50
+nstlog                   = 1000
+nstenergy                = 1000
 ; Output frequency and precision for xtc file
 nstxtcout                = 0
 xtc-precision            = 1000

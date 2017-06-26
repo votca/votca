@@ -21,10 +21,10 @@ nstfout                  = 0
 ; Checkpointing helps you continue after crashes
 nstcheckpoint            = 1000
 ; Output frequency for energies to log file and energy file
-nstlog                   = 0
-nstenergy                = 50
+nstlog                   = 100
+nstenergy                = 100
 ; Output frequency and precision for xtc file
-nstxtcout                = 200
+nstxtcout                = 100
 xtc-precision            = 1000
 ; This selects the subset of atoms for the xtc file. You can
 ; select multiple groups. By default all atoms will be written.
@@ -42,6 +42,9 @@ pbc                      = xyz
 periodic_molecules       = no
 ; nblist cut-off        
 rlist                    = 1
+;cutoff-scheme
+cutoff-scheme            = group
+
 
 ; OPTIONS FOR ELECTROSTATICS AND VDW
 ; Method for doing electrostatics

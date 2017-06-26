@@ -8,10 +8,10 @@ timestep 		0.002
 
 cutoff		        9.0000
 
-steps               	10000
-equilibration       	15000
+steps               	90000
+equilibration       	10000
 
-traj 0 50 2
+traj 0 100 2
 print 100
 stack 100
 stats 100

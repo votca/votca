@@ -11,15 +11,15 @@ from espresso.tools import decomp
 
 '''
 2180 Particles
-Box 4.05^3
+Box 4.031^3
 langevin thermostat T=2.5 gamma=5
-dt=0.001
+dt=0.002
 cutoff=0.9
 '''
 
 rc   = 0.9
 skin = 0.3
-timestep = 0.001
+timestep = 0.002
 
 x, y, z, Lx, Ly, Lz = espresso.tools.convert.gromacs.read('conf.gro')
 num_particles = len(x)
@@ -82,10 +82,15 @@ integrator.addExtension(lT)
 
 ##########################################################################################
 
+print "equilibrating ..."
+for step in range(100):
+  integrator.run(100)
+  espresso.tools.info(system, integrator)
+
 print "runing ..."
 
 espresso.tools.info(system, integrator)
-for step in range(50):
+for step in range(900):
   integrator.run(100)
   espresso.tools.info(system, integrator)
   print 'writing .xyz trajectory...'

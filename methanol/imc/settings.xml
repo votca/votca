@@ -7,7 +7,7 @@
     <type1>CG</type1>
     <type2>CG</type2>
     <!-- dimension + grid spacing of tables for calculations -->
-    <min>0</min>
+    <min>0.29</min>
     <max>1.54</max>
     <step>0.01</step>
     <inverse>
@@ -56,7 +56,7 @@
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
     <!-- do so many iterations -->
-    <iterations_max>10</iterations_max>
+    <iterations_max>100</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>imc</method>
     <!-- directory for user scripts -->

@@ -37,12 +37,12 @@ puts "Program Information: \n[code_info]\n"
 
 # set system properties:
 
-set box_length 4.053
+set box_length 4.031
 set skin 0.5
-set temperature 2.49 
-set time_step 0.001
+set temperature 2.49435 
+set time_step 0.002
 set friction 5.0
-set int_steps 1000
+set int_steps 900
 
 setmd box_l $box_length $box_length $box_length
 setmd skin $skin
@@ -88,7 +88,7 @@ puts "inital temperature: [format "%.2f" $temperature]"
 for { set i 0} { $i < 100 } { incr i 1} {
   puts -nonewline "warmup step $i \r"
   flush stdout;
-  integrate 10
+  integrate 100
 }
 set temperature [expr 2.0/3.0*[analyze energy kinetic]/[setmd n_part]]
 puts "Running at temperature T=[format "%.2f" $temperature]"
@@ -102,7 +102,7 @@ close $f
 for { set i 0} { $i < $int_steps } { incr i 1} {
   #puts "integration step $i "
   #10 int steps on "C-level" for 1 int step on "TCL level"
-  integrate 10
+  integrate 100
   flush stdout;
   #write some output to terminal
   puts -nonewline "time: [format "%.3f" [ expr $i*$time_step ]] potential energy: [format "%.2f" [ expr (([analyze energy total] - [analyze energy kinetic]) / [setmd n_part]) ]]\r "

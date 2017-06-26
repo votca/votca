@@ -21,7 +21,7 @@ nstfout                  = 0
 ; Checkpointing helps you continue after crashes
 nstcheckpoint            = 1000
 ; Output frequency for energies to log file and energy file
-nstlog                   = 0
+nstlog                   = 50
 nstenergy                = 50
 ; Output frequency and precision for xtc file
 nstxtcout                = 50

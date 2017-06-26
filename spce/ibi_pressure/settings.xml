@@ -7,7 +7,7 @@
     <type1>CG</type1>
     <type2>CG</type2>
     <!-- dimension + grid spacing of tables for calculations -->
-    <min>0.25</min>
+    <min>0.0</min>
     <max>0.9</max>
     <step>0.01</step>
     <inverse>
@@ -46,7 +46,7 @@
     <!-- gromacs specific options -->
     <gromacs>
       <!-- trash so many frames at the beginning -->
-      <equi_time>0</equi_time>
+      <equi_time>20</equi_time>
       <!-- grid for table*.xvg !-->
       <table_bins>0.002</table_bins>
       <!-- cut the potential at this value (gromacs bug) -->
