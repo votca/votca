@@ -45,8 +45,8 @@ env:
     - CCACHE_CPP2=yes #for clang
     - GVER=4.8
   matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
-    - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_bonded J=4
-    - CSG_MDRUN_STEPS=500 TEST=hexane/ibi J=4
+    - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_all J=4
+    - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_nonbonded J=4
     - CSG_MDRUN_STEPS=500 TEST=methanol/ibi J=4
     - CSG_MDRUN_STEPS=5000 TEST=methanol/imc J=4
     - CSG_MDRUN_STEPS=2500 TEST=methanol-water/X_0.938/re J=4
