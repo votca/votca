@@ -16,7 +16,8 @@
  */
 
 #include "exciton.h"
-
+//#include <votca/xtp/geometry_optimization.h>
+#include <votca/xtp/gwbseengine.h>
 
 
 using namespace std;
@@ -32,59 +33,35 @@ void Exciton::Initialize(Property* options) {
             // update options with the VOTCASHARE defaults   
             UpdateWithDefaults( options, "xtp" );
 
-            _do_dft_input = false;
-            _do_dft_run = false;
-            _do_dft_parse = false;
-            _do_gwbse = false;
+
+
             _do_optimize = false;
-            _restart_opt = false;
-            _do_guess=false; //Writing guess for dimer calculation
+            _restart_opt = false; // GEOOPT Option
+            // _do_guess=false; //Writing guess for dimer calculation
             
             string key = "options." + Identify();
-            _output_file = options->get(key + ".archive").as<string>();
+            _archive_file = options->get(key + ".archive").as<string>();
             _reporting =  options->get(key + ".reporting").as<string> ();
-            // options for GWBSE package
-            string _gwbse_xml = options->get(key + ".gwbse_options").as<string> ();
-            //cout << endl << "... ... Parsing " << _gwbse_xml << endl ;
-            load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
-
             
             // job tasks
             string _tasks_string = options->get(key + ".tasks").as<string> ();
-            if (_tasks_string.find("input") != std::string::npos) _do_dft_input = true;
-            if (_tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
-            if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
-            if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
             if (_tasks_string.find("optimize") != std::string::npos) _do_optimize = true;
             
+            // GWBSEENGINE options
+            _gwbseengine_options = options->get(key + ".gwbse_engine"); // not sure if this works
+
+            // XML Output needed at all?
             _xml_output = options->get(key + ".output").as<string> ();
-            
-            // something unique
-            // _package = options->get(key + ".package").as<string> ();
 
             // options for dft package
             string _package_xml = options->get(key + ".dftpackage").as<string> ();
-            //cout << endl << "... ... Parsing " << _package_xml << endl ;
             load_property_from_xml(_package_options, _package_xml.c_str());
             key = "package";
             _package = _package_options.get(key + ".name").as<string> ();
-            //cout << endl << "... ... Parsing " << _package_xml << endl ;
-             key = "options." + Identify();
-            if ( options->exists(key+".guess")){
-                _do_guess=true;
-                _guess_orbA = options->get(key + ".guess.archiveA").as<string> ();
-                _guess_orbB = options->get(key + ".guess.archiveB").as<string> ();
-            }
-            
-            key = "options." + Identify();
-            // orbitals file or pure DFT output
-            _orbfile = options->get(key + ".molecule.orbitals").as<string> ();
-            _logfile = options->get(key + ".molecule.log").as<string> ();
 
-            // test for parsing an xyz file
-            if ( _do_dft_input ) {
-                _xyzfile = options->get(key + ".molecule.xyz").as<string>();
-            }
+            // MOLECULE properties
+            key = "options." + Identify();
+            _xyzfile = options->get(key + ".molecule").as<string>();
             
             // if optimization is chosen
             if ( _do_optimize ){
@@ -102,12 +79,6 @@ void Exciton::Initialize(Property* options) {
                       exit(1);
                   };
             }
-
-            // get the path to the shared folders with xml files
-            //char *votca_share = getenv("VOTCASHARE");
-            //if (votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-            //string xmlFile = string(getenv("VOTCASHARE")) + string("/xtp/packages/") + _package + string("_idft_pair.xml");
-            //load_property_from_xml(_package_options, xmlFile);
 
             // register all QM packages (Gaussian, TURBOMOLE, etc)
             QMPackageFactory::RegisterAll();
@@ -145,29 +116,36 @@ bool Exciton::Evaluate() {
         _log.setReportLevel( _ReportLevel );
     }
     
+    // Get orbitals object
     Orbitals _orbitals;
     
+    // Read molecular geometry from xyz file and store in a segment (WHY SEGMENT?)
     std::vector <ctp::Segment* > _segments;
-    // Create a new segment
     ctp::Segment _segment(0, "mol");
-                
-    if (_do_dft_input) {
-       CTP_LOG(ctp::logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
-       ReadXYZ( &_segment, _xyzfile );
-       _segments.push_back(&_segment);
-    }
+    CTP_LOG(ctp::logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
+    ReadXYZ( &_segment, _xyzfile );
+    _segments.push_back(&_segment);
     
-    // get the corresponding object from the QMPackageFactory
+    // Get and initialize QMPackage for DFT ground state
     QMPackage *_qmpackage =  QMPackages().Create( _package );
     _qmpackage->setLog( &_log );       
     _qmpackage->Initialize( &_package_options );
-    // set the run dir 
     _qmpackage->setRunDir(".");
-    
 
+    // Get GWBSEENGINE Object and initialize
+    GWBSEENGINE _gwbse_engine;
+    _gwbse_engine.setLog( &_log );
+    _gwbse_engine.Initialize(&_gwbseengine_options, _archive_file);
     
-    
-    _iteration = 0;
+    // Run GWBSE
+    _gwbse_engine.ExcitationEnergies( _qmpackage, _segments, &_orbitals);
+
+
+
+
+
+    /*
+    //_iteration = 0;
     string _geoopt_preface = "\n... ... GEOOPT " + boost::lexical_cast<std::string>(_iteration);
     if ( _do_optimize ) _log.setPreface(ctp::logINFO, _geoopt_preface );
     
@@ -176,13 +154,17 @@ bool Exciton::Evaluate() {
     // do GWBSE for start geometry
     if ( _reporting == "silent" ) _log.setReportLevel( ctp::logINFO );
     
-    ExcitationEnergies( _qmpackage, _segments, &_orbitals);
+    _gwbse_engine.ExcitationEnergies( _qmpackage, _segments, &_orbitals);
 
     }
 
    // only do this, if optimization is requested 
    if ( _do_optimize ){
    
+       GeometryOptimization _geoopt;
+       
+       
+       
       // optimization implies running DFT for displaced geometries
       _do_dft_input = true;
       _do_dft_run = true;
@@ -235,37 +217,15 @@ bool Exciton::Evaluate() {
            std::vector< ctp::Atom* > ::iterator ait;
            _atoms = _current_coordinates.Atoms();
            
-           if ( _iteration == 0 ){
-              _natoms      = _current_coordinates.Atoms().size();
-              
-              _force       = ub::zero_matrix<double>(_natoms ,3);
-              _force_old   = ub::zero_matrix<double>(_natoms ,3);
-              _xyz_shift   = ub::zero_matrix<double>(_natoms ,3);
-              _current_xyz = ub::zero_matrix<double>(_natoms ,3);
-              _old_xyz     = ub::zero_matrix<double>(_natoms ,3);
-              _trial_xyz   = ub::zero_matrix<double>(_natoms ,3);
-              _hessian     = ub::zero_matrix<double>(3*_natoms,3*_natoms);
-           }
+           // initialize the Geometry Optimization objects
+           if ( _geoopt.Iteration() == 0 ) _geoopt.Initialize(_atoms.size1()); 
            
            // calculate numerical forces
            if ( _forces == "forward" ) NumForceForward( energy, _atoms, _force, _qmpackage, _molecule, &_orbitals );
            if ( _forces == "central" ) NumForceCentral( energy, _atoms, _force, _qmpackage, _molecule, &_orbitals );
+
+           _geoopt.Checkpoint(_molecule); 
            
-           
-           // writing current coordinates and forces
-           FILE *out = NULL;
-           std::vector<ctp::Segment*> ::iterator sit;
-           string FILENAME = "geometry_optimization.xyz";
-           for (sit = _molecule.begin(); sit < _molecule.end(); ++sit) {
-             if ( _iteration == 0 ) {
-                 out = fopen(FILENAME.c_str(),"w");
-             }else{
-                 out = fopen(FILENAME.c_str(),"a");
-             }
-              WriteIteration(out,_iteration,(*sit),_force);
-           }
-              
-           fclose(out);
            if ( _opt_type != "md" ){
            
            _step_accepted = false; // at every iteration
@@ -281,7 +241,7 @@ bool Exciton::Evaluate() {
            double _old_TR = _trust_radius;
            while ( ! _step_accepted ){
            
-               BFGSStep(_iteration, _update_hessian, _force,_force_old, _current_xyz, _old_xyz, _hessian,  _xyz_shift, _trial_xyz);
+               _geoopt.BFGSStep(_iteration, _update_hessian, _force,_force_old, _current_xyz, _old_xyz, _hessian,  _xyz_shift, _trial_xyz);
            
                // put trial coordinates into _segment
                int _i_atom = 0;
@@ -417,9 +377,13 @@ bool Exciton::Evaluate() {
        } // optimization while loop
        
    }// if optimization
-  
-       CTP_LOG(ctp::logDEBUG,_log) << "Saving data to " << _output_file << flush;
-       std::ofstream ofs( ( _output_file).c_str() );
+  */
+    
+    
+    
+    
+       CTP_LOG(ctp::logDEBUG,_log) << "Saving data to " << _archive_file << flush;
+       std::ofstream ofs( ( _archive_file).c_str() );
        boost::archive::binary_oarchive oa( ofs );
 
 
@@ -428,13 +392,13 @@ bool Exciton::Evaluate() {
        ofs.close();
 
     //Property *_job_output = &_summary.add("output","");
-    tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
-    CTP_LOG(ctp::logDEBUG,_log) << "Writing output to " << _xml_output << flush;
-    std::ofstream ofout (_xml_output.c_str(), std::ofstream::out);
-    if ( _do_gwbse ){
-        ofout << (_summary.get("output"));    
-    }
-    ofout.close();
+    //tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
+    // CTP_LOG(ctp::logDEBUG,_log) << "Writing output to " << _xml_output << flush;
+    //std::ofstream ofout (_xml_output.c_str(), std::ofstream::out);
+    //if ( _do_gwbse ){
+    //    ofout << (_summary.get("output"));    
+   // }
+    //ofout.close();
     
     return true;
 }
@@ -443,7 +407,7 @@ bool Exciton::Evaluate() {
 
 
 
-void Exciton::Coord2Segment( ctp::Segment* _segment){
+/* void Exciton::Coord2Segment( ctp::Segment* _segment){
     
     
             std::vector< ctp::Atom* > _atoms;
@@ -460,11 +424,11 @@ void Exciton::Coord2Segment( ctp::Segment* _segment){
             }
             
             return;
-}
+} */
 
 
 /* reload previous optimization state*/
-void Exciton::ReloadState(){
+/* void Exciton::ReloadState(){
     
     // open restart.opt
     ifstream in;
@@ -558,14 +522,14 @@ void Exciton::ReloadState(){
     }
     
     return;
-}
+} */
 
 
 
 
 
 /* Calculate forces on atoms numerically by central differences */
-void Exciton::NumForceCentral(double energy, std::vector<ctp::Atom*> _atoms, ub::matrix<double>& _force, 
+/*void Exciton::NumForceCentral(double energy, std::vector<ctp::Atom*> _atoms, ub::matrix<double>& _force, 
         QMPackage* _qmpackage, std::vector<ctp::Segment*> _molecule, Orbitals* _orbitals){
     
 
@@ -627,12 +591,12 @@ void Exciton::NumForceCentral(double energy, std::vector<ctp::Atom*> _atoms, ub:
 
     
     return;
-}
+} */
 
 
 
 /* Calculate forces on atoms numerically by forward differences */
-void Exciton::NumForceForward(double energy, std::vector<ctp::Atom*> _atoms, ub::matrix<double>& _force, 
+/* void Exciton::NumForceForward(double energy, std::vector<ctp::Atom*> _atoms, ub::matrix<double>& _force, 
         QMPackage* _qmpackage, std::vector<ctp::Segment*> _molecule, Orbitals* _orbitals){
 
     
@@ -740,280 +704,7 @@ void Exciton::NumForceForward(double energy, std::vector<ctp::Atom*> _atoms, ub:
     
     if ( out.is_open() ) out.close();
     return;
-}
-
-
-
-void Exciton::BFGSStep(int& _iteration, bool& _update_hessian, ub::matrix<double>& _force, ub::matrix<double>& _force_old, ub::matrix<double>& _current_xyz, ub::matrix<double>& _old_xyz, ub::matrix<double>& _hessian, ub::matrix<double>& _shift, ub::matrix<double>& _trial_xyz){
-
-    // stuff to prepare
-    ub::vector<double> _total_force(3,0.0);
-    double _force_norm = 0.0;
-    for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-        for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-           _total_force( _i_cart ) += _force(_i_atom,_i_cart);
-           _force_norm += _force(_i_atom,_i_cart)*_force(_i_atom,_i_cart);
-        }
-    }
-
-    cout << "Total force: " << _total_force(0) << " " << _total_force(1) << " " << _total_force(2) << endl;
-            
-    // remove CoM force
-    CTP_LOG(ctp::logINFO,_log) << " ----------------- Forces ------------------- " << flush;
-    CTP_LOG(ctp::logINFO,_log) << " Atom        x-comp       y-comp      z-comp  " << flush;
-    for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-      for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-	// _force(_i_atom,_i_cart) -= _total_force(_i_cart)/_natoms;
-       }
-        CTP_LOG(ctp::logINFO,_log) <<  _i_atom << "   " <<  _force(_i_atom,0) << "   " <<  _force(_i_atom,1) << "   " <<  _force(_i_atom,2) << endl;
-    }
-    CTP_LOG(ctp::logINFO,_log) << " -------------------------------------------- " << flush;
-    // construct vectors
-    int _dim = 3*_natoms;
-    ub::vector<double> _previous_pos(_dim,0.0);
-    ub::vector<double> _current_pos(_dim,0.0);
-    ub::vector<double> _previous_gradient(_dim,0.0);
-    ub::vector<double> _current_gradient(_dim,0.0);
-    
-    for ( int _i_atom = 0 ; _i_atom < _natoms; _i_atom++ ){
-        for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-
-            int _idx = 3*_i_atom + _i_cart;
-            _previous_pos( _idx ) = _old_xyz( _i_atom, _i_cart);
-            _current_pos( _idx ) = _current_xyz( _i_atom, _i_cart);
-            _previous_gradient( _idx ) = -_force_old( _i_atom, _i_cart);
-            _current_gradient( _idx ) = -_force( _i_atom, _i_cart);
-            
-        }
-    }
-    
-    // delta is new - old
-    ub::vector<double> _delta_pos =  _current_pos - _previous_pos;
-    _norm_delta_pos = ub::inner_prod(_delta_pos,_delta_pos);
-    
-    
-    // update of Hessian only in first trial 
-    if ( _update_hessian ){
-    
-       // we have no Hessian in the first iteration => start with something
-       if ( _iteration == 0 ) {
-        
-           for ( int _i = 0; _i < _dim; _i++){
-               _hessian(_i,_i) = 1.0; // unit matrix
-           }
-        
-       } else {
-           /* for later iteration, we can make use of an iterative refinement of 
-            * the initial Hessian based on the gradient (force) history
-            */
-        
-           ub::vector<double> _delta_gradient = _current_gradient - _previous_gradient;
-        
-           // second term in BFGS update (needs current Hessian)
-           ub::vector<double> _temp1 = ub::prod(_hessian,_delta_pos);
-           ub::vector<double> _temp2 = ub::prod(ub::trans(_delta_pos),_hessian);
-           _hessian -= ub::outer_prod(_temp1,_temp2) / ub::inner_prod(_delta_pos,_temp1);
-        
-           // first term in BFGS update
-           _hessian += ub::outer_prod(_delta_gradient,_delta_gradient)/ub::inner_prod( _delta_gradient,_delta_pos);
-
-           // symmetrize Hessian (since d2E/dxidxj should be symmetric)
-           for ( int _i = 0; _i < _dim; _i++){
-               for ( int _j = _i+1; _j < _dim; _j++){
-                   double _sum = 0.5*( _hessian(_i,_j) + _hessian(_j,_i) );
-                   _hessian(_i,_j) = _sum;
-                   _hessian(_j,_i) = _sum;
-               }
-           }
-        
-       }
-    } // update Hessian
-    
-    
-    // get inverse of the Hessian
-    ub::matrix<double> _hessian_inverse;
-    linalg_invert(_hessian,_hessian_inverse);
-    
-    // new displacements for the atoms
-    _delta_pos      = -ub::prod(_hessian_inverse,_current_gradient);
-    _norm_delta_pos = ub::inner_prod(_delta_pos,_delta_pos);
-    
-    // TRM -> trust radius check
-    double _trust_radius_squared = _trust_radius * _trust_radius;
-    double _max_step_squared = 0.0;
-    
-    // cout << " step sq " << _norm_delta_pos << " vs. TR sq" << _trust_radius_squared << endl;
-    if ( _norm_delta_pos > _trust_radius_squared ){
-        
-        // get eigenvalues and eigenvectors of Hessian
-        ub::matrix<double> _eigenvectors;
-        ub::vector<double> _eigenvalues;
-        linalg_eigenvalues( _hessian, _eigenvalues, _eigenvectors);
-        
-        CTP_LOG(ctp::logDEBUG, _log) << " BFGS-TRM: Lowest eigenvalue of Hessian is... " << _eigenvalues(0) << flush;
-    
-        // start value for lambda  a bit lower than lowest eigenvalue of Hessian
-        double _lambda;
-        if ( _eigenvalues(0) > 0.0 ){
-            _lambda = -0.05 * std::abs( _eigenvalues(0) );
-        } else {
-            _lambda = 1.05*_eigenvalues(0);
-        }
-        
-        // for constrained step, we expect
-        _max_step_squared = _norm_delta_pos ;
-        while ( _max_step_squared > _trust_radius_squared ){
-           _max_step_squared = 0.0;
-           _lambda -= 0.05*  std::abs( _eigenvalues(0) ); 
-           for ( int _i =0 ; _i < _dim; _i++ ){
-               ub::vector<double> _slice(_dim,0.0);
-               for ( int _j =0 ; _j< _dim ; _j++){
-                   _slice(_j) = _eigenvectors(_j,_i);
-               }
-               
-               //cout << " forece is of dim " << _current_force.size1() << "  " << _current_force.size2() << endl;
-               double _temp = ub::inner_prod(_slice,_current_gradient);
-               //cout << " slice is of dim " << _slice.size1() << "  " << _slice.size2() << endl;            cout << " tmep is of dim " << _temp.size1() << "  " << _temp.size2() << endl;
-               // cout << " into max_step_sq " << _temp << " and  "  << ( _eigenvalues(_i) - _lambda ) << endl;
-               _max_step_squared += _temp * _temp /( _eigenvalues(_i) - _lambda ) / ( _eigenvalues(_i) - _lambda ) ;
-           }
-        }
-
-        CTP_LOG(ctp::logDEBUG,_log) << " BFGS-TRM: with lambda " << _lambda << " max step sq is " << _max_step_squared << flush;
-        
-        _delta_pos = ub::zero_vector<double>(_dim);
-        for ( int _i =0 ; _i < _dim; _i++ ){
-            ub::vector<double> _slice(_dim,0.0);
-            for ( int _j =0 ; _j< _dim ; _j++){
-                _slice(_j) = _eigenvectors(_j,_i);
-            }
-            
-            _delta_pos -= _slice * ub::inner_prod(_slice,_current_gradient)/  ( _eigenvalues(_i) - _lambda ) ; 
-        }
-        
-        _norm_delta_pos = ub::inner_prod(_delta_pos,_delta_pos); //_max_step_squared; 
-    }
-    
-    
-    
-    
-    
-    
-    ub::vector<double> _new_pos = _current_pos + _delta_pos;
-    CTP_LOG(ctp::logDEBUG,_log) << "BFGS-TRM: step " << sqrt(_norm_delta_pos) << " vs TR " << sqrt(_trust_radius_squared) << flush  ;
-
-    // get the energy estimate for a local quadratic surface
-    ub::vector<double> _temp_ene = ub::prod( _hessian, _delta_pos );
-    _delta_energy_estimate = ub::inner_prod( _current_gradient, _delta_pos ) + 0.5 * ub::inner_prod(_delta_pos,_temp_ene );
-
-    CTP_LOG(ctp::logINFO,_log) << " BFGS-TRM: estimated energy change: " << setprecision(12) << _delta_energy_estimate << endl;
-   
-    // update atom coordinates
-    ub::vector<double> _total_shift(3,0.0);
-    for ( int _i_atom = 0; _i_atom < _natoms; _i_atom++){
-        for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-             int _idx = 3*_i_atom + _i_cart;
-            //_current_xyz(_i_atom,_i_cart) = _new_pos(_idx);
-             _trial_xyz(_i_atom,_i_cart) = _new_pos(_idx);
-            _total_shift(_i_cart) += _delta_pos(_idx);
-        }
-    }
-   /* 
-    // make sure there is no CoM movement
-       for ( int _i_atom = 0; _i_atom < _natoms; _i_atom++){
-        for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-             //int _idx = 3*_i_atom + _i_cart;
-            //_current_xyz(_i_atom,_i_cart) -= _total_shift(_i_cart)/_natoms;
-            // _trial_xyz(_i_atom,_i_cart) -= _total_shift(_i_cart)/_natoms;
-        }
-    }
-    */
-    return;
-}
-
-
-void Exciton::ExcitationEnergies(QMPackage* _qmpackage, vector<ctp::Segment*> _segments, Orbitals* _orbitals){
-
-
-  if ( _do_dft_input ){
-                Orbitals *_orbitalsAB = NULL;        
-        if ( _qmpackage->GuessRequested() && _do_guess) { // do not want to do an SCF loop for a dimer
-            CTP_LOG(ctp::logINFO,_log) << "Guess requested, reading molecular orbitals" << endl;
-           
-            Orbitals _orbitalsA, _orbitalsB;   
-            _orbitalsAB = new Orbitals();
-            // load the corresponding monomer orbitals and prepare the dimer guess 
-            
-            // failed to load; wrap-up and finish current job
-            if ( !_orbitalsA.Load( _guess_orbA ) ) {
-               throw runtime_error(string("Do input: failed loading orbitals from ")+_guess_orbA);
-            }
-            
-            if ( !_orbitalsB.Load( _guess_orbB ) ) {
-               throw runtime_error(string("Do input: failed loading orbitals from ")+_guess_orbB);
-               
-            }
-            
-
-          Orbitals::PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
-          
-        }
-          
-                
-                
-                
-          _qmpackage->WriteInputFile( _segments, _orbitalsAB );
-       }
-       if ( _do_dft_run ){
-          bool run_success = _qmpackage->Run();
-          if (!run_success) {
-             throw runtime_error(string("\n GW-BSE without DFT is difficult. Stopping!"));
-          }
-          
-       }
-
-      // parse DFT data, if required
-      if ( _do_dft_parse ){
-        CTP_LOG(ctp::logDEBUG,_log) << "Parsing DFT data " << _output_file << flush;
-
-       //int _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( _orbitals );
-        _qmpackage->setLogFileName( _logfile );
-        _qmpackage->ParseLogFile( _orbitals );
-        _qmpackage->setOrbitalsFileName( _orbfile );
-        _qmpackage->ParseOrbitalsFile( _orbitals );      //int _parse_log_status = _qmpackage->ParseLogFile( _orbitals );
-        _orbitals->setDFTbasis(_qmpackage->getBasisSetName());
- 
-        
-        
-        
-     }
-
-     // if no parsing of DFT data is requested, reload serialized orbitals object
-     if ( !_do_dft_parse ){
-         CTP_LOG(ctp::logDEBUG,_log) << "Loading serialized data from " << _output_file << flush;
-         _orbitals->Load( _output_file );
-     }
-
-     if ( _do_gwbse ){
-         GWBSE _gwbse=GWBSE( _orbitals);
-        _gwbse.setLogger(&_log);
-        _gwbse.Initialize( &_gwbse_options );
-        _gwbse.Evaluate();
-        Property *_output_summary = &(_summary.add("output", ""));
-        _gwbse.addoutput(_output_summary);
-       
-        //bool _evaluate = _gwbse.Evaluate( _orbitals );
-        // std::cout << _log;
-     }
-     
-      
-    
-  return;
-}
-
-
-
-
+} */
 
 
 void Exciton::ReadXYZ(ctp::Segment* _segment, string filename){
@@ -1067,7 +758,7 @@ void Exciton::ReadXYZ(ctp::Segment* _segment, string filename){
 return;    
 }
 
-void Exciton::Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals){
+/* void Exciton::Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals){
     
             std::vector< ctp::QMAtom* > _atoms;
             std::vector< ctp::QMAtom* > ::iterator ait;
@@ -1092,45 +783,12 @@ void Exciton::Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals){
                 _segment->AddAtom(pAtom);
             }
             return;
-}
+} */
 
 
 
 
   
-  // write iteration
-  void Exciton::WriteIteration(FILE *out, int _iteration, ctp::Segment* _segment, ub::matrix<double>& _force) {
-
-    std::vector< ctp::Atom* > ::iterator ait;
-    std::vector< ctp::Atom* > _atoms = _segment->Atoms();
-    int qmatoms = 0;
-    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-        ++qmatoms;
-    }
-
-    fprintf(out, "%6d \n", qmatoms);
-    fprintf(out, "at iteration %d \n", _iteration);
-    
-    int _i_atom = 0;
-    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-
-        vec     pos = (*ait)->getQMPos();
-        string  name = (*ait)->getElement();
-
-        fprintf(out, "%2s %4.7f %4.7f %4.7f atom_vector %4.7f %4.7f %4.7f \n",
-                        name.c_str(),
-                        pos.getX()*10,
-                        pos.getY()*10,
-                        pos.getZ()*10,
-                        _force(_i_atom,0)*51.4220822067,
-                        _force(_i_atom,1)*51.4220822067,
-                        _force(_i_atom,2)*51.4220822067);
-        _i_atom++;
-        return;
-    }
-
-    return;
-}
     
     }
 }
