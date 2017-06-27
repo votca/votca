@@ -24,7 +24,7 @@
 
 #include <votca/ctp/logger.h>
 #include <votca/xtp/gwbse.h>
-//#include <votca/xtp/geometry_optimization.h>
+#include <votca/xtp/geometry_optimization.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/ctp/atom.h>
 #include <votca/ctp/qmtool.h>
@@ -34,110 +34,84 @@
 #include <votca/tools/constants.h>
 
 
-namespace votca { namespace xtp {
-    using namespace std;
-    
-class Exciton : public ctp::QMTool
-{
-public:
+namespace votca {
+    namespace xtp {
+        using namespace std;
 
-    Exciton() { };
-   ~Exciton() { };
+        class Exciton : public ctp::QMTool {
+        public:
 
-    string Identify() { return "exciton"; }
+            Exciton() {
+            };
 
-    void   Initialize(Property *options);
-    bool   Evaluate();
+            ~Exciton() {
+            };
 
-    
- 
+            string Identify() {
+                return "exciton";
+            }
 
-private:
-    
+            void Initialize(Property *options);
+            bool Evaluate();
 
-    string      _xyzfile;
 
-    string      _package;
-    Property    _package_options;
-    Property    _summary;
-    Property    _gwbseengine_options;
-    
-    string      _archive_file; // .orb file to parse to
-    string      _xml_output;    // .xml output
 
-    string      _reporting;    
-    ctp::Logger      _log;
-    
- 
-    bool _do_optimize;
-    
-    int _opt_state;
-    double _displacement;
-    double _convergence;
-    double _trust_radius;
-    double _trust_radius_max;
-    double _delta_energy_estimate;
-    double _norm_delta_pos;
-    string _spintype;
-    string _forces; 
-    string _opt_type;    
-    
-    string _guess_orbA;
-    string _guess_orbB;
-    bool _do_guess;
-    
-    /*int _natoms;
-    int _iteration;
-    ub::matrix<double> _force;
-    ub::matrix<double> _force_old;
-    ub::matrix<double> _xyz_shift;
-    ub::matrix<double> _speed;
-    ub::matrix<double> _current_xyz;
-    ub::matrix<double> _old_xyz; 
-    ub::matrix<double> _trial_xyz; 
-    ub::matrix<double> _hessian;
-     */
-    
-    /*bool _step_accepted;
-    bool _update_hessian;*/
-    bool _restart_opt;
-    
-    //void ExcitationEnergies( QMPackage* _qmpackage, vector <ctp::Segment* > _segments, Orbitals* _orbitals );
-    void ReadXYZ( ctp::Segment* _segment, string filename);
-    void Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals);
-    void Coord2Segment(ctp::Segment* _segment );
-    
 
-    void PrepareGuess(         Orbitals *_orbitalsA, 
-                               Orbitals *_orbitalsB, 
-                               Orbitals *_orbitalsAB);
+        private:
 
-    void OrthonormalizeGuess ( ctp::Segment* _segment, Orbitals* _orbitals );
-    
-    
-    /*void BFGSStep( int& _iteration, bool& _update_hessian,  ub::matrix<double>& _force, ub::matrix<double>& _force_old,  ub::matrix<double>& _current_xyz, ub::matrix<double>&  _old_xyz, ub::matrix<double>& _hessian ,ub::matrix<double>& _xyz_shift ,ub::matrix<double>& _trial_xyz  );*/
-    void ReloadState();
-    void NumForceForward(double energy, vector <ctp::Atom* > _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage,vector <ctp::Segment* > _segments, Orbitals* _orbitals );
-    void NumForceCentral(double energy, vector <ctp::Atom* > _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage,vector <ctp::Segment* > _segments, Orbitals* _orbitals );
-    
-    //void WriteIteration( FILE* out, int _iteration, ctp::Segment* _segment, ub::matrix<double>& _force  );
-    
-    string Convergence( bool _converged ) { 
-        
-        string _converged_string;
-        if ( _converged )  _converged_string = " (converged)";
-        if ( !_converged )  _converged_string = " (not converged)";
-        
-        
-        return _converged_string;
+
+            string _xyzfile;
+            string _package;
+            string _archive_file; // .orb file to parse to
+            string _reporting;
+            string _guess_orbA;
+            string _guess_orbB;
+
+            Property _package_options;
+            Property _gwbseengine_options;
+            Property _geoopt_options;
+
+            ctp::Logger _log;
+
+            bool _do_optimize;
+
+
+            void ReadXYZ(ctp::Segment* _segment, string filename);
+            
+            void Coord2Segment(ctp::Segment* _segment);
+
+
+            void PrepareGuess(Orbitals *_orbitalsA,
+                    Orbitals *_orbitalsB,
+                    Orbitals *_orbitalsAB);
+
+            void OrthonormalizeGuess(ctp::Segment* _segment, Orbitals* _orbitals);
+
+
+            /*void BFGSStep( int& _iteration, bool& _update_hessian,  ub::matrix<double>& _force, ub::matrix<double>& _force_old,  ub::matrix<double>& _current_xyz, ub::matrix<double>&  _old_xyz, ub::matrix<double>& _hessian ,ub::matrix<double>& _xyz_shift ,ub::matrix<double>& _trial_xyz  );*/
+            void ReloadState();
+            void NumForceForward(double energy, vector <ctp::Atom* > _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage, vector <ctp::Segment* > _segments, Orbitals* _orbitals);
+            void NumForceCentral(double energy, vector <ctp::Atom* > _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage, vector <ctp::Segment* > _segments, Orbitals* _orbitals);
+
+            //void WriteIteration( FILE* out, int _iteration, ctp::Segment* _segment, ub::matrix<double>& _force  );
+
+            string Convergence(bool _converged) {
+
+                string _converged_string;
+                if (_converged) _converged_string = " (converged)";
+                if (!_converged) _converged_string = " (not converged)";
+
+
+                return _converged_string;
+            }
+
+
+        };
+
+
+
     }
-
-
-};
-
-
-
-}}
+}
 
 
 #endif

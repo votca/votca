@@ -49,11 +49,13 @@ public:
     GWBSEENGINE() {};
    ~GWBSEENGINE() {};
 
-    string Identify() { return "gwbse_engine"; }
+    std::string Identify() { return "gwbse_engine"; }
    
     void    Initialize( Property *options, string _archive_filename );
     void    ExcitationEnergies(QMPackage* _qmpackage, vector<ctp::Segment*> _segments, Orbitals* _orbitals); 
     void    setLog( ctp::Logger* pLog ) { _pLog = pLog; }
+    string  GetDFTLog(){ return _dftlog_file; };
+    
     
     private:
 

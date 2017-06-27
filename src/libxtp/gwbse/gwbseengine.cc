@@ -114,10 +114,6 @@ namespace votca {
                 _gwbse.setLogger(_pLog);
                 _gwbse.Initialize(&_gwbse_options);
                 _gwbse.Evaluate();
-                
-                // not sure what this does at the moment
-                //Property *_output_summary = &(_summary.add("output", ""));
-                //_gwbse.addoutput(_output_summary);
             }
             return;
         }
