@@ -7,7 +7,7 @@ gmx mdrun -v -rerun ../atomistic/traj.trr
 
 
 #equilibration time in Gromacs units (ps)
-equi=0
+equi=200
 echo equi = $equi
 
 echo "Running force matching"
