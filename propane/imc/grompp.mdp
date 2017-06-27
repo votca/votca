@@ -75,8 +75,6 @@ pbc                      = xyz
 ; nblist cut-off        
 rlist                    = 1.5
 domain-decomposition     = no
-;cutoff-scheme
-cutoff-scheme            = group
 
 
 ; OPTIONS FOR ELECTROSTATICS AND VDW

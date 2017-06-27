@@ -42,8 +42,6 @@ pbc                      = xyz
 periodic_molecules       = no
 ; nblist cut-off        
 rlist                    = 1.6 
-;cutoff-scheme
-cutoff-scheme            = group
 
 ; OPTIONS FOR ELECTROSTATICS AND VDW
 ; Method for doing electrostatics

@@ -50,8 +50,6 @@ ns_type                  = grid
 pbc                      = xyz
 ; nblist cut-off        
 rlist                    = 1.5
-;cutoff-scheme
-cutoff-scheme            = group
 
 
 ; OPTIONS FOR ELECTROSTATICS AND VDW

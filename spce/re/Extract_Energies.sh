@@ -23,25 +23,6 @@ echo "Total-Energy" | gmx energy -f ../ener.edr -b $equi -o Total-Energy.xvg
 echo "Temperature" | gmx energy -f ../ener.edr -b $equi -o Temperature.xvg
 echo "Pres.-DC" | gmx energy -f ../ener.edr -b $equi -o Pres.-DC.xvg
 echo "Pressure" | gmx energy -f ../ener.edr -b $equi -o Pressure.xvg
-echo "Vir-XX" | gmx energy -f ../ener.edr -b $equi -o Vir-XX.xvg
-echo "Vir-XY" | gmx energy -f ../ener.edr -b $equi -o Vir-XY.xvg
-echo "Vir-XZ" | gmx energy -f ../ener.edr -b $equi -o Vir-XZ.xvg
-echo "Vir-YX" | gmx energy -f ../ener.edr -b $equi -o Vir-YX.xvg
-echo "Vir-YY" | gmx energy -f ../ener.edr -b $equi -o Vir-YY.xvg
-echo "Vir-YZ" | gmx energy -f ../ener.edr -b $equi -o Vir-YZ.xvg
-echo "Vir-ZX" | gmx energy -f ../ener.edr -b $equi -o Vir-ZX.xvg
-echo "Vir-ZY" | gmx energy -f ../ener.edr -b $equi -o Vir-ZY.xvg
-echo "Vir-ZZ" | gmx energy -f ../ener.edr -b $equi -o Vir-ZZ.xvg
-echo "Pres-XX" | gmx energy -f ../ener.edr -b $equi -o Pres-XX.xvg
-echo "Pres-XY" | gmx energy -f ../ener.edr -b $equi -o Pres-XY.xvg
-echo "Pres-XZ" | gmx energy -f ../ener.edr -b $equi -o Pres-XZ.xvg
-echo "Pres-YX" | gmx energy -f ../ener.edr -b $equi -o Pres-YX.xvg
-echo "Pres-YY" | gmx energy -f ../ener.edr -b $equi -o Pres-YY.xvg
-echo "Pres-YZ" | gmx energy -f ../ener.edr -b $equi -o Pres-YZ.xvg
-echo "Pres-ZX" | gmx energy -f ../ener.edr -b $equi -o Pres-ZX.xvg
-echo "Pres-ZY" | gmx energy -f ../ener.edr -b $equi -o Pres-ZY.xvg
-echo "Pres-ZZ" | gmx energy -f ../ener.edr -b $equi -o Pres-ZZ.xvg
-echo "#Surf*SurfTen" | gmx energy -f ../ener.edr -b $equi -o \#Surf\*SurfTen.xvg
 echo "T-System" | gmx energy -f ../ener.edr -b $equi -o T-System.xvg
 
 
