@@ -66,7 +66,7 @@ vdwtype                  = user
 rvdw-switch              = 0
 rvdw                     = 1.5
 ; Apply long range dispersion corrections for Energy and Pressure
-DispCorr                 = No 
+DispCorr                 = EnerPres 
 ; Extension of the potential lookup tables beyond the cut-off
 table-extension          = 1.0
 ; Seperate tables between energy group pairs

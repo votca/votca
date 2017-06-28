@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/bash -e
 
 #calculate bond and angle distributions with csg_boltzmann
 
-cat boltzmann_cmds | csg_boltzmann --top topol.tpr --trj traj.trr --cg hexane.xml
+csg_boltzmann --top topol.tpr --trj traj.trr --cg hexane.xml < boltzmann_cmds
 

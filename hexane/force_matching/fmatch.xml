@@ -1,5 +1,4 @@
 <cg>
-  <nbsearch>grid</nbsearch>
   <!-- fmatch section -->
   <fmatch>
     <!-- use constraint LS solver -->

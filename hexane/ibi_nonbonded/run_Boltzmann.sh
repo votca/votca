@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/bash -e
 
 #calculate bonded potentials with csg_boltzmann
 
-cat boltzmann_cmds | csg_boltzmann --top ../atomistic/topol.tpr --trj ../atomistic/traj.trr --cg ../atomistic/hexane.xml
+csg_boltzmann --top ../atomistic/topol.tpr --trj ../atomistic/traj.trr --cg ../atomistic/hexane.xml < boltzmann_cmds
 
 #smooth bonded potentials
 csg_call --sloppy-tables table smooth bond.pot.ib input_bond.pot

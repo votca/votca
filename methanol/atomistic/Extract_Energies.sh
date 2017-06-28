@@ -1,7 +1,5 @@
 #!/bin/bash
-if [ -d energies ]; then
-  rm -r energies
-fi
+rm -r energies
 mkdir energies
 cd energies
 
@@ -9,7 +7,7 @@ cd energies
 equi=0
 
 #see if $1 is set, set it to first argument
-if test $# -gt 0; then
+if [[ -n $1 ]]; then
 equi=$1
 fi
 
@@ -28,7 +26,6 @@ echo "Conserved-En." | gmx energy -f ../ener.edr -b $equi -o Conserved-En.xvg
 echo "Temperature" | gmx energy -f ../ener.edr -b $equi -o Temperature.xvg
 echo "Pres.-DC" | gmx energy -f ../ener.edr -b $equi -o Pres.-DC.xvg
 echo "Pressure" | gmx energy -f ../ener.edr -b $equi -o Pressure.xvg
-echo "T-System" | gmx energy -f ../ener.edr -b $equi -o T-System.xvg
 
 
 cd ..
