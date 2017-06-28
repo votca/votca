@@ -63,6 +63,64 @@ namespace votca {
         }
         
         
+        void GWBSE::Solve_nonhermitian(ub::matrix<double>& H, ub::matrix<double>& LT) {
+
+            // remove stuff from Cholesky and Calculated L^T,, because more efficient for mat prods 
+            #pragma omp parallel for
+            for (unsigned i = 0; i < LT.size1(); i++) {
+                for (unsigned j = i + 1; j < LT.size1(); j++) {
+                    LT(i, j) = LT(j, i);
+                    LT(j, i) = 0;
+                }
+            }
+
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed non referenced part of Cholesky decompostion" << flush;
+            // determine H = L^T(A-B)L
+            ub::matrix<double> _temp = ub::prod(H, ub::trans(LT));
+            H= ub::prod(LT, _temp);
+            _temp.resize(0, 0);
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
+
+            // solve eigenvalue problem: HR_l = eps_l^2 R_l
+            ub::vector<double> _eigenvalues;
+            ub::matrix<double> _eigenvectors;
+
+            linalg_eigenvalues(H, _eigenvalues, _eigenvectors, _bse_nmax);
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
+            H.resize(0, 0);
+            // reconstruct real eigenvalues eps_l = sqrt(eps_l^2)
+            _bse_singlet_energies.resize(_bse_nmax);
+            for (int _i = 0; _i < _bse_nmax; _i++) {
+                _bse_singlet_energies(_i) = sqrt(_eigenvalues(_i)); // store positive energies in orbitals objects
+            }
+
+
+            // reconstruct real eigenvectors X_l = 1/2 [sqrt(eps_l) (L^T)^-1 + 1/sqrt(eps_l)L ] R_l
+            //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 - 1/sqrt(eps_l)L ] R_l
+
+            // determine inverse of L^T
+            ub::matrix<double> _cholesky_transposed_invert;
+            ub::matrix<double> L = ub::trans(LT);
+            linalg_invert(LT, _cholesky_transposed_invert);
+
+            int dim = L.size1();
+            _bse_singlet_coefficients.resize(dim, _bse_nmax); // resonant part (_X_evec)
+            _bse_singlet_coefficients_AR.resize(dim, _bse_nmax); // anti-resonant part (_Y_evec)
+
+
+            for (int _i = 0; _i < _bse_nmax; _i++) {
+                //real_gwbse sqrt_eval = sqrt(_eigenvalues(_i));
+                double sqrt_eval = sqrt(_bse_singlet_energies(_i));
+                // get l-th reduced EV
+                ub::matrix<double> _reduced_evec = ub::project(_eigenvectors, ub::range(0, dim), ub::range(_i, _i + 1)); // potentially col<->row
+
+                ub::matrix<double> _transform = 0.5 * (sqrt_eval * _cholesky_transposed_invert + 1.0 / sqrt_eval * L);
+                ub::project(_bse_singlet_coefficients, ub::range(0, dim), ub::range(_i, _i + 1)) = ub::prod(_transform, _reduced_evec);
+                _transform = 0.5 * (sqrt_eval * _cholesky_transposed_invert - 1.0 / sqrt_eval * L);
+                ub::project(_bse_singlet_coefficients_AR, ub::range(0, dim), ub::range(_i, _i + 1)) = ub::prod(_transform, _reduced_evec);
+            }
+            return;
+        }
         
       void GWBSE::BSE_solve_singlets_BTDA(){
         
@@ -82,65 +140,29 @@ namespace votca {
             
           // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not positive definite
             //(A-B) is not needed any longer and can be overwritten
+          
+          bool positive_definite=true;
+          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Trying Cholesky decomposition of KAA-KAB" << flush;
+          try
+            {
             linalg_cholesky_decompose( _AmB );
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cholesky decomposition of KAA-KAB" << flush;
-
-            // remove L^T from Cholesky
-            #pragma omp parallel for
-            for (unsigned i =0; i < _AmB.size1(); i++ ){
-                for (unsigned j = i+1; j < _AmB.size1(); j++ ){
-                    _AmB(i,j) = _AmB(j,i);
-                    _AmB(j,i)=0;
-                }
+            }
+            catch (const std::runtime_error& error)
+            {
+                positive_definite=false;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<error.what()<<endl;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "Trying Cholesky decomposition of KAA+KAB" << flush;
+                linalg_cholesky_decompose( _ApB );
+                _AmB = _eh_d - _eh_d2;
             }
             
-            
-            
-          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed non referenced part of Cholesky decompostion" << flush;
-          // determine H = L^T(A-B)L
-          ub::matrix<double> _temp = ub::prod( _ApB , ub::trans(_AmB) );
-          _ApB= ub::prod( _AmB, _temp );
-          _temp.resize(0,0);
-          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
-          
-          // solve eigenvalue problem: HR_l = eps_l^2 R_l
-          ub::vector<double> _eigenvalues;
-          ub::matrix<double> _eigenvectors;
-            
-          linalg_eigenvalues(_ApB, _eigenvalues, _eigenvectors, _bse_nmax);
-          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
-          _ApB.resize(0,0);
-          // reconstruct real eigenvalues eps_l = sqrt(eps_l^2)
-          _bse_singlet_energies.resize(_bse_nmax);
-          for ( int _i = 0; _i < _bse_nmax; _i++) {
-            _bse_singlet_energies(_i) = sqrt(_eigenvalues(_i)); // store positive energies in orbitals objects
+          if(positive_definite){
+              Solve_nonhermitian(_ApB,_AmB);
+          }
+          else{
+              Solve_nonhermitian(_AmB,_ApB);
           }
           
-          
-          // reconstruct real eigenvectors X_l = 1/2 [sqrt(eps_l) (L^T)^-1 + 1/sqrt(eps_l)L ] R_l
-          //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 - 1/sqrt(eps_l)L ] R_l
-
-          // determine inverse of L^T
-          ub::matrix<double> _cholesky_transposed_invert;
-          ub::matrix<double> _cholesky_transposed =ub::trans(_AmB);
-          linalg_invert( _cholesky_transposed , _cholesky_transposed_invert );
-          
-          int dim = _AmB.size1();
-          _bse_singlet_coefficients.resize(dim, _bse_nmax);     // resonant part (_X_evec)
-          _bse_singlet_coefficients_AR.resize(dim, _bse_nmax);  // anti-resonant part (_Y_evec)
-          
-
-          for ( int _i = 0; _i < _bse_nmax; _i++) {
-              //real_gwbse sqrt_eval = sqrt(_eigenvalues(_i));
-              double sqrt_eval = sqrt(_bse_singlet_energies(_i));
-              // get l-th reduced EV
-              ub::matrix<double> _reduced_evec = ub::project(_eigenvectors,  ub::range(0, dim), ub::range(_i, _i + 1)); // potentially col<->row
-
-              ub::matrix<double> _transform = 0.5*( sqrt_eval * _cholesky_transposed_invert + 1.0/sqrt_eval * _AmB  );
-              ub::project( _bse_singlet_coefficients, ub::range (0, dim ), ub::range ( _i, _i+1 ) ) = ub::prod(_transform,_reduced_evec);
-              _transform = 0.5*( sqrt_eval * _cholesky_transposed_invert - 1.0/sqrt_eval * _AmB  );
-              ub::project( _bse_singlet_coefficients_AR, ub::range (0, dim ), ub::range ( _i, _i+1 ) ) = ub::prod(_transform,_reduced_evec);
-          }
           return;
       }
         

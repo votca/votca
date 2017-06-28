@@ -265,6 +265,8 @@ namespace votca {
             void BSE_solve_triplets();
             void BSE_solve_singlets();
             void BSE_solve_singlets_BTDA();
+            
+            void Solve_nonhermitian(ub::matrix<double>& H, ub::matrix<double>& L);
             std::vector<int> _index2v;
             std::vector<int> _index2c;
 
