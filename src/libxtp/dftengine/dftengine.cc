@@ -313,7 +313,7 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Total Energy " << std::setprecision(12) << totenergy << flush;
 
                 diiserror = _diis.Evolve(_dftAOdmat, H, MOEnergies, MOCoeff, _this_iter, totenergy);
-                cout<<"Energies "<<MOEnergies<<endl;
+                //cout<<"Energies "<<MOEnergies<<endl;
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIs error " << diiserror << flush;
 
                 ub::matrix<double> dmatin = _dftAOdmat;

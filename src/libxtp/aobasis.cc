@@ -458,13 +458,10 @@ void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
           int lmax=0;
           for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                Shell* shell = (*its);
-              
-               string local_shell =    string( shell->getType(), 0, 1 );
-               int l=0;
-               if ( local_shell == "S" ) l =0;
-               if ( local_shell == "P" ) l =1;
-               if ( local_shell == "D" ) l =2;
-               if ( local_shell == "F" ) l =3;
+               if(shell->getType().size()>1){
+                   throw runtime_error("In ecps no combined shells e.g. SP are allowed");
+               }
+               int l=FindLmax(shell->getType() );
                if (its == element->firstShell()) lmax = l;
                // first shell is local component, identification my negative angular momentum
                

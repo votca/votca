@@ -201,11 +201,17 @@ namespace votca { namespace xtp {
         //block fill for overlap, implementation in aoesp.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
 
-        ub::matrix<double> calcVNLmatrix(  const vec& posA, const vec& posB, const vec& posC, const double& alpha, const double& beta,const ub::matrix<double>& _gamma_ecp,const ub::matrix<int>& _power_ecp, const ub::matrix<double>& _pref_ecp   );
+        
         typedef boost::multi_array<double, 3> type_3D;
         
-        void getBLMCOF( const vec& pos, type_3D& BLC, type_3D& C  );
-        void getNorms( std::vector<double>& Norms, const double decay);
+        
+        ub::matrix<double> calcVNLmatrix(int _lmax_ecp,const vec& posC, const AOGaussianPrimitive* _g_row,const AOGaussianPrimitive* _g_col,const  ub::matrix<int>& _power_ecp,const ub::matrix<double>& _gamma_ecp,const ub::matrix<double>& _pref_ecp   );
+        
+        
+        
+        void getBLMCOF(int _lmax_ecp, int _lmax_dft, const vec& pos, type_3D& BLC, type_3D& C  );
+        ub::vector<double> CalcNorms( double decay,int size);
+        ub::vector<double> CalcInt_r_exp( int nmax, double decay );
     };
     
 
