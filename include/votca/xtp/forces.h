@@ -50,10 +50,18 @@ namespace votca { namespace xtp {
 
             void NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait, ub::matrix_range< ub::matrix<double> >& _force,
                 std::vector<ctp::Segment*> _molecule);
-            
+            void setLog( ctp::Logger* pLog ) { _pLog = pLog; }
             void SetSpinType( const string spin_type ) { _spin_type=spin_type; };
             void SetOptState( const int opt_state ) { _opt_state=opt_state; };
+            string GetSpinType( ) { return _spin_type; };
+            int GetOptState( ) { return _opt_state; };
+
+
             ub::matrix<double> GetForces() { return _forces; };
+            void Report();
+
+
+
             
         private:
             
@@ -77,6 +85,7 @@ namespace votca { namespace xtp {
             
             void Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals);
             
+            ctp::Logger *_pLog;
         };
 
     }}

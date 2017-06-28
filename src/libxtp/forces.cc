@@ -19,6 +19,7 @@
 
 #include <votca/tools/linalg.h>
 #include <votca/xtp/forces.h>
+#include <boost/format.hpp>
 
 namespace votca {
     namespace xtp {
@@ -46,8 +47,13 @@ namespace votca {
 
         void Forces::Calculate( const double& energy ) {
 
-
-            cout << " Numerical forces " << _force_method << " with displacement " << _displacement << endl;
+              
+            CTP_LOG(ctp::logINFO, *_pLog) << " Calculating forces using " << _force_method << " differences with displacement " << _displacement << " Ang." << flush;
+            
+            ctp::TLogLevel _ReportLevel = _pLog->getReportLevel(); // backup report level
+            _pLog->setReportLevel(ctp::logERROR); // go silent for force calculations
+            
+            //cout << " Numerical forces " << _force_method << " with displacement " << _displacement << endl;
 
             //backup current coordinates (WHY?)
             std::vector <ctp::Segment* > _molecule;
@@ -69,8 +75,32 @@ namespace votca {
 
                 _i_atom++;
             }
+            
+            _pLog->setReportLevel( _ReportLevel ); // 
+
+            // Report calculated Forces
+            Report();
+            
             return;
         }
+        
+        void Forces::Report() {
+
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   ======= FORCES SUMMARY (Hrtr/Bohr) =======  ")).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << flush;
+
+            for (unsigned _i = 0; _i < _forces.size1(); _i++) {
+                CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
+                        % _i  % _forces(_i,0) % _forces(_i, 1) % _forces(_i, 2)).str() << flush;
+            }
+
+            return;
+
+        }
+        
+        
+        
+        
 
         /* Calculate forces on an atom numerically by forward differences */
         void Forces::NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait, ub::matrix_range< ub::matrix<double> >& _force,
@@ -79,7 +109,7 @@ namespace votca {
             // get this atoms's current coordinates
             vec _current_pos = (*ait)->getQMPos(); // in nm
             
-            for (int _i_cart = 0; _i_cart < 3; _i_cart++) {
+            for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
 
                 // get displacement std::vector
                 vec _displaced(0, 0, 0);

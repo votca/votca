@@ -55,7 +55,8 @@ public:
     void    ExcitationEnergies(QMPackage* _qmpackage, vector<ctp::Segment*> _segments, Orbitals* _orbitals); 
     void    setLog( ctp::Logger* pLog ) { _pLog = pLog; }
     string  GetDFTLog(){ return _dftlog_file; };
-    
+    void    setLoggerFile( string logger_file ) { _logger_file = logger_file; };
+    void    setRedirectLogger ( bool redirect_logger ) { _redirect_logger = redirect_logger; };
     
     private:
 
@@ -66,15 +67,18 @@ public:
     bool _do_dft_run;
     bool _do_dft_parse;
     bool _do_gwbse;
+    bool _redirect_logger;
     
     // DFT log and MO file names
     string      _MO_file;     // file containing the MOs from qmpackage...
     string      _dftlog_file; // file containing the Energies etc... from qmpackage...
-
+    string      _logger_file;
     string      _archive_file;
     
     // Options for GWBSE module
     Property    _gwbse_options;
+    
+    void DumpLog( ctp::Logger* pLog );
 
     
    

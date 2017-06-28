@@ -69,6 +69,9 @@ namespace votca {
             _MO_file     = options->get(".mofile").as<string> ();
             _dftlog_file = options->get(".dftlog").as<string> ();
             
+            // Logger redirection
+            _redirect_logger = options->ifExistsReturnElseReturnDefault<bool>(".redirect_logger", false);
+            _logger_file     = "gwbse.log";
             
             return;
         }
@@ -81,12 +84,25 @@ namespace votca {
 
         void GWBSEENGINE::ExcitationEnergies(QMPackage* _qmpackage, vector<ctp::Segment*> _segments, Orbitals* _orbitals) {
 
-
+            
+            //redirect log, if required
+            // define own logger for GW-BSE that is written into a runFolder logfile
+            ctp::Logger _gwbse_engine_logger(_pLog->getReportLevel());
+            if ( _redirect_logger ){
+                _gwbse_engine_logger.setMultithreading(false);
+                _gwbse_engine_logger.setPreface(ctp::logINFO, (format("\n ...")).str());
+                _gwbse_engine_logger.setPreface(ctp::logERROR, (format("\n ...")).str());
+                _gwbse_engine_logger.setPreface(ctp::logWARNING, (format("\n ...")).str());
+                _gwbse_engine_logger.setPreface(ctp::logDEBUG, (format("\n ...")).str());
+                _qmpackage->setLog( &_gwbse_engine_logger);
+            }
+             
             if (_do_dft_input) {
                 _qmpackage->WriteInputFile(_segments);
             }
 
             if (_do_dft_run) {
+
                 bool run_success = _qmpackage->Run();
                 if (!run_success) {
                     throw runtime_error(string("\n GW-BSE without DFT is difficult. Stopping!"));
@@ -95,7 +111,11 @@ namespace votca {
 
             // parse DFT data, if required
             if (_do_dft_parse) {
-                CTP_LOG(ctp::logDEBUG, *_pLog) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
+                if ( _redirect_logger) {
+                    CTP_LOG(ctp::logINFO, _gwbse_engine_logger ) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
+                } else {
+                    CTP_LOG(ctp::logINFO, *_pLog) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
+                }
                 _qmpackage->setLogFileName(_dftlog_file);
                 _qmpackage->ParseLogFile(_orbitals);
                 _qmpackage->setOrbitalsFileName(_MO_file);
@@ -105,19 +125,40 @@ namespace votca {
 
             // if no parsing of DFT data is requested, reload serialized orbitals object
             if (!_do_dft_parse) {
-                CTP_LOG(ctp::logDEBUG, *_pLog) << "Loading serialized data from " << _archive_file << flush;
+                if ( _redirect_logger ){
+                    CTP_LOG(ctp::logINFO, _gwbse_engine_logger ) << "Loading serialized data from " << _archive_file << flush;
+                } else {
+                    CTP_LOG(ctp::logINFO, *_pLog) << "Loading serialized data from " << _archive_file << flush;
+                }
                 _orbitals->Load(_archive_file);
             }
 
             if (_do_gwbse) {
                 GWBSE _gwbse = GWBSE(_orbitals);
                 _gwbse.setLogger(_pLog);
+                if ( _redirect_logger ) _gwbse.setLogger( &_gwbse_engine_logger);
                 _gwbse.Initialize(&_gwbse_options);
                 _gwbse.Evaluate();
+                if ( _redirect_logger ) DumpLog( &_gwbse_engine_logger );
             }
             return;
         }
 
+        void GWBSEENGINE::DumpLog(ctp::Logger* pLog){
+            
+            // write logger to log file
+            ofstream ofs;
+            //string gwbse_logfile = "gwbse.log";
+            ofs.open(_logger_file.c_str(), ofstream::out);
+            if (!ofs.is_open()) {
+                throw runtime_error("Bad file handle: " + _logger_file);
+            }
+            ofs << (*pLog) << endl;
+            ofs.close();
+            
+        }
+        
+        
 
     }
 }
