@@ -32,27 +32,32 @@
 #include <boost/math/special_functions/factorials.hpp>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/elements.h>
-//#include <boost/timer/timer.hpp>
 
 
-using namespace votca::tools;
+
 
 
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
+    using namespace votca::tools;
+    
     
     void AOECP::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col, AOBasis* ecp) {
 
             // get shell positions
-            const vec& _pos_row = _shell_row->getPos();
+            
             int _lmax_row = _shell_row->getLmax();
             std::vector<double> _contractions_row_full((_lmax_row + 1)*(_lmax_row + 1));
 
-            const vec& _pos_col = _shell_col->getPos();
+            
             int _lmax_col = _shell_col->getLmax();
             std::vector<double> _contractions_col_full((_lmax_col + 1)*(_lmax_col + 1));
 
+            
+            
+            const vec& _pos_row = _shell_row->getPos();
+            const vec& _pos_col = _shell_col->getPos();
             const vec _diff = _pos_row - _pos_col;
             // initialize some helper
             double _distsq = _diff*_diff;
@@ -107,7 +112,7 @@ namespace votca { namespace xtp {
                     --final_iter;
                     vec _ecp_eval_pos = vec(0.0);
                     int _lmax_ecp_act = 0;
-                    for (AOBasis::AOShellIterator _ecp = ecp->firstShell(); _ecp != ecp->lastShell(); _ecp++) {
+                    for (AOBasis::AOShellIterator _ecp = ecp->firstShell(); _ecp != ecp->lastShell(); ++_ecp) {
 
                         const AOShell* _shell_ecp = ecp->getShell(_ecp);
                         const vec& _ecp_pos = _shell_ecp->getPos();
@@ -136,7 +141,8 @@ namespace votca { namespace xtp {
                                     _decay_matrix(i_fit, _ecp_l) = _decay_ecp;
                                     _coef_matrix(i_fit, _ecp_l) = _contraction_ecp;
 
-                                } else if ((this_atom != _atomidx) || (_ecp == final_iter)) {
+                                }
+                                if ((this_atom != _atomidx) || (_ecp == final_iter)) {
 
                                     // evaluate collected data, returns a (10x10) matrix of already normalized matrix elements
                                     ub::matrix<double> VNL_ECP = calcVNLmatrix(_lmax_ecp_old, _ecp_eval_pos, *itr, *itc,  _power_matrix,_decay_matrix, _coef_matrix); ////////////////
@@ -208,8 +214,8 @@ namespace votca { namespace xtp {
             int _lmax_dft_ecp = max(_lmax_dft, _lmax_ecp);
             int _nsph_row = (_lmax_row + 1) * (_lmax_row + 1);
             int _nsph_col = (_lmax_col + 1) * (_lmax_col + 1);
-            double DIL = (alpha + beta + _gamma_ecp(1, 2));
-            ub::vector<double> Int_r_exp = CalcInt_r_exp(3, DIL);
+            //double DIL = (alpha + beta + _gamma_ecp(1, 2));
+            //ub::vector<double> Int_r_exp = CalcInt_r_exp(3, DIL);
 
             ub::matrix<double> matrix = ub::zero_matrix<double>(_nsph_row,_nsph_col);
             const int nnonsep = _gamma_ecp.size1();
