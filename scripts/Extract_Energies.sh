@@ -1,25 +1,19 @@
 #!/bin/bash -e
-rm -rf energies
+
+if [[ -d energies ]]; then
+  echo "Removing energies directory"
+  rm -rf energies
+fi
+
 mkdir energies
 cd energies
 
 equi=0
+#see if $1 is set, set equi to first argument, other use default 0
+[[ -n $1 ]] && equi=$1 && shift
 
-#see if $1 is set, set it to first argument
-if [[ -n $1 ]]; then
-equi=$1
-fi
-
-
-echo "LJ-(SR)" | gmx energy -f ../ener.edr -b $equi -o LJ-\(SR\).xvg
-echo "Disper.-corr." | gmx energy -f ../ener.edr -b $equi -o Disper.-corr.xvg
-echo "Coulomb-(SR)" | gmx energy -f ../ener.edr -b $equi -o Coulomb-\(SR\).xvg
-echo "Potential" | gmx energy -f ../ener.edr -b $equi -o Potential.xvg
-echo "Kinetic-En." | gmx energy -f ../ener.edr -b $equi -o Kinetic-En..xvg
-echo "Total-Energy" | gmx energy -f ../ener.edr -b $equi -o Total-Energy.xvg
-echo "Temperature" | gmx energy -f ../ener.edr -b $equi -o Temperature.xvg
-echo "Pres.-DC" | gmx energy -f ../ener.edr -b $equi -o Pres.-DC.xvg
-echo "Pressure" | gmx energy -f ../ener.edr -b $equi -o Pressure.xvg
-
+for x in "LJ-(SR)" "Disper.-corr." "Coulomb-(SR)" "Potential" "Kinetic-En." "Total-Energy" "Temperature" "Pres.-DC" "Pressure" "$@"; do
+  echo "${x}" | gmx energy -f ../ener.edr -b "$equi" -o "${x}.xvg"
+done
 
 cd ..
