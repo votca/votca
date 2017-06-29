@@ -185,8 +185,8 @@ namespace votca {
             double _bsemaxfactor;
             double _ScaHFX;
 
-            double _qp_limit; //convergence criteria for qp iteration [Ryd]]
-            double _shift_limit; //convergence criteria for shift iteration [Ryd]]
+            double _qp_limit; //convergence criteria for qp iteration [Hartree]]
+            double _shift_limit; //convergence criteria for shift iteration [Hartree]]
             unsigned int _bse_vmin;
             unsigned int _bse_vmax;
             unsigned int _bse_cmin;

@@ -415,6 +415,7 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set RPA level range [" << _rpamin + 1 << ":" << _rpamax + 1 << "]" << flush;
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set QP  level range [" << _qpmin + 1 << ":" << _qpmax + 1 << "]" << flush;
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set BSE level range occ[" << _bse_vmin + 1 << ":" << _bse_vmax + 1 << "]  virt[" << _bse_cmin + 1 << ":" << _bse_cmax + 1 << "]" << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " BSE Hamiltonian has size" <<_bse_size<<"x"<<_bse_size << flush;
 
 
             // process the DFT data
