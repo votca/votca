@@ -8,7 +8,7 @@ echo Running Extract_Energies.sh to extract all thermodynamic quantities from en
 #equilibration time in Gromacs units (ps)
 equi=200
 echo equi = $equi
-./Extract_Energies.sh $equi
+./Extract_Energies.sh "$equi" "Bond" "Angle" "Ryckaert-Bell."
 
 #determine number of threads to run csg_stat in parallel
 nt="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || nt=0

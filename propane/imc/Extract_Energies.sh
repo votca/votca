@@ -1,1 +1,1 @@
-../../scripts/Extract_Energies_with_bonded_tabulated.sh
+../../scripts/Extract_Energies.sh
