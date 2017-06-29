@@ -55,7 +55,10 @@ if [[ $1 != "--pre" ]]; then
   #in a presimulation usually do care about traj and temperature
   check_temp || die "${0##*/}: check of tempertures failed"
   if  [[ $traj == *.xtc ]]; then
-    [[ $(get_simulation_setting nstxtcout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj) is '${traj##*.}', but nstxtcout is 0 in $mdp. Please check the setting again and remove the current step."
+    #XXX is returned if nstxout-compressed is not in mdp file
+    nstxtcout=$(get_simulation_setting nstxout-compressed XXX)
+    [[ ${nstxtcout} = XXX ]] && nstxtcout=$(get_simulation_setting nstxtcout 0)
+    [[ ${nstxtcout} -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj) is '${traj##*.}', but nstxtcout is 0 in $mdp. Please check the setting again and remove the current step."
   elif [[ $traj == *.trr ]]; then
     [[ $(get_simulation_setting nstxout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj) is '${traj##*.}', but nstxout is 0 in $mdp. Please check the setting again and remove the current step."
   else
