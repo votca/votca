@@ -44,8 +44,8 @@ nstfout                  = 1000
 nstlog                   = 1000
 nstenergy                = 1000
 ; Output frequency and precision for xtc file
-nstxtcout                = 0
-xtc-precision            = 1000
+nstxout-compressed       = 0
+compressed-x-precision   = 1000
 ; This selects the subset of atoms for the xtc file. You can
 ; select multiple groups. By default all atoms will be written.
 xtc-grps                 = 
@@ -90,7 +90,6 @@ pme_order                = 4
 ewald_rtol               = 1e-05
 ewald_geometry           = 3d
 epsilon_surface          = 0
-optimize_fft             = no
 
 ; GENERALIZED BORN ELECTROSTATICS
 ; Algorithm for calculating Born radii
@@ -121,8 +120,6 @@ Pcoupltype               = isotropic
 tau_p                    = 5.0
 compressibility          = 4.5e-5
 ref_p                    = 1.0
-; Random seed for Andersen thermostat
-andersen_seed            = 815131
 
 ; SIMULATED ANNEALING  
 ; Type of annealing for each temperature group (no/single/periodic)
@@ -180,9 +177,6 @@ orire-tau                = 0
 orire-fitgrp             = 
 ; Output frequency for trace(SD) to energy file
 nstorireout              = 100
-; Dihedral angle restraints: No, Simple or Ensemble
-dihre                    = No
-dihre-fc                 = 1000
 
 ; Free energy control stuff
 free-energy              = no

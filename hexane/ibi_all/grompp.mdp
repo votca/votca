@@ -32,8 +32,8 @@ nstfout                  = 0
 nstlog                   = 100
 nstenergy                = 100
 ; Output frequency and precision for xtc file
-nstxtcout                = 100
-xtc-precision            = 1000
+nstxout-compressed       = 100
+compressed-x-precision   = 1000
 ; This selects the subset of atoms for the xtc file. You can
 ; select multiple groups. By default all atoms will be written.
 xtc_grps                 = System ;Protein 
@@ -82,7 +82,6 @@ pme_order                = 4
 ewald_rtol               = 1e-05
 ewald_geometry           = 3d
 epsilon_surface          = 0
-optimize_fft             = no
 
 ; OPTIONS FOR WEAK COUPLING ALGORITHMS
 ; Temperature coupling  
@@ -99,8 +98,6 @@ pcoupltype               = isotropic
 tau_p                    = 0.5
 compressibility          = 4.5e-5
 ref_p                    = 1.0
-; Random seed for Andersen thermostat
-andersen_seed            = 815131
 
 
 ; GENERATE VELOCITIES FOR STARTUP RUN
