@@ -66,9 +66,6 @@
     <iterations_max>300</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo re: relative entropy-->
     <method>re</method>
-    <re>
-      <command>csg_reupdate --nt 4</command>
-    </re>
     <!-- scaling parameter for the update-->
     <scale>0.5</scale>
     <!-- convergence check options -->
