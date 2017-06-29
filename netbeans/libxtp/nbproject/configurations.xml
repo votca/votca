@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="95">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -65,6 +65,7 @@
       <itemPath>../../include/votca/xtp/aomatrix.h</itemPath>
       <itemPath>../../include/votca/xtp/aoshell.h</itemPath>
       <itemPath>../../include/votca/xtp/basisset.h</itemPath>
+      <itemPath>../../include/votca/xtp/bfgs-trm.h</itemPath>
       <itemPath>../../include/votca/xtp/bsecoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/bulkesp.h</itemPath>
       <itemPath>../../include/votca/xtp/calculatorfactory.h</itemPath>
@@ -76,6 +77,7 @@
       <itemPath>../../include/votca/xtp/espfit.h</itemPath>
       <itemPath>../../include/votca/xtp/exchange_correlation.h</itemPath>
       <itemPath>../../include/votca/xtp/extractorfactory.h</itemPath>
+      <itemPath>../../include/votca/xtp/forces.h</itemPath>
       <itemPath>../../include/votca/xtp/gdma.h</itemPath>
       <itemPath>../../include/votca/xtp/glink.h</itemPath>
       <itemPath>../../include/votca/xtp/gnode.h</itemPath>
@@ -83,6 +85,7 @@
       <itemPath>../../include/votca/xtp/grid_containers.h</itemPath>
       <itemPath>../../include/votca/xtp/gridbox.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbse.h</itemPath>
+      <itemPath>../../include/votca/xtp/gwbseengine.h</itemPath>
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
@@ -158,6 +161,11 @@
         <itemPath>../../src/libxtp/qmpackagefactory.cc</itemPath>
         <itemPath>../../src/libxtp/toolfactory.cc</itemPath>
       </logicalFolder>
+      <logicalFolder name="f8" displayName="geometryopt" projectFiles="true">
+        <itemPath>../../src/libxtp/bfgs-trm.cc</itemPath>
+        <itemPath>../../src/libxtp/forces.cc</itemPath>
+        <itemPath>../../src/libxtp/geometry_optimization.cc</itemPath>
+      </logicalFolder>
       <logicalFolder name="f3" displayName="kmc" projectFiles="true">
         <itemPath>../../src/libxtp/gnode.cc</itemPath>
         <itemPath>../../src/libxtp/kmccalculator.cc</itemPath>
@@ -167,6 +175,7 @@
         <itemPath>../../src/libxtp/gwbse/bse_analysis.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwa.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbse.cc</itemPath>
+        <itemPath>../../src/libxtp/gwbse/gwbseengine.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/rpa.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="NumInt" projectFiles="true">
@@ -326,6 +335,8 @@
       </item>
       <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/bfgs-trm.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/bsecoupling.h"
             ex="false"
             tool="3"
@@ -369,6 +380,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/forces.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/glink.h" ex="false" tool="3" flavor2="0">
@@ -385,6 +398,11 @@
       <item path="../../include/votca/xtp/gridbox.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/gwbseengine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobapplication.h"
             ex="false"
@@ -543,6 +561,8 @@
       </item>
       <item path="../../src/libxtp/basisset.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/bfgs-trm.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/bulkesp.cc" ex="false" tool="1" flavor2="0">
@@ -673,6 +693,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/forces.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/fourcenters_dft.cc"
@@ -681,6 +703,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/geometry_optimization.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gnode.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -698,6 +725,11 @@
       <item path="../../src/libxtp/gwbse/gwa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/gwbseengine.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -958,6 +990,8 @@
       </item>
       <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/bfgs-trm.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/bsecoupling.h"
             ex="false"
             tool="3"
@@ -1001,6 +1035,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/forces.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/glink.h" ex="false" tool="3" flavor2="0">
@@ -1017,6 +1053,11 @@
       <item path="../../include/votca/xtp/gridbox.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/gwbseengine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobapplication.h"
             ex="false"
@@ -1175,6 +1216,8 @@
       </item>
       <item path="../../src/libxtp/basisset.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/bfgs-trm.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/bulkesp.cc" ex="false" tool="1" flavor2="0">
@@ -1305,6 +1348,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/forces.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/fourcenters_dft.cc"
@@ -1313,6 +1358,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/geometry_optimization.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gnode.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1330,6 +1380,11 @@
       <item path="../../src/libxtp/gwbse/gwa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/gwbseengine.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>

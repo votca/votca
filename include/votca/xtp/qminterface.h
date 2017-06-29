@@ -65,6 +65,8 @@ public:
     
     void GenerateQMAtomsFromPolarSegs(ctp::PolarTop *ptop, Orbitals &orb);
     
+    void Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals);
+    
      
 private:
     void addMMAtomtoOrb(ctp::APolarSite * aps,Orbitals &orb, bool with_polarisation);
