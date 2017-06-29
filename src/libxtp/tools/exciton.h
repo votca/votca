@@ -75,14 +75,7 @@ namespace votca {
 
             bool _do_optimize;
 
-
             void ReadXYZ(ctp::Segment* _segment, string filename);
-            
-            void PrepareGuess(Orbitals *_orbitalsA,
-                    Orbitals *_orbitalsB,
-                    Orbitals *_orbitalsAB);
-
-            void OrthonormalizeGuess(ctp::Segment* _segment, Orbitals* _orbitals);
 
         };
 

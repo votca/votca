@@ -34,32 +34,34 @@ namespace votca {
             std::vector<string> choices = {"forward", "central"};
             _force_method = options->ifExistsAndinListReturnElseThrowRuntimeError<string>(".method", choices);
 
+            // precaution in case we implement approx. analytic forces in the future
             if ((_force_method == "forward") || (_force_method == "central")) {
                 _displacement = options->ifExistsReturnElseReturnDefault<double>(".displacement", 0.001); // Angstrom
             }
 
+            // check for force removal options
+            choices = {"total", "CoM", "none"};
+            string _force_removal = options->ifExistsAndinListReturnElseThrowRuntimeError<string>(".removal", choices);
+            if (_force_removal == "total") _remove_total_force = true;
+            if (_force_removal == "CoM") _remove_CoM_force = true;
+
             _natoms = _segments[0]->Atoms().size();
             _forces = ub::zero_matrix<double>(_natoms, 3);
 
-            
+
             return;
 
         }
 
-        void Forces::Calculate( const double& energy ) {
+        void Forces::Calculate(const double& energy) {
 
-              
-            
-            
             ctp::TLogLevel _ReportLevel = _pLog->getReportLevel(); // backup report level
             _pLog->setReportLevel(ctp::logERROR); // go silent for force calculations
-            
-            //cout << " Numerical forces " << _force_method << " with displacement " << _displacement << endl;
 
             //backup current coordinates (WHY?)
             std::vector <ctp::Segment* > _molecule;
             ctp::Segment _current_coordinates(0, "mol");
-            Orbitals2Segment(&_current_coordinates, _orbitals);
+            _qminterface.Orbitals2Segment(&_current_coordinates, _orbitals);
             _molecule.push_back(&_current_coordinates);
 
             // displace all atoms in each Cartesian coordinate and get new energy
@@ -73,37 +75,34 @@ namespace votca {
                 // Calculate Force on this atom
                 ub::matrix_range< ub::matrix<double> > _force = ub::subrange(_forces, _i_atom, _i_atom + 1, 0, 3);
                 if (_force_method == "forward") NumForceForward(energy, ait, _force, _molecule);
-
+                if (_force_method == "central") NumForceCentral(energy, ait, _force, _molecule);
                 _i_atom++;
             }
-            
-            _pLog->setReportLevel( _ReportLevel ); // 
 
-            // Report calculated Forces
+            _pLog->setReportLevel(_ReportLevel); // 
+
+            // Remove Total Force, if requested
+            if (_remove_total_force) RemoveTotalForce();
             //Report();
-            
+
             return;
         }
-        
+
         void Forces::Report() {
 
             CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   ---- FORCES (Hartree/Bohr)   ")).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        %1$s differences   ") % _force_method ).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        displacement %1$1.4f Angstrom   ") %  _displacement).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        %1$s differences   ") % _force_method).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        displacement %1$1.4f Angstrom   ") % _displacement).str() << flush;
             CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << flush;
 
             for (unsigned _i = 0; _i < _forces.size1(); _i++) {
                 CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
-                        % _i  % _forces(_i,0) % _forces(_i, 1) % _forces(_i, 2)).str() << flush;
+                        % _i % _forces(_i, 0) % _forces(_i, 1) % _forces(_i, 2)).str() << flush;
             }
 
             return;
 
         }
-        
-        
-        
-        
 
         /* Calculate forces on an atom numerically by forward differences */
         void Forces::NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait, ub::matrix_range< ub::matrix<double> >& _force,
@@ -111,7 +110,7 @@ namespace votca {
 
             // get this atoms's current coordinates
             vec _current_pos = (*ait)->getQMPos(); // in nm
-            
+
             for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
 
                 // get displacement std::vector
@@ -123,12 +122,12 @@ namespace votca {
                     _displaced.setY(_displacement * tools::conv::ang2nm); // y, _displacement in in Angstrom, now in nm
                 }
                 if (_i_cart == 2) {
-                    _displaced.setZ(_displacement * tools::conv::ang2nm ); // z, _displacement in in Angstrom, now in nm
+                    _displaced.setZ(_displacement * tools::conv::ang2nm); // z, _displacement in in Angstrom, now in nm
                 }
 
                 // update the coordinate
                 vec _pos_displaced = _current_pos + _displaced;
-                
+
                 (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
 
                 // run DFT and GW-BSE for this geometry
@@ -136,9 +135,9 @@ namespace votca {
 
                 // get total energy for this excited state
                 double energy_displaced = _orbitals->GetTotalEnergy(_spin_type, _opt_state);
-                
+
                 // calculate force and put into matrix
-                _force(0,_i_cart) = (energy - energy_displaced) / (_displacement*votca::tools::conv::ang2bohr); // force a.u./a.u.
+                _force(0, _i_cart) = (energy - energy_displaced) / (_displacement * votca::tools::conv::ang2bohr); // force a.u./a.u.
                 (*ait)->setQMPos(_current_pos); // restore original coordinate into segment
             } // Cartesian directions
             return;
@@ -197,34 +196,31 @@ namespace votca {
             return;
         }
 
+        /* Adjust forces so that sum of forces is zero */
+        void Forces::RemoveTotalForce() {
 
+            // total force on all atoms
+            ub::vector<double> _total_force = TotalForce();
 
-void Forces::Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals) {
+            // zero total force
+            for (unsigned _i_atom = 0; _i_atom < _natoms; _i_atom++) {
+                for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
+                    _forces(_i_atom, _i_cart) -= _total_force(_i_cart) / _natoms;
+                }
+            }
+            return;
+        }
 
-    std::vector< ctp::QMAtom* > _atoms;
-    std::vector< ctp::QMAtom* > ::iterator ait;
-    _atoms = _orbitals->QMAtoms();
+        /* Determine Total Force on all atoms */
+        ub::vector<double> Forces::TotalForce() {
 
-    string type;
-    int id = 1;
-    for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-
-        // Atom *pAtom = new Atom(id++, type);
-
-        type = (*ait)->type;
-        double x = (*ait)->x;
-        double y = (*ait)->y;
-        double z = (*ait)->z;
-        ctp::Atom *pAtom = new ctp::Atom(id++, type);
-        // cout << type << " " << x << " " << y << " " << z << endl;
-        vec position(x / 10, y / 10, z / 10); // xyz has Angstrom, votca stores nm
-        pAtom->setPos(position);
-        pAtom->setQMPart(id, position);
-        pAtom->setElement(type);
-        _segment->AddAtom(pAtom);
+            ub::vector<double> _total_force(3, 0.0);
+            for (unsigned _i_atom = 0; _i_atom < _natoms; _i_atom++) {
+                for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
+                    _total_force(_i_cart) += _forces(_i_atom, _i_cart);
+                }
+            }
+            return _total_force;
+        }
     }
-    return;
-}
-
-}
 }

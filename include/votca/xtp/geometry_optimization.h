@@ -18,7 +18,7 @@
  */
 
 #ifndef __XTP_GEOMETRY_OPTIMIZATION__H
-#define	__XTP_GEOMETRY_OPTIMIZATION__H
+#define __XTP_GEOMETRY_OPTIMIZATION__H
 
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
@@ -33,70 +33,55 @@
 
 using namespace std;
 
-namespace votca { namespace xtp {
+namespace votca {
+    namespace xtp {
 
-    namespace ub = boost::numeric::ublas;
-    
-    
+        namespace ub = boost::numeric::ublas;
 
         class GeometryOptimization {
-        public: 
-            
-            GeometryOptimization( GWBSEENGINE& gwbse_engine,QMPackage* qmpackage, vector<ctp::Segment*> segments, Orbitals* orbitals ):_gwbse_engine(gwbse_engine),_qmpackage(qmpackage),_segments(segments),_orbitals(orbitals),_iteration(0) {};
-            ~GeometryOptimization(){};
+        public:
 
-            void BFGSStep( int& _iteration, bool& _update_hessian,  ub::matrix<double>& _force, ub::matrix<double>& _force_old,  ub::matrix<double>& _current_xyz, ub::matrix<double>&  _old_xyz, ub::matrix<double>& _hessian ,ub::matrix<double>& _xyz_shift ,ub::matrix<double>& _trial_xyz  );
-            int Iteration(){ return _iteration;};
-            void Initialize( Property *options );
-            void Checkpoint( std::vector<ctp::Segment* >& _molecule );
-            void WriteIteration( FILE* out, ctp::Segment* _segment );
-            void setLog( ctp::Logger* pLog ) { _pLog = pLog; }
-            
+            GeometryOptimization(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, vector<ctp::Segment*> segments, Orbitals* orbitals) : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals) {
+            };
+
+            ~GeometryOptimization() {
+            };
+
+            void BFGSStep(int& _iteration, bool& _update_hessian, ub::matrix<double>& _force, ub::matrix<double>& _force_old, ub::matrix<double>& _current_xyz, ub::matrix<double>& _old_xyz, ub::matrix<double>& _hessian, ub::matrix<double>& _xyz_shift, ub::matrix<double>& _trial_xyz);
+            void Initialize(Property *options);
+
+            void setLog(ctp::Logger* pLog) {
+                _pLog = pLog;
+            }
+
             void Evaluate();
 
-            
-            
+
+
         private:
-            
+
             int _natoms;
             int _nsegments;
-            int _iteration;
-            ub::matrix<double> _force;
-            ub::matrix<double> _force_old;
-            ub::matrix<double> _xyz_shift;
-            ub::matrix<double> _speed;
-            ub::matrix<double> _current_xyz;
-            ub::matrix<double> _old_xyz; 
-            ub::matrix<double> _trial_xyz; 
-            ub::matrix<double> _hessian;
-            
-            bool _step_accepted;
-            bool _update_hessian;
-            bool _restart_opt;
-            
+
+
             int _opt_state;
-            double _displacement;
-            double _convergence;
-            double _trust_radius;
-            double _trust_radius_max;
-            double _delta_energy_estimate;
-            double _norm_delta_pos;
             string _spintype;
             string _forces;
             string _opt_type;
             string _optimizer;
             string _force_method;
-            
+
             GWBSEENGINE _gwbse_engine;
             QMPackage* _qmpackage;
             vector<ctp::Segment*> _segments;
             Orbitals* _orbitals;
-            
+
             Property _optimizer_options;
             Property _force_options;
-            
+
             ctp::Logger *_pLog;
         };
 
-    }}
-#endif	/* GEOMETRY_OPTIMIZATION_H */
+    }
+}
+#endif /* GEOMETRY_OPTIMIZATION_H */

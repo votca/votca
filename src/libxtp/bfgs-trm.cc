@@ -30,30 +30,33 @@ namespace votca {
             // checking if there is only one segment
             _nsegments = _segments.size();
             if (_nsegments > 1) throw runtime_error(string("\n Geometry optimization of more than 1 conjugated segment not supported. Stopping!"));
-            
-            _convergence          = options->ifExistsReturnElseReturnDefault<double>(".convergence.energy", 0.001); // Hartree
-            _RMSForce_convergence = options->ifExistsReturnElseReturnDefault<double>(".convergence.RMSForce", 0.01); // Hartree/Bohr
-            _MaxForce_convergence = options->ifExistsReturnElseReturnDefault<double>(".convergence.MaxForce", 0.01); // Hartree/Bohr
-            _RMSStep_convergence  = options->ifExistsReturnElseReturnDefault<double>(".convergence.RMSStep", 0.01); // Bohr
-            _MaxStep_convergence  = options->ifExistsReturnElseReturnDefault<double>(".convergence.MaxStep", 0.01); // Bohr
-                                    
+
+            // default convergence parameters from ORCA
+            _convergence = options->ifExistsReturnElseReturnDefault<double>(".convergence.energy", 1.e-6); // Hartree
+            _RMSForce_convergence = options->ifExistsReturnElseReturnDefault<double>(".convergence.RMSForce", 3.e-5); // Hartree/Bohr
+            _MaxForce_convergence = options->ifExistsReturnElseReturnDefault<double>(".convergence.MaxForce", 1.e-4); // Hartree/Bohr
+            _RMSStep_convergence = options->ifExistsReturnElseReturnDefault<double>(".convergence.RMSStep", 6.e-4); // Bohr
+            _MaxStep_convergence = options->ifExistsReturnElseReturnDefault<double>(".convergence.MaxStep", 1.e-3); // Bohr
 
             // initial trust radius
-            _trust_radius = options->ifExistsReturnElseReturnDefault<double>(".trust", 0.01); // units?
-            
+            _trust_radius = options->ifExistsReturnElseReturnDefault<double>(".trust", 0.01); // Angstrom
+
+            // maximum number of iterations
+            _max_iteration = options->ifExistsReturnElseReturnDefault<unsigned>(".maxiter", 50);
+
             // restart from saved history
             _restart_opt = options->ifExistsReturnElseReturnDefault<bool>(".restart", false);
             if (_restart_opt && !boost::filesystem::exists("optimization.restart")) {
-                throw runtime_error(string("\n Restart requested but optimization.restart file not found!")); 
+                throw runtime_error(string("\n Restart requested but optimization.restart file not found!"));
             };
-            
+
 
             // fix units from Ang to Bohr
             _trust_radius = _trust_radius * tools::conv::ang2bohr; // initial trust radius in a.u.
             _trust_radius_max = 0.1;
-            _spintype  = _force_engine.GetSpinType();
-            _opt_state = _force_engine.GetOptState(); 
-            
+            _spintype = _force_engine.GetSpinType();
+            _opt_state = _force_engine.GetOptState();
+
             _natoms = _segments[0]->Atoms().size();
             _force = ub::zero_matrix<double>(_natoms, 3);
             _force_old = ub::zero_matrix<double>(_natoms, 3);
@@ -62,33 +65,33 @@ namespace votca {
             _old_xyz = ub::zero_matrix<double>(_natoms, 3);
             _trial_xyz = ub::zero_matrix<double>(_natoms, 3);
             _hessian = ub::zero_matrix<double>(3 * _natoms, 3 * _natoms);
-            
+
             // construct vectors (because?)
             _dim = 3 * _natoms;
             _previous_pos = ub::zero_vector<double>(_dim);
             _current_pos = ub::zero_vector<double>(_dim);
             _previous_gradient = ub::zero_vector<double>(_dim);
             _current_gradient = ub::zero_vector<double>(_dim);
-            
+
             // Initial coordinates
             Segment2BFGS();
-            
+
             return;
 
         }
 
         void BFGSTRM::Optimize() {
 
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM convergence of total energy: %1$8.6f Hartree ") % _convergence ).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM convergence of RMS Force:    %1$8.6f Hartree/Bohr ") % _RMSForce_convergence ).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM convergence of Max Force:    %1$8.6f Hartree/Bohr ") % _MaxForce_convergence ).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM convergence of RMS Step:     %1$8.6f Bohr ") % _RMSStep_convergence ).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM convergence of Max Step:     %1$8.6f Bohr ") % _MaxStep_convergence ).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM initial trust radius:        %1$8.6f Bohr") % _trust_radius ).str()  << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM convergence of total energy: %1$8.6f Hartree ") % _convergence).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM convergence of RMS Force:    %1$8.6f Hartree/Bohr ") % _RMSForce_convergence).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM convergence of Max Force:    %1$8.6f Hartree/Bohr ") % _MaxForce_convergence).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM convergence of RMS Step:     %1$8.6f Bohr ") % _RMSStep_convergence).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM convergence of Max Step:     %1$8.6f Bohr ") % _MaxStep_convergence).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM initial trust radius:        %1$8.6f Bohr") % _trust_radius).str() << flush;
             bool _converged = false;
 
             // in 1st iteration, get the energy of the initial configuration
-            if ( _iteration == 0 ){
+            if (_iteration == 0) {
                 _last_energy = GetEnergy(); // in Hartree
                 WriteTrajectory();
             }
@@ -117,32 +120,37 @@ namespace votca {
 
                     // check the energy at the trial coordinates, accept/reject step, and adjust trust radius
                     AcceptReject();
-                    
+
 
                 } // checking step to be trusted
-                
+
                 // after the step is accepted, we can shift the stored data   
                 _last_energy = _new_energy;
-                _old_xyz     = _current_xyz;
+                _old_xyz = _current_xyz;
                 _current_xyz = _trial_xyz;
-                _force_old   = _force; 
+                _force_old = _force;
 
                 // Write to trajectory
                 WriteTrajectory();
-                
-                
+
+
                 // Check convergence criteria
                 _converged = GeometryConverged();
 
                 // Report summary of the iteration
                 Report();
-                
+
+                if (_iteration == _max_iteration) {
+                    CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: not converged after %2$d iterations ") % _iteration % _max_iteration).str() << flush;
+                    break;
+                }
+
             } // convergence
 
             return;
 
         }
-        
+
         /* Accept/reject the new geometry and adjust trust radius, if required */
         void BFGSTRM::AcceptReject() {
 
@@ -153,7 +161,7 @@ namespace votca {
                 _update_hessian = false;
                 CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: step rejected ") % _iteration).str() << flush;
                 CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.6f Bohr") % _iteration % _trust_radius).str() << flush;
-                if ( _trust_radius < 1e-5 ) throw runtime_error("Trust radius vanishing! Stopping optimization! ");
+                if (_trust_radius < 1e-5) throw runtime_error("Trust radius vanishing! Stopping optimization! ");
                 // repeat BGFSStep with new trust radius
             } else {
                 // total energy has decreased, we accept the step but might update the trust radius
@@ -171,34 +179,32 @@ namespace votca {
                 }
 
             }
-            
-            
+
+            return;
         }
-        
-        
+
         /* Get the energy for the current configuration */
-        double BFGSTRM::GetEnergy(){
+        double BFGSTRM::GetEnergy() {
 
 
-            _gwbse_engine.setRedirectLogger( true );
-            string _logger_file = "gwbse_iteration_" + (boost::format("%1%") % _iteration ).str() + ".log";
-            _gwbse_engine.setLoggerFile( _logger_file  );
+            _gwbse_engine.setRedirectLogger(true);
+            string _logger_file = "gwbse_iteration_" + (boost::format("%1%") % _iteration).str() + ".log";
+            _gwbse_engine.setLoggerFile(_logger_file);
             _gwbse_engine.ExcitationEnergies(_qmpackage, _segments, _orbitals);
             double _energy = _orbitals->GetTotalEnergy(_spintype, _opt_state); // in Hartree
-            _gwbse_engine.setRedirectLogger( false );
-            
+            _gwbse_engine.setRedirectLogger(false);
+
             return _energy;
-            
-            
+
+
         }
-        
-        
+
         /* Report results of accepted step*/
-        void BFGSTRM::Report(){
-            
+        void BFGSTRM::Report() {
+
             // accepted step 
             CTP_LOG(ctp::logINFO, *_pLog) << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" =========== OPTIMIZATION SUMMARY ========================== ")).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" =========== OPTIMIZATION SUMMARY ================================= ")).str() << flush;
             CTP_LOG(ctp::logINFO, *_pLog) << " At iteration  " << _iteration << flush;
             _force_engine.Report();
 
@@ -206,32 +212,33 @@ namespace votca {
             CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << flush;
             for (unsigned _i = 0; _i < _natoms; _i++) {
                 CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
-                        % _i  % (_current_xyz(_i,0) * votca::tools::conv::bohr2ang) % (_current_xyz(_i, 1)* votca::tools::conv::bohr2ang)  % (_current_xyz(_i, 2)* votca::tools::conv::bohr2ang) ).str() << flush;
+                        % _i % (_current_xyz(_i, 0) * votca::tools::conv::bohr2ang) % (_current_xyz(_i, 1) * votca::tools::conv::bohr2ang) % (_current_xyz(_i, 2) * votca::tools::conv::bohr2ang)).str() << flush;
             }
-            
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Total energy:     %1$12.8f Hartree ") % _new_energy ).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   quadratic energy: %1$12.8f Hartree ") % _delta_energy_estimate ).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   energy change:    %1$12.8f Hartree      %2$s") % _energy_delta % Converged(_energy_converged  ) ).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   RMS force:        %1$12.8f Hartree/Bohr %2$s") % _RMSForce     % Converged(_RMSForce_converged) ).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Max force:        %1$12.8f Hartree/Bohr %2$s") % _MaxForce     % Converged(_MaxForce_converged) ).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   RMS step:         %1$12.8f Bohr         %2$s") % _RMSStep      % Converged(_RMSStep_converged ) ).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Max step:         %1$12.8f Bohr         %2$s") % _MaxStep      % Converged(_MaxStep_converged ) ).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ")).str() << flush;
+
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Total energy:     %1$12.8f Hartree ") % _new_energy).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   quadratic energy: %1$12.8f Hartree ") % _delta_energy_estimate).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   energy change:    %1$12.8f Hartree      %2$s (%3%)") % _energy_delta % Converged(_energy_converged) % _convergence).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   RMS force:        %1$12.8f Hartree/Bohr %2$s (%3%)") % _RMSForce % Converged(_RMSForce_converged) % _RMSForce_convergence).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Max force:        %1$12.8f Hartree/Bohr %2$s (%3%)") % _MaxForce % Converged(_MaxForce_converged) % _MaxForce_convergence).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   RMS step:         %1$12.8f Bohr         %2$s (%3%)") % _RMSStep % Converged(_RMSStep_converged) % _RMSStep_convergence).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Max step:         %1$12.8f Bohr         %2$s (%3%)") % _MaxStep % Converged(_MaxStep_converged) % _MaxStep_convergence).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Trust radius:     %1$12.8f Bohr     ") % _trust_radius).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ")).str() << flush;
             CTP_LOG(ctp::logINFO, *_pLog) << flush;
             return;
         }
 
         /* Convergence output */
-        string BFGSTRM::Converged( bool converged ){
-            
-            if ( converged ) {
-                return "converged";
+        string BFGSTRM::Converged(bool converged) {
+
+            if (converged) {
+                return "converged    ";
             } else {
                 return "not converged";
             }
-            
+
         }
-        
+
         /* Check convergence */
         bool BFGSTRM::GeometryConverged() {
 
@@ -247,31 +254,31 @@ namespace votca {
 
             _RMSForce = linalg_getRMS(_force);
             _MaxForce = linalg_getMax(_force, true);
-            _RMSStep  = linalg_getRMS(_xyz_shift);
-            _MaxStep  = linalg_getMax(_xyz_shift, true);
+            _RMSStep = linalg_getRMS(_xyz_shift);
+            _MaxStep = linalg_getMax(_xyz_shift, true);
 
             if (std::abs(_energy_delta) < _convergence) _energy_converged = true;
-            if (std::abs(_RMSForce) < _RMSForce_convergence ) _RMSForce_converged = true;
-            if (std::abs(_MaxForce) < _MaxForce_convergence ) _MaxForce_converged = true;
-            if (std::abs(_RMSStep) < _RMSStep_convergence ) _RMSStep_converged = true;
-            if (std::abs(_MaxStep) < _MaxStep_convergence ) _MaxStep_converged = true;
+            if (std::abs(_RMSForce) < _RMSForce_convergence) _RMSForce_converged = true;
+            if (std::abs(_MaxForce) < _MaxForce_convergence) _MaxForce_converged = true;
+            if (std::abs(_RMSStep) < _RMSStep_convergence) _RMSStep_converged = true;
+            if (std::abs(_MaxStep) < _MaxStep_convergence) _MaxStep_converged = true;
 
-            if (_energy_converged && _RMSForce_converged && _MaxForce_converged && _RMSStep_converged && _MaxStep_converged){
+            if (_energy_converged && _RMSForce_converged && _MaxForce_converged && _RMSStep_converged && _MaxStep_converged) {
                 return true;
-            }else {
+            } else {
                 return false;
             }
 
 
         }
-        
+
         /* Update segment with new coordinates*/
         void BFGSTRM::UpdateSegment() {
-            
+
             std::vector< ctp::Atom* > _atoms;
             std::vector< ctp::Atom* > ::iterator ait;
             _atoms = _segments[0]->Atoms();
-            
+
             // put trial coordinates into _segment
             int _i_atom = 0;
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
@@ -284,77 +291,28 @@ namespace votca {
             return;
 
         }
-        
-        
+
         /* Determine new trial coordinates according to BFGS */
         void BFGSTRM::BFGSStep() {
 
-           
-            // Remove total force to avoid CoM translation
-            //RemoveTotalForce();
-
             // Rewrite2Vectors (let's rethink that later)
             Rewrite2Vectors();
- 
+
             // Update Hessian
-            if ( _update_hessian ) UpdateHessian();
+            if (_update_hessian) UpdateHessian();
 
             // Get displacement of coordinates
             PredictDisplacement();
-            //CTP_LOG(ctp::logINFO, *_pLog) << " Predicted displacements : " << _delta_pos << flush;
 
             // TRM -> trust radius check and regularization, if needed
-            if ( OutsideTrustRegion(_norm_delta_pos) ) RegularizeStep();
-            //CTP_LOG(ctp::logINFO, *_pLog) << " Predicted displacements : " << _delta_pos << flush;
-            
-            
+            if (OutsideTrustRegion(_norm_delta_pos)) RegularizeStep();
+
             // expected energy change on quadratic surface
             QuadraticEnergy();
-            
+
             // new trial coordinated are written to _trial_xyz
             Rewrite2Matrices();
-            
-            /* 
-             // make sure there is no CoM movement
-                for ( int _i_atom = 0; _i_atom < _natoms; _i_atom++){
-                 for ( int _i_cart = 0; _i_cart < 3; _i_cart++ ){
-                      //int _idx = 3*_i_atom + _i_cart;
-                     //_current_xyz(_i_atom,_i_cart) -= _total_shift(_i_cart)/_natoms;
-                     // _trial_xyz(_i_atom,_i_cart) -= _total_shift(_i_cart)/_natoms;
-                 }
-             }
-             */
-            return;
-        }
 
-       
-
-        /* Determine Total Force on all atoms */
-        ub::vector<double> BFGSTRM::TotalForce(){
-            
-            ub::vector<double> _total_force(3, 0.0);
-            for (unsigned _i_atom = 0; _i_atom < _natoms; _i_atom++) {
-                for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
-                    _total_force(_i_cart) += _force(_i_atom, _i_cart);
-                }
-            }
-            return _total_force;
-        }
-        
-        
-        
-        /* Adjust forces so that sum of forces is zero */
-        void BFGSTRM::RemoveTotalForce(){
-            
-            // total force on all atoms
-            ub::vector<double> _total_force = TotalForce();
-            
-            // zero total force
-            for (int _i_atom = 0; _i_atom < _natoms; _i_atom++) {
-                for (int _i_cart = 0; _i_cart < 3; _i_cart++) {
-                    _force(_i_atom,_i_cart) -= _total_force(_i_cart)/_natoms;
-                }
-            }
             return;
         }
 
@@ -364,10 +322,10 @@ namespace votca {
                 for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
 
                     int _idx = 3 * _i_atom + _i_cart;
-                    _previous_pos(_idx)      = _old_xyz(_i_atom, _i_cart);
-                    _current_pos(_idx)       = _current_xyz(_i_atom, _i_cart);
+                    _previous_pos(_idx) = _old_xyz(_i_atom, _i_cart);
+                    _current_pos(_idx) = _current_xyz(_i_atom, _i_cart);
                     _previous_gradient(_idx) = -_force_old(_i_atom, _i_cart);
-                    _current_gradient(_idx)  = -_force(_i_atom, _i_cart);
+                    _current_gradient(_idx) = -_force(_i_atom, _i_cart);
 
                 }
             }
@@ -376,12 +334,9 @@ namespace votca {
 
         }
 
-        
-        
-        
         /* Update the Hessian */
-        void BFGSTRM::UpdateHessian(){
-            
+        void BFGSTRM::UpdateHessian() {
+
             // delta is new - old
             _delta_pos = _current_pos - _previous_pos;
             _norm_delta_pos = ub::inner_prod(_delta_pos, _delta_pos);
@@ -394,8 +349,8 @@ namespace votca {
 
             } else {
                 /* for later iteration, we can make use of an iterative refinement of 
-                * the initial Hessian based on the gradient (force) history
-                */
+                 * the initial Hessian based on the gradient (force) history
+                 */
 
                 ub::vector<double> _delta_gradient = _current_gradient - _previous_gradient;
 
@@ -416,13 +371,13 @@ namespace votca {
                     }
                 }
             } // update Hessian
-            
+
             return;
         }
-        
+
         /* Predict displacement of atom coordinates */
-        void BFGSTRM::PredictDisplacement(){
-            
+        void BFGSTRM::PredictDisplacement() {
+
             // get inverse of the Hessian
             ub::matrix<double> _hessian_inverse;
             votca::tools::linalg_invert(_hessian, _hessian_inverse);
@@ -430,28 +385,27 @@ namespace votca {
             // new displacements for the atoms
             _delta_pos = -ub::prod(_hessian_inverse, _current_gradient);
             _norm_delta_pos = ub::inner_prod(_delta_pos, _delta_pos);
-            
+
             return;
         }
-        
-        
-        
+
         /* Check if predicted displacement leaves trust region */
-        bool BFGSTRM::OutsideTrustRegion( const double& _step ){
+        bool BFGSTRM::OutsideTrustRegion(const double& _step) {
 
             double _trust_radius_squared = _trust_radius * _trust_radius;
-            if ( _step > _trust_radius_squared ) { 
+            if (_step > _trust_radius_squared) {
                 return true;
             } else {
                 return false;
             }
-            
+
         }
+
         /* Regularize step in case of prediction outside of Trust Region */
         void BFGSTRM::RegularizeStep() {
-            
+
             double _max_step_squared = 0.0;
-            
+
             // get eigenvalues and eigenvectors of Hessian
             ub::matrix<double> _eigenvectors;
             ub::vector<double> _eigenvalues;
@@ -467,7 +421,7 @@ namespace votca {
 
             // for constrained step, we expect
             _max_step_squared = _norm_delta_pos;
-            while ( OutsideTrustRegion(_max_step_squared) ) {
+            while (OutsideTrustRegion(_max_step_squared)) {
                 _max_step_squared = 0.0;
                 _lambda -= 0.05 * std::abs(_eigenvalues(0));
                 for (int _i = 0; _i < _dim; _i++) {
@@ -500,25 +454,24 @@ namespace votca {
 
             return;
         }
-        
-        
+
         /* Estimate energy change based on quadratic approximation */
-        void BFGSTRM::QuadraticEnergy(){
+        void BFGSTRM::QuadraticEnergy() {
 
             ub::vector<double> _temp_ene = ub::prod(_hessian, _delta_pos);
             _delta_energy_estimate = ub::inner_prod(_current_gradient, _delta_pos) + 0.5 * ub::inner_prod(_delta_pos, _temp_ene);
             return;
-            
+
         }
-        
+
         /* Rewrite the vector data back to matrices (to rethink) */
-        void BFGSTRM::Rewrite2Matrices(){
+        void BFGSTRM::Rewrite2Matrices() {
             ub::vector<double> _new_pos = _current_pos + _delta_pos;
             //CTP_LOG(ctp::logDEBUG,_log) << "BFGS-TRM: step " << sqrt(_norm_delta_pos) << " vs TR " << sqrt(_trust_radius_squared) << flush  ;
             // update atom coordinates
             ub::vector<double> _total_shift(3, 0.0);
-            for ( unsigned _i_atom = 0; _i_atom < _natoms; _i_atom++) {
-                for ( unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
+            for (unsigned _i_atom = 0; _i_atom < _natoms; _i_atom++) {
+                for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
                     unsigned _idx = 3 * _i_atom + _i_cart;
                     _trial_xyz(_i_atom, _i_cart) = _new_pos(_idx);
                     _total_shift(_i_cart) += _delta_pos(_idx);
@@ -526,66 +479,64 @@ namespace votca {
             }
             return;
         }
-        
-        
+
         /* Segment info to xyz */
-        void BFGSTRM::Segment2BFGS(){
-            
-               
+        void BFGSTRM::Segment2BFGS() {
+
+
             std::vector< ctp::Atom* > _atoms;
             std::vector< ctp::Atom* > ::iterator ait;
             _atoms = _segments[0]->Atoms();
-            
+
             // put trial coordinates into _segment
             unsigned _i_atom = 0;
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
                 // put trial coordinates (_current_xyz is in Bohr, segments in nm)
-                _current_xyz( _i_atom, 0 ) = (*ait)->getQMPos().getX() *  tools::conv::nm2bohr;
-                _current_xyz( _i_atom, 1 ) = (*ait)->getQMPos().getY() *  tools::conv::nm2bohr;
-                _current_xyz( _i_atom, 2 ) = (*ait)->getQMPos().getZ() *  tools::conv::nm2bohr;
+                _current_xyz(_i_atom, 0) = (*ait)->getQMPos().getX() * tools::conv::nm2bohr;
+                _current_xyz(_i_atom, 1) = (*ait)->getQMPos().getY() * tools::conv::nm2bohr;
+                _current_xyz(_i_atom, 2) = (*ait)->getQMPos().getZ() * tools::conv::nm2bohr;
                 _i_atom++;
             }
 
             return;
 
-            
-            
+
+
         }
-        
-        
+
         /* Write accepted geometry to xyz trajectory file */
-        void BFGSTRM::WriteTrajectory(){
-            
-            
+        void BFGSTRM::WriteTrajectory() {
+
+
             std::vector< ctp::Atom* > _atoms;
             std::vector< ctp::Atom* > ::iterator ait;
             _atoms = _segments[0]->Atoms();
-            
+
             // write logger to log file
             ofstream ofs;
             string _trajectory_file = "optimization.trj";
-            if ( _iteration == 0 ){
+            if (_iteration == 0) {
                 ofs.open(_trajectory_file.c_str(), ofstream::out);
             } else {
                 ofs.open(_trajectory_file.c_str(), ofstream::app);
             }
-            
+
             if (!ofs.is_open()) {
                 throw runtime_error("Bad file handle: " + _trajectory_file);
             }
-     
+
             // write coordinates as xyz file
             ofs << _atoms.size() << endl;
             ofs << "iteration " << _iteration << " energy " << _last_energy << " Hartree" << endl;
             unsigned _i_atom = 0;
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
                 // put trial coordinates (_current_xyz is in Bohr, segments in nm)
-                ofs << (*ait)->getElement() << " " <<  (*ait)->getQMPos().getX() *  tools::conv::nm2ang << " " << (*ait)->getQMPos().getY() *  tools::conv::nm2ang << " " <<  (*ait)->getQMPos().getZ() *  tools::conv::nm2ang << endl;
+                ofs << (*ait)->getElement() << " " << (*ait)->getQMPos().getX() * tools::conv::nm2ang << " " << (*ait)->getQMPos().getY() * tools::conv::nm2ang << " " << (*ait)->getQMPos().getZ() * tools::conv::nm2ang << endl;
             }
             ofs.close();
             return;
 
-            
+
         }
 
     }

@@ -104,10 +104,7 @@ namespace votca {
             }
 
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
-            std::ofstream ofs((_archive_file).c_str());
-            boost::archive::binary_oarchive oa(ofs);
-            oa << _orbitals;
-            ofs.close();
+            _orbitals.Save(_archive_file);
 
             return true;
         }

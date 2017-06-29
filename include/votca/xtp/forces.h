@@ -18,7 +18,7 @@
  */
 
 #ifndef __XTP_FORCES__H
-#define	__XTP_FORCES__H
+#define __XTP_FORCES__H
 
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
@@ -28,68 +28,93 @@
 #include <votca/ctp/segment.h>
 #include <stdio.h>
 #include <votca/xtp/gwbseengine.h>
+#include <votca/xtp/qminterface.h>
 
 
 
 using namespace std;
 
-namespace votca { namespace xtp {
+namespace votca {
+    namespace xtp {
 
-    namespace ub = boost::numeric::ublas;
-    
-    
+        namespace ub = boost::numeric::ublas;
 
         class Forces {
-        public: 
-            
-            Forces( GWBSEENGINE& gwbse_engine,QMPackage* qmpackage, vector<ctp::Segment*> segments, Orbitals* orbitals ):_gwbse_engine(gwbse_engine),_qmpackage(qmpackage),_segments(segments),_orbitals(orbitals) {};
-            ~Forces(){};
+        public:
 
-            void Initialize( Property *options );
-            void Calculate(const double& energy );
+            Forces(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, vector<ctp::Segment*> segments, Orbitals* orbitals)
+            : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals), _remove_total_force(false), _remove_CoM_force(false) {
+            };
+
+            ~Forces() {
+            };
+
+            void Initialize(Property *options);
+            void Calculate(const double& energy);
 
             void NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait, ub::matrix_range< ub::matrix<double> >& _force,
-                std::vector<ctp::Segment*> _molecule);
+                    std::vector<ctp::Segment*> _molecule);
             void NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait, ub::matrix_range< ub::matrix<double> >& _force,
-                std::vector<ctp::Segment*> _molecule);          
-            
-            void setLog( ctp::Logger* pLog ) { _pLog = pLog; }
-            void SetSpinType( const string spin_type ) { _spin_type=spin_type; };
-            void SetOptState( const int opt_state ) { _opt_state=opt_state; };
-            string GetSpinType( ) { return _spin_type; };
-            int GetOptState( ) { return _opt_state; };
+                    std::vector<ctp::Segment*> _molecule);
 
+            void setLog(ctp::Logger* pLog) {
+                _pLog = pLog;
+            }
 
-            ub::matrix<double> GetForces() { return _forces; };
+            void SetSpinType(const string spin_type) {
+                _spin_type = spin_type;
+            };
+
+            void SetOptState(const int opt_state) {
+                _opt_state = opt_state;
+            };
+
+            string GetSpinType() {
+                return _spin_type;
+            };
+
+            int GetOptState() {
+                return _opt_state;
+            };
+
+            ub::matrix<double> GetForces() {
+                return _forces;
+            };
             void Report();
 
 
 
-            
+
         private:
-            
+
             double _displacement;
             string _force_method;
             string _spin_type;
-            
-            
-            int    _nsegments;
-            int    _natoms;
-            int    _opt_state;
-            
+
+            bool _remove_total_force;
+            bool _remove_CoM_force;
+
+            int _nsegments;
+            int _natoms;
+            int _opt_state;
+
             GWBSEENGINE _gwbse_engine;
             QMPackage* _qmpackage;
             vector<ctp::Segment*> _segments;
             Orbitals* _orbitals;
-            
+
             ub::matrix<double> _forces;
-            
+
             Property _force_options;
-            
-            void Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals);
-            
+
+            void RemoveTotalForce();
+            void RemoveCoMForce();
+            ub::vector<double> TotalForce();
+
+            QMMInterface _qminterface;
             ctp::Logger *_pLog;
         };
 
-    }}
-#endif	/* FORCES_H */
+    }
+}
+#endif /* FORCES_H */
