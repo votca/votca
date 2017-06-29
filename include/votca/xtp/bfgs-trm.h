@@ -79,6 +79,10 @@ namespace votca { namespace xtp {
             int _opt_state;
             double _displacement;
             double _convergence;
+            double _RMSForce_convergence;
+            double _MaxForce_convergence;
+            double _RMSStep_convergence;
+            double _MaxStep_convergence;
             double _trust_radius;
             double _trust_radius_max;
             double _delta_energy_estimate;
@@ -113,11 +117,14 @@ namespace votca { namespace xtp {
             void Report();
             void Segment2BFGS();
             void AcceptReject();
+            void WriteTrajectory();
             
             double GetEnergy();
             
             bool OutsideTrustRegion(const double& _step);
             bool GeometryConverged();
+            
+            string Converged( bool converged );
             
             
             // vector storage for steps, let's rethink that later

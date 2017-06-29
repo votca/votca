@@ -41,6 +41,7 @@ namespace votca {
             _natoms = _segments[0]->Atoms().size();
             _forces = ub::zero_matrix<double>(_natoms, 3);
 
+            
             return;
 
         }
@@ -48,7 +49,7 @@ namespace votca {
         void Forces::Calculate( const double& energy ) {
 
               
-            CTP_LOG(ctp::logINFO, *_pLog) << " Calculating forces using " << _force_method << " differences with displacement " << _displacement << " Ang." << flush;
+            
             
             ctp::TLogLevel _ReportLevel = _pLog->getReportLevel(); // backup report level
             _pLog->setReportLevel(ctp::logERROR); // go silent for force calculations
@@ -79,14 +80,16 @@ namespace votca {
             _pLog->setReportLevel( _ReportLevel ); // 
 
             // Report calculated Forces
-            Report();
+            //Report();
             
             return;
         }
         
         void Forces::Report() {
 
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   ======= FORCES SUMMARY (Hrtr/Bohr) =======  ")).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   ---- FORCES (Hartree/Bohr)   ")).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        %1$s differences   ") % _force_method ).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        displacement %1$1.4f Angstrom   ") %  _displacement).str() << flush;
             CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << flush;
 
             for (unsigned _i = 0; _i < _forces.size1(); _i++) {
@@ -114,13 +117,13 @@ namespace votca {
                 // get displacement std::vector
                 vec _displaced(0, 0, 0);
                 if (_i_cart == 0) {
-                    _displaced.setX(_displacement/10.0 ); // x, _displacement in Angstrom, now in nm
+                    _displaced.setX(_displacement * tools::conv::ang2nm); // x, _displacement in Angstrom, now in nm
                 }
                 if (_i_cart == 1) {
-                    _displaced.setY(_displacement/10.0 ); // y, _displacement in in Angstrom, now in nm
+                    _displaced.setY(_displacement * tools::conv::ang2nm); // y, _displacement in in Angstrom, now in nm
                 }
                 if (_i_cart == 2) {
-                    _displaced.setZ(_displacement/10.0 ); // z, _displacement in in Angstrom, now in nm
+                    _displaced.setZ(_displacement * tools::conv::ang2nm ); // z, _displacement in in Angstrom, now in nm
                 }
 
                 // update the coordinate
@@ -140,7 +143,59 @@ namespace votca {
             } // Cartesian directions
             return;
         }
-        
+
+        /* Calculate forces on atoms numerically by central differences */
+        void Forces::NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait, ub::matrix_range< ub::matrix<double> >& _force,
+                std::vector<ctp::Segment*> _molecule) {
+
+
+            vec _current_pos = (*ait)->getQMPos(); // in nm
+
+            // go through all cartesian components
+            for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
+
+                // get displacement vector in positive direction
+                vec _displaced(0, 0, 0);
+                if (_i_cart == 0) {
+                    _displaced.setX(_displacement * tools::conv::ang2nm); // x, _displacement in Bohr
+                }
+                if (_i_cart == 1) {
+                    _displaced.setY(_displacement * tools::conv::ang2nm); // y, _displacement in in Angstrom
+                }
+                if (_i_cart == 2) {
+                    _displaced.setZ(_displacement * tools::conv::ang2nm); // z, _displacement in in Angstrom
+                }
+
+                // update the coordinate
+                vec _pos_displaced = _current_pos + _displaced;
+                (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
+
+                // run DFT and GW-BSE for this geometry
+                _gwbse_engine.ExcitationEnergies(_qmpackage, _molecule, _orbitals);
+
+                // get total energy for this excited state
+                double energy_displaced_plus = _orbitals->GetTotalEnergy(_spin_type, _opt_state);
+
+                // get displacement vector in negative direction
+
+                // update the coordinate
+                _pos_displaced = _current_pos - 2.0 * _displaced;
+                (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
+
+                // run DFT and GW-BSE for this geometry
+                _gwbse_engine.ExcitationEnergies(_qmpackage, _molecule, _orbitals);
+
+                // get total energy for this excited state
+                double energy_displaced_minus = _orbitals->GetTotalEnergy(_spin_type, _opt_state);
+
+                // calculate force and put into matrix
+                _force(0, _i_cart) = 0.5 * (energy_displaced_minus - energy_displaced_plus) / (_displacement * votca::tools::conv::ang2bohr); // force a.u./a.u.
+
+                (*ait)->setQMPos(_current_pos); // restore original coordinate into segment
+            }
+
+            return;
+        }
 
 
 

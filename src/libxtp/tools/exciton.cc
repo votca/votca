@@ -103,112 +103,14 @@ namespace votca {
                 _gwbse_engine.ExcitationEnergies(_qmpackage, _segments, &_orbitals);
             }
 
-
-
-
-
-
-            /*
-   
-                   CTP_LOG(ctp::logINFO,_log) << " Summary of iteration " << _iteration +1 << flush;
-                   CTP_LOG(ctp::logINFO,_log) << "    total energy of " << _spintype << " " << _opt_state << " is " << energy_new << " Hartree "  << flush;
-                   CTP_LOG(ctp::logINFO,_log) << "    BFGS-TRM: trust radius was " << _old_TR << " Bohr" << flush;
-                   CTP_LOG(ctp::logINFO,_log) << "    convergence: " << flush;
-                   CTP_LOG(ctp::logINFO,_log) << "       energy change: " << setprecision(12) << energy_delta << " a.u. " << Convergence( _energy_converged ) << flush;
-                   CTP_LOG(ctp::logINFO,_log) << "       RMS force:     " << setprecision(12) << _RMSForce << Convergence( _RMSForce_converged ) << flush;
-                   CTP_LOG(ctp::logINFO,_log) << "       Max force:     " << setprecision(12) << _MaxForce << Convergence( _MaxForce_converged ) << flush;
-                   CTP_LOG(ctp::logINFO,_log) << "       RMS step:      " << setprecision(12) << _RMSStep << Convergence( _RMSStep_converged ) << flush;
-                   CTP_LOG(ctp::logINFO,_log) << "       Max step:      " << setprecision(12) << _MaxStep << Convergence( _MaxStep_converged ) << flush;
-                   CTP_LOG(ctp::logINFO,_log) << "       Geometry       " << Convergence( _converged ) << flush;
-                   CTP_LOG(ctp::logINFO,_log) << "   " << flush;
-                   _log.setReportLevel( _ReportLevel ); // go silent again
-
-             */
-
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
             std::ofstream ofs((_archive_file).c_str());
             boost::archive::binary_oarchive oa(ofs);
-
-
-
             oa << _orbitals;
             ofs.close();
 
             return true;
         }
-
-
-
-        /* Calculate forces on atoms numerically by central differences */
-        /*void Exciton::NumForceCentral(double energy, std::vector<ctp::Atom*> _atoms, ub::matrix<double>& _force, 
-                QMPackage* _qmpackage, std::vector<ctp::Segment*> _molecule, Orbitals* _orbitals){
-    
-
-            std::vector< ctp::Atom* > ::iterator ait;
-            int _i_atom = 0;
-            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-               // get its current coordinates
-               vec _current_pos = (*ait)->getQMPos(); // in nm
-    
-               // go through all cartesian components
-               for ( int _i_cart = 0 ; _i_cart < 3; _i_cart++ ){
-           
-                   // get displacement vector in positive direction
-                   vec _displaced(0, 0, 0);
-                   if (_i_cart == 0) {
-                      _displaced.setX(_displacement / tools::conv::nm2bohr ); // x, _displacement in Bohr
-                      _current_xyz(_i_atom,_i_cart ) = _current_pos.getX() * tools::conv::nm2bohr; // in Bohr
-                   }
-                   if (_i_cart == 1) {
-                      _current_xyz(_i_atom,_i_cart ) = _current_pos.getY() * tools::conv::nm2bohr; // in Bohr
-                      _displaced.setY(_displacement / tools::conv::nm2bohr ); // y, _displacement in in Angstrom
-                   }
-                   if (_i_cart == 2) {
-                      _current_xyz(_i_atom,_i_cart ) = _current_pos.getZ() * tools::conv::nm2bohr; // in Bohr
-                      _displaced.setZ(_displacement / tools::conv::nm2bohr ); // z, _displacement in in Angstrom
-                   }
-                            
-                   // update the coordinate
-                   vec _pos_displaced = _current_pos + _displaced;
-                   (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
-
-                   // run DFT and GW-BSE for this geometry
-                   ExcitationEnergies(_qmpackage, _molecule, _orbitals);
-                            
-                   // get total energy for this excited state
-                   double energy_displaced_plus = _orbitals->GetTotalEnergy(_spintype, _opt_state);
-           
-                   // get displacement vector in negative direction
-
-                   // update the coordinate
-                   _pos_displaced = _current_pos - 2.0 * _displaced;
-                   (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
-
-                   // run DFT and GW-BSE for this geometry
-                   ExcitationEnergies(_qmpackage, _molecule, _orbitals);
-                            
-                   // get total energy for this excited state
-                   double energy_displaced_minus =  _orbitals->GetTotalEnergy(_spintype, _opt_state);
-           
-                   // calculate force and put into matrix
-                   _force(_i_atom,_i_cart) = 0.5 * (energy_displaced_minus - energy_displaced_plus) / _displacement ; // force a.u./a.u.
-                                                  
-                   (*ait)->setQMPos(_current_pos); // restore original coordinate into segment
-                }
-               
-              _i_atom++;
-           }
-    
-
-    
-            return;
-        } */
-
-
-
-       
-
-       
 
         void Exciton::ReadXYZ(ctp::Segment* _segment, string filename) {
 

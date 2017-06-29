@@ -78,33 +78,11 @@ namespace votca {
 
             void ReadXYZ(ctp::Segment* _segment, string filename);
             
-            void Coord2Segment(ctp::Segment* _segment);
-
-
             void PrepareGuess(Orbitals *_orbitalsA,
                     Orbitals *_orbitalsB,
                     Orbitals *_orbitalsAB);
 
             void OrthonormalizeGuess(ctp::Segment* _segment, Orbitals* _orbitals);
-
-
-            /*void BFGSStep( int& _iteration, bool& _update_hessian,  ub::matrix<double>& _force, ub::matrix<double>& _force_old,  ub::matrix<double>& _current_xyz, ub::matrix<double>&  _old_xyz, ub::matrix<double>& _hessian ,ub::matrix<double>& _xyz_shift ,ub::matrix<double>& _trial_xyz  );*/
-            void ReloadState();
-            void NumForceForward(double energy, vector <ctp::Atom* > _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage, vector <ctp::Segment* > _segments, Orbitals* _orbitals);
-            void NumForceCentral(double energy, vector <ctp::Atom* > _atoms, ub::matrix<double>& _force, QMPackage* _qmpackage, vector <ctp::Segment* > _segments, Orbitals* _orbitals);
-
-            //void WriteIteration( FILE* out, int _iteration, ctp::Segment* _segment, ub::matrix<double>& _force  );
-
-            string Convergence(bool _converged) {
-
-                string _converged_string;
-                if (_converged) _converged_string = " (converged)";
-                if (!_converged) _converged_string = " (not converged)";
-
-
-                return _converged_string;
-            }
-
 
         };
 
