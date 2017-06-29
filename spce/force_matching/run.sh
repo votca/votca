@@ -4,6 +4,12 @@
 equi=200
 echo equi = $equi
 
+if [[ ! -f ../atomistic/topol.tpr || ! -f ../atomistic/traj.trr ]]; then
+  echo "Run atomistic simulation in ../atomistic first"
+  exit 1
+fi
+
+
 echo "Running force matching"
 csg_fmatch --top ../atomistic/topol.tpr --trj ../atomistic/traj.trr --begin $equi  --options fmatch.xml --cg water.xml
 

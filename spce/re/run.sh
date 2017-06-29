@@ -1,4 +1,4 @@
 #!/bin/bash -e
 
-echo 'running csg_inverse "settings.xml"'
+echo 'running csg_inverse --options "settings.xml"'
 csg_inverse --options settings.xml

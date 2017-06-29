@@ -1,7 +1,11 @@
 #! /bin/bash -e
 
-echo "Rerun md trajectory with excluded bonded interactions"
+if [[ ! -f ../atomistic/topol.tpr || ! -f ../atomistic/traj.trr ]]; then
+  echo "Run atomistic simulation in ../atomistic first"
+  exit 1
+fi
 
+echo "Rerun md trajectory with excluded bonded interactions"
 gmx grompp -c ../atomistic/conf.gro -f ../atomistic/grompp.mdp
 gmx mdrun -v -rerun ../atomistic/traj.trr
 
