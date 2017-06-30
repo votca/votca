@@ -26,7 +26,7 @@ nstlog                   = 100
 nstenergy                = 100
 nstxout-compressed       = 500
 compressed-x-precision   = 1000
-xtc_grps                 = CG
+compressed-x-grps        = CG
 energygrps               = CG
 ;
 ; Electrostatics

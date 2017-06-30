@@ -25,9 +25,6 @@ nstenergy                = 0
 ; Output frequency and precision for xtc file
 nstxout-compressed       = 0
 compressed-x-precision   = 1000
-; This selects the subset of atoms for the xtc file. You can
-; select multiple groups. By default all atoms will be written.
-xtc-grps                 = 
 ; Selection of energy groups
 energygrps               = ME WT 
 
