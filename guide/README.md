@@ -9,7 +9,7 @@ Please pick topics you are most interested in, since finishing the tutorial migh
 ## Building executables
 
 The simplest way is to use the build script which can be downloaded from github project
-```
+```bash
 prefix=~/votca # installation folder (executables will be in the $prefix/bin)
 mkdir -p ${prefix}/src # source code folder
 cd ${prefix}/src
@@ -19,17 +19,17 @@ chmod +x build.sh
 ```
 The following option might be needed to disable sqlite3 libraries `-DWITH_SQLITE3=OFF`. 
 To build a gromacs version use
-```
+```bash
 ./build.sh --prefix ${prefix} -ud gromacs
 ```
 
 ## Downloading the tutorials
 
-```
+```bash
 git clone https://github.com/votca/csg-tutorials.git csg-tutorials
 ```
 or            
-```
+```bash
 ./build.sh --prefix ${prefix} -du csg-tutorials
 ```
 
@@ -58,10 +58,11 @@ During this tutorial, you will need to modify
 
 ## MD simulations
 
-To run MD simulations using GROMACS, one first must create a binary topology file topol.tpr using the grompp program and then run the MD integrator using the mdrun program. topol.tpr contains conf.gro, grompp.mdp, topol.top, and forcefield.itp 
+To run MD simulations using GROMACS, one first must create a binary topology file topol.tpr using the grompp program and then run the MD integrator using the mdrun program. `topol.tpr` contains `conf.gro`, `grompp.mdp`, `topol.top`, and `forcefield.itp`
+```bash
 grompp -c input.gro # -c is needed if other than conf.gro file is used
 mdrun -v # -v (verbose) gives the estimate of the run time
-
+```
 
 # Running other MD programs
 
@@ -99,7 +100,7 @@ Here an one-site coarse-grained (CG) model of a rigid 3-site water molecule (SPC
 ## Atomistic simulations
 
 Run a short MD simulation of a box of SPC/E water using GROMACS. Input files can be found in the folder spce/atomistic of the votca tutorials. Due to limited time, decrease the number of steps (nsteps) in `grompp.mdp` to a reasonable value (5000)
-```
+```bash
 grompp # combines conf.gro, topol.top, and grompp.mdp, and forcefield.itp into topol.tpr
 mdrun -v # runs MD integrator. The trajectory is saved to traj.xtc 
 ```
@@ -107,11 +108,11 @@ mdrun -v # runs MD integrator. The trajectory is saved to traj.xtc
 ## Mapping
 
 Check the mapping file water.xml. Atom names listed in the definition of the COM bead should correspond to those used in the `conf.gro file`. Use `csg_dump` to check this
-```
+```bash
 csg_dump --top topol.tpr
 ```
 Copy the setting file `fmatch.xml` to `dist.xml` and remove all fmatch options (2 blocks) from `dist.xml`. After this, calculate the center of mass RDF using `csg_stat`
-```
+```bash
 csg_stat --top topol.tpr --trj traj.trr --cg water.xml --options dist.xml
 ```
 Compare your RDF of CG-CG.dist.tgt in spce/ibi
@@ -119,7 +120,7 @@ Compare your RDF of CG-CG.dist.tgt in spce/ibi
 ## Running IBI
 
 Reduce the number of MD steps in grompp.mdp and start the IBI iterations
-```
+```bash
 csg_inverse --options settings.xml
 ```
 Calculate the pressure after several iterations using g_energy. Apply pressure correction. Add a post update to the settings file, so that a pressure is applied.
@@ -134,7 +135,7 @@ The water-water CG potential is modeled using a cubic B-spline functional form. 
 ## Running RE
 
 Reduce the number of MD steps in grompp.mdp and start the RE iterations
-```
+```bash
 csg_inverse --options settings.xml
 ```
 If you are done - have a look at the methanol-water tutorial.
@@ -147,7 +148,7 @@ We will now derive the non-bonded CG potentials for liquid methanol using the fo
 
 Generate the atomistic trajectory. You will need an equilibrated configuration to start from. The rest of the input files can be prepared using the previous tutorial (`methanol/atomistic`). Make sure that GROMACS outputs both coordinates and forces (`nstxout` and `nstfout` should have the same value in `grompp.mdp`). Due to the limited time of this tutorial, only a short reference run can be sampled. 1000 steps MD run with output every 50 steps should provide reasonable statistics. 
 Generate the reference trajectory (`traj.trr`), type
-```
+```bash
 grompp -c methanol_final.gro
 mdrun -v
 Running force matching
@@ -174,7 +175,7 @@ The files to generate the reference run can be found in the folder md. The lengt
 ## Force matching for the non-bonded interactions
 
 To be able to only treat non-bonded interactions via force matching, all other contributions need to be excluded. This is achieved by generating a second topology, where all bonded interactions were deleted. Furthermore, all intramolecular interactions were explicitly excluded. The forces of the reference trajectory can then be recalculated using the gromacs mdrun rerun functionality
-```
+```bash
 mdrun -rerun traj.trr
 ```
 The main modification to the `grompp.mdp` file is that forces and positions are written out in every interaction, and therefore each configuration from the reference trajectory is written to the output. Then, force-matching can be performed on this newly obtained trajectory.
