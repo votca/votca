@@ -1,34 +1,48 @@
-[Based on the 2011-2015 CECAM meetings]
+# Votca Tutorial Guide
+
+(Based on the 2011-2016 CECAM meetings)
 
 Please pick topics you are most interested in, since finishing the tutorial might take longer than one afternoon.
-Installation
 
-Building executables
+# Installation
+
+## Building executables
 
 The simplest way is to use the build script which can be downloaded from github project
+```
 prefix=~/votca # installation folder (executables will be in the $prefix/bin)
 mkdir -p ${prefix}/src # source code folder
 cd ${prefix}/src
 wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh # get the build script
 chmod +x build.sh
 ./build.sh --prefix ${prefix} -ud tools csg # install tools and csg
-The following option might be needed to disable sqlite3 libraries -DWITH_SQLITE3=OFF. 
+```
+The following option might be needed to disable sqlite3 libraries `-DWITH_SQLITE3=OFF`. 
 To build a gromacs version use
+```
 ./build.sh --prefix ${prefix} -ud gromacs
-Downloading the tutorials
+```
 
+## Downloading the tutorials
+
+```
 git clone https://github.com/votca/csg-tutorials.git csg-tutorials
+```
 or            
-
+```
 ./build.sh --prefix ${prefix} -du csg-tutorials
-Downloading the manual
+```
+
+## Downloading the manual
 
 The corresponding version of the manual can be found on github (development version here), also have a look at the online reference:
 http://www.votca.org/Documentation/coarse-graining
-Running GROMACS
+
+# Running GROMACS
 
 If you are not familiar with the molecular dynamics (MD) package GROMACS, the following section provides a brief overview on how to modify and run MD simulations using GROMACS, which is used in the tutorial for generating the reference data. You can find all input files for a box of atomistic water in csg-tutorials/spce/atomistic
-Input files
+
+## Input files
 
 You will need four files to run MD simulations
 conf.gro - stores the coordinates of the molecule(s). Can be viewed with vmd. The default  file name is conf.gro. 
