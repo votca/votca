@@ -93,7 +93,8 @@ namespace votca {
                     double sigma_c=0.0;
                     // loop over all functions in GW basis
                     for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
-                        if (_ppm_weight(_i_gw) < 1.e-5) { continue;}
+                        // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
+                        if (_ppm_weight(_i_gw) < 1.e-9) { continue;}
                         const double ppm_freq = _ppm_freq(_i_gw);
                         const double fac = _ppm_weight(_i_gw) * ppm_freq;
                         // loop over all bands
