@@ -118,7 +118,6 @@ namespace votca {
                         }// bands
 
                     }// GW functions
-                    cout<<_gw_level<<" "<<sigma_c<<endl;
                     _sigma_c(_gw_level, _gw_level)=sigma_c;
                     // update _qp_energies
                     _qp_energies(_gw_level + _qpmin) = dftenergies(_gw_level + _qpmin) + sigma_c + _sigma_x(_gw_level, _gw_level) - _vxc(_gw_level, _gw_level);
