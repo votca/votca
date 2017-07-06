@@ -124,7 +124,6 @@ namespace votca {
 
 
                 }// all bands
-                //cout << " end of qp refinement step (diagonal) " << _i_iter << "\n" << endl;
                 _qp_old = _qp_old - _qp_energies;
                 energies_converged = true;
                 for (unsigned l = 0; l < _qp_old.size(); l++) {
@@ -154,13 +153,15 @@ namespace votca {
             double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
             _shift = _QPgap - _DFTgap;
             
+            
+            if(_iterate_qp){
             // qp energies outside the update range are simply shifted. 
             for(unsigned i=_qpmax+1;i<dftenergies.size();++i){
                 _qp_energies(i)=dftenergies(i)+_shift;
             }
-
-
-	    if ( ! _iterate_qp  ) _qp_converged = true;
+            }else{
+                _qp_converged = true;
+            }
 
 
             // only if _shift is converged
