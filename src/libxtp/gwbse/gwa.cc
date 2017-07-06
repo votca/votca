@@ -84,7 +84,7 @@ namespace votca {
 	    // only diagonal elements except for in final iteration
             for (int _i_iter = 0; _i_iter < _max_iter - 1; _i_iter++) {
                 // loop over all GW levels
-                
+
                 #pragma omp parallel for
                 for (unsigned _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
                     
@@ -93,7 +93,7 @@ namespace votca {
                     double sigma_c=0.0;
                     // loop over all functions in GW basis
                     for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
-                        
+                        if (_ppm_weight(_i_gw) < 1.e-5) { continue;}
                         const double ppm_freq = _ppm_freq(_i_gw);
                         const double fac = _ppm_weight(_i_gw) * ppm_freq;
                         // loop over all bands
@@ -118,7 +118,7 @@ namespace votca {
                         }// bands
 
                     }// GW functions
-                    cout<<_gw_level<<" "<<sigma_c;
+                    cout<<_gw_level<<" "<<sigma_c<<endl;
                     _sigma_c(_gw_level, _gw_level)=sigma_c;
                     // update _qp_energies
                     _qp_energies(_gw_level + _qpmin) = dftenergies(_gw_level + _qpmin) + sigma_c + _sigma_x(_gw_level, _gw_level) - _vxc(_gw_level, _gw_level);
@@ -186,6 +186,7 @@ namespace votca {
 
                     // loop over all functions in GW basis
                     for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
+                        if (_ppm_weight(_i_gw) < 1.e-5) { continue;}
                         const double ppm_freq = _ppm_freq(_i_gw);
                         const double fac = _ppm_weight(_i_gw) * ppm_freq;
                         // loop over all screening levels
