@@ -415,7 +415,7 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set RPA level range [" << _rpamin + 1 << ":" << _rpamax + 1 << "]" << flush;
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set QP  level range [" << _qpmin + 1 << ":" << _qpmax + 1 << "]" << flush;
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set BSE level range occ[" << _bse_vmin + 1 << ":" << _bse_vmax + 1 << "]  virt[" << _bse_cmin + 1 << ":" << _bse_cmax + 1 << "]" << flush;
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " BSE Hamiltonian has size" <<_bse_size<<"x"<<_bse_size << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " BSE Hamiltonian has size " <<_bse_size<<"x"<<_bse_size << flush;
 
 
             // process the DFT data
@@ -454,7 +454,7 @@ namespace votca {
                         throw std::runtime_error((boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
                     }
                     _numint.GridSetup(_grid, &dftbs, _atoms,&_dftbasis);
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup grid for integration with gridsize: " << _grid << "divided into "<<_numint.getBoxesSize()<<" boxes"<<flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup grid for integration with gridsize: " << _grid <<" with "<<_numint.getGridSize()<< " points, divided into "<<_numint.getBoxesSize()<<" boxes"<<flush;
                     _dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
 
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;
@@ -679,7 +679,7 @@ namespace votca {
                 _gwoverlap_cholesky_inverse_trans.resize(0,0);
                 _Mmn_RPA.Cleanup();
                 _Mmn_backup.Cleanup();
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cleaned up Overlap,MmnRPA and Mmn_backup " << flush;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cleaned up Overlap, MmnRPA and Mmn_backup " << flush;
             }
             // free no longer required three-center matrices in _Mmn
             // max required is _bse_cmax (could be smaller than _qpmax)
