@@ -173,11 +173,11 @@ namespace votca {
                 
             
                 
-            ub::vector<double> _qp_backup=_qp_energies;
+      
             //this is not the fastest algorithm but faster ones throw igwbse off, so this is good enough.    
             #pragma omp parallel for
             for (unsigned _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
-                const double qpmin=_qp_backup(_gw_level + _qpmin);
+                const double qpmin=_qp_energies(_gw_level + _qpmin);
 
                 const ub::matrix<real_gwbse>& Mmn = _Mmn[ _gw_level + _qpmin ];
                 for (unsigned _m = 0; _m < _gw_level; _m++) {
@@ -186,7 +186,8 @@ namespace votca {
 
                     // loop over all functions in GW basis
                     for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
-                        if (_ppm_weight(_i_gw) < 1.e-5) { continue;}
+                        // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
+                        if (_ppm_weight(_i_gw) < 1.e-9) { continue;}
                         const double ppm_freq = _ppm_freq(_i_gw);
                         const double fac = _ppm_weight(_i_gw) * ppm_freq;
                         // loop over all screening levels
@@ -196,7 +197,7 @@ namespace votca {
                             if (_i > _homo) occ = -1.0; // sign for empty levels
 
                             // energy denominator
-                            const double _denom = qpmin - _qp_backup(_i) + occ * ppm_freq;
+                            const double _denom = qpmin - _qp_energies(_i) + occ * ppm_freq;
 
                             double _stab = 1.0;
                             if (std::abs(_denom) < 0.25) {
