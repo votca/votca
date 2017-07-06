@@ -84,17 +84,18 @@ namespace votca {
 	    // only diagonal elements except for in final iteration
             for (int _i_iter = 0; _i_iter < _max_iter - 1; _i_iter++) {
                 // loop over all GW levels
+                
                 #pragma omp parallel for
                 for (unsigned _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
                     
-                    double qpmin = _qp_energies(_gw_level + _qpmin);
+                    const double qpmin = _qp_old(_gw_level + _qpmin);
                     const ub::matrix<real_gwbse>& Mmn = _Mmn[ _gw_level + _qpmin ];
                     double sigma_c=0.0;
                     // loop over all functions in GW basis
                     for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
                         
-                        double ppm_freq = _ppm_freq(_i_gw);
-                        double fac = _ppm_weight(_i_gw) * ppm_freq;
+                        const double ppm_freq = _ppm_freq(_i_gw);
+                        const double fac = _ppm_weight(_i_gw) * ppm_freq;
                         // loop over all bands
                         for (unsigned _i = 0; _i < _levelsum; _i++) {
 
@@ -102,14 +103,14 @@ namespace votca {
                             if (_i > _homo) occ = -1.0; // sign for empty levels
 
                             // energy denominator
-                            double _denom = qpmin - _qp_energies(_i) + occ*ppm_freq;
+                            const double _denom = qpmin - _qp_old(_i) + occ*ppm_freq;
 
                             double _stab = 1.0;
                             if (std::abs(_denom) < 0.25) {
                                 _stab = 0.25 * (1.0 - std::cos(4.0 * pi * std::abs(_denom)));
                             }
 
-                            double _factor =0.5* fac * _stab / _denom; //Hartree
+                            const double _factor =0.5* fac * _stab / _denom; //Hartree
 
                             // sigma_c diagonal elements
                             sigma_c += _factor * Mmn(_i_gw, _i) * Mmn(_i_gw, _i);
@@ -121,7 +122,6 @@ namespace votca {
                     _sigma_c(_gw_level, _gw_level)=sigma_c;
                     // update _qp_energies
                     _qp_energies(_gw_level + _qpmin) = dftenergies(_gw_level + _qpmin) + sigma_c + _sigma_x(_gw_level, _gw_level) - _vxc(_gw_level, _gw_level);
-
 
                 }// all bands
                 
@@ -173,9 +173,11 @@ namespace votca {
                 
              //this is not the fastest algorithm but faster ones throw igwbse off, so this is good enough.    
                 
+                ub::vector<double> _qp_backup=_qp_energies;
+                
             #pragma omp parallel for
             for (unsigned _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
-                double qpmin=_qp_energies(_gw_level + _qpmin);
+                const double qpmin=_qp_backup(_gw_level + _qpmin);
 
                 const ub::matrix<real_gwbse>& Mmn = _Mmn[ _gw_level + _qpmin ];
                 for (unsigned _m = 0; _m < _gw_level; _m++) {
@@ -184,8 +186,8 @@ namespace votca {
 
                     // loop over all functions in GW basis
                     for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
-                        double ppm_freq = _ppm_freq(_i_gw);
-                        double fac = _ppm_weight(_i_gw) * ppm_freq;
+                        const double ppm_freq = _ppm_freq(_i_gw);
+                        const double fac = _ppm_weight(_i_gw) * ppm_freq;
                         // loop over all screening levels
                         for (unsigned _i = 0; _i < _levelsum; _i++) {
 
@@ -193,14 +195,14 @@ namespace votca {
                             if (_i > _homo) occ = -1.0; // sign for empty levels
 
                             // energy denominator
-                            double _denom = qpmin - _qp_energies(_i) + occ * ppm_freq;
+                            const double _denom = qpmin - _qp_backup(_i) + occ * ppm_freq;
 
                             double _stab = 1.0;
                             if (std::abs(_denom) < 0.25) {
                                 _stab = 0.25 * (1.0 - std::cos(4.0 * pi * std::abs(_denom)));
                             }
 
-                            double _factor = 0.5*fac * Mmn(_i_gw, _i) * _stab / _denom; //Hartree
+                            const double _factor = 0.5*fac * Mmn(_i_gw, _i) * _stab / _denom; //Hartree
 
                             sigma_c+= _factor * Mmn2(_i_gw, _i);
 
