@@ -87,10 +87,9 @@ namespace votca {
                 #pragma omp parallel for
                 for (unsigned _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
                     
-                    _sigma_c(_gw_level, _gw_level) = 0;
                     double qpmin = _qp_energies(_gw_level + _qpmin);
                     const ub::matrix<real_gwbse>& Mmn = _Mmn[ _gw_level + _qpmin ];
-
+                    double sigma_c=0.0;
                     // loop over all functions in GW basis
                     for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
                         
@@ -113,17 +112,19 @@ namespace votca {
                             double _factor =0.5* fac * _stab / _denom; //Hartree
 
                             // sigma_c diagonal elements
-                            _sigma_c(_gw_level, _gw_level) += _factor * Mmn(_i_gw, _i) * Mmn(_i_gw, _i);
+                            sigma_c += _factor * Mmn(_i_gw, _i) * Mmn(_i_gw, _i);
 
                         }// bands
 
                     }// GW functions
-
+                                        
+                    _sigma_c(_gw_level, _gw_level)=sigma_c;
                     // update _qp_energies
-                    _qp_energies(_gw_level + _qpmin) = dftenergies(_gw_level + _qpmin) + _sigma_x(_gw_level, _gw_level) + _sigma_c(_gw_level, _gw_level) - _vxc(_gw_level, _gw_level);
+                    _qp_energies(_gw_level + _qpmin) = dftenergies(_gw_level + _qpmin) + sigma_c + _sigma_x(_gw_level, _gw_level) - _vxc(_gw_level, _gw_level);
 
 
                 }// all bands
+                
                 _qp_old = _qp_old - _qp_energies;
                 energies_converged = true;
                 for (unsigned l = 0; l < _qp_old.size(); l++) {
@@ -174,11 +175,11 @@ namespace votca {
                 
             #pragma omp parallel for
             for (unsigned _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
-                double qpmin_e=_qp_energies(_gw_level + _qpmin);
+                double qpmin=_qp_energies(_gw_level + _qpmin);
 
                 const ub::matrix<real_gwbse>& Mmn = _Mmn[ _gw_level + _qpmin ];
                 for (unsigned _m = 0; _m < _gw_level; _m++) {
-                    _sigma_c(_gw_level, _m) = 0;
+                     double sigma_c = 0;
                     const ub::matrix<real_gwbse>& Mmn2 = _Mmn[_m + _qpmin];
 
                     // loop over all functions in GW basis
@@ -192,7 +193,7 @@ namespace votca {
                             if (_i > _homo) occ = -1.0; // sign for empty levels
 
                             // energy denominator
-                            double _denom = qpmin_e - _qp_energies(_i) + occ * ppm_freq;
+                            double _denom = qpmin - _qp_energies(_i) + occ * ppm_freq;
 
                             double _stab = 1.0;
                             if (std::abs(_denom) < 0.25) {
@@ -201,11 +202,12 @@ namespace votca {
 
                             double _factor = 0.5*fac * Mmn(_i_gw, _i) * _stab / _denom; //Hartree
 
-                            _sigma_c(_gw_level, _m) += _factor * Mmn2(_i_gw, _i);
+                            sigma_c+= _factor * Mmn2(_i_gw, _i);
 
 
                         }// screening levels 
                     }// GW functions 
+                    _sigma_c(_gw_level, _m)=sigma_c;
                 }// GW row 
                 _qp_energies(_gw_level + _qpmin) = dftenergies(_gw_level + _qpmin) + _sigma_x(_gw_level, _gw_level) + _sigma_c(_gw_level, _gw_level) - _vxc(_gw_level, _gw_level);
             } // GW col 
