@@ -118,7 +118,7 @@ namespace votca {
                         }// bands
 
                     }// GW functions
-                                        
+                    cout<<_gw_level<<" "<<sigma_c;
                     _sigma_c(_gw_level, _gw_level)=sigma_c;
                     // update _qp_energies
                     _qp_energies(_gw_level + _qpmin) = dftenergies(_gw_level + _qpmin) + sigma_c + _sigma_x(_gw_level, _gw_level) - _vxc(_gw_level, _gw_level);
@@ -171,10 +171,10 @@ namespace votca {
                 // initialize sigma_c to zero at the beginning
                 
                 
-             //this is not the fastest algorithm but faster ones throw igwbse off, so this is good enough.    
+            
                 
-                ub::vector<double> _qp_backup=_qp_energies;
-                
+            ub::vector<double> _qp_backup=_qp_energies;
+            //this is not the fastest algorithm but faster ones throw igwbse off, so this is good enough.    
             #pragma omp parallel for
             for (unsigned _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
                 const double qpmin=_qp_backup(_gw_level + _qpmin);
@@ -211,7 +211,6 @@ namespace votca {
                     }// GW functions 
                     _sigma_c(_gw_level, _m)=sigma_c;
                 }// GW row 
-                _qp_energies(_gw_level + _qpmin) = dftenergies(_gw_level + _qpmin) + _sigma_x(_gw_level, _gw_level) + _sigma_c(_gw_level, _gw_level) - _vxc(_gw_level, _gw_level);
             } // GW col 
         } 
             
