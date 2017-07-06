@@ -153,6 +153,11 @@ namespace votca {
             double _DFTgap =dftenergies(_homo + 1) - dftenergies(_homo);
             double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
             _shift = _QPgap - _DFTgap;
+            
+            // qp energies outside the update range are simply shifted. 
+            for(unsigned i=_qpmax+1;i<dftenergies.size();++i){
+                _qp_energies(i)=dftenergies(i)+_shift;
+            }
 
 
 	    if ( ! _iterate_qp  ) _qp_converged = true;

@@ -718,7 +718,7 @@ namespace votca {
                     _qp_energies_store(_i, 1) = _sigma_x(_i, _i);
                     _qp_energies_store(_i, 2) = _sigma_c(_i, _i);
                     _qp_energies_store(_i, 3) = _vxc(_i, _i);
-                    _qp_energies_store(_i, 4) = _qp_energies(_i);
+                    _qp_energies_store(_i, 4) = _qp_energies(_i + _qpmin);
                 }
             }
 
