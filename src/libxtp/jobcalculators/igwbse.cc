@@ -511,6 +511,7 @@ void IGWBSE::WriteJobFile(ctp::Topology *top) {
     string tag = "";
     
     for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
+        if ((*pit)->getType()==ctp::QMPair::Excitoncl){continue;}
         //if ((*pit)->HasGhost()){ // Used to only produce jobs concerned with pbcs
         int id1 = (*pit)->Seg1()->getId();
         string name1 = (*pit)->Seg1()->getName();
