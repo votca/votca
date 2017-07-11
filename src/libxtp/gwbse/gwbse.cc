@@ -142,7 +142,8 @@ namespace votca {
             if (_tasks_string.find("qpdiag") != std::string::npos) _do_qp_diag = true;
             if (_tasks_string.find("singlets") != std::string::npos) _do_bse_singlets = true;
             if (_tasks_string.find("triplets") != std::string::npos) _do_bse_triplets = true;
-
+            _store_eh_interaction = false;
+            _do_bse_diag = true;
             // special construction for ibse mode
             if (_tasks_string.find("igwbse") != std::string::npos) {
                 _do_qp_diag = false; // no qp diagonalization
@@ -154,8 +155,8 @@ namespace votca {
             // possible storage 
             // qpPert, qpdiag_energies, qp_diag_coefficients, bse_singlet_energies, bse_triplet_energies, bse_singlet_coefficients, bse_triplet_coefficients
             _store_qp_pert = true;
-            _do_bse_diag = true;
-            _store_eh_interaction = false;
+            
+            
             _store_qp_diag = false;
             _store_bse_triplets=false;
             _store_bse_singlets=false;
