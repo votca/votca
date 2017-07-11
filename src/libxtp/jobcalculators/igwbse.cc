@@ -61,13 +61,12 @@ void IGWBSE::Initialize(votca::tools::Property* options ) {
     _write_orbfile=false;
 
 
-    // update options with the VOTCASHARE defaults   
-    //UpdateWithDefaults( options, "xtp" );
+    
     ParseOptionsXML( options  );
     
     // register all QM packages (Gaussian, turbomole, etc))
     QMPackageFactory::RegisterAll();
-
+    return;
 }
 
 void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
@@ -130,10 +129,7 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
             _triplet_levels=FillParseMaps(_parse_string_t);       
         }
 
-     
-    
-
-    
+  return;  
 }
 
 std::map<std::string, int> IGWBSE::FillParseMaps(string Mapstring){
@@ -175,7 +171,7 @@ void IGWBSE::LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log
         std::cerr << "An error occurred:\n" << err.what() << endl;
     } 
     ifs.close();
-
+    return;
 }
 
 ctp::Job::JobResult IGWBSE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *opThread) {
@@ -540,94 +536,9 @@ void IGWBSE::WriteJobFile(ctp::Topology *top) {
     ofs.close();
     
     cout << endl << "... ... In total " << jobCount << " jobs" << flush;
-    
+    return;
 }
 
-/**
- * Reads-in electronic couplings from the job file to topology 
- * Does not detect level degeneracy! (TO DO)
- * Does not account for SUPEREXCHANGE (TO DO) 
- * 
-void IDFT::ReadJobFile( Topology *top ) 
-{
-    Property xml;
-
-    QMNBList &nblist = top->NBList();   
-    int _number_of_pairs = nblist.size();
-    int _current_pairs = 0;
-    int _incomplete_jobs = 0;
-    
-    Logger log;
-    log.setReportLevel(logINFO);
-    
-    // load the xml job file into the property object
-    load_property_from_xml(xml, _jobfile);
-    
-    list<Property*> jobProps = xml.Select("jobs.job");
-    list<Property*> ::iterator it;
-
-    for (it = jobProps.begin(); it != jobProps.end(); ++it) {
- 
-        // check if this job has output, otherwise complain
-        if ( (*it)->exists("output") && (*it)->exists("output.pair") ) {
-            
-            Property poutput = (*it)->get("output.pair");
-            
-            int homoA = poutput.getAttribute<int>("homoA");
-            int homoB = poutput.getAttribute<int>("homoB");
-            
-            int idA = poutput.getAttribute<int>("idA");
-            int idB = poutput.getAttribute<int>("idB");
-                       
-            string typeA = poutput.getAttribute<string>("typeA");
-            string typeB = poutput.getAttribute<string>("typeB");
-
-            //cout << idA << ":" << idB << "\n"; 
-            Segment *segA = top->getSegment(idA);
-            Segment *segB = top->getSegment(idB);
-            QMPair *qmp = nblist.FindPair(segA,segB);
-            
-            // there is no pair in the neighbor list with this name
-            if (qmp == NULL) { 
-                CTP_LOG(logINFO, log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
-            }   else {
-                
-                _current_pairs++;
-                
-                list<Property*> pOverlap = poutput.Select("overlap");
-                list<Property*> ::iterator itOverlap;
-
-                    // run over all level combinations and select HOMO-HOMO and LUMO-LUMO
-                    for (itOverlap = pOverlap.begin(); itOverlap != pOverlap.end(); ++itOverlap) {
-
-                        double energyA = (*itOverlap)->getAttribute<double>("eA");
-                        double energyB = (*itOverlap)->getAttribute<double>("eB");
-                        double overlapAB = (*itOverlap)->getAttribute<double>("jAB");
-                        int orbA = (*itOverlap)->getAttribute<double>("orbA");
-                        int orbB = (*itOverlap)->getAttribute<double>("orbB");
-
-                        if ( orbA == homoA && orbB == homoB ) {
-                                qmp->setJeff2(overlapAB*overlapAB, 1);
-                                qmp->setIsPathCarrier(true, 1);
-                        }
-
-                        if ( orbA == homoA+1 && orbB == homoB+1 ) {
-                                qmp->setJeff2(overlapAB*overlapAB, -1);
-                                qmp->setIsPathCarrier(true, -1);
-                        }
-                    }    
-            }
-            
-        } else { // output not found, job failed - report - throw an exception in the future
-            _incomplete_jobs++;
-            CTP_LOG(logINFO, log) << "Job " << (*it)->get( "id" ).as<string>() << " status is: " << (*it)->get( "status" ).as<string>() << endl;
-        }
-    }
-    
-    CTP_LOG(logINFO, log) << "Pairs [total:saved] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
-    cout << log;
-}
-*/
 
 /** 
  * Imports electronic couplings with superexchange
@@ -765,6 +676,7 @@ void IGWBSE::ReadJobFile(ctp::Topology *top) {
                     
     CTP_LOG_SAVE(ctp::logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush; 
     cout << _log;
+    return;
 }
 
 }};
