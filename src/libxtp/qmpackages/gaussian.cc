@@ -328,7 +328,7 @@ namespace votca {
 
             orbitals_guess->SortEnergies(&_sort_index);
 
-            _com_file << endl << "(5D15.8)" << endl;
+            _com_file<< "(5D15.8)" << endl;
 
             int level = 1;
             int ncolumns = 5;
