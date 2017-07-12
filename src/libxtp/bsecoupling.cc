@@ -21,16 +21,8 @@
 #include <votca/tools/linalg.h>
 
 #include <votca/xtp/bsecoupling.h>
-#include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
 #include <boost/format.hpp>
-#include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/banded.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
-
-#include <boost/progress.hpp>
 
 
 
@@ -136,12 +128,12 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
         Property *_singlet_summary = &_type_summary->add("singlets","");
         for (int stateA = 0; stateA < _levA ; ++stateA ) {
            for (int stateB = 0; stateB <_levB ; ++stateB ) {
-               real_gwbse JAB = getSingletCouplingElement( stateA , stateB );
+               double JAB = getSingletCouplingElement( stateA , stateB );
                //real_gwbse_gwbse energyAD = getSingletDimerEnergy( stateA  );
                //real_gwbse energyBD = getSingletDimerEnergy( stateB  );
                Property *_coupling_summary = &_singlet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
-               real_gwbse energyA = _orbitalsA->BSESingletEnergies()(stateA)*conv::hrt2ev;
-               real_gwbse energyB = _orbitalsB->BSESingletEnergies()(stateB)*conv::hrt2ev;
+               double energyA = _orbitalsA->BSESingletEnergies()(stateA)*conv::hrt2ev;
+               double energyB = _orbitalsB->BSESingletEnergies()(stateB)*conv::hrt2ev;
                _coupling_summary->setAttribute("excitonA", stateA);
                _coupling_summary->setAttribute("excitonB", stateB);
                _coupling_summary->setAttribute("energyA", energyA);
@@ -158,12 +150,12 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
         Property *_triplet_summary = &_type_summary->add("triplets","");
         for (int stateA = 0; stateA < _levA ; ++stateA ) {
            for (int stateB = 0; stateB < _levA ; ++stateB ) {
-               real_gwbse JAB = getTripletCouplingElement( stateA , stateB );
+               double JAB = getTripletCouplingElement( stateA , stateB );
                //real_gwbse energyAD = getTripletDimerEnergy( stateA  );
                //real_gwbse energyBD = getTripletDimerEnergy( stateB  );
                Property *_coupling_summary = &_triplet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
-               real_gwbse energyA = _orbitalsA->BSETripletEnergies()(stateA)*conv::hrt2ev;
-               real_gwbse energyB = _orbitalsB->BSETripletEnergies()(stateB)*conv::hrt2ev;
+               double energyA = _orbitalsA->BSETripletEnergies()(stateA)*conv::hrt2ev;
+               double energyB = _orbitalsB->BSETripletEnergies()(stateB)*conv::hrt2ev;
                _coupling_summary->setAttribute("excitonA", stateA);
                _coupling_summary->setAttribute("excitonB", stateB);
                _coupling_summary->setAttribute("energyA", energyA);
@@ -176,26 +168,26 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
 }
 
 
-real_gwbse BSECoupling::getSingletCouplingElement( int levelA, int levelB) {
+double BSECoupling::getSingletCouplingElement( int levelA, int levelB) {
 
     
 
     return JAB_singlet( levelA  , levelB +  _levA ) * votca::tools::conv::hrt2ev;
 }
-real_gwbse BSECoupling::getSingletDimerEnergy( int level) {
+double BSECoupling::getSingletDimerEnergy( int level) {
 
     
 
     return JAB_singlet( level  , level ) * votca::tools::conv::hrt2ev;
 }
-real_gwbse BSECoupling::getTripletDimerEnergy( int level) {
+double BSECoupling::getTripletDimerEnergy( int level) {
 
     return JAB_triplet( level  , level ) * votca::tools::conv::hrt2ev;
 }
 
 
 
-real_gwbse BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
+double BSECoupling::getTripletCouplingElement( int levelA, int levelB) {
 
     return JAB_triplet( levelA  , levelB + _levA ) * votca::tools::conv::hrt2ev;
 }
@@ -382,8 +374,8 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         CTP_LOG(ctp::logERROR,*_pLog) << "BSE EH int not stored in dimer " << flush;
         return false;
     }
-    ub::matrix<real_gwbse>&    _eh_d = _orbitalsAB->eh_d(); 
-    ub::matrix<real_gwbse>&    _eh_x = _orbitalsAB->eh_x(); 
+    const ub::matrix<real_gwbse>&    _eh_d = _orbitalsAB->eh_d(); 
+    const ub::matrix<real_gwbse>&    _eh_x = _orbitalsAB->eh_x(); 
     
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   dimer AB has BSE EH interaction (direct)   with dimension " << _eh_d.size1() << " x " <<  _eh_d.size2() << flush;
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   dimer AB has BSE EH interaction (exchange) with dimension " << _eh_x.size1() << " x " <<  _eh_x.size2() << flush;
@@ -493,9 +485,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         }
     }
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  <<"  "<<noAB <<" CT states A+B- created" << flush;
-    //cout << "comb_CTAB" << endl;
-    //cout << comb_CTAB << endl;
-    
+ 
     ub::matrix<int> comb_CTBA;
     comb_CTBA.resize(noBA,2);
     _cnt = 0;
@@ -510,13 +500,11 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         }
     }
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  <<"  "<<noBA <<" CT states B+A- created" << flush;
-    //cout << "comb_CTBA" << endl;
-    //cout << comb_CTBA << endl;
     
     
     
     // these 4 matrixes, matrix(i,j) contains the j-th dimer MO component of the i-th excitation
-    ub::matrix<real_gwbse> ctAB;
+   
     ctAB.resize(noAB,_bseAB_size);
     #pragma omp parallel for
     for ( int _i_CT = 0 ; _i_CT < noAB ; _i_CT++){
@@ -525,7 +513,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         }
     }
     
-    ub::matrix<real_gwbse>ctBA;
+    
     ctBA.resize(noBA,_bseAB_size);
     #pragma omp parallel for
     for ( int _i_CT = 0 ; _i_CT < noBA ; _i_CT++){
@@ -537,7 +525,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
       
     // some more convenient storage
     
-    ub::matrix<real_gwbse> _kap;
+    
     _kap.resize(_bseA_size,_bseAB_size);
     #pragma omp parallel for
     for ( int _i_bseA = 0 ; _i_bseA < _bseA_size ; _i_bseA++){
@@ -549,7 +537,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 
     
     
-    ub::matrix<real_gwbse> _kbp;
+
     _kbp.resize(_bseB_size,_bseAB_size);
     #pragma omp parallel for
     for ( int _i_bseB = 0 ; _i_bseB < _bseB_size ; _i_bseB++){
@@ -560,7 +548,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     // Same routines but also take <v|c'> <c|v'> projections into account 
     /*
-    ub::matrix<real_gwbse> _kap;
+ 
     _kap.resize(_bseA_size,_bseAB_size);
     for ( int _i_bseA = 0 ; _i_bseA < _bseA_size ; _i_bseA++){
         for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
@@ -573,8 +561,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
 
     
-    
-    ub::matrix<real_gwbse> _kbp;
+   
     _kbp.resize(_bseB_size,_bseAB_size);
     for ( int _i_bseB = 0 ; _i_bseB < _bseB_size ; _i_bseB++){
         for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
@@ -597,13 +584,13 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     if ( _doSinglets){
          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   Evaluating singlets"  << flush; 
       // get singlet BSE Hamiltonian from _orbitalsAB
-      ub::matrix<real_gwbse> _Hamiltonian_AB = _eh_d + 2.0 * _eh_x;
-        const ub::matrix<real_gwbse>& _bseA = ub::project( _orbitalsA->BSESingletCoefficients(),
-                ub::range (0, _orbitalsA->BSESingletCoefficients().size1() ), ub::range ( 0, _FeA )  );
-        const ub::matrix<real_gwbse>& _bseB = ub::project( _orbitalsB->BSESingletCoefficients(),
-                ub::range (0, _orbitalsB->BSESingletCoefficients().size1() ), ub::range ( 0, _FeB )  );
+        const ub::matrix<double> _Hamiltonian_AB = _eh_d + 2.0 * _eh_x;
+        const ub::matrix<double> _bseA = ub::trans(ub::project( _orbitalsA->BSESingletCoefficients(),
+                ub::range (0, _orbitalsA->BSESingletCoefficients().size1() ), ub::range ( 0, _FeA )  ));
+        const ub::matrix<double> _bseB = ub::trans(ub::project( _orbitalsB->BSESingletCoefficients(),
+                ub::range (0, _orbitalsB->BSESingletCoefficients().size1() ), ub::range ( 0, _FeB )  ));
      
-        bool _singlets = ProjectExcitons( _kap, _kbp,ctAB,ctBA, _bseA, _bseB, _Hamiltonian_AB, JAB_singlet);
+        bool _singlets = ProjectExcitons(  _bseA, _bseB, _Hamiltonian_AB, JAB_singlet);
         if ( _singlets ) {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   calculated singlet couplings " << flush;
         }
@@ -615,15 +602,19 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     if ( _doTriplets){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   Evaluating triplets" << flush; 
         // get triplet BSE Hamiltonian from _orbitalsAB
-        ub::matrix<real_gwbse> _Hamiltonian_AB = _eh_d;
-      
-        
-        const ub::matrix<real_gwbse>& _bseA = ub::project( _orbitalsA->BSETripletCoefficients(),
-                ub::range (0, _orbitalsA->BSETripletCoefficients().size1() ), ub::range ( 0, _FeA )  );
-        const ub::matrix<real_gwbse>& _bseB = ub::project( _orbitalsB->BSETripletCoefficients(),
-                ub::range (0, _orbitalsB->BSETripletCoefficients().size1() ), ub::range ( 0, _FeB )  );
        
-        bool _triplets = ProjectExcitons( _kap, _kbp,ctAB,ctBA, _bseA, _bseB, _Hamiltonian_AB, JAB_triplet);
+       #if (GWBSE_DOUBLE)
+      const ub::matrix<double>& _Hamiltonian_AB = _eh_d;
+#else
+    const ub::matrix<double> _Hamiltonian_AB = _eh_d;
+#endif
+        
+        const ub::matrix<double> _bseA = ub::trans(ub::project( _orbitalsA->BSETripletCoefficients(),
+                ub::range (0, _orbitalsA->BSETripletCoefficients().size1() ), ub::range ( 0, _FeA )  ));
+        const ub::matrix<double> _bseB = ub::trans(ub::project( _orbitalsB->BSETripletCoefficients(),
+                ub::range (0, _orbitalsB->BSETripletCoefficients().size1() ), ub::range ( 0, _FeB )  ));
+       
+        bool _triplets = ProjectExcitons(_bseA, _bseB, _Hamiltonian_AB, JAB_triplet);
         if ( _triplets ) {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   calculated triplet couplings " << flush;
         }
@@ -634,22 +625,21 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 };
 
 
-bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::matrix<real_gwbse>& _kbp,
-                                  const ub::matrix<real_gwbse>& ctAB,const ub::matrix<real_gwbse>& ctBA, 
-                                  const ub::matrix<real_gwbse>& _bseA, const ub::matrix<real_gwbse>& _bseB, 
-                                  const ub::matrix<real_gwbse>& _H, ub::matrix<real_gwbse>& _J){
+bool BSECoupling::ProjectExcitons(const ub::matrix<double>& _bseA_T, const ub::matrix<double>& _bseB_T, 
+                                  const ub::matrix<double>& _H, ub::matrix<double>& _J){
     
-   
+    
+    
+    
      // get projection of monomer excitons on dimer product functions
-     ub::matrix<real_gwbse> _proj_excA = ub::prod( ub::trans( _bseA ), _kap);
-     ub::matrix<real_gwbse> _proj_excB = ub::prod( ub::trans( _bseB ), _kbp);
-    
+     ub::matrix<double> _proj_excA = ub::prod( _bseA_T, _kap);
+     ub::matrix<double> _proj_excB = ub::prod( _bseB_T, _kbp);
      
      unsigned _bseA_exc = _proj_excA.size1();
      unsigned _bseB_exc = _proj_excB.size1();
      unsigned _bse_exc=_bseA_exc+_bseB_exc;
      
-     _J=ub::zero_matrix<real_gwbse>(_bse_exc,_bse_exc);
+     _J=ub::zero_matrix<double>(_bse_exc,_bse_exc);
      unsigned _ctAB=ctAB.size1();
      
      unsigned _ctBA=ctBA.size1();
@@ -722,13 +712,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
      //cout << _J_dimer.size1()<< " : "<<_J_dimer.size2()<<endl;
      //cout << _S_dimer.size1()<< " : "<<_S_dimer.size2()<<endl;
      
-     #if (GWBSE_DOUBLE)
-      const ub::matrix<double>& Htemp=_H;
-#else
-     ub::matrix<double> Htemp=_H;
-     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << " casting Hamiltonian to double  " << flush;
-
-#endif
+    
     
      ub::matrix<double> projection =ub::zero_matrix<double>(_bse_exc+_ct,nobasisfunc);
      
@@ -753,13 +737,8 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
      
     
      
-     ub::matrix<double> _temp=ub::prod(Htemp,ub::trans(projection));
+     ub::matrix<double> _temp=ub::prod(_H,ub::trans(projection));
      ub::matrix<double> _J_dimer=ub::prod(projection,_temp);
-       #if (GWBSE_DOUBLE)
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << " no Casting  " << flush;
-    #else
-     Htemp.resize(0,0);
-     #endif
      _temp.resize(0,0);
      
 
@@ -805,7 +784,6 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::m
          bool _diag_ct=true;
      if (_ct > 0 && _diag_ct) {
         
-         
                 ub::matrix<double> transformation = ub::identity_matrix<double>(_bse_exc + _ct, _bse_exc + _ct);
                 ub::vector<double> eigenvalues_ct;
 

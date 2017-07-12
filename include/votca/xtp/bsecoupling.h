@@ -46,8 +46,8 @@ public:
     bool get_doSinglets(){ return _doSinglets;}
     bool get_doTriplets(){ return _doTriplets;}
     
-    ub::matrix<real_gwbse> getJAB_singletstorage(){return JAB_singlet;}
-    ub::matrix<real_gwbse> getJAB_tripletstorage(){return JAB_triplet;}
+    ub::matrix<double> getJAB_singletstorage(){return JAB_singlet;}
+    ub::matrix<double> getJAB_tripletstorage(){return JAB_triplet;}
     void addoutput(Property *_type_summary,Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB);
     
@@ -60,11 +60,11 @@ public:
     
 
      
-    real_gwbse getSingletCouplingElement( int levelA, int levelB);
+    double getSingletCouplingElement( int levelA, int levelB);
     
-    real_gwbse getTripletCouplingElement( int levelA, int levelB);
-    real_gwbse getSingletDimerEnergy( int level);
-    real_gwbse getTripletDimerEnergy( int level);
+    double getTripletCouplingElement( int levelA, int levelB);
+    double getSingletDimerEnergy( int level);
+    double getTripletDimerEnergy( int level);
     void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
     
 private:
@@ -72,13 +72,11 @@ private:
     ctp::Logger *_pLog;
   
     
-    bool ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::matrix<real_gwbse>& _kbp, 
-                         const ub::matrix<real_gwbse>& ctAB,const ub::matrix<real_gwbse>& ctBA, 
-                         const ub::matrix<real_gwbse>& _bseA,const ub::matrix<real_gwbse>& _bseB, 
-                         const ub::matrix<real_gwbse>& _H, ub::matrix<real_gwbse>& _J );
+    bool ProjectExcitons(const ub::matrix<double>& _bseA_T,const ub::matrix<double>& _bseB_T, 
+                         const ub::matrix<double>& _H, ub::matrix<double>& _J );
     
-    ub::matrix<real_gwbse> JAB_singlet;
-    ub::matrix<real_gwbse> JAB_triplet;
+    ub::matrix<double> JAB_singlet;
+    ub::matrix<double> JAB_triplet;
 
     bool _doTriplets;
     bool _doSinglets;
@@ -94,6 +92,12 @@ private:
     int _FeB;
     double      _degeneracy;
     int         _openmp_threads;
+    
+    
+     ub::matrix<double> ctAB;
+     ub::matrix<double> ctBA;
+     ub::matrix<double> _kap;
+     ub::matrix<double> _kbp;
     
     
 };
