@@ -244,14 +244,14 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
 #
             
         } /* exit loop seg1 */       
-        
+        if(skippedpairs.size()>0){
         std::cout << "WARNING: No cut-off specified for segment pairs of type "<<std::endl;              
         for(std::vector< std::string >::iterator st=skippedpairs.begin();st!=skippedpairs.end();++st){
             std::cout<<(*st)<<std::endl;
         }
         std::cout << "pairs were skipped"<<std::endl;
-    }
-
+        }}
+    
     std::cout << std::endl << " ... ... Created " << top->NBList().size() << " direct pairs.";
     if(_useExcitonCutoff){
         std::cout << std::endl << " ... ... Determining classical pairs "<<std::endl;
