@@ -431,7 +431,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     }
     //convert to full matrix from symmetric
     ub::matrix<double> _overlapAB =_orbitalsAB->AOOverlap();  
-    ub::matrix<double> _psi_AB = ub::prod( _overlapAB,ub::trans(_overlapAB) );  
+    ub::matrix<double> _psi_AB = ub::prod( _overlapAB,ub::trans(_orbitalsAB->MOCoefficients()) );  
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );  
     _psi_AB.resize(0,0);
     //cout<< "_psi_AxB_dimer"<<endl;
