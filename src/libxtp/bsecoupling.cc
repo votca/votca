@@ -361,6 +361,10 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     }
     
     
+    if(_orbitalsA->getQMpackage()!=_orbitalsB->getQMpackage() || _orbitalsA->getQMpackage()!=_orbitalsAB->getQMpackage()){
+        throw runtime_error("Qmpackages in Orbfiles were made using different QMPackages, that doe snot work at the moment due to not reorddeering the MOCOefficients/Overlapmatrix.\n Redo the calculation please. ");
+    }
+    
     // get exciton information of pair AB
     int _bseAB_cmax = _orbitalsAB->getBSEcmax();
     int _bseAB_cmin = _orbitalsAB->getBSEcmin();
@@ -584,13 +588,18 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     if ( _doSinglets){
          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   Evaluating singlets"  << flush; 
       // get singlet BSE Hamiltonian from _orbitalsAB
+         
         const ub::matrix<double> _Hamiltonian_AB = _eh_d + 2.0 * _eh_x;
-        const ub::matrix<double> _bseA = ub::trans(ub::project( _orbitalsA->BSESingletCoefficients(),
-                ub::range (0, _orbitalsA->BSESingletCoefficients().size1() ), ub::range ( 0, _FeA )  ));
-        const ub::matrix<double> _bseB = ub::trans(ub::project( _orbitalsB->BSESingletCoefficients(),
-                ub::range (0, _orbitalsB->BSESingletCoefficients().size1() ), ub::range ( 0, _FeB )  ));
-     
-        bool _singlets = ProjectExcitons(  _bseA, _bseB, _Hamiltonian_AB, JAB_singlet);
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   Setup Hamiltonian"  << flush; 
+         ub::matrix<real_gwbse> temp=ub::project( _orbitalsA->BSESingletCoefficients(),
+                ub::range (0, _orbitalsA->BSESingletCoefficients().size1() ), ub::range ( 0, _FeA )  );
+                 
+        const ub::matrix<double> _bseA_T = ub::trans(temp);
+        temp=ub::project( _orbitalsB->BSESingletCoefficients(),
+                ub::range (0, _orbitalsB->BSESingletCoefficients().size1() ), ub::range ( 0, _FeB )  );
+        const ub::matrix<double> _bseB_T = ub::trans(temp);
+        temp.resize(0,0);
+        bool _singlets = ProjectExcitons(  _bseA_T, _bseB_T, _Hamiltonian_AB, JAB_singlet);
         if ( _singlets ) {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   calculated singlet couplings " << flush;
         }
@@ -605,16 +614,20 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
        
        #if (GWBSE_DOUBLE)
       const ub::matrix<double>& _Hamiltonian_AB = _eh_d;
+              CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   Loaded Hamiltonian"  << flush; 
+
 #else
     const ub::matrix<double> _Hamiltonian_AB = _eh_d;
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "  Converted Hamiltonian to double"  << flush; 
 #endif
-        
-        const ub::matrix<double> _bseA = ub::trans(ub::project( _orbitalsA->BSETripletCoefficients(),
-                ub::range (0, _orbitalsA->BSETripletCoefficients().size1() ), ub::range ( 0, _FeA )  ));
-        const ub::matrix<double> _bseB = ub::trans(ub::project( _orbitalsB->BSETripletCoefficients(),
-                ub::range (0, _orbitalsB->BSETripletCoefficients().size1() ), ub::range ( 0, _FeB )  ));
+     ub::matrix<real_gwbse> temp=ub::project( _orbitalsA->BSETripletCoefficients(),
+                ub::range (0, _orbitalsA->BSETripletCoefficients().size1() ), ub::range ( 0, _FeA )  );
+        const ub::matrix<double> _bseA_T = ub::trans(temp);
+    temp=ub::project( _orbitalsB->BSETripletCoefficients(),ub::range (0, _orbitalsB->BSETripletCoefficients().size1() ), ub::range ( 0, _FeB )  );
+        const ub::matrix<double> _bseB_T = ub::trans(temp);
+    temp.resize(0,0);
        
-        bool _triplets = ProjectExcitons(_bseA, _bseB, _Hamiltonian_AB, JAB_triplet);
+        bool _triplets = ProjectExcitons(_bseA_T, _bseB_T, _Hamiltonian_AB, JAB_triplet);
         if ( _triplets ) {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   calculated triplet couplings " << flush;
         }
