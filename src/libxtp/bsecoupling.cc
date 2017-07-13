@@ -438,6 +438,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::matrix<double> _psi_AB = ub::prod( _overlapAB,ub::trans(_orbitalsAB->MOCoefficients()) );  
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );  
     _psi_AB.resize(0,0);
+    _overlapAB.resize(0,0);
     //cout<< "_psi_AxB_dimer"<<endl;
     unsigned int LevelsA = _levelsA;
     for (unsigned i=0;i<_psi_AxB_dimer_basis.size1();i++){
@@ -583,13 +584,16 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         
     //     cout << "Size of _kap " << _kap.size1() << " : " <<  _kap.size2() << "\n" << flush; 
     //     cout << "Size of _kbp " << _kbp.size1() << " : " <<  _kbp.size2() << "\n" << flush; 
-    
+    _psi_AxB_dimer_basis.resize(0,0);
+    _combAB.resize(0,0);
+    _combA.resize(0,0);
+    _combB.resize(0,0);
     // now the different spin types
     if ( _doSinglets){
          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   Evaluating singlets"  << flush; 
       // get singlet BSE Hamiltonian from _orbitalsAB
          
-        const ub::matrix<double> _Hamiltonian_AB = _eh_d + 2.0 * _eh_x;
+        ub::matrix<double> _Hamiltonian_AB = _eh_d + 2.0 * _eh_x;
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   Setup Hamiltonian"  << flush; 
          ub::matrix<real_gwbse> temp=ub::project( _orbitalsA->BSESingletCoefficients(),
                 ub::range (0, _orbitalsA->BSESingletCoefficients().size1() ), ub::range ( 0, _FeA )  );
@@ -612,14 +616,9 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   Evaluating triplets" << flush; 
         // get triplet BSE Hamiltonian from _orbitalsAB
        
-       #if (GWBSE_DOUBLE)
-      const ub::matrix<double>& _Hamiltonian_AB = _eh_d;
-              CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   Loaded Hamiltonian"  << flush; 
-
-#else
-    const ub::matrix<double> _Hamiltonian_AB = _eh_d;
+      
+     ub::matrix<double> _Hamiltonian_AB = _eh_d;
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "  Converted Hamiltonian to double"  << flush; 
-#endif
      ub::matrix<real_gwbse> temp=ub::project( _orbitalsA->BSETripletCoefficients(),
                 ub::range (0, _orbitalsA->BSETripletCoefficients().size1() ), ub::range ( 0, _FeA )  );
         const ub::matrix<double> _bseA_T = ub::trans(temp);
@@ -639,7 +638,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 
 
 bool BSECoupling::ProjectExcitons(const ub::matrix<double>& _bseA_T, const ub::matrix<double>& _bseB_T, 
-                                  const ub::matrix<double>& _H, ub::matrix<double>& _J){
+                                  ub::matrix<double>& _H, ub::matrix<double>& _J){
     
     
     
@@ -751,6 +750,7 @@ bool BSECoupling::ProjectExcitons(const ub::matrix<double>& _bseA_T, const ub::m
     
      
      ub::matrix<double> _temp=ub::prod(_H,ub::trans(projection));
+     _H.resize(0,0);
      ub::matrix<double> _J_dimer=ub::prod(projection,_temp);
      _temp.resize(0,0);
      

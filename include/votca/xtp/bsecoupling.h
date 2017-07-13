@@ -73,7 +73,7 @@ private:
   
     
     bool ProjectExcitons(const ub::matrix<double>& _bseA_T,const ub::matrix<double>& _bseB_T, 
-                         const ub::matrix<double>& _H, ub::matrix<double>& _J );
+                         ub::matrix<double>& _H, ub::matrix<double>& _J );
     
     ub::matrix<double> JAB_singlet;
     ub::matrix<double> JAB_triplet;
