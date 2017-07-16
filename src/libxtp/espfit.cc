@@ -44,7 +44,7 @@ void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<doub
     Grid _grid;
     _grid.setAtomlist(&_atomlist);
     _grid.setupCHELPgrid();
-    _grid.printGridtoxyzfile("grid.xyz");
+    //_grid.printGridtoxyzfile("grid.xyz");
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl;
         
     // Calculating nuclear potential at gridpoints

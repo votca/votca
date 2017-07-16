@@ -94,20 +94,7 @@ void BSECoupling::Initialize(Property* options){
         _unoccA  = options->get(key + ".moleculeA.unoccLevels").as<int> ();
         _unoccB  = options->get(key + ".moleculeB.unoccLevels").as<int> ();
         
-        if ( options->exists(key+".moleculeA.Frenkel")) {
-         _FeA = options->get(key + ".moleculeA.Frenkel").as<int> ();
-        
-        }
-        else{
-            _FeA=_levA;
-        }
-        if ( options->exists(key+".moleculeB.Frenkel")) {
-         _FeB = options->get(key + ".moleculeB.Frenkel").as<int> ();
-        
-        }
-        else{
-            _FeB=_levB;
-        }
+   
         
         
 }
@@ -322,13 +309,13 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     }
     
     
-    if(_FeA>_bseA_singlet_exc){
+    if(_levA>_bseA_singlet_exc){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "  Number of Frenkel states you want is greater than stored for molecule A. Setting to max number available" << flush; 
-        _FeA=_bseA_singlet_exc;
+        _levA=_bseA_singlet_exc;
     }
-    if(_FeB>_bseB_singlet_exc){
+    if(_levB>_bseB_singlet_exc){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "  Number of Frenkel states you want is greater than stored for molecule B. Setting to max number available" << flush; 
-        _FeB=_bseB_singlet_exc;
+        _levB=_bseB_singlet_exc;
     }
     
     if(_unoccA>_bseA_ctotal){
@@ -596,11 +583,11 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         ub::matrix<double> _Hamiltonian_AB = _eh_d + 2.0 * _eh_x;
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   Setup Hamiltonian"  << flush; 
          ub::matrix<real_gwbse> temp=ub::project( _orbitalsA->BSESingletCoefficients(),
-                ub::range (0, _orbitalsA->BSESingletCoefficients().size1() ), ub::range ( 0, _FeA )  );
+                ub::range (0, _orbitalsA->BSESingletCoefficients().size1() ), ub::range ( 0, _levA )  );
                  
         const ub::matrix<double> _bseA_T = ub::trans(temp);
         temp=ub::project( _orbitalsB->BSESingletCoefficients(),
-                ub::range (0, _orbitalsB->BSESingletCoefficients().size1() ), ub::range ( 0, _FeB )  );
+                ub::range (0, _orbitalsB->BSESingletCoefficients().size1() ), ub::range ( 0, _levB )  );
         const ub::matrix<double> _bseB_T = ub::trans(temp);
         temp.resize(0,0);
         bool _singlets = ProjectExcitons(  _bseA_T, _bseB_T, _Hamiltonian_AB, JAB_singlet);
@@ -620,9 +607,9 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
      ub::matrix<double> _Hamiltonian_AB = _eh_d;
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "  Converted Hamiltonian to double"  << flush; 
      ub::matrix<real_gwbse> temp=ub::project( _orbitalsA->BSETripletCoefficients(),
-                ub::range (0, _orbitalsA->BSETripletCoefficients().size1() ), ub::range ( 0, _FeA )  );
+                ub::range (0, _orbitalsA->BSETripletCoefficients().size1() ), ub::range ( 0, _levA )  );
         const ub::matrix<double> _bseA_T = ub::trans(temp);
-    temp=ub::project( _orbitalsB->BSETripletCoefficients(),ub::range (0, _orbitalsB->BSETripletCoefficients().size1() ), ub::range ( 0, _FeB )  );
+    temp=ub::project( _orbitalsB->BSETripletCoefficients(),ub::range (0, _orbitalsB->BSETripletCoefficients().size1() ), ub::range ( 0, _levB )  );
         const ub::matrix<double> _bseB_T = ub::trans(temp);
     temp.resize(0,0);
        
