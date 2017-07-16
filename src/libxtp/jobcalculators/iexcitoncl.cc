@@ -153,17 +153,15 @@ ctp::Job::JobResult IEXCITON::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QM
    ctp::PolarSeg* seg_A_polar=_mps_mapper.MapPolSitesToSeg(seg_A_raw,seg_A);
    ctp::PolarSeg* seg_B_polar=_mps_mapper.MapPolSitesToSeg(seg_B_raw,seg_B);
    
-   ctp::PolarTop cleanup;
-   vector<ctp::PolarSeg*> cleanup2;
-   cleanup2.push_back(seg_A_polar);
-   cleanup2.push_back(seg_B_polar);
-   cleanup.setMM1(cleanup2);
-  
+
    
    double JAB=EvaluatePair(top,seg_A_polar,seg_B_polar, pLog);
    
     
-    
+   delete seg_A_polar;
+   delete seg_B_polar;
+   delete seg_A;
+   delete seg_B;
     
     
    
