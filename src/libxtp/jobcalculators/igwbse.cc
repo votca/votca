@@ -408,31 +408,20 @@ ctp::Job::JobResult IGWBSE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMTh
        } 
        
     }
-    
+    Property *_job_output = &_job_summary.add("output","");
     if ( _calculate_integrals ) {
-      // adding coupling elements
-       
-      _orbitalsAB.setSingletCouplings( _bsecoupling.getJAB_singletstorage());
-      _orbitalsAB.setTripletCouplings(_bsecoupling.getJAB_tripletstorage());
-    
-    
-    }
-   CTP_LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush; 
-
-   
-      Property *_job_output = &_job_summary.add("output","");
-   if ( _calculate_integrals ){
-
-   Property *_pair_summary = &_job_output->add("pair","");
-   Property *_type_summary = &_pair_summary->add("type","");
-  _bsecoupling.addoutput(_type_summary,&_orbitalsA, 
-                               & _orbitalsB);
+      // adding coupling elements 
+        _orbitalsAB.setSingletCouplings( _bsecoupling.getJAB_singletstorage());
+        _orbitalsAB.setTripletCouplings(_bsecoupling.getJAB_tripletstorage());
+        Property *_pair_summary = &_job_output->add("pair","");
+        Property *_type_summary = &_pair_summary->add("type","");
+       _bsecoupling.addoutput(_type_summary,&_orbitalsA,& _orbitalsB);
    }
    
  
-        votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
-        sout <<  iomXML << _job_summary;
-
+votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
+sout <<  iomXML << _job_summary;
+CTP_LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush; 
 if ( _write_orbfile){
    // save orbitals 
    boost::filesystem::create_directories(_orb_dir);  
