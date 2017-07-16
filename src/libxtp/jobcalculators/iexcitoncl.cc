@@ -147,8 +147,8 @@ ctp::Job::JobResult IEXCITON::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QM
     CTP_LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Evaluating pair "  
             << _job_ID << " ["  << ID_A << ":" << ID_B << "]" << flush; 
     
-   vector<ctp::APolarSite*> seg_A_raw=_mps_mapper.GetOrCreateRawSites(mps_fileA);
-   vector<ctp::APolarSite*> seg_B_raw=_mps_mapper.GetOrCreateRawSites(mps_fileB);
+   vector<ctp::APolarSite*> seg_A_raw=_mps_mapper.GetOrCreateRawSites(mps_fileA,opThread);
+   vector<ctp::APolarSite*> seg_B_raw=_mps_mapper.GetOrCreateRawSites(mps_fileB,opThread);
    
    ctp::PolarSeg* seg_A_polar=_mps_mapper.MapPolSitesToSeg(seg_A_raw,seg_A);
    ctp::PolarSeg* seg_B_polar=_mps_mapper.MapPolSitesToSeg(seg_B_raw,seg_B);
@@ -160,8 +160,7 @@ ctp::Job::JobResult IEXCITON::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QM
     
    delete seg_A_polar;
    delete seg_B_polar;
-   delete seg_A;
-   delete seg_B;
+  
     
     
    
