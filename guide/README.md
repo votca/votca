@@ -74,7 +74,7 @@ gmx mdrun -v # -v (verbose) gives the estimate of the run time
 
 # Running other MD programs
 
-In addition to GROMACS VOTCA supports `ESPResSo`, `Lammps`, `dl_poly`, `HOOMD-blue` and `ESPResSo++`. The interface to these is a bit more advanced, meaning VOTCA will allow you to more crazy things and warn you less about settings, which might not make sense at all. Let have a look at `csg-tutorials/spce/espressopp/`. (`ibi_lammps`, `ibi_espresso`, `ibi_dlpoly`, and `ibi_hoomd-blue` are pretty similar)
+In addition to GROMACS VOTCA supports `ESPResSo`, `Lammps`, `dl_poly`, `HOOMD-blue` and `ESPResSo++`. The interface to these is a bit more advanced, meaning VOTCA will allow you to do more crazy things and warn you less about settings, which might not make sense at all. Let's have a look at `csg-tutorials/spce/espressopp/`. (`ibi_lammps`, `ibi_espresso`, `ibi_dlpoly`, and `ibi_hoomd-blue` are pretty similar)
 
 Input files
 
@@ -107,7 +107,7 @@ Map this short atomistic trajectory to a CG trajectory using `csg_map`. (adjust 
 
 # Iterative Boltzmann inversion (IBI) for SPC/E water
 
-Here, an one-site coarse-grained (CG) model of a rigid 3-site water molecule (SPC/E model) is constructed (see the previous section of the tutorial) using the iterative Boltzmann inversion (IBI) method. The center of the CG bead is chosen to be the center of mass (COM) of a molecule. The CG radial distribution function (RDF) of the atomistic reference trajectory is then calculated using the CG bead coordinates. In the last step a coarse-grained potential is obtained by matching the RDFs of the atomisitc and CG systems using the IBI method. For a more detailed description, look at the following [publication](http://pubs.acs.org/doi/abs/10.1021/ct900369w).
+Here, a one-site coarse-grained (CG) model of a rigid 3-site water molecule (SPC/E model) is constructed (see the previous section of the tutorial) using the iterative Boltzmann inversion (IBI) method. The center of the CG bead is chosen to be the center of mass (COM) of a molecule. The CG radial distribution function (RDF) of the atomistic reference trajectory is then calculated using the CG bead coordinates. In the last step a coarse-grained potential is obtained by matching the RDFs of the atomisitc and CG systems using the IBI method. For a more detailed description, look at the following [publication](http://pubs.acs.org/doi/abs/10.1021/ct900369w).
 
 ## Atomistic simulation
 
@@ -243,7 +243,7 @@ Calculate the pressure and compare the thermodynamic properties as well as the o
 ## FM for all interactions together
 
 Go to the folder `csg-tutorials/hexane/force_matching`. The folder contains the hexane mapping file with bond and angle interactions (`hexane.xml`) and the force matching options file (`fmatch.xml`). Have a look at both files and the `run.sh` script and start the force matching procedure. Basis is the atomistic trajectory with force output in `csg-tutorials/hexane/atomistic`. Integrate the force output to obtain the potentials and convert them to GROMACS tables. (see the `run.sh` script). Compare the obtained potentials to the IBI potentials. You can run CG simulations with the CG potentials, again, using the `conf.gro`, `topol.top`, `index.ndx` and `grompp.mdp` files from the `csg-tutorials/hexane/ibi_all` folder. Calculate the RDFs, bond and angle distributions.
-When comparing the results to the IBI potentials, you will see that in some cases, force matching can have problems with bonded interactions, especially if the functional form of the coarse-grained force field lacks essential interactions such as bond-angle or 3-body correlations. In such cases in can help to perform force matching only on the non-bonded contributions as was shown [here](http://dx.doi.org/10.1002/mats.201100011).
+When comparing the results to the IBI potentials, you will see that in some cases, force matching can have problems with bonded interactions, especially if the functional form of the coarse-grained force field lacks essential interactions such as bond-angle or 3-body correlations. In such cases it can help to perform force matching only on the non-bonded contributions as was shown [here](http://dx.doi.org/10.1002/mats.201100011).
 
 ## FM for non-bonded interactions only
 
