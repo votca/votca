@@ -83,7 +83,7 @@ void GNode::InitEscapeRate()
  
  void GNode::AddEventfromQmPair(ctp::QMPair* pair,int carriertype){
      double Jeff2=pair->getJeff2(carriertype);
-     if(Jeff2<1e-30){
+     if(pair->getType()==ctp::QMPair::PairType::Excitoncl && carriertype!=2){
          return;
      }
      int destination=0;
