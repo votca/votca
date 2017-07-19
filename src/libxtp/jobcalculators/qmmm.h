@@ -352,7 +352,7 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     if(min>box.get(2,2)){min=box.get(2,2);}
    
     if(_cutoff2>0.5*min){
-        throw runtime_error((format("Cutoff is larger than half the box size. Maximum allowed cutoff is %1$1.3f") % (0.5*min)).str());
+        throw runtime_error((format("Cutoff is larger than half the box size. Maximum allowed cutoff is %1$1.1f") % (0.5*min)).str());
     }
    
     
