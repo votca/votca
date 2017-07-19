@@ -32,6 +32,7 @@
 #include "tools/gencube.h"
 #include "tools/partialcharges.h"
 #include "tools/matrixproduct.h"
+#include "tools/densityanalysis.h"
 
 namespace votca { namespace xtp {
 
@@ -50,6 +51,7 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<GenCube>            ("gencube");
         QMTools().Register<Partialcharges>     ("partialcharges");
         QMTools().Register<MatProd>            ("matrixproduct");
+        QMTools().Register<DensityAnalysis>    ("densityanalysis");
 
 }
 

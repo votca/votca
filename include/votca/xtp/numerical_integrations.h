@@ -67,6 +67,7 @@ namespace votca { namespace xtp {
             double IntegrateField(const std::vector<double>& externalfield);
             ub::matrix<double> IntegrateExternalPotential(const std::vector<double>& Potentialvalues);
             
+            ub::vector<double> IntegrateGyrationTensor(const ub::matrix<double>& _density_matrix);
             
            
            

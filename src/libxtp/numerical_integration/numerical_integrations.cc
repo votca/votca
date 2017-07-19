@@ -604,7 +604,159 @@ namespace votca {
         }
         
         
+ ub::vector<double> NumericalIntegration::IntegrateGyrationTensor(const ub::matrix<double>& _density_matrix){
+            
+            double N = 0;
+            double centroid_x = 0.0;
+            double centroid_y = 0.0;
+            double centroid_z = 0.0;
+            double gyration_xx = 0.0;
+            double gyration_xy = 0.0;
+            double gyration_xz = 0.0;
+            double gyration_yy = 0.0;
+            double gyration_yz = 0.0;
+            double gyration_zz = 0.0;
+            ub::vector<double> result=ub::zero_vector<double>(10);
+            
+            unsigned nthreads = 1;
+            #ifdef _OPENMP
+               nthreads = omp_get_max_threads();
+            #endif
+               
+               std::vector<double> N_thread=std::vector<double>(nthreads,0.0);
 
+               // centroid
+	       std::vector<double> centroid_x_thread=std::vector<double>(nthreads,0.0);
+	       std::vector<double> centroid_y_thread=std::vector<double>(nthreads,0.0);
+	       std::vector<double> centroid_z_thread=std::vector<double>(nthreads,0.0);
+
+	       // gyration tensor
+	       std::vector<double> gyration_xx_thread=std::vector<double>(nthreads,0.0);
+	       std::vector<double> gyration_xy_thread=std::vector<double>(nthreads,0.0);
+	       std::vector<double> gyration_xz_thread=std::vector<double>(nthreads,0.0);
+	       std::vector<double> gyration_yy_thread=std::vector<double>(nthreads,0.0);
+	       std::vector<double> gyration_yz_thread=std::vector<double>(nthreads,0.0);
+	       std::vector<double> gyration_zz_thread=std::vector<double>(nthreads,0.0);
+               
+               
+            #pragma omp parallel for
+            for (unsigned thread=0;thread<nthreads;++thread){
+            for (unsigned i = thread; i < _grid_boxes.size(); i+=nthreads) {
+                
+                double N_box=0.0;
+                double centroid_x_box=0.0;
+                double centroid_y_box=0.0;
+                double centroid_z_box=0.0;
+                double gyration_xx_box=0.0;
+                double gyration_xy_box=0.0;
+                double gyration_xz_box=0.0;
+                double gyration_yy_box=0.0;
+                double gyration_yz_box=0.0;
+                double gyration_zz_box=0.0;
+                
+                GridBox& box = _grid_boxes[i];
+                
+                
+                const ub::matrix<double>  DMAT_here=box.ReadFromBigMatrix(_density_matrix);
+                
+                const std::vector<tools::vec>& points=box.getGridPoints();
+                const std::vector<double>& weights=box.getGridWeights();
+                
+                ub::range one=ub::range(0,1);
+                
+                ub::matrix<double> _temp     = ub::zero_matrix<double>(1,box.Matrixsize());
+               
+                ub::matrix<double> ao=ub::matrix<double>(1,box.Matrixsize());
+                
+                box.prepareDensity();
+                
+                //iterate over gridpoints
+                for(unsigned p=0;p<box.size();p++){
+                    ao=ub::zero_matrix<double>(1,box.Matrixsize());
+                   
+                    const std::vector<ub::range>& aoranges=box.getAOranges();
+                    const std::vector<const AOShell* > shells=box.getShells();
+                    for(unsigned j=0;j<box.Shellsize();++j){
+                        const AOShell* shell=shells[j];
+                        ub::matrix_range< ub::matrix<double> > aoshell=ub::project(ao,one,aoranges[j]);
+                        
+                        shell->EvalAOspace(aoshell,points[p]);
+                    }
+                    
+                    _temp=ub::prod( ao, DMAT_here);
+                   
+                    
+                    
+                    double rho=ub::prod(_temp, ub::trans( ao) )(0,0);
+                    box.addDensity(rho);
+                    N_box+=rho*weights[p];
+                    centroid_x_box+=rho*weights[p]* points[p].getX();
+                    centroid_y_box+=rho*weights[p]* points[p].getY();
+                    centroid_z_box+=rho*weights[p]* points[p].getZ();
+                    gyration_xx_box+=rho*weights[p]* points[p].getX()*points[p].getX();
+                    gyration_xy_box+=rho*weights[p]* points[p].getX()*points[p].getY();
+                    gyration_xz_box+=rho*weights[p]* points[p].getX()*points[p].getZ();
+                    gyration_yy_box+=rho*weights[p]* points[p].getY()*points[p].getY();
+                    gyration_yz_box+=rho*weights[p]* points[p].getY()*points[p].getZ();
+                    gyration_zz_box+=rho*weights[p]* points[p].getZ()*points[p].getZ();
+                    
+                }
+
+                N_thread[thread]+=N_box;
+                centroid_x_thread[thread] += centroid_x_box;
+                centroid_y_thread[thread] += centroid_y_box;
+                centroid_z_thread[thread] += centroid_z_box;
+                gyration_xx_thread[thread] += gyration_xx_box;
+                gyration_xy_thread[thread] += gyration_xy_box;
+                gyration_xz_thread[thread] += gyration_xz_box;
+                gyration_yy_thread[thread] += gyration_yy_box;
+                gyration_yz_thread[thread] += gyration_yz_box;
+                gyration_zz_thread[thread] += gyration_zz_box;
+                
+            }
+            }   
+            for(int i=0;i<nthreads;++i){
+                N+=N_thread[i];
+                centroid_x += centroid_x_thread[i];
+                centroid_y += centroid_y_thread[i];
+                centroid_z += centroid_z_thread[i];
+                gyration_xx += gyration_xx_thread[i];
+                gyration_xy += gyration_xy_thread[i];
+                gyration_xz += gyration_xz_thread[i];
+                gyration_yy += gyration_yy_thread[i];
+                gyration_yz += gyration_yz_thread[i];
+                gyration_zz += gyration_zz_thread[i];
+               }   
+            density_set=true;
+
+            // Normalize
+	    centroid_x = centroid_x/N;
+	    centroid_y = centroid_y/N;
+	    centroid_z = centroid_z/N;
+
+            gyration_xx = gyration_xx/N;
+	    gyration_xy = gyration_xy/N;
+	    gyration_xz = gyration_xz/N;
+	    gyration_yy = gyration_yy/N;
+	    gyration_yz = gyration_yz/N;
+	    gyration_zz = gyration_zz/N;
+
+	      // Copy all elements to result vector
+	      result(0) = N;
+	      result(1) = centroid_x;
+	      result(2) = centroid_y;
+	      result(3) = centroid_z;
+	      result(4) = gyration_xx - centroid_x*centroid_x;
+	      result(5) = gyration_xy - centroid_x*centroid_y;
+	      result(6) = gyration_xz - centroid_x*centroid_z;
+	      result(7) = gyration_yy - centroid_y*centroid_y;
+	      result(8) = gyration_yz - centroid_y*centroid_z;
+	      result(9) = gyration_zz - centroid_z*centroid_z;
+            
+
+            return result;
+        }
+        
   
         
         
