@@ -156,11 +156,11 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 
     // psi_AxB * S_AB * psi_AB
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting dimer onto monomer orbitals" << flush; 
-    if (_orbitalsAB->hasAOOverlap() ) {
+    if ( !_orbitalsAB->hasAOOverlap() ) {
             CTP_LOG(ctp::logERROR,*_pLog) << "Overlap matrix is not stored"; 
             return false;
     }
-     ub::matrix<double> overlap= _orbitalsAB->AOOverlap();
+    ub::matrix<double> overlap= _orbitalsAB->AOOverlap();
     ub::matrix<double> _psi_AB = ub::prod(overlap, ub::trans( _orbitalsAB->MOCoefficients()) ); 
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );  
     _psi_AB.clear();
@@ -177,7 +177,6 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         }
     }
  
-     
     // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting the Fock matrix onto the dimer basis" << flush;   
     ub::diagonal_matrix<double> _fock_AB( _orbitalsAB->getNumberOfLevels(), _orbitalsAB->MOEnergies().data() ); 
