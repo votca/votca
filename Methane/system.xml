@@ -1,0 +1,54 @@
+<topology>
+	<molecules>
+		<molecule>
+			<name>Methane</name>
+			<mdname>Methane</mdname>
+			<segments>
+				<segment>
+					<name>Methane</name>
+					<qmcoords>QC_FILES/methane.xyz</qmcoords>
+					<orbitals>QC_FILES/your_file_with.fort7</orbitals>
+					<basisset>INDO</basisset>
+					<torbital_h>number_of_electrons,150</torbital_h>
+					<U_cC_nN_h>0.0000</U_cC_nN_h>
+					<U_nC_nN_h>0.0000</U_nC_nN_h>
+					<U_cN_cC_h>0.0000</U_cN_cC_h>
+					<torbital_e>number_of_electrons+1,151</torbital_e>
+					<U_cC_nN_e>0.0000</U_cC_nN_e>
+					<U_nC_nN_e>0.0000</U_nC_nN_e>
+					<U_cN_cC_e>0.0000</U_cN_cC_e>
+					<multipoles_n>MP_FILES/CH4_n.mps</multipoles_n>
+					<multipoles_h>MP_FILES/CH4_h.mps</multipoles_h>
+					<multipoles_e>MP_FILES/CH4_n.mps</multipoles_e>
+					<map2md>0</map2md>
+					<fragments>
+						<fragment>
+							<name>ALAB_1</name>
+							<mdatoms>  1:ALAB:CB    1:ALAB:HB1   1:ALAB:HB2     </mdatoms>
+							<qmatoms>     1:C          2:H          3:H              </qmatoms>
+							<mpoles>      1:C          2:H          3:H             </mpoles>
+							<weights>      12           1            1           </weights>
+							<localframe>  1    2    3  </localframe>
+						</fragment>
+<fragment>
+							<name>ALAB_2</name>
+							<mdatoms>  1:ALAB:HB3   </mdatoms>
+							<qmatoms>     4:H          </qmatoms>
+							<mpoles>      4:H          </mpoles>
+							<weights>        1          </weights>
+							<localframe> 4  </localframe>
+						</fragment>
+<fragment>
+							<name>ALAB_3</name>
+							<mdatoms>   1:ALAB:HB4 </mdatoms>
+							<qmatoms>           5:H     </qmatoms>
+							<mpoles>           5:H     </mpoles>
+							<weights>            1      </weights>
+							<localframe>  5 </localframe>
+						</fragment>
+					</fragments>
+				</segment>
+			</segments>
+		</molecule>
+	</molecules>
+</topology>

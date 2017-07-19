@@ -1,0 +1,3 @@
+<options>
+	<rates2xml help="Write out charge transfer rates from SQL file"></rates2xml>
+</options>
