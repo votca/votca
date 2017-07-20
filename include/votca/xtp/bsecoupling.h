@@ -43,11 +43,11 @@ public:
    
    void    Initialize( Property *options);
     string  Identify() { return "bsecoupling"; }
-    bool get_doSinglets(){ return _doSinglets;}
-    bool get_doTriplets(){ return _doTriplets;}
+  
     
-    ub::matrix<double> getJAB_singletstorage(){return JAB_singlet;}
-    ub::matrix<double> getJAB_tripletstorage(){return JAB_triplet;}
+    ub::matrix<double> getJAB_singletstorage(){ return (_output_perturbation ?  JAB_singlet[0]:JAB_singlet[1]);}
+       
+    ub::matrix<double> getJAB_tripletstorage(){ return (_output_perturbation ?  JAB_triplet[0]: JAB_triplet[1]);}
     void addoutput(Property *_type_summary,Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB);
     
@@ -60,11 +60,10 @@ public:
     
 
      
-    double getSingletCouplingElement( int levelA, int levelB);
+    double getSingletCouplingElement( int levelA, int levelB, int methodindex);
     
-    double getTripletCouplingElement( int levelA, int levelB);
-    double getSingletDimerEnergy( int level);
-    double getTripletDimerEnergy( int level);
+    double getTripletCouplingElement( int levelA, int levelB, int methodindex);
+   
     void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
     
 private:
@@ -72,16 +71,19 @@ private:
     ctp::Logger *_pLog;
   
     
-    bool ProjectExcitons(const ub::matrix<double>& _bseA_T,const ub::matrix<double>& _bseB_T, 
-                         ub::matrix<double>& _H, ub::matrix<double>& _J );
+    std::vector< ub::matrix<double> >ProjectExcitons(const ub::matrix<double>& _bseA_T,const ub::matrix<double>& _bseB_T, 
+                         ub::matrix<double>& _H);
     
-    ub::matrix<double> JAB_singlet;
-    ub::matrix<double> JAB_triplet;
+    ub::matrix<double> Fulldiag(const ub::matrix<double>& _J_dimer);
+    
+    ub::matrix<double> Perturbation(const ub::matrix<double>& _J_dimer);
+    
+    std::vector< ub::matrix<double> > JAB_singlet;
+    std::vector< ub::matrix<double> > JAB_triplet;
 
     bool _doTriplets;
     bool _doSinglets;
-    bool _do_perturbation;
-    bool _do_full_diag;
+    bool _output_perturbation;
     int _levA;
     int _levB;
     int _occA;
@@ -91,6 +93,15 @@ private:
     double      _degeneracy;
     int         _openmp_threads;
     
+    
+    //_levA und _bseA_exc are the same but the stupid int unsigned conversion stuff, so leave it for now
+    
+    unsigned _bse_exc;
+    
+    unsigned _bseA_exc;
+    unsigned _bseB_exc;
+    
+    unsigned _ct;
     
      ub::matrix<double> ctAB;
      ub::matrix<double> ctBA;
