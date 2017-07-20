@@ -108,7 +108,7 @@ namespace votca {
 
                             double _stab = 1.0;
                             if (std::abs(_denom) < 0.25) {
-                                _stab = 0.25 * (1.0 - std::cos(4.0 * pi * std::abs(_denom)));
+                                _stab = 0.5 * (1.0 - std::cos(4.0 * pi * std::abs(_denom)));
                             }
 
                             const double _factor =0.5* fac * _stab / _denom; //Hartree
@@ -201,7 +201,7 @@ namespace votca {
 
                             double _stab = 1.0;
                             if (std::abs(_denom) < 0.25) {
-                                _stab = 0.25 * (1.0 - std::cos(4.0 * pi * std::abs(_denom)));
+                                _stab = 0.5 * (1.0 - std::cos(4.0 * pi * std::abs(_denom)));
                             }
 
                             const double _factor = 0.5*fac * Mmn(_i_gw, _i) * _stab / _denom; //Hartree
