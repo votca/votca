@@ -34,6 +34,10 @@ namespace votca {
             std::vector<string> choices = {"forward", "central"};
             _force_method = options->ifExistsAndinListReturnElseThrowRuntimeError<string>(".method", choices);
 
+            // output level
+            _noisy_output = options->ifExistsReturnElseReturnDefault<bool>(".noisy", false); 
+            
+            
             // precaution in case we implement approx. analytic forces in the future
             if ((_force_method == "forward") || (_force_method == "central")) {
                 _displacement = options->ifExistsReturnElseReturnDefault<double>(".displacement", 0.001); // Angstrom
@@ -56,8 +60,10 @@ namespace votca {
         void Forces::Calculate(const double& energy) {
 
             ctp::TLogLevel _ReportLevel = _pLog->getReportLevel(); // backup report level
-            _pLog->setReportLevel(ctp::logERROR); // go silent for force calculations
-
+            if ( ! _noisy_output ){
+                _pLog->setReportLevel(ctp::logERROR); // go silent for force calculations
+            }
+            
             //backup current coordinates (WHY?)
             std::vector <ctp::Segment* > _molecule;
             ctp::Segment _current_coordinates(0, "mol");
@@ -72,6 +78,10 @@ namespace votca {
             int _i_atom = 0;
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
+                if ( _noisy_output ){
+                    CTP_LOG(ctp::logINFO, *_pLog) << "FORCES--DEBUG working on atom " << _i_atom << flush;
+                }
+                
                 // Calculate Force on this atom
                 ub::matrix_range< ub::matrix<double> > _force = ub::subrange(_forces, _i_atom, _i_atom + 1, 0, 3);
                 if (_force_method == "forward") NumForceForward(energy, ait, _force, _molecule);
@@ -153,6 +163,10 @@ namespace votca {
             // go through all cartesian components
             for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
 
+                if ( _noisy_output ){
+                    CTP_LOG(ctp::logINFO, *_pLog) << "FORCES--DEBUG           Cartesian component " << _i_cart << flush;
+                }
+                
                 // get displacement vector in positive direction
                 vec _displaced(0, 0, 0);
                 if (_i_cart == 0) {

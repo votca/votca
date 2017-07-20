@@ -93,6 +93,8 @@ namespace votca {
 
             bool _remove_total_force;
             bool _remove_CoM_force;
+            
+            bool _noisy_output;
 
             int _nsegments;
             int _natoms;
