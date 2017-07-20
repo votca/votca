@@ -48,6 +48,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/2a3bfc3d/aoquadrupole_potential.o \
 	${OBJECTDIR}/_ext/1ce08c7a/aoshell.o \
 	${OBJECTDIR}/_ext/1ce08c7a/basisset.o \
+	${OBJECTDIR}/_ext/1ce08c7a/bfgs-trm.o \
 	${OBJECTDIR}/_ext/1ce08c7a/bsecoupling.o \
 	${OBJECTDIR}/_ext/1ce08c7a/bulkesp.o \
 	${OBJECTDIR}/_ext/1ce08c7a/calculatorfactory.o \
@@ -60,9 +61,11 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce08c7a/espfit.o \
 	${OBJECTDIR}/_ext/1ce08c7a/exchange_correlation.o \
 	${OBJECTDIR}/_ext/1ce08c7a/extractorfactory.o \
+	${OBJECTDIR}/_ext/1ce08c7a/forces.o \
 	${OBJECTDIR}/_ext/1ce08c7a/fourcenter_rep.o \
 	${OBJECTDIR}/_ext/1ce08c7a/fourcenters_dft.o \
 	${OBJECTDIR}/_ext/1ce08c7a/gdma.o \
+	${OBJECTDIR}/_ext/1ce08c7a/geometry_optimization.o \
 	${OBJECTDIR}/_ext/1ce08c7a/gnode.o \
 	${OBJECTDIR}/_ext/1ce08c7a/grid.o \
 	${OBJECTDIR}/_ext/1ce08c7a/gridbox.o \
@@ -70,6 +73,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/6916996f/bse_analysis.o \
 	${OBJECTDIR}/_ext/6916996f/gwa.o \
 	${OBJECTDIR}/_ext/6916996f/gwbse.o \
+	${OBJECTDIR}/_ext/6916996f/gwbseengine.o \
 	${OBJECTDIR}/_ext/6916996f/rpa.o \
 	${OBJECTDIR}/_ext/1ce08c7a/jobapplication.o \
 	${OBJECTDIR}/_ext/1ce08c7a/jobcalculatorfactory.o \
@@ -203,6 +207,11 @@ ${OBJECTDIR}/_ext/1ce08c7a/basisset.o: ../../src/libxtp/basisset.cc
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/basisset.o ../../src/libxtp/basisset.cc
 
+${OBJECTDIR}/_ext/1ce08c7a/bfgs-trm.o: ../../src/libxtp/bfgs-trm.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/bfgs-trm.o ../../src/libxtp/bfgs-trm.cc
+
 ${OBJECTDIR}/_ext/1ce08c7a/bsecoupling.o: ../../src/libxtp/bsecoupling.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
@@ -263,6 +272,11 @@ ${OBJECTDIR}/_ext/1ce08c7a/extractorfactory.o: ../../src/libxtp/extractorfactory
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/extractorfactory.o ../../src/libxtp/extractorfactory.cc
 
+${OBJECTDIR}/_ext/1ce08c7a/forces.o: ../../src/libxtp/forces.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/forces.o ../../src/libxtp/forces.cc
+
 ${OBJECTDIR}/_ext/1ce08c7a/fourcenter_rep.o: ../../src/libxtp/fourcenter_rep.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
@@ -277,6 +291,11 @@ ${OBJECTDIR}/_ext/1ce08c7a/gdma.o: ../../src/libxtp/gdma.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/gdma.o ../../src/libxtp/gdma.cc
+
+${OBJECTDIR}/_ext/1ce08c7a/geometry_optimization.o: ../../src/libxtp/geometry_optimization.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/geometry_optimization.o ../../src/libxtp/geometry_optimization.cc
 
 ${OBJECTDIR}/_ext/1ce08c7a/gnode.o: ../../src/libxtp/gnode.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
@@ -312,6 +331,11 @@ ${OBJECTDIR}/_ext/6916996f/gwbse.o: ../../src/libxtp/gwbse/gwbse.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/6916996f
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/6916996f/gwbse.o ../../src/libxtp/gwbse/gwbse.cc
+
+${OBJECTDIR}/_ext/6916996f/gwbseengine.o: ../../src/libxtp/gwbse/gwbseengine.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/6916996f
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/6916996f/gwbseengine.o ../../src/libxtp/gwbse/gwbseengine.cc
 
 ${OBJECTDIR}/_ext/6916996f/rpa.o: ../../src/libxtp/gwbse/rpa.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/6916996f

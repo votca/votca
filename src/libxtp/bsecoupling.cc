@@ -105,15 +105,15 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
            for (int stateB = 0; stateB <_levB ; ++stateB ) {
                double JAB = getSingletCouplingElement( stateA , stateB, methodindex);
               
-               Property *_coupling_summary = &_singlet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
+               Property *_coupling_summary = &_singlet_summary->add("coupling", (format("%1$1.6e") % JAB).str()); 
                double energyA = _orbitalsA->BSESingletEnergies()(stateA)*conv::hrt2ev;
                double energyB = _orbitalsB->BSESingletEnergies()(stateB)*conv::hrt2ev;
                _coupling_summary->setAttribute("excitonA", stateA);
                _coupling_summary->setAttribute("excitonB", stateB);
-               _coupling_summary->setAttribute("energyA", energyA);
-               _coupling_summary->setAttribute("energyB", energyB);
-               _coupling_summary->setAttribute("pert", getSingletCouplingElement( stateA , stateB, 0));
-               _coupling_summary->setAttribute("diag", getSingletCouplingElement( stateA , stateB, 1));
+               _coupling_summary->setAttribute("energyA", (format("%1$1.6e") % energyA).str());
+               _coupling_summary->setAttribute("energyB", (format("%1$1.6e") % energyB).str());
+               _coupling_summary->setAttribute("pert", (format("%1$1.6e") % getSingletCouplingElement( stateA , stateB, 0)).str());
+               _coupling_summary->setAttribute("diag", (format("%1$1.6e") % getSingletCouplingElement( stateA , stateB, 1)).str());
                
            } 
         }
@@ -128,15 +128,15 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
                double JAB = getTripletCouplingElement( stateA , stateB,methodindex );
                //real_gwbse energyAD = getTripletDimerEnergy( stateA  );
                //real_gwbse energyBD = getTripletDimerEnergy( stateB  );
-               Property *_coupling_summary = &_triplet_summary->add("coupling", boost::lexical_cast<string>(JAB)); 
+               Property *_coupling_summary = &_triplet_summary->add("coupling", (format("%1$1.6e") % JAB).str()); 
                double energyA = _orbitalsA->BSETripletEnergies()(stateA)*conv::hrt2ev;
                double energyB = _orbitalsB->BSETripletEnergies()(stateB)*conv::hrt2ev;
                _coupling_summary->setAttribute("excitonA", stateA);
                _coupling_summary->setAttribute("excitonB", stateB);
-               _coupling_summary->setAttribute("energyA", energyA);
-               _coupling_summary->setAttribute("energyB", energyB);
-               _coupling_summary->setAttribute("pert", getTripletCouplingElement( stateA , stateB, 0));
-               _coupling_summary->setAttribute("diag", getTripletCouplingElement( stateA , stateB, 1));
+               _coupling_summary->setAttribute("energyA", (format("%1$1.6e") % energyA).str());
+               _coupling_summary->setAttribute("energyB", (format("%1$1.6e") % energyB).str());
+               _coupling_summary->setAttribute("pert", (format("%1$1.6e") % getTripletCouplingElement( stateA , stateB, 0)).str());
+               _coupling_summary->setAttribute("diag", (format("%1$1.6e") % getTripletCouplingElement( stateA , stateB, 1)).str());
               
            } 
         }
@@ -737,9 +737,9 @@ std::vector< ub::matrix<double> > BSECoupling::ProjectExcitons(const ub::matrix<
      
     std::vector< ub::matrix<double> >_J;
      
-     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "Running Perturbation algorithm"<< flush;
+     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "   Running Perturbation algorithm"<< flush;
     _J.push_back( Perturbation(_J_dimer));
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "Running Projection algorithm"<< flush;
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "    Running Projection algorithm"<< flush;
     _J.push_back( Fulldiag(_J_dimer));
     
     
