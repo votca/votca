@@ -96,7 +96,7 @@ namespace votca {
             bool _noisy_output;
 
             int _nsegments;
-            int _natoms;
+            unsigned _natoms;
             int _opt_state;
 
             GWBSEENGINE _gwbse_engine;

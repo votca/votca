@@ -352,7 +352,7 @@ void Density2Gyration::AnalyzeDensity( Orbitals & _orbitals ){
         int index=0;
         double maxev = eigenvalues(0);
 
-        for (int i = 1; i < eigenvalues.size(); i++ ) {
+        for (unsigned i = 1; i < eigenvalues.size(); i++ ) {
             if ( eigenvalues(i) > maxev ) {
                 maxev = eigenvalues(i);
                 index = i;
