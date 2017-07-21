@@ -22,7 +22,7 @@
 
 
 
-
+#include <votca/xtp/dftengine.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/orbitals.h>
@@ -59,7 +59,7 @@ public:
     
 private:    
     
-
+    QMMInterface qminterface;
     ctp::Logger *_log;
     int _subthreads;
 
@@ -71,15 +71,22 @@ private:
     ctp::XInductor *_xind;
     ctp::Ewald3DnD *_cape;
     
+    DFTENGINE dftengine;
     
+    void SetupPolarSiteGrids( const std::vector< const vec *>& gridpoints,const std::vector< ctp::QMAtom* >& atoms);
+    
+    std::vector<double> ExtractNucGrid_fromPolarsites();
+    std::vector<double> ExtractElGrid_fromPolarsites();
 
     std::vector<QMMIter*> _iters;
     int _maxIter;
     bool _isConverged;
-
-    // GWBSE object
+    
+    unsigned NumberofAtoms;
+    string _externalgridaccuracy;
     
     Property _gwbse_options;
+    Property _dft_options;
     int      _state;
     std::string   _type;
     bool     _has_osc_filter;
@@ -97,10 +104,6 @@ private:
     bool _convg_dE_QM;
     bool _convg_dE_MM;
     
-    bool _split_dpl;
-    double _dpl_spacing;
-    
-    bool   _exportgridtofile;
     
     std::vector< ctp::PolarSeg* > target_bg;     
     std::vector< ctp::PolarSeg* > target_fg;     

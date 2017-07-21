@@ -65,8 +65,10 @@ public:
     
    }
    
-   void Configure(bool usediis, unsigned histlength, bool maxout, string diismethod, double adiis_start,double diis_start,double levelshift,double levelshiftend,unsigned nocclevels){
+   void Configure(bool usediis,bool noisy, unsigned histlength, bool maxout, string diismethod, double adiis_start,double diis_start,double levelshift,double levelshiftend,unsigned nocclevels){
+       
        _usediis=usediis;
+       _noisy=noisy;
        _histlength=histlength;
        _maxout=maxout;
        _diismethod=diismethod;
@@ -103,6 +105,7 @@ public:
     ub::matrix<double>* S;
     ub::matrix<double>* Sminusahalf;
     bool                              _usediis;
+    bool                              _noisy;
     unsigned                          _histlength;
     bool                              _maxout;
     string                            _diismethod;

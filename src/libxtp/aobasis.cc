@@ -304,7 +304,7 @@ void AOBasis::addReorderShell(const string& start,const string& target,const str
                     neworder.push_back(_cur_pos + 1);
                     neworder.push_back(_cur_pos + 3);
                     neworder.push_back(_cur_pos + 2);
-                } else if (start == "gaussian" || "nwchem") {
+                } else if (start == "gaussian" || start == "nwchem") {
                     neworder.push_back(_cur_pos + 3);
                     neworder.push_back(_cur_pos + 2);
                     neworder.push_back(_cur_pos + 1);
@@ -341,10 +341,10 @@ void AOBasis::addReorderShell(const string& start,const string& target,const str
            
            }else if ( start == "votca") { //for usage with old orb files
                
-               neworder.push_back( _cur_pos + 4 ); 
-               neworder.push_back( _cur_pos + 2 );
-               neworder.push_back( _cur_pos + 1 );
                neworder.push_back( _cur_pos + 3 ); 
+               neworder.push_back( _cur_pos + 2 );
+               neworder.push_back( _cur_pos + 4 );
+               neworder.push_back( _cur_pos + 1 ); 
                neworder.push_back( _cur_pos + 5 );               
             }else if ( start == "xtp") {
                
@@ -387,6 +387,8 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _frag
         vector< ctp::QMAtom* > :: iterator ait;
 
        _AOBasisSize = 0;
+       _AOBasisFragA=0;
+       _AOBasisFragB=0;
        _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false. 
        
        int _atomidx = 0;
@@ -410,6 +412,7 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _frag
                         GaussianPrimitive* gaussian = *itg;
                         aoshell->addGaussian(gaussian->decay, gaussian->contraction);
                     }
+                    aoshell->CalcMinDecay();
                 }
           
           if ( _atomidx < _fragbreak ) _AOBasisFragA = _AOBasisSize;
@@ -455,13 +458,10 @@ void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
           int lmax=0;
           for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                Shell* shell = (*its);
-              
-               string local_shell =    string( shell->getType(), 0, 1 );
-               int l=0;
-               if ( local_shell == "S" ) l =0;
-               if ( local_shell == "P" ) l =1;
-               if ( local_shell == "D" ) l =2;
-               if ( local_shell == "F" ) l =3;
+               if(shell->getType().size()>1){
+                   throw runtime_error("In ecps no combined shells e.g. SP are allowed");
+               }
+               int l=FindLmax(shell->getType() );
                if (its == element->firstShell()) lmax = l;
                // first shell is local component, identification my negative angular momentum
                
@@ -471,8 +471,8 @@ void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                       GaussianPrimitive* gaussian = *itg;
                       aoshell->addGaussian(gaussian->power, gaussian->decay, gaussian->contraction);
-                //   }
                }
+                   aoshell->CalcMinDecay();
           }
 
           _atomidx++;

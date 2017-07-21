@@ -70,39 +70,19 @@ namespace votca { namespace xtp {
         }
 
         return _r;
-        
-        
-        /*
-         
-         
-               Data asg1/0.25  , 0.5, 1.0, 4.5,
-     &          0.1667, 0.5, 0.9, 3.5,
-     &          0.1   , 0.4, 0.8, 2.5/
-         
-         */
-        
-        
-        
-        
-        
-    }
+     }
     
-    
-    
-    
-    
-    
-    
+     
 void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, BasisSet* bs, string gridtype) {
 
             map<string, min_exp>::iterator it;
             std::vector< ctp::QMAtom* > ::iterator ait;
             std::vector< ctp::QMAtom* > ::iterator bit;
-            
+
             double eps = Accuracy[gridtype];
             double _decaymin;
             int _lvalue;
-          //  cout << endl << " Setting cutoffs for grid type " << gridtype << " eps = " << eps << endl;
+            //  cout << endl << " Setting cutoffs for grid type " << gridtype << " eps = " << eps << endl;
             // 1) is only element based
             // loop over atoms
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
@@ -131,21 +111,19 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
                                 _lvalue = _lmax;
                             }
                         }
-                        double range = DetermineCutoff( 2*_decaymin, 2*_lvalue+2, eps);
-                        if ( range > range_max ){
+                        double range = DetermineCutoff(2 * _decaymin, 2 * _lvalue + 2, eps);
+                        if (range > range_max) {
                             this_atom.alpha = _decaymin;
-                            this_atom.l     = _lvalue;
+                            this_atom.l = _lvalue;
                             this_atom.range = range;
                             range_max = range;
                         }
                     } // shells
 
-                 //   cout << "Element " << name << " alpha " << this_atom.alpha << " l " << this_atom.l << " Rcut " << this_atom.range << endl;
+                    //   cout << "Element " << name << " alpha " << this_atom.alpha << " l " << this_atom.l << " Rcut " << this_atom.range << endl;
                     _element_ranges[name] = this_atom;
                 } // new element
             } // atoms
-
-         //   exit(0);
 
             // calculate overlap matrix
             AOBasis aobasis;
@@ -155,9 +133,9 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
             _overlap.Initialize(aobasis.AOBasisSize());
             // Fill overlap
             _overlap.Fill(aobasis);
-            
-            
-            
+
+
+
             // refining by going through all atom combinations
             // get collapsed index list
             int atidx = 0;
@@ -165,127 +143,95 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
             std::vector<int> idxstop;
             int start = 0;
             int end = 0;
-            for (AOBasis::AOShellIterator _row = aobasis.firstShell(); _row != aobasis.lastShell() ; _row++ ) {
-                
-                 const AOShell* _shell_row = aobasis.getShell( _row );
-                 
-                 if ( _shell_row->getIndex() == atidx ){
+            for (AOBasis::AOShellIterator _row = aobasis.firstShell(); _row != aobasis.lastShell(); _row++) {
 
-                     end   += _shell_row->getNumFunc();
-                 } else {
-                  
-                     idxstart.push_back(start);
-                     idxstop.push_back(end);
-                     atidx++;
-                     start = end;
-                     end   += _shell_row->getNumFunc();
-                 }
+                const AOShell* _shell_row = aobasis.getShell(_row);
+
+                if (_shell_row->getIndex() == atidx) {
+
+                    end += _shell_row->getNumFunc();
+                } else {
+
+                    idxstart.push_back(start);
+                    idxstop.push_back(end);
+                    atidx++;
+                    start = end;
+                    end += _shell_row->getNumFunc();
+                }
             }
 
             idxstart.push_back(start);
             idxstop.push_back(end);
-                     
-            int aidx=0;
-            
+
+            int aidx = 0;
+
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
                 int _a_start = idxstart[aidx];
-                int _a_stop  = idxstop[aidx];
-                
+                int _a_stop = idxstop[aidx];
+
                 double range_max = 0.0;
-                //double shiftm_2g = 0.0;
-                
-                
+
                 // get preset values for this atom type
                 double exp_iat = _element_ranges.at((*ait)->type).alpha;
-                int    l_iat   = _element_ranges.at((*ait)->type).l;
-                
-                double x_a = (*ait)->x * tools::conv::bohr2ang;
-                double y_a = (*ait)->y * tools::conv::bohr2ang;
-                double z_a = (*ait)->z * tools::conv::bohr2ang;
-                
-                //int iat_diff;
+                int l_iat = _element_ranges.at((*ait)->type).l;
+
+                vec pos_a = (*ait)->getPos() * tools::conv::bohr2ang;
+
+
                 string type_diff;
                 int bidx = 0;
                 for (bit = _atoms.begin(); bit < _atoms.end(); ++bit) {
-                
-                      int _b_start = idxstart[bidx];
-                      int _b_stop  = idxstop[bidx];
-                      double x_b = (*bit)->x * tools::conv::bohr2ang;
-                      double y_b = (*bit)->y * tools::conv::bohr2ang;
-                      double z_b = (*bit)->z * tools::conv::bohr2ang;
-                      // now do some overlap gymnastics
-                      double s_max = 10.0;
-                      if ( aidx != bidx ){
-                          
-                          // find overlap block of these two atoms
-                          ub::matrix<double> _overlapblock = ub::project( _overlap.Matrix() ,  ub::range( _a_start , _a_stop ), ub::range(_b_start, _b_stop ) );
-                          // determine abs max of this block
-                          s_max = 0.0;
-                          for ( unsigned i = 0 ; i < _overlapblock.size1(); i++ ){
-                          for ( unsigned j = 0 ; j < _overlapblock.size2(); j++ ){
-                              s_max = std::max(s_max,std::abs(_overlapblock(i,j)));
-                          }
-                          }
-                      }
-                          
-                          if ( s_max > 1e-5 ) {
-                              // cout << " Atom " << aidx << " neighbor " << bidx << " s-max " << s_max << " exponents " << exp_iat << " and " << _element_ranges.at((*bit)->type).alpha << endl;
-                              double range = DetermineCutoff( exp_iat + _element_ranges.at((*bit)->type).alpha, l_iat + _element_ranges.at((*bit)->type).l +2 , eps);
-                              // now do some update trickery from Gaussian product formula
-                              double dist = sqrt( (x_a - x_b)*(x_a-x_b) + (y_a - y_b)*(y_a-y_b) + (z_a - z_b)*(z_a-z_b)   );
-                              double shift_2g = dist*exp_iat/(exp_iat + _element_ranges.at((*bit)->type).alpha );
-                              range += shift_2g;
-                              
-                      
-                              if ( aidx != bidx ) range += dist;
-                              
-                              if ( range > range_max ){
-                                  //shiftm_2g = shift_2g;
-                                  range_max = range;
-                                  //iat_diff = bidx;
-                                  type_diff = (*bit)->type;
-                              }
-                              
-             
-                              
-                          }
-                      
 
-                      bidx++;
+                    int _b_start = idxstart[bidx];
+                    int _b_stop = idxstop[bidx];
+                    vec pos_b = (*bit)->getPos() * tools::conv::bohr2ang;
+                    // now do some overlap gymnastics
+                    double s_max = 10.0;
+                    if (aidx != bidx) {
+
+                        // find overlap block of these two atoms
+                        ub::matrix<double> _overlapblock = ub::project(_overlap.Matrix(), ub::range(_a_start, _a_stop), ub::range(_b_start, _b_stop));
+                        // determine abs max of this block
+                        s_max = 0.0;
+                        for (unsigned i = 0; i < _overlapblock.size1(); i++) {
+                            for (unsigned j = 0; j < _overlapblock.size2(); j++) {
+                                s_max = std::max(s_max, std::abs(_overlapblock(i, j)));
+                            }
+                        }
+                    }
+
+                    if (s_max > 1e-5) {
+                        // cout << " Atom " << aidx << " neighbor " << bidx << " s-max " << s_max << " exponents " << exp_iat << " and " << _element_ranges.at((*bit)->type).alpha << endl;
+                        double range = DetermineCutoff(exp_iat + _element_ranges.at((*bit)->type).alpha, l_iat + _element_ranges.at((*bit)->type).l + 2, eps);
+                        // now do some update trickery from Gaussian product formula
+                        double dist = abs(pos_b - pos_a);
+                        double shift_2g = dist * exp_iat / (exp_iat + _element_ranges.at((*bit)->type).alpha);
+                        range += shift_2g;
+
+
+                        if (aidx != bidx) range += dist;
+
+                        if (range > range_max) {
+                            //shiftm_2g = shift_2g;
+                            range_max = range;
+                            //iat_diff = bidx;
+                            type_diff = (*bit)->type;
+                        }
+
+                    }
+
+                    bidx++;
                 }
-                
-                
-                                      
-                          
-                      // cout << "after atoms :" << endl;
-                      //cout << " zmins:     " << exp_iat  << " ---- " << _element_ranges.at(type_diff).alpha << endl;
-                      //cout << " lprod:     " << l_iat + _element_ranges.at(type_diff).l << endl;
-                      //cout << " range:     " << range_max << endl;
-                      //cout << " shiftm_2g: " << shiftm_2g << endl << endl;
-                      //exit(0);
-                      
-                      
-                    
-                
-                if ( round(range_max) > _element_ranges.at((*ait)->type).range ){
-                    _element_ranges.at((*ait)->type).range = round(range_max) ;
-                    
+
+
+                if (round(range_max) > _element_ranges.at((*ait)->type).range) {
+                    _element_ranges.at((*ait)->type).range = round(range_max);
                 }
-                
-                
-                
                 aidx++;
             }
-            
-            
-            
-            for ( it = _element_ranges.begin() ; it != _element_ranges.end() ; ++it){
-                
-            //    cout << "Element " << it->first << " alpha " << it->second.alpha << " l " << it->second.l << " Rcut " << it->second.range <<  " Rcut (Ang) " <<  it->second.range  * 0.529177249 << endl;
-                
-            }
-            
+           
+          return;  
         } // getRadialCutoffs
     
     

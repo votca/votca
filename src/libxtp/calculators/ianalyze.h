@@ -157,7 +157,6 @@ void IAnalyze::IHist(ctp::Topology *top, int state) {
 
     // Prepare bins
     int BIN = ( (MAX-MIN)/_resolution_logJ2 + 0.5 ) + 1;
-    std::cout<<BIN<<std::endl;
     std::vector< std::vector<double> > histJ2;
 
     histJ2.resize(BIN);
@@ -183,7 +182,7 @@ void IAnalyze::IHist(ctp::Topology *top, int state) {
     else if (state==3) name="t";
     std::string tag = boost::lexical_cast<std::string>("ianalyze.ihist_") +name + ".out";
     out = fopen(tag.c_str(), "w");
-    std::cout << std::endl << "... Printing to tag.c_str()";
+    std::cout << std::endl << "... Printing to "<<tag.c_str()<<std::endl;
     fprintf(out, "# IANALYZE: PAIR-INTEGRAL J2 HISTOGRAM\n");
     fprintf(out, "# STATE %1d\n", state);
 

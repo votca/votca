@@ -42,8 +42,6 @@ namespace votca { namespace xtp {
                   std::vector<double>* vect=(*it);
                   vect->erase(vect->begin()+_maxerrorindex);
               }
-            
-          
           }
           
       _totE.push_back(totE);
@@ -113,7 +111,9 @@ namespace votca { namespace xtp {
 
         if(max>_diis_start || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
             coeffs=ADIIsCoeff();
-            //cout<<"ADIIS "<<coeffs<<endl;
+            if(_noisy){
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << flush;
+            }
         }
         else if(max>0.0001 && max<_diis_start){
             ub::vector<double> coeffs1=DIIsCoeff();
@@ -122,11 +122,15 @@ namespace votca { namespace xtp {
             //cout<<"ADIIS "<<coeffs2<<endl;
             double mixing=max/_diis_start;
             coeffs=mixing*coeffs2+(1-mixing)*coeffs1;
-            //cout<<"ADIIS+DIIS "<<coeffs<<endl;
+            if(_noisy){
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS+DIIS" << flush;
+            }
         }
         else{
              coeffs=DIIsCoeff();
-             //cout<<"DIIS "<<coeffs<<endl;
+             if(_noisy){
+             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using DIIS" << flush;
+             }
         }
 
        //check if last element completely rejected use mixing
@@ -134,6 +138,9 @@ namespace votca { namespace xtp {
             coeffs=ub::zero_vector<double>(coeffs.size());
             coeffs(coeffs.size()-1)=0.3;
             coeffs(coeffs.size()-2)=0.7;
+            if(_noisy){
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Last coefficient is too small use mixing with alpha=0.7 instead" << flush;
+            }
             }
 
 
@@ -160,9 +167,6 @@ namespace votca { namespace xtp {
     void Diis::SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,ub::matrix<double>&H){
         //transform to orthogonal form
         
-        
-        
-        
         ub::matrix<double>temp=ub::prod(ub::trans(*Sminusahalf),H);
         H=ub::prod(temp,*Sminusahalf);
         
@@ -170,8 +174,7 @@ namespace votca { namespace xtp {
         if (!info){
             throw runtime_error("eigenvalue problem did not work.");
         }
-        
-        
+       
         //H now stores the MOs
         MOs=ub::prod(*Sminusahalf,H);
         
@@ -180,7 +183,6 @@ namespace votca { namespace xtp {
     }
     
     void Diis::Levelshift(ub::matrix<double>& H,const ub::matrix<double>&MOs) {
-        
         ub::matrix<double> transform=ub::trans(MOs);
         ub::matrix<double> trans_inv=ub::zero_matrix<double>(MOs.size1());
         linalg_invert(transform,trans_inv);
@@ -191,8 +193,9 @@ namespace votca { namespace xtp {
             }
         transform=ub::prod(ub::trans(trans_inv),virt);
         virt=ub::prod(transform,trans_inv);
-       
+        if(_noisy){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << _levelshift << " Ha" << flush;
+        }
         H +=  virt ; 
         
         return;
@@ -316,8 +319,8 @@ namespace votca { namespace xtp {
           if(!check){
                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
                coeffs=ub::zero_vector<double>(_mathist.size());
-               coeffs[0]=0.5;
-               coeffs[1]=0.5;
+               coeffs[coeffs.size()-1]=0.3;
+               coeffs[coeffs.size()-2]=0.7;
           }
      return coeffs;  
    }   

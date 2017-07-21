@@ -74,13 +74,12 @@ private:
     // GDMA _gdma;
     Property _gdma_options;
     bool _do_gdma;
+    QMMInterface qminterface;
     
     
     
     
-    
-    // GWBSE object
-    // GWBSE _gwbse;
+   
     Property _gwbse_options;
     int      _state;
     string   _type;
@@ -98,9 +97,7 @@ private:
     bool _convg_dQ;
     bool _convg_dE_QM;
     bool _convg_dE_MM;
-    
-    bool _split_dpl;
-    double _dpl_spacing;
+
     
     bool _do_gwbse; // needs to be set by options!!!
 

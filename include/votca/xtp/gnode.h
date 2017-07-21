@@ -30,7 +30,7 @@ namespace votca { namespace xtp {
 class GNode
 {
     public:
-        GNode():hasdecay(false){};
+        GNode():occupied(false),occupationtime(0.0),escape_rate(0.0),hasdecay(false){};
         
         ~GNode(){};
 

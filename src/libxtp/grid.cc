@@ -40,7 +40,6 @@ Grid::Grid(const Grid &obj)
        if(!apolarsite->getIsVirtual()) _gridsites.push_back(apolarsite);
        _all_gridsites.push_back(apolarsite);   
     }     
-     _sites_seg = new ctp::PolarSeg(0, _gridsites);
      _atomlist=obj._atomlist;
     };
         
@@ -51,7 +50,6 @@ Grid::~Grid() {
              delete *pit;
         }
         _all_gridsites.clear();
-        if (_sites_seg != NULL) delete _sites_seg;
     }
 
 Grid &Grid::operator=(const Grid & obj){
@@ -76,7 +74,6 @@ Grid &Grid::operator=(const Grid & obj){
        if(!apolarsite->getIsVirtual()) _gridsites.push_back(apolarsite);
        _all_gridsites.push_back(apolarsite);   
     }     
-     _sites_seg = new ctp::PolarSeg(0, _gridsites);
      _atomlist=obj._atomlist;
      return *this;
 }
@@ -95,6 +92,7 @@ void Grid::printGridtoxyzfile(const char* _filename){
 
         }
         points.close();
+        return;
     }    
 
 
@@ -185,9 +183,8 @@ void Grid::readgridfromCubeFile(std::string filename, bool ignore_zeros){
 
 
               }}}
-        if (_sites_seg != NULL) delete _sites_seg;
-        _sites_seg = new ctp::PolarSeg(0, _gridsites);
-
+        
+        return;
         }         
 
 void Grid::printgridtoCubefile(std::string filename){
@@ -244,7 +241,8 @@ void Grid::printgridtoCubefile(std::string filename){
                 
             }             
         
-        fclose(out);        
+        fclose(out);      
+        return;
         }    
 
 //Create a 12^depth geodesic grid for a sphere of a given radius/cutoff
@@ -263,6 +261,7 @@ void Grid::subdivide(const vec &v1, const vec &v2, const vec &v3, std::vector<ve
     subdivide(v2, v23, v12, spherepoints, depth - 1);
     subdivide(v3, v31, v23, spherepoints, depth - 1);
     subdivide(v12, v23, v31,spherepoints, depth - 1);
+    return;
 }
 
 void Grid::initialize_sphere(std::vector<vec> &spherepoints, const int depth) {
@@ -287,8 +286,10 @@ void Grid::initialize_sphere(std::vector<vec> &spherepoints, const int depth) {
         { 7, 10, 3 }, { 7, 6, 10 }, { 7, 11, 6 }, { 11, 0, 6 }, { 0, 1, 6 },
         { 6, 1, 10 }, { 9, 0, 11 }, { 9, 11, 2 }, { 9, 2, 5 }, { 7, 2, 11 }
     };
-    for(int i = 0; i < 20; i++)
+    for(int i = 0; i < 20; i++){
         subdivide(vdata[tindices[i][0]], vdata[tindices[i][1]], vdata[tindices[i][2]], spherepoints, depth);
+    }
+    return;
 }
 
 
@@ -315,12 +316,10 @@ void Grid::setupradialgrid(const int depth) {
     bool cutoff_smaller_molecule=false;
     double temp_cutoff=_cutoff;
     for (ait = _atomlist->begin(); ait != _atomlist->end(); ++ait) {
-        x = (*ait)->x;
-        y = (*ait)->y;
-        z = (*ait)->z;
+       
         
-        vec temppos=vec(x,y,z);
-        double dist=abs(centerofmolecule-temppos)+2.0; // 2.0 because that is approximately the VdW radius
+        vec pos= (*ait)->getPos();
+        double dist=abs(centerofmolecule-pos)+2.0; // 2.0 because that is approximately the VdW radius
         if (dist>temp_cutoff){
             cutoff_smaller_molecule=true;
             temp_cutoff=dist;
@@ -350,9 +349,8 @@ void Grid::setupradialgrid(const int depth) {
             _all_gridsites.push_back(apolarsite);       
         }
     }
-    if (_sites_seg != NULL) delete _sites_seg;
-           _sites_seg = new ctp::PolarSeg(0, _gridsites);
-
+   
+    return;
 }
 
 void Grid::setupgrid(){
@@ -399,7 +397,7 @@ void Grid::setupgrid(){
     double padding_x=(steps.getX()-_xsteps)*_gridspacing*0.5+_padding;
     double padding_y=(steps.getY()-_ysteps)*_gridspacing*0.5+_padding;
     double padding_z=(steps.getZ()-_zsteps)*_gridspacing*0.5+_padding;
-
+    
     
     for(int i=0;i<=_xsteps;i++){
         double x=xmin-padding_x+i*_gridspacing; 
@@ -408,48 +406,44 @@ void Grid::setupgrid(){
             for(int k=0;k<=_zsteps;k++){
                 double z=zmin-padding_z+k*_gridspacing; 
                 bool _is_valid = false;
+                vec gridpos=vec(x,y,z);
                     for (std::vector<ctp::QMAtom* >::const_iterator atom = _atomlist->begin(); atom != _atomlist->end(); ++atom ) {
-                        //cout << "Punkt " << x <<":"<< y << ":"<<z << endl;
-                        xtemp=(*atom)->x;
-                        ytemp=(*atom)->y;
-                        ztemp=(*atom)->z;
-                        double distance2=pow((x-xtemp),2)+pow((y-ytemp),2)+pow((z-ztemp),2);
+                        vec atompos=(*atom)->getPos();
+                        double distance2=(gridpos-atompos)*(gridpos-atompos);
                         if(_useVdWcutoff) _cutoff=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff;
                         if(_useVdWcutoff_inside)_cutoff_inside=_elements.getVdWChelpG((*atom)->type)+_shift_cutoff_inside;
-                        //cout << "Punkt " << x <<":"<< y << ":"<<z << ":"<< distance2 << ":"<< (*atom)->type <<":"<<pow(VdW,2)<< endl;
-                        if ( distance2<pow(_cutoff_inside,2)){
+                       
+                        if ( distance2<(_cutoff_inside*_cutoff_inside)){
                             _is_valid = false;
                             break;
                             }
-                        else if ( distance2<pow(_cutoff,2))  _is_valid = true;
+                        else if ( distance2<(_cutoff*_cutoff))  _is_valid = true;
                     }
                     if (_is_valid || _cubegrid){
-                        vec temppos=vec(x,y,z);
-                        temppos=conv::ang2nm*temppos;
+                        
+                        gridpos*=conv::ang2nm;
                        
                         if(_createpolarsites){
                           
-                    
-                            string name="H";
+                            string name="X";
                             ctp::APolarSite *apolarsite= new ctp::APolarSite(0,name);
                             apolarsite->setRank(0);        
                             apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
                             apolarsite->setIsoP(0.0);
-                            apolarsite->setPos(temppos);
+                            apolarsite->setPos(gridpos);
                             if(_is_valid){
                                 _gridsites.push_back(apolarsite);
-                                _gridpoints.push_back(temppos);
+                                _gridpoints.push_back(gridpos);
                                 }
                             else {apolarsite->setIsVirtual(true);}
                             _all_gridsites.push_back(apolarsite);
                             }
-                        else if(!_createpolarsites){_gridpoints.push_back(temppos);}
+                        else if(!_createpolarsites){_gridpoints.push_back(gridpos);}
                     }                    
                 }                          
             }                  
         }
-    if (_sites_seg != NULL) delete _sites_seg;
-    _sites_seg = new ctp::PolarSeg(0, _gridsites);
+    return;
 }
     
     

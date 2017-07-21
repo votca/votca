@@ -177,8 +177,7 @@ bool DFT::Evaluate() {
     }
     else{
         CTP_LOG(ctp::logDEBUG,_log) << "Reading structure from " << _xyzfile << flush;
-    XYZ2Orbitals( &_orbitals, _xyzfile );
-    
+        _orbitals.LoadFromXYZ( _xyzfile );
     }
  
 
@@ -187,14 +186,17 @@ bool DFT::Evaluate() {
     DFTENGINE _dft;
     _dft.Initialize( &_dftengine_options );
     _dft.setLogger(&_log);
+    ;
     
      if(_do_external){
       vector<ctp::APolarSite*> sites=ctp::APS_FROM_MPS(_mpsfile,0);
       ctp::PolarSeg polarseg=ctp::PolarSeg(0,sites);
-      _dft.setExternalcharges(polarseg);
+      polarseg.WriteMPS("test.mps","test");     
+      _dft.setExternalcharges(&polarseg);  
        }
-    
+   
     // RUN
+    _dft.Prepare(   &_orbitals);
     _dft.Evaluate( &_orbitals );
 
             
@@ -206,20 +208,7 @@ bool DFT::Evaluate() {
        
        oa << _orbitals;
        ofs.close();
-
-     
-     
-     
-     
-    Property _summary; 
-    _summary.add("output","");
-    //Property *_job_output = &_summary.add("output","");
-    tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
-     
-    //ofs (_output_file.c_str(), std::ofstream::out);
-    //ofs << *_job_output;    
-    //ofs.close();
-    
+ 
     return true;
 }
 
@@ -227,41 +216,7 @@ bool DFT::Evaluate() {
 
 
 
-void DFT::XYZ2Orbitals(Orbitals* _orbitals, string filename){
- 
-    
-               
-                ifstream in;
-                double x, y, z;
-                //int natoms, id;
-                string label, type;
-                vec pos;
 
-                CTP_LOG(ctp::logDEBUG,_log) << " Reading molecular coordinates from " << _xyzfile << flush;
-                in.open(_xyzfile.c_str(), ios::in);
-                if (!in) throw runtime_error(string("Error reading coordinates from: ")
-                        + _xyzfile);
-
-                //id = 1;
-                while (in.good()) { // keep reading until end-of-file
-                    in >> type;
-                    in >> x;
-                    in >> y;
-                    in >> z;
-                    if (in.eof()) break;
-                    // cout << type << ":" << x << ":" << y << ":" << z << endl;
-
-                    // creating atoms and adding them to the molecule
-                    _orbitals->AddAtom( type, x, y, z );
-
-
-                }
-                in.close();
-
-
-  
-    
-}
 
 
 

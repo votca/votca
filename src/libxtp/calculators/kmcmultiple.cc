@@ -36,9 +36,9 @@ void KMCMultiple::Initialize(tools::Property *options){
     std::string key = "options." + Identify();
 
     _runtime=options->ifExistsReturnElseThrowRuntimeError<double>(key+".runtime");
-    _seed=options->ifExistsReturnElseThrowRuntimeError<int>(key+"seed");
+    _seed=options->ifExistsReturnElseThrowRuntimeError<int>(key+".seed");
     _numberofcharges=options->ifExistsReturnElseThrowRuntimeError<int>(key+".numberofcharges");
-    _injection_name=options->ifExistsReturnElseThrowRuntimeError<int>(key+".injectionpattern");
+    _injection_name=options->ifExistsReturnElseThrowRuntimeError<std::string>(key+".injectionpattern");
   
 
         _maxrealtime=options->ifExistsReturnElseReturnDefault<double>(key+".maxrealtime",1E10);
@@ -49,11 +49,9 @@ void KMCMultiple::Initialize(tools::Property *options){
      
         _injectionmethod = options->ifExistsReturnElseReturnDefault<std::string>(key+".injectionmethod","random");
 	
-        if (_injectionmethod != "random" && _injectionmethod != "equilibrated")
-        {
+        if (_injectionmethod != "random"){
 	    cout << "WARNING in kmcmultiple: Unknown injection method. It will be set to random injection." << endl;
             _injectionmethod = "random";
-            
         }
          _field = options->ifExistsReturnElseReturnDefault<tools::vec>(key+".field",tools::vec(0,0,0));
         
@@ -134,26 +132,20 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
     
     double absolute_field = tools::abs(_field);
 
-    // Injection
-    cout << endl << "injection method: " << _injectionmethod << endl;
+ 
 
     
     RandomlyCreateCharges();
     vector<tools::vec> startposition(_numberofcharges,tools::vec(0,0,0));
-    
-    for(unsigned i=0;i<_carriers.size();i++){
-        startposition[i] = _carriers[i]->getCurrentPosition();
-        cout << "starting position for charge " << i+1 << ": segment " << _carriers[i]->getCurrentNodeId()+1 << endl;
-        
-    }
-   
+  
     
     vector<int> forbiddennodes;
     vector<int> forbiddendests;
     
     tools::matrix avgdiffusiontensor;
     avgdiffusiontensor.ZeroMatrix();
-    const unsigned long diffusionresolution=1000;
+    
+    unsigned long diffusionresolution=1000;
     double simtime = 0.0;
     unsigned long step = 0;
     
@@ -212,7 +204,10 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
 
                 GLink* event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
                 newnode = _nodes[event->destination];
-              
+                if(newnode==affectedcarrier->getCurrentNode()){
+                    cout<<"bla"<<endl;
+                    cout<<event->dr<<endl;
+                }
 
                 if(newnode == NULL){
                     if(tools::globals::verbose) {
@@ -259,8 +254,6 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
             }
         // END LEVEL 1
         }    
-        
-        
         
         
         //outputstuff

@@ -56,6 +56,8 @@ public:
     const double     &getNucCrgECP(std::string name) const {return _NucCrgECP.at(name); }
     const double     &getNucCrg(std::string name) const {return _NucCrg.at(name); }
     const int        &getEleNum(std::string name) const {return _EleNum.at(name); }
+    const double     &getMass(std::string name) const {return _Mass.at(name); }
+
     const std::string     &getEleName(int elenum) const {return _EleName.at(elenum); }
     const std::string     &getEleShort(std::string elefull) const {return _EleShort.at(elefull); }
     const std::string     &getEleFull(std::string eleshort) const {return _EleFull.at(eleshort); }
@@ -99,6 +101,7 @@ private:
     std::map<std::string, double> _VdWMK;
     std::map<std::string, double> _NucCrgECP;
     std::map<std::string, double> _NucCrg;
+    std::map<std::string, double> _Mass;
     std::map<std::string, int> _EleNum;
     std::map<int, std::string> _EleName;
     
@@ -119,6 +122,8 @@ private:
         FillEleShort();
         FillEleFull();
         FillAtomConf();
+        
+        FillMass();
     };
     
     inline void FillAtomConf(){
@@ -134,6 +139,32 @@ private:
         temp(1,1)=2;
         _Atomconfig["C"]=temp;
         
+    };
+    
+    
+    inline void FillMass(){
+    
+        // masses of atoms
+        _Mass["H"]  = 1.00794; 
+        _Mass["He"] = 4.002602;
+        _Mass["Li"] = 6.941;
+        _Mass["Be"] = 9.012182;
+        _Mass["B"]  = 10.811;
+        _Mass["C"]  = 12.0107;
+        _Mass["N"]  = 14.00674;
+        _Mass["O"]  = 15.9994;
+        _Mass["F"]  = 18.9984032;
+        _Mass["Ne"] = 20.1797;
+        _Mass["Na"] = 22.989770;
+        _Mass["Mg"] = 24.3050;
+        _Mass["Al"] = 26.981538;
+        _Mass["Si"] = 28.0855;
+        _Mass["P"]  = 30.973761;
+        _Mass["S"]  = 32.066;
+        _Mass["Cl"] = 35.4527;
+        _Mass["Ar"] = 39.948;
+        _Mass["Hg"] = 200.59;
+        _Mass["Ag"] = 107.8682;
     };
 
     inline void FillVdWChelpG(){

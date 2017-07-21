@@ -203,6 +203,9 @@ void QMMM::Initialize(Property *options) {
         else {
             _cutoff2 = _cutoff1;
         }
+    if(_cutoff1>_cutoff2){
+        throw runtime_error("Cutoff1 must be smaller or equal Cutoff2");
+    }
         if ( options->exists(key+".subthreads") ) {
             _subthreads = options->get(key+".subthreads").as< int >();
         }
@@ -343,14 +346,24 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     double co2 = _cutoff2;    
     _mps_mapper.Gen_QM_MM1_MM2(top, &xjob, co1, co2, thread);
     
+    const matrix box=xjob.getTop()->getBox();
+    double min=box.get(0,0);
+    if(min>box.get(1,1)){min=box.get(1,1);}
+    if(min>box.get(2,2)){min=box.get(2,2);}
+   
+    if(_cutoff2>0.5*min){
+        throw runtime_error((format("Cutoff is larger than half the box size. Maximum allowed cutoff is %1$1.1f") % (0.5*min)).str());
+    }
+   
+    
     CTP_LOG(ctp::logINFO,*log)
          << xjob.getPolarTop()->ShellInfoStr() << flush;
     
-    if (tools::globals::verbose)
-    xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_QM0_MM1_MM2.pdb");
-
+    if (tools::globals::verbose){
+        xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_QM0_MM1_MM2.pdb");
+    }
     // INDUCTOR, QM RUNNER, QM-MM MACHINE
-    ctp::XInductor xind = ctp::XInductor(top, &_options, "options.qmmm",
+    ctp::XInductor xind = ctp::XInductor(top, &_options, "options.xqmmm",
         _subthreads, _maverick);    
     xind.setLog(thread->getLogger());
     

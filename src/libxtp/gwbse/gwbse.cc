@@ -23,20 +23,13 @@
 #include <votca/tools/constants.h>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/numeric/ublas/operation.hpp>
-// #include <votca/xtp/logger.h>
+#include <votca/xtp/numerical_integrations.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/qmpackagefactory.h>
-#include <boost/math/constants/constants.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
 
-// testing numerical grids
-#include <votca/xtp/sphere_lebedev_rule.h>
-#include <votca/xtp/radial_euler_maclaurin_rule.h>
 
-// #include <omp.h>
 
-#include <votca/xtp/numerical_integrations.h>
 
 using boost::format;
 using namespace boost::filesystem;
@@ -149,7 +142,8 @@ namespace votca {
             if (_tasks_string.find("qpdiag") != std::string::npos) _do_qp_diag = true;
             if (_tasks_string.find("singlets") != std::string::npos) _do_bse_singlets = true;
             if (_tasks_string.find("triplets") != std::string::npos) _do_bse_triplets = true;
-
+            _store_eh_interaction = false;
+            _do_bse_diag = true;
             // special construction for ibse mode
             if (_tasks_string.find("igwbse") != std::string::npos) {
                 _do_qp_diag = false; // no qp diagonalization
@@ -161,9 +155,11 @@ namespace votca {
             // possible storage 
             // qpPert, qpdiag_energies, qp_diag_coefficients, bse_singlet_energies, bse_triplet_energies, bse_singlet_coefficients, bse_triplet_coefficients
             _store_qp_pert = true;
-            _do_bse_diag = true;
-            _store_eh_interaction = false;
+            
+            
             _store_qp_diag = false;
+            _store_bse_triplets=false;
+            _store_bse_singlets=false;
             string _store_string = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".store");
             if ((_store_string.find("all") != std::string::npos) || (_store_string.find("") != std::string::npos)) {
                 // store according to tasks choice
@@ -293,8 +289,12 @@ namespace votca {
             string _dft_package = _orbitals->getQMpackage();
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DFT data was created by " << _dft_package << flush;
 
-            std::vector<ctp::QMAtom*> _atoms = _orbitals->QMAtoms();
-
+            std::vector<ctp::QMAtom*> _atoms;
+            for(const auto& atom:_orbitals->QMAtoms()){
+                            if(!atom->from_environment){
+                            _atoms.push_back(atom);
+                            }
+                        }
             // load DFT basis set (element-wise information) from xml file
             BasisSet dftbs;
 
@@ -308,12 +308,12 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
 
             // fill DFT AO basis by going through all atoms 
-            AOBasis dftbasis;
-            dftbasis.AOBasisFill(&dftbs, _atoms, _fragA);
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Basis of size " << dftbasis.AOBasisSize() << flush;
-            if (dftbasis._AOBasisFragB > 0) {
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size " << dftbasis._AOBasisFragA << flush;
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size " << dftbasis._AOBasisFragB << flush;
+           
+            _dftbasis.AOBasisFill(&dftbs, _atoms, _fragA);
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Basis of size " << _dftbasis.AOBasisSize() << flush;
+            if (_dftbasis._AOBasisFragB > 0) {
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size " << _dftbasis._AOBasisFragA << flush;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size " << _dftbasis._AOBasisFragB << flush;
             }
 
             /* Preparation of calculation parameters:
@@ -416,6 +416,7 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set RPA level range [" << _rpamin + 1 << ":" << _rpamax + 1 << "]" << flush;
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set QP  level range [" << _qpmin + 1 << ":" << _qpmax + 1 << "]" << flush;
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set BSE level range occ[" << _bse_vmin + 1 << ":" << _bse_vmax + 1 << "]  virt[" << _bse_cmin + 1 << ":" << _bse_cmax + 1 << "]" << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " BSE Hamiltonian has size " <<_bse_size<<"x"<<_bse_size << flush;
 
 
             // process the DFT data
@@ -436,7 +437,7 @@ namespace votca {
                         const ub::matrix<double>& vxc_cart = _orbitals->AOVxc();
                         //cout<< vxc_cart.size1()<<"x"<<vxc_cart.size2()<<endl;
                         ub::matrix<double> _carttrafo;
-                        dftbasis.getTransformationCartToSpherical(_dft_package, _carttrafo);
+                        _dftbasis.getTransformationCartToSpherical(_dft_package, _carttrafo);
                         //cout<< _carttrafo.size1()<<"x"<<_carttrafo.size2()<<endl;
 
                         ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_cart);
@@ -448,17 +449,20 @@ namespace votca {
                 } else if (_doVxc) {
 
                     NumericalIntegration _numint;
+                    _numint.setXCfunctional(_functional);
                     double ScaHFX_temp = _numint.getExactExchange(_functional);
                     if (ScaHFX_temp != _ScaHFX) {
                         throw std::runtime_error((boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
                     }
-                    _numint.GridSetup(_grid, &dftbs, _atoms,&dftbasis);
-                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
+                    _numint.GridSetup(_grid, &dftbs, _atoms,&_dftbasis);
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup grid for integration with gridsize: " << _grid <<" with "<<_numint.getGridSize()<< " points, divided into "<<_numint.getBoxesSize()<<" boxes"<<flush;
+                    _dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
 
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Integrating Vxc in VOTCA with gridsize: " << _grid << " and functional " << _functional << flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Integrating Vxc in VOTCA with functional " << _functional << flush;
                     ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
-                    _vxc_ao = _numint.IntegrateVXC_Atomblock(DMAT, _functional);
+                    
+                    _vxc_ao = _numint.IntegrateVXC(DMAT);
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Vxc in VOTCA" << flush;
 
                 } else {
@@ -468,14 +472,15 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set hybrid exchange factor: " << _ScaHFX << flush;
 
                 // now get expectation values but only for those in _qpmin:_qpmax range
-                ub::matrix<double> _mos = ub::project(_dft_orbitals, ub::range(_qpmin, _qpmax + 1), ub::range(0, dftbasis.AOBasisSize()));
+                ub::matrix<double> _mos = ub::project(_dft_orbitals, ub::range(_qpmin, _qpmax + 1), ub::range(0, _dftbasis.AOBasisSize()));
+                
                 ub::matrix<double> _temp = ub::prod(_vxc_ao, ub::trans(_mos));
                 _vxc = ub::prod(_mos, _temp);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
 
                 // b) reorder MO coefficients depending on the QM package used to obtain the DFT data
                 if (_dft_package != "xtp" && !_doVxc) {
-                    dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
+                    _dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;
                 }
             }
@@ -533,10 +538,11 @@ namespace votca {
           
 
             // PPM is symmetric, so we need to get the sqrt of the Coulomb matrix
-            AOOverlap _gwoverlap_inverse; // will also be needed in PPM itself
-            AOOverlap _gwoverlap_cholesky_inverse; // will also be needed in PPM itself
-            _gwoverlap_inverse.Initialize(gwbasis.AOBasisSize());
+            ub::matrix<double> _gwoverlap_inverse; // will also be needed in PPM itself
+            ub::matrix<double> _gwoverlap_cholesky_inverse; // will also be needed in PPM itself
+           
             _gwcoulomb.Symmetrize(_gwoverlap, gwbasis, _gwoverlap_inverse, _gwoverlap_cholesky_inverse);
+            ub::matrix<double> _gwoverlap_cholesky_inverse_trans=ub::trans(_gwoverlap_cholesky_inverse);// for performance reasons
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM " << flush;
 
             /* calculate 3-center integrals,  convoluted with DFT eigenvectors
@@ -553,7 +559,7 @@ namespace votca {
 
             TCMatrix _Mmn;
             _Mmn.Initialize(gwbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
-            _Mmn.Fill(gwbasis, dftbasis, _dft_orbitals);
+            _Mmn.Fill(gwbasis, _dftbasis, _dft_orbitals);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
 
             // for use in RPA, make a copy of _Mmn with dimensions (1:HOMO)(gwabasissize,LUMO:nmax)
@@ -617,28 +623,32 @@ namespace votca {
                 }
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Made backup of _Mmn  " << flush;
             }
-
+            _qp_converged=false;
             while (!_qp_converged) {
-
+               
                 // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
                 for (unsigned _i_freq = 0; _i_freq < _screening_freq.size1(); _i_freq++) {
                     _epsilon[ _i_freq ] = _gwoverlap.Matrix();
                 }
-
-                // _gwoverlap is not needed further, if no shift iteration
-                if (!_iterate_qp) _gwoverlap.Matrix().resize(0, 0);
-
+               
+                
                 // determine epsilon from RPA
                 RPA_calculate_epsilon(_Mmn_RPA);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated epsilon via RPA  " << flush;
 
-                // _Mmn_RPA is not needed any further, if no shift iteration
-                if (!_iterate_qp) _Mmn_RPA.Cleanup();
+                 
 
                 // construct PPM parameters
-                PPM_construct_parameters(_gwoverlap_cholesky_inverse.Matrix());
+                PPM_construct_parameters(_gwoverlap_cholesky_inverse,_gwoverlap_cholesky_inverse_trans);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed PPM parameters  " << flush;
-
+                if (!_iterate_qp){
+                    _qp_converged = true;
+                    _gwoverlap.Matrix().resize(0, 0);
+                    _gwoverlap_cholesky_inverse.resize(0,0);
+                    _gwoverlap_cholesky_inverse_trans.resize(0,0);
+                    _Mmn_RPA.Cleanup();
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cleaned up Overlap and MmnRPA" << flush;
+                }
                 // prepare threecenters for Sigma
                 sigma_prepare_threecenters(_Mmn);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared threecenters for sigma  " << flush;
@@ -661,15 +671,16 @@ namespace votca {
 
                 }
 
-                if (!_iterate_qp) _qp_converged = true;
-
             }
 
             // free unused variable if shift is iterated
             if (_iterate_qp) {
                 _gwoverlap.Matrix().resize(0, 0);
+                 _gwoverlap_cholesky_inverse.resize(0,0);
+                _gwoverlap_cholesky_inverse_trans.resize(0,0);
                 _Mmn_RPA.Cleanup();
                 _Mmn_backup.Cleanup();
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cleaned up Overlap, MmnRPA and Mmn_backup " << flush;
             }
             // free no longer required three-center matrices in _Mmn
             // max required is _bse_cmax (could be smaller than _qpmax)
@@ -681,6 +692,7 @@ namespace votca {
            
             CTP_LOG(ctp::logINFO, *_pLog) << (format("  ====== Perturbative quasiparticle energies (Hartree) ====== ")).str() << flush;
             CTP_LOG(ctp::logINFO, *_pLog) << (format("   DeltaHLGap = %1$+1.6f Hartree") % _shift).str() << flush;
+            
             for (unsigned _i = 0; _i < _qptotal; _i++) {
                 if ((_i + _qpmin) == _homo) {
                     CTP_LOG(ctp::logINFO, *_pLog) << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = %4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") 
@@ -707,7 +719,7 @@ namespace votca {
                     _qp_energies_store(_i, 1) = _sigma_x(_i, _i);
                     _qp_energies_store(_i, 2) = _sigma_c(_i, _i);
                     _qp_energies_store(_i, 3) = _vxc(_i, _i);
-                    _qp_energies_store(_i, 4) = _qp_energies(_i);
+                    _qp_energies_store(_i, 4) = _qp_energies(_i + _qpmin);
                 }
             }
 

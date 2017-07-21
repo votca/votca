@@ -17,12 +17,13 @@
  *
  */
 
-
+#include <votca/xtp/numerical_integrations.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/espfit.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/tools/linalg.h>
 //#include <boost/progress.hpp>
-#include <votca/xtp/numerical_integrations.h>
+
 #include <math.h> 
 #include <votca/tools/constants.h>
 
@@ -32,57 +33,7 @@ using namespace votca::tools;
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
     
-void Espfit::EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions){
-    std::vector<ctp::APolarSite*> charges=_chargepositions.Sites();
-    std::vector<ctp::APolarSite*> positions=_targetgrid.Sites();
-    std::vector<ctp::APolarSite*>::iterator qit;
-    std::vector<ctp::APolarSite*>::iterator pit;
-    for (pit=positions.begin();pit!=positions.end();++pit){
-        double potential=0.0;
-        vec pos=(*pit)->getPos();
-        for (qit=charges.begin();qit!=charges.end();++qit){
-            double dist=abs((*qit)->getPos()-pos);
-            potential+=((*qit)->getQ00())/dist;                              
-            }
-        (*pit)->setPhi(potential,0.0);
-       }
-    }
 
-void Espfit::FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge){
-    double Nm2Bohr=tools::conv::nm2bohr;
-    double Int2Hartree=Nm2Bohr;
-    
-    if(_chargepositions.getsize() >_targetgrid_fg.getsize()){
-        throw std::runtime_error("Fit underdetermined, change grid options");
-    }
-
-    std::vector< ctp::APolarSite* > _charges= _chargepositions.Sites();
-    std::vector< ctp::APolarSite* > _target_fg= _targetgrid_fg.Sites();
-    std::vector< ctp::APolarSite* > _target_bg= _targetgrid_bg.Sites();
-    CTP_LOG(ctp::logDEBUG, *_log) << " Grid of size fg:" << _targetgrid_fg.getsize() << flush;
-    CTP_LOG(ctp::logDEBUG, *_log) << " Grid of size bg:" << _targetgrid_bg.getsize() << flush;
-    CTP_LOG(ctp::logDEBUG, *_log) << " Chargepositions:" << _chargepositions.getsize() << flush;
-
-    std::vector< tools::vec > _chargepos;
-    std::vector< ctp::APolarSite* >::iterator sit;
-    for (sit=_charges.begin(); sit!=_charges.end(); ++sit) {
-        tools::vec temp= (*sit)->getPos();
-        _chargepos.push_back(temp);    
-    }
-    ub::vector<double> _potential=ub::zero_vector<double>(_targetgrid_fg.getsize());
-    for( int i=0; i<_targetgrid_fg.getsize();i++){
-    _potential(i)=Int2Hartree*(_target_fg[i]->getPhi()+_target_bg[i]->getPhi());    
-    }
-
-    CTP_LOG(ctp::logDEBUG, *_log) << " Fitting APE to Chargeshell with netcharge " << netcharge <<"e."<< flush;
-    std::vector<double>_chargesfromfit=FitPartialCharges(_chargepos,_targetgrid_fg,_potential,netcharge);
-    int state=0;
-    for (unsigned i=0; i<_charges.size();i++) {
-        _charges[i]->setQ00(_chargesfromfit[i],state);
-    }   
-       CTP_LOG(ctp::logDEBUG, *_log) << " Fitting completed " << flush;
-       return;
-   }
        
 
 
@@ -115,7 +66,7 @@ void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<doub
 
     numway.GridSetup(gridsize,&bs,_atomlist,&_basis);
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculate Densities at Numerical Grid with gridsize "<<gridsize  << flush; 
-    double N=numway.IntegrateDensity_Atomblock(_dmat);
+    double N=numway.IntegrateDensity(_dmat);
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculated Densities at Numerical Grid, Number of electrons is "<< N << flush; 
     
     if(std::abs(N-N_comp)>0.001){
@@ -163,7 +114,7 @@ ub::vector<double> Espfit::EvalNuclearPotential(std::vector< ctp::QMAtom* >& _at
     ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_grid.getsize());
 
     double Znuc=0.0;
-    std::vector< vec >& _gridpoints = _grid.getGrid();
+    const std::vector< vec >& _gridpoints = _grid.getGrid();
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points" << flush;
     
     for (unsigned i = 0; i < _gridpoints.size(); i++) {
@@ -236,7 +187,7 @@ void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::ma
     Grid _grid;
     _grid.setAtomlist(&_atomlist);
     _grid.setupCHELPgrid();
-    //_grid.printGridtoxyzfile("grid.xyz");
+   
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl; 
     // Calculating nuclear potential at gridpoints
     
@@ -255,8 +206,8 @@ void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::ma
     
     double netcharge=getNetcharge( _atomlist,N );
     if(!_do_Transition){
-    ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid);
-    _ESPatGrid += _NucPatGrid;
+        ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid);
+        _ESPatGrid += _NucPatGrid;
     }
     
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush; 
@@ -291,7 +242,7 @@ void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::ma
 std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Setting up Matrices for fitting of size "<< _fitcenters.size()+1 <<" x " << _fitcenters.size()+1<< flush;    
 
-    std::vector< tools::vec >& _gridpoints=_grid.getGrid();   
+    const std::vector< tools::vec >& _gridpoints=_grid.getGrid();   
    
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using "<< _fitcenters.size() <<" Fittingcenters and " << _gridpoints.size()<< " Gridpoints."<< flush;  
     

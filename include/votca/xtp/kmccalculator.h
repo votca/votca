@@ -58,8 +58,7 @@ public:
    
    virtual std::string  Identify() = 0;
    virtual void    Initialize(tools::Property *options) = 0;
-
-   
+int _carriertype;
 protected:
        
        
@@ -96,7 +95,7 @@ protected:
             int _seed;
             unsigned _numberofcharges;
             tools::vec _field;
-            int _carriertype;
+            
             double _temperature;
             std::string _rates;
 };

@@ -211,7 +211,7 @@ int OffsetFuncShell_cartesian(const string& shell_type ) {
 void BasisSet::LoadBasisSet ( std::string name ) 
 {    
     Property basis_property;
- 
+    _name=name;
     // if name contains .xml, assume a basisset .xml file is located in the working directory
     std::size_t found_xml = name.find(".xml");
     std::string xmlFile;
@@ -248,8 +248,7 @@ void BasisSet::LoadBasisSet ( std::string name )
             for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) {
                 double decay = (*itc)->getAttribute<double>("decay");
                 // << " decay "<<decay<<endl;
-                std::vector<double> contraction;
-                contraction.resize(shell->getLmax()+1); 
+                std::vector<double> contraction=std::vector<double>(shell->getLmax()+1,0.0);
                 list<Property*> contrProps = (*itc)->Select("contractions");
                 for (list<Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont){
                     std::string contrType = (*itcont)->getAttribute<std::string>("type");
@@ -266,11 +265,7 @@ void BasisSet::LoadBasisSet ( std::string name )
                         throw runtime_error("LoadBasiset:Contractiontype not known");
                     }
                 }    
-                //cout<<"contraction ";
-               // for( int i=0;i<contraction.size();i++){
-               //     cout<<contraction[i];
-               //  }
-                //    cout<<std::endl;     
+                 
                 shell->addGaussian(decay, contraction);
             }
             
@@ -284,8 +279,8 @@ void BasisSet::LoadBasisSet ( std::string name )
 void BasisSet::LoadPseudopotentialSet ( std::string name ) 
 {    
     Property basis_property;
- 
-  // if name contains .xml, assume a basisset .xml file is located in the working directory
+    _name=name;
+  // if name contains .xml, assume a ecp .xml file is located in the working directory
     std::size_t found_xml = name.find(".xml");
     std::string xmlFile;
     if (found_xml!=std::string::npos) {
@@ -294,7 +289,7 @@ void BasisSet::LoadPseudopotentialSet ( std::string name )
       // get the path to the shared folders with xml files
       char *votca_share = getenv("VOTCASHARE");
       if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-      xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/basis_sets/") + name + std::string(".xml");
+      xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/ecps/") + name + std::string(".xml");
     }
     bool success = load_property_from_xml(basis_property, xmlFile);
     

@@ -35,28 +35,56 @@ namespace votca {
     void KMCCalculator::LoadGraph(ctp::Topology *top) {
 
         vector< ctp::Segment* >& seg = top->Segments();
-
+        
         for (unsigned i = 0; i < seg.size(); i++) {
             GNode *newNode = new GNode();
-            _nodes.push_back(newNode);
-            _nodes[i]->ReadfromSegment(seg[i], _carriertype);
+            newNode->ReadfromSegment(seg[i], _carriertype);
             if (tools::wildcmp(_injection_name.c_str(), seg[i]->getName().c_str())) {
-                _nodes[i]->injectable = true;
+                newNode->injectable = true;
             } else {
-                _nodes[i]->injectable = false;
+                newNode->injectable = false;
             }
+            _nodes.push_back(newNode);
         }
 
         ctp::QMNBList &nblist = top->NBList();
 
         for (ctp::QMNBList::iterator it = nblist.begin(); it < nblist.end(); ++it) {
-            _nodes[(*it)->Seg1()->getId()]->AddEventfromQmPair(*it, _carriertype);
+            _nodes[(*it)->Seg1()->getId()-1]->AddEventfromQmPair(*it, _carriertype);
+            _nodes[(*it)->Seg2()->getId()-1]->AddEventfromQmPair(*it, _carriertype);
         }
-
-
-        if (votca::tools::globals::verbose) {
-            cout << "pairs: " << nblist.size() / 2 << endl;
+        
+        unsigned events=0;
+        unsigned max=std::numeric_limits<unsigned>::min();
+        unsigned min=std::numeric_limits<unsigned>::max();
+        for(const auto& node:_nodes){
+            
+            unsigned size=node->events.size();
+            
+            events+=size;
+            if(size==0){
+                cout<<"Node "<<node->id<<" has 0 jumps"<<endl;
+            }
+            else if(size<min){
+                min=size;
+            }
+            else if(size>max){
+                max=size;
+            }
         }
+        double avg=double(events)/double(_nodes.size());
+        double deviation=0.0;
+        for(const auto& node:_nodes){
+            double size=node->events.size();
+            deviation+=(size-avg)*(size-avg);
+        }
+        deviation=std::sqrt(deviation/double(_nodes.size()));
+        
+        cout<<"Nblist has "<<nblist.size()<<" pairs. Nodes contain "<<events<<" jump events"<<endl;
+        cout<<"with avg="<<avg<<" std="<<deviation<<" max="<<max<<" min="<<min<<endl;
+        
+
+       
         cout << "spatial density: " << _numberofcharges / top->BoxVolume() << " nm^-3" << endl;
 
         for (unsigned int i = 0; i < _nodes.size(); i++) {
@@ -300,7 +328,7 @@ namespace votca {
             
             for (unsigned int j = 0; j < node->events.size(); j++) {
                 u -= node->events[j].rate / node->getEscapeRate();
-                if (u <= 0 || j==node->events.size()-1) {                   
+                if (u <= 0 || j==node->events.size()-1) {    
                     return &(node->events[j]);
                 }
             }
@@ -310,18 +338,19 @@ namespace votca {
         
         Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate){
             Chargecarrier* carrier=NULL;
-                double u = 1 - _RandomVariable->rand_uniform();
-                for (unsigned int i = 0; i < _numberofcharges; i++) {
-                    u -= _carriers[i]->getCurrentEscapeRate() / cumulated_rate;
+            double u = 1 - _RandomVariable->rand_uniform();
+            for (unsigned int i = 0; i < _numberofcharges; i++) {
+                u -= _carriers[i]->getCurrentEscapeRate() / cumulated_rate;
 
-                    if (u <= 0 || i==_numberofcharges-1) {
-                       
-                        carrier = _carriers[i];
-                        break;}  
+                if (u <= 0 || i==_numberofcharges-1) {
 
-                }
-                return carrier;
+                    carrier = _carriers[i];
+                    break;}  
+
+            }
+            return carrier;
         }
-    
+ 
+        
     }
 }

@@ -1143,22 +1143,21 @@ if (_lmax_col > 5) {
     
 
     
-    void AOCoulomb::Symmetrize(const AOOverlap& _gwoverlap,const AOBasis& gwbasis, AOOverlap& _gwoverlap_inverse, AOOverlap& _gwoverlap_cholesky_inverse){
+    void AOCoulomb::Symmetrize(const AOOverlap& _gwoverlap,const AOBasis& gwbasis, ub::matrix<double>& _gwoverlap_inverse, ub::matrix<double>& _gwoverlap_cholesky_inverse){
        
         if ( gwbasis._is_stable ){
             
             // get inverse of _aooverlap
             
-            linalg_invert( _gwoverlap.Matrix(), _gwoverlap_inverse.Matrix() );
+            linalg_invert( _gwoverlap.Matrix(), _gwoverlap_inverse );
             
-
-            // getting Cholesky decomposition of AOOverlap matrix
-            ub::matrix<double> _gwoverlap_cholesky;
+            
             // make copy of _gwoverlap, because matrix is overwritten in GSL
-            _gwoverlap_cholesky = _gwoverlap.Matrix();
+            ub::matrix<double> _gwoverlap_cholesky = _gwoverlap.Matrix();
             linalg_cholesky_decompose( _gwoverlap_cholesky );
            
             // remove L^T from Cholesky
+            #pragma omp parallel for 
             for (unsigned i =0; i < _gwoverlap_cholesky.size1(); i++ ){
                 for (unsigned j = i+1; j < _gwoverlap_cholesky.size1(); j++ ){
                     _gwoverlap_cholesky(i,j) = 0.0;
@@ -1166,13 +1165,13 @@ if (_lmax_col > 5) {
             }
             
             // invert L to get L^-1
-            _gwoverlap_cholesky_inverse.Initialize(gwbasis.AOBasisSize());
-            linalg_invert(  _gwoverlap_cholesky, _gwoverlap_cholesky_inverse.Matrix() );
+           
+            linalg_invert(  _gwoverlap_cholesky, _gwoverlap_cholesky_inverse );
          
             
             // calculate V' = L^-1 V (L^-1)^T
-            ub::matrix<double> _temp = ub::prod( _gwoverlap_cholesky_inverse.Matrix() , _aomatrix );
-            _aomatrix = ub::prod( _temp, ub::trans(_gwoverlap_cholesky_inverse.Matrix()));
+            ub::matrix<double> _temp = ub::prod( _gwoverlap_cholesky_inverse , _aomatrix );
+            _aomatrix = ub::prod( _temp, ub::trans(_gwoverlap_cholesky_inverse));
             
             linalg_matrixsqrt(_aomatrix);
            
@@ -1180,7 +1179,7 @@ if (_lmax_col > 5) {
             _temp = ub::prod( _gwoverlap_cholesky , _aomatrix );
             _aomatrix = ub::prod( _temp ,ub::trans( _gwoverlap_cholesky ));
             
-            _aomatrix = ub::prod( _aomatrix , _gwoverlap_inverse.Matrix() );
+            _aomatrix = ub::prod(_aomatrix , _gwoverlap_inverse);
  
 
         }

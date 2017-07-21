@@ -35,7 +35,15 @@ class KMCMultiple : public KMCCalculator
 {
 public:
     KMCMultiple() {};
-   ~KMCMultiple() {};
+   ~KMCMultiple() {
+       for(auto& node:_nodes){
+           delete node;
+       }
+        for(auto& carrier:_carriers){
+           delete carrier;
+       }
+    delete _RandomVariable;
+   };
    std::string Identify() { return "kmcmultiple"; }
     void Initialize(tools::Property *options);
     bool EvaluateFrame(ctp::Topology *top);

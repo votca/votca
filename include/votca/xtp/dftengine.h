@@ -20,18 +20,20 @@
 #ifndef _VOTCA_XTP_DFTENGINE_H
 #define	_VOTCA_XTP_DFTENGINE_H
 
+
+
 #include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/ctp/polarseg.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/topology.h>
 
+#include <votca/ctp/topology.h>
+#include <votca/xtp/numerical_integrations.h>
 #include <votca/ctp/apolarsite.h>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/ERIs.h>
 #include <votca/xtp/diis.h>
 #include <votca/xtp/mixing.h>
-#include <votca/xtp/numerical_integrations.h>
+#include <votca/ctp/logger.h>
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
@@ -48,7 +50,7 @@ class DFTENGINE
 {
 public:
 
-    DFTENGINE() {_addexternalsites=false;
+    DFTENGINE() {_addexternalsites=false;_do_externalfield = false; guess_set=false;
             };
    ~DFTENGINE(){
     
@@ -63,30 +65,30 @@ public:
 
     void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
     
-    void setExternalcharges(ctp::PolarSeg externalsites){
-        _externalsites=externalsites;
+    void ConfigureExternalGrid(string grid_name_ext){_grid_name_ext=grid_name_ext; _do_externalfield = true;}
+    
+    void setExternalcharges(ctp::PolarSeg* externalsites){
+        _externalsites=ctp::PolarSeg(externalsites,false);
+        
         _addexternalsites=true;
     }
     
     void setExternalGrid(std::vector<double> electrongrid,std::vector<double> nucleigrid){
-        _externalgrid=electrongrid;
+       _externalgrid=electrongrid;
        _externalgrid_nuc=nucleigrid;
     }
     
+    std::vector< const vec *> getExternalGridpoints(){return _gridIntegration_ext.getGridpoints();}
  
     
     bool Evaluate(   Orbitals* _orbitals );
-
-    // interfaces for options getting/setting
-    //bool get_do_qp_diag(){ return _do_qp_diag ;}
-    //void set_do_qp_diag( bool inp ){ _do_qp_diag = inp;}
-    
-    
+    void Prepare( Orbitals* _orbitals );
+       
     private:
 
     ctp::Logger *_pLog;
     
-    void Prepare( Orbitals* _orbitals );
+    void ConfigOrbfile(Orbitals* _orbitals);
     void SetupInvariantMatrices();
     ub::matrix<double> AtomicGuess(Orbitals* _orbitals);
     ub::matrix<double> DensityMatrix_unres( const ub::matrix<double>& MOs, int numofelec);
@@ -110,12 +112,12 @@ public:
     Property _dftengine_options; 
     
     // atoms
-    std::vector<ctp::QMAtom*>                _atoms;
+    std::vector<ctp::QMAtom*>           _atoms;
 
     // basis sets
-    std::string                              _auxbasis_name;
-    std::string                              _dftbasis_name;
-    std::string                              _ecp_name;
+    std::string                         _auxbasis_name;
+    std::string                         _dftbasis_name;
+    std::string                         _ecp_name;
     BasisSet                            _dftbasisset;
     BasisSet                            _auxbasisset;
     BasisSet                            _ecpbasisset;
@@ -184,15 +186,15 @@ public:
     ERIs                                _ERIs;
     
     // external charges
-     ctp::PolarSeg                   _externalsites;
+     ctp::PolarSeg                     _externalsites;
      bool                            _addexternalsites;
     
     // exchange and correlation
     std::string                              _xc_functional_name;
 
 
-  
-    
+    ub::matrix<double> last_dmat;
+    bool guess_set;
 };
 
 

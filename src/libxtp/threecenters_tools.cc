@@ -53,10 +53,8 @@ namespace votca {
             for (int _i_occ = 0; _i_occ < this->get_mtot(); _i_occ++) {
 	      // fist cast _matrix[_i_occ] to double for efficient prod() overloading
 	      ub::matrix<double> _matrix_double = _matrix[ _i_occ ];
-	      // ub::matrix<real_gwbse> _temp = ub::prod(_coulomb, _matrix[ _i_occ ]);
-	      ub::matrix<real_gwbse> _temp = ub::prod(_coulomb, _matrix_double);
-	      //_matrix[ _i_occ ] = ub::prod(_coulomb, _matrix[ _i_occ ]);
-	      _matrix[ _i_occ ] = _temp;
+	      _matrix[ _i_occ ] = ub::prod(_coulomb, _matrix_double);
+	      
             }
             return;
         } // TCMatrix::Symmetrize
@@ -130,7 +128,7 @@ namespace votca {
                 int _row_end = _row_start + _shell_row->getNumFunc();
 
                 // get slice of _dft_orbitals for m-summation, belonging to this shell
-                const ub::matrix_range< const ub::matrix<double> > _m_orbitals = ub::subrange(_dft_orbitals, mmin, mmax + 1, _row_start, _row_end);
+                const ub::matrix<double>  _m_orbitals = ub::subrange(_dft_orbitals, mmin, mmax + 1, _row_start, _row_end);
 
                 // gamma-loop over the "right" DFT basis function
                 for (AOBasis::AOShellIterator _col = dftbasis.firstShell(); _col != dftbasis.lastShell(); ++_col) {

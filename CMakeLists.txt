@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.1)
 project(votca-xtp)
+
 
 set(PROJECT_VERSION "1.5-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
@@ -29,12 +30,20 @@ enable_language(CXX)
 #####################################################################
 
 include(CheckCXXCompilerFlag)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON) 
+set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0") 
+message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
+endif()
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
+
+
 
 
 ########################################################################
@@ -57,7 +66,10 @@ else()
 	set(LIBXC_LIBRARIES)
 endif()
 
+
+
 find_package(GSL)
+
 
 if(GSL_FOUND)
   message("-- GSL found for DFT")
@@ -153,15 +165,15 @@ foreach(FUNC sqrt)
 endforeach(FUNC)
 
 ######################################
-# Include the following subdirectory # 
+# Include the following subdirectory #
 ######################################
 add_subdirectory(include/votca/xtp)
 add_subdirectory(scripts)
 add_subdirectory(src/libxtp)
 add_subdirectory(src/tools)
 #add_subdirectory(src/dipro)
-#add_subdirectory(share/scripts/dipro) 
-add_subdirectory(share)  
+#add_subdirectory(share/scripts/dipro)
+add_subdirectory(share)
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/manual/xtp-manual.pdf COMMAND make -C ${CMAKE_SOURCE_DIR}/manual
 	XTP_SCRIPTS="${XTP_SCRIPTS}"

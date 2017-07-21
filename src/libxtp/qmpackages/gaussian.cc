@@ -328,16 +328,15 @@ namespace votca {
 
             orbitals_guess->SortEnergies(&_sort_index);
 
-            _com_file << endl << "(5D15.8)" << endl;
+            _com_file<< "(5D15.8)" << endl;
 
             int level = 1;
             int ncolumns = 5;
 
             for (std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++soi) {
 
-                double _energy = (orbitals_guess->_mo_energies)[*soi];
 
-                _com_file << setw(5) << level << " Alpha MO OE=" << FortranFormat(_energy) << endl;
+                _com_file << setw(5) << level<<endl;
 
                 ub::matrix_row< ub::matrix<double> > mr(orbitals_guess->_mo_coefficients, *soi);
 
@@ -354,6 +353,7 @@ namespace votca {
                 level++;
                 if (column != 1) _com_file << endl;
             }
+            _com_file<<0<<endl;
         }
     }
 
@@ -1070,10 +1070,7 @@ namespace votca {
                 }
 
 
-            /* Now, again the somewhat ugly construction:
-             * if we request writing of pseudopotential data to the input file, this
-             * implies a GW-BSE run. For this, we have to 
-             * - parse atomic orbitals Vxc matrix */
+             // - parse atomic orbitals Vxc matrix 
             if (_read_vxc) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Parsing fort.24 for Vxc" << flush;
                 std::string _log_file_name_full;

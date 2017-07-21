@@ -48,9 +48,7 @@ public:
    
    void setUseSVD(bool do_svd,double conditionnumber){_do_svd=do_svd;_conditionnumber=conditionnumber;}
     
-    void EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions);
-  
-    void FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge);
+    
     // on grid very fast
     void Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,std::string gridsize);
     // not so fast

@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
-    <code-assistance-data xmlns="http://www.netbeans.org/ns/make-project-private/1">
-        <code-model-enabled>true</code-model-enabled>
-    </code-assistance-data>
     <data xmlns="http://www.netbeans.org/ns/make-project-private/1">
         <activeConfTypeElem>3</activeConfTypeElem>
         <activeConfIndexElem>0</activeConfIndexElem>
@@ -10,12 +7,20 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/mixing.cc</file>
-            <file>file:/home/jens/votca_git/src/xtp/include/votca/xtp/diis.h</file>
-            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/dftengine/dftengine.cc</file>
-            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/diis.cc</file>
-            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/aomatrices/aomatrix.cc</file>
-            <file>file:/home/jens/votca_git/src/xtp/src/libxtp/aomatrices/aooverlap.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gnode.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/bse.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/exciton.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/bse_analysis.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/espfit.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/calculators/ianalyze.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/exciton.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/kmccalculator.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/bsecoupling.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/gwbseengine.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/gnode.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/jobcalculators/igwbse.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/jobcalculators/qmmm.h</file>
         </group>
     </open-files>
 </project-private>

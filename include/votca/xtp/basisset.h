@@ -220,7 +220,7 @@ public:
         
          map<std::string,Element*>::iterator itm = _elements.find( element_type );
          
-         if ( itm == _elements.end() ) throw std::runtime_error( "Basis set does not have element of type " + element_type );
+         if ( itm == _elements.end() ) throw std::runtime_error( "Basis set "+_name+" does not have element of type " + element_type );
          
          Element* element = (*itm).second;
          return element; 
@@ -229,7 +229,7 @@ public:
     ~BasisSet();
     
 private:    
-    
+    std::string _name;
     map<std::string,Element*> _elements;
 };
 

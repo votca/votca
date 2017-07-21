@@ -34,7 +34,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/tools/linalg.h>
-
+#include <votca/xtp/votca_config.h>
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector.hpp>
@@ -72,12 +72,9 @@ namespace votca {
             _bse_singlet_coefficients(orbitals->BSESingletCoefficients()),
             _bse_singlet_coefficients_AR(orbitals->BSESingletCoefficientsAR()),
             _bse_triplet_energies(orbitals->BSETripletEnergies()),
-            _bse_triplet_coefficients(orbitals->BSETripletCoefficients())
- {
-            };
+            _bse_triplet_coefficients(orbitals->BSETripletCoefficients()){};
 
-            ~GWBSE() {
-            };
+            ~GWBSE() {};
 
 
 
@@ -87,9 +84,6 @@ namespace votca {
                 return "gwbse";
             }
 
-            /*  void    ParseOrbitalsXML(Topology *top, Property *options);
-              Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
-             */
             void CleanUp();
 
             // int getMlower(){ return mmin -1; };
@@ -103,181 +97,6 @@ namespace votca {
 
             // interfaces for options getting/setting
 
-            bool get_do_qp_diag() {
-                return _do_qp_diag;
-            }
-
-            void set_do_qp_diag(bool inp) {
-                _do_qp_diag = inp;
-            }
-
-            bool get_do_bse_diag() {
-                return _do_bse_diag;
-            }
-
-            void set_do_bse_diag(bool inp) {
-                _do_bse_diag = inp;
-            }
-
-            bool get_do_bse_singlets() {
-                return _do_bse_singlets;
-            }
-
-            void set_do_bse_singlets(bool inp) {
-                _do_bse_singlets = inp;
-            }
-
-            bool get_do_bse_triplets() {
-                return _do_bse_triplets;
-            }
-
-            void set_do_bse_triplets(bool inp) {
-                _do_bse_triplets = inp;
-            }
-
-            bool get_store_qp_pert() {
-                return _store_qp_pert;
-            }
-
-            void set_store_qp_pert(bool inp) {
-                _store_qp_pert = inp;
-            }
-
-            bool get_store_qp_diag() {
-                return _store_qp_diag;
-            }
-
-            void set_store_qp_diag(bool inp) {
-                _store_qp_diag = inp;
-            }
-
-            bool get_store_bse_singlets() {
-                return _store_bse_singlets;
-            }
-
-            void set_store_bse_singlets(bool inp) {
-                _store_bse_singlets = inp;
-            }
-
-            bool get_store_eh_interaction() {
-                return _store_eh_interaction;
-            }
-
-            void set_store_eh_interaction(bool inp) {
-                _store_eh_interaction = inp;
-            }
-
-            bool get_store_bse_triplets() {
-                return _store_bse_triplets;
-            }
-
-            void set_store_bse_triplets(bool inp) {
-                _store_bse_triplets = inp;
-            }
-
-            std::string get_ranges() {
-                return _ranges;
-            }
-
-            void set_ranges(std::string inp) {
-                _ranges = inp;
-            }
-
-            double get_rpamaxfactor() {
-                return _rpamaxfactor;
-            }
-
-            void set_rpamaxfactor(double inp) {
-                _rpamaxfactor = inp;
-            }
-
-            double get_qpmaxfactor() {
-                return _qpmaxfactor;
-            }
-
-            void set_qpmaxfactor(double inp) {
-                _qpmaxfactor = inp;
-            }
-
-            double get_qpminfactor() {
-                return _qpminfactor;
-            }
-
-            void set_qpminfactor(double inp) {
-                _qpminfactor = inp;
-            }
-
-            double get_bsemaxfactor() {
-                return _bsemaxfactor;
-            }
-
-            void set_bsemaxfactor(double inp) {
-                _bsemaxfactor = inp;
-            }
-
-            double get_bseminfactor() {
-                return _bseminfactor;
-            }
-
-            void set_bseminfactor(double inp) {
-                _bseminfactor = inp;
-            }
-
-            unsigned int get_bse_vmin() {
-                return _bse_vmin;
-            }
-
-            void set_bse_vmin(unsigned int inp) {
-                _bse_vmin = inp;
-            }
-
-            unsigned int get_bse_cmax() {
-                return _bse_cmax;
-            }
-
-            void set_bse_cmax(unsigned int inp) {
-                _bse_cmax = inp;
-            }
-
-            unsigned int get_rpamax() {
-                return _rpamax;
-            }
-
-            void set_rpamax(unsigned int inp) {
-                _rpamax = inp;
-            }
-
-            unsigned int get_qpmax() {
-                return _qpmax;
-            }
-
-            void set_qpmax(unsigned int inp) {
-                _qpmax = inp;
-            }
-
-            unsigned int get_qpmin() {
-                return _qpmin;
-            }
-
-            void set_qpmin(unsigned int inp) {
-                _qpmin = inp;
-            }
-
-            int get_bse_nmax() {
-                return _bse_nmax;
-            }
-
-            void set_bse_nmax(int inp) {
-                _bse_nmax = inp;
-            }
-
-            int get_bse_nprint() {
-                return _bse_nprint;
-            }
-
-            void set_bse_nprint(int inp) {
-                _bse_nprint = inp;
-            }
 
             std::string get_gwbasis_name() {
                 return _gwbasis_name;
@@ -295,21 +114,7 @@ namespace votca {
                 _dftbasis_name = inp;
             }
 
-            double get_shift() {
-                return _shift;
-            }
-
-            void set_shift(double inp) {
-                _shift = inp;
-            }
-
-            void set_fragA(int n) {
-                _fragA = n;
-            }
-
-            void set_fragB(int n) {
-                _fragB = n;
-            }
+            std::vector< ub::matrix<double> > getExcitedStateDmat(std::string singletortriplet, int state);
 
             void addoutput(Property *_summary);
 
@@ -380,8 +185,8 @@ namespace votca {
             double _bsemaxfactor;
             double _ScaHFX;
 
-            double _qp_limit; //convergence criteria for qp iteration [Ryd]]
-            double _shift_limit; //convergence criteria for shift iteration [Ryd]]
+            double _qp_limit; //convergence criteria for qp iteration [Hartree]]
+            double _shift_limit; //convergence criteria for shift iteration [Hartree]]
             unsigned int _bse_vmin;
             unsigned int _bse_vmax;
             unsigned int _bse_cmin;
@@ -412,7 +217,7 @@ namespace votca {
                     const double screening_freq);
 
             void RPA_prepare_threecenters(TCMatrix& _Mmn_RPA, const TCMatrix& _Mmn_full, AOBasis& gwbasis,
-                    const AOMatrix& gwoverlap, const AOMatrix& gwoverlap_inverse);
+                    const AOMatrix& gwoverlap, const ub::matrix<double>& gwoverlap_inverse);
 
 
             // PPM related variables and functions
@@ -420,7 +225,7 @@ namespace votca {
             ub::vector<double> _ppm_freq;
             ub::vector<double> _ppm_weight;
 
-            void PPM_construct_parameters(const ub::matrix<double>& _overlap_cholesky_inverse);
+            void PPM_construct_parameters(const ub::matrix<double>& _overlap_cholesky_inverse,const ub::matrix<double>& _overlap_cholesky_inverse_trans);
 
             // Sigma related variables and functions
             ub::symmetric_matrix<double> _sigma_x; // exchange term
@@ -460,6 +265,8 @@ namespace votca {
             void BSE_solve_triplets();
             void BSE_solve_singlets();
             void BSE_solve_singlets_BTDA();
+            
+            void Solve_nonhermitian(ub::matrix<double>& H, ub::matrix<double>& L);
             std::vector<int> _index2v;
             std::vector<int> _index2c;
 
@@ -477,11 +284,14 @@ namespace votca {
                     std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp);
 
 
-            void BSE_FragmentPopulations(
-                    ub::matrix<real_gwbse>& _bse_coefficients, std::vector<double>& popHA,
-                    std::vector<double>& popEA, std::vector<double>& popHB,
-                    std::vector<double>& popEB, std::vector<double> &_CrgsA,
-                    std::vector<double> &_CrgsB);
+            void BSE_FragmentPopulations(const ub::matrix<real_gwbse>& _bse_coefficients,
+            std::vector< ub::vector<double> >& popH, std::vector< ub::vector<double> >& popE,
+            std::vector< ub::vector<double> >& Crgs);
+            
+            void BSE_FragmentPopulations_BTDA(const ub::matrix<real_gwbse>& _bse_coefficients,
+            const ub::matrix<real_gwbse>& _bse_coefficients_AR,
+            std::vector< ub::vector<double> >& popH, std::vector< ub::vector<double> >& popE,
+            std::vector< ub::vector<double> >& Crgs);
             
             
             void BSE_FreeTransition_Dipoles();

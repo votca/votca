@@ -17,8 +17,7 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/gwbse.h>
 
@@ -31,7 +30,6 @@
 #include <votca/xtp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
-#include <votca/tools/linalg.h>
 #include <votca/xtp/aoshell.h>
 
 using boost::format;
@@ -41,21 +39,24 @@ namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
 
-        void GWBSE::PPM_construct_parameters(const ub::matrix<double>& _overlap_cholesky_inverse) {
-
+        void GWBSE::PPM_construct_parameters(const ub::matrix<double>& _overlap_cholesky_inverse,const ub::matrix<double>& transcholeskyinverse) {
+            
             // multiply with L-1^t from the right
+             
             ub::matrix<double> _temp = ub::prod(_epsilon[0], ub::trans(_overlap_cholesky_inverse));
             // multiply with L-1 from the left
+            
             _temp = ub::prod(_overlap_cholesky_inverse, _temp);
 
             // get eigenvalues and eigenvectors of this matrix
             ub::vector<double> _eigenvalues;
             ub::matrix<double> _eigenvectors;
+           
             linalg_eigenvalues(_temp, _eigenvalues, _eigenvectors);
-
+            
             // multiply eigenvectors with overlap_cholesky_inverse and store as eigenvalues of epsilon
-            _ppm_phi = ub::prod(ub::trans(_overlap_cholesky_inverse), _eigenvectors);
-
+            _ppm_phi = ub::prod(transcholeskyinverse, _eigenvectors);
+            
             // store PPM weights from eigenvalues
             _ppm_weight.resize(_eigenvalues.size());
             for (unsigned _i = 0; _i < _eigenvalues.size(); _i++) {
@@ -65,12 +66,18 @@ namespace votca {
             // determine PPM frequencies
             _ppm_freq.resize(_eigenvalues.size());
             // a) phi^t * epsilon(1) * phi 
-            _temp = ub::prod(ub::trans(_ppm_phi), _epsilon[1]);
+            _temp=ub::trans(_ppm_phi);
+            _temp = ub::prod(_temp, _epsilon[1]);
+            
             _eigenvectors = ub::prod(_temp, _ppm_phi);
             // b) invert
+            
             _temp = ub::zero_matrix<double>(_eigenvalues.size(), _eigenvalues.size());
+            
             linalg_invert(_eigenvectors, _temp); //eigenvectors is destroyed after!
             // c) PPM parameters -> diagonal elements
+            
+            #pragma omp parallel for 
             for (unsigned _i = 0; _i < _eigenvalues.size(); _i++) {
 
                 if (_screening_freq(1, 0) == 0.0) {
@@ -92,12 +99,14 @@ namespace votca {
 
             }
 
+            
             // will be needed transposed later
             _ppm_phi = ub::trans(_ppm_phi);
-
+            
             // epsilon can be deleted
             _epsilon[0].resize(0, 0);
             _epsilon[1].resize(0, 0);
+            
 
             return;
         }
@@ -109,10 +118,12 @@ namespace votca {
             
             #pragma omp parallel for 
             for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
-                //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
                 int index_m = _Mmn_RPA.get_mmin();
+#if (GWBSE_DOUBLE)
                 const ub::matrix<double>& Mmn_RPA = _Mmn_RPA[ _m_level ];
-
+#else
+                const ub::matrix<double> Mmn_RPA = _Mmn_RPA[ _m_level ];
+#endif
                 // a temporary matrix, that will get filled in empty levels loop
                 ub::matrix<double> _temp = ub::zero_matrix<double>(_Mmn_RPA.get_ntot(), _size);
 
@@ -150,7 +161,12 @@ namespace votca {
             for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
                 
                 int index_m = _Mmn_RPA.get_mmin();
+                
+#if (GWBSE_DOUBLE)
                 const ub::matrix<double>& Mmn_RPA = _Mmn_RPA[ _m_level ];
+#else
+                const ub::matrix<double> Mmn_RPA = _Mmn_RPA[ _m_level ];
+#endif
 
                 // a temporary matrix, that will get filled in empty levels loop
                 ub::matrix<double> _temp = ub::zero_matrix<double>(_Mmn_RPA.get_ntot(), _size);
@@ -189,8 +205,8 @@ namespace votca {
 
         // loop over frequencies
         for ( unsigned _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
-
-             if ( _screening_freq( _i_freq, 0) == 0.0 ) {
+           
+             if ( _screening_freq( _i_freq, 0) == 0.0 ) {         
                  RPA_imaginary(_epsilon[ _i_freq ],_Mmn_RPA, _screening_freq( _i_freq, 1));
              }
 
@@ -213,19 +229,24 @@ namespace votca {
    
     // this is apparently the fourier transform of the coulomb matrix, I am not sure
     void GWBSE::RPA_prepare_threecenters(TCMatrix& _Mmn_RPA,const TCMatrix& _Mmn_full, AOBasis& gwbasis,
-             const AOMatrix& gwoverlap,const AOMatrix& gwoverlap_inverse ){
+             const AOMatrix& gwoverlap,const ub::matrix<double>& gwoverlap_inverse ){
         
         const double pi = boost::math::constants::pi<double>();
-
+        ub::range full=ub::range(0, gwbasis.AOBasisSize());
+        ub::range RPA_cut=ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin(), _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() + 1);
             // loop over m-levels in _Mmn_RPA
             #pragma omp parallel for 
             for (int _m_level = 0; _m_level < _Mmn_RPA.size(); _m_level++) {
 
                 
-                // try casting for efficient prod() overloading
-                // cast _Mmn_full to double
-                ub::matrix<double> _Mmn_double = _Mmn_full[ _m_level ];
-                ub::matrix<double> _temp = ub::prod(gwoverlap_inverse.Matrix(), _Mmn_double);
+
+                #if (GWBSE_DOUBLE)
+                const ub::matrix<double>&  _Mmn_double = _Mmn_full[ _m_level ];
+#else
+                const ub::matrix<double>  _Mmn_double = _Mmn_full[ _m_level ];
+#endif
+               
+                ub::matrix<double> _temp = ub::prod(gwoverlap_inverse, _Mmn_double);
 
 
                 // loop over n-levels in _Mmn_full 
@@ -237,12 +258,13 @@ namespace votca {
                     // loop over gwbasis shells
                     for (AOBasis::AOShellIterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); ++_is) {
                         const AOShell* _shell = gwbasis.getShell(_is);
-                        double decay = (*_shell->firstGaussian())->getDecay();
-                        //int _lmax    = _shell->getLmax();
-
-                        int _start = _shell->getStartIndex();
+                        
 
                         if (_shell->getLmin() == 0) {
+                            double decay = (*_shell->firstGaussian())->getDecay();
+                        
+
+                            int _start = _shell->getStartIndex();
 
                             double _factor = pow((2.0 * pi / decay), 0.75);
 
@@ -267,12 +289,14 @@ namespace votca {
                         // loop over gwbasis shells
                         for (AOBasis::AOShellIterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
                             const AOShell* _shell = gwbasis.getShell(_is);
-                            double decay = (*_shell->firstGaussian())->getDecay();
-
-                            int _start = _shell->getStartIndex();
+                            
 
                             if (_shell->getLmin() == 0) {
+                                double decay = (*_shell->firstGaussian())->getDecay();
+
+                                int _start = _shell->getStartIndex();
                                 double _factor = pow((2.0 * pi / decay), 0.75);
+                                
                                 // only do something for s- shells
 
                                 // loop over all functions in shell
@@ -296,7 +320,7 @@ namespace votca {
                 ub::matrix<real_gwbse> _temp2 = ub::prod(gwoverlap.Matrix(), _temp);
                 
                 // copy to _Mmn_RPA
-                _Mmn_RPA[ _m_level ] = ub::project(_temp2, ub::range(0, gwbasis.AOBasisSize()), ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin(), _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() + 1));
+                _Mmn_RPA[ _m_level ] = ub::project(_temp2, full, RPA_cut);
               
 
             }// loop m-levels

@@ -24,7 +24,7 @@ namespace votca { namespace xtp {
     
 
        
-void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::matrix_range<ub::matrix<double> >& gradAOvalues, const vec& grid_pos){
+void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::matrix_range<ub::matrix<double> >& gradAOvalues, const vec& grid_pos)const{
 
             // need type of shell
             string shell_type = this->_type;
@@ -55,18 +55,19 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
                         AOvalues(0, _i_func + 1) += _contractions[0] * _expofactor; // s-function
 
                             i_act = _i_func+1;
-                            gradAOvalues(0, i_act) += _contractions[0] * -2.0 * alpha * center_x*_expofactor; // x gradient of s-function
-                            gradAOvalues(1, i_act) += _contractions[0] * -2.0 * alpha * center_y*_expofactor; // y gradient of s-function
-                            gradAOvalues(2, i_act) += _contractions[0] * -2.0 * alpha * center_z*_expofactor; // z gradient of s-function
+                            double temp=_contractions[0] * -2.0 * alpha *_expofactor;
+                            gradAOvalues(0, i_act) +=temp* center_x; // x gradient of s-function
+                            gradAOvalues(1, i_act) +=temp* center_y; // y gradient of s-function
+                            gradAOvalues(2, i_act) +=temp* center_z; // z gradient of s-function
                         
                         _i_func++;
                     }
                     else if (single_shell == 'P') {
                       double factor = 2.*sqrt(alpha)*_contractions[1];
-                      double AOvalue;
+                      
 
                       i_act = _i_func+1; // Y 1,0
-                      AOvalue = factor * center_z * _expofactor; // Y 1,0
+                      double AOvalue = factor * center_z * _expofactor; // Y 1,0
                       AOvalues(0, i_act) += AOvalue;
                       gradAOvalues(0, i_act) += -2. * center_x * alpha * AOvalue; // x gradient
                       gradAOvalues(1, i_act) += -2. * center_y * alpha * AOvalue; // y gradient
@@ -91,10 +92,10 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
                     else if (single_shell == 'D') {
                       double factor = 2.*alpha*_contractions[2];
                       double factor_1 =  factor/sqrt(3.);
-                      double AOvalue;
+                      
 
                       i_act = _i_func+1; // Y 2,0
-                      AOvalue = factor_1 * (3.*center_z*center_z - distsq) * _expofactor; // Y 2,0
+                      double AOvalue = factor_1 * (3.*center_z*center_z - distsq) * _expofactor; // Y 2,0
                       AOvalues(0, i_act) += AOvalue;
                       gradAOvalues(0, i_act) += factor_1 * (-2. * center_x) * _expofactor - 2. * center_x * alpha * AOvalue;
                       gradAOvalues(1, i_act) += factor_1 * (-2. * center_y) * _expofactor - 2. * center_y * alpha * AOvalue;
@@ -131,7 +132,7 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
                       _i_func += 5;
                     }
                     else if (single_shell == 'F') {
-                        double factor = 2.*pow(alpha,1.5)*_contractions[3];
+                      double factor = 2.*pow(alpha,1.5)*_contractions[3];
                       double factor_1 = factor*2./sqrt(15.);
                       double factor_2 = factor*sqrt(2.)/sqrt(5.);
                       double factor_3 = factor*sqrt(2.)/sqrt(3.);
@@ -141,10 +142,10 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
                       double cy_cy = center_y*center_y;
                       double cy_cz = center_y*center_z;
                       double cz_cz = center_z*center_z;
-                      double AOvalue;
+                      
 
                       i_act = _i_func+1; // Y 3,0
-                      AOvalue = factor_1 * center_z * (5.*cz_cz - 3.*distsq) * _expofactor; // Y 3,0
+                      double AOvalue = factor_1 * center_z * (5.*cz_cz - 3.*distsq) * _expofactor; // Y 3,0
                       AOvalues(0, i_act) += AOvalue;
                       gradAOvalues(0, i_act) += factor_1 * (-6. * cx_cz) * _expofactor - 2. * center_x * alpha * AOvalue;
                       gradAOvalues(1, i_act) += factor_1 * (-6. * cy_cz) * _expofactor - 2. * center_y * alpha * AOvalue;
@@ -207,10 +208,10 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
                       double cy_cy = center_y*center_y;
                       double cy_cz = center_y*center_z;
                       double cz_cz = center_z*center_z;
-                      double AOvalue;
+                      
 
                       i_act = _i_func+1; // Y 4,0
-                      AOvalue = factor_1 * (35.*cz_cz*cz_cz - 30.*cz_cz*distsq + 3.*distsq*distsq) * _expofactor; // Y 4,0
+                      double AOvalue = factor_1 * (35.*cz_cz*cz_cz - 30.*cz_cz*distsq + 3.*distsq*distsq) * _expofactor; // Y 4,0
                       AOvalues(0, i_act) += AOvalue;
                       gradAOvalues(0, i_act) += factor_1 * 12.*center_x*(distsq - 5.*cz_cz) * _expofactor - 2. * center_x * alpha * AOvalue;
                       gradAOvalues(1, i_act) += factor_1 * 12.*center_y*(distsq - 5.*cz_cz) * _expofactor - 2. * center_y * alpha * AOvalue;
@@ -284,12 +285,12 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
                     }
                 }
             } // contractions
-
+            return;
         }
+
            
            
-           
-void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const vec& grid_pos ){
+void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const vec& grid_pos )const{
 
             // need type of shell
             string  shell_type = this->_type;
@@ -386,7 +387,7 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const
                     }
                 }
             } // contractions
-
+            return;
         }
         
 

@@ -34,10 +34,12 @@
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
         <itemPath>../../src/libxtp/tools/dft.h</itemPath>
+        <itemPath>../../src/libxtp/tools/exciton.cc</itemPath>
         <itemPath>../../src/libxtp/tools/exciton.h</itemPath>
         <itemPath>../../src/libxtp/tools/excitoncoupling.h</itemPath>
         <itemPath>../../src/libxtp/tools/gencube.h</itemPath>
         <itemPath>../../src/libxtp/tools/log2mps.h</itemPath>
+        <itemPath>../../src/libxtp/tools/matrixproduct.h</itemPath>
         <itemPath>../../src/libxtp/tools/partialcharges.h</itemPath>
         <itemPath>../../src/libxtp/tools/pdb2map.h</itemPath>
         <itemPath>../../src/libxtp/tools/pdb2top.h</itemPath>
@@ -63,6 +65,7 @@
       <itemPath>../../include/votca/xtp/aomatrix.h</itemPath>
       <itemPath>../../include/votca/xtp/aoshell.h</itemPath>
       <itemPath>../../include/votca/xtp/basisset.h</itemPath>
+      <itemPath>../../include/votca/xtp/bfgs-trm.h</itemPath>
       <itemPath>../../include/votca/xtp/bsecoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/bulkesp.h</itemPath>
       <itemPath>../../include/votca/xtp/calculatorfactory.h</itemPath>
@@ -74,12 +77,15 @@
       <itemPath>../../include/votca/xtp/espfit.h</itemPath>
       <itemPath>../../include/votca/xtp/exchange_correlation.h</itemPath>
       <itemPath>../../include/votca/xtp/extractorfactory.h</itemPath>
+      <itemPath>../../include/votca/xtp/forces.h</itemPath>
       <itemPath>../../include/votca/xtp/gdma.h</itemPath>
       <itemPath>../../include/votca/xtp/glink.h</itemPath>
       <itemPath>../../include/votca/xtp/gnode.h</itemPath>
       <itemPath>../../include/votca/xtp/grid.h</itemPath>
       <itemPath>../../include/votca/xtp/grid_containers.h</itemPath>
+      <itemPath>../../include/votca/xtp/gridbox.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbse.h</itemPath>
+      <itemPath>../../include/votca/xtp/gwbseengine.h</itemPath>
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
@@ -155,6 +161,11 @@
         <itemPath>../../src/libxtp/qmpackagefactory.cc</itemPath>
         <itemPath>../../src/libxtp/toolfactory.cc</itemPath>
       </logicalFolder>
+      <logicalFolder name="f8" displayName="geometryopt" projectFiles="true">
+        <itemPath>../../src/libxtp/bfgs-trm.cc</itemPath>
+        <itemPath>../../src/libxtp/forces.cc</itemPath>
+        <itemPath>../../src/libxtp/geometry_optimization.cc</itemPath>
+      </logicalFolder>
       <logicalFolder name="f3" displayName="kmc" projectFiles="true">
         <itemPath>../../src/libxtp/gnode.cc</itemPath>
         <itemPath>../../src/libxtp/kmccalculator.cc</itemPath>
@@ -164,9 +175,11 @@
         <itemPath>../../src/libxtp/gwbse/bse_analysis.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwa.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbse.cc</itemPath>
+        <itemPath>../../src/libxtp/gwbse/gwbseengine.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/rpa.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="NumInt" projectFiles="true">
+        <itemPath>../../src/libxtp/gridbox.cc</itemPath>
         <itemPath>../../src/libxtp/numerical_integration/numerical_integrations.cc</itemPath>
         <itemPath>../../src/libxtp/numerical_integration/radial_euler_maclaurin_rule.cc</itemPath>
         <itemPath>../../src/libxtp/numerical_integration/sphere_lebedev_rule.cc</itemPath>
@@ -179,10 +192,12 @@
       <itemPath>../../src/libxtp/bulkesp.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
+      <itemPath>../../src/libxtp/exchange_correlation.cc</itemPath>
       <itemPath>../../src/libxtp/fourcenter_rep.cc</itemPath>
       <itemPath>../../src/libxtp/fourcenters_dft.cc</itemPath>
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
       <itemPath>../../src/libxtp/grid.cc</itemPath>
+      <itemPath>../../src/libxtp/gyration.cc</itemPath>
       <itemPath>../../src/libxtp/lowdin.cc</itemPath>
       <itemPath>../../src/libxtp/mulliken.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
@@ -321,6 +336,8 @@
       </item>
       <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/bfgs-trm.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/bsecoupling.h"
             ex="false"
             tool="3"
@@ -364,6 +381,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/forces.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/glink.h" ex="false" tool="3" flavor2="0">
@@ -377,7 +396,14 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/gridbox.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/gwbseengine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobapplication.h"
             ex="false"
@@ -536,6 +562,8 @@
       </item>
       <item path="../../src/libxtp/basisset.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/bfgs-trm.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/bulkesp.cc" ex="false" tool="1" flavor2="0">
@@ -621,6 +649,11 @@
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/exchange_correlation.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/extractorfactory.cc"
             ex="false"
             tool="1"
@@ -661,6 +694,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/forces.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/fourcenters_dft.cc"
@@ -670,9 +705,16 @@
       </item>
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/geometry_optimization.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/gnode.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/grid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gridbox.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -685,7 +727,14 @@
       </item>
       <item path="../../src/libxtp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/gwbse/gwbseengine.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gyration.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/jobapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -875,6 +924,8 @@
       </item>
       <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/exciton.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/exciton.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/excitoncoupling.h"
@@ -885,6 +936,11 @@
       <item path="../../src/libxtp/tools/gencube.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/matrixproduct.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/partialcharges.h"
             ex="false"
@@ -937,6 +993,8 @@
       </item>
       <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/bfgs-trm.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/bsecoupling.h"
             ex="false"
             tool="3"
@@ -980,6 +1038,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/forces.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/glink.h" ex="false" tool="3" flavor2="0">
@@ -993,7 +1053,14 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/gridbox.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/gwbseengine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobapplication.h"
             ex="false"
@@ -1152,6 +1219,8 @@
       </item>
       <item path="../../src/libxtp/basisset.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/bfgs-trm.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/bsecoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/bulkesp.cc" ex="false" tool="1" flavor2="0">
@@ -1237,6 +1306,11 @@
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/exchange_correlation.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/extractorfactory.cc"
             ex="false"
             tool="1"
@@ -1277,6 +1351,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/forces.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/fourcenters_dft.cc"
@@ -1286,9 +1362,16 @@
       </item>
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/geometry_optimization.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/gnode.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/grid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gridbox.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1301,7 +1384,14 @@
       </item>
       <item path="../../src/libxtp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/gwbse/gwbseengine.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gyration.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/jobapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1491,6 +1581,8 @@
       </item>
       <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/exciton.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/exciton.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/excitoncoupling.h"
@@ -1501,6 +1593,11 @@
       <item path="../../src/libxtp/tools/gencube.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/matrixproduct.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/partialcharges.h"
             ex="false"
