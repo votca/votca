@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.1)
 
 project(votca-tools)
 
@@ -19,12 +19,20 @@ endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 enable_language(CXX)
 
 
+
 ######################################################################
 # compiler tests
 # these need ot be done early (before further tests).
 #####################################################################
 
 include(CheckCXXCompilerFlag)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON) 
+set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0") 
+message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
+endif()
+
 
 ########################################################################
 # User input options                                                   #

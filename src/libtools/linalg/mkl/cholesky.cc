@@ -39,8 +39,12 @@ void linalg_cholesky_decompose( ub::matrix<double> &A){
     // pointer for LAPACK
     double * pA = const_cast<double*>(&A.data().begin()[0]);
     info = LAPACKE_dpotrf( LAPACK_ROW_MAJOR , uplo , n, pA, n );
-    if ( info != 0 )
+    if ( info > 0 ){
         throw std::runtime_error("Matrix not symmetric positive definite");
+} else if (info <0){
+        throw std::runtime_error("Illegal input value");
+}
+    return;
 }
 
 

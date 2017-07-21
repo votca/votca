@@ -41,6 +41,7 @@ class vec {
 public:
     
     vec();
+    vec(const double a);
     vec(const vec &v);
     vec(const double r[3]);
     vec(const double x, const double y, const double z);
@@ -103,6 +104,10 @@ public:
      */
     const double &getZ() const { return _z; }
     
+    
+    
+    
+    
     /**
      * \brief normalize the vector
      * @return normalized vector
@@ -129,6 +134,9 @@ public:
 };
 
 inline vec::vec() {}
+
+inline vec::vec(const double a)
+    : _x(a), _y(a), _z(a) {}
 
 inline vec::vec(const vec &v)
     : _x(v._x), _y(v._y), _z(v._z) {}
@@ -171,12 +179,12 @@ inline vec::vec(const double x, const double y, const double z)
         : _x(x), _y(y), _z(z) {}
 
 inline double vec::operator[](std::size_t i) const {
-    assert(i>2 && "vec[] integer larger than 2");
+    assert(i<3 && "vec[] integer larger than 2");
     return xyz[i];
  }
 
 inline double  &vec::operator[](std::size_t i) {
-    assert(i>2 && "vec[] integer larger than 2");
+    assert(i<3 && "vec[] integer larger than 2");
     return xyz[i];
  }
     
@@ -306,6 +314,16 @@ return vec(
         v1.getX()*v2.getX() ,
         v1.getY()*v2.getY() ,
         v1.getZ()*v2.getZ() );
+}
+
+
+/// elementwise division
+inline vec elementwisedivison(const vec &v1, const vec &v2)
+{
+return vec(
+        v1.getX()/v2.getX() ,
+        v1.getY()/v2.getY() ,
+        v1.getZ()/v2.getZ() );
 }
 
 inline double abs(const vec &v)
