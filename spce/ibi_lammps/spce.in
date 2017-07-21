@@ -5,16 +5,18 @@ atom_style	atomic
 
 read_data       spce.data
 
-velocity	all create 2.49 87287
+velocity	all create 2.49435 87287
 
 pair_style	table linear 1000
 pair_coeff	1 1 CG_CG.pot VOTCA 0.9
 
-timestep	0.001
+timestep	0.002
 fix		1 all nve
-fix		2 all langevin 2.49 2.49 0.2 545454
+fix		2 all langevin 2.49435 2.49435 0.2 545454
 
-dump		1 all atom 50 traj.dump
+thermo		100
+run		10000
 
-thermo		50
-run		2500
+dump		1 all atom 100 traj.dump
+run		90000
+

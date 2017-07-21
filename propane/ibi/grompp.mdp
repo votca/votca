@@ -1,14 +1,4 @@
-;
-;	File 'mdout.mdp' was generated
-;	By user: onbekend (0)
-;	On host: onbekend
-;	At date: Mon Jun 16 16:46:16 2008
-;
-
 ; VARIOUS PREPROCESSING OPTIONS
-title                    = my_mdp_file
-; Preprocessor - specify a full path if necessary.
-cpp                      = /lib/cpp
 include                  = 
 define                   = 
 
@@ -16,8 +6,8 @@ define                   =
 integrator               = sd 
 ; Start time and timestep in ps
 tinit                    = 0
-dt                       = 0.001
-nsteps                   = 50000
+dt                       = 0.002
+nsteps                   = 100000
 ; For exact run continuation or redoing part of a run
 init_step                = 0
 ; mode for center of mass motion removal
@@ -50,17 +40,15 @@ nbfgscorr                = 10
 nstxout                  = 0
 nstvout                  = 0
 nstfout                  = 0
-; Checkpointing helps you continue after crashes
-nstcheckpoint            = 1000
 ; Output frequency for energies to log file and energy file
-nstlog                   = 2500
-nstenergy                = 2500
+nstlog                   = 100
+nstenergy                = 100
 ; Output frequency and precision for xtc file
-nstxtcout                = 50
-xtc-precision            = 1000
+nstxout-compressed       = 100
+compressed-x-precision   = 1000
 ; This selects the subset of atoms for the xtc file. You can
 ; select multiple groups. By default all atoms will be written.
-xtc_grps                 = System ;Protein 
+compressed-x-grps        = System ;Protein 
 ; Selection of energy groups
 energygrps               = A B
 
@@ -74,7 +62,6 @@ ns_type                  = grid
 pbc                      = xyz
 ; nblist cut-off        
 rlist                    = 1.5
-domain-decomposition     = no
 
 ; OPTIONS FOR ELECTROSTATICS AND VDW
 ; Method for doing electrostatics
@@ -106,7 +93,6 @@ pme_order                = 4
 ewald_rtol               = 1e-05
 ewald_geometry           = 3d
 epsilon_surface          = 0
-optimize_fft             = no
 
 ; GENERALIZED BORN ELECTROSTATICS
 ; Algorithm for calculating Born radii
@@ -137,8 +123,6 @@ pcoupltype               = isotropic
 tau_p                    = 0.5
 compressibility          = 4.5e-5
 ref_p                    = 1.0
-; Random seed for Andersen thermostat
-andersen_seed            = 815131
 
 ; OPTIONS FOR QMMM calculations
 QMMM                     = no
@@ -188,7 +172,7 @@ constraints              = none
 ; Type of constraint algorithm
 constraint_algorithm     = LINCS
 ; Do not constrain the start configuration
-unconstrained-start      = no
+continuation             = no
 ; Use successive overrelaxation to reduce the number of shake iterations
 Shake-SOR                = no
 ; Relative tolerance of shake
@@ -228,12 +212,6 @@ orire-tau                = 0
 orire-fitgrp             = 
 ; Output frequency for trace(SD) and S to energy file
 nstorireout              = 100
-; Dihedral angle restraints: No, Simple or Ensemble
-dihre                    = No
-dihre-fc                 = 1000
-dihre-tau                = 0
-; Output frequency for dihedral values to energy file
-nstdihreout              = 100
 
 ; Free energy control stuff
 free-energy              = no

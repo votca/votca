@@ -8,7 +8,7 @@ integrator               = sd
 ; Start time and timestep in ps
 tinit                    = 0
 dt                       = 0.001
-nsteps                   = 50000
+nsteps                   = 100000
 ; For exact run continuation or redoing part of a run
 init_step                = 0
 ; mode for center of mass motion removal
@@ -29,14 +29,14 @@ nstxout                  = 0
 nstvout                  = 0
 nstfout                  = 0
 ; Output frequency for energies to log file and energy file
-nstlog                   = 2500
-nstenergy                = 2500
+nstlog                   = 100
+nstenergy                = 100
 ; Output frequency and precision for xtc file
-nstxtcout                = 50
-xtc-precision            = 1000
+nstxout-compressed       = 100
+compressed-x-precision   = 1000
 ; This selects the subset of atoms for the xtc file. You can
 ; select multiple groups. By default all atoms will be written.
-xtc_grps                 = System ;Protein 
+compressed-x-grps        = System ;Protein 
 ; Selection of energy groups
 energygrps               = A B
 
@@ -50,6 +50,7 @@ ns_type                  = grid
 pbc                      = xyz
 ; nblist cut-off        
 rlist                    = 1.5
+
 
 ; OPTIONS FOR ELECTROSTATICS AND VDW
 ; Method for doing electrostatics
@@ -65,7 +66,7 @@ vdwtype                  = user
 rvdw-switch              = 0
 rvdw                     = 1.5
 ; Apply long range dispersion corrections for Energy and Pressure
-DispCorr                 = No 
+DispCorr                 = EnerPres 
 ; Extension of the potential lookup tables beyond the cut-off
 table-extension          = 1.0
 ; Seperate tables between energy group pairs
@@ -81,7 +82,6 @@ pme_order                = 4
 ewald_rtol               = 1e-05
 ewald_geometry           = 3d
 epsilon_surface          = 0
-optimize_fft             = no
 
 ; OPTIONS FOR WEAK COUPLING ALGORITHMS
 ; Temperature coupling  
@@ -98,8 +98,6 @@ pcoupltype               = isotropic
 tau_p                    = 0.5
 compressibility          = 4.5e-5
 ref_p                    = 1.0
-; Random seed for Andersen thermostat
-andersen_seed            = 815131
 
 
 ; GENERATE VELOCITIES FOR STARTUP RUN

@@ -1,10 +1,3 @@
-;
-;	File 'mdout.mdp' was generated
-;	By user: onbekend (0)
-;	On host: onbekend
-;	At date: Sun Apr 22 18:13:52 2012
-;
-
 ; VARIOUS PREPROCESSING OPTIONS
 ; Preprocessor information: use cpp syntax.
 ; e.g.: -I/home/joe/doe -I/home/mary/roe
@@ -59,11 +52,8 @@ nstlog                   = 50
 nstcalcenergy            = -1
 nstenergy                = 50
 ; Output frequency and precision for xtc file
-nstxtcout                = 0
-xtc-precision            = 1000
-; This selects the subset of atoms for the xtc file. You can
-; select multiple groups. By default all atoms will be written.
-xtc-grps                 = 
+nstxout-compressed       = 0
+compressed-x-precision   = 1000
 ; Selection of energy groups
 energygrps               = 
 
@@ -77,8 +67,6 @@ pbc                      = xyz
 periodic_molecules       = no
 ; nblist cut-off        
 rlist                    = 1.22
-; long-range cut-off for switched potentials
-rlistlong                = -1
 
 ; OPTIONS FOR ELECTROSTATICS AND VDW
 ; Method for doing electrostatics
@@ -110,7 +98,6 @@ pme_order                = 4
 ewald_rtol               = 1e-05
 ewald_geometry           = 3d
 epsilon_surface          = 0
-optimize_fft             = no
 
 ; IMPLICIT SOLVENT ALGORITHM
 implicit_solvent         = No
@@ -135,8 +122,6 @@ compressibility          = 4.5e-5
 ref_p                    = 1.0
 ; Scaling of reference coordinates, No, All or COM
 refcoord_scaling         = No
-; Random seed for Andersen thermostat
-andersen_seed            = 815131
 
 ; OPTIONS FOR QMMM calculations
 QMMM                     = no
@@ -229,9 +214,6 @@ orire-tau                = 0
 orire-fitgrp             = 
 ; Output frequency for trace(SD) and S to energy file
 nstorireout              = 100
-; Dihedral angle restraints: No or Yes
-dihre                    = No
-dihre-fc                 = 1000
 
 ; Free energy control stuff
 free-energy              = no

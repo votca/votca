@@ -1,5 +1,3 @@
-title                    = Full MD
-cpp                      = /lib/cpp
 ;
 ; Run control:
 ;
@@ -26,9 +24,9 @@ nstvout                  = 0
 nstfout                  = 0
 nstlog                   = 100
 nstenergy                = 100
-nstxtcout                = 500
-xtc-precision            = 1000
-xtc_grps                 = CG
+nstxout-compressed       = 500
+compressed-x-precision   = 1000
+compressed-x-grps        = CG
 energygrps               = CG
 ;
 ; Electrostatics
@@ -41,7 +39,7 @@ fourier_ny               = 0
 fourier_nz               = 0
 rcoulomb                 = 0.9 ; nm
 ewald_rtol               = 1e-5
-optimize_fft             = yes
+
 ;
 ; VdW
 ;

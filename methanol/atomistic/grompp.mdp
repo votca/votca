@@ -1,16 +1,3 @@
-;
-;	File 'mdout.mdp' was generated
-;	By user: spoel (291)
-;	On host: chagall
-;	At date: Mon Dec 15 13:13:06 2003
-;
-
-; VARIOUS PREPROCESSING OPTIONS
-title                    = Yo
-cpp                      = /usr/bin/cpp
-include                  = 
-define                   =  
-
 ; RUN CONTROL PARAMETERS
 integrator               = md 
 ; Start time and timestep in ps
@@ -25,12 +12,6 @@ comm-mode                = Linear
 nstcomm                  = 1
 ; group(s) for center of mass motion removal
 comm-grps                = 
-
-; LANGEVIN DYNAMICS OPTIONS
-; Temperature, friction coefficient (amu/ps) and random seed
-;bd-temp                  = 300
-bd-fric                  = 0
-ld-seed                  = 1993
 
 ; ENERGY MINIMIZATION OPTIONS
 ; Force tolerance and initial step-size
@@ -49,17 +30,12 @@ nbfgscorr                = 10
 nstxout                  = 1000
 nstvout                  = 0
 nstfout                  = 1000
-; Checkpointing helps you continue after crashes
-nstcheckpoint            = 1000
 ; Output frequency for energies to log file and energy file
-nstlog                   = 50
-nstenergy                = 50
+nstlog                   = 1000
+nstenergy                = 1000
 ; Output frequency and precision for xtc file
-nstxtcout                = 0
-xtc-precision            = 1000
-; This selects the subset of atoms for the xtc file. You can
-; select multiple groups. By default all atoms will be written.
-xtc-grps                 = 
+nstxout-compressed       = 0
+compressed-x-precision   = 1000
 ; Selection of energy groups
 energygrps               = 
 
@@ -73,7 +49,6 @@ ns_type                  = grid
 pbc                      = xyz
 ; nblist cut-off        
 rlist                    = 1.22
-domain-decomposition     = no
 
 ; OPTIONS FOR ELECTROSTATICS AND VDW
 ; Method for doing electrostatics
@@ -102,7 +77,6 @@ pme_order                = 4
 ewald_rtol               = 1e-05
 ewald_geometry           = 3d
 epsilon_surface          = 0
-optimize_fft             = no
 
 ; GENERALIZED BORN ELECTROSTATICS
 ; Algorithm for calculating Born radii
@@ -133,8 +107,6 @@ Pcoupltype               = isotropic
 tau_p                    = 0.5
 compressibility          = 4.5e-5
 ref_p                    = 1.0
-; Random seed for Andersen thermostat
-andersen_seed            = 815131
 
 ; SIMULATED ANNEALING  
 ; Type of annealing for each temperature group (no/single/periodic)
@@ -156,7 +128,7 @@ constraints              = none
 ; Type of constraint algorithm
 constraint-algorithm     = Lincs
 ; Do not constrain the start configuration
-unconstrained-start      = no
+continuation             = no
 ; Use successive overrelaxation to reduce the number of shake iterations
 Shake-SOR                = no
 ; Relative tolerance of shake
@@ -196,12 +168,6 @@ orire-tau                = 0
 orire-fitgrp             = 
 ; Output frequency for trace(SD) to energy file
 nstorireout              = 100
-; Dihedral angle restraints: No, Simple or Ensemble
-dihre                    = No
-dihre-fc                 = 1000
-dihre-tau                = 0
-; Output frequency for dihedral values to energy file
-nstdihreout              = 100
 
 ; Free energy control stuff
 free-energy              = no

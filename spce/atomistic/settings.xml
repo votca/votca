@@ -1,0 +1,13 @@
+<cg>
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>CG-CG</name>
+    <type1>*</type1>
+    <type2>*</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0.0</min>
+    <max>1.00</max>
+    <step>0.01</step>
+  </non-bonded>
+</cg>

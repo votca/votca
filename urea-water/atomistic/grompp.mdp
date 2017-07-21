@@ -7,7 +7,7 @@ nstvout = 0
 nstfout = 0
 nstlog = 10000
 nstenergy = 500
-nstxtcout= 500
+nstxout-compressed= 500
 
 nstlist = 10
 ns_type = grid
@@ -16,7 +16,6 @@ rcoulomb = 1.0
 vdwtype = cutoff
 rvdw = 1.0
 pme_order = 4
-optimize_fft = yes
 
 ;Couplig Temp
 tcoupl = nose-hoover

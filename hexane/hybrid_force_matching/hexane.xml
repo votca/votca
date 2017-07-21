@@ -1,0 +1,51 @@
+<cg_molecule>
+  <name>HEX</name>
+  <ident>Protein</ident>
+  <topology>
+    <cg_beads>
+      <cg_bead>
+        <name>A1</name>
+        <type>A</type>
+        <mapping>A</mapping>
+        <beads>1:CHL:C 2:CH2:C 1:CHL:H1 1:CHL:H2 1:CHL:H3 2:CH2:H1 2:CH2:H2</beads>
+      </cg_bead>
+      <cg_bead>
+        <name>B</name>
+        <type>B</type>
+        <mapping>B</mapping>
+        <beads>3:CH2:C 4:CH2:C 3:CH2:H1 3:CH2:H2 4:CH2:H1 4:CH2:H2</beads>
+      </cg_bead>
+      <cg_bead>
+        <name>A2</name>
+        <type>A</type>
+        <mapping>A</mapping>
+        <beads>6:CHR:C 5:CH2:C 6:CHR:H1 6:CHR:H2 6:CHR:H3 5:CH2:H1 5:CH2:H2</beads>
+      </cg_bead>
+  </cg_beads>
+  <cg_bonded>
+    <bond>
+      <name>bond</name>
+      <beads>
+        A1 B
+        A2 B
+      </beads>
+    </bond>
+    <angle>
+      <name>angle</name>
+      <beads>
+        A1 B A2
+      </beads>
+    </angle>
+  </cg_bonded>
+  </topology>
+  <maps>
+    <map>
+      <name>A</name>
+      <weights> 12 12 1 1 1 1 1</weights>
+    </map>
+    <map>
+      <name>B</name>
+      <weights> 12 12 1 1 1 1 </weights>
+    </map>
+  </maps>
+</cg_molecule>

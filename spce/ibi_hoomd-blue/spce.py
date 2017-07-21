@@ -7,9 +7,9 @@ from hoomd_script import *
 
 '''
 2180 Particles
-Box 4.05^3
+Box 4.031^3
 langevin thermostat T=2.5 gamma=5
-dt=0.001
+dt=0.002
 cutoff=0.9
 '''
 
@@ -63,11 +63,14 @@ tab = pair.table(width=351)
 tab.set_from_file('CG', 'CG', filename="CG_CG.tab")
 
 all = group.all();
-integrate.mode_standard(dt=0.001)
+integrate.mode_standard(dt=0.002)
 bd = integrate.bdnvt(group=all, T=2.5)
 bd.set_gamma('CG', gamma=5.0)
 
-for step in range(50):
+for step in range(100):
+  run(100)
+
+for step in range(900):
   run(100)
   write_gro('traj.gro')
 

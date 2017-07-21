@@ -1,0 +1,15 @@
+tab set T 300
+tab set scale bond
+tab set auto 0
+tab set min 0.220
+tab set max 0.278
+tab set n 117
+tab bond.pot.ib *bond*
+
+tab set scale angle
+tab set min 1.70
+tab set max 3.141592654
+tab set n 160
+tab angle.pot.ib *angle*
+
+q
