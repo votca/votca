@@ -91,8 +91,7 @@ namespace votca {
             string _force_method;
             string _spin_type;
 
-            bool _remove_total_force;
-            bool _remove_CoM_force;
+            
             
             bool _noisy_output;
 
@@ -104,6 +103,8 @@ namespace votca {
             QMPackage* _qmpackage;
             vector<ctp::Segment*> _segments;
             Orbitals* _orbitals;
+            bool _remove_total_force;
+            bool _remove_CoM_force;
 
             ub::matrix<double> _forces;
 

@@ -116,7 +116,7 @@ namespace votca {
                 const std::vector<double>& weights=box.getGridWeights();
                 
                 ub::range one=ub::range(0,1);
-                ub::range three=ub::range(0,3);
+                
                 ub::matrix<double> _temp     = ub::zero_matrix<double>(1,box.Matrixsize());
                 
                 ub::matrix<double> ao=ub::matrix<double>(1,box.Matrixsize());
@@ -145,7 +145,7 @@ namespace votca {
                 
             }
             }   
-            for(int i=0;i<nthreads;++i){
+            for(unsigned i=0;i<nthreads;++i){
                 ExternalMat+=vex_thread[i];
                 
                }   
@@ -526,7 +526,7 @@ namespace votca {
                 
             }
             }   
-            for(int i=0;i<nthreads;++i){
+            for(unsigned i=0;i<nthreads;++i){
                 Vxc+=vxc_thread[i];
                 EXC+=Exc_thread[i];
                }   
@@ -596,7 +596,7 @@ namespace votca {
                 
             }
             }   
-            for(int i=0;i<nthreads;++i){
+            for(unsigned i=0;i<nthreads;++i){
                 N+=N_thread[i];
                }   
             density_set=true;
@@ -715,7 +715,7 @@ namespace votca {
                 
             }
             }   
-            for(int i=0;i<nthreads;++i){
+            for(unsigned i=0;i<nthreads;++i){
                 N+=N_thread[i];
                 centroid_x += centroid_x_thread[i];
                 centroid_y += centroid_y_thread[i];

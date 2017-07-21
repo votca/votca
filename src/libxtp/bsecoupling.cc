@@ -119,8 +119,7 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
         }
     }
     
-    //cout << JAB_triplet<<endl;
-    //cout << JAB_triplet*conv::hrt2ev<<endl;
+    
     if ( _doTriplets){
         Property *_triplet_summary = &_type_summary->add("triplets","");
         for (int stateA = 0; stateA < _levA ; ++stateA ) {

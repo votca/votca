@@ -68,9 +68,7 @@ namespace votca {
             _log.setPreface(ctp::logERROR,   "\n... ...");
             _log.setPreface(ctp::logWARNING, "\n... ...");
             _log.setPreface(ctp::logDEBUG,   "\n... ...");
-
-            ctp::TLogLevel _ReportLevel = _log.getReportLevel(); // backup report level
-
+            
             // Get orbitals object
             Orbitals _orbitals;
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="100">
+<configurationDescriptor version="97">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -197,6 +197,7 @@
       <itemPath>../../src/libxtp/fourcenters_dft.cc</itemPath>
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
       <itemPath>../../src/libxtp/grid.cc</itemPath>
+      <itemPath>../../src/libxtp/gyration.cc</itemPath>
       <itemPath>../../src/libxtp/lowdin.cc</itemPath>
       <itemPath>../../src/libxtp/mulliken.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
@@ -732,6 +733,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gyration.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/jobapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1387,6 +1390,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gyration.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/jobapplication.cc" ex="false" tool="1" flavor2="0">
       </item>

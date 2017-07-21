@@ -424,9 +424,9 @@ namespace votca {
             while (OutsideTrustRegion(_max_step_squared)) {
                 _max_step_squared = 0.0;
                 _lambda -= 0.05 * std::abs(_eigenvalues(0));
-                for (int _i = 0; _i < _dim; _i++) {
+                for (unsigned _i = 0; _i < _dim; _i++) {
                     ub::vector<double> _slice(_dim, 0.0);
-                    for (int _j = 0; _j < _dim; _j++) {
+                    for (unsigned _j = 0; _j < _dim; _j++) {
                         _slice(_j) = _eigenvectors(_j, _i);
                     }
 
@@ -441,9 +441,9 @@ namespace votca {
             //CTP_LOG(ctp::logDEBUG,_log) << " BFGS-TRM: with lambda " << _lambda << " max step sq is " << _max_step_squared << flush;
 
             _delta_pos = ub::zero_vector<double>(_dim);
-            for (int _i = 0; _i < _dim; _i++) {
+            for (unsigned _i = 0; _i < _dim; _i++) {
                 ub::vector<double> _slice(_dim, 0.0);
-                for (int _j = 0; _j < _dim; _j++) {
+                for (unsigned _j = 0; _j < _dim; _j++) {
                     _slice(_j) = _eigenvectors(_j, _i);
                 }
 
@@ -528,7 +528,7 @@ namespace votca {
             // write coordinates as xyz file
             ofs << _atoms.size() << endl;
             ofs << "iteration " << _iteration << " energy " << _last_energy << " Hartree" << endl;
-            unsigned _i_atom = 0;
+            
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
                 // put trial coordinates (_current_xyz is in Bohr, segments in nm)
                 ofs << (*ait)->getElement() << " " << (*ait)->getQMPos().getX() * tools::conv::nm2ang << " " << (*ait)->getQMPos().getY() * tools::conv::nm2ang << " " << (*ait)->getQMPos().getZ() * tools::conv::nm2ang << endl;

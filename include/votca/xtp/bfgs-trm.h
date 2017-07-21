@@ -66,10 +66,16 @@ namespace votca {
 
 
         private:
+            
+            GWBSEENGINE _gwbse_engine;
+            QMPackage* _qmpackage;
+            vector<ctp::Segment*> _segments;
+            Orbitals* _orbitals;
+            Forces _force_engine;
 
-            int _natoms;
-            int _nsegments;
-            int _iteration;
+            unsigned _natoms;
+            unsigned _nsegments;
+            unsigned _iteration;
             ub::matrix<double> _force;
             ub::matrix<double> _force_old;
             ub::matrix<double> _xyz_shift;
@@ -101,11 +107,7 @@ namespace votca {
             string _force_method;
             unsigned _max_iteration;
 
-            GWBSEENGINE _gwbse_engine;
-            QMPackage* _qmpackage;
-            vector<ctp::Segment*> _segments;
-            Orbitals* _orbitals;
-            Forces _force_engine;
+            
 
             Property _optimizer_options;
             Property _force_options;

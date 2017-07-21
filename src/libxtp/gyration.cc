@@ -89,9 +89,7 @@ void Density2Gyration::AnalyzeDensity( Orbitals & _orbitals ){
 
         //basis.ReorderMOs(_orbitals.MOCoefficients(), _orbitals.getQMpackage(), "votca" );  
         basis.ReorderMOs(_MO_Coefficients, _orbitals.getQMpackage(), "xtp" );  
-        bool _do_transition=false;
         if(_state=="transition"){
-            _do_transition=true;
             if (_spin=="singlet"){
                 //DMAT_tot=_orbitals.TransitionDensityMatrix(_orbitals.MOCoefficients() , _orbitals.BSESingletCoefficients(), _state_no-1);
                 DMAT_tot=_orbitals.TransitionDensityMatrix(_MO_Coefficients, _orbitals.BSESingletCoefficients(), _state_no-1);
@@ -220,11 +218,11 @@ void Density2Gyration::AnalyzeDensity( Orbitals & _orbitals ){
         }
         
         // normalize
-        for ( int i =1 ; i < 4; i++){
+        for ( unsigned i =1 ; i < 4; i++){
             _analysis(i) = _analysis(i)/_analysis(0)/tools::conv::bohr2ang;
         }
                 // normalize
-        for ( int i =4 ; i < _analysis.size(); i++){
+        for ( unsigned i =4 ; i < _analysis.size(); i++){
             _analysis(i) = _analysis(i)/_analysis(0)/tools::conv::bohr2ang/tools::conv::bohr2ang;
         }
         

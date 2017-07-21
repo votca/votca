@@ -75,6 +75,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/6916996f/gwbse.o \
 	${OBJECTDIR}/_ext/6916996f/gwbseengine.o \
 	${OBJECTDIR}/_ext/6916996f/rpa.o \
+	${OBJECTDIR}/_ext/1ce08c7a/gyration.o \
 	${OBJECTDIR}/_ext/1ce08c7a/jobapplication.o \
 	${OBJECTDIR}/_ext/1ce08c7a/jobcalculatorfactory.o \
 	${OBJECTDIR}/_ext/f632c409/dma.o \
@@ -341,6 +342,11 @@ ${OBJECTDIR}/_ext/6916996f/rpa.o: ../../src/libxtp/gwbse/rpa.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/6916996f
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/6916996f/rpa.o ../../src/libxtp/gwbse/rpa.cc
+
+${OBJECTDIR}/_ext/1ce08c7a/gyration.o: ../../src/libxtp/gyration.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/gyration.o ../../src/libxtp/gyration.cc
 
 ${OBJECTDIR}/_ext/1ce08c7a/jobapplication.o: ../../src/libxtp/jobapplication.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
