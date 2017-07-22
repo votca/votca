@@ -57,8 +57,8 @@ env:
     - WALL=yes GMX_VERSION=9999 J=4
     - WALL=yes GMX_VERSION=9999 GMX_DOUBLE=yes J=4
     - MINIMAL=yes J=4
-    - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_bonded J=4
-    - CSG_MDRUN_STEPS=500 TEST=hexane/ibi J=4
+    - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_all J=4
+    - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_nonbonded J=4
     - CSG_MDRUN_STEPS=500 TEST=methanol/ibi J=4
     - CSG_MDRUN_STEPS=5000 TEST=methanol/imc J=4
     - CSG_MDRUN_STEPS=2500 TEST=methanol-water/X_0.938/re J=4
