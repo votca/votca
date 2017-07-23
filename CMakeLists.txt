@@ -31,7 +31,7 @@ include(${CMAKE_MODULE_PATH}/UseLATEX.cmake)
 set(TEX2EPS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/tex2eps)
 set(BBOX_ADD ${CMAKE_CURRENT_SOURCE_DIR}/scripts/bbox_add.pl)
 #cannot use add_subdir as file depends only work with in the same directory
-foreach(CURRENT_DIR functionality/fig usage/fig)
+foreach(CURRENT_DIR functionality/fig usage/fig reference)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR})
   include(${CURRENT_DIR}/CMakeLists.txt)
 endforeach()
@@ -59,7 +59,7 @@ add_latex_document(manual.tex
     functionality/propane.xml functionality/settings.xml
   IMAGES fig/logo.eps fig/propane.eps usage/fig/propane.eps fig/excl.eps fig/hexane2.eps fig/propane_hist2d.eps
   TARGET_NAME manual DEPENDS gitid.tex functionality/fig/flowchart.eps functionality/fig/iterativemethods.eps
-    usage/fig/flow_boltzmann.eps usage/fig/flow_fmatch.eps usage/fig/flow_ibi.eps
+    usage/fig/flow_boltzmann.eps usage/fig/flow_fmatch.eps usage/fig/flow_ibi.eps reference/csgid.tex
 )
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
