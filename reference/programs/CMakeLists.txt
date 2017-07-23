@@ -20,6 +20,6 @@ foreach(prog csg_boltzmann csg_call csg_density csg_dlptopol csg_dump csg_fmatch
       --outfile ${CURRENT_DIR}/${prog}.tex
     DEPENDS ${prog_EXE} ${CURRENT_DIR}/config.t2t)
   list(APPEND PROG_TEXS ${CURRENT_DIR}/${prog}.tex)
-  file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex "\\input(${CURRENT_DIR}/${prog})\n")
+  file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex "\\input{${CURRENT_DIR}/${prog}}\n")
 endforeach()
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex DEPENDS ${PROG_TEXS})
