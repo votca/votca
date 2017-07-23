@@ -43,7 +43,8 @@ include(${CMAKE_MODULE_PATH}/UseLATEX.cmake)
 # Include the following subdirectory # 
 ######################################
 #cannot use add_subdir as file depends only work with in the same directory
-foreach(CURRENT_DIR functionality/fig usage/fig reference reference/xml)
+foreach(CURRENT_DIR functionality/fig usage/fig reference reference/xml
+  reference/programs)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR})
   include(${CURRENT_DIR}/CMakeLists.txt)
 endforeach()
@@ -73,6 +74,7 @@ add_latex_document(manual.tex
   TARGET_NAME manual DEPENDS gitid.tex functionality/fig/flowchart.eps functionality/fig/iterativemethods.eps
     usage/fig/flow_boltzmann.eps usage/fig/flow_fmatch.eps usage/fig/flow_ibi.eps reference/csgid.tex
     reference/xml/mapping.xml.tex reference/xml/csg_defaults.xml.tex reference/xml/topol.xml.tex
+    reference/programs/all.tex
 )
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)

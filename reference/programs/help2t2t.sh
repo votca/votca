@@ -5,13 +5,10 @@ die() {
   exit 1
 }
 
-[ -z "$1" ] && die "${0##*/}: Missing argument"
-prog="$1"
-shift
-
-[ -z "$(type $prog)" ] && die "${0##*/}: $prog not found"
-
-helpmsg="$($prog "$@" --help)" || die "${0##*/}: $prog --help failed"
+[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing argument"
+prog="${1}"
+[[ -f $2 ]] || die "${0##*/}: Could not open '$2'"
+helpmsg="$(<$2)"
 
 echo "$prog"
 echo ${0##*/}
