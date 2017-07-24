@@ -7,7 +7,7 @@ services:
 
 env:
   matrix:
-    - TESTOPTS="-V" 
+    - TESTOPTS="-V -E _imc" 
 
 script:
  - cp -vr docker ${HOME}
