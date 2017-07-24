@@ -39,6 +39,7 @@ addons:
       - inkscape
       - doxygen
       - graphviz
+      - ghostscript
       - python-numpy
       - gnuplot-nox
       - octave
