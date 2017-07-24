@@ -13,11 +13,11 @@ add_custom_command(OUTPUT ${CURRENT_DIR}/csg_table.tex
 
 execute_process(COMMAND ${CSG_CALL} -l OUTPUT_VARIABLE CSG_SCRIPTS)
 string(REGEX REPLACE "#[^\n]*\n" "" CSG_SCRIPTS "${CSG_SCRIPTS}")
-string(REGEX REPLACE "[^ \n]+ +[^ \n]+ +([^ \n]+) *.*\n" "\\1;" CSG_SCRIPTS ${CSG_SCRIPTS})
+string(REGEX REPLACE "[^ \n]+ +[^ \n]+ +([^ \n]+) *[^ \n]*[^\n]*\n" "\\1;" CSG_SCRIPTS ${CSG_SCRIPTS})
 list(SORT CSG_SCRIPTS)
 list(REMOVE_DUPLICATES CSG_SCRIPTS)
 set(SCRIPT_TEXS)
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex.cmake)
 foreach(script ${CSG_SCRIPTS}) 
   string(TOUPPER "${script}" SCRIPT)
   add_custom_command(OUTPUT ${CURRENT_DIR}/${script}.tex
@@ -26,6 +26,9 @@ foreach(script ${CSG_SCRIPTS})
       --outfile ${CURRENT_DIR}/${script}.tex
     DEPENDS ${CSG_SHARE}/scripts/inverse/${script} ${CURRENT_DIR}/config.t2t)
   list(APPEND SCRIPT_TEXS ${CURRENT_DIR}/${script}.tex)
-  file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex "\\input{${CURRENT_DIR}/${script}}\n")
+  file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex.cmake "\\input{${CURRENT_DIR}/${script}}\n")
 endforeach()
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex DEPENDS ${SCRIPT_TEXS})
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex DEPENDS ${PROG_TEXS}
+  DEPENDS ${SCRIPT_TEXS})
