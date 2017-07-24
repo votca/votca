@@ -10,9 +10,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 ########################################################################
 # User input options                                                   #
 ########################################################################
-if (NOT DEFINED DATA)
-  set(DATA "share/votca")
-endif(NOT DEFINED DATA)
+set(CMAKE_SIZEOF_VOID_P 8)
+include(GNUInstallDirs)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
   message(FATAL_ERROR "In-source build not supported with UseLATEX.cmake")
@@ -69,6 +68,7 @@ endif()
 add_dependencies(uninstall uninstall-csg-manual)
 
 set(LATEX_DEFAULT_BUILD ps)
+set(PDFLATEX_COMPILER NOTFOUND)
 add_latex_document(manual.tex
   BIBFILES votca.bib
   INPUTS inputfiles.tex introduction.tex newcommands.tex reference.tex theory.tex titlepage.tex usage.tex
@@ -80,6 +80,13 @@ add_latex_document(manual.tex
     reference/xml/mapping.xml.tex reference/xml/csg_defaults.xml.tex reference/xml/topol.xml.tex
     reference/programs/all.tex reference/scripts/csg_table.tex reference/scripts/all.tex
 )
+
+add_custom_command(OUTPUT manual.pdf
+  COMMAND ${PS2PDF_CONVERTER} manual.ps manual.pdf
+  DEPENDS manual_ps
+)
+add_custom_target(csg-manual ALL DEPENDS manual.pdf)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/manual.pdf DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
   include(FeatureSummary)
