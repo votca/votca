@@ -14,7 +14,7 @@ set(CMAKE_SIZEOF_VOID_P 8)
 include(GNUInstallDirs)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
-  message(FATAL_ERROR "In-source build not supported with UseLATEX.cmake")
+	message(FATAL_ERROR "In-source build not supported with UseLATEX.cmake\nDo 'rm CMakeCache.txt; mkdir builld; cd build; cmake ..' instead")
 endif()
 
 ########################################################################
