@@ -11,23 +11,21 @@ add_custom_command(OUTPUT ${CURRENT_DIR}/csg_table.tex
       --outfile ${CURRENT_DIR}/csg_table.tex
       DEPENDS ${CSG_CALL} ${CURRENT_DIR}/config.t2t)
 
-#set(PROG_TEXS)
-#file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex)
-#foreach(prog csg_boltzmann csg_call csg_density csg_dlptopol csg_dump csg_fmatch csg_gmxtopol csg_imcrepack csg_inverse csg_map
-#  csg_property csg_resample csg_reupdate csg_stat)
-#  string(TOUPPER "${prog}" PROG)
-#  find_program(${PROG} ${prog})
-#  if(NOT ${PROG})
-#    message(FATAL_ERROR "Could not find ${prog}")
-#  endif()
-#  add_custom_command(OUTPUT ${CURRENT_DIR}/${prog}.tex
-#    COMMAND ${${PROG}} --help > ${CURRENT_DIR}/${prog}.help
-#    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/${CURRENT_DIR}/help2t2t.sh ${prog} ${CURRENT_DIR}/${prog}.help
-#      > ${CURRENT_DIR}/${prog}.t2t
-#    COMMAND ${TXT2TAGS_EXECUTABLE} -t tex --no-header --infile ${CURRENT_DIR}/${prog}.t2t
-#      --outfile ${CURRENT_DIR}/${prog}.tex
-#    DEPENDS ${prog_EXE} ${CURRENT_DIR}/config.t2t)
-#  list(APPEND PROG_TEXS ${CURRENT_DIR}/${prog}.tex)
-#  file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex "\\input(${CURRENT_DIR}/${prog})\n")
-#endforeach()
-#add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex DEPENDS ${PROG_TEXS})
+execute_process(COMMAND ${CSG_CALL} -l OUTPUT_VARIABLE CSG_SCRIPTS)
+string(REGEX REPLACE "#[^\n]*\n" "" CSG_SCRIPTS "${CSG_SCRIPTS}")
+string(REGEX REPLACE "[^ \n]+ +[^ \n]+ +([^ \n]+) *.*\n" "\\1;" CSG_SCRIPTS ${CSG_SCRIPTS})
+list(SORT CSG_SCRIPTS)
+list(REMOVE_DUPLICATES CSG_SCRIPTS)
+set(SCRIPT_TEXS)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex)
+foreach(script ${CSG_SCRIPTS}) 
+  string(TOUPPER "${script}" SCRIPT)
+  add_custom_command(OUTPUT ${CURRENT_DIR}/${script}.tex
+    COMMAND CSG_CALL=${CSG_CALL} ${CMAKE_CURRENT_SOURCE_DIR}/${CURRENT_DIR}/script2t2t.sh ${script} > ${CURRENT_DIR}/${script}.t2t
+    COMMAND ${TXT2TAGS_EXECUTABLE} -t tex --no-header --infile ${CURRENT_DIR}/${script}.t2t
+      --outfile ${CURRENT_DIR}/${script}.tex
+    DEPENDS ${CSG_SHARE}/scripts/inverse/${script} ${CURRENT_DIR}/config.t2t)
+  list(APPEND SCRIPT_TEXS ${CURRENT_DIR}/${script}.tex)
+  file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex "\\input{${CURRENT_DIR}/${script}}\n")
+endforeach()
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex DEPENDS ${SCRIPT_TEXS})

@@ -14,6 +14,10 @@ if (NOT DEFINED DATA)
   set(DATA "share/votca")
 endif(NOT DEFINED DATA)
 
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+  message(FATAL_ERROR "In-source build not supported with UseLATEX.cmake")
+endif()
+
 ########################################################################
 #Find external packages
 ########################################################################
@@ -74,7 +78,7 @@ add_latex_document(manual.tex
   TARGET_NAME manual DEPENDS gitid.tex functionality/fig/flowchart.eps functionality/fig/iterativemethods.eps
     usage/fig/flow_boltzmann.eps usage/fig/flow_fmatch.eps usage/fig/flow_ibi.eps reference/csgid.tex
     reference/xml/mapping.xml.tex reference/xml/csg_defaults.xml.tex reference/xml/topol.xml.tex
-    reference/programs/all.tex reference/scripts/csg_table.tex
+    reference/programs/all.tex reference/scripts/csg_table.tex reference/scripts/all.tex
 )
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
