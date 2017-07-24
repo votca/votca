@@ -28,13 +28,20 @@ find_package(TXT2TAGS REQUIRED)
 
 foreach(prog csg_call csg_property dvipdf)
   string(TOUPPER "${prog}" PROG)
+  if(TARGET ${prog})
+    set(${PROG} $<TARGET_FILE:${prog}>)
+  endif()
   find_program(${PROG} ${prog})
   find_package_handle_standard_args(${PROG} REQUIRED_VARS ${PROG})
   if(NOT ${PROG}_FOUND)
     message(FATAL_ERROR "Could not find ${prog}")
   endif()
 endforeach()
-execute_process(COMMAND ${CSG_CALL} --show-share OUTPUT_VARIABLE CSG_SHARE OUTPUT_STRIP_TRAILING_WHITESPACE)
+if(VOTCA_SHARE)
+  set(CSG_SHARE "${VOTCA_SHARE}")
+else()
+  execute_process(COMMAND ${CSG_CALL} --show-share OUTPUT_VARIABLE CSG_SHARE OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
 message(STATUS "CSG_SHARE is ${CSG_SHARE}")
 
 set(TEX2EPS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/tex2eps)
@@ -52,13 +59,13 @@ foreach(CURRENT_DIR functionality/fig usage/fig reference reference/xml
   include(${CURRENT_DIR}/CMakeLists.txt)
 endforeach()
 
-add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
+add_custom_target(gitid COMMAND ${CMAKE_COMMAND}
   -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   -DPROJECT_VERSION="${PROJECT_VERSION}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -P ${CMAKE_MODULE_PATH}/gitversion.cmake)
+  -P ${CMAKE_MODULE_PATH}/gitid.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitid.tex)
-add_custom_command(OUTPUT gitid.tex DEPENDS gitversion)
+add_custom_command(OUTPUT gitid.tex DEPENDS gitid)
 
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 add_custom_target(uninstall-csg-manual COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)

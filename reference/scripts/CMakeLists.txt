@@ -11,9 +11,12 @@ add_custom_command(OUTPUT ${CURRENT_DIR}/csg_table.tex
       --outfile ${CURRENT_DIR}/csg_table.tex
       DEPENDS ${CSG_CALL} ${CURRENT_DIR}/config.t2t)
 
-execute_process(COMMAND ${CSG_CALL} -l OUTPUT_VARIABLE CSG_SCRIPTS)
-string(REGEX REPLACE "#[^\n]*\n" "" CSG_SCRIPTS "${CSG_SCRIPTS}")
-string(REGEX REPLACE "[^ \n]+ +[^ \n]+ +([^ \n]+) *[^ \n]*[^\n]*\n" "\\1;" CSG_SCRIPTS ${CSG_SCRIPTS})
+#don't call "csg_call -l" as csg_call isn't ready at cmake time in case of a super-build
+file(READ ${CSG_SHARE}/scripts/inverse/csg_table CSG_SCRIPTS)
+string(REGEX REPLACE "#[^\n]*\n" "" CSG_SCRIPTS "${CSG_SCRIPTS}") #remove comments
+string(REGEX REPLACE "\n" ";" CSG_SCRIPTS "${CSG_SCRIPTS}") #turn into list
+string(REGEX REPLACE "; *;" ";" CSG_SCRIPTS "${CSG_SCRIPTS}") #remove empty line
+string(REGEX REPLACE "[^ ;]+ +[^ ;]+ +([^ ;]+) *[^ ;]*[^;]*;" "\\1;" CSG_SCRIPTS "${CSG_SCRIPTS}")
 list(SORT CSG_SCRIPTS)
 list(REMOVE_DUPLICATES CSG_SCRIPTS)
 set(SCRIPT_TEXS)
