@@ -5,23 +5,18 @@ die() {
   exit 1
 }
 
-[ -z "$1" ] && die "Missing argument"
-[ -f "$1" ] || die "File '$1' not found"
-tmp=$(mktemp -d ${1%.tex}_XXX) || die "mktemp failed"
+[[ -z $1 || -z $2 ]] && die "Missing argument"
+[[ -f $1 ]] || die "File '$1' not found"
+tmp=$(mktemp -d) || die "mktemp failed"
 
 cp $1 $tmp
 cd $tmp
-latex -halt-on-error ${1}
-latex -halt-on-error ${1}
-dvips -E ${1%.tex}.dvi -o ${1%.tex}.eps
+f=${1##*/}
+latex -halt-on-error "${f}"
+latex -halt-on-error "${f}"
+f=${f%.*}
+dvips -E "${f}.dvi" -o "${f}.eps"
 
-if [ -x ../bbox_add.pl ]; then
-  ../bbox_add.pl ${1%.tex}.eps
-elif [ -n "$(type -p bbox_add.pl)" ]; then
-  bbox_add.pl ${1%.tex}.eps
-else
-  echo "No bbox fix"
-fi
-cp ${1%.tex}.eps ..
-cd ..
+cp ${f}.eps ${2}
+cd -
 rm -rf $tmp
