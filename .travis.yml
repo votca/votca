@@ -33,6 +33,7 @@ addons:
       - cm-super
       - doxygen
       - graphviz
+      - ghostscript
       - python-numpy
       - gnuplot-nox
       - octave
