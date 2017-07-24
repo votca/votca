@@ -26,14 +26,14 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(TXT2TAGS REQUIRED)
 
-find_program(CSG_CALL csg_call)
-if(NOT CSG_CALL)
-  message(FATAL_ERROR "csg_call not found")
-endif()
-find_program(CSG_PROPERTY csg_property)
-if(NOT CSG_PROPERTY)
-  message(FATAL_ERROR "csg_property not found")
-endif()
+foreach(prog csg_call csg_property dvipdf)
+  string(TOUPPER "${prog}" PROG)
+  find_program(${PROG} ${prog})
+  find_package_handle_standard_args(${PROG} REQUIRED_VARS ${PROG})
+  if(NOT ${PROG}_FOUND)
+    message(FATAL_ERROR "Could not find ${prog}")
+  endif()
+endforeach()
 execute_process(COMMAND ${CSG_CALL} --show-share OUTPUT_VARIABLE CSG_SHARE OUTPUT_STRIP_TRAILING_WHITESPACE)
 message(STATUS "CSG_SHARE is ${CSG_SHARE}")
 
@@ -67,25 +67,23 @@ if(NOT TARGET uninstall)
 endif()
 add_dependencies(uninstall uninstall-csg-manual)
 
-set(LATEX_DEFAULT_BUILD ps)
-set(PDFLATEX_COMPILER NOTFOUND)
 add_latex_document(manual.tex
-  BIBFILES votca.bib
+  BIBFILES votca.bib FORCE_DVI
   INPUTS inputfiles.tex introduction.tex newcommands.tex reference.tex theory.tex titlepage.tex usage.tex
     usage/boltzmann.tex usage/cgruns.tex usage/cibi.tex usage/dlpoly.tex usage/forcematching.tex usage/iterative_methods.tex
     functionality/propane.xml functionality/settings.xml
   IMAGES fig/logo.eps fig/propane.eps usage/fig/propane.eps fig/excl.eps fig/hexane2.eps fig/propane_hist2d.eps
-  TARGET_NAME manual DEPENDS gitid.tex functionality/fig/flowchart.eps functionality/fig/iterativemethods.eps
+  TARGET_NAME csg-manual DEPENDS gitid.tex functionality/fig/flowchart.eps functionality/fig/iterativemethods.eps
     usage/fig/flow_boltzmann.eps usage/fig/flow_fmatch.eps usage/fig/flow_ibi.eps reference/csgid.tex
     reference/xml/mapping.xml.tex reference/xml/csg_defaults.xml.tex reference/xml/topol.xml.tex
     reference/programs/all.tex reference/scripts/csg_table.tex reference/scripts/all.tex
 )
 
 add_custom_command(OUTPUT manual.pdf
-  COMMAND ${PS2PDF_CONVERTER} manual.ps manual.pdf
-  DEPENDS manual_ps
+  COMMAND ${DVIPDF} manual.dvi manual.pdf
+  DEPENDS csg-manual_dvi
 )
-add_custom_target(csg-manual ALL DEPENDS manual.pdf)
+add_custom_target(csg-manual_pdf ALL DEPENDS manual.pdf)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/manual.pdf DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
