@@ -186,6 +186,8 @@ namespace votca {
             double _ScaHFX;
 
             double _qp_limit; //convergence criteria for qp iteration [Hartree]]
+            unsigned int _qp_max_iterations;
+            unsigned int _qp_iteration;
             double _shift_limit; //convergence criteria for shift iteration [Hartree]]
             unsigned int _bse_vmin;
             unsigned int _bse_vmax;

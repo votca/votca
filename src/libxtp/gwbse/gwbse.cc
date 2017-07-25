@@ -117,6 +117,8 @@ namespace votca {
             
             _shift = options->ifExistsReturnElseThrowRuntimeError<double>(key + ".shift");
             _qp_limit = options->ifExistsReturnElseReturnDefault<double>(key + ".qp_limit", 0.00001);//convergence criteria for qp iteration [Hartree]]
+            _qp_max_iterations = options->ifExistsReturnElseReturnDefault<int>(key + ".qp_max_iterations", 20);//convergence criteria for qp iteration [Hartree]]
+
             _shift_limit = options->ifExistsReturnElseReturnDefault<double>(key + ".shift_limit", 0.00001);//convergence criteria for shift it
             _iterate_qp = false;
             string _shift_type =options->ifExistsReturnElseThrowRuntimeError<string>(key + ".shift_type");
@@ -624,8 +626,9 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Made backup of _Mmn  " << flush;
             }
             _qp_converged=false;
+            _qp_iteration=0;
             while (!_qp_converged) {
-               
+               _qp_iteration++;
                 // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
                 for (unsigned _i_freq = 0; _i_freq < _screening_freq.size1(); _i_freq++) {
                     _epsilon[ _i_freq ] = _gwoverlap.Matrix();

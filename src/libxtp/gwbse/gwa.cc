@@ -133,6 +133,7 @@ namespace votca {
                         break;
                     }
                 }
+                
                 if (energies_converged) {
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << _i_iter+1 << " qp_energy iterations." << flush;
                     break;
@@ -144,8 +145,10 @@ namespace votca {
 
             _qp_converged = true;
             _qp_old_rpa= _qp_old_rpa - _qp_energies;
+            unsigned int _l_not_converged;
             for (unsigned l = 0; l < _qp_old_rpa.size(); l++) {
                     if (std::abs(_qp_old_rpa(l)) > _shift_limit) {
+                        _l_not_converged = l;
                         _qp_converged = false;
                         break;
                     }
@@ -164,6 +167,13 @@ namespace votca {
                 _qp_converged = true;
             }
 
+            if ( _qp_iteration == _qp_max_iterations ) {
+                // continue regardless for now, but drop WARNING
+                _qp_converged = true;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " WARNING! QP spectrum not converged after " << _qp_max_iterations << " iterations." << flush;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "          QP level " << _l_not_converged << " energy changed by " << _qp_old_rpa(_l_not_converged) << flush;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "          Run continues. Inspect results carefully!" << flush;
+            }
 
             // only if _shift is converged
             if (_qp_converged) {
