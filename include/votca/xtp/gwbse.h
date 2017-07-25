@@ -198,6 +198,7 @@ namespace votca {
             unsigned int _bse_ctotal;
             int _bse_nmax;
             int _bse_nprint;
+            double _min_print_weight;
 
             double _shift; // pre-shift of DFT energies
             AOBasis _dftbasis;

@@ -176,6 +176,8 @@ namespace votca {
                 _gwbse.Initialize(&_gwbse_options);
                 _gwbse.Evaluate();
                 if (_redirect_logger) SaveRedirectedLogger(&_gwbse_engine_logger);
+                Property *_output_summary = &(_summary.add("output", ""));
+                _gwbse.addoutput(_output_summary);
             }
             return;
         }
@@ -194,8 +196,6 @@ namespace votca {
             ofs.close();
             return;
         }
-
-
 
     }
 }

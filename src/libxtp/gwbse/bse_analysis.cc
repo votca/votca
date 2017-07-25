@@ -78,7 +78,7 @@ namespace votca {
                 for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                     // if contribution is larger than 0.2, print
                     double _weight = pow(_bse_singlet_coefficients(_i_bse, _i), 2) -  pow(_bse_singlet_coefficients_AR(_i_bse, _i), 2);
-                    if (_weight > 0.2) {
+                    if (_weight > _min_print_weight) {
                         CTP_LOG(ctp::logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
                                 % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                     }
@@ -393,7 +393,7 @@ namespace votca {
                 for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                     // if contribution is larger than 0.2, print
                     double _weight = pow(_bse_singlet_coefficients(_i_bse, _i), 2);
-                    if (_weight > 0.2) {
+                    if (_weight > _min_print_weight) {
                         CTP_LOG(ctp::logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
                                 % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                     }
@@ -455,7 +455,7 @@ namespace votca {
                 for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
                     // if contribution is larger than 0.2, print
                     real_gwbse _weight = pow(_bse_triplet_coefficients(_i_bse, _i), 2);
-                    if (_weight > 0.2) {
+                    if (_weight > _min_print_weight) {
                         CTP_LOG(ctp::logINFO, *_pLog) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") % 
                                 (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
                     }
