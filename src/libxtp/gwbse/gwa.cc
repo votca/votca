@@ -145,7 +145,7 @@ namespace votca {
 
             _qp_converged = true;
             _qp_old_rpa= _qp_old_rpa - _qp_energies;
-            unsigned int _l_not_converged;
+            unsigned int _l_not_converged = 0;
             for (unsigned l = 0; l < _qp_old_rpa.size(); l++) {
                     if (std::abs(_qp_old_rpa(l)) > _shift_limit) {
                         _l_not_converged = l;
