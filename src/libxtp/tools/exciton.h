@@ -61,6 +61,7 @@ namespace votca {
 
 
             string _xyzfile;
+            string _xml_output;    // .xml output
             string _package;
             string _archive_file; // .orb file to parse to
             string _reporting;

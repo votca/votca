@@ -186,6 +186,8 @@ namespace votca {
             double _ScaHFX;
 
             double _qp_limit; //convergence criteria for qp iteration [Hartree]]
+            unsigned int _qp_max_iterations;
+            unsigned int _qp_iteration;
             double _shift_limit; //convergence criteria for shift iteration [Hartree]]
             unsigned int _bse_vmin;
             unsigned int _bse_vmax;
@@ -196,6 +198,7 @@ namespace votca {
             unsigned int _bse_ctotal;
             int _bse_nmax;
             int _bse_nprint;
+            double _min_print_weight;
 
             double _shift; // pre-shift of DFT energies
             AOBasis _dftbasis;

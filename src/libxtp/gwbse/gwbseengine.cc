@@ -176,6 +176,8 @@ namespace votca {
                 _gwbse.Initialize(&_gwbse_options);
                 _gwbse.Evaluate();
                 if (_redirect_logger) SaveRedirectedLogger(&_gwbse_engine_logger);
+                Property *_output_summary = &(_summary.add("output", ""));
+                _gwbse.addoutput(_output_summary);
             }
             return;
         }
@@ -184,9 +186,9 @@ namespace votca {
         void GWBSEENGINE::SaveRedirectedLogger(ctp::Logger* pLog) {
 
             // write logger to log file
-            ofstream ofs;
+	    std::ofstream ofs;
             //string gwbse_logfile = "gwbse.log";
-            ofs.open(_logger_file.c_str(), ofstream::out);
+            ofs.open(_logger_file.c_str(), std::ofstream::out);
             if (!ofs.is_open()) {
                 throw runtime_error("Bad file handle: " + _logger_file);
             }
@@ -194,8 +196,6 @@ namespace votca {
             ofs.close();
             return;
         }
-
-
 
     }
 }
