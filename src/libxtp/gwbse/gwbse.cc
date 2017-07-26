@@ -398,7 +398,7 @@ namespace votca {
 
             // some QP - BSE consistency checks are required
             if (_bse_vmin < _qpmin) _qpmin = _bse_vmin;
-            if (_bse_cmax < _qpmax) _qpmax = _bse_cmax;
+            if (_bse_cmax > _qpmax) _qpmax = _bse_cmax;
             _qptotal = _qpmax - _qpmin + 1;
             if (_bse_nmax > int(_bse_size) || _bse_nmax < 0) _bse_nmax = int(_bse_size);
             if (_bse_nprint > _bse_nmax) _bse_nprint = _bse_nmax;

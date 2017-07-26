@@ -247,6 +247,7 @@ namespace votca {
             // now patch up _storage for screened interaction
             #pragma omp parallel for
             for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){  
+                if (_ppm_weight(_i_gw) < 1.e-9) { continue;}
                 double _ppm_factor = sqrt( _ppm_weight( _i_gw ));
                 for ( size_t _v = 0 ; _v < (_bse_vtotal* _bse_vtotal) ; _v++){
                     _storage_v( _v , _i_gw ) = _ppm_factor * _storage_v(_v , _i_gw );
@@ -329,6 +330,7 @@ namespace votca {
             // now patch up _storage for screened interaction
             #pragma omp parallel for
             for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){  
+                if (_ppm_weight(_i_gw) < 1.e-9) { continue;}
                 double _ppm_factor = sqrt( _ppm_weight( _i_gw ));
                 for ( size_t _v = 0 ; _v < (_bse_vtotal* _bse_ctotal) ; _v++){
                     _storage_vc(  _i_gw , _v ) = _ppm_factor * _storage_vc( _i_gw , _v );
