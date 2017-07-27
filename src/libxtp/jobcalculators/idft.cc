@@ -119,11 +119,11 @@ void IDFT::ParseOptionsXML( tools::Property *options ) {
 }
 
 void IDFT::LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log ) {
-
+    
     CTP_LOG(ctp::logDEBUG, *log) << "Loading " << file_name << flush; 
     std::ifstream ifs( file_name.c_str() );
-    boost::archive::binary_iarchive ia( ifs );
     try {
+        boost::archive::binary_iarchive ia( ifs );
         ia >> *orbitals;
     } catch(std::exception &err) {
         CTP_LOG(ctp::logDEBUG, *log) << "Could not load orbitals from " << file_name << flush; 
@@ -500,17 +500,18 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
        
    }
    
-   if ( _do_project || _do_extract ) {
-        Property *_job_output = &_job_summary.add("output","");
-        Property *_pair_summary = &_job_output->add("pair","");
-         string nameA = seg_A->getName();
-         string nameB = seg_B->getName();
-        _pair_summary->setAttribute("idA", ID_A);
-        _pair_summary->setAttribute("idB", ID_B);
+    Property *_job_output = &_job_summary.add("output","");
+    Property *_pair_summary = &_job_output->add("pair","");
+     string nameA = seg_A->getName();
+     string nameB = seg_B->getName();
+    _pair_summary->setAttribute("idA", ID_A);
+    _pair_summary->setAttribute("idB", ID_B);
+    _pair_summary->setAttribute("typeA", nameA);
+    _pair_summary->setAttribute("typeB", nameB);
+   
+    if ( _do_project || _do_extract ) {
         _pair_summary->setAttribute("homoA", HOMO_A);
         _pair_summary->setAttribute("homoB", HOMO_B);
-        _pair_summary->setAttribute("typeA", nameA);
-        _pair_summary->setAttribute("typeB", nameB);
         
          if ( _trim_factor == -1 ) {
 
@@ -562,11 +563,9 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
    // cleanup whatever is not needed
    _qmpackage->CleanUp();
    delete _qmpackage;
-   if ( _job_summary.exists("output") ) {
+  // if ( _job_summary.exists("output") ) {
     jres.setOutput( _job_summary );   
-   } else {
-    cout << "No output" << endl;
-   }
+  // }
     jres.setStatus(ctp::Job::COMPLETE);
     
     return jres;
