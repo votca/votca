@@ -97,14 +97,16 @@ void JobWriter::mps_chrg(ctp::Topology *top) {
     std::vector<string> states;
     std::vector<string> ::iterator vit;
 
-    std::string str_states = _options->get("options.xjobwriter.states").as<string>();
-    std::string seg_pattern = "*";
-    if (_options->exists("options.xjobwriter.pattern")) {
-        seg_pattern = _options->get("options.xjobwriter.pattern").as<string>();
-    }
+    std::string str_states = _options->ifExistsReturnElseReturnDefault<string>("options.xjobwriter.states","n e h");
+    std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<string>("options.xjobwriter.pattern","*");
+  
     Tokenizer tok_states(str_states, " ,\t\n");
     tok_states.ToVector(states);
-	
+    
+    
+    std::vector<string> seg_patterns;
+    Tokenizer tok_pattern(seg_pattern, " ,\t\n");
+    tok_pattern.ToVector(seg_patterns);
 
     
     // CREATE JOBS FOR ALL SEGMENTS AND STATES
@@ -115,7 +117,15 @@ void JobWriter::mps_chrg(ctp::Topology *top) {
         int id1 = seg1->getId();
         std::string name1 = seg1->getName();
         
-        if (!votca::tools::wildcmp(seg_pattern.c_str(), name1.c_str())) continue;
+        
+        bool do_continue=true;
+        for (auto & pattern : seg_patterns){
+            if (votca::tools::wildcmp(pattern.c_str(), name1.c_str())){
+                do_continue=false;
+                break;
+            }
+        }
+        if(do_continue){continue;}
         
         for (vit = states.begin(); vit != states.end(); ++vit) {
             int id = ++jobCount;
@@ -226,15 +236,33 @@ void JobWriter::mps_ct(ctp::Topology *top) {
         return;
     }
     
+    
+    std::string str_states = _options->ifExistsReturnElseReturnDefault<string>("options.xjobwriter.states","nn eh");
+    std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<string>("options.xjobwriter.pattern","*");
+  std::vector<string> states;
+   
+    Tokenizer tok_states(str_states, " ,\t\n");
+    tok_states.ToVector(states);
+    std::vector<string> seg_patterns;
+    Tokenizer tok_pattern(seg_pattern, " ,\t\n");
+    tok_pattern.ToVector(seg_patterns);
+    
+    
+    
     // DEFINE PAIR CHARGE STATES
     std::map< string, vector<string> > state1_state2;
     std::map< string, vector<string> > ::iterator mit;
     std::vector<string> ::iterator vit;
-    state1_state2["n"] = vector<string>(1,"n");
-    state1_state2["h"] = vector<string>(1,"e");
-    //state1_state2["h"].push_back("h");
-    state1_state2["e"] = vector<string>(1,"h");
-    //state1_state2["e"].push_back("e");
+    
+    for (auto & state : states){
+        if(state=="nn"){
+            state1_state2["n"] = vector<string>(1,"n");
+        }
+        else if ( state=="eh" || state=="he"){
+            state1_state2["h"] = vector<string>(1,"e");
+            state1_state2["e"] = vector<string>(1,"h");
+        }
+    }
     
     // CREATE JOBS FOR ALL PAIRS AND STATES
     cout << endl;
@@ -243,7 +271,24 @@ void JobWriter::mps_ct(ctp::Topology *top) {
         int id1 = (*pit)->Seg1()->getId();
         string name1 = (*pit)->Seg1()->getName();
         int id2 = (*pit)->Seg2()->getId();
-        string name2 = (*pit)->Seg2()->getName();        
+        string name2 = (*pit)->Seg2()->getName(); 
+        
+        
+        bool do_continue1=true;
+        for (auto & pattern : seg_patterns){
+            if (votca::tools::wildcmp(pattern.c_str(), name1.c_str())){
+                do_continue1=false;
+                break;
+            }
+        }
+        bool do_continue2=true;
+        for (auto & pattern : seg_patterns){
+            if (votca::tools::wildcmp(pattern.c_str(), name2.c_str())){
+                do_continue2=false;
+                break;
+            }
+        }
+        if(do_continue1 || do_continue2){continue;}
         
         for (mit = state1_state2.begin(); mit != state1_state2.end(); ++mit) {
             for (vit = mit->second.begin(); vit != mit->second.end(); ++vit) {
