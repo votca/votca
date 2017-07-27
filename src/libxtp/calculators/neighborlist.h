@@ -58,6 +58,8 @@ public:
 
 private:
 
+    
+    std::vector<std::string> _included_segments;
     std::map<  std::string,  std::map< std::string,double> > _cutoffs;
     bool                              _useConstantCutoff;
     double                            _constantCutoff;
@@ -92,6 +94,7 @@ void Neighborlist::Initialize(tools::Property *options) {
         tools::Tokenizer tok(types, " ");
          std::vector<  std::string > names;
         tok.ToVector(names);
+        
 
         if (names.size() != 2) {
             std::cout << "ERROR: Faulty pair definition for cut-off's: "
@@ -101,6 +104,13 @@ void Neighborlist::Initialize(tools::Property *options) {
 
         _cutoffs[names[0]][names[1]] = cutoff;
         _cutoffs[names[1]][names[0]] = cutoff;
+        if(std::find(_included_segments.begin(), _included_segments.end(), names[0]) == _included_segments.end()){
+                             _included_segments.push_back(names[0]);
+                        }
+        if(std::find(_included_segments.begin(), _included_segments.end(), names[1]) == _included_segments.end()){
+                             _included_segments.push_back(names[1]);
+                        }
+     
 
     }
 
@@ -165,13 +175,39 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
             std::cout << std::endl <<  "... ..." << std::flush;
         }
         
+        const tools::matrix box=top->getBox();
+        double min=box.get(0,0);
+        if(min>box.get(1,1)){min=box.get(1,1);}
+        if(min>box.get(2,2)){min=box.get(2,2);}
+    
+        std::vector< ctp::Segment* > segs;
+    
+        for (std::vector< ctp::Segment* > ::iterator segit1 = top->Segments().begin();              
+                    segit1 < top->Segments().end();++segit1) {
+            ctp::Segment *seg1 = *segit1;
+            if(_useConstantCutoff || std::find(_included_segments.begin(), _included_segments.end(), seg1->getName()) != _included_segments.end()){
+                segs.push_back(seg1);
+                seg1->calcPos();
+                seg1->calcApproxSize();
+            }    
+        }
+        std::cout<<std::endl;
+        std::cout <<"Evaluating "<<segs.size()<<" segments for neighborlist. "<< top->Segments().size()-segs.size()<<" segments are not taken into account as specified"<< std::endl;
+        if(!_useConstantCutoff){
+        std::cout << "The following segments were ignored in the neigborlist creation"<<std::endl;      
+        std::cout<<"\t"<<std::flush;        
+        for(std::vector< std::string >::iterator st=_included_segments.begin();st!=_included_segments.end();++st){
+            std::cout<<" "<<(*st)<<std::flush;
+        }
+        std::cout <<std::endl;
+        }
+        
+        std::cout << "\r ... ... Evaluating " <<std::flush; 
         std::vector<std::string> skippedpairs;
        
-        for (std::vector< ctp::Segment* > ::iterator segit1 = top->Segments().begin();              
-                segit1 < top->Segments().end();
-                ++segit1) {
+        for (std::vector< ctp::Segment* > ::iterator segit1 = segs.begin();segit1 < segs.end();++segit1) {
+                ctp::Segment *seg1 = *segit1;
                 
-                ctp::QMNBList templist=ctp::QMNBList();
                 std::vector< ctp::Segment* > ::iterator segit2;
                 std::vector< ctp::Fragment* > ::iterator fragit1;
                 std::vector< ctp::Fragment* > ::iterator fragit2;
@@ -179,15 +215,13 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
                 tools::vec r1;
                 tools::vec r2;
 
-                ctp::Segment *seg1 = *segit1;
+                
                 if (tools::globals::verbose) {
                     std::cout << "\r ... ... NB List Seg " << seg1->getId() << std::flush;
                     
                 }
 
-            for (segit2 = segit1 + 1;
-                    segit2 < top->Segments().end();
-                    ++segit2) {
+            for (segit2 = segit1 + 1;segit2 < segs.end();++segit2) {
 
                 ctp::Segment *seg2 = *segit2;
 
@@ -208,49 +242,68 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
 
                 else { cutoff = _constantCutoff; }
 
-                if (cutoff>(0.5*top->getBox().get(0,0))|| cutoff>(0.5*top->getBox().get(1,1)) ||cutoff>(0.5*top->getBox().get(1,1))){
-                    throw std::runtime_error("Specified cutoff is larger than half the boxlength.");
+                if (cutoff>0.5*min){             
+                    throw std::runtime_error((boost::format("Cutoff is larger than half the box size. Maximum allowed cutoff is %1$1.1f") % (0.5*min)).str());
                 }
-                bool stopLoop = false;
-                for (fragit1 = seg1->Fragments().begin();
-                        fragit1 < seg1->Fragments().end();
-                        fragit1 ++) {
+                double cutoff2=cutoff*cutoff;
+                tools::vec segdistance=top->PbShortestConnect(seg1->getPos(),seg2->getPos());
+                double segdistance2=segdistance*segdistance;
+                double outside=cutoff+seg1->getApproxSize()+seg2->getApproxSize();
+                
+                if(segdistance2<cutoff2){
+                    top->NBList().Add(seg1, seg2);
+                }
+                else if(segdistance2>(outside*outside)){
+                    continue;
+                }
+                else {
+                    bool stopLoop = false;
+                    for (fragit1 = seg1->Fragments().begin();
+                            fragit1 < seg1->Fragments().end();
+                            fragit1++) {
 
-                    if (stopLoop) { break; }
-
-                    for (fragit2 = seg2->Fragments().begin();
-                            fragit2 < seg2->Fragments().end();
-                            fragit2++) {
-
-
+                        if (stopLoop) {
+                            break; }
                         r1 = (*fragit1)->getPos();
-                        r2 = (*fragit2)->getPos();
-                        if( abs( top->PbShortestConnect(r1, r2) ) > cutoff ) {
-                            continue;
-                        }
-                        else {
-                            seg1->calcPos();
-                            seg2->calcPos();
-                            top->NBList().Add(seg1, seg2);
-                            stopLoop = true;
-                            break;
-                        }                
+                        for (fragit2 = seg2->Fragments().begin();
+                                fragit2 < seg2->Fragments().end();
+                                fragit2++) {
 
-                    } /* exit loop frag2 */
-               } /* exit loop frag1 */
+
+
+                            r2 = (*fragit2)->getPos();
+                                    tools::vec distance = top->PbShortestConnect(r1, r2);
+                                    double dist2 = distance*distance;
+                            if (dist2 > cutoff2) {
+                                continue;
+                            } else {
+                                top->NBList().Add(seg1, seg2);
+                                        stopLoop = true;
+                                break;
+                            }
+
+                        } /* exit loop frag2 */
+                    } /* exit loop frag1 */
+                }
+                
+                
             } /* exit loop seg2 */
                 
-               // break;
-#
-            
-        } /* exit loop seg1 */       
+               
+           
+        } /* exit loop seg1 */   
+        
+       
+        
+        
         if(skippedpairs.size()>0){
         std::cout << "WARNING: No cut-off specified for segment pairs of type "<<std::endl;              
         for(std::vector< std::string >::iterator st=skippedpairs.begin();st!=skippedpairs.end();++st){
             std::cout<<(*st)<<std::endl;
         }
         std::cout << "pairs were skipped"<<std::endl;
-        }}
+        }
+        
     
     std::cout << std::endl << " ... ... Created " << top->NBList().size() << " direct pairs.";
     if(_useExcitonCutoff){
@@ -333,6 +386,7 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
                 std::cout << std::endl;
         }
         //std::cout << bridges_summary;
+    }
     }
     }
     return true;        
