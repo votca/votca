@@ -247,12 +247,22 @@ namespace votca {
             // now patch up _storage for screened interaction
             #pragma omp parallel for
             for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){  
-                double _ppm_factor = sqrt( _ppm_weight( _i_gw ));
-                for ( size_t _v = 0 ; _v < (_bse_vtotal* _bse_vtotal) ; _v++){
-                    _storage_v( _v , _i_gw ) = _ppm_factor * _storage_v(_v , _i_gw );
-                }
-                for ( size_t _c = 0 ; _c < (_bse_ctotal*_bse_ctotal) ; _c++){
-                    _storage_c( _i_gw , _c ) = _ppm_factor * _storage_c( _i_gw , _c  );
+                if (_ppm_weight(_i_gw) < 1.e-9) {                    
+                    for ( size_t _v = 0 ; _v < (_bse_vtotal* _bse_vtotal) ; _v++){
+                        _storage_v( _v , _i_gw ) = 0;
+                    }
+                    for ( size_t _c = 0 ; _c < (_bse_ctotal*_bse_ctotal) ; _c++){
+                        _storage_c( _i_gw , _c ) =0;
+                    }
+                
+                }else{
+                    double _ppm_factor = sqrt( _ppm_weight( _i_gw ));
+                    for ( size_t _v = 0 ; _v < (_bse_vtotal* _bse_vtotal) ; _v++){
+                        _storage_v( _v , _i_gw ) = _ppm_factor * _storage_v(_v , _i_gw );
+                    }
+                    for ( size_t _c = 0 ; _c < (_bse_ctotal*_bse_ctotal) ; _c++){
+                        _storage_c( _i_gw , _c ) = _ppm_factor * _storage_c( _i_gw , _c  );
+                    }
                 }
             }
             
@@ -329,6 +339,14 @@ namespace votca {
             // now patch up _storage for screened interaction
             #pragma omp parallel for
             for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){  
+                if (_ppm_weight(_i_gw) < 1.e-9) {
+                    for ( size_t _v = 0 ; _v < (_bse_vtotal* _bse_ctotal) ; _v++){
+                    _storage_vc(  _i_gw , _v ) =0;
+                }
+                for ( size_t _c = 0 ; _c < (_bse_ctotal*_bse_vtotal) ; _c++){
+                    _storage_cv( _c, _i_gw  ) = 0;
+                }
+                }else{
                 double _ppm_factor = sqrt( _ppm_weight( _i_gw ));
                 for ( size_t _v = 0 ; _v < (_bse_vtotal* _bse_ctotal) ; _v++){
                     _storage_vc(  _i_gw , _v ) = _ppm_factor * _storage_vc( _i_gw , _v );
@@ -336,6 +354,7 @@ namespace votca {
                 for ( size_t _c = 0 ; _c < (_bse_ctotal*_bse_vtotal) ; _c++){
                     _storage_cv( _c, _i_gw  ) = _ppm_factor * _storage_cv( _c , _i_gw  );
                 }
+                    }
             }
          
             // multiply and subtract from _storage_prod

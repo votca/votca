@@ -9,17 +9,25 @@
         <group>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gnode.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/bse.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/exciton.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/bse_analysis.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/qmpackage.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gyration.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/espfit.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/calculators/ianalyze.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/exciton.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/kmccalculator.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/forces.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/forces.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/bsecoupling.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/orbitals.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/bfgs-trm.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/gwbseengine.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/gaussian.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/gnode.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/numerical_integrations.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/jobcalculators/igwbse.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/bfgs-trm.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/gwa.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/jobcalculators/qmmm.h</file>
         </group>
     </open-files>

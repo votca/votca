@@ -50,7 +50,7 @@ namespace votca {
             _shell_file_name = fileName + ".sh";
             _orb_file_name = "fort.7";
             _input_vxc_file_name = fileName + "-2.com";
-
+            
 
             std::string key = "package";
             std::string _name = options->get(key + ".name").as<std::string> ();
@@ -220,6 +220,7 @@ namespace votca {
                      */
                     std::ofstream _el_file;
                     std::string _el_file_name = _run_dir + "/" + element_name + ".gbs";
+                    
                     _el_file.open(_el_file_name.c_str());
                     // element name, [possibly indeces of centers], zero to indicate the end
                     //_com_file << element_name << " 0" << endl;
@@ -491,6 +492,10 @@ namespace votca {
                 if (*it == "com") {
                     std::string file_name = _run_dir + "/" + _input_file_name;
                     remove(file_name.c_str());
+                    if(_output_Vxc){
+                        std::string file_name = _run_dir + "/" + _input_vxc_file_name;
+                        remove(file_name.c_str());
+                    }
                 }
 
                 if (*it == "sh") {
@@ -501,6 +506,15 @@ namespace votca {
                 if (*it == "log") {
                     std::string file_name = _run_dir + "/" + _log_file_name;
                     remove(file_name.c_str());
+                    if(_output_Vxc){
+                        size_t lastdot = _log_file_name.find_last_of(".");
+                        if (lastdot == std::string::npos){
+                            cerr<<endl;
+                            cerr<<"Could not remove Vxc log file"<<flush;
+                        }
+                       std::string file_name2=file_name.substr(0, lastdot)+"-2.log";
+                        remove(file_name2.c_str());
+                    }
                 }
 
                 if (*it == "chk") {
@@ -511,7 +525,28 @@ namespace votca {
                 if (*it == "fort.7") {
                     std::string file_name = _run_dir + "/" + *it;
                     remove(file_name.c_str());
+                    if(_output_Vxc){
+                         std::string file_name = _run_dir + "/" + "fort.24";
+                        remove(file_name.c_str());
+                    }
                 }
+                
+                if (*it == "gbs" && _write_basis_set) {
+
+                        std::vector<std::string> fileswithfileending;
+                        boost::filesystem::recursive_directory_iterator fit(_run_dir);
+                        boost::filesystem::recursive_directory_iterator endit;
+
+                        while (fit != endit) {
+                            if (boost::filesystem::is_regular_file( * fit) && fit->path().extension() == *it) fileswithfileending.push_back(fit->path().filename().string());
+                            ++fit;
+                        }
+                        for(const auto filename : fileswithfileending){
+                            std::string file_name = _run_dir + "/" + filename;
+                            remove(file_name.c_str());
+                        }
+                    }
+                    
             }
         }
         return;
