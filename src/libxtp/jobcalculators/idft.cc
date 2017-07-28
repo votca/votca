@@ -119,7 +119,7 @@ void IDFT::ParseOptionsXML( tools::Property *options ) {
 }
 
 void IDFT::LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log ) {
-    
+
     CTP_LOG(ctp::logDEBUG, *log) << "Loading " << file_name << flush; 
     std::ifstream ifs( file_name.c_str() );
     try {
@@ -563,9 +563,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
    // cleanup whatever is not needed
    _qmpackage->CleanUp();
    delete _qmpackage;
-  // if ( _job_summary.exists("output") ) {
-    jres.setOutput( _job_summary );   
-  // }
+   jres.setOutput( _job_summary );   
     jres.setStatus(ctp::Job::COMPLETE);
     
     return jres;
@@ -652,6 +650,7 @@ void IDFT::ReadJobFile(ctp::Topology *top) {
     list<Property*> jobProps = xml.Select("jobs.job");
     
     records.resize( jobProps.size() + 1  );
+    
     // loop over all jobs = pair records in the job file
     for (list<Property*> ::iterator  it = jobProps.begin(); it != jobProps.end(); ++it) {
  
@@ -675,12 +674,7 @@ void IDFT::ReadJobFile(ctp::Topology *top) {
                 //CTP_LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
                 records[qmp->getId()] = & ((*it)->get("output.pair"));
             }
-        } // else {
-          //  Property thebadone = (*it)->get("id");
-          //  cout << "Job with id " << thebadone.as<string>() << " incomplete. Setting coupling to 0.0." << endl;
-          //  _incomplete_jobs += 1;
-            // throw runtime_error("\nERROR: Job file incomplete.\n Job with id "+thebadone.as<string>()+" is not finished. Check your job file for FAIL, AVAILABLE, or ASSIGNED. Exiting\n");
-       // }
+        }
     } // finished loading from the file
 
 
