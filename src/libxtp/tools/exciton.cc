@@ -48,6 +48,9 @@ namespace votca {
             // MOLECULE properties
             _xyzfile = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".molecule");
 
+            // XML OUTPUT
+            _xml_output = options->ifExistsReturnElseReturnDefault<string>(key + ".output", "exciton.out.xml");
+            
             // if optimization is chosen, get options for geometry_optimizer
             if (_do_optimize) _geoopt_options = options->get(key + ".geometry_optimization");
 
@@ -68,9 +71,7 @@ namespace votca {
             _log.setPreface(ctp::logERROR,   "\n... ...");
             _log.setPreface(ctp::logWARNING, "\n... ...");
             _log.setPreface(ctp::logDEBUG,   "\n... ...");
-
-            ctp::TLogLevel _ReportLevel = _log.getReportLevel(); // backup report level
-
+            
             // Get orbitals object
             Orbitals _orbitals;
 
@@ -105,6 +106,13 @@ namespace votca {
 
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
             _orbitals.Save(_archive_file);
+
+            Property _summary = _gwbse_engine.ReportSummary();
+            tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
+            CTP_LOG(ctp::logDEBUG, _log) << "Writing output to " << _xml_output << flush;
+            std::ofstream ofout(_xml_output.c_str(), std::ofstream::out);
+            ofout << (_summary.get("output"));
+            ofout.close();
 
             return true;
         }

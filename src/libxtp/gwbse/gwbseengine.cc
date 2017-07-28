@@ -160,7 +160,7 @@ namespace votca {
             }
 
             // if no parsing of DFT data is requested, reload serialized orbitals object
-            if (!_do_dft_parse) {
+            if (!_do_dft_parse && _do_gwbse) {
                 if (_redirect_logger) {
                     CTP_LOG(ctp::logINFO, _gwbse_engine_logger) << "Loading serialized data from " << _archive_file << flush;
                 } else {
@@ -176,6 +176,8 @@ namespace votca {
                 _gwbse.Initialize(&_gwbse_options);
                 _gwbse.Evaluate();
                 if (_redirect_logger) SaveRedirectedLogger(&_gwbse_engine_logger);
+                Property *_output_summary = &(_summary.add("output", ""));
+                _gwbse.addoutput(_output_summary);
             }
             return;
         }
@@ -194,8 +196,6 @@ namespace votca {
             ofs.close();
             return;
         }
-
-
 
     }
 }

@@ -74,6 +74,10 @@ namespace votca {
             void setRedirectLogger(bool redirect_logger) {
                 _redirect_logger = redirect_logger;
             };
+            
+            
+            Property ReportSummary(){ return _summary;};
+
 
         private:
 
@@ -97,6 +101,7 @@ namespace votca {
 
             // Options for GWBSE module
             Property _gwbse_options;
+            Property _summary;
 
             void SaveRedirectedLogger(ctp::Logger* pLog);
 

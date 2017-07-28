@@ -91,17 +91,20 @@ namespace votca {
             string _force_method;
             string _spin_type;
 
-            bool _remove_total_force;
-            bool _remove_CoM_force;
+            
+            
+            bool _noisy_output;
 
             int _nsegments;
-            int _natoms;
+            unsigned _natoms;
             int _opt_state;
 
             GWBSEENGINE _gwbse_engine;
             QMPackage* _qmpackage;
             vector<ctp::Segment*> _segments;
             Orbitals* _orbitals;
+            bool _remove_total_force;
+            bool _remove_CoM_force;
 
             ub::matrix<double> _forces;
 

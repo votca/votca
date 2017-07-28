@@ -117,6 +117,8 @@ namespace votca {
             
             _shift = options->ifExistsReturnElseThrowRuntimeError<double>(key + ".shift");
             _qp_limit = options->ifExistsReturnElseReturnDefault<double>(key + ".qp_limit", 0.00001);//convergence criteria for qp iteration [Hartree]]
+            _qp_max_iterations = options->ifExistsReturnElseReturnDefault<int>(key + ".qp_max_iterations", 20);//convergence criteria for qp iteration [Hartree]]
+
             _shift_limit = options->ifExistsReturnElseReturnDefault<double>(key + ".shift_limit", 0.00001);//convergence criteria for shift it
             _iterate_qp = false;
             string _shift_type =options->ifExistsReturnElseThrowRuntimeError<string>(key + ".shift_type");
@@ -126,7 +128,8 @@ namespace votca {
             if (_iterate_qp) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << " shift_limit [Hartree]: " << _shift_limit << flush;
             }
-            
+            _min_print_weight = options->ifExistsReturnElseReturnDefault<double>(key + ".bse_print_weight", 0.2);//print exciton WF composition weight larger that thin minimum
+
               // setting some defaults
             _do_qp_diag = false;
             _do_bse_singlets = false;
@@ -398,7 +401,9 @@ namespace votca {
 
             // some QP - BSE consistency checks are required
             if (_bse_vmin < _qpmin) _qpmin = _bse_vmin;
-            if (_bse_cmax < _qpmax) _qpmax = _bse_cmax;
+            if (_bse_cmax > _qpmax) _qpmax = _bse_cmax;
+            
+            
             _qptotal = _qpmax - _qpmin + 1;
             if (_bse_nmax > int(_bse_size) || _bse_nmax < 0) _bse_nmax = int(_bse_size);
             if (_bse_nprint > _bse_nmax) _bse_nprint = _bse_nmax;
@@ -624,8 +629,9 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Made backup of _Mmn  " << flush;
             }
             _qp_converged=false;
+            _qp_iteration=0;
             while (!_qp_converged) {
-               
+               _qp_iteration++;
                 // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
                 for (unsigned _i_freq = 0; _i_freq < _screening_freq.size1(); _i_freq++) {
                     _epsilon[ _i_freq ] = _gwoverlap.Matrix();

@@ -82,6 +82,10 @@ void GNode::InitEscapeRate()
  
  
  void GNode::AddEventfromQmPair(ctp::QMPair* pair,int carriertype){
+     double Jeff2=pair->getJeff2(carriertype);
+     if(pair->getType()==ctp::QMPair::PairType::Excitoncl && carriertype!=2){
+         return;
+     }
      int destination=0;
      double rate12=0.0;
      tools::vec dr=tools::vec(0.0);
@@ -95,7 +99,7 @@ void GNode::InitEscapeRate()
          rate12=pair->getRate21(carriertype);
          dr=-pair->getR();
      }
-    double Jeff2=pair->getJeff2(carriertype);
+    
     double reorg_out=pair->getLambdaO(carriertype);
     AddEvent(destination,rate12,dr,Jeff2,reorg_out);
      

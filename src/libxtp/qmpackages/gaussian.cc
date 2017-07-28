@@ -335,9 +335,8 @@ namespace votca {
 
             for (std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++soi) {
 
-                double _energy = (orbitals_guess->_mo_energies)[*soi];
 
-                _com_file << setw(5) << level<<endl;// << " Alpha MO OE=" << FortranFormat(_energy) << endl;
+                _com_file << setw(5) << level<<endl;
 
                 ub::matrix_row< ub::matrix<double> > mr(orbitals_guess->_mo_coefficients, *soi);
 
