@@ -557,13 +557,15 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         
         votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
         sout <<  iomXML << _job_summary;
-   } 
-   
+        // Flo: moved next line from below
+        jres.setOutput( _job_summary );   
+    } 
+    
 
-   // cleanup whatever is not needed
-   _qmpackage->CleanUp();
-   delete _qmpackage;
-   jres.setOutput( _job_summary );   
+    // cleanup whatever is not needed
+    _qmpackage->CleanUp();
+    delete _qmpackage;
+    jres.setOutput( _job_summary );   
     jres.setStatus(ctp::Job::COMPLETE);
     
     return jres;
