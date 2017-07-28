@@ -186,7 +186,7 @@ namespace votca {
         void GWBSEENGINE::SaveRedirectedLogger(ctp::Logger* pLog) {
 
             // write logger to log file
-	    std::ofstream ofs;
+            std::ofstream ofs;
             //string gwbse_logfile = "gwbse.log";
             ofs.open(_logger_file.c_str(), std::ofstream::out);
             if (!ofs.is_open()) {
