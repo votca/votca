@@ -31,7 +31,7 @@ RUN ccache -z
 RUN cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CTP=ON -DCMAKE_INSTALL_PREFIX=/usr -DLIB=lib64 -DENABLE_TESTING=ON -DBUILD_CSG_MANUAL=ON \
           ${COVERAGE:+-DENABLE_COVERAGE_BUILD=ON} ..
 RUN make VERBOSE=1 -j2
-RUN make test ARGS="${TESTOPTS}"
+RUN make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"
 RUN make install DESTDIR=${PWD} && rm -rf ${PWD}/install
 RUN cd .. && if [ ${COVERAGE} ]; then \
   if [ ${CC} = clang ]; then \

@@ -7,8 +7,8 @@ services:
 
 env:
   matrix:
-    - TESTOPTS="-V -E _imc" 
-    - TESTOPTS="-V -E _imc" COVERAGE=ON
+    - TESTOPTS="-E _imc" 
+    - TESTOPTS="-E _imc" COVERAGE=ON
 
 script:
  - cp -vr docker ${HOME}
