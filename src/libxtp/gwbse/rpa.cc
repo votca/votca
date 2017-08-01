@@ -227,7 +227,7 @@ namespace votca {
         
         
    
-    // this is apparently the fourier transform of the coulomb matrix, I am not sure
+    // this is apparently the fourier transform of the coulomb matrix, I am not sure according to old gwbse code it restores  orthogonality
     void GWBSE::RPA_prepare_threecenters(TCMatrix& _Mmn_RPA,const TCMatrix& _Mmn_full, AOBasis& gwbasis,
              const AOMatrix& gwoverlap,const ub::matrix<double>& gwoverlap_inverse ){
         
