@@ -567,20 +567,19 @@ namespace votca {
             _Mmn.Fill(gwbasis, _dftbasis, _dft_orbitals);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
 
+            
+
+
+
+            // make _Mmn symmetric 
+            _Mmn.Symmetrize(_gwcoulomb.Matrix());
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Symmetrize Mmn_beta for self-energy  " << flush;
+            
             // for use in RPA, make a copy of _Mmn with dimensions (1:HOMO)(gwabasissize,LUMO:nmax)
             TCMatrix _Mmn_RPA;
             _Mmn_RPA.Initialize(gwbasis.AOBasisSize(), _rpamin, _homo, _homo + 1, _rpamax);
-            RPA_prepare_threecenters(_Mmn_RPA, _Mmn, gwbasis, _gwoverlap, _gwoverlap_inverse);
+            RPA_prepare_threecenters(_Mmn_RPA, _Mmn);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared Mmn_beta for RPA  " << flush;
-
-
-            // make _Mmn_RPA symmetric for use in RPA
-            _Mmn_RPA.Symmetrize(_gwcoulomb.Matrix());
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Symmetrize Mmn_beta for RPA  " << flush;
-
-            // make _Mmn symmetric for use in self-energy calculation
-            _Mmn.Symmetrize(_gwcoulomb.Matrix());
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Symmetrize Mmn_beta for self-energy  " << flush;
 
             // fix the frequencies for PPM
             _screening_freq = ub::zero_matrix<double>(2, 2); // two frequencies
