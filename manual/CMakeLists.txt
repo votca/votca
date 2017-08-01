@@ -49,7 +49,7 @@ include(${CMAKE_MODULE_PATH}/UseLATEX.cmake)
 ######################################
 #cannot use add_subdir as file depends only work with in the same directory
 foreach(CURRENT_DIR fig/chemical_structure fig/idft_flow fig/stochastic
-  fig/reorganization_energy fig/workflow reference/xml)
+  fig/reorganization_energy fig/workflow reference/xml reference/programs)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR})
   include(${CURRENT_DIR}/CMakeLists.txt)
 endforeach()
@@ -81,6 +81,7 @@ add_latex_document(xtp-manual.tex
     fig/stochastic/overview_stochastic.eps fig/idft_flow/schemes_all.eps
     fig/reorganization_energy/marcus_parabolas.eps fig/reorganization_energy/monomer_parabolas.eps
     fig/workflow/workflow.eps literature_short.bib reference/xml/map.xml.tex reference/xml/options.xml.tex
+    reference/programs/all.tex
 )
 
 add_custom_command(OUTPUT xtp-manual.pdf
