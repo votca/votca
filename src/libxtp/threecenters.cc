@@ -41,7 +41,7 @@ namespace votca {
          * from S to Lmax, and finally cutting out those angular momentum 
          * components actually present in shell-shell-shell combination.
          * Currently supported for 
-         *      S,P,D,F,G   functions in DFT basis and 
+         *      S,P,D,F,G,H,I   functions in DFT basis and 
          *      S,P,D,F,G,H,I   functions in GW  basis
          * 
          */
@@ -71,66 +71,54 @@ namespace votca {
 
 
 
- int nx[] = {
- 0,
- 1, 0, 0,
- 2, 1, 1, 0, 0, 0,
- 3, 2, 2, 1, 1, 1, 0, 0, 0, 0,
- 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0,
- 5, 4, 4, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
- 6, 5, 5, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0
- };
+ int nx[] = { 0,
+              1, 0, 0,
+              2, 1, 1, 0, 0, 0,
+              3, 2, 2, 1, 1, 1, 0, 0, 0, 0,
+              4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+              5, 4, 4, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+              6, 5, 5, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 };
 
- int ny[] = {
- 0,
- 0, 1, 0,
- 0, 1, 0, 2, 1, 0,
- 0, 1, 0, 2, 1, 0, 3, 2, 1, 0,
- 0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 4, 3, 2, 1, 0,
- 0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 4, 3, 2, 1, 0, 5, 4, 3, 2, 1, 0,
- 0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 4, 3, 2, 1, 0, 5, 4, 3, 2, 1, 0, 6, 5, 4, 3, 2, 1, 0
- };
+ int ny[] = { 0,
+              0, 1, 0,
+              0, 1, 0, 2, 1, 0,
+              0, 1, 0, 2, 1, 0, 3, 2, 1, 0,
+              0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 4, 3, 2, 1, 0,
+              0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 4, 3, 2, 1, 0, 5, 4, 3, 2, 1, 0,
+              0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 4, 3, 2, 1, 0, 5, 4, 3, 2, 1, 0, 6, 5, 4, 3, 2, 1, 0 };
 
- int nz[] = {
- 0,
- 0, 0, 1,
- 0, 0, 1, 0, 1, 2,
- 0, 0, 1, 0, 1, 2, 0, 1, 2, 3,
- 0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4,
- 0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5,
- 0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 6
- };
+ int nz[] = { 0,
+              0, 0, 1,
+              0, 0, 1, 0, 1, 2,
+              0, 0, 1, 0, 1, 2, 0, 1, 2, 3,
+              0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4,
+              0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5,
+              0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 6 };
 
 
- int i_less_x[] = {
-  0,
-  0,  0,  0,
-  1,  2,  3,  0,  0,  0,
-  4,  5,  6,  7,  8,  9,  0,  0,  0,  0,
- 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  0,  0,  0,  0,  0,
- 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,  0,  0,  0,  0,  0,  0,
- 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55,  0,  0,  0,  0,  0,  0,  0
- };
+ int i_less_x[] = {  0,
+                     0,  0,  0,
+                     1,  2,  3,  0,  0,  0,
+                     4,  5,  6,  7,  8,  9,  0,  0,  0,  0,
+                    10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  0,  0,  0,  0,  0,
+                    20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,  0,  0,  0,  0,  0,  0,
+                    35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55,  0,  0,  0,  0,  0,  0,  0 };
 
- int i_less_y[] = {
-  0,
-  0,  0,  0,
-  0,  1,  0,  2,  3,  0,
-  0,  4,  0,  5,  6,  0,  7,  8,  9,  0,
-  0, 10,  0, 11, 12,  0, 13, 14, 15,  0, 16, 17, 18, 19,  0,
-  0, 20,  0, 21, 22,  0, 23, 24, 25,  0, 26, 27, 28, 29,  0, 30, 31, 32, 33, 34,  0,
-  0, 35,  0, 36, 37,  0, 38, 39, 40,  0, 41, 42, 43, 44,  0, 45, 46, 47, 48, 49,  0, 50, 51, 52, 53, 54, 55,  0
- };
+ int i_less_y[] = { 0,
+                    0,  0,  0,
+                    0,  1,  0,  2,  3,  0,
+                    0,  4,  0,  5,  6,  0,  7,  8,  9,  0,
+                    0, 10,  0, 11, 12,  0, 13, 14, 15,  0, 16, 17, 18, 19,  0,
+                    0, 20,  0, 21, 22,  0, 23, 24, 25,  0, 26, 27, 28, 29,  0, 30, 31, 32, 33, 34,  0,
+                    0, 35,  0, 36, 37,  0, 38, 39, 40,  0, 41, 42, 43, 44,  0, 45, 46, 47, 48, 49,  0, 50, 51, 52, 53, 54, 55,  0 };
 
- int i_less_z[] = {
-  0,
-  0,  0,  0,
-  0,  0,  1,  0,  2,  3,
-  0,  0,  4,  0,  5,  6,  0,  7,  8,  9,
-  0,  0, 10,  0, 11, 12,  0, 13, 14, 15,  0, 16, 17, 18, 19,
-  0,  0, 20,  0, 21, 22,  0, 23, 24, 25,  0, 26, 27, 28, 29,  0, 30, 31, 32, 33, 34,
-  0,  0, 35,  0, 36, 37,  0, 38, 39, 40,  0, 41, 42, 43, 44,  0, 45, 46, 47, 48, 49,  0, 50, 51, 52, 53, 54, 55
- };
+ int i_less_z[] = { 0,
+                    0,  0,  0,
+                    0,  0,  1,  0,  2,  3,
+                    0,  0,  4,  0,  5,  6,  0,  7,  8,  9,
+                    0,  0, 10,  0, 11, 12,  0, 13, 14, 15,  0, 16, 17, 18, 19,
+                    0,  0, 20,  0, 21, 22,  0, 23, 24, 25,  0, 26, 27, 28, 29,  0, 30, 31, 32, 33, 34,
+                    0,  0, 35,  0, 36, 37,  0, 38, 39, 40,  0, 41, 42, 43, 44,  0, 45, 46, 47, 48, 49,  0, 50, 51, 52, 53, 54, 55 };
 
 
 
@@ -523,6 +511,162 @@ if (_lmax_alpha > 3) {
 } // end if (_lmax_alpha > 3)
 
 
+if (_lmax_alpha > 4) {
+
+  //Integrals     h - s - s
+  double term_xxx = fak*S[Cart::xxx][0][0];
+  double term_yyy = fak*S[Cart::yyy][0][0];
+  double term_zzz = fak*S[Cart::zzz][0][0];
+  S[Cart::xxxxx][0][0] = gma0*S[Cart::xxxx][0][0] + 4*term_xxx;
+  S[Cart::xxxxy][0][0] = gma1*S[Cart::xxxx][0][0];
+  S[Cart::xxxxz][0][0] = gma2*S[Cart::xxxx][0][0];
+  S[Cart::xxxyy][0][0] = gma1*S[Cart::xxxy][0][0] + term_xxx;
+  S[Cart::xxxyz][0][0] = gma1*S[Cart::xxxz][0][0];
+  S[Cart::xxxzz][0][0] = gma2*S[Cart::xxxz][0][0] + term_xxx;
+  S[Cart::xxyyy][0][0] = gma0*S[Cart::xyyy][0][0] + term_yyy;
+  S[Cart::xxyyz][0][0] = gma2*S[Cart::xxyy][0][0];
+  S[Cart::xxyzz][0][0] = gma1*S[Cart::xxzz][0][0];
+  S[Cart::xxzzz][0][0] = gma0*S[Cart::xzzz][0][0] + term_zzz;
+  S[Cart::xyyyy][0][0] = gma0*S[Cart::yyyy][0][0];
+  S[Cart::xyyyz][0][0] = gma0*S[Cart::yyyz][0][0];
+  S[Cart::xyyzz][0][0] = gma0*S[Cart::yyzz][0][0];
+  S[Cart::xyzzz][0][0] = gma0*S[Cart::yzzz][0][0];
+  S[Cart::xzzzz][0][0] = gma0*S[Cart::zzzz][0][0];
+  S[Cart::yyyyy][0][0] = gma1*S[Cart::yyyy][0][0] + 4*term_yyy;
+  S[Cart::yyyyz][0][0] = gma2*S[Cart::yyyy][0][0];
+  S[Cart::yyyzz][0][0] = gma2*S[Cart::yyyz][0][0] + term_yyy;
+  S[Cart::yyzzz][0][0] = gma1*S[Cart::yzzz][0][0] + term_zzz;
+  S[Cart::yzzzz][0][0] = gma1*S[Cart::zzzz][0][0];
+  S[Cart::zzzzz][0][0] = gma2*S[Cart::zzzz][0][0] + 4*term_zzz;
+  //------------------------------------------------------
+
+  //Integrals     h - p - s     h - d - s     h - f - s     h - g - s     h - h - s     h - i - s
+  for (int _i =  1; _i < _ngw; _i++) {
+    int nx_i = nx[_i];
+    int ny_i = ny[_i];
+    int nz_i = nz[_i];
+    int ilx_i = i_less_x[_i];
+    int ily_i = i_less_y[_i];
+    int ilz_i = i_less_z[_i];
+    double term_xxx = fak*S[Cart::xxx][_i][0];
+    double term_yyy = fak*S[Cart::yyy][_i][0];
+    double term_zzz = fak*S[Cart::zzz][_i][0];
+    S[Cart::xxxxx][_i][0] = gma0*S[Cart::xxxx][_i][0] + nx_i*fak*S[Cart::xxxx][ilx_i][0] + 4*term_xxx;
+    S[Cart::xxxxy][_i][0] = gma1*S[Cart::xxxx][_i][0] + ny_i*fak*S[Cart::xxxx][ily_i][0];
+    S[Cart::xxxxz][_i][0] = gma2*S[Cart::xxxx][_i][0] + nz_i*fak*S[Cart::xxxx][ilz_i][0];
+    S[Cart::xxxyy][_i][0] = gma1*S[Cart::xxxy][_i][0] + ny_i*fak*S[Cart::xxxy][ily_i][0] + term_xxx;
+    S[Cart::xxxyz][_i][0] = gma1*S[Cart::xxxz][_i][0] + ny_i*fak*S[Cart::xxxz][ily_i][0];
+    S[Cart::xxxzz][_i][0] = gma2*S[Cart::xxxz][_i][0] + nz_i*fak*S[Cart::xxxz][ilz_i][0] + term_xxx;
+    S[Cart::xxyyy][_i][0] = gma0*S[Cart::xyyy][_i][0] + nx_i*fak*S[Cart::xyyy][ilx_i][0] + term_yyy;
+    S[Cart::xxyyz][_i][0] = gma2*S[Cart::xxyy][_i][0] + nz_i*fak*S[Cart::xxyy][ilz_i][0];
+    S[Cart::xxyzz][_i][0] = gma1*S[Cart::xxzz][_i][0] + ny_i*fak*S[Cart::xxzz][ily_i][0];
+    S[Cart::xxzzz][_i][0] = gma0*S[Cart::xzzz][_i][0] + nx_i*fak*S[Cart::xzzz][ilx_i][0] + term_zzz;
+    S[Cart::xyyyy][_i][0] = gma0*S[Cart::yyyy][_i][0] + nx_i*fak*S[Cart::yyyy][ilx_i][0];
+    S[Cart::xyyyz][_i][0] = gma0*S[Cart::yyyz][_i][0] + nx_i*fak*S[Cart::yyyz][ilx_i][0];
+    S[Cart::xyyzz][_i][0] = gma0*S[Cart::yyzz][_i][0] + nx_i*fak*S[Cart::yyzz][ilx_i][0];
+    S[Cart::xyzzz][_i][0] = gma0*S[Cart::yzzz][_i][0] + nx_i*fak*S[Cart::yzzz][ilx_i][0];
+    S[Cart::xzzzz][_i][0] = gma0*S[Cart::zzzz][_i][0] + nx_i*fak*S[Cart::zzzz][ilx_i][0];
+    S[Cart::yyyyy][_i][0] = gma1*S[Cart::yyyy][_i][0] + ny_i*fak*S[Cart::yyyy][ily_i][0] + 4*term_yyy;
+    S[Cart::yyyyz][_i][0] = gma2*S[Cart::yyyy][_i][0] + nz_i*fak*S[Cart::yyyy][ilz_i][0];
+    S[Cart::yyyzz][_i][0] = gma2*S[Cart::yyyz][_i][0] + nz_i*fak*S[Cart::yyyz][ilz_i][0] + term_yyy;
+    S[Cart::yyzzz][_i][0] = gma1*S[Cart::yzzz][_i][0] + ny_i*fak*S[Cart::yzzz][ily_i][0] + term_zzz;
+    S[Cart::yzzzz][_i][0] = gma1*S[Cart::zzzz][_i][0] + ny_i*fak*S[Cart::zzzz][ily_i][0];
+    S[Cart::zzzzz][_i][0] = gma2*S[Cart::zzzz][_i][0] + nz_i*fak*S[Cart::zzzz][ilz_i][0] + 4*term_zzz;
+  }
+  //------------------------------------------------------
+
+} // end if (_lmax_alpha > 4)
+
+
+if (_lmax_alpha > 5) {
+
+  //Integrals     i - s - s
+  double term_xxxx = fak*S[Cart::xxxx][0][0];
+  double term_xyyy = fak*S[Cart::xyyy][0][0];
+  double term_xzzz = fak*S[Cart::xzzz][0][0];
+  double term_yyyy = fak*S[Cart::yyyy][0][0];
+  double term_yyzz = fak*S[Cart::yyzz][0][0];
+  double term_yzzz = fak*S[Cart::yzzz][0][0];
+  double term_zzzz = fak*S[Cart::zzzz][0][0];
+  S[Cart::xxxxxx][0][0] = gma0*S[Cart::xxxxx][0][0] + 5*term_xxxx;
+  S[Cart::xxxxxy][0][0] = gma1*S[Cart::xxxxx][0][0];
+  S[Cart::xxxxxz][0][0] = gma2*S[Cart::xxxxx][0][0];
+  S[Cart::xxxxyy][0][0] = gma1*S[Cart::xxxxy][0][0] + term_xxxx;
+  S[Cart::xxxxyz][0][0] = gma1*S[Cart::xxxxz][0][0];
+  S[Cart::xxxxzz][0][0] = gma2*S[Cart::xxxxz][0][0] + term_xxxx;
+  S[Cart::xxxyyy][0][0] = gma0*S[Cart::xxyyy][0][0] + 2*term_xyyy;
+  S[Cart::xxxyyz][0][0] = gma2*S[Cart::xxxyy][0][0];
+  S[Cart::xxxyzz][0][0] = gma1*S[Cart::xxxzz][0][0];
+  S[Cart::xxxzzz][0][0] = gma0*S[Cart::xxzzz][0][0] + 2*term_xzzz;
+  S[Cart::xxyyyy][0][0] = gma0*S[Cart::xyyyy][0][0] + term_yyyy;
+  S[Cart::xxyyyz][0][0] = gma2*S[Cart::xxyyy][0][0];
+  S[Cart::xxyyzz][0][0] = gma0*S[Cart::xyyzz][0][0] + term_yyzz;
+  S[Cart::xxyzzz][0][0] = gma1*S[Cart::xxzzz][0][0];
+  S[Cart::xxzzzz][0][0] = gma0*S[Cart::xzzzz][0][0] + term_zzzz;
+  S[Cart::xyyyyy][0][0] = gma0*S[Cart::yyyyy][0][0];
+  S[Cart::xyyyyz][0][0] = gma0*S[Cart::yyyyz][0][0];
+  S[Cart::xyyyzz][0][0] = gma0*S[Cart::yyyzz][0][0];
+  S[Cart::xyyzzz][0][0] = gma0*S[Cart::yyzzz][0][0];
+  S[Cart::xyzzzz][0][0] = gma0*S[Cart::yzzzz][0][0];
+  S[Cart::xzzzzz][0][0] = gma0*S[Cart::zzzzz][0][0];
+  S[Cart::yyyyyy][0][0] = gma1*S[Cart::yyyyy][0][0] + 5*term_yyyy;
+  S[Cart::yyyyyz][0][0] = gma2*S[Cart::yyyyy][0][0];
+  S[Cart::yyyyzz][0][0] = gma2*S[Cart::yyyyz][0][0] + term_yyyy;
+  S[Cart::yyyzzz][0][0] = gma1*S[Cart::yyzzz][0][0] + 2*term_yzzz;
+  S[Cart::yyzzzz][0][0] = gma1*S[Cart::yzzzz][0][0] + term_zzzz;
+  S[Cart::yzzzzz][0][0] = gma1*S[Cart::zzzzz][0][0];
+  S[Cart::zzzzzz][0][0] = gma2*S[Cart::zzzzz][0][0] + 5*term_zzzz;
+  //------------------------------------------------------
+
+  //Integrals     i - p - s     i - d - s     i - f - s     i - g - s     i - h - s     i - i - s
+  for (int _i =  1; _i < _ngw; _i++) {
+    int nx_i = nx[_i];
+    int ny_i = ny[_i];
+    int nz_i = nz[_i];
+    int ilx_i = i_less_x[_i];
+    int ily_i = i_less_y[_i];
+    int ilz_i = i_less_z[_i];
+    double term_xxxx = fak*S[Cart::xxxx][_i][0];
+    double term_xyyy = fak*S[Cart::xyyy][_i][0];
+    double term_xzzz = fak*S[Cart::xzzz][_i][0];
+    double term_yyyy = fak*S[Cart::yyyy][_i][0];
+    double term_yyzz = fak*S[Cart::yyzz][_i][0];
+    double term_yzzz = fak*S[Cart::yzzz][_i][0];
+    double term_zzzz = fak*S[Cart::zzzz][_i][0];
+    S[Cart::xxxxxx][_i][0] = gma0*S[Cart::xxxxx][_i][0] + nx_i*fak*S[Cart::xxxxx][ilx_i][0] + 5*term_xxxx;
+    S[Cart::xxxxxy][_i][0] = gma1*S[Cart::xxxxx][_i][0] + ny_i*fak*S[Cart::xxxxx][ily_i][0];
+    S[Cart::xxxxxz][_i][0] = gma2*S[Cart::xxxxx][_i][0] + nz_i*fak*S[Cart::xxxxx][ilz_i][0];
+    S[Cart::xxxxyy][_i][0] = gma1*S[Cart::xxxxy][_i][0] + ny_i*fak*S[Cart::xxxxy][ily_i][0] + term_xxxx;
+    S[Cart::xxxxyz][_i][0] = gma1*S[Cart::xxxxz][_i][0] + ny_i*fak*S[Cart::xxxxz][ily_i][0];
+    S[Cart::xxxxzz][_i][0] = gma2*S[Cart::xxxxz][_i][0] + nz_i*fak*S[Cart::xxxxz][ilz_i][0] + term_xxxx;
+    S[Cart::xxxyyy][_i][0] = gma0*S[Cart::xxyyy][_i][0] + nx_i*fak*S[Cart::xxyyy][ilx_i][0] + 2*term_xyyy;
+    S[Cart::xxxyyz][_i][0] = gma2*S[Cart::xxxyy][_i][0] + nz_i*fak*S[Cart::xxxyy][ilz_i][0];
+    S[Cart::xxxyzz][_i][0] = gma1*S[Cart::xxxzz][_i][0] + ny_i*fak*S[Cart::xxxzz][ily_i][0];
+    S[Cart::xxxzzz][_i][0] = gma0*S[Cart::xxzzz][_i][0] + nx_i*fak*S[Cart::xxzzz][ilx_i][0] + 2*term_xzzz;
+    S[Cart::xxyyyy][_i][0] = gma0*S[Cart::xyyyy][_i][0] + nx_i*fak*S[Cart::xyyyy][ilx_i][0] + term_yyyy;
+    S[Cart::xxyyyz][_i][0] = gma2*S[Cart::xxyyy][_i][0] + nz_i*fak*S[Cart::xxyyy][ilz_i][0];
+    S[Cart::xxyyzz][_i][0] = gma0*S[Cart::xyyzz][_i][0] + nx_i*fak*S[Cart::xyyzz][ilx_i][0] + term_yyzz;
+    S[Cart::xxyzzz][_i][0] = gma1*S[Cart::xxzzz][_i][0] + ny_i*fak*S[Cart::xxzzz][ily_i][0];
+    S[Cart::xxzzzz][_i][0] = gma0*S[Cart::xzzzz][_i][0] + nx_i*fak*S[Cart::xzzzz][ilx_i][0] + term_zzzz;
+    S[Cart::xyyyyy][_i][0] = gma0*S[Cart::yyyyy][_i][0] + nx_i*fak*S[Cart::yyyyy][ilx_i][0];
+    S[Cart::xyyyyz][_i][0] = gma0*S[Cart::yyyyz][_i][0] + nx_i*fak*S[Cart::yyyyz][ilx_i][0];
+    S[Cart::xyyyzz][_i][0] = gma0*S[Cart::yyyzz][_i][0] + nx_i*fak*S[Cart::yyyzz][ilx_i][0];
+    S[Cart::xyyzzz][_i][0] = gma0*S[Cart::yyzzz][_i][0] + nx_i*fak*S[Cart::yyzzz][ilx_i][0];
+    S[Cart::xyzzzz][_i][0] = gma0*S[Cart::yzzzz][_i][0] + nx_i*fak*S[Cart::yzzzz][ilx_i][0];
+    S[Cart::xzzzzz][_i][0] = gma0*S[Cart::zzzzz][_i][0] + nx_i*fak*S[Cart::zzzzz][ilx_i][0];
+    S[Cart::yyyyyy][_i][0] = gma1*S[Cart::yyyyy][_i][0] + ny_i*fak*S[Cart::yyyyy][ily_i][0] + 5*term_yyyy;
+    S[Cart::yyyyyz][_i][0] = gma2*S[Cart::yyyyy][_i][0] + nz_i*fak*S[Cart::yyyyy][ilz_i][0];
+    S[Cart::yyyyzz][_i][0] = gma2*S[Cart::yyyyz][_i][0] + nz_i*fak*S[Cart::yyyyz][ilz_i][0] + term_yyyy;
+    S[Cart::yyyzzz][_i][0] = gma1*S[Cart::yyzzz][_i][0] + ny_i*fak*S[Cart::yyzzz][ily_i][0] + 2*term_yzzz;
+    S[Cart::yyzzzz][_i][0] = gma1*S[Cart::yzzzz][_i][0] + ny_i*fak*S[Cart::yzzzz][ily_i][0] + term_zzzz;
+    S[Cart::yzzzzz][_i][0] = gma1*S[Cart::zzzzz][_i][0] + ny_i*fak*S[Cart::zzzzz][ily_i][0];
+    S[Cart::zzzzzz][_i][0] = gma2*S[Cart::zzzzz][_i][0] + nz_i*fak*S[Cart::zzzzz][ilz_i][0] + 5*term_zzzz;
+  }
+  //------------------------------------------------------
+
+} // end if (_lmax_alpha > 5)
+
+
 
 
 
@@ -656,8 +800,119 @@ if (_lmax_gamma > 3) {
   }
   //------------------------------------------------------
 
-} 
-            
+} // end if (_lmax_gamma > 3)
+
+
+if (_lmax_gamma > 4) {
+
+  //Integrals     * - * - h
+  for (int _j =  0; _j < _nalpha; _j++) {
+    int nx_j = nx[_j];
+    int ny_j = ny[_j];
+    int nz_j = nz[_j];
+    int ilx_j = i_less_x[_j];
+    int ily_j = i_less_y[_j];
+    int ilz_j = i_less_z[_j];
+    for (int _i =  0; _i < _ngw; _i++) {
+      int nx_i = nx[_i];
+      int ny_i = ny[_i];
+      int nz_i = nz[_i];
+      int ilx_i = i_less_x[_i];
+      int ily_i = i_less_y[_i];
+      int ilz_i = i_less_z[_i];
+      double term_xxx = fak*S[_j][_i][Cart::xxx];
+      double term_yyy = fak*S[_j][_i][Cart::yyy];
+      double term_zzz = fak*S[_j][_i][Cart::zzz];
+      S[_j][_i][Cart::xxxxx] = gmb0*S[_j][_i][Cart::xxxx] + fak*(nx_i*S[_j][ilx_i][Cart::xxxx]+nx_j*S[ilx_j][_i][Cart::xxxx]) + 4*term_xxx;
+      S[_j][_i][Cart::xxxxy] = gmb1*S[_j][_i][Cart::xxxx] + fak*(ny_i*S[_j][ily_i][Cart::xxxx]+ny_j*S[ily_j][_i][Cart::xxxx]);
+      S[_j][_i][Cart::xxxxz] = gmb2*S[_j][_i][Cart::xxxx] + fak*(nz_i*S[_j][ilz_i][Cart::xxxx]+nz_j*S[ilz_j][_i][Cart::xxxx]);
+      S[_j][_i][Cart::xxxyy] = gmb1*S[_j][_i][Cart::xxxy] + fak*(ny_i*S[_j][ily_i][Cart::xxxy]+ny_j*S[ily_j][_i][Cart::xxxy]) + term_xxx;
+      S[_j][_i][Cart::xxxyz] = gmb1*S[_j][_i][Cart::xxxz] + fak*(ny_i*S[_j][ily_i][Cart::xxxz]+ny_j*S[ily_j][_i][Cart::xxxz]);
+      S[_j][_i][Cart::xxxzz] = gmb2*S[_j][_i][Cart::xxxz] + fak*(nz_i*S[_j][ilz_i][Cart::xxxz]+nz_j*S[ilz_j][_i][Cart::xxxz]) + term_xxx;
+      S[_j][_i][Cart::xxyyy] = gmb0*S[_j][_i][Cart::xyyy] + fak*(nx_i*S[_j][ilx_i][Cart::xyyy]+nx_j*S[ilx_j][_i][Cart::xyyy]) + term_yyy;
+      S[_j][_i][Cart::xxyyz] = gmb2*S[_j][_i][Cart::xxyy] + fak*(nz_i*S[_j][ilz_i][Cart::xxyy]+nz_j*S[ilz_j][_i][Cart::xxyy]);
+      S[_j][_i][Cart::xxyzz] = gmb1*S[_j][_i][Cart::xxzz] + fak*(ny_i*S[_j][ily_i][Cart::xxzz]+ny_j*S[ily_j][_i][Cart::xxzz]);
+      S[_j][_i][Cart::xxzzz] = gmb0*S[_j][_i][Cart::xzzz] + fak*(nx_i*S[_j][ilx_i][Cart::xzzz]+nx_j*S[ilx_j][_i][Cart::xzzz]) + term_zzz;
+      S[_j][_i][Cart::xyyyy] = gmb0*S[_j][_i][Cart::yyyy] + fak*(nx_i*S[_j][ilx_i][Cart::yyyy]+nx_j*S[ilx_j][_i][Cart::yyyy]);
+      S[_j][_i][Cart::xyyyz] = gmb0*S[_j][_i][Cart::yyyz] + fak*(nx_i*S[_j][ilx_i][Cart::yyyz]+nx_j*S[ilx_j][_i][Cart::yyyz]);
+      S[_j][_i][Cart::xyyzz] = gmb0*S[_j][_i][Cart::yyzz] + fak*(nx_i*S[_j][ilx_i][Cart::yyzz]+nx_j*S[ilx_j][_i][Cart::yyzz]);
+      S[_j][_i][Cart::xyzzz] = gmb0*S[_j][_i][Cart::yzzz] + fak*(nx_i*S[_j][ilx_i][Cart::yzzz]+nx_j*S[ilx_j][_i][Cart::yzzz]);
+      S[_j][_i][Cart::xzzzz] = gmb0*S[_j][_i][Cart::zzzz] + fak*(nx_i*S[_j][ilx_i][Cart::zzzz]+nx_j*S[ilx_j][_i][Cart::zzzz]);
+      S[_j][_i][Cart::yyyyy] = gmb1*S[_j][_i][Cart::yyyy] + fak*(ny_i*S[_j][ily_i][Cart::yyyy]+ny_j*S[ily_j][_i][Cart::yyyy]) + 4*term_yyy;
+      S[_j][_i][Cart::yyyyz] = gmb2*S[_j][_i][Cart::yyyy] + fak*(nz_i*S[_j][ilz_i][Cart::yyyy]+nz_j*S[ilz_j][_i][Cart::yyyy]);
+      S[_j][_i][Cart::yyyzz] = gmb2*S[_j][_i][Cart::yyyz] + fak*(nz_i*S[_j][ilz_i][Cart::yyyz]+nz_j*S[ilz_j][_i][Cart::yyyz]) + term_yyy;
+      S[_j][_i][Cart::yyzzz] = gmb1*S[_j][_i][Cart::yzzz] + fak*(ny_i*S[_j][ily_i][Cart::yzzz]+ny_j*S[ily_j][_i][Cart::yzzz]) + term_zzz;
+      S[_j][_i][Cart::yzzzz] = gmb1*S[_j][_i][Cart::zzzz] + fak*(ny_i*S[_j][ily_i][Cart::zzzz]+ny_j*S[ily_j][_i][Cart::zzzz]);
+      S[_j][_i][Cart::zzzzz] = gmb2*S[_j][_i][Cart::zzzz] + fak*(nz_i*S[_j][ilz_i][Cart::zzzz]+nz_j*S[ilz_j][_i][Cart::zzzz]) + 4*term_zzz;
+    }
+  }
+  //------------------------------------------------------
+
+} // end if (_lmax_gamma > 4)
+
+
+if (_lmax_gamma > 5) {
+
+  //Integrals     * - * - i
+  for (int _j =  0; _j < _nalpha; _j++) {
+    int nx_j = nx[_j];
+    int ny_j = ny[_j];
+    int nz_j = nz[_j];
+    int ilx_j = i_less_x[_j];
+    int ily_j = i_less_y[_j];
+    int ilz_j = i_less_z[_j];
+    for (int _i =  0; _i < _ngw; _i++) {
+      int nx_i = nx[_i];
+      int ny_i = ny[_i];
+      int nz_i = nz[_i];
+      int ilx_i = i_less_x[_i];
+      int ily_i = i_less_y[_i];
+      int ilz_i = i_less_z[_i];
+      double term_xxxx = fak*S[_j][_i][Cart::xxxx];
+      double term_xyyy = fak*S[_j][_i][Cart::xyyy];
+      double term_xzzz = fak*S[_j][_i][Cart::xzzz];
+      double term_yyyy = fak*S[_j][_i][Cart::yyyy];
+      double term_yyzz = fak*S[_j][_i][Cart::yyzz];
+      double term_yzzz = fak*S[_j][_i][Cart::yzzz];
+      double term_zzzz = fak*S[_j][_i][Cart::zzzz];
+      S[_j][_i][Cart::xxxxxx] = gmb0*S[_j][_i][Cart::xxxxx] + fak*(nx_i*S[_j][ilx_i][Cart::xxxxx]+nx_j*S[ilx_j][_i][Cart::xxxxx]) + 5*term_xxxx;
+      S[_j][_i][Cart::xxxxxy] = gmb1*S[_j][_i][Cart::xxxxx] + fak*(ny_i*S[_j][ily_i][Cart::xxxxx]+ny_j*S[ily_j][_i][Cart::xxxxx]);
+      S[_j][_i][Cart::xxxxxz] = gmb2*S[_j][_i][Cart::xxxxx] + fak*(nz_i*S[_j][ilz_i][Cart::xxxxx]+nz_j*S[ilz_j][_i][Cart::xxxxx]);
+      S[_j][_i][Cart::xxxxyy] = gmb1*S[_j][_i][Cart::xxxxy] + fak*(ny_i*S[_j][ily_i][Cart::xxxxy]+ny_j*S[ily_j][_i][Cart::xxxxy]) + term_xxxx;
+      S[_j][_i][Cart::xxxxyz] = gmb1*S[_j][_i][Cart::xxxxz] + fak*(ny_i*S[_j][ily_i][Cart::xxxxz]+ny_j*S[ily_j][_i][Cart::xxxxz]);
+      S[_j][_i][Cart::xxxxzz] = gmb2*S[_j][_i][Cart::xxxxz] + fak*(nz_i*S[_j][ilz_i][Cart::xxxxz]+nz_j*S[ilz_j][_i][Cart::xxxxz]) + term_xxxx;
+      S[_j][_i][Cart::xxxyyy] = gmb0*S[_j][_i][Cart::xxyyy] + fak*(nx_i*S[_j][ilx_i][Cart::xxyyy]+nx_j*S[ilx_j][_i][Cart::xxyyy]) + 2*term_xyyy;
+      S[_j][_i][Cart::xxxyyz] = gmb2*S[_j][_i][Cart::xxxyy] + fak*(nz_i*S[_j][ilz_i][Cart::xxxyy]+nz_j*S[ilz_j][_i][Cart::xxxyy]);
+      S[_j][_i][Cart::xxxyzz] = gmb1*S[_j][_i][Cart::xxxzz] + fak*(ny_i*S[_j][ily_i][Cart::xxxzz]+ny_j*S[ily_j][_i][Cart::xxxzz]);
+      S[_j][_i][Cart::xxxzzz] = gmb0*S[_j][_i][Cart::xxzzz] + fak*(nx_i*S[_j][ilx_i][Cart::xxzzz]+nx_j*S[ilx_j][_i][Cart::xxzzz]) + 2*term_xzzz;
+      S[_j][_i][Cart::xxyyyy] = gmb0*S[_j][_i][Cart::xyyyy] + fak*(nx_i*S[_j][ilx_i][Cart::xyyyy]+nx_j*S[ilx_j][_i][Cart::xyyyy]) + term_yyyy;
+      S[_j][_i][Cart::xxyyyz] = gmb2*S[_j][_i][Cart::xxyyy] + fak*(nz_i*S[_j][ilz_i][Cart::xxyyy]+nz_j*S[ilz_j][_i][Cart::xxyyy]);
+      S[_j][_i][Cart::xxyyzz] = gmb0*S[_j][_i][Cart::xyyzz] + fak*(nx_i*S[_j][ilx_i][Cart::xyyzz]+nx_j*S[ilx_j][_i][Cart::xyyzz]) + term_yyzz;
+      S[_j][_i][Cart::xxyzzz] = gmb1*S[_j][_i][Cart::xxzzz] + fak*(ny_i*S[_j][ily_i][Cart::xxzzz]+ny_j*S[ily_j][_i][Cart::xxzzz]);
+      S[_j][_i][Cart::xxzzzz] = gmb0*S[_j][_i][Cart::xzzzz] + fak*(nx_i*S[_j][ilx_i][Cart::xzzzz]+nx_j*S[ilx_j][_i][Cart::xzzzz]) + term_zzzz;
+      S[_j][_i][Cart::xyyyyy] = gmb0*S[_j][_i][Cart::yyyyy] + fak*(nx_i*S[_j][ilx_i][Cart::yyyyy]+nx_j*S[ilx_j][_i][Cart::yyyyy]);
+      S[_j][_i][Cart::xyyyyz] = gmb0*S[_j][_i][Cart::yyyyz] + fak*(nx_i*S[_j][ilx_i][Cart::yyyyz]+nx_j*S[ilx_j][_i][Cart::yyyyz]);
+      S[_j][_i][Cart::xyyyzz] = gmb0*S[_j][_i][Cart::yyyzz] + fak*(nx_i*S[_j][ilx_i][Cart::yyyzz]+nx_j*S[ilx_j][_i][Cart::yyyzz]);
+      S[_j][_i][Cart::xyyzzz] = gmb0*S[_j][_i][Cart::yyzzz] + fak*(nx_i*S[_j][ilx_i][Cart::yyzzz]+nx_j*S[ilx_j][_i][Cart::yyzzz]);
+      S[_j][_i][Cart::xyzzzz] = gmb0*S[_j][_i][Cart::yzzzz] + fak*(nx_i*S[_j][ilx_i][Cart::yzzzz]+nx_j*S[ilx_j][_i][Cart::yzzzz]);
+      S[_j][_i][Cart::xzzzzz] = gmb0*S[_j][_i][Cart::zzzzz] + fak*(nx_i*S[_j][ilx_i][Cart::zzzzz]+nx_j*S[ilx_j][_i][Cart::zzzzz]);
+      S[_j][_i][Cart::yyyyyy] = gmb1*S[_j][_i][Cart::yyyyy] + fak*(ny_i*S[_j][ily_i][Cart::yyyyy]+ny_j*S[ily_j][_i][Cart::yyyyy]) + 5*term_yyyy;
+      S[_j][_i][Cart::yyyyyz] = gmb2*S[_j][_i][Cart::yyyyy] + fak*(nz_i*S[_j][ilz_i][Cart::yyyyy]+nz_j*S[ilz_j][_i][Cart::yyyyy]);
+      S[_j][_i][Cart::yyyyzz] = gmb2*S[_j][_i][Cart::yyyyz] + fak*(nz_i*S[_j][ilz_i][Cart::yyyyz]+nz_j*S[ilz_j][_i][Cart::yyyyz]) + term_yyyy;
+      S[_j][_i][Cart::yyyzzz] = gmb1*S[_j][_i][Cart::yyzzz] + fak*(ny_i*S[_j][ily_i][Cart::yyzzz]+ny_j*S[ily_j][_i][Cart::yyzzz]) + 2*term_yzzz;
+      S[_j][_i][Cart::yyzzzz] = gmb1*S[_j][_i][Cart::yzzzz] + fak*(ny_i*S[_j][ily_i][Cart::yzzzz]+ny_j*S[ily_j][_i][Cart::yzzzz]) + term_zzzz;
+      S[_j][_i][Cart::yzzzzz] = gmb1*S[_j][_i][Cart::zzzzz] + fak*(ny_i*S[_j][ily_i][Cart::zzzzz]+ny_j*S[ily_j][_i][Cart::zzzzz]);
+      S[_j][_i][Cart::zzzzzz] = gmb2*S[_j][_i][Cart::zzzzz] + fak*(nz_i*S[_j][ilz_i][Cart::zzzzz]+nz_j*S[ilz_j][_i][Cart::zzzzz]) + 5*term_zzzz;
+    }
+  }
+  //------------------------------------------------------
+
+} // end if (_lmax_gamma > 5)
+
+
+
+
+
 
             // data is now stored in unnormalized cartesian Gaussians in the multiarray
             // Now, weird-looking construction since multiarray is not accessible for ub::prod
@@ -732,11 +987,6 @@ if (_lmax_gamma > 3) {
             return _does_contribute;
         }
 
-        
-
-        
-
 
     }
 }
-
