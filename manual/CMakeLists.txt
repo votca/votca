@@ -26,7 +26,7 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(TXT2TAGS REQUIRED)
 
-foreach(prog csg_property dvipdf)
+foreach(prog csg_property dvipdf inkscape)
   string(TOUPPER "${prog}" PROG)
   if(TARGET ${prog})
     set(${PROG} $<TARGET_FILE:${prog}>)
@@ -38,6 +38,7 @@ foreach(prog csg_property dvipdf)
   endif()
 endforeach()
 
+set(FIGTEX2EPS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/figtex2eps)
 set(TEX2EPS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/tex2eps)
 set(BBOX_ADD ${CMAKE_CURRENT_SOURCE_DIR}/scripts/bbox_add.pl)
 
@@ -47,11 +48,11 @@ include(${CMAKE_MODULE_PATH}/UseLATEX.cmake)
 # Include the following subdirectory # 
 ######################################
 #cannot use add_subdir as file depends only work with in the same directory
-#foreach(CURRENT_DIR functionality/fig usage/fig reference reference/xml
-#  reference/programs reference/scripts)
-#  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR})
-#  include(${CURRENT_DIR}/CMakeLists.txt)
-#endforeach()
+foreach(CURRENT_DIR fig/chemical_structure fig/idft_flow fig/stochastic
+  fig/reorganization_energy fig/workflow)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR})
+  include(${CURRENT_DIR}/CMakeLists.txt)
+endforeach()
 
 add_custom_target(gitid COMMAND ${CMAKE_COMMAND}
   -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
@@ -70,9 +71,16 @@ add_latex_document(xtp-manual.tex
     theory/analysis.tex theory/correlations.tex input/topology_atomistic.tex input/topology_coarsegrained.tex
     input/orbitals_zindo.tex input/header_edft.tex input/header_idft.tex input/output_dft.tex
     input/statefile.tex reference/reference.tex reference/calculators.xml input/dcv2t/dcv2t.pdb
-    input/dcv2t/map.xml input/get_orbitals.com
-  IMAGES fig/logo.eps
-  TARGET_NAME xtp-manual DEPENDS gitid.tex
+    input/dcv2t/map.xml input/get_orbitals.com input/qmpackage_headers/gaussian_edft.xml
+    input/qmpackage_headers/turbomole_edft.xml input/qmpackage_headers/nwchem_edft.xml input/TI.xml
+    input/qmpackage_headers/gaussian_idft.xml input/qmpackage_headers/turbomole_idft.xml
+    input/qmpackage_headers/nwchem_idft.xml fig/stochastic/stochastic.eps
+    fig/conjugated_segment/fragment_segment.eps
+  IMAGES fig/logo.eps fig/logo_trans.eps
+  TARGET_NAME xtp-manual DEPENDS gitid.tex fig/chemical_structure/dcv2t.eps fig/idft_flow/scheme.eps
+    fig/stochastic/overview_stochastic.eps fig/idft_flow/schemes_all.eps
+    fig/reorganization_energy/marcus_parabolas.eps fig/reorganization_energy/monomer_parabolas.eps
+    fig/workflow/workflow.eps literature_short.bib
 )
 
 add_custom_command(OUTPUT xtp-manual.pdf
