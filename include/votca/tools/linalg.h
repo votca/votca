@@ -169,7 +169,7 @@ namespace votca { namespace tools {
      * @param lower limit of condition number of the matrix, singular values below that will be set to zero
      * This function wraps the inversion of a matrix via svd
      */
-   int linalg_invert_svd(ub::matrix<double> &A, ub::matrix<double> &V,double limitCN);
+   int linalg_invert_svd(const ub::matrix<double> &A, ub::matrix<double> &V,double limitCN);
    
    /**
      * \brief calculates loewdin transformation of matrices
