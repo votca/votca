@@ -22,7 +22,7 @@ namespace votca { namespace tools {
 
 using namespace std;
 namespace ub = boost::numeric::ublas;
-int linalg_invert_svd(ub::matrix<double> &A, ub::matrix<double> &V,double limitCN){
+int linalg_invert_svd(const ub::matrix<double> &A, ub::matrix<double> &V,double limitCN){
     int dimensions=0;
     
     if(A.size1()!=A.size2()){
