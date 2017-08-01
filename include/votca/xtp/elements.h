@@ -80,7 +80,7 @@ public:
         //cout<<temp<<endl;
         
         
-        for ( unsigned i=temp.size2()-1;i>=0;i-- ){
+        for ( int i=temp.size2()-1;i>=0;i-- ){
             //cout <<i<<endl;
             if(temp(0,i)<1) continue; 
             for (unsigned j=0;j<temp.size1();j++){
