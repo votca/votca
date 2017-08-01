@@ -219,8 +219,7 @@ namespace votca {
             void RPA_imaginary(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, 
                     const double screening_freq);
 
-            void RPA_prepare_threecenters(TCMatrix& _Mmn_RPA, const TCMatrix& _Mmn_full, AOBasis& gwbasis,
-                    const AOMatrix& gwoverlap, const ub::matrix<double>& gwoverlap_inverse);
+            void RPA_prepare_threecenters(TCMatrix& _Mmn_RPA, const TCMatrix& _Mmn_full);
 
 
             // PPM related variables and functions

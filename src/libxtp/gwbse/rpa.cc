@@ -227,100 +227,18 @@ namespace votca {
         
         
    
-    // this is apparently the fourier transform of the coulomb matrix, I am not sure
-    void GWBSE::RPA_prepare_threecenters(TCMatrix& _Mmn_RPA,const TCMatrix& _Mmn_full, AOBasis& gwbasis,
-             const AOMatrix& gwoverlap,const ub::matrix<double>& gwoverlap_inverse ){
+    // this is apparently the fourier transform of the coulomb matrix, I am not sure according to old gwbse code it restores  orthogonality
+    void GWBSE::RPA_prepare_threecenters(TCMatrix& _Mmn_RPA,const TCMatrix& _Mmn_full){
         
         const double pi = boost::math::constants::pi<double>();
-        ub::range full=ub::range(0, gwbasis.AOBasisSize());
+        ub::range full=ub::range(0, _Mmn_full.get_beta());
         ub::range RPA_cut=ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin(), _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() + 1);
             // loop over m-levels in _Mmn_RPA
             #pragma omp parallel for 
             for (int _m_level = 0; _m_level < _Mmn_RPA.size(); _m_level++) {
-
-                
-
-                #if (GWBSE_DOUBLE)
-                const ub::matrix<double>&  _Mmn_double = _Mmn_full[ _m_level ];
-#else
-                const ub::matrix<double>  _Mmn_double = _Mmn_full[ _m_level ];
-#endif
-               
-                ub::matrix<double> _temp = ub::prod(gwoverlap_inverse, _Mmn_double);
-
-
-                // loop over n-levels in _Mmn_full 
-                for (int _n_level = 0; _n_level < _Mmn_full.get_ntot(); _n_level++) {
-
-                    double sc_plus = 0.0;
-                    double sc_minus = 0.0;
-
-                    // loop over gwbasis shells
-                    for (AOBasis::AOShellIterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); ++_is) {
-                        const AOShell* _shell = gwbasis.getShell(_is);
-                        
-
-                        if (_shell->getLmin() == 0) {
-                            double decay = (*_shell->firstGaussian())->getDecay();
-                        
-
-                            int _start = _shell->getStartIndex();
-
-                            double _factor = pow((2.0 * pi / decay), 0.75);
-
-                            //look at s function only
-
-                            double _test = _temp(_start, _n_level);
-                            if (_test > 0.0) {
-                                sc_plus += _factor* _test;
-                            } else if (_test < 0.0) {
-                                sc_minus -= _factor* _test;
-                            }
-                        }
-                    }
-
-                    if (_m_level <= _Mmn_RPA.get_mmax() && _n_level >= _Mmn_RPA.get_nmin()) {
-
-                        double target = std::sqrt(sc_plus * sc_minus);
-                        //cout << "s+: " << sc_plus << "  s-: " << sc_minus << " target " << target << endl;
-                        sc_plus = target / sc_plus;
-                        sc_minus = target / sc_minus;
-
-                        // loop over gwbasis shells
-                        for (AOBasis::AOShellIterator _is = gwbasis.firstShell(); _is != gwbasis.lastShell(); _is++) {
-                            const AOShell* _shell = gwbasis.getShell(_is);
-                            
-
-                            if (_shell->getLmin() == 0) {
-                                double decay = (*_shell->firstGaussian())->getDecay();
-
-                                int _start = _shell->getStartIndex();
-                                double _factor = pow((2.0 * pi / decay), 0.75);
-                                
-                                // only do something for s- shells
-
-                                // loop over all functions in shell
-
-                                if (std::abs(_factor) > 1.e-10) {
-                                    double _test = _temp(_start, _n_level);
-                                    if (_test > 0.0) {
-                                        _temp(_start, _n_level) = _temp(_start, _n_level) * sc_plus;
-                                    } else {
-                                        _temp(_start, _n_level) = _temp(_start, _n_level) * sc_minus;
-                                    }
-                                }
-
-                            }
-                        }// end loop over all shells
-                    }
-
-                }// loop n-levels
-
-                // multiply _temp with overlap
-                ub::matrix<real_gwbse> _temp2 = ub::prod(gwoverlap.Matrix(), _temp);
-                
+          
                 // copy to _Mmn_RPA
-                _Mmn_RPA[ _m_level ] = ub::project(_temp2, full, RPA_cut);
+                _Mmn_RPA[ _m_level ] = ub::project(_Mmn_full[ _m_level ], full, RPA_cut);
               
 
             }// loop m-levels
