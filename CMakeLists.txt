@@ -5,6 +5,11 @@ project(votca)
 #cmake policy CMP0048
 #set(PROJECT_VERSION "1.5-dev")
 
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
+  #release comes with -O3 by default
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
+
 ########################################################################
 # User input options                                                   #
 ########################################################################
@@ -19,6 +24,15 @@ option(BUILD_CSG_MANUAL "Build csg-manual" OFF)
 option(ENABLE_TESTING "Build and copy testing stuff" OFF)
 if(ENABLE_TESTING)
   enable_testing()
+endif()
+
+option(ENABLE_COVERAGE_BUILD "Do a coverage build" OFF)
+if(ENABLE_COVERAGE_BUILD)
+    message(STATUS "Enabling coverage build")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage -O0")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -O0")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
 endif()
 
 ######################################

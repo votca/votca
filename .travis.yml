@@ -1,4 +1,4 @@
-language: c 
+language: cpp 
 
 sudo: required
 
@@ -7,14 +7,22 @@ services:
 
 env:
   matrix:
-    - TESTOPTS="-V -E _imc" 
+    - TESTOPTS="-E _imc" 
+    - TESTOPTS="-E _imc" WERROR=yes 
 
 script:
  - cp -vr docker ${HOME}
  - cd ../../
  - mv -v ${TRAVIS_REPO_SLUG} $HOME/docker
  - cp -r $HOME/.ccache ${HOME}/docker/ccache
- - docker build  --build-arg TESTOPTS="${TESTOPTS}"
+ - docker build  --build-arg TESTOPTS="${TESTOPTS}" --build-arg COVERAGE=${COVERAGE}
+                 --build-arg CC=${CC} --build-arg CXX=${CXX}
+                 --build-arg CXXFLAGS="${WERROR:+-Werror}"
+                 --build-arg CI=${CI} --build-arg TRAVIS=${TRAVIS} --build-arg TRAVIS_OS_NAME=fedora
+                 --build-arg TRAVIS_BRANCH=${TRAVIS_BRANCH} --build-arg TRAVIS_JOB_NUMBER=${TRAVIS_JOB_NUMBER}
+                 --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} --build-arg TRAVIS_JOB_ID=${TRAVIS_JOB_ID}
+                 --build-arg TRAVIS_TAG=${TRAVIS_TAG} --build-arg TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG}
+                 --build-arg TRAVIS_COMMIT=${TRAVIS_COMMIT}
                  ${TRAVIS_TAG:+-t votca/votca:${TRAVIS_TAG}}
                  -t votca/votca:latest -t votca/votca:${TRAVIS_BRANCH} ${HOME}/docker/ &&
    rm -rf $HOME/.ccache &&
@@ -22,7 +30,7 @@ script:
    docker cp ${CON}:/home/votca/.ccache ${HOME}/
 
 after_success:
-  - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(master|stable|v1.*) ]] && DEPLOY=yes
+  - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(master|stable|v1.*) && ${TRAVIS_JOB_NUMBER} = *.1 ]] && DEPLOY=yes
   - if [[ ${TRAVIS_BRANCH} = master ]]; then DOCKER_TAG=latest; else DOCKER_TAG="${TRAVIS_BRANCH}"; fi
   - if [[ ${DOCKER_USERNAME} && ${DOCKER_PASSWORD} && ${TRAVIS_PULL_REQUEST} == false && ${DEPLOY} ]]; then
         docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
@@ -31,6 +39,10 @@ after_success:
 
 cache:
   - ccache
+
+compiler:
+  - gcc
+  - clang
 
 notifications:
   email:
