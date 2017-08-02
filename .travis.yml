@@ -27,7 +27,6 @@ addons:
       - libhdf5-serial-dev
       - pkg-config
       - pgf
-      - python-lxml
       - texlive-fonts-recommended
       - texlive-latex-extra
       - texlive-latex-recommended
@@ -65,7 +64,7 @@ before_script:
     fi
   - if [[ ${XTP_MAN} ]]; then git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/votca/src/devdoc"; fi 
   - if [[ ${GVER} ]]; then export CC=gcc-${GVER}; export CXX=g++-${GVER}; fi
-  - pip install --user numpy
+  - pip install --user numpy lxml
 
 script:
   - PATH="$HOME/hdf5:$PATH" ./build.sh -Wu $([[ ${TRAVIS_BRANCH} = stable ]] || echo "--dev") --prefix "$HOME/votca"
