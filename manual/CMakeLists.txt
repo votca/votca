@@ -39,8 +39,6 @@ foreach(prog csg_property dvipdf inkscape)
 endforeach()
 
 set(FIGTEX2EPS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/figtex2eps)
-set(TEX2EPS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/tex2eps)
-set(BBOX_ADD ${CMAKE_CURRENT_SOURCE_DIR}/scripts/bbox_add.pl)
 
 include(${CMAKE_MODULE_PATH}/UseLATEX.cmake)
 
