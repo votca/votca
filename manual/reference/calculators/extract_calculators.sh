@@ -19,8 +19,7 @@ for package in xtp_tools xtp_run xtp_parallel xtp_dump; do
 	# loop over all calculators
 	for calculator in ${calculators}; do
 		xmlfile=${VOTCASHARE}/xml/${calculator}.xml
-		echo $calculator
-		echo $xmlfile
+		echo Using $xmlfile for $calculator
 		if [ ! -f "$xmlfile" ]; then 
 			continue
 		fi
