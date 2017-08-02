@@ -230,7 +230,6 @@ namespace votca {
     // this is apparently the fourier transform of the coulomb matrix, I am not sure according to old gwbse code it restores  orthogonality
     void GWBSE::RPA_prepare_threecenters(TCMatrix& _Mmn_RPA,const TCMatrix& _Mmn_full){
         
-        const double pi = boost::math::constants::pi<double>();
         ub::range full=ub::range(0, _Mmn_full.get_beta());
         ub::range RPA_cut=ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin(), _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() + 1);
             // loop over m-levels in _Mmn_RPA
