@@ -1143,13 +1143,13 @@ if (_lmax_col > 5) {
     
 
     
-    void AOCoulomb::Symmetrize(const AOOverlap& _gwoverlap,const AOBasis& gwbasis, ub::matrix<double>& _gwoverlap_inverse, ub::matrix<double>& _gwoverlap_cholesky_inverse){
-       
+    int AOCoulomb::Symmetrize(const AOOverlap& _gwoverlap,const AOBasis& gwbasis, ub::matrix<double>& _gwoverlap_inverse, ub::matrix<double>& _gwoverlap_cholesky_inverse){
+        int removed_functions=0;
         if ( gwbasis._is_stable ){
             
             // get inverse of _aooverlap
             
-            linalg_invert( _gwoverlap.Matrix(), _gwoverlap_inverse );
+           removed_functions=linalg_invert_svd( _gwoverlap.Matrix(), _gwoverlap_inverse,1e7 );
             
             
             // make copy of _gwoverlap, because matrix is overwritten in GSL
@@ -1166,8 +1166,10 @@ if (_lmax_col > 5) {
             
             // invert L to get L^-1
            
-            linalg_invert(  _gwoverlap_cholesky, _gwoverlap_cholesky_inverse );
-         
+            int removed2=linalg_invert_svd(  _gwoverlap_cholesky, _gwoverlap_cholesky_inverse,1e7 );
+            if(removed2>removed_functions){
+                removed_functions=removed2;
+            }
             
             // calculate V' = L^-1 V (L^-1)^T
             ub::matrix<double> _temp = ub::prod( _gwoverlap_cholesky_inverse , _aomatrix );
@@ -1186,7 +1188,7 @@ if (_lmax_col > 5) {
         else{
             cout<<"WARNING: gwbasis is not stable."<<endl;
         }
-      return;  
+      return removed_functions;  
     }
     
     
