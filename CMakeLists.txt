@@ -175,7 +175,7 @@ add_subdirectory(src/tools)
 #add_subdirectory(share/scripts/dipro)
 add_subdirectory(share)
 
-option(BUILD_XTP_MANUAL "Build csg-manual" OFF)
+option(BUILD_XTP_MANUAL "Build xtp-manual" OFF)
 if(BUILD_XTP_MANUAL)
   add_subdirectory(manual)
 endif()
