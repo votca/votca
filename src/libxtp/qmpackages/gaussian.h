@@ -49,7 +49,7 @@ public:
     * monomer orbitals
     */
    bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
-
+   
    bool WriteShellScript();
 
    bool Run();
@@ -79,9 +79,14 @@ private:
     int BasisSetSize( std::string _line ); 
     int EnergiesFromLog( std::string _line, std::ifstream inputfile ); 
     std::string FortranFormat(double number);
+    void WriteBasisset(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
+    void WriteECP(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
+    void WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
+    void WriteGuess(Orbitals* orbitals_guess, ofstream& _com_file);
+    void WriteVXCRunInputFile();
+    void WriteCoordinates(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
+    void WriteHeader(ofstream& _com_file);
 
-    
-    
 };
 
 
