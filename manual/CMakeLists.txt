@@ -53,13 +53,13 @@ foreach(CURRENT_DIR fig/chemical_structure fig/idft_flow fig/stochastic
   include(${CURRENT_DIR}/CMakeLists.txt)
 endforeach()
 
-add_custom_target(gitid COMMAND ${CMAKE_COMMAND}
+add_custom_target(xtp-gitid COMMAND ${CMAKE_COMMAND}
   -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   -DPROJECT_VERSION="${PROJECT_VERSION}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
   -P ${CMAKE_MODULE_PATH}/gitid.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitid.tex)
-add_custom_command(OUTPUT gitid.tex DEPENDS gitid)
+add_custom_command(OUTPUT gitid.tex DEPENDS xtp-gitid)
 
 add_latex_document(xtp-manual.tex
   BIBFILES xtp-manual.bib FORCE_DVI
