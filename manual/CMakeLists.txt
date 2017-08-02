@@ -81,7 +81,7 @@ add_latex_document(xtp-manual.tex
   TARGET_NAME xtp-manual DEPENDS gitid.tex fig/chemical_structure/dcv2t.eps fig/idft_flow/scheme.eps
     fig/stochastic/overview_stochastic.eps fig/idft_flow/schemes_all.eps
     fig/reorganization_energy/marcus_parabolas.eps fig/reorganization_energy/monomer_parabolas.eps
-    fig/workflow/workflow.eps literature_short.bib reference/xml/map.xml.tex reference/xml/options.xml.tex
+    fig/workflow/workflow.eps reference/xml/map.xml.tex reference/xml/options.xml.tex
     reference/programs/all.tex reference/calculators/calculators.tex
 )
 
