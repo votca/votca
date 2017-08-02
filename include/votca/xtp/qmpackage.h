@@ -107,6 +107,8 @@ protected:
     std::string                              _run_dir;
         
     std::string                              _basisset_name;
+    std::string                              _ecp_name;
+
     std::list< std::string >                      _cleanup_list;
     
     bool                                _get_orbitals;
