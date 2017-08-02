@@ -26,7 +26,7 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(TXT2TAGS REQUIRED)
 
-foreach(prog csg_property dvipdf inkscape)
+foreach(prog csg_property dvipdf inkscape votca_property)
   string(TOUPPER "${prog}" PROG)
   if(TARGET ${prog})
     set(${PROG} $<TARGET_FILE:${prog}>)
