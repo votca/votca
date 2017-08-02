@@ -194,6 +194,7 @@ namespace votca {
                     }
                 }
             }
+            return;
         }
 
         /* If custom ECPs are used, they need to be specified in the input file
@@ -248,6 +249,7 @@ namespace votca {
             }
             // }
             _com_file << endl;
+            return;
         }
 
         /* For QM/MM the molecules in the MM environment are represented by 
@@ -265,6 +267,7 @@ namespace votca {
                 }
             }
             _com_file << endl;
+            return;
         }
 
         /* An initial guess for the electron density can be provided by 
@@ -308,6 +311,7 @@ namespace votca {
                 }
                 _com_file << 0 << endl;
             }
+            return;
         }
 
         /* For output of the AO matrix of Vxc using the patched g03 version,
@@ -341,6 +345,7 @@ namespace votca {
             _com_file2 << "VXC output run \n";
             _com_file2 << endl;
             _com_file2.close();
+            return;
         }
 
         
@@ -361,6 +366,7 @@ namespace votca {
             }
 
             _com_file << endl;
+            return;
         }
 
         /* Standard Gaussian Header is written to the input file, with checkpoint,
@@ -378,6 +384,7 @@ namespace votca {
             
             _com_file << endl << endl;
             _com_file << setw(2) << _charge << setw(2) << _spin << endl;
+            return;
         }
 
         /**
