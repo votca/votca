@@ -10,7 +10,7 @@ for package in xtp_tools xtp_run xtp_parallel xtp_dump; do
 
 	# loop over all calculators
 	for calculator in ${calculators}; do
-		xmlfile=${XTP_SHARE}/xml/${calculator}.xml
+		xmlfile=${CSG_SHARE}/xml/${calculator}.xml
 		echo $calculator
 		echo $xmlfile
 		if [ ! -f "$xmlfile" ]; then 

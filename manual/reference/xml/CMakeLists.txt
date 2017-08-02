@@ -6,7 +6,7 @@ add_custom_command(OUTPUT ${CURRENT_DIR}/config.t2t
 set(XTP_SHARE ${CMAKE_CURRENT_SOURCE_DIR}/../share)
 foreach(XML map.xml options.xml)
   add_custom_command(OUTPUT ${CURRENT_DIR}/${XML}.tex
-    COMMAND XTP_PROPERTY=${XTP_PROPERTY} ${CMAKE_CURRENT_SOURCE_DIR}/${CURRENT_DIR}/xml2t2t.sh 
+    COMMAND CSG_PROPERTY=${CSG_PROPERTY} ${CMAKE_CURRENT_SOURCE_DIR}/${CURRENT_DIR}/xml2t2t.sh 
       ${XTP_SHARE}/xml/${XML} > ${CURRENT_DIR}/${XML}.t2t
     COMMAND ${TXT2TAGS_EXECUTABLE} -t tex --no-header --infile ${CURRENT_DIR}/${XML}.t2t
       --outfile ${CURRENT_DIR}/${XML}.tex
