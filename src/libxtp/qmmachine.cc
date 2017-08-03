@@ -88,7 +88,8 @@ namespace votca {
             key = sfx + ".gwbse";
             if (opt->exists(key)) {
                 _do_gwbse = true;
-                cout << " Excited state QM/MM " << endl;
+                
+                CTP_LOG(ctp::logINFO, *_log) << format("... Excited state QM/MM ") << flush;
                 string _gwbse_xml = opt->get(key + ".gwbse_options").as<string> ();
                 //cout << endl << "... ... Parsing " << _package_xml << endl ;
                 load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
@@ -113,7 +114,7 @@ namespace votca {
                     _has_dQ_filter = false;
                 }
             } else {
-                cout << " Ground state QM/MM " << endl;
+                CTP_LOG(ctp::logINFO, *_log) << format("... Ground state QM/MM ") << flush;
                 _do_gwbse = false;
             }
 
