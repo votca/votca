@@ -153,6 +153,10 @@ namespace votca {
                         break;
                     }
                 } 
+            
+            if(_qp_converged){
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after "<< _qp_iteration+1<<" RPA iterations"<< flush;
+            }
             double _DFTgap =dftenergies(_homo + 1) - dftenergies(_homo);
             double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
             _shift = _QPgap - _DFTgap;
@@ -165,6 +169,7 @@ namespace votca {
             }
             }else{
                 _qp_converged = true;
+                
             }
 
             if ( _qp_iteration == _qp_max_iterations ) {

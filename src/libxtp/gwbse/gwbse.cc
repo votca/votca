@@ -630,6 +630,10 @@ namespace votca {
             _qp_converged=false;
             _qp_iteration=0;
             while (!_qp_converged) {
+                
+                if(_iterate_qp){
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " RPA Iteraton "<<_qp_iteration+1<<" of "<< _qp_max_iterations  << flush;
+                }
                _qp_iteration++;
                 // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
                 for (unsigned _i_freq = 0; _i_freq < _screening_freq.size1(); _i_freq++) {
