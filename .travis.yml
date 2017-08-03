@@ -7,8 +7,6 @@ services:
 
 env:
   matrix:
-    - TESTOPTS="-E _imc"
-    - TESTOPTS="-E _imc"                          WERROR=yes 
     - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Debug 
     - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Debug   WERROR=yes 
     - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Release
