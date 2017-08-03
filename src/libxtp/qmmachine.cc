@@ -169,13 +169,14 @@ namespace votca {
 
                 // check for polarized QM/MM convergence
                 (void) Iterate(jobFolder, iterCnt);
-                if (hasConverged()) {
-                    break;
-                }
                 if (_static_qmmm) {
                     _isConverged = true;
                     break;
                 }
+                else if (hasConverged()) {
+                    break;
+                }
+
             }
 
             if (iterCnt == iterMax - 1 && !_isConverged) {
