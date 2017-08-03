@@ -27,7 +27,6 @@ addons:
       - libhdf5-serial-dev
       - pkg-config
       - pgf
-      - python-lxml
       - texlive-fonts-recommended
       - texlive-latex-extra
       - texlive-latex-recommended
@@ -39,7 +38,7 @@ addons:
       - inkscape
       - doxygen
       - graphviz
-      - python-numpy
+      - ghostscript
       - gnuplot-nox
       - octave
 
@@ -65,10 +64,11 @@ before_script:
     fi
   - if [[ ${XTP_MAN} ]]; then git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/votca/src/devdoc"; fi 
   - if [[ ${GVER} ]]; then export CC=gcc-${GVER}; export CXX=g++-${GVER}; fi
+  - pip install --user numpy lxml
 
 script:
   - PATH="$HOME/hdf5:$PATH" ./build.sh -Wu $([[ ${TRAVIS_BRANCH} = stable ]] || echo "--dev") --prefix "$HOME/votca"
-    ${TYPE:+-DCMAKE_BUILD_TYPE=${TYPE}} ${XTP_MAN:+--build-manual}
+    ${TYPE:+-DCMAKE_BUILD_TYPE=${TYPE}} ${XTP_MAN:+-DBUILD_XTP_MANUAL=ON}
     ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} -DWITH_H5MD=ON ${MINIMAL:+--minimal} ${MAN:+--devdoc}
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall} ${GMX_VERSION:+--gmx-release ${GMX_VERSION}}
     --directory "$HOME/votca/src" --no-clean --depth 1 -DGMX_USE_RDTSCP=OFF ${GMX_DOUBLE:+-DGMX_DOUBLE=yes}
@@ -77,7 +77,7 @@ script:
 
 after_success:
   - if [[ ${XTP_MAN} ]]; then
-      cp "$HOME"/votca/{share/votca/manual,src/devdoc}/xtp-manual.pdf;
+      cp "$HOME"/votca/{share/votca/build/manual,src/devdoc}/xtp-manual.pdf;
       cd "$HOME/votca/src/devdoc";
       if [[ ${TRAVIS_BRANCH} = master && ${encrypted_f4232b15402f_key} && ${encrypted_f4232b15402f_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then
         git config --global user.name "Automatic Deployment (Travis CI)";
