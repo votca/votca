@@ -230,13 +230,9 @@ void QMMM::Initialize(Property *options) {
     key = "options."+Identify()+".gwbse";
     
     if ( options->exists(key)) { 
-        cout << endl;
-        cout << " Excited state QM/MM " << flush;
-        cout <<"bla"<<endl;
          if ( options->exists(key+".gwbse_options")) {
             string gwbse_xml = options->get(key+".gwbse_options").as< string >();
             load_property_from_xml(_gwbse_opt, gwbse_xml.c_str());
-            // _gwbse = _gwbse_opt.get("package.name").as< string >();
         }
         else {
             throw runtime_error("GWBSE options not specified.");
@@ -244,10 +240,6 @@ void QMMM::Initialize(Property *options) {
         
         _state = options->get(key+".state").as< int >();
         
-        
-    } else {
-        cout << endl;
-        cout << " Ground state QM/MM " << flush;
     }
     
 
