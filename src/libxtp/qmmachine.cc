@@ -172,8 +172,7 @@ namespace votca {
                 if (_static_qmmm) {
                     _isConverged = true;
                     break;
-                }
-                else if (hasConverged()) {
+                } else if (hasConverged()) {
                     break;
                 }
 
@@ -486,13 +485,14 @@ namespace votca {
                     << format("... E(MM)    = %1$+4.9e") % thisIter->getMMEnergy() << flush;
             CTP_LOG(ctp::logINFO, *_log)
                     << format("... E(QMMM)  = %1$+4.9e") % thisIter->getQMMMEnergy() << flush;
-            CTP_LOG(ctp::logINFO, *_log)
-                    << format("... RMS(dR)  = %1$+4.9e") % thisIter->getRMSdR() << flush;
-            CTP_LOG(ctp::logINFO, *_log)
-                    << format("... RMS(dQ)  = %1$+4.9e") % thisIter->getRMSdQ() << flush;
-            CTP_LOG(ctp::logINFO, *_log)
-                    << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
-
+            if (!_static_qmmm) {
+                CTP_LOG(ctp::logINFO, *_log)
+                        << format("... RMS(dR)  = %1$+4.9e") % thisIter->getRMSdR() << flush;
+                CTP_LOG(ctp::logINFO, *_log)
+                        << format("... RMS(dQ)  = %1$+4.9e") % thisIter->getRMSdQ() << flush;
+                CTP_LOG(ctp::logINFO, *_log)
+                        << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
+            }
             // CLEAN DIRECTORY
             _qmpack->CleanUp();
 
