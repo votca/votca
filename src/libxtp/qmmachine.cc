@@ -42,20 +42,28 @@ namespace votca {
         _isConverged(false) {
 
             string key = sfx + ".qmmmconvg";
-            
-            _crit_dR =opt->ifExistsReturnElseReturnDefault<double>(key + ".dR",0.01);//nm
-            _crit_dQ =opt->ifExistsReturnElseReturnDefault<double>(key + ".dQ",0.01);//e
-            _crit_dE_QM =opt->ifExistsReturnElseReturnDefault<double>(key + ".dQdE_QM",0.001);//eV
-            _crit_dE_MM  =opt->ifExistsReturnElseReturnDefault<double>(key + ".dE_MM",_crit_dE_QM);//eV
-            _maxIter=opt->ifExistsReturnElseReturnDefault<int>(key + ".max_iter",32);
-           
 
-            key = sfx + ".control";
-            bool split_dpl=opt->ifExistsReturnElseReturnDefault<bool>(key + ".split_dpl",true);
-            double dpl_spacing=opt->ifExistsReturnElseReturnDefault<double>(key + ".dpl_spacing",1e-3);
-            qminterface.setMultipoleSplitting(split_dpl,dpl_spacing);
-            
-            
+            _crit_dR = opt->ifExistsReturnElseReturnDefault<double>(key + ".dR", 0.01); //nm
+            _crit_dQ = opt->ifExistsReturnElseReturnDefault<double>(key + ".dQ", 0.01); //e
+            _crit_dE_QM = opt->ifExistsReturnElseReturnDefault<double>(key + ".dQdE_QM", 0.001); //eV
+            _crit_dE_MM = opt->ifExistsReturnElseReturnDefault<double>(key + ".dE_MM", _crit_dE_QM); //eV
+            _maxIter = opt->ifExistsReturnElseReturnDefault<int>(key + ".max_iter", 32);
+
+
+            key = sfx;
+            bool split_dpl = opt->ifExistsReturnElseReturnDefault<bool>(key + ".split_dpl", true);
+            double dpl_spacing = opt->ifExistsReturnElseReturnDefault<double>(key + ".dpl_spacing", 1e-3);
+            qminterface.setMultipoleSplitting(split_dpl, dpl_spacing);
+
+            // check for archiving
+            std::string _archiving_string = opt->ifExistsReturnElseReturnDefault<std::string>(key + ".archiving", "");
+            if (_archiving_string.find("iterations") != std::string::npos) {
+                _do_archive = true;
+            } else {
+                _do_archive = false;
+            }
+
+                    
             // GDMA options
             key = sfx + ".gdma";
             if (opt->exists(key)) {
@@ -187,7 +195,7 @@ namespace votca {
             _job->getPolarTop()->PrintPDB(runFolder + "/QM0_MM1_MM2.pdb");
             _xind->Evaluate(_job);
 
-           
+
 
             assert(_xind->hasConverged());
             thisIter->setE_FM(_job->getEF00(), _job->getEF01(), _job->getEF02(),
@@ -212,7 +220,7 @@ namespace votca {
             fclose(out);
 
 
-       
+
             _qmpack->Run();
 
             // EXTRACT LOG-FILE INFOS TO ORBITALS   
@@ -224,11 +232,11 @@ namespace votca {
             double energy___ex = 0.0;
 
             if (_do_gwbse) {
-                
+
 
                 // for GW-BSE, we also need to parse the orbitals file
                 _qmpack->ParseOrbitalsFile(&orb_iter_output);
-                GWBSE _gwbse=GWBSE(&orb_iter_output);
+                GWBSE _gwbse = GWBSE(&orb_iter_output);
                 std::vector<int> _state_index;
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 ctp::Logger gwbse_logger(ctp::logDEBUG);
@@ -238,9 +246,9 @@ namespace votca {
                 gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
                 gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
                 gwbse_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
-             
-                _gwbse.Initialize(&_gwbse_options);                   
-                
+
+                _gwbse.Initialize(&_gwbse_options);
+
                 if (_state > 0) {
                     CTP_LOG(ctp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
                     CTP_LOG(ctp::logDEBUG, *_log) << "  --- type:              " << _type << flush;
@@ -331,14 +339,14 @@ namespace votca {
 
 
                     if (_state_index.size() < 1) {
-                    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " WARNING: FILTER yielded no state. Taking lowest excitation"<< flush;
-                    _state_index.push_back(0);
+                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " WARNING: FILTER yielded no state. Taking lowest excitation" << flush;
+                        _state_index.push_back(0);
                     }
                     // - output its energy
                     if (_type == "singlet") {
-                        energy___ex = orb_iter_output.BSESingletEnergies()[_state_index[_state - 1]]*tools::conv::hrt2ev; // to eV
+                        energy___ex = orb_iter_output.BSESingletEnergies()[_state_index[_state - 1]] * tools::conv::hrt2ev; // to eV
                     } else if (_type == "triplet") {
-                        energy___ex = orb_iter_output.BSETripletEnergies()[_state_index[_state - 1]]*tools::conv::hrt2ev; // to eV
+                        energy___ex = orb_iter_output.BSETripletEnergies()[_state_index[_state - 1]] * tools::conv::hrt2ev; // to eV
                     }
 
                     // ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
@@ -357,7 +365,7 @@ namespace votca {
                     dftbs.LoadBasisSet(_gwbse.get_dftbasis_name());
                     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _gwbse.get_dftbasis_name() << flush;
                 }
-                
+
 
                 // fill DFT AO basis by going through all atoms 
                 AOBasis dftbasis;
@@ -378,13 +386,13 @@ namespace votca {
 
 
 
-                Espfit esp=Espfit(_log);
-                if (_qmpack->ECPRequested()){
+                Espfit esp = Espfit(_log);
+                if (_qmpack->ECPRequested()) {
                     esp.setUseECPs(true);
-                    }
-                esp.Fit2Density(Atomlist, DMAT_tot, dftbasis,dftbs,"medium");
+                }
+                esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, dftbs, "medium");
 
-} //_do_gwbse
+            } //_do_gwbse
 
             // Test: go via GDMA instead of point charges, only for DFT with Gaussian!
             GDMA _gdma;
@@ -440,6 +448,18 @@ namespace votca {
 
             }
 
+            // serialize this iteration
+            if (_do_archive) {
+                // save orbitals
+                std::string ORB_FILE = "system.orb";
+                CTP_LOG(ctp::logINFO, *_log) << "Serializing to " << ORB_FILE << flush;
+                std::ofstream ofs((runFolder + "/" + ORB_FILE).c_str());
+                boost::archive::binary_oarchive oa(ofs);
+                oa << orb_iter_output;
+                ofs.close();
+                CTP_LOG(ctp::logINFO, *_log) << "Done serializing " << ORB_FILE << flush;
+            }
+
             CTP_LOG(ctp::logINFO, *_log)
                     << format("Summary - iteration %1$d:") % (iterCnt + 1) << flush;
             CTP_LOG(ctp::logINFO, *_log)
@@ -477,8 +497,6 @@ namespace votca {
             this->_iters.push_back(newIter);
             return newIter;
         }
-
-     
 
         template<class QMPackage>
         bool QMMachine<QMPackage>::hasConverged() {
@@ -525,7 +543,7 @@ namespace votca {
             return _isConverged;
         }
 
-    
+
 
         // REGISTER QM PACKAGES
         template class QMMachine<QMPackage>;
