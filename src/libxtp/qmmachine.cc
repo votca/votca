@@ -63,7 +63,15 @@ namespace votca {
                 _do_archive = false;
             }
 
-                    
+            // check for static or polarized qmmm
+            key = sfx + ".tholemodel";
+            _static_qmmm = true;
+            if (opt->exists(key + ".induce")) {
+                int induce = opt->get(key + ".induce").as< int >();
+                _static_qmmm = (induce == 1) ? false : true;
+            }
+
+
             // GDMA options
             key = sfx + ".gdma";
             if (opt->exists(key)) {
@@ -154,16 +162,18 @@ namespace votca {
             _qmpack->setCharge(chrg);
             _qmpack->setSpin(spin);
 
-            //_qmpack->setThreads(_subthreads);
-
 
             int iterCnt = 0;
             int iterMax = _maxIter;
             for (; iterCnt < iterMax; ++iterCnt) {
 
-                //bool code = 
+                // check for polarized QM/MM convergence
                 (void) Iterate(jobFolder, iterCnt);
                 if (hasConverged()) {
+                    break;
+                }
+                if (_static_qmmm) {
+                    _isConverged = true;
                     break;
                 }
             }
@@ -354,44 +364,47 @@ namespace votca {
 
                 } // only if state >0
 
-                // calculate density matrix for this excited state
-                ub::matrix<double> &_dft_orbitals = orb_iter_output.MOCoefficients();
-                // load DFT basis set (element-wise information) from xml file
-                BasisSet dftbs;
-                if (orb_iter_output.getDFTbasis() != "") {
-                    dftbs.LoadBasisSet(orb_iter_output.getDFTbasis());
-                    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_output.getDFTbasis() << flush;
-                } else {
-                    dftbs.LoadBasisSet(_gwbse.get_dftbasis_name());
-                    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _gwbse.get_dftbasis_name() << flush;
-                }
 
 
-                // fill DFT AO basis by going through all atoms 
-                AOBasis dftbasis;
-                dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms());
-                dftbasis.ReorderMOs(_dft_orbitals, orb_iter_output.getQMpackage(), "xtp");
-                // TBD: Need to switch between singlets and triplets depending on _type
-                ub::matrix<double> DMATGS = orb_iter_output.DensityMatrixGroundState(_dft_orbitals);
+                // new ESP fit only required for polarizable QMMM
+                if (!_static_qmmm) {
 
-                ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
-
-                if (_state > 0) {
-                    std::vector<ub::matrix<double> > DMAT = _gwbse.getExcitedStateDmat(_type, _state_index[_state - 1]);
-                    DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
-                }
-
-                // fill DFT AO basis by going through all atoms 
-                std::vector< ctp::QMAtom* >& Atomlist = orb_iter_output.QMAtoms();
+                    // calculate density matrix for this excited state
+                    ub::matrix<double> &_dft_orbitals = orb_iter_output.MOCoefficients();
+                    // load DFT basis set (element-wise information) from xml file
+                    BasisSet dftbs;
+                    if (orb_iter_output.getDFTbasis() != "") {
+                        dftbs.LoadBasisSet(orb_iter_output.getDFTbasis());
+                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_output.getDFTbasis() << flush;
+                    } else {
+                        dftbs.LoadBasisSet(_gwbse.get_dftbasis_name());
+                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _gwbse.get_dftbasis_name() << flush;
+                    }
 
 
+                    // fill DFT AO basis by going through all atoms 
+                    AOBasis dftbasis;
+                    dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms());
+                    dftbasis.ReorderMOs(_dft_orbitals, orb_iter_output.getQMpackage(), "xtp");
+                    // TBD: Need to switch between singlets and triplets depending on _type
+                    ub::matrix<double> DMATGS = orb_iter_output.DensityMatrixGroundState(_dft_orbitals);
 
-                Espfit esp = Espfit(_log);
-                if (_qmpack->ECPRequested()) {
-                    esp.setUseECPs(true);
-                }
-                esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, dftbs, "medium");
+                    ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
 
+                    if (_state > 0) {
+                        std::vector<ub::matrix<double> > DMAT = _gwbse.getExcitedStateDmat(_type, _state_index[_state - 1]);
+                        DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
+                    }
+
+                    // fill DFT AO basis by going through all atoms 
+                    std::vector< ctp::QMAtom* >& Atomlist = orb_iter_output.QMAtoms();
+
+                    Espfit esp = Espfit(_log);
+                    if (_qmpack->ECPRequested()) {
+                        esp.setUseECPs(true);
+                    }
+                    esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, dftbs, "medium");
+                } // for polarized QMMM
             } //_do_gwbse
 
             // Test: go via GDMA instead of point charges, only for DFT with Gaussian!
@@ -451,13 +464,9 @@ namespace votca {
             // serialize this iteration
             if (_do_archive) {
                 // save orbitals
-                std::string ORB_FILE = "system.orb";
-                CTP_LOG(ctp::logINFO, *_log) << "Serializing to " << ORB_FILE << flush;
-                std::ofstream ofs((runFolder + "/" + ORB_FILE).c_str());
-                boost::archive::binary_oarchive oa(ofs);
-                oa << orb_iter_output;
-                ofs.close();
-                CTP_LOG(ctp::logINFO, *_log) << "Done serializing " << ORB_FILE << flush;
+                std::string ORB_FILE = runFolder + "/system.orb";
+                CTP_LOG(ctp::logDEBUG, *_log) << "Archiving data to " << ORB_FILE << flush;
+                orb_iter_output.Save(ORB_FILE);
             }
 
             CTP_LOG(ctp::logINFO, *_log)

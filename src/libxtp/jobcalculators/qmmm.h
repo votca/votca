@@ -240,10 +240,6 @@ void QMMM::Initialize(Property *options) {
         
         _state = options->get(key+".state").as< int >();
         
-        
-    } else {
-        cout << endl;
-        cout << " Ground state QM/MM " << flush;
     }
     
 

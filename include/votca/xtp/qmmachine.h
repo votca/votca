@@ -101,6 +101,7 @@ private:
     
     bool _do_gwbse; // needs to be set by options!!!
     bool _do_archive;
+    bool _static_qmmm;
 
 };
 
