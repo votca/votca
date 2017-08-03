@@ -19,7 +19,7 @@ option(BUILD_XTP "Build xtp" OFF)
 if(BUILD_XTP AND NOT BUILD_CTP)
   message(FATAL_ERROR "xtp needs ctp to be build")
 endif(BUILD_XTP AND NOT BUILD_CTP)
-option(BUILD_CSG_MANUAL "Build csg-manual")
+option(BUILD_CSG_MANUAL "Build csg-manual" OFF)
 
 option(ENABLE_TESTING "Build and copy testing stuff" OFF)
 if(ENABLE_TESTING)
