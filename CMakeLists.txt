@@ -83,7 +83,7 @@ if(BUILD_XTP)
 endif()
 
 find_package(Doxygen)
-if (DOXYGEN_FOUND)
+if (DOXYGEN_FOUND AND DOXYGEN_DOT_FOUND)
   add_subdirectory(share/doc)
 endif()
 
