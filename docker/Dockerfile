@@ -37,9 +37,9 @@ RUN make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"
 RUN make install DESTDIR=${PWD} && rm -rf ${PWD}/install
 RUN if [ ${COVERAGE} ]; then \
   if [ ${CC} = clang ]; then \
-    $HOME/.local/bin/codecov --gcov-root . --root ../${TRAVIS_REPO_SLUG#*/} -F "${CC}" --gcov-exec "llvm-cov gcov"; \
+    $HOME/.local/bin/codecov --gcov-root ${PWD} --root ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" --gcov-exec "llvm-cov gcov"; \
   else \
-    $HOME/.local/bin/codecov --gcov-root . --root ../${TRAVIS_REPO_SLUG#*/} -F "${CC}"; \
+    $HOME/.local/bin/codecov --gcov-root ${PWD} --root ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}"; \
   fi; \
 fi
 USER root
