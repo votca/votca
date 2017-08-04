@@ -35,13 +35,13 @@ RUN cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
 RUN make VERBOSE=1 -j2
 RUN make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"
 RUN make install DESTDIR=${PWD} && rm -rf ${PWD}/install
-RUN cd .. && if [ ${COVERAGE} ]; then \
+RUN if [ ${COVERAGE} ]; then \
   if [ ${CC} = clang ]; then \
-    $HOME/.local/bin/codecov -F "${CC}" --gcov-exec "llvm-cov gcov"; \
+    $HOME/.local/bin/codecov --root ../${TRAVIS_REPO_SLUG#*/} -F "${CC}" --gcov-exec "llvm-cov gcov"; \
   else \
-    $HOME/.local/bin/codecov -F "${CC}"; \
+    $HOME/.local/bin/codecov --root ../${TRAVIS_REPO_SLUG#*/} -F "${CC}"; \
   fi; \
-fi && cd -
+fi
 USER root
 RUN make install
 USER votca
