@@ -77,7 +77,7 @@ script:
 
 after_success:
   - if [[ ${XTP_MAN} ]]; then
-      cp "$HOME"/votca/{share/votca/build/manual,src/devdoc}/xtp-manual.pdf;
+      cp "$HOME"/votca/src/{xtp/build/manual,devdoc}/xtp-manual.pdf;
       cd "$HOME/votca/src/devdoc";
       if [[ ${TRAVIS_BRANCH} = master && ${encrypted_f4232b15402f_key} && ${encrypted_f4232b15402f_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then
         git config --global user.name "Automatic Deployment (Travis CI)";
@@ -87,7 +87,7 @@ after_success:
         chmod 600 ~/.ssh/id_rsa;
         git push git@github.com:votca/doxygen.git gh-pages;
       else
-        git status
+        git status;
         git diff --no-color | head -n 500;
       fi;
     fi
