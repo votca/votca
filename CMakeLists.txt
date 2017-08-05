@@ -36,6 +36,10 @@ if(ENABLE_COVERAGE_BUILD)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
 endif()
 
+if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+  find_package(Git)
+endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+
 ######################################
 # Include the following subdirectory # 
 ######################################
@@ -55,6 +59,7 @@ set(VOTCA_PATH "${CMAKE_BINARY_DIR}/csg/scripts:${CMAKE_BINARY_DIR}/csg/src/tool
 add_subdirectory(csg-tutorials)
 if(BUILD_CSG_MANUAL)
   add_subdirectory(csg-manual)
+  add_dependencies(csg-manual_dvi csg_call_build csg_inverse_build)
 endif()
 set(VOTCA_CSG_LIBRARY votca_csg CACHE STRING "csg library name")
 set(VOTCA_CSG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/csg/include
