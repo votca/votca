@@ -33,6 +33,14 @@ RUN cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
   -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CTP=ON -DCMAKE_INSTALL_PREFIX=/usr -DLIB=lib64 \
   -DENABLE_TESTING=ON -DBUILD_CSG_MANUAL=ON -DBUILD_XTP_MANUAL=ON  ${COVERAGE:+-DENABLE_COVERAGE_BUILD=ON} ..
 RUN make VERBOSE=1 -j2
+RUN ccache -s
+RUN make doxygen
+RUN if [ ${COVERAGE} ]; then \
+      python -m coverxygen --xml-dir share/doc/xml/ --src-dir .. --output doxygen.coverage.info; \
+      wget -O codecov.sh https://codecov.io/bash; \
+      bash codecov.sh -X gcov -f doxygen.coverage.info -F documentation; \
+      doxy-coverage --threshold 1 share/doc/xml/; \
+    fi
 RUN make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"
 RUN make install DESTDIR=${PWD} && rm -rf ${PWD}/install
 RUN if [ ${COVERAGE} ]; then \
