@@ -7,10 +7,10 @@ services:
 
 env:
   matrix:
-    - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Debug 
-    - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Debug   WERROR=yes 
     - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Release
     - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Release WERROR=yes 
+    - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Debug 
+    - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Debug   WERROR=yes 
 
 script:
  - cp -vr docker ${HOME}
@@ -39,7 +39,7 @@ after_success:
         docker push "votca/votca:${DOCKER_TAG}";
     fi
   - if [[ ${TRAVIS_JOB_NUMBER} = *.1 ]]; then
-      git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc"
+      git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc";
       cd $HOME/devdoc;
       docker cp ${CON}:/home/votca/votca/build/share/doc/hml . ;
       docker cp ${CON}:/home/votca/votca/build/csg-manual/manual.pdf . ;
