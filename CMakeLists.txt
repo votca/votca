@@ -84,7 +84,7 @@ if(BUILD_CTP)
 endif()
 if(BUILD_XTP)
   add_subdirectory(xtp)
-  list(APPEND DOXYGEN_PACKAGES ctp)
+  list(APPEND DOXYGEN_PACKAGES xtp)
 endif()
 
 find_package(Doxygen)
