@@ -34,7 +34,7 @@ namespace votca { namespace xtp {
 
 QMAPEMachine::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape,
 	 Property *opt, string sfx, int nst)
-   : _subthreads(nst),_job(job), _cape(cape),_isConverged(false) {
+   : _job(job), _cape(cape),_isConverged(false) {
     
 	// CONVERGENCE THRESHOLDS
     string key = sfx + ".qmmmconvg";

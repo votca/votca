@@ -61,14 +61,12 @@ private:
     
     QMMInterface qminterface;
     ctp::Logger *_log;
-    int _subthreads;
 
     bool _run_ape;
     bool _run_dft;
     bool _run_gwbse;
 
     ctp::XJob *_job;
-    ctp::XInductor *_xind;
     ctp::Ewald3DnD *_cape;
     
     DFTENGINE dftengine;

@@ -82,7 +82,6 @@ namespace votca { namespace xtp {
             
         private:
             
-                bool is_small;   
                 unsigned _indexoffirstgridpoint;
                 unsigned matrix_size;
                 std::vector<ub::range> aoranges;

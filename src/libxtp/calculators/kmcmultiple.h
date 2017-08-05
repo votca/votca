@@ -53,7 +53,6 @@ public:
 private:
             
             void  RunVSSM(ctp::Topology *top);
-            int _maxsteps;
             double _runtime;
             double _outputtime;
             std::string _trajectoryfile;
