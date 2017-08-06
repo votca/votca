@@ -1,4 +1,8 @@
-language: cpp 
+# the original source of this file can be found in votca/votca repository
+# add changes there!
+# To update:
+# wget -O .travis.yml https://raw.githubusercontent.com/votca/votca/master/.travis.yml
+language: cpp
 
 sudo: required
 
@@ -7,19 +11,38 @@ services:
 
 env:
   matrix:
+    - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Debug
+    - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Debug   WERROR=yes
     - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Release
-    - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Release WERROR=yes 
-    - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Debug 
-    - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Debug   WERROR=yes 
+    - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Release WERROR=yes
+#useless for votca/votca, but for coverage of individual modules
+    - TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Release COVERAGE=yes
+
+matrix:
+  exclude:
+  - env: TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Release COVERAGE=yes
+    compiler: clang #taking too long
 
 script:
- - cp -vr docker ${HOME}
+ - git checkout -b current_commit
  - cd ../../
- - mv -v ${TRAVIS_REPO_SLUG} $HOME/docker
+ - if [[ ${TRAVIS_REPO_SLUG} = */votca ]]; then
+     cp -vr ${TRAVIS_REPO_SLUG}/docker ${HOME};
+     mv -v ${TRAVIS_REPO_SLUG} $HOME/docker;
+   else
+     git clone --recursive --recursive https://github.com/votca/votca.git $HOME/docker/votca;
+     if [[ ${TRAVIS_BRANCH} != master ]]; then
+       git -C ${HOME}/docker/votca checkout ${TRAVIS_BRANCH} && git -C ${HOME}/docker/votca submodule update --recursive --init;
+     fi;
+     git -C ${HOME}/docker/votca/${TRAVIS_REPO_SLUG#*/} fetch ${PWD}/${TRAVIS_REPO_SLUG} current_commit;
+     git -C ${HOME}/docker/votca/${TRAVIS_REPO_SLUG#*/} checkout -f FETCH_HEAD;
+     cp -vr ${HOME}/docker/votca/docker/* ${HOME}/docker;
+     if [[ -d ${TRAVIS_REPO_SLUG}/docker ]]; then cp -vr ${TRAVIS_REPO_SLUG}/docker/* ${HOME}/docker; fi;
+   fi
  - cp -r $HOME/.ccache ${HOME}/docker/ccache
  - docker build  --build-arg TESTOPTS="${TESTOPTS}" --build-arg COVERAGE=${COVERAGE}
                  --build-arg CC=${CC} --build-arg CXX=${CXX} --build-arg CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                 --build-arg CXXFLAGS="-Wall ${WERROR:+-Werror}" 
+                 --build-arg CXXFLAGS="-Wall ${WERROR:+-Werror}"
                  --build-arg CI=${CI} --build-arg TRAVIS=${TRAVIS} --build-arg TRAVIS_OS_NAME=fedora
                  --build-arg TRAVIS_BRANCH=${TRAVIS_BRANCH} --build-arg TRAVIS_JOB_NUMBER=${TRAVIS_JOB_NUMBER}
                  --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} --build-arg TRAVIS_JOB_ID=${TRAVIS_JOB_ID}
@@ -36,7 +59,7 @@ after_success:
   - if [[ ${TRAVIS_BRANCH} = master ]]; then DOCKER_TAG=latest; else DOCKER_TAG="${TRAVIS_BRANCH}"; fi
   - if [[ ${DOCKER_USERNAME} && ${DOCKER_PASSWORD} && ${TRAVIS_PULL_REQUEST} == false && ${DEPLOY} ]]; then
         docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-        docker push "votca/votca:${DOCKER_TAG}";
+        docker push "${TRAVIS_REPO_SLUG}:${DOCKER_TAG}";
     fi
   - if [[ ${TRAVIS_JOB_NUMBER} = *.1 ]]; then
       git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc";
@@ -69,4 +92,4 @@ compiler:
 
 notifications:
   email:
-    - votca-commits@googlegroups.com 
+    - votca-commits@googlegroups.com
