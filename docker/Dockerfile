@@ -6,6 +6,8 @@ ARG CC
 ARG CXX
 ARG CXXFLAGS
 ARG CMAKE_BUILD_TYPE
+ARG TESTING
+ARG DOXYGEN
 
 #for coverage
 ARG CI
@@ -31,23 +33,24 @@ WORKDIR build
 RUN ccache -z
 RUN cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
   -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CTP=ON -DCMAKE_INSTALL_PREFIX=/usr -DLIB=lib64 \
-  -DENABLE_TESTING=ON -DBUILD_CSG_MANUAL=ON -DBUILD_XTP_MANUAL=ON  ${COVERAGE:+-DENABLE_COVERAGE_BUILD=ON} ..
+  -DENABLE_TESTING=${TESTING} -DBUILD_CSG_MANUAL=ON -DBUILD_XTP_MANUAL=ON  ${COVERAGE:+-DENABLE_COVERAGE_BUILD=ON} ..
 RUN make VERBOSE=1 -j2
 RUN ccache -s
-RUN make doxygen
-RUN if [ ${COVERAGE} ]; then \
+RUN if [ ${DOXYGEN} ]; then \
+      make doxygen; \
       python -m coverxygen --xml-dir share/doc/xml/ --src-dir .. --output doxygen.coverage.info; \
       wget -O codecov.sh https://codecov.io/bash; \
-      bash codecov.sh -X gcov -f doxygen.coverage.info -F documentation; \
-      doxy-coverage --threshold 1 share/doc/xml/; \
+      bash codecov.sh -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F doxygen -X gcov -f doxygen.coverage.info; \
+      rm -f doxygen.coverage.info codecov.sh; \
     fi
-RUN make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"
-RUN make install DESTDIR=${PWD} && rm -rf ${PWD}/install
+RUN if [ ${TESTING} = ON ]; then make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"; fi
+RUN make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install
 RUN if [ ${COVERAGE} ]; then \
+  wget -O codecov.sh https://codecov.io/bash; \
   if [ ${CC} = clang ]; then \
-    $HOME/.local/bin/codecov --gcov-root ${PWD} --root ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" --gcov-exec "llvm-cov gcov"; \
+    bash codecov.sh -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" -x "llvm-cov gcov"; \
   else \
-    $HOME/.local/bin/codecov --gcov-root ${PWD} --root ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}"; \
+    bash codecov.sh -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}"; \
   fi; \
 fi
 USER root
