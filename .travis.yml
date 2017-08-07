@@ -11,12 +11,12 @@ services:
 
 env:
   matrix:
-    - TESTOPTS="-E _(imc|spce_cma_simple)" CMAKE_BUILD_TYPE=Debug
-    - TESTOPTS="-E _(imc|spce_cma_simple)" CMAKE_BUILD_TYPE=Debug   WERROR=yes
-    - TESTOPTS="-E _(imc|spce_cma_simple)" CMAKE_BUILD_TYPE=Release
-    - TESTOPTS="-E _(imc|spce_cma_simple)" CMAKE_BUILD_TYPE=Release WERROR=yes
+    - TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Debug
+    - TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Debug   WERROR=yes
+    - TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
+    - TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release WERROR=yes
 #useless for votca/votca, but for coverage of individual modules
-    - TESTOPTS="-E _(imc|spce_cma_simple)" CMAKE_BUILD_TYPE=Release COVERAGE=yes
+    - TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release COVERAGE=yes
 
 matrix:
   exclude:
