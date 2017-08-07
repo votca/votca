@@ -64,7 +64,7 @@ void AOBasis::ReorderMOs(ub::matrix<double> &v,const string& start,const string&
           }
 
           // NWChem has some strange minus in d-functions
-          if ( start == "nwchem" || target == "nwchem" ){
+          if ( start == "nwchem" || start == "orca" ){
 
               // get vector with multipliers, e.g. NWChem -> Votca (bloody sign for d_xz)
               vector<int> multiplier;
@@ -241,14 +241,31 @@ void AOBasis::addMultiplierShell(const string& start, const string& target, cons
                     multiplier.push_back(1);
                     multiplier.push_back(1);
                     multiplier.push_back(1);
+                } else if (start == "orca"){
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
                 } else {
                     cerr << "Tried to get multipliers d-functions from package " << start << ".";
                     throw std::runtime_error("Multiplication not implemented yet!");
                 }
             }
             else if (shell_type == "F") {
+                if ( start == "orca" ){
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(-1);
+                    multiplier.push_back(-1);
+
+                } else {
                 cerr << "Tried to get multipliers for f-functions . ";
                 throw std::runtime_error("Multiplication not implemented yet!");
+                }
             }
             else if (shell_type == "G") {
                 cerr << "Tried to get multipliers g-functions . ";
@@ -359,7 +376,7 @@ void AOBasis::addReorderShell(const string& start,const string& target,const str
            }
        }
        else if ( shell_type == "F" ){
-           if ( start == "gaussian" ){
+           if ( start == "gaussian" || start == "orca" ){
                neworder.push_back( _cur_pos + 1 );
                neworder.push_back( _cur_pos + 3 );
                neworder.push_back( _cur_pos + 2 );
