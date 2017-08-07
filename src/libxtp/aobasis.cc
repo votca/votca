@@ -22,37 +22,37 @@
 
 
 namespace votca { namespace xtp {
-    
- AOBasis::~AOBasis() { 
-        for (vector< AOShell* >::iterator it = _aoshells.begin(); it != _aoshells.end() ; it++ ) delete (*it); 
+
+ AOBasis::~AOBasis() {
+        for (vector< AOShell* >::iterator it = _aoshells.begin(); it != _aoshells.end() ; it++ ) delete (*it);
         _aoshells.clear();
-         }    
- 
+         }
+
 AOShell* AOBasis::addShell( string shellType,int Lmax,int Lmin, double shellScale, int shellFunc, int startIndex, int offset, vec pos, string name, int index )
-    { 
+    {
         AOShell* aoshell = new AOShell( shellType,Lmax,Lmin, shellScale, shellFunc, startIndex, offset, pos, name, index, this );
-        _aoshells.push_back(aoshell); 
+        _aoshells.push_back(aoshell);
         return aoshell;
     }
 
-void AOBasis::ReorderMOs(ub::matrix<double> &v,const string& start,const string& target )  { 
-       
+void AOBasis::ReorderMOs(ub::matrix<double> &v,const string& start,const string& target )  {
+
           // cout << " Reordering MOs from " << start << " to " << target << endl;
-           
+
     if (start==target){
         return;
     }
-    
-          // get reordering vector _start -> target 
+
+          // get reordering vector _start -> target
           vector<int> order;
           this->getReorderVector( start, target, order);
-           
+
           // Sanity check
           if ( v.size2() != order.size() ) {
               cerr << "Size mismatch in ReorderMOs" << v.size2() << ":" << order.size() << endl;
               throw std::runtime_error( "Abort!");
           }
-           
+
           // actual swapping of coefficients
           for ( unsigned _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
                 for ( unsigned s = 1, d; s < order.size(); ++ s ) {
@@ -62,23 +62,23 @@ void AOBasis::ReorderMOs(ub::matrix<double> &v,const string& start,const string&
                           if ( d == s ) while ( d = order[d], d != s ) swap( v(_i_orbital,s), v(_i_orbital,d) );
                 }
           }
-           
+
           // NWChem has some strange minus in d-functions
           if ( start == "nwchem" || target == "nwchem" ){
-              
+
               // get vector with multipliers, e.g. NWChem -> Votca (bloody sign for d_xz)
               vector<int> multiplier;
               this->getMultiplierVector(start, target, multiplier);
               // and reorder rows of _orbitals->_mo_coefficients() accordingly
               this->MultiplyMOs( v , multiplier);
-              
+
           }
-           
-           
+
+
           return;
        }
 
-void AOBasis::MultiplyMOs(ub::matrix<double> &v, vector<int> const &multiplier )  { 
+void AOBasis::MultiplyMOs(ub::matrix<double> &v, vector<int> const &multiplier )  {
           // Sanity check
           if ( v.size2() != multiplier.size() ) {
               cerr << "Size mismatch in MultiplyMOs" << v.size2() << ":" << multiplier.size() << endl;
@@ -88,14 +88,14 @@ void AOBasis::MultiplyMOs(ub::matrix<double> &v, vector<int> const &multiplier )
           for ( unsigned _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
 
                for ( unsigned _i_basis = 0; _i_basis < v.size2(); _i_basis++ ){
-        
+
                    v(_i_orbital, _i_basis ) = multiplier[_i_basis] * v(_i_orbital, _i_basis );
-                   
+
                }
-               
-               
+
+
            }
-       } 
+       }
 //this is for gaussian only to transform from gaussian ordering cartesian to spherical in gaussian ordering not more
 void AOBasis::getTransformationCartToSpherical(const string& package, ub::matrix<double>& _trafomatrix ){
 
@@ -108,16 +108,16 @@ void AOBasis::getTransformationCartToSpherical(const string& package, ub::matrix
         for (AOShellIterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
             const AOShell* _shell = getShell( _is );
             const string& _type =  _shell->getType();
-            
+
             _dim_sph  += NumFuncShell( _type );
             _dim_cart +=NumFuncShell_cartesian( _type );
- 
-        }   
- 
-        
+
+        }
+
+
         // initialize _trafomatrix
         _trafomatrix = ub::zero_matrix<double>( _dim_sph , _dim_cart );
-        
+
         // now fill it
         int _row_start = 0;
         int _col_start = 0;
@@ -126,39 +126,39 @@ void AOBasis::getTransformationCartToSpherical(const string& package, ub::matrix
             string _type =  _shell->getType();
             int _row_end = _row_start +NumFuncShell( _type );
             int _col_end = _col_start +NumFuncShell_cartesian( _type );
-            
+
             ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange( _trafomatrix, _row_start, _row_end, _col_start, _col_end);
             addTrafoCartShell(  _shell, _submatrix  );
-            
+
             _row_start = _row_end;
             _col_start = _col_end;
-            
-        }  
+
+        }
     }
     return;
 }
 
 //only for gaussian package
 void AOBasis::addTrafoCartShell(const AOShell* shell , ub::matrix_range< ub::matrix<double> >& _trafo ){
-    
-   
+
+
     // fill _local according to _lmax;
     int _lmax = shell->getLmax();
     string _type = shell->getType();
-    
+
     int _sph_size =NumFuncShell( _type ) + OffsetFuncShell( _type );
     int _cart_size = NumFuncShell_cartesian( _type ) + OffsetFuncShell_cartesian( _type )  ;
-    
+
     // cout << "    local size : " << _sph_size << " : " << _cart_size << endl;
-    
+
     ub::matrix<double> _local =  ub::zero_matrix<double>(_sph_size,_cart_size);
 
     // s-functions
     _local(0,0) = 1.0; // s
-    
+
     // p-functions
     if ( _lmax > 0 ){
-        _local(1,1) = 1.0; 
+        _local(1,1) = 1.0;
         _local(2,2) = 1.0;
         _local(3,3) = 1.0;
     }
@@ -174,7 +174,7 @@ void AOBasis::addTrafoCartShell(const AOShell* shell , ub::matrix_range< ub::mat
         _local(7,5) = -_local(7,4);      // dx2-y2 (dyy)
         _local(8,7) = 1.0;              // dxy
      }
-  
+
     if ( _lmax > 2 ){
         cerr << " Gaussian input with f- functions or higher not yet supported!" << endl;
         exit(1);
@@ -183,10 +183,10 @@ void AOBasis::addTrafoCartShell(const AOShell* shell , ub::matrix_range< ub::mat
     // now copy to _trafo
     for ( int _i_sph = 0 ; _i_sph < NumFuncShell( _type ) ; _i_sph++ ){
         for  ( int _i_cart = 0 ; _i_cart < NumFuncShell_cartesian( _type ) ; _i_cart++ ){
-            
-            
+
+
             _trafo( _i_sph , _i_cart ) = _local( _i_sph + OffsetFuncShell( _type ) , _i_cart +  OffsetFuncShell_cartesian( _type ) );
-            
+
         }
     }
     return;
@@ -194,9 +194,9 @@ void AOBasis::addTrafoCartShell(const AOShell* shell , ub::matrix_range< ub::mat
 
 
 int AOBasis::getMaxFunctions () {
-    
+
     int _maxfunc = 0;
-    
+
     // go through basisset
     for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
         const AOShell* _shell = this->getShell( _is );
@@ -285,19 +285,19 @@ void AOBasis::getReorderVector(const string& start,const string& target, vector<
 
 
 void AOBasis::addReorderShell(const string& start,const string& target,const string& shell_type, vector<int>& neworder ) {
-    
+
     // current length of vector
     int _cur_pos = neworder.size() -1 ;
-    
+
     if ( target == "xtp" ){
-    
+
     // single type shells defined here
     if ( shell_type.length() == 1 ){
-       if ( shell_type == "S" ){ 
+       if ( shell_type == "S" ){
            neworder.push_back( _cur_pos + 1 );
        }//for S
-       
-       
+
+
        //votca order is z,y,x e.g. Y1,0 Y1,-1 Y1,1
        else if (shell_type == "P") {
                 if (start == "orca") {
@@ -321,8 +321,8 @@ void AOBasis::addReorderShell(const string& start,const string& target,const str
                throw std::runtime_error( "Reordering not implemented yet!");
            }
         } //for P
-       //votca order is d3z2-r2 dyz dxz dxy dx2-y2 e.g. Y2,0 Y2,-1 Y2,1 Y2,-2 Y2,2                                                                                                                                                
-       else if ( shell_type == "D" ){ 
+       //votca order is d3z2-r2 dyz dxz dxy dx2-y2 e.g. Y2,0 Y2,-1 Y2,1 Y2,-2 Y2,2
+       else if ( shell_type == "D" ){
            //orca order is d3z2-r2 dxz dyz dx2-y2 dxy
            if ( start == "gaussian"|| start=="orca"){
                neworder.push_back( _cur_pos + 1 );
@@ -331,37 +331,59 @@ void AOBasis::addReorderShell(const string& start,const string& target,const str
                neworder.push_back( _cur_pos + 5 );
                neworder.push_back( _cur_pos + 4 );
            } else if ( start == "nwchem") {
-               // nwchem order is dxy dyz d3z2-r2 -dxz dx2-y2 
-               neworder.push_back( _cur_pos + 4  ); 
+               // nwchem order is dxy dyz d3z2-r2 -dxz dx2-y2
+               neworder.push_back( _cur_pos + 4  );
                neworder.push_back( _cur_pos + 2 );
                neworder.push_back( _cur_pos + 1 );
                //neworder.push_back( -(_cur_pos + 1) ); // bloody inverted sign // BUG!!!!!!!
-               neworder.push_back( _cur_pos + 3 ); 
-               neworder.push_back( _cur_pos + 5 );               
-           
+               neworder.push_back( _cur_pos + 3 );
+               neworder.push_back( _cur_pos + 5 );
+
            }else if ( start == "votca") { //for usage with old orb files
-               
-               neworder.push_back( _cur_pos + 3 ); 
+
+               neworder.push_back( _cur_pos + 3 );
                neworder.push_back( _cur_pos + 2 );
                neworder.push_back( _cur_pos + 4 );
-               neworder.push_back( _cur_pos + 1 ); 
-               neworder.push_back( _cur_pos + 5 );               
+               neworder.push_back( _cur_pos + 1 );
+               neworder.push_back( _cur_pos + 5 );
             }else if ( start == "xtp") {
-               
-               neworder.push_back( _cur_pos + 1 ); 
+
+               neworder.push_back( _cur_pos + 1 );
                neworder.push_back( _cur_pos + 2 );
                neworder.push_back( _cur_pos + 3 );
-               neworder.push_back( _cur_pos + 4 ); 
-               neworder.push_back( _cur_pos + 5 );               
+               neworder.push_back( _cur_pos + 4 );
+               neworder.push_back( _cur_pos + 5 );
             }else {
                cerr << "Tried to reorder d-functions from package " << start << ".";
+               throw std::runtime_error( "Reordering not implemented yet!");
+           }
+       }
+       else if ( shell_type == "F" ){
+           if ( start == "gaussian" ){
+               neworder.push_back( _cur_pos + 1 );
+               neworder.push_back( _cur_pos + 3 );
+               neworder.push_back( _cur_pos + 2 );
+               neworder.push_back( _cur_pos + 5 );
+               neworder.push_back( _cur_pos + 4 );
+               neworder.push_back( _cur_pos + 7 );
+               neworder.push_back( _cur_pos + 6 );
+           } else if ( start == "xtp" ){
+               neworder.push_back( _cur_pos + 1 );
+               neworder.push_back( _cur_pos + 2 );
+               neworder.push_back( _cur_pos + 3 );
+               neworder.push_back( _cur_pos + 4 );
+               neworder.push_back( _cur_pos + 5 );
+               neworder.push_back( _cur_pos + 6 );
+               neworder.push_back( _cur_pos + 7 );
+           } else {
+               cerr << "Tried to reorder f-functions from package " << start << ".";
                throw std::runtime_error( "Reordering not implemented yet!");
            }
        }
        else{
            cerr << "Tried to reorder functions  of shell type "<<shell_type<<endl;
            throw std::runtime_error( "Reordering not implemented yet!");
-       } 
+       }
     } else {
         // for combined shells, iterate over all contributions
         //_nbf = 0;
@@ -371,11 +393,11 @@ void AOBasis::addReorderShell(const string& start,const string& target,const str
         }
     }
     } else {
-        
+
         cerr << "Tried to reorder functions (neworder) from " << start << " to " << target << endl;
         throw std::runtime_error( "Reordering not implemented yet!");
-        
-    } 
+
+    }
     return;
 }
 
@@ -383,16 +405,16 @@ void AOBasis::addReorderShell(const string& start,const string& target,const str
 
 
 void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _fragbreak  ) {
-    
+
         vector< ctp::QMAtom* > :: iterator ait;
 
        _AOBasisSize = 0;
        _AOBasisFragA=0;
        _AOBasisFragB=0;
-       _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false. 
-       
+       _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false.
+
        int _atomidx = 0;
-       
+
        // loop over atoms
        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
           // get coordinates of this atom and convert from Angstrom to Bohr
@@ -405,7 +427,7 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _frag
           for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                     Shell* shell = (*its);
                     int numfuncshell=NumFuncShell(shell->getType());
-                    AOShell* aoshell = addShell(shell->getType(), shell->getLmax(), shell->getLmin(), shell->getScale(), 
+                    AOShell* aoshell = addShell(shell->getType(), shell->getLmax(), shell->getLmin(), shell->getScale(),
                             numfuncshell, _AOBasisSize, OffsetFuncShell(shell->getType()), pos, name, _atomidx);
                     _AOBasisSize += numfuncshell;
                     for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
@@ -414,12 +436,12 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _frag
                     }
                     aoshell->CalcMinDecay();
                 }
-          
+
           if ( _atomidx < _fragbreak ) _AOBasisFragA = _AOBasisSize;
-          
+
           _atomidx++;
       }
-       
+
        if ( _fragbreak < 0 ) {
            _AOBasisFragA = _AOBasisSize;
            _AOBasisFragB = 0;
@@ -434,15 +456,15 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _frag
 
 
 void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
-    
+
         vector< ctp::QMAtom* > :: iterator ait;
         std::vector < ctp::QMAtom* > :: iterator atom;
 
        _AOBasisSize = 0;
-       _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false. 
-       
+       _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false.
+
        int _atomidx = 0;
-       
+
        // loop over atoms
        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
           // get coordinates of this atom and convert from Angstrom to Bohr
@@ -452,9 +474,9 @@ void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
           // get the basis set entry for this element
           if(name=="H" || name=="He"){continue;}
           Element* element = bs->getElement(name);
-         
+
           // and loop over all shells
-          
+
           int lmax=0;
           for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                Shell* shell = (*its);
@@ -464,7 +486,7 @@ void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
                int l=FindLmax(shell->getType() );
                if (its == element->firstShell()) lmax = l;
                // first shell is local component, identification my negative angular momentum
-               
+
                 //why is the shell not properly used, apparently it is only used in aoecp.cc and there it is iterated over so l and l make no difference CHECK!!
                    AOShell* aoshell = addShell( shell->getType(),l,l, shell->getScale(), lmax, l, l, pos, name, _atomidx );
                    _AOBasisSize += NumFuncShell( shell->getType() );
@@ -477,17 +499,17 @@ void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
 
           _atomidx++;
       }
-       return; 
+       return;
 }
 
-    
 
 
 
-   
-    
- 
-        
+
+
+
+
+
 
 
 }}

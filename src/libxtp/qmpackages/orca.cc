@@ -38,10 +38,10 @@
 
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
-    
+
 
 void Orca::Initialize( Property *options ) {
-    
+
     //good luck
 
      // Orca file names
@@ -49,18 +49,18 @@ void Orca::Initialize( Property *options ) {
 
     _xyz_file_name = fileName + ".xyz";
     _input_file_name = fileName + ".inp";
-    _log_file_name = fileName + ".log"; 
-    _shell_file_name = fileName + ".sh"; 
+    _log_file_name = fileName + ".log";
+    _shell_file_name = fileName + ".sh";
     _orb_file_name=fileName+".gbw";
 
     std::string key = "package";
     std::string _name = options->get(key+".name").as<std::string> ();
-    
+
     if ( _name != "orca" ) {
         cerr << "Tried to use " << _name << " package. ";
         throw std::runtime_error( "Wrong options file");
     }
-    
+
     _executable =       options->get(key + ".executable").as<std::string> ();
     _charge =           options->get(key + ".charge").as<int> ();
     _spin =             options->get(key + ".spin").as<int> ();
@@ -71,20 +71,20 @@ void Orca::Initialize( Property *options ) {
     _basisset_name =    options->get(key + ".basisset").as<std::string> ();
     _cleanup =          options->get(key + ".cleanup").as<std::string> ();
 
-    
-    
+
+
     if (options->exists(key + ".outputVxc")) {
-                _output_Vxc = options->get(key + ".outputVxc").as<bool> ();   
+                _output_Vxc = options->get(key + ".outputVxc").as<bool> ();
             }
              else _output_Vxc=false;
     if (_output_Vxc){
         throw std::runtime_error( "Sorry "+_name+" does not support Vxc output");
     }
-  
+
 
     _write_basis_set=   options->get(key + ".writebasisset").as<bool> ();
     _write_pseudopotentials= options->get(key + ".writepseudopotentials").as<bool> ();
-    
+
 
     // check if the optimize keyword is present, if yes, read updated coords
     std::string::size_type iop_pos = _options.find(" Opt"); /*optimization word in orca*/
@@ -114,21 +114,21 @@ void Orca::Initialize( Property *options ) {
         _get_self_energy = false;
         _write_charges = false;
     }
-    
+
     // check if the guess should be prepared, if yes, append the guess later
     _write_guess = false;
     iop_pos = _options.find("iterations 1 ");
     if (iop_pos != std::string::npos) _write_guess = true;
     iop_pos = _options.find("iterations 1\n");
     if (iop_pos != std::string::npos) _write_guess = true;
-}    
+}
 
 /**
  * Prepares the *.inp file from a vector of segments
  * Appends a guess constructed from monomer orbitals if supplied
  */
 bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess ){
-   
+
     std::vector<std::string> results;
    // int qmatoms = 0;
     std::string temp_suffix = "/id";
@@ -138,18 +138,18 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
 
     std::string _com_file_name_full = _run_dir + "/" + _input_file_name;
     std::string _crg_file_name_full = _run_dir + "/background.crg" ;
-    
+
 
     _com_file.open ( _com_file_name_full.c_str() );
-    // header 
+    // header
    //_com_file << "* xyzfile  "  <<  _charge << " " << _spin << " " << _xyz_file_name << "\n" << endl;
     _com_file << "* xyz  "  <<  _charge << " " << _spin << endl;
-    
-    std::vector< ctp::QMAtom* > qmatoms;
-    
 
-       // This is needed for the QM/MM scheme, since only orbitals have 
-            // updated positions of the QM region, hence vector<Segments*> is 
+    std::vector< ctp::QMAtom* > qmatoms;
+
+
+       // This is needed for the QM/MM scheme, since only orbitals have
+            // updated positions of the QM region, hence vector<Segments*> is
             // NULL in the QMMachine and the QM region is also printed here
     if(_write_charges){
         qmatoms= orbitals_guess->QMAtoms();
@@ -158,14 +158,14 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
         QMMInterface qmmface;
         qmatoms=qmmface.Convert(segments);
     }
-    
-   
+
+
     std::vector< ctp::QMAtom* >::iterator it;
 
-         
+
     for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
         if ((*it)->from_environment) {continue;}
-        
+
         _com_file << setw(3) << (*it)->type.c_str()
                   << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
                   << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
@@ -174,7 +174,7 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
     }
     _com_file << "* \n" << endl;
     _com_file << "%pal\n "  <<  "nprocs " <<  _threads  << "\nend" << "\n" << endl;
-       
+
     // basis set info
     if ( _write_basis_set){
         Elements _elements;
@@ -191,14 +191,14 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
 
         for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
             if ((*it)->from_environment) { continue;}
-            
+
             std::string element_name = (*it)->type;
             list<std::string>::iterator ite;
             ite = find(elements.begin(), elements.end(), element_name);
             if (ite == elements.end()) {
                 elements.push_back(element_name);
                 Element* element = bs.getElement(element_name);
-                _el_file << _elements.getEleFull(element_name) << endl; 
+                _el_file << _elements.getEleFull(element_name) << endl;
                 for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                     Shell* shell = (*its);
 
@@ -207,7 +207,7 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
 
                        for(unsigned i=0;i<type.size();++i){
                            string subtype = string( type, i, 1 );
-                          _el_file  << subtype << " " << shell->getSize() << endl; 
+                          _el_file  << subtype << " " << shell->getSize() << endl;
                           int _sh_idx =0;
                           for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                               GaussianPrimitive* gaussian = *itg;
@@ -215,14 +215,15 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
                               _el_file << " " << _sh_idx << " " << indent(gaussian->decay);
                               _el_file << " " << indent(gaussian->contraction[FindLmax(subtype)]);
 
-                              }
                               _el_file << endl;
+                          }
+
                           }
                     }
 
                  }
              }
-        
+
         _el_file << "STOP\n";
         _el_file.close();
 
@@ -230,7 +231,7 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
         _com_file << "%basis\n "  << endl;
         _com_file << "GTOName" << " " << "=" << "\"system.bas\";"  << endl;
     } // write_basis set
-            
+
     // ECPs
    /* WRITING ECP INTO system.inp FILE for ORCA**/
     if ( _write_pseudopotentials ){
@@ -258,7 +259,7 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
                     Element* element = ecp.getElement(element_name);
                     _com_file << "\n" << "NewECP" << " " <<  element_name  << endl;
                     _com_file << "N_core" << " " << element->getNcore()  << endl;
-                    //lmaxnum2lmaxname 
+                    //lmaxnum2lmaxname
                     _com_file << "lmax" << " " << getLName(element->getLmax()) << endl;
 
                     //For Orca the order doesn't matter but let's write it in ascending order
@@ -294,21 +295,21 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
                         }
                     }
 
-                   _com_file << "end\n "  <<  "\n" << endl; 
+                   _com_file << "end\n "  <<  "\n" << endl;
                 }
 
             }
         }
     } // write pseudopotentials
-                
-                
-    /* END   OF WRITING ECP INTO system.inp FILE for ORCA*************/                
+
+
+    /* END   OF WRITING ECP INTO system.inp FILE for ORCA*************/
     _com_file << "end\n "  <<  "\n" << endl;   //This end is for the basis set block
-             
-            
-     if(_write_charges){      
-        // actual writing of charges    
-        _crg_file.open( _crg_file_name_full.c_str() ); 
+
+
+     if(_write_charges){
+        // actual writing of charges
+        _crg_file.open( _crg_file_name_full.c_str() );
         int _total_background = 0;
         for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
             if ((*it)->from_environment) {
@@ -324,11 +325,11 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
                 if ((*it)->charge != 0.0) _crg_file << fmt << endl;
             }
         }
-     }            
-     
+     }
+
     // writing scratch_dir info
     if ( _scratch_dir != "" ) {
-        
+
         CTP_LOG(ctp::logDEBUG,*_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
         // boost::filesystem::create_directories( _scratch_dir + temp_suffix );
@@ -338,26 +339,26 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
 
     _com_file << _options << "\n";
 
-    
-    if ( _write_guess ) { 
-       
+
+    if ( _write_guess ) {
+
             throw std::runtime_error( "Not implemented in orca");
-    }   
+    }
 
     _com_file << endl;
     _com_file.close();
-    
+
       // and now generate a shell script to run both jobs, if neccessary
     CTP_LOG(ctp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
     _scratch_dir = scratch_dir_backup + temp_suffix;
-            
+
             //boost::filesystem::create_directories(_scratch_dir + temp_suffix);
             //std::string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
             //_com_file << _temp;
     WriteShellScript();
     _scratch_dir = scratch_dir_backup;
-   
+
     return true;
 }
 
@@ -365,34 +366,34 @@ bool Orca::WriteInputFile( std::vector<ctp::Segment* > segments, Orbitals* orbit
 
 bool Orca::WriteShellScript() {
     ofstream _shell_file;
-    
+
     std::string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
-            
+
     _shell_file.open ( _shell_file_name_full.c_str() );
 
     _shell_file << "#!/bin/bash" << endl ;
     _shell_file << "mkdir -p " << _scratch_dir << endl;
-    
-    if ( _threads == 1 ){ 
-        _shell_file << _executable << " " << _input_file_name << " > " <<  _log_file_name  << endl;//" 2> run.error" << endl;    
+
+    if ( _threads == 1 ){
+        _shell_file << _executable << " " << _input_file_name << " > " <<  _log_file_name  << endl;//" 2> run.error" << endl;
     } else {
-        _shell_file << _executable << " "<< _input_file_name << " > " <<  _log_file_name <<endl;// " 2> run.error" << endl;    
+        _shell_file << _executable << " "<< _input_file_name << " > " <<  _log_file_name <<endl;// " 2> run.error" << endl;
     }
     _shell_file.close();
-    
-    return true;   
+
+    return true;
 }
 
 /**
- * Runs the Orca job. 
+ * Runs the Orca job.
  */
 bool Orca::Run()
 {
 
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Running Orca job" << flush;
-    
+
     if (std::system(NULL)) {
-        
+
         // Orca overrides input information, if *.db and *.movecs files are present
         // better trash the old version
         std::string file_name = _run_dir + "/system.db";
@@ -401,7 +402,7 @@ bool Orca::Run()
         remove ( file_name.c_str() );
         file_name = _run_dir + "/" + _orb_file_name;
         //remove ( file_name.c_str() );
-               
+
         std::string _command;
         if ( _threads == 1 ) {
             _command = "cd " + _run_dir + "; sh " + _shell_file_name;
@@ -414,7 +415,7 @@ bool Orca::Run()
             CTP_LOG(ctp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
             return false;
         }
-       
+
         if ( CheckLogFile() ) {
             CTP_LOG(ctp::logDEBUG,*_pLog) << "Finished Orca job" << flush;
             return true;
@@ -423,10 +424,10 @@ bool Orca::Run()
         }
     }
     else {
-        CTP_LOG(ctp::logERROR,*_pLog) << _input_file_name << " failed to start" << flush; 
+        CTP_LOG(ctp::logERROR,*_pLog) << _input_file_name << " failed to start" << flush;
         return false;
     }
-    
+
     return true;
 }
 
@@ -434,26 +435,26 @@ bool Orca::Run()
  * Cleans up after the Orca job
  */
 void Orca::CleanUp() {
-    
+
     // cleaning up the generated files
     if ( _cleanup.size() != 0 ) {
         Tokenizer tok_cleanup(_cleanup, ",");
         std::vector <std::string> _cleanup_info;
         tok_cleanup.ToVector(_cleanup_info);
-        
+
         std::vector<std::string> ::iterator it;
-               
+
         for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
             if ( *it == "inp" ) {
                 std::string file_name = _run_dir + "/" + _input_file_name;
                 remove ( file_name.c_str() );
             }
-            
+
             if ( *it == "bas" ) {
                 std::string file_name = _run_dir +"/system.bas";
                 remove ( file_name.c_str() );
             }
-            
+
             if ( *it == "log" ) {
                 std::string file_name = _run_dir + "/" + _log_file_name;
                 remove ( file_name.c_str() );
@@ -463,25 +464,25 @@ void Orca::CleanUp() {
                 std::string file_name = _run_dir + "/" + _orb_file_name;
                 remove ( file_name.c_str() );
             }
-            
+
             if ( *it == "ges" ) {
                 std::string file_name = _run_dir + "/system.ges" ;
                 remove ( file_name.c_str() );
-            }    
+            }
             if ( *it == "prop" ) {
                 std::string file_name = _run_dir + "/system.prop" ;
                 remove ( file_name.c_str() );
-            }     
+            }
         }
     }
-return; 
+return;
 }
 
 
 bool Orca::ParseLogFile( Orbitals* _orbitals )
 {
     const double _conv_Hrt_eV = tools::conv::hrt2ev;
-    
+
     _orbitals->setQMpackage("orca");
     _orbitals->setDFTbasis( _basisset_name);
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Parsing " << _log_file_name << flush;
@@ -489,65 +490,65 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
   std::string _log_file_name_full =  _run_dir + "/" + _log_file_name;
    // check if LOG file is complete
    if ( !CheckLogFile() ) return false;
-    
+
     //std::map <int, std::std::vector<double> > _coefficients;
     std::map <int, double> _energies;
     std::map <int, double> _occ;
-    
+
     std::string _line;
     unsigned _levels = 0;
     //unsigned _level;
     //unsigned _basis_size = 0;
     int _number_of_electrons = 0;
     //bool _has_basis_dim = false;
-               
-    std::vector<std::string> results;    
-    
+
+    std::vector<std::string> results;
+
     std::ifstream _input_file( _log_file_name_full.c_str() );
-    
+
     if (_input_file.fail()) {
         CTP_LOG( ctp::logERROR, *_pLog ) << "File " << _log_file_name_full << " not found " << flush;
         return false;
     } else {
         CTP_LOG(ctp::logDEBUG, *_pLog) << "Reading Coordinates and occupationnumbers and energies from " << _log_file_name_full << flush;
     }
-    
-      
+
+
           //Coordinates of the final configuration depending on whether it is an optimization or not
-         
-        
-        
+
+
+
     while (_input_file) {
         getline(_input_file,_line);
         boost::trim(_line);
-        
-        
-        
+
+
+
         if ( _is_optimization ){
               throw runtime_error("Not implemented yet!");
         }
         bool _found_optimization=true;
-        
+
         std::string::size_type coordinates_pos = _line.find("CARTESIAN COORDINATES (ANGSTROEM)");
-        
+
         if ( _found_optimization && coordinates_pos != std::string::npos) {
             CTP_LOG(ctp::logDEBUG,*_pLog) << "Getting the coordinates" << flush;
-            
+
             //_has_coordinates = true;
             bool _has_QMAtoms = _orbitals->hasQMAtoms();
 
             // three garbage lines
             getline(_input_file, _line);
             // now starts the data in format
-            // _id type Qnuc x y z 
+            // _id type Qnuc x y z
             std::vector<std::string> _row;
             getline(_input_file, _line);
             boost::trim( _line );
 
-            boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on); 
+            boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
             int nfields =  _row.size();
 
-            int atom_id = 0;   
+            int atom_id = 0;
             while ( nfields == 4 ) {
                 //int atom_id = boost::lexical_cast< int >( _row.at(0) );
                 //int atom_number = boost::lexical_cast< int >( _row.at(0) );
@@ -558,13 +559,13 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
                 //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
                 getline(_input_file, _line);
                 boost::trim( _line );
-                boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);  
+                boost::algorithm::split( _row , _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                 nfields =  _row.size();
 
                 if ( _has_QMAtoms == false ) {
                     _orbitals->AddAtom( _atom_type, _x, _y, _z );
                 } else {
-                                       
+
                     ctp::QMAtom* pAtom = _orbitals->_atoms.at( atom_id  );
                     pAtom->type = _atom_type;
                     pAtom->x = _x;
@@ -572,23 +573,23 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
                     pAtom->z = _z;
                     atom_id++;
                 }
-                    
+
             }
-      
+
         }
-              
+
         std::string::size_type energy_pos = _line.find("Total Energy");
        if (energy_pos != std::string::npos) {
             //cout << _line << endl;
             boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
             std::string _energy = results[3];
             boost::trim( _energy );
-            //cout << _energy << endl; 
+            //cout << _energy << endl;
             _orbitals->setQMEnergy ( _conv_Hrt_eV * boost::lexical_cast<double>(_energy) );
             CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
             // _orbitals->_has_qm_energy = true;
             }
-        
+
         /* Check for ScaHFX = factor of HF exchange included in functional */
               std::string::size_type HFX_pos = _line.find("Fraction HF Exchange ScalHFX");
               if (HFX_pos != std::string::npos) {
@@ -597,11 +598,11 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
                   _orbitals->setScaHFX(_ScaHFX);
                   CTP_LOG(ctp::logDEBUG, *_pLog) << "DFT with " << _ScaHFX << " of HF exchange!" << flush;
               }
-     
+
     //Finding Basis Dimension, the number of energy levels
         std::string::size_type dim_pos = _line.find("Basis Dimension");
         if (dim_pos != std::string::npos) {
-                
+
             boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
             //_has_basis_dim = true;
             std::string _dim = results[4];  //The 4th element of results vector is the Basis Dim
@@ -613,8 +614,8 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
               CTP_LOG( ctp::logDEBUG, *_pLog ) << "Energy levels: " << _levels << flush;
         }
         /********************************************************/
-         
-        
+
+
         std::string::size_type OE_pos = _line.find("ORBITAL ENERGIES");
         if (OE_pos != std::string::npos) {
         getline(_input_file,_line);
@@ -627,10 +628,10 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
             getline(_input_file,_line);
             boost::trim( _line );
             boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
-           
-                    
+
+
             std::string _no =results[0];
-            
+
             boost::trim( _no );
             unsigned levelnumber= boost::lexical_cast<unsigned>(_no);
             if (levelnumber!=i){
@@ -650,7 +651,7 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
             else {
                 throw runtime_error("Only empty or doubly occupied orbitals are allowed not running the right kind of DFT calculation");
             }
-            
+
             std::string _e = results[2];
             boost::trim( _e );
             _energies [i] = boost::lexical_cast<double>(_e) ;
@@ -703,34 +704,34 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
             }
         }
 
-    
+
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Alpha electrons: " << _number_of_electrons << flush ;
     int _occupied_levels = _number_of_electrons;
     int _unoccupied_levels = _levels - _occupied_levels;
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Occupied levels: " << _occupied_levels << flush;
-    CTP_LOG(ctp::logDEBUG,*_pLog) << "Unoccupied levels: " << _unoccupied_levels << flush;  
-   
-        
+    CTP_LOG(ctp::logDEBUG,*_pLog) << "Unoccupied levels: " << _unoccupied_levels << flush;
+
+
    /************************************************************/
- 
+
     // copying information to the orbitals object
    /* _orbitals->setBasisSetSize(  _basis_size );*/
     _orbitals->setBasisSetSize(  _levels );
-   
+
     _orbitals->setNumberOfElectrons( _number_of_electrons );
 
     _orbitals->setNumberOfLevels( _occupied_levels , _unoccupied_levels );
-    
+
     _orbitals->setSelfEnergy(0.0);
-    
-   // copying energies to a matrix  
+
+   // copying energies to a matrix
    _orbitals->_mo_energies.resize( _levels );
    //_level = 1;
    for(size_t i=0; i < _orbitals->_mo_energies.size(); i++) {
          _orbitals->_mo_energies[i] = _energies[ i ];
     }
 
-   
+
    // cleanup
   // _coefficients.clear();
    _energies.clear();
@@ -742,39 +743,39 @@ bool Orca::ParseLogFile( Orbitals* _orbitals )
 }//ParseOrbitalFile(Orbital* _orbital)
 
 bool Orca::CheckLogFile() {
-    
+
     // check if the log file exists
     ifstream _input_file((_run_dir + "/" + _log_file_name).c_str());
-    
+
     if (_input_file.fail()) {
         CTP_LOG(ctp::logERROR,*_pLog) << "Orca LOG is not found" << flush;
         return false;
     };
-    
+
     std::string _line;
     while (_input_file) {
         getline(_input_file,_line);
         boost::trim(_line);
-        
+
 
         std::string::size_type error = _line.find("FATAL ERROR ENCOUNTERED");
-        
+
         if (error != std::string::npos) {
             CTP_LOG(ctp::logERROR,*_pLog) << "ORCA encountered a fatal error, maybe a look in the log file may help." << flush;
             return false;
-        } 
+        }
         error = _line.find("mpirun detected that one or more processes exited with non-zero status");
-        
+
         if (error != std::string::npos) {
             CTP_LOG(ctp::logERROR,*_pLog) << "ORCA had an mpi problem, maybe your openmpi version is not good." << flush;
             return false;
-        } 
-    } 
+        }
+    }
     return true;
 }
 
- // Parses the Orca gbw file and stores data in the Orbitals object 
- 
+ // Parses the Orca gbw file and stores data in the Orbitals object
+
 bool Orca::ParseOrbitalsFile( Orbitals* _orbitals ) {
 if ( !CheckLogFile() ) return false;
 std::vector<double> _coefficients;
@@ -791,11 +792,11 @@ if (_basis_size==0 || _levels==0){
     if (!infile){
         throw runtime_error("Could not open "+_orb_file_name+" file");
     }
-    infile.seekg(24, ios::beg); 
+    infile.seekg(24, ios::beg);
     char* buffer= new char [8];
     infile.read(buffer,8);
     long int offset= *((long int*)buffer);
-    
+
     infile.seekg(offset,ios::beg);
     infile.read(buffer,4);
     int op_read= *((int*)buffer);
@@ -814,14 +815,14 @@ if (_basis_size==0 || _levels==0){
         _coefficients.push_back(mocoeff);
     }
     delete[] buffer;
-    
+
     infile.close();
     //cout<< "basissize " <<_basis_size << endl;
     //cout << "coeffvektor size "<< _coefficients.size() << endl;
-    
-    
-    // i -> MO, j -> AO 
-      (_orbitals->_mo_coefficients).resize( _levels, _basis_size );     
+
+
+    // i -> MO, j -> AO
+      (_orbitals->_mo_coefficients).resize( _levels, _basis_size );
    for(size_t i = 0; i < _orbitals->_mo_coefficients.size1(); i++) {
       for(size_t j = 0 ; j < _orbitals->_mo_coefficients.size2(); j++) {
          _orbitals->_mo_coefficients(i,j) = _coefficients[j*_basis_size+i];
@@ -829,11 +830,11 @@ if (_basis_size==0 || _levels==0){
          //cout << i << " " << j << endl;
         }
     }
-   
+
       //cout<<"MO1:1 :" <<setprecision(15)<<_orbitals->_mo_coefficients(0,0)<< endl;
       //cout<<"MO-1:-1"<<setprecision(15)<< _orbitals->_mo_coefficients(_levels-1,_levels-1)<< endl;
-      
-      
+
+
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Done parsing" << flush;
     return true;
 }
@@ -858,13 +859,13 @@ std::string Orca::indent( const double &number ) {
     } else{
         _ssnumber << "   ";
     }
-        
+
     _ssnumber <<  setiosflags(ios::fixed) << setprecision(15) << std::scientific << number;
-    std::string _snumber = _ssnumber.str(); 
+    std::string _snumber = _ssnumber.str();
     //boost::replace_first(_snumber, "e", "D");
     return _snumber;
 }
-        
+
 
 
 
