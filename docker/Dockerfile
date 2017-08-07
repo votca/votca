@@ -43,7 +43,7 @@ RUN if [ ${DOXYGEN} ]; then \
       bash codecov.sh -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F doxygen -X gcov -f doxygen.coverage.info; \
       rm -f doxygen.coverage.info codecov.sh; \
     fi
-RUN if [ ${TESTING} = ON ]; then; make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"; fi
+RUN if [ ${TESTING} = ON ]; then make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"; fi
 RUN make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install
 RUN if [ ${COVERAGE} ]; then \
   wget -O codecov.sh https://codecov.io/bash; \
