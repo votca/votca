@@ -22,7 +22,7 @@ env:
 matrix:
   exclude:
   - compiler: clang #taking too long
-    env: TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release COVERAGE=yes
+    env: TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=None COVERAGE=yes
   - compiler: clang #no never info when using clang
     env: TESTING=OFF CMAKE_BUILD_TYPE=Release DOXYGEN=yes 
 
