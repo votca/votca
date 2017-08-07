@@ -11,17 +11,20 @@ services:
 
 env:
   matrix:
-    - TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Debug
-    - TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Debug   WERROR=yes
-    - TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
-    - TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release WERROR=yes
+    - TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Debug
+    - TESTING=OFF CMAKE_BUILD_TYPE=Debug   WERROR=yes
+    - TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release DOCKERHUB=yes
+    - TESTING=OFF CMAKE_BUILD_TYPE=Release WERROR=yes
 #useless for votca/votca, but for coverage of individual modules
-    - TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release COVERAGE=yes
+    - TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release COVERAGE=yes
+    - TESTING=OFF CMAKE_BUILD_TYPE=Release DOXYGEN=yes
 
 matrix:
   exclude:
-  - env: TESTOPTS="-E _imc" CMAKE_BUILD_TYPE=Release COVERAGE=yes
-    compiler: clang #taking too long
+  - compiler: clang #taking too long
+    env: TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release COVERAGE=yes
+  - compiler: clang #no never info when using clang
+    env: TESTING=OFF CMAKE_BUILD_TYPE=Release DOXYGEN=yes 
 
 script:
  - git checkout -b current_commit
@@ -43,6 +46,7 @@ script:
  - docker build  --build-arg TESTOPTS="${TESTOPTS}" --build-arg COVERAGE=${COVERAGE}
                  --build-arg CC=${CC} --build-arg CXX=${CXX} --build-arg CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                  --build-arg CXXFLAGS="-Wall ${WERROR:+-Werror}"
+                 --build-arg TESTING=${TESTING} --build-arg DOXYGEN=${DOXYGEN}
                  --build-arg CI=${CI} --build-arg TRAVIS=${TRAVIS} --build-arg TRAVIS_OS_NAME=fedora
                  --build-arg TRAVIS_BRANCH=${TRAVIS_BRANCH} --build-arg TRAVIS_JOB_NUMBER=${TRAVIS_JOB_NUMBER}
                  --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} --build-arg TRAVIS_JOB_ID=${TRAVIS_JOB_ID}
@@ -55,7 +59,7 @@ script:
    docker cp ${CON}:/home/votca/.ccache ${HOME}/
 
 after_success:
-  - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(master|stable|v1.*) && ${TRAVIS_JOB_NUMBER} = *.1 ]] && DEPLOY=yes
+  - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(master|stable|v1.*) && ${CC} = *gcc* && ${DOCKERHUB} = yes ]] && DEPLOY=yes
   - if [[ ${TRAVIS_BRANCH} = master ]]; then DOCKER_TAG=latest; else DOCKER_TAG="${TRAVIS_BRANCH}"; fi
   - if [[ ${DOCKER_USERNAME} && ${DOCKER_PASSWORD} && ${TRAVIS_PULL_REQUEST} == false && ${DEPLOY} ]]; then
         docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
