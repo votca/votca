@@ -39,18 +39,16 @@ RUN ccache -s
 RUN if [ ${DOXYGEN} ]; then \
       make doxygen; \
       python -m coverxygen --xml-dir share/doc/xml/ --src-dir .. --output doxygen.coverage.info; \
-      wget -O codecov.sh https://codecov.io/bash; \
-      bash codecov.sh -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F doxygen -X gcov -f doxygen.coverage.info; \
+      codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F doxygen -X gcov -f doxygen.coverage.info; \
       rm -f doxygen.coverage.info codecov.sh; \
     fi
 RUN if [ ${TESTING} = ON ]; then make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"; fi
 RUN make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install
 RUN if [ ${COVERAGE} ]; then \
-  wget -O codecov.sh https://codecov.io/bash; \
   if [ ${CC} = clang ]; then \
-    bash codecov.sh -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" -x "llvm-cov gcov"; \
+    codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" -x "llvm-cov gcov"; \
   else \
-    bash codecov.sh -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}"; \
+    codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}"; \
   fi; \
 fi
 USER root
