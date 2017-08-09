@@ -165,7 +165,7 @@ namespace votca {
             unsigned _levelsum = _Mmn[0].size2(); // total number of bands
             unsigned _gwsize = _Mmn[0].size1(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
-            //this is not the fastest algorithm but faster ones throw igwbse off, so this is good enough.    
+           
             #pragma omp parallel for
             for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
                 const double qpmin=_qp_energies(_gw_level1 + _qpmin);
@@ -202,6 +202,13 @@ namespace votca {
                     const ub::vector<real_gwbse>& Mmn2vec = Mmn1.data();
                     double sigma_x=0;
                     // loop over all basis functions
+                    
+                    double sigma_c = 0;
+                    for (unsigned i=0;i<factor_vec.size();++i){
+                        sigma_c+=factor_vec(i)*Mmn1vec(i)*Mmn2vec(i);
+                    }
+                    _sigma_c(_gw_level1, _gw_level2)=sigma_c;
+                    
                     for ( int _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){
                         // loop over all occupied bands used in screening
                         for ( unsigned _i_occ = 0 ; _i_occ <= _homo ; _i_occ++ ){
@@ -209,11 +216,6 @@ namespace votca {
                         } // occupied bands
                     } // gwbasis functions
                     _sigma_x(_gw_level1, _gw_level2)=( 1.0 - _ScaHFX ) * sigma_x;
-                    double sigma_c = 0;
-                    for (unsigned i=0;i<factor_vec.size();++i){
-                        sigma_c+=factor_vec(i)*Mmn1vec(i)*Mmn2vec(i);
-                    }
-                    _sigma_c(_gw_level1, _gw_level2)=sigma_c;
                 }// GW row 
             } // GW col 
         
