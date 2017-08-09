@@ -199,7 +199,7 @@ namespace votca {
                 for (unsigned _gw_level2 = 0; _gw_level2 < _gw_level1; _gw_level2++) {
                                 
                     const ub::matrix<real_gwbse>& Mmn2 =  _Mmn[ _gw_level2 + _qpmin ];
-                    const ub::vector<real_gwbse>& Mmn2vec = Mmn1.data();
+                    const ub::vector<real_gwbse>& Mmn2vec = Mmn2.data();
                     double sigma_x=0;
                     // loop over all basis functions
                     
@@ -218,8 +218,11 @@ namespace votca {
                     _sigma_x(_gw_level1, _gw_level2)=( 1.0 - _ScaHFX ) * sigma_x;
                 }// GW row 
             } // GW col 
-        
             
+            for( unsigned j=0;j<_sigma_x.size1()-1;++j){
+         cout<<_sigma_x(j,j)<<" "<<_sigma_c(j,j)<<endl;
+         cout<<_sigma_x(j,j+1)<<" "<<_sigma_c(j,j+1)<<endl;
+            }  
         return;
         } 
 
