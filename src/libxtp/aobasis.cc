@@ -263,7 +263,7 @@ void AOBasis::addMultiplierShell(const string& start, const string& target, cons
                     multiplier.push_back(-1);
 
                 } else {
-                cerr << "Tried to get multipliers for f-functions . ";
+                cerr << "Tried to get multipliers d-functions from package " << start << ".";
                 throw std::runtime_error("Multiplication not implemented yet!");
                 }
             }
