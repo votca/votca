@@ -617,18 +617,7 @@ namespace votca {
             _sigma_x.resize(_qptotal);
             
            
-            TCMatrix _Mmn_backup;
-            if (_iterate_qp) {
-
-                // make copy of _Mmn, memory++
-
-                _Mmn_backup.Initialize(gwbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
-                int _mnsize = _Mmn_backup.get_mtot();
-                for (int _i = 0; _i < _mnsize; _i++) {
-                    _Mmn_backup[ _i ] = _Mmn[ _i ];
-                }
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Made backup of _Mmn  " << flush;
-            }
+          
             _qp_converged=false;
             _qp_iteration=0;
             const ub::vector<double>& _dft_energies=_orbitals->MOEnergies();
@@ -652,9 +641,6 @@ namespace votca {
                 PPM_construct_parameters(_gwoverlap_cholesky_inverse,_gwoverlap_cholesky_inverse_trans);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed PPM parameters  " << flush;
                
-                // prepare threecenters for Sigma
-                sigma_prepare_threecenters(_Mmn);
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared threecenters for sigma  " << flush;
                 
                 sigma_diag(_Mmn);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated diagonal part of Sigma  " << flush;
@@ -696,17 +682,9 @@ namespace votca {
                         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "          Run continues. Inspect results carefully!" << flush;
                     }
 
-                    // restore _Mmn, if shift has not converged
-                    if (!_qp_converged) {
-                        int _mnsize = _Mmn_backup.get_mtot();
-                        for (int _i = 0; _i < _mnsize; _i++) {
-                            _Mmn[ _i ] = _Mmn_backup[ _i ];
-                        }
-                    }
-
                 }
             }
-            
+            sigma_prepare_threecenters(_Mmn);
             sigma_offdiag(_Mmn);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
 
@@ -718,13 +696,7 @@ namespace votca {
             _gwoverlap_cholesky_inverse.resize(0,0);
             _gwoverlap_cholesky_inverse_trans.resize(0,0);
             _Mmn_RPA.Cleanup();
-            if(_iterate_qp){
-                _Mmn_backup.Cleanup();
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cleaned up Overlap, MmnRPA and Mmn_backup " << flush;
-            }
-            else{
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cleaned up Overlap and MmnRPA" << flush;   
-            }
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cleaned up Overlap and MmnRPA" << flush;   
             // free no longer required three-center matrices in _Mmn
             // max required is _bse_cmax (could be smaller than _qpmax)
             _Mmn.Prune(gwbasis.AOBasisSize(), _bse_vmin, _bse_cmax);
