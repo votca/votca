@@ -234,9 +234,12 @@ namespace votca {
             ub::symmetric_matrix<double> _sigma_c; // correlation term
 
             void sigma_prepare_threecenters(TCMatrix& _Mmn);
-            void sigma_x_setup(const TCMatrix& _Mmn);
-            void sigma_c_setup(const TCMatrix& _Mmn);
-
+           
+            void sigma_diag(const TCMatrix& _Mmn);
+            void sigma_offdiag(const TCMatrix& _Mmn);
+           
+            
+            
             // QP variables and functions
             ub::vector<double> _qp_energies;
             ub::matrix<double> _vxc;
