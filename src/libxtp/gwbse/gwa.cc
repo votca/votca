@@ -219,10 +219,6 @@ namespace votca {
                 }// GW row 
             } // GW col 
             
-            for( unsigned j=0;j<_sigma_x.size1()-1;++j){
-         cout<<_sigma_x(j,j)<<" "<<_sigma_c(j,j)<<endl;
-         cout<<_sigma_x(j,j+1)<<" "<<_sigma_c(j,j+1)<<endl;
-            }  
         return;
         } 
 
