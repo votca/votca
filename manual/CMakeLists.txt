@@ -74,7 +74,7 @@ add_latex_document(xtp-manual.tex
     input/qmpackage_headers/turbomole_edft.xml input/qmpackage_headers/nwchem_edft.xml input/TI.xml
     input/qmpackage_headers/gaussian_idft.xml input/qmpackage_headers/turbomole_idft.xml
     input/qmpackage_headers/nwchem_idft.xml fig/stochastic/stochastic.eps
-    fig/conjugated_segment/fragment_segment.eps
+    fig/conjugated_segment/fragment_segment.eps RandomFacts.tex
   IMAGES fig/logo.eps fig/logo_trans.eps
   TARGET_NAME xtp-manual DEPENDS gitid.tex fig/chemical_structure/dcv2t.eps fig/idft_flow/scheme.eps
     fig/stochastic/overview_stochastic.eps fig/idft_flow/schemes_all.eps
