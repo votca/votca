@@ -18,16 +18,15 @@ else(WITH_GMX)
 endif(WITH_GMX)
 
 
-option(WITH_H5MD "Build H5MD reader!" OFF)
-if(WITH_H5MD)
-    find_package(HDF5 REQUIRED COMPONENTS "C")
+find_package(HDF5 COMPONENTS "C")
+if(HDF5_FOUND)
   set(H5MD true)
   include_directories (${HDF5_INCLUDE_DIRS})
-else(WITH_H5MD)
+else(HDF5_FOUND)
   set(H5MD)
   set(H5MD_SOURCES)
   set(HDF5_LIBRARIES)
-endif(WITH_H5MD)
+endif(HDF5_FOUND)
 
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -35,7 +34,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_custom_target(gitversion-csg COMMAND ${CMAKE_COMMAND}
   -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -DMERCURIAL_EXECUTABLE="${MERCURIAL_EXECUTABLE}"
   -P ${CMAKE_MODULE_PATH}/gitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
