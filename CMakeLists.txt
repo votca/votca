@@ -28,6 +28,14 @@ else()
 endif()
 
 ########################################################################
+# User input options                                                   #
+########################################################################
+option(ENABLE_TESTING "Build and enable testing stuff" OFF)
+if(ENABLE_TESTING)
+  enable_testing()
+endif(ENABLE_TESTING)
+
+########################################################################
 #Find external packages
 ########################################################################
 
@@ -53,6 +61,9 @@ foreach(DIR ${DIRS})
   target_link_libraries(${DIR} ${VOTCA_CSG_LIBRARIES} ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES})
   install(TARGETS ${DIR} RUNTIME DESTINATION bin)
   set_target_properties(${DIR} PROPERTIES OUTPUT_NAME ${DIR}/csg_${DIR})
+  if(ENABLE_TESTING)
+    add_test(${DIR}Help ${DIR}/csg_${DIR} --help)
+  endif(ENABLE_TESTING)
 endforeach(DIR)
 
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
