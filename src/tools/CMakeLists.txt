@@ -14,4 +14,8 @@ foreach(PROG votca_property)
      add_dependencies(manpages ${PROG}_manpage)
      install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${MAN}/man1 RENAME ${PROG}.1)
   endif (BUILD_MANPAGES)
+
+  if(ENABLE_TESTING)
+    add_test(${PROG}Help ${PROG} --help)
+  endif(ENABLE_TESTING)
 endforeach(PROG)
