@@ -695,7 +695,12 @@ namespace votca {
             for (atom = _atoms.begin(); atom < _atoms.end(); ++atom) {
                 id++;
                 // get element type and determine its nuclear charge
-                double crg = _elements.getNucCrgECP((*atom)->type);
+                double crg;
+                if ( _ECP == "none"){
+                    crg = _elements.getNucCrg((*atom)->type);
+                }else{
+                    crg = _elements.getNucCrgECP((*atom)->type);
+                }
                 // add to either fragment
                 if (id <= _frag) {
                     fragmentNuclearCharges(0) += crg;
