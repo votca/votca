@@ -142,7 +142,6 @@ namespace votca {
                     _qp_energies(_gw_level + _qpmin) = dftenergies(_gw_level + _qpmin) + sigma_c + _sigma_x(_gw_level, _gw_level) - _vxc(_gw_level, _gw_level);
 
                 }// all bands
-                exit(0);
                 ub::vector<double> diff= _qp_old - _qp_energies;
                 energies_converged = true;
                 double diff_max=0;
