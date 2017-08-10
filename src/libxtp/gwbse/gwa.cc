@@ -78,7 +78,7 @@ namespace votca {
                 for (unsigned _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
                     const ub::matrix<real_gwbse>& Mmn = _Mmn[ _gw_level + _qpmin ];
                     double sigma_x=0;
-                        for ( int _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){
+                        for ( unsigned _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){
                             // loop over all occupied bands used in screening
                             for ( unsigned _i_occ = 0 ; _i_occ <= _homo ; _i_occ++ ){
                                 sigma_x-= Mmn( _i_gw , _i_occ ) * Mmn( _i_gw , _i_occ );
@@ -186,7 +186,7 @@ namespace votca {
                 for (unsigned _gw_level2 = 0; _gw_level2 < _gw_level1; _gw_level2++) {
                     const ub::matrix<real_gwbse>& Mmn2 =  _Mmn[ _gw_level2 + _qpmin ];
                     double sigma_x=0;
-                    for ( int _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){
+                    for ( unsigned _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){
                         // loop over all occupied bands used in screening
                         for ( unsigned _i_occ = 0 ; _i_occ <= _homo ; _i_occ++ ){
                             sigma_x -= Mmn1( _i_gw , _i_occ ) * Mmn2( _i_gw , _i_occ );
