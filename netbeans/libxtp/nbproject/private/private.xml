@@ -9,6 +9,7 @@
         <group>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/aomatrices/aocoulomb.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/gwbse.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/threecenters.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/calculators/kmcmultiple.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmapemachine.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/calculators/kmcmultiple.cc</file>
@@ -17,6 +18,7 @@
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/dftengine/dftengine.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/qmapemachine.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/gwa.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/threecenter_rep.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gridbox.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmmachine.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/gridbox.h</file>

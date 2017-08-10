@@ -141,7 +141,6 @@ namespace votca {
 
             // automatic scissors iteration
             bool _iterate_qp;
-            bool _qp_converged;
 
             // options for own Vxc calculation
             bool _doVxc;
@@ -187,7 +186,6 @@ namespace votca {
 
             double _qp_limit; //convergence criteria for qp iteration [Hartree]]
             unsigned int _qp_max_iterations;
-            unsigned int _qp_iteration;
             double _shift_limit; //convergence criteria for shift iteration [Hartree]]
             unsigned int _bse_vmin;
             unsigned int _bse_vmax;
