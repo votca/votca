@@ -22,6 +22,7 @@ ARG TRAVIS_COMMIT
 ARG TRAVIS_OS_NAME
 
 COPY votca/ /home/votca/votca
+RUN rm -rf /home/votca/.ccache
 COPY ccache/ /home/votca/.ccache
 USER root
 RUN chown -R votca:votca /home/votca/votca /home/votca/.ccache
