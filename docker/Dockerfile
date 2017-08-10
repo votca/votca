@@ -40,7 +40,7 @@ RUN if [ ${DOXYGEN} ]; then \
       make doxygen; \
       python -m coverxygen --xml-dir share/doc/xml/ --src-dir .. --output doxygen.coverage.info; \
       codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F doxygen -X gcov -f doxygen.coverage.info; \
-      rm -f doxygen.coverage.info codecov.sh; \
+      rm -f doxygen.coverage.info; \
     fi
 RUN if [ ${TESTING} = ON ]; then make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"; fi
 RUN make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install
