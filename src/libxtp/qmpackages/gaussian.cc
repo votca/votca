@@ -194,6 +194,9 @@ namespace votca {
                     }
                 }
             }
+            
+            _com_file << endl;
+
             return;
         }
 
@@ -204,7 +207,6 @@ namespace votca {
 
             std::vector< ctp::QMAtom* >::iterator it;
 
-            _com_file << endl;
             list<std::string> elements;
 
             elements.push_back("H");
