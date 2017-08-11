@@ -511,7 +511,7 @@ namespace votca {
             _orbitals->setDFTbasis(_basisset_name);
 
             if (_write_pseudopotentials) {
-                _orbitals->setECP("ecp");
+                _orbitals->setECP(_ecp_name);
             } else {
                 _orbitals->setECP("none");
             }

@@ -805,6 +805,13 @@ namespace votca {
             _orbitals->setQMpackage("gaussian");
             _orbitals->setDFTbasis(_basisset_name);
 
+            
+            if (_write_pseudopotentials) {
+                _orbitals->setECP(_ecp_name);
+            } else {
+                _orbitals->setECP("none");
+            }
+            
             _read_vxc = _output_Vxc;
             bool vxc_found = false;
             // Start parsing the file line by line

@@ -86,6 +86,9 @@ namespace votca {
                 throw std::runtime_error("\nValid options are: default,factor,explicit,full");
             }
 
+            
+            _ignore_corelevels = options->ifExistsReturnElseReturnDefault<bool>(key + ".ignore_corelevels", false);
+            
             _bse_nmax = options->ifExistsReturnElseReturnDefault<int>(key + ".exctotal", 25);
             _bse_nprint=options->ifExistsReturnElseReturnDefault<int>(key + ".print", 25);
             _fragA=options->ifExistsReturnElseReturnDefault<int>(key + ".fragment", -1);
@@ -330,6 +333,17 @@ namespace votca {
 
             // convert _rpamax if needed 
             _homo = _orbitals->getNumberOfElectrons() - 1; // indexed from 0
+            
+            unsigned int _ignored_corelevels = 0;
+            if ( _ignore_corelevels  ) {
+                std::string _ecpsave = _orbitals->getECP();
+                _orbitals->setECP("ecp");
+                int _valence_levels = _orbitals->FragmentNuclearCharges(_atoms.size())(0)/2;
+                _orbitals->setECP(_ecpsave);
+                _ignored_corelevels = _orbitals->getNumberOfElectrons() - _valence_levels;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Can ignore " << _ignored_corelevels << " core levels " << flush;
+            }
+            
             _rpamin = 0; // lowest index occ min(gwa%mmin, screening%nsum_low) ! always 1
             if (_ranges == "default" || _ranges=="full") {
                 _rpamax = _orbitals->getNumberOfLevels() - 1; // total number of levels
@@ -362,6 +376,11 @@ namespace votca {
                 _qpmax=_orbitals->getNumberOfLevels() - 1;
             }
 
+            // autoignore core levels in QP 
+            if ( _ignore_corelevels && ( _qpmin < _ignored_corelevels-1 ) ){
+                _qpmin = _ignored_corelevels-1;
+            }
+            
             // set BSE band range indices 
             // anything else would be stupid!
             _bse_vmax = _homo;
@@ -385,6 +404,11 @@ namespace votca {
             }
              if(_bse_cmax>unsigned(_orbitals->getNumberOfLevels() - 1)){
                 _bse_cmax=_orbitals->getNumberOfLevels() - 1;
+            }
+            
+            // autoignore core levels in BSE
+            if ( _ignore_corelevels && ( _bse_vmin < _ignored_corelevels-1 ) ){
+                _bse_vmin = _ignored_corelevels-1;
             }
             
             _bse_vtotal = _bse_vmax - _bse_vmin + 1;
