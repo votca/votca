@@ -141,7 +141,6 @@ namespace votca {
 
             // automatic scissors iteration
             bool _iterate_qp;
-            bool _qp_converged;
 
             // options for own Vxc calculation
             bool _doVxc;
@@ -187,7 +186,6 @@ namespace votca {
 
             double _qp_limit; //convergence criteria for qp iteration [Hartree]]
             unsigned int _qp_max_iterations;
-            unsigned int _qp_iteration;
             double _shift_limit; //convergence criteria for shift iteration [Hartree]]
             unsigned int _bse_vmin;
             unsigned int _bse_vmax;
@@ -234,9 +232,12 @@ namespace votca {
             ub::symmetric_matrix<double> _sigma_c; // correlation term
 
             void sigma_prepare_threecenters(TCMatrix& _Mmn);
-            void sigma_x_setup(const TCMatrix& _Mmn);
-            void sigma_c_setup(const TCMatrix& _Mmn);
-
+           
+            void sigma_diag(const TCMatrix& _Mmn);
+            void sigma_offdiag(const TCMatrix& _Mmn);
+           
+            
+            
             // QP variables and functions
             ub::vector<double> _qp_energies;
             ub::matrix<double> _vxc;

@@ -549,7 +549,7 @@ namespace votca {
             int removed_functions=_gwcoulomb.Symmetrize(_gwoverlap, gwbasis, _gwoverlap_inverse, _gwoverlap_cholesky_inverse);
             ub::matrix<double> _gwoverlap_cholesky_inverse_trans=ub::trans(_gwoverlap_cholesky_inverse);// for performance reasons
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM"<<flush;
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" removed "<<removed_functions<< " from gwbasis basis to leave orthogonal" << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Removed "<<removed_functions<< " functions from gwbasis to avoid near linear dependencies" << flush;
             /* calculate 3-center integrals,  convoluted with DFT eigenvectors
              * 
              *  M_mn(beta) = \int{ \psi^DFT_m(r) \phi^GW_beta(r) \psi^DFT_n d3r  }
@@ -568,7 +568,6 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
 
             
-
 
 
             // make _Mmn symmetric 
@@ -614,10 +613,13 @@ namespace votca {
                 }                
             }
             
+            _sigma_c.resize(_qptotal);
+            _sigma_x.resize(_qptotal);
+            
            
             TCMatrix _Mmn_backup;
             if (_iterate_qp) {
-
+                
                 // make copy of _Mmn, memory++
 
                 _Mmn_backup.Initialize(gwbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
@@ -627,76 +629,113 @@ namespace votca {
                 }
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Made backup of _Mmn  " << flush;
             }
-            _qp_converged=false;
-            _qp_iteration=0;
-            while (!_qp_converged) {
+            else{
+               _qp_max_iterations=1; 
+            }
+            
+           
+            const ub::vector<double>& _dft_energies=_orbitals->MOEnergies();
+            for(unsigned qp_iteration=0;qp_iteration<_qp_max_iterations;++qp_iteration){
                 
+                ub::vector<double>_qp_old_rpa=_qp_energies;
                 if(_iterate_qp){
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " RPA Iteraton "<<_qp_iteration+1<<" of "<< _qp_max_iterations  << flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " RPA Iteraton "<<qp_iteration+1<<" of "<< _qp_max_iterations  << flush;
                 }
-               _qp_iteration++;
+               
                 // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
                 for (unsigned _i_freq = 0; _i_freq < _screening_freq.size1(); _i_freq++) {
                     _epsilon[ _i_freq ] = _gwoverlap.Matrix();
                 }
-               
-                
+                            
                 // determine epsilon from RPA
                 RPA_calculate_epsilon(_Mmn_RPA);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated epsilon via RPA  " << flush;
 
-                 
-
                 // construct PPM parameters
                 PPM_construct_parameters(_gwoverlap_cholesky_inverse,_gwoverlap_cholesky_inverse_trans);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed PPM parameters  " << flush;
-                if (!_iterate_qp){
-                    _qp_converged = true;
-                    _gwoverlap.Matrix().resize(0, 0);
-                    _gwoverlap_cholesky_inverse.resize(0,0);
-                    _gwoverlap_cholesky_inverse_trans.resize(0,0);
-                    _Mmn_RPA.Cleanup();
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cleaned up Overlap and MmnRPA" << flush;
-                }
+               
                 // prepare threecenters for Sigma
                 sigma_prepare_threecenters(_Mmn);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared threecenters for sigma  " << flush;
+                
+                sigma_diag(_Mmn);
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated diagonal part of Sigma  " << flush;
+                    // iterative refinement of qp energies
+            
+                
+                double _DFTgap =_dft_energies(_homo + 1) - _dft_energies(_homo);
+                double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
+                _shift = _QPgap - _DFTgap;
 
-                // calculate exchange part of sigma
-                sigma_x_setup(_Mmn);
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated exchange part of Sigma  " << flush;
+                // qp energies outside the update range are simply shifted. 
+                for(unsigned i=_qpmax+1;i<_dft_energies.size();++i){
+                    _qp_energies(i)=_dft_energies(i)+_shift;
+                }
 
-           
-                // calculate correlation part of sigma
-                sigma_c_setup(_Mmn);
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated correlation part of Sigma  " << flush;
 
-                // restore _Mmn, if shift has not converged
-                if (_iterate_qp && !_qp_converged) {
+                if(_iterate_qp){
+                    bool _qp_converged=true;
+                    ub::vector<double>diff= _qp_old_rpa - _qp_energies;
+                    unsigned int _l_not_converged = 0;
+                    double E_max=0;
+                    for (unsigned l = 0; l < diff.size(); l++) {
+                        if (std::abs(diff(l))>std::abs(E_max)){
+                            _l_not_converged = l;
+                            E_max=diff(l);
+                        }
+                        if (std::abs(diff(l)) > _shift_limit) {  
+                            _qp_converged = false;                
+                        }
+                        } 
+                    double alpha=0.0;
+                    _qp_energies=alpha*_qp_old_rpa+(1-alpha)*_qp_energies;
+                    if(tools::globals::verbose){
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " RPA_Iteration: " << qp_iteration+1 << " E_diff max="<<E_max<<" StateNo:"<<_l_not_converged << flush;
+                    }
+
+                    if(_qp_converged){
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after "<< qp_iteration+1<<" RPA iterations"<< flush;
+                        break;
+                    }
+                    else if ( qp_iteration == _qp_max_iterations ) {
+                        // continue regardless for now, but drop WARNING
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " WARNING! QP spectrum not converged after " << _qp_max_iterations << " iterations." << flush;
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "          QP level " << _l_not_converged << " energy changed by " << diff(_l_not_converged) << flush;
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "          Run continues. Inspect results carefully!" << flush;
+                        break;
+                    }
+
+                    
+                    
                     int _mnsize = _Mmn_backup.get_mtot();
                     for (int _i = 0; _i < _mnsize; _i++) {
                         _Mmn[ _i ] = _Mmn_backup[ _i ];
                     }
+                    
 
                 }
-
             }
-
-            // free unused variable if shift is iterated
-            if (_iterate_qp) {
-                _gwoverlap.Matrix().resize(0, 0);
-                 _gwoverlap_cholesky_inverse.resize(0,0);
-                _gwoverlap_cholesky_inverse_trans.resize(0,0);
-                _Mmn_RPA.Cleanup();
+            
+            sigma_offdiag(_Mmn);
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
+            _gwoverlap.Matrix().resize(0, 0);
+            _gwoverlap_cholesky_inverse.resize(0,0);
+            _gwoverlap_cholesky_inverse_trans.resize(0,0);
+            _Mmn_RPA.Cleanup();
+            if(_iterate_qp){
                 _Mmn_backup.Cleanup();
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cleaned up Overlap, MmnRPA and Mmn_backup " << flush;
+            }
+            else{
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cleaned up Overlap and MmnRPA" << flush;   
             }
             // free no longer required three-center matrices in _Mmn
             // max required is _bse_cmax (could be smaller than _qpmax)
             _Mmn.Prune(gwbasis.AOBasisSize(), _bse_vmin, _bse_cmax);
 
 
-            const ub::vector<double>& _dft_energies=_orbitals->MOEnergies();
+           
             // Output of quasiparticle energies after all is done:
            
             CTP_LOG(ctp::logINFO, *_pLog) << (format("  ====== Perturbative quasiparticle energies (Hartree) ====== ")).str() << flush;
