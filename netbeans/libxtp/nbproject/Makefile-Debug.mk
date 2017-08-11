@@ -112,6 +112,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce08c7a/threecenters_tools.o \
 	${OBJECTDIR}/_ext/1ce08c7a/toolfactory.o \
 	${OBJECTDIR}/_ext/69ca5806/exciton.o \
+	${OBJECTDIR}/_ext/69ca5806/qmanalyze.o \
 	${OBJECTDIR}/_ext/1ce08c7a/version.o \
 	${OBJECTDIR}/_ext/1ce08c7a/version_nb.o \
 	${OBJECTDIR}/_ext/1ce08c7a/xtpapplication.o
@@ -527,6 +528,11 @@ ${OBJECTDIR}/_ext/69ca5806/exciton.o: ../../src/libxtp/tools/exciton.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/69ca5806
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/69ca5806/exciton.o ../../src/libxtp/tools/exciton.cc
+
+${OBJECTDIR}/_ext/69ca5806/qmanalyze.o: ../../src/libxtp/tools/qmanalyze.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/69ca5806
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../../include -I../../../tools/include -I../../../csg/include -I../../../xtp/include -I/usr/include/libxml2 -I/sw/linux/intel/XE13u2/mkl/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/69ca5806/qmanalyze.o ../../src/libxtp/tools/qmanalyze.cc
 
 ${OBJECTDIR}/_ext/1ce08c7a/version.o: ../../src/libxtp/version.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a

@@ -338,15 +338,20 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     double co2 = _cutoff2;    
     _mps_mapper.Gen_QM_MM1_MM2(top, &xjob, co1, co2, thread);
     
+    
+    
+    
     const matrix box=xjob.getTop()->getBox();
+    //check if box is non orthogonal
+    if (box.get(0,1)>1e-7 || box.get(0,2)>1e-7 || box.get(1,2)>1e-7){
     double min=box.get(0,0);
     if(min>box.get(1,1)){min=box.get(1,1);}
     if(min>box.get(2,2)){min=box.get(2,2);}
    
     if(_cutoff2>0.5*min){
-        throw runtime_error((format("Cutoff is larger than half the box size. Maximum allowed cutoff is %1$1.1f - molecule extension.") % (0.5*min)).str());
+        throw runtime_error((format("Cutoff is larger than half the box size for triclinic box. Maximum allowed cutoff is %1$1.1f - molecule extension.") % (0.5*min)).str());
     }
-   
+    }
     
     CTP_LOG(ctp::logINFO,*log)
          << xjob.getPolarTop()->ShellInfoStr() << flush;

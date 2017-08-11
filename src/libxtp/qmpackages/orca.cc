@@ -310,7 +310,7 @@ namespace votca {
 
         /**
          * Prepares the *.inp file from a vector of segments
-         * Appends a guess constructed from monomer orbitals if supplied
+         * Appends a guess constructed from monomer orbitals if supplied, Not implemented yet
          */
         bool Orca::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
 
