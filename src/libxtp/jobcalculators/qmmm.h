@@ -378,7 +378,7 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     machine.setLog(thread->getLogger());
     
     // EVALUATE: ITERATE UNTIL CONVERGED
-    machine.Evaluate(&xjob);    
+    int error=machine.Evaluate(&xjob);    
     
     // DESTROY QMPackage
     delete qmpack;
@@ -400,6 +400,9 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         jres.setStatus(ctp::Job::FAILED);
         jres.setError(xind.getError());
         CTP_LOG(ctp::logERROR,*log) << xind.getError() << flush;
+    }
+    if(error!=0){
+        jres.setStatus(ctp::Job::FAILED);
     }
     
     return jres;

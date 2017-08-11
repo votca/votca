@@ -49,7 +49,7 @@ public:
               Property *opt, string sfx, int nst, bool mav);
    ~QMMachine();
     
-    void Evaluate(ctp::XJob *job);
+    int Evaluate(ctp::XJob *job);
     
     bool Iterate(string jobFolder, int iterCnt);    
     QMMIter *CreateNewIter();

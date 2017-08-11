@@ -131,7 +131,7 @@ namespace votca {
         }
 
         template<class QMPackage>
-        void QMMachine<QMPackage>::Evaluate(ctp::XJob *job) {
+        int QMMachine<QMPackage>::Evaluate(ctp::XJob *job) {
 
             CTP_LOG(ctp::logINFO, *_log)
                     << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
@@ -168,7 +168,12 @@ namespace votca {
             for (; iterCnt < iterMax; ++iterCnt) {
 
                 // check for polarized QM/MM convergence
-                (void) Iterate(jobFolder, iterCnt);
+            int info= Iterate(jobFolder, iterCnt);
+            if(info!=0){
+                 CTP_LOG(ctp::logERROR, *_log)
+                        << format("Iterating job failed!")<<flush;
+                 return 1;
+            }
                 if (_static_qmmm) {
                     _isConverged = true;
                     break;
@@ -181,9 +186,10 @@ namespace votca {
             if (iterCnt == iterMax - 1 && !_isConverged) {
                 CTP_LOG(ctp::logWARNING, *_log)
                         << format("Not converged within %1$d iterations.") % iterMax;
+                return 2;
             }
 
-            return;
+            return 0;
         }
 
         template<class QMPackage>
@@ -235,8 +241,10 @@ namespace votca {
 
             // EXTRACT LOG-FILE INFOS TO ORBITALS   
             Orbitals orb_iter_output;
-            _qmpack->ParseLogFile(&orb_iter_output);
-
+            bool success=_qmpack->ParseLogFile(&orb_iter_output);
+            if(!success){
+                return 1;
+            }
             // GW-BSE starts here
 
             double energy___ex = 0.0;
