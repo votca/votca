@@ -81,6 +81,21 @@ namespace votca {
             } else _output_Vxc = false;
             cout << _output_Vxc << endl;
 
+            /* G09 by default deletes functions from the basisset according to some
+             * criterion based on, a.o., the contraction coefficients. This can lead
+             * to inconsistencies when MOs are later used in VOTCA's GWBSE modules
+             * (and other post-processing routines). G09's default can be modified
+             * by the keywork int=nobasistransform. This will add this keyword
+             * automatically to the _options string for runs with G09.
+             */
+            if ( _executable == "g09" ){
+                std::string::size_type basistransform_pos = (boost::algorithm::to_lower_copy(_options)).find("nobasistransform");
+                if ( basistransform_pos == std::string::npos ){
+                    _options = _options + " int=nobasistransform ";
+                }
+            }
+
+
             // check if the guess keyword is present, if yes, append the guess later
             std::string::size_type iop_pos = _options.find("cards");
             if (iop_pos != std::string::npos) {
@@ -127,7 +142,7 @@ namespace votca {
 
         }
 
-        /* Custom basis sets are written on a per-element basis to 
+        /* Custom basis sets are written on a per-element basis to
          * 'elementname'.gbs files, which are then included in the
          * Gaussian input file using @'elementname'.gbs
          */
@@ -194,14 +209,14 @@ namespace votca {
                     }
                 }
             }
-            
+
             _com_file << endl;
 
             return;
         }
 
         /* If custom ECPs are used, they need to be specified in the input file
-         * in a section following the basis set includes. 
+         * in a section following the basis set includes.
          */
         void Gaussian::WriteECP(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
 
@@ -254,7 +269,7 @@ namespace votca {
             return;
         }
 
-        /* For QM/MM the molecules in the MM environment are represented by 
+        /* For QM/MM the molecules in the MM environment are represented by
          * their atomic partial charge distributions. Triggered by the option
          * keyword "charge" Gaussian expects them in x,y,z,q format in the
          * input file. In g03 AFTER basis sets and ECPs, in g09 BEFORE.
@@ -272,9 +287,9 @@ namespace votca {
             return;
         }
 
-        /* An initial guess for the electron density can be provided by 
+        /* An initial guess for the electron density can be provided by
          * a set of molecular orbital coefficients in the input file,
-         * triggered by the 'guess=cards' keyword. This MUST be done in 
+         * triggered by the 'guess=cards' keyword. This MUST be done in
          * Fortran fixed format 5D15.8. The information about the guess
          * itself is taken from a prepared orbitals object.
          */
@@ -318,8 +333,8 @@ namespace votca {
 
         /* For output of the AO matrix of Vxc using the patched g03 version,
          * g03 has to be called a second time after completing the single-point
-         * SCF calculation. A second input file is generated based on the 
-         * originally specified options by forcing to read the converged 
+         * SCF calculation. A second input file is generated based on the
+         * originally specified options by forcing to read the converged
          * electron density from the checkpoint file, setting run to serial.
          */
         void Gaussian::WriteVXCRunInputFile() {
@@ -328,7 +343,7 @@ namespace votca {
             std::string _com_file_name_full2 = _run_dir + "/" + _input_vxc_file_name;
 
             _com_file2.open(_com_file_name_full2.c_str());
-            // header 
+            // header
             if (_chk_file_name.size()) _com_file2 << "%chk=" << _chk_file_name << endl;
             if (_memory.size()) _com_file2 << "%mem=" << _memory << endl;
             _com_file2 << "%nprocshared=1" << endl;
@@ -350,8 +365,8 @@ namespace votca {
             return;
         }
 
-        
-        /* Coordinates are written in standard Element,x,y,z format to the 
+
+        /* Coordinates are written in standard Element,x,y,z format to the
          * input file.
          */
         void Gaussian::WriteCoordinates(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
@@ -372,7 +387,7 @@ namespace votca {
         }
 
         /* Standard Gaussian Header is written to the input file, with checkpoint,
-         * memory, shared processor request, option string containing all 
+         * memory, shared processor request, option string containing all
          * relevant keywords, charge, and spin information.
          */
         void Gaussian::WriteHeader(ofstream& _com_file) {
@@ -383,7 +398,7 @@ namespace votca {
 
             _com_file << endl;
             _com_file << "TITLE ";
-            
+
             _com_file << endl << endl;
             _com_file << setw(2) << _charge << setw(2) << _spin << endl;
             return;
@@ -402,11 +417,11 @@ namespace votca {
             std::string _com_file_name_full = _run_dir + "/" + _input_file_name;
             _com_file.open(_com_file_name_full.c_str());
 
-            // header 
+            // header
             WriteHeader(_com_file);
 
-            // This is needed for the QM/MM scheme, since only orbitals have 
-            // updated positions of the QM region, hence vector<Segments*> is 
+            // This is needed for the QM/MM scheme, since only orbitals have
+            // updated positions of the QM region, hence vector<Segments*> is
             // NULL in the QMMachine and the QM region is also printed here
 
             std::vector< ctp::QMAtom* > qmatoms;
@@ -475,7 +490,7 @@ namespace votca {
         }
 
         /* Gaussian will be executed within a shell in order to set some
-         * environment variables for the local SCRATCH directory and 
+         * environment variables for the local SCRATCH directory and
          * (legacy mode) running a second instance for AO matrix of Vxc
          * using patched g03. This function writes the shell script.
          */
@@ -503,15 +518,15 @@ namespace votca {
         }
 
         /**
-         * Runs the Gaussian job. 
+         * Runs the Gaussian job.
          */
         bool Gaussian::Run() {
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: running [" << _executable << " " << _input_file_name << "]" << flush;
 
             if (std::system(NULL)) {
-                // if scratch is provided, run the shell script; 
-                // otherwise run gaussian directly and rely on global variables 
+                // if scratch is provided, run the shell script;
+                // otherwise run gaussian directly and rely on global variables
                 std::string _command;
                 if (_scratch_dir.size() != 0 || _output_Vxc) {
                     _command = "cd " + _run_dir + "; tcsh " + _shell_file_name;
@@ -703,7 +718,7 @@ namespace votca {
             // copying information to the orbitals object
             _orbitals->setBasisSetSize(_basis_size); // = _basis_size;
 
-            // copying energies to the orbitals object  
+            // copying energies to the orbitals object
             ub::vector<double> &mo_energies = _orbitals->MOEnergies();
             mo_energies.resize(_levels);
             for (size_t i = 0; i < mo_energies.size(); i++) mo_energies[i] = _energies[ i + 1 ];
@@ -767,7 +782,7 @@ namespace votca {
         }
 
         /**
-         * Parses the Gaussian Log file and stores data in the Orbitals object 
+         * Parses the Gaussian Log file and stores data in the Orbitals object
          */
         bool Gaussian::ParseLogFile(Orbitals * _orbitals) {
 
@@ -807,13 +822,13 @@ namespace votca {
             _orbitals->setQMpackage("gaussian");
             _orbitals->setDFTbasis(_basisset_name);
 
-            
+
             if (_write_pseudopotentials) {
                 _orbitals->setECP(_ecp_name);
             } else {
                 _orbitals->setECP("none");
             }
-            
+
             _read_vxc = _output_Vxc;
             bool vxc_found = false;
             // Start parsing the file line by line
@@ -909,7 +924,7 @@ namespace votca {
                             CTP_LOG(ctp::logDEBUG, *_pLog) << "Occupied levels: " << _occupied_levels << flush;
                             CTP_LOG(ctp::logDEBUG, *_pLog) << "Unoccupied levels: " << _unoccupied_levels << flush;
                         }
-                    } // end of the while loop              
+                    } // end of the while loop
                 } // end of the eigenvalue parsing
 
 
@@ -927,7 +942,7 @@ namespace votca {
                     overlap.resize(_basis_set_size);
 
                     _has_overlap_matrix = true;
-                    //cout << "Found the overlap matrix!" << endl;   
+                    //cout << "Found the overlap matrix!" << endl;
                     std::vector<int> _j_indeces;
 
                     int _n_blocks = 1 + ((_basis_set_size - 1) / 5);
@@ -985,7 +1000,7 @@ namespace votca {
                         _j_indeces.clear();
                     } // end of the blocks
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Read the overlap matrix" << flush;
-                } // end of the if "Overlap" found   
+                } // end of the if "Overlap" found
 
 
                 /*
@@ -1136,7 +1151,7 @@ namespace votca {
 
                 }
 
-                // check if all information has been accumulated and quit 
+                // check if all information has been accumulated and quit
                 if (_has_number_of_electrons &&
                         _has_basis_set_size &&
                         _has_occupied_levels &&
@@ -1158,7 +1173,7 @@ namespace votca {
             }
 
 
-            // - parse atomic orbitals Vxc matrix 
+            // - parse atomic orbitals Vxc matrix
             if (_read_vxc) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Parsing fort.24 for Vxc" << flush;
                 std::string _log_file_name_full;
@@ -1177,7 +1192,7 @@ namespace votca {
 
 
                     // _has_vxc_matrix = true;
-                    //cout << "Found the overlap matrix!" << endl;   
+                    //cout << "Found the overlap matrix!" << endl;
                     std::vector<int> _j_indeces;
 
 
