@@ -31,4 +31,7 @@ die "1 parameter are necessary\n" if ($#ARGV<0);
 
 use CsgFunctions;
 
-my $kBT=csg_get_property("cg.inverse.kBT");
+my @r;
+my @values;
+my @flags;
+readin_table($ARGV[0],@r,@values,@flags)) || die "$progname: error at readin_table'$ARGV[0]'\n"
