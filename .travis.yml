@@ -27,7 +27,7 @@ matrix:
   exclude:
   - compiler: clang #taking too long
     env: TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=None COVERAGE=yes
-  - compiler: clang #no never info when using clang
+  - compiler: clang #no new info when using clang
     env: TESTING=OFF CMAKE_BUILD_TYPE=Release DOXYGEN=yes 
 
 script:
@@ -70,7 +70,7 @@ after_success:
         docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
         docker push "${TRAVIS_REPO_SLUG}:${DOCKER_TAG}";
     fi
-  - if [[ ${TRAVIS_JOB_NUMBER} = *.1 ]]; then
+  - if [[ ${DOXYGEN} = yes ]]; then
       git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc";
       cd $HOME/devdoc;
       rm -f *;
