@@ -67,8 +67,8 @@ if [[ ${cibi[$cibi_nr]} = 1 ]]; then
    tmpfile=$(critical mktemp ${name}.cibi.XXX)
    do_external table integrate --sphere --from left "${name}.dist.tgt" "${name}.dist.tgt.int"
    do_external table integrate --sphere --from left "${name}.dist.new" "${name}.dist.new.int"
-   is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
    kBT="$(csg_get_property cg.inverse.kBT)"
+   is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
    do_external update ibi_pot "${name}.dist.tgt.int" "${name}.dist.new.int" "${name}.pot.cur" "${tmpfile}" "${kBT}"
    comment="$(get_table_comment ${tmpfile})"
    tmpfile2=$(critical mktemp ${name}.cibi.resample.XXX)
