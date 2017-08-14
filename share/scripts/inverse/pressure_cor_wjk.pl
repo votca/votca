@@ -37,7 +37,7 @@ use CsgFunctions;
 
 my $kBT=$ARGV[2];;
 my @range=split(/:/,$ARGV[3]);
-defined($range[2]) || die "Not enough number in range $ARGV[1], got ".($#range+1)." need 3\n";
+defined($range[2]) || die "Not enough number in range $ARGV[3], got ".($#range+1)." need 3\n";
 my $max=$range[2];
 my $min=$range[0];
 my $delta_r=$range[1];
