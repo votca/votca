@@ -911,17 +911,6 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
 }
 export -f check_for_obsolete_xml_options
 
-check_for_bug_179() { #check if shell has bug #179
-  simple_fct() { echo "Shell OK";}
-  export -f simple_fct
-  if [[ $(perl -e '$x=`bash -c "simple_fct"`; print $x' 2> /dev/null) != "Shell OK" ]]; then
-    die "Your shell seems to exhibit bug #179 (see https://github.com/votca/csg/issues/179)\nIn short, as a workaround you want to run 'sudo ln -fs bash /bin/sh' and re-login!"
-  fi
-  unset simple_fct
-}
-check_for_bug_179
-unset check_for_bug_179
-
 command_not_found_handle() { #print and error message if a command or a function was not found
   die "Command/function $1 not found (when calling from csg_call you might need to add --simprog option or set cg.inverse.program in the xml file)"
 }
