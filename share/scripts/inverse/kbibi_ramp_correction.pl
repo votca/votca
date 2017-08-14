@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
-my $usage="Usage: $progname [OPTIONS] kbint target_kbint outfile";
+my $usage="Usage: $progname [OPTIONS] kbint target_kbint outfile kBT";
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 {
@@ -51,18 +51,20 @@ END
   }
 }
 
-die "3 parameters are nessary\n" if ($#ARGV<2);
+die "5 parameters are nessary\n" if ($#ARGV<4);
 
 use CsgFunctions;
 
-my $kbt=csg_get_property("cg.inverse.kBT");
+my $kbt=ARGV[3];
 my $int_start=csg_get_interaction_property("inverse.post_update_options.kbibi.start");
 my $int_stop=csg_get_interaction_property("inverse.post_update_options.kbibi.stop");
 my $ramp_factor=csg_get_interaction_property("inverse.post_update_options.kbibi.factor");
 
-my $r_min=csg_get_interaction_property("min");
-my $r_max=csg_get_interaction_property("max");
-my $delta_r=csg_get_interaction_property("step");
+my @range=split(/:/,$ARGV[4]);
+defined($range[2]) || die "Not enough number in range $ARGV[4], got ".($#range+1)." need 3\n";
+my $r_min=$range[0];
+my $r_max=$range[2];
+my $delta_r=$range[1];
 my $r_ramp=csg_get_interaction_property("--allow-empty","inverse.post_update_options.kbibi.r_ramp");
 $r_ramp=$r_max if ("$r_ramp" eq "");
 

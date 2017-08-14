@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -64,7 +64,9 @@ kbibi_nr=$(( ($step_nr - 1 ) % ${#kbibi[@]} ))
 if [[ ${kbibi[$kbibi_nr]} = 1 ]]; then
    echo "Apply kbibi correction for interaction ${name}"
    tmpfile=$(critical mktemp ${name}.kbibi.XXX)
-   do_external kbibi ramp_correction "${name}.kbint.tgt" "${name}.kbint.new" "${tmpfile}"
+   kBT="$(csg_get_property cg.inverse.kBT)"
+   is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
+   do_external kbibi ramp_correction "${name}.kbint.tgt" "${name}.kbint.new" "${tmpfile}" "${kBT}" "$min:$step:$max"
    comment="$(get_table_comment ${tmpfile})"
    tmpfile2=$(critical mktemp ${name}.kbibi.resample.XXX)
    critical csg_resample --in "${tmpfile}" --out "${tmpfile2}" --grid $min:$step:$max --comment "$comment"
