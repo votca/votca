@@ -29,7 +29,8 @@ on Gromacs unless specified otherwise:
 spce/atomistic                atomistic reference simulations for SPC/E water
 spce/force_matching           force matching for SPC/E water
 spce/ibi                      iterative boltzmann inversion for SPC/E water
-spce/ibi_pressure             iterative boltzmann inversion for SPC/E water with pressure correction
+spce/ibi_pressure             iterative boltzmann inversion for SPC/E water with simple pressure correction
+spce/ibi_pressure_wjk         iterative boltzmann inversion for SPC/E water with wjk pressure correction
 spce/ibi_hoomd-blue           iterative boltzmann inversion for SPC/E water using hoomd-blue
 spce/ibi_dlpoly               iterative boltzmann inversion for SPC/E water using dl_poly
 spce/ibi_espresso             iterative boltzmann inversion for SPC/E water using ESPResSo
