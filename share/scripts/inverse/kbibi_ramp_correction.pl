@@ -55,7 +55,7 @@ die "5 parameters are necessary\n" if ($#ARGV<4);
 
 use CsgFunctions;
 
-my $kbt=ARGV[3];
+my $kbt=$ARGV[3];
 my $int_start=csg_get_interaction_property("inverse.post_update_options.kbibi.start");
 my $int_stop=csg_get_interaction_property("inverse.post_update_options.kbibi.stop");
 my $ramp_factor=csg_get_interaction_property("inverse.post_update_options.kbibi.factor");
