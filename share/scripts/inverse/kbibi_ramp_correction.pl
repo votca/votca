@@ -18,7 +18,7 @@
 use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
-my $usage="Usage: $progname [OPTIONS] kbint target_kbint outfile kBT min:step:max int_start:int_end";
+my $usage="Usage: $progname [OPTIONS] kbint target_kbint outfile kBT min:step:max int_start:int_end ramp_factor";
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 {
@@ -51,7 +51,7 @@ END
   }
 }
 
-die "6 parameters are necessary\n" if ($#ARGV<5);
+die "7 parameters are necessary\n" if ($#ARGV<6);
 
 use CsgFunctions;
 
@@ -60,7 +60,7 @@ my @irange=split(/:/,$ARGV[5]);
 defined($irange[1]) || die "Not enough number in irange $ARGV[5], got ".($#irange+1)." need 2\n";
 my $int_start=$irange[0];
 my $int_stop=$irange[1];
-my $ramp_factor=csg_get_interaction_property("inverse.post_update_options.kbibi.factor");
+my $ramp_factor=$ARGV[6];
 
 my @range=split(/:/,$ARGV[4]);
 defined($range[2]) || die "Not enough number in range $ARGV[4], got ".($#range+1)." need 3\n";
