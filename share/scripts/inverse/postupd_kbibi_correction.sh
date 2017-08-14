@@ -66,7 +66,11 @@ if [[ ${kbibi[$kbibi_nr]} = 1 ]]; then
    tmpfile=$(critical mktemp ${name}.kbibi.XXX)
    kBT="$(csg_get_property cg.inverse.kBT)"
    is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
-   do_external kbibi ramp_correction "${name}.kbint.tgt" "${name}.kbint.new" "${tmpfile}" "${kBT}" "$min:$step:$max"
+   int_start=$(csg_get_interaction_property inverse.post_update_options.kbibi.start);
+   is_num "${int_start}" || die "${0##*/}: interaction property 'inverse.post_update_options.kbibi.start', should be a number, but found '${int_start}'"
+   int_stop=$(csg_get_interaction_property inverse.post_update_options.kbibi.stop);
+   is_num "${int_stop}" || die "${0##*/}: interaction property 'inverse.post_update_options.kbibi.stop', should be a number, but found '${int_stop}'"
+   do_external kbibi ramp_correction "${name}.kbint.tgt" "${name}.kbint.new" "${tmpfile}" "${kBT}" "$min:$step:$max" "${int_start}:${int_stop}"
    comment="$(get_table_comment ${tmpfile})"
    tmpfile2=$(critical mktemp ${name}.kbibi.resample.XXX)
    critical csg_resample --in "${tmpfile}" --out "${tmpfile2}" --grid $min:$step:$max --comment "$comment"
