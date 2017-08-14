@@ -25,12 +25,12 @@ Wan, Junghans & Kremer, Euro. Phys. J. E 28, 221 (2009)
 Basically dU=A*(1-r/r_c) with A= -max(0.1k_B T, Int ) * sign(p_cur-p_target)
 and Int is the integral from Eq. 7 in the paper.
 
-Usage: $progname p_cur outfile kBT min:step:max scale p_target
+Usage: $progname p_cur outfile kBT min:step:max scale p_target particle_dens rdf_file
 EOF
   exit 0;
 }
 
-die "6 parameters are necessary\n" if ($#ARGV<5);
+die "8 parameters are necessary\n" if ($#ARGV<7);
 
 
 use CsgFunctions;
@@ -42,8 +42,7 @@ my $max=$range[2];
 my $min=$range[0];
 my $delta_r=$range[1];
 
-my $partDens=csg_get_interaction_property("inverse.particle_dens");
-my $name=csg_get_interaction_property("name");
+my $partDens=$ARGV[6];
 my $scale_factor=$ARGV[4];
 
 my $pi= 3.14159265;
@@ -53,7 +52,7 @@ my $p_target=$ARGV[5];
 my $p_now=$ARGV[0];
 
 # load current rdf
-my $cur_rdf_file="${name}.dist.new";
+my $cur_rdf_file="$ARGV[7]";
 my @r_cur;
 my @rdf_cur;
 my @flags_cur;

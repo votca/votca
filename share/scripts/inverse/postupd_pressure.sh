@@ -54,13 +54,18 @@ pscheme_nr=$(( ( $step_nr - 1 ) % ${#pscheme[@]} ))
 
 if [[ ${pscheme[$pscheme_nr]} = 1 ]]; then
    echo "Apply ${ptype} pressure correction for interaction ${name}"
-   # wjk needs rdf
-   if [[ ! -f ${name}.dist.new && $ptype = wjk ]]; then
-     do_external rdf $(csg_get_property cg.inverse.program)
+   if [[ $ptype = wjk ]]; then
+     # wjk needs rdf
+     if [[ ! -f ${name}.dist.new ]]; then
+       do_external rdf $(csg_get_property cg.inverse.program)
+     fi
+     particle_dens=$(csg_get_interaction_property inverse.particle_dens)
+     is_num "${particle_dens}" || die "${0##*/}: interaction property 'inverse.particle_dens' should be a number, but found '${particle_dens}'"
+     extra_popts=( "${particle_dens}" "${name}.dist.new" )
    fi
    scale=$(csg_get_interaction_property inverse.post_update_options.pressure.${ptype}.scale)
    is_num "${scale}" || die "${0##*/}: interaction property 'inverse.post_update_options.pressure.${ptype}.scale' should be a number, but found '${scale}'"
-   do_external pressure_cor $ptype $p_now ${name}.pressure_correction "${kBT}" "$min:$step:$max" "${scale}" "${p_target}" 
+   do_external pressure_cor $ptype $p_now ${name}.pressure_correction "${kBT}" "$min:$step:$max" "${scale}" "${p_target}" "${extra_popts[@]}" 
    comment="$(get_table_comment ${name}.pressure_correction)"
    tmpfile=$(critical mktemp ${name}.pressure_correction_cut.XXX)
    critical csg_resample --in ${name}.pressure_correction --out ${tmpfile} --grid $min:$step:$max --comment "$comment"
