@@ -87,9 +87,6 @@ die "Different grids \n" if (($r_aim[1]-$r_aim[0]-$r_cur[1]+$r_cur[0])>0.0001);
 die "Different start potential point \n" if (($r_aim[0]-$r_cur[0]) > 0.0001);
 die "Different end potential point \n" if ( $#r_aim != $#r_cur );
 
-die "kbibi.start is smaller than r_min\n" if ($int_start < $r_min);
-die "kbibi.stop is bigger than r_max\n" if ($int_stop > $r_max);
-
 my $j=0;
 my $avg_int=0;
 for (my $i=0;$i<=$#r_aim;$i++){

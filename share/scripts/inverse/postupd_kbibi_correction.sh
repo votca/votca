@@ -68,8 +68,10 @@ if [[ ${kbibi[$kbibi_nr]} = 1 ]]; then
    is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
    int_start=$(csg_get_interaction_property inverse.post_update_options.kbibi.start);
    is_num "${int_start}" || die "${0##*/}: interaction property 'inverse.post_update_options.kbibi.start', should be a number, but found '${int_start}'"
+   csg_calc "${int_start}" "<" "${min}" && die "${0##*/}: 'inverse.post_update_options.kbibi.start'(${int_start}) is smaller than min (${min}) for interaction '$name'"
    int_stop=$(csg_get_interaction_property inverse.post_update_options.kbibi.stop);
    is_num "${int_stop}" || die "${0##*/}: interaction property 'inverse.post_update_options.kbibi.stop', should be a number, but found '${int_stop}'"
+   csg_calc "${int_stop}" ">" "${max}" && die "${0##*/}: 'inverse.post_update_options.kbibi.stop'(${int_stop}) is bigger than max (${max}) for interaction '$name'"
    ramp_factor=$(csg_get_interaction_property inverse.post_update_options.kbibi.factor);
    is_num "${ramp_factor}" || die "${0##*/}: interaction property 'inverse.post_update_options.kbibi.factor', should be a number, but found '${ramp_factor}'"
    do_external kbibi ramp_correction "${name}.kbint.tgt" "${name}.kbint.new" "${tmpfile}" "${kBT}" "$min:$step:$max" "${int_start}:${int_stop}" "${ramp_factor}"
