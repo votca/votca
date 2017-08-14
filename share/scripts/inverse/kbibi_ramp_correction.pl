@@ -65,10 +65,8 @@ my $ramp_factor=$ARGV[6];
 my @range=split(/:/,$ARGV[4]);
 defined($range[2]) || die "Not enough number in range $ARGV[4], got ".($#range+1)." need 3\n";
 my $r_min=$range[0];
-my $r_max=$range[2];
+my $r_ramp=$range[2];
 my $delta_r=$range[1];
-my $r_ramp=csg_get_interaction_property("--allow-empty","inverse.post_update_options.kbibi.r_ramp");
-$r_ramp=$r_max if ("$r_ramp" eq "");
 
 my $aim_kbint_file="$ARGV[0]";
 my @r_aim;

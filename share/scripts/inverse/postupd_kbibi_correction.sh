@@ -74,7 +74,8 @@ if [[ ${kbibi[$kbibi_nr]} = 1 ]]; then
    csg_calc "${int_stop}" ">" "${max}" && die "${0##*/}: 'inverse.post_update_options.kbibi.stop'(${int_stop}) is bigger than max (${max}) for interaction '$name'"
    ramp_factor=$(csg_get_interaction_property inverse.post_update_options.kbibi.factor);
    is_num "${ramp_factor}" || die "${0##*/}: interaction property 'inverse.post_update_options.kbibi.factor', should be a number, but found '${ramp_factor}'"
-   do_external kbibi ramp_correction "${name}.kbint.tgt" "${name}.kbint.new" "${tmpfile}" "${kBT}" "$min:$step:$max" "${int_start}:${int_stop}" "${ramp_factor}"
+   r_ramp=$(csg_get_interaction_property --allow-empty inverse.post_update_options.kbibi.r_ramp)
+   do_external kbibi ramp_correction "${name}.kbint.tgt" "${name}.kbint.new" "${tmpfile}" "${kBT}" "$min:$step:${r_ramp:-$max}" "${int_start}:${int_stop}" "${ramp_factor}"
    comment="$(get_table_comment ${tmpfile})"
    tmpfile2=$(critical mktemp ${name}.kbibi.resample.XXX)
    critical csg_resample --in "${tmpfile}" --out "${tmpfile2}" --grid $min:$step:$max --comment "$comment"
