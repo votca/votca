@@ -51,7 +51,7 @@ END
   }
 }
 
-die "5 parameters are nessary\n" if ($#ARGV<4);
+die "5 parameters are necessary\n" if ($#ARGV<4);
 
 use CsgFunctions;
 
