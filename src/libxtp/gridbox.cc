@@ -53,7 +53,9 @@ namespace votca { namespace xtp {
 
         void GridBox::PrepareForIntegration() {
             matrix_size = 0;
-
+            aoranges=std::vector<ub::range>(0);
+            ranges=std::vector<ub::range>(0);
+            inv_ranges=std::vector<ub::range>(0);   
             std::vector<unsigned> start;
             std::vector<unsigned> end;
 
