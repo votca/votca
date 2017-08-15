@@ -140,7 +140,10 @@ if [[ ${mdrun_opts} != *tableb* ]]; then
     [[ -f $i ]] && tables+=" $i"
   done
   if [[ -n ${tables} ]]; then
-	  msg --color blue --to-stderr "Automatically added '-tableb${tables} to mdrun options (add -tableb option to cg.inverse.gromacs.mdrun.opts yourself if this is wrong)"
+    gmx_ver="$(critical ${grompp[@]} -h 2>&1)"
+    shopt -s extglob
+    [[ ${gmx_ver} = *"VERSION 5.1"+(.1|.2)* ]] && die "GROMACS 5.1 to 5.1.2 don't support tabulated bonds (http://redmine.gromacs.org/issues/1913), please update your GROMACS version" 
+    msg --color blue --to-stderr "Automatically added '-tableb${tables} to mdrun options (add -tableb option to cg.inverse.gromacs.mdrun.opts yourself if this is wrong)"
     mdrun_opts+=" -tableb${tables}"
   fi
 fi
