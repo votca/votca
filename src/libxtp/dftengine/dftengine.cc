@@ -741,6 +741,11 @@ namespace votca {
             }
             _orbitals->setDFTbasis(_dftbasis_name);
             _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
+            if ( _with_ecp ) {
+                _orbitals->setECP(_ecp_name);
+            } else {
+                _orbitals->setECP("none");
+            }
             
             if (_with_guess) {
                 if (_orbitals->getNumberOfElectrons() != _numofelectrons / 2) {

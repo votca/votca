@@ -155,6 +155,7 @@ namespace votca {
 
             // BSE variant
             bool _do_full_BSE;
+            bool _ignore_corelevels;
 
 
             std::string _outParent;

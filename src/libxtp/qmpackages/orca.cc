@@ -509,6 +509,13 @@ namespace votca {
 
             _orbitals->setQMpackage("orca");
             _orbitals->setDFTbasis(_basisset_name);
+
+            if (_write_pseudopotentials) {
+                _orbitals->setECP(_ecp_name);
+            } else {
+                _orbitals->setECP("none");
+            }
+            
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
             // return true;
             std::string _log_file_name_full = _run_dir + "/" + _log_file_name;
