@@ -104,7 +104,7 @@ namespace votca {
                
             #pragma omp parallel for
             for (unsigned thread=0;thread<nthreads;++thread){
-            for (unsigned i = thread; i < _grid_boxes.size(); i+=nthreads) {
+            for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
                 
                 
                 GridBox& box = _grid_boxes[i];
@@ -303,7 +303,7 @@ namespace votca {
         
         
         void NumericalIntegration::SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::integration_grid > >& grid){
-            const double boxsize=3;
+            const double boxsize=2;
             
             std::vector< std::vector< std::vector< std::vector< GridContainers::integration_grid* > > > >  boxes;
             
@@ -406,31 +406,89 @@ namespace votca {
                 }
                 //cout<<box.significant_shells.size()<<" "<<box.grid_pos.size()<<endl;
             }
-            std::vector< GridBox > _grid_boxes_copy=_grid_boxes;
+            
+             std::vector< GridBox > _grid_boxes_copy;
+            
+            int combined=0;
+            std::vector<bool> Compared=std::vector<bool>(_grid_boxes.size(),false);
+            for (unsigned i=0;i<_grid_boxes.size();i++){
+                if(Compared[i]){continue;}
+                GridBox box=_grid_boxes[i];
+                Compared[i]=true;
+                for (unsigned j=i+1;j<_grid_boxes.size();j++){                   
+                    if(GridBox::compareGridboxes(_grid_boxes[i],_grid_boxes[j])){
+                        Compared[j]=true;
+                        box.addGridBox(_grid_boxes[j]);
+                        combined++;
+                    }
+                    
+                }
+                _grid_boxes_copy.push_back(box);
+            }
+
+         
             
             
             std::vector<unsigned> sizes;
             sizes.reserve(_grid_boxes_copy.size());
             for(auto& box: _grid_boxes_copy){
-                sizes.push_back(box.size());
+                sizes.push_back(box.size()*box.Matrixsize());
             }
            
             
             std::vector<unsigned> indexes=std::vector<unsigned>(sizes.size());
             iota(indexes.begin(), indexes.end(), 0);
             std::sort(indexes.begin(), indexes.end(),[&sizes](unsigned i1, unsigned i2) {return sizes[i1] > sizes[i2];});
-            _grid_boxes.resize(0);
-            unsigned indexoffirstgridpoint=0;
-            for(unsigned& index: indexes){
-                if(_grid_boxes_copy[index].Shellsize()>0){
-                    GridBox newbox=_grid_boxes_copy[index];
-                    newbox.setIndexoffirstgridpoint(indexoffirstgridpoint);
-                    indexoffirstgridpoint+=newbox.size();
-                    newbox.PrepareForIntegration();
-                    _grid_boxes.push_back(newbox);
-                }   
+            
+             unsigned nthreads = 1;
+            #ifdef _OPENMP
+               nthreads = omp_get_max_threads();
+            #endif
+            
+            std::vector<unsigned> scores=std::vector<unsigned>(nthreads,0);
+            std::vector< std::vector<unsigned> > indices;
+            for (unsigned i=0;i<nthreads;++i){
+                std::vector<unsigned> thread_box_indices;
+                indices.push_back(thread_box_indices);
             }
             
+            
+            
+            
+            for(const auto index:indexes){
+                unsigned thread=0;
+                unsigned minimum= std::numeric_limits<unsigned>::max();
+                for(unsigned i=0;i<scores.size();++i){
+                    if(scores[i]<minimum){
+                        minimum=scores[i];
+                        thread=i;
+                    }
+                }
+                indices[thread].push_back(index);
+                scores[thread]+=sizes[index];   
+            }           
+            
+            thread_start=std::vector<unsigned>(0);
+            thread_stop=std::vector<unsigned>(0);
+            unsigned start=0;
+            unsigned stop=0;
+            unsigned indexoffirstgridpoint=0;
+             _grid_boxes.resize(0);
+            for (const std::vector<unsigned>& thread_index:indices){
+                thread_start.push_back(start);
+                stop=start+thread_index.size();
+                thread_stop.push_back(stop);
+                start=stop;
+                for(const unsigned index:thread_index){
+                    if(_grid_boxes_copy[index].Shellsize()>0){
+                        GridBox newbox=_grid_boxes_copy[index];
+                        newbox.setIndexoffirstgridpoint(indexoffirstgridpoint);
+                        indexoffirstgridpoint+=newbox.size();
+                        newbox.PrepareForIntegration();
+                        _grid_boxes.push_back(newbox);
+                    }   
+                }
+            }   
             return;
         }
         
@@ -454,8 +512,8 @@ namespace votca {
                
                
             #pragma omp parallel for
-            for (unsigned thread=0;thread<nthreads;++thread){
-            for (unsigned i = thread; i < _grid_boxes.size(); i+=nthreads) {
+             for (unsigned thread=0;thread<nthreads;++thread){
+                for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
                 
                 double EXC_box=0.0;
                 GridBox& box = _grid_boxes[i];
@@ -526,6 +584,7 @@ namespace votca {
                 EXC+=Exc_thread[i];
                }   
             Vxc+=ub::trans(Vxc);
+            
             return Vxc;
         }
         
@@ -544,7 +603,7 @@ namespace votca {
                
             #pragma omp parallel for
             for (unsigned thread=0;thread<nthreads;++thread){
-            for (unsigned i = thread; i < _grid_boxes.size(); i+=nthreads) {
+             for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
                 
                 double N_box=0.0;
                 GridBox& box = _grid_boxes[i];
@@ -636,7 +695,7 @@ namespace votca {
                
             #pragma omp parallel for
             for (unsigned thread=0;thread<nthreads;++thread){
-            for (unsigned i = thread; i < _grid_boxes.size(); i+=nthreads) {
+             for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
                 
                 double N_box=0.0;
                 double centroid_x_box=0.0;

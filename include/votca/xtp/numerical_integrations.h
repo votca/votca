@@ -105,7 +105,8 @@ namespace votca { namespace xtp {
             bool _use_votca;
             int xfunc_id;
             
-            
+            std::vector<unsigned> thread_start;
+            std::vector<unsigned> thread_stop;
             
             
             double EXC;
