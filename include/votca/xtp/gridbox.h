@@ -68,6 +68,7 @@ namespace votca { namespace xtp {
             
             void addShell(const AOShell* shell){
               significant_shells.push_back(shell);  
+              matrix_size+=shell->getNumFunc();
             };
             
             void prepareDensity(){
@@ -110,7 +111,7 @@ namespace votca { namespace xtp {
         private:
             
                 unsigned _indexoffirstgridpoint;
-                unsigned matrix_size;
+                unsigned matrix_size=0;
                 std::vector<ub::range> aoranges;
                 std::vector<ub::range> ranges;
                 std::vector<ub::range> inv_ranges;
