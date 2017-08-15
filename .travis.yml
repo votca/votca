@@ -14,16 +14,20 @@ env:
     - TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Debug
     - TESTING=OFF CMAKE_BUILD_TYPE=Debug   WERROR=yes
     - TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release DOCKERHUB=yes
+    - DISTRO=fedora_gmx5.1 TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
+    - DISTRO=fedora_gmx9999 TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
+    - DISTRO=ubuntu TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\|hexane_ibi\|propane_ibi\)" CMAKE_BUILD_TYPE=Release
     - TESTING=OFF CMAKE_BUILD_TYPE=Release WERROR=yes
 #useless for votca/votca, but for coverage of individual modules
     - TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=None COVERAGE=yes
     - TESTING=OFF CMAKE_BUILD_TYPE=Release DOXYGEN=yes
+    - TESTING=OFF CMAKE_BUILD_TYPE=Release MINIMAL=yes
 
 matrix:
   exclude:
   - compiler: clang #taking too long
     env: TESTING=ON TESTOPTS="-E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=None COVERAGE=yes
-  - compiler: clang #no never info when using clang
+  - compiler: clang #no new info when using clang
     env: TESTING=OFF CMAKE_BUILD_TYPE=Release DOXYGEN=yes 
 
 script:
@@ -43,11 +47,12 @@ script:
      if [[ -d ${TRAVIS_REPO_SLUG}/docker ]]; then cp -vr ${TRAVIS_REPO_SLUG}/docker/* ${HOME}/docker; fi;
    fi
  - cp -r $HOME/.ccache ${HOME}/docker/ccache
+ - sed -i "1s/latest/${DISTRO:-latest}/" ${HOME}/docker/Dockerfile
  - docker build  --build-arg TESTOPTS="${TESTOPTS}" --build-arg COVERAGE=${COVERAGE}
                  --build-arg CC=${CC} --build-arg CXX=${CXX} --build-arg CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                  --build-arg CXXFLAGS="-Wall ${WERROR:+-Werror}"
-                 --build-arg TESTING=${TESTING} --build-arg DOXYGEN=${DOXYGEN}
-                 --build-arg CI=${CI} --build-arg TRAVIS=${TRAVIS} --build-arg TRAVIS_OS_NAME=fedora
+                 --build-arg TESTING=${TESTING} --build-arg DOXYGEN=${DOXYGEN} --build-arg MINIMAL=${MINIMAL}
+                 --build-arg CI=${CI} --build-arg TRAVIS=${TRAVIS} --build-arg TRAVIS_OS_NAME=${DISTRO:-fedora}
                  --build-arg TRAVIS_BRANCH=${TRAVIS_BRANCH} --build-arg TRAVIS_JOB_NUMBER=${TRAVIS_JOB_NUMBER}
                  --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} --build-arg TRAVIS_JOB_ID=${TRAVIS_JOB_ID}
                  --build-arg TRAVIS_TAG=${TRAVIS_TAG} --build-arg TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG}
@@ -65,7 +70,7 @@ after_success:
         docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
         docker push "${TRAVIS_REPO_SLUG}:${DOCKER_TAG}";
     fi
-  - if [[ ${TRAVIS_JOB_NUMBER} = *.1 ]]; then
+  - if [[ ${DOXYGEN} = yes ]]; then
       git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc";
       cd $HOME/devdoc;
       rm -f *;
