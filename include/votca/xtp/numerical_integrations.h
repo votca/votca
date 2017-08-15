@@ -99,7 +99,8 @@ namespace votca { namespace xtp {
             double  _totalgridsize;
             
             std::vector< GridBox > _grid_boxes;
-            
+            std::vector<unsigned> thread_start;
+            std::vector<unsigned> thread_stop;
             
             ExchangeCorrelation _xc;
             bool _use_votca;
