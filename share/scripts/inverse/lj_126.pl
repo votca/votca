@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,21 +22,23 @@ if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
 $progname, version %version%
 This script calculates the LJ 12-6 potential ''\$U=C12/r^12 - C6/r^6\$''
 
-Usage: $progname outfile
+Usage: $progname outfile min:step:max C6 C12
 EOF
   exit 0;
 }
 
-die "1 parameter is necessary\n" if ($#ARGV<0);
+die "4 parameter is necessary\n" if ($#ARGV<3);
 
 use CsgFunctions;
 
-my $max=csg_get_interaction_property("max");
-my $min=csg_get_interaction_property("min");
-my $delta_r=csg_get_interaction_property("step");
+my @range=split(/:/,$ARGV[1]);
+defined($range[2]) || die "Not enough number in range $ARGV[1], got ".($#range+1)." need 3\n";
+my $max=$range[2];
+my $min=$range[0];
+my $delta_r=$range[1];
 
-my $c12=csg_get_interaction_property("inverse.post_update_options.lj.c12");
-my $c6=csg_get_interaction_property("inverse.post_update_options.lj.c6");
+my $c12=$ARGV[3];
+my $c6=$ARGV[2];
 
 my @r;
 my @pot;

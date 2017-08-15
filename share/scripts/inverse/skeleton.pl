@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,4 +31,7 @@ die "1 parameter are necessary\n" if ($#ARGV<0);
 
 use CsgFunctions;
 
-my $kBT=csg_get_property("cg.inverse.kBT");
+my @r;
+my @values;
+my @flags;
+readin_table($ARGV[0],@r,@values,@flags)) || die "$progname: error at readin_table'$ARGV[0]'\n"

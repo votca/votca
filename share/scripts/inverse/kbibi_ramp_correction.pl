@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 use strict;
 
 ( my $progname = $0 ) =~ s#^.*/##;
-my $usage="Usage: $progname [OPTIONS] kbint target_kbint outfile";
+my $usage="Usage: $progname [OPTIONS] kbint target_kbint outfile kBT min:step:max int_start:int_end ramp_factor";
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./))
 {
@@ -51,20 +51,22 @@ END
   }
 }
 
-die "3 parameters are nessary\n" if ($#ARGV<2);
+die "7 parameters are necessary\n" if ($#ARGV<6);
 
 use CsgFunctions;
 
-my $kbt=csg_get_property("cg.inverse.kBT");
-my $int_start=csg_get_interaction_property("inverse.post_update_options.kbibi.start");
-my $int_stop=csg_get_interaction_property("inverse.post_update_options.kbibi.stop");
-my $ramp_factor=csg_get_interaction_property("inverse.post_update_options.kbibi.factor");
+my $kbt=$ARGV[3];
+my @irange=split(/:/,$ARGV[5]);
+defined($irange[1]) || die "Not enough number in irange $ARGV[5], got ".($#irange+1)." need 2\n";
+my $int_start=$irange[0];
+my $int_stop=$irange[1];
+my $ramp_factor=$ARGV[6];
 
-my $r_min=csg_get_interaction_property("min");
-my $r_max=csg_get_interaction_property("max");
-my $delta_r=csg_get_interaction_property("step");
-my $r_ramp=csg_get_interaction_property("--allow-empty","inverse.post_update_options.kbibi.r_ramp");
-$r_ramp=$r_max if ("$r_ramp" eq "");
+my @range=split(/:/,$ARGV[4]);
+defined($range[2]) || die "Not enough number in range $ARGV[4], got ".($#range+1)." need 3\n";
+my $r_min=$range[0];
+my $r_ramp=$range[2];
+my $delta_r=$range[1];
 
 my $aim_kbint_file="$ARGV[0]";
 my @r_aim;
@@ -82,9 +84,6 @@ my @flags_cur;
 die "Different grids \n" if (($r_aim[1]-$r_aim[0]-$r_cur[1]+$r_cur[0])>0.0001);
 die "Different start potential point \n" if (($r_aim[0]-$r_cur[0]) > 0.0001);
 die "Different end potential point \n" if ( $#r_aim != $#r_cur );
-
-die "kbibi.start is smaller than r_min\n" if ($int_start < $r_min);
-die "kbibi.stop is bigger than r_max\n" if ($int_stop > $r_max);
 
 my $j=0;
 my $avg_int=0;

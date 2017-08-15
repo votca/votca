@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,9 +35,11 @@ name=$(csg_get_interaction_property name)
 min=$(csg_get_interaction_property min)
 max=$(csg_get_interaction_property max)
 step=$(csg_get_interaction_property step)
+c6=$(csg_get_interaction_property inverse.post_update_options.lj.c6)
+c12=$(csg_get_interaction_property inverse.post_update_options.lj.c12)
 
-echo "Add LJ12-6 component for interaction ${name}"
-do_external compute_lj 12_6 ${name}.lj
+echo "Add LJ12-6 component for interaction ${name} with C6=$c6 and C12=$c12"
+do_external compute_lj 12_6 ${name}.lj $min:$step:$max $c6 $c12
 
 comment="$(get_table_comment ${name}.lj)"
 tmpfile=$(critical mktemp ${name}.lj.XXX)
