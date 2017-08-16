@@ -17,12 +17,13 @@
  *
  */
 
-#ifndef __VOTCA_XTP_NWCHEM_H
-#define	__VOTCA_XTP_NWCHEM_H
+#ifndef __VOTCA_XTP_XTPDFT_H
+#define	__VOTCA_XTP_XTPDFT_H
 
 
 #include <votca/ctp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
+#include <votca/xtp/dftengine.h>
 
 #include <string>
 
@@ -30,27 +31,19 @@
 
 namespace votca { namespace xtp {
 /**
-    \brief Wrapper for the Gaussian program
+    \brief Wrapper for the internal XTP DFT engine
 
-    The Gaussian class executes the Gaussian package
-    and extracts information from its log and io files
 
 */
-class NWChem : public QMPackage
+class XTPDFT : public QMPackage
 {
 public:
 
-   std::string getPackageName() { return "nwchem"; }
+   std::string getPackageName() { return "xtp"; }
 
    void Initialize( Property *options );
 
-   /* Writes Gaussian input file with coordinates of segments
-    * and a guess for the dimer (if requested) constructed from the
-    * monomer orbitals
-    */
    bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
-
-   bool WriteShellScript();
 
    bool Run( Orbitals* _orbitals = NULL );
 
@@ -62,28 +55,21 @@ public:
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
 
-
-
-   std::string getScratchDir( ) { return _scratch_dir; }
-
 private:
 
-    std::string                              _shell_file_name;
-    std::string                              _chk_file_name;
-    std::string                              _scratch_dir;
-    bool                                _is_optimization;
+   DFTENGINE _xtpdft;
 
-    std::string                              _cleanup;
+
+   std::string                              _cleanup;
 
     int NumberOfElectrons( std::string _line );
     int BasisSetSize( std::string _line );
-    int EnergiesFromLog( std::string _line, ifstream inputfile );
-    std::string FortranFormat( const double &number );
-
+    int EnergiesFromLog( std::string _line, std::ifstream inputfile );
+    std::string FortranFormat(double number);
 
 };
 
 
 }}
 
-#endif	/* __VOTCA_XTP_NWCHEM_H */
+#endif	/* __VOTCA_XTP_XTPDFT_H */

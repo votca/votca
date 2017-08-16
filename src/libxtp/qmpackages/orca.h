@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -24,63 +24,63 @@
 #include <votca/ctp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 
-#include <string> 
+#include <string>
 
 
 
 namespace votca { namespace xtp {
 /**
     \brief Wrapper for the Gaussian program
- 
-    The Gaussian class executes the Gaussian package 
+
+    The Gaussian class executes the Gaussian package
     and extracts information from its log and io files
-    
+
 */
 class Orca : public QMPackage
 {
-public:   
+public:
 
    std::string getPackageName() { return "orca"; }
 
    void Initialize( Property *options );
 
    /* Writes Orca input file with coordinates of segments
-  
+
     */
    bool WriteInputFile( vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
-   
+
    bool WriteShellScript();
 
-   bool Run();
+   bool Run( Orbitals* _orbitals = NULL );
 
    void CleanUp();
-   
+
    bool CheckLogFile();
 
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
 
- 
-   
+
+
    std::string getScratchDir( ) { return _scratch_dir; }
-   
-private:  
+
+private:
 
     std::string                              _shell_file_name;
     std::string                              _scratch_dir;
     bool                                _is_optimization;
-        
+
     std::string                              _cleanup;
 
-    
-    
-    int NumberOfElectrons( std::string _line ); 
-    int BasisSetSize( std::string _line ); 
-    int EnergiesFromLog( std::string _line, ifstream inputfile ); 
+
+
+    int NumberOfElectrons( std::string _line );
+    int BasisSetSize( std::string _line );
+    int EnergiesFromLog( std::string _line, ifstream inputfile );
     std::string indent( const double &number );
     std::string getLName(int lnum);
-    
+
     void WriteBasisset(std::vector<ctp::QMAtom*>& qmatoms, std::string& _bs_name, std::string& _el_file_name);
     void WriteCoordinates(std::ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
     void WriteECP(std::ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
@@ -91,4 +91,3 @@ private:
 }}
 
 #endif	/* __VOTCA_XTP_ORCA_H */
-

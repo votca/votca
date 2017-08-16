@@ -120,9 +120,9 @@ namespace votca {
             iop_pos = _options.find("iterations 1\n");
             if (iop_pos != std::string::npos) _write_guess = true;
         }
-        
-        
-        /* Custom basis sets are written on a per-element basis to 
+
+
+        /* Custom basis sets are written on a per-element basis to
          * the system.bas/aux file(s), which are then included in the
          * Orca input file using GTOName = "system.bas/aux"
          */
@@ -183,7 +183,7 @@ namespace votca {
             return;
         }
 
-        /* Coordinates are written in standard Element,x,y,z format to the 
+        /* Coordinates are written in standard Element,x,y,z format to the
          * input file.
          */
         void Orca::WriteCoordinates(std::ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
@@ -203,32 +203,32 @@ namespace votca {
             _com_file << "* \n" << endl;
             return;
         }
-        
-        
+
+
         /* If custom ECPs are used, they need to be specified in the input file
-         * in a section following the basis set includes. 
+         * in a section following the basis set includes.
          */
         void Orca::WriteECP(std::ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms){
-            
+
             std::vector< ctp::QMAtom* >::iterator it;
 
-            
+
             _com_file << endl;
-            
+
             list<std::string> elements;
             elements.push_back("H");
             elements.push_back("He");
             BasisSet ecp;
             ecp.LoadPseudopotentialSet(_ecp_name);
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " <<_ecp_name << flush;
-            
-            
-            
+
+
+
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
                 if (!(*it)->from_environment) {
                     std::string element_name = (*it)->type;
-                    
-                    
+
+
                     list<std::string>::iterator ite;
                     ite = find(elements.begin(), elements.end(), element_name);
                     if (ite == elements.end()) {
@@ -238,7 +238,7 @@ namespace votca {
                         _com_file << "N_core" << " " << element->getNcore() << endl;
                         //lmaxnum2lmaxname
                         _com_file << "lmax" << " " << getLName(element->getLmax()) << endl;
-                        
+
                         //For Orca the order doesn't matter but let's write it in ascending order
                         // write remaining shells in ascending order s,p,d...
                         for (int i = 0; i < element->getLmax(); i++) {
@@ -256,7 +256,7 @@ namespace votca {
                                 }
                             }
                         }
-                        
+
                         for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                             Shell* shell = (*its);
                             // shell type, number primitives, scale factor
@@ -271,17 +271,17 @@ namespace votca {
                                 }
                             }
                         }
-                        
+
                         _com_file << "end\n " << "\n" << endl;
                     }
-                    
+
                 }
             }
             return;
         }
-        
-        /* For QM/MM the molecules in the MM environment are represented by 
-         * their atomic partial charge distributions. ORCA expects them in 
+
+        /* For QM/MM the molecules in the MM environment are represented by
+         * their atomic partial charge distributions. ORCA expects them in
          * q,x,y,z format in a separate file "background.crg"
          */
         void Orca::WriteBackgroundCharges(std::vector<ctp::QMAtom*>& qmatoms) {
@@ -415,7 +415,7 @@ namespace votca {
         /**
          * Runs the Orca job.
          */
-        bool Orca::Run() {
+        bool Orca::Run( Orbitals* _orbitals ) {
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Running Orca job" << flush;
 
@@ -515,7 +515,7 @@ namespace votca {
             } else {
                 _orbitals->setECP("none");
             }
-            
+
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
             // return true;
             std::string _log_file_name_full = _run_dir + "/" + _log_file_name;

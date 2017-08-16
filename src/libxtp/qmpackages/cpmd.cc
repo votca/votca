@@ -89,7 +89,7 @@ namespace votca {
             if (options->exists(key + ".functional")) {
                 if (!(options->exists(key + ".functional"))) throw std::runtime_error("Functional name missing");
                 _functional = options->get(key + ".functional.name").as<std::string> ();
-                
+
                 list<Property*>::iterator pit;
                 std::list<Property *> props = options->Select(key + ".functional.pseudopotentials.*");
                 for (pit = props.begin(); pit != props.end(); ++pit)
@@ -103,10 +103,10 @@ namespace votca {
                     Property* p= *pit;
                     _ppLData[p->name()]=p->as<std::string> ();
                 }
-                
+
             }
             else throw std::runtime_error("No functional and pseudopotentials specified");
-            
+
             //symmetry
             _symmetry=0;
             if (options->exists(key + ".symmetry")) {
@@ -114,7 +114,7 @@ namespace votca {
             }
             else
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "CPMD: no symmetry provided, assuming simple cubic." << flush;
-            
+
             //cell
             _cell="20.0   1.0   1.0  0.0  0.0  0.0";
             if (options->exists(key + ".cell")) {
@@ -122,7 +122,7 @@ namespace votca {
             }
             else
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "CPMD: no cell provided, assuming cube with side length of 20 Bohr." << flush;
-            
+
             //plane wave cutoff
             _pwCutoff=80.0;
             if (options->exists(key + ".pwcutoff")) {
@@ -142,7 +142,7 @@ namespace votca {
             if (options->exists(key + ".projectwf")) {
                 _projectWF=options->get(key + ".projectwf").as<bool> ();
             }
-            
+
             //basis set file name
             if (options->exists(key + ".basisset")) {
             _basisset_name=options->get(key + ".basisset").as<string> ();
@@ -215,7 +215,7 @@ namespace votca {
             _com_file << "  GC-CUTOFF" << endl;
             _com_file << "   1.0d-06" << endl;
             _com_file << "&END" << endl;
-            
+
             //cell
             _com_file << "\n&SYSTEM\n";
             _com_file << "  SYMMETRY" << endl;
@@ -225,7 +225,7 @@ namespace votca {
             _com_file << "  CUTOFF" << endl;
             _com_file << "   " << FortranFormat(_pwCutoff) <<endl;
             _com_file << "&END" << endl;
-            
+
             //properties
             if(_projectWF){
                 _com_file << "\n&PROP\n";
@@ -236,14 +236,14 @@ namespace votca {
                 }
                 _com_file << "&END" << endl;
             }
-            
+
             //basis
             if(_projectWF){
                 _com_file << "\n&BASIS\n";
                 WriteBasisSet(segments, _com_file);
                 _com_file << "&END" << endl;
             }
-            
+
             //atoms
             _com_file << "\n&ATOMS\n";
                 //find how many atoms of each element there are
@@ -299,7 +299,7 @@ namespace votca {
                         _com_file << "   "<<_ppLData[(*ite)]<< endl; //LMAX LOC SKIP
                     }
                     _com_file << "   "<< _nAtomsOfElement[(*ite)] <<endl;  //# atoms of element
-                    
+
                     //store atomic positions
                     for (sit = segments.begin(); sit != segments.end(); ++sit) {
                         _atoms = (*sit)-> Atoms();
@@ -316,29 +316,29 @@ namespace votca {
                     }
                 }
             }
-            
+
             //#warning "TODO: copy pseudopotentials to the _run_dir"
             _com_file << "&END" << endl;
-            
-            
-            
+
+
+
             _com_file << endl;
             _com_file.close();
 
             return true;
         }
-        
-        
+
+
         /**
          * Writes the basis set files to disk in a format that CPMD can understand
          */
         void Cpmd::WriteBasisSet(std::vector<ctp::Segment* > segments, ofstream &_com_file) {
-            
+
             std::vector< ctp::Atom* > _atoms;
             std::vector< ctp::Atom* > ::iterator ait;
             std::vector< ctp::Segment* >::iterator sit;
             list<std::string> elements;
-            
+
             BasisSet _bs;
             _bs.LoadBasisSet(_basisset_name);
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
@@ -359,22 +359,22 @@ namespace votca {
                         elements.push_back(element_name);
 
                         Element* element = _bs.getElement(element_name);
-                        
+
                         std::string _short_el_file_name = element_name + "_" + _basisset_name + ".basis";
                         std::string _el_file_name = _run_dir + "/" + _short_el_file_name;
-                        
-                        
+
+
                         //write the element to the input file
                         _com_file << "*" << _short_el_file_name << " " << std::distance(element->firstShell(), element->lastShell()) << " GAUSSIAN"<<endl;
                         _com_file << "   ";
-                        
+
                         //create the .basis file
                         ofstream _el_file;
                         _el_file.open(_el_file_name.c_str());
-                        
+
                         //comment
                         _el_file << element_name << " with the "<< _basisset_name << " basis." << endl;
-                        
+
                         //Lmax
                         int Lmax = 0;
                         //find Lmax by checking all shells of the element
@@ -383,13 +383,13 @@ namespace votca {
                                     if(Lmax<Ls) Lmax=Ls;
                         }
                         _el_file << Lmax+1 << endl; //number of L-values in this .basis file
-                        
-                        
+
+
                         //sort shells by L
                         for (int L=0; L <= element->getLmax(); L++)
                         {
                             std::vector<Shell*> Lshells;
-                            
+
                             int ndecays=0;
                             for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                                 Shell* shell = (*its);
@@ -408,12 +408,12 @@ namespace votca {
                                 {
                                     ndecays+=shell->getSize();
                                     Lshells.push_back(shell);
-                                    
+
                                     //write the shell's L-value to the input file
                                     _com_file << L << " ";
                                 }
                             }
-                            
+
                             if(!Lshells.empty()){   //only write things if there are shells with this L
                                 _el_file << "  Functions for l="<<L<<endl;
                                 _el_file << "  " << Lshells.size()<< " " << ndecays << endl;
@@ -468,18 +468,18 @@ namespace votca {
 
                         _el_file << endl;
                         _el_file.close();
-                        
+
                         _com_file<<endl;
                     }
                 }
             }
         }
-        
+
 
         /**
          * Runs the CPMD job.
          */
-        bool Cpmd::Run() {
+        bool Cpmd::Run( Orbitals* _orbitals ) {
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "CPMD: running [" << _executable << " " << _input_file_name << "]" << flush;
 
@@ -505,9 +505,9 @@ namespace votca {
             return true;
 
         }
-               
-        
-        
+
+
+
 
         /**
          * Cleans up after the CPMD job
@@ -524,7 +524,7 @@ namespace votca {
 
             // check if the log file exists
             boost::filesystem::path arg_path;
-           
+
 
             std::string _full_name = (arg_path / _run_dir / _log_file_name).c_str();
             ifstream _input_file(_full_name.c_str());
@@ -560,25 +560,25 @@ namespace votca {
         bool Cpmd::ParseLogFile(Orbitals * _orbitals) {
             std::string _line;
             std::vector<std::string> results;
-            
+
             CTP_LOG(ctp::logDEBUG, *_pLog) << "CPMD: parsing " << _log_file_name << flush;
-            
+
             std::string _log_file_name_full = _log_file_name;
             if (_run_dir != "") _log_file_name_full = _run_dir + "/" + _log_file_name;
-            
+
             // check if LOG file is complete
             if (!CheckLogFile()) return false;
 
             // save qmpackage name
             _orbitals->setQMpackage("cpmd");
-            
+
             ifstream _input_file(_log_file_name_full.c_str());
             while (_input_file) {
-                
+
                 getline(_input_file, _line);
                 boost::trim(_line);
-                
-                
+
+
                 /*
                  * number of electrons
                  */
@@ -589,12 +589,12 @@ namespace votca {
                     _orbitals->setNumberOfElectrons(_number_of_electrons);
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Alpha electrons: " << _number_of_electrons << flush;
                 }
-                
+
             }
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;
             _input_file.close();
-            
-            
+
+
             if(_projectWF){
                 //MO coefficient and overlap matrices
                 if(!loadMatrices(_orbitals)) return false;
@@ -620,8 +620,8 @@ namespace votca {
                     return false;
                 }
             }
-            
-            
+
+
             //basis set
             if(_orbitals->hasGWbasis()){
                 if(_orbitals->getGWbasis().compare(_basisset_name)!=0){
@@ -634,11 +634,11 @@ namespace votca {
             else{
                 _orbitals->setGWbasis(_basisset_name);
             }
-            
+
             return true;
 
         }
-        
+
         bool Cpmd::loadMatrices(Orbitals * _orbitals)
         {
             //check if WFNCOEF exists
@@ -650,7 +650,7 @@ namespace votca {
                 CTP_LOG(ctp::logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << endl << flush;
             }
             CTP_LOG(ctp::logDEBUG, *_pLog) << "CPMD: parsing " << _full_name << flush;
-            
+
             //read WFNCOEF
             //variable names in all CAPS are variables from CPMD source code
             int count=0, endcount=0;
@@ -687,7 +687,7 @@ namespace votca {
                 wf_file.read((char*)&_NUMAOR[i], 4); //number of atomic orbitals of atom type i
                 bl-=8+4*2;
             }
-            
+
             //check footer
             wf_file.read((char*)&endcount, 4);
             if(bl!=0 || endcount!=count){ //number of bytes read was wrong
@@ -696,7 +696,7 @@ namespace votca {
                 throw std::runtime_error("IO error");
                 return false;
             }
-                
+
             //NEW RECORD
             wf_file.read((char*)&count, 4); //bytes in this record
             bl=count;
@@ -709,14 +709,14 @@ namespace votca {
             //double XXMAT[NATTOT][NUMORB];
             double XXMAT;
             for(int i=0; i<NUMORB; i++){
-                for(int j=0; j<NATTOT; j++){  
+                for(int j=0; j<NATTOT; j++){
                     wf_file.read((char*)&XXMAT, 8);
                     mo_coefficients(i,j)=XXMAT;
                     bl-=8;
                 }
             }
-            
-            
+
+
             //check footer
             wf_file.read((char*)&endcount, 4);
             if(bl!=0 || endcount!=count){ //number of bytes read was wrong
@@ -725,13 +725,13 @@ namespace votca {
                 throw std::runtime_error("IO error");
                 return false;
             }
-            
+
             wf_file.close();
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;
-            
-            
-            
-            
+
+
+
+
             //check if OVERLAP exists
             _full_name = (arg_path / _run_dir / "OVERLAP").c_str();
             ifstream ov_file(_full_name.c_str());
@@ -740,12 +740,12 @@ namespace votca {
                 CTP_LOG(ctp::logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << endl << flush;
             }
             CTP_LOG(ctp::logDEBUG, *_pLog) << "CPMD: parsing " << _full_name << flush;
-            
+
             //read OVERLAP
             count=0, endcount=0;
             ov_file.read((char*)&count, 4); //bytes in this record
             bl=count;
-            
+
             if(NATTOT*NATTOT!=count/8)
             {
                 cerr << "CPMD: " << "Number of basis functions in the overlap and coefficient matrices do not match."<< endl << flush;
@@ -753,22 +753,22 @@ namespace votca {
                 throw std::runtime_error("IO error");
                 return false;
             }
-            
-            
+
+
                 //resize the overlap matrix
             ub::symmetric_matrix<double> &overlap = _orbitals->AOOverlap();
             overlap.resize(NATTOT);
-            
+
             //read
             double XSMAT;
             for(int i=0; i<NATTOT; i++){
-                for(int j=0; j<NATTOT; j++){  
+                for(int j=0; j<NATTOT; j++){
                     ov_file.read((char*)&XSMAT, 8);
                     overlap(i,j)=XSMAT;
                     bl-=8;
                 }
             }
-            
+
             //check footer
             ov_file.read((char*)&endcount, 4);
             if(bl!=0 || endcount!=count){ //number of bytes read was wrong
@@ -777,18 +777,18 @@ namespace votca {
                 throw std::runtime_error("IO error");
                 return false;
             }
-            
+
             ov_file.close();
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;
-            
-            
+
+
            // #warning "TODO: Reorder Overlap and MOcoeefficient matrices so that the order of basis functions (like d_xx) matches the VOTCA order."
-            
+
             return true;
         }
 
 
-        
+
         std::string Cpmd::FortranFormat(const double &number) {
             std::stringstream _ssnumber;
             if (number >= 0) _ssnumber << " ";

@@ -520,7 +520,7 @@ namespace votca {
         /**
          * Runs the Gaussian job.
          */
-        bool Gaussian::Run() {
+        bool Gaussian::Run( Orbitals* _orbitals ) {
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: running [" << _executable << " " << _input_file_name << "]" << flush;
 
