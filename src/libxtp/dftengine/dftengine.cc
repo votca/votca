@@ -244,6 +244,7 @@ namespace votca {
 
                     _dftAOdmat = AtomicGuess(_orbitals);
                     //cout<<_dftAOdmat<<endl;
+                    
                     if (_with_RI) {
                         _ERIs.CalculateERIs(_dftAOdmat);
                     } else {

@@ -52,17 +52,16 @@ namespace votca { namespace xtp {
         }
 
         void GridBox::PrepareForIntegration() {
-            matrix_size = 0;
+            unsigned index = 0;
             aoranges=std::vector<ub::range>(0);
             ranges=std::vector<ub::range>(0);
             inv_ranges=std::vector<ub::range>(0);   
             std::vector<unsigned> start;
             std::vector<unsigned> end;
 
-            for (unsigned i=0;i< significant_shells.size();++i) {
-                const AOShell* shell=significant_shells[i];
-                aoranges.push_back(ub::range(matrix_size, matrix_size+shell->getNumFunc()));
-                matrix_size += shell->getNumFunc();
+            for (const auto shell:significant_shells) {
+                aoranges.push_back(ub::range(index, index+shell->getNumFunc()));
+                index += shell->getNumFunc();
                 start.push_back(shell->getStartIndex());
                 end.push_back(shell->getStartIndex() + shell->getNumFunc());
             }
