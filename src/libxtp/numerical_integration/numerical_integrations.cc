@@ -303,7 +303,7 @@ namespace votca {
         
         
         void NumericalIntegration::SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::integration_grid > >& grid){
-            const double boxsize=2;
+            const double boxsize=2.5;
             
             std::vector< std::vector< std::vector< std::vector< GridContainers::integration_grid* > > > >  boxes;
             
