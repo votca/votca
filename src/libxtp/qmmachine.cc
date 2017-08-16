@@ -223,7 +223,7 @@ namespace votca {
 
             std::vector<ctp::Segment*> empty;
             qminterface.GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input);
-
+            
             _qmpack->setRunDir(runFolder);
 
             CTP_LOG(ctp::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
