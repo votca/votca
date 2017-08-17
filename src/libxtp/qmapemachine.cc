@@ -138,7 +138,7 @@ void QMAPEMachine::Evaluate(ctp::XJob *job) {
     if(chrg!=0){
         throw runtime_error("Charged DFT calculations are not possible at the moment");
     }
-    
+    qminterface.setMultipoleSplitting(false,1);
     
 
     int iterCnt = 0;
@@ -177,6 +177,7 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
         CTP_LOG(ctp::logWARNING,*_log) << "Could not create directory " << runFolder << flush;
     
     Orbitals orb_iter_input;
+    
     qminterface.GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input);
     
     

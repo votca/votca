@@ -26,8 +26,7 @@ namespace votca { namespace xtp {
        
 void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::matrix_range<ub::matrix<double> >& gradAOvalues, const vec& grid_pos)const{
 
-            // need type of shell
-            string shell_type = this->_type;
+          
             // need position of shell
           const vec center=grid_pos-this->_pos;
           const double center_x = center.getX();
@@ -48,8 +47,8 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
                 // split combined shells
                 int _i_func = -1;
                 int i_act;
-                for (unsigned i = 0; i < shell_type.length(); ++i) {
-                    char  single_shell = shell_type[i];
+                for (unsigned i = 0; i < _type.length(); ++i) {
+                    char  single_shell = _type[i];
                     // single type shells
                     if (single_shell == 'S') {
                         AOvalues(0, _i_func + 1) += _contractions[0] * _expofactor; // s-function
@@ -292,8 +291,7 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
            
 void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const vec& grid_pos )const{
 
-            // need type of shell
-            string  shell_type = this->_type;
+           
             // need position of shell
              const vec center=grid_pos-this->_pos;
              const double center_x = center.getX();
@@ -313,8 +311,8 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const
                 // split combined shells
                 int _i_func = -1;
 
-                for (unsigned i = 0; i < shell_type.length(); ++i) {
-                    char single_shell = shell_type[i];
+                for (unsigned i = 0; i < _type.length(); ++i) {
+                    char single_shell = _type[i];
                     // single type shells
                     if (single_shell == 'S') {
                         AOvalues(0, _i_func + 1) += _contractions[0] * _expofactor; // s-function        
