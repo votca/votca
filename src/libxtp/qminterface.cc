@@ -124,6 +124,37 @@ namespace votca {
             }
             return;
         }
+        
+        
+        std::vector<ctp::PolarSeg> QMMInterface::GenerateMultipoleList(ctp::PolarTop ptop  ) {
+
+            std::vector<ctp::PolarSeg> MultipoleList;
+            
+            // MIDDLE SHELL MM1
+            for (unsigned int i = 0; i < ptop.MM1().size(); ++i) {
+                ctp::PolarSeg pseg = *(ptop.MM1()[i]);
+                //pseg->
+                MultipoleList.push_back(pseg);
+            }
+
+            cout << " MM1 done " << endl;
+            
+            // OUTER SHELL MM2
+            for (unsigned int i = 0; i < ptop.MM2().size(); ++i) {
+                ctp::PolarSeg pseg = *(ptop.MM2()[i]);
+                MultipoleList.push_back(pseg);
+
+            }
+            
+            cout << " MM2 done " << endl;
+
+            return MultipoleList;
+        }
+        
+        
+        
+        
+        
 
         void QMMInterface::addMMAtomtoOrb(ctp::APolarSite * aps, Orbitals &orb, bool with_polarisation) {
             const tools::vec pos = aps->getPos() * tools::conv::nm2ang;

@@ -24,6 +24,7 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/tools/property.h>
 #include <votca/ctp/segment.h>
+#include <votca/ctp/polarseg.h>
 #include <votca/ctp/qmpair.h>
 #include <votca/ctp/topology.h>
 #include <boost/format.hpp>
@@ -61,6 +62,8 @@ namespace votca {
             virtual bool ParseLogFile(Orbitals* _orbitals) = 0;
 
             virtual bool ParseOrbitalsFile(Orbitals* _orbitals) = 0;
+            
+            virtual bool setMultipoleBackground( std::vector<ctp::PolarSeg> &PolarSegments) = 0;
 
             virtual void CleanUp() = 0;
 

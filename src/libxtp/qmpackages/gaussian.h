@@ -62,7 +62,7 @@ public:
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
 
-
+   bool setMultipoleBackground( std::vector<ctp::PolarSeg> &multipoles){ return true; };
 
    std::string getScratchDir( ) { return _scratch_dir; }
 

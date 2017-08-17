@@ -83,6 +83,15 @@ namespace votca {
             return true;
         }
 
+        
+        bool XTPDFT::setMultipoleBackground( std::vector<ctp::PolarSeg> &multipoles){
+            
+            //_xtpdft.setExternalcharges(multipoles);
+            
+            return true;
+        }
+
+        
 
         /**
          * Run calls DFTENGINE

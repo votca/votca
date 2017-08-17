@@ -65,6 +65,7 @@ public:
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
+   bool setMultipoleBackground( std::vector<ctp::PolarSeg> &multipoles){ return true; };
 
 
 private:

@@ -224,10 +224,18 @@ namespace votca {
             std::vector<ctp::Segment*> empty;
             qminterface.GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input);
             
+            // if XTP DFT is used, generate a list of polar segments
+            if ( _qmpack->getPackageName() == "xtp" ){
+                // generate list of polar segments
+                std::vector<ctp::PolarSeg> MultipolesBackground = qminterface.GenerateMultipoleList( *(_job->getPolarTop()) );
+                // now pass this list to dft engine
+                _qmpack->setMultipoleBackground( MultipolesBackground );
+            }
+           
+            
             _qmpack->setRunDir(runFolder);
 
             CTP_LOG(ctp::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
-
             _qmpack->WriteInputFile(empty, &orb_iter_input);
 
             FILE *out;
@@ -235,10 +243,11 @@ namespace votca {
             orb_iter_input.WritePDB(out);
             fclose(out);
 
-            _qmpack->Run();
-
             // EXTRACT LOG-FILE INFOS TO ORBITALS   
             Orbitals orb_iter_output;
+            orb_iter_output = orb_iter_input;
+            _qmpack->Run( &orb_iter_output );
+
             bool success=_qmpack->ParseLogFile(&orb_iter_output);
             if(!success){
                 return 1;
@@ -252,6 +261,9 @@ namespace votca {
 
                 // for GW-BSE, we also need to parse the orbitals file
                 _qmpack->ParseOrbitalsFile(&orb_iter_output);
+                orb_iter_output.setDFTbasis(_qmpack->getBasisSetName());
+
+                
                 GWBSE _gwbse = GWBSE(&orb_iter_output);
                 std::vector<int> _state_index;
                 // define own logger for GW-BSE that is written into a runFolder logfile
