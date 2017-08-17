@@ -83,6 +83,9 @@ public:
     
     bool Evaluate(   Orbitals* _orbitals );
     void Prepare( Orbitals* _orbitals );
+    
+    
+    std::string GetDFTBasisName(){ return _dftbasis_name; };
        
     private:
 

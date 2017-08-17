@@ -50,6 +50,17 @@ namespace votca { namespace xtp {
             
             unsigned Matrixsize() const{return matrix_size;}
             
+            
+            void addGridBox(const GridBox& box){
+                const std::vector<tools::vec>& p=box.getGridPoints();
+                const std::vector<double>& w=box.getGridWeights();
+                for (unsigned i=0;i<w.size();++i){
+                    grid_pos.push_back(p[i]);
+                    weights.push_back(w[i]);
+                }
+                return;
+            }
+            
             void addGridPoint(const GridContainers::integration_grid& point){
                 grid_pos.push_back(point.grid_pos);
                 weights.push_back(point.grid_weight);
@@ -57,6 +68,7 @@ namespace votca { namespace xtp {
             
             void addShell(const AOShell* shell){
               significant_shells.push_back(shell);  
+              matrix_size+=shell->getNumFunc();
             };
             
             void prepareDensity(){
@@ -78,12 +90,28 @@ namespace votca { namespace xtp {
             void setIndexoffirstgridpoint(unsigned indexoffirstgridpoint){_indexoffirstgridpoint=indexoffirstgridpoint;}
             unsigned getIndexoffirstgridpoint() const{return _indexoffirstgridpoint;}
             
+            static bool compareGridboxes(GridBox& box1,GridBox& box2 ){
+                if(box1.Matrixsize()!=box2.Matrixsize()){
+                    return false;
+                }
+                if(box1.Shellsize()!=box2.Shellsize()){
+                    return false;
+                }
+                for(unsigned i=0;i<box1.significant_shells.size();++i){
+                    if(box1.significant_shells[i]!=box2.significant_shells[i]){
+                        return false;
+                    }
+                    
+                }
+                return true;
+            }
+            
             
             
         private:
             
                 unsigned _indexoffirstgridpoint;
-                unsigned matrix_size;
+                unsigned matrix_size=0;
                 std::vector<ub::range> aoranges;
                 std::vector<ub::range> ranges;
                 std::vector<ub::range> inv_ranges;

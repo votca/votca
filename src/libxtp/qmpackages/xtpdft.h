@@ -18,7 +18,7 @@
  */
 
 #ifndef __VOTCA_XTP_XTPDFT_H
-#define	__VOTCA_XTP_XTPDFT_H
+#define __VOTCA_XTP_XTPDFT_H
 
 
 #include <votca/ctp/apolarsite.h>
@@ -29,47 +29,47 @@
 
 
 
-namespace votca { namespace xtp {
-/**
-    \brief Wrapper for the internal XTP DFT engine
+namespace votca {
+    namespace xtp {
+
+        /**
+            \brief Wrapper for the internal XTP DFT engine
 
 
-*/
-class XTPDFT : public QMPackage
-{
-public:
+         */
+        class XTPDFT : public QMPackage {
+        public:
 
-   std::string getPackageName() { return "xtp"; }
+            std::string getPackageName() {
+                return "xtp";
+            }
 
-   void Initialize( Property *options );
+            void Initialize(Property *options);
 
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
+            bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
 
-   bool Run( Orbitals* _orbitals = NULL );
+            bool Run(Orbitals* _orbitals = NULL);
 
-   void CleanUp();
+            void CleanUp();
 
-   bool CheckLogFile();
+            bool CheckLogFile();
 
-   bool ParseLogFile( Orbitals* _orbitals );
+            bool ParseLogFile(Orbitals* _orbitals);
 
-   bool ParseOrbitalsFile( Orbitals* _orbitals );
+            bool ParseOrbitalsFile(Orbitals* _orbitals);
 
-private:
+        private:
 
-   DFTENGINE _xtpdft;
+            DFTENGINE _xtpdft;
+            Property _xtpdft_options;
 
+            std::string _cleanup;
 
-   std::string                              _cleanup;
-
-    int NumberOfElectrons( std::string _line );
-    int BasisSetSize( std::string _line );
-    int EnergiesFromLog( std::string _line, std::ifstream inputfile );
-    std::string FortranFormat(double number);
-
-};
+            
+        };
 
 
-}}
+    }
+}
 
-#endif	/* __VOTCA_XTP_XTPDFT_H */
+#endif /* __VOTCA_XTP_XTPDFT_H */

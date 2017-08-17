@@ -170,7 +170,6 @@ namespace votca {
             #ifdef _OPENMP
             
             omp_set_num_threads(_openmp_threads);
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using " << omp_get_max_threads() << " threads" << flush;
             
             #endif
 
@@ -245,6 +244,7 @@ namespace votca {
 
                     _dftAOdmat = AtomicGuess(_orbitals);
                     //cout<<_dftAOdmat<<endl;
+                    
                     if (_with_RI) {
                         _ERIs.CalculateERIs(_dftAOdmat);
                     } else {
@@ -764,6 +764,13 @@ namespace votca {
 
       // PREPARATION 
         void DFTENGINE::Prepare(Orbitals* _orbitals) {
+            #ifdef _OPENMP
+            
+            omp_set_num_threads(_openmp_threads);
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using " << omp_get_max_threads() << " threads" << flush;
+            
+            #endif
+            
             for(const auto& atom:_orbitals->QMAtoms()){
                 if(!atom->from_environment){
                 _atoms.push_back(atom);

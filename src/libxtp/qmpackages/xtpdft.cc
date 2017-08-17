@@ -48,7 +48,7 @@ namespace votca {
 
             std::string key = "package";
             std::string _name = options->get(key + ".name").as<std::string> ();
-
+            
             if (_name != "xtp") {
                 cerr << "Tried to use " << _name << " package. ";
                 throw std::runtime_error("Wrong options file");
@@ -60,7 +60,9 @@ namespace votca {
             _threads = options->get(key + ".threads").as<int> ();
             _cleanup = options->get(key + ".cleanup").as<std::string> ();
 
-
+            // pass the information about the dftengine options and init
+            load_property_from_xml(_xtpdft_options, _options.c_str());
+            _xtpdft.Initialize( &_xtpdft_options );
 
         }
 
@@ -68,6 +70,15 @@ namespace votca {
          * Dummy for use of XTPDFT as QMPackage, needs no input file
          */
         bool XTPDFT::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
+            
+            //if ( orbitals_guess != NULL )  {
+            //    CTP_LOG(ctp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
+            //    _orbitals.Load(_guess_file);
+
+            //} else {
+
+           // }
+            
 
             return true;
         }
@@ -78,8 +89,15 @@ namespace votca {
          */
         bool XTPDFT::Run( Orbitals* _orbitals ) {
 
+            CTP_LOG(ctp::logDEBUG, *_pLog) << "Reading structure from " << _xyz_file_name << flush;
+            _orbitals->LoadFromXYZ(_xyz_file_name);
+            
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Running XTP DFT " << flush;
-
+            _xtpdft.setLogger(_pLog);
+            _xtpdft.Prepare( _orbitals );
+            _xtpdft.Evaluate( _orbitals );
+            _basisset_name = _xtpdft.GetDFTBasisName();
+            
             return true;
 
         }
