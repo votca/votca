@@ -227,7 +227,7 @@ namespace votca {
             // if XTP DFT is used, generate a list of polar segments
             if ( _qmpack->getPackageName() == "xtp" ){
                 // generate list of polar segments
-                std::vector<ctp::PolarSeg> MultipolesBackground = qminterface.GenerateMultipoleList( *(_job->getPolarTop()) );
+                std::vector<ctp::PolarSeg*> MultipolesBackground = qminterface.GenerateMultipoleList( _job->getPolarTop() );
                 // now pass this list to dft engine
                 _qmpack->setMultipoleBackground( MultipolesBackground );
             }

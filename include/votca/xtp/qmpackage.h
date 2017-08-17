@@ -63,7 +63,7 @@ namespace votca {
 
             virtual bool ParseOrbitalsFile(Orbitals* _orbitals) = 0;
             
-            virtual bool setMultipoleBackground( std::vector<ctp::PolarSeg> &PolarSegments) = 0;
+            virtual bool setMultipoleBackground( std::vector<ctp::PolarSeg*> PolarSegments) = 0;
 
             virtual void CleanUp() = 0;
 
