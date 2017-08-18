@@ -24,6 +24,8 @@ foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump)
 
   if(ENABLE_TESTING)
     add_test(${PROG}Help ${PROG} --help)
+    set_tests_properties(${PROG}Help PROPERTIES LABEL "xtp")
+    set_tests_properties(${PROG}Help PROPERTIES LABEL "votca")
   endif(ENABLE_TESTING)
 endforeach(PROG)
 set(XTP_PROGS "${XTP_PROGS}" PARENT_SCOPE)
