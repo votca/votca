@@ -52,7 +52,7 @@ namespace votca {
             virtual void Initialize(Property *options) = 0;
 
             /// writes a coordinate file WITHOUT taking into account PBCs
-            virtual bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals = NULL) = 0;
+            virtual bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {}) = 0;
 
             /// writes a coordinate file of a pair WITH PBCs and the orbital guess [if needed]
             bool WriteInputFilePBC(ctp::QMPair* pair, Orbitals* orbitals = NULL);

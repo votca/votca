@@ -48,7 +48,7 @@ public:
     * and a guess for the dimer (if requested) constructed from the
     * monomer orbitals
     */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
 
    bool WriteShellScript();
 
@@ -81,7 +81,9 @@ private:
     std::string FortranFormat(double number);
     void WriteBasisset(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
     void WriteECP(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
-    void WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
+    //void WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
+    
+    void WriteBackgroundCharges(ofstream& _com_file,std::vector<ctp::PolarSeg*> PolarSegments);
     void WriteGuess(Orbitals* orbitals_guess, ofstream& _com_file);
     void WriteVXCRunInputFile();
     void WriteCoordinates(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);

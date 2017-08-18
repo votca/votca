@@ -274,13 +274,28 @@ namespace votca {
          * keyword "charge" Gaussian expects them in x,y,z,q format in the
          * input file. In g03 AFTER basis sets and ECPs, in g09 BEFORE.
          */
-        void Gaussian::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
-            std::vector< ctp::QMAtom* >::iterator it;
-            for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if ((*it)->from_environment) {
+        //void Gaussian::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
+
+        void Gaussian::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::PolarSeg*> segments) {
+            std::vector< ctp::PolarSeg* >::iterator it;
+            for (it = segments.begin(); it < segments.end(); it++) {
+                vector<ctp::APolarSite*> ::iterator pit;
+                for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
                     boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-                    fmt % (*it)->x % (*it)->y % (*it)->z % (*it)->charge;
-                    if ((*it)->charge != 0.0) _com_file << fmt << endl;
+                    fmt % (((*pit)->getPos().getX())*votca::tools::conv::nm2ang) % ((*pit)->getPos().getY()*votca::tools::conv::nm2ang) % ((*pit)->getPos().getZ()*votca::tools::conv::nm2ang) % (*pit)->getQ00();
+                    if ((*pit)->getQ00() != 0.0) _com_file << fmt << endl;
+
+                    /*
+                    if ((*pit)->getRank() > 0) {
+                            tools::vec dipole = (*pit)->getQ1();
+                            CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << " | " << dipole.getX()
+                                    << " " << dipole.getY() << " " << dipole.getZ();
+                        }
+                        if ((*pit)->getRank() > 1) {
+                            std::vector<double> quadrupole = (*pit)->getQ2();
+                            CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << " | " << quadrupole[0] << " " << quadrupole[1] << " " << quadrupole[2] << " "
+                                    << quadrupole[3] << " " << quadrupole[4];
+                        } */
                 }
             }
             _com_file << endl;
@@ -408,7 +423,7 @@ namespace votca {
          * Prepares the com file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied
          */
-        bool Gaussian::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
+        bool Gaussian::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess, std::vector<ctp::PolarSeg*> PolarSegments ) {
 
             std::string temp_suffix = "/id";
             std::string scratch_dir_backup = _scratch_dir;
@@ -447,16 +462,17 @@ namespace votca {
                 if (_write_pseudopotentials) WriteECP(_com_file, qmatoms);
 
                 // write the background charges
-                if (_write_charges) WriteBackgroundCharges(_com_file, qmatoms);
-
+                //if (_write_charges) WriteBackgroundCharges(_com_file, qmatoms);
+                if (_write_charges) WriteBackgroundCharges(_com_file, PolarSegments);
+                
                 // write inital guess
                 if (_write_guess) WriteGuess(orbitals_guess, _com_file);
 
             } else if (_executable == "g09") {
 
                 // write the background charges
-                if (_write_charges) WriteBackgroundCharges(_com_file, qmatoms);
-
+                //if (_write_charges) WriteBackgroundCharges(_com_file, qmatoms);
+                if (_write_charges) WriteBackgroundCharges(_com_file, PolarSegments);
                 // if we need to write basis sets, do it now
                 if (_write_basis_set) WriteBasisset(_com_file, qmatoms);
 

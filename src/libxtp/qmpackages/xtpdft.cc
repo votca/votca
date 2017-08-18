@@ -69,7 +69,7 @@ namespace votca {
         /**
          * Dummy for use of XTPDFT as QMPackage, needs no input file
          */
-        bool XTPDFT::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
+        bool XTPDFT::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess, std::vector<ctp::PolarSeg* > polar_segments ) {
             
             //if ( orbitals_guess != NULL )  {
             //    CTP_LOG(ctp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
@@ -78,7 +78,10 @@ namespace votca {
             //} else {
 
            // }
-            
+            CTP_LOG(ctp::logDEBUG, *_pLog) << "Preparing XTP DFTENGINE "  << flush;
+            _xtpdft.setLogger(_pLog);
+            _xtpdft.Prepare( orbitals_guess );
+            CTP_LOG(ctp::logDEBUG, *_pLog) << " done "  << flush;
 
             return true;
         }
@@ -105,10 +108,10 @@ namespace votca {
             
             
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Running XTP DFT " << flush;
-            _xtpdft.setLogger(_pLog);
-            _xtpdft.Prepare( _orbitals );
+            //            
+
             _xtpdft.Evaluate( _orbitals );
-            _basisset_name = _xtpdft.GetDFTBasisName();
+            //_basisset_name = _xtpdft.GetDFTBasisName();
             
             return true;
 

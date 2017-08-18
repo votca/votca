@@ -219,15 +219,28 @@ namespace votca {
                     _job->getEM1(), _job->getEM2(), _job->getETOT());
 
             // WRITE AND SET QM INPUT FILE
-            Orbitals orb_iter_input;
+            //Orbitals orb_iter_input;
 
             std::vector<ctp::Segment*> empty;
-            qminterface.GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input);
+            if (iterCnt == 0) qminterface.GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input);
+            
+            std::vector< ctp::QMAtom* > ::iterator aait;
+            int count =0;
+            for (aait = orb_iter_input.QMAtoms().begin(); aait < orb_iter_input.QMAtoms().end(); ++aait) {
+
+                count++;
+                CTP_LOG(ctp::logINFO, *_log) << (*aait)->type << " " << (*aait)->x << " "  << (*aait)->y << " " << (*aait)->z << flush;
+                
+            }
+            CTP_LOG(ctp::logINFO, *_log) << "Orbitals has " << count << " atoms " << flush;
+            
+            
+
+            // generate list of polar segments
+            std::vector<ctp::PolarSeg*> MultipolesBackground = qminterface.GenerateMultipoleList( _job->getPolarTop() );
             
             // if XTP DFT is used, generate a list of polar segments
             if ( _qmpack->getPackageName() == "xtp" ){
-                // generate list of polar segments
-                std::vector<ctp::PolarSeg*> MultipolesBackground = qminterface.GenerateMultipoleList( _job->getPolarTop() );
                 // now pass this list to dft engine
                 _qmpack->setMultipoleBackground( MultipolesBackground );
             }
@@ -236,19 +249,18 @@ namespace votca {
             _qmpack->setRunDir(runFolder);
 
             CTP_LOG(ctp::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
-            _qmpack->WriteInputFile(empty, &orb_iter_input);
-
+            _qmpack->WriteInputFile(empty, &orb_iter_input, MultipolesBackground);
+            
+            
             FILE *out;
             out = fopen((runFolder + "/system.pdb").c_str(), "w");
             orb_iter_input.WritePDB(out);
             fclose(out);
 
-            // EXTRACT LOG-FILE INFOS TO ORBITALS   
-            Orbitals orb_iter_output;
-            orb_iter_output = orb_iter_input;
-            _qmpack->Run( &orb_iter_output );
+            _qmpack->Run( &orb_iter_input );
 
-            bool success=_qmpack->ParseLogFile(&orb_iter_output);
+            // EXTRACT LOG-FILE INFOS TO ORBITALS   
+            bool success=_qmpack->ParseLogFile(&orb_iter_input);
             if(!success){
                 return 1;
             }
@@ -260,11 +272,11 @@ namespace votca {
 
 
                 // for GW-BSE, we also need to parse the orbitals file
-                _qmpack->ParseOrbitalsFile(&orb_iter_output);
-                orb_iter_output.setDFTbasis(_qmpack->getBasisSetName());
+                _qmpack->ParseOrbitalsFile(&orb_iter_input);
+                orb_iter_input.setDFTbasis(_qmpack->getBasisSetName());
 
                 
-                GWBSE _gwbse = GWBSE(&orb_iter_output);
+                GWBSE _gwbse = GWBSE(&orb_iter_input);
                 std::vector<int> _state_index;
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 ctp::Logger gwbse_logger(ctp::logDEBUG);
@@ -316,7 +328,7 @@ namespace votca {
                     if (_has_osc_filter) {
 
                         // go through list of singlets
-                        const std::vector<double>oscs = orb_iter_output.Oscillatorstrengths();
+                        const std::vector<double>oscs = orb_iter_input.Oscillatorstrengths();
                         for (unsigned _i = 0; _i < oscs.size(); _i++) {
 
                             double osc = oscs[_i];
@@ -328,11 +340,11 @@ namespace votca {
                     } else {
 
                         if (_type == "singlet") {
-                            for (unsigned _i = 0; _i < orb_iter_output.TransitionDipoles().size(); _i++) {
+                            for (unsigned _i = 0; _i < orb_iter_input.TransitionDipoles().size(); _i++) {
                                 _state_index.push_back(_i);
                             }
                         } else {
-                            for (unsigned _i = 0; _i < orb_iter_output.BSETripletEnergies().size(); _i++) {
+                            for (unsigned _i = 0; _i < orb_iter_input.BSETripletEnergies().size(); _i++) {
                                 _state_index.push_back(_i);
                             }
                         }
@@ -344,7 +356,7 @@ namespace votca {
                         std::vector<int> _state_index_copy;
                         if (_type == "singlets") {
                             // go through list of singlets
-                            const std::vector< ub::vector<double> >& dQ_frag = orb_iter_output.FragmentChargesSingEXC();
+                            const std::vector< ub::vector<double> >& dQ_frag = orb_iter_input.FragmentChargesSingEXC();
                             for (unsigned _i = 0; _i < _state_index.size(); _i++) {
                                 if (std::abs(dQ_frag[_i](0)) > _dQ_threshold) {
                                     _state_index_copy.push_back(_state_index[_i]);
@@ -353,7 +365,7 @@ namespace votca {
                             _state_index = _state_index_copy;
                         } else if (_type == "triplets") {
                             // go through list of triplets
-                            const std::vector< ub::vector<double> >& dQ_frag = orb_iter_output.FragmentChargesTripEXC();
+                            const std::vector< ub::vector<double> >& dQ_frag = orb_iter_input.FragmentChargesTripEXC();
                             for (unsigned _i = 0; _i < _state_index.size(); _i++) {
                                 if (std::abs(dQ_frag[_i](0)) > _dQ_threshold) {
                                     _state_index_copy.push_back(_state_index[_i]);
@@ -372,9 +384,9 @@ namespace votca {
                     }
                     // - output its energy
                     if (_type == "singlet") {
-                        energy___ex = orb_iter_output.BSESingletEnergies()[_state_index[_state - 1]] * tools::conv::hrt2ev; // to eV
+                        energy___ex = orb_iter_input.BSESingletEnergies()[_state_index[_state - 1]] * tools::conv::hrt2ev; // to eV
                     } else if (_type == "triplet") {
-                        energy___ex = orb_iter_output.BSETripletEnergies()[_state_index[_state - 1]] * tools::conv::hrt2ev; // to eV
+                        energy___ex = orb_iter_input.BSETripletEnergies()[_state_index[_state - 1]] * tools::conv::hrt2ev; // to eV
                     }
 
                     // ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
@@ -388,12 +400,12 @@ namespace votca {
                 if (!_static_qmmm) {
 
                     // calculate density matrix for this excited state
-                    ub::matrix<double> &_dft_orbitals = orb_iter_output.MOCoefficients();
+                    ub::matrix<double> &_dft_orbitals = orb_iter_input.MOCoefficients();
                     // load DFT basis set (element-wise information) from xml file
                     BasisSet dftbs;
-                    if (orb_iter_output.getDFTbasis() != "") {
-                        dftbs.LoadBasisSet(orb_iter_output.getDFTbasis());
-                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_output.getDFTbasis() << flush;
+                    if (orb_iter_input.getDFTbasis() != "") {
+                        dftbs.LoadBasisSet(orb_iter_input.getDFTbasis());
+                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
                     } else {
                         dftbs.LoadBasisSet(_gwbse.get_dftbasis_name());
                         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _gwbse.get_dftbasis_name() << flush;
@@ -402,10 +414,10 @@ namespace votca {
 
                     // fill DFT AO basis by going through all atoms 
                     AOBasis dftbasis;
-                    dftbasis.AOBasisFill(&dftbs, orb_iter_output.QMAtoms());
-                    dftbasis.ReorderMOs(_dft_orbitals, orb_iter_output.getQMpackage(), "xtp");
+                    dftbasis.AOBasisFill(&dftbs, orb_iter_input.QMAtoms());
+                    dftbasis.ReorderMOs(_dft_orbitals, orb_iter_input.getQMpackage(), "xtp");
                     // TBD: Need to switch between singlets and triplets depending on _type
-                    ub::matrix<double> DMATGS = orb_iter_output.DensityMatrixGroundState(_dft_orbitals);
+                    ub::matrix<double> DMATGS = orb_iter_input.DensityMatrixGroundState(_dft_orbitals);
 
                     ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
 
@@ -415,7 +427,7 @@ namespace votca {
                     }
 
                     // fill DFT AO basis by going through all atoms 
-                    std::vector< ctp::QMAtom* >& Atomlist = orb_iter_output.QMAtoms();
+                    std::vector< ctp::QMAtom* >& Atomlist = orb_iter_input.QMAtoms();
 
                     Espfit esp = Espfit(_log);
                     if (_qmpack->ECPRequested()) {
@@ -456,19 +468,19 @@ namespace votca {
             orb_iter_input.WritePDB(out);
             fclose(out);
 
-            assert(orb_iter_output.hasSelfEnergy());
-            assert(orb_iter_output.hasQMEnergy());
+            assert(orb_iter_input.hasSelfEnergy());
+            assert(orb_iter_input.hasQMEnergy());
 
             // EXTRACT & SAVE QM ENERGIES
-            double energy___sf = orb_iter_output.getSelfEnergy();
-            double energy_qmsf = orb_iter_output.getQMEnergy();
+            double energy___sf = orb_iter_input.getSelfEnergy();
+            double energy_qmsf = orb_iter_input.getQMEnergy();
             double energy_qm__ = energy_qmsf - energy___sf;
             thisIter->setQMSF(energy_qm__, energy___sf, energy___ex);
             _job->setEnergy_QMMM(thisIter->getQMEnergy(), thisIter->getGWBSEEnergy(), thisIter->getSFEnergy(),
                     thisIter->getQMMMEnergy());
 
             // EXTRACT & SAVE QMATOM DATA
-            std::vector< ctp::QMAtom* > &atoms = orb_iter_output.QMAtoms();
+            std::vector< ctp::QMAtom* > &atoms = orb_iter_input.QMAtoms();
 
             thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
 
@@ -478,19 +490,27 @@ namespace votca {
                 thisIter->UpdateMPSFromGDMA(_gdma.GetMultipoles(), _job->getPolarTop()->QM0());
 
             }
+            
+            unsigned qmsize = 0;
+            std::vector< ctp::QMAtom* > ::iterator ait;
+            for (ait = atoms.begin(); ait < atoms.end(); ++ait) {
 
+                if ( !(*ait)->from_environment ) qmsize++;
+                //CTP_LOG(ctp::logINFO, *_log) << (*ait)->type << " " << (*ait)->x << " "  << (*ait)->y << " " << (*ait)->z << flush;
+                
+            }
             // serialize this iteration
             if (_do_archive) {
                 // save orbitals
                 std::string ORB_FILE = runFolder + "/system.orb";
                 CTP_LOG(ctp::logDEBUG, *_log) << "Archiving data to " << ORB_FILE << flush;
-                orb_iter_output.Save(ORB_FILE);
+                orb_iter_input.Save(ORB_FILE);
             }
 
             CTP_LOG(ctp::logINFO, *_log)
                     << format("Summary - iteration %1$d:") % (iterCnt + 1) << flush;
             CTP_LOG(ctp::logINFO, *_log)
-                    << format("... QM Size  = %1$d atoms") % int(atoms.size()) << flush;
+                    << format("... QM Size  = %1$d atoms") % int(qmsize) << flush;
             CTP_LOG(ctp::logINFO, *_log)
                     << format("... E(QM)    = %1$+4.9e") % thisIter->getQMEnergy() << flush;
             CTP_LOG(ctp::logINFO, *_log)

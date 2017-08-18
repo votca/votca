@@ -106,7 +106,7 @@ namespace votca {
             }
 
             // MIDDLE SHELL MM1
-            for (unsigned int i = 0; i < ptop->MM1().size(); ++i) {
+           /* for (unsigned int i = 0; i < ptop->MM1().size(); ++i) {
                 ctp::PolarSeg *pseg = ptop->MM1()[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j) {
                     ctp::APolarSite *aps = (*pseg)[j];
@@ -121,7 +121,7 @@ namespace votca {
                     ctp::APolarSite *aps = (*pseg)[j];
                     addMMAtomtoOrb(aps, orb, false);
                 }
-            }
+            }*/
             return;
         }
         

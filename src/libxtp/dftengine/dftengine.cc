@@ -180,6 +180,7 @@ namespace votca {
 
             /**** Density-independent matrices ****/
 
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inside Evaluate " << flush;
 
 
             ub::vector<double>& MOEnergies = _orbitals->MOEnergies();
@@ -195,7 +196,13 @@ namespace votca {
 
             ub::matrix<double> H0 = _dftAOkinetic.Matrix() + _dftAOESP.getNuclearpotential();
 
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed inital density " << flush;
+
+            
             NuclearRepulsion();
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Nuclear Rep " << flush;
+
+            
             if (_addexternalsites) {
                 H0 += _dftAOESP.getExternalpotential();
 
@@ -351,6 +358,7 @@ namespace votca {
                     }
                     last_dmat = _dftAOdmat;
                     guess_set = true;
+                    _orbitals->setQMEnergy(totenergy);
                     break;
                 } else {
                     energyold = totenergy;
@@ -773,11 +781,13 @@ namespace votca {
 
 #endif
 
+            if ( _atoms.size() == 0 ){
             for (const auto& atom : _orbitals->QMAtoms()) {
                 if (!atom->from_environment) {
                     _atoms.push_back(atom);
                 }
             }
+            
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Molecule Coordinates [A] " << flush;
             for (unsigned i = 0; i < _atoms.size(); i++) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << _atoms[i]->type << " " << _atoms[i]->x << " " << _atoms[i]->y << " " << _atoms[i]->z << " " << flush;
@@ -850,6 +860,7 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Total number of electrons: " << _numofelectrons << flush;
 
             ConfigOrbfile(_orbitals);
+            }
             SetupInvariantMatrices();
             return;
         }
@@ -921,6 +932,7 @@ namespace votca {
             std::vector<double> charge;
             for (unsigned i = 0; i < _atoms.size(); i++) {
                 string name = _atoms[i]->type;
+                cout << " Using atom " << name << "\n" << endl;
                 double Q = element.getNucCrg(name);
                 bool HorHe = (name == "H" || name == "He");
                 if (_with_ecp && !HorHe) {

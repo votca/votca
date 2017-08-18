@@ -469,7 +469,7 @@ if (_lmax_col > 3) {
         }
 
         void AOESP::Fillextpotential(const AOBasis& aobasis,const std::vector<ctp::PolarSeg*> & _sites) {
-            cout<<_sites.size()<<endl;
+            
             _externalpotential = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
             for (int i = 0; i < _sites.size(); i++) {
