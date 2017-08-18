@@ -154,9 +154,9 @@ namespace votca {
             return;
         }
 
-        /* 
+        /*
          *    Density Functional theory implementation
-         * 
+         *
          */
 
 
@@ -165,7 +165,7 @@ namespace votca {
         bool DFTENGINE::Evaluate(Orbitals* _orbitals) {
 
 
-            // set the parallelization 
+            // set the parallelization
 #ifdef _OPENMP
 
             omp_set_num_threads(_openmp_threads);
@@ -198,11 +198,11 @@ namespace votca {
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed inital density " << flush;
 
-            
+
             NuclearRepulsion();
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Nuclear Rep " << flush;
 
-            
+
             if (_addexternalsites) {
                 H0 += _dftAOESP.getExternalpotential();
 
@@ -226,7 +226,7 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Nuclear Repulsion Energy is " << E_nucnuc << flush;
 
 
-            // if we have a guess we do not need this. 
+            // if we have a guess we do not need this.
             if (_with_guess) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Reading guess from orbitals object/file" << flush;
                 _dftbasis.ReorderMOs(MOCoeff, _orbitals->getQMpackage(), "xtp");
@@ -356,9 +356,14 @@ namespace votca {
                             CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t" << i << " vir " << std::setprecision(12) << MOEnergies(i) << flush;
                         }
                     }
+<<<<<<< HEAD
                     last_dmat = _dftAOdmat;
                     guess_set = true;
                     _orbitals->setQMEnergy(totenergy);
+=======
+                    last_dmat=_dftAOdmat;
+                    guess_set=true;
+>>>>>>> 8a54a8570339bfc8d83eb2f88bfdc5f19182b8f4
                     break;
                 } else {
                     energyold = totenergy;
@@ -428,9 +433,9 @@ namespace votca {
 
 
                 for (unsigned i = 0; i < _externalsites.size(); i++) {
-                        
+
                     vector<ctp::APolarSite*> ::iterator pit;
-                    for (pit = _externalsites[i]->begin(); pit < _externalsites[i]->end(); ++pit) {    
+                    for (pit = _externalsites[i]->begin(); pit < _externalsites[i]->end(); ++pit) {
 
                         CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << (*pit)->getName() << " | " << (*pit)->getPos().getX()
                                 << " " << (*pit)->getPos().getY() << " " << (*pit)->getPos().getZ() << " | " << (*pit)->getQ00();
@@ -771,10 +776,10 @@ namespace votca {
         }
 
 
-        // PREPARATION 
+        // PREPARATION
 
         void DFTENGINE::Prepare(Orbitals* _orbitals) {
-#ifdef _OPENMP
+            #ifdef _OPENMP
 
             omp_set_num_threads(_openmp_threads);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using " << omp_get_max_threads() << " threads" << flush;
@@ -787,7 +792,7 @@ namespace votca {
                     _atoms.push_back(atom);
                 }
             }
-            
+
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Molecule Coordinates [A] " << flush;
             for (unsigned i = 0; i < _atoms.size(); i++) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << _atoms[i]->type << " " << _atoms[i]->x << " " << _atoms[i]->y << " " << _atoms[i]->z << " " << flush;
@@ -881,8 +886,8 @@ namespace votca {
                     }
                 }
             }
-            //}    
-            // return     
+            //}
+            // return
             return _dmatGS;
         }
 
@@ -963,45 +968,41 @@ namespace votca {
 
             QMMInterface qmminter;
             ctp::PolarSeg nuclei = qmminter.Convert(_atoms);
+
             ctp::PolarSeg::iterator pes;
-            for (pes = nuclei.begin(); pes < nuclei.end(); ++pes) {
-                (*pes)->setIsoP(0.0);
-                string name = (*pes)->getName();
+            for (ctp::APolarSite* nucleus:nuclei) {
+                nucleus->setIsoP(0.0);
+                string name = nucleus->getName();
                 double Q = element.getNucCrg(name);
                 bool HorHe = (name == "H" || name == "He");
                 if (_with_ecp && !HorHe) {
                     Q -= _ecpbasisset.getElement(name)->getNcore();
                 }
-                (*pes)->setQ00(Q, 0);
+                nucleus->setQ00(Q, 0);
             }
-
-
             ctp::XInteractor actor;
             actor.ResetEnergy();
             nuclei.CalcPos();
             double E_ext = 0.0;
-            for (unsigned i = 0; i < _externalsites.size(); i++) {
-                _externalsites[i]->CalcPos();
-                tools::vec s = tools::vec(0, 0, 0);
+            for (ctp::PolarSeg* seg:_externalsites) {
+                seg->CalcPos();
+                tools::vec s = tools::vec(0.0);
                 if (top == NULL) {
-                    s = nuclei.getPos() - _externalsites[i]->getPos();
+                    s = nuclei.getPos() -seg->getPos();
                 } else {
-                    s = top->PbShortestConnect(nuclei.getPos(), _externalsites[i]->getPos()) + nuclei.getPos() - _externalsites[i]->getPos();
+                    s = top->PbShortestConnect(nuclei.getPos(),seg->getPos()) + nuclei.getPos() - seg->getPos();
                 }
-                ctp::PolarSeg::iterator pit1;
-                ctp::PolarSeg::iterator pit2;
 
+                for (auto nucleus:nuclei) {
+                    for (auto site:(*seg)) {
+                        actor.BiasIndu(*nucleus, *site, s);
+                        nucleus->Depolarize();
+                        E_ext += actor.E_f(*nucleus, *site);
 
-                for (pit1 = nuclei.begin(); pit1 < nuclei.end(); ++pit1) {
-                    for (pit2 = _externalsites[i]->begin(); pit2 < _externalsites[i]->end(); ++pit2) {
-                        actor.BiasIndu(*(*pit1), *(*pit2), s);
-                        (*pit1)->Depolarize();
-                        E_ext += actor.E_f(*(*pit1), *(*pit2));
 
                     }
                 }
             }
-
             return E_ext * tools::conv::int2eV * tools::conv::ev2hrt;
         }
 
