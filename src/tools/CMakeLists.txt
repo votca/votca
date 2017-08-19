@@ -17,6 +17,7 @@ foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat cs
 
   if(ENABLE_TESTING)
     add_test(${PROG}Help ${PROG} --help)
-    set_tests_properties(${PROG}Help PROPERTIES LABELS "csg;votca")
+    # run tests for tools (for coverage) as well
+    set_tests_properties(${PROG}Help PROPERTIES LABELS "csg;tools;votca")
   endif(ENABLE_TESTING)
 endforeach(PROG)
