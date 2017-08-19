@@ -63,6 +63,7 @@ foreach(DIR ${DIRS})
   set_target_properties(${DIR} PROPERTIES OUTPUT_NAME ${DIR}/csg_${DIR})
   if(ENABLE_TESTING)
     add_test(${DIR}Help ${DIR}/csg_${DIR} --help)
+    set_tests_properties(${PROG}Help PROPERTIES LABELS "csgapps;votca")
   endif(ENABLE_TESTING)
 endforeach(DIR)
 
