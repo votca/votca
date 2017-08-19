@@ -64,7 +64,7 @@ foreach(DIR ${DIRS})
   if(ENABLE_TESTING)
     add_test(${DIR}Help ${DIR}/csg_${DIR} --help)
     # run tests for tools and csg as well for coverage
-    set_tests_properties(${PROG}Help PROPERTIES LABELS "csgapps;csg;tools;votca")
+    set_tests_properties(${DIR}Help PROPERTIES LABELS "csgapps;csg;tools;votca")
   endif(ENABLE_TESTING)
 endforeach(DIR)
 
