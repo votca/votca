@@ -14,4 +14,9 @@ foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat cs
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${MAN}/man1 RENAME ${PROG}.1)
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${PROG}.help ${PROG}.t2t)
   endif(TXT2TAGS_FOUND AND BASH)
+
+  if(ENABLE_TESTING)
+    add_test(${PROG}Help ${PROG} --help)
+    set_tests_properties(${PROG}Help PROPERTIES LABELS "csg;votca")
+  endif(ENABLE_TESTING)
 endforeach(PROG)

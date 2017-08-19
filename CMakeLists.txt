@@ -49,6 +49,11 @@ if (NOT DEFINED DATA)
   set(DATA "share/votca")
 endif(NOT DEFINED DATA)
 
+option(ENABLE_TESTING "Build and enable testing stuff" OFF)
+if(ENABLE_TESTING)
+  enable_testing()
+endif(ENABLE_TESTING)
+
 # this has to be the include specification!
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
