@@ -17,5 +17,6 @@ foreach(PROG votca_property)
 
   if(ENABLE_TESTING)
     add_test(${PROG}Help ${PROG} --help)
+    set_tests_properties(${PROG}Help PROPERTIES LABELS "tools;votca")
   endif(ENABLE_TESTING)
 endforeach(PROG)
