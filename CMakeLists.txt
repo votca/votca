@@ -30,6 +30,8 @@ if(VOTCA_PATH AND VOTCA_SHARE AND VOTCA_CSG_INVERSE AND ENABLE_TESTING)
     string(REGEX REPLACE "/$" "" DIR "${DIR}")
     string(REPLACE / _ TESTNAME "${DIR}")
     add_test(NAME ${TESTNAME} COMMAND ${VOTCA_CSG_INVERSE} --options settings.xml --do-iterations 1 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${DIR})
+    # run tests for csg as well
+    set_tests_properties(${TESTNAME} PROPERTIES LABELS "csg-tutorials;csg;votca")
     set(CSG_MDRUN_STEPS 500)
     if(DIR MATCHES "/(imc|realtime)$")
       set(CSG_MDRUN_STEPS 5000)
