@@ -308,7 +308,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitce
     double _sumcrg = 0.0;
     for ( unsigned _i =0 ; _i < _fitcenters.size(); _i++){
 
-        CTP_LOG(ctp::logDEBUG, *_log) << " Center " << _i << " FitCharge: " << _result[_i] << "pos " << _fitcenters[_i] << flush;
+        //CTP_LOG(ctp::logDEBUG, *_log) << " Center " << _i << " FitCharge: " << _result[_i] << "pos " << _fitcenters[_i] << flush;
         _sumcrg += _result[_i];
     }
 
