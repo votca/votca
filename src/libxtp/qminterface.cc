@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -124,31 +124,31 @@ namespace votca {
             }*/
             return;
         }
-        
-        
+
+
         std::vector<ctp::PolarSeg*> QMMInterface::GenerateMultipoleList(ctp::PolarTop *ptop  ) {
 
             std::vector<ctp::PolarSeg*> MultipoleList;
-            
+
             // MIDDLE SHELL MM1
             for (unsigned int i = 0; i < ptop->MM1().size(); ++i) {
                 ctp::PolarSeg *pseg = new ctp::PolarSeg(ptop->MM1()[i],false);
                 MultipoleList.push_back(pseg);
             }
-            
+
             // OUTER SHELL MM2
             for (unsigned int i = 0; i < ptop->MM2().size(); ++i) {
                 ctp::PolarSeg *pseg = new ctp::PolarSeg(ptop->MM2()[i],false);
                 MultipoleList.push_back(pseg);
             }
-            
+
             return MultipoleList;
         }
-        
-        
-        
-        
-        
+
+
+
+
+
 
         void QMMInterface::addMMAtomtoOrb(ctp::APolarSite * aps, Orbitals &orb, bool with_polarisation) {
             const tools::vec pos = aps->getPos() * tools::conv::nm2ang;
@@ -185,7 +185,7 @@ namespace votca {
                 string Atomnameplus[] = {"X", "Y", "Z"};
                 string Atomnameminus[] = {"X", "Y", "Z"};
                 for (unsigned i = 0; i < 3; i++) {
-                    
+
                     double q = system.eigenvalues[i] / (a * a);
                     if (std::abs(q) < 1e-9) {
                         continue;
@@ -196,7 +196,7 @@ namespace votca {
                     orb.AddAtom(Atomnameminus[i], vec2, q, true);
 
                 }
-               
+
             }
 
             return;

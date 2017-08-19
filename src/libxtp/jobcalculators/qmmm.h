@@ -35,7 +35,7 @@ using boost::format;
 
 namespace votca { namespace xtp {
 
-   
+
 class QMMM : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
 {
 
@@ -43,7 +43,7 @@ public:
 
     QMMM() {};
    ~QMMM() {};
-   
+
     string          Identify() { return "xqmmm"; }
     void            Initialize(Property *);
 
@@ -51,11 +51,11 @@ public:
     void            PreProcess(ctp::Topology *top);
     ctp::Job::JobResult  EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *thread);
     ctp::XJob            ProcessInputString(ctp::Job *job, ctp::Topology *top, ctp::QMThread *thread);
-    
+
 
 private:
-    
-    
+
+
     // ======================================== //
     // MULTIPOLE ALLOCATION, XJOBS, ADD. OUTPUT //
     // ======================================== //
@@ -64,7 +64,7 @@ private:
     string                         _emp_file;
     string                         _xml_file;
     ctp::XMpsMap                        _mps_mapper;
-    
+
     // Control over induction-state output
     string                          _pdb_check;
     bool                            _write_chk;
@@ -73,7 +73,7 @@ private:
     double                          _chk_dpl_spacing;
     string                          _chk_format;
 
-    
+
     // ======================================== //
     // INDUCTION + ENERGY EVALUATION            //
     // ======================================== //
@@ -87,11 +87,11 @@ private:
     bool                            _useCutoff;
     double                          _cutoff1;
     double                          _cutoff2;
-    
+
     // QM Package options
     string                          _package;
     Property                        _qmpack_opt;
-    
+
     // GWBSE options
     string                          _gwbse;
     Property                        _gwbse_opt;
@@ -100,7 +100,7 @@ private:
     // XJob logbook (file output)
     string                          _outFile;
     bool                            _energies2File;
-    
+
     Property                        _options;
 
 
@@ -113,16 +113,16 @@ private:
 
 void QMMM::Initialize(Property *options) {
 
-    // update options with the VOTCASHARE defaults   
+    // update options with the VOTCASHARE defaults
     UpdateWithDefaults( options, "xtp" );
     _options = *options;
-    
+
     cout << endl
          << "... ... Initialized with " << _nThreads << " threads. "
          << flush;
 
     _maverick = (_nThreads == 1) ? true : false;
-    
+
 
     string key = "options."+Identify()+".mapping";
 
@@ -183,7 +183,7 @@ void QMMM::Initialize(Property *options) {
 
 
     key = "options."+Identify()+".coulombmethod";
-    
+
         if ( options->exists(key+".method") ) {
             _method = options->get(key+".method").as< string >();
             if (_method != "cut-off" && _method != "cutoff") {
@@ -212,9 +212,9 @@ void QMMM::Initialize(Property *options) {
         else {
             _subthreads = 1;
         }
-    
+
     key = "options."+Identify();
-    
+
         if ( options->exists(key+".dftpackage")) {
             string package_xml = options->get(key+".dftpackage").as< string >();
             load_property_from_xml(_qmpack_opt, package_xml.c_str());
@@ -223,13 +223,13 @@ void QMMM::Initialize(Property *options) {
         else {
             throw runtime_error("No QM package specified.");
         }
-    
-    
+
+
     // GWBSE options, depending on whether it is there, decide for ground
     // or excited state QM/MM
     key = "options."+Identify()+".gwbse";
-    
-    if ( options->exists(key)) { 
+
+    if ( options->exists(key)) {
          if ( options->exists(key+".gwbse_options")) {
             string gwbse_xml = options->get(key+".gwbse_options").as< string >();
             load_property_from_xml(_gwbse_opt, gwbse_xml.c_str());
@@ -237,19 +237,19 @@ void QMMM::Initialize(Property *options) {
         else {
             throw runtime_error("GWBSE options not specified.");
         }
-        
-        _state = options->get(key+".state").as< int >();
-        
-    }
-    
 
-    
-    
+        _state = options->get(key+".state").as< int >();
+
+    }
+
+
+
+
     //cout << TXT << _options;
-    
+
     // register all QM packages (Gaussian, turbomole, etc))
     QMPackageFactory::RegisterAll();
-    
+
 }
 
 
@@ -262,7 +262,7 @@ void QMMM::PreProcess(ctp::Topology *top) {
 
 
 void QMMM::CustomizeLogger(ctp::QMThread *thread) {
-    
+
     // CONFIGURE LOGGER
     ctp::Logger* log = thread->getLogger();
     log->setReportLevel(ctp::logDEBUG);
@@ -271,7 +271,7 @@ void QMMM::CustomizeLogger(ctp::QMThread *thread) {
     log->setPreface(ctp::logINFO,    (format("\nT%1$02d ... ...") % thread->getId()).str());
     log->setPreface(ctp::logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
     log->setPreface(ctp::logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
-    log->setPreface(ctp::logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());        
+    log->setPreface(ctp::logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());
 }
 
 
@@ -281,7 +281,7 @@ void QMMM::CustomizeLogger(ctp::QMThread *thread) {
 
 
 ctp::XJob QMMM::ProcessInputString(ctp::Job *job, ctp::Topology *top, ctp::QMThread *thread) {
-    
+
     string input = job->getInput().as<string>();
     vector<ctp::Segment*> qmSegs;
     vector<string>   qmSegMps;
@@ -290,7 +290,7 @@ ctp::XJob QMMM::ProcessInputString(ctp::Job *job, ctp::Topology *top, ctp::QMThr
     toker.ToVector(split);
 
     for (unsigned int i = 0; i < split.size(); ++i) {
-                
+
         string id_seg_mps = split[i];
         vector<string> split_id_seg_mps;
         Tokenizer toker(id_seg_mps, ":");
@@ -309,93 +309,100 @@ ctp::XJob QMMM::ProcessInputString(ctp::Job *job, ctp::Topology *top, ctp::QMThr
         }
 
         qmSegs.push_back(seg);
-        qmSegMps.push_back(mpsFile);               
+        qmSegMps.push_back(mpsFile);
     }
-    
+
     return ctp::XJob(job->getId(), job->getTag(), qmSegs, qmSegMps, top);
 }
 
 
 ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *thread) {
-    
+
     // SILENT LOGGER FOR QMPACKAGE
-    ctp::Logger* log = thread->getLogger();    
+    ctp::Logger* log = thread->getLogger();
     ctp::Logger* qlog = new ctp::Logger();
     qlog->setReportLevel(ctp::logDEBUG);
     qlog->setMultithreading(_maverick);
     qlog->setPreface(ctp::logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
     qlog->setPreface(ctp::logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
     qlog->setPreface(ctp::logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
-    qlog->setPreface(ctp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());      
-    
+    qlog->setPreface(ctp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
+
     // CREATE XJOB FROM JOB INPUT STRING
     CTP_LOG(ctp::logINFO,*log)
         << "Job input = " << job->getInput().as<string>() << flush;
-    ctp::XJob xjob = this->ProcessInputString(job, top, thread);  
-    
+    ctp::XJob xjob = this->ProcessInputString(job, top, thread);
+
     // GENERATE POLAR TOPOLOGY FOR JOB
     double co1 = _cutoff1;
-    double co2 = _cutoff2;    
+    double co2 = _cutoff2;
     _mps_mapper.Gen_QM_MM1_MM2(top, &xjob, co1, co2, thread);
-    
-    
-    
-    
+
+
+
+
     const matrix box=xjob.getTop()->getBox();
     //check if box is non orthogonal
-    
+
     double min=box.get(0,0);
     if(min>box.get(1,1)){min=box.get(1,1);}
     if(min>box.get(2,2)){min=box.get(2,2);}
-   
+
     if(_cutoff2>0.5*min){
         throw runtime_error((format("Cutoff is larger than half the box size. Maximum allowed cutoff is %1$1.1f - molecule extension.") % (0.5*min)).str());
     }
-  
-    
+
+
     CTP_LOG(ctp::logINFO,*log)
          << xjob.getPolarTop()->ShellInfoStr() << flush;
-    
+
     if (tools::globals::verbose){
         xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_QM0_MM1_MM2.pdb");
     }
     // INDUCTOR, QM RUNNER, QM-MM MACHINE
     ctp::XInductor xind = ctp::XInductor(top, &_options, "options.xqmmm",
-        _subthreads, _maverick);    
+        _subthreads, _maverick);
     xind.setLog(thread->getLogger());
-    
+
     //Gaussian qmpack = Gaussian(&_qmpack_opt);
 
     // get the corresponding object from the QMPackageFactory
     QMPackage *qmpack =  QMPackages().Create( _package );
-    
+
     qmpack->Initialize( &_qmpack_opt );
-    
+
     qmpack->setLog(qlog);
-    
-    QMMachine<QMPackage> machine = QMMachine<QMPackage>(&xjob, &xind, qmpack, 
+    qmpack->setWithPolarization(false);
+    if (_options.exists("options.xqmmm.tholemodel.induce")){
+        if (_options.get("options.xqmmm.tholemodel.induce").as<int>() == 1 ){
+            qmpack->setWithPolarization(true);
+            qmpack->setDipoleSpacing(_chk_dpl_spacing);
+        }
+    }
+
+    QMMachine<QMPackage> machine = QMMachine<QMPackage>(&xjob, &xind, qmpack,
         &_options, "options.xqmmm", _subthreads, _maverick);
     machine.setLog(thread->getLogger());
-    
+
     // EVALUATE: ITERATE UNTIL CONVERGED
-    int error=machine.Evaluate(&xjob);    
-    
+    int error=machine.Evaluate(&xjob);
+
     // DESTROY QMPackage
     delete qmpack;
-    
+
     // DELIVER OUTPUT & CLEAN
     this->LockCout();
     cout << *thread->getLogger();
     this->UnlockCout();
 
     // JOT INFO STRING & CLEAN POLAR TOPOLOGY
-    xjob.setInfoLine(true,true); 
-    
+    xjob.setInfoLine(true,true);
+
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
     ctp::Job::JobResult jres = ctp::Job::JobResult();
     jres.setOutput(xjob.getInfoLine());
     jres.setStatus(ctp::Job::COMPLETE);
-    
+
     if (!xind.hasConverged()) {
         jres.setStatus(ctp::Job::FAILED);
         jres.setError(xind.getError());
@@ -404,13 +411,13 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     if(error!=0){
         jres.setStatus(ctp::Job::FAILED);
     }
-    
+
     return jres;
 }
 
 
 
-    
+
 }}
 
 #endif /* __QMMM__H */

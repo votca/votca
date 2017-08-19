@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -88,8 +88,8 @@ namespace votca {
             key = sfx + ".gwbse";
             if (opt->exists(key)) {
                 _do_gwbse = true;
-                
-                
+
+
                 string _gwbse_xml = opt->get(key + ".gwbse_options").as<string> ();
                 //cout << endl << "... ... Parsing " << _package_xml << endl ;
                 load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
@@ -218,64 +218,83 @@ namespace votca {
                     _job->getEF11(), _job->getEF12(), _job->getEM0(),
                     _job->getEM1(), _job->getEM2(), _job->getETOT());
 
-            // WRITE AND SET QM INPUT FILE
-            //Orbitals orb_iter_input;
 
             std::vector<ctp::Segment*> empty;
+            /* Translate atoms in QM0() to QMAtoms in orbitals object
+             * to be used in writing the QM input files for the
+             * external QMPackages or directly in internal DFT engine.
+             * DRAWBACK: QMAtom positions are fixed for all iterations
+             *           unless the UPDATE function at the end of the
+             *           iteration updates orb_iter_input (TO BE TESTED)
+             */
             if (iterCnt == 0) qminterface.GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input);
-            
-            std::vector< ctp::QMAtom* > ::iterator aait;
-            int count =0;
-            for (aait = orb_iter_input.QMAtoms().begin(); aait < orb_iter_input.QMAtoms().end(); ++aait) {
 
-                count++;
-                CTP_LOG(ctp::logINFO, *_log) << (*aait)->type << " " << (*aait)->x << " "  << (*aait)->y << " " << (*aait)->z << flush;
-                
-            }
-            CTP_LOG(ctp::logINFO, *_log) << "Orbitals has " << count << " atoms " << flush;
-            
-            
-
-            // generate list of polar segments
+            /* Generate list of polar segments in the MM1() and MM2()
+             * region to be used in writing the background multipoles
+             * in the external QMPackages or in the direct evaluation
+             * in the internal DFT engine.
+             */
             std::vector<ctp::PolarSeg*> MultipolesBackground = qminterface.GenerateMultipoleList( _job->getPolarTop() );
-            
-            // if XTP DFT is used, generate a list of polar segments
-            if ( _qmpack->getPackageName() == "xtp" ){
-                // now pass this list to dft engine
-                _qmpack->setMultipoleBackground( MultipolesBackground );
-            }
-           
-            
+
+            // if XTP DFT is used, pass this list of polar segments
+            if ( _qmpack->getPackageName() == "xtp" )  _qmpack->setMultipoleBackground( MultipolesBackground );
+
+            // setting RUNDIR for the external QMPackages, dummy for internal
             _qmpack->setRunDir(runFolder);
 
+            /* Call to WriteInputFile writes the appropriate input files
+             * for the respective external QMPackages. For the internal
+             * DFT engine, this function sets logger and runs DFTENGINE's
+             * Prepare() function. ONLY the first iteration, this will
+             * initialize the atoms, basissets, ecps, etc. In all
+             * subsequent iterations it will recalculate all the "static"
+             * AOmatrices (overlap, kinetic energy, nuc/ecp) which is
+             * strictly unnecessary but at the same time also those
+             * for external point charges, dipoles, and quadrupoles.
+             * Since in polarized calculations, the dipoles can change
+             * this recalculation is required. Should be split off the
+             * Prepare() function for efficiency.
+             */
             CTP_LOG(ctp::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
             _qmpack->WriteInputFile(empty, &orb_iter_input, MultipolesBackground);
-            
-            
+
+
             FILE *out;
             out = fopen((runFolder + "/system.pdb").c_str(), "w");
             orb_iter_input.WritePDB(out);
             fclose(out);
 
+            /* Runs the external QMPackage or the self-consistent part of
+             * DFTENGINE
+             */
             _qmpack->Run( &orb_iter_input );
 
-            // EXTRACT LOG-FILE INFOS TO ORBITALS   
+            /* Parse information from the LOGFILE into orbitals, if
+             * external QMPackage is run. Dummy for internal DFTENGINE.
+             * The QMPackage's MOcoefficients are not automatically
+             * parsed in DFT-only calculations and ESP fits for
+             * polarized QMMM are expected in the LOGFILE.
+             * IF the internal ESPFITs should be used, the MOcoefficients
+             * need to be parsed too.
+             */
             bool success=_qmpack->ParseLogFile(&orb_iter_input);
             if(!success){
                 return 1;
             }
+
+            ub::matrix<double> DMAT_tot;
             // GW-BSE starts here
-
             double energy___ex = 0.0;
-
             if (_do_gwbse) {
 
-
-                // for GW-BSE, we also need to parse the orbitals file
+                /* Parses the MOcoefficients from the external QMPackages
+                 * for GW-BSE. Internal DFTENGINE has stored coefficients
+                 * into orb_iter_input already, so this is a dummy for that.
+                 */
                 _qmpack->ParseOrbitalsFile(&orb_iter_input);
                 orb_iter_input.setDFTbasis(_qmpack->getBasisSetName());
 
-                
+                // Get a GWBSE object
                 GWBSE _gwbse = GWBSE(&orb_iter_input);
                 std::vector<int> _state_index;
                 // define own logger for GW-BSE that is written into a runFolder logfile
@@ -287,8 +306,13 @@ namespace votca {
                 gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
                 gwbse_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
 
+                // Initialize with options
                 _gwbse.Initialize(&_gwbse_options);
 
+                /* Only execute GWBSE if excited state is requested. This is a bit
+                 * weird construction to have ground state calculation treated in
+                 * exactly the same way for polarized QMMM.
+                 */
                 if (_state > 0) {
                     CTP_LOG(ctp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
                     CTP_LOG(ctp::logDEBUG, *_log) << "  --- type:              " << _type << flush;
@@ -304,11 +328,8 @@ namespace votca {
                         CTP_LOG(ctp::logDEBUG, *_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... " << flush;
                     }
 
-
-
                     // actual GW-BSE run
                     _gwbse.Evaluate();
-
 
                     // write logger to log file
                     ofstream ofs;
@@ -324,7 +345,6 @@ namespace votca {
                     // - find the excited state of interest
                     // oscillator strength filter
 
-
                     if (_has_osc_filter) {
 
                         // go through list of singlets
@@ -334,8 +354,6 @@ namespace votca {
                             double osc = oscs[_i];
                             if (osc > _osc_threshold) _state_index.push_back(_i);
                         }
-
-
 
                     } else {
 
@@ -389,53 +407,23 @@ namespace votca {
                         energy___ex = orb_iter_input.BSETripletEnergies()[_state_index[_state - 1]] * tools::conv::hrt2ev; // to eV
                     }
 
-                    // ub::matrix<double> &_dft_orbitals_GS = orb_iter_output.MOCoefficients();
-                    // int _parse_orbitals_status_GS = _qmpack->ParseOrbitalsFile( &orb_iter_output );
-
                 } // only if state >0
 
-
-
-                // new ESP fit only required for polarizable QMMM
                 if (!_static_qmmm) {
-
-                    // calculate density matrix for this excited state
-                    ub::matrix<double> &_dft_orbitals = orb_iter_input.MOCoefficients();
-                    // load DFT basis set (element-wise information) from xml file
-                    BasisSet dftbs;
-                    if (orb_iter_input.getDFTbasis() != "") {
-                        dftbs.LoadBasisSet(orb_iter_input.getDFTbasis());
-                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
-                    } else {
-                        dftbs.LoadBasisSet(_gwbse.get_dftbasis_name());
-                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _gwbse.get_dftbasis_name() << flush;
-                    }
-
-
-                    // fill DFT AO basis by going through all atoms 
-                    AOBasis dftbasis;
-                    dftbasis.AOBasisFill(&dftbs, orb_iter_input.QMAtoms());
-                    dftbasis.ReorderMOs(_dft_orbitals, orb_iter_input.getQMpackage(), "xtp");
-                    // TBD: Need to switch between singlets and triplets depending on _type
-                    ub::matrix<double> DMATGS = orb_iter_input.DensityMatrixGroundState(_dft_orbitals);
-
-                    ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
-
-                    if (_state > 0) {
-                        std::vector<ub::matrix<double> > DMAT = _gwbse.getExcitedStateDmat(_type, _state_index[_state - 1]);
-                        DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
-                    }
-
-                    // fill DFT AO basis by going through all atoms 
-                    std::vector< ctp::QMAtom* >& Atomlist = orb_iter_input.QMAtoms();
-
-                    Espfit esp = Espfit(_log);
-                    if (_qmpack->ECPRequested()) {
-                        esp.setUseECPs(true);
-                    }
-                    esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, dftbs, "medium");
+                    Density2Charges(&_gwbse,_state_index);
                 } // for polarized QMMM
+
             } //_do_gwbse
+
+
+            /* new ESP fit only required for
+             * - polarizable QMMM
+             * AND
+             * - GWBSE or DFT with internal DFTENGINE
+             */
+            if (!_static_qmmm && _qmpack->getPackageName() == "xtp" && !_do_gwbse) {
+                Density2Charges();
+            } // for polarized QMMM
 
             // Test: go via GDMA instead of point charges, only for DFT with Gaussian!
             GDMA _gdma;
@@ -490,14 +478,14 @@ namespace votca {
                 thisIter->UpdateMPSFromGDMA(_gdma.GetMultipoles(), _job->getPolarTop()->QM0());
 
             }
-            
+
             unsigned qmsize = 0;
             std::vector< ctp::QMAtom* > ::iterator ait;
             for (ait = atoms.begin(); ait < atoms.end(); ++ait) {
 
                 if ( !(*ait)->from_environment ) qmsize++;
                 //CTP_LOG(ctp::logINFO, *_log) << (*ait)->type << " " << (*ait)->x << " "  << (*ait)->y << " " << (*ait)->z << flush;
-                
+
             }
             // serialize this iteration
             if (_do_archive) {
@@ -537,6 +525,53 @@ namespace votca {
 
             return 0;
         }
+
+
+        template<class QMPackage>
+        void QMMachine<QMPackage>::Density2Charges( GWBSE* _gwbse, std::vector<int> _state_index ){
+
+                    // calculate density matrix for this excited state
+                    ub::matrix<double> &_dft_orbitals = orb_iter_input.MOCoefficients();
+                    // load DFT basis set (element-wise information) from xml file
+                    BasisSet dftbs;
+                    if (orb_iter_input.getDFTbasis() != "") {
+                        dftbs.LoadBasisSet(orb_iter_input.getDFTbasis());
+                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
+                    } else {
+                        //dftbs.LoadBasisSet(_gwbse->get_dftbasis_name());
+                        //CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _gwbse.get_dftbasis_name() << flush;
+                    }
+
+                    // fill DFT AO basis by going through all atoms
+                    AOBasis dftbasis;
+                    dftbasis.AOBasisFill(&dftbs, orb_iter_input.QMAtoms());
+                    dftbasis.ReorderMOs(_dft_orbitals, orb_iter_input.getQMpackage(), "xtp");
+                    // TBD: Need to switch between singlets and triplets depending on _type
+                    ub::matrix<double> DMATGS = orb_iter_input.DensityMatrixGroundState(_dft_orbitals);
+
+                    ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
+
+                    if (_state > 0) {
+                        std::vector<ub::matrix<double> > DMAT = _gwbse->getExcitedStateDmat(_type, _state_index[_state - 1]);
+                        DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
+                    }
+
+                    // fill DFT AO basis by going through all atoms
+                    std::vector< ctp::QMAtom* >& Atomlist = orb_iter_input.QMAtoms();
+
+                    Espfit esp = Espfit(_log);
+                    if (_qmpack->ECPRequested()) {
+                        esp.setUseECPs(true);
+                    }
+                    esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, dftbs, "medium");
+
+
+
+
+            return;
+        }
+
+
 
         template<class QMPackage>
         QMMIter *QMMachine<QMPackage>::CreateNewIter() {

@@ -356,14 +356,10 @@ namespace votca {
                             CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t" << i << " vir " << std::setprecision(12) << MOEnergies(i) << flush;
                         }
                     }
-<<<<<<< HEAD
+
                     last_dmat = _dftAOdmat;
                     guess_set = true;
                     _orbitals->setQMEnergy(totenergy);
-=======
-                    last_dmat=_dftAOdmat;
-                    guess_set=true;
->>>>>>> 8a54a8570339bfc8d83eb2f88bfdc5f19182b8f4
                     break;
                 } else {
                     energyold = totenergy;
@@ -937,7 +933,7 @@ namespace votca {
             std::vector<double> charge;
             for (unsigned i = 0; i < _atoms.size(); i++) {
                 string name = _atoms[i]->type;
-                cout << " Using atom " << name << "\n" << endl;
+                //cout << " Using atom " << name << "\n" << endl;
                 double Q = element.getNucCrg(name);
                 bool HorHe = (name == "H" || name == "He");
                 if (_with_ecp && !HorHe) {

@@ -285,17 +285,15 @@ namespace votca {
                     fmt % (((*pit)->getPos().getX())*votca::tools::conv::nm2ang) % ((*pit)->getPos().getY()*votca::tools::conv::nm2ang) % ((*pit)->getPos().getZ()*votca::tools::conv::nm2ang) % (*pit)->getQ00();
                     if ((*pit)->getQ00() != 0.0) _com_file << fmt << endl;
 
-                    /*
-                    if ((*pit)->getRank() > 0) {
-                            tools::vec dipole = (*pit)->getQ1();
-                            CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << " | " << dipole.getX()
-                                    << " " << dipole.getY() << " " << dipole.getZ();
+                    if ((*pit)->getRank() > 0 || _with_polarization ) {
+
+                        std::vector<std::vector<double>> _split_multipoles = SplitMultipoles(*pit);
+                        for (unsigned mpoles =0 ; mpoles < _split_multipoles.size(); mpoles++){
+                            fmt % _split_multipoles[mpoles][0] % _split_multipoles[mpoles][1] % _split_multipoles[mpoles][2] % _split_multipoles[mpoles][3];
+                            _com_file << fmt << endl;
+
                         }
-                        if ((*pit)->getRank() > 1) {
-                            std::vector<double> quadrupole = (*pit)->getQ2();
-                            CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << " | " << quadrupole[0] << " " << quadrupole[1] << " " << quadrupole[2] << " "
-                                    << quadrupole[3] << " " << quadrupole[4];
-                        } */
+                    }
                 }
             }
             _com_file << endl;
@@ -464,7 +462,7 @@ namespace votca {
                 // write the background charges
                 //if (_write_charges) WriteBackgroundCharges(_com_file, qmatoms);
                 if (_write_charges) WriteBackgroundCharges(_com_file, PolarSegments);
-                
+
                 // write inital guess
                 if (_write_guess) WriteGuess(orbitals_guess, _com_file);
 
