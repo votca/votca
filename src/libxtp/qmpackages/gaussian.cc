@@ -1132,11 +1132,10 @@ namespace votca {
                         boost::algorithm::split(property, *block_it, boost::is_any_of("="), boost::algorithm::token_compress_on);
                         properties[property[0]] = property[1];
                     }
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << "QM energy check before reading energy, should be 0 " << _orbitals->getQMEnergy() << flush;
+
 
                     if (properties.count("HF") > 0) {
                         double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
-                        //_orbitals->setQMEnergy(_has_qm_energy = true;
                         _orbitals-> setQMEnergy(tools::conv::hrt2ev * energy_hartree);
                         CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
                     } else {

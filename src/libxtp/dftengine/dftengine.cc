@@ -33,6 +33,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
+#include <votca/tools/constants.h>
 
 #include <votca/xtp/elements.h>
 #include <votca/xtp/diis.h>
@@ -359,7 +360,8 @@ namespace votca {
 
                     last_dmat = _dftAOdmat;
                     guess_set = true;
-                    _orbitals->setQMEnergy(totenergy);
+                    // orbitals saves total energies in [eV]
+                    _orbitals->setQMEnergy(totenergy * tools::conv::hrt2ev);
                     break;
                 } else {
                     energyold = totenergy;
