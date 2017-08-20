@@ -94,6 +94,11 @@ if (NOT DEFINED XTP_MANUAL_LOCATION)
 endif(NOT DEFINED XTP_MANUAL_LOCATION)
 #option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
 
+option(ENABLE_TESTING "Build and enable testing stuff" OFF)
+if(ENABLE_TESTING)
+  enable_testing()
+endif(ENABLE_TESTING)
+
 #for votca_config.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
