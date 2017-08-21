@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -37,35 +37,35 @@
 
 namespace votca { namespace xtp {
 
- 
-    
+
+
 template< class QMPackage >
-class QMMachine 
+class QMMachine
 {
-    
+
 public:
 
     QMMachine(ctp::XJob *job, ctp::XInductor *xind, QMPackage *qmpack,
               Property *opt, string sfx, int nst, bool mav);
    ~QMMachine();
-    
+
     int Evaluate(ctp::XJob *job);
-    
-    bool Iterate(string jobFolder, int iterCnt);    
+
+    bool Iterate(string jobFolder, int iterCnt);
     QMMIter *CreateNewIter();
     bool hasConverged();
     bool AssertConvergence() { return _isConverged; }
-    
+
     void setLog(ctp::Logger *log) { _log = log; }
-    
-private:    
-    
+
+private:
+
     ctp::XJob *_job;
     ctp::XInductor *_xind;
     QMPackage *_qmpack;
     ctp::Logger *_log;
     int _subthreads;
-    
+
     std::vector<QMMIter*> _iters;
     bool _isConverged;
     int _maxIter;
@@ -75,33 +75,36 @@ private:
     Property _gdma_options;
     bool _do_gdma;
     QMMInterface qminterface;
-    
-    
-    
-    
-   
+
+
+
+
+
     Property _gwbse_options;
     int      _state;
     string   _type;
     bool     _has_osc_filter;
     double   _osc_threshold;
     bool     _has_dQ_filter;
-    double   _dQ_threshold;   
-    
+    double   _dQ_threshold;
+
     double _crit_dR;
     double _crit_dQ;
     double _crit_dE_QM;
     double _crit_dE_MM;
-    
+
     bool _convg_dR;
     bool _convg_dQ;
     bool _convg_dE_QM;
     bool _convg_dE_MM;
 
-    
+
     bool _do_gwbse; // needs to be set by options!!!
     bool _do_archive;
     bool _static_qmmm;
+    Orbitals orb_iter_input;
+
+    void Density2Charges( GWBSE* gwbse=NULL, std::vector<int> state_index ={});
 
 };
 

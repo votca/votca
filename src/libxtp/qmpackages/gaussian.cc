@@ -274,13 +274,26 @@ namespace votca {
          * keyword "charge" Gaussian expects them in x,y,z,q format in the
          * input file. In g03 AFTER basis sets and ECPs, in g09 BEFORE.
          */
-        void Gaussian::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
-            std::vector< ctp::QMAtom* >::iterator it;
-            for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if ((*it)->from_environment) {
+        //void Gaussian::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
+
+        void Gaussian::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::PolarSeg*> segments) {
+            std::vector< ctp::PolarSeg* >::iterator it;
+            for (it = segments.begin(); it < segments.end(); it++) {
+                vector<ctp::APolarSite*> ::iterator pit;
+                for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
                     boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-                    fmt % (*it)->x % (*it)->y % (*it)->z % (*it)->charge;
-                    if ((*it)->charge != 0.0) _com_file << fmt << endl;
+                    fmt % (((*pit)->getPos().getX())*votca::tools::conv::nm2ang) % ((*pit)->getPos().getY()*votca::tools::conv::nm2ang) % ((*pit)->getPos().getZ()*votca::tools::conv::nm2ang) % (*pit)->getQ00();
+                    if ((*pit)->getQ00() != 0.0) _com_file << fmt << endl;
+
+                    if ((*pit)->getRank() > 0 || _with_polarization ) {
+
+                        std::vector<std::vector<double>> _split_multipoles = SplitMultipoles(*pit);
+                        for (unsigned mpoles =0 ; mpoles < _split_multipoles.size(); mpoles++){
+                            fmt % _split_multipoles[mpoles][0] % _split_multipoles[mpoles][1] % _split_multipoles[mpoles][2] % _split_multipoles[mpoles][3];
+                            _com_file << fmt << endl;
+
+                        }
+                    }
                 }
             }
             _com_file << endl;
@@ -408,7 +421,7 @@ namespace votca {
          * Prepares the com file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied
          */
-        bool Gaussian::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
+        bool Gaussian::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess, std::vector<ctp::PolarSeg*> PolarSegments ) {
 
             std::string temp_suffix = "/id";
             std::string scratch_dir_backup = _scratch_dir;
@@ -447,7 +460,8 @@ namespace votca {
                 if (_write_pseudopotentials) WriteECP(_com_file, qmatoms);
 
                 // write the background charges
-                if (_write_charges) WriteBackgroundCharges(_com_file, qmatoms);
+                //if (_write_charges) WriteBackgroundCharges(_com_file, qmatoms);
+                if (_write_charges) WriteBackgroundCharges(_com_file, PolarSegments);
 
                 // write inital guess
                 if (_write_guess) WriteGuess(orbitals_guess, _com_file);
@@ -455,8 +469,8 @@ namespace votca {
             } else if (_executable == "g09") {
 
                 // write the background charges
-                if (_write_charges) WriteBackgroundCharges(_com_file, qmatoms);
-
+                //if (_write_charges) WriteBackgroundCharges(_com_file, qmatoms);
+                if (_write_charges) WriteBackgroundCharges(_com_file, PolarSegments);
                 // if we need to write basis sets, do it now
                 if (_write_basis_set) WriteBasisset(_com_file, qmatoms);
 
@@ -1118,11 +1132,10 @@ namespace votca {
                         boost::algorithm::split(property, *block_it, boost::is_any_of("="), boost::algorithm::token_compress_on);
                         properties[property[0]] = property[1];
                     }
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << "QM energy check before reading energy, should be 0 " << _orbitals->getQMEnergy() << flush;
+
 
                     if (properties.count("HF") > 0) {
                         double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
-                        //_orbitals->setQMEnergy(_has_qm_energy = true;
                         _orbitals-> setQMEnergy(tools::conv::hrt2ev * energy_hartree);
                         CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
                     } else {

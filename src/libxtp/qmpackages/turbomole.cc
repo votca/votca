@@ -91,7 +91,16 @@ namespace votca {
          * Prepares the com file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied
          */
-        bool Turbomole::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
+        bool Turbomole::WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess , std::vector<ctp::PolarSeg*> PolarSegments ) {
+            
+            /* No background charge writing is implemented. Throw error when
+             * getting a non-zero length vector of PolarSegments
+             */
+            if ( PolarSegments.size() != 0 ){
+                throw std::runtime_error("Turbomole cannot be run with multipole background in this version.");
+            }
+            
+            
             std::vector< ctp::Atom* > _atoms;
             std::vector< ctp::Atom* > ::iterator ait;
             std::vector< ctp::Segment* >::iterator sit;

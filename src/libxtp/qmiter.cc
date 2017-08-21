@@ -80,7 +80,7 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
                     vec upd_r = qmatm->getPos();
                     upd_r *= AA_to_NM;
                     double upd_Q00 = qmatm->charge;
-                    //cout << "updating charge to " << qmatm->charge << endl;
+
 
                     // Compare to previous r, Q00
                     ctp::APolarSite *aps = (*pseg)[j];

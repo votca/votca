@@ -48,7 +48,7 @@ namespace votca {
 
             std::string key = "package";
             std::string _name = options->get(key + ".name").as<std::string> ();
-            
+
             if (_name != "xtp") {
                 cerr << "Tried to use " << _name << " package. ";
                 throw std::runtime_error("Wrong options file");
@@ -64,13 +64,21 @@ namespace votca {
             load_property_from_xml(_xtpdft_options, _options.c_str());
             _xtpdft.Initialize( &_xtpdft_options );
 
+            // check if ECPs are used in xtpdft
+            _write_pseudopotentials=false;
+            if (_xtpdft_options.exists("dftengine.ecp")){
+                if (_xtpdft_options.get("dftengine.ecp").as<std::string> () !="") {
+                    _write_pseudopotentials=true;
+                }
+            }
+
         }
 
         /**
          * Dummy for use of XTPDFT as QMPackage, needs no input file
          */
-        bool XTPDFT::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
-            
+        bool XTPDFT::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess, std::vector<ctp::PolarSeg* > polar_segments ) {
+
             //if ( orbitals_guess != NULL )  {
             //    CTP_LOG(ctp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
             //    _orbitals.Load(_guess_file);
@@ -78,38 +86,41 @@ namespace votca {
             //} else {
 
            // }
-            
+            CTP_LOG(ctp::logDEBUG, *_pLog) << "Preparing XTP DFTENGINE "  << flush;
+            _xtpdft.setLogger(_pLog);
+            _xtpdft.Prepare( orbitals_guess );
+            CTP_LOG(ctp::logDEBUG, *_pLog) << " done "  << flush;
 
             return true;
         }
 
-        
+
         bool XTPDFT::setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){
-            
+
             _xtpdft.setExternalcharges(multipoles);
-            
+
             return true;
         }
 
-        
+
 
         /**
          * Run calls DFTENGINE
          */
         bool XTPDFT::Run( Orbitals* _orbitals ) {
-            
+
             if ( !_orbitals->hasQMAtoms() ){
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Reading structure from " << _xyz_file_name << flush;
                 _orbitals->LoadFromXYZ(_xyz_file_name);
             }
-            
-            
+
+
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Running XTP DFT " << flush;
-            _xtpdft.setLogger(_pLog);
-            _xtpdft.Prepare( _orbitals );
+            //
+
             _xtpdft.Evaluate( _orbitals );
             _basisset_name = _xtpdft.GetDFTBasisName();
-            
+
             return true;
 
         }

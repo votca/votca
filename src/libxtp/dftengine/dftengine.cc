@@ -33,6 +33,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/linalg.h>
+#include <votca/tools/constants.h>
 
 #include <votca/xtp/elements.h>
 #include <votca/xtp/diis.h>
@@ -154,9 +155,9 @@ namespace votca {
             return;
         }
 
-        /* 
+        /*
          *    Density Functional theory implementation
-         * 
+         *
          */
 
 
@@ -165,7 +166,7 @@ namespace votca {
         bool DFTENGINE::Evaluate(Orbitals* _orbitals) {
 
 
-            // set the parallelization 
+            // set the parallelization
 #ifdef _OPENMP
 
             omp_set_num_threads(_openmp_threads);
@@ -180,6 +181,7 @@ namespace votca {
 
             /**** Density-independent matrices ****/
 
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inside Evaluate " << flush;
 
 
             ub::vector<double>& MOEnergies = _orbitals->MOEnergies();
@@ -195,7 +197,13 @@ namespace votca {
 
             ub::matrix<double> H0 = _dftAOkinetic.Matrix() + _dftAOESP.getNuclearpotential();
 
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed inital density " << flush;
+
+
             NuclearRepulsion();
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Nuclear Rep " << flush;
+
+
             if (_addexternalsites) {
                 H0 += _dftAOESP.getExternalpotential();
 
@@ -219,7 +227,7 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Nuclear Repulsion Energy is " << E_nucnuc << flush;
 
 
-            // if we have a guess we do not need this. 
+            // if we have a guess we do not need this.
             if (_with_guess) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Reading guess from orbitals object/file" << flush;
                 _dftbasis.ReorderMOs(MOCoeff, _orbitals->getQMpackage(), "xtp");
@@ -241,7 +249,7 @@ namespace votca {
 
                     _dftAOdmat = AtomicGuess(_orbitals);
                     //cout<<_dftAOdmat<<endl;
-                    
+
                     if (_with_RI) {
                         _ERIs.CalculateERIs(_dftAOdmat);
                     } else {
@@ -349,8 +357,11 @@ namespace votca {
                             CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t" << i << " vir " << std::setprecision(12) << MOEnergies(i) << flush;
                         }
                     }
-                    last_dmat=_dftAOdmat;
-                    guess_set=true;
+
+                    last_dmat = _dftAOdmat;
+                    guess_set = true;
+                    // orbitals saves total energies in [eV]
+                    _orbitals->setQMEnergy(totenergy * tools::conv::hrt2ev);
                     break;
                 } else {
                     energyold = totenergy;
@@ -420,9 +431,9 @@ namespace votca {
 
 
                 for (unsigned i = 0; i < _externalsites.size(); i++) {
-                        
+
                     vector<ctp::APolarSite*> ::iterator pit;
-                    for (pit = _externalsites[i]->begin(); pit < _externalsites[i]->end(); ++pit) {    
+                    for (pit = _externalsites[i]->begin(); pit < _externalsites[i]->end(); ++pit) {
 
                         CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << (*pit)->getName() << " | " << (*pit)->getPos().getX()
                                 << " " << (*pit)->getPos().getY() << " " << (*pit)->getPos().getZ() << " | " << (*pit)->getQ00();
@@ -763,21 +774,23 @@ namespace votca {
         }
 
 
-        // PREPARATION 
+        // PREPARATION
 
         void DFTENGINE::Prepare(Orbitals* _orbitals) {
             #ifdef _OPENMP
-            
+
             omp_set_num_threads(_openmp_threads);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using " << omp_get_max_threads() << " threads" << flush;
-            
-            #endif
-            
+
+#endif
+
+            if ( _atoms.size() == 0 ){
             for (const auto& atom : _orbitals->QMAtoms()) {
                 if (!atom->from_environment) {
                     _atoms.push_back(atom);
                 }
             }
+
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Molecule Coordinates [A] " << flush;
             for (unsigned i = 0; i < _atoms.size(); i++) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << _atoms[i]->type << " " << _atoms[i]->x << " " << _atoms[i]->y << " " << _atoms[i]->z << " " << flush;
@@ -850,6 +863,7 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Total number of electrons: " << _numofelectrons << flush;
 
             ConfigOrbfile(_orbitals);
+            }
             SetupInvariantMatrices();
             return;
         }
@@ -870,8 +884,8 @@ namespace votca {
                     }
                 }
             }
-            //}    
-            // return     
+            //}
+            // return
             return _dmatGS;
         }
 
@@ -921,6 +935,7 @@ namespace votca {
             std::vector<double> charge;
             for (unsigned i = 0; i < _atoms.size(); i++) {
                 string name = _atoms[i]->type;
+                //cout << " Using atom " << name << "\n" << endl;
                 double Q = element.getNucCrg(name);
                 bool HorHe = (name == "H" || name == "He");
                 if (_with_ecp && !HorHe) {
@@ -951,7 +966,7 @@ namespace votca {
 
             QMMInterface qmminter;
             ctp::PolarSeg nuclei = qmminter.Convert(_atoms);
-            
+
             ctp::PolarSeg::iterator pes;
             for (ctp::APolarSite* nucleus:nuclei) {
                 nucleus->setIsoP(0.0);
@@ -975,13 +990,13 @@ namespace votca {
                 } else {
                     s = top->PbShortestConnect(nuclei.getPos(),seg->getPos()) + nuclei.getPos() - seg->getPos();
                 }
-                
+
                 for (auto nucleus:nuclei) {
                     for (auto site:(*seg)) {
                         actor.BiasIndu(*nucleus, *site, s);
                         nucleus->Depolarize();
                         E_ext += actor.E_f(*nucleus, *site);
-                       
+
 
                     }
                 }

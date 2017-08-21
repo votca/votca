@@ -284,27 +284,47 @@ namespace votca {
          * their atomic partial charge distributions. ORCA expects them in
          * q,x,y,z format in a separate file "background.crg"
          */
-        void Orca::WriteBackgroundCharges(std::vector<ctp::QMAtom*>& qmatoms) {
+        void Orca::WriteBackgroundCharges(std::vector<ctp::PolarSeg*> segments) {
             std::ofstream _crg_file;
             std::string _crg_file_name_full = _run_dir + "/background.crg";
             _crg_file.open(_crg_file_name_full.c_str());
             int _total_background = 0;
-            std::vector< ctp::QMAtom* >::iterator it;
 
-            for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if ((*it)->from_environment) {
-                    if ((*it)->charge != 0.0) _total_background++;
+            std::vector< ctp::PolarSeg* >::iterator it;
+            for (it = segments.begin(); it < segments.end(); it++) {
+                vector<ctp::APolarSite*> ::iterator pit;
+                for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
+                    if ((*pit)->getQ00() != 0.0) _total_background++;
+
+                    if ((*pit)->getRank() > 0 || _with_polarization ) {
+
+                        std::vector<std::vector<double>> _split_multipoles = SplitMultipoles(*pit);
+                        _total_background+= _split_multipoles.size();
+                    }
                 }
-            }
+            } //counting only
 
-            _crg_file << _total_background << endl;
-            for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if ((*it)->from_environment) {
+
+            //now write
+            for (it = segments.begin(); it < segments.end(); it++) {
+                vector<ctp::APolarSite*> ::iterator pit;
+                for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
                     boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-                    fmt % (*it)->charge % (*it)->x % (*it)->y % (*it)->z;
-                    if ((*it)->charge != 0.0) _crg_file << fmt << endl;
+                    fmt % (*pit)->getQ00() % (((*pit)->getPos().getX())*votca::tools::conv::nm2ang) % ((*pit)->getPos().getY()*votca::tools::conv::nm2ang) % ((*pit)->getPos().getZ()*votca::tools::conv::nm2ang) ;
+                    if ((*pit)->getQ00() != 0.0) _crg_file << fmt << endl;
+
+                    if ((*pit)->getRank() > 0 || _with_polarization ) {
+
+                        std::vector<std::vector<double>> _split_multipoles = SplitMultipoles(*pit);
+                        for (unsigned mpoles =0 ; mpoles < _split_multipoles.size(); mpoles++){
+                            fmt %  _split_multipoles[mpoles][1] % _split_multipoles[mpoles][2] % _split_multipoles[mpoles][3] % _split_multipoles[mpoles][0];
+                            _crg_file << fmt << endl;
+
+                        }
+                    }
                 }
             }
+            
             return;
         }
 
@@ -312,7 +332,7 @@ namespace votca {
          * Prepares the *.inp file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied, Not implemented yet
          */
-        bool Orca::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
+        bool Orca::WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess , std::vector<ctp::PolarSeg*> PolarSegments ) {
 
             std::vector<std::string> results;
             std::string temp_suffix = "/id";
@@ -370,7 +390,7 @@ namespace votca {
 
             if (_write_charges) {
                 // actual writing of charges
-                WriteBackgroundCharges(qmatoms);
+                WriteBackgroundCharges( PolarSegments);
             }
 
             _com_file << _options << "\n";

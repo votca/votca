@@ -46,7 +46,7 @@ namespace votca {
 
             void Initialize(Property *options);
 
-            bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
+            bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
 
             bool Run(Orbitals* _orbitals = NULL);
 

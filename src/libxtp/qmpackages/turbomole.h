@@ -54,7 +54,7 @@ public:
     * and guess for the dimer orbitals (if given) constructed from the
     * orbitals of monomers
     */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
 
    bool Run( Orbitals* _orbitals = NULL );
 
