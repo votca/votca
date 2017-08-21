@@ -21,5 +21,11 @@ foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump)
      install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${MAN}/man1 RENAME ${PROG}.1)
   endif (BUILD_MANPAGES)
   list(APPEND XTP_PROGS "${PROG}")
+
+  if(ENABLE_TESTING)
+    add_test(${PROG}Help ${PROG} --help)
+    # run tests for tools, csg, moo, ctp as well for coverage
+    set_tests_properties(${PROG}Help PROPERTIES LABELS "xtp;tools;csg;ctp;moo;votca")
+  endif(ENABLE_TESTING)
 endforeach(PROG)
 set(XTP_PROGS "${XTP_PROGS}" PARENT_SCOPE)
