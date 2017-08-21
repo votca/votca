@@ -118,12 +118,45 @@ namespace votca {
             iop_pos = _options.find("iterations 1\n");
             if (iop_pos != std::string::npos) _write_guess = true;
         }
+        
+        
+        
+         /* For QM/MM the molecules in the MM environment are represented by
+         * their atomic partial charge distributions. Triggered by the option
+         * keyword "set bq background" NWChem expects them in x,y,z,q format in the
+         * backround.crg file.
+         */
+        //void Gaussian::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
+
+        void NWChem::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::PolarSeg*> segments) {
+            std::vector< ctp::PolarSeg* >::iterator it;
+            for (it = segments.begin(); it < segments.end(); it++) {
+                vector<ctp::APolarSite*> ::iterator pit;
+                for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
+                    boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
+                    fmt % (((*pit)->getPos().getX())*votca::tools::conv::nm2ang) % ((*pit)->getPos().getY()*votca::tools::conv::nm2ang) % ((*pit)->getPos().getZ()*votca::tools::conv::nm2ang) % (*pit)->getQ00();
+                    if ((*pit)->getQ00() != 0.0) _com_file << fmt << endl;
+
+                    if ((*pit)->getRank() > 0 || _with_polarization ) {
+
+                        std::vector<std::vector<double>> _split_multipoles = SplitMultipoles(*pit);
+                        for (unsigned mpoles =0 ; mpoles < _split_multipoles.size(); mpoles++){
+                            fmt % _split_multipoles[mpoles][0] % _split_multipoles[mpoles][1] % _split_multipoles[mpoles][2] % _split_multipoles[mpoles][3];
+                            _com_file << fmt << endl;
+
+                        }
+                    }
+                }
+            }
+            _com_file << endl;
+            return;
+        }
 
         /**
          * Prepares the *.nw file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied
          */
-        bool NWChem::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
+        bool NWChem::WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess , std::vector<ctp::PolarSeg*> PolarSegments ){
 
             std::vector<std::string> results;
             //int qmatoms = 0;
@@ -170,14 +203,7 @@ namespace votca {
             if (_write_charges) {
                 // part for the MM charge coordinates
                 _crg_file.open(_crg_file_name_full.c_str());
-                for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                    if ((*it)->from_environment) {
-                        boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-                        fmt % (*it)->x % (*it)->y % (*it)->z % (*it)->charge;
-                        if ((*it)->charge != 0.0) _crg_file << fmt << endl;
-                    }
-                }
-
+                WriteBackgroundCharges(_crg_file, PolarSegments);
                 _crg_file << endl;
                 _crg_file.close();
             }

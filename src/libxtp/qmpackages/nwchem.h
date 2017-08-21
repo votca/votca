@@ -48,7 +48,7 @@ public:
     * and a guess for the dimer (if requested) constructed from the
     * monomer orbitals
     */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
 
    bool WriteShellScript();
 
@@ -80,7 +80,7 @@ private:
     int BasisSetSize( std::string _line );
     int EnergiesFromLog( std::string _line, ifstream inputfile );
     std::string FortranFormat( const double &number );
-
+    void WriteBackgroundCharges(ofstream& _com_file,std::vector<ctp::PolarSeg*> PolarSegments);
 
 };
 

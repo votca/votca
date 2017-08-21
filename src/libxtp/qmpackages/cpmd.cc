@@ -175,7 +175,11 @@ namespace votca {
 
         }
 
-        bool Cpmd::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
+        bool Cpmd::WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess, std::vector<ctp::PolarSeg*> PolarSegments ){
+          if ( PolarSegments.size() != 0 ){
+                throw std::runtime_error("CPMD cannot be run with multipole background in this version.");
+            }
+            
 
             std::vector< ctp::Atom* > _atoms;
             std::vector< ctp::Atom* > ::iterator ait;

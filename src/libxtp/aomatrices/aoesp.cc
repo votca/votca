@@ -472,7 +472,7 @@ if (_lmax_col > 3) {
             
             _externalpotential = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
-            for (int i = 0; i < _sites.size(); i++) {
+            for (unsigned int i = 0; i < _sites.size(); i++) {
                 for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
                     vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
                     _aomatrix = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());

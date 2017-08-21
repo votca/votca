@@ -792,7 +792,7 @@ for (int _i = 0; _i < _nrows; _i++) {
         void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const std::vector<ctp::PolarSeg*> & _sites) {
 
             _externalpotential = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-            for (int i = 0; i < _sites.size(); i++) {
+            for (unsigned int i = 0; i < _sites.size(); i++) {
                 for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
 
                     if ((*it)->getRank() > 0 || (*it)->IsPolarizable()) {
