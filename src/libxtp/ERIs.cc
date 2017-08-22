@@ -59,6 +59,7 @@ namespace votca {
             
             _ERIs=ub::zero_matrix<double>(DMAT.size1());
            
+            const ub::symmetric_matrix<double> dmat_symm=DMAT;
         
             const ub::vector<double>& dmatasarray=DMAT.data();
           
@@ -67,24 +68,44 @@ namespace votca {
             //check Efficiency !!!! someday 
             #pragma omp parallel for
             for ( int _i=0; _i<_threecenter.getSize();_i++){
-                ub::symmetric_matrix<double> &threecenter=_threecenter.getDatamatrix(_i);
+                const ub::symmetric_matrix<double> &threecenter=_threecenter.getDatamatrix(_i);
                 // Trace over prod::DMAT,I(l)=componentwise product over 
-                for ( unsigned _j=0; _j<DMAT.size1();_j++){
-                    for(unsigned _k=0;_k<DMAT.size2();_k++){
-                    Itilde(_i,0)+=DMAT(_j,_k)*threecenter(_j,_k);
+                
+                for ( unsigned _j=0; _j<dmat_symm.size1();_j++){
+                    Itilde(_i,0)+=dmat_symm(_j,_j)*threecenter(_j,_j);
+                    for(unsigned _k=0;_k<_j;_k++){
+                    Itilde(_i,0)+=2*dmat_symm(_j,_k)*threecenter(_j,_k);
                     }
                 }
             }
             //cout << "Itilde " <<Itilde << endl;
-            ub::matrix<double>K=ub::prod(_inverse_Coulomb,Itilde);
+            const ub::matrix<double>K=ub::prod(_inverse_Coulomb,Itilde);
             //cout << "K " << K << endl;
-            for ( unsigned _i = 0; _i < K.size1(); _i++){
-                
-            _ERIs+=_threecenter.getDatamatrix(_i)*K(_i,0);    
-            //cout << "I " << _threecenter.getDatamatrix(_i) << endl;
-            //cout<< "ERIs " <<_ERIs<< endl;
-            }
+            
+            unsigned nthreads = 1;
+            #ifdef _OPENMP
+               nthreads = omp_get_max_threads();
+            #endif
+               std::vector<ub::matrix<double> >ERIS_thread;
+               
+               for(unsigned i=0;i<nthreads;++i){
+                   ub::matrix<double> thread=ub::zero_matrix<double>(_ERIs.size1());
+                   ERIS_thread.push_back(thread);
+               }
+            
+            #pragma omp parallel for
+            for (unsigned thread=0;thread<nthreads;++thread){
+                for ( unsigned _i = 0; _i < K.size1(); _i+=nthreads){
 
+                ERIS_thread[thread]+=_threecenter.getDatamatrix(_i)*K(_i,0);    
+                //cout << "I " << _threecenter.getDatamatrix(_i) << endl;
+                //cout<< "ERIs " <<_ERIs<< endl;
+                }
+            }
+            for (unsigned thread=0;thread<nthreads;++thread){
+                _ERIs+=ERIS_thread[thread];
+            }    
+            
             CalculateEnergy(dmatasarray);
             return;
         }

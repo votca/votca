@@ -68,7 +68,7 @@ namespace votca { namespace xtp {
     
     std::vector< ub::symmetric_matrix<double> >& getData(){return  _matrix;}
     ub::symmetric_matrix<double>& getDatamatrix( int i ){return  _matrix[i];}
-    
+    const ub::symmetric_matrix<double>& getDatamatrix( int i )const{return  _matrix[i];}
     private:
         std::vector< ub::symmetric_matrix<double> > _matrix;
     
