@@ -63,20 +63,21 @@ namespace votca {
         
             const ub::vector<double>& dmatasarray=DMAT.data();
           
-            ub::matrix<double> Itilde=ub::zero_matrix<double>(_threecenter.getSize(),1);
+            ub::matrix<double> Itilde=ub::matrix<double>(_threecenter.getSize(),1);
             //cout << _threecenter.getSize() << " Size-Threecenter"<<endl;
             //check Efficiency !!!! someday 
             #pragma omp parallel for
             for ( int _i=0; _i<_threecenter.getSize();_i++){
                 const ub::symmetric_matrix<double> &threecenter=_threecenter.getDatamatrix(_i);
                 // Trace over prod::DMAT,I(l)=componentwise product over 
-                
+                double trace=0;
                 for ( unsigned _j=0; _j<dmat_symm.size1();_j++){
-                    Itilde(_i,0)+=dmat_symm(_j,_j)*threecenter(_j,_j);
+                    trace+=dmat_symm(_j,_j)*threecenter(_j,_j);
                     for(unsigned _k=0;_k<_j;_k++){
-                    Itilde(_i,0)+=2*dmat_symm(_j,_k)*threecenter(_j,_k);
+                    trace+=2*dmat_symm(_j,_k)*threecenter(_j,_k);
                     }
                 }
+                Itilde(_i,0)=trace;
             }
             //cout << "Itilde " <<Itilde << endl;
             const ub::matrix<double>K=ub::prod(_inverse_Coulomb,Itilde);
@@ -95,7 +96,7 @@ namespace votca {
             
             #pragma omp parallel for
             for (unsigned thread=0;thread<nthreads;++thread){
-                for ( unsigned _i = 0; _i < K.size1(); _i+=nthreads){
+                for ( unsigned _i = thread; _i < K.size1(); _i+=nthreads){
 
                 ERIS_thread[thread]+=_threecenter.getDatamatrix(_i)*K(_i,0);    
                 //cout << "I " << _threecenter.getDatamatrix(_i) << endl;
