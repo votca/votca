@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,13 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
     // Set frame counter to zero
     _frame_counter = 0;
 
+    // accuracy for evaluating the difference in bead positions (default 1e-5)
+    _dist = 1e-5;
+    if (_options.exists("cg.fmatch.dist")) {
+        _dist = _options.get("cg.fmatch.dist").as<double>();
+    }
+    //std::cout << "_dist: " << _dist << std::endl;  
+    
     // read _nframes from input file
     _nframes = _options.get("cg.fmatch.frames_per_block").as<int>();
     // read _constr_least_sq from input file
@@ -81,7 +88,11 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
         //adjust initial matrix dimensions:
         _line_cntr += i->num_gridpoints;
         _col_cntr += 2 * i->num_gridpoints;
-
+        //if periodic potential, one additional constraint has to be taken into account -> 1 additional line in matrix
+        if(i->periodic != 0){
+            _line_cntr += 1;
+        }
+       
         // add spline to container
         _splines.push_back(i);
     }
@@ -163,11 +174,21 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
     _options = options;
     splineName = options->get("name").value();
     bonded = bonded_;
+    //in general natural boundary conditions are used for splines
+    periodic = 0;
 
     // get non-bonded information
     if (!bonded) {
         type1 = options->get("type1").value();
         type2 = options->get("type2").value(); 
+    }
+    if (bonded) {
+        //check if option periodic exists
+        if (options->exists("fmatch.periodic")) {
+            periodic = options->get("fmatch.periodic").as<bool>();
+            // set cubic spline Spline boundary conditions to periodic 
+            Spline.setBCInt(1);            
+        }        
     }
 
     // initialize the grid
@@ -269,11 +290,16 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
     if(_has_existing_forces) {
         if(conf->BeadCount() != _top_force.BeadCount())
             throw std::runtime_error("number of beads in topology and force topology does not match");
-        for(int i=0; i<conf->BeadCount(); ++i) {
+        for(int i=0; i<conf->BeadCount(); ++i) {                
+//            cout << "conf->getBead(" << i << ")->getPos(): " << conf->getBead(i)->getPos() << endl;                
+//            cout << "_top_force->getBead(" << i << ")->getPos(): " << _top_force.getBead(i)->getPos() << endl; 
             conf->getBead(i)->F() -= _top_force.getBead(i)->getF();
             vec d = conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
-            if(abs(d) > 1e-6)
-                throw std::runtime_error("One or more bead positions in mapped and reference force trajectory differ by more than 1e-6");
+//            cout << "vec d of bead " << i << ": " << d << "abs(d): " << abs(d) << endl; 
+            if(abs(d) > _dist)//default is 1e-5, otherwise it can be a too strict criterion
+//                cout << "conf->getBead(" << i << ")->getPos(): " << conf->getBead(i)->getPos() << endl;                
+//                cout << "_top_force->getBead(" << i << ")->getPos(): " << _top_force.getBead(i)->getPos() << endl; 
+                throw std::runtime_error("One or more bead positions in mapped and reference force trajectory differ by more than 1e-5");
         }
     }
 
@@ -412,6 +438,12 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(ub::matrix<double> &Matrix
     for (is = _splines.begin(); is != _splines.end(); ++is) {
         int sfnum = (*is)->num_splinefun;
         (*is)->Spline.AddBCToFitMatrix(Matrix, line_tmp, col_tmp);
+        //if periodic potential, one additional constraint has to be taken into account!
+        if ((*is)->periodic != 0){
+            (*is)->Spline.AddBCSumZeroToFitMatrix(Matrix, line_tmp, col_tmp);
+            //update counter
+            line_tmp += 1;
+        }
         // update counters
         line_tmp += sfnum + 1;
         col_tmp += 2 * (sfnum + 1);

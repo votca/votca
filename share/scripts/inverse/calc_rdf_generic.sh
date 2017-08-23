@@ -56,6 +56,10 @@ if [[ ${CSG_RUNTEST} ]] && csg_calc "$equi_time" ">" "0"; then
 fi
 
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame)"
+if [[ ${CSG_RUNTEST} ]] && csg_calc "$first_frame" ">" "0"; then
+  msg --color blue --to-stderr "Automatically setting first_frame to 0, because CSG_RUNTEST was set"
+  first_frame=0
+fi
 
 with_errors=$(csg_get_property cg.inverse.$sim_prog.rdf.with_errors)
 if [[ ${with_errors} = "yes" ]]; then

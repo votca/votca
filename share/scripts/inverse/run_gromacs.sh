@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -57,7 +57,10 @@ if [[ $1 != "--pre" ]]; then
   check_temp || die "${0##*/}: check of tempertures failed"
   fi
   if  [[ $traj == *.xtc ]]; then
-    [[ $(get_simulation_setting nstxtcout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj) is '${traj##*.}', but nstxtcout is 0 in $mdp. Please check the setting again and remove the current step."
+    #XXX is returned if nstxout-compressed is not in mdp file
+    nstxtcout=$(get_simulation_setting nstxout-compressed XXX)
+    [[ ${nstxtcout} = XXX ]] && nstxtcout=$(get_simulation_setting nstxtcout 0)
+    [[ ${nstxtcout} -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj) is '${traj##*.}', but nstxtcout is 0 in $mdp. Please check the setting again and remove the current step."
   elif [[ $traj == *.trr ]]; then
     [[ $(get_simulation_setting nstxout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj) is '${traj##*.}', but nstxout is 0 in $mdp. Please check the setting again and remove the current step."
   else
@@ -97,10 +100,9 @@ if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation) = "yes" && $1 != "--
   msg "Doing main simulation"
 fi
 
-#support for older mdp file, cutoff-scheme = Verlet is default for Gromacs 5.0, but does not work with tabulated interactions
+#support for older mdp file, cutoff-scheme = Verlet is default for >=gmx-5 now, but does not work with tabulated interactions
 #XXX is returned if cutoff-scheme is not in mdp file
-gmx_ver="$(critical ${grompp[@]} -h 2>&1)"
-if [[ ${gmx_ver} = *"VERSION 5."[01]* || ${gmx_ver} = *"version 2016"* ]] && [[ $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
+if [[ $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
   echo "cutoff-scheme = Group" >> $mdp
   msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
 fi
@@ -108,6 +110,11 @@ fi
 if [[ ${CSG_MDRUN_STEPS} ]]; then
   msg --color blue --to-stderr "Appending -nsteps ${CSG_MDRUN_STEPS} to mdrun options"
   mdrun_opts+=" -nsteps $CSG_MDRUN_STEPS"
+fi
+
+if [[ ${CSG_MDRUN_OPTS} ]]; then
+  msg --color blue --to-stderr "Appending ${CSG_MDRUN_OPTS} to mdrun options"
+  mdrun_opts+=" ${CSG_MDRUN_OPTS}"
 fi
 
 #support of REMD during gromacs simlation
@@ -132,6 +139,7 @@ if [[ $(csg_get_property cg.inverse.gromacs.REMD) = "no" ]]; then
 #see can run grompp again as checksum of tpr does not appear in the checkpoint
 critical ${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
 [[ -f $tpr ]] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
+
 mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command)"
 #no check for mdrun, because mdrun_mpi could maybe exist only computenodes
 fi
@@ -147,17 +155,21 @@ else
   echo "${0##*/}: No walltime defined, so no time limitation given to $mdrun"
 fi
 
-#>gmx-5.1 has new handling of bonded tables, remove this block we drop support for gmx-5.0 
-if [[ ${gmx_ver} = *"VERSION 5.1"* || ${gmx_ver} = *"version 2016"* ]] && [[ ${mdrun_opts} != *tableb* ]]; then
+#>gmx-5.1 has new handling of bonded tables
+if [[ ${mdrun_opts} != *tableb* ]]; then
   tables=
   for i in table_[abd][0-9]*.xvg; do
     [[ -f $i ]] && tables+=" $i"
   done
   if [[ -n ${tables} ]]; then
-	  msg --color blue --to-stderr "Automatically added '-tableb${tables} to mdrun options (add -tableb option to cg.inverse.gromacs.mdrun.opts yourself if this is wrong)"
+    gmx_ver="$(critical ${grompp[@]} -h 2>&1)"
+    shopt -s extglob
+    [[ ${gmx_ver} = *"VERSION 5.1"+(.1|.2)* ]] && die "GROMACS 5.1 to 5.1.2 don't support tabulated bonds (http://redmine.gromacs.org/issues/1913), please update your GROMACS version" 
+    msg --color blue --to-stderr "Automatically added '-tableb${tables} to mdrun options (add -tableb option to cg.inverse.gromacs.mdrun.opts yourself if this is wrong)"
     mdrun_opts+=" -tableb${tables}"
   fi
 fi
+
 if [[ $(csg_get_property cg.inverse.gromacs.REMD) = "no" ]]; then
 critical $mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts} ${CSG_RUNTEST:+-v} 2>&1 | gromacs_log "$mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts}"
 fi

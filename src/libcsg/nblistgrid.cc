@@ -159,13 +159,13 @@ void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead)
         vec r = _top->BCShortestConnection(v, u);
         double d = abs(r);
         if(d < _cutoff){
-        if(_do_exclusions)
+          if(_do_exclusions)
             if(_top->getExclusions().IsExcluded((*iter), bead)) {
                 continue;
             }
-            if((*_match_function)(*iter, bead, r, d))
-               if(!FindPair(*iter, bead))
-                    AddPair(_pair_creator(*iter, bead, r));
+          if((*_match_function)(*iter, bead, r, d))
+             if(!FindPair(*iter, bead))
+                  AddPair(_pair_creator(*iter, bead, r));
         }
     }
 }

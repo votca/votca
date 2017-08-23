@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,21 +23,23 @@ $progname, version %version%
 This script calls the pressure corrections ''\$dU=A*(1-r/r_c)\$'', where
 ''\$A=-0.1k_B T * \\\\max(1,|p_cur-p_target|*scale) * \\\\sign(p_cur-p_target)\$''
 
-Usage: $progname p_cur outfile
+Usage: $progname p_cur outfile kBT min:step:max scale p_target
 EOF
   exit 0;
 }
 
-die "2 parameters are necessary\n" if ($#ARGV<1);
+die "6 parameters are necessary\n" if ($#ARGV<5);
 
 use CsgFunctions;
 
-my $kBT=csg_get_property("cg.inverse.kBT");
-my $max=csg_get_interaction_property("max");
-my $min=csg_get_interaction_property("min");
-my $delta_r=csg_get_interaction_property("step");
-my $scale_factor=csg_get_interaction_property("inverse.post_update_options.pressure.simple.scale");
-my $p_target=csg_get_interaction_property("inverse.p_target");
+my $kBT=$ARGV[2];;
+my @range=split(/:/,$ARGV[3]);
+defined($range[2]) || die "Not enough number in range $ARGV[3], got ".($#range+1)." need 3\n";
+my $max=$range[2];
+my $min=$range[0];
+my $delta_r=$range[1];
+my $scale_factor=$ARGV[4];
+my $p_target=$ARGV[5];
 my $p_now=$ARGV[0];
 
 #Determine the sign

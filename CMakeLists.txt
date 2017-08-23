@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(votca-csg)
 
-set(PROJECT_VERSION "1.4-dev")
+set(PROJECT_VERSION "1.5-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
 string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "[1-9]+")
@@ -28,6 +28,12 @@ enable_language(CXX)
 #####################################################################
 
 include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if(COMPILER_SUPPORTS_CXX11)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else()
+	message(FATAL_ERROR "Could not find a C++-11 compiler")
+endif()
 
 ########################################################################
 # User input options                                                   #
@@ -42,6 +48,11 @@ endif(NOT DEFINED MAN)
 if (NOT DEFINED DATA)
   set(DATA "share/votca")
 endif(NOT DEFINED DATA)
+
+option(ENABLE_TESTING "Build and enable testing stuff" OFF)
+if(ENABLE_TESTING)
+  enable_testing()
+endif(ENABLE_TESTING)
 
 # this has to be the include specification!
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -131,3 +142,8 @@ if(NOT TARGET uninstall)
   add_custom_target(uninstall)
 endif()
 add_dependencies(uninstall uninstall-csg)
+
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+  include(FeatureSummary)
+  feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
+endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)

@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,8 +26,6 @@ Used external packages: octave
 EOF
    exit 0
 fi
-
-#[[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
 [[ -z $1 || -z $2 || -z $3 ]] && die "${0##*/}: Missing arguments"
 # initialize & run the octave file

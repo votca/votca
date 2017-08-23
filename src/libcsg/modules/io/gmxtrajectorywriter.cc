@@ -38,8 +38,8 @@ void GMXTrajectoryWriter::Write(Topology *conf)
     int N = conf->BeadCount();
     t_trxframe frame;
     rvec *x = new rvec[N];
-    rvec *v;
-    rvec *f;
+    rvec *v = NULL;
+    rvec *f = NULL;
     matrix box = conf->getBox();
     
     frame.natoms = N;
@@ -48,7 +48,9 @@ void GMXTrajectoryWriter::Write(Topology *conf)
     frame.bStep = true;
     frame.step = conf->getStep();;
     frame.x = x;
+#if GMX < 52
     frame.bTitle=false;
+#endif
     frame.bLambda=false;
     frame.bAtoms=false;
     frame.bPrec=false;

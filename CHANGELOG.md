@@ -1,10 +1,35 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
-## Version 1.4-dev
+## Version 1.5-dev
+* dropped support for gmx-5.0
+
+## Version 1.4 _SuperKurt_ (released 29.10.16)
+* added cibi tutorial and manual section
+* install mkl headers if mkl is enabled
+* updated copyright
+* xmltopologyparser: tokenize on \n and \t as well (#195)
+* tools: added support for boost-1.62
+
+## Version 1.4_rc1 (released 26.09.16)
+ * switch to c++-11
+ * dihedral support in csg_fmatch
+ * support for tabulated bond in >=gmx-5
+ * added full featured XMLTopologyReader
+ * added regularization for IMC
+ * changed neighborlist from std::list to std::vector
+ * added cibi method
+ * tools: added support for mkl as gsl replacement
+ * lots of reader bug fixes
  * dropped support for gromacs-4 and clean up
  * dropped multi_g_rdf script
  * dropped thermforce iteration method
  * moved h5md reader to hdf5 without c++ api
+
+## Version 1.3.1 (released 19.08.16)
+* histogram: use floor() on bin value
+* calculator: fixed namespace
+* VOTCARC: added shebang
+* fixed gromacs detection with >=cmake-3.4
 
 ## Version 1.3 _SuperUzma_ (released 15.01.16)
 * re-implemented csg_boltzmann --excl

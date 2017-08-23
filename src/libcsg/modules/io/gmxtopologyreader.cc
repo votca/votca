@@ -31,8 +31,6 @@
         #include <gromacs/fileio/tpxio.h>
         #include <gromacs/topology/atoms.h>
         #include <gromacs/topology/topology.h>
-#elif GMX == 50
-        #include <gromacs/fileio/tpxio.h>
 #else
 #error Unsupported GMX version
 #endif
@@ -93,6 +91,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
                 Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind + res_offset, a->m, a->q);
+		cout << "XXX: " <<  a->resind << endl;
 
                 stringstream nm;
                 nm << bead->getResnr() + 1 - res_offset << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();

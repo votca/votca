@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2012 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,18 +18,20 @@
 if [[ $1 = "--help" ]]; then
 cat <<EOF
 ${0##*/}, version %version%
-Will download cma python module and put it in CSGSHARE
+This script calcs the pressure for lammps and writes it to outfile
 
-Usage: ${0##*/}
+Usage: ${0##*/} outfile
+
+Used external packages: lammps
 EOF
    exit 0
 fi
 
-[[ -n "$(type -p wget)" ]] || die "${0##*/}: Could not find wget"
-msg "We will now go to http://www.lri.fr/~hansen/cmaes_inmatlab.html and get the cma python module"
-msg "Please consider sending Nikolaus Hansen an email telling him that you are using his code"
-msg "within VOTCA. hansen@lri.fr, it will only take seconds!"
-sleep 10
-critical wget -O "${CSGSHARE}/cma.py" "http://www.lri.fr/~hansen/cma.py"
-critical chmod 755 "${CSGSHARE}/cma.py"
-msg "Done"
+[[ -z $1 ]] && die "${0##*/}: Missing argument"
+
+p_file="$(csg_get_property cg.inverse.lammps.pressure_file)" 
+
+[[ -f ${p_file} ]] || die "${0##*/}: pressure file '${p_file}' doesn't exist" 
+
+p_now=$(awk 'NR > 1 {avg += $1} END {printf "%.16f\n", avg/(NR-1)}' ${p_file}) || die "${0##*/}: pressure averaging failed" 
+echo "Pressure=${p_now}" > "$1"

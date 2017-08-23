@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +80,8 @@ protected:
         int splineIndex;
         /// \brief true for bonded interactions, false for non-bonded
         bool bonded;
+        /// \brief true if tabulated forces are periodic (e.g. for dihedral interactions)
+        bool periodic;
         /// \brief CubicSpline object
         CubicSpline Spline;
         /// \brief position in the _A matrix (first coloumn which is occupied with this particular spline)
@@ -136,6 +138,9 @@ protected:
   int _frame_counter;
   /// \brief Number of CG beads
   int _nbeads;
+  
+  /// \brief accuracy for evaluating the difference in bead positions 
+  double _dist;
   
   /// \brief Flag: true for constrained least squares, false for simple least squares
   bool _constr_least_sq;

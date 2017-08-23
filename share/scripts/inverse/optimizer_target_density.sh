@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +31,9 @@ name="$(csg_get_interaction_property name)"
 mol="$(csg_get_interaction_property inverse.optimizer.density.molname)"
 axis="$(csg_get_interaction_property inverse.optimizer.density.axis)"
 step="$(csg_get_interaction_property inverse.optimizer.density.step)"
-opts=( "--molname" "$mol" "--axis" "$axis" "--step" "$step" )
+# added scale
+scale="$(csg_get_interaction_property inverse.optimizer.density.scale)"
+opts=( "--molname" "$mol" "--axis" "$axis" "--step" "$step" "--scale" "$scale")
 do_external density ${sim_prog} "${name}.density.new" "${opts[@]}"
 
 [[ -f ${name}.density.new ]] || die "${0##*/}: Could not calculate ${name}.density.new"

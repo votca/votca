@@ -1,6 +1,6 @@
 package CsgFunctions;
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,40 +21,18 @@ require Exporter;
 
 use vars qw(@ISA @EXPORT);
 @ISA         = qw(Exporter);
-@EXPORT      = qw(csg_function_help csg_get_property csg_get_interaction_property readin_table readin_data saveto_table saveto_table_err readin_table_err);
+@EXPORT      = qw(csg_function_help readin_table readin_data saveto_table saveto_table_err readin_table_err);
 
 sub csg_function_help() {
   print <<EOF;
-CsgSimplexFunctions, version %version%
+CsgFunctions, version %version%
 Provides useful function for VOTCA's iterative framework written in perl:
-csg_get_property(\$;\$):             get a value from xml file
-csg_get_interaction_property(\$;\$): get a interaction property from xmlfile
 readin_table(\$\\@\\@\\@;\\\$):           reads in csg table
 readin_table_err(\$\\@\\@\\@;\\\$):           reads in csg table with errors
 saveto_table(\$\\@\\@\\@;\$):           writes to a csg table
 saveto_table_err(\$\\@\\@\\@;\$) :      writes to csg table with errors
 EOF
   exit 0;
-}
-
-sub csg_get_property($;$){
-  defined($_[0]) || die "csg_get_property: Missing argument\n";
-  my $cmd="csg_get_property '$_[0]'";
-  $cmd="csg_get_property $_[0]' '$_[1]'" if (defined($_[1]));
-  my $value=`$ENV{'BASH'} -c "$cmd"`;
-  die "csg_get_property: error in perl from bash function csg_get_property\n" if ($? != 0);
-  chomp($value);
-  return $value;
-}
-
-sub csg_get_interaction_property($;$){
-  defined($_[0]) || die "csg_get_interaction_property: Missing argument\n";
-  my $cmd="csg_get_interaction_property '$_[0]'";
-  $cmd="csg_get_interaction_property '$_[0]' '$_[1]'" if (defined($_[1]));
-  my $value=`$ENV{'BASH'} -c "$cmd"`;
-  die "csg_get_interaction_property: error in perl from bash function csg_get_interaction_property\n" if ($? != 0);
-  chomp($value);
-  return $value;
 }
 
 sub readin_table($\@\@\@;\$) {
