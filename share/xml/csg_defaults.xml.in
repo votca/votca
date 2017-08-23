@@ -123,7 +123,7 @@
 	    <DESC> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</DESC>
       </first_frame>
       <g_energy>
-	      <bin>@G_ENERGY@
+	      <bin>gmx energy
 	      <DESC> Name (or absolute path) of the g_energy binary</DESC>
 	      </bin>
 	      <opts>
@@ -143,7 +143,7 @@
 	      <DESC>GMXRC to source at the startup</DESC>
       </gmxrc>
       <grompp>
-	      <bin>@GROMPP@
+	      <bin>gmx grompp
 	      <DESC> Name (or absolute path) of the grompp binary</DESC>
 	      </bin>
 	      <opts>
@@ -163,7 +163,7 @@
 	      <checkpoint>state.cpt
 	      <DESC>Name of the checkpint to use in case of restarted simulation</DESC>
 	      </checkpoint>
-	      <command>@MDRUN@
+	      <command>gmx mdrun
 	      <DESC>Command to run mdrun (name or absolute path or mpirun mdrun..)</DESC>
 	      </command>
 	      <opts>
@@ -173,6 +173,13 @@
       <pot_max>1000000
 	    <DESC> cut the potential at this value (gromacs bug) </DESC>
       </pot_max>
+      <REMD> no
+      <PREFIX></PREFIX>
+      <T_for_replicas></T_for_replicas>
+      <mdrun>
+      <command> </command>
+      </mdrun>
+      </REMD>
       <pre_simulation>no
 	    <DESC>A pre simulation (e.g. minimization / equilibration ) is a simulation with a different mdp/topol/index</DESC>
 	    <index>
@@ -506,7 +513,7 @@
 	        <DESC> Start of the tabulated potential of this interaction. (Automatic for gromacs)</DESC>
 	      </table_begin>
         <table_bins>
-	        <DESC> Binszie of the tabulated potential of this interaction. (gromacs uses a non interaction specific option)</DESC>
+	        <DESC> Binszie of the tabulated potential of this interaction. (ebzncf hfrf n aba vageraction specific option)</DESC>
 	      </table_bins>
       </sim_prog>
       <imc>
@@ -683,6 +690,9 @@
           <step>
             <DESC>Step size of interval in which density calculation is performed.</DESC>
           </step>
+               <scale>1.0
+               <DESC>Scaling factor for density</DESC>
+               </scale>
 	        <molname>*
 	        <DESC>The molname of this interaction</DESC>
 	        </molname>

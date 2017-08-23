@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -53,7 +53,9 @@ grompp=( $(csg_get_property cg.inverse.gromacs.grompp.bin) )
 traj=$(csg_get_property cg.inverse.gromacs.traj)
 if [[ $1 != "--pre" ]]; then
   #in a presimulation usually do care about traj and temperature
+  if [[ $(csg_get_property cg.inverse.gromacs.REMD) = "no" ]]; then
   check_temp || die "${0##*/}: check of tempertures failed"
+  fi
   if  [[ $traj == *.xtc ]]; then
     [[ $(get_simulation_setting nstxtcout 0) -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj) is '${traj##*.}', but nstxtcout is 0 in $mdp. Please check the setting again and remove the current step."
   elif [[ $traj == *.trr ]]; then
@@ -97,29 +99,42 @@ fi
 
 #support for older mdp file, cutoff-scheme = Verlet is default for Gromacs 5.0, but does not work with tabulated interactions
 #XXX is returned if cutoff-scheme is not in mdp file
-if [[ $(critical ${grompp[@]} -h 2>&1) = *"VERSION 5."[01]* && $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
+gmx_ver="$(critical ${grompp[@]} -h 2>&1)"
+if [[ ${gmx_ver} = *"VERSION 5."[01]* || ${gmx_ver} = *"version 2016"* ]] && [[ $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
   echo "cutoff-scheme = Group" >> $mdp
   msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
 fi
 
 if [[ ${CSG_MDRUN_STEPS} ]]; then
-  #mdrun <4.6 does not have -nsteps options, remove this block whenever we drop support for <4.6
-  if [[ $(critical ${grompp[@]} -h 2>&1) = *"VERSION 4."[05]* ]]; then
-    nsteps=$(get_simulation_setting nsteps)
-    critical sed -i "/^nsteps/s/=.*/=${CSG_MDRUN_STEPS}/" $mdp
-    msg --color blue --to-stderr "Replace nsteps (=$nsteps) in '$mdp' to be ${CSG_MDRUN_STEPS}"
-  else
-    msg --color blue --to-stderr "Appending -nsteps ${CSG_MDRUN_STEPS} to mdrun options"
-    mdrun_opts+=" -nsteps $CSG_MDRUN_STEPS"
-  fi
+  msg --color blue --to-stderr "Appending -nsteps ${CSG_MDRUN_STEPS} to mdrun options"
+  mdrun_opts+=" -nsteps $CSG_MDRUN_STEPS"
 fi
 
+#support of REMD during gromacs simlation
+if [[ $(csg_get_property cg.inverse.gromacs.REMD) = "yes" ]]; then
+PREFIX="$(csg_get_property cg.inverse.gromacs.REMD.PREFIX)"
+read -a T <<<"$(csg_get_property cg.inverse.gromacs.REMD.T_for_replicas)"
+j=0
+for i in "${T[@]}"
+do
+echo $i
+#TEMP has to be written as a place holer for the temperature in the *.mdp file
+sed "s/TEMP/$i/" grompp.mdp > grompp_$j.mdp
+critical ${grompp[@]} -n "${index}" -f "grompp_$j.mdp" -p "$topol_in" -o "$PREFIX"_"$j.tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
+#see can run grompp again as checksum of tpr does not appear in the checkpoint
+[[ -f "$PREFIX"_"$j.tpr" ]] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
+let j=$j+1
+done
+mdrun="$(csg_get_property cg.inverse.gromacs.REMD.mdrun.command)"
+fi
+
+if [[ $(csg_get_property cg.inverse.gromacs.REMD) = "no" ]]; then
 #see can run grompp again as checksum of tpr does not appear in the checkpoint
 critical ${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
 [[ -f $tpr ]] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
-
 mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command)"
 #no check for mdrun, because mdrun_mpi could maybe exist only computenodes
+fi
 
 if [[ -n $CSGENDING ]]; then
   #seconds left for the run
@@ -132,7 +147,25 @@ else
   echo "${0##*/}: No walltime defined, so no time limitation given to $mdrun"
 fi
 
+#>gmx-5.1 has new handling of bonded tables, remove this block we drop support for gmx-5.0 
+if [[ ${gmx_ver} = *"VERSION 5.1"* || ${gmx_ver} = *"version 2016"* ]] && [[ ${mdrun_opts} != *tableb* ]]; then
+  tables=
+  for i in table_[abd][0-9]*.xvg; do
+    [[ -f $i ]] && tables+=" $i"
+  done
+  if [[ -n ${tables} ]]; then
+	  msg --color blue --to-stderr "Automatically added '-tableb${tables} to mdrun options (add -tableb option to cg.inverse.gromacs.mdrun.opts yourself if this is wrong)"
+    mdrun_opts+=" -tableb${tables}"
+  fi
+fi
+if [[ $(csg_get_property cg.inverse.gromacs.REMD) = "no" ]]; then
 critical $mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts} ${CSG_RUNTEST:+-v} 2>&1 | gromacs_log "$mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts}"
+fi
+
+#mdrun for REMD
+if [[ $(csg_get_property cg.inverse.gromacs.REMD) = "yes" ]]; then
+critical $mdrun 
+fi
 
 [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
 
