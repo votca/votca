@@ -80,7 +80,7 @@ public:
    int _AOBasisFragA;
    int _AOBasisFragB;
    
-   bool _is_stable;
+  
    
     std::vector<AOShell*> _aoshells;
 

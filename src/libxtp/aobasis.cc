@@ -428,8 +428,7 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _frag
        _AOBasisSize = 0;
        _AOBasisFragA=0;
        _AOBasisFragB=0;
-       _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false.
-
+    
        int _atomidx = 0;
 
        // loop over atoms
@@ -478,7 +477,7 @@ void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
         std::vector < ctp::QMAtom* > :: iterator atom;
 
        _AOBasisSize = 0;
-       _is_stable = true; // _is_stable = true corresponds to gwa_basis%S_ev_stable = .false.
+     
 
        int _atomidx = 0;
 
