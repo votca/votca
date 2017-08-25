@@ -568,11 +568,11 @@ namespace votca {
 
             // PPM is symmetric, so we need to get the sqrt of the Coulomb matrix
            
-            ub::matrix<double> _gwoverlap_cholesky_inverse; // will also be needed in PPM itself
+            
 
-            int removed_functions=_gwcoulomb.Symmetrize(_gwoverlap, gwbasis, _gwoverlap_cholesky_inverse);
+            int removed_functions=_gwcoulomb.Symmetrize();
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM"<<flush;
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Removed "<<removed_functions<< " functions from gwbasis to avoid near linear dependencies" << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Removed "<<removed_functions<< " functions from gwcoulomb to avoid near linear dependencies" << flush;
             /* calculate 3-center integrals,  convoluted with DFT eigenvectors
              *
              *  M_mn(beta) = \int{ \psi^DFT_m(r) \phi^GW_beta(r) \psi^DFT_n d3r  }
@@ -590,7 +590,7 @@ namespace votca {
             _Mmn.Fill(gwbasis, _dftbasis, _dft_orbitals);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
 
-
+           
 
 
             // make _Mmn symmetric
@@ -602,6 +602,23 @@ namespace votca {
             _Mmn_RPA.Initialize(gwbasis.AOBasisSize(), _rpamin, _homo, _homo + 1, _rpamax);
             RPA_prepare_threecenters(_Mmn_RPA, _Mmn);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared Mmn_beta for RPA  " << flush;
+            
+            
+            ub::matrix<double> _gwoverlap_cholesky = _gwoverlap.Matrix();
+            linalg_cholesky_decompose( _gwoverlap_cholesky );
+           
+            // remove L^T from Cholesky
+            #pragma omp parallel for 
+            for (unsigned i =0; i < _gwoverlap_cholesky.size1(); i++ ){
+                for (unsigned j = i+1; j < _gwoverlap_cholesky.size1(); j++ ){
+                    _gwoverlap_cholesky(i,j) = 0.0;
+                }
+            }
+            
+            ub::matrix<double> _gwoverlap_cholesky_inverse; // will also be needed in PPM itself
+            int removed=linalg_invert_svd(  _gwoverlap_cholesky, _gwoverlap_cholesky_inverse,1e7 );
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<removed_functions<< " functions from gwoverlap to avoid near linear dependencies" << flush;
+             
 
             // fix the frequencies for PPM
             _screening_freq = ub::zero_matrix<double>(2, 2); // two frequencies

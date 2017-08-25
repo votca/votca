@@ -1143,48 +1143,21 @@ if (_lmax_col > 5) {
     
 
     
-    int AOCoulomb::Symmetrize(const AOOverlap& _gwoverlap,const AOBasis& gwbasis, ub::matrix<double>& _gwoverlap_cholesky_inverse){
+    int AOCoulomb::Symmetrize(){
         int removed_functions=0;
        
-            // get inverse of _aooverlap
-           ub::matrix<double> _gwoverlap_inverse;
-           removed_functions=linalg_invert_svd( _gwoverlap.Matrix(), _gwoverlap_inverse,1e7 );
+          
+           //invert V to get V-1
+            ub::matrix<double> Vm1=_aomatrix;
+            int removed=linalg_invert_svd(  _aomatrix, Vm1,1e7 );
+         
+            //V-1 to V-1/2
+            linalg_matrixsqrt(Vm1);
+           _aomatrix=Vm1;
             
-            
-            // make copy of _gwoverlap, because matrix is overwritten in GSL
-            ub::matrix<double> _gwoverlap_cholesky = _gwoverlap.Matrix();
-            linalg_cholesky_decompose( _gwoverlap_cholesky );
-           
-            // remove L^T from Cholesky
-            #pragma omp parallel for 
-            for (unsigned i =0; i < _gwoverlap_cholesky.size1(); i++ ){
-                for (unsigned j = i+1; j < _gwoverlap_cholesky.size1(); j++ ){
-                    _gwoverlap_cholesky(i,j) = 0.0;
-                }
-            }
-            
-            // invert L to get L^-1
-           
-            int removed2=linalg_invert_svd(  _gwoverlap_cholesky, _gwoverlap_cholesky_inverse,1e7 );
-            if(removed2>removed_functions){
-                removed_functions=removed2;
-            }
-            
-            // calculate V' = L^-1 V (L^-1)^T
-            ub::matrix<double> _temp = ub::prod( _gwoverlap_cholesky_inverse , _aomatrix );
-            _aomatrix = ub::prod( _temp, ub::trans(_gwoverlap_cholesky_inverse));
-            
-            linalg_matrixsqrt(_aomatrix);
-           
-            // multiply with L from the left and L+ from the right
-            _temp = ub::prod( _gwoverlap_cholesky , _aomatrix );
-            _aomatrix = ub::prod( _temp ,ub::trans( _gwoverlap_cholesky ));
-            
-            _aomatrix = ub::prod(_aomatrix , _gwoverlap_inverse);
- 
 
       
-      return removed_functions;  
+      return removed;  
     }
     
     
