@@ -55,7 +55,7 @@ namespace votca {
             linalg_eigenvalues(_temp, _eigenvalues, _eigenvectors);
             _eigenvectors=ub::trans(_eigenvectors);
             // multiply eigenvectors with overlap_cholesky_inverse and store as eigenvalues of epsilon
-            _ppm_phi = ub::prod(_eigenvectors, ub::trans(_overlap_cholesky_inverse));
+            _ppm_phi = ub::prod(_eigenvectors, _overlap_cholesky_inverse);
             
             // store PPM weights from eigenvalues
             _ppm_weight.resize(_eigenvalues.size());
