@@ -559,12 +559,15 @@ namespace votca {
 
             // get Coulomb matrix as AOCoulomb
             AOCoulomb _gwcoulomb;
+           
+            
             // initialize Coulomb matrix
             _gwcoulomb.Initialize(gwbasis.AOBasisSize());
             // Fill Coulomb matrix
             _gwcoulomb.Fill(gwbasis);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Coulomb matrix of dimension: " << _gwcoulomb.Matrix().size1() << flush;
-
+            linalg_eigenvalues(_gwcoulomb.Matrix(), _eigenvalues, _eigenvectors);
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of GW Coulomb matrix : " << _eigenvalues[0] << flush;
 
             // PPM is symmetric, so we need to get the sqrt of the Coulomb matrix
            
@@ -617,7 +620,7 @@ namespace votca {
             
             ub::matrix<double> _gwoverlap_cholesky_inverse; // will also be needed in PPM itself
             int removed=linalg_invert_svd(  _gwoverlap_cholesky, _gwoverlap_cholesky_inverse,1e7 );
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<removed_functions<< " functions from gwoverlap to avoid near linear dependencies" << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<removed<< " functions from gwoverlap to avoid near linear dependencies" << flush;
              
 
             // fix the frequencies for PPM

@@ -1144,20 +1144,41 @@ if (_lmax_col > 5) {
 
     
     int AOCoulomb::Symmetrize(){
-        int removed_functions=0;
+        
        
-          
-           //invert V to get V-1
-            ub::matrix<double> Vm1=_aomatrix;
-            int removed=linalg_invert_svd(  _aomatrix, Vm1,1e7 );
-         
-            //V-1 to V-1/2
-            linalg_matrixsqrt(Vm1);
-           _aomatrix=Vm1;
-            
-
-      
-      return removed;  
+    
+    ub::matrix<double>VT=ub::zero_matrix<double>(_aomatrix.size1());
+    ub::vector<double>S=ub::zero_vector<double>(_aomatrix.size1());
+    
+    bool check=linalg_singular_value_decomposition(_aomatrix, VT,S );
+    if (check){
+        throw runtime_error("Svd Calculation failed. AOCoulomb::Symmetrize");
+    }
+    double limitCN=1e7;
+    int dimensions=0;
+    //invert S
+    ub::matrix<double>Sinverse=ub::zero_matrix<double>(S.size());
+    for (unsigned i=0;i<S.size();i++){
+        if (S(i)==0){
+            break;
+        }
+        double CN=S(0)/S(i);
+        //cout<< CN<<endl;
+        //cout << limitCN << endl;
+        if(CN>limitCN){
+            break;
+        }
+        else{
+            Sinverse(i,i)=1.0/sqrt(S(i));
+            dimensions++;
+        }
+    }
+    
+    
+    ub::matrix<double> _temp=ub::prod(ub::trans(VT),Sinverse);
+    _aomatrix=ub::prod(_temp,ub::trans(_aomatrix));
+    
+    return S.size()-dimensions; 
     }
     
     
