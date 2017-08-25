@@ -1143,7 +1143,7 @@ if (_lmax_col > 5) {
     
 
     
-    int AOCoulomb::Symmetrize(const AOOverlap& _gwoverlap,const AOBasis& gwbasis, ub::matrix<double>& _gwoverlap_cholesky_inverse){
+    int AOCoulomb::Symmetrize(const AOOverlap& _gwoverlap, ub::matrix<double>& _gwoverlap_cholesky_inverse){
         int removed_functions=0;
        
             // get inverse of _aooverlap
@@ -1170,14 +1170,14 @@ if (_lmax_col > 5) {
                 removed_functions=removed2;
             }
             
-            // calculate V' = L^-1 V (L^-1)^T
+            // calculate V' = L^-1 V (L^-1)^T, e.g transform to orthogonal basis
             ub::matrix<double> _temp = ub::prod( _gwoverlap_cholesky_inverse , _aomatrix );
             _aomatrix = ub::prod( _temp, ub::trans(_gwoverlap_cholesky_inverse));
             
             linalg_matrixsqrt(_aomatrix);
            
-            // multiply with L from the left and L+ from the right
-            _temp = ub::prod( _gwoverlap_cholesky , _aomatrix );
+            //multiply with L from the left and L+ from the right, transform back
+           _temp = ub::prod( _gwoverlap_cholesky , _aomatrix );
             _aomatrix = ub::prod( _temp ,ub::trans( _gwoverlap_cholesky ));
             
             _aomatrix = ub::prod(_aomatrix , _gwoverlap_inverse);

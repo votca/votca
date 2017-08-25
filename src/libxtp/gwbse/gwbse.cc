@@ -570,7 +570,7 @@ namespace votca {
            
             ub::matrix<double> _gwoverlap_cholesky_inverse; // will also be needed in PPM itself
 
-            int removed_functions=_gwcoulomb.Symmetrize(_gwoverlap, gwbasis, _gwoverlap_cholesky_inverse);
+            int removed_functions=_gwcoulomb.Symmetrize(_gwoverlap, _gwoverlap_cholesky_inverse);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM"<<flush;
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Removed "<<removed_functions<< " functions from gwbasis to avoid near linear dependencies" << flush;
             /* calculate 3-center integrals,  convoluted with DFT eigenvectors
