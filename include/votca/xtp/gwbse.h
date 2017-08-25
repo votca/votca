@@ -226,7 +226,7 @@ namespace votca {
             ub::vector<double> _ppm_freq;
             ub::vector<double> _ppm_weight;
 
-            void PPM_construct_parameters(const ub::matrix<double>& _overlap_cholesky_inverse,const ub::matrix<double>& _overlap_cholesky_inverse_trans);
+            void PPM_construct_parameters(const ub::matrix<double>& _overlap_cholesky_inverse);
 
             // Sigma related variables and functions
             ub::symmetric_matrix<double> _sigma_x; // exchange term

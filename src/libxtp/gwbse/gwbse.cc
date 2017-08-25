@@ -571,7 +571,6 @@ namespace votca {
             ub::matrix<double> _gwoverlap_cholesky_inverse; // will also be needed in PPM itself
 
             int removed_functions=_gwcoulomb.Symmetrize(_gwoverlap, gwbasis, _gwoverlap_inverse, _gwoverlap_cholesky_inverse);
-            ub::matrix<double> _gwoverlap_cholesky_inverse_trans=ub::trans(_gwoverlap_cholesky_inverse);// for performance reasons
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM"<<flush;
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Removed "<<removed_functions<< " functions from gwbasis to avoid near linear dependencies" << flush;
             /* calculate 3-center integrals,  convoluted with DFT eigenvectors
@@ -676,7 +675,7 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated epsilon via RPA  " << flush;
 
                 // construct PPM parameters
-                PPM_construct_parameters(_gwoverlap_cholesky_inverse,_gwoverlap_cholesky_inverse_trans);
+                PPM_construct_parameters(_gwoverlap_cholesky_inverse);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed PPM parameters  " << flush;
 
                 // prepare threecenters for Sigma
@@ -745,7 +744,6 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
             _gwoverlap.Matrix().resize(0, 0);
             _gwoverlap_cholesky_inverse.resize(0,0);
-            _gwoverlap_cholesky_inverse_trans.resize(0,0);
             _Mmn_RPA.Cleanup();
             if(_iterate_qp){
                 _Mmn_backup.Cleanup();

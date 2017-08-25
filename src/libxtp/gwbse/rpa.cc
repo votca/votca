@@ -39,7 +39,7 @@ namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
 
-        void GWBSE::PPM_construct_parameters(const ub::matrix<double>& _overlap_cholesky_inverse,const ub::matrix<double>& transcholeskyinverse) {
+        void GWBSE::PPM_construct_parameters(const ub::matrix<double>& _overlap_cholesky_inverse) {
             
             // multiply with L-1^t from the right
              
@@ -53,9 +53,9 @@ namespace votca {
             ub::matrix<double> _eigenvectors;
            
             linalg_eigenvalues(_temp, _eigenvalues, _eigenvectors);
-            
+            _eigenvectors=ub::trans(_eigenvectors);
             // multiply eigenvectors with overlap_cholesky_inverse and store as eigenvalues of epsilon
-            _ppm_phi = ub::prod(transcholeskyinverse, _eigenvectors);
+            _ppm_phi = ub::prod(_eigenvectors, ub::trans(_overlap_cholesky_inverse));
             
             // store PPM weights from eigenvalues
             _ppm_weight.resize(_eigenvalues.size());
@@ -66,10 +66,10 @@ namespace votca {
             // determine PPM frequencies
             _ppm_freq.resize(_eigenvalues.size());
             // a) phi^t * epsilon(1) * phi 
-            _temp=ub::trans(_ppm_phi);
-            _temp = ub::prod(_temp, _epsilon[1]);
+           
+            _temp = ub::prod(_ppm_phi, _epsilon[1]);
             
-            _eigenvectors = ub::prod(_temp, _ppm_phi);
+            _eigenvectors = ub::prod(_temp, ub::trans(_ppm_phi));
             // b) invert
             
             linalg_invert(_eigenvectors, _temp);
@@ -96,11 +96,7 @@ namespace votca {
                 }
 
             }
-
-            
-            // will be needed transposed later
-            _ppm_phi = ub::trans(_ppm_phi);
-            
+ 
             // epsilon can be deleted
             _epsilon[0].resize(0, 0);
             _epsilon[1].resize(0, 0);
