@@ -212,10 +212,10 @@ namespace votca {
             void symmetrize_threecenters(TCMatrix& _Mmn, ub::matrix<double>& _coulomb);
             void RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA);
 
-            void RPA_real(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, 
+            ub::matrix<double> RPA_real(const TCMatrix& _Mmn_RPA, 
                    const double screening_freq);
 
-            void RPA_imaginary(ub::matrix<double>& result, const TCMatrix& _Mmn_RPA, 
+            ub::matrix<double> RPA_imaginary(const TCMatrix& _Mmn_RPA, 
                     const double screening_freq);
 
             void RPA_prepare_threecenters(TCMatrix& _Mmn_RPA, const TCMatrix& _Mmn_full);
