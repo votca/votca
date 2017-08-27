@@ -27,10 +27,10 @@ enable_language(CXX)
 
 include(CheckCXXCompilerFlag)
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON) 
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0") 
-message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0")
+  message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
 endif()
 
 
@@ -102,7 +102,7 @@ if(MKL_FOUND)
   set(MKL_URL "http://software.intel.com/sites/default/files/managed/76/8c/intel-mkl-and-boost-example.zip")
   set(MKL_MD5 b957ee63a2167ad21b650b47726cd55c )
   set(MKL_FILE "intel-mkl-and-boost-example.zip")
-  
+
   include(ExternalProject)
   ExternalProject_add(intel
           PREFIX intel
@@ -162,7 +162,7 @@ foreach(FUNC sqrt)
 endforeach(FUNC)
 
 ######################################
-# Include the following subdirectory # 
+# Include the following subdirectory #
 ######################################
 add_subdirectory(src)
 add_subdirectory(include/votca/tools)
