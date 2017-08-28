@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.1)
 
 project(votca-csg)
 
@@ -28,11 +28,11 @@ enable_language(CXX)
 #####################################################################
 
 include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
-if(COMPILER_SUPPORTS_CXX11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-else()
-	message(FATAL_ERROR "Could not find a C++-11 compiler")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0")
+  message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
 endif()
 
 ########################################################################
