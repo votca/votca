@@ -30,20 +30,28 @@ fi
 
 tpr="$(csg_get_property cg.inverse.gromacs.topol)"
 
-mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
-[[ -f $mdp ]] || die "${0##*/}: gromacs mdp file '$mdp' not found (make sure it is in cg.inverse.filelist)"
-
-conf="$(csg_get_property cg.inverse.gromacs.conf)"
-[[ -f $conf ]] || die "${0##*/}: gromacs initial configuration file '$conf' not found (make sure it is in cg.inverse.filelist)"
-
 confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
 mdrun_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
+if [[ ${mdrun_opts} = *"-multi "* ]]; then
+  multi="$(echo "${mdrun_opts}" | sed -n 's/^.*-multi *\([0-9]*\).*$/\1/p')"
+  is_num "${multi}" || die "${0##*/}: could not grep number from cg.inverse.gromacs.mdrun.opts after -multi, got '${multi}'"
+fi
+
+mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
+# no check for multi simulation
+[[ $multi ]] || [[ -f $mdp ]] || die "${0##*/}: gromacs mdp file '$mdp' not found (make sure it is in cg.inverse.filelist)"
+
+conf="$(csg_get_property cg.inverse.gromacs.conf)"
+# no check for multi simulation
+[[ $multi ]] || [[ -f $conf ]] || die "${0##*/}: gromacs initial configuration file '$conf' not found (make sure it is in cg.inverse.filelist)"
 
 index="$(csg_get_property cg.inverse.gromacs.index)"
-[[ -f $index ]] || die "${0##*/}: grompp index file '$index' not found (make sure it is in cg.inverse.filelist)"
+# no check for multi simulation
+[[ $multi ]] || [[ -f $index ]] || die "${0##*/}: grompp index file '$index' not found (make sure it is in cg.inverse.filelist)"
 
 topol_in="$(csg_get_property cg.inverse.gromacs.topol_in)"
-[[ -f $topol_in ]] || die "${0##*/}: grompp text topol file '$topol_in' not found"
+# no check for multi simulation
+[[ $multi ]] || [[ -f $topol_in ]] || die "${0##*/}: grompp text topol file '$topol_in' not found"
 
 grompp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
@@ -51,11 +59,10 @@ grompp=( $(csg_get_property cg.inverse.gromacs.grompp.bin) )
 [[ -n "$(type -p ${grompp[0]})" ]] || die "${0##*/}: grompp binary '${grompp[0]}' not found"
 
 traj=$(csg_get_property cg.inverse.gromacs.traj)
+# in main simulation we usually do care about traj and temperature
 if [[ $1 != "--pre" ]]; then
-  #in a presimulation usually do care about traj and temperature
-  if [[ $(csg_get_property cg.inverse.gromacs.runmode) = "none" ]]; then
-  check_temp || die "${0##*/}: check of tempertures failed"
-  fi
+  # no temp check for multi simulation
+  [[ ${multi} ]] || check_temp || die "${0##*/}: check of tempertures failed"
   if  [[ $traj == *.xtc ]]; then
     #XXX is returned if nstxout-compressed is not in mdp file
     nstxtcout=$(get_simulation_setting nstxout-compressed XXX)
@@ -117,32 +124,26 @@ if [[ ${CSG_MDRUN_OPTS} ]]; then
   mdrun_opts+=" ${CSG_MDRUN_OPTS}"
 fi
 
-#support of REMD during gromacs simlation
-if [[ $(csg_get_property cg.inverse.gromacs.runmode) = "replex" ]]; then
-  PREFIX="$(csg_get_property cg.inverse.gromacs.runmode.replex.prefix)"
-  read -a T <<<"$(csg_get_property cg.inverse.gromacs.runmode.replex.replicas)"
-  j=0
-  for i in "${T[@]}"
-     do
-       echo $i
-       #TEMP has to be written as a place holer for the temperature in the *.mdp file
-       sed "s/TEMP/$i/" grompp.mdp > grompp_$j.mdp
-       critical ${grompp[@]} -n "${index}" -f "grompp_$j.mdp" -p "$topol_in" -o "$PREFIX"_"$j.tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
-    #see can run grompp again as checksum of tpr does not appear in the checkpoint
-       [[ -f "$PREFIX"_"$j.tpr" ]] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
-       let j=$j+1
-     done
-  mdrun="$(csg_get_property cg.inverse.gromacs.runmode.replex.mdrun.command)"
-fi
-
-if [[ $(csg_get_property cg.inverse.gromacs.runmode) = "none" ]]; then
-#see can run grompp again as checksum of tpr does not appear in the checkpoint
+# run gromacs multiple or one time
+if [[ ${multi} ]]; then
+  for((i=0;i<${multi};i++)); do
+    for j in index mdp topol_in conf; do
+      # read $j.$i (e.g index.1} and use ${!j} (e.g. ${index} ) as default and store it in f
+      f="$(csg_get_property --allow-empty "cg.inverse.gromacs.$j.$i" "${!j}")" #filter me away
+      [[ -f ${f} ]] || die "${0##*/}: file '$f' not found (make sure it is in cg.inverse.filelist)"
+      read ${j}_x <<< "${f}" # set ${j}_x (topol_x to ${f}
+    done
+    tpr_x="${tpr%.tpr}${i}.tpr"
+    critical ${grompp[@]} -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]} -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" ${grompp_opts}"
+  done
+else
+  #see can run grompp again as checksum of tpr does not appear in the checkpoint
   critical ${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
   [[ -f $tpr ]] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
-
-  mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command)"
-  #no check for mdrun, because mdrun_mpi could maybe exist only computenodes
 fi
+
+mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command)"
+#no check for mdrun, because mdrun_mpi could maybe exist only computenodes
 
 if [[ -n $CSGENDING ]]; then
   #seconds left for the run
@@ -170,14 +171,16 @@ if [[ ${mdrun_opts} != *tableb* ]]; then
   fi
 fi
 
-if [[ $(csg_get_property cg.inverse.gromacs.runmode) = "none" ]]; then
 critical $mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts} ${CSG_RUNTEST:+-v} 2>&1 | gromacs_log "$mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts}"
+
+if [[ ${multi} ]]; then
+  for((i=0;i<${multi};i++)); do
+    confout_x="${confout%.gro}${i}.gro"
+    [[ ! -f ${confout_x} ]] || [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout_x})" ]] || die "${0##*/}: There is a nan in '${confout_x}', this seems to be wrong."
+  done
+else
+  [[ ! -f ${confout} ]] || [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
 fi
 
-#mdrun for REMD
-if [[ $(csg_get_property cg.inverse.gromacs.runmode) = "replex" ]]; then
-critical $mdrun ${mdrun_opts}
-fi
-
-[[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
+# TODO combine trajectories...if user wants
 
