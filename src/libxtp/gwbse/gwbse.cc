@@ -566,14 +566,28 @@ namespace votca {
             // Fill Coulomb matrix
             _gwcoulomb.Fill(gwbasis);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Coulomb matrix of dimension: " << _gwcoulomb.Matrix().size1() << flush;
-            linalg_eigenvalues(_gwcoulomb.Matrix(), _eigenvalues, _eigenvectors);
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of GW Coulomb matrix : " << _eigenvalues[0] << flush;
-
+            
             // PPM is symmetric, so we need to get the sqrt of the Coulomb matrix
            
+            ub::matrix<double> _gwoverlap_cholesky = _gwoverlap.Matrix();
+            linalg_cholesky_decompose( _gwoverlap_cholesky );
+           
+            // remove L^T from Cholesky
+            #pragma omp parallel for 
+            for (unsigned i =0; i < _gwoverlap_cholesky.size1(); i++ ){
+                for (unsigned j = i+1; j < _gwoverlap_cholesky.size1(); j++ ){
+                    _gwoverlap_cholesky(i,j) = 0.0;
+                }
+            }
+            
+            ub::matrix<double> _gwoverlap_cholesky_inverse; // will also be needed in PPM itself
+            int removed=linalg_invert_svd(  _gwoverlap_cholesky, _gwoverlap_cholesky_inverse,1e7 );
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<removed<< " functions from gwoverlap to avoid near linear dependencies" << flush;
+            
+            
             
 
-            int removed_functions=_gwcoulomb.Symmetrize();
+            int removed_functions=_gwcoulomb.Symmetrize(_gwoverlap_cholesky);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM"<<flush;
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Removed "<<removed_functions<< " functions from gwcoulomb to avoid near linear dependencies" << flush;
             /* calculate 3-center integrals,  convoluted with DFT eigenvectors
@@ -607,20 +621,7 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared Mmn_beta for RPA  " << flush;
             
             
-            ub::matrix<double> _gwoverlap_cholesky = _gwoverlap.Matrix();
-            linalg_cholesky_decompose( _gwoverlap_cholesky );
-           
-            // remove L^T from Cholesky
-            #pragma omp parallel for 
-            for (unsigned i =0; i < _gwoverlap_cholesky.size1(); i++ ){
-                for (unsigned j = i+1; j < _gwoverlap_cholesky.size1(); j++ ){
-                    _gwoverlap_cholesky(i,j) = 0.0;
-                }
-            }
             
-            ub::matrix<double> _gwoverlap_cholesky_inverse; // will also be needed in PPM itself
-            int removed=linalg_invert_svd(  _gwoverlap_cholesky, _gwoverlap_cholesky_inverse,1e7 );
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<removed<< " functions from gwoverlap to avoid near linear dependencies" << flush;
              
 
             // fix the frequencies for PPM

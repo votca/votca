@@ -284,7 +284,7 @@ namespace votca { namespace xtp {
     class AOCoulomb : public AOMatrix{
     public:
         void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
-        int Symmetrize();
+        int Symmetrize(const ub::matrix<double>& _gwoverlap_cholesky);
        
         
     private:

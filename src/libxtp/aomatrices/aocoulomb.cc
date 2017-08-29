@@ -1143,42 +1143,38 @@ if (_lmax_col > 5) {
     
 
     
-    int AOCoulomb::Symmetrize(){
+    int AOCoulomb::Symmetrize(const ub::matrix<double>& _gwoverlap_cholesky){
         
        
-    
-    ub::matrix<double>VT=ub::zero_matrix<double>(_aomatrix.size1());
-    ub::vector<double>S=ub::zero_vector<double>(_aomatrix.size1());
-    
-    bool check=linalg_singular_value_decomposition(_aomatrix, VT,S );
-    if (check){
-        throw runtime_error("Svd Calculation failed. AOCoulomb::Symmetrize");
-    }
-    double limitCN=1e7;
-    int dimensions=0;
-    //invert S
-    ub::matrix<double>Sinverse=ub::zero_matrix<double>(S.size());
-    for (unsigned i=0;i<S.size();i++){
-        if (S(i)==0){
-            break;
+        
+         ub::matrix<double> _temp = ub::prod( _aomatrix , _gwoverlap_cholesky);
+        _aomatrix = ub::prod( ub::trans( _gwoverlap_cholesky ),_temp);
+        
+        ub::vector<double> S_eigenvalues;
+        linalg_eigenvalues( S_eigenvalues, _aomatrix);
+        if ( S_eigenvalues[0] < 0.0 ) {
+            cerr << " \n Negative eigenvalues in matrix_sqrt transformation " << endl;
+            return -1;
         }
-        double CN=S(0)/S(i);
-        //cout<< CN<<endl;
-        //cout << limitCN << endl;
-        if(CN>limitCN){
-            break;
-        }
-        else{
-            Sinverse(i,i)=1.0/sqrt(S(i));
-            dimensions++;
-        }
-    }
+        int removed_basisfunctions=0;
+    ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
+     for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
+         if(S_eigenvalues[_i]<1e-8){
+             removed_basisfunctions++;
+         }
+         else{
+         _diagS(_i,_i) = 1.0/sqrt(S_eigenvalues[_i]);
+         }
+     }
+    _temp = ub::prod( _diagS, ub::trans(_aomatrix));
+    _aomatrix = ub::prod( _aomatrix,_temp );
     
     
-    ub::matrix<double> _temp=ub::prod(ub::trans(VT),Sinverse);
-    _aomatrix=ub::prod(_temp,ub::trans(_aomatrix));
+       _temp = ub::prod( _aomatrix , ub::trans(_gwoverlap_cholesky));
+       _aomatrix = ub::prod( _gwoverlap_cholesky ,_temp);
+   
     
-    return S.size()-dimensions; 
+    return removed_basisfunctions; 
     }
     
     
