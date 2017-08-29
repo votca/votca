@@ -8,7 +8,7 @@ This section is a collection of facts we discovered about xtp and ctp which shou
 
 The cutoffs used should not exceed the dimension of the cell, at least for a non orthogonal unit cell. XQMM throws an error if your cutoff is larger than the box, but it does not take the extension of the molecule into accout, so often you may still have overlap.
 
-XQMMM takes the segment coordinates from the MPS\textunderscoreFiles so be vary careful which MPS\textunderscoreFile you put in.
+XQMMM takes the segment coordinates from the MPS\textunderscore Files so be vary careful which MPS\textunderscore File you put in.
 
 
 \subsection{EWALD}
@@ -27,8 +27,8 @@ There is a wide range of different approximations for $GW$-BSE. Here I try to su
 
 
 \begin{itemize}
- \item COHSEX: RPA is only calculated for $\omega=0$. This amounts to $\varepsilon(\vecr,\vec{r'},\omega)=\varepsilon(\vecr,\vec{r'})$. This is also called the static approximation to $GW$
- \item Plasmon Pole model; RPA is calculated moslty twice, once at $\omega=0$ and $\omega=\omega_0$ , then these values are used to fit an analytic model to interpolate $\varepsilon(\vecr,\vec{r'},\omega)$.
+ \item COHSEX: RPA is only calculated for $\omega=0$. This amounts to $\varepsilon(\vctr{r},\vctr{r'},\omega)=\varepsilon(\vctr{r},\vctr{r'})$. This is also called the static approximation to $GW$
+ \item Plasmon Pole model; RPA is calculated moslty twice, once at $\omega=0$ and $\omega=\omega_0$ , then these values are used to fit an analytic model to interpolate $\varepsilon(\vctr{r},\vctr{r'},\omega)$.
  \item Imaginary frequency integration, $\varepsilon$ is numerically integrated along the Imaginary frequency axis. This is done because $\varepsilon$ is much smoother along the Imaginary axis and thus requires less functional evaluations. Afterwards $\varepsilon$ is extended to real frequencies via analytic continuation.  
 \end{itemize}
 
@@ -48,9 +48,9 @@ The calculation of $GW$. In VOTCA we also have the \textbf{shift} option. This i
  \end{equation} 
  
  
- \item $scQPGW$. As $GW_0$, but after $\varepsilon_i^{GW}$ are converged, these energies are used to recalculate  $\varepsilon$ and then $W$, this is repeated until self-consistency is achieved. This is denoted \textbf{iterate} in VOTCA. This converges the ``eigenvalues'' of QP particles but along the $\ket{\phi^{GW}$ states
+ \item $scQPGW$. As $GW_0$, but after $\varepsilon_i^{GW}$ are converged, these energies are used to recalculate  $\varepsilon$ and then $W$, this is repeated until self-consistency is achieved. This is denoted \textbf{iterate} in VOTCA. This converges the ``eigenvalues'' of QP particles but along the $\ket{\phi^{GW}}$ states
  
- \item $scGW$. As $scQPGW$ but instead of correcting only the energies, the full $Sigma$ matrix is calculated and the eigenvalue problem for the QP is set up and solved and the whole system is then self-consistently solved in $\ket{\phi^{GW}$ states and not in   $\ket{\phi^{KS}$. This fully converges the eigenvalues and eigenvectors of the QP particles in the space spanned by $\ket{\phi^{KS}$, e.g. $\ket{\phi^{GW}$ are linear combinations of $\ket{\phi^{KS}$. This is reported to be unstable because the vertex corrections are important now. This is at the moment implemented in VOTCA.
+ \item $scGW$. As $scQPGW$ but instead of correcting only the energies, the full $Sigma$ matrix is calculated and the eigenvalue problem for the QP is set up and solved and the whole system is then self-consistently solved in $\ket{\phi^{GW}}$ states and not in   $\ket{\phi^{KS}}$. This fully converges the eigenvalues and eigenvectors of the QP particles in the space spanned by $\ket{\phi^{KS}}$, e.g. $\ket{\phi^{GW}}$ are linear combinations of $\ket{\phi^{KS}}$. This is reported to be unstable because the vertex corrections are important now. This is at the moment implemented in VOTCA.
  
 
 \end{itemize}
