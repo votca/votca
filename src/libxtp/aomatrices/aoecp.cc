@@ -872,7 +872,8 @@ namespace votca { namespace xtp {
             double SQ2, SQ3, SQ5;
 
             double Norm_S = pow(2.0 * decay / PI, 0.75);
-            double Norm_P, Norm_D;
+            double Norm_P=0.0;
+            double Norm_D=0.0;
             Norms[0] = Norm_S;  //  Y 00
 
             if (size > 1) {
