@@ -248,7 +248,7 @@
         <bin>gmx trjcat
           <DESC> Name (or absolute path) of the trjcat binary </DESC>
         </bin>
-      </traj>
+      </trjcat>
     </gromacs>
     <hoomd-blue>
       <command>hoomd
