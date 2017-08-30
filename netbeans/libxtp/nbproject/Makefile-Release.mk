@@ -112,7 +112,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce08c7a/threecenters_tools.o \
 	${OBJECTDIR}/_ext/1ce08c7a/toolfactory.o \
 	${OBJECTDIR}/_ext/69ca5806/exciton.o \
-	${OBJECTDIR}/_ext/69ca5806/qmanalyze.o \
 	${OBJECTDIR}/_ext/1ce08c7a/version.o \
 	${OBJECTDIR}/_ext/1ce08c7a/version_nb.o \
 	${OBJECTDIR}/_ext/1ce08c7a/xtpapplication.o
@@ -528,11 +527,6 @@ ${OBJECTDIR}/_ext/69ca5806/exciton.o: nbproject/Makefile-${CND_CONF}.mk ../../sr
 	${MKDIR} -p ${OBJECTDIR}/_ext/69ca5806
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/69ca5806/exciton.o ../../src/libxtp/tools/exciton.cc
-
-${OBJECTDIR}/_ext/69ca5806/qmanalyze.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/tools/qmanalyze.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/69ca5806
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/69ca5806/qmanalyze.o ../../src/libxtp/tools/qmanalyze.cc
 
 ${OBJECTDIR}/_ext/1ce08c7a/version.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/version.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a

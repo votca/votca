@@ -6,23 +6,6 @@
     </data>
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/orca.h</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackagefactory.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/aomatrices/aocoulomb.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/aomatrix.h</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/threecenters.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/threecenters_dft.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/ERIs.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/threecenters.h</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/aobasis.h</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/orca.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/threecenters_tools.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/rpa.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/gwa.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/threecenter_rep.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/aobasis.cc</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>

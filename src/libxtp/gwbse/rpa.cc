@@ -199,9 +199,7 @@ namespace votca {
 
                 // loop over empty levels
                 for (int _n_level = 0; _n_level < _Mmn_RPA.get_ntot(); _n_level++) {
-                    int index_n = _Mmn_RPA.get_nmin();
-
-
+                   
                     const double _deltaE = qp_energies(_n_level + index_n) - _qp_energy_m; // get indices and units right!!!
 
                     // this only works, if we have either purely real or purely imaginary frequencies
