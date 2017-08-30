@@ -545,14 +545,13 @@ namespace votca {
                     // fill DFT AO basis by going through all atoms
                     AOBasis dftbasis;
                     dftbasis.AOBasisFill(&dftbs, orb_iter_input.QMAtoms());
-                    dftbasis.ReorderMOs(_dft_orbitals, orb_iter_input.getQMpackage(), "xtp");
-                    // TBD: Need to switch between singlets and triplets depending on _type
-                    ub::matrix<double> DMATGS = orb_iter_input.DensityMatrixGroundState(_dft_orbitals);
+                    
+                    ub::matrix<double> DMATGS = orb_iter_input.DensityMatrixGroundState();
 
                     ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
 
                     if (_state > 0) {
-                        std::vector<ub::matrix<double> > DMAT = _gwbse->getExcitedStateDmat(_type, _state_index[_state - 1]);
+                        std::vector<ub::matrix<double> > DMAT = orb_iter_input.DensityMatrixExcitedState(_type, _state_index[_state - 1]);
                         DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
                     }
 

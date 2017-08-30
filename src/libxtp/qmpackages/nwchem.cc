@@ -595,8 +595,6 @@ namespace votca {
             }
 
 
-
-
             //cout << _mo_energies << endl;
             //cout << _mo_coefficients << endl;
 
@@ -715,9 +713,7 @@ namespace votca {
 
             if (_write_pseudopotentials) {
                 _orbitals->setECP(_ecp_name);
-            } else {
-                _orbitals->setECP("none");
-            }
+            } 
             // set _found_optimization to true if this is a run without optimization
             if (!_is_optimization) {
                 _found_optimization = true;
@@ -828,6 +824,8 @@ namespace votca {
                         // clear the index for the next block
                         _j_indeces.clear();
                     } // end of the blocks
+                    
+                    
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Read the Vxc matrix" << flush;
 
                 }

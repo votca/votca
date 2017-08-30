@@ -221,12 +221,6 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         CTP_LOG(ctp::logDEBUG, _log) << "      MO coefficients:        not stored "<< flush;
     }  
     
-    // DFT AO overlap matrix
-    if ( _orbitals.hasAOOverlap() ) {
-        CTP_LOG(ctp::logDEBUG, _log) << "      AO overlap matrix:      " << _orbitals.AOOverlap().size1()  << " x " << _orbitals.AOOverlap().size2() << flush;
-    } else {
-        CTP_LOG(ctp::logDEBUG, _log) << "      AO overlap matrix:      not stored "<< flush;
-    }    
     
     // DFT AO XC matrix
     if ( _orbitals.hasAOVxc() ) {

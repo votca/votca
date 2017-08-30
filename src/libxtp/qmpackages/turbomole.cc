@@ -547,9 +547,7 @@ namespace votca {
 
             if (_write_pseudopotentials) {
                 _orbitals->setECP(_ecp_name);
-            } else {
-                _orbitals->setECP("none");
-            }
+            } 
 
             // Start parsing the file line by line
             path arg_path;

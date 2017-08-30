@@ -208,8 +208,8 @@ namespace votca {
                 tools::matrix::eigensystem_t system;
                 components.SolveEigensystem(system);
                 double a = 2*_dpl_spacing;
-                string Atomnameplus[] = {"X", "Y", "Z"};
-                string Atomnameminus[] = {"X", "Y", "Z"};
+                //string Atomnameplus[] = {"X", "Y", "Z"};
+                //string Atomnameminus[] = {"X", "Y", "Z"};
                 for (unsigned i = 0; i < 3; i++) {
 
                     double q = system.eigenvalues[i] / (a * a);

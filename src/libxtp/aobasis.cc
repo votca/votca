@@ -21,6 +21,7 @@
 #include <votca/tools/constants.h>
 
 
+
 namespace votca { namespace xtp {
 
  AOBasis::~AOBasis() {
@@ -33,50 +34,78 @@ AOShell* AOBasis::addShell( string shellType,int Lmax,int Lmin, double shellScal
         AOShell* aoshell = new AOShell( shellType,Lmax,Lmin, shellScale, shellFunc, startIndex, offset, pos, name, index, this );
         _aoshells.push_back(aoshell);
         return aoshell;
-    }
+        }
 
-void AOBasis::ReorderMOs(ub::matrix<double> &v,const string& start,const string& target )  {
+void AOBasis::ReorderMOs(ub::matrix<double> &v, const string& start, const string& target) {
 
-          // cout << " Reordering MOs from " << start << " to " << target << endl;
+    // cout << " Reordering MOs from " << start << " to " << target << endl;
 
-    if (start==target){
+    if (start == target) {
         return;
     }
 
-          // get reordering vector _start -> target
-          vector<int> order;
-          this->getReorderVector( start, target, order);
+    // get reordering vector _start -> target
 
-          // Sanity check
-          if ( v.size2() != order.size() ) {
-              cerr << "Size mismatch in ReorderMOs" << v.size2() << ":" << order.size() << endl;
-              throw std::runtime_error( "Abort!");
-          }
+    vector<int> order = getReorderVector(start, target);
 
-          // actual swapping of coefficients
-          for ( unsigned _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
-                for ( unsigned s = 1, d; s < order.size(); ++ s ) {
-                    for ( d = order[s]; d < s; d = order[d] ){
-                        ;
-                    }
-                          if ( d == s ) while ( d = order[d], d != s ) swap( v(_i_orbital,s), v(_i_orbital,d) );
-                }
-          }
+    // Sanity check
+    if (v.size2() != order.size()) {
+        cerr << "Size mismatch in ReorderMOs" << v.size2() << ":" << order.size() << endl;
+        throw std::runtime_error("Abort!");
+    }
 
-          // NWChem has some strange minus in d-functions
-          if ( start == "nwchem" || start == "orca" ){
+    // actual swapping of coefficients
+    for (unsigned _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++) {
+        for (unsigned s = 1, d; s < order.size(); ++s) {
+            for (d = order[s]; d < s; d = order[d]) {
+                ;
+            }
+            if (d == s) while (d = order[d], d != s) swap(v(_i_orbital, s), v(_i_orbital, d));
+        }
+    }
 
-              // get vector with multipliers, e.g. NWChem -> Votca (bloody sign for d_xz)
-              vector<int> multiplier;
-              this->getMultiplierVector(start, target, multiplier);
-              // and reorder rows of _orbitals->_mo_coefficients() accordingly
-              this->MultiplyMOs( v , multiplier);
+    // NWChem has some strange minus in d-functions
+    if (start == "nwchem" || start == "orca") {
 
-          }
+        // get vector with multipliers, e.g. NWChem -> Votca (bloody sign for d_xz)
+
+        vector<int> multiplier = getMultiplierVector(start, target);
+        // and reorder rows of _orbitals->_mo_coefficients() accordingly
+        MultiplyMOs(v, multiplier);
+
+    }
 
 
-          return;
-       }
+    return;
+}
+
+void AOBasis::ReorderMatrix(ub::symmetric_matrix<double> &v,const string& start,const string& target ){
+    if (start==target){
+        return;
+    }
+    vector<int> order = getReorderVector(start, target);
+    
+     if (v.size2() != order.size()) {
+        cerr << "Size mismatch in ReorderMatrix" << v.size2() << ":" << order.size() << endl;
+        throw std::runtime_error("Abort!");
+    }
+    
+    
+    
+    
+    ub::symmetric_matrix<double> temp=v;
+    for(unsigned i=0;i<temp.size1();i++){
+        int i_index=order[i];
+        for(unsigned j=0;j<temp.size1();j++){
+            int j_index=order[j];
+            v(i_index,j_index)=temp(i,j);
+        }
+    }
+    
+    
+    return;
+}
+
 
 void AOBasis::MultiplyMOs(ub::matrix<double> &v, vector<int> const &multiplier )  {
           // Sanity check
@@ -97,8 +126,8 @@ void AOBasis::MultiplyMOs(ub::matrix<double> &v, vector<int> const &multiplier )
            }
        }
 //this is for gaussian only to transform from gaussian ordering cartesian to spherical in gaussian ordering not more
-void AOBasis::getTransformationCartToSpherical(const string& package, ub::matrix<double>& _trafomatrix ){
-
+ub::matrix<double> AOBasis::getTransformationCartToSpherical(const string& package){
+    ub::matrix<double>_trafomatrix;
     if ( package != "gaussian" ){
         cout << " I should not have been called, will do nothing! " << endl;
     } else {
@@ -114,9 +143,9 @@ void AOBasis::getTransformationCartToSpherical(const string& package, ub::matrix
 
         }
 
-
+     _trafomatrix= ub::zero_matrix<double>( _dim_sph , _dim_cart );
         // initialize _trafomatrix
-        _trafomatrix = ub::zero_matrix<double>( _dim_sph , _dim_cart );
+        
 
         // now fill it
         int _row_start = 0;
@@ -135,7 +164,7 @@ void AOBasis::getTransformationCartToSpherical(const string& package, ub::matrix
 
         }
     }
-    return;
+    return _trafomatrix;
 }
 
 //only for gaussian package
@@ -207,14 +236,14 @@ int AOBasis::getMaxFunctions () {
 }
 
 
-void AOBasis::getMultiplierVector( const string& start, const string& target, vector<int>& multiplier){
-
+vector<int> AOBasis::getMultiplierVector( const string& start, const string& target){
+    vector<int> multiplier;
     // go through basisset
     for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
         const AOShell* _shell = this->getShell( _is );
         addMultiplierShell(  start, target, _shell->getType(), multiplier );
     }
-    return;
+    return multiplier;
     }
 
 void AOBasis::addMultiplierShell(const string& start, const string& target, const string& shell_type, vector<int>& multiplier) {
@@ -290,14 +319,14 @@ void AOBasis::addMultiplierShell(const string& start, const string& target, cons
 }
 
 
-void AOBasis::getReorderVector(const string& start,const string& target, vector<int>& neworder){
-
+vector<int>  AOBasis::getReorderVector(const string& start,const string& target){
+    vector<int> neworder;
     // go through basisset
     for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
         const AOShell* _shell = getShell( _is );
         addReorderShell( start, target, _shell->getType(), neworder );
     }
-    return;
+    return neworder;
 }
 
 
@@ -434,6 +463,7 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _frag
        // loop over atoms
        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
           // get coordinates of this atom and convert from Angstrom to Bohr
+        if((*ait)->from_environment){continue;}
           vec pos=(*ait)->getPos()* tools::conv::ang2bohr;
           // get element type of the atom
           string  name = (*ait)->type;
@@ -483,6 +513,7 @@ void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
 
        // loop over atoms
        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+           if((*ait)->from_environment){continue;}
           // get coordinates of this atom and convert from Angstrom to Bohr
           vec pos=(*ait)->getPos()* tools::conv::ang2bohr;
           // get element type of the atom

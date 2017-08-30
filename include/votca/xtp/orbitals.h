@@ -137,6 +137,11 @@ namespace votca {
                 _number_of_electrons = electrons;
             }
 
+            
+            bool hasECP(){
+                return ( _ECP !="") ? true : false;
+            }
+            
             string getECP() {
                 return _ECP;
             };
@@ -365,6 +370,10 @@ namespace votca {
 
             // access to list of indices used in BSE
 
+            void setBSEtype(string bsetype){_bsetype=bsetype;}
+            string getBSEtype() const{return _bsetype;}
+            
+            
             bool hasBSEindices() {
                 return ( _bse_cmax > 0) ? true : false;
             }
@@ -448,6 +457,8 @@ namespace votca {
             }
 
             // access to eh interaction
+            
+         
 
             bool hasEHinteraction() {
                 return ( _eh_d.size1() > 0) ? true : false;
@@ -603,15 +614,10 @@ namespace votca {
 
 
             // functions for calculating density matrices
-            ub::matrix<double> DensityMatrixGroundState(const ub::matrix<double>& _MOs);
-            std::vector<ub::matrix<double> > DensityMatrixExcitedState(const ub::matrix<double>& _MOs, const ub::matrix<real_gwbse>& _BSECoefs, int state = 0);
-            ub::matrix<double > TransitionDensityMatrix(const ub::matrix<double>& _MOs, const ub::matrix<real_gwbse>& _BSECoefs, int state = 0);
+            ub::matrix<double> DensityMatrixGroundState();
+            std::vector<ub::matrix<double> > DensityMatrixExcitedState(const string& spin,int state = 0);
+            ub::matrix<double > TransitionDensityMatrix(const string& spin,int state = 0);
 
-
-            ub::matrix<double > TransitionDensityMatrix_BTDA(const ub::matrix<double>& _MOs, const ub::matrix<real_gwbse>& _BSECoefs,
-                    const ub::matrix<real_gwbse>& _BSECoefs_AR, int state = 0);
-            std::vector<ub::matrix<double> > DensityMatrixExcitedState_BTDA(const ub::matrix<double>& _MOs,
-                    const ub::matrix<real_gwbse>& _BSECoefs, const ub::matrix<real_gwbse>& _BSECoefs_AR, int state = 0);
 
             double GetTotalEnergy(string _spintype, int _opt_state);
 
@@ -712,16 +718,20 @@ namespace votca {
             bool Save(std::string file_name);
 
             void LoadFromXYZ(std::string filename);
+           
 
         private:
-
-            std::vector<ub::matrix<double> >DensityMatrixExcitedState_AR(const ub::matrix<double>& _MOs, const ub::matrix<real_gwbse>& _BSECoefs_AR, int state = 0);
+            std::vector<ub::matrix<double> > DensityMatrixExcitedState_R(const string& spin,int state = 0);
+            std::vector<ub::matrix<double> >DensityMatrixExcitedState_AR(const string& spin,int state = 0);
 
             int _basis_set_size;
             int _occupied_levels;
             int _unoccupied_levels;
             int _number_of_electrons;
             string _ECP;
+            
+            string _bsetype;
+            
 
             std::map<int, std::vector<int> > _level_degeneracy;
 
@@ -889,6 +899,15 @@ namespace votca {
                     ar & _index2c;
                     ar & _index2v;
                     ar & _ScaHFX;
+                    
+                    if (Archive::is_loading::value && version < 4) {
+                        _bsetype="TDA";
+                        _ECP="ecp";   
+                    } else {
+                        ar & _bsetype;
+                        ar & _ECP;
+                    }
+                    
 
                     if (Archive::is_loading::value && version < 3) {
                         ub::matrix<real_gwbse> temp;
@@ -958,6 +977,13 @@ namespace votca {
 
 
                     ar & _BSE_singlet_coefficients;
+                    
+                    if (Archive::is_loading::value && version < 4) {
+                        _BSE_singlet_coefficients_AR=ub::matrix<double>(0,0);
+                    } else {
+                        ar & _BSE_singlet_coefficients_AR;
+                    }
+                    
 
                     if (Archive::is_loading::value && version == 1) {
                         std::vector< std::vector<double> > temp;
@@ -1051,7 +1077,7 @@ namespace votca {
     }
 }
 
-BOOST_CLASS_VERSION(votca::xtp::Orbitals, 3)
+BOOST_CLASS_VERSION(votca::xtp::Orbitals, 4)
 
 #endif /* __VOTCA_XTP_ORBITALS_H */
 

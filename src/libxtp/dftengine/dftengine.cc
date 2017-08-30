@@ -230,9 +230,7 @@ namespace votca {
             // if we have a guess we do not need this.
             if (_with_guess) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Reading guess from orbitals object/file" << flush;
-                _dftbasis.ReorderMOs(MOCoeff, _orbitals->getQMpackage(), "xtp");
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _orbitals->getQMpackage() << " to xtp" << flush;
-                _dftAOdmat = _orbitals->DensityMatrixGroundState(MOCoeff);
+                _dftAOdmat = _orbitals->DensityMatrixGroundState();
             } else if (guess_set) {
                 ConfigOrbfile(_orbitals);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using starting guess from last iteration" << flush;
@@ -243,7 +241,7 @@ namespace votca {
                 if (_initial_guess == "independent") {
                     ub::matrix<double> copy = H0;
                     _diis.SolveFockmatrix(MOEnergies, MOCoeff, copy);
-                    _dftAOdmat = _orbitals->DensityMatrixGroundState(MOCoeff);
+                    _dftAOdmat = _orbitals->DensityMatrixGroundState();
 
                 } else if (_initial_guess == "atom") {
 
@@ -264,7 +262,7 @@ namespace votca {
                     }
                     ub::matrix<double> H = H0 + _ERIs.getERIs() + _orbitals->AOVxc();
                     _diis.SolveFockmatrix(MOEnergies, MOCoeff, H);
-                    _dftAOdmat = _orbitals->DensityMatrixGroundState(MOCoeff);
+                    _dftAOdmat = _orbitals->DensityMatrixGroundState();
                     //cout<<_dftAOdmat<<endl;
                     //Have to do one full iteration here, levelshift needs MOs;
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Full atomic density Matrix gives N=" << std::setprecision(9) << linalg_traceofProd(_dftAOdmat, _dftAOoverlap.Matrix()) << " electrons." << flush;
@@ -322,7 +320,7 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIs error " << diiserror << flush;
 
                 ub::matrix<double> dmatin = _dftAOdmat;
-                _dftAOdmat = _orbitals->DensityMatrixGroundState(MOCoeff);
+                _dftAOdmat = _orbitals->DensityMatrixGroundState();
                 if (!(diiserror < _adiis_start && _usediis && _this_iter > 2)) {
                     _dftAOdmat = Mixer.MixDmat(dmatin, _dftAOdmat);
 
@@ -755,16 +753,19 @@ namespace votca {
             _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
             if (_with_ecp) {
                 _orbitals->setECP(_ecp_name);
-            } else {
-                _orbitals->setECP("none");
             }
 
             if (_with_guess) {
+                if(_orbitals->hasECP() || _with_ecp){
+                    if(_orbitals->getECP()!=_ecp_name){
+                        throw runtime_error((boost::format("ECPs in orb file: %1% and options %2% differ") % _orbitals->getECP() % _ecp_name).str());
+                    }
+                }
                 if (_orbitals->getNumberOfElectrons() != _numofelectrons / 2) {
-                    throw runtime_error((boost::format("Number of electron in guess orb file %1% and in dftengine differ %2%.") % _orbitals->getNumberOfElectrons() % (_numofelectrons / 2)).str());
+                    throw runtime_error((boost::format("Number of electron in guess orb file: %1% and in dftengine: %2% differ.") % _orbitals->getNumberOfElectrons() % (_numofelectrons / 2)).str());
                 }
                 if (_orbitals->getNumberOfLevels() != _dftbasis.AOBasisSize()) {
-                    throw runtime_error((boost::format("Number of levels in guess orb file %1% and in dftengine differ %2%.") % _orbitals->getNumberOfLevels() % _dftbasis.AOBasisSize()).str());
+                    throw runtime_error((boost::format("Number of levels in guess orb file: %1% and in dftengine: %2% differ.") % _orbitals->getNumberOfLevels() % _dftbasis.AOBasisSize()).str());
                 }
             } else {
                 _orbitals->setNumberOfElectrons(_numofelectrons / 2);
@@ -816,7 +817,7 @@ namespace votca {
 
                 // fill auxiliary ECP basis by going through all atoms
                 _ecp.ECPFill(&_ecpbasisset, _atoms);
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled ECP Basis of size " << _ecp._aoshells.size() << flush;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled ECP Basis of size " << _ecp.getNumofShells() << flush;
             }
 
             // setup numerical integration grid
