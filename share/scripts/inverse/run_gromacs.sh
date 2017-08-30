@@ -134,7 +134,8 @@ if [[ ${multi} ]]; then
       read ${j}_x <<< "${f}" # set ${j}_x (topol_x to ${f}
     done
     tpr_x="${tpr%.*}${i}.${tpr##*.}"
-    critical ${grompp[@]} -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]} -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" ${grompp_opts}"
+    mdout="mdout${i}.mdp"
+    critical ${grompp[@]} -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" -po "${mdout}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]}" -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" -pe "${mdout}" "${grompp_opts}"
   done
 else
   #see can run grompp again as checksum of tpr does not appear in the checkpoint
@@ -182,18 +183,22 @@ else
   [[ ! -f ${confout} ]] || [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
 fi
 
-if [[ ${mdrun_opts} = *-regex* ]]; then
-  #TODO what if user want to use not the 0th trajectory?
-  critical mv "${traj%.*}0.${traj##*.}" "${traj}"
-  critical mv "${confout%.*}0${confout##*.}" "${confout}"
-elif [[ ${multi} ]]; then
-  trjcat=( $(csg_get_property cg.inverse.gromacs.trjcat.bin) )
-  [[ -n "$(type -p ${trjcat[0]})" ]] || die "${0##*/}: trjcat binary '${trjcat[0]}' not found"
-  trjs=()
-  for((i=0;i<${multi};i++)); do
-    trjs+=( "${traj%.*}${i}.${traj##*.}" )
-  done
-  critical ${trjcat} -f "${trjs[@]}" -o "${traj}" -cat
+if [[ ${multi} ]]; then
+  #TODO what if user want to use not the 0th tpr or confout?
+  critical mv "${tpr%.*}0.${tpr##*.}" "${tpr}" #for imc, rdf, rc calculation
+  critical mv "${confout%.*}0.${confout##*.}" "${confout}" #for simulation_finish()
+  if [[ ${mdrun_opts} = *-regex* ]]; then
+     #TODO what if user doesn't want the 0th trajectory?
+    critical mv "${traj%.*}0.${traj##*.}" "${traj}"
+  else
+    trjcat=( $(csg_get_property cg.inverse.gromacs.trjcat.bin) )
+    [[ -n "$(type -p ${trjcat[0]})" ]] || die "${0##*/}: trjcat binary '${trjcat[0]}' not found"
+    trjs=()
+    for((i=0;i<${multi};i++)); do
+      trjs+=( "${traj%.*}${i}.${traj##*.}" )
+    done
+    critical ${trjcat[@]} -f "${trjs[@]}" -o "${traj}" -cat
+  fi
 fi
 
 
