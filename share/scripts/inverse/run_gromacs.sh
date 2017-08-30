@@ -133,7 +133,7 @@ if [[ ${multi} ]]; then
       [[ -f ${f} ]] || die "${0##*/}: file '$f' not found (make sure it is in cg.inverse.filelist)"
       read ${j}_x <<< "${f}" # set ${j}_x (topol_x to ${f}
     done
-    tpr_x="${tpr%.tpr}${i}.tpr"
+    tpr_x="${tpr%.*}${i}.${tpr##*.}"
     critical ${grompp[@]} -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]} -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" ${grompp_opts}"
   done
 else
@@ -175,12 +175,25 @@ critical $mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".
 
 if [[ ${multi} ]]; then
   for((i=0;i<${multi};i++)); do
-    confout_x="${confout%.gro}${i}.gro"
+    confout_x="${confout%.*}${i}.${confout##*.}"
     [[ ! -f ${confout_x} ]] || [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout_x})" ]] || die "${0##*/}: There is a nan in '${confout_x}', this seems to be wrong."
   done
 else
   [[ ! -f ${confout} ]] || [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
 fi
 
-# TODO combine trajectories...if user wants
+if [[ ${mdrun_opts} = *-regex* ]]; then
+  #TODO what if user want to use not the 0th trajectory?
+  critical mv "${traj%.*}0.${traj##*.}" "${traj}"
+  critical mv "${confout%.*}0${confout##*.}" "${confout}"
+elif [[ ${multi} ]]; then
+  trjcat=( $(csg_get_property cg.inverse.gromacs.trjcat.bin) )
+  [[ -n "$(type -p ${trjcat[0]})" ]] || die "${0##*/}: trjcat binary '${trjcat[0]}' not found"
+  trjs=()
+  for((i=0;i<${multi};i++)); do
+    trjs+=( "${traj%.*}${i}.${traj##*.}" )
+  done
+  critical ${trjcat} -f "${trjs[@]}" -o "${traj}" -cat
+fi
+
 

@@ -176,15 +176,6 @@
       <pot_max>1000000
         <DESC> cut the potential at this value (gromacs bug) </DESC>
       </pot_max>
-      <runmode> none 
-      <replex>
-      <prefix></prefix>
-      <replicas></replicas>
-      <mdrun>
-      <command> </command>
-      </mdrun>
-      </replex>
-      </runmode>
       <pre_simulation>no
         <DESC>A pre simulation (e.g. minimization / equilibration ) is a simulation with a different mdp/topol/index</DESC>
         <index>
@@ -252,6 +243,11 @@
       </topol>
       <traj>traj.xtc
         <DESC> Gromacs trajectory file to use</DESC>
+      </traj>
+      <trjcat>
+        <bin>gmx trjcat
+          <DESC> Name (or absolute path) of the trjcat binary </DESC>
+        </bin>
       </traj>
     </gromacs>
     <hoomd-blue>
