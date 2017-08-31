@@ -79,7 +79,7 @@ namespace votca {
             if (options->exists(key + ".outputVxc")) {
                 _output_Vxc = options->get(key + ".outputVxc").as<bool> ();
             } else _output_Vxc = false;
-            cout << _output_Vxc << endl;
+            
 
             /* G09 by default deletes functions from the basisset according to some
              * criterion based on, a.o., the contraction coefficients. This can lead

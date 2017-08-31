@@ -46,7 +46,7 @@ namespace ub = boost::numeric::ublas;
             }
             if (_orbitals->hasMOCoefficients()){
                  _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), getPackageName(), "xtp");
-                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Reorderd MOs" << flush;
+                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered MOs" << flush;
             }
            
             return;

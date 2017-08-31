@@ -459,13 +459,14 @@ namespace votca {
             //make copy of orbitals MOs because we reorder them
              _dft_orbitals = _orbitals->MOCoefficients(); //
             _ScaHFX = _orbitals->getScaHFX();
-            {// this bracket is there so that _vx_ao falls out of scope, like it more than resize
+            
                 ub::matrix<double> _vxc_ao;
                 if (_orbitals->hasAOVxc()) {
                     if (_doVxc) {
                         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take the external implementation" << flush;
                         _doVxc = false;
                     }
+                    _vxc_ao=_orbitals->AOVxc();
                 } else if (_doVxc) {
 
                     NumericalIntegration _numint;
@@ -497,10 +498,10 @@ namespace votca {
                 ub::matrix<double> _temp = ub::prod(_vxc_ao, ub::trans(_mos));
                 _vxc = ub::prod(_mos, _temp);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
-
+                _vxc_ao.resize(0,0);
              
                 
-            }
+           
 
             /// ------- actual calculation begins here -------
 
