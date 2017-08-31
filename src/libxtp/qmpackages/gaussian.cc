@@ -310,9 +310,11 @@ namespace votca {
             if (orbitals_guess == NULL) {
                 throw std::runtime_error("A guess for dimer orbitals has not been prepared.");
             } else {
-                std::vector<int> _sort_index;
-
-                orbitals_guess->SortEnergies(&_sort_index);
+                
+                std::vector<int> _sort_index=orbitals_guess->SortEnergies();
+                ReorderMOsBack(orbitals_guess);
+                
+                
 
                 _com_file << "(5D15.8)" << endl;
 
@@ -324,7 +326,7 @@ namespace votca {
 
                     _com_file << setw(5) << level << endl;
 
-                    ub::matrix_row< ub::matrix<double> > mr(orbitals_guess->_mo_coefficients, *soi);
+                    ub::matrix_row< ub::matrix<double> > mr(orbitals_guess->MOCoefficients(), *soi);
 
                     int column = 1;
                     for (unsigned j = 0; j < mr.size(); ++j) {
@@ -443,6 +445,7 @@ namespace votca {
             } else {
                 QMMInterface qmmface;
                 qmatoms = qmmface.Convert(segments);
+                
             }
 
             WriteCoordinates(_com_file, qmatoms);
@@ -464,7 +467,10 @@ namespace votca {
                 if (_write_charges) WriteBackgroundCharges(_com_file, PolarSegments);
 
                 // write inital guess
-                if (_write_guess) WriteGuess(orbitals_guess, _com_file);
+                if (_write_guess){
+                    orbitals_guess->QMAtoms()=qmatoms;
+                    WriteGuess(orbitals_guess, _com_file);
+                }
 
             } else if (_executable == "g09") {
 
@@ -478,7 +484,10 @@ namespace votca {
                 if (_write_pseudopotentials) WriteECP(_com_file, qmatoms);
 
                 // write inital guess
-                if (_write_guess) WriteGuess(orbitals_guess, _com_file);
+                if (_write_guess){
+                    orbitals_guess->QMAtoms()=qmatoms;
+                    WriteGuess(orbitals_guess, _com_file);
+                }
 
             } else {
                 throw std::runtime_error("Gaussian executable unknown. Must be either g03 or g09.");
@@ -745,14 +754,7 @@ namespace votca {
                     mo_coefficients(i, j) = _coefficients[i + 1][j];
                 }
             }
-            BasisSet _dftbasisset;
-            _dftbasisset.LoadBasisSet(_basisset_name);
-            if(!_orbitals->hasQMAtoms()){
-                throw runtime_error("Orbitals object has no QMAtoms");
-            }
-            AOBasis _dftbasis;
-            _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
-            _dftbasis.ReorderMOs(mo_coefficients, getPackageName(), "xtp");
+            ReorderMOs(_orbitals);
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: done reading MOs" << flush;
 
@@ -1108,7 +1110,7 @@ namespace votca {
                 if (overlap_pos != std::string::npos) {
 
                     // prepare the container
-                    ub::symmetric_matrix<double> overlap; 
+                    ub::symmetric_matrix<double>& overlap=_orbitals->AOOverlap();
 
                     // _orbitals->_has_overlap = true;
                     overlap.resize(_basis_set_size);
@@ -1173,15 +1175,8 @@ namespace votca {
                     } // end of the blocks
                     
                
-                BasisSet _dftbasisset;
-                _dftbasisset.LoadBasisSet(_basisset_name);
-                if(!_orbitals->hasQMAtoms()){
-                    throw runtime_error("Orbitals object has no QMAtoms");
-                }
-                AOBasis _dftbasis;
-                _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
-                _dftbasis.ReorderMatrix(overlap, getPackageName(), "xtp");
-                _orbitals->AOOverlap()=overlap;
+                ReorderMatrix(_orbitals,overlap);
+                
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Read the overlap matrix" << flush;
                 } // end of the if "Overlap" found
 
@@ -1258,14 +1253,15 @@ namespace votca {
                 }
                 AOBasis _dftbasis;
                 _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
-                _dftbasis.ReorderMatrix(_vxc, getPackageName(), "xtp");
+                
                 ub::matrix<double> vxc_full=_vxc;
                 
                 ub::matrix<double> _carttrafo=_dftbasis.getTransformationCartToSpherical(getPackageName());
                 ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_full);
                 vxc_full = ub::prod(_temp, ub::trans(_carttrafo));
+                _vxc=vxc_full;
                 
-                
+                _dftbasis.ReorderMatrix(_vxc, getPackageName(), "xtp");
                 
                 _orbitals->AOVxc()=vxc_full;
                 } else {

@@ -172,10 +172,49 @@ namespace votca {
             double _dpl_spacing;
             bool _with_polarization;
             std::vector<std::vector<double> > SplitMultipoles(ctp::APolarSite* site);
-
-
-
+            void ReorderMOs(Orbitals* _orbitals);
+            void ReorderMOsBack(Orbitals* _orbitals);
+            void ReorderMatrix(Orbitals* _orbitals,ub::symmetric_matrix<double>& matrix);
+            
         };
+        
+        inline void QMPackage::ReorderMatrix(Orbitals* _orbitals,ub::symmetric_matrix<double>& matrix){
+            BasisSet _dftbasisset;
+            _dftbasisset.LoadBasisSet(_basisset_name);
+            if(!_orbitals->hasQMAtoms()){
+                throw runtime_error("Orbitals object has no QMAtoms");
+            }
+            AOBasis _dftbasis;
+            _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
+            _dftbasis.ReorderMatrix(matrix, getPackageName(), "xtp");
+            return;
+        }
+        
+        inline void QMPackage::ReorderMOs(Orbitals* _orbitals){
+            BasisSet _dftbasisset;
+            _dftbasisset.LoadBasisSet(_basisset_name);
+            if(!_orbitals->hasQMAtoms()){
+                throw runtime_error("Orbitals object has no QMAtoms");
+            }
+            AOBasis _dftbasis;
+            _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
+            _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), getPackageName(), "xtp");
+            return;
+        }
+        
+        inline void QMPackage::ReorderMOsBack(Orbitals* _orbitals){
+            BasisSet _dftbasisset;
+            _dftbasisset.LoadBasisSet(_basisset_name);
+            if(!_orbitals->hasQMAtoms()){
+                throw runtime_error("Orbitals object has no QMAtoms");
+            }
+            AOBasis _dftbasis;
+            _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
+            _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), "xtp",getPackageName());
+            return;
+        }
+            
+            
 
         inline std::vector<std::vector<double> > QMPackage::SplitMultipoles(ctp::APolarSite* aps){
 

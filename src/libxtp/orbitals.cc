@@ -36,23 +36,7 @@
 namespace votca {
     namespace xtp {
 
-        template <class VEC>
-        class vector_less {
-        private:
-            typedef typename VEC::size_type size_type;
-            typedef typename VEC::value_type value_type;
-            vector_less();
-
-            const VEC& data;
-        public:
-
-            vector_less(const VEC& vec) : data(vec) {
-            }
-
-            bool operator()(const size_type& left, const size_type& right) const {
-                return std::less<value_type> () (data(left), data(right));
-            }
-        };
+       
 
         Orbitals::Orbitals() {
 
@@ -186,17 +170,12 @@ namespace votca {
             return &_level_degeneracy.at(level);
         }
 
-        void Orbitals::SortEnergies(std::vector<int>* index) {
+        std::vector<int> Orbitals::SortEnergies() {
             if (tools::globals::verbose) cout << "... ... Sorting energies" << endl;
-            index->resize(_mo_energies.size());
-            int i = 0;
-            for (vector< int > ::iterator soi = index->begin(); soi != index->end(); ++soi) {
-                index->at(i) = i;
-                i++;
-
-            }
-            std::stable_sort(index->begin(), index->end(), vector_less< ub::vector<double> >(_mo_energies));
-            return;
+            std::vector<int>index=std::vector<int>(_mo_energies.size());
+            iota(index.begin(), index.end(), 0);
+            std::stable_sort(index.begin(), index.end(),[this](int i1, int i2) {return this->MOEnergies()[i1] > this->MOEnergies()[i2];});
+            return index;
         }
 
         /// Writes a PDB file

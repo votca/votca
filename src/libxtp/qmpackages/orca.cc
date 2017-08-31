@@ -772,10 +772,10 @@ namespace votca {
             _orbitals->setSelfEnergy(0.0);
 
             // copying energies to a matrix
-            _orbitals->_mo_energies.resize(_levels);
+            _orbitals->MOEnergies().resize(_levels);
             //_level = 1;
-            for (size_t i = 0; i < _orbitals->_mo_energies.size(); i++) {
-                _orbitals->_mo_energies[i] = _energies[ i ];
+            for (size_t i = 0; i < _orbitals->MOEnergies().size(); i++) {
+                _orbitals->MOEnergies()[i] = _energies[ i ];
             }
 
 
@@ -869,17 +869,14 @@ namespace votca {
 
 
             // i -> MO, j -> AO
-            (_orbitals->_mo_coefficients).resize(_levels, _basis_size);
-            for (size_t i = 0; i < _orbitals->_mo_coefficients.size1(); i++) {
-                for (size_t j = 0; j < _orbitals->_mo_coefficients.size2(); j++) {
-                    _orbitals->_mo_coefficients(i, j) = _coefficients[j * _basis_size + i];
-                    //cout <<  _coefficients[i][j] << endl;
-                    //cout << i << " " << j << endl;
+            (_orbitals->MOCoefficients()).resize(_levels, _basis_size);
+            for (size_t i = 0; i < _orbitals->MOCoefficients().size1(); i++) {
+                for (size_t j = 0; j < _orbitals->MOCoefficients().size2(); j++) {
+                    _orbitals->MOCoefficients()(i, j) = _coefficients[j * _basis_size + i];
+                   
                 }
             }
-
-            //cout<<"MO1:1 :" <<setprecision(15)<<_orbitals->_mo_coefficients(0,0)<< endl;
-            //cout<<"MO-1:-1"<<setprecision(15)<< _orbitals->_mo_coefficients(_levels-1,_levels-1)<< endl;
+           ReorderMOs( _orbitals);
 
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;

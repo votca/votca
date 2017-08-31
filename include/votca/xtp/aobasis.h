@@ -82,11 +82,14 @@ public:
    int _AOBasisFragA;
    int _AOBasisFragB;
    private:
+       
+       
   void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
    
     std::vector<AOShell*> _aoshells;
 
-  
+    vector<int> invertOrder(const vector<int>& order );
+    
     std::vector<int> getReorderVector(const std::string& start,const std::string& target );
    
     void addReorderShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& neworder );

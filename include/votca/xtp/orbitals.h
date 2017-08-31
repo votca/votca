@@ -670,7 +670,7 @@ namespace votca {
 
 
             // returns indeces of a re-sorted in a descending order vector of energies
-            void SortEnergies(std::vector<int>* index);
+            std::vector<int> SortEnergies();
 
             /** Adds a QM atom to the atom list */
             ctp::QMAtom* AddAtom(std::string _type,
