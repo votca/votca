@@ -595,7 +595,7 @@ namespace votca {
                     //cout << i << " " << j << endl;
                 }
             }
-            ReorderMOs(_orbitals);
+            
 
             // cleanup
             _coefficients.clear();
@@ -607,7 +607,7 @@ namespace votca {
             remove(file_name.c_str());
 
 
-
+            ReorderOutput(_orbitals);
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done reading MOs" << flush;
 
             return true;
@@ -940,7 +940,7 @@ namespace votca {
                         _j_indeces.clear();
                     } // end of the blocks
                     
-                    ReorderMatrix(_orbitals,_vxc);
+                    
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Read the Vxc matrix" << flush;
 
                 }
@@ -1018,7 +1018,7 @@ namespace votca {
                         // clear the index for the next block
                         _j_indeces.clear();
                     } // end of the blocks
-                    ReorderMatrix(_orbitals,_orbitals->AOOverlap());
+                    
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Read the overlap matrix" << flush;
                 } // end of the if "Overlap" found
 
@@ -1050,7 +1050,7 @@ namespace votca {
                         ) break;
 
             } // end of reading the file line-by-line
-
+            
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;
             return true;
         }

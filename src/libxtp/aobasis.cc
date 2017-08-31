@@ -65,11 +65,15 @@ void AOBasis::ReorderMOs(ub::matrix<double> &v, const string& start, const strin
     }
 
     // NWChem has some strange minus in d-functions
-    if (start == "nwchem" || start == "orca") {
-
+    if (start == "nwchem" || start == "orca" || target=="orca" || target=="nwchem") {
+        string s=start;
+        string t=target;
         // get vector with multipliers, e.g. NWChem -> Votca (bloody sign for d_xz)
-
-        vector<int> multiplier = getMultiplierVector(start, target);
+        if(target=="orca" || target=="nwchem"){
+            s=target;
+            t=start;
+        }
+        vector<int> multiplier = getMultiplierVector(s, t);
         // and reorder rows of _orbitals->_mo_coefficients() accordingly
         MultiplyMOs(v, multiplier);
 

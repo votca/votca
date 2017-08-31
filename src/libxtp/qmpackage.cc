@@ -25,7 +25,9 @@ namespace votca { namespace xtp {
 namespace ub = boost::numeric::ublas;
 
 
-  void QMPackage::ReorderMatrix(Orbitals* _orbitals,ub::symmetric_matrix<double>& matrix){
+  
+  
+  void QMPackage::ReorderOutput(Orbitals* _orbitals){
             BasisSet _dftbasisset;
             _dftbasisset.LoadBasisSet(_basisset_name);
             if(!_orbitals->hasQMAtoms()){
@@ -33,24 +35,24 @@ namespace ub = boost::numeric::ublas;
             }
             AOBasis _dftbasis;
             _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
-            _dftbasis.ReorderMatrix(matrix, getPackageName(), "xtp");
+            
+            if (_orbitals->hasAOOverlap()){
+                 _dftbasis.ReorderMatrix(_orbitals->AOOverlap(), getPackageName(), "xtp");
+                  CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered Overlap matrix" << flush;
+            }
+            if (_orbitals->hasAOVxc()){
+                 _dftbasis.ReorderMatrix(_orbitals->AOVxc(), getPackageName(), "xtp");
+                  CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered VXC matrix" << flush;
+            }
+            if (_orbitals->hasMOCoefficients()){
+                 _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), getPackageName(), "xtp");
+                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Reorderd MOs" << flush;
+            }
+           
             return;
         }
         
-    void QMPackage::ReorderMOs(Orbitals* _orbitals){
-       BasisSet _dftbasisset;
-       _dftbasisset.LoadBasisSet(_basisset_name);
-       cout<<"loaded"<<_basisset_name<<endl;
-       if(!_orbitals->hasQMAtoms()){
-           throw runtime_error("Orbitals object has no QMAtoms");
-       }
-       AOBasis _dftbasis;
-       _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
-       cout<<"filled "<<getPackageName()<<endl;
-       _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), getPackageName(), "xtp");
-       cout<<"reorder"<<getPackageName()<<endl;
-       return;
-   }
+    
 
     void QMPackage::ReorderMOsBack(Orbitals* _orbitals){
        BasisSet _dftbasisset;

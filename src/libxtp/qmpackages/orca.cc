@@ -876,8 +876,8 @@ namespace votca {
                    
                 }
             }
-            cout<<"blaa"<<endl;
-           ReorderMOs( _orbitals);
+           
+           ReorderOutput(_orbitals);
 
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;

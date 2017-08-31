@@ -1091,6 +1091,9 @@ namespace votca {
             if(this->hasAOVxc()){
                 _dftbasis.ReorderMatrix(_vxc,_qm_package , "xtp");
             }   
+            if(this->hasMOCoefficients()){
+                _dftbasis.ReorderMOs(_mo_coefficients,_qm_package , "xtp");
+            }  
                 }
 
                 } // end version 1: GW-BSE storage

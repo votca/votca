@@ -754,8 +754,8 @@ namespace votca {
                     mo_coefficients(i, j) = _coefficients[i + 1][j];
                 }
             }
-            ReorderMOs(_orbitals);
-
+            
+            ReorderOutput(_orbitals);
             CTP_LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: done reading MOs" << flush;
 
             return true;
@@ -1175,7 +1175,7 @@ namespace votca {
                     } // end of the blocks
                     
                
-                ReorderMatrix(_orbitals,overlap);
+                
                 
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Read the overlap matrix" << flush;
                 } // end of the if "Overlap" found
@@ -1259,10 +1259,6 @@ namespace votca {
                 ub::matrix<double> _carttrafo=_dftbasis.getTransformationCartToSpherical(getPackageName());
                 ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_full);
                 vxc_full = ub::prod(_temp, ub::trans(_carttrafo));
-                _vxc=vxc_full;
-                
-                _dftbasis.ReorderMatrix(_vxc, getPackageName(), "xtp");
-                
                 _orbitals->AOVxc()=vxc_full;
                 } else {
                     throw std::runtime_error("Vxc file does not exist.");

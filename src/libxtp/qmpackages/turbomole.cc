@@ -464,7 +464,7 @@ namespace votca {
                 }
             }
             
-            ReorderMOs(_orbitals);
+            
 
 
             //cout << _mo_energies << endl;
@@ -476,7 +476,7 @@ namespace votca {
 
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done reading MOs" << flush;
-
+            
             return true;
         }
 
@@ -667,7 +667,7 @@ namespace votca {
 
                         getline(_input_file, _line);
                         overlap_pos = _line.find("--");
-                        ReorderMatrix(_orbitals,_orbitals->AOOverlap());
+                        
                     }
 
 
@@ -725,7 +725,7 @@ namespace votca {
                         ) break;
 
             } // end of reading the file line-by-line
-
+            ReorderOutput( _orbitals);
             CTP_LOG(ctp::logDEBUG, *_pLog) << "TURBOMOLE: Done parsing" << flush;
             return true;
         }

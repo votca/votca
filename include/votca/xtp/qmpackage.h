@@ -172,9 +172,9 @@ namespace votca {
             double _dpl_spacing;
             bool _with_polarization;
             std::vector<std::vector<double> > SplitMultipoles(ctp::APolarSite* site);
-            void ReorderMOs(Orbitals* _orbitals);
+            void ReorderOutput(Orbitals* _orbitals);
             void ReorderMOsBack(Orbitals* _orbitals);
-            void ReorderMatrix(Orbitals* _orbitals,ub::symmetric_matrix<double>& matrix);
+            
             
         };
         
