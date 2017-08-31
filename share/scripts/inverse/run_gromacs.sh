@@ -35,6 +35,7 @@ mdrun_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 if [[ ${mdrun_opts} = *"-multi "* ]]; then
   multi="$(echo "${mdrun_opts}" | sed -n 's/^.*-multi *\([0-9]*\).*$/\1/p')"
   is_num "${multi}" || die "${0##*/}: could not grep number from cg.inverse.gromacs.mdrun.opts after -multi, got '${multi}'"
+  [[ $(csg_get_property cg.inverse.initial_configuration) = "laststep" ]] && die "${0##*/}: support of 'laststep' with -multi not implemented, yet!"
 fi
 
 mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
