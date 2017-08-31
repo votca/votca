@@ -64,6 +64,7 @@ namespace votca {
         public:
 
             GWBSE(Orbitals* orbitals) : _orbitals(orbitals),
+            _dft_orbitals(orbitals->MOCoefficients()),
             _qp_diag_energies(orbitals->QPdiagEnergies()),
             _qp_diag_coefficients(orbitals->QPdiagCoefficients()),
             _eh_x(orbitals->eh_x()),
@@ -184,7 +185,7 @@ namespace votca {
 
             double _shift; // pre-shift of DFT energies
             AOBasis _dftbasis;
-            ub::matrix<double> _dft_orbitals;
+            ub::matrix<double>& _dft_orbitals;
 
             Orbitals* _orbitals;
             // RPA related variables and functions

@@ -455,9 +455,9 @@ namespace votca {
 
             // process the DFT data
             // a) form the expectation value of the XC functional in MOs
-            // we do not link them because we have to reorder them afterwards and orbitals file has them in the order of the qmpackage
-            //make copy of orbitals MOs because we reorder them
-             _dft_orbitals = _orbitals->MOCoefficients(); //
+            
+            
+            
             _ScaHFX = _orbitals->getScaHFX();
             
                 ub::matrix<double> _vxc_ao;
