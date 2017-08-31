@@ -870,6 +870,10 @@ namespace votca {
                     unsigned int size;
                     ar & size;
                     _overlap.resize(size);
+                    if(version==0){
+                        cerr<<endl;
+                        cerr<<"WARNING! .orb file is of version 0. The overlap matrix will have the wrong ordering"<<endl;
+                    }
                 }
 
                 for (unsigned int i = 0; i < _overlap.size1(); ++i)
@@ -877,6 +881,8 @@ namespace votca {
                         ar & _overlap(i, j);
 
                 ar & _atoms;
+               
+                
                 ar & _qm_energy;
                 ar & _qm_package;
                 ar & _self_energy;
@@ -884,6 +890,8 @@ namespace votca {
 
                 // GW-BSE storage
                 if (version > 0) {
+                    
+                    
 
                     ar & _dftbasis;
                     ar & _gwbasis;
@@ -1068,7 +1076,18 @@ namespace votca {
                         for (unsigned int j = 0; j <= i; ++j)
                             ar & _vxc(i, j);
 
-
+            if (Archive::is_loading::value && version < 4) {
+                BasisSet _dftbasisset;
+                _dftbasisset.LoadBasisSet(_dftbasis);
+                if(!hasQMAtoms()){
+                    throw runtime_error("Orbitals object has no QMAtoms");
+                }
+            AOBasis _dftbasis;
+            _dftbasis.AOBasisFill(&_dftbasisset, QMAtoms());
+            _dftbasis.ReorderMatrix(_vxc,_qm_package , "xtp");
+            _dftbasis.ReorderMatrix(_overlap,_qm_package , "xtp");
+                    
+                }
 
                 } // end version 1: GW-BSE storage
             }// end of serialization
