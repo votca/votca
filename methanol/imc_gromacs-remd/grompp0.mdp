@@ -99,7 +99,7 @@ Tcoupl                   = no
 tc-grps                  = System
 ; Time constant (ps) and reference temperature (K)
 tau_t                    = 0.2
-ref_t                    = TEMP
+ref_t                    = 280
 ; Pressure coupling     
 Pcoupl                   = no
 Pcoupltype               = isotropic

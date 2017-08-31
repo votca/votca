@@ -45,9 +45,6 @@
     <!-- gromacs specific options -->
     <gromacs>
       <!-- trash so many frames at the beginning -->
-      <grompp>
-      <bin>gmx_mpi grompp</bin>
-      </grompp>
       <equi_time>20</equi_time>
       <!-- grid for table*.xvg !-->
       <table_bins>0.002</table_bins>
@@ -55,21 +52,22 @@
       <pot_max>1000000</pot_max>
       <!-- extend the tables to this value -->
       <table_end>5.0</table_end>
-      <runmode>replex
-     <replex>
-    <prefix>test_REMD</prefix>
-    <replicas> 280 300 320 360 </replicas>
-    <mdrun>
-      <command>mpirun -n 4  gmx_mpi mdrun  -s test_REMD_.tpr -multi 4 -replex 100 -table -v -o test_REMD_ </command>
+      <mdrun>
+        <command>mpirun -np 4 mdrun_mpi</command>
+        <opts>-multi 4 -replex 100 </opts>
       </mdrun>
-    </replex>
-    </runmode>
-    <topol>test_REMD_1.tpr</topol>
-    <traj>test_REMD_1.trr</traj>
-    <conf_out>confout1.gro</conf_out>
+      <imc>
+        <topol>topol1.tpr</topol>
+        <traj>traj1.trr</traj>
+      </imc>
+      <mdp>
+        <sim0>grompp0.mdp</sim0>
+        <sim2>grompp2.mdp</sim2>
+        <sim3>grompp3.mdp</sim3>
+      </mdp>
     </gromacs>
     <!-- these files are copied for each new run -->
-    <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
+    <filelist>grompp.mdp topol.top table.xvg index.ndx grompp0.mdp grompp2.mdp grompp3.mdp</filelist>
     <!-- do so many iterations -->
     <iterations_max>5</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->

@@ -46,6 +46,9 @@
         <command>mpirun -np 4 mdrun_mpi</command>
         <opts>-multi 2</opts>
       </mdrun>
+      <rdf>
+        <topol>topol0.tpr</topol>
+      </rdf>
     </gromacs>
     <!-- these files are copied for each new run -->
     <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
