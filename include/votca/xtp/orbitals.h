@@ -1084,9 +1084,13 @@ namespace votca {
                 }
             AOBasis _dftbasis;
             _dftbasis.AOBasisFill(&_dftbasisset, QMAtoms());
-            _dftbasis.ReorderMatrix(_vxc,_qm_package , "xtp");
-            _dftbasis.ReorderMatrix(_overlap,_qm_package , "xtp");
-                    
+            if(this->hasAOOverlap()){
+                 _dftbasis.ReorderMatrix(_overlap,_qm_package , "xtp");
+
+            }
+            if(this->hasAOVxc()){
+                _dftbasis.ReorderMatrix(_vxc,_qm_package , "xtp");
+            }   
                 }
 
                 } // end version 1: GW-BSE storage
