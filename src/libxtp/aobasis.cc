@@ -43,6 +43,12 @@ void AOBasis::ReorderMOs(ub::matrix<double> &v, const string& start, const strin
     if (start == target) {
         return;
     }
+    
+    if(target=="orca" || target=="nwchem"){
+        vector<int> multiplier = getMultiplierVector(target,start);
+        // and reorder rows of _orbitals->_mo_coefficients() accordingly
+        MultiplyMOs(v, multiplier);
+    }
 
     // get reordering vector _start -> target
 
@@ -65,15 +71,9 @@ void AOBasis::ReorderMOs(ub::matrix<double> &v, const string& start, const strin
     }
 
     // NWChem has some strange minus in d-functions
-    if (start == "nwchem" || start == "orca" || target=="orca" || target=="nwchem") {
-        string s=start;
-        string t=target;
-        // get vector with multipliers, e.g. NWChem -> Votca (bloody sign for d_xz)
-        if(target=="orca" || target=="nwchem"){
-            s=target;
-            t=start;
-        }
-        vector<int> multiplier = getMultiplierVector(s, t);
+    if (start == "nwchem" || start == "orca") {
+        
+        vector<int> multiplier = getMultiplierVector(start, target);
         // and reorder rows of _orbitals->_mo_coefficients() accordingly
         MultiplyMOs(v, multiplier);
 
@@ -93,10 +93,7 @@ void AOBasis::ReorderMatrix(ub::symmetric_matrix<double> &v,const string& start,
         cerr << "Size mismatch in ReorderMatrix" << v.size2() << ":" << order.size() << endl;
         throw std::runtime_error("Abort!");
     }
-    
-    
-    
-    
+
     ub::symmetric_matrix<double> temp=v;
     for(unsigned i=0;i<temp.size1();i++){
         int i_index=order[i];

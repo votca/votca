@@ -43,7 +43,6 @@
         <itemPath>../../src/libxtp/tools/partialcharges.h</itemPath>
         <itemPath>../../src/libxtp/tools/pdb2map.h</itemPath>
         <itemPath>../../src/libxtp/tools/pdb2top.h</itemPath>
-        <itemPath>../../src/libxtp/tools/qmanalyze.cc</itemPath>
         <itemPath>../../src/libxtp/tools/qmanalyze.h</itemPath>
         <itemPath>../../src/libxtp/tools/qmsandbox.h</itemPath>
         <itemPath>../../src/libxtp/tools/spectrum.h</itemPath>
@@ -943,11 +942,6 @@
       </item>
       <item path="../../src/libxtp/tools/pdb2top.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libxtp/tools/qmanalyze.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/qmsandbox.h" ex="false" tool="3" flavor2="0">
@@ -1597,11 +1591,6 @@
       <item path="../../src/libxtp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/pdb2top.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/tools/qmanalyze.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
       </item>

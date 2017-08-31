@@ -16,17 +16,21 @@
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmapemachine.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/dftengine/dftengine.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/gaussian.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/log2mps.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/turbomole.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/numerical_integration/numerical_integrations.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/gencube.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/jobcalculators/igwbse.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmmachine.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/aobasis.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/jobcalculators/edft.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/nwchem.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackagefactory.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/qmpackage.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/dftengine.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/fourcenters_dft.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/aobasis.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/jobcalculators/idft.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/gaussian.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/orbitals.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/gwbse.cc</file>
@@ -35,6 +39,7 @@
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/jobcalculators/egwbse.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/bsecoupling.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackage.cc</file>
         </group>
     </open-files>
 </project-private>

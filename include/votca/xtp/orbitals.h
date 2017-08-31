@@ -842,9 +842,8 @@ namespace votca {
                     if (Archive::is_loading::value) {
                         string floatordouble = "float";
                         ar & floatordouble;
-
                         if (test != floatordouble) {
-                            throw std::runtime_error((boost::format("This votca is compiled with %. The orbitals file you want to read in is compiled with %") % test % floatordouble).str());
+                            throw std::runtime_error((boost::format("This votca is compiled with %1%. The orbitals file you want to read in is compiled with %2%") % test % floatordouble).str());
                         }
                     } else {
                         ar & test;
@@ -1079,6 +1078,7 @@ namespace votca {
             if (Archive::is_loading::value && version < 4) {
                 BasisSet _dftbasisset;
                 _dftbasisset.LoadBasisSet(_dftbasis);
+
                 if(!hasQMAtoms()){
                     throw runtime_error("Orbitals object has no QMAtoms");
                 }
@@ -1089,7 +1089,17 @@ namespace votca {
 
             }
             if(this->hasAOVxc()){
-                _dftbasis.ReorderMatrix(_vxc,_qm_package , "xtp");
+                
+               
+                if(_qm_package=="gaussian"){
+                ub::matrix<double> vxc_full=_vxc;
+                
+                ub::matrix<double> _carttrafo=_dftbasis.getTransformationCartToSpherical(_qm_package);
+                ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_full);
+                _vxc = ub::prod(_temp, ub::trans(_carttrafo));
+                }
+                 _dftbasis.ReorderMatrix(_vxc,_qm_package , "xtp");
+                
             }   
             if(this->hasMOCoefficients()){
                 _dftbasis.ReorderMOs(_mo_coefficients,_qm_package , "xtp");

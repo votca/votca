@@ -463,9 +463,10 @@ namespace votca {
                 ub::matrix<double> _vxc_ao;
                 if (_orbitals->hasAOVxc()) {
                     if (_doVxc) {
-                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take the external implementation" << flush;
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take the external implementation" << flush;
                         _doVxc = false;
                     }
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded external Vxc matrix" << flush;
                     _vxc_ao=_orbitals->AOVxc();
                 } else if (_doVxc) {
 
