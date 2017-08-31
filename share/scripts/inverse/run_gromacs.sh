@@ -145,6 +145,10 @@ fi
 
 mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command)"
 #no check for mdrun, because mdrun_mpi could maybe exist only computenodes
+if [[ ${CSG_MDRUN_CMD} ]]; then
+  msg --color blue --to-stderr "Overwriting cg.inverse.gromacs.mdrun.command ('${mdrun}') with '${CSG_MDRUN_CMD}'"
+  mdrun="${CSG_MDRUN_CMD}"
+fi
 
 if [[ -n $CSGENDING ]]; then
   #seconds left for the run
