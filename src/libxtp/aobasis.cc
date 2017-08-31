@@ -47,7 +47,7 @@ void AOBasis::ReorderMOs(ub::matrix<double> &v, const string& start, const strin
     // get reordering vector _start -> target
 
     vector<int> order = getReorderVector(start, target);
-
+    
     // Sanity check
     if (v.size2() != order.size()) {
         cerr << "Size mismatch in ReorderMOs" << v.size2() << ":" << order.size() << endl;
@@ -345,7 +345,7 @@ vector<int> AOBasis::invertOrder(const vector<int>& order ){
 void AOBasis::addReorderShell(const string& start,const string& target,const string& shell_type, vector<int>& neworder ) {
     vector<int> order;
     // current length of vector
-    int _cur_pos = order.size() -1 ;
+    int _cur_pos = neworder.size() -1 ;
 
     if ( target == "xtp" || start=="xtp"){
 
