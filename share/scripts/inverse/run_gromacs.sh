@@ -61,10 +61,11 @@ grompp=( $(csg_get_property cg.inverse.gromacs.grompp.bin) )
 
 traj=$(csg_get_property cg.inverse.gromacs.traj)
 # in main simulation we usually do care about traj and temperature
-if [[ $1 != "--pre" ]]; then
+# in pre-simulation/multisim there might be no traj and a different temp(s) 
+if [[ ! ${multi} && $1 != "--pre" ]]; then
   # no temp check for multi simulation
-  [[ ${multi} ]] || check_temp || die "${0##*/}: check of tempertures failed"
-  if  [[ $traj == *.xtc ]]; then
+  check_temp || die "${0##*/}: check of tempertures failed"
+  if [[ $traj == *.xtc ]]; then
     #XXX is returned if nstxout-compressed is not in mdp file
     nstxtcout=$(get_simulation_setting nstxout-compressed XXX)
     [[ ${nstxtcout} = XXX ]] && nstxtcout=$(get_simulation_setting nstxtcout 0)
@@ -108,13 +109,6 @@ if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation) = "yes" && $1 != "--
   msg "Doing main simulation"
 fi
 
-#support for older mdp file, cutoff-scheme = Verlet is default for >=gmx-5 now, but does not work with tabulated interactions
-#XXX is returned if cutoff-scheme is not in mdp file
-if [[ $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
-  echo "cutoff-scheme = Group" >> $mdp
-  msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
-fi
-
 if [[ ${CSG_MDRUN_STEPS} ]]; then
   msg --color blue --to-stderr "Appending -nsteps ${CSG_MDRUN_STEPS} to mdrun options"
   mdrun_opts+=" -nsteps $CSG_MDRUN_STEPS"
@@ -130,15 +124,26 @@ if [[ ${multi} ]]; then
   for((i=0;i<${multi};i++)); do
     for j in index mdp topol_in conf; do
       # read $j.$i (e.g index.1} and use ${!j} (e.g. ${index} ) as default and store it in f
-      f="$(csg_get_property --allow-empty "cg.inverse.gromacs.$j.$i" "${!j}")" #filter me away
+      f="$(csg_get_property --allow-empty "cg.inverse.gromacs.${j}.sim${i}" "${!j}")" #filter me away
       [[ -f ${f} ]] || die "${0##*/}: file '$f' not found (make sure it is in cg.inverse.filelist)"
       read ${j}_x <<< "${f}" # set ${j}_x (topol_x to ${f}
     done
     tpr_x="${tpr%.*}${i}.${tpr##*.}"
     mdout="mdout${i}.mdp"
+    if [[ $(get_simulation_setting --file "${mdp_x}" cutoff-scheme XXX) = XXX ]]; then 
+      echo "cutoff-scheme = Group" >> "${mdp_x}"
+      msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to ${mdp_x}, tabulated interactions only work with Group cutoff-scheme!"
+    fi
     critical ${grompp[@]} -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" -po "${mdout}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]}" -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" -pe "${mdout}" "${grompp_opts}"
   done
 else
+  #support for older mdp file, cutoff-scheme = Verlet is default for >=gmx-5 now, but does not work with tabulated interactions
+  #XXX is returned if cutoff-scheme is not in mdp file
+  if [[ $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
+    echo "cutoff-scheme = Group" >> $mdp
+    msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
+  fi
+
   #see can run grompp again as checksum of tpr does not appear in the checkpoint
   critical ${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
   [[ -f $tpr ]] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
@@ -189,12 +194,10 @@ else
 fi
 
 if [[ ${multi} ]]; then
-  #TODO what if user want to use not the 0th tpr or confout?
-  critical mv "${tpr%.*}0.${tpr##*.}" "${tpr}" #for imc, rdf, rc calculation
-  critical mv "${confout%.*}0.${confout##*.}" "${confout}" #for simulation_finish()
-  if [[ ${mdrun_opts} = *-regex* ]]; then
-     #TODO what if user doesn't want the 0th trajectory?
-    critical mv "${traj%.*}0.${traj##*.}" "${traj}"
+  echo "Dummy file created by ${0##*/}" > "${confout}" #for simulation_finish(), confout isn't really used.
+  if [[ ${mdrun_opts} = *-replex* ]]; then
+     : #user has to tell imc, rdf, re updater what to use.
+     echo "Dummy file created by ${0##*/}" > "${traj}" # for simulation_finish
   else
     trjcat=( $(csg_get_property cg.inverse.gromacs.trjcat.bin) )
     [[ -n "$(type -p ${trjcat[0]})" ]] || die "${0##*/}: trjcat binary '${trjcat[0]}' not found"
