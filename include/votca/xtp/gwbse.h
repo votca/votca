@@ -185,9 +185,10 @@ namespace votca {
 
             double _shift; // pre-shift of DFT energies
             AOBasis _dftbasis;
-            ub::matrix<double>& _dft_orbitals;
+            
 
             Orbitals* _orbitals;
+            ub::matrix<double>& _dft_orbitals;
             // RPA related variables and functions
             // container for the epsilon matrix
             std::vector< ub::matrix<double> > _epsilon;

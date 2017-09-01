@@ -12,15 +12,16 @@
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/exciton.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gyration.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/qmanalyze.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/partialcharges.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/orca.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmapemachine.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/dftengine/dftengine.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/gaussian.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/log2mps.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/turbomole.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/numerical_integration/numerical_integrations.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/gencube.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/jobcalculators/igwbse.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/esp2multipole.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmmachine.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/aobasis.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/jobcalculators/edft.h</file>
@@ -39,7 +40,6 @@
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/jobcalculators/egwbse.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/bsecoupling.cc</file>
-            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackage.cc</file>
         </group>
     </open-files>
 </project-private>
