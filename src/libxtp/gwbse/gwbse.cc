@@ -321,7 +321,12 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size " << _dftbasis._AOBasisFragA << flush;
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size " << _dftbasis._AOBasisFragB << flush;
             }
-
+            
+            if(_do_full_BSE)
+                _orbitals->setBSEtype("full");
+            else{
+                _orbitals->setBSEtype("TDA");
+            }
             /* Preparation of calculation parameters:
              *  - number of electrons -> index of HOMO
              *  - number of levels
@@ -450,31 +455,19 @@ namespace votca {
 
             // process the DFT data
             // a) form the expectation value of the XC functional in MOs
-            // we do not link them because we have to reorder them afterwards and orbitals file has them in the order of the qmpackage
-            //make copy of orbitals MOs because we reorder them
-             _dft_orbitals = _orbitals->MOCoefficients(); //
+            
+            
+            
             _ScaHFX = _orbitals->getScaHFX();
-            {// this bracket is there so that _vx_ao falls out of scope, like it more than resize
+            
                 ub::matrix<double> _vxc_ao;
                 if (_orbitals->hasAOVxc()) {
                     if (_doVxc) {
-                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take the external implementation" << flush;
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take the external implementation" << flush;
                         _doVxc = false;
                     }
-                    if (_dft_package == "gaussian") {
-                        // we have to do some cartesian -> spherical transformation for Gaussian
-                        const ub::matrix<double>& vxc_cart = _orbitals->AOVxc();
-                        //cout<< vxc_cart.size1()<<"x"<<vxc_cart.size2()<<endl;
-                        ub::matrix<double> _carttrafo;
-                        _dftbasis.getTransformationCartToSpherical(_dft_package, _carttrafo);
-                        //cout<< _carttrafo.size1()<<"x"<<_carttrafo.size2()<<endl;
-
-                        ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_cart);
-                        _vxc_ao = ub::prod(_temp, ub::trans(_carttrafo));
-
-                    } else {
-                        _vxc_ao = _orbitals->AOVxc();
-                    }
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded external Vxc matrix" << flush;
+                    _vxc_ao=_orbitals->AOVxc();
                 } else if (_doVxc) {
 
                     NumericalIntegration _numint;
@@ -485,11 +478,11 @@ namespace votca {
                     }
                     _numint.GridSetup(_grid, &dftbs, _atoms,&_dftbasis);
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup grid for integration with gridsize: " << _grid <<" with "<<_numint.getGridSize()<< " points, divided into "<<_numint.getBoxesSize()<<" boxes"<<flush;
-                    _dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
+                    
 
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Integrating Vxc in VOTCA with functional " << _functional << flush;
-                    ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
+                    ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState();
 
                     _vxc_ao = _numint.IntegrateVXC(DMAT);
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Vxc in VOTCA" << flush;
@@ -506,13 +499,10 @@ namespace votca {
                 ub::matrix<double> _temp = ub::prod(_vxc_ao, ub::trans(_mos));
                 _vxc = ub::prod(_mos, _temp);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
-
-                // b) reorder MO coefficients depending on the QM package used to obtain the DFT data
-                if (_dft_package != "xtp" && !_doVxc) {
-                    _dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;
-                }
-            }
+                _vxc_ao.resize(0,0);
+             
+                
+           
 
             /// ------- actual calculation begins here -------
 

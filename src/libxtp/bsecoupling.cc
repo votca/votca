@@ -323,9 +323,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     }
     
     
-    if(_orbitalsA->getQMpackage()!=_orbitalsB->getQMpackage() || _orbitalsA->getQMpackage()!=_orbitalsAB->getQMpackage()){
-        throw runtime_error("Qmpackages in Orbfiles were made using different QMPackages, that doe snot work at the moment due to not reorddeering the MOCOefficients/Overlapmatrix.\n Redo the calculation please. ");
-    }
+   
     
     // get exciton information of pair AB
     int _bseAB_cmax = _orbitalsAB->getBSEcmax();

@@ -154,8 +154,9 @@ namespace votca {
                         CTP_LOG_SAVE(ctp::logINFO, *_pLog) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
                     }
                     _qmpackage->setLogFileName(_dftlog_file);
-                    _qmpackage->ParseLogFile(_orbitals);
                     _qmpackage->setOrbitalsFileName(_MO_file);
+                    _qmpackage->ParseLogFile(_orbitals);
+                    
                     _qmpackage->ParseOrbitalsFile(_orbitals);
                 }
                 _orbitals->setDFTbasis(_qmpackage->getBasisSetName());

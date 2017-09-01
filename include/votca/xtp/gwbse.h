@@ -64,6 +64,7 @@ namespace votca {
         public:
 
             GWBSE(Orbitals* orbitals) : _orbitals(orbitals),
+            _dft_orbitals(orbitals->MOCoefficients()),
             _qp_diag_energies(orbitals->QPdiagEnergies()),
             _qp_diag_coefficients(orbitals->QPdiagCoefficients()),
             _eh_x(orbitals->eh_x()),
@@ -98,23 +99,6 @@ namespace votca {
             // interfaces for options getting/setting
 
 
-            std::string get_gwbasis_name() {
-                return _gwbasis_name;
-            }
-
-            void set_gwbasis_name(std::string inp) {
-                _gwbasis_name = inp;
-            }
-
-            std::string get_dftbasis_name() {
-                return _dftbasis_name;
-            }
-
-            void set_dftbasis_name(std::string inp) {
-                _dftbasis_name = inp;
-            }
-
-            std::vector< ub::matrix<double> > getExcitedStateDmat(std::string singletortriplet, int state);
 
             void addoutput(Property *_summary);
 
@@ -201,7 +185,7 @@ namespace votca {
 
             double _shift; // pre-shift of DFT energies
             AOBasis _dftbasis;
-            ub::matrix<double> _dft_orbitals;
+            ub::matrix<double>& _dft_orbitals;
 
             Orbitals* _orbitals;
             // RPA related variables and functions
@@ -282,27 +266,24 @@ namespace votca {
 
             void BSE_analyze_eh_interaction_Triplet(std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp);
             void BSE_analyze_eh_interaction_Singlet(std::vector<real_gwbse>& _c_x,
-                    std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp);
+                std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp);
             
             void BSE_analyze_eh_interaction_BTDA_singlet(std::vector<real_gwbse>& _c_x,
-                    std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp);
+                std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp);
 
 
-            void BSE_FragmentPopulations(const ub::matrix<real_gwbse>& _bse_coefficients,
-            std::vector< ub::vector<double> >& popH, std::vector< ub::vector<double> >& popE,
-            std::vector< ub::vector<double> >& Crgs);
+            void BSE_FragmentPopulations(const string& spin,
+                std::vector< ub::vector<double> >& popH, std::vector< ub::vector<double> >& popE,
+                std::vector< ub::vector<double> >& Crgs);
             
-            void BSE_FragmentPopulations_BTDA(const ub::matrix<real_gwbse>& _bse_coefficients,
-            const ub::matrix<real_gwbse>& _bse_coefficients_AR,
-            std::vector< ub::vector<double> >& popH, std::vector< ub::vector<double> >& popE,
-            std::vector< ub::vector<double> >& Crgs);
+    
             
             
             void BSE_FreeTransition_Dipoles();
             
-            void BSE_CoupledTransition_Dipoles();
+          
             
-            void BSE_CoupledTransition_Dipoles_BTDA();
+            void BSE_CoupledTransition_Dipoles();
 
         };
 
