@@ -30,7 +30,6 @@ fi
 
 tpr="$(csg_get_property cg.inverse.gromacs.topol)"
 
-confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
 mdrun_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 if [[ ${mdrun_opts} = *"-multi "* ]]; then
   multi="$(echo "${mdrun_opts}" | sed -n 's/^.*-multi *\([0-9]*\).*$/\1/p')"
@@ -45,6 +44,8 @@ mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
 conf="$(csg_get_property cg.inverse.gromacs.conf)"
 # no check for multi simulation
 [[ $multi ]] || [[ -f $conf ]] || die "${0##*/}: gromacs initial configuration file '$conf' not found (make sure it is in cg.inverse.filelist)"
+
+confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
 
 index="$(csg_get_property cg.inverse.gromacs.index)"
 # no check for multi simulation
@@ -63,7 +64,6 @@ traj=$(csg_get_property cg.inverse.gromacs.traj)
 # in main simulation we usually do care about traj and temperature
 # in pre-simulation/multisim there might be no traj and a different temp(s) 
 if [[ ! ${multi} && $1 != "--pre" ]]; then
-  # no temp check for multi simulation
   check_temp || die "${0##*/}: check of tempertures failed"
   if [[ $traj == *.xtc ]]; then
     #XXX is returned if nstxout-compressed is not in mdp file
@@ -194,10 +194,11 @@ else
 fi
 
 if [[ ${multi} ]]; then
-  echo "Dummy file created by ${0##*/}" > "${confout}" #for simulation_finish(), confout isn't really used.
+  #for simulation_finish(), confout isn't used anywhere else.
+  [[ -f ${confout} ]] || echo "Dummy file created by ${0##*/}" > "${confout}"
   if [[ ${mdrun_opts} = *-replex* ]]; then
-     : #user has to tell imc, rdf, re updater what to use.
-     echo "Dummy file created by ${0##*/}" > "${traj}" # for simulation_finish
+     # for simulation_finish(), user has to tell imc, rdf, re updater what traj to use.
+     [[ -f ${traj} ]] || echo "Dummy file created by ${0##*/}" > "${traj}"
   else
     trjcat=( $(csg_get_property cg.inverse.gromacs.trjcat.bin) )
     [[ -n "$(type -p ${trjcat[0]})" ]] || die "${0##*/}: trjcat binary '${trjcat[0]}' not found"
