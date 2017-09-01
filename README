@@ -54,7 +54,7 @@ methanol/atomistic            atomistic simulations for methanol
 methanol/force_matching       force matching for methanol
 methanol/ibi                  iterative boltzmann inversion for methanol
 methanol/imc                  inverse monte carlo for methanol
-methanol/imc-remd             inverse monte carlo for methanol with REMD (only for gromacs) during iterations
+methanol/imc_gromacs-remd     inverse monte carlo for methanol with REMD (only for gromacs) during iterations
 
 propane/atomistic             atomistic simulations for liquid propane
 propane/ibi                   iterative boltzmann inversion for nonbonded
