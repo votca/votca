@@ -26,6 +26,7 @@
 #include <fstream>
 #include <map>
 #include <iterator>
+#include <numeric>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -173,7 +174,7 @@ namespace votca {
         std::vector<int> Orbitals::SortEnergies() {
             if (tools::globals::verbose) cout << "... ... Sorting energies" << endl;
             std::vector<int>index=std::vector<int>(_mo_energies.size());
-            iota(index.begin(), index.end(), 0);
+            std::iota(index.begin(), index.end(), 0);
             std::stable_sort(index.begin(), index.end(),[this](int i1, int i2) {return this->MOEnergies()[i1] > this->MOEnergies()[i2];});
             return index;
         }
