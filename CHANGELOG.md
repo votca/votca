@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/xtp/commits/master).
 
-## Version 1.4.1 (released 03.09.17)
+## Version 1.4.1 (released 02.09.17)
 * fix pkg-config file
 
 ## Version 1.4 (released 29.10.16)
