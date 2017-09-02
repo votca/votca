@@ -64,7 +64,7 @@ before_script:
   - pip install --user numpy
 
 script:
-  - PATH="$HOME/hdf5:$PATH" ./build.sh -Wu $([[ ${TRAVIS_BRANCH} = stable ]] || echo "--dev") --prefix "$HOME/votca"
+  - PATH="$HOME/hdf5:$PATH" ./build.sh -Wu --prefix "$HOME/votca"
     ${TYPE:+-DCMAKE_BUILD_TYPE=${TYPE}}
     ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} -DWITH_H5MD=ON ${MINIMAL:+--minimal} ${MAN:+--devdoc}
     ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall} ${GMX_VERSION:+--gmx-release ${GMX_VERSION}}
