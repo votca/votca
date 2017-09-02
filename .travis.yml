@@ -34,7 +34,6 @@ addons:
       - doxygen
       - graphviz
       - ghostscript
-      - python-numpy
       - gnuplot-nox
       - octave
 
@@ -100,6 +99,7 @@ before_script:
     fi
   - if [[ ${MAN} ]]; then git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/votca/src/devdoc"; fi 
   - if [[ ${GVER} ]]; then export CC=gcc-${GVER}; export CXX=g++-${GVER}; fi
+  - pip install --user numpy
 
 script:
   - PATH="$HOME/hdf5:$PATH" ./build.sh -Wu $([[ ${TRAVIS_BRANCH} = stable ]] || echo "--dev") --prefix "$HOME/votca"
