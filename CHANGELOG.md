@@ -1,5 +1,14 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
+## Version 1.4.1 (released 03.09.17)
+* fix pkg-config files
+* fix build with gmx-2017
+* added CSG_MDRUN_OPTS to run_gromacs.sh
+* table_to_tab.pl: fix forces for LAMMPS
+* csg_inverse: warn users of bug #179
+* run_gromacs.sh: check nstxout-compressed
+* tools: fix parallel build with mkl
+
 ## Version 1.4 _SuperKurt_ (released 29.10.16)
 * added cibi tutorial and manual section
 * install mkl headers if mkl is enabled
