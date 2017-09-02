@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
-## Version 1.4.1 (released 03.09.17)
+## Version 1.4.1 (released 02.09.17)
 * fix pkg-config files
 * fix build with gmx-2017
 * added CSG_MDRUN_OPTS to run_gromacs.sh
