@@ -417,7 +417,8 @@ namespace votca { namespace xtp {
 
                 COEF.resize(extents[range(0, 5)][range(0, 5)][range(0, 9)][range(0, NMAX + 1)]);
 
-                int _lmin_dft_ecp, _lmax_dft_ecp;
+                int _lmin_dft_ecp=0;
+                int _lmax_dft_ecp=0;
                 if (INULL == 2) {
                     _lmin_dft_ecp = std::min(_lmax_row, _lmax_ecp);
                     _lmax_dft_ecp = std::max(_lmax_row, _lmax_ecp);

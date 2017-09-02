@@ -280,8 +280,7 @@ namespace votca {
                 if ( _do_qp ){
                     fprintf(out, "  1 %d \n", _state+1);
                 } 
-                // prepare basis set information
-                ub::matrix<double> &_dft_orbitals = _orbitals.MOCoefficients();
+               
                 // load DFT basis set (element-wise information) from xml file
                 BasisSet dftbs;
                 dftbs.LoadBasisSet(_orbitals.getDFTbasis());

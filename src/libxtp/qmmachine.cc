@@ -530,8 +530,7 @@ namespace votca {
         template<class QMPackage>
         void QMMachine<QMPackage>::Density2Charges( GWBSE* _gwbse, std::vector<int> _state_index ){
 
-                    // calculate density matrix for this excited state
-                    ub::matrix<double> &_dft_orbitals = orb_iter_input.MOCoefficients();
+                   
                     // load DFT basis set (element-wise information) from xml file
                     BasisSet dftbs;
                     if (orb_iter_input.getDFTbasis() != "") {

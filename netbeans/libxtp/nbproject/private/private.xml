@@ -11,10 +11,12 @@
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/esp2multipole.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/exciton.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gyration.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/gwbse.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/qmanalyze.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/partialcharges.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/orca.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmapemachine.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gwbse/rpa.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/gaussian.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/tools/log2mps.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/turbomole.cc</file>

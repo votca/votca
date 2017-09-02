@@ -367,8 +367,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
                 }
             }
 
-    // calculate density matrix for this excited state
-    ub::matrix<double> &_dft_orbitals = orb.MOCoefficients();
+    
     // load DFT basis set (element-wise information) from xml file
     BasisSet dftbs;
     
