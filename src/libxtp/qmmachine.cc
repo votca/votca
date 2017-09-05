@@ -372,7 +372,7 @@ namespace votca {
                     // filter according to charge transfer, go through list of excitations in _state_index
                     if (_has_dQ_filter) {
                         std::vector<int> _state_index_copy;
-                        if (_type == "singlets") {
+                        if (_type == "singlet") {
                             // go through list of singlets
                             const std::vector< ub::vector<double> >& dQ_frag = orb_iter_input.FragmentChargesSingEXC();
                             for (unsigned _i = 0; _i < _state_index.size(); _i++) {
@@ -381,7 +381,7 @@ namespace votca {
                                 }
                             }
                             _state_index = _state_index_copy;
-                        } else if (_type == "triplets") {
+                        } else if (_type == "triplet") {
                             // go through list of triplets
                             const std::vector< ub::vector<double> >& dQ_frag = orb_iter_input.FragmentChargesTripEXC();
                             for (unsigned _i = 0; _i < _state_index.size(); _i++) {
