@@ -48,7 +48,7 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(MKL)
 if(MKL_FOUND)
-  set(MKL_BOOST_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}tools/intel/src/intel/MKL_and_boost_example/headers")
+  set(MKL_BOOST_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/tools/intel/src/intel/MKL_and_boost_example/headers")
 endif(MKL_FOUND)
 
 ######################################
