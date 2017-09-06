@@ -123,10 +123,11 @@ fi
 if [[ ${multi} ]]; then
   for((i=0;i<${multi};i++)); do
     for j in index mdp topol_in conf; do
-      # read $j.$i (e.g index.1} and use ${!j} (e.g. ${index} ) as default and store it in f
+      # get property cg.inverse.gromacs.${j}.sim${i} (e.g cg.inverse.gromacs.index.1} and use ${!j} 
+      # (e.g. value of ${index} ) as default and store it in f
       f="$(csg_get_property --allow-empty "cg.inverse.gromacs.${j}.sim${i}" "${!j}")" #filter me away
       [[ -f ${f} ]] || die "${0##*/}: file '$f' not found (make sure it is in cg.inverse.filelist)"
-      read ${j}_x <<< "${f}" # set ${j}_x (topol_x to ${f}
+      read ${j}_x <<< "${f}" # set ${j}_x (e.g. topol_x) to ${f}
     done
     tpr_x="${tpr%.*}${i}.${tpr##*.}"
     mdout="mdout${i}.mdp"
