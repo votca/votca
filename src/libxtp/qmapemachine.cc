@@ -332,7 +332,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
         // filter according to charge transfer, go through list of excitations in _state_index
         if (_has_dQ_filter) {
             std::vector<int> _state_index_copy;
-            if (_type == "singlets") {
+            if (_type == "singlet") {
                 // go through list of singlets
                 const std::vector< ub::vector<double> >& dQ_frag = orb.FragmentChargesSingEXC();
                 //const std::vector<double>& dQ_fragB = orb.FragmentBChargesSingEXC();
@@ -342,7 +342,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
                     }
                 }
                 _state_index = _state_index_copy;
-            } else if (_type == "triplets") {
+            } else if (_type == "triplet") {
                 // go through list of triplets
                 const std::vector< ub::vector<double> >& dQ_frag = orb.FragmentChargesTripEXC();
                 //const std::vector<double>& dQ_fragB = orb.FragmentBChargesTripEXC();
@@ -367,29 +367,24 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
                 }
             }
 
-    // calculate density matrix for this excited state
-    ub::matrix<double> &_dft_orbitals = orb.MOCoefficients();
+    
     // load DFT basis set (element-wise information) from xml file
     BasisSet dftbs;
-    if (orb.getDFTbasis() != "") {
-        dftbs.LoadBasisSet(orb.getDFTbasis());
-    } else {
-        dftbs.LoadBasisSet(_gwbse.get_dftbasis_name());
-
-    }
+    
+    dftbs.LoadBasisSet(orb.getDFTbasis());
+    
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb.getDFTbasis() << flush;
 
     // fill DFT AO basis by going through all atoms
     AOBasis dftbasis;
     dftbasis.AOBasisFill(&dftbs, Atomlist );
-    dftbasis.ReorderMOs(_dft_orbitals, orb.getQMpackage(), "xtp");
     // TBD: Need to switch between singlets and triplets depending on _type
-    ub::matrix<double> DMATGS = orb.DensityMatrixGroundState(_dft_orbitals);
+    ub::matrix<double> DMATGS = orb.DensityMatrixGroundState();
     ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
 
     if (_state > 0) {
-        ub::matrix<real_gwbse>& BSECoefs = orb.BSESingletCoefficients();
-        std::vector<ub::matrix<double> > DMAT = orb.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state_index[_state - 1]);
+        
+        std::vector<ub::matrix<double> > DMAT = orb.DensityMatrixExcitedState(_type, _state_index[_state - 1]);
         DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
     }
 

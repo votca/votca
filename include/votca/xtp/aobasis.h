@@ -27,7 +27,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/basisset.h>
-
+#include <boost/numeric/ublas/symmetric.hpp>
 
 
 
@@ -49,8 +49,10 @@ public:
         ~AOBasis(); 
       
        void ReorderMOs(ub::matrix<double> &v,const std::string& start, const std::string& target ); 
+       
+       void ReorderMatrix(ub::symmetric_matrix<double> &v,const string& start,const string& target );
      
-      void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
+      
 
     void AOBasisFill( BasisSet* bs , std::vector<ctp::QMAtom* > segments, int fragbreak = -1);
     void ECPFill( BasisSet* bs , std::vector<ctp::QMAtom* > segments); 
@@ -62,7 +64,7 @@ public:
     AOShellIterator firstShell() const{ return _aoshells.begin(); }
     AOShellIterator lastShell() const{ return _aoshells.end(); }
 
-    
+    ub::matrix<double> getTransformationCartToSpherical(const std::string& package);
     
         
     const AOShell* getShell( AOShellIterator it ) const{ return (*it); }
@@ -76,25 +78,28 @@ public:
     
     unsigned getNumofShells() const{return _aoshells.size();}
    
-   
+
    int _AOBasisFragA;
    int _AOBasisFragB;
-   
-   bool _is_stable;
+   private:
+       
+       
+  void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
    
     std::vector<AOShell*> _aoshells;
 
-  
-    void getReorderVector(const std::string& start,const std::string& target, std::vector<int>& neworder );
+    vector<int> invertOrder(const vector<int>& order );
+    
+    std::vector<int> getReorderVector(const std::string& start,const std::string& target );
    
     void addReorderShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& neworder );
   
-    void getMultiplierVector(const std::string& start,const std::string& target, std::vector<int>& multiplier );
+    std::vector<int> getMultiplierVector(const std::string& start,const std::string& target );
     
     void addMultiplierShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& multiplier );  
     
     
-    void getTransformationCartToSpherical(const std::string& package, ub::matrix<double>& _trafomatrix );
+    
     void addTrafoCartShell( const AOShell* shell , ub::matrix_range< ub::matrix<double> >& _submatrix );
     
     int getMaxFunctions ( );

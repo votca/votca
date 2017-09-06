@@ -194,7 +194,7 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
         std::cout<<std::endl;
         std::cout <<"Evaluating "<<segs.size()<<" segments for neighborlist. "<< top->Segments().size()-segs.size()<<" segments are not taken into account as specified"<< std::endl;
         if(!_useConstantCutoff){
-        std::cout << "The following segments were ignored in the neigborlist creation"<<std::endl;      
+        std::cout << "The following segments are used in the neigborlist creation"<<std::endl;      
         std::cout<<"\t"<<std::flush;        
         for(std::vector< std::string >::iterator st=_included_segments.begin();st!=_included_segments.end();++st){
             std::cout<<" "<<(*st)<<std::flush;

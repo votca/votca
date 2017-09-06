@@ -53,8 +53,7 @@ namespace votca {
 
         private:
 
-            int element2number(string element);
-            double element2core_ECP(string element);
+         
             
             void calculateCube();
             void subtractCubes();
@@ -281,8 +280,7 @@ namespace votca {
                 if ( _do_qp ){
                     fprintf(out, "  1 %d \n", _state+1);
                 } 
-                // prepare basis set information
-                ub::matrix<double> &_dft_orbitals = _orbitals.MOCoefficients();
+               
                 // load DFT basis set (element-wise information) from xml file
                 BasisSet dftbs;
                 dftbs.LoadBasisSet(_orbitals.getDFTbasis());
@@ -291,7 +289,7 @@ namespace votca {
                 // fill DFT AO basis by going through all atoms 
                 AOBasis dftbasis;
                 dftbasis.AOBasisFill(&dftbs, _orbitals.QMAtoms());
-                dftbasis.ReorderMOs(_dft_orbitals, _orbitals.getQMpackage(), "xtp");
+               
 
                 
                 // now depending on the type of cube
@@ -301,25 +299,23 @@ namespace votca {
                     ub::matrix<double> DMAT_tot = ub::zero_matrix<double>(dftbasis.AOBasisSize(), dftbasis.AOBasisSize());
 
                     // ground state only if requested
-                    if ( _do_groundstate ) {
-                        ub::matrix<double> DMATGS = _orbitals.DensityMatrixGroundState(_dft_orbitals);
+                    if ( _do_groundstate || _do_bse) {
+                        ub::matrix<double> DMATGS = _orbitals.DensityMatrixGroundState();
                         DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
                         CTP_LOG(ctp::logDEBUG, _log) << " Calculated ground state density matrix " << flush;
                     }
                     
                     if(_state>0){
-                        ub::matrix<real_gwbse> BSECoefs;
-                        if (_spin=="singlet") BSECoefs = _orbitals.BSESingletCoefficients();
-                        else if (_spin =="triplet") BSECoefs = _orbitals.BSETripletCoefficients();
+
                     
                         if ( _do_transition ){
-                             DMAT_tot=_orbitals.TransitionDensityMatrix(_dft_orbitals, BSECoefs, _state - 1);
+                             DMAT_tot=_orbitals.TransitionDensityMatrix(_spin, _state - 1);
                              CTP_LOG(ctp::logDEBUG, _log) << " Calculated transition state density matrix " << flush;
                         }
 
                     // excited state if requested
                         else if ( _do_bse  ) {    
-                            std::vector< ub::matrix<double> > DMAT=_orbitals.DensityMatrixExcitedState(_dft_orbitals, BSECoefs, _state - 1);
+                            std::vector< ub::matrix<double> > DMAT=_orbitals.DensityMatrixExcitedState(_spin, _state - 1);
                             DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
                             CTP_LOG(ctp::logDEBUG, _log) << " Calculated excited state density matrix " << flush;
                         }

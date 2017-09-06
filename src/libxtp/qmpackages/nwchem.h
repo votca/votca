@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -24,21 +24,21 @@
 #include <votca/ctp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 
-#include <string> 
+#include <string>
 
 
 
 namespace votca { namespace xtp {
 /**
     \brief Wrapper for the Gaussian program
- 
-    The Gaussian class executes the Gaussian package 
+
+    The Gaussian class executes the Gaussian package
     and extracts information from its log and io files
-    
+
 */
 class NWChem : public QMPackage
 {
-public:   
+public:
 
    std::string getPackageName() { return "nwchem"; }
 
@@ -48,43 +48,43 @@ public:
     * and a guess for the dimer (if requested) constructed from the
     * monomer orbitals
     */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
 
    bool WriteShellScript();
 
-   bool Run();
+   bool Run( Orbitals* _orbitals = NULL );
 
    void CleanUp();
-   
+
    bool CheckLogFile();
 
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
 
+   bool setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){ return true; };
 
-   
+
    std::string getScratchDir( ) { return _scratch_dir; }
-   
-private:  
+
+private:
 
     std::string                              _shell_file_name;
     std::string                              _chk_file_name;
     std::string                              _scratch_dir;
     bool                                _is_optimization;
-        
+
     std::string                              _cleanup;
 
-    int NumberOfElectrons( std::string _line ); 
-    int BasisSetSize( std::string _line ); 
-    int EnergiesFromLog( std::string _line, ifstream inputfile ); 
+    int NumberOfElectrons( std::string _line );
+    int BasisSetSize( std::string _line );
+    int EnergiesFromLog( std::string _line, ifstream inputfile );
     std::string FortranFormat( const double &number );
+    void WriteBackgroundCharges(ofstream& _com_file,std::vector<ctp::PolarSeg*> PolarSegments);
 
-    
 };
 
 
 }}
 
 #endif	/* __VOTCA_XTP_NWCHEM_H */
-

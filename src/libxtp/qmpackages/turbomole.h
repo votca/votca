@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -30,21 +30,21 @@
 
 #include <votca/xtp/qmpackage.h>
 #include <votca/xtp/orbitals.h>
-#include <string> 
+#include <string>
 
 
 
 namespace votca { namespace xtp {
 /**
     \brief Wrapper for the Gaussian program
- 
-    The Gaussian class executes the Gaussian package 
+
+    The Gaussian class executes the Gaussian package
     and extracts information from its log and io files
-    
+
 */
 class Turbomole : public QMPackage
 {
-public:   
+public:
 
    string getPackageName() { return "turbomole"; }
 
@@ -52,38 +52,38 @@ public:
 
    /* Writes Turbomole input file with coordinates taken from all segments
     * and guess for the dimer orbitals (if given) constructed from the
-    * orbitals of monomers 
+    * orbitals of monomers
     */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
 
-   bool Run();
+   bool Run( Orbitals* _orbitals = NULL );
 
    void CleanUp();
-   
+
    bool CheckLogFile();
 
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
+   bool setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){ return true; };
 
-   
-private:  
+
+private:
 
 
     string                              _options;
-    
+
     string                              _memory;
     //int                                 _threads;
-    
+
     string                              _scratch_dir;
-        
+
     string                              _cleanup;
 
-    string FortranFormat( const double &number );    
+    string FortranFormat( const double &number );
 };
 
 
 }}
 
 #endif	/* __VOTCA_XTP_GAUSSAIN_H */
-

@@ -27,7 +27,7 @@
 #include <votca/xtp/sphere_lebedev_rule.h>
 #include <votca/xtp/aoshell.h>
 #include <votca/tools/constants.h>
-
+#include <numeric>
 
 #include <votca/xtp/aomatrix.h>
 #include <fstream>
@@ -438,7 +438,7 @@ namespace votca {
            
             
             std::vector<unsigned> indexes=std::vector<unsigned>(sizes.size());
-            iota(indexes.begin(), indexes.end(), 0);
+            std::iota(indexes.begin(), indexes.end(), 0);
             std::sort(indexes.begin(), indexes.end(),[&sizes](unsigned i1, unsigned i2) {return sizes[i1] > sizes[i2];});
             
              unsigned nthreads = 1;

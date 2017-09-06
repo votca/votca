@@ -50,7 +50,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce08c7a/basisset.o \
 	${OBJECTDIR}/_ext/1ce08c7a/bfgs-trm.o \
 	${OBJECTDIR}/_ext/1ce08c7a/bsecoupling.o \
-	${OBJECTDIR}/_ext/1ce08c7a/bulkesp.o \
 	${OBJECTDIR}/_ext/1ce08c7a/calculatorfactory.o \
 	${OBJECTDIR}/_ext/50c6f79c/jobwriter.o \
 	${OBJECTDIR}/_ext/50c6f79c/kmclifetime.o \
@@ -98,8 +97,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce08c7a/qminterface.o \
 	${OBJECTDIR}/_ext/1ce08c7a/qmiter.o \
 	${OBJECTDIR}/_ext/1ce08c7a/qmmachine.o \
+	${OBJECTDIR}/_ext/1ce08c7a/qmpackage.o \
 	${OBJECTDIR}/_ext/1ce08c7a/qmpackagefactory.o \
-	${OBJECTDIR}/_ext/60851bbe/cpmd.o \
 	${OBJECTDIR}/_ext/60851bbe/gaussian.o \
 	${OBJECTDIR}/_ext/60851bbe/nwchem.o \
 	${OBJECTDIR}/_ext/60851bbe/orca.o \
@@ -112,7 +111,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1ce08c7a/threecenters_tools.o \
 	${OBJECTDIR}/_ext/1ce08c7a/toolfactory.o \
 	${OBJECTDIR}/_ext/69ca5806/exciton.o \
-	${OBJECTDIR}/_ext/69ca5806/qmanalyze.o \
 	${OBJECTDIR}/_ext/1ce08c7a/version.o \
 	${OBJECTDIR}/_ext/1ce08c7a/version_nb.o \
 	${OBJECTDIR}/_ext/1ce08c7a/xtpapplication.o
@@ -218,11 +216,6 @@ ${OBJECTDIR}/_ext/1ce08c7a/bsecoupling.o: nbproject/Makefile-${CND_CONF}.mk ../.
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/bsecoupling.o ../../src/libxtp/bsecoupling.cc
-
-${OBJECTDIR}/_ext/1ce08c7a/bulkesp.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/bulkesp.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/bulkesp.o ../../src/libxtp/bulkesp.cc
 
 ${OBJECTDIR}/_ext/1ce08c7a/calculatorfactory.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/calculatorfactory.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
@@ -459,15 +452,15 @@ ${OBJECTDIR}/_ext/1ce08c7a/qmmachine.o: nbproject/Makefile-${CND_CONF}.mk ../../
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/qmmachine.o ../../src/libxtp/qmmachine.cc
 
+${OBJECTDIR}/_ext/1ce08c7a/qmpackage.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/qmpackage.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/qmpackage.o ../../src/libxtp/qmpackage.cc
+
 ${OBJECTDIR}/_ext/1ce08c7a/qmpackagefactory.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/qmpackagefactory.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/qmpackagefactory.o ../../src/libxtp/qmpackagefactory.cc
-
-${OBJECTDIR}/_ext/60851bbe/cpmd.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/qmpackages/cpmd.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/60851bbe
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/60851bbe/cpmd.o ../../src/libxtp/qmpackages/cpmd.cc
 
 ${OBJECTDIR}/_ext/60851bbe/gaussian.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/qmpackages/gaussian.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/60851bbe
@@ -528,11 +521,6 @@ ${OBJECTDIR}/_ext/69ca5806/exciton.o: nbproject/Makefile-${CND_CONF}.mk ../../sr
 	${MKDIR} -p ${OBJECTDIR}/_ext/69ca5806
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/69ca5806/exciton.o ../../src/libxtp/tools/exciton.cc
-
-${OBJECTDIR}/_ext/69ca5806/qmanalyze.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/tools/qmanalyze.cc 
-	${MKDIR} -p ${OBJECTDIR}/_ext/69ca5806
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/69ca5806/qmanalyze.o ../../src/libxtp/tools/qmanalyze.cc
 
 ${OBJECTDIR}/_ext/1ce08c7a/version.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/version.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a

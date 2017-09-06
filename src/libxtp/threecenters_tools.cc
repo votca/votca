@@ -21,7 +21,7 @@
 #include <votca/tools/linalg.h>
 
 #include <votca/xtp/threecenters.h>
-#include <votca/tools/linalg.h>
+
 
 
 using namespace votca::tools;
@@ -138,7 +138,7 @@ namespace votca {
 
                     // get 3-center overlap directly as _subvector
                     ub::matrix<double> _subvector = ub::zero_matrix<double>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
-                    bool nonzero = FillThreeCenterOLBlock(_subvector, _shell, _shell_row, _shell_col);
+                    bool nonzero = FillThreeCenterRepBlock(_subvector, _shell, _shell_row, _shell_col);
 
                     // if this contributes, multiply _subvector with _dft_orbitals and place in _imstore
                     if (nonzero) {

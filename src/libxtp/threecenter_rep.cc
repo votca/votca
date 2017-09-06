@@ -50,7 +50,7 @@ namespace votca {
          */
         
       
-        bool TCMatrix_dft::FillThreeCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
+        bool TCrawMatrix::FillThreeCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
 
             const double pi = boost::math::constants::pi<double>();
             

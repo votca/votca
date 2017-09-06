@@ -120,9 +120,9 @@ namespace votca {
             iop_pos = _options.find("iterations 1\n");
             if (iop_pos != std::string::npos) _write_guess = true;
         }
-        
-        
-        /* Custom basis sets are written on a per-element basis to 
+
+
+        /* Custom basis sets are written on a per-element basis to
          * the system.bas/aux file(s), which are then included in the
          * Orca input file using GTOName = "system.bas/aux"
          */
@@ -183,7 +183,7 @@ namespace votca {
             return;
         }
 
-        /* Coordinates are written in standard Element,x,y,z format to the 
+        /* Coordinates are written in standard Element,x,y,z format to the
          * input file.
          */
         void Orca::WriteCoordinates(std::ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
@@ -203,32 +203,32 @@ namespace votca {
             _com_file << "* \n" << endl;
             return;
         }
-        
-        
+
+
         /* If custom ECPs are used, they need to be specified in the input file
-         * in a section following the basis set includes. 
+         * in a section following the basis set includes.
          */
         void Orca::WriteECP(std::ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms){
-            
+
             std::vector< ctp::QMAtom* >::iterator it;
 
-            
+
             _com_file << endl;
-            
+
             list<std::string> elements;
             elements.push_back("H");
             elements.push_back("He");
             BasisSet ecp;
             ecp.LoadPseudopotentialSet(_ecp_name);
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " <<_ecp_name << flush;
-            
-            
-            
+
+
+
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
                 if (!(*it)->from_environment) {
                     std::string element_name = (*it)->type;
-                    
-                    
+
+
                     list<std::string>::iterator ite;
                     ite = find(elements.begin(), elements.end(), element_name);
                     if (ite == elements.end()) {
@@ -238,7 +238,7 @@ namespace votca {
                         _com_file << "N_core" << " " << element->getNcore() << endl;
                         //lmaxnum2lmaxname
                         _com_file << "lmax" << " " << getLName(element->getLmax()) << endl;
-                        
+
                         //For Orca the order doesn't matter but let's write it in ascending order
                         // write remaining shells in ascending order s,p,d...
                         for (int i = 0; i < element->getLmax(); i++) {
@@ -256,7 +256,7 @@ namespace votca {
                                 }
                             }
                         }
-                        
+
                         for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                             Shell* shell = (*its);
                             // shell type, number primitives, scale factor
@@ -271,40 +271,60 @@ namespace votca {
                                 }
                             }
                         }
-                        
+
                         _com_file << "end\n " << "\n" << endl;
                     }
-                    
+
                 }
             }
             return;
         }
-        
-        /* For QM/MM the molecules in the MM environment are represented by 
-         * their atomic partial charge distributions. ORCA expects them in 
+
+        /* For QM/MM the molecules in the MM environment are represented by
+         * their atomic partial charge distributions. ORCA expects them in
          * q,x,y,z format in a separate file "background.crg"
          */
-        void Orca::WriteBackgroundCharges(std::vector<ctp::QMAtom*>& qmatoms) {
+        void Orca::WriteBackgroundCharges(std::vector<ctp::PolarSeg*> segments) {
             std::ofstream _crg_file;
             std::string _crg_file_name_full = _run_dir + "/background.crg";
             _crg_file.open(_crg_file_name_full.c_str());
             int _total_background = 0;
-            std::vector< ctp::QMAtom* >::iterator it;
 
-            for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if ((*it)->from_environment) {
-                    if ((*it)->charge != 0.0) _total_background++;
+            std::vector< ctp::PolarSeg* >::iterator it;
+            for (it = segments.begin(); it < segments.end(); it++) {
+                vector<ctp::APolarSite*> ::iterator pit;
+                for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
+                    if ((*pit)->getQ00() != 0.0) _total_background++;
+
+                    if ((*pit)->getRank() > 0 || _with_polarization ) {
+
+                        std::vector<std::vector<double>> _split_multipoles = SplitMultipoles(*pit);
+                        _total_background+= _split_multipoles.size();
+                    }
                 }
-            }
+            } //counting only
 
-            _crg_file << _total_background << endl;
-            for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if ((*it)->from_environment) {
+
+            //now write
+            for (it = segments.begin(); it < segments.end(); it++) {
+                vector<ctp::APolarSite*> ::iterator pit;
+                for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
                     boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-                    fmt % (*it)->charge % (*it)->x % (*it)->y % (*it)->z;
-                    if ((*it)->charge != 0.0) _crg_file << fmt << endl;
+                    fmt % (*pit)->getQ00() % (((*pit)->getPos().getX())*votca::tools::conv::nm2ang) % ((*pit)->getPos().getY()*votca::tools::conv::nm2ang) % ((*pit)->getPos().getZ()*votca::tools::conv::nm2ang) ;
+                    if ((*pit)->getQ00() != 0.0) _crg_file << fmt << endl;
+
+                    if ((*pit)->getRank() > 0 || _with_polarization ) {
+
+                        std::vector<std::vector<double>> _split_multipoles = SplitMultipoles(*pit);
+                        for (unsigned mpoles =0 ; mpoles < _split_multipoles.size(); mpoles++){
+                            fmt %  _split_multipoles[mpoles][1] % _split_multipoles[mpoles][2] % _split_multipoles[mpoles][3] % _split_multipoles[mpoles][0];
+                            _crg_file << fmt << endl;
+
+                        }
+                    }
                 }
             }
+            
             return;
         }
 
@@ -312,7 +332,7 @@ namespace votca {
          * Prepares the *.inp file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied, Not implemented yet
          */
-        bool Orca::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
+        bool Orca::WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess , std::vector<ctp::PolarSeg*> PolarSegments ) {
 
             std::vector<std::string> results;
             std::string temp_suffix = "/id";
@@ -370,7 +390,7 @@ namespace votca {
 
             if (_write_charges) {
                 // actual writing of charges
-                WriteBackgroundCharges(qmatoms);
+                WriteBackgroundCharges( PolarSegments);
             }
 
             _com_file << _options << "\n";
@@ -415,7 +435,7 @@ namespace votca {
         /**
          * Runs the Orca job.
          */
-        bool Orca::Run() {
+        bool Orca::Run( Orbitals* _orbitals ) {
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Running Orca job" << flush;
 
@@ -512,10 +532,8 @@ namespace votca {
 
             if (_write_pseudopotentials) {
                 _orbitals->setECP(_ecp_name);
-            } else {
-                _orbitals->setECP("none");
-            }
-            
+            } 
+
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
             // return true;
             std::string _log_file_name_full = _run_dir + "/" + _log_file_name;
@@ -754,10 +772,10 @@ namespace votca {
             _orbitals->setSelfEnergy(0.0);
 
             // copying energies to a matrix
-            _orbitals->_mo_energies.resize(_levels);
+            _orbitals->MOEnergies().resize(_levels);
             //_level = 1;
-            for (size_t i = 0; i < _orbitals->_mo_energies.size(); i++) {
-                _orbitals->_mo_energies[i] = _energies[ i ];
+            for (size_t i = 0; i < _orbitals->MOEnergies().size(); i++) {
+                _orbitals->MOEnergies()[i] = _energies[ i ];
             }
 
 
@@ -851,17 +869,15 @@ namespace votca {
 
 
             // i -> MO, j -> AO
-            (_orbitals->_mo_coefficients).resize(_levels, _basis_size);
-            for (size_t i = 0; i < _orbitals->_mo_coefficients.size1(); i++) {
-                for (size_t j = 0; j < _orbitals->_mo_coefficients.size2(); j++) {
-                    _orbitals->_mo_coefficients(i, j) = _coefficients[j * _basis_size + i];
-                    //cout <<  _coefficients[i][j] << endl;
-                    //cout << i << " " << j << endl;
+            (_orbitals->MOCoefficients()).resize(_levels, _basis_size);
+            for (size_t i = 0; i < _orbitals->MOCoefficients().size1(); i++) {
+                for (size_t j = 0; j < _orbitals->MOCoefficients().size2(); j++) {
+                    _orbitals->MOCoefficients()(i, j) = _coefficients[j * _basis_size + i];
+                   
                 }
             }
-
-            //cout<<"MO1:1 :" <<setprecision(15)<<_orbitals->_mo_coefficients(0,0)<< endl;
-            //cout<<"MO-1:-1"<<setprecision(15)<< _orbitals->_mo_coefficients(_levels-1,_levels-1)<< endl;
+           
+           ReorderOutput(_orbitals);
 
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;

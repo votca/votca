@@ -321,7 +321,12 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size " << _dftbasis._AOBasisFragA << flush;
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size " << _dftbasis._AOBasisFragB << flush;
             }
-
+            
+            if(_do_full_BSE)
+                _orbitals->setBSEtype("full");
+            else{
+                _orbitals->setBSEtype("TDA");
+            }
             /* Preparation of calculation parameters:
              *  - number of electrons -> index of HOMO
              *  - number of levels
@@ -450,31 +455,19 @@ namespace votca {
 
             // process the DFT data
             // a) form the expectation value of the XC functional in MOs
-            // we do not link them because we have to reorder them afterwards and orbitals file has them in the order of the qmpackage
-            //make copy of orbitals MOs because we reorder them
-             _dft_orbitals = _orbitals->MOCoefficients(); //
+            
+            
+            
             _ScaHFX = _orbitals->getScaHFX();
-            {// this bracket is there so that _vx_ao falls out of scope, like it more than resize
+            
                 ub::matrix<double> _vxc_ao;
                 if (_orbitals->hasAOVxc()) {
                     if (_doVxc) {
-                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take the external implementation" << flush;
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " There is already a Vxc matrix loaded from DFT, did you maybe run a DFT code with outputVxc?\n I will take the external implementation" << flush;
                         _doVxc = false;
                     }
-                    if (_dft_package == "gaussian") {
-                        // we have to do some cartesian -> spherical transformation for Gaussian
-                        const ub::matrix<double>& vxc_cart = _orbitals->AOVxc();
-                        //cout<< vxc_cart.size1()<<"x"<<vxc_cart.size2()<<endl;
-                        ub::matrix<double> _carttrafo;
-                        _dftbasis.getTransformationCartToSpherical(_dft_package, _carttrafo);
-                        //cout<< _carttrafo.size1()<<"x"<<_carttrafo.size2()<<endl;
-
-                        ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_cart);
-                        _vxc_ao = ub::prod(_temp, ub::trans(_carttrafo));
-
-                    } else {
-                        _vxc_ao = _orbitals->AOVxc();
-                    }
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded external Vxc matrix" << flush;
+                    _vxc_ao=_orbitals->AOVxc();
                 } else if (_doVxc) {
 
                     NumericalIntegration _numint;
@@ -485,11 +478,11 @@ namespace votca {
                     }
                     _numint.GridSetup(_grid, &dftbs, _atoms,&_dftbasis);
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup grid for integration with gridsize: " << _grid <<" with "<<_numint.getGridSize()<< " points, divided into "<<_numint.getBoxesSize()<<" boxes"<<flush;
-                    _dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
+                    
 
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Integrating Vxc in VOTCA with functional " << _functional << flush;
-                    ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState(_dft_orbitals);
+                    ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState();
 
                     _vxc_ao = _numint.IntegrateVXC(DMAT);
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Vxc in VOTCA" << flush;
@@ -506,13 +499,10 @@ namespace votca {
                 ub::matrix<double> _temp = ub::prod(_vxc_ao, ub::trans(_mos));
                 _vxc = ub::prod(_mos, _temp);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated exchange-correlation expectation values " << flush;
-
-                // b) reorder MO coefficients depending on the QM package used to obtain the DFT data
-                if (_dft_package != "xtp" && !_doVxc) {
-                    _dftbasis.ReorderMOs(_dft_orbitals, _dft_package, "xtp");
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converted DFT orbital coefficient order from " << _dft_package << " to XTP" << flush;
-                }
-            }
+                _vxc_ao.resize(0,0);
+             
+                
+           
 
             /// ------- actual calculation begins here -------
 
@@ -559,21 +549,37 @@ namespace votca {
 
             // get Coulomb matrix as AOCoulomb
             AOCoulomb _gwcoulomb;
+           
+            
             // initialize Coulomb matrix
             _gwcoulomb.Initialize(gwbasis.AOBasisSize());
             // Fill Coulomb matrix
             _gwcoulomb.Fill(gwbasis);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Coulomb matrix of dimension: " << _gwcoulomb.Matrix().size1() << flush;
-
-
+            
             // PPM is symmetric, so we need to get the sqrt of the Coulomb matrix
-            ub::matrix<double> _gwoverlap_inverse; // will also be needed in PPM itself
+           
+            ub::matrix<double> _gwoverlap_cholesky = _gwoverlap.Matrix();
+            linalg_cholesky_decompose( _gwoverlap_cholesky );
+           
+            // remove L^T from Cholesky
+            #pragma omp parallel for 
+            for (unsigned i =0; i < _gwoverlap_cholesky.size1(); i++ ){
+                for (unsigned j = i+1; j < _gwoverlap_cholesky.size1(); j++ ){
+                    _gwoverlap_cholesky(i,j) = 0.0;
+                }
+            }
+            
             ub::matrix<double> _gwoverlap_cholesky_inverse; // will also be needed in PPM itself
+            int removed=linalg_invert_svd(  _gwoverlap_cholesky, _gwoverlap_cholesky_inverse,1e7 );
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<removed<< " functions from gwoverlap to avoid near linear dependencies" << flush;
+            
+            
+            
 
-            int removed_functions=_gwcoulomb.Symmetrize(_gwoverlap, gwbasis, _gwoverlap_inverse, _gwoverlap_cholesky_inverse);
-            ub::matrix<double> _gwoverlap_cholesky_inverse_trans=ub::trans(_gwoverlap_cholesky_inverse);// for performance reasons
+            int removed_functions=_gwcoulomb.Symmetrize(_gwoverlap_cholesky);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM"<<flush;
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Removed "<<removed_functions<< " functions from gwbasis to avoid near linear dependencies" << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Removed "<<removed_functions<< " functions from gwcoulomb to avoid near linear dependencies" << flush;
             /* calculate 3-center integrals,  convoluted with DFT eigenvectors
              *
              *  M_mn(beta) = \int{ \psi^DFT_m(r) \phi^GW_beta(r) \psi^DFT_n d3r  }
@@ -591,7 +597,7 @@ namespace votca {
             _Mmn.Fill(gwbasis, _dftbasis, _dft_orbitals);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
 
-
+           
 
 
             // make _Mmn symmetric
@@ -603,6 +609,10 @@ namespace votca {
             _Mmn_RPA.Initialize(gwbasis.AOBasisSize(), _rpamin, _homo, _homo + 1, _rpamax);
             RPA_prepare_threecenters(_Mmn_RPA, _Mmn);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Prepared Mmn_beta for RPA  " << flush;
+            
+            
+            
+             
 
             // fix the frequencies for PPM
             _screening_freq = ub::zero_matrix<double>(2, 2); // two frequencies
@@ -676,7 +686,7 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated epsilon via RPA  " << flush;
 
                 // construct PPM parameters
-                PPM_construct_parameters(_gwoverlap_cholesky_inverse,_gwoverlap_cholesky_inverse_trans);
+                PPM_construct_parameters(_gwoverlap_cholesky_inverse);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed PPM parameters  " << flush;
 
                 // prepare threecenters for Sigma
@@ -745,7 +755,6 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
             _gwoverlap.Matrix().resize(0, 0);
             _gwoverlap_cholesky_inverse.resize(0,0);
-            _gwoverlap_cholesky_inverse_trans.resize(0,0);
             _Mmn_RPA.Cleanup();
             if(_iterate_qp){
                 _Mmn_backup.Cleanup();

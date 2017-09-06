@@ -55,7 +55,7 @@ namespace votca {
             std::cerr << "Basisset too large for 4c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << endl;
             exit(0);
           }
-          int shellsize=dftbasis._aoshells.size();
+          int shellsize=dftbasis.getNumofShells();
           #pragma omp parallel for
           for(int i=0;i<shellsize;++i){
           

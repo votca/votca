@@ -53,6 +53,8 @@ namespace votca { namespace xtp {
             typedef boost::multi_array_types::extent_range range; //////////////////
             typedef ma_type::index index; /////////////////////
             ma_type::extent_gen extents; /////////////////////
+            
+            bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, const AOShell* _shell, const AOShell* _shell_row,const AOShell* _shell_col);
     
     };
     
@@ -68,12 +70,12 @@ namespace votca { namespace xtp {
     
     std::vector< ub::symmetric_matrix<double> >& getData(){return  _matrix;}
     ub::symmetric_matrix<double>& getDatamatrix( int i ){return  _matrix[i];}
-    
+    const ub::symmetric_matrix<double>& getDatamatrix( int i )const{return  _matrix[i];}
     private:
         std::vector< ub::symmetric_matrix<double> > _matrix;
     
         void FillBlock(const AOShell* _shell,const AOBasis& dftbasis) ; 
-        bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, const AOShell* _shell, const AOShell* _shell_row,const AOShell* _shell_col);
+        
     };
 
 

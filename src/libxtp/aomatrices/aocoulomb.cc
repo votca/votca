@@ -1143,52 +1143,39 @@ if (_lmax_col > 5) {
     
 
     
-    int AOCoulomb::Symmetrize(const AOOverlap& _gwoverlap,const AOBasis& gwbasis, ub::matrix<double>& _gwoverlap_inverse, ub::matrix<double>& _gwoverlap_cholesky_inverse){
-        int removed_functions=0;
-        if ( gwbasis._is_stable ){
-            
-            // get inverse of _aooverlap
-            
-           removed_functions=linalg_invert_svd( _gwoverlap.Matrix(), _gwoverlap_inverse,1e7 );
-            
-            
-            // make copy of _gwoverlap, because matrix is overwritten in GSL
-            ub::matrix<double> _gwoverlap_cholesky = _gwoverlap.Matrix();
-            linalg_cholesky_decompose( _gwoverlap_cholesky );
-           
-            // remove L^T from Cholesky
-            #pragma omp parallel for 
-            for (unsigned i =0; i < _gwoverlap_cholesky.size1(); i++ ){
-                for (unsigned j = i+1; j < _gwoverlap_cholesky.size1(); j++ ){
-                    _gwoverlap_cholesky(i,j) = 0.0;
-                }
-            }
-            
-            // invert L to get L^-1
-           
-            int removed2=linalg_invert_svd(  _gwoverlap_cholesky, _gwoverlap_cholesky_inverse,1e7 );
-            if(removed2>removed_functions){
-                removed_functions=removed2;
-            }
-            
-            // calculate V' = L^-1 V (L^-1)^T
-            ub::matrix<double> _temp = ub::prod( _gwoverlap_cholesky_inverse , _aomatrix );
-            _aomatrix = ub::prod( _temp, ub::trans(_gwoverlap_cholesky_inverse));
-            
-            linalg_matrixsqrt(_aomatrix);
-           
-            // multiply with L from the left and L+ from the right
-            _temp = ub::prod( _gwoverlap_cholesky , _aomatrix );
-            _aomatrix = ub::prod( _temp ,ub::trans( _gwoverlap_cholesky ));
-            
-            _aomatrix = ub::prod(_aomatrix , _gwoverlap_inverse);
- 
-
+    int AOCoulomb::Symmetrize(const ub::matrix<double>& _gwoverlap_cholesky){
+        
+       //This converts V into L(LT V L)-1/2 LT, which is needed to construct 4c integrals,
+        //we do not simply use V-1/2 because that is a different metric than the ppm model, for normal 4c integrals V-1/2   
+        // is good, but here we transform to a different space, and then transform back via the ppm model
+         ub::matrix<double> _temp = ub::prod( _aomatrix , _gwoverlap_cholesky);
+        _aomatrix = ub::prod( ub::trans( _gwoverlap_cholesky ),_temp);
+        
+        ub::vector<double> S_eigenvalues;
+        linalg_eigenvalues( S_eigenvalues, _aomatrix);
+        if ( S_eigenvalues[0] < 0.0 ) {
+            cerr << " \n Negative eigenvalues in matrix_sqrt transformation " << endl;
+            return -1;
         }
-        else{
-            cout<<"WARNING: gwbasis is not stable."<<endl;
-        }
-      return removed_functions;  
+        int removed_basisfunctions=0;
+    ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
+     for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
+         if(S_eigenvalues[_i]<1e-8){
+             removed_basisfunctions++;
+         }
+         else{
+         _diagS(_i,_i) = 1.0/sqrt(S_eigenvalues[_i]);
+         }
+     }
+    _temp = ub::prod( _diagS, ub::trans(_aomatrix));
+    _aomatrix = ub::prod( _aomatrix,_temp );
+    
+    
+       _temp = ub::prod( _aomatrix , ub::trans(_gwoverlap_cholesky));
+       _aomatrix = ub::prod( _gwoverlap_cholesky ,_temp);
+   
+    
+    return removed_basisfunctions; 
     }
     
     

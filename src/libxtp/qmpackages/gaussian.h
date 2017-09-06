@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -24,21 +24,21 @@
 #include <votca/ctp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 
-#include <string> 
+#include <string>
 
 
 
 namespace votca { namespace xtp {
 /**
     \brief Wrapper for the Gaussian program
- 
-    The Gaussian class executes the Gaussian package 
+
+    The Gaussian class executes the Gaussian package
     and extracts information from its log and io files
-    
+
 */
 class Gaussian : public QMPackage
 {
-public:   
+public:
 
    std::string getPackageName() { return "gaussian"; }
 
@@ -48,40 +48,42 @@ public:
     * and a guess for the dimer (if requested) constructed from the
     * monomer orbitals
     */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
-   
+   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
+
    bool WriteShellScript();
 
-   bool Run();
+   bool Run( Orbitals* _orbitals = NULL );
 
    void CleanUp();
-   
+
    bool CheckLogFile();
 
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
-   
-  
-      
+
+   bool setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){ return true; };
+
    std::string getScratchDir( ) { return _scratch_dir; }
-   
-private:  
+
+private:
 
     std::string                              _shell_file_name;
     std::string                              _chk_file_name;
     std::string                              _scratch_dir;
-    std::string                              _input_vxc_file_name;    
+    std::string                              _input_vxc_file_name;
     std::string                              _cleanup;
     std::string                              _vdWfooter;
 
-    int NumberOfElectrons( std::string _line ); 
-    int BasisSetSize( std::string _line ); 
-    int EnergiesFromLog( std::string _line, std::ifstream inputfile ); 
+    int NumberOfElectrons( std::string _line );
+    int BasisSetSize( std::string _line );
+    int EnergiesFromLog( std::string _line, std::ifstream inputfile );
     std::string FortranFormat(double number);
     void WriteBasisset(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
     void WriteECP(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
-    void WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
+    //void WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
+    
+    void WriteBackgroundCharges(ofstream& _com_file,std::vector<ctp::PolarSeg*> PolarSegments);
     void WriteGuess(Orbitals* orbitals_guess, ofstream& _com_file);
     void WriteVXCRunInputFile();
     void WriteCoordinates(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
@@ -93,4 +95,3 @@ private:
 }}
 
 #endif	/* __VOTCA_XTP_GAUSSAIN_H */
-

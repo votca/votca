@@ -26,6 +26,7 @@
 #include <fstream>
 #include <map>
 #include <iterator>
+#include <numeric>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -36,23 +37,7 @@
 namespace votca {
     namespace xtp {
 
-        template <class VEC>
-        class vector_less {
-        private:
-            typedef typename VEC::size_type size_type;
-            typedef typename VEC::value_type value_type;
-            vector_less();
-
-            const VEC& data;
-        public:
-
-            vector_less(const VEC& vec) : data(vec) {
-            }
-
-            bool operator()(const size_type& left, const size_type& right) const {
-                return std::less<value_type> () (data(left), data(right));
-            }
-        };
+       
 
         Orbitals::Orbitals() {
 
@@ -65,7 +50,7 @@ namespace votca {
             _couplingsA = 0;
             _couplingsB = 0;
             _ECP = "";
-
+            _bsetype="";
             //_has_atoms = false;
 
 
@@ -100,30 +85,7 @@ namespace votca {
 
         };
 
-        /*
-        const int    &Orbitals::getBasisSetSize() const { 
-            if ( _has_basis_set_size ) {
-                return _basis_set_size; 
-            } else {
-                throw std::runtime_error(" Basis set size is unknown. Parse a log file first. " );
-            }
-        }
-         */
-
-        //void          Orbitals::setBasisSetSize( const int &basis_set_size ){
-        //    _has_basis_set_size = true; 
-        //    _basis_set_size = basis_set_size; 
-        // }
-
-        /*
-        int     Orbitals::getNumberOfLevels() {
-            if ( _has_occupied_levels && _has_unoccupied_levels ) {
-                return  _occupied_levels + _unoccupied_levels; 
-            } else {
-                throw std::runtime_error(" Number of levels is unknown. Parse a log file first. " );
-            }
-        }
-         */
+        
 
         void Orbitals::setNumberOfLevels(const int &occupied_levels, const int &unoccupied_levels) {
             // _has_occupied_levels = true; 
@@ -131,19 +93,7 @@ namespace votca {
             _occupied_levels = occupied_levels;
             _unoccupied_levels = unoccupied_levels;
         }
-        /*
-        const int     &Orbitals::getNumberOfElectrons() const {
-            if ( _has_number_of_electrons ) {
-                return  _number_of_electrons; 
-            } else {
-                throw std::runtime_error(" Number of electrons is unknown. Parse a log file first. " );
-            }
-        }
-         */
-        //void          Orbitals::setNumberOfElectrons( const int &electrons ){
-        //    _has_number_of_electrons = true; 
-        //    _number_of_electrons = electrons; 
-        //}
+      
 
         /**
          * 
@@ -221,17 +171,12 @@ namespace votca {
             return &_level_degeneracy.at(level);
         }
 
-        void Orbitals::SortEnergies(std::vector<int>* index) {
+        std::vector<int> Orbitals::SortEnergies() {
             if (tools::globals::verbose) cout << "... ... Sorting energies" << endl;
-            index->resize(_mo_energies.size());
-            int i = 0;
-            for (vector< int > ::iterator soi = index->begin(); soi != index->end(); ++soi) {
-                index->at(i) = i;
-                i++;
-
-            }
-            std::stable_sort(index->begin(), index->end(), vector_less< ub::vector<double> >(_mo_energies));
-            return;
+            std::vector<int>index=std::vector<int>(_mo_energies.size());
+            std::iota(index.begin(), index.end(), 0);
+            std::stable_sort(index.begin(), index.end(),[this](int i1, int i2) {return this->MOEnergies()[i1] > this->MOEnergies()[i2];});
+            return index;
         }
 
         /// Writes a PDB file
@@ -342,14 +287,14 @@ namespace votca {
 
         // Determine ground state density matrix
 
-        ub::matrix<double> Orbitals::DensityMatrixGroundState(const ub::matrix<double>& _MOs) {
+        ub::matrix<double> Orbitals::DensityMatrixGroundState() {
             ub::matrix<double> dmatGS = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
 #pragma omp parallel for
             for (int _i = 0; _i < _basis_set_size; _i++) {
                 for (int _j = 0; _j < _basis_set_size; _j++) {
                     for (int _level = 0; _level < _occupied_levels; _level++) {
 
-                        dmatGS(_i, _j) += 2.0 * _MOs(_level, _i) * _MOs(_level, _j);
+                        dmatGS(_i, _j) += 2.0 * _mo_coefficients(_level, _i) * _mo_coefficients(_level, _j);
 
                     }
                 }
@@ -357,7 +302,12 @@ namespace votca {
             return dmatGS;
         }
 
-        ub::matrix<double> Orbitals::TransitionDensityMatrix(const ub::matrix<double>& _MOs, const ub::matrix<real_gwbse>& _BSECoefs, int state) {
+        ub::matrix<double> Orbitals::TransitionDensityMatrix(const string& spin, int state) {
+            if(!(spin=="singlet" || spin=="triplet")){
+                throw runtime_error("Spin type not known for density matrix. Available are singlet and triplet");
+            }
+            ub::matrix<real_gwbse>& _BSECoefs = (spin=="singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
+            
             ub::matrix<double> dmatTS = ub::zero_matrix<double>(_basis_set_size);
             // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
             double sqrt2 = sqrt(2.0);
@@ -377,72 +327,58 @@ namespace votca {
                     }
                 }
             }
-
+            if (_bsetype == "full" && spin == "singlet") {
+                const ub::matrix<real_gwbse>& _BSECoefs_AR=_BSE_singlet_coefficients_AR;
 #pragma omp parallel for
-            for (unsigned a = 0; a < dmatTS.size1(); a++) {
-                for (unsigned b = 0; b < dmatTS.size2(); b++) {
-                    for (unsigned i = 0; i < _bse_size; i++) {
-                        int occ = _index2v[i];
-                        int virt = _index2c[i];
-                        dmatTS(a, b) += sqrt2 * _BSECoefs(i, state) * _MOs(occ, a) * _MOs(virt, b); //check factor 2??
+                for (unsigned a = 0; a < dmatTS.size1(); a++) {
+                    for (unsigned b = 0; b < dmatTS.size2(); b++) {
+                        for (unsigned i = 0; i < _bse_size; i++) {
+                            int occ = _index2v[i];
+                            int virt = _index2c[i];
+                            dmatTS(a, b) += sqrt2 * (_BSECoefs(i, state) + _BSECoefs_AR(i, state)) * _mo_coefficients(occ, a) * _mo_coefficients(virt, b); //check factor 2??
+                        }
                     }
                 }
+            } else {
+
+#pragma omp parallel for
+                for (unsigned a = 0; a < dmatTS.size1(); a++) {
+                    for (unsigned b = 0; b < dmatTS.size2(); b++) {
+                        for (unsigned i = 0; i < _bse_size; i++) {
+                            int occ = _index2v[i];
+                            int virt = _index2c[i];
+                            dmatTS(a, b) += sqrt2 * _BSECoefs(i, state) * _mo_coefficients(occ, a) * _mo_coefficients(virt, b); //check factor 2??
+                        }
+                    }
+                }
+
             }
             return dmatTS;
         }
 
-        ub::matrix<double> Orbitals::TransitionDensityMatrix_BTDA(const ub::matrix<double>& _MOs,
-                const ub::matrix<real_gwbse>& _BSECoefs, const ub::matrix<real_gwbse>& _BSECoefs_AR, int state) {
-            ub::matrix<double> dmatTS = ub::zero_matrix<double>(_basis_set_size);
-            // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
-            double sqrt2 = sqrt(2.0);
-            /*Trying to implement D_{alpha,beta}= sqrt2*sum_{i}^{occ}sum_{j}^{virt}{BSEcoef(i,j)*MOcoef(alpha,i)*MOcoef(beta,j)} */
-            // c stands for conduction band and thus virtual orbitals
-            // v stand for valence band and thus occupied orbitals
+      
 
-            //CHECK IF CORRECT!!
-
-            if (_bse_size == 0) {
-                _bse_vtotal = _bse_vmax - _bse_vmin + 1;
-                _bse_ctotal = _bse_cmax - _bse_cmin + 1;
-                _bse_size = _bse_vtotal * _bse_ctotal;
-                // indexing info BSE vector index to occupied/virtual orbital
-                for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
-                    for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
-                        _index2v.push_back(_bse_vmin + _v);
-                        _index2c.push_back(_bse_cmin + _c);
-                    }
-                }
+        std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState(const string& spin,int state) {
+            
+            
+            std::vector<ub::matrix<double> > dmat = DensityMatrixExcitedState_R(spin,state);
+            if(_bsetype=="full" && spin=="singlet"){
+                std::vector<ub::matrix<double> > dmat_AR = DensityMatrixExcitedState_AR(spin, state);
+                dmat[0] -= dmat_AR[0];
+                dmat[1] -= dmat_AR[1];
             }
-
-#pragma omp parallel for
-            for (unsigned a = 0; a < dmatTS.size1(); a++) {
-                for (unsigned b = 0; b < dmatTS.size2(); b++) {
-                    for (unsigned i = 0; i < _bse_size; i++) {
-                        int occ = _index2v[i];
-                        int virt = _index2c[i];
-                        dmatTS(a, b) += sqrt2 * (_BSECoefs(i, state) + _BSECoefs_AR(i, state)) * _MOs(occ, a) * _MOs(virt, b); //check factor 2??
-                    }
-                }
-            }
-            return dmatTS;
-        }
-
-        std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState_BTDA(const ub::matrix<double>& _MOs,
-                const ub::matrix<real_gwbse>& _BSECoefs, const ub::matrix<real_gwbse>& _BSECoefs_AR, int state) {
-
-            std::vector<ub::matrix<double> > dmat = DensityMatrixExcitedState(_MOs, _BSECoefs, state);
-            std::vector<ub::matrix<double> > dmat_AR = DensityMatrixExcitedState_AR(_MOs, _BSECoefs_AR, state);
-            dmat[0] -= dmat_AR[0];
-            dmat[1] -= dmat_AR[1];
             return dmat;
         }
 
         // Excited state density matrix
 
-        std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState(const ub::matrix<double>& _MOs, const ub::matrix<real_gwbse>& _BSECoefs, int state) {
-
-
+        std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState_R(const string& spin, int state) {
+            if(!(spin=="singlet" || spin=="triplet")){
+                throw runtime_error("Spin type not known for density matrix. Available are singlet and triplet");
+            }
+            
+            ub::matrix<real_gwbse>& _BSECoefs = (spin=="singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
+           
             /****** 
              * 
              *    Density matrix for GW-BSE based excitations
@@ -518,14 +454,14 @@ namespace votca {
 
             // hole part as matrix products
             // get slice of MOs of occs only
-            ub::matrix<double> _occlevels = ub::project(_MOs, ub::range(_vmin, _vmax + 1), ub::range(0, _basis_set_size));
+            ub::matrix<double> _occlevels = ub::project(_mo_coefficients, ub::range(_vmin, _vmax + 1), ub::range(0, _basis_set_size));
             ub::matrix<double> _temp = ub::prod(_Avv, _occlevels);
             dmatEX[0] = ub::prod(ub::trans(_occlevels), _temp);
 
 
             // electron part as matrix products
             // get slice of MOs of virts only
-            ub::matrix<double> _virtlevels = ub::project(_MOs, ub::range(_cmin, _cmax + 1), ub::range(0, _basis_set_size));
+            ub::matrix<double> _virtlevels = ub::project(_mo_coefficients, ub::range(_cmin, _cmax + 1), ub::range(0, _basis_set_size));
             _temp = ub::prod(_Acc, _virtlevels);
             dmatEX[1] = ub::prod(ub::trans(_virtlevels), _temp);
 
@@ -534,8 +470,12 @@ namespace votca {
 
         // Excited state density matrix
 
-        std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState_AR(const ub::matrix<double>& _MOs, const ub::matrix<real_gwbse>& _BSECoefs_AR, int state) {
-
+        std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState_AR(const string& spin, int state) {
+             if(!(spin=="singlet" )){
+                throw runtime_error("Spin type not known for density matrix. Available is singlet");
+            }
+            
+            ub::matrix<real_gwbse>& _BSECoefs_AR = _BSE_singlet_coefficients_AR;
 
             /****** 
              * 
@@ -611,13 +551,13 @@ namespace votca {
 
             //hole part as matrix products
             // get slice of MOs of virts only
-            ub::matrix<double> _virtlevels = ub::project(_MOs, ub::range(_cmin, _cmax + 1), ub::range(0, _basis_set_size));
+            ub::matrix<double> _virtlevels = ub::project(_mo_coefficients, ub::range(_cmin, _cmax + 1), ub::range(0, _basis_set_size));
             ub::matrix<double> _temp = ub::prod(_Bcc, _virtlevels);
             dmatAR[0] = ub::prod(ub::trans(_virtlevels), _temp);
 
             // electron part as matrix products
             // get slice of MOs of occs only
-            ub::matrix<double> _occlevels = ub::project(_MOs, ub::range(_vmin, _vmax + 1), ub::range(0, _basis_set_size));
+            ub::matrix<double> _occlevels = ub::project(_mo_coefficients, ub::range(_vmin, _vmax + 1), ub::range(0, _basis_set_size));
             _temp = ub::prod(_Bvv, _occlevels);
             dmatAR[1] = ub::prod(ub::trans(_occlevels), _temp);
 
@@ -696,7 +636,7 @@ namespace votca {
                 id++;
                 // get element type and determine its nuclear charge
                 double crg;
-                if ( _ECP == "none"){
+                if ( _ECP == ""){
                     crg = _elements.getNucCrg((*atom)->type);
                 }else{
                     crg = _elements.getNucCrgECP((*atom)->type);
@@ -803,5 +743,6 @@ namespace votca {
             return;
         }
 
+        
     }
 }

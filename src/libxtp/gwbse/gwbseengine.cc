@@ -139,7 +139,7 @@ namespace votca {
 
             if (_do_dft_run) {
 
-                bool run_success = _qmpackage->Run();
+                bool run_success = _qmpackage->Run( _orbitals );
                 if (!run_success) {
                     throw runtime_error(string("\n GW-BSE without DFT is difficult. Stopping!"));
                 }
@@ -147,15 +147,18 @@ namespace votca {
 
             // parse DFT data, if required
             if (_do_dft_parse) {
-                if (_redirect_logger) {
-                    CTP_LOG_SAVE(ctp::logINFO, _gwbse_engine_logger) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
-                } else {
-                    CTP_LOG_SAVE(ctp::logINFO, *_pLog) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
+                if ( _qmpackage->getPackageName() != "xtp" ) {
+                    if (_redirect_logger) {
+                        CTP_LOG_SAVE(ctp::logINFO, _gwbse_engine_logger) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
+                    } else {
+                        CTP_LOG_SAVE(ctp::logINFO, *_pLog) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
+                    }
+                    _qmpackage->setLogFileName(_dftlog_file);
+                    _qmpackage->setOrbitalsFileName(_MO_file);
+                    _qmpackage->ParseLogFile(_orbitals);
+                    
+                    _qmpackage->ParseOrbitalsFile(_orbitals);
                 }
-                _qmpackage->setLogFileName(_dftlog_file);
-                _qmpackage->ParseLogFile(_orbitals);
-                _qmpackage->setOrbitalsFileName(_MO_file);
-                _qmpackage->ParseOrbitalsFile(_orbitals);
                 _orbitals->setDFTbasis(_qmpackage->getBasisSetName());
             }
 
