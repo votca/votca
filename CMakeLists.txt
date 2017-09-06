@@ -6,6 +6,9 @@ project(votca)
 #set(PROJECT_VERSION "1.5-dev")
 set(VOTCA_VERSION "1.5-dev")
 
+# Cmake modules/macros are in a subdirectory to keep this file cleaner
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
+
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   #release comes with -O3 by default
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
@@ -36,9 +39,17 @@ if(ENABLE_COVERAGE_BUILD)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
 endif()
 
+########################################################################
+#Find external packages
+########################################################################
 if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git)
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
+
+find_package(MKL)
+if(MKL_FOUND)
+  set(MKL_BOOST_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}tools/intel/src/intel/MKL_and_boost_example/headers")
+endif(MKL_FOUND)
 
 ######################################
 # Include the following subdirectory # 
@@ -47,7 +58,7 @@ add_subdirectory(tools)
 set(DOXYGEN_PACKAGES tools)
 set(VOTCA_TOOLS_LIBRARY votca_tools CACHE STRING "tools library name")
 set(VOTCA_TOOLS_INCLUDE_DIR
-  "${CMAKE_CURRENT_SOURCE_DIR}/tools/include;${CMAKE_CURRENT_BINARY_DIR}/tools/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/tools/include;${CMAKE_CURRENT_BINARY_DIR}/tools/include;${MKL_BOOST_INCLUDE_DIR}"
   CACHE PATH "tools include path")
 add_subdirectory(csg)
 list(APPEND DOXYGEN_PACKAGES csg)
