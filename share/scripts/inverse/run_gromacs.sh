@@ -30,20 +30,30 @@ fi
 
 tpr="$(csg_get_property cg.inverse.gromacs.topol)"
 
+mdrun_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
+if [[ ${mdrun_opts} = *"-multi "* ]]; then
+  multi="$(echo "${mdrun_opts}" | sed -n 's/^.*-multi *\([0-9]*\).*$/\1/p')"
+  is_num "${multi}" || die "${0##*/}: could not grep number from cg.inverse.gromacs.mdrun.opts after -multi, got '${multi}'"
+  [[ $(csg_get_property cg.inverse.initial_configuration) = "laststep" ]] && die "${0##*/}: support of 'laststep' with -multi not implemented, yet!"
+fi
+
 mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
-[[ -f $mdp ]] || die "${0##*/}: gromacs mdp file '$mdp' not found (make sure it is in cg.inverse.filelist)"
+# no check for multi simulation
+[[ $multi ]] || [[ -f $mdp ]] || die "${0##*/}: gromacs mdp file '$mdp' not found (make sure it is in cg.inverse.filelist)"
 
 conf="$(csg_get_property cg.inverse.gromacs.conf)"
-[[ -f $conf ]] || die "${0##*/}: gromacs initial configuration file '$conf' not found (make sure it is in cg.inverse.filelist)"
+# no check for multi simulation
+[[ $multi ]] || [[ -f $conf ]] || die "${0##*/}: gromacs initial configuration file '$conf' not found (make sure it is in cg.inverse.filelist)"
 
 confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
-mdrun_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
 
 index="$(csg_get_property cg.inverse.gromacs.index)"
-[[ -f $index ]] || die "${0##*/}: grompp index file '$index' not found (make sure it is in cg.inverse.filelist)"
+# no check for multi simulation
+[[ $multi ]] || [[ -f $index ]] || die "${0##*/}: grompp index file '$index' not found (make sure it is in cg.inverse.filelist)"
 
 topol_in="$(csg_get_property cg.inverse.gromacs.topol_in)"
-[[ -f $topol_in ]] || die "${0##*/}: grompp text topol file '$topol_in' not found"
+# no check for multi simulation
+[[ $multi ]] || [[ -f $topol_in ]] || die "${0##*/}: grompp text topol file '$topol_in' not found"
 
 grompp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
@@ -51,10 +61,11 @@ grompp=( $(csg_get_property cg.inverse.gromacs.grompp.bin) )
 [[ -n "$(type -p ${grompp[0]})" ]] || die "${0##*/}: grompp binary '${grompp[0]}' not found"
 
 traj=$(csg_get_property cg.inverse.gromacs.traj)
-if [[ $1 != "--pre" ]]; then
-  #in a presimulation usually do care about traj and temperature
+# in main simulation we usually do care about traj and temperature
+# in pre-simulation/multisim there might be no traj and a different temp(s) 
+if [[ ! ${multi} && $1 != "--pre" ]]; then
   check_temp || die "${0##*/}: check of tempertures failed"
-  if  [[ $traj == *.xtc ]]; then
+  if [[ $traj == *.xtc ]]; then
     #XXX is returned if nstxout-compressed is not in mdp file
     nstxtcout=$(get_simulation_setting nstxout-compressed XXX)
     [[ ${nstxtcout} = XXX ]] && nstxtcout=$(get_simulation_setting nstxtcout 0)
@@ -98,13 +109,6 @@ if [[ $(csg_get_property cg.inverse.gromacs.pre_simulation) = "yes" && $1 != "--
   msg "Doing main simulation"
 fi
 
-#support for older mdp file, cutoff-scheme = Verlet is default for >=gmx-5 now, but does not work with tabulated interactions
-#XXX is returned if cutoff-scheme is not in mdp file
-if [[ $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
-  echo "cutoff-scheme = Group" >> $mdp
-  msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
-fi
-
 if [[ ${CSG_MDRUN_STEPS} ]]; then
   msg --color blue --to-stderr "Appending -nsteps ${CSG_MDRUN_STEPS} to mdrun options"
   mdrun_opts+=" -nsteps $CSG_MDRUN_STEPS"
@@ -115,12 +119,43 @@ if [[ ${CSG_MDRUN_OPTS} ]]; then
   mdrun_opts+=" ${CSG_MDRUN_OPTS}"
 fi
 
-#see can run grompp again as checksum of tpr does not appear in the checkpoint
-critical ${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
-[[ -f $tpr ]] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
+# run gromacs multiple or one time
+if [[ ${multi} ]]; then
+  for((i=0;i<${multi};i++)); do
+    for j in index mdp topol_in conf; do
+      # get property cg.inverse.gromacs.${j}.sim${i} (e.g cg.inverse.gromacs.index.1} and use ${!j} 
+      # (e.g. value of ${index} ) as default and store it in f
+      f="$(csg_get_property --allow-empty "cg.inverse.gromacs.${j}.sim${i}" "${!j}")" #filter me away
+      [[ -f ${f} ]] || die "${0##*/}: file '$f' not found (make sure it is in cg.inverse.filelist)"
+      read ${j}_x <<< "${f}" # set ${j}_x (e.g. topol_x) to ${f}
+    done
+    tpr_x="${tpr%.*}${i}.${tpr##*.}"
+    mdout="mdout${i}.mdp"
+    if [[ $(get_simulation_setting --file "${mdp_x}" cutoff-scheme XXX) = XXX ]]; then 
+      echo "cutoff-scheme = Group" >> "${mdp_x}"
+      msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to ${mdp_x}, tabulated interactions only work with Group cutoff-scheme!"
+    fi
+    critical ${grompp[@]} -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" -po "${mdout}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]}" -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" -pe "${mdout}" "${grompp_opts}"
+  done
+else
+  #support for older mdp file, cutoff-scheme = Verlet is default for >=gmx-5 now, but does not work with tabulated interactions
+  #XXX is returned if cutoff-scheme is not in mdp file
+  if [[ $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
+    echo "cutoff-scheme = Group" >> $mdp
+    msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
+  fi
+
+  #see can run grompp again as checksum of tpr does not appear in the checkpoint
+  critical ${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]} -n "${index}" -f "${mdp}" -p "$topol_in" -o "$tpr" -c "${conf}" ${grompp_opts}"
+  [[ -f $tpr ]] || die "${0##*/}: gromacs tpr file '$tpr' not found after runing grompp"
+fi
 
 mdrun="$(csg_get_property cg.inverse.gromacs.mdrun.command)"
 #no check for mdrun, because mdrun_mpi could maybe exist only computenodes
+if [[ ${CSG_MDRUN_CMD} ]]; then
+  msg --color blue --to-stderr "Overwriting cg.inverse.gromacs.mdrun.command ('${mdrun}') with '${CSG_MDRUN_CMD}'"
+  mdrun="${CSG_MDRUN_CMD}"
+fi
 
 if [[ -n $CSGENDING ]]; then
   #seconds left for the run
@@ -150,5 +185,30 @@ fi
 
 critical $mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts} ${CSG_RUNTEST:+-v} 2>&1 | gromacs_log "$mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts}"
 
-[[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
+if [[ ${multi} ]]; then
+  for((i=0;i<${multi};i++)); do
+    confout_x="${confout%.*}${i}.${confout##*.}"
+    [[ ! -f ${confout_x} ]] || [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout_x})" ]] || die "${0##*/}: There is a nan in '${confout_x}', this seems to be wrong."
+  done
+else
+  [[ ! -f ${confout} ]] || [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
+fi
+
+if [[ ${multi} ]]; then
+  #for simulation_finish(), confout isn't used anywhere else.
+  [[ -f ${confout} ]] || echo "Dummy file created by ${0##*/}" > "${confout}"
+  if [[ ${mdrun_opts} = *-replex* ]]; then
+     # for simulation_finish(), user has to tell imc, rdf, re updater what traj to use.
+     [[ -f ${traj} ]] || echo "Dummy file created by ${0##*/}" > "${traj}"
+  else
+    trjcat=( $(csg_get_property cg.inverse.gromacs.trjcat.bin) )
+    [[ -n "$(type -p ${trjcat[0]})" ]] || die "${0##*/}: trjcat binary '${trjcat[0]}' not found"
+    trjs=()
+    for((i=0;i<${multi};i++)); do
+      trjs+=( "${traj%.*}${i}.${traj##*.}" )
+    done
+    critical ${trjcat[@]} -f "${trjs[@]}" -o "${traj}" -cat
+  fi
+fi
+
 
