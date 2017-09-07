@@ -68,7 +68,8 @@ namespace votca {
             bool _do_transition;
             bool _do_singlet;
             bool _do_triplet;
-            
+            bool _do_electron;
+            bool _do_hole;
             double _padding;
             int _xsteps;
             int _ysteps;
@@ -89,6 +90,8 @@ namespace votca {
             _do_transition=false;
             _do_singlet=false;
             _do_triplet=false;
+            _do_electron=false;
+            _do_hole=false;
             // update options with the VOTCASHARE defaults   
             UpdateWithDefaults( options, "xtp" );
 
@@ -142,6 +145,14 @@ namespace votca {
             }
             else if (_type== "excited-gs") _do_bse=true;
             else if ( _type == "qp" ) _do_qp = true;
+            else if ( _type == "electron" ){
+                _do_electron = true;
+                _do_bse=true;
+            }
+            else if ( _type == "hole" ) {
+                _do_hole = true;
+                _do_bse=true;
+            }
             else {
                 throw std::runtime_error("Option for type not known");
             }
@@ -241,7 +252,12 @@ namespace votca {
                 } else if ( _do_bse ){
                     if ( _do_groundstate ){
                        fprintf(out, "Total electron density of excited state  %i spin %s \n", _state, _spin.c_str());
-                    } else {
+                    } else if(_do_hole){
+                    fprintf(out, "Density of excited hole in bse  %i spin %s \n", _state, _spin.c_str());
+                    }
+                    else if(_do_electron){
+                    fprintf(out, "Density of excited electron in bse  %i spin %s \n", _state, _spin.c_str());
+                    }{
                        fprintf(out, "Difference electron density of excited state  %i spin %s \n", _state, _spin.c_str());
                     }
                 } 
@@ -316,7 +332,15 @@ namespace votca {
                     // excited state if requested
                         else if ( _do_bse  ) {    
                             std::vector< ub::matrix<double> > DMAT=_orbitals.DensityMatrixExcitedState(_spin, _state - 1);
-                            DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
+                            if(_do_electron){
+                                DMAT_tot =DMAT[1]; // Ground state + hole_contribution + electron contribution
+                            }
+                            else if(_do_hole){
+                                DMAT_tot =-DMAT[0];           
+                            }
+                            else{
+                                 DMAT_tot =DMAT_tot+DMAT[1]-DMAT[0];
+                            }
                             CTP_LOG(ctp::logDEBUG, _log) << " Calculated excited state density matrix " << flush;
                         }
                     }

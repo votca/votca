@@ -53,7 +53,7 @@ namespace votca {
         bool TCrawMatrix::FillThreeCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
 
             const double pi = boost::math::constants::pi<double>();
-            const double gwaccuracy = 1.e-9;
+            const double gwaccuracy = 1.e-11;
             
             bool _does_contribute=false;
             
