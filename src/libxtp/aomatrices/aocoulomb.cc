@@ -1178,6 +1178,33 @@ if (_lmax_col > 5) {
     return removed_basisfunctions; 
     }
     
+     int AOCoulomb::Invert_DFT(){
+        
+       //This converts V into V-1 while checking 
+        
+        
+        ub::vector<double> S_eigenvalues;
+        linalg_eigenvalues( S_eigenvalues, _aomatrix);
+        if ( S_eigenvalues[0] < 0.0 ) {
+            cerr << " \n Negative eigenvalues in matrix_sqrt transformation " << endl;
+            return -1;
+        }
+        int removed_basisfunctions=0;
+    ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
+     for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
+         if(S_eigenvalues[_i]<1e-8){
+             removed_basisfunctions++;
+         }
+         else{
+         _diagS(_i,_i) = 1.0/S_eigenvalues[_i];
+         }
+     }
+    ub::matrix<double> _temp = ub::prod( _diagS, ub::trans(_aomatrix));
+    _aomatrix = ub::prod( _aomatrix,_temp );
+    
+    return removed_basisfunctions; 
+    }
+    
     
     
 

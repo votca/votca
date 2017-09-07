@@ -181,7 +181,6 @@ namespace votca {
 
             /**** Density-independent matrices ****/
 
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inside Evaluate " << flush;
 
 
             ub::vector<double>& MOEnergies = _orbitals->MOEnergies();
@@ -201,7 +200,7 @@ namespace votca {
 
 
             NuclearRepulsion();
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Nuclear Rep " << flush;
+            
 
 
             if (_addexternalsites) {
@@ -344,7 +343,7 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\tGAP " << MOEnergies(_numofelectrons / 2) - MOEnergies(_numofelectrons / 2 - 1) << flush;
 
                 if (std::abs(totenergy - energyold) < _Econverged && diiserror < _error_converged) {
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "Total Energy has converged to " << std::setprecision(9) << std::abs(totenergy - energyold) << "[Ha] after " << _this_iter + 1 <<
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Total Energy has converged to " << std::setprecision(9) << std::abs(totenergy - energyold) << "[Ha] after " << _this_iter + 1 <<
                             " iterations. DIIS error is converged up to " << _error_converged << "[Ha]" << flush;
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Final Single Point Energy " << std::setprecision(12) << totenergy << " Ha" << flush;
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " MO Energies  [Ha]" << flush;
@@ -472,14 +471,14 @@ namespace votca {
                 _auxAOcoulomb.Fill(_auxbasis);
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
-                ub::matrix<double> AuxAOcoulomb_inv = ub::zero_matrix<double>(_auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension());
-                int dimensions = linalg_invert_svd(_auxAOcoulomb.Matrix(), AuxAOcoulomb_inv, 1e7);
+                
+                int dimensions = _auxAOcoulomb.Invert_DFT();
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inverted AUX Coulomb matrix, removed " << dimensions << " functions from aux basis" << flush;
 
 
                 // prepare invariant part of electron repulsion integrals
-                _ERIs.Initialize(_dftbasis, _auxbasis, AuxAOcoulomb_inv);
+                _ERIs.Initialize(_dftbasis, _auxbasis, _auxAOcoulomb.Matrix());
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
             } else {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c integrals. " << flush;

@@ -257,7 +257,8 @@ namespace votca {
                     }
                     else if(_do_electron){
                     fprintf(out, "Density of excited electron in bse  %i spin %s \n", _state, _spin.c_str());
-                    }{
+                    }
+                    else{
                        fprintf(out, "Difference electron density of excited state  %i spin %s \n", _state, _spin.c_str());
                     }
                 } 
@@ -333,13 +334,13 @@ namespace votca {
                         else if ( _do_bse  ) {    
                             std::vector< ub::matrix<double> > DMAT=_orbitals.DensityMatrixExcitedState(_spin, _state - 1);
                             if(_do_electron){
-                                DMAT_tot =DMAT[1]; // Ground state + hole_contribution + electron contribution
+                                DMAT_tot =DMAT[1]; 
                             }
                             else if(_do_hole){
                                 DMAT_tot =-DMAT[0];           
                             }
                             else{
-                                 DMAT_tot =DMAT_tot+DMAT[1]-DMAT[0];
+                                 DMAT_tot =DMAT_tot+DMAT[1]-DMAT[0];// Ground state + hole_contribution + electron contribution
                             }
                             CTP_LOG(ctp::logDEBUG, _log) << " Calculated excited state density matrix " << flush;
                         }

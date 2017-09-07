@@ -285,6 +285,7 @@ namespace votca { namespace xtp {
     public:
         void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
         int Symmetrize(const ub::matrix<double>& _gwoverlap_cholesky);
+        int Invert_DFT();
        
         
     private:
