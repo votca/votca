@@ -1160,7 +1160,7 @@ if (_lmax_col > 5) {
         int removed_basisfunctions=0;
     ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
      for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
-         if(S_eigenvalues[_i]<1e-8){
+         if(S_eigenvalues[_i]<1e-7){
              removed_basisfunctions++;
          }
          else{
@@ -1192,7 +1192,7 @@ if (_lmax_col > 5) {
         int removed_basisfunctions=0;
     ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
      for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
-         if(S_eigenvalues[_i]<1e-8){
+         if(S_eigenvalues[_i]<1e-7){
              removed_basisfunctions++;
          }
          else{
