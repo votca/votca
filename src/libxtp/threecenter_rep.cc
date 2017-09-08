@@ -220,10 +220,10 @@ namespace votca {
             
 
             for ( AOShell::GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
-                const double _decay_alpha = (*italpha)->getDecay();
+                const double _decay_alpha = italpha->getDecay();
             
                 for ( AOShell::GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta){
-                    const double _decay_beta = (*itbeta)->getDecay();
+                    const double _decay_beta = itbeta->getDecay();
                     double rzeta = 0.5 / (_decay_alpha+_decay_beta);
                     vec _P = 2.0 * (_decay_alpha*_pos_alpha+_decay_beta*_pos_beta) * rzeta;
                     vec pma = _P - _pos_alpha;
@@ -234,7 +234,7 @@ namespace votca {
                     double fact_alpha_beta = 16.0 * xi * pow(pi / (_decay_alpha * _decay_beta), 0.25) * exp(-xi * _dist3);
                     
                     for ( AOShell::GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
-                        const double _decay_gamma = (*itgamma)->getDecay();
+                        const double _decay_gamma = itgamma->getDecay();
             
     
 
@@ -889,7 +889,7 @@ if (_lmax_gamma > 5) {
 
 
 
-const std::vector<double>& _contractions_gamma = (*itgamma)->getContraction();
+const std::vector<double>& _contractions_gamma = itgamma->getContraction();
 
   // s-functions
 double factor = _contractions_gamma[0];

@@ -81,11 +81,11 @@ namespace votca { namespace xtp {
             for (AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr) {
                 // iterate over Gaussians in this _shell_col
                 // get decay constant
-                const double _decay_row = (*itr)->getDecay();
+                const double _decay_row = itr->getDecay();
 
                 //if ( _decay_row > 0.08 ) continue;
 
-                const std::vector<double>& _contractions_row = (*itr)->getContraction();
+                const std::vector<double>& _contractions_row = itr->getContraction();
                 // shitty magic
                 for (int L = 0; L <= _lmax_row; L++) {
                     for (int M = L*L; M < (L + 1)*(L + 1); M++) {
@@ -96,7 +96,7 @@ namespace votca { namespace xtp {
 
                 for (AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc) {
                     //get decay constant
-                    const double _decay_col = (*itc)->getDecay();
+                    const double _decay_col = itc->getDecay();
                     const double _fak  = 0.5 / (_decay_row + _decay_col);
                     const double _fak2 = 2.0 * _fak;
                 
@@ -109,7 +109,7 @@ namespace votca { namespace xtp {
                         continue;
                     }
 
-                    const std::vector<double>& _contractions_col = (*itc)->getContraction();
+                    const std::vector<double>& _contractions_col = itc->getContraction();
                     for (int L = 0; L <= _lmax_col; L++) {
                         for (int M = L * L; M < (L + 1)*(L + 1); M++) {
                             _contractions_col_full[M] = _contractions_col[L];
@@ -144,9 +144,9 @@ namespace votca { namespace xtp {
                                 i_fit++;
 
                                 // get info for this angular momentum shell
-                                const int _power_ecp = (*itecp)->getPower();
-                                const double _decay_ecp = (*itecp)->getDecay();
-                                const double _contraction_ecp = (*itecp)->getContraction()[0];
+                                const int _power_ecp = itecp->getPower();
+                                const double _decay_ecp = itecp->getDecay();
+                                const double _contraction_ecp = itecp->getContraction()[0];
 
                                 // collect atom ECP
                                 if (this_atom == _atomidx) {
@@ -197,7 +197,7 @@ namespace votca { namespace xtp {
             return;
         }
 
-        ub::matrix<double> AOECP::calcVNLmatrix(int _lmax_ecp, const vec& posC, const AOGaussianPrimitive* _g_row, const AOGaussianPrimitive* _g_col,const ub::matrix<int>& _power_ecp, const ub::matrix<double>& _gamma_ecp,const ub::matrix<double>& _pref_ecp) {
+        ub::matrix<double> AOECP::calcVNLmatrix(int _lmax_ecp, const vec& posC, const AOGaussianPrimitive& _g_row, const AOGaussianPrimitive& _g_col,const ub::matrix<int>& _power_ecp, const ub::matrix<double>& _gamma_ecp,const ub::matrix<double>& _pref_ecp) {
 
             /* calculate the contribution of the nonlocal 
              *     ECP of atom at posC with 
@@ -219,12 +219,12 @@ namespace votca { namespace xtp {
             double SQ5 = sqrt(5.);
             double SQ7 = sqrt(7.);
 
-            double alpha = _g_row->getDecay();
-            double beta = _g_col->getDecay();
-            const vec& posA = _g_row->getShell()->getPos();
-            const vec& posB = _g_col->getShell()->getPos();
-            int _lmax_row = _g_row->getShell()->getLmax();
-            int _lmax_col = _g_col->getShell()->getLmax();
+            double alpha = _g_row.getDecay();
+            double beta = _g_col.getDecay();
+            const vec& posA = _g_row.getShell()->getPos();
+            const vec& posB = _g_col.getShell()->getPos();
+            int _lmax_row = _g_row.getShell()->getLmax();
+            int _lmax_col = _g_col.getShell()->getLmax();
             int _lmin = std::min({_lmax_row, _lmax_col, _lmax_ecp});
             int _lmax = std::max({_lmax_row, _lmax_col, _lmax_ecp});
             int _nsph_row = (_lmax_row + 1) * (_lmax_row + 1);

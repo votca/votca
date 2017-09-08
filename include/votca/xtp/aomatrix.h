@@ -73,7 +73,7 @@ namespace votca { namespace xtp {
         static int getBlockSize( int size );
         
         
-        static ub::matrix<double> getTrafo( const AOGaussianPrimitive* gaussian);
+        static ub::matrix<double> getTrafo( const AOGaussianPrimitive& gaussian);
         
         void PrintIndexToFunction(const AOBasis& aobasis);
         
@@ -205,7 +205,7 @@ namespace votca { namespace xtp {
         typedef boost::multi_array<double, 3> type_3D;
         
         
-        ub::matrix<double> calcVNLmatrix(int _lmax_ecp,const vec& posC, const AOGaussianPrimitive* _g_row,const AOGaussianPrimitive* _g_col,const  ub::matrix<int>& _power_ecp,const ub::matrix<double>& _gamma_ecp,const ub::matrix<double>& _pref_ecp   );
+        ub::matrix<double> calcVNLmatrix(int _lmax_ecp,const vec& posC, const AOGaussianPrimitive& _g_row,const AOGaussianPrimitive& _g_col,const  ub::matrix<int>& _power_ecp,const ub::matrix<double>& _gamma_ecp,const ub::matrix<double>& _pref_ecp   );
         
         
         

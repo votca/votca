@@ -303,7 +303,7 @@ namespace votca {
         
         
         void NumericalIntegration::SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::integration_grid > >& grid){
-            const double boxsize=2.5;
+            const double boxsize=1;
             
             std::vector< std::vector< std::vector< std::vector< GridContainers::integration_grid* > > > >  boxes;
             
@@ -523,8 +523,8 @@ namespace votca {
                 
                 ub::range one=ub::range(0,1);
                 ub::range three=ub::range(0,3);
-                ub::matrix<double> _temp     = ub::zero_matrix<double>(1,box.Matrixsize());
-                ub::matrix<double> _tempgrad = ub::zero_matrix<double>(3,box.Matrixsize());
+                ub::matrix<double> _temp     = ub::matrix<double>(1,box.Matrixsize());
+                ub::matrix<double> _tempgrad = ub::matrix<double>(3,box.Matrixsize());
                 ub::matrix<double> ao=ub::matrix<double>(1,box.Matrixsize());
                 ub::matrix<double> ao_grad=ub::matrix<double>(3,box.Matrixsize());
                
@@ -536,13 +536,10 @@ namespace votca {
                     const std::vector<const AOShell* >& shells=box.getShells();
                    
                     for(unsigned j=0;j<box.Shellsize();++j){
-                        const AOShell* shell=shells[j];
-                       
-                        ub::matrix_range< ub::matrix<double> > aoshell=ub::project(ao,one,aoranges[j]);
-                       
-                        ub::matrix_range< ub::matrix<double> > ao_grad_shell=ub::project(ao_grad,three,aoranges[j]);
                         
-                        shell->EvalAOspace(aoshell,ao_grad_shell,points[p]);
+                        ub::matrix_range< ub::matrix<double> > aoshell=ub::project(ao,one,aoranges[j]);
+                        ub::matrix_range< ub::matrix<double> > ao_grad_shell=ub::project(ao_grad,three,aoranges[j]);
+                        shells[j]->EvalAOspace(aoshell,ao_grad_shell,points[p]);
                        
                     }
                     

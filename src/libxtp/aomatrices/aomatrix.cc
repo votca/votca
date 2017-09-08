@@ -172,16 +172,16 @@ namespace votca { namespace xtp {
         }
     }
        
-       ub::matrix<double> AOSuperMatrix::getTrafo(const AOGaussianPrimitive* gaussian){
+       ub::matrix<double> AOSuperMatrix::getTrafo(const AOGaussianPrimitive& gaussian){
          ///         0    1  2  3    4  5  6  7  8  9   10  11  12  13  14  15  16  17  18  19       20    21    22    23    24    25    26    27    28    29    30    31    32    33    34 
         ///         s,   x, y, z,   xy xz yz xx yy zz, xxy xyy xyz xxz xzz yyz yzz xxx yyy zzz,    xxxy, xxxz, xxyy, xxyz, xxzz, xyyy, xyyz, xyzz, xzzz, yyyz, yyzz, yzzz, xxxx, yyyy, zzzz,
-         const AOShell* shell=gaussian->getShell();
+         const AOShell* shell=gaussian.getShell();
          const int ntrafo = shell->getNumFunc() + shell->getOffset();
-         const double _decay=gaussian->getDecay();
+         const double _decay=gaussian.getDecay();
          const int _lmax=shell->getLmax();
          const int n=getBlockSize( _lmax );
          ub::matrix<double> _trafo=ub::zero_matrix<double>(ntrafo,n); 
-         const std::vector<double>& contractions=gaussian->getContraction();
+         const std::vector<double>& contractions=gaussian.getContraction();
          
         // s-functions
         _trafo(0,0) = contractions[0]; //  // s  Y 0,0

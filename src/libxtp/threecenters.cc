@@ -126,17 +126,17 @@ namespace votca {
                 // iterate over Gaussians in this _shell_row
             for ( AOShell::GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
             // iterate over Gaussians in this _shell_col
-                const double _decay_alpha = (*italpha)->getDecay();
+                const double _decay_alpha = italpha->getDecay();
             
                 for ( AOShell::GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
-                    const double _decay_gamma = (*itgamma)->getDecay();
+                    const double _decay_gamma = itgamma->getDecay();
                     // check third threshold
                     vec _diff = _pos_alpha - _pos_gamma;
                     double test = _decay_alpha * _decay_gamma * _diff*_diff;
                     
                     for ( AOShell::GaussianIterator itgw = _shell_gw->firstGaussian(); itgw != _shell_gw->lastGaussian(); ++itgw){
             // get decay constants (this all is still valid only for uncontracted functions)
-                        const double _decay_gw = (*itgw)->getDecay();
+                        const double _decay_gw = itgw->getDecay();
             
  
             double threshold = -(_decay_alpha + _decay_gamma + _decay_gw) * log(gwaccuracy);

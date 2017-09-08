@@ -134,15 +134,15 @@ namespace votca { namespace xtp {
         // iterate over Gaussians in this _shell_row
             for ( AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
-                const double _decay_row = (*itr)->getDecay();
+                const double _decay_row = itr->getDecay();
                 const double r_decay_row = 0.5/_decay_row;
-                const double powfactor_row=(*itr)->getPowfactor();
+                const double powfactor_row=itr->getPowfactor();
                 for ( AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
                     
                      // get decay constants 
-                        const double _decay_col = (*itc)->getDecay();
+                        const double _decay_col = itc->getDecay();
                         const double r_decay_col = 0.5/_decay_col; 
-                       const double powfactor_col=(*itc)->getPowfactor();
+                       const double powfactor_col=itc->getPowfactor();
                       
                          
                          ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
@@ -656,8 +656,8 @@ if (_lmax_col > 5) {
             ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col, _ncols);
 
             // get transformation matrices including contraction coefficients
-          const std::vector<double>& _contractions_row = (*itr)->getContraction();
-          const std::vector<double>& _contractions_col = (*itc)->getContraction();
+          const std::vector<double>& _contractions_row = itr->getContraction();
+          const std::vector<double>& _contractions_col = itc->getContraction();
 
           
 
