@@ -685,6 +685,12 @@
               <DESC>slope of the simple pressure correction</DESC>
             </scale>
           </simple>
+          <ptype>
+            <DESC>Generic Pressure correction options</DESC>
+            <scale>
+              <DESC>slope of the pressure correction</DESC>
+            </scale>
+          </ptype>
           <type>simple
             <DESC>Pressure correction type, can be simple or wjk</DESC>
           </type>
