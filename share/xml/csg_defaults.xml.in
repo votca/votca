@@ -637,6 +637,15 @@
 	          <DESC>Where to stop averaging the Kirkwood-Buff integral for the ramp</DESC>
 	        </stop>
 	      </kbibi>
+               <lj>
+                <DESC>Contains all options of the Lennard-Jones potential update</DESC>
+                <c6>  
+                  <DESC>The c6 value for the extra LJ potential</DESC>
+                </c6>
+                <c12>  
+                  <DESC>The c12 value for the extra LJ potential</DESC>
+                </c12>
+              </lj>
 	      <pressure>
 	        <DESC>Contains all options of the pressure correction scripts</DESC>
 	        <do>1
