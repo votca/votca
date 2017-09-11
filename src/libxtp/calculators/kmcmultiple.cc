@@ -63,8 +63,10 @@ void KMCMultiple::Initialize(tools::Property *options){
         _carriertype=StringtoCarriertype(carriertype);
      
         
-
-
+        lengthdistribution = options->ifExistsReturnElseReturnDefault<double>(key+".jumplengthdist",0);
+        if(lengthdistribution>0){
+            dolengthdistributon=true;
+        }
 
         return;
 }      
@@ -230,6 +232,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
                 else{
                     affectedcarrier->jumpfromCurrentNodetoNode(newnode);
                     affectedcarrier->dr_travelled +=event->dr;
+                    AddtoJumplengthdistro(event,dt);
                     level1step = false;
                     if(tools::globals::verbose) {cout << "Charge has jumped to segment: " << newnode->id+1 << "." << endl;}
                     
@@ -362,7 +365,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
        cout << std::scientific << "  Overall average mobility <mu>=" << average_mobility << " nm^2/Vs (= "  << endl;
     }
     
-  
+  PrintJumplengthdistro();
     
 
     
