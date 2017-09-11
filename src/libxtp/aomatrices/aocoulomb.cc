@@ -1150,7 +1150,7 @@ if (_lmax_col > 5) {
         // is good, but here we transform to a different space, and then transform back via the ppm model
          ub::matrix<double> _temp = ub::prod( _aomatrix , _gwoverlap_cholesky);
          ub::matrix<double> _trans=ub::trans( _gwoverlap_cholesky );
-        _aomatrix = ub::prod( trans,_temp);
+        _aomatrix = ub::prod( _trans,_temp);
         
         ub::vector<double> S_eigenvalues;
         linalg_eigenvalues( S_eigenvalues, _aomatrix);
