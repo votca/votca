@@ -71,11 +71,18 @@ protected:
         int _index;
         Property *_p;
         HistogramNew _average;
+        HistogramNew _average_force;
+        HistogramNew _average_force_perp;
+        HistogramNew _average_force_perp_dot;        
+        HistogramNew _average_force_perp_x;
+        HistogramNew _average_force_perp_y;
+        HistogramNew _average_force_perp_z;        
         double _min, _max, _step;
         double _norm;
         double _cut;
         bool _is_bonded;
         bool _threebody;
+        bool _force;
     };
     
     // a pair of interactions which are correlated
@@ -144,6 +151,12 @@ protected:
     public:
 
         vector<HistogramNew> _current_hists;
+        vector<HistogramNew> _current_hists_force;
+        vector<HistogramNew> _current_hists_force_perp;
+        vector<HistogramNew> _current_hists_force_perp_dot;        
+        vector<HistogramNew> _current_hists_force_perp_x;
+        vector<HistogramNew> _current_hists_force_perp_y;
+        vector<HistogramNew> _current_hists_force_perp_z;        
         Imc *_imc;
         double _cur_vol;
 

@@ -121,8 +121,8 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom)
             if(beads2.size() == 0)
                 throw std::runtime_error("Topology does not have beads of type \"" + (*iter)->get("type2").value() + "\"\n"
                         "This was specified in type2 of interaction \"" + name + "\"");
-            // calculate normalization factor for rdf
 
+            // calculate normalization factor for rdf
             if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
                 i._norm = 1. / (beads1.size()*(beads2.size()) / 2.);
             else
@@ -163,10 +163,15 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
     i->_norm = 1.0;
     i->_p=p;
     i->_threebody=0;
+    i->_force=0;    
     //check if option threebody exists
     if (p->exists("threebody")) {
         i->_threebody = p->get("threebody").as<bool>();            
     }
+    //check if option force exists
+    if (p->exists("force")) {
+        i->_force = p->get("force").as<bool>();            
+    }    
     //preliminary. should be changed
     i->_cut = 0.37; //(0.37 nm)
     //check if option threebody exists
@@ -178,6 +183,14 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
     int n = (int)((i->_max - i->_min) / i->_step + 1.000000001);
 
     i->_average.Initialize(i->_min, i->_max+i->_step, n);
+    if (i->_force){
+        i->_average_force.Initialize(i->_min, i->_max+i->_step, n);
+        i->_average_force_perp.Initialize(i->_min, i->_max+i->_step, n);
+        i->_average_force_perp_dot.Initialize(i->_min, i->_max+i->_step, n);        
+        i->_average_force_perp_x.Initialize(i->_min, i->_max+i->_step, n);
+        i->_average_force_perp_y.Initialize(i->_min, i->_max+i->_step, n);
+        i->_average_force_perp_z.Initialize(i->_min, i->_max+i->_step, n);        
+    }
     
     return i;
 }
@@ -225,7 +238,15 @@ void Imc::ClearAverages()
     
     _nframes = 0;
     for (ic_iter = _interactions.begin(); ic_iter != _interactions.end(); ++ic_iter)
-        ic_iter->second->_average.Clear();    
+        ic_iter->second->_average.Clear();
+        if (ic_iter->second->_force){
+            ic_iter->second->_average_force.Clear();
+            ic_iter->second->_average_force_perp.Clear();
+            ic_iter->second->_average_force_perp_dot.Clear();            
+            ic_iter->second->_average_force_perp_x.Clear();
+            ic_iter->second->_average_force_perp_y.Clear();            
+            ic_iter->second->_average_force_perp_z.Clear();            
+        }
     
     for (group_iter = _groups.begin(); group_iter != _groups.end(); ++group_iter)
         group_iter->second->_corr.clear();      
@@ -256,6 +277,12 @@ void Imc::Worker::DoNonbonded(Topology *top)
 
         // clear the current histogram
         _current_hists[i._index].Clear();
+        _current_hists_force[i._index].Clear();      
+        _current_hists_force_perp[i._index].Clear();
+        _current_hists_force_perp_dot[i._index].Clear();        
+        _current_hists_force_perp_x[i._index].Clear();
+        _current_hists_force_perp_y[i._index].Clear();
+        _current_hists_force_perp_z[i._index].Clear();        
         
         bool gridsearch=true;
 
@@ -357,15 +384,64 @@ void Imc::Worker::DoNonbonded(Topology *top)
             if((*iter)->get("type1").value() == (*iter)->get("type2").value())
                 nb->Generate(beads1);
             else
-                nb->Generate(beads1, beads2);
-
+                nb->Generate(beads1, beads2);                      
+                                     
+            
             // process all pairs
             /*NBList::iterator pair_iter;
             for(pair_iter = nb->begin(); pair_iter!=nb->end();++pair_iter) {
                     _current_hists[i._index].Process((*pair_iter)->dist());
             }*/
+            
+            delete nb;
 
-            delete nb;            
+            //preliminary! 
+            //if one wants to calculate the mean force
+            if (i._force){
+                if(gridsearch)
+                    nb = new NBListGrid();
+                else
+                    nb = new NBList();            
+         
+                nb->setCutoff(i._max + i._step);
+            
+                // is it same types or different types?
+                if((*iter)->get("type1").value() == (*iter)->get("type2").value())
+                    nb->Generate(beads1);
+                else
+                    nb->Generate(beads1, beads2);            
+
+                //preliminary: process all pairs to calculate the projection of the 
+                //mean force on bead 1 on the pair distance: F1 * r12
+                NBList::iterator pair_iter;
+                //int count = 0;
+                for(pair_iter = nb->begin(); pair_iter!=nb->end();++pair_iter) {
+                    vec F2 = (*pair_iter)->second->getF();
+                    vec F1 = (*pair_iter)->first->getF();                    
+                    vec r12 = (*pair_iter)->r();
+                    r12.normalize();
+                    double var = (*pair_iter)->dist();
+                    double scale = F2*r12;
+                    _current_hists_force[i._index].Process(var,scale);
+                    
+                    vec F21_perp = F2-scale*r12;                    
+                    _current_hists_force_perp_x[i._index].Process(var,F21_perp.getX());
+                    _current_hists_force_perp_y[i._index].Process(var,F21_perp.getY());
+                    _current_hists_force_perp_z[i._index].Process(var,F21_perp.getZ());  
+                    
+                    //reuse variable scale
+                    vec F12_perp = F1-(F1*r12)*r12;                         
+                    scale = F12_perp*F21_perp;
+                    _current_hists_force_perp_dot[i._index].Process(var,scale);
+                    
+                    //reuse it again
+                    scale = sqrt(F21_perp.getX()*F21_perp.getX()+F21_perp.getY()*F21_perp.getY()+F21_perp.getZ()*F21_perp.getZ());
+                    _current_hists_force_perp[i._index].Process(var,scale);
+                    
+                    //++count;
+                }
+                delete nb;                 
+            }           
         }
     }    
 }
@@ -488,6 +564,25 @@ void Imc::WriteDist(const string &suffix)
         // calculate the rdf
         Table &t = iter->second->_average.data();            
         Table dist(t);
+        
+        //preliminary, if no average force calculation, dummy table
+        Table force,force_perp,force_perp_dot,force_perp_x,force_perp_y,force_perp_z;        
+        //if average force calculation, table force contains force data
+        if (iter->second->_force){
+            Table &f = iter->second->_average_force.data();
+            force = f;
+            Table &f_perp = iter->second->_average_force_perp.data();
+            force_perp = f_perp;
+            Table &f_perp_dot = iter->second->_average_force_perp_dot.data();
+            force_perp_dot = f_perp_dot;            
+            Table &f_perp_x = iter->second->_average_force_perp_x.data();
+            force_perp_x = f_perp_x;
+            Table &f_perp_y = iter->second->_average_force_perp_y.data();
+            force_perp_y = f_perp_y;
+            Table &f_perp_z = iter->second->_average_force_perp_z.data();
+            force_perp_z = f_perp_z;            
+        }    
+        
         if(!iter->second->_is_bonded) {
             //Preleminary: Quickest way to incorporate 3 body correlations
             if (iter->second->_threebody){
@@ -501,6 +596,29 @@ void Imc::WriteDist(const string &suffix)
             
             //2body
             if (!iter->second->_threebody){
+                //preliminary: force normalization
+                //normalize by number of pairs found at a specific distance
+                for(unsigned int i=0; i<force.y().size(); ++i) {
+                    //check if any number of pairs has been found at this distance, then normalize
+                    if (dist.y()[i]!=0){
+                        force.y()[i]/=dist.y()[i];
+                        force_perp.y()[i]/=dist.y()[i];
+                        force_perp_dot.y()[i]/=dist.y()[i];                        
+                        force_perp_x.y()[i]/=dist.y()[i]; 
+                        force_perp_y.y()[i]/=dist.y()[i]; 
+                        force_perp_z.y()[i]/=dist.y()[i];                         
+                    }
+                    //else set to zero
+                    else{
+                        force.y()[i]=0;
+                        force_perp.y()[i]=0;
+                        force_perp_dot.y()[i]=0;                        
+                        force_perp_x.y()[i]=0;
+                        force_perp_y.y()[i]=0;
+                        force_perp_z.y()[i]=0;                        
+                    }
+                }                
+                
                 // normalization is calculated using exact shell volume (difference of spheres)
                 for(unsigned int i=0; i<dist.y().size(); ++i) {
                     double x1 = dist.x()[i] - 0.5*iter->second->_step;
@@ -512,7 +630,7 @@ void Imc::WriteDist(const string &suffix)
                         dist.y()[i] = _avg_vol.getAvg()*iter->second->_norm *
                             dist.y()[i]/(4./3.*M_PI*(x2*x2*x2 - x1*x1*x1));                
                     }
-                }               
+                }                
             }
 
         }
@@ -526,6 +644,22 @@ void Imc::WriteDist(const string &suffix)
         
         dist.Save((iter->first) + suffix);
         cout << "written " << (iter->first) + suffix << "\n";
+
+        //preliminary
+        if (iter->second->_force){
+            force.Save((iter->first) + ".force.new");
+            cout << "written " << (iter->first) + ".force.new" << "\n";
+            force_perp.Save((iter->first) + ".force_perp.new");
+            cout << "written " << (iter->first) + ".force_perp.new" << "\n";
+            force_perp_dot.Save((iter->first) + ".force_perp_dot.new");
+            cout << "written " << (iter->first) + ".force_perp_dot.new" << "\n";            
+            force_perp_x.Save((iter->first) + ".force_perp_x.new");
+            cout << "written " << (iter->first) + ".force_perp_x.new" << "\n"; 
+            force_perp_y.Save((iter->first) + ".force_perp_y.new");
+            cout << "written " << (iter->first) + ".force_perp_y.new" << "\n"; 
+            force_perp_z.Save((iter->first) + ".force_perp_z.new");
+            cout << "written " << (iter->first) + ".force_perp_z.new" << "\n";             
+        } 
     }
 }
 
@@ -751,6 +885,12 @@ CsgApplication::Worker *Imc::ForkWorker()
     map<string, interaction_t *>::iterator ic_iter;
 
     worker->_current_hists.resize(_interactions.size());
+    worker->_current_hists_force.resize(_interactions.size());
+    worker->_current_hists_force_perp.resize(_interactions.size());
+    worker->_current_hists_force_perp_dot.resize(_interactions.size());    
+    worker->_current_hists_force_perp_x.resize(_interactions.size());
+    worker->_current_hists_force_perp_y.resize(_interactions.size());
+    worker->_current_hists_force_perp_z.resize(_interactions.size());    
     worker->_imc = this;
 
     for (ic_iter = _interactions.begin(); ic_iter != _interactions.end(); ++ic_iter) {
@@ -759,6 +899,33 @@ CsgApplication::Worker *Imc::ForkWorker()
         i->_average.getMin(),
         i->_average.getMax(),
         i->_average.getNBins());
+        //preliminary
+        if (ic_iter->second->_force){
+            worker->_current_hists_force[i->_index].Initialize(
+            i->_average_force.getMin(),
+            i->_average_force.getMax(),
+            i->_average_force.getNBins());
+            worker->_current_hists_force_perp[i->_index].Initialize(
+            i->_average_force_perp.getMin(),
+            i->_average_force_perp.getMax(),
+            i->_average_force_perp.getNBins());
+            worker->_current_hists_force_perp_dot[i->_index].Initialize(
+            i->_average_force_perp_dot.getMin(),
+            i->_average_force_perp_dot.getMax(),
+            i->_average_force_perp_dot.getNBins());            
+            worker->_current_hists_force_perp_x[i->_index].Initialize(
+            i->_average_force_perp_x.getMin(),
+            i->_average_force_perp_x.getMax(),
+            i->_average_force_perp_x.getNBins());
+            worker->_current_hists_force_perp_y[i->_index].Initialize(
+            i->_average_force_perp_y.getMin(),
+            i->_average_force_perp_y.getMax(),
+            i->_average_force_perp_y.getNBins());
+            worker->_current_hists_force_perp_z[i->_index].Initialize(
+            i->_average_force_perp_z.getMin(),
+            i->_average_force_perp_z.getMax(),
+            i->_average_force_perp_z.getNBins());            
+        }
     }
     return worker;
 }
@@ -777,6 +944,21 @@ void Imc::MergeWorker(CsgApplication::Worker* worker_)
         interaction_t *i=ic_iter->second;
         i->_average.data().y() = (((double)_nframes-1.0)*i->_average.data().y()
             + worker->_current_hists[i->_index].data().y())/(double)_nframes;
+        //preliminary
+        if (i->_force){
+            i->_average_force.data().y() = (((double)_nframes-1.0)*i->_average_force.data().y()
+                + worker->_current_hists_force[i->_index].data().y())/(double)_nframes;
+            i->_average_force_perp.data().y() = (((double)_nframes-1.0)*i->_average_force_perp.data().y()
+                + worker->_current_hists_force_perp[i->_index].data().y())/(double)_nframes;
+            i->_average_force_perp_dot.data().y() = (((double)_nframes-1.0)*i->_average_force_perp_dot.data().y()
+                + worker->_current_hists_force_perp_dot[i->_index].data().y())/(double)_nframes;            
+            i->_average_force_perp_x.data().y() = (((double)_nframes-1.0)*i->_average_force_perp_x.data().y()
+                + worker->_current_hists_force_perp_x[i->_index].data().y())/(double)_nframes;  
+            i->_average_force_perp_y.data().y() = (((double)_nframes-1.0)*i->_average_force_perp_y.data().y()
+                + worker->_current_hists_force_perp_y[i->_index].data().y())/(double)_nframes;  
+            i->_average_force_perp_z.data().y() = (((double)_nframes-1.0)*i->_average_force_perp_z.data().y()
+                + worker->_current_hists_force_perp_z[i->_index].data().y())/(double)_nframes;              
+        }       
     }
 
         // update correlation matrices
