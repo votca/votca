@@ -96,8 +96,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
     
     
     
-    if(_numberofcharges > _nodes.size())
-    {
+    if(_numberofcharges > _nodes.size()){
         throw runtime_error("ERROR in kmcmultiple: specified number of charges is greater than the number of nodes. This conflicts with single occupation.");
     }
     
@@ -125,20 +124,12 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
         tfile << "time[s]\t steps\tenergy_per_carrier[eV]\tmobility[nm**2/Vs]\tdistance_fielddirection[nm]\tdistance_absolute[nm]" << endl;
         
     }
-    
-    
-  
-    
-    
+
     double absolute_field = tools::abs(_field);
 
- 
-
-    
     RandomlyCreateCharges();
-    vector<tools::vec> startposition(_numberofcharges,tools::vec(0,0,0));
+    vector<tools::vec> startposition(_numberofcharges,tools::vec(0.0));
   
-    
     vector<int> forbiddennodes;
     vector<int> forbiddendests;
     
@@ -183,15 +174,11 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
         ResetForbiddenlist(forbiddennodes);
         bool level1step = true;
         while(level1step){
-            
-            
-            
+
             // determine which electron will escape
             
             GNode* newnode= NULL;
-            Chargecarrier* affectedcarrier=ChooseAffectedCarrier(cumulated_rate);
-                
-         
+            Chargecarrier* affectedcarrier=ChooseAffectedCarrier(cumulated_rate); 
             
             if(CheckForbidden(affectedcarrier->getCurrentNodeId(), forbiddennodes)) {continue;}
             
@@ -254,8 +241,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
             }
         // END LEVEL 1
         }    
-        
-        
+              
         //outputstuff
         
         if(step%diffusionresolution==0){     
@@ -263,8 +249,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
                 avgdiffusiontensor += (_carriers[i]->dr_travelled)|(_carriers[i]->dr_travelled);
             }
         }
-        
-        
+
         bool outputsteps=(!stopontime && step%outputstep==0);
         bool outputtime=(stopontime && simtime>nexttrajoutput);
         if(checkifoutput && (outputsteps || outputtime)){
@@ -282,8 +267,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
                     traj << endl;
                 }
             }
-            
-          
+
             double currentenergy = 0;
             double currentmobility = 0;
             tools::vec dr_travelled_current = tools::vec (0,0,0);
@@ -303,12 +287,8 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
             
             tfile << simtime << "\t"<< step << "\t"<< currentenergy << "\t" << currentmobility << "\t" <<
                     dr_travelled_field << "\t" << tools::abs(dr_travelled_current)<<"\t"<< endl;
-          
         }
-      
     }//KMC 
-    
-    
     
     if(checkifoutput)
     {   
@@ -316,7 +296,6 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
         tfile.close();
     }
 
-    
     vector< ctp::Segment* >& seg = top->Segments();
     for (unsigned i = 0; i < seg.size(); i++) {
             double occupationprobability=_nodes[i]->occupationtime / simtime;
@@ -350,8 +329,8 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
         cout << endl << "Mobilities (nm^2/Vs): " << endl;
         for(unsigned int i=0; i<_numberofcharges; i++){
             tools::vec velocity = _carriers[i]->dr_travelled/simtime;
-            cout << std::scientific << "    charge " << i+1 << ": mu=" << (velocity*_field)/absolute_field/absolute_field << endl;
-            average_mobility += (velocity*_field) /absolute_field/absolute_field;
+            cout << std::scientific << "    charge " << i+1 << ": mu=" << (velocity*_field)/(absolute_field*absolute_field) << endl;
+            average_mobility += (velocity*_field) /(absolute_field*absolute_field);
         }
         average_mobility /= _numberofcharges;
         cout << std::scientific << "  Overall average mobility in field direction <mu>=" << average_mobility << " nm^2/Vs  " << endl;

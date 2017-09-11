@@ -595,7 +595,7 @@ namespace votca {
             TCMatrix _Mmn;
             _Mmn.Initialize(gwbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
             _Mmn.Fill(gwbasis, _dftbasis, _dft_orbitals);
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
 
            
 

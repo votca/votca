@@ -1149,7 +1149,8 @@ if (_lmax_col > 5) {
         //we do not simply use V-1/2 because that is a different metric than the ppm model, for normal 4c integrals V-1/2   
         // is good, but here we transform to a different space, and then transform back via the ppm model
          ub::matrix<double> _temp = ub::prod( _aomatrix , _gwoverlap_cholesky);
-        _aomatrix = ub::prod( ub::trans( _gwoverlap_cholesky ),_temp);
+         ub::matrix<double> _trans=ub::trans( _gwoverlap_cholesky );
+        _aomatrix = ub::prod( trans,_temp);
         
         ub::vector<double> S_eigenvalues;
         linalg_eigenvalues( S_eigenvalues, _aomatrix);
@@ -1160,7 +1161,7 @@ if (_lmax_col > 5) {
         int removed_basisfunctions=0;
     ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
      for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
-         if(S_eigenvalues[_i]<1e-7){
+         if(S_eigenvalues[_i]<5.e-7){
              removed_basisfunctions++;
          }
          else{
@@ -1192,7 +1193,7 @@ if (_lmax_col > 5) {
         int removed_basisfunctions=0;
     ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
      for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
-         if(S_eigenvalues[_i]<1e-7){
+         if(S_eigenvalues[_i]<1.e-6){
              removed_basisfunctions++;
          }
          else{
