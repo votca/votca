@@ -78,7 +78,7 @@ add_latex_document(manual.tex
   BIBFILES votca.bib FORCE_DVI
   INPUTS inputfiles.tex introduction.tex newcommands.tex reference.tex theory.tex titlepage.tex usage.tex
     usage/boltzmann.tex usage/cgruns.tex usage/cibi.tex usage/dlpoly.tex usage/forcematching.tex usage/iterative_methods.tex
-    functionality/propane.xml functionality/settings.xml
+    functionality/propane.xml functionality/settings.xml advanced_topics.tex
   IMAGES fig/logo.eps fig/propane.eps usage/fig/propane.eps fig/excl.eps fig/hexane2.eps fig/propane_hist2d.eps
   TARGET_NAME csg-manual DEPENDS gitid.tex functionality/fig/flowchart.eps functionality/fig/iterativemethods.eps
     usage/fig/flow_boltzmann.eps usage/fig/flow_fmatch.eps usage/fig/flow_ibi.eps reference/csgid.tex
