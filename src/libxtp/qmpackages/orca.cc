@@ -304,21 +304,24 @@ namespace votca {
                 }
             } //counting only
 
-
+            boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
             //now write
             for (it = segments.begin(); it < segments.end(); it++) {
                 vector<ctp::APolarSite*> ::iterator pit;
                 for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
-                    boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-                    fmt % (*pit)->getQ00() % (((*pit)->getPos().getX())*votca::tools::conv::nm2ang) % ((*pit)->getPos().getY()*votca::tools::conv::nm2ang) % ((*pit)->getPos().getZ()*votca::tools::conv::nm2ang) ;
-                    if ((*pit)->getQ00() != 0.0) _crg_file << fmt << endl;
+                    
+                    string site=boost::str(fmt % (((*pit)->getPos().getX())*votca::tools::conv::nm2ang) 
+                            % ((*pit)->getPos().getY()*votca::tools::conv::nm2ang) 
+                            % ((*pit)->getPos().getZ()*votca::tools::conv::nm2ang) 
+                            % (*pit)->getQ00());
+                    if ((*pit)->getQ00() != 0.0) _crg_file << site << endl;
 
                     if ((*pit)->getRank() > 0 || _with_polarization ) {
 
-                        std::vector<std::vector<double>> _split_multipoles = SplitMultipoles(*pit);
-                        for (unsigned mpoles =0 ; mpoles < _split_multipoles.size(); mpoles++){
-                            fmt %  _split_multipoles[mpoles][1] % _split_multipoles[mpoles][2] % _split_multipoles[mpoles][3] % _split_multipoles[mpoles][0];
-                            _crg_file << fmt << endl;
+                        std::vector< std::vector<double> > _split_multipoles = SplitMultipoles(*pit);
+                        for (const auto& mpoles:_split_multipoles){
+                           string multipole=boost::str( fmt % mpoles[0] % mpoles[1] % mpoles[2] % mpoles[3]);
+                            _crg_file << multipole << endl;
 
                         }
                     }
