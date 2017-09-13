@@ -9,7 +9,7 @@ foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump)
   endif()
 
   target_link_libraries(${PROG} votca_xtp)
-  install(TARGETS ${PROG} RUNTIME DESTINATION bin)
+  install(TARGETS ${PROG} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
   if (BUILD_MANPAGES)
      add_custom_command(OUTPUT ${PROG}.man
@@ -18,7 +18,7 @@ foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump)
        DEPENDS ${PROG})
      add_custom_target(${PROG}_manpage DEPENDS ${PROG}.man)
      add_dependencies(manpages ${PROG}_manpage)
-     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${MAN}/man1 RENAME ${PROG}.1)
+     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${PROG}.1)
   endif (BUILD_MANPAGES)
   list(APPEND XTP_PROGS "${PROG}")
 
