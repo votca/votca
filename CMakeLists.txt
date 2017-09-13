@@ -57,7 +57,8 @@ elseif(ENABLE_TESTING)
   message(FATAL_ERROR "We need VOTCA_PATH, VOTCA_SHARE and VOTCA_CSG_INVERSE set for testing!")
 endif()
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION share/votca/csg-tutorials
+include(GNUInstallDirs)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/csg-tutorials
 	PATTERN ".git*" EXCLUDE PATTERN "step_*" EXCLUDE
 	PATTERN "CMake*" EXCLUDE PATTERN "cmake_install.cmake" EXCLUDE
 	PATTERN "install_manifest.txt" EXCLUDE PATTERN "*~" EXCLUDE
