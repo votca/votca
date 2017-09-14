@@ -532,11 +532,7 @@ namespace votca {
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap.Matrix().size1() << flush;
 
-            // check eigenvalues of overlap matrix, if too small basis might have linear dependencies
-            ub::vector<double> _eigenvalues;
-            ub::matrix<double> _eigenvectors;
-            linalg_eigenvalues(_gwoverlap.Matrix(), _eigenvalues, _eigenvectors);
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of GW Overlap matrix : " << _eigenvalues[0] << flush;
+          
 
 
             /*
