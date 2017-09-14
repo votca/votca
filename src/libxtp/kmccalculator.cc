@@ -266,9 +266,11 @@ namespace votca {
             {
                 charge = 1.0;
             }
-    
+            cout<<"electric field ="<<_field<<" V/nm"<<endl;
             
             double maxreldiff = 0;
+            double maxrate=0;
+            double minrate=std::numeric_limits<double>::max();
             int totalnumberofrates = 0;
             for (unsigned int i = 0; i < numberofsites; i++) {
                 unsigned numberofneighbours = _nodes[i]->events.size();
@@ -305,6 +307,13 @@ namespace votca {
                     // set rates to calculated values
                     _nodes[i]->events[j].rate = rate;
                     _nodes[i]->events[j].initialrate = rate;
+                    
+                    if(rate>maxrate){
+                        maxrate=rate;
+                    }
+                    else if(rate<minrate){
+                        minrate=rate;
+                    }
 
                     totalnumberofrates++;
                 }
@@ -317,6 +326,7 @@ namespace votca {
             }
             
             cout << "    " << totalnumberofrates << " rates have been calculated." << endl;
+            cout<< " Largest rate="<<maxrate<<" 1/s  Smallest rate="<<minrate<<" 1/s"<<endl;
             if (maxreldiff < 0.01) {
                 cout << "    Good agreement with rates in the state file. Maximal relative difference: " << maxreldiff * 100 << " %" << endl;
             } else {

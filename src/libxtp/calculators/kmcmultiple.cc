@@ -344,6 +344,8 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
     unsigned long diffusionsteps=step/diffusionresolution;
     avgdiffusiontensor /= (diffusionsteps*2*simtime*_numberofcharges);
     cout<<endl<<"Diffusion tensor averaged over all carriers (nm^2/s):" << endl << avgdiffusiontensor << endl;
+    
+  
 
     tools::matrix::eigensystem_t diff_tensor_eigensystem;
     cout<<endl<<"Eigenvalues: "<<endl<<endl;
@@ -362,7 +364,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
         cout << "The following value is calculated using the Einstein relation and assuming an isotropic medium" << endl;
        double avgD  = 1./3. * (diff_tensor_eigensystem.eigenvalues[0] + diff_tensor_eigensystem.eigenvalues[1] + diff_tensor_eigensystem.eigenvalues[2] );
        double average_mobility = std::abs(avgD / tools::conv::kB / _temperature);
-       cout << std::scientific << "  Overall average mobility <mu>=" << average_mobility << " nm^2/Vs (= "  << endl;
+       cout << std::scientific << "  Overall average mobility <mu>=" << average_mobility << " nm^2/Vs "  << endl;
     }
     
   PrintJumplengthdistro();
