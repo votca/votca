@@ -88,7 +88,7 @@ after_success:
         git push git@github.com:votca/doxygen.git gh-pages;
       else
         git status;
-        git diff --cached --no-color | head -n 500;
+        git diff --cached --no-color | head -c 1k;
       fi;
     fi
 
