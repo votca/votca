@@ -37,6 +37,9 @@ if [[ -n ${gmxrc} ]]; then
 fi
 unset gmxrc
 
+#>gromacs-2016.3 allows to disable frame count output, e.g. "Reading frame ..."
+export GMX_TRAJECTORY_IO_VERBOSITY=0
+
 get_simulation_setting() { #gets a parameter (1st argument) from gromacs mdp file (default 2nd parameter)
   local res
   if [[ $1 = "--file" ]]; then
