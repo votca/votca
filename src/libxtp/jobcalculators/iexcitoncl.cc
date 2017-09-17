@@ -54,9 +54,13 @@ void IEXCITON::Initialize(tools::Property* options ) {
 
     _induce= false;
     _statenumber=1;
+    _epsilon=1;
+    _cutoff=-1;
      
     string key = "options."+Identify();
 
+    
+    
         if ( options->exists(key+".job_file")) {
             _jobfile = options->get(key+".job_file").as<string>();
         }
@@ -84,6 +88,19 @@ void IEXCITON::Initialize(tools::Property* options ) {
         cout << endl << "Statenumber not specified, assume singlet s1 " << flush;
           _statenumber=1;
         }
+    if ( options->exists(key+".epsilon")) {
+            _epsilon=options->get(key+".epsilon").as<double>();        
+        }
+    else{
+        _epsilon=1;
+    }
+    if ( options->exists(key+".cutoff")) {
+            _cutoff=options->get(key+".cutoff").as<double>();        
+        }
+    else{
+        _cutoff=-1;
+    }
+    
     if ( options->exists(key+".induce")) {
             _induce   = options->get(key+".induce").as<bool>();
         }     
@@ -222,6 +239,12 @@ double IEXCITON::EvaluatePair(ctp::Topology *top,ctp::PolarSeg* Seg1,ctp::PolarS
             E += actor.E_f(*(*pit1), *(*pit2));                           
            
     }
+    }
+    
+    if(_cutoff>=0){
+        if(abs(s)>_cutoff){
+            E=E/_epsilon;
+        }
     }
 
     
