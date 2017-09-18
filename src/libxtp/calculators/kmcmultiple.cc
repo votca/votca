@@ -89,16 +89,18 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
 
     if(_runtime > 100){ 
         cout << "stop condition: " << maxsteps << " steps." << endl;
-        cout << "output frequency: ";
+        
         if(checkifoutput){
+	    cout << "output frequency: ";
             cout << "every " << outputstep << " steps." << endl;
         }
     }
     else{
         stopontime =true;
         cout << "stop condition: " << _runtime << " seconds runtime." << endl;
-        cout << "output frequency: ";
+       
         if(checkifoutput){
+	    cout << "output frequency: ";
             cout << "every " << _outputtime << " seconds." << endl;
         }
     }
