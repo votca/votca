@@ -40,6 +40,15 @@ if [[ -n $CSGENDING ]]; then
   echo "${0##*/}: $sim_prog does not support wallclock time yet (go here and implement it). Per step wallclock time check is still performed!"
 fi
 
+if [[ ${CSG_MDRUN_STEPS} ]]; then
+  if [[ ${sim_prog} = "lammps" ]]; then
+    critical sed -i "/^run/s/[0-9][0-9]*/${CSG_MDRUN_STEPS}/" "$script"
+    msg --color blue --to-stderr "Replace nsteps in '$script' to be ${CSG_MDRUN_STEPS}"
+  else
+    msg --color blue --to-stderr "Overwriting of nsteps for ${sim_prog} not supported yet"
+  fi
+fi
+
 method="$(csg_get_property cg.inverse.method)"
 shopt -s extglob
 is_part "$method" "ibi imc optimizer re" || die "${0##*/}: ${sim_prog} does not support method $method yet!"
