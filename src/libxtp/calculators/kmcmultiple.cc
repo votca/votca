@@ -54,7 +54,7 @@ void KMCMultiple::Initialize(tools::Property *options){
             _injectionmethod = "random";
         }
          _field = options->ifExistsReturnElseReturnDefault<tools::vec>(key+".field",tools::vec(0,0,0));
-        
+       _field *= 10E-9; 
       
 	_outputtime = options->ifExistsReturnElseReturnDefault<double>(key+".outputtime",0);
         _timefile = options->ifExistsReturnElseReturnDefault<std::string>(key+".timefile","timedependence.csv");
@@ -80,36 +80,49 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
     cout << "number of nodes: " << _nodes.size() << endl;
     
     bool checkifoutput=(_outputtime != 0);
-    double nexttrajoutput=_runtime;
+    double nexttrajoutput=0;
+//    double nexttrajoutput=_runtime;
     unsigned long maxsteps=_runtime;
     unsigned long outputstep=_outputtime;
     bool stopontime=false;
+    
 
     if(_runtime > 100){ 
         cout << "stop condition: " << maxsteps << " steps." << endl;
+        
+        if(checkifoutput){
+	    cout << "output frequency: ";
+            cout << "every " << outputstep << " steps." << endl;
+        }
     }
     else{
         stopontime =true;
         cout << "stop condition: " << _runtime << " seconds runtime." << endl;
-        cout << "(If you specify runtimes larger than 100 kmcmultiple assumes that you are specifying the number of steps.)" << endl;
+       
+        if(checkifoutput){
+	    cout << "output frequency: ";
+            cout << "every " << _outputtime << " seconds." << endl;
+        }
     }
+    cout << "(If you specify runtimes larger than 100 kmcmultiple assumes that you are specifying the number of steps for both runtime and outputtime.)" << endl;
     
-    
+    if(!stopontime && _outputtime != 0 && floor(_outputtime) != _outputtime){
+        throw runtime_error("ERROR in kmcmultiple: runtime was specified in steps (>100) and outputtime in seconds (not an integer). Please use the same units for both input parameters.");
+    }
     
     if(_numberofcharges > _nodes.size())
     {
         throw runtime_error("ERROR in kmcmultiple: specified number of charges is greater than the number of nodes. This conflicts with single occupation.");
     }
-    
+
     fstream traj;
     fstream tfile;
     
-    tfile.open (_timefile.c_str(), fstream::out);
     if(checkifoutput){   
+        
         cout << "Writing trajectory to " << _trajectoryfile << "." << endl; 
         traj.open (_trajectoryfile.c_str(), fstream::out);
     
-        
         traj << "'time[s]'\t";
         traj << "'steps'\t";
         for(unsigned int i=0; i<_numberofcharges; i++){
@@ -121,7 +134,9 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
             }
         }
         traj << endl;
+
         cout << "Writing time dependence of energy and mobility to " << _timefile << "." << endl; 
+        tfile.open (_timefile.c_str(), fstream::out);
         tfile << "time[s]\t steps\tenergy_per_carrier[eV]\tmobility[nm**2/Vs]\tdistance_fielddirection[nm]\tdistance_absolute[nm]" << endl;
         
     }
@@ -265,45 +280,48 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
         }
         
         
-        bool outputsteps=(!stopontime && step%outputstep==0);
-        bool outputtime=(stopontime && simtime>nexttrajoutput);
-        if(checkifoutput && (outputsteps || outputtime)){
-            // write to trajectory file
-            nexttrajoutput = simtime + _outputtime;
-            traj << simtime << "\t";
-            for(unsigned int i=0; i<_numberofcharges; i++) {
-                traj << startposition[i].getX() + _carriers[i]->dr_travelled.getX() << "\t";
-                traj << startposition[i].getY() + _carriers[i]->dr_travelled.getY() << "\t";
-                traj << startposition[i].getZ() + _carriers[i]->dr_travelled.getZ();
-                if (i<_numberofcharges-1) {
-                    traj << "\t";
+        if(checkifoutput) { 
+            bool outputsteps=(!stopontime && step%outputstep==0);
+            bool outputtime=(stopontime && simtime>nexttrajoutput);
+            if(outputsteps || outputtime){
+                // write to trajectory file
+                nexttrajoutput = simtime + _outputtime;
+                traj << simtime << "\t";
+                traj << step << "\t";
+                for(unsigned int i=0; i<_numberofcharges; i++) {
+                    traj << startposition[i].getX() + _carriers[i]->dr_travelled.getX() << "\t";
+                    traj << startposition[i].getY() + _carriers[i]->dr_travelled.getY() << "\t";
+                    traj << startposition[i].getZ() + _carriers[i]->dr_travelled.getZ();
+                    if (i<_numberofcharges-1) {
+                        traj << "\t";
+                    }
+                    else{
+                        traj << endl;
+                    }
                 }
-                else{
-                    traj << endl;
+                
+              
+                double currentenergy = 0;
+                double currentmobility = 0;
+                tools::vec dr_travelled_current = tools::vec (0,0,0);
+                double dr_travelled_field=0.0;
+                tools::vec avgvelocity_current = tools::vec(0,0,0);
+                if(absolute_field != 0){
+                    for(unsigned int i=0; i<_numberofcharges; i++){
+                        dr_travelled_current += _carriers[i]->dr_travelled;
+                        currentenergy += _carriers[i]->getCurrentEnergy();
+                    }
+                    dr_travelled_current /= _numberofcharges;
+                    currentenergy /= _numberofcharges;
+                    avgvelocity_current = dr_travelled_current/simtime; 
+                    currentmobility = (avgvelocity_current*_field) /absolute_field/absolute_field;
+                    dr_travelled_field=(dr_travelled_current*_field)/absolute_field;
                 }
+                
+                tfile << simtime << "\t"<< step << "\t"<< currentenergy << "\t" << currentmobility << "\t" <<
+                        dr_travelled_field << "\t" << tools::abs(dr_travelled_current)<<"\t"<< endl;
+              
             }
-            
-          
-            double currentenergy = 0;
-            double currentmobility = 0;
-            tools::vec dr_travelled_current = tools::vec (0,0,0);
-            double dr_travelled_field=0.0;
-            tools::vec avgvelocity_current = tools::vec(0,0,0);
-            if(absolute_field != 0){
-                for(unsigned int i=0; i<_numberofcharges; i++){
-                    dr_travelled_current += _carriers[i]->dr_travelled;
-                    currentenergy += _carriers[i]->getCurrentEnergy();
-                }
-                dr_travelled_current /= _numberofcharges;
-                currentenergy /= _numberofcharges;
-                avgvelocity_current = dr_travelled_current/simtime; 
-                currentmobility = (avgvelocity_current*_field) /absolute_field/absolute_field;
-                dr_travelled_field=(dr_travelled_current*_field)/absolute_field;
-            }
-            
-            tfile << simtime << "\t"<< step << "\t"<< currentenergy << "\t" << currentmobility << "\t" <<
-                    dr_travelled_field << "\t" << tools::abs(dr_travelled_current)<<"\t"<< endl;
-          
         }
       
     }//KMC 
@@ -394,6 +412,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
 
 
 bool KMCMultiple::EvaluateFrame(ctp::Topology *top){
+
     std::cout << "-----------------------------------" << std::endl;      
     std::cout << "      KMC FOR MULTIPLE CHARGES" << std::endl;
     std::cout << "-----------------------------------" << std::endl << std::endl;      
