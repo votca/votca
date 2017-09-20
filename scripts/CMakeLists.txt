@@ -1,3 +1,4 @@
+string(TIMESTAMP VOTCA_DATE "%Y-%m-%d %H:%M:%S" UTC)
 configure_file(help2t2t.in ${CMAKE_CURRENT_BINARY_DIR}/help2t2t.out @ONLY)
 add_custom_target(help2t2t_build DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/help2t2t)
 add_custom_command(OUTPUT help2t2t ALL COMMAND ${CMAKE_COMMAND}
