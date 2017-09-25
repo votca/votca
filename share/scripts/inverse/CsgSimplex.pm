@@ -126,6 +126,8 @@ sub is_num($) {
   return 1;
 }
 
+# prototype is needed here as the function calls itself.
+sub get_convergence_value(\@$);
 sub get_convergence_value(\@$) {
   defined($_[1]) || die "get_convergence_value: Missing argument\n";
   my @simplex_table=@{$_[0]};
