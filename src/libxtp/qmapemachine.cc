@@ -278,6 +278,13 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
         if (_has_dQ_filter) {
             CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
         }
+        if (_has_loc_filter){
+            if (_loc_threshold>0.5){
+             CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: localisation > " << _loc_threshold << flush;
+            }else{
+                CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: localisation < " << _loc_threshold << flush;
+            }
+        }
 
         if (_has_osc_filter && _has_dQ_filter) {
             CTP_LOG(ctp::logDEBUG, *_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... " << flush;
@@ -364,6 +371,8 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
         if (_state_index.size() < 1) {
             CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " WARNING: FILTER yielded no state. Taking lowest excitation"<< flush;
             _state_index.push_back(0);
+        }else{
+                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filter yielded state"<<_type<<":"<<_state_index[_state - 1]+1<< flush;
         }
     } // only if state >0
     
