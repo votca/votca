@@ -106,7 +106,22 @@ namespace votca {
                 }
                 if (opt->exists(key + ".localisation")) {
                     _has_loc_filter = true;
-                    _loc_threshold = opt->get(key + ".localisation").as<double> ();
+                    
+                    string temp = opt->get(key + ".localisation").as<string> ();
+                    Tokenizer tok_cleanup(temp, ", \n\t");
+                    std::vector <std::string> strings_vec;
+                    tok_cleanup.ToVector(strings_vec);
+                    if (strings_vec.size()!=2){
+                        throw runtime_error("qmmmachine: Fragment and localisation threshold are not separated");
+                    }
+                    if(strings_vec[0]=="a" || strings_vec[0]=="A"){
+                        _localiseonA=true;
+                    }else if(strings_vec[0]=="b" || strings_vec[0]=="B"){
+                         _localiseonA=false;
+                    }else{
+                        throw runtime_error("qmmmachine: Fragment label not known, either A or B");
+                    }
+                    _loc_threshold=boost::lexical_cast<double>(strings_vec[1]);
                 } 
 
                 if (opt->exists(key + ".charge_transfer")) {
@@ -327,10 +342,10 @@ namespace votca {
                         CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
                     }
                     if (_has_loc_filter){
-                        if (_loc_threshold>0.5){
-                         CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: localisation > " << _loc_threshold << flush;
+                        if (_localiseonA){
+                         CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: localisation on A > " << _loc_threshold << flush;
                         }else{
-                            CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: localisation < " << _loc_threshold << flush;
+                            CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: localisation on B > " << _loc_threshold << flush;
                         }
                     }
 
@@ -393,7 +408,7 @@ namespace votca {
                         ? orb_iter_input.getFragment_E_localisation_singlet():orb_iter_input.getFragment_E_localisation_triplet();
                         const std::vector< ub::vector<double> >& popH= (_type=="singlet") 
                         ? orb_iter_input.getFragment_H_localisation_singlet():orb_iter_input.getFragment_H_localisation_triplet();
-                        if(_loc_threshold>0.5){
+                        if(_localiseonA){
                             for (unsigned _i = 0; _i < _state_index.size(); _i++) {
                                 if (popE[_state_index[_i]](0) > _loc_threshold && popH[_state_index[_i]](0) > _loc_threshold ) {
                                     _state_index_copy.push_back(_state_index[_i]);

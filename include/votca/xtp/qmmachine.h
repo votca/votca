@@ -89,7 +89,7 @@ private:
     bool     _has_loc_filter=false;
     double   _dQ_threshold;
     double   _loc_threshold;
-
+    bool     _localiseonA=false;
     double _crit_dR;
     double _crit_dQ;
     double _crit_dE_QM;

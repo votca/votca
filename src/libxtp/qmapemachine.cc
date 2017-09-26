@@ -75,7 +75,22 @@ QMAPEMachine::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape,
                 }
                 if (opt->exists(key + ".localisation")) {
                     _has_loc_filter = true;
-                    _loc_threshold = opt->get(key + ".localisation").as<double> ();
+                    
+                    string temp = opt->get(key + ".localisation").as<string> ();
+                    Tokenizer tok_cleanup(temp, ", \n\t");
+                    std::vector <std::string> strings_vec;
+                    tok_cleanup.ToVector(strings_vec);
+                    if (strings_vec.size()!=2){
+                        throw runtime_error("qmmmachine: Fragment and localisation threshold are not separated");
+                    }
+                    if(strings_vec[0]=="a" || strings_vec[0]=="A"){
+                        _localiseonA=true;
+                    }else if(strings_vec[0]=="b" || strings_vec[0]=="B"){
+                         _localiseonA=false;
+                    }else{
+                        throw runtime_error("qmmmachine: Fragment label not known, either A or B");
+                    }
+                    _loc_threshold=boost::lexical_cast<double>(strings_vec[1]);
                 } 
 
                 if (opt->exists(key + ".charge_transfer")) {
@@ -353,7 +368,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
             ? orb.getFragment_E_localisation_singlet():orb.getFragment_E_localisation_triplet();
             const std::vector< ub::vector<double> >& popH= (_type=="singlet") 
             ? orb.getFragment_H_localisation_singlet():orb.getFragment_H_localisation_triplet();
-            if(_loc_threshold>0.5){
+            if(_localiseonA){
                 for (unsigned _i = 0; _i < _state_index.size(); _i++) {
                     if (popE[_state_index[_i]](0) > _loc_threshold && popH[_state_index[_i]](0) > _loc_threshold ) {
                         _state_index_copy.push_back(_state_index[_i]);
