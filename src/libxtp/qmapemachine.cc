@@ -69,20 +69,22 @@ QMAPEMachine::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape,
 		
                 
 		key = sfx + ".gwbse.filter";
-		if (opt->exists(key + ".oscillator_strength") && _type != "triplet") {
-			_has_osc_filter = true;
-			_osc_threshold  =  opt->get(key + ".oscillator_strength").as<double>();
-		}
-		else {
-			_has_osc_filter = false;
-		}
-		if (opt->exists(key + ".charge_transfer")) {
-			_has_dQ_filter = true;
-			_dQ_threshold  =  opt->get(key + ".charge_transfer").as<double>();
-		}
-		else {
-			_has_dQ_filter = false;
-		}
+                if (opt->exists(key + ".oscillator_strength") && _type != "triplet") {
+                    _has_osc_filter = true;
+                    _osc_threshold = opt->get(key + ".oscillator_strength").as<double> ();
+                }
+                if (opt->exists(key + ".localisation")) {
+                    _has_loc_filter = true;
+                    _loc_threshold = opt->get(key + ".localisation").as<double> ();
+                } 
+
+                if (opt->exists(key + ".charge_transfer")) {
+                    _has_dQ_filter = true;
+                    _dQ_threshold = opt->get(key + ".charge_transfer").as<double> ();
+                } 
+                if(_has_dQ_filter && _has_loc_filter){
+                    throw runtime_error("Cannot use localisation and charge_transfer filter at the same time.");
+                }
                 }
                 return;
     }
@@ -318,41 +320,46 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
                 if (osc > _osc_threshold) _state_index.push_back(_i);
             }
         } else {
-            if (_type == "singlet") {
-                for (unsigned _i = 0; _i < orb.TransitionDipoles().size(); _i++) {
-                    _state_index.push_back(_i);
-                }
-            } else {
-                for (unsigned _i = 0; _i < orb.BSETripletEnergies().size(); _i++) {
-                    _state_index.push_back(_i);
-                }
-            }
+            const ub::vector<real_gwbse>& energies = (_type=="singlet") 
+                        ? orb.BSESingletEnergies() : orb.BSETripletEnergies();
+                       
+                        for (unsigned _i = 0; _i < energies.size(); _i++) {
+                            _state_index.push_back(_i);
+                        }    
         }
 
-        // filter according to charge transfer, go through list of excitations in _state_index
+       // filter according to charge transfer, go through list of excitations in _state_index
         if (_has_dQ_filter) {
             std::vector<int> _state_index_copy;
-            if (_type == "singlet") {
-                // go through list of singlets
-                const std::vector< ub::vector<double> >& dQ_frag = orb.FragmentChargesSingEXC();
-                //const std::vector<double>& dQ_fragB = orb.FragmentBChargesSingEXC();
-                for (unsigned _i = 0; _i < _state_index.size(); _i++) {
-                    if (std::abs(dQ_frag[_i](0)) > _dQ_threshold) {
-                        _state_index_copy.push_back(_state_index[_i]);
-                    }
+            const std::vector< ub::vector<double> >& dQ_frag= (_type=="singlet") 
+            ? orb.getFragmentChargesSingEXC():orb.getFragmentChargesTripEXC();
+            for (unsigned _i = 0; _i < _state_index.size(); _i++) {
+                if (std::abs(dQ_frag[_state_index[_i]](0)) > _dQ_threshold) {
+                    _state_index_copy.push_back(_state_index[_i]);
                 }
-                _state_index = _state_index_copy;
-            } else if (_type == "triplet") {
-                // go through list of triplets
-                const std::vector< ub::vector<double> >& dQ_frag = orb.FragmentChargesTripEXC();
-                //const std::vector<double>& dQ_fragB = orb.FragmentBChargesTripEXC();
-                for (unsigned _i = 0; _i < _state_index.size(); _i++) {
-                    if (std::abs(dQ_frag[_i](0)) > _dQ_threshold) {
-                        _state_index_copy.push_back(_state_index[_i]);
-                    }
-                }
-                _state_index = _state_index_copy;
             }
+            _state_index = _state_index_copy;
+        }
+        else if (_has_loc_filter) {
+            std::vector<int> _state_index_copy;
+            const std::vector< ub::vector<double> >& popE= (_type=="singlet") 
+            ? orb.getFragment_E_localisation_singlet():orb.getFragment_E_localisation_triplet();
+            const std::vector< ub::vector<double> >& popH= (_type=="singlet") 
+            ? orb.getFragment_H_localisation_singlet():orb.getFragment_H_localisation_triplet();
+            if(_loc_threshold>0.5){
+                for (unsigned _i = 0; _i < _state_index.size(); _i++) {
+                    if (popE[_state_index[_i]](0) > _loc_threshold && popH[_state_index[_i]](0) > _loc_threshold ) {
+                        _state_index_copy.push_back(_state_index[_i]);
+                    }
+                }
+            }else{
+                for (unsigned _i = 0; _i < _state_index.size(); _i++) {
+                    if (popE[_state_index[_i]](1) > _loc_threshold && popH[_state_index[_i]](1) > _loc_threshold ) {
+                        _state_index_copy.push_back(_state_index[_i]);
+                    }
+                }
+            }
+            _state_index = _state_index_copy;
         }
         if (_state_index.size() < 1) {
             CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " WARNING: FILTER yielded no state. Taking lowest excitation"<< flush;

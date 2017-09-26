@@ -83,10 +83,12 @@ private:
     Property _gwbse_options;
     int      _state;
     string   _type;
-    bool     _has_osc_filter;
+    bool     _has_osc_filter=false;
     double   _osc_threshold;
-    bool     _has_dQ_filter;
+    bool     _has_dQ_filter=false;
+    bool     _has_loc_filter=false;
     double   _dQ_threshold;
+    double   _loc_threshold;
 
     double _crit_dR;
     double _crit_dQ;
