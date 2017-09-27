@@ -194,7 +194,6 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
                 GLink* event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
                 newnode = _nodes[event->destination];
                 if(newnode==affectedcarrier->getCurrentNode()){
-                    cout<<"bla"<<endl;
                     cout<<event->dr<<endl;
                 }
 
@@ -259,6 +258,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
             // write to trajectory file
             nexttrajoutput = simtime + _outputtime;
             traj << simtime << "\t";
+            traj << step << "\t";
             for(unsigned int i=0; i<_numberofcharges; i++) {
                 traj << startposition[i].getX() + _carriers[i]->dr_travelled.getX() << "\t";
                 traj << startposition[i].getY() + _carriers[i]->dr_travelled.getY() << "\t";

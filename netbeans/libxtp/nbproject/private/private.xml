@@ -23,6 +23,7 @@
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/numerical_integration/numerical_integrations.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/aoshell.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/glink.h</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/jobcalculators/igwbse.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmmachine.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gnode.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/jobcalculators/iexcitoncl.h</file>
@@ -38,6 +39,7 @@
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/orbitals.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackages/nwchem.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/qmpackage.cc</file>
+            <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/qmapemachine.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/gridbox.cc</file>
             <file>file:/home/jens/Programs/votca/src/xtp/include/votca/xtp/kmccalculator.h</file>
             <file>file:/home/jens/Programs/votca/src/xtp/src/libxtp/calculators/kmclifetime.cc</file>
