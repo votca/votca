@@ -229,7 +229,7 @@ namespace votca {
                         meanfreepath+=tools::abs(affectedcarrier->dr_travelled);
                         difflength+=tools::elementwiseproduct(affectedcarrier->dr_travelled,affectedcarrier->dr_travelled);
                         traj << simtime<<"\t"<<insertioncount<< "\t"<< affectedcarrier->id<<"\t"<< affectedcarrier->getLifetime()<<"\t"<<affectedcarrier->getSteps()<<"\t"<< affectedcarrier->getCurrentNodeId()+1<<"\t"<<affectedcarrier->dr_travelled.getX()<<"\t"<<affectedcarrier->dr_travelled.getY()<<"\t"<<affectedcarrier->dr_travelled.getZ()<<endl;
-                        if(_insertions<1500 ||insertioncount% (_insertions/1000)==0 || insertioncount<0.001*_insertions){
+                        if( tools::globals::verbose &&(_insertions<1500 ||insertioncount% (_insertions/1000)==0 || insertioncount<0.001*_insertions)){
                             std::cout << "\rInsertion " << insertioncount+1<<" of "<<_insertions;
                             std::cout << std::flush;
                         }
