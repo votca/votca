@@ -277,9 +277,9 @@ namespace votca {
         cout<<endl;
         cout << "Total runtime:\t\t\t\t\t"<< simtime << " s"<< endl;
         cout << "Total KMC steps:\t\t\t\t"<< step << endl;
-        cout << "Average lifetime:\t\t\t\t"<<avlifetime/_insertions<< " s"<<endl;
-        cout << "Mean freepath\t l=<|r_x-r_o|> :\t\t"<<(meanfreepath/_insertions)<< " nm"<<endl;
-        cout << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"<<sqrt(abs(difflength)/_insertions)<< " nm"<<endl;
+        cout << "Average lifetime:\t\t\t\t"<<avlifetime/insertioncount<< " s"<<endl;
+        cout << "Mean freepath\t l=<|r_x-r_o|> :\t\t"<<(meanfreepath/insertioncount)<< " nm"<<endl;
+        cout << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"<<sqrt(abs(difflength)/insertioncount)<< " nm"<<endl;
         cout<<endl;
 
         PrintJumplengthdistro();
