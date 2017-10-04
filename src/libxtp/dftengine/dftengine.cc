@@ -384,7 +384,6 @@ namespace votca {
 
             {
                 // DFT AOOverlap matrix
-                _dftAOoverlap.Initialize(_dftbasis.AOBasisSize());
                 _dftAOoverlap.Fill(_dftbasis);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
                 //cout<<"overlap"<<_dftAOoverlap.Matrix()<<endl;
@@ -403,12 +402,12 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of DFT Overlap matrix : " << _eigenvalues[0] << flush;
             }
 
-            _dftAOkinetic.Initialize(_dftbasis.AOBasisSize());
+          
             _dftAOkinetic.Fill(_dftbasis);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOkinetic.Dimension() << flush;
 
 
-            _dftAOESP.Initialize(_dftbasis.AOBasisSize());
+          
             _dftAOESP.Fillnucpotential(_dftbasis, _atoms, _with_ecp);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOESP.Dimension() << flush;
 
@@ -453,7 +452,7 @@ namespace votca {
 
 
             if (_with_ecp) {
-                _dftAOECP.Initialize(_dftbasis.AOBasisSize());
+               
                 _dftAOECP.Fill(_dftbasis, vec(0, 0, 0), &_ecp);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOECP.Dimension() << flush;
                 _dftAOESP.getNuclearpotential() += _dftAOECP.Matrix();
@@ -467,7 +466,7 @@ namespace votca {
             if (_with_RI) {
 
                 AOCoulomb _auxAOcoulomb;
-                _auxAOcoulomb.Initialize(_auxbasis.AOBasisSize());
+              
                 _auxAOcoulomb.Fill(_auxbasis);
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
@@ -559,7 +558,7 @@ namespace votca {
                 ERIs ERIs_atom;
 
                 // DFT AOOverlap matrix
-                dftAOoverlap.Initialize(dftbasis.AOBasisSize());
+              
                 dftAOoverlap.Fill(dftbasis);
                 linalg_eigenvalues(dftAOoverlap.Matrix(), eigenvalues, eigenvectors);
 
@@ -572,10 +571,10 @@ namespace votca {
                 ub::matrix<double> _temp = ub::prod(_diagS, ub::trans(eigenvectors));
                 Sminusonehalf = ub::prod(eigenvectors, _temp);
 
-                dftAOkinetic.Initialize(dftbasis.AOBasisSize());
+               
                 dftAOkinetic.Fill(dftbasis);
 
-                dftAOESP.Initialize(dftbasis.AOBasisSize());
+               
                 dftAOESP.Fillnucpotential(dftbasis, atom, with_ecp);
                 ERIs_atom.Initialize_4c_small_molecule(dftbasis);
 
@@ -601,7 +600,6 @@ namespace votca {
 
                 ub::matrix<double> H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
                 if (with_ecp) {
-                    dftAOECP.Initialize(dftbasis.AOBasisSize());
                     dftAOECP.Fill(dftbasis, vec(0, 0, 0), &ecp);
                     H0 += dftAOECP.Matrix();
                 }

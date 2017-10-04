@@ -43,7 +43,7 @@ namespace votca { namespace xtp {
     }
     
     void AOMatrix::Fill(const AOBasis& aobasis,vec r, AOBasis* ecp ) {
-      
+        _aomatrix = ub::zero_matrix<double>(aobasis.AOBasisSize());
         _gridpoint = r;
         // loop row
         #pragma omp parallel for
@@ -101,6 +101,10 @@ namespace votca { namespace xtp {
     
     void AOMatrix3D::Fill(const AOBasis& aobasis ) {
         // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
+        _aomatrix.resize(3);
+        for (int i = 0; i < 3 ; i++){
+          _aomatrix[ i ] = ub::zero_matrix<double>(aobasis.AOBasisSize());
+        }
         
         // loop row
         #pragma omp parallel for

@@ -25,8 +25,6 @@ namespace votca { namespace xtp {
 
 void NBO::EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist,const  ub::matrix<double> &_dmat,const AOBasis &basis, BasisSet &bs){
     AOOverlap _overlap;
-    // initialize overlap matrix
-    _overlap.Initialize(basis.AOBasisSize());
     // Fill overlap
     _overlap.Fill(basis);
     

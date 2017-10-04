@@ -92,9 +92,7 @@ namespace votca { namespace xtp {
 
         const ub::matrix<double> &Matrix() const{ return _aomatrix ;};
         
-        void Initialize( int size ) {
-            this->_aomatrix = ub::zero_matrix<double>(size,size);
-        }
+        
         
         void Fill(const AOBasis& aobasis, vec r = vec(0,0,0) , AOBasis* ecp = NULL );
         
@@ -121,12 +119,7 @@ namespace votca { namespace xtp {
     public:
         
         
-        void Initialize( unsigned size ) {
-            _aomatrix.resize(3);
-            for (int i = 0; i < 3 ; i++){
-              _aomatrix[ i ] = ub::zero_matrix<double>(size,size);
-            }
-        }
+       
 
         const std::vector<ub::matrix<double> > &Matrix() const{ return _aomatrix ;};
 

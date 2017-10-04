@@ -524,8 +524,6 @@ namespace votca {
              * cf. M. Rohlfing, PhD thesis, ch. 3
              */
             AOOverlap _gwoverlap;
-            // initialize overlap matrix
-            _gwoverlap.Initialize(gwbasis.AOBasisSize());
             // Fill overlap
             _gwoverlap.Fill(gwbasis);
 
@@ -545,10 +543,7 @@ namespace votca {
 
             // get Coulomb matrix as AOCoulomb
             AOCoulomb _gwcoulomb;
-           
-            
-            // initialize Coulomb matrix
-            _gwcoulomb.Initialize(gwbasis.AOBasisSize());
+
             // Fill Coulomb matrix
             _gwcoulomb.Fill(gwbasis);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Coulomb matrix of dimension: " << _gwcoulomb.Matrix().size1() << flush;

@@ -19,9 +19,8 @@
 
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
-
+#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/overlap.h>
-#include <votca/tools/linalg.h>
 
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/banded.hpp>
@@ -31,6 +30,7 @@
 #include <votca/tools/constants.h>
 #include <boost/format.hpp>
 #include <boost/progress.hpp>
+
 
 namespace votca { namespace xtp {
 
@@ -155,12 +155,25 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = _orbitalsB->MOCoefficients(); 
 
     // psi_AxB * S_AB * psi_AB
+    
+    
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting dimer onto monomer orbitals" << flush; 
+    ub::matrix<double> overlap;
     if ( !_orbitalsAB->hasAOOverlap() ) {
-            CTP_LOG(ctp::logERROR,*_pLog) << "Overlap matrix is not stored"; 
-            return false;
+            CTP_LOG(ctp::logDEBUG,*_pLog) << "Reading overlap matrix from orbitals" << flush; 
+           overlap= _orbitalsAB->AOOverlap();
+    }else{
+        CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating overlap matrix for basisset: "<< _orbitalsAB->getDFTbasis()<< flush; 
+        BasisSet _dftbasisset;
+        AOBasis _dftbasis;
+        _dftbasisset.LoadBasisSet(_orbitalsAB->getDFTbasis());
+
+        _dftbasis.AOBasisFill(&_dftbasisset, _orbitalsAB->QMAtoms());
+        AOOverlap _dftAOoverlap;
+        _dftAOoverlap.Fill(_dftbasis);
+        overlap=_dftAOoverlap.Matrix();
     }
-    ub::matrix<double> overlap= _orbitalsAB->AOOverlap();
+    
     ub::matrix<double> _psi_AB = ub::prod(overlap, ub::trans( _orbitalsAB->MOCoefficients()) ); 
     ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );  
     _psi_AB.clear();

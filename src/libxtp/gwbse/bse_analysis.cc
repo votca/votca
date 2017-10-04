@@ -209,8 +209,6 @@ namespace votca {
 
                 // get overlap matrix for DFT basisset
                 AOOverlap _dftoverlap;
-                // initialize overlap matrix
-                _dftoverlap.Initialize(_dftbasis.AOBasisSize());
                 // Fill overlap
                 _dftoverlap.Fill(_dftbasis);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().size1() << flush;    
@@ -247,7 +245,7 @@ namespace votca {
              // Testing electric dipole AOMatrix
             AODipole _dft_dipole;
            
-            _dft_dipole.Initialize(_dftbasis.AOBasisSize());
+            
             _dft_dipole.Fill(_dftbasis);
             
             ub::matrix<double> _temp;
