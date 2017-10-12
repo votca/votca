@@ -1147,7 +1147,7 @@ namespace votca {
                     boost::iter_split(stringList, archive, boost::first_finder("\\\\"));
 
                     list<std::string>::iterator coord_block = stringList.begin();
-                    advance(coord_block, 3);
+                    std::advance(coord_block, 3);
 
                     std::vector<std::string> atom_block;
                     boost::algorithm::split(atom_block, *coord_block, boost::is_any_of("\\"), boost::algorithm::token_compress_on);
@@ -1181,7 +1181,7 @@ namespace votca {
                     }
 
                     // get the QM energy out
-                    advance(coord_block, 1);
+                    std::advance(coord_block, 1);
                     std::vector<std::string> block;
                     std::vector<std::string> energy;
                     boost::algorithm::split(block, *coord_block, boost::is_any_of("\\"), boost::algorithm::token_compress_on);
