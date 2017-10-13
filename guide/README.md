@@ -59,7 +59,7 @@ During this tutorial, you will need to modify
   * `nsteps` - number of MD steps
   * `nstxout` - output frequency of coordinates to the trajectory file traj.trr
   * `nstfout` - output frequency of forces to traj.trr
-  * `nstxtcout` - output frequency to the traj.xtc file, often used by the iterative Boltzmann inversion method
+  * `nstxout-compressed` - output frequency to the traj.xtc file, often used by the iterative Boltzmann inversion method
   * `nstlog` - output frequency of the md.log file
   * `nstenergy` - output frequency to the ener.edr file containing all thermodynamic information
 
@@ -68,7 +68,7 @@ During this tutorial, you will need to modify
 To run MD simulations using GROMACS, first one must create a binary topology file `topol.tpr` using the `gmx grompp` program. Then run the MD integrator using the `gmx mdrun` program. `topol.tpr` contains `conf.gro`, `grompp.mdp`, `topol.top`, and `forcefield.itp`. 
 
 ```bash
-gmx grompp -c input.gro # -c is needed if other than conf.gro file is used
+gmx grompp -c conf.gro # -c is needed if other than conf.gro file is used
 gmx mdrun -v # -v (verbose) gives the estimate of the run time
 ```
 
