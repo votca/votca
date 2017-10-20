@@ -278,7 +278,7 @@ namespace votca {
                 }
 
                 if ( _do_qp ){
-                    fprintf(out, "  1 %d \n", _state+1);
+                    fprintf(out, "  1 %d \n", _state);
                 } 
                
                 // load DFT basis set (element-wise information) from xml file
@@ -390,7 +390,7 @@ namespace votca {
                     int GWAmax = _orbitals.getGWAmax();
                     
                     //cout << _orbitals.hasQPdiag()<< endl;
-                    ub::matrix<double> QPcoefs = ub::project(_orbitals.QPdiagCoefficients(),ub::range(GWAmin, GWAmax + 1), ub::range(_state, _state +1 ) ); // get QPdiag coefficients for the requested state
+                    ub::matrix<double> QPcoefs = ub::project(_orbitals.QPdiagCoefficients(),ub::range(GWAmin, GWAmax + 1), ub::range(_state-1, _state  ) ); // get QPdiag coefficients for the requested state
               
                     
                     ub::matrix<double> MOs = ub::project(_orbitals.MOCoefficients(),ub::range(GWAmin, GWAmax + 1), ub::range(0, dftbasis.AOBasisSize())) ; // get DFT MO coefficients
