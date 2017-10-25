@@ -68,6 +68,7 @@ namespace votca {
             bool _do_transition;
             bool _do_singlet;
             bool _do_triplet;
+            bool _do_ks;
             
             double _padding;
             int _xsteps;
@@ -89,6 +90,8 @@ namespace votca {
             _do_transition=false;
             _do_singlet=false;
             _do_triplet=false;
+            _do_ks=false;
+            
             // update options with the VOTCASHARE defaults   
             UpdateWithDefaults( options, "xtp" );
 
@@ -142,6 +145,7 @@ namespace votca {
             }
             else if (_type== "excited-gs") _do_bse=true;
             else if ( _type == "qp" ) _do_qp = true;
+            else if (_type == "ks") _do_ks = true;
             else {
                 throw std::runtime_error("Option for type not known");
             }
@@ -246,7 +250,10 @@ namespace votca {
                     }
                 } 
                 else if ( _do_qp ){
-                    fprintf(out, "Quasiparticle state %i \n", _state);
+                    fprintf(out, "Quasiparticle state %i with energy %f eV \n", _state, _orbitals.QPdiagEnergies()[_state-1-_orbitals.getGWAmin()]*tools::conv::hrt2ev);
+                }
+                else if (_do_ks ){
+                    fprintf(out, "Kohn-Sham state %i with energy %f eV \n", _state, _orbitals.MOEnergies()[_state-1]*tools::conv::hrt2ev);
                 }
                 else if ( _do_transition ){
                     fprintf(out, "Transition state  between Groundstate and state %i \n", _state);
@@ -277,7 +284,7 @@ namespace votca {
 
                 }
 
-                if ( _do_qp ){
+                if ( _do_qp || _do_ks ){
                     fprintf(out, "  1 %d \n", _state);
                 } 
                
@@ -384,18 +391,31 @@ namespace votca {
                 _log.setPreface(ctp::logDEBUG,   (format("\n ... ...") ).str());
                 
                 // diagonalized QP, if requested
-                if ( _do_qp && _state > 0 ){
+                if ( ( _do_ks || _do_qp ) && _state > 0 ){
                     
-                    int GWAmin = _orbitals.getGWAmin();
-                    int GWAmax = _orbitals.getGWAmax();
+
+                    ub::matrix<double> Ftemp;
                     
-                    //cout << _orbitals.hasQPdiag()<< endl;
-                    ub::matrix<double> QPcoefs = ub::project(_orbitals.QPdiagCoefficients(),ub::range(GWAmin, GWAmax + 1), ub::range(_state-1, _state  ) ); // get QPdiag coefficients for the requested state
-              
+                    if ( _do_qp ){
+                        int GWAmin = _orbitals.getGWAmin();
+                        int GWAmax = _orbitals.getGWAmax();
                     
-                    ub::matrix<double> MOs = ub::project(_orbitals.MOCoefficients(),ub::range(GWAmin, GWAmax + 1), ub::range(0, dftbasis.AOBasisSize())) ; // get DFT MO coefficients
-            
-                    ub::matrix<double> Ftemp = ub::prod( ub::trans(MOs),QPcoefs );
+                        //cout << _orbitals.hasQPdiag()<< endl;
+                       
+
+                        //ub::matrix<double> QPcoefs = ub::project(_orbitals.QPdiagCoefficients(),ub::range(GWAmin, GWAmax + 1), ub::range(_state-1-GWAmin, _state-GWAmin  ) ); // get QPdiag coefficients for the requested state
+
+                        ub::matrix<double> QPcoefs = ub::project(_orbitals.QPdiagCoefficients(),ub::range(0, _orbitals.QPdiagCoefficients().size1() ), ub::range(_state-1-GWAmin, _state-GWAmin  ) ); // get QPdiag coefficients for the requested state
+                        
+                        
+                        ub::matrix<double> MOs = ub::project(_orbitals.MOCoefficients(),ub::range(GWAmin, GWAmax + 1), ub::range(0, dftbasis.AOBasisSize())) ; // get DFT MO coefficients
+                        //ub::matrix<double> Ftemp = ub::prod( ub::trans(MOs),QPcoefs );
+                        Ftemp = ub::prod( ub::trans(MOs),QPcoefs );
+                    } 
+                    
+                    if ( _do_ks ) {
+                        Ftemp = ub::trans(ub::project(_orbitals.MOCoefficients(),ub::range(_state-1, _state), ub::range(0, dftbasis.AOBasisSize()))) ; // get DFT MO coefficients
+                    }
               
                     for (int _ix = 0; _ix <= _xsteps; _ix++) {
                         double _x = xstart + double(_ix) * xincr;
