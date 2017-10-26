@@ -295,7 +295,7 @@ namespace votca {
                 }
 
                 if ( _do_qp ){
-                    fprintf(out, "  1 %d \n", _state+1);
+                    fprintf(out, "  1 %d \n", _state);
                 } 
                
                 // load DFT basis set (element-wise information) from xml file
@@ -316,7 +316,7 @@ namespace votca {
                     ub::matrix<double> DMAT_tot = ub::zero_matrix<double>(dftbasis.AOBasisSize(), dftbasis.AOBasisSize());
 
                     // ground state only if requested
-                    if ( _do_groundstate || _do_bse) {
+                    if ( _do_groundstate ) {
                         ub::matrix<double> DMATGS = _orbitals.DensityMatrixGroundState();
                         DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
                         CTP_LOG(ctp::logDEBUG, _log) << " Calculated ground state density matrix " << flush;
@@ -413,7 +413,7 @@ namespace votca {
                     int GWAmax = _orbitals.getGWAmax();
                     
                     //cout << _orbitals.hasQPdiag()<< endl;
-                    ub::matrix<double> QPcoefs = ub::project(_orbitals.QPdiagCoefficients(),ub::range(GWAmin, GWAmax + 1), ub::range(_state, _state +1 ) ); // get QPdiag coefficients for the requested state
+                    ub::matrix<double> QPcoefs = ub::project(_orbitals.QPdiagCoefficients(),ub::range(GWAmin, GWAmax + 1), ub::range(_state-1, _state  ) ); // get QPdiag coefficients for the requested state
               
                     
                     ub::matrix<double> MOs = ub::project(_orbitals.MOCoefficients(),ub::range(GWAmin, GWAmax + 1), ub::range(0, dftbasis.AOBasisSize())) ; // get DFT MO coefficients
