@@ -19,7 +19,7 @@
 
 #ifndef _VOTCA_XTP_GENCUBE_H
 #define _VOTCA_XTP_GENCUBE_H
-
+#include <boost/progress.hpp>
 #include <stdio.h>
 #include <boost/format.hpp>
 #include <votca/xtp/elements.h>
@@ -349,8 +349,9 @@ namespace votca {
    
                     CTP_LOG(ctp::logDEBUG, _log) << " Calculating cube data ... \n" << flush;
                     _log.setPreface(ctp::logDEBUG,   (format(" ... ...") ).str());
-                    float progress = 0.0;
-                    const ub::vector<double> DMAT_array = DMAT_tot.data();
+                    
+                    boost::progress_display progress(_xsteps) ;
+                    const ub::vector<double>& DMAT_array = DMAT_tot.data();
                     // eval density at cube grid points
                     for (int _ix = 0; _ix <= _xsteps; _ix++) {
                         double _x = xstart + double(_ix) * xincr;
@@ -366,10 +367,18 @@ namespace votca {
                                 ub::matrix<double> tmat = ub::zero_matrix<double>( 1,dftbasis.AOBasisSize());
 
                                 for (AOBasis::AOShellIterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
-                                   
+                                    
+                                    const double decay=(*_row)->getMinDecay();
+                                    const tools::vec& shellpos=(*_row)->getPos();
+                      
+                      
+                                    tools::vec dist=shellpos-pos;
+                                    double distsq=dist*dist;
+                          // if contribution is smaller than -ln(1e-10), calc density
+                                    if ( (decay * distsq) < 20.7 ){
                                     ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                                     (*_row)->EvalAOspace(_submatrix, pos);
-
+                                    }
                                 }
                                 
                                 
@@ -388,19 +397,8 @@ namespace votca {
                             
                         }// y-component
                         
+                        ++progress;
                         
-                        progress += 1.0/((_xsteps+1));
-                        int barWidth = 70;
-                        CTP_LOG(ctp::logDEBUG, _log) << "[";
-                        int pos = barWidth * progress;
-                        for (int i = 0; i < barWidth; ++i) {
-                            if (i < pos) CTP_LOG(ctp::logDEBUG, _log) << "=";
-                            else if (i == pos) CTP_LOG(ctp::logDEBUG, _log) << ">";
-                            else CTP_LOG(ctp::logDEBUG, _log) << " ";
-                        }
-                        int percent = progress * 100.0;
-                        CTP_LOG(ctp::logDEBUG, _log) << "] " << percent << " %\r";
-                        CTP_LOG(ctp::logDEBUG, _log) << flush;
                         
                     } // x-component
 
