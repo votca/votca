@@ -1154,11 +1154,11 @@ if (_lmax_col > 5) {
         
         ub::vector<double> S_eigenvalues;
         linalg_eigenvalues( S_eigenvalues, _aomatrix);
-        for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
-            if ( S_eigenvalues[_i] < 0.0 ) {
-                throw runtime_error("GW_overlap_cholesky has negative eigenvalues");
-            }
+        
+        if ( S_eigenvalues[0] < 0.0 ) {
+            throw runtime_error("LT V L has negative eigenvalues");
         }
+     
         int removed_basisfunctions=0;
     ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
      for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
