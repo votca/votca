@@ -1155,7 +1155,7 @@ if (_lmax_col > 5) {
         ub::vector<double> S_eigenvalues;
         linalg_eigenvalues( S_eigenvalues, _aomatrix);
         for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
-            if ( S_eigenvalues[i] < 0.0 ) {
+            if ( S_eigenvalues[_i] < 0.0 ) {
                 throw runtime_error("GW_overlap_cholesky has negative eigenvalues");
             }
         }
