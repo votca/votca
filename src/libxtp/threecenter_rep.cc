@@ -53,8 +53,9 @@ namespace votca {
         bool TCrawMatrix::FillThreeCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
 
             const double pi = boost::math::constants::pi<double>();
+            const double gwaccuracy = 1.e-11;
             
-            bool _does_contribute=true;
+            bool _does_contribute=false;
             
 
             // shell info, only lmax tells how far to go
@@ -106,7 +107,7 @@ namespace votca {
             typedef ma_type::index index;
             ma_type::extent_gen extents;
             
-            double _dist3 = (_pos_alpha - _pos_beta) * (_pos_alpha - _pos_beta);
+
             //int n_orb = ((_lmax_gamma + 1)*(_lmax_gamma + 2)*(_lmax_gamma + 3))/6;
             int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84, 120, 165};
             
@@ -212,53 +213,58 @@ namespace votca {
             double amb0=amb.getX();
             double amb1=amb.getY();
             double amb2=amb.getZ();
+            double _dist3 = amb * amb;
          
 
 
             
 
             for ( AOShell::GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
-                const double _decay_alpha = (*italpha)->getDecay();
+                const double _decay_alpha = italpha->getDecay();
             
                 for ( AOShell::GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta){
-                    const double _decay_beta = (*itbeta)->getDecay();
+                    const double _decay_beta = itbeta->getDecay();
+                    double rzeta = 0.5 / (_decay_alpha+_decay_beta);
+                    vec _P = 2.0 * (_decay_alpha*_pos_alpha+_decay_beta*_pos_beta) * rzeta;
+                    vec pma = _P - _pos_alpha;
+                    double pma0 = pma.getX();
+                    double pma1 = pma.getY();
+                    double pma2 = pma.getZ();
+                    double xi = 2.0 * _decay_alpha * _decay_beta * rzeta;
+                    double fact_alpha_beta = 16.0 * xi * pow(pi / (_decay_alpha * _decay_beta), 0.25) * exp(-xi * _dist3);
                     
                     for ( AOShell::GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
-                        const double _decay_gamma = (*itgamma)->getDecay();
+                        const double _decay_gamma = itgamma->getDecay();
             
-          
+    
+
+
+      
             
             double _decay=_decay_alpha + _decay_beta + _decay_gamma;
-            double rzeta=0.5/(_decay_alpha+_decay_beta);
             double rgamma = 0.5/_decay_gamma; 
             double rdecay = 0.5/_decay; 
 
+            double sss = fact_alpha_beta * pow(rdecay * rdecay * rgamma, 0.25);
+
+            if (sss < gwaccuracy) { continue; }
+
+            _does_contribute = true;
+
             double gfak=_decay_gamma/_decay;
             double cfak= (_decay_alpha + _decay_beta)/_decay;         
-            vec _P=(_decay_alpha*_pos_alpha+_decay_beta*_pos_beta)/(_decay_alpha+_decay_beta);
             vec _W=(_decay_alpha*_pos_alpha+_decay_beta*_pos_beta+_decay_gamma*_pos_gamma)/_decay;
             double _T = (_decay_alpha+_decay_beta)*_decay_gamma/_decay*(_P-_pos_gamma)*(_P-_pos_gamma);
-            
-            
-            
-            vec pma = _P - _pos_alpha;
-            //vec pmb = _P - _pos_beta;
+
             vec wmp = _W - _P; 
             vec wmc = _W - _pos_gamma;
-            
-            
-            double pma0 = pma.getX();
-            //double pmb0 = 0.0;
+
             double wmp0 = wmp.getX();
             double wmc0 = wmc.getX();
 
-            double pma1 = pma.getY();
-            //double pmb1 = 0.0;
             double wmp1 = wmp.getY();
             double wmc1 = wmc.getY();
 
-            double pma2 = pma.getZ();
-            //double pmb2 = 0.0;
             double wmp2 = wmp.getZ();
             double wmc2 = wmc.getZ();
             
@@ -288,16 +294,8 @@ namespace votca {
                                }
                            }
 
-            
 
-
-            
             const vector<double> _FmT=AOMatrix::XIntegrate(_mmax+1, _T);
-
-
-            double sss = ( 2.0 * pow(pi, 0.25) * pow( 8.0 * _decay_alpha * _decay_beta * _decay_gamma, 0.75 ) )
-             / ( (_decay_alpha + _decay_beta) * _decay_gamma * sqrt(_decay) ); ///////
-            sss = sss * exp( -2.0*_decay_alpha*_decay_beta*rzeta*_dist3 ); ////////
 
             //ss integrals
 
@@ -891,7 +889,7 @@ if (_lmax_gamma > 5) {
 
 
 
-const std::vector<double>& _contractions_gamma = (*itgamma)->getContraction();
+const std::vector<double>& _contractions_gamma = itgamma->getContraction();
 
   // s-functions
 double factor = _contractions_gamma[0];

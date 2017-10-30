@@ -524,19 +524,13 @@ namespace votca {
              * cf. M. Rohlfing, PhD thesis, ch. 3
              */
             AOOverlap _gwoverlap;
-            // initialize overlap matrix
-            _gwoverlap.Initialize(gwbasis.AOBasisSize());
             // Fill overlap
             _gwoverlap.Fill(gwbasis);
 
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Overlap matrix of dimension: " << _gwoverlap.Matrix().size1() << flush;
 
-            // check eigenvalues of overlap matrix, if too small basis might have linear dependencies
-            ub::vector<double> _eigenvalues;
-            ub::matrix<double> _eigenvectors;
-            linalg_eigenvalues(_gwoverlap.Matrix(), _eigenvalues, _eigenvectors);
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of GW Overlap matrix : " << _eigenvalues[0] << flush;
+          
 
 
             /*
@@ -549,10 +543,7 @@ namespace votca {
 
             // get Coulomb matrix as AOCoulomb
             AOCoulomb _gwcoulomb;
-           
-            
-            // initialize Coulomb matrix
-            _gwcoulomb.Initialize(gwbasis.AOBasisSize());
+
             // Fill Coulomb matrix
             _gwcoulomb.Fill(gwbasis);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled GW Coulomb matrix of dimension: " << _gwcoulomb.Matrix().size1() << flush;
@@ -595,7 +586,7 @@ namespace votca {
             TCMatrix _Mmn;
             _Mmn.Initialize(gwbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
             _Mmn.Fill(gwbasis, _dftbasis, _dft_orbitals);
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Mmn_beta (3-center-overlap x orbitals)  " << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
 
            
 

@@ -133,8 +133,9 @@ void IGWBSE::ParseOptionsXML( votca::tools::Property *opt ) {
 }
 
 std::map<std::string, int> IGWBSE::FillParseMaps(string Mapstring){
-    std::vector<string> strings_vec;
-    boost::algorithm::split( strings_vec, Mapstring, boost::is_any_of("\t,\n"),boost::token_compress_on );
+    Tokenizer tok_cleanup(Mapstring, ", \t\n");
+    std::vector <std::string> strings_vec;
+    tok_cleanup.ToVector(strings_vec);
     std::vector<string>::iterator sit;
     std::map<std::string, int> type2level;
     for(sit=strings_vec.begin();sit<strings_vec.end();++sit){

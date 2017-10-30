@@ -97,8 +97,8 @@ public:
     void CalcMinDecay(){
      _mindecay=std::numeric_limits<double>::max();
      for(auto& gaussian:_gaussians){
-         if(gaussian->getDecay()<_mindecay){
-             _mindecay=gaussian->getDecay();
+         if(gaussian.getDecay()<_mindecay){
+             _mindecay=gaussian.getDecay();
          }
      }
      return;
@@ -110,23 +110,23 @@ public:
     void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, const vec& grid_pos ) const;
 
     // iterator over pairs (decay constant; contraction coefficient)
-    typedef std::vector< AOGaussianPrimitive* >::const_iterator GaussianIterator;
+    typedef std::vector< AOGaussianPrimitive >::const_iterator GaussianIterator;
     GaussianIterator firstGaussian() const{ return _gaussians.begin(); }
     GaussianIterator lastGaussian()const{ return _gaussians.end(); }
    
     // adds a Gaussian 
-    AOGaussianPrimitive*  addGaussian( double decay, std::vector<double> contraction ) 
+    void  addGaussian( double decay, std::vector<double> contraction ) 
     {
-        AOGaussianPrimitive* gaussian = new AOGaussianPrimitive(decay, contraction, this);
+        AOGaussianPrimitive gaussian = AOGaussianPrimitive(decay, contraction, this);
         _gaussians.push_back( gaussian );
-        return gaussian;
+        return;
     }
     // used for ecps
-    AOGaussianPrimitive*  addGaussian( int power, double decay, std::vector<double> contraction ) 
+    void  addGaussian( int power, double decay, std::vector<double> contraction ) 
     {                                                                                
-        AOGaussianPrimitive* gaussian = new AOGaussianPrimitive(power, decay, contraction, this); 
+        AOGaussianPrimitive gaussian = AOGaussianPrimitive(power, decay, contraction, this); 
         _gaussians.push_back( gaussian );                                                  
-        return gaussian;                                                                 
+        return;                                                                 
     }                                                                                
 
 
@@ -141,11 +141,7 @@ private:
                     _atomname(atomname), _atomindex(atomindex) { ; }
     
     // only class Element can destruct shells
-   ~AOShell() 
-   { 
-       for (std::vector< AOGaussianPrimitive* >::iterator it = _gaussians.begin(); it != _gaussians.end() ; it++ ) delete (*it); 
-       _gaussians.clear();
-   }
+            ~AOShell(){};
     
     // shell type (S, P, D))
     string _type;
@@ -165,7 +161,7 @@ private:
 
     
     // vector of pairs of decay constants and contraction coefficients
-    std::vector< AOGaussianPrimitive* > _gaussians;
+    std::vector< AOGaussianPrimitive > _gaussians;
     
 };
 

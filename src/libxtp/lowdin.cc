@@ -24,8 +24,6 @@ namespace votca { namespace xtp {
 
 void Lowdin::EvaluateLowdin(vector< ctp::QMAtom* >& _atomlist,const ub::matrix<double> &_dmat, AOBasis &basis,BasisSet &bs,  bool _do_transition){
     AOOverlap _overlap;
-    // initialize overlap matrix
-    _overlap.Initialize(basis.AOBasisSize());
     // Fill overlap
     _overlap.Fill(basis);
     

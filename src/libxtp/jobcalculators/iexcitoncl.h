@@ -63,8 +63,8 @@ public:
 private:
 
     
-    
-   
+    double                              _cutoff;
+    double                              _epsilon;
     ctp::XMpsMap                        _mps_mapper;
     bool                           _induce;
     int                           _statenumber;

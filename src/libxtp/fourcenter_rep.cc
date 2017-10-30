@@ -275,16 +275,16 @@ namespace votca {
 
 
             for ( AOShell::GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha) {
-                const double _decay_alpha = (*italpha)->getDecay();
+                const double _decay_alpha = italpha->getDecay();
             
               for ( AOShell::GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta) {
-                  const double _decay_beta = (*itbeta)->getDecay();
+                  const double _decay_beta = itbeta->getDecay();
                     
                 for ( AOShell::GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma) {
-                    const double _decay_gamma = (*itgamma)->getDecay();
+                    const double _decay_gamma = itgamma->getDecay();
 
                   for ( AOShell::GaussianIterator itdelta = _shell_delta->firstGaussian(); itdelta != _shell_delta->lastGaussian(); ++itdelta) {
-                      const double _decay_delta = (*itdelta)->getDecay();
+                      const double _decay_delta = itdelta->getDecay();
 
 
           

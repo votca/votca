@@ -129,8 +129,6 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
             AOBasis aobasis;
             aobasis.AOBasisFill(bs, _atoms);
             AOOverlap _overlap;
-            // initialize overlap matrix
-            _overlap.Initialize(aobasis.AOBasisSize());
             // Fill overlap
             _overlap.Fill(aobasis);
 

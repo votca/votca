@@ -112,21 +112,14 @@ namespace votca {
             const int index_n = _Mmn_RPA.get_nmin();
             const int index_m = _Mmn_RPA.get_mmin();
             const double screenf2=screening_freq * screening_freq;
-            
-            std::vector<ub::matrix<double> > result_thread;
-            unsigned nthreads = 1;
-            #ifdef _OPENMP
-               nthreads = omp_get_max_threads();
-            #endif
+            ub::matrix<double> result=ub::zero_matrix<double>(_size);
+          
             const ub::vector<double>& qp_energies=   _qp_energies;
               
-            for(unsigned i=0;i<nthreads;++i){
-                result_thread.push_back(ub::zero_matrix<double>(_size));
-            }
+          
             
             #pragma omp parallel for 
-            for(unsigned thread=0;thread<nthreads;++thread){
-            for (int _m_level = thread; _m_level < _Mmn_RPA.get_mtot(); _m_level+=nthreads) {
+            for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
                 const double _qp_energy_m=qp_energies(_m_level + index_m);
 #if (GWBSE_DOUBLE)
                 const ub::matrix<double>& Mmn_RPA = _Mmn_RPA[ _m_level ];
@@ -151,15 +144,14 @@ namespace votca {
                     } // matrix size
 
                 } // empty levels
-
+                _temp=ub::prod(Mmn_RPA, _temp);
                 // now multiply and add to epsilon
-                result_thread[thread] += ub::prod(Mmn_RPA, _temp);
+                #pragma omp critical
+                {
+                result+=_temp;
+                }
             } // occupied levels
-            }
-            ub::matrix<double> result=ub::zero_matrix<double>(_size);
-               for(unsigned thread=0;thread<nthreads;++thread){
-                   result+=result_thread[thread];
-               }
+              
             return result;
         }
         //real
@@ -169,21 +161,11 @@ namespace votca {
             const int index_n = _Mmn_RPA.get_nmin();
             const int index_m = _Mmn_RPA.get_mmin();
             const ub::vector<double>& qp_energies=   _qp_energies;
-            
-            std::vector<ub::matrix<double> > result_thread;
-            unsigned nthreads = 1;
-            #ifdef _OPENMP
-               nthreads = omp_get_max_threads();
-            #endif
-               
-              
-            for(unsigned i=0;i<nthreads;++i){
-                result_thread.push_back(ub::zero_matrix<double>(_size));
-            }
+            ub::matrix<double> result=ub::zero_matrix<double>(_size);
+           
             
             #pragma omp parallel for 
-            for(unsigned thread=0;thread<nthreads;++thread){
-            for (int _m_level = thread; _m_level < _Mmn_RPA.get_mtot(); _m_level+=nthreads) {
+            for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
                 const double _qp_energy_m=qp_energies(_m_level + index_m);
                 
                 
@@ -214,17 +196,13 @@ namespace votca {
                 } // empty levels
 
                 // now multiply and add to epsilon
-               
-               
-                result_thread[thread] += ub::prod(Mmn_RPA, _temp);
-                
+               _temp=ub::prod(Mmn_RPA, _temp);
+                #pragma omp critical
+                {
+                result+=_temp;
+                }
             } // occupied levels
-            }
-               ub::matrix<double> result=ub::zero_matrix<double>(_size);
-               for(unsigned thread=0;thread<nthreads;++thread){
-                   result+=result_thread[thread];
-               }
-              
+   
             return result;
         }
         

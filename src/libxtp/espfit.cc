@@ -52,7 +52,6 @@ void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<doub
     ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_grid.getsize());
 
     AOOverlap overlap;
-    overlap.Initialize(_basis.AOBasisSize());
     overlap.Fill(_basis);
     ub::vector<double> DMATasarray=_dmat.data();
     ub::vector<double> AOOasarray=overlap.Matrix().data();
@@ -194,7 +193,6 @@ void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::ma
     ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_grid.getsize());
 
     AOOverlap overlap;
-    overlap.Initialize(_basis.AOBasisSize());
     overlap.Fill(_basis);
     const ub::vector<double> DMATasarray=_dmat.data();
     const ub::vector<double> AOOasarray=overlap.Matrix().data();
@@ -215,7 +213,6 @@ void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::ma
     for ( int i = 0 ; i < _grid.getsize(); i++){
         // AOESP matrix
          AOESP _aoesp;
-         _aoesp.Initialize(_basis.AOBasisSize());
          _aoesp.Fill(_basis, _grid.getGrid()[i]*Nm2Bohr);
         const ub::vector<double> AOESPasarray=_aoesp.Matrix().data();
 

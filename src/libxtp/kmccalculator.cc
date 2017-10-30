@@ -22,15 +22,14 @@
 #include <boost/format.hpp>
 #include <votca/ctp/topology.h>
 #include <locale>
-
+#include <boost/format.hpp>
 
 using namespace std;
 
 namespace votca {
     namespace xtp {
-
+        
         KMCCalculator::KMCCalculator(){};
-   
 
     void KMCCalculator::LoadGraph(ctp::Topology *top) {
 
@@ -49,6 +48,8 @@ namespace votca {
 
         ctp::QMNBList &nblist = top->NBList();
 
+        
+        
         for (ctp::QMNBList::iterator it = nblist.begin(); it < nblist.end(); ++it) {
             _nodes[(*it)->Seg1()->getId()-1]->AddEventfromQmPair(*it, _carriertype);
             _nodes[(*it)->Seg2()->getId()-1]->AddEventfromQmPair(*it, _carriertype);
@@ -57,9 +58,20 @@ namespace votca {
         unsigned events=0;
         unsigned max=std::numeric_limits<unsigned>::min();
         unsigned min=std::numeric_limits<unsigned>::max();
+        minlength=std::numeric_limits<double>::max();
+        double maxlength=0;
         for(const auto& node:_nodes){
             
             unsigned size=node->events.size();
+            for( const auto& event:node->events){
+                if(event.decayevent){continue;}
+                double dist=abs(event.dr);
+                if(dist>maxlength){
+                    maxlength=dist;
+                } else if(dist<minlength){
+                    minlength=dist;        
+                }
+            }
             
             events+=size;
             if(size==0){
@@ -82,7 +94,13 @@ namespace votca {
         
         cout<<"Nblist has "<<nblist.size()<<" pairs. Nodes contain "<<events<<" jump events"<<endl;
         cout<<"with avg="<<avg<<" std="<<deviation<<" max="<<max<<" min="<<min<<endl;
-        
+        cout<<"Minimum jumpdistance ="<<minlength<<" nm Maximum distance ="<<maxlength<<" nm"<<endl;
+        cout<<"Grouping into "<<lengthdistribution<<" boxes"<<endl;
+        lengthresolution=(1.00001*maxlength-minlength)/double(lengthdistribution);
+        cout<<"Resolution is "<<lengthresolution<<" nm"<<endl;   
+       
+        _jumplengthdistro=std::vector<long unsigned>(lengthdistribution,0);
+        _jumplengthdistro_weighted=std::vector<double>(lengthdistribution,0);
 
        
         cout << "spatial density: " << _numberofcharges / top->BoxVolume() << " nm^-3" << endl;
@@ -248,9 +266,11 @@ namespace votca {
             {
                 charge = 1.0;
             }
-    
+            cout<<"electric field ="<<_field<<" V/nm"<<endl;
             
             double maxreldiff = 0;
+            double maxrate=0;
+            double minrate=std::numeric_limits<double>::max();
             int totalnumberofrates = 0;
             for (unsigned int i = 0; i < numberofsites; i++) {
                 unsigned numberofneighbours = _nodes[i]->events.size();
@@ -287,6 +307,13 @@ namespace votca {
                     // set rates to calculated values
                     _nodes[i]->events[j].rate = rate;
                     _nodes[i]->events[j].initialrate = rate;
+                    
+                    if(rate>maxrate){
+                        maxrate=rate;
+                    }
+                    else if(rate<minrate){
+                        minrate=rate;
+                    }
 
                     totalnumberofrates++;
                 }
@@ -299,6 +326,7 @@ namespace votca {
             }
             
             cout << "    " << totalnumberofrates << " rates have been calculated." << endl;
+            cout<< " Largest rate="<<maxrate<<" 1/s  Smallest rate="<<minrate<<" 1/s"<<endl;
             if (maxreldiff < 0.01) {
                 cout << "    Good agreement with rates in the state file. Maximal relative difference: " << maxreldiff * 100 << " %" << endl;
             } else {
@@ -349,6 +377,45 @@ namespace votca {
 
             }
             return carrier;
+        }
+        
+        void KMCCalculator::AddtoJumplengthdistro(const GLink* event,double dt){
+            if(dolengthdistributon){
+            double dist=abs(event->dr)-minlength;
+            int index=int(dist/lengthresolution);
+           
+            _jumplengthdistro[index]++;
+            _jumplengthdistro_weighted[index]+=dt;
+           
+            
+            }
+            return; 
+        }
+        
+        void KMCCalculator::PrintJumplengthdistro(){
+            if(dolengthdistributon){
+            long unsigned noofjumps=0;
+            
+            double weightedintegral=0;
+            for(unsigned i=0;i<_jumplengthdistro.size();++i){
+                noofjumps+=_jumplengthdistro[i];   
+                weightedintegral+=_jumplengthdistro_weighted[i];
+            }
+            double noofjumps_double=double(noofjumps);
+            cout<<"Total number of jumps: "<<noofjumps<<endl;
+            cout<<" distance[nm] |   # of jumps   | # of jumps [%] | .w. by dist [nm] | w. by timestep [%]"<<endl;
+            cout<<"------------------------------------------------------------------------------------"<<endl;
+            for(unsigned i=0;i<_jumplengthdistro.size();++i){
+                double dist=lengthresolution*(i+0.5)+minlength;
+                double percent=_jumplengthdistro[i]/noofjumps_double;
+                double rtimespercent=percent*dist;
+                cout<<(boost::format("    %4.3f    | %15d |    %04.2f    |     %4.3e     |     %04.2f")
+                            % (dist) % (_jumplengthdistro[i]) % (percent*100) %(rtimespercent) % (_jumplengthdistro_weighted[i]/weightedintegral*100)).str()<<endl;                
+            }
+            cout<<"------------------------------------------------------------------------------------"<<endl;
+           
+            }
+            return;
         }
  
         

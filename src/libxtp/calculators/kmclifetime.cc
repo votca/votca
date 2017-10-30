@@ -67,6 +67,11 @@ namespace votca {
         _rates = "statefile";
     }
     
+    lengthdistribution = options->ifExistsReturnElseReturnDefault<double>(key+".jumplengthdist",0);
+    if(lengthdistribution>0){
+        dolengthdistributon=true;
+    }
+    
     return;
     }
 
@@ -149,7 +154,7 @@ namespace votca {
         double avlifetime=0.0;
         double meanfreepath=0.0;
         tools::vec difflength=tools::vec(0,0,0);
-        unsigned steps=0;
+    
         double avgenergy=_carriers[0]->getCurrentEnergy();
         int     carrieridold=_carriers[0]->id;
 
@@ -159,7 +164,7 @@ namespace votca {
                 break;
             }
 
-            step += 1;
+     
             double cumulated_rate = 0;
 
             for (unsigned int i = 0; i < _carriers.size(); i++) {
@@ -183,12 +188,12 @@ namespace votca {
                     print=true;
                 }
                 if(print){
-                    energyfile << simtime<<"\t"<<steps <<"\t"<<_carriers[0]->id<<"\t"<<avgenergy<<endl;                  
+                    energyfile << simtime<<"\t"<<step <<"\t"<<_carriers[0]->id<<"\t"<<avgenergy<<endl;                  
                 }
             }
 
             simtime += dt;
-            steps++;
+            step++;
             for (unsigned int i = 0; i < _carriers.size(); i++) {
                 _carriers[i]->updateLifetime(dt);
                 _carriers[i]->updateSteps(1);
@@ -224,7 +229,7 @@ namespace votca {
                         meanfreepath+=tools::abs(affectedcarrier->dr_travelled);
                         difflength+=tools::elementwiseproduct(affectedcarrier->dr_travelled,affectedcarrier->dr_travelled);
                         traj << simtime<<"\t"<<insertioncount<< "\t"<< affectedcarrier->id<<"\t"<< affectedcarrier->getLifetime()<<"\t"<<affectedcarrier->getSteps()<<"\t"<< affectedcarrier->getCurrentNodeId()+1<<"\t"<<affectedcarrier->dr_travelled.getX()<<"\t"<<affectedcarrier->dr_travelled.getY()<<"\t"<<affectedcarrier->dr_travelled.getZ()<<endl;
-                        if(_insertions<1500 ||insertioncount% (_insertions/1000)==0 || insertioncount<0.001*_insertions){
+                        if( tools::globals::verbose &&(_insertions<1500 ||insertioncount% (_insertions/1000)==0 || insertioncount<0.001*_insertions)){
                             std::cout << "\rInsertion " << insertioncount+1<<" of "<<_insertions;
                             std::cout << std::flush;
                         }
@@ -255,6 +260,7 @@ namespace votca {
                     } else {
                         affectedcarrier->jumpfromCurrentNodetoNode(newnode);
                         affectedcarrier->dr_travelled += event->dr;
+                        AddtoJumplengthdistro(event,dt);
                         secondlevel=false;
 
                         break; // this ends LEVEL 2 , so that the time is updated and the next MC step started
@@ -270,12 +276,14 @@ namespace votca {
 
         cout<<endl;
         cout << "Total runtime:\t\t\t\t\t"<< simtime << " s"<< endl;
-        cout << "Total KMC steps:\t\t\t\t"<< steps << endl;
-        cout << "Average lifetime:\t\t\t\t"<<avlifetime/_insertions<< " s"<<endl;
-        cout << "Mean freepath\t l=<|r_x-r_o|> :\t\t"<<(meanfreepath/_insertions)<< " nm"<<endl;
-        cout << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"<<sqrt(abs(difflength)/_insertions)<< " nm"<<endl;
+        cout << "Total KMC steps:\t\t\t\t"<< step << endl;
+        cout << "Average lifetime:\t\t\t\t"<<avlifetime/insertioncount<< " s"<<endl;
+        cout << "Mean freepath\t l=<|r_x-r_o|> :\t\t"<<(meanfreepath/insertioncount)<< " nm"<<endl;
+        cout << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"<<sqrt(abs(difflength)/insertioncount)<< " nm"<<endl;
         cout<<endl;
 
+        PrintJumplengthdistro();
+        
         vector< ctp::Segment* >& seg = top->Segments();
 
         for (unsigned i = 0; i < seg.size(); i++) {

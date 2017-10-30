@@ -286,15 +286,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
                     return jres;
             } 
             
-            if ( !_orbitalsAB.hasAOOverlap() ) {
-                    output += "no Overlap found in LOG file; " ;
-                    CTP_LOG(ctp::logERROR,*pLog) << "LOG Overlap parsing failed" << flush;
-                    cout << *pLog;
-                    jres.setOutput( output ); 
-                    jres.setStatus(ctp::Job::FAILED);
-                    delete _qmpackage;
-                    return jres;
-            }
+          
 
             _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitalsAB );
 

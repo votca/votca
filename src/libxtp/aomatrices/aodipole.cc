@@ -124,11 +124,11 @@ namespace votca { namespace xtp {
         for ( AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
             // get decay constant
-            const double _decay_row = (*itr)->getDecay();
+            const double _decay_row = itr->getDecay();
             
             for ( AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
                 //get decay constant
-                const double _decay_col = (*itc)->getDecay();
+                const double _decay_col = itc->getDecay();
         
        
                 const double _fak  = 0.5/(_decay_row + _decay_col);

@@ -19,7 +19,7 @@
 
 #ifndef _VOTCA_XTP_GENCUBE_H
 #define _VOTCA_XTP_GENCUBE_H
-
+#include <boost/progress.hpp>
 #include <stdio.h>
 #include <boost/format.hpp>
 #include <votca/xtp/elements.h>
@@ -68,7 +68,7 @@ namespace votca {
             bool _do_transition;
             bool _do_singlet;
             bool _do_triplet;
-            
+           
             double _padding;
             int _xsteps;
             int _ysteps;
@@ -89,6 +89,7 @@ namespace votca {
             _do_transition=false;
             _do_singlet=false;
             _do_triplet=false;
+            
             // update options with the VOTCASHARE defaults   
             UpdateWithDefaults( options, "xtp" );
 
@@ -241,7 +242,8 @@ namespace votca {
                 } else if ( _do_bse ){
                     if ( _do_groundstate ){
                        fprintf(out, "Total electron density of excited state  %i spin %s \n", _state, _spin.c_str());
-                    } else {
+                    }
+                    else{
                        fprintf(out, "Difference electron density of excited state  %i spin %s \n", _state, _spin.c_str());
                     }
                 } 
@@ -316,7 +318,8 @@ namespace votca {
                     // excited state if requested
                         else if ( _do_bse  ) {    
                             std::vector< ub::matrix<double> > DMAT=_orbitals.DensityMatrixExcitedState(_spin, _state - 1);
-                            DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
+                            
+                            DMAT_tot =DMAT_tot+DMAT[1]-DMAT[0];// Ground state + hole_contribution + electron contribution
                             CTP_LOG(ctp::logDEBUG, _log) << " Calculated excited state density matrix " << flush;
                         }
                     }
@@ -324,8 +327,8 @@ namespace votca {
    
                     CTP_LOG(ctp::logDEBUG, _log) << " Calculating cube data ... \n" << flush;
                     _log.setPreface(ctp::logDEBUG,   (format(" ... ...") ).str());
-                    float progress = 0.0;
-                    const ub::vector<double> DMAT_array = DMAT_tot.data();
+                    
+                    boost::progress_display progress(_xsteps) ;
                     // eval density at cube grid points
                     for (int _ix = 0; _ix <= _xsteps; _ix++) {
                         double _x = xstart + double(_ix) * xincr;
@@ -341,10 +344,18 @@ namespace votca {
                                 ub::matrix<double> tmat = ub::zero_matrix<double>( 1,dftbasis.AOBasisSize());
 
                                 for (AOBasis::AOShellIterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
-                                   
+                                    
+                                    const double decay=(*_row)->getMinDecay();
+                                    const tools::vec& shellpos=(*_row)->getPos();
+                      
+                      
+                                    tools::vec dist=shellpos-pos;
+                                    double distsq=dist*dist;
+                          // if contribution is smaller than -ln(1e-10), calc density
+                                    if ( (decay * distsq) < 20.7 ){
                                     ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
                                     (*_row)->EvalAOspace(_submatrix, pos);
-
+                                    }
                                 }
                                 
                                 
@@ -363,19 +374,8 @@ namespace votca {
                             
                         }// y-component
                         
+                        ++progress;
                         
-                        progress += 1.0/((_xsteps+1));
-                        int barWidth = 70;
-                        CTP_LOG(ctp::logDEBUG, _log) << "[";
-                        int pos = barWidth * progress;
-                        for (int i = 0; i < barWidth; ++i) {
-                            if (i < pos) CTP_LOG(ctp::logDEBUG, _log) << "=";
-                            else if (i == pos) CTP_LOG(ctp::logDEBUG, _log) << ">";
-                            else CTP_LOG(ctp::logDEBUG, _log) << " ";
-                        }
-                        int percent = progress * 100.0;
-                        CTP_LOG(ctp::logDEBUG, _log) << "] " << percent << " %\r";
-                        CTP_LOG(ctp::logDEBUG, _log) << flush;
                         
                     } // x-component
 

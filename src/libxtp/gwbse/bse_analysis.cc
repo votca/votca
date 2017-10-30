@@ -52,9 +52,11 @@ namespace votca {
             
             
             BSE_FragmentPopulations("singlet",_popH, _popE, _Chrg);
-            _orbitals->FragmentChargesSingEXC()=_Chrg;
+            _orbitals->setFragmentChargesSingEXC(_Chrg);
+            _orbitals->setFragment_E_localisation_singlet(_popE);
+            _orbitals->setFragment_H_localisation_singlet(_popH);
             // REPORTING
-            const ub::vector<double>& _pop= _orbitals->FragmentChargesGS();
+            const ub::vector<double>& _pop= _orbitals->getFragmentChargesGS();
             std::vector< tools::vec >& _transition_dipoles = _orbitals->TransitionDipoles();
             std::vector<double> oscs=_orbitals->Oscillatorstrengths();
             double hrt2ev=tools::conv::hrt2ev;
@@ -207,8 +209,6 @@ namespace votca {
 
                 // get overlap matrix for DFT basisset
                 AOOverlap _dftoverlap;
-                // initialize overlap matrix
-                _dftoverlap.Initialize(_dftbasis.AOBasisSize());
                 // Fill overlap
                 _dftoverlap.Fill(_dftbasis);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().size1() << flush;    
@@ -218,7 +218,7 @@ namespace votca {
                 ub::vector<double> nuccharges=_orbitals->FragmentNuclearCharges(_fragA);
                 ub::vector<double> pops=_orbitals->LoewdinPopulation(DMAT, _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
                 // population to electron charges and add nuclear charges         
-                _orbitals->FragmentChargesGS()=nuccharges-pops; 
+                _orbitals->setFragmentChargesGS(nuccharges-pops); 
                 for (int _i_state = 0; _i_state < _bse_nprint; _i_state++) {
 
                     // checking Density Matrices
@@ -245,7 +245,7 @@ namespace votca {
              // Testing electric dipole AOMatrix
             AODipole _dft_dipole;
            
-            _dft_dipole.Initialize(_dftbasis.AOBasisSize());
+            
             _dft_dipole.Fill(_dftbasis);
             
             ub::matrix<double> _temp;
@@ -308,7 +308,9 @@ namespace votca {
             std::vector< ub::vector<double> > _popE;
             std::vector< ub::vector<double> > _Chrg;
             BSE_FragmentPopulations("singlet",_popH, _popE, _Chrg);
-            _orbitals->FragmentChargesSingEXC()=_Chrg;
+            _orbitals->setFragmentChargesSingEXC(_Chrg);
+             _orbitals->setFragment_E_localisation_singlet(_popE);
+            _orbitals->setFragment_H_localisation_singlet(_popH);
             // for transition dipole moments
             BSE_FreeTransition_Dipoles();
             
@@ -316,7 +318,7 @@ namespace votca {
             
             // REPORTING
             // read ground state fragment charges from orbitals object
-            const ub::vector<double>& _pop= _orbitals->FragmentChargesGS();
+            const ub::vector<double>& _pop= _orbitals->getFragmentChargesGS();
             std::vector< tools::vec >& _transition_dipoles = _orbitals->TransitionDipoles();
             std::vector<double> oscs=_orbitals->Oscillatorstrengths();
             CTP_LOG(ctp::logINFO, *_pLog) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
@@ -383,8 +385,10 @@ namespace votca {
             
             
             BSE_FragmentPopulations("triplet",_popH, _popE, _Chrg);
-            _orbitals->FragmentChargesTripEXC()=_Chrg;
-            const ub::vector<double>& _pop = _orbitals->FragmentChargesGS();
+            _orbitals->setFragmentChargesTripEXC(_Chrg);
+             _orbitals->setFragment_E_localisation_triplet(_popE);
+            _orbitals->setFragment_H_localisation_triplet(_popH);
+            const ub::vector<double>& _pop = _orbitals->getFragmentChargesGS();
             CTP_LOG(ctp::logINFO, *_pLog) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
             for (int _i = 0; _i < _bse_nprint; _i++) {
 

@@ -134,15 +134,15 @@ namespace votca { namespace xtp {
         // iterate over Gaussians in this _shell_row
             for ( AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
             // iterate over Gaussians in this _shell_col
-                const double _decay_row = (*itr)->getDecay();
+                const double _decay_row = itr->getDecay();
                 const double r_decay_row = 0.5/_decay_row;
-                const double powfactor_row=(*itr)->getPowfactor();
+                const double powfactor_row=itr->getPowfactor();
                 for ( AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
                     
                      // get decay constants 
-                        const double _decay_col = (*itc)->getDecay();
+                        const double _decay_col = itc->getDecay();
                         const double r_decay_col = 0.5/_decay_col; 
-                       const double powfactor_col=(*itc)->getPowfactor();
+                       const double powfactor_col=itc->getPowfactor();
                       
                          
                          ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
@@ -656,8 +656,8 @@ if (_lmax_col > 5) {
             ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col, _ncols);
 
             // get transformation matrices including contraction coefficients
-          const std::vector<double>& _contractions_row = (*itr)->getContraction();
-          const std::vector<double>& _contractions_col = (*itc)->getContraction();
+          const std::vector<double>& _contractions_row = itr->getContraction();
+          const std::vector<double>& _contractions_col = itc->getContraction();
 
           
 
@@ -1149,7 +1149,8 @@ if (_lmax_col > 5) {
         //we do not simply use V-1/2 because that is a different metric than the ppm model, for normal 4c integrals V-1/2   
         // is good, but here we transform to a different space, and then transform back via the ppm model
          ub::matrix<double> _temp = ub::prod( _aomatrix , _gwoverlap_cholesky);
-        _aomatrix = ub::prod( ub::trans( _gwoverlap_cholesky ),_temp);
+         ub::matrix<double> _trans=ub::trans( _gwoverlap_cholesky );
+        _aomatrix = ub::prod( _trans,_temp);
         
         ub::vector<double> S_eigenvalues;
         linalg_eigenvalues( S_eigenvalues, _aomatrix);
@@ -1160,7 +1161,7 @@ if (_lmax_col > 5) {
         int removed_basisfunctions=0;
     ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
      for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
-         if(S_eigenvalues[_i]<1e-8){
+         if(S_eigenvalues[_i]<5.e-7){
              removed_basisfunctions++;
          }
          else{
@@ -1174,6 +1175,33 @@ if (_lmax_col > 5) {
        _temp = ub::prod( _aomatrix , ub::trans(_gwoverlap_cholesky));
        _aomatrix = ub::prod( _gwoverlap_cholesky ,_temp);
    
+    
+    return removed_basisfunctions; 
+    }
+    
+     int AOCoulomb::Invert_DFT(){
+        
+       //This converts V into V-1 while checking 
+        
+        
+        ub::vector<double> S_eigenvalues;
+        linalg_eigenvalues( S_eigenvalues, _aomatrix);
+        if ( S_eigenvalues[0] < 0.0 ) {
+            cerr << " \n Negative eigenvalues in matrix_sqrt transformation " << endl;
+            return -1;
+        }
+        int removed_basisfunctions=0;
+    ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
+     for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
+         if(S_eigenvalues[_i]<1.e-6){
+             removed_basisfunctions++;
+         }
+         else{
+         _diagS(_i,_i) = 1.0/S_eigenvalues[_i];
+         }
+     }
+    ub::matrix<double> _temp = ub::prod( _diagS, ub::trans(_aomatrix));
+    _aomatrix = ub::prod( _aomatrix,_temp );
     
     return removed_basisfunctions; 
     }

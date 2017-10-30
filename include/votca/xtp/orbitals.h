@@ -630,13 +630,15 @@ namespace votca {
                 return (_DqS_frag.size() > 0) ? true : false;
             }
 
-            const std::vector< ub::vector<double> > &FragmentChargesSingEXC() const {
+            const std::vector< ub::vector<double> > &getFragmentChargesSingEXC() const {
                 return _DqS_frag;
             }
 
-            std::vector< ub::vector<double> > &FragmentChargesSingEXC() {
-                return _DqS_frag;
+             void setFragmentChargesSingEXC(std::vector< ub::vector<double> > DqS_frag) {
+                _DqS_frag=DqS_frag;
             }
+             
+            
 
             // access to fragment charges of triplet excitations
 
@@ -644,25 +646,53 @@ namespace votca {
                 return (_DqT_frag.size() > 0) ? true : false;
             }
 
-            const std::vector< ub::vector<double> > &FragmentChargesTripEXC() const {
+            const std::vector< ub::vector<double> > &getFragmentChargesTripEXC() const {
                 return _DqT_frag;
             }
 
-            std::vector< ub::vector<double> > &FragmentChargesTripEXC() {
-                return _DqT_frag;
+            void setFragmentChargesTripEXC(std::vector< ub::vector<double> > DqT_frag) {
+                _DqT_frag=DqT_frag;
             }
 
             // access to fragment charges in ground state
 
-            const ub::vector<double> &FragmentChargesGS() const {
+            const ub::vector<double> &getFragmentChargesGS() const {
                 return _GSq_frag;
             }
 
-            ub::vector<double> &FragmentChargesGS() {
-                return _GSq_frag;
+             void setFragmentChargesGS(ub::vector<double> GSq_frag) {
+                 _GSq_frag=GSq_frag;
             }
+             
+            void setFragment_E_localisation_singlet(std::vector< ub::vector<double> >& popE){
+                _popE_s=popE;
+            }
+            
+            void setFragment_H_localisation_singlet(std::vector< ub::vector<double> > & popH){
+                _popH_s=popH;
+            }
+            
+            void setFragment_E_localisation_triplet(std::vector< ub::vector<double> > & popE){
+                _popE_t=popE;
+            }
+            
+            void setFragment_H_localisation_triplet(std::vector< ub::vector<double> > & popH){
+                _popE_s=popH;
+            }
+            
 
-
+            const std::vector< ub::vector<double> >& getFragment_E_localisation_singlet()const{
+                return _popE_s;
+            }
+            const std::vector< ub::vector<double> >& getFragment_H_localisation_singlet()const{
+                return _popH_s;
+            }
+            const std::vector< ub::vector<double> >& getFragment_E_localisation_triplet()const{
+                return _popE_t;
+            }
+            const std::vector< ub::vector<double> >& getFragment_H_localisation_triplet()const{
+                return _popH_t;
+            }
 
             ub::vector<double> FragmentNuclearCharges(int _frag);
 
@@ -809,8 +839,11 @@ namespace votca {
 
             ub::vector<double> _GSq_frag; // ground state effective fragment charges
 
+            std::vector< ub::vector<double> > _popE_s;
+            std::vector< ub::vector<double> > _popE_t;
+            std::vector< ub::vector<double> > _popH_s;
+            std::vector< ub::vector<double> > _popH_t;
 
-        private:
 
             /**
              * @param _energy_difference [ev] Two levels are degenerate if their energy is smaller than this value

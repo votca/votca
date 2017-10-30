@@ -198,7 +198,7 @@ void EInternal::ParseEnergiesXML(tools::Property *opt) {
                  (*segit)->exists("U_xN_xX_t")    ) {
 
                 U_xX_nN_t = (*segit)->get("U_xX_nN_t").as< double > ();
-                U_xX_nN_t = (*segit)->get("U_xX_nN_t").as< double > ();
+                U_nX_nN_t = (*segit)->get("U_nX_nN_t").as< double > ();
                 U_xN_xX_t = (*segit)->get("U_xN_xX_t").as< double > ();
 
                 has_t = true;

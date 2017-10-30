@@ -181,7 +181,6 @@ namespace votca {
 
             /**** Density-independent matrices ****/
 
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inside Evaluate " << flush;
 
 
             ub::vector<double>& MOEnergies = _orbitals->MOEnergies();
@@ -201,7 +200,7 @@ namespace votca {
 
 
             NuclearRepulsion();
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Nuclear Rep " << flush;
+            
 
 
             if (_addexternalsites) {
@@ -344,7 +343,7 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\tGAP " << MOEnergies(_numofelectrons / 2) - MOEnergies(_numofelectrons / 2 - 1) << flush;
 
                 if (std::abs(totenergy - energyold) < _Econverged && diiserror < _error_converged) {
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "Total Energy has converged to " << std::setprecision(9) << std::abs(totenergy - energyold) << "[Ha] after " << _this_iter + 1 <<
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Total Energy has converged to " << std::setprecision(9) << std::abs(totenergy - energyold) << "[Ha] after " << _this_iter + 1 <<
                             " iterations. DIIS error is converged up to " << _error_converged << "[Ha]" << flush;
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Final Single Point Energy " << std::setprecision(12) << totenergy << " Ha" << flush;
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " MO Energies  [Ha]" << flush;
@@ -385,7 +384,6 @@ namespace votca {
 
             {
                 // DFT AOOverlap matrix
-                _dftAOoverlap.Initialize(_dftbasis.AOBasisSize());
                 _dftAOoverlap.Fill(_dftbasis);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
                 //cout<<"overlap"<<_dftAOoverlap.Matrix()<<endl;
@@ -404,12 +402,12 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of DFT Overlap matrix : " << _eigenvalues[0] << flush;
             }
 
-            _dftAOkinetic.Initialize(_dftbasis.AOBasisSize());
+          
             _dftAOkinetic.Fill(_dftbasis);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOkinetic.Dimension() << flush;
 
 
-            _dftAOESP.Initialize(_dftbasis.AOBasisSize());
+          
             _dftAOESP.Fillnucpotential(_dftbasis, _atoms, _with_ecp);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOESP.Dimension() << flush;
 
@@ -454,7 +452,7 @@ namespace votca {
 
 
             if (_with_ecp) {
-                _dftAOECP.Initialize(_dftbasis.AOBasisSize());
+               
                 _dftAOECP.Fill(_dftbasis, vec(0, 0, 0), &_ecp);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOECP.Dimension() << flush;
                 _dftAOESP.getNuclearpotential() += _dftAOECP.Matrix();
@@ -468,18 +466,18 @@ namespace votca {
             if (_with_RI) {
 
                 AOCoulomb _auxAOcoulomb;
-                _auxAOcoulomb.Initialize(_auxbasis.AOBasisSize());
+              
                 _auxAOcoulomb.Fill(_auxbasis);
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
-                ub::matrix<double> AuxAOcoulomb_inv = ub::zero_matrix<double>(_auxAOcoulomb.Dimension(), _auxAOcoulomb.Dimension());
-                int dimensions = linalg_invert_svd(_auxAOcoulomb.Matrix(), AuxAOcoulomb_inv, 1e7);
+                
+                int dimensions = _auxAOcoulomb.Invert_DFT();
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inverted AUX Coulomb matrix, removed " << dimensions << " functions from aux basis" << flush;
 
 
                 // prepare invariant part of electron repulsion integrals
-                _ERIs.Initialize(_dftbasis, _auxbasis, AuxAOcoulomb_inv);
+                _ERIs.Initialize(_dftbasis, _auxbasis, _auxAOcoulomb.Matrix());
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
             } else {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c integrals. " << flush;
@@ -560,7 +558,7 @@ namespace votca {
                 ERIs ERIs_atom;
 
                 // DFT AOOverlap matrix
-                dftAOoverlap.Initialize(dftbasis.AOBasisSize());
+              
                 dftAOoverlap.Fill(dftbasis);
                 linalg_eigenvalues(dftAOoverlap.Matrix(), eigenvalues, eigenvectors);
 
@@ -573,10 +571,10 @@ namespace votca {
                 ub::matrix<double> _temp = ub::prod(_diagS, ub::trans(eigenvectors));
                 Sminusonehalf = ub::prod(eigenvectors, _temp);
 
-                dftAOkinetic.Initialize(dftbasis.AOBasisSize());
+               
                 dftAOkinetic.Fill(dftbasis);
 
-                dftAOESP.Initialize(dftbasis.AOBasisSize());
+               
                 dftAOESP.Fillnucpotential(dftbasis, atom, with_ecp);
                 ERIs_atom.Initialize_4c_small_molecule(dftbasis);
 
@@ -602,7 +600,6 @@ namespace votca {
 
                 ub::matrix<double> H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
                 if (with_ecp) {
-                    dftAOECP.Initialize(dftbasis.AOBasisSize());
                     dftAOECP.Fill(dftbasis, vec(0, 0, 0), &ecp);
                     H0 += dftAOECP.Matrix();
                 }

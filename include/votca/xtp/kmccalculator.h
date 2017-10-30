@@ -82,16 +82,21 @@ protected:
             
             void RandomlyCreateCharges();
             void RandomlyAssignCarriertoSite(Chargecarrier* Charge);
-            //tools::vec _field;
-            
+            void AddtoJumplengthdistro(const GLink* event, double dt);
+            void PrintJumplengthdistro();
             std::vector<GNode*> _nodes;
             std::vector< Chargecarrier* > _carriers;
             tools::Random2 * _RandomVariable;
            
             std::string _injection_name;
             std::string _injectionmethod;
-            
-            
+            std::vector<long unsigned> _jumplengthdistro;
+            std::vector<double> _jumplengthdistro_weighted;
+          
+            unsigned lengthdistribution;
+            bool dolengthdistributon=false;
+            double lengthresolution;
+            double minlength;
             int _seed;
             unsigned _numberofcharges;
             tools::vec _field;
