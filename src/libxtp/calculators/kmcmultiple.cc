@@ -146,6 +146,24 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
 
     RandomlyCreateCharges();
     vector<tools::vec> startposition(_numberofcharges,tools::vec(0.0));
+    for(unsigned int i=0; i<_numberofcharges; i++) {
+        startposition[i]=_carriers[i]->getCurrentPosition();
+    }
+    
+    
+    traj << 0 << "\t";
+    traj << 0 << "\t";
+    for(unsigned int i=0; i<_numberofcharges; i++) {
+        traj << startposition[i].getX()  << "\t";
+        traj << startposition[i].getY() << "\t";
+        traj << startposition[i].getZ();
+        if (i<_numberofcharges-1) {
+            traj << "\t";
+        }
+        else{
+            traj << endl;
+        }
+    }
   
     vector<int> forbiddennodes;
     vector<int> forbiddendests;
