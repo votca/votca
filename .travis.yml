@@ -36,7 +36,6 @@ addons:
 
 env:
   global:
-    - HDF5_VERSION=1.8.18
     - GMX_MAX_THREADS=8
     - CCACHE_CPP2=yes #for clang
     - GVER=4.8
@@ -55,10 +54,6 @@ before_script:
   - rm -vrf * .git
   - wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh && chmod 755 build.sh
   - mkdir -p "$HOME/votca/src"
-  - if [[ ${MINIMAL} != yes ]]; then 
-      wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xz &&
-      cd hdf5-${HDF5_VERSION} && ./configure --prefix=$HOME/hdf5 && make -j4 &> /dev/null && make install && cd ..;
-    fi
   - if [[ ${MAN} ]]; then git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/votca/src/devdoc"; fi 
   - if [[ ${GVER} ]]; then export CC=gcc-${GVER}; export CXX=g++-${GVER}; fi
   - pip install --user numpy
