@@ -33,7 +33,7 @@ matrix:
   - compiler: clang #no new info when using clang
     env: TESTING=OFF CMAKE_BUILD_TYPE=Release DOXYGEN=yes 
 
-script:
+before_install:
  - git checkout -b current_commit
  - cd ../../
  - if [[ ${TRAVIS_REPO_SLUG} = */votca ]]; then
@@ -51,6 +51,9 @@ script:
    fi
  - cp -r $HOME/.ccache ${HOME}/docker/ccache
  - sed -i "1s/latest/${DISTRO:-latest}/" ${HOME}/docker/Dockerfile
+ - CONTAINER=$(sed -n '1s/^from //p' ${HOME}/docker/Dockerfile) && docker pull ${CONTAINER}
+
+script:
  - docker build  --build-arg TESTOPTS="${TESTOPTS}" --build-arg COVERAGE=${COVERAGE}
                  --build-arg CC=${CC} --build-arg CXX=${CXX} --build-arg CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                  --build-arg CXXFLAGS="-Wall ${WERROR:+-Werror}"
