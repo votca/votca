@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <exception>
 
 #include <votca/csg/atomtable.h>
 
@@ -76,12 +77,11 @@ double AtomTable::getMass(string sym){
 }
 
 int AtomTable::getAtomicNumber(string sym){
-    int ind = this->getIndex(sym);
-    if(ind>=this->Atoms.size()){
-        cerr << "Error Unrecognized symbol in atomtable.cc " << sym << endl;
-        exit(1);
-    } 
-
-    return this->AtomicNumber.at(ind);
+    double num = atomTable[sym].atomicNumber;
+    if(num==0.0){
+        throw invalid_argument("Invalid atom number in AtomTable::getAtomicNumber. "+
+                               "There is no atom with symbol "+sym);
+    }
+    return num;
 }
 }}
