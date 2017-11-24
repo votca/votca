@@ -18,12 +18,22 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 #include <votca/csg/atomtable.h>
 
 namespace votca { namespace csg {
 
 using namespace std;
+
+AtomTable::AtomTable(void){
+
+    for(int ind=0;ind<this->Atoms.size();ind++){    
+        atomMap.insert(std::make_pair(Atoms.at(ind), 
+                                      Atom{MassNumber.at(ind), 
+                                           AtomicNumber.at(ind)}));
+    }
+}
 
 int AtomTable::getIndex(string sym){
     int ind = 0;
@@ -56,16 +66,11 @@ vector<string> AtomTable::getNoble(void){
 }
 
 double AtomTable::getMass(string sym){
-    int ind = this->getIndex(sym);
-    if(ind>=this->Atoms.size()){
-        cerr << "Error Unrecognized symbol in atomtable.cc " << sym << endl;
-        exit(1);
-    } 
 
-    double mass=this->MassNumber.at(ind);
-    if(mass==-1.0){
-        cerr << "Error mass for " << sym << " is unknown" << endl;
-        exit(1);
+    double mass = atomTable[sym].mass;
+    if(mass==0.0){
+        throw invalid_argument("Invalid atom symbol in AtomTable::getMass. There is"+
+                               " no atom with symbol "+sym);
     }
     return mass;
 }
