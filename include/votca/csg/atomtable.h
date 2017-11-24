@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ class AtomTable{
         /**
          * Constructor
          */
-        AtomTable(void) {};
+        AtomTable(void);
         /* 
          * Destructor 
          */
@@ -74,6 +74,12 @@ class AtomTable{
 
     protected:
 
+        struct Atom {
+            double mass;
+            double atomicNumber;
+        };
+
+        std::unordered_map<std::string, Atom> atomMap;
         /*
          * Return the index associated with the tables for the chosen element.
          */
