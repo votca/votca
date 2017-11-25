@@ -24,15 +24,15 @@
 
 namespace votca { namespace csg {
 
-class AtomTable{
+/**
+ * Brief information about atom table
+ *
+ * \The atom table class is responsible for stroring relevant information 
+ * from the periodic table.
+ *
+ */
 
-    /**
-     * Brief information about atom table
-     *
-     * \The atom table class is responsible for stroring relevant information 
-     * from the periodic table.
-     *
-     */
+class AtomTable{
 
     public:
         /**
@@ -57,7 +57,7 @@ class AtomTable{
          */
         std::vector<std::string> getHalogens(void);
         /**
-         *  Will return the sybmols associated with the noble gasses in a vector<string>.
+         *  Will return the symbols associated with the noble gasses in a vector<string>.
          */
         std::vector<std::string> getNoble(void);
 
