@@ -29,7 +29,7 @@ using namespace std;
 
 AtomTable::AtomTable(void){
 
-    for(int ind=0;ind<this->Atoms.size();ind++){   
+    for(unsigned int ind=0;ind<this->Atoms.size();ind++){   
         Atom atm;
         atm.mass         = MassNumber.at(ind);
         atm.atomicNumber = AtomicNumber.at(ind);
