@@ -50,9 +50,6 @@ bool PDBReader::Open(const string &file){
     if(boost::filesystem::extension(filepath).size()==0 ){
         throw std::ios_base::failure("ERROR on opening .pdb file'"
                 +file+"' - extension is expected, use .pdb");
-    }else if(boost::filesystem::extension(filepath)!=".pdb"){
-        throw std::ios_base::failure("Error on opening .pdb file '"
-                +file+"' - wrong extension, use .pdb");
     }
     _fl.open(file.c_str());
     if(!_fl.is_open())
