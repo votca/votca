@@ -44,7 +44,7 @@ class AtomTable{
          */
         ~AtomTable() {}
 
-        /* 
+        /* *
          * Check to see if the symbol is a valid symbol. The symbols follow the
          * standard seen in the periodic table, H - Hydrogen, He - Helium etc.
          * Will return:
@@ -52,22 +52,22 @@ class AtomTable{
          * false - if symbol is not recognized
          */
         bool checkSymbol(std::string sym);
-        /*
+        /**
          * Will return the symbols associated with the halogen atoms in a vector.
          */
         std::vector<std::string> getHalogens(void);
-        /*
+        /**
          *  Will return the sybmols associated with the noble gasses 
          */
         std::vector<std::string> getNoble(void);
 
-        /* 
+        /**
          * Pass the symbol in and returns the mass in a.u.
          * If the symbol is not recognized will exit with an error message
          * If the mass is not known it will also exit with an error message
          */
         double getMass(std::string sym);
-        /*
+        /**
          * Pass the ymbol in and returns the atomic number.
          * If the symbol is not recognized it will print an error message and exit.
          */
@@ -81,12 +81,12 @@ class AtomTable{
         };
 
         std::unordered_map<std::string, Atom> atomMap;
-        /*
+        /**
          * Return the index associated with the tables for the chosen element.
          */
         int getIndex(std::string sym);
 
-        /* 
+        /**
          * Stores the symbols for all the atoms in the periodic table.
          */
     std::vector<std::string> Atoms = {"Ac" ,"Ag" ,"Al" ,"Am" ,\
@@ -103,7 +103,7 @@ class AtomTable{
   "Tl" ,"Tm" ,"U"  ,"Uub","Uuh","Uuo","Uup","Uuq","Uus","Uut",\
   "V"  ,"W"  ,"Xe" ,"Y"  ,"Yb" ,"Zn" ,"Zr" };
 
-    /* 
+    /**
      * Stores the atomic numbers for all the elements in the periodic table.
      */
 
@@ -121,7 +121,7 @@ class AtomTable{
    81  , 69  , 92  , 112 , 116 , 118 , 115 , 114 , 117 , 113 ,\
    23  , 74  , 54  , 39  , 70  , 30  , 40  };
 
-    /*
+    /**
      * Stores the masses for all the elements in the periodic table.
      * A value of -1 indicates the mass is unknown for the element.
      */
