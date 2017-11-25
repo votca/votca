@@ -83,7 +83,7 @@ class AtomTable{
 
         struct Atom {
             double mass;
-            double atomicNumber;
+            int atomicNumber;
         };
 
         std::unordered_map<std::string, Atom> atomMap;

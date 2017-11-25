@@ -79,8 +79,8 @@ double AtomTable::getMass(string sym){
 }
 
 int AtomTable::getAtomicNumber(string sym){
-    double num = atomMap[sym].atomicNumber;
-    if(num==0.0){
+    int num = atomMap[sym].atomicNumber;
+    if(num<1){
         string err_msg = "Invalid atom number in AtomTable::getAtomicNumber. "
                          "There is no atom with symbol "+sym;
         throw invalid_argument(err_msg);
