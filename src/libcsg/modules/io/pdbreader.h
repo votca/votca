@@ -31,7 +31,7 @@ using namespace votca::tools;
 using namespace std;
 
 /**
-    \brief class for reading pdb files
+    brief class for reading pdb files
 
     This class provides the Trajectory and Topology reader interface
     for pdb files
@@ -42,12 +42,12 @@ class PDBReader :
 {
     public:
 
+        /// Constuctor
         PDBReader() {}
+        /// Destructor
         ~PDBReader() {}
-
         /// open a topology file
         bool ReadTopology(string file, Topology &top);
-
         /// open a trajectory file
         bool Open(const string &file);
         /// read in the first frame

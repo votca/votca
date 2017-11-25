@@ -27,7 +27,7 @@ namespace votca { namespace csg {
 /**
  * Brief information about atom table
  *
- * \The atom table class is responsible for stroring relevant information 
+ * The atom table class is responsible for stroring relevant information 
  * from the periodic table.
  *
  */
@@ -47,9 +47,12 @@ class AtomTable{
         /* *
          * Check to see if the symbol is a valid symbol. The symbols follow the
          * standard seen in the periodic table, H - Hydrogen, He - Helium etc.
-         * \Returns:
-         * \true  - if symbol is real
-         * \false - if symbol is not recognized
+         *
+         * Returns:
+         * 
+         * true  - if symbol is real
+         * 
+         * false - if symbol is not recognized
          */
         bool checkSymbol(std::string sym);
         /**
@@ -63,13 +66,16 @@ class AtomTable{
 
         /**
          * Pass the symbol in and returns the mass in a.u.
-         * \If the symbol is not recognized will exit with an error message
-         * \If the mass is not known it will also exit with an error message
+         *
+         * If the symbol is not recognized will exit with an error message
+         *
+         * If the mass is not known it will also exit with an error message
          */
         double getMass(std::string sym);
         /**
          * Pass the symbol in and returns the atomic number.
-         * \If the symbol is not recognized it will print an error message and exit.
+         *
+         * If the symbol is not recognized it will print an error message and exit.
          */
         int getAtomicNumber(std::string sym);
 
@@ -123,7 +129,8 @@ class AtomTable{
 
     /**
      * Stores the masses for all the elements in the periodic table.
-     * \A value of -1 indicates the mass is unknown for the element.
+     *
+     * A value of -1 indicates the mass is unknown for the element.
      */
     std::vector<double> MassNumber =         {227.028  ,107.8682  , 26.981539,241.056829,\
     39.948  , 74.92159 ,209.987148,169.96654 , 10.811  ,137.327   ,  9.012182,272.1380  ,208.98037 ,247.070307  ,
