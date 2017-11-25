@@ -27,7 +27,7 @@
 #include "modules/io/gmxtrajectoryreader.h"
 #endif
 #include "modules/io/groreader.h"
-#include "modules/io/pdbtrajectoryreader.h"
+#include "modules/io/pdbreader.h"
 #include "modules/io/dlpolytrajectoryreader.h"
 #ifdef H5MD
 #include "modules/io/h5mdtrajectoryreader.h"
@@ -45,7 +45,7 @@ void TrajectoryReader::RegisterPlugins(void)
     TrjReaderFactory().Register<GMXTrajectoryReader>("xtc");
 #endif
     TrjReaderFactory().Register<GROReader>("gro");
-    TrjReaderFactory().Register<PDBTrajectoryReader>("pdb");
+    TrjReaderFactory().Register<PDBReader>("pdb");
     TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlph");
     TrjReaderFactory().Register<DLPOLYTrajectoryReader>("dlpc");
 #ifdef H5MD
