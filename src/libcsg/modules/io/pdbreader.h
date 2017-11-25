@@ -68,4 +68,4 @@ class PDBReader :
 
 }}
 
-#endif // __VOTCA_CSG_PDBTOPOLOGYREADER_H
+#endif // __VOTCA_CSG_PDBREADER_H
