@@ -29,10 +29,11 @@ using namespace std;
 
 AtomTable::AtomTable(void){
 
-    for(int ind=0;ind<this->Atoms.size();ind++){    
-        atomMap.insert(std::make_pair(Atoms.at(ind), 
-                                      Atom{MassNumber.at(ind), 
-                                           AtomicNumber.at(ind)}));
+    for(int ind=0;ind<this->Atoms.size();ind++){   
+        Atom atm;
+        atm.mass         = MassNumber.at(ind);
+        atm.atomicNumber = AtomicNumber.at(ind);
+        atomMap.insert(std::make_pair(Atoms.at(ind),atm));
     }
 }
 
@@ -68,19 +69,21 @@ vector<string> AtomTable::getNoble(void){
 
 double AtomTable::getMass(string sym){
 
-    double mass = atomTable[sym].mass;
+    double mass = atomMap[sym].mass;
     if(mass==0.0){
-        throw invalid_argument("Invalid atom symbol in AtomTable::getMass. There is"+
-                               " no atom with symbol "+sym);
+        string err_msg = "Invalid atom symbol in AtomTable::getMass. There is"
+                         " no atom with symbol "+sym;
+        throw invalid_argument(err_msg);
     }
     return mass;
 }
 
 int AtomTable::getAtomicNumber(string sym){
-    double num = atomTable[sym].atomicNumber;
+    double num = atomMap[sym].atomicNumber;
     if(num==0.0){
-        throw invalid_argument("Invalid atom number in AtomTable::getAtomicNumber. "+
-                               "There is no atom with symbol "+sym);
+        string err_msg = "Invalid atom number in AtomTable::getAtomicNumber. "
+                         "There is no atom with symbol "+sym;
+        throw invalid_argument(err_msg);
     }
     return num;
 }
