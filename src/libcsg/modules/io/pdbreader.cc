@@ -19,14 +19,15 @@
 #include <sstream>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem/convenience.hpp>
 #include <votca/tools/getline.h>
-#include "pdbtopologyreader.h"
+#include "pdbreader.h"
 
 namespace votca { namespace csg {
     using namespace boost;
 using namespace std;
 
-bool PDBTopologyReader::ReadTopology(string file,  Topology &top)
+bool PDBReader::ReadTopology(string file,  Topology &top)
 {
     _topology = true;
     top.Cleanup();
@@ -71,7 +72,7 @@ bool PDBReader::FirstFrame(Topology &top)
     return NextFrame(top);
 }
 
-bool PDBReader::NextFrame(Toplogy &top)
+bool PDBReader::NextFrame(Topology &top)
 {
     string line;
     // Two column vector for storing all bonds
@@ -164,7 +165,6 @@ bool PDBReader::NextFrame(Toplogy &top)
                 // Because every bond will be counted twice in a .pdb file
                 // we will only add bonds where the id (atm1) is less than the bonded_atm
                 if(at1<at2){
-                    cerr << "Adding bond pair " << at1 << " " << at2 << endl;
                     bond_pairs.push_back(row);
                 }
             }
@@ -301,12 +301,10 @@ bool PDBReader::NextFrame(Toplogy &top)
 
             // Step 4 Check to see if either atm referred to in the bond is alread
             //        attached to a molecule
-            cerr << "Getting atoms from row" << endl;
             int atm_id1  = row->at(0);
             int atm_id2  = row->at(1);
             int mol_atm1;
             int mol_atm2;
-            cerr << "Sorting bond with atoms " << atm_id1 << " " << atm_id2 << endl; 
             try {
                 mol_atm1 = atm_molecule.at(atm_id1-1);
                 mol_atm2 = atm_molecule.at(atm_id2-1);
@@ -329,7 +327,6 @@ bool PDBReader::NextFrame(Toplogy &top)
                 atm_molecule.at(atm_id2-1)=mol_index;
 
                 // Increment the molecule index
-                cerr << "Creating molecule " << mol_index << " with atms " << atm_id1 << " " << atm_id2 << endl;
                 mol_index++;
                 // This means only atm2 is attached to a molecule
             }else if(mol_atm1==-1){
@@ -337,14 +334,12 @@ bool PDBReader::NextFrame(Toplogy &top)
                 molecule_atms.at(mol_atm2).push_back(atm_id1);
                 // Associate atm1 with the molecule it is now part of
                 atm_molecule.at(atm_id1-1)=mol_atm2;
-                cerr << "Adding atom " << atm_id1 << " to molecule id " << mol_atm2 << endl;
                 // This means only atm1 is attached to a molecule
             }else if(mol_atm2==-1){
                 // Add atm2 to the molecule that contains atm1
                 molecule_atms.at(mol_atm1).push_back(atm_id2);
                 // Associate atm1 with the molecule it is now part of
                 atm_molecule.at(atm_id2-1)=mol_atm1;
-                cerr << "Adding atom " << atm_id2 << " to molecule id " << mol_atm1 << endl;
 
             }else if(mol_atm1!=mol_atm2){
                 // This means both atm1 and atm2 are attached to a molecule     
@@ -361,7 +356,6 @@ bool PDBReader::NextFrame(Toplogy &top)
                     obsolete_mol = mol_atm1;
                 }
 
-                cerr << "Joining molecules " << chosen_mol << " and " << obsolete_mol << endl;
                 // Grab the atoms from the obsolete molecule
                 list<int> obs_mol_atms = molecule_atms.at(obsolete_mol);
                 // We will clear out the atms 
@@ -377,17 +371,19 @@ bool PDBReader::NextFrame(Toplogy &top)
                 }
             }
         }
-
+#ifdef DEBUG
+        cerr << "Consistency check for pdbreader" << endl;
         int i=0;
         for(auto lis=molecule_atms.begin();lis!=molecule_atms.end();lis++){
-            cout << "Molecule " << i << endl;
-            cout << "Atoms: ";
+            cerr << "Molecule " << i << endl;
+            cerr << "Atoms: ";
             for(auto atm_ind=lis->begin();atm_ind!=lis->end();atm_ind++){
-                cout << *atm_ind << " ";
+                cerr << *atm_ind << " ";
             }
-            cout << endl;
+            cerr << endl;
         }
-        cout << endl;     
+        cerr << endl;     
+#endif
         // Now that we know which interactions belong to which molecules we can:
         // 1 Add the molecules
         // 2 Add the bond interactions 
@@ -400,7 +396,6 @@ bool PDBReader::NextFrame(Toplogy &top)
         // are all moved to the other molecule. This left a molecule with no atoms in
         // it. Hence, we do not want to record these empty molecules. 
         vector<int> mol_vec_new_ind;   
-        cerr << "Creating residues" << endl;
         // Cycle through the molecules
         for(int ind=0, mol_ind=0; mol_ind < molecule_atms.size();ind++){
             string mol_name = "PDB Molecule "+boost::lexical_cast<string>(mol_ind); 
@@ -408,18 +403,14 @@ bool PDBReader::NextFrame(Toplogy &top)
             // It must contain atoms to be a valid molecule object, we will re-index
             // the molecules starting at 0
             if(molecule_atms.at(ind).size()>0){
-                cerr << "Creating molecule with name " << mol_name << endl;
                 Molecule *mi = top.CreateMolecule(mol_name);
                 mol_vec.push_back(mi);
                 // Add all the atoms to the appropriate molecule object
                 list<int> atm_list = molecule_atms.at(ind);
-                cerr << "Adding atoms to the molecule " << endl;
                 for(auto atm_temp = atm_list.begin();atm_temp!=atm_list.end();atm_temp++){
                     string residuename = "DUM";
-                    cerr << *atm_temp << " ";
                     mi->AddBead(bead_vec.at(*atm_temp-1),residuename);
                 }
-                cerr << endl;
                 mol_vec_new_ind.push_back(mol_ind);
                 mol_ind++;
             }else{
@@ -427,7 +418,6 @@ bool PDBReader::NextFrame(Toplogy &top)
                 mol_vec_new_ind.push_back(-1);
             }
         }
-        cout << "Adding bonds" << endl;
         int bond_indx = 0;
         // Cyle through the bonds and add them to the appropriate molecule
         for(auto bond_pair=bond_pairs.begin();bond_pair!=bond_pairs.end();bond_pair++){
@@ -435,9 +425,7 @@ bool PDBReader::NextFrame(Toplogy &top)
             // because the other will also be attached to the same molecule. 
             int atm_id1 = bond_pair->at(0);
             int atm_id2 = bond_pair->at(1);
-            cout << "Atom 1 " << atm_id1 << " Atom 2 " << atm_id2 << endl;
             int mol_ind  = atm_molecule.at(atm_id1-1);
-            cout << "Molecule index " << mol_ind << endl;
             Molecule *mi = mol_vec.at(mol_ind);      
             int new_mol_ind = mol_vec_new_ind.at(mol_ind);  
 

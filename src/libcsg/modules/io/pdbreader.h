@@ -22,6 +22,7 @@
 #include <iostream>
 #include <fstream>
 #include <votca/csg/topologyreader.h>
+#include <votca/csg/trajectoryreader.h>
 #include <votca/csg/atomtable.h>
 
 namespace votca { namespace csg {
