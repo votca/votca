@@ -70,7 +70,7 @@ vector<string> AtomTable::getNoble(void){
 double AtomTable::getMass(string sym){
 
     double mass = atomMap[sym].mass;
-    if(mass==0.0){
+    if(mass<=0.0){
         string err_msg = "Invalid atom symbol in AtomTable::getMass. There is"
                          " no atom with symbol "+sym;
         throw invalid_argument(err_msg);
