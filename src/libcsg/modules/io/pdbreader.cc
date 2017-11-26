@@ -348,7 +348,7 @@ bool PDBReader::NextFrame(Topology &top)
                 if(mol_atm1<mol_atm2){
                     chosen_mol   = mol_atm1;
                     obsolete_mol = mol_atm2;
-                }else if(mol_atm2<mol_atm1){
+                }else(mol_atm2<mol_atm1){
                     chosen_mol   = mol_atm2;
                     obsolete_mol = mol_atm1;
                 }
