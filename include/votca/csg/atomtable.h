@@ -44,7 +44,7 @@ class AtomTable{
          */
         ~AtomTable() {}
 
-        /* *
+        /**
          * Check to see if the symbol is a valid symbol. The symbols follow the
          * standard seen in the periodic table, H - Hydrogen, He - Helium etc.
          *
