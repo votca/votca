@@ -38,13 +38,14 @@ AtomTable::AtomTable(void){
 }
 
 int AtomTable::getIndex(string sym){
-    int ind = 0;
+    int ind = -1;
     for(auto it=this->Atoms.begin();it!=this->Atoms.end();it++){
+        ind++;
         if(*it==sym){
             return ind;
         }
-        ind++;
     }
+    return ind;
 }
 
 /* Check if a string is a legitimate atomic symbol */
