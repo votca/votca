@@ -348,7 +348,7 @@ bool PDBReader::NextFrame(Topology &top)
                 if(mol_atm1<mol_atm2){
                     chosen_mol   = mol_atm1;
                     obsolete_mol = mol_atm2;
-                }else(mol_atm2<mol_atm1){
+                }else{
                     chosen_mol   = mol_atm2;
                     obsolete_mol = mol_atm1;
                 }
@@ -394,7 +394,7 @@ bool PDBReader::NextFrame(Topology &top)
         // it. Hence, we do not want to record these empty molecules. 
         vector<int> mol_vec_new_ind;   
         // Cycle through the molecules
-        for(int ind=0, mol_ind=0; mol_ind < molecule_atms.size();ind++){
+        for(unsigned int ind=0, mol_ind=0; mol_ind < molecule_atms.size();ind++){
             string mol_name = "PDB Molecule "+boost::lexical_cast<string>(mol_ind); 
             // Before adding a molecule ensure that it is not an empty molecule
             // It must contain atoms to be a valid molecule object, we will re-index
