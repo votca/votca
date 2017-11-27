@@ -56,7 +56,7 @@ class PDBReader :
         bool NextFrame(Topology &top);
         /// set the topology file name: <name>.pdb (convention: ".pdb"="FIELD")
         void setFname(string name) { _fname = name; return; }
-        /// get the topology file name: <name>.dlpf (convention: ".pdb"="FIELD")
+        /// get the topology file name: <name>.pdb (convention: ".pdb"="FIELD")
         string getFname()          { return _fname; }
 
         void Close();
