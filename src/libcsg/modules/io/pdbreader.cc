@@ -46,11 +46,6 @@ bool PDBReader::Open(const string &file){
 
     boost::filesystem::path filepath(file.c_str());
 
-    // Check that the file has the correct extension
-    if(boost::filesystem::extension(filepath).size()==0 ){
-        throw std::ios_base::failure("ERROR on opening .pdb file'"
-                +file+"' - extension is expected, use .pdb");
-    }
     _fl.open(file.c_str());
     if(!_fl.is_open())
         throw std::ios_base::failure("Error on open trajectory file: " + file);
