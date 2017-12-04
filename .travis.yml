@@ -78,6 +78,7 @@ after_success:
       git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc";
       cd $HOME/devdoc;
       rm -f *;
+      git checkout -- CNAME;
       docker cp ${CON}:/home/votca/votca/build/share/doc/html . ;
       mv html/* .; rmdir html;
       docker cp ${CON}:/home/votca/votca/build/csg-manual/manual.pdf . ;
