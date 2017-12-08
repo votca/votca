@@ -356,9 +356,7 @@ namespace votca {
 
                 // second term in BFGS update (needs current Hessian)
                 ub::vector<double> _temp1 = ub::prod(_hessian, _delta_pos);
-                ub::vector<double> _temp2 = ub::prod(ub::trans(_delta_pos), _hessian);
-                _hessian -= ub::outer_prod(_temp1, _temp2) / ub::inner_prod(_delta_pos, _temp1);
-
+                _hessian -= ub::outer_prod(_temp1, _temp1) / ub::inner_prod(_delta_pos, _temp1);
                 // first term in BFGS update
                 _hessian += ub::outer_prod(_delta_gradient, _delta_gradient) / ub::inner_prod(_delta_gradient, _delta_pos);
 
