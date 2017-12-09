@@ -3,8 +3,7 @@ file(GLOB GMX_SOURCES modules/io/gmx*.cc)
 file(GLOB H5MD_SOURCES modules/io/h5md*.cc)
 
 file(GLOB IO_SOURCES modules/io/*.cc)
-file(GLOB NOT_IO_SOURCES modules/io/mdp*.cc)
-list(REMOVE_ITEM IO_SOURCES ${GMX_SOURCES} ${NOT_GMX_SOURCES} ${H5MD_SOURCES} ${NOT_IO_SOURCES})
+list(REMOVE_ITEM IO_SOURCES ${GMX_SOURCES} ${NOT_GMX_SOURCES} ${H5MD_SOURCES})
 
 if (WITH_GMX)
   #general to a gmx builds
