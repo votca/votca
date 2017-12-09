@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include <fstream>
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
+#include <votca/csg/atomtable.h>
 
 namespace votca { namespace csg {
 using namespace votca::tools;
@@ -30,31 +31,30 @@ using namespace votca::tools;
 using namespace std;
 
 /**
-    \brief class for reading pdb files
+    brief class for reading pdb files
 
-    This class provides the TrajectoryReader + Topology reader interface
+    This class provides the Trajectory and Topology reader interface
     for pdb files
 
 */
 class PDBReader :
-    public TrajectoryReader, public TopologyReader
+    public TopologyReader , public TrajectoryReader, public AtomTable
 {
     public:
-        PDBReader() {}
-        ~PDBReader() {}
 
+        /// Constuctor
+        PDBReader() {}
+        /// Destructor
+        ~PDBReader() {}
         /// open a topology file
         bool ReadTopology(string file, Topology &top);
-
-        /// open a trejectory file
+        /// open a trajectory file
         bool Open(const string &file);
         /// read in the first frame
         bool FirstFrame(Topology &top);
         /// read in the next frame
         bool NextFrame(Topology &top);
-
         void Close();
-
     private:
         ifstream _fl;
         bool _topology;
