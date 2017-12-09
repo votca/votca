@@ -54,9 +54,9 @@ class PDBReader :
         bool FirstFrame(Topology &top);
         /// read in the next frame
         bool NextFrame(Topology &top);
-        /// set the topology file name: <name>.pdb (convention: ".pdb"="FIELD")
+        /// set the topology file name: <name>.pdb 
         void setFname(string name) { _fname = name; return; }
-        /// get the topology file name: <name>.pdb (convention: ".pdb"="FIELD")
+        /// get the topology file name: <name>.pdb 
         string getFname()          { return _fname; }
 
         void Close();
