@@ -357,13 +357,13 @@ bool PDBReader::NextFrame(Topology &top)
                                                  molecule_atms[obsolete_mol]    );
 
                 // Finally we will clear out the record of the obsolete molecule
-                molecule_atms[obsolete_mol].erase();
+                molecule_atms.erase(obsolete_mol);
             }
         }
 #ifdef DEBUG
         cerr << "Consistency check for pdbreader" << endl;
         int i=0;
-        for(auto lisi = molecule_atms.begin();lis!=molecule_atms.end();lis++){
+        for(auto lis = molecule_atms.begin();lis!=molecule_atms.end();lis++){
             cerr << "Molecule " << i << endl;
             cerr << "Atoms: ";
             for(auto atm_ind = lis->second.begin();
@@ -372,6 +372,7 @@ bool PDBReader::NextFrame(Topology &top)
                 cerr << *atm_ind << " ";
             }
             cerr << endl;
+            i++;
         }
         cerr << endl;     
 #endif
@@ -390,9 +391,8 @@ bool PDBReader::NextFrame(Topology &top)
         // Second int - is the new index   
         map<int, int> mol_reInd_map;
 
-        for(auto mol =molecule_atms.begin(), int ind=0;
-                 mol!=molecule_atms.end()             ;
-                 mol++                     , ind++    ){
+        int ind = 0;
+        for(auto mol =molecule_atms.begin(); mol!=molecule_atms.end(); mol++){
             
             string mol_name = "PDB Molecule "+boost::lexical_cast<string>(ind); 
 
@@ -402,27 +402,24 @@ bool PDBReader::NextFrame(Topology &top)
 
             // Add all the atoms to the appropriate molecule object
             list<int> atm_list = molecule_atms[mol->first];
-            for(auto atm_temp = atm_list.begin();
-                     atm_temp!= atm_list.end()  ;
-                     atm_temp++                 ){
+            for(auto atm_temp = atm_list.begin(); atm_temp!= atm_list.end(); atm_temp++ ){
 
                 string residuename = "DUM";
                 mi->AddBead(bead_vec.at(*atm_temp-1),residuename);
             }
+            ind++;
         }
 
         int bond_indx = 0;
         // Cyle through the bonds and add them to the appropriate molecule
-        for(auto bond_pair =bond_pairs.begin();
-                 bond_pair!=bond_pairs.end()  ;
-                 bond_pair++                  ){
+        for(auto bond_pair =bond_pairs.begin(); bond_pair!=bond_pairs.end(); bond_pair++){
+
             int atm_id1 = bond_pair->at(0);
             int atm_id2 = bond_pair->at(1);
             // Should be able to just look at one of the atoms the bond is attached too
             // because the other will also be attached to the same molecule. 
             int mol_ind  = atm_molecule[atm_id1];
             Molecule *mi = mol_map[mol_ind];      
-
             // Grab the id of the bead associated with the atom
             // It may be the case that the atom id's and bead id's are different
             int bead_id1 = bead_vec.at(atm_id1-1)->getId();
