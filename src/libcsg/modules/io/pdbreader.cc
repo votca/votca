@@ -277,99 +277,98 @@ bool PDBReader::NextFrame(Topology &top)
     if(_topology)
     {
         // Now we need to add the bond pairs
-        // Step 1 create a vector each element is associated with an atom 
-        //        and indicates what molecule the atom is attached too.
         // WARNING We are assuming the atom ids are contiguous with no gaps
-        vector<int> atm_molecule(bead_count,-1);
-        // Step 2 Create a vector of molecules
-        // Each index of the vector will represent a molecule
-        // Each index will contain a link list that contains the ids of the atms in the molecule
-        vector<list<int>> molecule_atms;
+
+        // First int  - is the index of the atom
+        // Second int - is the index of the molecule
+        map<int, int> atm_molecule;
+
+        // First int  - is the index of the molecule
+        // list<int>  - is a list of the atoms in the molecule 
+        unordered_map<int, list<int> > molecule_atms;
+
         // Keep track of the number of molecules we have created through an index
         int mol_index = 0;
 
-        // Step 3 Cycle through all bonds
+        // Cycle through all bonds
         for(auto row=bond_pairs.begin();row!=bond_pairs.end();row++){
 
-            // Step 4 Check to see if either atm referred to in the bond is alread
-            //        attached to a molecule
-            int atm_id1  = row->at(0);
-            int atm_id2  = row->at(1);
-            int mol_atm1;
-            int mol_atm2;
-            try {
-                mol_atm1 = atm_molecule.at(atm_id1-1);
-                mol_atm2 = atm_molecule.at(atm_id2-1);
-            } catch(const std::out_of_range & err) {
-                string err_msg = "One of the atoms in the bond: "+boost::lexical_cast<string>(atm_id1)+ 
-                    "  "+boost::lexical_cast<string>(atm_id2)+" does not exist\n"+
-                    "Keep in mind that the atom with the largest id has a value of "+
-                    boost::lexical_cast<string>(atm_molecule.size());
-                throw std::runtime_error(err_msg);
-            }
+            int atm_id1 = row->at(0);
+            int atm_id2 = row->at(1);
+            // Check to see if either atm referred to in the bond is already
+            // attached to a molecule
+            auto mol_iter1 = atm_molecule.find(atm_id1);
+            auto mol_iter2 = atm_molecule.find(atm_id2);
+
             // This means neither atom is attached to a molecule
-            if(mol_atm1==-1 && mol_atm2==-1){
+            if(mol_iter1==atm_molecule.end() && mol_iter2==atm_molecule.end()){
                 // We are going to create a new row for a new molecule
                 list<int> atms_in_mol;
                 atms_in_mol.push_back(atm_id1);
                 atms_in_mol.push_back(atm_id2);
-                molecule_atms.push_back(atms_in_mol);
+                molecule_atms[mol_index] = atms_in_mol;
                 // Associate atm1 and atm2 with the molecule index
-                atm_molecule.at(atm_id1-1)=mol_index;
-                atm_molecule.at(atm_id2-1)=mol_index;
-
+                atm_molecule[atm_id1] = mol_index;
+                atm_molecule[atm_id2] = mol_index;
                 // Increment the molecule index
                 mol_index++;
-                // This means only atm2 is attached to a molecule
-            }else if(mol_atm1==-1){
-                // Add atm1 to the molecule that contains atm2
-                molecule_atms.at(mol_atm2).push_back(atm_id1);
-                // Associate atm1 with the molecule it is now part of
-                atm_molecule.at(atm_id1-1)=mol_atm2;
-                // This means only atm1 is attached to a molecule
-            }else if(mol_atm2==-1){
-                // Add atm2 to the molecule that contains atm1
-                molecule_atms.at(mol_atm1).push_back(atm_id2);
-                // Associate atm1 with the molecule it is now part of
-                atm_molecule.at(atm_id2-1)=mol_atm1;
 
-            }else if(mol_atm1!=mol_atm2){
+            // This means only atm2 is attached to a molecule
+            }else if(mol_iter1==atm_molecule.end()){
+                // Add atm1 to the molecule that contains atm2
+                molecule_atms[mol_iter2->second].push_back(atm_id1);
+                // Associate atm1 with the molecule it is now part of
+                atm_molecule[atm_id1] = mol_iter2->second;
+            
+            // This means only atm1 is attached to a molecule
+            }else if(mol_iter2==atm_molecule.end()){
+                // Add atm2 to the molecule that contains atm1
+                molecule_atms[mol_iter1->second].push_back(atm_id2);
+                // Associate atm1 with the molecule it is now part of
+                atm_molecule[atm_id2] = mol_iter1->second;
+
+            }else if(mol_iter1!=mol_iter2){
                 // This means both atm1 and atm2 are attached to a molecule     
                 // But if they are already attached to the same molecule there is 
                 // nothing else to be done. 
                 int chosen_mol;
                 int obsolete_mol;
                 // We will merge the atms to the molecule with the smallest index
-                if(mol_atm1<mol_atm2){
-                    chosen_mol   = mol_atm1;
-                    obsolete_mol = mol_atm2;
+                if(mol_iter1->second<mol_iter2->second){
+                    chosen_mol   = mol_iter1->second;
+                    obsolete_mol = mol_iter2->second;
                 }else{
-                    chosen_mol   = mol_atm2;
-                    obsolete_mol = mol_atm1;
+                    chosen_mol   = mol_iter2->second;
+                    obsolete_mol = mol_iter1->second;
                 }
 
-                // Grab the atoms from the obsolete molecule
-                list<int> obs_mol_atms = molecule_atms.at(obsolete_mol);
-                // We will clear out the atms 
-                molecule_atms.at(obsolete_mol).clear();
                 // Now we will proceed to cycle through the atms that were in the now
-                // obsolete molecule
-                for(auto atm_temp=obs_mol_atms.begin();atm_temp!=obs_mol_atms.end();atm_temp++){
-                    // Add the atms from the obsolete molecule to the chosen molecule
+                // obsolete molecule and make sure they are pointing to the new molecule
+                for(auto atm_temp =molecule_atms[obsolete_mol].begin();
+                         atm_temp!=molecule_atms[obsolete_mol].end();
+                         atm_temp++){
 
-                    molecule_atms.at(chosen_mol).push_back(*atm_temp);
-                    // Make sure the newly added atoms are now pointing at the chosen molecule
-                    atm_molecule.at(*atm_temp-1)=chosen_mol;
+                    atm_molecule[*atm_temp]=chosen_mol;
                 }
+
+                // Splicing will remove atoms from the now obsolete molecule and place them
+                // on the chosen molecule. 
+                molecule_atms[chosen_mol].splice(molecule_atms[chosen_mol].end(),
+                                                 molecule_atms[obsolete_mol]    );
+
+                // Finally we will clear out the record of the obsolete molecule
+                molecule_atms[obsolete_mol].erase();
             }
         }
 #ifdef DEBUG
         cerr << "Consistency check for pdbreader" << endl;
         int i=0;
-        for(auto lis=molecule_atms.begin();lis!=molecule_atms.end();lis++){
+        for(auto lisi = molecule_atms.begin();lis!=molecule_atms.end();lis++){
             cerr << "Molecule " << i << endl;
             cerr << "Atoms: ";
-            for(auto atm_ind=lis->begin();atm_ind!=lis->end();atm_ind++){
+            for(auto atm_ind = lis->second.begin();
+                     atm_ind!= lis->second.end()  ;
+                     atm_ind++                    ){
                 cerr << *atm_ind << " ";
             }
             cerr << endl;
@@ -380,46 +379,49 @@ bool PDBReader::NextFrame(Topology &top)
         // 1 Add the molecules
         // 2 Add the bond interactions 
 
-        // Molecule Vector
-        vector<Molecule *> mol_vec;   
-        // Used to keep track of molecules as they are re-indexed. Re-indexing
-        // is neccessary because in the process of sorting the atoms into molecules
-        // , some molecules were joined together. The atoms from one of the molecules
-        // are all moved to the other molecule. This left a molecule with no atoms in
-        // it. Hence, we do not want to record these empty molecules. 
-        vector<int> mol_vec_new_ind;   
-        // Cycle through the molecules
-        for(unsigned int ind=0, mol_ind=0; mol_ind < molecule_atms.size();ind++){
-            string mol_name = "PDB Molecule "+boost::lexical_cast<string>(mol_ind); 
-            // Before adding a molecule ensure that it is not an empty molecule
-            // It must contain atoms to be a valid molecule object, we will re-index
-            // the molecules starting at 0
-            if(molecule_atms.at(ind).size()>0){
-                Molecule *mi = top.CreateMolecule(mol_name);
-                mol_vec.push_back(mi);
-                // Add all the atoms to the appropriate molecule object
-                list<int> atm_list = molecule_atms.at(ind);
-                for(auto atm_temp = atm_list.begin();atm_temp!=atm_list.end();atm_temp++){
-                    string residuename = "DUM";
-                    mi->AddBead(bead_vec.at(*atm_temp-1),residuename);
-                }
-                mol_vec_new_ind.push_back(mol_ind);
-                mol_ind++;
-            }else{
-                // If the molecule has no atoms given an index of -1
-                mol_vec_new_ind.push_back(-1);
+        // Molecule map
+        // First int - is the index of the molecule
+        // Molecule* - is a pointer to the Molecule object
+        map<int, Molecule *> mol_map; 
+
+        // Used to reindex the molecules so that they start at 0 and progress 
+        // with out gaps in their ids. 
+        // First int  - is the index of the old molecule
+        // Second int - is the new index   
+        map<int, int> mol_reInd_map;
+
+        for(auto mol =molecule_atms.begin(), int ind=0;
+                 mol!=molecule_atms.end()             ;
+                 mol++                     , ind++    ){
+            
+            string mol_name = "PDB Molecule "+boost::lexical_cast<string>(ind); 
+
+            Molecule *mi              = top.CreateMolecule(mol_name);
+            mol_map[mol->first]       = mi;
+            mol_reInd_map[mol->first] = ind;
+
+            // Add all the atoms to the appropriate molecule object
+            list<int> atm_list = molecule_atms[mol->first];
+            for(auto atm_temp = atm_list.begin();
+                     atm_temp!= atm_list.end()  ;
+                     atm_temp++                 ){
+
+                string residuename = "DUM";
+                mi->AddBead(bead_vec.at(*atm_temp-1),residuename);
             }
         }
+
         int bond_indx = 0;
         // Cyle through the bonds and add them to the appropriate molecule
-        for(auto bond_pair=bond_pairs.begin();bond_pair!=bond_pairs.end();bond_pair++){
-            // Should be able to just look at one of the atoms the bond is attached too
-            // because the other will also be attached to the same molecule. 
+        for(auto bond_pair =bond_pairs.begin();
+                 bond_pair!=bond_pairs.end()  ;
+                 bond_pair++                  ){
             int atm_id1 = bond_pair->at(0);
             int atm_id2 = bond_pair->at(1);
-            int mol_ind  = atm_molecule.at(atm_id1-1);
-            Molecule *mi = mol_vec.at(mol_ind);      
-            int new_mol_ind = mol_vec_new_ind.at(mol_ind);  
+            // Should be able to just look at one of the atoms the bond is attached too
+            // because the other will also be attached to the same molecule. 
+            int mol_ind  = atm_molecule[atm_id1];
+            Molecule *mi = mol_map[mol_ind];      
 
             // Grab the id of the bead associated with the atom
             // It may be the case that the atom id's and bead id's are different
@@ -429,7 +431,7 @@ bool PDBReader::NextFrame(Topology &top)
             ic->setGroup("BONDS");
             ic->setIndex(bond_indx);
             bond_indx++;
-            ic->setMolecule(new_mol_ind);  
+            ic->setMolecule(mol_reInd_map[mol_ind]);  
             top.AddBondedInteraction(ic);
             mi->AddInteraction(ic); 
         }
