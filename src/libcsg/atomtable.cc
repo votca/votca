@@ -37,25 +37,9 @@ AtomTable::AtomTable(void){
     }
 }
 
-int AtomTable::getIndex(string sym){
-    int ind = -1;
-    for(auto it=this->Atoms.begin();it!=this->Atoms.end();it++){
-        ind++;
-        if(*it==sym){
-            return ind;
-        }
-    }
-    return ind;
-}
-
 /* Check if a string is a legitimate atomic symbol */
 bool AtomTable::checkSymbol(string sym){
-  for(auto it=this->Atoms.begin();it!=this->Atoms.end();it++){
-    if(*it==sym){
-      return true;
-    }
-  }
-  return false;
+  return atomMap.find(sym) != atomMap.end();
 }
 
 vector<string> AtomTable::getHalogens(void){
@@ -70,22 +54,25 @@ vector<string> AtomTable::getNoble(void){
 
 double AtomTable::getMass(string sym){
 
-    double mass = atomMap[sym].mass;
-    if(mass<=0.0){
+    if(this->checkSymbol(sym)==false){
         string err_msg = "Invalid atom symbol in AtomTable::getMass. There is"
                          " no atom with symbol "+sym;
+        throw invalid_argument(err_msg);
+    }
+    double mass = atomMap[sym].mass;
+    if(mass<0){
+        string err_msg = "Mass is unknown for atom with symbol "+sym;
         throw invalid_argument(err_msg);
     }
     return mass;
 }
 
 int AtomTable::getAtomicNumber(string sym){
-    int num = atomMap[sym].atomicNumber;
-    if(num<1){
-        string err_msg = "Invalid atom number in AtomTable::getAtomicNumber. "
+    if(this->checkSymbol(sym)==false){
+        string err_msg = "Invalid atom symbol in AtomTable::getAtomicNumber. "
                          "There is no atom with symbol "+sym;
         throw invalid_argument(err_msg);
     }
-    return num;
+    return atomMap[sym].atomicNumber;
 }
 }}
