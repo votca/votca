@@ -89,7 +89,7 @@ before_script:
   - rm -vrf * .git
   - wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh && chmod 755 build.sh
   - mkdir -p "$HOME/votca/src"
-  - if [[ ${GMX_VERSION} = 9999 ]]; then
+  - if [[ ${GMX_VERSION} = 9999 || ${GMX_VERSION} = 2018 ]]; then
       CMAKE_VERSION=3.4.3-Linux-x86_64 &&
       wget --no-check-certificate -qO- http://www.cmake.org/files/v${CMAKE_VERSION:0:3}/cmake-${CMAKE_VERSION}.tar.gz | tar -xz &&
       export CMAKE="$PWD/cmake-${CMAKE_VERSION}/bin/cmake" ;
