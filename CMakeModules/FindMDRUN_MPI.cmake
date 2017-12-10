@@ -24,6 +24,9 @@ INCLUDE(FindCygwin)
 
 FIND_PROGRAM(MDRUN_MPI_EXECUTABLE
   NAMES 
+  mdrun_mpi_d
+  mdrun_openmpi_d #fedora
+  mdrun_mpi.openmpi_d #debian
   mdrun_mpi
   mdrun_openmpi #fedora
   mdrun_mpi.openmpi #debian
