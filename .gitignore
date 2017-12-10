@@ -21,6 +21,7 @@ share/doc/html/*
 share/man/*.man
 share/template/template_serial
 share/template/template_threaded
+share/xml/csg_defaults.xml
 src/csg_boltzmann/csg_boltzmann
 src/libcsg/version.cc
 src/tools/csg_dump
