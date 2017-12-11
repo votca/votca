@@ -39,5 +39,11 @@ export CSG_MASTER_PID="$$"
 
 export CSG_MAINDIR="$PWD"
 
+if [[ -n ${VOTCA_CSG_DEFAULTS} ]]; then
+  [[ -f ${VOTCA_CSG_DEFAULTS} ]] || die "Could not find ${VOTCA_CSG_DEFAULTS}! Is VOTCA_CSG_DEFAULTS set corectly?"
+else
+  export VOTCA_CSG_DEFAULTS="${VOTCASHARE}/xml/csg_defaults.xml"
+fi
+
 #do no overwrite CSGSHARE stuff set by user from the outside
 add_to_csgshare --at-the-end "${VOTCASHARE}/scripts/inverse"
