@@ -22,20 +22,13 @@
 #include <iostream>
 #include "gmxtopologyreader.h"
 
-#if GMX == 52
-        #include <gromacs/fileio/tpxio.h>
-        #include <gromacs/topology/atoms.h>
-        #include <gromacs/topology/topology.h>
-        #include <gromacs/mdtypes/inputrec.h>
-#elif GMX == 51
-        #include <gromacs/fileio/tpxio.h>
-        #include <gromacs/topology/atoms.h>
-        #include <gromacs/topology/topology.h>
-#else
-#error Unsupported GMX version
-#endif
-    // this one is needed because of bool is defined in one of the headers included by gmx
-    #undef bool
+#include <gromacs/fileio/tpxio.h>
+#include <gromacs/topology/atoms.h>
+#include <gromacs/topology/topology.h>
+#include <gromacs/mdtypes/inputrec.h>
+
+// this one is needed because of bool is defined in one of the headers included by gmx
+#undef bool
 
 namespace votca { namespace csg {
 
@@ -50,11 +43,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     t_inputrec ir;
     ::matrix gbox;
 
-#if GMX == 52
     (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,&mtop);
-#else
-    (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
-#endif
 
     int count=0;
     for(int iblock=0; iblock<mtop.nmolblock; ++iblock)

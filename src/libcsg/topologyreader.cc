@@ -24,7 +24,7 @@
 #include "modules/io/xmltopologyreader.h"
 #include "modules/io/xyzreader.h"
 #include "modules/io/groreader.h"
-#ifdef GMX
+#ifdef GMX_DOUBLE
 #include "modules/io/gmxtopologyreader.h"
 #endif
 #include "modules/io/pdbreader.h"
@@ -39,7 +39,7 @@ void TopologyReader::RegisterPlugins(void)
     TopReaderFactory().Register<LAMMPSReader>("dump");
     TopReaderFactory().Register<XYZReader>("xyz");
     TopReaderFactory().Register<GROReader>("gro");
-#ifdef GMX
+#ifdef GMX_DOUBLE
     TopReaderFactory().Register<GMXTopologyReader>("tpr");
 #endif
     TopReaderFactory().Register<PDBReader>("pdb");
