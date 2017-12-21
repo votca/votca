@@ -51,7 +51,7 @@ if (GROMACS_LIBRARY)
   elseif(FOUND_GMX_IS_SINGLE_PRECISION)
     set(GROMACS_DEFINITIONS "-DGMX_DOUBLE=0")
   elseif(NOT FOUND_GMX_IS_SINGLE_PRECISION)
-    message(FATAL_ERROR "Could not find neither gmx_is_single_precision nor gmx_is_double_precision in the gromacs library, that is very very strange, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. This most likely means that your gromacs version is too old, we need at least gromacs 2016 !") 
+    message(FATAL_ERROR "Could not find a suitable gromacs library. Neither gmx_is_single_precision nor gmx_is_double_precision is defined in the gromacs library, that is very very strange, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. This most likely means that your gromacs version is too old, we need at least gromacs 2016!")
   endif()
 endif (GROMACS_LIBRARY)
 
