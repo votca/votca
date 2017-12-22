@@ -187,20 +187,40 @@ namespace votca {
                         for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
 
                             Shell* shell = (*its);
-                            // shell type, number primitives, scale factor
-                            //_com_file << shell->getType() << " " << shell->getSize() << " " << shell->getScale() << endl;
-                            _el_file << shell->getType() << " " << shell->getSize() << " " << FortranFormat(shell->getScale()) << endl;
-                            for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                GaussianPrimitive* gaussian = *itg;
-                                //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
-                                _el_file << FortranFormat(gaussian->decay);
-                                for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
-                                    if (gaussian->contraction[_icontr] != 0.0) {
-                                        _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
+                            //gaussian can only use S,P,SP,D,F,G shells so we split them up if not SP
+
+                            if (shell->getType() == "SP" || !shell->combined()) {
+                                // shell type, number primitives, scale factor
+                                _el_file << shell->getType() << " " << shell->getSize() << " " << FortranFormat(shell->getScale()) << endl;
+
+                                for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                                    GaussianPrimitive* gaussian = *itg;
+                                    //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
+                                    _el_file << FortranFormat(gaussian->decay);
+                                    for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
+                                        if (gaussian->contraction[_icontr] != 0.0) {
+                                            _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
+                                        }
                                     }
+                                    _el_file << endl;
                                 }
-                                _el_file << endl;
+                                
+                            } else {
+                                string type = shell->getType();
+                                for (unsigned i = 0; i < type.size(); ++i) {
+                                    string subtype = string(type, i, 1);
+                                    _el_file << subtype << " " << shell->getSize() << " " << FortranFormat(shell->getScale()) << endl;
+
+                                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                                        GaussianPrimitive* gaussian = *itg;
+                                        _el_file << FortranFormat(gaussian->decay);
+                                        _el_file << " " << FortranFormat(gaussian->contraction[FindLmax(subtype)]);
+                                    }
+                                    _el_file << endl;
+                                    
+                                }
                             }
+
                         }
 
                         _el_file << "****\n";
