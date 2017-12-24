@@ -21,7 +21,7 @@ env:
     - DISTRO=fedora_gmx2018_d TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
     - DISTRO=fedora_gmx9999 TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
     - DISTRO=fedora_gmx9999_d TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
-    - DISTRO=ubuntu TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple)" CMAKE_BUILD_TYPE=Release
+    - DISTRO=ubuntu TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
     - TESTING=OFF CMAKE_BUILD_TYPE=Release WERROR=yes
 #useless for votca/votca, but for coverage of individual modules
     - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)" CMAKE_BUILD_TYPE=None COVERAGE=yes
