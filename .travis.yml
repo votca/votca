@@ -11,22 +11,30 @@ services:
 
 env:
   matrix:
-    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Debug
+    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)" CMAKE_BUILD_TYPE=Debug
+    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re" CMAKE_BUILD_TYPE=Debug
     - TESTING=OFF CMAKE_BUILD_TYPE=Debug   WERROR=yes
-    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release DOCKERHUB=yes
-    - DISTRO=fedora_gmx5.1 TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
-    - DISTRO=fedora_gmx9999 TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
-    - DISTRO=ubuntu TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
+    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release DOCKERHUB=yes
+    - DISTRO=fedora_gmx2016 TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
+    - DISTRO=fedora_gmx2016_d TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
+    - DISTRO=fedora_gmx2018 TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
+    - DISTRO=fedora_gmx2018_d TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
+    - DISTRO=fedora_gmx9999 TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
+    - DISTRO=fedora_gmx9999_d TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
+    - DISTRO=ubuntu TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
     - TESTING=OFF CMAKE_BUILD_TYPE=Release WERROR=yes
 #useless for votca/votca, but for coverage of individual modules
-    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=None COVERAGE=yes
+    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)" CMAKE_BUILD_TYPE=None COVERAGE=yes
+    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re" CMAKE_BUILD_TYPE=None COVERAGE=yes
     - TESTING=OFF CMAKE_BUILD_TYPE=Release DOXYGEN=yes
     - TESTING=OFF CMAKE_BUILD_TYPE=Release MINIMAL=yes
 
 matrix:
   exclude:
   - compiler: clang #taking too long
-    env: TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=None COVERAGE=yes
+    env: TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)" CMAKE_BUILD_TYPE=None COVERAGE=yes
+  - compiler: clang #taking too long
+    env: TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re" CMAKE_BUILD_TYPE=None COVERAGE=yes
   - compiler: clang #no new info when using clang
     env: TESTING=OFF CMAKE_BUILD_TYPE=Release DOXYGEN=yes 
 
@@ -74,6 +82,7 @@ after_success:
       git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc";
       cd $HOME/devdoc;
       rm -f *;
+      git checkout -- CNAME;
       docker cp ${CON}:/home/votca/votca/build/share/doc/html . ;
       mv html/* .; rmdir html;
       docker cp ${CON}:/home/votca/votca/build/csg-manual/manual.pdf . ;
@@ -88,7 +97,7 @@ after_success:
         git push git@github.com:votca/doxygen.git gh-pages;
       else
         git status;
-        git diff --cached --no-color | head -n 500;
+        git diff --cached --no-color | head -c 1k;
       fi;
     fi
 
