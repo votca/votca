@@ -82,7 +82,7 @@ include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
 
 option(WITH_GMX "Build gromacs reader/writer, disabling leads to reduced functionality!" ON)
 if (WITH_GMX)
-  find_package(GROMACS REQUIRED)
+  find_package(GROMACS 20160000 REQUIRED)
 endif(WITH_GMX) 
 
 ########################################################################

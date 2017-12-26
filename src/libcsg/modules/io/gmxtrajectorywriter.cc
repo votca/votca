@@ -48,9 +48,6 @@ void GMXTrajectoryWriter::Write(Topology *conf)
     frame.bStep = true;
     frame.step = conf->getStep();;
     frame.x = x;
-#if GMX < 52
-    frame.bTitle=false;
-#endif
     frame.bLambda=false;
     frame.bAtoms=false;
     frame.bPrec=false;
