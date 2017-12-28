@@ -52,10 +52,10 @@ namespace votca {
               _vxc( _m,_m ) = _qp_energies( _m + _qpmin );
             }
 
-            
-            // sigma matrices can be freed
+             // sigma matrices can be freed
             _sigma_x.resize(0);
             _sigma_c.resize(0);
+            
             
             
             if ( _do_qp_diag ){
@@ -196,20 +196,19 @@ namespace votca {
                 }
             }
             
-            
-            
-            
-            
             #pragma omp parallel for
             for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
-                const double qpmin=_qp_energies(_gw_level1 + _qpmin);
-                const ub::matrix<real_gwbse>& Mmn1 =  _Mmn[ _gw_level1 + _qpmin ];
+                const double qpmin1 = _qp_energies(_gw_level1 + _qpmin);
+                const ub::matrix<real_gwbse>& Mmn1 = _Mmn[ _gw_level1 + _qpmin ];
                 for (unsigned _gw_level2 = 0; _gw_level2 < _gw_level1; _gw_level2++) {
-                 const ub::matrix<real_gwbse>& Mmn2 =  _Mmn[ _gw_level2 + _qpmin ];
-                 double sigma_c = 0;
-                 for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
+                    const double qpmin2 = _qp_energies(_gw_level1 + _qpmin);
+                    const ub::matrix<real_gwbse>& Mmn2 = _Mmn[ _gw_level2 + _qpmin ];
+                    double sigma_c = 0;
+                    for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
                         // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
-                        if (_ppm_weight(_i_gw) < 1.e-9) { continue;}
+                        if (_ppm_weight(_i_gw) < 1.e-9) {
+                            continue;
+                        }
                         const double ppm_freq = _ppm_freq(_i_gw);
                         const double fac = _ppm_weight(_i_gw) * ppm_freq;
                         // loop over all screening levels
@@ -219,23 +218,28 @@ namespace votca {
                             if (_i > _homo) occ = -1.0; // sign for empty levels
 
                             // energy denominator
-                            const double _denom = qpmin - _qp_energies(_i) + occ * ppm_freq;
+                            const double _denom1 = qpmin1 - _qp_energies(_i) + occ * ppm_freq;
+                            const double _denom2 = qpmin2 - _qp_energies(_i) + occ * ppm_freq;
 
-                            double _stab = 1.0;
-                            if (std::abs(_denom) < 0.25) {
-                                _stab = 0.5 * (1.0 - std::cos(4.0 * pi * std::abs(_denom)));
+                            double _stab1 = 1.0;
+                            if (std::abs(_denom1) < 0.25) {
+                                _stab1 = 0.5 * (1.0 - std::cos(4.0 * pi * std::abs(_denom1)));
                             }
-                            const double factor = 0.5*fac * _stab / _denom; //Hartree
-                            sigma_c += factor * Mmn1(_i_gw, _i) * Mmn2(_i_gw, _i);
+                            const double factor1 = 0.5 * fac * _stab1 / _denom1; //Hartree
+                            double _stab2 = 1.0;
+                            if (std::abs(_denom2) < 0.25) {
+                                _stab2 = 0.5 * (1.0 - std::cos(4.0 * pi * std::abs(_denom2)));
+                            }
+                            const double factor2 = 0.5 * fac * _stab1 / _denom2; //Hartree
+                            sigma_c +=Mmn1(_i_gw, _i) * Mmn2(_i_gw, _i)*0.5*(factor1+factor2);
                         }// screening levels 
                     }// GW functions 
 
-                    _sigma_c(_gw_level1, _gw_level2)=sigma_c;
-                    
-                    
-                }// GW row 
-            } // GW col 
-            
+                    _sigma_c(_gw_level1, _gw_level2) = sigma_c;
+
+
+                }// GW row             
+            }//GW col
          
         return;
         } 

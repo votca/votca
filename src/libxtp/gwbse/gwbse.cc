@@ -716,7 +716,7 @@ namespace votca {
                     double alpha=0.0;
                     _qp_energies=alpha*_qp_old_rpa+(1-alpha)*_qp_energies;
                     if(tools::globals::verbose){
-                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " RPA_Iteration: " << qp_iteration+1 << " E_diff max="<<E_max<<" StateNo:"<<_l_not_converged << flush;
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " RPA_Iteration: " << qp_iteration+1 <<" shift="<<_shift<< " E_diff max="<<E_max<<" StateNo:"<<_l_not_converged << flush;
                     }
 
                     if(_qp_converged){
@@ -741,7 +741,7 @@ namespace votca {
 
                 }
             }
-
+            
             sigma_offdiag(_Mmn);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
             _gwoverlap.Matrix().resize(0, 0);
@@ -814,6 +814,8 @@ namespace votca {
                     }
 
                     // free memory
+                    
+                   
 
                     if (!_store_qp_diag) {
                         _qp_diag_coefficients.resize(0, 0);
