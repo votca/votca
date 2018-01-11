@@ -148,12 +148,6 @@ protected:
   /// \brief Additional matrix to handle constrained least squares fit
   /// contains constraints, which allow to get a real (smooth) spline (see VOTCA paper)
   ub::matrix<double> _B_constr;
-  
-  /*/// \brief matrix used to store metric tensor (for normal equations of MS-CG)
-  ub::matrix<double> _A_metric;
-  /// \brief vectors used to store projection on force basis functions
-  ub::vector<double> _b_proj1;
-  ub::vector<double> _b_proj2;*/
 
   /// \brief Counter for trajectory frames
   int _frame_counter;

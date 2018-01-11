@@ -91,8 +91,7 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
         //if periodic potential, one additional constraint has to be taken into account -> 1 additional line in matrix
         if(i->periodic != 0){
             _line_cntr += 1;
-        }
-       
+        }       
         // add spline to container
         _splines.push_back(i);
     }
@@ -108,14 +107,12 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
         _col_cntr += 2 * i->num_gridpoints;
         
         //preliminary: use also spline functions for the threebody interaction. So far only angular interaction implemented
-
         // add spline to container
         _splines.push_back(i);
     }
 
     cout << "\nYou are using VOTCA!\n";
     cout << "\nhey, somebody wants to forcematch!\n";
-
 
     // now initialize _A, _b, _x and probably _B_constr
     // depending on least-squares algorithm used
@@ -157,17 +154,7 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
     }
     // resize and clear _x
     _x.resize(_col_cntr);
-    _x.clear();
-    
-    /*//resize and clear _A_metric
-    _A_metric.resize(_col_cntr,_col_cntr,false);
-    _A_metric.clear();
-    
-    //resize and clear _b_proj1 and _b_proj2
-    _b_proj1.resize(_col_cntr);
-    _b_proj2.resize(_col_cntr);*/
-    
-    
+    _x.clear();    
 
     if(_has_existing_forces) {
         _top_force.CopyTopologyData(top);
@@ -388,16 +375,6 @@ void CGForceMatching::WriteOutFiles()
             force_tabDer.clear();
         }
     }
-    /*//test
-    Table b1,b2;
-    b1.resize(_col_cntr);
-    b2.resize(_col_cntr);
-    for (int i=0; i<_col_cntr; ++i){
-        b1.set(i,i,_b_proj1[i]);
-        b2.set(i,i,_b_proj2[i]);        
-    }
-    b1.Save("b1");
-    b2.Save("b2");    */
 }
 
 void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) 
@@ -406,15 +383,10 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
     if(_has_existing_forces) {
         if(conf->BeadCount() != _top_force.BeadCount())
             throw std::runtime_error("number of beads in topology and force topology does not match");
-        for(int i=0; i<conf->BeadCount(); ++i) {                
-//            cout << "conf->getBead(" << i << ")->getPos(): " << conf->getBead(i)->getPos() << endl;                
-//            cout << "_top_force->getBead(" << i << ")->getPos(): " << _top_force.getBead(i)->getPos() << endl; 
+        for(int i=0; i<conf->BeadCount(); ++i) {            
             conf->getBead(i)->F() -= _top_force.getBead(i)->getF();
-            vec d = conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
-//            cout << "vec d of bead " << i << ": " << d << "abs(d): " << abs(d) << endl; 
+            vec d = conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();                        
             if(abs(d) > _dist){//default is 1e-5, otherwise it can be a too strict criterion
-//                cout << "conf->getBead(" << i << ")->getPos(): " << conf->getBead(i)->getPos() << endl;                
-//                cout << "_top_force->getBead(" << i << ")->getPos(): " << _top_force.getBead(i)->getPos() << endl; 
                 throw std::runtime_error("One or more bead positions in mapped and reference force trajectory differ by more than 1e-5");
             }
         }
@@ -483,18 +455,8 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
 void CGForceMatching::FmatchAccumulateData() 
 {
     _x.clear();
-    /*//copies of matrix _A and _A^T to compute the metric tensor _A_metric tensor (to be improved!)
-    ub::matrix<double> A;
-    ub::matrix<double> A_transpose;*/
     
     if (_constr_least_sq) { // Constrained Least Squares
-        /*
-        std::cout << "hallo1" << std::endl;
-        //Assigning matrices to compute the metric tensor        
-        //here A is the whole matrix _A
-        A = _A;
-        std::cout << "hallo2" << std::endl;
-        A_transpose = trans(A);*/
         
         // Solving linear equations system
         ub::matrix<double> B_constr = _B_constr;        
@@ -502,13 +464,6 @@ void CGForceMatching::FmatchAccumulateData()
         _x = -_x;        
 
     } else { // Simple Least Squares
-        
-        /*//Assigning matrices to compute the metric tensor        
-        //here A is the submatrix of _A starting at row _line_cntr and column 0
-        ub::range r1 (_line_cntr,_line_cntr + 3 * _nbeads *_nframes);
-        ub::range r2 (0,_col_cntr);
-        A = project(_A,r1,r2);
-        A_transpose = trans(A);*/
         
         ub::vector<double> residual(_b.size());
         votca::tools::linalg_qrsolve(_x, _A, _b, &residual);
@@ -529,16 +484,6 @@ void CGForceMatching::FmatchAccumulateData()
         cout << "#################################" << endl;
         cout << endl;
     }
-
-    /*std::cout << "hallo3" << std::endl;    
-    //the metric tensor is updated according to A*AT
-    _A_metric = prec_prod(A,A_transpose);
-
-    std::cout << "hallo4" << std::endl;    
-    _b_proj1 = prec_prod(_A_metric,_x);
-    std::cout << "hallo5" << std::endl;    
-    _b_proj2 = prec_prod(A_transpose,_b);
-    std::cout << "hallo6" << std::endl;*/
 
     SplineContainer::iterator is;
     for (is = _splines.begin(); is != _splines.end(); ++is) {
