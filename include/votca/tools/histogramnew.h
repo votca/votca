@@ -92,6 +92,12 @@ class HistogramNew
          * \brief normalize the histogram that the integral is 1
          */
         void Normalize();
+        
+        
+         /**
+         * \brief scales the histogram with a certain value
+         */
+        void Scale(const double &scale);
 
         /**
          * \brief clear all data

@@ -70,6 +70,11 @@ void HistogramNew::Normalize()
     _data.y() *= scale;    
 }
 
+void HistogramNew::Scale(const double &scale)
+{    
+    _data.y() *= scale;    
+}
+
 void HistogramNew::Clear()
 {
     _weight = 1.;
