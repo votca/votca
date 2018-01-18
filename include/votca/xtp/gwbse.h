@@ -124,7 +124,7 @@ namespace votca {
             bool _store_eh_interaction;
 
             // automatic scissors iteration
-            bool _iterate_qp;
+            bool _iterate_gw;
 
             // options for own Vxc calculation
             bool _doVxc;
@@ -169,9 +169,10 @@ namespace votca {
             double _bsemaxfactor;
             double _ScaHFX;
 
-            double _qp_limit; //convergence criteria for qp iteration [Hartree]]
-            unsigned int _qp_max_iterations;
-            double _shift_limit; //convergence criteria for shift iteration [Hartree]]
+            double _g_sc_limit; //convergence criteria for g iteration [Hartree]]
+            unsigned int _g_sc_max_iterations;
+            unsigned int _gw_sc_max_iterations;
+            double _gw_sc_limit; //convergence criteria for gw iteration [Hartree]]
             unsigned int _bse_vmin;
             unsigned int _bse_vmax;
             unsigned int _bse_cmin;

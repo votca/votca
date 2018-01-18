@@ -87,7 +87,7 @@ namespace votca {
                     _sigma_x(_gw_level,_gw_level)=( 1.0 - _ScaHFX ) * sigma_x; 
                 }
             
-                int _max_iter =40;
+                if(_g_sc_max_iterations==0) {_g_sc_max_iterations=1;}
                 ub::vector<double>& dftenergies=_orbitals->MOEnergies();
                 // initial _qp_energies are dft energies
                 ub::vector<double>_qp_old=_qp_energies;
@@ -96,7 +96,7 @@ namespace votca {
 
             
 	    // only diagonal elements except for in final iteration
-            for (int _i_iter = 0; _i_iter < _max_iter; _i_iter++) {
+            for (unsigned _g_iter = 0; _g_iter < _g_sc_max_iterations; _g_iter++) {
                 // loop over all GW levels
 
                 #pragma omp parallel for
@@ -151,19 +151,25 @@ namespace votca {
                             diff_max=diff(l);
                             state_max=l;
                     }
-                    if (std::abs(diff(l)) > _qp_limit) {
+                    if (std::abs(diff(l))>_g_sc_limit) {
                         energies_converged = false;   
                     }
                 }
                 if(tools::globals::verbose){
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " QP_Iteration: " << _i_iter+1 << " E_diff max="<<diff_max<<" StateNo:"<<state_max << flush;
+                    double _DFTgap =dftenergies(_homo + 1) - dftenergies(_homo);
+                    double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " QP_Iteration: " << _g_iter+1 <<" shift="<<_QPgap - _DFTgap <<" E_diff max="<<diff_max<<" StateNo:"<<state_max << flush;
                 }
                 double alpha=0.0;
                 _qp_energies=(1-alpha)*_qp_energies+alpha*_qp_old;
                 
                 if (energies_converged) {
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << _i_iter+1 << " qp_energy iterations." << flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << _g_iter+1 << " G iterations." << flush;
                     break;
+                }else if(_g_iter==_g_sc_max_iterations-1){
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " G-self-consistency cycle not converged after " << _g_sc_max_iterations << " iterations." << flush;  
+                        break;
+                    
                 } else {
                     _qp_old = _qp_energies;
                 }

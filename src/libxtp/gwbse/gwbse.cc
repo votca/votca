@@ -119,17 +119,23 @@ namespace votca {
             _dftbasis_name = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".dftbasis");
 
             _shift = options->ifExistsReturnElseThrowRuntimeError<double>(key + ".shift");
-            _qp_limit = options->ifExistsReturnElseReturnDefault<double>(key + ".qp_limit", 0.00001);//convergence criteria for qp iteration [Hartree]]
-            _qp_max_iterations = options->ifExistsReturnElseReturnDefault<int>(key + ".qp_max_iterations", 20);//convergence criteria for qp iteration [Hartree]]
+            _g_sc_limit = options->ifExistsReturnElseReturnDefault<double>(key + ".g_sc_limit", 0.00001);//convergence criteria for qp iteration [Hartree]]
+            _g_sc_max_iterations = options->ifExistsReturnElseReturnDefault<int>(key + ".g_sc_max_iterations", 40);//convergence criteria for qp iteration [Hartree]]
+            
+            _gw_sc_max_iterations = options->ifExistsReturnElseReturnDefault<int>(key + ".gw_sc_max_iterations", 20);//convergence criteria for qp iteration [Hartree]]
 
-            _shift_limit = options->ifExistsReturnElseReturnDefault<double>(key + ".shift_limit", 0.00001);//convergence criteria for shift it
-            _iterate_qp = false;
+            _gw_sc_limit = options->ifExistsReturnElseReturnDefault<double>(key + ".gw_sc_limit", 0.00001);//convergence criteria for shift it
+            _iterate_gw = false;
             string _shift_type =options->ifExistsReturnElseThrowRuntimeError<string>(key + ".shift_type");
-            if (_shift_type != "fixed"){ _iterate_qp = true;}
+            if (_shift_type != "fixed"){ _iterate_gw = true;}
             CTP_LOG(ctp::logDEBUG, *_pLog) << " Shift: " << _shift_type << flush;
-            CTP_LOG(ctp::logDEBUG, *_pLog) << " qp_limit [Hartree]: " << _qp_limit << flush;
-            if (_iterate_qp) {
-                CTP_LOG(ctp::logDEBUG, *_pLog) << " shift_limit [Hartree]: " << _shift_limit << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << " g_sc_limit [Hartree]: " << _g_sc_limit << flush;
+            if (_iterate_gw) {
+                CTP_LOG(ctp::logDEBUG, *_pLog) << " gw_sc_limit [Hartree]: " << _gw_sc_limit << flush;
+               // if(_g_sc_max_iterations<20){
+                    //_g_sc_max_iterations=20;
+                    //CTP_LOG(ctp::logDEBUG, *_pLog) << " Setting G iterations to 20, as it speeds up the GW iterations" << flush;
+               // }
             }
             _min_print_weight = options->ifExistsReturnElseReturnDefault<double>(key + ".bse_print_weight", 0.2);//print exciton WF composition weight larger that thin minimum
 
@@ -643,7 +649,7 @@ namespace votca {
 
 
             TCMatrix _Mmn_backup;
-            if (_iterate_qp) {
+            if (_iterate_gw) {
 
                 // make copy of _Mmn, memory++
 
@@ -655,16 +661,16 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Made backup of _Mmn  " << flush;
             }
             else{
-               _qp_max_iterations=1;
+               _gw_sc_max_iterations=1;
             }
 
 
             const ub::vector<double>& _dft_energies=_orbitals->MOEnergies();
-            for(unsigned qp_iteration=0;qp_iteration<_qp_max_iterations;++qp_iteration){
+            for(unsigned gw_iteration=0;gw_iteration<_gw_sc_max_iterations;++gw_iteration){
 
                 ub::vector<double>_qp_old_rpa=_qp_energies;
-                if(_iterate_qp){
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " RPA Iteraton "<<qp_iteration+1<<" of "<< _qp_max_iterations  << flush;
+                if(_iterate_gw){
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " GW Iteraton "<<gw_iteration+1<<" of "<< _gw_sc_max_iterations  << flush;
                 }
 
                 // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
@@ -699,8 +705,8 @@ namespace votca {
                 }
 
 
-                if(_iterate_qp){
-                    bool _qp_converged=true;
+                if(_iterate_gw){
+                    bool _gw_converged=true;
                     ub::vector<double>diff= _qp_old_rpa - _qp_energies;
                     unsigned int _l_not_converged = 0;
                     double E_max=0;
@@ -709,24 +715,24 @@ namespace votca {
                             _l_not_converged = l;
                             E_max=diff(l);
                         }
-                        if (std::abs(diff(l)) > _shift_limit) {
-                            _qp_converged = false;
+                        if (std::abs(diff(l)) > _gw_sc_limit) {
+                            _gw_converged = false;
                         }
                         }
                     double alpha=0.0;
                     _qp_energies=alpha*_qp_old_rpa+(1-alpha)*_qp_energies;
                     if(tools::globals::verbose){
-                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " RPA_Iteration: " << qp_iteration+1 <<" shift="<<_shift<< " E_diff max="<<E_max<<" StateNo:"<<_l_not_converged << flush;
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " GW_Iteration: " << gw_iteration+1 <<" shift="<<_shift<< " E_diff max="<<E_max<<" StateNo:"<<_l_not_converged << flush;
                     }
 
-                    if(_qp_converged){
-                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after "<< qp_iteration+1<<" RPA iterations"<< flush;
+                    if(_gw_converged){
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after "<< gw_iteration+1<<" GW iterations"<< flush;
                         break;
                     }
-                    else if ( qp_iteration == _qp_max_iterations ) {
+                    else if ( gw_iteration == _gw_sc_max_iterations-1 ) {
                         // continue regardless for now, but drop WARNING
-                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " WARNING! QP spectrum not converged after " << _qp_max_iterations << " iterations." << flush;
-                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "          QP level " << _l_not_converged << " energy changed by " << diff(_l_not_converged) << flush;
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " WARNING! GWA spectrum not converged after " << _gw_sc_max_iterations << " iterations." << flush;
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "          GWA level " << _l_not_converged << " energy changed by " << diff(_l_not_converged) << flush;
                         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "          Run continues. Inspect results carefully!" << flush;
                         break;
                     }
@@ -747,7 +753,7 @@ namespace votca {
             _gwoverlap.Matrix().resize(0, 0);
             _gwoverlap_cholesky_inverse.resize(0,0);
             _Mmn_RPA.Cleanup();
-            if(_iterate_qp){
+            if(_iterate_gw){
                 _Mmn_backup.Cleanup();
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Cleaned up Overlap, MmnRPA and Mmn_backup " << flush;
             }
