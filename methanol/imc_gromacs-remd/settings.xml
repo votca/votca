@@ -54,7 +54,8 @@
       <table_end>5.0</table_end>
       <mdrun>
         <command>mpirun -np 4 mdrun_mpi</command>
-        <opts>-multi 4 -replex 100 </opts>
+        <opts>-replex 100 </opts>
+        <multidir>sim0 sim1 sim2 sim3</multidir>
       </mdrun>
       <imc>
         <topol>topol1.tpr</topol>

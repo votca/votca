@@ -43,11 +43,11 @@
       <!-- extend the tables to this value -->
       <table_end>2.0</table_end>
       <mdrun>
-        <command>mpirun -np 4 mdrun_mpi</command>
-        <opts>-multi 2</opts>
+        <command>mpirun -np 2 mdrun_mpi</command>
+        <multidir>sim1 sim2</multidir>
       </mdrun>
       <rdf>
-        <topol>topol0.tpr</topol>
+        <topol>sim1/topol.tpr</topol>
       </rdf>
     </gromacs>
     <!-- these files are copied for each new run -->
