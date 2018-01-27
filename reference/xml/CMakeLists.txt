@@ -12,10 +12,6 @@ foreach(XML mapping.xml topol.xml)
     DEPENDS ${CSG_SHARE}/xml/${XML} ${CURRENT_DIR}/config.t2t)
 endforeach()
   
-if(NOT VOTCA_CSG_DEFAULTS)
-  set(VOTCA_CSG_DEFAULTS ${CSG_SHARE}/xml/csg_defaults.xml)
-endif()
-
 add_custom_command(OUTPUT ${CURRENT_DIR}/csg_defaults.xml.tex
   COMMAND CSG_PROPERTY=${CSG_PROPERTY} ${CMAKE_CURRENT_SOURCE_DIR}/${CURRENT_DIR}/xml2t2t.sh 
     ${VOTCA_CSG_DEFAULTS} > ${CURRENT_DIR}/csg_defaults.xml.t2t

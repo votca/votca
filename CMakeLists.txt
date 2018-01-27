@@ -44,6 +44,11 @@ else()
 endif()
 message(STATUS "CSG_SHARE is ${CSG_SHARE}")
 
+if(NOT VOTCA_CSG_DEFAULTS)
+  set(VOTCA_CSG_DEFAULTS ${CSG_SHARE}/xml/csg_defaults.xml)
+endif()
+message(STATUS "VOTCA_CSG_DEFAULTS is ${VOTCA_CSG_DEFAULTS}")
+
 set(TEX2EPS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/tex2eps)
 set(BBOX_ADD ${CMAKE_CURRENT_SOURCE_DIR}/scripts/bbox_add.pl)
 
