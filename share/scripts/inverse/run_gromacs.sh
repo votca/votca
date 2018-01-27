@@ -122,13 +122,12 @@ fi
 
 # run gromacs multiple or one time
 if [[ ${multidir} ]]; then
-  i=0
   for dir in "${multidir[@]}"; do
     critical mkdir -p "${dir}"
     for j in index mdp topol_in conf; do
-      # get property cg.inverse.gromacs.${j}.sim${i} (e.g cg.inverse.gromacs.index.1} and use ${!j} 
+      # get property cg.inverse.gromacs.${j}.${dir} (e.g cg.inverse.gromacs.index.simdir1} and use ${!j} 
       # (e.g. value of ${index} ) as default and store it in f
-      f="$(csg_get_property --allow-empty "cg.inverse.gromacs.${j}.sim${i}" "${!j}")" #filter me away
+      f="$(csg_get_property --allow-empty "cg.inverse.gromacs.${j}.${dir}" "${!j}")" #filter me away
       [[ -f ${f} ]] || die "${0##*/}: file '$f' not found (make sure it is in cg.inverse.filelist)"
       read ${j}_x <<< "${f}" # set ${j}_x (e.g. topol_x) to ${f}
     done
@@ -139,7 +138,6 @@ if [[ ${multidir} ]]; then
     critical ${grompp[@]} -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "${dir}/$tpr" -c "${conf_x}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]}" -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "${dir}/$tpr" -c "${conf_x}" -pe "${grompp_opts}"
     # a bit hacky but we have no better solution yet
     critical cp table*.xvg ./${dir}
-    ((i++))
   done
 else
   #support for older mdp file, cutoff-scheme = Verlet is default for >=gmx-5 now, but does not work with tabulated interactions
