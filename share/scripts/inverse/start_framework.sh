@@ -43,6 +43,7 @@ if [[ -n ${VOTCA_CSG_DEFAULTS} ]]; then
   [[ -f ${VOTCA_CSG_DEFAULTS} ]] || die "Could not find ${VOTCA_CSG_DEFAULTS}! Is VOTCA_CSG_DEFAULTS set corectly?"
 else
   export VOTCA_CSG_DEFAULTS="${VOTCASHARE}/xml/csg_defaults.xml"
+  [[ -f ${VOTCA_CSG_DEFAULTS} ]] || die "Could not find ${VOTCA_CSG_DEFAULTS}! Is VOTCASHARE ($VOTCASHARE) set corectly? Hint: When overwritting VOTCASHARE you need to overwrite VOTCA_CSG_DEFAULTS as well."
 fi
 
 #do no overwrite CSGSHARE stuff set by user from the outside
