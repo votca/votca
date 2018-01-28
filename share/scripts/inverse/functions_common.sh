@@ -344,7 +344,7 @@ csg_get_property () { #get an property from the xml file
     ret="$(critical -q csg_property --file "${VOTCA_CSG_DEFAULTS}" --path "${1}" --short --print . | trim_all)"
     [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '${VOTCA_CSG_DEFAULTS}'"
     #avoid endless recursion
-    [[ $1 = cg.inverse.program && -n $ret ]] || sim_prog="$ret" \
+    [[ $1 = cg.inverse.program && -n $ret ]] && sim_prog="$ret" || \
       sim_prog="$(csg_get_property cg.inverse.program)" #no problem to call recursively as sim_prog has a default
     if [[ -z $ret ]] && [[ $1 = *${sim_prog}* ]]; then
       local path=${1/${sim_prog}/sim_prog}
