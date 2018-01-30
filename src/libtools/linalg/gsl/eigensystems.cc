@@ -28,36 +28,6 @@ namespace votca { namespace tools {
 
 using namespace std;
  
-/**
-*
-* ublas binding for gsl_eigen_symmv
-* note that the eigenvalues/eigenvectors are UNSORTED 
-* 
-*/
-bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
-{
-	gsl_error_handler_t *handler = gsl_set_error_handler_off();
-	const size_t N = A.size1();
-        
-        // gsl does not handle conversion of a symmetric_matrix 
-        ub::matrix<double> _A( N,N );
-        _A = A;
-        
-	E.resize(N, false);
-	V.resize(N, N, false);
-	gsl_matrix_view A_view = gsl_matrix_view_array(&_A(0,0), N, N);
-	gsl_vector_view E_view = gsl_vector_view_array(&E(0), N);
-	gsl_matrix_view V_view = gsl_matrix_view_array(&V(0,0), N, N);
-	gsl_eigen_symmv_workspace *w = gsl_eigen_symmv_alloc(N);
-
-	int status = gsl_eigen_symmv(&A_view.matrix, &E_view.vector, &V_view.matrix, w);
-	//gsl_eigen_symmv_sort(&E_view.vector, &V_view.matrix, GSL_EIGEN_SORT_ABS_ASC);
-	gsl_eigen_symmv_free(w);
-	gsl_set_error_handler(handler);
-        
-	return (status != 0);
-};
-
 
 /**
 *
@@ -66,7 +36,7 @@ bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<d
 * wrapping gsl_eigen_symmv 
 * 
 */
-bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
+bool linalg_eigenvalues(const  ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V)
 {
 	gsl_error_handler_t *handler = gsl_set_error_handler_off();
 	const size_t N = A.size1();
@@ -86,8 +56,7 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
 	gsl_eigen_symmv_sort(&E_view.vector, &V_view.matrix, GSL_EIGEN_SORT_VAL_ASC);
 	gsl_eigen_symmv_free(w);
 	gsl_set_error_handler(handler);
-        
-	return (status != 0);
+	return (status == 0);
 };
 
 /**
@@ -97,7 +66,7 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
 * wrapping gsl_eigen_symmv 
 * 
 */
-bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V)
+bool linalg_eigenvalues(const ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V)
 {
 	gsl_error_handler_t *handler = gsl_set_error_handler_off();
 	const size_t N = A.size1();
@@ -122,7 +91,7 @@ bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<
         E = _E;
         V = _V;
         
-	return (status != 0);
+	return (status == 0);
 };
 
 bool linalg_eigenvalues(  ub::vector<float> &E, ub::matrix<float> &V)
@@ -137,7 +106,7 @@ bool linalg_eigenvalues(  ub::vector<float> &E, ub::matrix<float> &V)
     
          // now call wrapper for gsl_eigen_symmv
          bool status = linalg_eigenvalues( A , E, V );
-	return (status != 0);
+	return (status == 0);
 };
 
 
@@ -168,7 +137,7 @@ bool linalg_eigenvalues( ub::vector<double> &E, ub::matrix<double> &V)
 /*
  * use expert routine to calculate only a subrange of eigenvalues
  */
-bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
+bool linalg_eigenvalues(ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax)
 {
     bool status = linalg_eigenvalues( A , E, V );
 
@@ -178,7 +147,7 @@ bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matri
 /*
  * use expert routine to calculate only a subrange of eigenvalues single precision
  */
-bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
+bool linalg_eigenvalues(ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax)
 {
     // now call wrapper for gsl_eigen_symmv
     bool status = linalg_eigenvalues( A , E, V );
@@ -211,29 +180,11 @@ bool linalg_eigenvalues_general(const ub::matrix<double> &A, const ub::matrix<do
 	gsl_eigen_gensymmv_free(w);
 	gsl_set_error_handler(handler);
         
-      
-
-    
         ub::matrix<double> _temp= ub::prod(B,V);
         ub::matrix<double> n=ub::prod(ub::trans(V),_temp);
-      /*  
-        for (int i=0;i<n.size1();i++){
-          
-                for (int j=0;j<n.size2();j++){
-                cout <<"n("<< i << ":"<< j <<")= " <<n(i,j)<< endl;      
-                }}
-        
-       */ 
-        
+     
         for (unsigned int i=0;i<n.size1();i++){
             ub::matrix_range<ub::matrix<double> > column=ub::subrange( V, 0, V.size2(),i, i+1 );
-            //cout <<"n("<< i << ":"<< i <<")= " <<n(i,i) <<":" <<sqrt(n(i,i))<< endl; 
-            //for (int j=0;j<column.size1();j++){
-                
-           
-            //cout <<"V("<<i<<":"<<j<<")="<<column(j,0)<< endl;
-                    
-              //}
             column=column/sqrt(n(i,i));
   
         }

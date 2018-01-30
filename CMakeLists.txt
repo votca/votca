@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.1)
 
 project(votca-tools)
 
@@ -19,26 +19,31 @@ endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 enable_language(CXX)
 
 
+
 ######################################################################
 # compiler tests
 # these need ot be done early (before further tests).
 #####################################################################
 
 include(CheckCXXCompilerFlag)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0")
+  message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
+endif()
+
 
 ########################################################################
 # User input options                                                   #
 ########################################################################
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
-if (NOT DEFINED LIB)
-  set(LIB "lib")
-endif(NOT DEFINED LIB)
-if (NOT DEFINED MAN)
-  set(MAN "share/man")
-endif(NOT DEFINED MAN)
-if (NOT DEFINED DATA)
-  set(DATA "share/votca")
-endif(NOT DEFINED DATA)
+include(GNUInstallDirs)
+
+option(ENABLE_TESTING "Build and enable testing stuff" OFF)
+if(ENABLE_TESTING)
+  enable_testing()
+endif(ENABLE_TESTING)
 
 #this has to be the first include directive
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -89,7 +94,7 @@ if(MKL_FOUND)
   set(MKL_URL "http://software.intel.com/sites/default/files/managed/76/8c/intel-mkl-and-boost-example.zip")
   set(MKL_MD5 b957ee63a2167ad21b650b47726cd55c )
   set(MKL_FILE "intel-mkl-and-boost-example.zip")
-  
+
   include(ExternalProject)
   ExternalProject_add(intel
           PREFIX intel
@@ -102,7 +107,7 @@ if(MKL_FOUND)
   set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "${CMAKE_CURRENT_BINARY_DIR}/intel/src/intel")
   include_directories(${MKL_BOOST_INCLUDE_DIR})
   set(MKL_HEADERS "${MKL_BOOST_INCLUDE_DIR}/mkl_boost_ublas_matrix_prod.hpp" "${MKL_BOOST_INCLUDE_DIR}/mkl_boost_ublas_gemm.hpp"  )
-  install(FILES ${MKL_HEADERS} DESTINATION include/votca/tools)
+  install(FILES ${MKL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/votca/tools)
 endif(MKL_FOUND)
 
 option(WITH_FFTW "Use FFTW3, disabling leads to reduced functionality!" ON)
@@ -149,7 +154,7 @@ foreach(FUNC sqrt)
 endforeach(FUNC)
 
 ######################################
-# Include the following subdirectory # 
+# Include the following subdirectory #
 ######################################
 add_subdirectory(src)
 add_subdirectory(include/votca/tools)

@@ -104,7 +104,8 @@ private:
     std::string _str;
 };
 
-
+//Matches a string against a wildcard string such as &quot;*.*&quot; or &quot;bl?h.*&quot; etc. 
+//This is good for file globbing or to match hostmasks.
 int wildcmp(const char *wild, const char *string);
 
 }}

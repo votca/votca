@@ -197,7 +197,7 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
     list<Property>::iterator iter;       
     Property::AttributeIterator ia;
     bool _endl = true;
-    bool has_value;
+    bool has_value = false;
     
     const ColorSchemeBase *color = &DEFAULT_COLORS;
      

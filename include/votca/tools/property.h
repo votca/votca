@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include "lexical_cast.h"
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/format.hpp>
 #include <stdlib.h>
 
 #include "vec.h"
@@ -125,6 +126,17 @@ public:
      */
     template<typename T>
     T as() const;
+    
+    template<typename T>
+    T ifExistsReturnElseReturnDefault(const string &key, T defaultvalue);
+     
+    template<typename T>
+    T ifExistsReturnElseThrowRuntimeError(const string &key);
+    
+    template<typename T>
+    T ifExistsAndinListReturnElseThrowRuntimeError(const string &key,std::vector<T> possibleReturns);
+    
+    
     /**
      * \brief does the property has childs?
      * \return true or false
@@ -240,6 +252,47 @@ inline T Property::as() const
 {
     return lexical_cast<T>(_value, "wrong type in " + _path + "."  + _name + "\n");
 }
+
+
+ template<typename T>
+  inline T Property::ifExistsReturnElseReturnDefault(const string &key, T defaultvalue){
+     T result;
+     if (this->exists(key)) {
+	    result = this->get(key).as<T>();
+            }
+    else{
+            result = defaultvalue;
+            }
+     return result;
+  }
+ 
+ template<typename T>
+  inline T Property::ifExistsReturnElseThrowRuntimeError(const string &key){
+     T result;
+     if (this->exists(key)) {
+	    result = this->get(key).as<T>();
+            }
+    else{
+             throw runtime_error((boost::format("Error: %s is not found") %key).str());
+            }
+     return result;
+  }
+ 
+ 
+  template<typename T>
+  inline T Property::ifExistsAndinListReturnElseThrowRuntimeError(const string &key,std::vector<T> possibleReturns){
+     T result;
+     result=ifExistsReturnElseThrowRuntimeError<T>(key);
+     if(std::find(possibleReturns.begin(), possibleReturns.end(), result) == possibleReturns.end()){
+    cerr<<"Allowed options are: ";
+    for(unsigned i=0;i<possibleReturns.size();++i){
+        cerr<<possibleReturns[i]<<" ";
+    }
+    cerr<<endl;
+    throw runtime_error((boost::format("Error: %s is not allowed") %key).str());
+}
+     return result;
+  }
 
 template<>
 inline std::string Property::as<std::string>() const

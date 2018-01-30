@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,25 +16,25 @@
 #
 
 #path is never empty
-PATH="@CMAKE_INSTALL_PREFIX@/bin:${PATH}"
+PATH="@CMAKE_INSTALL_FULL_BINDIR@:${PATH}"
 #debian wants to have : at the end
-MANPATH="@CMAKE_INSTALL_PREFIX@/@MAN@:${MANPATH}"
-@LD_LIBRARY_PATH@="@CMAKE_INSTALL_PREFIX@/@LIB@${@LD_LIBRARY_PATH@:+:}${@LD_LIBRARY_PATH@}"
-PKG_CONFIG_PATH="@CMAKE_INSTALL_PREFIX@/@LIB@/pkgconfig${PKG_CONFIG_PATH:+:}${PKG_CONFIG_PATH}"
+MANPATH="@CMAKE_INSTALL_FULL_MANDIR@:${MANPATH}"
+@LD_LIBRARY_PATH@="@CMAKE_INSTALL_FULL_LIBDIR@${@LD_LIBRARY_PATH@:+:}${@LD_LIBRARY_PATH@}"
+PKG_CONFIG_PATH="@CMAKE_INSTALL_FULL_LIBDIR@/pkgconfig${PKG_CONFIG_PATH:+:}${PKG_CONFIG_PATH}"
 
-VOTCASHARE="@CMAKE_INSTALL_PREFIX@/@DATA@"
+VOTCASHARE="@CMAKE_INSTALL_FULL_DATADIR@/votca"
 
 export PATH MANPATH @LD_LIBRARY_PATH@ PKG_CONFIG_PATH VOTCASHARE
 
 #votca rc files
-for rc in "@CMAKE_INSTALL_PREFIX@/@DATA@"/rc/*rc.bash; do
+for rc in "${VOTCASHARE}"/rc/*rc.bash; do
   [ -r "$rc" ] && . "$rc"
 done
 unset rc
 
 #bash completion
 if [ -n "$BASH_VERSION" ]; then 
-  for comp in "@CMAKE_INSTALL_PREFIX@/@DATA@"/rc/*completion.bash; do
+  for comp in "${VOTCASHARE}"/rc/*completion.bash; do
     [ -r "$comp" ] && source "$comp"
   done
   unset comp

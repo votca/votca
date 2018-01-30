@@ -41,12 +41,17 @@ class vec {
 public:
     
     vec();
+    vec(const double a);
     vec(const vec &v);
     vec(const double r[3]);
-    vec(const double &x, const double &y, const double &z);
+    vec(const double x, const double y, const double z);
     vec(const boost::numeric::ublas::vector<double> &v);
     vec(const string &str);
     
+    
+    double operator[](std::size_t i) const;
+
+    double  &operator[](std::size_t i);
     
     vec &operator=(const vec &v);
     vec &operator+=(const vec &v);
@@ -99,6 +104,10 @@ public:
      */
     const double &getZ() const { return _z; }
     
+    
+    
+    
+    
     /**
      * \brief normalize the vector
      * @return normalized vector
@@ -113,10 +122,21 @@ public:
     void serialize(Archive &arch, const unsigned int version) { arch & _x; arch & _y; arch & _z; }
     
     private:
-        double _x, _y, _z;
+        
+        union{
+            struct{
+                double _x;
+                double _y;
+                double _z;
+            };
+            double xyz[3];
+        };
 };
 
 inline vec::vec() {}
+
+inline vec::vec(const double a)
+    : _x(a), _y(a), _z(a) {}
 
 inline vec::vec(const vec &v)
     : _x(v._x), _y(v._y), _z(v._z) {}
@@ -124,12 +144,13 @@ inline vec::vec(const vec &v)
 inline vec::vec(const double r[3])
     : _x(r[0]), _y(r[1]), _z(r[2]) {}
 
-inline vec::vec(const boost::numeric::ublas::vector<double> &v)
-    {try
-    {_x=v(0);
-     _y=v(1);
-     _z=v(2);
-    }
+inline vec::vec(const boost::numeric::ublas::vector<double> &ublas)
+{
+    try
+        {_x=ublas(0);
+         _y=ublas(1);
+         _z=ublas(2);
+        }
     catch(std::exception &err){throw std::length_error("Conversion from ub::vector to votca-vec failed");} 
 }
 
@@ -154,8 +175,18 @@ inline vec::vec(const string &str)
     }
 }
 
-inline vec::vec(const double &x, const double &y, const double &z)
+inline vec::vec(const double x, const double y, const double z)
         : _x(x), _y(y), _z(z) {}
+
+inline double vec::operator[](std::size_t i) const {
+    assert(i<3 && "vec[] integer larger than 2");
+    return xyz[i];
+ }
+
+inline double  &vec::operator[](std::size_t i) {
+    assert(i<3 && "vec[] integer larger than 2");
+    return xyz[i];
+ }
     
 inline bool operator==(const vec &v1, const vec &v2)
 {
@@ -285,6 +316,16 @@ return vec(
         v1.getZ()*v2.getZ() );
 }
 
+
+/// elementwise division
+inline vec elementwisedivison(const vec &v1, const vec &v2)
+{
+return vec(
+        v1.getX()/v2.getX() ,
+        v1.getY()/v2.getY() ,
+        v1.getZ()/v2.getZ() );
+}
+
 inline double abs(const vec &v)
 {
     return sqrt(v*v);
@@ -303,17 +344,14 @@ inline vec &vec::normalize()
     return ((*this)*=1./abs(*this));
 }
 
-
-
 inline boost::numeric::ublas::vector<double> vec::converttoub() {
     boost::numeric::ublas::vector<double> temp=boost::numeric::ublas::zero_vector<double>(3);
     temp(0)=_x;
     temp(1)=_y;
     temp(2)=_z;
     return temp;
-
-
 }
+
 }}
 #endif	/* _vec_H */
 

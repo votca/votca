@@ -1,6 +1,9 @@
-set(CMAKE_MODULE_PATH ${TOP_SOURCE_DIR}/CMakeModules)
-
 if (GIT_EXECUTABLE)
+  # refresh git index
+  execute_process(COMMAND ${GIT_EXECUTABLE} update-index -q --refresh
+    WORKING_DIRECTORY ${TOP_SOURCE_DIR} TIMEOUT 5 OUTPUT_QUIET
+    ERROR_VARIABLE EXEC_ERR OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
   #later use git describe here
   execute_process( COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
     WORKING_DIRECTORY ${TOP_SOURCE_DIR}

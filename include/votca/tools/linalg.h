@@ -38,8 +38,8 @@ namespace votca { namespace tools {
      *
      * This function wraps the inversion of a matrix
      */
-    void linalg_invert( ub::matrix<double> &A, ub::matrix<double> &V );
-    void linalg_invert( ub::matrix<float> &A, ub::matrix<float> &V );
+    void linalg_invert( const ub::matrix<double> &A, ub::matrix<double> &V );
+    void linalg_invert( const ub::matrix<float> &A, ub::matrix<float> &V );
  
     /**
      * \brief determines Cholesky decomposition of matrix A
@@ -81,19 +81,7 @@ namespace votca { namespace tools {
      * This function wraps the qrsolver under constraints
      */
     void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::matrix<double> &constr);
-
-    /**
-     * \brief eigenvalues of a symmetric matrix A*x=E*x
-     * @param A symmetric matrix 
-     * @param E vector of eigenvalues
-     * @param V matrix of eigenvalues
-     * 
-     * This function wraps gsl_eigen_symmv / DSYEV
-     * note that the eigenvalues/eigenvectors are UNSORTED 
-     * 
-     */
-    bool linalg_eigenvalues_symmetric( ub::symmetric_matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V );
-    
+  
    /**
      * \brief eigenvalues of a symmetric matrix A*x=E*x
      * @param A matrix 
@@ -103,7 +91,7 @@ namespace votca { namespace tools {
      * This function wraps gsl_eigen_symmv / DSYEV
      * 
      */
-    bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V );
+    bool linalg_eigenvalues(const ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V );
     
     
    /**
@@ -138,7 +126,7 @@ namespace votca { namespace tools {
      * This function wrapps gsl_eigen_symmv / DSYEV
      * 
      */
-    bool linalg_eigenvalues( ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax );
+    bool linalg_eigenvalues(ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax );
     
       /**
      * \brief eigenvalues of a symmetric matrix A*x=E*x single precision
@@ -149,7 +137,7 @@ namespace votca { namespace tools {
      * This function wrapps gsl_eigen_symmv / DSYEV
      * 
      */
-    bool linalg_eigenvalues( ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax );
+    bool linalg_eigenvalues(ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax );
     
      /**
      * \brief eigenvalues of a symmetric matrix A*x=E*B*x double precision
@@ -181,7 +169,7 @@ namespace votca { namespace tools {
      * @param lower limit of condition number of the matrix, singular values below that will be set to zero
      * This function wraps the inversion of a matrix via svd
      */
-   int linalg_invert_svd(ub::matrix<double> &A, ub::matrix<double> &V,double limitCN);
+   int linalg_invert_svd(const ub::matrix<double> &A, ub::matrix<double> &V,double limitCN);
    
    /**
      * \brief calculates loewdin transformation of matrices
@@ -199,20 +187,46 @@ namespace votca { namespace tools {
      */
    int linalg_matrixsqrt(ub::matrix<double> &S);
    /**
-     * \brief returns the the element with the largest absolute value of a matrix
+     * \brief returns the the element with the largest (absolute) value of a matrix
      * @param matrix to find largest value of
-   
-     * returns the the element with the largest absolute value of a matrix
+   * @param bool to determine if maximum or maximum of absolute values should be found
+     * returns the the element with the largest (absolute) value of a matrix
      */
    
-   
-   double linalg_getMax( const ub::matrix<double>& _matrix );
+   double linalg_getMax( const ub::matrix<double>& _matrix, bool absolut=false );
    /**
+    *  * \brief returns the matrix of abs values of a matrix
+     * @param matrix to find  abs value of
+   
+     * returns the matrix of abs values of a matrix
+     */
+   
+   ub::matrix<double> linalg_abs( const ub::matrix<double>& _matrix );
+   
+      /**
+     * \brief returns the the element with the largest (absolute) value of a vector
+     * @param vector to find largest value of
+   * @param bool to determine if maximum or maximum of absolute values should be found
+     * returns the the element with the largest (absolute) value of a matrix
+     */
+   
+   double linalg_getMax( const ub::vector<double>& _vector, bool absolut=false );
+   /**
+    *  * \brief returns the vector of abs values of a vector
+     * @param vector to find  abs value of
+   
+     * returns the vector of abs values of a vector
+     */
+   
+   ub::vector<double> linalg_abs( const ub::vector<double>& _vector );
+   
+    /**
     *  * \brief returns the rms value of a matrix
      * @param matrix to find  rms value of
    
      * returns the rms value of a matrix
      */
+   
    double linalg_getRMS(const ub::matrix<double>& _matrix );
    
    /**
@@ -235,6 +249,8 @@ namespace votca { namespace tools {
      * returns the the solves A*x=b for a matrix of b.
      */
    bool linalg_solve(const ub::matrix<double> &A, ub::vector<double> &b);
+   
+   
 }}
 
 

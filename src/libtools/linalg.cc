@@ -22,7 +22,7 @@ namespace votca { namespace tools {
 
 using namespace std;
 namespace ub = boost::numeric::ublas;
-int linalg_invert_svd(ub::matrix<double> &A, ub::matrix<double> &V,double limitCN){
+int linalg_invert_svd(const ub::matrix<double> &A, ub::matrix<double> &V,double limitCN){
     int dimensions=0;
     
     if(A.size1()!=A.size2()){
@@ -132,10 +132,10 @@ int linalg_matrixsqrt(ub::matrix<double> &S){
     return 1;
 } 
     
-    double linalg_getMax( const ub::matrix<double>& _matrix ){
+    double linalg_getMax( const ub::matrix<double>& _matrix, bool absolut ){
 
    double _maximum = 0.0;
-
+   if(absolut){
    for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
      for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
        if ( std::abs(_matrix(_i,_j)) > _maximum ) {
@@ -143,8 +143,32 @@ int linalg_matrixsqrt(ub::matrix<double> &S){
        }				   
      }
    }
-
+   }
+   else{
+      for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
+     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
+       if ( _matrix(_i,_j) > _maximum ) {
+	 _maximum = _matrix(_i,_j);
+       }				   
+     }
+   } 
+   }
    return _maximum;
+   }
+    
+    
+    ub::matrix<double> linalg_abs( const ub::matrix<double>& _matrix ){
+
+        ub::matrix<double> A=ub::matrix<double>(_matrix.size1(),_matrix.size2());
+
+   for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
+     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
+         A(_i,_j)=std::abs(_matrix(_i,_j));
+       }				   
+     }
+   
+
+   return A;
    }
     
    double linalg_getRMS(const ub::matrix<double>& _matrix ){
@@ -176,6 +200,38 @@ int linalg_matrixsqrt(ub::matrix<double> &S){
            trace+=Aarray(i)*Barray(i);
        }
        return trace;
+   }
+   
+   
+   ub::vector<double> linalg_abs(const ub::vector<double>& a){
+       ub::vector<double> b=ub::zero_vector<double>(a.size());
+       for (unsigned i=0;i<a.size();i++){
+           b(i)=std::abs(a(i));
+       }
+               
+       return b;
+   }
+   
+    double linalg_getMax( const ub::vector<double>& a, bool absolut ){
+
+   double _maximum = 0.0;
+   if(absolut){
+   for ( unsigned _i = 0; _i < a.size(); _i++ ){
+       if ( std::abs(a(_i)) > _maximum ) {
+	 _maximum = std::abs(a(_i));
+       }				   
+     
+   }
+   }
+   else{
+     for ( unsigned _i = 0; _i < a.size(); _i++ ){
+       if ( a(_i) > _maximum ) {
+	 _maximum = a(_i);
+       }				   
+     
+   }
+   }
+   return _maximum;
    }
  
     
