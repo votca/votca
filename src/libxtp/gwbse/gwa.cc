@@ -236,7 +236,7 @@ namespace votca {
                             if (std::abs(_denom2) < 0.25) {
                                 _stab2 = 0.5 * (1.0 - std::cos(4.0 * pi * std::abs(_denom2)));
                             }
-                            const double factor2 = 0.5 * fac * _stab1 / _denom2; //Hartree
+                            const double factor2 = 0.5 * fac * _stab2 / _denom2; //Hartree
                             sigma_c +=Mmn1(_i_gw, _i) * Mmn2(_i_gw, _i)*0.5*(factor1+factor2);
                         }// screening levels 
                     }// GW functions 
