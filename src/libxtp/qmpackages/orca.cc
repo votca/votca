@@ -304,6 +304,9 @@ namespace votca {
                 }
             } //counting only
 
+            
+            _crg_file << _total_background << endl;
+            
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
             //now write
             for (it = segments.begin(); it < segments.end(); it++) {
