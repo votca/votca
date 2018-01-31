@@ -301,6 +301,34 @@ namespace votca {
             }
             return dmatGS;
         }
+        
+        // Determine QuasiParticle Density Matrix
+        ub::matrix<double> Orbitals::DensityMatrixQuasiParticle( int state){
+            ub::matrix<double> dmatQP = ub::zero_matrix<double>(_basis_set_size, _basis_set_size);
+            //ub::matrix<double> _mos = ub::project(_mo_coefficients, ub::range(_qpmin, _qpmax + 1), ub::range(0, _basis_set_size));
+
+            //ub::matrix<real_gwbse> lambda = ub::prod(_QPdiag_coefficients,_mos);
+
+            ub::matrix<double> lambda = LambdaMatrixQuasiParticle();
+            
+            #pragma omp parallel for
+            for (int _i = 0; _i < _basis_set_size; _i++) {
+                for (int _j = 0; _j < _basis_set_size; _j++) {
+                    dmatQP(_i,_j) = lambda(state,_i)*lambda(state,_j);
+                }
+            }
+            
+            return dmatQP;
+        }
+        
+        
+        // Determine QuasiParticle Lambda Matrix
+        ub::matrix<double> Orbitals::LambdaMatrixQuasiParticle(){
+            ub::matrix<double> _mos = ub::project(_mo_coefficients, ub::range(_qpmin, _qpmax + 1), ub::range(0, _basis_set_size));
+            ub::matrix<double> lambda = ub::prod(_QPdiag_coefficients,_mos);          
+            return lambda;
+        }
+        
 
         ub::matrix<double> Orbitals::TransitionDensityMatrix(const string& spin, int state) {
             if(!(spin=="singlet" || spin=="triplet")){
