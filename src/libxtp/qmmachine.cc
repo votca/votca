@@ -432,8 +432,8 @@ namespace votca {
 
                             // test output
                             if (tools::globals::verbose) {
-                                for (int i = 0; i < qpoverlaps.size1(); i++) {
-                                    for (int j = 0; j < qpoverlaps.size2(); j++) {
+                                for (unsigned i = 0; i < qpoverlaps.size1(); i++) {
+                                    for (unsigned j = 0; j < qpoverlaps.size2(); j++) {
                                         CTP_LOG(ctp::logDEBUG, *_log) << " [" << i << " , " << j << "]: " << qpoverlaps(i, j) << flush;
                                     }
                                 }
@@ -527,7 +527,13 @@ namespace votca {
                     } else if (_type == "triplet") {
                         energy___ex = orb_iter_input.BSETripletEnergies()[_state_index[_state - 1]] * tools::conv::hrt2ev; // to eV
                     } else if (_type == "quasiparticle") {
-                        energy___ex = orb_iter_input.QPdiagEnergies()[_state_index[_state - 1 - orb_iter_input.getGWAmin()]] * tools::conv::hrt2ev; // to eV
+                        if ( _state > orb_iter_input.getNumberOfElectrons()  ) {
+                            // unoccupied QPs: E_a = E_0 + eps_l
+                            energy___ex = orb_iter_input.QPdiagEnergies()[_state_index[_state - 1 - orb_iter_input.getGWAmin()]] * tools::conv::hrt2ev; // to eV
+                        } else {
+                            // occupied QPs: E_c = E_0 - eps_h
+                            energy___ex = -1.0*orb_iter_input.QPdiagEnergies()[_state_index[_state - 1 - orb_iter_input.getGWAmin()]] * tools::conv::hrt2ev; // to eV
+                        }
                     }
 
                 } // only if state >0
