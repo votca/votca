@@ -44,7 +44,7 @@
       <table_end>2.0</table_end>
       <mdrun>
         <command>mpirun -np 2 mdrun_mpi</command>
-        <multidir>sim1 sim2</multidir>
+        <multidir>sim1 sim2 sim3 sim4</multidir>
       </mdrun>
       <rdf>
         <topol>sim1/topol.tpr</topol>
