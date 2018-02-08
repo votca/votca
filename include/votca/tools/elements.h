@@ -22,19 +22,17 @@
 
 #include <string>
 #include <map>
+#include <stdexcept>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <iostream>
 #include <fstream>
 
-
-
 namespace votca { namespace xtp {
 
 namespace ub = boost::numeric::ublas;
 using namespace std;
-
 
 /**
     \brief information about an element
@@ -46,14 +44,27 @@ class Elements
 {
 public:   
 
-  
-
     Elements() { FillMaps(); };
    ~Elements() { };
 
-    const double     &getVdWChelpG(std::string name ) const { return _VdWChelpG.at(name); }
-    const double     &getVdWMK(std::string name )     const { return _VdWMK.at(name);     }
-    const double     &getNucCrgECP(std::string name)  const { return _NucCrgECP.at(name); }
+    const double     &getVdWChelpG(std::string name ) const 
+    { 
+        if(_VdWChelpG.count(name)==0) throw invalid_argument("Element not found in VdWChelpG map " + name);
+        return _VdWChelpG.at(name); 
+    }
+
+    const double     &getVdWMK(std::string name )     const 
+    { 
+        if(_VdWMK.count(name)==0) throw invalid_argument("Elmenent not found in VdWMP map " + name);
+        return _VdWMK.at(name);     
+    }
+
+    const double     &getNucCrgECP(std::string name)  const 
+    { 
+        throw invalid_argument("CrgECP map is depricated");
+        return _NucCrgECP.at(name); 
+    }
+
     const double     &getNucCrg(std::string name)     const { return _NucCrg.at(name);    }
     const int        &getEleNum(std::string name)     const { return _EleNum.at(name);    }
     const double     &getMass(std::string name)       const { return _Mass.at(name);      }
@@ -62,37 +73,20 @@ public:
     const std::string     &getEleShort(std::string elefull) const {return _EleShort.at(elefull); }
     const std::string     &getEleFull(std::string eleshort) const {return _EleFull.at(eleshort); }
     
-    const ub::matrix<int> &getAtomconfig(std::string name) const {return _Atomconfig.at(name);}
-    //_Atomconfig at name is a matrix
-    
-    // column is l
-    // row is n
-    // e.g. O
-    //    2  0  1s 
-    //    2  6  2s 2p
-    
-    
     // returns number of basisfunctions for minimal basis, less for ecps because no core shells
     std::vector<int> getMinimalBasis(std::string name,bool ecp){
         const ub::matrix<int> temp=_Atomconfig.at(name);
         std::vector<int> result=std::vector<int>(temp.size1(),0);
         
-        //cout<<temp<<endl;
-        
-        
         for ( int i=temp.size2()-1;i>=0;i-- ){
-            //cout <<i<<endl;
             if(temp(0,i)<1) continue; 
             for (unsigned j=0;j<temp.size1();j++){
                 if(temp(j,i)>0){
                     result[j]+=2*j+1;
-                    //cout <<"["<<i<<":"<<j<<"]"<<endl;
                 }
             }
             if(ecp) break;
         }
-        
-        
         return result;
     }
 private:
@@ -104,29 +98,24 @@ private:
     std::map<std::string, double> _Mass;
     std::map<std::string, int>    _EleNum;
     std::map<int, std::string>    _EleName;
-    
-    std::map< std::string,ub::matrix<int> > _Atomconfig;
-    
+
     std::map<std::string, std::string> _EleShort;
     std::map<std::string, std::string> _EleFull;
-    
+
     inline void FillMaps(){
-        
+
         FillVdWChelpG();
         FillVdWMK();
         FillNucCrgECP();
         FillNucCrg();
         FillEleNum();
         FillEleName();
-        
         FillEleShort();
         FillEleFull();
-        
         FillMass();
     };
-    
+
     inline void FillMass(){
-    
         // masses of atoms
         _Mass["H"]  = 1.00794; 
         _Mass["He"] = 4.002602;
@@ -202,9 +191,7 @@ private:
 
     };
 
-    // Throw error if element not found
     inline void FillVdWChelpG(){
-    
         // VdW radii in Angstrom as used in CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]and Gaussian
         _VdWChelpG["H"]  = 1.45; 
         _VdWChelpG["He"] = 1.45;
@@ -227,10 +214,7 @@ private:
         _VdWChelpG["Ag"] = 1.7;
     };
 
-
-    // Depricated
     inline void FillNucCrgECP(){
-    
         // Effective Core Potential Nuclear Charges
         _NucCrgECP["H"]  = 1.00; 
         _NucCrgECP["He"] = 2.00;
@@ -251,17 +235,9 @@ private:
         _NucCrgECP["Cl"] = 7.00;
         _NucCrgECP["Ar"] = 8.00;
         _NucCrgECP["Ag"] = 19.00;
-        _NucCrg["Tl"] = 81.00;
-        _NucCrg["Pb"] = 82.00;
-        _NucCrg["Bi"] = 83.00;
-        _NucCrg["Po"] = 84.00;
-        _NucCrg["At"] = 85.00;
-        _NucCrg["Rn"] = 86.00;
-
     };
-    
-      inline void FillNucCrg(){
-    
+
+    inline void FillNucCrg(){
         // Nuclear Charges
         _NucCrg["H"]  = 1.00; 
         _NucCrg["He"] = 2.00;
@@ -335,12 +311,9 @@ private:
         _NucCrg["Po"] = 84.00;
         _NucCrg["At"] = 85.00;
         _NucCrg["Rn"] = 86.00;
-
     };
-    
-    
-     inline void FillEleNum(){
-    
+
+    inline void FillEleNum(){
         // Nuclear Charges
         _EleNum["H"]  = 1; 
         _EleNum["He"] = 2;
@@ -414,10 +387,9 @@ private:
         _EleNum["At"] = 85;
         _EleNum["Rn"] = 86;
     };
-    
-    
-     inline void FillEleName(){
-    
+
+
+    inline void FillEleName(){
         // Nuclear Charges
         _EleName[1]  = "H"; 
         _EleName[2]  = "He";
@@ -492,9 +464,8 @@ private:
         _EleName[85] = "At";
         _EleName[86] = "Rn";
     };
-    
+
     inline void FillEleShort(){
-    
         // VdW radii in Angstrom as used in MK Gaussian
         _EleShort["HYDROGEN"]   = "H"; 
         _EleShort["HELIUM"]     = "He";
@@ -568,9 +539,8 @@ private:
         _EleShort["ASTATINE"]   = "At";
         _EleShort["RADON"]      = "Rn";
     };
-    
- inline void FillEleFull(){
-    
+
+    inline void FillEleFull(){
         // VdW radii in Angstrom as used in MK Gaussian
         _EleFull["H"]  = "HYDROGEN"; 
         _EleFull["He"] = "HELIUM";
@@ -643,14 +613,10 @@ private:
         _EleFull["Po"] = "POLONIUM";
         _EleFull["At"] = "ASTATINE";
         _EleFull["Rn"] = "RADON";
-
     };
-   
 
-    
-    // Throw depricated error 
+
     inline void FillVdWMK(){
-    
         // VdW radii in Angstrom as used in MK Gaussian
         _VdWMK["H"]  = 1.2; 
         _VdWMK["He"] = 1.2;
@@ -669,15 +635,11 @@ private:
         _VdWMK["P"]  = 1.8;
         _VdWMK["S"]  = 1.75;
         _VdWMK["Cl"] = 1.7;
-        // _VdWMK["Ar"] = 2.0;
         _VdWMK["Ag"] = 2.0;
     };
-    
-    
-    
-   
+
 };
 }}
 
-#endif	/* __VOTCA_XTP_ATOM_H */
+#endif	/* __VOTCA_XTP_ELEMENTS_H */
 
