@@ -23,7 +23,8 @@
 #include <fstream>
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
-#include <votca/csg/atomtable.h>
+#include <votca/tools/elements.h>
+//#include <votca/csg/atomtable.h>
 
 namespace votca { namespace csg {
 using namespace votca::tools;
@@ -38,7 +39,7 @@ using namespace std;
 
 */
 class PDBReader :
-    public TopologyReader , public TrajectoryReader, public AtomTable
+    public TopologyReader , public TrajectoryReader, public Elements
 {
     public:
 
