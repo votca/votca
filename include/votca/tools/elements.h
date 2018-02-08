@@ -29,7 +29,7 @@
 #include <iostream>
 #include <fstream>
 
-namespace votca { namespace xtp {
+namespace votca { namespace tools {
 
 namespace ub = boost::numeric::ublas;
 using namespace std;
