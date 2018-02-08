@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_XTP_ELEMENTS_H
-#define	__VOTCA_XTP_ELEMENTS_H
+#ifndef __VOTCA_TOOLS_ELEMENTS_H
+#define	__VOTCA_TOOLS_ELEMENTS_H
 
 #include <string>
 #include <map>
@@ -47,30 +47,39 @@ public:
     Elements() { FillMaps(); };
    ~Elements() { };
 
+    /// ChelpG is a method for calculating the electrostatic potential outside of a molecule. The VdWChelpG radius in this case is specific to each element and defines the radius outside of which the electrostatic potential is calculated. The electrostatic potential within the radius is not calculated. For more information see the reference paper CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
     const double     &getVdWChelpG(std::string name ) const 
     { 
         if(_VdWChelpG.count(name)==0) throw invalid_argument("Element not found in VdWChelpG map " + name);
         return _VdWChelpG.at(name); 
     }
-
+    
+    /// Merz-Singh-Kollman MK method is a similar method for calculating the electrostatic potential outside of a molecule. Details of the method can be found here [Singh, U. Chandra (04/01/1984). "An approach to computing electrostatic charges for molecules". Journal of computational chemistry 5 (2), 129, 1984]. The VdWMK method will return the radii used to define where the electrostatic grid starts.  
     const double     &getVdWMK(std::string name )     const 
     { 
         if(_VdWMK.count(name)==0) throw invalid_argument("Elmenent not found in VdWMP map " + name);
         return _VdWMK.at(name);     
     }
 
+    /// This method is now deprecated but was originally used for determining the effective nuclear potential of an atom. There are now more appropriate methods for doing this in the basisset.h and aobasis.h file in xtp. 
     const double     &getNucCrgECP(std::string name)  const 
     { 
-        throw invalid_argument("CrgECP map is depricated");
+        throw invalid_argument("CrgECP map is deprecated");
         return _NucCrgECP.at(name); 
     }
 
+    /// Return the Nuclear charges of each atom. H - 1, He - 2, Na - 3 etc... 
     const double     &getNucCrg(std::string name)     const { return _NucCrg.at(name);    }
+    /// Similar to the Nuclear charges but returns in integer form represents the id of the atom in the periodic table, the id starts at 1
     const int        &getEleNum(std::string name)     const { return _EleNum.at(name);    }
+    /// Returns the mass of each atom in a.u. 
     const double     &getMass(std::string name)       const { return _Mass.at(name);      }
 
+    /// Provided the element number returns the symbol for the element name (1) = "H", (2) = "He", ...
     const std::string     &getEleName(int elenum)           const {return _EleName.at(elenum);   }
+    /// Provided the full element name returns the element symbol "Hydrogen" = "H", "HELIUM" = "He",...
     const std::string     &getEleShort(std::string elefull) const {return _EleShort.at(elefull); }
+    /// Provided the element symbol returns the element name "Pb" = "LEAD", "Na" = "SODIUM", ....
     const std::string     &getEleFull(std::string eleshort) const {return _EleFull.at(eleshort); }
     
 private:
@@ -625,5 +634,5 @@ private:
 };
 }}
 
-#endif	/* __VOTCA_XTP_ELEMENTS_H */
+#endif	/* __VOTCA_TOOLS_ELEMENTS_H */
 
