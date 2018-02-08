@@ -73,22 +73,6 @@ public:
     const std::string     &getEleShort(std::string elefull) const {return _EleShort.at(elefull); }
     const std::string     &getEleFull(std::string eleshort) const {return _EleFull.at(eleshort); }
     
-    // returns number of basisfunctions for minimal basis, less for ecps because no core shells
-    std::vector<int> getMinimalBasis(std::string name,bool ecp){
-        const ub::matrix<int> temp=_Atomconfig.at(name);
-        std::vector<int> result=std::vector<int>(temp.size1(),0);
-        
-        for ( int i=temp.size2()-1;i>=0;i-- ){
-            if(temp(0,i)<1) continue; 
-            for (unsigned j=0;j<temp.size1();j++){
-                if(temp(j,i)>0){
-                    result[j]+=2*j+1;
-                }
-            }
-            if(ecp) break;
-        }
-        return result;
-    }
 private:
 
     std::map<std::string, double> _VdWChelpG;
