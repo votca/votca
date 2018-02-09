@@ -23,21 +23,18 @@
 #include <string>
 #include <map>
 #include <stdexcept>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <iostream>
 #include <fstream>
 
 namespace votca { namespace tools {
 
-namespace ub = boost::numeric::ublas;
-using namespace std;
-
 /**
     \brief information about an element
  
-    The Elements class stores properties of several elements in the periodic table includeing: mass, element name, element symbol, van der Waals radius, effective nuclear potential, element number as it appears in the periodic table.  
+    The Elements class stores properties of several elements in the periodic 
+    table includeing: mass, element name, element symbol, van der Waals radius,
+    effective nuclear potential, element number as it appears in the periodic 
+    table.  
     
 */
 class Elements
@@ -55,7 +52,7 @@ public:
     /// paper [Journal of Computational Chemistry 11, 361, 1990]
     const double     &getVdWChelpG(std::string name ) const 
     { 
-        if(_VdWChelpG.count(name)==0) throw invalid_argument("Element not found in VdWChelpG map " + name);
+        if(_VdWChelpG.count(name)==0) throw std::invalid_argument("Element not found in VdWChelpG map " + name);
         return _VdWChelpG.at(name); 
     }
     
@@ -67,7 +64,7 @@ public:
     /// where the electrostatic grid starts.  
     const double     &getVdWMK(std::string name )     const 
     { 
-        if(_VdWMK.count(name)==0) throw invalid_argument("Elmenent not found in VdWMP map " + name);
+        if(_VdWMK.count(name)==0) throw std::invalid_argument("Element not found in VdWMP map " + name);
         return _VdWMK.at(name);     
     }
 
@@ -77,8 +74,7 @@ public:
     /// in xtp. 
     const double     &getNucCrgECP(std::string name)  const 
     { 
-        throw invalid_argument("CrgECP map is deprecated");
-        return _NucCrgECP.at(name); 
+        throw std::invalid_argument("CrgECP map is deprecated");
     }
 
     /// Return the Nuclear charges of each atom. H - 1, He - 2, Na - 3 etc... 
