@@ -56,7 +56,8 @@ script:
    fi
  - cp -r $HOME/.ccache ${HOME}/docker/ccache
  - sed -i "1s/latest/${DISTRO:-latest}/" ${HOME}/docker/Dockerfile
- - docker build  --build-arg TESTOPTS="${TESTOPTS}" --build-arg COVERAGE=${COVERAGE}
+ - travis_retry timeout 540 docker pull $(sed -n '1s/from //p' ${HOME}/docker/Dockerfile)
+ - travis_retry docker build  --build-arg TESTOPTS="${TESTOPTS}" --build-arg COVERAGE=${COVERAGE}
                  --build-arg CC=${CC} --build-arg CXX=${CXX} --build-arg CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                  --build-arg CXXFLAGS="-Wall ${WERROR:+-Werror}"
                  --build-arg TESTING=${TESTING} --build-arg DOXYGEN=${DOXYGEN} --build-arg MINIMAL=${MINIMAL}
