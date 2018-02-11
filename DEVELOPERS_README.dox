@@ -1,5 +1,5 @@
 
-/*! \mainpage VOTCA Developers Guide
+/*! \page VOTCA Developers Guide
  *
  * The page is designed to give new developers general guidelines for
  * implementing code consistent with the VOTCA and c++ style and standard.
