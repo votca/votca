@@ -345,25 +345,25 @@ private:
     inline void FillVdWMK(){
     
         // VdW radii in Angstrom as used in MK Gaussian
-        _VdWChelpG["H"]  = 1.2; 
-        _VdWChelpG["He"] = 1.2;
-        _VdWChelpG["Li"] = 1.37;
-        _VdWChelpG["Be"] = 1.45;
-        _VdWChelpG["B"]  = 1.45;
-        _VdWChelpG["C"]  = 1.5;
-        _VdWChelpG["N"]  = 1.5;
-        _VdWChelpG["O"]  = 1.4;
-        _VdWChelpG["F"]  = 1.35;
-        _VdWChelpG["Ne"] = 1.3;
-        _VdWChelpG["Na"] = 1.57;
-        _VdWChelpG["Mg"] = 1.36;
-        _VdWChelpG["Al"] = 1.24;
-        _VdWChelpG["Si"] = 1.17;
-        _VdWChelpG["P"]  = 1.8;
-        _VdWChelpG["S"]  = 1.75;
-        _VdWChelpG["Cl"] = 1.7;
-        // _VdWChelpG["Ar"] = 2.0;
-        _VdWChelpG["Ag"] = 2.0;
+        _VdWMK["H"]  = 1.2; 
+        _VdWMK["He"] = 1.2;
+        _VdWMK["Li"] = 1.37;
+        _VdWMK["Be"] = 1.45;
+        _VdWMK["B"]  = 1.45;
+        _VdWMK["C"]  = 1.5;
+        _VdWMK["N"]  = 1.5;
+        _VdWMK["O"]  = 1.4;
+        _VdWMK["F"]  = 1.35;
+        _VdWMK["Ne"] = 1.3;
+        _VdWMK["Na"] = 1.57;
+        _VdWMK["Mg"] = 1.36;
+        _VdWMK["Al"] = 1.24;
+        _VdWMK["Si"] = 1.17;
+        _VdWMK["P"]  = 1.8;
+        _VdWMK["S"]  = 1.75;
+        _VdWMK["Cl"] = 1.7;
+        // _VdWMK["Ar"] = 2.0;
+        _VdWMK["Ag"] = 2.0;
     };
     
     
