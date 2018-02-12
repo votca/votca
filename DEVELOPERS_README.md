@@ -35,6 +35,7 @@
  1. Create a test file in tools/src/tests/test_vec.cc must have the same name as
     what appears in the foreach in the CMakeLists.txt file. And place the following 
     contents
+
 ```  
 #define BOOST_TEST_MAIN
 
@@ -51,16 +52,16 @@ BOOST_AUTO_TEST_SUITE(vec_test)
 
 
 BOOST_AUTO_TEST_CASE(test1){
-vecv;
-BOOST_CHECK_EQUAL(...);
-BOOST_CHECK_EQUAL(...);
-:
+  vecv;
+  BOOST_CHECK_EQUAL(...);
+  BOOST_CHECK_EQUAL(...);
+  :
 }
 BOOST_AUTO_TEST_CASE(test2){
-vecv;
-BOOST_CHECK_EQUAL(...);
-BOOST_CHECK_EQUAL(...);
-:
+  vecv;
+  BOOST_CHECK_EQUAL(...);
+  BOOST_CHECK_EQUAL(...);
+  :
 }
 :
 BOOST_AUTO_TEST_SUITE_END()
@@ -86,9 +87,7 @@ Ensure you have an up to date version of cmake or use cmake3
  The style is essentially the same, as what is used by google, with the 
  exception that types and = are aligned to make the code more readable. 
 
- To run clang on a file say file.cc I need to first be sure that the 
- .clang-format file is placed in the current working directory. It should
- have the following contents:
+ The contents of the .clang-format file are shown below:
 ```
 ---
 # BasedOnStyle:  Google
@@ -139,18 +138,18 @@ SpaceBeforeAssignmentOperators: true
 ContinuationIndentWidth: 4
 ...
 ```
- 
- Now I am prepared to enforce the style guide by typing:
+
+To run the clang-format function on file.cc  
 
 ```
 clang-format -i -style=file file.cc
 ```
 
- The -i ensures it will make change to file.cc, -style=file ensures the
- format is read from the .clang-format file otherwise it will use a default
- style guide. 
+'-i' ensures it will make change to file.cc, omitting the '-i' will display the
+     changes without implementing them.
+'-style=file' ensures the format is read from the .clang-format file otherwise 
+     it will use a default style guide. 
 
-/
 
 
 
