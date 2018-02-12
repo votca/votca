@@ -16,25 +16,25 @@
 ## Testing
 
  Each repository contains a src folder. Within the src folder exists a 
- libraryfolder: libtools, libcsg etc... and a tools folder. A tests folder
+ library folder: libtools, libcsg etc... and a tools folder. A tests folder
  should also exist in the src folder. If it does not you should create one.
 
  For every new object and algorithm created there should exist a test. We
- will be using the Boost libraries testing framework. Good documentation can
- be found here:
+ use the Boost libraries testing framework. Good documentation can be found 
+ here:
 
  - [Boost link](https://www.ibm.com/developerworks/aix/library/au-ctools1_boost/)
  
  We will outline the general workflow here using the vec object in 
  votca::tools. This object only has a header file it is in:
- /tools/include/votca/tools/vec.h
+ tools/include/votca/tools/vec.h
  
  Determine if a tests folder has already been created or not in /src if it
  has not take a look at what was done in the votca-tools repo. 
 
- 1. Create a test file in tools/src/tests/test_vec.cc must have the same name as
-    what appears in the foreach in the CMakeLists.txt file. And place the following 
-    contents
+ 1. Create a test file in [tools/src/tests/](https://github.com/votca/tools/tree/master/src/tests)test_vec.cc 
+    must have the same name as what appears in the foreach in the 
+    CMakeLists.txt file. And place the following contents
 
 ```  
 #define BOOST_TEST_MAIN
@@ -83,12 +83,61 @@ Ensure you have an up to date version of cmake or use cmake3
 
 ## CPP Codeing Style Guide
 
- VOTCA now uses the clang formatter to automatically ensure consistent style.
+ VOTCA uses the clang formatter to automatically ensure consistent style.
  The style is essentially the same, as what is used by google, with the 
- exception that types and = are aligned to make the code more readable.
- Have a look at `.clang-format file` in the 
- [main votca repository](https://github.com/votca/votca/blob/master/.clang-format) for details.
+ exception that types and = are aligned to make the code more readable. 
 
+ The contents of the .clang-format file are shown below:
+```
+---
+# BasedOnStyle:  Google
+AccessModifierOffset: -1
+ConstructorInitializerIndentWidth: 4
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignEscapedNewlinesLeft: true
+AlignTrailingComments: true
+AllowAllParametersOfDeclarationOnNextLine: true
+AlwaysBreakTemplateDeclarations: true
+AlwaysBreakBeforeMultilineStrings: true
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+BreakBeforeBinaryOperators: false
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializersBeforeComma: false
+BinPackParameters: true
+ColumnLimit:     80
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+DerivePointerBinding: true
+ExperimentalAutoDetectBinPacking: false
+IndentCaseLabels: true
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
+ObjCSpaceBeforeProtocolList: false
+PenaltyBreakBeforeFirstCallParameter: 1
+PenaltyBreakComment: 60
+PenaltyBreakString: 1000
+PenaltyBreakFirstLessLess: 120
+PenaltyExcessCharacter: 1000000
+PenaltyReturnTypeOnItsOwnLine: 200
+PointerBindsToType: true
+SpacesBeforeTrailingComments: 2
+Cpp11BracedListStyle: true
+Standard:        Auto
+IndentWidth:     2
+TabWidth:        8
+UseTab:          Never
+BreakBeforeBraces: Attach
+IndentFunctionDeclarationAfterType: true
+SpacesInParentheses: false
+SpacesInAngles:  false
+SpaceInEmptyParentheses: false
+SpacesInCStyleCastParentheses: false
+SpaceAfterControlStatementKeyword: true
+SpaceBeforeAssignmentOperators: true
+ContinuationIndentWidth: 4
+...
+```
 
 To run the clang-format function on file.cc  
 
