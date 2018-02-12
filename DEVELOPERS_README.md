@@ -65,16 +65,20 @@ BOOST_CHECK_EQUAL(...);
 :
 BOOST_AUTO_TEST_SUITE_END()
 ```
-    Replace the '...' and ':' with the appropriate syntax. 
-    For more info on which boost test macros to use refer to the boost documentation
+ 
+Replace the '...' and ':' with the appropriate syntax. 
+For more info on which boost test macros to use refer to the boost documentation
+
  2. To compile and test the code create a folder tools/build and run the following
     commands: 
-    ```
+
+```
 cmake -DENABLE_TESTING=ON ../
 make 
 make test
 ```
-    Ensure you have an up to date version of cmake or use cmake3 
+
+Ensure you have an up to date version of cmake or use cmake3 
 
 ## CPP Codeing Style Guide
 
