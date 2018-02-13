@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,6 +38,13 @@ source "${VOTCASHARE}/scripts/inverse/functions_common.sh" || exit 1
 export CSG_MASTER_PID="$$"
 
 export CSG_MAINDIR="$PWD"
+
+if [[ -n ${VOTCA_CSG_DEFAULTS} ]]; then
+  [[ -f ${VOTCA_CSG_DEFAULTS} ]] || die "Could not find ${VOTCA_CSG_DEFAULTS}! Is VOTCA_CSG_DEFAULTS set corectly?"
+else
+  export VOTCA_CSG_DEFAULTS="${VOTCASHARE}/xml/csg_defaults.xml"
+  [[ -f ${VOTCA_CSG_DEFAULTS} ]] || die "Could not find ${VOTCA_CSG_DEFAULTS}! Is VOTCASHARE ($VOTCASHARE) set corectly? Hint: When overwriting VOTCASHARE you need to overwrite VOTCA_CSG_DEFAULTS as well."
+fi
 
 #do no overwrite CSGSHARE stuff set by user from the outside
 add_to_csgshare --at-the-end "${VOTCASHARE}/scripts/inverse"

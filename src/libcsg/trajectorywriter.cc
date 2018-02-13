@@ -25,7 +25,7 @@
 #include "modules/io/xyzwriter.h"
 #include "modules/io/dlpolytrajectorywriter.h"
 
-#ifdef GMX
+#ifdef GMX_DOUBLE
 #include "modules/io/gmxtrajectorywriter.h"
 #endif
 #include "modules/io/growriter.h"
@@ -41,7 +41,7 @@ void TrajectoryWriter::RegisterPlugins()
     TrjWriterFactory().Register<XYZWriter>("xyz");
     TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlph");
     TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlpc");
-#ifdef GMX
+#ifdef GMX_DOUBLE
     TrjWriterFactory().Register<GMXTrajectoryWriter>("trr");
     TrjWriterFactory().Register<GMXTrajectoryWriter>("xtc");
 #endif

@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,29 +31,30 @@ fi
 tpr="$(csg_get_property cg.inverse.gromacs.topol)"
 
 mdrun_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.opts)"
+# remove this block when dropping support for gmx-2018
 if [[ ${mdrun_opts} = *"-multi "* ]]; then
-  multi="$(echo "${mdrun_opts}" | sed -n 's/^.*-multi *\([0-9]*\).*$/\1/p')"
-  is_num "${multi}" || die "${0##*/}: could not grep number from cg.inverse.gromacs.mdrun.opts after -multi, got '${multi}'"
-  [[ $(csg_get_property cg.inverse.initial_configuration) = "laststep" ]] && die "${0##*/}: support of 'laststep' with -multi not implemented, yet!"
+  die "${0##*/}: Support for '-multi' got removed in gromacs-2019, please use multidir (through cg.inverse.gromacs.mdrun.multidir) option instead"
 fi
 
+multidir=( $(csg_get_property --allow-empty cg.inverse.gromacs.mdrun.multidir) )
+
 mdp="$(csg_get_property cg.inverse.gromacs.mdp)"
-# no check for multi simulation
-[[ $multi ]] || [[ -f $mdp ]] || die "${0##*/}: gromacs mdp file '$mdp' not found (make sure it is in cg.inverse.filelist)"
+# no check for multidir simulation
+[[ $multidir ]] || [[ -f $mdp ]] || die "${0##*/}: gromacs mdp file '$mdp' not found (make sure it is in cg.inverse.filelist)"
 
 conf="$(csg_get_property cg.inverse.gromacs.conf)"
-# no check for multi simulation
-[[ $multi ]] || [[ -f $conf ]] || die "${0##*/}: gromacs initial configuration file '$conf' not found (make sure it is in cg.inverse.filelist)"
+# no check for multidir simulation
+[[ $multidir ]] || [[ -f $conf ]] || die "${0##*/}: gromacs initial configuration file '$conf' not found (make sure it is in cg.inverse.filelist)"
 
 confout="$(csg_get_property cg.inverse.gromacs.conf_out)"
 
 index="$(csg_get_property cg.inverse.gromacs.index)"
-# no check for multi simulation
-[[ $multi ]] || [[ -f $index ]] || die "${0##*/}: grompp index file '$index' not found (make sure it is in cg.inverse.filelist)"
+# no check for multidir simulation
+[[ $multidir ]] || [[ -f $index ]] || die "${0##*/}: grompp index file '$index' not found (make sure it is in cg.inverse.filelist)"
 
 topol_in="$(csg_get_property cg.inverse.gromacs.topol_in)"
-# no check for multi simulation
-[[ $multi ]] || [[ -f $topol_in ]] || die "${0##*/}: grompp text topol file '$topol_in' not found"
+# no check for multidir simulation
+[[ $multidir ]] || [[ -f $topol_in ]] || die "${0##*/}: grompp text topol file '$topol_in' not found"
 
 grompp_opts="$(csg_get_property --allow-empty cg.inverse.gromacs.grompp.opts)"
 
@@ -63,7 +64,7 @@ grompp=( $(csg_get_property cg.inverse.gromacs.grompp.bin) )
 traj=$(csg_get_property cg.inverse.gromacs.traj)
 # in main simulation we usually do care about traj and temperature
 # in pre-simulation/multisim there might be no traj and a different temp(s) 
-if [[ ! ${multi} && $1 != "--pre" ]]; then
+if [[ ! ${multidir} && $1 != "--pre" ]]; then
   check_temp || die "${0##*/}: check of tempertures failed"
   if [[ $traj == *.xtc ]]; then
     #XXX is returned if nstxout-compressed is not in mdp file
@@ -120,22 +121,23 @@ if [[ ${CSG_MDRUN_OPTS} ]]; then
 fi
 
 # run gromacs multiple or one time
-if [[ ${multi} ]]; then
-  for((i=0;i<${multi};i++)); do
+if [[ ${multidir} ]]; then
+  for dir in "${multidir[@]}"; do
+    critical mkdir -p "${dir}"
     for j in index mdp topol_in conf; do
-      # get property cg.inverse.gromacs.${j}.sim${i} (e.g cg.inverse.gromacs.index.1} and use ${!j} 
+      # get property cg.inverse.gromacs.${j}.${dir} (e.g cg.inverse.gromacs.index.simdir1} and use ${!j} 
       # (e.g. value of ${index} ) as default and store it in f
-      f="$(csg_get_property --allow-empty "cg.inverse.gromacs.${j}.sim${i}" "${!j}")" #filter me away
+      f="$(csg_get_property --allow-empty "cg.inverse.gromacs.${j}.${dir}" "${!j}")" #filter me away
       [[ -f ${f} ]] || die "${0##*/}: file '$f' not found (make sure it is in cg.inverse.filelist)"
       read ${j}_x <<< "${f}" # set ${j}_x (e.g. topol_x) to ${f}
     done
-    tpr_x="${tpr%.*}${i}.${tpr##*.}"
-    mdout="mdout${i}.mdp"
     if [[ $(get_simulation_setting --file "${mdp_x}" cutoff-scheme XXX) = XXX ]]; then 
       echo "cutoff-scheme = Group" >> "${mdp_x}"
       msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to ${mdp_x}, tabulated interactions only work with Group cutoff-scheme!"
     fi
-    critical ${grompp[@]} -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" -po "${mdout}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]}" -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "$tpr_x" -c "${conf_x}" -pe "${mdout}" "${grompp_opts}"
+    critical ${grompp[@]} -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "${dir}/$tpr" -c "${conf_x}" ${grompp_opts} 2>&1 | gromacs_log "${grompp[@]}" -n "${index_x}" -f "${mdp_x}" -p "$topol_in_x" -o "${dir}/$tpr" -c "${conf_x}" -pe "${grompp_opts}"
+    # a bit hacky but we have no better solution yet
+    critical cp table*.xvg ./${dir}
   done
 else
   #support for older mdp file, cutoff-scheme = Verlet is default for >=gmx-5 now, but does not work with tabulated interactions
@@ -168,7 +170,7 @@ else
   echo "${0##*/}: No walltime defined, so no time limitation given to $mdrun"
 fi
 
-#>gmx-5.1 has new handling of bonded tables
+#handling of bonded tables
 if [[ ${mdrun_opts} != *tableb* ]]; then
   tables=
   for i in table_[abd][0-9]*.xvg; do
@@ -176,25 +178,22 @@ if [[ ${mdrun_opts} != *tableb* ]]; then
   done
   if [[ -n ${tables} ]]; then
     gmx_ver="$(critical ${grompp[@]} -h 2>&1)"
-    shopt -s extglob
-    [[ ${gmx_ver} = *"VERSION 5.1"+(.1|.2)* ]] && die "GROMACS 5.1 to 5.1.2 don't support tabulated bonds (http://redmine.gromacs.org/issues/1913), please update your GROMACS version" 
     msg --color blue --to-stderr "Automatically added '-tableb${tables} to mdrun options (add -tableb option to cg.inverse.gromacs.mdrun.opts yourself if this is wrong)"
     mdrun_opts+=" -tableb${tables}"
   fi
 fi
 
-critical $mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts} ${CSG_RUNTEST:+-v} 2>&1 | gromacs_log "$mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${mdrun_opts}"
+critical $mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${multidir:+-multidir} "${multidir[@]}" ${mdrun_opts} ${CSG_RUNTEST:+-v} 2>&1 | gromacs_log "$mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".xtc ${multdir:+-multidir} "${multidir[@]}" ${mdrun_opts}"
 
-if [[ ${multi} ]]; then
-  for((i=0;i<${multi};i++)); do
-    confout_x="${confout%.*}${i}.${confout##*.}"
-    [[ ! -f ${confout_x} ]] || [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout_x})" ]] || die "${0##*/}: There is a nan in '${confout_x}', this seems to be wrong."
+if [[ ${multidir} ]]; then
+  for dir in "${multidir[@]}"; do
+    [[ ! -f ${dir}/${confout} ]] || [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
   done
 else
   [[ ! -f ${confout} ]] || [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
 fi
 
-if [[ ${multi} ]]; then
+if [[ ${multidir} ]]; then
   #for simulation_finish(), confout isn't used anywhere else.
   [[ -f ${confout} ]] || echo "Dummy file created by ${0##*/}" > "${confout}"
   if [[ ${mdrun_opts} = *-replex* ]]; then
@@ -204,8 +203,8 @@ if [[ ${multi} ]]; then
     trjcat=( $(csg_get_property cg.inverse.gromacs.trjcat.bin) )
     [[ -n "$(type -p ${trjcat[0]})" ]] || die "${0##*/}: trjcat binary '${trjcat[0]}' not found"
     trjs=()
-    for((i=0;i<${multi};i++)); do
-      trjs+=( "${traj%.*}${i}.${traj##*.}" )
+    for dir in "${multidir[@]}"; do
+      trjs+=( "${dir}/${traj}" )
     done
     critical ${trjcat[@]} -f "${trjs[@]}" -o "${traj}" -cat
   fi

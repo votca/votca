@@ -23,7 +23,7 @@
 #include "modules/io/lammpsreader.h"
 #include "modules/io/xyzreader.h"
 
-#ifdef GMX
+#ifdef GMX_DOUBLE
 #include "modules/io/gmxtrajectoryreader.h"
 #endif
 #include "modules/io/groreader.h"
@@ -40,7 +40,7 @@ void TrajectoryReader::RegisterPlugins(void)
 {
     TrjReaderFactory().Register<LAMMPSReader>("dump");
     TrjReaderFactory().Register<XYZReader>("xyz");
-#ifdef GMX
+#ifdef GMX_DOUBLE
     TrjReaderFactory().Register<GMXTrajectoryReader>("trr");
     TrjReaderFactory().Register<GMXTrajectoryReader>("xtc");
 #endif

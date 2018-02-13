@@ -126,7 +126,7 @@
         <DESC> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</DESC>
       </first_frame>
       <g_energy>
-        <bin>gmx energy
+        <bin>@G_ENERGY@
           <DESC> Name (or absolute path) of the g_energy binary</DESC>
         </bin>
         <opts>
@@ -146,7 +146,7 @@
         <DESC>GMXRC to source at the startup</DESC>
       </gmxrc>
       <grompp>
-        <bin>gmx grompp
+        <bin>@GROMPP@
           <DESC> Name (or absolute path) of the grompp binary</DESC>
         </bin>
         <opts>
@@ -166,9 +166,12 @@
         <checkpoint>state.cpt
           <DESC>Name of the checkpint to use in case of restarted simulation</DESC>
         </checkpoint>
-        <command>gmx mdrun
+        <command>@MDRUN@
           <DESC>Command to run mdrun (name or absolute path or mpirun mdrun..)</DESC>
         </command>
+        <multidir>
+          <DESC> List of directories for multidir simulations</DESC>
+        </multidir>
         <opts>
           <DESC> Additional options to Gromacs mdrun (e.g. -nosum)</DESC>
         </opts>
@@ -242,7 +245,7 @@
         <DESC> Gromacs trajectory file to use</DESC>
       </traj>
       <trjcat>
-        <bin>gmx trjcat
+        <bin>@G_TRJCAT@
           <DESC> Name (or absolute path) of the trjcat binary </DESC>
         </bin>
       </trjcat>
