@@ -57,6 +57,17 @@ else()
 endif()
 add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 
+
+find_package(Eigen)
+if (EIGEN_FOUND)
+    message("-- EIGEN found")
+	include_directories(${EIGEN_INCLUDE_DIRS})
+message(STATUS ${EIGEN_INCLUDE_DIRS})
+	set (LIBEIGEN TRUE )
+else()
+
+endif()
+
 find_package(LIBXC)
 if (LIBXC_FOUND)
     message("-- LIBXC found")
@@ -64,6 +75,15 @@ if (LIBXC_FOUND)
 	set (LIBXC TRUE )
 else()
 	set(LIBXC_LIBRARIES)
+endif()
+
+find_package(LIBINT)
+if (LIBINT_FOUND)
+    message("-- LIBINT found")
+	include_directories(${LIBINT_INCLUDE_DIRS})
+	set (LIBINT TRUE )
+else()
+	set(LIBINT_LIBRARIES)
 endif()
 
 

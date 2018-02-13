@@ -19,7 +19,7 @@
 
 
 #include <votca/xtp/calculatorfactory.h>
-
+//#include "calculators/sandbox.h"
 #include "calculators/neighborlist.h"
 #include "calculators/rates.h"
 #include "calculators/ianalyze.h"
@@ -33,7 +33,7 @@ namespace votca { namespace xtp {
 
 void Calculatorfactory::RegisterAll(void)
 {	
-       
+        //Calculators().Register<Sandbox>             ("Sandbox");
         Calculators().Register<Neighborlist>        ("xneighborlist");
         Calculators().Register<Rates>               ("xrates");
         Calculators().Register<IAnalyze>            ("xianalyze");

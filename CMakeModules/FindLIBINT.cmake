@@ -1,9 +1,9 @@
-# - Find libxc
-# Find the native libxc headers and libraries.
+# - Find libint
+# Find the native libint headers and libraries.
 #
-#  LIBXC_INCLUDE_DIRS - where to find xc.h, etc.
-#  LIBXC_LIBRARIES    - List of libraries when using expat.
-#  LIBXC_FOUND        - True if expat found.
+#  LIBINT_INCLUDE_DIRS - where to find libint2.hpp, etc.
+#  LIBINT_LIBRARIES    - List of libraries when using expat.
+#  LIBINT_FOUND        - True if expat found.
 #
 # Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
 #
@@ -22,19 +22,19 @@
 
 # check if info is available via PkgConfig
 find_package(PkgConfig)
-pkg_check_modules(PC_libxc libxc)
+pkg_check_modules(PC_libint2 libint2)
 
-find_path(LIBXC_INCLUDE_DIR NAMES xc.h HINTS HINTS ${PC_libxc_INCLUDE_DIRS})
-find_library(LIBXC_LIBRARY NAMES xc HINTS ${PC_libxc_LIBRARY_DIRS} )
+find_path(LIBINT_INCLUDE_DIR NAMES libint2.hpp HINTS HINTS ${PC_libint2_INCLUDE_DIRS})
+find_library(LIBINT_LIBRARY NAMES int2 HINTS ${PC_libint2_LIBRARY_DIRS} )
 
 
-set(LIBXC_LIBRARIES "${LIBXC_LIBRARY}" )
-set(LIBXC_INCLUDE_DIRS "${LIBXC_INCLUDE_DIR}" )
+set(LIBINT_LIBRARIES "${LIBINT_LIBRARY}" )
+set(LIBINT_INCLUDE_DIRS "${LIBINT_INCLUDE_DIR}" )
 
 #include(FindPackageHandleStandardArgs)
-# handle the QUIETLY and REQUIRED arguments and set LIBXC_FOUND to TRUE
+# handle the QUIETLY and REQUIRED arguments and set LIBINT_FOUND to TRUE
 # if all listed variables are TRUE
-find_package_handle_standard_args(LIBXC DEFAULT_MSG LIBXC_LIBRARY LIBXC_INCLUDE_DIR )
+find_package_handle_standard_args(LIBINT DEFAULT_MSG LIBINT_LIBRARY LIBINT_INCLUDE_DIR )
 
 
-mark_as_advanced(LIBXC_INCLUDE_DIR LIBXC_LIBRARY )
+mark_as_advanced(LIBINT_INCLUDE_DIR LIBINT_LIBRARY )

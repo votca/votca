@@ -19,7 +19,7 @@
 
 #ifndef __XTP_AOMATRIX__H
 #define	__XTP_AOMATRIX__H
-
+#include <libint2.hpp>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
 #include <votca/ctp/apolarsite.h>

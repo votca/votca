@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/qmtool.h>
-
 #include <votca/xtp/qmpackagefactory.h>
 #include<votca/xtp/aobasis.h>
 #include<votca/xtp/aomatrix.h>
@@ -31,7 +30,7 @@
 
 namespace votca { namespace xtp {
     using namespace std;
-    
+    using namespace Eigen;
 class QMSandbox : public ctp::QMTool
 {
 public:
@@ -83,7 +82,12 @@ void QMSandbox::Initialize(Property* options) {
 }
 
 bool QMSandbox::Evaluate() {
-
+  MatrixXd m = MatrixXd::Random(3,3);
+  m = (m + MatrixXd::Constant(3,3,1.2)) * 50;
+  cout << "m =" << endl << m << endl;
+  VectorXd v(3);
+  v << 1, 2, 3;
+  cout << "m * v =" << endl << m * v << endl;
 
     
     
