@@ -82,7 +82,8 @@ class Elements {
   const int &getEleNum(std::string name) const { return _EleNum.at(name); }
   /// Returns the mass of each atom in a.u.
   const double &getMass(std::string name) const { return _Mass.at(name); }
-
+  /// Returns the covalent Radii of the atom 
+  const double     &getCovRad(std::string name ) const { return _CovRad.at(name); }
   /// Provided the element number returns the symbol for the element name
   /// (1) = "H", (2) = "He", ...
   const std::string &getEleName(int elenum) const {
@@ -104,6 +105,7 @@ class Elements {
   std::map<std::string, double> _VdWMK;
   std::map<std::string, double> _NucCrgECP;
   std::map<std::string, double> _NucCrg;
+  std::map<std::string, double> _CovRad;
   std::map<std::string, double> _Mass;
   std::map<std::string, int>    _EleNum;
   std::map<int, std::string>    _EleName;
@@ -115,6 +117,7 @@ class Elements {
 
     FillVdWChelpG();
     FillVdWMK();
+    FillCovRad();
     FillNucCrgECP();
     FillNucCrg();
     FillEleNum();
@@ -320,6 +323,86 @@ class Elements {
     _NucCrg["Po"] = 84.00;
     _NucCrg["At"] = 85.00;
     _NucCrg["Rn"] = 86.00;
+  };
+
+
+  inline void FillCovRad(){
+  // Covalent Radii, used by BulkESP to break system into molecules
+  //data from http://pubs.rsc.org/en/content/articlehtml/2008/dt/b801115j
+  //values in Angstroms
+    _CovRad["H"]  = 0.31; 
+    _CovRad["He"] = 0.28;
+    _CovRad["Li"] = 1.28;
+    _CovRad["Be"] = 0.96;
+    _CovRad["B"]  = 0.84;
+  // This is for sp3 
+    _CovRad["C"]  = 0.76;
+    _CovRad["N"]  = 0.71;
+    _CovRad["O"]  = 0.66;
+    _CovRad["F"]  = 0.57;
+    _CovRad["Ne"] = 0.58;
+    _CovRad["Na"] = 1.66;
+    _CovRad["Mg"] = 1.41;
+    _CovRad["Al"] = 1.21;
+    _CovRad["Si"] = 1.11;
+    _CovRad["P"]  = 1.07;
+    _CovRad["S"]  = 1.05;
+    _CovRad["Cl"] = 1.02;
+    _CovRad["Ar"] = 1.06;
+    _CovRad["K"]  = 2.03;
+    _CovRad["Ca"] = 1.76;
+    _CovRad["Sc"] = 1.70;
+    _CovRad["Ti"] = 1.60;
+    _CovRad["V"]  = 1.53;
+    _CovRad["Cr"] = 1.39;
+    _CovRad["Mn"] = 1.61;
+    _CovRad["Fe"] = 1.52;
+    _CovRad["Co"] = 1.50;
+    _CovRad["Ni"] = 1.24;
+    _CovRad["Cu"] = 1.32;
+    _CovRad["Zn"] = 1.22;
+    _CovRad["Ga"] = 1.22;
+    _CovRad["Ge"] = 1.20;
+    _CovRad["As"] = 1.19;
+    _CovRad["Se"] = 1.20;
+    _CovRad["Br"] = 1.20;
+    _CovRad["Kr"] = 1.16;
+    _CovRad["Rb"] = 2.20;
+    _CovRad["Sr"] = 1.95;
+    _CovRad["Y"]  = 1.90;
+    _CovRad["Zr"] = 1.75;
+    _CovRad["Nb"] = 1.64;
+    _CovRad["Mo"] = 1.54;
+    _CovRad["Tc"] = 1.47;
+    _CovRad["Ru"] = 1.46;
+    _CovRad["Rh"] = 1.42;
+    _CovRad["Pd"] = 1.39;
+    _CovRad["Ag"] = 1.45;
+    _CovRad["Cd"] = 1.44;
+    _CovRad["In"] = 1.42;
+    _CovRad["Sn"] = 1.39;
+    _CovRad["Sb"] = 1.39;
+    _CovRad["Te"] = 1.38;
+    _CovRad["I"]  = 1.39;
+    _CovRad["Xe"] = 1.40;
+    _CovRad["Cs"] = 2.44;
+    _CovRad["Ba"] = 2.15;
+    _CovRad["Hf"] = 1.75;
+    _CovRad["Ta"] = 1.70;
+    _CovRad["W"]  = 1.62;
+    _CovRad["Re"] = 1.51;
+    _CovRad["Os"] = 1.44;
+    _CovRad["Ir"] = 1.41;
+    _CovRad["Pt"] = 1.36;
+    _CovRad["Au"] = 1.36;
+    _CovRad["Hg"] = 1.32;
+    _CovRad["Tl"] = 1.45;
+    _CovRad["Pb"] = 1.46;
+    _CovRad["Bi"] = 1.48;
+    _CovRad["Po"] = 1.40;
+    _CovRad["At"] = 1.50;
+    _CovRad["Rn"] = 1.50;
+
   };
 
   inline void FillEleNum() {
