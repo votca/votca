@@ -45,6 +45,7 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   BOOST_CHECK_EQUAL(ele.getEleFull("Ge"), "GERMANIUM");
   BOOST_CHECK_EQUAL(ele.getVdWMK("F"), 1.35);
   BOOST_CHECK_THROW(ele.getVdWMK("Pb"), invalid_argument);
+  BOOST_CHECK_EQUAL(ele.getCovRad("Cl"),1.02);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
