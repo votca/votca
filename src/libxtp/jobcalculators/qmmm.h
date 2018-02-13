@@ -239,13 +239,12 @@ void QMMM::Initialize(Property *options) {
         }
 
         _state = options->get(key+".state").as< int >();
-
+        
+  
+        
+        
+        
     }
-
-
-
-
-    //cout << TXT << _options;
 
     // register all QM packages (Gaussian, turbomole, etc))
     QMPackageFactory::RegisterAll();

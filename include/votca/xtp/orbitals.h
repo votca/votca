@@ -617,6 +617,8 @@ namespace votca {
             ub::matrix<double> DensityMatrixGroundState();
             std::vector<ub::matrix<double> > DensityMatrixExcitedState(const string& spin,int state = 0);
             ub::matrix<double > TransitionDensityMatrix(const string& spin,int state = 0);
+            ub::matrix<double> DensityMatrixQuasiParticle(int state = 0);
+            ub::matrix<double> LambdaMatrixQuasiParticle();
 
 
             double GetTotalEnergy(string _spintype, int _opt_state);
