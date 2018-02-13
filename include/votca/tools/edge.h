@@ -48,9 +48,9 @@ class Edge {
   /// Given one of the integers in the edge the other will be output
   int getOtherV(int ver) const;
   /// grab the smaller integer
-  int getV1(void) const { return vertices.first; }
+  int getV1() const { return vertices.first; }
   /// grab the larger integer
-  int getV2(void) const { return vertices.second; }
+  int getV2() const { return vertices.second; }
 
   /// Determine if the edge contains the int ID
   bool contains(int ID) const;

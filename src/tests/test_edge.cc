@@ -1,5 +1,5 @@
 /*
- * Copyright 20018-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(equivalence_test) {
   Edge ed3(3, 2);
   BOOST_CHECK_EQUAL(ed, ed);
   BOOST_CHECK_EQUAL(ed, ed3);
-  BOOST_CHECK_EQUAL((ed == ed2), 0);
+  BOOST_CHECK_EQUAL((ed == ed2),false);
 }
 
 BOOST_AUTO_TEST_CASE(nequivalence_test) {
