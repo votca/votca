@@ -56,5 +56,6 @@ CMakeCache.txt
 install_manifest.txt
 /netbeans/xtp_app/dist/
 /netbeans/libxtp/dist/
+/netbeans/libxtp/nbproject/private/private.xml
 
 /build
