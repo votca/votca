@@ -106,13 +106,15 @@ namespace votca {
 
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
             _orbitals.Save(_archive_file);
-
+            
             Property _summary = _gwbse_engine.ReportSummary();
-            tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
-            CTP_LOG(ctp::logDEBUG, _log) << "Writing output to " << _xml_output << flush;
-            std::ofstream ofout(_xml_output.c_str(), std::ofstream::out);
-            ofout << (_summary.get("output"));
-            ofout.close();
+            if(_summary.exists("output")){  //only do gwbse summary output if we actually did gwbse
+                tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
+                CTP_LOG(ctp::logDEBUG, _log) << "Writing output to " << _xml_output << flush;
+                std::ofstream ofout(_xml_output.c_str(), std::ofstream::out);
+                ofout << (_summary.get("output"));
+                ofout.close();
+            }
 
             return true;
         }
