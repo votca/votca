@@ -106,8 +106,10 @@ private:
     bool _do_archive;
     bool _static_qmmm;
     Orbitals orb_iter_input;
+    
+    ub::matrix<double> DMAT_old;
 
-    void Density2Charges( GWBSE* gwbse=NULL, std::vector<int> state_index ={});
+    void Density2Charges(int iter, GWBSE* gwbse=NULL, std::vector<int> state_index ={});
 
 };
 

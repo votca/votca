@@ -539,7 +539,7 @@ namespace votca {
                 } // only if state >0
 
                 if (!_static_qmmm) {
-                    Density2Charges(&_gwbse,_state_index);
+                    Density2Charges(iter,&_gwbse,_state_index);
                 } // for polarized QMMM
 
             } //_do_gwbse
@@ -551,7 +551,7 @@ namespace votca {
              * - GWBSE or DFT with internal DFTENGINE
              */
             if (!_static_qmmm && _qmpack->getPackageName() == "xtp" && !_do_gwbse) {
-                Density2Charges();
+                Density2Charges(iter);
             } // for polarized QMMM
 
             // Test: go via GDMA instead of point charges, only for DFT with Gaussian!
@@ -664,7 +664,7 @@ namespace votca {
 
 
         template<class QMPackage>
-        void QMMachine<QMPackage>::Density2Charges( GWBSE* _gwbse, std::vector<int> _state_index ){
+        void QMMachine<QMPackage>::Density2Charges(int iter, GWBSE* _gwbse, std::vector<int> _state_index ){
 
                    
                     // load DFT basis set (element-wise information) from xml file
@@ -683,40 +683,49 @@ namespace votca {
                     
                     ub::matrix<double> DMATGS = orb_iter_input.DensityMatrixGroundState();
 
-                    ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
+                    ub::matrix<double> DMAT_tot = DMATGS;  
+  // Ground state + hole_contribution + electron contribution
 
-                    if (_state > 0 ) {
-                        
-                        if ( _type == "singlet" && _type == "triplet"){
-                        
-                            std::vector<ub::matrix<double> > DMAT = orb_iter_input.DensityMatrixExcitedState(_type, _state_index[_state - 1]);
-                            DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
-                        } else if ( _type == "quasiparticle"){
-                            
-                            ub::matrix<double> DMATQP = orb_iter_input.DensityMatrixQuasiParticle(  _state_index[_state - 1 - orb_iter_input.getGWAmin()]);
+  if (_state > 0) {
+    if (_type == "singlet" && _type == "triplet") {
+      std::vector<ub::matrix<double> > DMAT =
+          orb_iter_input.DensityMatrixExcitedState(_type,
+                                                   _state_index[_state - 1]);
+      DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; 
+      // Ground state + hole_contribution + electron contribution
+    } else if (_type == "quasiparticle") {
+      ub::matrix<double> DMATQP = orb_iter_input.DensityMatrixQuasiParticle(
+          _state_index[_state - 1 - orb_iter_input.getGWAmin()]);
 
-                            if ( _state > orb_iter_input.getNumberOfElectrons() ) {
-                                DMAT_tot = DMAT_tot + DMATQP;
-                            } else {
-                                DMAT_tot = DMAT_tot - DMATQP;
-                            }
-                        }
-                    }
+      if (_state > orb_iter_input.getNumberOfElectrons()) {
+        DMAT_tot = DMAT_tot + DMATQP;
+      } else {
+        DMAT_tot = DMAT_tot - DMATQP;
+      }
+    }
+  }
 
-                    // fill DFT AO basis by going through all atoms
-                    std::vector< ctp::QMAtom* >& Atomlist = orb_iter_input.QMAtoms();
+  // fill DFT AO basis by going through all atoms
+  std::vector<ctp::QMAtom *> &Atomlist = orb_iter_input.QMAtoms();
 
-                    Espfit esp = Espfit(_log);
-                    if (_qmpack->ECPRequested()) {
-                        esp.setUseECPs(true);
-                    }
-                    esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, dftbs, "medium");
+  Espfit esp = Espfit(_log);
+  if (_qmpack->ECPRequested()) {
+    esp.setUseECPs(true);
+  }
 
+  ub::matrix<double> DMAT_mixed;
+  double alpha = 0.3;
+  if (iter == 0) {
+    DMAT_mixed = DMAT_tot;
+  } else {
+    DMAT_mixed = alpha * DMAT_tot + (1 - alpha) * DMAT_old;
+  }
 
+  DMAT_old = DMAT_mixed;
+  esp.Fit2Density(Atomlist, DMAT_mixed, dftbasis, dftbs, "medium");
 
-
-            return;
-        }
+  return;
+}
 
 
 
