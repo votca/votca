@@ -84,6 +84,7 @@ private:
     int      _state;
     string   _type;
     bool     _has_osc_filter=false;
+    bool     _has_overlap_filter=false;
     double   _osc_threshold;
     bool     _has_dQ_filter=false;
     bool     _has_loc_filter=false;

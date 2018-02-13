@@ -168,9 +168,11 @@ double Espfit::getNetcharge( std::vector< ctp::QMAtom* >& _atoms, double N ){
         else{
             CTP_LOG(ctp::logDEBUG, *_log) <<"Warning: Your molecule is highly ionized and you use real core potentials, sounds interesting" << flush;
         }
+        netcharge = Znuc-N;
     }
     _do_Transition=false;
     }
+ 
     netcharge=round(netcharge);
     CTP_LOG(ctp::logDEBUG, *_log) <<"Netcharge constrained to " << netcharge<< flush;
 
