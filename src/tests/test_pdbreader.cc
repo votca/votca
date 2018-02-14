@@ -31,10 +31,11 @@ using namespace std;
 using namespace votca::csg;
 
 // used for rounding doubles so we can compare them
-double ceil_(double v, int p) {
+double round_(double v, int p) {
   v *= pow(10, p);
-  v = ceil(v);
+  v = round(v);
   v /= pow(10, p);
+  return v;
 }
 
 BOOST_AUTO_TEST_SUITE(pdbreader_test)
@@ -108,8 +109,8 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
   vector<int> resnr = { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
   vector<string> bd_name = { "C", "H", "H", "H", "H", "C", "H", "H", "H", "H"};
   vector<double> x = { -0.5249, -0.6202,-0.539, -0.4682,-0.4724,-0.2248,-0.1518,-0.3153,-0.2442,-0.1880 };
-  vector<double> y = { 0.1055 ,  0.1521,-0.0026, 0.1124, 0.1550, 0.1671, 0.2451, 0.1999, 0.1430, 0.0804 };
-  vector<double> z = { -0.000 , -0.0141, 0.0255,-0.0904,-0.079 ,-0.000 ,-0.0051,-0.0467,-0.1024,-0.0507 };
+  vector<double> y = { 0.1055 ,  0.1521, 0.0026, 0.1124, 0.1550, 0.1671, 0.2451, 0.1999, 0.1430, 0.0804 };
+  vector<double> z = { -0.000 , -0.0141, 0.0255,-0.0904, 0.079 ,-0.000 , 0.0051, 0.0467,-0.1024, 0.0507 };
   Bead* bd;
   vec v;
   for(int i=0;i<10;i++){
@@ -120,9 +121,9 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
   //BOOST_CHECK_EQUAL(bd->getM(),ele.getMass(bd->getName()));
     v = bd->getPos();
     BOOST_CHECK_EQUAL(bd->getQ(), 0);
-    BOOST_CHECK_EQUAL(ceil_(v.getX(), 3), ceil_(x.at(i), 3));
-    BOOST_CHECK_EQUAL(ceil_(v.getY(), 3), ceil_(y.at(i), 3));
-    BOOST_CHECK_EQUAL(ceil_(v.getZ(), 3), ceil_(z.at(i), 3));
+    BOOST_CHECK_EQUAL(round_(v.getX(), 3), round_(x.at(i), 3));
+    BOOST_CHECK_EQUAL(round_(v.getY(), 3), round_(y.at(i), 3));
+    BOOST_CHECK_EQUAL(round_(v.getZ(), 3), round_(z.at(i), 3));
   }
 }
 
