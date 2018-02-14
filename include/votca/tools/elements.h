@@ -86,8 +86,8 @@ class Elements {
   /// Returns the covalent Radii of the atom 
   const double getCovRad(std::string name,std::string unit ) const 
   { 
-    //TODO - This should be replaced with an object, an object should auto find
-    //     - the unit and provide the conversion constant
+    //TODO - This should be replaced with an object, an object that should
+    //       auto recognise the units and return it in a standard type
     if(!unit.compare("bohr")) return votca::tools::conv::ang2bohr*_CovRad.find(name)->second;
     if(!unit.compare("nm"))   return votca::tools::conv::ang2nm*_CovRad.find(name)->second;
     if(!unit.compare("ang"))  return _CovRad.find(name)->second; 
