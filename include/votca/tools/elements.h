@@ -25,6 +25,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <votca/tools/constants.h>
 
 namespace votca {
 namespace tools {
@@ -83,7 +84,16 @@ class Elements {
   /// Returns the mass of each atom in a.u.
   const double &getMass(std::string name) const { return _Mass.at(name); }
   /// Returns the covalent Radii of the atom 
-  const double     &getCovRad(std::string name ) const { return _CovRad.at(name); }
+  const double getCovRad(std::string name,std::string unit ) const 
+  { 
+    //TODO - This should be replaced with an object, an object should auto find
+    //     - the unit and provide the conversion constant
+    if(!unit.compare("bohr")) return votca::tools::conv::ang2bohr*_CovRad.find(name)->second;
+    if(!unit.compare("nm"))   return votca::tools::conv::ang2nm*_CovRad.find(name)->second;
+    if(!unit.compare("ang"))  return _CovRad.find(name)->second; 
+    
+    throw std::invalid_argument("Must specify appropriate units " + unit + " is not known");
+  }
   /// Provided the element number returns the symbol for the element name
   /// (1) = "H", (2) = "He", ...
   const std::string &getEleName(int elenum) const {
@@ -329,7 +339,7 @@ class Elements {
   inline void FillCovRad(){
   // Covalent Radii, used by BulkESP to break system into molecules
   //data from http://pubs.rsc.org/en/content/articlehtml/2008/dt/b801115j
-  //values in Angstroms
+  //values in [Angstroms]
     _CovRad["H"]  = 0.31; 
     _CovRad["He"] = 0.28;
     _CovRad["Li"] = 1.28;
