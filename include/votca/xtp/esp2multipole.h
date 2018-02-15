@@ -37,10 +37,7 @@ class Esp2multipole
 public:
 
     Esp2multipole (ctp::Logger* log) {_log=log; }
-   ~Esp2multipole () { 
-   
-   std::vector<QMAtom* >::iterator it;
-    for ( it = _Atomlist.begin(); it != _Atomlist.end(); ++it ) delete *it;};
+   ~Esp2multipole () {};
 
     string Identify() { return "esp2multipole"; }
 

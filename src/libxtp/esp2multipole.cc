@@ -54,10 +54,7 @@ void Esp2multipole::Initialize(Property* options) {
          else  throw std::runtime_error("Method not recognized. Mulliken, Lowdin and CHELPG implemented");
          }
     else _use_CHELPG=true;
-    
-    
-   
-    
+
     if (_use_CHELPG){
          _integrationmethod     = options->get(key + ".integrationmethod").as<string> ();
     }
@@ -82,7 +79,7 @@ void Esp2multipole::Initialize(Property* options) {
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");    
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
- return  
+ return;  
 }
 
 string  Esp2multipole::GetIdentifier(){

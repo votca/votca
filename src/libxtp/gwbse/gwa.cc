@@ -52,10 +52,10 @@ namespace votca {
               _vxc( _m,_m ) = _qp_energies( _m + _qpmin );
             }
 
-            
-            // sigma matrices can be freed
+             // sigma matrices can be freed
             _sigma_x.resize(0);
             _sigma_c.resize(0);
+            
             
             
             if ( _do_qp_diag ){
@@ -87,7 +87,7 @@ namespace votca {
                     _sigma_x(_gw_level,_gw_level)=( 1.0 - _ScaHFX ) * sigma_x; 
                 }
             
-                int _max_iter =40;
+                if(_g_sc_max_iterations==0) {_g_sc_max_iterations=1;}
                 ub::vector<double>& dftenergies=_orbitals->MOEnergies();
                 // initial _qp_energies are dft energies
                 ub::vector<double>_qp_old=_qp_energies;
@@ -96,7 +96,7 @@ namespace votca {
 
             
 	    // only diagonal elements except for in final iteration
-            for (int _i_iter = 0; _i_iter < _max_iter; _i_iter++) {
+            for (unsigned _g_iter = 0; _g_iter < _g_sc_max_iterations; _g_iter++) {
                 // loop over all GW levels
 
                 #pragma omp parallel for
@@ -151,19 +151,25 @@ namespace votca {
                             diff_max=diff(l);
                             state_max=l;
                     }
-                    if (std::abs(diff(l)) > _qp_limit) {
+                    if (std::abs(diff(l))>_g_sc_limit) {
                         energies_converged = false;   
                     }
                 }
                 if(tools::globals::verbose){
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " QP_Iteration: " << _i_iter+1 << " E_diff max="<<diff_max<<" StateNo:"<<state_max << flush;
+                    double _DFTgap =dftenergies(_homo + 1) - dftenergies(_homo);
+                    double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " QP_Iteration: " << _g_iter+1 <<" shift="<<_QPgap - _DFTgap <<" E_diff max="<<diff_max<<" StateNo:"<<state_max << flush;
                 }
                 double alpha=0.0;
                 _qp_energies=(1-alpha)*_qp_energies+alpha*_qp_old;
                 
                 if (energies_converged) {
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << _i_iter+1 << " qp_energy iterations." << flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << _g_iter+1 << " G iterations." << flush;
                     break;
+                }else if(_g_iter==_g_sc_max_iterations-1){
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " G-self-consistency cycle not converged after " << _g_sc_max_iterations << " iterations." << flush;  
+                        break;
+                    
                 } else {
                     _qp_old = _qp_energies;
                 }
@@ -196,20 +202,19 @@ namespace votca {
                 }
             }
             
-            
-            
-            
-            
             #pragma omp parallel for
             for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
-                const double qpmin=_qp_energies(_gw_level1 + _qpmin);
-                const ub::matrix<real_gwbse>& Mmn1 =  _Mmn[ _gw_level1 + _qpmin ];
+                const double qpmin1 = _qp_energies(_gw_level1 + _qpmin);
+                const ub::matrix<real_gwbse>& Mmn1 = _Mmn[ _gw_level1 + _qpmin ];
                 for (unsigned _gw_level2 = 0; _gw_level2 < _gw_level1; _gw_level2++) {
-                 const ub::matrix<real_gwbse>& Mmn2 =  _Mmn[ _gw_level2 + _qpmin ];
-                 double sigma_c = 0;
-                 for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
+                    const double qpmin2 = _qp_energies(_gw_level1 + _qpmin);
+                    const ub::matrix<real_gwbse>& Mmn2 = _Mmn[ _gw_level2 + _qpmin ];
+                    double sigma_c = 0;
+                    for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
                         // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
-                        if (_ppm_weight(_i_gw) < 1.e-9) { continue;}
+                        if (_ppm_weight(_i_gw) < 1.e-9) {
+                            continue;
+                        }
                         const double ppm_freq = _ppm_freq(_i_gw);
                         const double fac = _ppm_weight(_i_gw) * ppm_freq;
                         // loop over all screening levels
@@ -219,23 +224,28 @@ namespace votca {
                             if (_i > _homo) occ = -1.0; // sign for empty levels
 
                             // energy denominator
-                            const double _denom = qpmin - _qp_energies(_i) + occ * ppm_freq;
+                            const double _denom1 = qpmin1 - _qp_energies(_i) + occ * ppm_freq;
+                            const double _denom2 = qpmin2 - _qp_energies(_i) + occ * ppm_freq;
 
-                            double _stab = 1.0;
-                            if (std::abs(_denom) < 0.25) {
-                                _stab = 0.5 * (1.0 - std::cos(4.0 * pi * std::abs(_denom)));
+                            double _stab1 = 1.0;
+                            if (std::abs(_denom1) < 0.25) {
+                                _stab1 = 0.5 * (1.0 - std::cos(4.0 * pi * std::abs(_denom1)));
                             }
-                            const double factor = 0.5*fac * _stab / _denom; //Hartree
-                            sigma_c += factor * Mmn1(_i_gw, _i) * Mmn2(_i_gw, _i);
+                            const double factor1 = 0.5 * fac * _stab1 / _denom1; //Hartree
+                            double _stab2 = 1.0;
+                            if (std::abs(_denom2) < 0.25) {
+                                _stab2 = 0.5 * (1.0 - std::cos(4.0 * pi * std::abs(_denom2)));
+                            }
+                            const double factor2 = 0.5 * fac * _stab2 / _denom2; //Hartree
+                            sigma_c +=Mmn1(_i_gw, _i) * Mmn2(_i_gw, _i)*0.5*(factor1+factor2);
                         }// screening levels 
                     }// GW functions 
 
-                    _sigma_c(_gw_level1, _gw_level2)=sigma_c;
-                    
-                    
-                }// GW row 
-            } // GW col 
-            
+                    _sigma_c(_gw_level1, _gw_level2) = sigma_c;
+
+
+                }// GW row             
+            }//GW col
          
         return;
         } 
