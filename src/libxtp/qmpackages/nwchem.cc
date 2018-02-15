@@ -256,7 +256,7 @@ namespace votca {
                     // write occupations as double in three columns
                     // occupied levels
                     int column = 1;
-                    for (int i = 0; i < orbitals_guess->_number_of_electrons; i++) {
+                    for (int i = 0; i < orbitals_guess->getNumberOfElectrons(); i++) {
                         _orb_file << FortranFormat(2.0);
                         if (column == ncolumns) {
                             _orb_file << endl;
@@ -265,7 +265,7 @@ namespace votca {
                         column++;
                     }
                     // unoccupied levels
-                    for (int i = orbitals_guess->_number_of_electrons; i < _size_of_basis; i++) {
+                    for (int i = orbitals_guess->getNumberOfElectrons(); i < _size_of_basis; i++) {
                         _orb_file << FortranFormat(0.0);
                         if (column == ncolumns) {
                             _orb_file << endl;
