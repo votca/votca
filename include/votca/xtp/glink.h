@@ -17,6 +17,7 @@
 
 #ifndef _VOTCA_KMC_GLINK_H
 #define	_VOTCA_KMC_GLINK_H
+#include <votca/tools/vec.h>
 
 namespace votca { namespace xtp {
 
