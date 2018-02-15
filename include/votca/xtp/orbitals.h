@@ -129,7 +129,7 @@ namespace votca {
                 return ( _number_of_electrons > 0) ? true : false;
             }
 
-            int getNumberOfElectrons() {
+            int getNumberOfElectrons() const{
                 return _number_of_electrons;
             };
 

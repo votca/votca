@@ -394,14 +394,18 @@ bool GWBSE::Evaluate() {
   // convert _rpamax if needed
   _homo = _orbitals->getNumberOfElectrons() - 1;  // indexed from 0
 
-  unsigned int _ignored_corelevels = 0;
+  unsigned _ignored_corelevels = 0;
   if (_ignore_corelevels) {
-    std::string _ecpsave = _orbitals->getECP();
-    _orbitals->setECP("ecp");
-    int _valence_levels =
-        _orbitals->FragmentNuclearCharges(_atoms.size())(0) / 2;
-    _orbitals->setECP(_ecpsave);
-    _ignored_corelevels = _orbitals->getNumberOfElectrons() - _valence_levels;
+    if(!_orbitals->hasECP()){
+      BasisSet basis;
+      basis.LoadBasisSet("ecp");//
+      unsigned coreElectrons=0;
+      for(const auto& atom:_atoms){
+        coreElectrons+=basis.getElement(atom->getType())->getNcore();   
+      }
+       _ignored_corelevels = coreElectrons/2;
+    }
+   
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Can ignore "
                                    << _ignored_corelevels << " core levels "
                                    << flush;
