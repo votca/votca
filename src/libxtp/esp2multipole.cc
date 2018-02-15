@@ -115,7 +115,7 @@ void Esp2multipole::WritetoFile(string _output_file, string identifier){
     if (!(data_format==".mps")){
    throw std::runtime_error("Outputfile format not recognized. Export only to .mps");
     }
-    string tag="TOOL:"+Identify()+"_"+_state+"_"+_spin+boost::lexical_cast<string>(_state_no);
+    string tag="TOOL:"+Identify()+"_"+GetIdentifier()+"_"+_spin;
    
     QMMInterface Converter;
     ctp::PolarSeg result=Converter.Convert(_Atomlist);
@@ -178,7 +178,7 @@ void Esp2multipole::Extractingcharges( Orbitals & _orbitals ){
                 esp.setUseSVD(_do_svd,_conditionnumber);
             }
             if (_integrationmethod=="numeric")  {
-                esp.Fit2Density(_Atomlist, DMAT_tot, basis,bs,_gridsize); 
+                esp.Fit2Density(_Atomlist, DMAT_tot, basis,_gridsize); 
             }
             else if (_integrationmethod=="analytic")  esp.Fit2Density_analytic(_Atomlist,DMAT_tot,basis);
         }

@@ -37,7 +37,7 @@ namespace votca { namespace xtp {
 
 
 
-void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,string gridsize) {
+void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,string gridsize) {
 
 
     // setting up grid
@@ -45,7 +45,7 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &
     _grid.setAtomlist(&_atomlist);
     _grid.setupCHELPgrid();
     //_grid.printGridtoxyzfile("grid.xyz");
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl;
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << flush;
 
     // Calculating nuclear potential at gridpoints
 
@@ -131,7 +131,7 @@ ub::vector<double> Espfit::EvalNuclearPotential(std::vector< QMAtom* >& _atoms, 
 double Espfit::getNetcharge( std::vector< QMAtom* >& _atoms, double N ){
     double netcharge = 0.0;
       if (std::abs(N) < 0.05) {
-        CTP_LOG(ctp::logDEBUG, *_log) << "Number of Electrons is " << N << " transitiondensity is used for fit" << flush;
+        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp()<< " Number of Electrons is " << N << " transitiondensity is used for fit" << flush;
         _do_Transition = true;
       } else {
 
@@ -141,16 +141,16 @@ double Espfit::getNetcharge( std::vector< QMAtom* >& _atoms, double N ){
         }
 
         if (std::abs(Znuc - N) < 4) {
-          CTP_LOG(ctp::logDEBUG, *_log) << "Number of Electrons minus Nucleus charge is " << Znuc - N << "." << flush;
+          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp()<< " Number of Electrons minus Nucleus charge is " << Znuc - N << "." << flush;
         } else {
-          CTP_LOG(ctp::logDEBUG, *_log) << "Warning: Your molecule is highly ionized." << flush;
+          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp()<< " Warning: Your molecule is highly ionized." << flush;
         }
         netcharge = Znuc - N;
         _do_Transition = false;
       }
 
       netcharge = round(netcharge);
-      CTP_LOG(ctp::logDEBUG, *_log) << "Netcharge constrained to " << netcharge << flush;
+      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp()<< " Netcharge constrained to " << netcharge << flush;
 
       return netcharge;
 }
@@ -252,7 +252,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitce
        }
 
     _Bvec(_Bvec.size1()-1,0) = _netcharge; //netcharge!!!!
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << "  Inverting Matrices "<< flush;
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices "<< flush;
     // invert _Amat
     ub::matrix<double> _Amat_inverse = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
 

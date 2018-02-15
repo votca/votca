@@ -328,7 +328,8 @@ namespace votca {
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 ctp::Logger gwbse_logger(ctp::logDEBUG);
                 gwbse_logger.setMultithreading(false);
-                _gwbse.setLogger(&gwbse_logger);
+                _gwbse.setLogger(_log);
+                //_gwbse.setLogger(&gwbse_logger);
                 gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
                 gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
                 gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
@@ -539,7 +540,7 @@ namespace votca {
                 } // only if state >0
 
                 if (!_static_qmmm) {
-                    Density2Charges(&_gwbse,_state_index);
+                    Density2Charges(_state_index);
                 } // for polarized QMMM
 
             } //_do_gwbse
@@ -658,7 +659,7 @@ namespace votca {
 
 
         template<class QMPackage>
-        void QMMachine<QMPackage>::Density2Charges( GWBSE* _gwbse, std::vector<int> _state_index ){
+        void QMMachine<QMPackage>::Density2Charges(std::vector<int> _state_index ){
 
                    
                     // load DFT basis set (element-wise information) from xml file
@@ -666,10 +667,7 @@ namespace votca {
                     if (orb_iter_input.getDFTbasis() != "") {
                         dftbs.LoadBasisSet(orb_iter_input.getDFTbasis());
                         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
-                    } else {
-                        //dftbs.LoadBasisSet(_gwbse->get_dftbasis_name());
-                        //CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _gwbse.get_dftbasis_name() << flush;
-                    }
+                    } 
 
                     // fill DFT AO basis by going through all atoms
                     AOBasis dftbasis;
@@ -701,7 +699,7 @@ namespace votca {
                     std::vector< QMAtom* >& Atomlist = orb_iter_input.QMAtoms();
 
                     Espfit esp = Espfit(_log);
-                    esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, dftbs, "medium");
+                    esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, "medium");
 
 
 

@@ -96,7 +96,7 @@ namespace votca { namespace xtp {
         void setupgrid();
        
         void setupCHELPgrid(){
-            //_padding=2.8; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
+            _padding=3*tools::conv::ang2bohr; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
             _gridspacing=0.3*tools::conv::ang2bohr; // Grid spacing according to same paper 
             _cutoff=2.8*tools::conv::ang2bohr;
             _useVdWcutoff_inside=true;

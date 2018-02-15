@@ -411,7 +411,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
     // fill DFT AO basis by going through all atoms
     
     Espfit esp = Espfit(_log);
-    esp.Fit2Density(orb.QMAtoms(), DMAT_tot, dftbasis, dftbs, "medium");
+    esp.Fit2Density(orb.QMAtoms(), DMAT_tot, dftbasis,"medium");
     return true;
 }
 

@@ -251,7 +251,7 @@ void Grid::setupgrid(){
     if (_useVdWcutoff) {
         _padding = 0.0;
         for (atom = _atomlist->begin(); atom != _atomlist->end(); ++atom) {
-          double VdWcutoff=_elements.getVdWChelpG((*atom)->getType());
+          double VdWcutoff=_elements.getVdWChelpG((*atom)->getType())*tools::conv::ang2bohr;
           if ( VdWcutoff+ _shift_cutoff > _padding) {
             _padding = VdWcutoff + _shift_cutoff;
           }
@@ -305,10 +305,10 @@ void Grid::setupgrid(){
                         vec atompos=(*atom)->getPos();
                         double distance2=(gridpos-atompos)*(gridpos-atompos);
                         if(_useVdWcutoff){
-                          _cutoff=_elements.getVdWChelpG((*atom)->getType())+_shift_cutoff;
+                          _cutoff=_elements.getVdWChelpG((*atom)->getType())*tools::conv::ang2bohr+_shift_cutoff;
                         }
                         if(_useVdWcutoff_inside){
-                          _cutoff_inside=_elements.getVdWChelpG((*atom)->getType())+_shift_cutoff_inside;
+                          _cutoff_inside=_elements.getVdWChelpG((*atom)->getType())*tools::conv::ang2bohr+_shift_cutoff_inside;
                         }
                         if ( distance2<(_cutoff_inside*_cutoff_inside)){
                             _is_valid = false;
