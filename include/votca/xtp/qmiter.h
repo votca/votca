@@ -44,9 +44,9 @@ public:
     QMMIter(int id) : _id(id), _hasdRdQ(false), _hasQM(false), _hasMM(false)  { ; }
    ~QMMIter() { ; }
 
-   void ConvertPSitesToQMAtoms(std::vector< ctp::PolarSeg* > &, std::vector< ctp::QMAtom* > &);
-   void ConvertQMAtomsToPSites(std::vector< ctp::QMAtom* > &, std::vector< ctp::PolarSeg* > &);
-   void UpdatePosChrgFromQMAtoms(std::vector< ctp::QMAtom* > &, std::vector< ctp::PolarSeg* > &);  
+   void ConvertPSitesToQMAtoms(std::vector< ctp::PolarSeg* > &, std::vector< QMAtom* > &);
+   void ConvertQMAtomsToPSites(std::vector< QMAtom* > &, std::vector< ctp::PolarSeg* > &);
+   void UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &, std::vector< ctp::PolarSeg* > &);  
    void UpdateMPSFromGDMA( std::vector<std::vector<double> > &multipoles,  std::vector< ctp::PolarSeg* > &psegs);
    void GenerateQMAtomsFromPolarSegs(ctp::PolarTop *ptop, Orbitals &orb, bool split_dpl, double dpl_spacing);   
 

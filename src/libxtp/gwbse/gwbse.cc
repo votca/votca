@@ -295,12 +295,8 @@ namespace votca {
             string _dft_package = _orbitals->getQMpackage();
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DFT data was created by " << _dft_package << flush;
 
-            std::vector<ctp::QMAtom*> _atoms;
-            for(const auto& atom:_orbitals->QMAtoms()){
-                            if(!atom->from_environment){
-                            _atoms.push_back(atom);
-                            }
-                        }
+            std::vector<QMAtom*>& _atoms=_orbitals->QMAtoms();
+            
             // load DFT basis set (element-wise information) from xml file
             BasisSet dftbs;
 
@@ -476,7 +472,7 @@ namespace votca {
                     if (ScaHFX_temp != _ScaHFX) {
                         throw std::runtime_error((boost::format("GWBSE exact exchange a=%s differs from qmpackage exact exchange a=%s, probably your functionals are inconsistent") % ScaHFX_temp % _ScaHFX).str());
                     }
-                    _numint.GridSetup(_grid, &dftbs, _atoms,&_dftbasis);
+                    _numint.GridSetup(_grid, _atoms,&_dftbasis);
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup grid for integration with gridsize: " << _grid <<" with "<<_numint.getGridSize()<< " points, divided into "<<_numint.getBoxesSize()<<" boxes"<<flush;
                     
 

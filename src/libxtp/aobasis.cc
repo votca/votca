@@ -18,6 +18,8 @@
  */
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aoshell.h"
+#include "votca/xtp/qmatom.h"
+#include "votca/xtp/elements.h"
 #include <votca/tools/constants.h>
 
 
@@ -467,82 +469,104 @@ void AOBasis::addReorderShell(const string& start,const string& target,const str
 }
 
 
+std::vector<AOShell*> AOBasis::getShellsperAtom(int AtomId){
+  std::vector<AOShell*> result;
+  for(const auto& aoshell:_aoshells){
+    if(aoshell->_atomindex==AtomId){
+      result.push_back(aoshell);
+    }
+  }
+  return result;
+}
+
+int AOBasis::getFuncperAtom(int AtomId) const{
+  int number=0;
+  for(const auto& aoshell:_aoshells){
+    if(aoshell->_atomindex==AtomId){
+      number+=aoshell->_numFunc;
+    }
+  }
+  
+  return number;
+}
 
 
-void AOBasis::AOBasisFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms, int _fragbreak  ) {
+void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fragbreak  ) {
+  Elements elementinfo;
+  vector<QMAtom* > :: iterator ait;
 
-        vector< ctp::QMAtom* > :: iterator ait;
+ _AOBasisSize =0;
+ _AOBasisFragA=0;
+ _AOBasisFragB=0;
 
-       _AOBasisSize = 0;
-       _AOBasisFragA=0;
-       _AOBasisFragB=0;
+ 
+
+ // loop over atoms
+ for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
     
-       int _atomidx = 0;
+    vec pos=(*ait)->getPos();
+    
+    // get element type of the atom
+    string  name = (*ait)->getType();
+    //assign its nuclear charge
+    (*ait)->nuccharge=elementinfo.getNucCrg(name);
+    // get the basis set entry for this element
+    Element* element = bs->getElement(name);
+    
+    int funcperAtom=0;
+              // and loop over all shells
+    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+              Shell* shell = (*its);
+              int numfuncshell=NumFuncShell(shell->getType());
+              AOShell* aoshell = addShell(shell->getType(), shell->getLmax(), shell->getLmin(), shell->getScale(),
+                      numfuncshell, _AOBasisSize, OffsetFuncShell(shell->getType()), pos, name, (*ait)->getAtomID());
+              _AOBasisSize += numfuncshell;
+              funcperAtom+=numfuncshell;
+              for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                  GaussianPrimitive* gaussian = *itg;
+                  aoshell->addGaussian(gaussian->decay, gaussian->contraction);
+              }
+              aoshell->CalcMinDecay();     
+          }
+    if ( (*ait)->getAtomID() < _fragbreak ) _AOBasisFragA = _AOBasisSize;
 
-       // loop over atoms
-       for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-          // get coordinates of this atom and convert from Angstrom to Bohr
-        if((*ait)->from_environment){continue;}
-          vec pos=(*ait)->getPos()* tools::conv::ang2bohr;
-          // get element type of the atom
-          string  name = (*ait)->type;
-          // get the basis set entry for this element
-          Element* element = bs->getElement(name);
-                    // and loop over all shells
-          for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                    Shell* shell = (*its);
-                    int numfuncshell=NumFuncShell(shell->getType());
-                    AOShell* aoshell = addShell(shell->getType(), shell->getLmax(), shell->getLmin(), shell->getScale(),
-                            numfuncshell, _AOBasisSize, OffsetFuncShell(shell->getType()), pos, name, _atomidx);
-                    _AOBasisSize += numfuncshell;
-                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                        GaussianPrimitive* gaussian = *itg;
-                        aoshell->addGaussian(gaussian->decay, gaussian->contraction);
-                    }
-                    aoshell->CalcMinDecay();
-                }
+   
+}
 
-          if ( _atomidx < _fragbreak ) _AOBasisFragA = _AOBasisSize;
-
-          _atomidx++;
-      }
-
-       if ( _fragbreak < 0 ) {
-           _AOBasisFragA = _AOBasisSize;
-           _AOBasisFragB = 0;
-       } else {
-           _AOBasisFragB = _AOBasisSize - _AOBasisFragA;
-       }
-       return;
+ if ( _fragbreak < 0 ) {
+     _AOBasisFragA = _AOBasisSize;
+     _AOBasisFragB = 0;
+ } else {
+     _AOBasisFragB = _AOBasisSize - _AOBasisFragA;
+ }
+ return;
 }
 
 
 
 
 
-void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
-
-        vector< ctp::QMAtom* > :: iterator ait;
-        std::vector < ctp::QMAtom* > :: iterator atom;
-
+void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
+        
+        vector< QMAtom* > :: iterator ait;
        _AOBasisSize = 0;
-     
-
-       int _atomidx = 0;
+      
 
        // loop over atoms
        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-           if((*ait)->from_environment){continue;}
+          
           // get coordinates of this atom and convert from Angstrom to Bohr
-          vec pos=(*ait)->getPos()* tools::conv::ang2bohr;
+          vec pos=(*ait)->getPos();
           // get element type of the atom
-          string  name = (*ait)->type;
+          string  name = (*ait)->getType();
           // get the basis set entry for this element
           if(name=="H" || name=="He"){continue;}
-          Element* element = bs->getElement(name);
-
+            Element* element = bs->getElement(name);
+            //update nuclear charge of QMAtom
+           
+            (*ait)->ecpcharge=element->getNcore();
           // and loop over all shells
-
+           
           int lmax=0;
           for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                Shell* shell = (*its);
@@ -554,16 +578,17 @@ void AOBasis::ECPFill(BasisSet* bs , vector<ctp::QMAtom* > _atoms  ) {
                // first shell is local component, identification my negative angular momentum
 
                 //why is the shell not properly used, apparently it is only used in aoecp.cc and there it is iterated over so l and l make no difference CHECK!!
-                   AOShell* aoshell = addShell( shell->getType(),l,l, shell->getScale(), lmax, l, l, pos, name, _atomidx );
+                   AOShell* aoshell = addShell( shell->getType(),l,l, shell->getScale(), lmax, l, l, pos, name, (*ait)->getAtomID() );
                    _AOBasisSize += NumFuncShell( shell->getType() );
                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                       GaussianPrimitive* gaussian = *itg;
                       aoshell->addGaussian(gaussian->power, gaussian->decay, gaussian->contraction);
                }
                    aoshell->CalcMinDecay();
+                 
           }
 
-          _atomidx++;
+         
       }
        return;
 }

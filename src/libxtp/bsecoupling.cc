@@ -178,13 +178,13 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     _orbitalsAB->setCoupledExcitonsA(_levA);
     _orbitalsAB->setCoupledExcitonsB(_levB);
     //check to see if ordering of atoms agrees
-    const std::vector<ctp::QMAtom*> atomsA=_orbitalsA->QMAtoms();
-    const std::vector<ctp::QMAtom*> atomsB=_orbitalsB->QMAtoms();
-    const std::vector<ctp::QMAtom*> atomsAB=_orbitalsAB->QMAtoms();
+    const std::vector<QMAtom*> atomsA=_orbitalsA->QMAtoms();
+    const std::vector<QMAtom*> atomsB=_orbitalsB->QMAtoms();
+    const std::vector<QMAtom*> atomsAB=_orbitalsAB->QMAtoms();
     
     for (unsigned i=0;i<atomsAB.size();i++){
-        ctp::QMAtom* dimer=atomsAB[i];
-        ctp::QMAtom* monomer=NULL;
+        QMAtom* dimer=atomsAB[i];
+        QMAtom* monomer=NULL;
         if (i<atomsA.size()){
             monomer=atomsA[i];
         }
@@ -195,10 +195,10 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             throw runtime_error((boost::format("Number of Atoms in dimer %3i and the two monomers A:%3i B:%3i does not agree") %atomsAB.size() %atomsA.size() %atomsB.size()).str());
         }
         
-        if(monomer->type != dimer->type){
+        if(monomer->getType() != dimer->getType()){
             throw runtime_error("\nERROR: Atom types do not agree in dimer and monomers\n");
         }
-        if(std::abs(monomer->x-dimer->x)>0.001 || std::abs(monomer->y-dimer->y)>0.001 || std::abs(monomer->z-dimer->z)>0.001){
+        if(tools::abs(monomer->getPos()-dimer->getPos())>0.001){
             CTP_LOG(ctp::logERROR,*_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << flush;
             break;
         }

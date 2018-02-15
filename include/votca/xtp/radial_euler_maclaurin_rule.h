@@ -23,7 +23,7 @@
 
 #include <votca/tools/property.h>
 #include <votca/xtp/basisset.h>
-#include <votca/ctp/qmatom.h>
+#include <votca/xtp/qmatom.h>
 #include <votca/tools/constants.h>
 #include <votca/xtp/grid_containers.h>
 
@@ -37,8 +37,8 @@ namespace votca { namespace xtp {
             
             EulerMaclaurinGrid() { FillGrids(); };
             
-            void getRadialGrid( BasisSet* bs , vector<ctp::QMAtom* > _atoms , std::string type, GridContainers& _grids );
-            std::vector<double> getPruningIntervals( std::string element );
+            void getRadialGrid( AOBasis* aobasis, vector<QMAtom* > _atoms , const std::string& type, GridContainers& _grids );
+            std::vector<double> getPruningIntervals( const std::string& element );
             
 
 
@@ -61,13 +61,13 @@ namespace votca { namespace xtp {
             
             std::map<std::string,double> _BraggSlaterRadii;
             
-            int getGrid(std::string element, std::string type);
+            int getGrid(const std::string& element, const std::string& type);
             
             double DetermineCutoff( double alpha, int l, double eps );
             double getNeglected( double alpha, int l, double cutoff);
             double RadialIntegral(double alpha, int l, double cutoff);
             
-            void getRadialCutoffs( std::vector<ctp::QMAtom* > _atoms ,  BasisSet* bs ,std::string gridtype );
+            void getRadialCutoffs(AOBasis* aobasis, std::vector<QMAtom* > _atoms , const std::string& gridtype );
             void setGrid(int numberofpoints, double cutoff, std::vector<double>& point, std::vector<double>& weight );
             
             std::map<std::string, int>    MediumGrid;
@@ -77,8 +77,7 @@ namespace votca { namespace xtp {
             std::map<std::string, int>    XfineGrid;
             std::map<std::string, double> Accuracy;
             
-            inline void FillGrids(){
-        
+            inline void FillGrids(){  
                 FillBraggSlaterRadii();
                 FillPruningSet();
                 FillAccuracy();
@@ -87,8 +86,6 @@ namespace votca { namespace xtp {
                 FillXcoarseGrid();
                 FillFineGrid();
                 FillXfineGrid();
-                
-        
             }
 
             

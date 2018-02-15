@@ -105,7 +105,6 @@ bool Partialcharges::Evaluate() {
     
     esp2multipole.WritetoFile(_output_file);
     
-    
     CTP_LOG(ctp::logDEBUG, _log) << "Written charges to " << _output_file << flush;
     
     return true;

@@ -23,7 +23,7 @@
 #include <votca/tools/linalg.h>
 namespace votca { namespace xtp {
 
-void NBO::EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist,const  ub::matrix<double> &_dmat,const AOBasis &basis, BasisSet &bs){
+void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,const  ub::matrix<double> &_dmat,const AOBasis &basis, BasisSet &bs){
     AOOverlap _overlap;
     // Fill overlap
     _overlap.Fill(basis);
@@ -39,15 +39,10 @@ void NBO::EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist,const  ub::matrix<d
     cout<<P<<endl;
     cout<<_overlap.Matrix()<<endl;
     
-    vector < ctp::QMAtom* > :: iterator atom;
+    vector < QMAtom* > :: iterator atom;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
     
-    std::vector<int> func=_elements.getMinimalBasis((*atom)->type,_ECP);
-  
-    
-    
    
-         //cout << id << " "<< id+nooffunc << endl;
       
     }
     //cout << id << " " << _dmat.size1() << endl;
@@ -56,10 +51,10 @@ void NBO::EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist,const  ub::matrix<d
 }
 
 
-ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::matrix<double> &Overlap,vector< ctp::QMAtom* >& _atomlist , BasisSet &bs){
+ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::matrix<double> &Overlap,vector< QMAtom* >& _atomlist , BasisSet &bs){
     
     
-    vector< ctp::QMAtom* >::iterator atom;
+    vector< QMAtom* >::iterator atom;
 
 // make an array which stores for each atom the the starting point for all s functions, p functions, d functions etc...   
     
@@ -70,7 +65,7 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::m
     int functionindex=0;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
         std::map< int,std::vector< int > > shellsort;
-        Element* element = bs.getElement((*atom)->type);
+        Element* element = bs.getElement((*atom)->getType());
         for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
             
            // for loop because shells can also consist of SP shells or alike
@@ -168,14 +163,5 @@ void NBO::TransformMatrixtoNewBasis(ub::matrix<double>& Matrix, const ub::matrix
     Matrix=ub::prod(transformation,temp);
     return;
 }
-
-
-
-void NBO::LoadMatrices(std::string fn_projectionMatrix, std::string fn_overlapMatrix){
-
-    //TODO: Yuriy, fill this in
-    
-    return;
-    }
 
 }}

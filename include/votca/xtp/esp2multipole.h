@@ -39,7 +39,7 @@ public:
     Esp2multipole (ctp::Logger* log) {_log=log; }
    ~Esp2multipole () { 
    
-   std::vector< ctp::QMAtom* >::iterator it;
+   std::vector<QMAtom* >::iterator it;
     for ( it = _Atomlist.begin(); it != _Atomlist.end(); ++it ) delete *it;};
 
     string Identify() { return "esp2multipole"; }
@@ -60,8 +60,6 @@ private:
     string      _spin;
     string      _integrationmethod;
     string      _gridsize;
-    bool        _use_mps;
-    bool        _use_pdb;
     bool        _use_mulliken;
     bool        _use_lowdin;
     bool        _use_CHELPG;
@@ -72,7 +70,7 @@ private:
     bool        _use_ecp;
     bool        _do_svd;
     double      _conditionnumber;
-    vector< ctp::QMAtom* > _Atomlist;
+    vector< QMAtom* > _Atomlist;
     
     ctp::Logger*      _log;
     

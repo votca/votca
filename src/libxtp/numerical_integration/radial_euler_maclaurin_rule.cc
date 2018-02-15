@@ -22,6 +22,7 @@
 #include <boost/math/constants/constants.hpp>
 #include "votca/xtp/radial_euler_maclaurin_rule.h"
 #include "votca/xtp/aobasis.h"
+#include "votca/xtp/qmatom.h"
 #include <votca/xtp/aomatrix.h>
 
 
@@ -30,7 +31,7 @@
 namespace votca { namespace xtp { 
     
     
-    std::vector<double> EulerMaclaurinGrid::getPruningIntervals(string element){
+    std::vector<double> EulerMaclaurinGrid::getPruningIntervals(const string & element){
         
         std::vector<double> _r;
         
@@ -73,11 +74,11 @@ namespace votca { namespace xtp {
      }
     
      
-void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, BasisSet* bs, string gridtype) {
+void EulerMaclaurinGrid::getRadialCutoffs(AOBasis* aobasis,std::vector<QMAtom* > _atoms, const string& gridtype) {
 
             map<string, min_exp>::iterator it;
-            std::vector< ctp::QMAtom* > ::iterator ait;
-            std::vector< ctp::QMAtom* > ::iterator bit;
+            std::vector< QMAtom* > ::iterator ait;
+            std::vector< QMAtom* > ::iterator bit;
 
             double eps = Accuracy[gridtype];
             double _decaymin;
@@ -85,9 +86,10 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
             //  cout << endl << " Setting cutoffs for grid type " << gridtype << " eps = " << eps << endl;
             // 1) is only element based
             // loop over atoms
+
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
                 // get element type of the atom
-                string name = (*ait)->type;
+                string name = (*ait)->getType();
                 // is this element already in map?
                 it = _element_ranges.find(name);
                 // only proceed, if element data does not exist yet
@@ -95,22 +97,21 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
                     // get first range estimate and add to map
                     min_exp this_atom;
                     double range_max = 0.0;
-                    // get the basis set entry for this element
-                    Element* _element = bs->getElement(name);
+                    const std::vector<AOShell*>  shells=aobasis->getShellsperAtom((*ait)->getAtomID());
+                    std::vector<AOShell*>::const_iterator its;
                     // and loop over all shells to figure out minimum decay constant and angular momentum of this function
-                    for (Element::ShellIterator its = _element->firstShell(); its != _element->lastShell(); its++) {
-                        Shell* shell = (*its);
+                    for (its =shells.begin(); its !=shells.end() ; its++) {
+                        int _lmax = (*its)->getLmax();
+                       (*its)->getMinDecay();
                         _decaymin = 1e7;
                         _lvalue = 0;
-                        int _lmax = shell->getLmax();
-                        for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                            GaussianPrimitive* gaussian = *itg;
-                            double _decay = gaussian->decay;
-                            if (_decay < _decaymin) {
-                                _decaymin = _decay;
+                       
+                       
+                            if ((*its)->getMinDecay() < _decaymin) {
+                                _decaymin = (*its)->getMinDecay();
                                 _lvalue = _lmax;
                             }
-                        }
+                        
                         double range = DetermineCutoff(2 * _decaymin, 2 * _lvalue + 2, eps);
                         if (range > range_max) {
                             this_atom.alpha = _decaymin;
@@ -126,11 +127,10 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
             } // atoms
 
             // calculate overlap matrix
-            AOBasis aobasis;
-            aobasis.AOBasisFill(bs, _atoms);
+           
             AOOverlap _overlap;
             // Fill overlap
-            _overlap.Fill(aobasis);
+            _overlap.Fill(*aobasis);
 
 
 
@@ -141,9 +141,9 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
             std::vector<int> idxstop;
             int start = 0;
             int end = 0;
-            for (AOBasis::AOShellIterator _row = aobasis.firstShell(); _row != aobasis.lastShell(); _row++) {
+            for (AOBasis::AOShellIterator _row = aobasis->firstShell(); _row != aobasis->lastShell(); _row++) {
 
-                const AOShell* _shell_row = aobasis.getShell(_row);
+                const AOShell* _shell_row = aobasis->getShell(_row);
 
                 if (_shell_row->getIndex() == atidx) {
 
@@ -171,21 +171,21 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
                 double range_max = 0.0;
 
                 // get preset values for this atom type
-                double exp_iat = _element_ranges.at((*ait)->type).alpha;
-                int l_iat = _element_ranges.at((*ait)->type).l;
+                double exp_iat = _element_ranges.at((*ait)->getType()).alpha;
+                int l_iat = _element_ranges.at((*ait)->getType()).l;
 
-                vec pos_a = (*ait)->getPos() * tools::conv::bohr2ang;
+                const vec& pos_a = (*ait)->getPos();
 
 
-                string type_diff;
+                
                 int bidx = 0;
                 for (bit = _atoms.begin(); bit < _atoms.end(); ++bit) {
 
                     int _b_start = idxstart[bidx];
                     int _b_stop = idxstop[bidx];
-                    vec pos_b = (*bit)->getPos() * tools::conv::bohr2ang;
+                    const vec& pos_b = (*bit)->getPos();
                     // now do some overlap gymnastics
-                    double s_max = 10.0;
+                    double s_max =  std::numeric_limits<double>::max();
                     if (aidx != bidx) {
 
                         // find overlap block of these two atoms
@@ -201,20 +201,17 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
 
                     if (s_max > 1e-5) {
                         // cout << " Atom " << aidx << " neighbor " << bidx << " s-max " << s_max << " exponents " << exp_iat << " and " << _element_ranges.at((*bit)->type).alpha << endl;
-                        double range = DetermineCutoff(exp_iat + _element_ranges.at((*bit)->type).alpha, l_iat + _element_ranges.at((*bit)->type).l + 2, eps);
+                        double range = DetermineCutoff(exp_iat + _element_ranges.at((*bit)->getType()).alpha, l_iat + _element_ranges.at((*bit)->getType()).l + 2, eps);
                         // now do some update trickery from Gaussian product formula
                         double dist = abs(pos_b - pos_a);
-                        double shift_2g = dist * exp_iat / (exp_iat + _element_ranges.at((*bit)->type).alpha);
+                        double shift_2g = dist * exp_iat / (exp_iat + _element_ranges.at((*bit)->getType()).alpha);
                         range += shift_2g;
 
 
                         if (aidx != bidx) range += dist;
 
                         if (range > range_max) {
-                            //shiftm_2g = shift_2g;
-                            range_max = range;
-                            //iat_diff = bidx;
-                            type_diff = (*bit)->type;
+                            range_max = range;                          
                         }
 
                     }
@@ -223,8 +220,8 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
                 }
 
 
-                if (round(range_max) > _element_ranges.at((*ait)->type).range) {
-                    _element_ranges.at((*ait)->type).range = round(range_max);
+                if (round(range_max) > _element_ranges.at((*ait)->getType()).range) {
+                    _element_ranges.at((*ait)->getType()).range = round(range_max);
                 }
                 aidx++;
             }
@@ -237,28 +234,19 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
     
     
     
-    void EulerMaclaurinGrid::getRadialGrid(BasisSet* bs , std::vector<ctp::QMAtom* > _atoms, string type, GridContainers& _grid) {
+    void EulerMaclaurinGrid::getRadialGrid(AOBasis* aobasis , std::vector<QMAtom* > _atoms,const string& type, GridContainers& _grid) {
 
         
             map<string, min_exp>::iterator it;
-            getRadialCutoffs(_atoms,bs,type);
+            getRadialCutoffs(aobasis,_atoms,type);
             
             // go through all elements
             for ( it = _element_ranges.begin() ; it != _element_ranges.end() ; ++it){
-                
-                 // cout << "Element " << it->first << " alpha " << it->second.alpha << " l " << it->second.l << " Rcut " << it->second.range <<  " Rcut (Ang) " <<  it->second.range  * 0.529177249 << endl;
-                
+              
                 std::vector<double> points;
                 std::vector<double> weights;
                 int numberofpoints = getGrid(it->first, type);
-                //cout << " Setting grid for element " << it->first <<  " with " << numberofpoints << " points " <<  endl ;
                 setGrid( numberofpoints, it->second.range, points, weights );
-                
-                //grid_element this_element;
-                //this_element.gridpoint = points;
-                //this_element.weight = weights;
-                
-                //_element_grids[it->first] = this_element;
                 
                 _grid._radial_grids[it->first].radius = points; 
                 _grid._radial_grids[it->first].weight = weights;
@@ -285,9 +273,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
             
         }
         
-        
-        
-        
+        return;
     }
     
     
@@ -372,7 +358,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(std::vector<ctp::QMAtom* > _atoms, Bas
     
 
     
-    int EulerMaclaurinGrid::getGrid(string element, string type){
+    int EulerMaclaurinGrid::getGrid(const string& element, const string& type){
         
         if ( type == "medium"){
             

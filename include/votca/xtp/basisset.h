@@ -159,7 +159,7 @@ public:
     ShellIterator firstShell() { return _shells.begin(); }
     ShellIterator lastShell(){ return _shells.end(); }
 
-    std::string getType() { return _type; }
+    std::string getType(){ return _type; }
     
     int getLmax() { return _lmax; }
     
@@ -226,6 +226,7 @@ public:
          return element; 
      }
     
+        
     ~BasisSet();
     
 private:    

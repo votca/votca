@@ -36,7 +36,7 @@ public:
     Density2Gyration (ctp::Logger* log) {_log=log; }
    ~Density2Gyration () { 
    
-    std::vector< ctp::QMAtom* >::iterator it;
+    std::vector< QMAtom* >::iterator it;
     for ( it = _Atomlist.begin(); it != _Atomlist.end(); ++it ) delete *it;};
 
     string Identify() { return "density2gyration"; }
@@ -50,7 +50,7 @@ public:
     
     
     void AnalyzeDensity( Orbitals& _orbitals );
-    void AnalyzeGeometry( vector< ctp::QMAtom* > _atoms );
+    void AnalyzeGeometry( vector< QMAtom* > _atoms );
 
 private:
     
@@ -62,9 +62,9 @@ private:
     string      _integrationmethod;
     string      _gridsize;
 
-    bool        _use_ecp;
 
-    vector< ctp::QMAtom* > _Atomlist;
+
+    vector< QMAtom* > _Atomlist;
     
     ctp::Logger*      _log;
     

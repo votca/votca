@@ -20,50 +20,40 @@
 
 #include <votca/xtp/mulliken.h>
 #include <votca/xtp/aomatrix.h>
+
+#include "votca/xtp/qmatom.h"
 namespace votca { namespace xtp {
 
-void Mulliken::EvaluateMulliken(vector< ctp::QMAtom* >& _atomlist,const ub::matrix<double> &_dmat, const AOBasis &basis,BasisSet &bs,  bool _do_transition){
+void Mulliken::EvaluateMulliken(vector<QMAtom* >& _atomlist,const ub::matrix<double> &_dmat, const AOBasis &basis,bool _do_transition){
     AOOverlap _overlap;
     // Fill overlap
     _overlap.Fill(basis);
     
     ub::matrix<double> _prodmat = ub::prod( _dmat, _overlap.Matrix() );
     
-    vector < ctp::QMAtom* > :: iterator atom;
+    vector <QMAtom* > :: iterator atom;
 
     int id =0;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
-                
-    
+         double charge=0.0;           
          // get element type and determine its nuclear charge
          if (!_do_transition){
-             if (_use_ecp){
-             (*atom)->charge=_elements.getNucCrgECP((*atom)->type);
-             }
-             else{
-             (*atom)->charge=_elements.getNucCrg((*atom)->type); 
-             }
-             //cout << (*atom)->type << " " << (*atom)->charge << endl;
+            charge=(*atom)->getNuccharge(); 
          }
-         else {
-             (*atom)->charge=0.0;
-         }
+         
          // a little messy, have to use basis set to find out which entries in dmat belong to each atom.
-         Element* element = bs.getElement((*atom)->type);
-         int nooffunc=0;
-         for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-             Shell* shell = (*its);
-             nooffunc+=shell->getnumofFunc();
-         }
-         //cout << id << " "<< id+nooffunc << endl;
+         
+         
+         int nooffunc=basis.getFuncperAtom((*atom)->getAtomID());
+         
          for ( int _i = id ; _i < id+nooffunc; _i++){
-                (*atom)->charge -= _prodmat(_i,_i);
+                charge -= _prodmat(_i,_i);
         }
+         (*atom)->setPartialcharge(charge);
          id+=nooffunc;
     }
-    //cout << id << " " << _dmat.size1() << endl;
 
-
+    return;
 }
 
 }}

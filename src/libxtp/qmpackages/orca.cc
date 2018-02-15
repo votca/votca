@@ -126,7 +126,7 @@ namespace votca {
          * the system.bas/aux file(s), which are then included in the
          * Orca input file using GTOName = "system.bas/aux"
          */
-        void Orca::WriteBasisset(std::vector<ctp::QMAtom*>& qmatoms, std::string& _bs_name, std::string& _el_file_name) {
+        void Orca::WriteBasisset(std::vector<QMAtom*>& qmatoms, std::string& _bs_name, std::string& _el_file_name) {
 
             Elements _elements;
             list<std::string> elements;
@@ -138,14 +138,10 @@ namespace votca {
             _el_file.open(_el_file_name.c_str());
             //_com_file << "@" << "system.bas" << endl;
             _el_file << "$DATA" << endl;
-            std::vector< ctp::QMAtom* >::iterator it;
+            std::vector< QMAtom* >::iterator it;
 
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if ((*it)->from_environment) {
-                    continue;
-                }
-
-                std::string element_name = (*it)->type;
+                std::string element_name = (*it)->getType();
                 list<std::string>::iterator ite;
                 ite = find(elements.begin(), elements.end(), element_name);
                 if (ite == elements.end()) {
@@ -186,19 +182,16 @@ namespace votca {
         /* Coordinates are written in standard Element,x,y,z format to the
          * input file.
          */
-        void Orca::WriteCoordinates(std::ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
+        void Orca::WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
 
-            std::vector< ctp::QMAtom* >::iterator it;
+            std::vector< QMAtom* >::iterator it;
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if ((*it)->from_environment) {
-                    continue;
-                }
-
-                _com_file << setw(3) << (*it)->type.c_str()
-                        << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
-                        << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
-                        << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->z
-                        << endl;
+                tools::vec pos=(*it)->getPos()*tools::conv::bohr2ang;
+                    _com_file << setw(3) << (*it)->getType().c_str()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()
+                            << endl;
             }
             _com_file << "* \n" << endl;
             return;
@@ -208,9 +201,9 @@ namespace votca {
         /* If custom ECPs are used, they need to be specified in the input file
          * in a section following the basis set includes.
          */
-        void Orca::WriteECP(std::ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms){
+        void Orca::WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms){
 
-            std::vector< ctp::QMAtom* >::iterator it;
+            std::vector< QMAtom* >::iterator it;
 
 
             _com_file << endl;
@@ -225,8 +218,8 @@ namespace votca {
 
 
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if (!(*it)->from_environment) {
-                    std::string element_name = (*it)->type;
+                
+                    std::string element_name = (*it)->getType();
 
 
                     list<std::string>::iterator ite;
@@ -275,7 +268,7 @@ namespace votca {
                         _com_file << "end\n " << "\n" << endl;
                     }
 
-                }
+                
             }
             return;
         }
@@ -350,7 +343,7 @@ namespace votca {
             // header
             _com_file << "* xyz  " << _charge << " " << _spin << endl;
 
-            std::vector< ctp::QMAtom* > qmatoms;
+            std::vector< QMAtom* > qmatoms;
             // This is needed for the QM/MM scheme, since only orbitals have
             // updated positions of the QM region, hence vector<Segments*> is
             // NULL in the QMMachine and the QM region is also printed here
@@ -615,19 +608,17 @@ namespace votca {
                         boost::trim(_line);
                         boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                         nfields = _row.size();
+                        
+                        tools::vec pos=tools::vec(_x,_y,_z);
+                        pos*=tools::conv::ang2bohr;
 
                         if (_has_QMAtoms == false) {
-                            _orbitals->AddAtom(_atom_type, _x, _y, _z);
+                            _orbitals->AddAtom(atom_id,_atom_type, pos);
                         } else {
-
-                            ctp::QMAtom* pAtom = _orbitals->_atoms.at(atom_id);
-                            pAtom->type = _atom_type;
-                            pAtom->x = _x;
-                            pAtom->y = _y;
-                            pAtom->z = _z;
-                            atom_id++;
+                            QMAtom* pAtom = _orbitals->_atoms.at(atom_id);
+                            pAtom->setPos(pos);
                         }
-
+                        atom_id++;
                     }
 
                 }
@@ -741,16 +732,14 @@ namespace votca {
                         boost::trim(_line);
                         boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                         nfields = _row.size();
-
+                        
+                        QMAtom* pAtom;
                         if (_has_atoms == false) {
-                            _orbitals->AddAtom(atom_type, 0, 0, 0, atom_charge);
-                            //_orbitals->_has_atoms = true;
+                            pAtom =_orbitals->AddAtom(atom_id - 1,atom_type, 0, 0, 0);
                         } else {
-                            ctp::QMAtom* pAtom = _orbitals->_atoms.at(atom_id - 1);
-                            pAtom->type = atom_type;
-                            pAtom->charge = atom_charge;
+                            pAtom = _orbitals->_atoms.at(atom_id - 1);
                         }
-
+                        pAtom->setPartialcharge(atom_charge);
                     }
                     //_orbitals->_has_atoms = true;
                 }
