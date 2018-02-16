@@ -25,9 +25,10 @@
 #include <votca/tools/vec.h>
 #include <votca/tools/matrix.h>
 #include <exception>
+#include <map>
 
 namespace votca {
-namespace ctp {
+namespace xtp {
 
 class Topology;
 class Molecule;
@@ -112,7 +113,7 @@ class Atom {
 
   inline const double &getQ(int state) { return _Q.at(state); }
   inline const double &getQ() { return _q->second; }
-  inline void setQ(map<int, double> Q) { _Q = Q; }
+  inline void setQ(std::map<int, double> Q) { _Q = Q; }
   void chrg(int state) { _q = _Q.find(state); }
 
   inline void setPTensor(votca::tools::matrix &ptensor) { _ptensor = ptensor; }
