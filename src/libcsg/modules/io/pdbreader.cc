@@ -37,7 +37,6 @@ bool PDBReader::ReadTopology(string file, Topology &top) {
   if (!_fl.is_open())
     throw std::ios_base::failure("Error on open topology file: " + file);
 
-  cerr << "No error on opening" << endl;
   NextFrame(top);
   _fl.close();
 
@@ -254,8 +253,9 @@ bool PDBReader::NextFrame(Topology &top) {
           while ((resnr - 1) > top.ResidueCount()) {  // pdb resnr should start
                                                       // with 1 but accept
                                                       // sloppy files
-            top.CreateResidue(
-                "DUMMY");  // create dummy residue, hopefully it will never show
+
+            // create dummy residue, hopefully it will never show
+            top.CreateResidue("DUMMY");  
             cout << "Warning: residue numbers not continous, create DUMMY "
                     "residue with nr " << top.ResidueCount() << endl;
           }
