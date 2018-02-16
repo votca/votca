@@ -392,7 +392,7 @@ bool PDBReader::NextFrame(Topology &top) {
         molecule_atms.erase(obsolete_mol);
       }
     }
-#ifdef DEBUG
+#ifndef NDEBUG
     cerr << "Consistency check for pdbreader" << endl;
     int i = 0;
     for (auto lis = molecule_atms.begin(); lis != molecule_atms.end(); lis++) {
