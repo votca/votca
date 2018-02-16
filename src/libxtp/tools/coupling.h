@@ -23,7 +23,7 @@
 #include <stdio.h>
 
 #include <votca/ctp/logger.h>
-#include <votca/xtp/overlap.h>
+#include <votca/xtp/dftcoupling.h>
 #include <votca/xtp/qmpackagefactory.h>
 
 namespace votca { namespace xtp {
@@ -109,20 +109,10 @@ bool Coupling::Evaluate() {
     QMPackage *_qmpackage =  QMPackages().Create( _package );
    _qmpackage->setLog( &_log );       
    _qmpackage->Initialize( &_package_options );
-
+    _qmpackage->setRunDir(".");
      Orbitals _orbitalsA, _orbitalsB, _orbitalsAB;
-  
-    _qmpackage->setOrbitalsFileName( _orbA );
-    bool _parse_orbitalsA_status = _qmpackage->ParseOrbitalsFile( &_orbitalsA );
-    if ( !_parse_orbitalsA_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read orbitals of molecule A" << std::flush; }
+     
 
-    _qmpackage->setOrbitalsFileName( _orbB );   
-    bool _parse_orbitalsB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsB );
-    if ( !_parse_orbitalsB_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read orbitals of molecule B" << std::flush; }
-    
-    _qmpackage->setOrbitalsFileName( _orbAB );   
-    bool _parse_orbitalsAB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsAB );
-     if ( !_parse_orbitalsAB_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read orbitals of dimer AB" << std::flush; }
    
     _qmpackage->setLogFileName( _logA );
     bool _parse_logA_status = _qmpackage->ParseLogFile( &_orbitalsA );
@@ -135,6 +125,18 @@ bool Coupling::Evaluate() {
     _qmpackage->setLogFileName( _logAB );
     bool _parse_logAB_status = _qmpackage->ParseLogFile( &_orbitalsAB );
     if ( !_parse_logAB_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read log of molecule AB" << std::flush; }
+    
+        _qmpackage->setOrbitalsFileName( _orbA );
+    bool _parse_orbitalsA_status = _qmpackage->ParseOrbitalsFile( &_orbitalsA );
+    if ( !_parse_orbitalsA_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read orbitals of molecule A" << std::flush; }
+
+    _qmpackage->setOrbitalsFileName( _orbB );   
+    bool _parse_orbitalsB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsB );
+    if ( !_parse_orbitalsB_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read orbitals of molecule B" << std::flush; }
+    
+    _qmpackage->setOrbitalsFileName( _orbAB );   
+    bool _parse_orbitalsAB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsAB );
+     if ( !_parse_orbitalsAB_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read orbitals of dimer AB" << std::flush; }
 
     int _degAH = 1;
     int _degAL = 1;
@@ -177,11 +179,11 @@ bool Coupling::Evaluate() {
     
     }
     
-     Overlap _overlap; 
-    _overlap.setLogger(&_log);
+     DFTcoupling dftcoupling; 
+    dftcoupling.setLogger(&_log);
           
     ub::matrix<double> _JAB;
-    bool _calculate_integrals = _overlap.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );  
+    bool _calculate_integrals = dftcoupling.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );  
     if ( !_calculate_integrals ) { CTP_LOG(ctp::logERROR,_log) << "Failed to evaluate integrals" << std::flush; }
 
      std::cout << _log;
@@ -201,7 +203,7 @@ bool Coupling::Evaluate() {
     if ( (_trimA == -1) || (_trimB == -1) ) {
 
         // HOMO-HOMO coupling
-        double JAB = _overlap.getCouplingElement(_degAH, _degBH , &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy);
+        double JAB = dftcoupling.getCouplingElement(_degAH, _degBH , &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy);
         tools::Property *_overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<std::string>(JAB));
         double energyA = _orbitalsA.getEnergy(_degAH);
         double energyB = _orbitalsB.getEnergy(_degBH);
@@ -212,7 +214,7 @@ bool Coupling::Evaluate() {
         _overlap_summary->setAttribute("eB", energyB);
                 
         // LUMO-LUMO coupling
-        JAB = _overlap.getCouplingElement(_degAH+1, _degBH+1 , &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy);
+        JAB = dftcoupling.getCouplingElement(_degAH+1, _degBH+1 , &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy);
         _overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<std::string>(JAB));
         energyA = _orbitalsA.getEnergy(_degAH +1);
         energyB = _orbitalsB.getEnergy(_degBH +1);
@@ -226,7 +228,7 @@ bool Coupling::Evaluate() {
     
         for (int levelA = HOMO_A - _levA +1; levelA <= LUMO_A + _levA - 1; ++levelA ) {
             for (int levelB = HOMO_B - _levB + 1; levelB <= LUMO_B + _levB -1 ; ++levelB ) {        
-                double JAB = _overlap.getCouplingElement( levelA , levelB, &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy );
+                double JAB = dftcoupling.getCouplingElement( levelA , levelB, &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy );
                 tools::Property *_overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<std::string>(JAB)); 
                 double energyA = _orbitalsA.getEnergy( levelA );
                 double energyB = _orbitalsB.getEnergy( levelB );

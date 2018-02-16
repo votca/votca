@@ -390,7 +390,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "   projecting monomer onto dimer orbitals" << flush; 
     
      ub::matrix<double> _overlapAB;
-    if ( !_orbitalsAB->hasAOOverlap() ) {
+    if ( _orbitalsAB->hasAOOverlap() ) {
             CTP_LOG(ctp::logDEBUG,*_pLog) << "Reading overlap matrix from orbitals" << flush; 
            _overlapAB= _orbitalsAB->AOOverlap();
     }else{
