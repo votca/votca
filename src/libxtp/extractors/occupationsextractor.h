@@ -34,7 +34,7 @@ public:
     OccupationsExtractor() { };
    ~OccupationsExtractor() { };
 
-    string Identify() { return "extract.occupations"; }
+    std::string Identify() { return "extract.occupations"; }
     void Initialize(tools::Property *options);
     bool EvaluateFrame(ctp::Topology *top);
 
@@ -50,7 +50,7 @@ void OccupationsExtractor::Initialize(tools::Property *options) {
 
 bool OccupationsExtractor::EvaluateFrame(ctp::Topology *top) {
     
-    string xmlfile = Identify() + ".xml";    
+    std::string xmlfile = Identify() + ".xml";    
     
     tools::Property state("state", "", "");
     tools::Property &segs = state.add("segments","");
@@ -60,7 +60,7 @@ bool OccupationsExtractor::EvaluateFrame(ctp::Topology *top) {
     using boost::format;
     
     // SEGMENTS
-    vector<ctp::Segment*> ::iterator sit;
+    std::vector<ctp::Segment*> ::iterator sit;
     next = &segs;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
         ctp::Segment *seg = *sit;
@@ -81,10 +81,10 @@ bool OccupationsExtractor::EvaluateFrame(ctp::Topology *top) {
         }
     }    
     
-    ofstream ofs;    
-    ofs.open(xmlfile.c_str(), ofstream::out);
+    std::ofstream ofs;    
+    ofs.open(xmlfile.c_str(), std::ofstream::out);
     if (!ofs.is_open()) {
-        throw runtime_error("Bad file handle: " + xmlfile);
+        throw std::runtime_error("Bad file handle: " + xmlfile);
     }
     ofs << tools::XML << state;
     ofs.close();

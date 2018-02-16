@@ -31,8 +31,6 @@
 
 
 
-using namespace std;
-
 namespace votca {
     namespace xtp {
 
@@ -41,7 +39,7 @@ namespace votca {
         class GeometryOptimization {
         public:
 
-            GeometryOptimization(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, vector<ctp::Segment*> segments, Orbitals* orbitals) : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals) {
+            GeometryOptimization(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals* orbitals) : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals) {
             };
 
             ~GeometryOptimization() {
@@ -65,15 +63,15 @@ namespace votca {
 
 
             int _opt_state;
-            string _spintype;
-            string _forces;
-            string _opt_type;
-            string _optimizer;
-            string _force_method;
+            std::string _spintype;
+            std::string _forces;
+            std::string _opt_type;
+            std::string _optimizer;
+            std::string _force_method;
 
             GWBSEENGINE _gwbse_engine;
             QMPackage* _qmpackage;
-            vector<ctp::Segment*> _segments;
+            std::vector<ctp::Segment*> _segments;
             Orbitals* _orbitals;
 
             Property _optimizer_options;
