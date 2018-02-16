@@ -24,7 +24,7 @@ namespace votca { namespace xtp {
     
 
        
-int FindLmax(const string& _type ){
+int FindLmax(const std::string& _type ){
 
         int _lmax;
         // single type shells
@@ -37,12 +37,12 @@ int FindLmax(const string& _type ){
             else if ( _type == "H" ){ _lmax = 5;}
             else if ( _type == "I" ){ _lmax = 6;}
             else{
-                throw runtime_error("FindLmax: Shelltype not known");
+                throw std::runtime_error("FindLmax: Shelltype not known");
             }
         } else {
             _lmax = -1;
             for(unsigned i = 0; i < _type.length(); ++i) {
-                string local_shell = string( _type, i, 1 );
+                std::string local_shell = std::string( _type, i, 1 );
                 int _test = FindLmax( local_shell  );
                 if ( _test > _lmax ) { _lmax = _test;} 
             }   
@@ -52,7 +52,7 @@ int FindLmax(const string& _type ){
         
     }
  
- int FindLmin(const string& _type ){
+ int FindLmin(const std::string& _type ){
 
         int _lmin;
         // single type shells
@@ -65,12 +65,12 @@ int FindLmax(const string& _type ){
             else if ( _type == "H" ){ _lmin = 5;}
             else if ( _type == "I" ){ _lmin = 6;}
             else{
-                throw runtime_error("FindLmax: Shelltype not known");
+                throw std::runtime_error("FindLmax: Shelltype not known");
             }
         } else {
             _lmin = 10;
             for(unsigned i = 0; i < _type.length(); ++i) {
-                string local_shell = string( _type, i, 1 );
+                std::string local_shell = std::string( _type, i, 1 );
                 int _test = FindLmin( local_shell  );
                 if(_test==0){return 0;}
                 if ( _test < _lmin ) { _lmin = _test;} 
@@ -81,7 +81,7 @@ int FindLmax(const string& _type ){
         
     }
  
-  int OffsetFuncShell(const string& shell_type ) {
+  int OffsetFuncShell(const std::string& shell_type ) {
     int _nbf;
     // single type shells
     if ( shell_type.length() == 1 ){
@@ -93,13 +93,13 @@ int FindLmax(const string& _type ){
        else if ( shell_type == "H" ){ _nbf = 25;}
        else if ( shell_type == "I" ){ _nbf = 36;}
        else{
-                throw runtime_error("OffsetFuncShell: Shelltype not known");
+                throw std::runtime_error("OffsetFuncShell: Shelltype not known");
             }
     } else {
         // for combined shells, go over all contributions and find minimal offset
         _nbf = 1000;
         for(unsigned i = 0; i < shell_type.length(); ++i) {
-            string local_shell = string( shell_type, i, 1 );
+            std::string local_shell = std::string( shell_type, i, 1 );
             int _test = OffsetFuncShell( local_shell  );
             if ( _test < _nbf ) { _nbf = _test;} 
         }   
@@ -108,7 +108,7 @@ int FindLmax(const string& _type ){
         } 
   
   
-    int NumFuncShell( const string& shell_type) {
+    int NumFuncShell( const std::string& shell_type) {
         int _nbf = 0;
         // single type shells
         if ( shell_type.length() == 1 ){
@@ -120,14 +120,14 @@ int FindLmax(const string& _type ){
             else if ( shell_type == "H" ){ _nbf = 11;}
             else if ( shell_type == "I" ){ _nbf = 13;}
             else{
-                throw runtime_error("FindnumofFunc: Shelltype not known");
+                throw std::runtime_error("FindnumofFunc: Shelltype not known");
             }
     } else {
         // for combined shells, go over all contributions and add functions
         _nbf = 0;
         
            for (unsigned i = 0; i < shell_type.length(); ++i) {
-                    string local_shell = string(shell_type, i, 1);
+                    std::string local_shell = std::string(shell_type, i, 1);
                     _nbf += NumFuncShell(local_shell);
             }   
     }
@@ -136,7 +136,7 @@ int FindLmax(const string& _type ){
     }
     
     
-      std::vector<int> NumFuncSubShell(const string& shell_type) {
+      std::vector<int> NumFuncSubShell(const std::string& shell_type) {
           std::vector <int> subshells;
         // single type shells
         if ( shell_type.length() == 1 ){
@@ -144,14 +144,14 @@ int FindLmax(const string& _type ){
         // for combined shells, go over all contributions and add functions
         }else{
            for (unsigned i = 0; i < shell_type.length(); ++i) {
-                    string local_shell = string(shell_type, i, 1);
+                    std::string local_shell = std::string(shell_type, i, 1);
                    subshells.push_back( NumFuncShell(local_shell));
             }   
     }
     return subshells;        
     }
     
-    int NumFuncShell_cartesian(const string& shell_type ) {
+    int NumFuncShell_cartesian(const std::string& shell_type ) {
     int _nbf;
     // single type shells defined here
     if ( shell_type.length() == 1 ){
@@ -163,13 +163,13 @@ int FindLmax(const string& _type ){
        else if ( shell_type == "H" ){ _nbf = 21;}
        else if ( shell_type == "I" ){ _nbf = 28;}
        else {
-                    throw runtime_error("NumFuncShell_cartesian shell_type not known");
+                    throw std::runtime_error("NumFuncShell_cartesian shell_type not known");
                 }
     } else {
         // for combined shells, sum over all contributions
         _nbf = 0;
         for( unsigned i = 0; i < shell_type.length(); ++i) {
-            string local_shell =    string( shell_type, i, 1 );
+            std::string local_shell =    std::string( shell_type, i, 1 );
             _nbf += NumFuncShell_cartesian( local_shell  );
         }
     }
@@ -181,7 +181,7 @@ int FindLmax(const string& _type ){
     
        
 
-int OffsetFuncShell_cartesian(const string& shell_type ) {
+int OffsetFuncShell_cartesian(const std::string& shell_type ) {
     int _nbf;
     // single type shells
     if ( shell_type.length() == 1 ){
@@ -193,13 +193,13 @@ int OffsetFuncShell_cartesian(const string& shell_type ) {
        else if ( shell_type == "H" ){ _nbf = 35;}
        else if ( shell_type == "I" ){ _nbf = 56;}
        else {
-                    throw runtime_error("OffsetFuncShell_cartesian shell_type not known");
+                    throw std::runtime_error("OffsetFuncShell_cartesian shell_type not known");
                 }
     } else {
         // for combined shells, go over all contributions and find minimal offset
         _nbf = 1000;
         for(unsigned i = 0; i < shell_type.length(); ++i) {
-            string local_shell = string( shell_type, i, 1 );
+            std::string local_shell = std::string( shell_type, i, 1 );
             int _test = OffsetFuncShell_cartesian( local_shell  );
             if ( _test < _nbf ) { _nbf = _test;} 
         }   
@@ -210,7 +210,7 @@ int OffsetFuncShell_cartesian(const string& shell_type ) {
 
 void BasisSet::LoadBasisSet ( std::string name ) 
 {    
-    Property basis_property;
+    tools::Property basis_property;
     _name=name;
     // if name contains .xml, assume a basisset .xml file is located in the working directory
     std::size_t found_xml = name.find(".xml");
@@ -227,16 +227,16 @@ void BasisSet::LoadBasisSet ( std::string name )
     
     if ( !success ) {; }
     
-    list<Property*> elementProps = basis_property.Select("basis.element");
+    std::list<tools::Property*> elementProps = basis_property.Select("basis.element");
         
-    for (list<Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
+    for (std::list<tools::Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
     {       
         std::string elementName = (*ite)->getAttribute<std::string>("name");
         Element *element = addElement( elementName );
         //cout << "\nElement " << elementName;
         
-        list<Property*> shellProps = (*ite)->Select("shell");
-        for (list<Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
+        std::list<tools::Property*> shellProps = (*ite)->Select("shell");
+        for (std::list<tools::Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
         {            
             std::string shellType = (*its)->getAttribute<std::string>("type");
             double shellScale = (*its)->getAttribute<double>("scale");
@@ -244,13 +244,13 @@ void BasisSet::LoadBasisSet ( std::string name )
             Shell* shell = element->addShell( shellType, shellScale );
             //cout << "\n\tShell " << shellType;
             
-            list<Property*> constProps = (*its)->Select("constant");
-            for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) {
+            std::list<tools::Property*> constProps = (*its)->Select("constant");
+            for (std::list<tools::Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) {
                 double decay = (*itc)->getAttribute<double>("decay");
                 // << " decay "<<decay<<endl;
                 std::vector<double> contraction=std::vector<double>(shell->getLmax()+1,0.0);
-                list<Property*> contrProps = (*itc)->Select("contractions");
-                for (list<Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont){
+                std::list<tools::Property*> contrProps = (*itc)->Select("contractions");
+                for (std::list<tools::Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont){
                     std::string contrType = (*itcont)->getAttribute<std::string>("type");
                     double contrFactor = (*itcont)->getAttribute<double>("factor");
                     //cout << " factor " << contrFactor << endl;
@@ -262,7 +262,7 @@ void BasisSet::LoadBasisSet ( std::string name )
                     else if ( contrType == "H" ) contraction[5] = contrFactor;
                     else if ( contrType == "I" ) contraction[6] = contrFactor;
                     else{
-                        throw runtime_error("LoadBasiset:Contractiontype not known");
+                        throw std::runtime_error("LoadBasiset:Contractiontype not known");
                     }
                 }    
                  
@@ -272,13 +272,13 @@ void BasisSet::LoadBasisSet ( std::string name )
         }
        
     }
-    
+ return;  
 }
 
 
 void BasisSet::LoadPseudopotentialSet ( std::string name ) 
 {    
-    Property basis_property;
+    tools::Property basis_property;
     _name=name;
   // if name contains .xml, assume a ecp .xml file is located in the working directory
     std::size_t found_xml = name.find(".xml");
@@ -295,9 +295,9 @@ void BasisSet::LoadPseudopotentialSet ( std::string name )
     
     if ( !success ) {; }
     
-    list<Property*> elementProps = basis_property.Select("pseudopotential.element");
+    std::list<tools::Property*> elementProps = basis_property.Select("pseudopotential.element");
         
-    for (list<Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
+    for (std::list<tools::Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
     {       
         std::string elementName = (*ite)->getAttribute<std::string>("name");
         int lmax = (*ite)->getAttribute<int>("lmax");
@@ -306,8 +306,8 @@ void BasisSet::LoadPseudopotentialSet ( std::string name )
         Element *element = addElement( elementName, lmax, ncore );
         //cout << "\nElement " << elementName;
         
-        list<Property*> shellProps = (*ite)->Select("shell");
-        for (list<Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
+        std::list<tools::Property*> shellProps = (*ite)->Select("shell");
+        for (std::list<tools::Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
         {            
             std::string shellType = (*its)->getAttribute<std::string>("type");
             double shellScale = 1.0;
@@ -315,8 +315,8 @@ void BasisSet::LoadPseudopotentialSet ( std::string name )
             Shell* shell = element->addShell( shellType, shellScale );
             //cout << "\n\tShell " << shellType;
             
-            list<Property*> constProps = (*its)->Select("constant");
-            for (list<Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
+            std::list<tools::Property*> constProps = (*its)->Select("constant");
+            for (std::list<tools::Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
             {
                 int power = (*itc)->getAttribute<int>("power");
                 double decay = (*itc)->getAttribute<double>("decay");
@@ -332,7 +332,7 @@ void BasisSet::LoadPseudopotentialSet ( std::string name )
         }
        
     }
-
+    return;
 }
 
 // adding an Element to a Basis Set
@@ -352,7 +352,7 @@ Element* BasisSet::addElement( std::string elementType, int lmax, int ncore ) {
 // cleanup the basis set
 BasisSet::~BasisSet() {
     
-    for ( map< std::string,Element* >::iterator it = _elements.begin(); it !=  _elements.end(); it++ ) {
+    for ( std::map< std::string,Element* >::iterator it = _elements.begin(); it !=  _elements.end(); it++ ) {
          delete (*it).second;
      }
     
