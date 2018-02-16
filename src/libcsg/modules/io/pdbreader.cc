@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <sstream>
+#include <unordered_map>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/convenience.hpp>
@@ -36,6 +37,7 @@ bool PDBReader::ReadTopology(string file,  Topology &top)
     if(!_fl.is_open())
         throw std::ios_base::failure("Error on open topology file: " + file);
 
+    cerr << "No error on opening" << endl;
     NextFrame(top);
     _fl.close();
 
