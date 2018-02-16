@@ -21,19 +21,21 @@
 #ifndef __VOTCA_XTP_SEGMENT_H
 #define	__VOTCA_XTP_SEGMENT_H
 
-#include <votca/ctp/segmenttype.h>
-#include <votca/ctp/fragment.h>
-#include <votca/xtp/atom.h>
-#include <votca/ctp/polarsite.h>
-#include <votca/ctp/apolarsite.h>
+#include <map>
+#include <vector>
 
+#include <votca/tools/vec.h>
+
+class Atom;
+class PolarSite;
+class APolarSite;
+class Fragment;
+class SegmentType;
 class Topology;
+class Molecule;  
 
 namespace votca { namespace xtp {
 
-class Molecule;  
-
- 
 class Segment
 {
 public:
@@ -45,10 +47,10 @@ public:
     const int       &getId() { return _id; }
     const std::string    &getName() { return _name; }
 
-    const vec       &getPos() const { return _CoM; }
-    void             setPos(vec pos) { _CoM = pos; }
+    const tools::vec       &getPos() const { return _CoM; }
+    void             setPos(tools::vec pos) { _CoM = pos; }
     void             calcPos();
-    void             TranslateBy(const vec &shift);
+    void             TranslateBy(const tools::vec &shift);
     
     void            calcApproxSize();
     double          getApproxSize(){return _approxsize;}
@@ -132,7 +134,7 @@ private:
     std::vector < PolarSite* >   _polarSites;
     std::vector < APolarSite* >  _apolarSites;
 
-    vec         _CoM;
+    tools::vec         _CoM;
     double   _approxsize;
 
 
@@ -184,7 +186,7 @@ private:
     //   +3(=> t)   e.static + pol. energy E(+3) - E(0)
     std::vector<bool> _hasChrgState;
 
-    std::map<int, vec> _intCoords;
+    std::map<int, tools::vec> _intCoords;
     // qmid => position
     
 
