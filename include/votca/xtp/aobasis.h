@@ -22,7 +22,7 @@
 
 #include <votca/tools/property.h>
 
-#include <votca/xtp/qmatom.h>
+
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
