@@ -37,7 +37,7 @@ namespace votca { namespace xtp {
 
 
 
-void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,string gridsize) {
+void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,string gridsize) {
 
 
     // setting up grid
@@ -45,7 +45,7 @@ void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<doub
     _grid.setAtomlist(&_atomlist);
     _grid.setupCHELPgrid();
     //_grid.printGridtoxyzfile("grid.xyz");
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl;
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << flush;
 
     // Calculating nuclear potential at gridpoints
 
@@ -63,8 +63,8 @@ void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<doub
 
     NumericalIntegration numway;
 
-    numway.GridSetup(gridsize,&bs,_atomlist,&_basis);
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculate Densities at Numerical Grid with gridsize "<<gridsize  << flush;
+    numway.GridSetup(gridsize,_atomlist,&_basis);
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Setup "<<gridsize<<" Numerical Grid with "<<numway.getGridSize()<<" gridpoints."<< flush;
     double N=numway.IntegrateDensity(_dmat);
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculated Densities at Numerical Grid, Number of electrons is "<< N << flush;
 
@@ -82,7 +82,7 @@ void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<doub
     //boost::progress_display show_progress( _grid.getsize() );
     #pragma omp parallel for
     for ( int i = 0 ; i < _grid.getsize(); i++){
-        _ESPatGrid(i)=numway.IntegratePotential(_grid.getGrid()[i]*tools::conv::nm2bohr);
+        _ESPatGrid(i)=numway.IntegratePotential(_grid.getGrid()[i]);
         //++show_progress;
     }
 
@@ -95,7 +95,7 @@ void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<doub
     std::vector< tools::vec > _fitcenters;
 
     for ( unsigned j = 0; j < _atomlist.size(); j++){
-       tools::vec _pos=_atomlist[j]->getPos()*tools::conv::ang2nm;
+       tools::vec _pos=_atomlist[j]->getPos();
       _fitcenters.push_back(_pos);
     }
 
@@ -103,13 +103,13 @@ void Espfit::Fit2Density(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<doub
 
     //Write charges to qmatoms
     for ( unsigned _i =0 ; _i < _atomlist.size(); _i++){
-        _atomlist[_i]->charge=_charges[_i];
+        _atomlist[_i]->setPartialcharge(_charges[_i]);
     }
     return;
     }
 
 
-ub::vector<double> Espfit::EvalNuclearPotential(std::vector< ctp::QMAtom* >& _atoms, Grid _grid) {
+ub::vector<double> Espfit::EvalNuclearPotential(std::vector< QMAtom* >& _atoms, Grid _grid) {
     ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_grid.getsize());
 
     double Znuc=0.0;
@@ -118,13 +118,9 @@ ub::vector<double> Espfit::EvalNuclearPotential(std::vector< ctp::QMAtom* >& _at
 
     for (unsigned i = 0; i < _gridpoints.size(); i++) {
         for (unsigned j = 0; j < _atoms.size(); j++) {
-            vec posatom=_atoms[j]->getPos()*tools::conv::ang2nm;
-            if (_ECP) {
-                Znuc = _elements.getNucCrgECP(_atoms[j]->type);
-            } else {
-                Znuc = _elements.getNucCrg(_atoms[j]->type);
-            }
-            double dist_j = tools::abs(_gridpoints[i]-posatom) * tools::conv::nm2bohr;
+            const vec& posatom=_atoms[j]->getPos();
+            double Znuc=_atoms[j]->getNuccharge();
+            double dist_j = tools::abs(_gridpoints[i]-posatom);
             _NucPatGrid(i) += Znuc / dist_j;
         }
 
@@ -132,58 +128,36 @@ ub::vector<double> Espfit::EvalNuclearPotential(std::vector< ctp::QMAtom* >& _at
     return _NucPatGrid;
 }
 
-double Espfit::getNetcharge( std::vector< ctp::QMAtom* >& _atoms, double N ){
-    double netcharge=0.0;
-    if( std::abs(N)<0.05){
-        //CTP_LOG(ctp::logDEBUG, *_log) << "Number of Electrons is "<<N<< " transitiondensity is used for fit"  << flush;
-        _do_Transition=true;
-    }
-    else{
-    double Znuc_ECP = 0.0;
-    double Znuc=0.0;
-    for ( unsigned j = 0; j < _atoms.size(); j++){
-           Znuc_ECP += _elements.getNucCrgECP(_atoms[j]->type);
-           Znuc+= _elements.getNucCrg(_atoms[j]->type);
-    }
+double Espfit::getNetcharge( std::vector< QMAtom* >& _atoms, double N ){
+    double netcharge = 0.0;
+      if (std::abs(N) < 0.05) {
+        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp()<< " Number of Electrons is " << N << " transitiondensity is used for fit" << flush;
+        _do_Transition = true;
+      } else {
 
-    if (_ECP){
-        if (std::abs(Znuc_ECP-N)<4){
-            CTP_LOG(ctp::logDEBUG, *_log) <<"Number of Electrons minus ECP_Nucleus charge is "<<Znuc_ECP-N<< " you use ECPs, sounds good"  << flush;
+        double Znuc = 0.0;
+        for (unsigned j = 0; j < _atoms.size(); j++) {
+          Znuc += _atoms[j]->getNuccharge();
         }
-        else if (std::abs(Znuc-N)<4){
-            CTP_LOG(ctp::logDEBUG, *_log) <<"Number of Electrons minus real Nucleus charge is "<<Znuc-N<< " you are sure you want ECPs?"  << flush;
-        }
-        else{
-            CTP_LOG(ctp::logDEBUG, *_log) <<"Warning: Your molecule is highly ionized and you want ECPs, sounds interesting" << flush;
-        }
-        netcharge=Znuc_ECP-N;
-    }
-    else{
-        if (std::abs(Znuc-N)<4){
-            CTP_LOG(ctp::logDEBUG, *_log) <<"Number of Electrons minus Nucleus charge is "<<Znuc-N<< " you probably do not use ECPs, if you do use ECPs please use the option. Otherwise you are fine"  << flush;
-        }
-        else if(std::abs(Znuc_ECP-N)<4){
-            CTP_LOG(ctp::logDEBUG, *_log) <<"Number of Electrons minus ECP_Nucleus charge is "<<Znuc_ECP-N<< " you probably use ECPs, if you do use ECPs please use the option to switch on"  << flush;
-        }
-        else{
-            CTP_LOG(ctp::logDEBUG, *_log) <<"Warning: Your molecule is highly ionized and you use real core potentials, sounds interesting" << flush;
-        }
-        netcharge = Znuc-N;
-    }
-    _do_Transition=false;
-    }
- 
-    netcharge=round(netcharge);
-    CTP_LOG(ctp::logDEBUG, *_log) <<"Netcharge constrained to " << netcharge<< flush;
 
-    return netcharge;
+        if (std::abs(Znuc - N) < 4) {
+          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp()<< " Number of Electrons minus Nucleus charge is " << Znuc - N << "." << flush;
+        } else {
+          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp()<< " Warning: Your molecule is highly ionized." << flush;
+        }
+        netcharge = Znuc - N;
+        _do_Transition = false;
+      }
+
+      netcharge = round(netcharge);
+      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp()<< " Netcharge constrained to " << netcharge << flush;
+
+      return netcharge;
 }
 
 
 
-void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &_basis) {
-     double Nm2Bohr=tools::conv::nm2bohr;
-     double A2nm=tools::conv::ang2nm;
+void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &_basis) {
     // setting up grid
     Grid _grid;
     _grid.setAtomlist(&_atomlist);
@@ -215,7 +189,7 @@ void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::ma
     for ( int i = 0 ; i < _grid.getsize(); i++){
         // AOESP matrix
          AOESP _aoesp;
-         _aoesp.Fill(_basis, _grid.getGrid()[i]*Nm2Bohr);
+         _aoesp.Fill(_basis, _grid.getGrid()[i]);
         const ub::vector<double> AOESPasarray=_aoesp.Matrix().data();
 
         for ( unsigned _i =0; _i < DMATasarray.size(); _i++ ){
@@ -226,14 +200,14 @@ void Espfit::Fit2Density_analytic(std::vector< ctp::QMAtom* >& _atomlist, ub::ma
     std::vector< tools::vec > _fitcenters;
 
           for ( unsigned j = 0; j < _atomlist.size(); j++){
-             tools::vec _pos=A2nm*_atomlist[j]->getPos();
+             tools::vec _pos=_atomlist[j]->getPos();
             _fitcenters.push_back(_pos);
           }
     std::vector<double> _charges = FitPartialCharges(_fitcenters,_grid, _ESPatGrid, netcharge);
 
     //Write charges to qmatoms
         for ( unsigned _i =0 ; _i < _atomlist.size(); _i++){
-            _atomlist[_i]->charge=_charges[_i];
+            _atomlist[_i]->setPartialcharge(_charges[_i]);
         }
     return;
     }
@@ -253,8 +227,8 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitce
     for ( unsigned _i =0 ; _i < _Amat.size1()-1; _i++){
         for ( unsigned _j=_i; _j<_Amat.size2()-1; _j++){
             for ( unsigned _k=0; _k < _gridpoints.size(); _k++){
-                double dist_i = tools::abs(_fitcenters[_i]-_gridpoints[_k])*tools::conv::nm2bohr;
-                double dist_j = tools::abs(_fitcenters[_j]-_gridpoints[_k])*tools::conv::nm2bohr;
+                double dist_i = tools::abs(_fitcenters[_i]-_gridpoints[_k]);
+                double dist_j = tools::abs(_fitcenters[_j]-_gridpoints[_k]);
 
                  _Amat(_i,_j) += 1.0/dist_i/dist_j;
             }
@@ -272,13 +246,13 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitce
     #pragma omp parallel for
     for ( unsigned _i =0 ; _i < _Bvec.size1()-1; _i++){
         for ( unsigned _k=0; _k < _gridpoints.size(); _k++){
-                double dist_i = tools::abs(_fitcenters[_i]-_gridpoints[_k])*tools::conv::nm2bohr;
+                double dist_i = tools::abs(_fitcenters[_i]-_gridpoints[_k]);
                 _Bvec(_i,0) += _potential(_k)/dist_i;
         }
        }
 
     _Bvec(_Bvec.size1()-1,0) = _netcharge; //netcharge!!!!
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << "  Inverting Matrices "<< flush;
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices "<< flush;
     // invert _Amat
     ub::matrix<double> _Amat_inverse = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
 
@@ -319,7 +293,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitce
     for ( unsigned _k=0 ; _k < _gridpoints.size(); _k++ ){
         double temp = 0.0;
         for ( unsigned _i=0; _i < _fitcenters.size(); _i++ ){
-            double dist =  tools::abs(_gridpoints[_k]-_fitcenters[_i])*tools::conv::nm2bohr;
+            double dist =  tools::abs(_gridpoints[_k]-_fitcenters[_i]);
             temp += _result[_i]/dist;
         }
         _rmse += (_potential(_k) - temp)*(_potential(_k) - temp);

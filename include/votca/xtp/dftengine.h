@@ -144,7 +144,7 @@ namespace votca {
             Property _dftengine_options;
 
             // atoms
-            std::vector<ctp::QMAtom*> _atoms;
+            std::vector<QMAtom*> _atoms;
 
             // basis sets
             std::string _auxbasis_name;

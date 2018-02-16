@@ -34,7 +34,7 @@
 #include <votca/xtp/vxc_functionals.h>
 #include <votca/xtp/exchange_correlation.h>
 #include <votca/xtp/gridbox.h>
-#include <votca/ctp/qmatom.h>
+#include <votca/xtp/qmatom.h>
 
 
 namespace votca { namespace xtp {
@@ -51,7 +51,7 @@ namespace votca { namespace xtp {
             
             ~NumericalIntegration(){};
             
-            void GridSetup(std::string type, BasisSet* bs , std::vector<ctp::QMAtom* > _atoms,AOBasis* basis  );
+            void GridSetup(std::string type, std::vector<QMAtom* > _atoms,AOBasis* basis  );
             
          
             double getExactExchange(const std::string _functional);

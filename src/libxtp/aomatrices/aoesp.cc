@@ -32,6 +32,8 @@
 #include <votca/tools/linalg.h>
 #include <votca/xtp/elements.h>
 #include <votca/tools/constants.h>
+
+#include "votca/xtp/qmatom.h"
 //#include <boost/timer/timer.hpp>
 
 
@@ -448,19 +450,16 @@ if (_lmax_col > 3) {
     
   // Calculates the electrostatic potential matrix element between two basis functions, for an array of atomcores.
 
-    void AOESP::Fillnucpotential(const AOBasis& aobasis, std::vector<ctp::QMAtom*>& _atoms, bool _with_ecp) {
+    void AOESP::Fillnucpotential(const AOBasis& aobasis, std::vector<QMAtom*>& _atoms) {
             Elements _elements;
             _nuclearpotential = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
             for (unsigned j = 0; j < _atoms.size(); j++) {
-                vec positionofatom = tools::conv::ang2bohr*_atoms[j]->getPos();
+                vec positionofatom = _atoms[j]->getPos();
 
-                double Znuc = 0.0;
-                if (_with_ecp) {
-                    Znuc = _elements.getNucCrgECP(_atoms[j]->type);
-                } else {
-                    Znuc = _elements.getNucCrg(_atoms[j]->type);
-                }
+                double Znuc = _atoms[j]->getNuccharge();
+                
+               
                 _aomatrix = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                 Fill(aobasis, positionofatom);
                 _nuclearpotential -= (Znuc) * _aomatrix;        

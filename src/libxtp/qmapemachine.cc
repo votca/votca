@@ -242,13 +242,8 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
 	if (_run_ape) {
 		// Update QM0 density: QM0(n) => QM0(n+1)
 		// ...
-            std::vector< ctp::QMAtom* > Atomlist;
-    for(const auto& atom:orb_iter_input.QMAtoms()){
-                if(!atom->from_environment){
-                Atomlist.push_back(atom);
-                }
-            }
-        thisIter->UpdatePosChrgFromQMAtoms(Atomlist,_job->getPolarTop()->QM0());
+        
+        thisIter->UpdatePosChrgFromQMAtoms(orb_iter_input.QMAtoms(),_job->getPolarTop()->QM0());
 		// Do not reset FGC (= only reset FU), do not use BGP state, nor apply FP fields (BG & FG)
         _cape->EvaluateInductionQMMM(false, false, false, false, false);
 		// COMPUTE MM ENERGY
@@ -391,13 +386,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
         }
     } // only if state >0
     
-    std::vector< ctp::QMAtom* > Atomlist;
-    for(const auto& atom:orb.QMAtoms()){
-                if(!atom->from_environment){
-                Atomlist.push_back(atom);
-                }
-            }
-
+   
     
     // load DFT basis set (element-wise information) from xml file
     BasisSet dftbs;
@@ -408,7 +397,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
     // fill DFT AO basis by going through all atoms
     AOBasis dftbasis;
-    dftbasis.AOBasisFill(&dftbs, Atomlist );
+    dftbasis.AOBasisFill(&dftbs, orb.QMAtoms() );
     // TBD: Need to switch between singlets and triplets depending on _type
     ub::matrix<double> DMATGS = orb.DensityMatrixGroundState();
     ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
@@ -422,22 +411,18 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
     // fill DFT AO basis by going through all atoms
     
     Espfit esp = Espfit(_log);
-    if (_run_gwbse) {
-        esp.setUseECPs(true);
-    }
-    esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, dftbs, "medium");
+    esp.Fit2Density(orb.QMAtoms(), DMAT_tot, dftbasis,"medium");
     return true;
 }
 
 
-void QMAPEMachine::SetupPolarSiteGrids(const std::vector<const vec *>& gridpoints,const std::vector<ctp::QMAtom*>& atoms){
+void QMAPEMachine::SetupPolarSiteGrids(const std::vector<const vec *>& gridpoints,const std::vector<QMAtom*>& atoms){
     NumberofAtoms=0;
-    std::vector<ctp::QMAtom*>::const_iterator qmt;
+    std::vector<QMAtom*>::const_iterator qmt;
     std::vector<ctp::APolarSite*> sites1;
     std::vector<ctp::APolarSite*> sites2;
     
     for(qmt=atoms.begin();qmt!=atoms.end();++qmt){
-        if((*qmt)->from_environment){continue;}
         NumberofAtoms++;
         sites1.push_back(qminterface.Convert(*qmt));
         sites2.push_back(qminterface.Convert(*qmt));

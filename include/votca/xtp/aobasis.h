@@ -22,7 +22,7 @@
 
 #include <votca/tools/property.h>
 
-#include <votca/ctp/qmatom.h>
+
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
@@ -36,7 +36,7 @@ namespace votca { namespace xtp {
 namespace ub = boost::numeric::ublas;
 
 class AOShell;
-
+class QMAtom;
 
 
 /*
@@ -54,18 +54,18 @@ public:
      
       
 
-    void AOBasisFill( BasisSet* bs , std::vector<ctp::QMAtom* > segments, int fragbreak = -1);
-    void ECPFill( BasisSet* bs , std::vector<ctp::QMAtom* > segments); 
+    void AOBasisFill( BasisSet* bs , std::vector<QMAtom* > segments, int fragbreak = -1);
+    void ECPFill( BasisSet* bs , std::vector<QMAtom* > segments); 
     
     
-    unsigned int AOBasisSize() const {return _AOBasisSize; }
+    unsigned AOBasisSize() const {return _AOBasisSize; }
     
     typedef std::vector< AOShell* >::const_iterator AOShellIterator;
     AOShellIterator firstShell() const{ return _aoshells.begin(); }
     AOShellIterator lastShell() const{ return _aoshells.end(); }
 
     ub::matrix<double> getTransformationCartToSpherical(const std::string& package);
-    
+   
         
     const AOShell* getShell( AOShellIterator it ) const{ return (*it); }
     
@@ -75,6 +75,10 @@ public:
   
     
     const std::vector<AOShell*>& getShells() const{ return _aoshells; }
+    
+    std::vector<AOShell*> getShellsperAtom(int AtomId);
+    
+    int getFuncperAtom(int AtomId) const;
     
     unsigned getNumofShells() const{return _aoshells.size();}
    
@@ -104,7 +108,7 @@ public:
     
     int getMaxFunctions ( );
     
-private:
+  
     unsigned int _AOBasisSize;
     
 };

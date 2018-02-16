@@ -348,12 +348,8 @@ bool GWBSE::Evaluate() {
                                  << " DFT data was created by " << _dft_package
                                  << flush;
 
-  std::vector<ctp::QMAtom *> _atoms;
-  for (const auto &atom : _orbitals->QMAtoms()) {
-    if (!atom->from_environment) {
-      _atoms.push_back(atom);
-    }
-  }
+            std::vector<QMAtom*>& _atoms=_orbitals->QMAtoms();
+            
   // load DFT basis set (element-wise information) from xml file
   BasisSet dftbs;
 
@@ -398,14 +394,18 @@ bool GWBSE::Evaluate() {
   // convert _rpamax if needed
   _homo = _orbitals->getNumberOfElectrons() - 1;  // indexed from 0
 
-  unsigned int _ignored_corelevels = 0;
+  unsigned _ignored_corelevels = 0;
   if (_ignore_corelevels) {
-    std::string _ecpsave = _orbitals->getECP();
-    _orbitals->setECP("ecp");
-    int _valence_levels =
-        _orbitals->FragmentNuclearCharges(_atoms.size())(0) / 2;
-    _orbitals->setECP(_ecpsave);
-    _ignored_corelevels = _orbitals->getNumberOfElectrons() - _valence_levels;
+    if(!_orbitals->hasECP()){
+      BasisSet basis;
+      basis.LoadBasisSet("ecp");//
+      unsigned coreElectrons=0;
+      for(const auto& atom:_atoms){
+        coreElectrons+=basis.getElement(atom->getType())->getNcore();   
+      }
+       _ignored_corelevels = coreElectrons/2;
+    }
+   
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Can ignore "
                                    << _ignored_corelevels << " core levels "
                                    << flush;
@@ -562,7 +562,7 @@ bool GWBSE::Evaluate() {
            ScaHFX_temp % _ScaHFX)
               .str());
     }
-    _numint.GridSetup(_grid, &dftbs, _atoms, &_dftbasis);
+                    _numint.GridSetup(_grid, _atoms,&_dftbasis);
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp()
         << " Setup grid for integration with gridsize: " << _grid << " with "

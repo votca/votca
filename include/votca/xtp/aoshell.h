@@ -133,14 +133,14 @@ public:
     
 private:   
 
-    // only class Element can construct shells    
+    // only class aobasis can construct shells    
     AOShell( string type,int Lmax,int Lmin, double scale, int numFunc, int startIndex, 
             int offset, vec pos, string atomname, int atomindex, AOBasis* aobasis = NULL )
             : _type(type),_Lmax(Lmax),_Lmin(Lmin), _scale(scale), _numFunc(numFunc),
                     _startIndex(startIndex), _offset(offset), _pos(pos) , 
                     _atomname(atomname), _atomindex(atomindex) { ; }
     
-    // only class Element can destruct shells
+    // only class aobasis can destruct shells
             ~AOShell(){};
     
     // shell type (S, P, D))

@@ -82,9 +82,9 @@ private:
     std::string indent( const double &number );
     std::string getLName(int lnum);
 
-    void WriteBasisset(std::vector<ctp::QMAtom*>& qmatoms, std::string& _bs_name, std::string& _el_file_name);
-    void WriteCoordinates(std::ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
-    void WriteECP(std::ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
+    void WriteBasisset(std::vector<QMAtom*>& qmatoms, std::string& _bs_name, std::string& _el_file_name);
+    void WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
+    void WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
     void WriteBackgroundCharges(std::vector<ctp::PolarSeg*> PolarSegments);
 };
 

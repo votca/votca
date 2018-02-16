@@ -23,7 +23,7 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/operation.hpp>
-#include <votca/ctp/qmatom.h>
+#include <votca/xtp/qmatom.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/segment.h>
 #include <stdio.h>
