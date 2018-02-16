@@ -16,7 +16,7 @@
  */
 
 #ifndef __VOTCA_CSG_PDBREADER_H
-#define	__VOTCA_CSG_PDBREADER_H
+#define __VOTCA_CSG_PDBREADER_H
 
 #include <string>
 #include <iostream>
@@ -24,9 +24,9 @@
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/tools/elements.h>
-//#include <votca/csg/atomtable.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 using namespace votca::tools;
 
 using namespace std;
@@ -38,29 +38,29 @@ using namespace std;
     for pdb files
 
 */
-class PDBReader :
-    public TopologyReader , public TrajectoryReader, public Elements
-{
-    public:
+class PDBReader : public TopologyReader,
+                  public TrajectoryReader,
+                  public Elements {
+  public:
+    /// Constuctor
+    PDBReader() {}
+    /// Destructor
+    ~PDBReader() {}
+    /// open a topology file
+    bool ReadTopology(string file, Topology &top);
+    /// open a trajectory file
+    bool Open(const string &file);
+    /// read in the first frame
+    bool FirstFrame(Topology &top);
+    /// read in the next frame
+    bool NextFrame(Topology &top);
+    void Close();
 
-        /// Constuctor
-        PDBReader() {}
-        /// Destructor
-        ~PDBReader() {}
-        /// open a topology file
-        bool ReadTopology(string file, Topology &top);
-        /// open a trajectory file
-        bool Open(const string &file);
-        /// read in the first frame
-        bool FirstFrame(Topology &top);
-        /// read in the next frame
-        bool NextFrame(Topology &top);
-        void Close();
-    private:
-        ifstream _fl;
-        bool _topology;
+  private:
+    ifstream _fl;
+    bool _topology;
 };
+}
+}
 
-}}
-
-#endif // __VOTCA_CSG_PDBREADER_H
+#endif  // __VOTCA_CSG_PDBREADER_H
