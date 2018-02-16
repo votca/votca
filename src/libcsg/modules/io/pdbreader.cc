@@ -82,20 +82,20 @@ bool PDBReader::NextFrame(Topology &top) {
       string a, b, c, alpha, beta, gamma;
       try {
         // 1 -  6       Record name    "CRYST1"
-        a = string(line, (7 - 1),
-                   9);  // 7 - 15       Real(9.3)      a           (Angstroms)
-        b = string(line, (16 - 1),
-                   9);  // 16 - 24       Real(9.3)      b           (Angstroms)
-        c = string(line, (25 - 1),
-                   9);  // 25 - 33       Real(9.3)      c           (Angstroms)
-        alpha = string(line, (34 - 1),
-                       7);  // 34 - 40       Real(7.2)      alpha (degrees)
-        beta = string(line, (41 - 1),
-                      7);  // 41 - 47       Real(7.2)      beta        (degrees)
-        gamma = string(line, (48 - 1),
-                       7);  // 48 - 54       Real(7.2)      gamma (degrees)
-                            // 56 - 66       LString        Space group
-                            // 67 - 70       Integer        Z value
+        a = string(line, (7 - 1), 9);
+        // 7 - 15       Real(9.3)      a           (Angstroms)
+        b = string(line, (16 - 1), 9);
+        // 16 - 24       Real(9.3)     b           (Angstroms)
+        c = string(line, (25 - 1), 9);
+        // 25 - 33       Real(9.3)     c           (Angstroms)
+        alpha = string(line, (34 - 1), 7);
+        // 34 - 40       Real(7.2)     alpha (degrees)
+        beta = string(line, (41 - 1), 7);
+        // 41 - 47       Real(7.2)     beta        (degrees)
+        gamma = string(line, (48 - 1), 7);
+        // 48 - 54       Real(7.2)     gamma (degrees)
+        // 56 - 66       LString       Space group
+        // 67 - 70       Integer       Z value
       }
       catch (std::out_of_range &err) {
         throw std::runtime_error("Misformated pdb file in CRYST1 line");
@@ -171,33 +171,46 @@ bool PDBReader::NextFrame(Topology &top) {
 
     if (wildcmp("ATOM*", line.c_str()) || wildcmp("HETATM*", line.c_str())) {
 
-      //      according to PDB format
+      // according to PDB format
       string x, y, z, resNum, resName, atName;
       string charge;
       // string atNum;
       try {
         /* Some pdb don't include all this, read only what we really need*/
         /* leave this here in case we need more later*/
-        // string recType    (line,( 1-1),6); // str       ,  "ATOM", "HETATM"
-        // atNum    =    string(line,( 7-1),6); // int       , Atom serial
-        // number
-        atName = string(line, (13 - 1), 4);  // str       , Atom name
-        // string atAltLoc   (line,(17-1),1); // char      , Alternate location
-        // indicator
-        resName = string(line, (18 - 1), 3);  // str       , Residue name
-        // string chainID    (line,(22-1),1); // char      , Chain identifier
-        resNum =
-            string(line, (23 - 1), 4);  // int       , Residue sequence number
-        // string atICode    (line,(27-1),1); // char      , Code for insertion
-        // of res
-        x = string(line, (31 - 1), 8);  // float 8.3 , x
-        y = string(line, (39 - 1), 8);  // float 8.3 , y
-        z = string(line, (47 - 1), 8);  // float 8.3 , z
-        // string atOccup    (line,(55-1),6); // float 6.2 , Occupancy
-        // string atTFactor  (line,(61-1),6); // float 6.2 , Temperature factor
-        // string segID      (line,(73-1),4); // str       , Segment identifier
-        // elem_sym =  string(line,(77-1),2); // str       , Element symbol
-        charge = string(line, (79 - 1), 2);  // str       , Charge on the atom
+
+        // str       ,  "ATOM", "HETATM"
+        // string recType    (line,( 1-1),6);
+        // int       , Atom serial number
+        // atNum    =    string(line,( 7-1),6);
+        // str       , Atom name
+        atName = string(line, (13 - 1), 4);
+        // char      , Alternate location indicator
+        // string atAltLoc   (line,(17-1),1);
+        // str       , Residue name
+        resName = string(line, (18 - 1), 3);
+        // char      , Chain identifier
+        // string chainID    (line,(22-1),1);
+        // int       , Residue sequence number
+        resNum = string(line, (23 - 1), 4);
+        // char      , Code for insertion of res
+        // string atICode    (line,(27-1),1);
+        // float 8.3 , x
+        x = string(line, (31 - 1), 8);
+        // float 8.3 , y
+        y = string(line, (39 - 1), 8);
+        // float 8.3 , z
+        z = string(line, (47 - 1), 8);
+        // float 6.2 , Occupancy
+        // string atOccup    (line,(55-1),6);
+        // float 6.2 , Temperature factor
+        // string atTFactor  (line,(61-1),6);
+        // str       , Segment identifier
+        // string segID      (line,(73-1),4);
+        // str       , Element symbol
+        // elem_sym =  string(line,(77-1),2);
+        // str       , Charge on the atom
+        charge = string(line, (79 - 1), 2);
       }
       catch (std::out_of_range &err) {
         string err_msg = "Misformated pdb file in atom line # " +
@@ -252,8 +265,7 @@ bool PDBReader::NextFrame(Topology &top) {
         BeadType *type = top.GetOrCreateBeadType(atName);
 
         // Determine if the charge has been provided in the .pdb file or if we
-        // will
-        // be assuming it is 0
+        // will be assuming it is 0
         double ch = 0;
         if (charge != "") {
           ch = boost::lexical_cast<double>(charge);
@@ -295,8 +307,7 @@ bool PDBReader::NextFrame(Topology &top) {
   ////////////////////////////////////////////////////////////////////////////////
 
   // Extra processing is done if the file is a topology file, in which case the
-  // atoms
-  // must be sorted into molecules and the bond interactions recorded
+  // atoms must be sorted into molecules and the bond interactions recorded
   if (_topology) {
     // Now we need to add the bond pairs
     // WARNING We are assuming the atom ids are contiguous with no gaps
@@ -373,8 +384,7 @@ bool PDBReader::NextFrame(Topology &top) {
         }
 
         // Splicing will remove atoms from the now obsolete molecule and place
-        // them
-        // on the chosen molecule.
+        // them on the chosen molecule.
         molecule_atms[chosen_mol].splice(molecule_atms[chosen_mol].end(),
                                          molecule_atms[obsolete_mol]);
 
@@ -440,8 +450,7 @@ bool PDBReader::NextFrame(Topology &top) {
       int atm_id1 = bond_pair->at(0);
       int atm_id2 = bond_pair->at(1);
       // Should be able to just look at one of the atoms the bond is attached
-      // too
-      // because the other will also be attached to the same molecule.
+      // too because the other will also be attached to the same molecule.
       int mol_ind = atm_molecule[atm_id1];
       Molecule *mi = mol_map[mol_ind];
       // Grab the id of the bead associated with the atom
