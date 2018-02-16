@@ -1,9 +1,8 @@
 /*
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -14,25 +13,16 @@
  * limitations under the License.
  *
  */
+#define BOOST_TEST_MAIN
 
-#ifndef _VOTCA_KMC_GLINK_H
-#define _VOTCA_KMC_GLINK_H
-#include <votca/tools/vec.h>
+#define BOOST_TEST_MODULE gnode_test
+#include <boost/test/unit_test.hpp>
+#include <votca/xtp/glink.h>
 
-namespace votca {
-namespace xtp {
+using namespace votca::xtp;
 
-struct GLink {
-  int destination;
-  double rate;
-  votca::tools::vec dr;
-  bool decayevent;
-  // new stuff for Coulomb interaction
-  double Jeff2;
-  double reorg_out;
-  double initialrate;
-};
-}
-}
+BOOST_AUTO_TEST_SUITE(glink_test)
 
-#endif  // _VOTCA_KMC_GLINK_H
+BOOST_AUTO_TEST_CASE(constructors_test) { GLink glin; }
+
+BOOST_AUTO_TEST_SUITE_END()
