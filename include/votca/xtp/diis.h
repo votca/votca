@@ -33,7 +33,7 @@
 #include <votca/ctp/logger.h>
 
 
-using namespace votca::tools;
+
 
 namespace votca { namespace xtp {
  namespace ub = boost::numeric::ublas;
@@ -108,7 +108,7 @@ public:
     bool                              _noisy;
     unsigned                          _histlength;
     bool                              _maxout;
-    string                            _diismethod;
+    std::string                            _diismethod;
     ub::matrix<double>                _Sminusonehalf;
     double                              _maxerror;
     double                              _adiis_start;  

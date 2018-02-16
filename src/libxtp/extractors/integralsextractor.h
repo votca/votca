@@ -34,7 +34,7 @@ public:
     IntegralsExtractor() { };
    ~IntegralsExtractor() { };
 
-    string Identify() { return "extract.integrals"; }
+    std::string Identify() { return "extract.integrals"; }
     void Initialize(tools::Property *options);
     bool EvaluateFrame(ctp::Topology *top);
 
@@ -50,7 +50,7 @@ void IntegralsExtractor::Initialize(tools::Property *options) {
 
 bool IntegralsExtractor::EvaluateFrame(ctp::Topology *top) {
     
-    string xmlfile = Identify() + ".xml";    
+    std::string xmlfile = Identify() + ".xml";    
     
     tools::Property state("state", "", "");
     tools::Property &pairs = state.add("pairs","");    
@@ -80,10 +80,10 @@ bool IntegralsExtractor::EvaluateFrame(ctp::Topology *top) {
         }
     }
     
-    ofstream ofs;    
-    ofs.open(xmlfile.c_str(), ofstream::out);
+    std::ofstream ofs;    
+    ofs.open(xmlfile.c_str(), std::ofstream::out);
     if (!ofs.is_open()) {
-        throw runtime_error("Bad file handle: " + xmlfile);
+        throw std::runtime_error("Bad file handle: " + xmlfile);
     }
     ofs << tools::XML << state;
     ofs.close();
