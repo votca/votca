@@ -113,7 +113,13 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/69ca5806/exciton.o \
 	${OBJECTDIR}/_ext/1ce08c7a/version.o \
 	${OBJECTDIR}/_ext/1ce08c7a/version_nb.o \
-	${OBJECTDIR}/_ext/1ce08c7a/xtpapplication.o
+	${OBJECTDIR}/_ext/1ce08c7a/xtpapplication.o \
+	${OBJECTDIR}/_ext/2aac7050/Md2QmEngine.o \
+	${OBJECTDIR}/_ext/2aac7050/xtp_dump.o \
+	${OBJECTDIR}/_ext/2aac7050/xtp_map.o \
+	${OBJECTDIR}/_ext/2aac7050/xtp_parallel.o \
+	${OBJECTDIR}/_ext/2aac7050/xtp_run.o \
+	${OBJECTDIR}/_ext/2aac7050/xtp_tools.o
 
 
 # C Compiler Flags
@@ -536,6 +542,36 @@ ${OBJECTDIR}/_ext/1ce08c7a/xtpapplication.o: nbproject/Makefile-${CND_CONF}.mk .
 	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/xtpapplication.o ../../src/libxtp/xtpapplication.cc
+
+${OBJECTDIR}/_ext/2aac7050/Md2QmEngine.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/Md2QmEngine.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/2aac7050
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2aac7050/Md2QmEngine.o ../../src/tools/Md2QmEngine.cc
+
+${OBJECTDIR}/_ext/2aac7050/xtp_dump.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/xtp_dump.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/2aac7050
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2aac7050/xtp_dump.o ../../src/tools/xtp_dump.cc
+
+${OBJECTDIR}/_ext/2aac7050/xtp_map.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/xtp_map.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/2aac7050
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2aac7050/xtp_map.o ../../src/tools/xtp_map.cc
+
+${OBJECTDIR}/_ext/2aac7050/xtp_parallel.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/xtp_parallel.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/2aac7050
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2aac7050/xtp_parallel.o ../../src/tools/xtp_parallel.cc
+
+${OBJECTDIR}/_ext/2aac7050/xtp_run.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/xtp_run.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/2aac7050
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2aac7050/xtp_run.o ../../src/tools/xtp_run.cc
+
+${OBJECTDIR}/_ext/2aac7050/xtp_tools.o: nbproject/Makefile-${CND_CONF}.mk ../../src/tools/xtp_tools.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/2aac7050
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/2aac7050/xtp_tools.o ../../src/tools/xtp_tools.cc
 
 # Subprojects
 .build-subprojects:
