@@ -378,8 +378,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/qmdatabase.h"
             ex="false"
             tool="3"
@@ -898,20 +896,6 @@
       </item>
       <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tools/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/Md2QmEngine.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_dump.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_map.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_parallel.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_run.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_tools.cc" ex="false" tool="1" flavor2="0">
-      </item>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
@@ -1045,8 +1029,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmdatabase.h"
             ex="false"
@@ -1565,20 +1547,6 @@
       <item path="../../src/libxtp/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/Md2QmEngine.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_dump.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_map.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_parallel.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_run.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_tools.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

@@ -67,7 +67,7 @@ void Coupling::Initialize(tools::Property* options)
     std::string key = "options." + Identify();    
     
     _degeneracy = options->get(key + ".degeneracy").as<double> ();
-    _package = options->get(key + ".package").as<std::string> ();
+    
             
     _orbA  = options->get(key + ".moleculeA.orbitals").as<std::string> ();
     _orbB  = options->get(key + ".moleculeB.orbitals").as<std::string> ();
@@ -85,11 +85,10 @@ void Coupling::Initialize(tools::Property* options)
    
     _output_file = options->get(key + ".output").as<std::string> ();
 
-    // get the path to the shared folders with xml files
-    char *votca_share = getenv("VOTCASHARE");    
-    if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    std::string xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/ctp/qmpackages/") + _package + std::string("_idft_pair.xml");
-    load_property_from_xml( _package_options, xmlFile );    
+     string _package_xml = options->get(key + ".dftpackage").as<string> ();
+    load_property_from_xml(_package_options, _package_xml.c_str());
+     _package = _package_options.get("package.name").as<string> ();
+    
 
     // register all QM packages (Gaussian, TURBOMOLE, etc)
     xtp::QMPackageFactory::RegisterAll();
