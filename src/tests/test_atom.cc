@@ -26,9 +26,9 @@ BOOST_AUTO_TEST_SUITE(atom_test)
 BOOST_AUTO_TEST_CASE(constructors_test) { Atom atm(1, "C"); }
 
 BOOST_AUTO_TEST_CASE(getters_test) {
-    Atom atm(3,"H");
-    BOOST_CHECK_EQUAL(atm.getId(),3);
-    BOOST_CHECK_EQUAL(atm.getName(),"H");
+  Atom atm(3, "H");
+  BOOST_CHECK_EQUAL(atm.getId(), 3);
+  BOOST_CHECK_EQUAL(atm.getName(), "H");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
