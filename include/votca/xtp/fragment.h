@@ -21,8 +21,10 @@
 #define	__VOTCA_XTP_FRAGMENT_H
 
 #include <vector>
+#include <string>
 
 #include <votca/tools/vec.h>
+#include <votca/tools/matrix.h>
 
 #include <votca/xtp/atom.h>
 #include <votca/ctp/polarsite.h>
@@ -48,11 +50,11 @@ class Segment;
 class Fragment {
 public:
 
-     Fragment(int id, string name) : _id(id), _name(name), _symmetry(-1) { }
+     Fragment(int id, std::string name) : _id(id), _name(name), _symmetry(-1) { }
      Fragment(Fragment *stencil);
     ~Fragment();
     
-    void Rotate(matrix spin, votca::tools::vec refPos);    // rotates w.r.t. center of map
+    void Rotate(votca::tools::matrix spin, votca::tools::vec refPos);    // rotates w.r.t. center of map
     void TranslateBy(const votca::tools::vec &shift);
     void RotTransQM2MD();
 
@@ -60,7 +62,7 @@ public:
     inline void setMolecule(Molecule *container) { _mol = container; }
     inline void setSegment(Segment *container)   { _seg = container; }
     void        AddAtom( Atom* atom );
-    void        AddPolarSite(PolarSite *pole);
+    void        AddPolarSite(votca::ctp::PolarSite *pole);
     void        AddAPolarSite(votca::ctp::APolarSite *pole);
 
     Topology            *getTopology() { return _top; }
@@ -71,7 +73,7 @@ public:
     std::vector<votca::ctp::APolarSite*> &APolarSites() { return _apolarSites; }
 
     const int    &getId() const { return _id; }
-    const string &getName() const { return _name; }
+    const std::string &getName() const { return _name; }
 
     void         Rigidify(bool Auto = 0);
     void         setSymmetry(int sym) { _symmetry = sym; }
@@ -80,13 +82,13 @@ public:
     const std::vector< int > &getTrihedron() { return _trihedron; }
 
 
-    void          calcPos(string tag = "MD");
+    void          calcPos(std::string tag = "MD");
     void          setPos(votca::tools::vec pos) { _CoMD = pos; }
     const votca::tools::vec    &getPos() const { return _CoMD; }
     const votca::tools::vec    &getCoMD() { return _CoMD; }
     const votca::tools::vec    &getCoQM() { return _CoQM; }
     const votca::tools::vec    &getCoQM0() { return _CoQM0; }
-    const matrix &getRotQM2MD() { return _rotateQM2MD; }
+    const votca::tools::matrix &getRotQM2MD() { return _rotateQM2MD; }
     const votca::tools::vec    &getTransQM2MD() { return _translateQM2MD; }
     
     
@@ -102,12 +104,12 @@ private:
     std::vector< double > _weights;
 
     int         _id;
-    string      _name;
+    std::string      _name;
     Topology    *_top;
     Molecule    *_mol;
     int              _symmetry;
 
-    matrix      _rotateQM2MD;       // Set via ::Rigidify()
+    votca::tools::matrix      _rotateQM2MD;       // Set via ::Rigidify()
     votca::tools::vec         _CoQM;              // Center of map (QM)
     votca::tools::vec         _CoMD;              // Center of map (MD)
     std::vector< int >    _trihedron;
