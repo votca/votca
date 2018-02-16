@@ -1,7 +1,7 @@
 <options>
 
-<xeinternal help="Reads in site and reorganosation energies and writes them to the state file" section="sec:xeinternal">
+<einternal help="Reads in site and reorganosation energies and writes them to the state file" section="sec:einternal">
  	<energiesXML help="XML input file with vacuum site, reorganization (charging, discharging) energies">system.xml</energiesXML>
-</xeinternal>
+</einternal>
 
 </options>
