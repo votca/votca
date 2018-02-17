@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_CTP_APOLARSITE_H
-#define __VOTCA_CTP_APOLARSITE_H
+#ifndef __VOTCA_XTP_APOLARSITE_H
+#define __VOTCA_XTP_APOLARSITE_H
 
 #include <cstdlib>
 #include <fstream>
@@ -27,7 +27,7 @@
 #include <map>
 
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
     
 
 using namespace votca::tools;
