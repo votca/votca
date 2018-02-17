@@ -31,20 +31,20 @@ namespace tools {
 */
 class Identity {
  private:
-  size_t id_;
+  long int id_;
   bool id_set_;
 
  public:
   /// Constructor
   Identity() : id_set_(false) {}
   /// Constructor that takes initial id
-  Identity(size_t id) : id_(id), id_set_(true) {};
+  Identity(long int id) : id_(id), id_set_(true) {};
   /// Gets the id returns error of the id has not been set
-  size_t getId() {
+  long int getId() {
     return (id_set_ ? id_ : throw std::runtime_error("ID not set"));
   }
   /// Set the id
-  void setId(size_t id) { id_ = id; }
+  void setId(long int id) { id_ = id; }
 };
 }
 }
