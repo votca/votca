@@ -96,7 +96,7 @@ public:
 
     void            ImportFrom(PolarSite *templ, std::string tag = "basic");
     void            Translate(const votca::tools::vec &shift);
-    void            Rotate(const matrix &rot, const votca::tools::vec &refPos);
+    void            Rotate(const votca::tools::matrix &rot, const votca::tools::vec &refPos);
 
     void            PrintInfo(std::ostream &out);
     void            PrintInfoInduce(std::ostream &out);
