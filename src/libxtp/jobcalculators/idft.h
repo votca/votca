@@ -24,7 +24,7 @@
 
 #include <votca/ctp/parallelxjobcalc.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/overlap.h>
+#include <votca/xtp/dftcoupling.h>
 
 #include <boost/numeric/ublas/io.hpp>
 #include <sys/stat.h>

@@ -33,25 +33,27 @@
 #include "tools/partialcharges.h"
 #include "tools/matrixproduct.h"
 #include "tools/densityanalysis.h"
+#include "tools/coupling.h"
 
 namespace votca { namespace xtp {
 
 void QMToolFactory::RegisterAll(void)
 {
 
-        QMTools().Register<PDB2Map>            ("xpdb2map");
-        QMTools().Register<Log2Mps>            ("xlog2mps");
+        QMTools().Register<PDB2Map>            ("pdb2map");
+        QMTools().Register<Log2Mps>            ("log2mps");
         QMTools().Register<Exciton>            ("exciton");
         QMTools().Register<QMAnalyze>          ("qmanalyze");
         QMTools().Register<QMSandbox>          ("qmsandbox");
         QMTools().Register<Spectrum>           ("spectrum");
         QMTools().Register<ExcitonCoupling>    ("excitoncoupling");
-        QMTools().Register<PDB2Top>            ("xpdb2top");
+        QMTools().Register<PDB2Top>            ("pdb2top");
         QMTools().Register<DFT>                ("dft");
         QMTools().Register<GenCube>            ("gencube");
         QMTools().Register<Partialcharges>     ("partialcharges");
-        QMTools().Register<MatProd>            ("matrixproduct");
+        //QMTools().Register<MatProd>            ("matrixproduct");
         QMTools().Register<DensityAnalysis>    ("densityanalysis");
+        QMTools().Register<Coupling>           ("coupling");
 
 }
 

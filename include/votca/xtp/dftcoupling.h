@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,13 @@
  *
  */
 
+#ifndef _VOTCA_XTP_DFTCOUPLING_H
+#define	_VOTCA_XTP_DFTCOUPLING_H
+
 #include <votca/xtp/orbitals.h>
 #include <votca/ctp/logger.h>
 
-#ifndef _VOTCA_XTP_OVERLAP_H
-#define	_VOTCA_XTP_OVERLAP_H
+
 
 namespace votca { namespace xtp {
 
@@ -34,12 +36,12 @@ namespace votca { namespace xtp {
 * 
 */
 
-class Overlap 
+class DFTcoupling 
 {
 public:
 
-    Overlap() {};
-   ~Overlap() {};
+    DFTcoupling() {};
+   ~DFTcoupling() {};
 
 
 
@@ -68,6 +70,6 @@ private:
 
 }}
 
-#endif	/* _VOTCA_XTP_OVERLAP_H */
+#endif	/* _VOTCA_XTP_DFTCOUPLING_H */
 
 

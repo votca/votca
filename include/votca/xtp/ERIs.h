@@ -26,7 +26,6 @@
 #include <votca/tools/linalg.h>
 
 
-using namespace std;
 
 
 namespace votca { namespace xtp {

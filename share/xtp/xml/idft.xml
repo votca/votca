@@ -1,7 +1,7 @@
 <options>
 
 <!-- xtp_run -e idft -f state.db -o options.xml -->
-<xidft help="Projection method for electronic couplings. Requires edft otput" section="sec:xidft">
+<idft help="Projection method for electronic couplings. Requires edft otput" section="sec:idft">
 
 	<job_file help="Job control file (full path)"></job_file>
 
@@ -17,7 +17,7 @@
 
 	<trim help="Use trim*occupied of virtual orbitals" default="2">-1</trim>
 
-</xidft>
+</idft>
 
 </options>
 

@@ -54,6 +54,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/50c6f79c/jobwriter.o \
 	${OBJECTDIR}/_ext/50c6f79c/kmclifetime.o \
 	${OBJECTDIR}/_ext/50c6f79c/kmcmultiple.o \
+	${OBJECTDIR}/_ext/1ce08c7a/dftcoupling.o \
 	${OBJECTDIR}/_ext/5e78919f/dftengine.o \
 	${OBJECTDIR}/_ext/1ce08c7a/diis.o \
 	${OBJECTDIR}/_ext/1ce08c7a/esp2multipole.o \
@@ -236,6 +237,11 @@ ${OBJECTDIR}/_ext/50c6f79c/kmcmultiple.o: nbproject/Makefile-${CND_CONF}.mk ../.
 	${MKDIR} -p ${OBJECTDIR}/_ext/50c6f79c
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/50c6f79c/kmcmultiple.o ../../src/libxtp/calculators/kmcmultiple.cc
+
+${OBJECTDIR}/_ext/1ce08c7a/dftcoupling.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/dftcoupling.cc 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1ce08c7a
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1ce08c7a/dftcoupling.o ../../src/libxtp/dftcoupling.cc
 
 ${OBJECTDIR}/_ext/5e78919f/dftengine.o: nbproject/Makefile-${CND_CONF}.mk ../../src/libxtp/dftengine/dftengine.cc 
 	${MKDIR} -p ${OBJECTDIR}/_ext/5e78919f
