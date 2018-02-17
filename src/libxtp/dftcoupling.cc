@@ -20,7 +20,7 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
 #include <votca/xtp/aomatrix.h>
-#include <votca/xtp/overlap.h>
+#include <votca/xtp/dftcoupling.h>
 
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/banded.hpp>
@@ -40,8 +40,7 @@ namespace ub = boost::numeric::ublas;
 using boost::format;
 
 
-
-double Overlap::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
+double DFTcoupling::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
     Orbitals* _orbitalsB, ub::matrix<double>* _JAB, double  _energy_difference ) {
 
     
@@ -83,7 +82,7 @@ double Overlap::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitals
  * @param _JAB matrix with electronic couplings
  * @return false if failed
  */
-bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
+bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
     Orbitals* _orbitalsAB, ub::matrix<double>* _JAB) {
 
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
@@ -149,6 +148,8 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             << _psi_AxB.size1() << "x" 
             << _psi_AxB.size2() << "]" << flush;    
     
+    
+    
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
     ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
     ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = _orbitalsA->MOCoefficients();
@@ -159,7 +160,7 @@ bool Overlap::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting dimer onto monomer orbitals" << flush; 
     ub::matrix<double> overlap;
-    if ( !_orbitalsAB->hasAOOverlap() ) {
+    if ( _orbitalsAB->hasAOOverlap() ) {
             CTP_LOG(ctp::logDEBUG,*_pLog) << "Reading overlap matrix from orbitals" << flush; 
            overlap= _orbitalsAB->AOOverlap();
     }else{

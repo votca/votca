@@ -214,7 +214,6 @@
       <itemPath>../../src/libxtp/version.cc</itemPath>
       <itemPath>../../src/libxtp/version_nb.cc</itemPath>
     </logicalFolder>
-   
   </logicalFolder>
   <sourceRootList>
     <Elem>../../include</Elem>
@@ -294,6 +293,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/dftcoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/dftengine.h"
             ex="false"
             tool="3"
@@ -324,11 +328,6 @@
       </item>
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/geometry_optimization.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/glink.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gnode.h" ex="false" tool="3" flavor2="0">
@@ -348,8 +347,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/gyration.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobapplication.h"
             ex="false"
@@ -385,8 +382,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmdatabase.h"
             ex="false"
@@ -584,6 +579,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
             ex="false"
             tool="1"
@@ -863,6 +860,8 @@
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/exciton.cc" ex="false" tool="1" flavor2="0">
@@ -953,6 +952,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/dftcoupling.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/dftengine.h"
             ex="false"
             tool="3"
@@ -983,11 +987,6 @@
       </item>
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/geometry_optimization.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/glink.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gnode.h" ex="false" tool="3" flavor2="0">
@@ -1007,8 +1006,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/gyration.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobapplication.h"
             ex="false"
@@ -1044,8 +1041,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmdatabase.h"
             ex="false"
@@ -1243,6 +1238,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
             ex="false"
             tool="1"
@@ -1521,6 +1518,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>
