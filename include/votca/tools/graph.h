@@ -47,4 +47,4 @@ class Graph {
 };
 }
 }
-#endif  // _VOTCA_TOOLS_GRAPHNODE_H
+#endif  // _VOTCA_TOOLS_GRAPH_H
