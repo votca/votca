@@ -29,42 +29,44 @@ namespace tools {
 
 using namespace std;
 
-GraphNode::GraphNode(size_t id,
-                     const unordered_map<string,int> int_vals,
+GraphNode::GraphNode(const unordered_map<string,int> int_vals,
                      const unordered_map<string,double> double_vals,
                      const unordered_map<string,string> str_vals){
-    
+
   vector<string> keys;
+  // Grab integer keys sort alphabetically and store in type
   for(auto it : int_vals) keys.push_back(it->first);
+  sort(keys.begin(),keys.end());
+  for(auto key : keys ){
+    type_.append(key); 
+    type_.append(lexical_cast<string>(int_vals));
+  }
+  key.clear();
+
+  // Grab double keys sort alphabetically and store in type
   for(auto it : double_vals) keys.push_back(it->first);
+   sort(keys.begin(),keys.end());
+  for(auto key : keys ){
+    type_.append(key); 
+    type_.append(lexical_cast<string>(int_vals));
+  }
+  key.clear();
+
   for(auto it : str_vals) keys.push_back(it->first);
   sort(keys.begin(),keys.end());
-  for(auto key : keys) type_.append(key);
-  setId(id);
+  for(auto key : keys ){
+    type_.append(key); 
+    type_.append(lexical_cast<string>(int_vals));
+  }
 }
 
 bool GraphNode::operator!=(const GraphNode gn) const { 
-  if(type 
-
+  return (type_.compare(gn.type_)!=0);
 }
 
 bool GraphNode::operator==(const GraphNode gn) const {
-  
-  return false;
+  return !((*this)!=gn);
 }
 
-
-bool Edge::operator<(const Edge ed) const {
-  if (this->vertices.first < ed.vertices.first) return true;
-  if (this->vertices.first > ed.vertices.first) return false;
-  if (this->vertices.second < ed.vertices.second) return true;
-  return false;
-}
-
-ostream& operator<<(ostream& os, const Edge ed) {
-  os << "Vertices" << endl;
-  os << ed.vertices.first << " " << ed.vertices.second << endl;
-  return os;
-}
 }
 }

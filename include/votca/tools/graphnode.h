@@ -37,11 +37,12 @@ namespace tools {
  */
 class GraphNode : protected Identity {
   private:
-    std::string type {""};
+    std::string type_ {""};
     std::unordered_map<std::string,int> int_vals_;
     std::unordered_map<std::string,double> double_vals__;
     std::unordered_map<std::string,std::string> str_vals_;
   public:
+    GraphNode() {};
     GraphNode(const std::unordered_map<std::string,int> int_vals,
               const std::unordered_map<std::string,double> double_vals,
               const std::unordered_map<std::string,std::string> str_vals);
