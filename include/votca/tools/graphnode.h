@@ -35,7 +35,7 @@ namespace tools {
  * The purpose of this object is to allow a level of flexibility when using
  * graph type algorithms.
  */
-class GraphNode : protected Identity {
+class GraphNode {
   private:
     std::string type_ {""};
     std::unordered_map<std::string,int> int_vals_;
