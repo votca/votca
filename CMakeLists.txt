@@ -58,7 +58,7 @@ endif()
 add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 
 
-find_package(Eigen)
+find_package(Eigen 3.3.0)
 if (EIGEN_FOUND)
     message("-- EIGEN found")
 	include_directories(${EIGEN_INCLUDE_DIRS})
