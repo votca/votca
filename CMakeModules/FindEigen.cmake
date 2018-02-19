@@ -1,82 +1,72 @@
-# - Try to find Eigen3 lib
-#
-# This module supports requiring a minimum version, e.g. you can do
-#   find_package(Eigen3 3.1.2)
-# to require version 3.1.2 or newer of Eigen3.
-#
-# Once done this will define
-#
-#  EIGEN_FOUND - system has eigen lib with correct version
-#  EIGEN_INCLUDE_DIR - the eigen include directory
-#  EIGEN_VERSION - eigen version
-
+###############################################################################
+# 
+# CMake script for finding the Eigen library.
+# 
+# http://eigen.tuxfamily.org/index.php?title=Main_Page
+# 
 # Copyright (c) 2006, 2007 Montel Laurent, <montel@kde.org>
 # Copyright (c) 2008, 2009 Gael Guennebaud, <g.gael@free.fr>
 # Copyright (c) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
-# Redistribution and use is allowed according to the terms of the 2-clause BSD license.
+# Redistribution and use is allowed according to the terms of the 2-clause BSD
+# license.
+# 
+# 
+# Input variables:
+# 
+# - Eigen_ROOT_DIR (optional): When specified, header files and libraries
+#   will be searched for in `${Eigen_ROOT_DIR}/include` and
+#   `${Eigen_ROOT_DIR}/libs` respectively, and the default CMake search order
+#   will be ignored. When unspecified, the default CMake search order is used.
+#   This variable can be specified either as a CMake or environment variable.
+#   If both are set, preference is given to the CMake variable.
+#   Use this variable for finding packages installed in a nonstandard location,
+#   or for enforcing that one of multiple package installations is picked up.
+# 
+# Cache variables (not intended to be used in CMakeLists.txt files)
+# 
+# - Eigen_INCLUDE_DIR: Absolute path to package headers.
+# 
+# 
+# Output variables:
+# 
+# - Eigen_FOUND: Boolean that indicates if the package was found
+# - Eigen_INCLUDE_DIRS: Paths to the necessary header files
+# - Eigen_VERSION: Version of Eigen library found
+# - Eigen_DEFINITIONS: Definitions to be passed on behalf of eigen
+# 
+# 
+# Example usage:
+# 
+#   # Passing the version means Eigen_FOUND will only be TRUE if a
+#   # version >= the provided version is found.
+#   find_package(Eigen 3.1.2)
+#   if(NOT Eigen_FOUND)
+#     # Error handling
+#   endif()
+#   ...
+#   add_definitions(${Eigen_DEFINITIONS})
+#   ...
+#   include_directories(${Eigen_INCLUDE_DIRS} ...)
+# 
+###############################################################################
 
-if(NOT Eigen_FIND_VERSION)
-  if(NOT Eigen_FIND_VERSION_MAJOR)
-    set(Eigen_FIND_VERSION_MAJOR 2)
-  endif(NOT Eigen_FIND_VERSION_MAJOR)
-  if(NOT Eigen_FIND_VERSION_MINOR)
-    set(Eigen_FIND_VERSION_MINOR 91)
-  endif(NOT Eigen_FIND_VERSION_MINOR)
-  if(NOT Eigen_FIND_VERSION_PATCH)
-    set(Eigen_FIND_VERSION_PATCH 0)
-  endif(NOT Eigen_FIND_VERSION_PATCH)
-
-  set(Eigen_FIND_VERSION "${Eigen_FIND_VERSION_MAJOR}.${Eigen_FIND_VERSION_MINOR}.${Eigen_FIND_VERSION_PATCH}")
-endif(NOT Eigen_FIND_VERSION)
-
-macro(_eigen3_check_version)
-  file(READ "${EIGEN_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h" _eigen3_version_header)
-
-  string(REGEX MATCH "define[ \t]+EIGEN_WORLD_VERSION[ \t]+([0-9]+)" _eigen3_world_version_match "${_eigen3_version_header}")
-  set(EIGEN_WORLD_VERSION "${CMAKE_MATCH_1}")
-  string(REGEX MATCH "define[ \t]+EIGEN_MAJOR_VERSION[ \t]+([0-9]+)" _eigen3_major_version_match "${_eigen3_version_header}")
-  set(EIGEN_MAJOR_VERSION "${CMAKE_MATCH_1}")
-  string(REGEX MATCH "define[ \t]+EIGEN_MINOR_VERSION[ \t]+([0-9]+)" _eigen3_minor_version_match "${_eigen3_version_header}")
-  set(EIGEN_MINOR_VERSION "${CMAKE_MATCH_1}")
-
-  set(EIGEN_VERSION ${EIGEN_WORLD_VERSION}.${EIGEN_MAJOR_VERSION}.${EIGEN_MINOR_VERSION})
-  if(${EIGEN_VERSION} VERSION_LESS ${Eigen_FIND_VERSION})
-    set(EIGEN_VERSION_OK FALSE)
-  else(${EIGEN_VERSION} VERSION_LESS ${Eigen_FIND_VERSION})
-    set(EIGEN_VERSION_OK TRUE)
-  endif(${EIGEN_VERSION} VERSION_LESS ${Eigen_FIND_VERSION})
-
-  if(NOT EIGEN_VERSION_OK)
-
-    message(STATUS "Eigen version ${EIGEN_VERSION} found in ${EIGEN_INCLUDE_DIR}, "
-                   "but at least version ${Eigen_FIND_VERSION} is required")
-  endif(NOT EIGEN_VERSION_OK)
-endmacro(_eigen3_check_version)
-
-if (EIGEN_INCLUDE_DIRS)
-
-  # in cache already
-  _eigen3_check_version()
-  set(EIGEN_FOUND ${EIGEN_VERSION_OK})
-
-else ()
-
-  find_path(EIGEN_INCLUDE_DIR NAMES signature_of_eigen3_matrix_library
-      PATHS
-      ${CMAKE_INSTALL_PREFIX}/include
-      ${KDE4_INCLUDE_DIR}
-      PATH_SUFFIXES eigen3 eigen
+find_package(PkgConfig)
+pkg_check_modules(PC_EIGEN eigen3)
+set(EIGEN_DEFINITIONS ${PC_EIGEN_CFLAGS_OTHER})
+find_path(EIGEN_INCLUDE_DIR Eigen/Core
+    HINTS ${PC_EIGEN_INCLUDEDIR} ${PC_EIGEN_INCLUDE_DIRS}
+          "${Eigen_ROOT_DIR}" "$ENV{EIGEN_ROOT_DIR}"
+          "${EIGEN_ROOT}" "$ENV{EIGEN_ROOT}"  # Backwards Compatibility
     )
 
-  if(EIGEN_INCLUDE_DIR)
-    _eigen3_check_version()
-  endif(EIGEN_INCLUDE_DIR)
+set(EIGEN_INCLUDE_DIRS ${EIGEN_INCLUDE_DIR})
 
-  include(FindPackageHandleStandardArgs)
-  find_package_handle_standard_args(Eigen DEFAULT_MSG EIGEN_INCLUDE_DIR EIGEN_VERSION_OK)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Eigen DEFAULT_MSG EIGEN_INCLUDE_DIR)
 
-  mark_as_advanced(EIGEN_INCLUDE_DIR)
-  SET(EIGEN_INCLUDE_DIRS ${EIGEN_INCLUDE_DIR} CACHE PATH "The Eigen include path.")
+mark_as_advanced(EIGEN_INCLUDE_DIR)
 
-endif()
-
+set(Eigen_INCLUDE_DIRS ${EIGEN_INCLUDE_DIRS})
+set(Eigen_FOUND ${EIGEN_FOUND})
+set(Eigen_VERSION ${EIGEN_VERSION})
+set(Eigen_DEFINITIONS ${EIGEN_DEFINITIONS})
