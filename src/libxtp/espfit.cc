@@ -112,10 +112,7 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &
 ub::vector<double> Espfit::EvalNuclearPotential(std::vector< QMAtom* >& _atoms, Grid _grid) {
     ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_grid.getsize());
 
-<<<<<<< HEAD
    
-=======
->>>>>>> fc32ec7d18c290b005462342e604b450817c3563
     const std::vector< vec >& _gridpoints = _grid.getGrid();
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points" << flush;
 
