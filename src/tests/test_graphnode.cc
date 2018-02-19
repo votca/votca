@@ -22,7 +22,7 @@
 #include <exception>
 #include <cmath>
 #include <votca/tools/graphnode.h>
-
+#include <iostream>
 using namespace std;
 using namespace votca::tools;
 
@@ -39,23 +39,46 @@ BOOST_AUTO_TEST_SUITE(graphnode_test)
 BOOST_AUTO_TEST_CASE(constructors_test) { GraphNode gn; }
 
 BOOST_AUTO_TEST_CASE(accessors_test) {
-/*  Elements ele;
-  BOOST_CHECK_EQUAL(ele.getVdWChelpG("H"), 1.45);
-  BOOST_CHECK_THROW(ele.getVdWChelpG("Blah"), invalid_argument);
+  GraphNode gn;
 
-  BOOST_CHECK_THROW(ele.getNucCrgECP("He"), invalid_argument);
+  BOOST_CHECK_EQUAL(gn == gn, true);
+  BOOST_CHECK_EQUAL(gn.getStringId(), "");
 
-  BOOST_CHECK_EQUAL(ele.getMass("K"), 39.098);
-  BOOST_CHECK_EQUAL(ele.getEleNum("Li"), 3);
+  unordered_map<string, int> int_vals = {{"Num", 134}};
+  unordered_map<string, double> double_vals = {{"Height", 159.32}};
+  unordered_map<string, string> str_vals = {{"Name", "George"}};
+  GraphNode gn2(int_vals, double_vals, str_vals);
+  GraphNode gn3(int_vals, double_vals, str_vals);
+  BOOST_CHECK_EQUAL(gn != gn2, true);
+  BOOST_CHECK_EQUAL(gn2 == gn2, true);
+  BOOST_CHECK_EQUAL(gn3 == gn2, true);
+}
 
-  BOOST_CHECK_EQUAL(ele.getEleName(17), "Cl");
-  BOOST_CHECK_EQUAL(ele.getEleShort("MAGNESIUM"), "Mg");
-  BOOST_CHECK_EQUAL(ele.getEleFull("Ge"), "GERMANIUM");
-  BOOST_CHECK_EQUAL(ele.getVdWMK("F"), 1.35);
-  BOOST_CHECK_THROW(ele.getVdWMK("Pb"), invalid_argument);
-  BOOST_CHECK_EQUAL(round_(ele.getCovRad("Cl","ang"),3),1.02);
-  BOOST_CHECK_EQUAL(round_(ele.getCovRad("Cl","nm"),3),0.102);
-  BOOST_CHECK_THROW(round_(ele.getCovRad("Cl","Blah"),3),invalid_argument);*/
+BOOST_AUTO_TEST_CASE(setters_test) {
+  unordered_map<string, int> int_vals = {{"Num", 134}};
+  unordered_map<string, double> double_vals = {{"Height", 159.32}};
+  unordered_map<string, string> str_vals = {{"Name", "George"}};
+  GraphNode gn2(int_vals, double_vals, str_vals);
+
+  string str{"Num134Height159.32NameGeorge"};
+  BOOST_CHECK_EQUAL(gn2.getStringId(), str);
+
+  unordered_map<string, int> int_vals2 = {{"Second", 2}, {"First", 1}};
+  gn2.setInt(int_vals2);
+  str = "First1Second2Height159.32NameGeorge";
+  BOOST_CHECK_EQUAL(gn2.getStringId(), str);
+
+  unordered_map<string, double> double_vals2 = {{"Height", 159.32},
+                                                {"Weight", 101.43}};
+  gn2.setDouble(double_vals2);
+  str = "First1Second2Height159.32Weight101.43NameGeorge";
+  BOOST_CHECK_EQUAL(gn2.getStringId(), str);
+
+  unordered_map<string, string> str_vals2 = {{"Name", "George"},
+                                             {"Address", "Koogler St"}};
+  gn2.setStr(str_vals2);
+  str = "First1Second2Height159.32Weight101.43AddressKoogler StNameGeorge";
+  BOOST_CHECK_EQUAL(gn2.getStringId(), str);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

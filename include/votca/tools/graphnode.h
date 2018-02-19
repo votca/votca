@@ -18,7 +18,7 @@
  */
 
 #include <unordered_map>
-#include <string> 
+#include <string>
 #include <iostream>
 #include <utility>
 #include <votca/tools/name.h>
@@ -30,25 +30,35 @@ namespace votca {
 namespace tools {
 
 /**
- * \brief A graph node that will take a variety of different values 
+ * \brief A graph node that will take a variety of different values
  *
  * The purpose of this object is to allow a level of flexibility when using
- * graph type algorithms.
+ * graph type algorithms. The object uses its contents to create a string
+ * that is unique to the contents. If two nodes with the same contents are
+ * created they will be considered to be equivalent.
  */
 class GraphNode {
-  private:
-    std::string type_ {""};
-    std::unordered_map<std::string,int> int_vals_;
-    std::unordered_map<std::string,double> double_vals__;
-    std::unordered_map<std::string,std::string> str_vals_;
-  public:
-    GraphNode() {};
-    GraphNode(const std::unordered_map<std::string,int> int_vals,
-              const std::unordered_map<std::string,double> double_vals,
-              const std::unordered_map<std::string,std::string> str_vals);
+ private:
+  std::string str_id_{""};
+  std::unordered_map<std::string, int> int_vals_;
+  std::unordered_map<std::string, double> double_vals_;
+  std::unordered_map<std::string, std::string> str_vals_;
+  void initStringId_();
 
-    bool operator==(const GraphNode gn) const;   
-    bool operator!=(const GraphNode gn) const; 
+ public:
+  GraphNode() {};
+  /// Constructor
+  GraphNode(const std::unordered_map<std::string, int> int_vals,
+            const std::unordered_map<std::string, double> double_vals,
+            const std::unordered_map<std::string, std::string> str_vals);
+  /// Basic setters
+  void setInt(const std::unordered_map<std::string, int> int_vals);
+  void setDouble(const std::unordered_map<std::string, double> double_vals);
+  void setStr(const std::unordered_map<std::string, std::string> str_vals);
+  /// Get the string id unique to the contents
+  std::string getStringId() const { return str_id_; }
+  bool operator==(const GraphNode gn) const;
+  bool operator!=(const GraphNode gn) const;
 };
 }
 }
