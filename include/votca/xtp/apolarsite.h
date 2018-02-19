@@ -84,10 +84,12 @@ public:
     int            &getId() { return _id; }
     std::string         &getName() { return _name; }
     votca::tools::vec            &getPos() { return _pos; }
+    // Point charge 0,1 dipole,2 quad 
     int            &getRank() { return _rank; }
     Topology       *getTopology() { return _top; }
     Segment        *getSegment() { return _seg; }
     Fragment       *getFragment() { return _frag; }
+    // Don't know
     bool            getIsVirtual() { return _isVirtual; }
     bool            getIsActive(bool estatics_only);
 
@@ -103,9 +105,13 @@ public:
     void            Translate(const votca::tools::vec &shift);
     void            Rotate(const votca::tools::matrix &rot, const votca::tools::vec &refPos);
     // PERMANENT MOMENTS
+    // Determines if the magnitudes Q00 Q1x Q1y coordinates of teh multiple moments are non negligable
     bool            IsCharged();
     std::vector<double> &getQs(int state) { return _Qs[state+1]; }
+    // the,state -1 for electron, 0 -  neutral, 1 for hole
+    // the qs vector is contains all the poles vector of multipoles for the specific state look up 
     void            setQs(std::vector<double> Qs, int state) { while(Qs.size() < 9) Qs.push_back(0.0); _Qs[state+1] = Qs; }
+    // Setting one of the pole values
     void            setQ00(double q, int s) { Q00 = q; if (_Qs[s+1].size() < 1) _Qs[s+1].resize(1); _Qs[s+1][0] = q; }
     
     //these are apparently set in charge function of apolarsite
@@ -113,6 +119,8 @@ public:
     void            setQ1(const votca::tools::vec &dpl) { Q1x=dpl.getX(); Q1y=dpl.getY(); Q1z=dpl.getZ(); }
     votca::tools::vec             getQ1() { return votca::tools::vec(Q1x, Q1y, Q1z); }  // Only IOP
     //this is really ugly I apologize but I do not know who designed these objects
+    // Q1 returns dipole and Q2 returns the quadralpole
+    //
     std::vector<double>  getQ2() {
         std::vector<double> temp=std::vector<double>(5);
         temp[0]=Q20;
@@ -265,6 +273,8 @@ private:
 
     double eigendamp;
 
+    // These values are basically the same as what is in the _Qs but in a different
+    // format apparently for performance reasons... 
     double Q00;
     double Q1x, Q1y, Q1z;
     double Q20, Q21c, Q21s, Q22c, Q22s;
