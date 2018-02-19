@@ -133,7 +133,7 @@ namespace votca {
                 return _number_of_electrons;
             };
 
-            void setNumberOfElectrons(const int &electrons) {
+            void setNumberOfElectrons(int electrons) {
                 _number_of_electrons = electrons;
             }
 
