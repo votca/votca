@@ -32,7 +32,7 @@
 #include <boost/multi_array.hpp>
 #include "basisset.h"
 //#include "linalg_tools.h"
-
+#include <Eigen/Dense>
 
 
 
