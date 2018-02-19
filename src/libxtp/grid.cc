@@ -221,7 +221,7 @@ void Grid::printgridtoCubefile(std::string filename){
                     int atnum = _elements.getEleNum (element);
                     int crg=(*ait)->getNuccharge();
 
-                    fprintf(out, "%d %f %f %f %f\n", atnum, crg, pos.getX(), pos.getY(), pos.getZ());
+                    fprintf(out, "%d %d %f %f %f\n", atnum, crg, pos.getX(), pos.getY(), pos.getZ());
                 }
             std::vector< ctp::APolarSite* >::iterator pit;
             int Nrecord=0.0;

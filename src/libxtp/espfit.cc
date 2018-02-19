@@ -81,7 +81,7 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;
     //boost::progress_display show_progress( _grid.getsize() );
     #pragma omp parallel for
-    for ( int i = 0 ; i < _grid.getsize(); i++){
+    for ( unsigned i = 0 ; i < _grid.getsize(); i++){
         _ESPatGrid(i)=numway.IntegratePotential(_grid.getGrid()[i]);
         //++show_progress;
     }
@@ -112,7 +112,7 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &
 ub::vector<double> Espfit::EvalNuclearPotential(std::vector< QMAtom* >& _atoms, Grid _grid) {
     ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_grid.getsize());
 
-    double Znuc=0.0;
+   
     const std::vector< vec >& _gridpoints = _grid.getGrid();
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points" << flush;
 
@@ -186,7 +186,7 @@ void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<
 
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;
     #pragma omp parallel for
-    for ( int i = 0 ; i < _grid.getsize(); i++){
+    for ( unsigned i = 0 ; i < _grid.getsize(); i++){
         // AOESP matrix
          AOESP _aoesp;
          _aoesp.Fill(_basis, _grid.getGrid()[i]);
