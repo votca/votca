@@ -81,11 +81,7 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;
     //boost::progress_display show_progress( _grid.getsize() );
     #pragma omp parallel for
-<<<<<<< HEAD
     for ( unsigned i = 0 ; i < _grid.getsize(); i++){
-=======
-    for ( unsigned int i = 0 ; i < _grid.getsize(); i++){
->>>>>>> fc32ec7d18c290b005462342e604b450817c3563
         _ESPatGrid(i)=numway.IntegratePotential(_grid.getGrid()[i]);
         //++show_progress;
     }
