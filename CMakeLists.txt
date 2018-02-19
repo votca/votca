@@ -57,6 +57,17 @@ else()
 endif()
 add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 
+
+find_package(Eigen)
+if (EIGEN_FOUND)
+    message("-- EIGEN found")
+	include_directories(${EIGEN_INCLUDE_DIRS})
+message(STATUS ${EIGEN_INCLUDE_DIRS})
+	set (LIBEIGEN TRUE )
+else()
+
+endif()
+
 find_package(LIBXC)
 if (LIBXC_FOUND)
     message("-- LIBXC found")
@@ -65,8 +76,6 @@ if (LIBXC_FOUND)
 else()
 	set(LIBXC_LIBRARIES)
 endif()
-
-
 
 find_package(GSL)
 
@@ -164,7 +173,6 @@ endforeach(FUNC)
 add_subdirectory(include/votca/xtp)
 add_subdirectory(scripts)
 add_subdirectory(src/libxtp)
-add_subdirectory(src/tests)
 add_subdirectory(src/tools)
 #add_subdirectory(src/dipro)
 #add_subdirectory(share/scripts/dipro)
