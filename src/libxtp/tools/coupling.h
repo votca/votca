@@ -144,7 +144,7 @@ bool Coupling::Evaluate() {
     int _degBL = 1;
     
     // trim monomers A and B to one level 
-    if ((_trimA == -1) || (_trimB == -1) ) { // any -1 overrides the specification of the other 
+    if ((_trimA < 0) || (_trimB <0) ) { // any -1 overrides the specification of the other 
         
         // find degeneracy of HOMOs and LUMOs
         std::vector<int> list_levelsAH  = (*_orbitalsA.getDegeneracy( _orbitalsA.getNumberOfElectrons()-1, _degeneracy ));
@@ -163,14 +163,14 @@ bool Coupling::Evaluate() {
     // trim by the factors   (_trimA-1)  and  (_trimB-1) 
     } else {
  
-        if ( _orbitalsA.getNumberOfElectrons()*(_trimA-1) <   _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() ) {
+        if ( _orbitalsA.getNumberOfElectrons()*(_trimA-1) <  int(_orbitalsA.getNumberOfLevels()) - _orbitalsA.getNumberOfElectrons() ) {
             CTP_LOG(ctp::logDEBUG,_log) << "Trimming virtual orbitals A:" 
                     << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << "->" 
                     << _orbitalsA.getNumberOfElectrons()*(_trimA-1) << std::flush;  
             _orbitalsA.Trim(_trimA);
         }
     
-        if ( _orbitalsB.getNumberOfElectrons()*(_trimB-1) <   _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() ) {
+        if ( _orbitalsB.getNumberOfElectrons()*(_trimB-1) <   int(_orbitalsB.getNumberOfLevels()) - _orbitalsB.getNumberOfElectrons() ) {
             CTP_LOG(ctp::logDEBUG,_log) << "Trimming virtual orbitals B:" 
                     << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << "->" 
                     << _orbitalsB.getNumberOfElectrons()*(_trimB-1) << std::flush;      
@@ -200,7 +200,7 @@ bool Coupling::Evaluate() {
     _pair_summary->setAttribute("homoA", HOMO_A);
     _pair_summary->setAttribute("homoB", HOMO_B);
 
-    if ( (_trimA == -1) || (_trimB == -1) ) {
+    if ( (_trimA <0) || (_trimB <0) ) {
 
         // HOMO-HOMO coupling
         double JAB = dftcoupling.getCouplingElement(_degAH, _degBH , &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy);
