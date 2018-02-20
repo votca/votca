@@ -27,61 +27,58 @@ using namespace votca::tools;
 using namespace std;
 
 EdgeContainer::EdgeContainer(Edge ed) {
-  if (ed.getV1() != ed.getV2()) {
-    vertices_.push_back(ed.getV1());
-    vertices_.push_back(ed.getV2());
-  }
-  vertices_.push_back(ed.getV1());
-
-  edges_.push_back(ed);
+  addEdge(ed);
 }
 
 EdgeContainer::EdgeContainer(vector<Edge> eds) {
-  set<int> f_verts;
-  set<Edge> f_eds;
-  for (auto ed : eds) {
-    f_verts.insert(ed.getV1());
-    f_verts.insert(ed.getV2());
-    f_eds.insert(ed);
+  for(auto ed : eds){
+    addEdge(ed);
   }
-
-  for (auto vert : f_verts) vertices_.push_back(vert);
-  for (auto ed : f_eds) edges_.push_back(ed);
 }
 
 bool EdgeContainer::edgeExist(Edge ed) {
-  return (find(edges_.begin(), edges_.end(), ed) != edges_.end());
+  return (find(adj_list_[ed.getV1()].begin(),
+               adj_list_[ed.getV1()].end(), 
+               ed.getV2()) != adj_list_[ed.getV1()].end());
 }
 
 bool EdgeContainer::vertexExist(int vert) {
-  return (find(vertices_.begin(), vertices_.end(), vert) != vertices_.end());
+  return adj_list_.count(vert);
 }
 
 void EdgeContainer::addEdge(Edge ed) {
-  if (!edgeExist(ed)) edges_.push_back(ed);
-  if (!vertexExist(ed.getV1())) vertices_.push_back(ed.getV1());
-  if (!vertexExist(ed.getV2())) vertices_.push_back(ed.getV2());
+  adj_list_[ed.getV1()].insert(ed.getV2());
+  adj_list_[ed.getV2()].insert(ed.getV1());
   return;
 }
 
-vector<int> EdgeContainer::getVertices() { return vertices_; }
+vector<int> EdgeContainer::getVertices() { 
+  vector<int> vertices;
+  for( auto const & it : adj_list_) vertices.push_back(it.first);
+  return vertices; 
+}
 
 vector<int> EdgeContainer::getNeighVertices(int vert) {
   vector<int> neigh_verts;
-  for (auto ed : edges_) {
-    if (ed.contains(vert)) {
-      neigh_verts.push_back(ed.getOtherV(vert));
-    }
+  for (auto const & neigh_vert : adj_list_[vert] ) {
+      neigh_verts.push_back(neigh_vert);
   }
   return neigh_verts;
 }
 
 vector<Edge> EdgeContainer::getNeighEdges(int vert) {
   vector<Edge> neigh_edges;
-  for (auto ed : edges_) {
-    if (ed.contains(vert)) neigh_edges.push_back(ed);
+  for (auto const & neigh_vert : adj_list_[vert]) {
+    neigh_edges.push_back(Edge(vert,neigh_vert));
   }
   return neigh_edges;
 }
 
-vector<Edge> EdgeContainer::getEdges() { return edges_; }
+vector<Edge> EdgeContainer::getEdges() { 
+  set<Edge> edgs;
+  for(auto const & it : adj_list_){
+    for(auto const & vert : it.second ) edgs.insert(Edge(it.first,vert));
+  }
+  vector<Edge> vec_edgs(edgs.begin(),edgs.end());
+  return vec_edgs;
+}
