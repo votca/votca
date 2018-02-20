@@ -43,6 +43,9 @@ class EdgeContainer {
   EdgeContainer() {};
   EdgeContainer(Edge ed);
   EdgeContainer(std::vector<Edge> eds);
+
+  /// Determine the degree of the vertex/number of edges attached
+  int getDegree(int vert);
   /// Check if the edge exists returns true or false
   bool edgeExist(Edge ed);
   /// Check if the vertex exists returns true or false

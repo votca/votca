@@ -38,6 +38,17 @@ BOOST_AUTO_TEST_CASE(create_test) {
   EdgeContainer edCo3(eds);
 }
 
+BOOST_AUTO_TEST_CASE(getdegree_test){
+  Edge ed(1, 2);
+  Edge ed2(2, 3);
+  vector<Edge> eds{ed, ed2};
+  EdgeContainer edCo(eds);
+  BOOST_CHECK(edCo.getDegree(1)==1);
+  BOOST_CHECK(edCo.getDegree(2)==2);
+  BOOST_CHECK(edCo.getDegree(3)==1);
+  BOOST_CHECK_THROW(edCo.getDegree(4),invalid_argument);
+} 
+
 BOOST_AUTO_TEST_CASE(edgeexist_test) {
   Edge ed(1, 2);
   Edge ed2(2, 3);

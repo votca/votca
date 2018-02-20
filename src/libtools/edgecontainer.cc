@@ -17,14 +17,17 @@
  *
  */
 
+#include <set>
 #include <vector>
+#include <exception>
 #include <votca/tools/edge.h>
 #include <votca/tools/edgecontainer.h>
-#include <set>
 #include <algorithm>
+#include <boost/lexical_cast.hpp>
 
 using namespace votca::tools;
 using namespace std;
+using namespace boost;
 
 EdgeContainer::EdgeContainer(Edge ed) { addEdge(ed); }
 
@@ -32,6 +35,11 @@ EdgeContainer::EdgeContainer(vector<Edge> eds) {
   for (auto ed : eds) {
     addEdge(ed);
   }
+}
+
+int EdgeContainer::getDegree(int vert){
+  if(!adj_list_.count(vert)) throw invalid_argument("vertex is not defined");
+  return lexical_cast<int>(adj_list_[vert].size());
 }
 
 bool EdgeContainer::edgeExist(Edge ed) {
