@@ -20,6 +20,9 @@
 #ifndef __XTP_AOMATRIX__H
 #define	__XTP_AOMATRIX__H
 
+#define EIGEN_USE_MKL_ALL 
+#include <Eigen/Dense>
+
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
 #include <votca/ctp/apolarsite.h>
@@ -32,7 +35,7 @@
 #include <boost/multi_array.hpp>
 #include "basisset.h"
 //#include "linalg_tools.h"
-#include <Eigen/Dense>
+
 
 
 
