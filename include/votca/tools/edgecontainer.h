@@ -21,7 +21,10 @@
 #define _VOTCA_TOOLS_EDGECONTAINER_H
 
 #include <vector>
+#include <unordered_map>
+#include <set>
 #include <votca/tools/edge.h>
+#include <boost/graph/adjacency_list.hpp>
 
 namespace votca {
 namespace tools {
@@ -34,9 +37,7 @@ namespace tools {
  */
 class EdgeContainer {
  private:
-  std::vector<Edge> edges_;
-  std::vector<int> vertices_;
-
+  std::unordered_map<int,std::set<int>> adj_list_; 
  public:
   /// Constructors can take no arguments a single Edge or a vector of edges
   EdgeContainer() {};
