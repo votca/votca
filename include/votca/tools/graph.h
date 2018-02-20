@@ -37,7 +37,7 @@ namespace tools {
  *        the bonds between nodes.
  *
  */
-class Graph {
+class Graph : EdgeContainer{
   private:
     EdgeContainer edges_;
     std::unordered_map<int,GraphNode> nodes_;
