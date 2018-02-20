@@ -200,7 +200,7 @@ bool Coupling::Evaluate() {
     _pair_summary->setAttribute("homoA", HOMO_A);
     _pair_summary->setAttribute("homoB", HOMO_B);
 
-    if ( (_trimA <) || (_trimB <0) ) {
+    if ( (_trimA <0) || (_trimB <0) ) {
 
         // HOMO-HOMO coupling
         double JAB = dftcoupling.getCouplingElement(_degAH, _degBH , &_orbitalsA, &_orbitalsB, &_JAB, _degeneracy);
