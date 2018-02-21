@@ -48,9 +48,9 @@ public:
     
     
     // on grid very fast
-    void Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,std::string gridsize);
+    void Fit2Density(std::vector< QMAtom* >& _atomlist, Eigen::MatrixXd &_dmat, AOBasis &_basis,std::string gridsize);
     // not so fast
-    void Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis);
+    void Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, Eigen::MatrixXd &_dmat, AOBasis &_basis);
 private:
     
      ctp::Logger *_log;

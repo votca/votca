@@ -21,6 +21,7 @@
 #include "votca/xtp/qmatom.h"
 #include "votca/xtp/elements.h"
 #include <votca/tools/constants.h>
+#include <Eigen/src/Core/Matrix.h>
 
 
 
@@ -38,7 +39,7 @@ AOShell* AOBasis::addShell( std::string shellType,int Lmax,int Lmin, double shel
         return aoshell;
         }
 
-void AOBasis::ReorderMOs(ub::matrix<double> &v, const std::string& start, const std::string& target) {
+void AOBasis::ReorderMOs(Eigen::MatrixXd &v, const std::string& start, const std::string& target) {
 
     // cout << " Reordering MOs from " << start << " to " << target << endl;
 
@@ -85,21 +86,21 @@ void AOBasis::ReorderMOs(ub::matrix<double> &v, const std::string& start, const 
     return;
 }
 
-void AOBasis::ReorderMatrix(ub::symmetric_matrix<double> &v,const std::string& start,const std::string& target ){
+void AOBasis::ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target ){
     if (start==target){
         return;
     }
-    vector<int> order = getReorderVector(start, target);
+    std::vector<int> order = getReorderVector(start, target);
     
-     if (v.size2() != order.size()) {
-        std::cerr << "Size mismatch in ReorderMatrix" << v.size2() << ":" << order.size() << std::endl;
+     if (v.cols() != order.size()) {
+        std::cerr << "Size mismatch in ReorderMatrix" << v.cols() << ":" << order.size() << std::endl;
         throw std::runtime_error("Abort!");
     }
 
-    ub::symmetric_matrix<double> temp=v;
-    for(unsigned i=0;i<temp.size1();i++){
+    Eigen::MatrixXd temp=v;
+    for(unsigned i=0;i<temp.cols();i++){
         int i_index=order[i];
-        for(unsigned j=0;j<temp.size1();j++){
+        for(unsigned j=0;j<temp.rows();j++){
             int j_index=order[j];
             v(i_index,j_index)=temp(i,j);
         }
@@ -110,27 +111,24 @@ void AOBasis::ReorderMatrix(ub::symmetric_matrix<double> &v,const std::string& s
 }
 
 
-void AOBasis::MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier )  {
+void AOBasis::MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier )  {
           // Sanity check
-          if ( v.size2() != multiplier.size() ) {
-              std::cerr << "Size mismatch in MultiplyMOs" << v.size2() << ":" << multiplier.size() << std::endl;
+          if ( v.cols() != multiplier.size() ) {
+              std::cerr << "Size mismatch in MultiplyMOs" << v.cols() << ":" << multiplier.size() << std::endl;
               throw std::runtime_error( "Abort!");
           }
-
-          for ( unsigned _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++ ){
-
-               for ( unsigned _i_basis = 0; _i_basis < v.size2(); _i_basis++ ){
-
+          for ( unsigned _i_orbital = 0; _i_orbital < v.rows(); _i_orbital++ ){
+               for ( unsigned _i_basis = 0; _i_basis < v.cols(); _i_basis++ ){
                    v(_i_orbital, _i_basis ) = multiplier[_i_basis] * v(_i_orbital, _i_basis );
-
                }
-
-
            }
+          return;
        }
+
+
 //this is for gaussian only to transform from gaussian ordering cartesian to spherical in gaussian ordering not more
-ub::matrix<double> AOBasis::getTransformationCartToSpherical(const std::string& package){
-    ub::matrix<double>_trafomatrix;
+Eigen::MatrixXd AOBasis::getTransformationCartToSpherical(const std::string& package){
+    Eigen::MatrixXd _trafomatrix;
     if ( package != "gaussian" ){
         std::cout << " I should not have been called, will do nothing! " << std::endl;
     } else {
@@ -146,7 +144,7 @@ ub::matrix<double> AOBasis::getTransformationCartToSpherical(const std::string& 
 
         }
 
-     _trafomatrix= ub::zero_matrix<double>( _dim_sph , _dim_cart );
+     _trafomatrix= Eigen::MatrixXd::Zero( _dim_sph , _dim_cart );
         // initialize _trafomatrix
         
 
@@ -160,7 +158,7 @@ ub::matrix<double> AOBasis::getTransformationCartToSpherical(const std::string& 
             int _col_end = _col_start +NumFuncShell_cartesian( _type );
 
             ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange( _trafomatrix, _row_start, _row_end, _col_start, _col_end);
-            addTrafoCartShell(  _shell, _submatrix  );
+            addTrafoCartShell(  _shell, _trafomatrix.block(_row_start,_col_start,NumFuncShell( _type ),NumFuncShell_cartesian( _type ));
 
             _row_start = _row_end;
             _col_start = _col_end;
@@ -170,8 +168,8 @@ ub::matrix<double> AOBasis::getTransformationCartToSpherical(const std::string& 
     return _trafomatrix;
 }
 
-//only for gaussian package
-void AOBasis::addTrafoCartShell(const AOShell* shell , ub::matrix_range< ub::matrix<double> >& _trafo ){
+template <typename Derived>
+void AOBasis::addTrafoCartShell( const AOShell* shell , Eigen::DenseBase<Derived>& _submatrix ){
 
 
     // fill _local according to _lmax;
@@ -183,7 +181,7 @@ void AOBasis::addTrafoCartShell(const AOShell* shell , ub::matrix_range< ub::mat
 
     // cout << "    local size : " << _sph_size << " : " << _cart_size << endl;
 
-    ub::matrix<double> _local =  ub::zero_matrix<double>(_sph_size,_cart_size);
+    Eigen::MatrixXd _local = Eigen::MatrixXd::Zero(_sph_size,_cart_size);
 
     // s-functions
     _local(0,0) = 1.0; // s
@@ -217,7 +215,7 @@ void AOBasis::addTrafoCartShell(const AOShell* shell , ub::matrix_range< ub::mat
         for  ( int _i_cart = 0 ; _i_cart < NumFuncShell_cartesian( _type ) ; _i_cart++ ){
 
 
-            _trafo( _i_sph , _i_cart ) = _local( _i_sph + OffsetFuncShell( _type ) , _i_cart +  OffsetFuncShell_cartesian( _type ) );
+            _submatrix( _i_sph , _i_cart ) = _local( _i_sph + OffsetFuncShell( _type ) , _i_cart +  OffsetFuncShell_cartesian( _type ) );
 
         }
     }

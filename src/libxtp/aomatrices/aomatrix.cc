@@ -51,7 +51,6 @@ namespace votca { namespace xtp {
        
             const AOShell* _shell_row = aobasis.getShell( _row );
             int _row_start = _shell_row->getStartIndex();
-            int _row_end   = _row_start + _shell_row->getNumFunc();
            
             // AOMatrix is symmetric, restrict explicit calculation to triangular matrix
             for ( unsigned _col = 0; _col <= _row ; _col++ ){
@@ -60,18 +59,15 @@ namespace votca { namespace xtp {
                 
                 // figure out the submatrix
                 int _col_start = _shell_col->getStartIndex();
-                int _col_end   = _col_start + _shell_col->getNumFunc();
-                
-                ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(_aomatrix, _row_start, _row_end, _col_start, _col_end);
-                
+ 
                 // Fill block
-                FillBlock( _submatrix, _shell_row, _shell_col, ecp );
+                FillBlock( _aomatrix.block(_row_start,_col_start, _shell_row->getNumFunc(),_shell_col->getNumFunc(), ecp );
                 
             }
         }
         
         // Fill whole matrix by copying
-        for ( unsigned _i=0; _i < _aomatrix.size1(); _i++){
+        for ( unsigned _i=0; _i < _aomatrix.rows(); _i++){
             for ( unsigned _j=0; _j < _i; _j++){
                _aomatrix(_j,_i) = _aomatrix(_i,_j); 
                        
@@ -82,7 +78,7 @@ namespace votca { namespace xtp {
          bool _is_symmetric = true;
         
         // Copy stuff to fill lower triangular part
-         for ( unsigned _i=0; _i < this->_aomatrix.size1(); _i++){
+         for ( unsigned _i=0; _i < this->_aomatrix.rows(); _i++){
             for (unsigned _j=0; _j <= _i; _j++){
          
                 if ( std::abs(this->_aomatrix(_i,_j) - this->_aomatrix(_j,_i) ) > 1e-4 ) {
@@ -103,16 +99,14 @@ namespace votca { namespace xtp {
         // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
         _aomatrix.resize(3);
         for (int i = 0; i < 3 ; i++){
-          _aomatrix[ i ] = ub::zero_matrix<double>(aobasis.AOBasisSize());
+          _aomatrix[ i ] = Eigen::MatrixXd::Zero(aobasis.AOBasisSize());
         }
-        
         // loop row
         #pragma omp parallel for
         for ( unsigned _row = 0; _row <  aobasis.getNumofShells() ; _row++ ){
        
             const AOShell* _shell_row = aobasis.getShell( _row );
             int _row_start = _shell_row->getStartIndex();
-            int _row_end   = _row_start + _shell_row->getNumFunc();
 
             // loop column
             for (AOBasis::AOShellIterator _col = aobasis.firstShell(); _col != aobasis.lastShell() ; _col++ ) {
@@ -120,10 +114,9 @@ namespace votca { namespace xtp {
                 
                 // figure out the submatrix
                 int _col_start = _shell_col->getStartIndex();
-                int _col_end   = _col_start + _shell_col->getNumFunc();
-                std::vector< ub::matrix_range< ub::matrix<double> > > _submatrix;
+                std::vector<auto> _submatrix;
                 for ( int _i = 0; _i < 3; _i++){
-                   _submatrix.push_back(   ub::subrange(_aomatrix[_i], _row_start, _row_end, _col_start, _col_end) );
+                   _submatrix.push_back( _aomatrix[_i].block( _row_start,_col_start,_shell_row->getNumFunc(),_shell_col->getNumFunc()));
                
                 }
                 // Fill block
@@ -159,9 +152,9 @@ namespace votca { namespace xtp {
     void AOMatrix::Print( string _ident){
         cout << "\n" << endl;
         std::cout.precision(12);
-        for ( unsigned i =0; i< this->_aomatrix.size1(); i++){
-            for ( unsigned j =0; j< this->_aomatrix.size2(); j++){
-                cout << _ident << "[" << i+1 << ":" << j+1 << "] " << scientific << this->_aomatrix(i,j) << endl;
+        for ( unsigned i =0; i< _aomatrix.rows(); i++){
+            for ( unsigned j =0; j< _aomatrix.cols(); j++){
+                cout << _ident << "[" << i+1 << ":" << j+1 << "] " << scientific <<_aomatrix(i,j) << endl;
             }
         }
     }
@@ -169,14 +162,14 @@ namespace votca { namespace xtp {
     
        void AOMatrix3D::Print( string _ident){
         cout << "\n" << endl;
-        for ( unsigned i =0; i< this->_aomatrix[0].size1(); i++){
-            for ( unsigned j =0; j< this->_aomatrix[0].size2(); j++){
-                cout << _ident << "[" << i+1 << ":" << j+1 << "] " <<  this->_aomatrix[0](i,j) << " : " <<  this->_aomatrix[1](i,j) << " : " <<  this->_aomatrix[2](i,j)  << endl;
+        for ( unsigned i =0; i< _aomatrix[0].rows(); i++){
+            for ( unsigned j =0; j< _aomatrix[0].cols(); j++){
+                cout << _ident << "[" << i+1 << ":" << j+1 << "] " <<  _aomatrix[0](i,j) << " : " <<  _aomatrix[1](i,j) << " : " <<  _aomatrix[2](i,j)  << endl;
             }
         }
     }
        
-       ub::matrix<double> AOSuperMatrix::getTrafo(const AOGaussianPrimitive& gaussian){
+       Eigen::MatrixXd AOSuperMatrix::getTrafo(const AOGaussianPrimitive& gaussian){
          ///         0    1  2  3    4  5  6  7  8  9   10  11  12  13  14  15  16  17  18  19       20    21    22    23    24    25    26    27    28    29    30    31    32    33    34 
         ///         s,   x, y, z,   xy xz yz xx yy zz, xxy xyy xyz xxz xzz yyz yzz xxx yyy zzz,    xxxy, xxxz, xxyy, xxyz, xxzz, xyyy, xyyz, xyzz, xzzz, yyyz, yyzz, yzzz, xxxx, yyyy, zzzz,
          const AOShell* shell=gaussian.getShell();
@@ -184,7 +177,7 @@ namespace votca { namespace xtp {
          const double _decay=gaussian.getDecay();
          const int _lmax=shell->getLmax();
          const int n=getBlockSize( _lmax );
-         ub::matrix<double> _trafo=ub::zero_matrix<double>(ntrafo,n); 
+         Eigen::MatrixXd _trafo=Eigen::MatrixXd::Zero(ntrafo,n); 
          const std::vector<double>& contractions=gaussian.getContraction();
          
         // s-functions

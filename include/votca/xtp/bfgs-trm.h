@@ -75,14 +75,14 @@ namespace votca {
             unsigned _natoms;
             unsigned _nsegments;
             unsigned _iteration;
-            ub::matrix<double> _force;
-            ub::matrix<double> _force_old;
-            ub::matrix<double> _xyz_shift;
-            ub::matrix<double> _speed;
-            ub::matrix<double> _current_xyz;
-            ub::matrix<double> _old_xyz;
-            ub::matrix<double> _trial_xyz;
-            ub::matrix<double> _hessian;
+            Eigen::MatrixXd _force;
+            Eigen::MatrixXd _force_old;
+            Eigen::MatrixXd _xyz_shift;
+            Eigen::MatrixXd _speed;
+            Eigen::MatrixXd _current_xyz;
+            Eigen::MatrixXd _old_xyz;
+            Eigen::MatrixXd _trial_xyz;
+            Eigen::MatrixXd _hessian;
 
             bool _step_accepted;
             bool _update_hessian;
@@ -136,11 +136,11 @@ namespace votca {
 
             // vector storage for steps, let's rethink that later
             unsigned _dim;
-            ub::vector<double> _previous_pos;
-            ub::vector<double> _current_pos;
-            ub::vector<double> _previous_gradient;
-            ub::vector<double> _current_gradient;
-            ub::vector<double> _delta_pos;
+            Eigen::VectorXd _previous_pos;
+            Eigen::VectorXd _current_pos;
+            Eigen::VectorXd _previous_gradient;
+            Eigen::VectorXd _current_gradient;
+            Eigen::VectorXd _delta_pos;
             double _new_energy;
             double _last_energy;
             double _energy_delta;

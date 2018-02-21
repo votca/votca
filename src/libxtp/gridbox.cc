@@ -26,7 +26,7 @@
 namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
     
-            void GridBox::AddtoBigMatrix(ub::matrix<double>& bigmatrix, const ub::matrix<double>& smallmatrix) {
+            void GridBox::AddtoBigMatrix(Eigen::MatrixXd& bigmatrix, const Eigen::MatrixXd& smallmatrix) {
 
 
             for (unsigned i = 0; i < ranges.size(); i++) {
@@ -39,9 +39,9 @@ namespace votca { namespace xtp {
 
             
 
-        ub::matrix<double> GridBox::ReadFromBigMatrix(const ub::matrix<double>& bigmatrix) {
+        Eigen::MatrixXd GridBox::ReadFromBigMatrix(const Eigen::MatrixXd& bigmatrix) {
             
-            ub::matrix<double> _matrix = ub::matrix<double>(matrix_size,matrix_size);
+            Eigen::MatrixXd _matrix = Eigen::MatrixXd(matrix_size,matrix_size);
             for (unsigned i = 0; i < ranges.size(); i++) {
                 for (unsigned j = 0; j < ranges.size(); j++) {
                     
@@ -53,14 +53,17 @@ namespace votca { namespace xtp {
 
         void GridBox::PrepareForIntegration() {
             unsigned index = 0;
-            aoranges=std::vector<ub::range>(0);
-            ranges=std::vector<ub::range>(0);
-            inv_ranges=std::vector<ub::range>(0);   
+            aoranges=std::vector<range>(0);
+            ranges=std::vector<range>(0);
+            inv_ranges=std::vector<range>(0);   
             std::vector<unsigned> start;
             std::vector<unsigned> end;
 
             for (const auto shell:significant_shells) {
-                aoranges.push_back(ub::range(index, index+shell->getNumFunc()));
+              range temp;
+              temp.size=shell->getNumFunc();
+              temp.start=index;
+                aoranges.push_back(temp);
                 index += shell->getNumFunc();
                 start.push_back(shell->getStartIndex());
                 end.push_back(shell->getStartIndex() + shell->getNumFunc());
@@ -86,11 +89,15 @@ namespace votca { namespace xtp {
              }
             unsigned shellstart = 0;
             for (unsigned i = 0; i < startindex.size(); ++i) {
-                ranges.push_back(ub::range(startindex[i], endindex[i]));
-                
                 unsigned size = endindex[i]-startindex[i];
-                
-                inv_ranges.push_back(ub::range(shellstart, shellstart + size));
+                range temp;
+                temp.size=size;
+                temp.start=startindex[i];
+                ranges.push_back(temp);
+                range temp2;
+                temp2.size=shellstart;
+                temp2.start=size;
+                inv_ranges.push_back(temp2);
                 shellstart += size;
             }
 

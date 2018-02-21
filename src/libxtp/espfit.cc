@@ -37,7 +37,7 @@ namespace votca { namespace xtp {
 
 
 
-void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,string gridsize) {
+void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, Eigen::MatrixXd &_dmat, AOBasis &_basis,string gridsize) {
 
 
     // setting up grid
@@ -53,14 +53,8 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &
 
     AOOverlap overlap;
     overlap.Fill(_basis);
-    ub::vector<double> DMATasarray=_dmat.data();
-    ub::vector<double> AOOasarray=overlap.Matrix().data();
-    double N_comp=0.0;
-    #pragma omp parallel for reduction(+:N_comp)
-    for ( unsigned _i =0; _i < DMATasarray.size(); _i++ ){
-            N_comp =N_comp+ DMATasarray(_i)*AOOasarray(_i);
-        }
-
+    double N_comp=_dmat.cwiseProduct(overlap).sum();
+   
     NumericalIntegration numway;
 
     numway.GridSetup(gridsize,_atomlist,&_basis);
@@ -88,7 +82,7 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &
 
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Electron contribution calculated"  << flush;
     if (!_do_Transition){
-    ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid );
+    Eigen::VectorXd _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid );
     _ESPatGrid += _NucPatGrid;
     }
 
@@ -110,7 +104,7 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &
 
 
 ub::vector<double> Espfit::EvalNuclearPotential(std::vector< QMAtom* >& _atoms, Grid _grid) {
-    ub::vector<double> _NucPatGrid = ub::zero_vector<double>(_grid.getsize());
+    Eigen::VectorXd _NucPatGrid = Eigen::VectorXd::Zero(_grid.getsize());
 
    
     const std::vector< vec >& _gridpoints = _grid.getGrid();
@@ -157,7 +151,7 @@ double Espfit::getNetcharge( std::vector< QMAtom* >& _atoms, double N ){
 
 
 
-void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat,AOBasis &_basis) {
+void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, Eigen::MatrixXd &_dmat,AOBasis &_basis) {
     // setting up grid
     Grid _grid;
     _grid.setAtomlist(&_atomlist);
@@ -166,22 +160,15 @@ void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl;
     // Calculating nuclear potential at gridpoints
 
-    ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_grid.getsize());
+    Eigen::VectorXd _ESPatGrid = Eigen::VectorXd::Zero(_grid.getsize());
 
     AOOverlap overlap;
     overlap.Fill(_basis);
-    const ub::vector<double> DMATasarray=_dmat.data();
-    const ub::vector<double> AOOasarray=overlap.Matrix().data();
-    double N=0.0;
-    #pragma omp parallel for reduction(+:N)
-    for ( unsigned _i =0; _i < DMATasarray.size(); _i++ ){
-            N =N+ DMATasarray(_i)*AOOasarray(_i);
-        }
+    double N_comp=_dmat.cwiseProduct(overlap).sum();
 
     double netcharge=getNetcharge( _atomlist,N );
     if(!_do_Transition){
-        ub::vector<double> _NucPatGrid = EvalNuclearPotential(  _atomlist,  _grid);
-        _ESPatGrid += _NucPatGrid;
+        _ESPatGrid += EvalNuclearPotential(  _atomlist,  _grid);
     }
 
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;
@@ -190,12 +177,8 @@ void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<
         // AOESP matrix
          AOESP _aoesp;
          _aoesp.Fill(_basis, _grid.getGrid()[i]);
-        const ub::vector<double> AOESPasarray=_aoesp.Matrix().data();
-
-        for ( unsigned _i =0; _i < DMATasarray.size(); _i++ ){
-            _ESPatGrid(i) -= DMATasarray(_i)*AOESPasarray(_i);
-        }
-    }
+        _ESPatGrid(i) -=_dmat.cwiseProduct(_aoesp.Matrix()).sum();
+          }
 
     std::vector< tools::vec > _fitcenters;
 
@@ -212,20 +195,20 @@ void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<
     return;
     }
 
-std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge ){
+std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitcenters, Grid& _grid, Eigen::MatrixXd& _potential, double& _netcharge ){
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Setting up Matrices for fitting of size "<< _fitcenters.size()+1 <<" x " << _fitcenters.size()+1<< flush;
 
     const std::vector< tools::vec >& _gridpoints=_grid.getGrid();
 
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using "<< _fitcenters.size() <<" Fittingcenters and " << _gridpoints.size()<< " Gridpoints."<< flush;
 
-    ub::matrix<double> _Amat = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
-    ub::matrix<double> _Bvec = ub::zero_matrix<double>(_fitcenters.size()+1,1);
+    Eigen::MatrixXd _Amat = Eigen::MatrixXd::Zero(_fitcenters.size()+1,_fitcenters.size()+1);
+    Eigen::VectorXd _Bvec = Eigen::VectorXd::Zero(_fitcenters.size()+1,1);
     //boost::progress_display show_progress( _fitcenters.size() );
     // setting up _Amat
     #pragma omp parallel for
-    for ( unsigned _i =0 ; _i < _Amat.size1()-1; _i++){
-        for ( unsigned _j=_i; _j<_Amat.size2()-1; _j++){
+    for ( unsigned _i =0 ; _i < _Amat.rows()-1; _i++){
+        for ( unsigned _j=_i; _j<_Amat.cols()-1; _j++){
             for ( unsigned _k=0; _k < _gridpoints.size(); _k++){
                 double dist_i = tools::abs(_fitcenters[_i]-_gridpoints[_k]);
                 double dist_j = tools::abs(_fitcenters[_j]-_gridpoints[_k]);
@@ -236,46 +219,46 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitce
         }
     }
 
-    for ( unsigned _i =0 ; _i < _Amat.size1(); _i++){
-      _Amat(_i,_Amat.size1()-1) = 1.0;
-      _Amat(_Amat.size1()-1,_i) = 1.0;
+    for ( unsigned _i =0 ; _i < _Amat.rows(); _i++){
+      _Amat(_i,_Amat.cols()-1) = 1.0;
+      _Amat(_Amat.rows()-1,_i) = 1.0;
     }
-    _Amat(_Amat.size1()-1,_Amat.size1()-1) = 0.0;
+    _Amat(_Amat.rows()-1,_Amat.cols()-1) = 0.0;
 
     // setting up Bvec
     #pragma omp parallel for
-    for ( unsigned _i =0 ; _i < _Bvec.size1()-1; _i++){
+    for ( unsigned _i =0 ; _i < _Bvec.size()-1; _i++){
         for ( unsigned _k=0; _k < _gridpoints.size(); _k++){
                 double dist_i = tools::abs(_fitcenters[_i]-_gridpoints[_k]);
                 _Bvec(_i,0) += _potential(_k)/dist_i;
         }
        }
 
-    _Bvec(_Bvec.size1()-1,0) = _netcharge; //netcharge!!!!
+    _Bvec(_Bvec.size()-1,0) = _netcharge; //netcharge!!!!
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices "<< flush;
     // invert _Amat
-    ub::matrix<double> _Amat_inverse = ub::zero_matrix<double>(_fitcenters.size()+1,_fitcenters.size()+1);
+    
 
 
-
+    Eigen::VectorXd _charges;
     if(_do_svd){
-        int notfittedatoms=linalg_invert_svd( _Amat , _Amat_inverse,_conditionnumber);
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << "SVD Done. "<<notfittedatoms<<" could not be fitted and are set to zero."<< flush;
+      Eigen::JacobiSVD<Eigen::MatrixXd> svd();
+      svd.setThreshold(_conditionnumber);
+      svd.compute(_Amat);
+      _charges=svd.solve(_Bvec);
+      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << "SVD Done. "<<_Bvec.size()-svd.nonzeroSingularValues()<<" could not be fitted and are set to zero."<< flush;
     }
     else{
-        linalg_invert( _Amat , _Amat_inverse);
+       _charges=_Amat.colPivHouseholderQr().solve(_Bvec);
     }
 
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices done."<< flush;
     //_Amat.resize(0,0);
 
 
-
-    ub::matrix<double> _charges = ub::prod(_Amat_inverse,_Bvec);
-
     std::vector<double> _result;
-    for ( unsigned _i = 0; _i < _charges.size1(); _i++ ){
-        _result.push_back(_charges(_i,0));
+    for ( unsigned _i = 0; _i < _charges.size(); _i++ ){
+        _result.push_back(_charges(_i));
     }
 
     double _sumcrg = 0.0;

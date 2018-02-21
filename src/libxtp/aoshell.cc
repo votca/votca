@@ -23,8 +23,8 @@
 namespace votca { namespace xtp {
     
 
-       
-void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::matrix_range<ub::matrix<double> >& gradAOvalues, const vec& grid_pos)const{
+template <typename Derived>       
+void AOShell::EvalAOspace(Eigen::DenseBase<Derived>& AOvalues, Eigen::DenseBase<Derived>& gradAOvalues, const vec& grid_pos)const{
 
           
             // need position of shell
@@ -288,8 +288,8 @@ void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::m
         }
 
            
-           
-void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const vec& grid_pos )const{
+template <typename Derived>           
+void AOShell::EvalAOspace(Eigen::DenseBase<Derived>& AOvalues, const vec& grid_pos )const{
 
            
             // need position of shell

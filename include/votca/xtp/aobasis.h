@@ -48,9 +48,9 @@ public:
         AOBasis( ) { ; }
         ~AOBasis(); 
       
-       void ReorderMOs(ub::matrix<double> &v,const std::string& start, const std::string& target ); 
+       void ReorderMOs(Eigen::MatrixXd &v,const std::string& start, const std::string& target ); 
        
-       void ReorderMatrix(ub::symmetric_matrix<double> &v,const std::string& start,const std::string& target );
+       void ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target );
      
       
 
@@ -64,7 +64,7 @@ public:
     AOShellIterator firstShell() const{ return _aoshells.begin(); }
     AOShellIterator lastShell() const{ return _aoshells.end(); }
 
-    ub::matrix<double> getTransformationCartToSpherical(const std::string& package);
+    Eigen::MatrixXd getTransformationCartToSpherical(const std::string& package);
    
         
     const AOShell* getShell( AOShellIterator it ) const{ return (*it); }
@@ -88,7 +88,7 @@ public:
    private:
        
        
-  void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
+  void MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier );
    
     std::vector<AOShell*> _aoshells;
 
@@ -103,8 +103,8 @@ public:
     void addMultiplierShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& multiplier );  
     
     
-    
-    void addTrafoCartShell( const AOShell* shell , ub::matrix_range< ub::matrix<double> >& _submatrix );
+    template <typename Derived>
+    void addTrafoCartShell( const AOShell* shell , Eigen::DenseBase<Derived>& _submatrix );
     
     int getMaxFunctions ( );
     

@@ -76,7 +76,7 @@ namespace votca { namespace xtp {
         static int getBlockSize( int size );
         
         
-        static ub::matrix<double> getTrafo( const AOGaussianPrimitive& gaussian);
+        static Eigen::MatrixXd getTrafo( const AOGaussianPrimitive& gaussian);
         
         void PrintIndexToFunction(const AOBasis& aobasis);
         
@@ -90,10 +90,10 @@ namespace votca { namespace xtp {
         
 
 	// Access functions
-	int Dimension(){ return  _aomatrix.size1();};
-	ub::matrix<double> &Matrix(){ return _aomatrix ;};
+	int Dimension(){ return  _aomatrix.rows();};
+	Eigen::MatrixXd &Matrix(){ return _aomatrix ;};
 
-        const ub::matrix<double> &Matrix() const{ return _aomatrix ;};
+        const Eigen::MatrixXd &Matrix() const{ return _aomatrix ;};
         
         
         
@@ -104,11 +104,12 @@ namespace votca { namespace xtp {
         // integrate F
         static std::vector<double> XIntegrate( int _n, double _T );
         // block fill prototype
-        virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp = NULL) {} ;
+   
+        virtual void FillBlock(Eigen::Ref<Eigen::MatrixXd>&_matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp = NULL) {} ;
 
         // ~AOMatrix(){};
     protected:
-        ub::matrix<double> _aomatrix; 
+        Eigen::MatrixXd _aomatrix; 
         vec _gridpoint;
 
     };
@@ -124,7 +125,7 @@ namespace votca { namespace xtp {
         
        
 
-        const std::vector<ub::matrix<double> > &Matrix() const{ return _aomatrix ;};
+        const std::vector<Eigen::MatrixXd > &Matrix() const{ return _aomatrix ;};
 
         // matrix print 
         void Print( std::string _ident);
@@ -133,12 +134,13 @@ namespace votca { namespace xtp {
         void Fill(const AOBasis& aobasis );
 
         // block fill prototype
-        virtual void FillBlock(std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp = NULL) {} ;
+      
+        virtual void FillBlock(std::vector<Eigen::Ref<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp = NULL) {} ;
 
         
         void Cleanup();
     protected:
-        std::vector<ub::matrix<double> > _aomatrix; 
+        std::vector<Eigen::MatrixXd > _aomatrix; 
         
       //  ~AOMatrix3D();
         
@@ -152,8 +154,8 @@ namespace votca { namespace xtp {
     class AOMomentum : public AOMatrix3D { 
         
         //block fill for gradient/momentum operator, implementation in aomomentum.cc
-        void FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
-        
+       
+        virtual void FillBlock(std::vector< Eigen::Ref<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp = NULL) {} ;
         
     };
     
@@ -165,7 +167,8 @@ namespace votca { namespace xtp {
     class AODipole : public AOMatrix3D { 
         
         //block fill for gradient/momentum operator, implementation in aomomentum.cc
-        void FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
+
+        virtual void FillBlock(std::vector< Eigen::Ref<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp = NULL) {} ;
         
         
     };
@@ -175,18 +178,19 @@ namespace votca { namespace xtp {
     class AOESP : public AOMatrix{
     public:
         //block fill for overlap, implementation in aoesp.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
+        
+        void FillBlock( Eigen::Ref<Eigen::MatrixXd>& _matrix ,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
         //void Print();
         void Fillnucpotential(const AOBasis& aobasis, std::vector<QMAtom*>& _atoms);
         void Fillextpotential(const AOBasis& aobasis, const std::vector<ctp::PolarSeg*>& _sites);
-        ub::matrix<double> &getNuclearpotential(){ return _nuclearpotential;}
-        const ub::matrix<double> &getNuclearpotential()const{ return _nuclearpotential;}
-        ub::matrix<double> &getExternalpotential(){ return _externalpotential;}
-        const ub::matrix<double> &getExternalpotential()const{ return _externalpotential;}
+        Eigen::MatrixXd &getNuclearpotential(){ return _nuclearpotential;}
+        const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
+        Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
+        const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         // ~AOESP();
     private:    
-        ub::matrix<double> _nuclearpotential;
-        ub::matrix<double> _externalpotential;
+        Eigen::MatrixXd _nuclearpotential;
+        Eigen::MatrixXd _externalpotential;
     };
     
     
@@ -195,13 +199,14 @@ namespace votca { namespace xtp {
     class AOECP : public AOMatrix{
     public:
         //block fill for overlap, implementation in aoesp.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
+        
+        void FillBlock( Eigen::Ref<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
 
         
         typedef boost::multi_array<double, 3> type_3D;
         
         
-        ub::matrix<double> calcVNLmatrix(int _lmax_ecp,const vec& posC, const AOGaussianPrimitive& _g_row,const AOGaussianPrimitive& _g_col,const  ub::matrix<int>& _power_ecp,const ub::matrix<double>& _gamma_ecp,const ub::matrix<double>& _pref_ecp   );
+        Eigen::MatrixXd calcVNLmatrix(int _lmax_ecp,const vec& posC, const AOGaussianPrimitive& _g_row,const AOGaussianPrimitive& _g_col,const  Eigen::MatrixXi& _power_ecp,const Eigen::MatrixXd& _gamma_ecp,const Eigen::MatrixXd& _pref_ecp   );
         
         
         
@@ -216,7 +221,8 @@ namespace votca { namespace xtp {
     class AOKinetic : public AOMatrix{
     public:
         //block fill for overlap, implementation in aokinetic.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col , AOBasis* ecp);
+       
+        void FillBlock( Eigen::Ref<Eigen::MatrixXd>& _matrix , const AOShell* _shell_row, const AOShell* _shell_col , AOBasis* ecp);
  
         
     };
@@ -226,7 +232,8 @@ namespace votca { namespace xtp {
     class AOOverlap : public AOMatrix{
     public:
         //block fill for overlap, implementation in aooverlap.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
+      
+        void FillBlock( Eigen::Ref<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
         //void Print();
         
 	//        ~AOOverlap();
@@ -236,11 +243,12 @@ namespace votca { namespace xtp {
     class AODipole_Potential : public AOMatrix{
     public:
         //block fill for overlap, implementation in aooverlap.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
+       
+        void FillBlock( Eigen::Ref<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
         
         void Fillextpotential(const AOBasis& aobasis, const std::vector<ctp::PolarSeg*>& _sites);
-        ub::matrix<double> &getExternalpotential(){ return _externalpotential;}
-        const ub::matrix<double> &getExternalpotential()const{ return _externalpotential;}
+        Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
+        const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         
         //void Print();
         
@@ -250,18 +258,19 @@ namespace votca { namespace xtp {
             apolarsite=site;
         };
         ctp::APolarSite* apolarsite;
-        ub::matrix<double> _externalpotential;
+        Eigen::MatrixXd _externalpotential;
     };
     
     class AOQuadrupole_Potential : public AOMatrix{
     public:
         //block fill for overlap, implementation in aooverlap.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
+   
+        void FillBlock( Eigen::Ref<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
         //void Print();
         
         void Fillextpotential(const AOBasis& aobasis, const std::vector<ctp::PolarSeg*>& _sites);
-        ub::matrix<double> &getExternalpotential(){ return _externalpotential;}
-        const ub::matrix<double> &getExternalpotential()const{ return _externalpotential;}
+        Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
+        const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         //void Print();
         
 	//        ~AOOverlap();
@@ -270,7 +279,7 @@ namespace votca { namespace xtp {
             apolarsite=site;
         };
         ctp::APolarSite* apolarsite;
-        ub::matrix<double> _externalpotential;
+        Eigen::MatrixXd _externalpotential;
     };
     
     
@@ -279,8 +288,9 @@ namespace votca { namespace xtp {
     //derived class for atomic orbital Coulomb interaction
     class AOCoulomb : public AOMatrix{
     public:
-        void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
-        int Symmetrize(const ub::matrix<double>& _gwoverlap_cholesky);
+    
+        void FillBlock( Eigen::Ref<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
+        int Symmetrize(const Eigen::MatrixXd& _gwoverlap_cholesky);
         int Invert_DFT();
        
         

@@ -535,7 +535,7 @@ bool GWBSE::Evaluate() {
 
   _ScaHFX = _orbitals->getScaHFX();
 
-  ub::matrix<double> _vxc_ao;
+  Eigen::MatrixXd _vxc_ao;
   if (_orbitals->hasAOVxc()) {
     if (_doVxc) {
       CTP_LOG(ctp::logDEBUG, *_pLog)
@@ -575,7 +575,7 @@ bool GWBSE::Evaluate() {
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Integrating Vxc in VOTCA with functional "
         << _functional << flush;
-    ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState();
+    Eigen::MatrixXd DMAT = _orbitals->DensityMatrixGroundState();
 
     _vxc_ao = _numint.IntegrateVXC(DMAT);
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
@@ -592,12 +592,9 @@ bool GWBSE::Evaluate() {
                                  << flush;
 
   // now get expectation values but only for those in _qpmin:_qpmax range
-  ub::matrix<double> _mos =
-      ub::project(_dft_orbitals, ub::range(_qpmin, _qpmax + 1),
-                  ub::range(0, _dftbasis.AOBasisSize()));
+  Eigen::MatrixXd _mos = _dft_orbitals.block(_qpmin,0,_qpmax-_qpmin+1, _dftbasis.AOBasisSize());
 
-  ub::matrix<double> _temp = ub::prod(_vxc_ao, ub::trans(_mos));
-  _vxc = ub::prod(_mos, _temp);
+  _vxc =_mos.transpose()*_vxc_ao*_mos;
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
       << " Calculated exchange-correlation expectation values " << flush;
@@ -630,7 +627,7 @@ bool GWBSE::Evaluate() {
 
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled GW Overlap matrix of dimension: "
-                                 << _gwoverlap.Matrix().size1() << flush;
+                                 << _gwoverlap.Matrix().rows() << flush;
 
   /*
    *  for the calculation of Coulomb and exchange term in the self
@@ -647,22 +644,16 @@ bool GWBSE::Evaluate() {
   _gwcoulomb.Fill(gwbasis);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled GW Coulomb matrix of dimension: "
-                                 << _gwcoulomb.Matrix().size1() << flush;
+                                 << _gwcoulomb.Matrix().rows() << flush;
 
   // PPM is symmetric, so we need to get the sqrt of the Coulomb matrix
 
-  ub::matrix<double> _gwoverlap_cholesky = _gwoverlap.Matrix();
-  linalg_cholesky_decompose(_gwoverlap_cholesky);
+ 
+ Eigen::MatrixXd L = _gwoverlap.Matrix().llt().matrixL();
+ Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es();
+ 
 
-// remove L^T from Cholesky
-#pragma omp parallel for
-  for (unsigned i = 0; i < _gwoverlap_cholesky.size1(); i++) {
-    for (unsigned j = i + 1; j < _gwoverlap_cholesky.size1(); j++) {
-      _gwoverlap_cholesky(i, j) = 0.0;
-    }
-  }
-
-  ub::matrix<double> _gwoverlap_cholesky_inverse;  // will also be needed in PPM
+  Eigen::MatrixXd _gwoverlap_cholesky_inverse;  // will also be needed in PPM
                                                    // itself
   int removed =
       linalg_invert_svd(_gwoverlap_cholesky, _gwoverlap_cholesky_inverse, 1e7);
@@ -765,11 +756,11 @@ bool GWBSE::Evaluate() {
     _gw_sc_max_iterations = 1;
   }
 
-  const ub::vector<double> &_dft_energies = _orbitals->MOEnergies();
+  const Eigen::VectorXd &_dft_energies = _orbitals->MOEnergies();
   for (unsigned gw_iteration = 0; gw_iteration < _gw_sc_max_iterations;
        ++gw_iteration) {
 
-    ub::vector<double> _qp_old_rpa = _qp_energies;
+    Eigen::VectorXd _qp_old_rpa = _qp_energies;
     if (_iterate_gw) {
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " GW Iteraton "
                                      << gw_iteration + 1 << " of "
@@ -812,7 +803,7 @@ bool GWBSE::Evaluate() {
 
     if (_iterate_gw) {
       bool _gw_converged = true;
-      ub::vector<double> diff = _qp_old_rpa - _qp_energies;
+      Eigen::VectorXd diff = _qp_old_rpa - _qp_energies;
       unsigned int _l_not_converged = 0;
       double E_max = 0;
       for (unsigned l = 0; l < diff.size(); l++) {
@@ -920,7 +911,7 @@ bool GWBSE::Evaluate() {
   // store perturbative QP energy data in orbitals object (DFT, S_x,S_c, V_xc,
   // E_qp)
   if (_store_qp_pert) {
-    ub::matrix<double> &_qp_energies_store = _orbitals->QPpertEnergies();
+    Eigen::MatrixXd &_qp_energies_store = _orbitals->QPpertEnergies();
     _qp_energies_store.resize(_qptotal, 5);
     for (unsigned _i = 0; _i < _qptotal; _i++) {
       _qp_energies_store(_i, 0) = _dft_energies(_i + _qpmin);

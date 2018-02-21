@@ -45,15 +45,15 @@ public:
     Diis() {_maxerrorindex=0;
                 _maxerror=0.0; };
    ~Diis() {
-     for (std::vector< ub::matrix<double>* >::iterator it = _mathist.begin() ; it !=_mathist.end(); ++it){
+     for (std::vector< Eigen::MatrixXd* >::iterator it = _mathist.begin() ; it !=_mathist.end(); ++it){
          delete *it;
      }
      _mathist.clear();
-      for (std::vector< ub::matrix<double>* >::iterator it = _dmathist.begin() ; it !=_dmathist.end(); ++it){
+      for (std::vector< Eigen::MatrixXd* >::iterator it = _dmathist.begin() ; it !=_dmathist.end(); ++it){
          delete *it;
      }
      _dmathist.clear();
-     for (std::vector< ub::matrix<double>* >::iterator it = _errormatrixhist.begin() ; it !=_errormatrixhist.end(); ++it){
+     for (std::vector< Eigen::MatrixXd* >::iterator it = _errormatrixhist.begin() ; it !=_errormatrixhist.end(); ++it){
          delete *it;
      }
     _errormatrixhist.clear();
@@ -81,16 +81,16 @@ public:
   
    }
    
-   void setOverlap(ub::matrix<double>* _S){
+   void setOverlap(Eigen::MatrixXd* _S){
        S=_S;
    }
-   void setSqrtOverlap(ub::matrix<double>* _Sminusahalf){
+   void setSqrtOverlap(Eigen::MatrixXd* _Sminusahalf){
        Sminusahalf=_Sminusahalf;
    }
     void setLogger(ctp::Logger *pLog){_pLog=pLog;}
-    double Evolve(const ub::matrix<double>& dmat,const ub::matrix<double>& H,ub::vector<double> &MOenergies,ub::matrix<double> &MOs, int this_iter,double totE);
-    void SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,ub::matrix<double>&H);
-    void Levelshift(ub::matrix<double>& H,const ub::matrix<double>&MOs);
+    double Evolve(const Eigen::MatrixXd& dmat,const Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs, int this_iter,double totE);
+    void SolveFockmatrix(Eigen::VectorXd& MOenergies,Eigen::MatrixXd& MOs,Eigen::MatrixXd&H);
+    void Levelshift(Eigen::MatrixXd& H,const Eigen::MatrixXd&MOs);
     unsigned gethistlength(){return _mathist.size();}
     
     
@@ -102,34 +102,34 @@ public:
  private:
      
     ctp::Logger *_pLog;
-    ub::matrix<double>* S;
-    ub::matrix<double>* Sminusahalf;
+    Eigen::MatrixXd* S;
+    Eigen::MatrixXd* Sminusahalf;
     bool                              _usediis;
     bool                              _noisy;
     unsigned                          _histlength;
     bool                              _maxout;
     std::string                            _diismethod;
-    ub::matrix<double>                _Sminusonehalf;
+    Eigen::MatrixXd                _Sminusonehalf;
     double                              _maxerror;
     double                              _adiis_start;  
     double                              _diis_start;
     double                              _levelshiftend;
     unsigned                            _maxerrorindex;
-    std::vector< ub::matrix<double>* >   _mathist;
-    std::vector< ub::matrix<double>* >   _dmathist;
-    std::vector< ub::matrix<double>* >   _errormatrixhist;
+    std::vector< Eigen::MatrixXd* >   _mathist;
+    std::vector< Eigen::MatrixXd* >   _dmathist;
+    std::vector< Eigen::MatrixXd* >   _errormatrixhist;
     std::vector< std::vector<double>* >  _Diis_Bs;
    
     std::vector<double>                 _totE;
-    ub::vector<double>                  _DiF;
-    ub::matrix<double>                  _DiFj;
+    Eigen::VectorXd                  _DiF;
+    Eigen::MatrixXd                  _DiFj;
   
-    ub::vector<double> ADIIsCoeff();
+    Eigen::VectorXd ADIIsCoeff();
     
     
- ub::vector<double> compute_c(const gsl_vector * x);
+ Eigen::VectorXd compute_c(const gsl_vector * x);
  /// Compute jacobian
- ub::matrix<double> compute_jac(const gsl_vector * x);
+ Eigen::MatrixXd compute_jac(const gsl_vector * x);
  /// Compute energy
  double min_f(const gsl_vector * x, void * params);
  /// Compute derivative
@@ -137,7 +137,7 @@ public:
  /// Compute energy and derivative
 void min_fdf(const gsl_vector * x, void * params, double * f, gsl_vector * g);
 
-ub::vector<double> DIIsCoeff();
+Eigen::VectorXd DIIsCoeff();
     
     unsigned _nocclevels;
     double _levelshift;
@@ -149,9 +149,9 @@ ub::vector<double> DIIsCoeff();
  
  namespace adiis {
   /// Compute weights
-  ub::vector<double> compute_c(const gsl_vector * x);
+  Eigen::VectorXd compute_c(const gsl_vector * x);
   /// Compute jacobian
-  ub::matrix<double> compute_jac(const gsl_vector * x);
+  Eigen::MatrixXd compute_jac(const gsl_vector * x);
 
   /// Compute energy
   double min_f(const gsl_vector * x, void * params);

@@ -574,6 +574,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
             ex="false"
             tool="1"
@@ -852,8 +854,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1226,6 +1226,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
             ex="false"
             tool="1"
@@ -1504,8 +1506,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>

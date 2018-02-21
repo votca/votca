@@ -25,8 +25,8 @@ namespace votca { namespace xtp {
    namespace ub = boost::numeric::ublas;
    
    
-    double Diis::Evolve(const ub::matrix<double>& dmat,const ub::matrix<double>& H,ub::vector<double> &MOenergies,ub::matrix<double> &MOs, int this_iter, double totE){
-      ub::matrix<double>H_guess=ub::zero_matrix<double>(H.size1(),H.size2());    
+    double Diis::Evolve(const Eigen::MatrixXd& dmat,const Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs, int this_iter, double totE){
+      Eigen::MatrixXd H_guess=ub::zero_matrix<double>(H.size1(),H.size2());    
     
       if(_errormatrixhist.size()>_histlength){
           delete _mathist[_maxerrorindex];
@@ -45,27 +45,22 @@ namespace votca { namespace xtp {
           }
           
       _totE.push_back(totE);
-
-      ub::matrix<double>temp=ub::prod(H,dmat);
-      ub::matrix<double> errormatrix=ub::prod(temp,(*S));
-      temp=ub::prod(dmat,H);
-      errormatrix-=ub::prod((*S),temp);
-      temp=ub::prod(errormatrix,*Sminusahalf);
-      errormatrix=ub::prod(ub::trans(*Sminusahalf),temp);
       
-      temp.resize(0,0);
       
-      double max=linalg_getMax(errormatrix,true);
+      Eigen::MatrixXd errormatrix=(*Sminusahalf).transpose*(H*dmat*(*S)-(*S)*dmat*H)*(*Sminusahalf)
+  
+      
+      double max=errormatrix.cwiseAbs().maxCoeff();
    
-      ub::matrix<double>* old=new ub::matrix<double>;     
+      Eigen::MatrixXd* old=new Eigen::MatrixXd;     
       *old=H;         
        _mathist.push_back(old);
        
-        ub::matrix<double>* dold=new ub::matrix<double>;     
+        Eigen::MatrixXd* dold=new Eigen::MatrixXd;     
       *dold=dmat;         
        _dmathist.push_back(dold);
   
-      ub::matrix<double>* olderror=new ub::matrix<double>; 
+      Eigen::MatrixXd* olderror=new Eigen::MatrixXd; 
       *olderror=errormatrix;
        _errormatrixhist.push_back(olderror);
        
@@ -80,24 +75,24 @@ namespace votca { namespace xtp {
       std::vector<double>* Bijs=new std::vector<double>;
        _Diis_Bs.push_back(Bijs);
       for (unsigned i=0;i<_errormatrixhist.size()-1;i++){
-          double value=linalg_traceofProd(errormatrix,ub::trans(*_errormatrixhist[i]));
+          double value=errormatrix.cwiseProduct((*_errormatrixhist[i]).transpose()).sum();
          
           Bijs->push_back(value);
           _Diis_Bs[i]->push_back(value);
       }
-      Bijs->push_back(linalg_traceofProd(errormatrix,ub::trans(errormatrix)));
+      Bijs->push_back(errormatrix.cwiseProduct(errormatrix.transpose()).sum());
          
       _DiF=ub::zero_vector<double>(_dmathist.size());
       _DiFj=ub::zero_matrix<double>(_dmathist.size());
        
     
   for(unsigned i=0;i<_dmathist.size();i++){
-    _DiF(i)=linalg_traceofProd((*_dmathist[i])-dmat,H);
+    _DiF(i)=((*_dmathist[i])-dmat).cwiseProduct(H).sum();
   }
   
   for(unsigned i=0;i<_dmathist.size();i++){
     for(unsigned j=0;j<_dmathist.size();j++){
-        _DiFj(i,j)=linalg_traceofProd((*_dmathist[i])-dmat,(*_mathist[j])-H);
+        _DiFj(i,j)=((*_dmathist[i])-dmat).cwiseProduct((*_mathist[j])-H).sum();
         }
    }
       
@@ -106,7 +101,7 @@ namespace votca { namespace xtp {
       
        
     if (max<_adiis_start && _usediis && this_iter>2){
-        ub::vector<double> coeffs;
+        Eigen::VectorXd coeffs;
         //use EDIIs if energy has risen a lot in current iteration
 
         if(max>_diis_start || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
@@ -116,9 +111,9 @@ namespace votca { namespace xtp {
             }
         }
         else if(max>0.0001 && max<_diis_start){
-            ub::vector<double> coeffs1=DIIsCoeff();
+            Eigen::VectorXd coeffs1=DIIsCoeff();
             //cout<<"DIIS "<<coeffs1<<endl;
-            ub::vector<double> coeffs2=ADIIsCoeff();
+            Eigen::VectorXd coeffs2=ADIIsCoeff();
             //cout<<"ADIIS "<<coeffs2<<endl;
             double mixing=max/_diis_start;
             coeffs=mixing*coeffs2+(1-mixing)*coeffs1;
@@ -135,7 +130,7 @@ namespace votca { namespace xtp {
 
        //check if last element completely rejected use mixing
         if(std::abs(coeffs(coeffs.size()-1))<0.001){ 
-            coeffs=ub::zero_vector<double>(coeffs.size());
+            coeffs=Eigen::VectorXd::Zero(coeffs.size());
             coeffs(coeffs.size()-1)=0.3;
             coeffs(coeffs.size()-2)=0.7;
             if(_noisy){
@@ -164,63 +159,49 @@ namespace votca { namespace xtp {
     return max;
     }
       
-    void Diis::SolveFockmatrix(ub::vector<double>& MOenergies,ub::matrix<double>& MOs,ub::matrix<double>&H){
+    void Diis::SolveFockmatrix(Eigen::VectorXd& MOenergies,Eigen::MatrixXd& MOs,Eigen::MatrixXd&H){
         //transform to orthogonal form
         
-        ub::matrix<double>temp=ub::prod(ub::trans(*Sminusahalf),H);
-        H=ub::prod(temp,*Sminusahalf);
+        H=(*Sminusahalf).transpose()*H*(*Sminusahalf);
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H);
         
-        bool info=linalg_eigenvalues( MOenergies,H);
-        if (!info){
-            throw runtime_error("eigenvalue problem did not work.");
-        }
-       
+        MOenergies=es.eigenvalues();
         //H now stores the MOs
-        MOs=ub::prod(*Sminusahalf,H);
-        
-        MOs=ub::trans(MOs);
+        MOs=(*Sminusahalf)*es.eigenvectors();
         return;
     }
     
-    void Diis::Levelshift(ub::matrix<double>& H,const ub::matrix<double>&MOs) {
-        ub::matrix<double> transform=ub::trans(MOs);
-        ub::matrix<double> trans_inv=ub::zero_matrix<double>(MOs.size1());
-        linalg_invert(transform,trans_inv);
-       
-        ub::matrix<double> virt = ub::zero_matrix<double>(H.size1());
-        for (unsigned _i = _nocclevels; _i < H.size1(); _i++) {
+    void Diis::Levelshift(Eigen::MatrixXd& H,const Eigen::MatrixXd&MOs) {
+        
+        Eigen::MatrixXd virt = Eigen::MatrixXd::Zero(MOs.rows(),MOs.cols());
+        for (unsigned _i = _nocclevels; _i < H.rows(); _i++) {
                         virt(_i, _i) = _levelshift; 
             }
-        transform=ub::prod(ub::trans(trans_inv),virt);
-        virt=ub::prod(transform,trans_inv);
+        virt=MOs.inverse().transpose()*virt*MOs.inverse();
         if(_noisy){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << _levelshift << " Ha" << flush;
         }
         H +=  virt ; 
-        
-        return;
+          return;
     }
       
       
-    ub::vector<double>Diis::DIIsCoeff(){
+    Eigen::VectorXd Diis::DIIsCoeff(){
           bool _useold=false;
           bool check=false;
           //old Pulat DIIs
           
-          ub::vector<double> coeffs=ub::zero_vector<double>(_mathist.size());
+          Eigen::VectorXd coeffs=Eigen::VectorXd::Zero(_mathist.size());
           if(_useold) {
           
-          ub::matrix<double> B=ub::zero_matrix<double>(_mathist.size()+1);
-          ub::vector<double> a=ub::zero_vector<double>(_mathist.size()+1);
+          Eigen::MatrixXd B=Eigen::MatrixXd::Zero(_mathist.size()+1,_mathist.size()+1);
+          Eigen::VectorXd a=Eigen::VectorXd::Zero(_mathist.size()+1);
           a(0)=-1;
-          for (unsigned i=1;i<B.size1();i++){
+          for (unsigned i=1;i<B.rows();i++){
               B(i,0)=-1;
               B(0,i)=-1;
           }
-          //cout <<"Hello"<<endl;
-          //cout<<"_errormatrixhist "<<_errormatrixhist.size()<<endl;
-          //#pragma omp parallel for
-          for (unsigned i=1;i<B.size1();i++){
+          for (unsigned i=1;i<B.rows();i++){
               for (unsigned j=1;j<=i;j++){
                   //cout<<"i "<<i<<" j "<<j<<endl;
                   B(i,j)=_Diis_Bs[i-1]->at(j-1);
@@ -240,11 +221,8 @@ namespace votca { namespace xtp {
               // C2-DIIS
           
             
-            ub::matrix<double> B=ub::zero_matrix<double>(_mathist.size());
-            ub::vector<double> eigenvalues=ub::zero_vector<double>(_mathist.size());
-            ub::matrix<double> eigenvectors=ub::zero_matrix<double>(_mathist.size());
+            Eigen::MatrixXd B=Eigen::MatrixXd::Zero(_mathist.size(),_mathist.size());
             
-          
           for (unsigned i=0;i<B.size1();i++){
               for (unsigned j=0;j<=i;j++){
                   //cout<<"i "<<i<<" j "<<j<<endl;
@@ -255,33 +233,28 @@ namespace votca { namespace xtp {
               }
           }
           //cout<<"B:"<<B<<endl;
-          linalg_eigenvalues(B,eigenvalues,eigenvectors);
-          //cout<<"eigenvectors_b:"<<eigenvectors<<endl;
-          // Normalize weights
+           Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(B);
           
         
           
-         for (unsigned i=0;i<B.size1();i++){
+         for (unsigned i=0;i<B.rows();i++){
          double norm=0.0;
 
-         for (unsigned j=0;j<B.size2();j++){
+         for (unsigned j=0;j<B.cols();j++){
          norm+=eigenvectors(j,i);    
         
          }
        
-         for (unsigned j=0;j<B.size2();j++){
+         for (unsigned j=0;j<B.cols();j++){
             eigenvectors(j,i)=eigenvectors(j,i)/norm;    
          }
           }
           //cout<<"eigenvectors_a:"<<eigenvectors<<endl;
           // Choose solution by picking out solution with smallest error
-          ub::vector<double> errors=ub::zero_vector<double>(B.size1());
-          ub::matrix<double> temp=ub::prod(B,eigenvectors);
-          ub::matrix<double> eq=ub::prod(ub::trans(eigenvectors),temp);
-          for (unsigned i=0;i<eq.size1();i++){
-      
-            errors(i)=eq(i,i);
-          }
+          Eigen::VectorXd errors=Eigen::VectorXd::Zero(_mathist.size());
+          Eigen::MatrixXd eq=es.eigenvectors().transpose()*B*es.eigenvectors();
+          Eigen::VectorXd errors=eq.diagonal();
+          
           //cout<<"Errors:"<<eq<<endl;
           double MaxWeight=10.0;
           //cout<<"eigenvectors"<<eigenvectors<<endl;
@@ -292,8 +265,8 @@ namespace votca { namespace xtp {
                 if (std::abs(errors(i)) < min) {
 
                     bool ok = true;
-                    for (unsigned k = 0; k < eigenvectors.size2(); k++) {
-                        if (eigenvectors(k, i) > MaxWeight) {
+                    for (unsigned k = 0; k < es.eigenvectors().cols(); k++) {
+                        if (es.eigenvectors()(k, i) > MaxWeight) {
                             ok = false;
                             break;
                         }
@@ -307,8 +280,8 @@ namespace votca { namespace xtp {
     
       if(minloc!=-1){
           check=true;
-     for(unsigned k=0;k<eigenvectors.size2();k++){
-       coeffs(k)=eigenvectors(k,minloc);   
+     for(unsigned k=0;k<es.eigenvectors().cols();k++){
+       coeffs(k)=es.eigenvectors()(k,minloc);   
      }
       }
       else{
@@ -327,7 +300,7 @@ namespace votca { namespace xtp {
       
       
       
-   ub::vector<double> Diis::ADIIsCoeff(){
+   Eigen::VectorXd Diis::ADIIsCoeff(){
           
    size_t N=_DiF.size();
           
@@ -383,7 +356,7 @@ namespace votca { namespace xtp {
   // double E_final=get_E(s->x);
 
   // Form minimum
-  ub::vector<double> c=adiis::compute_c(s->x);
+  Eigen::VectorXd c=adiis::compute_c(s->x);
 
   gsl_multimin_fdfminimizer_free(s);
   gsl_vector_free (x);
@@ -400,36 +373,28 @@ double Diis::get_E_adiis(const gsl_vector * x) const {
         throw std::runtime_error("Incorrect number of parameters.");
     }
 
-    ub::vector<double> c=adiis::compute_c(x);
-    double Eval=0.0;
-    for(unsigned i=0;i<c.size();i++){
-        Eval+=2.0*c(i)*_DiF(i);
-    }
-
-    for(unsigned i=0;i<c.size();i++){
-        for(unsigned j=0;j<c.size();j++){
-            Eval+=c(i)*c(j)*_DiFj(i,j);
-        }
-    }
+    Eigen::VectorXd c=adiis::compute_c(x);
+    double Eval=2*c.transpose()*_DiF+c.transpose()*_DiFj*c;
+    
 
 return Eval;
 }
 
 void Diis::get_dEdx_adiis(const gsl_vector * x, gsl_vector * dEdx) const {
   // Compute contraction coefficients
-  ub::vector<double> c=adiis::compute_c(x);
+  Eigen::VectorXd c=adiis::compute_c(x);
   
    
   
-  ub::vector<double> dEdc=2.0*_DiF + ub::prod(_DiFj,c) + ub::prod(ub::trans(_DiFj),c);
+  Eigen::VectorXd dEdc=2.0*_DiF + _DiFj*c + _DiFj.transpose()*c;
  
 
   // Compute jacobian of transformation: jac(i,j) = dc_i / dx_j
-  ub::matrix<double> jac=adiis::compute_jac(x);
+  Eigen::MatrixXd jac=adiis::compute_jac(x);
 
   // Finally, compute dEdx by plugging in Jacobian of transformation
   // dE/dx_i = dc_j/dx_i dE/dc_j
-  ub::vector<double> dEdxv=ub::prod(ub::trans(jac),dEdc);
+  Eigen::VectorXd dEdxv=jac.transpose()*dEdc;
   for(size_t i=0;i< dEdxv.size();i++)
     gsl_vector_set(dEdx,i,dEdxv(i));
   return;
@@ -453,45 +418,38 @@ void Diis::get_E_dEdx_adiis(const gsl_vector * x, double * Eval, gsl_vector * dE
 }
 
 
-ub::vector<double> adiis::compute_c(const gsl_vector * x) {
+Eigen::VectorXd adiis::compute_c(const gsl_vector * x) {
   // Compute contraction coefficients
-  ub::vector<double> c=ub::zero_vector<double>(x->size);
+  Eigen::VectorXd c=Eigen::VectorXd::Zero(x->size);
 
-  double xnorm=0.0;
   for(size_t i=0;i<x->size;i++) {
-    c[i]=gsl_vector_get(x,i);
-    c[i]=c[i]*c[i]; // c_i = x_i^2
-    xnorm+=c[i];
+    c(i)=gsl_vector_get(x,i);
   }
-  for(size_t i=0;i<x->size;i++)
-    c[i]/=xnorm; // c_i = x_i^2 / \sum_j x_j^2
-
+  c.normalize();
   return c;
 }  
 
-ub::matrix<double> adiis::compute_jac(const gsl_vector * x) {
+Eigen::MatrixXd adiis::compute_jac(const gsl_vector * x) {
   // Compute jacobian of transformation: jac(i,j) = dc_i / dx_j
 
   // Compute coefficients
-  std::vector<double> c(x->size);
+  Eigen::VectorXd c=Eigen::VectorXd::Zero(x->size);
 
   double xnorm=0.0;
   for(size_t i=0;i<x->size;i++) {
-    c[i]=gsl_vector_get(x,i);
-    c[i]=c[i]*c[i]; // c_i = x_i^2
-    xnorm+=c[i];
+    c(i)=gsl_vector_get(x,i);
   }
-  for(size_t i=0;i<x->size;i++)
-    c[i]/=xnorm; // c_i = x_i^2 / \sum_j x_j^2
-
- ub::matrix<double> jac=ub::zero_matrix<double>(c.size());
+  double xnorm=c.norm();
+  c/=c/xnorm;
+  
+ Eigen::MatrixXd jac=ub::zero_matrix<double>(c.size());
   for(size_t i=0;i<c.size();i++) {
     double xi=gsl_vector_get(x,i);
 
     for(size_t j=0;j<c.size();j++) {
       double xj=gsl_vector_get(x,j);
 
-      jac(i,j)=-c[i]*2.0*xj/xnorm;
+      jac(i,j)=-c(i)*2.0*xj/xnorm;
     }
 
     // Extra term on diagonal

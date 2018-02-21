@@ -50,7 +50,7 @@ namespace votca {
             if (_force_removal == "CoM") _remove_CoM_force = true;
 
             _natoms = _segments[0]->Atoms().size();
-            _forces = ub::zero_matrix<double>(_natoms, 3);
+            _forces =Eigen::MatrixXd::Zero(_natoms, 3);
 
 
             return;
@@ -83,9 +83,8 @@ namespace votca {
                 }
                 
                 // Calculate Force on this atom
-                ub::matrix_range< ub::matrix<double> > _force = ub::subrange(_forces, _i_atom, _i_atom + 1, 0, 3);
-                if (_force_method == "forward") NumForceForward(energy, ait, _force, _molecule);
-                if (_force_method == "central") NumForceCentral(energy, ait, _force, _molecule);
+                if (_force_method == "forward") NumForceForward(energy, ait, _forces.block(_i_atom,0,1,3), _molecule);
+                if (_force_method == "central") NumForceCentral(energy, ait, _forces.block(_i_atom,0,1,3), _molecule);
                 _i_atom++;
             }
 
@@ -105,7 +104,7 @@ namespace votca {
             CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        displacement %1$1.4f Angstrom   ") % _displacement).str() << flush;
             CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << flush;
 
-            for (unsigned _i = 0; _i < _forces.size1(); _i++) {
+            for (unsigned _i = 0; _i < _forces.rows(); _i++) {
                 CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
                         % _i % _forces(_i, 0) % _forces(_i, 1) % _forces(_i, 2)).str() << flush;
             }
@@ -115,7 +114,7 @@ namespace votca {
         }
 
         /* Calculate forces on an atom numerically by forward differences */
-        void Forces::NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait, ub::matrix_range< ub::matrix<double> >& _force,
+        void Forces::NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait, Eigen::Ref<Eigen::MatrixXd>& _force,
                 std::vector<ctp::Segment*> _molecule) {
 
             // get this atoms's current coordinates
@@ -154,7 +153,7 @@ namespace votca {
         }
 
         /* Calculate forces on atoms numerically by central differences */
-        void Forces::NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait, ub::matrix_range< ub::matrix<double> >& _force,
+        void Forces::NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait, Eigen::Ref<Eigen::MatrixXd>& _force,
                 std::vector<ctp::Segment*> _molecule) {
 
 
@@ -214,7 +213,7 @@ namespace votca {
         void Forces::RemoveTotalForce() {
 
             // total force on all atoms
-            ub::vector<double> _total_force = TotalForce();
+            Eigen::VectorXd _total_force = TotalForce();
 
             // zero total force
             for (unsigned _i_atom = 0; _i_atom < _natoms; _i_atom++) {
@@ -228,7 +227,7 @@ namespace votca {
         /* Determine Total Force on all atoms */
         ub::vector<double> Forces::TotalForce() {
 
-            ub::vector<double> _total_force(3, 0.0);
+            Eigen::VectorXd _total_force=Eigen::VectorXd::Zero(3);
             for (unsigned _i_atom = 0; _i_atom < _natoms; _i_atom++) {
                 for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
                     _total_force(_i_cart) += _forces(_i_atom, _i_cart);
