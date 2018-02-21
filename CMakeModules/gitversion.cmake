@@ -22,6 +22,6 @@ endif()
 
 set (GIT_HEADER "gitversion.h")
 set (NEW_GIT_HEADER "new_gitversion.h")
-file(WRITE ${NEW_GIT_HEADER} "static const std::string gitversion = \"${THIS_GIT_ID}\";\n")
+file(WRITE ${NEW_GIT_HEADER} "#include<string>\nstatic const std::string gitversion = \"${THIS_GIT_ID}\";\n")
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${NEW_GIT_HEADER} ${GIT_HEADER})
 execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${NEW_GIT_HEADER})
