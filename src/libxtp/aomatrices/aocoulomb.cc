@@ -1174,7 +1174,7 @@ if (_lmax_col > 5) {
     
     
        _temp = ub::prod( _aomatrix , ub::trans(_gwoverlap_cholesky));
-       _aomatrix = ub::prod( _gwoverlap_cholesky ,_temp);
+       _aomatrix =_temp;// ub::prod( _gwoverlap_cholesky ,_temp);
    
     
     return removed_basisfunctions; 
