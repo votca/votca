@@ -105,7 +105,32 @@ namespace votca { namespace xtp {
 
         // ~AOMatrix(){};
     protected:
-        ub::matrix<double> _aomatrix; 
+        ub::matrix<double> _aomatrix;
+        vec _gridpoint;
+
+    };
+    
+        
+    // base class for 1D atomic orbital matrix types (overlap, Coulomb, ESP)
+    class AOMatrixC : public AOSuperMatrix {
+    public:
+        
+
+	// Access functions
+	int Dimension(){ return  _aomatrix.size1();};
+	ub::matrix<std::complex<double> > &Matrix(){ return _aomatrix ;};
+
+        const ub::matrix<std::complex<double> > &Matrix() const{ return _aomatrix ;};
+        void Fill(const AOBasis& aobasis, vec r = vec(0,0,0) , AOBasis* ecp = NULL );
+        
+        // matrix print 
+        void Print( std::string _ident);
+        // block fill prototype
+        virtual void FillBlock(ub::matrix_range< ub::matrix<std::complex<double> > >& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp = NULL, const vec& r = vec(0,0,0)) {} ;
+
+        // ~AOMatrix(){};
+    protected:
+        ub::matrix<std::complex<double>> _aomatrix;
         vec _gridpoint;
 
     };
@@ -224,6 +249,18 @@ namespace votca { namespace xtp {
     public:
         //block fill for overlap, implementation in aooverlap.cc
         void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
+        //void Print();
+        
+	//        ~AOOverlap();
+        
+    };
+    
+    
+    // derived class for atomic orbital integral with plane wave component
+    class AOPlanewave : public AOMatrixC{
+    public:
+        //block fill for plane wave component, implementation in aoplanewave.cc
+        void FillBlock( ub::matrix_range< ub::matrix<std::complex<double>> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp, const vec& _k);
         //void Print();
         
 	//        ~AOOverlap();

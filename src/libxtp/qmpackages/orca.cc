@@ -695,13 +695,19 @@ namespace votca {
                         boost::trim(_oc);
                         double occ = boost::lexical_cast<double>(_oc);
                         // We only count alpha electrons, each orbital must be empty or doubly occupied
-                        if (occ == 2) {
+                        if (occ == 2 || occ == 1) {
                             _number_of_electrons++;
                             _occ[i] = occ;
                         } else if (occ == 0) {
                             _occ[i] = occ;
                         } else {
+                            if (occ == 1){
+                                CTP_LOG(ctp::logDEBUG, *_pLog) << "Watch out! No distinction between alpha and beta electrons. Check if occ = 1 is suitable for your calculation " << flush;
+                                _number_of_electrons++;
+                                _occ[i] = occ;
+                            } else {
                             throw runtime_error("Only empty or doubly occupied orbitals are allowed not running the right kind of DFT calculation");
+                            }
                         }
 
                         std::string _e = results[2];

@@ -99,6 +99,72 @@ namespace votca { namespace xtp {
     }
     
     
+    // Filling a complex matrix
+    void AOMatrixC::Fill(const AOBasis& aobasis, vec r, AOBasis* ecp ) {
+        _aomatrix = ub::zero_matrix<std::complex<double>>(aobasis.AOBasisSize());
+        _gridpoint = r;
+        
+        //cout << "k is " << r << endl;
+        
+        // loop row
+        #pragma omp parallel for
+        for (unsigned _row = 0; _row <  aobasis.getNumofShells() ; _row++ ){
+       
+            const AOShell* _shell_row = aobasis.getShell( _row );
+            int _row_start = _shell_row->getStartIndex();
+            int _row_end   = _row_start + _shell_row->getNumFunc();
+           
+            // AOMatrix is symmetric, restrict explicit calculation to triangular matrix
+            for ( unsigned _col = 0; _col <= _row ; _col++ ){
+
+                const AOShell* _shell_col = aobasis.getShell( _col );
+                
+                // figure out the submatrix
+                int _col_start = _shell_col->getStartIndex();
+                int _col_end   = _col_start + _shell_col->getNumFunc();
+                
+                ub::matrix_range< ub::matrix<std::complex<double> >> _submatrix = ub::subrange(_aomatrix, _row_start, _row_end, _col_start, _col_end);
+                
+                // Fill block
+                FillBlock( _submatrix, _shell_row, _shell_col, ecp, r );
+                
+            }
+        }
+        
+        // Fill whole matrix by copying
+        for ( unsigned _i=0; _i < _aomatrix.size1(); _i++){
+            for ( unsigned _j=0; _j < _i; _j++){
+               _aomatrix(_j,_i) = _aomatrix(_i,_j); 
+                       
+            }
+        }
+      
+        // check symmetry
+         bool _is_symmetric = true;
+        
+        // Copy stuff to fill lower triangular part
+         for ( unsigned _i=0; _i < this->_aomatrix.size1(); _i++){
+            for (unsigned _j=0; _j <= _i; _j++){
+         
+                if ( std::abs(this->_aomatrix(_i,_j) - this->_aomatrix(_j,_i) ) > 1e-4 ) {
+                    
+                    cerr << _i << ":" << _j << " == " << this->_aomatrix(_i,_j) << " vs " <<  this->_aomatrix(_j,_i) << endl;
+                    _is_symmetric = false;
+                }
+                
+            }
+        }
+        if ( !_is_symmetric) {cerr << " Error: AOMatrix is not symmetric! "; exit(1);}
+       
+        return;
+    }
+    
+    
+    
+    
+    
+    
+    
     void AOMatrix3D::Fill(const AOBasis& aobasis ) {
         // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
         _aomatrix.resize(3);
@@ -166,6 +232,16 @@ namespace votca { namespace xtp {
         }
     }
     
+    
+    void AOMatrixC::Print( string _ident){
+        cout << "\n" << endl;
+        std::cout.precision(12);
+        for ( unsigned i =0; i< this->_aomatrix.size1(); i++){
+            for ( unsigned j =0; j< this->_aomatrix.size2(); j++){
+                cout << _ident << "[" << i+1 << ":" << j+1 << "] " << scientific << this->_aomatrix(i,j) << endl;
+            }
+        }
+    }
     
        void AOMatrix3D::Print( string _ident){
         cout << "\n" << endl;

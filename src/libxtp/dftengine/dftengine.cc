@@ -386,6 +386,35 @@ namespace votca {
                 // DFT AOOverlap matrix
                 _dftAOoverlap.Fill(_dftbasis);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
+
+                
+                // DFT AOPlaneWave matrix
+                AOPlanewave _dftAOplanewave;
+                
+                // needs to be replaced by proper kvector setup function
+                std::vector< vec > kvectors;
+                kvectors.push_back( vec(1.0,2.0,3.0)  );
+                kvectors.push_back( vec(-1.0,-2.0,-3.0)  );
+                
+                // store sum_g (V(G)*<a|exp(ikG)|b>) in _temp_PW_matrix, 
+                // later store final result back into _AOPlanewave Matrix
+                ub::matrix<std::complex<double>> _temp_PW_matrix = ub::zero_matrix<std::complex<double>>(_dftbasis.AOBasisSize());
+                std::vector<vec>::iterator kit;
+
+                for ( kit = kvectors.begin(); kit != kvectors.end(); ++kit ) {
+                    vec k = *kit;
+                    _dftAOplanewave.Fill(_dftbasis, k );
+                    _temp_PW_matrix +=  _dftAOplanewave.Matrix(); // * fourier transform of potential
+                }                    
+                // now store final result
+                _dftAOplanewave.Matrix() = _temp_PW_matrix;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Plane wave matrix of dimension: " << _dftAOplanewave.Dimension() << flush;
+                
+                exit(0);
+                
+                
+                
+                
                 //cout<<"overlap"<<_dftAOoverlap.Matrix()<<endl;
                 // check DFT basis for linear dependence
                 linalg_eigenvalues(_dftAOoverlap.Matrix(), _eigenvalues, _eigenvectors);
