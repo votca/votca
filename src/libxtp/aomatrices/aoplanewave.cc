@@ -194,7 +194,7 @@ namespace votca {
                         COMPLEX term_xx = (_cfak)*(_olk(Cart::xx, 0));
                         COMPLEX term_yy = (_cfak)*(_olk(Cart::yy, 0));
                         COMPLEX term_zz = (_cfak)*(_olk(Cart::zz, 0));
-                        _olk(Cart::xxxx, 0) = PmA0 * _olk(Cart::xxx, 0) + 3 * term_xx;
+                        _olk(Cart::xxxx, 0) = PmA0 * _olk(Cart::xxx, 0) + 3.0 * term_xx;
                         _olk(Cart::xxxy, 0) = PmA1 * _olk(Cart::xxx, 0);
                         _olk(Cart::xxxz, 0) = PmA2 * _olk(Cart::xxx, 0);
                         _olk(Cart::xxyy, 0) = PmA0 * _olk(Cart::xyy, 0) + term_yy;
@@ -204,11 +204,11 @@ namespace votca {
                         _olk(Cart::xyyz, 0) = PmA0 * _olk(Cart::yyz, 0);
                         _olk(Cart::xyzz, 0) = PmA0 * _olk(Cart::yzz, 0);
                         _olk(Cart::xzzz, 0) = PmA0 * _olk(Cart::zzz, 0);
-                        _olk(Cart::yyyy, 0) = PmA1 * _olk(Cart::yyy, 0) + 3 * term_yy;
+                        _olk(Cart::yyyy, 0) = PmA1 * _olk(Cart::yyy, 0) + 3.0 * term_yy;
                         _olk(Cart::yyyz, 0) = PmA2 * _olk(Cart::yyy, 0);
                         _olk(Cart::yyzz, 0) = PmA1 * _olk(Cart::yzz, 0) + term_zz;
                         _olk(Cart::yzzz, 0) = PmA1 * _olk(Cart::zzz, 0);
-                        _olk(Cart::zzzz, 0) = PmA2 * _olk(Cart::zzz, 0) + 3 * term_zz;
+                        _olk(Cart::zzzz, 0) = PmA2 * _olk(Cart::zzz, 0) + 3.0 * term_zz;
                     }
                     //------------------------------------------------------        
                     //Integrals     h - W - s
@@ -216,7 +216,7 @@ namespace votca {
                         COMPLEX term_xxx = (_cfak)*(_olk(Cart::xxx, 0));
                         COMPLEX term_yyy = (_cfak)*(_olk(Cart::yyy, 0));
                         COMPLEX term_zzz = (_cfak)*(_olk(Cart::zzz, 0));
-                        _olk(Cart::xxxxx, 0) = PmA0 * _olk(Cart::xxxx, 0) + 4 * term_xxx;
+                        _olk(Cart::xxxxx, 0) = PmA0 * _olk(Cart::xxxx, 0) + 4.0 * term_xxx;
                         _olk(Cart::xxxxy, 0) = PmA1 * _olk(Cart::xxxx, 0);
                         _olk(Cart::xxxxz, 0) = PmA2 * _olk(Cart::xxxx, 0);
                         _olk(Cart::xxxyy, 0) = PmA1 * _olk(Cart::xxxy, 0) + term_xxx;
@@ -231,12 +231,12 @@ namespace votca {
                         _olk(Cart::xyyzz, 0) = PmA0 * _olk(Cart::yyzz, 0);
                         _olk(Cart::xyzzz, 0) = PmA0 * _olk(Cart::yzzz, 0);
                         _olk(Cart::xzzzz, 0) = PmA0 * _olk(Cart::zzzz, 0);
-                        _olk(Cart::yyyyy, 0) = PmA1 * _olk(Cart::yyyy, 0) + 4 * term_yyy;
+                        _olk(Cart::yyyyy, 0) = PmA1 * _olk(Cart::yyyy, 0) + 4.0 * term_yyy;
                         _olk(Cart::yyyyz, 0) = PmA2 * _olk(Cart::yyyy, 0);
                         _olk(Cart::yyyzz, 0) = PmA2 * _olk(Cart::yyyz, 0) + term_yyy;
                         _olk(Cart::yyzzz, 0) = PmA1 * _olk(Cart::yzzz, 0) + term_zzz;
                         _olk(Cart::yzzzz, 0) = PmA1 * _olk(Cart::zzzz, 0);
-                        _olk(Cart::zzzzz, 0) = PmA2 * _olk(Cart::zzzz, 0) + 4 * term_zzz;
+                        _olk(Cart::zzzzz, 0) = PmA2 * _olk(Cart::zzzz, 0) + 4.0 * term_zzz;
                     }
                     //------------------------------------------------------
                     //Integrals     i -W - s
@@ -248,16 +248,16 @@ namespace votca {
                         COMPLEX term_yyzz = (_cfak)*(_olk(Cart::yyzz, 0));
                         COMPLEX term_yzzz = (_cfak)*(_olk(Cart::yzzz, 0));
                         COMPLEX term_zzzz = (_cfak)*(_olk(Cart::zzzz, 0));
-                        _olk(Cart::xxxxxx, 0) = PmA0 * _olk(Cart::xxxxx, 0) + 5 * term_xxxx;
+                        _olk(Cart::xxxxxx, 0) = PmA0 * _olk(Cart::xxxxx, 0) + 5.0 * term_xxxx;
                         _olk(Cart::xxxxxy, 0) = PmA1 * _olk(Cart::xxxxx, 0);
                         _olk(Cart::xxxxxz, 0) = PmA2 * _olk(Cart::xxxxx, 0);
                         _olk(Cart::xxxxyy, 0) = PmA1 * _olk(Cart::xxxxy, 0) + term_xxxx;
                         _olk(Cart::xxxxyz, 0) = PmA1 * _olk(Cart::xxxxz, 0);
                         _olk(Cart::xxxxzz, 0) = PmA2 * _olk(Cart::xxxxz, 0) + term_xxxx;
-                        _olk(Cart::xxxyyy, 0) = PmA0 * _olk(Cart::xxyyy, 0) + 2 * term_xyyy;
+                        _olk(Cart::xxxyyy, 0) = PmA0 * _olk(Cart::xxyyy, 0) + 2.0 * term_xyyy;
                         _olk(Cart::xxxyyz, 0) = PmA2 * _olk(Cart::xxxyy, 0);
                         _olk(Cart::xxxyzz, 0) = PmA1 * _olk(Cart::xxxzz, 0);
-                        _olk(Cart::xxxzzz, 0) = PmA0 * _olk(Cart::xxzzz, 0) + 2 * term_xzzz;
+                        _olk(Cart::xxxzzz, 0) = PmA0 * _olk(Cart::xxzzz, 0) + 2.0 * term_xzzz;
                         _olk(Cart::xxyyyy, 0) = PmA0 * _olk(Cart::xyyyy, 0) + term_yyyy;
                         _olk(Cart::xxyyyz, 0) = PmA2 * _olk(Cart::xxyyy, 0);
                         _olk(Cart::xxyyzz, 0) = PmA0 * _olk(Cart::xyyzz, 0) + term_yyzz;
@@ -269,13 +269,13 @@ namespace votca {
                         _olk(Cart::xyyzzz, 0) = PmA0 * _olk(Cart::yyzzz, 0);
                         _olk(Cart::xyzzzz, 0) = PmA0 * _olk(Cart::yzzzz, 0);
                         _olk(Cart::xzzzzz, 0) = PmA0 * _olk(Cart::zzzzz, 0);
-                        _olk(Cart::yyyyyy, 0) = PmA1 * _olk(Cart::yyyyy, 0) + 5 * term_yyyy;
+                        _olk(Cart::yyyyyy, 0) = PmA1 * _olk(Cart::yyyyy, 0) + 5.0 * term_yyyy;
                         _olk(Cart::yyyyyz, 0) = PmA2 * _olk(Cart::yyyyy, 0);
                         _olk(Cart::yyyyzz, 0) = PmA2 * _olk(Cart::yyyyz, 0) + term_yyyy;
-                        _olk(Cart::yyyzzz, 0) = PmA1 * _olk(Cart::yyzzz, 0) + 2 * term_yzzz;
+                        _olk(Cart::yyyzzz, 0) = PmA1 * _olk(Cart::yyzzz, 0) + 2.0 * term_yzzz;
                         _olk(Cart::yyzzzz, 0) = PmA1 * _olk(Cart::yzzzz, 0) + term_zzzz;
                         _olk(Cart::yzzzzz, 0) = PmA1 * _olk(Cart::zzzzz, 0);
-                        _olk(Cart::zzzzzz, 0) = PmA2 * _olk(Cart::zzzzz, 0) + 5 * term_zzzz;
+                        _olk(Cart::zzzzzz, 0) = PmA2 * _olk(Cart::zzzzz, 0) + 5.0 * term_zzzz;
                     }
                     //------------------------------------------------------
                     if (_lmax_col > 0) {
@@ -289,11 +289,11 @@ namespace votca {
                         //Integrals     p - W - p     d - W - p     f - W - p     g - W - p     h - W - p     i - W - p
                         for (int _i = 1; _i < n_orbitals[_lmax_row]; _i++) {
                             //COMPLEX cnx(nx[_i] * _fak, 0.0);
-                            _olk(_i, Cart::x) = PmB0 * _olk(_i, 0) + nx[_i] * _cfak * _olk(i_less_x[_i], 0);
+                          _olk(_i, Cart::x) = PmB0 * _olk(_i, 0) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], 0);
                             //COMPLEX cny = (ny[_i] * _fak, 0.0);
-                            _olk(_i, Cart::y) = PmB1 * _olk(_i, 0) + ny[_i] * _cfak * _olk(i_less_y[_i], 0);
+                          _olk(_i, Cart::y) = PmB1 * _olk(_i, 0) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], 0);
                             //COMPLEX cnz = (nz[_i] * _fak, 0.0);
-                            _olk(_i, Cart::z) = PmB2 * _olk(_i, 0) + nz[_i] * _cfak * _olk(i_less_z[_i], 0);
+                          _olk(_i, Cart::z) = PmB2 * _olk(_i, 0) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], 0);
                         }
                         //------------------------------------------------------
 
@@ -314,12 +314,12 @@ namespace votca {
                         //Integrals     p - W - d     d - W - d     f - W - d     g - W - d     h - W - d     i - W - d
                         for (int _i = 1; _i < n_orbitals[_lmax_row]; _i++) {
                             COMPLEX term = _cfak * _olk(_i, 0);
-                            _olk(_i, Cart::xx) = PmB0 * _olk(_i, Cart::x) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::x) + term;
-                            _olk(_i, Cart::xy) = PmB0 * _olk(_i, Cart::y) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::y);
-                            _olk(_i, Cart::xz) = PmB0 * _olk(_i, Cart::z) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::z);
-                            _olk(_i, Cart::yy) = PmB1 * _olk(_i, Cart::y) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::y) + term;
-                            _olk(_i, Cart::yz) = PmB1 * _olk(_i, Cart::z) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::z);
-                            _olk(_i, Cart::zz) = PmB2 * _olk(_i, Cart::z) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::z) + term;
+                            _olk(_i, Cart::xx) = PmB0 * _olk(_i, Cart::x) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::x) + term;
+                            _olk(_i, Cart::xy) = PmB0 * _olk(_i, Cart::y) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::y);
+                            _olk(_i, Cart::xz) = PmB0 * _olk(_i, Cart::z) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::z);
+                            _olk(_i, Cart::yy) = PmB1 * _olk(_i, Cart::y) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::y) + term;
+                            _olk(_i, Cart::yz) = PmB1 * _olk(_i, Cart::z) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::z);
+                            _olk(_i, Cart::zz) = PmB2 * _olk(_i, Cart::z) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::z) + term;
                         }
                         //------------------------------------------------------
 
@@ -328,33 +328,33 @@ namespace votca {
                     if (_lmax_col > 2) {
 
                         //Integrals     s - W - f
-                        _olk(0, Cart::xxx) = PmB0 * _olk(0, Cart::xx) + 2 * _cfak * _olk(0, Cart::x);
+                        _olk(0, Cart::xxx) = PmB0 * _olk(0, Cart::xx) + 2.0 * _cfak * _olk(0, Cart::x);
                         _olk(0, Cart::xxy) = PmB1 * _olk(0, Cart::xx);
                         _olk(0, Cart::xxz) = PmB2 * _olk(0, Cart::xx);
                         _olk(0, Cart::xyy) = PmB0 * _olk(0, Cart::yy);
                         _olk(0, Cart::xyz) = PmB0 * _olk(0, Cart::yz);
                         _olk(0, Cart::xzz) = PmB0 * _olk(0, Cart::zz);
-                        _olk(0, Cart::yyy) = PmB1 * _olk(0, Cart::yy) + 2 * _cfak * _olk(0, Cart::y);
+                        _olk(0, Cart::yyy) = PmB1 * _olk(0, Cart::yy) + 2.0 * _cfak * _olk(0, Cart::y);
                         _olk(0, Cart::yyz) = PmB2 * _olk(0, Cart::yy);
                         _olk(0, Cart::yzz) = PmB1 * _olk(0, Cart::zz);
-                        _olk(0, Cart::zzz) = PmB2 * _olk(0, Cart::zz) + 2 * _cfak * _olk(0, Cart::z);
+                        _olk(0, Cart::zzz) = PmB2 * _olk(0, Cart::zz) + 2.0 * _cfak * _olk(0, Cart::z);
                         //------------------------------------------------------
 
                         //Integrals     p - f     d - f     f - f     g - f     h - f     i - f
                         for (int _i = 1; _i < n_orbitals[_lmax_row]; _i++) {
-                            COMPLEX term_x = 2 * _cfak * _olk(_i, Cart::x);
-                            COMPLEX term_y = 2 * _cfak * _olk(_i, Cart::y);
-                            COMPLEX term_z = 2 * _cfak * _olk(_i, Cart::z);
-                            _olk(_i, Cart::xxx) = PmB0 * _olk(_i, Cart::xx) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::xx) + term_x;
-                            _olk(_i, Cart::xxy) = PmB1 * _olk(_i, Cart::xx) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::xx);
-                            _olk(_i, Cart::xxz) = PmB2 * _olk(_i, Cart::xx) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::xx);
-                            _olk(_i, Cart::xyy) = PmB0 * _olk(_i, Cart::yy) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yy);
-                            _olk(_i, Cart::xyz) = PmB0 * _olk(_i, Cart::yz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yz);
-                            _olk(_i, Cart::xzz) = PmB0 * _olk(_i, Cart::zz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::zz);
-                            _olk(_i, Cart::yyy) = PmB1 * _olk(_i, Cart::yy) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::yy) + term_y;
-                            _olk(_i, Cart::yyz) = PmB2 * _olk(_i, Cart::yy) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::yy);
-                            _olk(_i, Cart::yzz) = PmB1 * _olk(_i, Cart::zz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::zz);
-                            _olk(_i, Cart::zzz) = PmB2 * _olk(_i, Cart::zz) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::zz) + term_z;
+                            COMPLEX term_x = 2.0 * _cfak * _olk(_i, Cart::x);
+                            COMPLEX term_y = 2.0 * _cfak * _olk(_i, Cart::y);
+                            COMPLEX term_z = 2.0 * _cfak * _olk(_i, Cart::z);
+                            _olk(_i, Cart::xxx) = PmB0 * _olk(_i, Cart::xx) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::xx) + term_x;
+                            _olk(_i, Cart::xxy) = PmB1 * _olk(_i, Cart::xx) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::xx);
+                            _olk(_i, Cart::xxz) = PmB2 * _olk(_i, Cart::xx) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::xx);
+                            _olk(_i, Cart::xyy) = PmB0 * _olk(_i, Cart::yy) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yy);
+                            _olk(_i, Cart::xyz) = PmB0 * _olk(_i, Cart::yz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yz);
+                            _olk(_i, Cart::xzz) = PmB0 * _olk(_i, Cart::zz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::zz);
+                            _olk(_i, Cart::yyy) = PmB1 * _olk(_i, Cart::yy) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::yy) + term_y;
+                            _olk(_i, Cart::yyz) = PmB2 * _olk(_i, Cart::yy) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::yy);
+                            _olk(_i, Cart::yzz) = PmB1 * _olk(_i, Cart::zz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::zz);
+                            _olk(_i, Cart::zzz) = PmB2 * _olk(_i, Cart::zz) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::zz) + term_z;
                         }
                         //------------------------------------------------------
 
@@ -366,7 +366,7 @@ namespace votca {
                         COMPLEX term_xx = _cfak * _olk(0, Cart::xx);
                         COMPLEX term_yy = _cfak * _olk(0, Cart::yy);
                         COMPLEX term_zz = _cfak * _olk(0, Cart::zz);
-                        _olk(0, Cart::xxxx) = PmB0 * _olk(0, Cart::xxx) + 3 * term_xx;
+                        _olk(0, Cart::xxxx) = PmB0 * _olk(0, Cart::xxx) + 3.0 * term_xx;
                         _olk(0, Cart::xxxy) = PmB1 * _olk(0, Cart::xxx);
                         _olk(0, Cart::xxxz) = PmB2 * _olk(0, Cart::xxx);
                         _olk(0, Cart::xxyy) = PmB0 * _olk(0, Cart::xyy) + term_yy;
@@ -376,11 +376,11 @@ namespace votca {
                         _olk(0, Cart::xyyz) = PmB0 * _olk(0, Cart::yyz);
                         _olk(0, Cart::xyzz) = PmB0 * _olk(0, Cart::yzz);
                         _olk(0, Cart::xzzz) = PmB0 * _olk(0, Cart::zzz);
-                        _olk(0, Cart::yyyy) = PmB1 * _olk(0, Cart::yyy) + 3 * term_yy;
+                        _olk(0, Cart::yyyy) = PmB1 * _olk(0, Cart::yyy) + 3.0 * term_yy;
                         _olk(0, Cart::yyyz) = PmB2 * _olk(0, Cart::yyy);
                         _olk(0, Cart::yyzz) = PmB1 * _olk(0, Cart::yzz) + term_zz;
                         _olk(0, Cart::yzzz) = PmB1 * _olk(0, Cart::zzz);
-                        _olk(0, Cart::zzzz) = PmB2 * _olk(0, Cart::zzz) + 3 * term_zz;
+                        _olk(0, Cart::zzzz) = PmB2 * _olk(0, Cart::zzz) + 3.0 * term_zz;
                         //------------------------------------------------------
 
                         //Integrals     p - g     d - g     f - g     g - g     h - g     i - g
@@ -388,21 +388,21 @@ namespace votca {
                             COMPLEX term_xx = _cfak * _olk(_i, Cart::xx);
                             COMPLEX term_yy = _cfak * _olk(_i, Cart::yy);
                             COMPLEX term_zz = _cfak * _olk(_i, Cart::zz);
-                            _olk(_i, Cart::xxxx) = PmB0 * _olk(_i, Cart::xxx) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::xxx) + 3 * term_xx;
-                            _olk(_i, Cart::xxxy) = PmB1 * _olk(_i, Cart::xxx) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::xxx);
-                            _olk(_i, Cart::xxxz) = PmB2 * _olk(_i, Cart::xxx) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::xxx);
-                            _olk(_i, Cart::xxyy) = PmB0 * _olk(_i, Cart::xyy) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::xyy) + term_yy;
-                            _olk(_i, Cart::xxyz) = PmB1 * _olk(_i, Cart::xxz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::xxz);
-                            _olk(_i, Cart::xxzz) = PmB0 * _olk(_i, Cart::xzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::xzz) + term_zz;
-                            _olk(_i, Cart::xyyy) = PmB0 * _olk(_i, Cart::yyy) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yyy);
-                            _olk(_i, Cart::xyyz) = PmB0 * _olk(_i, Cart::yyz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yyz);
-                            _olk(_i, Cart::xyzz) = PmB0 * _olk(_i, Cart::yzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yzz);
-                            _olk(_i, Cart::xzzz) = PmB0 * _olk(_i, Cart::zzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::zzz);
-                            _olk(_i, Cart::yyyy) = PmB1 * _olk(_i, Cart::yyy) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::yyy) + 3 * term_yy;
-                            _olk(_i, Cart::yyyz) = PmB2 * _olk(_i, Cart::yyy) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::yyy);
-                            _olk(_i, Cart::yyzz) = PmB1 * _olk(_i, Cart::yzz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::yzz) + term_zz;
-                            _olk(_i, Cart::yzzz) = PmB1 * _olk(_i, Cart::zzz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::zzz);
-                            _olk(_i, Cart::zzzz) = PmB2 * _olk(_i, Cart::zzz) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::zzz) + 3 * term_zz;
+                            _olk(_i, Cart::xxxx) = PmB0 * _olk(_i, Cart::xxx) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::xxx) + 3.0 * term_xx;
+                            _olk(_i, Cart::xxxy) = PmB1 * _olk(_i, Cart::xxx) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::xxx);
+                            _olk(_i, Cart::xxxz) = PmB2 * _olk(_i, Cart::xxx) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::xxx);
+                            _olk(_i, Cart::xxyy) = PmB0 * _olk(_i, Cart::xyy) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::xyy) + term_yy;
+                            _olk(_i, Cart::xxyz) = PmB1 * _olk(_i, Cart::xxz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::xxz);
+                            _olk(_i, Cart::xxzz) = PmB0 * _olk(_i, Cart::xzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::xzz) + term_zz;
+                            _olk(_i, Cart::xyyy) = PmB0 * _olk(_i, Cart::yyy) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yyy);
+                            _olk(_i, Cart::xyyz) = PmB0 * _olk(_i, Cart::yyz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yyz);
+                            _olk(_i, Cart::xyzz) = PmB0 * _olk(_i, Cart::yzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yzz);
+                            _olk(_i, Cart::xzzz) = PmB0 * _olk(_i, Cart::zzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::zzz);
+                            _olk(_i, Cart::yyyy) = PmB1 * _olk(_i, Cart::yyy) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::yyy) + 3.0 * term_yy;
+                            _olk(_i, Cart::yyyz) = PmB2 * _olk(_i, Cart::yyy) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::yyy);
+                            _olk(_i, Cart::yyzz) = PmB1 * _olk(_i, Cart::yzz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::yzz) + term_zz;
+                            _olk(_i, Cart::yzzz) = PmB1 * _olk(_i, Cart::zzz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::zzz);
+                            _olk(_i, Cart::zzzz) = PmB2 * _olk(_i, Cart::zzz) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::zzz) + 3.0 * term_zz;
                         }
                         //------------------------------------------------------
 
@@ -414,7 +414,7 @@ namespace votca {
                         COMPLEX term_xxx = _cfak * _olk(0, Cart::xxx);
                         COMPLEX term_yyy = _cfak * _olk(0, Cart::yyy);
                         COMPLEX term_zzz = _cfak * _olk(0, Cart::zzz);
-                        _olk(0, Cart::xxxxx) = PmB0 * _olk(0, Cart::xxxx) + 4 * term_xxx;
+                        _olk(0, Cart::xxxxx) = PmB0 * _olk(0, Cart::xxxx) + 4.0 * term_xxx;
                         _olk(0, Cart::xxxxy) = PmB1 * _olk(0, Cart::xxxx);
                         _olk(0, Cart::xxxxz) = PmB2 * _olk(0, Cart::xxxx);
                         _olk(0, Cart::xxxyy) = PmB1 * _olk(0, Cart::xxxy) + term_xxx;
@@ -429,12 +429,12 @@ namespace votca {
                         _olk(0, Cart::xyyzz) = PmB0 * _olk(0, Cart::yyzz);
                         _olk(0, Cart::xyzzz) = PmB0 * _olk(0, Cart::yzzz);
                         _olk(0, Cart::xzzzz) = PmB0 * _olk(0, Cart::zzzz);
-                        _olk(0, Cart::yyyyy) = PmB1 * _olk(0, Cart::yyyy) + 4 * term_yyy;
+                        _olk(0, Cart::yyyyy) = PmB1 * _olk(0, Cart::yyyy) + 4.0 * term_yyy;
                         _olk(0, Cart::yyyyz) = PmB2 * _olk(0, Cart::yyyy);
                         _olk(0, Cart::yyyzz) = PmB2 * _olk(0, Cart::yyyz) + term_yyy;
                         _olk(0, Cart::yyzzz) = PmB1 * _olk(0, Cart::yzzz) + term_zzz;
                         _olk(0, Cart::yzzzz) = PmB1 * _olk(0, Cart::zzzz);
-                        _olk(0, Cart::zzzzz) = PmB2 * _olk(0, Cart::zzzz) + 4 * term_zzz;
+                        _olk(0, Cart::zzzzz) = PmB2 * _olk(0, Cart::zzzz) + 4.0 * term_zzz;
                         //------------------------------------------------------
 
                         //Integrals     p - h     d - h     f - h     g - h     h - h     i - h
@@ -442,27 +442,27 @@ namespace votca {
                             COMPLEX term_xxx = _cfak * _olk(_i, Cart::xxx);
                             COMPLEX term_yyy = _cfak * _olk(_i, Cart::yyy);
                             COMPLEX term_zzz = _cfak * _olk(_i, Cart::zzz);
-                            _olk(_i, Cart::xxxxx) = PmB0 * _olk(_i, Cart::xxxx) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::xxxx) + 4 * term_xxx;
-                            _olk(_i, Cart::xxxxy) = PmB1 * _olk(_i, Cart::xxxx) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::xxxx);
-                            _olk(_i, Cart::xxxxz) = PmB2 * _olk(_i, Cart::xxxx) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::xxxx);
-                            _olk(_i, Cart::xxxyy) = PmB1 * _olk(_i, Cart::xxxy) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::xxxy) + term_xxx;
-                            _olk(_i, Cart::xxxyz) = PmB1 * _olk(_i, Cart::xxxz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::xxxz);
-                            _olk(_i, Cart::xxxzz) = PmB2 * _olk(_i, Cart::xxxz) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::xxxz) + term_xxx;
-                            _olk(_i, Cart::xxyyy) = PmB0 * _olk(_i, Cart::xyyy) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::xyyy) + term_yyy;
-                            _olk(_i, Cart::xxyyz) = PmB2 * _olk(_i, Cart::xxyy) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::xxyy);
-                            _olk(_i, Cart::xxyzz) = PmB1 * _olk(_i, Cart::xxzz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::xxzz);
-                            _olk(_i, Cart::xxzzz) = PmB0 * _olk(_i, Cart::xzzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::xzzz) + term_zzz;
-                            _olk(_i, Cart::xyyyy) = PmB0 * _olk(_i, Cart::yyyy) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yyyy);
-                            _olk(_i, Cart::xyyyz) = PmB0 * _olk(_i, Cart::yyyz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yyyz);
-                            _olk(_i, Cart::xyyzz) = PmB0 * _olk(_i, Cart::yyzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yyzz);
-                            _olk(_i, Cart::xyzzz) = PmB0 * _olk(_i, Cart::yzzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yzzz);
-                            _olk(_i, Cart::xzzzz) = PmB0 * _olk(_i, Cart::zzzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::zzzz);
-                            _olk(_i, Cart::yyyyy) = PmB1 * _olk(_i, Cart::yyyy) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::yyyy) + 4 * term_yyy;
-                            _olk(_i, Cart::yyyyz) = PmB2 * _olk(_i, Cart::yyyy) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::yyyy);
-                            _olk(_i, Cart::yyyzz) = PmB2 * _olk(_i, Cart::yyyz) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::yyyz) + term_yyy;
-                            _olk(_i, Cart::yyzzz) = PmB1 * _olk(_i, Cart::yzzz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::yzzz) + term_zzz;
-                            _olk(_i, Cart::yzzzz) = PmB1 * _olk(_i, Cart::zzzz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::zzzz);
-                            _olk(_i, Cart::zzzzz) = PmB2 * _olk(_i, Cart::zzzz) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::zzzz) + 4 * term_zzz;
+                            _olk(_i, Cart::xxxxx) = PmB0 * _olk(_i, Cart::xxxx) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::xxxx) + 4.0 * term_xxx;
+                            _olk(_i, Cart::xxxxy) = PmB1 * _olk(_i, Cart::xxxx) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::xxxx);
+                            _olk(_i, Cart::xxxxz) = PmB2 * _olk(_i, Cart::xxxx) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::xxxx);
+                            _olk(_i, Cart::xxxyy) = PmB1 * _olk(_i, Cart::xxxy) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::xxxy) + term_xxx;
+                            _olk(_i, Cart::xxxyz) = PmB1 * _olk(_i, Cart::xxxz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::xxxz);
+                            _olk(_i, Cart::xxxzz) = PmB2 * _olk(_i, Cart::xxxz) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::xxxz) + term_xxx;
+                            _olk(_i, Cart::xxyyy) = PmB0 * _olk(_i, Cart::xyyy) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::xyyy) + term_yyy;
+                            _olk(_i, Cart::xxyyz) = PmB2 * _olk(_i, Cart::xxyy) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::xxyy);
+                            _olk(_i, Cart::xxyzz) = PmB1 * _olk(_i, Cart::xxzz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::xxzz);
+                            _olk(_i, Cart::xxzzz) = PmB0 * _olk(_i, Cart::xzzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::xzzz) + term_zzz;
+                            _olk(_i, Cart::xyyyy) = PmB0 * _olk(_i, Cart::yyyy) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yyyy);
+                            _olk(_i, Cart::xyyyz) = PmB0 * _olk(_i, Cart::yyyz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yyyz);
+                            _olk(_i, Cart::xyyzz) = PmB0 * _olk(_i, Cart::yyzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yyzz);
+                            _olk(_i, Cart::xyzzz) = PmB0 * _olk(_i, Cart::yzzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yzzz);
+                            _olk(_i, Cart::xzzzz) = PmB0 * _olk(_i, Cart::zzzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::zzzz);
+                            _olk(_i, Cart::yyyyy) = PmB1 * _olk(_i, Cart::yyyy) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::yyyy) + 4.0 * term_yyy;
+                            _olk(_i, Cart::yyyyz) = PmB2 * _olk(_i, Cart::yyyy) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::yyyy);
+                            _olk(_i, Cart::yyyzz) = PmB2 * _olk(_i, Cart::yyyz) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::yyyz) + term_yyy;
+                            _olk(_i, Cart::yyzzz) = PmB1 * _olk(_i, Cart::yzzz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::yzzz) + term_zzz;
+                            _olk(_i, Cart::yzzzz) = PmB1 * _olk(_i, Cart::zzzz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::zzzz);
+                            _olk(_i, Cart::zzzzz) = PmB2 * _olk(_i, Cart::zzzz) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::zzzz) + 4.0 * term_zzz;
                         }
                         //------------------------------------------------------
 
@@ -478,16 +478,16 @@ namespace votca {
                         COMPLEX term_yyzz = _cfak * _olk(0, Cart::yyzz);
                         COMPLEX term_yzzz = _cfak * _olk(0, Cart::yzzz);
                         COMPLEX term_zzzz = _cfak * _olk(0, Cart::zzzz);
-                        _olk(0, Cart::xxxxxx) = PmB0 * _olk(0, Cart::xxxxx) + 5 * term_xxxx;
+                        _olk(0, Cart::xxxxxx) = PmB0 * _olk(0, Cart::xxxxx) + 5.0 * term_xxxx;
                         _olk(0, Cart::xxxxxy) = PmB1 * _olk(0, Cart::xxxxx);
                         _olk(0, Cart::xxxxxz) = PmB2 * _olk(0, Cart::xxxxx);
                         _olk(0, Cart::xxxxyy) = PmB1 * _olk(0, Cart::xxxxy) + term_xxxx;
                         _olk(0, Cart::xxxxyz) = PmB1 * _olk(0, Cart::xxxxz);
                         _olk(0, Cart::xxxxzz) = PmB2 * _olk(0, Cart::xxxxz) + term_xxxx;
-                        _olk(0, Cart::xxxyyy) = PmB0 * _olk(0, Cart::xxyyy) + 2 * term_xyyy;
+                        _olk(0, Cart::xxxyyy) = PmB0 * _olk(0, Cart::xxyyy) + 2.0 * term_xyyy;
                         _olk(0, Cart::xxxyyz) = PmB2 * _olk(0, Cart::xxxyy);
                         _olk(0, Cart::xxxyzz) = PmB1 * _olk(0, Cart::xxxzz);
-                        _olk(0, Cart::xxxzzz) = PmB0 * _olk(0, Cart::xxzzz) + 2 * term_xzzz;
+                        _olk(0, Cart::xxxzzz) = PmB0 * _olk(0, Cart::xxzzz) + 2.0 * term_xzzz;
                         _olk(0, Cart::xxyyyy) = PmB0 * _olk(0, Cart::xyyyy) + term_yyyy;
                         _olk(0, Cart::xxyyyz) = PmB2 * _olk(0, Cart::xxyyy);
                         _olk(0, Cart::xxyyzz) = PmB0 * _olk(0, Cart::xyyzz) + term_yyzz;
@@ -499,13 +499,13 @@ namespace votca {
                         _olk(0, Cart::xyyzzz) = PmB0 * _olk(0, Cart::yyzzz);
                         _olk(0, Cart::xyzzzz) = PmB0 * _olk(0, Cart::yzzzz);
                         _olk(0, Cart::xzzzzz) = PmB0 * _olk(0, Cart::zzzzz);
-                        _olk(0, Cart::yyyyyy) = PmB1 * _olk(0, Cart::yyyyy) + 5 * term_yyyy;
+                        _olk(0, Cart::yyyyyy) = PmB1 * _olk(0, Cart::yyyyy) + 5.0 * term_yyyy;
                         _olk(0, Cart::yyyyyz) = PmB2 * _olk(0, Cart::yyyyy);
                         _olk(0, Cart::yyyyzz) = PmB2 * _olk(0, Cart::yyyyz) + term_yyyy;
-                        _olk(0, Cart::yyyzzz) = PmB1 * _olk(0, Cart::yyzzz) + 2 * term_yzzz;
+                        _olk(0, Cart::yyyzzz) = PmB1 * _olk(0, Cart::yyzzz) + 2.0 * term_yzzz;
                         _olk(0, Cart::yyzzzz) = PmB1 * _olk(0, Cart::yzzzz) + term_zzzz;
                         _olk(0, Cart::yzzzzz) = PmB1 * _olk(0, Cart::zzzzz);
-                        _olk(0, Cart::zzzzzz) = PmB2 * _olk(0, Cart::zzzzz) + 5 * term_zzzz;
+                        _olk(0, Cart::zzzzzz) = PmB2 * _olk(0, Cart::zzzzz) + 5.0 * term_zzzz;
                         //------------------------------------------------------
 
                         //Integrals     p - W - i     d - W - i     f - W - i     g - W -i     h - W - i     i - W - i
@@ -517,34 +517,34 @@ namespace votca {
                             COMPLEX term_yyzz = _cfak * _olk(_i, Cart::yyzz);
                             COMPLEX term_yzzz = _cfak * _olk(_i, Cart::yzzz);
                             COMPLEX term_zzzz = _cfak * _olk(_i, Cart::zzzz);
-                            _olk(_i, Cart::xxxxxx) = PmB0 * _olk(_i, Cart::xxxxx) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::xxxxx) + 5 * term_xxxx;
-                            _olk(_i, Cart::xxxxxy) = PmB1 * _olk(_i, Cart::xxxxx) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::xxxxx);
-                            _olk(_i, Cart::xxxxxz) = PmB2 * _olk(_i, Cart::xxxxx) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::xxxxx);
-                            _olk(_i, Cart::xxxxyy) = PmB1 * _olk(_i, Cart::xxxxy) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::xxxxy) + term_xxxx;
-                            _olk(_i, Cart::xxxxyz) = PmB1 * _olk(_i, Cart::xxxxz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::xxxxz);
-                            _olk(_i, Cart::xxxxzz) = PmB2 * _olk(_i, Cart::xxxxz) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::xxxxz) + term_xxxx;
-                            _olk(_i, Cart::xxxyyy) = PmB0 * _olk(_i, Cart::xxyyy) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::xxyyy) + 2 * term_xyyy;
-                            _olk(_i, Cart::xxxyyz) = PmB2 * _olk(_i, Cart::xxxyy) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::xxxyy);
-                            _olk(_i, Cart::xxxyzz) = PmB1 * _olk(_i, Cart::xxxzz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::xxxzz);
-                            _olk(_i, Cart::xxxzzz) = PmB0 * _olk(_i, Cart::xxzzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::xxzzz) + 2 * term_xzzz;
-                            _olk(_i, Cart::xxyyyy) = PmB0 * _olk(_i, Cart::xyyyy) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::xyyyy) + term_yyyy;
-                            _olk(_i, Cart::xxyyyz) = PmB2 * _olk(_i, Cart::xxyyy) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::xxyyy);
-                            _olk(_i, Cart::xxyyzz) = PmB0 * _olk(_i, Cart::xyyzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::xyyzz) + term_yyzz;
-                            _olk(_i, Cart::xxyzzz) = PmB1 * _olk(_i, Cart::xxzzz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::xxzzz);
-                            _olk(_i, Cart::xxzzzz) = PmB0 * _olk(_i, Cart::xzzzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::xzzzz) + term_zzzz;
-                            _olk(_i, Cart::xyyyyy) = PmB0 * _olk(_i, Cart::yyyyy) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yyyyy);
-                            _olk(_i, Cart::xyyyyz) = PmB0 * _olk(_i, Cart::yyyyz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yyyyz);
-                            _olk(_i, Cart::xyyyzz) = PmB0 * _olk(_i, Cart::yyyzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yyyzz);
-                            _olk(_i, Cart::xyyzzz) = PmB0 * _olk(_i, Cart::yyzzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yyzzz);
-                            _olk(_i, Cart::xyzzzz) = PmB0 * _olk(_i, Cart::yzzzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::yzzzz);
-                            _olk(_i, Cart::xzzzzz) = PmB0 * _olk(_i, Cart::zzzzz) + nx[_i] * _cfak * _olk(i_less_x[_i], Cart::zzzzz);
-                            _olk(_i, Cart::yyyyyy) = PmB1 * _olk(_i, Cart::yyyyy) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::yyyyy) + 5 * term_yyyy;
-                            _olk(_i, Cart::yyyyyz) = PmB2 * _olk(_i, Cart::yyyyy) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::yyyyy);
-                            _olk(_i, Cart::yyyyzz) = PmB2 * _olk(_i, Cart::yyyyz) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::yyyyz) + term_yyyy;
-                            _olk(_i, Cart::yyyzzz) = PmB1 * _olk(_i, Cart::yyzzz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::yyzzz) + 2 * term_yzzz;
-                            _olk(_i, Cart::yyzzzz) = PmB1 * _olk(_i, Cart::yzzzz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::yzzzz) + term_zzzz;
-                            _olk(_i, Cart::yzzzzz) = PmB1 * _olk(_i, Cart::zzzzz) + ny[_i] * _cfak * _olk(i_less_y[_i], Cart::zzzzz);
-                            _olk(_i, Cart::zzzzzz) = PmB2 * _olk(_i, Cart::zzzzz) + nz[_i] * _cfak * _olk(i_less_z[_i], Cart::zzzzz) + 5 * term_zzzz;
+                            _olk(_i, Cart::xxxxxx) = PmB0 * _olk(_i, Cart::xxxxx) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::xxxxx) + 5.0 * term_xxxx;
+                            _olk(_i, Cart::xxxxxy) = PmB1 * _olk(_i, Cart::xxxxx) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::xxxxx);
+                            _olk(_i, Cart::xxxxxz) = PmB2 * _olk(_i, Cart::xxxxx) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::xxxxx);
+                            _olk(_i, Cart::xxxxyy) = PmB1 * _olk(_i, Cart::xxxxy) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::xxxxy) + term_xxxx;
+                            _olk(_i, Cart::xxxxyz) = PmB1 * _olk(_i, Cart::xxxxz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::xxxxz);
+                            _olk(_i, Cart::xxxxzz) = PmB2 * _olk(_i, Cart::xxxxz) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::xxxxz) + term_xxxx;
+                            _olk(_i, Cart::xxxyyy) = PmB0 * _olk(_i, Cart::xxyyy) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::xxyyy) + 2.0 * term_xyyy;
+                            _olk(_i, Cart::xxxyyz) = PmB2 * _olk(_i, Cart::xxxyy) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::xxxyy);
+                            _olk(_i, Cart::xxxyzz) = PmB1 * _olk(_i, Cart::xxxzz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::xxxzz);
+                            _olk(_i, Cart::xxxzzz) = PmB0 * _olk(_i, Cart::xxzzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::xxzzz) + 2.0 * term_xzzz;
+                            _olk(_i, Cart::xxyyyy) = PmB0 * _olk(_i, Cart::xyyyy) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::xyyyy) + term_yyyy;
+                            _olk(_i, Cart::xxyyyz) = PmB2 * _olk(_i, Cart::xxyyy) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::xxyyy);
+                            _olk(_i, Cart::xxyyzz) = PmB0 * _olk(_i, Cart::xyyzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::xyyzz) + term_yyzz;
+                            _olk(_i, Cart::xxyzzz) = PmB1 * _olk(_i, Cart::xxzzz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::xxzzz);
+                            _olk(_i, Cart::xxzzzz) = PmB0 * _olk(_i, Cart::xzzzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::xzzzz) + term_zzzz;
+                            _olk(_i, Cart::xyyyyy) = PmB0 * _olk(_i, Cart::yyyyy) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yyyyy);
+                            _olk(_i, Cart::xyyyyz) = PmB0 * _olk(_i, Cart::yyyyz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yyyyz);
+                            _olk(_i, Cart::xyyyzz) = PmB0 * _olk(_i, Cart::yyyzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yyyzz);
+                            _olk(_i, Cart::xyyzzz) = PmB0 * _olk(_i, Cart::yyzzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yyzzz);
+                            _olk(_i, Cart::xyzzzz) = PmB0 * _olk(_i, Cart::yzzzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::yzzzz);
+                            _olk(_i, Cart::xzzzzz) = PmB0 * _olk(_i, Cart::zzzzz) + double(nx[_i]) * _cfak * _olk(i_less_x[_i], Cart::zzzzz);
+                            _olk(_i, Cart::yyyyyy) = PmB1 * _olk(_i, Cart::yyyyy) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::yyyyy) + 5.0 * term_yyyy;
+                            _olk(_i, Cart::yyyyyz) = PmB2 * _olk(_i, Cart::yyyyy) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::yyyyy);
+                            _olk(_i, Cart::yyyyzz) = PmB2 * _olk(_i, Cart::yyyyz) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::yyyyz) + term_yyyy;
+                            _olk(_i, Cart::yyyzzz) = PmB1 * _olk(_i, Cart::yyzzz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::yyzzz) + 2.0 * term_yzzz;
+                            _olk(_i, Cart::yyzzzz) = PmB1 * _olk(_i, Cart::yzzzz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::yzzzz) + term_zzzz;
+                            _olk(_i, Cart::yzzzzz) = PmB1 * _olk(_i, Cart::zzzzz) + double(ny[_i]) * _cfak * _olk(i_less_y[_i], Cart::zzzzz);
+                            _olk(_i, Cart::zzzzzz) = PmB2 * _olk(_i, Cart::zzzzz) + double(nz[_i]) * _cfak * _olk(i_less_z[_i], Cart::zzzzz) + 5.0 * term_zzzz;
                         }
                         //------------------------------------------------------
 
