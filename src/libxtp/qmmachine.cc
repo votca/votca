@@ -432,8 +432,8 @@ namespace votca {
 
                             // test output
                             if (tools::globals::verbose) {
-                                for (int i = 0; i < qpoverlaps.size1(); i++) {
-                                    for (int j = 0; j < qpoverlaps.size2(); j++) {
+                                for (unsigned i = 0; i < qpoverlaps.size1(); i++) {
+                                    for (unsigned j = 0; j < qpoverlaps.size2(); j++) {
                                         CTP_LOG(ctp::logDEBUG, *_log) << " [" << i << " , " << j << "]: " << qpoverlaps(i, j) << flush;
                                     }
                                 }
