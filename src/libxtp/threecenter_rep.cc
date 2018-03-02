@@ -295,7 +295,7 @@ namespace votca {
                            }
 
 
-            const vector<double> _FmT=AOMatrix::XIntegrate(_mmax+1, _T);
+            const vector<double> _FmT=AOMatrix<double>::XIntegrate(_mmax+1, _T);
 
             //ss integrals
 

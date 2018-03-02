@@ -363,7 +363,7 @@ namespace votca {
             }
             
 
-            const vector<double> _FmT=AOMatrix::XIntegrate(_mmax+1, _T);
+            const vector<double> _FmT=AOMatrix<double>::XIntegrate(_mmax+1, _T);
 
             double exp_AB = exp( -2. * _decay_alpha * _decay_beta * rzeta * _dist_AB );
             double exp_CD = exp( -2.* _decay_gamma * _decay_delta * reta * _dist_CD );

@@ -410,7 +410,7 @@ namespace votca {
                 _dftAOplanewave.Matrix() = _temp_PW_matrix;
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Plane wave matrix of dimension: " << _dftAOplanewave.Dimension() << flush;
                 
-                exit(0);
+                //exit(0);
                 
                 
                 
