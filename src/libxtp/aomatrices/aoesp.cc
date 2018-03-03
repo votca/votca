@@ -45,7 +45,7 @@ namespace votca { namespace xtp {
     
 
     
-    void AOESP::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp) {
+    void AOESP::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp, const vec &r) {
         /*cout << "\nAO block: "<< endl;
         cout << "\t row: " << _shell_row->getType() << " at " << _shell_row->getPos() << endl;
         cout << "\t col: " << _shell_col->getType() << " at " << _shell_col->getPos() << endl;*/

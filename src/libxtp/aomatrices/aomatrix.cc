@@ -69,7 +69,7 @@ namespace votca {
                     ub::matrix_range< ub::matrix<T> > _submatrix = ub::subrange(_aomatrix, _row_start, _row_end, _col_start, _col_end);
 
                     // Fill block
-                    FillBlock(_submatrix, _shell_row, _shell_col, ecp);
+                    FillBlock(_submatrix, _shell_row, _shell_col, ecp, r);
 
                 }
             }

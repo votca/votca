@@ -36,6 +36,8 @@ namespace votca {
 
         void AOPlanewave::FillBlock(ub::matrix_range< ub::matrix<std::complex<double>> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col, AOBasis* ecp, const vec& _k) {
             
+            cout << "I'm into Fill Block ..." << endl;
+            
             // shell info, only lmax tells how far to go
             int _lmax_row = _shell_row->getLmax();
             int _lmax_col = _shell_col->getLmax();
@@ -554,22 +556,30 @@ namespace votca {
 
 
 
-                    //cout << "Done with unnormalized matrix " << endl;
+                    cout << "Done with unnormalized matrix " << endl;
 
                     ub::matrix<std::complex<double>> _trafo_row = getTrafo(*itr);
                     ub::matrix<std::complex<double>> _trafo_col_tposed = ub::trans(getTrafo(*itc));
 
+                    cout << "GotTrafo... " << endl;
+                    cout << _trafo_row << endl;
+                    cout << _olk << endl;
+                    
                     // cartesian -> spherical
 
                     ub::matrix<std::complex<double>> _olk_tmp = ub::prod(_trafo_row, _olk);
+                    
+                    cout << "transfor mult 1" << endl;
                     ub::matrix<std::complex<double>> _olk_sph = ub::prod(_olk_tmp, _trafo_col_tposed);
+                    cout << "transform done" << endl;
+                    
                     // save to _matrix
                     for (unsigned i = 0; i < _matrix.size1(); i++) {
                         for (unsigned j = 0; j < _matrix.size2(); j++) {
                             _matrix(i, j) += _olk_sph(i + _shell_row->getOffset(), j + _shell_col->getOffset());
                         }
                     }
-
+                    cout << "done with norm" << endl;
 
                     _olk.clear();
 

@@ -43,7 +43,7 @@ namespace votca { namespace xtp {
     using namespace votca::tools;
 
 
-    void AOECP::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col, AOBasis* ecp) {
+    void AOECP::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col, AOBasis* ecp, const vec &r) {
 
         /*
          *

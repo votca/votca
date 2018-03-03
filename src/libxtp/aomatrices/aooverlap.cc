@@ -33,7 +33,7 @@ namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
 
-        void AOOverlap::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col, AOBasis* ecp) {
+        void AOOverlap::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col, AOBasis* ecp, const vec &r) {
 
 
             // shell info, only lmax tells how far to go

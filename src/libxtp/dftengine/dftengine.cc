@@ -402,7 +402,7 @@ namespace votca {
                 std::vector<vec>::iterator kit;
 
                 for ( kit = kvectors.begin(); kit != kvectors.end(); ++kit ) {
-                    vec k = *kit;
+                    const vec k = *kit;
                     _dftAOplanewave.Fill(_dftbasis, k );
                     _temp_PW_matrix +=  _dftAOplanewave.Matrix(); // * fourier transform of potential
                 }                    
