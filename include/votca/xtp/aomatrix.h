@@ -72,6 +72,7 @@ namespace votca {
 
             void PrintIndexToFunction(const AOBasis& aobasis);
 
+
         };
 
 
@@ -179,7 +180,7 @@ namespace votca {
                     AOBasis* ecp, const vec& r = vec(0, 0, 0));
 
             void Fillnucpotential(const AOBasis& aobasis,
-                    std::vector<ctp::QMAtom*>& _atoms, bool _with_ecp = false);
+                    std::vector<QMAtom*>& _atoms);
 
             void Fillextpotential(const AOBasis& aobasis,
                     const std::vector<ctp::PolarSeg*>& _sites);

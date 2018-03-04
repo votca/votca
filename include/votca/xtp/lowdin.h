@@ -23,7 +23,7 @@
 
 #include <votca/xtp/elements.h>
 #include <votca/xtp/aobasis.h>
-#include <votca/ctp/qmatom.h>
+#include <votca/xtp/qmatom.h>
 
 
 /**
@@ -32,7 +32,7 @@
 * 
 * 
 */
-using namespace votca::tools;
+
 
 
 namespace votca { namespace xtp {
@@ -41,18 +41,14 @@ namespace votca { namespace xtp {
 class Lowdin{
 public:
     
-    Lowdin(){_use_ecp=false;}
+    Lowdin(){}
    ~Lowdin(){};
-    
-    void setUseECPs(bool use_ecp){_use_ecp=use_ecp;}
-    void EvaluateLowdin(std::vector< ctp::QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,AOBasis &basis,BasisSet &bs,  bool _do_transition);
+
+    void EvaluateLowdin(std::vector< QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,AOBasis &basis, bool _do_transition);
   
    
 private:
-    
-     Elements _elements; 
-     bool _use_ecp;
-     
+   
  
     
 };

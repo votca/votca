@@ -6,7 +6,7 @@
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,22 +16,23 @@
  */
 
 #ifndef _VOTCA_KMC_GLINK_H
-#define	_VOTCA_KMC_GLINK_H
+#define _VOTCA_KMC_GLINK_H
+#include <votca/tools/vec.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-struct GLink
-{
-    int destination;
-    double rate;
-    votca::tools::vec dr;
-    bool decayevent;
-    // new stuff for Coulomb interaction
-    double Jeff2;
-    double reorg_out;
-    double initialrate;
+struct GLink {
+  int destination;
+  double rate;
+  votca::tools::vec dr;
+  bool decayevent;
+  // new stuff for Coulomb interaction
+  double Jeff2;
+  double reorg_out;
+  double initialrate;
 };
+}
+}
 
-}} 
-
-#endif // _VOTCA_KMC_GLINK_H
+#endif  // _VOTCA_KMC_GLINK_H

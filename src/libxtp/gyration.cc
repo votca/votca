@@ -32,15 +32,9 @@ void Density2Gyration::Initialize(Property* options) {
     _state    = options->get(key + ".state").as<string> (); 
     _state_no = options->get(key + ".statenumber").as<int> ();
     _spin     = options->get(key + ".spin").as<string> ();
-    if ( options->exists(key+".ecp")) {
-       _use_ecp=options->get(key + ".ecp").as<bool> ();
-    }
+   
 
-    _integrationmethod     = options->get(key + ".integrationmethod").as<string> ();
-  
-    if (!(_integrationmethod=="numeric" || _integrationmethod=="analytic")){
-        std::runtime_error("Method not recognized. Only numeric and analytic available");
-    }
+   
     if ( options->exists(key+".gridsize")) {
          _gridsize = options->get(key+".gridsize").as<string>();
          }
@@ -68,12 +62,8 @@ void Density2Gyration::AnalyzeDensity( Orbitals & _orbitals ){
 #endif
    CTP_LOG(ctp::logDEBUG, *_log) << "===== Running on "<< threads << " threads ===== " << flush;
 
-        vector< ctp::QMAtom* > Atomlist =_orbitals.QMAtoms();
-        std::vector< ctp::QMAtom* >::iterator at;
-        for (at=Atomlist.begin();at<Atomlist.end();++at){
-            ctp::QMAtom * atom=new ctp::QMAtom(*(*at));
-            _Atomlist.push_back(atom);
-        }
+        vector< QMAtom* > _Atomlist =_orbitals.QMAtoms();
+        
         ub::matrix<double> DMAT_tot;
         BasisSet bs;
         bs.LoadBasisSet(_orbitals.getDFTbasis());
@@ -113,11 +103,11 @@ void Density2Gyration::AnalyzeDensity( Orbitals & _orbitals ){
         else throw std::runtime_error("State entry not recognized");
 
         
-        if (_integrationmethod=="numeric")  {
+    
 
             // setup numerical integration grid
             NumericalIntegration numway;
-            numway.GridSetup(_gridsize,&bs,_Atomlist,&basis);
+            numway.GridSetup(_gridsize,_Atomlist,&basis);
             
             
             if ( _state=="ground" || _state=="excited") {
@@ -170,25 +160,22 @@ void Density2Gyration::AnalyzeDensity( Orbitals & _orbitals ){
                 ReportAnalysis( "electron", _analysis_electron, _gyration_tensor_diagonal_electron,  _gyration_tensor_eigenframe_electron  );
                 
             }
-
-        }
-          else if (_integrationmethod=="analytic") {
-              //esp.Fit2Density_analytic(_Atomlist,DMAT_tot,basis);
-        }
+            return;
         }
 
 
-    void Density2Gyration::AnalyzeGeometry(vector<ctp::QMAtom*> _atoms){
+    void Density2Gyration::AnalyzeGeometry(vector<QMAtom*> _atoms){
     
         Elements _elements; 
         ub::vector<double> _analysis = ub::zero_vector<double>(10);
-        std::vector< ctp::QMAtom* >::iterator at;
+        std::vector< QMAtom* >::iterator at;
         for (at=_atoms.begin();at<_atoms.end();++at){
             
-            double m = _elements.getMass( (*at)->type );
-            double x = (*at)->x ;
-            double y = (*at)->y ;
-            double z = (*at)->z ;
+            double m = _elements.getMass((*at)->getType());
+            const tools::vec & pos =(*at)->getPos();
+            double x = pos.getX();
+            double y = pos.getY();
+            double z = pos.getZ() ;
             _analysis(0) += m   ;
             _analysis(1) += m*x ;
             _analysis(2) += m*y ;
@@ -205,11 +192,11 @@ void Density2Gyration::AnalyzeDensity( Orbitals & _orbitals ){
         
         // normalize
         for ( unsigned i =1 ; i < 4; i++){
-            _analysis(i) = _analysis(i)/_analysis(0)/tools::conv::bohr2ang;
+            _analysis(i) = _analysis(i)/_analysis(0);
         }
                 // normalize
         for ( unsigned i =4 ; i < _analysis.size(); i++){
-            _analysis(i) = _analysis(i)/_analysis(0)/tools::conv::bohr2ang/tools::conv::bohr2ang;
+            _analysis(i) = _analysis(i)/_analysis(0);
         }
         
         
@@ -250,12 +237,7 @@ void Density2Gyration::AnalyzeDensity( Orbitals & _orbitals ){
         ub::vector<double> _quaternion = get_quaternion( _gyration_tensor_eigenframe );
 
         // report results
-        ReportAnalysis( "geometry", _analysis, _gyration_tensor_diagonal, _gyration_tensor_eigenframe  );
-        
-        
-        
-    
-    
+        ReportAnalysis( "geometry", _analysis, _gyration_tensor_diagonal, _gyration_tensor_eigenframe  );   
     }
 
 
@@ -296,8 +278,7 @@ void Density2Gyration::AnalyzeDensity( Orbitals & _orbitals ){
             CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Tensor EF Axis 3 1 = %1$9.4f ") % (_tensor_frame(0,2)) ) << flush;             
             CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Tensor EF Axis 3 2 = %1$9.4f ") % (_tensor_frame(1,2)) ) << flush;             
             CTP_LOG(ctp::logINFO,*_log) << (boost::format("  Tensor EF Axis 3 3 = %1$9.4f ") % (_tensor_frame(2,2)) ) << flush;             
-
-    
+            return;
     }
 
     ub::vector<double> Density2Gyration::get_quaternion(ub::matrix<double>& eigenframe){

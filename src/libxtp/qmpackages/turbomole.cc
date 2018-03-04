@@ -100,7 +100,7 @@ namespace votca {
                 throw std::runtime_error("Turbomole cannot be run with multipole background in this version.");
             }
             
-            std::vector< ctp::QMAtom* > qmatoms;
+            std::vector< QMAtom* > qmatoms;
             if (_write_charges) {
                 qmatoms = orbitals_guess->QMAtoms();
             } else {

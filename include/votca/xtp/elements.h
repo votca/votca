@@ -33,7 +33,7 @@
 namespace votca { namespace xtp {
 
 namespace ub = boost::numeric::ublas;
-using namespace std;
+
 
 
 /**
@@ -62,39 +62,7 @@ public:
     const std::string     &getEleShort(std::string elefull) const {return _EleShort.at(elefull); }
     const std::string     &getEleFull(std::string eleshort) const {return _EleFull.at(eleshort); }
     
-    const ub::matrix<int> &getAtomconfig(std::string name) const {return _Atomconfig.at(name);}
-    //_Atomconfig at name is a matrix
-    
-    // column is l
-    // row is n
-    // e.g. O
-    //    2  0  1s 
-    //    2  6  2s 2p
-    
-    
-    // returns number of basisfunctions for minimal basis, less for ecps because no core shells
-    std::vector<int> getMinimalBasis(std::string name,bool ecp){
-        const ub::matrix<int> temp=_Atomconfig.at(name);
-        std::vector<int> result=std::vector<int>(temp.size1(),0);
-        
-        //cout<<temp<<endl;
-        
-        
-        for ( int i=temp.size2()-1;i>=0;i-- ){
-            //cout <<i<<endl;
-            if(temp(0,i)<1) continue; 
-            for (unsigned j=0;j<temp.size1();j++){
-                if(temp(j,i)>0){
-                    result[j]+=2*j+1;
-                    //cout <<"["<<i<<":"<<j<<"]"<<endl;
-                }
-            }
-            if(ecp) break;
-        }
-        
-        
-        return result;
-    }
+   
 private:
 
     std::map<std::string, double> _VdWChelpG;
@@ -118,28 +86,11 @@ private:
         FillNucCrg();
         FillEleNum();
         FillEleName();
-        
         FillEleShort();
-        FillEleFull();
-        FillAtomConf();
-        
+        FillEleFull();       
         FillMass();
     };
     
-    inline void FillAtomConf(){
-        ub::matrix<int> temp=ub::zero_matrix<int>(1,1);
-        temp(0,0)=1;
-        _Atomconfig["H"]=temp;
-        temp=ub::zero_matrix<int>(2,2);
-        temp(0,0)=2;
-        temp(1,0)=2;
-        temp(0,1)=0;
-        temp(1,1)=4;
-        _Atomconfig["O"]=temp;
-        temp(1,1)=2;
-        _Atomconfig["C"]=temp;
-        
-    };
     
     
     inline void FillMass(){
@@ -345,25 +296,25 @@ private:
     inline void FillVdWMK(){
     
         // VdW radii in Angstrom as used in MK Gaussian
-        _VdWChelpG["H"]  = 1.2; 
-        _VdWChelpG["He"] = 1.2;
-        _VdWChelpG["Li"] = 1.37;
-        _VdWChelpG["Be"] = 1.45;
-        _VdWChelpG["B"]  = 1.45;
-        _VdWChelpG["C"]  = 1.5;
-        _VdWChelpG["N"]  = 1.5;
-        _VdWChelpG["O"]  = 1.4;
-        _VdWChelpG["F"]  = 1.35;
-        _VdWChelpG["Ne"] = 1.3;
-        _VdWChelpG["Na"] = 1.57;
-        _VdWChelpG["Mg"] = 1.36;
-        _VdWChelpG["Al"] = 1.24;
-        _VdWChelpG["Si"] = 1.17;
-        _VdWChelpG["P"]  = 1.8;
-        _VdWChelpG["S"]  = 1.75;
-        _VdWChelpG["Cl"] = 1.7;
-        // _VdWChelpG["Ar"] = 2.0;
-        _VdWChelpG["Ag"] = 2.0;
+        _VdWMK["H"]  = 1.2; 
+        _VdWMK["He"] = 1.2;
+        _VdWMK["Li"] = 1.37;
+        _VdWMK["Be"] = 1.45;
+        _VdWMK["B"]  = 1.45;
+        _VdWMK["C"]  = 1.5;
+        _VdWMK["N"]  = 1.5;
+        _VdWMK["O"]  = 1.4;
+        _VdWMK["F"]  = 1.35;
+        _VdWMK["Ne"] = 1.3;
+        _VdWMK["Na"] = 1.57;
+        _VdWMK["Mg"] = 1.36;
+        _VdWMK["Al"] = 1.24;
+        _VdWMK["Si"] = 1.17;
+        _VdWMK["P"]  = 1.8;
+        _VdWMK["S"]  = 1.75;
+        _VdWMK["Cl"] = 1.7;
+        // _VdWMK["Ar"] = 2.0;
+        _VdWMK["Ag"] = 2.0;
     };
     
     

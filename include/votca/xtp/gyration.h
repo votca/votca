@@ -27,7 +27,7 @@
 #include <boost/filesystem.hpp>
 
 namespace votca { namespace xtp {
-    using namespace std;
+    
     
 class Density2Gyration 
 {
@@ -36,35 +36,35 @@ public:
     Density2Gyration (ctp::Logger* log) {_log=log; }
    ~Density2Gyration () { 
    
-    std::vector< ctp::QMAtom* >::iterator it;
+    std::vector< QMAtom* >::iterator it;
     for ( it = _Atomlist.begin(); it != _Atomlist.end(); ++it ) delete *it;};
 
-    string Identify() { return "density2gyration"; }
+    std::string Identify() { return "density2gyration"; }
 
     void   Initialize(Property *options);
     
     ub::vector<double> get_quaternion( ub::matrix<double> &eigenframe );
    
     void Convert2Eigenframe( ub::vector<double> V, ub::vector<double> &_diagonal, ub::matrix<double> &_eigenframe  );
-    void ReportAnalysis( string label, ub::vector<double> _tensor_elements, ub::vector<double> _tensor_diagonal, ub::matrix<double> _tensor_frame );
+    void ReportAnalysis( std::string label, ub::vector<double> _tensor_elements, ub::vector<double> _tensor_diagonal, ub::matrix<double> _tensor_frame );
     
     
     void AnalyzeDensity( Orbitals& _orbitals );
-    void AnalyzeGeometry( vector< ctp::QMAtom* > _atoms );
+    void AnalyzeGeometry( vector< QMAtom* > _atoms );
 
 private:
     
     int         _state_no;  
     int         _openmp_threads;
-    string      _state;
-    string      _method;
-    string      _spin;
-    string      _integrationmethod;
-    string      _gridsize;
+    std::string      _state;
+    std::string      _method;
+    std::string      _spin;
+    std::string      _integrationmethod;
+    std::string      _gridsize;
 
-    bool        _use_ecp;
 
-    vector< ctp::QMAtom* > _Atomlist;
+
+    vector< QMAtom* > _Atomlist;
     
     ctp::Logger*      _log;
     
