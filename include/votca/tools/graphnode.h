@@ -36,6 +36,9 @@ namespace tools {
  * graph type algorithms. The object uses its contents to create a string
  * that is unique to the contents. If two nodes with the same contents are
  * created they will be considered to be equivalent.
+ *
+ * NOTE: It may be of interest to take a look at the the Boost property map
+ * class, which was designed for a similar purpose. 
  */
 class GraphNode {
  private:
