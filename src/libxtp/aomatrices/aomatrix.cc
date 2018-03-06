@@ -497,6 +497,9 @@ namespace votca {
         }
 
         int AOSuperMatrix::getBlockSize(int _lmax) {
+          //Each cartesian shells has (l+1)(l+2)/2 elements
+          //Sum of all shells up to _lmax leads to blocksize=1+11/6 l+l^2+1/6 l^3
+          // we do no use the formula because intermediate results are double and not int and the rounding and stuff takes longer than looking it up.
             int _block_size;
             if (_lmax == 0) {
                 _block_size = 1;
