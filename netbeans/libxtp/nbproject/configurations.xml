@@ -491,11 +491,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/aomatrices/aoplanewave.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/aomatrices/aoquadrupole_potential.cc"
             ex="false"
             tool="1"
@@ -560,6 +555,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/neighborlist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/profile.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1146,11 +1146,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/aomatrices/aoplanewave.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/aomatrices/aoquadrupole_potential.cc"
             ex="false"
             tool="1"
@@ -1215,6 +1210,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/neighborlist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/profile.h"
             ex="false"
             tool="3"
             flavor2="0">
