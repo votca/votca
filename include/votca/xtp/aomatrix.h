@@ -104,7 +104,7 @@ namespace votca {
             // matrix print 
             void Print(std::string _ident);
             // integrate F
-            static std::vector<T> XIntegrate(int _n, double _T);
+            static std::vector<double> XIntegrate(int _n, double _T);
             // block fill prototype
 
             virtual void FillBlock(ub::matrix_range< ub::matrix<T> >& _matrix,
