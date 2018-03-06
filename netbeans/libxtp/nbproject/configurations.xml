@@ -33,6 +33,7 @@
         <itemPath>../../src/libxtp/jobcalculators/qmmm.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
+        <itemPath>../../src/libxtp/tools/coupling.h</itemPath>
         <itemPath>../../src/libxtp/tools/dft.h</itemPath>
         <itemPath>../../src/libxtp/tools/exciton.cc</itemPath>
         <itemPath>../../src/libxtp/tools/exciton.h</itemPath>
@@ -70,6 +71,7 @@
       <itemPath>../../include/votca/xtp/bulkesp.h</itemPath>
       <itemPath>../../include/votca/xtp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/chargecarrier.h</itemPath>
+      <itemPath>../../include/votca/xtp/dftcoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/diis.h</itemPath>
       <itemPath>../../include/votca/xtp/elements.h</itemPath>
@@ -187,6 +189,7 @@
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/basisset.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
+      <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
       <itemPath>../../src/libxtp/exchange_correlation.cc</itemPath>
