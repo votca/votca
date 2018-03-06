@@ -159,6 +159,7 @@ namespace votca {
 
             bool _with_ecp;
             bool _with_RI;
+            bool _with_periodic_embedding;
             string _4cmethod;
 
             // numerical integration Vxc
@@ -186,6 +187,7 @@ namespace votca {
             AOECP _dftAOECP;
             AODipole_Potential _dftAODipole_Potential;
             AOQuadrupole_Potential _dftAOQuadrupole_Potential;
+            AOPlanewave _dftAOplanewave;
             bool _with_guess;
             string _initial_guess;
             double E_nucnuc;

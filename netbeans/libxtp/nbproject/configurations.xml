@@ -296,11 +296,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/dftcoupling.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/dftengine.h"
             ex="false"
             tool="3"
@@ -581,8 +576,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
             ex="false"
@@ -955,11 +948,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/dftcoupling.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/dftengine.h"
             ex="false"
             tool="3"
@@ -1240,8 +1228,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
             ex="false"
