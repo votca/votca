@@ -98,7 +98,7 @@ namespace votca {
                 return _aomatrix;
             };
 
-            void Fill(const AOBasis& aobasis, vec r = vec(0, 0, 0),
+            void Fill(const AOBasis& aobasis, vec gridpoint = vec(0, 0, 0),
                     AOBasis* ecp = NULL);
 
             // matrix print 
@@ -108,13 +108,13 @@ namespace votca {
             // block fill prototype
 
             virtual void FillBlock(ub::matrix_range< ub::matrix<T> >& _matrix,
-                    const AOShell* _shell_row, const AOShell* _shell_col,
-                    AOBasis* ecp = NULL, const vec& r = vec(0, 0, 0)) {
+                    const AOShell* _shell_row, const AOShell* _shell_col) {
             };
 
         protected:
             ub::matrix<T> _aomatrix;
             vec _gridpoint;
+            AOBasis* _ecp;
 
         };
 
@@ -137,8 +137,7 @@ namespace votca {
 
             virtual void FillBlock(
                     std::vector<ub::matrix_range<ub::matrix<double>>>& _matrix,
-                    const AOShell* _shell_row, const AOShell* _shell_col,
-                    AOBasis* ecp = NULL) {
+                    const AOShell* _shell_row, const AOShell* _shell_col) {
             };
 
             void Cleanup();
@@ -154,8 +153,7 @@ namespace votca {
             //block fill for momentum operator, implementation in aomomentum.cc
             void FillBlock(
                     std::vector<ub::matrix_range<ub::matrix<double>>>& _matrix,
-                    const AOShell* _shell_row, const AOShell* _shell_col,
-                    AOBasis* ecp);
+                    const AOShell* _shell_row, const AOShell* _shell_col);
         };
 
         /* derived class for atomic orbital electrical dipole matrices, required for
@@ -165,8 +163,7 @@ namespace votca {
             //block fill for dipole operator, implementation in aodipole.cc
             void FillBlock(
                     std::vector<ub::matrix_range<ub::matrix<double>>>& _matrix,
-                    const AOShell* _shell_row, const AOShell* _shell_col,
-                    AOBasis* ecp);
+                    const AOShell* _shell_row, const AOShell* _shell_col);
         };
 
 
@@ -176,8 +173,7 @@ namespace votca {
         public:
             //block fill for esp, implementation in aoesp.cc
             void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,
-                    const AOShell* _shell_row, const AOShell* _shell_col,
-                    AOBasis* ecp, const vec& r = vec(0, 0, 0));
+                    const AOShell* _shell_row, const AOShell* _shell_col);
 
             void Fillnucpotential(const AOBasis& aobasis,
                     std::vector<QMAtom*>& _atoms);
@@ -212,8 +208,7 @@ namespace votca {
         public:
             //block fill for ECP, implementation in aoecp.cc
             void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,
-                    const AOShell* _shell_row, const AOShell* _shell_col,
-                    AOBasis* ecp, const vec& r = vec(0, 0, 0));
+                    const AOShell* _shell_row, const AOShell* _shell_col);
 
             typedef boost::multi_array<double, 3> type_3D;
             ub::matrix<double> calcVNLmatrix(int _lmax_ecp, const vec& posC,
@@ -236,8 +231,7 @@ namespace votca {
         public:
             //block fill for kinetic energy, implementation in aokinetic.cc
             void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,
-                    const AOShell* _shell_row, const AOShell* _shell_col,
-                    AOBasis* ecp, const vec& r = vec(0, 0, 0));
+                    const AOShell* _shell_row, const AOShell* _shell_col);
         };
 
 
@@ -247,8 +241,7 @@ namespace votca {
         public:
             //block fill for overlap, implementation in aooverlap.cc
             void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,
-                    const AOShell* _shell_row, const AOShell* _shell_col,
-                    AOBasis* ecp, const vec& r = vec(0, 0, 0));
+                    const AOShell* _shell_row, const AOShell* _shell_col);
         };
 
 
@@ -259,8 +252,7 @@ namespace votca {
             //block fill for plane wave component, implementation in aoplanewave.cc
             void FillBlock(
                     ub::matrix_range<ub::matrix<std::complex<double>>>& _matrix,
-                    const AOShell* _shell_row, const AOShell* _shell_col,
-                    AOBasis* ecp, const vec& _k);
+                    const AOShell* _shell_row, const AOShell* _shell_col);
         };
 
         // derived class for atomic orbital dipole potential
@@ -270,8 +262,7 @@ namespace votca {
             //block fill for dipole potential, impl. in aodipole_potential.cc
             void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,
                     const AOShell* _shell_row,
-                    const AOShell* _shell_col,
-                    AOBasis* ecp, const vec& r = vec(0, 0, 0));
+                    const AOShell* _shell_col);
 
             void Fillextpotential(const AOBasis& aobasis,
                     const std::vector<ctp::PolarSeg*>& _sites);
@@ -297,8 +288,7 @@ namespace votca {
         public:
             //block fill for quadrupole, implementation in aoquadrupole.cc
             void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,
-                    const AOShell* _shell_row, const AOShell* _shell_col,
-                    AOBasis* ecp, const vec& r = vec(0, 0, 0));
+                    const AOShell* _shell_row, const AOShell* _shell_col);
 
             void Fillextpotential(const AOBasis& aobasis,
                     const std::vector<ctp::PolarSeg*>& _sites);
@@ -325,8 +315,7 @@ namespace votca {
         class AOCoulomb : public AOMatrix<double> {
         public:
             void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,
-                    const AOShell* _shell_row, const AOShell* _shell_col,
-                    AOBasis* ecp, const vec& r = vec(0, 0, 0));
+                    const AOShell* _shell_row, const AOShell* _shell_col);
 
             int Symmetrize(const ub::matrix<double>& _gwoverlap_cholesky);
             int Invert_DFT();

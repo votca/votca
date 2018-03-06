@@ -33,7 +33,7 @@ namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
 
     
-    void AOMomentum::FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, const AOShell* _shell_row,const AOShell* _shell_col ,AOBasis* ecp) {
+    void AOMomentum::FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, const AOShell* _shell_row,const AOShell* _shell_col) {
 
         
         /* Calculating the AO matrix of the gradient operator requires 

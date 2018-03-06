@@ -46,9 +46,10 @@ namespace votca {
         
         // AOMatrix is now templated to allow for both double and complex types
         template< class T> 
-        void AOMatrix<T>::Fill(const AOBasis& aobasis, vec r, AOBasis* ecp) {
+        void AOMatrix<T>::Fill(const AOBasis& aobasis, vec gridpoint, AOBasis* ecp) {
             _aomatrix = ub::zero_matrix<T>(aobasis.AOBasisSize());
-            _gridpoint = r;
+            _ecp=ecp;
+            _gridpoint =gridpoint;
             // loop row
 #pragma omp parallel for
             for (unsigned _row = 0; _row < aobasis.getNumofShells(); _row++) {
@@ -69,7 +70,7 @@ namespace votca {
                     ub::matrix_range< ub::matrix<T> > _submatrix = ub::subrange(_aomatrix, _row_start, _row_end, _col_start, _col_end);
 
                     // Fill block
-                    FillBlock(_submatrix, _shell_row, _shell_col, ecp, r);
+                    FillBlock(_submatrix, _shell_row, _shell_col);
 
                 }
             }

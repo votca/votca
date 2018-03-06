@@ -34,9 +34,9 @@ namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
 
-        void AOPlanewave::FillBlock(ub::matrix_range< ub::matrix<std::complex<double>> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col, AOBasis* ecp, const vec& _k) {
+        void AOPlanewave::FillBlock(ub::matrix_range< ub::matrix<std::complex<double>> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col) {
 
-
+          const tools::vec& _k=_gridpoint;
             // shell info, only lmax tells how far to go
             int _lmax_row = _shell_row->getLmax();
             int _lmax_col = _shell_col->getLmax();
