@@ -56,7 +56,7 @@ public:
     EDFT() {};
    ~EDFT() {};
 
-    string   Identify() { return "xedft"; }
+    string   Identify() { return "edft"; }
     void     Initialize(Property *options);
     void     WriteJobFile(ctp::Topology *top);
     
