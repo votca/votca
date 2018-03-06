@@ -39,44 +39,31 @@ namespace votca {
     namespace xtp {
         namespace ub = boost::numeric::ublas;
 
-        void GWBSE::PPM_construct_parameters(const ub::matrix<double>& _overlap_cholesky_inverse) {
+        void GWBSE::PPM_construct_parameters(const Eigen::MatrixXd& _overlap_cholesky_inverse) {
             
-            // multiply with L-1^t from the right
+            // orthogonalize via L-1 epsilon L-T
              
-            ub::matrix<double> _temp = ub::prod(_epsilon[0], ub::trans(_overlap_cholesky_inverse));
-            // multiply with L-1 from the left
-            
-            _temp = ub::prod(_overlap_cholesky_inverse, _temp);
-
-            // get eigenvalues and eigenvectors of this matrix
-            ub::vector<double> _eigenvalues;
-            ub::matrix<double> _eigenvectors;
-           
-            linalg_eigenvalues(_temp, _eigenvalues, _eigenvectors);
-            _eigenvectors=ub::trans(_eigenvectors);
-            // multiply eigenvectors with overlap_cholesky_inverse and store as eigenvalues of epsilon
-            _ppm_phi = ub::prod(_eigenvectors, _overlap_cholesky_inverse);
+            Eigen::MatrixXd ortho = _overlap_cholesky_inverse*_epsilon[0]*_overlap_cholesky_inverse.transpose();
+            //Solve Eigensystem
+            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho); 
+            //we store _ppm_phi_T instead of _ppm_phi because we need it for later transformations
+            _ppm_phi_T=es.eigenvectors().transpose()*_overlap_cholesky_inverse;
             
             // store PPM weights from eigenvalues
-            _ppm_weight.resize(_eigenvalues.size());
-            for (unsigned _i = 0; _i < _eigenvalues.size(); _i++) {
-                _ppm_weight(_i) = 1.0 - 1.0 / _eigenvalues(_i);
+            _ppm_weight.resize(es.eigenvalues().size());
+            for (unsigned _i = 0; _i < es.eigenvalues().size(); _i++) {
+                _ppm_weight(_i) = 1.0 - 1.0 / es.eigenvalues()(_i);
             }
 
             // determine PPM frequencies
-            _ppm_freq.resize(_eigenvalues.size());
-            // a) phi^t * epsilon(1) * phi 
+            _ppm_freq.resize(es.eigenvalues().size());
+            // a) phi^t * epsilon(1) * phi e.g. transform epsilon(1) to the same space as epsilon(0)
+           ortho=_ppm_phi_T*_epsilon[1]*_ppm_phi_T.transpose();
+           Eigen::MatrixXd epsilon_1_inv=ortho.inverse();
            
-            _temp = ub::prod(_ppm_phi, _epsilon[1]);
-            
-            _eigenvectors = ub::prod(_temp, ub::trans(_ppm_phi));
-            // b) invert
-            
-            linalg_invert(_eigenvectors, _temp);
-            // c) PPM parameters -> diagonal elements
             
             #pragma omp parallel for 
-            for (unsigned _i = 0; _i < _eigenvalues.size(); _i++) {
+            for (unsigned _i = 0; _i < es.eigenvalues().size(); _i++) {
 
                 if (_screening_freq(1, 0) == 0.0) {
                     if (_ppm_weight(_i) < 1.e-5) {
@@ -84,7 +71,7 @@ namespace votca {
                         _ppm_freq(_i) = 0.5;//Hartree
                         continue;
                     } else {
-                        double _nom = _temp(_i, _i) - 1.0;
+                        double _nom = epsilon_1_inv(_i, _i) - 1.0;
                         double _frac = -1.0 * _nom / (_nom + _ppm_weight(_i)) * _screening_freq(1, 1) * _screening_freq(1, 1);
                         _ppm_freq(_i) = sqrt(std::abs(_frac));
                     }
@@ -107,14 +94,14 @@ namespace votca {
         
         
         //imaginary
-        ub::matrix<double> GWBSE::RPA_imaginary(const TCMatrix& _Mmn_RPA,const double screening_freq) {
+        Eigen::MatrixXd GWBSE::RPA_imaginary(const TCMatrix& _Mmn_RPA,const double screening_freq) {
             const int _size = _Mmn_RPA.get_beta(); // size of gwbasis
             const int index_n = _Mmn_RPA.get_nmin();
             const int index_m = _Mmn_RPA.get_mmin();
             const double screenf2=screening_freq * screening_freq;
-            ub::matrix<double> result=ub::zero_matrix<double>(_size);
+            Eigen::MatrixXd result=Eigen::MatrixXd::Zero(_size,_size);
           
-            const ub::vector<double>& qp_energies=   _qp_energies;
+            const Eigen::VectorXd& qp_energies=   _qp_energies;
               
           
             
@@ -122,12 +109,12 @@ namespace votca {
             for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
                 const double _qp_energy_m=qp_energies(_m_level + index_m);
 #if (GWBSE_DOUBLE)
-                const ub::matrix<double>& Mmn_RPA = _Mmn_RPA[ _m_level ];
+                const Eigen::MatrixXd& Mmn_RPA = _Mmn_RPA[ _m_level ];
 #else
-                const ub::matrix<double> Mmn_RPA = _Mmn_RPA[ _m_level ];
+                const Eigen::MatrixXd Mmn_RPA = _Mmn_RPA[ _m_level ].;
 #endif
                 // a temporary matrix, that will get filled in empty levels loop
-                ub::matrix<double> _temp = ub::matrix<double>(_Mmn_RPA.get_ntot(), _size);
+                Eigen::MatrixXd _temp = Eigen::MatrixXd(_Mmn_RPA.get_ntot(), _size);
 
                 // loop over empty levels
                 for (int _n_level = 0; _n_level < _Mmn_RPA.get_ntot(); _n_level++) {
@@ -144,7 +131,7 @@ namespace votca {
                     } // matrix size
 
                 } // empty levels
-                _temp=ub::prod(Mmn_RPA, _temp);
+                _temp=Mmn_RPA*_temp;
                 // now multiply and add to epsilon
                 #pragma omp critical
                 {
@@ -156,12 +143,12 @@ namespace votca {
         }
         //real
 
-        ub::matrix<double> GWBSE::RPA_real(const TCMatrix& _Mmn_RPA, const double screening_freq) {
+        Eigen::MatrixXd GWBSE::RPA_real(const TCMatrix& _Mmn_RPA, const double screening_freq) {
             const int _size = _Mmn_RPA.get_beta(); // size of gwbasis
             const int index_n = _Mmn_RPA.get_nmin();
             const int index_m = _Mmn_RPA.get_mmin();
             const ub::vector<double>& qp_energies=   _qp_energies;
-            ub::matrix<double> result=ub::zero_matrix<double>(_size);
+            Eigen::MatrixXd result=ub::zero_matrix<double>(_size);
            
             
             #pragma omp parallel for 
@@ -170,9 +157,9 @@ namespace votca {
                 
                 
 #if (GWBSE_DOUBLE)
-                const ub::matrix<double>& Mmn_RPA = _Mmn_RPA[ _m_level ];
+                const Eigen::MatrixXd& Mmn_RPA = _Mmn_RPA[ _m_level ];
 #else
-                const ub::matrix<double> Mmn_RPA = _Mmn_RPA[ _m_level ];
+                const Eigen::MatrixXd Mmn_RPA = _Mmn_RPA[ _m_level ].cast<double>();
 #endif
 
                 // a temporary matrix, that will get filled in empty levels loop

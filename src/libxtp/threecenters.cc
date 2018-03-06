@@ -45,7 +45,7 @@ namespace votca {
          *      S,P,D,F,G,H,I   functions in GW  basis
          * 
          */
-        bool TCMatrix::FillThreeCenterOLBlock(ub::matrix<double>& _subvector,const AOShell* _shell_gw,
+        bool TCMatrix::FillThreeCenterOLBlock(Eigen::MatrixXd& _subvector,const AOShell* _shell_gw,
                 const AOShell* _shell_alpha,const AOShell* _shell_gamma) {
 	  
             const double pi = boost::math::constants::pi<double>();
@@ -939,9 +939,9 @@ if (_lmax_gamma > 5) {
             
             
 
-            const ub::matrix<double> _trafo_gw = AOSuperMatrix::getTrafo(*itgw);
-            const ub::matrix<double> _trafo_alpha = AOSuperMatrix::getTrafo(*italpha);
-            const ub::matrix<double> _trafo_gamma = AOSuperMatrix::getTrafo(*itgamma);
+            const Eigen::MatrixXd _trafo_gw = AOSuperMatrix::getTrafo(*itgw);
+            const Eigen::MatrixXd _trafo_alpha = AOSuperMatrix::getTrafo(*italpha);
+            const Eigen::MatrixXd _trafo_gamma = AOSuperMatrix::getTrafo(*itgamma);
 
        
             

@@ -253,9 +253,9 @@ namespace votca {
 
         void GWBSE::sigma_prepare_threecenters(TCMatrix& _Mmn){
             #if (GWBSE_DOUBLE)
-                const ub::matrix<double>& ppm_phi=_ppm_phi;
+                const ub::matrix<double>& ppm_phi=_ppm_phi_T;
             #else
-                const ub::matrix<float> ppm_phi=_ppm_phi;        
+                const ub::matrix<float> ppm_phi=_ppm_phi_T;        
             #endif
             
             

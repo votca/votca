@@ -47,7 +47,7 @@ namespace votca {
 
             for (unsigned int i=0; i< _auxbasis.AOBasisSize(); i++){
                  try{
-                _matrix.push_back(ub::symmetric_matrix<double>(_dftbasis.AOBasisSize()));   
+                _matrix.push_back(Eigen::MatrixXd(_dftbasis.AOBasisSize(),_dftbasis.AOBasisSize()));   
                 }
                 catch(std::bad_alloc& ba){
                     std::cerr << "Basisset/aux basis too large for 3c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << endl;
@@ -100,7 +100,7 @@ namespace votca {
                     int _col_start = _shell_col->getStartIndex();
 
                     // get 3-center overlap directly as _subvector
-                    ub::matrix<double> _subvector = ub::zero_matrix<double>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
+                    Eigen::MatrixXd _subvector = Eigen::MatrixXd::Zero(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
 
                     bool nonzero = FillThreeCenterRepBlock(_subvector, _shell, _shell_row, _shell_col);
 

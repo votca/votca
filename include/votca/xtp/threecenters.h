@@ -49,12 +49,12 @@ namespace votca { namespace xtp {
         
     protected:
     typedef boost::multi_array<double, 3> ma_type;
-    typedef boost::multi_array<ub::matrix<double>, 2> ma2_matrix_type; ////////////////////////////
-            typedef boost::multi_array_types::extent_range range; //////////////////
-            typedef ma_type::index index; /////////////////////
-            ma_type::extent_gen extents; /////////////////////
+  
+    typedef boost::multi_array_types::extent_range range; //////////////////
+    typedef ma_type::index index; /////////////////////
+    ma_type::extent_gen extents; /////////////////////
             
-            bool FillThreeCenterRepBlock(  ub::matrix<double> & _subvector, const AOShell* _shell, const AOShell* _shell_row,const AOShell* _shell_col);
+    bool FillThreeCenterRepBlock( Eigen::MatrixXd & _subvector, const AOShell* _shell, const AOShell* _shell_row,const AOShell* _shell_col);
     
     };
     
@@ -67,12 +67,13 @@ namespace votca { namespace xtp {
     void Cleanup();
     
     int getSize(){return _matrix.size();}
+
     
-    std::vector< ub::symmetric_matrix<double> >& getData(){return  _matrix;}
-    ub::symmetric_matrix<double>& getDatamatrix( int i ){return  _matrix[i];}
-    const ub::symmetric_matrix<double>& getDatamatrix( int i )const{return  _matrix[i];}
+    std::vector< Eigen::MatrixXd >& getData(){return  _matrix;}
+    Eigen::MatrixXd& getDatamatrix( int i ){return  _matrix[i];}
+    const Eigen::MatrixXd& getDatamatrix( int i )const{return  _matrix[i];}
     private:
-        std::vector< ub::symmetric_matrix<double> > _matrix;
+        std::vector< Eigen::MatrixXd > _matrix;
     
         void FillBlock(const AOShell* _shell,const AOBasis& dftbasis) ; 
         
@@ -87,7 +88,7 @@ namespace votca { namespace xtp {
     const ub::vector<double>& get_4c_vector() { return _4c_vector;} ////////////////////
     
     private:
-     bool FillFourCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3,const AOShell* _shell_4); ////////
+     bool FillFourCenterRepBlock(Eigen::MatrixXd& _subvector, const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3,const AOShell* _shell_4); ////////
     
         ub::vector<double> _4c_vector;
     };
@@ -96,14 +97,13 @@ namespace votca { namespace xtp {
     public:
     
         /// returns one level as a constant reference
-        const ub::matrix<real_gwbse>& operator[](const int i) const { return _matrix[i]; }
+        const MatrixXfd& operator[](const int i) const { return _matrix[i]; }
      
         /// returns one level as a reference
-        ub::matrix<real_gwbse>& operator[](const int i) { return _matrix[i]; }
+        MatrixXfd& operator[](const int i) { return _matrix[i]; }
         
         int size() {  return _matrix.size(); }
-        
-        //ub::vector< ub::matrix<double> >& matrix() { return this->_matrix ; }
+      
 
         int get_mmin() { return mmin ;}
         int get_mmax() { return mmax ;}
@@ -147,16 +147,16 @@ namespace votca { namespace xtp {
             
             // each element is a gwabasis-by-n matrix, initialize to zero
             for ( int i = 0; i < this->get_mtot() ; i++){
-                _matrix[i] = ub::zero_matrix<real_gwbse>(basissize,ntotal);
+                _matrix[i] = MatrixXfd::Zero(basissize,ntotal);
             }
         
         }
 
         void Prune ( int _basissize, int min, int max);
         void Print( std::string _ident);       
-        void Fill(const AOBasis& gwbasis,const AOBasis& dftbasis, const ub::matrix<double>& _dft_orbitals );
+        void Fill(const AOBasis& gwbasis,const AOBasis& dftbasis, const Eigen::MatrixXd& _dft_orbitals );
         
-        void Symmetrize( const ub::matrix<double>& coulomb  );
+        void Symmetrize( const Eigen::MatrixXd& coulomb  );
    
         void Cleanup();
         
@@ -173,8 +173,8 @@ namespace votca { namespace xtp {
         int ntotal;
         int mtotal;
         int basissize;
-        bool FillThreeCenterOLBlock(  ub::matrix<double> & _subvector, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col); 
-        void FillBlock(std::vector< ub::matrix<double> >& _matrix,const  AOShell* _shell, const AOBasis& dftbasis,const ub::matrix<double>& _dft_orbitals ) ;
+        bool FillThreeCenterOLBlock(  Eigen::MatrixXd & _subvector, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col); 
+        void FillBlock(std::vector< Eigen::MatrixXd >& _matrix,const  AOShell* _shell, const AOBasis& dftbasis,const Eigen::MatrixXd& _dft_orbitals ) ;
         
     };
     

@@ -194,9 +194,10 @@ class GWBSE {
   void RPA_prepare_threecenters(TCMatrix& _Mmn_RPA, const TCMatrix& _Mmn_full);
 
   // PPM related variables and functions
-  Eigen::MatrixXd _ppm_phi;
+  Eigen::MatrixXd _ppm_phi_T;
   Eigen::VectorXd _ppm_freq;
   Eigen::VectorXd _ppm_weight;
+ 
 
   void PPM_construct_parameters(
       const Eigen::MatrixXd& _overlap_cholesky_inverse);

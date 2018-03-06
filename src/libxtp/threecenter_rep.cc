@@ -50,7 +50,7 @@ namespace votca {
          */
         
       
-        bool TCrawMatrix::FillThreeCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
+        bool TCrawMatrix::FillThreeCenterRepBlock(Eigen::MatrixXd& _subvector, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
 
             const double pi = boost::math::constants::pi<double>();
             const double gwaccuracy = 1.e-11;
@@ -1208,7 +1208,7 @@ if (_lmax_beta > 3) {
             int istart[] = {0, 1, 1, 1, 4, 4, 4, 4, 4, 10, 10, 10, 10, 10, 10, 10, 20, 20, 20, 20, 20, 20, 20, 20, 20 };
             int istop[] =  {0, 3, 3, 3, 9, 9, 9, 9, 9, 19, 19, 19, 19, 19, 19, 19, 34, 34, 34, 34, 34, 34, 34, 34, 34 };
 
-            // ub::vector<ub::matrix<double> >& _subvector
+        
             // which ones do we want to store
             int _offset_beta = _shell_beta->getOffset();
             int _offset_alpha = _shell_alpha->getOffset();
@@ -1223,8 +1223,8 @@ if (_lmax_beta > 3) {
 
             
             
-            const ub::matrix<double> _trafo_beta=AOSuperMatrix::getTrafo(*itbeta);
-            const ub::matrix<double> _trafo_alpha=AOSuperMatrix::getTrafo(*italpha);
+            const Eigen::MatrixXd _trafo_beta=AOSuperMatrix::getTrafo(*itbeta);
+            const Eigen::MatrixXd _trafo_alpha=AOSuperMatrix::getTrafo(*italpha);
             
        
             ma_type R_sph;
@@ -1249,11 +1249,6 @@ if (_lmax_beta > 3) {
                 }
             }
 
-
-
-
-
-            
             if(alphabetaswitch==true){
 //            cout << "switched back" << endl;    
             // only store the parts, we need
@@ -1288,11 +1283,6 @@ if (_lmax_beta > 3) {
                 }
             } 
             }
-            
-            
-            
-            
-
 
                 }
             }

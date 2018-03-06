@@ -223,7 +223,7 @@ namespace votca { namespace xtp {
             
             Eigen::MatrixXd B=Eigen::MatrixXd::Zero(_mathist.size(),_mathist.size());
             
-          for (unsigned i=0;i<B.size1();i++){
+          for (unsigned i=0;i<B.rows();i++){
               for (unsigned j=0;j<=i;j++){
                   //cout<<"i "<<i<<" j "<<j<<endl;
                   B(i,j)=_Diis_Bs[i]->at(j);
@@ -234,19 +234,19 @@ namespace votca { namespace xtp {
           }
           //cout<<"B:"<<B<<endl;
            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(B);
-          
+           
         
           
          for (unsigned i=0;i<B.rows();i++){
          double norm=0.0;
 
          for (unsigned j=0;j<B.cols();j++){
-         norm+=eigenvectors(j,i);    
+         norm+=es.eigenvectors()(j,i);    
         
          }
        
          for (unsigned j=0;j<B.cols();j++){
-            eigenvectors(j,i)=eigenvectors(j,i)/norm;    
+            es.eigenvectors()(j,i)=es.eigenvectors()(j,i)/norm;    
          }
           }
           //cout<<"eigenvectors_a:"<<eigenvectors<<endl;

@@ -649,19 +649,17 @@ bool GWBSE::Evaluate() {
   // PPM is symmetric, so we need to get the sqrt of the Coulomb matrix
 
  
- Eigen::MatrixXd L = _gwoverlap.Matrix().llt().matrixL();
- Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es();
- 
+ Eigen::MatrixXd L_overlap = _gwoverlap.Matrix().llt().matrixL();
+ Eigen::MatrixXd L_overlap_inverse=L.inverse();
 
-  Eigen::MatrixXd _gwoverlap_cholesky_inverse;  // will also be needed in PPM
                                                    // itself
-  int removed =
-      linalg_invert_svd(_gwoverlap_cholesky, _gwoverlap_cholesky_inverse, 1e7);
+  int removed =0; //TODO use proper stabilisation
+    
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Removed " << removed
       << " functions from gwoverlap to avoid near linear dependencies" << flush;
 
-  int removed_functions = _gwcoulomb.Symmetrize(_gwoverlap_cholesky);
+  int removed_functions = _gwcoulomb.Symmetrize(L_overlap,L_overlap_inverse);
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM"
       << flush;

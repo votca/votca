@@ -67,9 +67,9 @@
       <itemPath>../../include/votca/xtp/basisset.h</itemPath>
       <itemPath>../../include/votca/xtp/bfgs-trm.h</itemPath>
       <itemPath>../../include/votca/xtp/bsecoupling.h</itemPath>
-      <itemPath>../../include/votca/xtp/bulkesp.h</itemPath>
       <itemPath>../../include/votca/xtp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/chargecarrier.h</itemPath>
+      <itemPath>../../include/votca/xtp/dftcoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/diis.h</itemPath>
       <itemPath>../../include/votca/xtp/elements.h</itemPath>
@@ -187,6 +187,7 @@
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/basisset.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
+      <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
       <itemPath>../../src/libxtp/exchange_correlation.cc</itemPath>
@@ -199,7 +200,6 @@
       <itemPath>../../src/libxtp/mulliken.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
-      <itemPath>../../src/libxtp/overlap.cc</itemPath>
       <itemPath>../../src/libxtp/qmapemachine.cc</itemPath>
       <itemPath>../../src/libxtp/qmdatabase.cc</itemPath>
       <itemPath>../../src/libxtp/qminterface.cc</itemPath>
@@ -281,14 +281,17 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/bulkesp.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/calculatorfactory.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/chargecarrier.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/dftcoupling.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -773,8 +776,6 @@
       </item>
       <item path="../../src/libxtp/orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/overlap.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/qmapemachine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
@@ -933,14 +934,17 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/bulkesp.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/calculatorfactory.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/chargecarrier.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/dftcoupling.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1424,8 +1428,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/orbitals.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/overlap.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmapemachine.cc" ex="false" tool="1" flavor2="0">
       </item>

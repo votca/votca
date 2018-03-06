@@ -144,15 +144,13 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 
   
     
-    Eigen::MatrixXd _psi_AxB ( _levelsA + _levelsB, _basisA + _basisB  );
+    Eigen::MatrixXd _psi_AxB=Eigen::MatrixXd::Zero( _levelsA + _levelsB, _basisA + _basisB  );
     
       CTP_LOG(ctp::logDEBUG,*_pLog) << "Constructing direct product AxB [" 
             << _psi_AxB.rows() << "x" 
             << _psi_AxB.cols() << "]" << flush;    
     
     // constructing merged orbitals
-    _psi_AxB.block(0,_basisA, _levelsA,_basisB) = Eigen::MatrixXd::Zero( _levelsA, _basisB);
-    _psi_AxB.block(_levelsA,0,_levelsB,_basisA) = Eigen::MatrixXd::Zero( _levelsB, _basisA );
     _psi_AxB.block(0,0,_levelsA , _basisA) = _orbitalsA->MOCoefficients();
     _psi_AxB.block(_levelsA, _basisA,_levelsB,_basisB) =_orbitalsB->MOCoefficients();
     
