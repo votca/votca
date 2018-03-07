@@ -25,6 +25,7 @@
 #include <votca/xtp/atom.h>
 #include <votca/xtp/fragment.h>
 #include <votca/xtp/segment.h>
+#include <votca/xtp/segmenttype.h>
 #include <votca/tools/vec.h>
 
 using namespace std;
