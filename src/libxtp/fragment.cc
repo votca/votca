@@ -21,6 +21,7 @@
 #include <votca/xtp/fragment.h>
 #include <votca/xtp/apolarsite.h>
 #include <votca/xtp/polarsite.h>
+#include <votca/xtp/atom.h>
 
 using namespace std;
 namespace votca { namespace xtp {
@@ -113,7 +114,6 @@ void Fragment::RotTransQM2MD() {
 void Fragment::calcPos(string tag) {
     vec pos = vec(0,0,0);
     double totWeight = 0.0;
-
     for (unsigned int i = 0; i< _atoms.size(); i++) {
         if (tag == "MD") {
             pos += _atoms[i]->getPos() * _atoms[i]->getWeight();
