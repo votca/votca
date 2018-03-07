@@ -20,11 +20,15 @@
 #include <vector>
 #include <string>
 
+#include <votca/xtp/polarsite.h>
+#include <votca/xtp/apolarsite.h>
 #include <votca/xtp/atom.h>
-#include <votca/ctp/fragment.h>
+#include <votca/xtp/fragment.h>
 #include <votca/xtp/segment.h>
+#include <votca/tools/vec.h>
 
 using namespace std;
+using namespace votca::tools;
 
 namespace votca {
 namespace xtp {
@@ -57,14 +61,14 @@ Segment::Segment(Segment *stencil)
       _has_t(false) {
   _eMpoles.resize(5);
 
-  std::vector<votca::ctp::Fragment *>::iterator fit;
+  vector<Fragment *>::iterator fit;
   for (fit = stencil->Fragments().begin(); fit < stencil->Fragments().end();
        fit++) {
 
-    votca::ctp::Fragment *newFrag = new votca::ctp::Fragment(*fit);
+    Fragment *newFrag = new Fragment(*fit);
     this->AddFragment(newFrag);
 
-    std::vector<Atom *>::iterator ait;
+    vector<Atom *>::iterator ait;
     for (ait = newFrag->Atoms().begin(); ait < newFrag->Atoms().end(); ait++) {
       this->AddAtom(*ait);
     }
@@ -73,7 +77,7 @@ Segment::Segment(Segment *stencil)
 
 Segment::~Segment() {
 
-  std::vector<votca::ctp::Fragment *>::iterator fragit;
+  vector<Fragment *>::iterator fragit;
   for (fragit = this->Fragments().begin(); fragit < this->Fragments().end();
        fragit++) {
     delete *fragit;
@@ -89,7 +93,7 @@ void Segment::TranslateBy(const vec &shift) {
 
   _CoM = _CoM + shift;
 
-  std::vector<votca::ctp::Fragment *>::iterator fit;
+  vector<Fragment *>::iterator fit;
   for (fit = _fragments.begin(); fit < _fragments.end(); fit++) {
 
     (*fit)->TranslateBy(shift);
@@ -107,7 +111,7 @@ void Segment::setHasState(bool yesno, int state) {
   } else if (state == +3) {
     _has_t = yesno;
   } else {
-    throw std::runtime_error(" ERROR CODE whe__00e11h__");
+    throw runtime_error(" ERROR CODE whe__00e11h__");
   }
 }
 
@@ -122,7 +126,7 @@ bool Segment::hasState(int state) {
   } else if (state == +3) {
     result = _has_t;
   } else {
-    throw std::runtime_error(" ERROR CODE whe__00s11o__");
+    throw runtime_error(" ERROR CODE whe__00s11o__");
   }
   return result;
 }
@@ -138,7 +142,7 @@ void Segment::setOcc(double occ, int e_h_s_t) {
   } else if (e_h_s_t == +3) {
     _occ_t = occ;
   } else {
-    throw std::runtime_error(" ERROR CODE whe__00s11o__");
+    throw runtime_error(" ERROR CODE whe__00s11o__");
   }
 }
 
@@ -153,7 +157,7 @@ double Segment::getOcc(int e_h_s_t) {
   } else if (e_h_s_t == +3) {
     result = _occ_t;
   } else {
-    throw std::runtime_error(
+    throw runtime_error(
         " ERROR CODE whe__00s11o__");  // blabla what do I do here?
   }
   return result;
@@ -166,7 +170,7 @@ void Segment::setU_cC_nN(double dU, int state) {
   } else if (state == +1) {
     _U_cC_nN_h = dU;
   } else {
-    throw std::runtime_error(" ERROR CODE whe__00u11a__");
+    throw runtime_error(" ERROR CODE whe__00u11a__");
   }
 }
 
@@ -177,7 +181,7 @@ void Segment::setU_nC_nN(double dU, int state) {
   } else if (state == +1) {
     _U_nC_nN_h = dU;
   } else {
-    throw std::runtime_error(" ERROR CODE whe__00u11b__");
+    throw runtime_error(" ERROR CODE whe__00u11b__");
   }
 }
 
@@ -188,7 +192,7 @@ void Segment::setU_cN_cC(double dU, int state) {
   } else if (state == +1) {
     _U_cN_cC_h = dU;
   } else {
-    throw std::runtime_error(" ERROR CODE whe__00u11c__");
+    throw runtime_error(" ERROR CODE whe__00u11c__");
   }
 }
 
@@ -199,7 +203,7 @@ void Segment::setU_xX_nN(double dU, int state) {
   } else if (state == +3) {
     _U_xX_nN_t = dU;
   } else {
-    throw std::runtime_error(
+    throw runtime_error(
         " ERROR CODE whe__00u11d__");  // blabla?? What do I do here?
   }
 }
@@ -211,7 +215,7 @@ void Segment::setU_nX_nN(double dU, int state) {
   } else if (state == +3) {
     _U_nX_nN_t = dU;
   } else {
-    throw std::runtime_error(
+    throw runtime_error(
         " ERROR CODE whe__00u11d__");  // blabla?? What do I do here?
   }
 }
@@ -223,7 +227,7 @@ void Segment::setU_xN_xX(double dU, int state) {
   } else if (state == +3) {
     _U_xN_xX_t = dU;
   } else {
-    throw std::runtime_error(
+    throw runtime_error(
         " ERROR CODE whe__00u11d__");  // blabla?? What do I do here?
   }
 }
@@ -270,7 +274,7 @@ double Segment::getSiteEnergy(int state) {
   } else if (state == +3) {
     result = getEMpoles(state) + _U_xX_nN_t;
   } else {
-    throw std::runtime_error(
+    throw runtime_error(
         " ERROR CODE whe__00s11o__");  // blabla what do I do here?
   }
   return result;
@@ -288,7 +292,7 @@ double Segment::getEMpoles(int state) {
   return _eMpoles[state + 1] - _eMpoles[1];
 }
 
-void Segment::AddFragment(votca::ctp::Fragment *fragment) {
+void Segment::AddFragment(Fragment *fragment) {
   _fragments.push_back(fragment);
   fragment->setSegment(this);
 }
@@ -325,9 +329,9 @@ void Segment::calcPos() {
 void Segment::calcApproxSize() {
   _approxsize = 0.0;
 
-  tools::vec min = vec(std::numeric_limits<double>::max());
-  tools::vec max = vec(std::numeric_limits<double>::min());
-  std::vector<votca::ctp::Fragment *>::iterator fragit1;
+  tools::vec min = vec(numeric_limits<double>::max());
+  tools::vec max = vec(numeric_limits<double>::min());
+  vector<Fragment *>::iterator fragit1;
   for (fragit1 = Fragments().begin(); fragit1 < Fragments().end(); fragit1++) {
     const tools::vec &pos = (*fragit1)->getPos();
     if (pos.getX() > max.getX()) {
@@ -356,7 +360,7 @@ void Segment::Rigidify() {
 
   if (this->getType()->canRigidify()) {
     // Establish which atoms to use to define local frame
-    std::vector<Fragment *>::iterator fit;
+    vector<Fragment *>::iterator fit;
 
     for (fit = this->Fragments().begin(); fit < this->Fragments().end();
          fit++) {
@@ -370,7 +374,7 @@ void Segment::Rigidify() {
 void Segment::WritePDB(FILE *out, string tag1, string tag2) {
 
   if (tag1 == "Fragments") {
-    std::vector<Fragment *>::iterator frag;
+    vector<Fragment *>::iterator frag;
     for (frag = _fragments.begin(); frag < _fragments.end(); ++frag) {
       int id = (*frag)->getId();
       string name = (*frag)->getName();
@@ -401,7 +405,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
               );
     }
   } else if (tag1 == "Atoms") {
-    std::vector<Atom *>::iterator atm;
+    vector<Atom *>::iterator atm;
     for (atm = _atoms.begin(); atm < _atoms.end(); ++atm) {
       int id = (*atm)->getId() % 100000;
       string name = (*atm)->getName();
@@ -440,7 +444,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
               );
     }
   } else if (tag1 == "Multipoles" && tag2 != "Charges") {
-    std::vector<PolarSite *>::iterator pol;
+    vector<PolarSite *>::iterator pol;
     for (pol = _polarSites.begin(); pol < _polarSites.end(); ++pol) {
       int id = (*pol)->getId() % 100000;
       string name = (*pol)->getName();
@@ -471,7 +475,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
               );
     }
   } else if (tag1 == "Multipoles" && tag2 == "Charges") {
-    std::vector<APolarSite *>::iterator pol;
+    vector<APolarSite *>::iterator pol;
     for (pol = _apolarSites.begin(); pol < _apolarSites.end(); ++pol) {
       int id = (*pol)->getId() % 100000;
       string name = (*pol)->getName();
@@ -506,7 +510,7 @@ void Segment::WritePDB(FILE *out, string tag1, string tag2) {
 
 void Segment::WriteXYZ(FILE *out, bool useQMPos) {
 
-  std::vector<Atom *>::iterator ait;
+  vector<Atom *>::iterator ait;
 
   int qmatoms = 0;
 
