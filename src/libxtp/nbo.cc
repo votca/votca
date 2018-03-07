@@ -51,7 +51,7 @@ void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,const  ub::matrix<double
 }
 
 
-ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::matrix<double> &Overlap,vector< QMAtom* >& _atomlist , BasisSet &bs){
+ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::matrix<double> &overlap,vector< QMAtom* >& _atomlist , BasisSet &bs){
     
     
     vector< QMAtom* >::iterator atom;
@@ -118,7 +118,7 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::m
                     //summing over m
                     for (int m=0;m<ll;m++){
                         P_L(i,j)+=P(index[i]+m,index[j]+m);
-                        S_L(i,j)+=Overlap(index[i]+m,index[j]+m);
+                        S_L(i,j)+=overlap(index[i]+m,index[j]+m);
                     } 
                 }
             }
@@ -152,7 +152,7 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::m
         cout<<occupancies<<endl;
     
         TransformMatrixtoNewBasis(P,transformation);
-        TransformMatrixtoNewBasis(Overlap,transformation);
+        TransformMatrixtoNewBasis(overlap,transformation);
     
     return transformation;
 }

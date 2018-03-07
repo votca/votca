@@ -37,8 +37,6 @@
 * 
 * 
 */
-using namespace std;
-using namespace votca::tools;
 
 
 namespace votca { namespace xtp {
@@ -111,7 +109,6 @@ namespace votca { namespace xtp {
       std::vector< vec > _gridpoints;
       std::vector< ctp::APolarSite* > _gridsites;
       std::vector< ctp::APolarSite* > _all_gridsites;
-      double _gridspacingX, _gridspacingY, _gridspacingZ; 
       
       double _cutoff;
       double _gridspacing;

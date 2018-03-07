@@ -1,7 +1,7 @@
 <options>
 
 <!-- xtp_run -e edft -f state.db -o options.xml -->
-<xedft help="A wrapper for first principles based single site calculations" section="sec:xedft">
+<edft help="A wrapper for first principles based single site calculations" section="sec:edft">
 
 	<job_file help="Job job file (full path)"></job_file>
 
@@ -11,6 +11,6 @@
 
 	<store help="What to store" default="orbitals">orbitals</store>
 
-</xedft>
+</edft>
 
 </options>

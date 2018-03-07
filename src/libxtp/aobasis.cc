@@ -31,14 +31,14 @@ namespace votca { namespace xtp {
         _aoshells.clear();
          }
 
-AOShell* AOBasis::addShell( string shellType,int Lmax,int Lmin, double shellScale, int shellFunc, int startIndex, int offset, vec pos, string name, int index )
+AOShell* AOBasis::addShell( std::string shellType,int Lmax,int Lmin, double shellScale, int shellFunc, int startIndex, int offset, tools::vec pos, std::string name, int index )
     {
         AOShell* aoshell = new AOShell( shellType,Lmax,Lmin, shellScale, shellFunc, startIndex, offset, pos, name, index, this );
         _aoshells.push_back(aoshell);
         return aoshell;
         }
 
-void AOBasis::ReorderMOs(ub::matrix<double> &v, const string& start, const string& target) {
+void AOBasis::ReorderMOs(ub::matrix<double> &v, const std::string& start, const std::string& target) {
 
     // cout << " Reordering MOs from " << start << " to " << target << endl;
 
@@ -54,7 +54,7 @@ void AOBasis::ReorderMOs(ub::matrix<double> &v, const string& start, const strin
 
     // get reordering vector _start -> target
 
-    vector<int> order = getReorderVector(start, target);
+    std::vector<int> order = getReorderVector(start, target);
     
     // Sanity check
     if (v.size2() != order.size()) {
@@ -85,14 +85,14 @@ void AOBasis::ReorderMOs(ub::matrix<double> &v, const string& start, const strin
     return;
 }
 
-void AOBasis::ReorderMatrix(ub::symmetric_matrix<double> &v,const string& start,const string& target ){
+void AOBasis::ReorderMatrix(ub::symmetric_matrix<double> &v,const std::string& start,const std::string& target ){
     if (start==target){
         return;
     }
     vector<int> order = getReorderVector(start, target);
     
      if (v.size2() != order.size()) {
-        cerr << "Size mismatch in ReorderMatrix" << v.size2() << ":" << order.size() << endl;
+        std::cerr << "Size mismatch in ReorderMatrix" << v.size2() << ":" << order.size() << std::endl;
         throw std::runtime_error("Abort!");
     }
 
@@ -110,10 +110,10 @@ void AOBasis::ReorderMatrix(ub::symmetric_matrix<double> &v,const string& start,
 }
 
 
-void AOBasis::MultiplyMOs(ub::matrix<double> &v, vector<int> const &multiplier )  {
+void AOBasis::MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier )  {
           // Sanity check
           if ( v.size2() != multiplier.size() ) {
-              cerr << "Size mismatch in MultiplyMOs" << v.size2() << ":" << multiplier.size() << endl;
+              std::cerr << "Size mismatch in MultiplyMOs" << v.size2() << ":" << multiplier.size() << std::endl;
               throw std::runtime_error( "Abort!");
           }
 
@@ -129,17 +129,17 @@ void AOBasis::MultiplyMOs(ub::matrix<double> &v, vector<int> const &multiplier )
            }
        }
 //this is for gaussian only to transform from gaussian ordering cartesian to spherical in gaussian ordering not more
-ub::matrix<double> AOBasis::getTransformationCartToSpherical(const string& package){
+ub::matrix<double> AOBasis::getTransformationCartToSpherical(const std::string& package){
     ub::matrix<double>_trafomatrix;
     if ( package != "gaussian" ){
-        cout << " I should not have been called, will do nothing! " << endl;
+        std::cout << " I should not have been called, will do nothing! " << std::endl;
     } else {
         // go through basisset, determine function sizes
         int _dim_sph = 0;
         int _dim_cart = 0;
         for (AOShellIterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
             const AOShell* _shell = getShell( _is );
-            const string& _type =  _shell->getType();
+            const std::string& _type =  _shell->getType();
 
             _dim_sph  += NumFuncShell( _type );
             _dim_cart +=NumFuncShell_cartesian( _type );
@@ -155,7 +155,7 @@ ub::matrix<double> AOBasis::getTransformationCartToSpherical(const string& packa
         int _col_start = 0;
         for (AOShellIterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
             const AOShell* _shell = getShell( _is );
-            string _type =  _shell->getType();
+            const std::string& _type =  _shell->getType();
             int _row_end = _row_start +NumFuncShell( _type );
             int _col_end = _col_start +NumFuncShell_cartesian( _type );
 
@@ -176,7 +176,7 @@ void AOBasis::addTrafoCartShell(const AOShell* shell , ub::matrix_range< ub::mat
 
     // fill _local according to _lmax;
     int _lmax = shell->getLmax();
-    string _type = shell->getType();
+    std::string _type = shell->getType();
 
     int _sph_size =NumFuncShell( _type ) + OffsetFuncShell( _type );
     int _cart_size = NumFuncShell_cartesian( _type ) + OffsetFuncShell_cartesian( _type )  ;
@@ -239,8 +239,8 @@ int AOBasis::getMaxFunctions () {
 }
 
 
-vector<int> AOBasis::getMultiplierVector( const string& start, const string& target){
-    vector<int> multiplier;
+std::vector<int> AOBasis::getMultiplierVector( const std::string& start, const std::string& target){
+    std::vector<int> multiplier;
     multiplier.reserve(_AOBasisSize);
     // go through basisset
     for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
@@ -250,7 +250,7 @@ vector<int> AOBasis::getMultiplierVector( const string& start, const string& tar
     return multiplier;
     }
 
-void AOBasis::addMultiplierShell(const string& start, const string& target, const string& shell_type, vector<int>& multiplier) {
+void AOBasis::addMultiplierShell(const std::string& start, const std::string& target, const std::string& shell_type, std::vector<int>& multiplier) {
 
 
     if (target == "xtp" || start=="xtp") {
@@ -281,7 +281,7 @@ void AOBasis::addMultiplierShell(const string& start, const string& target, cons
                     multiplier.push_back(1);
                     multiplier.push_back(1);
                 } else {
-                    cerr << "Tried to get multipliers d-functions from package " << start << ".";
+                    std::cerr << "Tried to get multipliers d-functions from package " << start << ".";
                     throw std::runtime_error("Multiplication not implemented yet!");
                 }
             }
@@ -296,12 +296,12 @@ void AOBasis::addMultiplierShell(const string& start, const string& target, cons
                     multiplier.push_back(-1);
 
                 } else {
-                cerr << "Tried to get multipliers d-functions from package " << start << ".";
+                std::cerr << "Tried to get multipliers d-functions from package " << start << ".";
                 throw std::runtime_error("Multiplication not implemented yet!");
                 }
             }
             else if (shell_type == "G") {
-                cerr << "Tried to get multipliers g-functions . ";
+                std::cerr << "Tried to get multipliers g-functions . ";
                 throw std::runtime_error("Multiplication not implemented yet!");
             }
         } else {
@@ -314,7 +314,7 @@ void AOBasis::addMultiplierShell(const string& start, const string& target, cons
         }
     } else {
 
-        cerr << "Tried to reorder functions (multiplier)  from " << start << " to " << target << endl;
+        std::cerr << "Tried to reorder functions (multiplier)  from " << start << " to " << target << std::endl;
         throw std::runtime_error("Reordering not implemented yet!");
 
 
@@ -323,8 +323,8 @@ void AOBasis::addMultiplierShell(const string& start, const string& target, cons
 }
 
 
-vector<int>  AOBasis::getReorderVector(const string& start,const string& target){
-    vector<int> neworder;
+std::vector<int>  AOBasis::getReorderVector(const std::string& start,const std::string& target){
+    std::vector<int> neworder;
     neworder.reserve(_AOBasisSize);
     // go through basisset
     for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
@@ -334,8 +334,8 @@ vector<int>  AOBasis::getReorderVector(const string& start,const string& target)
     return neworder;
 }
 
-vector<int> AOBasis::invertOrder(const vector<int>& order ){
-    vector<int>neworder=vector<int>(order.size());
+std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
+    std::vector<int>neworder=std::vector<int>(order.size());
     for(unsigned i=0;i<order.size();i++){
         neworder[order[i]]=int(i);
     }
@@ -345,8 +345,8 @@ vector<int> AOBasis::invertOrder(const vector<int>& order ){
 
 
 
-void AOBasis::addReorderShell(const string& start,const string& target,const string& shell_type, vector<int>& neworder ) {
-    vector<int> order;
+void AOBasis::addReorderShell(const std::string& start,const std::string& target,const std::string& shell_type, std::vector<int>& neworder ) {
+    std::vector<int> order;
     // current length of vector
     int _cur_pos = neworder.size() -1 ;
 
@@ -449,7 +449,7 @@ void AOBasis::addReorderShell(const string& start,const string& target,const str
         // for combined shells, iterate over all contributions
         //_nbf = 0;
         for( unsigned i = 0; i < shell_type.length(); ++i) {
-           string local_shell =    string( shell_type, i, 1 );
+           std::string local_shell =    std::string( shell_type, i, 1 );
            this->addReorderShell( start, target, local_shell, order  );
         }
     }
@@ -491,9 +491,9 @@ int AOBasis::getFuncperAtom(int AtomId) const{
 }
 
 
-void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fragbreak  ) {
+void AOBasis::AOBasisFill(BasisSet* bs , std::vector<QMAtom* > _atoms, int _fragbreak  ) {
   Elements elementinfo;
-  vector<QMAtom* > :: iterator ait;
+  std::vector<QMAtom* > :: iterator ait;
 
  _AOBasisSize =0;
  _AOBasisFragA=0;
@@ -504,10 +504,10 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fragbreak
  // loop over atoms
  for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
     
-    vec pos=(*ait)->getPos();
+    const tools::vec& pos=(*ait)->getPos();
     
     // get element type of the atom
-    string  name = (*ait)->getType();
+    std::string  name = (*ait)->getType();
     //assign its nuclear charge
     (*ait)->nuccharge=elementinfo.getNucCrg(name);
     // get the basis set entry for this element
@@ -546,9 +546,9 @@ void AOBasis::AOBasisFill(BasisSet* bs , vector<QMAtom* > _atoms, int _fragbreak
 
 
 
-void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
+void AOBasis::ECPFill(BasisSet* bs , std::vector<QMAtom* > _atoms  ) {
         
-        vector< QMAtom* > :: iterator ait;
+        std::vector< QMAtom* > :: iterator ait;
        _AOBasisSize = 0;
       
 
@@ -556,7 +556,7 @@ void AOBasis::ECPFill(BasisSet* bs , vector<QMAtom* > _atoms  ) {
        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
           
           // get coordinates of this atom and convert from Angstrom to Bohr
-          vec pos=(*ait)->getPos();
+          const tools::vec &pos=(*ait)->getPos();
           // get element type of the atom
           string  name = (*ait)->getType();
           // get the basis set entry for this element
