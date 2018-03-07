@@ -27,8 +27,6 @@
 #include <votca/tools/matrix.h>
 
 #include <votca/xtp/atom.h>
-#include <votca/ctp/polarsite.h>
-#include <votca/ctp/apolarsite.h>
 #include <fstream>
 
 
@@ -38,7 +36,9 @@ namespace votca { namespace xtp {
 class Topology;
 class Molecule;
 class Segment;
-    
+class PolarSite;
+class APolarSite;    
+
 /**
     \brief Rigid fragment. One conjugated segment contains several rigid fragments.
 
@@ -62,15 +62,15 @@ public:
     inline void setMolecule(Molecule *container) { _mol = container; }
     inline void setSegment(Segment *container)   { _seg = container; }
     void        AddAtom( Atom* atom );
-    void        AddPolarSite(votca::ctp::PolarSite *pole);
-    void        AddAPolarSite(votca::ctp::APolarSite *pole);
+    void        AddPolarSite(PolarSite *pole);
+    void        AddAPolarSite(APolarSite *pole);
 
     Topology            *getTopology() { return _top; }
     Molecule            *getMolecule() { return _mol; }
     Segment             *getSegment()  { return _seg; }
     std::vector< Atom* >     &Atoms() { return _atoms; }
-    std::vector<votca::ctp::PolarSite*>  &PolarSites() { return _polarSites; }
-    std::vector<votca::ctp::APolarSite*> &APolarSites() { return _apolarSites; }
+    std::vector<PolarSite*>  &PolarSites() { return _polarSites; }
+    std::vector<APolarSite*> &APolarSites() { return _apolarSites; }
 
     const int    &getId() const { return _id; }
     const std::string &getName() const { return _name; }
@@ -99,8 +99,8 @@ private:
     Segment     *_seg;
 
     std::vector < Atom* > _atoms;
-    std::vector <votca::ctp::PolarSite*> _polarSites;
-    std::vector <votca::ctp::APolarSite*> _apolarSites;
+    std::vector <PolarSite*> _polarSites;
+    std::vector <APolarSite*> _apolarSites;
     std::vector< double > _weights;
 
     int         _id;
