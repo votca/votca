@@ -101,7 +101,7 @@ namespace votca {
             const double screenf2=screening_freq * screening_freq;
             Eigen::MatrixXd result=Eigen::MatrixXd::Zero(_size,_size);
           
-            const Eigen::VectorXd& qp_energies=   _qp_energies;
+            const Eigen::VectorXd& qp_energies=_qp_energies;
               
           
             
@@ -148,7 +148,7 @@ namespace votca {
             const int index_n = _Mmn_RPA.get_nmin();
             const int index_m = _Mmn_RPA.get_mmin();
             const ub::vector<double>& qp_energies=   _qp_energies;
-            Eigen::MatrixXd result=ub::zero_matrix<double>(_size);
+            Eigen::MatrixXd result=Eigen::MatrixXd::Zero(_size,_size);
            
             
             #pragma omp parallel for 
@@ -163,7 +163,7 @@ namespace votca {
 #endif
 
                 // a temporary matrix, that will get filled in empty levels loop
-                ub::matrix<double> _temp = ub::matrix<double>(_Mmn_RPA.get_ntot(), _size);
+                Eigen::MatrixXd _temp =Eigen::MatrixXd(_Mmn_RPA.get_ntot(), _size);
                 
 
                 // loop over empty levels
@@ -183,7 +183,7 @@ namespace votca {
                 } // empty levels
 
                 // now multiply and add to epsilon
-               _temp=ub::prod(Mmn_RPA, _temp);
+               _temp=Mmn_RPA*_temp;
                 #pragma omp critical
                 {
                 result+=_temp;
@@ -222,14 +222,15 @@ namespace votca {
    
     void GWBSE::RPA_prepare_threecenters(TCMatrix& _Mmn_RPA,const TCMatrix& _Mmn_full){
         
-        ub::range full=ub::range(0, _Mmn_full.get_beta());
-        ub::range RPA_cut=ub::range(_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin(), _Mmn_RPA.get_nmax() - _Mmn_full.get_nmin() + 1);
+       
+        unsigned start=_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin();
+              
             // loop over m-levels in _Mmn_RPA
             #pragma omp parallel for 
             for (int _m_level = 0; _m_level < _Mmn_RPA.size(); _m_level++) {
           
                 // copy to _Mmn_RPA
-                _Mmn_RPA[ _m_level ] = ub::project(_Mmn_full[ _m_level ], full, RPA_cut);
+                _Mmn_RPA[ _m_level ] =_Mmn_full[ _m_level ].block(0,start,_Mmn_full.get_beta(),_Mmn_RPA.get_ntot());
               
 
             }// loop m-levels

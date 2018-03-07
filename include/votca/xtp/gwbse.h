@@ -251,15 +251,12 @@ class GWBSE {
   // some cleaner analysis
   void BSE_analyze_triplets();
   void BSE_analyze_singlets();
-  void BSE_analyze_singlets_BTDA();
+ 
 
   void BSE_analyze_eh_interaction_Triplet(std::vector<real_gwbse>& _c_d,
                                           std::vector<real_gwbse>& _c_qp);
+  
   void BSE_analyze_eh_interaction_Singlet(std::vector<real_gwbse>& _c_x,
-                                          std::vector<real_gwbse>& _c_d,
-                                          std::vector<real_gwbse>& _c_qp);
-
-  void BSE_analyze_eh_interaction_BTDA_singlet(std::vector<real_gwbse>& _c_x,
                                                std::vector<real_gwbse>& _c_d,
                                                std::vector<real_gwbse>& _c_qp);
 

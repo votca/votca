@@ -1011,14 +1011,12 @@ bool GWBSE::Evaluate() {
         BSE_solve_singlets_BTDA();
         CTP_LOG(ctp::logDEBUG, *_pLog)
             << ctp::TimeStamp() << " Solved full BSE for singlets " << flush;
-        BSE_analyze_singlets_BTDA();
       } else {
         BSE_solve_singlets();
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                       << " Solved BSE for singlets " << flush;
-        BSE_analyze_singlets();
+                                       << " Solved BSE for singlets " << flush;   
       }
-
+      BSE_analyze_singlets();
       if (!_store_eh_interaction) {
         _eh_d.resize(0, 0);
         _eh_x.resize(0, 0);

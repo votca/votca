@@ -48,7 +48,7 @@ namespace votca {
             // constructing full QP Hamiltonian, storage in vxc
             _vxc = -_vxc + _sigma_x + _sigma_c;
             // diagonal elements are given by _qp_energies
-            for (unsigned _m = 0; _m < _vxc.size1(); _m++ ){
+            for (unsigned _m = 0; _m < _vxc.rows(); _m++ ){
               _vxc( _m,_m ) = _qp_energies( _m + _qpmin );
             }
 
@@ -59,8 +59,8 @@ namespace votca {
             
             
             if ( _do_qp_diag ){
-                _qp_diag_energies.resize(_vxc.size1());
-                _qp_diag_coefficients.resize(_vxc.size1(), _vxc.size1());
+                _qp_diag_energies.resize(_vxc.rows());
+                _qp_diag_coefficients.resize(_vxc.rows(), _vxc.rows());
                 linalg_eigenvalues(_vxc, _qp_diag_energies, _qp_diag_coefficients);
             }
            return; 
@@ -69,14 +69,14 @@ namespace votca {
         
         void GWBSE::sigma_diag(const TCMatrix& _Mmn){
             
-            unsigned _levelsum = _Mmn[0].size2(); // total number of bands
-            unsigned _gwsize = _Mmn[0].size1(); // size of the GW basis
+            unsigned _levelsum = _Mmn[0].cols(); // total number of bands
+            unsigned _gwsize = _Mmn[0].rows(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
 
             
              #pragma omp parallel for
                 for (unsigned _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
-                    const ub::matrix<real_gwbse>& Mmn = _Mmn[ _gw_level + _qpmin ];
+                    const MatrixXfd & Mmn = _Mmn[ _gw_level + _qpmin ];
                     double sigma_x=0;
                         for ( unsigned _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){
                             // loop over all occupied bands used in screening
@@ -88,9 +88,9 @@ namespace votca {
                 }
             
                 if(_g_sc_max_iterations==0) {_g_sc_max_iterations=1;}
-                ub::vector<double>& dftenergies=_orbitals->MOEnergies();
+                Eigen::VectorXd& dftenergies=_orbitals->MOEnergies();
                 // initial _qp_energies are dft energies
-                ub::vector<double>_qp_old=_qp_energies;
+                Eigen::VectorXd _qp_old=_qp_energies;
 
                 bool energies_converged=false;
 
@@ -101,7 +101,7 @@ namespace votca {
 
                 #pragma omp parallel for
                 for (unsigned _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
-                    const ub::matrix<real_gwbse>& Mmn = _Mmn[ _gw_level + _qpmin ];
+                    const MatrixXfd & Mmn = _Mmn[ _gw_level + _qpmin ];
                     const double qpmin = _qp_old(_gw_level + _qpmin);
                     
                     double sigma_c=0.0;
@@ -142,7 +142,7 @@ namespace votca {
                     _qp_energies(_gw_level + _qpmin) = dftenergies(_gw_level + _qpmin) + sigma_c + _sigma_x(_gw_level, _gw_level) - _vxc(_gw_level, _gw_level);
 
                 }// all bands
-                ub::vector<double> diff= _qp_old - _qp_energies;
+                Eigen::VectorXd diff= _qp_old - _qp_energies;
                 energies_converged = true;
                 double diff_max=0;
                 unsigned state_max=0;
@@ -182,15 +182,15 @@ namespace votca {
       
        
          void GWBSE::sigma_offdiag(const TCMatrix& _Mmn) {
-            unsigned _levelsum = _Mmn[0].size2(); // total number of bands
-            unsigned _gwsize = _Mmn[0].size1(); // size of the GW basis
+            unsigned _levelsum = _Mmn[0].cols(); // total number of bands
+            unsigned _gwsize = _Mmn[0].rows(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
            
             #pragma omp parallel for
             for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
-                const ub::matrix<real_gwbse>& Mmn1 =  _Mmn[ _gw_level1 + _qpmin ];
+                const MatrixXfd & Mmn1 =  _Mmn[ _gw_level1 + _qpmin ];
                 for (unsigned _gw_level2 = 0; _gw_level2 < _gw_level1; _gw_level2++) {
-                    const ub::matrix<real_gwbse>& Mmn2 =  _Mmn[ _gw_level2 + _qpmin ];
+                    const MatrixXfd & Mmn2 =  _Mmn[ _gw_level2 + _qpmin ];
                     double sigma_x=0;
                     for ( unsigned _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){
                         // loop over all occupied bands used in screening
@@ -205,10 +205,10 @@ namespace votca {
             #pragma omp parallel for
             for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
                 const double qpmin1 = _qp_energies(_gw_level1 + _qpmin);
-                const ub::matrix<real_gwbse>& Mmn1 = _Mmn[ _gw_level1 + _qpmin ];
+                const MatrixXfd& Mmn1 = _Mmn[ _gw_level1 + _qpmin ];
                 for (unsigned _gw_level2 = 0; _gw_level2 < _gw_level1; _gw_level2++) {
                     const double qpmin2 = _qp_energies(_gw_level1 + _qpmin);
-                    const ub::matrix<real_gwbse>& Mmn2 = _Mmn[ _gw_level2 + _qpmin ];
+                    const MatrixXfd& Mmn2 = _Mmn[ _gw_level2 + _qpmin ];
                     double sigma_c = 0;
                     for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
                         // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
@@ -253,9 +253,9 @@ namespace votca {
 
         void GWBSE::sigma_prepare_threecenters(TCMatrix& _Mmn){
             #if (GWBSE_DOUBLE)
-                const ub::matrix<double>& ppm_phi=_ppm_phi_T;
+                Eigen::MatrixXd & ppm_phi=_ppm_phi_T;
             #else
-                const ub::matrix<float> ppm_phi=_ppm_phi_T;        
+                const Eigen::MatrixXf ppm_phi=_ppm_phi_T.cast<float>();        
             #endif
             
             
@@ -263,7 +263,7 @@ namespace votca {
             for ( int _m_level = 0 ; _m_level < _Mmn.get_mtot(); _m_level++ ){
                 // get Mmn for this _m_level
                 // and multiply with _ppm_phi = eigenvectors of epsilon
-              _Mmn[ _m_level ] = ub::prod(  ppm_phi , _Mmn[_m_level] );
+              _Mmn[ _m_level ] = ppm_phi* _Mmn[_m_level];
             }
             return;
         }        

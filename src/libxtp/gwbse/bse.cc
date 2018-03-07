@@ -44,7 +44,7 @@ namespace votca {
 
         
         void GWBSE::BSE_qp_setup(){
-            _eh_qp = ub::zero_matrix<real_gwbse>( _bse_size , _bse_size );
+            _eh_qp = MatrixXfd::Zero( _bse_size , _bse_size );
             BSE_Add_qp2H( _eh_qp );
             return;
         }
@@ -56,14 +56,14 @@ namespace votca {
             
             // add full QP Hamiltonian contributions to free transitions
            
-            ub::matrix<real_gwbse> _bse=_eh_d;
+            MatrixXfd _bse=_eh_d;
             
             linalg_eigenvalues(  _bse, _bse_triplet_energies, _bse_triplet_coefficients, _bse_nmax);
             return;
         }
         
         
-        void GWBSE::Solve_nonhermitian(ub::matrix<double>& H, ub::matrix<double>& LT) {
+        void GWBSE::Solve_nonhermitian(Eigen::MatrixXd& H, Eigen::MatrixXd& LT) {
 
             // remove stuff from Cholesky and Calculated L^T,, because more efficient for mat prods 
             #pragma omp parallel for
@@ -76,14 +76,14 @@ namespace votca {
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed non referenced part of Cholesky decompostion" << flush;
             // determine H = L^T(A-B)L
-            ub::matrix<double> _temp = ub::prod(H, ub::trans(LT));
+            Eigen::MatrixXd _temp = ub::prod(H, ub::trans(LT));
             H= ub::prod(LT, _temp);
             _temp.resize(0, 0);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
 
             // solve eigenvalue problem: HR_l = eps_l^2 R_l
             ub::vector<double> _eigenvalues;
-            ub::matrix<double> _eigenvectors;
+            Eigen::MatrixXd _eigenvectors;
 
             linalg_eigenvalues(H, _eigenvalues, _eigenvectors, _bse_nmax);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
@@ -99,8 +99,8 @@ namespace votca {
             //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 - 1/sqrt(eps_l)L ] R_l
 
             // determine inverse of L^T
-            ub::matrix<double> _cholesky_transposed_invert;
-            ub::matrix<double> L = ub::trans(LT);
+            Eigen::MatrixXd _cholesky_transposed_invert;
+            Eigen::MatrixXd L = ub::trans(LT);
             linalg_invert(LT, _cholesky_transposed_invert);
 
             int dim = L.size1();
@@ -112,9 +112,9 @@ namespace votca {
                 //real_gwbse sqrt_eval = sqrt(_eigenvalues(_i));
                 double sqrt_eval = sqrt(_bse_singlet_energies(_i));
                 // get l-th reduced EV
-                ub::matrix<double> _reduced_evec = ub::project(_eigenvectors, ub::range(0, dim), ub::range(_i, _i + 1)); // potentially col<->row
+                Eigen::MatrixXd _reduced_evec = ub::project(_eigenvectors, ub::range(0, dim), ub::range(_i, _i + 1)); // potentially col<->row
 
-                ub::matrix<double> _transform = 0.5 * (sqrt_eval * _cholesky_transposed_invert + 1.0 / sqrt_eval * L);
+                Eigen::MatrixXd _transform = 0.5 * (sqrt_eval * _cholesky_transposed_invert + 1.0 / sqrt_eval * L);
                 ub::project(_bse_singlet_coefficients, ub::range(0, dim), ub::range(_i, _i + 1)) = ub::prod(_transform, _reduced_evec);
                 _transform = 0.5 * (sqrt_eval * _cholesky_transposed_invert - 1.0 / sqrt_eval * L);
                 ub::project(_bse_singlet_coefficients_AR, ub::range(0, dim), ub::range(_i, _i + 1)) = ub::prod(_transform, _reduced_evec);
@@ -132,12 +132,12 @@ namespace votca {
           // TOCHECK: Isn't that memory overkill here? _A and _B are never needed again?
            // ub::matrix<real_gwbse> _A = _eh_d + 2.0 * _eh_x;
            // ub::matrix<real_gwbse> _B = _eh_d2 + 2.0 * _eh_x;
-          ub::matrix<double> _ApB = _eh_d + _eh_d2 + 4.0 * _eh_x;
-          ub::matrix<double> _AmB = _eh_d - _eh_d2;
+          Eigen::MatrixXd _ApB = _eh_d + _eh_d2 + 4.0 * _eh_x;
+          Eigen::MatrixXd _AmB = _eh_d - _eh_d2;
 
             
         
-            
+            _ApB
           // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not positive definite
             //(A-B) is not needed any longer and can be overwritten
           
