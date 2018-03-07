@@ -1,6 +1,6 @@
 if(ENABLE_TESTING)
     find_package(Boost 1.39.0 REQUIRED COMPONENTS unit_test_framework)
-    foreach(PROG test_glink test_atom test_segment)
+    foreach(PROG test_glink test_atom test_fragment test_segment test_polarsite test_apolarsite)
       file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
       add_executable(unit_${PROG} ${${PROG}_SOURCES})
       target_link_libraries(unit_${PROG} votca_xtp ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})

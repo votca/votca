@@ -29,7 +29,7 @@
 
 namespace votca { namespace xtp {
 
-using namespace votca::tools;
+
 
 class StateSaverSQLite
 {
@@ -74,8 +74,8 @@ private:
 
     int             _frame;
     int             _current_frame;
-    vector<int>     _frames;
-    vector<int>     _topIds;
+    std::vector<int>     _frames;
+    std::vector<int>     _topIds;
 
     std::string          _sqlfile;
     bool            _was_read;

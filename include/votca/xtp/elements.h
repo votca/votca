@@ -33,7 +33,7 @@
 namespace votca { namespace xtp {
 
 namespace ub = boost::numeric::ublas;
-using namespace std;
+
 
 
 /**
