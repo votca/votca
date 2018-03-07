@@ -53,8 +53,10 @@ public:
      Fragment(int id, std::string name) : _id(id), _name(name), _symmetry(-1) { }
      Fragment(Fragment *stencil);
     ~Fragment();
-    
+   
+    // Function only operates on the QM position of the fragment 
     void Rotate(votca::tools::matrix spin, votca::tools::vec refPos);    // rotates w.r.t. center of map
+    // Function only operates on the MD position of the fragment
     void TranslateBy(const votca::tools::vec &shift);
     void RotTransQM2MD();
 
@@ -74,8 +76,10 @@ public:
 
     const int    &getId() const { return _id; }
     const std::string &getName() const { return _name; }
-
+    
+    // This function needs a thorough explanation
     void         Rigidify(bool Auto = 0);
+    // What are these two symmetry functions doing
     void         setSymmetry(int sym) { _symmetry = sym; }
     const int   &getSymmetry() { return _symmetry; }
     void         setTrihedron(std::vector<int> trihedron) { _trihedron = trihedron; }
@@ -84,6 +88,9 @@ public:
 
     void          calcPos(std::string tag = "MD");
     void          setPos(votca::tools::vec pos) { _CoMD = pos; }
+    // TODO we need to fix all these get position methods there should
+    // not be so many, probably need some separate classes or some of them
+    // need to be made private
     const votca::tools::vec    &getPos() const { return _CoMD; }
     const votca::tools::vec    &getCoMD() { return _CoMD; }
     const votca::tools::vec    &getCoQM() { return _CoQM; }
