@@ -19,8 +19,9 @@
 
 #include <vector>
 #include <votca/xtp/fragment.h>
+#include <votca/xtp/apolarsite.h>
+#include <votca/xtp/polarsite.h>
 
-using namespace votca::ctp;
 using namespace std;
 namespace votca { namespace xtp {
 
