@@ -67,6 +67,7 @@ BOOST_AUTO_TEST_CASE(add_atom_test){
   seg.AddAtom(atm);
   vector<Atom*> v_atoms = seg.Atoms();
   BOOST_CHECK_EQUAL(v_atoms.size(),1);
+  delete atm;
 }
 
 BOOST_AUTO_TEST_CASE(calc_pos_test){
@@ -94,6 +95,7 @@ BOOST_AUTO_TEST_CASE(calc_pos_test){
   BOOST_CHECK_EQUAL(v_seg.getX(),3.0);
   BOOST_CHECK_EQUAL(v_seg.getY(),3.0);
   BOOST_CHECK_EQUAL(v_seg.getZ(),3.0);
+  delete atm;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
