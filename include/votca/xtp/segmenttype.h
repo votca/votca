@@ -23,7 +23,7 @@
 
 #include <string>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class Topology;
 class Segment;
