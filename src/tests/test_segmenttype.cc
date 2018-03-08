@@ -20,7 +20,6 @@
 #include <votca/xtp/segmenttype.h>
 
 using namespace votca::xtp;
-
 BOOST_AUTO_TEST_SUITE(segmenttype_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) { 
@@ -28,9 +27,9 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
   SegmentType segT2(1,"Name","SP","file.orb","coord.xyz",true);
 }
 
-BOOST_AUTO_TEST_CASE() {
+BOOST_AUTO_TEST_CASE(getters_test) {
   SegmentType segT(1,"Name","SP","file.orb","coord.xyz",true);
-  BOOST_CHECK_EQUAL(segT.getBasisName(),"Name");
+  BOOST_CHECK_EQUAL(segT.getBasisName(),"SP");
   BOOST_CHECK_EQUAL(segT.getOrbitalsFile(),"file.orb");
   BOOST_CHECK_EQUAL(segT.getQMCoordsFile(),"coord.xyz");
   BOOST_CHECK_EQUAL(segT.canRigidify(),true);

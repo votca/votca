@@ -20,6 +20,7 @@
 #include <votca/xtp/segment.h>
 #include <votca/tools/vec.h>
 
+using namespace votca::tools;
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(segment_test)
@@ -30,7 +31,7 @@ BOOST_AUTO_TEST_CASE(simple_getters_setters_test) {
   Segment seg(3, "seg2");
   BOOST_CHECK_EQUAL(seg.getId(), 3);
   BOOST_CHECK_EQUAL(seg.getName(), "seg2");
-  tools::vec v;
+  vec v;
   v.setX(1.1);
   v.setY(2.2);
   v.setZ(3.3);
@@ -38,9 +39,9 @@ BOOST_AUTO_TEST_CASE(simple_getters_setters_test) {
   auto v2 = seg.getPos();
   BOOST_CHECK_EQUAL(v2.getX(),v.getX());
   BOOST_CHECK_EQUAL(v2.getY(),v.getY());
-  BOOST_CHECK_EQUAL(v2.getZ(),v.getZ());
-  seg.setOcc(1.1,0);
-  BOOST_CHECK_EQUAL(seg.getOcc(0),1.1);
+  BOOST_CHECK_EQUAL(v2.getZ(),v.getZ());  
+  seg.setOcc(1.1,1);
+  BOOST_CHECK_EQUAL(seg.getOcc(1),1.1);
  
 }
 

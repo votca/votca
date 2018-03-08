@@ -26,6 +26,8 @@
 
 #include <votca/tools/vec.h>
 
+namespace votca { namespace xtp {
+
 class Atom;
 class PolarSite;
 class APolarSite;
@@ -33,8 +35,6 @@ class Fragment;
 class SegmentType;
 class Topology;
 class Molecule;  
-
-namespace votca { namespace xtp {
 
 class Segment
 {
