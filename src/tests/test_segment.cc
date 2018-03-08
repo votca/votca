@@ -18,10 +18,13 @@
 #define BOOST_TEST_MODULE segment_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/segment.h>
+#include <votca/xtp/atom.h>
 #include <votca/tools/vec.h>
+#include <vector>
 
 using namespace votca::tools;
 using namespace votca::xtp;
+using namespace std;
 
 BOOST_AUTO_TEST_SUITE(segment_test)
 
@@ -43,6 +46,54 @@ BOOST_AUTO_TEST_CASE(simple_getters_setters_test) {
   seg.setOcc(1.1,1);
   BOOST_CHECK_EQUAL(seg.getOcc(1),1.1);
  
+}
+
+BOOST_AUTO_TEST_CASE(add_atom_test){
+
+  bool hasQM = true;  
+  vec qmpos;
+  qmpos.setX(2.0);
+  qmpos.setY(2.0);
+  qmpos.setZ(2.0);
+
+  vec pos;
+  pos.setX(3.0);
+  pos.setY(3.0);
+  pos.setZ(3.0);
+
+  Atom * atm = new Atom(nullptr, "res1",1,"CSP",2,hasQM,3,qmpos,"C",1.0);
+  atm->setPos(pos);
+  Segment seg(4, "seg4");
+  seg.AddAtom(atm);
+  vector<Atom*> v_atoms = seg.Atoms();
+  BOOST_CHECK_EQUAL(v_atoms.size(),1);
+}
+
+BOOST_AUTO_TEST_CASE(calc_pos_test){
+  
+  bool hasQM = true;  
+  vec qmpos;
+  qmpos.setX(2.0);
+  qmpos.setY(2.0);
+  qmpos.setZ(2.0);
+
+  vec pos;
+  pos.setX(3.0);
+  pos.setY(3.0);
+  pos.setZ(3.0);
+
+  Atom * atm = new Atom(nullptr, "res1",1,"CSP",2,hasQM,3,qmpos,"C",1.0);
+  atm->setPos(pos);
+  Segment seg(4, "seg4");
+  seg.AddAtom(atm);
+  vector<Atom*> v_atoms = seg.Atoms();
+  BOOST_CHECK_EQUAL(v_atoms.size(),1);
+  // Calculates the MD position of the segment (center of mass)
+  seg.calcPos();
+  auto v_seg = seg.getPos(); 
+  BOOST_CHECK_EQUAL(v_seg.getX(),3.0);
+  BOOST_CHECK_EQUAL(v_seg.getY(),3.0);
+  BOOST_CHECK_EQUAL(v_seg.getZ(),3.0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
