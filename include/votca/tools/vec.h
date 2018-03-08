@@ -331,6 +331,10 @@ inline double abs(const vec &v)
     return sqrt(v*v);
 }
 
+inline bool isClose(const vec &v1, const vec &v2, double tol){
+    return (abs(v1 - v2) < tol);
+}
+
 inline double maxnorm(const vec &v) {
     return ( std::abs(v.getX()) > std::abs(v.getY()) ) ?
          ( ( std::abs(v.getX()) > std::abs(v.getZ()) ) ? 
