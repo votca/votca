@@ -53,15 +53,15 @@ namespace votca {
             }
 
              // sigma matrices can be freed
-            _sigma_x.resize(0);
-            _sigma_c.resize(0);
+            _sigma_x.resize(0,0);
+            _sigma_c.resize(0,0);
             
             
             
             if ( _do_qp_diag ){
-                _qp_diag_energies.resize(_vxc.rows());
-                _qp_diag_coefficients.resize(_vxc.rows(), _vxc.rows());
-                linalg_eigenvalues(_vxc, _qp_diag_energies, _qp_diag_coefficients);
+                Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_vxc);
+                _qp_diag_energies=es.eigenvalues();
+                _qp_diag_coefficients=es.eigenvectors();
             }
            return; 
         }

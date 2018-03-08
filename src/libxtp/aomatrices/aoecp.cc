@@ -43,7 +43,7 @@ namespace votca { namespace xtp {
     using namespace votca::tools;
 
 
-    void AOECP::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col, AOBasis* ecp) {
+    void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& _matrix, const AOShell* _shell_row, const AOShell* _shell_col, AOBasis* ecp) {
 
         /*
          *
@@ -118,9 +118,9 @@ namespace votca { namespace xtp {
                     // for each atom and its pseudopotential, get a matrix
                     int _atomidx = 0;
 
-                    ub::matrix<int> _power_matrix = ub::zero_matrix<int>(4, 5); // 4 fit components, non-local ECPs l = 0, 1, 2, 3, 4
-                    ub::matrix<double> _decay_matrix = ub::zero_matrix<double>(4, 5);
-                    ub::matrix<double> _coef_matrix  = ub::zero_matrix<double>(4, 5);
+                    Eigen::Matrix<int,4,5> _power_matrix = Eigen::Matrix<int,4,5>::Zero(); // 4 fit components, non-local ECPs l = 0, 1, 2, 3, 4
+                    Eigen::Matrix<double,4,5> _decay_matrix = Eigen::Matrix<double,4,5>::Zero();
+                    Eigen::Matrix<double,4,5> _coef_matrix  = Eigen::Matrix<double,4,5>::Zero();
 
                     AOBasis::AOShellIterator final_iter = ecp->lastShell();
                     --final_iter;
@@ -162,22 +162,22 @@ namespace votca { namespace xtp {
                                     }
 
                                     // evaluate collected data, returns a (10x10) matrix of already normalized matrix elements
-                                    ub::matrix<double> VNL_ECP = calcVNLmatrix(_lmax_ecp, _ecp_eval_pos, *itr, *itc,  _power_matrix ,_decay_matrix, _coef_matrix);
+                                    Eigen::MatrixXd VNL_ECP = calcVNLmatrix(_lmax_ecp, _ecp_eval_pos, *itr, *itc,  _power_matrix ,_decay_matrix, _coef_matrix);
 
                                     // consider contractions
                                     // cut out block that is needed. sum
                                     //                                   cout << "_matrix.size1,2()   " << _matrix.size1() << "    " << _matrix.size2() << endl;
-                                    for ( unsigned i = 0; i < _matrix.size1(); i++ ) {
-                                        for (unsigned j = 0; j < _matrix.size2(); j++) {
+                                    for ( unsigned i = 0; i < _matrix.rows(); i++ ) {
+                                        for (unsigned j = 0; j < _matrix.cols(); j++) {
                                             _matrix(i,j) += VNL_ECP(i+_shell_row->getOffset(),j+_shell_col->getOffset()) * _contractions_row_full[i+_shell_row->getOffset()]* _contractions_col_full[j+_shell_col->getOffset()];
                                         }
                                     }
 
 
                                     // reset atom ECP containers
-                                    _power_matrix = ub::zero_matrix<int>(4, 5); // 4 fit components, non-local ECPs l = 0, 1, 2, 3, 4
-                                    _decay_matrix = ub::zero_matrix<double>(4, 5);
-                                    _coef_matrix  = ub::zero_matrix<double>(4, 5);
+                                    _power_matrix = Eigen::Matrix<int,4,5>::Zero(); // 4 fit components, non-local ECPs l = 0, 1, 2, 3, 4
+                                    _decay_matrix = Eigen::Matrix<double,4,5>::Zero();
+                                    _coef_matrix  = Eigen::Matrix<double,4,5>::Zero();
                                     _atomidx++;
                                     i_fit = 0;
                                     //cout << "setting new matrix " << i_fit << " l " << _ecp_l << " alpha  " << _decay_ecp <<  " pref " << _contraction_ecp << endl;
@@ -197,7 +197,7 @@ namespace votca { namespace xtp {
             return;
         }
 
-        ub::matrix<double> AOECP::calcVNLmatrix(int _lmax_ecp, const vec& posC, const AOGaussianPrimitive& _g_row, const AOGaussianPrimitive& _g_col,const ub::matrix<int>& _power_ecp, const ub::matrix<double>& _gamma_ecp,const ub::matrix<double>& _pref_ecp) {
+        Eigen::MatrixXd AOECP::calcVNLmatrix(int _lmax_ecp, const vec& posC, const AOGaussianPrimitive& _g_row, const AOGaussianPrimitive& _g_col,const  Eigen::Matrix<int,4,5>& _power_ecp, const Eigen::Matrix<double,4,5>& _gamma_ecp,const Eigen::Matrix<double,4,5>& _pref_ecp) {
 
             /* calculate the contribution of the nonlocal 
              *     ECP of atom at posC with 
@@ -240,8 +240,8 @@ namespace votca { namespace xtp {
             if (BVS2 > 0.01) INULL++;
 
 
-            ub::matrix<double> matrix = ub::zero_matrix<double>(_nsph_row,_nsph_col);
-            const int nnonsep = _gamma_ecp.size1();
+            Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_nsph_row,_nsph_col);
+            const int nnonsep = _gamma_ecp.rows();
             int nmax;
             if (INULL == 0) {
                 nmax = 2 * _lmin;
@@ -250,7 +250,7 @@ namespace votca { namespace xtp {
             } else {
                 nmax = NMAX + 2 * _lmax;
             }
-            ub::matrix<double> XI = ub::zero_matrix<double>(_lmax_ecp + 1, nmax + 1);
+            Eigen::MatrixXd XI = Eigen::MatrixXd::Zero(_lmax_ecp + 1, nmax + 1);
 
             double f_even_r0 = .5 * SQPI;
             double f_even_r1 = .5;
@@ -851,13 +851,13 @@ namespace votca { namespace xtp {
 
 
             // GET TRAFO HERE ALREADY
-            ub::vector<double> NormA = CalcNorms(alpha, _nsph_row);
-            ub::vector<double> NormB = CalcNorms(beta, _nsph_col);
+            Eigen::VectorXd NormA = CalcNorms(alpha, _nsph_row);
+            Eigen::VectorXd NormB = CalcNorms(beta, _nsph_col);
 
             for (int i = 0; i < _nsph_row; i++) {
                 for (int j = 0; j < _nsph_col; j++) {
 
-                    matrix(i,j) = matrix(i,j) * GAUSS * NormA[i] * NormB[j];
+                    matrix(i,j) = matrix(i,j) * GAUSS * NormA(i) * NormB(j);
 
                 }
             }
@@ -867,31 +867,31 @@ namespace votca { namespace xtp {
         }
 
 
-        ub::vector<double> AOECP::CalcNorms(double decay, int size) {
-            ub::vector<double> Norms = ub::vector<double>(size);
+        Eigen::VectorXd AOECP::CalcNorms(double decay, int size) {
+            Eigen::VectorXd Norms = Eigen::VectorXd(size);
             const double PI = boost::math::constants::pi<double>();
             double SQ2, SQ3, SQ5;
 
             double Norm_S = pow(2.0 * decay / PI, 0.75);
             double Norm_P=0.0;
             double Norm_D=0.0;
-            Norms[0] = Norm_S;  //  Y 00
+            Norms(0) = Norm_S;  //  Y 00
 
             if (size > 1) {
                 Norm_P = 2.0 * sqrt(decay) * Norm_S;
-                Norms[1] = Norm_P;  //  Y 10
-                Norms[2] = Norm_P;  //  Y 1-1
-                Norms[3] = Norm_P;  //  Y 11
+                Norms(1) = Norm_P;  //  Y 10
+                Norms(2) = Norm_P;  //  Y 1-1
+                Norms(3) = Norm_P;  //  Y 11
             }
 
             if (size > 4) {
                 SQ3 = sqrt(3.);
                 double Norm_D = 4.00 * decay * Norm_S;
-                Norms[4] = .5 * Norm_D / SQ3;  //  Y 20
-                Norms[5] = Norm_D;             //  Y 2-1
-                Norms[6] = Norm_D;             //  Y 21
-                Norms[7] = Norm_D;             //  Y 2-2
-                Norms[8] = .5 * Norm_D;        //  Y 22
+                Norms(4) = .5 * Norm_D / SQ3;  //  Y 20
+                Norms(5) = Norm_D;             //  Y 2-1
+                Norms(6) = Norm_D;             //  Y 21
+                Norms(7) = Norm_D;             //  Y 2-2
+                Norms(8) = .5 * Norm_D;        //  Y 22
             }
 
             if (size > 9) {
@@ -900,13 +900,13 @@ namespace votca { namespace xtp {
                 double Norm_F = 4.00 * decay * Norm_P;
                 double Norm_F_1 = .5 * Norm_F / (SQ2 * SQ5);
                 double Norm_F_3 = .5 * Norm_F / (SQ2 * SQ3);
-                Norms[9] =  .5 * Norm_F / (SQ3 * SQ5);  //  Y 30
-                Norms[10] = Norm_F_1;                   //  Y 3-1
-                Norms[11] = Norm_F_1;                   //  Y 31
-                Norms[12] = Norm_F;                     //  Y 3-2
-                Norms[13] = .5 * Norm_F;                //  Y 32
-                Norms[14] = Norm_F_3;                   //  Y 3-3
-                Norms[15] = Norm_F_3;                   //  Y 33
+                Norms(9) =  .5 * Norm_F / (SQ3 * SQ5);  //  Y 30
+                Norms(10) = Norm_F_1;                   //  Y 3-1
+                Norms(11) = Norm_F_1;                   //  Y 31
+                Norms(12) = Norm_F;                     //  Y 3-2
+                Norms(13) = .5 * Norm_F;                //  Y 32
+                Norms(14) = Norm_F_3;                   //  Y 3-3
+                Norms(15) = Norm_F_3;                   //  Y 33
             }
 
             if (size > 16) {
@@ -916,15 +916,15 @@ namespace votca { namespace xtp {
                 double Norm_G_m2 = .5 * Norm_G / (SQ3 * SQ7);
                 double Norm_G_3 = .5 * Norm_G / (SQ2 * SQ3);
                 double Norm_G_m4 = .5 * Norm_G / SQ3;
-                Norms[16] =  .125 * Norm_G / (SQ3 * SQ5 * SQ7);  //  Y 40
-                Norms[17] = Norm_G_1;                            //  Y 4-1
-                Norms[18] = Norm_G_1;                            //  Y 41
-                Norms[19] = Norm_G_m2;                           //  Y 4-2
-                Norms[20] = .5 * Norm_G_m2;                      //  Y 42
-                Norms[21] = Norm_G_3;                            //  Y 4-3
-                Norms[22] = Norm_G_3;                            //  Y 43
-                Norms[23] = Norm_G_m4;                           //  Y 4-4
-                Norms[24] = .25 * Norm_G_m4;                     //  Y 44
+                Norms(16) =  .125 * Norm_G / (SQ3 * SQ5 * SQ7);  //  Y 40
+                Norms(17) = Norm_G_1;                            //  Y 4-1
+                Norms(18) = Norm_G_1;                            //  Y 41
+                Norms(19) = Norm_G_m2;                           //  Y 4-2
+                Norms(20) = .5 * Norm_G_m2;                      //  Y 42
+                Norms(21) = Norm_G_3;                            //  Y 4-3
+                Norms(22) = Norm_G_3;                            //  Y 43
+                Norms(23) = Norm_G_m4;                           //  Y 4-4
+                Norms(24) = .25 * Norm_G_m4;                     //  Y 44
             }
             return Norms;
         }

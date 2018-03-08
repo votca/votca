@@ -303,7 +303,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
 
    // orbital file used to archive parsed data
     string _pair_file = ( format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb" ).str();
-   ub::matrix<double> _JAB;
+   Eigen::MatrixXd _JAB;
 
    
    Property _job_summary;
@@ -440,7 +440,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
            CTP_LOG(ctp::logINFO,*pLog) << "Not storing integrals" << flush;           
        } else {
            // _orbitalsAB.setIntegrals( &_JAB );
-           ub::matrix<double>& _JAB_store = _orbitalsAB.MOCouplings();
+           Eigen::MatrixXd& _JAB_store = _orbitalsAB.MOCouplings();
            _JAB_store = _JAB;
        }
 

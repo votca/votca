@@ -650,7 +650,7 @@ bool GWBSE::Evaluate() {
 
  
  Eigen::MatrixXd L_overlap = _gwoverlap.Matrix().llt().matrixL();
- Eigen::MatrixXd L_overlap_inverse=L.inverse();
+ Eigen::MatrixXd L_overlap_inverse=L_overlap.inverse();
 
                                                    // itself
   int removed =0; //TODO use proper stabilisation
@@ -702,7 +702,7 @@ bool GWBSE::Evaluate() {
                                  << " Prepared Mmn_beta for RPA  " << flush;
 
   // fix the frequencies for PPM
-  _screening_freq = ub::zero_matrix<double>(2, 2);  // two frequencies
+  _screening_freq = Eigen::MatrixXd::Zero(2, 2);  // two frequencies
   // first one
   _screening_freq(0, 0) = 0.0;  // real part
   _screening_freq(0, 1) = 0.0;  // imaginary part
@@ -711,7 +711,7 @@ bool GWBSE::Evaluate() {
   _screening_freq(1, 1) = 0.5;  // imaginary part  //hartree
 
   // one entry to epsilon for each frequency
-  _epsilon.resize(_screening_freq.size1());
+  _epsilon.resize(_screening_freq.rows());
 
   /* for automatic iteration of _shift, we need to
    * - make a copy of _Mmn
@@ -726,7 +726,7 @@ bool GWBSE::Evaluate() {
 
   // initialize _qp_energies;
   // shift unoccupied levels by the shift
-  _qp_energies = ub::zero_vector<double>(_orbitals->getNumberOfLevels());
+  _qp_energies = Eigen::VectorXd::Zero(_orbitals->getNumberOfLevels());
   for (size_t i = 0; i < _qp_energies.size(); ++i) {
     _qp_energies(i) = _orbitals->MOEnergies()(i);
     if (i > _homo) {
@@ -734,8 +734,8 @@ bool GWBSE::Evaluate() {
     }
   }
 
-  _sigma_c.resize(_qptotal);
-  _sigma_x.resize(_qptotal);
+  _sigma_c.resize(_qptotal,_qptotal);
+  _sigma_x.resize(_qptotal,_qptotal);
 
   TCMatrix _Mmn_backup;
   if (_iterate_gw) {
@@ -766,7 +766,7 @@ bool GWBSE::Evaluate() {
     }
 
     // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
-    for (unsigned _i_freq = 0; _i_freq < _screening_freq.size1(); _i_freq++) {
+    for (unsigned _i_freq = 0; _i_freq < _screening_freq.rows(); _i_freq++) {
       _epsilon[_i_freq] = _gwoverlap.Matrix();
     }
 
@@ -776,7 +776,7 @@ bool GWBSE::Evaluate() {
                                    << " Calculated epsilon via RPA  " << flush;
 
     // construct PPM parameters
-    PPM_construct_parameters(_gwoverlap_cholesky_inverse);
+    PPM_construct_parameters(L_overlap_inverse);
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                    << " Constructed PPM parameters  " << flush;
 
@@ -852,7 +852,7 @@ bool GWBSE::Evaluate() {
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
   _gwoverlap.Matrix().resize(0, 0);
-  _gwoverlap_cholesky_inverse.resize(0, 0);
+  L_overlap_inverse.resize(0, 0);
   _Mmn_RPA.Cleanup();
   if (_iterate_gw) {
     _Mmn_backup.Cleanup();

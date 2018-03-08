@@ -26,7 +26,7 @@ namespace votca { namespace xtp {
    
    
     double Diis::Evolve(const Eigen::MatrixXd& dmat,const Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs, int this_iter, double totE){
-      Eigen::MatrixXd H_guess=ub::zero_matrix<double>(H.size1(),H.size2());    
+      Eigen::MatrixXd H_guess=Eigen::MatrixXd::Zero(H.rows(),H.cols());    
     
       if(_errormatrixhist.size()>_histlength){
           delete _mathist[_maxerrorindex];
@@ -46,28 +46,22 @@ namespace votca { namespace xtp {
           
       _totE.push_back(totE);
       
-      
-      Eigen::MatrixXd errormatrix=(*Sminusahalf).transpose*(H*dmat*(*S)-(*S)*dmat*H)*(*Sminusahalf)
-  
-      
-      double max=errormatrix.cwiseAbs().maxCoeff();
-   
+      Eigen::MatrixXd errormatrix=(*Sminusahalf).transpose()*(H*dmat*(*S)-(*S)*dmat*H)*(*Sminusahalf);
+      double maxerror=errormatrix.cwiseAbs().maxCoeff();
       Eigen::MatrixXd* old=new Eigen::MatrixXd;     
       *old=H;         
-       _mathist.push_back(old);
-       
+       _mathist.push_back(old);     
         Eigen::MatrixXd* dold=new Eigen::MatrixXd;     
       *dold=dmat;         
        _dmathist.push_back(dold);
-  
       Eigen::MatrixXd* olderror=new Eigen::MatrixXd; 
       *olderror=errormatrix;
        _errormatrixhist.push_back(olderror);
        
        if(_maxout){
          
-          if (max>_maxerror){
-              _maxerror=max;
+          if (maxerror>_maxerror){
+              _maxerror=maxerror;
               _maxerrorindex=_mathist.size();
           }
       } 
@@ -82,8 +76,8 @@ namespace votca { namespace xtp {
       }
       Bijs->push_back(errormatrix.cwiseProduct(errormatrix.transpose()).sum());
          
-      _DiF=ub::zero_vector<double>(_dmathist.size());
-      _DiFj=ub::zero_matrix<double>(_dmathist.size());
+      _DiF=Eigen::VectorXd::Zero(_dmathist.size());
+      _DiFj=Eigen::MatrixXd::Zero(_dmathist.size(),_dmathist.size());
        
     
   for(unsigned i=0;i<_dmathist.size();i++){
@@ -95,27 +89,23 @@ namespace votca { namespace xtp {
         _DiFj(i,j)=((*_dmathist[i])-dmat).cwiseProduct((*_mathist[j])-H).sum();
         }
    }
-      
-     
-      
-      
        
-    if (max<_adiis_start && _usediis && this_iter>2){
+    if (maxerror<_adiis_start && _usediis && this_iter>2){
         Eigen::VectorXd coeffs;
         //use EDIIs if energy has risen a lot in current iteration
 
-        if(max>_diis_start || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
+        if(maxerror>_diis_start || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
             coeffs=ADIIsCoeff();
             if(_noisy){
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << flush;
             }
         }
-        else if(max>0.0001 && max<_diis_start){
+        else if(maxerror>0.0001 && maxerror<_diis_start){
             Eigen::VectorXd coeffs1=DIIsCoeff();
             //cout<<"DIIS "<<coeffs1<<endl;
             Eigen::VectorXd coeffs2=ADIIsCoeff();
             //cout<<"ADIIS "<<coeffs2<<endl;
-            double mixing=max/_diis_start;
+            double mixing=maxerror/_diis_start;
             coeffs=mixing*coeffs2+(1-mixing)*coeffs1;
             if(_noisy){
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS+DIIS" << flush;
@@ -152,11 +142,11 @@ namespace votca { namespace xtp {
       
     double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
       
-    if((max>_levelshiftend && _levelshift>0.00001) || gap<1e-6){
+    if((maxerror>_levelshiftend && _levelshift>0.00001) || gap<1e-6){
         Levelshift(H_guess,MOs);
     }
     SolveFockmatrix( MOenergies,MOs,H_guess);
-    return max;
+    return maxerror;
     }
       
     void Diis::SolveFockmatrix(Eigen::VectorXd& MOenergies,Eigen::MatrixXd& MOs,Eigen::MatrixXd&H){
@@ -211,10 +201,10 @@ namespace votca { namespace xtp {
               }
           }
           //cout <<"solve"<<endl;
-          check=linalg_solve(B,a);
-          for(unsigned i=0;i<coeffs.size();i++){
-              coeffs(i)=a(i+1);
-          }
+          
+          Eigen::VectorXd result=B.colPivHouseholderQr().solve(a);
+         
+          Eigen::VectorXd coeffs=result.segment(1,_mathist.size());
           }
           else{
           
@@ -234,8 +224,7 @@ namespace votca { namespace xtp {
           }
           //cout<<"B:"<<B<<endl;
            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(B);
-           
-        
+           Eigen::MatrixXd eigenvectors=Eigen::MatrixXd::Zero(_mathist.size(),_mathist.size());
           
          for (unsigned i=0;i<B.rows();i++){
          double norm=0.0;
@@ -246,13 +235,12 @@ namespace votca { namespace xtp {
          }
        
          for (unsigned j=0;j<B.cols();j++){
-            es.eigenvectors()(j,i)=es.eigenvectors()(j,i)/norm;    
+            eigenvectors(j,i)=es.eigenvectors()(j,i)/norm;    
          }
           }
           //cout<<"eigenvectors_a:"<<eigenvectors<<endl;
           // Choose solution by picking out solution with smallest error
-          Eigen::VectorXd errors=Eigen::VectorXd::Zero(_mathist.size());
-          Eigen::MatrixXd eq=es.eigenvectors().transpose()*B*es.eigenvectors();
+          Eigen::MatrixXd eq=eigenvectors.transpose()*B*eigenvectors;
           Eigen::VectorXd errors=eq.diagonal();
           
           //cout<<"Errors:"<<eq<<endl;
@@ -265,8 +253,8 @@ namespace votca { namespace xtp {
                 if (std::abs(errors(i)) < min) {
 
                     bool ok = true;
-                    for (unsigned k = 0; k < es.eigenvectors().cols(); k++) {
-                        if (es.eigenvectors()(k, i) > MaxWeight) {
+                    for (unsigned k = 0; k < eigenvectors.cols(); k++) {
+                        if (eigenvectors(k, i) > MaxWeight) {
                             ok = false;
                             break;
                         }
@@ -280,8 +268,8 @@ namespace votca { namespace xtp {
     
       if(minloc!=-1){
           check=true;
-     for(unsigned k=0;k<es.eigenvectors().cols();k++){
-       coeffs(k)=es.eigenvectors()(k,minloc);   
+     for(unsigned k=0;k<eigenvectors.cols();k++){
+       coeffs(k)=eigenvectors(k,minloc);   
      }
       }
       else{
@@ -291,7 +279,7 @@ namespace votca { namespace xtp {
           
           if(!check){
                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Solving DIIs failed, just use mixing " << flush;
-               coeffs=ub::zero_vector<double>(_mathist.size());
+               coeffs=Eigen::VectorXd::Zero(_mathist.size());
                coeffs[coeffs.size()-1]=0.3;
                coeffs[coeffs.size()-2]=0.7;
           }
@@ -374,7 +362,7 @@ double Diis::get_E_adiis(const gsl_vector * x) const {
     }
 
     Eigen::VectorXd c=adiis::compute_c(x);
-    double Eval=2*c.transpose()*_DiF+c.transpose()*_DiFj*c;
+    double Eval=(2*c.transpose()*_DiF+c.transpose()*_DiFj*c).value();
     
 
 return Eval;
@@ -435,14 +423,14 @@ Eigen::MatrixXd adiis::compute_jac(const gsl_vector * x) {
   // Compute coefficients
   Eigen::VectorXd c=Eigen::VectorXd::Zero(x->size);
 
-  double xnorm=0.0;
+  
   for(size_t i=0;i<x->size;i++) {
     c(i)=gsl_vector_get(x,i);
   }
   double xnorm=c.norm();
-  c/=c/xnorm;
+  c/=xnorm;
   
- Eigen::MatrixXd jac=ub::zero_matrix<double>(c.size());
+ Eigen::MatrixXd jac=Eigen::MatrixXd::Zero(c.size(),c.size());
   for(size_t i=0;i<c.size();i++) {
     double xi=gsl_vector_get(x,i);
 

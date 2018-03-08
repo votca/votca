@@ -21,7 +21,7 @@
 #include "votca/xtp/qmatom.h"
 #include "votca/xtp/elements.h"
 #include <votca/tools/constants.h>
-#include <Eigen/src/Core/Matrix.h>
+
 
 
 
@@ -58,13 +58,13 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd &v, const std::string& start, const std
     std::vector<int> order = getReorderVector(start, target);
     
     // Sanity check
-    if (v.size2() != order.size()) {
-        cerr << "Size mismatch in ReorderMOs" << v.size2() << ":" << order.size() << endl;
+    if (v.cols() != order.size()) {
+        cerr << "Size mismatch in ReorderMOs" << v.cols() << ":" << order.size() << endl;
         throw std::runtime_error("Abort!");
     }
 
     // actual swapping of coefficients
-    for (unsigned _i_orbital = 0; _i_orbital < v.size1(); _i_orbital++) {
+    for (unsigned _i_orbital = 0; _i_orbital < v.rows(); _i_orbital++) {
         for (unsigned s = 1, d; s < order.size(); ++s) {
             for (d = order[s]; d < s; d = order[d]) {
                 ;
@@ -156,10 +156,8 @@ Eigen::MatrixXd AOBasis::getTransformationCartToSpherical(const std::string& pac
             const std::string& _type =  _shell->getType();
             int _row_end = _row_start +NumFuncShell( _type );
             int _col_end = _col_start +NumFuncShell_cartesian( _type );
-
-            ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange( _trafomatrix, _row_start, _row_end, _col_start, _col_end);
-            addTrafoCartShell(  _shell, _trafomatrix.block(_row_start,_col_start,NumFuncShell( _type ),NumFuncShell_cartesian( _type ));
-
+            Eigen::Block<Eigen::MatrixXd> block=_trafomatrix.block(_row_start,_col_start,NumFuncShell( _type ),NumFuncShell_cartesian( _type ));
+            addTrafoCartShell(_shell,block);
             _row_start = _row_end;
             _col_start = _col_end;
 
@@ -168,8 +166,8 @@ Eigen::MatrixXd AOBasis::getTransformationCartToSpherical(const std::string& pac
     return _trafomatrix;
 }
 
-template <typename Derived>
-void AOBasis::addTrafoCartShell( const AOShell* shell , Eigen::DenseBase<Derived>& _submatrix ){
+
+void AOBasis::addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& _submatrix ){
 
 
     // fill _local according to _lmax;

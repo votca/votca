@@ -58,12 +58,12 @@ namespace votca {
             _opt_state = _force_engine.GetOptState();
 
             _natoms = _segments[0]->Atoms().size();
-            _force = Eigen::MatrixXd::Zero(_natoms, 3);
-            _force_old = Eigen::MatrixXd::Zero(_natoms, 3);
-            _xyz_shift = Eigen::MatrixXd::Zero(_natoms, 3);
-            _current_xyz = Eigen::MatrixXd::Zero(_natoms, 3);
-            _old_xyz = Eigen::MatrixXd::Zero(_natoms, 3);
-            _trial_xyz = Eigen::MatrixXd::Zero(_natoms, 3);
+            _force =Eigen::MatrixX3d::Zero(_natoms,3);
+            _force_old = Eigen::MatrixX3d::Zero(_natoms,3);
+            _xyz_shift = Eigen::MatrixX3d::Zero(_natoms,3);
+            _current_xyz = Eigen::MatrixX3d::Zero(_natoms,3);
+            _old_xyz = Eigen::MatrixX3d::Zero(_natoms,3);
+            _trial_xyz = Eigen::MatrixX3d::Zero(_natoms,3);
             _hessian = Eigen::MatrixXd::Zero(3 * _natoms, 3 * _natoms);
 
             // construct vectors (because?)
@@ -252,10 +252,10 @@ namespace votca {
 
             _xyz_shift = _current_xyz - _old_xyz;
 
-            _RMSForce = linalg_getRMS(_force);
-            _MaxForce = linalg_getMax(_force, true);
-            _RMSStep = linalg_getRMS(_xyz_shift);
-            _MaxStep = linalg_getMax(_xyz_shift, true);
+            _RMSForce = _force.cwiseAbs2().sum()/(_force.rows()*_force.cols());
+            _MaxForce = _force.cwiseAbs().maxCoeff();
+            _RMSStep = _xyz_shift.cwiseAbs2().sum()/(_xyz_shift.rows()*_xyz_shift.cols());
+            _MaxStep = _xyz_shift.cwiseAbs().maxCoeff();
 
             if (std::abs(_energy_delta) < _convergence) _energy_converged = true;
             if (std::abs(_RMSForce) < _RMSForce_convergence) _RMSForce_converged = true;
@@ -343,7 +343,7 @@ namespace votca {
 
             // we have no Hessian in the first iteration => start with something
             if (_iteration == 1) {
-             _hessian=Eigen::MatrixXd::Unit(_dim,_dim);
+             _hessian=Eigen::MatrixXd::Identity(_dim,_dim);
             }else {
                 /* for later iteration, we can make use of an iterative refinement of 
                  * the initial Hessian based on the gradient (force) history
@@ -352,9 +352,7 @@ namespace votca {
                 Eigen::VectorXd _delta_gradient = _current_gradient - _previous_gradient;
 
                 // second term in BFGS update (needs current Hessian)
-                Eigen::VectorXd _temp1 = _hessian*_delta_pos;
-                Eigen::VectorXd _temp2 = _delta_pos.transpose()*_hessian;
-                _hessian -= _temp1* _temp2.transpose() / (_delta_pos.transpose()*_temp1);
+               _hessian -= _hessian*_delta_pos*_delta_pos.transpose()*_hessian.transpose() / (_delta_pos.transpose()*_hessian*_delta_pos).value();
 
                 // first term in BFGS update
                 _hessian += (_delta_gradient* _delta_gradient.transpose()) / (_delta_gradient.transpose()*_delta_pos);
@@ -401,35 +399,33 @@ namespace votca {
 
             // start value for lambda  a bit lower than lowest eigenvalue of Hessian
             double _lambda;
-            if (es.eigenvalues(0) > 0.0) {
-                _lambda = -0.05 * std::abs(es.eigenvalues(0));
+            if (es.eigenvalues()(0) > 0.0) {
+                _lambda = -0.05 * std::abs(es.eigenvalues()(0));
             } else {
-                _lambda = 1.05 * es.eigenvalues(0);
+                _lambda = 1.05 * es.eigenvalues()(0);
             }
 
             // for constrained step, we expect
             _max_step_squared = _norm_delta_pos;
             while (OutsideTrustRegion(_max_step_squared)) {
                 _max_step_squared = 0.0;
-                _lambda -= 0.05 * std::abs(es.eigenvalues(0));
+                _lambda -= 0.05 * std::abs(es.eigenvalues()(0));
                 for (unsigned _i = 0; _i < _dim; _i++) {
                   
 
                     //cout << " forece is of dim " << _current_force.size1() << "  " << _current_force.size2() << endl;
-                    double _temp = es.eigenvectors().col(_i)* _current_gradient;
+                    double _temp = es.eigenvectors().col(_i).transpose()* _current_gradient;
                     //cout << " slice is of dim " << _slice.size1() << "  " << _slice.size2() << endl;            cout << " tmep is of dim " << _temp.size1() << "  " << _temp.size2() << endl;
                     // cout << " into max_step_sq " << _temp << " and  "  << ( _eigenvalues(_i) - _lambda ) << endl;
-                    _max_step_squared += _temp * _temp / (es.eigenvalues(_i) - _lambda) / (es.eigenvalues(_i) - _lambda);
+                    _max_step_squared += _temp * _temp / (es.eigenvalues()(_i) - _lambda) / (es.eigenvalues()(_i) - _lambda);
                 }
             }
 
             //CTP_LOG(ctp::logDEBUG,_log) << " BFGS-TRM: with lambda " << _lambda << " max step sq is " << _max_step_squared << flush;
 
-            _delta_pos = ub::zero_vector<double>(_dim);
+            _delta_pos = Eigen::VectorXd::Zero(_dim);
             for (unsigned _i = 0; _i < _dim; _i++) {
-                es.eigenvectors().col(_i)
-
-                _delta_pos -= es.eigenvectors().col(_i) * (es.eigenvectors().col(_i).transpose()*_current_gradient) / (es.eigenvalues(_i) - _lambda);
+                _delta_pos -= es.eigenvectors().col(_i) * (es.eigenvectors().col(_i).transpose()*_current_gradient) / (es.eigenvalues()(_i) - _lambda);
             }
 
             _norm_delta_pos = _delta_pos.squaredNorm(); //_max_step_squared; 
@@ -439,7 +435,7 @@ namespace votca {
 
         /* Estimate energy change based on quadratic approximation */
         void BFGSTRM::QuadraticEnergy() {
-            _delta_energy_estimate = current_gradient.transpose()* _delta_pos + 0.5 * _delta_pos.transpose()*_hessian*_delta_pos;
+            _delta_energy_estimate = (_current_gradient.transpose()* _delta_pos).value() + (0.5 * _delta_pos.transpose()*_hessian*_delta_pos).value();
             return;
         }
 

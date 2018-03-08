@@ -24,6 +24,12 @@
 #include <map>
 #include <vector>
 #include <votca/tools/property.h>
+#include <votca/xtp/votca_config.h>
+
+#if defined(MKL)
+    #define EIGEN_USE_MKL_ALL 
+#endif
+#include <Eigen/Dense>
 
 
 

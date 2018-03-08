@@ -34,18 +34,18 @@ namespace votca { namespace xtp {
  class Mixing{
 public:
 
-    Mixing(bool automaticmixing,double mixingparameter,ub::matrix<double>* _S,votca::ctp::Logger *pLog) {
+    Mixing(bool automaticmixing,double mixingparameter,Eigen::MatrixXd* _S,votca::ctp::Logger *pLog) {
         _mixingparameter=mixingparameter;
         _automaticmixing=automaticmixing;
         S=_S;
         _pLog=pLog;
     };
    ~Mixing() {
-    for (std::vector< ub::vector<double>* >::iterator it = _Pout.begin() ; it !=_Pout.end(); ++it){
+    for (std::vector< Eigen::VectorXd* >::iterator it = _Pout.begin() ; it !=_Pout.end(); ++it){
          delete *it;
      }
      _Pout.clear();
-     for (std::vector< ub::vector<double>* >::iterator it = _Pin.begin() ; it !=_Pin.end(); ++it){
+     for (std::vector< Eigen::VectorXd* >::iterator it = _Pin.begin() ; it !=_Pin.end(); ++it){
          delete *it;
      }
      _Pin.clear();
@@ -53,21 +53,21 @@ public:
    
   
    
-  ub::matrix<double> MixDmat(const ub::matrix<double>& dmatin,const ub::matrix<double>& dmatout,bool noisy=true );
-   void Updatemix(const ub::matrix<double>& dmatin,const ub::matrix<double>& dmatout ); 
+  Eigen::MatrixXd MixDmat(const Eigen::MatrixXd& dmatin,const Eigen::MatrixXd& dmatout,bool noisy=true );
+   void Updatemix(const Eigen::MatrixXd& dmatin,const Eigen::MatrixXd& dmatout ); 
    
  private:
      
      
     
-   ub::vector<double> Mullikencharges(const ub::matrix<double>& dmat);
+   Eigen::VectorXd Mullikencharges(const Eigen::MatrixXd& dmat);
   
     ctp::Logger *_pLog;
-    ub::matrix<double>* S;
+    Eigen::MatrixXd* S;
     bool _automaticmixing;
     double _mixingparameter;
-    std::vector< ub::vector<double>* >      _Pin;
-    std::vector< ub::vector<double>* >      _Pout;
+    std::vector< Eigen::VectorXd* >      _Pin;
+    std::vector< Eigen::VectorXd* >      _Pout;
     
   
  };

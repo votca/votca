@@ -31,16 +31,13 @@ namespace votca {
         // +++++++++++++++++++++++++++++ //
         
         void GWBSE::BSE_analyze_singlets() {
-
-            
+           
             // expectation values, contributions from e-h coupling
             std::vector<real_gwbse> _contrib_x(_bse_nprint, 0.0);
             std::vector<real_gwbse> _contrib_d(_bse_nprint, 0.0);
             std::vector<real_gwbse> _contrib_qp(_bse_nprint, 0.0);
-            BSE_analyze_eh_interaction_singlet(_contrib_x, _contrib_d, _contrib_qp );
-            
-            
-            
+            BSE_analyze_eh_interaction_Singlet(_contrib_x, _contrib_d, _contrib_qp );
+                      
             // for transition dipole moments
             BSE_FreeTransition_Dipoles();
    
@@ -48,9 +45,7 @@ namespace votca {
             std::vector< Eigen::VectorXd > _popH;
             std::vector< Eigen::VectorXd > _popE;
             std::vector< Eigen::VectorXd > _Chrg;
-           
-            
-            
+
             BSE_FragmentPopulations("singlet",_popH, _popE, _Chrg);
             _orbitals->setFragmentChargesSingEXC(_Chrg);
             _orbitals->setFragment_E_localisation_singlet(_popE);
@@ -161,8 +156,8 @@ namespace votca {
             return;
         }
         
-        void GWBSE::BSE_FragmentPopulations(const string& spin,std::vector< ub::vector<double> >& popH,
-                std::vector< ub::vector<double> >& popE, std::vector< ub::vector<double> >& Crgs) {
+        void GWBSE::BSE_FragmentPopulations(const string& spin,std::vector< Eigen::VectorXd >& popH,
+                std::vector< Eigen::VectorXd >& popE, std::vector< Eigen::VectorXd >& Crgs) {
                        
             // Mulliken fragment population analysis
             if (_fragA > 0) {
@@ -171,7 +166,7 @@ namespace votca {
                 AOOverlap _dftoverlap;
                 // Fill overlap
                 _dftoverlap.Fill(_dftbasis);
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().size1() << flush;    
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().rows() << flush;    
                 // ground state populations
                 Eigen::MatrixXd DMAT = _orbitals->DensityMatrixGroundState();
                 
@@ -268,7 +263,7 @@ namespace votca {
             _orbitals->setFragmentChargesTripEXC(_Chrg);
              _orbitals->setFragment_E_localisation_triplet(_popE);
             _orbitals->setFragment_H_localisation_triplet(_popH);
-            const ub::vector<double>& _pop = _orbitals->getFragmentChargesGS();
+            const Eigen::VectorXd & _pop = _orbitals->getFragmentChargesGS();
             CTP_LOG(ctp::logINFO, *_pLog) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
             for (int _i = 0; _i < _bse_nprint; _i++) {
 

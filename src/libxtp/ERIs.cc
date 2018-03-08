@@ -100,8 +100,8 @@ namespace votca {
         void ERIs::CalculateERIs_4c_small_molecule(const Eigen::MatrixXd  &DMAT) {
 
           _ERIs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
-          const ub::vector<double> dmatasarray = DMAT.data();
-          const ub::vector<double>& _4c_vector = _fourcenter.get_4c_vector();
+          
+          const Eigen::VectorXd& _4c_vector = _fourcenter.get_4c_vector();
 
           int dftBasisSize = DMAT.rows();
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
@@ -138,9 +138,9 @@ namespace votca {
         
         void ERIs::CalculateEXX_4c_small_molecule(const Eigen::MatrixXd &DMAT) {
 
-          _EXXs = ub::zero_matrix<double>(DMAT.rows(), DMAT.cols());
-          const ub::vector<double> dmatasarray = DMAT.data();
-          const ub::vector<double>& _4c_vector = _fourcenter.get_4c_vector();
+          _EXXs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
+          
+          const Eigen::VectorXd& _4c_vector = _fourcenter.get_4c_vector();
 
           int dftBasisSize = DMAT.rows();
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
@@ -170,7 +170,7 @@ namespace votca {
             }
           }
 
-          CalculateEXXEnergy(dmatasarray);
+          CalculateEXXEnergy(DMAT);
           return;
         }
         

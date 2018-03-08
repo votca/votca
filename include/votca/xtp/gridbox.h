@@ -29,7 +29,10 @@
 namespace votca { namespace xtp {
 
     namespace ub = boost::numeric::ublas;
-
+        struct GridboxRange{
+                unsigned start;
+                unsigned size;
+            };
         class GridBox {
             
         public: 
@@ -42,7 +45,7 @@ namespace votca { namespace xtp {
             
             const std::vector<const AOShell* >& getShells() const{return significant_shells;}
             
-            const std::vector<range>& getAOranges() const{return aoranges;}
+            const std::vector<GridboxRange>& getAOranges() const{return aoranges;}
             
             unsigned size() const{return grid_pos.size();}
             
@@ -109,15 +112,12 @@ namespace votca { namespace xtp {
             
             
         private:
-            struct range{
-                unsigned start;
-                unsigned size;
-            };
+            
                 unsigned _indexoffirstgridpoint;
                 unsigned matrix_size=0;
-                std::vector<range> aoranges;
-                std::vector<range> ranges;
-                std::vector<range> inv_ranges;
+                std::vector<GridboxRange> aoranges;
+                std::vector<GridboxRange> ranges;
+                std::vector<GridboxRange> inv_ranges;
                 std::vector< tools::vec > grid_pos;//bohr
                 std::vector<const AOShell* > significant_shells;
                 std::vector< double > weights;

@@ -111,7 +111,7 @@ namespace votca {
 #if (GWBSE_DOUBLE)
                 const Eigen::MatrixXd& Mmn_RPA = _Mmn_RPA[ _m_level ];
 #else
-                const Eigen::MatrixXd Mmn_RPA = _Mmn_RPA[ _m_level ].;
+                const Eigen::MatrixXd Mmn_RPA = _Mmn_RPA[ _m_level ].cast<double>();
 #endif
                 // a temporary matrix, that will get filled in empty levels loop
                 Eigen::MatrixXd _temp = Eigen::MatrixXd(_Mmn_RPA.get_ntot(), _size);
@@ -147,7 +147,7 @@ namespace votca {
             const int _size = _Mmn_RPA.get_beta(); // size of gwbasis
             const int index_n = _Mmn_RPA.get_nmin();
             const int index_m = _Mmn_RPA.get_mmin();
-            const ub::vector<double>& qp_energies=   _qp_energies;
+            const Eigen::VectorXd& qp_energies=   _qp_energies;
             Eigen::MatrixXd result=Eigen::MatrixXd::Zero(_size,_size);
            
             
@@ -197,7 +197,7 @@ namespace votca {
     void GWBSE::RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA){
 
         // loop over frequencies
-        for ( unsigned _i_freq = 0 ; _i_freq < _screening_freq.size1() ; _i_freq++ ){
+        for ( unsigned _i_freq = 0 ; _i_freq < _screening_freq.rows() ; _i_freq++ ){
            
              if ( _screening_freq( _i_freq, 0) == 0.0 ) {         
                  _epsilon[ _i_freq ]+=RPA_imaginary(_Mmn_RPA, _screening_freq( _i_freq, 1));

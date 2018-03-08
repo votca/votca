@@ -43,7 +43,7 @@ namespace votca { namespace xtp {
     }
     
     void AOMatrix::Fill(const AOBasis& aobasis,vec r, AOBasis* ecp ) {
-        _aomatrix = ub::zero_matrix<double>(aobasis.AOBasisSize());
+        _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
         _gridpoint = r;
         // loop row
         #pragma omp parallel for
@@ -59,9 +59,9 @@ namespace votca { namespace xtp {
                 
                 // figure out the submatrix
                 int _col_start = _shell_col->getStartIndex();
- 
+                Eigen::Block<Eigen::MatrixXd> block=_aomatrix.block(_row_start,_col_start, _shell_row->getNumFunc(),_shell_col->getNumFunc());
                 // Fill block
-                FillBlock( _aomatrix.block(_row_start,_col_start, _shell_row->getNumFunc(),_shell_col->getNumFunc(), ecp );
+                FillBlock(block , _shell_row,_shell_col, ecp );
                 
             }
         }
@@ -99,7 +99,7 @@ namespace votca { namespace xtp {
         // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
         _aomatrix.resize(3);
         for (int i = 0; i < 3 ; i++){
-          _aomatrix[ i ] = Eigen::MatrixXd::Zero(aobasis.AOBasisSize());
+          _aomatrix[ i ] = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
         }
         // loop row
         #pragma omp parallel for
@@ -114,9 +114,10 @@ namespace votca { namespace xtp {
                 
                 // figure out the submatrix
                 int _col_start = _shell_col->getStartIndex();
-                std::vector<auto> _submatrix;
+                std::vector< Eigen::Block<Eigen::MatrixXd> > _submatrix;
                 for ( int _i = 0; _i < 3; _i++){
-                   _submatrix.push_back( _aomatrix[_i].block( _row_start,_col_start,_shell_row->getNumFunc(),_shell_col->getNumFunc()));
+                   Eigen::Block<Eigen::MatrixXd> block=_aomatrix[_i].block( _row_start,_col_start,_shell_row->getNumFunc(),_shell_col->getNumFunc());
+                   _submatrix.push_back(block );
                
                 }
                 // Fill block

@@ -864,8 +864,8 @@ namespace votca {
 
             // i -> MO, j -> AO
             (_orbitals->MOCoefficients()).resize(_levels, _basis_size);
-            for (size_t i = 0; i < _orbitals->MOCoefficients().size1(); i++) {
-                for (size_t j = 0; j < _orbitals->MOCoefficients().size2(); j++) {
+            for (size_t i = 0; i < _orbitals->MOCoefficients().rows(); i++) {
+                for (size_t j = 0; j < _orbitals->MOCoefficients().cols(); j++) {
                     _orbitals->MOCoefficients()(i, j) = _coefficients[j * _basis_size + i];
                    
                 }

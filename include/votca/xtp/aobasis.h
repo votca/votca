@@ -21,13 +21,9 @@
 #define	__XTP_AOBASIS__H
 
 #include <votca/tools/property.h>
-
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/basisset.h>
-#include <boost/numeric/ublas/symmetric.hpp>
+
 
 
 
@@ -101,10 +97,8 @@ public:
     std::vector<int> getMultiplierVector(const std::string& start,const std::string& target );
     
     void addMultiplierShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& multiplier );  
-    
-    
-    template <typename Derived>
-    void addTrafoCartShell( const AOShell* shell , Eigen::DenseBase<Derived>& _submatrix );
+  
+    void addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& _submatrix );
     
     int getMaxFunctions ( );
     

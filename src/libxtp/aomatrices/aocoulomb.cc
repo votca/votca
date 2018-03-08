@@ -32,7 +32,7 @@ namespace votca { namespace xtp {
 
  
 
-    void AOCoulomb::FillBlock(Eigen::Ref<Eigen::MatrixXd>& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp) {
+    void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp) {
       
             // shell info, only lmax tells how far to go
             const int _lmax_row = _shell_row->getLmax();
@@ -650,10 +650,7 @@ if (_lmax_col > 5) {
             int _ntrafo_row = _shell_row->getNumFunc() + _shell_row->getOffset();
             int _ntrafo_col = _shell_col->getNumFunc() + _shell_col->getOffset();
 
-            //cout << " _ntrafo_row " << _ntrafo_row << ":" << _shell_row->getType() << endl;
-            //cout << " _ntrafo_col " << _ntrafo_col << ":" << _shell_col->getType() << endl;
-            ub::matrix<double> _trafo_row = ub::zero_matrix<double>(_ntrafo_row, _nrows);
-            ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col, _ncols);
+            
 
             // get transformation matrices including contraction coefficients
           const std::vector<double>& _contractions_row = itr->getContraction();
@@ -661,15 +658,15 @@ if (_lmax_col > 5) {
 
           
 
-            // put _cou[i][j][0] into ublas matrix
-            ub::matrix<double> _coumat = ub::zero_matrix<double>(_nrows, _ncols);
-            for (unsigned i = 0; i < _coumat.size1(); i++) {
-                for (unsigned j = 0; j < _coumat.size2(); j++) {
+            // put _cou[i][j][0] into eigen matrix
+            Eigen::MatrixXd _coumat = Eigen::MatrixXd::Zero(_nrows, _ncols);
+            for (unsigned i = 0; i < _coumat.rows(); i++) {
+                for (unsigned j = 0; j < _coumat.cols(); j++) {
                     _coumat(i, j) = _cou[i][j][0];
                 }
             }
 
-            ub::matrix<double> _cou_tmp = ub::zero_matrix<double>(_ntrafo_row, _ncols);
+            Eigen::MatrixXd _cou_tmp = Eigen::MatrixXd::Zero(_ntrafo_row, _ncols);
             
             
               // s-functions
@@ -1130,8 +1127,8 @@ if (_lmax_col > 5) {
 
 
             // save to _matrix
-            for (unsigned i = 0; i < _matrix.size1(); i++) {
-                for (unsigned j = 0; j < _matrix.size2(); j++) {
+            for (unsigned i = 0; i < _matrix.rows(); i++) {
+                for (unsigned j = 0; j < _matrix.cols(); j++) {
                     _matrix(i, j) += _cou_sph(i + _shell_row->getOffset(), j + _shell_col->getOffset());
                 }
             }
@@ -1152,7 +1149,7 @@ if (_lmax_col > 5) {
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho); 
       Eigen::MatrixXd Vm1=es.operatorInverseSqrt();
       int removed_basisfunctions=0;
-      _aomatrix=  _gwoverlap_cholesky*Vm1*_gwovervlap_cholesky.transpose();
+      _aomatrix=  _gwoverlap_cholesky*Vm1*_gwoverlap_cholesky.transpose();
        
     return removed_basisfunctions; 
     }

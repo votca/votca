@@ -75,13 +75,12 @@ namespace votca {
             unsigned _natoms;
             unsigned _nsegments;
             unsigned _iteration;
-            Eigen::MatrixXd _force;
-            Eigen::MatrixXd _force_old;
-            Eigen::MatrixXd _xyz_shift;
-            Eigen::MatrixXd _speed;
-            Eigen::MatrixXd _current_xyz;
-            Eigen::MatrixXd _old_xyz;
-            Eigen::MatrixXd _trial_xyz;
+            Eigen::MatrixX3d _force;
+            Eigen::MatrixX3d _force_old;
+            Eigen::MatrixX3d _xyz_shift;
+            Eigen::MatrixX3d _current_xyz;
+            Eigen::MatrixX3d _old_xyz;
+            Eigen::MatrixX3d _trial_xyz;
             Eigen::MatrixXd _hessian;
 
             bool _step_accepted;

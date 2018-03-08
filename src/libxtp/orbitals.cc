@@ -80,10 +80,6 @@ namespace votca {
         };
 
         Orbitals::~Orbitals() {
-            _mo_energies.clear();
-            _mo_coefficients.clear();
-            _overlap.clear();
-
             std::vector< QMAtom* >::iterator it;
             for (it = _atoms.begin(); it != _atoms.end(); ++it) delete *it;
 
@@ -106,44 +102,23 @@ namespace votca {
          */
         bool Orbitals::CheckDegeneracy(double _energy_difference) {
 
-            ub::vector<double>::iterator it1 = _mo_energies.begin();
-            bool _degenerate = false;
-
             if (tools::globals::verbose) {
                 cout << endl << "... ... Checking level degeneracy " << endl;
             }
-
+            bool _degenerate=false;
             _level_degeneracy.clear();
-
-            while (it1 != _mo_energies.end()) {
-
-                // in all containers counters start with 0; real life - with 1
-                int _level1 = std::distance(_mo_energies.begin(), it1) + 1;
-
-                // add the level itself - it is easier to loo over all levels later
-                _level_degeneracy[_level1].push_back(_level1);
-
-                ub::vector<double>::iterator it2 = it1;
-                it2++;
-
-                while (it2 != _mo_energies.end()) {
-                    //cout << _level1 << ":" << *it1 << ":" << *it2 << endl;
-                    double energy1 = *it1;
-                    double energy2 = *it2;
-
-                    // in all containers counters start with 0; real life - with 1
-                    int _level2 = std::distance(_mo_energies.begin(), it2) + 1;
-
-                    if (std::abs(energy1 - energy2) * tools::conv::hrt2ev < _energy_difference) {
-                        _level_degeneracy[_level1].push_back(_level2);
-                        _level_degeneracy[_level2].push_back(_level1);
+            for (unsigned i=0;i<_mo_energies.size();++i){
+              // add the level itself - it is easier to loo over all levels later
+              // in all containers counters start with 0; real life - with 1
+              _level_degeneracy[i+1].push_back(i+1);
+              for (unsigned j=i+1;j<_mo_energies.size();++j){
+                if (std::abs(_mo_energies(i) - _mo_energies(j)) * tools::conv::hrt2ev < _energy_difference) {
+                        _level_degeneracy[i+1].push_back(j+1);
+                        _level_degeneracy[j+1].push_back(i+1);
                         _degenerate = true;
                     }
-                    it2++;
-                }
-                it1++;
+              }
             }
-
             if (tools::globals::verbose) {
 
                 if (_degenerate) {
@@ -171,7 +146,6 @@ namespace votca {
             if (!hasDegeneracy()) {
                 CheckDegeneracy(_energy_difference);
             }
-
             return &_level_degeneracy.at(level);
         }
 
@@ -223,12 +197,12 @@ namespace votca {
         void Orbitals::Trim(int factor) {
 
             if (hasMOCoefficients()) {
-                _mo_coefficients.resize(factor * _occupied_levels, _basis_set_size, true);
+                _mo_coefficients.resize(factor * _occupied_levels, _basis_set_size);
                 _unoccupied_levels = (factor - 1) * _occupied_levels;
             }
 
             if (hasMOEnergies()) {
-                _mo_energies.resize(factor * _occupied_levels, true);
+                _mo_energies.resize(factor * _occupied_levels);
                 _unoccupied_levels = (factor - 1) * _occupied_levels;
             }
             return;
@@ -240,15 +214,10 @@ namespace votca {
         void Orbitals::Trim(int degH, int degL) {
 
             if (hasMOCoefficients()) {
-                _mo_coefficients = ub::project(_mo_coefficients, ub::range(_occupied_levels - degH, _occupied_levels + degL), ub::range(0, _basis_set_size));
+                _mo_coefficients = _mo_coefficients.block(_occupied_levels - degH,0,degL+degH, _basis_set_size);
             }
-
             if (hasMOEnergies()) {
-                ub::vector<double> _temp(degH + degL);
-                for (int i = 0; i < degH + degL; i++) {
-                    _temp(i) = _mo_energies(_occupied_levels - degH + i);
-                }
-                _mo_energies = _temp;
+               _mo_energies = _mo_energies.segment(_occupied_levels - degH,degL+degH);
             }
             _occupied_levels = degH;
             _unoccupied_levels = degL;
@@ -299,6 +268,10 @@ namespace votca {
             return dmatGS;
         }
         
+        Eigen::MatrixXd Orbitals::LambdaMatrixQuasiParticle(){
+          return _QPdiag_coefficients*_mo_coefficients.block(_qpmin,0,_qpmax+1-_qpmin,_basis_set_size);
+        }
+        
         // Determine QuasiParticle Density Matrix
         Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle( int state){
           Eigen::MatrixXd lambda =_QPdiag_coefficients*_mo_coefficients.block(_qpmin,0,_qpmax+1-_qpmin,_basis_set_size);
@@ -336,8 +309,8 @@ namespace votca {
             if (_bsetype == "full" && spin == "singlet") {
                 const  MatrixXfd& _BSECoefs_AR=_BSE_singlet_coefficients_AR;
 #pragma omp parallel for
-                for (unsigned a = 0; a < dmatTS.size1(); a++) {
-                    for (unsigned b = 0; b < dmatTS.size2(); b++) {
+                for (unsigned a = 0; a < dmatTS.rows(); a++) {
+                    for (unsigned b = 0; b < dmatTS.cols(); b++) {
                         for (unsigned i = 0; i < _bse_size; i++) {
                             int occ = _index2v[i];
                             int virt = _index2c[i];
@@ -348,8 +321,8 @@ namespace votca {
             } else {
 
 #pragma omp parallel for
-                for (unsigned a = 0; a < dmatTS.size1(); a++) {
-                    for (unsigned b = 0; b < dmatTS.size2(); b++) {
+                for (unsigned a = 0; a < dmatTS.rows(); a++) {
+                    for (unsigned b = 0; b < dmatTS.cols(); b++) {
                         for (unsigned i = 0; i < _bse_size; i++) {
                             int occ = _index2v[i];
                             int virt = _index2c[i];
@@ -378,12 +351,12 @@ namespace votca {
 
         // Excited state density matrix
 
-        std::vector<ub::matrix<double> > Orbitals::DensityMatrixExcitedState_R(const string& spin, int state) {
+        std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_R(const string& spin, int state) {
             if(!(spin=="singlet" || spin=="triplet")){
                 throw runtime_error("Spin type not known for density matrix. Available are singlet and triplet");
             }
             
-            MatrixXdf& _BSECoefs = (spin=="singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
+            MatrixXfd & _BSECoefs = (spin=="singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
            
             /****** 
              * 
@@ -431,8 +404,8 @@ namespace votca {
             }
 
             // electron assist matrix A_{cc'}
-            MatrixXdf _Acc = MatrixXdf::Zero(_bse_ctotal, _bse_ctotal);
-            MatrixXdf _Avv = MatrixXdf::Zero(_bse_vtotal, _bse_vtotal);
+            Eigen::MatrixXd _Acc = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_ctotal);
+            Eigen::MatrixXd _Avv = Eigen::MatrixXd::Zero(_bse_vtotal, _bse_vtotal);
 
             for (unsigned _idx1 = 0; _idx1 < _bse_size; _idx1++) {
 
@@ -460,12 +433,12 @@ namespace votca {
 
             // hole part as matrix products
             // get slice of MOs of occs only
-            Eigen::MatrixXd _occlevels = _mo_coefficients.block(_vmin,0, _vmax + 1-_vmin _basis_set_size);
+            Eigen::MatrixXd _occlevels = _mo_coefficients.block(_vmin,0, _bse_vtotal, _basis_set_size);
             dmatEX[0] = _occlevels.transpose()*_Avv*_occlevels;
 
             // electron part as matrix products
             // get slice of MOs of virts only
-            Eigen::MatrixXd  _virtlevels = _mo_coefficients.block(_cmin,0,_cmax + 1-_cmin, _basis_set_size);
+            Eigen::MatrixXd  _virtlevels = _mo_coefficients.block(_cmin,0,_bse_ctotal, _basis_set_size);
             dmatEX[1] = _virtlevels.transpose()*_Acc*_virtlevels;
 
             return dmatEX;
@@ -477,7 +450,7 @@ namespace votca {
              if(!(spin=="singlet" )){
                 throw runtime_error("Spin type not known for density matrix. Available is singlet");
             }
-            
+            std::vector<Eigen::MatrixXd > dmatEX;
             MatrixXfd& _BSECoefs_AR = _BSE_singlet_coefficients_AR;
 
             /****** 
@@ -526,8 +499,8 @@ namespace votca {
             }
 
             // hole assist matrix B_{cc'}
-             MatrixXfd _Bcc = MatrixXfd::Zero(_bse_ctotal, _bse_ctotal);
-             MatrixXfd _Bvv = MatrixXfd::Zero(_bse_vtotal, _bse_vtotal);
+             Eigen::MatrixXd _Bcc = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_ctotal);
+             Eigen::MatrixXd _Bvv = Eigen::MatrixXd::Zero(_bse_vtotal, _bse_vtotal);
 
             for (unsigned _idx1 = 0; _idx1 < _bse_size; _idx1++) {
 
@@ -554,12 +527,12 @@ namespace votca {
 
             // hole part as matrix products
             // get slice of MOs of occs only
-            Eigen::MatrixXd _occlevels = _mo_coefficients.block(_vmin,0, _vmax + 1-_vmin _basis_set_size);
+            Eigen::MatrixXd _occlevels = _mo_coefficients.block(_vmin,0, _bse_vtotal, _basis_set_size);
             dmatEX[0] = _occlevels.transpose()*_Bvv*_occlevels;
 
             // electron part as matrix products
             // get slice of MOs of virts only
-            Eigen::MatrixXd  _virtlevels = _mo_coefficients.block(_cmin,0,_cmax + 1-_cmin, _basis_set_size);
+            Eigen::MatrixXd  _virtlevels = _mo_coefficients.block(_cmin,0,_bse_ctotal, _basis_set_size);
             dmatEX[1] = _virtlevels.transpose()*_Bcc*_virtlevels;
 
             return dmatAR;
@@ -576,7 +549,7 @@ namespace votca {
             for (int _i = 0; _i < _frag; _i++) {
                 fragmentCharges(0) += _prodmat(_i, _i);
             }
-            for (unsigned _i = _frag; _i < _overlapmatrix.size1(); _i++) {
+            for (unsigned _i = _frag; _i < _overlapmatrix.rows(); _i++) {
                 fragmentCharges(1) += _prodmat(_i, _i);
             }
 
@@ -619,7 +592,7 @@ namespace votca {
             return _total_energy = _dft_energy * tools::conv::ev2hrt + _omega; //  e.g. hartree
         }
 
-        ub::vector<double> Orbitals::FragmentNuclearCharges(int _frag) {
+        Eigen::VectorXd Orbitals::FragmentNuclearCharges(int _frag) {
             Elements _elements;
 
             // go through atoms and count
@@ -630,7 +603,7 @@ namespace votca {
                 throw runtime_error("Orbitals::FragmentNuclearCharges Fragment index is smaller than zero");
             }
 
-            ub::vector<double> fragmentNuclearCharges = ub::vector<double>(2, 0.0);
+           Eigen::VectorXd fragmentNuclearCharges = Eigen::VectorXd::Zero(2);
 
             for (atom = _atoms.begin(); atom < _atoms.end(); ++atom) {
                 id++;
@@ -665,11 +638,9 @@ namespace votca {
             int _electronsA = _orbitalsA->getNumberOfElectrons();
             int _electronsB = _orbitalsB->getNumberOfElectrons();
 
-            ub::zero_matrix<double> zeroB(_levelsA, _basisB);
-            ub::zero_matrix<double> zeroA(_levelsB, _basisA);
 
             Eigen::MatrixXd& _mo_coefficients = _orbitalsAB->MOCoefficients();
-            _mo_coefficients.resize(_levelsA + _levelsB, _basisA + _basisB);
+            _mo_coefficients=Eigen::MatrixXd::Zero(_levelsA + _levelsB, _basisA + _basisB);
 
             // AxB = | A 0 |  //   A = [EA, EB]  //
             //       | 0 B |  //                 //
@@ -677,9 +648,6 @@ namespace votca {
             _orbitalsAB->setNumberOfLevels(_electronsA - _electronsB,
                     _levelsA + _levelsB - _electronsA - _electronsB);
             _orbitalsAB->setNumberOfElectrons(_electronsA + _electronsB);
-
-            _mo_coefficients.block(0,_basisA,_levelsA,_basisB)= Eigen::MatrixXd::Zero(_levelsA, _basisB);
-            _mo_coefficients.block(_levelsA,0,_levelsB,_basisA)= Eigen::MatrixXd::Zero(_levelsB, _basisA);
             
             _mo_coefficients.block(0,0,_levelsA,_basisA)=_orbitalsA->MOCoefficients();
             _mo_coefficients.block(_levelsA,_basisA,_levelsB,_basisB)=_orbitalsB->MOCoefficients();

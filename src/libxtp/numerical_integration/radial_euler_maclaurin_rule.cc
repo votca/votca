@@ -189,11 +189,11 @@ void EulerMaclaurinGrid::getRadialCutoffs(AOBasis* aobasis,std::vector<QMAtom* >
                     if (aidx != bidx) {
 
                         // find overlap block of these two atoms
-                        ub::matrix<double> _overlapblock = ub::project(_overlap.Matrix(), ub::range(_a_start, _a_stop), ub::range(_b_start, _b_stop));
+                        Eigen::MatrixXd _overlapblock = _overlap.Matrix().block(_a_start,_b_start, _a_stop-_a_start,_b_stop-_b_start);
                         // determine abs max of this block
                         s_max = 0.0;
-                        for (unsigned i = 0; i < _overlapblock.size1(); i++) {
-                            for (unsigned j = 0; j < _overlapblock.size2(); j++) {
+                        for (unsigned i = 0; i < _overlapblock.rows(); i++) {
+                            for (unsigned j = 0; j < _overlapblock.cols(); j++) {
                                 s_max = std::max(s_max, std::abs(_overlapblock(i, j)));
                             }
                         }

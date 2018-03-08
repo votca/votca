@@ -31,7 +31,7 @@ namespace votca { namespace xtp {
     namespace ub = boost::numeric::ublas;
 
     
-    void AODipole::FillBlock( std::vector< Eigen::Ref<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp) {
+    void AODipole::FillBlock( std::vector< Eigen::Block<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp) {
 
         
         /* Calculating the AO matrix of the gradient operator requires 
@@ -53,7 +53,7 @@ namespace votca { namespace xtp {
         int _ncols = this->getBlockSize( _lmax_col ); 
     
         // initialize local matrix block for unnormalized cartesians
-        std::vector< ub::matrix<double> > _dip;
+        std::vector< Eigen::MatrixXd > _dip;
         for (int _i_comp = 0; _i_comp < 3; _i_comp++){
             _dip.push_back(Eigen::MatrixXd::Zero(_nrows,_ncols));
         }
@@ -580,14 +580,14 @@ if (_lmax_col > 3) {
             Eigen::MatrixXd _dip_sph = _trafo_row*_dip[ _i_comp ] * _trafo_col.transpose() ;
             
             // save to _matrix
-            for ( unsigned i = 0; i< _matrix[0].size1(); i++ ) {
-                for (unsigned j = 0; j < _matrix[0].size2(); j++){
+            for ( unsigned i = 0; i< _matrix[0].rows(); i++ ) {
+                for (unsigned j = 0; j < _matrix[0].cols(); j++){
                     _matrix[ _i_comp ](i,j) += _dip_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
                 }
             }
         }
         
-        _ol.clear();
+       
             }// _shell_col Gaussians
         }// _shell_row Gaussians
     }

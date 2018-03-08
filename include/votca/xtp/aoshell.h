@@ -107,10 +107,8 @@ public:
     double getMinDecay() const{return _mindecay;}
     
     
-    template <typename Derived>
-    void EvalAOspace(Eigen::DenseBase<Derived> & AOvalues, const vec& grid_pos ) const;
-    template <typename Derived>
-    void EvalAOspace(Eigen::DenseBase<Derived> & AOvalues,Eigen::DenseBase<Derived>& AODervalues, const vec& grid_pos ) const;
+  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues, const vec& grid_pos ) const;
+  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues,Eigen::Block< Eigen::MatrixX3d >& AODervalues, const vec& grid_pos ) const;
 
     // iterator over pairs (decay constant; contraction coefficient)
     typedef std::vector< AOGaussianPrimitive >::const_iterator GaussianIterator;

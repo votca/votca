@@ -31,7 +31,8 @@ namespace votca { namespace xtp {
 
             for (unsigned i = 0; i < ranges.size(); i++) {
                 for (unsigned j = 0; j < ranges.size(); j++) {
-                    ub::project(bigmatrix, ranges[i], ranges[j]) += ub::project(smallmatrix, inv_ranges[i], inv_ranges[j]);
+                    bigmatrix.block(ranges[i].start, ranges[j].start,ranges[i].size,ranges[j].size) += 
+                            smallmatrix.block(inv_ranges[i].start, inv_ranges[j].start,inv_ranges[i].size, inv_ranges[j].size);
                 }
             }
             return;
@@ -45,7 +46,8 @@ namespace votca { namespace xtp {
             for (unsigned i = 0; i < ranges.size(); i++) {
                 for (unsigned j = 0; j < ranges.size(); j++) {
                     
-                    ub::project(_matrix, inv_ranges[i], inv_ranges[j]) = ub::project(bigmatrix, ranges[i], ranges[j]);
+                    _matrix.block(inv_ranges[i].start, inv_ranges[j].start,inv_ranges[i].size, inv_ranges[j].size)
+                            = bigmatrix.block(ranges[i].start, ranges[j].start,ranges[i].size,ranges[j].size);
                 }
             }
             return _matrix;
@@ -53,14 +55,14 @@ namespace votca { namespace xtp {
 
         void GridBox::PrepareForIntegration() {
             unsigned index = 0;
-            aoranges=std::vector<range>(0);
-            ranges=std::vector<range>(0);
-            inv_ranges=std::vector<range>(0);   
+            aoranges=std::vector<GridboxRange>(0);
+            ranges=std::vector<GridboxRange>(0);
+            inv_ranges=std::vector<GridboxRange>(0);   
             std::vector<unsigned> start;
             std::vector<unsigned> end;
 
             for (const auto shell:significant_shells) {
-              range temp;
+              GridboxRange temp;
               temp.size=shell->getNumFunc();
               temp.start=index;
                 aoranges.push_back(temp);
@@ -90,11 +92,11 @@ namespace votca { namespace xtp {
             unsigned shellstart = 0;
             for (unsigned i = 0; i < startindex.size(); ++i) {
                 unsigned size = endindex[i]-startindex[i];
-                range temp;
+                GridboxRange temp;
                 temp.size=size;
                 temp.start=startindex[i];
                 ranges.push_back(temp);
-                range temp2;
+                GridboxRange temp2;
                 temp2.size=shellstart;
                 temp2.start=size;
                 inv_ranges.push_back(temp2);

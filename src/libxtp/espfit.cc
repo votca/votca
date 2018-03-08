@@ -49,11 +49,11 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, Eigen::MatrixXd &_dm
 
     // Calculating nuclear potential at gridpoints
 
-    ub::vector<double> _ESPatGrid = ub::zero_vector<double>(_grid.getsize());
+    Eigen::VectorXd _ESPatGrid = Eigen::VectorXd::Zero(_grid.getsize());
 
     AOOverlap overlap;
     overlap.Fill(_basis);
-    double N_comp=_dmat.cwiseProduct(overlap).sum();
+    double N_comp=_dmat.cwiseProduct(overlap.Matrix()).sum();
    
     NumericalIntegration numway;
 
@@ -103,7 +103,7 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, Eigen::MatrixXd &_dm
     }
 
 
-ub::vector<double> Espfit::EvalNuclearPotential(std::vector< QMAtom* >& _atoms, Grid _grid) {
+Eigen::VectorXd Espfit::EvalNuclearPotential(std::vector< QMAtom* >& _atoms, Grid _grid) {
     Eigen::VectorXd _NucPatGrid = Eigen::VectorXd::Zero(_grid.getsize());
 
    
@@ -164,9 +164,9 @@ void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, Eigen::Matr
 
     AOOverlap overlap;
     overlap.Fill(_basis);
-    double N_comp=_dmat.cwiseProduct(overlap).sum();
+    double N_comp=_dmat.cwiseProduct(overlap.Matrix()).sum();
 
-    double netcharge=getNetcharge( _atomlist,N );
+    double netcharge=getNetcharge( _atomlist,N_comp );
     if(!_do_Transition){
         _ESPatGrid += EvalNuclearPotential(  _atomlist,  _grid);
     }
@@ -195,7 +195,7 @@ void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, Eigen::Matr
     return;
     }
 
-std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitcenters, Grid& _grid, Eigen::MatrixXd& _potential, double& _netcharge ){
+std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitcenters, Grid& _grid, Eigen::VectorXd& _potential, double& _netcharge ){
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Setting up Matrices for fitting of size "<< _fitcenters.size()+1 <<" x " << _fitcenters.size()+1<< flush;
 
     const std::vector< tools::vec >& _gridpoints=_grid.getGrid();
@@ -203,7 +203,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitce
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using "<< _fitcenters.size() <<" Fittingcenters and " << _gridpoints.size()<< " Gridpoints."<< flush;
 
     Eigen::MatrixXd _Amat = Eigen::MatrixXd::Zero(_fitcenters.size()+1,_fitcenters.size()+1);
-    Eigen::VectorXd _Bvec = Eigen::VectorXd::Zero(_fitcenters.size()+1,1);
+    Eigen::VectorXd _Bvec = Eigen::VectorXd::Zero(_fitcenters.size()+1);
     //boost::progress_display show_progress( _fitcenters.size() );
     // setting up _Amat
     #pragma omp parallel for
@@ -230,11 +230,11 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitce
     for ( unsigned _i =0 ; _i < _Bvec.size()-1; _i++){
         for ( unsigned _k=0; _k < _gridpoints.size(); _k++){
                 double dist_i = tools::abs(_fitcenters[_i]-_gridpoints[_k]);
-                _Bvec(_i,0) += _potential(_k)/dist_i;
+                _Bvec(_i) += _potential(_k)/dist_i;
         }
        }
 
-    _Bvec(_Bvec.size()-1,0) = _netcharge; //netcharge!!!!
+    _Bvec(_Bvec.size()-1) = _netcharge; //netcharge!!!!
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices "<< flush;
     // invert _Amat
     
@@ -242,7 +242,7 @@ std::vector<double> Espfit::FitPartialCharges( std::vector< tools::vec >& _fitce
 
     Eigen::VectorXd _charges;
     if(_do_svd){
-      Eigen::JacobiSVD<Eigen::MatrixXd> svd();
+      Eigen::JacobiSVD<Eigen::MatrixXd> svd;
       svd.setThreshold(_conditionnumber);
       svd.compute(_Amat);
       _charges=svd.solve(_Bvec);

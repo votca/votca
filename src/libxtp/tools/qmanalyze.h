@@ -216,7 +216,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
 
     // DFT orbital coefficients
     if ( _orbitals.hasMOCoefficients() ) {
-        CTP_LOG(ctp::logDEBUG, _log) << "      MO coefficients:        " << _orbitals.MOCoefficients().size1() << " x " << _orbitals.MOCoefficients().size2() << flush;
+        CTP_LOG(ctp::logDEBUG, _log) << "      MO coefficients:        " << _orbitals.MOCoefficients().rows() << " x " << _orbitals.MOCoefficients().cols() << flush;
     } else {
         CTP_LOG(ctp::logDEBUG, _log) << "      MO coefficients:        not stored "<< flush;
     }  
@@ -224,7 +224,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     
     // DFT AO XC matrix
     if ( _orbitals.hasAOVxc() ) {
-        CTP_LOG(ctp::logDEBUG, _log) << "      AO XC matrix:           " << _orbitals.AOVxc().size1()  << " x " << _orbitals.AOVxc().size2() << flush;
+        CTP_LOG(ctp::logDEBUG, _log) << "      AO XC matrix:           " << _orbitals.AOVxc().rows()  << " x " << _orbitals.AOVxc().cols() << flush;
     } else {
         CTP_LOG(ctp::logDEBUG, _log) << "      AO XC matrix:           not stored "<< flush;
     }    
@@ -245,7 +245,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     
     // DFT transfer integrals
     if ( _orbitals.hasMOCouplings() ) {
-        CTP_LOG(ctp::logDEBUG, _log) << "      DFT transfer integrals: " << _orbitals.MOCouplings().size1() << " x " << _orbitals.MOCouplings().size2() << flush;
+        CTP_LOG(ctp::logDEBUG, _log) << "      DFT transfer integrals: " << _orbitals.MOCouplings().rows() << " x " << _orbitals.MOCouplings().cols() << flush;
 
     } else {
          CTP_LOG(ctp::logDEBUG, _log) << "      DFT transfer integrals: not stored "<< flush;
@@ -279,13 +279,13 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     
     // perturbative QP energies
     if ( _orbitals.hasQPpert()){
-        CTP_LOG(ctp::logDEBUG, _log) << "      number of QP levels:    " << _orbitals.QPpertEnergies().size1() << flush;
+        CTP_LOG(ctp::logDEBUG, _log) << "      number of QP levels:    " << _orbitals.QPpertEnergies().rows() << flush;
         if (_print_GW_energies){
             int _qpmin=_orbitals.getGWAmin();
             int _noqp=_orbitals.getGWAtot();
             int _homo=_orbitals.getNumberOfElectrons()-1;
          
-            const ub::matrix<double>& _qp_energies=_orbitals.QPpertEnergies();
+            const Eigen::MatrixXd& _qp_energies=_orbitals.QPpertEnergies();
            
             double _shift= _qp_energies( _homo+1-_qpmin,4) - _qp_energies( _homo-_qpmin,4 )-_qp_energies( _homo+1-_qpmin,0) + _qp_energies( _homo-_qpmin,0 ); 
             
@@ -312,8 +312,8 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         if(_print_QP_energies){
             unsigned _qpmin=_orbitals.getGWAmin();
             unsigned _homo=_orbitals.getNumberOfElectrons()-1;
-            const ub::vector<double>& _qp_diag_energies=_orbitals.QPdiagEnergies();
-             const ub::matrix<double>& _qp_energies=_orbitals.QPpertEnergies();
+            const Eigen::VectorXd& _qp_diag_energies=_orbitals.QPdiagEnergies();
+             const Eigen::MatrixXd& _qp_energies=_orbitals.QPpertEnergies();
                     CTP_LOG(ctp::logDEBUG, _log)  << " Full quasiparticle Hamiltonian  " << flush;
                     CTP_LOG(ctp::logDEBUG, _log) << (format("  ====== Diagonalized quasiparticle energies (Hartree) ====== ")).str() << flush;
                     for (unsigned _i = 0; _i <  _qp_diag_energies.size(); _i++) {
@@ -344,8 +344,8 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     
     // BSE EH interaction
     if ( _orbitals.hasEHinteraction() ){
-        CTP_LOG(ctp::logDEBUG, _log) << "      direct interaction:     " << _orbitals.eh_d().size1() << flush;
-        CTP_LOG(ctp::logDEBUG, _log) << "      exchange interaction:   " << _orbitals.eh_x().size1() << flush;
+        CTP_LOG(ctp::logDEBUG, _log) << "      direct interaction:     " << _orbitals.eh_d().rows() << flush;
+        CTP_LOG(ctp::logDEBUG, _log) << "      exchange interaction:   " << _orbitals.eh_x().rows() << flush;
     } else {
         CTP_LOG(ctp::logDEBUG, _log) << "      e-h interactions:       not stored" << flush;
     }
@@ -356,7 +356,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         
         if (_print_BSE_singlets){
             CTP_LOG(ctp::logINFO, _log) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
-            const ub::vector<real_gwbse> &  _bse_singlet_energies = _orbitals.BSESingletEnergies();
+            const VectorXfd &  _bse_singlet_energies = _orbitals.BSESingletEnergies();
             const std::vector<tools::vec > & _transition_dipoles=_orbitals.TransitionDipoles();
             std::vector<double> oscs=_orbitals.Oscillatorstrengths();
             unsigned size=_bse_singlet_energies.size();
@@ -402,7 +402,7 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
         
         if(_print_BSE_triplets){
              CTP_LOG(ctp::logINFO, _log) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
-             const ub::vector<real_gwbse> &  _bse_triplet_energies = _orbitals.BSETripletEnergies();
+             const VectorXfd &  _bse_triplet_energies = _orbitals.BSETripletEnergies();
              cout << _bse_triplet_energies.size()<<endl;
              for (unsigned _i=0;_i<_bse_triplet_energies.size();_i++){
              CTP_LOG(ctp::logINFO, _log) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")

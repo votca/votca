@@ -28,9 +28,7 @@
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/qmatom.h>
 
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
-#include <boost/numeric/ublas/io.hpp>
+
 
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
@@ -169,21 +167,21 @@ namespace votca {
             // access to DFT AO overlap matrix, new, tested
 
             bool hasAOOverlap() {
-                return ( _overlap.size1() > 0) ? true : false;
+                return ( _overlap.rows() > 0) ? true : false;
             }
 
-            const ub::symmetric_matrix<double> &AOOverlap() const {
+            const Eigen::MatrixXd &AOOverlap() const {
                 return _overlap;
             }
 
-            ub::symmetric_matrix<double> &AOOverlap() {
+            Eigen::MatrixXd &AOOverlap() {
                 return _overlap;
             }
 
             // access to DFT molecular orbital energies, new, tested
 
             bool hasMOEnergies() {
-                return ( _mo_energies. > 0) ? true : false;
+                return ( _mo_energies.size() > 0) ? true : false;
             }
             
             const Eigen::VectorXd &MOEnergies() const {
@@ -301,14 +299,14 @@ namespace votca {
             // access to exchange-correlation AO matrix, new, tested
 
             bool hasAOVxc() {
-                return ( _vxc.size1() > 0) ? true : false;
+                return ( _vxc.rows() > 0) ? true : false;
             }
 
-            ub::symmetric_matrix<double> &AOVxc() {
+            Eigen::MatrixXd &AOVxc() {
                 return _vxc;
             }
 
-            const ub::symmetric_matrix<double> &AOVxc() const {
+            const Eigen::MatrixXd &AOVxc() const {
                 return _vxc;
             }
 
@@ -425,7 +423,7 @@ namespace votca {
             // access to perturbative QP energies
 
             bool hasQPpert() {
-                return ( _QPpert_energies.size1() > 0) ? true : false;
+                return ( _QPpert_energies.size() > 0) ? true : false;
             }
 
             const Eigen::MatrixXd &QPpertEnergies() const {
@@ -558,15 +556,15 @@ namespace votca {
                 return (_BSE_singlet_couplings.cols() > 0) ? true : false;
             }
 
-            const MatrixXfd &SingletCouplings() const {
+            const Eigen::MatrixXd &SingletCouplings() const {
                 return _BSE_singlet_couplings;
             }
 
-            MatrixXfd &SingletCouplings() {
+            Eigen::MatrixXd &SingletCouplings() {
                 return _BSE_singlet_couplings;
             }
 
-            void setSingletCouplings(MatrixXfd couplings) {
+            void setSingletCouplings(Eigen::MatrixXd couplings) {
                 _BSE_singlet_couplings = couplings;
             }
 
@@ -576,15 +574,15 @@ namespace votca {
                 return (_BSE_triplet_couplings.cols() > 0) ? true : false;
             }
 
-            const MatrixXfd &TripletCouplings() const {
+            const Eigen::MatrixXd &TripletCouplings() const {
                 return _BSE_triplet_couplings;
             }
 
-            MatrixXfd &TripletCouplings() {
+            Eigen::MatrixXd &TripletCouplings() {
                 return _BSE_triplet_couplings;
             }
 
-            void setTripletCouplings(MatrixXfd couplings) {
+            void setTripletCouplings(Eigen::MatrixXd couplings) {
                 _BSE_triplet_couplings = couplings;
             }
 
@@ -620,6 +618,7 @@ namespace votca {
             std::vector<Eigen::MatrixXd > DensityMatrixExcitedState(const string& spin,int state = 0);
             Eigen::MatrixXd TransitionDensityMatrix(const string& spin,int state = 0);
             Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0);
+            Eigen::MatrixXd LambdaMatrixQuasiParticle();
       
 
 
@@ -770,8 +769,8 @@ namespace votca {
             Eigen::VectorXd _mo_energies;
             Eigen::MatrixXd _mo_coefficients;
             
-            ub::symmetric_matrix<double> _overlap;
-            ub::symmetric_matrix<double> _vxc;
+            Eigen::MatrixXd _overlap;
+            Eigen::MatrixXd _vxc;
 
             std::vector< QMAtom* > _atoms;
 
@@ -828,8 +827,8 @@ namespace votca {
             VectorXfd _BSE_triplet_energies;
             MatrixXfd _BSE_triplet_coefficients;
 
-            MatrixXfd _BSE_singlet_couplings;
-            MatrixXfd _BSE_triplet_couplings;
+            Eigen::MatrixXd _BSE_singlet_couplings;
+            Eigen::MatrixXd _BSE_triplet_couplings;
             int _couplingsA;
             int _couplingsB;
 

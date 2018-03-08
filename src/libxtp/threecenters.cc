@@ -915,7 +915,7 @@ if (_lmax_gamma > 5) {
 
 
             // data is now stored in unnormalized cartesian Gaussians in the multiarray
-            // Now, weird-looking construction since multiarray is not accessible for ub::prod
+            // Now, weird-looking construction since multiarray is not accessible for product
             //              s px py pz dxz dyz dxy d3z2-r2 dx2-y2  f1  f2  f3  f4  f5  f6  f7  g1  g2  g3  g4  g5  g6  g7  g8  g9 
 /////            int istart[] = {0, 1, 2, 3, 5,  6,  4,   7,     7,    12,  10, 11, 11, 10, 19, 15,  5, 25, 27, 23, 20, 25, 27, 23, 20}; //extend for g
 /////            int istop[] =  {0, 1, 2, 3, 5,  6,  4,   9,     8,    17,  16, 18, 13, 14, 19, 17, 31, 33, 32 ,34, 30, 33, 32, 24, 31}; // extend for g

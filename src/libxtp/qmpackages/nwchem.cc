@@ -295,7 +295,7 @@ namespace votca {
 
                     // write coefficients in same format
                     for (std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++soi) {
-                        ub::matrix_row< ub::matrix<double> > mr(orbitals_guess->MOCoefficients(), *soi);
+                        Eigen::VectorXd mr=orbitals_guess->MOCoefficients().row(*soi);
                         column = 1;
                         for (unsigned j = 0; j < mr.size(); ++j) {
                             _orb_file << FortranFormat(mr[j]);
@@ -594,8 +594,8 @@ namespace votca {
 
             // copying orbitals to the matrix
             (_orbitals->MOCoefficients()).resize(_levels, _basis_size);
-            for (size_t i = 0; i < _orbitals->MOCoefficients().size1(); i++) {
-                for (size_t j = 0; j < _orbitals->MOCoefficients().size2(); j++) {
+            for (size_t i = 0; i < _orbitals->MOCoefficients().rows(); i++) {
+                for (size_t j = 0; j < _orbitals->MOCoefficients().cols(); j++) {
                     _orbitals->MOCoefficients()(i, j) = _coefficients[i][j];
                     //cout << i << " " << j << endl;
                 }
@@ -888,8 +888,8 @@ namespace votca {
 
                     // prepare the container
                     // _orbitals->_has_vxc = true;
-                    ub::symmetric_matrix<double>& _vxc = _orbitals->AOVxc();
-                    _vxc.resize(_basis_set_size);
+                    Eigen::MatrixXd _vxc = _orbitals->AOVxc();
+                    _vxc.resize(_basis_set_size,_basis_set_size);
 
 
                     //_has_vxc_matrix = true;
@@ -932,6 +932,7 @@ namespace votca {
                                 int _j_index = *_j_iter;
                                 // _orbitals->_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
                                 _vxc(_i_index - 1, _j_index - 1) = boost::lexical_cast<double>(_coefficient);
+                                _vxc(_j_index - 1, _i_index - 1) = boost::lexical_cast<double>(_coefficient);
                                 _j_iter++;
 
                             }
@@ -970,7 +971,7 @@ namespace votca {
 
                     // prepare the container
                     // _orbitals->_has_overlap = true;
-                    (_orbitals->AOOverlap()).resize(_basis_set_size);
+                    (_orbitals->AOOverlap()).resize(_basis_set_size,_basis_set_size);
 
                     _has_overlap_matrix = true;
                     std::vector<int> _j_indeces;
@@ -1011,6 +1012,7 @@ namespace votca {
 
                                 int _j_index = *_j_iter;
                                 _orbitals->AOOverlap()(_i_index - 1, _j_index - 1) = boost::lexical_cast<double>(_coefficient);
+                                _orbitals->AOOverlap()(_j_index - 1, _i_index - 1) = boost::lexical_cast<double>(_coefficient);
                                 _j_iter++;
 
                             }

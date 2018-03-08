@@ -184,7 +184,7 @@ namespace votca {
             if (MOEnergies.size() != _dftbasis.AOBasisSize()) {
                 MOEnergies.resize(_dftbasis.AOBasisSize());
             }
-            if (MOCoeff.size1() != _dftbasis.AOBasisSize() || MOCoeff.size2() != _dftbasis.AOBasisSize()) {
+            if (MOCoeff.rows() != _dftbasis.AOBasisSize() || MOCoeff.cols() != _dftbasis.AOBasisSize()) {
                 MOCoeff.resize(_dftbasis.AOBasisSize(), _dftbasis.AOBasisSize());
             }
 
@@ -258,7 +258,7 @@ namespace votca {
                     _dftAOdmat = _orbitals->DensityMatrixGroundState();
                     //cout<<_dftAOdmat<<endl;
                     //Have to do one full iteration here, levelshift needs MOs;
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Full atomic density Matrix gives N=" << std::setprecision(9) << linalg_traceofProd(_dftAOdmat, _dftAOoverlap.Matrix()) << " electrons." << flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Full atomic density Matrix gives N=" << std::setprecision(9) << _dftAOdmat.cwiseProduct( _dftAOoverlap.Matrix()).sum() << " electrons." << flush;
                 } else {
                     throw runtime_error("Initial guess method not known/implemented");
                 }
@@ -385,7 +385,7 @@ namespace votca {
                  _Sminusonehalf=es.operatorInverseSqrt();
                
 
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of DFT Overlap matrix : " << es.eigenvalues(0) << flush;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of DFT Overlap matrix : " << es.eigenvalues()(0) << flush;
             }
 
           
@@ -475,7 +475,7 @@ namespace votca {
         }
 
         Eigen::MatrixXd DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
-            Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(_dftbasis.AOBasisSize());
+            Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(_dftbasis.AOBasisSize(),_dftbasis.AOBasisSize());
 
             std::vector<QMAtom*> uniqueelements;
             std::vector<QMAtom*>::const_iterator at;
@@ -591,19 +591,19 @@ namespace votca {
                 if ((*st)->getType() == "H") {
                     uniqueatom_guesses.push_back(dftAOdmat_alpha);
                     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Atomic density Matrix for " << (*st)->getType() <<
-                            " gives N=" << std::setprecision(9) << linalg_traceofProd(dftAOdmat_alpha, dftAOoverlap.Matrix()) << " electrons." << flush;
+                            " gives N=" << std::setprecision(9) << dftAOdmat_alpha.cwiseProduct( dftAOoverlap.Matrix()).sum() << " electrons." << flush;
                     continue;
                 }
 
-                Eigen::MatrixXddftAOdmat_beta = DensityMatrix_unres(MOCoeff_beta, beta_e);
+                Eigen::MatrixXd dftAOdmat_beta = DensityMatrix_unres(MOCoeff_beta, beta_e);
                 bool _HF = false;
                 double energyold = 0;
                 int maxiter = 50;
                 for (int this_iter = 0; this_iter < maxiter; this_iter++) {
 
                     ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);
-                    double E_two_alpha = linalg_traceofProd(ERIs_atom.getERIs(), dftAOdmat_alpha);
-                    double E_two_beta = linalg_traceofProd(ERIs_atom.getERIs(), dftAOdmat_beta);
+                    double E_two_alpha = ERIs_atom.getERIs().cwiseProduct( dftAOdmat_alpha).sum();
+                    double E_two_beta = ERIs_atom.getERIs().cwiseProduct(  dftAOdmat_beta).sum();
                     Eigen::MatrixXd H_alpha = H0 + ERIs_atom.getERIs();
                     Eigen::MatrixXd H_beta = H0 + ERIs_atom.getERIs();
                     if (_HF) {
@@ -822,16 +822,16 @@ namespace votca {
 
         Eigen::MatrixXd DFTENGINE::DensityMatrix_unres(const Eigen::MatrixXd& MOs, int numofelec) {
             if (numofelec == 0) {
-                return Eigen::MatrixXd::Zero(MOs.rows());
+                return Eigen::MatrixXd::Zero(MOs.cols(),MOs.rows());
             }
-            Eigen::MatrixXd occstates=block(0,0,numofelec,MOs.rows());
+            Eigen::MatrixXd occstates=MOs.block(0,0,numofelec,MOs.rows());
             Eigen::MatrixXd dmatGS = occstates*occstates.transpose();
               return dmatGS;
         }
 
         Eigen::MatrixXd DFTENGINE::DensityMatrix_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies, int numofelec) {
             if (numofelec == 0) {
-                return Eigen::MatrixXd::Zero(MOs.rows());
+                return Eigen::MatrixXd::Zero(MOs.rows(),MOs.cols());
             }
 
             Eigen::VectorXd occupation = Eigen::VectorXd::Zero(MOEnergies.size());
@@ -955,7 +955,7 @@ namespace votca {
         //average atom densities matrices, for SP and other combined shells average each subshell separately. Does not really work yet!!
 
         Eigen::MatrixXd DFTENGINE::AverageShells(const Eigen::MatrixXd& dmat, AOBasis& dftbasis) {
-            Eigen::MatrixXd avdmat = Eigen::MatrixXd::Zero(dmat.rows());
+            Eigen::MatrixXd avdmat = Eigen::MatrixXd::Zero(dmat.rows(),dmat.cols());
             AOBasis::AOShellIterator it;
             int start = 0.0;
             std::vector<int> starts;

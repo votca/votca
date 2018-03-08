@@ -349,7 +349,7 @@ namespace votca {
 
                     _com_file << setw(5) << level << endl;
 
-                    ub::matrix_row< ub::matrix<double> > mr(orbitals_guess->MOCoefficients(), *soi);
+                  Eigen::VectorXd mr=orbitals_guess->MOCoefficients().row(*soi);
 
                     int column = 1;
                     for (unsigned j = 0; j < mr.size(); ++j) {
@@ -765,15 +765,15 @@ namespace votca {
             _orbitals->setBasisSetSize(_basis_size); // = _basis_size;
 
             // copying energies to the orbitals object
-            ub::vector<double> &mo_energies = _orbitals->MOEnergies();
+           Eigen::VectorXd &mo_energies = _orbitals->MOEnergies();
             mo_energies.resize(_levels);
             for (size_t i = 0; i < mo_energies.size(); i++) mo_energies[i] = _energies[ i + 1 ];
 
             // copying mo coefficients to the orbitals object
-            ub::matrix<double> &mo_coefficients = _orbitals->MOCoefficients();
+            Eigen::MatrixXd &mo_coefficients = _orbitals->MOCoefficients();
             mo_coefficients.resize(_levels, _basis_size);
-            for (size_t i = 0; i < mo_coefficients.size1(); i++){
-                for (size_t j = 0; j < mo_coefficients.size2(); j++){
+            for (size_t i = 0; i < mo_coefficients.rows(); i++){
+                for (size_t j = 0; j < mo_coefficients.cols(); j++){
                     mo_coefficients(i, j) = _coefficients[i + 1][j];
                 }
             }
@@ -1130,10 +1130,10 @@ namespace votca {
                 if (overlap_pos != std::string::npos) {
 
                     // prepare the container
-                    ub::symmetric_matrix<double>& overlap=_orbitals->AOOverlap();
+                    Eigen::MatrixXd& overlap=_orbitals->AOOverlap();
 
                     // _orbitals->_has_overlap = true;
-                    overlap.resize(_basis_set_size);
+                    overlap.resize(_basis_set_size,_basis_set_size);
 
                     _has_overlap_matrix = true;
                     //cout << "Found the overlap matrix!" << endl;
@@ -1183,6 +1183,7 @@ namespace votca {
                                 int _j_index = *_j_iter;
                                 //_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
                                 overlap(_i_index - 1, _j_index - 1) = boost::lexical_cast<double>(_coefficient);
+                                overlap(_j_index - 1, _i_index - 1) = boost::lexical_cast<double>(_coefficient);
                                 _j_iter++;
 
                             }
@@ -1236,8 +1237,8 @@ namespace votca {
                 if (_input_file.good()) {
                     // prepare the container
                     // _orbitals->_has_vxc = true;
-                    ub::symmetric_matrix<double> _vxc;
-                    _vxc.resize(_cart_basis_set_size);
+                    Eigen::MatrixXd _vxc;
+                    _vxc.resize(_cart_basis_set_size,_cart_basis_set_size);
 
 
                     // _has_vxc_matrix = true;
@@ -1259,6 +1260,7 @@ namespace votca {
                         int _j_index = boost::lexical_cast<int>(_row[1]);
                         //cout << "Vxc element [" << _i_index << ":" << _j_index << "] " << boost::lexical_cast<double>( _row[2] ) << endl;
                         _vxc(_i_index - 1, _j_index - 1) = boost::lexical_cast<double>(_row[2]);
+                        _vxc(_j_index - 1, _i_index - 1) = boost::lexical_cast<double>(_row[2]);
                     }
 
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;
@@ -1274,12 +1276,9 @@ namespace votca {
                 AOBasis _dftbasis;
                 _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
                 
-                ub::matrix<double> vxc_full=_vxc;
                 
-                ub::matrix<double> _carttrafo=_dftbasis.getTransformationCartToSpherical(getPackageName());
-                ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_full);
-                vxc_full = ub::prod(_temp, ub::trans(_carttrafo));
-                _orbitals->AOVxc()=vxc_full;
+                Eigen::MatrixXd _carttrafo=_dftbasis.getTransformationCartToSpherical(getPackageName());
+                _orbitals->AOVxc()=_carttrafo*_vxc*_carttrafo.transpose();
                 } else {
                     throw std::runtime_error("Vxc file does not exist.");
                 }

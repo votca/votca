@@ -203,8 +203,8 @@ class GWBSE {
       const Eigen::MatrixXd& _overlap_cholesky_inverse);
 
   // Sigma related variables and functions
-  ub::symmetric_matrix<double> _sigma_x;  // exchange term
-  ub::symmetric_matrix<double> _sigma_c;  // correlation term
+  Eigen::MatrixXd _sigma_x;  // exchange term
+  Eigen::MatrixXd _sigma_c;  // correlation term
 
   void sigma_prepare_threecenters(TCMatrix& _Mmn);
 

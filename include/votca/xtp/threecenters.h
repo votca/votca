@@ -85,12 +85,12 @@ namespace votca { namespace xtp {
     
     void Fill_4c_small_molecule(const AOBasis& dftbasis); ///////////////////
     
-    const ub::vector<double>& get_4c_vector() { return _4c_vector;} ////////////////////
+    const Eigen::VectorXd& get_4c_vector() { return _4c_vector;} ////////////////////
     
     private:
      bool FillFourCenterRepBlock(Eigen::MatrixXd& _subvector, const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3,const AOShell* _shell_4); ////////
     
-        ub::vector<double> _4c_vector;
+        Eigen::VectorXd _4c_vector;
     };
 
     class TCMatrix : public TCrawMatrix {
@@ -163,7 +163,7 @@ namespace votca { namespace xtp {
     private:
         
         // store vector of matrices
-        std::vector< ub::matrix<real_gwbse> > _matrix;
+        std::vector< MatrixXfd > _matrix;
         
         // band summation indices
         int mmin;
