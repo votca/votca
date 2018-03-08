@@ -92,14 +92,6 @@ namespace votca {
             const std::vector<QMAtom*> atomsB = _orbitalsB->QMAtoms();
             const std::vector<QMAtom*> atomsAll = _orbitalsAB->QMAtoms();
 
-            // CHANGE NEEDED
-            for(unsigned i = 0; i < atomsA.size(); ++i){
-                QMAtom* dimer=atomsAll[i];
-                
-                
-            }
-            
-            
             for (unsigned i = 0; i < atomsAll.size(); i++) {
                 QMAtom* dimer = atomsAll[i];
                 QMAtom* monomer = NULL;
@@ -118,7 +110,7 @@ namespace votca {
                     }
                 } else {
                     // Linker
-                    CTP_LOG(ctp::logERROR, *_pLog) << (format("Neither Monomer A nor Monomer B contains atom %s on line %u. Hence, this atom is part of a linker. \n") %monomer->getType() %(i+1) ).str()<<flush;
+                    CTP_LOG(ctp::logERROR, *_pLog) << (format("Neither Monomer A nor Monomer B contains atom %s on line %u. Hence, this atom is part of a linker. \n") %dimer->getType() %(i+1) ).str()<<flush;
                     continue;
                 }
                 
