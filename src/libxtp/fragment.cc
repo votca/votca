@@ -46,20 +46,22 @@ Fragment::Fragment(Fragment *stencil)
 
 Fragment::~Fragment() {
     vector < Atom* > ::iterator atmit;
-    for (atmit = this->Atoms().begin();
+// This does not seem safe at all so commenting out for
+// now
+/*    for (atmit = this->Atoms().begin();
           atmit < this->Atoms().end();
           ++atmit) {
           delete *atmit;
-    }
+    }*/
     _weights.clear();
     _atoms.clear();
 
     vector < PolarSite* > ::iterator pit;
-    for (pit = this->PolarSites().begin();
+/*    for (pit = this->PolarSites().begin();
             pit < this->PolarSites().end();
             ++pit) {
         delete *pit;
-    }
+    }*/
     _polarSites.clear();
 }
 

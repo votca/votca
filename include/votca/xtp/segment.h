@@ -49,6 +49,7 @@ public:
 
     const tools::vec       &getPos() const { return _CoM; }
     void             setPos(tools::vec pos) { _CoM = pos; }
+    // This gets the center of mass from the MD positions of the atoms
     void             calcPos();
     void             TranslateBy(const tools::vec &shift);
     

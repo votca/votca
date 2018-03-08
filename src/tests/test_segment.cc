@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(add_atom_test){
   seg.AddAtom(atm);
   vector<Atom*> v_atoms = seg.Atoms();
   BOOST_CHECK_EQUAL(v_atoms.size(),1);
-  delete atm;
+  delete  atm;
 }
 
 BOOST_AUTO_TEST_CASE(calc_pos_test){
