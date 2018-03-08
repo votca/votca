@@ -90,7 +90,7 @@ endif()
 
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 include(GNUInstallDirs)
-#option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
+
 
 option(ENABLE_TESTING "Build and enable testing stuff" OFF)
 if(ENABLE_TESTING)
@@ -172,8 +172,7 @@ endforeach(FUNC)
 ######################################
 add_subdirectory(include/votca/xtp)
 add_subdirectory(scripts)
-add_subdirectory(src/libxtp)
-add_subdirectory(src/tools)
+add_subdirectory(src)
 #add_subdirectory(src/dipro)
 #add_subdirectory(share/scripts/dipro)
 add_subdirectory(share)

@@ -899,6 +899,8 @@
       </item>
       <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
+      </item>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
@@ -1553,6 +1555,8 @@
       <item path="../../src/libxtp/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>
