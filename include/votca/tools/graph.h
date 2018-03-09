@@ -1,5 +1,5 @@
 /*
- *            Copyright 2018-2018 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -40,14 +40,22 @@ namespace tools {
 class Graph : protected EdgeContainer {
   private:
     std::unordered_map<int,GraphNode> nodes_;
+    std::string structure_id_;
+    bool structure_id_set_; 
+    Graph() {};
   protected:
-   
+    void calcStructureId_(); 
   public:
     /// Constructor
-    Graph() {};
-    Graph(std::vector<Edge> edgs,std::unordered_map<int,GraphNode> nodes);
+    Graph(std::vector<Edge> edgs,std::unordered_map<int,GraphNode> nodes) :
+      EdgeContainer::EdgeContainer(edgs),
+      _nodes(nodes),
+      _structure_id_set(false) {}
 
     std::vector<GraphNode> getNeighNodes(int vert);
+
+    bool operator!=(const Graph& g) const;
+    bool operator==(const Graph& g) const;
 };
 }
 }
