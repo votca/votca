@@ -244,7 +244,8 @@ namespace votca {
                     if (_with_RI) {
                         _ERIs.CalculateERIs(_dftAOdmat);
                     } else {
-                        _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
+						//_ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
+						_ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
                     }
                     if (_use_small_grid) {
                         _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
@@ -282,7 +283,8 @@ namespace votca {
                 if (_with_RI) {
                     _ERIs.CalculateERIs(_dftAOdmat);
                 } else {
-                    _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
+					//_ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
+					_ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
                 }
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2() << flush;
@@ -519,7 +521,8 @@ namespace votca {
                 atom.push_back(*st);
 
                 AOBasis dftbasis;
-                
+               
+				
                 NumericalIntegration gridIntegration;
                 dftbasis.AOBasisFill(&_dftbasisset, atom);
                 AOBasis ecp;
@@ -618,7 +621,7 @@ namespace votca {
                 int maxiter = 50;
                 for (int this_iter = 0; this_iter < maxiter; this_iter++) {
 
-                    ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);
+					ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);
                     double E_two_alpha = linalg_traceofProd(ERIs_atom.getERIs(), dftAOdmat_alpha);
                     double E_two_beta = linalg_traceofProd(ERIs_atom.getERIs(), dftAOdmat_beta);
                     ub::matrix<double> H_alpha = H0 + ERIs_atom.getERIs();
