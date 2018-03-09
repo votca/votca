@@ -30,12 +30,6 @@ namespace votca { namespace xtp {
 /// Destructor
 Molecule::~Molecule() {
 
-    vector < Segment* > ::iterator segit;
-    for (segit = this->Segments().begin();
-            segit < this->Segments().end();
-            segit ++) {
-        delete *segit;
-    }
     _segments.clear();
     _fragments.clear();
     _atoms.clear();
