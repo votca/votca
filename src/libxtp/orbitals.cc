@@ -263,7 +263,7 @@ namespace votca {
         Eigen::MatrixXd Orbitals::DensityMatrixGroundState() {
           
           Eigen::MatrixXd occstates=_mo_coefficients.block(0,0,_occupied_levels,_basis_set_size);
-          Eigen::MatrixXd dmatGS = 2*occstates*occstates.transpose();
+          Eigen::MatrixXd dmatGS = 2*occstates.transpose()*occstates;
 
             return dmatGS;
         }
@@ -274,7 +274,7 @@ namespace votca {
         
         // Determine QuasiParticle Density Matrix
         Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle( int state){
-          Eigen::MatrixXd lambda =_QPdiag_coefficients*_mo_coefficients.block(_qpmin,0,_qpmax+1-_qpmin,_basis_set_size);
+          Eigen::MatrixXd lambda =_QPdiag_coefficients*_mo_coefficients.block(_qpmin,0,_qptotal,_basis_set_size);
           Eigen::MatrixXd dmatQP=lambda.row(state)*lambda.row(state).transpose();
           return dmatQP;
         }
