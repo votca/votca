@@ -58,10 +58,6 @@ public:
     inline void setTopology(Topology *container) { _top = container; }
     Topology   *getTopology() { return _top; }
 
-    /// Load molecule coordinates from a file
-    void ReadXYZ ( std::string filename );
-    void WritePDB( FILE *out );
-    
 private:
 
     Topology *_top;
