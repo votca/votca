@@ -124,7 +124,7 @@ if (EIGEN3_INCLUDE_DIR)
 endif (EIGEN3_INCLUDE_DIR)
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(EIGEN3 DEFAULT_MSG EIGEN3_INCLUDE_DIR)
+find_package_handle_standard_args(EIGEN3 REQUIRED_VARS EIGEN3_INCLUDE_DIR VERSION_VAR EIGEN3_VERSION)
 
 mark_as_advanced(EIGEN3_INCLUDE_DIR)
 
