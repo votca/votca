@@ -54,6 +54,8 @@ namespace votca { namespace xtp {
         void CalculateERIs_4c_small_molecule(const ub::matrix<double> &DMAT); ///////////////////////////////////////
         void CalculateEXX_4c_small_molecule(const ub::matrix<double> &DMAT);
         
+		void CalculateERIs_4c_direct(const AOBasis& dftbasis, const ub::matrix<double> &DMAT);
+		
         int getSize1(){return _ERIs.size1();}
         int getSize2(){return _ERIs.size2();}
         

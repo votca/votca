@@ -86,9 +86,9 @@ namespace votca { namespace xtp {
     
     const ub::vector<double>& get_4c_vector() { return _4c_vector;} ////////////////////
     
-    private:
-     bool FillFourCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3,const AOShell* _shell_4); ////////
+    bool FillFourCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3,const AOShell* _shell_4); ////////
     
+	private:
         ub::vector<double> _4c_vector;
     };
 
