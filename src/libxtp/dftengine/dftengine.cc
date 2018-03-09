@@ -536,16 +536,13 @@ namespace votca {
                 AOKinetic dftAOkinetic;
                 AOESP dftAOESP;
                 AOECP dftAOECP;
-                Eigen::VectorXd eigenvalues;
-                Eigen::MatrixXd eigenvectors;
-                Eigen::MatrixXd Sminusonehalf;
                 ERIs ERIs_atom;
 
                 // DFT AOOverlap matrix
               
                 dftAOoverlap.Fill(dftbasis);
                 Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(dftAOoverlap.Matrix());
-                Sminusonehalf=es.operatorInverseSqrt();
+                Eigen::MatrixXd Sminusonehalf=es.operatorInverseSqrt();
                                
                 dftAOkinetic.Fill(dftbasis);
 
@@ -583,7 +580,7 @@ namespace votca {
 
                 MOEnergies_beta = MOEnergies_alpha;
                 MOCoeff_beta = MOCoeff_alpha;
-
+                
 
                 //Eigen::MatrixXddftAOdmat_alpha = DensityMatrix_frac(MOCoeff_alpha,MOEnergies_alpha,alpha_e);
                 //Eigen::MatrixXddftAOdmat_beta = DensityMatrix_frac(MOCoeff_beta,MOEnergies_beta,beta_e);
@@ -594,16 +591,19 @@ namespace votca {
                             " gives N=" << std::setprecision(9) << dftAOdmat_alpha.cwiseProduct( dftAOoverlap.Matrix()).sum() << " electrons." << flush;
                     continue;
                 }
-
+                
                 Eigen::MatrixXd dftAOdmat_beta = DensityMatrix_unres(MOCoeff_beta, beta_e);
+                cout<<"Iterate start"<<endl;
                 bool _HF = false;
                 double energyold = 0;
                 int maxiter = 50;
                 for (int this_iter = 0; this_iter < maxiter; this_iter++) {
 
                     ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);
+                    cout<<"ERIS calc"<<endl;
                     double E_two_alpha = ERIs_atom.getERIs().cwiseProduct( dftAOdmat_alpha).sum();
                     double E_two_beta = ERIs_atom.getERIs().cwiseProduct(  dftAOdmat_beta).sum();
+                    cout<<ERIs_atom.getERIs().rows()<<"x"<<ERIs_atom.getERIs().cols()<<endl;
                     Eigen::MatrixXd H_alpha = H0 + ERIs_atom.getERIs();
                     Eigen::MatrixXd H_beta = H0 + ERIs_atom.getERIs();
                     if (_HF) {
@@ -619,6 +619,7 @@ namespace votca {
                     } else {
                         Eigen::MatrixXd AOVxc_alpha = gridIntegration.IntegrateVXC(dftAOdmat_alpha);
                         double E_vxc_alpha = gridIntegration.getTotEcontribution();
+                        cout<<"Grid integration "<<AOVxc_alpha.rows()<<"x"<<AOVxc_alpha.cols()<<endl;
                         Eigen::MatrixXd AOVxc_beta = gridIntegration.IntegrateVXC(dftAOdmat_beta);
                         double E_vxc_beta = gridIntegration.getTotEcontribution();
                         H_alpha += AOVxc_alpha;
@@ -825,7 +826,7 @@ namespace votca {
                 return Eigen::MatrixXd::Zero(MOs.cols(),MOs.rows());
             }
             Eigen::MatrixXd occstates=MOs.block(0,0,numofelec,MOs.rows());
-            Eigen::MatrixXd dmatGS = occstates*occstates.transpose();
+            Eigen::MatrixXd dmatGS = occstates.transpose()*occstates;
               return dmatGS;
         }
 
@@ -952,7 +953,7 @@ namespace votca {
         }
 
 
-        //average atom densities matrices, for SP and other combined shells average each subshell separately. Does not really work yet!!
+        //average atom densities matrices, for SP and other combined shells average each subshell separately.
 
         Eigen::MatrixXd DFTENGINE::AverageShells(const Eigen::MatrixXd& dmat, AOBasis& dftbasis) {
             Eigen::MatrixXd avdmat = Eigen::MatrixXd::Zero(dmat.rows(),dmat.cols());

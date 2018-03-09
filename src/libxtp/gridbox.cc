@@ -41,11 +41,9 @@ namespace votca { namespace xtp {
             
 
         Eigen::MatrixXd GridBox::ReadFromBigMatrix(const Eigen::MatrixXd& bigmatrix) {
-            
             Eigen::MatrixXd _matrix = Eigen::MatrixXd(matrix_size,matrix_size);
             for (unsigned i = 0; i < ranges.size(); i++) {
                 for (unsigned j = 0; j < ranges.size(); j++) {
-                    
                     _matrix.block(inv_ranges[i].start, inv_ranges[j].start,inv_ranges[i].size, inv_ranges[j].size)
                             = bigmatrix.block(ranges[i].start, ranges[j].start,ranges[i].size,ranges[j].size);
                 }
@@ -97,8 +95,8 @@ namespace votca { namespace xtp {
                 temp.start=startindex[i];
                 ranges.push_back(temp);
                 GridboxRange temp2;
-                temp2.size=shellstart;
-                temp2.start=size;
+                temp2.size=size;
+                temp2.start=shellstart;
                 inv_ranges.push_back(temp2);
                 shellstart += size;
             }
