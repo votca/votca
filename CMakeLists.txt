@@ -58,15 +58,15 @@ endif()
 add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 
 
-find_package(Eigen 3.3.0 REQUIRED)
-if (EIGEN_FOUND)
-    message("-- EIGEN found")
-	include_directories(${EIGEN_INCLUDE_DIRS})
-message(STATUS ${EIGEN_INCLUDE_DIRS})
-	set (LIBEIGEN TRUE )
-else()
+find_package(Eigen REQUIRED)
+if (EIGEN3_FOUND)
+ if (EIGEN3_VERSION VERSION_LESS 3.3.0)
+    message(FATAL_ERROR "-- VOTCA-XTP requires Eigen version >= 3.3.0 detected version of Eigen is: ${EIGEN3_VERSION}")
+endif (EIGEN3_VERSION VERSION_LESS 3.3.0)
+   message("-- Found Eigen version ${EIGEN3_VERSION}: ${EIGEN3_INCLUDE_DIRS}")	
+  include_directories(${EIGEN3_INCLUDE_DIRS})
+endif (EIGEN3_FOUND)
 
-endif()
 
 find_package(LIBXC)
 if (LIBXC_FOUND)
