@@ -21,13 +21,9 @@
 #define	__XTP_AOBASIS__H
 
 #include <votca/tools/property.h>
-
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/basisset.h>
-#include <boost/numeric/ublas/symmetric.hpp>
+
 
 
 
@@ -48,9 +44,9 @@ public:
         AOBasis( ) { ; }
         ~AOBasis(); 
       
-       void ReorderMOs(ub::matrix<double> &v,const std::string& start, const std::string& target ); 
+       void ReorderMOs(Eigen::MatrixXd &v,const std::string& start, const std::string& target ); 
        
-       void ReorderMatrix(ub::symmetric_matrix<double> &v,const std::string& start,const std::string& target );
+       void ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target );
      
       
 
@@ -64,7 +60,7 @@ public:
     AOShellIterator firstShell() const{ return _aoshells.begin(); }
     AOShellIterator lastShell() const{ return _aoshells.end(); }
 
-    ub::matrix<double> getTransformationCartToSpherical(const std::string& package);
+    Eigen::MatrixXd getTransformationCartToSpherical(const std::string& package);
    
         
     const AOShell* getShell( AOShellIterator it ) const{ return (*it); }
@@ -88,7 +84,7 @@ public:
    private:
        
        
-  void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
+  void MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier );
    
     std::vector<AOShell*> _aoshells;
 
@@ -101,10 +97,8 @@ public:
     std::vector<int> getMultiplierVector(const std::string& start,const std::string& target );
     
     void addMultiplierShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& multiplier );  
-    
-    
-    
-    void addTrafoCartShell( const AOShell* shell , ub::matrix_range< ub::matrix<double> >& _submatrix );
+  
+    void addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& _submatrix );
     
     int getMaxFunctions ( );
     

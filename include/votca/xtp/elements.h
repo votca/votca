@@ -72,8 +72,7 @@ private:
     std::map<std::string, double> _Mass;
     std::map<std::string, int> _EleNum;
     std::map<int, std::string> _EleName;
-    
-    std::map< std::string,ub::matrix<int> > _Atomconfig;
+   
     
     std::map<std::string, std::string> _EleShort;
     std::map<std::string, std::string> _EleFull;

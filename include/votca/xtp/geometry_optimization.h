@@ -45,7 +45,7 @@ namespace votca {
             ~GeometryOptimization() {
             };
 
-            void BFGSStep(int& _iteration, bool& _update_hessian, ub::matrix<double>& _force, ub::matrix<double>& _force_old, ub::matrix<double>& _current_xyz, ub::matrix<double>& _old_xyz, ub::matrix<double>& _hessian, ub::matrix<double>& _xyz_shift, ub::matrix<double>& _trial_xyz);
+            void BFGSStep(int& _iteration, bool& _update_hessian, Eigen::MatrixXd& _force, Eigen::MatrixXd& _force_old, Eigen::MatrixXd& _current_xyz, Eigen::MatrixXd& _old_xyz, Eigen::MatrixXd& _hessian, Eigen::MatrixXd& _xyz_shift, Eigen::MatrixXd& _trial_xyz);
             void Initialize(Property *options);
 
             void setLog(ctp::Logger* pLog) {

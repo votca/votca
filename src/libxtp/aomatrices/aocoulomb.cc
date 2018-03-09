@@ -32,7 +32,7 @@ namespace votca { namespace xtp {
 
  
 
-    void AOCoulomb::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp) {
+    void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp) {
       
             // shell info, only lmax tells how far to go
             const int _lmax_row = _shell_row->getLmax();
@@ -650,10 +650,7 @@ if (_lmax_col > 5) {
             int _ntrafo_row = _shell_row->getNumFunc() + _shell_row->getOffset();
             int _ntrafo_col = _shell_col->getNumFunc() + _shell_col->getOffset();
 
-            //cout << " _ntrafo_row " << _ntrafo_row << ":" << _shell_row->getType() << endl;
-            //cout << " _ntrafo_col " << _ntrafo_col << ":" << _shell_col->getType() << endl;
-            ub::matrix<double> _trafo_row = ub::zero_matrix<double>(_ntrafo_row, _nrows);
-            ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col, _ncols);
+            
 
             // get transformation matrices including contraction coefficients
           const std::vector<double>& _contractions_row = itr->getContraction();
@@ -661,15 +658,15 @@ if (_lmax_col > 5) {
 
           
 
-            // put _cou[i][j][0] into ublas matrix
-            ub::matrix<double> _coumat = ub::zero_matrix<double>(_nrows, _ncols);
-            for (unsigned i = 0; i < _coumat.size1(); i++) {
-                for (unsigned j = 0; j < _coumat.size2(); j++) {
+            // put _cou[i][j][0] into eigen matrix
+            Eigen::MatrixXd _coumat = Eigen::MatrixXd::Zero(_nrows, _ncols);
+            for (unsigned i = 0; i < _coumat.rows(); i++) {
+                for (unsigned j = 0; j < _coumat.cols(); j++) {
                     _coumat(i, j) = _cou[i][j][0];
                 }
             }
 
-            ub::matrix<double> _cou_tmp = ub::zero_matrix<double>(_ntrafo_row, _ncols);
+            Eigen::MatrixXd _cou_tmp = Eigen::MatrixXd::Zero(_ntrafo_row, _ncols);
             
             
               // s-functions
@@ -900,7 +897,7 @@ if (_lmax_col > 5) {
                 
             
 
-    ub::matrix<double> _cou_sph = ub::zero_matrix<double>(_ntrafo_row, _ntrafo_col);  ////////////////////////////////////
+    Eigen::MatrixXd _cou_sph = Eigen::MatrixXd::Zero(_ntrafo_row, _ntrafo_col);  ////////////////////////////////////
 
         
               // s-functions
@@ -1130,8 +1127,8 @@ if (_lmax_col > 5) {
 
 
             // save to _matrix
-            for (unsigned i = 0; i < _matrix.size1(); i++) {
-                for (unsigned j = 0; j < _matrix.size2(); j++) {
+            for (unsigned i = 0; i < _matrix.rows(); i++) {
+                for (unsigned j = 0; j < _matrix.cols(); j++) {
                     _matrix(i, j) += _cou_sph(i + _shell_row->getOffset(), j + _shell_col->getOffset());
                 }
             }
@@ -1143,67 +1140,24 @@ if (_lmax_col > 5) {
     
 
     
-    int AOCoulomb::Symmetrize(const ub::matrix<double>& _gwoverlap_cholesky){
+    int AOCoulomb::Symmetrize(const Eigen::MatrixXd& _gwoverlap_cholesky,const Eigen::MatrixXd& _gwoverlap_cholesky_inverse){
         
-       //This converts V into L(LT V L)-1/2 LT, which is needed to construct 4c integrals,
-        //we do not simply use V-1/2 because that is a different metric than the ppm model, for normal 4c integrals V-1/2   
-        // is good, but here we transform to a different space, and then transform back via the ppm model
-         ub::matrix<double> _temp = ub::prod( _aomatrix , _gwoverlap_cholesky);
-         ub::matrix<double> _trans=ub::trans( _gwoverlap_cholesky );
-        _aomatrix = ub::prod( _trans,_temp);
-        
-        ub::vector<double> S_eigenvalues;
-        linalg_eigenvalues( S_eigenvalues, _aomatrix);
-        
-        if ( S_eigenvalues[0] < 0.0 ) {
-            throw runtime_error("LT V L has negative eigenvalues");
-        }
-     
-        int removed_basisfunctions=0;
-    ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
-     for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
-         if(S_eigenvalues[_i]<5.e-7){
-             removed_basisfunctions++;
-         }
-         else{
-         _diagS(_i,_i) = 1.0/sqrt(S_eigenvalues[_i]);
-         }
-     }
-    _temp = ub::prod( _diagS, ub::trans(_aomatrix));
-    _aomatrix = ub::prod( _aomatrix,_temp );
-    
-    
-       _temp = ub::prod( _aomatrix , ub::trans(_gwoverlap_cholesky));
-       _aomatrix = ub::prod( _gwoverlap_cholesky ,_temp);
-   
-    
+       //This converts V into L(L-1 V L-T)-1/2 LT, which is needed to construct 4c integrals,
+      // e.g. <v-1/2,v-1/2>_S-1=V-1 
+      
+      Eigen::MatrixXd ortho=_gwoverlap_cholesky_inverse*_aomatrix*_gwoverlap_cholesky_inverse.transpose();
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho); 
+      Eigen::MatrixXd Vm1=es.operatorInverseSqrt();
+      int removed_basisfunctions=0;
+      _aomatrix=  _gwoverlap_cholesky*Vm1*_gwoverlap_cholesky.transpose();
+       
     return removed_basisfunctions; 
     }
     
      int AOCoulomb::Invert_DFT(){
-        
-       //This converts V into V-1 while checking 
-        
-        
-        ub::vector<double> S_eigenvalues;
-        linalg_eigenvalues( S_eigenvalues, _aomatrix);
-        if ( S_eigenvalues[0] < 0.0 ) {
-            cerr << " \n Negative eigenvalues in matrix_sqrt transformation " << endl;
-            return -1;
-        }
-        int removed_basisfunctions=0;
-    ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
-     for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
-         if(S_eigenvalues[_i]<1.e-6){
-             removed_basisfunctions++;
-         }
-         else{
-         _diagS(_i,_i) = 1.0/S_eigenvalues[_i];
-         }
-     }
-    ub::matrix<double> _temp = ub::prod( _diagS, ub::trans(_aomatrix));
-    _aomatrix = ub::prod( _aomatrix,_temp );
-    
+        _aomatrix=_aomatrix.inverse();
+     
+    int removed_basisfunctions=0;
     return removed_basisfunctions; 
     }
     

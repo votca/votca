@@ -49,7 +49,7 @@ namespace votca {
          */
 
       
-        bool FCMatrix_dft::FillFourCenterRepBlock(ub::matrix<double>& _subvector,
+        bool FCMatrix_dft::FillFourCenterRepBlock(Eigen::MatrixXd& _subvector,
                 const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3, const AOShell* _shell_4) {
 
             const double pi = boost::math::constants::pi<double>();
@@ -769,8 +769,8 @@ for (int l = 4; l < _lmax_beta+1; l++) {
 
             
             // get transformation matrices
-            const ub::matrix<double> _trafo_alpha = AOSuperMatrix::getTrafo(*italpha);
-            const ub::matrix<double> _trafo_beta = AOSuperMatrix::getTrafo(*itbeta);
+            const Eigen::MatrixXd _trafo_alpha = AOSuperMatrix::getTrafo(*italpha);
+            const Eigen::MatrixXd _trafo_beta = AOSuperMatrix::getTrafo(*itbeta);
 
             ma_type R3_ab_sph;
             R3_ab_sph.resize(extents[ _ntrafo_alpha ][ _ntrafo_beta ][ _ncombined_cd ]);
@@ -924,8 +924,8 @@ for (int l = 4; l < _lmax_delta+1; l++) {
             int _ntrafo_gamma = _shell_gamma->getNumFunc() + _offset_gamma;
             int _ntrafo_delta = _shell_delta->getNumFunc() + _offset_delta;
 
-            const ub::matrix<double> _trafo_gamma = AOSuperMatrix::getTrafo(*itgamma);
-            const ub::matrix<double> _trafo_delta = AOSuperMatrix::getTrafo(*itdelta);
+            const Eigen::MatrixXd _trafo_gamma = AOSuperMatrix::getTrafo(*itgamma);
+            const Eigen::MatrixXd _trafo_delta = AOSuperMatrix::getTrafo(*itdelta);
 
 
             ma4_type R4_sph;

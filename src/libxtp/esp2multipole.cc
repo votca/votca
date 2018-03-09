@@ -134,7 +134,7 @@ void Esp2multipole::Extractingcharges( Orbitals & _orbitals ){
 
          _Atomlist =_orbitals.QMAtoms();
         
-        ub::matrix<double> DMAT_tot;
+        Eigen::MatrixXd DMAT_tot;
         BasisSet bs;
         bs.LoadBasisSet(_orbitals.getDFTbasis());
         AOBasis basis;
@@ -150,11 +150,11 @@ void Esp2multipole::Extractingcharges( Orbitals & _orbitals ){
         else if (_state=="ground" || _state=="excited"){
             
         
-            //ub::matrix<double> &DMATGS=_orbitals.DensityMatrixGroundState(_orbitals.MOCoefficients());
-            ub::matrix<double> DMATGS=_orbitals.DensityMatrixGroundState();
+            //Eigen::MatrixXd &DMATGS=_orbitals.DensityMatrixGroundState(_orbitals.MOCoefficients());
+            Eigen::MatrixXd DMATGS=_orbitals.DensityMatrixGroundState();
             DMAT_tot=DMATGS;
             if ( _state_no > 0 && _state=="excited"){
-                std::vector<ub::matrix<double> > DMAT;
+                std::vector<Eigen::MatrixXd > DMAT;
                 DMAT = _orbitals.DensityMatrixExcitedState( _spin , _state_no-1);
                 DMAT_tot=DMAT_tot-DMAT[0]+DMAT[1];
             }            

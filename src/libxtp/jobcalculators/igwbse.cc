@@ -434,7 +434,7 @@ if ( _write_orbfile){
    
         
    if(!_store_dft){
-       _orbitalsAB.AOVxc().resize(0);
+       _orbitalsAB.AOVxc().resize(0,0);
        
        _orbitalsAB.MOCoefficients().resize(0,0);
    }    

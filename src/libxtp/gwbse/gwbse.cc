@@ -535,7 +535,7 @@ bool GWBSE::Evaluate() {
 
   _ScaHFX = _orbitals->getScaHFX();
 
-  ub::matrix<double> _vxc_ao;
+  Eigen::MatrixXd _vxc_ao;
   if (_orbitals->hasAOVxc()) {
     if (_doVxc) {
       CTP_LOG(ctp::logDEBUG, *_pLog)
@@ -575,7 +575,7 @@ bool GWBSE::Evaluate() {
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Integrating Vxc in VOTCA with functional "
         << _functional << flush;
-    ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState();
+    Eigen::MatrixXd DMAT = _orbitals->DensityMatrixGroundState();
 
     _vxc_ao = _numint.IntegrateVXC(DMAT);
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
@@ -592,12 +592,9 @@ bool GWBSE::Evaluate() {
                                  << flush;
 
   // now get expectation values but only for those in _qpmin:_qpmax range
-  ub::matrix<double> _mos =
-      ub::project(_dft_orbitals, ub::range(_qpmin, _qpmax + 1),
-                  ub::range(0, _dftbasis.AOBasisSize()));
+  Eigen::MatrixXd _mos = _dft_orbitals.block(_qpmin,0,_qpmax-_qpmin+1, _dftbasis.AOBasisSize());
 
-  ub::matrix<double> _temp = ub::prod(_vxc_ao, ub::trans(_mos));
-  _vxc = ub::prod(_mos, _temp);
+  _vxc =_mos.transpose()*_vxc_ao*_mos;
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
       << " Calculated exchange-correlation expectation values " << flush;
@@ -630,7 +627,7 @@ bool GWBSE::Evaluate() {
 
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled GW Overlap matrix of dimension: "
-                                 << _gwoverlap.Matrix().size1() << flush;
+                                 << _gwoverlap.Matrix().rows() << flush;
 
   /*
    *  for the calculation of Coulomb and exchange term in the self
@@ -647,30 +644,22 @@ bool GWBSE::Evaluate() {
   _gwcoulomb.Fill(gwbasis);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled GW Coulomb matrix of dimension: "
-                                 << _gwcoulomb.Matrix().size1() << flush;
+                                 << _gwcoulomb.Matrix().rows() << flush;
 
   // PPM is symmetric, so we need to get the sqrt of the Coulomb matrix
 
-  ub::matrix<double> _gwoverlap_cholesky = _gwoverlap.Matrix();
-  linalg_cholesky_decompose(_gwoverlap_cholesky);
+ 
+ Eigen::MatrixXd L_overlap = _gwoverlap.Matrix().llt().matrixL();
+ Eigen::MatrixXd L_overlap_inverse=L_overlap.inverse();
 
-// remove L^T from Cholesky
-#pragma omp parallel for
-  for (unsigned i = 0; i < _gwoverlap_cholesky.size1(); i++) {
-    for (unsigned j = i + 1; j < _gwoverlap_cholesky.size1(); j++) {
-      _gwoverlap_cholesky(i, j) = 0.0;
-    }
-  }
-
-  ub::matrix<double> _gwoverlap_cholesky_inverse;  // will also be needed in PPM
                                                    // itself
-  int removed =
-      linalg_invert_svd(_gwoverlap_cholesky, _gwoverlap_cholesky_inverse, 1e7);
+  int removed =0; //TODO use proper stabilisation
+    
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Removed " << removed
       << " functions from gwoverlap to avoid near linear dependencies" << flush;
 
-  int removed_functions = _gwcoulomb.Symmetrize(_gwoverlap_cholesky);
+  int removed_functions = _gwcoulomb.Symmetrize(L_overlap,L_overlap_inverse);
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM"
       << flush;
@@ -713,7 +702,7 @@ bool GWBSE::Evaluate() {
                                  << " Prepared Mmn_beta for RPA  " << flush;
 
   // fix the frequencies for PPM
-  _screening_freq = ub::zero_matrix<double>(2, 2);  // two frequencies
+  _screening_freq = Eigen::MatrixXd::Zero(2, 2);  // two frequencies
   // first one
   _screening_freq(0, 0) = 0.0;  // real part
   _screening_freq(0, 1) = 0.0;  // imaginary part
@@ -722,7 +711,7 @@ bool GWBSE::Evaluate() {
   _screening_freq(1, 1) = 0.5;  // imaginary part  //hartree
 
   // one entry to epsilon for each frequency
-  _epsilon.resize(_screening_freq.size1());
+  _epsilon.resize(_screening_freq.rows());
 
   /* for automatic iteration of _shift, we need to
    * - make a copy of _Mmn
@@ -737,7 +726,7 @@ bool GWBSE::Evaluate() {
 
   // initialize _qp_energies;
   // shift unoccupied levels by the shift
-  _qp_energies = ub::zero_vector<double>(_orbitals->getNumberOfLevels());
+  _qp_energies = Eigen::VectorXd::Zero(_orbitals->getNumberOfLevels());
   for (size_t i = 0; i < _qp_energies.size(); ++i) {
     _qp_energies(i) = _orbitals->MOEnergies()(i);
     if (i > _homo) {
@@ -745,8 +734,8 @@ bool GWBSE::Evaluate() {
     }
   }
 
-  _sigma_c.resize(_qptotal);
-  _sigma_x.resize(_qptotal);
+  _sigma_c.resize(_qptotal,_qptotal);
+  _sigma_x.resize(_qptotal,_qptotal);
 
   TCMatrix _Mmn_backup;
   if (_iterate_gw) {
@@ -765,11 +754,11 @@ bool GWBSE::Evaluate() {
     _gw_sc_max_iterations = 1;
   }
 
-  const ub::vector<double> &_dft_energies = _orbitals->MOEnergies();
+  const Eigen::VectorXd &_dft_energies = _orbitals->MOEnergies();
   for (unsigned gw_iteration = 0; gw_iteration < _gw_sc_max_iterations;
        ++gw_iteration) {
 
-    ub::vector<double> _qp_old_rpa = _qp_energies;
+    Eigen::VectorXd _qp_old_rpa = _qp_energies;
     if (_iterate_gw) {
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " GW Iteraton "
                                      << gw_iteration + 1 << " of "
@@ -777,7 +766,7 @@ bool GWBSE::Evaluate() {
     }
 
     // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
-    for (unsigned _i_freq = 0; _i_freq < _screening_freq.size1(); _i_freq++) {
+    for (unsigned _i_freq = 0; _i_freq < _screening_freq.rows(); _i_freq++) {
       _epsilon[_i_freq] = _gwoverlap.Matrix();
     }
 
@@ -787,7 +776,7 @@ bool GWBSE::Evaluate() {
                                    << " Calculated epsilon via RPA  " << flush;
 
     // construct PPM parameters
-    PPM_construct_parameters(_gwoverlap_cholesky_inverse);
+    PPM_construct_parameters(L_overlap_inverse);
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                    << " Constructed PPM parameters  " << flush;
 
@@ -812,7 +801,7 @@ bool GWBSE::Evaluate() {
 
     if (_iterate_gw) {
       bool _gw_converged = true;
-      ub::vector<double> diff = _qp_old_rpa - _qp_energies;
+      Eigen::VectorXd diff = _qp_old_rpa - _qp_energies;
       unsigned int _l_not_converged = 0;
       double E_max = 0;
       for (unsigned l = 0; l < diff.size(); l++) {
@@ -863,7 +852,7 @@ bool GWBSE::Evaluate() {
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
   _gwoverlap.Matrix().resize(0, 0);
-  _gwoverlap_cholesky_inverse.resize(0, 0);
+  L_overlap_inverse.resize(0, 0);
   _Mmn_RPA.Cleanup();
   if (_iterate_gw) {
     _Mmn_backup.Cleanup();
@@ -920,7 +909,7 @@ bool GWBSE::Evaluate() {
   // store perturbative QP energy data in orbitals object (DFT, S_x,S_c, V_xc,
   // E_qp)
   if (_store_qp_pert) {
-    ub::matrix<double> &_qp_energies_store = _orbitals->QPpertEnergies();
+    Eigen::MatrixXd &_qp_energies_store = _orbitals->QPpertEnergies();
     _qp_energies_store.resize(_qptotal, 5);
     for (unsigned _i = 0; _i < _qptotal; _i++) {
       _qp_energies_store(_i, 0) = _dft_energies(_i + _qpmin);
@@ -1022,14 +1011,12 @@ bool GWBSE::Evaluate() {
         BSE_solve_singlets_BTDA();
         CTP_LOG(ctp::logDEBUG, *_pLog)
             << ctp::TimeStamp() << " Solved full BSE for singlets " << flush;
-        BSE_analyze_singlets_BTDA();
       } else {
         BSE_solve_singlets();
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                       << " Solved BSE for singlets " << flush;
-        BSE_analyze_singlets();
+                                       << " Solved BSE for singlets " << flush;   
       }
-
+      BSE_analyze_singlets();
       if (!_store_eh_interaction) {
         _eh_d.resize(0, 0);
         _eh_x.resize(0, 0);

@@ -20,13 +20,12 @@
 #ifndef __XTP_NUMERICAL_INTEGRATION__H
 #define	__XTP_NUMERICAL_INTEGRATION__H
 
-#ifdef LIBXC
-#include <xc.h>
-#undef LOG
-#endif
+
 
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
+#include <votca/tools/matrix.h>
+#include <votca/tools/vec.h>
 #include <boost/numeric/ublas/operation.hpp>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
@@ -36,24 +35,30 @@
 #include <votca/xtp/gridbox.h>
 #include <votca/xtp/qmatom.h>
 
+#ifdef LIBXC
+#include <xc.h>
+#undef LOG
+#endif
+
 
 namespace votca { namespace xtp {
 
     namespace ub = boost::numeric::ublas;
     
-    
+    struct Gyrationtensor{
+        double mass;
+        tools::vec centroid;
+        tools::matrix gyration;
+    };
 
         class NumericalIntegration {
         public: 
             
             NumericalIntegration():density_set(false),setXC(false) {};
-            
-            
+
             ~NumericalIntegration(){};
             
-            void GridSetup(std::string type, std::vector<QMAtom* > _atoms,AOBasis* basis  );
-            
-         
+            void GridSetup(std::string type, std::vector<QMAtom* > _atoms,AOBasis* basis);
             double getExactExchange(const std::string _functional);
             std::vector<const vec*> getGridpoints();
             
@@ -62,32 +67,20 @@ namespace votca { namespace xtp {
             
             void setXCfunctional(const string _functional);
             
-            double IntegrateDensity(const ub::matrix<double>& _density_matrix);
+            double IntegrateDensity(const Eigen::MatrixXd& _density_matrix);
             double IntegratePotential(const vec& rvector);
             double IntegrateField(const std::vector<double>& externalfield);
-            ub::matrix<double> IntegrateExternalPotential(const std::vector<double>& Potentialvalues);
-            
-            ub::vector<double> IntegrateGyrationTensor(const ub::matrix<double>& _density_matrix);
-            
-           
-           
-            ub::matrix<double> IntegrateVXC (const ub::matrix<double>& _density_matrix);
-            
-           
-            
+            Eigen::MatrixXd IntegrateExternalPotential(const std::vector<double>& Potentialvalues);
+            Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& _density_matrix);          
+            Eigen::MatrixXd IntegrateVXC (const Eigen::MatrixXd& _density_matrix);
             // this gives int (e_xc-V_xc)*rho d3r
             double getTotEcontribution(){return EXC;}
           
             
         private:
             
-            
            void FindSignificantShells();
-            
-           void EvaluateXC(const double rho,const ub::matrix<double>& grad_rho,double& f_xc, double& df_drho, double& df_dsigma);
-          
-           
-           
+           void EvaluateXC(const double rho,const Eigen::Vector3d& grad_rho,double& f_xc, double& df_drho, double& df_dsigma);          
            double erf1c(double x);
            double erfcc(double x);
            std::vector<double> SSWpartition(int igrid, int ncenters ,  std::vector< std::vector<double> >& rq );
@@ -95,20 +88,13 @@ namespace votca { namespace xtp {
             
             std::vector<double> Rij;
             AOBasis* _basis;
-
             double  _totalgridsize;
-            
             std::vector< GridBox > _grid_boxes;
             std::vector<unsigned> thread_start;
             std::vector<unsigned> thread_stop;
-            
             ExchangeCorrelation _xc;
             bool _use_votca;
             int xfunc_id;
-            
-           
-            
-            
             double EXC;
             bool density_set;
             bool setXC;

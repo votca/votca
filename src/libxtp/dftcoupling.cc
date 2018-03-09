@@ -41,7 +41,7 @@ using boost::format;
 
 
 double DFTcoupling::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
-    Orbitals* _orbitalsB, ub::matrix<double>* _JAB, double  _energy_difference ) {
+    Orbitals* _orbitalsB, Eigen::MatrixXd* _JAB, double  _energy_difference ) {
 
     
     int _levelsA = _orbitalsA->getNumberOfLevels();
@@ -55,7 +55,7 @@ double DFTcoupling::getCouplingElement( int levelA, int levelB,  Orbitals* _orbi
         for (std::vector<int>::iterator iA = list_levelsA.begin()++; iA != list_levelsA.end(); iA++) {
                 for (std::vector<int>::iterator iB = list_levelsB.begin()++; iB != list_levelsB.end(); iB++) { 
                     //cout << *iA << ':' << *iB << endl;
-                    _JAB_one_level = _JAB->at_element( *iA - 1  , *iB -1 + _levelsA );
+                    _JAB_one_level = (*_JAB)( *iA - 1  , *iB -1 + _levelsA );
                     _JAB_sq +=  _JAB_one_level*_JAB_one_level ;
                 }
         }
@@ -64,7 +64,7 @@ double DFTcoupling::getCouplingElement( int levelA, int levelB,  Orbitals* _orbi
         
     } else {
         
-        return _JAB->at_element( levelA - 1  , levelB -1 + _levelsA ) * tools::conv::hrt2ev;
+        return (*_JAB)( levelA - 1  , levelB -1 + _levelsA ) * tools::conv::hrt2ev;
         
     }
     // the  matrix should be symmetric, could also return this element
@@ -83,7 +83,7 @@ double DFTcoupling::getCouplingElement( int levelA, int levelB,  Orbitals* _orbi
  * @return false if failed
  */
 bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
-    Orbitals* _orbitalsAB, ub::matrix<double>* _JAB) {
+    Orbitals* _orbitalsAB, Eigen::MatrixXd* _JAB) {
 
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
     
@@ -139,27 +139,29 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     //       | Orbitals_A          0 |      | Overlap_A |     
     //       | 0          Orbitals_B |  X   | Overlap_B |  X  Transpose( Orbitals_AB )
-    ub::zero_matrix<double> zeroB( _levelsA, _basisB ) ;
-    ub::zero_matrix<double> zeroA( _levelsB, _basisA ) ;
-    ub::matrix<double> _psi_AxB ( _levelsA + _levelsB, _basisA + _basisB  );
+   
     
 
-    CTP_LOG(ctp::logDEBUG,*_pLog) << "Constructing direct product AxB [" 
-            << _psi_AxB.size1() << "x" 
-            << _psi_AxB.size2() << "]" << flush;    
+  
+    
+    Eigen::MatrixXd _psi_AxB=Eigen::MatrixXd::Zero( _levelsA + _levelsB, _basisA + _basisB  );
+    
+      CTP_LOG(ctp::logDEBUG,*_pLog) << "Constructing direct product AxB [" 
+            << _psi_AxB.rows() << "x" 
+            << _psi_AxB.cols() << "]" << flush;    
+    
+    // constructing merged orbitals
+    _psi_AxB.block(0,0,_levelsA , _basisA) = _orbitalsA->MOCoefficients();
+    _psi_AxB.block(_levelsA, _basisA,_levelsB,_basisB) =_orbitalsB->MOCoefficients();
     
     
     
-    ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( _basisA, _basisA +_basisB ) ) = zeroB;
-    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( 0, _basisA ) ) = zeroA;    
-    ub::project( _psi_AxB, ub::range (0, _levelsA ), ub::range ( 0, _basisA ) ) = _orbitalsA->MOCoefficients();
-    ub::project( _psi_AxB, ub::range (_levelsA, _levelsA + _levelsB ), ub::range ( _basisA, _basisA + _basisB ) ) = _orbitalsB->MOCoefficients(); 
 
     // psi_AxB * S_AB * psi_AB
     
     
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting dimer onto monomer orbitals" << flush; 
-    ub::matrix<double> overlap;
+    Eigen::MatrixXd overlap;
     if ( _orbitalsAB->hasAOOverlap() ) {
             CTP_LOG(ctp::logDEBUG,*_pLog) << "Reading overlap matrix from orbitals" << flush; 
            overlap= _orbitalsAB->AOOverlap();
@@ -175,38 +177,45 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         overlap=_dftAOoverlap.Matrix();
     }
     
-    ub::matrix<double> _psi_AB = ub::prod(overlap, ub::trans( _orbitalsAB->MOCoefficients()) ); 
-    ub::matrix<double> _psi_AxB_dimer_basis = ub::prod( _psi_AxB, _psi_AB );  
-    _psi_AB.clear();
+   
+    Eigen::MatrixXd _psi_AxB_dimer_basis =_psi_AxB*overlap*_orbitalsAB->MOCoefficients().transpose(); 
+  
     
-    //check to see if projection quality is sufficient
-    for (unsigned i=0;i<_psi_AxB_dimer_basis.size1();i++){
-        double mag=0.0;
-        for (unsigned j=0;j<_psi_AxB_dimer_basis.size2();j++){
-            mag+=_psi_AxB_dimer_basis(i,j)*_psi_AxB_dimer_basis(i,j);
-            
-    }
+ //cout<< "_psi_AxB_dimer"<<endl;
+    unsigned int LevelsA = _levelsA;
+    for (unsigned i=0;i<_psi_AxB_dimer_basis.rows();i++){
+        double mag=_psi_AxB_dimer_basis.row(i).squaredNorm();
         if (mag<0.95){
-            throw runtime_error("\nERROR: Projection of monomer orbitals on dimer is insufficient, maybe the orbital order is screwed up, otherwise increase dimer basis.\n");
+            int monomer = 0;
+            int level = 0;
+            if ( i < LevelsA ) {
+                monomer = 1;
+                level   = i;
+            } else {
+                monomer = 2;
+                level   = i -_levelsA;
+                
+            }
+            CTP_LOG(ctp::logERROR,*_pLog) << "\nERROR: " << i << " Projection of orbital " << level << " of monomer " << monomer << " on dimer is insufficient,mag="<<mag<<" maybe the orbital order is screwed up, otherwise increase dimer basis.\n"<<flush;
         }
     }
- 
     // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting the Fock matrix onto the dimer basis" << flush;   
-    ub::diagonal_matrix<double> _fock_AB( _orbitalsAB->getNumberOfLevels(), _orbitalsAB->MOEnergies().data() ); 
-    ub::matrix<double> _temp = ub::prod( _fock_AB, ub::trans( _psi_AxB_dimer_basis ) ) ; 
-    ub::matrix<double> JAB_dimer = ub::prod( _psi_AxB_dimer_basis, _temp);  
+      
+    Eigen::MatrixXd JAB_dimer = _psi_AxB_dimer_basis*_orbitalsAB->MOEnergies().asDiagonal()*_psi_AxB_dimer_basis.transpose();  
  
     // S = psi_AxB_dimer_basis * psi_AxB_dimer_basis^T
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Constructing Overlap matrix" << flush;    
-    ub::matrix<double> _S_AxB = ub::prod( _psi_AxB_dimer_basis, ub::trans( _psi_AxB_dimer_basis ));  
+    Eigen::MatrixXd _S_AxB = _psi_AxB_dimer_basis*_psi_AxB_dimer_basis.transpose();  
      
    CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating the effective overlap JAB [" 
-              << JAB_dimer.size1() << "x" 
-              << JAB_dimer.size2() << "]" << flush;  
-   double smalleig=linalg_loewdin(JAB_dimer, _S_AxB);
-    CTP_LOG(ctp::logDEBUG,*_pLog) << "Smallest eigenvalue of overlap matrix is "<<smalleig<< flush;    
-    (*_JAB) = JAB_dimer;    
+              << JAB_dimer.rows() << "x" 
+              << JAB_dimer.cols() << "]" << flush;  
+   
+   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_S_AxB);
+   Eigen::MatrixXd Sm1=es.operatorInverseSqrt();
+   CTP_LOG(ctp::logDEBUG,*_pLog) << "Smallest eigenvalue of overlap matrix is "<<es.eigenvalues()(0)<< flush;    
+   (*_JAB) = Sm1*JAB_dimer*Sm1;
     
     
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Done with electronic couplings" << flush;

@@ -31,9 +31,9 @@ enable_language(CXX)
 
 include(CheckCXXCompilerFlag)
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD_REQUIRED ON) 
 set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0") 
 message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
 endif()
 
@@ -58,7 +58,7 @@ endif()
 add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 
 
-find_package(Eigen 3.3.0)
+find_package(Eigen 3.3.0 REQUIRED)
 if (EIGEN_FOUND)
     message("-- EIGEN found")
 	include_directories(${EIGEN_INCLUDE_DIRS})
@@ -88,23 +88,9 @@ if(GSL_FOUND)
 endif()
 
 
-find_package(HDF5 1.8 COMPONENTS CXX)
-
-if(HDF5_FOUND)
-  message("-- HDF5 found for checkpointing")
-  message("   Version " + ${HDF5_VERSION})
-  include_directories(${HDF5_INCLUDE_DIRS})
-
-  if (${HDF5_VERSION} GREATER 1.8)
-    message(WARNING "HDF5 will be used compatible with version 1.8.")
-  endif()
-
-endif()
-
-
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 include(GNUInstallDirs)
-#option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
+
 
 option(ENABLE_TESTING "Build and enable testing stuff" OFF)
 if(ENABLE_TESTING)
@@ -186,8 +172,7 @@ endforeach(FUNC)
 ######################################
 add_subdirectory(include/votca/xtp)
 add_subdirectory(scripts)
-add_subdirectory(src/libxtp)
-add_subdirectory(src/tools)
+add_subdirectory(src)
 #add_subdirectory(src/dipro)
 #add_subdirectory(share/scripts/dipro)
 add_subdirectory(share)

@@ -44,7 +44,7 @@ public:
     Lowdin(){}
    ~Lowdin(){};
 
-    void EvaluateLowdin(std::vector< QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,AOBasis &basis, bool _do_transition);
+    void EvaluateLowdin(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat,AOBasis &basis, bool _do_transition);
   
    
 private:
