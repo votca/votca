@@ -119,9 +119,6 @@ public:
 
     void Rigidify();
 
-    void WritePDB(std::FILE *out, std::string tag1 = "Fragments", std::string tag2 = "MD");
-    void WriteXYZ(std::FILE *out, bool useQMPos = true);
-
 private:
 
     int         _id;
