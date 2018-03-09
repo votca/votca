@@ -18,12 +18,17 @@
  */
 
 #include <stdio.h>
+#include <vector>
 #include <iostream>
 #include <fstream>
+#include <votca/tools/vec.h>
 #include <votca/xtp/molecule.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/fragment.h>
 #include <votca/xtp/atom.h>
 
 using namespace std;
+using namespace votca::tools;
 
 namespace votca { namespace xtp {
 

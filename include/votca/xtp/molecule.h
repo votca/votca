@@ -22,14 +22,15 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <votca/tools/vec.h>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/fragment.h>
 
 namespace votca { namespace xtp {
 
 class Topology;
+class Atom;
+class Fragment;
+class Segment;
 
 class Molecule {
 public:
@@ -72,7 +73,7 @@ private:
     int     _id;
     std::string  _name ;
 
-    map<std::string, Atom* > _map_AtomName_Atom;
+    std::map<std::string, Atom* > _map_AtomName_Atom;
 
 };
 
