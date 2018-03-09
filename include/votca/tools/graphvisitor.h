@@ -26,7 +26,8 @@
 namespace votca {
 namespace tools {
 
-class Grapth;
+class Graph;
+class GraphNode;
 class Edge;
 
 class GraphVisitor{
@@ -39,6 +40,7 @@ class GraphVisitor{
  
   public:
 
+    virtual void startingNode(GraphNode gn){};
     // What the visitor does to each node as it is visited
     virtual void exec(Graph g, Edge ed){};    
     // The next node to be explored
