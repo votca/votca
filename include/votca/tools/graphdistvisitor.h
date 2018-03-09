@@ -40,4 +40,5 @@ class GraphDistVisitor : public GrapVisitor {
     Edge nextEdge(Graph g);
 };
 
-}} // __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
+}} 
+#endif // __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H

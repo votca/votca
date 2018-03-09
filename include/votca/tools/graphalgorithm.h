@@ -32,4 +32,5 @@ class GraphVisitor;
 std::string findStructureId(Graph& g, GraphVisitor gv);
 
 }
-} // __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
+}
+#endif // __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
