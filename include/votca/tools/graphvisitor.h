@@ -20,6 +20,11 @@
 #ifndef __VOTCA_TOOLS_GRAPH_VISITOR_H
 #define __VOTCA_TOOLS_GRAPH_VISITOR_H
 
+#include <vector>
+#include <set>
+#include <votca/tools/edge.h>
+#include <votca/tools/graphnode.h>
+
 /**
  * \brief a graph visitor outline for creating graph visitor objects
  */
@@ -27,24 +32,32 @@ namespace votca {
 namespace tools {
 
 class Graph;
-class GraphNode;
-class Edge;
 
 class GraphVisitor{
   private:
-    // First element is the distance for breadth first search
-    // Second element is a queue to pop the edges out as we go along
-    std::map<int,queue<Edge>> edge_que_;
-    // Keep track of whether the vertex has been explored or not
-    std::vector<bool> explored_;
- 
+    std::set<bool> explored_;
+    int startingVertex_;
+  protected:
+    // Determine which vertices have been unexplored 
+    std::vector<int> getUnexploredVertex_(Edge ed);
+    // What is done to an individual graph node as it is explored
+    virtual void addEdges_(Graph g, int vertex);
+    virtual Edge getEdge_(Graph g);
+    // Edge(0,0) is a dummy value
+    virtual void exploreNode_(std::pair<int,GraphNode> p_gn,Edge = DUMMY_EDGE);
   public:
 
-    virtual void startingNode(GraphNode gn){};
+    GraphVisitor() : startingVertex_(0) {};
+    
+    // Determine if the exploration is complete
+    virtual bool queEmpty();
+    // Which node the exploration begins at. 
+    void startingVertex(Graph g, int vertex=0);
     // What the visitor does to each node as it is visited
-    virtual void exec(Graph g, Edge ed){};    
+    void exec(Graph g, Edge ed);    
     // The next node to be explored
-    virtual Edge nextEdge(Graph g) {}; 
+    Edge nextEdge(Graph g); 
+
 };
 
 }}

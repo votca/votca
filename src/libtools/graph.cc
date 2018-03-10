@@ -17,20 +17,45 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
-#define __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
-
 #include <string>
-// List of all the graph algorithms 
+#include <votca/tools/graph.h>
 
-using namespace votca {
-using namespace tools {
+using namespace std;
 
-class Graph;
-class GraphVisitor;
+namespace votca {
+namespace tools {
 
-std::string findStructureId(Graph& g, GraphVisitor gv, int starting_node_=0);
+class GraphNode;
+
+void Graph::updateStructIds_(Graph& g){
+  if(!this->structure_id_set_){
+    this->calcStructureId_();
+    this->structure_id_set_=true;
+  }
+  if(!g.structure_id_set_){
+    g.calcStructureId_();
+    g.structure_id_set_=true;
+  }
+}
+
+bool Graph::operator!=(Graph& g) {
+  updateStructIds_(g);
+  return structure_id_.compare(g.structure_id_);
+}
+
+bool Graph::operator==( Graph& g) {
+  return !(*(this)!=g);  
+}
+
+GraphNode& Graph::getNode(int vert){
+  return nodes_[vert];
+}
+
+void Graph::calcStructureId_(){
+  throw runtime_error("calcStructureId_ is not yet implemented");
+  return;
+}
 
 }
 }
-#endif // __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
+

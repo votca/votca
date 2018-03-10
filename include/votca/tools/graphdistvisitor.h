@@ -34,10 +34,15 @@ class Edge;
 class GraphDistVisitor : public GrapVisitor {
   private:
 
+    // index is the distance for breadth first search
+    // Second element is a queue to pop the edges out as we go along
+    std::deque<queue<Edge>> edge_que_;
+
+    void addEdges_(Graph g, int vertex);
+    Edge getEdge_(Graph g);
+    void exploreNode_(std::pair<int,GraphNode> p_gn, Edge ed, Graph g);    
   public:
-    // This executable will add the ["Dist"] to the integer map
-    void exec(Graph g, Edge ed);
-    Edge nextEdge(Graph g);
+    bool queEmpty();
 };
 
 }} 

@@ -29,6 +29,7 @@
 namespace votca {
 namespace tools {
 
+class GraphVisitor;
 /**
  * \brief A graph node that will take a variety of different values
  *
@@ -47,7 +48,6 @@ class GraphNode {
   std::unordered_map<std::string, double> double_vals_;
   std::unordered_map<std::string, std::string> str_vals_;
   void initStringId_();
-
  public:
   GraphNode() {};
   /// Constructor
@@ -62,7 +62,10 @@ class GraphNode {
   std::string getStringId() const { return str_id_; }
   bool operator==(const GraphNode gn) const;
   bool operator!=(const GraphNode gn) const;
+  // Allow visitor to directly access members of the node
+  friend GraphVisitor;
 };
+
 }
 }
 #endif  // _VOTCA_TOOLS_GRAPHNODE_H

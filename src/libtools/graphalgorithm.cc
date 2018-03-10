@@ -17,20 +17,24 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
-#define __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
-
 #include <string>
+#include <votca/tools/graphvisitor.h>
+#include <votca/tools/graph.h>
 // List of all the graph algorithms 
 
-using namespace votca {
-using namespace tools {
+namespace votca {
+namespace tools {
 
-class Graph;
-class GraphVisitor;
 
-std::string findStructureId(Graph& g, GraphVisitor gv, int starting_node_=0);
+std::string findStructureId(Graph& g, GraphVisitor gv, int starting_node_ = 0){
+/*  
+  gv.startingNode();
+
+  
+  gv.exec();
+  Edge ed = gv.nextEdge(g);
+*/
+}
 
 }
 }
-#endif // __VOTCA_TOOLS_GRAPH_ALGORITHMS_H

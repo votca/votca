@@ -37,25 +37,30 @@ namespace tools {
  *        the bonds between nodes.
  *
  */
-class Graph : protected EdgeContainer {
+class Graph : public EdgeContainer {
   private:
+    // First int is the index for the graph nodes, these are the same
+    // indices seen in the edge container. 
     std::unordered_map<int,GraphNode> nodes_;
     std::string structure_id_;
     bool structure_id_set_; 
-    Graph() {};
+    void updateStructIds_(Graph& g);   
   protected:
     void calcStructureId_(); 
   public:
+    Graph() {};
     /// Constructor
     Graph(std::vector<Edge> edgs,std::unordered_map<int,GraphNode> nodes) :
       EdgeContainer::EdgeContainer(edgs),
-      _nodes(nodes),
-      _structure_id_set(false) {}
+      nodes_(nodes),
+      structure_id_set_(false) {}
 
     std::vector<GraphNode> getNeighNodes(int vert);
+    GraphNode& getNode(int vert);
 
-    bool operator!=(const Graph& g) const;
-    bool operator==(const Graph& g) const;
+    bool operator!=(Graph& g); 
+    bool operator==(Graph& g);
+
 };
 }
 }
