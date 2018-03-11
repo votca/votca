@@ -21,6 +21,8 @@
 #define __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
 
 #include <votca/tools/graphvisitor.h>
+#include <deque>
+#include <queue>
 /**
  * \brief A graph visitor that will caclute the distance of each node
  *
@@ -30,17 +32,18 @@ namespace tools {
 
 class Graph;
 class Edge;
+class GraphNode;
 
-class GraphDistVisitor : public GrapVisitor {
+class GraphDistVisitor : public GraphVisitor {
   private:
 
     // index is the distance for breadth first search
     // Second element is a queue to pop the edges out as we go along
-    std::deque<queue<Edge>> edge_que_;
+    std::deque<std::queue<Edge>> edge_que_;
 
     void addEdges_(Graph g, int vertex);
     Edge getEdge_(Graph g);
-    void exploreNode_(std::pair<int,GraphNode> p_gn, Edge ed, Graph g);    
+    void exploreNode_(std::pair<int,GraphNode&> p_gn, Graph g, Edge ed);    
   public:
     bool queEmpty();
 };

@@ -34,17 +34,16 @@ namespace tools {
 class Graph;
 
 class GraphVisitor{
-  private:
+  protected:
     std::set<bool> explored_;
     int startingVertex_;
-  protected:
     // Determine which vertices have been unexplored 
     std::vector<int> getUnexploredVertex_(Edge ed);
     // What is done to an individual graph node as it is explored
     virtual void addEdges_(Graph g, int vertex);
     virtual Edge getEdge_(Graph g);
     // Edge(0,0) is a dummy value
-    virtual void exploreNode_(std::pair<int,GraphNode> p_gn,Edge = DUMMY_EDGE);
+    virtual void exploreNode_(std::pair<int,GraphNode&> p_gn,Graph g,Edge = DUMMY_EDGE);
   public:
 
     GraphVisitor() : startingVertex_(0) {};

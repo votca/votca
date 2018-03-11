@@ -29,7 +29,7 @@
 namespace votca {
 namespace tools {
 
-class GraphVisitor;
+class GraphDistVisitor;
 /**
  * \brief A graph node that will take a variety of different values
  *
@@ -63,7 +63,7 @@ class GraphNode {
   bool operator==(const GraphNode gn) const;
   bool operator!=(const GraphNode gn) const;
   // Allow visitor to directly access members of the node
-  friend GraphVisitor;
+  friend GraphDistVisitor;
 };
 
 }
