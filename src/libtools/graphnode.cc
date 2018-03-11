@@ -133,12 +133,46 @@ void GraphNode::setStr(const unordered_map<string, string> str_vals) {
   initStringId_();
 }
 
+int GraphNode::getInt(const string str){
+  if(int_vals_.count(str)==0) throw invalid_argument("GraphNode does not "
+                                                     "contain value");
+  return int_vals_[str];
+}
+
+int GraphNode::getDouble(const string str) {
+  if(double_vals_.count(str)==0) throw invalid_argument("GraphNode does not "
+                                                     "contain value");
+  return double_vals_[str];
+}
+
+int GraphNode::getStr(const string str) {
+  if(str_vals_.count(str)==0) throw invalid_argument("GraphNode does not "
+                                                     "contain value");
+  return double_vals_[str];
+}
+
 bool GraphNode::operator!=(const GraphNode gn) const {
   return (str_id_.compare(gn.str_id_) != 0);
 }
 
 bool GraphNode::operator==(const GraphNode gn) const {
   return !((*this) != gn);
+}
+
+ostream& operator<<(ostream& os, const GraphNode gn) {
+  os << "Integer Values" << endl;
+  for(auto it=gn.int_vals_.begin();it!=gn.int_vals_.end();++it){
+    os << it->first << " " << it->second << endl;
+  }
+  os << "Double  Values" << endl;
+  for(auto it=gn.double_vals_.begin();it!=gn.double_vals_.end();++it){
+    os << it->first << " " << it->second << endl;
+  }
+  os << "String  Values" << endl;
+  for(auto it=gn.str_vals_.begin();it!=gn.str_vals_.end();++it){
+    os << it->first << " " << it->second << endl;
+  }
+
 }
 }
 }

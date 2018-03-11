@@ -58,12 +58,18 @@ class GraphNode {
   void setInt(const std::unordered_map<std::string, int> int_vals);
   void setDouble(const std::unordered_map<std::string, double> double_vals);
   void setStr(const std::unordered_map<std::string, std::string> str_vals);
+
+  int getInt(const std::string str);
+  int getDouble(const std::string str);
+  int getStr(const std::string str);
   /// Get the string id unique to the contents
   std::string getStringId() const { return str_id_; }
   bool operator==(const GraphNode gn) const;
   bool operator!=(const GraphNode gn) const;
   // Allow visitor to directly access members of the node
   friend GraphDistVisitor;
+
+  friend std::ostream& operator<<(std::ostream& os, const GraphNode gn);
 };
 
 }
