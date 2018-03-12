@@ -61,6 +61,7 @@ class Graph : public EdgeContainer {
     bool operator!=(Graph& g); 
     bool operator==(Graph& g);
 
+    friend std::ostream& operator<<(std::ostream& os, const Graph g);
 };
 }
 }

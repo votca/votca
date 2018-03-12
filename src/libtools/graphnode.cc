@@ -172,7 +172,7 @@ ostream& operator<<(ostream& os, const GraphNode gn) {
   for(auto it=gn.str_vals_.begin();it!=gn.str_vals_.end();++it){
     os << it->first << " " << it->second << endl;
   }
-
+  return os;
 }
 }
 }

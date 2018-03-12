@@ -34,7 +34,7 @@ bool GraphVisitor::queEmpty(){
   return true;
 }
 
-void GraphVisitor::addEdges_(Graph g, int vertex){
+void GraphVisitor::addEdges_(Graph& g, int vertex){
   throw runtime_error("addEdges_ method must be defined by your visitor");
 }
 
@@ -53,15 +53,16 @@ vector<int> GraphVisitor::getUnexploredVertex_(Edge ed){
   return unexp_vert;
 }
 
-void GraphVisitor::startingVertex(Graph g, int vertex){
+void GraphVisitor::startingVertex(Graph& g, int vertex){
   startingVertex_ = vertex;
   auto neigh_eds = g.getNeighEdges(vertex);
-  auto gn = g.getNode(vertex);
+  GraphNode& gn = g.getNode(vertex);
+  pair<int, GraphNode&> p_gn(vertex,gn);
   exploreNode_(pair<int,GraphNode&>(vertex,gn),g);
   addEdges_(g, vertex);
 }
 
-void GraphVisitor::exec(Graph g, Edge ed){
+void GraphVisitor::exec(Graph& g, Edge ed){
   auto unexp_vert = getUnexploredVertex_(ed);    
   // If two values are returned this is a problem 
   if(unexp_vert.size()>1){

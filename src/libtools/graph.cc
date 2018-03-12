@@ -56,6 +56,14 @@ void Graph::calcStructureId_(){
   return;
 }
 
+ostream& operator<<(ostream& os, const Graph g){
+  os << "Graph" << endl;
+  for( auto p_gn : g.nodes_ ) {
+    os << "Node " << p_gn.first << endl;
+    os << p_gn.second << endl;
+  }
+  return os;
+}
 }
 }
 

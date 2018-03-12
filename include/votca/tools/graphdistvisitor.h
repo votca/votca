@@ -41,10 +41,11 @@ class GraphDistVisitor : public GraphVisitor {
     // Second element is a queue to pop the edges out as we go along
     std::deque<std::queue<Edge>> edge_que_;
 
-    void addEdges_(Graph g, int vertex);
+    void addEdges_(Graph& g, int vertex);
     Edge getEdge_(Graph g);
-    void exploreNode_(std::pair<int,GraphNode&> p_gn, Graph g, Edge ed);    
+    void exploreNode_(std::pair<int,GraphNode&> p_gn, Graph g, Edge ed = DUMMY_EDGE);    
   public:
+    GraphDistVisitor(){};
     bool queEmpty();
 };
 
