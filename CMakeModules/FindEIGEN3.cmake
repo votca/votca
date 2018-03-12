@@ -119,7 +119,7 @@ if (EIGEN3_INCLUDE_DIR)
 
     # This is on a single line s/t CMake does not interpret it as a list of
     # elements and insert ';' separators which would result in 3.;2.;0 nonsense.
-    set(EIGEN3_VERSION "${EIGEN3_WORLD_VERSION}.${EIGEN3_MAJOR_VERSION}.${EIGEN3_MINOR_VERSION}")
+    set(EIGEN3_VERSION ${EIGEN3_WORLD_VERSION}.${EIGEN3_MAJOR_VERSION}.${EIGEN3_MINOR_VERSION})
   endif (NOT EXISTS ${EIGEN3_VERSION_FILE})
 endif (EIGEN3_INCLUDE_DIR)
 

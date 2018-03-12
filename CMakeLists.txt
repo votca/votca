@@ -58,8 +58,9 @@ endif()
 add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 
 
-find_package(Eigen 3.3.0 REQUIRED)
+find_package(EIGEN3 3.3.0 REQUIRED)
 if (EIGEN3_FOUND)
+	message(STATUS "${EIGEN3_VERSION}")
   include_directories(${EIGEN3_INCLUDE_DIRS})
 endif (EIGEN3_FOUND)
 
