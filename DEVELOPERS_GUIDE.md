@@ -126,4 +126,8 @@ clang-format -i -style=file file.cc
 */
 ```
 
+The doxygen commenting will help future developers maintain the code, in its 
+fully compiled state it may be found at: http://doc.votca.org
 
+NOTE: Compilation of the doxygen documentation is automated when code is merged
+into the master votca branch! 
