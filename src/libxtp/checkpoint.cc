@@ -17,25 +17,50 @@
  *
  */
 
+#include "gitversion.h"
 #include <iostream>
+#include <stdexcept>
 #include <votca/xtp/checkpoint.h>
 
-namespace votca{
-namespace xtp{
+namespace votca {
+namespace xtp {
 
-CheckpointFile::CheckpointFile(std::string fileName){
-    try{
-        H5::Exception::dontPrint();
-        H5::H5File file(fileName, H5F_ACC_TRUNC);
-    } catch (H5::FileIException error) {
-        error.printError();
-        throw error;
-    }
+using namespace hdf5_utils;
+
+CheckpointFile::CheckpointFile(std::string fileName) : _fileName(fileName) {
+
+  try {
+    _fileHandle = H5::H5File(fileName, H5F_ACC_TRUNC);
+
+    _version = _fileHandle.createAttribute("Version", *InferDataType<std::string>::get(),
+                                           StrScalar());
+
+    _version.write(str_type, gitversion);
+
+    _child1 = _fileHandle.createGroup("/Child1");
+
+
+
+    // WriteData(_child1, a, "a");
+
+    Eigen::Matrix<double, 10, 10> b;
+
+    WriteData(_child1, b, "b");
+
+    Eigen::VectorXd c(10);
+
+    WriteData(_child1, c, "c");
+
+  } catch (H5::Exception error) {
+    error.printError();
+    throw std::runtime_error(error.getDetailMsg());
+  }
+
 };
 
-CheckpointFile::~CheckpointFile(){
-    std::cout << "goodnight, sweet prince." << std::endl;
-};
+CheckpointFile::~CheckpointFile(){};
 
-}
-}
+std::string CheckpointFile::getName() { return _fileName; };
+
+}  // namespace xtp
+}  // namespace votca
