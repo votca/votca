@@ -101,7 +101,7 @@ clang-format -i -style=file file.cc
 '-style=file' ensures the format is read from the .clang-format file otherwise 
      it will use a default style guide. 
 
-### CPP Code Commenting Guide
+## CPP Comment Guide
  
  It is preferential that the following guidelines be followed when adding 
  comments to code:
