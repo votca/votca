@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <map>
 #include <set>
 #include <votca/tools/edge.h>
 #include <boost/graph/adjacency_list.hpp>
@@ -36,7 +37,7 @@ namespace tools {
  *   finding neighboring vertices etc.
  */
 class EdgeContainer {
- private:
+ protected:
   std::unordered_map<int,std::set<int>> adj_list_; 
  public:
   /// Constructors can take no arguments a single Edge or a vector of edges
@@ -44,6 +45,11 @@ class EdgeContainer {
   EdgeContainer(Edge ed);
   EdgeContainer(std::vector<Edge> eds);
 
+  // First number is the vertex id 
+  // Second number is the degree
+  std::map<int,int> getVerticesDegree(void);
+  /// Contains vector of all vertices with degree
+  std::vector<int> getVerticesDegree(int degree);
   /// Determine the degree of the vertex/number of edges attached
   int getDegree(int vert);
   /// Check if the edge exists returns true or false
@@ -60,6 +66,7 @@ class EdgeContainer {
   std::vector<int> getNeighVertices(int vert);
   /// Get the edges neighboring vert
   std::vector<Edge> getNeighEdges(int vert);
+ 
 };
 }
 }

@@ -17,10 +17,10 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
-#define __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
+#ifndef __VOTCA_TOOLS_GRAPH_BASIC_VISITOR_H
+#define __VOTCA_TOOLS_GRAPH_BASIC_VISITOR_H
 
-#include <votca/tools/graphbasicvisitor.h>
+#include <votca/tools/graphvisitor.h>
 #include <deque>
 #include <queue>
 /**
@@ -33,15 +33,18 @@ namespace tools {
 class Graph;
 class Edge;
 class GraphNode;
-class GraphBasicVisitor;
 
-class GraphDistVisitor : public GraphBasicVisitor {
+class GraphBasicVisitor : public GraphVisitor {
   private:
 
-    void exploreNode_(std::pair<int,GraphNode&> p_gn, Graph g, Edge ed = DUMMY_EDGE);    
+    std::deque<std::queue<Edge>> edge_que_;
+
+    void addEdges_(Graph& g, int vertex);
+    Edge getEdge_(Graph g);
   public:
-    GraphDistVisitor(){};
+    GraphBasicVisitor(){};
+    bool queEmpty();
 };
 
 }} 
-#endif // __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
+#endif // __VOTCA_TOOLS_GRAPH_BASIC_VISITOR_H

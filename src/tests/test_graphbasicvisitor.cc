@@ -19,21 +19,21 @@
 
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE graphdistvisitor_test
+#define BOOST_TEST_MODULE graphbasicvisitor_test
 #include <boost/test/unit_test.hpp>
 #include <vector>
 #include <unordered_map>
 #include <votca/tools/graph.h>
 #include <votca/tools/graphnode.h>
-#include <votca/tools/graphdistvisitor.h>
+#include <votca/tools/graphbasicvisitor.h>
 
 using namespace std;
 using namespace votca::tools;
 
-BOOST_AUTO_TEST_SUITE(graphdistvisitor_test)
+BOOST_AUTO_TEST_SUITE(graphbasicvisitor_test)
 
 BOOST_AUTO_TEST_CASE(constructor_test){
-  GraphDistVisitor gdv;
+  GraphBasicVisitor gb_v;
 }
 
 BOOST_AUTO_TEST_CASE(basic_test){
@@ -52,24 +52,17 @@ BOOST_AUTO_TEST_CASE(basic_test){
 
   Graph g(edges,nodes);
 
-  GraphDistVisitor gdv;
-  BOOST_CHECK(gdv.queEmpty());
-
-  BOOST_CHECK_THROW(gdv.exec(g,ed),runtime_error);
+  GraphBasicVisitor gb_v;
+  BOOST_CHECK(gb_v.queEmpty());
+  BOOST_CHECK_THROW(gb_v.exec(g,ed),runtime_error);
   // Default starts with node index 0
-  gdv.startingVertex(g);
-  BOOST_CHECK_EQUAL(gdv.queEmpty(),false);
+  gb_v.startingVertex(g);
+  BOOST_CHECK_EQUAL(gb_v.queEmpty(),false);
   // No exception should be thrown at this point
-  Edge ed1 = gdv.nextEdge(g);
+  Edge ed1 = gb_v.nextEdge(g);
   BOOST_CHECK_EQUAL(ed,ed1);
-  gdv.exec(g,ed1);
-  BOOST_CHECK(gdv.queEmpty());
-  GraphNode gn3 = g.getNode(0);
-  int dist = gn3.getInt("Dist"); 
-  BOOST_CHECK_EQUAL(dist,0);
-  GraphNode gn4 = g.getNode(1);
-  dist = gn4.getInt("Dist");
-  BOOST_CHECK_EQUAL(dist,1);
+  gb_v.exec(g,ed1);
+  BOOST_CHECK(gb_v.queEmpty());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -19,22 +19,51 @@
 
 #include <string>
 #include <votca/tools/graphvisitor.h>
+#include <votca/tools/graphbasicvisitor.h>
 #include <votca/tools/graph.h>
+#include <votca/tools/graphalgorithm.h>
 // List of all the graph algorithms 
+
+using namespace std;
 
 namespace votca {
 namespace tools {
 
+bool singleNetwork(Graph g, GraphBasicVisitor& gv_b){
 
-std::string findStructureId(Graph& g, GraphVisitor gv, int starting_node_ = 0){
-/*  
-  gv.startingNode();
+  exploreGraph(g,gv_b);
+  auto all_vertices = g.getVertices();
+  auto exp_vertices = gv_b.getExploredVertices(); 
+  auto iso_nodes = g.getIsolatedNodes();
+  return exp_vertices.size()==all_vertices.size() && 
+         iso_nodes.size() == 0;
+}
 
-  
+void exploreGraph(Graph& g, GraphBasicVisitor& gv_b, int starting_vertex){
+  // Create a list of all vertices and determine if they have all been
+  // explored when the visitor que is empty 
+  gv_b.startingVertex(g,starting_vertex);
+
+  while(gv_b.queEmpty()==false){
+    auto ed = gv_b.nextEdge(g);
+    gv_b.exec(g,ed);
+  }
+}
+/*
+std::string findStructureId(Graph& g, GraphVisitor& gv_b){
+
+  // Determine the node with the largest number of degrees
+  //auto nodes = g.getNodes();
+    
+  // from the graph nodes sort them so that we start with the most
+  // unique one first 
+  // gv.startingNode(starting_node_);
+
+    
   gv.exec();
   Edge ed = gv.nextEdge(g);
-*/
-}
+
+}*/
 
 }
 }

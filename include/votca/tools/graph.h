@@ -37,6 +37,9 @@ namespace tools {
  *        the bonds between nodes.
  *
  */
+
+class GraphNode;
+
 class Graph : public EdgeContainer {
   private:
     // First int is the index for the graph nodes, these are the same
@@ -55,9 +58,13 @@ class Graph : public EdgeContainer {
       nodes_(nodes),
       structure_id_set_(false) {}
 
-    std::vector<GraphNode> getNeighNodes(int vert);
-    GraphNode& getNode(int vert);
+    std::vector<std::pair<int,GraphNode>> getIsolatedNodes(void);
+    std::vector<int> getVerticesMissingNodes(void);
+    std::vector<std::pair<int,GraphNode>> getNeighNodes(int vert);
+    GraphNode& Node(int vert);    
 
+    GraphNode getNode(int vert);
+    std::vector<std::pair<int,GraphNode>> getNodes(void);
     bool operator!=(Graph& g); 
     bool operator==(Graph& g);
 

@@ -35,15 +35,15 @@ class Graph;
 
 class GraphVisitor{
   protected:
-    std::set<bool> explored_;
+    std::set<int> explored_;
     int startingVertex_;
     // Determine which vertices have been unexplored 
     std::vector<int> getUnexploredVertex_(Edge ed);
     // What is done to an individual graph node as it is explored
-    virtual void addEdges_(Graph g, int vertex);
+    virtual void addEdges_(Graph& g, int vertex);
     virtual Edge getEdge_(Graph g);
     // Edge(0,0) is a dummy value
-    virtual void exploreNode_(std::pair<int,GraphNode&> p_gn,Graph g,Edge = DUMMY_EDGE);
+    virtual void exploreNode_(std::pair<int,GraphNode&> p_gn,Graph g,Edge ed = DUMMY_EDGE);
   public:
 
     GraphVisitor() : startingVertex_(0) {};
@@ -51,12 +51,13 @@ class GraphVisitor{
     // Determine if the exploration is complete
     virtual bool queEmpty();
     // Which node the exploration begins at. 
-    void startingVertex(Graph g, int vertex=0);
+    void startingVertex(Graph& g, int vertex=0);
     // What the visitor does to each node as it is visited
-    void exec(Graph g, Edge ed);    
+    void exec(Graph& g, Edge ed);    
     // The next node to be explored
     Edge nextEdge(Graph g); 
-
+    // Get the set of all the vertices that have been explored
+    std::set<int> getExploredVertices();
 };
 
 }}

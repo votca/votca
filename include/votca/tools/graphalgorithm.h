@@ -23,13 +23,17 @@
 #include <string>
 // List of all the graph algorithms 
 
-using namespace votca {
-using namespace tools {
+namespace votca {
+namespace tools {
 
 class Graph;
-class GraphVisitor;
+class GraphBasicVisitor;
 
-std::string findStructureId(Graph& g, GraphVisitor gv, int starting_node_=0);
+bool singleNetwork(Graph g, GraphBasicVisitor& gv_b);
+
+void exploreGraph(Graph& g, GraphBasicVisitor& gv_b, int starting_vertex=0);
+
+std::string findStructureId(Graph& g, GraphBasicVisitor gv_b);
 
 }
 }

@@ -47,8 +47,46 @@ bool Graph::operator==( Graph& g) {
   return !(*(this)!=g);  
 }
 
-GraphNode& Graph::getNode(int vert){
+vector<pair<int, GraphNode>> Graph::getIsolatedNodes(void){
+  vector<pair<int,GraphNode>> iso_nodes;
+  for(auto node : nodes_ ){
+    if(adj_list_.count(node.first)){
+      if(adj_list_[node.first].size()==0){
+        pair<int,GraphNode> pr(node.first,node.second);
+        iso_nodes.push_back(pr);
+      }
+    }else{
+      pair<int,GraphNode> pr(node.first,node.second);
+      iso_nodes.push_back(pr);
+    }
+  }
+  return iso_nodes;
+}
+
+vector<int> Graph::getVerticesMissingNodes(void){
+  vector<int> missing;
+  for(auto pr_v : adj_list_){
+    if(nodes_.count(pr_v.first)==0){
+      missing.push_back(pr_v.first);
+    }
+  }
+  return missing;
+}
+
+GraphNode& Graph::Node(int vert){
   return nodes_[vert];
+}
+
+GraphNode Graph::getNode(int vert){
+  return nodes_[vert];
+}
+
+vector<pair<int,GraphNode>> Graph::getNodes(void){
+  vector<pair<int,GraphNode>> vec_nodes;
+  for(auto pr_node : nodes_ ){
+    vec_nodes.push_back(pr_node);
+  } 
+  return vec_nodes;
 }
 
 void Graph::calcStructureId_(){

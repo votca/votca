@@ -18,6 +18,9 @@
  */
 
 #include <votca/tools/graphdistvisitor.h>
+#include <votca/tools/graphbasicvisitor.h>
+#include <votca/tools/graphvisitor.h>
+
 #include <votca/tools/graphnode.h>
 #include <votca/tools/graph.h>
 #include <votca/tools/edge.h>
@@ -26,10 +29,6 @@ using namespace std;
 
 namespace votca {
 namespace tools {
-
-bool GraphDistVisitor::queEmpty(){
-  return edge_que_.empty(); 
-}
 
 // Add the distance to the node that has not yet been explored
 void GraphDistVisitor::exploreNode_(pair<int,GraphNode&> p_gn,Graph g, Edge ed){
@@ -48,58 +47,6 @@ void GraphDistVisitor::exploreNode_(pair<int,GraphNode&> p_gn,Graph g, Edge ed){
   }
   // Ensure the graph node is set to explored
   GraphVisitor::exploreNode_(p_gn,g);
-}
-
-Edge GraphDistVisitor::getEdge_(Graph g){
-  Edge ed = edge_que_.at(0).front();
-  edge_que_.at(0).pop();
-  if(edge_que_.at(0).size()==0){
-    edge_que_.pop_front();
-  }
-  return ed;
-}
-
-// Add edges to be explored
-void GraphDistVisitor::addEdges_(Graph& g, int vertex){
-  auto eds = g.getNeighEdges(vertex);
-  // Proceed to add them to queue if the vertices
-  // they refer to are not already explored
- 
-  // If first edges to be added
-  if(edge_que_.empty()){
-    queue<Edge> first_que;
-    for(auto ed : eds ){
-      int neigh_vert = ed.getOtherV(vertex);
-      if(explored_.count(neigh_vert)==0){
-        first_que.push(ed);
-      }
-    }
-    if(!first_que.empty()){
-      edge_que_.push_back(first_que);
-    }
-  }else{
-
-    if(edge_que_.size()==1){
-      queue<Edge> next_que;
-      for(auto ed : eds ){
-        int neigh_vert = ed.getOtherV(vertex);
-        if(explored_.count(neigh_vert)==0){
-          next_que.push(ed);
-        }
-      }
-      if(!next_que.empty()){
-        edge_que_.push_back(next_que);
-      }
-    }else{
-      for(auto ed : eds ){
-        int neigh_vert = ed.getOtherV(vertex);
-        if(explored_.count(neigh_vert)==0){
-          // Add the edges to the next highest distance queue    
-          edge_que_.at(1).push(ed);
-        }
-      }
-    }
-  }
 }
 
 }
