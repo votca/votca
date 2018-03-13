@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,15 @@
  *
  */
 
-#ifndef _HistogramNew_H
-#define	_HistogramNew_H
+#ifndef _VOTCA_TOOLS_HISTOGRAMNEW_H
+#define	_VOTCA_TOOLS_HISTOGRAMNEW_H
 
 #include <iostream>
-#include <vector>
 #include <limits>
 #include <cmath>
 #include "table.h"
 
 namespace votca { namespace tools {
-
-using namespace std;
 
 /**
     \brief class to generate histograms
@@ -50,7 +47,7 @@ class HistogramNew
          * @param min lower bound of interval
          * @param max upper bound of interval
          * @param nbins number of bins
-         */void Initialize(double min, double max, int nbins);
+         */void Initialize(double min, double max, int nbins=100);
 
         /**
           * \brief process a data point
@@ -65,22 +62,42 @@ class HistogramNew
         template<typename iterator_type>        
         void ProcessRange(const iterator_type &begin, const iterator_type &end);
     
-    
         /**
          * \brief get the lower bound of the histogram intervaö
          * \return lower limit of interval
          */
         double getMin() const {return _min; }
+
         /**
          * \brief get the upper bound of the histogram intervaö
          * \return upper limit of interval
          */
         double getMax() const {return _max; }
+
         /**
          * \brief Get number of grid points
          * \return number of grid poitns
          */
         double getNBins() const {return  _nbins; }
+
+        /**
+         * \brief Get the count of the bin with the fewest counts
+         * \return minimum counts
+         */
+        double getMinBinVal() const;
+
+        /**
+         * \brief Get the count of the bin with the maximum counts
+         * \return maximum counts
+         */
+        double getMaxBinVal() const; 
+
+        /**
+         * \brief Given the bin number get the Inverval bounds
+         * @param[in] bin - pass in the index of the bin
+         * \return pair with upper and lower bounds of the interval of the bin
+         */
+        std::pair<double,double> getInterval(const int bin ) const;
 
         /**
          * \brief get the grid of histogram
@@ -98,7 +115,6 @@ class HistogramNew
          */
         void Clear();
         
-    
         /**
          * \brief get access to content of histogram
          * \return table object with bins in x and values in y
@@ -116,18 +132,13 @@ class HistogramNew
         double _step;
         double _weight;
         bool _periodic; 
-        
         int _nbins;
-        
         Table _data;
 };
 
-inline ostream& operator<<(ostream& out, HistogramNew &h)
+inline std::ostream& operator<<(std::ostream& out, HistogramNew &h)
 {
     out << h.data();
-    //for(int i=0; i<h.getNBins(); i++) {
-    //    out << h.getMin() + h.getStep()*((double)i+0.0) << " " << h._get()[i] << endl;
-    //}
     return out;
 }
 
@@ -139,6 +150,5 @@ inline void HistogramNew::ProcessRange(const iterator_type &begin, const iterato
 }
 
 }}
-
-#endif	/* _HistogramNew_H */
+#endif	// _VOTCA_TOOLS_HISTOGRAMNEW_H
 

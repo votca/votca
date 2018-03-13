@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,12 @@
  */
 
 #include <votca/tools/histogramnew.h>
+#include <boost/lexical_cast.hpp>
+#include <algorithm>
 
-namespace votca { namespace tools {
+using namespace std;
+namespace votca { 
+namespace tools {
 
 HistogramNew::HistogramNew()
 {
@@ -49,7 +53,7 @@ void HistogramNew::Initialize(double min, double max, int nbins)
 
 void HistogramNew::Process(const double &v, double scale)
 {
-    int i = (int)floor((v - _min) / _step + 0.5);
+    int i = (int)floor((v - _min) / _step);
     
     if (i < 0 || i >= _nbins) {
         if(!_periodic) return;
@@ -58,6 +62,21 @@ void HistogramNew::Process(const double &v, double scale)
     }
     _data.y(i) += _weight * scale;
 } 
+
+double HistogramNew::getMinBinVal(void) const{
+  return _data.getMinY();
+}
+
+double HistogramNew::getMaxBinVal(void) const{
+  return _data.getMaxY();
+}
+
+pair<double,double> HistogramNew::getInterval(const int bin) const{
+  pair<double,double> bounds;
+  bounds.first = boost::lexical_cast<double>(bin) * _min;
+  bounds.second += _step;
+  return bounds;
+}
 
 void HistogramNew::Normalize()
 {

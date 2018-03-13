@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
 #include <votca/tools/tokenizer.h>
 #include <votca/tools/table.h>
 #include <stdexcept>
-#include <iostream>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/range/algorithm.hpp>
 #include <votca/tools/lexical_cast.h>
 
 namespace votca { namespace tools {
@@ -47,8 +47,7 @@ void Table::Load(string filename)
         throw runtime_error(string("error, cannot open file ") + filename);
 
     setErrorDetails("file " + filename);
-    in >> *this;
-    
+    throw runtime_error("Loading from file to table is not implemented"); 
     in.close();   
 }
 
@@ -76,6 +75,26 @@ void Table::clear(void)
     _y.clear();
     _flags.clear();
     _yerr.clear();
+}
+
+double Table::getMaxY() const{
+  auto maxY = boost::range::max_element(_y); 
+  return *maxY;
+}
+
+double Table::getMinY() const{
+  auto minY = boost::range::min_element(_y); 
+  return *minY;
+}
+
+double Table::getMaxX() const{
+  auto maxX = boost::range::max_element(_x); 
+  return *maxX;
+}
+
+double Table::getMinX() const{
+  auto minX = boost::range::min_element(_x); 
+  return *minX;
 }
 
 // TODO: this functon is weired, reading occours twice, cleanup!!
