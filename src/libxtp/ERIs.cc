@@ -209,29 +209,26 @@ namespace votca {
           // Timer
           clock_t start = clock();
 
+          // TODO: Do not store numFunc for readability?
           #pragma omp parallel for
           for (int iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
-
+            
             const AOShell* shell_3 = dftbasis.getShell(iShell_3);
-            int start_3 = shell_3->getStartIndex();
             int numFunc_3 = shell_3->getNumFunc();
-
-            for (int iShell_4 = 0; iShell_4 < numShells; iShell_4++) {
-
+            
+            for (int iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
+              
               const AOShell* shell_4 = dftbasis.getShell(iShell_4);
-              int start_4 = shell_4->getStartIndex();
               int numFunc_4 = shell_4->getNumFunc();
-
+              
               for (int iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
-
+                
                 const AOShell* shell_1 = dftbasis.getShell(iShell_1);
-                int start_1 = shell_1->getStartIndex();
                 int numFunc_1 = shell_1->getNumFunc();
-
-                for (int iShell_2 = 0; iShell_2 < numShells; iShell_2++) {
-
+                
+                for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
+                  
                   const AOShell* shell_2 = dftbasis.getShell(iShell_2);
-                  int start_2 = shell_2->getStartIndex();
                   int numFunc_2 = shell_2->getNumFunc();
 
                   // Initialize the current 4c block/sub-matrix
@@ -239,75 +236,39 @@ namespace votca {
                   // Fill the current 4c block
                   bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_2, shell_3, shell_4);
                   
-                  // TODO: Fill ERIs for all possible combinations
-                  FillERIs(DMAT, subMatrix, shell_1, shell_2, shell_3, shell_4); // i, j, k, l
-                  FillERIs(DMAT, subMatrix, shell_2, shell_1, shell_3, shell_4); // j, k, k, l
-                  FillERIs(DMAT, subMatrix, shell_1, shell_2, shell_4, shell_3); // ...
-                  FillERIs(DMAT, subMatrix, shell_2, shell_1, shell_4, shell_3);
-                  FillERIs(DMAT, subMatrix, shell_3, shell_4, shell_1, shell_2);
-                  FillERIs(DMAT, subMatrix, shell_3, shell_4, shell_2, shell_1);
-                  FillERIs(DMAT, subMatrix, shell_4, shell_3, shell_1, shell_2);
-                  FillERIs(DMAT, subMatrix, shell_4, shell_3, shell_2, shell_1);
-                  
-                  /*
-                  // Test
-                  ub::matrix<double> subMatrix2 = ub::zero_matrix<double>(numFunc_1 * numFunc_2, numFunc_3 * numFunc_4);
-                  _fourcenter.FillFourCenterRepBlock(subMatrix2, shell_2, shell_1, shell_3, shell_4);
-                  printf("i=%d\tj=%d\tk=%d\tk=%d\tnorm_inf: %f\tnorm_fro: %f\n",
-                    iShell_3, iShell_4, iShell_1, iShell_2,
-                    double(ub::norm_inf(subMatrix - subMatrix2)),
-                    double(ub::norm_frobenius(subMatrix - subMatrix2)));
-                  if (ub::norm_inf(subMatrix - subMatrix2)>0.001){
-                    cout<<subMatrix2<<endl;
-                    cout<<subMatrix<<endl;
-                    exit(0);
-                  }
-                  */
-                  
                   // If there are only zeros, we don't need to put anything in the ERIs matrix
                   if (!nonzero)
                     continue;
+                  
+                  // BEGIN FILL ERIs
 
-                  for (int iFunc_3 = 0; iFunc_3 < numFunc_3; iFunc_3++) {
+                  FillERIs(DMAT, subMatrix, shell_1, shell_2, shell_3, shell_4);
+                  
+                  // Symmetry 1 <--> 2
+                  if (iShell_1 != iShell_2)
+                    FillERIs(DMAT, subMatrix, shell_2, shell_1, shell_3, shell_4);
+                  
+                  // Symmetry 3 <--> 4
+                  if (iShell_3 != iShell_4)
+                    FillERIs(DMAT, subMatrix, shell_1, shell_2, shell_4, shell_3);
 
-                    int ind_3 = start_3 + iFunc_3;
-
-                    for (int iFunc_4 = 0; iFunc_4 < numFunc_4; iFunc_4++) {
-
-                      int ind_4 = start_4 + iFunc_4;
-
-                      // Symmetry
-                      if (ind_3 > ind_4)
-                        continue;
-
-                      // Column index in the current sub-matrix
-                      int ind_subm_34 = numFunc_3 * iFunc_4 + iFunc_3;
-
-                      for (int iFunc_1 = 0; iFunc_1 < numFunc_1; iFunc_1++) {
-
-                        int ind_1 = start_1 + iFunc_1;
-
-                        for (int iFunc_2 = 0; iFunc_2 < numFunc_2; iFunc_2++) {
-
-                          int ind_2 = start_2 + iFunc_2;
-
-                          // Symmetry
-                          if (ind_1 > ind_2)
-                            continue;
-
-                          // Row index in the current sub-matrix
-                          int ind_subm_12 = numFunc_1 * iFunc_2 + iFunc_1;
-
-                          // Fill ERIs matrix
-                          double multiplier = (ind_1 == ind_2) ? 1.0 : 2.0;
-                          _ERIs(ind_3, ind_4) += multiplier * DMAT(ind_1, ind_2) * subMatrix(ind_subm_12, ind_subm_34);
-                        } // end loop over functions in shell 2
-                      } // end loop over functions in shell 1
-
-                      // Symmetry
-                      _ERIs(ind_4, ind_3) = _ERIs(ind_3, ind_4);
-                    } // end loop over functions in shell 4
-                  } // end loop over functions in shell 3
+                  /*
+                  // Symmetry (1, 2) <--> (3, 4)
+                  if (iShell_3 != iShell_1) {
+                    
+                    FillERIs(DMAT, subMatrix, shell_3, shell_4, shell_1, shell_2);
+                    
+                    // Symmetry 3 <--> 4
+                    if (iShell_3 != iShell_4)
+                      FillERIs(DMAT, subMatrix, shell_4, shell_3, shell_1, shell_2);
+                    
+                    // Symmetry 1 <--> 2
+                    if (iShell_1 != iShell_2)
+                      FillERIs(DMAT, subMatrix, shell_3, shell_4, shell_2, shell_1);
+                  }
+                  */
+                  
+                  // END FILL ERIs
 
                 } // end loop over shell 2
               } // end loop over shell 1
@@ -321,7 +282,60 @@ namespace votca {
           CalculateEnergy(DMAT.data());
           return;
         }
-		
+        
+        void ERIs::FillERIs(const ub::matrix<double> &DMAT, const ub::matrix<double> &subMatrix, const AOShell* shell_1, const AOShell* shell_2, const AOShell* shell_3, const AOShell* shell_4) {
+
+          int numFunc_1 = shell_1->getNumFunc();
+          int numFunc_2 = shell_2->getNumFunc();
+          int numFunc_3 = shell_3->getNumFunc();
+          int numFunc_4 = shell_4->getNumFunc();
+          
+          int start_1 = shell_1->getStartIndex();
+          int start_2 = shell_2->getStartIndex();
+          int start_3 = shell_3->getStartIndex();
+          int start_4 = shell_4->getStartIndex();
+          
+          for (int iFunc_3 = 0; iFunc_3 < numFunc_3; iFunc_3++) {
+
+            int ind_3 = start_3 + iFunc_3;
+
+            for (int iFunc_4 = 0; iFunc_4 < numFunc_4; iFunc_4++) {
+
+              int ind_4 = start_4 + iFunc_4;
+
+              // Symmetry
+              if (ind_3 > ind_4)
+                continue;
+
+              // Column index in the current sub-matrix
+              int ind_subm_34 = numFunc_3 * iFunc_4 + iFunc_3;
+
+              for (int iFunc_1 = 0; iFunc_1 < numFunc_1; iFunc_1++) {
+
+                int ind_1 = start_1 + iFunc_1;
+
+                for (int iFunc_2 = 0; iFunc_2 < numFunc_2; iFunc_2++) {
+
+                  int ind_2 = start_2 + iFunc_2;
+
+                  // Symmetry
+                  if (ind_1 > ind_2)
+                    continue;
+
+                  // Row index in the current sub-matrix
+                  int ind_subm_12 = numFunc_1 * iFunc_2 + iFunc_1;
+
+                  // Fill ERIs matrix
+                  double multiplier = (ind_1 == ind_2) ? 1.0 : 2.0;
+                  _ERIs(ind_3, ind_4) += multiplier * DMAT(ind_1, ind_2) * subMatrix(ind_subm_12, ind_subm_34);
+                } // end loop over functions in shell 2
+              } // end loop over functions in shell 1
+
+              // Symmetry
+              _ERIs(ind_4, ind_3) = _ERIs(ind_3, ind_4);
+            } // end loop over functions in shell 4
+          } // end loop over functions in shell 3
+        }
 		
 		
         

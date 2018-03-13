@@ -72,6 +72,8 @@ namespace votca { namespace xtp {
         double _EXXenergy;
         void CalculateEnergy(const ub::vector<double> &dmatasarray);
         void CalculateEXXEnergy(const ub::vector<double> &dmatasarray);
+        
+        void FillERIs(const ub::matrix<double> &DMAT, const ub::matrix<double> &subMatrix, const AOShell* shell_1, const AOShell* shell_2, const AOShell* shell_3, const AOShell* shell_4);
     };
     
     
