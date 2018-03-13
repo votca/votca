@@ -75,6 +75,8 @@ namespace votca {
             } else {
                 _with_RI = false;
             }
+            
+            _4cmethod = options->ifExistsReturnElseReturnDefault<string>(key + ".four_center_method", "cache");
 
             if (options->exists(key + ".ecp")) {
                 _ecp_name = options->get(key + ".ecp").as<string>();
@@ -241,12 +243,8 @@ namespace votca {
 
                     _dftAOdmat = AtomicGuess(_orbitals);                
 
-                    if (_with_RI) {
-                        _ERIs.CalculateERIs(_dftAOdmat);
-                    } else {
-						//_ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
-						_ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
-                    }
+                    CalculateERIs_4c(_dftbasis, _dftAOdmat);
+                    
                     if (_use_small_grid) {
                         _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
                         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
@@ -280,12 +278,7 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << flush;
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Iteration " << _this_iter + 1 << " of " << _max_iter << flush;
 
-                if (_with_RI) {
-                    _ERIs.CalculateERIs(_dftAOdmat);
-                } else {
-					//_ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
-					_ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
-                }
+                CalculateERIs_4c(_dftbasis, _dftAOdmat);
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2() << flush;
                 double vxcenergy = 0.0;
@@ -621,7 +614,7 @@ namespace votca {
                 int maxiter = 50;
                 for (int this_iter = 0; this_iter < maxiter; this_iter++) {
 
-					ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);
+                    ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);
                     double E_two_alpha = linalg_traceofProd(ERIs_atom.getERIs(), dftAOdmat_alpha);
                     double E_two_beta = linalg_traceofProd(ERIs_atom.getERIs(), dftAOdmat_beta);
                     ub::matrix<double> H_alpha = H0 + ERIs_atom.getERIs();

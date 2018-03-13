@@ -110,9 +110,8 @@ namespace votca {
             CalculateEnergy(dmatasarray);
             return;
         }
-
-
-
+        
+        
 
         void ERIs::CalculateERIs_4c_small_molecule(const ub::matrix<double> &DMAT) {
 
@@ -192,114 +191,120 @@ namespace votca {
         }
         
         
-		
-		
-		void ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis, const ub::matrix<double> &DMAT)
-		{
-			cout << endl;
-			cout << "ERIS.cc ERIs::CalculateERIs_4c_direct" << endl;
-			
-			// Initialize ERIs matrix
-			_ERIs = ub::zero_matrix<double>(DMAT.size1(), DMAT.size2());
-			// Get number of shells
-			int numShells = dftbasis.getNumofShells();
-			
-			// Test
-			// Test
-			printf("size(DMAT) = [%d, %d]\n", int(DMAT.size1()), int(DMAT.size2()));
-			printf("dftbasisSize = %d\n", dftbasis.AOBasisSize());
-			printf("numShells = %d\n", numShells);
+        void ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis, const ub::matrix<double> &DMAT) {
 
-			// Timer
-			clock_t start = clock();
+          cout << endl;
+          cout << "ERIS.cc ERIs::CalculateERIs_4c_direct" << endl;
 
-			#pragma omp parallel for
-			for (int iShell_3 = 0; iShell_3 < numShells; iShell_3++)
-			{
-				const AOShell* shell_3 = dftbasis.getShell(iShell_3); // Shell object
-				int start_3 = shell_3->getStartIndex(); // Basis function index offset
-				int numFunc_3 = shell_3->getNumFunc(); // Number of basis functions in the shell
+          // Initialize ERIs matrix
+          _ERIs = ub::zero_matrix<double>(DMAT.size1(), DMAT.size2());
+          // Get number of shells
+          int numShells = dftbasis.getNumofShells();
 
-				for (int iShell_4 = 0; iShell_4 < numShells; iShell_4++)
-				{
-					const AOShell* shell_4 = dftbasis.getShell(iShell_4);
-					int start_4 = shell_4->getStartIndex();
-					int numFunc_4 = shell_4->getNumFunc();
+          // Test
+          printf("size(DMAT) = [%d, %d]\n", int(DMAT.size1()), int(DMAT.size2()));
+          printf("dftbasisSize = %d\n", dftbasis.AOBasisSize());
+          printf("numShells = %d\n", numShells);
 
-					for (int iShell_1 = 0; iShell_1 < numShells; iShell_1++)
-					{
-						const AOShell* shell_1 = dftbasis.getShell(iShell_1);
-						int start_1 = shell_1->getStartIndex();
-						int numFunc_1 = shell_1->getNumFunc();
+          // Timer
+          clock_t start = clock();
 
-						for (int iShell_2 = 0; iShell_2 < numShells; iShell_2++)
-						{
-							const AOShell* shell_2 = dftbasis.getShell(iShell_2);
-							int start_2 = shell_2->getStartIndex();
-							int numFunc_2 = shell_2->getNumFunc();
+          #pragma omp parallel for
+          for (int iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
 
-							// Initialize the current 4c block/sub-matrix
-							ub::matrix<double> subMatrix = ub::zero_matrix<double>(numFunc_1 * numFunc_2, numFunc_3 * numFunc_4);
-							// Fill the current 4c block
-							bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_2, shell_3, shell_4);
+            const AOShell* shell_3 = dftbasis.getShell(iShell_3);
+            int start_3 = shell_3->getStartIndex();
+            int numFunc_3 = shell_3->getNumFunc();
 
-							// If there are only zeros, we don't need to put anything in the ERIs matrix
-							if (!nonzero)
-								continue;
-							
-							for (int iFunc_3 = 0; iFunc_3 < numFunc_3; iFunc_3++)
-							{
-								int ind_3 = start_3 + iFunc_3;
+            for (int iShell_4 = 0; iShell_4 < numShells; iShell_4++) {
 
-								for (int iFunc_4 = 0; iFunc_4 < numFunc_4; iFunc_4++)
-								{
-									int ind_4 = start_4 + iFunc_4;
-									
-									// Symmetry
-									if (ind_3 > ind_4)
-										continue;
+              const AOShell* shell_4 = dftbasis.getShell(iShell_4);
+              int start_4 = shell_4->getStartIndex();
+              int numFunc_4 = shell_4->getNumFunc();
+              
+              // Symmetry test
+              const AOShell* temp = shell_3;
+              shell_3 = shell_4;
+              shell_4 = temp;
+              start_3 = shell_3->getStartIndex();
+              numFunc_3 = shell_3->getNumFunc();
+              start_4 = shell_4->getStartIndex();
+              numFunc_4 = shell_4->getNumFunc();
 
-									// Column index in the current sub-matrix
-									int ind_subm_34 = numFunc_3 * iFunc_4 + iFunc_3;
+              for (int iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
 
-									for (int iFunc_1 = 0; iFunc_1 < numFunc_1; iFunc_1++)
-									{
-										int ind_1 = start_1 + iFunc_1;
+                const AOShell* shell_1 = dftbasis.getShell(iShell_1);
+                int start_1 = shell_1->getStartIndex();
+                int numFunc_1 = shell_1->getNumFunc();
 
-										for (int iFunc_2 = 0; iFunc_2 < numFunc_2; iFunc_2++)
-										{
-											int ind_2 = start_2 + iFunc_2;
-											
-											// Symmetry
-											if (ind_1 > ind_2)
-												continue;
-											
-											// Row index in the current sub-matrix
-											int ind_subm_12 = numFunc_1 * iFunc_2 + iFunc_1;
-											
-											// Fill ERIs matrix
-											double multiplier = (ind_1 == ind_2) ? 1.0 : 2.0;
-											_ERIs(ind_3, ind_4) += multiplier * DMAT(ind_1, ind_2) * subMatrix(ind_subm_12, ind_subm_34);
-										} // end loop over functions in shell 2
-									} // end loop over functions in shell 1
-									
-									// Symmetry
-									_ERIs(ind_4, ind_3) = _ERIs(ind_3, ind_4);
-								} // end loop over functions in shell 4
-							} // end loop over functions in shell 3
-							
-						} // end loop over shell 2
-					} // end loop over shell 1
-				} // end loop over shell 4
-			} // end loop over shell 3
+                for (int iShell_2 = 0; iShell_2 < numShells; iShell_2++) {
 
-			// Timer
-			double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-			printf("duration = %f [s]\n", duration);
+                  const AOShell* shell_2 = dftbasis.getShell(iShell_2);
+                  int start_2 = shell_2->getStartIndex();
+                  int numFunc_2 = shell_2->getNumFunc();
 
-			CalculateEnergy(DMAT.data());
-			return;
-		}
+                  // Initialize the current 4c block/sub-matrix
+                  ub::matrix<double> subMatrix = ub::zero_matrix<double>(numFunc_1 * numFunc_2, numFunc_3 * numFunc_4);
+                  // Fill the current 4c block
+                  bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_2, shell_3, shell_4);
+
+                  // If there are only zeros, we don't need to put anything in the ERIs matrix
+                  if (!nonzero)
+                    continue;
+
+                  for (int iFunc_3 = 0; iFunc_3 < numFunc_3; iFunc_3++) {
+
+                    int ind_3 = start_3 + iFunc_3;
+
+                    for (int iFunc_4 = 0; iFunc_4 < numFunc_4; iFunc_4++) {
+
+                      int ind_4 = start_4 + iFunc_4;
+
+                      // Symmetry
+                      if (ind_3 > ind_4)
+                        continue;
+
+                      // Column index in the current sub-matrix
+                      int ind_subm_34 = numFunc_3 * iFunc_4 + iFunc_3;
+
+                      for (int iFunc_1 = 0; iFunc_1 < numFunc_1; iFunc_1++) {
+
+                        int ind_1 = start_1 + iFunc_1;
+
+                        for (int iFunc_2 = 0; iFunc_2 < numFunc_2; iFunc_2++) {
+
+                          int ind_2 = start_2 + iFunc_2;
+
+                          // Symmetry
+                          if (ind_1 > ind_2)
+                            continue;
+
+                          // Row index in the current sub-matrix
+                          int ind_subm_12 = numFunc_1 * iFunc_2 + iFunc_1;
+
+                          // Fill ERIs matrix
+                          double multiplier = (ind_1 == ind_2) ? 1.0 : 2.0;
+                          _ERIs(ind_3, ind_4) += multiplier * DMAT(ind_1, ind_2) * subMatrix(ind_subm_12, ind_subm_34);
+                        } // end loop over functions in shell 2
+                      } // end loop over functions in shell 1
+
+                      // Symmetry
+                      _ERIs(ind_4, ind_3) = _ERIs(ind_3, ind_4);
+                    } // end loop over functions in shell 4
+                  } // end loop over functions in shell 3
+
+                } // end loop over shell 2
+              } // end loop over shell 1
+            } // end loop over shell 4
+          } // end loop over shell 3
+
+          // Timer
+          double duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
+          printf("duration = %f [s]\n", duration);
+
+          CalculateEnergy(DMAT.data());
+          return;
+        }
 		
 		
 		

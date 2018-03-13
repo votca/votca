@@ -115,6 +115,22 @@ namespace votca {
             std::string GetDFTBasisName() {
                 return _dftbasis_name;
             };
+            
+            void CalculateERIs_4c(const AOBasis& dftbasis, const ub::matrix<double> &DMAT) {
+              
+              cout << "four_center_method: " << _4cmethod << endl;
+              
+              // TODO
+              // - Check whether we need to cache the 4c vector
+              // - Merge options "_with_RI" and "_4cmethod" into one string var?
+              
+              if (_with_RI)
+                _ERIs.CalculateERIs(_dftAOdmat);
+              else if (_4cmethod.compare("direct") == 0)
+                _ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
+              else // TODO: Throw error when _4cmethod does not equal "cache"?
+                _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
+            }
 
         private:
 
@@ -159,7 +175,7 @@ namespace votca {
 
             bool _with_ecp;
             bool _with_RI;
-            string _4cmethod;
+            string _4cmethod; // direct | cache
 
             // numerical integration Vxc
             std::string _grid_name;
