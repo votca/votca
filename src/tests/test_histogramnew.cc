@@ -18,7 +18,6 @@
 
 #define BOOST_TEST_MODULE histogramnew_test
 #include <boost/test/unit_test.hpp>
-#include <boost/lexical_cast.hpp>
 #include <exception>
 #include <iostream>
 #include <votca/tools/histogramnew.h>
@@ -29,71 +28,84 @@ using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(histogramnew_test)
 
-BOOST_AUTO_TEST_CASE(create_test) {
-  HistogramNew hn;
-}
+BOOST_AUTO_TEST_CASE(create_test) { HistogramNew hn; }
 
 BOOST_AUTO_TEST_CASE(init_test) {
   HistogramNew hn;
   double min_v = 1.2;
   double max_v = 102.0;
-  hn.Initialize(min_v,max_v);
+  hn.Initialize(min_v, max_v, 10);
 }
 
 BOOST_AUTO_TEST_CASE(step_test) {
   HistogramNew hn;
   double min_v = 1;
   double max_v = 9;
-  hn.Initialize(min_v,max_v,8);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(hn.getStep()*10),10);
+  hn.Initialize(min_v, max_v, 8);
+  double step = hn.getStep();
+  int value = static_cast<int>(step);
+  BOOST_CHECK_EQUAL(value * 10, 10);
 }
 
 BOOST_AUTO_TEST_CASE(nbins_test) {
   HistogramNew hn;
-  double min_v = 1;
-  double max_v = 9;
-  hn.Initialize(min_v,max_v,8);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(hn.getNBins()*10),80);
+  double min_v = 1.0;
+  double max_v = 9.0;
+  hn.Initialize(min_v, max_v, 8);
+  int bins = hn.getNBins();
+  BOOST_CHECK_EQUAL(bins * 10, 80);
 }
 
-BOOST_AUTO_TEST_CASE(Process_test){
+BOOST_AUTO_TEST_CASE(Process_test) {
   HistogramNew hn;
   double min_v = 0.0;
   double max_v = 10.0;
-  hn.Initialize(min_v,max_v,10);
+  hn.Initialize(min_v, max_v, 11);
   vector<double> data;
-  for(double x=0;x<10;++x){
+  for (double x = 0; x < 10; ++x) {
     data.push_back(x);
   }
-  hn.ProcessRange(data.begin(),data.end());
+  hn.ProcessRange(data.begin(), data.end());
   hn.Process(4.5);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(hn.getStep()*10),10);
+  BOOST_CHECK_EQUAL(static_cast<int>(hn.getStep() * 10), 10);
   auto dat = hn.data();
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(dat.y(0)),1);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(dat.y(1)),1);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(dat.y(2)),1);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(dat.y(3)),1);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(dat.y(4)),2);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(dat.y(5)),1);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(dat.y(6)),1);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(dat.y(7)),1);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(dat.y(8)),1);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(dat.y(9)),1);
-} 
+  // Range -0.5 - 0.5
+  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(0)), 1);
+  // Range 0.5 - 1.5
+  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(1)), 1);
+  // Range 1.5 - 2.5
+  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(2)), 1);
+  // Range 2.5 - 3.5
+  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(3)), 1);
+  // Range 3.5 - 4.5
+  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(4)), 1);
+  // Range 4.5 - 5.5
+  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(5)), 2);
+  // Range 5.5 - 6.5
+  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(6)), 1);
+  // Range 6.5 - 7.5
+  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(7)), 1);
+  // Range 7.5 - 8.5
+  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(8)), 1);
+  // Range 8.5 - 9.5
+  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(9)), 1);
+  // Range 9.5 - 10.5
+  BOOST_CHECK_EQUAL(static_cast<int>(dat.y(10)), 0);
+}
 
-BOOST_AUTO_TEST_CASE(minmax_test){
+BOOST_AUTO_TEST_CASE(minmax_test) {
   HistogramNew hn;
   double min_v = 0.0;
   double max_v = 10.0;
-  hn.Initialize(min_v,max_v,10);
+  hn.Initialize(min_v, max_v, 10);
   vector<double> data;
-  for(double x=0;x<9;++x){
+  for (double x = 0; x < 9; ++x) {
     data.push_back(x);
   }
-  hn.ProcessRange(data.begin(),data.end());
+  hn.ProcessRange(data.begin(), data.end());
   hn.Process(4.5);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(hn.getMinBinVal()),0); 
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(hn.getMaxBinVal()),2); 
-} 
+  BOOST_CHECK_EQUAL(static_cast<int>(hn.getMinBinVal()), 0);
+  BOOST_CHECK_EQUAL(static_cast<int>(hn.getMaxBinVal()), 2);
+}
 
 BOOST_AUTO_TEST_SUITE_END()
