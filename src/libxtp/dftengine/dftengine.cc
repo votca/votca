@@ -468,10 +468,12 @@ namespace votca {
                 // prepare invariant part of electron repulsion integrals
                 _ERIs.Initialize(_dftbasis, _auxbasis, _auxAOcoulomb.Matrix());
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
-            } else {
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c integrals. " << flush;
-                _ERIs.Initialize_4c_small_molecule(_dftbasis);
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c integrals. " << flush;
+            }
+            else if (_4cmethod.compare("cache") == 0) {
+              
+              CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c integrals. " << flush;
+              _ERIs.Initialize_4c_small_molecule(_dftbasis);
+              CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c integrals. " << flush;
             }
 
             return;

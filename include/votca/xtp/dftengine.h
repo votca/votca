@@ -120,16 +120,16 @@ namespace votca {
               
               cout << "four_center_method: " << _4cmethod << endl;
               
-              // TODO
-              // - Check whether we need to cache the 4c vector
-              // - Merge options "_with_RI" and "_4cmethod" into one string var?
+              // TODO: Merge options "_with_RI" and "_4cmethod" into one string var?
               
               if (_with_RI)
                 _ERIs.CalculateERIs(_dftAOdmat);
               else if (_4cmethod.compare("direct") == 0)
                 _ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
-              else // TODO: Throw error when _4cmethod does not equal "cache"?
+              else if (_4cmethod.compare("cache") == 0)
                 _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
+              
+              // TODO: Throw error?
             }
 
         private:

@@ -221,15 +221,6 @@ namespace votca {
               const AOShell* shell_4 = dftbasis.getShell(iShell_4);
               int start_4 = shell_4->getStartIndex();
               int numFunc_4 = shell_4->getNumFunc();
-              
-              // Symmetry test
-              const AOShell* temp = shell_3;
-              shell_3 = shell_4;
-              shell_4 = temp;
-              start_3 = shell_3->getStartIndex();
-              numFunc_3 = shell_3->getNumFunc();
-              start_4 = shell_4->getStartIndex();
-              numFunc_4 = shell_4->getNumFunc();
 
               for (int iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
 
@@ -247,7 +238,32 @@ namespace votca {
                   ub::matrix<double> subMatrix = ub::zero_matrix<double>(numFunc_1 * numFunc_2, numFunc_3 * numFunc_4);
                   // Fill the current 4c block
                   bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_2, shell_3, shell_4);
-
+                  
+                  // TODO: Fill ERIs for all possible combinations
+                  FillERIs(DMAT, subMatrix, shell_1, shell_2, shell_3, shell_4); // i, j, k, l
+                  FillERIs(DMAT, subMatrix, shell_2, shell_1, shell_3, shell_4); // j, k, k, l
+                  FillERIs(DMAT, subMatrix, shell_1, shell_2, shell_4, shell_3); // ...
+                  FillERIs(DMAT, subMatrix, shell_2, shell_1, shell_4, shell_3);
+                  FillERIs(DMAT, subMatrix, shell_3, shell_4, shell_1, shell_2);
+                  FillERIs(DMAT, subMatrix, shell_3, shell_4, shell_2, shell_1);
+                  FillERIs(DMAT, subMatrix, shell_4, shell_3, shell_1, shell_2);
+                  FillERIs(DMAT, subMatrix, shell_4, shell_3, shell_2, shell_1);
+                  
+                  /*
+                  // Test
+                  ub::matrix<double> subMatrix2 = ub::zero_matrix<double>(numFunc_1 * numFunc_2, numFunc_3 * numFunc_4);
+                  _fourcenter.FillFourCenterRepBlock(subMatrix2, shell_2, shell_1, shell_3, shell_4);
+                  printf("i=%d\tj=%d\tk=%d\tk=%d\tnorm_inf: %f\tnorm_fro: %f\n",
+                    iShell_3, iShell_4, iShell_1, iShell_2,
+                    double(ub::norm_inf(subMatrix - subMatrix2)),
+                    double(ub::norm_frobenius(subMatrix - subMatrix2)));
+                  if (ub::norm_inf(subMatrix - subMatrix2)>0.001){
+                    cout<<subMatrix2<<endl;
+                    cout<<subMatrix<<endl;
+                    exit(0);
+                  }
+                  */
+                  
                   // If there are only zeros, we don't need to put anything in the ERIs matrix
                   if (!nonzero)
                     continue;
