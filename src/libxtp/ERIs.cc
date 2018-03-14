@@ -198,41 +198,24 @@ namespace votca {
 
           // Initialize ERIs matrix
           _ERIs = ub::zero_matrix<double>(DMAT.size1(), DMAT.size2());
-          // Get number of shells
+          // Number of shells
           int numShells = dftbasis.getNumofShells();
-
-          // Test
-          printf("size(DMAT) = [%d, %d]\n", int(DMAT.size1()), int(DMAT.size2()));
-          printf("dftbasisSize = %d\n", dftbasis.AOBasisSize());
-          printf("numShells = %d\n", numShells);
 
           // Timer
           clock_t start = clock();
 
-          // TODO: Do not store numFunc for readability?
           #pragma omp parallel for
           for (int iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
-            
             const AOShell* shell_3 = dftbasis.getShell(iShell_3);
-            int numFunc_3 = shell_3->getNumFunc();
-            
             for (int iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
-              
               const AOShell* shell_4 = dftbasis.getShell(iShell_4);
-              int numFunc_4 = shell_4->getNumFunc();
-              
               for (int iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
-                
                 const AOShell* shell_1 = dftbasis.getShell(iShell_1);
-                int numFunc_1 = shell_1->getNumFunc();
-                
                 for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
-                  
                   const AOShell* shell_2 = dftbasis.getShell(iShell_2);
-                  int numFunc_2 = shell_2->getNumFunc();
 
                   // Initialize the current 4c block/sub-matrix
-                  ub::matrix<double> subMatrix = ub::zero_matrix<double>(numFunc_1 * numFunc_2, numFunc_3 * numFunc_4);
+                  ub::matrix<double> subMatrix = ub::zero_matrix<double>(shell_1->getNumFunc() * shell_2->getNumFunc(), shell_3->getNumFunc() * shell_4->getNumFunc());
                   // Fill the current 4c block
                   bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_2, shell_3, shell_4);
                   
@@ -240,40 +223,54 @@ namespace votca {
                   if (!nonzero)
                     continue;
                   
-                  // BEGIN FILL ERIs
-
-                  FillERIs(DMAT, subMatrix, shell_1, shell_2, shell_3, shell_4);
+                  /* Begin fill ERIs matrix */
                   
+                  FillERIsBlock(DMAT, subMatrix, shell_1, shell_2, shell_3, shell_4);
+
                   // Symmetry 1 <--> 2
                   if (iShell_1 != iShell_2)
-                    FillERIs(DMAT, subMatrix, shell_2, shell_1, shell_3, shell_4);
-                  
+                    FillERIsBlock(DMAT, subMatrix, shell_2, shell_1, shell_3, shell_4);
+
                   // Symmetry 3 <--> 4
                   if (iShell_3 != iShell_4)
-                    FillERIs(DMAT, subMatrix, shell_1, shell_2, shell_4, shell_3);
-
+                    FillERIsBlock(DMAT, subMatrix, shell_1, shell_2, shell_4, shell_3);
+                  
+                  // Symmetry 1 <--> 2 AND 3 <--> 4
+                  if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
+                    FillERIsBlock(DMAT, subMatrix, shell_2, shell_1, shell_4, shell_3);
+                  
+                  // TODO: Verify symmetry (1, 2) <--> (3, 4) in the submatrix
+                  
                   /*
                   // Symmetry (1, 2) <--> (3, 4)
-                  if (iShell_3 != iShell_1) {
+                  if (iShell_1 != iShell_3) {
                     
-                    FillERIs(DMAT, subMatrix, shell_3, shell_4, shell_1, shell_2);
-                    
-                    // Symmetry 3 <--> 4
-                    if (iShell_3 != iShell_4)
-                      FillERIs(DMAT, subMatrix, shell_4, shell_3, shell_1, shell_2);
-                    
+                    FillERIsBlock(DMAT, subMatrix, shell_3, shell_4, shell_1, shell_2);
+
                     // Symmetry 1 <--> 2
                     if (iShell_1 != iShell_2)
-                      FillERIs(DMAT, subMatrix, shell_3, shell_4, shell_2, shell_1);
+                      FillERIsBlock(DMAT, subMatrix, shell_3, shell_4, shell_2, shell_1);
+
+                    // Symmetry 3 <--> 4
+                    if (iShell_3 != iShell_4)
+                      FillERIsBlock(DMAT, subMatrix, shell_4, shell_3, shell_1, shell_2);
+                    
+                    // Symmetry 1 <--> 2 AND 3 <--> 4
+                    if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
+                      FillERIsBlock(DMAT, subMatrix, shell_4, shell_3, shell_2, shell_1);
                   }
                   */
                   
-                  // END FILL ERIs
-
-                } // end loop over shell 2
-              } // end loop over shell 1
-            } // end loop over shell 4
-          } // end loop over shell 3
+                  /* End fill ERIs matrix */
+                } // End loop over shell 2
+              } // End loop over shell 1
+            } // End loop over shell 4
+          } // End loop over shell 3
+          
+          // Fill lower triangular part using symmetry
+          for (int i = 0; i < DMAT.size1(); i++)
+            for (int j = i + 1; j < DMAT.size2(); j++)
+              _ERIs(j, i) = _ERIs(i, j);
 
           // Timer
           double duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
@@ -283,58 +280,46 @@ namespace votca {
           return;
         }
         
-        void ERIs::FillERIs(const ub::matrix<double> &DMAT, const ub::matrix<double> &subMatrix, const AOShell* shell_1, const AOShell* shell_2, const AOShell* shell_3, const AOShell* shell_4) {
+        
+        
+        void ERIs::FillERIsBlock(const ub::matrix<double> &DMAT, const ub::matrix<double> &subMatrix, const AOShell* shell_1, const AOShell* shell_2, const AOShell* shell_3, const AOShell* shell_4) {
 
-          int numFunc_1 = shell_1->getNumFunc();
-          int numFunc_2 = shell_2->getNumFunc();
-          int numFunc_3 = shell_3->getNumFunc();
-          int numFunc_4 = shell_4->getNumFunc();
-          
-          int start_1 = shell_1->getStartIndex();
-          int start_2 = shell_2->getStartIndex();
-          int start_3 = shell_3->getStartIndex();
-          int start_4 = shell_4->getStartIndex();
-          
-          for (int iFunc_3 = 0; iFunc_3 < numFunc_3; iFunc_3++) {
+          for (int iFunc_3 = 0; iFunc_3 < shell_3->getNumFunc(); iFunc_3++) {
 
-            int ind_3 = start_3 + iFunc_3;
+            int ind_3 = shell_3->getStartIndex() + iFunc_3;
 
-            for (int iFunc_4 = 0; iFunc_4 < numFunc_4; iFunc_4++) {
+            for (int iFunc_4 = 0; iFunc_4 < shell_4->getNumFunc(); iFunc_4++) {
 
-              int ind_4 = start_4 + iFunc_4;
+              int ind_4 = shell_4->getStartIndex() + iFunc_4;
 
               // Symmetry
               if (ind_3 > ind_4)
                 continue;
 
               // Column index in the current sub-matrix
-              int ind_subm_34 = numFunc_3 * iFunc_4 + iFunc_3;
+              int ind_subm_34 = shell_3->getNumFunc() * iFunc_4 + iFunc_3;
 
-              for (int iFunc_1 = 0; iFunc_1 < numFunc_1; iFunc_1++) {
+              for (int iFunc_1 = 0; iFunc_1 < shell_1->getNumFunc(); iFunc_1++) {
 
-                int ind_1 = start_1 + iFunc_1;
+                int ind_1 = shell_1->getStartIndex() + iFunc_1;
 
-                for (int iFunc_2 = 0; iFunc_2 < numFunc_2; iFunc_2++) {
+                for (int iFunc_2 = 0; iFunc_2 < shell_2->getNumFunc(); iFunc_2++) {
 
-                  int ind_2 = start_2 + iFunc_2;
+                  int ind_2 = shell_2->getStartIndex() + iFunc_2;
 
                   // Symmetry
                   if (ind_1 > ind_2)
                     continue;
 
                   // Row index in the current sub-matrix
-                  int ind_subm_12 = numFunc_1 * iFunc_2 + iFunc_1;
+                  int ind_subm_12 = shell_1->getNumFunc() * iFunc_2 + iFunc_1;
 
                   // Fill ERIs matrix
-                  double multiplier = (ind_1 == ind_2) ? 1.0 : 2.0;
-                  _ERIs(ind_3, ind_4) += multiplier * DMAT(ind_1, ind_2) * subMatrix(ind_subm_12, ind_subm_34);
-                } // end loop over functions in shell 2
-              } // end loop over functions in shell 1
-
-              // Symmetry
-              _ERIs(ind_4, ind_3) = _ERIs(ind_3, ind_4);
-            } // end loop over functions in shell 4
-          } // end loop over functions in shell 3
+                  _ERIs(ind_3, ind_4) += (ind_1 == ind_2 ? 1.0 : 2.0) * DMAT(ind_1, ind_2) * subMatrix(ind_subm_12, ind_subm_34);
+                } // End loop over functions in shell 2
+              } // End loop over functions in shell 1
+            } // End loop over functions in shell 4
+          } // End loop over functions in shell 3
         }
 		
 		
