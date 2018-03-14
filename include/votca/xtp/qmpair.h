@@ -21,6 +21,8 @@
 #ifndef _VOTCA_XTP_QMPAIR_H
 #define _VOTCA_XTP_QMPAIR_H
 
+#include <vector>
+#include <votca/tools/vec.h>
 #include <utility>
 
 namespace votca { namespace xtp {
@@ -75,9 +77,9 @@ public:
    void      setId(int id) { _id=id; }
    Topology *getTopology() { return _top; }
    void      setTopology(Topology *top) { _top = top; }
-   vec      &R() { return _R; }
+   votca::tools::vec      &R() { return _R; }
    double    Dist() { return abs(_R); }
-   vec       getPos() { return 0.5*(first->getPos() + second->getPos()); }
+   votca::tools::vec       getPos() { return 0.5*(first->getPos() + second->getPos()); }
 
    void     setIsPathCarrier(bool yesno, int carrier);
    bool     isPathCarrier(int carrier);
@@ -95,7 +97,7 @@ public:
    void     setRate21(double rate, int state);
    double   getRate12(int state);
    double   getRate21(int state);
-   vec      getR();
+   votca::tools::vec      getR();
 
    //only used for compability reasons with izindo
    void     setJs(const std::vector <double> Js, int state);
@@ -124,7 +126,7 @@ public:
 
 protected:
 
-    vec         _R;
+    votca::tools::vec         _R;
 
     Segment    *_ghost;
     Topology   *_top;
