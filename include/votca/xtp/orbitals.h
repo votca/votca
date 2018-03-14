@@ -28,8 +28,6 @@
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/qmatom.h>
 
-
-
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
 #include <votca/tools/vec.h>

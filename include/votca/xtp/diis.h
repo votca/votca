@@ -22,144 +22,48 @@
 
 
 
-   
-#include <gsl/gsl_multimin.h>
-#include <gsl/gsl_vector.h>
-
-
-#include <votca/tools/linalg.h>
-#include <votca/xtp/aomatrix.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/ctp/logger.h>
-
-
-
+#include <votca/xtp/basisset.h>
 
 namespace votca { namespace xtp {
- namespace ub = boost::numeric::ublas;
-
  
- class Diis{
+ 
+ class DIIS{
 public:
 
-    Diis() {_maxerrorindex=0;
-                _maxerror=0.0; };
-   ~Diis() {
-     for (std::vector< Eigen::MatrixXd* >::iterator it = _mathist.begin() ; it !=_mathist.end(); ++it){
+    DIIS( ):success(true) { };
+   ~DIIS() {
+       
+    for (std::vector< Eigen::MatrixXd* >::iterator it = _errormatrixhist.begin() ; it !=_errormatrixhist.end(); ++it){
          delete *it;
      }
-     _mathist.clear();
-      for (std::vector< Eigen::MatrixXd* >::iterator it = _dmathist.begin() ; it !=_dmathist.end(); ++it){
-         delete *it;
-     }
-     _dmathist.clear();
-     for (std::vector< Eigen::MatrixXd* >::iterator it = _errormatrixhist.begin() ; it !=_errormatrixhist.end(); ++it){
-         delete *it;
-     }
-    _errormatrixhist.clear();
-    
-    for (std::vector< std::vector<double>* >::iterator it = _Diis_Bs.begin() ; it !=_Diis_Bs.end(); ++it){
+    _errormatrixhist.clear();    
+       
+   for (std::vector< std::vector<double>* >::iterator it = _Diis_Bs.begin() ; it !=_Diis_Bs.end(); ++it){
          delete *it;
      }
     _Diis_Bs.clear(); 
-    
-   }
+   };
    
-   void Configure(bool usediis,bool noisy, unsigned histlength, bool maxout, string diismethod, double adiis_start,double diis_start,double levelshift,double levelshiftend,unsigned nocclevels){
-       
-       _usediis=usediis;
-       _noisy=noisy;
-       _histlength=histlength;
-       _maxout=maxout;
-       _diismethod=diismethod;
-       _adiis_start=adiis_start;
-       _diis_start=diis_start;
-       _levelshift=levelshift;
-       _levelshiftend=levelshiftend;
-      
-       _nocclevels=nocclevels;
-  
-   }
-   
-   void setOverlap(Eigen::MatrixXd* _S){
-       S=_S;
-   }
-   void setSqrtOverlap(Eigen::MatrixXd* _Sminusahalf){
-       Sminusahalf=_Sminusahalf;
-   }
-    void setLogger(ctp::Logger *pLog){_pLog=pLog;}
-    double Evolve(const Eigen::MatrixXd& dmat,const Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs, int this_iter,double totE);
-    void SolveFockmatrix(Eigen::VectorXd& MOenergies,Eigen::MatrixXd& MOs,Eigen::MatrixXd&H);
-    void Levelshift(Eigen::MatrixXd& H,const Eigen::MatrixXd&MOs);
-    unsigned gethistlength(){return _mathist.size();}
+    void Update(unsigned _maxerrorindex, const Eigen::MatrixXd& errormatrix);
+    Eigen::VectorXd CalcCoeff();
     
-    
-    double get_E_adiis(const gsl_vector * x) const;
-
-    void get_dEdx_adiis(const gsl_vector * x, gsl_vector * dEdx) const;
-    void get_E_dEdx_adiis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const;
+    void setHistLength(unsigned length){_histlength=length;}
    
+    bool Info(){return success;}
+    
  private:
      
-    ctp::Logger *_pLog;
-    Eigen::MatrixXd* S;
-    Eigen::MatrixXd* Sminusahalf;
-    bool                              _usediis;
-    bool                              _noisy;
-    unsigned                          _histlength;
-    bool                              _maxout;
-    std::string                            _diismethod;
-    Eigen::MatrixXd                _Sminusonehalf;
-    double                              _maxerror;
-    double                              _adiis_start;  
-    double                              _diis_start;
-    double                              _levelshiftend;
-    unsigned                            _maxerrorindex;
-    std::vector< Eigen::MatrixXd* >   _mathist;
-    std::vector< Eigen::MatrixXd* >   _dmathist;
-    std::vector< Eigen::MatrixXd* >   _errormatrixhist;
-    std::vector< std::vector<double>* >  _Diis_Bs;
-   
-    std::vector<double>                 _totE;
-    Eigen::VectorXd                  _DiF;
-    Eigen::MatrixXd                  _DiFj;
-  
-    Eigen::VectorXd ADIIsCoeff();
-    
-    
- Eigen::VectorXd compute_c(const gsl_vector * x);
- /// Compute jacobian
- Eigen::MatrixXd compute_jac(const gsl_vector * x);
- /// Compute energy
- double min_f(const gsl_vector * x, void * params);
- /// Compute derivative
- void min_df(const gsl_vector * x, void * params, gsl_vector * g);
- /// Compute energy and derivative
-void min_fdf(const gsl_vector * x, void * params, double * f, gsl_vector * g);
-
-Eigen::VectorXd DIIsCoeff();
-    
-    unsigned _nocclevels;
-    double _levelshift;
-    
-    
+     
+     
+     
+     bool success;
+     unsigned _histlength;
+     std::vector< std::vector<double>* >  _Diis_Bs;
+     std::vector< Eigen::MatrixXd* >   _errormatrixhist;
   
  };
  
  
- namespace adiis {
-  /// Compute weights
-  Eigen::VectorXd compute_c(const gsl_vector * x);
-  /// Compute jacobian
-  Eigen::MatrixXd compute_jac(const gsl_vector * x);
-
-  /// Compute energy
-  double min_f(const gsl_vector * x, void * params);
-  /// Compute derivative
-  void min_df(const gsl_vector * x, void * params, gsl_vector * g);
-  /// Compute energy and derivative
-  void min_fdf(const gsl_vector * x, void * params, double * f, gsl_vector * g);
-};
     
 }}
 

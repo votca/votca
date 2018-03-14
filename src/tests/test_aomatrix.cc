@@ -15,7 +15,7 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE gnode_test
+#define BOOST_TEST_MODULE aomatrix_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/aomatrix.h>
@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(aomatrices_test) {
   xyzfile << " methane" << endl;
   xyzfile << " C            .000000     .000000     .000000" << endl;
   xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           q-.629118    -.629118     .629118" << endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << endl;
   xyzfile << " H            .629118    -.629118    -.629118" << endl;
   xyzfile << " H           -.629118     .629118    -.629118" << endl;
   xyzfile.close();
@@ -93,7 +93,6 @@ BOOST_AUTO_TEST_CASE(aomatrices_test) {
   aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
   AOOverlap overlap;
   overlap.Fill(aobasis);
-  cout<<overlap.Matrix()<<endl<<endl;
   Eigen::MatrixXd overlap_ref=Eigen::MatrixXd::Zero(17,17);
  
   overlap_ref<<
@@ -114,8 +113,7 @@ BOOST_AUTO_TEST_CASE(aomatrices_test) {
 0.0808612,0.401447,-0.135615,-0.135615,0.135615,0.668849,-0.340149,-0.340149,0.340149,0.116994,0.354983,0.116994,0.354983,0.645899,1,0.116994,0.354983,
 0.0189724,0.194748,-0.169584,0.169584,-0.169584,0.338796,-0.290649,0.290649,-0.290649,0.00778321,0.116994,0.00778321,0.116994,0.00778321,0.116994,1,0.645899,
 0.0808612,0.401447,-0.135615,0.135615,-0.135615,0.668849,-0.340149,0.340149,-0.340149,0.116994,0.354983,0.116994,0.354983,0.116994,0.354983,0.645899,1;
-cout<<overlap_ref<<endl;
-cout<<(overlap.Matrix() - overlap_ref).norm() <<endl;
+
 bool check_overlap = overlap.Matrix().isApprox(overlap_ref,0.0001);
 BOOST_CHECK_EQUAL(check_overlap, 1);
 

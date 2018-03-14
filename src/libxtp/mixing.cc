@@ -23,16 +23,15 @@
 namespace votca { namespace xtp {
    namespace ub = boost::numeric::ublas;
    
-     Eigen::MatrixXd Mixing::MixDmat(const Eigen::MatrixXd& dmatin,const Eigen::MatrixXd& dmatout,bool noisy ){
-          double alpha=0.0;
-          Updatemix(dmatin,dmatout);
+     Eigen::MatrixXd Mixing::MixDmat(const Eigen::MatrixXd& dmatin,const Eigen::MatrixXd& dmatout){
+          
           if(!_automaticmixing){   
-              alpha=_mixingparameter;
+              _alpha=_mixingparameter;
           }
           else{
               
           if(_Pout.size()<2){
-              alpha=0.7;             
+              _alpha=0.7;             
           }
           else{
               
@@ -45,24 +44,20 @@ namespace votca { namespace xtp {
               double count=0.0;
               for(unsigned i=0;i<nominator.size();i++){
                   double a=nominator(i)/denominator(i);
-                  if(a<0.2){
-                      a=0.2;
+                  if(a<0.1){
+                      a=0.1;
                   }
-                  else if(a>0.8){
-                      a=0.8;
+                  else if(a>0.9){
+                      a=0.9;
                   }
                   count+=a;
               }
-              alpha=count/double(nominator.size());
-             
-              
+              _alpha=count/double(nominator.size());
           }
           }
-          if(noisy){
-          CTP_LOG(votca::ctp::logDEBUG, *_pLog) << votca::ctp::TimeStamp() << " Using Mixing with mixingparamter="<<alpha<< flush;
-          }
+         
           
-          Eigen::MatrixXd dmatnew=alpha*dmatin+(1.0-alpha)*dmatout;
+          Eigen::MatrixXd dmatnew=_alpha*dmatin+(1.0-_alpha)*dmatout;
           return dmatnew;
       }
       
@@ -84,7 +79,7 @@ namespace votca { namespace xtp {
       }
       
       Eigen::VectorXd Mixing::Mullikencharges(const Eigen::MatrixXd& dmat){
-          return (dmat*(*S)).diagonal();
+          return (dmat*(*_S)).diagonal();
       }
 
 }}
