@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,10 +18,11 @@
  */
 
 
-#include <votca/ctp/qmpair.h>
-#include <votca/ctp/topology.h>
+#include <votca/xtp/qmpair.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/topology.h>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 QMPair::~QMPair() {
     if (_ghost != NULL) {
