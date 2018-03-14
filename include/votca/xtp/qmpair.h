@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,18 +18,15 @@
  */
 
 
-#ifndef _QMPair_H
-#define _QMPair_H
+#ifndef _VOTCA_XTP_QMPAIR_H
+#define _VOTCA_XTP_QMPAIR_H
 
-#include "segment.h"
 #include <utility>
 
-
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class Topology;
-
-
+class Segment;
 
 class QMPair : public std::pair< Segment*, Segment* >
 {
@@ -172,4 +169,4 @@ protected:
 }}
 
 
-#endif
+#endif // _VOTCA_XTP_QMPAIR_H
