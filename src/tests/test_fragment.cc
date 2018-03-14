@@ -103,6 +103,7 @@ BOOST_AUTO_TEST_CASE(position_test){
     BOOST_CHECK_EQUAL(v2.x(),2.0);
     BOOST_CHECK_EQUAL(v2.y(),2.0);
     BOOST_CHECK_EQUAL(v2.z(),2.0);
+    delete atm;
   } 
 }
 
@@ -193,6 +194,7 @@ BOOST_AUTO_TEST_CASE(rotate_pos_test){
   BOOST_CHECK_EQUAL(v2.y(),3.0);
   BOOST_CHECK_EQUAL(v2.z(),3.0);
 
+  frag.calcPos("QM");
   v2 = frag.getCoQM();
   BOOST_CHECK_EQUAL(v2.x(),2.0);
   BOOST_CHECK_EQUAL(v2.y(),2.0);
@@ -212,6 +214,7 @@ BOOST_AUTO_TEST_CASE(rotate_pos_test){
   BOOST_CHECK_EQUAL(v2.x(),2.0);
   BOOST_CHECK_EQUAL(v2.y(),2.0);
   BOOST_CHECK_EQUAL(v2.z(),-2.0);
+  delete atm;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
