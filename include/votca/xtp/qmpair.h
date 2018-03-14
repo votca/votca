@@ -114,8 +114,6 @@ public:
    Segment* Seg2() { return second; }
 
    bool     HasGhost() { return _hasGhost; }
-   void     WritePDB(std::string fileName);
-   void     WriteXYZ(std::FILE *out, bool useQMPos = true);
 
    // superexchange pairs have a list of bridging segments
    void     setType( PairType pair_type ) { _pair_type = pair_type; }
