@@ -25,10 +25,11 @@
 #include <votca/tools/vec.h>
 #include <utility>
 
+#include <votca/xtp/segment.h>
+
 namespace votca { namespace xtp {
 
 class Topology;
-class Segment;
 
 class QMPair : public std::pair< Segment*, Segment* >
 {
