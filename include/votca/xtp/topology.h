@@ -21,6 +21,9 @@
 #ifndef __VOTCA_XTP_TOPOLOGY_H
 #define	__VOTCA_XTP_TOPOLOGY_H
 
+#include <vector>
+#include <string>
+
 #include <votca/tools/property.h>
 
 #include <votca/csg/boundarycondition.h>
@@ -30,6 +33,8 @@
 
 #include <votca/moo/jcalc.h>
 #include <votca/moo/mol_and_orb.h>
+
+#include <votca/xtp/qmnblist.h>
 
 namespace CSG = votca::csg;
 
@@ -42,7 +47,6 @@ class Fragment;
 class Atom;
 class APolarSite;
 class PolarSite;
-class QMBList;
 /**
  * \brief Container for molecules, conjugated segments, rigid fragments,
  * and atoms.

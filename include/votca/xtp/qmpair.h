@@ -163,8 +163,7 @@ protected:
 
     PairType _pair_type;
     std::vector<Segment*> _bridging_segments;
-
-
+    
 };
 
 }}

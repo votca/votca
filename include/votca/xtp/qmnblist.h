@@ -21,8 +21,11 @@
 #ifndef _VOTCA_XTP_QMNBList_H
 #define	_VOTCA_XTP_QMNBList_H
 
+#include <string>
+#include <vector>
+#include <list>
 
-#include <stdlib.h>
+#include <votca/tools/tokenizer.h>
 #include <votca/csg/pairlist.h>
 #include <votca/xtp/qmpair.h>
 
@@ -47,9 +50,9 @@ public:
       public:
         
         // Initializes the object from a [Donor Bridge1 Bridge2 ... Acceptor] string
-        SuperExchangeType(string initString) { 
+        SuperExchangeType(std::string initString) { 
 
-	    Tokenizer tok(initString, " ");
+	    votca::tools::Tokenizer tok(initString, " ");
             std::vector< std::string > names;
             tok.ToVector(names);
 
@@ -67,16 +70,16 @@ public:
             for ( std::vector<std::string>::iterator it = ++names.begin() ; it != --names.end(); it++  ) {
                 bridges.push_back(*it);
             }
-	}
+	        }
         
 
 
-        bool isOfBridge(string segment_type ) {
-            std::list<string>::iterator findIter = std::find(bridges.begin(), bridges.end(), segment_type);
+        bool isOfBridge(std::string segment_type ) {
+            std::list<std::string>::iterator findIter = std::find(bridges.begin(), bridges.end(), segment_type);
             return findIter != bridges.end();
         };
 
-        bool isOfDonorAcceptor ( string segment_type ) {
+        bool isOfDonorAcceptor ( std::string segment_type ) {
             return segment_type == donor || segment_type == acceptor ;
         }
 
@@ -143,19 +146,8 @@ protected:
     std::list<SuperExchangeType*> _superexchange;
 };
 
-
-
-
-
-
-
-
-
-
-
-
 }}
 
 
-#endif	/* _VOTCA_XTP_QMNBList_H */
+#endif	/* _VOTCA_XTP_QMNBLIST_H */
 
