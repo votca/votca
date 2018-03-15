@@ -56,6 +56,11 @@ struct InferDataType<double> {
 };
 
 template <>
+struct InferDataType<int> {
+  static const H5::DataType* get(void) { return &H5::PredType::NATIVE_INT; }
+};
+
+template <>
 struct InferDataType<std::string> {
   static const H5::DataType* get(void) {
     static const H5::StrType strtype(0, H5T_VARIABLE);
