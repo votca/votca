@@ -42,9 +42,11 @@ public:
     matrix(const matrix &m) { *this=m; }
     matrix(double  arr[9]) {*this=arr; }
     matrix(const vec& a, const vec& b, const vec& c){
+    // clang-format off
         _m[0]=a.getX(); _m[1]=b.getX(); _m[2]=c.getX();
         _m[3]=a.getY(); _m[4]=b.getY(); _m[5]=c.getY();
         _m[6]=a.getZ(); _m[7]=b.getZ(); _m[8]=c.getZ();
+    // clang-format on
     } // takes three vectors and creates a matrix with them as columns
     
     void Invert();
