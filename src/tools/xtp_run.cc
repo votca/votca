@@ -169,13 +169,19 @@ bool XtpRun::EvaluateOptions() {
               iter != ctp::Calculators().getObjects().end(); ++iter) {
 
         if ((*it).compare((iter->first).c_str()) == 0) {
+          _found_calc = true;
           cout << " This is a CTP app" << endl;
           xtp::SqlApplication::AddCalculator(ctp::Calculators().Create((*it).c_str()));
         }
       }
     }
-
-    load_property_from_xml(_options, _op_vm["options"].as<string>());
+    if(!_found_calc){
+      cout << "Calculator " << *it << " does not exist\n";
+      StopExecution();
+    }
+    else{
+      load_property_from_xml(_options, _op_vm["options"].as<string>());
+    }
   }
     return true;
   }
