@@ -101,6 +101,33 @@ clang-format -i -style=file file.cc
 '-style=file' ensures the format is read from the .clang-format file otherwise 
      it will use a default style guide. 
 
+## CPP Comment Guide
+ 
+ It is preferential that the following guidelines be followed when adding 
+ comments to code:
 
+ 1. The `/* */` comment blocks should be avoided and the `//` used in their 
+    place. This is so that the `/* */` comment blocks can be easily used for 
+    debugging.
+ 2. It would be preferential that the following doxygen commenting stencil be 
+    used in the header files above each class and function description.
 
+```
+/**
+* \brief function/class summary
+*
+* Detailed function/class description if needed
+*
+* @param[in] - description of parameter 1
+* @param[out] - description of parameter 2
+* @param[in,out] - description of parameter 3
+* :
+* @return - description of return type
+*/
+```
 
+The doxygen commenting will help future developers maintain the code, in its 
+fully compiled state it may be found at: http://doc.votca.org
+
+NOTE: Compilation of the doxygen documentation is automated when code is merged
+into the master votca branch! 
