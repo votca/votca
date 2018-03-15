@@ -54,7 +54,7 @@ public:
     matrix &operator=(double [9]);
 
     bool operator!=(const matrix m) const{
-      for(size_t i=0; i<9; ++i) if(_m(i)!=m._m(i)) return true;
+      for(size_t i=0; i<9; ++i) if(_m[i]!=m._m[i]) return true;
       return false;
     }
     bool operator==(const matrix m) const{
