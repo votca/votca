@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _mat_H
-#define	_mat_H
+#ifndef _VOTCA_TOOLS_MAT_H
+#define	_VOTCA_TOOLS_MAT_H
 
 #include "types.h"
 #include "ostream"
@@ -24,6 +24,15 @@
 
 namespace votca { namespace tools {
 
+
+/**
+ * \brief Position & Velocity Matrix
+ * 
+ * This class is a 3x3 matrix used specificallly for position and velocity
+ * applications. For larger matrices use the matrix classes that are available
+ * in the dependencies. 
+ *
+ */
 class matrix
 {
 public:
@@ -43,15 +52,18 @@ public:
     matrix &operator=(const double &v);
     matrix &operator=(const matrix &v);
     matrix &operator=(double [9]);
-    //vec &operator+=(const vec &v);
-    //vec &operator-=(const vec &v);
+
+    bool operator!=(const matrix m) const{
+      for(size_t i=0; i<9; ++i) if(_m(i)!=m._m(i)) return true;
+      return false;
+    }
+    bool operator==(const matrix m) const{
+      return !(*this!=m);
+    }
     matrix &operator*=(const double &d){
         for(size_t i=0; i<9; ++i) _m[i] *=d;
         return *this;
     }
-    //matrix &operator*(const double &d){
-    	
-    //}
     matrix &operator/=(const double &d){
         for(size_t i=0; i<9; ++i) _m[i] /=d;
         return *this;
@@ -300,5 +312,5 @@ int cjcbi(matrix &a, matrix &v, double eps=1e-10, int jt=100);
 
 }}
 
-#endif	/* _matrix_H */
+#endif	// _VOTCA_TOOLS_MAT_H 
 
