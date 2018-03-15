@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,21 +18,19 @@
  */
 
 
-#ifndef _QMNBList_H
-#define	_QMNBList_H
+#ifndef _VOTCA_XTP_QMNBList_H
+#define	_VOTCA_XTP_QMNBList_H
 
 
 #include <stdlib.h>
 #include <votca/csg/pairlist.h>
-#include <votca/ctp/qmpair.h>
+#include <votca/xtp/qmpair.h>
 
 namespace CSG = votca::csg;
 
-
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class Topology;
-
 
 class QMNBList : public CSG::PairList< Segment*, QMPair >
 {
@@ -159,5 +157,5 @@ protected:
 }}
 
 
-#endif	/* _QMNBList_H */
+#endif	/* _VOTCA_XTP_QMNBList_H */
 
