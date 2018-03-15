@@ -28,14 +28,10 @@
 #include <votca/csg/orthorhombicbox.h>
 #include <votca/csg/triclinicbox.h>
 
-#include <votca/ctp/qmpair.h>
-#include <votca/ctp/qmnblist.h>
-
 #include <votca/moo/jcalc.h>
 #include <votca/moo/mol_and_orb.h>
 
 namespace CSG = votca::csg;
-
 
 namespace votca { namespace xtp {
 
@@ -46,7 +42,7 @@ class Fragment;
 class Atom;
 class APolarSite;
 class PolarSite;
-
+class QMBList;
 /**
  * \brief Container for molecules, conjugated segments, rigid fragments,
  * and atoms.
@@ -61,13 +57,13 @@ public:
 
     // Population: Molecules, segments, fragments, atoms
 
-    Molecule    *AddMolecule (string molecule_name);
-    Segment     *AddSegment  (string segment_name);
-    Atom        *AddAtom     (string atom_name);
-    Fragment    *AddFragment (string fragment_name);
-    PolarSite   *AddPolarSite(string siteName);
-    APolarSite  *AddAPolarSite(string siteName);
-    SegmentType *AddSegmentType (string typeName);
+    Molecule    *AddMolecule (std::string molecule_name);
+    Segment     *AddSegment  (std::string segment_name);
+    Atom        *AddAtom     (std::string atom_name);
+    Fragment    *AddFragment (std::string fragment_name);
+    PolarSite   *AddPolarSite(std::string siteName);
+    APolarSite  *AddAPolarSite(std::string siteName);
+    SegmentType *AddSegmentType (std::string typeName);
 
     Molecule    *getMolecule(int id) { return _molecules[id-1]; }
     Segment     *getSegment(int id)  { return _segments[id-1]; }
@@ -77,13 +73,13 @@ public:
     APolarSite  *getAPolarSite(int id) { return _apolarSites[id-1]; }
     SegmentType *getSegmentType(int id) { return _segmentTypes[id-1]; }
 
-    vector< Atom* >         &Atoms() { return _atoms; }
-    vector< Fragment* >     &Fragments() { return _fragments; }
-    vector< Segment* >      &Segments() { return _segments; }
-    vector< Molecule* >     &Molecules() { return _molecules; }
-    vector< PolarSite* >    &PolarSites() { return _polarSites; }
-    vector< APolarSite* >   &APolarSites() { return _apolarSites; }
-    vector< SegmentType* >  &SegmentTypes() { return _segmentTypes; }
+    std::vector< Atom* >         &Atoms() { return _atoms; }
+    std::vector< Fragment* >     &Fragments() { return _fragments; }
+    std::vector< Segment* >      &Segments() { return _segments; }
+    std::vector< Molecule* >     &Molecules() { return _molecules; }
+    std::vector< PolarSite* >    &PolarSites() { return _polarSites; }
+    std::vector< APolarSite* >   &APolarSites() { return _apolarSites; }
+    std::vector< SegmentType* >  &SegmentTypes() { return _segmentTypes; }
 
     bool                Rigidify();
     void                setCanRigidify(bool yesno) { _canRigidify = yesno; }
@@ -96,10 +92,10 @@ public:
 
     // Periodic boundary: Can be 'open', 'orthorhombic', 'triclinic'
 
-    vec              PbShortestConnect(const vec &r1, const vec &r2) const;
-    const matrix    &getBox() { return _bc->getBox(); }
+    votca::tools::vec              PbShortestConnect(const votca::tools::vec &r1, const votca::tools::vec &r2) const;
+    const votca::tools::matrix    &getBox() { return _bc->getBox(); }
     double           BoxVolume() { return _bc->BoxVolume(); }
-    void             setBox(const matrix &box,
+    void             setBox(const votca::tools::matrix &box,
                             CSG::BoundaryCondition::eBoxtype boxtype =
                             CSG::BoundaryCondition::typeAuto);
 
@@ -116,20 +112,15 @@ public:
     void             setDatabaseId(int id) { _db_id = id; }
     void             CleanUp();
 
-    void             PrintInfo(ostream &out);
-    void             PrintInfo(FILE *out);
-    void             WritePDB(FILE *out, string tag = "segments");
-
-   
 protected:
 
-    vector < Molecule* >    _molecules;
-    vector < Segment* >     _segments;
-    vector < Fragment* >    _fragments;
-    vector < Atom* >        _atoms;
-    vector < PolarSite* >   _polarSites;
-    vector < APolarSite* >   _apolarSites;
-    vector < SegmentType* > _segmentTypes;
+    std::vector < Molecule* >    _molecules;
+    std::vector < Segment* >     _segments;
+    std::vector < Fragment* >    _fragments;
+    std::vector < Atom* >        _atoms;
+    std::vector < PolarSite* >   _polarSites;
+    std::vector < APolarSite* >   _apolarSites;
+    std::vector < SegmentType* > _segmentTypes;
 
 
     int    _db_id;
@@ -146,7 +137,7 @@ protected:
 
 
     CSG::BoundaryCondition::eBoxtype
-    AutoDetectBoxType(const matrix &box);
+    AutoDetectBoxType(const votca::tools::matrix &box);
 
 };
 

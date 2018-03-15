@@ -22,6 +22,8 @@
 #include <votca/xtp/segment.h>
 #include <votca/xtp/topology.h>
 
+using namespace votca::tools;
+
 namespace votca { namespace xtp {
 
 QMPair::~QMPair() {
