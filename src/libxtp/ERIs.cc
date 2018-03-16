@@ -204,20 +204,40 @@ namespace votca {
           // Timer
           clock_t start = clock();
 
-          #pragma omp parallel for
+          //#pragma omp parallel for
           for (int iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
             const AOShell* shell_3 = dftbasis.getShell(iShell_3);
             for (int iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
               const AOShell* shell_4 = dftbasis.getShell(iShell_4);
-              for (int iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
+              for (int iShell_1 = iShell_3; iShell_1 < numShells; iShell_1++) {
                 const AOShell* shell_1 = dftbasis.getShell(iShell_1);
                 for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
                   const AOShell* shell_2 = dftbasis.getShell(iShell_2);
 
-                  // Initialize the current 4c block/sub-matrix
+                  // Get the current 4c block
                   ub::matrix<double> subMatrix = ub::zero_matrix<double>(shell_1->getNumFunc() * shell_2->getNumFunc(), shell_3->getNumFunc() * shell_4->getNumFunc());
-                  // Fill the current 4c block
                   bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_2, shell_3, shell_4);
+                  
+                  // Test symmetry (1, 2) <--> (3, 4)
+                  ub::matrix<double> subMatrix2 = ub::zero_matrix<double>(shell_3->getNumFunc() * shell_4->getNumFunc(), shell_1->getNumFunc() * shell_2->getNumFunc());
+                  bool nonzero2 = _fourcenter.FillFourCenterRepBlock(subMatrix2, shell_3, shell_4, shell_1, shell_2);
+                  bool same = true;
+                  for (int i = 0; i < subMatrix.size1() && same; i++) {
+                    for (int j = 0; j < subMatrix.size2() && same; j++) {
+                      if (std::abs(subMatrix(i, j) - subMatrix2(j, i)) > 0.001)
+                        same = false;
+                    }
+                  }
+                  if (!same) {
+                    cout << "(" << iShell_1 << ", " << iShell_2 << ", " << iShell_3 << ", " << iShell_4 << ")"
+                         << "<-->"
+                         << "(" << iShell_3 << ", " << iShell_4 << ", " << iShell_1 << ", " << iShell_2 << ")"
+                         << endl;
+                    cout << subMatrix << endl;
+                    cout << subMatrix2 << endl;
+                    cout << subMatrix2 - subMatrix << endl;
+                    exit(0);
+                  }
                   
                   // If there are only zeros, we don't need to put anything in the ERIs matrix
                   if (!nonzero)
@@ -235,31 +255,29 @@ namespace votca {
                   if (iShell_3 != iShell_4)
                     FillERIsBlock(DMAT, subMatrix, shell_1, shell_2, shell_4, shell_3);
                   
-                  // Symmetry 1 <--> 2 AND 3 <--> 4
+                  // Symmetry 1 <--> 2 and 3 <--> 4
                   if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
                     FillERIsBlock(DMAT, subMatrix, shell_2, shell_1, shell_4, shell_3);
-                  
-                  // TODO: Verify symmetry (1, 2) <--> (3, 4) in the submatrix
-                  
-                  /*
+
                   // Symmetry (1, 2) <--> (3, 4)
                   if (iShell_1 != iShell_3) {
                     
-                    FillERIsBlock(DMAT, subMatrix, shell_3, shell_4, shell_1, shell_2);
+                    // TODO: We need to use the transposed version of "submatrix"!
+                    
+                    FillERIsBlock(DMAT, subMatrix2, shell_3, shell_4, shell_1, shell_2);
 
                     // Symmetry 1 <--> 2
                     if (iShell_1 != iShell_2)
-                      FillERIsBlock(DMAT, subMatrix, shell_3, shell_4, shell_2, shell_1);
+                      FillERIsBlock(DMAT, subMatrix2, shell_3, shell_4, shell_2, shell_1);
 
                     // Symmetry 3 <--> 4
                     if (iShell_3 != iShell_4)
-                      FillERIsBlock(DMAT, subMatrix, shell_4, shell_3, shell_1, shell_2);
+                      FillERIsBlock(DMAT, subMatrix2, shell_4, shell_3, shell_1, shell_2);
                     
-                    // Symmetry 1 <--> 2 AND 3 <--> 4
+                    // Symmetry 1 <--> 2 and 3 <--> 4
                     if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
-                      FillERIsBlock(DMAT, subMatrix, shell_4, shell_3, shell_2, shell_1);
+                      FillERIsBlock(DMAT, subMatrix2, shell_4, shell_3, shell_2, shell_1);
                   }
-                  */
                   
                   /* End fill ERIs matrix */
                 } // End loop over shell 2
