@@ -116,14 +116,14 @@ class CheckpointFile {
   CheckpointFile(std::string fileName);
   ~CheckpointFile();
 
-  std::string getName();
+  std::string getFileName();
+  std::string getVersion();
 
  private:
   std::string _fileName;
   H5::H5File _fileHandle;
-  H5::Attribute _version;
-
   H5::Group _child1;
+  std::string _version;
 };
 }  // namespace xtp
 }  // namespace votca
