@@ -114,7 +114,6 @@ void WriteData(const H5::Group& loc, const Eigen::MatrixBase<T>& matrix,
 class CheckpointFile {
  public:
   CheckpointFile(std::string fileName);
-  ~CheckpointFile();
 
   std::string getFileName();
   std::string getVersion();

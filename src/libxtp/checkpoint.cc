@@ -58,8 +58,6 @@ CheckpointFile::CheckpointFile(std::string fileName) : _fileName(fileName) {
 
 };
 
-CheckpointFile::~CheckpointFile(){};
-
 std::string CheckpointFile::getName() { return _fileName; };
 
 }  // namespace xtp
