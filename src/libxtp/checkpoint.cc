@@ -27,25 +27,20 @@ namespace xtp {
 
 using namespace hdf5_utils;
 
-CheckpointFile::CheckpointFile(std::string fileName) : _fileName(fileName) {
+CheckpointFile::CheckpointFile(std::string fN)
+    : _fileName(fN), _version(gitversion) {
 
   try {
-    _fileHandle = H5::H5File(fileName, H5F_ACC_TRUNC);
+    H5::Exception::dontPrint();
+    _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
 
-    _version = _fileHandle.createAttribute("Version", *InferDataType<std::string>::get(),
-                                           StrScalar());
-
-    _version.write(str_type, gitversion);
+    WriteAttribute(_fileHandle, gitversion, "Version");
 
     _child1 = _fileHandle.createGroup("/Child1");
 
-
-
-    // WriteData(_child1, a, "a");
-
     Eigen::Matrix<double, 10, 10> b;
 
-    WriteData(_child1, b, "b");
+    // WriteData(_child1, b, "b");
 
     Eigen::VectorXd c(10);
 
@@ -55,10 +50,10 @@ CheckpointFile::CheckpointFile(std::string fileName) : _fileName(fileName) {
     error.printError();
     throw std::runtime_error(error.getDetailMsg());
   }
-
 };
 
-std::string CheckpointFile::getName() { return _fileName; };
+std::string CheckpointFile::getFileName() { return _fileName; };
+std::string CheckpointFile::getVersion() { return _version; };
 
 }  // namespace xtp
 }  // namespace votca
