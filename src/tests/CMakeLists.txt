@@ -1,6 +1,6 @@
 
 find_package(Boost 1.39.0 REQUIRED COMPONENTS unit_test_framework)
-foreach(PROG test_glink )
+foreach(PROG test_glink test_hdf5)
 	file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
 	add_executable(unit_${PROG} ${${PROG}_SOURCES})
 	target_link_libraries(unit_${PROG} votca_xtp ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
