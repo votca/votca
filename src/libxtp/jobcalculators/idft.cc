@@ -83,6 +83,12 @@ void IDFT::ParseOptionsXML( tools::Property *options ) {
     if (_store_string.find("orbitals") != std::string::npos) _store_orbitals = true;
     if (_store_string.find("overlap") != std::string::npos) _store_overlap = true;
     if (_store_string.find("integrals") != std::string::npos) _store_integrals = true;
+
+    // read linker groups
+    string linker = options->ifExistsReturnElseReturnDefault<string>(key + ".linker_names", "");
+    Tokenizer toker(linker, ",");
+    toker.ToVector(_linker_names);
+ 
     
     _max_occupied_levels = options->get(key+".levels").as<int> ();
     _max_unoccupied_levels = _max_occupied_levels;
@@ -247,7 +253,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
             CTP_LOG(ctp::logWARNING,*pLog) << "PBCs are not taken into account when writing the coordinate file!" << flush; 
             _qmpackage->WriteInputFile(segments, _orbitalsAB);
         } else {
-            _qmpackage->WriteInputFilePBC(pair, _orbitalsAB);
+            _qmpackage->WriteInputFilePBC(pair, _orbitalsAB, _linker_names);
         }
         
         delete _orbitalsAB;
