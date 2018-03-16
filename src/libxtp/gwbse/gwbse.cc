@@ -349,7 +349,7 @@ bool GWBSE::Evaluate() {
                                  << flush;
 
             std::vector<QMAtom*>& _atoms=_orbitals->QMAtoms();
-            
+
   // load DFT basis set (element-wise information) from xml file
   BasisSet dftbs;
 
@@ -398,14 +398,14 @@ bool GWBSE::Evaluate() {
   if (_ignore_corelevels) {
     if(!_orbitals->hasECP()){
       BasisSet basis;
-      basis.LoadBasisSet("ecp");//
+      basis.LoadPseudopotentialSet("corelevels");//
       unsigned coreElectrons=0;
       for(const auto& atom:_atoms){
-        coreElectrons+=basis.getElement(atom->getType())->getNcore();   
+        coreElectrons+=basis.getElement(atom->getType())->getNcore();
       }
        _ignored_corelevels = coreElectrons/2;
-    }
-   
+     }
+
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Can ignore "
                                    << _ignored_corelevels << " core levels "
                                    << flush;
