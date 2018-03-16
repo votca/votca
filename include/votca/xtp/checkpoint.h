@@ -69,7 +69,31 @@ struct InferDataType<std::string> {
 };
 
 template <typename T>
-void WriteData(H5::Group loc, const Eigen::MatrixBase<T>& matrix,
+void WriteAttribute(const H5::H5Location& loc, const T& value,
+                    const std::string name) {
+
+  hsize_t dims[1] = {1};
+  H5::DataSpace dp(1, dims);
+  const H5::DataType* dataType = InferDataType<T>::get();
+
+  H5::Attribute attr = loc.createAttribute(name.c_str(), *dataType, dp);
+  attr.write(*dataType, &value);
+}
+
+void WriteAttribute(const H5::H5Object& obj, const std::string value,
+                    const std::string name) {
+
+  hsize_t dims[1] = {1};
+  H5::DataSpace dp(1, dims);
+  const H5::DataType* strType = InferDataType<std::string>::get();
+
+  H5::Attribute attr = obj.createAttribute(name, *strType, StrScalar());
+
+  attr.write(*strType, value);
+}
+
+template <typename T>
+void WriteData(const H5::Group& loc, const Eigen::MatrixBase<T>& matrix,
                const std::string name) {
 
   hsize_t dims[2] = {matrix.rows(),
