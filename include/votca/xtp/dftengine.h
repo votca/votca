@@ -31,8 +31,7 @@
 #include <votca/ctp/apolarsite.h>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/ERIs.h>
-#include <votca/xtp/diis.h>
-#include <votca/xtp/mixing.h>
+#include <votca/xtp/convergenceacc.h>
 #include <votca/ctp/logger.h>
 
 namespace votca {
@@ -196,7 +195,7 @@ namespace votca {
             double _error_converged;
             int _numofelectrons;
             int _max_iter;
-            int _this_iter;
+            
 
             //levelshift
 
@@ -205,11 +204,10 @@ namespace votca {
 
 
             //DIIS variables
-            Diis _diis;
+            ConvergenceAcc conv_accelerator;
             bool _usediis;
             unsigned _histlength;
             bool _maxout;
-            string _diismethod;
             Eigen::MatrixXd _Sminusonehalf;
             double _diis_start;
             double _adiis_start;

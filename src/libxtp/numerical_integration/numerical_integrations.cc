@@ -391,7 +391,6 @@ namespace votca {
   Eigen::MatrixXd NumericalIntegration::IntegrateVXC(const Eigen::MatrixXd& _density_matrix) {
       Eigen::MatrixXd Vxc = Eigen::MatrixXd::Zero(_density_matrix.rows(), _density_matrix.cols());
       EXC = 0;
-
       unsigned nthreads = 1;
 #ifdef _OPENMP
       nthreads = omp_get_max_threads();
@@ -402,7 +401,7 @@ namespace votca {
         Eigen::MatrixXd Vxc_thread = Eigen::MatrixXd::Zero(_density_matrix.rows(), _density_matrix.cols());
         vxc_thread.push_back(Vxc_thread);
       }
-
+      
 
 #pragma omp parallel for
       for (unsigned thread = 0; thread < nthreads; ++thread) {
@@ -410,9 +409,12 @@ namespace votca {
 
           double EXC_box = 0.0;
           GridBox& box = _grid_boxes[i];
-
           const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(_density_matrix);
-
+          double cutoff=1.e-40/_density_matrix.rows()/_density_matrix.rows();
+          if (DMAT_here.cwiseAbs2().maxCoeff()<cutoff ){
+            continue;
+          }
+          
           Eigen::MatrixXd Vxc_here = Eigen::MatrixXd::Zero(DMAT_here.rows(), DMAT_here.cols());
           const std::vector<tools::vec>& points = box.getGridPoints();
           const std::vector<double>& weights = box.getGridWeights();
@@ -428,20 +430,16 @@ namespace votca {
               Eigen::Block<Eigen::MatrixX3d> grad_block=ao_grad.block(aoranges[j].start,0,aoranges[j].size,3);
               Eigen::VectorBlock<Eigen::VectorXd> ao_block=ao.segment(aoranges[j].start,aoranges[j].size);
               shells[j]->EvalAOspace(ao_block,grad_block,points[p]);
+               
             }
-
-         
             double rho = (ao.transpose()*DMAT_here*ao).value();
-
             Eigen::Vector3d rho_grad = (ao.transpose()*DMAT_here*ao_grad).transpose()+ao_grad.transpose()*DMAT_here*ao;
-
-            if (rho < 1.e-15) continue; // skip the rest, if density is very small
-
+            double weight = weights[p];
+            if (rho*weight < 1.e-20) continue; // skip the rest, if density is very small
             double f_xc; // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r }
             double df_drho; // v_xc_rho(r) = df/drho
             double df_dsigma; // df/dsigma ( df/dgrad(rho) = df/dsigma * dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
-            EvaluateXC(rho, rho_grad, f_xc, df_drho, df_dsigma);
-            double weight = weights[p];
+            EvaluateXC(rho, rho_grad, f_xc, df_drho, df_dsigma);          
             Eigen::VectorXd _addXC = weight * df_drho * ao * 0.5+ 2.0 * df_dsigma * weight * (rho_grad.transpose()*ao_grad.transpose()).transpose();
             // Exchange correlation energy
             EXC_box += weight * rho * f_xc;
@@ -455,8 +453,8 @@ namespace votca {
         Vxc += vxc_thread[i];
         EXC += Exc_thread[i];
       }
-      Vxc += Vxc.transpose();
-      return Vxc;
+    
+      return Vxc+Vxc.transpose();
     }
   
   

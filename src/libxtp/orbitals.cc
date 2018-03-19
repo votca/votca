@@ -262,8 +262,8 @@ namespace votca {
 
         Eigen::MatrixXd Orbitals::DensityMatrixGroundState() {
           
-          Eigen::MatrixXd occstates=_mo_coefficients.block(0,0,_occupied_levels,_basis_set_size);
-          Eigen::MatrixXd dmatGS = 2*occstates.transpose()*occstates;
+          Eigen::MatrixXd occstates=_mo_coefficients.block(0,0,_mo_coefficients.rows(),_occupied_levels);
+          Eigen::MatrixXd dmatGS = 2.0*occstates*occstates.transpose();
 
             return dmatGS;
         }

@@ -58,15 +58,12 @@ endif()
 add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 
 
-find_package(Eigen 3.3.0 REQUIRED)
-if (EIGEN_FOUND)
-    message("-- EIGEN found")
-	include_directories(${EIGEN_INCLUDE_DIRS})
-message(STATUS ${EIGEN_INCLUDE_DIRS})
-	set (LIBEIGEN TRUE )
-else()
+find_package(EIGEN3 3.3.0 REQUIRED)
+if (EIGEN3_FOUND)
+	message(STATUS "${EIGEN3_VERSION}")
+  include_directories(${EIGEN3_INCLUDE_DIRS})
+endif (EIGEN3_FOUND)
 
-endif()
 
 find_package(LIBXC)
 if (LIBXC_FOUND)

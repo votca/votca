@@ -61,6 +61,7 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>../../include/votca/xtp/ERIs.h</itemPath>
+      <itemPath>../../include/votca/xtp/adiis.h</itemPath>
       <itemPath>../../include/votca/xtp/aobasis.h</itemPath>
       <itemPath>../../include/votca/xtp/aomatrix.h</itemPath>
       <itemPath>../../include/votca/xtp/aoshell.h</itemPath>
@@ -69,6 +70,7 @@
       <itemPath>../../include/votca/xtp/bsecoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/chargecarrier.h</itemPath>
+      <itemPath>../../include/votca/xtp/convergenceacc.h</itemPath>
       <itemPath>../../include/votca/xtp/dftcoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/diis.h</itemPath>
@@ -148,6 +150,8 @@
         <itemPath>../../src/libxtp/xtpapplication.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f7" displayName="dftengine" projectFiles="true">
+        <itemPath>../../src/libxtp/adiis.cc</itemPath>
+        <itemPath>../../src/libxtp/convergenceacc.cc</itemPath>
         <itemPath>../../src/libxtp/dftengine/dftengine.cc</itemPath>
         <itemPath>../../src/libxtp/diis.cc</itemPath>
         <itemPath>../../src/libxtp/mixing.cc</itemPath>
@@ -214,6 +218,12 @@
       <itemPath>../../src/libxtp/version.cc</itemPath>
       <itemPath>../../src/libxtp/version_nb.cc</itemPath>
     </logicalFolder>
+    <logicalFolder name="f4" displayName="tests" projectFiles="true" kind="ROOT">
+      <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
+      <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
+      <itemPath>../../src/tests/test_glink.cc</itemPath>
+      <itemPath>../../src/tests/test_orbitals.cc</itemPath>
+    </logicalFolder>
   </logicalFolder>
   <sourceRootList>
     <Elem>../../include</Elem>
@@ -266,6 +276,8 @@
       </compileType>
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/aobasis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/aomatrix.h" ex="false" tool="3" flavor2="0">
@@ -287,6 +299,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/chargecarrier.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/convergenceacc.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -452,6 +469,8 @@
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/aobasis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aodipole.cc"
@@ -576,6 +595,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -856,8 +877,6 @@
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/exciton.cc" ex="false" tool="1" flavor2="0">
@@ -899,7 +918,16 @@
       </item>
       <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_convergenceacc.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="3">
@@ -923,6 +951,8 @@
       </compileType>
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/aobasis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/aomatrix.h" ex="false" tool="3" flavor2="0">
@@ -944,6 +974,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/chargecarrier.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/convergenceacc.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1109,6 +1144,8 @@
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/aobasis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aodipole.cc"
@@ -1233,6 +1270,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1513,8 +1552,6 @@
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/exciton.cc" ex="false" tool="1" flavor2="0">
@@ -1556,7 +1593,16 @@
       </item>
       <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_convergenceacc.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>
