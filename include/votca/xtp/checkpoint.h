@@ -23,6 +23,9 @@
 #include <typeinfo>
 #include <vector>
 
+#define HDF_VAR_NAME(v) #v
+#define HDF_WRITE_DATA(loc, var) WriteData(loc, var, VAR_NAME(var));
+
 namespace votca {
 namespace xtp {
 
