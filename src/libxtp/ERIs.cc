@@ -218,27 +218,6 @@ namespace votca {
                   ub::matrix<double> subMatrix = ub::zero_matrix<double>(shell_1->getNumFunc() * shell_2->getNumFunc(), shell_3->getNumFunc() * shell_4->getNumFunc());
                   bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_2, shell_3, shell_4);
                   
-                  // Test symmetry (1, 2) <--> (3, 4)
-                  ub::matrix<double> subMatrix2 = ub::zero_matrix<double>(shell_3->getNumFunc() * shell_4->getNumFunc(), shell_1->getNumFunc() * shell_2->getNumFunc());
-                  bool nonzero2 = _fourcenter.FillFourCenterRepBlock(subMatrix2, shell_3, shell_4, shell_1, shell_2);
-                  bool same = true;
-                  for (int i = 0; i < subMatrix.size1() && same; i++) {
-                    for (int j = 0; j < subMatrix.size2() && same; j++) {
-                      if (std::abs(subMatrix(i, j) - subMatrix2(j, i)) > 0.001)
-                        same = false;
-                    }
-                  }
-                  if (!same) {
-                    cout << "(" << iShell_1 << ", " << iShell_2 << ", " << iShell_3 << ", " << iShell_4 << ")"
-                         << "<-->"
-                         << "(" << iShell_3 << ", " << iShell_4 << ", " << iShell_1 << ", " << iShell_2 << ")"
-                         << endl;
-                    cout << subMatrix << endl;
-                    cout << subMatrix2 << endl;
-                    cout << subMatrix2 - subMatrix << endl;
-                    exit(0);
-                  }
-                  
                   // If there are only zeros, we don't need to put anything in the ERIs matrix
                   if (!nonzero)
                     continue;
@@ -262,7 +241,13 @@ namespace votca {
                   // Symmetry (1, 2) <--> (3, 4)
                   if (iShell_1 != iShell_3) {
                     
-                    // TODO: We need to use the transposed version of "submatrix"!
+                    // TODO
+                    // We need to use the transposed version of "submatrix"!
+                    // Do something smarter than copying the submatrix into a new transposed matrix.
+                    ub::matrix<double> subMatrix2 = ub::zero_matrix<double>(shell_3->getNumFunc() * shell_4->getNumFunc(), shell_1->getNumFunc() * shell_2->getNumFunc());
+                    for (int i = 0; i < subMatrix.size1(); i++)
+                      for (int j = 0; j < subMatrix.size2(); j++)
+                        subMatrix2(j, i) = subMatrix(i, j);
                     
                     FillERIsBlock(DMAT, subMatrix2, shell_3, shell_4, shell_1, shell_2);
 
