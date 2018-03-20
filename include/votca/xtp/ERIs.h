@@ -53,8 +53,10 @@ namespace votca { namespace xtp {
         void CalculateERIs(const ub::matrix<double> &DMAT);
         void CalculateERIs_4c_small_molecule(const ub::matrix<double> &DMAT); ///////////////////////////////////////
         void CalculateEXX_4c_small_molecule(const ub::matrix<double> &DMAT);
+        
+        void CalculateERIs_diagonals(const AOBasis& dftbasis);
         void CalculateERIs_4c_direct(const AOBasis& dftbasis, const ub::matrix<double> &DMAT);
-		
+        
         int getSize1(){return _ERIs.size1();}
         int getSize2(){return _ERIs.size2();}
         
@@ -72,7 +74,7 @@ namespace votca { namespace xtp {
         double _EXXenergy;
         void CalculateEnergy(const ub::vector<double> &dmatasarray);
         void CalculateEXXEnergy(const ub::vector<double> &dmatasarray);
-        
+
         void FillERIsBlock(const ub::matrix<double> &DMAT, const ub::matrix<double> &subMatrix, const AOShell* shell_1, const AOShell* shell_2, const AOShell* shell_3, const AOShell* shell_4);
     };
     

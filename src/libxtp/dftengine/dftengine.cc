@@ -475,6 +475,10 @@ namespace votca {
               _ERIs.Initialize_4c_small_molecule(_dftbasis);
               CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c integrals. " << flush;
             }
+            else if (_4cmethod.compare("direct") == 0) {
+              
+              _ERIs.CalculateERIs_diagonals(_dftbasis);
+            }
 
             return;
         }

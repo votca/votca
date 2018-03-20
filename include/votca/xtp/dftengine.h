@@ -124,10 +124,10 @@ namespace votca {
               
               if (_with_RI)
                 _ERIs.CalculateERIs(_dftAOdmat);
-              else if (_4cmethod.compare("direct") == 0)
-                _ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
               else if (_4cmethod.compare("cache") == 0)
                 _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
+              else if (_4cmethod.compare("direct") == 0)
+                _ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
               
               // TODO: Throw error?
             }

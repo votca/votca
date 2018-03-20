@@ -244,10 +244,7 @@ namespace votca {
                     // TODO
                     // We need to use the transposed version of "submatrix"!
                     // Do something smarter than copying the submatrix into a new transposed matrix.
-                    ub::matrix<double> subMatrix2 = ub::zero_matrix<double>(shell_3->getNumFunc() * shell_4->getNumFunc(), shell_1->getNumFunc() * shell_2->getNumFunc());
-                    for (int i = 0; i < subMatrix.size1(); i++)
-                      for (int j = 0; j < subMatrix.size2(); j++)
-                        subMatrix2(j, i) = subMatrix(i, j);
+                    ub::matrix<double> subMatrix2 = ub::trans(subMatrix);
                     
                     FillERIsBlock(DMAT, subMatrix2, shell_3, shell_4, shell_1, shell_2);
 
@@ -288,11 +285,8 @@ namespace votca {
         void ERIs::FillERIsBlock(const ub::matrix<double> &DMAT, const ub::matrix<double> &subMatrix, const AOShell* shell_1, const AOShell* shell_2, const AOShell* shell_3, const AOShell* shell_4) {
 
           for (int iFunc_3 = 0; iFunc_3 < shell_3->getNumFunc(); iFunc_3++) {
-
             int ind_3 = shell_3->getStartIndex() + iFunc_3;
-
             for (int iFunc_4 = 0; iFunc_4 < shell_4->getNumFunc(); iFunc_4++) {
-
               int ind_4 = shell_4->getStartIndex() + iFunc_4;
 
               // Symmetry
@@ -303,11 +297,8 @@ namespace votca {
               int ind_subm_34 = shell_3->getNumFunc() * iFunc_4 + iFunc_3;
 
               for (int iFunc_1 = 0; iFunc_1 < shell_1->getNumFunc(); iFunc_1++) {
-
                 int ind_1 = shell_1->getStartIndex() + iFunc_1;
-
                 for (int iFunc_2 = 0; iFunc_2 < shell_2->getNumFunc(); iFunc_2++) {
-
                   int ind_2 = shell_2->getStartIndex() + iFunc_2;
 
                   // Symmetry
@@ -323,6 +314,64 @@ namespace votca {
               } // End loop over functions in shell 1
             } // End loop over functions in shell 4
           } // End loop over functions in shell 3
+        }
+        
+        
+        
+        void ERIs::CalculateERIs_diagonals(const AOBasis& dftbasis) {
+          
+          cout << endl;
+          cout << "ERIS.cc ERIs::CalculateERIs_diagonals" << endl;
+          
+          // Number of shells
+          int numShells = dftbasis.getNumofShells();
+          // Total number of functions
+          int dftBasisSize = dftbasis.AOBasisSize();
+          
+          // TODO: Store in ERIs, use for pre-screening in direct computation
+          ub::matrix<double> matrix = ub::zero_matrix<double>(dftBasisSize); // <ii|jj>
+          
+          for (int iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
+            const AOShell* shell_1 = dftbasis.getShell(iShell_1);
+            for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
+              const AOShell* shell_2 = dftbasis.getShell(iShell_2);
+              
+              // Get the current 4c block
+              ub::matrix<double> subMatrix = ub::zero_matrix<double>(shell_1->getNumFunc() * shell_1->getNumFunc(), shell_2->getNumFunc() * shell_2->getNumFunc());
+              bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_1, shell_2, shell_2);
+              
+              if (!nonzero)
+                continue;
+              
+              for (int iFunc_1 = 0; iFunc_1 < shell_1->getNumFunc(); iFunc_1++) {
+                int ind_1 = shell_1->getStartIndex() + iFunc_1;
+                for (int iFunc_2 = 0; iFunc_2 < shell_2->getNumFunc(); iFunc_2++) {
+                  int ind_2 = shell_2->getStartIndex() + iFunc_2;
+
+                  // Symmetry
+                  if (ind_1 > ind_2)
+                    continue;
+
+                  // Row index in the current sub-matrix
+                  int ind_subm_11 = shell_1->getNumFunc() * iFunc_1 + iFunc_1;
+                  // Column index in the current sub-matrix
+                  int ind_subm_22 = shell_2->getNumFunc() * iFunc_2 + iFunc_2;
+                  
+                  /* Begin fill diagonal matrix */
+                  
+                  matrix(ind_1, ind_2) = subMatrix(ind_subm_11, ind_subm_22);
+                  
+                  // Symmetry
+                  if (ind_1 != ind_2)
+                    matrix(ind_2, ind_1) = matrix(ind_1, ind_2);
+                  
+                  /* End fill diagonal matrix */
+                } // End loop over functions in shell 2
+              } // End loop over functions in shell 1
+            } // End loop over shell 2
+          } // End loop over shell 1
+          
+          cout << matrix << endl;
         }
 		
 		
