@@ -91,18 +91,23 @@ BOOST_AUTO_TEST_CASE( getters_test ) {
   seg1->setU_cC_nN(0.0,state);
   seg1->setU_nC_nN(0.0,state);
   seg1->setU_cN_cC(0.0,state);
+  // Related to the getdE12 function so must set to 0.0
+  seg1->setEMpoles(state,0.0);
   state  = 1;
   seg1->setU_cC_nN(0.0,state);
   seg1->setU_nC_nN(0.0,state);
   seg1->setU_cN_cC(0.0,state);
+  seg1->setEMpoles(state,0.0);
   state  = 2;
   seg1->setU_xX_nN(0.0,state);
   seg1->setU_nX_nN(0.0,state);
   seg1->setU_xN_xX(0.0,state);
+  seg1->setEMpoles(state,0.0);
   state  = 3;
   seg1->setU_xX_nN(0.0,state);
   seg1->setU_nX_nN(0.0,state);
   seg1->setU_xN_xX(0.0,state);
+  seg1->setEMpoles(state,0.0);
 
   vec qmpos_2;
   qmpos_2.setX(4.0);
@@ -123,18 +128,22 @@ BOOST_AUTO_TEST_CASE( getters_test ) {
   seg2->setU_cC_nN(0.0,state);
   seg2->setU_nC_nN(0.0,state);
   seg2->setU_cN_cC(0.0,state);
+  seg2->setEMpoles(state,0.0);
   state  = 1;
   seg2->setU_cC_nN(0.0,state);
   seg2->setU_nC_nN(0.0,state);
   seg2->setU_cN_cC(0.0,state);
+  seg2->setEMpoles(state,0.0);
   state  = 2;
   seg2->setU_xX_nN(0.0,state);
   seg2->setU_nX_nN(0.0,state);
   seg2->setU_xN_xX(0.0,state);
+  seg2->setEMpoles(state,0.0);
   state  = 3;
   seg2->setU_xX_nN(0.0,state);
   seg2->setU_nX_nN(0.0,state);
   seg2->setU_xN_xX(0.0,state);
+  seg2->setEMpoles(state,0.0);
 
 
   int pair_num = 1;
