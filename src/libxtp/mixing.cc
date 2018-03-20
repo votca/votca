@@ -44,11 +44,11 @@ namespace votca { namespace xtp {
               double count=0.0;
               for(unsigned i=0;i<nominator.size();i++){
                   double a=nominator(i)/denominator(i);
-                  if(a<0.1){
-                      a=0.1;
+                  if(a<0.01){
+                      a=0.01;
                   }
-                  else if(a>0.9){
-                      a=0.9;
+                  else if(a>1){
+                      a=1;
                   }
                   count+=a;
               }

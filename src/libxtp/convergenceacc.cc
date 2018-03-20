@@ -62,12 +62,13 @@ namespace votca { namespace xtp {
     bool diis_error=false; 
    
        
-    if (_diiserror<_adiis_start && _usediis && _mathist.size()>2){
+    if (_diiserror<_adiis_start && _usediis && _mathist.size()>3){
         Eigen::VectorXd coeffs;
         //use ADIIs if energy has risen a lot in current iteration
 
         if(_diiserror>_diis_start || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
             coeffs=adiis.CalcCoeff(_dmatHist,_mathist);
+            cout<<coeffs<<endl;
             diis_error=!adiis.Info();
             if(_noisy){
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << flush;
@@ -116,7 +117,7 @@ namespace votca { namespace xtp {
     Eigen::MatrixXd dmatout=DensityMatrix(MOs,MOenergies);
     
     mix.Updatemix(dmat,dmatout);
-    if(_diiserror>_adiis_start ||!_usediis || diis_error ||_mathist.size()<=2 ){
+    if(_diiserror>_adiis_start ||!_usediis || diis_error ||_mathist.size()<=3 ){
       dmatout=mix.MixDmat(dmat,dmatout);
       if(_noisy){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using Mixing with alpha="<<mix.getAlpha() << flush;

@@ -219,6 +219,7 @@
       <itemPath>../../src/libxtp/version_nb.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="f4" displayName="tests" projectFiles="true" kind="ROOT">
+      <itemPath>../../src/tests/test_adiis.cc</itemPath>
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
       <itemPath>../../src/tests/test_glink.cc</itemPath>
@@ -918,6 +919,8 @@
       </item>
       <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_adiis.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_convergenceacc.cc"
@@ -1592,6 +1595,8 @@
       <item path="../../src/libxtp/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_adiis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
