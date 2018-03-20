@@ -33,7 +33,7 @@ public:
     EInternal() { };
    ~EInternal() { };
 
-    std::string Identify() { return "xeinternal"; }
+    std::string Identify() { return "einternal"; }
     void Initialize(tools::Property *options);
     void ParseEnergiesXML(tools::Property *options);
     bool EvaluateFrame(ctp::Topology *top);

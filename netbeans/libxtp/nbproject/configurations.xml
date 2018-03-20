@@ -33,6 +33,7 @@
         <itemPath>../../src/libxtp/jobcalculators/qmmm.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
+        <itemPath>../../src/libxtp/tools/coupling.h</itemPath>
         <itemPath>../../src/libxtp/tools/dft.h</itemPath>
         <itemPath>../../src/libxtp/tools/exciton.cc</itemPath>
         <itemPath>../../src/libxtp/tools/exciton.h</itemPath>
@@ -47,6 +48,18 @@
         <itemPath>../../src/libxtp/tools/qmsandbox.h</itemPath>
         <itemPath>../../src/libxtp/tools/spectrum.h</itemPath>
       </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="f5"
+                   displayName="Executables"
+                   projectFiles="true"
+                   kind="ROOT">
+      <itemPath>../../src/tools/Md2QmEngine.cc</itemPath>
+      <itemPath>../../src/tools/Md2QmEngine.h</itemPath>
+      <itemPath>../../src/tools/xtp_dump.cc</itemPath>
+      <itemPath>../../src/tools/xtp_map.cc</itemPath>
+      <itemPath>../../src/tools/xtp_parallel.cc</itemPath>
+      <itemPath>../../src/tools/xtp_run.cc</itemPath>
+      <itemPath>../../src/tools/xtp_tools.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="f3" displayName="Extractors" projectFiles="true">
       <itemPath>../../src/libxtp/extractors/energyextractor.h</itemPath>
@@ -218,9 +231,10 @@
       <itemPath>../../src/libxtp/version.cc</itemPath>
       <itemPath>../../src/libxtp/version_nb.cc</itemPath>
     </logicalFolder>
-    <logicalFolder name="f4" displayName="tests" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f4" displayName="tests" projectFiles="true">
       <itemPath>../../src/tests/test_adiis.cc</itemPath>
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
+      <itemPath>../../src/tests/test_atom.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
       <itemPath>../../src/tests/test_glink.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
@@ -878,6 +892,8 @@
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/exciton.cc" ex="false" tool="1" flavor2="0">
@@ -923,6 +939,8 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_convergenceacc.cc"
             ex="false"
             tool="1"
@@ -931,6 +949,20 @@
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/Md2QmEngine.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/tools/xtp_dump.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/xtp_map.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/xtp_parallel.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/xtp_run.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/xtp_tools.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="3">
@@ -1555,6 +1587,8 @@
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/exciton.cc" ex="false" tool="1" flavor2="0">
@@ -1600,6 +1634,8 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_convergenceacc.cc"
             ex="false"
             tool="1"
@@ -1608,6 +1644,20 @@
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/Md2QmEngine.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/tools/xtp_dump.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/xtp_map.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/xtp_parallel.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/xtp_run.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/xtp_tools.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

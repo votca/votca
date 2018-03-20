@@ -147,6 +147,7 @@ bool XtpDump::EvaluateOptions() {
     tools::Tokenizer calcs(OptionsMap()["extract"].as<string>(), " ,\n\t");
     tools::Tokenizer::iterator it;
     for (it = calcs.begin(); it != calcs.end(); it++) {
+      
       bool _found_calc = false;
       for (xtp::ExtractorFactory::assoc_map::const_iterator iter = xtp::Extractors().getObjects().begin();
               iter != xtp::Extractors().getObjects().end(); ++iter) {
@@ -163,15 +164,19 @@ bool XtpDump::EvaluateOptions() {
                 iter != ctp::Extractors().getObjects().end(); ++iter) {
 
           if ((*it).compare((iter->first).c_str()) == 0) {
+            _found_calc = true;
             cout << " This is a CTP app" << endl;
             xtp::SqlApplication::AddCalculator(ctp::Extractors().Create((*it).c_str()));
           }
-        }
       }
-
-
     }
-    return true;
+    if (!_found_calc) {
+      cout << "Extractor " << *it << " does not exist\n";
+      StopExecution();
+    }
+
+  }
+  return true;
   }
 
 int main(int argc, char** argv) {
