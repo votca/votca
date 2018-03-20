@@ -35,8 +35,9 @@ BOOST_AUTO_TEST_SUITE(qmpair_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) { QMPair qm_p; }
 
-BOOST_AUTO_TEST_CASE(getters_test, * boost::unit_test::tolerance(0.000001)) { 
+BOOST_AUTO_TEST_CASE( getters_test ) { 
 
+  double tolerancePerc = 0.01;
   // Box takes a vector
   double x1 = 12.0;
   double y1 = 0.0;
@@ -112,48 +113,48 @@ BOOST_AUTO_TEST_CASE(getters_test, * boost::unit_test::tolerance(0.000001)) {
   BOOST_CHECK_EQUAL(qm_p.HasGhost(),false);
 
   int state = -1;
-  BOOST_CHECK_EQUAL(qm_p.getLambdaO(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg12(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg21(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg12_x(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg21_x(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getRate12(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getRate21(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getJeff2(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getdE12(state),0.0);
+  BOOST_CHECK_CLOSE(qm_p.getLambdaO(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg12(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg21(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg12_x(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg21_x(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getRate12(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getRate21(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getJeff2(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getdE12(state),0.0,(tolerancePerc));
   
   state = 1;
-  BOOST_CHECK_EQUAL(qm_p.getLambdaO(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg12(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg21(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg12_x(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg21_x(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getRate12(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getRate21(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getJeff2(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getdE12(state),0.0);
+  BOOST_CHECK_CLOSE(qm_p.getLambdaO(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg12(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg21(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg12_x(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg21_x(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getRate12(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getRate21(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getJeff2(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getdE12(state),0.0,(tolerancePerc));
 
   state = 2;
-  BOOST_CHECK_EQUAL(qm_p.getLambdaO(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg12(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg21(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg12_x(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg21_x(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getRate12(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getRate21(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getJeff2(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getdE12(state),0.0);
+  BOOST_CHECK_CLOSE(qm_p.getLambdaO(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg12(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg21(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg12_x(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg21_x(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getRate12(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getRate21(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getJeff2(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getdE12(state),0.0,(tolerancePerc));
   
   state = 3;
-  BOOST_CHECK_EQUAL(qm_p.getLambdaO(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg12(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg21(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg12_x(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getReorg21_x(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getRate12(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getRate21(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getJeff2(state),0.0);
-  BOOST_CHECK_EQUAL(qm_p.getdE12(state),0.0);
+  BOOST_CHECK_CLOSE(qm_p.getLambdaO(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg12(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg21(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg12_x(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getReorg21_x(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getRate12(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getRate21(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getJeff2(state),0.0,(tolerancePerc));
+  BOOST_CHECK_CLOSE(qm_p.getdE12(state),0.0,(tolerancePerc));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
