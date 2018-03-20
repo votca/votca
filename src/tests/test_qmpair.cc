@@ -108,6 +108,9 @@ BOOST_AUTO_TEST_CASE( getters_test ) {
   seg1->setU_nX_nN(0.0,state);
   seg1->setU_xN_xX(0.0,state);
   seg1->setEMpoles(state,0.0);
+  // Because we did not explicity set it,the position must be calculated
+  // from the atoms stored in it.
+  seg1->calcPos();
 
   vec qmpos_2;
   qmpos_2.setX(4.0);
@@ -145,6 +148,7 @@ BOOST_AUTO_TEST_CASE( getters_test ) {
   seg2->setU_xN_xX(0.0,state);
   seg2->setEMpoles(state,0.0);
 
+  seg2->calcPos();
 
   int pair_num = 1;
   QMPair qm_p(pair_num,seg1,seg2); 
