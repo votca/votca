@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_SUITE(qmpair_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) { QMPair qm_p; }
 
-BOOST_AUTO_TEST_CASE(getters_test) { 
+BOOST_AUTO_TEST_CASE(getters_test, * boost::unit_test::tolerance(0.000001)) { 
 
   // Box takes a vector
   double x1 = 12.0;
