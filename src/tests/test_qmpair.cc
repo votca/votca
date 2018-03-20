@@ -123,7 +123,7 @@ BOOST_AUTO_TEST_CASE( getters_test ) {
   pos_2.setZ(1.0);
 
   Atom * atm_2 = new Atom(nullptr, "res1",1,"CSP",2,hasQM,3,qmpos_2,"H",1.0);
-  atm->setPos(pos_2);
+  atm_2->setPos(pos_2);
   Segment * seg2 = new Segment(2, "seg2");
   seg2->AddAtom(atm_2);
   seg2->setTopology(&top);
@@ -147,16 +147,17 @@ BOOST_AUTO_TEST_CASE( getters_test ) {
   seg2->setU_nX_nN(0.0,state);
   seg2->setU_xN_xX(0.0,state);
   seg2->setEMpoles(state,0.0);
-
   seg2->calcPos();
 
   int pair_num = 1;
   QMPair qm_p(pair_num,seg1,seg2); 
   BOOST_CHECK_EQUAL(qm_p.getId(),1);
   auto r = qm_p.R();
-  BOOST_CHECK_CLOSE(r.x(),0.0,tolerancePerc);
-  BOOST_CHECK_CLOSE(r.y(),0.0,tolerancePerc);
-  BOOST_CHECK_CLOSE(r.z(),0.0,tolerancePerc);
+  // Warning r is not a position of the two segments it is the vector
+  // from seg2 pointint to seg1 
+  BOOST_CHECK_CLOSE(r.x(),-2.0,tolerancePerc);
+  BOOST_CHECK_CLOSE(r.y(),-2.0,tolerancePerc);
+  BOOST_CHECK_CLOSE(r.z(),-2.0,tolerancePerc);
   BOOST_CHECK(qm_p.HasGhost()==false);
 
   state = -1;
