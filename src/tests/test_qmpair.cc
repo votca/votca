@@ -87,6 +87,23 @@ BOOST_AUTO_TEST_CASE( getters_test ) {
   seg1->AddAtom(atm);
   seg1->setTopology(&top);
 
+  int state  = -1;
+  seg1->setU_cC_nN(0.0,state);
+  seg1->setU_nC_nN(0.0,state);
+  seg1->setU_cN_cC(0.0,state);
+  state  = 1;
+  seg1->setU_cC_nN(0.0,state);
+  seg1->setU_nC_nN(0.0,state);
+  seg1->setU_cN_cC(0.0,state);
+  state  = 2;
+  seg1->setU_xX_nN(0.0,state);
+  seg1->setU_nX_nN(0.0,state);
+  seg1->setU_xN_xX(0.0,state);
+  state  = 3;
+  seg1->setU_xX_nN(0.0,state);
+  seg1->setU_nX_nN(0.0,state);
+  seg1->setU_xN_xX(0.0,state);
+
   vec qmpos_2;
   qmpos_2.setX(4.0);
   qmpos_2.setY(4.0);
@@ -102,17 +119,34 @@ BOOST_AUTO_TEST_CASE( getters_test ) {
   Segment * seg2 = new Segment(2, "seg2");
   seg2->AddAtom(atm_2);
   seg2->setTopology(&top);
+  state  = -1;
+  seg2->setU_cC_nN(0.0,state);
+  seg2->setU_nC_nN(0.0,state);
+  seg2->setU_cN_cC(0.0,state);
+  state  = 1;
+  seg2->setU_cC_nN(0.0,state);
+  seg2->setU_nC_nN(0.0,state);
+  seg2->setU_cN_cC(0.0,state);
+  state  = 2;
+  seg2->setU_xX_nN(0.0,state);
+  seg2->setU_nX_nN(0.0,state);
+  seg2->setU_xN_xX(0.0,state);
+  state  = 3;
+  seg2->setU_xX_nN(0.0,state);
+  seg2->setU_nX_nN(0.0,state);
+  seg2->setU_xN_xX(0.0,state);
+
 
   int pair_num = 1;
   QMPair qm_p(pair_num,seg1,seg2); 
   BOOST_CHECK_EQUAL(qm_p.getId(),1);
   auto r = qm_p.R();
-  BOOST_CHECK_EQUAL(r.x(),0.0);
-  BOOST_CHECK_EQUAL(r.y(),0.0);
-  BOOST_CHECK_EQUAL(r.z(),0.0);
-  BOOST_CHECK_EQUAL(qm_p.HasGhost(),false);
+  BOOST_CHECK_CLOSE(r.x(),0.0,tolerancePerc);
+  BOOST_CHECK_CLOSE(r.y(),0.0,tolerancePerc);
+  BOOST_CHECK_CLOSE(r.z(),0.0,tolerancePerc);
+  BOOST_CHECK(qm_p.HasGhost()==false);
 
-  int state = -1;
+  state = -1;
   BOOST_CHECK_CLOSE(qm_p.getLambdaO(state),0.0,(tolerancePerc));
   BOOST_CHECK_CLOSE(qm_p.getReorg12(state),0.0,(tolerancePerc));
   BOOST_CHECK_CLOSE(qm_p.getReorg21(state),0.0,(tolerancePerc));
