@@ -22,7 +22,27 @@
 
 BOOST_AUTO_TEST_SUITE(test_hdf5)
 
-BOOST_AUTO_TEST_CASE(constructor_test) {
-    votca::xtp::CheckpointFile cpf("xtp_testing.hdf5"); }
+BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
+    votca::xtp::CheckpointFile cpf("xtp_testing.hdf5");
+
+    // Write orbitals
+    votca::xtp::Orbitals orbWrite;
+
+    orbWrite.setBasisSetSize(17);
+    orbWrite.setNumberOfLevels(4,13);
+
+    Eigen::VectorXd moeTest = Eigen::VectorXd::Zero(17);
+    Eigen::MatrixXd mocTest = Eigen::MatrixXd::Zero(17,17);
+
+    orbWrite.MOEnergies()=moeTest;
+    orbWrite.MOCoefficients()=mocTest;
+
+    cpf.WriteOrbitals(orbWrite, "Test Orb");
+
+    // Read Orbitals
+    votca::xtp::Orbitals orbRead;
+
+
+}
 
 BOOST_AUTO_TEST_SUITE_END()
