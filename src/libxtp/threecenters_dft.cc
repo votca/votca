@@ -111,6 +111,7 @@ namespace votca {
                                     }
                                    
                                     _matrix[_start + _aux](_row_start + _row, _col_start + _col) = _subvector(_row, _index);
+                                    _matrix[_start + _aux](_col_start + _col,_row_start + _row) = _subvector(_row, _index);
 
                                 } // ROW copy
                             } // COL copy

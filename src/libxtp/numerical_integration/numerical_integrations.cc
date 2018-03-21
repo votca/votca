@@ -443,7 +443,7 @@ namespace votca {
             Eigen::VectorXd _addXC = weight * df_drho * ao * 0.5+ 2.0 * df_dsigma * weight * (rho_grad.transpose()*ao_grad.transpose()).transpose();
             // Exchange correlation energy
             EXC_box += weight * rho * f_xc;
-            Vxc_here += _addXC* ao.transpose();
+            Vxc_here.noalias() += _addXC* ao.transpose();
           }
           box.AddtoBigMatrix(vxc_thread[thread], Vxc_here);
           Exc_thread[thread] += EXC_box;

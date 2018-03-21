@@ -129,6 +129,7 @@ namespace votca { namespace xtp {
         //transform to orthogonal for
         Eigen::MatrixXd H_ortho=(*Sminusahalf).transpose()*H*(*Sminusahalf);
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H_ortho);
+        std::cout<<(es.info()==Eigen::ComputationInfo::Success)<<std::endl;
         
         MOenergies=es.eigenvalues();
         MOs=(*Sminusahalf)*es.eigenvectors();
@@ -141,11 +142,15 @@ namespace votca { namespace xtp {
         for (unsigned _i = _nocclevels; _i < H.rows(); _i++) {
                         virt(_i, _i) = _levelshift; 
             }
-        Eigen::MatrixXd inv=MOs.inverse();
+        
+        Eigen::PartialPivLU<Eigen::MatrixXd> lu(MOs);
+        Eigen::MatrixXd inv=lu.inverse();
         if(_noisy){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << _levelshift << " Hartree" << flush;
         }
-        H +=  inv.transpose()*virt*inv ; 
+        Eigen::MatrixXd vir=  inv.transpose()*virt*inv ; 
+        H+=vir;
+      
           return;
     }
     

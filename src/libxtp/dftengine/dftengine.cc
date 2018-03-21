@@ -610,7 +610,6 @@ namespace votca {
           }
 
           double E_one_alpha = dftAOdmat_alpha.cwiseProduct(H0).sum();
-          cout << E_one_alpha << " " << E_two_alpha << endl;
           double E_one_beta = dftAOdmat_beta.cwiseProduct(H0).sum();
 
           double E_alpha = E_one_alpha + E_two_alpha;

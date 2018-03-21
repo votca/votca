@@ -62,7 +62,7 @@ namespace votca { namespace xtp {
           const int size=_errormatrixhist.size();
           //old Pulat DIIs
           
-          Eigen::VectorXd coeffs=Eigen::VectorXd::Zero(size);
+          Eigen::VectorXd coeffs;
           if(_useold) {
           
           Eigen::MatrixXd B=Eigen::MatrixXd::Zero(size+1,size+1);
@@ -74,18 +74,16 @@ namespace votca { namespace xtp {
           }
           for (unsigned i=1;i<B.rows();i++){
               for (unsigned j=1;j<=i;j++){
-                  //cout<<"i "<<i<<" j "<<j<<endl;
                   B(i,j)=_Diis_Bs[i-1]->at(j-1);
                   if(i!=j){
                     B(j,i)=B(i,j);
                   }
               }
           }
-          //cout <<"solve"<<endl;
+
           
           Eigen::VectorXd result=B.colPivHouseholderQr().solve(a);
-         
-          Eigen::VectorXd coeffs=result.segment(1,size);
+          coeffs=result.segment(1,size);
           }
           else{
           
@@ -96,14 +94,12 @@ namespace votca { namespace xtp {
             
           for (unsigned i=0;i<B.rows();i++){
               for (unsigned j=0;j<=i;j++){
-                  //cout<<"i "<<i<<" j "<<j<<endl;
                   B(i,j)=_Diis_Bs[i]->at(j);
                   if(i!=j){
                     B(j,i)=B(i,j);
                   }
               }
           }
-          //cout<<"B:"<<B<<endl;
            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(B);
            Eigen::MatrixXd eigenvectors=Eigen::MatrixXd::Zero(size,size);
           
@@ -113,12 +109,10 @@ namespace votca { namespace xtp {
           }
         
           // Choose solution by picking out solution with smallest error
-          Eigen::MatrixXd eq=eigenvectors.transpose()*B*eigenvectors;
-          Eigen::VectorXd errors=eq.diagonal();
-          std::cout<<errors<<std::endl;
-          //cout<<"Errors:"<<eq<<endl;
+          Eigen::VectorXd errors=(eigenvectors.transpose()*B*eigenvectors).diagonal();
+         
+
           double MaxWeight=10.0;
-          //cout<<"eigenvectors"<<eigenvectors<<endl;
           double min=std::numeric_limits<double>::max();
           int minloc=-1;
           
@@ -147,10 +141,9 @@ namespace votca { namespace xtp {
        }
           }
           
-          std::cout<<success<<std::endl;
-          std::cout<<coeffs<<std::endl;
-          std::cout<<coeffs.tail(1).value()<<std::endl;
+       
       if(std::abs(coeffs.tail(1).value())<0.001){     
+        std::cout<<coeffs<<std::endl;
         success=false;
       }
           

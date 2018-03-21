@@ -52,7 +52,7 @@ namespace votca {
         
         
         void ERIs::CalculateERIs (const Eigen::MatrixXd &DMAT){
-      
+            _ERIs=Eigen::MatrixXd::Zero(DMAT.rows(),DMAT.cols());
             Eigen::VectorXd Itilde=Eigen::VectorXd::Zero(_threecenter.getSize());
           
             #pragma omp parallel for
@@ -62,9 +62,7 @@ namespace votca {
                 
                 Itilde(_i)=threecenter.cwiseProduct(DMAT).sum();
             }
-            //cout << "Itilde " <<Itilde << endl;
             const Eigen::VectorXd K=_inverse_Coulomb*Itilde;
-            //cout << "K " << K << endl;
             
             unsigned nthreads = 1;
             #ifdef _OPENMP
@@ -80,16 +78,14 @@ namespace votca {
             #pragma omp parallel for
             for (unsigned thread=0;thread<nthreads;++thread){
                 for ( unsigned _i = thread; _i < K.size(); _i+=nthreads){
-
                 ERIS_thread[thread]+=_threecenter.getDatamatrix(_i)*K(_i);    
-                //cout << "I " << _threecenter.getDatamatrix(_i) << endl;
-                //cout<< "ERIs " <<_ERIs<< endl;
                 }
             }
+              
             for (unsigned thread=0;thread<nthreads;++thread){
                 _ERIs+=ERIS_thread[thread];
             }    
-            
+
             CalculateEnergy(DMAT);
             return;
         }

@@ -110,15 +110,18 @@ ofstream xyzfile("molecule.xyz");
   d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,levelshift,0,occlevels,0);
   d.setSqrtOverlap(&Smonehalf);
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
+  
+ std::cout<<orb.MOCoefficients()<<std::endl;
+
   for (unsigned i=occlevels;i<17;i++){
     orb.MOEnergies()(i)+=levelshift;
   }
   Eigen::VectorXd MOEnergies;
   Eigen::MatrixXd MOCoeffs;
-  
+ 
   d.Levelshift(H,orb.MOCoefficients());
   d.SolveFockmatrix(MOEnergies,MOCoeffs,H);
-  
+
   bool check_level=MOEnergies.isApprox(orb.MOEnergies(),0.00001);
 BOOST_CHECK_EQUAL(check_level, 1);
 

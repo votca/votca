@@ -236,6 +236,8 @@
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
       <itemPath>../../src/tests/test_atom.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
+      <itemPath>../../src/tests/test_diis.cc</itemPath>
+      <itemPath>../../src/tests/test_eigen.cc</itemPath>
       <itemPath>../../src/tests/test_glink.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
     </logicalFolder>
@@ -946,6 +948,10 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
@@ -1640,6 +1646,10 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
