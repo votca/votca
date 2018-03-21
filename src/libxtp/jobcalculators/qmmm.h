@@ -44,7 +44,7 @@ public:
     QMMM() {};
    ~QMMM() {};
 
-    string          Identify() { return "xqmmm"; }
+    string          Identify() { return "qmmm"; }
     void            Initialize(Property *);
 
     void            CustomizeLogger(ctp::QMThread *thread);

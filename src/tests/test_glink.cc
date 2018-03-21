@@ -15,7 +15,7 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE gnode_test
+#define BOOST_TEST_MODULE glink_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/glink.h>
 
