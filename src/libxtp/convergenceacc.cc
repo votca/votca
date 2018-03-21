@@ -68,7 +68,6 @@ namespace votca { namespace xtp {
 
         if(_diiserror>_diis_start || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
             coeffs=adiis.CalcCoeff(_dmatHist,_mathist);
-            cout<<coeffs<<endl;
             diis_error=!adiis.Info();
             if(_noisy){
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << flush;
@@ -86,7 +85,7 @@ namespace votca { namespace xtp {
         }
         else{
              coeffs=diis.CalcCoeff();
-             diis_error=diis.Info();
+             diis_error=!diis.Info();
              if(_noisy){
              CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using DIIS" << flush;
              }

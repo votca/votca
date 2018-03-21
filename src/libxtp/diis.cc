@@ -115,7 +115,7 @@ namespace votca { namespace xtp {
           // Choose solution by picking out solution with smallest error
           Eigen::MatrixXd eq=eigenvectors.transpose()*B*eigenvectors;
           Eigen::VectorXd errors=eq.diagonal();
-          
+          std::cout<<errors<<std::endl;
           //cout<<"Errors:"<<eq<<endl;
           double MaxWeight=10.0;
           //cout<<"eigenvectors"<<eigenvectors<<endl;
@@ -147,6 +147,9 @@ namespace votca { namespace xtp {
        }
           }
           
+          std::cout<<success<<std::endl;
+          std::cout<<coeffs<<std::endl;
+          std::cout<<coeffs.tail(1).value()<<std::endl;
       if(std::abs(coeffs.tail(1).value())<0.001){     
         success=false;
       }
