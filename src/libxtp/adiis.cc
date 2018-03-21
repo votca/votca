@@ -47,8 +47,7 @@ namespace votca { namespace xtp {
         }
       }   
      
-     
-     
+ 
           
    size_t N=_DiF.size();
           
@@ -127,7 +126,6 @@ double ADIIS::get_E_adiis(const gsl_vector * x) const {
 
     Eigen::VectorXd c=adiis::compute_c(x);
     double Eval=(2*c.transpose()*_DiF+c.transpose()*_DiFj*c).value();
-    
 
 return Eval;
 }
@@ -135,27 +133,24 @@ return Eval;
 void ADIIS::get_dEdx_adiis(const gsl_vector * x, gsl_vector * dEdx) const {
   // Compute contraction coefficients
   Eigen::VectorXd c=adiis::compute_c(x);
-  
-   
-  
+ 
   Eigen::VectorXd dEdc=2.0*_DiF + _DiFj*c + _DiFj.transpose()*c;
  
-
   // Compute jacobian of transformation: jac(i,j) = dc_i / dx_j
   Eigen::MatrixXd jac=adiis::compute_jac(x);
 
   // Finally, compute dEdx by plugging in Jacobian of transformation
   // dE/dx_i = dc_j/dx_i dE/dc_j
   Eigen::VectorXd dEdxv=jac.transpose()*dEdc;
-  for(size_t i=0;i< dEdxv.size();i++)
+  for(size_t i=0;i< dEdxv.size();i++){
     gsl_vector_set(dEdx,i,dEdxv(i));
+  }
   return;
 }
 
 void ADIIS::get_E_dEdx_adiis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const {
   // Consistency check
    if(x->size != _DiF.size()) {
-   
     throw std::runtime_error("Incorrect number of parameters.");
   }
   if(x->size != dEdx->size) {
@@ -173,11 +168,13 @@ void ADIIS::get_E_dEdx_adiis(const gsl_vector * x, double * Eval, gsl_vector * d
 Eigen::VectorXd adiis::compute_c(const gsl_vector * x) {
   // Compute contraction coefficients
   Eigen::VectorXd c=Eigen::VectorXd::Zero(x->size);
-
+  double xnorm=0.0;
   for(size_t i=0;i<x->size;i++) {
     c(i)=gsl_vector_get(x,i);
+    c(i)=c(i)*c(i);
+    xnorm+=c(i);   
   }
-  c.normalize();
+  c/=xnorm;
   return c;
 }  
 
@@ -186,12 +183,12 @@ Eigen::MatrixXd adiis::compute_jac(const gsl_vector * x) {
 
   // Compute coefficients
   Eigen::VectorXd c=Eigen::VectorXd::Zero(x->size);
-
-  
+  double xnorm=0.0;
   for(size_t i=0;i<x->size;i++) {
     c(i)=gsl_vector_get(x,i);
+    c(i)=c(i)*c(i);
+    xnorm+=c(i);
   }
-  double xnorm=c.norm();
   c/=xnorm;
   
  Eigen::MatrixXd jac=Eigen::MatrixXd::Zero(c.size(),c.size());
