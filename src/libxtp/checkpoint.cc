@@ -34,22 +34,27 @@ CheckpointFile::CheckpointFile(std::string fN)
     H5::Exception::dontPrint();
     _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
 
-    WriteAttribute(_fileHandle, gitversion, "Version");
+    WriteScalarAttribute(_fileHandle, gitversion, "Version");
 
-    _child1 = _fileHandle.createGroup("/Child1");
-
-    Eigen::Matrix<double, 10, 10> b;
-
-    // WriteData(_child1, b, "b");
-
-    Eigen::VectorXd c(10);
-
-    WriteData(_child1, c, "c");
-
-  } catch (H5::Exception error) {
+  } catch (H5::Exception& error) {
     error.printError();
     throw std::runtime_error(error.getDetailMsg());
   }
+};
+
+void CheckpointFile::WriteOrbitals(Orbitals& orbs, const std::string name){
+    try{
+        H5::Group orbHandle = _fileHandle.createGroup("/"+name);
+
+
+        WriteScalarAttribute(orbHandle, orbs.getBasisSetSize(), "_basis_set_size");
+
+
+
+    } catch (H5::Exception& error){
+        error.printError();
+        throw std::runtime_error(error.getDetailMsg());
+    }
 };
 
 std::string CheckpointFile::getFileName() { return _fileName; };

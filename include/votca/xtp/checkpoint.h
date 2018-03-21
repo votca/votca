@@ -22,6 +22,8 @@
 #include <string>
 #include <typeinfo>
 #include <vector>
+#include <votca/xtp/orbitals.h>
+
 
 #define HDF_VAR_NAME(v) #v
 #define HDF_WRITE_DATA(loc, var) WriteData(loc, var, VAR_NAME(var));
@@ -72,8 +74,8 @@ struct InferDataType<std::string> {
 };
 
 template <typename T>
-void WriteAttribute(const H5::H5Location& loc, const T& value,
-                    const std::string name) {
+void WriteScalarAttribute(const H5::H5Location& loc, const T& value,
+                          const std::string name) {
 
   hsize_t dims[1] = {1};
   H5::DataSpace dp(1, dims);
@@ -83,8 +85,8 @@ void WriteAttribute(const H5::H5Location& loc, const T& value,
   attr.write(*dataType, &value);
 }
 
-void WriteAttribute(const H5::H5Object& obj, const std::string value,
-                    const std::string name) {
+void WriteScalarAttribute(const H5::H5Object& obj, const std::string value,
+                          const std::string name) {
 
   hsize_t dims[1] = {1};
   H5::DataSpace dp(1, dims);
@@ -120,6 +122,8 @@ class CheckpointFile {
 
   std::string getFileName();
   std::string getVersion();
+
+  void WriteOrbitals(Orbitals& orb, const std::string name);
 
  private:
   std::string _fileName;
