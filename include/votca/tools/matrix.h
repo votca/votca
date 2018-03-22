@@ -18,9 +18,9 @@
 #ifndef _VOTCA_TOOLS_MAT_H
 #define _VOTCA_TOOLS_MAT_H
 #include "ostream"
-#include <votca/tools/floatingpointcomparison.h>
-#include <votca/tools/types.h>
-#include <votca/tools/vec.h>
+#include "floatingpointcomparison.h"
+#include "types.h"
+#include "vec.h"
 
 namespace votca {
 namespace tools {
