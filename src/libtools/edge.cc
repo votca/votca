@@ -20,6 +20,7 @@
 #include <iostream>
 #include <list>
 #include <vector>
+#include <algorithm>
 
 #include <votca/tools/edge.h>
 
@@ -29,12 +30,7 @@ namespace tools {
 using namespace std;
 
 Edge::Edge(int ID1, int ID2) {
-  vertices.first  = ID1;
-  vertices.second = ID2;
-  if (ID2 < ID1) {
-    vertices.first  = ID2;
-    vertices.second = ID1;
-  }
+  vertices = minmax({ID1,ID2});
 }
 
 int Edge::getOtherV(int ver) const {
