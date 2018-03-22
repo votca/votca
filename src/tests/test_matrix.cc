@@ -43,8 +43,7 @@ BOOST_AUTO_TEST_CASE(overloadoperator_test) {
   matrix mat2(v1,v1,v1);
 
   {
-    BOOST_CHECK(mat1==mat2);
-    BOOST_CHECK(!(mat1!=mat2));
+    BOOST_CHECK(mat1.isClose(mat2,0.01));
   }
   
   vec v2(0,0,0);
@@ -53,18 +52,18 @@ BOOST_AUTO_TEST_CASE(overloadoperator_test) {
   
   {
     mat3+=mat1;
-    BOOST_CHECK(mat3==mat1); 
+    BOOST_CHECK(mat3.isClose(mat1,0.01)); 
     mat3-=mat1;
-    BOOST_CHECK(mat3==mat4);
+    BOOST_CHECK(mat3.isClose(mat4,0.01));
   }
 
   vec v3(-1,-1,-1);
   matrix mat5(v3,v3,v3);
   {
     mat1/=(-1);
-    BOOST_CHECK(mat1==mat5);
+    BOOST_CHECK(mat1.isClose(mat5,0.01));
     mat1*=(-1);
-    BOOST_CHECK(mat1==mat2);
+    BOOST_CHECK(mat1.isClose(mat2,0.01));
   }  
 }
 
