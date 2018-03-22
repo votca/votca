@@ -84,6 +84,15 @@ if(GSL_FOUND)
   set(GSL TRUE)
 endif()
 
+find_package(MKL)
+if (MKL_FOUND)
+    message("-- MKL found")
+	include_directories(${MKL_INCLUDE_DIRS})
+	set (MKL TRUE )
+else()
+	set(MKL_LIBRARIES)
+endif()
+
 
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 include(GNUInstallDirs)

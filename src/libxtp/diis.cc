@@ -22,7 +22,7 @@
 
 
 namespace votca { namespace xtp {
-   namespace ub = boost::numeric::ublas;
+  
    
    void DIIS::Update(unsigned _maxerrorindex, const Eigen::MatrixXd& errormatrix){
      
@@ -143,7 +143,6 @@ namespace votca { namespace xtp {
           
        
       if(std::abs(coeffs.tail(1).value())<0.001){     
-        std::cout<<coeffs<<std::endl;
         success=false;
       }
           

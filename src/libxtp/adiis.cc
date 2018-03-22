@@ -22,9 +22,7 @@
 
 
 namespace votca { namespace xtp {
-   namespace ub = boost::numeric::ublas;
-   
-      
+  
       
       
    Eigen::VectorXd ADIIS::CalcCoeff(const std::vector< Eigen::MatrixXd* >& _dmathist,const std::vector< Eigen::MatrixXd* >& _mathist){

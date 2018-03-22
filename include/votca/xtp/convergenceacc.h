@@ -111,7 +111,8 @@ public:
     bool                              _noisy;
     unsigned                          _histlength;
     bool                              _maxout;
-    Eigen::MatrixXd                _Sminusonehalf;
+  
+    Eigen::MatrixXd                 Sonehalf;
     double                              _maxerror;
     double                              _diiserror;
     double                              _adiis_start;  
