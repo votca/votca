@@ -41,8 +41,7 @@ namespace votca {
     namespace xtp {
      
 
-    double NumericalIntegration::getExactExchange(const string _functional) {
-#ifdef LIBXC            
+    double NumericalIntegration::getExactExchange(const string _functional) {      
 
       double exactexchange = 0.0;
       Vxc_Functionals map;
@@ -74,10 +73,6 @@ namespace votca {
       }
       return exactexchange;
 
-#else
-      return 0.0;
-#endif
-
     }
     
     
@@ -90,22 +85,20 @@ namespace votca {
       boost::split(strs, _functional, boost::is_any_of(" "));
       xfunc_id = 0;
 
-#ifdef LIBXC
-      _use_votca = false;
+
       _use_separate = false;
       cfunc_id = 0;
       if (strs.size() == 1) {
         xfunc_id = map.getID(strs[0]);
-        if (xfunc_id < 0) _use_votca = true;
       } else if (strs.size() == 2) {
         cfunc_id = map.getID(strs[0]);
         xfunc_id = map.getID(strs[1]);
         _use_separate = true;
       } else {
         cout << "LIBXC " << strs.size() << endl;
-        throw std::runtime_error("With LIBXC. Please specify one combined or an exchange and a correlation functionals");
+        throw std::runtime_error("LIBXC. Please specify one combined or an exchange and a correlation functionals");
       }
-      if (!_use_votca) {
+      
         if (xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED) != 0) {
           fprintf(stderr, "Functional '%d' not found\n", xfunc_id);
           exit(1);
@@ -125,31 +118,15 @@ namespace votca {
             throw std::runtime_error("Your functionals are not one exchange and one correlation");
           }
         }
-      }
-#else
-      if (strs.size() == 1) {
-        xfunc_id = map.getID(strs[0]);
-      }
-      else {
-        throw std::runtime_error("Running without LIBXC, Please specify one combined or an exchange and a correlation functionals");
-      }
-#endif
-      if (_use_votca) {
-        cout << "Warning: VOTCA_PBE does give correct Vxc but incorrect E_xc" << endl;
-      }
+      
+
       setXC = true;
       return;
     }
 
         
         void NumericalIntegration::EvaluateXC(const double rho, const Eigen::Vector3d& grad_rho, double& f_xc, double& df_drho, double& df_dsigma) {
-#ifdef LIBXC                   
-      if (_use_votca) {
-#endif                  
-        _xc.getXC(xfunc_id, rho, grad_rho(0), grad_rho(1), grad_rho(2), f_xc, df_drho, df_dsigma);
-#ifdef LIBXC
-      }// evaluate via LIBXC, if compiled, otherwise, go via own implementation
-      else {
+
         double sigma = (grad_rho.transpose()*grad_rho).value();
         double exc[1];
         double vsigma[1]; // libxc 
@@ -182,8 +159,7 @@ namespace votca {
           df_drho += vrho[0];
           df_dsigma += vsigma[0];
         }
-      }
-#endif
+  
       return;
     }
         

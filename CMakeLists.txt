@@ -83,7 +83,7 @@ if (EIGEN3_FOUND)
 endif (EIGEN3_FOUND)
 
 
-find_package(LIBXC)
+find_package(LIBXC REQUIRED)
 if (LIBXC_FOUND)
     message("-- LIBXC found")
 	include_directories(${LIBXC_INCLUDE_DIRS})

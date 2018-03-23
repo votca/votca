@@ -90,7 +90,6 @@
       <itemPath>../../include/votca/xtp/elements.h</itemPath>
       <itemPath>../../include/votca/xtp/esp2multipole.h</itemPath>
       <itemPath>../../include/votca/xtp/espfit.h</itemPath>
-      <itemPath>../../include/votca/xtp/exchange_correlation.h</itemPath>
       <itemPath>../../include/votca/xtp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/forces.h</itemPath>
       <itemPath>../../include/votca/xtp/gdma.h</itemPath>
@@ -207,7 +206,6 @@
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
-      <itemPath>../../src/libxtp/exchange_correlation.cc</itemPath>
       <itemPath>../../src/libxtp/fourcenter_rep.cc</itemPath>
       <itemPath>../../src/libxtp/fourcenters_dft.cc</itemPath>
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
@@ -346,11 +344,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/espfit.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/exchange_correlation.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/extractorfactory.h"
             ex="false"
@@ -628,11 +621,6 @@
       <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/exchange_correlation.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libxtp/extractorfactory.cc"
             ex="false"
@@ -1051,11 +1039,6 @@
       </item>
       <item path="../../include/votca/xtp/espfit.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/exchange_correlation.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/extractorfactory.h"
             ex="false"
             tool="3"
@@ -1332,11 +1315,6 @@
       <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/exchange_correlation.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libxtp/extractorfactory.cc"
             ex="false"
