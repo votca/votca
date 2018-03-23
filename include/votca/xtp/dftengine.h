@@ -175,7 +175,11 @@ namespace votca {
 
             bool _with_ecp;
             bool _with_RI;
+            
             string _4cmethod; // direct | cache
+            
+            bool _with_screening;
+            double _screening_eps;
 
             // numerical integration Vxc
             std::string _grid_name;

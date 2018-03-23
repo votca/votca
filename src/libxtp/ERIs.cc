@@ -201,10 +201,7 @@ namespace votca {
           // Number of shells
           int numShells = dftbasis.getNumofShells();
 
-          // Timer
-          clock_t start = clock();
-
-          //#pragma omp parallel for
+          #pragma omp parallel for
           for (int iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
             const AOShell* shell_3 = dftbasis.getShell(iShell_3);
             for (int iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
@@ -222,7 +219,7 @@ namespace votca {
                   if (!nonzero)
                     continue;
                   
-                  /* Begin fill ERIs matrix */
+                  // Begin fill ERIs matrix
                   
                   FillERIsBlock(DMAT, subMatrix, shell_1, shell_2, shell_3, shell_4);
 
@@ -233,7 +230,7 @@ namespace votca {
                   // Symmetry 3 <--> 4
                   if (iShell_3 != iShell_4)
                     FillERIsBlock(DMAT, subMatrix, shell_1, shell_2, shell_4, shell_3);
-                  
+
                   // Symmetry 1 <--> 2 and 3 <--> 4
                   if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
                     FillERIsBlock(DMAT, subMatrix, shell_2, shell_1, shell_4, shell_3);
@@ -255,13 +252,13 @@ namespace votca {
                     // Symmetry 3 <--> 4
                     if (iShell_3 != iShell_4)
                       FillERIsBlock(DMAT, subMatrix2, shell_4, shell_3, shell_1, shell_2);
-                    
+
                     // Symmetry 1 <--> 2 and 3 <--> 4
                     if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
                       FillERIsBlock(DMAT, subMatrix2, shell_4, shell_3, shell_2, shell_1);
                   }
                   
-                  /* End fill ERIs matrix */
+                  // End fill ERIs matrix
                 } // End loop over shell 2
               } // End loop over shell 1
             } // End loop over shell 4
@@ -271,10 +268,6 @@ namespace votca {
           for (int i = 0; i < DMAT.size1(); i++)
             for (int j = i + 1; j < DMAT.size2(); j++)
               _ERIs(j, i) = _ERIs(i, j);
-
-          // Timer
-          double duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
-          printf("duration = %f [s]\n", duration);
 
           CalculateEnergy(DMAT.data());
           return;
@@ -357,7 +350,7 @@ namespace votca {
                   // Column index in the current sub-matrix
                   int ind_subm_22 = shell_2->getNumFunc() * iFunc_2 + iFunc_2;
                   
-                  /* Begin fill diagonal matrix */
+                  // Begin fill diagonal matrix
                   
                   matrix(ind_1, ind_2) = subMatrix(ind_subm_11, ind_subm_22);
                   
@@ -365,13 +358,11 @@ namespace votca {
                   if (ind_1 != ind_2)
                     matrix(ind_2, ind_1) = matrix(ind_1, ind_2);
                   
-                  /* End fill diagonal matrix */
+                  // End fill diagonal matrix
                 } // End loop over functions in shell 2
               } // End loop over functions in shell 1
             } // End loop over shell 2
           } // End loop over shell 1
-          
-          cout << matrix << endl;
         }
 		
 		

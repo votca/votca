@@ -77,6 +77,14 @@ namespace votca {
             }
             
             _4cmethod = options->ifExistsReturnElseReturnDefault<string>(key + ".four_center_method", "cache");
+            
+            if (options->exists(key + ".integration_screening")) {
+              _with_screening = true;
+              _screening_eps = options->ifExistsReturnElseReturnDefault<double>(key + ".screening.eps", 1e-7);
+            }
+            else {
+              _with_screening = false;
+            }
 
             if (options->exists(key + ".ecp")) {
                 _ecp_name = options->get(key + ".ecp").as<string>();
@@ -475,10 +483,9 @@ namespace votca {
               _ERIs.Initialize_4c_small_molecule(_dftbasis);
               CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c integrals. " << flush;
             }
-            else if (_4cmethod.compare("direct") == 0) {
-              
+            
+            if (_with_screening)
               _ERIs.CalculateERIs_diagonals(_dftbasis);
-            }
 
             return;
         }
