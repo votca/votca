@@ -239,6 +239,7 @@
       <itemPath>../../src/tests/test_diis.cc</itemPath>
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
       <itemPath>../../src/tests/test_glink.cc</itemPath>
+      <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
     </logicalFolder>
   </logicalFolder>
@@ -954,6 +955,11 @@
       </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_numericalintegration.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
@@ -1652,6 +1658,11 @@
       <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_numericalintegration.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
