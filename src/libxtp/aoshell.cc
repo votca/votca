@@ -45,18 +45,16 @@ namespace votca { namespace xtp {
         // split combined shells
         int _i_func = -1;
         int i_act;
-        for (unsigned i = 0; i < _type.length(); ++i) {
-          const char single_shell = _type[i];
+        for (const char& single_shell:_type) {
           // single type shells
           if (single_shell == 'S') {
-            AOvalues(_i_func + 1) += _contractions[0] * _expofactor; // s-function
-
+           
             i_act = _i_func + 1;
+            AOvalues(i_act) += _contractions[0] * _expofactor; // s-function
             const double temp = _contractions[0] * -2.0 * alpha *_expofactor;
             gradAOvalues( i_act,0) += temp* center_x; // x gradient of s-function
             gradAOvalues( i_act,1) += temp* center_y; // y gradient of s-function
             gradAOvalues( i_act,2) += temp* center_z; // z gradient of s-function
-
             _i_func++;
           } else if (single_shell == 'P') {
             const double factor = 2. * sqrt(alpha) * _contractions[1];
@@ -304,8 +302,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const v
                 // split combined shells
                 int _i_func = -1;
 
-                for (unsigned i = 0; i < _type.length(); ++i) {
-                    char single_shell = _type[i];
+                for (const char& single_shell :_type) {
                     // single type shells
                     if (single_shell == 'S') {
                         AOvalues( _i_func + 1) += _contractions[0] * _expofactor; // s-function        
