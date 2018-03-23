@@ -16,20 +16,20 @@ IF(NOT CERES_ROOT_DIR AND NOT $ENV{CERES_ROOT_DIR} STREQUAL "")
   SET(CERES_ROOT_DIR $ENV{CERES_ROOT_DIR})
 ENDIF()
 
-SET(_ceres_SEARCH_DIRS
+Set(CERES_SEARCH_DIRS
   ${CERES_ROOT_DIR}
-  /usr/local
-  /sw # Fink
-  /opt/local # DarwinPorts
-  /opt/csw # Blastwave
-  /opt/lib/ceres
-)
+  /usr/local/
+  /usr/
+  /usr/local/homebrew/ # Mac OS X
+  /opt/local/var/macports/software # Mac OS X.
+  /opt/local/
+  )
 
 FIND_PATH(CERES_INCLUDE_DIR
   NAMES
     ceres/ceres.h
   HINTS
-    ${_ceres_SEARCH_DIRS}
+    ${CERES_SEARCH_DIRS}
   PATH_SUFFIXES
     include
 )
@@ -38,7 +38,7 @@ FIND_LIBRARY(CERES_LIBRARY
   NAMES
     ceres
   HINTS
-    ${_ceres_SEARCH_DIRS}
+    ${CERES_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
   )
