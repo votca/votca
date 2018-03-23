@@ -16,10 +16,8 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
-//for libxc
-#include <votca/xtp/votca_config.h>
+
+
 
 #include <votca/xtp/numerical_integrations.h>
 #include <boost/math/constants/constants.hpp>
@@ -27,7 +25,6 @@
 #include <votca/xtp/sphere_lebedev_rule.h>
 #include <votca/xtp/aoshell.h>
 #include <votca/tools/constants.h>
-#include <numeric>
 
 #include <votca/xtp/aomatrix.h>
 #include <fstream>
@@ -42,7 +39,7 @@
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+     
 
     double NumericalIntegration::getExactExchange(const string _functional) {
 #ifdef LIBXC            

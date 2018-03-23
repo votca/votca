@@ -28,14 +28,14 @@
 
 
 #include <boost/math/constants/constants.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
+
 
 using boost::format;
 using namespace boost::filesystem;
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+      
 
         // +++++++++++++++++++++++++++++ //
         // GWBSE MEMBER FUNCTIONS         //

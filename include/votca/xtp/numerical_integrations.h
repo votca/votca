@@ -22,11 +22,9 @@
 
 
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 #include <votca/tools/matrix.h>
 #include <votca/tools/vec.h>
-#include <boost/numeric/ublas/operation.hpp>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/grid_containers.h>
@@ -43,7 +41,7 @@
 
 namespace votca { namespace xtp {
 
-    namespace ub = boost::numeric::ublas;
+  
     
     struct Gyrationtensor{
         double mass;

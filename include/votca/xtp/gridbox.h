@@ -21,17 +21,15 @@
 #define	__XTP_GRIDBOX__H
 
 #include <votca/tools/vec.h>
-
-#include <votca/tools/linalg.h>
 #include <votca/xtp/grid_containers.h>
 #include <votca/xtp/aoshell.h>
 
 namespace votca { namespace xtp {
 
-    namespace ub = boost::numeric::ublas;
+
         struct GridboxRange{
-                unsigned start;
-                unsigned size;
+                int start;
+                int size;
             };
         class GridBox {
             

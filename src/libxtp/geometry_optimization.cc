@@ -17,7 +17,6 @@
  *
  */
 
-#include <votca/tools/linalg.h>
 #include <votca/xtp/geometry_optimization.h>
 #include <votca/xtp/forces.h>
 #include <votca/xtp/bfgs-trm.h>

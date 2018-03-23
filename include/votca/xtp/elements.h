@@ -22,9 +22,6 @@
 
 #include <string>
 #include <map>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <iostream>
 #include <fstream>
 
@@ -32,7 +29,7 @@
 
 namespace votca { namespace xtp {
 
-namespace ub = boost::numeric::ublas;
+
 
 
 

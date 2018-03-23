@@ -17,8 +17,7 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/bsecoupling.h>
 #include <votca/tools/constants.h>
@@ -28,7 +27,6 @@
 
 namespace votca { namespace xtp {
 
-namespace ub = boost::numeric::ublas;
 using boost::format;
 
 void BSECoupling::Initialize(Property* options){

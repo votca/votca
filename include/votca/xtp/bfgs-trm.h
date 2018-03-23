@@ -20,9 +20,7 @@
 #ifndef __XTP_BFGSTRM__H
 #define __XTP_BFGSTRM__H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
-#include <boost/numeric/ublas/operation.hpp>
+
 #include <votca/ctp/logger.h>
 #include <votca/ctp/segment.h>
 #include <stdio.h>
@@ -37,8 +35,7 @@
 namespace votca {
     namespace xtp {
 
-        namespace ub = boost::numeric::ublas;
-
+       
         class BFGSTRM {
         public:
 

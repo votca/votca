@@ -20,16 +20,15 @@
 #ifndef __XTP_AOBASIS__H
 #define	__XTP_AOBASIS__H
 
-#include <votca/tools/property.h>
+
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/basisset.h>
-
+#include <votca/tools/vec.h>
 
 
 
 
 namespace votca { namespace xtp {
-namespace ub = boost::numeric::ublas;
 
 class AOShell;
 class QMAtom;

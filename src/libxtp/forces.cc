@@ -17,7 +17,6 @@
  *
  */
 
-#include <votca/tools/linalg.h>
 #include <votca/xtp/forces.h>
 #include <boost/format.hpp>
 

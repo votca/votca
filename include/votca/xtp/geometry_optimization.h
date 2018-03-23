@@ -20,9 +20,7 @@
 #ifndef __XTP_GEOMETRY_OPTIMIZATION__H
 #define __XTP_GEOMETRY_OPTIMIZATION__H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
-#include <boost/numeric/ublas/operation.hpp>
+
 #include <votca/xtp/qmatom.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/segment.h>
@@ -34,7 +32,7 @@
 namespace votca {
     namespace xtp {
 
-        namespace ub = boost::numeric::ublas;
+
 
         class GeometryOptimization {
         public:

@@ -16,8 +16,7 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/aomatrix.h>
 
@@ -27,10 +26,7 @@
 
 
 
-using namespace votca::tools;
-
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
 
     void AOSuperMatrix::PrintIndexToFunction(const AOBasis& aobasis){
         for (AOBasis::AOShellIterator _row = aobasis.firstShell(); _row != aobasis.lastShell() ; _row++ ) {

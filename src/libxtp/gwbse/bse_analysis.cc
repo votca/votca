@@ -24,7 +24,7 @@ using namespace boost::filesystem;
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+       
 
         // +++++++++++++++++++++++++++++ //
         // MBPT MEMBER FUNCTIONS         //

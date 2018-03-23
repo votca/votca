@@ -23,14 +23,10 @@
 #include <votca/xtp/threecenters.h>
 
 
-using namespace votca::tools;
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
-
- 
-        
+                
         /*
          * Calculate 3-center overlap integrals 
          *    S_{abc} = int{ phi_a^DFT phi_b^GW phi_c^DFT d3r }

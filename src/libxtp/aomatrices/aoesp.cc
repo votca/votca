@@ -16,8 +16,7 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/aomatrix.h>
 
@@ -26,15 +25,11 @@
 #include <map>
 #include <vector>
 #include <votca/tools/property.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/math/constants/constants.hpp>
-#include <votca/tools/linalg.h>
 #include <votca/xtp/elements.h>
 #include <votca/tools/constants.h>
 
 #include "votca/xtp/qmatom.h"
-//#include <boost/timer/timer.hpp>
+
 
 
 
@@ -42,8 +37,7 @@
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
-    using namespace votca::tools;
+
     
 
     

@@ -30,11 +30,7 @@
 #include <numeric>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/numeric/ublas/io.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <Eigen/src/Core/Matrix.h>
-#include <Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h>
-#include <Eigen/src/Core/PlainObjectBase.h>
+
 
 
 

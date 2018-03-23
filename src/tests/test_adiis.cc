@@ -17,7 +17,6 @@
 
 #define BOOST_TEST_MODULE adiis_test
 #include <boost/test/unit_test.hpp>
-#include <Eigen/Dense>
 #include <votca/xtp/adiis.h>
 
 

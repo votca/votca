@@ -20,7 +20,7 @@
 
 #include <votca/xtp/nbo.h>
 #include <votca/xtp/aomatrix.h>
-#include <votca/tools/linalg.h>
+
 namespace votca { namespace xtp {
 
 void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,const  Eigen::MatrixXd &_dmat,const AOBasis &basis, BasisSet &bs){

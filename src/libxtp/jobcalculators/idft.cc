@@ -21,17 +21,12 @@
 #include "idft.h"
 
 #include <boost/format.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-
 #include <votca/ctp/logger.h>
 #include <votca/xtp/qmpackagefactory.h>
 
 using boost::format;
 using namespace boost::filesystem;
-using namespace votca::tools;
 
-namespace ub = boost::numeric::ublas;
     
 namespace votca { namespace xtp {
     

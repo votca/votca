@@ -27,11 +27,6 @@
 #include <gsl/gsl_vector.h>
 
 
-
-
-
-
-
 namespace votca { namespace xtp {
 
 

@@ -23,7 +23,6 @@
 #include <boost/format.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/tools/constants.h>
-#include <votca/tools/linalg.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/qmpackagefactory.h>
@@ -33,7 +32,6 @@ using namespace boost::filesystem;
 
 namespace votca {
 namespace xtp {
-namespace ub = boost::numeric::ublas;
 
 // +++++++++++++++++++++++++++++ //
 // GWBSE MEMBER FUNCTIONS        //

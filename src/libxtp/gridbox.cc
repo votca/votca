@@ -24,7 +24,6 @@
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
     
             void GridBox::AddtoBigMatrix(Eigen::MatrixXd& bigmatrix, const Eigen::MatrixXd& smallmatrix) {
 

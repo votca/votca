@@ -19,8 +19,6 @@
 
 #ifndef __XTP_AOMATRIX__H
 #define	__XTP_AOMATRIX__H
-#include <votca/tools/linalg.h>
-
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
@@ -57,7 +55,7 @@ namespace Cart {
 }
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+
 
     
     

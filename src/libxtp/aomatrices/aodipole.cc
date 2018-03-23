@@ -16,8 +16,7 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/aomatrix.h>
 
@@ -25,10 +24,10 @@
 #include <string>
 #include <vector>
 
-using namespace votca::tools;
+
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+    
 
     
     void AODipole::FillBlock( std::vector< Eigen::Block<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp) {

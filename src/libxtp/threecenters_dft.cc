@@ -22,12 +22,8 @@
 #include <votca/xtp/threecenters.h>
 
 
-
-using namespace votca::tools;
-
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
 
         /*
          * Cleaning TCMatrix_dft data and free memory

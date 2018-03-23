@@ -25,7 +25,7 @@
 
 namespace votca { namespace xtp {
 
-namespace ub = boost::numeric::ublas;
+
 /**
 * \brief Evaluates electronic coupling elements
 *

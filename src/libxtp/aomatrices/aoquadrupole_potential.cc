@@ -16,26 +16,18 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 #include <votca/xtp/aomatrix.h>
 
 #include <votca/xtp/aobasis.h>
 
 #include <vector>
 
-
-#include <votca/xtp/elements.h>
 #include <votca/tools/constants.h>
 
 
-using namespace votca::tools;
-
-
-
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
-    namespace CTP = votca::ctp;
+
     
 
     

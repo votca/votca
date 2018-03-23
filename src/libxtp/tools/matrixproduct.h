@@ -24,15 +24,14 @@
 #include <boost/format.hpp>
 #include <votca/xtp/elements.h>
 #include <votca/ctp/logger.h>
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 #include <votca/tools/constants.h>
 
 namespace votca {
     namespace xtp {
 
         using namespace std;
-        namespace ub = boost::numeric::ublas;
+      
 
         class MatProd : public ctp::QMTool {
         public:
@@ -78,20 +77,10 @@ bool MatProd::Evaluate() {
 
 
 
-    ub::matrix<double> _A = ub::zero_matrix<double>(2600,2600);
-    ub::matrix<double> _B = ub::zero_matrix<double>(2600,2600);
-
-    for (int i=0; i< 2600; i++)
-    {
-        for (int j=0; j<2600;j++){
-
-            _A(i,j) = sqrt(double(i)*double(j));
-            _B(i,j) = cos(double(i+j));
-        }
-    }
+    
 
     std::cout << ctp::TimeStamp() << "Start" << std::endl;
-    ub::matrix<double> _product = ub::prod(_A,_B);
+   
     std::cout << ctp::TimeStamp() << "END" << std::endl;
     return true;
         }

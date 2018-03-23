@@ -27,7 +27,6 @@
 #include <votca/xtp/qmpackagefactory.h>
 #include<votca/xtp/aobasis.h>
 #include<votca/xtp/aomatrix.h>
-#include<boost/numeric/ublas/matrix.hpp>
 
 namespace votca { namespace xtp {
 

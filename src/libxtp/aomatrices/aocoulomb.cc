@@ -16,8 +16,7 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/aomatrix.h>
 
@@ -25,10 +24,9 @@
 #include <vector>
 
 
-using namespace votca::tools;
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+
 
  
 
@@ -1155,7 +1153,9 @@ if (_lmax_col > 5) {
     }
     
      int AOCoulomb::Invert_DFT(){
-        _aomatrix=_aomatrix.inverse();
+       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_aomatrix);
+       _aomatrix=es.eigenvectors()*es.eigenvalues().cwiseInverse().asDiagonal()*es.eigenvectors().transpose();
+       
      
     int removed_basisfunctions=0;
     return removed_basisfunctions; 

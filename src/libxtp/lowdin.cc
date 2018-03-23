@@ -17,7 +17,6 @@
  *
  */
 
-#include <votca/tools/linalg.h>
 #include <votca/xtp/lowdin.h>
 #include <votca/xtp/aomatrix.h>
 

@@ -17,8 +17,6 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 
 #include <votca/xtp/threecenters.h>
 
@@ -28,7 +26,7 @@ using namespace votca::tools;
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+
 
         /*
          * Cleaning TCMatrix data and free memory

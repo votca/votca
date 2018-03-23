@@ -21,7 +21,7 @@
 
 
 namespace votca { namespace xtp {
-   namespace ub = boost::numeric::ublas;
+
    
      Eigen::MatrixXd Mixing::MixDmat(const Eigen::MatrixXd& dmatin,const Eigen::MatrixXd& dmatout){
           
@@ -37,18 +37,14 @@ namespace votca { namespace xtp {
               
               Eigen::VectorXd nominator=*(_Pout[1])-*(_Pout[0]);
               Eigen::VectorXd denominator=nominator-(*(_Pin[1])-*(_Pin[0]));
-              //cout<<endl;
-              //cout<<_Pout.size()<<endl;
-              //cout<<nominator<<endl;
-              //cout<<denominator<<endl;
               double count=0.0;
               for(unsigned i=0;i<nominator.size();i++){
                   double a=nominator(i)/denominator(i);
                   if(a<0.01){
                       a=0.01;
                   }
-                  else if(a>1){
-                      a=1;
+                  else if(a>0.95){
+                      a=0.95;
                   }
                   count+=a;
               }

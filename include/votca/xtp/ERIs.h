@@ -21,15 +21,10 @@
 #define	_VOTCA_XTP_ERIS_H
 
 
-
 #include <votca/xtp/threecenters.h>
-#include <votca/tools/linalg.h>
-
-
-
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+   
 /**
 * \brief Takes a density matrix and and an auxillary basis set and calculates the electron repulsion integrals. 
 *

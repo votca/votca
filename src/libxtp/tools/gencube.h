@@ -21,18 +21,17 @@
 #define _VOTCA_XTP_GENCUBE_H
 #include <boost/progress.hpp>
 #include <stdio.h>
+#include <votca/xtp/aobasis.h>
 #include <boost/format.hpp>
 #include <votca/xtp/elements.h>
 #include <votca/ctp/logger.h>
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
 
 namespace votca {
     namespace xtp {
      
         using namespace std;
-        namespace ub = boost::numeric::ublas;
+        
 
         class GenCube : public ctp::QMTool {
         public:

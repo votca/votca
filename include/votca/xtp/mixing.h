@@ -20,7 +20,7 @@
 #ifndef _VOTCA_XTP_MIXING__H
 #define _VOTCA_XTP_MIXING__H
 
-#include <votca/tools/linalg.h>
+
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/ctp/logger.h>
@@ -28,7 +28,7 @@
 
 
 namespace votca { namespace xtp {
- namespace ub = boost::numeric::ublas;
+
   
  //Mixing according to Zerner, M.C., Hehenberger, M., 1979. 
  //A dynamical damping scheme for converging molecular scf calculations. 
