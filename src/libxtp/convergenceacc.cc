@@ -84,16 +84,6 @@ namespace votca { namespace xtp {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << flush;
             }
         }
-        else if(_diiserror>0.0001 && _diiserror<_diis_start){
-            Eigen::VectorXd coeffs1=diis.CalcCoeff();
-            Eigen::VectorXd coeffs2=adiis.CalcCoeff(_dmatHist,_mathist);
-            diis_error=!(diis.Info() && adiis.Info());
-            double mixing=_diiserror/_diis_start;
-            coeffs=mixing*coeffs2+(1-mixing)*coeffs1;
-            if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS+DIIS" << flush;
-            }
-        }
         else{
              coeffs=diis.CalcCoeff();
              diis_error=!diis.Info();

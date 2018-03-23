@@ -120,6 +120,7 @@
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaversqlite.h</itemPath>
+      <itemPath>../../include/votca/xtp/symmetric_matrix.h</itemPath>
       <itemPath>../../include/votca/xtp/threecenters.h</itemPath>
       <itemPath>../../include/votca/xtp/toolfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/version.h</itemPath>
@@ -222,6 +223,7 @@
       <itemPath>../../src/libxtp/qmmachine.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
+      <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
       <itemPath>../../src/libxtp/threecenter_rep.cc</itemPath>
       <itemPath>../../src/libxtp/threecenters.cc</itemPath>
       <itemPath>../../src/libxtp/threecenters_dft.cc</itemPath>
@@ -447,6 +449,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/statesaversqlite.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/symmetric_matrix.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -864,6 +871,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/symmetric_matrix.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/threecenter_rep.cc"
             ex="false"
             tool="1"
@@ -1141,6 +1153,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/statesaversqlite.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/symmetric_matrix.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1554,6 +1571,11 @@
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/symmetric_matrix.cc"
             ex="false"
             tool="1"
             flavor2="0">

@@ -171,7 +171,7 @@ namespace votca {
                 Eigen::MatrixXd DMAT = _orbitals->DensityMatrixGroundState();
                 
                 Eigen::VectorXd nuccharges=_orbitals->FragmentNuclearCharges(_fragA);
-                 Eigen::VectorXd pops=_orbitals->LoewdinPopulation(DMAT, _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
+                 Eigen::VectorXd pops=_orbitals->LoewdinPopulation(DMAT, _dftoverlap.Matrix(), _dftbasis.getAOBasisFragA());
                 // population to electron charges and add nuclear charges         
                 _orbitals->setFragmentChargesGS(nuccharges-pops); 
                 for (int _i_state = 0; _i_state < _bse_nprint; _i_state++) {
@@ -179,10 +179,10 @@ namespace votca {
                     // checking Density Matrices
                     std::vector< Eigen::MatrixXd > DMAT = _orbitals->DensityMatrixExcitedState(spin, _i_state);
                     // hole part
-                     Eigen::VectorXd popsH=_orbitals->LoewdinPopulation(DMAT[0], _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
+                     Eigen::VectorXd popsH=_orbitals->LoewdinPopulation(DMAT[0], _dftoverlap.Matrix(), _dftbasis.getAOBasisFragA());
                     popH.push_back(popsH);
                     // electron part
-                     Eigen::VectorXd popsE=_orbitals->LoewdinPopulation(DMAT[1], _dftoverlap.Matrix(), _dftbasis._AOBasisFragA);
+                     Eigen::VectorXd popsE=_orbitals->LoewdinPopulation(DMAT[1], _dftoverlap.Matrix(), _dftbasis.getAOBasisFragA());
                     popE.push_back(popsE);
                     // update effective charges
                      Eigen::VectorXd diff=popsH-popsE;

@@ -77,9 +77,9 @@ public:
     
     unsigned getNumofShells() const{return _aoshells.size();}
    
-
-   int _AOBasisFragA;
-   int _AOBasisFragB;
+    int getAOBasisFragA() const{return _AOBasisFragA;}
+    
+   int getAOBasisFragB() const{return _AOBasisFragB;}
    private:
        
        
@@ -101,7 +101,8 @@ public:
     
     int getMaxFunctions ( );
     
-  
+   int _AOBasisFragA;
+   int _AOBasisFragB;
     unsigned int _AOBasisSize;
     
 };
