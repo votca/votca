@@ -701,6 +701,30 @@ namespace votca {
             return;
         }
 
-        
+    void Orbitals::WriteToCpt(CheckpointFile f, const std::string& name){
+        try{
+
+            H5::Group orbGr = f.getHandle().createGroup("/" + name);
+            hdf5_utils::ScalarAttrWriter w(orbGr);
+
+            w(_basis_set_size, "_basis_set_size");
+            w(_occupied_levels, "_occupied_levels");
+            w(_unoccupied_levels, "_unoccupied_levels");
+            w(_number_of_electrons, "_number_of_electrons");
+
+            std::cout << "level degeneracy" << std::endl;
+
+            hdf5_utils::WriteData(orbGr, _level_degeneracy,
+                                  "_level_degeneracy");
+
+
+
+        } catch (H5::Exception& error){
+            throw std::runtime_error(error.getDetailMsg());
+        }
+
+    }
+
+
     }
 }

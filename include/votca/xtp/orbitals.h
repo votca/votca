@@ -871,6 +871,7 @@ namespace votca {
 
     }
 }
+  void WriteToCpt(CheckpointFile f, const std::string &name);
 
 BOOST_CLASS_VERSION(votca::xtp::Orbitals, 4)
 
