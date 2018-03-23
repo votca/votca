@@ -158,19 +158,20 @@ bool XtpParallel::EvaluateOptions() {
                 _found_calc = true;
             } 
         }
-        if ( !_found_calc ){
-        for(ctp::JobCalculatorfactory::assoc_map::const_iterator iter=ctp::JobCalculators().getObjects().begin(); 
-                        iter != ctp::JobCalculators().getObjects().end(); ++iter) {
-        
-            if ( (*it).compare( (iter->first).c_str() ) == 0 ) {
-                cout << " This is a CTP app" << endl;
-                xtp::JobApplication::AddCalculator(ctp::JobCalculators().Create((*it).c_str()));
-            } 
+        if (!_found_calc) {
+      for (ctp::JobCalculatorfactory::assoc_map::const_iterator iter = ctp::JobCalculators().getObjects().begin();
+              iter != ctp::JobCalculators().getObjects().end(); ++iter) {
+
+        if ((*it).compare((iter->first).c_str()) == 0) {
+          cout << " This is a CTP app" << endl;
+          xtp::JobApplication::AddCalculator(ctp::JobCalculators().Create((*it).c_str()));
         }
-        
-         
-         
-        }
+      }
+    }
+    if (!_found_calc) {
+      cout << "Jobcalculator " << *it << " does not exist\n";
+      StopExecution();
+    }
     }
     
     return true;
