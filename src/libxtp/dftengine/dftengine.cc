@@ -76,15 +76,8 @@ namespace votca {
                 _with_RI = false;
             }
             
-            _4cmethod = options->ifExistsReturnElseReturnDefault<string>(key + ".four_center_method", "cache");
-            
-            if (options->exists(key + ".integration_screening")) {
-              _with_screening = true;
-              _screening_eps = options->ifExistsReturnElseReturnDefault<double>(key + ".screening.eps", 1e-7);
-            }
-            else {
-              _with_screening = false;
-            }
+            _four_center_method = options->ifExistsReturnElseReturnDefault<string>(key + ".four_center_method", "cache");
+            _with_screening = options->ifExistsReturnElseReturnDefault<bool>(key + ".with_screening", false);
 
             if (options->exists(key + ".ecp")) {
                 _ecp_name = options->get(key + ".ecp").as<string>();
@@ -477,15 +470,22 @@ namespace votca {
                 _ERIs.Initialize(_dftbasis, _auxbasis, _auxAOcoulomb.Matrix());
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
             }
-            else if (_4cmethod.compare("cache") == 0) {
+            else {
               
-              CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c integrals. " << flush;
-              _ERIs.Initialize_4c_small_molecule(_dftbasis);
-              CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c integrals. " << flush;
+              if (_four_center_method.compare("cache") == 0) {
+                
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c integrals. " << flush;
+                _ERIs.Initialize_4c_small_molecule(_dftbasis);
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c integrals. " << flush;
+              }
+              
+              if (_with_screening) {
+                
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c diagonals. " << flush;
+                _ERIs.Initialize_4c_diagonals(_dftbasis);
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c diagonals. " << flush;
+              }
             }
-            
-            if (_with_screening)
-              _ERIs.CalculateERIs_diagonals(_dftbasis);
 
             return;
         }
@@ -1069,6 +1069,20 @@ namespace votca {
             }
 
             return avdmat;
+        }
+
+        
+        
+        void DFTENGINE::CalculateERIs_4c(const AOBasis& dftbasis, const ub::matrix<double> &DMAT) {
+
+          if (_with_RI)
+            _ERIs.CalculateERIs(_dftAOdmat);
+          else if (_four_center_method.compare("cache") == 0)
+            _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
+          else if (_four_center_method.compare("direct") == 0)
+            _ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
+          
+          // TODO: Throw error?
         }
     }
 }

@@ -30,14 +30,11 @@ namespace votca {
         
         
         
-    void ERIs::Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis,const ub::matrix<double> &inverse_Coulomb) {
+        void ERIs::Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis,const ub::matrix<double> &inverse_Coulomb) {
 
-           _inverse_Coulomb=inverse_Coulomb;
-           
-            _threecenter.Fill( _auxbasis, _dftbasis );
-          
-
-            return;
+          _inverse_Coulomb=inverse_Coulomb;
+          _threecenter.Fill( _auxbasis, _dftbasis );
+          return;
         }
 
 
@@ -45,10 +42,18 @@ namespace votca {
         void ERIs::Initialize_4c_small_molecule(AOBasis &_dftbasis) {
 
           _fourcenter.Fill_4c_small_molecule( _dftbasis );
-
           return;
         }
 
+        
+        
+        void ERIs::Initialize_4c_diagonals(AOBasis &_dftbasis) {
+          
+          _with_screening = true;
+          CalculateERIsDiagonals(_dftbasis);
+          return;
+        }
+        
         
         
         void ERIs::CalculateERIs (const ub::matrix<double> &DMAT){
@@ -193,14 +198,17 @@ namespace votca {
         
         void ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis, const ub::matrix<double> &DMAT) {
 
-          cout << endl;
-          cout << "ERIS.cc ERIs::CalculateERIs_4c_direct" << endl;
+          //cout << endl << "ERIS.cc ERIs::CalculateERIs_4c_direct" << endl;
 
           // Initialize ERIs matrix
           _ERIs = ub::zero_matrix<double>(DMAT.size1(), DMAT.size2());
           // Number of shells
           int numShells = dftbasis.getNumofShells();
 
+          // TODO:
+          // Somehow, paralellization fails when using the third symmetry (last if-statement in the nested for-loop)
+          // The total energy will never converge in those cases.
+          // But only on some machines? wtf!
           #pragma omp parallel for
           for (int iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
             const AOShell* shell_3 = dftbasis.getShell(iShell_3);
@@ -211,6 +219,10 @@ namespace votca {
                 for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
                   const AOShell* shell_2 = dftbasis.getShell(iShell_2);
 
+                  // Pre-screening
+                  if (CheckScreen(1e-10, shell_1, shell_2, shell_3, shell_4))
+                    continue;
+                  
                   // Get the current 4c block
                   ub::matrix<double> subMatrix = ub::zero_matrix<double>(shell_1->getNumFunc() * shell_2->getNumFunc(), shell_3->getNumFunc() * shell_4->getNumFunc());
                   bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_2, shell_3, shell_4);
@@ -238,8 +250,8 @@ namespace votca {
                   // Symmetry (1, 2) <--> (3, 4)
                   if (iShell_1 != iShell_3) {
                     
-                    // TODO
-                    // We need to use the transposed version of "submatrix"!
+                    // TODO:
+                    // We need to use the transposed version of "submatrix".
                     // Do something smarter than copying the submatrix into a new transposed matrix.
                     ub::matrix<double> subMatrix2 = ub::trans(subMatrix);
                     
@@ -257,7 +269,7 @@ namespace votca {
                     if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
                       FillERIsBlock(DMAT, subMatrix2, shell_4, shell_3, shell_2, shell_1);
                   }
-                  
+
                   // End fill ERIs matrix
                 } // End loop over shell 2
               } // End loop over shell 1
@@ -272,7 +284,6 @@ namespace votca {
           CalculateEnergy(DMAT.data());
           return;
         }
-        
         
         
         void ERIs::FillERIsBlock(const ub::matrix<double> &DMAT, const ub::matrix<double> &subMatrix, const AOShell* shell_1, const AOShell* shell_2, const AOShell* shell_3, const AOShell* shell_4) {
@@ -310,19 +321,14 @@ namespace votca {
         }
         
         
-        
-        void ERIs::CalculateERIs_diagonals(const AOBasis& dftbasis) {
-          
-          cout << endl;
-          cout << "ERIS.cc ERIs::CalculateERIs_diagonals" << endl;
+        void ERIs::CalculateERIsDiagonals(const AOBasis& dftbasis) {
           
           // Number of shells
           int numShells = dftbasis.getNumofShells();
           // Total number of functions
           int dftBasisSize = dftbasis.AOBasisSize();
           
-          // TODO: Store in ERIs, use for pre-screening in direct computation
-          ub::matrix<double> matrix = ub::zero_matrix<double>(dftBasisSize); // <ii|jj>
+          _diagonals = ub::zero_matrix<double>(dftBasisSize);
           
           for (int iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
             const AOShell* shell_1 = dftbasis.getShell(iShell_1);
@@ -336,6 +342,8 @@ namespace votca {
               if (!nonzero)
                 continue;
               
+              int index = 0; // Diagonal index
+              
               for (int iFunc_1 = 0; iFunc_1 < shell_1->getNumFunc(); iFunc_1++) {
                 int ind_1 = shell_1->getStartIndex() + iFunc_1;
                 for (int iFunc_2 = 0; iFunc_2 < shell_2->getNumFunc(); iFunc_2++) {
@@ -345,27 +353,62 @@ namespace votca {
                   if (ind_1 > ind_2)
                     continue;
 
-                  // Row index in the current sub-matrix
-                  int ind_subm_11 = shell_1->getNumFunc() * iFunc_1 + iFunc_1;
-                  // Column index in the current sub-matrix
-                  int ind_subm_22 = shell_2->getNumFunc() * iFunc_2 + iFunc_2;
+                  // Begin fill product matrix
                   
-                  // Begin fill diagonal matrix
-                  
-                  matrix(ind_1, ind_2) = subMatrix(ind_subm_11, ind_subm_22);
+                  _diagonals(ind_1, ind_2) = subMatrix(index, index);
                   
                   // Symmetry
                   if (ind_1 != ind_2)
-                    matrix(ind_2, ind_1) = matrix(ind_1, ind_2);
+                    _diagonals(ind_2, ind_1) = _diagonals(ind_1, ind_2);
                   
-                  // End fill diagonal matrix
+                  // End fill product matrix
+                  
+                  index++;
                 } // End loop over functions in shell 2
               } // End loop over functions in shell 1
             } // End loop over shell 2
           } // End loop over shell 1
         }
-		
-		
+        
+
+        bool ERIs::CheckScreen(double eps, const AOShell* shell_1, const AOShell* shell_2, const AOShell* shell_3, const AOShell* shell_4) {
+          
+          if (!_with_screening)
+            return false;
+          
+          for (int iFunc_3 = 0; iFunc_3 < shell_3->getNumFunc(); iFunc_3++) {
+            int ind_3 = shell_3->getStartIndex() + iFunc_3;
+            for (int iFunc_4 = 0; iFunc_4 < shell_4->getNumFunc(); iFunc_4++) {
+              int ind_4 = shell_4->getStartIndex() + iFunc_4;
+
+              // Symmetry
+              if (ind_3 > ind_4)
+                continue;
+
+              for (int iFunc_1 = 0; iFunc_1 < shell_1->getNumFunc(); iFunc_1++) {
+                int ind_1 = shell_1->getStartIndex() + iFunc_1;
+                for (int iFunc_2 = 0; iFunc_2 < shell_2->getNumFunc(); iFunc_2++) {
+                  int ind_2 = shell_2->getStartIndex() + iFunc_2;
+
+                  // Symmetry
+                  if (ind_1 > ind_2)
+                    continue;
+
+                  // Cauchy–Schwarz
+                  // <ab|cd> <= sqrt(<ab|ab>) * sqrt(<cd|cd>)
+                  double ub = std::sqrt(_diagonals(ind_1, ind_2) * _diagonals(ind_3, ind_4));
+                  
+                  // Compare with tolerance
+                  if (ub > eps)
+                    return false; // We must compute ERIS for the whole block
+                } // End loop over functions in shell 2
+              } // End loop over functions in shell 1
+            } // End loop over functions in shell 4
+          } // End loop over functions in shell 3
+          
+          return true; // We can skip the whole block
+        }
+        
         
          void ERIs::CalculateEnergy(const ub::vector<double> &dmatasarray){
             

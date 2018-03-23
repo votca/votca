@@ -116,21 +116,7 @@ namespace votca {
                 return _dftbasis_name;
             };
             
-            void CalculateERIs_4c(const AOBasis& dftbasis, const ub::matrix<double> &DMAT) {
-              
-              cout << "four_center_method: " << _4cmethod << endl;
-              
-              // TODO: Merge options "_with_RI" and "_4cmethod" into one string var?
-              
-              if (_with_RI)
-                _ERIs.CalculateERIs(_dftAOdmat);
-              else if (_4cmethod.compare("cache") == 0)
-                _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
-              else if (_4cmethod.compare("direct") == 0)
-                _ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
-              
-              // TODO: Throw error?
-            }
+            void CalculateERIs_4c(const AOBasis& dftbasis, const ub::matrix<double> &DMAT);
 
         private:
 
@@ -176,11 +162,9 @@ namespace votca {
             bool _with_ecp;
             bool _with_RI;
             
-            string _4cmethod; // direct | cache
+            string _four_center_method; // direct | cache
+            bool _with_screening; // Pre-screening
             
-            bool _with_screening;
-            double _screening_eps;
-
             // numerical integration Vxc
             std::string _grid_name;
             std::string _grid_name_small;
