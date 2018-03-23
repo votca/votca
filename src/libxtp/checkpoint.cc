@@ -21,9 +21,31 @@
 #include <iostream>
 #include <stdexcept>
 #include <votca/xtp/checkpoint.h>
-
 namespace votca {
 namespace xtp {
+
+namespace hdf5_utils {
+
+H5::DataSpace str_scalar(H5::DataSpace(H5S_SCALAR));
+
+// inline H5::DataSpace StrScalar() { return H5::DataSpace(H5S_SCALAR); }
+
+void WriteScalarAttribute(const H5::H5Location& obj, const std::string& value,
+                          const std::string& name) {
+
+  hsize_t dims[1] = {1};
+  H5::DataSpace dp(1, dims);
+  const H5::DataType* strType = InferDataType<std::string>::get();
+
+  H5::Attribute attr = obj.createAttribute(name, *strType, StrScalar());
+
+  attr.write(*strType, value);
+}
+
+void WriteData(const H5::Group& loc, const std::map<int, std::vector<int>> d,
+               const std::string& name) {}
+
+}  // namespace hdf5_utils
 
 using namespace hdf5_utils;
 
@@ -42,23 +64,10 @@ CheckpointFile::CheckpointFile(std::string fN)
   }
 };
 
-void CheckpointFile::WriteOrbitals(Orbitals& orbs, const std::string name){
-    try{
-        H5::Group orbHandle = _fileHandle.createGroup("/"+name);
-
-
-        WriteScalarAttribute(orbHandle, orbs.getBasisSetSize(), "_basis_set_size");
-
-
-
-    } catch (H5::Exception& error){
-        error.printError();
-        throw std::runtime_error(error.getDetailMsg());
-    }
-};
-
 std::string CheckpointFile::getFileName() { return _fileName; };
 std::string CheckpointFile::getVersion() { return _version; };
+
+H5::H5File CheckpointFile::getHandle() { return _fileHandle; };
 
 }  // namespace xtp
 }  // namespace votca
