@@ -16,30 +16,22 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 #include <votca/xtp/aomatrix.h>
 
 #include <votca/xtp/aobasis.h>
 
 #include <vector>
 
-
-#include <votca/xtp/elements.h>
 #include <votca/tools/constants.h>
 
 
-using namespace votca::tools;
-
-
-
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
-    namespace CTP = votca::ctp;
+
     
 
     
-    void AOQuadrupole_Potential::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col ,AOBasis* ecp) {
+    void AOQuadrupole_Potential::FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col ,AOBasis* ecp) {
 
         const double pi = boost::math::constants::pi<double>();
 
@@ -72,8 +64,8 @@ namespace votca { namespace xtp {
         int _ncols = this->getBlockSize( _lmax_col ); 
     
         // initialize local matrix block for unnormalized cartesians
-/////////        ub::matrix<double> nuc   = ub::zero_matrix<double>(_nrows,_ncols);
-        ub::matrix<double> quad = ub::zero_matrix<double>(_nrows,_ncols);
+
+        Eigen::MatrixXd quad = Eigen::MatrixXd::Zero(_nrows,_ncols);
         
 
         //cout << nuc.size1() << ":" << nuc.size2() << endl;
@@ -1135,16 +1127,12 @@ for (int _i = 0; _i < _nrows; _i++) {
         
         //cout << "Done with unnormalized matrix " << endl;
         
-        ub::matrix<double> _trafo_row = getTrafo(*itr);
-        ub::matrix<double> _trafo_col_tposed = ub::trans(getTrafo(*itc));      
-             
-        ub::matrix<double> _quad_tmp = ub::prod( _trafo_row, quad );
-        ub::matrix<double> _quad_sph = ub::prod( _quad_tmp, _trafo_col_tposed );
+        Eigen::MatrixXd quad_sph = getTrafo(*itr)*quad*getTrafo(*itc).transpose();
         // save to _matrix
         
-        for ( unsigned i = 0; i< _matrix.size1(); i++ ) {
-            for (unsigned j = 0; j < _matrix.size2(); j++) {
-                _matrix(i,j) += _quad_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
+        for ( unsigned i = 0; i< _matrix.rows(); i++ ) {
+            for (unsigned j = 0; j < _matrix.cols(); j++) {
+                _matrix(i,j) += quad_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
             }
         }
         
@@ -1154,13 +1142,13 @@ for (int _i = 0; _i < _nrows; _i++) {
 
         void AOQuadrupole_Potential::Fillextpotential(const AOBasis& aobasis, const std::vector<ctp::PolarSeg*> & _sites) {
 
-            _externalpotential = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+            _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
             for (unsigned int i = 0; i < _sites.size(); i++) {
                 for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
 
                     if ((*it)->getRank() > 1) {
                         vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
-                        _aomatrix = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+                        _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                         setAPolarSite((*it));
                         Fill(aobasis, positionofsite);
                         _externalpotential += _aomatrix;

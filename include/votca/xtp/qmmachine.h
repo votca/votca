@@ -20,8 +20,6 @@
 #ifndef __QMMACHINE__H
 #define	__QMMACHINE__H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>
@@ -107,7 +105,7 @@ private:
     bool _static_qmmm;
     Orbitals orb_iter_input;
 
-    void Density2Charges( GWBSE* gwbse=NULL, std::vector<int> state_index ={});
+    void Density2Charges( std::vector<int> state_index ={});
 
 };
 

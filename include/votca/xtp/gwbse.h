@@ -19,7 +19,7 @@
 
 #ifndef _VOTCA_XTP_GWBSE_H
 #define _VOTCA_XTP_GWBSE_H
-
+#include <votca/xtp/votca_config.h>
 #include <unistd.h>
 #include <votca/ctp/parallelxjobcalc.h>
 #include <votca/ctp/segment.h>
@@ -33,15 +33,12 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <votca/tools/linalg.h>
-#include <votca/xtp/votca_config.h>
+
+
 
 namespace votca {
 namespace xtp {
-namespace ub = boost::numeric::ublas;
+
 
 /**
 * \brief Electronic excitations from GW-BSE
@@ -175,35 +172,36 @@ class GWBSE {
   AOBasis _dftbasis;
 
   Orbitals* _orbitals;
-  ub::matrix<double>& _dft_orbitals;
+  Eigen::MatrixXd& _dft_orbitals;
   // RPA related variables and functions
   // container for the epsilon matrix
-  std::vector<ub::matrix<double> > _epsilon;
+  std::vector<Eigen::MatrixXd > _epsilon;
   // container for frequencies in screening (index 0: real part, index 1:
   // imaginary part)
-  ub::matrix<double> _screening_freq;
-  void symmetrize_threecenters(TCMatrix& _Mmn, ub::matrix<double>& _coulomb);
+  Eigen::MatrixXd _screening_freq;
+  void symmetrize_threecenters(TCMatrix& _Mmn, Eigen::MatrixXd& _coulomb);
   void RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA);
 
-  ub::matrix<double> RPA_real(const TCMatrix& _Mmn_RPA,
+  Eigen::MatrixXd RPA_real(const TCMatrix& _Mmn_RPA,
                               const double screening_freq);
 
-  ub::matrix<double> RPA_imaginary(const TCMatrix& _Mmn_RPA,
+  Eigen::MatrixXd RPA_imaginary(const TCMatrix& _Mmn_RPA,
                                    const double screening_freq);
 
   void RPA_prepare_threecenters(TCMatrix& _Mmn_RPA, const TCMatrix& _Mmn_full);
 
   // PPM related variables and functions
-  ub::matrix<double> _ppm_phi;
-  ub::vector<double> _ppm_freq;
-  ub::vector<double> _ppm_weight;
+  Eigen::MatrixXd _ppm_phi_T;
+  Eigen::VectorXd _ppm_freq;
+  Eigen::VectorXd _ppm_weight;
+ 
 
   void PPM_construct_parameters(
-      const ub::matrix<double>& _overlap_cholesky_inverse);
+      const Eigen::MatrixXd& _overlap_cholesky_inverse);
 
   // Sigma related variables and functions
-  ub::symmetric_matrix<double> _sigma_x;  // exchange term
-  ub::symmetric_matrix<double> _sigma_c;  // correlation term
+  Eigen::MatrixXd _sigma_x;  // exchange term
+  Eigen::MatrixXd _sigma_c;  // correlation term
 
   void sigma_prepare_threecenters(TCMatrix& _Mmn);
 
@@ -211,61 +209,58 @@ class GWBSE {
   void sigma_offdiag(const TCMatrix& _Mmn);
 
   // QP variables and functions
-  ub::vector<double> _qp_energies;
-  ub::matrix<double> _vxc;
-  ub::vector<double>& _qp_diag_energies;      // stored in orbitals object
-  ub::matrix<double>& _qp_diag_coefficients;  // dito
+  Eigen::VectorXd _qp_energies;
+  Eigen::MatrixXd _vxc;
+  Eigen::VectorXd& _qp_diag_energies;      // stored in orbitals object
+  Eigen::MatrixXd& _qp_diag_coefficients;  // dito
   void FullQPHamiltonian();
 
   // BSE variables and functions
-  ub::matrix<real_gwbse>& _eh_x;  // stored in orbitals object
-  ub::matrix<real_gwbse>& _eh_d;  // stored in orbitals object
-  ub::matrix<real_gwbse> _eh_d2;  // because it is not stored in orbitals object
-  ub::matrix<real_gwbse> _eh_qp;
+  MatrixXfd& _eh_x;  // stored in orbitals object
+  MatrixXfd& _eh_d;  // stored in orbitals object
+  MatrixXfd _eh_d2;  // because it is not stored in orbitals object
+  MatrixXfd _eh_qp;
 
-  ub::vector<real_gwbse>& _bse_singlet_energies;  // stored in orbitals object
-  ub::matrix<real_gwbse>& _bse_singlet_coefficients;  // stored in orbitals
+  VectorXfd& _bse_singlet_energies;  // stored in orbitals object
+  MatrixXfd& _bse_singlet_coefficients;  // stored in orbitals
                                                       // object
-  ub::matrix<real_gwbse>& _bse_singlet_coefficients_AR;  // stored in orbitals
+  MatrixXfd& _bse_singlet_coefficients_AR;  // stored in orbitals
                                                          // object
-  ub::vector<real_gwbse>& _bse_triplet_energies;  // stored in orbitals object
-  ub::matrix<real_gwbse>& _bse_triplet_coefficients;  // stored in orbitals
+  VectorXfd& _bse_triplet_energies;  // stored in orbitals object
+  MatrixXfd& _bse_triplet_coefficients;  // stored in orbitals
                                                       // object
 
-  std::vector<ub::matrix<double> > _interlevel_dipoles;
-  std::vector<ub::matrix<double> > _interlevel_dipoles_electrical;
+  std::vector<Eigen::MatrixXd > _interlevel_dipoles;
+  std::vector<Eigen::MatrixXd > _interlevel_dipoles_electrical;
   void BSE_x_setup(TCMatrix& _Mmn);
   void BSE_d_setup(TCMatrix& _Mmn);
   void BSE_d2_setup(TCMatrix& _Mmn);
   void BSE_qp_setup();
-  void BSE_Add_qp2H(ub::matrix<real_gwbse>& qp);
+  void BSE_Add_qp2H(MatrixXfd& qp);
   void BSE_solve_triplets();
   void BSE_solve_singlets();
   void BSE_solve_singlets_BTDA();
 
-  void Solve_nonhermitian(ub::matrix<double>& H, ub::matrix<double>& L);
+  void Solve_nonhermitian(Eigen::MatrixXd& H, Eigen::MatrixXd& L);
   std::vector<int> _index2v;
   std::vector<int> _index2c;
 
   // some cleaner analysis
   void BSE_analyze_triplets();
   void BSE_analyze_singlets();
-  void BSE_analyze_singlets_BTDA();
+ 
 
   void BSE_analyze_eh_interaction_Triplet(std::vector<real_gwbse>& _c_d,
                                           std::vector<real_gwbse>& _c_qp);
+  
   void BSE_analyze_eh_interaction_Singlet(std::vector<real_gwbse>& _c_x,
-                                          std::vector<real_gwbse>& _c_d,
-                                          std::vector<real_gwbse>& _c_qp);
-
-  void BSE_analyze_eh_interaction_BTDA_singlet(std::vector<real_gwbse>& _c_x,
                                                std::vector<real_gwbse>& _c_d,
                                                std::vector<real_gwbse>& _c_qp);
 
   void BSE_FragmentPopulations(const string& spin,
-                               std::vector<ub::vector<double> >& popH,
-                               std::vector<ub::vector<double> >& popE,
-                               std::vector<ub::vector<double> >& Crgs);
+                               std::vector<Eigen::VectorXd >& popH,
+                               std::vector<Eigen::VectorXd >& popE,
+                               std::vector<Eigen::VectorXd >& Crgs);
 
   void BSE_FreeTransition_Dipoles();
 

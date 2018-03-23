@@ -16,8 +16,6 @@
  */
 
 #include "votca/xtp/gnode.h"
-
-#include <votca/tools/property.h>
 #include <boost/format.hpp>
 
 using namespace std;

@@ -22,9 +22,7 @@
 #include <votca/xtp/qminterface.h>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
+
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/tools/constants.h>
@@ -37,7 +35,7 @@
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+      
 
         void Gaussian::Initialize(Property *options) {
 
@@ -146,10 +144,10 @@ namespace votca {
          * 'elementname'.gbs files, which are then included in the
          * Gaussian input file using @'elementname'.gbs
          */
-        void Gaussian::WriteBasisset(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
+        void Gaussian::WriteBasisset(ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
 
 
-            std::vector< ctp::QMAtom* >::iterator it;
+            std::vector< QMAtom* >::iterator it;
 
 
             list<std::string> elements;
@@ -160,8 +158,8 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if (!(*it)->from_environment) {
-                    std::string element_name = (*it)->type;
+               
+                    std::string element_name = (*it)->getType();
 
                     //cout << "looking up basis set for element " << element_name << endl;
 
@@ -227,7 +225,7 @@ namespace votca {
                         _el_file.close();
 
                     }
-                }
+                
             }
 
             _com_file << endl;
@@ -238,9 +236,9 @@ namespace votca {
         /* If custom ECPs are used, they need to be specified in the input file
          * in a section following the basis set includes.
          */
-        void Gaussian::WriteECP(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
+        void Gaussian::WriteECP(ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
 
-            std::vector< ctp::QMAtom* >::iterator it;
+            std::vector< QMAtom* >::iterator it;
 
             list<std::string> elements;
 
@@ -253,8 +251,8 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
 
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if (!(*it)->from_environment) {
-                    std::string element_name = (*it)->type;
+                
+                    std::string element_name = (*it)->getType();
 
                     list<std::string>::iterator ite;
                     ite = find(elements.begin(), elements.end(), element_name);
@@ -282,7 +280,7 @@ namespace votca {
                             }
                         }
                     }
-                }
+                
             }
             // }
             _com_file << endl;
@@ -294,8 +292,7 @@ namespace votca {
          * keyword "charge" Gaussian expects them in x,y,z,q format in the
          * input file. In g03 AFTER basis sets and ECPs, in g09 BEFORE.
          */
-        //void Gaussian::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
-
+     
         void Gaussian::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::PolarSeg*> segments) {
             std::vector< ctp::PolarSeg* >::iterator it;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
@@ -350,7 +347,7 @@ namespace votca {
 
                     _com_file << setw(5) << level << endl;
 
-                    ub::matrix_row< ub::matrix<double> > mr(orbitals_guess->MOCoefficients(), *soi);
+                  Eigen::VectorXd mr=orbitals_guess->MOCoefficients().row(*soi);
 
                     int column = 1;
                     for (unsigned j = 0; j < mr.size(); ++j) {
@@ -408,17 +405,17 @@ namespace votca {
         /* Coordinates are written in standard Element,x,y,z format to the
          * input file.
          */
-        void Gaussian::WriteCoordinates(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
-            std::vector< ctp::QMAtom* >::iterator it;
+        void Gaussian::WriteCoordinates(ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
+            std::vector< QMAtom* >::iterator it;
 
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if (!(*it)->from_environment) {
-                    _com_file << setw(3) << (*it)->type.c_str()
-                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
-                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
-                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->z
+              tools::vec pos=(*it)->getPos()*tools::conv::bohr2ang;
+                    _com_file << setw(3) << (*it)->getType().c_str()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()
                             << endl;
-                }
+               
             }
 
             _com_file << endl;
@@ -463,7 +460,7 @@ namespace votca {
             // updated positions of the QM region, hence vector<Segments*> is
             // NULL in the QMMachine and the QM region is also printed here
 
-            std::vector< ctp::QMAtom* > qmatoms;
+            std::vector< QMAtom* > qmatoms;
             if (_write_charges) {
                 qmatoms = orbitals_guess->QMAtoms();
             } else {
@@ -766,15 +763,15 @@ namespace votca {
             _orbitals->setBasisSetSize(_basis_size); // = _basis_size;
 
             // copying energies to the orbitals object
-            ub::vector<double> &mo_energies = _orbitals->MOEnergies();
+           Eigen::VectorXd &mo_energies = _orbitals->MOEnergies();
             mo_energies.resize(_levels);
             for (size_t i = 0; i < mo_energies.size(); i++) mo_energies[i] = _energies[ i + 1 ];
 
             // copying mo coefficients to the orbitals object
-            ub::matrix<double> &mo_coefficients = _orbitals->MOCoefficients();
+            Eigen::MatrixXd &mo_coefficients = _orbitals->MOCoefficients();
             mo_coefficients.resize(_levels, _basis_size);
-            for (size_t i = 0; i < mo_coefficients.size1(); i++){
-                for (size_t j = 0; j < mo_coefficients.size2(); j++){
+            for (size_t i = 0; i < mo_coefficients.rows(); i++){
+                for (size_t j = 0; j < mo_coefficients.cols(); j++){
                     mo_coefficients(i, j) = _coefficients[i + 1][j];
                 }
             }
@@ -1009,15 +1006,13 @@ namespace votca {
                         boost::trim(_line);
                         boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                         nfields = _row.size();
-
+                        QMAtom* pAtom;
                         if (_has_atoms == false) {
-                            _orbitals->AddAtom(atom_type, 0, 0, 0, atom_charge);
+                            pAtom =_orbitals->AddAtom(atom_id - 1,atom_type, 0, 0, 0);
                         } else {
-                            ctp::QMAtom* pAtom = _orbitals->_atoms.at(atom_id - 1);
-                            pAtom->type = atom_type;
-                            pAtom->charge = atom_charge;
+                            pAtom = _orbitals->_atoms.at(atom_id - 1);
                         }
-
+                        pAtom->setPartialcharge(atom_charge);
                     }
                     //_orbitals->_has_atoms = true;
                 }
@@ -1067,18 +1062,17 @@ namespace votca {
                         double _z = boost::lexical_cast<double>(*(--it_atom));
                         double _y = boost::lexical_cast<double>(*(--it_atom));
                         double _x = boost::lexical_cast<double>(*(--it_atom));
+                        tools::vec pos=tools::vec(_x,_y,_z);
+                        pos*=tools::conv::ang2bohr;
 
                         if (_has_atoms == false) {
-                            _orbitals->AddAtom(_atom_type, _x, _y, _z);
+                            _orbitals->AddAtom(aindex,_atom_type, pos);
                         } else {
-                            ctp::QMAtom* pAtom = _orbitals->_atoms.at(aindex);
-                            pAtom->type = _atom_type;
-                            pAtom->x = _x;
-                            pAtom->y = _y;
-                            pAtom->z = _z;
-                            aindex++;
+                            QMAtom* pAtom = _orbitals->_atoms.at(aindex);
+                            pAtom->setPos(pos);
+                            
                         }
-
+                        aindex++;
                     }
 
                     // get the QM energy out
@@ -1134,10 +1128,10 @@ namespace votca {
                 if (overlap_pos != std::string::npos) {
 
                     // prepare the container
-                    ub::symmetric_matrix<double>& overlap=_orbitals->AOOverlap();
+                    Eigen::MatrixXd& overlap=_orbitals->AOOverlap();
 
                     // _orbitals->_has_overlap = true;
-                    overlap.resize(_basis_set_size);
+                    overlap.resize(_basis_set_size,_basis_set_size);
 
                     _has_overlap_matrix = true;
                     //cout << "Found the overlap matrix!" << endl;
@@ -1187,6 +1181,7 @@ namespace votca {
                                 int _j_index = *_j_iter;
                                 //_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
                                 overlap(_i_index - 1, _j_index - 1) = boost::lexical_cast<double>(_coefficient);
+                                overlap(_j_index - 1, _i_index - 1) = boost::lexical_cast<double>(_coefficient);
                                 _j_iter++;
 
                             }
@@ -1240,8 +1235,8 @@ namespace votca {
                 if (_input_file.good()) {
                     // prepare the container
                     // _orbitals->_has_vxc = true;
-                    ub::symmetric_matrix<double> _vxc;
-                    _vxc.resize(_cart_basis_set_size);
+                    Eigen::MatrixXd _vxc;
+                    _vxc.resize(_cart_basis_set_size,_cart_basis_set_size);
 
 
                     // _has_vxc_matrix = true;
@@ -1263,6 +1258,7 @@ namespace votca {
                         int _j_index = boost::lexical_cast<int>(_row[1]);
                         //cout << "Vxc element [" << _i_index << ":" << _j_index << "] " << boost::lexical_cast<double>( _row[2] ) << endl;
                         _vxc(_i_index - 1, _j_index - 1) = boost::lexical_cast<double>(_row[2]);
+                        _vxc(_j_index - 1, _i_index - 1) = boost::lexical_cast<double>(_row[2]);
                     }
 
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;
@@ -1278,12 +1274,9 @@ namespace votca {
                 AOBasis _dftbasis;
                 _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
                 
-                ub::matrix<double> vxc_full=_vxc;
                 
-                ub::matrix<double> _carttrafo=_dftbasis.getTransformationCartToSpherical(getPackageName());
-                ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_full);
-                vxc_full = ub::prod(_temp, ub::trans(_carttrafo));
-                _orbitals->AOVxc()=vxc_full;
+                Eigen::MatrixXd _carttrafo=_dftbasis.getTransformationCartToSpherical(getPackageName());
+                _orbitals->AOVxc()=_carttrafo*_vxc*_carttrafo.transpose();
                 } else {
                     throw std::runtime_error("Vxc file does not exist.");
                 }

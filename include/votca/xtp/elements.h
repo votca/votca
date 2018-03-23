@@ -22,9 +22,6 @@
 
 #include <string>
 #include <map>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <iostream>
 #include <fstream>
 
@@ -32,8 +29,8 @@
 
 namespace votca { namespace xtp {
 
-namespace ub = boost::numeric::ublas;
-using namespace std;
+
+
 
 
 /**
@@ -62,39 +59,7 @@ public:
     const std::string     &getEleShort(std::string elefull) const {return _EleShort.at(elefull); }
     const std::string     &getEleFull(std::string eleshort) const {return _EleFull.at(eleshort); }
     
-    const ub::matrix<int> &getAtomconfig(std::string name) const {return _Atomconfig.at(name);}
-    //_Atomconfig at name is a matrix
-    
-    // column is l
-    // row is n
-    // e.g. O
-    //    2  0  1s 
-    //    2  6  2s 2p
-    
-    
-    // returns number of basisfunctions for minimal basis, less for ecps because no core shells
-    std::vector<int> getMinimalBasis(std::string name,bool ecp){
-        const ub::matrix<int> temp=_Atomconfig.at(name);
-        std::vector<int> result=std::vector<int>(temp.size1(),0);
-        
-        //cout<<temp<<endl;
-        
-        
-        for ( int i=temp.size2()-1;i>=0;i-- ){
-            //cout <<i<<endl;
-            if(temp(0,i)<1) continue; 
-            for (unsigned j=0;j<temp.size1();j++){
-                if(temp(j,i)>0){
-                    result[j]+=2*j+1;
-                    //cout <<"["<<i<<":"<<j<<"]"<<endl;
-                }
-            }
-            if(ecp) break;
-        }
-        
-        
-        return result;
-    }
+   
 private:
 
     std::map<std::string, double> _VdWChelpG;
@@ -104,8 +69,7 @@ private:
     std::map<std::string, double> _Mass;
     std::map<std::string, int> _EleNum;
     std::map<int, std::string> _EleName;
-    
-    std::map< std::string,ub::matrix<int> > _Atomconfig;
+   
     
     std::map<std::string, std::string> _EleShort;
     std::map<std::string, std::string> _EleFull;
@@ -118,28 +82,11 @@ private:
         FillNucCrg();
         FillEleNum();
         FillEleName();
-        
         FillEleShort();
-        FillEleFull();
-        FillAtomConf();
-        
+        FillEleFull();       
         FillMass();
     };
     
-    inline void FillAtomConf(){
-        ub::matrix<int> temp=ub::zero_matrix<int>(1,1);
-        temp(0,0)=1;
-        _Atomconfig["H"]=temp;
-        temp=ub::zero_matrix<int>(2,2);
-        temp(0,0)=2;
-        temp(1,0)=2;
-        temp(0,1)=0;
-        temp(1,1)=4;
-        _Atomconfig["O"]=temp;
-        temp(1,1)=2;
-        _Atomconfig["C"]=temp;
-        
-    };
     
     
     inline void FillMass(){

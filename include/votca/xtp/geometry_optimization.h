@@ -20,10 +20,8 @@
 #ifndef __XTP_GEOMETRY_OPTIMIZATION__H
 #define __XTP_GEOMETRY_OPTIMIZATION__H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
-#include <boost/numeric/ublas/operation.hpp>
-#include <votca/ctp/qmatom.h>
+
+#include <votca/xtp/qmatom.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/segment.h>
 #include <stdio.h>
@@ -31,23 +29,21 @@
 
 
 
-using namespace std;
-
 namespace votca {
     namespace xtp {
 
-        namespace ub = boost::numeric::ublas;
+
 
         class GeometryOptimization {
         public:
 
-            GeometryOptimization(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, vector<ctp::Segment*> segments, Orbitals* orbitals) : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals) {
+            GeometryOptimization(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals* orbitals) : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals) {
             };
 
             ~GeometryOptimization() {
             };
 
-            void BFGSStep(int& _iteration, bool& _update_hessian, ub::matrix<double>& _force, ub::matrix<double>& _force_old, ub::matrix<double>& _current_xyz, ub::matrix<double>& _old_xyz, ub::matrix<double>& _hessian, ub::matrix<double>& _xyz_shift, ub::matrix<double>& _trial_xyz);
+            void BFGSStep(int& _iteration, bool& _update_hessian, Eigen::MatrixXd& _force, Eigen::MatrixXd& _force_old, Eigen::MatrixXd& _current_xyz, Eigen::MatrixXd& _old_xyz, Eigen::MatrixXd& _hessian, Eigen::MatrixXd& _xyz_shift, Eigen::MatrixXd& _trial_xyz);
             void Initialize(Property *options);
 
             void setLog(ctp::Logger* pLog) {
@@ -65,15 +61,15 @@ namespace votca {
 
 
             int _opt_state;
-            string _spintype;
-            string _forces;
-            string _opt_type;
-            string _optimizer;
-            string _force_method;
+            std::string _spintype;
+            std::string _forces;
+            std::string _opt_type;
+            std::string _optimizer;
+            std::string _force_method;
 
             GWBSEENGINE _gwbse_engine;
             QMPackage* _qmpackage;
-            vector<ctp::Segment*> _segments;
+            std::vector<ctp::Segment*> _segments;
             Orbitals* _orbitals;
 
             Property _optimizer_options;

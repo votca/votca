@@ -22,8 +22,6 @@
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/tools/constants.h>
@@ -31,9 +29,9 @@
 
 using boost::format;
 using namespace boost::filesystem;
-using namespace votca::tools;
 
-namespace ub = boost::numeric::ublas;
+
+
     
 namespace votca { namespace xtp {
     
@@ -434,7 +432,7 @@ if ( _write_orbfile){
    
         
    if(!_store_dft){
-       _orbitalsAB.AOVxc().resize(0);
+       _orbitalsAB.AOVxc().resize(0,0);
        
        _orbitalsAB.MOCoefficients().resize(0,0);
    }    

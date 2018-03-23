@@ -57,7 +57,33 @@ else()
 endif()
 add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 
-find_package(LIBXC)
+find_package(GSL)
+if(GSL_FOUND)
+  message("-- GSL found for DFT")
+  include_directories(${GSL_INCLUDE_DIRS})
+  set(GSL_PKG "gsl")
+  set(GSL TRUE)
+endif()
+
+find_package(MKL)
+if (MKL_FOUND)
+    message("-- MKL found")
+	include_directories(${MKL_INCLUDE_DIRS})
+	set (MKL TRUE )
+else()
+	set(MKL_LIBRARIES)
+endif()
+
+
+
+find_package(EIGEN3 3.3.0 REQUIRED)
+if (EIGEN3_FOUND)
+	message(STATUS "${EIGEN3_VERSION}")
+  include_directories(${EIGEN3_INCLUDE_DIRS})
+endif (EIGEN3_FOUND)
+
+
+find_package(LIBXC REQUIRED)
 if (LIBXC_FOUND)
     message("-- LIBXC found")
 	include_directories(${LIBXC_INCLUDE_DIRS})
@@ -66,22 +92,9 @@ else()
 	set(LIBXC_LIBRARIES)
 endif()
 
-
-
-find_package(GSL)
-
-
-if(GSL_FOUND)
-  message("-- GSL found for DFT")
-  include_directories(${GSL_INCLUDE_DIRS})
-  set(GSL_PKG "gsl")
-  set(GSL TRUE)
-endif()
-
-
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 include(GNUInstallDirs)
-#option(WITH_DIPRO "Build mergeorbitals and DIPRO, which use fortran" ON)
+
 
 option(ENABLE_TESTING "Build and enable testing stuff" OFF)
 if(ENABLE_TESTING)
@@ -128,7 +141,6 @@ include_directories(${VOTCA_CTP_INCLUDE_DIRS})
 
 
 
-
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
@@ -163,9 +175,7 @@ endforeach(FUNC)
 ######################################
 add_subdirectory(include/votca/xtp)
 add_subdirectory(scripts)
-add_subdirectory(src/libxtp)
-add_subdirectory(src/tests)
-add_subdirectory(src/tools)
+add_subdirectory(src)
 #add_subdirectory(src/dipro)
 #add_subdirectory(share/scripts/dipro)
 add_subdirectory(share)

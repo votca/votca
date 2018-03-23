@@ -23,25 +23,32 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <votca/tools/property.h>
+#include <votca/xtp/votca_config.h>
 
 
-using namespace votca::tools;
+
+//#if defined(MKL)
+//   #define EIGEN_USE_MKL_ALL 
+//#endif
+#include <Eigen/Dense>
+
+
+
 
 namespace votca { namespace xtp {
  // shell type (S, P, D))
-    int FindLmax(const string& _type);
+    int FindLmax(const std::string& _type);
 
-    int FindLmin(const string& _type);
+    int FindLmin(const std::string& _type);
 
-    int OffsetFuncShell(const string& shell_type);
+    int OffsetFuncShell(const std::string& shell_type);
 
-    int NumFuncShell(const string& shell_type);
-    int NumFuncShell_cartesian(const string& shell_type);
+    int NumFuncShell(const std::string& shell_type);
+    int NumFuncShell_cartesian(const std::string& shell_type);
 
-    int OffsetFuncShell_cartesian(const string& shell_type);
+    int OffsetFuncShell_cartesian(const std::string& shell_type);
     
-    std::vector<int> NumFuncSubShell(const string& shell_type);
+    std::vector<int> NumFuncSubShell(const std::string& shell_type);
     
  
 
@@ -104,7 +111,7 @@ public:
     int getSize() { return _gaussians.size(); }
     
     // iterator over pairs (decay constant; contraction coefficient)
-    typedef vector< GaussianPrimitive* >::iterator GaussianIterator;
+    typedef std::vector< GaussianPrimitive* >::iterator GaussianIterator;
     GaussianIterator firstGaussian() { return _gaussians.begin(); }
     GaussianIterator lastGaussian(){ return _gaussians.end(); }
    
@@ -132,7 +139,7 @@ private:
     // only class Element can destruct shells
    ~Shell() 
    { 
-       for (vector< GaussianPrimitive* >::iterator it = _gaussians.begin(); it != _gaussians.end() ; it++ ) delete (*it); 
+       for (std::vector< GaussianPrimitive* >::iterator it = _gaussians.begin(); it != _gaussians.end() ; it++ ) delete (*it); 
        _gaussians.clear();
    }
     
@@ -143,7 +150,7 @@ private:
      
 
     // vector of pairs of decay constants and contraction coefficients
-    vector< GaussianPrimitive* > _gaussians;
+    std::vector< GaussianPrimitive* > _gaussians;
 
 };
 
@@ -155,11 +162,11 @@ class Element
     friend class BasisSet;
 public:
     
-    typedef vector< Shell* >::iterator ShellIterator;
+    typedef std::vector< Shell* >::iterator ShellIterator;
     ShellIterator firstShell() { return _shells.begin(); }
     ShellIterator lastShell(){ return _shells.end(); }
 
-    std::string getType() { return _type; }
+    std::string getType(){ return _type; }
     
     int getLmax() { return _lmax; }
     
@@ -174,7 +181,7 @@ public:
         return shell;
     }
     
-    vector<Shell*> getShells() { return _shells; }
+    std::vector<Shell*> getShells() { return _shells; }
     
 private:  
     
@@ -187,7 +194,7 @@ private:
     // only class BasisSet can destruct Elements
    ~Element() 
    { 
-       for (vector< Shell* >::iterator it = _shells.begin(); it != _shells.end() ; it++ ) delete (*it); 
+       for (std::vector< Shell* >::iterator it = _shells.begin(); it != _shells.end() ; it++ ) delete (*it); 
        _shells.clear();
    }    
    
@@ -197,7 +204,7 @@ private:
     // ncore is used in the pseudopotentials only (replaces ncore electrons))
     int _ncore;
     
-    vector<Shell*> _shells;    
+    std::vector<Shell*> _shells;    
 };
 
 /*
@@ -218,7 +225,7 @@ public:
  
     Element* getElement( std::string element_type ) {
         
-         map<std::string,Element*>::iterator itm = _elements.find( element_type );
+         std::map<std::string,Element*>::iterator itm = _elements.find( element_type );
          
          if ( itm == _elements.end() ) throw std::runtime_error( "Basis set "+_name+" does not have element of type " + element_type );
          
@@ -226,11 +233,12 @@ public:
          return element; 
      }
     
+        
     ~BasisSet();
     
 private:    
     std::string _name;
-    map<std::string,Element*> _elements;
+    std::map<std::string,Element*> _elements;
 };
 
 

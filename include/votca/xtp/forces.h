@@ -20,10 +20,8 @@
 #ifndef __XTP_FORCES__H
 #define __XTP_FORCES__H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
-#include <boost/numeric/ublas/operation.hpp>
-#include <votca/ctp/qmatom.h>
+
+#include <votca/xtp/qmatom.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/segment.h>
 #include <stdio.h>
@@ -32,12 +30,9 @@
 
 
 
-using namespace std;
-
 namespace votca {
     namespace xtp {
 
-        namespace ub = boost::numeric::ublas;
 
         class Forces {
         public:
@@ -52,16 +47,14 @@ namespace votca {
             void Initialize(Property *options);
             void Calculate(const double& energy);
 
-            void NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait, ub::matrix_range< ub::matrix<double> >& _force,
-                    std::vector<ctp::Segment*> _molecule);
-            void NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait, ub::matrix_range< ub::matrix<double> >& _force,
-                    std::vector<ctp::Segment*> _molecule);
+            Eigen::Vector3d NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait,std::vector<ctp::Segment*> _molecule);
+            Eigen::Vector3d NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait,std::vector<ctp::Segment*> _molecule);
 
             void setLog(ctp::Logger* pLog) {
                 _pLog = pLog;
             }
 
-            void SetSpinType(const string spin_type) {
+            void SetSpinType(const std::string spin_type) {
                 _spin_type = spin_type;
             };
 
@@ -69,7 +62,7 @@ namespace votca {
                 _opt_state = opt_state;
             };
 
-            string GetSpinType() {
+            std::string GetSpinType() {
                 return _spin_type;
             };
 
@@ -77,7 +70,7 @@ namespace votca {
                 return _opt_state;
             };
 
-            ub::matrix<double> GetForces() {
+            Eigen::MatrixXd GetForces() {
                 return _forces;
             };
             void Report();
@@ -88,8 +81,8 @@ namespace votca {
         private:
 
             double _displacement;
-            string _force_method;
-            string _spin_type;
+            std::string _force_method;
+            std::string _spin_type;
 
             
             
@@ -101,18 +94,18 @@ namespace votca {
 
             GWBSEENGINE _gwbse_engine;
             QMPackage* _qmpackage;
-            vector<ctp::Segment*> _segments;
+            std::vector<ctp::Segment*> _segments;
             Orbitals* _orbitals;
             bool _remove_total_force;
             bool _remove_CoM_force;
 
-            ub::matrix<double> _forces;
+            Eigen::MatrixX3d _forces;
 
             Property _force_options;
 
             void RemoveTotalForce();
             void RemoveCoMForce();
-            ub::vector<double> TotalForce();
+            Eigen::Vector3d TotalForce();
 
             QMMInterface _qminterface;
             ctp::Logger *_pLog;

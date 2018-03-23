@@ -29,7 +29,7 @@
 
 namespace votca { namespace xtp {
     using namespace std;
-    namespace ub = boost::numeric::ublas;
+
 
 class Spectrum : public ctp::QMTool
 {
@@ -152,7 +152,7 @@ bool Spectrum::Evaluate() {
         throw std::runtime_error("BSE transition dipoles not stored in QM data file!");
     } 
     
-    const ub::vector<real_gwbse>& BSESingletEnergies = _orbitals.BSESingletEnergies();
+    const VectorXfd& BSESingletEnergies = _orbitals.BSESingletEnergies();
     const std::vector<tools::vec >& TransitionDipoles = _orbitals.TransitionDipoles();
     
 

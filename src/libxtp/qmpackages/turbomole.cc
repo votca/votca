@@ -22,9 +22,6 @@
 #include <votca/tools/globals.h>
 #include <votca/xtp/qminterface.h>
 #include <boost/algorithm/string.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
@@ -37,7 +34,7 @@ using namespace boost::filesystem;
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+
 
         void Turbomole::Initialize(Property *opt) {
 
@@ -100,7 +97,7 @@ namespace votca {
                 throw std::runtime_error("Turbomole cannot be run with multipole background in this version.");
             }
             
-            std::vector< ctp::QMAtom* > qmatoms;
+            std::vector< QMAtom* > qmatoms;
             if (_write_charges) {
                 qmatoms = orbitals_guess->QMAtoms();
             } else {
@@ -238,7 +235,7 @@ namespace votca {
 
                     
                     ReorderMOsBack(orbitals_guess);
-                    ub::matrix<double>& MOs=orbitals_guess->MOCoefficients();
+                    Eigen::MatrixXd& MOs=orbitals_guess->MOCoefficients();
                     std::vector<int> _sort_index=orbitals_guess->SortEnergies();
                     
 
@@ -249,7 +246,7 @@ namespace votca {
 
                         double _energy = (orbitals_guess->MOEnergies())[*soi];
 
-                        ub::matrix_row< ub::matrix<double> > mr(MOs, *soi);
+                        Eigen::VectorXd mr=MOs.row(*soi);
 
                         _orb_file << setw(6) << level << "  a      eigenvalue=" << FortranFormat(_energy) << "   nsaos=" << mr.size() << endl;
 
@@ -457,8 +454,8 @@ namespace votca {
 
             // copying orbitals to the matrix
             (_orbitals->MOCoefficients()).resize(_levels, _basis_size);
-            for (size_t i = 0; i < _orbitals->MOCoefficients().size1(); i++) {
-                for (size_t j = 0; j < _orbitals->MOCoefficients().size2(); j++) {
+            for (size_t i = 0; i < _orbitals->MOCoefficients().rows(); i++) {
+                for (size_t j = 0; j < _orbitals->MOCoefficients().cols(); j++) {
                     _orbitals->MOCoefficients()(i, j) = _coefficients[i + 1][j];
                     //cout << i << " " << j << endl;
                 }
@@ -624,7 +621,7 @@ namespace votca {
 
                     // prepare the container
                     // _orbitals->_has_overlap = true;
-                    (_orbitals->_overlap).resize(_basis_set_size);
+                    (_orbitals->_overlap).resize(_basis_set_size,_basis_set_size);
 
                     _has_overlap_matrix = true;
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Read the overlap matrix" << flush;

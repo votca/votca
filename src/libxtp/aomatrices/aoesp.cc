@@ -16,8 +16,7 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/aomatrix.h>
 
@@ -26,13 +25,11 @@
 #include <map>
 #include <vector>
 #include <votca/tools/property.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/math/constants/constants.hpp>
-#include <votca/tools/linalg.h>
 #include <votca/xtp/elements.h>
 #include <votca/tools/constants.h>
-//#include <boost/timer/timer.hpp>
+
+#include "votca/xtp/qmatom.h"
+
 
 
 
@@ -40,12 +37,11 @@
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
-    using namespace votca::tools;
+
     
 
     
-    void AOESP::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp) {
+    void AOESP::FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp) {
         /*cout << "\nAO block: "<< endl;
         cout << "\t row: " << _shell_row->getType() << " at " << _shell_row->getPos() << endl;
         cout << "\t col: " << _shell_col->getType() << " at " << _shell_col->getPos() << endl;*/
@@ -62,7 +58,7 @@ namespace votca { namespace xtp {
         int _ncols = this->getBlockSize( _lmax_col ); 
     
         // initialize local matrix block for unnormalized cartesians
-        ub::matrix<double> nuc   = ub::zero_matrix<double>(_nrows,_ncols);
+        Eigen::MatrixXd nuc   = Eigen::MatrixXd::Zero(_nrows,_ncols);
         
 
         //cout << nuc.size1() << ":" << nuc.size2() << endl;
@@ -426,16 +422,11 @@ if (_lmax_col > 3) {
         
        
         
-        ub::matrix<double> _trafo_row = getTrafo(*itr);
-        ub::matrix<double> _trafo_col_tposed = ub::trans(getTrafo(*itc));      
-             
-        ub::matrix<double> _nuc_tmp = ub::prod( _trafo_row, nuc );
-        
-        ub::matrix<double> _nuc_sph = ub::prod( _nuc_tmp, _trafo_col_tposed );
+         Eigen::MatrixXd _nuc_sph = getTrafo(*itr)*nuc*getTrafo(*itc).transpose();
         // save to _matrix
         
-        for ( unsigned i = 0; i< _matrix.size1(); i++ ) {
-            for (unsigned j = 0; j < _matrix.size2(); j++){
+        for ( unsigned i = 0; i< _matrix.rows(); i++ ) {
+            for (unsigned j = 0; j < _matrix.cols(); j++) {
                 _matrix(i,j) += _nuc_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
             }
         }
@@ -448,20 +439,17 @@ if (_lmax_col > 3) {
     
   // Calculates the electrostatic potential matrix element between two basis functions, for an array of atomcores.
 
-    void AOESP::Fillnucpotential(const AOBasis& aobasis, std::vector<ctp::QMAtom*>& _atoms, bool _with_ecp) {
+    void AOESP::Fillnucpotential(const AOBasis& aobasis, std::vector<QMAtom*>& _atoms) {
             Elements _elements;
-            _nuclearpotential = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+            _nuclearpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
             for (unsigned j = 0; j < _atoms.size(); j++) {
-                vec positionofatom = tools::conv::ang2bohr*_atoms[j]->getPos();
+                vec positionofatom = _atoms[j]->getPos();
 
-                double Znuc = 0.0;
-                if (_with_ecp) {
-                    Znuc = _elements.getNucCrgECP(_atoms[j]->type);
-                } else {
-                    Znuc = _elements.getNucCrg(_atoms[j]->type);
-                }
-                _aomatrix = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+                double Znuc = _atoms[j]->getNuccharge();
+                
+               
+                _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                 Fill(aobasis, positionofatom);
                 _nuclearpotential -= (Znuc) * _aomatrix;        
             }
@@ -470,12 +458,12 @@ if (_lmax_col > 3) {
 
         void AOESP::Fillextpotential(const AOBasis& aobasis,const std::vector<ctp::PolarSeg*> & _sites) {
             
-            _externalpotential = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+            _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
             for (unsigned int i = 0; i < _sites.size(); i++) {
                 for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
                     vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
-                    _aomatrix = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+                    _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                     Fill(aobasis, positionofsite);
                     _externalpotential -= (*it)->getQ00() * _aomatrix;
                 }

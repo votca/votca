@@ -30,12 +30,10 @@
 #include <votca/ctp/parallelxjobcalc.h>
 #include <votca/ctp/segment.h>
 
-#include <votca/tools/linalg.h>
 
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
 /**
 * \brief GWBSE implementation
 *

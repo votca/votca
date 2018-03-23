@@ -22,19 +22,23 @@
 
 namespace votca { namespace xtp {
 
-namespace ub = boost::numeric::ublas;
-
-
-  
-  
   void QMPackage::ReorderOutput(Orbitals* _orbitals){
             BasisSet _dftbasisset;
             _dftbasisset.LoadBasisSet(_basisset_name);
             if(!_orbitals->hasQMAtoms()){
                 throw runtime_error("Orbitals object has no QMAtoms");
             }
+              
+            
             AOBasis _dftbasis;
             _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
+            //necessary to update nuclear charges on qmatoms
+            if (_write_pseudopotentials){
+              BasisSet _ecps;
+              _ecps.LoadPseudopotentialSet(_ecp_name);
+                AOBasis _ecpbasis;
+              _ecpbasis.ECPFill(&_ecps, _orbitals->QMAtoms());
+              }
             
             if (_orbitals->hasAOOverlap()){
                  _dftbasis.ReorderMatrix(_orbitals->AOOverlap(), getPackageName(), "xtp");

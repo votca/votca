@@ -20,28 +20,14 @@
 
 
 #include <votca/xtp/threecenters.h>
-#include <new>
 
 
-using namespace votca::tools;
+
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
 
-        /*
-         * Cleaning FCMatrix_dft data and free memory
-         */
-       
-
-
-
-
-
-
-
-
-        void FCMatrix_dft::Fill_4c_small_molecule(const AOBasis& dftbasis) {
+       void FCMatrix_dft::Fill_4c_small_molecule(const AOBasis& dftbasis) {
 
           //cout << endl;
           //cout << "fourcenters_dft.cc FCMatrix_dft::Fill_4c_small_molecule" << endl;
@@ -49,7 +35,7 @@ namespace votca {
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
           
           try{
-          _4c_vector = ub::zero_vector<double>((vectorSize*(vectorSize+1))/2);
+          _4c_vector = Eigen::VectorXd::Zero((vectorSize*(vectorSize+1))/2);
           }
           catch(std::bad_alloc& ba){
             std::cerr << "Basisset too large for 4c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << endl;
@@ -79,7 +65,7 @@ namespace votca {
                   int _start_2 = _shell_2->getStartIndex();
                   int NumFunc_2 = _shell_2->getNumFunc();
                   // get 4-center directly as _subvector
-                  ub::matrix<double> _subvector = ub::zero_matrix<double>(NumFunc_1 * NumFunc_2, NumFunc_3 * NumFunc_4);
+                  Eigen::MatrixXd _subvector = Eigen::MatrixXd::Zero(NumFunc_1 * NumFunc_2, NumFunc_3 * NumFunc_4);
                   
                   bool nonzero=FillFourCenterRepBlock(_subvector, _shell_1, _shell_2, _shell_3, _shell_4);
 

@@ -21,18 +21,17 @@
 #define _VOTCA_XTP_GENCUBE_H
 #include <boost/progress.hpp>
 #include <stdio.h>
+#include <votca/xtp/aobasis.h>
 #include <boost/format.hpp>
 #include <votca/xtp/elements.h>
 #include <votca/ctp/logger.h>
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
 
 namespace votca {
     namespace xtp {
      
         using namespace std;
-        namespace ub = boost::numeric::ublas;
+        
 
         class GenCube : public ctp::QMTool {
         public:
@@ -167,303 +166,282 @@ namespace votca {
 
         }
 
-        
-        void GenCube::calculateCube(){
-            
-                CTP_LOG(ctp::logDEBUG, _log) << "Reading serialized QM data from " << _orbfile << flush;
+        void GenCube::calculateCube() {
 
-                Orbitals _orbitals;
-                
-                  CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-               _orbitals.Load(_orbfile);
-                
-                if (_do_qp && !_orbitals.hasQPdiag()){
-                        throw std::runtime_error("Orbitals file does not contain QP coefficients");
-                    }
-                
-                if (_do_bse && _do_singlet && !_orbitals.hasBSESinglets()){
-                        throw std::runtime_error("Orbitals file does not contain Singlet BSE coefficients");
-                    }
-                if (_do_bse && _do_triplet && !_orbitals.hasBSETriplets()){
-                        throw std::runtime_error("Orbitals file does not contain Triplet BSE coefficients");
-                    }
-                
-                
-                
-                // load the QM data from serialized orbitals object
+            CTP_LOG(ctp::logDEBUG, _log) << "Reading serialized QM data from " << _orbfile << flush;
 
-                
-              
+            Orbitals _orbitals;
 
-                // get atoms
-                std::vector<ctp::QMAtom*> _atoms = _orbitals.QMAtoms();
+            CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+            _orbitals.Load(_orbfile);
 
-                // determine min and max in each cartesian direction
-                double xmin = std::numeric_limits<double>::max();
-                double xmax = std::numeric_limits<double>::min();
-                double ymin = xmin;
-                double ymax = xmax;
-                double zmin = xmin;
-                double zmax = xmax;
+            if (_do_qp && !_orbitals.hasQPdiag()) {
+                throw std::runtime_error("Orbitals file does not contain QP coefficients");
+            }
 
-                vector< ctp::QMAtom* > ::iterator ait;
-                for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
-                    // get center coordinates in Bohr
-                    double x = (*ait)->x * tools::conv::ang2bohr;
-                    double y = (*ait)->y * tools::conv::ang2bohr;
-                    double z = (*ait)->z * tools::conv::ang2bohr;
-
-                    if (x > xmax) xmax = x;
-                    if (x < xmin) xmin = x;
-                    if (y > ymax) ymax = y;
-                    if (y < ymin) ymin = y;
-                    if (z > zmax) zmax = z;
-                    if (z < zmin) zmin = z;
+            if (_do_bse && _do_singlet && !_orbitals.hasBSESinglets()) {
+                throw std::runtime_error("Orbitals file does not contain Singlet BSE coefficients");
+            }
+            if (_do_bse && _do_triplet && !_orbitals.hasBSETriplets()) {
+                throw std::runtime_error("Orbitals file does not contain Triplet BSE coefficients");
+            }
 
 
-                }
-                // generate cube grid
-                double xstart = xmin - _padding;
-                double xstop = xmax + _padding;
-                double ystart = ymin - _padding;
-                double ystop = ymax + _padding;
-                double zstart = zmin - _padding;
-                double zstop = zmax + _padding;
+            // load the QM data from serialized orbitals object
+            // get atoms
+            std::vector<QMAtom*> _atoms = _orbitals.QMAtoms();
 
-                double xincr = (xstop - xstart) / double(_xsteps);
-                double yincr = (ystop - ystart) / double(_ysteps);
-                double zincr = (zstop - zstart) / double(_zsteps);
+            // determine min and max in each cartesian direction
+            double xmin = std::numeric_limits<double>::max();
+            double xmax = std::numeric_limits<double>::min();
+            double ymin = xmin;
+            double ymax = xmax;
+            double zmin = xmin;
+            double zmax = xmax;
+
+            vector< QMAtom* > ::iterator ait;
+            for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
+                const tools::vec& pos = (*ait)->getPos();
+                // get center coordinates in Bohr
+                double x = pos.getX();
+                double y = pos.getY();
+                double z = pos.getZ();
+                if (x > xmax) xmax = x;
+                if (x < xmin) xmin = x;
+                if (y > ymax) ymax = y;
+                if (y < ymin) ymin = y;
+                if (z > zmax) zmax = z;
+                if (z < zmin) zmin = z;
+            }
+            // generate cube grid
+            double xstart = xmin - _padding;
+            double xstop = xmax + _padding;
+            double ystart = ymin - _padding;
+            double ystop = ymax + _padding;
+            double zstart = zmin - _padding;
+            double zstop = zmax + _padding;
+
+            double xincr = (xstop - xstart) / double(_xsteps);
+            double yincr = (ystop - ystart) / double(_ysteps);
+            double zincr = (zstop - zstart) / double(_zsteps);
 
 
-                // open output stream
-                FILE *out;
-                out = fopen(_output_file.c_str(), "w");
+            // open output stream
+            FILE *out;
+            out = fopen(_output_file.c_str(), "w");
 
-                // write cube header
-                if ( _do_groundstate && !_do_bse ){
-                   fprintf(out, "Electron density of neutral state \n" );
-                } else if ( _do_bse ){
-                    if ( _do_groundstate ){
-                       fprintf(out, "Total electron density of excited state  %i spin %s \n", _state, _spin.c_str());
-                    }
-                    else{
-                       fprintf(out, "Difference electron density of excited state  %i spin %s \n", _state, _spin.c_str());
-                    }
-                } 
-                else if ( _do_qp ){
-                    fprintf(out, "Quasiparticle state %i with energy %f eV \n", _state, _orbitals.QPdiagEnergies()[_state-1-_orbitals.getGWAmin()]*tools::conv::hrt2ev);
-                }
-                else if (_do_ks ){
-                    fprintf(out, "Kohn-Sham state %i with energy %f eV \n", _state, _orbitals.MOEnergies()[_state-1]*tools::conv::hrt2ev);
-                }
-                else if ( _do_transition ){
-                    fprintf(out, "Transition state  between Groundstate and state %i \n", _state);
-                }
-                fprintf(out, "Created by VOTCA-XTP \n");
-                if ( _do_qp ){
-                    fprintf(out, "-%lu %f %f %f \n", _atoms.size(), xstart, ystart, zstart);
+            // write cube header
+            if (_do_groundstate && !_do_bse) {
+                fprintf(out, "Electron density of neutral state \n");
+            } else if (_do_bse) {
+                if (_do_groundstate) {
+                    fprintf(out, "Total electron density of excited state  %i spin %s \n", _state, _spin.c_str());
                 } else {
-                    fprintf(out, "%lu %f %f %f \n", _atoms.size(), xstart, ystart, zstart);
+                    fprintf(out, "Difference electron density of excited state  %i spin %s \n", _state, _spin.c_str());
                 }
-                    
-                fprintf(out, "%d %f 0.0 0.0 \n", _xsteps + 1, xincr);
-                fprintf(out, "%d 0.0 %f 0.0 \n", _ysteps + 1, yincr);
-                fprintf(out, "%d 0.0 0.0 %f \n", _zsteps + 1, zincr);
-                Elements _elements;
-                for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
-                    // get center coordinates in Bohr
-                    double x = (*ait)->x * tools::conv::ang2bohr;
-                    double y = (*ait)->y * tools::conv::ang2bohr;
-                    double z = (*ait)->z * tools::conv::ang2bohr;
+            }
+            else if (_do_qp) {
+                fprintf(out, "Quasiparticle state %i with energy %f eV \n", _state, _orbitals.QPdiagEnergies()[_state - 1 - _orbitals.getGWAmin()] * tools::conv::hrt2ev);
+            } else if (_do_ks) {
+                fprintf(out, "Kohn-Sham state %i with energy %f eV \n", _state, _orbitals.MOEnergies()[_state - 1] * tools::conv::hrt2ev);
+            } else if (_do_transition) {
+                fprintf(out, "Transition state  between Groundstate and state %i \n", _state);
+            }
+            fprintf(out, "Created by VOTCA-XTP \n");
+            if (_do_qp) {
+                fprintf(out, "-%lu %f %f %f \n", _atoms.size(), xstart, ystart, zstart);
+            } else {
+                fprintf(out, "%lu %f %f %f \n", _atoms.size(), xstart, ystart, zstart);
+            }
 
-                    string element = (*ait)->type;
-                    int atnum =_elements.getEleNum(element);
-                    double crg = _elements.getNucCrgECP(element);
+            fprintf(out, "%d %f 0.0 0.0 \n", _xsteps + 1, xincr);
+            fprintf(out, "%d 0.0 %f 0.0 \n", _ysteps + 1, yincr);
+            fprintf(out, "%d 0.0 0.0 %f \n", _zsteps + 1, zincr);
+            Elements _elements;
+            for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
+                const tools::vec& pos = (*ait)->getPos();
+                // get center coordinates in Bohr
+                double x = pos.getX();
+                double y = pos.getY();
+                double z = pos.getZ();
 
-                    fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, y, z);
+                string element = (*ait)->getType();
+                int atnum = _elements.getEleNum(element);
+                double crg = (*ait)->getNuccharge();
+                fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, y, z);
+            }
+
+            if (_do_qp || _do_ks) {
+                fprintf(out, "  1 %d \n", _state);
+            }
+
+            // load DFT basis set (element-wise information) from xml file
+            BasisSet dftbs;
+            dftbs.LoadBasisSet(_orbitals.getDFTbasis());
+            CTP_LOG(ctp::logDEBUG, _log) << " Loaded DFT Basis Set " << _orbitals.getDFTbasis() << flush;
+
+            // fill DFT AO basis by going through all atoms 
+            AOBasis dftbasis;
+            dftbasis.AOBasisFill(&dftbs, _orbitals.QMAtoms());
 
 
+
+            // now depending on the type of cube
+            if (_do_groundstate || _do_bse || _do_transition) {
+
+
+                Eigen::MatrixXd DMAT_tot = Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize());
+
+                // ground state only if requested
+                if (_do_groundstate) {
+                    Eigen::MatrixXd DMATGS = _orbitals.DensityMatrixGroundState();
+                    DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
+                    CTP_LOG(ctp::logDEBUG, _log) << " Calculated ground state density matrix " << flush;
                 }
 
-                if ( _do_qp || _do_ks ){
-                    fprintf(out, "  1 %d \n", _state);
-                } 
-               
-                // load DFT basis set (element-wise information) from xml file
-                BasisSet dftbs;
-                dftbs.LoadBasisSet(_orbitals.getDFTbasis());
-                CTP_LOG(ctp::logDEBUG, _log) << " Loaded DFT Basis Set " << _orbitals.getDFTbasis() << flush;
-
-                // fill DFT AO basis by going through all atoms 
-                AOBasis dftbasis;
-                dftbasis.AOBasisFill(&dftbs, _orbitals.QMAtoms());
-               
-
-                
-                // now depending on the type of cube
-                if (_do_groundstate || _do_bse || _do_transition ) {
+                if (_state > 0) {
 
 
-                    ub::matrix<double> DMAT_tot = ub::zero_matrix<double>(dftbasis.AOBasisSize(), dftbasis.AOBasisSize());
-
-                    // ground state only if requested
-                    if ( _do_groundstate ) {
-                        ub::matrix<double> DMATGS = _orbitals.DensityMatrixGroundState();
-                        DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
-                        CTP_LOG(ctp::logDEBUG, _log) << " Calculated ground state density matrix " << flush;
+                    if (_do_transition) {
+                        DMAT_tot = _orbitals.TransitionDensityMatrix(_spin, _state - 1);
+                        CTP_LOG(ctp::logDEBUG, _log) << " Calculated transition state density matrix " << flush;
                     }
-                    
-                    if(_state>0){
+                        // excited state if requested
+                    else if (_do_bse) {
+                        std::vector< Eigen::MatrixXd > DMAT = _orbitals.DensityMatrixExcitedState(_spin, _state - 1);
 
-                    
-                        if ( _do_transition ){
-                             DMAT_tot=_orbitals.TransitionDensityMatrix(_spin, _state - 1);
-                             CTP_LOG(ctp::logDEBUG, _log) << " Calculated transition state density matrix " << flush;
-                        }
-
-                    // excited state if requested
-                        else if ( _do_bse  ) {    
-                            std::vector< ub::matrix<double> > DMAT=_orbitals.DensityMatrixExcitedState(_spin, _state - 1);
-                            
-                            DMAT_tot =DMAT_tot+DMAT[1]-DMAT[0];// Ground state + hole_contribution + electron contribution
-                            CTP_LOG(ctp::logDEBUG, _log) << " Calculated excited state density matrix " << flush;
-                        }
+                        DMAT_tot = DMAT_tot + DMAT[1] - DMAT[0]; // Ground state + hole_contribution + electron contribution
+                        CTP_LOG(ctp::logDEBUG, _log) << " Calculated excited state density matrix " << flush;
                     }
-                    
-   
-                    CTP_LOG(ctp::logDEBUG, _log) << " Calculating cube data ... \n" << flush;
-                    _log.setPreface(ctp::logDEBUG,   (format(" ... ...") ).str());
-                    
-                    boost::progress_display progress(_xsteps) ;
-                    // eval density at cube grid points
-                    for (int _ix = 0; _ix <= _xsteps; _ix++) {
-                        double _x = xstart + double(_ix) * xincr;
-                        for (int _iy = 0; _iy <= _ysteps; _iy++) {
-                            double _y = ystart + double(_iy) * yincr;
+                }
 
-                            int Nrecord = 0;
-                            for (int _iz = 0; _iz <= _zsteps; _iz++) {
-                                double _z = zstart + double(_iz) * zincr;
-                                Nrecord++;
-                                vec pos=vec(_x, _y, _z);
-                                // get value of orbitals at each gridpoint
-                                ub::matrix<double> tmat = ub::zero_matrix<double>( 1,dftbasis.AOBasisSize());
 
-                                for (AOBasis::AOShellIterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
-                                    
-                                    const double decay=(*_row)->getMinDecay();
-                                    const tools::vec& shellpos=(*_row)->getPos();
-                      
-                      
-                                    tools::vec dist=shellpos-pos;
-                                    double distsq=dist*dist;
-                          // if contribution is smaller than -ln(1e-10), calc density
-                                    if ( (decay * distsq) < 20.7 ){
-                                    ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
-                                    (*_row)->EvalAOspace(_submatrix, pos);
-                                    }
+                CTP_LOG(ctp::logDEBUG, _log) << " Calculating cube data ... \n" << flush;
+                _log.setPreface(ctp::logDEBUG, (format(" ... ...")).str());
+
+                boost::progress_display progress(_xsteps);
+                // eval density at cube grid points
+                for (int _ix = 0; _ix <= _xsteps; _ix++) {
+                    double _x = xstart + double(_ix) * xincr;
+                    for (int _iy = 0; _iy <= _ysteps; _iy++) {
+                        double _y = ystart + double(_iy) * yincr;
+
+                        int Nrecord = 0;
+                        for (int _iz = 0; _iz <= _zsteps; _iz++) {
+                            double _z = zstart + double(_iz) * zincr;
+                            Nrecord++;
+                            vec pos = vec(_x, _y, _z);
+                            // get value of orbitals at each gridpoint
+                            Eigen::VectorXd tmat = Eigen::VectorXd::Zero(dftbasis.AOBasisSize());
+
+                            for (AOBasis::AOShellIterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
+
+                                const double decay = (*_row)->getMinDecay();
+                                const tools::vec& shellpos = (*_row)->getPos();
+
+
+                                tools::vec dist = shellpos - pos;
+                                double distsq = dist*dist;
+                                // if contribution is smaller than -ln(1e-10), calc density
+                                if ((decay * distsq) < 20.7) {
+                                    Eigen::VectorBlock<Eigen::VectorXd> tmat_block=tmat.segment((*_row)->getStartIndex(), (*_row)->getNumFunc());
+                                    (*_row)->EvalAOspace(tmat_block, pos);
                                 }
-                                
-                                
-             		    ub::matrix<double> _tempmat = ub::prod( tmat,DMAT_tot); // tempmat can be reused for density gradient
-		            double density_at_grid = ub::prod(_tempmat,ub::trans(tmat))(0,0);
-                          
-                                if (Nrecord == 6 || _iz == _zsteps) {
-                                    fprintf(out, "%E \n", density_at_grid);
-                                    Nrecord = 0;
-                                } else {
-                                    fprintf(out, "%E ", density_at_grid);
+                            }
+
+                            double density_at_grid = (tmat.transpose() * DMAT_tot * tmat).value();
+
+                            if (Nrecord == 6 || _iz == _zsteps) {
+                                fprintf(out, "%E \n", density_at_grid);
+                                Nrecord = 0;
+                            } else {
+                                fprintf(out, "%E ", density_at_grid);
                             }
                         }// z-component
 
 
-                            
-                        }// y-component
-                        
-                        ++progress;
-                        
-                        
-                    } // x-component
+
+                    }// y-component
+
+                    ++progress;
 
 
-                } // ground or excited state
-                _log.setPreface(ctp::logDEBUG,   (format("\n ... ...") ).str());
-                
-                // diagonalized QP, if requested
-                if ( ( _do_ks || _do_qp ) && _state > 0 ){
-                    
+                } // x-component
 
-                    ub::matrix<double> Ftemp;
-                    
-                    if ( _do_qp ){
-                        int GWAmin = _orbitals.getGWAmin();
-                        int GWAmax = _orbitals.getGWAmax();
-                        ub::matrix<double> QPcoefs = ub::project(_orbitals.QPdiagCoefficients(),
-                                ub::range(0, _orbitals.QPdiagCoefficients().size1() ), ub::range(_state-1-GWAmin, _state-GWAmin  ) ); 
-                        // get QPdiag coefficients for the requested state
-                        ub::matrix<double> MOs = ub::project(_orbitals.MOCoefficients(),ub::range(GWAmin, GWAmax + 1), ub::range(0, dftbasis.AOBasisSize())) ; 
-                        // get DFT MO coefficients
-                  
-                        Ftemp = ub::prod( ub::trans(MOs),QPcoefs );
-                    } 
-                    
-                    if ( _do_ks ) {
-                        Ftemp = ub::trans(ub::project(_orbitals.MOCoefficients(),ub::range(_state-1, _state), ub::range(0, dftbasis.AOBasisSize()))) ; // get DFT MO coefficients
-                    }
-              
-                    for (int _ix = 0; _ix <= _xsteps; _ix++) {
-                        double _x = xstart + double(_ix) * xincr;
-                        for (int _iy = 0; _iy <= _ysteps; _iy++) {
-                            double _y = ystart + double(_iy) * yincr;
 
-                            int Nrecord = 0;
-                            for (int _iz = 0; _iz <= _zsteps; _iz++) {
-                                double _z = zstart + double(_iz) * zincr;
-                                Nrecord++;
-                                // get value of orbitals at each gridpoint
-                                ub::matrix<double> tmat = ub::zero_matrix<double>(1,dftbasis.AOBasisSize());
-                                vec pos=vec(_x, _y, _z);
-                                for (AOBasis::AOShellIterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
-                                    
-                                    const double decay=(*_row)->getMinDecay();
-                                    const tools::vec& shellpos=(*_row)->getPos();
-                      
-                      
-                                    tools::vec dist=shellpos-pos;
-                                    double distsq=dist*dist;
-                          // if contribution is smaller than -ln(1e-10), calc density
-                                    if ( (decay * distsq) < 20.7 ){
-                                    ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(tmat,0,1, (*_row)->getStartIndex(), (*_row)->getStartIndex()+(*_row)->getNumFunc());
-                                    (*_row)->EvalAOspace(_submatrix, pos);
-                                    }
-                                }
+            } // ground or excited state
+            _log.setPreface(ctp::logDEBUG, (format("\n ... ...")).str());
 
-                                double QP_at_grid = 0.0;
-                                for (unsigned _i = 0; _i < Ftemp.size1(); _i++) {
-                                    QP_at_grid += Ftemp(_i,0) * tmat(0,_i);
-                                }
+            // diagonalized QP, if requested
+            if ((_do_ks || _do_qp) && _state > 0) {
 
-                                if (Nrecord == 6 || _iz == _zsteps) {
-                                    fprintf(out, "%E \n", QP_at_grid);
-                                    Nrecord = 0;
-                                } else {
-                                    fprintf(out, "%E ", QP_at_grid);
-                                }
-                            }// z-component
-                        }// y-component
-                    } // x-component
 
-                    
+                Eigen::VectorXd Ftemp;
 
+                if (_do_qp) {
+                                 
+                    Eigen::VectorXd QPcoefs = _orbitals.QPdiagCoefficients().col(_state-1);
+                    // get QPdiag coefficients for the requested state
+                    Eigen::MatrixXd MOs= _orbitals.MOCoefficients().block(_orbitals.getGWAmin(),0,_orbitals.getGWAtot(),dftbasis.AOBasisSize());
+                    // get DFT MO coefficients
+
+                    Ftemp = MOs.transpose()*QPcoefs;
                 }
-                
 
-                fclose(out);
+                if (_do_ks) {
+                    Ftemp = _orbitals.MOCoefficients().col(_state-1);
+                }
+
+                for (int _ix = 0; _ix <= _xsteps; _ix++) {
+                    double _x = xstart + double(_ix) * xincr;
+                    for (int _iy = 0; _iy <= _ysteps; _iy++) {
+                        double _y = ystart + double(_iy) * yincr;
+
+                        int Nrecord = 0;
+                        for (int _iz = 0; _iz <= _zsteps; _iz++) {
+                            double _z = zstart + double(_iz) * zincr;
+                            Nrecord++;
+                            // get value of orbitals at each gridpoint
+                            Eigen::VectorXd tmat = Eigen::VectorXd::Zero(dftbasis.AOBasisSize());
+                            vec pos = vec(_x, _y, _z);
+                            for (AOBasis::AOShellIterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
+
+                                const double decay = (*_row)->getMinDecay();
+                                const tools::vec& shellpos = (*_row)->getPos();
 
 
-                CTP_LOG(ctp::logDEBUG, _log) << "Wrote cube data to " << _output_file << flush;
+                                tools::vec dist = shellpos - pos;
+                                double distsq = dist*dist;
+                                // if contribution is smaller than -ln(1e-10), calc density
+                                if ((decay * distsq) < 20.7) {
+                                    Eigen::VectorBlock<Eigen::VectorXd> tmat_block=tmat.segment((*_row)->getStartIndex(), (*_row)->getNumFunc());
+                                     (*_row)->EvalAOspace(tmat_block, pos);
+                                }
+                            }
 
-         return;   
+                            double QP_at_grid =(Ftemp.transpose()*tmat).value();
+                           
+                            if (Nrecord == 6 || _iz == _zsteps) {
+                                fprintf(out, "%E \n", QP_at_grid);
+                                Nrecord = 0;
+                            } else {
+                                fprintf(out, "%E ", QP_at_grid);
+                            }
+                        }// z-component
+                    }// y-component
+                } // x-component
+
+
+
+            }
+
+
+            fclose(out);
+
+
+            CTP_LOG(ctp::logDEBUG, _log) << "Wrote cube data to " << _output_file << flush;
+
+            return;
         }
         
         

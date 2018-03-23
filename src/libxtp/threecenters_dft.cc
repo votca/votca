@@ -22,12 +22,8 @@
 #include <votca/xtp/threecenters.h>
 
 
-
-using namespace votca::tools;
-
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
 
         /*
          * Cleaning TCMatrix_dft data and free memory
@@ -35,7 +31,7 @@ namespace votca {
         void TCMatrix_dft::Cleanup() {
 
             for (unsigned _i = 0; _i < _matrix.size(); _i++) {
-                _matrix[ _i ].resize(0, 0, false);
+                _matrix[ _i ].resize(0, 0);
             }
             _matrix.clear();
             return;
@@ -47,20 +43,13 @@ namespace votca {
 
             for (unsigned int i=0; i< _auxbasis.AOBasisSize(); i++){
                  try{
-                _matrix.push_back(ub::symmetric_matrix<double>(_dftbasis.AOBasisSize()));   
+                _matrix.push_back(Eigen::MatrixXd::Zero(_dftbasis.AOBasisSize(),_dftbasis.AOBasisSize()));   
                 }
                 catch(std::bad_alloc& ba){
                     std::cerr << "Basisset/aux basis too large for 3c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << endl;
                     exit(0);
                 }
-                
-              
-                for(unsigned k=0;k<_matrix[i].size1();k++){
-                    for(unsigned j=0;j<_matrix[i].size2();j++){
-                
-                    _matrix[i](k,j)=0.0;
-                }
-                }
+               
             }
             // loop over all shells in the GW basis and get _Mmn for that shell
             #pragma omp parallel for //private(_block)
@@ -100,11 +89,8 @@ namespace votca {
                     int _col_start = _shell_col->getStartIndex();
 
                     // get 3-center overlap directly as _subvector
-                    ub::matrix<double> _subvector = ub::zero_matrix<double>(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
-
+                    Eigen::MatrixXd _subvector = Eigen::MatrixXd::Zero(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
                     bool nonzero = FillThreeCenterRepBlock(_subvector, _shell, _shell_row, _shell_col);
-
-
 
                     if (nonzero) {
                         // and put it into the block it belongs to
@@ -121,6 +107,7 @@ namespace votca {
                                     }
                                    
                                     _matrix[_start + _aux](_row_start + _row, _col_start + _col) = _subvector(_row, _index);
+                                    _matrix[_start + _aux](_col_start + _col,_row_start + _row) = _subvector(_row, _index);
 
                                 } // ROW copy
                             } // COL copy
