@@ -383,6 +383,7 @@ namespace votca {
           double EXC_box = 0.0;
           GridBox& box = _grid_boxes[i];
           const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(_density_matrix);
+          const Eigen::MatrixXd DMAT_symm= DMAT_here+DMAT_here.transpose();
           double cutoff=1.e-40/_density_matrix.rows()/_density_matrix.rows();
           if (DMAT_here.cwiseAbs2().maxCoeff()<cutoff ){
             continue;
@@ -395,25 +396,24 @@ namespace votca {
           //iterate over gridpoints
           for (unsigned p = 0; p < box.size(); p++) {
             Eigen::VectorXd ao = Eigen::VectorXd::Zero(box.Matrixsize());
-            Eigen::MatrixX3d ao_grad = Eigen::MatrixX3d::Zero(box.Matrixsize(),3);
+            Eigen::MatrixX3d ao_grad= Eigen::MatrixX3d::Zero(box.Matrixsize(),3);
             const std::vector<GridboxRange>& aoranges = box.getAOranges();
             const std::vector<const AOShell* >& shells = box.getShells();
                         
             for (unsigned j = 0; j < box.Shellsize(); ++j) {
               Eigen::Block<Eigen::MatrixX3d> grad_block=ao_grad.block(aoranges[j].start,0,aoranges[j].size,3);
               Eigen::VectorBlock<Eigen::VectorXd> ao_block=ao.segment(aoranges[j].start,aoranges[j].size);
-              shells[j]->EvalAOspace(ao_block,grad_block,points[p]);
-               
+              shells[j]->EvalAOspace(ao_block,grad_block,points[p]);             
             }
             double rho = (ao.transpose()*DMAT_here*ao).value();
-            Eigen::Vector3d rho_grad = (ao.transpose()*DMAT_here*ao_grad).transpose()+ao_grad.transpose()*DMAT_here*ao;
+            Eigen::Vector3d rho_grad = ao.transpose()*DMAT_symm*ao_grad;
             double weight = weights[p];
             if (rho*weight < 1.e-20) continue; // skip the rest, if density is very small
             double f_xc; // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r }
             double df_drho; // v_xc_rho(r) = df/drho
             double df_dsigma; // df/dsigma ( df/dgrad(rho) = df/dsigma * dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
             EvaluateXC(rho, rho_grad, f_xc, df_drho, df_dsigma);          
-            Eigen::VectorXd _addXC = weight * df_drho * ao * 0.5+ 2.0 * df_dsigma * weight * (rho_grad.transpose()*ao_grad.transpose()).transpose();
+            auto _addXC = weight * (0.5*df_drho * ao+ 2.0 * df_dsigma *ao_grad*rho_grad);
             // Exchange correlation energy
             EXC_box += weight * rho * f_xc;
             Vxc_here.noalias() += _addXC* ao.transpose();
