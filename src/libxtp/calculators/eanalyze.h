@@ -555,7 +555,20 @@ void EAnalyze::SiteCorr(ctp::Topology *top, int state) {
     }
 
     FILE *out;
-    std::string tag = boost::lexical_cast<std::string>("eanalyze.sitecorr_") + ( (state == -1) ? "e" : "h" ) + ".out";
+    
+    if (state==-1){
+        statename="e";
+    }
+    else if (state==1){
+        statename="h";
+    }
+    else if (state==2){
+        statename="s";
+    }
+    else if (state==3){
+        statename="t";
+    }
+    std::string tag = boost::lexical_cast<std::string>("eanalyze.sitecorr_") + statename + ".out";
     out = fopen(tag.c_str(), "w");
 
     fprintf(out, "# EANALYZE: SPATIAL SITE-ENERGY CORRELATION \n");

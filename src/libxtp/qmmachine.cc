@@ -89,13 +89,18 @@ namespace votca {
             if (opt->exists(key)) {
                 _do_gwbse = true;
 
-
+            // PUT IN some useful type definitions for excited state
+            // - singlet -> singlet exciton
+            // - triplet -> triplet exciton
+            // - quasiparticle -> GW quasiparticle (diagqp)
+            // - kohn-sham -> DFT MO
+        
                 string _gwbse_xml = opt->get(key + ".gwbse_options").as<string> ();
                 //cout << endl << "... ... Parsing " << _package_xml << endl ;
                 load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
                 _state = opt->get(key + ".state").as< int >();
                 _type = opt->get(key + ".type").as< string >();
-                if (_type != "singlet" && _type != "triplet") {
+                if (_type != "singlet" && _type != "triplet" && _type != "quasiparticle") {
                     throw runtime_error(" Invalid excited state type! " + _type);
                 }
 
@@ -103,6 +108,10 @@ namespace votca {
                 if (opt->exists(key + ".oscillator_strength") && _type != "triplet") {
                     _has_osc_filter = true;
                     _osc_threshold = opt->get(key + ".oscillator_strength").as<double> ();
+                }
+                if (opt->exists(key + ".overlap")) {
+                    _has_overlap_filter = true;
+                    // _osc_threshold = opt->get(key + ".oscillator_strength").as<double> ();
                 }
                 if (opt->exists(key + ".localisation")) {
                     _has_loc_filter = true;
@@ -303,6 +312,8 @@ namespace votca {
             ub::matrix<double> DMAT_tot;
             // GW-BSE starts here
             double energy___ex = 0.0;
+            std::vector<int> _state_index;
+
             if (_do_gwbse) {
 
                 /* Parses the MOcoefficients from the external QMPackages
@@ -314,7 +325,6 @@ namespace votca {
 
                 // Get a GWBSE object
                 GWBSE _gwbse = GWBSE(&orb_iter_input);
-                std::vector<int> _state_index;
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 ctp::Logger gwbse_logger(ctp::logDEBUG);
                 gwbse_logger.setMultithreading(false);
@@ -335,6 +345,9 @@ namespace votca {
                     CTP_LOG(ctp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
                     CTP_LOG(ctp::logDEBUG, *_log) << "  --- type:              " << _type << flush;
                     CTP_LOG(ctp::logDEBUG, *_log) << "  --- state:             " << _state << flush;
+                    if (_has_overlap_filter) {
+                        CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: overlap  " <<  flush;
+                    }
                     if (_has_osc_filter) {
                         CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
                     }
@@ -370,6 +383,79 @@ namespace votca {
                     // - find the excited state of interest
                     // oscillator strength filter
 
+                    // quasiparticle filter
+                    if (_has_overlap_filter) {
+                        if (iter == 0) {
+
+                            // One - to - One LIST in 0th iteration
+                            for (unsigned _i = 0; _i < orb_iter_input.QPdiagEnergies().size(); _i++) {
+                                _state_index.push_back(_i);
+                            }
+
+                        } else {
+                            // get AO overlap matrix
+                            AOOverlap _dftoverlap;
+                            // load dft  basis set (element-wise information) from xml file
+                            BasisSet dftbs;
+                            dftbs.LoadBasisSet(orb_iter_input.getDFTbasis());
+                            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
+
+                            // fill auxiliary GW AO basis by going through all atoms
+                            AOBasis dftbasis;
+                            dftbasis.AOBasisFill(&dftbs, orb_iter_input.QMAtoms());
+                            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filled DFT Basis of size " << dftbasis.AOBasisSize() << flush;
+
+                            // Fill overlap
+                            _dftoverlap.Fill(dftbasis);
+                            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().size1() << flush;
+
+
+                            // 'LAMBDA' matrix of the present iteration                
+                            ub::matrix<real_gwbse> lambda_N = orb_iter_input.LambdaMatrixQuasiParticle();
+
+                            // 'LAMBDA' matrix of the previous iteration
+                            string runFolder_N_1 = jobFolder + "/iter_" + boost::lexical_cast<string>(iter - 1);
+                            string orbfile_N_1 = runFolder_N_1 + "/system.orb";
+                            Orbitals _orbitals_N_1;
+                            // load the QM data from serialized orbitals object
+                            std::ifstream ifs((orbfile_N_1).c_str());
+                            CTP_LOG(ctp::logDEBUG, *_log) << " Loading QM data from " << orbfile_N_1 << flush;
+                            boost::archive::binary_iarchive ia(ifs);
+                            ia >> _orbitals_N_1;
+                            ifs.close();
+
+
+                            ub::matrix<real_gwbse> lambda_N_1 = _orbitals_N_1.LambdaMatrixQuasiParticle();
+                            // calculate QP overlaps
+                            ub::matrix<real_gwbse> qptemp = ub::prod(_dftoverlap.Matrix(), ub::trans(lambda_N_1));
+                            ub::matrix<real_gwbse> qpoverlaps = ub::prod(lambda_N, qptemp);
+
+                            // test output
+                            if (tools::globals::verbose) {
+                                for (unsigned i = 0; i < qpoverlaps.size1(); i++) {
+                                    for (unsigned j = 0; j < qpoverlaps.size2(); j++) {
+                                        CTP_LOG(ctp::logDEBUG, *_log) << " [" << i << " , " << j << "]: " << qpoverlaps(i, j) << flush;
+                                    }
+                                }
+                            }
+
+
+                            // filter for max absolute value (hopefully close to 1)
+                            for (unsigned _j = 0; _j < qpoverlaps.size2(); _j++) {
+                                int maxi = 0;
+                                for (unsigned _i = 0; _i < qpoverlaps.size1(); _i++) {
+                                    if (std::abs(qpoverlaps(_i, _j)) > std::abs(qpoverlaps(maxi, _j))) {
+                                        maxi = _i;
+                                    }
+                                }
+                                _state_index.push_back(maxi);
+                                CTP_LOG(ctp::logDEBUG, *_log) << " [" << maxi << " , " << _j << "]: " << qpoverlaps(maxi, _j) << flush;
+                            }
+
+                        }
+
+                    }
+                    
                     if (_has_osc_filter) {
 
                         // go through list of singlets
@@ -429,13 +515,25 @@ namespace votca {
                         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " WARNING: FILTER yielded no state. Taking lowest excitation" << flush;
                         _state_index.push_back(0);
                     }else{
-                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filter yielded state"<<_type<<":"<<_state_index[_state - 1]+1<< flush;
+                        if ( _type == "quasiparticle" ){
+                            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filter yielded QP index: "<<_state_index[_state - 1 - orb_iter_input.getGWAmin()]<< flush;
+                        }else {
+                            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filter yielded state"<<_type<<":"<<_state_index[_state - 1]+1<< flush;
+                        }
                     }
                     // - output its energy
                     if (_type == "singlet") {
                         energy___ex = orb_iter_input.BSESingletEnergies()[_state_index[_state - 1]] * tools::conv::hrt2ev; // to eV
                     } else if (_type == "triplet") {
                         energy___ex = orb_iter_input.BSETripletEnergies()[_state_index[_state - 1]] * tools::conv::hrt2ev; // to eV
+                    } else if (_type == "quasiparticle") {
+                        if ( _state > orb_iter_input.getNumberOfElectrons()  ) {
+                            // unoccupied QPs: E_a = E_0 + eps_l
+                            energy___ex = orb_iter_input.QPdiagEnergies()[_state_index[_state - 1 - orb_iter_input.getGWAmin()]] * tools::conv::hrt2ev; // to eV
+                        } else {
+                            // occupied QPs: E_c = E_0 - eps_h
+                            energy___ex = -1.0*orb_iter_input.QPdiagEnergies()[_state_index[_state - 1 - orb_iter_input.getGWAmin()]] * tools::conv::hrt2ev; // to eV
+                        }
                     }
 
                 } // only if state >0
@@ -509,6 +607,13 @@ namespace votca {
                 thisIter->UpdateMPSFromGDMA(_gdma.GetMultipoles(), _job->getPolarTop()->QM0());
 
             }
+            
+            // Update state variable
+            if (_type == "quasiparticle" || _has_overlap_filter ){
+                
+                _state = _state_index[ _state -1 - orb_iter_input.getGWAmin() ] + 1 + orb_iter_input.getGWAmin();
+                
+            }
 
             unsigned qmsize = 0;
             std::vector< ctp::QMAtom* > ::iterator ait;
@@ -580,9 +685,22 @@ namespace votca {
 
                     ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
 
-                    if (_state > 0) {
-                        std::vector<ub::matrix<double> > DMAT = orb_iter_input.DensityMatrixExcitedState(_type, _state_index[_state - 1]);
-                        DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
+                    if (_state > 0 ) {
+                        
+                        if ( _type == "singlet" && _type == "triplet"){
+                        
+                            std::vector<ub::matrix<double> > DMAT = orb_iter_input.DensityMatrixExcitedState(_type, _state_index[_state - 1]);
+                            DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
+                        } else if ( _type == "quasiparticle"){
+                            
+                            ub::matrix<double> DMATQP = orb_iter_input.DensityMatrixQuasiParticle(  _state_index[_state - 1 - orb_iter_input.getGWAmin()]);
+
+                            if ( _state > orb_iter_input.getNumberOfElectrons() ) {
+                                DMAT_tot = DMAT_tot + DMATQP;
+                            } else {
+                                DMAT_tot = DMAT_tot - DMATQP;
+                            }
+                        }
                     }
 
                     // fill DFT AO basis by going through all atoms
