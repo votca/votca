@@ -85,14 +85,15 @@ void AOBasis::ReorderMOs(ub::matrix<double> &v, const std::string& start, const 
     return;
 }
 
-void AOBasis::ReorderMatrix(ub::symmetric_matrix<double> &v,const std::string& start,const std::string& target ){
+void AOBasis::ReorderMatrix(ub::symmetric_matrix<double> &v,const string& start,const string& target ){
     if (start==target){
         return;
     }
-    vector<int> order = getReorderVector(start, target);
+    vector<int> order = getReorderVector(start, target); 
+    vector<int> multiplier=getMultiplierVector(start,target);
     
      if (v.size2() != order.size()) {
-        std::cerr << "Size mismatch in ReorderMatrix" << v.size2() << ":" << order.size() << std::endl;
+        cerr << "Size mismatch in ReorderMatrix" << v.size2() << ":" << order.size() << endl;
         throw std::runtime_error("Abort!");
     }
 
@@ -101,13 +102,14 @@ void AOBasis::ReorderMatrix(ub::symmetric_matrix<double> &v,const std::string& s
         int i_index=order[i];
         for(unsigned j=0;j<temp.size1();j++){
             int j_index=order[j];
-            v(i_index,j_index)=temp(i,j);
+            v(i_index,j_index)=multiplier[i]*multiplier[j]*temp(i,j);
         }
     }
     
     
     return;
 }
+
 
 
 void AOBasis::MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier )  {
