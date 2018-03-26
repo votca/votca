@@ -86,19 +86,6 @@ void WriteScalarAttribute(const H5::H5Location& loc, const T& value,
 void WriteScalarAttribute(const H5::H5Location& obj, const std::string& value,
                           const std::string& name);
 
-class ScalarAttrWriter {
- public:
-  ScalarAttrWriter(H5::Group& loc) : _loc(loc){};
-
-  template <typename T>
-  void operator()(const T& value, const std::string& name) {
-    WriteScalarAttribute(_loc, value, name);
-  };
-
- private:
-  H5::Group _loc;
-};
-
 template <typename T>
 void WriteData(const H5::Group& loc, const Eigen::MatrixBase<T>& matrix,
                const std::string& name) {
@@ -140,12 +127,40 @@ void WriteData(const H5::Group& loc, const std::map<T1, std::vector<T2>> map,
   for (auto const& x : map) {
     r = std::to_string(c);
     H5::Group tempGr = loc.createGroup("/" + name);
-    hdf5_utils::ScalarAttrWriter w(tempGr);
-    w(x.first, "index" + r);
+    WriteScalarAttribute(tempGr, x.first, "index" + r);
     WriteData(tempGr, x.second, "val" + r);
     ++c;
   }
 }
+
+class Writer {
+ public:
+  Writer(const H5::Group& loc) : _loc(loc){};
+
+  template <typename T>
+  void operator()(const T& value, const std::string& name){
+    WriteScalarAttribute(_loc, value, name);
+  };
+
+  template <typename T>
+  void operator()(const Eigen::MatrixBase<T>& matrix, const std::string& name){
+    WriteData(_loc, matrix, name);
+  }
+
+  template <typename T>
+  void operator()(const std::vector<T> v, const std::string& name){
+    WriteData(_loc, v, name);
+  }
+
+  template <typename T1, typename T2>
+  void operator()(const std::map<T1, std::vector<T2>> map,
+                  const std::string& name){
+    WriteData(_loc, map, name);
+  }
+
+ private:
+  H5::Group _loc;
+};
 }  // namespace hdf5_utils
 
 class CheckpointFile {
