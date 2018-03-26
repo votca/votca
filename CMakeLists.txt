@@ -31,9 +31,9 @@ enable_language(CXX)
 
 include(CheckCXXCompilerFlag)
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON) 
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0") 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0")
 message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
 endif()
 
@@ -91,6 +91,12 @@ if (LIBXC_FOUND)
 else()
 	set(LIBXC_LIBRARIES)
 endif()
+
+find_package(CERES)
+if(CERES_FOUND)
+  message("-- Found ceres solver version ${CERES_VERSION}")
+  include_directories(${CERES_INCLUDE_DIRS})
+endif(CERES_FOUND)
 
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 include(GNUInstallDirs)

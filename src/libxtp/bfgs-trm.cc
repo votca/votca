@@ -123,7 +123,7 @@ namespace votca {
 
                 } // checking step to be trusted
 
-                // after the step is accepted, we can shift the stored data   
+                // after the step is accepted, we can shift the stored data
                 _last_energy = _new_energy;
                 _old_xyz = _current_xyz;
                 _current_xyz = _trial_xyz;
@@ -201,7 +201,7 @@ namespace votca {
         /* Report results of accepted step*/
         void BFGSTRM::Report() {
 
-            // accepted step 
+            // accepted step
             CTP_LOG(ctp::logINFO, *_pLog) << flush;
             CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" =========== OPTIMIZATION SUMMARY ================================= ")).str() << flush;
             CTP_LOG(ctp::logINFO, *_pLog) << " At iteration  " << _iteration << flush;
@@ -344,7 +344,7 @@ namespace votca {
             if (_iteration == 1) {
              _hessian=Eigen::MatrixXd::Identity(_dim,_dim);
             }else {
-                /* for later iteration, we can make use of an iterative refinement of 
+                /* for later iteration, we can make use of an iterative refinement of
                  * the initial Hessian based on the gradient (force) history
                  */
 
@@ -365,7 +365,7 @@ namespace votca {
 
         /* Predict displacement of atom coordinates */
         void BFGSTRM::PredictDisplacement() {
-                       
+
             _delta_pos=_hessian.colPivHouseholderQr().solve(-_current_gradient);
             // new displacements for the atoms
             _norm_delta_pos = _delta_pos.squaredNorm();
@@ -391,10 +391,10 @@ namespace votca {
             double _max_step_squared = 0.0;
 
             // get eigenvalues and eigenvectors of Hessian
-            
+
             Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_hessian);
-           
-           
+
+
 
             // start value for lambda  a bit lower than lowest eigenvalue of Hessian
             double _lambda;
@@ -410,7 +410,7 @@ namespace votca {
                 _max_step_squared = 0.0;
                 _lambda -= 0.05 * std::abs(es.eigenvalues()(0));
                 for (unsigned _i = 0; _i < _dim; _i++) {
-                  
+
 
                     //cout << " forece is of dim " << _current_force.size1() << "  " << _current_force.size2() << endl;
                     double _temp = es.eigenvectors().col(_i).transpose()* _current_gradient;
@@ -427,7 +427,7 @@ namespace votca {
                 _delta_pos -= es.eigenvectors().col(_i) * (es.eigenvectors().col(_i).transpose()*_current_gradient) / (es.eigenvalues()(_i) - _lambda);
             }
 
-            _norm_delta_pos = _delta_pos.squaredNorm(); //_max_step_squared; 
+            _norm_delta_pos = _delta_pos.squaredNorm(); //_max_step_squared;
 
             return;
         }
@@ -502,7 +502,7 @@ namespace votca {
             // write coordinates as xyz file
             ofs << _atoms.size() << endl;
             ofs << "iteration " << _iteration << " energy " << _last_energy << " Hartree" << endl;
-            
+
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
                 // put trial coordinates (_current_xyz is in Bohr, segments in nm)
                 ofs << (*ait)->getElement() << " " << (*ait)->getQMPos().getX() * tools::conv::nm2ang << " " << (*ait)->getQMPos().getY() * tools::conv::nm2ang << " " << (*ait)->getQMPos().getZ() * tools::conv::nm2ang << endl;
