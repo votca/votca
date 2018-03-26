@@ -85,7 +85,7 @@ void AOBasis::ReorderMOs(ub::matrix<double> &v, const std::string& start, const 
     return;
 }
 
-void AOBasis::ReorderMatrix(ub::symmetric_matrix<double> &v,const string& start,const string& target ){
+void AOBasis::ReorderMatrix(ub::symmetric_matrix<double> &v,const std::string& start,const std::string& target ){
     if (start==target){
         return;
     }
@@ -93,7 +93,7 @@ void AOBasis::ReorderMatrix(ub::symmetric_matrix<double> &v,const string& start,
     vector<int> multiplier=getMultiplierVector(start,target);
     
      if (v.size2() != order.size()) {
-        cerr << "Size mismatch in ReorderMatrix" << v.size2() << ":" << order.size() << endl;
+        std::cerr << "Size mismatch in ReorderMatrix" << v.size2() << ":" << order.size() << std::endl;
         throw std::runtime_error("Abort!");
     }
 
