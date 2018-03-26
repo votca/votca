@@ -200,6 +200,8 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
         if(tools::globals::verbose) {cout << "simtime += " << dt << endl << endl;}
         
         
+        
+        
         for(unsigned int i=0; i<_numberofcharges; i++)
         {
             _carriers[i]->updateOccupationtime(dt);
@@ -283,6 +285,12 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
             for(unsigned int i=0; i<_numberofcharges; i++){
                 avgdiffusiontensor += (_carriers[i]->dr_travelled)|(_carriers[i]->dr_travelled);
             }
+        }
+        
+        if(step!=0 && step%(int(1e9))==0){
+            unsigned long diffusionsteps=step/diffusionresolution;
+            tools::matrix result=avgdiffusiontensor/(diffusionsteps*2*simtime*_numberofcharges);
+            cout<<endl<<"Step: "<<step<<" Diffusion tensor averaged over all carriers (nm^2/s):" << endl << result << endl;
         }
 
         
@@ -421,7 +429,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
 
 
 bool KMCMultiple::EvaluateFrame(ctp::Topology *top){
-
+    std::cout << std::endl;      
     std::cout << "-----------------------------------" << std::endl;      
     std::cout << "      KMC FOR MULTIPLE CHARGES" << std::endl;
     std::cout << "-----------------------------------" << std::endl << std::endl;      
