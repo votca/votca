@@ -41,10 +41,6 @@ void WriteScalarAttribute(const H5::H5Location& obj, const std::string& value,
 
   attr.write(*strType, value);
 }
-
-void WriteData(const H5::Group& loc, const std::map<int, std::vector<int>> d,
-               const std::string& name) {}
-
 }  // namespace hdf5_utils
 
 using namespace hdf5_utils;
