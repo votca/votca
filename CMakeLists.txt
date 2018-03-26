@@ -92,9 +92,9 @@ else()
 	set(LIBXC_LIBRARIES)
 endif()
 
-find_package(CERES)
+find_package(CERES REQUIRED)
 if(CERES_FOUND)
-  message("-- Found ceres solver version ${CERES_VERSION}")
+  message(STATUS "Found ceres solver version ${CERES_VERSION}")
   include_directories(${CERES_INCLUDE_DIRS})
 endif(CERES_FOUND)
 
