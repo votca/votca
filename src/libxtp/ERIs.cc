@@ -200,82 +200,100 @@ namespace votca {
 
           //cout << endl << "ERIS.cc ERIs::CalculateERIs_4c_direct" << endl;
 
-          // Initialize ERIs matrix
-          _ERIs = ub::zero_matrix<double>(DMAT.size1(), DMAT.size2());
           // Number of shells
           int numShells = dftbasis.getNumofShells();
+          
+          // Initialize ERIs matrix
+          _ERIs = ub::zero_matrix<double>(DMAT.size1(), DMAT.size2()); // This is always a square matrix, right? We could only input #rows.
 
-          // TODO:
-          // Somehow, paralellization fails when using the third symmetry (last if-statement in the nested for-loop)
-          // The total energy will never converge in those cases.
-          // But only on some machines? wtf!
-          #pragma omp parallel for
-          for (int iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
-            const AOShell* shell_3 = dftbasis.getShell(iShell_3);
-            for (int iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
-              const AOShell* shell_4 = dftbasis.getShell(iShell_4);
-              for (int iShell_1 = iShell_3; iShell_1 < numShells; iShell_1++) {
-                const AOShell* shell_1 = dftbasis.getShell(iShell_1);
-                for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
-                  const AOShell* shell_2 = dftbasis.getShell(iShell_2);
+          #pragma omp parallel
+          { // Begin omp parallel
+            
+            // If we want to use the (1, 2) <--> (3, 4) symmetry, we need to
+            // be able to modify the same elements of the ERIs matrix in
+            // multiple threads. So we have to use "matrix reduction" to
+            // correctly implement this symmetry.
+            
+            // Additional matrix to store the contributions of the (1, 2) <--> (3, 4) symmetry
+            ub::matrix<double> ERIsSymm = ub::zero_matrix<double>(DMAT.size1(), DMAT.size2());
+            
+            #pragma omp for
+            for (int iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
+              const AOShell* shell_3 = dftbasis.getShell(iShell_3);
+              for (int iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
+                const AOShell* shell_4 = dftbasis.getShell(iShell_4);
+                for (int iShell_1 = iShell_3; iShell_1 < numShells; iShell_1++) {
+                  const AOShell* shell_1 = dftbasis.getShell(iShell_1);
+                  for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
+                    const AOShell* shell_2 = dftbasis.getShell(iShell_2);
 
-                  // Pre-screening
-                  if (CheckScreen(1e-10, shell_1, shell_2, shell_3, shell_4))
-                    continue;
-                  
-                  // Get the current 4c block
-                  ub::matrix<double> subMatrix = ub::zero_matrix<double>(shell_1->getNumFunc() * shell_2->getNumFunc(), shell_3->getNumFunc() * shell_4->getNumFunc());
-                  bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_2, shell_3, shell_4);
-                  
-                  // If there are only zeros, we don't need to put anything in the ERIs matrix
-                  if (!nonzero)
-                    continue;
-                  
-                  // Begin fill ERIs matrix
-                  
-                  FillERIsBlock(DMAT, subMatrix, shell_1, shell_2, shell_3, shell_4);
+                    // Pre-screening
+                    if (CheckScreen(1e-10, shell_1, shell_2, shell_3, shell_4))
+                      continue;
 
-                  // Symmetry 1 <--> 2
-                  if (iShell_1 != iShell_2)
-                    FillERIsBlock(DMAT, subMatrix, shell_2, shell_1, shell_3, shell_4);
+                    // Get the current 4c block
+                    ub::matrix<double> subMatrix = ub::zero_matrix<double>(shell_1->getNumFunc() * shell_2->getNumFunc(), shell_3->getNumFunc() * shell_4->getNumFunc());
+                    bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_2, shell_3, shell_4);
 
-                  // Symmetry 3 <--> 4
-                  if (iShell_3 != iShell_4)
-                    FillERIsBlock(DMAT, subMatrix, shell_1, shell_2, shell_4, shell_3);
+                    // If there are only zeros, we don't need to put anything in the ERIs matrix
+                    if (!nonzero)
+                      continue;
 
-                  // Symmetry 1 <--> 2 and 3 <--> 4
-                  if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
-                    FillERIsBlock(DMAT, subMatrix, shell_2, shell_1, shell_4, shell_3);
+                    // Begin fill ERIs matrix
 
-                  // Symmetry (1, 2) <--> (3, 4)
-                  if (iShell_1 != iShell_3) {
-                    
-                    // TODO:
-                    // We need to use the transposed version of "submatrix".
-                    // Do something smarter than copying the submatrix into a new transposed matrix.
-                    ub::matrix<double> subMatrix2 = ub::trans(subMatrix);
-                    
-                    FillERIsBlock(DMAT, subMatrix2, shell_3, shell_4, shell_1, shell_2);
+                    FillERIsBlock(_ERIs, DMAT, subMatrix, shell_1, shell_2, shell_3, shell_4);
 
                     // Symmetry 1 <--> 2
                     if (iShell_1 != iShell_2)
-                      FillERIsBlock(DMAT, subMatrix2, shell_3, shell_4, shell_2, shell_1);
+                      FillERIsBlock(_ERIs, DMAT, subMatrix, shell_2, shell_1, shell_3, shell_4);
 
                     // Symmetry 3 <--> 4
                     if (iShell_3 != iShell_4)
-                      FillERIsBlock(DMAT, subMatrix2, shell_4, shell_3, shell_1, shell_2);
+                      FillERIsBlock(_ERIs, DMAT, subMatrix, shell_1, shell_2, shell_4, shell_3);
 
                     // Symmetry 1 <--> 2 and 3 <--> 4
                     if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
-                      FillERIsBlock(DMAT, subMatrix2, shell_4, shell_3, shell_2, shell_1);
-                  }
+                      FillERIsBlock(_ERIs, DMAT, subMatrix, shell_2, shell_1, shell_4, shell_3);
 
-                  // End fill ERIs matrix
-                } // End loop over shell 2
-              } // End loop over shell 1
-            } // End loop over shell 4
-          } // End loop over shell 3
+                    // Symmetry (1, 2) <--> (3, 4)
+                    if (iShell_1 != iShell_3) {
+
+                      // We need the transpose of "subMatrix"
+                      ub::matrix<double> subMatrix2 = ub::trans(subMatrix);
+
+                      FillERIsBlock(ERIsSymm, DMAT, subMatrix2, shell_3, shell_4, shell_1, shell_2);
+
+                      // Symmetry 1 <--> 2
+                      if (iShell_1 != iShell_2)
+                        FillERIsBlock(ERIsSymm, DMAT, subMatrix2, shell_3, shell_4, shell_2, shell_1);
+
+                      // Symmetry 3 <--> 4
+                      if (iShell_3 != iShell_4)
+                        FillERIsBlock(ERIsSymm, DMAT, subMatrix2, shell_4, shell_3, shell_1, shell_2);
+
+                      // Symmetry 1 <--> 2 and 3 <--> 4
+                      if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
+                        FillERIsBlock(ERIsSymm, DMAT, subMatrix2, shell_4, shell_3, shell_2, shell_1);
+                    }
+
+                    // End fill ERIs matrix
+                  } // End loop over shell 2
+                } // End loop over shell 1
+              } // End loop over shell 4
+            } // End loop over shell 3
+            
+            #pragma omp critical
+            { // Begin omp critical
+              
+              // Add contributions of the (1, 2) <--> (3, 4) symmetry to ERIs matrix
+              for (int i = 0; i < DMAT.size1(); i++)
+                for (int j = i; j < DMAT.size2(); j++)
+                  _ERIs(i, j) += ERIsSymm(i, j);
+              
+            } // End omp parallel
           
+          } // End omp parallel
+
           // Fill lower triangular part using symmetry
           for (int i = 0; i < DMAT.size1(); i++)
             for (int j = i + 1; j < DMAT.size2(); j++)
@@ -286,7 +304,7 @@ namespace votca {
         }
         
         
-        void ERIs::FillERIsBlock(const ub::matrix<double> &DMAT, const ub::matrix<double> &subMatrix, const AOShell* shell_1, const AOShell* shell_2, const AOShell* shell_3, const AOShell* shell_4) {
+        void ERIs::FillERIsBlock(ub::matrix<double> &ERIsCur, const ub::matrix<double> &DMAT, const ub::matrix<double> &subMatrix, const AOShell *shell_1, const AOShell *shell_2, const AOShell *shell_3, const AOShell *shell_4) {
 
           for (int iFunc_3 = 0; iFunc_3 < shell_3->getNumFunc(); iFunc_3++) {
             int ind_3 = shell_3->getStartIndex() + iFunc_3;
@@ -313,7 +331,7 @@ namespace votca {
                   int ind_subm_12 = shell_1->getNumFunc() * iFunc_2 + iFunc_1;
 
                   // Fill ERIs matrix
-                  _ERIs(ind_3, ind_4) += (ind_1 == ind_2 ? 1.0 : 2.0) * DMAT(ind_1, ind_2) * subMatrix(ind_subm_12, ind_subm_34);
+                  ERIsCur(ind_3, ind_4) += (ind_1 == ind_2 ? 1.0 : 2.0) * DMAT(ind_1, ind_2) * subMatrix(ind_subm_12, ind_subm_34);
                 } // End loop over functions in shell 2
               } // End loop over functions in shell 1
             } // End loop over functions in shell 4
