@@ -187,8 +187,12 @@ bool XtpTools::EvaluateOptions() {
         }
       }
     }
-    cout << "Registered " << (*it).c_str() << endl;
-
+    if (!_found_calc) {
+      cout << "Tool " << *it << " does not exist\n";
+      StopExecution();
+    }else{
+      cout << "Registered " << (*it).c_str() << endl;
+    }
   }
   return 1;
 }
