@@ -198,9 +198,9 @@ namespace votca {
         
         void ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis, const ub::matrix<double> &DMAT) {
 
-          cout << endl << endl;
-          cout << "ERIS.cc ERIs::CalculateERIs_4c_direct" << endl;
-          cout << "with screening = " << _with_screening << endl;
+          //cout << endl << endl;
+          //cout << "ERIS.cc ERIs::CalculateERIs_4c_direct" << endl;
+          //cout << "with screening = " << _with_screening << endl;
 
           // Number of shells
           int numShells = dftbasis.getNumofShells();

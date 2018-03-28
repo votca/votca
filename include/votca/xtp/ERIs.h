@@ -66,7 +66,7 @@ namespace votca { namespace xtp {
         ub::matrix<double> _inverse_Coulomb;
 
         // Pre-screening
-        bool _with_screening;
+        bool _with_screening = false;
         ub::matrix<double> _diagonals; // Square matrix containing <ab|ab> for all basis functions a, b
         void CalculateERIsDiagonals(const AOBasis& dftbasis);
         bool CheckScreen(double eps, const AOShell* shell_1, const AOShell* shell_2, const AOShell* shell_3, const AOShell* shell_4);
