@@ -198,7 +198,9 @@ namespace votca {
         
         void ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis, const ub::matrix<double> &DMAT) {
 
-          //cout << endl << "ERIS.cc ERIs::CalculateERIs_4c_direct" << endl;
+          cout << endl << endl;
+          cout << "ERIS.cc ERIs::CalculateERIs_4c_direct" << endl;
+          cout << "with screening = " << _with_screening << endl;
 
           // Number of shells
           int numShells = dftbasis.getNumofShells();
@@ -290,7 +292,7 @@ namespace votca {
                 for (int j = i; j < DMAT.size2(); j++)
                   _ERIs(i, j) += ERIsSymm(i, j);
               
-            } // End omp parallel
+            } // End omp critical
           
           } // End omp parallel
 
