@@ -23,6 +23,27 @@
 
 BOOST_AUTO_TEST_SUITE(eigen_test)
 
+BOOST_AUTO_TEST_CASE(symmetric_test) {
+  
+  Eigen::MatrixXd notsym=Eigen::MatrixXd::Random(6,6);
+  
+  Eigen::MatrixXd sym=notsym+notsym.transpose();
+  
+  bool symmetry=true;
+  for(unsigned i=0;i<sym.rows();++i){
+    for(unsigned j=0;j<=i;++j){
+      if(std::abs(sym(i,j)-sym(j,i)>1e-9)){
+        symmetry=false;
+        break;
+      }
+    }
+  }
+  
+  
+  BOOST_CHECK_EQUAL(symmetry, 1);
+}
+
+
 BOOST_AUTO_TEST_CASE(inverse_test) {
   Eigen::MatrixXd m=Eigen::MatrixXd::Zero(17,17);
   m<<-0.0107438,0.177662,-0.000893645,-0.000893645,-0.000893645,0.345174,-0.000591276,-0.000591276,-0.000591276,0.136613,0.110948,0.140527,0.115047,0.140527,0.115047,0.140527,0.115047,

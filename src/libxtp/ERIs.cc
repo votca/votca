@@ -20,6 +20,8 @@
 
 #include <votca/xtp/ERIs.h>
 
+#include "votca/xtp/symmetric_matrix.h"
+
 namespace votca {
     namespace xtp {
         
@@ -48,15 +50,17 @@ namespace votca {
         
         
         void ERIs::CalculateERIs (const Eigen::MatrixXd &DMAT){
+          
+           Symmetric_Matrix dmat_sym=Symmetric_Matrix(DMAT);
             _ERIs=Eigen::MatrixXd::Zero(DMAT.rows(),DMAT.cols());
             Eigen::VectorXd Itilde=Eigen::VectorXd::Zero(_threecenter.getSize());
           
             #pragma omp parallel for
             for ( int _i=0; _i<_threecenter.getSize();_i++){
-                const Eigen::MatrixXd &threecenter=_threecenter.getDatamatrix(_i);
+                const Symmetric_Matrix &threecenter=_threecenter.getDatamatrix(_i);
                 // Trace over prod::DMAT,I(l)=componentwise product over 
                 
-                Itilde(_i)=threecenter.cwiseProduct(DMAT).sum();
+                Itilde(_i)=threecenter.TraceofProd(dmat_sym);
             }
             const Eigen::VectorXd K=_inverse_Coulomb*Itilde;
             
@@ -74,7 +78,7 @@ namespace votca {
             #pragma omp parallel for
             for (unsigned thread=0;thread<nthreads;++thread){
                 for ( unsigned _i = thread; _i < K.size(); _i+=nthreads){
-                ERIS_thread[thread]+=_threecenter.getDatamatrix(_i)*K(_i);    
+                _threecenter.getDatamatrix(_i).AddtoEigenMatrix(ERIS_thread[thread],K(_i));    
                 }
             }
               

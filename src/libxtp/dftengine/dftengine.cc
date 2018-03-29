@@ -277,7 +277,7 @@ namespace votca {
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2() << flush;
         double vxcenergy = 0.0;
-        if (_use_small_grid && conv_accelerator.getDIIsError() > 1e-4) {
+        if (_use_small_grid && conv_accelerator.getDIIsError() > 1e-3) {
           _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
           vxcenergy = _gridIntegration_small.getTotEcontribution();
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;

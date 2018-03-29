@@ -17,11 +17,39 @@
  *
  */
 #include "votca/xtp/symmetric_matrix.h"
+#include <iostream>
 
 
 
 namespace votca { namespace xtp {
-    
+ 
+  
+  Symmetric_Matrix::Symmetric_Matrix(const Eigen::MatrixXd& full):dimension(full.rows()) {
+        assert(full.rows() == full.cols() && "Input matrix not quadratic");
+       data.resize((dimension + 1) * dimension / 2);
+        for (int i = 0; i < full.rows(); ++i) {
+            for (int j = 0; j <= i; ++j) {
+                this->operator()(i, j) = full(i, j);
+                //std::cout<<i<<" "<<j<<" "<<full(i, j)<<" "<<this->operator()(i, j)<<std::endl;
+            }
+        }
+    }
+  
+   std::ostream &operator<<(std::ostream &out, const Symmetric_Matrix& a) {
 
+    out << "[" << a.dimension << "," << a.dimension << "]\n";
+    for (int i = 0; i < a.dimension; ++i) {
+      for (int j = 0; j <= i; ++j) {
+        out<<a(i,j);
+        if(i==j){
+          out<<"\n";
+        }else{
+          out<<" ";
+        }
+            
+     }
+    }
+            return out;
+        }
 
 }}

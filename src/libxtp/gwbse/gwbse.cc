@@ -657,7 +657,7 @@ bool GWBSE::Evaluate() {
       << ctp::TimeStamp() << " Removed " << removed
       << " functions from gwoverlap to avoid near linear dependencies" << flush;
 
-  int removed_functions = _gwcoulomb.Symmetrize(L_overlap,L_overlap_inverse);
+  int removed_functions = _gwcoulomb.Symmetrize(L_overlap);
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM"
       << flush;

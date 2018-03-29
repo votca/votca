@@ -23,6 +23,7 @@
 
 
 #include <votca/xtp/basisset.h>
+#include <iostream>
 
 
 
@@ -42,48 +43,64 @@ Symmetric_Matrix(size_t dim) {
             data.resize((dim + 1) * dim / 2);
         }
 
-        int size() {
+        
+    Symmetric_Matrix(const Eigen::MatrixXd& full);
+    
+    int size() {
             return size();
         }
 
-    Symmetric_Matrix(Eigen::MatrixXd full) {
-        assert(full.rows() == full.cols() && "Input matrix not quadratic");
-        dimension = full.rows();
-        for (int i = 0; i < full.rows(); ++i) {
-            for (int j = 0; j <= i; ++j) {
-                this->operator(i, j) = full(i, j);
-            }
+    double TraceofProd(const Symmetric_Matrix& a) const{
+        assert(data.size()==a.data.size()&&"Matrices do not have same size");
+        double result=0.0;
+        
+        for (size_t i=0;i<dimension;++i){
+            result+=this->operator ()(i,i)*a.operator ()(i,i);
         }
+        
+        for (size_t i=0;i<dimension;++i){
+            for (size_t j=0;j<i;++j){
+                result+=2*this->operator ()(i,j)*a.operator ()(i,j);
+        }
+        }
+        return result;
     }
 
-    Symmetric_Matrix operator+(const Symmetric_Matrix& a, const Symmetric_Matrix& b) {
-        Symmetric_Matrix c(a.dimension);
-        for (size_t i = 0; i < dimension; ++i) {
-            c.data[i] = a.data[i] + b.data[i];
-        }
-        return c;
-    }
-
-    void AddtoEigenMatrix(Eigen::MatrixXd& full, double factor = 1.0) {
+    void AddtoEigenMatrix(Eigen::MatrixXd& full, double factor = 1.0) const{
         for (int i = 0; i < full.rows(); ++i) {
             for (int j = 0; j < full.cols(); ++j) {
-                full(i, j) = factor * this->operator(i, j);
+                full(i, j) += factor * this->operator ()(i,j);
             }
         }
         return;
     }
 
-    double &operator()(size_t i, size_t j) {
+    double &operator()(const size_t i,const size_t j) {
         size_t index;
 
-        if (i < j) {
-            index = i * (i + 1) / 2 + j;
+        if (i >= j) {
+            index = (i * (i + 1)) / 2 + j;
         } else {
-            index = j * (j + 1) / 2 + i;
+            index = (j * (j + 1)) / 2 + i;
+        }
+
+        return data[index];
+    };
+    
+    
+    const double &operator()(const size_t i,const size_t j) const{
+        size_t index;
+
+        if (i >= j) {
+            index = (i * (i + 1)) / 2 + j;
+        } else {
+            index = (j * (j + 1)) / 2 + i;
         }
         return data[index];
     };
     
+    
+    friend std::ostream &operator<<(std::ostream &out, const Symmetric_Matrix& a);
 private:
        
     std::vector<double> data;
@@ -92,6 +109,8 @@ private:
   
     
 };
+
+
 
 
  

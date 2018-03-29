@@ -283,7 +283,7 @@ namespace votca { namespace xtp {
     public:
     
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
-        int Symmetrize(const Eigen::MatrixXd& _gwoverlap_cholesky,const Eigen::MatrixXd& _gwoverlap_cholesky_inverse);
+        int Symmetrize(const Eigen::MatrixXd& _gwoverlap_cholesky);
         int Invert_DFT();
        
         
