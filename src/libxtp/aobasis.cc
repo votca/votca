@@ -20,6 +20,7 @@
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/qmatom.h"
 #include "votca/xtp/elements.h"
+#include "votca/xtp/aomatrix.h"
 #include <votca/tools/constants.h>
 
 
@@ -515,7 +516,6 @@ void AOBasis::AOBasisFill(BasisSet* bs , std::vector<QMAtom* > _atoms, int _frag
     // get the basis set entry for this element
     Element* element = bs->getElement(name);
     
-    int funcperAtom=0;
               // and loop over all shells
     for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
               Shell* shell = (*its);
@@ -523,12 +523,13 @@ void AOBasis::AOBasisFill(BasisSet* bs , std::vector<QMAtom* > _atoms, int _frag
               AOShell* aoshell = addShell(shell->getType(), shell->getLmax(), shell->getLmin(), shell->getScale(),
                       numfuncshell, _AOBasisSize, OffsetFuncShell(shell->getType()), pos, name, (*ait)->getAtomID());
               _AOBasisSize += numfuncshell;
-              funcperAtom+=numfuncshell;
               for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                   GaussianPrimitive* gaussian = *itg;
                   aoshell->addGaussian(gaussian->decay, gaussian->contraction);
               }
-              aoshell->CalcMinDecay();     
+              aoshell->CalcMinDecay();
+              aoshell->normalizeContraction();
+              
           }
     if ( (*ait)->getAtomID() < _fragbreak ) _AOBasisFragA = _AOBasisSize;
 
