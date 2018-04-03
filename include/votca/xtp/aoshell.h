@@ -129,7 +129,7 @@ public:
         return;                                                                 
     }                                                                                
 
-
+    void normalizeContraction();
     
 private:   
 

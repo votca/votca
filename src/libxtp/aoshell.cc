@@ -18,12 +18,34 @@
  */
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aoshell.h"
-
+#include <votca/xtp/aomatrix.h>
 
 namespace votca { namespace xtp {
     
-    void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, Eigen::Block< Eigen::MatrixX3d >& gradAOvalues, const vec& grid_pos)const {
-
+  void AOShell::normalizeContraction(){
+    
+    AOOverlap overlap;
+    Eigen::MatrixXd block=Eigen::MatrixXd::Zero(_numFunc,_numFunc);
+    Eigen::Block<Eigen::MatrixXd> submatrix=block.block(0,0,_numFunc,_numFunc);
+    overlap.FillBlock(submatrix,this,this,NULL);
+    std::vector<int> numsubshell=NumFuncSubShell(_type);
+    int contraction_index=_Lmin;
+    int aoindex=0;
+    for (unsigned i=0;i<numsubshell.size();++i){
+      double norm=std::sqrt(block(aoindex,aoindex));
+      
+      for(auto& gaussian:_gaussians){
+        gaussian.contraction[contraction_index]/=norm;
+      }
+      aoindex+=numsubshell[i];
+      contraction_index++;
+    }
+    
+    return;
+  }
+  
+  
+  void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, Eigen::Block< Eigen::MatrixX3d >& gradAOvalues, const vec& grid_pos)const {
 
       // need position of shell
       const vec center = grid_pos - _pos;

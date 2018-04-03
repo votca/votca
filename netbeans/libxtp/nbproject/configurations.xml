@@ -107,6 +107,7 @@
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
       <itemPath>../../include/votca/xtp/qmapemachine.h</itemPath>
+      <itemPath>../../include/votca/xtp/qmatom.h</itemPath>
       <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/xtp/qminterface.h</itemPath>
       <itemPath>../../include/votca/xtp/qmiter.h</itemPath>
@@ -230,6 +231,7 @@
     </logicalFolder>
     <logicalFolder name="f4" displayName="tests" projectFiles="true">
       <itemPath>../../src/tests/test_adiis.cc</itemPath>
+      <itemPath>../../src/tests/test_aobasis.cc</itemPath>
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
       <itemPath>../../src/tests/test_atom.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
@@ -408,6 +410,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmdatabase.h"
             ex="false"
@@ -933,6 +937,8 @@
       </item>
       <item path="../../src/tests/test_adiis.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_aobasis.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
@@ -969,10 +975,6 @@
       <item path="../../src/tools/xtp_map.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/xtp_parallel.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_run.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_tools.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="3">
@@ -1112,6 +1114,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmdatabase.h"
             ex="false"
@@ -1637,6 +1641,8 @@
       </item>
       <item path="../../src/tests/test_adiis.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_aobasis.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
@@ -1663,20 +1669,6 @@
             ex="false"
             tool="1"
             flavor2="0">
-      </item>
-      <item path="../../src/tools/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/Md2QmEngine.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_dump.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_map.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_parallel.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_run.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/xtp_tools.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

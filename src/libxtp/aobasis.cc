@@ -20,6 +20,7 @@
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/qmatom.h"
 #include "votca/xtp/elements.h"
+#include "votca/xtp/aomatrix.h"
 #include <votca/tools/constants.h>
 
 
@@ -91,6 +92,7 @@ void AOBasis::ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const st
         return;
     }
     std::vector<int> order = getReorderVector(start, target);
+    vector<int> multiplier=getMultiplierVector(start,target);
     
      if (v.cols() != order.size()) {
         std::cerr << "Size mismatch in ReorderMatrix" << v.cols() << ":" << order.size() << std::endl;
@@ -102,7 +104,7 @@ void AOBasis::ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const st
         int i_index=order[i];
         for(unsigned j=0;j<temp.rows();j++){
             int j_index=order[j];
-            v(i_index,j_index)=temp(i,j);
+            v(i_index,j_index)=multiplier[i]*multiplier[j]*temp(i,j);
         }
     }
     
@@ -509,7 +511,6 @@ void AOBasis::AOBasisFill(BasisSet* bs , std::vector<QMAtom* > _atoms, int _frag
     // get the basis set entry for this element
     Element* element = bs->getElement(name);
     
-    int funcperAtom=0;
               // and loop over all shells
     for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
               Shell* shell = (*its);
@@ -517,12 +518,13 @@ void AOBasis::AOBasisFill(BasisSet* bs , std::vector<QMAtom* > _atoms, int _frag
               AOShell* aoshell = addShell(shell->getType(), shell->getLmax(), shell->getLmin(), shell->getScale(),
                       numfuncshell, _AOBasisSize, OffsetFuncShell(shell->getType()), pos, name, (*ait)->getAtomID());
               _AOBasisSize += numfuncshell;
-              funcperAtom+=numfuncshell;
               for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                   GaussianPrimitive* gaussian = *itg;
                   aoshell->addGaussian(gaussian->decay, gaussian->contraction);
               }
-              aoshell->CalcMinDecay();     
+              aoshell->CalcMinDecay();
+              aoshell->normalizeContraction();
+              
           }
     if ( (*ait)->getAtomID() < _fragbreak ) _AOBasisFragA = _AOBasisSize;
 
