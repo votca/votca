@@ -28,8 +28,6 @@ namespace hdf5_utils {
 
 H5::DataSpace str_scalar(H5::DataSpace(H5S_SCALAR));
 
-// inline H5::DataSpace StrScalar() { return H5::DataSpace(H5S_SCALAR); }
-
 void WriteScalarAttribute(const H5::H5Location& obj, const std::string& value,
                           const std::string& name) {
 
