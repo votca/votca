@@ -20,6 +20,7 @@
 #include <Eigen/Eigen>
 #include <H5Cpp.h>
 #include <string>
+#include <type_traits>
 #include <typeinfo>
 #include <vector>
 
@@ -122,7 +123,6 @@ void WriteData(const H5::Group& loc, const std::map<T1, std::vector<T2>> map,
 
   size_t c = 0;
   std::string r;
-  std::cout << name << std::endl;
   // Iterate over the map and write map as a number of vectors with T1 as index
   for (auto const& x : map) {
     r = std::to_string(c);
@@ -136,26 +136,26 @@ void WriteData(const H5::Group& loc, const std::map<T1, std::vector<T2>> map,
 class Writer {
  public:
   Writer(const H5::Group& loc) : _loc(loc){};
+  // see the following links for details
+  // https://stackoverflow.com/a/8671617/1186564
+  // http://en.cppreference.com/w/cpp/types/is_fundamental
 
+  // Use this overload iff T is NOT a fundamental type
   template <typename T>
-  void operator()(const T& value, const std::string& name){
-    WriteScalarAttribute(_loc, value, name);
-  };
-
-  template <typename T>
-  void operator()(const Eigen::MatrixBase<T>& matrix, const std::string& name){
-    WriteData(_loc, matrix, name);
+  typename std::enable_if<!std::is_fundamental<T>::value, T>::type operator()(
+      const T& data, const std::string& name) {
+    WriteData(_loc, data, name);
   }
 
+  // int, double, unsigned int, etc.
   template <typename T>
-  void operator()(const std::vector<T> v, const std::string& name){
-    WriteData(_loc, v, name);
+  typename std::enable_if<std::is_fundamental<T>::value, T>::type operator()(
+      const T& v, const std::string& name) {
+    WriteScalarAttribute(_loc, v, name);
   }
 
-  template <typename T1, typename T2>
-  void operator()(const std::map<T1, std::vector<T2>> map,
-                  const std::string& name){
-    WriteData(_loc, map, name);
+  void operator()(const std::string& v, const std::string& name) {
+    WriteScalarAttribute(_loc, v, name);
   }
 
  private:
