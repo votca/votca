@@ -17,16 +17,10 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/dftcoupling.h>
 
-#include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/banded.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/constants.h>
 #include <boost/format.hpp>
 #include <boost/progress.hpp>
@@ -34,7 +28,6 @@
 
 namespace votca { namespace xtp {
 
-namespace ub = boost::numeric::ublas;
 
 
 using boost::format;

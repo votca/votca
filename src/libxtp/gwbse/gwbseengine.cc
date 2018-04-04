@@ -24,12 +24,7 @@
 #include <votca/xtp/gwbse.h>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/numeric/ublas/operation.hpp>
-
 #include <boost/math/constants/constants.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
-#include <votca/tools/linalg.h>
-
 #include <votca/ctp/logger.h>
 
 
@@ -39,7 +34,7 @@ using namespace boost::filesystem;
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+      
         // +++++++++++++++++++++++++++++ //
         // GWBSEENGINE MEMBER FUNCTIONS  //
         // +++++++++++++++++++++++++++++ //

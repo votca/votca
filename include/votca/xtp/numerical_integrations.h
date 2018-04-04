@@ -22,11 +22,9 @@
 
 
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 #include <votca/tools/matrix.h>
 #include <votca/tools/vec.h>
-#include <boost/numeric/ublas/operation.hpp>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/grid_containers.h>
@@ -35,15 +33,14 @@
 #include <votca/xtp/gridbox.h>
 #include <votca/xtp/qmatom.h>
 
-#ifdef LIBXC
 #include <xc.h>
 #undef LOG
-#endif
+
 
 
 namespace votca { namespace xtp {
 
-    namespace ub = boost::numeric::ublas;
+  
     
     struct Gyrationtensor{
         double mass;
@@ -93,19 +90,18 @@ namespace votca { namespace xtp {
             std::vector<unsigned> thread_start;
             std::vector<unsigned> thread_stop;
             ExchangeCorrelation _xc;
-            bool _use_votca;
             int xfunc_id;
             double EXC;
             bool density_set;
             bool setXC;
             
             
-            #ifdef LIBXC
+           
             bool _use_separate;
             int cfunc_id;
             xc_func_type xfunc; // handle for exchange functional
             xc_func_type cfunc; // handle for correlation functional
-            #endif
+
             
         };
 

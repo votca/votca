@@ -33,7 +33,6 @@
 
 
 namespace votca { namespace xtp {
- namespace ub = boost::numeric::ublas;
 
  
  class ConvergenceAcc{
@@ -77,13 +76,8 @@ public:
   
    }
    
-   void setOverlap(Eigen::MatrixXd* _S){
-       S=_S;
-       mix.Configure(_mixingparameter,S);
-   }
-   void setSqrtOverlap(Eigen::MatrixXd* _Sminusahalf){
-       Sminusahalf=_Sminusahalf;
-   }
+   void setOverlap(Eigen::MatrixXd* _S);
+   
    
    double getDIIsError(){return _diiserror;}
    
@@ -91,7 +85,7 @@ public:
     void setLogger(ctp::Logger *pLog){_pLog=pLog;}
     Eigen::MatrixXd Iterate(const Eigen::MatrixXd& dmat,const Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE);
     void SolveFockmatrix(Eigen::VectorXd& MOenergies,Eigen::MatrixXd& MOs,const Eigen::MatrixXd&H);
-    void Levelshift(Eigen::MatrixXd& H,const Eigen::MatrixXd& MOs);
+    void Levelshift(Eigen::MatrixXd& H);
 
     Eigen::MatrixXd DensityMatrix(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies);
     
@@ -106,12 +100,14 @@ public:
      
     ctp::Logger *                       _pLog;
     Eigen::MatrixXd* S;
-    Eigen::MatrixXd* Sminusahalf;
+    
     bool                              _usediis;
     bool                              _noisy;
     unsigned                          _histlength;
     bool                              _maxout;
-    Eigen::MatrixXd                _Sminusonehalf;
+    Eigen::MatrixXd                 Sminusahalf;
+    Eigen::MatrixXd                 Sonehalf;
+    Eigen::MatrixXd                 MOsinv;
     double                              _maxerror;
     double                              _diiserror;
     double                              _adiis_start;  

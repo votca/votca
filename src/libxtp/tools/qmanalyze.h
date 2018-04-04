@@ -25,12 +25,10 @@
 #include <votca/tools/constants.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/qmtool.h>
-// #include <votca/xtp/mbgft.h>
-// #include <votca/xtp/qmpackagefactory.h>
+
 
 namespace votca { namespace xtp {
     using namespace std;
-    namespace ub = boost::numeric::ublas;
 class QMAnalyze : public ctp::QMTool
 {
 public:

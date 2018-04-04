@@ -20,13 +20,11 @@
 
 #include <votca/xtp/ERIs.h>
 
-
-
-using namespace votca::tools;
+#include "votca/xtp/symmetric_matrix.h"
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+        
         
         
         
@@ -52,19 +50,19 @@ namespace votca {
         
         
         void ERIs::CalculateERIs (const Eigen::MatrixXd &DMAT){
-      
+          
+           Symmetric_Matrix dmat_sym=Symmetric_Matrix(DMAT);
+            _ERIs=Eigen::MatrixXd::Zero(DMAT.rows(),DMAT.cols());
             Eigen::VectorXd Itilde=Eigen::VectorXd::Zero(_threecenter.getSize());
           
             #pragma omp parallel for
             for ( int _i=0; _i<_threecenter.getSize();_i++){
-                const Eigen::MatrixXd &threecenter=_threecenter.getDatamatrix(_i);
+                const Symmetric_Matrix &threecenter=_threecenter.getDatamatrix(_i);
                 // Trace over prod::DMAT,I(l)=componentwise product over 
                 
-                Itilde(_i)=threecenter.cwiseProduct(DMAT).sum();
+                Itilde(_i)=threecenter.TraceofProd(dmat_sym);
             }
-            //cout << "Itilde " <<Itilde << endl;
             const Eigen::VectorXd K=_inverse_Coulomb*Itilde;
-            //cout << "K " << K << endl;
             
             unsigned nthreads = 1;
             #ifdef _OPENMP
@@ -80,16 +78,14 @@ namespace votca {
             #pragma omp parallel for
             for (unsigned thread=0;thread<nthreads;++thread){
                 for ( unsigned _i = thread; _i < K.size(); _i+=nthreads){
-
-                ERIS_thread[thread]+=_threecenter.getDatamatrix(_i)*K(_i);    
-                //cout << "I " << _threecenter.getDatamatrix(_i) << endl;
-                //cout<< "ERIs " <<_ERIs<< endl;
+                _threecenter.getDatamatrix(_i).AddtoEigenMatrix(ERIS_thread[thread],K(_i));    
                 }
             }
+              
             for (unsigned thread=0;thread<nthreads;++thread){
                 _ERIs+=ERIS_thread[thread];
             }    
-            
+
             CalculateEnergy(DMAT);
             return;
         }

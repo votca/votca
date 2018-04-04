@@ -22,9 +22,6 @@
 #include <votca/tools/globals.h>
 #include <votca/xtp/qminterface.h>
 #include <boost/algorithm/string.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
@@ -37,7 +34,7 @@ using namespace boost::filesystem;
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+
 
         void Turbomole::Initialize(Property *opt) {
 

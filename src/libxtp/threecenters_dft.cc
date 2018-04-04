@@ -20,26 +20,12 @@
 
 
 #include <votca/xtp/threecenters.h>
-
-
-
-using namespace votca::tools;
+#include <votca/xtp/symmetric_matrix.h>
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
 
-        /*
-         * Cleaning TCMatrix_dft data and free memory
-         */
-        void TCMatrix_dft::Cleanup() {
-
-            for (unsigned _i = 0; _i < _matrix.size(); _i++) {
-                _matrix[ _i ].resize(0, 0);
-            }
-            _matrix.clear();
-            return;
-        } // TCMatrix_dft::Cleanup
+      
 
       
   
@@ -47,7 +33,7 @@ namespace votca {
 
             for (unsigned int i=0; i< _auxbasis.AOBasisSize(); i++){
                  try{
-                _matrix.push_back(Eigen::MatrixXd::Zero(_dftbasis.AOBasisSize(),_dftbasis.AOBasisSize()));   
+                _matrix.push_back(Symmetric_Matrix(_dftbasis.AOBasisSize()));   
                 }
                 catch(std::bad_alloc& ba){
                     std::cerr << "Basisset/aux basis too large for 3c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << endl;
@@ -111,6 +97,7 @@ namespace votca {
                                     }
                                    
                                     _matrix[_start + _aux](_row_start + _row, _col_start + _col) = _subvector(_row, _index);
+                                   
 
                                 } // ROW copy
                             } // COL copy

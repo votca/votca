@@ -207,4 +207,27 @@ BOOST_CHECK_EQUAL(check_ecp, 1);
 
 }
 
+BOOST_AUTO_TEST_CASE(aocoulomb_inv_test) {
+ Orbitals orbitals;
+  orbitals.LoadFromXYZ("molecule.xyz");
+  BasisSet basis;
+  basis.LoadBasisSet("3-21G.xml");
+  AOBasis aobasis;
+  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  
+  AOCoulomb cou;
+cou.Fill(aobasis);
+
+Eigen::MatrixXd full=cou.Matrix();
+cou.Invert_DFT();
+Eigen::MatrixXd Reformed=cou.Matrix()*full;
+  
+bool check_inv = Reformed.isApprox(Eigen::MatrixXd::Identity(17,17),0.0001);
+if(!check_inv){
+     std::cout<<"reformed"<<endl;
+  std::cout<<Reformed<<endl;     
+}
+BOOST_CHECK_EQUAL(check_inv, 1);
+
+}
 BOOST_AUTO_TEST_SUITE_END()

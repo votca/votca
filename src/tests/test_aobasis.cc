@@ -15,18 +15,77 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE convergenceacc_test
+#define BOOST_TEST_MODULE aobasis_test
 #include <boost/test/unit_test.hpp>
-#include <Eigen/Dense>
-#include <votca/xtp/convergenceacc.h>
+#include <votca/xtp/aobasis.h>
+#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/convergenceacc.h>
+#include <fstream>
+
 using namespace votca::xtp;
 
-BOOST_AUTO_TEST_SUITE(convergenceacc_test)
+BOOST_AUTO_TEST_SUITE(aobasis_test)
 
-BOOST_AUTO_TEST_CASE(levelshift_test) {
+BOOST_AUTO_TEST_CASE(FillNormBasis_test) {   
+std::ofstream basisfile("notnormalized.xml");
+basisfile << "<basis name=\"def2-TZVP\">"<< std::endl;
+basisfile << "  <element name=\"Al\">" << std::endl;
+basisfile << "    <shell scale=\"1.0\" type=\"D\">"<< std::endl;
+basisfile << "      <constant decay=\"1.570000e+00\">"<< std::endl;
+basisfile << "        <contractions factor=\"2.000000e-01\" type=\"D\"/>"<<std::endl;
+basisfile << "      </constant>"<<std::endl;
+basisfile << "      <constant decay=\"3.330000e-01\">"<<std::endl;
+basisfile << "        <contractions factor=\"1.000000e+00\" type=\"D\"/>"<<std::endl;
+basisfile << "      </constant>"<<std::endl;
+basisfile << "    </shell> "<<std::endl;
+basisfile << "  </element> "<<std::endl;
+basisfile << "</basis> "<<std::endl;
+basisfile.close();
    
-ofstream xyzfile("molecule.xyz");
+std::ofstream xyzfile("Al.xyz");
+xyzfile << " 1" << std::endl;
+xyzfile << " Al" << std::endl;
+xyzfile << " Al            .000000     .000000     .000000" << std::endl;
+xyzfile.close();
+
+Orbitals orbitals;
+orbitals.LoadFromXYZ("Al.xyz");
+BasisSet basis;
+basis.LoadBasisSet("notnormalized.xml");
+AOBasis aobasis;
+aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+
+const AOShell* shell=aobasis.getShell(0);
+AOShell::GaussianIterator it;
+std:;vector<double> ref_results={0.1831079647,0.9155398233};
+int i=0;
+bool check_norm=true;
+for(it=shell->firstGaussian();it<shell->lastGaussian();++it){
+  if(std::abs(ref_results[i]-it->getContraction()[2])>1e-7){
+   check_norm=false;
+   break;
+  }
+  i++;
+}
+
+
+i=0;
+if(!check_norm){
+  for(it=shell->firstGaussian();it<shell->lastGaussian();++it){
+  std::cout<<"Ref:"<<ref_results[i]<<" result:"<<it->getContraction()[2]<<std::endl;
+   i++;
+  }
+ 
+}
+BOOST_CHECK_EQUAL(check_norm, 1);
+
+}
+
+
+BOOST_AUTO_TEST_CASE(ReorderMos_test) {
+  
+  ofstream xyzfile("molecule.xyz");
   xyzfile << " 5" << endl;
   xyzfile << " methane" << endl;
   xyzfile << " C            .000000     .000000     .000000" << endl;
@@ -81,6 +140,11 @@ ofstream xyzfile("molecule.xyz");
   basisfile << "        <contractions factor=\"1.000000e+00\" type=\"P\"/>" << endl;
   basisfile << "      </constant>" << endl;
   basisfile << "    </shell>" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"D\">"<< std::endl;
+  basisfile << "      <constant decay=\"1.570000e+00\">"<< std::endl;
+  basisfile << "        <contractions factor=\"2.000000e-01\" type=\"D\"/>"<<std::endl;
+  basisfile << "      </constant>"<<std::endl;
+  basisfile << "    </shell> "<<std::endl;
   basisfile << "  </element>" << endl;
   basisfile << "</basis>" << endl;
   basisfile.close();
@@ -108,23 +172,35 @@ ofstream xyzfile("molecule.xyz");
   d.setOverlap(&overlap.Matrix());
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
   
-
-
-  for (unsigned i=occlevels;i<17;i++){
-    orb.MOEnergies()(i)+=levelshift;
+  Eigen::MatrixXd ref=orb.MOCoefficients();
+  aobasis.ReorderMOs(orb.MOCoefficients(),"xtp","gaussian");
+  aobasis.ReorderMOs(orb.MOCoefficients(),"gaussian","xtp");
+  
+  
+  Eigen::MatrixXd ref_overlap=overlap.Matrix();
+  aobasis.ReorderMatrix(overlap.Matrix(),"xtp","nwchem");
+  aobasis.ReorderMatrix(overlap.Matrix(),"nwchem","xtp");
+  bool check_reorder_overlap=ref_overlap.isApprox(overlap.Matrix(),1e-7);
+  BOOST_CHECK_EQUAL(check_reorder_overlap, 1);
+  
+  bool check_reorder_gaus=ref.isApprox(orb.MOCoefficients(),1e-7);
+  if(!check_reorder_gaus){
+    std::cout<<"ref"<<std::endl;
+    std::cout<<ref<<std::endl;
+    std::cout<<"reordered"<<std::endl;
+    std::cout<<orb.MOCoefficients()<<std::endl;
   }
-  Eigen::VectorXd MOEnergies;
-  Eigen::MatrixXd MOCoeffs;
- 
-  d.Levelshift(H);
-  d.SolveFockmatrix(MOEnergies,MOCoeffs,H);
-
-  bool check_level=MOEnergies.isApprox(orb.MOEnergies(),0.00001);
-BOOST_CHECK_EQUAL(check_level, 1);
-
-
-}
-
+  
+  BOOST_CHECK_EQUAL(check_reorder_gaus, 1);
+  
+  aobasis.ReorderMOs(orb.MOCoefficients(),"xtp","nwchem");
+  aobasis.ReorderMOs(orb.MOCoefficients(),"nwchem","xtp");
+  
+   bool check_reorder_nwchem=ref.isApprox(orb.MOCoefficients(),1e-7);
+  
+  
+  BOOST_CHECK_EQUAL(check_reorder_nwchem, 1);
+}   
 
 
 BOOST_AUTO_TEST_SUITE_END()

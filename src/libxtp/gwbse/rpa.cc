@@ -23,13 +23,11 @@
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/numeric/ublas/operation.hpp>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/threecenters.h>
 // #include <votca/xtp/logger.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/xtp/aoshell.h>
 
 using boost::format;
@@ -37,7 +35,7 @@ using namespace boost::filesystem;
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+
 
         void GWBSE::PPM_construct_parameters(const Eigen::MatrixXd& _overlap_cholesky_inverse) {
             

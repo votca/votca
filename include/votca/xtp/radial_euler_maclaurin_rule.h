@@ -21,7 +21,6 @@
 #define	__XTP_EULER_MACLAURIN__H
 
 
-#include <votca/tools/property.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/qmatom.h>
 #include <votca/tools/constants.h>

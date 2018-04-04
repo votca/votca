@@ -16,28 +16,17 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
+
 
 #include <votca/xtp/aomatrix.h>
 
 #include <votca/xtp/aobasis.h>
 
-
-#include <votca/tools/linalg.h>
 #include <votca/xtp/elements.h>
 #include <votca/tools/constants.h>
-//#include <boost/timer/timer.hpp>
-
-
-using namespace votca::tools;
-
-
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
-    namespace CTP = votca::ctp;
-    
-
+  
     
     void AODipole_Potential::FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp) {
 
@@ -45,7 +34,7 @@ namespace votca { namespace xtp {
 
         // Get components of dipole vector somehow
         
-        vec dipole=-(apolarsite->getU1()+apolarsite->getQ1())*tools::conv::nm2bohr;
+        tools::vec dipole=-(apolarsite->getU1()+apolarsite->getQ1())*tools::conv::nm2bohr;
        
         double d_0 = dipole.getX();
         double d_1 = dipole.getY();

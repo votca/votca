@@ -23,7 +23,6 @@
 #include <boost/format.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/tools/constants.h>
-#include <votca/tools/linalg.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/qmpackagefactory.h>
@@ -33,7 +32,6 @@ using namespace boost::filesystem;
 
 namespace votca {
 namespace xtp {
-namespace ub = boost::numeric::ublas;
 
 // +++++++++++++++++++++++++++++ //
 // GWBSE MEMBER FUNCTIONS        //
@@ -370,11 +368,11 @@ bool GWBSE::Evaluate() {
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled DFT Basis of size "
                                  << _dftbasis.AOBasisSize() << flush;
-  if (_dftbasis._AOBasisFragB > 0) {
+  if (_dftbasis.getAOBasisFragB() > 0) {
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size "
-                                   << _dftbasis._AOBasisFragA << flush;
+                                   << _dftbasis.getAOBasisFragA() << flush;
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size "
-                                   << _dftbasis._AOBasisFragB << flush;
+                                   << _dftbasis.getAOBasisFragB()<< flush;
   }
 
   if (_do_full_BSE)
@@ -659,7 +657,7 @@ bool GWBSE::Evaluate() {
       << ctp::TimeStamp() << " Removed " << removed
       << " functions from gwoverlap to avoid near linear dependencies" << flush;
 
-  int removed_functions = _gwcoulomb.Symmetrize(L_overlap,L_overlap_inverse);
+  int removed_functions = _gwcoulomb.Symmetrize(L_overlap);
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM"
       << flush;

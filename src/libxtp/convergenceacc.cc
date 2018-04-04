@@ -22,7 +22,18 @@
 
 
 namespace votca { namespace xtp {
-   namespace ub = boost::numeric::ublas;
+  
+  void ConvergenceAcc::setOverlap(Eigen::MatrixXd* _S){
+       S=_S;
+       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es((*S));
+       if(_noisy){
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of overlap matrix is "<<es.eigenvalues()(0) << flush;
+            }
+       Sminusahalf = es.operatorInverseSqrt();
+       Sonehalf=es.operatorSqrt();
+       mix.Configure(_mixingparameter,S);
+       return;
+   }
    
    
     Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,const Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE){
@@ -39,7 +50,7 @@ namespace votca { namespace xtp {
           
       _totE.push_back(totE);
       
-      Eigen::MatrixXd errormatrix=(*Sminusahalf).transpose()*(H*dmat*(*S)-(*S)*dmat*H)*(*Sminusahalf);
+      Eigen::MatrixXd errormatrix=Sminusahalf.transpose()*(H*dmat*(*S)-(*S)*dmat*H)*Sminusahalf;
       _diiserror=errormatrix.cwiseAbs().maxCoeff();
       if(_noisy){
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIs error " << _diiserror << flush;
@@ -62,7 +73,7 @@ namespace votca { namespace xtp {
     bool diis_error=false; 
    
        
-    if (_diiserror<_adiis_start && _usediis && _mathist.size()>3){
+    if ((_diiserror<_adiis_start ||_diiserror<_diis_start) && _usediis && _mathist.size()>3){
         Eigen::VectorXd coeffs;
         //use ADIIs if energy has risen a lot in current iteration
 
@@ -71,16 +82,6 @@ namespace votca { namespace xtp {
             diis_error=!adiis.Info();
             if(_noisy){
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << flush;
-            }
-        }
-        else if(_diiserror>0.0001 && _diiserror<_diis_start){
-            Eigen::VectorXd coeffs1=diis.CalcCoeff();
-            Eigen::VectorXd coeffs2=adiis.CalcCoeff(_dmatHist,_mathist);
-            diis_error=!(diis.Info() && adiis.Info());
-            double mixing=_diiserror/_diis_start;
-            coeffs=mixing*coeffs2+(1-mixing)*coeffs1;
-            if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS+DIIS" << flush;
             }
         }
         else{
@@ -109,7 +110,7 @@ namespace votca { namespace xtp {
       
     if((_diiserror>_levelshiftend && _levelshift>0.0) || gap<1e-6){
       if(_mode!=KSmode::fractional){
-        Levelshift(H_guess,MOs);
+        Levelshift(H_guess);
       }
     }
     SolveFockmatrix( MOenergies,MOs,H_guess);
@@ -127,25 +128,30 @@ namespace votca { namespace xtp {
       
     void ConvergenceAcc::SolveFockmatrix(Eigen::VectorXd& MOenergies,Eigen::MatrixXd& MOs,const Eigen::MatrixXd&H){
         //transform to orthogonal for
-        Eigen::MatrixXd H_ortho=(*Sminusahalf).transpose()*H*(*Sminusahalf);
+        Eigen::MatrixXd H_ortho=Sminusahalf.transpose()*H*Sminusahalf;
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H_ortho);
-        
+        MOsinv=es.eigenvectors().transpose()*Sonehalf;
         MOenergies=es.eigenvalues();
-        MOs=(*Sminusahalf)*es.eigenvectors();
+        
+        MOs=Sminusahalf*es.eigenvectors();
         return;
     }
     
-    void ConvergenceAcc::Levelshift(Eigen::MatrixXd& H,const Eigen::MatrixXd&MOs) {
-        
-        Eigen::MatrixXd virt = Eigen::MatrixXd::Zero(MOs.rows(),MOs.cols());
+    void ConvergenceAcc::Levelshift(Eigen::MatrixXd& H) {
+      if(MOsinv.rows()<1){
+        throw runtime_error("ConvergenceAcc::Levelshift: Call SolveFockmatrix before Levelshift, MOsinv not initialized");
+      }
+        Eigen::MatrixXd virt = Eigen::MatrixXd::Zero(H.rows(),H.cols());
         for (unsigned _i = _nocclevels; _i < H.rows(); _i++) {
                         virt(_i, _i) = _levelshift; 
             }
-        Eigen::MatrixXd inv=MOs.inverse();
+
         if(_noisy){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << _levelshift << " Hartree" << flush;
         }
-        H +=  inv.transpose()*virt*inv ; 
+        Eigen::MatrixXd vir=  MOsinv.transpose()*virt*MOsinv ; 
+        H+=vir;
+      
           return;
     }
     

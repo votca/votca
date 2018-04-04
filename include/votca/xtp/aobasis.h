@@ -20,16 +20,15 @@
 #ifndef __XTP_AOBASIS__H
 #define	__XTP_AOBASIS__H
 
-#include <votca/tools/property.h>
+
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/basisset.h>
-
+#include <votca/tools/vec.h>
 
 
 
 
 namespace votca { namespace xtp {
-namespace ub = boost::numeric::ublas;
 
 class AOShell;
 class QMAtom;
@@ -78,9 +77,9 @@ public:
     
     unsigned getNumofShells() const{return _aoshells.size();}
    
-
-   int _AOBasisFragA;
-   int _AOBasisFragB;
+    int getAOBasisFragA() const{return _AOBasisFragA;}
+    
+   int getAOBasisFragB() const{return _AOBasisFragB;}
    private:
        
        
@@ -102,7 +101,8 @@ public:
     
     int getMaxFunctions ( );
     
-  
+   int _AOBasisFragA;
+   int _AOBasisFragB;
     unsigned int _AOBasisSize;
     
 };

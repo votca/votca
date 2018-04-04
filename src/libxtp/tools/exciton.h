@@ -29,8 +29,6 @@
 #include <votca/ctp/atom.h>
 #include <votca/ctp/qmtool.h>
 #include <votca/ctp/segment.h>
-
-#include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
 
 

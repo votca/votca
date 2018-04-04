@@ -19,7 +19,7 @@
 
 #ifndef _VOTCA_XTP_GWBSE_H
 #define _VOTCA_XTP_GWBSE_H
-
+#include <votca/xtp/votca_config.h>
 #include <unistd.h>
 #include <votca/ctp/parallelxjobcalc.h>
 #include <votca/ctp/segment.h>
@@ -33,15 +33,12 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <votca/tools/linalg.h>
-#include <votca/xtp/votca_config.h>
+
+
 
 namespace votca {
 namespace xtp {
-namespace ub = boost::numeric::ublas;
+
 
 /**
 * \brief Electronic excitations from GW-BSE

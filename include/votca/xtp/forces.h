@@ -20,9 +20,7 @@
 #ifndef __XTP_FORCES__H
 #define __XTP_FORCES__H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
-#include <boost/numeric/ublas/operation.hpp>
+
 #include <votca/xtp/qmatom.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/segment.h>
@@ -35,7 +33,6 @@
 namespace votca {
     namespace xtp {
 
-        namespace ub = boost::numeric::ublas;
 
         class Forces {
         public:

@@ -36,7 +36,7 @@
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+
 
 /**
          * \brief Electronic ground-state via Density-Functional Theory

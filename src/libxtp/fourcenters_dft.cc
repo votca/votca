@@ -20,28 +20,14 @@
 
 
 #include <votca/xtp/threecenters.h>
-#include <new>
 
 
-using namespace votca::tools;
+
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
 
-        /*
-         * Cleaning FCMatrix_dft data and free memory
-         */
-       
-
-
-
-
-
-
-
-
-        void FCMatrix_dft::Fill_4c_small_molecule(const AOBasis& dftbasis) {
+       void FCMatrix_dft::Fill_4c_small_molecule(const AOBasis& dftbasis) {
 
           //cout << endl;
           //cout << "fourcenters_dft.cc FCMatrix_dft::Fill_4c_small_molecule" << endl;

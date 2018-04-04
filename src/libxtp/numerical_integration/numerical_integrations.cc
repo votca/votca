@@ -16,10 +16,8 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
-//for libxc
-#include <votca/xtp/votca_config.h>
+
+
 
 #include <votca/xtp/numerical_integrations.h>
 #include <boost/math/constants/constants.hpp>
@@ -27,7 +25,6 @@
 #include <votca/xtp/sphere_lebedev_rule.h>
 #include <votca/xtp/aoshell.h>
 #include <votca/tools/constants.h>
-#include <numeric>
 
 #include <votca/xtp/aomatrix.h>
 #include <fstream>
@@ -42,10 +39,9 @@
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+     
 
-    double NumericalIntegration::getExactExchange(const string _functional) {
-#ifdef LIBXC            
+    double NumericalIntegration::getExactExchange(const string _functional) {      
 
       double exactexchange = 0.0;
       Vxc_Functionals map;
@@ -77,10 +73,6 @@ namespace votca {
       }
       return exactexchange;
 
-#else
-      return 0.0;
-#endif
-
     }
     
     
@@ -93,22 +85,20 @@ namespace votca {
       boost::split(strs, _functional, boost::is_any_of(" "));
       xfunc_id = 0;
 
-#ifdef LIBXC
-      _use_votca = false;
+
       _use_separate = false;
       cfunc_id = 0;
       if (strs.size() == 1) {
         xfunc_id = map.getID(strs[0]);
-        if (xfunc_id < 0) _use_votca = true;
       } else if (strs.size() == 2) {
         cfunc_id = map.getID(strs[0]);
         xfunc_id = map.getID(strs[1]);
         _use_separate = true;
       } else {
         cout << "LIBXC " << strs.size() << endl;
-        throw std::runtime_error("With LIBXC. Please specify one combined or an exchange and a correlation functionals");
+        throw std::runtime_error("LIBXC. Please specify one combined or an exchange and a correlation functionals");
       }
-      if (!_use_votca) {
+      
         if (xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED) != 0) {
           fprintf(stderr, "Functional '%d' not found\n", xfunc_id);
           exit(1);
@@ -128,31 +118,15 @@ namespace votca {
             throw std::runtime_error("Your functionals are not one exchange and one correlation");
           }
         }
-      }
-#else
-      if (strs.size() == 1) {
-        xfunc_id = map.getID(strs[0]);
-      }
-      else {
-        throw std::runtime_error("Running without LIBXC, Please specify one combined or an exchange and a correlation functionals");
-      }
-#endif
-      if (_use_votca) {
-        cout << "Warning: VOTCA_PBE does give correct Vxc but incorrect E_xc" << endl;
-      }
+      
+
       setXC = true;
       return;
     }
 
         
         void NumericalIntegration::EvaluateXC(const double rho, const Eigen::Vector3d& grad_rho, double& f_xc, double& df_drho, double& df_dsigma) {
-#ifdef LIBXC                   
-      if (_use_votca) {
-#endif                  
-        _xc.getXC(xfunc_id, rho, grad_rho(0), grad_rho(1), grad_rho(2), f_xc, df_drho, df_dsigma);
-#ifdef LIBXC
-      }// evaluate via LIBXC, if compiled, otherwise, go via own implementation
-      else {
+
         double sigma = (grad_rho.transpose()*grad_rho).value();
         double exc[1];
         double vsigma[1]; // libxc 
@@ -185,8 +159,7 @@ namespace votca {
           df_drho += vrho[0];
           df_dsigma += vsigma[0];
         }
-      }
-#endif
+  
       return;
     }
         
@@ -410,6 +383,7 @@ namespace votca {
           double EXC_box = 0.0;
           GridBox& box = _grid_boxes[i];
           const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(_density_matrix);
+          const Eigen::MatrixXd DMAT_symm= DMAT_here+DMAT_here.transpose();
           double cutoff=1.e-40/_density_matrix.rows()/_density_matrix.rows();
           if (DMAT_here.cwiseAbs2().maxCoeff()<cutoff ){
             continue;
@@ -422,28 +396,27 @@ namespace votca {
           //iterate over gridpoints
           for (unsigned p = 0; p < box.size(); p++) {
             Eigen::VectorXd ao = Eigen::VectorXd::Zero(box.Matrixsize());
-            Eigen::MatrixX3d ao_grad = Eigen::MatrixX3d::Zero(box.Matrixsize(),3);
+            Eigen::MatrixX3d ao_grad= Eigen::MatrixX3d::Zero(box.Matrixsize(),3);
             const std::vector<GridboxRange>& aoranges = box.getAOranges();
             const std::vector<const AOShell* >& shells = box.getShells();
                         
             for (unsigned j = 0; j < box.Shellsize(); ++j) {
               Eigen::Block<Eigen::MatrixX3d> grad_block=ao_grad.block(aoranges[j].start,0,aoranges[j].size,3);
               Eigen::VectorBlock<Eigen::VectorXd> ao_block=ao.segment(aoranges[j].start,aoranges[j].size);
-              shells[j]->EvalAOspace(ao_block,grad_block,points[p]);
-               
+              shells[j]->EvalAOspace(ao_block,grad_block,points[p]);             
             }
             double rho = (ao.transpose()*DMAT_here*ao).value();
-            Eigen::Vector3d rho_grad = (ao.transpose()*DMAT_here*ao_grad).transpose()+ao_grad.transpose()*DMAT_here*ao;
+            Eigen::Vector3d rho_grad = ao.transpose()*DMAT_symm*ao_grad;
             double weight = weights[p];
             if (rho*weight < 1.e-20) continue; // skip the rest, if density is very small
             double f_xc; // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r }
             double df_drho; // v_xc_rho(r) = df/drho
             double df_dsigma; // df/dsigma ( df/dgrad(rho) = df/dsigma * dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
             EvaluateXC(rho, rho_grad, f_xc, df_drho, df_dsigma);          
-            Eigen::VectorXd _addXC = weight * df_drho * ao * 0.5+ 2.0 * df_dsigma * weight * (rho_grad.transpose()*ao_grad.transpose()).transpose();
+            auto _addXC = weight * (0.5*df_drho * ao+ 2.0 * df_dsigma *ao_grad*rho_grad);
             // Exchange correlation energy
             EXC_box += weight * rho * f_xc;
-            Vxc_here += _addXC* ao.transpose();
+            Vxc_here.noalias() += _addXC* ao.transpose();
           }
           box.AddtoBigMatrix(vxc_thread[thread], Vxc_here);
           Exc_thread[thread] += EXC_box;

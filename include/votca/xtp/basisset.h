@@ -23,12 +23,13 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <votca/tools/property.h>
 #include <votca/xtp/votca_config.h>
 
-#if defined(MKL)
-    #define EIGEN_USE_MKL_ALL 
-#endif
+
+
+//#if defined(MKL)
+//   #define EIGEN_USE_MKL_ALL 
+//#endif
 #include <Eigen/Dense>
 
 
@@ -129,6 +130,7 @@ public:
         _gaussians.push_back( gaussian );
         return gaussian;
     }     // shell type (S, P, D))
+    
     
 private:   
 

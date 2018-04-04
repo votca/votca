@@ -22,9 +22,7 @@
 #include <votca/xtp/gwbse.h>
 
 #include <boost/format.hpp>
-#include <boost/numeric/ublas/operation.hpp>
 #include <boost/math/constants/constants.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/constants.h>
 
 //#include "mathimf.h"
@@ -34,7 +32,7 @@ using namespace boost::filesystem;
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+       
 
         // +++++++++++++++++++++++++++++ //
         // MBPT MEMBER FUNCTIONS         //

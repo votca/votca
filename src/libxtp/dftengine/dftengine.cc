@@ -22,23 +22,18 @@
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/qminterface.h"
 #include "votca/xtp/qmatom.h"
-#include "votca/xtp/convergenceacc.h"
 #include <votca/xtp/dftengine.h>
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/numeric/ublas/operation.hpp>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/threecenters.h>
 
 #include <votca/xtp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
-#include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
 
 #include <votca/xtp/elements.h>
-#include <votca/xtp/diis.h>
 
 #include <votca/ctp/xinteractor.h>
 #include <votca/ctp/logger.h>
@@ -50,7 +45,7 @@ using namespace boost::filesystem;
 
 namespace votca {
   namespace xtp {
-    namespace ub = boost::numeric::ublas;
+
     // +++++++++++++++++++++++++++++ //
     // DFTENGINE MEMBER FUNCTIONS        //
     // +++++++++++++++++++++++++++++ //
@@ -194,7 +189,7 @@ namespace votca {
 
       NuclearRepulsion();
 
-
+ 
 
       if (_addexternalsites) {
         H0 += _dftAOESP.getExternalpotential();
@@ -282,7 +277,7 @@ namespace votca {
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2() << flush;
         double vxcenergy = 0.0;
-        if (_use_small_grid && conv_accelerator.getDIIsError() > 1e-5) {
+        if (_use_small_grid && conv_accelerator.getDIIsError() > 1e-3) {
           _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
           vxcenergy = _gridIntegration_small.getTotEcontribution();
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
@@ -362,12 +357,7 @@ namespace votca {
         _dftAOoverlap.Fill(_dftbasis);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
         //cout<<"overlap"<<_dftAOoverlap.Matrix()<<endl;
-        // check DFT basis for linear dependence
-        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_dftAOoverlap.Matrix());
-        _Sminusonehalf = es.operatorInverseSqrt();
-
-
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest eigenvalue of DFT Overlap matrix : " << es.eigenvalues()(0) << flush;
+     
       }
 
 
@@ -430,7 +420,7 @@ namespace votca {
               true, _histlength, _maxout, _adiis_start, _diis_start, _levelshift, _levelshiftend, _numofelectrons / 2, _mixingparameter);
       conv_accelerator.setLogger(_pLog);
       conv_accelerator.setOverlap(&_dftAOoverlap.Matrix());
-      conv_accelerator.setSqrtOverlap(&_Sminusonehalf);
+      
 
       if (_with_RI) {
 
@@ -524,9 +514,6 @@ namespace votca {
         // DFT AOOverlap matrix
 
         dftAOoverlap.Fill(dftbasis);
-        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(dftAOoverlap.Matrix());
-        Eigen::MatrixXd Sminusonehalf = es.operatorInverseSqrt();
-
         dftAOkinetic.Fill(dftbasis);
 
 
@@ -541,16 +528,14 @@ namespace votca {
 
         ConvergenceAcc Convergence_beta;
         double adiisstart = 0;
-        double diisstart = 0.0001;
+        double diisstart = 0;
 
-        Convergence_alpha.Configure(ConvergenceAcc::KSmode::open, true, false, 20, 0, adiisstart, diisstart, 0.1, 0.000, alpha_e, -1);
+        Convergence_alpha.Configure(ConvergenceAcc::KSmode::open, true, false, 20, 0, adiisstart, diisstart, 0.1, diisstart, alpha_e, -1);
         Convergence_alpha.setLogger(_pLog);
-        Convergence_alpha.setOverlap(&dftAOoverlap.Matrix());
-        Convergence_alpha.setSqrtOverlap(&Sminusonehalf);
-        Convergence_beta.Configure(ConvergenceAcc::KSmode::open, true, false, 20, 0, adiisstart, diisstart, 0.1, 0.000, beta_e, -1);
+        Convergence_alpha.setOverlap(&dftAOoverlap.Matrix());      
+        Convergence_beta.Configure(ConvergenceAcc::KSmode::open, true, false, 20, 0, adiisstart, diisstart, 0.1, diisstart, beta_e, -1);
         Convergence_beta.setLogger(_pLog);
         Convergence_beta.setOverlap(&dftAOoverlap.Matrix());
-        Convergence_beta.setSqrtOverlap(&Sminusonehalf);
         /**** Construct initial density  ****/
 
         Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
@@ -558,14 +543,8 @@ namespace votca {
           dftAOECP.Fill(dftbasis, vec(0, 0, 0), &ecp);
           H0 += dftAOECP.Matrix();
         }
-        Eigen::MatrixXd copy = H0;
-        Convergence_alpha.SolveFockmatrix(MOEnergies_alpha, MOCoeff_alpha, copy);
+        Convergence_alpha.SolveFockmatrix(MOEnergies_alpha, MOCoeff_alpha,H0);
 
-        MOEnergies_beta = MOEnergies_alpha;
-        MOCoeff_beta = MOCoeff_alpha;
-
-
-       
         Eigen::MatrixXd dftAOdmat_alpha = Convergence_alpha.DensityMatrix(MOCoeff_alpha, MOEnergies_alpha);
         if ((*st)->getType() == "H") {
           uniqueatom_guesses.push_back(dftAOdmat_alpha);
@@ -573,14 +552,13 @@ namespace votca {
                   " gives N=" << std::setprecision(9) << dftAOdmat_alpha.cwiseProduct(dftAOoverlap.Matrix()).sum() << " electrons." << flush;
           continue;
         }
-
+        Convergence_beta.SolveFockmatrix(MOEnergies_beta, MOCoeff_beta,H0);
         Eigen::MatrixXd dftAOdmat_beta = Convergence_beta.DensityMatrix(MOCoeff_beta, MOEnergies_beta);
 
         bool _HF = false;
         double energyold = 0;
         int maxiter = 50;
         for (int this_iter = 0; this_iter < maxiter; this_iter++) {
-
           ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);
           double E_two_alpha = ERIs_atom.getERIs().cwiseProduct(dftAOdmat_alpha).sum();
           double E_two_beta = ERIs_atom.getERIs().cwiseProduct(dftAOdmat_beta).sum();
@@ -608,21 +586,16 @@ namespace votca {
             E_two_beta += E_vxc_beta;
 
           }
-
+          
           double E_one_alpha = dftAOdmat_alpha.cwiseProduct(H0).sum();
-          cout << E_one_alpha << " " << E_two_alpha << endl;
-          double E_one_beta = dftAOdmat_beta.cwiseProduct(H0).sum();
-
+          double E_one_beta = dftAOdmat_beta.cwiseProduct(H0).sum();        
           double E_alpha = E_one_alpha + E_two_alpha;
           double E_beta = E_one_beta + E_two_beta;
-
           double totenergy = E_alpha + E_beta;
           //evolve alpha
           dftAOdmat_alpha = Convergence_alpha.Iterate(dftAOdmat_alpha, H_alpha, MOEnergies_alpha, MOCoeff_alpha, E_alpha);
-
           //evolve beta
           dftAOdmat_beta = Convergence_beta.Iterate(dftAOdmat_beta, H_beta, MOEnergies_beta, MOCoeff_beta, E_beta);
-
 
           if (tools::globals::verbose) {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Iter " << this_iter << " of " << maxiter

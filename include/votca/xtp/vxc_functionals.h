@@ -28,9 +28,6 @@
 namespace votca { namespace xtp {
 
 
-
-
-
 /**
     \brief conversion of functional string into integer 
  
@@ -66,10 +63,7 @@ private:
     }
 
     inline void FillstringtoID(){
-    
-        _stringtoID["LDA_VOTCA"]  = -1; 
-        _stringtoID["PBE_VOTCA"]  = -2; 
-    #ifdef LIBXC
+
         _stringtoID["XC_LDA_X"] = 1;
         _stringtoID["XC_LDA_C_WIGNER"] = 2;
         _stringtoID["XC_LDA_C_RPA"] = 3;
@@ -388,7 +382,7 @@ private:
         _stringtoID["XC_HYB_MGGA_XC_PWB6K"] = 452;
         _stringtoID["XC_HYB_MGGA_XC_TPSSH"] = 457;
         _stringtoID["XC_HYB_MGGA_XC_REVTPSSH"] = 458;
-    #endif 
+
         
         }
     };

@@ -21,21 +21,15 @@
 #include <votca/ctp/logger.h>
 #include <votca/xtp/espfit.h>
 #include <votca/xtp/aomatrix.h>
-#include <votca/tools/linalg.h>
+
 //#include <boost/progress.hpp>
 
 #include <math.h>
 #include <votca/tools/constants.h>
 
-using namespace votca::tools;
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
-
-
-
-
 
 void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist, Eigen::MatrixXd &_dmat, AOBasis &_basis,string gridsize) {
 

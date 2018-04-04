@@ -21,7 +21,6 @@
 #include <boost/format.hpp>
 #include <votca/xtp/elements.h>
 
-#include <votca/tools/linalg.h>
 
 namespace votca { namespace xtp {
 

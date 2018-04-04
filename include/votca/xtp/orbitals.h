@@ -20,8 +20,7 @@
 #ifndef __VOTCA_XTP_ORBITALS_H
 #define __VOTCA_XTP_ORBITALS_H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 //for openmp
 #include <votca/xtp/votca_config.h>
 #include <votca/xtp/basisset.h>
@@ -67,7 +66,7 @@
 #define real_gwbse float
 #endif
 
-namespace ub = boost::numeric::ublas;
+
 
 namespace votca {
     namespace xtp {

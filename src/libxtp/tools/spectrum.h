@@ -29,7 +29,7 @@
 
 namespace votca { namespace xtp {
     using namespace std;
-    namespace ub = boost::numeric::ublas;
+
 
 class Spectrum : public ctp::QMTool
 {

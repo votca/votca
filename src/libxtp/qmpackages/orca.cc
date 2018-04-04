@@ -24,9 +24,6 @@
 
 #include <votca/xtp/elements.h>
 #include <boost/algorithm/string.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <stdio.h>
@@ -38,7 +35,7 @@
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+       
 
         void Orca::Initialize(Property *options) {
 

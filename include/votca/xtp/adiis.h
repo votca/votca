@@ -27,13 +27,8 @@
 #include <gsl/gsl_vector.h>
 
 
-
-
-
-
-
 namespace votca { namespace xtp {
- namespace ub = boost::numeric::ublas;
+
 
  
  class ADIIS{

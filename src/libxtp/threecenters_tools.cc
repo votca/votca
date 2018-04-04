@@ -17,8 +17,6 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 
 #include <votca/xtp/threecenters.h>
 
@@ -28,7 +26,7 @@ using namespace votca::tools;
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+
 
         /*
          * Cleaning TCMatrix data and free memory
@@ -128,7 +126,7 @@ namespace votca {
                 int _row_start = _shell_row->getStartIndex();
               
                 // get slice of _dft_orbitals for m-summation, belonging to this shell
-                const Eigen::MatrixXd  _m_orbitals = _dft_orbitals.block(mmin, _row_start,mtotal, _shell_row->getNumFunc());
+                const Eigen::MatrixXd  _m_orbitals = _dft_orbitals.block( _row_start,mmin, _shell_row->getNumFunc(),mtotal);
 
                 // gamma-loop over the "right" DFT basis function
                 for (AOBasis::AOShellIterator _col = dftbasis.firstShell(); _col != dftbasis.lastShell(); ++_col) {
@@ -143,7 +141,7 @@ namespace votca {
                     // if this contributes, multiply _subvector with _dft_orbitals and place in _imstore
                     if (nonzero) {
 
-                       Eigen::MatrixXd _temp=_m_orbitals* _subvector;
+                       Eigen::MatrixXd _temp=_m_orbitals.transpose()* _subvector;
                      
                         // put _temp into _imstore
                         for (unsigned _m_level = 0; _m_level < _temp.rows(); _m_level++) {
@@ -162,10 +160,10 @@ namespace votca {
 
 
             // get transposed slice of _dft_orbitals
-            const Eigen::MatrixXd _n_orbitals = _dft_orbitals.block(nmin,0,ntotal,_dft_orbitals.cols());
+            const Eigen::MatrixXd _n_orbitals = _dft_orbitals.block(0,nmin,_dft_orbitals.cols(),ntotal);
 
             // Now, finally multiply _imstore with _n_orbitals
-            Eigen::MatrixXd _temp = _imstore* _n_orbitals;
+            Eigen::MatrixXd _temp = _imstore* _n_orbitals.transpose();
             
 
             // and put it into the block it belongs to

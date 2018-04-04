@@ -20,8 +20,7 @@
 #ifndef __QMMINTERFACE__H
 #define	__QMMINTERFACE__H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 
 #include <votca/ctp/apolarsite.h>

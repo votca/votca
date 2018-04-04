@@ -18,12 +18,34 @@
  */
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aoshell.h"
-
+#include <votca/xtp/aomatrix.h>
 
 namespace votca { namespace xtp {
     
-    void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, Eigen::Block< Eigen::MatrixX3d >& gradAOvalues, const vec& grid_pos)const {
-
+  void AOShell::normalizeContraction(){
+    
+    AOOverlap overlap;
+    Eigen::MatrixXd block=Eigen::MatrixXd::Zero(_numFunc,_numFunc);
+    Eigen::Block<Eigen::MatrixXd> submatrix=block.block(0,0,_numFunc,_numFunc);
+    overlap.FillBlock(submatrix,this,this,NULL);
+    std::vector<int> numsubshell=NumFuncSubShell(_type);
+    int contraction_index=_Lmin;
+    int aoindex=0;
+    for (unsigned i=0;i<numsubshell.size();++i){
+      double norm=std::sqrt(block(aoindex,aoindex));
+      
+      for(auto& gaussian:_gaussians){
+        gaussian.contraction[contraction_index]/=norm;
+      }
+      aoindex+=numsubshell[i];
+      contraction_index++;
+    }
+    
+    return;
+  }
+  
+  
+  void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, Eigen::Block< Eigen::MatrixX3d >& gradAOvalues, const vec& grid_pos)const {
 
       // need position of shell
       const vec center = grid_pos - _pos;
@@ -45,18 +67,16 @@ namespace votca { namespace xtp {
         // split combined shells
         int _i_func = -1;
         int i_act;
-        for (unsigned i = 0; i < _type.length(); ++i) {
-          const char single_shell = _type[i];
+        for (const char& single_shell:_type) {
           // single type shells
           if (single_shell == 'S') {
-            AOvalues(_i_func + 1) += _contractions[0] * _expofactor; // s-function
-
+           
             i_act = _i_func + 1;
+            AOvalues(i_act) += _contractions[0] * _expofactor; // s-function
             const double temp = _contractions[0] * -2.0 * alpha *_expofactor;
             gradAOvalues( i_act,0) += temp* center_x; // x gradient of s-function
             gradAOvalues( i_act,1) += temp* center_y; // y gradient of s-function
             gradAOvalues( i_act,2) += temp* center_z; // z gradient of s-function
-
             _i_func++;
           } else if (single_shell == 'P') {
             const double factor = 2. * sqrt(alpha) * _contractions[1];
@@ -304,8 +324,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const v
                 // split combined shells
                 int _i_func = -1;
 
-                for (unsigned i = 0; i < _type.length(); ++i) {
-                    char single_shell = _type[i];
+                for (const char& single_shell :_type) {
                     // single type shells
                     if (single_shell == 'S') {
                         AOvalues( _i_func + 1) += _contractions[0] * _expofactor; // s-function        
