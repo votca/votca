@@ -27,7 +27,6 @@
 
 #include <votca/ctp/logger.h>
 #include <votca/xtp/qmpackagefactory.h>
-#include <Eigen/src/Core/PlainObjectBase.h>
 
 using boost::format;
 using namespace boost::filesystem;
