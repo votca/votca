@@ -63,7 +63,7 @@ namespace tools {
        * @param[in] tol - tolerance 
        * @return bool - return true if within tolerance and false if not
        */
-      bool isClose(const matrix m, double tol) const {
+      bool isClose(const matrix& m, double tol) const {
         for (size_t i = 0; i < 9; ++i){
           if (!isApproximatelyEqual(_m[i], m._m[i],tol)) return false;
         }
