@@ -69,7 +69,7 @@ namespace votca { namespace xtp {
         bool _with_screening = false;
         ub::matrix<double> _diagonals; // Square matrix containing <ab|ab> for all basis functions a, b
         void CalculateERIsDiagonals(const AOBasis& dftbasis);
-        bool CheckScreen(double eps, const AOShell *shell_1, const AOShell *shell_2, const AOShell *shell_3, const AOShell *shell_4);
+        bool CheckScreen(double eps, const AOShell& shell_1, const AOShell& shell_2, const AOShell& shell_3, const AOShell& shell_4);
         
         TCMatrix_dft _threecenter;
         FCMatrix_dft _fourcenter; ////////////////////////
@@ -81,7 +81,7 @@ namespace votca { namespace xtp {
         void CalculateEnergy(const ub::vector<double> &dmatasarray);
         void CalculateEXXEnergy(const ub::vector<double> &dmatasarray);
         
-        void FillERIsBlock(ub::matrix<double> &ERIsCur, const ub::matrix<double> &DMAT, const ub::matrix<double> &subMatrix, const AOShell *shell_1, const AOShell *shell_2, const AOShell *shell_3, const AOShell *shell_4);
+        void FillERIsBlock(ub::matrix<double>& ERIsCur, const ub::matrix<double>& DMAT, const ub::matrix<double>& subMatrix, const AOShell& shell_1, const AOShell& shell_2, const AOShell& shell_3, const AOShell& shell_4);
     };
     
     

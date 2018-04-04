@@ -221,21 +221,21 @@ namespace votca {
             
             #pragma omp for
             for (int iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
-              const AOShell* shell_3 = dftbasis.getShell(iShell_3);
+              const AOShell& shell_3 = *dftbasis.getShell(iShell_3);
               for (int iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
-                const AOShell* shell_4 = dftbasis.getShell(iShell_4);
+                const AOShell& shell_4 = *dftbasis.getShell(iShell_4);
                 for (int iShell_1 = iShell_3; iShell_1 < numShells; iShell_1++) {
-                  const AOShell* shell_1 = dftbasis.getShell(iShell_1);
+                  const AOShell& shell_1 = *dftbasis.getShell(iShell_1);
                   for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
-                    const AOShell* shell_2 = dftbasis.getShell(iShell_2);
+                    const AOShell& shell_2 = *dftbasis.getShell(iShell_2);
 
                     // Pre-screening
                     if (_with_screening && CheckScreen(1e-10, shell_1, shell_2, shell_3, shell_4))
                       continue;
 
                     // Get the current 4c block
-                    ub::matrix<double> subMatrix = ub::zero_matrix<double>(shell_1->getNumFunc() * shell_2->getNumFunc(), shell_3->getNumFunc() * shell_4->getNumFunc());
-                    bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_2, shell_3, shell_4);
+                    ub::matrix<double> subMatrix = ub::zero_matrix<double>(shell_1.getNumFunc() * shell_2.getNumFunc(), shell_3.getNumFunc() * shell_4.getNumFunc());
+                    bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, &shell_1, &shell_2, &shell_3, &shell_4);
 
                     // If there are only zeros, we don't need to put anything in the ERIs matrix
                     if (!nonzero)
@@ -304,31 +304,31 @@ namespace votca {
         }
         
         
-        void ERIs::FillERIsBlock(ub::matrix<double> &ERIsCur, const ub::matrix<double> &DMAT, const ub::matrix<double> &subMatrix, const AOShell *shell_1, const AOShell *shell_2, const AOShell *shell_3, const AOShell *shell_4) {
+        void ERIs::FillERIsBlock(ub::matrix<double>& ERIsCur, const ub::matrix<double>& DMAT, const ub::matrix<double>& subMatrix, const AOShell& shell_1, const AOShell& shell_2, const AOShell& shell_3, const AOShell& shell_4) {
 
-          for (int iFunc_3 = 0; iFunc_3 < shell_3->getNumFunc(); iFunc_3++) {
-            int ind_3 = shell_3->getStartIndex() + iFunc_3;
-            for (int iFunc_4 = 0; iFunc_4 < shell_4->getNumFunc(); iFunc_4++) {
-              int ind_4 = shell_4->getStartIndex() + iFunc_4;
+          for (int iFunc_3 = 0; iFunc_3 < shell_3.getNumFunc(); iFunc_3++) {
+            int ind_3 = shell_3.getStartIndex() + iFunc_3;
+            for (int iFunc_4 = 0; iFunc_4 < shell_4.getNumFunc(); iFunc_4++) {
+              int ind_4 = shell_4.getStartIndex() + iFunc_4;
 
               // Symmetry
               if (ind_3 > ind_4)
                 continue;
 
               // Column index in the current sub-matrix
-              int ind_subm_34 = shell_3->getNumFunc() * iFunc_4 + iFunc_3;
+              int ind_subm_34 = shell_3.getNumFunc() * iFunc_4 + iFunc_3;
 
-              for (int iFunc_1 = 0; iFunc_1 < shell_1->getNumFunc(); iFunc_1++) {
-                int ind_1 = shell_1->getStartIndex() + iFunc_1;
-                for (int iFunc_2 = 0; iFunc_2 < shell_2->getNumFunc(); iFunc_2++) {
-                  int ind_2 = shell_2->getStartIndex() + iFunc_2;
+              for (int iFunc_1 = 0; iFunc_1 < shell_1.getNumFunc(); iFunc_1++) {
+                int ind_1 = shell_1.getStartIndex() + iFunc_1;
+                for (int iFunc_2 = 0; iFunc_2 < shell_2.getNumFunc(); iFunc_2++) {
+                  int ind_2 = shell_2.getStartIndex() + iFunc_2;
 
                   // Symmetry
                   if (ind_1 > ind_2)
                     continue;
 
                   // Row index in the current sub-matrix
-                  int ind_subm_12 = shell_1->getNumFunc() * iFunc_2 + iFunc_1;
+                  int ind_subm_12 = shell_1.getNumFunc() * iFunc_2 + iFunc_1;
 
                   // Fill ERIs matrix
                   ERIsCur(ind_3, ind_4) += (ind_1 == ind_2 ? 1.0 : 2.0) * DMAT(ind_1, ind_2) * subMatrix(ind_subm_12, ind_subm_34);
@@ -349,23 +349,23 @@ namespace votca {
           _diagonals = ub::zero_matrix<double>(dftBasisSize);
           
           for (int iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
-            const AOShell* shell_1 = dftbasis.getShell(iShell_1);
+            const AOShell& shell_1 = *dftbasis.getShell(iShell_1);
             for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
-              const AOShell* shell_2 = dftbasis.getShell(iShell_2);
+              const AOShell& shell_2 = *dftbasis.getShell(iShell_2);
               
               // Get the current 4c block
-              ub::matrix<double> subMatrix = ub::zero_matrix<double>(shell_1->getNumFunc() * shell_2->getNumFunc(), shell_1->getNumFunc() * shell_2->getNumFunc());
-              bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_2, shell_1, shell_2);
+              ub::matrix<double> subMatrix = ub::zero_matrix<double>(shell_1.getNumFunc() * shell_2.getNumFunc(), shell_1.getNumFunc() * shell_2.getNumFunc());
+              bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, &shell_1, &shell_2, &shell_1, &shell_2);
               
               if (!nonzero)
                 continue;
               
               int index = 0; // Diagonal index
               
-              for (int iFunc_1 = 0; iFunc_1 < shell_1->getNumFunc(); iFunc_1++) {
-                int ind_1 = shell_1->getStartIndex() + iFunc_1;
-                for (int iFunc_2 = 0; iFunc_2 < shell_2->getNumFunc(); iFunc_2++) {
-                  int ind_2 = shell_2->getStartIndex() + iFunc_2;
+              for (int iFunc_1 = 0; iFunc_1 < shell_1.getNumFunc(); iFunc_1++) {
+                int ind_1 = shell_1.getStartIndex() + iFunc_1;
+                for (int iFunc_2 = 0; iFunc_2 < shell_2.getNumFunc(); iFunc_2++) {
+                  int ind_2 = shell_2.getStartIndex() + iFunc_2;
 
                   // Symmetry
                   if (ind_1 > ind_2)
@@ -389,21 +389,21 @@ namespace votca {
         }
         
 
-        bool ERIs::CheckScreen(double eps, const AOShell *shell_1, const AOShell *shell_2, const AOShell *shell_3, const AOShell *shell_4) {
+        bool ERIs::CheckScreen(double eps, const AOShell& shell_1, const AOShell& shell_2, const AOShell& shell_3, const AOShell& shell_4) {
           
-          for (int iFunc_3 = 0; iFunc_3 < shell_3->getNumFunc(); iFunc_3++) {
-            int ind_3 = shell_3->getStartIndex() + iFunc_3;
-            for (int iFunc_4 = 0; iFunc_4 < shell_4->getNumFunc(); iFunc_4++) {
-              int ind_4 = shell_4->getStartIndex() + iFunc_4;
+          for (int iFunc_3 = 0; iFunc_3 < shell_3.getNumFunc(); iFunc_3++) {
+            int ind_3 = shell_3.getStartIndex() + iFunc_3;
+            for (int iFunc_4 = 0; iFunc_4 < shell_4.getNumFunc(); iFunc_4++) {
+              int ind_4 = shell_4.getStartIndex() + iFunc_4;
 
               // Symmetry
               if (ind_3 > ind_4)
                 continue;
 
-              for (int iFunc_1 = 0; iFunc_1 < shell_1->getNumFunc(); iFunc_1++) {
-                int ind_1 = shell_1->getStartIndex() + iFunc_1;
-                for (int iFunc_2 = 0; iFunc_2 < shell_2->getNumFunc(); iFunc_2++) {
-                  int ind_2 = shell_2->getStartIndex() + iFunc_2;
+              for (int iFunc_1 = 0; iFunc_1 < shell_1.getNumFunc(); iFunc_1++) {
+                int ind_1 = shell_1.getStartIndex() + iFunc_1;
+                for (int iFunc_2 = 0; iFunc_2 < shell_2.getNumFunc(); iFunc_2++) {
+                  int ind_2 = shell_2.getStartIndex() + iFunc_2;
 
                   // Symmetry
                   if (ind_1 > ind_2)
