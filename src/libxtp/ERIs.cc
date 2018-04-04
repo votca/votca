@@ -206,7 +206,7 @@ namespace votca {
           int numShells = dftbasis.getNumofShells();
           
           // Initialize ERIs matrix
-          _ERIs = ub::zero_matrix<double>(DMAT.size1(), DMAT.size2()); // This is always a square matrix, right? We could only input #rows.
+          _ERIs = ub::zero_matrix<double>(DMAT.size1(), DMAT.size2());
 
           #pragma omp parallel
           { // Begin omp parallel
@@ -230,7 +230,7 @@ namespace votca {
                     const AOShell* shell_2 = dftbasis.getShell(iShell_2);
 
                     // Pre-screening
-                    if (CheckScreen(1e-10, shell_1, shell_2, shell_3, shell_4))
+                    if (_with_screening && CheckScreen(1e-10, shell_1, shell_2, shell_3, shell_4))
                       continue;
 
                     // Get the current 4c block
@@ -288,9 +288,7 @@ namespace votca {
             { // Begin omp critical
               
               // Add contributions of the (1, 2) <--> (3, 4) symmetry to ERIs matrix
-              for (int i = 0; i < DMAT.size1(); i++)
-                for (int j = i; j < DMAT.size2(); j++)
-                  _ERIs(i, j) += ERIsSymm(i, j);
+              _ERIs += ERIsSymm;
               
             } // End omp critical
           
@@ -356,8 +354,8 @@ namespace votca {
               const AOShell* shell_2 = dftbasis.getShell(iShell_2);
               
               // Get the current 4c block
-              ub::matrix<double> subMatrix = ub::zero_matrix<double>(shell_1->getNumFunc() * shell_1->getNumFunc(), shell_2->getNumFunc() * shell_2->getNumFunc());
-              bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_1, shell_2, shell_2);
+              ub::matrix<double> subMatrix = ub::zero_matrix<double>(shell_1->getNumFunc() * shell_2->getNumFunc(), shell_1->getNumFunc() * shell_2->getNumFunc());
+              bool nonzero = _fourcenter.FillFourCenterRepBlock(subMatrix, shell_1, shell_2, shell_1, shell_2);
               
               if (!nonzero)
                 continue;
@@ -391,10 +389,7 @@ namespace votca {
         }
         
 
-        bool ERIs::CheckScreen(double eps, const AOShell* shell_1, const AOShell* shell_2, const AOShell* shell_3, const AOShell* shell_4) {
-          
-          if (!_with_screening)
-            return false;
+        bool ERIs::CheckScreen(double eps, const AOShell *shell_1, const AOShell *shell_2, const AOShell *shell_3, const AOShell *shell_4) {
           
           for (int iFunc_3 = 0; iFunc_3 < shell_3->getNumFunc(); iFunc_3++) {
             int ind_3 = shell_3->getStartIndex() + iFunc_3;
@@ -416,10 +411,10 @@ namespace votca {
 
                   // Cauchy–Schwarz
                   // <ab|cd> <= sqrt(<ab|ab>) * sqrt(<cd|cd>)
-                  double ub = std::sqrt(_diagonals(ind_1, ind_2) * _diagonals(ind_3, ind_4));
+                  double ub = _diagonals(ind_1, ind_2) * _diagonals(ind_3, ind_4);
                   
                   // Compare with tolerance
-                  if (ub > eps)
+                  if (ub > eps * eps)
                     return false; // We must compute ERIS for the whole block
                 } // End loop over functions in shell 2
               } // End loop over functions in shell 1
