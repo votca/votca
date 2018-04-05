@@ -49,13 +49,6 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     for(int iblock=0; iblock<mtop.nmolblock; ++iblock)
         count+=mtop.molblock[iblock].nmol;
 
-    if(count != mtop.mols.nr  ) {
-        throw runtime_error("gromacs topology contains inconsistency in molecule definitons\n\n"
-                "A possible reason is an outdated .tpr file. Please rerun grompp to generate a new tpr file.\n"
-                "If the problem remains or "
-                "you're missing the files to rerun grompp,\n contact the votca mailing list for a solution.");
-    }
-
     int ifirstatom = 0;
     for(int iblock=0; iblock<mtop.nmolblock; ++iblock) {
         gmx_moltype_t *mol
