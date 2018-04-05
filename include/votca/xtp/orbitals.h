@@ -384,12 +384,6 @@ namespace votca {
                 _bse_vtotal = _bse_vmax - _bse_vmin + 1;
                 _bse_ctotal = _bse_cmax - _bse_cmin + 1;
                 _bse_size = _bse_vtotal * _bse_ctotal;
-                for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
-                    for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
-                        _index2v.push_back(_bse_vmin + _v);
-                        _index2c.push_back(_bse_cmin + _c);
-                    }
-                }
                 return;
             }
 
@@ -810,8 +804,7 @@ namespace votca {
             Eigen::VectorXd _QPdiag_energies;
             Eigen::MatrixXd _QPdiag_coefficients;
             // excitons
-            std::vector<int> _index2v;
-            std::vector<int> _index2c;
+            
 
 
             MatrixXfd _eh_d;
@@ -865,6 +858,8 @@ namespace votca {
             void serialize(Archive& ar, const unsigned int version) {
                 //check with which votca version orbitals object was created
              
+                    std::vector<int> _index2v;
+                    std::vector<int> _index2c;
             }// end of serialization
         };
 
