@@ -266,7 +266,7 @@ std::vector<int> AOBasis::getMultiplierVector( const std::string& start, const s
     }
 
 void AOBasis::addMultiplierShell(const std::string& start, const std::string& target, const std::string& shell_type, std::vector<int>& multiplier) {
-
+//multipliers were all found using code, hard to establish
 
     if (target == "xtp") {
         // current length of vector
@@ -310,13 +310,39 @@ void AOBasis::addMultiplierShell(const std::string& start, const std::string& ta
                     multiplier.push_back(-1);
                     multiplier.push_back(-1);
 
+                }else if (start == "nwchem"){
+                    //Not checked yet
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
                 } else {
-                std::cerr << "Tried to get multipliers d-functions from package " << start << ".";
+                std::cerr << "Tried to get multipliers f-functions from package " << start << ".";
                 throw std::runtime_error("Multiplication not implemented yet!");
                 }
             }
             else if (shell_type == "G") {
-                std::cerr << "Tried to get multipliers g-functions . ";
+                if ( start == "orca" ){
+                    //Not checked yet
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
+                    multiplier.push_back(-1);
+                    multiplier.push_back(-1);
+                    multiplier.push_back(-1);
+                    multiplier.push_back(-1);
+
+                } else {
+                std::cerr << "Tried to get multipliers g-functions from package " << start << ".";
+                throw std::runtime_error("Multiplication not implemented yet!");
+                }
+            }else{
+                std::cerr << "Tried to get multipliers h-functions . ";
                 throw std::runtime_error("Multiplication not implemented yet!");
             }
         } else {
@@ -373,6 +399,8 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
     }
 
     void AOBasis::addReorderShell(const std::string& start, const std::string& target, const std::string& shell_type, std::vector<int>& order) {
+        //Reordering is given by email from gaussian, orca output MOs, and http://www.nwchem-sw.org/index.php/Release66:Basis for nwchem
+        
       // current length of vector
 
       int _cur_pos = order.size() - 1;
@@ -389,21 +417,20 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
             //votca order is z,y,x e.g. Y1,0 Y1,-1 Y1,1
           else if (shell_type == "P") {
             if (start == "orca") {
+                //orca order is z,x,y Y1,0,Y1,1,Y1,-1
               order.push_back(_cur_pos + 1);
               order.push_back(_cur_pos + 3);
               order.push_back(_cur_pos + 2);
             } else if (start == "gaussian" || start == "nwchem") {
+                //nwchem gaussian x,y,z Y1,1 Y1,-1 Y1,0
               order.push_back(_cur_pos + 3);
               order.push_back(_cur_pos + 2);
               order.push_back(_cur_pos + 1);
             } else if (start == "votca") {//for usage with old orb files
+                 //old votca x,y,z Y1,1 Y1,-1 Y1,0
               order.push_back(_cur_pos + 3);
               order.push_back(_cur_pos + 2);
               order.push_back(_cur_pos + 1);
-            } else if (start == "xtp") {
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 3);
             } else {
               cerr << "Tried to reorder p-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented yet!");
@@ -411,7 +438,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
           }//for P
             //votca order is d3z2-r2 dyz dxz dxy dx2-y2 e.g. Y2,0 Y2,-1 Y2,1 Y2,-2 Y2,2
           else if (shell_type == "D") {
-            //orca order is d3z2-r2 dxz dyz dx2-y2 dxy
+            //orca order is d3z2-r2 dxz dyz dx2-y2 dxy e.g. Y2,0 Y2,1 Y2,-1 Y2,2 Y2,-2
             if (start == "gaussian" || start == "orca") {
               order.push_back(_cur_pos + 1);
               order.push_back(_cur_pos + 3);
@@ -419,34 +446,26 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
               order.push_back(_cur_pos + 5);
               order.push_back(_cur_pos + 4);
             } else if (start == "nwchem") {
-              // nwchem order is dxy dyz d3z2-r2 -dxz dx2-y2
+              // nwchem order is dxy dyz d3z2-r2 -dxz dx2-y2, e.g. Y2,-2 Y2,-1 Y2,0 Y2,1 Y2,2 
               order.push_back(_cur_pos + 4);
               order.push_back(_cur_pos + 2);
               order.push_back(_cur_pos + 1);
-              //neworder.push_back( -(_cur_pos + 1) ); // bloody inverted sign // BUG!!!!!!!
               order.push_back(_cur_pos + 3);
               order.push_back(_cur_pos + 5);
-
             } else if (start == "votca") { //for usage with old orb files
-
               order.push_back(_cur_pos + 3);
               order.push_back(_cur_pos + 2);
               order.push_back(_cur_pos + 4);
               order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 5);
-            } else if (start == "xtp") {
-
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 4);
               order.push_back(_cur_pos + 5);
             } else {
               cerr << "Tried to reorder d-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented yet!");
             }
           } else if (shell_type == "F") {
+               //ordering for votca is Yl,0 Yl,-1 Yl,1 ......Yl,-m Yl,m
             if (start == "gaussian" || start == "orca") {
+                //ordering for gaussian and orca is Yl,0 Yl,1 Yl,-1 ......Yl,m Yl,-m
               order.push_back(_cur_pos + 1);
               order.push_back(_cur_pos + 3);
               order.push_back(_cur_pos + 2);
@@ -454,21 +473,40 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
               order.push_back(_cur_pos + 4);
               order.push_back(_cur_pos + 7);
               order.push_back(_cur_pos + 6);
-            } else if (start == "xtp") {
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 4);
-              order.push_back(_cur_pos + 5);
+            } else if (start == "nwchem") {
+                //ordering for nwchem is fxxy-yyy, fxyz,fyzz-xxy-yyy,fzzz-xxz-yyz,f-xzz+xxx+xyy,fxxz-yyz,fxyy-xxx
+                // e.g. Y3,-3 Y3,-2 Y3,-1 Y3,0 Y3,1 Y3,2 Y3,3
               order.push_back(_cur_pos + 6);
+              order.push_back(_cur_pos + 4);
+              order.push_back(_cur_pos + 2);
+              order.push_back(_cur_pos + 0);
+              order.push_back(_cur_pos + 3);
+              order.push_back(_cur_pos + 5);
               order.push_back(_cur_pos + 7);
             } else {
               cerr << "Tried to reorder f-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented yet!");
             }
-          } else {
+          }else if (shell_type == "G") {
+               //ordering for votca is Yl,0 Yl,-1 Yl,1 ......Yl,-m Yl,m
+            if (start == "gaussian" || start == "orca") {
+                 //ordering for gaussian and orca is Yl,0 Yl,1 Yl,-1 ......Yl,m Yl,-m
+              order.push_back(_cur_pos + 1);
+              order.push_back(_cur_pos + 3);
+              order.push_back(_cur_pos + 2);
+              order.push_back(_cur_pos + 5);
+              order.push_back(_cur_pos + 4);
+              order.push_back(_cur_pos + 7);
+              order.push_back(_cur_pos + 6);
+              order.push_back(_cur_pos + 9);
+              order.push_back(_cur_pos + 8);
+            }else  {
+              cerr << "Tried to reorder g-functions from package " << start << ".";
+              throw std::runtime_error("Reordering not implemented");
+            }
+          }else {
             cerr << "Tried to reorder functions  of shell type " << shell_type << endl;
-            throw std::runtime_error("Reordering not implemented yet!");
+            throw std::runtime_error("Reordering not implemented");
           }
         } else {
           // for combined shells, iterate over all contributions
