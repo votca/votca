@@ -17,8 +17,8 @@
  *
  */
 #include "votca/xtp/adiis.h"
-
-
+#include "ceres/ceres.h"
+#include <votca/xtp/adiis_costfunction.h>
 
 
 namespace votca { namespace xtp {
@@ -31,8 +31,8 @@ namespace votca { namespace xtp {
       
       const Eigen::MatrixXd& dmat=*_dmathist[size-1];
       const Eigen::MatrixXd& H=*_mathist[size-1];
-      _DiF = Eigen::VectorXd::Zero(size);
-      _DiFj = Eigen::MatrixXd::Zero(size, size);
+      Eigen::VectorXd _DiF = Eigen::VectorXd::Zero(size);
+      Eigen::MatrixXd _DiFj = Eigen::MatrixXd::Zero(size, size);
 
 
       for (unsigned i = 0; i < _dmathist.size(); i++) {
@@ -46,185 +46,29 @@ namespace votca { namespace xtp {
       }   
      
  
-          
-   size_t N=_DiF.size();
-          
-  const gsl_multimin_fdfminimizer_type *T;
-  gsl_multimin_fdfminimizer *s;
-
-  gsl_vector *x;
-  gsl_multimin_function_fdf minfunc;
-  minfunc.f = adiis::min_f;
-  minfunc.df = adiis::min_df;
-  minfunc.fdf = adiis::min_fdf;
-  minfunc.n = N;
-  minfunc.params = (void *) this;
-
-  T=gsl_multimin_fdfminimizer_vector_bfgs2;
-  s=gsl_multimin_fdfminimizer_alloc(T,N);
-
-  // Starting point: equal weights on all matrices
-    x=gsl_vector_alloc(N);
-    gsl_vector_set_all(x,1.0/N);
-
-  // Initialize the optimizer. Use initial step size 0.02, and an
-  // orthogonality tolerance of 0.1 in the line searches (recommended
-  // by GSL manual for bfgs).
-  gsl_multimin_fdfminimizer_set(s, &minfunc, x, 0.02, 0.1);
-
-  size_t iter=0;
-  int status;
-  do {
-    iter++;
-    //    printf("iteration %lu\n",iter);
-    status = gsl_multimin_fdfminimizer_iterate(s);
-
-    if (status) {
-      //      printf("Error %i in minimization\n",status);
-      break;
-    }
-
-    status = gsl_multimin_test_gradient(s->gradient, 1e-7);
-
-    /*
-    if (status == GSL_SUCCESS)
-      printf ("Minimum found at:\n");
-    printf("%5lu ", iter);
-    for(size_t i=0;i<N;i++)
-      printf("%.5g ",gsl_vector_get(s->x,i));
-    printf("%10.5g\n",s->f);
-    */
-  }
-  while (status == GSL_CONTINUE && iter < 1000);
-
-  // Final estimate
-  // double E_final=get_E(s->x);
-
-  // Form minimum
-  Eigen::VectorXd c=adiis::compute_c(s->x);
-
-  gsl_multimin_fdfminimizer_free(s);
-  gsl_vector_free (x);
+   ceres::GradientProblem problem(new ADIIS_costfunction(_DiF,_DiFj));
+   // Starting point: equal weights on all matrices
+   Eigen::VectorXd coeffs=Eigen::VectorXd::Constant(size,1.0/size);
+   
+   
+   
+   ceres::GradientProblemSolver::Options options;
+   options.minimizer_progress_to_stdout=false;
+   options.gradient_tolerance=1e-8;
+   ceres::GradientProblemSolver::Summary summary;
+   ceres::Solve(options,problem,coeffs.data(),&summary);
+   //std::cout << summary.FullReport() << "\n";
+  success=summary.IsSolutionUsable();
+    
+  coeffs=coeffs.cwiseAbs2();
+  double xnorm=coeffs.sum();
+  coeffs/=xnorm;
 
   
-  if(std::abs(c.tail(1).value())<0.001){     
+  if(std::abs(coeffs.tail(1).value())<0.001){     
         success=false;
       }
-  return c;
+  return coeffs;
 }
-
- 
- 
- 
-double ADIIS::get_E_adiis(const gsl_vector * x) const {
-  // Consistency check
-    if(x->size != _DiF.size()) {
-        throw std::runtime_error("Incorrect number of parameters.");
-    }
-
-    Eigen::VectorXd c=adiis::compute_c(x);
-    double Eval=(2*c.transpose()*_DiF+c.transpose()*_DiFj*c).value();
-
-return Eval;
-}
-
-void ADIIS::get_dEdx_adiis(const gsl_vector * x, gsl_vector * dEdx) const {
-  // Compute contraction coefficients
-  Eigen::VectorXd c=adiis::compute_c(x);
- 
-  Eigen::VectorXd dEdc=2.0*_DiF + _DiFj*c + _DiFj.transpose()*c;
- 
-  // Compute jacobian of transformation: jac(i,j) = dc_i / dx_j
-  Eigen::MatrixXd jac=adiis::compute_jac(x);
-
-  // Finally, compute dEdx by plugging in Jacobian of transformation
-  // dE/dx_i = dc_j/dx_i dE/dc_j
-  Eigen::VectorXd dEdxv=jac.transpose()*dEdc;
-  for(size_t i=0;i< dEdxv.size();i++){
-    gsl_vector_set(dEdx,i,dEdxv(i));
-  }
-  return;
-}
-
-void ADIIS::get_E_dEdx_adiis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const {
-  // Consistency check
-   if(x->size != _DiF.size()) {
-    throw std::runtime_error("Incorrect number of parameters.");
-  }
-  if(x->size != dEdx->size) {
-    throw std::domain_error("x and dEdx have different sizes!\n");
-  }
-
-  // Compute energy
-  *Eval=get_E_adiis(x);
-  // and its derivative
-  get_dEdx_adiis(x,dEdx);
-  return;
-}
-
-
-Eigen::VectorXd adiis::compute_c(const gsl_vector * x) {
-  // Compute contraction coefficients
-  Eigen::VectorXd c=Eigen::VectorXd::Zero(x->size);
-  double xnorm=0.0;
-  for(size_t i=0;i<x->size;i++) {
-    c(i)=gsl_vector_get(x,i);
-    c(i)=c(i)*c(i);
-    xnorm+=c(i);   
-  }
-  c/=xnorm;
-  return c;
-}  
-
-Eigen::MatrixXd adiis::compute_jac(const gsl_vector * x) {
-  // Compute jacobian of transformation: jac(i,j) = dc_i / dx_j
-
-  // Compute coefficients
-  Eigen::VectorXd c=Eigen::VectorXd::Zero(x->size);
-  double xnorm=0.0;
-  for(size_t i=0;i<x->size;i++) {
-    c(i)=gsl_vector_get(x,i);
-    c(i)=c(i)*c(i);
-    xnorm+=c(i);
-  }
-  c/=xnorm;
-  
- Eigen::MatrixXd jac=Eigen::MatrixXd::Zero(c.size(),c.size());
-  for(size_t i=0;i<c.size();i++) {
-    double xi=gsl_vector_get(x,i);
-
-    for(size_t j=0;j<c.size();j++) {
-      double xj=gsl_vector_get(x,j);
-
-      jac(i,j)=-c(i)*2.0*xj/xnorm;
-    }
-
-    // Extra term on diagonal
-    jac(i,i)+=2.0*xi/xnorm;
-  }
-
-  return jac;
-}
-
-double adiis::min_f(const gsl_vector * x, void * params) {
-  ADIIS * a=(ADIIS *) params;
-  return a->get_E_adiis(x);
-}
-
-void adiis::min_df(const gsl_vector * x, void * params, gsl_vector * g) {
-  ADIIS * a=(ADIIS *) params;
-  a->get_dEdx_adiis(x,g);
-  return;
-}
-
-void adiis::min_fdf(const gsl_vector *x, void * params, double * f, gsl_vector * g) {
-  ADIIS * a=(ADIIS *) params;
-  a->get_E_dEdx_adiis(x,f,g);
-  return;
-}
-      
-      
-          
-      
 
 }}

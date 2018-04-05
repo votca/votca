@@ -72,6 +72,7 @@
                    projectFiles="true">
       <itemPath>../../include/votca/xtp/ERIs.h</itemPath>
       <itemPath>../../include/votca/xtp/adiis.h</itemPath>
+      <itemPath>../../include/votca/xtp/adiis_costfunction.h</itemPath>
       <itemPath>../../include/votca/xtp/aobasis.h</itemPath>
       <itemPath>../../include/votca/xtp/aomatrix.h</itemPath>
       <itemPath>../../include/votca/xtp/aoshell.h</itemPath>
@@ -295,6 +296,11 @@
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/adiis_costfunction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/aobasis.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -999,6 +1005,11 @@
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/adiis_costfunction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/aobasis.h" ex="false" tool="3" flavor2="0">
       </item>
