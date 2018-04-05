@@ -23,9 +23,6 @@
 
 
 #include <votca/xtp/basisset.h> 
-#include <gsl/gsl_multimin.h>
-#include <gsl/gsl_vector.h>
-
 
 namespace votca { namespace xtp {
 
