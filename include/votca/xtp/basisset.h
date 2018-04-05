@@ -124,6 +124,7 @@ public:
         return gaussian;
     }     // shell type (S, P, D))
     
+    
 private:   
 
     // only class Element can construct shells    
