@@ -34,8 +34,24 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   Eigen::VectorXd moeTest = Eigen::VectorXd::Zero(17);
   Eigen::MatrixXd mocTest = Eigen::MatrixXd::Zero(17, 17);
 
+  votca::xtp::MatrixXfd eh_dTest = votca::xtp::MatrixXfd::Zero(32, 290);
+  votca::xtp::MatrixXfd eh_xTest = votca::xtp::MatrixXfd::Zero(3, 22);
+  votca::xtp::VectorXfd BSE_singlet_energiesTest = votca::xtp::VectorXfd::Zero(25);
+  Eigen::MatrixXd vxcTest = Eigen::MatrixXd::Zero(200,200);
+
+  std::string someECP = "aye aye Cap'n";
+
   orbWrite.MOEnergies() = moeTest;
   orbWrite.MOCoefficients() = mocTest;
+  orbWrite.setECP(someECP);
+
+  orbWrite.eh_d() = eh_dTest;
+  orbWrite.eh_x() = eh_xTest;
+
+  orbWrite.BSESingletEnergies() = BSE_singlet_energiesTest;
+
+  orbWrite.AOVxc() = vxcTest;
+
 
   orbWrite.WriteToCpt(cpf, "Test Orbital");
 
