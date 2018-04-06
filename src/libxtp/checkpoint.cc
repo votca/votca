@@ -35,9 +35,8 @@ void WriteScalar(const CptLoc& loc, const std::string& value,
   H5::DataSpace dp(1, dims);
   const H5::DataType* strType = InferDataType<std::string>::get();
 
-  H5::DataSet dataset = loc.createDataSet(name, *strType, StrScalar());
-
-  dataset.write(&value, *strType);
+  H5::Attribute attr = loc.createAttribute(name, *strType, StrScalar());
+  attr.write(*strType, &value);
 }
 
 void WriteData(const CptLoc& loc, const votca::tools::vec& v,

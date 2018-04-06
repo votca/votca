@@ -81,8 +81,8 @@ void WriteScalar(const CptLoc& loc, const T& value,
   H5::DataSpace dp(1, dims);
   const H5::DataType* dataType = InferDataType<T>::get();
 
-  H5::DataSet dataset = loc.createDataSet(name.c_str(), *dataType, dp);
-  dataset.write(&value, *dataType);
+  H5::Attribute attr = loc.createAttribute(name, *dataType, dp);
+  attr.write(*dataType, &value);
 }
 
 void WriteScalar(const CptLoc& obj, const std::string& value,
