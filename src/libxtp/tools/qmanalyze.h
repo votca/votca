@@ -255,8 +255,8 @@ void QMAnalyze::CheckContent( Orbitals& _orbitals ){
     CTP_LOG(ctp::logDEBUG, _log) << "   Information about GWA:" << flush;
     
     // GWA basis set
-    if ( _orbitals.hasGWbasis() ) {
-        CTP_LOG(ctp::logDEBUG, _log) << "      basis set:              " << _orbitals.getGWbasis() << flush;
+    if ( _orbitals.hasAuxbasis() ) {
+        CTP_LOG(ctp::logDEBUG, _log) << "      basis set:              " << _orbitals.getAuxbasis() << flush;
     } else {
         CTP_LOG(ctp::logDEBUG, _log) << "      basis set:              not stored "<< flush;
     }

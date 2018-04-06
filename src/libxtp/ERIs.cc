@@ -19,8 +19,7 @@
 
 
 #include <votca/xtp/ERIs.h>
-
-#include "votca/xtp/symmetric_matrix.h"
+#include <votca/xtp/symmetric_matrix.h>
 
 namespace votca {
     namespace xtp {

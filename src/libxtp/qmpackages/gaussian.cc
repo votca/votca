@@ -772,7 +772,7 @@ namespace votca {
             mo_coefficients.resize(_levels, _basis_size);
             for (size_t i = 0; i < mo_coefficients.rows(); i++){
                 for (size_t j = 0; j < mo_coefficients.cols(); j++){
-                    mo_coefficients(i, j) = _coefficients[i + 1][j];
+                    mo_coefficients(j, i) = _coefficients[i + 1][j];
                 }
             }
             
@@ -1010,7 +1010,7 @@ namespace votca {
                         if (_has_atoms == false) {
                             pAtom =_orbitals->AddAtom(atom_id - 1,atom_type, 0, 0, 0);
                         } else {
-                            pAtom = _orbitals->_atoms.at(atom_id - 1);
+                            pAtom = _orbitals->QMAtoms().at(atom_id - 1);
                         }
                         pAtom->setPartialcharge(atom_charge);
                     }
@@ -1068,7 +1068,7 @@ namespace votca {
                         if (_has_atoms == false) {
                             _orbitals->AddAtom(aindex,_atom_type, pos);
                         } else {
-                            QMAtom* pAtom = _orbitals->_atoms.at(aindex);
+                            QMAtom* pAtom = _orbitals->QMAtoms().at(aindex);
                             pAtom->setPos(pos);
                             
                         }

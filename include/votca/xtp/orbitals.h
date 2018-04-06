@@ -307,18 +307,18 @@ namespace votca {
                 return _vxc;
             }
 
-            // access to GW auxiliary basis set name
+            // access to auxiliary basis set name
 
-            bool hasGWbasis() {
-                return ( !_gwbasis.empty()) ? true : false;
+            bool hasAuxbasis() {
+                return ( !_auxbasis.empty()) ? true : false;
             }
 
-            void setGWbasis(std::string basis) {
-                _gwbasis = basis;
+            void setAuxbasis(std::string basis) {
+                _auxbasis = basis;
             }
 
-            const std::string getGWbasis() const {
-                return _gwbasis;
+            const std::string getAuxbasis() const {
+                return _auxbasis;
             }
 
 
@@ -690,9 +690,6 @@ namespace votca {
 
             Eigen::VectorXd FragmentNuclearCharges(int _frag);
 
-
-
-
             // returns indeces of a re-sorted in a descending order vector of energies
             std::vector<int> SortEnergies();
 
@@ -716,13 +713,7 @@ namespace votca {
                 return pAtom;
             }
 
-            void setStorage(bool _store_orbitals, bool _store_overlap, bool _store_integrals) {
-                // _has_mo_coefficients = _store_orbitals;
-                //hasOverlap() = _store_overlap;
-                // _has_integrals = _store_integrals;
-                ;
-            }
-
+         
             void WritePDB(FILE *out, std::string tag = "");
 
             // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
@@ -793,7 +784,7 @@ namespace votca {
             double _ScaHFX;
 
             std::string _dftbasis;
-            std::string _gwbasis;
+            std::string _auxbasis;
 
             std::string _qm_package;
 
@@ -844,13 +835,6 @@ namespace votca {
 
             // Allow serialization to access non-public data members
             friend class boost::serialization::access;
-
-            //Allow  object to access non-public data members
-            friend class Gaussian;
-            friend class Turbomole;
-            friend class NWChem;
-            friend class Orca;
-            friend class GW;
 
             // serialization itself (template implementation stays in the header)
 

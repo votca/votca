@@ -21,7 +21,8 @@
 #define	_VOTCA_XTP_ERIS_H
 
 
-#include <votca/xtp/threecenters.h>
+#include <votca/xtp/threecenter.h>
+#include <votca/xtp/fourcenter.h>
 
 namespace votca { namespace xtp {
    
@@ -58,7 +59,7 @@ namespace votca { namespace xtp {
         Eigen::MatrixXd _inverse_Coulomb;
         
         TCMatrix_dft _threecenter;
-        FCMatrix_dft _fourcenter; ////////////////////////
+        FCMatrix _fourcenter; 
        
         Eigen::MatrixXd _ERIs;
         Eigen::MatrixXd _EXXs;

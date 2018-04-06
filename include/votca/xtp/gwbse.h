@@ -25,7 +25,7 @@
 #include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/threecenters.h>
+#include <votca/xtp/threecenter.h>
 
 #include <fstream>
 #include <sys/stat.h>
@@ -45,8 +45,7 @@ namespace xtp {
 *
 * Evaluates electronic excitations in molecular systems based on
 * many-body Green's functions theory within the GW approximation and
-* the Bethe-Salpeter equation. Requires molecular orbitals of the object
-* in GAUSSIAN, NWChem, or TURBOMOLE format.
+* the Bethe-Salpeter equation. Requires molecular orbitals 
 *
 *  B. Baumeier, Y. Ma, D. Andrienko, M. Rohlfing
 *  J. Chem. Theory Comput. 8, 997-1002 (2012)
@@ -126,14 +125,6 @@ class GWBSE {
   bool _do_full_BSE;
   bool _ignore_corelevels;
 
-  std::string _outParent;
-  std::string _outMonDir;
-
-  std::string _package;
-  Property _package_options;
-
-  std::string _gwpackage;
-  Property _gwpackage_options;
 
   // basis sets
   std::string _gwbasis_name;
@@ -179,16 +170,16 @@ class GWBSE {
   // container for frequencies in screening (index 0: real part, index 1:
   // imaginary part)
   Eigen::MatrixXd _screening_freq;
-  void symmetrize_threecenters(TCMatrix& _Mmn, Eigen::MatrixXd& _coulomb);
-  void RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA);
+  
+  void RPA_calculate_epsilon(const TCMatrix_gwbse& _Mmn_RPA);
 
-  Eigen::MatrixXd RPA_real(const TCMatrix& _Mmn_RPA,
+  Eigen::MatrixXd RPA_real(const TCMatrix_gwbse& _Mmn_RPA,
                               const double screening_freq);
 
-  Eigen::MatrixXd RPA_imaginary(const TCMatrix& _Mmn_RPA,
+  Eigen::MatrixXd RPA_imaginary(const TCMatrix_gwbse& _Mmn_RPA,
                                    const double screening_freq);
 
-  void RPA_prepare_threecenters(TCMatrix& _Mmn_RPA, const TCMatrix& _Mmn_full);
+  void RPA_prepare_threecenters(TCMatrix_gwbse& _Mmn_RPA, const TCMatrix_gwbse& _Mmn_full);
 
   // PPM related variables and functions
   Eigen::MatrixXd _ppm_phi_T;
@@ -203,10 +194,10 @@ class GWBSE {
   Eigen::MatrixXd _sigma_x;  // exchange term
   Eigen::MatrixXd _sigma_c;  // correlation term
 
-  void sigma_prepare_threecenters(TCMatrix& _Mmn);
+  void sigma_prepare_threecenters(TCMatrix_gwbse& _Mmn);
 
-  void sigma_diag(const TCMatrix& _Mmn);
-  void sigma_offdiag(const TCMatrix& _Mmn);
+  void sigma_diag(const TCMatrix_gwbse& _Mmn);
+  void sigma_offdiag(const TCMatrix_gwbse& _Mmn);
 
   // QP variables and functions
   Eigen::VectorXd _qp_energies;
@@ -232,9 +223,9 @@ class GWBSE {
 
   std::vector<Eigen::MatrixXd > _interlevel_dipoles;
   std::vector<Eigen::MatrixXd > _interlevel_dipoles_electrical;
-  void BSE_x_setup(TCMatrix& _Mmn);
-  void BSE_d_setup(TCMatrix& _Mmn);
-  void BSE_d2_setup(TCMatrix& _Mmn);
+  void BSE_x_setup(TCMatrix_gwbse& _Mmn);
+  void BSE_d_setup(TCMatrix_gwbse& _Mmn);
+  void BSE_d2_setup(TCMatrix_gwbse& _Mmn);
   void BSE_qp_setup();
   void BSE_Add_qp2H(MatrixXfd& qp);
   void BSE_solve_triplets();

@@ -18,18 +18,13 @@
  */
 
 #include "votca/xtp/orbitals.h"
-#include "votca/tools/globals.h"
-#include "votca/xtp/elements.h"
-#include "votca/xtp/qmatom.h"
+#include <votca/xtp/elements.h>
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <map>
-#include <iterator>
-#include <numeric>
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
+
+
 
 
 

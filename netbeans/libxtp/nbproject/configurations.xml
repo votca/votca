@@ -90,6 +90,7 @@
       <itemPath>../../include/votca/xtp/espfit.h</itemPath>
       <itemPath>../../include/votca/xtp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/forces.h</itemPath>
+      <itemPath>../../include/votca/xtp/fourcenter.h</itemPath>
       <itemPath>../../include/votca/xtp/gdma.h</itemPath>
       <itemPath>../../include/votca/xtp/glink.h</itemPath>
       <itemPath>../../include/votca/xtp/gnode.h</itemPath>
@@ -120,7 +121,7 @@
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaversqlite.h</itemPath>
       <itemPath>../../include/votca/xtp/symmetric_matrix.h</itemPath>
-      <itemPath>../../include/votca/xtp/threecenters.h</itemPath>
+      <itemPath>../../include/votca/xtp/threecenter.h</itemPath>
       <itemPath>../../include/votca/xtp/toolfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/version.h</itemPath>
       <itemPath>../../include/votca/xtp/votca_config.h.in</itemPath>
@@ -134,8 +135,6 @@
       <itemPath>../../src/libxtp/qmpackages/nwchem.h</itemPath>
       <itemPath>../../src/libxtp/qmpackages/orca.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackages/orca.h</itemPath>
-      <itemPath>../../src/libxtp/qmpackages/turbomole.cc</itemPath>
-      <itemPath>../../src/libxtp/qmpackages/turbomole.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -144,6 +143,14 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="f9" displayName="3-4centers" projectFiles="true">
+        <itemPath>../../src/libxtp/fourcenter.cc</itemPath>
+        <itemPath>../../src/libxtp/fourcenter_rep.cc</itemPath>
+        <itemPath>../../src/libxtp/threecenter_dft.cc</itemPath>
+        <itemPath>../../src/libxtp/threecenter_gwbse.cc</itemPath>
+        <itemPath>../../src/libxtp/threecenter_ol.cc</itemPath>
+        <itemPath>../../src/libxtp/threecenter_rep.cc</itemPath>
+      </logicalFolder>
       <logicalFolder name="f5" displayName="aomatrices" projectFiles="true">
         <itemPath>../../src/libxtp/aomatrices/aocoulomb.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aodipole.cc</itemPath>
@@ -206,8 +213,6 @@
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
-      <itemPath>../../src/libxtp/fourcenter_rep.cc</itemPath>
-      <itemPath>../../src/libxtp/fourcenters_dft.cc</itemPath>
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/gyration.cc</itemPath>
@@ -223,10 +228,6 @@
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
-      <itemPath>../../src/libxtp/threecenter_rep.cc</itemPath>
-      <itemPath>../../src/libxtp/threecenters.cc</itemPath>
-      <itemPath>../../src/libxtp/threecenters_dft.cc</itemPath>
-      <itemPath>../../src/libxtp/threecenters_tools.cc</itemPath>
       <itemPath>../../src/libxtp/version.cc</itemPath>
       <itemPath>../../src/libxtp/version_nb.cc</itemPath>
     </logicalFolder>
@@ -360,6 +361,11 @@
       </item>
       <item path="../../include/votca/xtp/forces.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/fourcenter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/glink.h" ex="false" tool="3" flavor2="0">
@@ -461,7 +467,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/threecenters.h"
+      <item path="../../include/votca/xtp/threecenter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -674,12 +680,9 @@
       </item>
       <item path="../../src/libxtp/forces.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/fourcenter.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/fourcenters_dft.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -857,16 +860,6 @@
       </item>
       <item path="../../src/libxtp/qmpackages/orca.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libxtp/qmpackages/turbomole.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmpackages/turbomole.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
@@ -879,19 +872,19 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/threecenter_dft.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/threecenter_gwbse.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/threecenter_ol.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/threecenter_rep.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/threecenters.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/threecenters_dft.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/threecenters_tools.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1069,6 +1062,11 @@
       </item>
       <item path="../../include/votca/xtp/forces.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/fourcenter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/glink.h" ex="false" tool="3" flavor2="0">
@@ -1170,7 +1168,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/threecenters.h"
+      <item path="../../include/votca/xtp/threecenter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1383,12 +1381,9 @@
       </item>
       <item path="../../src/libxtp/forces.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/fourcenter.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/fourcenters_dft.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1566,16 +1561,6 @@
       </item>
       <item path="../../src/libxtp/qmpackages/orca.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libxtp/qmpackages/turbomole.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmpackages/turbomole.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
@@ -1588,19 +1573,19 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/threecenter_rep.cc"
+      <item path="../../src/libxtp/threecenter_dft.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/threecenters.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/threecenters_dft.cc"
+      <item path="../../src/libxtp/threecenter_gwbse.cc"
             ex="false"
-            tool="0"
+            tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/threecenters_tools.cc"
+      <item path="../../src/libxtp/threecenter_ol.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/threecenter_rep.cc"
             ex="false"
             tool="1"
             flavor2="0">

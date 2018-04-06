@@ -65,7 +65,7 @@ namespace votca {
         }
         
         
-        void GWBSE::sigma_diag(const TCMatrix& _Mmn){
+        void GWBSE::sigma_diag(const TCMatrix_gwbse& _Mmn){
             
             unsigned _levelsum = _Mmn[0].cols(); // total number of bands
             unsigned _gwsize = _Mmn[0].rows(); // size of the GW basis
@@ -179,7 +179,7 @@ namespace votca {
 
       
        
-         void GWBSE::sigma_offdiag(const TCMatrix& _Mmn) {
+         void GWBSE::sigma_offdiag(const TCMatrix_gwbse& _Mmn) {
             unsigned _levelsum = _Mmn[0].cols(); // total number of bands
             unsigned _gwsize = _Mmn[0].rows(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
@@ -249,22 +249,7 @@ namespace votca {
         } 
 
 
-        void GWBSE::sigma_prepare_threecenters(TCMatrix& _Mmn){
-            #if (GWBSE_DOUBLE)
-                Eigen::MatrixXd & ppm_phi=_ppm_phi_T;
-            #else
-                const Eigen::MatrixXf ppm_phi=_ppm_phi_T.cast<float>();        
-            #endif
-            
-            
-            #pragma omp parallel for
-            for ( int _m_level = 0 ; _m_level < _Mmn.get_mtot(); _m_level++ ){
-                // get Mmn for this _m_level
-                // and multiply with _ppm_phi = eigenvectors of epsilon
-              _Mmn[ _m_level ] = ppm_phi* _Mmn[_m_level];
-            }
-            return;
-        }        
+       
         
 
 

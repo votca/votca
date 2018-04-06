@@ -59,18 +59,18 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd &v, const std::string& start, const std
     std::vector<int> order = getReorderVector(start, target);
     
     // Sanity check
-    if (v.cols() != order.size()) {
-        cerr << "Size mismatch in ReorderMOs" << v.cols() << ":" << order.size() << endl;
+    if (v.rows() != order.size()) {
+        cerr << "Size mismatch in ReorderMOs" << v.rows() << ":" << order.size() << endl;
         throw std::runtime_error("Abort!");
     }
 
     // actual swapping of coefficients
-    for (unsigned _i_orbital = 0; _i_orbital < v.rows(); _i_orbital++) {
+    for (unsigned _i_orbital = 0; _i_orbital < v.cols(); _i_orbital++) {
         for (unsigned s = 1, d; s < order.size(); ++s) {
             for (d = order[s]; d < s; d = order[d]) {
                 ;
             }
-            if (d == s) while (d = order[d], d != s) swap(v(_i_orbital, s), v(_i_orbital, d));
+            if (d == s) while (d = order[d], d != s) swap(v(s,_i_orbital), v(d,_i_orbital));
         }
     }
 
@@ -127,9 +127,9 @@ void AOBasis::MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier
               std::cerr << "Size mismatch in MultiplyMOs" << v.cols() << ":" << multiplier.size() << std::endl;
               throw std::runtime_error( "Abort!");
           }
-          for ( unsigned _i_orbital = 0; _i_orbital < v.rows(); _i_orbital++ ){
-               for ( unsigned _i_basis = 0; _i_basis < v.cols(); _i_basis++ ){
-                   v(_i_orbital, _i_basis ) = multiplier[_i_basis] * v(_i_orbital, _i_basis );
+          for ( unsigned _i_basis = 0; _i_basis < v.cols(); _i_basis++ ){
+            for ( unsigned _i_orbital = 0; _i_orbital < v.rows(); _i_orbital++ ){               
+                   v(_i_basis ,_i_orbital) = multiplier[_i_basis] * v(_i_basis,_i_orbital  );
                }
            }
           return;

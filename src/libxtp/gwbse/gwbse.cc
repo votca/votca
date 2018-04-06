@@ -609,7 +609,7 @@ bool GWBSE::Evaluate() {
   // fill auxiliary GW AO basis by going through all atoms
   AOBasis gwbasis;
   gwbasis.AOBasisFill(&gwbs, _atoms);
-  _orbitals->setGWbasis(_gwbasis_name);
+  _orbitals->setAuxbasis(_gwbasis_name);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled GW Basis of size "
                                  << gwbasis.AOBasisSize() << flush;
@@ -678,7 +678,7 @@ bool GWBSE::Evaluate() {
   // container => M_mn
   // prepare 3-center integral object
 
-  TCMatrix _Mmn;
+  TCMatrix_gwbse _Mmn;
   _Mmn.Initialize(gwbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
   _Mmn.Fill(gwbasis, _dftbasis, _dft_orbitals);
   CTP_LOG(ctp::logDEBUG, *_pLog)
@@ -686,13 +686,13 @@ bool GWBSE::Evaluate() {
       << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
 
   // make _Mmn symmetric
-  _Mmn.Symmetrize(_gwcoulomb.Matrix());
+  _Mmn.MultiplyLeftWithAuxMatrix(_gwcoulomb.Matrix());
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Symmetrize Mmn_beta for self-energy  " << flush;
 
   // for use in RPA, make a copy of _Mmn with dimensions
   // (1:HOMO)(gwabasissize,LUMO:nmax)
-  TCMatrix _Mmn_RPA;
+  TCMatrix_gwbse _Mmn_RPA;
   _Mmn_RPA.Initialize(gwbasis.AOBasisSize(), _rpamin, _homo, _homo + 1,
                       _rpamax);
   RPA_prepare_threecenters(_Mmn_RPA, _Mmn);
@@ -735,7 +735,7 @@ bool GWBSE::Evaluate() {
   _sigma_c.resize(_qptotal,_qptotal);
   _sigma_x.resize(_qptotal,_qptotal);
 
-  TCMatrix _Mmn_backup;
+  TCMatrix_gwbse _Mmn_backup;
   if (_iterate_gw) {
 
     // make copy of _Mmn, memory++
@@ -779,7 +779,7 @@ bool GWBSE::Evaluate() {
                                    << " Constructed PPM parameters  " << flush;
 
     // prepare threecenters for Sigma
-    sigma_prepare_threecenters(_Mmn);
+    _Mmn.MultiplyLeftWithAuxMatrix(_ppm_phi_T);
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Prepared threecenters for sigma  " << flush;
 
@@ -863,7 +863,7 @@ bool GWBSE::Evaluate() {
   }
   // free no longer required three-center matrices in _Mmn
   // max required is _bse_cmax (could be smaller than _qpmax)
-  _Mmn.Prune(gwbasis.AOBasisSize(), _bse_vmin, _bse_cmax);
+  _Mmn.Prune(_bse_vmin, _bse_cmax);
 
   // Output of quasiparticle energies after all is done:
 

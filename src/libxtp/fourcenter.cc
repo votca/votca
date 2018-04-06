@@ -17,17 +17,13 @@
  *
  */
 
-
-
-#include <votca/xtp/threecenters.h>
-
-
+#include <votca/xtp/fourcenter.h>
 
 
 namespace votca {
     namespace xtp {
 
-       void FCMatrix_dft::Fill_4c_small_molecule(const AOBasis& dftbasis) {
+       void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
 
           //cout << endl;
           //cout << "fourcenters_dft.cc FCMatrix_dft::Fill_4c_small_molecule" << endl;
@@ -103,17 +99,6 @@ namespace votca {
 
           return;
         } // FCMatrix_dft::Fill_4c_small_molecule
-        
-       
-
-
-
-
-
-
-
  
-
-
     }
 }

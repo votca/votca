@@ -451,7 +451,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
            _JAB_store = _JAB;
        }
 
-       _orbitalsAB.setStorage( _store_orbitals, _store_overlap, _store_integrals );
+      
 
        
        oa << _orbitalsAB;
