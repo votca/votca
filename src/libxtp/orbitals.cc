@@ -710,7 +710,6 @@ namespace votca {
             w(_unoccupied_levels, "unoccupied_levels");
             w(_number_of_electrons, "number_of_electrons");
 
-            w(_level_degeneracy, "level_degeneracy");
             w(_mo_energies, "mo_energies");
             w(_mo_coefficients, "mo_coefficients");
             w(_overlap, "overlap");
