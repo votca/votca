@@ -89,6 +89,19 @@ private:
        ar & partialcharge;
        
    }  
+
+   }
+
+   void WriteToCpt(CptLoc parent){
+       hdf5_utils::Writer w(parent);
+
+       w(index, "index");
+       w(type, "type");
+       w(pos, "pos");
+       w(nuccharge, "nuccharge");
+       w(ecpcharge, "ecpcharge");
+       w(partialcharge, "partialcharge");
+   }
 };
     
 }}
