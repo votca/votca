@@ -728,7 +728,7 @@ namespace votca {
             w(_self_energy, "self_energy");
 
             w(_dftbasis, "dftbasis");
-            w(_gwbasis, "gwbasis");
+            w(_auxbasis, "auxbasis");
 
             w(_rpamin, "rpamin");
             w(_rpamax, "rpamax");
