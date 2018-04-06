@@ -27,7 +27,7 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/aomatrix.h>
-#include <votca/xtp/threecenters.h>
+
 
 #include <votca/xtp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>

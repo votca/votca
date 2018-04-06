@@ -23,9 +23,6 @@
 
 
 #include <votca/xtp/basisset.h> 
-#include <gsl/gsl_multimin.h>
-#include <gsl/gsl_vector.h>
-
 
 namespace votca { namespace xtp {
 
@@ -39,46 +36,13 @@ public:
    
     Eigen::VectorXd CalcCoeff(const std::vector< Eigen::MatrixXd* >& _dmathist,const std::vector< Eigen::MatrixXd* >& _mathist);
     
-    double get_E_adiis(const gsl_vector * x) const;
-
-    void get_dEdx_adiis(const gsl_vector * x, gsl_vector * dEdx) const;
-    void get_E_dEdx_adiis(const gsl_vector * x, double * Eval, gsl_vector * dEdx) const;
+   
    bool Info(){return success;}
  private:
      
      bool success;
-    Eigen::VectorXd                  _DiF;
-    Eigen::MatrixXd                  _DiFj;
-  
-   
-    
-    
- Eigen::VectorXd compute_c(const gsl_vector * x);
- /// Compute jacobian
- Eigen::MatrixXd compute_jac(const gsl_vector * x);
- /// Compute energy
- double min_f(const gsl_vector * x, void * params);
- /// Compute derivative
- void min_df(const gsl_vector * x, void * params, gsl_vector * g);
- /// Compute energy and derivative
-void min_fdf(const gsl_vector * x, void * params, double * f, gsl_vector * g);
   
  };
- 
- 
- namespace adiis {
-  /// Compute weights
-  Eigen::VectorXd compute_c(const gsl_vector * x);
-  /// Compute jacobian
-  Eigen::MatrixXd compute_jac(const gsl_vector * x);
-
-  /// Compute energy
-  double min_f(const gsl_vector * x, void * params);
-  /// Compute derivative
-  void min_df(const gsl_vector * x, void * params, gsl_vector * g);
-  /// Compute energy and derivative
-  void min_fdf(const gsl_vector * x, void * params, double * f, gsl_vector * g);
-};
     
 }}
 

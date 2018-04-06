@@ -18,18 +18,13 @@
  */
 
 #include "votca/xtp/orbitals.h"
-#include "votca/tools/globals.h"
-#include "votca/xtp/elements.h"
-#include "votca/xtp/qmatom.h"
+#include <votca/xtp/elements.h>
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <map>
-#include <iterator>
-#include <numeric>
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
+
+
 
 
 
@@ -289,7 +284,8 @@ namespace votca {
             /*Trying to implement D_{alpha,beta}= sqrt2*sum_{i}^{occ}sum_{j}^{virt}{BSEcoef(i,j)*MOcoef(alpha,i)*MOcoef(beta,j)} */
             // c stands for conduction band and thus virtual orbitals
             // v stand for valence band and thus occupied orbitals
-
+            std::vector<int> _index2v;
+            std::vector<int> _index2c;
             if (_bse_size == 0) {
                 _bse_vtotal = _bse_vmax - _bse_vmin + 1;
                 _bse_ctotal = _bse_cmax - _bse_cmin + 1;
@@ -385,6 +381,8 @@ namespace votca {
             int _vmax = this->_bse_vmax;
             int _cmin = this->_bse_cmin;
             int _cmax = this->_bse_cmax;
+            std::vector<int> _index2v;
+            std::vector<int> _index2c;
 
             if (_bse_size == 0) {
                 _bse_vtotal = _bse_vmax - _bse_vmin + 1;
@@ -405,8 +403,8 @@ namespace votca {
 
             for (unsigned _idx1 = 0; _idx1 < _bse_size; _idx1++) {
 
-                int _v = this->_index2v[_idx1];
-                int _c = this->_index2c[_idx1];
+                int _v = _index2v[_idx1];
+                int _c = _index2c[_idx1];
 
                 // electron assist matrix A_{cc'}
 #pragma omp parallel for
@@ -475,7 +473,8 @@ namespace votca {
             dmatAR.resize(2);
             dmatAR[0] = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
             dmatAR[1] = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
-
+            std::vector<int> _index2v;
+            std::vector<int> _index2c;
             int _vmin = this->_bse_vmin;
             int _vmax = this->_bse_vmax;
             int _cmin = this->_bse_cmin;
@@ -500,8 +499,8 @@ namespace votca {
 
             for (unsigned _idx1 = 0; _idx1 < _bse_size; _idx1++) {
 
-                int _v = this->_index2v[_idx1];
-                int _c = this->_index2c[_idx1];
+                int _v = _index2v[_idx1];
+                int _c = _index2c[_idx1];
 
                 // hole assist matrix B_{cc'}
 #pragma omp parallel for

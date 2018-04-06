@@ -18,20 +18,37 @@
  */
 
 
-#include <votca/xtp/threecenters.h>
-
-
-
-using namespace votca::tools;
+#include <votca/xtp/threecenter.h>
 
 namespace votca {
     namespace xtp {
 
 
+        void TCMatrix_gwbse::Initialize ( int _basissize, int mmin, int mmax, int nmin, int nmax){
+
+            // here as storage indices starting from zero
+            _nmin=nmin;
+            _nmax=nmax;
+            _ntotal=nmax - nmin +1;
+            _mmin=mmin;
+            _mmax=mmax;
+            _mtotal=mmax - mmin +1;
+            basissize=_basissize;
+           
+            // vector has mtotal elements
+            _matrix.resize( this->get_mtot() );
+            
+            // each element is a gwabasis-by-n matrix, initialize to zero
+            for ( int i = 0; i < this->get_mtot() ; i++){
+                _matrix[i] = MatrixXfd::Zero(basissize,_ntotal);
+            }
+        
+        }
+      
         /*
          * Cleaning TCMatrix data and free memory
          */
-        void TCMatrix::Cleanup() {
+        void TCMatrix_gwbse::Cleanup() {
 
             for (unsigned _i = 0; _i < _matrix.size(); _i++) {
                 _matrix[ _i ].resize(0, 0);
@@ -45,24 +62,24 @@ namespace votca {
          * Modify 3-center matrix elements consistent with use of symmetrized 
          * Coulomb interaction. 
          */
-        void TCMatrix::Symmetrize(const Eigen::MatrixXd& _coulomb) {
+        void TCMatrix_gwbse::MultiplyLeftWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 #if (GWBSE_DOUBLE)
-         const Eigen::MatrixXd& _c=_coulomb;
+         const Eigen::MatrixXd& m=matrix;
 #else
-         const Eigen::MatrixXf _c=_coulomb.cast<float>();
+         const Eigen::MatrixXf m=matrix.cast<float>();
 #endif
             #pragma omp parallel for
             for (int _i_occ = 0; _i_occ < this->get_mtot(); _i_occ++) {
-	      _matrix[ _i_occ ] = _c*_matrix[ _i_occ ];
+	      _matrix[ _i_occ ] = m*_matrix[ _i_occ ];
             }
             return;
         } // TCMatrix::Symmetrize
         
-           void TCMatrix::Print(string _ident) {
-	  //cout << "\n" << endl;
-            for (int k = 0; k < this->mtotal; k++) {
+           void TCMatrix_gwbse::Print(string _ident) {
+
+            for (int k = 0; k < this->_mtotal; k++) {
                 for (unsigned i = 0; i < _matrix[1].rows(); i++) {
-                    for (int j = 0; j< this->ntotal; j++) {
+                    for (int j = 0; j< this->_ntotal; j++) {
                         cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
                     }
                 }
@@ -77,7 +94,7 @@ namespace votca {
          * associated to a particular shell, convoluted with the DFT orbital
          * coefficients
          */
-        void TCMatrix::Fill(const AOBasis& _gwbasis,const AOBasis& _dftbasis,const Eigen::MatrixXd& _dft_orbitals) {
+        void TCMatrix_gwbse::Fill(const AOBasis& _gwbasis,const AOBasis& _dftbasis,const Eigen::MatrixXd& _dft_orbitals) {
 
             // loop over all shells in the GW basis and get _Mmn for that shell
             #pragma omp parallel for //private(_block)
@@ -114,10 +131,10 @@ namespace votca {
          * followed by a convolution of those with the DFT orbital coefficients 
          */
         
-        void TCMatrix::FillBlock(std::vector< Eigen::MatrixXd >& _block,const AOShell* _shell,const AOBasis& dftbasis,const Eigen::MatrixXd& _dft_orbitals) {
+        void TCMatrix_gwbse::FillBlock(std::vector< Eigen::MatrixXd >& _block,const AOShell* _shell,const AOBasis& dftbasis,const Eigen::MatrixXd& _dft_orbitals) {
 	 
             // prepare local storage for 3-center overlap x m-orbitals
-            Eigen::MatrixXd _imstore = Eigen::MatrixXd::Zero(mtotal * _shell->getNumFunc(), dftbasis.AOBasisSize());
+            Eigen::MatrixXd _imstore = Eigen::MatrixXd::Zero(_mtotal * _shell->getNumFunc(), dftbasis.AOBasisSize());
         
 
             // alpha-loop over the "left" DFT basis function
@@ -126,7 +143,7 @@ namespace votca {
                 int _row_start = _shell_row->getStartIndex();
               
                 // get slice of _dft_orbitals for m-summation, belonging to this shell
-                const Eigen::MatrixXd  _m_orbitals = _dft_orbitals.block( _row_start,mmin, _shell_row->getNumFunc(),mtotal);
+                const Eigen::MatrixXd  _m_orbitals = _dft_orbitals.block( _row_start,_mmin, _shell_row->getNumFunc(),_mtotal);
 
                 // gamma-loop over the "right" DFT basis function
                 for (AOBasis::AOShellIterator _col = dftbasis.firstShell(); _col != dftbasis.lastShell(); ++_col) {
@@ -146,7 +163,7 @@ namespace votca {
                         // put _temp into _imstore
                         for (unsigned _m_level = 0; _m_level < _temp.rows(); _m_level++) {
                             for (int _i_gw = 0; _i_gw < _shell->getNumFunc(); _i_gw++) {
-                                int _ridx = _shell->getNumFunc() * (_m_level - this->mmin) + _i_gw;
+                                int _ridx = _shell->getNumFunc() * (_m_level - this->_mmin) + _i_gw;
 
                                 for (int _cidx = _col_start; _cidx < _col_end; _cidx++) {
                                     int _tidx = _shell_col->getNumFunc() * (_i_gw) + _cidx - _col_start;
@@ -160,17 +177,17 @@ namespace votca {
 
 
             // get transposed slice of _dft_orbitals
-            const Eigen::MatrixXd _n_orbitals = _dft_orbitals.block(0,nmin,_dft_orbitals.cols(),ntotal);
+            const Eigen::MatrixXd _n_orbitals = _dft_orbitals.block(_nmin,0,_ntotal,_dft_orbitals.cols());
 
             // Now, finally multiply _imstore with _n_orbitals
-            Eigen::MatrixXd _temp = _imstore* _n_orbitals.transpose();
+            Eigen::MatrixXd _temp = _imstore* _n_orbitals;
             
 
             // and put it into the block it belongs to
-            for (int _m_level = 0; _m_level < mtotal; _m_level++) {
+            for (int _m_level = 0; _m_level < _mtotal; _m_level++) {
                 for (int _i_gw = 0; _i_gw < _shell->getNumFunc(); _i_gw++) {
-                    int _midx = _shell->getNumFunc() *(_m_level - mmin) + _i_gw;
-                    for (int _n_level = 0; _n_level < ntotal; _n_level++) {
+                    int _midx = _shell->getNumFunc() *(_m_level - _mmin) + _i_gw;
+                    for (int _n_level = 0; _n_level < _ntotal; _n_level++) {
                         _block[_m_level](_i_gw, _n_level) = _temp(_midx, _n_level);
                     } // n-level
                 } // GW basis function in shell
@@ -179,7 +196,7 @@ namespace votca {
         } // TCMatrix::FillBlock
 
         
-        void TCMatrix::Prune ( int _basissize, int min, int max){
+        void TCMatrix_gwbse::Prune (int min, int max){
 
             int size1 = _matrix[0].rows();           
             // vector needs only max entries

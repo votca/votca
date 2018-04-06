@@ -17,12 +17,8 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
 
-
-#include <votca/xtp/threecenters.h>
-
-
+#include <votca/xtp/threecenter.h>
 
 namespace votca {
     namespace xtp {

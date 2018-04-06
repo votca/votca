@@ -24,8 +24,7 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/aomatrix.h>
-#include <votca/xtp/threecenters.h>
-// #include <votca/xtp/logger.h>
+
 #include <votca/xtp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/aoshell.h>
@@ -92,7 +91,7 @@ namespace votca {
         
         
         //imaginary
-        Eigen::MatrixXd GWBSE::RPA_imaginary(const TCMatrix& _Mmn_RPA,const double screening_freq) {
+        Eigen::MatrixXd GWBSE::RPA_imaginary(const TCMatrix_gwbse& _Mmn_RPA,const double screening_freq) {
             const int _size = _Mmn_RPA.get_beta(); // size of gwbasis
             const int index_n = _Mmn_RPA.get_nmin();
             const int index_m = _Mmn_RPA.get_mmin();
@@ -141,11 +140,11 @@ namespace votca {
         }
         //real
 
-        Eigen::MatrixXd GWBSE::RPA_real(const TCMatrix& _Mmn_RPA, const double screening_freq) {
+        Eigen::MatrixXd GWBSE::RPA_real(const TCMatrix_gwbse& _Mmn_RPA, const double screening_freq) {
             const int _size = _Mmn_RPA.get_beta(); // size of gwbasis
             const int index_n = _Mmn_RPA.get_nmin();
             const int index_m = _Mmn_RPA.get_mmin();
-            const Eigen::VectorXd& qp_energies=   _qp_energies;
+            const Eigen::VectorXd& qp_energies=_qp_energies;
             Eigen::MatrixXd result=Eigen::MatrixXd::Zero(_size,_size);
            
             
@@ -192,7 +191,7 @@ namespace votca {
         }
         
 
-    void GWBSE::RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA){
+    void GWBSE::RPA_calculate_epsilon(const TCMatrix_gwbse& _Mmn_RPA){
 
         // loop over frequencies
         for ( unsigned _i_freq = 0 ; _i_freq < _screening_freq.rows() ; _i_freq++ ){
@@ -218,14 +217,14 @@ namespace votca {
         
         
    
-    void GWBSE::RPA_prepare_threecenters(TCMatrix& _Mmn_RPA,const TCMatrix& _Mmn_full){
+    void GWBSE::RPA_prepare_threecenters(TCMatrix_gwbse& _Mmn_RPA,const TCMatrix_gwbse& _Mmn_full){
         
        
         unsigned start=_Mmn_RPA.get_nmin() - _Mmn_full.get_nmin();
               
             // loop over m-levels in _Mmn_RPA
             #pragma omp parallel for 
-            for (int _m_level = 0; _m_level < _Mmn_RPA.size(); _m_level++) {
+            for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
           
                 // copy to _Mmn_RPA
                 _Mmn_RPA[ _m_level ] =_Mmn_full[ _m_level ].block(0,start,_Mmn_full.get_beta(),_Mmn_RPA.get_ntot());

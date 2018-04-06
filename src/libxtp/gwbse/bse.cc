@@ -23,7 +23,6 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/aomatrix.h>
-#include <votca/xtp/threecenters.h>
 // #include <votca/xtp/logger.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
@@ -163,7 +162,7 @@ namespace votca {
       
         
         
-        void GWBSE::BSE_d_setup ( TCMatrix& _Mmn){
+        void GWBSE::BSE_d_setup ( TCMatrix_gwbse& _Mmn){
             // gwbasis size
             size_t _gwsize = _Mmn[_homo].rows();
 
@@ -257,7 +256,7 @@ namespace votca {
         }
         
         
-         void GWBSE::BSE_d2_setup ( TCMatrix& _Mmn){
+         void GWBSE::BSE_d2_setup ( TCMatrix_gwbse& _Mmn){
             // gwbasis size
             size_t _gwsize = _Mmn[_homo].rows();
 
@@ -346,7 +345,7 @@ namespace votca {
         
         
         
-        void GWBSE::BSE_x_setup( TCMatrix& _Mmn){
+        void GWBSE::BSE_x_setup( TCMatrix_gwbse& _Mmn){
             
             /* unlike the fortran code, we store eh interaction directly in
              * a suitable matrix form instead of a four-index array

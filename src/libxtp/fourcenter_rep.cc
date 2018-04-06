@@ -20,7 +20,7 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 
 
-#include <votca/xtp/threecenters.h>
+#include <votca/xtp/fourcenter.h>
 
 
 
@@ -45,7 +45,7 @@ namespace votca {
          */
 
       
-        bool FCMatrix_dft::FillFourCenterRepBlock(Eigen::MatrixXd& _subvector,
+        bool FCMatrix::FillFourCenterRepBlock(Eigen::MatrixXd& _subvector,
                 const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3, const AOShell* _shell_4) {
 
             const double pi = boost::math::constants::pi<double>();

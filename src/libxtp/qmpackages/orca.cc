@@ -112,9 +112,9 @@ namespace votca {
 
             // check if the guess should be prepared, if yes, append the guess later
             _write_guess = false;
-            iop_pos = _options.find("iterations 1 ");
+            iop_pos = _options.find("Guess MORead");
             if (iop_pos != std::string::npos) _write_guess = true;
-            iop_pos = _options.find("iterations 1\n");
+            iop_pos = _options.find("Guess MORead\n");
             if (iop_pos != std::string::npos) _write_guess = true;
         }
 
@@ -390,9 +390,7 @@ namespace votca {
 
             _com_file << _options << "\n";
 
-            if (_write_guess) {
-                throw std::runtime_error("Not implemented in orca");
-            }
+           
 
             _com_file << endl;
             _com_file.close();
@@ -416,6 +414,14 @@ namespace votca {
 
             _shell_file << "#!/bin/bash" << endl;
             _shell_file << "mkdir -p " << _scratch_dir << endl;
+            
+            if(_write_guess){
+              if(!(boost::filesystem::exists( _run_dir + "/molA.gbw" ) && boost::filesystem::exists( _run_dir + "/molB.gbw" )  )){
+              throw runtime_error("Using guess relies on a molA.gbw and a molB.gbw file being in the directory.");
+            }
+              
+              _shell_file<<_executable<<"_mergefrag molA.gbw molB.gbw dimer.gbw > merge.log"<<endl;
+            }
 
             if (_threads == 1) {
                 _shell_file << _executable << " " << _input_file_name << " > " << _log_file_name << endl; //" 2> run.error" << endl;
@@ -477,6 +483,13 @@ namespace votca {
          */
         void Orca::CleanUp() {
 
+          if(_write_guess){
+            remove((_run_dir + "/" +"molA.gbw").c_str());
+            remove((_run_dir + "/" +"molB.gbw").c_str());
+            remove((_run_dir + "/" +"dimer.gbw").c_str());
+            
+          }
+          
             // cleaning up the generated files
             if (_cleanup.size() != 0) {
                 Tokenizer tok_cleanup(_cleanup, ",");
@@ -484,6 +497,8 @@ namespace votca {
                 tok_cleanup.ToVector(_cleanup_info);
 
                 std::vector<std::string> ::iterator it;
+                
+                
 
                 for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
                     if (*it == "inp") {
@@ -612,7 +627,7 @@ namespace votca {
                         if (_has_QMAtoms == false) {
                             _orbitals->AddAtom(atom_id,_atom_type, pos);
                         } else {
-                            QMAtom* pAtom = _orbitals->_atoms.at(atom_id);
+                            QMAtom* pAtom = _orbitals->QMAtoms().at(atom_id);
                             pAtom->setPos(pos);
                         }
                         atom_id++;
@@ -734,7 +749,7 @@ namespace votca {
                         if (_has_atoms == false) {
                             pAtom =_orbitals->AddAtom(atom_id - 1,atom_type, 0, 0, 0);
                         } else {
-                            pAtom = _orbitals->_atoms.at(atom_id - 1);
+                            pAtom = _orbitals->QMAtoms().at(atom_id - 1);
                         }
                         pAtom->setPartialcharge(atom_charge);
                     }
@@ -863,7 +878,7 @@ namespace votca {
             (_orbitals->MOCoefficients()).resize(_levels, _basis_size);
             for (size_t i = 0; i < _orbitals->MOCoefficients().rows(); i++) {
                 for (size_t j = 0; j < _orbitals->MOCoefficients().cols(); j++) {
-                    _orbitals->MOCoefficients()(i, j) = _coefficients[j * _basis_size + i];
+                    _orbitals->MOCoefficients()(j, i) = _coefficients[j * _basis_size + i];
                    
                 }
             }

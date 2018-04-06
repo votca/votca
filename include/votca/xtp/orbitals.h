@@ -308,18 +308,18 @@ namespace votca {
                 return _vxc;
             }
 
-            // access to GW auxiliary basis set name
+            // access to auxiliary basis set name
 
-            bool hasGWbasis() {
-                return ( !_gwbasis.empty()) ? true : false;
+            bool hasAuxbasis() {
+                return ( !_auxbasis.empty()) ? true : false;
             }
 
-            void setGWbasis(std::string basis) {
-                _gwbasis = basis;
+            void setAuxbasis(std::string basis) {
+                _auxbasis = basis;
             }
 
-            const std::string getGWbasis() const {
-                return _gwbasis;
+            const std::string getAuxbasis() const {
+                return _auxbasis;
             }
 
 
@@ -385,12 +385,6 @@ namespace votca {
                 _bse_vtotal = _bse_vmax - _bse_vmin + 1;
                 _bse_ctotal = _bse_cmax - _bse_cmin + 1;
                 _bse_size = _bse_vtotal * _bse_ctotal;
-                for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
-                    for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
-                        _index2v.push_back(_bse_vmin + _v);
-                        _index2c.push_back(_bse_cmin + _c);
-                    }
-                }
                 return;
             }
 
@@ -697,9 +691,6 @@ namespace votca {
 
             Eigen::VectorXd FragmentNuclearCharges(int _frag);
 
-
-
-
             // returns indeces of a re-sorted in a descending order vector of energies
             std::vector<int> SortEnergies();
 
@@ -723,13 +714,7 @@ namespace votca {
                 return pAtom;
             }
 
-            void setStorage(bool _store_orbitals, bool _store_overlap, bool _store_integrals) {
-                // _has_mo_coefficients = _store_orbitals;
-                //hasOverlap() = _store_overlap;
-                // _has_integrals = _store_integrals;
-                ;
-            }
-
+         
             void WritePDB(FILE *out, std::string tag = "");
 
             // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
@@ -803,7 +788,7 @@ namespace votca {
             double _ScaHFX;
 
             std::string _dftbasis;
-            std::string _gwbasis;
+            std::string _auxbasis;
 
             std::string _qm_package;
 
@@ -814,8 +799,7 @@ namespace votca {
             Eigen::VectorXd _QPdiag_energies;
             Eigen::MatrixXd _QPdiag_coefficients;
             // excitons
-            std::vector<int> _index2v;
-            std::vector<int> _index2c;
+            
 
 
             MatrixXfd _eh_d;
@@ -856,19 +840,14 @@ namespace votca {
             // Allow serialization to access non-public data members
             friend class boost::serialization::access;
 
-            //Allow  object to access non-public data members
-            friend class Gaussian;
-            friend class Turbomole;
-            friend class NWChem;
-            friend class Orca;
-            friend class GW;
-
             // serialization itself (template implementation stays in the header)
 
             template<typename Archive>
             void serialize(Archive& ar, const unsigned int version) {
                 //check with which votca version orbitals object was created
              
+                    std::vector<int> _index2v;
+                    std::vector<int> _index2c;
             }// end of serialization
         };
 

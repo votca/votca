@@ -1,4 +1,4 @@
-/*
+/* 
  *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -17,22 +17,39 @@
  *
  */
 
+#ifndef __XTP_FOURCENTER__H
+#define	__XTP_FOURCENTER__H
 
-#include <votca/xtp/qmpackagefactory.h>
-#include "qmpackages/gaussian.h"
-#include "qmpackages/nwchem.h"
-#include "qmpackages/orca.h"
 
-#include "qmpackages/xtpdft.h"
+//openmp 
+#include <votca/xtp/votca_config.h>
+#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/orbitals.h>
+
+/**
+* \brief Calculates four center electron overlap integrals for DFT.
+*
+* 
+* 
+*/
 
 namespace votca { namespace xtp {
 
-void QMPackageFactory::RegisterAll(void)
-{
-        QMPackages().Register<Gaussian>         ("gaussian");
-        QMPackages().Register<NWChem>           ("nwchem");
-        QMPackages().Register<Orca>             ("orca");
-        QMPackages().Register<XTPDFT>           ("xtp");
+    class FCMatrix{
+    public:
+    
+    void Fill_4c_small_molecule(const AOBasis& dftbasis); 
+    
+    const Eigen::VectorXd& get_4c_vector() { return _4c_vector;}
+    
+    private:
+     bool FillFourCenterRepBlock(Eigen::MatrixXd& _subvector, const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3,const AOShell* _shell_4); ////////
+    
+        Eigen::VectorXd _4c_vector;
+    };
 
-}
+
 }}
+
+#endif	/* FOURCENTER_H */
+

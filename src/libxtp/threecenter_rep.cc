@@ -17,21 +17,13 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-
-
-#include <votca/xtp/threecenters.h>
-
-
-
+#include <votca/xtp/threecenter.h>
 
 using namespace std;
 
 
 namespace votca {
     namespace xtp {
-     
-
  
         
         /*
@@ -50,7 +42,7 @@ namespace votca {
          */
         
       
-        bool TCrawMatrix::FillThreeCenterRepBlock(Eigen::MatrixXd& _subvector, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
+        bool TCMatrix::FillThreeCenterRepBlock(Eigen::MatrixXd& _subvector, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
 
             const double pi = boost::math::constants::pi<double>();
             const double gwaccuracy = 1.e-11;

@@ -19,7 +19,7 @@
 
 
 
-#include <votca/xtp/threecenters.h>
+#include <votca/xtp/threecenter.h>
 #include <votca/xtp/symmetric_matrix.h>
 
 namespace votca {

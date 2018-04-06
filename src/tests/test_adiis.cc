@@ -18,7 +18,7 @@
 #define BOOST_TEST_MODULE adiis_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/adiis.h>
-
+#include <iostream>
 
 using namespace votca::xtp;
 
@@ -179,6 +179,11 @@ for (std::vector< Eigen::MatrixXd* >::iterator it = _mathist.begin() ; it !=_mat
 
 
 bool check_adiis=Coeffs.isApprox(Ref,0.00001);
+if(!check_adiis){
+  std::cout<<"Ref:"<<Ref<<std::endl;
+  std::cout<<"Coeffs:"<<Coeffs<<std::endl;
+  
+}
   
 BOOST_CHECK_EQUAL(check_adiis, 1);
 
