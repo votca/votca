@@ -712,8 +712,6 @@ namespace votca {
 
             w(_mo_energies, "mo_energies");
             w(_mo_coefficients, "mo_coefficients");
-            w(_overlap, "overlap");
-            w(_vxc, "vxc");
 
             // write qmatoms
 
@@ -728,7 +726,6 @@ namespace votca {
             w(_qm_energy, "qm_energy");
             w(_qm_package, "qm_package");
             w(_self_energy, "self_energy");
-            w(_mo_couplings, "mo_couplings");
 
             w(_dftbasis, "dftbasis");
             w(_gwbasis, "gwbasis");
@@ -765,12 +762,6 @@ namespace votca {
 
             w(_BSE_triplet_energies, "BSE_triplet_energies");
             w(_BSE_triplet_coefficients, "BSE_triplet_coefficients");
-
-            w(_BSE_singlet_couplings, "BSE_singlet_couplings");
-            w(_BSE_triplet_couplings, "BSE_triplet_couplings");
-
-            w(_couplingsA, "couplingsA");
-            w(_couplingsB, "couplingsB");
 
         } catch (H5::Exception& error){
             throw std::runtime_error(error.getDetailMsg());
