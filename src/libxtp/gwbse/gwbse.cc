@@ -570,9 +570,6 @@ bool GWBSE::Evaluate() {
         << _numint.getBoxesSize() << " boxes" << flush;
 
     CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Converted DFT orbital coefficient order from "
-        << _dft_package << " to XTP" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Integrating Vxc in VOTCA with functional "
         << _functional << flush;
     ub::matrix<double> DMAT = _orbitals->DensityMatrixGroundState();
