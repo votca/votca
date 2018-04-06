@@ -662,14 +662,7 @@ bool GWBSE::Evaluate() {
     }
   }
 
-  ub::matrix<double> _gwoverlap_cholesky_inverse;  // will also be needed in PPM
-                                                   // itself
-  int removed =
-      linalg_invert_svd(_gwoverlap_cholesky, _gwoverlap_cholesky_inverse, 1e7);
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Removed " << removed
-      << " functions from gwoverlap to avoid near linear dependencies" << flush;
-
+ 
   int removed_functions = _gwcoulomb.Symmetrize(_gwoverlap_cholesky);
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM"
@@ -778,7 +771,7 @@ bool GWBSE::Evaluate() {
 
     // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
     for (unsigned _i_freq = 0; _i_freq < _screening_freq.size1(); _i_freq++) {
-      _epsilon[_i_freq] = _gwoverlap.Matrix();
+      _epsilon[_i_freq] = ub::identity_matrix<double>(gwbasis.AOBasisSize(),gwbasis.AOBasisSize());
     }
 
     // determine epsilon from RPA
@@ -787,7 +780,7 @@ bool GWBSE::Evaluate() {
                                    << " Calculated epsilon via RPA  " << flush;
 
     // construct PPM parameters
-    PPM_construct_parameters(_gwoverlap_cholesky_inverse);
+    PPM_construct_parameters();
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                    << " Constructed PPM parameters  " << flush;
 
@@ -863,7 +856,6 @@ bool GWBSE::Evaluate() {
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
   _gwoverlap.Matrix().resize(0, 0);
-  _gwoverlap_cholesky_inverse.resize(0, 0);
   _Mmn_RPA.Cleanup();
   if (_iterate_gw) {
     _Mmn_backup.Cleanup();
