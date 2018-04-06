@@ -44,7 +44,6 @@ void WriteData(const CptLoc& loc, const votca::tools::vec& v,
                const std::string& name) {
 
     // store tools::vec as n vector of three elements
-    std::cout << name << std::endl;
     std::vector<double> data = {v.getX(), v.getY(), v.getZ()};
     WriteData(loc, data, name);
 }
@@ -54,7 +53,6 @@ void WriteData(const CptLoc& loc, const std::vector<votca::tools::vec>& v,
 
     size_t c = 0;
     std::string r;
-    std::cout << name << std::endl;
     CptLoc parent = loc.createGroup(name);
     for (auto const& x: v){
         r = std::to_string(c);
