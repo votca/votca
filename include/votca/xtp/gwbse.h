@@ -84,6 +84,8 @@ class GWBSE {
   void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
 
   bool Evaluate();
+ 
+
 
   // interfaces for options getting/setting
 
@@ -127,7 +129,7 @@ class GWBSE {
 
 
   // basis sets
-  std::string _gwbasis_name;
+  std::string _auxbasis_name;
   std::string _dftbasis_name;
 
   std::string _ranges;  // range types
@@ -162,6 +164,9 @@ class GWBSE {
   double _shift;  // pre-shift of DFT energies
   AOBasis _dftbasis;
 
+  
+   Eigen::MatrixXd CalculateVXC();
+  
   Orbitals* _orbitals;
   Eigen::MatrixXd& _dft_orbitals;
   // RPA related variables and functions

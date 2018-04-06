@@ -187,17 +187,17 @@
         <itemPath>../../src/libxtp/forces.cc</itemPath>
         <itemPath>../../src/libxtp/geometry_optimization.cc</itemPath>
       </logicalFolder>
-      <logicalFolder name="f3" displayName="kmc" projectFiles="true">
-        <itemPath>../../src/libxtp/gnode.cc</itemPath>
-        <itemPath>../../src/libxtp/kmccalculator.cc</itemPath>
-      </logicalFolder>
-      <logicalFolder name="f4" displayName="mbgft" projectFiles="true">
+      <logicalFolder name="f4" displayName="gwbse" projectFiles="true">
         <itemPath>../../src/libxtp/gwbse/bse.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/bse_analysis.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwa.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbse.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbseengine.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/rpa.cc</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f3" displayName="kmc" projectFiles="true">
+        <itemPath>../../src/libxtp/gnode.cc</itemPath>
+        <itemPath>../../src/libxtp/kmccalculator.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="NumInt" projectFiles="true">
         <itemPath>../../src/libxtp/gridbox.cc</itemPath>

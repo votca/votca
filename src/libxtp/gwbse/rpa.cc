@@ -92,7 +92,7 @@ namespace votca {
         
         //imaginary
         Eigen::MatrixXd GWBSE::RPA_imaginary(const TCMatrix_gwbse& _Mmn_RPA,const double screening_freq) {
-            const int _size = _Mmn_RPA.get_beta(); // size of gwbasis
+            const int _size = _Mmn_RPA.getAuxDimension(); // size of gwbasis
             const int index_n = _Mmn_RPA.get_nmin();
             const int index_m = _Mmn_RPA.get_mmin();
             const double screenf2=screening_freq * screening_freq;
@@ -141,7 +141,7 @@ namespace votca {
         //real
 
         Eigen::MatrixXd GWBSE::RPA_real(const TCMatrix_gwbse& _Mmn_RPA, const double screening_freq) {
-            const int _size = _Mmn_RPA.get_beta(); // size of gwbasis
+            const int _size = _Mmn_RPA.getAuxDimension(); // size of gwbasis
             const int index_n = _Mmn_RPA.get_nmin();
             const int index_m = _Mmn_RPA.get_mmin();
             const Eigen::VectorXd& qp_energies=_qp_energies;
@@ -227,7 +227,7 @@ namespace votca {
             for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
           
                 // copy to _Mmn_RPA
-                _Mmn_RPA[ _m_level ] =_Mmn_full[ _m_level ].block(0,start,_Mmn_full.get_beta(),_Mmn_RPA.get_ntot());
+                _Mmn_RPA[ _m_level ] =_Mmn_full[ _m_level ].block(0,start,_Mmn_full.getAuxDimension(),_Mmn_RPA.get_ntot());
               
 
             }// loop m-levels

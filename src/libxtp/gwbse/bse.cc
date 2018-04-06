@@ -164,30 +164,30 @@ namespace votca {
         
         void GWBSE::BSE_d_setup ( TCMatrix_gwbse& _Mmn){
             // gwbasis size
-            size_t _gwsize = _Mmn[_homo].rows();
+            size_t auxsize = _Mmn.getAuxDimension();
 
             // messy procedure, first get two matrices for occ and empty subbparts
             // store occs directly transposed
-            MatrixXfd _storage_v =MatrixXfd::Zero(  _bse_vtotal * _bse_vtotal , _gwsize );
+            MatrixXfd _storage_v =MatrixXfd::Zero(  _bse_vtotal * _bse_vtotal , auxsize );
             #pragma omp parallel for
             for ( size_t _v1 = 0; _v1 < _bse_vtotal; _v1++){
                 const MatrixXfd& Mmn = _Mmn[_v1 + _bse_vmin ];
                 for ( size_t _v2 = 0; _v2 < _bse_vtotal; _v2++){
                     size_t _index_vv = _bse_vtotal * _v1 + _v2;
-                    for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
+                    for ( size_t _i_gw = 0 ; _i_gw < auxsize ; _i_gw++) {
                         _storage_v( _index_vv , _i_gw ) = Mmn( _i_gw , _v2 + _bse_vmin );
                     }
                 }
             }
             
             
-             MatrixXfd _storage_c = MatrixXfd::Zero( _gwsize, _bse_ctotal * _bse_ctotal );
+             MatrixXfd _storage_c = MatrixXfd::Zero( auxsize, _bse_ctotal * _bse_ctotal );
             #pragma omp parallel for
             for ( size_t _c1 = 0; _c1 < _bse_ctotal; _c1++){
                 const MatrixXfd& Mmn = _Mmn[_c1 + _bse_cmin];
                 for ( size_t _c2 = 0; _c2 < _bse_ctotal; _c2++){
                     size_t _index_cc = _bse_ctotal * _c1 + _c2;
-                    for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
+                    for ( size_t _i_gw = 0 ; _i_gw < auxsize ; _i_gw++) {
                         _storage_c( _i_gw , _index_cc ) = Mmn( _i_gw , _c2 + _bse_cmin );
                     }
                 }
@@ -202,7 +202,7 @@ namespace votca {
 
             // now patch up _storage for screened interaction
             #pragma omp parallel for
-            for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){  
+            for ( size_t _i_gw = 0 ; _i_gw < auxsize ; _i_gw++ ){  
                 if (_ppm_weight(_i_gw) < 1.e-9) {                    
                     for ( size_t _v = 0 ; _v < (_bse_vtotal* _bse_vtotal) ; _v++){
                         _storage_v( _v , _i_gw ) = 0;
@@ -258,29 +258,29 @@ namespace votca {
         
          void GWBSE::BSE_d2_setup ( TCMatrix_gwbse& _Mmn){
             // gwbasis size
-            size_t _gwsize = _Mmn[_homo].rows();
+            size_t auxsize = _Mmn.getAuxDimension();
 
             // messy procedure, first get two matrices for occ and empty subbparts
             // store occs directly transposed
-            MatrixXfd _storage_cv = MatrixXfd::Zero(  _bse_vtotal * _bse_ctotal , _gwsize );
+            MatrixXfd _storage_cv = MatrixXfd::Zero(  _bse_vtotal * _bse_ctotal , auxsize );
             #pragma omp parallel for
             for ( size_t _c1 = 0; _c1 < _bse_ctotal; _c1++){
                 const MatrixXfd& Mmn = _Mmn[_c1 + _bse_cmin ];
                 for ( size_t _v2 = 0; _v2 < _bse_vtotal; _v2++){
                     size_t _index_cv = _bse_vtotal * _c1 + _v2;
-                    for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
+                    for ( size_t _i_gw = 0 ; _i_gw < auxsize ; _i_gw++) {
                         _storage_cv( _index_cv , _i_gw ) = Mmn( _i_gw , _v2 + _bse_vmin );
                     }
                 }
             }
          
-            MatrixXfd _storage_vc = MatrixXfd::Zero( _gwsize, _bse_vtotal * _bse_ctotal );
+            MatrixXfd _storage_vc = MatrixXfd::Zero( auxsize, _bse_vtotal * _bse_ctotal );
             #pragma omp parallel for
             for ( size_t _v1 = 0; _v1 < _bse_vtotal; _v1++){
                 const MatrixXfd& Mmn = _Mmn[_v1 + _bse_vmin];
                 for ( size_t _c2 = 0; _c2 < _bse_ctotal; _c2++){
                     size_t _index_vc = _bse_ctotal * _v1 + _c2;
-                    for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++) {
+                    for ( size_t _i_gw = 0 ; _i_gw < auxsize ; _i_gw++) {
                         _storage_vc( _i_gw , _index_vc ) = Mmn( _i_gw , _c2 + _bse_cmin );
                     }
                 }
@@ -294,7 +294,7 @@ namespace votca {
             
             // now patch up _storage for screened interaction
             #pragma omp parallel for
-            for ( size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){  
+            for ( size_t _i_gw = 0 ; _i_gw < auxsize ; _i_gw++ ){  
                 if (_ppm_weight(_i_gw) < 1.e-9) {
                     for ( size_t _v = 0 ; _v < (_bse_vtotal* _bse_ctotal) ; _v++){
                     _storage_vc(  _i_gw , _v ) =0;
@@ -352,12 +352,10 @@ namespace votca {
              */
                         
             // gwbasis size
-            size_t _gwsize = _Mmn[_homo].rows();
+            size_t auxsize = _Mmn.getAuxDimension();
             
             // get a different storage for 3-center integrals we need
-            //cout<< "Starting to set up "<< endl;
-            MatrixXfd _storage = MatrixXfd::Zero( _gwsize , _bse_size);
-            //cout<< "Storage set up"<< endl;
+            MatrixXfd _storage = MatrixXfd::Zero( auxsize , _bse_size);
          
             // occupied levels
             #pragma omp parallel for
@@ -367,7 +365,7 @@ namespace votca {
                 // empty levels
                 for (size_t _c =0 ; _c < _bse_ctotal ; _c++ ){
                     size_t _index_vc = _bse_ctotal * _v + _c ;
-                    for (size_t _i_gw = 0 ; _i_gw < _gwsize ; _i_gw++ ){
+                    for (size_t _i_gw = 0 ; _i_gw < auxsize ; _i_gw++ ){
                         _storage( _i_gw, _index_vc ) = Mmn( _i_gw, _c + _bse_cmin);
                     }
                 }
