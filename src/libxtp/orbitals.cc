@@ -706,16 +706,16 @@ namespace votca {
         try{
             hdf5_utils::Writer w(parent);
 
-            w(_basis_set_size, "_basis_set_size");
-            w(_occupied_levels, "_occupied_levels");
-            w(_unoccupied_levels, "_unoccupied_levels");
-            w(_number_of_electrons, "_number_of_electrons");
+            w(_basis_set_size, "basis_set_size");
+            w(_occupied_levels, "occupied_levels");
+            w(_unoccupied_levels, "unoccupied_levels");
+            w(_number_of_electrons, "number_of_electrons");
 
-            w(_level_degeneracy, "_level_degeneracy");
-            w(_mo_energies, "_mo_energies");
-            w(_mo_coefficients, "_mo_coefficients");
-            w(_overlap, "_overlap");
-            w(_vxc, "_vxc");
+            w(_level_degeneracy, "level_degeneracy");
+            w(_mo_energies, "mo_energies");
+            w(_mo_coefficients, "mo_coefficients");
+            w(_overlap, "overlap");
+            w(_vxc, "vxc");
 
             // write qmatoms
 
@@ -727,52 +727,52 @@ namespace votca {
 
             }
 
-            w(_qm_energy, "_qm_energy");
-            w(_qm_package, "_qm_package");
-            w(_self_energy, "_self_energy");
-            w(_mo_couplings, "_mo_couplings");
+            w(_qm_energy, "qm_energy");
+            w(_qm_package, "qm_package");
+            w(_self_energy, "self_energy");
+            w(_mo_couplings, "mo_couplings");
 
-            w(_dftbasis, "_dftbasis");
-            w(_gwbasis, "_gwbasis");
+            w(_dftbasis, "dftbasis");
+            w(_gwbasis, "gwbasis");
 
-            w(_rpamin, "_rpamin");
-            w(_rpamax, "_rpamax");
-            w(_qpmin, "_qpmin");
-            w(_qpmax, "_qpmax");
-            w(_bse_vmin, "_bse_vmin");
-            w(_bse_vmax, "_bse_vmax");
-            w(_bse_cmin, "_bse_cmin");
-            w(_bse_cmax, "_bse_cmax");
+            w(_rpamin, "rpamin");
+            w(_rpamax, "rpamax");
+            w(_qpmin, "qpmin");
+            w(_qpmax, "qpmax");
+            w(_bse_vmin, "bse_vmin");
+            w(_bse_vmax, "bse_vmax");
+            w(_bse_cmin, "bse_cmin");
+            w(_bse_cmax, "bse_cmax");
 
-            w(_ScaHFX, "_ScaHFX");
+            w(_ScaHFX, "ScaHFX");
 
-            w(_bsetype, "_bsetype");
-            w(_ECP, "_ECP");
+            w(_bsetype, "bsetype");
+            w(_ECP, "ECP");
 
-            w(_QPpert_energies, "_QPpert_energies");
-            w(_QPdiag_energies, "_QPdiag_energies");
+            w(_QPpert_energies, "QPpert_energies");
+            w(_QPdiag_energies, "QPdiag_energies");
 
-            w(_QPdiag_coefficients, "_QPdiag_coefficients");
-            w(_eh_d, "_eh_d");
+            w(_QPdiag_coefficients, "QPdiag_coefficients");
+            w(_eh_d, "eh_d");
 
-            w(_eh_x, "_eh_x");
+            w(_eh_x, "eh_x");
 
-            w(_BSE_singlet_energies, "_BSE_singlet_energies");
+            w(_BSE_singlet_energies, "BSE_singlet_energies");
 
-            w(_BSE_singlet_coefficients, "_BSE_singlet_coefficients");
+            w(_BSE_singlet_coefficients, "BSE_singlet_coefficients");
 
-            w(_BSE_singlet_coefficients_AR, "_BSE_singlet_coefficients_AR");
+            w(_BSE_singlet_coefficients_AR, "BSE_singlet_coefficients_AR");
 
-            w(_transition_dipoles, "_transition_dipoles");
+            w(_transition_dipoles, "transition_dipoles");
 
-            w(_BSE_triplet_energies, "_BSE_triplet_energies");
-            w(_BSE_triplet_coefficients, "_BSE_triplet_coefficients");
+            w(_BSE_triplet_energies, "BSE_triplet_energies");
+            w(_BSE_triplet_coefficients, "BSE_triplet_coefficients");
 
-            w(_BSE_singlet_couplings, "_BSE_singlet_couplings");
-            w(_BSE_triplet_couplings, "_BSE_triplet_couplings");
+            w(_BSE_singlet_couplings, "BSE_singlet_couplings");
+            w(_BSE_triplet_couplings, "BSE_triplet_couplings");
 
-            w(_couplingsA, "_couplingsA");
-            w(_couplingsB, "_couplingsB");
+            w(_couplingsA, "couplingsA");
+            w(_couplingsB, "couplingsB");
 
         } catch (H5::Exception& error){
             throw std::runtime_error(error.getDetailMsg());
