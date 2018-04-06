@@ -99,7 +99,7 @@ namespace votca {
                 return _matrix[i];
             }
 
-            int get_beta()const {
+            int getAuxDimension()const {
                 return basissize;
             }
 

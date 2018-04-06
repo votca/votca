@@ -115,7 +115,7 @@ void GWBSE::Initialize(Property *options) {
     }
   }
 
-  _gwbasis_name =
+  _auxbasis_name =
       options->ifExistsReturnElseThrowRuntimeError<string>(key + ".gwbasis");
   _dftbasis_name =
       options->ifExistsReturnElseThrowRuntimeError<string>(key + ".dftbasis");
@@ -146,11 +146,6 @@ void GWBSE::Initialize(Property *options) {
   if (_iterate_gw) {
     CTP_LOG(ctp::logDEBUG, *_pLog) << " gw_sc_limit [Hartree]: " << _gw_sc_limit
                                    << flush;
-    // if(_g_sc_max_iterations<20){
-    //_g_sc_max_iterations=20;
-    // CTP_LOG(ctp::logDEBUG, *_pLog) << " Setting G iterations to 20, as it
-    // speeds up the GW iterations" << flush;
-    // }
   }
   _min_print_weight = options->ifExistsReturnElseReturnDefault<double>(
       key + ".bse_print_weight",
@@ -327,6 +322,70 @@ void GWBSE::addoutput(Property *_summary) {
 
  */
 
+Eigen::MatrixXd GWBSE::CalculateVXC(){
+  
+  Eigen::MatrixXd _vxc_ao;
+  if (_orbitals->hasAOVxc()) {
+    if (_doVxc) {
+      CTP_LOG(ctp::logDEBUG, *_pLog)
+              << ctp::TimeStamp()
+              << " There is already a Vxc matrix loaded from DFT, did you maybe "
+              "run a DFT code with outputVxc?\n I will take the external "
+              "implementation"
+              << flush;
+      _doVxc = false;
+    }
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+            << " Loaded external Vxc matrix" << flush;
+    _vxc_ao = _orbitals->AOVxc();
+  } else if (_doVxc) {
+    
+    NumericalIntegration _numint;
+    _numint.setXCfunctional(_functional);
+    double ScaHFX_temp = _numint.getExactExchange(_functional);
+    if (ScaHFX_temp != _ScaHFX) {
+      throw std::runtime_error(
+              (boost::format("GWBSE exact exchange a=%s differs from qmpackage "
+              "exact exchange a=%s, probably your functionals are "
+              "inconsistent") %
+              ScaHFX_temp % _ScaHFX)
+              .str());
+    }
+    _numint.GridSetup(_grid, _orbitals->QMAtoms(),&_dftbasis);
+    CTP_LOG(ctp::logDEBUG, *_pLog)
+            << ctp::TimeStamp()
+            << " Setup grid for integration with gridsize: " << _grid << " with "
+            << _numint.getGridSize() << " points, divided into "
+            << _numint.getBoxesSize() << " boxes" << flush;
+    CTP_LOG(ctp::logDEBUG, *_pLog)
+            << ctp::TimeStamp() << " Integrating Vxc in VOTCA with functional "
+            << _functional << flush;
+    Eigen::MatrixXd DMAT = _orbitals->DensityMatrixGroundState();
+    
+    _vxc_ao = _numint.IntegrateVXC(DMAT);
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+            << " Calculated Vxc in VOTCA" << flush;
+    
+  } else {
+    throw std::runtime_error(
+            "So your DFT data contains no Vxc, if you want to proceed use the "
+            "dovxc option.");
+  }
+  
+  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+          << " Set hybrid exchange factor: " << _ScaHFX
+          << flush;
+  
+  // now get expectation values but only for those in _qpmin:_qpmax range
+  Eigen::MatrixXd _mos = _dft_orbitals.block(0,_qpmin,_dft_orbitals.rows(),_qptotal);
+  
+  Eigen::MatrixXd vxc =_mos.transpose()*_vxc_ao*_mos;
+  CTP_LOG(ctp::logDEBUG, *_pLog)
+          << ctp::TimeStamp()
+          << " Calculated exchange-correlation expectation values " << flush;
+  return vxc;
+}
+
 bool GWBSE::Evaluate() {
 
 // set the parallelization
@@ -346,7 +405,7 @@ bool GWBSE::Evaluate() {
                                  << " DFT data was created by " << _dft_package
                                  << flush;
 
-            std::vector<QMAtom*>& _atoms=_orbitals->QMAtoms();
+
             
   // load DFT basis set (element-wise information) from xml file
   BasisSet dftbs;
@@ -364,7 +423,7 @@ bool GWBSE::Evaluate() {
 
   // fill DFT AO basis by going through all atoms
 
-  _dftbasis.AOBasisFill(&dftbs, _atoms, _fragA);
+  _dftbasis.AOBasisFill(&dftbs, _orbitals->QMAtoms(), _fragA);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled DFT Basis of size "
                                  << _dftbasis.AOBasisSize() << flush;
@@ -389,7 +448,6 @@ bool GWBSE::Evaluate() {
    *  - number of excitations calculates in BSE
    */
 
-  // convert _rpamax if needed
   _homo = _orbitals->getNumberOfElectrons() - 1;  // indexed from 0
 
   unsigned _ignored_corelevels = 0;
@@ -398,7 +456,7 @@ bool GWBSE::Evaluate() {
       BasisSet basis;
       basis.LoadBasisSet("ecp");//
       unsigned coreElectrons=0;
-      for(const auto& atom:_atoms){
+      for(const auto& atom:_orbitals->QMAtoms()){
         coreElectrons+=basis.getElement(atom->getType())->getNcore();   
       }
        _ignored_corelevels = coreElectrons/2;
@@ -533,99 +591,36 @@ bool GWBSE::Evaluate() {
 
   _ScaHFX = _orbitals->getScaHFX();
 
-  Eigen::MatrixXd _vxc_ao;
-  if (_orbitals->hasAOVxc()) {
-    if (_doVxc) {
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << ctp::TimeStamp()
-          << " There is already a Vxc matrix loaded from DFT, did you maybe "
-             "run a DFT code with outputVxc?\n I will take the external "
-             "implementation"
-          << flush;
-      _doVxc = false;
-    }
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                   << " Loaded external Vxc matrix" << flush;
-    _vxc_ao = _orbitals->AOVxc();
-  } else if (_doVxc) {
-
-    NumericalIntegration _numint;
-    _numint.setXCfunctional(_functional);
-    double ScaHFX_temp = _numint.getExactExchange(_functional);
-    if (ScaHFX_temp != _ScaHFX) {
-      throw std::runtime_error(
-          (boost::format("GWBSE exact exchange a=%s differs from qmpackage "
-                         "exact exchange a=%s, probably your functionals are "
-                         "inconsistent") %
-           ScaHFX_temp % _ScaHFX)
-              .str());
-    }
-                    _numint.GridSetup(_grid, _atoms,&_dftbasis);
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
-        << " Setup grid for integration with gridsize: " << _grid << " with "
-        << _numint.getGridSize() << " points, divided into "
-        << _numint.getBoxesSize() << " boxes" << flush;
-
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Converted DFT orbital coefficient order from "
-        << _dft_package << " to XTP" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Integrating Vxc in VOTCA with functional "
-        << _functional << flush;
-    Eigen::MatrixXd DMAT = _orbitals->DensityMatrixGroundState();
-
-    _vxc_ao = _numint.IntegrateVXC(DMAT);
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                   << " Calculated Vxc in VOTCA" << flush;
-
-  } else {
-    throw std::runtime_error(
-        "So your DFT data contains no Vxc, if you want to proceed use the "
-        "dovxc option.");
-  }
-
-  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                 << " Set hybrid exchange factor: " << _ScaHFX
-                                 << flush;
-
-  // now get expectation values but only for those in _qpmin:_qpmax range
-  Eigen::MatrixXd _mos = _dft_orbitals.block(_qpmin,0,_qpmax-_qpmin+1, _dftbasis.AOBasisSize());
-
-  _vxc =_mos.transpose()*_vxc_ao*_mos;
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp()
-      << " Calculated exchange-correlation expectation values " << flush;
-  _vxc_ao.resize(0, 0);
+  _vxc=CalculateVXC();
 
   /// ------- actual calculation begins here -------
 
-  // load auxiliary GW basis set (element-wise information) from xml file
+  // load auxiliary basis set (element-wise information) from xml file
   BasisSet gwbs;
-  gwbs.LoadBasisSet(_gwbasis_name);
-  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded GW Basis Set "
-                                 << _gwbasis_name << flush;
+  gwbs.LoadBasisSet(_auxbasis_name);
+  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded Auxbasis Set "
+                                 << _auxbasis_name << flush;
 
   // fill auxiliary GW AO basis by going through all atoms
-  AOBasis gwbasis;
-  gwbasis.AOBasisFill(&gwbs, _atoms);
-  _orbitals->setAuxbasis(_gwbasis_name);
+  AOBasis auxbasis;
+  auxbasis.AOBasisFill(&gwbs, _orbitals->QMAtoms());
+  _orbitals->setAuxbasis(_auxbasis_name);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                 << " Filled GW Basis of size "
-                                 << gwbasis.AOBasisSize() << flush;
+                                 << " Filled Auxbasis of size "
+                                 << auxbasis.AOBasisSize() << flush;
 
   /*
    * for the representation of 2-point functions with the help of the
    * auxiliary GW basis, its AO overlap matrix is required.
    * cf. M. Rohlfing, PhD thesis, ch. 3
    */
-  AOOverlap _gwoverlap;
+  AOOverlap _auxoverlap;
   // Fill overlap
-  _gwoverlap.Fill(gwbasis);
+  _auxoverlap.Fill(auxbasis);
 
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                 << " Filled GW Overlap matrix of dimension: "
-                                 << _gwoverlap.Matrix().rows() << flush;
+                                 << " Filled Aux Overlap matrix of dimension: "
+                                 << _auxoverlap.Matrix().rows() << flush;
 
   /*
    *  for the calculation of Coulomb and exchange term in the self
@@ -636,18 +631,18 @@ bool GWBSE::Evaluate() {
    */
 
   // get Coulomb matrix as AOCoulomb
-  AOCoulomb _gwcoulomb;
+  AOCoulomb _auxcoulomb;
 
   // Fill Coulomb matrix
-  _gwcoulomb.Fill(gwbasis);
+  _auxcoulomb.Fill(auxbasis);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                 << " Filled GW Coulomb matrix of dimension: "
-                                 << _gwcoulomb.Matrix().rows() << flush;
+                                 << " Filled Aux Coulomb matrix of dimension: "
+                                 << _auxcoulomb.Matrix().rows() << flush;
 
   // PPM is symmetric, so we need to get the sqrt of the Coulomb matrix
 
  
- Eigen::MatrixXd L_overlap = _gwoverlap.Matrix().llt().matrixL();
+ Eigen::MatrixXd L_overlap = _auxoverlap.Matrix().llt().matrixL();
  Eigen::MatrixXd L_overlap_inverse=L_overlap.inverse();
 
                                                    // itself
@@ -655,45 +650,37 @@ bool GWBSE::Evaluate() {
     
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Removed " << removed
-      << " functions from gwoverlap to avoid near linear dependencies" << flush;
+      << " functions from auxoverlap to avoid near linear dependencies" << flush;
 
-  int removed_functions = _gwcoulomb.Symmetrize(L_overlap);
+  int removed_functions = _auxcoulomb.Symmetrize(L_overlap);
   CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM"
+      << ctp::TimeStamp() << " Prepared AuxCoulomb matrix for symmetric PPM"
       << flush;
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Removed " << removed_functions
-      << " functions from gwcoulomb to avoid near linear dependencies" << flush;
-  /* calculate 3-center integrals,  convoluted with DFT eigenvectors
-   *
-   *  M_mn(beta) = \int{ \psi^DFT_m(r) \phi^GW_beta(r) \psi^DFT_n d3r  }
-   *             = \sum_{alpha,gamma} { c_m,alpha c_n,gamma \int
-   * {\phi^DFT_alpha(r) \phi^GW_beta(r) \phi^DFT_gamma(r) d3r}  }
-   *
-   *  cf. M. Rohlfing, PhD thesis, ch. 3.2
-   *
-   */
+      << " functions from Auxcoulomb to avoid near linear dependencies" << flush;
+  
 
   // --- prepare a vector (gwdacay) of matrices (orbitals, orbitals) as
   // container => M_mn
   // prepare 3-center integral object
 
   TCMatrix_gwbse _Mmn;
-  _Mmn.Initialize(gwbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
-  _Mmn.Fill(gwbasis, _dftbasis, _dft_orbitals);
+  _Mmn.Initialize(auxbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
+  _Mmn.Fill(auxbasis, _dftbasis, _dft_orbitals);
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
       << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
 
   // make _Mmn symmetric
-  _Mmn.MultiplyLeftWithAuxMatrix(_gwcoulomb.Matrix());
+  _Mmn.MultiplyLeftWithAuxMatrix(_auxcoulomb.Matrix());
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Symmetrize Mmn_beta for self-energy  " << flush;
 
   // for use in RPA, make a copy of _Mmn with dimensions
   // (1:HOMO)(gwabasissize,LUMO:nmax)
   TCMatrix_gwbse _Mmn_RPA;
-  _Mmn_RPA.Initialize(gwbasis.AOBasisSize(), _rpamin, _homo, _homo + 1,
+  _Mmn_RPA.Initialize(auxbasis.AOBasisSize(), _rpamin, _homo, _homo + 1,
                       _rpamax);
   RPA_prepare_threecenters(_Mmn_RPA, _Mmn);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
@@ -739,13 +726,7 @@ bool GWBSE::Evaluate() {
   if (_iterate_gw) {
 
     // make copy of _Mmn, memory++
-
-    _Mmn_backup.Initialize(gwbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin,
-                           _rpamax);
-    int _mnsize = _Mmn_backup.get_mtot();
-    for (int _i = 0; _i < _mnsize; _i++) {
-      _Mmn_backup[_i] = _Mmn[_i];
-    }
+    _Mmn_backup=_Mmn;
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                    << " Made backup of _Mmn  " << flush;
   } else {
@@ -765,7 +746,7 @@ bool GWBSE::Evaluate() {
 
     // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
     for (unsigned _i_freq = 0; _i_freq < _screening_freq.rows(); _i_freq++) {
-      _epsilon[_i_freq] = _gwoverlap.Matrix();
+      _epsilon[_i_freq] = _auxoverlap.Matrix();
     }
 
     // determine epsilon from RPA
@@ -838,18 +819,15 @@ bool GWBSE::Evaluate() {
             << "          Run continues. Inspect results carefully!" << flush;
         break;
       }
-
-      int _mnsize = _Mmn_backup.get_mtot();
-      for (int _i = 0; _i < _mnsize; _i++) {
-        _Mmn[_i] = _Mmn_backup[_i];
-      }
+      _Mmn=_Mmn_backup;
+      
     }
   }
 
   sigma_offdiag(_Mmn);
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
-  _gwoverlap.Matrix().resize(0, 0);
+  _auxoverlap.Matrix().resize(0, 0);
   L_overlap_inverse.resize(0, 0);
   _Mmn_RPA.Cleanup();
   if (_iterate_gw) {
