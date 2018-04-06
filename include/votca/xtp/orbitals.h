@@ -746,7 +746,10 @@ namespace votca {
             bool Save(std::string file_name);
 
             void LoadFromXYZ(std::string filename);
-           
+
+            void WriteToCpt(CheckpointFile f, const std::string &name);
+            void WriteToCpt(CptLoc parent);
+
 
         private:
             std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const string& spin,int state = 0);
@@ -870,7 +873,6 @@ namespace votca {
 
     }
 }
-  void WriteToCpt(CheckpointFile f, const std::string &name);
 
 BOOST_CLASS_VERSION(votca::xtp::Orbitals, 4)
 

@@ -698,22 +698,81 @@ namespace votca {
         }
 
     void Orbitals::WriteToCpt(CheckpointFile f, const std::string& name){
-        try{
+        CptLoc orbGr = f.getHandle().createGroup("/" + name);
+        WriteToCpt(orbGr);
+    }
 
-            H5::Group orbGr = f.getHandle().createGroup("/" + name);
-            hdf5_utils::ScalarAttrWriter w(orbGr);
+    void Orbitals::WriteToCpt(CptLoc parent){
+        try{
+            hdf5_utils::Writer w(parent);
 
             w(_basis_set_size, "_basis_set_size");
             w(_occupied_levels, "_occupied_levels");
             w(_unoccupied_levels, "_unoccupied_levels");
             w(_number_of_electrons, "_number_of_electrons");
 
-            std::cout << "level degeneracy" << std::endl;
+            w(_level_degeneracy, "_level_degeneracy");
+            w(_mo_energies, "_mo_energies");
+            w(_mo_coefficients, "_mo_coefficients");
+            w(_overlap, "_overlap");
+            w(_vxc, "_vxc");
 
-            hdf5_utils::WriteData(orbGr, _level_degeneracy,
-                                  "_level_degeneracy");
+            // write qmatoms
 
+            {
+                CptLoc qmAtomsGr = parent.createGroup("qmatoms");
+                for (const auto& qma: _atoms){
+                    qma->WriteToCpt(qmAtomsGr);
+                }
 
+            }
+
+            w(_qm_energy, "_qm_energy");
+            w(_qm_package, "_qm_package");
+            w(_self_energy, "_self_energy");
+            w(_mo_couplings, "_mo_couplings");
+
+            w(_dftbasis, "_dftbasis");
+            w(_gwbasis, "_gwbasis");
+
+            w(_rpamin, "_rpamin");
+            w(_rpamax, "_rpamax");
+            w(_qpmin, "_qpmin");
+            w(_qpmax, "_qpmax");
+            w(_bse_vmin, "_bse_vmin");
+            w(_bse_vmax, "_bse_vmax");
+            w(_bse_cmin, "_bse_cmin");
+            w(_bse_cmax, "_bse_cmax");
+
+            w(_ScaHFX, "_ScaHFX");
+
+            w(_bsetype, "_bsetype");
+            w(_ECP, "_ECP");
+
+            w(_QPpert_energies, "_QPpert_energies");
+            w(_QPdiag_energies, "_QPdiag_energies");
+
+            w(_QPdiag_coefficients, "_QPdiag_coefficients");
+            w(_eh_d, "_eh_d");
+
+            w(_eh_x, "_eh_x");
+
+            w(_BSE_singlet_energies, "_BSE_singlet_energies");
+
+            w(_BSE_singlet_coefficients, "_BSE_singlet_coefficients");
+
+            w(_BSE_singlet_coefficients_AR, "_BSE_singlet_coefficients_AR");
+
+            w(_transition_dipoles, "_transition_dipoles");
+
+            w(_BSE_triplet_energies, "_BSE_triplet_energies");
+            w(_BSE_triplet_coefficients, "_BSE_triplet_coefficients");
+
+            w(_BSE_singlet_couplings, "_BSE_singlet_couplings");
+            w(_BSE_triplet_couplings, "_BSE_triplet_couplings");
+
+            w(_couplingsA, "_couplingsA");
+            w(_couplingsB, "_couplingsB");
 
         } catch (H5::Exception& error){
             throw std::runtime_error(error.getDetailMsg());
