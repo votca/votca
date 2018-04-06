@@ -20,16 +20,17 @@
 #include <Eigen/Eigen>
 #include <H5Cpp.h>
 #include <string>
-#include <type_traits>
 #include <typeinfo>
 #include <vector>
+#include <type_traits>
+#include <votca/tools/vec.h>
 
-#define CHECKPOINT_WRITE_SCAL(loc, var) WriteScalarAttribute(loc, var, #var)
 
 namespace votca {
 namespace xtp {
 
-// Define the types needed
+typedef H5::Group CptLoc;
+
 
 namespace hdf5_utils {
 
@@ -73,26 +74,28 @@ struct InferDataType<std::string> {
 };
 
 template <typename T>
-void WriteScalarAttribute(const H5::H5Location& loc, const T& value,
-                          const std::string& name) {
+void WriteScalar(const CptLoc& loc, const T& value,
+                 const std::string& name) {
 
   hsize_t dims[1] = {1};
   H5::DataSpace dp(1, dims);
   const H5::DataType* dataType = InferDataType<T>::get();
 
-  H5::Attribute attr = loc.createAttribute(name.c_str(), *dataType, dp);
-  attr.write(*dataType, &value);
+  H5::DataSet dataset = loc.createDataSet(name.c_str(), *dataType, dp);
+  dataset.write(&value, *dataType);
 }
 
-void WriteScalarAttribute(const H5::H5Location& obj, const std::string& value,
-                          const std::string& name);
+void WriteScalar(const CptLoc& obj, const std::string& value,
+                 const std::string& name);
 
 template <typename T>
-void WriteData(const H5::Group& loc, const Eigen::MatrixBase<T>& matrix,
+void WriteData(const CptLoc& loc, const Eigen::MatrixBase<T>& matrix,
                const std::string& name) {
 
   hsize_t dims[2] = {matrix.rows(),
                      matrix.cols()};  // eigen vectors are n,1 matrices
+
+  if (dims[1] == 0) dims[1] = 1;
 
   const H5::DataType* dataType = InferDataType<typename T::Scalar>::get();
 
@@ -104,8 +107,10 @@ void WriteData(const H5::Group& loc, const Eigen::MatrixBase<T>& matrix,
   dataset.write(matrix.derived().data(), *dataType);
 }
 
+
 template <typename T>
-void WriteData(const H5::Group& loc, const std::vector<T> v,
+typename std::enable_if<std::is_fundamental<T>::value>::type
+WriteData(const CptLoc& loc, const std::vector<T> v,
                const std::string& name) {
   hsize_t dims[2] = {(hsize_t)v.size(), 1};
 
@@ -117,8 +122,14 @@ void WriteData(const H5::Group& loc, const std::vector<T> v,
   dataset.write(&(v[0]), *dataType);
 }
 
+void WriteData(const CptLoc& loc, const votca::tools::vec& v,
+               const std::string& name);
+
+void WriteData(const CptLoc& loc, const std::vector<votca::tools::vec>& v,
+               const std::string& name);
+
 template <typename T1, typename T2>
-void WriteData(const H5::Group& loc, const std::map<T1, std::vector<T2>> map,
+void WriteData(const CptLoc& loc, const std::map<T1, std::vector<T2>> map,
                const std::string& name) {
 
   size_t c = 0;
@@ -126,40 +137,38 @@ void WriteData(const H5::Group& loc, const std::map<T1, std::vector<T2>> map,
   // Iterate over the map and write map as a number of vectors with T1 as index
   for (auto const& x : map) {
     r = std::to_string(c);
-    H5::Group tempGr = loc.createGroup("/" + name);
-    WriteScalarAttribute(tempGr, x.first, "index" + r);
-    WriteData(tempGr, x.second, "val" + r);
+    CptLoc tempGr = loc.createGroup("/" + name);
+    WriteData(tempGr, x.second, "index" + r);
     ++c;
   }
 }
 
 class Writer {
  public:
-  Writer(const H5::Group& loc) : _loc(loc){};
+  Writer(const CptLoc& loc) : _loc(loc){};
+
   // see the following links for details
   // https://stackoverflow.com/a/8671617/1186564
-  // http://en.cppreference.com/w/cpp/types/is_fundamental
-
-  // Use this overload iff T is NOT a fundamental type
   template <typename T>
-  typename std::enable_if<!std::is_fundamental<T>::value, T>::type operator()(
-      const T& data, const std::string& name) {
-    WriteData(_loc, data, name);
+  typename std::enable_if<!std::is_fundamental<T>::value>::type
+  operator()(const T& data, const std::string& name){
+      WriteData(_loc, data, name);
   }
 
+  // Use this overload iff T is a fundamental type
   // int, double, unsigned int, etc.
-  template <typename T>
-  typename std::enable_if<std::is_fundamental<T>::value, T>::type operator()(
-      const T& v, const std::string& name) {
-    WriteScalarAttribute(_loc, v, name);
+  template<typename T>
+  typename std::enable_if<std::is_fundamental<T>::value>::type
+  operator()(const T& v, const std::string& name){
+      WriteScalar(_loc, v, name);
   }
 
-  void operator()(const std::string& v, const std::string& name) {
-    WriteScalarAttribute(_loc, v, name);
+  void operator()(const std::string& v, const std::string& name){
+      WriteScalar(_loc, v, name);
   }
 
  private:
-  H5::Group _loc;
+  CptLoc _loc;
 };
 }  // namespace hdf5_utils
 
@@ -175,9 +184,10 @@ class CheckpointFile {
  private:
   std::string _fileName;
   H5::H5File _fileHandle;
-  H5::Group _child1;
   std::string _version;
 };
+
+
 }  // namespace xtp
 }  // namespace votca
 #endif  // CHECKPOINT_H
