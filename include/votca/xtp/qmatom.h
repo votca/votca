@@ -26,6 +26,7 @@
 #include <votca/tools/vec.h> 
 #include <votca/xtp/aoshell.h>
 
+#include <votca/xtp/checkpoint.h>
 
 namespace votca { namespace xtp {
     
