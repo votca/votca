@@ -370,7 +370,7 @@ bool GWBSE::Evaluate() {
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled DFT Basis of size "
                                  << _dftbasis.AOBasisSize() << flush;
-  if (_dftbasis._AOBasisFragB > 0) {
+  if (_dftbasis._AOBasisFragB > 0 && _dftbasis._AOBasisFragA>0) {
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size "
                                    << _dftbasis._AOBasisFragA << flush;
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size "
