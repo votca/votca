@@ -89,7 +89,6 @@ private:
        ar & ecpcharge;
        ar & partialcharge;
        
-   }  
 
    }
 
