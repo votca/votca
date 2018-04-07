@@ -1138,17 +1138,17 @@ if (_lmax_col > 5) {
     
 
     
-    int AOCoulomb::Symmetrize(const Eigen::MatrixXd& _gwoverlap_cholesky){
+    int AOCoulomb::Symmetrize(const Eigen::MatrixXd& _auxoverlap){
         
-       //This converts V into L(LT V L)-1/2 LT, which is needed to construct 4c integrals,
-      // e.g. <v-1/2,v-1/2>_S-1=V-1 
-      
-      
-      Eigen::MatrixXd ortho=_gwoverlap_cholesky.transpose()*_aomatrix*_gwoverlap_cholesky;
+        
+    Eigen::MatrixXd L_overlap = _auxoverlap.llt().matrixL();
+    //This converts V into (LT V L)-1/2 LT, which is needed to construct 4c integrals,
+       
+      Eigen::MatrixXd ortho=L_overlap.transpose()*_aomatrix*L_overlap;
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho); 
       Eigen::MatrixXd Vm1=es.operatorInverseSqrt();
       int removed_basisfunctions=0;
-      _aomatrix=  _gwoverlap_cholesky*Vm1*_gwoverlap_cholesky.transpose();
+      _aomatrix=  Vm1*L_overlap.transpose();
        
     return removed_basisfunctions; 
     }

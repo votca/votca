@@ -450,22 +450,7 @@ bool GWBSE::Evaluate() {
 
   _homo = _orbitals->getNumberOfElectrons() - 1;  // indexed from 0
 
-  unsigned _ignored_corelevels = 0;
-  if (_ignore_corelevels) {
-    if(!_orbitals->hasECP()){
-      BasisSet basis;
-      basis.LoadBasisSet("ecp");//
-      unsigned coreElectrons=0;
-      for(const auto& atom:_orbitals->QMAtoms()){
-        coreElectrons+=basis.getElement(atom->getType())->getNcore();   
-      }
-       _ignored_corelevels = coreElectrons/2;
-    }
-   
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Can ignore "
-                                   << _ignored_corelevels << " core levels "
-                                   << flush;
-  }
+ 
 
   _rpamin = 0;  // lowest index occ min(gwa%mmin, screening%nsum_low) ! always 1
   if (_ranges == "default" || _ranges == "full") {
@@ -502,11 +487,8 @@ bool GWBSE::Evaluate() {
   if (_qpmax > unsigned(_orbitals->getNumberOfLevels() - 1)) {
     _qpmax = _orbitals->getNumberOfLevels() - 1;
   }
-
-  // autoignore core levels in QP
-  if (_ignore_corelevels && (_qpmin < _ignored_corelevels)) {
-    _qpmin = _ignored_corelevels;
-  }
+  
+ 
 
   // set BSE band range indices
   // anything else would be stupid!
@@ -537,6 +519,28 @@ bool GWBSE::Evaluate() {
     _bse_cmax = _orbitals->getNumberOfLevels() - 1;
   }
 
+  
+  
+  unsigned _ignored_corelevels = 0;
+  if (_ignore_corelevels) {
+    if(!_orbitals->hasECP()){
+      BasisSet basis;
+      basis.LoadBasisSet("ecp");//
+      unsigned coreElectrons=0;
+      for(const auto& atom:_orbitals->QMAtoms()){
+        coreElectrons+=basis.getElement(atom->getType())->getNcore();   
+      }
+       _ignored_corelevels = coreElectrons/2;
+    }
+   
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Can ignore "
+                                   << _ignored_corelevels << " core levels "
+                                   << flush;
+  }
+  // autoignore core levels in QP
+  if (_ignore_corelevels && (_qpmin < _ignored_corelevels)) {
+    _qpmin = _ignored_corelevels;
+  }
   // autoignore core levels in BSE
   if (_ignore_corelevels && (_bse_vmin < _ignored_corelevels)) {
     _bse_vmin = _ignored_corelevels;
@@ -570,8 +574,6 @@ bool GWBSE::Evaluate() {
 
   // information for hybrid DFT
 
-  _ScaHFX = -1;
-
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set RPA level range ["
                                  << _rpamin + 1 << ":" << _rpamax + 1 << "]"
                                  << flush;
@@ -596,14 +598,14 @@ bool GWBSE::Evaluate() {
   /// ------- actual calculation begins here -------
 
   // load auxiliary basis set (element-wise information) from xml file
-  BasisSet gwbs;
-  gwbs.LoadBasisSet(_auxbasis_name);
+  BasisSet auxbs;
+  auxbs.LoadBasisSet(_auxbasis_name);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded Auxbasis Set "
                                  << _auxbasis_name << flush;
 
-  // fill auxiliary GW AO basis by going through all atoms
+  // fill auxiliary AO basis by going through all atoms
   AOBasis auxbasis;
-  auxbasis.AOBasisFill(&gwbs, _orbitals->QMAtoms());
+  auxbasis.AOBasisFill(&auxbs, _orbitals->QMAtoms());
   _orbitals->setAuxbasis(_auxbasis_name);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled Auxbasis of size "
@@ -611,7 +613,7 @@ bool GWBSE::Evaluate() {
 
   /*
    * for the representation of 2-point functions with the help of the
-   * auxiliary GW basis, its AO overlap matrix is required.
+   * auxiliary basis, its AO overlap matrix is required.
    * cf. M. Rohlfing, PhD thesis, ch. 3
    */
   AOOverlap _auxoverlap;
@@ -625,9 +627,9 @@ bool GWBSE::Evaluate() {
   /*
    *  for the calculation of Coulomb and exchange term in the self
    *  energy and electron-hole interaction, the Coulomb interaction
-   *  is represented using the auxiliary GW basis set.
+   *  is represented using the auxiliary basis set.
    *  Here, we need to prepare the Coulomb matrix expressed in
-   *  the AOs of the GW basis
+   *  the AOs of the auxbasis
    */
 
   // get Coulomb matrix as AOCoulomb
@@ -638,23 +640,13 @@ bool GWBSE::Evaluate() {
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled Aux Coulomb matrix of dimension: "
                                  << _auxcoulomb.Matrix().rows() << flush;
-
-  // PPM is symmetric, so we need to get the sqrt of the Coulomb matrix
-
  
- Eigen::MatrixXd L_overlap = _auxoverlap.Matrix().llt().matrixL();
- Eigen::MatrixXd L_overlap_inverse=L_overlap.inverse();
 
-                                                   // itself
-  int removed =0; //TODO use proper stabilisation
-    
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Removed " << removed
-      << " functions from auxoverlap to avoid near linear dependencies" << flush;
 
   int removed_functions = _auxcoulomb.Symmetrize(L_overlap);
+  _auxoverlap.Matrix().resize(0, 0);
   CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Prepared AuxCoulomb matrix for symmetric PPM"
+      << ctp::TimeStamp() << " Symmetrized AuxCoulomb matrix"
       << flush;
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Removed " << removed_functions
@@ -674,8 +666,8 @@ bool GWBSE::Evaluate() {
 
   // make _Mmn symmetric
   _Mmn.MultiplyLeftWithAuxMatrix(_auxcoulomb.Matrix());
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Symmetrize Mmn_beta for self-energy  " << flush;
+  _auxcoulomb.Matrix().resize();
+ 
 
   // for use in RPA, make a copy of _Mmn with dimensions
   // (1:HOMO)(gwabasissize,LUMO:nmax)
@@ -808,10 +800,20 @@ bool GWBSE::Evaluate() {
   }
 
   sigma_offdiag(_Mmn);
-  CTP_LOG(ctp::logDEBUG, *_pLog)
+   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
-  _auxoverlap.Matrix().resize(0, 0);
-  L_overlap_inverse.resize(0, 0);
+  Eigen::MatrixXd Hqp=SetupFullQPHamiltonian(vxc);
+  
+  
+  if ( _do_qp_diag ){
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(Hqp);
+    _qp_diag_energies=es.eigenvalues();
+    _qp_diag_coefficients=es.eigenvectors();
+    CTP_LOG(ctp::logDEBUG, *_pLog)
+      << ctp::TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
+    }
+ 
+  
   if (_iterate_gw) {
     _Mmn_backup.Cleanup();
     CTP_LOG(ctp::logDEBUG, *_pLog)
@@ -821,6 +823,11 @@ bool GWBSE::Evaluate() {
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                    << " Cleaned up Overlap and MmnRPA" << flush;
   }
+  
+  
+  
+  
+  
   // free no longer required three-center matrices in _Mmn
   // max required is _bse_cmax (could be smaller than _qpmax)
   _Mmn.Prune(_bse_vmin, _bse_cmax);

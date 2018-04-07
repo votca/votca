@@ -25,15 +25,13 @@ namespace votca {
     namespace xtp {
 
 
-        void PPM::PPM_construct_parameters(const RPA& rpa,const Eigen::MatrixXd& _overlap_cholesky_inverse) {
-            
-            // orthogonalize via L-1 epsilon L-T
-             
-            Eigen::MatrixXd ortho = _overlap_cholesky_inverse*rpa.GetEpsilon()[0]*_overlap_cholesky_inverse.transpose();
+        void PPM::PPM_construct_parameters(const RPA& rpa) {
+        
             //Solve Eigensystem
-            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho); 
+            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.GetEpsilon()[0]); 
             //we store _ppm_phi_T instead of _ppm_phi because we need it for later transformations
-            _ppm_phi_T=es.eigenvectors().transpose()*_overlap_cholesky_inverse;
+            _ppm_phi_T=es.eigenvectors().transpose();
+          
             
             // store PPM weights from eigenvalues
             _ppm_weight.resize(es.eigenvalues().size());
@@ -44,7 +42,7 @@ namespace votca {
             // determine PPM frequencies
             _ppm_freq.resize(es.eigenvalues().size());
             // a) phi^t * epsilon(1) * phi e.g. transform epsilon(1) to the same space as epsilon(0)
-           ortho=_ppm_phi_T*_epsilon[1]*_ppm_phi_T.transpose();
+           Eigen::MatrixXd ortho=_ppm_phi_T*rpa.GetEpsilon()[1]*_ppm_phi_T.transpose();
            Eigen::MatrixXd epsilon_1_inv=ortho.inverse();
            
             
@@ -69,9 +67,6 @@ namespace votca {
                 }
 
             }
- 
-           
-            
 
             return;
         }

@@ -34,8 +34,7 @@ class PPM {
  public:
      
      
- void PPM_construct_parameters(const RPA& rpa,
-      const Eigen::MatrixXd& _overlap_cholesky_inverse);
+ void PPM_construct_parameters(const RPA& rpa);
 
  const Eigen::VectorXd& getPpm_weight() const {
      return _ppm_weight;
@@ -49,7 +48,9 @@ class PPM {
      return _ppm_phi_T;
  }     
      
-     
+ void FreeMatrix(){
+     _ppm_phi_T.resize(0,0);
+ }
      
  private:
  
@@ -59,6 +60,8 @@ class PPM {
   Eigen::MatrixXd _ppm_phi_T;
   Eigen::VectorXd _ppm_freq;
   Eigen::VectorXd _ppm_weight;
+  
+  
  
 
   

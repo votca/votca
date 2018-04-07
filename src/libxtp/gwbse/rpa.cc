@@ -36,13 +36,7 @@ namespace votca {
         Eigen::MatrixXd RPA::RPA_imaginary(const Eigen::VectorXd& qp_energies,const double screening_freq) {
 
 
-              Eigen::MatrixXd RPA::GetScreening_freq() const {
-                  return _screening_freq;
-              }
-
-              std::vector<Eigen::MatrixXd> RPA::GetEpsilon() const {
-                  return _epsilon;
-              }            const int _size = _Mmn_RPA.getAuxDimension(); // size of gwbasis
+            const int _size = _Mmn_RPA.getAuxDimension(); // size of gwbasis
             const int index_n = _Mmn_RPA.get_nmin();
             const int index_m = _Mmn_RPA.get_mmin();
             const double screenf2=screening_freq * screening_freq;
@@ -136,10 +130,11 @@ namespace votca {
         
 void RPA::RPA_calculate_epsilon(const Eigen::VectorXd& qp_energies) {
   
-  // I do not really know why, TODO initialize with zero and change auxbasis of Coulomb to use orthogonal space, remove cholesky from ppm 
+ 
       for (auto& matrix : _epsilon) {
-        matrix = *_AuxOverlap;
+        matrix = Eigen::MatrixXd::Identity(_Mmn_RPA.getAuxDimension(),_Mmn_RPA.getAuxDimension());
       }
+      
       // loop over frequencies
       for (unsigned _i_freq = 0; _i_freq < _screening_freq.rows(); _i_freq++) {
 

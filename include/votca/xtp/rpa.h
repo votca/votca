@@ -33,8 +33,7 @@ namespace xtp {
 
 class RPA {
  public:
-  RPA(const Eigen::MatrixXd* AuxOverlap)
-      : _AuxOverlap(AuxOverlap){};
+
         
         
         void configure(unsigned homo,unsigned rpamin,unsigned rpamax){
@@ -68,10 +67,8 @@ void RPA_prepare_threecenters(const TCMatrix_gwbse& _Mmn_full);
 
   
  private:
-  Eigen::MatrixXd* _AuxOverlap;
   TCMatrix_gwbse _Mmn_RPA;
 
-  
   unsigned _homo;   // HOMO index
   unsigned _rpamin;
   unsigned _rpamax;

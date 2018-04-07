@@ -89,7 +89,6 @@ namespace votca { namespace xtp {
         const Eigen::MatrixXd &Matrix() const{ return _aomatrix ;};
         
         
-        
         void Fill(const AOBasis& aobasis, vec r = vec(0,0,0) , AOBasis* ecp = NULL );
         
         // matrix print 
@@ -283,7 +282,7 @@ namespace votca { namespace xtp {
     public:
     
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
-        int Symmetrize(const Eigen::MatrixXd& _gwoverlap_cholesky);
+        int Symmetrize(const Eigen::MatrixXd& _auxoverlap);
         int Invert_DFT();
        
         

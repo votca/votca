@@ -41,34 +41,25 @@ namespace votca {
         
         
 
-        Eigen::MatrixXd GWBSE::FullQPHamiltonian(){
+        Eigen::MatrixXd GWA::SetupFullQPHamiltonian(const Eigen::MatrixXd& vxc ){
             
-            // constructing full QP Hamiltonian, storage in vxc
-            Eigen::MatrixXd Hqp = -_vxc + _sigma_x + _sigma_c;
+            // constructing full QP Hamiltonian
+            Eigen::MatrixXd Hqp = -vxc + _sigma_x + _sigma_c;
             // diagonal elements are given by _qp_energies
             for (unsigned _m = 0; _m < Hqp.rows(); _m++ ){
               Hqp( _m,_m ) = _qp_energies( _m + _qpmin );
             }
-
              // sigma matrices can be freed
             _sigma_x.resize(0,0);
             _sigma_c.resize(0,0);
-            
-            
-            
-            if ( _do_qp_diag ){
-                Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(Hqp);
-                _qp_diag_energies=es.eigenvalues();
-                _qp_diag_coefficients=es.eigenvectors();
-            }
            return Hqp; 
         }
         
         
-        void GWBSE::sigma_diag(const TCMatrix_gwbse& _Mmn){
+        void GWA::sigma_diag(const TCMatrix_gwbse& _Mmn,const PPM & ppm,const Eigen::MatrixXd& vxc ){
             
-            unsigned _levelsum = _Mmn[0].cols(); // total number of bands
-            unsigned _gwsize = _Mmn[0].rows(); // size of the GW basis
+            unsigned _levelsum = _Mmn.get_ntot(); // total number of bands
+            unsigned _gwsize = _Mmn.getAuxDimension(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
 
             
@@ -137,7 +128,7 @@ namespace votca {
                     _sigma_c(_gw_level, _gw_level)=sigma_c;
                     // update _qp_energies
                    
-                    _qp_energies(_gw_level + _qpmin) = dftenergies(_gw_level + _qpmin) + sigma_c + _sigma_x(_gw_level, _gw_level) - _vxc(_gw_level, _gw_level);
+                    _qp_energies(_gw_level + _qpmin) = dftenergies(_gw_level + _qpmin) + sigma_c + _sigma_x(_gw_level, _gw_level) - vxc(_gw_level, _gw_level);
 
                 }// all bands
                 Eigen::VectorXd diff= _qp_old - _qp_energies;
@@ -179,9 +170,9 @@ namespace votca {
 
       
        
-         void GWBSE::sigma_offdiag(const TCMatrix_gwbse& _Mmn) {
-            unsigned _levelsum = _Mmn[0].cols(); // total number of bands
-            unsigned _gwsize = _Mmn[0].rows(); // size of the GW basis
+         void GWA::sigma_offdiag(const TCMatrix_gwbse& _Mmn,const PPM & ppm ) {
+            unsigned _levelsum = _Mmn.get_ntot(); // total number of bands
+            unsigned _gwsize = _Mmn.getAuxDimension(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
            
             #pragma omp parallel for
