@@ -45,12 +45,15 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 
     (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,&mtop);
 
-    int count=0;
-    for(int iblock=0; iblock<mtop.nmolblock; ++iblock)
-        count+=mtop.molblock[iblock].nmol;
-
     int ifirstatom = 0;
-    for(int iblock=0; iblock<mtop.nmolblock; ++iblock) {
+    
+#if GROMACS_VERSION >= 20190000
+    size_t nmolblock=mtop.molblock.size();
+#else
+    size_t nmolblock=mtop.nmolblock;
+#endif
+
+    for(int iblock=0; iblock<nmolblock; ++iblock) {
         gmx_moltype_t *mol
                 = &(mtop.moltype[mtop.molblock[iblock].type]);
 
