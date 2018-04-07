@@ -78,6 +78,7 @@
       <itemPath>../../include/votca/xtp/aoshell.h</itemPath>
       <itemPath>../../include/votca/xtp/basisset.h</itemPath>
       <itemPath>../../include/votca/xtp/bfgs-trm.h</itemPath>
+      <itemPath>../../include/votca/xtp/bse.h</itemPath>
       <itemPath>../../include/votca/xtp/bsecoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/calculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/chargecarrier.h</itemPath>
@@ -97,6 +98,7 @@
       <itemPath>../../include/votca/xtp/grid.h</itemPath>
       <itemPath>../../include/votca/xtp/grid_containers.h</itemPath>
       <itemPath>../../include/votca/xtp/gridbox.h</itemPath>
+      <itemPath>../../include/votca/xtp/gwa.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbse.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbseengine.h</itemPath>
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
@@ -108,6 +110,7 @@
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
+      <itemPath>../../include/votca/xtp/ppm.h</itemPath>
       <itemPath>../../include/votca/xtp/qmapemachine.h</itemPath>
       <itemPath>../../include/votca/xtp/qmatom.h</itemPath>
       <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
@@ -117,6 +120,7 @@
       <itemPath>../../include/votca/xtp/qmpackage.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackagefactory.h</itemPath>
       <itemPath>../../include/votca/xtp/radial_euler_maclaurin_rule.h</itemPath>
+      <itemPath>../../include/votca/xtp/rpa.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaversqlite.h</itemPath>
@@ -193,6 +197,7 @@
         <itemPath>../../src/libxtp/gwbse/gwa.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbse.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbseengine.cc</itemPath>
+        <itemPath>../../src/libxtp/gwbse/ppm.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/rpa.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="kmc" projectFiles="true">
@@ -313,6 +318,8 @@
       </item>
       <item path="../../include/votca/xtp/bfgs-trm.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/bse.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/bsecoupling.h"
             ex="false"
             tool="3"
@@ -381,6 +388,8 @@
       </item>
       <item path="../../include/votca/xtp/gridbox.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/gwa.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbseengine.h"
@@ -418,6 +427,8 @@
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/ppm.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/qmapemachine.h"
             ex="false"
             tool="3"
@@ -451,6 +462,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sphere_lebedev_rule.h"
             ex="false"
@@ -712,6 +725,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1014,6 +1029,8 @@
       </item>
       <item path="../../include/votca/xtp/bfgs-trm.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/bse.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/bsecoupling.h"
             ex="false"
             tool="3"
@@ -1082,6 +1099,8 @@
       </item>
       <item path="../../include/votca/xtp/gridbox.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/gwa.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbseengine.h"
@@ -1119,6 +1138,8 @@
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/ppm.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/qmapemachine.h"
             ex="false"
             tool="3"
@@ -1152,6 +1173,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sphere_lebedev_rule.h"
             ex="false"
@@ -1413,6 +1436,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>

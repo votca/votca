@@ -679,24 +679,12 @@ bool GWBSE::Evaluate() {
 
   // for use in RPA, make a copy of _Mmn with dimensions
   // (1:HOMO)(gwabasissize,LUMO:nmax)
-  TCMatrix_gwbse _Mmn_RPA;
-  _Mmn_RPA.Initialize(auxbasis.AOBasisSize(), _rpamin, _homo, _homo + 1,
-                      _rpamax);
+ 
   RPA_prepare_threecenters(_Mmn_RPA, _Mmn);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Prepared Mmn_beta for RPA  " << flush;
 
-  // fix the frequencies for PPM
-  _screening_freq = Eigen::MatrixXd::Zero(2, 2);  // two frequencies
-  // first one
-  _screening_freq(0, 0) = 0.0;  // real part
-  _screening_freq(0, 1) = 0.0;  // imaginary part
-  // second one
-  _screening_freq(1, 0) = 0.0;  // real part
-  _screening_freq(1, 1) = 0.5;  // imaginary part  //hartree
-
-  // one entry to epsilon for each frequency
-  _epsilon.resize(_screening_freq.rows());
+  
 
   /* for automatic iteration of _shift, we need to
    * - make a copy of _Mmn
@@ -719,8 +707,6 @@ bool GWBSE::Evaluate() {
     }
   }
 
-  _sigma_c.resize(_qptotal,_qptotal);
-  _sigma_x.resize(_qptotal,_qptotal);
 
   TCMatrix_gwbse _Mmn_backup;
   if (_iterate_gw) {
@@ -744,10 +730,7 @@ bool GWBSE::Evaluate() {
                                      << _gw_sc_max_iterations << flush;
     }
 
-    // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
-    for (unsigned _i_freq = 0; _i_freq < _screening_freq.rows(); _i_freq++) {
-      _epsilon[_i_freq] = _auxoverlap.Matrix();
-    }
+  
 
     // determine epsilon from RPA
     RPA_calculate_epsilon(_Mmn_RPA);
@@ -829,7 +812,6 @@ bool GWBSE::Evaluate() {
       << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
   _auxoverlap.Matrix().resize(0, 0);
   L_overlap_inverse.resize(0, 0);
-  _Mmn_RPA.Cleanup();
   if (_iterate_gw) {
     _Mmn_backup.Cleanup();
     CTP_LOG(ctp::logDEBUG, *_pLog)

@@ -41,13 +41,13 @@ namespace votca {
         
         
 
-        void GWBSE::FullQPHamiltonian(){
+        Eigen::MatrixXd GWBSE::FullQPHamiltonian(){
             
             // constructing full QP Hamiltonian, storage in vxc
-            _vxc = -_vxc + _sigma_x + _sigma_c;
+            Eigen::MatrixXd Hqp = -_vxc + _sigma_x + _sigma_c;
             // diagonal elements are given by _qp_energies
-            for (unsigned _m = 0; _m < _vxc.rows(); _m++ ){
-              _vxc( _m,_m ) = _qp_energies( _m + _qpmin );
+            for (unsigned _m = 0; _m < Hqp.rows(); _m++ ){
+              Hqp( _m,_m ) = _qp_energies( _m + _qpmin );
             }
 
              // sigma matrices can be freed
@@ -57,11 +57,11 @@ namespace votca {
             
             
             if ( _do_qp_diag ){
-                Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_vxc);
+                Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(Hqp);
                 _qp_diag_energies=es.eigenvalues();
                 _qp_diag_coefficients=es.eigenvectors();
             }
-           return; 
+           return Hqp; 
         }
         
         

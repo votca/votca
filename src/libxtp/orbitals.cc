@@ -76,15 +76,10 @@ namespace votca {
 
         };
 
-        
-
         void Orbitals::setNumberOfLevels(const int &occupied_levels, const int &unoccupied_levels) {
-            // _has_occupied_levels = true; 
-            // _has_unoccupied_levels = true; 
             _occupied_levels = occupied_levels;
             _unoccupied_levels = unoccupied_levels;
         }
-      
 
         /**
          * 
@@ -255,17 +250,16 @@ namespace votca {
           
           Eigen::MatrixXd occstates=_mo_coefficients.block(0,0,_mo_coefficients.rows(),_occupied_levels);
           Eigen::MatrixXd dmatGS = 2.0*occstates*occstates.transpose();
-
-            return dmatGS;
+          return dmatGS;
         }
         
         Eigen::MatrixXd Orbitals::LambdaMatrixQuasiParticle(){
-          return _QPdiag_coefficients*_mo_coefficients.block(_qpmin,0,_qpmax+1-_qpmin,_basis_set_size);
+          return _QPdiag_coefficients*_mo_coefficients.block(0,_qpmin,_mo_coefficients.rows(),_qptotal);
         }
         
         // Determine QuasiParticle Density Matrix
         Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle( int state){
-          Eigen::MatrixXd lambda =_QPdiag_coefficients*_mo_coefficients.block(_qpmin,0,_qptotal,_basis_set_size);
+          Eigen::MatrixXd lambda =_QPdiag_coefficients*_mo_coefficients.block(0,_qpmin,_mo_coefficients.rows(),_qptotal);
           Eigen::MatrixXd dmatQP=lambda.row(state)*lambda.row(state).transpose();
           return dmatQP;
         }
@@ -306,7 +300,7 @@ namespace votca {
                         for (unsigned i = 0; i < _bse_size; i++) {
                             int occ = _index2v[i];
                             int virt = _index2c[i];
-                            dmatTS(a, b) += sqrt2 * (_BSECoefs(i, state) + _BSECoefs_AR(i, state)) * _mo_coefficients(occ, a) * _mo_coefficients(virt, b); //check factor 2??
+                            dmatTS(a, b) += sqrt2 * (_BSECoefs(i, state) + _BSECoefs_AR(i, state)) * _mo_coefficients(a,occ) * _mo_coefficients(b,virt); //check factor 2??
                         }
                     }
                 }
@@ -318,7 +312,7 @@ namespace votca {
                         for (unsigned i = 0; i < _bse_size; i++) {
                             int occ = _index2v[i];
                             int virt = _index2c[i];
-                            dmatTS(a, b) += sqrt2 * _BSECoefs(i, state) * _mo_coefficients(occ, a) * _mo_coefficients(virt, b); //check factor 2??
+                            dmatTS(a, b) += sqrt2 * _BSECoefs(i, state) * _mo_coefficients(a,occ) * _mo_coefficients(b,virt); //check factor 2??
                         }
                     }
                 }
@@ -427,12 +421,12 @@ namespace votca {
 
             // hole part as matrix products
             // get slice of MOs of occs only
-            Eigen::MatrixXd _occlevels = _mo_coefficients.block(_vmin,0, _bse_vtotal, _basis_set_size);
+            Eigen::MatrixXd _occlevels = _mo_coefficients.block(0,_vmin,_mo_coefficients.rows(), _bse_vtotal);
             dmatEX[0] = _occlevels.transpose()*_Avv*_occlevels;
 
             // electron part as matrix products
             // get slice of MOs of virts only
-            Eigen::MatrixXd  _virtlevels = _mo_coefficients.block(_cmin,0,_bse_ctotal, _basis_set_size);
+            Eigen::MatrixXd  _virtlevels = _mo_coefficients.block(0,_cmin,_mo_coefficients.rows(),_bse_ctotal);
             dmatEX[1] = _virtlevels.transpose()*_Acc*_virtlevels;
 
             return dmatEX;
@@ -522,12 +516,12 @@ namespace votca {
 
             // hole part as matrix products
             // get slice of MOs of occs only
-            Eigen::MatrixXd _occlevels = _mo_coefficients.block(_vmin,0, _bse_vtotal, _basis_set_size);
+            Eigen::MatrixXd _occlevels = _mo_coefficients.block(0,_vmin,_mo_coefficients.rows(), _bse_vtotal);
             dmatEX[0] = _occlevels.transpose()*_Bvv*_occlevels;
 
             // electron part as matrix products
             // get slice of MOs of virts only
-            Eigen::MatrixXd  _virtlevels = _mo_coefficients.block(_cmin,0,_bse_ctotal, _basis_set_size);
+            Eigen::MatrixXd  _virtlevels = _mo_coefficients.block(0,_cmin,_mo_coefficients.rows(),_bse_ctotal);
             dmatEX[1] = _virtlevels.transpose()*_Bcc*_virtlevels;
 
             return dmatAR;
@@ -580,10 +574,8 @@ namespace votca {
                 throw std::runtime_error("GetTotalEnergy only knows spintypes:singlet,triplet");
             }
 
-
             // DFT total energy is stored in eV
-            // singlet energies are stored in Ryd...
-
+            // singlet energies are stored in Hrt...
             return _total_energy = _dft_energy * tools::conv::ev2hrt + _omega; //  e.g. hartree
         }
 
@@ -635,7 +627,7 @@ namespace votca {
 
 
             Eigen::MatrixXd& _mo_coefficients = _orbitalsAB->MOCoefficients();
-            _mo_coefficients=Eigen::MatrixXd::Zero(_levelsA + _levelsB, _basisA + _basisB);
+            _mo_coefficients=Eigen::MatrixXd::Zero( _basisA + _basisB,_levelsA + _levelsB);
 
             // AxB = | A 0 |  //   A = [EA, EB]  //
             //       | 0 B |  //                 //
@@ -644,8 +636,8 @@ namespace votca {
                     _levelsA + _levelsB - _electronsA - _electronsB);
             _orbitalsAB->setNumberOfElectrons(_electronsA + _electronsB);
             
-            _mo_coefficients.block(0,0,_levelsA,_basisA)=_orbitalsA->MOCoefficients();
-            _mo_coefficients.block(_levelsA,_basisA,_levelsB,_basisB)=_orbitalsB->MOCoefficients();
+            _mo_coefficients.block(0,0,_basisA,_levelsA)=_orbitalsA->MOCoefficients();
+            _mo_coefficients.block(_basisA,_levelsA,_basisB,_levelsB)=_orbitalsB->MOCoefficients();
 
             Eigen::VectorXd& _energies = _orbitalsAB->MOEnergies();
             _energies.resize(_levelsA + _levelsB);

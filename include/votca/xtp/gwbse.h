@@ -70,7 +70,6 @@ class GWBSE {
         _bse_triplet_energies(orbitals->BSETripletEnergies()),
         _bse_triplet_coefficients(orbitals->BSETripletCoefficients()){};
 
-  ~GWBSE(){};
 
   void Initialize(Property* options);
 
@@ -78,8 +77,6 @@ class GWBSE {
 
   void CleanUp();
 
-  // int getMlower(){ return mmin -1; };
-  // int getMupper(){ return mmax -1; };
 
   void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
 
