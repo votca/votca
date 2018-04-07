@@ -53,7 +53,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     size_t nmolblock=mtop.nmolblock;
 #endif
 
-    for(int iblock=0; iblock<nmolblock; ++iblock) {
+    for(size_t iblock=0; iblock<nmolblock; ++iblock) {
         gmx_moltype_t *mol
                 = &(mtop.moltype[mtop.molblock[iblock].type]);
 
