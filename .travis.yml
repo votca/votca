@@ -55,8 +55,8 @@ env:
     - WALL=yes GMX_VERSION=5.1 GMX_DOUBLE=yes J=4
     - WALL=yes GMX_VERSION=2018 J=4
     - WALL=yes GMX_VERSION=2018 GMX_DOUBLE=yes J=4
-    - WALL=yes GMX_VERSION=9999 J=4
-    - WALL=yes GMX_VERSION=9999 GMX_DOUBLE=yes J=4
+#    - WALL=yes GMX_VERSION=9999 J=4
+#    - WALL=yes GMX_VERSION=9999 GMX_DOUBLE=yes J=4
     - MINIMAL=yes J=4
     - CSG_MDRUN_STEPS=500 TEST=hexane/ibi_bonded J=4
     - CSG_MDRUN_STEPS=500 TEST=hexane/ibi J=4
