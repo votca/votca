@@ -47,9 +47,10 @@ namespace votca {
 
         
         
-        void ERIs::Initialize_4c_diagonals(AOBasis &_dftbasis) {
+        void ERIs::Initialize_4c_screening(AOBasis &_dftbasis, double eps) {
           
           _with_screening = true;
+          _screening_eps = eps;
           CalculateERIsDiagonals(_dftbasis);
           return;
         }
@@ -230,7 +231,7 @@ namespace votca {
                     const AOShell& shell_2 = *dftbasis.getShell(iShell_2);
 
                     // Pre-screening
-                    if (_with_screening && CheckScreen(1e-10, shell_1, shell_2, shell_3, shell_4))
+                    if (_with_screening && CheckScreen(_screening_eps, shell_1, shell_2, shell_3, shell_4))
                       continue;
 
                     // Get the current 4c block

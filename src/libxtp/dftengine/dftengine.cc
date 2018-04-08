@@ -77,8 +77,10 @@ namespace votca {
             }
             
             _four_center_method = options->ifExistsReturnElseReturnDefault<string>(key + ".four_center_method", "cache");
+            
             _with_screening = options->ifExistsReturnElseReturnDefault<bool>(key + ".with_screening", false);
-
+            _screening_eps = options->ifExistsReturnElseReturnDefault<double>(key + ".screening_eps", 1e-7);
+            
             if (options->exists(key + ".ecp")) {
                 _ecp_name = options->get(key + ".ecp").as<string>();
                 _with_ecp = true;
@@ -482,7 +484,7 @@ namespace votca {
               if (_with_screening) {
                 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c diagonals. " << flush;
-                _ERIs.Initialize_4c_diagonals(_dftbasis);
+                _ERIs.Initialize_4c_screening(_dftbasis, _screening_eps);
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c diagonals. " << flush;
               }
             }
