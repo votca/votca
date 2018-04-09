@@ -20,7 +20,6 @@
 #include <vector>
 #include <string>
 
-#include <votca/xtp/polarsite.h>
 #include <votca/xtp/apolarsite.h>
 #include <votca/xtp/atom.h>
 #include <votca/xtp/fragment.h>
@@ -87,7 +86,7 @@ Segment::~Segment() {
   _atoms.clear();
 
   _eMpoles.clear();
-  _polarSites.clear();
+  _apolarSites.clear();
 }
 
 void Segment::TranslateBy(const vec &shift) {
@@ -301,12 +300,6 @@ void Segment::AddFragment(Fragment *fragment) {
 void Segment::AddAtom(Atom *atom) {
   _atoms.push_back(atom);
   atom->setSegment(this);
-}
-
-void Segment::AddPolarSite(PolarSite *pole) {
-
-  _polarSites.push_back(pole);
-  pole->setSegment(this);
 }
 
 void Segment::AddAPolarSite(APolarSite *pole) {
