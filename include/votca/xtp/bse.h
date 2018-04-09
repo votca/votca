@@ -34,6 +34,7 @@ namespace xtp {
 class BSE {
  public:
   BSE(Orbitals* orbitals):
+        _orbitals(orbitals),
         _eh_x(orbitals->eh_x()),
         _eh_d(orbitals->eh_d()),
         _bse_singlet_energies(orbitals->BSESingletEnergies()),
@@ -43,8 +44,27 @@ class BSE {
         _bse_triplet_coefficients(orbitals->BSETripletCoefficients()){};
 
   ~BSE(){};
-
   
+  void setBSEindices(int vmin, int vmax, int cmin, int cmax, int nmax) {
+                _bse_vmin = vmin;
+                _bse_vmax = vmax;
+                _bse_cmin = cmin;
+                _bse_cmax = cmax;
+                _bse_nmax = nmax;
+                _bse_vtotal = _bse_vmax - _bse_vmin + 1;
+                _bse_ctotal = _bse_cmax - _bse_cmin + 1;
+                _bse_size = _bse_vtotal * _bse_ctotal;
+                return;
+            }
+
+  void Setup_Hx(TCMatrix_gwbse& _Mmn);
+  void Setup_Hd(TCMatrix_gwbse& _Mmn);
+  void Setup_Hd_BTDA(TCMatrix_gwbse& _Mmn);
+  void Setup_Hqp();
+  
+  void Solve_triplets();
+  void Solve_singlets();
+  void Solve_singlets_BTDA();
 
  
 
@@ -54,7 +74,7 @@ class BSE {
   // BSE variant
   bool _do_full_BSE;
 
-
+void Add_HqpToH(MatrixXfd& qp);
   
   unsigned  _bse_vmin;
   unsigned  _bse_vmax;
@@ -67,6 +87,7 @@ class BSE {
   int _bse_nprint;
   double _min_print_weight;
 
+  Orbitals* _orbitals;
   
 
   // BSE variables and functions
@@ -86,39 +107,32 @@ class BSE {
 
   std::vector<Eigen::MatrixXd > _interlevel_dipoles;
   std::vector<Eigen::MatrixXd > _interlevel_dipoles_electrical;
-  void BSE_x_setup(TCMatrix_gwbse& _Mmn);
-  void BSE_d_setup(TCMatrix_gwbse& _Mmn);
-  void BSE_d2_setup(TCMatrix_gwbse& _Mmn);
-  void BSE_qp_setup();
-  void BSE_Add_qp2H(MatrixXfd& qp);
-  void BSE_solve_triplets();
-  void BSE_solve_singlets();
-  void BSE_solve_singlets_BTDA();
+  
 
   void Solve_nonhermitian(Eigen::MatrixXd& H, Eigen::MatrixXd& L);
   std::vector<int> _index2v;
   std::vector<int> _index2c;
 
   // some cleaner analysis
-  void BSE_analyze_triplets();
-  void BSE_analyze_singlets();
+  void Analyze_triplets();
+  void Analyze_singlets();
  
 
-  void BSE_analyze_eh_interaction_Triplet(std::vector<real_gwbse>& _c_d,
+  void Analyze_eh_interaction_Triplet(std::vector<real_gwbse>& _c_d,
                                           std::vector<real_gwbse>& _c_qp);
   
-  void BSE_analyze_eh_interaction_Singlet(std::vector<real_gwbse>& _c_x,
+  void Analyze_eh_interaction_Singlet(std::vector<real_gwbse>& _c_x,
                                                std::vector<real_gwbse>& _c_d,
                                                std::vector<real_gwbse>& _c_qp);
 
-  void BSE_FragmentPopulations(const string& spin,
+  void FragmentPopulations(const string& spin,
                                std::vector<Eigen::VectorXd >& popH,
                                std::vector<Eigen::VectorXd >& popE,
                                std::vector<Eigen::VectorXd >& Crgs);
 
-  void BSE_FreeTransition_Dipoles();
+  void CalcFreeTransition_Dipoles();
 
-  void BSE_CoupledTransition_Dipoles();
+  void CalcCoupledTransition_Dipoles();
 };
 }
 }

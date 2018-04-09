@@ -58,17 +58,7 @@ namespace xtp {
 class GWBSE {
  public:
   GWBSE(Orbitals* orbitals)
-      : _orbitals(orbitals),
-        _dft_orbitals(orbitals->MOCoefficients()),
-        _qp_diag_energies(orbitals->QPdiagEnergies()),
-        _qp_diag_coefficients(orbitals->QPdiagCoefficients()),
-        _eh_x(orbitals->eh_x()),
-        _eh_d(orbitals->eh_d()),
-        _bse_singlet_energies(orbitals->BSESingletEnergies()),
-        _bse_singlet_coefficients(orbitals->BSESingletCoefficients()),
-        _bse_singlet_coefficients_AR(orbitals->BSESingletCoefficientsAR()),
-        _bse_triplet_energies(orbitals->BSETripletEnergies()),
-        _bse_triplet_coefficients(orbitals->BSETripletCoefficients()){};
+      : _orbitals(orbitals){};
 
 
   void Initialize(Property* options);
@@ -122,42 +112,32 @@ class GWBSE {
 
   // BSE variant
   bool _do_full_BSE;
-  bool _ignore_corelevels;
-
 
   // basis sets
   std::string _auxbasis_name;
   std::string _dftbasis_name;
-
-  std::string _ranges;  // range types
-  unsigned int _homo;   // HOMO index
-  unsigned int _rpamin;
-  unsigned int _rpamax;
-  double _rpamaxfactor;  // RPA level range
-  unsigned int _qpmin;
-  unsigned int _qpmax;
-  unsigned int i;
-  double _qpminfactor;
-  double _qpmaxfactor;  // QP level range
-  double _bseminfactor;
-  double _bsemaxfactor;
-  double _ScaHFX;
+  
+  unsigned _homo;   // HOMO index
+  unsigned _rpamin;
+  unsigned _rpamax;
+  unsigned _qpmin;
+  unsigned _qpmax;
+  unsigned _qptotal;
 
   double _g_sc_limit;  // convergence criteria for g iteration [Hartree]]
-  unsigned int _g_sc_max_iterations;
-  unsigned int _gw_sc_max_iterations;
+  unsigned _g_sc_max_iterations;
+  unsigned _gw_sc_max_iterations;
   double _gw_sc_limit;  // convergence criteria for gw iteration [Hartree]]
-  unsigned int _bse_vmin;
-  unsigned int _bse_vmax;
-  unsigned int _bse_cmin;
-  unsigned int _bse_cmax;
-  unsigned int _bse_size;
-  unsigned int _bse_vtotal;
-  unsigned int _bse_ctotal;
-  int _bse_nmax;
-  int _bse_nprint;
+  unsigned _bse_vmin;
+  unsigned _bse_vmax;
+  unsigned _bse_cmin;
+  unsigned _bse_cmax;
+  int _bse_maxeigenvectors;
+  int _bse_printNoEigenvectors;
   double _min_print_weight;
 
+  
+  
   double _shift;  // pre-shift of DFT energies
   AOBasis _dftbasis;
 
@@ -169,56 +149,8 @@ class GWBSE {
 
 
 
-  // BSE variables and functions
-  MatrixXfd& _eh_x;  // stored in orbitals object
-  MatrixXfd& _eh_d;  // stored in orbitals object
-  MatrixXfd _eh_d2;  // because it is not stored in orbitals object
-  MatrixXfd _eh_qp;
-
-  VectorXfd& _bse_singlet_energies;  // stored in orbitals object
-  MatrixXfd& _bse_singlet_coefficients;  // stored in orbitals
-                                                      // object
-  MatrixXfd& _bse_singlet_coefficients_AR;  // stored in orbitals
-                                                         // object
-  VectorXfd& _bse_triplet_energies;  // stored in orbitals object
-  MatrixXfd& _bse_triplet_coefficients;  // stored in orbitals
-                                                      // object
-
-  std::vector<Eigen::MatrixXd > _interlevel_dipoles;
-  std::vector<Eigen::MatrixXd > _interlevel_dipoles_electrical;
-  void BSE_x_setup(TCMatrix_gwbse& _Mmn);
-  void BSE_d_setup(TCMatrix_gwbse& _Mmn);
-  void BSE_d2_setup(TCMatrix_gwbse& _Mmn);
-  void BSE_qp_setup();
-  void BSE_Add_qp2H(MatrixXfd& qp);
-  void BSE_solve_triplets();
-  void BSE_solve_singlets();
-  void BSE_solve_singlets_BTDA();
-
-  void Solve_nonhermitian(Eigen::MatrixXd& H, Eigen::MatrixXd& L);
-  std::vector<int> _index2v;
-  std::vector<int> _index2c;
-
-  // some cleaner analysis
-  void BSE_analyze_triplets();
-  void BSE_analyze_singlets();
- 
-
-  void BSE_analyze_eh_interaction_Triplet(std::vector<real_gwbse>& _c_d,
-                                          std::vector<real_gwbse>& _c_qp);
   
-  void BSE_analyze_eh_interaction_Singlet(std::vector<real_gwbse>& _c_x,
-                                               std::vector<real_gwbse>& _c_d,
-                                               std::vector<real_gwbse>& _c_qp);
 
-  void BSE_FragmentPopulations(const string& spin,
-                               std::vector<Eigen::VectorXd >& popH,
-                               std::vector<Eigen::VectorXd >& popE,
-                               std::vector<Eigen::VectorXd >& Crgs);
-
-  void BSE_FreeTransition_Dipoles();
-
-  void BSE_CoupledTransition_Dipoles();
 };
 }
 }

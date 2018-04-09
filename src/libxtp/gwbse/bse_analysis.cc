@@ -17,7 +17,7 @@
  *
  */
 
-#include <votca/xtp/gwbse.h>
+#include <votca/xtp/bse.h>
 
 using boost::format;
 using namespace boost::filesystem;
@@ -30,23 +30,23 @@ namespace votca {
         // MBPT MEMBER FUNCTIONS         //
         // +++++++++++++++++++++++++++++ //
         
-        void GWBSE::BSE_analyze_singlets() {
+        void BSE::Analyze_singlets() {
            
             // expectation values, contributions from e-h coupling
             std::vector<real_gwbse> _contrib_x(_bse_nprint, 0.0);
             std::vector<real_gwbse> _contrib_d(_bse_nprint, 0.0);
             std::vector<real_gwbse> _contrib_qp(_bse_nprint, 0.0);
-            BSE_analyze_eh_interaction_Singlet(_contrib_x, _contrib_d, _contrib_qp );
+            Analyze_eh_interaction_Singlet(_contrib_x, _contrib_d, _contrib_qp );
                       
             // for transition dipole moments
-            BSE_FreeTransition_Dipoles();
+            CalcFreeTransition_Dipoles();
    
-            BSE_CoupledTransition_Dipoles();
+            CalcCoupledTransition_Dipoles();
             std::vector< Eigen::VectorXd > _popH;
             std::vector< Eigen::VectorXd > _popE;
             std::vector< Eigen::VectorXd > _Chrg;
 
-            BSE_FragmentPopulations("singlet",_popH, _popE, _Chrg);
+            FragmentPopulations("singlet",_popH, _popE, _Chrg);
             _orbitals->setFragmentChargesSingEXC(_Chrg);
             _orbitals->setFragment_E_localisation_singlet(_popE);
             _orbitals->setFragment_H_localisation_singlet(_popH);
@@ -109,7 +109,7 @@ namespace votca {
         
         
         
-         void GWBSE::BSE_analyze_eh_interaction_Singlet(std::vector<real_gwbse>& _c_x, std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp) {
+         void BSE::Analyze_eh_interaction_Singlet(std::vector<real_gwbse>& _c_x, std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp) {
 
 
             if (tools::globals::verbose) {
@@ -143,7 +143,7 @@ namespace votca {
         
 
               
-        void GWBSE::BSE_analyze_eh_interaction_Triplet(std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp) {
+        void BSE::Analyze_eh_interaction_Triplet(std::vector<real_gwbse>& _c_d, std::vector<real_gwbse>& _c_qp) {
 
             if (tools::globals::verbose) {
                 for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
@@ -156,7 +156,7 @@ namespace votca {
             return;
         }
         
-        void GWBSE::BSE_FragmentPopulations(const string& spin,std::vector< Eigen::VectorXd >& popH,
+        void BSE::FragmentPopulations(const string& spin,std::vector< Eigen::VectorXd >& popH,
                 std::vector< Eigen::VectorXd >& popE, std::vector< Eigen::VectorXd >& Crgs) {
                        
             // Mulliken fragment population analysis
@@ -195,7 +195,7 @@ namespace votca {
         
         
         
-        void GWBSE::BSE_FreeTransition_Dipoles(){
+        void BSE::CalcFreeTransition_Dipoles(){
             
              // Testing electric dipole AOMatrix
             AODipole _dft_dipole;
@@ -217,7 +217,7 @@ namespace votca {
 
        
 
-        void GWBSE::BSE_CoupledTransition_Dipoles() {
+        void BSE::CalcCoupledTransition_Dipoles() {
 
             double sqrt2 = sqrt(2.0);
             for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
@@ -245,12 +245,12 @@ namespace votca {
         }
       
     
-        void GWBSE::BSE_analyze_triplets() {
+        void BSE::Analyze_triplets() {
 
         
             std::vector<real_gwbse> _contrib_d(_bse_nprint, 0.0);
             std::vector<real_gwbse> _contrib_qp(_bse_nprint, 0.0);
-            BSE_analyze_eh_interaction_Triplet( _contrib_d, _contrib_qp);
+            Analyze_eh_interaction_Triplet( _contrib_d, _contrib_qp);
             
             std::vector< Eigen::VectorXd > _popH;
             std::vector< Eigen::VectorXd > _popE;
@@ -258,7 +258,7 @@ namespace votca {
             
             
             
-            BSE_FragmentPopulations("triplet",_popH, _popE, _Chrg);
+            FragmentPopulations("triplet",_popH, _popE, _Chrg);
             _orbitals->setFragmentChargesTripEXC(_Chrg);
              _orbitals->setFragment_E_localisation_triplet(_popE);
             _orbitals->setFragment_H_localisation_triplet(_popH);

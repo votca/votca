@@ -57,41 +57,187 @@ void GWBSE::Initialize(Property *options) {
   string key = Identify();
 
   // getting level ranges
-  _ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ranges",
+double qpminfactor=0;
+  double qpmaxfactor=0;
+  double rpamaxfactor=0;
+  double bseminfactor=0;
+  double bsemaxfactor=0;
+std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ranges",
                                                              "default");
 
   // now check validity, and get rpa, qp, and bse level ranges accordingly
 
-  if (_ranges == "factor") {
+  if (ranges == "factor") {
     // get factors
-    _rpamaxfactor = options->get(key + ".rpamax").as<double>();
-    _qpminfactor = options->get(key + ".qpmin").as<double>();
-    _qpmaxfactor = options->get(key + ".qpmax").as<double>();
-    _bseminfactor = options->get(key + ".bsemin").as<double>();
-    _bsemaxfactor = options->get(key + ".bsemax").as<double>();
-  } else if (_ranges == "explicit") {
+    rpamaxfactor = options->get(key + ".rpamax").as<double>();
+    qpminfactor = options->get(key + ".qpmin").as<double>();
+    qpmaxfactor = options->get(key + ".qpmax").as<double>();
+    bseminfactor = options->get(key + ".bsemin").as<double>();
+    bsemaxfactor = options->get(key + ".bsemax").as<double>();
+  } else if (ranges == "explicit") {
     // get explicit numbers
-    _rpamax = options->get(key + ".rpamax").as<unsigned int>();
-    _qpmin = options->get(key + ".qpmin").as<unsigned int>();
-    _qpmax = options->get(key + ".qpmax").as<unsigned int>();
-    _bse_vmin = options->get(key + ".bsemin").as<unsigned int>();
-    _bse_cmax = options->get(key + ".bsemax").as<unsigned int>();
-  } else if (_ranges == "" || _ranges == "default") {
-    _ranges = "default";
-  } else if (_ranges == "full") {
-    _ranges = "full";
+    _rpamax = options->get(key + ".rpamax").as<unsigned>();
+    _qpmin = options->get(key + ".qpmin").as<unsigned>();
+    _qpmax = options->get(key + ".qpmax").as<unsigned>();
+    _bse_vmin = options->get(key + ".bsemin").as<unsigned>();
+    _bse_cmax = options->get(key + ".bsemax").as<unsigned>();
+  } else if (ranges == "" || ranges == "default") {
+    ranges = "default";
+  } else if (ranges == "full") {
+    ranges = "full";
   } else {
-    cerr << "\nSpecified range option " << _ranges << " invalid. ";
+    cerr << "\nSpecified range option " << ranges << " invalid. ";
     throw std::runtime_error(
         "\nValid options are: default,factor,explicit,full");
   }
+  
+  
+  /* Preparation of calculation parameters:
+   *  - number of electrons -> index of HOMO
+   *  - number of levels
+   *  - highest level considered in RPA
+   *  - lowest and highest level considered in GWA
+   *  - lowest and highest level considered in BSE
+   *  - number of excitations calculates in BSE
+   */
 
-  _ignore_corelevels = options->ifExistsReturnElseReturnDefault<bool>(
+  _homo = _orbitals->getNumberOfElectrons() - 1;  // indexed from 0
+
+ 
+
+  _rpamin = 0;  // lowest index occ min(gwa%mmin, screening%nsum_low) ! always 1
+  if (ranges == "default" || ranges == "full") {
+    _rpamax = _orbitals->getNumberOfLevels() - 1;  // total number of levels
+  } else if (ranges == "factor") {
+    _rpamax = rpamaxfactor * _orbitals->getNumberOfLevels() -
+              1;  // total number of levels
+  }
+  if (_rpamax > _orbitals->getNumberOfLevels() - 1) {
+    _rpamax = _orbitals->getNumberOfLevels() - 1;
+  }
+  // convert _qpmin and _qpmax if needed
+  if (ranges == "default") {
+    _qpmin = 0;              // indexed from 0
+    _qpmax = 2 * _homo + 1;  // indexed from 0
+  } else if (ranges == "factor") {
+    if (_orbitals->getNumberOfElectrons() -
+            int(qpminfactor * _orbitals->getNumberOfElectrons()) - 1 <
+        0) {
+      _qpmin = 0;
+    } else {
+      _qpmin = _orbitals->getNumberOfElectrons() -
+               int(qpminfactor * _orbitals->getNumberOfElectrons()) - 1;
+    }
+    _qpmax = _orbitals->getNumberOfElectrons() +
+             int(qpmaxfactor * _orbitals->getNumberOfElectrons()) - 1;
+  } else if (ranges == "explicit") {
+    _qpmin -= 1;
+    _qpmax -= 1;
+  } else if (ranges == "full") {
+    _qpmin = 0;
+    _qpmax = _orbitals->getNumberOfLevels() - 1;
+  }
+  if (_qpmax > unsigned(_orbitals->getNumberOfLevels() - 1)) {
+    _qpmax = _orbitals->getNumberOfLevels() - 1;
+  }
+  
+ 
+
+  // set BSE band range indices
+  // anything else would be stupid!
+  _bse_vmax = _homo;
+  _bse_cmin = _homo + 1;
+
+  if (ranges == "default") {
+    _bse_vmin = 0;              // indexed from 0
+    _bse_cmax = 2 * _homo + 1;  // indexed from 0
+  } else if (ranges == "factor") {
+    _bse_vmin = _orbitals->getNumberOfElectrons() -
+                int(bseminfactor * _orbitals->getNumberOfElectrons()) - 1;
+    if (_orbitals->getNumberOfElectrons() -
+            int(bseminfactor * _orbitals->getNumberOfElectrons()) - 1 <
+        0) {
+      _bse_vmin = 0;
+    }
+    _bse_cmax = _orbitals->getNumberOfElectrons() +
+                int(bsemaxfactor * _orbitals->getNumberOfElectrons()) - 1;
+  } else if (ranges == "explicit") {
+    _bse_vmin -= 1;
+    _bse_cmax -= 1;
+  } else if (ranges == "full") {
+    _bse_vmin = 0;
+    _bse_cmax = _orbitals->getNumberOfLevels() - 1;
+  }
+  if (_bse_cmax > unsigned(_orbitals->getNumberOfLevels() - 1)) {
+    _bse_cmax = _orbitals->getNumberOfLevels() - 1;
+  }
+
+  bool ignore_corelevels = options->ifExistsReturnElseReturnDefault<bool>(
       key + ".ignore_corelevels", false);
+  
+  
+   unsigned _ignored_corelevels = 0;
+  if (ignore_corelevels) {
+    if(!_orbitals->hasECP()){
+      BasisSet basis;
+      basis.LoadBasisSet("ecp");//
+      unsigned coreElectrons=0;
+      for(const auto& atom:_orbitals->QMAtoms()){
+        coreElectrons+=basis.getElement(atom->getType())->getNcore();   
+      }
+       _ignored_corelevels = coreElectrons/2;
+    }
+   
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Can ignore "
+                                   << _ignored_corelevels << " core levels "
+                                   << flush;
+  }
+  // autoignore core levels in QP
+  if (ignore_corelevels && (_qpmin < _ignored_corelevels)) {
+    _qpmin = _ignored_corelevels;
+  }
+  // autoignore core levels in BSE
+  if (ignore_corelevels && (_bse_vmin < _ignored_corelevels)) {
+    _bse_vmin = _ignored_corelevels;
+  }
 
-  _bse_nmax =
+  int bse_vtotal = _bse_vmax - _bse_vmin + 1;
+  int bse_ctotal = _bse_cmax - _bse_cmin + 1;
+  int bse_size = bse_vtotal * bse_ctotal;
+
+
+  // some QP - BSE consistency checks are required
+  if (_bse_vmin < _qpmin) _qpmin = _bse_vmin;
+  if (_bse_cmax > _qpmax) _qpmax = _bse_cmax;
+
+  _qptotal = _qpmax - _qpmin + 1;
+  if (_bse_maxeigenvectors > int(bse_size) || _bse_maxeigenvectors < 0) _bse_maxeigenvectors = bse_size;
+  if (_bse_printNoEigenvectors > _bse_maxeigenvectors) _bse_printNoEigenvectors = _bse_maxeigenvectors;
+
+ 
+
+  // information for hybrid DFT
+
+  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set RPA level range ["
+                                 << _rpamin + 1 << ":" << _rpamax + 1 << "]"
+                                 << flush;
+  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set QP  level range ["
+                                 << _qpmin + 1 << ":" << _qpmax + 1 << "]"
+                                 << flush;
+  CTP_LOG(ctp::logDEBUG, *_pLog)
+      << ctp::TimeStamp() << " Set BSE level range occ[" << _bse_vmin + 1 << ":"
+      << _bse_vmax + 1 << "]  virt[" << _bse_cmin + 1 << ":" << _bse_cmax + 1
+      << "]" << flush;
+  CTP_LOG(ctp::logDEBUG, *_pLog)
+      << ctp::TimeStamp() << " BSE Hamiltonian has size " << bse_size << "x"
+      << bse_size << flush;
+  
+  
+  
+
+  _bse_maxeigenvectors =
       options->ifExistsReturnElseReturnDefault<int>(key + ".exctotal", 25);
-  _bse_nprint =
+  _bse_printNoEigenvectors =
       options->ifExistsReturnElseReturnDefault<int>(key + ".print", 25);
   _fragA = options->ifExistsReturnElseReturnDefault<int>(key + ".fragment", -1);
 
@@ -245,7 +391,7 @@ void GWBSE::addoutput(Property *_summary) {
 
   _gwbse_summary->setAttribute(
       "DFTEnergy", (format("%1$+1.6f ") % _orbitals->getQMEnergy()).str());
-  int printlimit = _bse_nprint;  // I use this to determine how much is printed,
+  int printlimit = _bse_printNoEigenvectors;  // I use this to determine how much is printed,
                                  // I do not want another option to pipe through
 
   Property *_dft_summary = &_gwbse_summary->add("dft", "");
@@ -267,13 +413,13 @@ void GWBSE::addoutput(Property *_summary) {
                             .str());
     _level_summary->add(
         "gw_energy",
-        (format("%1$+1.6f ") % (_qp_energies(_qpmin + state) * hrt2ev)).str());
+        (format("%1$+1.6f ") % (_orbitals->QPpertEnergies()(_qpmin + state) * hrt2ev)).str());
 
     if (_do_qp_diag) {
       // cout << "_do_qp_diag" <<_do_qp_diag<<endl;
       _level_summary->add(
           "qp_energy",
-          (format("%1$+1.6f ") % (_qp_diag_energies(_qpmin + state) * hrt2ev))
+          (format("%1$+1.6f ") % (_orbitals->QPdiagEnergies()(_qpmin + state) * hrt2ev))
               .str());
     }
   }
@@ -284,12 +430,12 @@ void GWBSE::addoutput(Property *_summary) {
       Property *_level_summary = &_singlet_summary->add("level", "");
       _level_summary->setAttribute("number", state + 1);
       _level_summary->add("omega", (format("%1$+1.6f ") %
-                                    (_bse_singlet_energies(state) * hrt2ev))
+                                    (_orbitals->BSESingletEnergies()(state) * hrt2ev))
                                        .str());
       if (_orbitals->hasTransitionDipoles()) {
 
         const tools::vec &dipoles = (_orbitals->TransitionDipoles())[state];
-        double f = 2 * dipoles * dipoles * _bse_singlet_energies(state) / 3.0;
+        double f = 2 * dipoles * dipoles * _orbitals->BSESingletEnergies()(state) / 3.0;
 
         _level_summary->add("f", (format("%1$+1.6f ") % f).str());
         Property *_dipol_summary = &_level_summary->add(
@@ -308,7 +454,7 @@ void GWBSE::addoutput(Property *_summary) {
       Property *_level_summary = &_triplet_summary->add("level", "");
       _level_summary->setAttribute("number", state + 1);
       _level_summary->add("omega", (format("%1$+1.6f ") %
-                                    (_bse_triplet_energies(state) * hrt2ev))
+                                    (_orbitals->BSETripletEnergies()(state) * hrt2ev))
                                        .str());
     }
   }
@@ -329,7 +475,7 @@ void GWBSE::addoutput(Property *_summary) {
 
 Eigen::MatrixXd GWBSE::CalculateVXC(){
   
-  Eigen::MatrixXd _vxc_ao;
+  Eigen::MatrixXd vxc_ao;
   if (_orbitals->hasAOVxc()) {
     if (_doVxc) {
       CTP_LOG(ctp::logDEBUG, *_pLog)
@@ -342,18 +488,18 @@ Eigen::MatrixXd GWBSE::CalculateVXC(){
     }
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
             << " Loaded external Vxc matrix" << flush;
-    _vxc_ao = _orbitals->AOVxc();
+    vxc_ao = _orbitals->AOVxc();
   } else if (_doVxc) {
     
     NumericalIntegration _numint;
     _numint.setXCfunctional(_functional);
     double ScaHFX_temp = _numint.getExactExchange(_functional);
-    if (ScaHFX_temp != _ScaHFX) {
+    if (ScaHFX_temp != _orbitals->getScaHFX()) {
       throw std::runtime_error(
               (boost::format("GWBSE exact exchange a=%s differs from qmpackage "
               "exact exchange a=%s, probably your functionals are "
               "inconsistent") %
-              ScaHFX_temp % _ScaHFX)
+              ScaHFX_temp %  _orbitals->getScaHFX())
               .str());
     }
     _numint.GridSetup(_grid, _orbitals->QMAtoms(),&_dftbasis);
@@ -367,7 +513,7 @@ Eigen::MatrixXd GWBSE::CalculateVXC(){
             << _functional << flush;
     Eigen::MatrixXd DMAT = _orbitals->DensityMatrixGroundState();
     
-    _vxc_ao = _numint.IntegrateVXC(DMAT);
+    vxc_ao = _numint.IntegrateVXC(DMAT);
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
             << " Calculated Vxc in VOTCA" << flush;
     
@@ -378,13 +524,13 @@ Eigen::MatrixXd GWBSE::CalculateVXC(){
   }
   
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-          << " Set hybrid exchange factor: " << _ScaHFX
+          << " Set hybrid exchange factor: " <<  _orbitals->getScaHFX()
           << flush;
   
   // now get expectation values but only for those in _qpmin:_qpmax range
-  Eigen::MatrixXd _mos = _dft_orbitals.block(0,_qpmin,_dft_orbitals.rows(),i);
+  Eigen::MatrixXd _mos = _orbitals->MOCoefficients()(0,_qpmin,_orbitals->MOCoefficients().rows(),_qptotal);
   
-  Eigen::MatrixXd vxc =_mos.transpose()*_vxc_ao*_mos;
+  Eigen::MatrixXd vxc =_mos.transpose()*vxc_ao*_mos;
   CTP_LOG(ctp::logDEBUG, *_pLog)
           << ctp::TimeStamp()
           << " Calculated exchange-correlation expectation values " << flush;
@@ -409,6 +555,12 @@ bool GWBSE::Evaluate() {
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " DFT data was created by " << _dft_package
                                  << flush;
+  
+   // store information in _orbitals for later use
+  _orbitals->setRPAindices(_rpamin, _rpamax);
+  _orbitals->setGWAindices(_qpmin, _qpmax);
+  _orbitals->setBSEindices(_bse_vmin, _bse_vmax, _bse_cmin, _bse_cmax,
+                           _bse_maxeigenvectors);
 
 
             
@@ -444,159 +596,11 @@ bool GWBSE::Evaluate() {
   else {
     _orbitals->setBSEtype("TDA");
   }
-  /* Preparation of calculation parameters:
-   *  - number of electrons -> index of HOMO
-   *  - number of levels
-   *  - highest level considered in RPA
-   *  - lowest and highest level considered in GWA
-   *  - lowest and highest level considered in BSE
-   *  - number of excitations calculates in BSE
-   */
-
-  _homo = _orbitals->getNumberOfElectrons() - 1;  // indexed from 0
-
- 
-
-  _rpamin = 0;  // lowest index occ min(gwa%mmin, screening%nsum_low) ! always 1
-  if (_ranges == "default" || _ranges == "full") {
-    _rpamax = _orbitals->getNumberOfLevels() - 1;  // total number of levels
-  } else if (_ranges == "factor") {
-    _rpamax = _rpamaxfactor * _orbitals->getNumberOfLevels() -
-              1;  // total number of levels
-  }
-  if (_rpamax > _orbitals->getNumberOfLevels() - 1) {
-    _rpamax = _orbitals->getNumberOfLevels() - 1;
-  }
-  // convert _qpmin and _qpmax if needed
-  if (_ranges == "default") {
-    _qpmin = 0;              // indexed from 0
-    _qpmax = 2 * _homo + 1;  // indexed from 0
-  } else if (_ranges == "factor") {
-    if (_orbitals->getNumberOfElectrons() -
-            int(_qpminfactor * _orbitals->getNumberOfElectrons()) - 1 <
-        0) {
-      _qpmin = 0;
-    } else {
-      _qpmin = _orbitals->getNumberOfElectrons() -
-               int(_qpminfactor * _orbitals->getNumberOfElectrons()) - 1;
-    }
-    _qpmax = _orbitals->getNumberOfElectrons() +
-             int(_qpmaxfactor * _orbitals->getNumberOfElectrons()) - 1;
-  } else if (_ranges == "explicit") {
-    _qpmin -= 1;
-    _qpmax -= 1;
-  } else if (_ranges == "full") {
-    _qpmin = 0;
-    _qpmax = _orbitals->getNumberOfLevels() - 1;
-  }
-  if (_qpmax > unsigned(_orbitals->getNumberOfLevels() - 1)) {
-    _qpmax = _orbitals->getNumberOfLevels() - 1;
-  }
   
- 
-
-  // set BSE band range indices
-  // anything else would be stupid!
-  _bse_vmax = _homo;
-  _bse_cmin = _homo + 1;
-
-  if (_ranges == "default") {
-    _bse_vmin = 0;              // indexed from 0
-    _bse_cmax = 2 * _homo + 1;  // indexed from 0
-  } else if (_ranges == "factor") {
-    _bse_vmin = _orbitals->getNumberOfElectrons() -
-                int(_bseminfactor * _orbitals->getNumberOfElectrons()) - 1;
-    if (_orbitals->getNumberOfElectrons() -
-            int(_bseminfactor * _orbitals->getNumberOfElectrons()) - 1 <
-        0) {
-      _bse_vmin = 0;
-    }
-    _bse_cmax = _orbitals->getNumberOfElectrons() +
-                int(_bsemaxfactor * _orbitals->getNumberOfElectrons()) - 1;
-  } else if (_ranges == "explicit") {
-    _bse_vmin -= 1;
-    _bse_cmax -= 1;
-  } else if (_ranges == "full") {
-    _bse_vmin = 0;
-    _bse_cmax = _orbitals->getNumberOfLevels() - 1;
-  }
-  if (_bse_cmax > unsigned(_orbitals->getNumberOfLevels() - 1)) {
-    _bse_cmax = _orbitals->getNumberOfLevels() - 1;
-  }
-
-  
-  
-  unsigned _ignored_corelevels = 0;
-  if (_ignore_corelevels) {
-    if(!_orbitals->hasECP()){
-      BasisSet basis;
-      basis.LoadBasisSet("ecp");//
-      unsigned coreElectrons=0;
-      for(const auto& atom:_orbitals->QMAtoms()){
-        coreElectrons+=basis.getElement(atom->getType())->getNcore();   
-      }
-       _ignored_corelevels = coreElectrons/2;
-    }
-   
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Can ignore "
-                                   << _ignored_corelevels << " core levels "
-                                   << flush;
-  }
-  // autoignore core levels in QP
-  if (_ignore_corelevels && (_qpmin < _ignored_corelevels)) {
-    _qpmin = _ignored_corelevels;
-  }
-  // autoignore core levels in BSE
-  if (_ignore_corelevels && (_bse_vmin < _ignored_corelevels)) {
-    _bse_vmin = _ignored_corelevels;
-  }
-
-  _bse_vtotal = _bse_vmax - _bse_vmin + 1;
-  _bse_ctotal = _bse_cmax - _bse_cmin + 1;
-  _bse_size = _bse_vtotal * _bse_ctotal;
-
-  // indexing info BSE vector index to occupied/virtual orbital
-  for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
-    for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
-      _index2v.push_back(_bse_vmin + _v);
-      _index2c.push_back(_bse_cmin + _c);
-    }
-  }
-
-  // some QP - BSE consistency checks are required
-  if (_bse_vmin < _qpmin) _qpmin = _bse_vmin;
-  if (_bse_cmax > _qpmax) _qpmax = _bse_cmax;
-
-  i = _qpmax - _qpmin + 1;
-  if (_bse_nmax > int(_bse_size) || _bse_nmax < 0) _bse_nmax = int(_bse_size);
-  if (_bse_nprint > _bse_nmax) _bse_nprint = _bse_nmax;
-
-  // store information in _orbitals for later use
-  _orbitals->setRPAindices(_rpamin, _rpamax);
-  _orbitals->setGWAindices(_qpmin, _qpmax);
-  _orbitals->setBSEindices(_bse_vmin, _bse_vmax, _bse_cmin, _bse_cmax,
-                           _bse_nmax);
-
-  // information for hybrid DFT
-
-  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set RPA level range ["
-                                 << _rpamin + 1 << ":" << _rpamax + 1 << "]"
-                                 << flush;
-  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set QP  level range ["
-                                 << _qpmin + 1 << ":" << _qpmax + 1 << "]"
-                                 << flush;
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Set BSE level range occ[" << _bse_vmin + 1 << ":"
-      << _bse_vmax + 1 << "]  virt[" << _bse_cmin + 1 << ":" << _bse_cmax + 1
-      << "]" << flush;
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " BSE Hamiltonian has size " << _bse_size << "x"
-      << _bse_size << flush;
 
   // process the DFT data
   // a) form the expectation value of the XC functional in MOs
 
-  _ScaHFX = _orbitals->getScaHFX();
 
   Eigen::MatrixXd vxc=CalculateVXC();
 
@@ -684,7 +688,7 @@ bool GWBSE::Evaluate() {
   PPM ppm;
   Sigma sigma=Sigma(_pLog);
   sigma.configure(_homo,_qpmin,_qpmax,_g_sc_max_iterations,_g_sc_limit);
-  sigma.setDFtdata(_ScaHFX,&vxc,&_orbitals->MOEnergies());
+  sigma.setDFTdata(_orbitals->getScaHFX(),&vxc,&_orbitals->MOEnergies());
  
   // initialize _qp_energies;
   // shift unoccupied levels by the shift
@@ -858,7 +862,7 @@ bool GWBSE::Evaluate() {
   // E_qp)
   if (_store_qp_pert) {
     Eigen::MatrixXd &_qp_energies_store = _orbitals->QPpertEnergies();
-    _qp_energies_store.resize(i, 5);
+    _qp_energies_store.resize(_qptotal, 5);
     for (unsigned i = 0; i < i; i++) {
       _qp_energies_store(i, 0) = _dft_energies(i + _qpmin);
       _qp_energies_store(i, 1) = sigma.x(i);
@@ -894,7 +898,7 @@ bool GWBSE::Evaluate() {
                      "====== "))
                  .str()
           << flush;
-      for (unsigned _i = 0; _i < i; _i++) {
+      for (unsigned _i = 0; _i < _qptotal; _i++) {
         if ((_i + _qpmin) == _homo) {
           CTP_LOG(ctp::logINFO, *_pLog)
               << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %

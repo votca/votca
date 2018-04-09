@@ -39,14 +39,14 @@ namespace votca {
         // +++++++++++++++++++++++++++++ //
 
         
-        void GWBSE::BSE_qp_setup(){
+        void BSE::Setup_Hqp(){
             _eh_qp = MatrixXfd::Zero( _bse_size , _bse_size );
-            BSE_Add_qp2H( _eh_qp );
+            Add_HqpToH( _eh_qp );
             return;
         }
 
 
-        void GWBSE::BSE_solve_triplets(){
+        void BSE::Solve_triplets(){
             
             // add full QP Hamiltonian contributions to free transitions
            
@@ -58,7 +58,7 @@ namespace votca {
             return;
         }
         
-        void GWBSE::BSE_solve_singlets(){
+        void BSE::Solve_singlets(){
             
             MatrixXfd _bse = _eh_d + 2.0 * _eh_x;
             Eigen::SelfAdjointEigenSolver<MatrixXfd> es(_bse);
@@ -72,7 +72,7 @@ namespace votca {
         
         
         
-      void GWBSE::BSE_solve_singlets_BTDA(){
+      void BSE::Solve_singlets_BTDA(){
         
           
         // For details of the method, see EPL,78(2007)12001,
@@ -130,7 +130,7 @@ namespace votca {
       }
         
         
-      void GWBSE::BSE_Add_qp2H( MatrixXfd& qp ){
+      void BSE::Add_HqpToH( MatrixXfd& qp ){
               
           #pragma omp parallel for
             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
@@ -162,7 +162,7 @@ namespace votca {
       
         
         
-        void GWBSE::BSE_d_setup ( TCMatrix_gwbse& _Mmn){
+        void BSE::Setup_Hd ( TCMatrix_gwbse& _Mmn){
             // gwbasis size
             size_t auxsize = _Mmn.getAuxDimension();
 
@@ -256,7 +256,7 @@ namespace votca {
         }
         
         
-         void GWBSE::BSE_d2_setup ( TCMatrix_gwbse& _Mmn){
+         void BSE::Setup_Hd_BTDA ( TCMatrix_gwbse& _Mmn){
             // gwbasis size
             size_t auxsize = _Mmn.getAuxDimension();
 
@@ -345,7 +345,7 @@ namespace votca {
         
         
         
-        void GWBSE::BSE_x_setup( TCMatrix_gwbse& _Mmn){
+        void BSE::Setup_Hx( TCMatrix_gwbse& _Mmn){
             
             /* unlike the fortran code, we store eh interaction directly in
              * a suitable matrix form instead of a four-index array

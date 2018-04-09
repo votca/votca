@@ -42,7 +42,7 @@ class Sigma {
       if(_g_sc_max_iterations<1) {_g_sc_max_iterations=1;}
   }
   
-  void setDFtdata(double ScaHFX, const Eigen::MatrixXd* vxc, const Eigen::VectorXd* dftenergies){
+  void setDFTdata(double ScaHFX, const Eigen::MatrixXd* vxc, const Eigen::VectorXd* dftenergies){
       _ScaHFX=ScaHFX;
       _vxc=vxc;
       _dftenergies=dftenergies;
@@ -97,4 +97,4 @@ const Eigen::VectorXd* _dftenergies;
 }
 }
 
-#endif /* _VOTCA_XTP_GWA_H */
+#endif /* _VOTCA_XTP_SIGMA_H */
