@@ -33,7 +33,7 @@ namespace votca {
                 
         
         //imaginary
-        Eigen::MatrixXd RPA::RPA_imaginary(const Eigen::VectorXd& qp_energies,const double screening_freq) {
+        Eigen::MatrixXd RPA::epsilon_imaginary(const Eigen::VectorXd& qp_energies,const double screening_freq) {
 
 
             const int _size = _Mmn_RPA.getAuxDimension(); // size of gwbasis
@@ -80,7 +80,7 @@ namespace votca {
         }
         //real
 
-        Eigen::MatrixXd RPA::RPA_real(const Eigen::VectorXd& qp_energies,const double screening_freq) {
+        Eigen::MatrixXd RPA::epsilon_real(const Eigen::VectorXd& qp_energies,const double screening_freq) {
             const int _size = _Mmn_RPA.getAuxDimension(); // size of gwbasis
             const int index_n = _Mmn_RPA.get_nmin();
             const int index_m = _Mmn_RPA.get_mmin();
@@ -128,7 +128,7 @@ namespace votca {
             return result;
         }
         
-void RPA::RPA_calculate_epsilon(const Eigen::VectorXd& qp_energies) {
+void RPA::calculate_epsilon(const Eigen::VectorXd& qp_energies) {
   
  
       for (auto& matrix : _epsilon) {
@@ -139,11 +139,11 @@ void RPA::RPA_calculate_epsilon(const Eigen::VectorXd& qp_energies) {
       for (unsigned _i_freq = 0; _i_freq < _screening_freq.rows(); _i_freq++) {
 
         if (_screening_freq(_i_freq, 0) == 0.0) {
-          _epsilon[ _i_freq ] += RPA_imaginary(qp_energies, _screening_freq(_i_freq, 1));
+          _epsilon[ _i_freq ] += epsilon_imaginary(qp_energies, _screening_freq(_i_freq, 1));
         }
         else if (_screening_freq(_i_freq, 1) == 0.0) {
           // purely real
-          _epsilon[ _i_freq ] += RPA_real(qp_energies, _screening_freq(_i_freq, 0));
+          _epsilon[ _i_freq ] += epsilon_real(qp_energies, _screening_freq(_i_freq, 0));
         }
         else {
           // mixed -> FAIL
@@ -158,7 +158,7 @@ void RPA::RPA_calculate_epsilon(const Eigen::VectorXd& qp_energies) {
         
         
    
-    void RPA::RPA_prepare_threecenters(const TCMatrix_gwbse& _Mmn_full){
+    void RPA::prepare_threecenters(const TCMatrix_gwbse& _Mmn_full){
       //TODO maybe remove and instead not make a copy but use full Mmn with restricted indices
         _Mmn_RPA.Initialize(_Mmn_full.getAuxDimension(), _rpamin, _homo, _homo + 1,
                       _rpamax);      

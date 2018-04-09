@@ -98,7 +98,6 @@
       <itemPath>../../include/votca/xtp/grid.h</itemPath>
       <itemPath>../../include/votca/xtp/grid_containers.h</itemPath>
       <itemPath>../../include/votca/xtp/gridbox.h</itemPath>
-      <itemPath>../../include/votca/xtp/gwa.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbse.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbseengine.h</itemPath>
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
@@ -121,6 +120,7 @@
       <itemPath>../../include/votca/xtp/qmpackagefactory.h</itemPath>
       <itemPath>../../include/votca/xtp/radial_euler_maclaurin_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/rpa.h</itemPath>
+      <itemPath>../../include/votca/xtp/sigma.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaversqlite.h</itemPath>
@@ -194,11 +194,11 @@
       <logicalFolder name="f4" displayName="gwbse" projectFiles="true">
         <itemPath>../../src/libxtp/gwbse/bse.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/bse_analysis.cc</itemPath>
-        <itemPath>../../src/libxtp/gwbse/gwa.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbse.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbseengine.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/ppm.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/rpa.cc</itemPath>
+        <itemPath>../../src/libxtp/gwbse/sigma.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="kmc" projectFiles="true">
         <itemPath>../../src/libxtp/gnode.cc</itemPath>
@@ -388,8 +388,6 @@
       </item>
       <item path="../../include/votca/xtp/gridbox.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/gwa.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbseengine.h"
@@ -464,6 +462,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/sigma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sphere_lebedev_rule.h"
             ex="false"
@@ -717,8 +717,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/gwbse/gwa.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gwbseengine.cc"
@@ -729,6 +727,8 @@
       <item path="../../src/libxtp/gwbse/ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/sigma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gyration.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1099,8 +1099,6 @@
       </item>
       <item path="../../include/votca/xtp/gridbox.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/gwa.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbseengine.h"
@@ -1175,6 +1173,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/sigma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sphere_lebedev_rule.h"
             ex="false"
@@ -1428,8 +1428,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/gwbse/gwa.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gwbseengine.cc"
@@ -1440,6 +1438,8 @@
       <item path="../../src/libxtp/gwbse/ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/sigma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gyration.cc" ex="false" tool="1" flavor2="0">
       </item>

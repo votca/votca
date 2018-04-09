@@ -19,11 +19,13 @@
 
 
 
-#include <votca/xtp/gwbse.h>
+#include <votca/xtp/sigma.h>
 
 #include <boost/format.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/constants.h>
+
+
 
 //#include "mathimf.h"
 
@@ -41,13 +43,13 @@ namespace votca {
         
         
 
-        Eigen::MatrixXd GWA::SetupFullQPHamiltonian(const Eigen::MatrixXd& vxc ){
+        Eigen::MatrixXd Sigma::SetupFullQPHamiltonian(const Eigen::MatrixXd& vxc ){
             
             // constructing full QP Hamiltonian
             Eigen::MatrixXd Hqp = -vxc + _sigma_x + _sigma_c;
             // diagonal elements are given by _qp_energies
             for (unsigned _m = 0; _m < Hqp.rows(); _m++ ){
-              Hqp( _m,_m ) = _qp_energies( _m + _qpmin );
+              Hqp( _m,_m ) = _gwa_energies( _m + _qpmin );
             }
              // sigma matrices can be freed
             _sigma_x.resize(0,0);
@@ -56,7 +58,7 @@ namespace votca {
         }
         
         
-        void GWA::sigma_diag(const TCMatrix_gwbse& _Mmn,const PPM & ppm,const Eigen::MatrixXd& vxc ){
+        void Sigma::CalcdiagElements(const TCMatrix_gwbse& _Mmn,const PPM & ppm ){
             
             unsigned _levelsum = _Mmn.get_ntot(); // total number of bands
             unsigned _gwsize = _Mmn.getAuxDimension(); // size of the GW basis
@@ -76,13 +78,10 @@ namespace votca {
                     _sigma_x(_gw_level,_gw_level)=( 1.0 - _ScaHFX ) * sigma_x; 
                 }
             
-                if(_g_sc_max_iterations==0) {_g_sc_max_iterations=1;}
-                Eigen::VectorXd& dftenergies=_orbitals->MOEnergies();
+                
+               
                 // initial _qp_energies are dft energies
-                Eigen::VectorXd _qp_old=_qp_energies;
-
-                bool energies_converged=false;
-
+                Eigen::VectorXd _qp_old=_gwa_energies;
             
 	    // only diagonal elements except for in final iteration
             for (unsigned _g_iter = 0; _g_iter < _g_sc_max_iterations; _g_iter++) {
@@ -98,9 +97,9 @@ namespace votca {
                     // loop over all functions in GW basis
                     for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
                         // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
-                        if (_ppm_weight(_i_gw) < 1.e-9) { continue;}
-                        const double ppm_freq = _ppm_freq(_i_gw);
-                        const double fac = _ppm_weight(_i_gw) * ppm_freq;
+                        if (ppm.getPpm_weight()(_i_gw) < 1.e-9) { continue;}
+                        const double ppm_freq =ppm.getPpm_freq()(_i_gw);
+                        const double fac = ppm.getPpm_weight() * ppm_freq;
                         // loop over all bands
                         for (unsigned _i = 0; _i < _levelsum; _i++) {
 
@@ -128,39 +127,36 @@ namespace votca {
                     _sigma_c(_gw_level, _gw_level)=sigma_c;
                     // update _qp_energies
                    
-                    _qp_energies(_gw_level + _qpmin) = dftenergies(_gw_level + _qpmin) + sigma_c + _sigma_x(_gw_level, _gw_level) - vxc(_gw_level, _gw_level);
+                    _gwa_energies(_gw_level + _qpmin) = _dftenergies(_gw_level + _qpmin) + sigma_c + _sigma_x(_gw_level, _gw_level) - _vxc(_gw_level, _gw_level);
 
                 }// all bands
-                Eigen::VectorXd diff= _qp_old - _qp_energies;
-                energies_converged = true;
-                double diff_max=0;
-                unsigned state_max=0;
-                for (unsigned l = 0; l < diff.size(); l++) {
-                    if(std::abs(diff(l))>std::abs(diff_max)){
-                            diff_max=diff(l);
-                            state_max=l;
-                    }
-                    if (std::abs(diff(l))>_g_sc_limit) {
-                        energies_converged = false;   
-                    }
+                Eigen::VectorXd diff= _qp_old - _gwa_energies;
+                
+                bool energies_converged = true;
+     
+                int state = 0;
+                double diff_max=diff.cwiseAbs().maxCoeff(&state);
+                if(diff_max>_g_sc_limit){
+                     energies_converged = false;
                 }
+                
                 if(tools::globals::verbose){
-                    double _DFTgap =dftenergies(_homo + 1) - dftenergies(_homo);
-                    double _QPgap = _qp_energies( _homo +1 ) - _qp_energies( _homo  );
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " QP_Iteration: " << _g_iter+1 <<" shift="<<_QPgap - _DFTgap <<" E_diff max="<<diff_max<<" StateNo:"<<state_max << flush;
+                    double _DFTgap =_dftenergies(_homo + 1) - _dftenergies(_homo);
+                    double _QPgap = _gwa_energies( _homo +1 ) - _gwa_energies( _homo  );
+                    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " QP_Iteration: " << _g_iter+1 <<" shift="<<_QPgap - _DFTgap <<" E_diff max="<<diff_max<<" StateNo:"<<state << flush;
                 }
                 double alpha=0.0;
-                _qp_energies=(1-alpha)*_qp_energies+alpha*_qp_old;
+                _gwa_energies=(1-alpha)*_gwa_energies+alpha*_qp_old;
                 
                 if (energies_converged) {
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << _g_iter+1 << " G iterations." << flush;
+                    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Converged after " << _g_iter+1 << " G iterations." << flush;
                     break;
                 }else if(_g_iter==_g_sc_max_iterations-1){
-                        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " G-self-consistency cycle not converged after " << _g_sc_max_iterations << " iterations." << flush;  
+                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " G-self-consistency cycle not converged after " << _g_sc_max_iterations << " iterations." << flush;  
                         break;
                     
                 } else {
-                    _qp_old = _qp_energies;
+                    _qp_old = _gwa_energies;
                 }
 
             } // iterations
@@ -170,7 +166,7 @@ namespace votca {
 
       
        
-         void GWA::sigma_offdiag(const TCMatrix_gwbse& _Mmn,const PPM & ppm ) {
+         void Sigma::CalcOffDiagElements(const TCMatrix_gwbse& _Mmn,const PPM & ppm ) {
             unsigned _levelsum = _Mmn.get_ntot(); // total number of bands
             unsigned _gwsize = _Mmn.getAuxDimension(); // size of the GW basis
             const double pi = boost::math::constants::pi<double>();
@@ -193,19 +189,19 @@ namespace votca {
             
             #pragma omp parallel for
             for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
-                const double qpmin1 = _qp_energies(_gw_level1 + _qpmin);
+                const double qpmin1 = _gwa_energies(_gw_level1 + _qpmin);
                 const MatrixXfd& Mmn1 = _Mmn[ _gw_level1 + _qpmin ];
                 for (unsigned _gw_level2 = 0; _gw_level2 < _gw_level1; _gw_level2++) {
-                    const double qpmin2 = _qp_energies(_gw_level1 + _qpmin);
+                    const double qpmin2 = _gwa_energies(_gw_level1 + _qpmin);
                     const MatrixXfd& Mmn2 = _Mmn[ _gw_level2 + _qpmin ];
                     double sigma_c = 0;
                     for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
                         // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
-                        if (_ppm_weight(_i_gw) < 1.e-9) {
+                        if (ppm.getPpm_weight()(_i_gw) < 1.e-9) {
                             continue;
                         }
-                        const double ppm_freq = _ppm_freq(_i_gw);
-                        const double fac = _ppm_weight(_i_gw) * ppm_freq;
+                        const double ppm_freq =ppm.getPpm_freq()(_i_gw);
+                        const double fac =ppm.getPpm_weight()(_i_gw) * ppm_freq;
                         // loop over all screening levels
                         for (unsigned _i = 0; _i < _levelsum; _i++) {
 
@@ -213,8 +209,8 @@ namespace votca {
                             if (_i > _homo) occ = -1.0; // sign for empty levels
 
                             // energy denominator
-                            const double _denom1 = qpmin1 - _qp_energies(_i) + occ * ppm_freq;
-                            const double _denom2 = qpmin2 - _qp_energies(_i) + occ * ppm_freq;
+                            const double _denom1 = qpmin1 - _gwa_energies(_i) + occ * ppm_freq;
+                            const double _denom2 = qpmin2 - _gwa_energies(_i) + occ * ppm_freq;
 
                             double _stab1 = 1.0;
                             if (std::abs(_denom1) < 0.25) {

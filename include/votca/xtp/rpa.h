@@ -22,6 +22,8 @@
 #include <votca/xtp/votca_config.h>
 #include <votca/xtp/basisset.h>
 
+#include "threecenter.h"
+
 
 
 
@@ -61,9 +63,16 @@ class RPA {
 const Eigen::MatrixXd& GetScreening_freq() const {return _screening_freq;}
 const std::vector<Eigen::MatrixXd>& GetEpsilon() const{return _epsilon;}
         
-void RPA_prepare_threecenters(const TCMatrix_gwbse& _Mmn_full);        
+void prepare_threecenters(const TCMatrix_gwbse& _Mmn_full);        
         
-  
+ void calculate_epsilon(const Eigen::VectorXd& qp_energies); 
+ 
+ void FreeMatrices(){
+     _Mmn_RPA.Cleanup();
+     _epsilon[0].resize(0,0);
+     _epsilon[1].resize(0,0);
+     
+ }
 
   
  private:
@@ -82,22 +91,22 @@ void RPA_prepare_threecenters(const TCMatrix_gwbse& _Mmn_full);
   
   Orbitals* _orbitals;
   Eigen::MatrixXd& _dft_orbitals;
-  // RPA related variables and functions
+
   // container for the epsilon matrix
   std::vector<Eigen::MatrixXd > _epsilon;
   // container for frequencies in screening (index 0: real part, index 1:
   // imaginary part)
   Eigen::MatrixXd _screening_freq;
   
-  void RPA_calculate_epsilon(const TCMatrix_gwbse& _Mmn_RPA);
+  
 
-  Eigen::MatrixXd RPA_real(const TCMatrix_gwbse& _Mmn_RPA,
+  Eigen::MatrixXd epsilon_real(const TCMatrix_gwbse& _Mmn_RPA,
                               const double screening_freq);
 
-  Eigen::MatrixXd RPA_imaginary(const TCMatrix_gwbse& _Mmn_RPA,
+  Eigen::MatrixXd epsilon_imaginary(const TCMatrix_gwbse& _Mmn_RPA,
                                    const double screening_freq);
 
-  void RPA_prepare_threecenters(TCMatrix_gwbse& _Mmn_RPA, const TCMatrix_gwbse& _Mmn_full);
+ 
 
  
   

@@ -20,8 +20,7 @@
 #ifndef _VOTCA_XTP_BSE_H
 #define _VOTCA_XTP_BSE_H
 #include <votca/xtp/votca_config.h>
-
-#include <votca/xtp/qmpackagefactory.h>
+#include <votca/xtp/orbitals.h>
 #include <votca/xtp/threecenter.h>
 
 
@@ -57,13 +56,13 @@ class BSE {
 
 
   
-  unsigned int _bse_vmin;
-  unsigned int _bse_vmax;
-  unsigned int _bse_cmin;
-  unsigned int _bse_cmax;
-  unsigned int _bse_size;
-  unsigned int _bse_vtotal;
-  unsigned int _bse_ctotal;
+  unsigned  _bse_vmin;
+  unsigned  _bse_vmax;
+  unsigned  _bse_cmin;
+  unsigned  _bse_cmax;
+  unsigned  _bse_size;
+  unsigned  _bse_vtotal;
+  unsigned  _bse_ctotal;
   int _bse_nmax;
   int _bse_nprint;
   double _min_print_weight;

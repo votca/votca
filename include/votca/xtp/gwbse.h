@@ -136,7 +136,7 @@ class GWBSE {
   double _rpamaxfactor;  // RPA level range
   unsigned int _qpmin;
   unsigned int _qpmax;
-  unsigned int _qptotal;
+  unsigned int i;
   double _qpminfactor;
   double _qpmaxfactor;  // QP level range
   double _bseminfactor;
@@ -165,48 +165,9 @@ class GWBSE {
    Eigen::MatrixXd CalculateVXC();
   
   Orbitals* _orbitals;
-  Eigen::MatrixXd& _dft_orbitals;
-  // RPA related variables and functions
-  // container for the epsilon matrix
-  std::vector<Eigen::MatrixXd > _epsilon;
-  // container for frequencies in screening (index 0: real part, index 1:
-  // imaginary part)
-  Eigen::MatrixXd _screening_freq;
   
-  void RPA_calculate_epsilon(const TCMatrix_gwbse& _Mmn_RPA);
 
-  Eigen::MatrixXd RPA_real(const TCMatrix_gwbse& _Mmn_RPA,
-                              const double screening_freq);
 
-  Eigen::MatrixXd RPA_imaginary(const TCMatrix_gwbse& _Mmn_RPA,
-                                   const double screening_freq);
-
-  void RPA_prepare_threecenters(TCMatrix_gwbse& _Mmn_RPA, const TCMatrix_gwbse& _Mmn_full);
-
-  // PPM related variables and functions
-  Eigen::MatrixXd _ppm_phi_T;
-  Eigen::VectorXd _ppm_freq;
-  Eigen::VectorXd _ppm_weight;
- 
-
-  void PPM_construct_parameters(
-      const Eigen::MatrixXd& _overlap_cholesky_inverse);
-
-  // Sigma related variables and functions
-  Eigen::MatrixXd _sigma_x;  // exchange term
-  Eigen::MatrixXd _sigma_c;  // correlation term
-
-  void sigma_prepare_threecenters(TCMatrix_gwbse& _Mmn);
-
-  void sigma_diag(const TCMatrix_gwbse& _Mmn);
-  void sigma_offdiag(const TCMatrix_gwbse& _Mmn);
-
-  // QP variables and functions
-  Eigen::VectorXd _qp_energies;
-  Eigen::MatrixXd _vxc;
-  Eigen::VectorXd& _qp_diag_energies;      // stored in orbitals object
-  Eigen::MatrixXd& _qp_diag_coefficients;  // dito
-  void FullQPHamiltonian();
 
   // BSE variables and functions
   MatrixXfd& _eh_x;  // stored in orbitals object

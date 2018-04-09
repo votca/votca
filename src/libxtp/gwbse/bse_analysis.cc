@@ -220,7 +220,6 @@ namespace votca {
         void GWBSE::BSE_CoupledTransition_Dipoles() {
 
             double sqrt2 = sqrt(2.0);
-            std::vector<tools::vec >& _transition_dipoles = _orbitals->TransitionDipoles();
             for (int _i_exc = 0; _i_exc < _bse_nprint; _i_exc++) {
                 tools::vec _tdipole = vec(0,0,0);
 
@@ -240,7 +239,7 @@ namespace votca {
 
                 }
                 
-                _transition_dipoles.push_back(_tdipole);
+                _orbitals->TransitionDipoles().push_back(_tdipole);
             }
             return;
         }
