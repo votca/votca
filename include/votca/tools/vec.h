@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,7 +115,7 @@ public:
        * @param[in] tol - tolerance 
        * @return bool - return true if within tolerance and false if not
        */
-      bool isClose(const vec& v, double tol) const {
+      bool isClose(const vec& v, const double tol) const {
         for (size_t i = 0; i < 3; ++i){
           if (!isApproximatelyEqual(xyz[i], v.xyz[i],tol)) return false;
         }
