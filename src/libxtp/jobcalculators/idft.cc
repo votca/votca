@@ -23,6 +23,7 @@
 #include <boost/format.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
+#include <boost/filesystem.hpp>
 
 #include <votca/ctp/logger.h>
 #include <votca/xtp/qmpackagefactory.h>
@@ -207,6 +208,17 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         boost::filesystem::create_directories( _qmpackage_work_dir );
         Orbitals *_orbitalsAB = NULL;        
         if ( _qmpackage->GuessRequested() ) { // do not want to do an SCF loop for a dimer
+          
+          if(_qmpackage->getPackageName()=="orca"){
+            CTP_LOG(ctp::logINFO,*pLog) << "Copying monomer .gbw files to pair folder" << flush;
+             string gbwFileA  = (arg_pathA /  edft_work_dir / "molecules" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_A % ".gbw").str()).c_str();
+             string gbwFileB  = (arg_pathB /  edft_work_dir / "molecules" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_B % ".gbw").str()).c_str();
+             string gbwFileA_workdir = (_qmpackage_work_dir / "molA.gbw").c_str();
+             string gbwFileB_workdir = (_qmpackage_work_dir / "molB.gbw").c_str();
+             boost::filesystem::copy_file(gbwFileA, gbwFileA_workdir,boost::filesystem::copy_option::overwrite_if_exists);
+             boost::filesystem::copy_file(gbwFileB, gbwFileB_workdir,boost::filesystem::copy_option::overwrite_if_exists);
+            
+          }else{
             CTP_LOG(ctp::logINFO,*pLog) << "Guess requested, reading molecular orbitals" << flush;
             Orbitals _orbitalsA, _orbitalsB;   
             _orbitalsAB = new Orbitals();
@@ -234,8 +246,8 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
             }
             CTP_LOG(ctp::logERROR,*pLog) << "Writing guess from monomer orbitals"<< flush; 
             Orbitals::PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
+          }
         }
-        
         // if a pair object is available, take into account PBC, otherwise write as is
         ctp::QMNBList* nblist = &top->NBList();
         ctp::QMPair* pair = nblist->FindPair(seg_A, seg_B);

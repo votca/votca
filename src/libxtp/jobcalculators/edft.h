@@ -337,6 +337,13 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     oa << _orbitals;
     // ofs.close();
     
+     if(_qmpackage->getPackageName()=="orca"){
+            CTP_LOG(ctp::logINFO,*pLog) << "Copying monomer .gbw file to orb folder" << flush;
+            string   qmpackage_gbw_dir  = edft_work_dir + "/" + _package + "/" + frame_dir + "/mol_" + ID+"/system.gbw";           
+            string gbwFile  = ORB_DIR+"/"+(format("%1%_%2%%3%") % "molecule" % ID % ".gbw").str();
+            boost::filesystem::copy_file(qmpackage_gbw_dir, gbwFile,boost::filesystem::copy_option::overwrite_if_exists);
+    }
+    
     CTP_LOG(ctp::logDEBUG,*pLog) << "Done serializing " <<  ORB_FILE << flush;
    }
    
