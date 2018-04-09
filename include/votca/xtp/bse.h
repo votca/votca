@@ -60,21 +60,22 @@ class BSE {
   void Setup_Hx(TCMatrix_gwbse& _Mmn);
   void Setup_Hd(TCMatrix_gwbse& _Mmn);
   void Setup_Hd_BTDA(TCMatrix_gwbse& _Mmn);
-  void Setup_Hqp();
+  void Add_HqpToHd(const Eigen::MatrixXd& Hqp );
   
   void Solve_triplets();
   void Solve_singlets();
   void Solve_singlets_BTDA();
-
+  void Analyze_triplets();
+  void Analyze_singlets();
+  
+  void FreeMatrices(){
+      _eh_d.resize(0, 0);
+      _eh_x.resize(0, 0);
+  }
  
 
  private:
  
-
-  // BSE variant
-  bool _do_full_BSE;
-
-void Add_HqpToH(MatrixXfd& qp);
   
   unsigned  _bse_vmin;
   unsigned  _bse_vmax;
@@ -94,7 +95,6 @@ void Add_HqpToH(MatrixXfd& qp);
   MatrixXfd& _eh_x;  // stored in orbitals object
   MatrixXfd& _eh_d;  // stored in orbitals object
   MatrixXfd _eh_d2;  // because it is not stored in orbitals object
-  MatrixXfd _eh_qp;
 
   VectorXfd& _bse_singlet_energies;  // stored in orbitals object
   MatrixXfd& _bse_singlet_coefficients;  // stored in orbitals
@@ -114,8 +114,7 @@ void Add_HqpToH(MatrixXfd& qp);
   std::vector<int> _index2c;
 
   // some cleaner analysis
-  void Analyze_triplets();
-  void Analyze_singlets();
+  
  
 
   void Analyze_eh_interaction_Triplet(std::vector<real_gwbse>& _c_d,

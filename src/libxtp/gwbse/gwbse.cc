@@ -815,9 +815,7 @@ bool GWBSE::Evaluate() {
   }
     
   
-  // free no longer required three-center matrices in _Mmn
-  // max required is _bse_cmax (could be smaller than _qpmax)
-  _Mmn.Prune(_bse_vmin, _bse_cmax);
+  
 
   // Output of quasiparticle energies after all is done:
 
@@ -871,6 +869,10 @@ bool GWBSE::Evaluate() {
       _qp_energies_store(i, 4) = gwa_energies(i + _qpmin);
     }
   }
+  
+  // free no longer required three-center matrices in _Mmn
+  // max required is _bse_cmax (could be smaller than _qpmax)
+  _Mmn.Prune(_bse_vmin, _bse_cmax);
   
 
   // constructing full quasiparticle Hamiltonian and diagonalize, if requested
@@ -931,43 +933,40 @@ bool GWBSE::Evaluate() {
         _qp_diag_energies.resize(0);
       }
     }  // _do_qp_diag
-  }    // constructing full quasiparticle Hamiltonian
+  
 
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
-
-    // calculate direct part of eh interaction, needed for singlets and triplets
-    BSE_d_setup(_Mmn);
-    // add qp part to Eh_d
-    BSE_Add_qp2H(_eh_d);
-    // Only if verbose do we use this really
-    if (votca::tools::globals::verbose) {
-      BSE_qp_setup();
-    }
-
+      
+      BSE bse=BSE(_orbitals);
+      bse.setBSEindices(_bse_vmin,_bse_vmax,_bse_cmin,_bse_cmax,_bse_maxeigenvectors);
+       // calculate direct part of eh interaction, needed for singlets and triplets
+      bse.Setup_Hd(_Mmn);
+      bse.Add_HqpToHd(Hqp);
+      
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Direct part of e-h interaction " << flush;
 
     if (_do_full_BSE) {
-      BSE_d2_setup(_Mmn);
+      bse.Setup_Hd_BTDA(_Mmn);
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                      << " Direct part of e-h interaction RARC "
                                      << flush;
     }
 
     if (_do_bse_triplets && _do_bse_diag) {
-      BSE_solve_triplets();
+      bse.Solve_triplets()
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                      << " Solved BSE for triplets " << flush;
       // analyze and report results
-      BSE_analyze_triplets();
+      bse.Analyze_triplets();
 
     }  // do_triplets
 
     // constructing electron-hole interaction for BSE
     if (_do_bse_singlets) {
       // calculate exchange part of eh interaction, only needed for singlets
-      BSE_x_setup(_Mmn);
+      bse.Setup_Hx(_Mmn);
       CTP_LOG(ctp::logDEBUG, *_pLog)
           << ctp::TimeStamp() << " Exchange part of e-h interaction " << flush;
     }
@@ -975,20 +974,20 @@ bool GWBSE::Evaluate() {
     if (_do_bse_singlets && _do_bse_diag) {
 
       if (_do_full_BSE) {
-        BSE_solve_singlets_BTDA();
+        bse.Solve_singlets_BTDA();
         CTP_LOG(ctp::logDEBUG, *_pLog)
             << ctp::TimeStamp() << " Solved full BSE for singlets " << flush;
       } else {
-        BSE_solve_singlets();
+        bse.Solve_singlets();
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                        << " Solved BSE for singlets " << flush;   
       }
-      BSE_analyze_singlets();
+      bse.Analyze_singlets();
       if (!_store_eh_interaction) {
-        _eh_d.resize(0, 0);
-        _eh_x.resize(0, 0);
+          bse.FreeMatrices();
       }
     }
+  }
   }
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " GWBSE calculation finished " << flush;

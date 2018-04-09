@@ -39,11 +39,7 @@ namespace votca {
         // +++++++++++++++++++++++++++++ //
 
         
-        void BSE::Setup_Hqp(){
-            _eh_qp = MatrixXfd::Zero( _bse_size , _bse_size );
-            Add_HqpToH( _eh_qp );
-            return;
-        }
+       
 
 
         void BSE::Solve_triplets(){
@@ -130,19 +126,19 @@ namespace votca {
       }
         
         
-      void BSE::Add_HqpToH( MatrixXfd& qp ){
+      void BSE::Add_HqpToHd(const Eigen::MatrixXd& Hqp ){
               
           #pragma omp parallel for
             for ( size_t _v1 = 0 ; _v1 < _bse_vtotal ; _v1++){
                 for ( size_t _c1 = 0 ; _c1 < _bse_ctotal ; _c1++){
                     size_t _index_vc = _bse_ctotal * _v1 + _c1;
                     // diagonal
-                    qp( _index_vc , _index_vc ) += _vxc(_c1 + _bse_vtotal ,_c1 + _bse_vtotal ) - _vxc(_v1,_v1);
+                    _eh_d( _index_vc , _index_vc ) += Hqp(_c1 + _bse_vtotal ,_c1 + _bse_vtotal ) - Hqp(_v1,_v1);
                     // v->c
                     for ( size_t _c2 = 0 ; _c2 < _bse_ctotal ; _c2++){
                         size_t _index_vc2 = _bse_ctotal * _v1 + _c2;
                         if ( _c1 != _c2 ){
-                            qp( _index_vc , _index_vc2 ) += _vxc(_c1+ _bse_vtotal ,_c2 + _bse_vtotal );
+                            _eh_d( _index_vc , _index_vc2 ) += Hqp(_c1+ _bse_vtotal ,_c2 + _bse_vtotal );
                         }
                     }
                     
@@ -150,7 +146,7 @@ namespace votca {
                     for ( size_t _v2 = 0 ; _v2 < _bse_vtotal ; _v2++){
                         size_t _index_vc2 = _bse_ctotal * _v2 + _c1;
                         if ( _v1 != _v2 ){
-                            qp( _index_vc , _index_vc2 ) -= _vxc(_v1,_v2);
+                            _eh_d( _index_vc , _index_vc2 ) -= Hqp(_v1,_v2);
                         }
                     } 
                 }

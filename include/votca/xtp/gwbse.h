@@ -79,9 +79,11 @@ class GWBSE {
   void addoutput(Property* _summary);
 
  private:
-  ctp::Logger* _pLog;
-
-  // bool   _maverick;
+     
+ Eigen::MatrixXd CalculateVXC();
+ ctp::Logger* _pLog;
+ Orbitals* _orbitals;
+  
 
   // program tasks
   bool _do_qp_diag;
@@ -142,9 +144,9 @@ class GWBSE {
   AOBasis _dftbasis;
 
   
-   Eigen::MatrixXd CalculateVXC();
+   
   
-  Orbitals* _orbitals;
+ 
   
 
 
