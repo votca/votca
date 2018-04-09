@@ -36,7 +36,6 @@ namespace votca { namespace xtp {
 class Topology;
 class Molecule;
 class Segment;
-class PolarSite;
 class APolarSite;    
 
 /**
@@ -64,14 +63,12 @@ public:
     inline void setMolecule(Molecule *container) { _mol = container; }
     inline void setSegment(Segment *container)   { _seg = container; }
     void        AddAtom( Atom* atom );
-    void        AddPolarSite(PolarSite *pole);
     void        AddAPolarSite(APolarSite *pole);
 
     Topology            *getTopology() { return _top; }
     Molecule            *getMolecule() { return _mol; }
     Segment             *getSegment()  { return _seg; }
     std::vector< Atom* >     &Atoms() { return _atoms; }
-    std::vector<PolarSite*>  &PolarSites() { return _polarSites; }
     std::vector<APolarSite*> &APolarSites() { return _apolarSites; }
 
     const int    &getId() const { return _id; }
@@ -106,7 +103,6 @@ private:
     Segment     *_seg;
 
     std::vector < Atom* > _atoms;
-    std::vector <PolarSite*> _polarSites;
     std::vector <APolarSite*> _apolarSites;
     std::vector< double > _weights;
 
