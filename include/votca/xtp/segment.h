@@ -29,7 +29,6 @@
 namespace votca { namespace xtp {
 
 class Atom;
-class PolarSite;
 class APolarSite;
 class Fragment;
 class SegmentType;
@@ -109,11 +108,9 @@ public:
 
     void             AddFragment( Fragment* fragment );
     void             AddAtom( Atom* atom );
-    void             AddPolarSite(PolarSite *pole);
     void             AddAPolarSite(APolarSite *pole);
     std::vector< Fragment* > &Fragments() { return _fragments; }
     std::vector < Atom* >    &Atoms() { return _atoms; }
-    std::vector<PolarSite*>  &PolarSites() { return _polarSites; }
     std::vector<APolarSite*> &APolarSites() { return _apolarSites; }
 
 
@@ -129,7 +126,6 @@ private:
 
     std::vector < Fragment* >    _fragments;
     std::vector < Atom* >        _atoms;
-    std::vector < PolarSite* >   _polarSites;
     std::vector < APolarSite* >  _apolarSites;
 
     tools::vec         _CoM;
