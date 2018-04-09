@@ -20,7 +20,6 @@
 #include <vector>
 #include <votca/xtp/fragment.h>
 #include <votca/xtp/apolarsite.h>
-#include <votca/xtp/polarsite.h>
 #include <votca/xtp/atom.h>
 
 using namespace std;
@@ -45,12 +44,8 @@ Fragment::Fragment(Fragment *stencil)
 
 
 Fragment::~Fragment() {
-    vector < Atom* > ::iterator atmit;
     _weights.clear();
     _atoms.clear();
-
-    vector < PolarSite* > ::iterator pit;
-    _polarSites.clear();
 }
 
 
@@ -58,11 +53,6 @@ void Fragment::AddAtom(Atom* atom) {
     _atoms.push_back( atom );
     atom->setFragment(this);
     _weights.push_back( atom->getWeight() );
-}
-
-void Fragment::AddPolarSite(PolarSite *pole) {
-    _polarSites.push_back(pole);
-    pole->setFragment(this);
 }
 
 void Fragment::AddAPolarSite(APolarSite *pole) {
