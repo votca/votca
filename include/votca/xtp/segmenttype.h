@@ -16,7 +16,7 @@
  * limitations under the License.
  *
  */
-
+/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #ifndef __VOTCA_XTP_SEGMENT_TYPE_H
 #define	__VOTCA_XTP_SEGMENT_TYPE_H
