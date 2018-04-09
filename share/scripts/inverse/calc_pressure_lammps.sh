@@ -1,4 +1,4 @@
-#! /usr/bin/perl -w
+#! /bin/bash
 #
 # Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
@@ -15,23 +15,23 @@
 # limitations under the License.
 #
 
-use strict;
-( my $progname = $0 ) =~ s#^.*/##;
-if (defined($ARGV[0])&&("$ARGV[0]" eq "--help")){
-  print <<EOF;
-$progname, version %version%
-Skeleton script
+if [[ $1 = "--help" ]]; then
+cat <<EOF
+${0##*/}, version %version%
+This script calcs the pressure for lammps and writes it to outfile
 
-Usage: $progname argument
+Usage: ${0##*/} outfile
+
+Used external packages: lammps
 EOF
-  exit 0;
-}
+   exit 0
+fi
 
-die "1 parameter are necessary\n" if ($#ARGV<0);
+[[ -z $1 ]] && die "${0##*/}: Missing argument"
 
-use CsgFunctions;
+p_file="$(csg_get_property cg.inverse.lammps.pressure_file)" 
 
-my @r;
-my @values;
-my @flags;
-readin_table($ARGV[0],@r,@values,@flags)) || die "$progname: error at readin_table'$ARGV[0]'\n"
+[[ -f ${p_file} ]] || die "${0##*/}: pressure file '${p_file}' doesn't exist" 
+
+p_now=$(awk 'NR > 1 {avg += $1} END {printf "%.16f\n", avg/(NR-1)}' ${p_file}) || die "${0##*/}: pressure averaging failed" 
+echo "Pressure=${p_now}" > "$1"

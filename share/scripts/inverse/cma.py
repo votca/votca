@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """Module cma implements the CMA-ES (Covariance Matrix Adaptation
 Evolution Strategy).
 

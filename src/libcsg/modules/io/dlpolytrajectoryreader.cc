@@ -249,7 +249,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf)
 	}
       }
 
-      vec box_vectors[3];
+      vec box_vectors[3]{0.0,0.0,0.0};
       for (int i=0;i<3;i++) { // read 3 box/cell lines
 
         getline(_fl, line);
@@ -295,7 +295,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf)
 	}
 
 	Bead *b = conf.getBead(i);
-	vec atom_vec[3];
+	vec atom_vec[3]{0.0,0.0,0.0};
 	for (int j=0;j<min(navecs,2)+1;j++){
 
           getline(_fl, line); //read atom positions

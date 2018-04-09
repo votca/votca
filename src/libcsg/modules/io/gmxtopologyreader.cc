@@ -22,20 +22,13 @@
 #include <iostream>
 #include "gmxtopologyreader.h"
 
-#if GMX == 52
-        #include <gromacs/fileio/tpxio.h>
-        #include <gromacs/topology/atoms.h>
-        #include <gromacs/topology/topology.h>
-        #include <gromacs/mdtypes/inputrec.h>
-#elif GMX == 51
-        #include <gromacs/fileio/tpxio.h>
-        #include <gromacs/topology/atoms.h>
-        #include <gromacs/topology/topology.h>
-#else
-#error Unsupported GMX version
-#endif
-    // this one is needed because of bool is defined in one of the headers included by gmx
-    #undef bool
+#include <gromacs/fileio/tpxio.h>
+#include <gromacs/topology/atoms.h>
+#include <gromacs/topology/topology.h>
+#include <gromacs/mdtypes/inputrec.h>
+
+// this one is needed because of bool is defined in one of the headers included by gmx
+#undef bool
 
 namespace votca { namespace csg {
 
@@ -50,25 +43,17 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     t_inputrec ir;
     ::matrix gbox;
 
-#if GMX == 52
     (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,&mtop);
-#else
-    (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
-#endif
-
-    int count=0;
-    for(int iblock=0; iblock<mtop.nmolblock; ++iblock)
-        count+=mtop.molblock[iblock].nmol;
-
-    if(count != mtop.mols.nr  ) {
-        throw runtime_error("gromacs topology contains inconsistency in molecule definitons\n\n"
-                "A possible reason is an outdated .tpr file. Please rerun grompp to generate a new tpr file.\n"
-                "If the problem remains or "
-                "you're missing the files to rerun grompp,\n contact the votca mailing list for a solution.");
-    }
 
     int ifirstatom = 0;
-    for(int iblock=0; iblock<mtop.nmolblock; ++iblock) {
+    
+#if GROMACS_VERSION >= 20190000
+    size_t nmolblock=mtop.molblock.size();
+#else
+    size_t nmolblock=mtop.nmolblock;
+#endif
+
+    for(size_t iblock=0; iblock<nmolblock; ++iblock) {
         gmx_moltype_t *mol
                 = &(mtop.moltype[mtop.molblock[iblock].type]);
 

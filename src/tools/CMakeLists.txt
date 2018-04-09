@@ -2,7 +2,7 @@ foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat cs
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
   target_link_libraries(${PROG} votca_csg)
-  install(TARGETS ${PROG} RUNTIME DESTINATION bin)
+  install(TARGETS ${PROG} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   if (TXT2TAGS_FOUND AND BASH)
     add_custom_command(OUTPUT ${PROG}.man
       COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${PROG} --help > ${PROG}.help
@@ -11,7 +11,13 @@ foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat cs
       DEPENDS help2t2t_build ${PROG})
     add_custom_target(${PROG}_manpage DEPENDS ${PROG}.man)
     add_dependencies(manpages ${PROG}_manpage)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${MAN}/man1 RENAME ${PROG}.1)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROG}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${PROG}.1)
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${PROG}.help ${PROG}.t2t)
   endif(TXT2TAGS_FOUND AND BASH)
+
+  if(ENABLE_TESTING)
+    add_test(${PROG}Help ${PROG} --help)
+    # run tests for tools (for coverage) as well
+    set_tests_properties(${PROG}Help PROPERTIES LABELS "csg;tools;votca")
+  endif(ENABLE_TESTING)
 endforeach(PROG)
