@@ -25,7 +25,6 @@
 #include <votca/xtp/fragment.h>
 #include <votca/xtp/atom.h>
 #include <votca/xtp/apolarsite.h>
-#include <votca/xtp/polarsite.h>
 
 #include <votca/tools/matrix.h>
 #include <votca/tools/vec.h>
@@ -53,7 +52,7 @@ namespace votca { namespace xtp {
     _segments.clear();
     _fragments.clear();
     _atoms.clear();
-    _polarSites.clear();
+    _apolarSites.clear();
 
     vector < SegmentType* > ::iterator sit;
     for (sit = _segmentTypes.begin(); sit < _segmentTypes.end(); sit++) {
@@ -82,7 +81,7 @@ namespace votca { namespace xtp {
     _segments.clear();
     _fragments.clear();
     _atoms.clear();
-    _polarSites.clear();
+    _apolarSites.clear();
 
     vector < SegmentType* > ::iterator typeit;
     for (typeit = _segmentTypes.begin();
@@ -122,14 +121,6 @@ namespace votca { namespace xtp {
     _atoms.push_back(atom);
     atom->setTopology(this);
     return atom;
-  }
-
-  PolarSite *Topology::AddPolarSite(string siteName) {
-    int poleId = _polarSites.size() + 1;
-    PolarSite *pole = new PolarSite(poleId, siteName);
-    _polarSites.push_back(pole);
-    pole->setTopology(this);
-    return pole;
   }
 
   APolarSite *Topology::AddAPolarSite(string siteName) {
