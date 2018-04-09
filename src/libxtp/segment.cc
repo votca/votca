@@ -86,7 +86,6 @@ Segment::~Segment() {
   _atoms.clear();
 
   _eMpoles.clear();
-  _apolarSites.clear();
 }
 
 void Segment::TranslateBy(const vec &shift) {

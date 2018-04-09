@@ -52,7 +52,6 @@ namespace votca { namespace xtp {
     _segments.clear();
     _fragments.clear();
     _atoms.clear();
-    _apolarSites.clear();
 
     vector < SegmentType* > ::iterator sit;
     for (sit = _segmentTypes.begin(); sit < _segmentTypes.end(); sit++) {
@@ -81,7 +80,6 @@ namespace votca { namespace xtp {
     _segments.clear();
     _fragments.clear();
     _atoms.clear();
-    _apolarSites.clear();
 
     vector < SegmentType* > ::iterator typeit;
     for (typeit = _segmentTypes.begin();
