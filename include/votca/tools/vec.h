@@ -104,7 +104,22 @@ public:
      */
     const double &getZ() const { return _z; }
     
-    
+     /**
+       * \brief Compare floating point values of two vectors
+       *
+       * The floating point values are compared to within a tolerance which
+       * is specified as the third parameter.
+       *
+       * @param[in] v - vector to be compared
+       * @param[in] tol - tolerance 
+       * @return bool - return true if within tolerance and false if not
+       */
+      bool isClose(const vector& v, double tol) const {
+        for (size_t i = 0; i < 3; ++i){
+          if (!isApproximatelyEqual(xyz[i], m.xyz[i],tol)) return false;
+        }
+        return true;
+}
     
     
     
@@ -331,7 +346,7 @@ inline double abs(const vec &v)
     return sqrt(v*v);
 }
 
-inline bool isClose(const vec &v1, const vec &v2, double tol){
+inline bool isClose(const vec &v1, const vec &v2, double tol=1e-9){
     return (abs(v1 - v2) < tol);
 }
 
