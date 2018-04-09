@@ -46,7 +46,6 @@ class SegmentType;
 class Fragment;
 class Atom;
 class APolarSite;
-class PolarSite;
 /**
  * \brief Container for molecules, conjugated segments, rigid fragments,
  * and atoms.
@@ -65,7 +64,6 @@ public:
     Segment     *AddSegment  (std::string segment_name);
     Atom        *AddAtom     (std::string atom_name);
     Fragment    *AddFragment (std::string fragment_name);
-    PolarSite   *AddPolarSite(std::string siteName);
     APolarSite  *AddAPolarSite(std::string siteName);
     SegmentType *AddSegmentType (std::string typeName);
 
@@ -73,7 +71,6 @@ public:
     Segment     *getSegment(int id)  { return _segments[id-1]; }
     Fragment    *getFragment(int id) { return _fragments[id-1]; }
     Atom        *getAtom(int id)     { return _atoms[id-1]; }
-    PolarSite   *getPolarSite(int id) { return _polarSites[id-1]; }
     APolarSite  *getAPolarSite(int id) { return _apolarSites[id-1]; }
     SegmentType *getSegmentType(int id) { return _segmentTypes[id-1]; }
 
@@ -81,7 +78,6 @@ public:
     std::vector< Fragment* >     &Fragments() { return _fragments; }
     std::vector< Segment* >      &Segments() { return _segments; }
     std::vector< Molecule* >     &Molecules() { return _molecules; }
-    std::vector< PolarSite* >    &PolarSites() { return _polarSites; }
     std::vector< APolarSite* >   &APolarSites() { return _apolarSites; }
     std::vector< SegmentType* >  &SegmentTypes() { return _segmentTypes; }
 
@@ -122,7 +118,6 @@ protected:
     std::vector < Segment* >     _segments;
     std::vector < Fragment* >    _fragments;
     std::vector < Atom* >        _atoms;
-    std::vector < PolarSite* >   _polarSites;
     std::vector < APolarSite* >   _apolarSites;
     std::vector < SegmentType* > _segmentTypes;
 
