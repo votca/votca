@@ -39,8 +39,8 @@ public:
         { _actor.SetADamp(_aDamp); }
    ~MolPolEngine() {}
     
-    matrix CalculateMolPol(vector<APolarSite*> &poles, bool verbose = true);
-    int    SCF_Induce(vector<APolarSite*> &poles);
+    matrix CalculateMolPol(std::vector<APolarSite*> &poles, bool verbose = true);
+    int    SCF_Induce(std::vector<APolarSite*> &poles);
     
 private:
     
