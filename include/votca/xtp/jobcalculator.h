@@ -37,11 +37,11 @@ public:
 
     virtual string  Identify() { return "Generic Job calculator"; }
 
-    virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
-    virtual void    EndEvaluate(CTP::Topology *top) { }
+    virtual bool    EvaluateFrame(XTP::Topology *top) { return true; }
+    virtual void    EndEvaluate(XTP::Topology *top) { }
 
-    virtual void    WriteJobFile(CTP::Topology *top)  { ; }
-    virtual void    ReadJobFile(CTP::Topology *top) { ; }
+    virtual void    WriteJobFile(XTP::Topology *top)  { ; }
+    virtual void    ReadJobFile(XTP::Topology *top) { ; }
 
     void            setProgObserver(ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs) { _progObs = obs; }
 
