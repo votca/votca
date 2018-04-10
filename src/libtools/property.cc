@@ -35,7 +35,7 @@
 #include <unistd.h>
 
 namespace votca { namespace tools {
-
+    using namespace std;
 // ostream modifier defines the output format, level, indentation
 const int Property::IOindex = std::ios_base::xalloc(); 
    

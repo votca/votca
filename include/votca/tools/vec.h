@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,11 @@
 #include <stdexcept>
 #include <string>
 #include <boost/numeric/ublas/lu.hpp>
+#include <votca/tools/floatingpointcomparison.h>
 #include "tokenizer.h"
 
 namespace votca { namespace tools {
-using namespace std;
+    using namespace std;
 /**
     \brief Vector class for a 3 component vector
 
@@ -46,7 +47,7 @@ public:
     vec(const double r[3]);
     vec(const double x, const double y, const double z);
     vec(const boost::numeric::ublas::vector<double> &v);
-    vec(const string &str);
+    vec(const std::string &str);
     
     
     double operator[](std::size_t i) const;
@@ -104,7 +105,22 @@ public:
      */
     const double &getZ() const { return _z; }
     
-    
+     /**
+       * \brief Compare floating point values of two vectors
+       *
+       * The floating point values are compared to within a tolerance which
+       * is specified as the third parameter.
+       *
+       * @param[in] v - vector to be compared
+       * @param[in] tol - tolerance 
+       * @return bool - return true if within tolerance and false if not
+       */
+      bool isClose(const vec& v, const double tol) const {
+        for (size_t i = 0; i < 3; ++i){
+          if (!isApproximatelyEqual(xyz[i], v.xyz[i],tol)) return false;
+        }
+        return true;
+}
     
     
     
@@ -154,11 +170,11 @@ inline vec::vec(const boost::numeric::ublas::vector<double> &ublas)
     catch(std::exception &err){throw std::length_error("Conversion from ub::vector to votca-vec failed");} 
 }
 
-inline vec::vec(const string &str)
+inline vec::vec(const std::string &str)
 {
     // usage: vec(" 1  2.5  17 "); separator = spaces
     Tokenizer tok(str, " ");
-    vector< string > values;
+    std::vector< std::string > values;
     tok.ToVector(values);
     if (values.size()!=3)
     {
@@ -271,12 +287,12 @@ inline std::istream &operator>>(std::istream &in, vec& v)
         throw std::runtime_error("error, invalid character in vector string");
     }
     
-    string str;
+    std::string str;
     while (in.good()) {
         in.get(c);
         if(c==']') { // found end of vector
             Tokenizer tok(str, ",");
-            vector<double> d;
+            std::vector<double> d;
             tok.ConvertToVector(d);
             if(d.size() != 3)
                 throw std::runtime_error("error, invalid number of entries in vector");
