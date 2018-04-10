@@ -20,6 +20,8 @@
 
 #include <votca/xtp/parallelpaircalc.h>
 
+using namespace std;
+
 namespace votca { namespace xtp {
 
 bool ParallelPairCalculator::EvaluateFrame(Topology *top) {
@@ -29,8 +31,8 @@ bool ParallelPairCalculator::EvaluateFrame(Topology *top) {
         bool isRigid = top->Rigidify();
         if (!isRigid) { return 0; }
     }
-    else { std::cout << std::endl << "... ... System is already rigidified."; }
-    std::cout << std::endl;        
+    else { cout << endl << "... ... System is already rigidified."; }
+    cout << endl;        
 
     vector<PairOperator*> pairOps;
     this->InitSlotData(top);
