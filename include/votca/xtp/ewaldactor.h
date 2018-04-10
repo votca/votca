@@ -126,9 +126,9 @@ public:
     inline double FP12_ERF_At_By(APolarSite &p1, APolarSite &p2);
     inline double FU12_ERF_At_By(APolarSite &p1, APolarSite &p2);
     // Reciprocal-space K=0 shape correction term P1 <> P2
-    void FPU12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
-    void FP12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
-    void FU12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);    
+    void FPU12_ShapeField_At_By(std::vector<PolarSeg*> &at, std::vector<PolarSeg*> &by, std::string shape, double volume);
+    void FP12_ShapeField_At_By(std::vector<PolarSeg*> &at, std::vector<PolarSeg*> &by, std::string shape, double volume);
+    void FU12_ShapeField_At_By(std::vector<PolarSeg*> &at, std::vector<PolarSeg*> &by, std::string shape, double volume);    
     
     // ========== //
     // POTENTIALS //
@@ -143,9 +143,9 @@ public:
     inline double PhiP12_ERF_At_By(APolarSite &p1, APolarSite &p2);
     inline double PhiU12_ERF_At_By(APolarSite &p1, APolarSite &p2);
     // Reciprocal-space K=0 shape correction term P1 <> P2
-    void PhiPU12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
-    void PhiP12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
-    void PhiU12_ShapeField_At_By(vector<PolarSeg*> &at, vector<PolarSeg*> &by, string shape, double volume);
+    void PhiPU12_ShapeField_At_By(std::vector<PolarSeg*> &at, std::vector<PolarSeg*> &by, std::string shape, double volume);
+    void PhiP12_ShapeField_At_By(std::vector<PolarSeg*> &at, std::vector<PolarSeg*> &by, std::string shape, double volume);
+    void PhiU12_ShapeField_At_By(std::vector<PolarSeg*> &at, std::vector<PolarSeg*> &by, std::string shape, double volume);
     
     // ======== //
     // ENERGIES //
@@ -156,7 +156,7 @@ public:
     // Reciprocal-space double-counting correction term P1 <> P2
     inline EWD::triple<double> U12_ERF(APolarSite &p1, APolarSite &p2);    
     // Reciprocal-space K=0 shape correction term P1 <> P2
-    EWD::triple<double> U12_ShapeTerm(vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, string shape, double volume, Logger *log=NULL);
+    EWD::triple<double> U12_ShapeTerm(std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, std::string shape, double volume, Logger *log=NULL);
     
     // ========================== RECIPROCAL SPACE ========================== //    
     inline void   ApplyBiasK(const vec &k);
@@ -167,29 +167,29 @@ public:
     inline void UApplyBiasK(APolarSite &p);
     
     // Structure amplitudes //
-    EWD::cmplx PUStructureAmplitude(vector<PolarSeg*> &s);
-    EWD::cmplx PStructureAmplitude(vector<PolarSeg*> &s);
-    EWD::cmplx UStructureAmplitude(vector<PolarSeg*> &s);    
-    EWD::cmplx PUStructureAmplitude(vector<PolarSeg*> &s, const vec &k);
-    EWD::cmplx PStructureAmplitude(vector<PolarSeg*> &s, const vec &k);
-    EWD::cmplx UStructureAmplitude(vector<PolarSeg*> &s, const vec &k);
+    EWD::cmplx PUStructureAmplitude(std::vector<PolarSeg*> &s);
+    EWD::cmplx PStructureAmplitude(std::vector<PolarSeg*> &s);
+    EWD::cmplx UStructureAmplitude(std::vector<PolarSeg*> &s);    
+    EWD::cmplx PUStructureAmplitude(std::vector<PolarSeg*> &s, const vec &k);
+    EWD::cmplx PStructureAmplitude(std::vector<PolarSeg*> &s, const vec &k);
+    EWD::cmplx UStructureAmplitude(std::vector<PolarSeg*> &s, const vec &k);
     
     // Fields
-    EWD::cmplx FPU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
-    EWD::cmplx FP12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
-    EWD::cmplx FU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);    
+    EWD::cmplx FPU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx FP12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx FU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV);    
 
-    EWD::cmplx FP12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
-    EWD::cmplx FU12_At_ByS2(const vec &k, vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
+    EWD::cmplx FP12_At_ByS2(const vec &k, std::vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
+    EWD::cmplx FU12_At_ByS2(const vec &k, std::vector<PolarSeg*> &s1, const EWD::cmplx &S2, double &rV);
     
     // Potentials
-    EWD::cmplx PhiPU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
-    EWD::cmplx PhiP12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
-    EWD::cmplx PhiU12_AS1S2_At_By(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx PhiPU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx PhiP12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV);
+    EWD::cmplx PhiU12_AS1S2_At_By(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2, double &rV);
     
     // Energies
-    EWD::triple<EWD::cmplx> AS1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
-    EWD::triple<EWD::cmplx> S1S2(const vec &k, vector<PolarSeg*> &s1, vector<PolarSeg*> &s2);
+    EWD::triple<EWD::cmplx> AS1S2(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2);
+    EWD::triple<EWD::cmplx> S1S2(const vec &k, std::vector<PolarSeg*> &s1, std::vector<PolarSeg*> &s2);
     
 private:
     
