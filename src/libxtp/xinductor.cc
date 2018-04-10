@@ -18,15 +18,14 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#include <votca/ctp/xinductor.h>
+#include <votca/xtp/xinductor.h>
 #include <boost/format.hpp>
 #include <vector>
 #include <boost/timer/timer.hpp>
 
 using boost::format;
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
     
 XInductor::~XInductor() {
