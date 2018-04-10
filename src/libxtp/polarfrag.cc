@@ -18,12 +18,11 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#include <votca/ctp/polarfrag.h>
-#include <votca/ctp/dmaspace.h>
+#include <votca/xtp/polarfrag.h>
+#include <votca/xtp/dmaspace.h>
 
 namespace votca {
-namespace ctp {
+namespace xtp {
 
 
 PolarFrag::~PolarFrag()  { 
