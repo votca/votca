@@ -18,15 +18,15 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef VOTCA_CTP_JOBCALCULATOR_H
-#define VOTCA_CTP_JOBCALCULATOR_H
+#ifndef __VOTCA_XTP_JOBCALCULATOR_H
+#define __VOTCA_XTP_JOBCALCULATOR_H
 
 
-#include <votca/ctp/qmcalculator.h>
-#include <votca/ctp/topology.h>
-#include <votca/ctp/progressobserver.h>
+#include <votca/xtp/qmcalculator.h>
+#include <votca/xtp/topology.h>
+#include <votca/xtp/progressobserver.h>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class JobCalculator : public QMCalculator
 {
@@ -53,4 +53,5 @@ protected:
 
 }}
 
-#endif /* _QMCALCULATOR_H */
+#endif // __VOTCA_XTP_JOBCALCULATOR_H
+
