@@ -18,15 +18,13 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#include <votca/ctp/parallelxjobcalc.h>
+#include <votca/xtp/parallelxjobcalc.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 
 using boost::format;
 
-
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
     
 template<typename JobContainer, typename pJob, typename rJob> 
