@@ -18,11 +18,9 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#include <votca/xtp/parallelpaircalc.h>
 
-
-#include <votca/ctp/parallelpaircalc.h>
-
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 bool ParallelPairCalculator::EvaluateFrame(Topology *top) {
 
