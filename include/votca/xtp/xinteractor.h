@@ -18,19 +18,18 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#ifndef __XINTERACTOR__H
-#define	__XINTERACTOR__H
+#ifndef __VOTCA_XTP_XINTERACTOR_H
+#define	__VOTCA_XTP_XINTERACTOR_H
 
 #include <math.h>
 #include <votca/tools/vec.h>
-#include <votca/ctp/topology.h>
-#include <votca/ctp/apolarsite.h>
+#include <votca/xtp/topology.h>
+#include <votca/xtp/apolarsite.h>
 
 // TODO Sharpness parameter should be initialised in constructor
 // ...  (currently hard-coded, 0.390)
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 // +++++++++++++++++++++++++++ //
 // Multipole Interaction Class //
@@ -44,24 +43,24 @@ public:
     XInteractor() :                            _top(NULL), a(0.390) { _top = NULL; };
    ~XInteractor() {};
 
-    // UNITS IN INPUT FILES
-    // ... Always use atomic units
-    // ... ... Positions in a0 (bohr)
-    // ... ... Multipole moment of rank k in e(a0)**k
-    // ... ... Dipole polarizability in A³ (Angstrom cubed)
+    /// UNITS IN INPUT FILES
+    /// ... Always use atomic units
+    /// ... ... Positions in a0 (bohr)
+    /// ... ... Multipole moment of rank k in e(a0)**k
+    /// ... ... Dipole polarizability in A³ (Angstrom cubed)
 
-    // UNITS USED INTERNALLY
-    // ... Use nm instead of a0 and A
-    // ... ... Positions in nm
-    // ... ... Multipole moment of rank k in e(nm)**k
-    // ... ... Dipole polarizability in nm³
+    /// UNITS USED INTERNALLY
+    /// ... Use nm instead of a0 and A
+    /// ... ... Positions in nm
+    /// ... ... Multipole moment of rank k in e(nm)**k
+    /// ... ... Dipole polarizability in nm³
 
-    // CONVERSION FACTORS
-    // ... Electric field (N/C) = Electric field (int)
-    //                          * 1/4PiEps0(SI) * e * 1e+18
-    // ... Energy (eV) = Energy (int) * 1/4PiEps0(SI) * e * 1e+09
-    //
-    // ... Potential (V) = Potential(int) * 1/4PiEps0(SI) * e * 1e+0.9
+    /// CONVERSION FACTORS
+    /// ... Electric field (N/C) = Electric field (int)
+    ///                          * 1/4PiEps0(SI) * e * 1e+18
+    /// ... Energy (eV) = Energy (int) * 1/4PiEps0(SI) * e * 1e+09
+    ///
+    /// ... Potential (V) = Potential(int) * 1/4PiEps0(SI) * e * 1e+0.9
    
     //static const double int2eV = 1/(4*M_PI*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
@@ -3282,5 +3281,6 @@ inline void XInteractor::RevBias() {
 
 }}
 
-#endif
+#endif // __VOTCA_XTP_XINTERACTOR_H
+
 
