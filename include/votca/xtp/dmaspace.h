@@ -112,15 +112,15 @@ public:
     inline cmplx X2x2()  { return std::sqrt(0.5)*cmplx(+1*Q22c(), +1*Q22s()); }
     
     void PrintReal() {
-        cout << endl << scientific << "Q00 " << Q00();
-        cout << endl << scientific << "Q10 " << Q10();
-        cout << endl << scientific << "    " << Q11c();
-        cout << endl << scientific << "    " << Q11s();
-        cout << endl << scientific << "Q20 " << Q20();
-        cout << endl << scientific << "    " << Q21c();
-        cout << endl << scientific << "    " << Q21s();
-        cout << endl << scientific << "    " << Q22c();
-        cout << endl << scientific << "    " << Q22s();
+        std::cout << std::endl << scientific << "Q00 " << Q00();
+        std::cout << std::endl << scientific << "Q10 " << Q10();
+        std::cout << std::endl << scientific << "    " << Q11c();
+        std::cout << std::endl << scientific << "    " << Q11s();
+        std::cout << std::endl << scientific << "Q20 " << Q20();
+        std::cout << std::endl << scientific << "    " << Q21c();
+        std::cout << std::endl << scientific << "    " << Q21s();
+        std::cout << std::endl << scientific << "    " << Q22c();
+        std::cout << std::endl << scientific << "    " << Q22s();
     }
     
     std::vector<cmplx> ToVector() {
@@ -204,15 +204,15 @@ public:
     }
     
     void PrintReal() {
-        cout << endl << scientific << "Q00 " << Q00();
-        cout << endl << scientific << "Q10 " << Q10();
-        cout << endl << scientific << "    " << Q11c();
-        cout << endl << scientific << "    " << Q11s();
-        cout << endl << scientific << "Q20 " << Q20();
-        cout << endl << scientific << "    " << Q21c();
-        cout << endl << scientific << "    " << Q21s();
-        cout << endl << scientific << "    " << Q22c();
-        cout << endl << scientific << "    " << Q22s();
+        std::cout << std::endl << scientific << "Q00 " << Q00();
+        std::cout << std::endl << scientific << "Q10 " << Q10();
+        std::cout << std::endl << scientific << "    " << Q11c();
+        std::cout << std::endl << scientific << "    " << Q11s();
+        std::cout << std::endl << scientific << "Q20 " << Q20();
+        std::cout << std::endl << scientific << "    " << Q21c();
+        std::cout << std::endl << scientific << "    " << Q21s();
+        std::cout << std::endl << scientific << "    " << Q22c();
+        std::cout << std::endl << scientific << "    " << Q22s();
     }
     
 private:
