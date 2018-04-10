@@ -18,8 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef VOTCA_CTP_JOB_H
-#define	VOTCA_CTP_JOB_H
+#ifndef __VOTCA_XTP_JOB_H
+#define	__VOTCA_XTP_JOB_H
 
 #include <iostream>
 #include <fstream>
@@ -29,7 +29,7 @@
 using namespace std;
 using namespace votca::tools;
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
     
 
     
@@ -144,4 +144,4 @@ protected:
 }}
 
 
-#endif
+#endif // __VOTCA_XTP_JOB_H
