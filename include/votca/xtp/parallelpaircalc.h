@@ -30,6 +30,9 @@ namespace TOOLS = votca::tools;
 
 namespace votca { namespace xtp {
 
+class Topology;
+class QMPair;
+
 class ParallelPairCalculator : public QMCalculator{
 
 public:
@@ -86,10 +89,7 @@ protected:
 
 };
 
+
 }}
-
-
-
-
 
 #endif  // __VOTCA_XTP_PARALLELPAIRCALC_H

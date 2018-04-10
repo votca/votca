@@ -22,15 +22,14 @@
 #define __VOTCA_XTP_QMCALCULATOR_H
 
 #include <votca/tools/calculator.h>
-#include <votca/xtp/topology.h>
 
-namespace XTP = votca::xtp;
 namespace TOOLS = votca::tools;
 
 namespace votca { namespace xtp {
 
-class QMCalculator : public Calculator
-{
+class Topology;
+
+class QMCalculator : public TOOLS::Calculator{
 public:
 
                     QMCalculator() {}
@@ -39,10 +38,8 @@ public:
     virtual std::string  Identify() = 0;
 
     virtual void    Initialize(Property *options) = 0;
-    virtual bool    EvaluateFrame(XTP::Topology *top) { return true; }
-    virtual void    EndEvaluate(XTP::Topology *top) { }
-
-protected:
+    virtual bool    EvaluateFrame(Topology *top) { return true; }
+    virtual void    EndEvaluate(Topology *top) { }
 
 };
 

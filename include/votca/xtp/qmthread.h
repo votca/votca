@@ -28,14 +28,15 @@
 #include <string>
 #include <ctime>
 
-namespace votca { namespace xtp {
+namespace TOOLS = votca::tools;
 
+namespace votca { namespace xtp {
 
   // ++++++++++++++++++++++++++++++++++++++ //
   // Thread class with local string stream //
   // ++++++++++++++++++++++++++++++++++++++ //
 
-  class QMThread : public Thread
+  class QMThread : public TOOLS::Thread
   {
     public:
       QMThread() { _maverick = false; }
