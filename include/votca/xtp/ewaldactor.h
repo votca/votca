@@ -18,33 +18,33 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef VOTCA_CTP_EWDINTERACTOR_H
-#define	VOTCA_CTP_EWDINTERACTOR_H
+#ifndef _VOTCA_XTP_EWDINTERACTOR_H
+#define	_VOTCA_XTP_EWDINTERACTOR_H
 
 #include <cmath>
 #include <votca/tools/vec.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/topology.h>
-#include <votca/ctp/polartop.h>
-#include <votca/ctp/ewdspace.h>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/topology.h>
+#include <votca/xtp/polartop.h>
+#include <votca/xtp/ewdspace.h>
 
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
-// UNITS IN INPUT FILES
-// ... ... Positions as required by format
-// ... ... Multipole moment of rank k in e(a0)**k
-// ... ... Dipole polarizability in A³ (Angstrom cubed)
+/// UNITS IN INPUT FILES
+/// ... ... Positions as required by format
+/// ... ... Multipole moment of rank k in e(a0)**k
+/// ... ... Dipole polarizability in A³ (Angstrom cubed)
 
-// UNITS USED INTERNALLY
-// ... ... Positions in nm
-// ... ... Multipole moment of rank k in e(nm)**k
-// ... ... Dipole polarizability in nm³
+/// UNITS USED INTERNALLY
+/// ... ... Positions in nm
+/// ... ... Multipole moment of rank k in e(nm)**k
+/// ... ... Dipole polarizability in nm³
 
-// CONVERSION FACTORS
-// ... ... Electric field (N/C) = Field (int)  * 1/4PiEps0(SI) * e * 1e+18
-// ... ... Energy (eV)          = Energy (int) * 1/4PiEps0(SI) * e * 1e+09
-// ... ... Potential(V)         = Pot. (int)   * 1/4PiEps0(SI) * e * 1e+09    
+/// CONVERSION FACTORS
+/// ... ... Electric field (N/C) = Field (int)  * 1/4PiEps0(SI) * e * 1e+18
+/// ... ... Energy (eV)          = Energy (int) * 1/4PiEps0(SI) * e * 1e+09
+/// ... ... Potential(V)         = Pot. (int)   * 1/4PiEps0(SI) * e * 1e+09    
     
 class EwdInteractor
 {
@@ -1594,5 +1594,6 @@ inline void EwdInteractor::UApplyBiasK(APolarSite &p) {
 
 }}
 
-#endif
+#endif // _VOTCA_XTP_EWDINTERACTOR_H
+
 
