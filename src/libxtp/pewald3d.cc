@@ -54,7 +54,7 @@ void PEwald3D3D::GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2
     
     assert(!_did_generate_kvectors);    
     
-    CTP_LOG(logINFO,*_log) << flush
+    XTP_LOG(logINFO,*_log) << flush
         << "Generating K-vectors (Sx*Sy*Sz grading system in place)" << flush;
     
     vector< EWD::KVector > kvecs_2_0; // 2 components zero
@@ -73,7 +73,7 @@ void PEwald3D3D::GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2
     double avg_kz_s1s2 = 0.0;
     
     // TWO COMPONENTS ZERO, ONE NON-ZERO
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << "  o K-lines through origin: Exploring K resonances" << flush;
     for (int i = 1; i < _NA_max+1; ++i) {
         vec k = +i*_A;
@@ -116,7 +116,7 @@ void PEwald3D3D::GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2
     if (pow(avg_kx_s1s2*avg_ky_s1s2*avg_kz_s1s2,2./3.) > 1e-100)
         kxyz_s1s2_norm = 1./pow(avg_kx_s1s2*avg_ky_s1s2*avg_kz_s1s2,2./3.) * EWD::int2eV / _LxLyLz;
     else {
-        CTP_LOG(logDEBUG,*_log)
+        XTP_LOG(logDEBUG,*_log)
             << "    - Symptoms of a neutral system: Use Ark2Expk2 grading." << flush;
         kxyz_s1s2_norm = EWD::int2eV / _LxLyLz;
         neutral_mode = true;
@@ -127,7 +127,7 @@ void PEwald3D3D::GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2
     kz_s1s2[0] = pow(avg_kx_s1s2*avg_ky_s1s2,1./6.)*pow(avg_kz_s1s2,2./3.);
     
     // ONE COMPONENT ZERO, TWO NON-ZERO
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << "  o K-planes through origin: Applying K resonances" << flush;
     
     vector< EWD::KVector >::iterator kvit;
@@ -177,7 +177,7 @@ void PEwald3D3D::GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2
     
     
     // ZERO COMPONENTS ZERO, THREE NON-ZERO
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << "  o K-space (off-axis): Applying K resonances" << flush;
     
     for (kx = -_NA_max; kx < _NA_max+1; ++kx) {
@@ -221,7 +221,7 @@ void PEwald3D3D::ScanCutoff() {
     double sum = 0.0;
     double sum_ppuu = 0.0;
     
-    CTP_LOG(logDEBUG,*_log) << flush 
+    XTP_LOG(logDEBUG,*_log) << flush 
         << "Scan cutoff (long-range check)" << flush;
     
     std::ofstream ofs;
@@ -252,7 +252,7 @@ void PEwald3D3D::ScanCutoff() {
     double sum = 0.0;
     double sum_ppuu = 0.0;
     
-    CTP_LOG(logDEBUG,*_log) << flush 
+    XTP_LOG(logDEBUG,*_log) << flush 
         << "Scan cutoff (long-range check)" << flush;
     
     std::ofstream ofs;
@@ -374,7 +374,7 @@ void PEwald3D3D::ScanCutoff() {
             }
             shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
             sum += shell_sum;
-            CTP_LOG(logDEBUG,*_log)
+            XTP_LOG(logDEBUG,*_log)
                 << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
                 % shell_R % (sum*EWD::int2eV) % nb_shell.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
             ofs
@@ -420,7 +420,7 @@ void PEwald3D3D::ScanCutoff() {
 //    double cz = _c.getZ();
 //    vec ax_by_cz = vec(1./ax,1./by,1./cz);
 //    double norm = 1./maxnorm(ax_by_cz);
-//    CTP_LOG(logDEBUG,*_log) << ax << " " << by << " " << cz << " " << norm << flush;
+//    XTP_LOG(logDEBUG,*_log) << ax << " " << by << " " << cz << " " << norm << flush;
     
     /*
     // FOR EACH FOREGROUND SEGMENT (FGC) ...
@@ -468,7 +468,7 @@ void PEwald3D3D::ScanCutoff() {
             }
             shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
             sum += shell_sum;
-            CTP_LOG(logDEBUG,*_log)
+            XTP_LOG(logDEBUG,*_log)
                 << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
                 % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
             ofs
@@ -491,7 +491,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
     double sum_uu = 0.0;
     _converged_R = false;
     
-    CTP_LOG(logDEBUG,*_log) << flush 
+    XTP_LOG(logDEBUG,*_log) << flush 
         << "R-space energy via midground" << flush;
     
     vector<PolarSeg*>::iterator sit1; 
@@ -520,7 +520,7 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
                     }
                 }
             }
-            if (tools::globals::verbose){ CTP_LOG(logDEBUG,*_log)
+            if (tools::globals::verbose){ XTP_LOG(logDEBUG,*_log)
                 << (format("  o Id = %5$-4d Rc = %1$+02.7f   |MGN| = %2$5d   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") 
                 % -1.0 % nbs.size() % -1.0  % -1.0 % ((*sit1)->getId())).str() << flush;
 	    }
@@ -589,14 +589,14 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
                 }
                 shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
                 sum += shell_sum;
-                if (tools::globals::verbose){ CTP_LOG(logDEBUG,*_log)
+                if (tools::globals::verbose){ XTP_LOG(logDEBUG,*_log)
                     << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f eV   dER2(sum) = %4$+1.3e eV") 
                     % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
 		}
 
                 if (shell_rms*shell_count <= _crit_dE && shell_R >= _R_co) {
                     energy_converged_count += 1;
-                    if (tools::globals::verbose){ CTP_LOG(logDEBUG,*_log)  
+                    if (tools::globals::verbose){ XTP_LOG(logDEBUG,*_log)  
                         << (format("  :: ID = %2$-4d : Converged to precision as of Rc = %1$+1.3f nm") 
                         % shell_R % (*sit1)->getId()) << flush;
 		    }
@@ -608,13 +608,13 @@ EWD::triple<> PEwald3D3D::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
 //        cout << endl << "XINTERACTOR " << _actor.getEPP() << " " << _actor.getEPU() << " "<< _actor.getEUU() << flush;
 
         if (energy_converged_count == target.size()) {
-            CTP_LOG(logDEBUG,*_log)  
+            XTP_LOG(logDEBUG,*_log)  
                 << (format(":::: Converged to precision (%1$d items)") 
                 % energy_converged_count) << flush;
             _converged_R = true;
         }
         else if (energy_converged_count < target.size()) {
-            CTP_LOG(logERROR,*_log) << "ERROR Energy not converged on " 
+            XTP_LOG(logERROR,*_log) << "ERROR Energy not converged on " 
                 << target.size() - energy_converged_count << " counts." << flush;
             _converged_R = false;
         }
@@ -650,7 +650,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
     _converged_K = false;
     
     // TWO COMPONENTS ZERO, ONE NON-ZERO
-    CTP_LOG(logINFO,*_log) << flush 
+    XTP_LOG(logINFO,*_log) << flush 
         << "K-lines through origin: Checking K resonances" << flush;
     for (kvit = _kvecs_2_0.begin(); kvit < _kvecs_2_0.end(); ++kvit) {
         EWD::KVector kvec = *kvit;
@@ -663,13 +663,13 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
         sum_im += Ak*(ppuu._pp._im + ppuu._pu._im + ppuu._uu._im);
     }
     
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << (format("  :: RE %1$+1.7e IM %2$+1.7e")
             % (sum_re/_LxLyLz*EWD::int2eV)
             % (sum_im/_LxLyLz*EWD::int2eV)).str() << flush;
     
     // ONE COMPONENT ZERO, TWO NON-ZERO
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << "K-planes through origin: Applying K resonances" << flush;
     
     double crit_grade = 1. * _kxyz_s1s2_norm;
@@ -706,7 +706,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
         }
         de_this_shell = (de_this_shell < 0.) ? -de_this_shell : de_this_shell;
         
-        if (shell_count > 0){ CTP_LOG(logDEBUG,*_log)
+        if (shell_count > 0){ XTP_LOG(logDEBUG,*_log)
              << (format("  o M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
@@ -714,7 +714,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
 	}
         
         if (shell_count > 10 && de_this_shell/_LxLyLz*EWD::int2eV < _crit_dE) {
-            CTP_LOG(logINFO,*_log)
+            XTP_LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
                 % (sum_re/_LxLyLz*EWD::int2eV)
                 % (sum_im/_LxLyLz*EWD::int2eV)).str() << flush;
@@ -726,7 +726,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
     
     
     // ZERO COMPONENTS ZERO, THREE NON-ZERO
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << "K-space (off-axis): Applying K resonances" << flush;    
     
     crit_grade = 1. * _kxyz_s1s2_norm;
@@ -763,7 +763,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
         }
         de_this_shell = (de_this_shell < 0.) ? -de_this_shell : de_this_shell;
         
-        if (shell_count > 0){ CTP_LOG(logDEBUG,*_log)
+        if (shell_count > 0){ XTP_LOG(logDEBUG,*_log)
              << (format("  o M = %1$04d   G = %2$+1.3e   dE(rms) = %3$+1.3e eV")
              % shell_count
              % crit_grade
@@ -771,7 +771,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
 	}
         
         if (shell_count > 10 && de_this_shell/_LxLyLz*EWD::int2eV < _crit_dE) {
-            CTP_LOG(logINFO,*_log)
+            XTP_LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
                 % (sum_re/_LxLyLz*EWD::int2eV)
                 % (sum_im/_LxLyLz*EWD::int2eV)).str() << flush;
@@ -784,7 +784,7 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
     _converged_K = converged12 && converged03;
     
     if (_converged_K)
-        CTP_LOG(logINFO,*_log)
+        XTP_LOG(logINFO,*_log)
             << (format(":::: Converged to precision, {0-2}, {1-2}, {0-3}."))
             << flush;
     else ;
@@ -795,9 +795,9 @@ EWD::triple<> PEwald3D3D::ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target) 
 
 EWD::triple<> PEwald3D3D::CalculateShapeCorrection(vector<PolarSeg*> &target) {
     
-    CTP_LOG(logDEBUG,*_log) << flush
+    XTP_LOG(logDEBUG,*_log) << flush
         << "Energy correction terms" << flush;
-    CTP_LOG(logDEBUG,*_log)
+    XTP_LOG(logDEBUG,*_log)
         << "  o Shape-correction to energy, using '" << _shape << "'" << flush;
     
     EWD::triple<double> ppuu = _ewdactor.U12_ShapeTerm(target, _bg_P,
@@ -851,7 +851,7 @@ EWD::triple<> PEwald3D3D::CalculateShapeCorrection(vector<PolarSeg*> &target) {
 //        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //    }
 //    else {
-//        CTP_LOG(logERROR,*_log)
+//        XTP_LOG(logERROR,*_log)
 //            << (format("Shape %1$s not implemented. Setting EJ = 0.0 ...") 
 //            % _shape) << flush;
 //        EJ = 0.0;
@@ -864,7 +864,7 @@ EWD::triple<> PEwald3D3D::CalculateShapeCorrection(vector<PolarSeg*> &target) {
 
 EWD::triple<> PEwald3D3D::CalculateForegroundCorrection(vector<PolarSeg*> &target) {
     
-    CTP_LOG(logDEBUG,*_log)
+    XTP_LOG(logDEBUG,*_log)
         << "  o Foreground-correction to energy via FGN" << flush;
     
     vector<PolarSeg*>::iterator sit1; 
@@ -903,7 +903,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
     
     _field_converged_R = false;
     
-    CTP_LOG(logDEBUG,*_log) << flush 
+    XTP_LOG(logDEBUG,*_log) << flush 
         << "R-space fields via midground" << flush;
     
     vector<PolarSeg*>::iterator sit1; 
@@ -966,14 +966,14 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
             shell_rms = sqrt(shell_rms/shell_count)*EWD::int2V_m;
             double e_measure = shell_rms*1e-10*shell_count; // 
         
-            if (tools::globals::verbose){ CTP_LOG(logDEBUG,*_log)
+            if (tools::globals::verbose){ XTP_LOG(logDEBUG,*_log)
                 << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %2$5d   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") 
                 % shell_R % shell_mg.size() % shell_rms  % e_measure % ((*sit1)->getId())).str() << flush;
 	    }
             
             if (e_measure <= _crit_dE && shell_R >= _R_co) {
                 field_converged_count += 1;
-                if (tools::globals::verbose){ CTP_LOG(logDEBUG,*_log)
+                if (tools::globals::verbose){ XTP_LOG(logDEBUG,*_log)
                     << (format("  :: ID = %2$-4d Converged to precision as of Rc = %1$+1.3f nm") 
                     % shell_R % (*sit1)->getId()) << flush;
 		}
@@ -983,13 +983,13 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
     }
     
     if (field_converged_count == _fg_C.size()) {
-        CTP_LOG(logDEBUG,*_log)  
+        XTP_LOG(logDEBUG,*_log)  
             << (format(":::: Converged to precision (%1$d items)") 
             % field_converged_count) << flush;
         _field_converged_R = true;
     }
     else if (field_converged_count < _fg_C.size()) {
-        CTP_LOG(logERROR,*_log) << "ERROR Field not converged on " 
+        XTP_LOG(logERROR,*_log) << "ERROR Field not converged on " 
             << _fg_C.size() - field_converged_count << " counts." << flush;
         _field_converged_R = false;
     }
@@ -1006,7 +1006,7 @@ void PEwald3D3D::Field_ConvergeRealSpaceSum() {
 //    // Change 18000 to 20000 and the leak disappears!?
 //    double sum = 0.0;
 //    _field_converged_R = false;
-//    CTP_LOG(logDEBUG,*_log) << flush 
+//    XTP_LOG(logDEBUG,*_log) << flush 
 //        << "R-space fields via midground" << flush;
 //    
 //    vector<PolarSeg*>::iterator sit1;
@@ -1042,7 +1042,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
     vector< EWD::KVector >::iterator kvit;
     
     // TWO COMPONENTS ZERO, ONE NON-ZERO
-    CTP_LOG(logINFO,*_log) << flush 
+    XTP_LOG(logINFO,*_log) << flush 
         << "K-lines through origin: Checking K resonances" << flush;
     for (kvit = _kvecs_2_0.begin(); kvit < _kvecs_2_0.end(); ++kvit) {
         EWD::KVector kvec = *kvit;
@@ -1051,13 +1051,13 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         sum_im += f_as1s2._im;
     }
     
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << (format("  :: RE %1$+1.7e IM %2$+1.7e")
             % (sum_re*EWD::int2V_m)
             % (sum_im*EWD::int2V_m)).str() << flush;
     
     // ONE COMPONENT ZERO, TWO NON-ZERO
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << "K-planes through origin: Applying K resonances" << flush;    
     
     double crit_grade = 1. * _kxyz_s1s2_norm;
@@ -1084,7 +1084,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*EWD::int2V_m : 0.0;
         double e_measure = shell_rms*1e-10*rms_count;
         
-        if (rms_count > 0){ CTP_LOG(logDEBUG,*_log)
+        if (rms_count > 0){ XTP_LOG(logDEBUG,*_log)
              << (format("  o M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
              % rms_count
              % crit_grade
@@ -1093,7 +1093,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
 	}
         
         if (rms_count > 10 && e_measure <= _crit_dE) {
-            CTP_LOG(logINFO,*_log)
+            XTP_LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
                 % (sqrt(sum_re)*EWD::int2V_m)
                 % (sum_im*EWD::int2V_m)).str() << flush;
@@ -1104,7 +1104,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
     }
     
     // ZERO COMPONENTS ZERO, THREE NON-ZERO
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << "K-space (off-axis): Applying K resonances" << flush;
     
     crit_grade = 1. * _kxyz_s1s2_norm;
@@ -1131,7 +1131,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
         shell_rms = (rms_count > 0) ? sqrt(shell_rms/rms_count)*EWD::int2V_m : 0.0;
         double e_measure = shell_rms*1e-10*rms_count;
         
-        if (rms_count > 0){ CTP_LOG(logDEBUG,*_log)
+        if (rms_count > 0){ XTP_LOG(logDEBUG,*_log)
              << (format("  o M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]")
              % rms_count
              % crit_grade
@@ -1140,7 +1140,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
 	}
         
         if (rms_count > 10 && e_measure <= _crit_dE) {
-            CTP_LOG(logINFO,*_log)
+            XTP_LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
                 % (sqrt(sum_re)*EWD::int2V_m)
                 % (sum_im*EWD::int2V_m)).str() << flush;
@@ -1153,7 +1153,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
     _field_converged_K = converged12 && converged03;
     
     if (_field_converged_K)
-        CTP_LOG(logINFO,*_log)
+        XTP_LOG(logINFO,*_log)
             << (format(":::: Converged to precision, {0-2}, {1-2}, {0-3}."))
             << flush;
     else ;
@@ -1164,7 +1164,7 @@ void PEwald3D3D::Field_ConvergeReciprocalSpaceSum() {
 
 void PEwald3D3D::Field_CalculateForegroundCorrection() {
     
-    CTP_LOG(logDEBUG,*_log)
+    XTP_LOG(logDEBUG,*_log)
         << "  o Foreground-correction to fields via FGN" << flush;
     
     vector<PolarSeg*>::iterator sit1; 
@@ -1192,9 +1192,9 @@ void PEwald3D3D::Field_CalculateForegroundCorrection() {
 
 void PEwald3D3D::Field_CalculateShapeCorrection() {
 
-    CTP_LOG(logDEBUG,*_log) << flush
+    XTP_LOG(logDEBUG,*_log) << flush
         << "Field correction terms" << flush;
-    CTP_LOG(logDEBUG,*_log)
+    XTP_LOG(logDEBUG,*_log)
         << "  o Shape-correction to fields, using '" << _shape << "'" << flush;
     
     _ewdactor.FPU12_ShapeField_At_By(_fg_C, _bg_P, _shape, _LxLyLz);
@@ -1224,7 +1224,7 @@ void PEwald3D3D::Field_CalculateShapeCorrection() {
 //        
 //    }
 //    else {
-//        CTP_LOG(logERROR,*_log)
+//        XTP_LOG(logERROR,*_log)
 //            << (format("Shape %1$s not implemented. Setting EJ = 0.0 ...") 
 //            % _shape) << flush;
 //    }
@@ -1240,7 +1240,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
     double sum_phi = 0.0;
     _potential_converged_R = false;
     
-    CTP_LOG(logDEBUG,*_log) << flush 
+    XTP_LOG(logDEBUG,*_log) << flush 
         << "R-space potentials via midground" << flush;
     
     vector<PolarSeg*>::iterator sit1; 
@@ -1273,7 +1273,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
                 }
             }
             if (tools::globals::verbose) {
-                CTP_LOG(logDEBUG,*_log)
+                XTP_LOG(logDEBUG,*_log)
                 << (format("  o Id = %5$-4d Rc = %1$+02.7f   |MGN| = %2$5d   dF(rms) = %3$+1.3e V/m   [1eA => %4$+1.3e eV]") 
                 % -1.0 % nbs.size() % -1.0  % -1.0 % ((*sit1)->getId())).str() << flush;
             }
@@ -1333,7 +1333,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
                 shell_rms = sqrt(shell_rms/shell_count)*EWD::int2eV;
                 sum += shell_sum;
                 if (tools::globals::verbose) {
-                    CTP_LOG(logDEBUG,*_log)
+                    XTP_LOG(logDEBUG,*_log)
                     << (format("  o ID = %5$-4d Rc = %1$+02.7f   |MGN| = %3$5d   ER = %2$+1.7f V   dER2(sum) = %4$+1.3e V") 
                     % shell_R % (sum*EWD::int2eV) % shell_mg.size() % (shell_rms*shell_count) % (*sit1)->getId()).str() << flush;
                 }
@@ -1341,7 +1341,7 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
                 if (shell_rms*shell_count <= _crit_dE && shell_R >= _R_co) {
                     energy_converged_count += 1;
                     if (tools::globals::verbose) { 
-                        CTP_LOG(logDEBUG,*_log)  
+                        XTP_LOG(logDEBUG,*_log)  
                         << (format("  :: ID = %2$-4d : Converged to precision as of Rc = %1$+1.3f nm") 
                         % shell_R % (*sit1)->getId()) << flush;
                     }
@@ -1351,13 +1351,13 @@ void PEwald3D3D::Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
         }
         
         if (energy_converged_count == target.size()) {
-            CTP_LOG(logDEBUG,*_log)  
+            XTP_LOG(logDEBUG,*_log)  
                 << (format(":::: Converged to precision (%1$d items)") 
                 % energy_converged_count) << flush;
             _potential_converged_R = true;
         }
         else if (energy_converged_count < target.size()) {
-            CTP_LOG(logERROR,*_log) << "ERROR Energy not converged on " 
+            XTP_LOG(logERROR,*_log) << "ERROR Energy not converged on " 
                 << target.size() - energy_converged_count << " counts." << flush;
             _potential_converged_R = false;
         }
@@ -1391,7 +1391,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target)
     double rV = 1./_LxLyLz;
     
     // TWO COMPONENTS ZERO, ONE NON-ZERO
-    CTP_LOG(logINFO,*_log) << flush 
+    XTP_LOG(logINFO,*_log) << flush 
         << "K-lines through origin: Checking K resonances" << flush;
     for (kvit = _kvecs_2_0.begin(); kvit < _kvecs_2_0.end(); ++kvit) {
         EWD::KVector kvec = *kvit;
@@ -1400,13 +1400,13 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target)
         sum_im += f_as1s2._im;
     }
     
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << (format("  :: RE %1$+1.7e IM %2$+1.7e")
             % (sum_re*EWD::int2eV)
             % (sum_im*EWD::int2eV)).str() << flush;
     
     // ONE COMPONENT ZERO, TWO NON-ZERO
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << "K-planes through origin: Applying K resonances" << flush;    
     
     double crit_grade = 1. * _kxyz_s1s2_norm;
@@ -1431,7 +1431,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target)
         double e_measure = shell_rms*rms_count;
         
         if (rms_count > 0) {
-            CTP_LOG(logDEBUG,*_log)
+            XTP_LOG(logDEBUG,*_log)
                 << (format("  o M = %1$04d   G = %2$+1.3e   dPhi(rms) = %3$+1.3e V   [1e => %4$+1.3e eV]")
                 % rms_count
                 % crit_grade
@@ -1440,7 +1440,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target)
         }
         
         if (rms_count > 10 && e_measure <= _crit_dE) {
-            CTP_LOG(logINFO,*_log)
+            XTP_LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
                 % (sqrt(sum_re)*EWD::int2eV)
                 % (sum_im*EWD::int2eV)).str() << flush;
@@ -1451,7 +1451,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target)
     }
     
     // ZERO COMPONENTS ZERO, THREE NON-ZERO
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << "K-space (off-axis): Applying K resonances" << flush;
     
     crit_grade = 1. * _kxyz_s1s2_norm;
@@ -1476,7 +1476,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target)
         double e_measure = shell_rms*1e-10*rms_count;
         
         if (rms_count > 0) { 
-            CTP_LOG(logDEBUG,*_log)
+            XTP_LOG(logDEBUG,*_log)
                 << (format("  o M = %1$04d   G = %2$+1.3e   dF(rms) = %3$+1.3e V   [1e => %4$+1.3e eV]")
                 % rms_count
                 % crit_grade
@@ -1485,7 +1485,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target)
         }
         
         if (rms_count > 10 && e_measure <= _crit_dE) {
-            CTP_LOG(logINFO,*_log)
+            XTP_LOG(logINFO,*_log)
                 << (format("  :: RE %1$+1.7e IM %2$+1.7e") 
                 % (sqrt(sum_re)*EWD::int2eV)
                 % (sum_im*EWD::int2eV)).str() << flush;
@@ -1498,7 +1498,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target)
     _potential_converged_K = converged12 && converged03;
     
     if (_potential_converged_K)
-        CTP_LOG(logINFO,*_log)
+        XTP_LOG(logINFO,*_log)
             << (format(":::: Converged to precision, {0-2}, {1-2}, {0-3}."))
             << flush;
     else ;
@@ -1508,7 +1508,7 @@ void PEwald3D3D::Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target)
 
 
 void PEwald3D3D::Potential_CalculateForegroundCorrection(vector<PolarSeg*> &target) {
-    CTP_LOG(logDEBUG,*_log)
+    XTP_LOG(logDEBUG,*_log)
         << "  o Foreground-correction to potentials via FGN" << flush;
     
     vector<PolarSeg*>::iterator sit1;
@@ -1535,9 +1535,9 @@ void PEwald3D3D::Potential_CalculateForegroundCorrection(vector<PolarSeg*> &targ
 
 
 void PEwald3D3D::Potential_CalculateShapeCorrection(vector<PolarSeg*> &target) {
-    CTP_LOG(logDEBUG,*_log) << flush
+    XTP_LOG(logDEBUG,*_log) << flush
         << "Potential correction terms" << flush;
-    CTP_LOG(logDEBUG,*_log)
+    XTP_LOG(logDEBUG,*_log)
         << "  o Shape-correction to potentials, using '" << _shape << "'" << flush;
     
     _ewdactor.PhiPU12_ShapeField_At_By(target, _bg_P, _shape, _LxLyLz);
