@@ -32,7 +32,7 @@ class XJob
 public:
 
     XJob(int id, std::string tag, std::vector<Segment*> &qmSegs, 
-         vector<std::string> &qmSegMps, Topology *top);
+         std::vector<std::string> &qmSegMps, Topology *top);
     
     XJob(PolarTop *ptop, bool start_from_cpt);
 
@@ -157,10 +157,10 @@ private:
    Topology            *_top;   
    
    bool                 _start_from_cpt;
-   vector<Segment*>     _qmSegs;
-   vector<std::string>       _qmSegMps;
+   std::vector<Segment*>     _qmSegs;
+   std::vector<std::string>       _qmSegMps;
    vec                  _center;
-   map<int,bool>        _isSegInCenter;
+   std::map<int,bool>        _isSegInCenter;
    PolarTop            *_ptop;
    bool                 _clean_ptop;
 
