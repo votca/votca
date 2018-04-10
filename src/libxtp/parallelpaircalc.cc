@@ -29,8 +29,8 @@ bool ParallelPairCalculator::EvaluateFrame(Topology *top) {
         bool isRigid = top->Rigidify();
         if (!isRigid) { return 0; }
     }
-    else { cout << endl << "... ... System is already rigidified."; }
-    cout << endl;        
+    else { std::cout << std::endl << "... ... System is already rigidified."; }
+    std::cout << std::endl;        
 
     vector<PairOperator*> pairOps;
     this->InitSlotData(top);
