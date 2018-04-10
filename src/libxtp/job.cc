@@ -18,16 +18,14 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
 #include <votca/tools/propertyiomanipulator.h>
-#include <votca/ctp/job.h>
+#include <votca/xtp/job.h>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp> 
 
-
 using boost::format;
 
-namespace votca { namespace ctp {    
+namespace votca { namespace xtp {    
     
     
     
