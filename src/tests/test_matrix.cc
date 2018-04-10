@@ -35,7 +35,8 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
   matrix mat2(v1,v2,v3);
   matrix mat3(mat2);
   matrix mat4 = mat2;
-  std::cout mat4 << std::endl;
+  std::cout<<"mat2"<< mat2 << std::endl;
+  std::cout<<"mat4"<< mat4 << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(overloadoperator_test) {
