@@ -18,16 +18,14 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#ifndef __VOTCA_XTP_XJOB_H
+#define	__VOTCA_XTP_XJOB_H
 
-#ifndef __XJOB__H
-#define	__XJOB__H
+#include <votca/xtp/topology.h>
+#include <votca/xtp/polartop.h>
+#include <votca/xtp/job.h>
 
-#include <votca/ctp/topology.h>
-#include <votca/ctp/polartop.h>
-#include <votca/ctp/job.h>
-
-namespace votca { namespace ctp {
-  
+namespace votca { namespace xtp {
 
 class XJob
 {
@@ -243,4 +241,5 @@ JobContainer XJOBS_FROM_TABLE(const std::string &job_file, Topology *top);
     
 }}
 
-#endif
+#endif // __VOTCA_XTP_XJOB_H
+
