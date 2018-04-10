@@ -35,7 +35,7 @@ public:
                     JobCalculator() {}
     virtual        ~JobCalculator() {}
 
-    virtual string  Identify() { return "Generic Job calculator"; }
+    virtual std::string  Identify() { return "Generic Job calculator"; }
 
     virtual bool    EvaluateFrame(XTP::Topology *top) { return true; }
     virtual void    EndEvaluate(XTP::Topology *top) { }
@@ -43,11 +43,11 @@ public:
     virtual void    WriteJobFile(XTP::Topology *top)  { ; }
     virtual void    ReadJobFile(XTP::Topology *top) { ; }
 
-    void            setProgObserver(ProgObserver< vector<Job*>, Job*, Job::JobResult > *obs) { _progObs = obs; }
+    void            setProgObserver(ProgObserver< std::vector<Job*>, Job*, Job::JobResult > *obs) { _progObs = obs; }
 
 protected:
     
-    ProgObserver< vector<Job*>, Job*, Job::JobResult > *_progObs;
+    ProgObserver< std::vector<Job*>, Job*, Job::JobResult > *_progObs;
 
 };
 
