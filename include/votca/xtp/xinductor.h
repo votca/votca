@@ -62,7 +62,7 @@ public:
               _aDamp(aDamp)
             { _actor = XInteractor(top, _aDamp); };
             
-    XInductor(Topology *top, Property *opt, string sfx, int nst, bool mav);
+    XInductor(Topology *top, Property *opt, std::string sfx, int nst, bool mav);
             
    ~XInductor();
    
@@ -103,8 +103,8 @@ public:
 
         }
 
-        void InitSpheres(vector< PolarSeg* > *qmm, 
-                         vector< PolarSeg* > *mm2) {
+        void InitSpheres(std::vector< PolarSeg* > *qmm, 
+                         std::vector< PolarSeg* > *mm2) {
             _qmm = qmm;
             _mm2 = mm2;
         }
@@ -271,8 +271,8 @@ public:
           XInductor                            *_forker;
           XInteractor                           _actor;
           
-          vector< PolarSeg* >                  *_qmm;
-          vector< PolarSeg* >                  *_mm2;
+          std::vector< PolarSeg* >                  *_qmm;
+          std::vector< PolarSeg* >                  *_mm2;
 
           int _nx1, _nx2;
           int _ny1, _ny2;
@@ -280,10 +280,10 @@ public:
 
           int _switch_energy_induce;
 
-          vector< PolarSeg* >    ::iterator      sit1;
-          vector< PolarSeg* >    ::iterator      sit2;
-          vector< APolarSite* >  ::iterator      pit1;
-          vector< APolarSite* >  ::iterator      pit2;
+          std::vector< PolarSeg* >    ::iterator      sit1;
+          std::vector< PolarSeg* >    ::iterator      sit2;
+          std::vector< APolarSite* >  ::iterator      pit1;
+          std::vector< APolarSite* >  ::iterator      pit2;
 
           double _E_Pair_Pair;
           double _E_Pair_Sph1;
@@ -327,12 +327,12 @@ public:
         assert (N == C*nt + nr);
 
         for (int id = 0; id < C+1; ++id) {
-            _nx1.push_back( vector<int>(C+1,0) );
-            _nx2.push_back( vector<int>(C+1,0) );
-            _ny1.push_back( vector<int>(C+1,0) );
-            _ny2.push_back( vector<int>(C+1,0) );
+            _nx1.push_back( std::vector<int>(C+1,0) );
+            _nx2.push_back( std::vector<int>(C+1,0) );
+            _ny1.push_back( std::vector<int>(C+1,0) );
+            _ny2.push_back( std::vector<int>(C+1,0) );
 
-            _xy_done.push_back( vector<bool>(C+1,false) );
+            _xy_done.push_back( std::vector<bool>(C+1,false) );
             _chunks_avail.push_back(true);
         }
 
@@ -436,10 +436,10 @@ public:
     
     void        WriteShellPdb() {
         
-        vector< PolarSeg* > ::iterator sit;
-        vector< APolarSite* > ::iterator pit;
+        std::vector< PolarSeg* > ::iterator sit;
+        std::vector< APolarSite* > ::iterator pit;
         
-        string shellFile = "qmmm.pdb";
+        std::string shellFile = "qmmm.pdb";
         FILE *out = fopen(shellFile.c_str(),"w");
         
         for (sit = _qmm.begin();
@@ -477,8 +477,8 @@ public:
     void        setLog(Logger *log) { _log = log; }
     
     bool        hasConverged() { return (_induce) ? _isConverged : true; }
-    void        setError(string error) { _error = error; }
-    string      getError() { return _error; }
+    void        setError(std::string error) { _error = error; }
+    std::string      getError() { return _error; }
     
 private:    
     
@@ -497,29 +497,29 @@ private:
     bool                          _maverick;
     Topology                     *_top;
     bool                          _isConverged;
-    string                        _error;
+    std::string                        _error;
     
     // Interaction parameters
     double                        _aDamp;
     
     
     // Polar-site containers    
-    vector< PolarSeg* >           _qm0;
-    vector< PolarSeg* >           _mm1;
-    vector< PolarSeg* >           _mm2;
-    vector< PolarSeg* >           _qmm;
+    std::vector< PolarSeg* >           _qm0;
+    std::vector< PolarSeg* >           _mm1;
+    std::vector< PolarSeg* >           _mm2;
+    std::vector< PolarSeg* >           _qmm;
     
     XInteractor                   _actor;
 
     // Manage induction workers
-    vector< InduWorker* >         _indus;
+    std::vector< InduWorker* >         _indus;
     Mutex                         _alloc_chunk;
-    vector< bool >                _chunks_avail;
-    vector< vector<bool> >        _xy_done;
-    vector< vector<int> >         _nx1;
-    vector< vector<int> >         _nx2;
-    vector< vector<int> >         _ny1;
-    vector< vector<int> >         _ny2;
+    std::vector< bool >                _chunks_avail;
+    std::vector< std::vector<bool> >        _xy_done;
+    std::vector< std::vector<int> >         _nx1;
+    std::vector< std::vector<int> >         _nx2;
+    std::vector< std::vector<int> >         _ny1;
+    std::vector< std::vector<int> >         _ny2;
 
 };  
     
