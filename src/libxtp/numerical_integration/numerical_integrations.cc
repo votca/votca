@@ -264,7 +264,7 @@ namespace votca {
       for (unsigned i = 0; i < _grid_boxes.size(); ++i) {
         GridBox & box = _grid_boxes[i];
         for (AOBasis::AOShellIterator _row = _basis->firstShell(); _row != _basis->lastShell(); _row++) {
-          AOShell* _store = (*_row);
+          const AOShell* _store = (*_row);
           const double decay = (*_row)->getMinDecay();
           const tools::vec& shellpos = (*_row)->getPos();
           for (const auto& point : box.getGridPoints()) {
@@ -606,7 +606,7 @@ std::vector<const tools::vec *> NumericalIntegration::getGridpoints() {
   }
         
         
-void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms, AOBasis* basis) {
+void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const AOBasis* basis) {
       _basis = basis;
       std::vector< std::vector< GridContainers::integration_grid > > grid;
       const double pi = boost::math::constants::pi<double>();

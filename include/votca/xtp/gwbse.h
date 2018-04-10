@@ -20,25 +20,13 @@
 #ifndef _VOTCA_XTP_GWBSE_H
 #define _VOTCA_XTP_GWBSE_H
 #include <votca/xtp/votca_config.h>
-#include <unistd.h>
-#include <votca/ctp/parallelxjobcalc.h>
-#include <votca/ctp/segment.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/threecenter.h>
-
+#include <votca/xtp/sigma.h>
 #include <fstream>
-#include <sys/stat.h>
-
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/filesystem.hpp>
-
-
 
 namespace votca {
 namespace xtp {
-
 
 /**
 * \brief Electronic excitations from GW-BSE
@@ -60,31 +48,27 @@ class GWBSE {
   GWBSE(Orbitals* orbitals)
       : _orbitals(orbitals){};
 
-
-  void Initialize(Property* options);
+  void Initialize(tools::Property* options);
 
   std::string Identify() { return "gwbse"; }
 
   void CleanUp();
 
-
   void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
 
   bool Evaluate();
- 
-
-
-  // interfaces for options getting/setting
-
-  void addoutput(Property* _summary);
+    
+  void addoutput(tools::Property* _summary);
 
  private:
      
- Eigen::MatrixXd CalculateVXC();
+ void PrintQP_Energies(const Eigen::VectorXd& gwa_energies, const Eigen::VectorXd& qp_diag_energies);
+ void PrintGWA_Energies(const Eigen::MatrixXd& vxc,const Sigma& sigma, const Eigen::VectorXd& _dft_energies);    
+ 
+ Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
  ctp::Logger* _pLog;
  Orbitals* _orbitals;
   
-
   // program tasks
   bool _do_qp_diag;
   bool _do_bse_diag;
@@ -119,39 +103,24 @@ class GWBSE {
   std::string _auxbasis_name;
   std::string _dftbasis_name;
   
+  double _shift;  // pre-shift of DFT energies
   unsigned _homo;   // HOMO index
   unsigned _rpamin;
   unsigned _rpamax;
   unsigned _qpmin;
   unsigned _qpmax;
   unsigned _qptotal;
-
   double _g_sc_limit;  // convergence criteria for g iteration [Hartree]]
   unsigned _g_sc_max_iterations;
   unsigned _gw_sc_max_iterations;
   double _gw_sc_limit;  // convergence criteria for gw iteration [Hartree]]
+  
   unsigned _bse_vmin;
   unsigned _bse_vmax;
   unsigned _bse_cmin;
   unsigned _bse_cmax;
   int _bse_maxeigenvectors;
-  int _bse_printNoEigenvectors;
   double _min_print_weight;
-
-  
-  
-  double _shift;  // pre-shift of DFT energies
-  AOBasis _dftbasis;
-
-  
-   
-  
- 
-  
-
-
-
-  
 
 };
 }

@@ -94,11 +94,7 @@ namespace votca {
             int _nbeta = AOSuperMatrix::getBlockSize(_lmax_beta);
             int _ncombined =AOSuperMatrix::getBlockSize(_lmax_alpha+_lmax_beta);
             
-            typedef boost::multi_array<double, 3> ma_type;
-            typedef boost::multi_array_types::extent_range range;
-            typedef ma_type::index index;
-            ma_type::extent_gen extents;
-            
+                       
 
             //int n_orb = ((_lmax_gamma + 1)*(_lmax_gamma + 2)*(_lmax_gamma + 3))/6;
             int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84, 120, 165};
@@ -263,7 +259,7 @@ namespace votca {
           
             
 //            cout << "los" << endl;
-            ma_type R_temp;
+            tensor3d R_temp;
             R_temp.resize(extents[ range(0, _ncombined ) ][ range(0, _ngamma ) ][ range(0, max(2,_mmax+1))]);
             //initialize to zero
             for (index i = 0; i != _ncombined; ++i) {
@@ -274,7 +270,7 @@ namespace votca {
                                }
                            }
             
-            ma_type R;
+            tensor3d R;
             R.resize(extents[ range(0, _ncombined ) ][ range(0, _nbeta ) ][ range(0, _ngamma)]);
             //initialize to zero
             for (index i = 0; i != _ncombined; ++i) {
@@ -1219,7 +1215,7 @@ if (_lmax_beta > 3) {
             const Eigen::MatrixXd _trafo_alpha=AOSuperMatrix::getTrafo(*italpha);
             
        
-            ma_type R_sph;
+            tensor3d R_sph;
             R_sph.resize(extents[ _ntrafo_alpha ][ _ntrafo_beta ][ _ntrafo_gamma ]);
 
             for (int _i_beta = 0; _i_beta < _ntrafo_beta; _i_beta++) {

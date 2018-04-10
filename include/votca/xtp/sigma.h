@@ -54,14 +54,14 @@ class Sigma {
 void CalcdiagElements(const TCMatrix_gwbse& _Mmn,const PPM & ppm );
 void CalcOffDiagElements(const TCMatrix_gwbse& _Mmn,const PPM & ppm );
 
-Eigen::MatrixXd SetupFullQPHamiltonian();
+Eigen::MatrixXd SetupFullQPHamiltonian(const Eigen::MatrixXd& vxc );
 
 const Eigen::VectorXd& getGWAEnergies()const{return _gwa_energies;}
 
 void setGWAEnergies(Eigen::VectorXd& gwa_energies){_gwa_energies=gwa_energies;}
 
-double x(int i){return _sigma_x(i,i);}
-double c(int i){return _sigma_c(i,i);}
+double x(int i)const{return _sigma_x(i,i);}
+double c(int i)const{return _sigma_c(i,i);}
   
 void FreeMatrices(){
     _sigma_x.resize(0,0);

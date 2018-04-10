@@ -27,10 +27,8 @@
 #include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/ppm.h>
-#include <votca/xtp/gwa.h>
+#include <votca/xtp/sigma.h>
 #include <votca/xtp/bse.h>
-
-#include "votca/xtp/sigma.h"
 
 using boost::format;
 using namespace boost::filesystem;
@@ -212,7 +210,7 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
 
   _qptotal = _qpmax - _qpmin + 1;
   if (_bse_maxeigenvectors > int(bse_size) || _bse_maxeigenvectors < 0) _bse_maxeigenvectors = bse_size;
-  if (_bse_printNoEigenvectors > _bse_maxeigenvectors) _bse_printNoEigenvectors = _bse_maxeigenvectors;
+  if (_bse_maxeigenvectors > _bse_maxeigenvectors) _bse_maxeigenvectors = _bse_maxeigenvectors;
 
  
 
@@ -237,7 +235,7 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
 
   _bse_maxeigenvectors =
       options->ifExistsReturnElseReturnDefault<int>(key + ".exctotal", 25);
-  _bse_printNoEigenvectors =
+  _bse_maxeigenvectors =
       options->ifExistsReturnElseReturnDefault<int>(key + ".print", 25);
   _fragA = options->ifExistsReturnElseReturnDefault<int>(key + ".fragment", -1);
 
@@ -391,7 +389,7 @@ void GWBSE::addoutput(Property *_summary) {
 
   _gwbse_summary->setAttribute(
       "DFTEnergy", (format("%1$+1.6f ") % _orbitals->getQMEnergy()).str());
-  int printlimit = _bse_printNoEigenvectors;  // I use this to determine how much is printed,
+  int printlimit = _bse_maxeigenvectors;  // I use this to determine how much is printed,
                                  // I do not want another option to pipe through
 
   Property *_dft_summary = &_gwbse_summary->add("dft", "");
@@ -473,7 +471,7 @@ void GWBSE::addoutput(Property *_summary) {
 
  */
 
-Eigen::MatrixXd GWBSE::CalculateVXC(){
+Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis){
   
   Eigen::MatrixXd vxc_ao;
   if (_orbitals->hasAOVxc()) {
@@ -502,7 +500,7 @@ Eigen::MatrixXd GWBSE::CalculateVXC(){
               ScaHFX_temp %  _orbitals->getScaHFX())
               .str());
     }
-    _numint.GridSetup(_grid, _orbitals->QMAtoms(),&_dftbasis);
+    _numint.GridSetup(_grid, _orbitals->QMAtoms(),&dftbasis);
     CTP_LOG(ctp::logDEBUG, *_pLog)
             << ctp::TimeStamp()
             << " Setup grid for integration with gridsize: " << _grid << " with "
@@ -528,13 +526,91 @@ Eigen::MatrixXd GWBSE::CalculateVXC(){
           << flush;
   
   // now get expectation values but only for those in _qpmin:_qpmax range
-  Eigen::MatrixXd _mos = _orbitals->MOCoefficients()(0,_qpmin,_orbitals->MOCoefficients().rows(),_qptotal);
+  Eigen::MatrixXd _mos = _orbitals->MOCoefficients().block(0,_qpmin,_orbitals->MOCoefficients().rows(),_qptotal);
   
   Eigen::MatrixXd vxc =_mos.transpose()*vxc_ao*_mos;
   CTP_LOG(ctp::logDEBUG, *_pLog)
           << ctp::TimeStamp()
           << " Calculated exchange-correlation expectation values " << flush;
   return vxc;
+}
+
+void GWBSE::PrintGWA_Energies(const Eigen::MatrixXd& vxc, const Sigma& sigma,const Eigen::VectorXd& _dft_energies){
+  const Eigen::VectorXd& gwa_energies=sigma.getGWAEnergies();
+
+  CTP_LOG(ctp::logINFO, *_pLog)
+          << (format(
+          "  ====== Perturbative quasiparticle energies (Hartree) ====== "))
+          .str()
+          << flush;
+  CTP_LOG(ctp::logINFO, *_pLog)
+          << (format("   DeltaHLGap = %1$+1.6f Hartree") % _shift).str() << flush;
+  
+  for (unsigned i = 0; i < i; i++) {
+    if ((i + _qpmin) == _homo) {
+      CTP_LOG(ctp::logINFO, *_pLog)
+              << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
+              "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
+              (i + _qpmin + 1) % _dft_energies(i + _qpmin) % vxc(i, i) %
+              sigma.x(i) % sigma.c(i) % gwa_energies(i + _qpmin))
+              .str()
+              << flush;
+    } else if ((i + _qpmin) == _homo + 1) {
+      CTP_LOG(ctp::logINFO, *_pLog)
+              << (format("  LUMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
+              "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
+              (i + _qpmin + 1) % _dft_energies(i + _qpmin) % vxc(i, i) %
+              sigma.x(i) % sigma.c(i) % gwa_energies(i + _qpmin))
+              .str()
+              << flush;
+      
+    } else {
+      CTP_LOG(ctp::logINFO, *_pLog)
+              << (format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
+              "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
+              (i + _qpmin + 1) % _dft_energies(i + _qpmin) % vxc(i, i) %
+              sigma.x(i) % sigma.c(i) % gwa_energies(i + _qpmin))
+              .str()
+              << flush;
+    }
+  }
+  return;
+}
+
+void GWBSE::PrintQP_Energies(const Eigen::VectorXd& gwa_energies, const Eigen::VectorXd& qp_diag_energies){
+  CTP_LOG(ctp::logDEBUG, *_pLog)
+          << ctp::TimeStamp() << " Full quasiparticle Hamiltonian  " << flush;
+  CTP_LOG(ctp::logINFO, *_pLog)
+          << (format("  ====== Diagonalized quasiparticle energies (Hartree) "
+          "====== "))
+          .str()
+          << flush;
+  for (unsigned _i = 0; _i < _qptotal; _i++) {
+    if ((_i + _qpmin) == _homo) {
+      CTP_LOG(ctp::logINFO, *_pLog)
+              << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
+              (_i + _qpmin + 1) % gwa_energies(_i + _qpmin) %
+              qp_diag_energies(_i))
+              .str()
+              << flush;
+    } else if ((_i + _qpmin) == _homo + 1) {
+      CTP_LOG(ctp::logINFO, *_pLog)
+              << (format("  LUMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
+              (_i + _qpmin + 1) % gwa_energies(_i + _qpmin) %
+              qp_diag_energies(_i))
+              .str()
+              << flush;
+      
+    } else {
+      CTP_LOG(ctp::logINFO, *_pLog)
+              << (format("  Level = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
+              (_i + _qpmin + 1) % gwa_energies(_i + _qpmin) %
+              qp_diag_energies(_i))
+              .str()
+              << flush;
+    }
+  }
+  return;
 }
 
 bool GWBSE::Evaluate() {
@@ -579,16 +655,16 @@ bool GWBSE::Evaluate() {
                                  << _dftbasis_name << flush;
 
   // fill DFT AO basis by going through all atoms
-
-  _dftbasis.AOBasisFill(&dftbs, _orbitals->QMAtoms(), _fragA);
+  AOBasis dftbasis;
+  dftbasis.AOBasisFill(&dftbs, _orbitals->QMAtoms(), _fragA);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled DFT Basis of size "
-                                 << _dftbasis.AOBasisSize() << flush;
-  if (_dftbasis.getAOBasisFragB() > 0) {
+                                 << dftbasis.AOBasisSize() << flush;
+  if (dftbasis.getAOBasisFragB() > 0) {
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size "
-                                   << _dftbasis.getAOBasisFragA() << flush;
+                                   << dftbasis.getAOBasisFragA() << flush;
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size "
-                                   << _dftbasis.getAOBasisFragB()<< flush;
+                                   << dftbasis.getAOBasisFragB()<< flush;
   }
 
   if (_do_full_BSE)
@@ -602,7 +678,7 @@ bool GWBSE::Evaluate() {
   // a) form the expectation value of the XC functional in MOs
 
 
-  Eigen::MatrixXd vxc=CalculateVXC();
+  Eigen::MatrixXd vxc=CalculateVXC(dftbasis);
 
   /// ------- actual calculation begins here -------
 
@@ -669,7 +745,7 @@ bool GWBSE::Evaluate() {
   TCMatrix_gwbse _Mmn;
   //rpamin here, because RPA needs till rpamin
   _Mmn.Initialize(auxbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
-  _Mmn.Fill(auxbasis, _dftbasis, _dft_orbitals);
+  _Mmn.Fill(auxbasis, dftbasis, _orbitals->MOCoefficients());
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
       << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
@@ -739,7 +815,6 @@ bool GWBSE::Evaluate() {
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                    << " Calculated epsilon via RPA  " << flush;
     ppm.PPM_construct_parameters(rpa);
-    PPM_construct_parameters(L_overlap_inverse);
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                    << " Constructed PPM parameters  " << flush;
 
@@ -751,30 +826,32 @@ bool GWBSE::Evaluate() {
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Calculated diagonal part of Sigma  " << flush;
     // iterative refinement of qp energies
-    _gwa_energies=sigma.getGWAEnergies();
+    gwa_energies=sigma.getGWAEnergies();
     double _DFTgap = _dft_energies(_homo + 1) - _dft_energies(_homo);
-    double _QPgap = _gwa_energies(_homo + 1) - _gwa_energies(_homo);
+    double _QPgap = gwa_energies(_homo + 1) - gwa_energies(_homo);
     _shift = _QPgap - _DFTgap;
     
     // qp energies outside the update range are simply shifted.
     for (unsigned i = _qpmax + 1; i < _dft_energies.size(); ++i) {
-      _gwa_energies(i) = _dft_energies(i) + _shift;
+      gwa_energies(i) = _dft_energies(i) + _shift;
     }
-    sigma.setGWAEnergies(_gwa_energies);
+    
     if (_iterate_gw) {
       bool _gw_converged = true;
-      Eigen::VectorXd diff = _qp_old_rpa - _gwa_energies;
+      Eigen::VectorXd diff = _qp_old_rpa - gwa_energies;
       int state = 0;
-      if(diff.cwiseAbs().maxCoeff(&state)>_gw_sc_limit){
+      double E_diff_max=diff.cwiseAbs().maxCoeff(&state);
+      if(E_diff_max<_gw_sc_limit){
            _gw_converged = false;
       }
       
       double alpha = 0.0;
-      _gwa_energies = alpha * _qp_old_rpa + (1 - alpha) * _gwa_energies;
+      gwa_energies = alpha * _qp_old_rpa + (1 - alpha) * gwa_energies;
+      sigma.setGWAEnergies(gwa_energies);
       if (tools::globals::verbose) {
         CTP_LOG(ctp::logDEBUG, *_pLog)
             << ctp::TimeStamp() << " GW_Iteration: " << gw_iteration + 1
-            << " shift=" << _shift << " E_diff max=" << E_max
+            << " shift=" << _shift << " E_diff max=" << E_diff_max
             << " StateNo:" << state << flush;
       }
 
@@ -790,7 +867,7 @@ bool GWBSE::Evaluate() {
             << _gw_sc_max_iterations << " iterations." << flush;
         CTP_LOG(ctp::logDEBUG, *_pLog)
             << ctp::TimeStamp() << "          GWA level " << state
-            << " energy changed by " << diff(state) << flush;
+            << " energy changed by " << E_diff_max << flush;
         CTP_LOG(ctp::logDEBUG, *_pLog)
             << ctp::TimeStamp()
             << "          Run continues. Inspect results carefully!" << flush;
@@ -798,7 +875,10 @@ bool GWBSE::Evaluate() {
       }
       _Mmn=_Mmn_backup;
       
-    }
+    }else
+    {
+      sigma.setGWAEnergies(gwa_energies);
+     }
   }
    
   ppm.FreeMatrix();
@@ -813,48 +893,9 @@ bool GWBSE::Evaluate() {
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                    << " Cleaned up PPM and MmnRPA" << flush;
   }
-    
-  
-  
 
   // Output of quasiparticle energies after all is done:
-
-  CTP_LOG(ctp::logINFO, *_pLog)
-      << (format(
-              "  ====== Perturbative quasiparticle energies (Hartree) ====== "))
-             .str()
-      << flush;
-  CTP_LOG(ctp::logINFO, *_pLog)
-      << (format("   DeltaHLGap = %1$+1.6f Hartree") % _shift).str() << flush;
-
-  for (unsigned i = 0; i < i; i++) {
-    if ((i + _qpmin) == _homo) {
-      CTP_LOG(ctp::logINFO, *_pLog)
-          << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
-                     "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
-              (i + _qpmin + 1) % _dft_energies(i + _qpmin) % vxc(i, i) %
-              sigma.x(i) % sigma.c(i) % gwa_energies(i + _qpmin))
-                 .str()
-          << flush;
-    } else if ((i + _qpmin) == _homo + 1) {
-      CTP_LOG(ctp::logINFO, *_pLog)
-          << (format("  LUMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
-                     "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
-              (i + _qpmin + 1) % _dft_energies(i + _qpmin) % vxc(i, i) %
-              sigma.x(i) % sigma.c(i) % gwa_energies(i + _qpmin))
-                 .str()
-          << flush;
-
-    } else {
-      CTP_LOG(ctp::logINFO, *_pLog)
-          << (format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
-                     "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
-              (i + _qpmin + 1) % _dft_energies(i + _qpmin) % vxc(i, i) %
-              sigma.x(i) % sigma.c(i) % gwa_energies(i + _qpmin))
-                 .str()
-          << flush;
-    }
-  }
+  PrintGWA_Energies(vxc, sigma, _dft_energies);
 
   // store perturbative QP energy data in orbitals object (DFT, S_x,S_c, V_xc,
   // E_qp)
@@ -887,50 +928,18 @@ bool GWBSE::Evaluate() {
     if (_do_qp_diag) {
         
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(Hqp);
-    _qp_diag_energies=es.eigenvalues();
-    _qp_diag_coefficients=es.eigenvectors();
+    const Eigen::VectorXd& qp_diag_energies=es.eigenvalues();
+    
     CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
         
       
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << ctp::TimeStamp() << " Full quasiparticle Hamiltonian  " << flush;
-      CTP_LOG(ctp::logINFO, *_pLog)
-          << (format("  ====== Diagonalized quasiparticle energies (Hartree) "
-                     "====== "))
-                 .str()
-          << flush;
-      for (unsigned _i = 0; _i < _qptotal; _i++) {
-        if ((_i + _qpmin) == _homo) {
-          CTP_LOG(ctp::logINFO, *_pLog)
-              << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-                  (_i + _qpmin + 1) % gwa_energies(_i + _qpmin) %
-                  _qp_diag_energies(_i))
-                     .str()
-              << flush;
-        } else if ((_i + _qpmin) == _homo + 1) {
-          CTP_LOG(ctp::logINFO, *_pLog)
-              << (format("  LUMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-                  (_i + _qpmin + 1) % gwa_energies(_i + _qpmin) %
-                  _qp_diag_energies(_i))
-                     .str()
-              << flush;
+      PrintQP_Energies(gwa_energies, qp_diag_energies);
 
-        } else {
-          CTP_LOG(ctp::logINFO, *_pLog)
-              << (format("  Level = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-                  (_i + _qpmin + 1) % gwa_energies(_i + _qpmin) %
-                  _qp_diag_energies(_i))
-                     .str()
-              << flush;
-        }
-      }
 
-      // free memory
-
-      if (!_store_qp_diag) {
-        _qp_diag_coefficients.resize(0, 0);
-        _qp_diag_energies.resize(0);
+      if (_store_qp_diag) {
+        _orbitals->QPdiagCoefficients()=es.eigenvectors();
+        _orbitals->QPdiagEnergies()=es.eigenvectors();
       }
     }  // _do_qp_diag
   
@@ -938,28 +947,32 @@ bool GWBSE::Evaluate() {
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
       
-      BSE bse=BSE(_orbitals);
-      bse.setBSEindices(_bse_vmin,_bse_vmax,_bse_cmin,_bse_cmax,_bse_maxeigenvectors);
+      BSE bse=BSE(_orbitals,_pLog);
+      bse.setBSEindices(_homo,_bse_vmin,_bse_vmax,_bse_cmin,_bse_cmax,_bse_maxeigenvectors);
        // calculate direct part of eh interaction, needed for singlets and triplets
-      bse.Setup_Hd(_Mmn);
+      bse.Setup_Hd(_Mmn,ppm);
       bse.Add_HqpToHd(Hqp);
       
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Direct part of e-h interaction " << flush;
 
     if (_do_full_BSE) {
-      bse.Setup_Hd_BTDA(_Mmn);
+      bse.Setup_Hd_BTDA(_Mmn,ppm);
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                      << " Direct part of e-h interaction RARC "
                                      << flush;
     }
 
     if (_do_bse_triplets && _do_bse_diag) {
-      bse.Solve_triplets()
+      bse.Solve_triplets();
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                      << " Solved BSE for triplets " << flush;
       // analyze and report results
-      bse.Analyze_triplets();
+      bse.Analyze_triplets(dftbasis,Hqp);
+      
+      if(!_store_bse_triplets){
+        bse.FreeTriplets();
+      }
 
     }  // do_triplets
 
@@ -979,13 +992,17 @@ bool GWBSE::Evaluate() {
             << ctp::TimeStamp() << " Solved full BSE for singlets " << flush;
       } else {
         bse.Solve_singlets();
+        
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                        << " Solved BSE for singlets " << flush;   
       }
-      bse.Analyze_singlets();
-      if (!_store_eh_interaction) {
-          bse.FreeMatrices();
+      bse.Analyze_singlets(dftbasis,Hqp);
+      if (!_store_bse_singlets){
+        bse.FreeSinglets();
       }
+    }
+    if (!_store_eh_interaction) {
+          bse.FreeMatrices();
     }
   }
   }

@@ -71,7 +71,7 @@ public:
     
     const std::vector<AOShell*>& getShells() const{ return _aoshells; }
     
-    std::vector<AOShell*> getShellsperAtom(int AtomId);
+    const std::vector<const AOShell*> getShellsperAtom(int AtomId)const;
     
     int getFuncperAtom(int AtomId) const;
     

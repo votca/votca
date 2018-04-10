@@ -73,7 +73,7 @@ namespace votca { namespace xtp {
      }
     
      
-void EulerMaclaurinGrid::getRadialCutoffs(AOBasis* aobasis,std::vector<QMAtom* > _atoms, const string& gridtype) {
+void EulerMaclaurinGrid::getRadialCutoffs(const AOBasis* aobasis,std::vector<QMAtom* > _atoms, const string& gridtype) {
 
             map<string, min_exp>::iterator it;
             std::vector< QMAtom* > ::iterator ait;
@@ -96,8 +96,8 @@ void EulerMaclaurinGrid::getRadialCutoffs(AOBasis* aobasis,std::vector<QMAtom* >
                     // get first range estimate and add to map
                     min_exp this_atom;
                     double range_max = 0.0;
-                    const std::vector<AOShell*>  shells=aobasis->getShellsperAtom((*ait)->getAtomID());
-                    std::vector<AOShell*>::const_iterator its;
+                    const std::vector<const AOShell*>  shells=aobasis->getShellsperAtom((*ait)->getAtomID());
+                    std::vector<const AOShell*>::const_iterator its;
                     // and loop over all shells to figure out minimum decay constant and angular momentum of this function
                     for (its =shells.begin(); its !=shells.end() ; its++) {
                         int _lmax = (*its)->getLmax();
@@ -233,7 +233,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(AOBasis* aobasis,std::vector<QMAtom* >
     
     
     
-    void EulerMaclaurinGrid::getRadialGrid(AOBasis* aobasis , std::vector<QMAtom* > _atoms,const string& type, GridContainers& _grid) {
+    void EulerMaclaurinGrid::getRadialGrid(const AOBasis* aobasis , std::vector<QMAtom* > _atoms,const string& type, GridContainers& _grid) {
 
         
             map<string, min_exp>::iterator it;

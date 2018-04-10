@@ -55,7 +55,7 @@ namespace votca { namespace xtp {
 
             ~NumericalIntegration(){};
             
-            void GridSetup(std::string type, std::vector<QMAtom* > _atoms,AOBasis* basis);
+            void GridSetup(std::string type, std::vector<QMAtom* > _atoms,const AOBasis* basis);
             double getExactExchange(const std::string _functional);
             std::vector<const vec*> getGridpoints();
             
@@ -84,7 +84,7 @@ namespace votca { namespace xtp {
            void SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::integration_grid > >& grid);
             
             std::vector<double> Rij;
-            AOBasis* _basis;
+            const AOBasis* _basis;
             double  _totalgridsize;
             std::vector< GridBox > _grid_boxes;
             std::vector<unsigned> thread_start;
