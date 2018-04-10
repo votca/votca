@@ -18,15 +18,14 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#ifndef __VOTCA_XTP_POLARFRAG_H
+#define __VOTCA_XTP_POLARFRAG_H
 
-#ifndef VOTCA_CTP_POLARFRAG_H
-#define VOTCA_CTP_POLARFRAG_H
-
-#include <votca/ctp/apolarsite.h>
+#include <votca/xtp/apolarsite.h>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/base_object.hpp>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
     
     
 // Forward declarations
@@ -82,4 +81,4 @@ private:
 
 }}
 
-#endif
+#endif // __VOTCA_XTP_POLARFRAG_H
