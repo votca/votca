@@ -18,20 +18,20 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef VOTCA_CTP_DMASPACE_H
-#define VOTCA_CTP_DMASPACE_H
+#ifndef __VOTCA_XTP_DMASPACE_H
+#define __VOTCA_XTP_DMASPACE_H
 
-#include <votca/ctp/ewdspace.h>
+#include <votca/xtp/ewdspace.h>
 #include <cmath>
 #include <boost/math/special_functions/binomial.hpp>
 #include <votca/tools/vec.h>
 
 namespace votca {
-namespace ctp {
+namespace xtp {
 namespace DMA {
 
 // TODO Maybe move cmplx to separate header - or use C++ <complex> class
-typedef votca::ctp::EWD::cmplx cmplx;
+typedef votca::xtp::EWD::cmplx cmplx;
     
 // BINOMIAL COEFFICIENT
 inline double binom(int upper, int lower) {
@@ -292,4 +292,4 @@ public:
 
 }}}
 
-#endif
+#endif // __VOTCA_XTP_DMASPACE_H
