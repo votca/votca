@@ -22,7 +22,6 @@
 #define __VOTCA_XTP_PEWALD3D_H
 
 #include <votca/csg/boundarycondition.h>
-#include <votca/xtp/polartop.h>
 #include <votca/xtp/xjob.h>
 #include <votca/xtp/qmthread.h>
 #include <votca/xtp/ewaldnd.h>
@@ -31,6 +30,7 @@ namespace CSG = votca::csg;
 
 namespace votca { namespace xtp {
     
+    class PolarTop;
     /// NOTE: This is not a conventional 3D Ewald summation, so use carefully
     ///       (tuned for the purpose of site-energy calculations)
     /// NOTE: PolarTop should be set-up with three containers: FGC, FGN, BGN

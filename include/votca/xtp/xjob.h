@@ -22,10 +22,11 @@
 #define	__VOTCA_XTP_XJOB_H
 
 #include <votca/xtp/topology.h>
-#include <votca/xtp/polartop.h>
 #include <votca/xtp/job.h>
 
 namespace votca { namespace xtp {
+
+class PolarTop;
 
 class XJob
 {

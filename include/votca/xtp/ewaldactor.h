@@ -25,9 +25,7 @@
 #include <votca/tools/vec.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/topology.h>
-#include <votca/xtp/polartop.h>
 #include <votca/xtp/ewdspace.h>
-
 
 namespace votca { namespace xtp {
 
