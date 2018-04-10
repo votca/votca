@@ -18,9 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#ifndef VOTCA_CTP_EWDSPACE_H
-#define VOTCA_CTP_EWDSPACE_H
+#ifndef __VOTCA_XTP_EWDSPACE_H
+#define __VOTCA_XTP_EWDSPACE_H
 
 #include <cmath>
 #include <votca/tools/vec.h>
@@ -28,19 +27,19 @@
 #include <votca/tools/constants.h>
 
 namespace votca {
-namespace ctp {
+namespace xtp {
 namespace EWD {
 
     using namespace votca::tools::conv;
-// DEFINES THE FOLLOWING
-// o *cmplx* structure
-// o *triple* (templated on contained type)
-// o *VectorSort* (functor, templated on type and norm)
-//    - *MaxNorm*
-//    - *EucNorm*
-//    - *KNorm*
-// o KVector (with 'grade' attribute)
-// o Conversion constants to blend well with EwdInteractor
+/// DEFINES THE FOLLOWING
+/// o *cmplx* structure
+/// o *triple* (templated on contained type)
+/// o *VectorSort* (functor, templated on type and norm)
+///    - *MaxNorm*
+///    - *EucNorm*
+///    - *KNorm*
+/// o KVector (with 'grade' attribute)
+/// o Conversion constants to blend well with EwdInteractor
     
     
 
@@ -277,4 +276,4 @@ inline bool VectorSort<Norm,V>::operator() (const V *v1,
 
 }}}
 
-#endif
+#endif // __VOTCA_XTP_EWDSPACE_H
