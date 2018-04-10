@@ -18,8 +18,7 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#include <votca/ctp/polartop.h>
+#include <votca/xtp/polartop.h>
 #include <fstream>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
@@ -27,7 +26,7 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/version.hpp>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 
 PolarTop::PolarTop() : _top(NULL), _center(vec(0,0,0)) {
