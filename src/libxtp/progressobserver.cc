@@ -40,7 +40,7 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
     _lockThread.Lock();    
     pJob jobToProc;
     
-    CTP_LOG(logDEBUG,*(thread->getLogger())) 
+    XTP_LOG(logDEBUG,*(thread->getLogger())) 
         << "Requesting next job" << flush;
 
     // NEED NEW CHUNK?
@@ -49,7 +49,7 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
         _nextjit = _jobsToProc.begin();
         if (_nextjit == _jobsToProc.end()) {
                  _moreJobsAvailable = false;
-                CTP_LOG(logDEBUG,*(thread->getLogger()))
+                XTP_LOG(logDEBUG,*(thread->getLogger()))
                         << "Sync did not yield any new jobs." << flush;
         }
     }
@@ -57,12 +57,12 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
     // JOBS EATEN ALL UP?
     if (_nextjit == _jobsToProc.end()) {
         if (_maxJobs == _startJobsCount) {
-            CTP_LOG(logDEBUG,*(thread->getLogger()))
+            XTP_LOG(logDEBUG,*(thread->getLogger()))
                 << "Next job: ID = - (reached maximum for this process)" 
                 << flush;
         }
         else {
-            CTP_LOG(logDEBUG,*(thread->getLogger())) 
+            XTP_LOG(logDEBUG,*(thread->getLogger())) 
                 << "Next job: ID = - (none available)" << flush;
         }
         jobToProc = NULL;
@@ -71,7 +71,7 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
     else {        
         jobToProc = *_nextjit;
         ++_nextjit;
-        CTP_LOG(logDEBUG,*(thread->getLogger()))
+        XTP_LOG(logDEBUG,*(thread->getLogger()))
             << "Next job: ID = " << jobToProc->getId() << flush;
     }
     
@@ -94,7 +94,7 @@ pJob ProgObserver<JobContainer,pJob,rJob>::RequestNextJob(QMThread *thread) {
 template<typename JobContainer, typename pJob, typename rJob>
 void ProgObserver<JobContainer,pJob,rJob>::ReportJobDone(pJob job, rJob *res, QMThread *thread) {    
     _lockThread.Lock();
-    CTP_LOG(logDEBUG,*(thread->getLogger()))
+    XTP_LOG(logDEBUG,*(thread->getLogger()))
         << "Reporting job results" << flush;    
     // RESULTS, TIME, HOST
     job->SaveResults(res);    
@@ -142,7 +142,7 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
     string tabBackFile = tabFile+"~";
     
     // LOAD EXTERNAL JOBS FROM SHARED XML & UPDATE INTERNAL JOBS
-    CTP_LOG(logDEBUG,*(thread->getLogger()))
+    XTP_LOG(logDEBUG,*(thread->getLogger()))
         << "Update internal structures from job file" << flush;
     JobContainer jobs_ext = LOAD_JOBS<JobContainer,pJob,rJob>(progFile);    
     UPDATE_JOBS<JobContainer,pJob,rJob>(jobs_ext, _jobs, GenerateHost(thread));
@@ -155,14 +155,14 @@ void ProgObserver<JobContainer,pJob,rJob>::SyncWithProgFile(QMThread *thread) {
     jobs_ext.clear();
     
     // GENERATE BACK-UP FOR SHARED XML
-    CTP_LOG(logDEBUG,*(thread->getLogger()))
+    XTP_LOG(logDEBUG,*(thread->getLogger()))
         << "Create job-file back-up" << flush;
     WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, progBackFile, "xml");
     WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, tabBackFile, "tab");
     
     
     // ASSIGN NEW JOBS IF AVAILABLE
-    CTP_LOG(logDEBUG,*(thread->getLogger()))
+    XTP_LOG(logDEBUG,*(thread->getLogger()))
         << "Assign jobs from stack" << flush;
     _jobsToProc.clear();
     
@@ -204,12 +204,12 @@ template<typename JobContainer, typename pJob, typename rJob>
 void ProgObserver<JobContainer,pJob,rJob>::LockProgFile(QMThread *thread) {
     _flock = new boost::interprocess::file_lock(_lockFile.c_str());
     _flock->lock();
-    CTP_LOG(logDEBUG,*(thread->getLogger()))
+    XTP_LOG(logDEBUG,*(thread->getLogger()))
         << "Imposed lock on " << _lockFile << flush;
-    CTP_LOG(logDEBUG,*(thread->getLogger()))
+    XTP_LOG(logDEBUG,*(thread->getLogger()))
         << "Sleep ... " << _lockFile << flush;
     //boost::this_thread::sleep(boost::posix_time::milliseconds(0.0));
-    CTP_LOG(logDEBUG,*(thread->getLogger()))
+    XTP_LOG(logDEBUG,*(thread->getLogger()))
         << "Wake up ... " << _lockFile << flush;
 }
 
@@ -218,7 +218,7 @@ template<typename JobContainer, typename pJob, typename rJob>
 void ProgObserver<JobContainer,pJob,rJob>::ReleaseProgFile(QMThread *thread) {
     
     _flock->unlock();
-    CTP_LOG(logDEBUG,*(thread->getLogger()))
+    XTP_LOG(logDEBUG,*(thread->getLogger()))
         << "Releasing " << _lockFile << ". " << flush;
     delete _flock;
 }
@@ -269,16 +269,16 @@ void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile,
     _progFile = progFile;
     _jobsReported = 0;
     
-    CTP_LOG(logINFO,*(thread->getLogger()))
+    XTP_LOG(logINFO,*(thread->getLogger()))
         << "Job file = '" << _progFile << "', ";
-    CTP_LOG(logINFO,*(thread->getLogger())) 
+    XTP_LOG(logINFO,*(thread->getLogger())) 
         << "lock file = '" << _lockFile << "', ";
-    CTP_LOG(logINFO,*(thread->getLogger())) 
+    XTP_LOG(logINFO,*(thread->getLogger())) 
         << "cache size =  " << _cacheSize << flush;
     
-    CTP_LOG(logINFO,*(thread->getLogger())) << "Initialize jobs from "
+    XTP_LOG(logINFO,*(thread->getLogger())) << "Initialize jobs from "
             << progFile << flush;    
-    CTP_LOG(logINFO,*(thread->getLogger())) << "Lock & load " << flush;
+    XTP_LOG(logINFO,*(thread->getLogger())) << "Lock & load " << flush;
     
     // LOCK, READ INTO XML
     this->LockProgFile(thread);  
@@ -295,7 +295,7 @@ void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile,
     _jobs = LOAD_JOBS<JobContainer,pJob,rJob>(progFile);
     _metajit = _jobs.begin();
     WRITE_JOBS<JobContainer,pJob,rJob>(_jobs, progFile+"~", "xml");
-    CTP_LOG(logINFO,*(thread->getLogger())) << "Registered " << _jobs.size()
+    XTP_LOG(logINFO,*(thread->getLogger())) << "Registered " << _jobs.size()
          << " jobs." << flush;
 	if (_jobs.size()>0) _moreJobsAvailable = true;
 	else _moreJobsAvailable = false;
@@ -308,7 +308,7 @@ void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile,
         for (mit = _restart_hosts.begin(); mit != _restart_hosts.end(); ++mit) {
             infostr += mit->first + " ";
         }
-        CTP_LOG(logINFO,*(thread->getLogger())) << infostr << flush;  
+        XTP_LOG(logINFO,*(thread->getLogger())) << infostr << flush;  
     }
     if (_restartMode && _restart_stats.size()) {        
         string infostr = "Restart if stat == ";
@@ -316,7 +316,7 @@ void ProgObserver<JobContainer,pJob,rJob>::InitFromProgFile(string progFile,
         for (mit = _restart_stats.begin(); mit != _restart_stats.end(); ++mit) {
             infostr += mit->first + " ";
         }
-        CTP_LOG(logINFO,*(thread->getLogger())) << infostr << flush;  
+        XTP_LOG(logINFO,*(thread->getLogger())) << infostr << flush;  
     }   
     
     
