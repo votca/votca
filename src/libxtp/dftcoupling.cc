@@ -98,13 +98,13 @@ namespace votca {
                 
                 if (i < atomsA.size()) {
                     monomer = atomsA[i];
-                    if(!tools::isClose(monomer->getPos(),dimer->getPos(), 0.001)){
+                    if(!monomer->getPos().isClose(dimer->getPos(), 0.001) ) {
                         CTP_LOG(ctp::logERROR, *_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << flush;
                         continue;
                     }
                 } else if (i < atomsB.size() + atomsA.size()) {
                     monomer = atomsB[i - atomsA.size()];
-                    if(!tools::isClose(monomer->getPos(),dimer->getPos(), 0.001)){
+                    if(monomer->getPos().isClose(dimer->getPos(), 0.001)){
                         CTP_LOG(ctp::logERROR, *_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << flush;
                         continue;
                     }
