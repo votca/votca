@@ -50,25 +50,25 @@ namespace votca { namespace xtp {
         PEwald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
        ~PEwald3D3D();
         
-        string IdentifyMethod() { return "Polar 3D x 3D"; }
-        void GenerateKVectors(vector<PolarSeg*> &ps1, vector<PolarSeg*> &ps2);
+        std::string IdentifyMethod() { return "Polar 3D x 3D"; }
+        void GenerateKVectors(std::vector<PolarSeg*> &ps1, std::vector<PolarSeg*> &ps2);
         
-        EWD::triple<> ConvergeRealSpaceSum(vector<PolarSeg*> &target);
-        EWD::triple<> ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target);
-        EWD::triple<> CalculateForegroundCorrection(vector<PolarSeg*> &target);
-        EWD::triple<> CalculateShapeCorrection(vector<PolarSeg*> &target);
-        EWD::triple<> CalculateHigherRankCorrection(vector<PolarSeg*> &target) { return EWD::triple<>(0,0,0); }        
-        EWD::triple<> CalculateK0Correction(vector<PolarSeg*> &target) { return EWD::triple<>(0,0,0); }
+        EWD::triple<> ConvergeRealSpaceSum(std::vector<PolarSeg*> &target);
+        EWD::triple<> ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &target);
+        EWD::triple<> CalculateForegroundCorrection(std::vector<PolarSeg*> &target);
+        EWD::triple<> CalculateShapeCorrection(std::vector<PolarSeg*> &target);
+        EWD::triple<> CalculateHigherRankCorrection(std::vector<PolarSeg*> &target) { return EWD::triple<>(0,0,0); }        
+        EWD::triple<> CalculateK0Correction(std::vector<PolarSeg*> &target) { return EWD::triple<>(0,0,0); }
         
         void Field_ConvergeRealSpaceSum();
         void Field_ConvergeReciprocalSpaceSum();
         void Field_CalculateForegroundCorrection();
         void Field_CalculateShapeCorrection();
         
-        void Potential_ConvergeRealSpaceSum(vector<PolarSeg*> &target);
-        void Potential_ConvergeReciprocalSpaceSum(vector<PolarSeg*> &target);
-        void Potential_CalculateForegroundCorrection(vector<PolarSeg*> &target);
-        void Potential_CalculateShapeCorrection(vector<PolarSeg*> &target);
+        void Potential_ConvergeRealSpaceSum(std::vector<PolarSeg*> &target);
+        void Potential_ConvergeReciprocalSpaceSum(std::vector<PolarSeg*> &target);
+        void Potential_CalculateForegroundCorrection(std::vector<PolarSeg*> &target);
+        void Potential_CalculateShapeCorrection(std::vector<PolarSeg*> &target);
         
         void ScanCutoff();
         
