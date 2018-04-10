@@ -18,19 +18,12 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-
-#include <votca/ctp/pewald3d.h>
+#include <votca/xtp/pewald3d.h>
 #include <boost/format.hpp>
 #include <algorithm>
 #include <boost/date_time/posix_time/posix_time.hpp>
-//#include <boost/timer/timer.hpp>
 
-
-
-
-
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 using boost::format;
     
