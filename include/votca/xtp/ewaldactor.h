@@ -1317,7 +1317,7 @@ inline EWD::triple<double> EwdInteractor::U12_ERFC(APolarSite &p1,
     UpdateAllGls(p1, p2);
     
     if (R1 < 1e-1) {
-        cout << endl << "small small " << p1.getPos() << " == " << p2.getPos() << flush;
+        std::cout << std::endl << "small small " << p1.getPos() << " == " << p2.getPos() << flush;
     }       
     
     double pp = 
@@ -1345,7 +1345,7 @@ inline EWD::triple<double> EwdInteractor::U12_ERF(APolarSite &p1,
     double uu = 0.0;
     
     if (R1 < 1e-2) {
-        //cout << endl << "small small " << p1.getPos() << " == " << p2.getPos() << flush;
+        //cout << std::endl << "small small " << p1.getPos() << " == " << p2.getPos() << flush;
         pp += 2.   *a1*EWD::rSqrtPi * (p1.Q00*p2.Q00);
         uu += 4./3.*a3*EWD::rSqrtPi * (p1.U1x*p2.U1x + p1.U1y*p2.U1y + p1.U1z*p2.U1z);
         if (p1._rank > 0 && p2._rank > 0) {
