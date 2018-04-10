@@ -18,22 +18,20 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#ifndef VOTCA_CTP_PROGRESSOBSERVER
-#define VOTCA_CTP_PROGRESSOBSERVER
-
+#ifndef __VOTCA_XTP_PROGRESSOBSERVER_H
+#define __VOTCA_XTP_PROGRESSOBSERVER_H
 
 #include <vector>
 #include <iostream>
 #include <votca/tools/mutex.h>
 #include <votca/tools/property.h>
-#include <votca/ctp/job.h>
+#include <votca/xtp/job.h>
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/program_options.hpp>
 
 using namespace std;
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
     
 class QMThread;
 
@@ -115,4 +113,5 @@ void UPDATE_JOBS(JobContainer &from, JobContainer &to, string thisHost);
 }}
 
 
-#endif
+#endif // __VOTCA_XTP_PROGRESSOBSERVER_H
+
