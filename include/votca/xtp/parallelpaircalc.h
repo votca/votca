@@ -21,12 +21,10 @@
 #ifndef __VOTCA_XTP_PARALLELPAIRCALC_H
 #define __VOTCA_XTP_PARALLELPAIRCALC_H
 
-
 #include <votca/xtp/qmcalculator.h>
 #include <votca/tools/thread.h>
 #include <votca/xtp/qmthread.h>
 #include <votca/tools/mutex.h>
-
 
 namespace votca { namespace xtp {
 
@@ -40,7 +38,7 @@ public:
     ParallelPairCalculator() : _nextPair(NULL) {};
    ~ParallelPairCalculator() {};
 
-    string       Identify() { return "Parallel pair calculator"; }
+    std::string       Identify() { return "Parallel pair calculator"; }
 
     bool         EvaluateFrame(Topology *top);
     virtual void InitSlotData(Topology *top) { ; }
