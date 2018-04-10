@@ -18,13 +18,11 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#include <votca/ctp/ewaldactor.h>
+#include <votca/xtp/ewaldactor.h>
 #include <boost/format.hpp>
 
-
 namespace votca {
-namespace ctp {
+namespace xtp {
 
     
 void EwdInteractor::FPU12_ShapeField_At_By(vector<PolarSeg*> &at,
