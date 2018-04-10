@@ -18,9 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#include <votca/ctp/progressobserver.h>
-#include <votca/ctp/qmthread.h>
+#include <votca/xtp/progressobserver.h>
+#include <votca/xtp/qmthread.h>
 #include <boost/filesystem.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/format.hpp>
@@ -30,13 +29,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-// Shuffling around #include directives between progobs.h and progobs.cc yields these errors:
-// /people/thnfs/homes/poelking/VOTCA_SUSE_12/src/ctp/include/votca/ctp/logger.h:83:13: error: ‘string’ was not declared in this scope
-// /usr/lib64/gcc/x86_64-suse-linux/4.7/../../../../x86_64-suse-linux/bin/ld: CMakeFiles/ctp_map.dir/ctp_map.cc.o: undefined reference to symbol _ZN5boost6system15system_categoryEv
-
 using boost::format;
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
     
     
 template<typename JobContainer, typename pJob, typename rJob>
