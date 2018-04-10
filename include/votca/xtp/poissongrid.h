@@ -18,12 +18,11 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#ifndef __VOTCA_XTP_POISSONGRID_H
+#define __VOTCA_XTP_POISSONGRID_H
 
-#ifndef VOTCA_CTP_POISSONGRID_H
-#define VOTCA_CTP_POISSONGRID_H
-
-#include <votca/ctp/polartop.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/polartop.h>
+#include <votca/xtp/logger.h>
 
 namespace votca { 
 namespace ctp {
@@ -67,4 +66,4 @@ class PoissonCell
     
 }}}
 
-#endif
+#endif // __VOTCA_XTP_POISSONGRID_H
