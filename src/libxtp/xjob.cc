@@ -18,16 +18,12 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#include <votca/ctp/xjob.h>
+#include <votca/xtp/xjob.h>
 #include <boost/format.hpp>
-
 
 using boost::format;
 
-namespace votca { namespace ctp {
-    
-    
+namespace votca { namespace xtp {
     
 XJob::XJob(int id, string tag, vector<Segment*> &qmSegs, 
      vector<string> &qmSegMps, Topology *top) :
