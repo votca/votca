@@ -26,10 +26,11 @@
 #include <votca/xtp/qmthread.h>
 #include <votca/tools/mutex.h>
 
+namespace TOOLS = votca::tools;
+
 namespace votca { namespace xtp {
 
-class ParallelPairCalculator : public QMCalculator
-{
+class ParallelPairCalculator : public QMCalculator{
 
 public:
 
@@ -79,8 +80,8 @@ public:
 protected:
 
     QMNBList::iterator   _nextPair;
-    Mutex                 _nextPairMutex;
-    Mutex                 _coutMutex;
+    TOOLS::Mutex                 _nextPairMutex;
+    TOOLS::Mutex                 _coutMutex;
 
 
 };
