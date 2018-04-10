@@ -18,14 +18,13 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#ifndef __VOTCA_XTP_MOLPOLENGINE_H
+#define __VOTCA_XTP_MOLPOLENGINE_H
 
-#ifndef VOTCA_CTP_MOLPOLENGINE_H
-#define VOTCA_CTP_MOLPOLENGINE_H
-
-#include <votca/ctp/polartop.h>
+#include <votca/xtp/polartop.h>
 
 namespace votca {
-namespace ctp {
+namespace xtp {
     
     
 class MolPolEngine
@@ -54,4 +53,4 @@ private:
 
 }}
 
-#endif
+#endif // __VOTCA_XTP_MOLPOLENGINE_H
