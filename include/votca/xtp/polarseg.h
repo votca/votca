@@ -18,17 +18,16 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#ifndef __POLARSEG__H
-#define	__POLARSEG__H
+#ifndef __VOTCA_XTP_POLARSEG_H
+#define	__VOTCA_XTP_POLARSEG_H
 
 #include <votca/tools/vec.h>
-#include <votca/ctp/apolarsite.h>
-#include <votca/ctp/polarfrag.h>
+#include <votca/xtp/apolarsite.h>
+#include <votca/xtp/polarfrag.h>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/base_object.hpp>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class PolarNb;
     
@@ -128,4 +127,4 @@ private:
 
 }}
 
-#endif
+#endif // __VOTCA_XTP_POLARSEG_H
