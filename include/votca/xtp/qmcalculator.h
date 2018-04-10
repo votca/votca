@@ -37,7 +37,7 @@ public:
 
     virtual std::string  Identify() = 0;
 
-    virtual void    Initialize(Property *options) = 0;
+    virtual void    Initialize(TOOLS::Property *options) = 0;
     virtual bool    EvaluateFrame(Topology *top) { return true; }
     virtual void    EndEvaluate(Topology *top) { }
 

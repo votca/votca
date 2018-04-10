@@ -21,10 +21,12 @@
 #ifndef __VOTCA_XTP_PARALLELPAIRCALC_H
 #define __VOTCA_XTP_PARALLELPAIRCALC_H
 
-#include <votca/xtp/qmcalculator.h>
 #include <votca/tools/thread.h>
-#include <votca/xtp/qmthread.h>
 #include <votca/tools/mutex.h>
+
+#include <votca/xtp/qmthread.h>
+#include <votca/xtp/qmcalculator.h>
+#include <votca/xtp/qmnblist.h>
 
 namespace TOOLS = votca::tools;
 

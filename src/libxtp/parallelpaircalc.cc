@@ -18,7 +18,9 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#include <vector>
 #include <votca/xtp/parallelpaircalc.h>
+#include <votca/xtp/topology.h>
 
 using namespace std;
 
