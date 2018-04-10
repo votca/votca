@@ -18,15 +18,13 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-
-#ifndef __VOTCA_CTP_LOG_H
-#define	__VOTCA_CTP_LOG_H
+#ifndef __VOTCA_XTP_LOG_H
+#define	__VOTCA_XTP_LOG_H
 
 #include <sstream>
 #include <iostream>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 enum TLogLevel {logERROR, logWARNING, logINFO, logDEBUG};
  
@@ -253,4 +251,4 @@ class TimeStamp
 
 }}
 
-#endif /* __VOTCA_CTP_LOG_H */
+#endif // __VOTCA_XTP_LOG_H
