@@ -18,18 +18,16 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#ifndef _VOTCA_CTP_QMCALCULATOR_H
-#define _VOTCA_CTP_QMCALCULATOR_H
-
+#ifndef __VOTCA_XTP_QMCALCULATOR_H
+#define __VOTCA_XTP_QMCALCULATOR_H
 
 #include <votca/tools/calculator.h>
-#include <votca/ctp/topology.h>
+#include <votca/xtp/topology.h>
 
-namespace CTP = votca::ctp;
+namespace XTP = votca::xtp;
 namespace TOOLS = votca::tools;
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class QMCalculator : public Calculator
 {
@@ -41,8 +39,8 @@ public:
     virtual std::string  Identify() = 0;
 
     virtual void    Initialize(Property *options) = 0;
-    virtual bool    EvaluateFrame(CTP::Topology *top) { return true; }
-    virtual void    EndEvaluate(CTP::Topology *top) { }
+    virtual bool    EvaluateFrame(XTP::Topology *top) { return true; }
+    virtual void    EndEvaluate(XTP::Topology *top) { }
 
 protected:
 
@@ -50,4 +48,4 @@ protected:
 
 }}
 
-#endif /* _QMCALCULATOR_H */
+#endif // __VOTCA_XTP_QMCALCULATOR_H 
