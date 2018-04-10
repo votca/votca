@@ -18,21 +18,20 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#ifndef __XMAPPER__H
-#define	__XMAPPER__H
+#ifndef __VOTCA_XTP_XMAPPER_H
+#define	__VOTCA_XTP_XMAPPER_H
 
 #include <votca/tools/mutex.h>
-#include <votca/ctp/topology.h>
-#include <votca/ctp/xjob.h>
-#include <votca/ctp/apolarsite.h>
-#include <votca/ctp/qmthread.h>
+#include <votca/xtp/topology.h>
+#include <votca/xtp/xjob.h>
+#include <votca/xtp/apolarsite.h>
+#include <votca/xtp/qmthread.h>
 
 // TODO Change maps to _alloc_xmlfile_fragsegmol_***
 // TODO Confirm thread safety
 // TODO Add "const" keyword
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
     
 class XMpsMap
 {
@@ -92,4 +91,5 @@ private:
 }}
 
 
-#endif
+#endif // __VOTCA_XTP_XMAPPER_H
+
