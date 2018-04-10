@@ -18,17 +18,14 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-
-#ifndef __VOTCA_CTP_QMTOOL__H
-#define __VOTCA_CTP_QMTOOL__H
-
+#ifndef __VOTCA_XTP_QMTOOL_H
+#define __VOTCA_XTP_QMTOOL_H
 
 #include <votca/tools/property.h>
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 #include <boost/format.hpp>
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class QMTool : public QMCalculator
 {
@@ -51,4 +48,4 @@ private:
 
 }}
 
-#endif /* _VOTCA_CTP_QMTOOL_H */
+#endif // __VOTCA_XTP_QMTOOL_H 
