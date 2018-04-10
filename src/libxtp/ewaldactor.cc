@@ -1229,71 +1229,71 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
     double TrU2_S2 = U2_S2.get(0,0)+U2_S2.get(1,1)+U2_S2.get(2,2);    
     
     if (log != NULL) {
-        CTP_LOG(logDEBUG, *log) << "S1 moments: " << flush;
-        CTP_LOG(logDEBUG, *log) << "  Q0   = " 
+        XTP_LOG(logDEBUG, *log) << "S1 moments: " << flush;
+        XTP_LOG(logDEBUG, *log) << "  Q0   = " 
             << (boost::format("%1$+1.7e") % Q0_S1) << flush;
-        CTP_LOG(logDEBUG, *log) << "  Q1   = " 
+        XTP_LOG(logDEBUG, *log) << "  Q1   = " 
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % Q1_S1.getX() % Q1_S1.getY() % Q1_S1.getZ()) << flush;
-        CTP_LOG(logDEBUG, *log) << "  U1   = " 
+        XTP_LOG(logDEBUG, *log) << "  U1   = " 
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % U1_S1.getX() % U1_S1.getY() % U1_S1.getZ()) << flush;
         
-        CTP_LOG(logDEBUG, *log) << "  Q2   = "
+        XTP_LOG(logDEBUG, *log) << "  Q2   = "
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % Q2_S1.get(0,0) % Q2_S1.get(0,1) % Q2_S1.get(0,2)) << flush;
-        CTP_LOG(logDEBUG, *log) << "         "
+        XTP_LOG(logDEBUG, *log) << "         "
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % Q2_S1.get(1,0) % Q2_S1.get(1,1) % Q2_S1.get(1,2)) << flush;
-        CTP_LOG(logDEBUG, *log) << "         "
+        XTP_LOG(logDEBUG, *log) << "         "
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e")
                 % Q2_S1.get(2,0) % Q2_S1.get(2,1) % Q2_S1.get(2,2)) << flush;
         
-        CTP_LOG(logDEBUG, *log) << "  U2   = "
+        XTP_LOG(logDEBUG, *log) << "  U2   = "
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % U2_S1.get(0,0) % U2_S1.get(0,1) % U2_S1.get(0,2)) << flush;
-        CTP_LOG(logDEBUG, *log) << "         "
+        XTP_LOG(logDEBUG, *log) << "         "
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % U2_S1.get(1,0) % U2_S1.get(1,1) % U2_S1.get(1,2)) << flush;
-        CTP_LOG(logDEBUG, *log) << "         "
+        XTP_LOG(logDEBUG, *log) << "         "
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % U2_S1.get(2,0) % U2_S1.get(2,1) % U2_S1.get(2,2)) << flush;
         
-        CTP_LOG(logDEBUG, *log) << "  TrQ2 = " << TrQ2_S1 << flush;
-        CTP_LOG(logDEBUG, *log) << "  TrU2 = " << TrU2_S1 << flush;
+        XTP_LOG(logDEBUG, *log) << "  TrQ2 = " << TrQ2_S1 << flush;
+        XTP_LOG(logDEBUG, *log) << "  TrU2 = " << TrU2_S1 << flush;
         
         
-        CTP_LOG(logDEBUG, *log) << "S2 moments: " << flush;
-        CTP_LOG(logDEBUG, *log) << "  Q0   = " 
+        XTP_LOG(logDEBUG, *log) << "S2 moments: " << flush;
+        XTP_LOG(logDEBUG, *log) << "  Q0   = " 
             << (boost::format("%1$+1.7e") % Q0_S2) << flush;
-        CTP_LOG(logDEBUG, *log) << "  Q1   = " 
+        XTP_LOG(logDEBUG, *log) << "  Q1   = " 
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % Q1_S2.getX() % Q1_S2.getY() % Q1_S2.getZ()) << flush;
-        CTP_LOG(logDEBUG, *log) << "  U1   = " 
+        XTP_LOG(logDEBUG, *log) << "  U1   = " 
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % U1_S2.getX() % U1_S2.getY() % U1_S2.getZ()) << flush;
         
-        CTP_LOG(logDEBUG, *log) << "  Q2   = "
+        XTP_LOG(logDEBUG, *log) << "  Q2   = "
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % Q2_S2.get(0,0) % Q2_S2.get(0,1) % Q2_S2.get(0,2)) << flush;
-        CTP_LOG(logDEBUG, *log) << "         "
+        XTP_LOG(logDEBUG, *log) << "         "
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % Q2_S2.get(1,0) % Q2_S2.get(1,1) % Q2_S2.get(1,2)) << flush;
-        CTP_LOG(logDEBUG, *log) << "         "
+        XTP_LOG(logDEBUG, *log) << "         "
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e")
                 % Q2_S2.get(2,0) % Q2_S2.get(2,1) % Q2_S2.get(2,2)) << flush;
         
-        CTP_LOG(logDEBUG, *log) << "  U2   = "
+        XTP_LOG(logDEBUG, *log) << "  U2   = "
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % U2_S2.get(0,0) % U2_S2.get(0,1) % U2_S2.get(0,2)) << flush;
-        CTP_LOG(logDEBUG, *log) << "         "
+        XTP_LOG(logDEBUG, *log) << "         "
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % U2_S2.get(1,0) % U2_S2.get(1,1) % U2_S2.get(1,2)) << flush;
-        CTP_LOG(logDEBUG, *log) << "         "
+        XTP_LOG(logDEBUG, *log) << "         "
             << (boost::format("%1$+1.7e %2$+1.7e %3$+1.7e") 
                 % U2_S2.get(2,0) % U2_S2.get(2,1) % U2_S2.get(2,2)) << flush;
-        CTP_LOG(logDEBUG, *log) << "  TrQ2 = " << TrQ2_S2 << flush;
-        CTP_LOG(logDEBUG, *log) << "  TrU2 = " << TrU2_S2 << flush;
+        XTP_LOG(logDEBUG, *log) << "  TrQ2 = " << TrQ2_S2 << flush;
+        XTP_LOG(logDEBUG, *log) << "  TrU2 = " << TrU2_S2 << flush;
     }
     
     // Shape-dependent energies
@@ -1325,7 +1325,7 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
         dd *= -4*M_PI/V * EWD::int2eV;
         qQ *= -4*M_PI/V * EWD::int2eV;
         
-        CTP_LOG(logDEBUG, *log) << (boost::format("  DD %1$+1.7e eV qQ %2$+1.7e eV")
+        XTP_LOG(logDEBUG, *log) << (boost::format("  DD %1$+1.7e eV qQ %2$+1.7e eV")
                 % dd % qQ) << flush;
                 
     }
@@ -1348,16 +1348,16 @@ EWD::triple<double> EwdInteractor::U12_ShapeTerm(vector<PolarSeg*> &s1,
             pu_qQ *= -4*M_PI/(3*V)*EWD::int2eV;
             pu_dd *= -4*M_PI/(3*V)*EWD::int2eV;
             uu_dd *= -4*M_PI/(3*V)*EWD::int2eV;
-            CTP_LOG(logDEBUG, *log) << (boost::format("Energy-moment decomposition")) << flush;
-            CTP_LOG(logDEBUG, *log) << (boost::format("  qQ (pp) = %1$+1.7e") % pp_qQ) << flush;
-            CTP_LOG(logDEBUG, *log) << (boost::format("  dd (pp) = %1$+1.7e") % pp_dd) << flush;
-            CTP_LOG(logDEBUG, *log) << (boost::format("  qQ (pu) = %1$+1.7e") % pu_qQ) << flush;
-            CTP_LOG(logDEBUG, *log) << (boost::format("  dd (pu) = %1$+1.7e") % pu_dd) << flush;
-            CTP_LOG(logDEBUG, *log) << (boost::format("  dd (uu) = %1$+1.7e") % uu_dd) << flush;
+            XTP_LOG(logDEBUG, *log) << (boost::format("Energy-moment decomposition")) << flush;
+            XTP_LOG(logDEBUG, *log) << (boost::format("  qQ (pp) = %1$+1.7e") % pp_qQ) << flush;
+            XTP_LOG(logDEBUG, *log) << (boost::format("  dd (pp) = %1$+1.7e") % pp_dd) << flush;
+            XTP_LOG(logDEBUG, *log) << (boost::format("  qQ (pu) = %1$+1.7e") % pu_qQ) << flush;
+            XTP_LOG(logDEBUG, *log) << (boost::format("  dd (pu) = %1$+1.7e") % pu_dd) << flush;
+            XTP_LOG(logDEBUG, *log) << (boost::format("  dd (uu) = %1$+1.7e") % uu_dd) << flush;
         }
     }
     else if (shape == "none") {
-    	CTP_LOG(logDEBUG, *log) << (boost::format("Assuming isotropic limit")) << flush;
+    	XTP_LOG(logDEBUG, *log) << (boost::format("Assuming isotropic limit")) << flush;
     	pp = 0.0;
     	pu = 0.0;
     	uu = 0.0;
