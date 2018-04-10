@@ -267,7 +267,7 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
                 }
             }
         }
-        CTP_LOG(logINFO,*_log) << "  o System Q1 compensation: " << system_dpl 
+        XTP_LOG(logINFO,*_log) << "  o System Q1 compensation: " << system_dpl 
             << "  (apply to " << charged_count << " polar sites)" << flush;
         vec atomic_compensation_dpl = - system_dpl/charged_count;
         int compensation_count = 0;
@@ -300,8 +300,8 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     _t_coarsegrain = (t1.wall-t0.wall)/1e9/60.;
     
     // SET-UP MIDGROUND (INCLUDING PERIODIC IMAGES IF REQUIRED)
-    CTP_LOG(logINFO,*_log) << flush;
-    CTP_LOG(logINFO,*_log) << "Generate periodic images. ";
+    XTP_LOG(logINFO,*_log) << flush;
+    XTP_LOG(logINFO,*_log) << "Generate periodic images. ";
     this->SetupMidground(_R_co);
     
     // CALCULATE COG POSITIONS, NET CHARGE
@@ -346,7 +346,7 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
     else _jobType = "bipolaron-like";
 
     
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << (format("Net ground charge and size:")).str()
         << flush << (format("  o Q(FGC) = %1$+1.3fe |FGC| = %2$+5d") % Q_fg_C % _fg_C.size()).str()
         << flush << (format("  o Q(FGN) = %1$+1.3fe |FGN| = %2$+5d") % Q_fg_N % _fg_N.size()).str()
@@ -388,14 +388,14 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
         }
     }
     
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << (format("Net dipole moment of background density")).str()
         << flush << (format("  o D(BGP) [e*nm]           = %1$+1.3f %2$+1.3f %3$+1.3f  ") 
         % netdpl_bgP.getX() % netdpl_bgP.getY() % netdpl_bgP.getZ()).str();
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << flush << (format("  o D(FGC) [e*nm]           = %1$+1.3f %2$+1.3f %3$+1.3f  ") 
         % netdpl_fgC.getX() % netdpl_fgC.getY() % netdpl_fgC.getZ()).str();
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << flush << (format("  o Sigma q|z|**2 [e*nm**2] = %1$+1.7f   ")
         % qzz_bgP) << flush;
     
@@ -422,8 +422,8 @@ Ewald3DnD::Ewald3DnD(Topology *top, PolarTop *ptop, Property *opt, Logger *log)
 
 void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
     
-    CTP_LOG(logDEBUG,*_log) << flush;
-    CTP_LOG(logDEBUG,*_log) << "Set-up polar grounds" << flush;
+    XTP_LOG(logDEBUG,*_log) << flush;
+    XTP_LOG(logDEBUG,*_log) << "Set-up polar grounds" << flush;
     
     vector<PolarSeg*>::iterator sit1;
     vector<PolarSeg*>::iterator sit2;
@@ -443,7 +443,7 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
     int polar_nb_max = ceil(polar_R_co/maxnorm(_b)-0.5)+1;
     int polar_nc_max = ceil(polar_R_co/maxnorm(_c)-0.5)+1;
     
-    CTP_LOG(logDEBUG,*_log) << "  o Expanding cell space for neighbour search:"
+    XTP_LOG(logDEBUG,*_log) << "  o Expanding cell space for neighbour search:"
             " +/-" << polar_na_max << " x +/-" << polar_nb_max << " x +/-" 
             << polar_nc_max << flush;
     
@@ -459,7 +459,7 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
         }
     }
     
-    CTP_LOG(logDEBUG,*_log) << "  o Max. int. distance (QM0): " << 
+    XTP_LOG(logDEBUG,*_log) << "  o Max. int. distance (QM0): " << 
         _max_int_dist_qm0 << "nm" << flush;
     
     // Foreground remains in foreground + contributes to QM0
@@ -576,15 +576,15 @@ void Ewald3DnD::ExpandForegroundReduceBackground(double polar_R_co) {
 
 void Ewald3DnD::CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius) {
     
-    CTP_LOG(logDEBUG,*_log) << "Coarse-graining agenda" << flush;
-    CTP_LOG(logDEBUG,*_log) << "  o Coarse-grain background:   " << ((_coarse_do_cg_background) ? "yes" : "no") << flush;
-    CTP_LOG(logDEBUG,*_log) << "  o Coarse-grain foreground:   " << ((_coarse_do_cg_foreground) ? "yes" : "no") << flush;
-    CTP_LOG(logDEBUG,*_log) << "  o Anisotropic P-tensor:      " << ((_coarse_cg_anisotropic) ? "yes" : "no") << flush;
-    CTP_LOG(logDEBUG,*_log) << "  o Coarse-graining radius:    " << _coarse_cg_radius << " nm" << flush;
+    XTP_LOG(logDEBUG,*_log) << "Coarse-graining agenda" << flush;
+    XTP_LOG(logDEBUG,*_log) << "  o Coarse-grain background:   " << ((_coarse_do_cg_background) ? "yes" : "no") << flush;
+    XTP_LOG(logDEBUG,*_log) << "  o Coarse-grain foreground:   " << ((_coarse_do_cg_foreground) ? "yes" : "no") << flush;
+    XTP_LOG(logDEBUG,*_log) << "  o Anisotropic P-tensor:      " << ((_coarse_cg_anisotropic) ? "yes" : "no") << flush;
+    XTP_LOG(logDEBUG,*_log) << "  o Coarse-graining radius:    " << _coarse_cg_radius << " nm" << flush;
     
     // COARSE-GRAIN BACKGROUND
     if (cg_bg) {
-        CTP_LOG(logDEBUG,*_log) << "Coarse-grain background" << flush;
+        XTP_LOG(logDEBUG,*_log) << "Coarse-grain background" << flush;
         
         int count_bgp = 0;
         int count_fgn = 0;
@@ -622,14 +622,14 @@ void Ewald3DnD::CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius) {
             }
         }
         
-        CTP_LOG(logDEBUG,*_log) << "  o Coarse-grained "
+        XTP_LOG(logDEBUG,*_log) << "  o Coarse-grained "
              << count_bgp << "/" << _bg_P.size() << " (BGP) "
              << count_fgn << "/" << _fg_N.size() << " (FGN) "
              << "with " << count_bgp_id_in_fg << " FG-table counts" << flush;
     }
     // COARSE-GRAIN FOREGROUND
     if (cg_fg) {
-        CTP_LOG(logDEBUG,*_log) << "Coarse-grain foreground" << flush;
+        XTP_LOG(logDEBUG,*_log) << "Coarse-grain foreground" << flush;
         
         int count_fgc = 0;
         
@@ -662,7 +662,7 @@ void Ewald3DnD::CoarseGrainDensities(bool cg_bg, bool cg_fg, double cg_radius) {
             }
         }
         
-        CTP_LOG(logDEBUG,*_log) << "  o Coarse-grained "
+        XTP_LOG(logDEBUG,*_log) << "  o Coarse-grained "
              << count_fgc << "/" << _fg_C.size() << " (FGC) " << flush;
     }    
     return;
@@ -1151,25 +1151,25 @@ void Ewald3DnD::WriteInductionStateTable() {
 
 void Ewald3DnD::ShowAgenda(Logger *log) {
     
-    CTP_LOG(logDEBUG,*log) << flush;
+    XTP_LOG(logDEBUG,*log) << flush;
     
-    CTP_LOG(logDEBUG,*log) << "System & Ewald parameters (" << IdentifyMethod() << ")" << flush;
-    CTP_LOG(logDEBUG,*log) << "  o Real-space unit cell:      " << _a << " x " << _b << " x " << _c << flush;
-    CTP_LOG(logDEBUG,*log) << "  o Real-space c/o (guess):    " << _R_co << " nm" << flush;
-    CTP_LOG(logDEBUG,*log) << "  o na(max), nb(max), nc(max): " << _na_max << ", " << _nb_max << ", " << _nc_max << flush;
-    CTP_LOG(logDEBUG,*log) << "  o 1st Brillouin zone:        " << _A << " x " << _B << " x " << _C << flush;
-    CTP_LOG(logDEBUG,*log) << "  o Reciprocal-space c/o:      " << _K_co << " 1/nm" << flush;
-    CTP_LOG(logDEBUG,*log) << "  o R-K switching param.       " << _alpha << " 1/nm" << flush;
-    CTP_LOG(logDEBUG,*log) << "  o Unit-cell volume:          " << _LxLyLz << " nm**3" << flush;
-    CTP_LOG(logDEBUG,*log) << "  o LxLy (for 3D2D EW):        " << _LxLy << " nm**2" << flush;
-    CTP_LOG(logDEBUG,*log) << "  o kx(max), ky(max), kz(max): " << _NA_max << ", " << _NB_max << ", " << _NC_max << flush;
+    XTP_LOG(logDEBUG,*log) << "System & Ewald parameters (" << IdentifyMethod() << ")" << flush;
+    XTP_LOG(logDEBUG,*log) << "  o Real-space unit cell:      " << _a << " x " << _b << " x " << _c << flush;
+    XTP_LOG(logDEBUG,*log) << "  o Real-space c/o (guess):    " << _R_co << " nm" << flush;
+    XTP_LOG(logDEBUG,*log) << "  o na(max), nb(max), nc(max): " << _na_max << ", " << _nb_max << ", " << _nc_max << flush;
+    XTP_LOG(logDEBUG,*log) << "  o 1st Brillouin zone:        " << _A << " x " << _B << " x " << _C << flush;
+    XTP_LOG(logDEBUG,*log) << "  o Reciprocal-space c/o:      " << _K_co << " 1/nm" << flush;
+    XTP_LOG(logDEBUG,*log) << "  o R-K switching param.       " << _alpha << " 1/nm" << flush;
+    XTP_LOG(logDEBUG,*log) << "  o Unit-cell volume:          " << _LxLyLz << " nm**3" << flush;
+    XTP_LOG(logDEBUG,*log) << "  o LxLy (for 3D2D EW):        " << _LxLy << " nm**2" << flush;
+    XTP_LOG(logDEBUG,*log) << "  o kx(max), ky(max), kz(max): " << _NA_max << ", " << _NB_max << ", " << _NC_max << flush;
     
-    CTP_LOG(logDEBUG,*log) << "Tasks to perform (" << IdentifyMethod() << ")" << flush;
-    CTP_LOG(logDEBUG,*log) << "  o Scan interaction range:    " << ((_task_scan_cutoff) ? "yes" : "no") << flush;
-    CTP_LOG(logDEBUG,*log) << "  o Calculate fg fields:       " << ((_task_calculate_fields) ? "yes" : "no") << flush;
-    CTP_LOG(logDEBUG,*log) << "  o Polarize foreground:       " << ((_task_polarize_fg) ? "yes" : "no") << flush;
-    CTP_LOG(logDEBUG,*log) << "  o Evaluate energy:           " << ((_task_evaluate_energy) ? "yes" : "no") << flush;
-    CTP_LOG(logDEBUG,*log) << "  o Apply radial correction:   " << ((_task_apply_radial) ? "yes" : "no") << flush;
+    XTP_LOG(logDEBUG,*log) << "Tasks to perform (" << IdentifyMethod() << ")" << flush;
+    XTP_LOG(logDEBUG,*log) << "  o Scan interaction range:    " << ((_task_scan_cutoff) ? "yes" : "no") << flush;
+    XTP_LOG(logDEBUG,*log) << "  o Calculate fg fields:       " << ((_task_calculate_fields) ? "yes" : "no") << flush;
+    XTP_LOG(logDEBUG,*log) << "  o Polarize foreground:       " << ((_task_polarize_fg) ? "yes" : "no") << flush;
+    XTP_LOG(logDEBUG,*log) << "  o Evaluate energy:           " << ((_task_evaluate_energy) ? "yes" : "no") << flush;
+    XTP_LOG(logDEBUG,*log) << "  o Apply radial correction:   " << ((_task_apply_radial) ? "yes" : "no") << flush;
     
     return;
 }
@@ -1181,24 +1181,24 @@ void Ewald3DnD::ShowFieldsTeaser(vector<PolarSeg*> &target, Logger *log) {
     for (vector<PolarSeg*>::iterator sit1 = target.begin(); sit1 < target.end(); ++sit1) {
         PolarSeg *pseg = *sit1;
         Segment *seg = _top->getSegment(pseg->getId());
-        CTP_LOG(logDEBUG,*log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
+        XTP_LOG(logDEBUG,*log) << "ID = " << pseg->getId() << " (" << seg->getName() << ") " << flush;
         for (PolarSeg::iterator pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
             vec fp = (*pit1)->getFieldP();
             vec fu = (*pit1)->getFieldU();
             vec u1 = (*pit1)->getU1();
-            CTP_LOG(logDEBUG,*log)
+            XTP_LOG(logDEBUG,*log)
                << (format("FPU = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m    ") 
                     % (fp.getX()*EWD::int2V_m+fu.getX()*EWD::int2V_m)
                     % (fp.getY()*EWD::int2V_m+fu.getY()*EWD::int2V_m) 
                     % (fp.getZ()*EWD::int2V_m+fu.getZ()*EWD::int2V_m)).str();
-            CTP_LOG(logDEBUG,*log)
+            XTP_LOG(logDEBUG,*log)
                << (format("U1* = (%1$+1.7e %2$+1.7e %3$+1.7e) e*nm") 
                     % (u1.getX())
                     % (u1.getY()) 
                     % (u1.getZ())).str() << flush;
             fieldCount += 1;
             if (fieldCount > 10) {
-                CTP_LOG(logDEBUG,*log)
+                XTP_LOG(logDEBUG,*log)
                     << "FPU = ... ... ..." << flush;
                 break;
             }
@@ -1211,8 +1211,8 @@ void Ewald3DnD::ShowFieldsTeaser(vector<PolarSeg*> &target, Logger *log) {
 
 void Ewald3DnD::ShowEnergySplitting(Logger *log) {
     
-    CTP_LOG(logDEBUG,*_log) << flush;
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logDEBUG,*_log) << flush;
+    XTP_LOG(logINFO,*_log)
         << (format("Interaction FGC -> ***")).str()
         << flush << (format("  + EPP(FGC->MGN)  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
             % _ER.Sum() % _ER._pp % _ER._pu % _ER._uu).str()
@@ -1231,7 +1231,7 @@ void Ewald3DnD::ShowEnergySplitting(Logger *log) {
             % _ET.Sum() % _ET._pp % _ET._pu % _ET._uu).str()
         << flush;
     
-    CTP_LOG(logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << (format("Interaction FGC <> FGC")).str()
         << flush << (format("  + EF [00 01 11]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV") 
             % (_polar_EF00+_polar_EF01+_polar_EF11) % _polar_EF00 % _polar_EF01 % _polar_EF11).str()
@@ -1246,7 +1246,7 @@ void Ewald3DnD::ShowEnergySplitting(Logger *log) {
             % _inner % _inner_epp % _inner_eppu % _inner_ework).str()
         << flush;
     
-    CTP_LOG(logINFO,*_log)            
+    XTP_LOG(logINFO,*_log)            
         << (format("Interaction FGC <> FGC(i) u ***(o)")).str()
         << flush << (format("  + Ei [pp+pu+iw]  = %1$+1.7e = %2$+1.7e  %3$+1.7e  %4$+1.7e eV")
             % _inner % _inner_epp % _inner_eppu % _inner_ework).str()
@@ -1266,7 +1266,7 @@ void Ewald3DnD::Evaluate() {
     this->ShowAgenda(_log);
 
     // TEASER OUTPUT PERMANENT FIELDS
-    CTP_LOG(logDEBUG,*_log) << flush << "Background fields (FGN):" << flush;
+    XTP_LOG(logDEBUG,*_log) << flush << "Background fields (FGN):" << flush;
     this->ShowFieldsTeaser(_fg_N, _log);
 
     // PERFORM TASKS
@@ -1304,7 +1304,7 @@ void Ewald3DnD::Evaluate() {
     */
     
     // TEASER OUTPUT PERMANENT FIELDS
-    CTP_LOG(logDEBUG,*_log) << flush << "Foreground fields (FGC):" << flush;
+    XTP_LOG(logDEBUG,*_log) << flush << "Foreground fields (FGC):" << flush;
     this->ShowFieldsTeaser(_fg_C, _log);
     
     // COMPUTE ENERGY SPLITTING
@@ -1394,12 +1394,12 @@ void Ewald3DnD::Evaluate() {
     }
     // TIMING
     _t_total = _t_coarsegrain+_t_fields+_t_induction+_t_energy;    
-    CTP_LOG(logDEBUG,*_log) << flush << (format("Timing (T = %1$1.2f min)") % (_t_total)) << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o Usage <Coarsegrain> = %1$2.2f%%") % (100*_t_coarsegrain/_t_total)) << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o Usage <Fields>      = %1$2.2f%%") % (100*_t_fields/_t_total)) << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o Usage <Induction>   = %1$2.2f%%") % (100*_t_induction/_t_total)) << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o Usage <Energy>      = %1$2.2f%%") % (100*_t_energy/_t_total)) << flush;    
-    CTP_LOG(logDEBUG,*_log) << flush;
+    XTP_LOG(logDEBUG,*_log) << flush << (format("Timing (T = %1$1.2f min)") % (_t_total)) << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o Usage <Coarsegrain> = %1$2.2f%%") % (100*_t_coarsegrain/_t_total)) << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o Usage <Fields>      = %1$2.2f%%") % (100*_t_fields/_t_total)) << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o Usage <Induction>   = %1$2.2f%%") % (100*_t_induction/_t_total)) << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o Usage <Energy>      = %1$2.2f%%") % (100*_t_energy/_t_total)) << flush;    
+    XTP_LOG(logDEBUG,*_log) << flush;
     
     return;
 }
@@ -1434,20 +1434,20 @@ void Ewald3DnD::EvaluateFields(bool do_depolarize_fgc) {
     
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
-    CTP_LOG(logDEBUG,*_log) << flush << "Foreground fields:" << flush;
+    XTP_LOG(logDEBUG,*_log) << flush << "Foreground fields:" << flush;
     int fieldCount = 0;
     for (sit1 = _fg_C.begin(); sit1 < _fg_C.end(); ++sit1) {        
         PolarSeg* pseg = *sit1;        
         for (pit1 = pseg->begin(); pit1 < pseg->end(); ++pit1) {
             vec fp = (*pit1)->getFieldP();
-            CTP_LOG(logDEBUG,*_log)
+            XTP_LOG(logDEBUG,*_log)
                << (format("F = (%1$+1.7e %2$+1.7e %3$+1.7e) V/m") 
                     % (fp.getX()*EWD::int2V_m) 
                     % (fp.getY()*EWD::int2V_m) 
                     % (fp.getZ()*EWD::int2V_m)).str() << flush;
             fieldCount += 1;
             if (fieldCount > 10) {
-                CTP_LOG(logDEBUG,*_log)
+                XTP_LOG(logDEBUG,*_log)
                     << "F = ... ... ..." << flush;
                 break;
             }
@@ -1461,23 +1461,23 @@ void Ewald3DnD::EvaluateFields(bool do_depolarize_fgc) {
 
 void Ewald3DnD::EvaluateInduction() {
     
-    CTP_LOG(logDEBUG,*_log) << flush;
-    CTP_LOG(logDEBUG,*_log) << format("Call inductor on FGC = QM0 u MM1") << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o |QM0|, |MM1|, |MM2|        %1$d %2$d %3$d") 
+    XTP_LOG(logDEBUG,*_log) << flush;
+    XTP_LOG(logDEBUG,*_log) << format("Call inductor on FGC = QM0 u MM1") << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o |QM0|, |MM1|, |MM2|        %1$d %2$d %3$d") 
             % _ptop->QM0().size() % _ptop->MM1().size() % _ptop->MM2().size()).str() << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o Polarization cut-off:      ")).str() << _polar_cutoff << " nm " << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o With induction:            %1$s") % ((_polar_do_induce) ? "yes" : "no")) << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o Thole sharpness parameter: ")).str() << _polar_aDamp << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o SOR mixing factor:         ")).str() << _polar_wSOR_N << " (N) " << _polar_wSOR_C << " (C) "  << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o Iterations (max):          512")).str() << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o Tolerance (dU/U):          %1$1.3e") % _polar_epstol).str() << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o Induce within QM0:         yes")).str() << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o Subthreads:                single")).str() << flush;
-    CTP_LOG(logDEBUG,*_log) << (format("  o Started from archive:      %1$s") % ((_started_from_archived_indu_state) ? "yes" : "no")) << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o Polarization cut-off:      ")).str() << _polar_cutoff << " nm " << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o With induction:            %1$s") % ((_polar_do_induce) ? "yes" : "no")) << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o Thole sharpness parameter: ")).str() << _polar_aDamp << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o SOR mixing factor:         ")).str() << _polar_wSOR_N << " (N) " << _polar_wSOR_C << " (C) "  << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o Iterations (max):          512")).str() << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o Tolerance (dU/U):          %1$1.3e") % _polar_epstol).str() << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o Induce within QM0:         yes")).str() << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o Subthreads:                single")).str() << flush;
+    XTP_LOG(logDEBUG,*_log) << (format("  o Started from archive:      %1$s") % ((_started_from_archived_indu_state) ? "yes" : "no")) << flush;
     
     
     if (_started_from_archived_indu_state) {
-        CTP_LOG(logDEBUG,*_log) << "Reusing induction state from archive." << flush;
+        XTP_LOG(logDEBUG,*_log) << "Reusing induction state from archive." << flush;
         vector<PolarSeg*>::iterator sit1, sit2;
         PolarSeg::iterator pit1, pit2;
         for (sit1 = _fg_C.begin(), sit2 = _fg_N.begin(); 
@@ -1575,12 +1575,12 @@ bool Ewald3DnD::EvaluateInductionQMMM(
     PolarSeg::iterator pit1;
     PolarSeg::iterator pit2;
     
-    CTP_LOG(logDEBUG,*_log) << flush;
-    CTP_LOG(logDEBUG,*_log) << "Started MM Polarization" << flush;
+    XTP_LOG(logDEBUG,*_log) << flush;
+    XTP_LOG(logDEBUG,*_log) << "Started MM Polarization" << flush;
     
     // DEPOLARIZATION STAGE
     if (do_reset) {
-        CTP_LOG(logDEBUG,*_log) << " o Carry out complete depolarization on FGC" << flush;
+        XTP_LOG(logDEBUG,*_log) << " o Carry out complete depolarization on FGC" << flush;
         for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {
             for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
                 (*pit)->Depolarize();
@@ -1588,7 +1588,7 @@ bool Ewald3DnD::EvaluateInductionQMMM(
         }
     }
     else {
-        CTP_LOG(logDEBUG,*_log) << " o Carry out partial depolarization on FGC" << flush;
+        XTP_LOG(logDEBUG,*_log) << " o Carry out partial depolarization on FGC" << flush;
         for (sit = _fg_C.begin(); sit < _fg_C.end(); ++sit) {
             for (pit = (*sit)->begin(); pit != (*sit)->end(); ++pit) {
                 (*pit)->ResetFieldU();
@@ -1597,7 +1597,7 @@ bool Ewald3DnD::EvaluateInductionQMMM(
     }
     
     if (do_reuse_bgp_state && _started_from_archived_indu_state) {
-        CTP_LOG(logDEBUG,*_log) << " o Reuse induction state from archive" << flush;
+        XTP_LOG(logDEBUG,*_log) << " o Reuse induction state from archive" << flush;
         vector<PolarSeg*>::iterator sit1, sit2;
         PolarSeg::iterator pit1, pit2;
         for (sit1 = _fg_C.begin(), sit2 = _fg_N.begin(); sit1 < _fg_C.end();
@@ -1616,19 +1616,19 @@ bool Ewald3DnD::EvaluateInductionQMMM(
     
     // BACKGROUND FIELDS (CONSTANT DURING QMMM ITERATION, STORED AS FP)
     if (do_calc_perm_fields) {
-        CTP_LOG(logDEBUG,*_log) << flush;
-        CTP_LOG(logDEBUG,*_log) << "Compute fields for aperiodic embedding" << flush;
+        XTP_LOG(logDEBUG,*_log) << flush;
+        XTP_LOG(logDEBUG,*_log) << "Compute fields for aperiodic embedding" << flush;
         
         if (do_calc_perm_bg_fields) {
 			// FIELDS ON 'A' GENERATED BY APERIODIC BACKGROUND : FP[Ql,U1 e B*~] -> X u P
-			CTP_LOG(logDEBUG,*_log) << " o FP[Ql,U1 e B*~] -> X u P" << flush;
+			XTP_LOG(logDEBUG,*_log) << " o FP[Ql,U1 e B*~] -> X u P" << flush;
 			bool do_depolarize_fgc = false;
 			this->EvaluateFields(do_depolarize_fgc);
 		}
 
         if (do_calc_perm_fg_fields) {
             // FIELDS ON 'P' GENERATED BY FOREGROUND (WITHOUT X) : FP[Ql e P] -> P
-            CTP_LOG(logDEBUG,*_log) << " o FP[Ql e P]      -> P" << flush;
+            XTP_LOG(logDEBUG,*_log) << " o FP[Ql e P]      -> P" << flush;
             for (sit1 = _polar_mm1.begin(); sit1 != _polar_mm1.end(); ++sit1) {
             for (sit2 = sit1+1; sit2 != _polar_mm1.end(); ++sit2) {
                 for (pit1 = (*sit1)->begin(); pit1 != (*sit1)->end(); ++pit1) {
@@ -1639,7 +1639,7 @@ bool Ewald3DnD::EvaluateInductionQMMM(
             }}
 
             // FIELDS ON 'X' GENERATED BY FOREGROUND (WITHOUT X) : FP[Ql e P] -> X
-            CTP_LOG(logDEBUG,*_log) << " o FP[Ql e P]      -> X" << flush;
+            XTP_LOG(logDEBUG,*_log) << " o FP[Ql e P]      -> X" << flush;
             for (sit1 = _polar_mm1.begin(); sit1 != _polar_mm1.end(); ++sit1) {
             for (sit2 = _polar_qm0.begin(); sit2 != _polar_qm0.end(); ++sit2) {
                 for (pit1 = (*sit1)->begin(); pit1 != (*sit1)->end(); ++pit1) {
@@ -1662,9 +1662,9 @@ bool Ewald3DnD::EvaluateInductionQMMM(
     
     
     // CLASSICAL SCF (ITERATE UNTIL CONVERGED)
-    CTP_LOG(logDEBUG,*_log) << flush;
-    CTP_LOG(logDEBUG,*_log) << "Start classical SCF with background fields" << flush;
-    CTP_LOG(logDEBUG,*_log) << flush;
+    XTP_LOG(logDEBUG,*_log) << flush;
+    XTP_LOG(logDEBUG,*_log) << "Start classical SCF with background fields" << flush;
+    XTP_LOG(logDEBUG,*_log) << flush;
     _log->DisablePreface();
     
     // CONVERGENCE PARAMETERS
@@ -1678,10 +1678,10 @@ bool Ewald3DnD::EvaluateInductionQMMM(
     
     for ( ; n_iter < max_iter+1; ++n_iter) {
         
-        CTP_LOG(logDEBUG,*_log) << (boost::format("o %1$2d") % n_iter) << flush;
+        XTP_LOG(logDEBUG,*_log) << (boost::format("o %1$2d") % n_iter) << flush;
         if (n_iter % 10 == 0) {
             _log->EnablePreface();
-            CTP_LOG(logDEBUG,*_log) << flush;
+            XTP_LOG(logDEBUG,*_log) << flush;
             _log->DisablePreface();
         }
         
@@ -1857,9 +1857,9 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     EWD::triple<> EPP_qm0_mgN = ConvergeRealSpaceSum(_polar_qm0);
     
     if (tools::globals::verbose) {
-        CTP_LOG(logINFO,*_log) << flush;
-        CTP_LOG(logINFO,*_log) << "R(MM1) " << EPP_mm1_mgN*EWD::int2eV << flush;
-        CTP_LOG(logINFO,*_log) << "R(MM1) " << EPP_qm0_mgN*EWD::int2eV << flush;
+        XTP_LOG(logINFO,*_log) << flush;
+        XTP_LOG(logINFO,*_log) << "R(MM1) " << EPP_mm1_mgN*EWD::int2eV << flush;
+        XTP_LOG(logINFO,*_log) << "R(MM1) " << EPP_qm0_mgN*EWD::int2eV << flush;
     }    
     
     // RECIPROCAL-SPACE CONTRIBUTION (3D2D && 3D3D)       
@@ -1867,9 +1867,9 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     EWD::triple<> EKK_qm0_bgP = ConvergeReciprocalSpaceSum(_polar_qm0);
     
     if (tools::globals::verbose) {
-        CTP_LOG(logINFO,*_log) << flush;
-        CTP_LOG(logINFO,*_log) << "K " << EKK_mm1_bgP*EWD::int2eV << flush;
-        CTP_LOG(logINFO,*_log) << "K " << EKK_qm0_bgP*EWD::int2eV << flush;
+        XTP_LOG(logINFO,*_log) << flush;
+        XTP_LOG(logINFO,*_log) << "K " << EKK_mm1_bgP*EWD::int2eV << flush;
+        XTP_LOG(logINFO,*_log) << "K " << EKK_qm0_bgP*EWD::int2eV << flush;
     }
     
     // K=0 TERM (FOR 3D2D)
@@ -1877,9 +1877,9 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     EWD::triple<> EK0_qm0_bgP = CalculateK0Correction(_polar_qm0);
     
     if (tools::globals::verbose) {
-        CTP_LOG(logINFO,*_log) << flush;
-        CTP_LOG(logINFO,*_log) << "0 " << EK0_mm1_bgP*EWD::int2eV << flush;
-        CTP_LOG(logINFO,*_log) << "0 " << EK0_qm0_bgP*EWD::int2eV << flush;
+        XTP_LOG(logINFO,*_log) << flush;
+        XTP_LOG(logINFO,*_log) << "0 " << EK0_mm1_bgP*EWD::int2eV << flush;
+        XTP_LOG(logINFO,*_log) << "0 " << EK0_qm0_bgP*EWD::int2eV << flush;
     }
     
     
@@ -1888,9 +1888,9 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     EWD::triple<> EJ_qm0_bgP = CalculateShapeCorrection(_polar_qm0);
     
     if (tools::globals::verbose) {
-        CTP_LOG(logINFO,*_log) << flush;
-        CTP_LOG(logINFO,*_log) << "J " << EJ_mm1_bgP*EWD::int2eV << flush;
-        CTP_LOG(logINFO,*_log) << "J " << EJ_qm0_bgP*EWD::int2eV << flush;
+        XTP_LOG(logINFO,*_log) << flush;
+        XTP_LOG(logINFO,*_log) << "J " << EJ_mm1_bgP*EWD::int2eV << flush;
+        XTP_LOG(logINFO,*_log) << "J " << EJ_qm0_bgP*EWD::int2eV << flush;
     }
     
     
@@ -1899,9 +1899,9 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     EWD::triple<> EPP_qm0_fgN = CalculateForegroundCorrection(_polar_qm0);
     
     if (tools::globals::verbose) {
-        CTP_LOG(logINFO,*_log) << flush;
-        CTP_LOG(logINFO,*_log) << "C " << EPP_mm1_fgN*EWD::int2eV << flush;
-        CTP_LOG(logINFO,*_log) << "C " << EPP_qm0_fgN*EWD::int2eV << flush;    
+        XTP_LOG(logINFO,*_log) << flush;
+        XTP_LOG(logINFO,*_log) << "C " << EPP_mm1_fgN*EWD::int2eV << flush;
+        XTP_LOG(logINFO,*_log) << "C " << EPP_qm0_fgN*EWD::int2eV << flush;    
     }
     
     _log->setReportLevel(logDEBUG);
@@ -1936,11 +1936,11 @@ void Ewald3DnD::EvaluateEnergyQMMM() {
     _ET = _ET_MM1 + _ET_QM0;
     
     if (true || tools::globals::verbose) {
-        CTP_LOG(logINFO,*_log) << flush;
-        CTP_LOG(logINFO,*_log) << "QM-MM splitting for background interaction (eV)" << flush;
-        CTP_LOG(logINFO,*_log) << "  o E(MM1)       = " << _ET_MM1 << flush;
-        CTP_LOG(logINFO,*_log) << "  o E(QM0)       = " << _ET_QM0 << flush;
-        CTP_LOG(logINFO,*_log) << "  o E(QM0 u MM1) = " << _ET_MM1+_ET_QM0 << flush;
+        XTP_LOG(logINFO,*_log) << flush;
+        XTP_LOG(logINFO,*_log) << "QM-MM splitting for background interaction (eV)" << flush;
+        XTP_LOG(logINFO,*_log) << "  o E(MM1)       = " << _ET_MM1 << flush;
+        XTP_LOG(logINFO,*_log) << "  o E(QM0)       = " << _ET_QM0 << flush;
+        XTP_LOG(logINFO,*_log) << "  o E(QM0 u MM1) = " << _ET_MM1+_ET_QM0 << flush;
     }
     
     // COMPUTE ENERGY SPLITTING
@@ -1965,11 +1965,11 @@ void Ewald3DnD::EvaluateRadialCorrection(vector<PolarSeg*> &target) {
     
     // ATTENTION This method depolarizes the midground. Do not call prematurely.
     
-    CTP_LOG(logINFO,*_log) << flush;
-    CTP_LOG(logINFO,*_log) << "Apply dielectric radial correction" << flush;
-    CTP_LOG(logINFO,*_log) << "  o Radial screening constant: " 
+    XTP_LOG(logINFO,*_log) << flush;
+    XTP_LOG(logINFO,*_log) << "Apply dielectric radial correction" << flush;
+    XTP_LOG(logINFO,*_log) << "  o Radial screening constant: " 
         << _polar_radial_corr_epsilon << flush;
-    CTP_LOG(logINFO,*_log) << "  o Radial extension: " << _polar_cutoff << "nm <> "
+    XTP_LOG(logINFO,*_log) << "  o Radial extension: " << _polar_cutoff << "nm <> "
         << _polar_cutoff+_R_co << "nm" << flush;
     
     vector<PolarSeg*>::iterator sit1;
@@ -1977,16 +1977,16 @@ void Ewald3DnD::EvaluateRadialCorrection(vector<PolarSeg*> &target) {
     PolarSeg::iterator pit1;
     PolarSeg::iterator pit2;
     
-    CTP_LOG(logDEBUG,*_log) << "Steps I-IV" << flush;
+    XTP_LOG(logDEBUG,*_log) << "Steps I-IV" << flush;
     // Depolarize midground
-    CTP_LOG(logDEBUG,*_log) << "  o Depolarize midground" << flush;
+    XTP_LOG(logDEBUG,*_log) << "  o Depolarize midground" << flush;
     for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
         for (pit1 = (*sit1)->begin(); pit1 != (*sit1)->end(); ++pit1) {
             (*pit1)->Depolarize();
         }
     }    
     // Add screened field contribution from QM0
-    CTP_LOG(logDEBUG,*_log) << "  o Add screened field contribution (QM0)" << flush;
+    XTP_LOG(logDEBUG,*_log) << "  o Add screened field contribution (QM0)" << flush;
     for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
         for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
             for (sit2 = _polar_qm0.begin(); sit2 != _polar_qm0.end(); ++sit2) {
@@ -1998,14 +1998,14 @@ void Ewald3DnD::EvaluateRadialCorrection(vector<PolarSeg*> &target) {
         }
     }    
     // Induce
-    CTP_LOG(logDEBUG,*_log) << "  o Induce (direct)" << flush;
+    XTP_LOG(logDEBUG,*_log) << "  o Induce (direct)" << flush;
     for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
         for (pit1 = (*sit1)->begin(); pit1 != (*sit1)->end(); ++pit1) {
             (*pit1)->InduceDirect();
         }
     }    
     // Evaluate Energy
-    CTP_LOG(logDEBUG,*_log) << "  o Evaluate stabilization energy" << flush;
+    XTP_LOG(logDEBUG,*_log) << "  o Evaluate stabilization energy" << flush;
     _polar_ERC = 0.0;
     for (sit1 = _mg_N.begin(); sit1 != _mg_N.end(); ++sit1) {
         for (pit1 = (*sit1)->begin(); pit1 < (*sit1)->end(); ++pit1) {
@@ -2018,7 +2018,7 @@ void Ewald3DnD::EvaluateRadialCorrection(vector<PolarSeg*> &target) {
         }
     }
     _polar_ERC *= EWD::int2eV;
-    CTP_LOG(logINFO,*_log) << "=> ERC = " << _polar_ERC << "eV" << flush;
+    XTP_LOG(logINFO,*_log) << "=> ERC = " << _polar_ERC << "eV" << flush;
     return;
 }
 
@@ -2107,7 +2107,7 @@ void Ewald3DnD::EvaluatePotential(vector<PolarSeg*> &target, bool add_bg,
         }
     }
     
-    CTP_LOG(logINFO,*_log) << flush << "Potential q*phi " << q_phi*EWD::int2eV << flush;
+    XTP_LOG(logINFO,*_log) << flush << "Potential q*phi " << q_phi*EWD::int2eV << flush;
     
     return;
 }
@@ -2115,7 +2115,7 @@ void Ewald3DnD::EvaluatePotential(vector<PolarSeg*> &target, bool add_bg,
 
 EWD::triple<> Ewald3DnD::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
     
-    CTP_LOG(logDEBUG,*_log) << flush;
+    XTP_LOG(logDEBUG,*_log) << flush;
 
     vector<PolarSeg*>::iterator sit1; 
     vector<APolarSite*> ::iterator pit1;
@@ -2143,12 +2143,12 @@ EWD::triple<> Ewald3DnD::ConvergeRealSpaceSum(vector<PolarSeg*> &target) {
             }
         }
         double dER_rms = sqrt((this_ER-prev_ER)*(this_ER-prev_ER))*EWD::int2eV;
-        CTP_LOG(logDEBUG,*_log)
+        XTP_LOG(logDEBUG,*_log)
             << (format("Rc = %1$+1.7f   |MGN| = %3$5d nm   ER = %2$+1.7f eV   dER(rms) = %4$+1.7f") 
             % Rc % (this_ER*EWD::int2eV) % _mg_N.size() % dER_rms).str() << flush;
         if (i > 0 && dER_rms < _crit_dE) {
             _converged_R = true;
-            CTP_LOG(logDEBUG,*_log)  
+            XTP_LOG(logDEBUG,*_log)  
                 << (format(":::: Converged to precision as of Rc = %1$+1.3f nm") 
                 % Rc ) << flush;
             break;
