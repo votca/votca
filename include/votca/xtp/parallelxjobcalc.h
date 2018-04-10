@@ -18,29 +18,26 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#ifndef __VOTCA_XTP_PARALLELXJOBCALC_H
+#define __VOTCA_XTP_PARALLELXJOBCALC_H
 
-#ifndef __PARALLELXJOBCALC__H
-#define __PARALLELXJOBCALC__H
-
-
-#include <votca/ctp/jobcalculator.h>
-#include <votca/ctp/qmthread.h>
+#include <votca/xtp/jobcalculator.h>
+#include <votca/xtp/qmthread.h>
 #include <votca/tools/mutex.h>
-#include <votca/ctp/job.h>
-#include <votca/ctp/progressobserver.h>
+#include <votca/xtp/job.h>
+#include <votca/xtp/progressobserver.h>
+
+/// PATHWAYS TO A NEW THREADED CALCULATOR
+/// ... 1 Define 'JobContainer' (needs to define iterator), 'pJob' ( = *iterator)
+/// ... 2 Derive new calculator as ': public ParallelXJobCalc<JobContainer,pJob>'
+/// ... 3 Specialize XJOBS_FROM_TABLE< JobContainer, pJob> in xjob.cc
+/// ... 4 Register new calculator (see end of parallelxjobcalc.cc)
+
+/// REQUIRED MEMBERS FOR pJob
+/// pJob::JobResult (struct)
 
 
-// PATHWAYS TO A NEW THREADED CALCULATOR
-// ... 1 Define 'JobContainer' (needs to define iterator), 'pJob' ( = *iterator)
-// ... 2 Derive new calculator as ': public ParallelXJobCalc<JobContainer,pJob>'
-// ... 3 Specialize XJOBS_FROM_TABLE< JobContainer, pJob> in xjob.cc
-// ... 4 Register new calculator (see end of parallelxjobcalc.cc)
-
-// REQUIRED MEMBERS FOR pJob
-// pJob::JobResult (struct)
-
-
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 template<typename JobContainer, typename pJob, typename rJob> 
 class ParallelXJobCalc : public JobCalculator
@@ -113,4 +110,4 @@ protected:
 
 }}
 
-#endif
+#endif // __VOTCA_XTP_PARALLELXJOBCALC_H
