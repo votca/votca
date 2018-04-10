@@ -18,19 +18,17 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#ifndef __VOTCA_XTP_PARALLELPAIRCALC_H
+#define __VOTCA_XTP_PARALLELPAIRCALC_H
 
 
-#ifndef PARALLELPAIRCALC_H
-#define PARALLELPAIRCALC_H
-
-
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 #include <votca/tools/thread.h>
-#include <votca/ctp/qmthread.h>
+#include <votca/xtp/qmthread.h>
 #include <votca/tools/mutex.h>
 
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 class ParallelPairCalculator : public QMCalculator
 {
@@ -95,4 +93,4 @@ protected:
 
 
 
-#endif
+#endif  // __VOTCA_XTP_PARALLELPAIRCALC_H
