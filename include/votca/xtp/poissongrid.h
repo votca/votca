@@ -28,20 +28,17 @@ namespace votca {
 namespace ctp {
 namespace POI {
     
-   
 class PoissonGrid
 {
 public:
     
     // Also take into account shape
-    PoissonGrid(Topology *top, vector<PolarSeg*> &fg, vector<PolarSeg*> &bg, Logger* log);
-    
+    PoissonGrid(Topology *top, std::vector<PolarSeg*> &fg, std::vector<PolarSeg*> &bg, Logger* log);
     
 private:
     
     Logger *_log;
     vec _center;
-    
     
 };
 
@@ -52,17 +49,7 @@ class PoissonCell
     
     PoissonCell();
     
-    
-    
 };
-    
-    
-    
-    
-    
-    
-    
-    
     
 }}}
 
