@@ -18,16 +18,15 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#include <votca/ctp/ewaldnd.h>
-#include <votca/ctp/poissongrid.h>
+#include <votca/xtp/ewaldnd.h>
+#include <votca/xtp/poissongrid.h>
 #include <boost/format.hpp>
 #include <algorithm>
 #include <boost/math/special_functions/round.hpp>
 #include <boost/timer/timer.hpp>
 
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
 
 using boost::format;
 
