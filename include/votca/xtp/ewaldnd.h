@@ -18,32 +18,31 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef VOTCA_CTP_EWALDND_H
-#define VOTCA_CTP_EWALDND_H
+#ifndef __VOTCA_XTP_EWALDND_H
+#define __VOTCA_XTP_EWALDND_H
 
-
-#include <votca/ctp/polartop.h>
-#include <votca/ctp/ewaldactor.h>
-#include <votca/ctp/xjob.h>
-#include <votca/ctp/xinteractor.h>
-#include <votca/ctp/xinductor.h>
-#include <votca/ctp/qmthread.h>
+#include <votca/xtp/polartop.h>
+#include <votca/xtp/ewaldactor.h>
+#include <votca/xtp/xjob.h>
+#include <votca/xtp/xinteractor.h>
+#include <votca/xtp/xinductor.h>
+#include <votca/xtp/qmthread.h>
 #include <boost/multi_array.hpp>
 
 namespace CSG = votca::csg;
 
-namespace votca { namespace ctp {
+namespace votca { namespace xtp {
     
-// NOTE: This is not a conventional 3D Ewald summation, so use carefully
-//       (tuned for the purpose of cluster energy calculations)
-// NOTE: PolarTop should be set-up with three containers: FGC, FGN, BGN
-//       MGN is set-up in constructor using the real-space c/o (from input)
-//       The topology is used to retrieve information on the sim. box (PB)
-//       All polar segments should be positioned as nearest images of the
-//       foreground charge density (FGC, FGN).
-//       All polar segments should be appropriately charged (Q00, Q10, ...).
-// NOTE: The k-shell grouping algorithm can fail for strongly skewed boxes.
-//        
+/// NOTE: This is not a conventional 3D Ewald summation, so use carefully
+///       (tuned for the purpose of cluster energy calculations)
+/// NOTE: PolarTop should be set-up with three containers: FGC, FGN, BGN
+///       MGN is set-up in constructor using the real-space c/o (from input)
+///       The topology is used to retrieve information on the sim. box (PB)
+///       All polar segments should be positioned as nearest images of the
+///       foreground charge density (FGC, FGN).
+///       All polar segments should be appropriately charged (Q00, Q10, ...).
+/// NOTE: The k-shell grouping algorithm can fail for strongly skewed boxes.
+///        
 
 class Ewald3DnD
 {
@@ -302,4 +301,4 @@ protected:
 }}
 
 
-#endif
+#endif // __VOTCA_XTP_EWALDND_H
