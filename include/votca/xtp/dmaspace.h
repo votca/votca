@@ -85,7 +85,7 @@ private:
 class ComplexSphericalMoments
 {
 public:
-    ComplexSphericalMoments(const vector<double> &Qlm)
+    ComplexSphericalMoments(const std::vector<double> &Qlm)
         : _Qlm(Qlm) { assert(_Qlm.size()==9); }
    ~ComplexSphericalMoments() {}
    
@@ -123,8 +123,8 @@ public:
         cout << endl << scientific << "    " << Q22s();
     }
     
-    vector<cmplx> ToVector() {
-        vector<cmplx> Xlm;
+    std::vector<cmplx> ToVector() {
+        std::vector<cmplx> Xlm;
         Xlm.push_back(X00());
         Xlm.push_back(X1_1());
         Xlm.push_back(X10());
@@ -138,7 +138,7 @@ public:
     }
     
 private:
-    const vector<double> &_Qlm;
+    const std::vector<double> &_Qlm;
 };
 
 
@@ -150,7 +150,7 @@ private:
 class RealSphericalMoments
 {
 public:
-    RealSphericalMoments(const vector<cmplx> &Xlm)
+    RealSphericalMoments(const std::vector<cmplx> &Xlm)
         : _Xlm(Xlm)  { assert(_Xlm.size()==9); }
    ~RealSphericalMoments() {}
    
@@ -176,7 +176,7 @@ public:
     const cmplx &X2x1()  { return _Xlm[7]; }
     const cmplx &X2x2()  { return _Xlm[8]; }
     
-    void AddToVector(vector<double> &base) {        
+    void AddToVector(std::vector<double> &base) {        
         assert(base.size() == 9);
         base[0] += Q00();
         base[1] += Q10();
@@ -189,8 +189,8 @@ public:
         base[8] += Q22s();
     }
     
-    vector<double> ToVector() {
-        vector<double> Qlm;
+    std::vector<double> ToVector() {
+        std::vector<double> Qlm;
         Qlm.push_back(Q00());
         Qlm.push_back(Q10());
         Qlm.push_back(Q11c());
@@ -216,7 +216,7 @@ public:
     }
     
 private:
-    const vector<cmplx> &_Xlm;
+    const std::vector<cmplx> &_Xlm;
 };
 
 
@@ -226,10 +226,10 @@ public:
     MomentShift() {}
    ~MomentShift() {}
     
-    vector<cmplx> Shift(ComplexSphericalMoments &Xlm, 
+    std::vector<cmplx> Shift(ComplexSphericalMoments &Xlm, 
         RegularSphericalHarmonics &Clm) {
         
-        vector<cmplx> Xlm_shifted;
+        std::vector<cmplx> Xlm_shifted;
         
         // CHARGE
         cmplx X00 = 
