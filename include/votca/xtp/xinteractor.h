@@ -71,7 +71,7 @@ public:
     inline void     FieldPerm_At_By(APolarSite &pol1, APolarSite &pol2, double &epsilon);
     inline void     FieldPermAsIndu_At_By(APolarSite &pol1, APolarSite &pol2);
     inline void     FieldPermAsPerm_At_By(APolarSite &pol1, APolarSite &pol2);
-    inline void     FieldPermAsIndu_At_By_AddTo(APolarSite &pol1, APolarSite &pol2, vector<APolarSite*> &add_to);
+    inline void     FieldPermAsIndu_At_By_AddTo(APolarSite &pol1, APolarSite &pol2, std::vector<APolarSite*> &add_to);
     inline vec      FieldPermESF(vec r, APolarSite &pol);
     inline void     FieldIndu(APolarSite &pol1, APolarSite &pol2);
     inline void     FieldIndu_At_By(APolarSite &pol1, APolarSite &pol2, double &epsilon);
@@ -103,10 +103,6 @@ public:
     double          &getEPP() { return EPP; }
     double          &getEPU() { return EPU; }
     double          &getEUU() { return EUU; }
-    
-//    inline void     FieldIndu12_21(vector<PolarSite*> &, vector<PolarSite*> &);
-//    inline void     FieldIndu12___(vector<PolarSite*> &, vector<PolarSite*> &);
-//    inline void     FieldIndu___21(vector<PolarSite*> &, vector<PolarSite*> &);
     
     inline void     BiasIndu(APolarSite &pol1, APolarSite &pol2);
     inline void     BiasStat(APolarSite &pol1, APolarSite &pol2);
@@ -153,14 +149,14 @@ private:
     double cyx = 0.0, cyy = 0.0, cyz = 0.0;
     double czx = 0.0, czy = 0.0, czz = 0.0;
 
-    inline void setLambda3() { lambda3 = 1 - exp( -a*u3); }
-    inline void setLambda5() { lambda5 = 1 - (1 + a*u3) * exp( -a*u3); }
-    inline void setLambda7() { lambda7 = 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * exp( -a*u3); }
-    inline void setLambda9() { lambda9 = 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * exp( -a*u3); }
-//    inline void setpLambda3() { plambda3 = 1 - exp( -a*u3); }
-//    inline void setpLambda5() { plambda5 = 1 - (1 + a*u3) * exp( -a*u3); }
-//    inline void setpLambda7() { plambda7 = 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * exp( -a*u3); }
-//    inline void setpLambda9() { plambda9 = 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * exp( -a*u3); }
+    inline void setLambda3() { lambda3 = 1 - std::exp( -a*u3); }
+    inline void setLambda5() { lambda5 = 1 - (1 + a*u3) * std::exp( -a*u3); }
+    inline void setLambda7() { lambda7 = 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * std::exp( -a*u3); }
+    inline void setLambda9() { lambda9 = 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * std::exp( -a*u3); }
+//    inline void setpLambda3() { plambda3 = 1 - std::exp( -a*u3); }
+//    inline void setpLambda5() { plambda5 = 1 - (1 + a*u3) * std::exp( -a*u3); }
+//    inline void setpLambda7() { plambda7 = 1 - (1 + a*u3 + 0.6*a*a*u3*u3) * std::exp( -a*u3); }
+//    inline void setpLambda9() { plambda9 = 1 - (1 + a*u3 + (18*a*a*u3*u3 + 9*a*a*a*u3*u3*u3)/35) * std::exp( -a*u3); }
     
     inline void setpLambda3() { plambda3 = 1; }
     inline void setpLambda5() { plambda5 = 1; }
@@ -192,15 +188,15 @@ private:
     inline double pTU00_1z() { return plambda3 * R2 * rbz; }
 
     inline double T20_00()  { return R3 * 0.5 * (3 * raz*raz - 1); }
-    inline double T21c_00() { return R3 * sqrt(3) * rax * raz; }
-    inline double T21s_00() { return R3 * sqrt(3) * ray * raz; }
-    inline double T22c_00() { return R3 * 0.5 * sqrt(3) * (rax*rax - ray*ray); }
-    inline double T22s_00() { return R3 * sqrt(3) * rax*ray; }
+    inline double T21c_00() { return R3 * std::sqrt(3) * rax * raz; }
+    inline double T21s_00() { return R3 * std::sqrt(3) * ray * raz; }
+    inline double T22c_00() { return R3 * 0.5 * std::sqrt(3) * (rax*rax - ray*ray); }
+    inline double T22s_00() { return R3 * std::sqrt(3) * rax*ray; }
     inline double T00_20()  { return R3 * 0.5 * (3 * rbz*rbz - 1); }
-    inline double T00_21c() { return R3 * sqrt(3) * rbx * rbz; }
-    inline double T00_21s() { return R3 * sqrt(3) * rby * rbz; }
-    inline double T00_22c() { return R3 * 0.5 * sqrt(3) * (rbx*rbx - rby*rby); }
-    inline double T00_22s() { return R3 * sqrt(3) * rbx*rby; }
+    inline double T00_21c() { return R3 * std::sqrt(3) * rbx * rbz; }
+    inline double T00_21s() { return R3 * std::sqrt(3) * rby * rbz; }
+    inline double T00_22c() { return R3 * 0.5 * std::sqrt(3) * (rbx*rbx - rby*rby); }
+    inline double T00_22s() { return R3 * std::sqrt(3) * rbx*rby; }
 
     inline double T1x_1x() { return R3 * (3 * rax*rbx + cxx); }
     inline double T1x_1y() { return R3 * (3 * rax*rby + cxy); }
@@ -235,104 +231,104 @@ private:
     inline double T20_1x()  { return R4 * 0.5 * (15*raz*raz*rbx + 6*raz*czx - 3*rbx); }
     inline double T20_1y()  { return R4 * 0.5 * (15*raz*raz*rby + 6*raz*czy - 3*rby); }
     inline double T20_1z()  { return R4 * 0.5 * (15*raz*raz*rbz + 6*raz*czz - 3*rbz); }
-    inline double T21c_1x() { return R4 * sqrt(3) * (rax*czx + cxx*raz + 5*rax*raz*rbx); }
-    inline double T21c_1y() { return R4 * sqrt(3) * (rax*czy + cxy*raz + 5*rax*raz*rby); }
-    inline double T21c_1z() { return R4 * sqrt(3) * (rax*czz + cxz*raz + 5*rax*raz*rbz); }
-    inline double T21s_1x() { return R4 * sqrt(3) * (ray*czx + cyx*raz + 5*ray*raz*rbx); }
-    inline double T21s_1y() { return R4 * sqrt(3) * (ray*czy + cyy*raz + 5*ray*raz*rby); }
-    inline double T21s_1z() { return R4 * sqrt(3) * (ray*czz + cyz*raz + 5*ray*raz*rbz); }
-    inline double T22c_1x() { return R4 * 0.5 * sqrt(3) * ( 5*(rax*rax-ray*ray)*rbx + 2*rax*cxx - 2*ray*cyx); }
-    inline double T22c_1y() { return R4 * 0.5 * sqrt(3) * ( 5*(rax*rax-ray*ray)*rby + 2*rax*cxy - 2*ray*cyy); }
-    inline double T22c_1z() { return R4 * 0.5 * sqrt(3) * ( 5*(rax*rax-ray*ray)*rbz + 2*rax*cxz - 2*ray*cyz); }
-    inline double T22s_1x() { return R4 * sqrt(3) * ( 5*rax*ray*rbx + rax*cyx + ray*cxx ); }
-    inline double T22s_1y() { return R4 * sqrt(3) * ( 5*rax*ray*rby + rax*cyy + ray*cxy ); }
-    inline double T22s_1z() { return R4 * sqrt(3) * ( 5*rax*ray*rbz + rax*cyz + ray*cxz ); }
+    inline double T21c_1x() { return R4 * std::sqrt(3) * (rax*czx + cxx*raz + 5*rax*raz*rbx); }
+    inline double T21c_1y() { return R4 * std::sqrt(3) * (rax*czy + cxy*raz + 5*rax*raz*rby); }
+    inline double T21c_1z() { return R4 * std::sqrt(3) * (rax*czz + cxz*raz + 5*rax*raz*rbz); }
+    inline double T21s_1x() { return R4 * std::sqrt(3) * (ray*czx + cyx*raz + 5*ray*raz*rbx); }
+    inline double T21s_1y() { return R4 * std::sqrt(3) * (ray*czy + cyy*raz + 5*ray*raz*rby); }
+    inline double T21s_1z() { return R4 * std::sqrt(3) * (ray*czz + cyz*raz + 5*ray*raz*rbz); }
+    inline double T22c_1x() { return R4 * 0.5 * std::sqrt(3) * ( 5*(rax*rax-ray*ray)*rbx + 2*rax*cxx - 2*ray*cyx); }
+    inline double T22c_1y() { return R4 * 0.5 * std::sqrt(3) * ( 5*(rax*rax-ray*ray)*rby + 2*rax*cxy - 2*ray*cyy); }
+    inline double T22c_1z() { return R4 * 0.5 * std::sqrt(3) * ( 5*(rax*rax-ray*ray)*rbz + 2*rax*cxz - 2*ray*cyz); }
+    inline double T22s_1x() { return R4 * std::sqrt(3) * ( 5*rax*ray*rbx + rax*cyx + ray*cxx ); }
+    inline double T22s_1y() { return R4 * std::sqrt(3) * ( 5*rax*ray*rby + rax*cyy + ray*cxy ); }
+    inline double T22s_1z() { return R4 * std::sqrt(3) * ( 5*rax*ray*rbz + rax*cyz + ray*cxz ); }
 
     inline double T1x_20()  { return R4 * 0.5 * (15*rbz*rbz*rax + 6*rbz*cxz - 3*rax); }
     inline double T1y_20()  { return R4 * 0.5 * (15*rbz*rbz*ray + 6*rbz*cyz - 3*ray); }
     inline double T1z_20()  { return R4 * 0.5 * (15*rbz*rbz*raz + 6*rbz*czz - 3*raz); }
-    inline double T1x_21c() { return R4 * sqrt(3) * (rbx*cxz + cxx*rbz + 5*rbx*rbz*rax); }
-    inline double T1y_21c() { return R4 * sqrt(3) * (rbx*cyz + cyx*rbz + 5*rbx*rbz*ray); }
-    inline double T1z_21c() { return R4 * sqrt(3) * (rbx*czz + czx*rbz + 5*rbx*rbz*raz); }
-    inline double T1x_21s() { return R4 * sqrt(3) * (rby*cxz + cxy*rbz + 5*rby*rbz*rax); }
-    inline double T1y_21s() { return R4 * sqrt(3) * (rby*cyz + cyy*rbz + 5*rby*rbz*ray); }
-    inline double T1z_21s() { return R4 * sqrt(3) * (rby*czz + czy*rbz + 5*rby*rbz*raz); }
-    inline double T1x_22c() { return R4 * 0.5 * sqrt(3) * ( 5*(rbx*rbx-rby*rby)*rax + 2*rbx*cxx - 2*rby*cxy); }
-    inline double T1y_22c() { return R4 * 0.5 * sqrt(3) * ( 5*(rbx*rbx-rby*rby)*ray + 2*rbx*cyx - 2*rby*cyy); }
-    inline double T1z_22c() { return R4 * 0.5 * sqrt(3) * ( 5*(rbx*rbx-rby*rby)*raz + 2*rbx*czx - 2*rby*czy); }
-    inline double T1x_22s() { return R4 * sqrt(3) * ( 5*rbx*rby*rax + rbx*cxy + rby*cxx ); }
-    inline double T1y_22s() { return R4 * sqrt(3) * ( 5*rbx*rby*ray + rbx*cyy + rby*cyx ); }
-    inline double T1z_22s() { return R4 * sqrt(3) * ( 5*rbx*rby*raz + rbx*czy + rby*czx ); }
+    inline double T1x_21c() { return R4 * std::sqrt(3) * (rbx*cxz + cxx*rbz + 5*rbx*rbz*rax); }
+    inline double T1y_21c() { return R4 * std::sqrt(3) * (rbx*cyz + cyx*rbz + 5*rbx*rbz*ray); }
+    inline double T1z_21c() { return R4 * std::sqrt(3) * (rbx*czz + czx*rbz + 5*rbx*rbz*raz); }
+    inline double T1x_21s() { return R4 * std::sqrt(3) * (rby*cxz + cxy*rbz + 5*rby*rbz*rax); }
+    inline double T1y_21s() { return R4 * std::sqrt(3) * (rby*cyz + cyy*rbz + 5*rby*rbz*ray); }
+    inline double T1z_21s() { return R4 * std::sqrt(3) * (rby*czz + czy*rbz + 5*rby*rbz*raz); }
+    inline double T1x_22c() { return R4 * 0.5 * std::sqrt(3) * ( 5*(rbx*rbx-rby*rby)*rax + 2*rbx*cxx - 2*rby*cxy); }
+    inline double T1y_22c() { return R4 * 0.5 * std::sqrt(3) * ( 5*(rbx*rbx-rby*rby)*ray + 2*rbx*cyx - 2*rby*cyy); }
+    inline double T1z_22c() { return R4 * 0.5 * std::sqrt(3) * ( 5*(rbx*rbx-rby*rby)*raz + 2*rbx*czx - 2*rby*czy); }
+    inline double T1x_22s() { return R4 * std::sqrt(3) * ( 5*rbx*rby*rax + rbx*cxy + rby*cxx ); }
+    inline double T1y_22s() { return R4 * std::sqrt(3) * ( 5*rbx*rby*ray + rbx*cyy + rby*cyx ); }
+    inline double T1z_22s() { return R4 * std::sqrt(3) * ( 5*rbx*rby*raz + rbx*czy + rby*czx ); }
 
     inline double TU20_1x()  { return R4 * 0.5 * (lambda7*15*raz*raz*rbx + lambda5*(6*raz*czx - 3*rbx)); }
     inline double TU20_1y()  { return R4 * 0.5 * (lambda7*15*raz*raz*rby + lambda5*(6*raz*czy - 3*rby)); }
     inline double TU20_1z()  { return R4 * 0.5 * (lambda7*15*raz*raz*rbz + lambda5*(6*raz*czz - 3*rbz)); }
-    inline double TU21c_1x() { return R4 * sqrt(3) * (lambda5*(rax*czx + cxx*raz) + lambda7*5*rax*raz*rbx); }
-    inline double TU21c_1y() { return R4 * sqrt(3) * (lambda5*(rax*czy + cxy*raz) + lambda7*5*rax*raz*rby); }
-    inline double TU21c_1z() { return R4 * sqrt(3) * (lambda5*(rax*czz + cxz*raz) + lambda7*5*rax*raz*rbz); }
-    inline double TU21s_1x() { return R4 * sqrt(3) * (lambda5*(ray*czx + cyx*raz) + lambda7*5*ray*raz*rbx); }
-    inline double TU21s_1y() { return R4 * sqrt(3) * (lambda5*(ray*czy + cyy*raz) + lambda7*5*ray*raz*rby); }
-    inline double TU21s_1z() { return R4 * sqrt(3) * (lambda5*(ray*czz + cyz*raz) + lambda7*5*ray*raz*rbz); }
-    inline double TU22c_1x() { return R4 * 0.5 * sqrt(3) * (lambda7*5*(rax*rax-ray*ray)*rbx + lambda5*(2*rax*cxx - 2*ray*cyx)); }
-    inline double TU22c_1y() { return R4 * 0.5 * sqrt(3) * (lambda7*5*(rax*rax-ray*ray)*rby + lambda5*(2*rax*cxy - 2*ray*cyy)); }
-    inline double TU22c_1z() { return R4 * 0.5 * sqrt(3) * (lambda7*5*(rax*rax-ray*ray)*rbz + lambda5*(2*rax*cxz - 2*ray*cyz)); }
-    inline double TU22s_1x() { return R4 * sqrt(3) * (lambda7*5*rax*ray*rbx + lambda5*(rax*cyx + ray*cxx) ); }
-    inline double TU22s_1y() { return R4 * sqrt(3) * (lambda7*5*rax*ray*rby + lambda5*(rax*cyy + ray*cxy) ); }
-    inline double TU22s_1z() { return R4 * sqrt(3) * (lambda7*5*rax*ray*rbz + lambda5*(rax*cyz + ray*cxz) ); }
+    inline double TU21c_1x() { return R4 * std::sqrt(3) * (lambda5*(rax*czx + cxx*raz) + lambda7*5*rax*raz*rbx); }
+    inline double TU21c_1y() { return R4 * std::sqrt(3) * (lambda5*(rax*czy + cxy*raz) + lambda7*5*rax*raz*rby); }
+    inline double TU21c_1z() { return R4 * std::sqrt(3) * (lambda5*(rax*czz + cxz*raz) + lambda7*5*rax*raz*rbz); }
+    inline double TU21s_1x() { return R4 * std::sqrt(3) * (lambda5*(ray*czx + cyx*raz) + lambda7*5*ray*raz*rbx); }
+    inline double TU21s_1y() { return R4 * std::sqrt(3) * (lambda5*(ray*czy + cyy*raz) + lambda7*5*ray*raz*rby); }
+    inline double TU21s_1z() { return R4 * std::sqrt(3) * (lambda5*(ray*czz + cyz*raz) + lambda7*5*ray*raz*rbz); }
+    inline double TU22c_1x() { return R4 * 0.5 * std::sqrt(3) * (lambda7*5*(rax*rax-ray*ray)*rbx + lambda5*(2*rax*cxx - 2*ray*cyx)); }
+    inline double TU22c_1y() { return R4 * 0.5 * std::sqrt(3) * (lambda7*5*(rax*rax-ray*ray)*rby + lambda5*(2*rax*cxy - 2*ray*cyy)); }
+    inline double TU22c_1z() { return R4 * 0.5 * std::sqrt(3) * (lambda7*5*(rax*rax-ray*ray)*rbz + lambda5*(2*rax*cxz - 2*ray*cyz)); }
+    inline double TU22s_1x() { return R4 * std::sqrt(3) * (lambda7*5*rax*ray*rbx + lambda5*(rax*cyx + ray*cxx) ); }
+    inline double TU22s_1y() { return R4 * std::sqrt(3) * (lambda7*5*rax*ray*rby + lambda5*(rax*cyy + ray*cxy) ); }
+    inline double TU22s_1z() { return R4 * std::sqrt(3) * (lambda7*5*rax*ray*rbz + lambda5*(rax*cyz + ray*cxz) ); }
 
     inline double TU1x_20()  { return R4 * 0.5 * (lambda7*15*rbz*rbz*rax + lambda5*(6*rbz*cxz - 3*rax)); }
     inline double TU1y_20()  { return R4 * 0.5 * (lambda7*15*rbz*rbz*ray + lambda5*(6*rbz*cyz - 3*ray)); }
     inline double TU1z_20()  { return R4 * 0.5 * (lambda7*15*rbz*rbz*raz + lambda5*(6*rbz*czz - 3*raz)); }
-    inline double TU1x_21c() { return R4 * sqrt(3) * (lambda5*(rbx*cxz + cxx*rbz) + lambda7*5*rbx*rbz*rax); }
-    inline double TU1y_21c() { return R4 * sqrt(3) * (lambda5*(rbx*cyz + cyx*rbz) + lambda7*5*rbx*rbz*ray); }
-    inline double TU1z_21c() { return R4 * sqrt(3) * (lambda5*(rbx*czz + czx*rbz) + lambda7*5*rbx*rbz*raz); }
-    inline double TU1x_21s() { return R4 * sqrt(3) * (lambda5*(rby*cxz + cxy*rbz) + lambda7*5*rby*rbz*rax); }
-    inline double TU1y_21s() { return R4 * sqrt(3) * (lambda5*(rby*cyz + cyy*rbz) + lambda7*5*rby*rbz*ray); }
-    inline double TU1z_21s() { return R4 * sqrt(3) * (lambda5*(rby*czz + czy*rbz) + lambda7*5*rby*rbz*raz); }
-    inline double TU1x_22c() { return R4 * 0.5 * sqrt(3) * (lambda7*5*(rbx*rbx-rby*rby)*rax + lambda5*(2*rbx*cxx - 2*rby*cxy)); }
-    inline double TU1y_22c() { return R4 * 0.5 * sqrt(3) * (lambda7*5*(rbx*rbx-rby*rby)*ray + lambda5*(2*rbx*cyx - 2*rby*cyy)); }
-    inline double TU1z_22c() { return R4 * 0.5 * sqrt(3) * (lambda7*5*(rbx*rbx-rby*rby)*raz + lambda5*(2*rbx*czx - 2*rby*czy)); }
-    inline double TU1x_22s() { return R4 * sqrt(3) * (lambda7*5*rbx*rby*rax + lambda5*(rbx*cxy + rby*cxx) ); }
-    inline double TU1y_22s() { return R4 * sqrt(3) * (lambda7*5*rbx*rby*ray + lambda5*(rbx*cyy + rby*cyx) ); }
-    inline double TU1z_22s() { return R4 * sqrt(3) * (lambda7*5*rbx*rby*raz + lambda5*(rbx*czy + rby*czx) ); }
+    inline double TU1x_21c() { return R4 * std::sqrt(3) * (lambda5*(rbx*cxz + cxx*rbz) + lambda7*5*rbx*rbz*rax); }
+    inline double TU1y_21c() { return R4 * std::sqrt(3) * (lambda5*(rbx*cyz + cyx*rbz) + lambda7*5*rbx*rbz*ray); }
+    inline double TU1z_21c() { return R4 * std::sqrt(3) * (lambda5*(rbx*czz + czx*rbz) + lambda7*5*rbx*rbz*raz); }
+    inline double TU1x_21s() { return R4 * std::sqrt(3) * (lambda5*(rby*cxz + cxy*rbz) + lambda7*5*rby*rbz*rax); }
+    inline double TU1y_21s() { return R4 * std::sqrt(3) * (lambda5*(rby*cyz + cyy*rbz) + lambda7*5*rby*rbz*ray); }
+    inline double TU1z_21s() { return R4 * std::sqrt(3) * (lambda5*(rby*czz + czy*rbz) + lambda7*5*rby*rbz*raz); }
+    inline double TU1x_22c() { return R4 * 0.5 * std::sqrt(3) * (lambda7*5*(rbx*rbx-rby*rby)*rax + lambda5*(2*rbx*cxx - 2*rby*cxy)); }
+    inline double TU1y_22c() { return R4 * 0.5 * std::sqrt(3) * (lambda7*5*(rbx*rbx-rby*rby)*ray + lambda5*(2*rbx*cyx - 2*rby*cyy)); }
+    inline double TU1z_22c() { return R4 * 0.5 * std::sqrt(3) * (lambda7*5*(rbx*rbx-rby*rby)*raz + lambda5*(2*rbx*czx - 2*rby*czy)); }
+    inline double TU1x_22s() { return R4 * std::sqrt(3) * (lambda7*5*rbx*rby*rax + lambda5*(rbx*cxy + rby*cxx) ); }
+    inline double TU1y_22s() { return R4 * std::sqrt(3) * (lambda7*5*rbx*rby*ray + lambda5*(rbx*cyy + rby*cyx) ); }
+    inline double TU1z_22s() { return R4 * std::sqrt(3) * (lambda7*5*rbx*rby*raz + lambda5*(rbx*czy + rby*czx) ); }
 
     inline double pTU20_1x()  { return R4 * 0.5 * (plambda7*15*raz*raz*rbx + plambda5*(6*raz*czx - 3*rbx)); }
     inline double pTU20_1y()  { return R4 * 0.5 * (plambda7*15*raz*raz*rby + plambda5*(6*raz*czy - 3*rby)); }
     inline double pTU20_1z()  { return R4 * 0.5 * (plambda7*15*raz*raz*rbz + plambda5*(6*raz*czz - 3*rbz)); }
-    inline double pTU21c_1x() { return R4 * sqrt(3) * (plambda5*(rax*czx + cxx*raz) + plambda7*5*rax*raz*rbx); }
-    inline double pTU21c_1y() { return R4 * sqrt(3) * (plambda5*(rax*czy + cxy*raz) + plambda7*5*rax*raz*rby); }
-    inline double pTU21c_1z() { return R4 * sqrt(3) * (plambda5*(rax*czz + cxz*raz) + plambda7*5*rax*raz*rbz); }
-    inline double pTU21s_1x() { return R4 * sqrt(3) * (plambda5*(ray*czx + cyx*raz) + plambda7*5*ray*raz*rbx); }
-    inline double pTU21s_1y() { return R4 * sqrt(3) * (plambda5*(ray*czy + cyy*raz) + plambda7*5*ray*raz*rby); }
-    inline double pTU21s_1z() { return R4 * sqrt(3) * (plambda5*(ray*czz + cyz*raz) + plambda7*5*ray*raz*rbz); }
-    inline double pTU22c_1x() { return R4 * 0.5 * sqrt(3) * (plambda7*5*(rax*rax-ray*ray)*rbx + plambda5*(2*rax*cxx - 2*ray*cyx)); }
-    inline double pTU22c_1y() { return R4 * 0.5 * sqrt(3) * (plambda7*5*(rax*rax-ray*ray)*rby + plambda5*(2*rax*cxy - 2*ray*cyy)); }
-    inline double pTU22c_1z() { return R4 * 0.5 * sqrt(3) * (plambda7*5*(rax*rax-ray*ray)*rbz + plambda5*(2*rax*cxz - 2*ray*cyz)); }
-    inline double pTU22s_1x() { return R4 * sqrt(3) * (plambda7*5*rax*ray*rbx + plambda5*(rax*cyx + ray*cxx) ); }
-    inline double pTU22s_1y() { return R4 * sqrt(3) * (plambda7*5*rax*ray*rby + plambda5*(rax*cyy + ray*cxy) ); }
-    inline double pTU22s_1z() { return R4 * sqrt(3) * (plambda7*5*rax*ray*rbz + plambda5*(rax*cyz + ray*cxz) ); }
+    inline double pTU21c_1x() { return R4 * std::sqrt(3) * (plambda5*(rax*czx + cxx*raz) + plambda7*5*rax*raz*rbx); }
+    inline double pTU21c_1y() { return R4 * std::sqrt(3) * (plambda5*(rax*czy + cxy*raz) + plambda7*5*rax*raz*rby); }
+    inline double pTU21c_1z() { return R4 * std::sqrt(3) * (plambda5*(rax*czz + cxz*raz) + plambda7*5*rax*raz*rbz); }
+    inline double pTU21s_1x() { return R4 * std::sqrt(3) * (plambda5*(ray*czx + cyx*raz) + plambda7*5*ray*raz*rbx); }
+    inline double pTU21s_1y() { return R4 * std::sqrt(3) * (plambda5*(ray*czy + cyy*raz) + plambda7*5*ray*raz*rby); }
+    inline double pTU21s_1z() { return R4 * std::sqrt(3) * (plambda5*(ray*czz + cyz*raz) + plambda7*5*ray*raz*rbz); }
+    inline double pTU22c_1x() { return R4 * 0.5 * std::sqrt(3) * (plambda7*5*(rax*rax-ray*ray)*rbx + plambda5*(2*rax*cxx - 2*ray*cyx)); }
+    inline double pTU22c_1y() { return R4 * 0.5 * std::sqrt(3) * (plambda7*5*(rax*rax-ray*ray)*rby + plambda5*(2*rax*cxy - 2*ray*cyy)); }
+    inline double pTU22c_1z() { return R4 * 0.5 * std::sqrt(3) * (plambda7*5*(rax*rax-ray*ray)*rbz + plambda5*(2*rax*cxz - 2*ray*cyz)); }
+    inline double pTU22s_1x() { return R4 * std::sqrt(3) * (plambda7*5*rax*ray*rbx + plambda5*(rax*cyx + ray*cxx) ); }
+    inline double pTU22s_1y() { return R4 * std::sqrt(3) * (plambda7*5*rax*ray*rby + plambda5*(rax*cyy + ray*cxy) ); }
+    inline double pTU22s_1z() { return R4 * std::sqrt(3) * (plambda7*5*rax*ray*rbz + plambda5*(rax*cyz + ray*cxz) ); }
 
     inline double pTU1x_20()  { return R4 * 0.5 * (plambda7*15*rbz*rbz*rax + plambda5*(6*rbz*cxz - 3*rax)); }
     inline double pTU1y_20()  { return R4 * 0.5 * (plambda7*15*rbz*rbz*ray + plambda5*(6*rbz*cyz - 3*ray)); }
     inline double pTU1z_20()  { return R4 * 0.5 * (plambda7*15*rbz*rbz*raz + plambda5*(6*rbz*czz - 3*raz)); }
-    inline double pTU1x_21c() { return R4 * sqrt(3) * (plambda5*(rbx*cxz + cxx*rbz) + plambda7*5*rbx*rbz*rax); }
-    inline double pTU1y_21c() { return R4 * sqrt(3) * (plambda5*(rbx*cyz + cyx*rbz) + plambda7*5*rbx*rbz*ray); }
-    inline double pTU1z_21c() { return R4 * sqrt(3) * (plambda5*(rbx*czz + czx*rbz) + plambda7*5*rbx*rbz*raz); }
-    inline double pTU1x_21s() { return R4 * sqrt(3) * (plambda5*(rby*cxz + cxy*rbz) + plambda7*5*rby*rbz*rax); }
-    inline double pTU1y_21s() { return R4 * sqrt(3) * (plambda5*(rby*cyz + cyy*rbz) + plambda7*5*rby*rbz*ray); }
-    inline double pTU1z_21s() { return R4 * sqrt(3) * (plambda5*(rby*czz + czy*rbz) + plambda7*5*rby*rbz*raz); }
-    inline double pTU1x_22c() { return R4 * 0.5 * sqrt(3) * (plambda7*5*(rbx*rbx-rby*rby)*rax + plambda5*(2*rbx*cxx - 2*rby*cxy)); }
-    inline double pTU1y_22c() { return R4 * 0.5 * sqrt(3) * (plambda7*5*(rbx*rbx-rby*rby)*ray + plambda5*(2*rbx*cyx - 2*rby*cyy)); }
-    inline double pTU1z_22c() { return R4 * 0.5 * sqrt(3) * (plambda7*5*(rbx*rbx-rby*rby)*raz + plambda5*(2*rbx*czx - 2*rby*czy)); }
-    inline double pTU1x_22s() { return R4 * sqrt(3) * (plambda7*5*rbx*rby*rax + plambda5*(rbx*cxy + rby*cxx) ); }
-    inline double pTU1y_22s() { return R4 * sqrt(3) * (plambda7*5*rbx*rby*ray + plambda5*(rbx*cyy + rby*cyx) ); }
-    inline double pTU1z_22s() { return R4 * sqrt(3) * (plambda7*5*rbx*rby*raz + plambda5*(rbx*czy + rby*czx) ); }
+    inline double pTU1x_21c() { return R4 * std::sqrt(3) * (plambda5*(rbx*cxz + cxx*rbz) + plambda7*5*rbx*rbz*rax); }
+    inline double pTU1y_21c() { return R4 * std::sqrt(3) * (plambda5*(rbx*cyz + cyx*rbz) + plambda7*5*rbx*rbz*ray); }
+    inline double pTU1z_21c() { return R4 * std::sqrt(3) * (plambda5*(rbx*czz + czx*rbz) + plambda7*5*rbx*rbz*raz); }
+    inline double pTU1x_21s() { return R4 * std::sqrt(3) * (plambda5*(rby*cxz + cxy*rbz) + plambda7*5*rby*rbz*rax); }
+    inline double pTU1y_21s() { return R4 * std::sqrt(3) * (plambda5*(rby*cyz + cyy*rbz) + plambda7*5*rby*rbz*ray); }
+    inline double pTU1z_21s() { return R4 * std::sqrt(3) * (plambda5*(rby*czz + czy*rbz) + plambda7*5*rby*rbz*raz); }
+    inline double pTU1x_22c() { return R4 * 0.5 * std::sqrt(3) * (plambda7*5*(rbx*rbx-rby*rby)*rax + plambda5*(2*rbx*cxx - 2*rby*cxy)); }
+    inline double pTU1y_22c() { return R4 * 0.5 * std::sqrt(3) * (plambda7*5*(rbx*rbx-rby*rby)*ray + plambda5*(2*rbx*cyx - 2*rby*cyy)); }
+    inline double pTU1z_22c() { return R4 * 0.5 * std::sqrt(3) * (plambda7*5*(rbx*rbx-rby*rby)*raz + plambda5*(2*rbx*czx - 2*rby*czy)); }
+    inline double pTU1x_22s() { return R4 * std::sqrt(3) * (plambda7*5*rbx*rby*rax + plambda5*(rbx*cxy + rby*cxx) ); }
+    inline double pTU1y_22s() { return R4 * std::sqrt(3) * (plambda7*5*rbx*rby*ray + plambda5*(rbx*cyy + rby*cyx) ); }
+    inline double pTU1z_22s() { return R4 * std::sqrt(3) * (plambda7*5*rbx*rby*raz + plambda5*(rbx*czy + rby*czx) ); }
     
     inline double T20_20()   { return R5 * 0.75 * (35*raz*raz*rbz*rbz - 5*raz*raz - 5*rbz*rbz + 20*raz*rbz*czz + 2*czz*czz + 1); }
-    inline double T20_21c()  { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rbx*rbz - 5*rbx*rbz + 10*raz*rbx*czz + 10*raz*rbz*czx + 2*czx*czz); }
-    inline double T20_21s()  { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rby*rbz - 5*rby*rbz + 10*raz*rby*czz + 10*raz*rbz*czy + 2*czy*czz); }
-    inline double T20_22c()  { return R5 * 0.25 * sqrt(3) * (35*raz*raz*rbx*rbx - 35*raz*raz*rby*rby - 5*rbx*rbx + 5*rby*rby + 20*raz*rbx*czx - 20*raz*rby*czy + 2*czx*czx - 2*czy*czy); }
-    inline double T20_22s()  { return R5 * 0.5 * sqrt(3) * (35*raz*raz*rbx*rby - 5*rbx*rby + 10*raz*rbx*czy + 10*raz*rby*czx + 2*czx*czy); }
+    inline double T20_21c()  { return R5 * 0.5 * std::sqrt(3) * (35*raz*raz*rbx*rbz - 5*rbx*rbz + 10*raz*rbx*czz + 10*raz*rbz*czx + 2*czx*czz); }
+    inline double T20_21s()  { return R5 * 0.5 * std::sqrt(3) * (35*raz*raz*rby*rbz - 5*rby*rbz + 10*raz*rby*czz + 10*raz*rbz*czy + 2*czy*czz); }
+    inline double T20_22c()  { return R5 * 0.25 * std::sqrt(3) * (35*raz*raz*rbx*rbx - 35*raz*raz*rby*rby - 5*rbx*rbx + 5*rby*rby + 20*raz*rbx*czx - 20*raz*rby*czy + 2*czx*czx - 2*czy*czy); }
+    inline double T20_22s()  { return R5 * 0.5 * std::sqrt(3) * (35*raz*raz*rbx*rby - 5*rbx*rby + 10*raz*rbx*czy + 10*raz*rby*czx + 2*czx*czy); }
     inline double T21c_21c() { return R5 * (35*rax*raz*rbx*rbz + 5*rax*rbx*czz + 5*rax*rbz*czx + 5*raz*rbx*cxz + 5*raz*rbz*cxx + cxx*czz + cxz*czx); }
     inline double T21c_21s() { return R5 * (35*rax*raz*rby*rbz + 5*rax*rby*czz + 5*rax*rbz*czy + 5*raz*rby*cxz + 5*raz*rbz*cxy + cxy*czz + cxz*czy); }
     inline double T21c_22c() { return R5 * 0.5 * (35*rax*raz*rbx*rbx - 35*rax*raz*rby*rby + 10*rax*rbx*czx - 10*rax*rby*czy + 10*raz*rbx*cxx - 10*raz*rby*cxy + 2*cxx*czx - 2*cxy*czy); }
@@ -344,10 +340,10 @@ private:
     inline double T22c_22s() { return R5 * 0.5 * (35*rax*rax*rbx*rby - 35*ray*ray*rbx*rby + 10*rax*rbx*cxy + 10*rax*rby*cxx - 10*ray*rbx*cyy - 10*ray*rby*cyx + 2*cxx*cxy - 2*cyx*cyy); }
     inline double T22s_22s() { return R5 * (35*rax*ray*rbx*rby + 5*rax*rbx*cyy + 5*rax*rby*cyx + 5*ray*rbx*cxy + 5*ray*rby*cxx + cxx*cyy + cxy*cyx); }
 
-    inline double T21c_20()  { return R5 * 0.5 * sqrt(3) * (35*rbz*rbz*rax*raz - 5*rax*raz + 10*rbz*rax*czz + 10*rbz*raz*cxz + 2*cxz*czz); }
-    inline double T21s_20()  { return R5 * 0.5 * sqrt(3) * (35*rbz*rbz*ray*raz - 5*ray*raz + 10*rbz*ray*czz + 10*rbz*raz*cyz + 2*cyz*czz); }
-    inline double T22c_20()  { return R5 * 0.25 * sqrt(3) * (35*rbz*rbz*rax*rax - 35*rbz*rbz*ray*ray - 5*rax*rax + 5*ray*ray + 20*rbz*rax*cxz - 20*rbz*ray*cyz + 2*cxz*cxz - 2*cyz*cyz); }
-    inline double T22s_20()  { return R5 * 0.5 * sqrt(3) * (35*rbz*rbz*rax*ray - 5*rax*ray + 10*rbz*rax*cyz + 10*rbz*ray*cxz + 2*cxz*cyz); }
+    inline double T21c_20()  { return R5 * 0.5 * std::sqrt(3) * (35*rbz*rbz*rax*raz - 5*rax*raz + 10*rbz*rax*czz + 10*rbz*raz*cxz + 2*cxz*czz); }
+    inline double T21s_20()  { return R5 * 0.5 * std::sqrt(3) * (35*rbz*rbz*ray*raz - 5*ray*raz + 10*rbz*ray*czz + 10*rbz*raz*cyz + 2*cyz*czz); }
+    inline double T22c_20()  { return R5 * 0.25 * std::sqrt(3) * (35*rbz*rbz*rax*rax - 35*rbz*rbz*ray*ray - 5*rax*rax + 5*ray*ray + 20*rbz*rax*cxz - 20*rbz*ray*cyz + 2*cxz*cxz - 2*cyz*cyz); }
+    inline double T22s_20()  { return R5 * 0.5 * std::sqrt(3) * (35*rbz*rbz*rax*ray - 5*rax*ray + 10*rbz*rax*cyz + 10*rbz*ray*cxz + 2*cxz*cyz); }
     inline double T21s_21c() { return R5 * (35*rbx*rbz*ray*raz + 5*rbx*ray*czz + 5*rbx*raz*cyz + 5*rbz*ray*czx + 5*rbz*raz*cyx + cyx*czz + czx*cyz); }
     inline double T22c_21c() { return R5 * 0.5 * (35*rbx*rbz*rax*rax - 35*rbx*rbz*ray*ray + 10*rbx*rax*cxz - 10*rbx*ray*cyz + 10*rbz*rax*cxx - 10*rbz*ray*cyx + 2*cxx*cxz - 2*cyx*cyz); }
     inline double T22s_21c() { return R5 * (35*rbx*rbz*rax*ray + 5*rbx*rax*cyz + 5*rbx*ray*cxz + 5*rbz*rax*cyx + 5*rbz*ray*cxx + cxx*cyz + cyx*cxz); }
@@ -602,7 +598,7 @@ inline void XInteractor::FieldInduAlpha(APolarSite &pol1, APolarSite &pol2) {
     e12 *= R;
 
     // Thole damping init.
-    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+    u3   = 1 / (R3 * std::sqrt(pol1.eigendamp * pol2.eigendamp));
 
 //        rax =   pol1._locX * e12;
 //        ray =   pol1._locY * e12;
@@ -1129,7 +1125,7 @@ inline void XInteractor::FieldPermAsIndu_At_By(APolarSite &pol1, APolarSite &pol
 
 
 inline void XInteractor::FieldPermAsIndu_At_By_AddTo(APolarSite &pol1, 
-    APolarSite &pol2, vector<APolarSite*> &add_to) {
+    APolarSite &pol2, std::vector<APolarSite*> &add_to) {
     
     double fx = 0.0;
     double fy = 0.0;
@@ -1176,7 +1172,7 @@ inline void XInteractor::FieldPermAsIndu_At_By_AddTo(APolarSite &pol1,
         fz += T1z_22s() * pol2.Q22s;
     }
         
-    vector<APolarSite*>::iterator pit;
+    std::vector<APolarSite*>::iterator pit;
     for (pit = add_to.begin(); pit < add_to.end(); ++pit) {
         (*pit)->FUx += fx;
         (*pit)->FUy += fy;
@@ -1301,7 +1297,7 @@ inline double XInteractor::EnergyIntra(APolarSite &pol1, APolarSite &pol2) {
     e12 *= R;
     
     // Thole damping init.
-    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+    u3   = 1 / (R3 * std::sqrt(pol1.eigendamp * pol2.eigendamp));
 
 //        rax =   pol1._locX * e12;
 //        ray =   pol1._locY * e12;
@@ -1507,7 +1503,7 @@ inline double XInteractor::EnergyInter(APolarSite &pol1, APolarSite &pol2) {
     e12 *= R;
 
     // Thole damping init.
-    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+    u3   = 1 / (R3 * std::sqrt(pol1.eigendamp * pol2.eigendamp));
 
 
     //cout << "frag1 " << pol1.getFragment()->getId() << endl;
@@ -1874,7 +1870,7 @@ inline double XInteractor::EnergyInterESP(APolarSite &pol1, APolarSite &pol2) {
     e12 *= R;
 
     // Thole damping init.
-    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+    u3   = 1 / (R3 * std::sqrt(pol1.eigendamp * pol2.eigendamp));
 
         rax = e12.getX();
         ray = e12.getY();
@@ -2185,7 +2181,7 @@ inline double XInteractor::E_f(APolarSite &pol1, APolarSite &pol2) {
 //    e12 *= R;
 //
 //    // Thole damping init.
-//    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+//    u3   = 1 / (R3 * std::sqrt(pol1.eigendamp * pol2.eigendamp));
 //
 //
 //    //cout << "frag1 " << pol1.getFragment()->getId() << endl;
@@ -2616,7 +2612,7 @@ inline double XInteractor::E_m(APolarSite &pol1, APolarSite &pol2) {
 //    e12 *= R;
 //
 //    // Thole damping init.
-//    u3   = 1 / (R3 * sqrt(pol1.eigendamp * pol2.eigendamp));
+//    u3   = 1 / (R3 * std::sqrt(pol1.eigendamp * pol2.eigendamp));
 //
 //
 //    //cout << "frag1 " << pol1.getFragment()->getId() << endl;
@@ -2826,7 +2822,7 @@ inline double XInteractor::E_QQ_K0(APolarSite &pol1, APolarSite &pol2, double &e
     // NOTE Without prefactor 2*PI/(Lx*Ly)
     e12  = pol2.getPos() - pol1.getPos();
     double z12  = e12.getZ();
-    return - pol1.Q00 * pol2.Q00 * (   exp(-ew_alpha*ew_alpha*z12*z12) / (sqrt(M_PI)*ew_alpha)   +    z12*erf(ew_alpha*z12)    );  
+    return - pol1.Q00 * pol2.Q00 * (   std::exp(-ew_alpha*ew_alpha*z12*z12) / (std::sqrt(M_PI)*ew_alpha)   +    z12*erf(ew_alpha*z12)    );  
 }
 
 
@@ -2835,7 +2831,7 @@ inline double XInteractor::E_QQ_KK(APolarSite &pol1, APolarSite &pol2, double &e
     e12  = pol2.getPos() - pol1.getPos();
     double z12  = e12.getZ();
     double K = abs(k);
-    return pol1.Q00 * pol2.Q00 * cos(k*e12) / K * (    exp(K*z12)*erfc(K/(2*ew_alpha)+ew_alpha*z12)   +    exp(-K*z12)*erfc(K/(2*ew_alpha)-ew_alpha*z12)   ); 
+    return pol1.Q00 * pol2.Q00 * cos(k*e12) / K * (    std::exp(K*z12)*erfc(K/(2*ew_alpha)+ew_alpha*z12)   +    std::exp(-K*z12)*erfc(K/(2*ew_alpha)-ew_alpha*z12)   ); 
 }
 
 
@@ -2993,7 +2989,7 @@ inline void XInteractor::BiasStat(APolarSite &pol1, APolarSite &pol2) {
     e12 *= R;
 
     // Thole damping init.
-    u3   = 1 / (R3 * sqrt( 
+    u3   = 1 / (R3 * std::sqrt( 
         1./3.*(pol1.Pxx*pol2.Pxx + pol1.Pxy*pol2.Pxy + pol1.Pxz*pol2.Pxz
              + pol1.Pxy*pol2.Pxy + pol1.Pyy*pol2.Pyy + pol1.Pyz*pol2.Pyz
              + pol1.Pxz*pol2.Pxz + pol1.Pyz*pol2.Pyz + pol1.Pzz*pol2.Pzz) ));
@@ -3062,7 +3058,7 @@ inline void XInteractor::BiasIndu(APolarSite &pol1, APolarSite &pol2) {
     e12 *= R;
 
     // Thole damping init.
-    u3   = 1 / (R3 * sqrt( 
+    u3   = 1 / (R3 * std::sqrt( 
         1./3.*(pol1.Pxx*pol2.Pxx + pol1.Pxy*pol2.Pxy + pol1.Pxz*pol2.Pxz
              + pol1.Pxy*pol2.Pxy + pol1.Pyy*pol2.Pyy + pol1.Pyz*pol2.Pyz
              + pol1.Pxz*pol2.Pxz + pol1.Pyz*pol2.Pyz + pol1.Pzz*pol2.Pzz) ));
@@ -3135,7 +3131,7 @@ inline void XInteractor::BiasStat(APolarSite &pol1, APolarSite &pol2, vec &s) {
     e12 *= R;
 
     // Thole damping init.
-    u3   = 1 / (R3 * sqrt( 
+    u3   = 1 / (R3 * std::sqrt( 
         1./3.*(pol1.Pxx*pol2.Pxx + pol1.Pxy*pol2.Pxy + pol1.Pxz*pol2.Pxz
              + pol1.Pxy*pol2.Pxy + pol1.Pyy*pol2.Pyy + pol1.Pyz*pol2.Pyz
              + pol1.Pxz*pol2.Pxz + pol1.Pyz*pol2.Pyz + pol1.Pzz*pol2.Pzz) ));
@@ -3208,7 +3204,7 @@ inline void XInteractor::BiasIndu(APolarSite &pol1, APolarSite &pol2, vec &s) {
     e12 *= R;
 
     // Thole damping init.
-    u3   = 1 / (R3 * sqrt( 
+    u3   = 1 / (R3 * std::sqrt( 
         1./3.*(pol1.Pxx*pol2.Pxx + pol1.Pxy*pol2.Pxy + pol1.Pxz*pol2.Pxz
              + pol1.Pxy*pol2.Pxy + pol1.Pyy*pol2.Pyy + pol1.Pyz*pol2.Pyz
              + pol1.Pxz*pol2.Pxz + pol1.Pyz*pol2.Pyz + pol1.Pzz*pol2.Pzz) ));
