@@ -94,7 +94,7 @@ namespace votca {
             // - triplet -> triplet exciton
             // - quasiparticle -> GW quasiparticle (diagqp)
             // - kohn-sham -> DFT MO
-        
+
                 string _gwbse_xml = opt->get(key + ".gwbse_options").as<string> ();
                 //cout << endl << "... ... Parsing " << _package_xml << endl ;
                 load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
@@ -115,7 +115,7 @@ namespace votca {
                 }
                 if (opt->exists(key + ".localisation")) {
                     _has_loc_filter = true;
-                    
+
                     string temp = opt->get(key + ".localisation").as<string> ();
                     Tokenizer tok_cleanup(temp, ", \n\t");
                     std::vector <std::string> strings_vec;
@@ -131,12 +131,12 @@ namespace votca {
                         throw runtime_error("qmmmachine: Fragment label not known, either A or B");
                     }
                     _loc_threshold=boost::lexical_cast<double>(strings_vec[1]);
-                } 
+                }
 
                 if (opt->exists(key + ".charge_transfer")) {
                     _has_dQ_filter = true;
                     _dQ_threshold = opt->get(key + ".charge_transfer").as<double> ();
-                } 
+                }
                 if(_has_dQ_filter && _has_loc_filter){
                     throw runtime_error("Cannot use localisation and charge_transfer filter at the same time.");
                 }
@@ -328,8 +328,8 @@ namespace votca {
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 ctp::Logger gwbse_logger(ctp::logDEBUG);
                 gwbse_logger.setMultithreading(false);
-                _gwbse.setLogger(_log);
-                //_gwbse.setLogger(&gwbse_logger);
+                //_gwbse.setLogger(_log);
+                _gwbse.setLogger(&gwbse_logger);
                 gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
                 gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
                 gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
@@ -411,7 +411,7 @@ namespace votca {
                             CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().size1() << flush;
 
 
-                            // 'LAMBDA' matrix of the present iteration                
+                            // 'LAMBDA' matrix of the present iteration
                             ub::matrix<real_gwbse> lambda_N = orb_iter_input.LambdaMatrixQuasiParticle();
 
                             // 'LAMBDA' matrix of the previous iteration
@@ -456,7 +456,7 @@ namespace votca {
                         }
 
                     }
-                    
+
                     if (_has_osc_filter) {
 
                         // go through list of singlets
@@ -468,19 +468,19 @@ namespace votca {
                         }
 
                     } else {
-                        const ub::vector<real_gwbse>& energies = (_type=="singlet") 
+                        const ub::vector<real_gwbse>& energies = (_type=="singlet")
                         ? orb_iter_input.BSESingletEnergies() : orb_iter_input.BSETripletEnergies();
-                       
+
                         for (unsigned _i = 0; _i < energies.size(); _i++) {
                             _state_index.push_back(_i);
-                        }     
+                        }
                     }
 
 
                     // filter according to charge transfer, go through list of excitations in _state_index
                     if (_has_dQ_filter) {
                         std::vector<int> _state_index_copy;
-                        const std::vector< ub::vector<double> >& dQ_frag= (_type=="singlet") 
+                        const std::vector< ub::vector<double> >& dQ_frag= (_type=="singlet")
                         ? orb_iter_input.getFragmentChargesSingEXC():orb_iter_input.getFragmentChargesTripEXC();
                         for (unsigned _i = 0; _i < _state_index.size(); _i++) {
                             if (std::abs(dQ_frag[_state_index[_i]](0)) > _dQ_threshold) {
@@ -491,9 +491,9 @@ namespace votca {
                     }
                     else if (_has_loc_filter) {
                         std::vector<int> _state_index_copy;
-                        const std::vector< ub::vector<double> >& popE= (_type=="singlet") 
+                        const std::vector< ub::vector<double> >& popE= (_type=="singlet")
                         ? orb_iter_input.getFragment_E_localisation_singlet():orb_iter_input.getFragment_E_localisation_triplet();
-                        const std::vector< ub::vector<double> >& popH= (_type=="singlet") 
+                        const std::vector< ub::vector<double> >& popH= (_type=="singlet")
                         ? orb_iter_input.getFragment_H_localisation_singlet():orb_iter_input.getFragment_H_localisation_triplet();
                         if(_localiseonA){
                             for (unsigned _i = 0; _i < _state_index.size(); _i++) {
@@ -608,16 +608,16 @@ namespace votca {
                 thisIter->UpdateMPSFromGDMA(_gdma.GetMultipoles(), _job->getPolarTop()->QM0());
 
             }
-            
+
             // Update state variable
             if (_type == "quasiparticle" || _has_overlap_filter ){
-                
+
                 _state = _state_index[ _state -1 - orb_iter_input.getGWAmin() ] + 1 + orb_iter_input.getGWAmin();
-                
+
             }
 
-           
-            
+
+
             // serialize this iteration
             if (_do_archive) {
                 // save orbitals
@@ -661,30 +661,30 @@ namespace votca {
         template<class QMPackage>
         void QMMachine<QMPackage>::Density2Charges(std::vector<int> _state_index ){
 
-                   
+
                     // load DFT basis set (element-wise information) from xml file
                     BasisSet dftbs;
                     if (orb_iter_input.getDFTbasis() != "") {
                         dftbs.LoadBasisSet(orb_iter_input.getDFTbasis());
                         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
-                    } 
+                    }
 
                     // fill DFT AO basis by going through all atoms
                     AOBasis dftbasis;
                     dftbasis.AOBasisFill(&dftbs, orb_iter_input.QMAtoms());
-                    
+
                     ub::matrix<double> DMATGS = orb_iter_input.DensityMatrixGroundState();
 
                     ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
 
                     if (_state > 0 ) {
-                        
+
                         if ( _type == "singlet" && _type == "triplet"){
-                        
+
                             std::vector<ub::matrix<double> > DMAT = orb_iter_input.DensityMatrixExcitedState(_type, _state_index[_state - 1]);
                             DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
                         } else if ( _type == "quasiparticle"){
-                            
+
                             ub::matrix<double> DMATQP = orb_iter_input.DensityMatrixQuasiParticle(  _state_index[_state - 1 - orb_iter_input.getGWAmin()]);
 
                             if ( _state > orb_iter_input.getNumberOfElectrons() ) {
