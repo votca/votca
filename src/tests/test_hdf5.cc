@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     votca::xtp::CheckpointFile cpf("xtp_testing.hdf5");
 
     // Write orbitals
-    votca::xtp::Orbitals orbWrite;
+    Orbitals orbWrite;
 
     int basisSetSize = 17;
     int occupiedLevels = 4;
@@ -74,14 +74,14 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     Eigen::MatrixXd QPdiagCoefficientsTest = Eigen::MatrixXd::Identity(31, 42);
 
 
-    votca::xtp::MatrixXfd eh_dTest = votca::xtp::MatrixXfd::Zero(32, 290);
-    votca::xtp::MatrixXfd eh_xTest = votca::xtp::MatrixXfd::Zero(3, 22);
-    votca::xtp::VectorXfd BSESingletEnergiesTest = votca::xtp::VectorXfd::Zero(25);
-    votca::xtp::MatrixXfd BSESingletCoefficientsTest = votca::xtp::MatrixXfd::Zero(25, 38);
-    votca::xtp::MatrixXfd BSESingletCoefficientsARTest = votca::xtp::MatrixXfd::Zero(42, 42);
+    MatrixXfd eh_dTest = MatrixXfd::Zero(32, 290);
+    MatrixXfd eh_xTest = MatrixXfd::Zero(3, 22);
+    VectorXfd BSESingletEnergiesTest = VectorXfd::Zero(25);
+    MatrixXfd BSESingletCoefficientsTest = MatrixXfd::Zero(25, 38);
+    MatrixXfd BSESingletCoefficientsARTest = MatrixXfd::Zero(42, 42);
 
-    votca::xtp::VectorXfd BSETripletEnergiesTest = votca::xtp::VectorXfd::Zero(33);
-    votca::xtp::MatrixXfd BSETripletCoefficientsTest = votca::xtp::MatrixXfd::Zero(33,31);
+    VectorXfd BSETripletEnergiesTest = VectorXfd::Zero(33);
+    MatrixXfd BSETripletCoefficientsTest = MatrixXfd::Zero(33,31);
 
     std::vector <votca::tools::vec> transitionDipolesTest;
     for (size_t i =0; i < 1000; ++i){
@@ -123,7 +123,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.WriteToCpt(cpf, "Test Orbital");
 
     // Read Orbitals
-    votca::xtp::Orbitals orbRead;
+    Orbitals orbRead;
 
 
     BOOST_AUTO_TEST_SUITE_END()}
