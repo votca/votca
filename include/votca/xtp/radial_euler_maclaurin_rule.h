@@ -26,8 +26,6 @@
 #include <votca/tools/constants.h>
 #include <votca/xtp/grid_containers.h>
 
-
-
 namespace votca { namespace xtp {
 
     
@@ -36,11 +34,9 @@ namespace votca { namespace xtp {
             
             EulerMaclaurinGrid() { FillGrids(); };
             
-            void getRadialGrid( AOBasis* aobasis, vector<QMAtom* > _atoms , const std::string& type, GridContainers& _grids );
+            void getRadialGrid(const AOBasis* aobasis, vector<QMAtom* > _atoms , const std::string& type, GridContainers& _grids );
             std::vector<double> getPruningIntervals( const std::string& element );
             
-
-
         private:
             
             struct min_exp {
@@ -66,7 +62,7 @@ namespace votca { namespace xtp {
             double getNeglected( double alpha, int l, double cutoff);
             double RadialIntegral(double alpha, int l, double cutoff);
             
-            void getRadialCutoffs(AOBasis* aobasis, std::vector<QMAtom* > _atoms , const std::string& gridtype );
+            void getRadialCutoffs(const AOBasis* aobasis, std::vector<QMAtom* > _atoms , const std::string& gridtype );
             void setGrid(int numberofpoints, double cutoff, std::vector<double>& point, std::vector<double>& weight );
             
             std::map<std::string, int>    MediumGrid;

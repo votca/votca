@@ -97,7 +97,7 @@ namespace votca {
         void TCMatrix_gwbse::Fill(const AOBasis& _gwbasis,const AOBasis& _dftbasis,const Eigen::MatrixXd& _dft_orbitals) {
 
             // loop over all shells in the GW basis and get _Mmn for that shell
-            #pragma omp parallel for //private(_block)
+            #pragma omp parallel for schedule(guided)//private(_block)
             for ( unsigned _is= 0; _is <  _gwbasis.getNumofShells() ; _is++ ){ 
                 const AOShell* _shell = _gwbasis.getShell(_is);
                 int _start = _shell->getStartIndex();

@@ -292,7 +292,7 @@ namespace votca {
 
                     // write coefficients in same format
                     for (std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++soi) {
-                        Eigen::VectorXd mr=orbitals_guess->MOCoefficients().row(*soi);
+                        Eigen::VectorXd mr=orbitals_guess->MOCoefficients().col(*soi);
                         column = 1;
                         for (unsigned j = 0; j < mr.size(); ++j) {
                             _orb_file << FortranFormat(mr[j]);

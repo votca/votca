@@ -525,8 +525,8 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
     }
 
 
-std::vector<AOShell*> AOBasis::getShellsperAtom(int AtomId){
-  std::vector<AOShell*> result;
+const std::vector<const AOShell*> AOBasis::getShellsperAtom(int AtomId)const{
+  std::vector<const AOShell*> result;
   for(const auto& aoshell:_aoshells){
     if(aoshell->_atomindex==AtomId){
       result.push_back(aoshell);

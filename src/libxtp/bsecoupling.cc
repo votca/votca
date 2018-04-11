@@ -373,9 +373,11 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     } 
     
     //       | Orbitals_A          0 |      | Overlap_A |     
-    //       | 0          Orbitals_B |  X   | Overlap_B |  X  Transpose( Orbitals_AB )
+    //       | 0          Orbitals_B |.T  X   | Overlap_B |  X  ( Orbitals_AB )
     
     Eigen::MatrixXd _psi_AxB =Eigen::MatrixXd::Zero( _levelsA + _levelsB, _basisA + _basisB  );
+    
+  
     
     // constructing merged orbitals
     _psi_AxB.block(0,0,_levelsA , _basisA) = _orbitalsA->MOCoefficients().block(_bseA_vmin,0, _bseA_cmax+1-_bseA_vmin, _basisA );
@@ -401,7 +403,7 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     }
     
   
-    Eigen::MatrixXd _psi_AxB_dimer_basis = _psi_AxB*_overlapAB*_orbitalsAB->MOCoefficients().transpose();  
+    Eigen::MatrixXd _psi_AxB_dimer_basis = _psi_AxB.transpose()*_overlapAB*_orbitalsAB->MOCoefficients();  
     _overlapAB.resize(0,0);
     
     

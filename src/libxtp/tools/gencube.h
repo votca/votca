@@ -1,4 +1,4 @@
-/* 
+ /* 
  *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *

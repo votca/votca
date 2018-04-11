@@ -131,21 +131,18 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     } 
     
     //       | Orbitals_A          0 |      | Overlap_A |     
-    //       | 0          Orbitals_B |  X   | Overlap_B |  X  Transpose( Orbitals_AB )
-   
+    //       | 0          Orbitals_B |.T  X   | Overlap_B |  X  ( Orbitals_AB )
+ 
     
-
-  
-    
-    Eigen::MatrixXd _psi_AxB=Eigen::MatrixXd::Zero( _levelsA + _levelsB, _basisA + _basisB  );
+    Eigen::MatrixXd _psi_AxB=Eigen::MatrixXd::Zero( _basisA + _basisB, _levelsA + _levelsB  );
     
       CTP_LOG(ctp::logDEBUG,*_pLog) << "Constructing direct product AxB [" 
             << _psi_AxB.rows() << "x" 
             << _psi_AxB.cols() << "]" << flush;    
     
     // constructing merged orbitals
-    _psi_AxB.block(0,0,_levelsA , _basisA) = _orbitalsA->MOCoefficients();
-    _psi_AxB.block(_levelsA, _basisA,_levelsB,_basisB) =_orbitalsB->MOCoefficients();
+    _psi_AxB.block(0,0, _basisA,_levelsA) = _orbitalsA->MOCoefficients();
+    _psi_AxB.block(_basisA,_levelsA, _basisB,_levelsB) =_orbitalsB->MOCoefficients();
     
     
     
@@ -171,7 +168,7 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     }
     
    
-    Eigen::MatrixXd _psi_AxB_dimer_basis =_psi_AxB*overlap*_orbitalsAB->MOCoefficients().transpose(); 
+    Eigen::MatrixXd _psi_AxB_dimer_basis =_psi_AxB.transpose()*overlap*_orbitalsAB->MOCoefficients(); 
   
     
  //cout<< "_psi_AxB_dimer"<<endl;

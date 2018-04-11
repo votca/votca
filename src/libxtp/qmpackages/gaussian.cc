@@ -347,7 +347,7 @@ namespace votca {
 
                     _com_file << setw(5) << level << endl;
 
-                  Eigen::VectorXd mr=orbitals_guess->MOCoefficients().row(*soi);
+                  Eigen::VectorXd mr=orbitals_guess->MOCoefficients().col(*soi);
 
                     int column = 1;
                     for (unsigned j = 0; j < mr.size(); ++j) {
