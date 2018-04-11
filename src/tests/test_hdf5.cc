@@ -55,22 +55,38 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     int rpaMin = '?';
     int rpaMax = 1e3;
 
-    int qpMin = -91091;
-    int qpMax = 75918275;
-
     unsigned int bseVmin = -6019386;
     unsigned int bseVmax = 1092581;
 
     unsigned int bseCmin = 2718L;
     unsigned int bseCmax = 42;
 
+    double scaHfx = 3.14159;
+
+    std::string bseType = "A+";
+
+
+    Eigen::MatrixXd vxcTest = Eigen::MatrixXd::Zero(200,200);
+    std::string someECP = "aye aye Cap'n";
+
+    Eigen::MatrixXd QPpertEnergiesTest = Eigen::MatrixXd::Zero(31, 42);
+    Eigen::MatrixXd QPdiagEnergiesTest = Eigen::VectorXd::Zero(21);
+    Eigen::MatrixXd QPdiagCoefficientsTest = Eigen::MatrixXd::Identity(31, 42);
+
 
     votca::xtp::MatrixXfd eh_dTest = votca::xtp::MatrixXfd::Zero(32, 290);
     votca::xtp::MatrixXfd eh_xTest = votca::xtp::MatrixXfd::Zero(3, 22);
-    votca::xtp::VectorXfd BSE_singlet_energiesTest = votca::xtp::VectorXfd::Zero(25);
-    Eigen::MatrixXd vxcTest = Eigen::MatrixXd::Zero(200,200);
+    votca::xtp::VectorXfd BSESingletEnergiesTest = votca::xtp::VectorXfd::Zero(25);
+    votca::xtp::MatrixXfd BSESingletCoefficientsTest = votca::xtp::MatrixXfd::Zero(25, 38);
+    votca::xtp::MatrixXfd BSESingletCoefficientsARTest = votca::xtp::MatrixXfd::Zero(42, 42);
 
-    std::string someECP = "aye aye Cap'n";
+    votca::xtp::VectorXfd BSETripletEnergiesTest = votca::xtp::VectorXfd::Zero(33);
+    votca::xtp::MatrixXfd BSETripletCoefficientsTest = votca::xtp::MatrixXfd::Zero(33,31);
+
+    std::vector <votca::tools::vec> transitionDipolesTest;
+    for (size_t i =0; i < 1000; ++i){
+        transitionDipolesTest.push_back(votca::tools::vec(1,2,3));
+    }
 
 
     orbWrite.setBasisSetSize(basisSetSize);
@@ -79,17 +95,30 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.MOEnergies() = moeTest;
     orbWrite.MOCoefficients() = mocTest;
     orbWrite.QMAtoms() = atomsTest;
+    orbWrite.setQMEnergy(qmEnergy);
+    orbWrite.setQMpackage(qmPackage);
+    orbWrite.setSelfEnergy(selfEnergy);
+    orbWrite.setDFTbasis(dftBasis);
+    orbWrite.setAuxbasis(auxBasis);
+    orbWrite.setRPAindices(rpaMin, rpaMax);
+    // no need to write qpmin, qpmax
+    orbWrite.setBSEindices(bseVmin, bseVmax, bseCmin, bseCmax, 3);
+    orbWrite.setScaHFX(scaHfx);
+    orbWrite.setBSEtype(bseType);
     orbWrite.setECP(someECP);
+    orbWrite.QPpertEnergies() = QPpertEnergiesTest;
+    orbWrite.QPdiagEnergies() = QPdiagEnergiesTest;
+    orbWrite.QPdiagCoefficients() = QPdiagCoefficientsTest;
     orbWrite.setBasisSetSize(17);
     orbWrite.setNumberOfLevels(4, 13);
-
     orbWrite.eh_d() = eh_dTest;
     orbWrite.eh_x() = eh_xTest;
-
-    orbWrite.BSESingletEnergies() = BSE_singlet_energiesTest;
-
-    orbWrite.AOVxc() = vxcTest;
-
+    orbWrite.BSESingletEnergies() = BSESingletEnergiesTest;
+    orbWrite.BSESingletCoefficients() = BSESingletCoefficientsTest;
+    orbWrite.BSESingletCoefficientsAR() = BSESingletCoefficientsARTest;
+    orbWrite.TransitionDipoles() = transitionDipolesTest;
+    orbWrite.BSETripletEnergies() = BSETripletEnergiesTest;
+    orbWrite.BSETripletCoefficients() = BSETripletCoefficientsTest;
 
     orbWrite.WriteToCpt(cpf, "Test Orbital");
 
