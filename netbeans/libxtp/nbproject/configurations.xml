@@ -247,6 +247,7 @@
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
+      <itemPath>../../src/tests/test_threecenter.cc</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -974,6 +975,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_threecenter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tools/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/Md2QmEngine.h" ex="false" tool="3" flavor2="0">
@@ -1676,6 +1682,11 @@
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_symmetric_matrix.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_threecenter.cc"
             ex="false"
             tool="1"
             flavor2="0">

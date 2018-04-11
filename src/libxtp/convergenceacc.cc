@@ -27,7 +27,7 @@ namespace votca { namespace xtp {
        S=_S;
        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es((*S));
        if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of overlap matrix is "<<es.eigenvalues()(0) << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<es.eigenvalues()(0) << flush;
             }
        Sminusahalf = es.operatorInverseSqrt();
        Sonehalf=es.operatorSqrt();
