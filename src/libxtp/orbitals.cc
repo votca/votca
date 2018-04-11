@@ -709,8 +709,11 @@ namespace votca {
 
             {
                 CptLoc qmAtomsGr = parent.createGroup("qmatoms");
+                size_t count = 0;
                 for (const auto& qma: _atoms){
-                    qma->WriteToCpt(qmAtomsGr);
+                    CptLoc tempLoc = qmAtomsGr.createGroup("index" + std::to_string(count));
+                    qma->WriteToCpt(tempLoc);
+                    ++count;
                 }
 
             }
