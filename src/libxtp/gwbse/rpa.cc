@@ -138,7 +138,6 @@ namespace votca {
       _Mmn_RPA.Initialize(_Mmn_full.getAuxDimension(), _rpamin, _homo, _homo + 1,
               _rpamax);
       unsigned start = _Mmn_RPA.get_nmin() - _Mmn_full.get_nmin();
-
       // loop over m-levels in _Mmn_RPA
 #pragma omp parallel for 
       for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {

@@ -42,7 +42,7 @@ namespace votca {
          */
         
       
-        bool TCMatrix::FillThreeCenterRepBlock(Eigen::MatrixXd& _subvector, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
+        bool TCMatrix::FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
 
             const double pi = boost::math::constants::pi<double>();
             const double gwaccuracy = 1.e-11;
@@ -1201,75 +1201,46 @@ if (_lmax_beta > 3) {
             int _offset_beta = _shell_beta->getOffset();
             int _offset_alpha = _shell_alpha->getOffset();
             int _offset_gamma = _shell_gamma->getOffset();
-/////////            cout << "_offset_alpha = " << _offset_alpha << "   _offset_beta = " << _offset_beta << "   _offset_gamma = " << _offset_gamma << endl;
 
-            // prepare transformation matrices
-            int _ntrafo_beta = _shell_beta->getNumFunc() + _offset_beta;
-            int _ntrafo_alpha = _shell_alpha->getNumFunc() + _offset_alpha;
-            int _ntrafo_gamma = _shell_gamma->getNumFunc() + _offset_gamma;
-            // cout << "_ntrafo_alpha = " << _ntrafo_alpha << "   _ntrafo_beta = " << _ntrafo_beta << "   _ntrafo_gamma = " << _ntrafo_gamma << endl;
-
-            
-            
             const Eigen::MatrixXd _trafo_beta=AOSuperMatrix::getTrafo(*itbeta);
             const Eigen::MatrixXd _trafo_alpha=AOSuperMatrix::getTrafo(*italpha);
             
        
-            tensor3d R_sph;
-            R_sph.resize(extents[ _ntrafo_alpha ][ _ntrafo_beta ][ _ntrafo_gamma ]);
 
-            for (int _i_beta = 0; _i_beta < _ntrafo_beta; _i_beta++) {
-                for (int _i_alpha = 0; _i_alpha < _ntrafo_alpha; _i_alpha++) {
-                    for (int _i_gamma = 0; _i_gamma < _ntrafo_gamma; _i_gamma++) {
+            if (alphabetaswitch == true) {
 
-                        R_sph[ _i_alpha ][ _i_beta ][ _i_gamma ] = 0.0;
-
-                        for (int _i_beta_t = istart[ _i_beta ]; _i_beta_t <= istop[ _i_beta ]; _i_beta_t++) {
-                            for (int _i_alpha_t = istart[ _i_alpha ]; _i_alpha_t <= istop[ _i_alpha ]; _i_alpha_t++) {
-
-                                    R_sph[ _i_alpha ][ _i_beta ][ _i_gamma ] += R[ _i_alpha_t ][ _i_beta_t][ _i_gamma]
-                                            * _trafo_alpha(_i_alpha, _i_alpha_t) * _trafo_beta(_i_beta, _i_beta_t);
-
-
-                            }
-                        }
+              for (int _i_alpha = 0; _i_alpha < _shell_alpha->getNumFunc(); _i_alpha++) {
+                int _i_alpha_off = _i_alpha + _offset_alpha;
+                for (int _i_beta = 0; _i_beta < _shell_beta->getNumFunc(); _i_beta++) {
+                  int _i_beta_off = _i_beta + _offset_beta;
+                  for (int _i_gamma = 0; _i_gamma < _shell_gamma->getNumFunc(); _i_gamma++) {
+                    int _i_gamma_off = _i_gamma + _offset_gamma;
+                    for (int _i_beta_t = istart[ _i_beta_off ]; _i_beta_t <= istop[ _i_beta_off ]; _i_beta_t++) {
+                      for (int _i_alpha_t = istart[ _i_alpha_off ]; _i_alpha_t <= istop[_i_alpha_off ]; _i_alpha_t++) {
+                        threec_block[_i_gamma][_i_beta][_i_alpha] += R[ _i_alpha_t ][ _i_beta_t][ _i_gamma_off] * _trafo_alpha(_i_alpha_off, _i_alpha_t) * _trafo_beta(_i_beta_off, _i_beta_t);
+                      }
                     }
+                  }
                 }
+              }
             }
-
-            if(alphabetaswitch==true){
-//            cout << "switched back" << endl;    
-            // only store the parts, we need
-           
-               for (int _i_gamma = 0; _i_gamma < _shell_gamma->getNumFunc(); _i_gamma++) {
-                for (int _i_alpha = 0; _i_alpha < _shell_alpha->getNumFunc(); _i_alpha++) {
-                    for (int _i_beta = 0; _i_beta < _shell_beta->getNumFunc(); _i_beta++) {
-
-
-                        int _i_index = _shell_alpha->getNumFunc() * _i_gamma + _i_alpha;
-
-                        _subvector(_i_beta, _i_index) += R_sph[ _offset_alpha + _i_alpha ][ _offset_beta + _i_beta ][ _offset_gamma + _i_gamma ];
-
+            else {
+              for (int _i_alpha = 0; _i_alpha < _shell_alpha->getNumFunc(); _i_alpha++) {
+                int _i_alpha_off = _i_alpha + _offset_alpha;
+                for (int _i_beta = 0; _i_beta < _shell_beta->getNumFunc(); _i_beta++) {
+                  int _i_beta_off = _i_beta + _offset_beta;
+                  for (int _i_gamma = 0; _i_gamma < _shell_gamma->getNumFunc(); _i_gamma++) {
+                    int _i_gamma_off = _i_gamma + _offset_gamma;
+                    for (int _i_beta_t = istart[ _i_beta_off ]; _i_beta_t <= istop[ _i_beta_off ]; _i_beta_t++) {
+                      for (int _i_alpha_t = istart[ _i_alpha_off ]; _i_alpha_t <= istop[_i_alpha_off ]; _i_alpha_t++) {
+                        threec_block[_i_gamma][_i_alpha][_i_beta] += R[ _i_alpha_t ][ _i_beta_t][ _i_gamma_off] * _trafo_alpha(_i_alpha_off, _i_alpha_t) * _trafo_beta(_i_beta_off, _i_beta_t);
+                      }
                     }
+                  }
                 }
-            } 
-            }
-            
-            else{
-
-            
-               for (int _i_gamma = 0; _i_gamma < _shell_gamma->getNumFunc(); _i_gamma++) {
-                for (int _i_alpha = 0; _i_alpha < _shell_alpha->getNumFunc(); _i_alpha++) {
-                    for (int _i_beta = 0; _i_beta < _shell_beta->getNumFunc(); _i_beta++) {
+              }
 
 
-                        int _i_index = _shell_beta->getNumFunc() * _i_gamma + _i_beta;
-
-                        _subvector(_i_alpha, _i_index) += R_sph[ _offset_alpha + _i_alpha ][ _offset_beta + _i_beta ][ _offset_gamma + _i_gamma ];
-
-                    }
-                }
-            } 
             }
 
                 }

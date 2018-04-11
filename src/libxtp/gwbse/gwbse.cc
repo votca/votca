@@ -753,8 +753,11 @@ bool GWBSE::Evaluate() {
   // make _Mmn symmetric
   _Mmn.MultiplyLeftWithAuxMatrix(_auxcoulomb.Matrix());
   _auxcoulomb.Matrix().resize(0,0);
-  
+  CTP_LOG(ctp::logDEBUG, *_pLog)
+      << ctp::TimeStamp()
+      << " Multiplied Mmn_beta with Coulomb Matrix " << flush;
   RPA rpa;
+  rpa.configure(_homo,_rpamin,_rpamax);
     // for use in RPA, make a copy of _Mmn with dimensions
   // (1:HOMO)(gwabasissize,LUMO:nmax)
   rpa.prepare_threecenters(_Mmn);
@@ -841,7 +844,7 @@ bool GWBSE::Evaluate() {
       Eigen::VectorXd diff = _qp_old_rpa - gwa_energies;
       int state = 0;
       double E_diff_max=diff.cwiseAbs().maxCoeff(&state);
-      if(E_diff_max<_gw_sc_limit){
+      if(E_diff_max>_gw_sc_limit){
            _gw_converged = false;
       }
       
