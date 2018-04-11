@@ -22,9 +22,7 @@
 #define	__VOTCA_XTP_XMAPPER_H
 
 #include <votca/tools/mutex.h>
-#include <votca/xtp/topology.h>
 #include <votca/xtp/xjob.h>
-#include <votca/xtp/apolarsite.h>
 #include <votca/xtp/qmthread.h>
 
 // TODO Change maps to _alloc_xmlfile_fragsegmol_***
@@ -32,7 +30,12 @@
 // TODO Add "const" keyword
 
 namespace votca { namespace xtp {
-    
+
+class Topology;
+class Segment;
+class APolarSite;
+class PolarSeg;
+ 
 class XMpsMap
 {
 

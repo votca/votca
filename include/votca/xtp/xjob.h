@@ -222,7 +222,6 @@ inline bool XJob::isWithinDist(const vec &pt, double dist, Topology *top) {
 //    
 //    return yesno;
     
-    
     bool inCenter = false;
     
     for (unsigned int i = 0; i < _qmSegs.size(); ++i) {         
@@ -234,11 +233,8 @@ inline bool XJob::isWithinDist(const vec &pt, double dist, Topology *top) {
     return inCenter;    
 }
 
-
 template<typename JobContainer, typename pJob>
 JobContainer XJOBS_FROM_TABLE(const std::string &job_file, Topology *top);
-
-
     
 }}
 

@@ -322,4 +322,4 @@ void PolarTop::LoadFromDrive(string archfile) {
 }}
 
 // Version 0 -> Version 1: Added _polarization_iter, _polarization_converged
-BOOST_CLASS_VERSION(votca::ctp::PolarTop, 1)
+BOOST_CLASS_VERSION(votca::xtp::PolarTop, 1)

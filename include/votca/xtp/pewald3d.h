@@ -27,10 +27,12 @@
 #include <votca/xtp/ewaldnd.h>
 
 namespace CSG = votca::csg;
+namespace TOOLS = votca::tools;
 
 namespace votca { namespace xtp {
     
     class PolarTop;
+    class PolarSeg;
     /// NOTE: This is not a conventional 3D Ewald summation, so use carefully
     ///       (tuned for the purpose of site-energy calculations)
     /// NOTE: PolarTop should be set-up with three containers: FGC, FGN, BGN
@@ -47,7 +49,7 @@ namespace votca { namespace xtp {
         
     public:
         
-        PEwald3D3D(Topology *top, PolarTop *ptop, Property *opt, Logger *log);
+        PEwald3D3D(Topology *top, PolarTop *ptop, TOOLS::Property *opt, Logger *log);
        ~PEwald3D3D();
         
         std::string IdentifyMethod() { return "Polar 3D x 3D"; }

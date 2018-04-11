@@ -28,6 +28,8 @@
 
 namespace votca { namespace xtp {
 
+class Topology;
+
 class JobCalculator : public QMCalculator
 {
 public:
@@ -37,11 +39,11 @@ public:
 
     virtual std::string  Identify() { return "Generic Job calculator"; }
 
-    virtual bool    EvaluateFrame(XTP::Topology *top) { return true; }
-    virtual void    EndEvaluate(XTP::Topology *top) { }
+    virtual bool    EvaluateFrame(Topology *top) { return true; }
+    virtual void    EndEvaluate(Topology *top) { }
 
-    virtual void    WriteJobFile(XTP::Topology *top)  { ; }
-    virtual void    ReadJobFile(XTP::Topology *top) { ; }
+    virtual void    WriteJobFile(Topology *top)  { ; }
+    virtual void    ReadJobFile(Topology *top) { ; }
 
     void            setProgObserver(ProgObserver< std::vector<Job*>, Job*, Job::JobResult > *obs) { _progObs = obs; }
 

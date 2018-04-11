@@ -20,11 +20,14 @@
 
 #include <votca/xtp/ewaldnd.h>
 #include <votca/xtp/poissongrid.h>
-#include <boost/format.hpp>
-#include <algorithm>
-#include <boost/math/special_functions/round.hpp>
-#include <boost/timer/timer.hpp>
+#include <votca/xtp/polartop.h>
+#include <votca/xtp/polarseg.h>
 
+#include <algorithm>
+
+#include <boost/math/special_functions/round.hpp>
+#include <boost/format.hpp>
+#include <boost/timer/timer.hpp>
 
 namespace votca { namespace xtp {
 

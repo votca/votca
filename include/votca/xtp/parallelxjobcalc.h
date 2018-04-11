@@ -36,7 +36,6 @@
 /// REQUIRED MEMBERS FOR pJob
 /// pJob::JobResult (struct)
 
-
 namespace votca { namespace xtp {
 
 template<typename JobContainer, typename pJob, typename rJob> 

@@ -30,7 +30,7 @@ namespace votca {
 namespace xtp {
 namespace EWD {
 
-    using namespace votca::tools::conv;
+using namespace votca::tools::conv;
 /// DEFINES THE FOLLOWING
 /// o *cmplx* structure
 /// o *triple* (templated on contained type)
@@ -41,8 +41,6 @@ namespace EWD {
 /// o KVector (with 'grade' attribute)
 /// o Conversion constants to blend well with EwdInteractor
     
-    
-
 
 struct cmplx
 {

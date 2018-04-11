@@ -31,8 +31,8 @@
 #include <votca/csg/orthorhombicbox.h>
 #include <votca/csg/triclinicbox.h>
 
-#include <votca/moo/jcalc.h>
-#include <votca/moo/mol_and_orb.h>
+//#include <votca/moo/jcalc.h>
+//#include <votca/moo/mol_and_orb.h>
 
 #include <votca/xtp/qmnblist.h>
 

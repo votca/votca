@@ -21,11 +21,17 @@
 #ifndef __VOTCA_XTP_POISSONGRID_H
 #define __VOTCA_XTP_POISSONGRID_H
 
-#include <votca/xtp/polartop.h>
-#include <votca/xtp/logger.h>
+#include <votca/tools/vec.h>
+
+namespace TOOLS = votca::tools;
 
 namespace votca { 
-namespace ctp {
+namespace xtp {
+
+class PolarSeg;
+class Topology;
+class Logger;
+
 namespace POI {
     
 class PoissonGrid
@@ -38,7 +44,7 @@ public:
 private:
     
     Logger *_log;
-    vec _center;
+    TOOLS::vec _center;
     
 };
 

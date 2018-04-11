@@ -21,10 +21,14 @@
 #ifndef __VOTCA_XTP_DMASPACE_H
 #define __VOTCA_XTP_DMASPACE_H
 
-#include <votca/xtp/ewdspace.h>
-#include <cmath>
-#include <boost/math/special_functions/binomial.hpp>
 #include <votca/tools/vec.h>
+#include <votca/xtp/ewdspace.h>
+
+#include <cmath>
+#include <iostream>
+#include <exception>
+
+#include <boost/math/special_functions/binomial.hpp>
 
 namespace votca {
 namespace xtp {
@@ -85,8 +89,12 @@ private:
 class ComplexSphericalMoments
 {
 public:
-    ComplexSphericalMoments(const std::vector<double> &Qlm)
-        : _Qlm(Qlm) { assert(_Qlm.size()==9); }
+    ComplexSphericalMoments(const std::vector<double> &Qlm) : _Qlm(Qlm) 
+    { 
+      if(_Qlm.size()!=9){
+        throw invalid_argument("ComplexSphericalMoments must take a 9 value vector");
+      }
+    }
    ~ComplexSphericalMoments() {}
    
     // Real spherical moments (from constructor input)
@@ -112,15 +120,15 @@ public:
     inline cmplx X2x2()  { return std::sqrt(0.5)*cmplx(+1*Q22c(), +1*Q22s()); }
     
     void PrintReal() {
-        std::cout << std::endl << scientific << "Q00 " << Q00();
-        std::cout << std::endl << scientific << "Q10 " << Q10();
-        std::cout << std::endl << scientific << "    " << Q11c();
-        std::cout << std::endl << scientific << "    " << Q11s();
-        std::cout << std::endl << scientific << "Q20 " << Q20();
-        std::cout << std::endl << scientific << "    " << Q21c();
-        std::cout << std::endl << scientific << "    " << Q21s();
-        std::cout << std::endl << scientific << "    " << Q22c();
-        std::cout << std::endl << scientific << "    " << Q22s();
+        std::cout << std::endl << std::scientific << "Q00 " << Q00();
+        std::cout << std::endl << std::scientific << "Q10 " << Q10();
+        std::cout << std::endl << std::scientific << "    " << Q11c();
+        std::cout << std::endl << std::scientific << "    " << Q11s();
+        std::cout << std::endl << std::scientific << "Q20 " << Q20();
+        std::cout << std::endl << std::scientific << "    " << Q21c();
+        std::cout << std::endl << std::scientific << "    " << Q21s();
+        std::cout << std::endl << std::scientific << "    " << Q22c();
+        std::cout << std::endl << std::scientific << "    " << Q22s();
     }
     
     std::vector<cmplx> ToVector() {
@@ -150,20 +158,48 @@ private:
 class RealSphericalMoments
 {
 public:
-    RealSphericalMoments(const std::vector<cmplx> &Xlm)
-        : _Xlm(Xlm)  { assert(_Xlm.size()==9); }
+    RealSphericalMoments(const std::vector<cmplx> &Xlm) : _Xlm(Xlm) 
+    { 
+      if(_Xlm.size()!=9){
+        throw invalid_argument("RealsphericalMoments class must take a 9 value vector");
+      }
+    }
    ~RealSphericalMoments() {}
    
     // Real spherical moments
     inline double Q00()  { return X00().Re(); }    
     inline double Q10()  { return X10().Re(); }
-    inline double Q11c() { cmplx q = std::sqrt(0.5) * cmplx(1,0) * (X1_1() - X1x1()); assert(q.Im() < 1e-8); return q.Re(); }
-    inline double Q11s() { cmplx q = std::sqrt(0.5) * cmplx(0,1) * (X1_1() + X1x1()); assert(q.Im() < 1e-8); return q.Re(); }    
+    inline double Q11c() { 
+      cmplx q = std::sqrt(0.5) * cmplx(1,0) * (X1_1() - X1x1()); 
+      assert(q.Im() < 1e-8); 
+      return q.Re(); 
+    }
+    inline double Q11s() { 
+      cmplx q = sqrt(0.5) * cmplx(0,1) * (X1_1() + X1x1()); 
+      assert(q.Im() < 1e-8); 
+      return q.Re(); 
+    }    
     inline double Q20()  { return X20().Re(); }
-    inline double Q21c() { cmplx q = std::sqrt(0.5) * cmplx(1,0) * (X2_1() - X2x1()); assert(q.Im() < 1e-8); return q.Re(); }
-    inline double Q21s() { cmplx q = std::sqrt(0.5) * cmplx(0,1) * (X2_1() + X2x1()); assert(q.Im() < 1e-8); return q.Re(); }
-    inline double Q22c() { cmplx q = std::sqrt(0.5) * cmplx(1,0) * (X2_2() + X2x2()); assert(q.Im() < 1e-8); return q.Re(); }
-    inline double Q22s() { cmplx q = std::sqrt(0.5) * cmplx(0,1) * (X2_2() - X2x2()); assert(q.Im() < 1e-8); return q.Re(); }
+    inline double Q21c() { 
+      cmplx q = sqrt(0.5) * cmplx(1,0) * (X2_1() - X2x1()); 
+      assert(q.Im() < 1e-8); 
+      return q.Re(); 
+    }
+    inline double Q21s() { 
+      cmplx q = sqrt(0.5) * cmplx(0,1) * (X2_1() + X2x1()); 
+      assert(q.Im() < 1e-8); 
+      return q.Re(); 
+    }
+    inline double Q22c() { 
+      cmplx q = sqrt(0.5) * cmplx(1,0) * (X2_2() + X2x2()); 
+      assert(q.Im() < 1e-8); 
+      return q.Re(); 
+    }
+    inline double Q22s() { 
+      cmplx q = sqrt(0.5) * cmplx(0,1) * (X2_2() - X2x2()); 
+      assert(q.Im() < 1e-8); 
+      return q.Re(); 
+    }
 
     // Complex spherical moments (from constructor input)
     const cmplx &X00()   { return _Xlm[0]; }    
@@ -177,16 +213,18 @@ public:
     const cmplx &X2x2()  { return _Xlm[8]; }
     
     void AddToVector(std::vector<double> &base) {        
-        assert(base.size() == 9);
-        base[0] += Q00();
-        base[1] += Q10();
-        base[2] += Q11c();
-        base[3] += Q11s();
-        base[4] += Q20();
-        base[5] += Q21c();
-        base[6] += Q21s();
-        base[7] += Q22c();
-        base[8] += Q22s();
+      if(base.size()!=9){
+        throw invalid_argument("AddToVector function must take a 9 value vector");
+      }
+      base[0] += Q00();
+      base[1] += Q10();
+      base[2] += Q11c();
+      base[3] += Q11s();
+      base[4] += Q20();
+      base[5] += Q21c();
+      base[6] += Q21s();
+      base[7] += Q22c();
+      base[8] += Q22s();
     }
     
     std::vector<double> ToVector() {
@@ -204,15 +242,15 @@ public:
     }
     
     void PrintReal() {
-        std::cout << std::endl << scientific << "Q00 " << Q00();
-        std::cout << std::endl << scientific << "Q10 " << Q10();
-        std::cout << std::endl << scientific << "    " << Q11c();
-        std::cout << std::endl << scientific << "    " << Q11s();
-        std::cout << std::endl << scientific << "Q20 " << Q20();
-        std::cout << std::endl << scientific << "    " << Q21c();
-        std::cout << std::endl << scientific << "    " << Q21s();
-        std::cout << std::endl << scientific << "    " << Q22c();
-        std::cout << std::endl << scientific << "    " << Q22s();
+        std::cout << std::endl << std::scientific << "Q00 " << Q00();
+        std::cout << std::endl << std::scientific << "Q10 " << Q10();
+        std::cout << std::endl << std::scientific << "    " << Q11c();
+        std::cout << std::endl << std::scientific << "    " << Q11s();
+        std::cout << std::endl << std::scientific << "Q20 " << Q20();
+        std::cout << std::endl << std::scientific << "    " << Q21c();
+        std::cout << std::endl << std::scientific << "    " << Q21s();
+        std::cout << std::endl << std::scientific << "    " << Q22c();
+        std::cout << std::endl << std::scientific << "    " << Q22s();
     }
     
 private:

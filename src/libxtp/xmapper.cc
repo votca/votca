@@ -20,10 +20,13 @@
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #include <votca/xtp/atom.h>
-#include <votca/xtp/segment.h>
 #include <votca/xtp/fragment.h>
 #include <votca/xtp/segment.h>
+#include <votca/xtp/polarseg.h>
 #include <votca/xtp/molecule.h>
+#include <votca/xtp/topology.h>
+#include <votca/xtp/topology.h>
+#include <votca/xtp/polartop.h>
 #include <votca/xtp/xmapper.h>
 
 namespace votca {

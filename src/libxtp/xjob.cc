@@ -19,6 +19,7 @@
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #include <votca/xtp/xjob.h>
+#include <votca/xtp/polartop.h>
 #include <boost/format.hpp>
 
 using boost::format;

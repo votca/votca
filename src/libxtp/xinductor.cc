@@ -19,8 +19,11 @@
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #include <votca/xtp/xinductor.h>
-#include <boost/format.hpp>
+#include <votca/xtp/polartop.h>
+
 #include <vector>
+
+#include <boost/format.hpp>
 #include <boost/timer/timer.hpp>
 
 using boost::format;
