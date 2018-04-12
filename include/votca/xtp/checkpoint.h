@@ -219,6 +219,12 @@ template <typename T>
     dataset.read(&(v[0]), *dataType);
 }
 
+void ReadData(const CptLoc& loc, votca::tools::vec& v,
+              const std::string& name);
+
+void ReadData(const CptLoc& loc, std::vector<votca::tools::vec>& v,
+              const std::string& name);
+
 class Reader{
 public:
 Reader(const CptLoc& loc) : _loc(loc){};

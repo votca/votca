@@ -72,6 +72,30 @@ void ReadScalar(const CptLoc& loc, std::string& var, const std::string& name){
     var = readbuf;
 }
 
+void ReadData(const CptLoc& loc, votca::tools::vec& v,
+              const std::string& name){
+
+    // read tools::vec as a vector of three elements
+    std::vector<double> data = {0,0,0};
+    ReadData(loc, data, name);
+    v = votca::tools::vec(data[0], data[1], data[2]);
+}
+
+void ReadData(const CptLoc& loc, std::vector<votca::tools::vec>& v,
+              const std::string& name){
+
+    CptLoc parent = loc.openGroup(name);
+    size_t count = parent.getNumObjs();
+
+    v.resize(count);
+
+    size_t c = 0;
+    for (auto &vec: v){
+        ReadData(parent, vec, "ind"+std::to_string(c));
+        ++c;
+    }
+}
+
 }  // namespace hdf5_utils
 
 using namespace hdf5_utils;
@@ -80,7 +104,7 @@ CheckpointFile::CheckpointFile(std::string fN)
     : _fileName(fN), _version(gitversion) {
 
   try {
-      H5::Exception::dontPrint();
+      //H5::Exception::dontPrint();
     _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
 
     WriteScalar(_fileHandle.openGroup("/"), gitversion, "Version");

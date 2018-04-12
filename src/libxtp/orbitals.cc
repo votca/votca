@@ -779,6 +779,8 @@ namespace votca {
             r(_mo_energies, "mo_energies");
             r(_mo_coefficients, "mo_coefficients");
 
+            r(_transition_dipoles, "transition_dipoles");
+
         } catch (H5::Exception& error){
             throw std::runtime_error(error.getDetailMsg());
         }
