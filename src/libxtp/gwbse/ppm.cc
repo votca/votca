@@ -42,7 +42,7 @@ namespace votca {
             // determine PPM frequencies
             _ppm_freq.resize(es.eigenvalues().size());
             // a) phi^t * epsilon(1) * phi e.g. transform epsilon(1) to the same space as epsilon(0)
-           Eigen::MatrixXd ortho=_ppm_phi_T*rpa.GetEpsilon_i()[1]*_ppm_phi_T.transpose();
+           Eigen::MatrixXd ortho=_ppm_phi_T*rpa.GetEpsilon_i()[0]*_ppm_phi_T.transpose();
            Eigen::MatrixXd epsilon_1_inv=ortho.inverse();
            
             
