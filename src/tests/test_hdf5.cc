@@ -128,6 +128,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
     orbRead.ReadFromCpt(cpf, "Test Orbital");
 
-    std::cout << orbWrite.getQMpackage() << std::endl;
+    std::cout << orbRead.getQMpackage() << std::endl;
+    std::cout << orbRead.getBasisSetSize() << std::endl;
 
     BOOST_AUTO_TEST_SUITE_END()}

@@ -174,10 +174,25 @@ class Writer {
 
 void ReadScalar(const CptLoc& loc, std::string& var, const std::string& name);
 
+template <typename T>
+void ReadScalar(const CptLoc& loc, T& value,
+                const std::string& name) {
+
+    H5::Attribute attr = loc.openAttribute(name);
+    const H5::DataType* dataType = InferDataType<T>::get();
+
+    attr.read(*dataType, &value);
+}
 class Reader{
 public:
 Reader(const CptLoc& loc) : _loc(loc){};
 
+
+    template<typename T>
+    typename std::enable_if<std::is_fundamental<T>::value, T>::type
+    operator()(T& var, const std::string& name){
+        ReadScalar(_loc, var, name);
+    }
 
     void operator()(std::string& var, const std::string& name){
         ReadScalar(_loc, var,  name);

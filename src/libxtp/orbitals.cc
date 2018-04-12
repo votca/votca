@@ -773,6 +773,7 @@ namespace votca {
         try{
             hdf5_utils::Reader r(parent);
 
+            r(_basis_set_size, "basis_set_size");
             r(_qm_package, "qm_package");
 
         } catch (H5::Exception& error){
