@@ -201,6 +201,24 @@ template <typename T>
     dataset.read(matrix.derived().data(), *dataType);
 }
 
+template <typename T>
+    typename std::enable_if<std::is_fundamental<T>::value>::type
+    ReadData(const CptLoc& loc, std::vector<T>& v,
+             const std::string& name) {
+
+    H5::DataSet dataset = loc.openDataSet(name);
+    H5::DataSpace dp = dataset.getSpace();
+
+    const H5::DataType* dataType = InferDataType<T>::get();
+
+    hsize_t dims[2];
+    int ndims = dp.getSimpleExtentDims(dims, NULL);
+
+    v.resize(dims[0]);
+
+    dataset.read(&(v[0]), *dataType);
+}
+
 class Reader{
 public:
 Reader(const CptLoc& loc) : _loc(loc){};
