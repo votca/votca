@@ -26,8 +26,6 @@ using namespace votca::xtp;
 BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     votca::xtp::CheckpointFile cpf("xtp_testing.hdf5");
 
-    // Write orbitals
-    Orbitals orbWrite;
 
     int basisSetSize = 17;
     int occupiedLevels = 4;
@@ -88,6 +86,8 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         transitionDipolesTest.push_back(votca::tools::vec(1,2,3));
     }
 
+    // Write orbitals
+    Orbitals orbWrite;
 
     orbWrite.setBasisSetSize(basisSetSize);
     orbWrite.setNumberOfLevels(occupiedLevels, unoccupiedLevels);
@@ -122,8 +122,12 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
     orbWrite.WriteToCpt(cpf, "Test Orbital");
 
+
     // Read Orbitals
     Orbitals orbRead;
 
+    orbRead.ReadFromCpt(cpf, "Test Orbital");
+
+    std::cout << orbWrite.getQMpackage() << std::endl;
 
     BOOST_AUTO_TEST_SUITE_END()}

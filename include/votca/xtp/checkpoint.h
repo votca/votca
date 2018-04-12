@@ -143,6 +143,7 @@ void WriteData(const CptLoc& loc, const std::map<T1, std::vector<T2>> map,
   }
 }
 
+
 class Writer {
  public:
   Writer(const CptLoc& loc) : _loc(loc){};
@@ -170,6 +171,21 @@ class Writer {
  private:
   CptLoc _loc;
 };
+
+void ReadScalar(const CptLoc& loc, std::string& var, const std::string& name);
+
+class Reader{
+public:
+Reader(const CptLoc& loc) : _loc(loc){};
+
+
+    void operator()(std::string& var, const std::string& name){
+        ReadScalar(_loc, var,  name);
+    }
+private:
+    CptLoc _loc;
+};
+
 }  // namespace hdf5_utils
 
 class CheckpointFile {

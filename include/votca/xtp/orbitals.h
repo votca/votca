@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -76,9 +76,9 @@ namespace votca {
 
         /**
          * \brief container for molecular orbitals
-         * 
+         *
          * The Orbitals class stores orbital id, energy, MO coefficients, basis set
-         *     
+         *
          */
         class Orbitals {
         public:
@@ -89,9 +89,9 @@ namespace votca {
             static void PrepareGuess(Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB);
 
             /*
-             * 
+             *
              *  ************** NEW ACCESS STRATEGY ****************
-             * 
+             *
              *  Scalars:              get and set functions
              *  Vectors and matrixes: const and non-const refs, has-function via size
              */
@@ -135,11 +135,11 @@ namespace votca {
                 _number_of_electrons = electrons;
             }
 
-            
+
             bool hasECP(){
                 return ( _ECP !="") ? true : false;
             }
-            
+
             string getECP() {
                 return _ECP;
             };
@@ -181,7 +181,7 @@ namespace votca {
             bool hasMOEnergies() {
                 return ( _mo_energies.size() > 0) ? true : false;
             }
-            
+
             const Eigen::VectorXd &MOEnergies() const {
                 return _mo_energies;
             }
@@ -370,8 +370,8 @@ namespace votca {
 
             void setBSEtype(string bsetype){_bsetype=bsetype;}
             string getBSEtype() const{return _bsetype;}
-            
-            
+
+
             bool hasBSEindices() {
                 return ( _bse_cmax > 0) ? true : false;
             }
@@ -449,8 +449,8 @@ namespace votca {
             }
 
             // access to eh interaction
-            
-         
+
+
 
             bool hasEHinteraction() {
                 return ( _eh_d.cols() > 0) ? true : false;
@@ -611,7 +611,7 @@ namespace votca {
             Eigen::MatrixXd TransitionDensityMatrix(const string& spin,int state = 0);
             Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0);
             Eigen::MatrixXd LambdaMatrixQuasiParticle();
-      
+
 
 
             double GetTotalEnergy(string _spintype, int _opt_state);
@@ -632,8 +632,8 @@ namespace votca {
              void setFragmentChargesSingEXC(std::vector< Eigen::VectorXd > DqS_frag) {
                 _DqS_frag=DqS_frag;
             }
-             
-            
+
+
 
             // access to fragment charges of triplet excitations
 
@@ -658,23 +658,23 @@ namespace votca {
              void setFragmentChargesGS(Eigen::VectorXd GSq_frag) {
                  _GSq_frag=GSq_frag;
             }
-             
+
             void setFragment_E_localisation_singlet(std::vector< Eigen::VectorXd >& popE){
                 _popE_s=popE;
             }
-            
+
             void setFragment_H_localisation_singlet(std::vector< Eigen::VectorXd > & popH){
                 _popH_s=popH;
             }
-            
+
             void setFragment_E_localisation_triplet(std::vector< Eigen::VectorXd > & popE){
                 _popE_t=popE;
             }
-            
+
             void setFragment_H_localisation_triplet(std::vector< Eigen::VectorXd > & popH){
                 _popE_s=popH;
             }
-            
+
 
             const std::vector< Eigen::VectorXd >& getFragment_E_localisation_singlet()const{
                 return _popE_s;
@@ -714,7 +714,7 @@ namespace votca {
                 return pAtom;
             }
 
-         
+
             void WritePDB(FILE *out, std::string tag = "");
 
             // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
@@ -736,6 +736,9 @@ namespace votca {
             void WriteToCpt(CheckpointFile f, const std::string &name);
             void WriteToCpt(CptLoc parent);
 
+            void ReadFromCpt(CheckpointFile f, const std::string& name);
+            void ReadFromCpt(CptLoc parent);
+
 
         private:
             std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const string& spin,int state = 0);
@@ -746,15 +749,15 @@ namespace votca {
             int _unoccupied_levels;
             int _number_of_electrons;
             string _ECP;
-            
+
             string _bsetype;
-            
+
 
             std::map<int, std::vector<int> > _level_degeneracy;
 
             Eigen::VectorXd _mo_energies;
             Eigen::MatrixXd _mo_coefficients;
-            
+
             Eigen::MatrixXd _overlap;
             Eigen::MatrixXd _vxc;
 
@@ -799,7 +802,7 @@ namespace votca {
             Eigen::VectorXd _QPdiag_energies;
             Eigen::MatrixXd _QPdiag_coefficients;
             // excitons
-            
+
 
 
             MatrixXfd _eh_d;
@@ -845,7 +848,7 @@ namespace votca {
             template<typename Archive>
             void serialize(Archive& ar, const unsigned int version) {
                 //check with which votca version orbitals object was created
-             
+
                     std::vector<int> _index2v;
                     std::vector<int> _index2c;
             }// end of serialization
@@ -857,4 +860,3 @@ namespace votca {
 BOOST_CLASS_VERSION(votca::xtp::Orbitals, 4)
 
 #endif /* __VOTCA_XTP_ORBITALS_H */
-

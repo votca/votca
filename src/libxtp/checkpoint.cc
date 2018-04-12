@@ -59,6 +59,19 @@ void WriteData(const CptLoc& loc, const std::vector<votca::tools::vec>& v,
         ++c;
     }
 }
+
+void ReadScalar(const CptLoc& loc, std::string& var, const std::string& name){
+    const H5::DataType* strType = InferDataType<std::string>::get();
+
+    H5::Attribute attr = loc.openAttribute(name);
+
+    H5std_string readbuf("");
+
+    attr.read(*strType, readbuf);
+
+    var = readbuf;
+}
+
 }  // namespace hdf5_utils
 
 using namespace hdf5_utils;

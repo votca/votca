@@ -32,7 +32,7 @@
 namespace votca {
     namespace xtp {
 
-       
+
 
         Orbitals::Orbitals() {
 
@@ -82,7 +82,7 @@ namespace votca {
         }
 
         /**
-         * 
+         *
          * @param _energy_difference [ev] Two levels are degenerate if their energy is smaller than this value
          * @return A map with key as a level and a vector which is a list of close lying orbitals
          */
@@ -158,7 +158,7 @@ namespace votca {
                 int resnr = 1;
                 const tools::vec pos=(*atom)->getPos()*tools::conv::bohr2ang;
                 fprintf(out, "ATOM  %5d %4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f      %4s%2s  %8.3f\n",
-                        id, // Atom serial number           %5d 
+                        id, // Atom serial number           %5d
                         (*atom)->getType().c_str(), // Atom name                    %4s
                         " ", // alternate location indicator.%1s
                         resname.c_str(), // Residue name.                %3s
@@ -247,31 +247,31 @@ namespace votca {
         // Determine ground state density matrix
 
         Eigen::MatrixXd Orbitals::DensityMatrixGroundState() {
-          
+
           Eigen::MatrixXd occstates=_mo_coefficients.block(0,0,_mo_coefficients.rows(),_occupied_levels);
           Eigen::MatrixXd dmatGS = 2.0*occstates*occstates.transpose();
           return dmatGS;
         }
-        
+
         Eigen::MatrixXd Orbitals::LambdaMatrixQuasiParticle(){
           return _QPdiag_coefficients*_mo_coefficients.block(0,_qpmin,_mo_coefficients.rows(),_qptotal);
         }
-        
+
         // Determine QuasiParticle Density Matrix
         Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle( int state){
           Eigen::MatrixXd lambda =_QPdiag_coefficients*_mo_coefficients.block(0,_qpmin,_mo_coefficients.rows(),_qptotal);
           Eigen::MatrixXd dmatQP=lambda.row(state)*lambda.row(state).transpose();
           return dmatQP;
         }
-        
-      
+
+
 
         Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const string& spin, int state) {
             if(!(spin=="singlet" || spin=="triplet")){
                 throw runtime_error("Spin type not known for density matrix. Available are singlet and triplet");
             }
             MatrixXfd& _BSECoefs = (spin=="singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
-            
+
             Eigen::MatrixXd dmatTS = Eigen::MatrixXd::Zero(_basis_set_size,_basis_set_size);
             // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
             double sqrt2 = sqrt(2.0);
@@ -321,11 +321,11 @@ namespace votca {
             return dmatTS;
         }
 
-      
+
 
         std::vector<Eigen::MatrixXd > Orbitals::DensityMatrixExcitedState(const string& spin,int state) {
-            
-            
+
+
             std::vector<Eigen::MatrixXd > dmat = DensityMatrixExcitedState_R(spin,state);
             if(_bsetype=="full" && spin=="singlet"){
                 std::vector<Eigen::MatrixXd > dmat_AR = DensityMatrixExcitedState_AR(spin, state);
@@ -341,30 +341,30 @@ namespace votca {
             if(!(spin=="singlet" || spin=="triplet")){
                 throw runtime_error("Spin type not known for density matrix. Available are singlet and triplet");
             }
-            
+
             MatrixXfd & _BSECoefs = (spin=="singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
-           
-            /****** 
-             * 
+
+            /******
+             *
              *    Density matrix for GW-BSE based excitations
-             * 
+             *
              *    - electron contribution
              *      D_ab = \sum{vc} \sum{c'} A_{vc}A_{vc'} mo_a(c)mo_b(c')
-             * 
-             *    - hole contribution 
+             *
+             *    - hole contribution
              *      D_ab = \sum{vc} \sum{v'} A_{vc}A_{v'c} mo_a(v)mo_b(v')
-             * 
-             * 
+             *
+             *
              *   more efficient:
-             * 
+             *
              *   - electron contribution
              *      D_ab = \sum{c} \sum{c'} mo_a(c)mo_b(c') [ \sum{v} A_{vc}A_{vc'} ]
-             *           = \sum{c} \sum{c'} mo_a(c)mo_b(c') A_{cc'} 
-             *    
+             *           = \sum{c} \sum{c'} mo_a(c)mo_b(c') A_{cc'}
+             *
              *   - hole contribution
              *      D_ab = \sum{v} \sum{v'} mo_a(v)mo_b(v') [ \sum{c} A_{vc}A_{v'c} ]
-             *           = \sum{v} \sum{v'} mo_a(v)mo_b(v') A_{vv'} 
-             *  
+             *           = \sum{v} \sum{v'} mo_a(v)mo_b(v') A_{vv'}
+             *
              */
             std::vector<Eigen::MatrixXd > dmatEX;
             dmatEX.resize(2);
@@ -441,27 +441,27 @@ namespace votca {
             std::vector<Eigen::MatrixXd > dmatEX;
             MatrixXfd& _BSECoefs_AR = _BSE_singlet_coefficients_AR;
 
-            /****** 
-             * 
+            /******
+             *
              *    Density matrix for GW-BSE based excitations
-             * 
+             *
              *    - electron contribution
              *      D_ab = \sum{vc} \sum{v'} B_{vc}B_{v'c} mo_a(v)mo_b(v')
-             * 
-             *    - hole contribution 
+             *
+             *    - hole contribution
              *      D_ab = \sum{vc} \sum{c'} B_{vc}B_{vc'} mo_a(c)mo_b(c')
-             * 
-             * 
+             *
+             *
              *   more efficient:
-             * 
+             *
              *   - electron contribution
              *      D_ab = \sum{v} \sum{v'} mo_a(v)mo_b(v') [ \sum{c} B_{vc}B_{v'c} ]
-             *           = \sum{v} \sum{v'} mo_a(v)mo_b(v') B_{vv'} 
-             *    
+             *           = \sum{v} \sum{v'} mo_a(v)mo_b(v') B_{vv'}
+             *
              *   - hole contribution
              *      D_ab = \sum{c} \sum{c'} mo_a(c)mo_b(c') [ \sum{v} B_{vc}B_{vc'} ]
-             *           = \sum{c} \sum{c'} mo_a(c)mo_b(c') B_{cc'} 
-             *  
+             *           = \sum{c} \sum{c'} mo_a(c)mo_b(c') B_{cc'}
+             *
              */
             std::vector<Eigen::MatrixXd > dmatAR;
             dmatAR.resize(2);
@@ -606,9 +606,9 @@ namespace votca {
             return fragmentNuclearCharges;
         }
 
-/** 
+/**
          * \brief Guess for a dimer based on monomer orbitals
-         * 
+         *
          * Given two monomer orbitals (A and B) constructs a guess for dimer
          * orbitals: | A 0 | and energies: [EA, EB]
          *           | 0 B |
@@ -635,7 +635,7 @@ namespace votca {
             _orbitalsAB->setNumberOfLevels(_electronsA - _electronsB,
                     _levelsA + _levelsB - _electronsA - _electronsB);
             _orbitalsAB->setNumberOfElectrons(_electronsA + _electronsB);
-            
+
             _mo_coefficients.block(0,0,_basisA,_levelsA)=_orbitalsA->MOCoefficients();
             _mo_coefficients.block(_basisA,_levelsA,_basisB,_levelsB)=_orbitalsB->MOCoefficients();
 
@@ -672,9 +672,9 @@ namespace votca {
                         continue;
                     }
                     // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
-                    
+
                     string element = split[0];
-                    double x = boost::lexical_cast<double>(split[1]); 
+                    double x = boost::lexical_cast<double>(split[1]);
                     double y = boost::lexical_cast<double>(split[2]);
                     double z = boost::lexical_cast<double>(split[3]);
                     tools::vec pos=tools::vec(x,y,z);
@@ -764,6 +764,20 @@ namespace votca {
 
     }
 
-
+    void Orbitals::ReadFromCpt(CheckpointFile f, const std::string& name){
+        CptLoc orbGr = f.getHandle().openGroup("/" + name);
+        ReadFromCpt(orbGr);
     }
+
+    void Orbitals::ReadFromCpt(CptLoc parent){
+        try{
+            hdf5_utils::Reader r(parent);
+
+            r(_qm_package, "qm_package");
+
+        } catch (H5::Exception& error){
+            throw std::runtime_error(error.getDetailMsg());
+        }
+    }
+}
 }
