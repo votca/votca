@@ -183,10 +183,33 @@ void ReadScalar(const CptLoc& loc, T& value,
 
     attr.read(*dataType, &value);
 }
+
+template <typename T>
+    void ReadData(const CptLoc& loc, Eigen::MatrixBase<T>& matrix,
+                  const std::string& name) {
+
+    const H5::DataType* dataType = InferDataType<typename T::Scalar>::get();
+
+    H5::DataSet dataset = loc.openDataSet(name);
+
+    H5::DataSpace dp = dataset.getSpace();
+
+    hsize_t dims[2];
+    int ndims = dp.getSimpleExtentDims(dims, NULL); // ndims is always 2 for us
+
+    matrix.derived().resize(dims[0], dims[1]);
+    dataset.read(matrix.derived().data(), *dataType);
+}
+
 class Reader{
 public:
 Reader(const CptLoc& loc) : _loc(loc){};
 
+    template<typename T>
+    typename std::enable_if<!std::is_fundamental<T>::value>::type
+    operator()(T& var, const std::string& name){
+        ReadData(_loc, var, name);
+    }
 
     template<typename T>
     typename std::enable_if<std::is_fundamental<T>::value, T>::type

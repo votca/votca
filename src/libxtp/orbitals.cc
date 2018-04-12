@@ -776,6 +776,9 @@ namespace votca {
             r(_basis_set_size, "basis_set_size");
             r(_qm_package, "qm_package");
 
+            r(_mo_energies, "mo_energies");
+            r(_mo_coefficients, "mo_coefficients");
+
         } catch (H5::Exception& error){
             throw std::runtime_error(error.getDetailMsg());
         }

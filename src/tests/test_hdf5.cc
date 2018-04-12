@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.setNumberOfElectrons(numElectrons);
     orbWrite.MOEnergies() = moeTest;
     orbWrite.MOCoefficients() = mocTest;
-    orbWrite.QMAtoms() = atomsTest;
+    //orbWrite.QMAtoms() = atomsTest;
     orbWrite.setQMEnergy(qmEnergy);
     orbWrite.setQMpackage(qmPackage);
     orbWrite.setSelfEnergy(selfEnergy);
