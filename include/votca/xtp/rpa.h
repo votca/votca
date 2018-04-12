@@ -33,24 +33,30 @@ namespace votca {
                 _homo = homo;
                 _rpamin = rpamin;
                 _rpamax = rpamax;
-                // fix the frequencies for PPM
-                _screening_freq = Eigen::MatrixXd::Zero(2, 2); // two frequencies
-                // first one
-                _screening_freq(0, 0) = 0.0; // real part
-                _screening_freq(0, 1) = 0.0; // imaginary part
-                // second one
-                _screening_freq(1, 0) = 0.0; // real part
-                _screening_freq(1, 1) = 0.5; // imaginary part  //hartree
-                // one entry to epsilon for each frequency
-                _epsilon.resize(_screening_freq.rows());
+            }
+            
+            void setScreening(Eigen::VectorXd& _screen_freq_r,Eigen::VectorXd& _screen_freq_i){
+                screen_freq_r = _screen_freq_r;
+                screen_freq_i = _screen_freq_i;
+                _epsilon_r.resize(screen_freq_r.size());
+                _epsilon_i.resize(screen_freq_i.size());
+                
             }
 
-            const Eigen::MatrixXd& GetScreening_freq() const {
-                return _screening_freq;
+            const Eigen::VectorXd& GetScreening_freq_r() const {
+                return screen_freq_r;
+            }
+            
+            const Eigen::VectorXd& GetScreening_freq_i() const {
+                return screen_freq_i;
             }
 
-            const std::vector<Eigen::MatrixXd>& GetEpsilon() const {
-                return _epsilon;
+            const std::vector<Eigen::MatrixXd>& GetEpsilon_r() const {
+                return _epsilon_r;
+            }
+            
+            const std::vector<Eigen::MatrixXd>& GetEpsilon_i() const {
+                return _epsilon_i;
             }
 
             void prepare_threecenters(const TCMatrix_gwbse& _Mmn_full);
@@ -59,9 +65,13 @@ namespace votca {
 
             void FreeMatrices() {
                 _Mmn_RPA.Cleanup();
-                _epsilon[0].resize(0, 0);
-                _epsilon[1].resize(0, 0);
-
+                for (Eigen::MatrixXd & matrix:_epsilon_r){
+                    matrix.resize(0,0);
+                }
+                for (Eigen::MatrixXd & matrix:_epsilon_i){
+                    matrix.resize(0,0);
+                }
+            
             }
 
         private:
@@ -73,16 +83,16 @@ namespace votca {
             double _shift; // pre-shift of DFT energies
 
             // container for the epsilon matrix
-            std::vector<Eigen::MatrixXd > _epsilon;
-            // container for frequencies in screening (index 0: real part, index 1:
-            // imaginary part)
-            Eigen::MatrixXd _screening_freq;
+            std::vector<Eigen::MatrixXd > _epsilon_r;
+            
+            std::vector<Eigen::MatrixXd > _epsilon_i;
+           
+            
+            // We cannot calculate screening at complex frequencies only at real or imaginary points
+            Eigen::VectorXd screen_freq_r; //real screening frequencies
+            Eigen::VectorXd screen_freq_i;//imaginary screening frequencies
 
-            Eigen::MatrixXd epsilon_real(const Eigen::VectorXd& qp_energies,
-                    const double screening_freq);
-
-            Eigen::MatrixXd epsilon_imaginary(const Eigen::VectorXd& qp_energies,
-                    const double screening_freq);
+           
 
 
         };

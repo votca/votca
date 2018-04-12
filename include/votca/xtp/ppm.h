@@ -33,7 +33,14 @@ namespace xtp {
 class PPM {
  public:
      
+     PPM():screening_r(0.0),screening_i(0.5){};
      
+    //This sets the screening frequencies for real and imaginary part in hartree
+     
+
+double getScreening_r()const{return screening_r;}
+
+double getScreening_i()const{return screening_i;}
  void PPM_construct_parameters(const RPA& rpa);
 
  const Eigen::VectorXd& getPpm_weight() const {
@@ -54,7 +61,8 @@ class PPM {
      
  private:
  
-  
+     double screening_r;
+     double screening_i;
 
   // PPM related variables and functions
   Eigen::MatrixXd _ppm_phi_T;
