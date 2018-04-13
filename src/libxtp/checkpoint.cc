@@ -21,6 +21,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <votca/xtp/checkpoint.h>
+#include <ifstream>
 namespace votca {
 namespace xtp {
 
@@ -30,12 +31,24 @@ CheckpointFile::CheckpointFile(std::string fN)
     : _fileName(fN), _version(gitversion) {
 
   try {
-      //H5::Exception::dontPrint();
-    _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
+      bool fileExists = false;
+      // Check if file exists
+      {
+          std::ifstream file(_fileName);
+          fileExists = (bool)file;
+      }
 
-    Writer w(_fileHandle.openGroup("/"));
+      H5::Exception::dontPrint();
+      if (fileExists){
+          _fileHandle = H5::H5File(_fileName, H5F_ACC_RDWR);
+      }
+      else {
+          _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
+      }
 
-    w(gitversion, "Version");
+      Writer w(_fileHandle.openGroup("/"));
+
+      w(gitversion, "Version");
 
   } catch (H5::Exception& error) {
     error.printError();
