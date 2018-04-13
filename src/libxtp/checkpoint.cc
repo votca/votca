@@ -24,7 +24,7 @@
 namespace votca {
 namespace xtp {
 
-using namespace hdf5_utils;
+using namespace checkpoint_utils;
 
 CheckpointFile::CheckpointFile(std::string fN)
     : _fileName(fN), _version(gitversion) {

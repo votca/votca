@@ -32,7 +32,7 @@ namespace xtp {
 typedef H5::Group CptLoc;
 
 
-namespace hdf5_utils {
+namespace checkpoint_utils {
 
 H5::DataSpace str_scalar(H5::DataSpace(H5S_SCALAR));
 
@@ -300,7 +300,7 @@ private:
     }
 };
 
-}  // namespace hdf5_utils
+}  // namespace checkpoint_utils
 
 class CheckpointFile {
  public:

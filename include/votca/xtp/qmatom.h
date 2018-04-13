@@ -93,7 +93,7 @@ private:
    }
 
    void WriteToCpt(CptLoc parent){
-       hdf5_utils::Writer w(parent);
+       checkpoint_utils::Writer w(parent);
 
        w(index, "index");
        w(type, "type");
@@ -104,7 +104,7 @@ private:
    }
 
    void ReadFromCpt(CptLoc parent){
-       hdf5_utils::Reader r(parent);
+       checkpoint_utils::Reader r(parent);
 
        r(index, "index");
        r(type, "type");
