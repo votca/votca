@@ -774,12 +774,64 @@ namespace votca {
             hdf5_utils::Reader r(parent);
 
             r(_basis_set_size, "basis_set_size");
-            r(_qm_package, "qm_package");
+            r(_occupied_levels, "occupied_levels");
+            r(_unoccupied_levels, "unoccupied_levels");
+            r(_number_of_electrons, "number_of_electrons");
 
             r(_mo_energies, "mo_energies");
             r(_mo_coefficients, "mo_coefficients");
 
+            // Read qmatoms
+            {
+                CptLoc qmAtomsGr = parent.openGroup("qmatoms");
+                size_t count = 0;
+                for (const auto& qma: _atoms){
+                    CptLoc tempLoc = qmAtomsGr.openGroup("index" + std::to_string(count));
+                    qma->ReadFromCpt(tempLoc);
+                    ++count;
+                }
+
+            }
+
+            r(_qm_energy, "qm_energy");
+            r(_qm_package, "qm_package");
+            r(_self_energy, "self_energy");
+
+            r(_dftbasis, "dftbasis");
+            r(_auxbasis, "auxbasis");
+
+            r(_rpamin, "rpamin");
+            r(_rpamax, "rpamax");
+            r(_qpmin, "qpmin");
+            r(_qpmax, "qpmax");
+            r(_bse_vmin, "bse_vmin");
+            r(_bse_vmax, "bse_vmax");
+            r(_bse_cmin, "bse_cmin");
+            r(_bse_cmax, "bse_cmax");
+
+            r(_ScaHFX, "ScaHFX");
+
+            r(_bsetype, "bsetype");
+            r(_ECP, "ECP");
+
+            r(_QPpert_energies, "QPpert_energies");
+            r(_QPdiag_energies, "QPdiag_energies");
+
+            r(_QPdiag_coefficients, "QPdiag_coefficients");
+            r(_eh_d, "eh_d");
+
+            r(_eh_x, "eh_x");
+
+            r(_BSE_singlet_energies, "BSE_singlet_energies");
+
+            r(_BSE_singlet_coefficients, "BSE_singlet_coefficients");
+
+            r(_BSE_singlet_coefficients_AR, "BSE_singlet_coefficients_AR");
+
             r(_transition_dipoles, "transition_dipoles");
+
+            r(_BSE_triplet_energies, "BSE_triplet_energies");
+            r(_BSE_triplet_coefficients, "BSE_triplet_coefficients");
 
         } catch (H5::Exception& error){
             throw std::runtime_error(error.getDetailMsg());
