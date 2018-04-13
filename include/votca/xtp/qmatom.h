@@ -102,6 +102,17 @@ private:
        w(ecpcharge, "ecpcharge");
        w(partialcharge, "partialcharge");
    }
+
+   void ReadFromCpt(CptLoc parent){
+       hdf5_utils::Reader r(parent);
+
+       r(index, "index");
+       r(type, "type");
+       r(pos, "pos");
+       r(nuccharge, "nuccharge");
+       r(ecpcharge, "ecpcharge");
+       r(partialcharge, "partialcharge");
+   }
 };
     
 }}
