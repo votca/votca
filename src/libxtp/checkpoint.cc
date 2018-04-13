@@ -24,80 +24,6 @@
 namespace votca {
 namespace xtp {
 
-namespace hdf5_utils {
-
-H5::DataSpace str_scalar(H5::DataSpace(H5S_SCALAR));
-
-void WriteScalar(const CptLoc& loc, const std::string& value,
-                 const std::string& name) {
-
-  hsize_t dims[1] = {1};
-  H5::DataSpace dp(1, dims);
-  const H5::DataType* strType = InferDataType<std::string>::get();
-
-  H5::Attribute attr = loc.createAttribute(name, *strType, StrScalar());
-  attr.write(*strType, &value);
-}
-
-void WriteData(const CptLoc& loc, const votca::tools::vec& v,
-               const std::string& name) {
-
-    // store tools::vec as n vector of three elements
-    std::vector<double> data = {v.getX(), v.getY(), v.getZ()};
-    WriteData(loc, data, name);
-}
-
-void WriteData(const CptLoc& loc, const std::vector<votca::tools::vec>& v,
-               const std::string& name) {
-
-    size_t c = 0;
-    std::string r;
-    CptLoc parent = loc.createGroup(name);
-    for (auto const& x: v){
-        r = std::to_string(c);
-        WriteData(parent, x, "ind"+r);
-        ++c;
-    }
-}
-
-void ReadScalar(const CptLoc& loc, std::string& var, const std::string& name){
-    const H5::DataType* strType = InferDataType<std::string>::get();
-
-    H5::Attribute attr = loc.openAttribute(name);
-
-    H5std_string readbuf("");
-
-    attr.read(*strType, readbuf);
-
-    var = readbuf;
-}
-
-void ReadData(const CptLoc& loc, votca::tools::vec& v,
-              const std::string& name){
-
-    // read tools::vec as a vector of three elements
-    std::vector<double> data = {0,0,0};
-    ReadData(loc, data, name);
-    v = votca::tools::vec(data[0], data[1], data[2]);
-}
-
-void ReadData(const CptLoc& loc, std::vector<votca::tools::vec>& v,
-              const std::string& name){
-
-    CptLoc parent = loc.openGroup(name);
-    size_t count = parent.getNumObjs();
-
-    v.resize(count);
-
-    size_t c = 0;
-    for (auto &vec: v){
-        ReadData(parent, vec, "ind"+std::to_string(c));
-        ++c;
-    }
-}
-
-}  // namespace hdf5_utils
-
 using namespace hdf5_utils;
 
 CheckpointFile::CheckpointFile(std::string fN)
@@ -107,7 +33,9 @@ CheckpointFile::CheckpointFile(std::string fN)
       //H5::Exception::dontPrint();
     _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
 
-    WriteScalar(_fileHandle.openGroup("/"), gitversion, "Version");
+    Writer w(_fileHandle.openGroup("/"));
+
+    w(gitversion, "Version");
 
   } catch (H5::Exception& error) {
     error.printError();
