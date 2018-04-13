@@ -17,8 +17,8 @@
 
 #ifndef _VOTCA_TOOLS_MAT_H
 #define _VOTCA_TOOLS_MAT_H
-
 #include "ostream"
+#include "floatingpointcomparison.h"
 #include "types.h"
 #include "vec.h"
 
@@ -53,12 +53,22 @@ namespace tools {
       matrix &operator=(const matrix &v);
       matrix &operator=(double[9]);
 
-      bool operator!=(const matrix m) const {
-        for (size_t i = 0; i < 9; ++i)
-          if (_m[i] != m._m[i]) return true;
-        return false;
+      /**
+       * \brief Compare floating point values of two matrices
+       *
+       * The floating point values are compared to within a tolerance which
+       * is specified as the third parameter.
+       *
+       * @param[in] m - matrix to be compared
+       * @param[in] tol - tolerance 
+       * @return bool - return true if within tolerance and false if not
+       */
+      bool isClose(const matrix& m, double tol) const {
+        for (size_t i = 0; i < 9; ++i){
+          if (!isApproximatelyEqual(_m[i], m._m[i],tol)) return false;
+        }
+        return true;
       }
-      bool operator==(const matrix m) const { return !(*this != m); }
       matrix &operator*=(const double &d) {
         for (size_t i = 0; i < 9; ++i) _m[i] *= d;
         return *this;

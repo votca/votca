@@ -17,57 +17,28 @@
 
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE matrix_test
+#define BOOST_TEST_MODULE vec_test
 #include <boost/test/unit_test.hpp>
-#include <votca/tools/matrix.h>
 #include <votca/tools/vec.h>
-#include <iostream>
 
 using namespace votca::tools;
 
-BOOST_AUTO_TEST_SUITE(matrix_test)
+BOOST_AUTO_TEST_SUITE(vec_test)
 
-BOOST_AUTO_TEST_CASE(constructors_test) {
-  matrix mat;
-  vec v1(1,2,3);
-  vec v2(4,5,6);
-  vec v3(7,8,9);
-  matrix mat2(v1,v2,v3);
-  matrix mat3(mat2);
-  matrix mat4 = mat2;
-  std::cout<<"mat2"<< mat2 << std::endl;
-  std::cout<<"mat4"<< mat4 << std::endl;
-}
+
 
 BOOST_AUTO_TEST_CASE(overloadoperator_test) {
 
   vec v1(1,1,1);
-  matrix mat1(v1,v1,v1);
-  matrix mat2(v1,v1,v1);
-
-  {
-    BOOST_CHECK(mat1.isClose(mat2,0.01));
-  }
+  vec v2(1.0);
+  vec v3(1.1);
+ 
   
-  vec v2(0,0,0);
-  matrix mat3(v2,v2,v2);
-  matrix mat4(v2,v2,v2);
-  
-  {
-    mat3+=mat1;
-    BOOST_CHECK(mat3.isClose(mat1,0.01)); 
-    mat3-=mat1;
-    BOOST_CHECK(mat3.isClose(mat4,0.01));
+    BOOST_CHECK(v1.isClose(v2,0.001)); 
+    
+    BOOST_CHECK(!v1.isClose(v3,0.001)); 
   }
 
-  vec v3(-1,-1,-1);
-  matrix mat5(v3,v3,v3);
-  {
-    mat1/=(-1);
-    BOOST_CHECK(mat1.isClose(mat5,0.01));
-    mat1*=(-1);
-    BOOST_CHECK(mat1.isClose(mat2,0.01));
-  }  
-}
+
 
 BOOST_AUTO_TEST_SUITE_END()

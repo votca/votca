@@ -35,7 +35,7 @@
 #include <unistd.h>
 
 namespace votca { namespace tools {
-
+    using namespace std;
 // ostream modifier defines the output format, level, indentation
 const int Property::IOindex = std::ios_base::xalloc(); 
    
@@ -160,6 +160,7 @@ bool load_property_from_xml(Property &p, string filename)
           XML_ErrorString(XML_GetErrorCode(parser)));
   }
   fl.close();
+  XML_ParserFree(parser);
   return true;
 }
 

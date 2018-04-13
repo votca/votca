@@ -84,7 +84,7 @@ class Elements {
   /// Returns the mass of each atom in a.u.
   const double &getMass(std::string name) const { return _Mass.at(name); }
   /// Returns the covalent Radii of the atom 
-  const double getCovRad(std::string name,std::string unit ) const 
+  double getCovRad(std::string name,std::string unit ) const 
   { 
     //TODO - This should be replaced with an object, an object that should
     //       auto recognise the units and return it in a standard type
