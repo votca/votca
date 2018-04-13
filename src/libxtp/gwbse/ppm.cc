@@ -28,7 +28,7 @@ namespace votca {
         void PPM::PPM_construct_parameters(const RPA& rpa) {
         
             //Solve Eigensystem
-            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.GetEpsilon()[0]); 
+            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.GetEpsilon_r()[0]); 
             //we store _ppm_phi_T instead of _ppm_phi because we need it for later transformations
             _ppm_phi_T=es.eigenvectors().transpose();
           
@@ -42,29 +42,22 @@ namespace votca {
             // determine PPM frequencies
             _ppm_freq.resize(es.eigenvalues().size());
             // a) phi^t * epsilon(1) * phi e.g. transform epsilon(1) to the same space as epsilon(0)
-           Eigen::MatrixXd ortho=_ppm_phi_T*rpa.GetEpsilon()[1]*_ppm_phi_T.transpose();
+           Eigen::MatrixXd ortho=_ppm_phi_T*rpa.GetEpsilon_i()[0]*_ppm_phi_T.transpose();
            Eigen::MatrixXd epsilon_1_inv=ortho.inverse();
            
             
             #pragma omp parallel for 
             for (unsigned _i = 0; _i < es.eigenvalues().size(); _i++) {
-
-                if (rpa.GetScreening_freq()(1, 0) == 0.0) {
+  
                     if (_ppm_weight(_i) < 1.e-5) {
                         _ppm_weight(_i) = 0.0;
                         _ppm_freq(_i) = 0.5;//Hartree
                         continue;
                     } else {
                         double _nom = epsilon_1_inv(_i, _i) - 1.0;
-                        double _frac = -1.0 * _nom / (_nom + _ppm_weight(_i)) * rpa.GetScreening_freq()(1, 1) * rpa.GetScreening_freq()(1, 1);
+                        double _frac = -1.0 * _nom / (_nom + _ppm_weight(_i)) * screening_i *screening_i;
                         _ppm_freq(_i) = sqrt(std::abs(_frac));
                     }
-
-                } else {
-                    // only purely imaginary frequency assumed
-                    cerr << " mixed frequency! real part: " << rpa.GetScreening_freq()(1, 0) << " imaginary part: " << rpa.GetScreening_freq()(1, 1) << flush;
-                    exit(1);
-                }
 
             }
 

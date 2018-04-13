@@ -52,7 +52,7 @@ namespace votca {
             typedef tensor3d::index index; /////////////////////
             tensor3d::extent_gen extents; /////////////////////
 
-            bool FillThreeCenterRepBlock(Eigen::MatrixXd & _subvector, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col);
+            bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col);
             bool FillThreeCenterOLBlock(Eigen::MatrixXd & _subvector, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col);
 
         };
@@ -80,7 +80,7 @@ namespace votca {
         private:
             std::vector< Symmetric_Matrix > _matrix;
 
-            void FillBlock(const AOShell* _shell, const AOBasis& dftbasis);
+            void FillBlock(const AOShell* _auxshell, const AOBasis& dftbasis);
 
         };
 
@@ -152,7 +152,7 @@ namespace votca {
             int _mtotal;
             int basissize;
 
-            void FillBlock(std::vector< Eigen::MatrixXd >& _matrix, const AOShell* _shell, const AOBasis& dftbasis, const Eigen::MatrixXd& _dft_orbitals);
+            void FillBlock(std::vector< Eigen::MatrixXd >& _matrix, const AOShell* _auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& _dft_orbitals);
 
         };
     

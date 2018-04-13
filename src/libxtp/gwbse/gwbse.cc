@@ -753,15 +753,27 @@ bool GWBSE::Evaluate() {
   // make _Mmn symmetric
   _Mmn.MultiplyLeftWithAuxMatrix(_auxcoulomb.Matrix());
   _auxcoulomb.Matrix().resize(0,0);
-  
+  CTP_LOG(ctp::logDEBUG, *_pLog)
+      << ctp::TimeStamp()
+      << " Multiplied Mmn_beta with Coulomb Matrix " << flush;
+  PPM ppm;
   RPA rpa;
+  rpa.configure(_homo,_rpamin,_rpamax);
+  
+  
+  Eigen::VectorXd screen_r=Eigen::VectorXd::Zero(1);
+  screen_r(0)=ppm.getScreening_r();
+  Eigen::VectorXd screen_i=Eigen::VectorXd::Zero(1);
+  screen_i(0)=ppm.getScreening_i();
+  
+  rpa.setScreening(screen_r,screen_i);
     // for use in RPA, make a copy of _Mmn with dimensions
   // (1:HOMO)(gwabasissize,LUMO:nmax)
   rpa.prepare_threecenters(_Mmn);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Prepared Mmn_beta for RPA  " << flush;
   
-  PPM ppm;
+ 
   Sigma sigma=Sigma(_pLog);
   sigma.configure(_homo,_qpmin,_qpmax,_g_sc_max_iterations,_g_sc_limit);
   sigma.setDFTdata(_orbitals->getScaHFX(),&vxc,&_orbitals->MOEnergies());
@@ -841,7 +853,7 @@ bool GWBSE::Evaluate() {
       Eigen::VectorXd diff = _qp_old_rpa - gwa_energies;
       int state = 0;
       double E_diff_max=diff.cwiseAbs().maxCoeff(&state);
-      if(E_diff_max<_gw_sc_limit){
+      if(E_diff_max>_gw_sc_limit){
            _gw_converged = false;
       }
       

@@ -36,19 +36,17 @@ namespace votca {
       for (unsigned _m = 0; _m < Hqp.rows(); _m++) {
         Hqp(_m, _m) = _gwa_energies(_m + _qpmin);
       }
-      // sigma matrices can be freed
-      _sigma_x.resize(0, 0);
-      _sigma_c.resize(0, 0);
       return Hqp;
     }
 
     void Sigma::CalcdiagElements(const TCMatrix_gwbse& _Mmn, const PPM & ppm) {
-
+      _sigma_x=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
+      _sigma_c=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
       unsigned _levelsum = _Mmn.get_ntot(); // total number of bands
       unsigned _gwsize = _Mmn.getAuxDimension(); // size of the GW basis
       const double pi = boost::math::constants::pi<double>();
 
-#pragma omp parallel for
+//#pragma omp parallel for
       for (unsigned _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
         const MatrixXfd & Mmn = _Mmn[ _gw_level + _qpmin ];
         double sigma_x = 0;
@@ -60,6 +58,7 @@ namespace votca {
         } // gwbasis functions             
         _sigma_x(_gw_level, _gw_level) = (1.0 - _ScaHFX) * sigma_x;
       }
+      
       // initial _qp_energies are dft energies
       Eigen::VectorXd _qp_old = _gwa_energies;
       // only diagonal elements except for in final iteration
@@ -103,7 +102,7 @@ namespace votca {
 
         int state = 0;
         double diff_max = diff.cwiseAbs().maxCoeff(&state);
-        if (diff_max < _g_sc_limit) {
+        if (diff_max > _g_sc_limit) {
           energies_converged = false;
         }
 

@@ -420,7 +420,7 @@ namespace votca {
               true, _histlength, _maxout, _adiis_start, _diis_start, _levelshift, _levelshiftend, _numofelectrons / 2, _mixingparameter);
       conv_accelerator.setLogger(_pLog);
       conv_accelerator.setOverlap(&_dftAOoverlap.Matrix());
-      
+
 
       if (_with_RI) {
 

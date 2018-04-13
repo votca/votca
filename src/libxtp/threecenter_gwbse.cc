@@ -36,7 +36,7 @@ namespace votca {
             basissize=_basissize;
            
             // vector has mtotal elements
-            _matrix.resize( this->get_mtot() );
+            _matrix.resize(_mtotal);
             
             // each element is a gwabasis-by-n matrix, initialize to zero
             for ( int i = 0; i < this->get_mtot() ; i++){
@@ -99,22 +99,20 @@ namespace votca {
             // loop over all shells in the GW basis and get _Mmn for that shell
             #pragma omp parallel for schedule(guided)//private(_block)
             for ( unsigned _is= 0; _is <  _gwbasis.getNumofShells() ; _is++ ){ 
-                const AOShell* _shell = _gwbasis.getShell(_is);
-                int _start = _shell->getStartIndex();
-                // each element is a shell_size-by-n matrix, initialize to zero
-                std::vector< Eigen::MatrixXd > _block(this->get_mtot());
-                for (int i = 0; i < this->get_mtot(); i++) {
-                    _block[i] = Eigen::MatrixXd::Zero(_shell->getNumFunc(), this->get_ntot());
+                const AOShell* shell = _gwbasis.getShell(_is);
+                std::vector< Eigen::MatrixXd > block;
+                for (int i = 0; i < _mtotal; i++) {
+                    block.push_back(Eigen::MatrixXd::Zero(shell->getNumFunc(), _ntotal));
                 }
                 // Fill block for this shell (3-center overlap with _dft_basis + multiplication with _dft_orbitals )
-                FillBlock(_block, _shell, _dftbasis, _dft_orbitals);
-
+                FillBlock(block, shell, _dftbasis, _dft_orbitals);
+                
                 // put into correct position
-                for (int _m_level = 0; _m_level < this->get_mtot(); _m_level++) {
-                    for (int _i_gw = 0; _i_gw < _shell->getNumFunc(); _i_gw++) {
-                        for (int _n_level = 0; _n_level < this->get_ntot(); _n_level++) {
+                for (int m_level = 0; m_level < this->get_mtot(); m_level++) {
+                    for (int i_gw = 0; i_gw < shell->getNumFunc(); i_gw++) {
+                        for (int n_level = 0; n_level < this->get_ntot(); n_level++) {
 
-                            _matrix[_m_level](_start + _i_gw, _n_level) = _block[_m_level](_i_gw, _n_level);
+                            _matrix[m_level](shell->getStartIndex() + i_gw, n_level) = block[m_level](i_gw, n_level);
 
                         } // n-th DFT orbital
                     } // GW basis function in shell
@@ -130,70 +128,66 @@ namespace votca {
          * GW shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock),
          * followed by a convolution of those with the DFT orbital coefficients 
          */
-        
-        void TCMatrix_gwbse::FillBlock(std::vector< Eigen::MatrixXd >& _block,const AOShell* _shell,const AOBasis& dftbasis,const Eigen::MatrixXd& _dft_orbitals) {
-	 
-            // prepare local storage for 3-center overlap x m-orbitals
-            Eigen::MatrixXd _imstore = Eigen::MatrixXd::Zero(_mtotal * _shell->getNumFunc(), dftbasis.AOBasisSize());
-        
 
-            // alpha-loop over the "left" DFT basis function
-            for (AOBasis::AOShellIterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); ++_row) {
-                const AOShell* _shell_row = dftbasis.getShell(_row);
-                int _row_start = _shell_row->getStartIndex();
-              
-                // get slice of _dft_orbitals for m-summation, belonging to this shell
-                const Eigen::MatrixXd  _m_orbitals = _dft_orbitals.block( _row_start,_mmin, _shell_row->getNumFunc(),_mtotal);
+    void TCMatrix_gwbse::FillBlock(std::vector< Eigen::MatrixXd >& _block, const AOShell* _auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& _dft_orbitals) {
 
-                // gamma-loop over the "right" DFT basis function
-                for (AOBasis::AOShellIterator _col = dftbasis.firstShell(); _col != dftbasis.lastShell(); ++_col) {
-                    const AOShell* _shell_col = dftbasis.getShell(_col);
-                    int _col_start = _shell_col->getStartIndex();
-                    int _col_end = _col_start + _shell_col->getNumFunc();
+      std::vector<Eigen::MatrixXd> symmstorage;
+      for (unsigned i=0;i<_auxshell->getNumFunc();++i) {
+        symmstorage.push_back(Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize()));
+      }
+      const Eigen::MatrixXd dftm = _dft_orbitals.block(0, _mmin, _dft_orbitals.rows(), _mtotal);
+      const Eigen::MatrixXd dftn = _dft_orbitals.block(0, _nmin, _dft_orbitals.rows(), _ntotal);
+      // alpha-loop over the "left" DFT basis function
+      for (unsigned _row = 0; _row < dftbasis.getNumofShells(); _row++) {
 
-                    // get 3-center overlap directly as _subvector
-                    Eigen::MatrixXd _subvector = Eigen::MatrixXd::Zero(_shell_row->getNumFunc(), _shell->getNumFunc() * _shell_col->getNumFunc());
-                    bool nonzero = FillThreeCenterRepBlock(_subvector, _shell, _shell_row, _shell_col);
+        const AOShell* _shell_row = dftbasis.getShell(_row);
+        const int _row_start = _shell_row->getStartIndex();
+        // ThreecMatrix is symmetric, restrict explicit calculation to triangular matrix
+        for (unsigned _col = 0; _col <= _row; _col++) {
+          const AOShell* _shell_col = dftbasis.getShell(_col);
+          const int _col_start = _shell_col->getStartIndex();
 
-                    // if this contributes, multiply _subvector with _dft_orbitals and place in _imstore
-                    if (nonzero) {
+          tensor3d threec_block(extents[ range(0, _auxshell->getNumFunc()) ][ range(0, _shell_row->getNumFunc()) ][ range(0, _shell_col->getNumFunc())]);
+          for (unsigned i = 0; i < _auxshell->getNumFunc(); ++i) {
+            for (unsigned j = 0; j < _shell_row->getNumFunc(); ++j) {
+              for (unsigned k = 0; k < _shell_col->getNumFunc(); ++k) {
+                threec_block[i][j][k] = 0.0;
+              }
+            }
+          }
 
-                       Eigen::MatrixXd _temp=_m_orbitals.transpose()* _subvector;
-                     
-                        // put _temp into _imstore
-                        for (unsigned _m_level = 0; _m_level < _temp.rows(); _m_level++) {
-                            for (int _i_gw = 0; _i_gw < _shell->getNumFunc(); _i_gw++) {
-                                int _ridx = _shell->getNumFunc() * (_m_level - this->_mmin) + _i_gw;
-
-                                for (int _cidx = _col_start; _cidx < _col_end; _cidx++) {
-                                    int _tidx = _shell_col->getNumFunc() * (_i_gw) + _cidx - _col_start;
-                                    _imstore(_ridx, _cidx) += _temp(_m_level, _tidx);
-                                } // index magic
-                            } // GW basis function in shell
-                        } // m-level
-                    } // IF: adding contribution                        
-                } // gamma-loop
-            } // alpha-loop
-
-
-            // get transposed slice of _dft_orbitals
-            const Eigen::MatrixXd _n_orbitals = _dft_orbitals.block(_nmin,0,_ntotal,_dft_orbitals.cols());
-
-            // Now, finally multiply _imstore with _n_orbitals
-            Eigen::MatrixXd _temp = _imstore* _n_orbitals;
-            
-
-            // and put it into the block it belongs to
-            for (int _m_level = 0; _m_level < _mtotal; _m_level++) {
-                for (int _i_gw = 0; _i_gw < _shell->getNumFunc(); _i_gw++) {
-                    int _midx = _shell->getNumFunc() *(_m_level - _mmin) + _i_gw;
-                    for (int _n_level = 0; _n_level < _ntotal; _n_level++) {
-                        _block[_m_level](_i_gw, _n_level) = _temp(_midx, _n_level);
-                    } // n-level
-                } // GW basis function in shell
-            } // m-level
-            return;
-        } // TCMatrix::FillBlock
+          bool nonzero = FillThreeCenterRepBlock(threec_block, _auxshell, _shell_row, _shell_col);
+          if (nonzero) {           
+            for (int _aux = 0; _aux < _auxshell->getNumFunc(); _aux++) {
+              for (int _row = 0; _row < _shell_row->getNumFunc(); _row++) {
+                for (int _col = 0; _col < _shell_col->getNumFunc(); _col++) {           
+                  //symmetry
+                  if ((_col_start + _col)>(_row_start + _row)) {
+                    continue;
+                  }
+                  symmstorage[_aux](_row_start + _row, _col_start + _col) = threec_block[_aux][_row][_col];
+                } // ROW copy
+              } // COL copy
+            } // AUX copy
+          }
+        } // gamma-loop
+      } // alpha-loop
+      for (unsigned k=0;k<_auxshell->getNumFunc();++k) {
+        Eigen::MatrixXd& matrix=symmstorage[k];   
+        for (unsigned i = 0; i < matrix.rows(); ++i) {
+          for (unsigned j = 0; j < i; ++j) {
+            matrix(j, i) = matrix(i, j);
+          }
+        }
+        Eigen::MatrixXd threec_inMo = dftm.transpose() * matrix*dftn;
+        for (unsigned i = 0; i < threec_inMo.rows(); ++i) {
+          for (unsigned j = 0; j < threec_inMo.cols(); ++j) {
+            _block[i](k,j)=threec_inMo(i,j);
+          }
+        }
+      }
+      return;
+    } // TCMatrix::FillBlock
 
         
         void TCMatrix_gwbse::Prune (int min, int max){
