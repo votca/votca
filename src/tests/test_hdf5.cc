@@ -128,12 +128,4 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
     orbRead.ReadFromCpt(cpf, "Test Orbital");
 
-    std::cout << orbRead.getQMpackage() << std::endl;
-    std::cout << orbRead.getBasisSetSize() << std::endl;
-    for (auto const& v:orbRead.TransitionDipoles()){
-        std::cout << "(" << v.getX() << ", "
-                  << v.getY() << ", " << v.getZ() << ")"
-                  << std::endl;
-    }
-
     BOOST_AUTO_TEST_SUITE_END()}
