@@ -19,9 +19,9 @@
 
 #include "gitversion.h"
 #include <iostream>
+#include <fstream>
 #include <stdexcept>
 #include <votca/xtp/checkpoint.h>
-#include <ifstream>
 namespace votca {
 namespace xtp {
 
@@ -39,6 +39,7 @@ CheckpointFile::CheckpointFile(std::string fN)
       }
 
       H5::Exception::dontPrint();
+
       if (fileExists){
           _fileHandle = H5::H5File(_fileName, H5F_ACC_RDWR);
       }
