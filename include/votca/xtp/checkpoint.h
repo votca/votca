@@ -304,6 +304,7 @@ private:
 
 class CheckpointFile {
  public:
+  CheckpointFile(std::string fileName, bool overWrite);
   CheckpointFile(std::string fileName);
 
   std::string getFileName();

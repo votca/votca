@@ -27,13 +27,18 @@ namespace xtp {
 
 using namespace checkpoint_utils;
 
-CheckpointFile::CheckpointFile(std::string fN)
+CheckpointFile::CheckpointFile(std::string fN){
+    CheckpointFile(fN, true);
+}
+
+CheckpointFile::CheckpointFile(std::string fN, bool overWrite)
     : _fileName(fN), _version(gitversion) {
 
   try {
       bool fileExists = false;
+
+      if (!overWrite){
       // Check if file exists
-      {
           std::ifstream file(_fileName);
           fileExists = (bool)file;
       }
