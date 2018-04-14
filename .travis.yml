@@ -13,7 +13,7 @@ env:
   matrix:
     - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)" CMAKE_BUILD_TYPE=Debug
     - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re" CMAKE_BUILD_TYPE=Debug
-    - TESTING=OFF CMAKE_BUILD_TYPE=Debug   WERROR=yes
+    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E ." CMAKE_BUILD_TYPE=Debug   WERROR=yes
     - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release DOCKERHUB=yes
     - DISTRO=fedora_gmx2016 TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
     - DISTRO=fedora_gmx2016_d TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
@@ -47,7 +47,7 @@ script:
    else
      git clone --recursive --recursive https://github.com/votca/votca.git $HOME/docker/votca;
      if [[ ${TRAVIS_BRANCH} != master ]]; then
-       git -C ${HOME}/docker/votca checkout ${TRAVIS_BRANCH} && git -C ${HOME}/docker/votca submodule update --recursive --init;
+       git -C ${HOME}/docker/votca checkout -b ${TRAVIS_BRANCH} origin/${TRAVIS_BRANCH} && git -C ${HOME}/docker/votca submodule update --recursive --init;
      fi;
      git -C ${HOME}/docker/votca/${TRAVIS_REPO_SLUG#*/} fetch ${PWD}/${TRAVIS_REPO_SLUG} current_commit;
      git -C ${HOME}/docker/votca/${TRAVIS_REPO_SLUG#*/} checkout -f FETCH_HEAD;

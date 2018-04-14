@@ -117,9 +117,6 @@ find_package(VOTCA_TOOLS REQUIRED)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
 find_package(VOTCA_CSG REQUIRED)
 include_directories(${VOTCA_CSG_INCLUDE_DIRS})
-#votca/ctp/topology.h incl. moo's jcalc.h
-find_package(VOTCA_MOO REQUIRED)
-include_directories(${VOTCA_MOO_INCLUDE_DIRS})
 find_package(VOTCA_CTP REQUIRED)
 include_directories(${VOTCA_CTP_INCLUDE_DIRS})
 ########################################################################
