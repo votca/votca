@@ -7,9 +7,6 @@
 [submodule "csgapps"]
 	path = csgapps
 	url = ../../votca/csgapps.git
-[submodule "moo"]
-	path = moo
-	url = ../../votca/moo.git
 [submodule "kmc"]
 	path = kmc
 	url = ../../votca/kmc.git
