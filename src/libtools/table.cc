@@ -45,7 +45,7 @@ void Table::Load(string filename) {
   if (!in) throw runtime_error(string("error, cannot open file ") + filename);
 
   setErrorDetails("file " + filename);
-  throw runtime_error("Loading from file to table is not implemented");
+  in >> *this;
   in.close();
 }
 
