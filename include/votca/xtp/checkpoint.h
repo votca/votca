@@ -14,8 +14,8 @@
  *
  */
 
-#ifndef CHECKPOINT_H
-#define CHECKPOINT_H
+#ifndef _VOTCA_XTP_CHECKPOINT_H
+#define _VOTCA_XTP_CHECKPOINT_H
 
 #include <Eigen/Eigen>
 #include <H5Cpp.h>
@@ -321,4 +321,4 @@ class CheckpointFile {
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // CHECKPOINT_H
+#endif  // _VOTCA_XTP_CHECKPOINT_H
