@@ -259,8 +259,8 @@ namespace votca {
         
         // Determine QuasiParticle Density Matrix
         Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle( int state){
-          Eigen::MatrixXd lambda =_QPdiag_coefficients*_mo_coefficients.block(0,_qpmin,_mo_coefficients.rows(),_qptotal);
-          Eigen::MatrixXd dmatQP=lambda.row(state)*lambda.row(state).transpose();
+          Eigen::MatrixXd lambda =LambdaMatrixQuasiParticle();
+          Eigen::MatrixXd dmatQP=lambda.col(state)*lambda.col(state).transpose();
           return dmatQP;
         }
         
