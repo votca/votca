@@ -56,7 +56,7 @@ public:
 private:
     
      ctp::Logger *_log;
-     Elements _elements; 
+     votca::tools::Elements _elements; 
      bool _ECP;
      bool _do_Transition;
      bool _do_svd;
