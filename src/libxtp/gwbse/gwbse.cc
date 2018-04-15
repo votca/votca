@@ -930,7 +930,8 @@ bool GWBSE::Evaluate() {
 
   // constructing full quasiparticle Hamiltonian and diagonalize, if requested
   if (_do_qp_diag || _do_bse_singlets || _do_bse_triplets) {
-      
+      CTP_LOG(ctp::logDEBUG, *_pLog)
+      << ctp::TimeStamp() << " Calculating offdiagonal part of Sigma  " << flush;
   sigma.CalcOffDiagElements(_Mmn,ppm);
    CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
