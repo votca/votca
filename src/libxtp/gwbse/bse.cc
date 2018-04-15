@@ -349,10 +349,10 @@ namespace votca {
       return;
     }
 
-    void BSE::printWeights(unsigned _i_bse, double _weight){
-      if (_weight > _min_print_weight) {
+    void BSE::printWeights(unsigned i_bse, double weight){
+      if (weight > _min_print_weight) {
         CTP_LOG(ctp::logINFO, *_log) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
-                % (_homo - _index2v[_i_bse]) % (_index2c[_i_bse] - _homo - 1) % (100.0 * _weight)).str() << flush;
+                % (_homo - _index2v[i_bse]) % (_index2c[i_bse] - _homo - 1) % (100.0 * weight)).str() << flush;
       }
       return;
     }
@@ -380,7 +380,7 @@ namespace votca {
       double hrt2ev = tools::conv::hrt2ev;
       CTP_LOG(ctp::logINFO, *_log) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
       int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
-      for (int i = 0; i < maxoutput; i++) {
+      for (int i = 0; i < maxoutput; ++i) {
        
         const tools::vec& trdip = transition_dipoles[i];
         double osc = oscs[i];
@@ -395,13 +395,16 @@ namespace votca {
 
         CTP_LOG(ctp::logINFO, *_log) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
                 % trdip.getX() % trdip.getY() % trdip.getZ() % (trdip * trdip) % osc).str() << flush;
-        for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
+        for (unsigned i_bse = 0; i_bse < _bse_size; ++i_bse) {
           // if contribution is larger than 0.2, print
-          double _weight = pow(_bse_singlet_coefficients(_i_bse, i), 2) - pow(_bse_singlet_coefficients_AR(_i_bse, i), 2);
-          printWeights(_i_bse, _weight);
+          double weight = pow(_bse_singlet_coefficients(i_bse, i), 2);
+          if (_bse_singlet_coefficients_AR.rows()>0){
+               weight-= pow(_bse_singlet_coefficients_AR(i_bse, i), 2);
+          }
+          printWeights(i_bse, weight);
         }
         // results of fragment population analysis 
-        if (dftbasis.getAOBasisFragA() > 0) {
+        if (dftbasis.getAOBasisFragA() > 0 && dftbasis.getAOBasisFragB()>0) {
           printFragInfo(pop, i);
         }
 
@@ -430,7 +433,7 @@ namespace votca {
       }
       CTP_LOG(ctp::logINFO, *_log) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
       int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
-      for (int i = 0; i < maxoutput; i++) {
+      for (int i = 0; i < maxoutput; ++i) {
         
         if (tools::globals::verbose) {
           CTP_LOG(ctp::logINFO, *_log) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %5$+1.4f")
@@ -441,10 +444,10 @@ namespace votca {
                   % (i + 1) % (tools::conv::hrt2ev * _bse_triplet_energies(i)) % (1240.0 / (tools::conv::hrt2ev * _bse_triplet_energies(i)))).str() << flush;
         }
 
-        for (unsigned _i_bse = 0; _i_bse < _bse_size; _i_bse++) {
+        for (unsigned i_bse = 0; i_bse < _bse_size; ++i_bse) {
           // if contribution is larger than 0.2, print
-          real_gwbse _weight = pow(_bse_triplet_coefficients(_i_bse, i), 2);
-          printWeights(_i_bse, _weight);
+          double weight = pow(_bse_triplet_coefficients(i_bse, i), 2);
+          printWeights(i_bse, weight);
         }
         // results of fragment population analysis 
         if (dftbasis.getAOBasisFragA() > 0) {

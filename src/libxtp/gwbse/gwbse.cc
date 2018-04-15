@@ -660,7 +660,7 @@ bool GWBSE::Evaluate() {
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled DFT Basis of size "
                                  << dftbasis.AOBasisSize() << flush;
-  if (dftbasis.getAOBasisFragB() > 0) {
+  if (dftbasis.getAOBasisFragB() > 0  && dftbasis.getAOBasisFragA()>0) {
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size "
                                    << dftbasis.getAOBasisFragA() << flush;
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size "
@@ -727,7 +727,7 @@ bool GWBSE::Evaluate() {
                                  << _auxcoulomb.Matrix().rows() << flush;
  
 
-  Eigen::MatrixXd inverse=_auxcoulomb.Pseudo_InvSqrt_GWBSE(_auxoverlap,1e-7);
+  Eigen::MatrixXd inverse=_auxcoulomb.Pseudo_InvSqrt_GWBSE(_auxoverlap,1e-8);
     _auxoverlap.Matrix().resize(0, 0);
     _auxcoulomb.Matrix().resize(0,0);
   CTP_LOG(ctp::logDEBUG, *_pLog)
@@ -959,7 +959,7 @@ bool GWBSE::Evaluate() {
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
       
-      BSE bse=BSE(_orbitals,_pLog);
+      BSE bse=BSE(_orbitals,_pLog,_min_print_weight);
       bse.setBSEindices(_homo,_bse_vmin,_bse_vmax,_bse_cmin,_bse_cmax,_bse_maxeigenvectors);
        // calculate direct part of eh interaction, needed for singlets and triplets
       bse.Setup_Hd(_Mmn,ppm);
