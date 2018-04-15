@@ -13,7 +13,7 @@ env:
   matrix:
     - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)" CMAKE_BUILD_TYPE=Debug
     - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re" CMAKE_BUILD_TYPE=Debug
-    - TESTING=OFF CMAKE_BUILD_TYPE=Debug   WERROR=yes
+    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E ." CMAKE_BUILD_TYPE=Debug   WERROR=yes
     - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release DOCKERHUB=yes
     - DISTRO=fedora_gmx2016 TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
     - DISTRO=fedora_gmx2016_d TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
@@ -47,7 +47,7 @@ script:
    else
      git clone --recursive --recursive https://github.com/votca/votca.git $HOME/docker/votca;
      if [[ ${TRAVIS_BRANCH} != master ]]; then
-       git -C ${HOME}/docker/votca checkout ${TRAVIS_BRANCH} && git -C ${HOME}/docker/votca submodule update --recursive --init;
+       git -C ${HOME}/docker/votca checkout -b ${TRAVIS_BRANCH} origin/${TRAVIS_BRANCH} && git -C ${HOME}/docker/votca submodule update --recursive --init;
      fi;
      git -C ${HOME}/docker/votca/${TRAVIS_REPO_SLUG#*/} fetch ${PWD}/${TRAVIS_REPO_SLUG} current_commit;
      git -C ${HOME}/docker/votca/${TRAVIS_REPO_SLUG#*/} checkout -f FETCH_HEAD;
@@ -112,6 +112,3 @@ compiler:
 notifications:
   email:
     - votca-commits@googlegroups.com
-  slack:
-    rooms:
-      secure: GjuTEjI1eSDJIDBlO0MAIwzAbXg+xZCO6FSvEO03n8E8adMUB0n5tTBXZSYUYu1lZVwmqtJZid31RqleMkW5/pUFHf7zPR0F/hnDdFzw5P+6ze+nZK1LP39/tzDwyT2RiYgGUmOfTIlAR8RuKlj9X34qGvbOuQZdHFrLO3m83SrW7oZdvmgvSJR+WSXJtNTqUbFCxZXqnbHn+ghdIZxXnyb3qZSLyuYExjQSK9MPS4fhA6OZeeuzhtx/SxED+Rw3BP4dhs5Wga4QsT3+j/IgkZx1UKSyBnNxQEqg/IKPTIhfNtnYU9jizVhgRCq4BZQkCQ+HVH5DX/ZuY9J0bGfl1jQHp15Q5/TuHBKthgmBmg8DCB3J8FDD6CWb2i74nTfpTlXjMJKXPVZwXqO4hOKMmJuTt1SKsB2ud9z3312SXs2GxxUxFRZyU41qOBUWn0ohiAgGoF8FnGeh3Bml9f/Hy8V1a/jSYZCE/h5gDHMOw33PTd/sm9tqFSht9o6GhSMJOUs72PZIszBT1yBhW+B8hOAvSuRw4GjzHhAdwz06kj1I8d1n2RfB351OXIel3xPnPe8I4KGqnl9bKnPwLKOeK/5RGjxUjYEKESkv5om+0qP8QagYbmOEhla0UvP46v7gq/ZRB2Rku2Vf/rneQHUWfNgIJn2RAcKdcnSDLQl32Jg=
