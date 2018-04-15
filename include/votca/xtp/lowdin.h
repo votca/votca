@@ -50,7 +50,7 @@ public:
    
 private:
     
-     Elements _elements; 
+     votca::tools::Elements _elements; 
      bool _use_ecp;
      
  
