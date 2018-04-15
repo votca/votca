@@ -35,7 +35,7 @@
 #include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
 
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/xtp/diis.h>
 
 #include <votca/ctp/xinteractor.h>

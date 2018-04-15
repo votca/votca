@@ -19,7 +19,7 @@
 
 #include "votca/xtp/orbitals.h"
 #include "votca/tools/globals.h"
-#include "votca/xtp/elements.h"
+#include "votca/tools/elements.h"
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
