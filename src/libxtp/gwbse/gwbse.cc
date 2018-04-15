@@ -546,7 +546,7 @@ void GWBSE::PrintGWA_Energies(const Eigen::MatrixXd& vxc, const Sigma& sigma,con
   CTP_LOG(ctp::logINFO, *_pLog)
           << (format("   DeltaHLGap = %1$+1.6f Hartree") % _shift).str() << flush;
   
-  for (unsigned i = 0; i < i; i++) {
+  for (unsigned i = 0; i < _qptotal; i++) {
     if ((i + _qpmin) == _homo) {
       CTP_LOG(ctp::logINFO, *_pLog)
               << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
@@ -727,14 +727,14 @@ bool GWBSE::Evaluate() {
                                  << _auxcoulomb.Matrix().rows() << flush;
  
 
-
-  int removed_functions = _auxcoulomb.Symmetrize(_auxoverlap.Matrix());
-  _auxoverlap.Matrix().resize(0, 0);
+  Eigen::MatrixXd inverse=_auxcoulomb.Pseudo_InvSqrt_GWBSE(_auxoverlap,1e-7);
+    _auxoverlap.Matrix().resize(0, 0);
+    _auxcoulomb.Matrix().resize(0,0);
   CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Symmetrized AuxCoulomb matrix"
+      << ctp::TimeStamp() << " Calculated Matirx Sqrt of auxiliary Coulomb Matrix"
       << flush;
   CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Removed " << removed_functions
+      << ctp::TimeStamp() << " Removed " << _auxcoulomb.Removedfunctions()
       << " functions from Auxcoulomb to avoid near linear dependencies" << flush;
   
 
@@ -751,8 +751,8 @@ bool GWBSE::Evaluate() {
       << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
 
   // make _Mmn symmetric
-  _Mmn.MultiplyLeftWithAuxMatrix(_auxcoulomb.Matrix());
-  _auxcoulomb.Matrix().resize(0,0);
+  _Mmn.MultiplyLeftWithAuxMatrix(inverse);
+  
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
       << " Multiplied Mmn_beta with Coulomb Matrix " << flush;

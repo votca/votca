@@ -430,13 +430,13 @@ namespace votca {
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
 
-        int dimensions = _auxAOcoulomb.Invert_DFT();
+        Eigen::MatrixXd Inverse=_auxAOcoulomb.Pseudo_Invert(1e-7);
 
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inverted AUX Coulomb matrix, removed " << dimensions << " functions from aux basis" << flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inverted AUX Coulomb matrix, removed " << _auxAOcoulomb.Removedfunctions() << " functions from aux basis" << flush;
 
 
         // prepare invariant part of electron repulsion integrals
-        _ERIs.Initialize(_dftbasis, _auxbasis, _auxAOcoulomb.Matrix());
+        _ERIs.Initialize(_dftbasis, _auxbasis,Inverse );
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
       } else {
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c integrals. " << flush;
