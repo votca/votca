@@ -829,7 +829,7 @@ namespace votca {
         
         
                
-        void NumericalIntegration::GridSetup(string type, BasisSet* bs, vector<ctp::QMAtom*> _atoms,AOBasis* basis) {
+        void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,AOBasis* basis) {
             _basis=basis;
             std::vector< std::vector< GridContainers::integration_grid > > grid;
             const double pi = boost::math::constants::pi<double>();
@@ -838,7 +838,7 @@ namespace votca {
 
             // get radial grid per element
             EulerMaclaurinGrid _radialgrid;
-            _radialgrid.getRadialGrid(bs, _atoms, type, initialgrids); // this checks out 1:1 with NWChem results! AWESOME
+            _radialgrid.getRadialGrid(basis, _atoms, type, initialgrids); // this checks out 1:1 with NWChem results! AWESOME
 
      
            map<string, GridContainers::radial_grid>::iterator it;
@@ -855,18 +855,18 @@ namespace votca {
             int ij = 0;
             Rij.push_back(0.0); // 1st center "self-distance"
             
-            vector< ctp::QMAtom* > ::iterator ait;
-            vector< ctp::QMAtom* > ::iterator bit;
+            vector< QMAtom* > ::iterator ait;
+            vector< QMAtom* > ::iterator bit;
             int i = 1;
             for (ait = _atoms.begin() + 1; ait != _atoms.end(); ++ait) {
                 // get center coordinates in Bohr
-                vec pos_a = (*ait)->getPos() * tools::conv::ang2bohr;
+                vec pos_a = (*ait)->getPos();
                 
                 int j = 0;
                 for (bit = _atoms.begin(); bit != ait; ++bit) {
                     ij++;
                     // get center coordinates in Bohr
-                    vec pos_b = (*bit)->getPos() * tools::conv::ang2bohr;
+                    vec pos_b = (*bit)->getPos();
                    
                     Rij.push_back(1.0 / abs(pos_a-pos_b));
                                         
@@ -883,9 +883,9 @@ namespace votca {
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
                 // get center coordinates in Bohr
                 std::vector< GridContainers::integration_grid > _atomgrid;
-                const vec atomA_pos =(*ait)->getPos() * tools::conv::ang2bohr;
+                const vec & atomA_pos =(*ait)->getPos();
              
-                string name = (*ait)->type;
+                const string & name = (*ait)->getType();
                 
                 // get radial grid information for this atom type
                 GridContainers::radial_grid _radial_grid = initialgrids._radial_grids.at(name);
@@ -900,8 +900,7 @@ namespace votca {
 
                 // for pruning of integration grid, get interval boundaries for this element
                 std::vector<double> PruningIntervals = _radialgrid.getPruningIntervals( name );
-              //  cout << " Pruning Intervals: " << PruningIntervals[0] << " " << PruningIntervals[1] << " " << PruningIntervals[2] << " " << PruningIntervals[3] << endl;
-                
+             
                 int current_order = 0;
                 // get spherical grid
                 std::vector<double> _theta;
@@ -940,8 +939,6 @@ namespace votca {
                         }
                     }                        
 
-
-                    
                     // get new spherical grid, if order changed
                     if ( order != current_order ){
                         _theta.clear();
@@ -951,8 +948,6 @@ namespace votca {
                         _sphericalgrid.getUnitSphereGrid(order,_theta,_phi,_weight);
                         current_order = order;
                     }
-                    
-                  
 
                     for (unsigned _i_sph = 0; _i_sph < _phi.size(); _i_sph++) {
 
@@ -961,8 +956,6 @@ namespace votca {
                         double ws  = _weight[_i_sph];
 
                         const vec s = vec(sin(p) * cos(t), sin(p) * sin(t),cos(p));
-                     
-
 
                         GridContainers::integration_grid _gridpoint;
                         _gridpoint.grid_pos = atomA_pos+r*s;
@@ -970,7 +963,6 @@ namespace votca {
                         _gridpoint.grid_weight = _radial_grid.weight[_i_rad] * ws;
 
                         _atomgrid.push_back(_gridpoint);
-
 
                     } // spherical gridpoints
                 } // radial gridpoint
@@ -981,7 +973,7 @@ namespace votca {
                 // for each center
                 for (bit = _atoms.begin(); bit < _atoms.end(); ++bit) {
                     // get center coordinates
-                   const vec atom_pos = (*bit)->getPos() * tools::conv::ang2bohr;
+                   const vec & atom_pos= (*bit)->getPos();
 
 
                     std::vector<double> temp;
@@ -997,9 +989,9 @@ namespace votca {
                 // cout << " Calculated all gridpoint distances to centers for " << i_atom << endl;
                 
                 // find nearest-neighbor of this atom
-                double distNN = 1e10;
+                double distNN = std::numeric_limits<double>::max();
 
-                vector< ctp::QMAtom* > ::iterator NNit;
+                vector< QMAtom* > ::iterator NNit;
                 //int i_NN;
                
                 // now check all other centers
@@ -1009,14 +1001,13 @@ namespace votca {
                     if (bit != ait) {
                         // get center coordinates
                        
-                        const vec atomB_pos=(*bit)->getPos() * tools::conv::ang2bohr;
+                        const vec & atomB_pos=(*bit)->getPos();
                         double distSQ = (atomA_pos-atomB_pos)*(atomA_pos-atomB_pos);
 
                         // update NN distance and iterator
                         if ( distSQ < distNN ) {
                             distNN = distSQ;
                             NNit = bit;
-                           
                         }
 
                     } // if ( ait != bit) 
@@ -1034,7 +1025,6 @@ namespace votca {
                     }
                     //cout << " sum of partition weights " << wsum << endl;
                     if ( wsum != 0.0 ){
-                        
                         // update the weight of this grid point
                         _atomgrid[i_grid].grid_weight = _atomgrid[i_grid].grid_weight * _p[i_atom]/wsum;
                         //cout << " adjusting gridpoint weight "  << endl;

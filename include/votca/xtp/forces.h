@@ -23,7 +23,7 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/operation.hpp>
-#include <votca/ctp/qmatom.h>
+#include <votca/xtp/qmatom.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/segment.h>
 #include <stdio.h>
@@ -31,8 +31,6 @@
 #include <votca/xtp/qminterface.h>
 
 
-
-using namespace std;
 
 namespace votca {
     namespace xtp {
@@ -61,7 +59,7 @@ namespace votca {
                 _pLog = pLog;
             }
 
-            void SetSpinType(const string spin_type) {
+            void SetSpinType(const std::string spin_type) {
                 _spin_type = spin_type;
             };
 
@@ -69,7 +67,7 @@ namespace votca {
                 _opt_state = opt_state;
             };
 
-            string GetSpinType() {
+            std::string GetSpinType() {
                 return _spin_type;
             };
 
@@ -88,8 +86,8 @@ namespace votca {
         private:
 
             double _displacement;
-            string _force_method;
-            string _spin_type;
+            std::string _force_method;
+            std::string _spin_type;
 
             
             
@@ -101,7 +99,7 @@ namespace votca {
 
             GWBSEENGINE _gwbse_engine;
             QMPackage* _qmpackage;
-            vector<ctp::Segment*> _segments;
+            std::vector<ctp::Segment*> _segments;
             Orbitals* _orbitals;
             bool _remove_total_force;
             bool _remove_CoM_force;

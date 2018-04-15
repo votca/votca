@@ -96,6 +96,7 @@
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
       <itemPath>../../include/votca/xtp/qmapemachine.h</itemPath>
+      <itemPath>../../include/votca/xtp/qmatom.h</itemPath>
       <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/xtp/qminterface.h</itemPath>
       <itemPath>../../include/votca/xtp/qmiter.h</itemPath>
@@ -214,7 +215,11 @@
       <itemPath>../../src/libxtp/version.cc</itemPath>
       <itemPath>../../src/libxtp/version_nb.cc</itemPath>
     </logicalFolder>
-   
+    <logicalFolder name="f4" displayName="Tests" projectFiles="true" kind="ROOT">
+      <itemPath>../../src/tests/test_aobasis.cc</itemPath>
+      <itemPath>../../src/tests/test_atom.cc</itemPath>
+      <itemPath>../../src/tests/test_glink.cc</itemPath>
+    </logicalFolder>
   </logicalFolder>
   <sourceRootList>
     <Elem>../../include</Elem>
@@ -378,6 +383,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmdatabase.h"
             ex="false"
@@ -895,6 +902,12 @@
       </item>
       <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_aobasis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
+      </item>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
@@ -1028,6 +1041,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmdatabase.h"
             ex="false"
@@ -1544,6 +1559,12 @@
       <item path="../../src/libxtp/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/xtpapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_aobasis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

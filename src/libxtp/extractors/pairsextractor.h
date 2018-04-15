@@ -34,7 +34,7 @@ public:
     PairsExtractor() { };
    ~PairsExtractor() { };
 
-    string Identify() { return "extract.pairs"; }
+    std::string Identify() { return "extract.pairs"; }
     void Initialize(tools::Property *options);
     bool EvaluateFrame(ctp::Topology *top);
 
@@ -53,7 +53,7 @@ bool PairsExtractor::EvaluateFrame(ctp::Topology *top) {
     // Rigidify std::system (if possible)
     if (!top->Rigidify()) return 0;
     
-    string xmlfile = Identify() + ".xml";    
+    std::string xmlfile = Identify() + ".xml";    
     
     tools::Property state("state", "", "");
     tools::Property &pairs = state.add("pairs","");    
@@ -98,10 +98,10 @@ bool PairsExtractor::EvaluateFrame(ctp::Topology *top) {
         }
     }
     
-    ofstream ofs;    
-    ofs.open(xmlfile.c_str(), ofstream::out);
+    std::ofstream ofs;    
+    ofs.open(xmlfile.c_str(), std::ofstream::out);
     if (!ofs.is_open()) {
-        throw runtime_error("Bad file handle: " + xmlfile);
+        throw std::runtime_error("Bad file handle: " + xmlfile);
     }
     ofs << tools::XML << state;
     ofs.close();

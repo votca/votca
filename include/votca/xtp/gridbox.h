@@ -115,7 +115,7 @@ namespace votca { namespace xtp {
                 std::vector<ub::range> aoranges;
                 std::vector<ub::range> ranges;
                 std::vector<ub::range> inv_ranges;
-                std::vector< tools::vec > grid_pos;
+                std::vector< tools::vec > grid_pos;//bohr
                 std::vector<const AOShell* > significant_shells;
                 std::vector< double > weights;
                 std::vector< double > densities;

@@ -26,7 +26,7 @@
 #include <votca/xtp/votca_config.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
-#include <votca/ctp/qmatom.h>
+#include <votca/xtp/qmatom.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
@@ -129,11 +129,11 @@ namespace votca {
                 return ( _number_of_electrons > 0) ? true : false;
             }
 
-            int getNumberOfElectrons() {
+            int getNumberOfElectrons() const{
                 return _number_of_electrons;
             };
 
-            void setNumberOfElectrons(const int &electrons) {
+            void setNumberOfElectrons(int electrons) {
                 _number_of_electrons = electrons;
             }
 
@@ -240,11 +240,11 @@ namespace votca {
                 return ( _atoms.size() > 0) ? true : false;
             }
 
-            const std::vector< ctp::QMAtom* > &QMAtoms() const {
+            const std::vector< QMAtom* > &QMAtoms() const {
                 return _atoms;
             }
 
-            std::vector< ctp::QMAtom* > &QMAtoms() {
+            std::vector< QMAtom* > &QMAtoms() {
                 return _atoms;
             }
 
@@ -387,12 +387,6 @@ namespace votca {
                 _bse_vtotal = _bse_vmax - _bse_vmin + 1;
                 _bse_ctotal = _bse_cmax - _bse_cmin + 1;
                 _bse_size = _bse_vtotal * _bse_ctotal;
-                for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
-                    for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
-                        _index2v.push_back(_bse_vmin + _v);
-                        _index2c.push_back(_bse_cmin + _c);
-                    }
-                }
                 return;
             }
 
@@ -705,23 +699,21 @@ namespace votca {
             std::vector<int> SortEnergies();
 
             /** Adds a QM atom to the atom list */
-            ctp::QMAtom* AddAtom(std::string _type,
-                    double _x, double _y, double _z,
-                    double _charge = 0, bool _from_environment = false) {
-                ctp::QMAtom* pAtom = new ctp::QMAtom(_type, _x, _y, _z, _charge, _from_environment);
+            QMAtom* AddAtom(int AtomID,std::string _type,double _x, double _y, double _z,
+                    double _charge = 0) {
+                QMAtom* pAtom = new QMAtom(AtomID,_type, _x, _y, _z);
                 _atoms.push_back(pAtom);
                 return pAtom;
             }
 
-            ctp::QMAtom* AddAtom(std::string _type, tools::vec pos,
-                    double _charge = 0, bool _from_environment = false) {
-                ctp::QMAtom* pAtom = new ctp::QMAtom(_type, pos, _charge, _from_environment);
+            QMAtom* AddAtom(int AtomID,std::string _type, tools::vec pos) {
+                QMAtom* pAtom = new QMAtom(AtomID,_type, pos);
                 _atoms.push_back(pAtom);
                 return pAtom;
             }
 
-            ctp::QMAtom* AddAtom(ctp::QMAtom atom) {
-                ctp::QMAtom* pAtom = new ctp::QMAtom(atom);
+            QMAtom* AddAtom(QMAtom atom) {
+                QMAtom* pAtom = new QMAtom(atom);
                 _atoms.push_back(pAtom);
                 return pAtom;
             }
@@ -773,7 +765,7 @@ namespace votca {
             ub::symmetric_matrix<double> _overlap;
             ub::symmetric_matrix<double> _vxc;
 
-            std::vector< ctp::QMAtom* > _atoms;
+            std::vector< QMAtom* > _atoms;
 
             double _qm_energy;
             double _self_energy;
@@ -814,8 +806,7 @@ namespace votca {
             ub::vector<double> _QPdiag_energies;
             ub::matrix<double> _QPdiag_coefficients;
             // excitons
-            std::vector<int> _index2v;
-            std::vector<int> _index2c;
+            
 
 
             ub::matrix<real_gwbse> _eh_d;
@@ -938,6 +929,8 @@ namespace votca {
                     ar & _bse_cmin;
                     ar & _bse_cmax;
                     ar & _bse_nmax;
+                    std::vector<int> _index2v;
+                    std::vector<int> _index2c;
                     ar & _index2c;
                     ar & _index2v;
                     ar & _ScaHFX;

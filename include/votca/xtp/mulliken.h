@@ -23,7 +23,7 @@
 
 #include <votca/xtp/elements.h>
 #include <votca/xtp/aobasis.h>
-#include <votca/ctp/qmatom.h>
+#include <votca/xtp/qmatom.h>
 
 
 /**
@@ -41,17 +41,14 @@ namespace votca { namespace xtp {
 class Mulliken{
 public:
     
-    Mulliken(){_use_ecp=false;}
+    Mulliken(){}
    ~Mulliken(){};
     
-    void setUseECPs(bool use_ecp){_use_ecp=use_ecp;}
-    void EvaluateMulliken(std::vector< ctp::QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,const AOBasis &basis,BasisSet &bs,  bool _do_transition);
   
+    void EvaluateMulliken(std::vector< QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,const AOBasis &basis,bool _do_transition);
+  
+
    
-private:
-    
-     Elements _elements; 
-     bool _use_ecp;
      
  
     

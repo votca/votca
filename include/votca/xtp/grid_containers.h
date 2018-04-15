@@ -55,7 +55,7 @@ namespace votca { namespace xtp {
             
             // container for cartesian grid points and weights
             struct integration_grid {
-                tools::vec grid_pos;
+                tools::vec grid_pos;//bohr
                 double grid_weight;
             };
             

@@ -22,7 +22,7 @@
 
 #include <votca/tools/property.h>
 
-#include <votca/ctp/qmatom.h>
+
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
@@ -36,7 +36,7 @@ namespace votca { namespace xtp {
 namespace ub = boost::numeric::ublas;
 
 class AOShell;
-
+class QMAtom;
 
 
 /*
@@ -50,31 +50,35 @@ public:
       
        void ReorderMOs(ub::matrix<double> &v,const std::string& start, const std::string& target ); 
        
-       void ReorderMatrix(ub::symmetric_matrix<double> &v,const string& start,const string& target );
+       void ReorderMatrix(ub::symmetric_matrix<double> &v,const std::string& start,const std::string& target );
      
       
 
-    void AOBasisFill( BasisSet* bs , std::vector<ctp::QMAtom* > segments, int fragbreak = -1);
-    void ECPFill( BasisSet* bs , std::vector<ctp::QMAtom* > segments); 
+    void AOBasisFill( BasisSet* bs , std::vector<QMAtom* > segments, int fragbreak = -1);
+    void ECPFill( BasisSet* bs , std::vector<QMAtom* > segments); 
     
     
-    unsigned int AOBasisSize() const {return _AOBasisSize; }
+    unsigned AOBasisSize() const {return _AOBasisSize; }
     
     typedef std::vector< AOShell* >::const_iterator AOShellIterator;
     AOShellIterator firstShell() const{ return _aoshells.begin(); }
     AOShellIterator lastShell() const{ return _aoshells.end(); }
 
     ub::matrix<double> getTransformationCartToSpherical(const std::string& package);
-    
+   
         
     const AOShell* getShell( AOShellIterator it ) const{ return (*it); }
     
     const AOShell* getShell( int idx )const{ return _aoshells[idx] ;}
     
-    AOShell* addShell( std::string shellType,int Lmax,int Lmin, double shellScale, int shellFunc, int startIndex, int offset, vec pos, std::string name, int index ); 
+    AOShell* addShell( std::string shellType,int Lmax,int Lmin, double shellScale, int shellFunc, int startIndex, int offset, tools::vec pos, std::string name, int index ); 
   
     
     const std::vector<AOShell*>& getShells() const{ return _aoshells; }
+    
+    std::vector<AOShell*> getShellsperAtom(int AtomId);
+    
+    int getFuncperAtom(int AtomId) const;
     
     unsigned getNumofShells() const{return _aoshells.size();}
    
@@ -88,7 +92,7 @@ public:
    
     std::vector<AOShell*> _aoshells;
 
-    vector<int> invertOrder(const vector<int>& order );
+    std::vector<int> invertOrder(const std::vector<int>& order );
     
     std::vector<int> getReorderVector(const std::string& start,const std::string& target );
    
@@ -104,7 +108,7 @@ public:
     
     int getMaxFunctions ( );
     
-private:
+  
     unsigned int _AOBasisSize;
     
 };
