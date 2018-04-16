@@ -17,7 +17,7 @@
  *
  */
 
-
+#include <exception>
 #include <votca/xtp/nbo.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/tools/linalg.h>
@@ -42,10 +42,9 @@ void NBO::EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist,const  ub::matrix<d
     vector < ctp::QMAtom* > :: iterator atom;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
     
-    std::vector<int> func=_elements.getMinimalBasis((*atom)->type,_ECP);
-  
+      // TODO 
     
-    
+      throw invalid_argument("Evaluate NBO function is incomplete");    
    
          //cout << id << " "<< id+nooffunc << endl;
       

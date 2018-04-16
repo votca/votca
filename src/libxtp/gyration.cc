@@ -24,6 +24,8 @@
 //#include <votca/xtp/units.h>
 #include <votca/tools/linalg.h>
 
+using namespace votca::tools;
+
 namespace votca { namespace xtp {
 
 void Density2Gyration::Initialize(Property* options) {
