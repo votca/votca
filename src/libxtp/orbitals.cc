@@ -32,7 +32,7 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 
-
+using namespace votca::tools;
 
 namespace votca {
     namespace xtp {
