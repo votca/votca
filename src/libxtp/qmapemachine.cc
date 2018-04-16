@@ -25,7 +25,7 @@
 #include <boost/filesystem.hpp>
 #include <votca/ctp/logger.h>
 
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/xtp/espfit.h>
 
 using boost::format;
