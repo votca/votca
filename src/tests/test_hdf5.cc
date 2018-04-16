@@ -26,8 +26,7 @@
 BOOST_AUTO_TEST_SUITE(test_hdf5)
 using namespace votca::xtp;
 BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
-    CheckpointFile cpf("xtp_testing.hdf5");
-
+    CheckpointFile cpf("xtp_testing.hdf5", true);
 
     int basisSetSize = 17;
     int occupiedLevels = 4;
