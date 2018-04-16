@@ -90,7 +90,7 @@ if(CERES_FOUND)
   include_directories(${CERES_INCLUDE_DIRS})
 endif(CERES_FOUND)
 
-find_package(HDF5 1.8 COMPONENTS CXX)
+find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 
 if(HDF5_FOUND)
   message("-- HDF5 found for checkpointing")
