@@ -784,13 +784,14 @@ namespace votca {
             // Read qmatoms
             {
                 CptLoc qmAtomsGr = parent.openGroup("qmatoms");
-                size_t count = 0;
-                for (const auto& qma: _atoms){
-                    CptLoc tempLoc = qmAtomsGr.openGroup("index" + std::to_string(count));
-                    qma->ReadFromCpt(tempLoc);
-                    ++count;
-                }
+                size_t count = qmAtomsGr.getNumObjs();
 
+                for (size_t i = 0; i < count; ++i){
+                    CptLoc tempLoc = qmAtomsGr.openGroup("index" + std::to_string(i));
+                    QMAtom temp;
+                    temp.ReadFromCpt(tempLoc);
+                    AddAtom(temp);
+                }
             }
 
             r(_qm_energy, "qm_energy");
