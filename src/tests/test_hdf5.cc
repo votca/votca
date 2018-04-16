@@ -38,11 +38,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     Eigen::VectorXd moeTest = Eigen::VectorXd::Zero(17);
     Eigen::MatrixXd mocTest = Eigen::MatrixXd::Zero(17, 17);
 
-    QMAtom atoms[100]; // There is no way to get/set atom type
-    std::vector<QMAtom*> atomsTest;
-
-    for (size_t p = 0; p < 100; ++p)
-        atomsTest.push_back(atoms+p);
+    std::vector<QMAtom> atomsTest(1000);
 
     double qmEnergy = -2.1025e-3;
 
@@ -97,7 +93,11 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         orbWrite.setNumberOfElectrons(numElectrons);
         orbWrite.MOEnergies() = moeTest;
         orbWrite.MOCoefficients() = mocTest;
-        orbWrite.QMAtoms() = atomsTest;
+
+        for (auto const& qma:atomsTest){
+            orbWrite.AddAtom(qma);
+        }
+
         orbWrite.setQMEnergy(qmEnergy);
         orbWrite.setQMpackage(qmPackage);
         orbWrite.setSelfEnergy(selfEnergy);
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
     for (size_t i = 0; i<atomsTest.size(); ++i){
         auto atomRead = *(orbRead.QMAtoms()[i]);
-        auto atomTest = *(atomsTest[i]);
+        auto atomTest = atomsTest[i];
         BOOST_CHECK_EQUAL(atomRead.getAtomID(), atomTest.getAtomID());
         BOOST_CHECK(atomRead.getPos().isClose(atomTest.getPos(), tol));
         BOOST_CHECK_EQUAL(atomRead.getNuccharge(), atomTest.getNuccharge());
