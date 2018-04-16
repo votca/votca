@@ -69,37 +69,30 @@ endif()
 
 
 find_package(EIGEN3 3.3.0 REQUIRED)
-if (EIGEN3_FOUND)
-	message(STATUS "${EIGEN3_VERSION}")
-  include_directories(${EIGEN3_INCLUDE_DIRS})
-endif (EIGEN3_FOUND)
+
+message(STATUS "${EIGEN3_VERSION}")
+include_directories(${EIGEN3_INCLUDE_DIRS})
+
 
 
 find_package(LIBXC REQUIRED)
-if (LIBXC_FOUND)
-    message("-- LIBXC found")
-	include_directories(${LIBXC_INCLUDE_DIRS})
-	set (LIBXC TRUE )
-else()
-	set(LIBXC_LIBRARIES)
-endif()
+
+message("-- LIBXC found")
+include_directories(${LIBXC_INCLUDE_DIRS})
 
 find_package(CERES REQUIRED)
-if(CERES_FOUND)
-  message(STATUS "Found ceres solver version ${CERES_VERSION}")
-  include_directories(${CERES_INCLUDE_DIRS})
-endif(CERES_FOUND)
+
+message(STATUS "Found ceres solver version ${CERES_VERSION}")
+include_directories(${CERES_INCLUDE_DIRS})
+
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 
-if(HDF5_FOUND)
-  message("   Version " + ${HDF5_VERSION})
-  include_directories(${HDF5_INCLUDE_DIRS})
+message(STATUS "Found HDF5 version " + ${HDF5_VERSION})
+include_directories(${HDF5_INCLUDE_DIRS})
 
-  if (${HDF5_VERSION} GREATER 1.8)
-    message(WARNING "HDF5 will be used such that it is compatible with version 1.8.")
-  endif()
-
+if (${HDF5_VERSION} GREATER 1.8)
+  message(WARNING "HDF5 will be used such that it is compatible with version 1.8.")
 endif()
 
 
