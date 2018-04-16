@@ -207,7 +207,7 @@ namespace votca {
                 const double qpmin1 = _qp_energies(_gw_level1 + _qpmin);
                 const ub::matrix<real_gwbse>& Mmn1 = _Mmn[ _gw_level1 + _qpmin ];
                 for (unsigned _gw_level2 = 0; _gw_level2 < _gw_level1; _gw_level2++) {
-                    const double qpmin2 = _qp_energies(_gw_level1 + _qpmin);
+                    const double qpmin2 = _qp_energies(_gw_level2 + _qpmin);
                     const ub::matrix<real_gwbse>& Mmn2 = _Mmn[ _gw_level2 + _qpmin ];
                     double sigma_c = 0;
                     for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
