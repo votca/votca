@@ -93,7 +93,7 @@ private:
    }
 
    void WriteToCpt(CptLoc parent){
-       checkpoint_utils::Writer w(parent);
+       CheckpointWriter w(parent);
 
        w(index, "index");
        w(type, "type");
@@ -104,7 +104,7 @@ private:
    }
 
    void ReadFromCpt(CptLoc parent){
-       checkpoint_utils::Reader r(parent);
+       CheckpointReader r(parent);
 
        r(index, "index");
        r(type, "type");

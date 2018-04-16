@@ -52,7 +52,7 @@ CheckpointFile::CheckpointFile(std::string fN, bool overWrite)
           _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
       }
 
-      Writer w(_fileHandle.openGroup("/"));
+      CheckpointWriter w(_fileHandle.openGroup("/"));
 
       w(gitversion, "Version");
 

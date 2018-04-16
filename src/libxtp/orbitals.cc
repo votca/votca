@@ -695,7 +695,7 @@ namespace votca {
 
     void Orbitals::WriteToCpt(CptLoc parent){
         try{
-            checkpoint_utils::Writer w(parent);
+            CheckpointWriter w(parent);
 
             w(_basis_set_size, "basis_set_size");
             w(_occupied_levels, "occupied_levels");
@@ -771,7 +771,7 @@ namespace votca {
 
     void Orbitals::ReadFromCpt(CptLoc parent){
         try{
-            checkpoint_utils::Reader r(parent);
+            CheckpointReader r(parent);
 
             r(_basis_set_size, "basis_set_size");
             r(_occupied_levels, "occupied_levels");
