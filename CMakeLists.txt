@@ -93,7 +93,6 @@ endif(CERES_FOUND)
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 
 if(HDF5_FOUND)
-  message("-- HDF5 found for checkpointing")
   message("   Version " + ${HDF5_VERSION})
   include_directories(${HDF5_INCLUDE_DIRS})
 
