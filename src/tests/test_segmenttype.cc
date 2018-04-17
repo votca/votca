@@ -23,7 +23,7 @@ using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(segmenttype_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) { 
-  SegmentType segT();
+  SegmentType segT;
   SegmentType segT2(1,"Name","SP","file.orb","coord.xyz",true);
 }
 
