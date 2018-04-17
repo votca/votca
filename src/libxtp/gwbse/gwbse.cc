@@ -186,7 +186,7 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
        _ignored_corelevels = coreElectrons/2;
     }
    
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Can ignore "
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Ignoring "
                                    << _ignored_corelevels << " core levels "
                                    << flush;
   }
@@ -395,13 +395,8 @@ void GWBSE::addoutput(Property *_summary) {
   Property *_dft_summary = &_gwbse_summary->add("dft", "");
   _dft_summary->setAttribute("HOMO", _homo);
   _dft_summary->setAttribute("LUMO", _homo + 1);
-  int begin = _homo - printlimit;
-  int end = _homo + printlimit + 1;
-  if (begin < 0) {
-    begin = 0;
-    end = 2 * _homo + 1;
-  }
-  for (int state = begin; state < end; state++) {
+  
+  for (int state = _qpmin; state < _qpmax+1; state++) {
 
     Property *_level_summary = &_dft_summary->add("level", "");
     _level_summary->setAttribute("number", state);
@@ -424,7 +419,7 @@ void GWBSE::addoutput(Property *_summary) {
 
   if (_do_bse_singlets) {
     Property *_singlet_summary = &_gwbse_summary->add("singlets", "");
-    for (int state = 0; state < printlimit; ++state) {
+    for (int state = 0; state < _bse_maxeigenvectors; ++state) {
       Property *_level_summary = &_singlet_summary->add("level", "");
       _level_summary->setAttribute("number", state + 1);
       _level_summary->add("omega", (format("%1$+1.6f ") %
@@ -731,11 +726,11 @@ bool GWBSE::Evaluate() {
     _auxoverlap.Matrix().resize(0, 0);
     _auxcoulomb.Matrix().resize(0,0);
   CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Calculated Matirx Sqrt of auxiliary Coulomb Matrix"
+      << ctp::TimeStamp() << " Calculated Matrix Sqrt of Aux Coulomb Matrix"
       << flush;
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Removed " << _auxcoulomb.Removedfunctions()
-      << " functions from Auxcoulomb to avoid near linear dependencies" << flush;
+      << " functions from Aux Coulomb matrix to avoid near linear dependencies" << flush;
   
 
   // --- prepare a vector (gwdacay) of matrices (orbitals, orbitals) as
@@ -939,12 +934,12 @@ bool GWBSE::Evaluate() {
     Eigen::MatrixXd Hqp=sigma.SetupFullQPHamiltonian(vxc);
  
     if (_do_qp_diag) {
-        
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(Hqp);
-    const Eigen::VectorXd& qp_diag_energies=es.eigenvalues();
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(Hqp);
+      const Eigen::VectorXd& qp_diag_energies=es.eigenvalues();
+    
     
     CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
+      << ctp::TimeStamp() << " Diagonalized QP Hamiltonian  " <<es.info()<< flush;
         
       
       PrintQP_Energies(gwa_energies, qp_diag_energies);

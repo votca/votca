@@ -54,6 +54,10 @@ class Sigma {
 void CalcdiagElements(const TCMatrix_gwbse& _Mmn,const PPM & ppm );
 void CalcOffDiagElements(const TCMatrix_gwbse& _Mmn,const PPM & ppm );
 
+
+
+
+
 Eigen::MatrixXd SetupFullQPHamiltonian(const Eigen::MatrixXd& vxc );
 
 const Eigen::VectorXd& getGWAEnergies()const{return _gwa_energies;}
@@ -69,8 +73,8 @@ void FreeMatrices(){
 }
 
  private:
- 
-     
+  void C_offdiag(const TCMatrix_gwbse& _Mmn, const PPM& ppm);
+  void X_offdiag(const TCMatrix_gwbse& _Mmn);   
 ctp::Logger *_log;
   unsigned _homo;   // HOMO index
   unsigned _qpmin;

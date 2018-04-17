@@ -48,17 +48,22 @@ namespace votca {
                 const Eigen::MatrixXd& Mmn_RPA = _Mmn_RPA[ _m_level ];
 #else
                 const Eigen::MatrixXd Mmn_RPA = _Mmn_RPA[ _m_level ].cast<double>();
-
+                
 #endif
-                for (int i = 0; i < screen_freq_i.size(); ++i) {
+                
+                Eigen::MatrixXd tempresult=Eigen::MatrixXd::Zero(_size,_size);
+                Eigen::MatrixXd denom_x_Mmn_RPA=Eigen::MatrixXd::Zero(_Mmn_RPA.get_ntot(),_size);
+                for (int i = 0; i < screen_freq_i.size(); ++i) {   
                     // a temporary matrix, that will get filled in empty levels loop
-                    double screen_freq2 = screen_freq_i(i) * screen_freq_i(i);
-                    Eigen::VectorXd energydenom = Eigen::VectorXd::Zero(_Mmn_RPA.get_ntot());
-                    for (int _n_level = 0; _n_level < energydenom.size(); _n_level++) {
+                    const double screen_freq2 = screen_freq_i(i) * screen_freq_i(i);
+                    for (int _n_level = 0; _n_level < _Mmn_RPA.get_ntot(); _n_level++) {
                         const double _deltaE = qp_energies(_n_level + index_n) - _qp_energy_m;
-                        energydenom(_n_level) = 4.0 * _deltaE / (_deltaE * _deltaE + screen_freq2); //hartree       
+                        const double denom=4.0 * _deltaE / (_deltaE * _deltaE + screen_freq2); 
+                        for (unsigned aux=0;aux<_size;++aux){
+                          denom_x_Mmn_RPA(_n_level,aux) =Mmn_RPA(aux,_n_level)*denom; //hartree    
+                        }
                     }
-                    Eigen::MatrixXd tempresult = Mmn_RPA * energydenom.asDiagonal() * Mmn_RPA.transpose();
+                    tempresult.noalias() = Mmn_RPA * denom_x_Mmn_RPA;
 
 #pragma omp critical
                     {
@@ -68,12 +73,14 @@ namespace votca {
 
                 //real parts
                 for (int i = 0; i < screen_freq_r.size(); ++i) {
-                    Eigen::VectorXd energydenom = Eigen::VectorXd::Zero(_Mmn_RPA.get_ntot());
-                    for (int _n_level = 0; _n_level < energydenom.size(); _n_level++) {
+                    for (int _n_level = 0;  _n_level < _Mmn_RPA.get_ntot(); _n_level++) {
                         const double _deltaE = qp_energies(_n_level + index_n) - _qp_energy_m;
-                        energydenom(_n_level) = 2.0 * (1.0 / (_deltaE - screen_freq_r(i)) + 1.0 / (_deltaE + screen_freq_r(i))); //hartree
+                        const double denom=2.0 * (1.0 / (_deltaE - screen_freq_r(i)) + 1.0 / (_deltaE + screen_freq_r(i)));
+                        for (unsigned aux=0;aux<_size;++aux){
+                          denom_x_Mmn_RPA(_n_level,aux) =Mmn_RPA(aux,_n_level)*denom; //hartree    
+                        }
                     }
-                    Eigen::MatrixXd tempresult = Mmn_RPA * energydenom.asDiagonal() * Mmn_RPA.transpose();
+                    tempresult.noalias() = Mmn_RPA * denom_x_Mmn_RPA;
 
 #pragma omp critical
                     {

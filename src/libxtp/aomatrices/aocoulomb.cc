@@ -22,7 +22,6 @@
 
 #include <votca/xtp/aobasis.h>
 #include <vector>
-#include <eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h>
 
 
 
