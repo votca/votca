@@ -917,11 +917,7 @@ bool GWBSE::Evaluate() {
       _qp_energies_store(i, 4) = gwa_energies(i + _qpmin);
     }
   }
-  
-  // free no longer required three-center matrices in _Mmn
-  // max required is _bse_cmax (could be smaller than _qpmax)
-  _Mmn.Prune(_bse_vmin, _bse_cmax);
-  
+ 
 
   // constructing full quasiparticle Hamiltonian and diagonalize, if requested
   if (_do_qp_diag || _do_bse_singlets || _do_bse_triplets) {
@@ -930,7 +926,9 @@ bool GWBSE::Evaluate() {
   sigma.CalcOffDiagElements(_Mmn,ppm);
    CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
-      
+    // free no longer required three-center matrices in _Mmn
+  // max required is _bse_cmax (could be smaller than _qpmax)
+  _Mmn.Prune(_bse_vmin, _bse_cmax);   
     Eigen::MatrixXd Hqp=sigma.SetupFullQPHamiltonian(vxc);
  
     if (_do_qp_diag) {

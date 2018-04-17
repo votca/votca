@@ -20,9 +20,10 @@
 
 
 #include <votca/xtp/sigma.h>
-
+#include <cmath>
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/constants.h>
+
 
 
 namespace votca {
@@ -31,7 +32,7 @@ namespace votca {
     Eigen::MatrixXd Sigma::SetupFullQPHamiltonian(const Eigen::MatrixXd& vxc) {
 
       // constructing full QP Hamiltonian
-      Eigen::MatrixXd Hqp = -vxc + _sigma_x + _sigma_c;
+      Eigen::MatrixXd Hqp = _sigma_x + _sigma_c - vxc;
       // diagonal elements are given by _qp_energies
       for (unsigned _m = 0; _m < Hqp.rows(); _m++) {
         Hqp(_m, _m) = _gwa_energies(_m + _qpmin);
@@ -46,7 +47,7 @@ namespace votca {
       unsigned _gwsize = _Mmn.getAuxDimension(); // size of the GW basis
       const double pi = boost::math::constants::pi<double>();
 
-//#pragma omp parallel for
+#pragma omp parallel for
       for (unsigned _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
         const MatrixXfd & Mmn = _Mmn[ _gw_level + _qpmin ];
         double sigma_x = 0;
@@ -109,7 +110,7 @@ namespace votca {
         if (tools::globals::verbose) {
           double _DFTgap = (*_dftenergies)(_homo + 1) - (*_dftenergies)(_homo);
           double _QPgap = _gwa_energies(_homo + 1) - _gwa_energies(_homo);
-          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " QP_Iteration: " << _g_iter + 1 << " shift=" << _QPgap - _DFTgap << " E_diff max=" << diff_max << " StateNo:" << state << flush;
+          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " G_Iteration: " << _g_iter + 1 << " shift=" << _QPgap - _DFTgap << " E_diff max=" << diff_max << " StateNo:" << state << flush;
         }
         double alpha = 0.0;
         _gwa_energies = (1 - alpha) * _gwa_energies + alpha*_qp_old;
@@ -128,12 +129,9 @@ namespace votca {
       return;
     }
 
-    void Sigma::CalcOffDiagElements(const TCMatrix_gwbse& _Mmn, const PPM & ppm) {
-      unsigned _levelsum = _Mmn.get_ntot(); // total number of bands
-      unsigned _gwsize = _Mmn.getAuxDimension(); // size of the GW basis
-      const double pi = boost::math::constants::pi<double>();
-
-#pragma omp parallel for
+    void Sigma::X_offdiag(const TCMatrix_gwbse& _Mmn){
+      unsigned _gwsize = _Mmn.getAuxDimension();
+      #pragma omp parallel for
       for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
         const MatrixXfd & Mmn1 = _Mmn[ _gw_level1 + _qpmin ];
         for (unsigned _gw_level2 = 0; _gw_level2 < _gw_level1; _gw_level2++) {
@@ -146,49 +144,75 @@ namespace votca {
             } // occupied bands
           } // gwbasis functions
           _sigma_x(_gw_level1, _gw_level2) = (1.0 - _ScaHFX) * sigma_x;
+          _sigma_x(_gw_level1, _gw_level1) = (1.0 - _ScaHFX) * sigma_x;
         }
       }
+      return;
+    }
 
-#pragma omp parallel for schedule(guided)
-      for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
-        const double qpmin1 = _gwa_energies(_gw_level1 + _qpmin);
-        const MatrixXfd& Mmn1 = _Mmn[ _gw_level1 + _qpmin ];
-        for (unsigned _gw_level2 = 0; _gw_level2 < _gw_level1; _gw_level2++) {
-          const double qpmin2 = _gwa_energies(_gw_level1 + _qpmin);
-          const MatrixXfd& Mmn2 = _Mmn[ _gw_level2 + _qpmin ];
-          double sigma_c = 0;
+    void Sigma::C_offdiag(const TCMatrix_gwbse& _Mmn, const PPM& ppm){
+       
+      #pragma omp parallel 
+      {
+        const unsigned _levelsum = _Mmn.get_ntot(); // total number of bands
+        const unsigned _gwsize = _Mmn.getAuxDimension(); // size of the GW basis
+        const double fourpi = 4*boost::math::constants::pi<double>();
+        const Eigen::VectorXd gwa_energies=_gwa_energies;
+        const Eigen::VectorXd& ppm_weight=ppm.getPpm_weight();
+        const Eigen::VectorXd& ppm_freqs=ppm.getPpm_weight();
+        #pragma omp for schedule(dynamic,4)
+        for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
+        const double qpmin1 = gwa_energies(_gw_level1 + _qpmin);
+        const MatrixXfd Mmn1=_Mmn[ _gw_level1 + _qpmin ];
+        for (unsigned _gw_level2 = _gw_level1+1; _gw_level2 < _qptotal; _gw_level2++) {
+          const double qpmin2 = gwa_energies(_gw_level2 + _qpmin);
+          const MatrixXfd Mmn2=_Mmn[ _gw_level2 + _qpmin ].cwiseProduct(Mmn1);       
+          double sigma_c=0;
           for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
             // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
-            if (ppm.getPpm_weight()(_i_gw) < 1.e-9) {
+            if (ppm_weight(_i_gw) < 1.e-9) {
               continue;
             }
-            const double ppm_freq = ppm.getPpm_freq()(_i_gw);
-            const double fac = ppm.getPpm_weight()(_i_gw) * ppm_freq;
+            const double ppm_freq= ppm_freqs(_i_gw);
+            const double fac =0.25* ppm_weight(_i_gw) * ppm_freq;
             // loop over all screening levels
-            for (unsigned _i = 0; _i < _levelsum; _i++) {
-
-              double occ = 1.0;
-              if (_i > _homo) occ = -1.0; // sign for empty levels
+            for (unsigned _i = 0; _i < _levelsum; _i++) {              
+              double gwa_energy = gwa_energies(_i);
+              if (_i > _homo){
+                gwa_energy+=ppm_freq;
+              }else{
+                gwa_energy-=ppm_freq;
+              } 
               // energy denominator
-              const double _denom1 = qpmin1 - _gwa_energies(_i) + occ * ppm_freq;
-              const double _denom2 = qpmin2 - _gwa_energies(_i) + occ * ppm_freq;
+              const double _denom1 = qpmin1 - gwa_energy;
+              const double _denom2 = qpmin2 - gwa_energy;
 
-              double _stab1 = 1.0;
+              double _stab = 1.0;
               if (std::abs(_denom1) < 0.25) {
-                _stab1 = 0.5 * (1.0 - std::cos(4.0 * pi * std::abs(_denom1)));
+                  _stab = 0.5 * (1.0 - std::cos(fourpi * _denom1));
               }
-              const double factor1 = 0.5 * fac * _stab1 / _denom1; //Hartree
-              double _stab2 = 1.0;
+              double factor = _stab / _denom1; //Hartree
+              _stab = 1.0;
               if (std::abs(_denom2) < 0.25) {
-                _stab2 = 0.5 * (1.0 - std::cos(4.0 * pi * std::abs(_denom2)));
+                  _stab = 0.5 * (1.0 - std::cos(fourpi * _denom2));
               }
-              const double factor2 = 0.5 * fac * _stab2 / _denom2; //Hartree
-              sigma_c += Mmn1(_i_gw, _i) * Mmn2(_i_gw, _i)*0.5 * (factor1 + factor2);
-            }// screening levels 
-          }// GW functions 
+              factor+= _stab / _denom2; //Hartree}
+              sigma_c+=Mmn2(_i_gw,_i)*fac*factor;
+            }
+          }
           _sigma_c(_gw_level1, _gw_level2) = sigma_c;
+          _sigma_c(_gw_level2, _gw_level1) = sigma_c;
         }// GW row             
       }//GW col
+      }
+      
+      return;
+    }
+
+    void Sigma::CalcOffDiagElements(const TCMatrix_gwbse& _Mmn, const PPM & ppm) {
+     
+      X_offdiag(_Mmn);
+      C_offdiag(_Mmn, ppm);
       return;
     }
 

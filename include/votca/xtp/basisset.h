@@ -27,9 +27,10 @@
 
 
 
-//#if defined(MKL)
-//   #define EIGEN_USE_MKL_ALL 
-//#endif
+#if defined(MKL)
+#include <mkl.h>
+  #define EIGEN_USE_MKL_ALL 
+#endif
 #include <Eigen/Dense>
 
 
