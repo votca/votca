@@ -49,7 +49,7 @@ RUN if [ ${DOXYGEN} ]; then \
       rm -f doxygen.coverage.info; \
     fi
 RUN if [ ${TESTING} = ON ]; then make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"; fi
-RUN make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install
+RUN make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
 RUN if [ ${COVERAGE} ]; then \
   if [ ${CC} = clang ]; then \
     codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" -x "llvm-cov gcov"; \
