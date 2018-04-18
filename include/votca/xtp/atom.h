@@ -16,6 +16,7 @@
  * limitations under the License.
  *
  */
+/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #ifndef __VOTCA_XTP_ATOM_H
 #define __VOTCA_XTP_ATOM_H
@@ -61,6 +62,7 @@ class Atom {
   Atom(int atom_id, std::string atom_name)
       : _id(atom_id), _name(atom_name), _hasQM(false), _qmId(-1) {}
 
+  // TODO This should be replaced from a constructor to an overloaded = operator
   Atom(Atom *stencil)
       : _id(stencil->getId()),
         _name(stencil->getName() + "_ghost"),
