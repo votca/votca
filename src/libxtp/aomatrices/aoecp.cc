@@ -31,7 +31,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/math/special_functions/factorials.hpp>
 #include <votca/tools/linalg.h>
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 
 
 
