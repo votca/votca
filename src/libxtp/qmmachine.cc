@@ -23,7 +23,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/xtp/espfit.h>
 
 
@@ -416,13 +416,11 @@ namespace votca {
                             string orbfile_N_1 = runFolder_N_1 + "/system.orb";
                             Orbitals _orbitals_N_1;
                             // load the QM data from serialized orbitals object
-                            std::ifstream ifs((orbfile_N_1).c_str());
+                           
+                            CheckpointFile cpf(orbfile_N_1, true);
                             CTP_LOG(ctp::logDEBUG, *_log) << " Loading QM data from " << orbfile_N_1 << flush;
-                            boost::archive::binary_iarchive ia(ifs);
-                            ia >> _orbitals_N_1;
-                            ifs.close();
-
-
+                            _orbitals_N_1.ReadFromCpt(cpf);
+                            
                             Eigen::MatrixXd lambda_N_1 = _orbitals_N_1.LambdaMatrixQuasiParticle();
                             // calculate QP overlaps
                             
@@ -619,7 +617,8 @@ namespace votca {
                 // save orbitals
                 std::string ORB_FILE = runFolder + "/system.orb";
                 CTP_LOG(ctp::logDEBUG, *_log) << "Archiving data to " << ORB_FILE << flush;
-                orb_iter_input.Save(ORB_FILE);
+                CheckpointFile cpf(ORB_FILE, true);
+                orb_iter_input.WriteToCpt(cpf);
             }
 
             CTP_LOG(ctp::logINFO, *_log)

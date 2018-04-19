@@ -74,8 +74,6 @@ namespace votca {
 
             bool _do_optimize;
 
-            void ReadXYZ(ctp::Segment* _segment, string filename);
-
         };
 
 

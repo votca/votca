@@ -1138,28 +1138,43 @@ if (_lmax_col > 5) {
     
 
     
-    int AOCoulomb::Symmetrize(const Eigen::MatrixXd& _auxoverlap){
+    Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt_GWBSE(const AOOverlap& _auxoverlap, double etol){
         
         
-    Eigen::MatrixXd L_overlap = _auxoverlap.llt().matrixL();
-    //This converts V into (LT V L)-1/2 LT, which is needed to construct 4c integrals,
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eo(_auxoverlap.Matrix());
+    Eigen::MatrixXd Ssqrt=eo.operatorSqrt();
+    //This converts V into (S1/2 V S1/2)-1/2 S1/2, which is needed to construct 4c integrals,
        
-      Eigen::MatrixXd ortho=L_overlap.transpose()*_aomatrix*L_overlap;
+      Eigen::MatrixXd ortho=Ssqrt*_aomatrix*Ssqrt;
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho); 
-      Eigen::MatrixXd Vm1=es.operatorInverseSqrt();
-      int removed_basisfunctions=0;
-      _aomatrix=  Vm1*L_overlap.transpose();
+      Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
+      removedfunctions=0;
+      for (unsigned i=0;i<diagonal.size();++i){
+          if(es.eigenvalues()(i)<etol){
+              removedfunctions++;
+          }else{
+              diagonal(i)=1.0/std::sqrt(es.eigenvalues()(i));
+          }
+      }
+      
+      Eigen::MatrixXd Vm1=es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
        
-    return removed_basisfunctions; 
+    return Vm1*Ssqrt;
     }
     
-     int AOCoulomb::Invert_DFT(){
+     Eigen::MatrixXd AOCoulomb::Pseudo_Invert(double etol){
        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_aomatrix);
-       _aomatrix=es.eigenvectors()*es.eigenvalues().cwiseInverse().asDiagonal()*es.eigenvectors().transpose();
-       
-     
-    int removed_basisfunctions=0;
-    return removed_basisfunctions; 
+       Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
+      removedfunctions=0;
+      for (unsigned i=0;i<diagonal.size();++i){
+          if(es.eigenvalues()(i)<etol){
+              removedfunctions++;
+          }else{
+              diagonal(i)=1.0/(es.eigenvalues()(i));
+          }
+      }
+           
+     return es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
     }
     
     

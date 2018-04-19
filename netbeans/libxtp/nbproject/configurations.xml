@@ -34,6 +34,7 @@
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
         <itemPath>../../src/libxtp/tools/coupling.h</itemPath>
+        <itemPath>../../src/libxtp/tools/densityanalysis.h</itemPath>
         <itemPath>../../src/libxtp/tools/dft.h</itemPath>
         <itemPath>../../src/libxtp/tools/exciton.cc</itemPath>
         <itemPath>../../src/libxtp/tools/exciton.h</itemPath>
@@ -86,7 +87,6 @@
       <itemPath>../../include/votca/xtp/dftcoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/diis.h</itemPath>
-      <itemPath>../../include/votca/xtp/elements.h</itemPath>
       <itemPath>../../include/votca/xtp/esp2multipole.h</itemPath>
       <itemPath>../../include/votca/xtp/espfit.h</itemPath>
       <itemPath>../../include/votca/xtp/extractorfactory.h</itemPath>
@@ -214,6 +214,7 @@
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/basisset.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
+      <itemPath>../../src/libxtp/checkpoint.cc</itemPath>
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
@@ -239,15 +240,24 @@
       <itemPath>../../src/tests/test_adiis.cc</itemPath>
       <itemPath>../../src/tests/test_aobasis.cc</itemPath>
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
+      <itemPath>../../src/tests/test_apolarsite.cc</itemPath>
       <itemPath>../../src/tests/test_atom.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
+      <itemPath>../../src/tests/test_fragment.cc</itemPath>
       <itemPath>../../src/tests/test_glink.cc</itemPath>
+      <itemPath>../../src/tests/test_hdf5.cc</itemPath>
+      <itemPath>../../src/tests/test_molecule.cc</itemPath>
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
+      <itemPath>../../src/tests/test_qmnblist.cc</itemPath>
+      <itemPath>../../src/tests/test_qmpair.cc</itemPath>
+      <itemPath>../../src/tests/test_segment.cc</itemPath>
+      <itemPath>../../src/tests/test_segmenttype.cc</itemPath>
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_threecenter.cc</itemPath>
+      <itemPath>../../src/tests/test_topology.cc</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -351,8 +361,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/esp2multipole.h"
             ex="false"
@@ -636,6 +644,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
@@ -903,6 +913,11 @@
       </item>
       <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/densityanalysis.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/exciton.cc" ex="false" tool="1" flavor2="0">
@@ -950,6 +965,8 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_apolarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_convergenceacc.cc"
@@ -961,7 +978,13 @@
       </item>
       <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_fragment.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_numericalintegration.cc"
             ex="false"
@@ -969,6 +992,17 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_qmnblist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_qmpair.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_segment.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_segmenttype.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_symmetric_matrix.cc"
             ex="false"
@@ -979,6 +1013,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_topology.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1062,8 +1098,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/esp2multipole.h"
             ex="false"
@@ -1347,6 +1381,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
@@ -1614,6 +1650,11 @@
       </item>
       <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/densityanalysis.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/exciton.cc" ex="false" tool="1" flavor2="0">
@@ -1661,6 +1702,8 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_apolarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_convergenceacc.cc"
@@ -1672,7 +1715,13 @@
       </item>
       <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_fragment.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_numericalintegration.cc"
             ex="false"
@@ -1680,6 +1729,17 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_qmnblist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_qmpair.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_segment.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_segmenttype.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_symmetric_matrix.cc"
             ex="false"
@@ -1690,6 +1750,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_topology.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

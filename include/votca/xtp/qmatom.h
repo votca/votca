@@ -20,9 +20,6 @@
 #ifndef __VOTCA_XTP_QMATOM_H
 #define	__VOTCA_XTP_QMATOM_H
 
-// Binary archive 
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
 #include <votca/tools/vec.h> 
 #include <votca/xtp/aoshell.h>
 
@@ -80,18 +77,7 @@ private:
 
    
  public: 
-   template<typename Archive> 
-   void serialize(Archive& ar, const unsigned version) {
-       ar & index;
-       ar & type;
-       ar & pos;
-       ar & nuccharge;
-       ar & ecpcharge;
-       ar & partialcharge;
-       
-
-   }
-
+   
    void WriteToCpt(CptLoc parent){
        CheckpointWriter w(parent);
 

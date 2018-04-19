@@ -25,7 +25,7 @@
 #include <map>
 #include <vector>
 #include <votca/tools/property.h>
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/tools/constants.h>
 
 #include "votca/xtp/qmatom.h"

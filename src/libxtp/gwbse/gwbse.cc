@@ -186,7 +186,7 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
        _ignored_corelevels = coreElectrons/2;
     }
    
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Can ignore "
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Ignoring "
                                    << _ignored_corelevels << " core levels "
                                    << flush;
   }
@@ -395,13 +395,8 @@ void GWBSE::addoutput(Property *_summary) {
   Property *_dft_summary = &_gwbse_summary->add("dft", "");
   _dft_summary->setAttribute("HOMO", _homo);
   _dft_summary->setAttribute("LUMO", _homo + 1);
-  int begin = _homo - printlimit;
-  int end = _homo + printlimit + 1;
-  if (begin < 0) {
-    begin = 0;
-    end = 2 * _homo + 1;
-  }
-  for (int state = begin; state < end; state++) {
+  
+  for (int state = _qpmin; state < _qpmax+1; state++) {
 
     Property *_level_summary = &_dft_summary->add("level", "");
     _level_summary->setAttribute("number", state);
@@ -424,7 +419,7 @@ void GWBSE::addoutput(Property *_summary) {
 
   if (_do_bse_singlets) {
     Property *_singlet_summary = &_gwbse_summary->add("singlets", "");
-    for (int state = 0; state < printlimit; ++state) {
+    for (int state = 0; state < _bse_maxeigenvectors; ++state) {
       Property *_level_summary = &_singlet_summary->add("level", "");
       _level_summary->setAttribute("number", state + 1);
       _level_summary->add("omega", (format("%1$+1.6f ") %
@@ -546,7 +541,7 @@ void GWBSE::PrintGWA_Energies(const Eigen::MatrixXd& vxc, const Sigma& sigma,con
   CTP_LOG(ctp::logINFO, *_pLog)
           << (format("   DeltaHLGap = %1$+1.6f Hartree") % _shift).str() << flush;
   
-  for (unsigned i = 0; i < i; i++) {
+  for (unsigned i = 0; i < _qptotal; i++) {
     if ((i + _qpmin) == _homo) {
       CTP_LOG(ctp::logINFO, *_pLog)
               << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
@@ -660,7 +655,7 @@ bool GWBSE::Evaluate() {
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled DFT Basis of size "
                                  << dftbasis.AOBasisSize() << flush;
-  if (dftbasis.getAOBasisFragB() > 0) {
+  if (dftbasis.getAOBasisFragB() > 0  && dftbasis.getAOBasisFragA()>0) {
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size "
                                    << dftbasis.getAOBasisFragA() << flush;
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size "
@@ -727,15 +722,15 @@ bool GWBSE::Evaluate() {
                                  << _auxcoulomb.Matrix().rows() << flush;
  
 
-
-  int removed_functions = _auxcoulomb.Symmetrize(_auxoverlap.Matrix());
-  _auxoverlap.Matrix().resize(0, 0);
+  Eigen::MatrixXd Coulomb_sqrtInv=_auxcoulomb.Pseudo_InvSqrt_GWBSE(_auxoverlap,1e-8);
+    _auxoverlap.Matrix().resize(0, 0);
+    _auxcoulomb.Matrix().resize(0,0);
   CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Symmetrized AuxCoulomb matrix"
+      << ctp::TimeStamp() << " Calculated Matrix Sqrt of Aux Coulomb Matrix"
       << flush;
   CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Removed " << removed_functions
-      << " functions from Auxcoulomb to avoid near linear dependencies" << flush;
+      << ctp::TimeStamp() << " Removed " << _auxcoulomb.Removedfunctions()
+      << " functions from Aux Coulomb matrix to avoid near linear dependencies" << flush;
   
 
   // --- prepare a vector (gwdacay) of matrices (orbitals, orbitals) as
@@ -751,8 +746,8 @@ bool GWBSE::Evaluate() {
       << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
 
   // make _Mmn symmetric
-  _Mmn.MultiplyLeftWithAuxMatrix(_auxcoulomb.Matrix());
-  _auxcoulomb.Matrix().resize(0,0);
+  _Mmn.MultiplyLeftWithAuxMatrix(Coulomb_sqrtInv);
+  
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
       << " Multiplied Mmn_beta with Coulomb Matrix " << flush;
@@ -800,14 +795,7 @@ bool GWBSE::Evaluate() {
    *
    */
 
-  TCMatrix_gwbse _Mmn_backup;
-  if (_iterate_gw) {
-
-    // make copy of _Mmn, memory++
-    _Mmn_backup=_Mmn;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                   << " Made backup of _Mmn  " << flush;
-  } else {
+  if (!_iterate_gw) {
     _gw_sc_max_iterations = 1;
   }
 
@@ -829,8 +817,15 @@ bool GWBSE::Evaluate() {
     ppm.PPM_construct_parameters(rpa);
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                    << " Constructed PPM parameters  " << flush;
-
+    
+    
+    if(gw_iteration==0){
     _Mmn.MultiplyLeftWithAuxMatrix(ppm.getPpm_phi_T());
+    }else{
+      _Mmn.Fill(auxbasis, dftbasis, _orbitals->MOCoefficients());
+      Eigen::MatrixXd coulomb_x_ppm=ppm.getPpm_phi_T()*Coulomb_sqrtInv;
+      _Mmn.MultiplyLeftWithAuxMatrix(coulomb_x_ppm);
+    }
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Prepared threecenters for sigma  " << flush;
 
@@ -885,8 +880,6 @@ bool GWBSE::Evaluate() {
             << "          Run continues. Inspect results carefully!" << flush;
         break;
       }
-      _Mmn=_Mmn_backup;
-      
     }else
     {
       sigma.setGWAEnergies(gwa_energies);
@@ -895,16 +888,9 @@ bool GWBSE::Evaluate() {
    
   ppm.FreeMatrix();
   rpa.FreeMatrices();
-   
-  if (_iterate_gw) {
-    _Mmn_backup.Cleanup();
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Cleaned up PPM, MmnRPA and Mmn_backup "
-        << flush;
-  } else {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                   << " Cleaned up PPM and MmnRPA" << flush;
-  }
+  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                                   << " Cleaned up PPM and MmnRPA Matrices" << flush;
+  
 
   // Output of quasiparticle energies after all is done:
   PrintGWA_Energies(vxc, sigma, _dft_energies);
@@ -922,32 +908,29 @@ bool GWBSE::Evaluate() {
       _qp_energies_store(i, 4) = gwa_energies(i + _qpmin);
     }
   }
-  
-  // free no longer required three-center matrices in _Mmn
-  // max required is _bse_cmax (could be smaller than _qpmax)
-  _Mmn.Prune(_bse_vmin, _bse_cmax);
-  
+ 
 
-  // constructing full quasiparticle Hamiltonian and diagonalize, if requested
+  
   if (_do_qp_diag || _do_bse_singlets || _do_bse_triplets) {
-      
+      CTP_LOG(ctp::logDEBUG, *_pLog)
+      << ctp::TimeStamp() << " Calculating offdiagonal part of Sigma  " << flush;
   sigma.CalcOffDiagElements(_Mmn,ppm);
    CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
-      
+    // free no longer required three-center matrices in _Mmn
+  // max required is _bse_cmax (could be smaller than _qpmax)
+  _Mmn.Prune(_bse_vmin, _bse_cmax);   
     Eigen::MatrixXd Hqp=sigma.SetupFullQPHamiltonian(vxc);
  
     if (_do_qp_diag) {
-        
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(Hqp);
-    const Eigen::VectorXd& qp_diag_energies=es.eigenvalues();
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(Hqp);
+      const Eigen::VectorXd& qp_diag_energies=es.eigenvalues();
+    
     
     CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
-        
-      
+      << ctp::TimeStamp() << " Diagonalized QP Hamiltonian  " <<es.info()<< flush;
+            
       PrintQP_Energies(gwa_energies, qp_diag_energies);
-
 
       if (_store_qp_diag) {
         _orbitals->QPdiagCoefficients()=es.eigenvectors();
@@ -959,7 +942,7 @@ bool GWBSE::Evaluate() {
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
       
-      BSE bse=BSE(_orbitals,_pLog);
+      BSE bse=BSE(_orbitals,_pLog,_min_print_weight);
       bse.setBSEindices(_homo,_bse_vmin,_bse_vmax,_bse_cmin,_bse_cmax,_bse_maxeigenvectors);
        // calculate direct part of eh interaction, needed for singlets and triplets
       bse.Setup_Hd(_Mmn,ppm);

@@ -30,9 +30,6 @@
 
 #include <fstream>
 #include <sys/stat.h>
-
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
@@ -310,7 +307,11 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
            boost::filesystem::path arg_path;
            string ORB_FILE = ( arg_path / ORB_DIR / (format("molecule_%1%.orb") % ID ).str() ).c_str() ;
            CTP_LOG(ctp::logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;  
-           if ( ! _orbitals.Load(ORB_FILE) ) { // did not manage to load
+           CheckpointFile cpf(ORB_FILE, true);
+           try{
+               _orbitals.ReadFromCpt(cpf);
+           }
+           catch(std::runtime_error& error){
                CTP_LOG(ctp::logERROR,*pLog) << "Failed loading orbitals from " << ORB_FILE << flush; 
                output += "failed loading " + ORB_FILE;
                jres.setOutput( output ); 
@@ -318,6 +319,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
                delete _qmpackage;
                return jres;
            }
+           
         }        
        
        _orbitals.Trim(factor);   
@@ -332,9 +334,8 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     // save orbitals
     string ORB_FILE = "molecule_" + ID + ".orb";
     CTP_LOG(ctp::logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
-    std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
-    boost::archive::binary_oarchive oa( ofs );
-    oa << _orbitals;
+    CheckpointFile cpf(ORB_FILE, true);
+    _orbitals.WriteToCpt(cpf);
     // ofs.close();
     
      if(_qmpackage->getPackageName()=="orca"){

@@ -116,14 +116,11 @@ namespace votca {
                     // load the corresponding monomer orbitals and prepare the dimer guess
 
                     // failed to load; wrap-up and finish current job
-                    if (!_orbitalsA.Load(_guess_archiveA)) {
-                        throw runtime_error(string("Do input: failed loading orbitals from ") + _guess_archiveA);
-                    }
-
-                    if (!_orbitalsB.Load(_guess_archiveB)) {
-                        throw runtime_error(string("Do input: failed loading orbitals from ") + _guess_archiveB);
-
-                    }
+                    
+                    CheckpointFile cpfA(_guess_archiveA, true);
+                    _orbitalsA.ReadFromCpt(cpfA);
+                    CheckpointFile cpfB(_guess_archiveA, true);
+                    _orbitalsB.ReadFromCpt(cpfB);
 
                     _orbitals->PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
 
@@ -154,6 +151,7 @@ namespace votca {
                     
                     _qmpackage->ParseOrbitalsFile(_orbitals);
                 }
+                
                 _orbitals->setDFTbasis(_qmpackage->getBasisSetName());
             }
 
@@ -164,7 +162,8 @@ namespace votca {
                 } else {
                     CTP_LOG_SAVE(ctp::logINFO, *_pLog) << "Loading serialized data from " << _archive_file << flush;
                 }
-                _orbitals->Load(_archive_file);
+                CheckpointFile cpf(_archive_file, true);
+                _orbitals->ReadFromCpt(cpf);
             }
 
             if (_do_gwbse) {

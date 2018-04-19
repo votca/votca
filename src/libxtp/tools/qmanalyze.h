@@ -89,13 +89,7 @@ void QMAnalyze::Initialize(Property* options) {
         
         if (_store_string.find("DFT") != std::string::npos) _print_DFT_energies=true;
         if (_store_string.find("GW") != std::string::npos) _print_GW_energies=true;
-        if (_store_string.find("QP") != std::string::npos) _print_QP_energies=true;
-    
-   
-  
-        
-    
-        
+        if (_store_string.find("QP") != std::string::npos) _print_QP_energies=true;        
    }
    
    
@@ -127,25 +121,17 @@ bool QMAnalyze::Evaluate() {
     _log.setPreface(ctp::logDEBUG,   "\n... ..."); 
 
     CTP_LOG(ctp::logDEBUG, _log) << "Analyzing serialized QM data in " << _orbfile << flush;
-
     Orbitals _orbitals;
     // load the QM data from serialized orbitals object
 
-    std::ifstream ifs( (_orbfile).c_str());
+    
     CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-    boost::archive::binary_iarchive ia(ifs);
-    ia >> _orbitals;
-    ifs.close();
+   CheckpointFile cpf(_orbfile, true);
+   _orbitals.ReadFromCpt(cpf);
     
     // output info about contents of serialized data
     CheckContent( _orbitals );
-    
-    
-    
-    
-  
-    
-    
+
     return true;
 }
 
@@ -154,8 +140,6 @@ bool QMAnalyze::Evaluate() {
 
 void QMAnalyze::CheckContent( Orbitals& _orbitals ){
 
-
-   
     CTP_LOG(ctp::logDEBUG, _log) << "===== Summary of serialized content ===== " << flush;
     CTP_LOG(ctp::logDEBUG, _log) << "   Information about DFT:" << flush;
     

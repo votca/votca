@@ -34,45 +34,13 @@
 
 #include <votca/ctp/logger.h>
 #include <boost/format.hpp>
-// Text archive that defines boost::archive::text_oarchive
-// and boost::archive::text_iarchive
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-
-// XML archive that defines boost::archive::xml_oarchive
-// and boost::archive::xml_iarchive
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-
-// XML archive which uses wide characters (use for UTF-8 output ),
-// defines boost::archive::xml_woarchive
-// and boost::archive::xml_wiarchive
-#include <boost/archive/xml_woarchive.hpp>
-#include <boost/archive/xml_wiarchive.hpp>
-
-// Binary archive that defines boost::archive::binary_oarchive
-// and boost::archive::binary_iarchive
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-
-#include <boost/serialization/version.hpp>
-#include <boost/serialization/map.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/version.hpp>
 #include <votca/tools/constants.h>
-
-#if (GWBSE_DOUBLE)
-#define real_gwbse double
-#else
-#define real_gwbse float
-#endif
 
 
 
 namespace votca {
     namespace xtp {
-        typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, Eigen::Dynamic> MatrixXfd;
-        typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, 1> VectorXfd;
+       
 
         /**
          * \brief container for molecular orbitals
@@ -723,20 +691,12 @@ namespace votca {
             // reduces number of virtual orbitals to [HOMO-degG:LUMO+degL]
             void Trim(int degH, int degL);
 
-            /** Loads orbitals from a file
-             * Returns true if successful and does not throw an exception.
-             * If exception is required, please use the << overload.
-             */
-            bool Load(std::string file_name);
-
-            bool Save(std::string file_name);
-
             void LoadFromXYZ(std::string filename);
 
-            void WriteToCpt(CheckpointFile f, const std::string &name);
+            void WriteToCpt(CheckpointFile f);
             void WriteToCpt(CptLoc parent);
 
-            void ReadFromCpt(CheckpointFile f, const std::string& name);
+            void ReadFromCpt(CheckpointFile f);
             void ReadFromCpt(CptLoc parent);
 
 
@@ -749,7 +709,6 @@ namespace votca {
             int _unoccupied_levels;
             int _number_of_electrons;
             string _ECP;
-
             string _bsetype;
 
 
@@ -840,23 +799,11 @@ namespace votca {
              */
             bool CheckDegeneracy(double _energy_difference);
 
-            // Allow serialization to access non-public data members
-            friend class boost::serialization::access;
-
-            // serialization itself (template implementation stays in the header)
-
-            template<typename Archive>
-            void serialize(Archive& ar, const unsigned int version) {
-                //check with which votca version orbitals object was created
-
-                    std::vector<int> _index2v;
-                    std::vector<int> _index2c;
-            }// end of serialization
+ 
         };
 
     }
 }
 
-BOOST_CLASS_VERSION(votca::xtp::Orbitals, 4)
 
 #endif /* __VOTCA_XTP_ORBITALS_H */

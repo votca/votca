@@ -18,6 +18,7 @@
  */
 
 
+#include <exception>
 #include <votca/xtp/nbo.h>
 #include <votca/xtp/aomatrix.h>
 
@@ -35,6 +36,7 @@ void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,const  Eigen::MatrixXd &
     cout<<P<<endl;
     cout<<_overlap.Matrix()<<endl;
     
+      throw invalid_argument("Evaluate NBO function is incomplete");    
    
     return;
 }

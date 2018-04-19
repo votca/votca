@@ -226,9 +226,6 @@ namespace votca { namespace xtp {
         //block fill for overlap, implementation in aooverlap.cc
       
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
-        //void Print();
-        
-	//        ~AOOverlap();
         
     };
     
@@ -282,11 +279,13 @@ namespace votca { namespace xtp {
     public:
     
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
-        int Symmetrize(const Eigen::MatrixXd& _auxoverlap);
-        int Invert_DFT();
-       
+        Eigen::MatrixXd Pseudo_InvSqrt_GWBSE(const AOOverlap& _auxoverlap,double etol);
+        Eigen::MatrixXd Pseudo_Invert(double etol);
+        int Removedfunctions(){return removedfunctions;}
         
     private:
+        
+        int removedfunctions;
         typedef boost::multi_array<double, 3> ma_type;
         typedef ma_type::index index;
         

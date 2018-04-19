@@ -51,7 +51,7 @@ struct Population {
  public:
  
     
-  BSE(Orbitals* orbitals,ctp::Logger *log):
+  BSE(Orbitals* orbitals,ctp::Logger *log,double min_print_weight):
         _log(log),
         _orbitals(orbitals),
         _eh_x(orbitals->eh_x()),
@@ -60,7 +60,8 @@ struct Population {
         _bse_singlet_coefficients(orbitals->BSESingletCoefficients()),
         _bse_singlet_coefficients_AR(orbitals->BSESingletCoefficientsAR()),
         _bse_triplet_energies(orbitals->BSETripletEnergies()),
-        _bse_triplet_coefficients(orbitals->BSETripletCoefficients()){};
+        _bse_triplet_coefficients(orbitals->BSETripletCoefficients()),
+        _min_print_weight(min_print_weight){};
 
   ~BSE(){};
   
@@ -149,7 +150,7 @@ ctp::Logger *_log;
   std::vector<int> _index2c;
 
  void printFragInfo(Population& pop, int i);
- void printWeights(unsigned _i_bse, double _weight);
+ void printWeights(unsigned i_bse, double weight);
  
   
   Interaction Analyze_eh_interaction(const std::string& spin, const Eigen::MatrixXd& H_qp);

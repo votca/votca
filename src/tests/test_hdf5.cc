@@ -120,14 +120,14 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         orbWrite.BSETripletEnergies() = BSETripletEnergiesTest;
         orbWrite.BSETripletCoefficients() = BSETripletCoefficientsTest;
 
-        orbWrite.WriteToCpt(cpf, "Test Orbital");
+        orbWrite.WriteToCpt(cpf);
     }
 
 
     // Read Orbitals
     Orbitals orbRead;
 
-    orbRead.ReadFromCpt(cpf, "Test Orbital");
+    orbRead.ReadFromCpt(cpf);
 
     double tol = 1e-6;
 

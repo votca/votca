@@ -19,8 +19,10 @@
 
 #include <votca/xtp/gyration.h>
 #include <boost/format.hpp>
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 
+
+using namespace votca::tools;
 
 namespace votca { namespace xtp {
 
@@ -124,7 +126,7 @@ void Density2Gyration::Initialize(Property* options) {
 
     void Density2Gyration::AnalyzeGeometry(std::vector<QMAtom*> _atoms){
     
-        Elements _elements; 
+        tools::Elements _elements; 
         double mass=0.0;
         tools::vec centroid = tools::vec(0.0);
         tools::matrix gyration = tools::matrix(0.0);

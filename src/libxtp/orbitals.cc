@@ -18,7 +18,8 @@
  */
 
 #include "votca/xtp/orbitals.h"
-#include <votca/xtp/elements.h>
+
+#include <votca/tools/elements.h>
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
@@ -27,7 +28,7 @@
 
 
 
-
+using namespace votca::tools;
 
 namespace votca {
     namespace xtp {
@@ -211,39 +212,7 @@ namespace votca {
             return;
         }
 
-        bool Orbitals::Load(string file_name) {
-            try {
-                std::ifstream ifs(file_name.c_str());
-                boost::archive::binary_iarchive ia(ifs);
-                ia >> *this;
-                ifs.close();
-            } catch (std::exception &err) {
-                std::cerr << "Could not load orbitals from " << file_name << flush;
-                std::cerr << "An error occurred:\n" << err.what() << endl;
-                return false;
-            }
-            return true;
-        }
-
-        /* Save to archive */
-        bool Orbitals::Save(std::string file_name) {
-
-            try {
-                std::ofstream ofs((file_name).c_str());
-                boost::archive::binary_oarchive oa(ofs);
-                oa << *this;
-                ofs.close();
-            } catch (std::exception &err) {
-                std::cerr << "Could not save orbitals to " << file_name << flush;
-                std::cerr << "An error occurred:\n" << err.what() << endl;
-                return false;
-            }
-            return true;
-        }
-
-
-
-
+        
         // Determine ground state density matrix
 
         Eigen::MatrixXd Orbitals::DensityMatrixGroundState() {
@@ -259,8 +228,8 @@ namespace votca {
 
         // Determine QuasiParticle Density Matrix
         Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle( int state){
-          Eigen::MatrixXd lambda =_QPdiag_coefficients*_mo_coefficients.block(0,_qpmin,_mo_coefficients.rows(),_qptotal);
-          Eigen::MatrixXd dmatQP=lambda.row(state)*lambda.row(state).transpose();
+          Eigen::MatrixXd lambda =LambdaMatrixQuasiParticle();
+          Eigen::MatrixXd dmatQP=lambda.col(state)*lambda.col(state).transpose();
           return dmatQP;
         }
 
@@ -688,7 +657,8 @@ namespace votca {
             return;
         }
 
-    void Orbitals::WriteToCpt(CheckpointFile f, const std::string& name){
+    void Orbitals::WriteToCpt(CheckpointFile f){
+        std::string name="QMdata";
         CptLoc orbGr = f.getHandle().createGroup("/" + name);
         WriteToCpt(orbGr);
     }
@@ -764,7 +734,8 @@ namespace votca {
 
     }
 
-    void Orbitals::ReadFromCpt(CheckpointFile f, const std::string& name){
+    void Orbitals::ReadFromCpt(CheckpointFile f){
+        std::string name="QMdata";
         CptLoc orbGr = f.getHandle().openGroup("/" + name);
         ReadFromCpt(orbGr);
     }
