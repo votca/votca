@@ -18,7 +18,8 @@
  */
 
 #include "votca/xtp/orbitals.h"
-#include <votca/xtp/elements.h>
+
+#include <votca/tools/elements.h>
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
@@ -27,7 +28,7 @@
 
 
 
-
+using namespace votca::tools;
 
 namespace votca {
     namespace xtp {

@@ -25,8 +25,6 @@
 #include <vector>
 #include <votca/xtp/votca_config.h>
 
-
-
 #if defined(MKL)
 #include <mkl.h>
   #define EIGEN_USE_MKL_ALL 

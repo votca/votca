@@ -22,7 +22,7 @@
 
 #include <votca/xtp/aobasis.h>
 
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/tools/constants.h>
 
 namespace votca { namespace xtp {

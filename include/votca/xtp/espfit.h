@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,11 @@
  *
  */
 
-#ifndef __XTP_ESPFIT__H
-#define	__XTP_ESPFIT__H
+#ifndef __VOTCA_XTP_ESPFIT__H
+#define	__VOTCA_XTP_ESPFIT__H
 
 
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/xtp/grid.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/ctp/apolarsite.h>
@@ -54,7 +54,7 @@ public:
 private:
     
      ctp::Logger *_log;
-     Elements _elements; 
+     votca::tools::Elements _elements; 
      bool _do_Transition;
      bool _do_svd;
      double _conditionnumber;
@@ -70,4 +70,4 @@ private:
 };
 }}
 
-#endif	/* ESPFIT_H */
+#endif	// VOTCA_XTP_ESPFIT_H 

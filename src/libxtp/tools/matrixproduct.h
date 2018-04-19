@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 #include <boost/format.hpp>
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/ctp/logger.h>
 
 #include <votca/tools/constants.h>

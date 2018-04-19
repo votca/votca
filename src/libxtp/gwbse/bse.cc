@@ -89,8 +89,8 @@ namespace votca {
         double sqrt_eval = sqrt(_bse_singlet_energies(_i));
         // get l-th reduced EV
         Eigen::VectorXd _reduced_evec = es.eigenvectors().col(_i);
-        _bse_singlet_coefficients.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT + L.matrixL()) * _reduced_evec).cast<real_gwbse>();
-        _bse_singlet_coefficients_AR.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT - L.matrixL()) * _reduced_evec).cast<real_gwbse>();
+        _bse_singlet_coefficients.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT + _AmB) * _reduced_evec).cast<real_gwbse>();
+        _bse_singlet_coefficients_AR.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT - _AmB) * _reduced_evec).cast<real_gwbse>();
 
       }
 
