@@ -42,8 +42,7 @@ namespace votca {
 
         double DFTcoupling::getCouplingElement(int levelA, int levelB, Orbitals* _orbitalsA,
                 Orbitals* _orbitalsB, ub::matrix<double>* _JAB, double _energy_difference) {
-
-
+            
             int _levelsA = _orbitalsA->getNumberOfLevels();
 
             if (_energy_difference != 0) {
@@ -157,9 +156,7 @@ namespace votca {
 
             ub::project(_psi_AxB, ub::range(0, _levelsA), ub::range(0, _basisA)) = _orbitalsA->MOCoefficients();
             ub::project(_psi_AxB, ub::range(_levelsA, _levelsA + _levelsB), ub::range(_basisA, _basisA + _basisB)) = _orbitalsB->MOCoefficients();
-
-            
-            
+      
             // psi_AxB * S_AB * psi_AB
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Projecting dimer onto monomer orbitals" << flush;
             ub::matrix<double> overlap;
@@ -210,7 +207,6 @@ namespace votca {
             double smalleig = linalg_loewdin(JAB_dimer, _S_AxB);
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Smallest eigenvalue of overlap matrix is " << smalleig << flush;
             (*_JAB) = JAB_dimer;
-
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done with electronic couplings" << flush;
 
