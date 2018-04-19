@@ -30,7 +30,7 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/linalg.h>
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/tools/constants.h>
 
 #include "votca/xtp/qmatom.h"

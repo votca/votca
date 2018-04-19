@@ -72,7 +72,7 @@
       <itemPath>../../include/votca/xtp/chargecarrier.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/diis.h</itemPath>
-      <itemPath>../../include/votca/xtp/elements.h</itemPath>
+      <itemPath>../../include/votca/tools/elements.h</itemPath>
       <itemPath>../../include/votca/xtp/esp2multipole.h</itemPath>
       <itemPath>../../include/votca/xtp/espfit.h</itemPath>
       <itemPath>../../include/votca/xtp/exchange_correlation.h</itemPath>
@@ -306,7 +306,7 @@
       </item>
       <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
+      <item path="../../include/votca/tools/elements.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/esp2multipole.h"
             ex="false"
@@ -964,7 +964,7 @@
       </item>
       <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/elements.h" ex="false" tool="3" flavor2="0">
+      <item path="../../include/votca/tools/elements.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/esp2multipole.h"
             ex="false"

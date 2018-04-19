@@ -19,7 +19,7 @@
 
 #include "votca/xtp/orbitals.h"
 #include "votca/tools/globals.h"
-#include "votca/xtp/elements.h"
+#include "votca/tools/elements.h"
 #include "votca/xtp/qmatom.h"
 #include <stdio.h>
 #include <iostream>
@@ -33,7 +33,7 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 
-
+using namespace votca::tools;
 
 namespace votca {
     namespace xtp {

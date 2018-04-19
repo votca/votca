@@ -36,7 +36,7 @@
 #include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
 
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/xtp/diis.h>
 
 #include <votca/ctp/xinteractor.h>
@@ -517,7 +517,7 @@ namespace votca {
                 }
             }
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " " << uniqueelements.size() << " unique elements found" << flush;
-            Elements _elements;
+            tools::Elements _elements;
             for (st = uniqueelements.begin(); st < uniqueelements.end(); ++st) {
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating atom density for " << (*st)->getType() << flush;

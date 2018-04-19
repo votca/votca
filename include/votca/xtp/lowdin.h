@@ -21,7 +21,7 @@
 #define	__XTP_LOWDIN__H
 
 
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/qmatom.h>
 
