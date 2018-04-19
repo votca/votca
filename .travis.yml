@@ -42,6 +42,10 @@ script:
  - git checkout -b current_commit
  - cd ../../
  - if [[ ${TRAVIS_REPO_SLUG} = */votca ]]; then
+     if [[ ${TRAVIS_BRANCH} = next ]]; then
+       git -C ${TRAVIS_REPO_SLUG} submodule foreach git checkout master;
+       git -C ${TRAVIS_REPO_SLUG} submodule foreach git pull;
+     fi;
      cp -vr ${TRAVIS_REPO_SLUG}/docker ${HOME};
      mv -v ${TRAVIS_REPO_SLUG} $HOME/docker;
    else
