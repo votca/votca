@@ -663,6 +663,9 @@ namespace votca {
       if (_with_ecp) {
         _orbitals->setECP(_ecp_name);
       }
+      if(_with_RI){
+        _orbitals->setAuxbasis(_auxbasis_name);
+      }
 
       if (_with_guess) {
         if (_orbitals->hasECP() || _with_ecp) {

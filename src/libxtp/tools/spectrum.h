@@ -122,8 +122,7 @@ namespace votca {
 
             std::ifstream ifs((_orbfile).c_str());
             CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-            CheckpointFile cpf(_orbfile, true);
-            _orbitals.ReadFromCpt(cpf);
+            _orbitals.ReadFromCpt(_orbfile);
 
 
             // check if orbitals contains singlet energies and transition dipoles

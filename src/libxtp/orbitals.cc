@@ -18,7 +18,7 @@
  */
 
 #include "votca/xtp/orbitals.h"
-
+#include "gitversion.h"
 #include <votca/tools/elements.h>
 #include <stdio.h>
 #include <iostream>
@@ -656,6 +656,11 @@ namespace votca {
             }
             return;
         }
+        
+    void Orbitals::WriteToCpt(const std::string& filename){
+      CheckpointFile cpf(filename, true);
+      WriteToCpt(cpf);
+    }
 
     void Orbitals::WriteToCpt(CheckpointFile f){
         std::string name="QMdata";
@@ -666,7 +671,7 @@ namespace votca {
     void Orbitals::WriteToCpt(CptLoc parent){
         try{
             CheckpointWriter w(parent);
-
+            w(gitversion, "Version");
             w(_basis_set_size, "basis_set_size");
             w(_occupied_levels, "occupied_levels");
             w(_unoccupied_levels, "unoccupied_levels");
@@ -681,7 +686,7 @@ namespace votca {
                 CptLoc qmAtomsGr = parent.createGroup("qmatoms");
                 size_t count = 0;
                 for (const auto& qma: _atoms){
-                    CptLoc tempLoc = qmAtomsGr.createGroup("index" + std::to_string(count));
+                    CptLoc tempLoc = qmAtomsGr.createGroup("atom" + std::to_string(count));
                     qma->WriteToCpt(tempLoc);
                     ++count;
                 }
@@ -733,6 +738,13 @@ namespace votca {
         }
 
     }
+    
+     
+    void Orbitals::ReadFromCpt(const std::string& filename){
+      CheckpointFile cpf(filename, false);
+      ReadFromCpt(cpf);
+    }
+    
 
     void Orbitals::ReadFromCpt(CheckpointFile f){
         std::string name="QMdata";
@@ -743,7 +755,7 @@ namespace votca {
     void Orbitals::ReadFromCpt(CptLoc parent){
         try{
             CheckpointReader r(parent);
-
+            
             r(_basis_set_size, "basis_set_size");
             r(_occupied_levels, "occupied_levels");
             r(_unoccupied_levels, "unoccupied_levels");
@@ -758,7 +770,7 @@ namespace votca {
                 size_t count = qmAtomsGr.getNumObjs();
 
                 for (size_t i = 0; i < count; ++i){
-                    CptLoc tempLoc = qmAtomsGr.openGroup("index" + std::to_string(i));
+                    CptLoc tempLoc = qmAtomsGr.openGroup("atom" + std::to_string(i));
                     QMAtom temp;
                     temp.ReadFromCpt(tempLoc);
                     AddAtom(temp);

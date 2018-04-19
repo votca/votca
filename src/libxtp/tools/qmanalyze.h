@@ -126,8 +126,7 @@ bool QMAnalyze::Evaluate() {
 
     
     CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-   CheckpointFile cpf(_orbfile, true);
-   _orbitals.ReadFromCpt(cpf);
+   _orbitals.ReadFromCpt(_orbfile);
     
     // output info about contents of serialized data
     CheckContent( _orbitals );

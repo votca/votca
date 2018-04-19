@@ -85,8 +85,7 @@ bool Partialcharges::Evaluate() {
     // load the QM data from serialized orbitals object
 
     CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-    CheckpointFile cpf(_orbfile, true);
-    _orbitals.ReadFromCpt(cpf);
+    _orbitals.ReadFromCpt(_orbfile);
 
     Esp2multipole esp2multipole=Esp2multipole(&_log);
     esp2multipole.Initialize(&_esp_options);

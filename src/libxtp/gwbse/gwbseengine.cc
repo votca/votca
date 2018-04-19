@@ -116,11 +116,9 @@ namespace votca {
                     // load the corresponding monomer orbitals and prepare the dimer guess
 
                     // failed to load; wrap-up and finish current job
-                    
-                    CheckpointFile cpfA(_guess_archiveA, true);
-                    _orbitalsA.ReadFromCpt(cpfA);
-                    CheckpointFile cpfB(_guess_archiveA, true);
-                    _orbitalsB.ReadFromCpt(cpfB);
+                       
+                    _orbitalsA.ReadFromCpt(_guess_archiveA);
+                    _orbitalsB.ReadFromCpt(_guess_archiveB);
 
                     _orbitals->PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
 
@@ -162,8 +160,7 @@ namespace votca {
                 } else {
                     CTP_LOG_SAVE(ctp::logINFO, *_pLog) << "Loading serialized data from " << _archive_file << flush;
                 }
-                CheckpointFile cpf(_archive_file, true);
-                _orbitals->ReadFromCpt(cpf);
+                _orbitals->ReadFromCpt(_archive_file);
             }
 
             if (_do_gwbse) {

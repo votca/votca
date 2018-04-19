@@ -158,9 +158,8 @@ namespace votca {
     void IGWBSE::LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log) {
 
       CTP_LOG(ctp::logDEBUG, *log) << "Loading " << file_name << flush;
-      CheckpointFile cpf(file_name, true);
       try {
-        orbitals->ReadFromCpt(cpf);
+        orbitals->ReadFromCpt(file_name);
       } catch (std::runtime_error& error) {
         CTP_LOG(ctp::logERROR, *log) << "Failed loading orbitals from " << file_name << flush;
       }
@@ -244,9 +243,8 @@ namespace votca {
           // load the corresponding monomer orbitals and prepare the dimer guess 
 
           // failed to load; wrap-up and finish current job
-          CheckpointFile cpfA(orbFileA, true);
           try {
-            _orbitalsA.ReadFromCpt(cpfA);
+            _orbitalsA.ReadFromCpt(orbFileA);
           } catch (std::runtime_error& error) {
             CTP_LOG(ctp::logERROR, *pLog) << "Do input: failed loading orbitals from " << orbFileA << flush;
             cout << *pLog;
@@ -256,10 +254,9 @@ namespace votca {
             delete _qmpackage;
             return jres;
           }
-
-          CheckpointFile cpfB(orbFileB, true);
+ 
           try {
-            _orbitalsB.ReadFromCpt(cpfB);
+            _orbitalsB.ReadFromCpt(orbFileB);
           } catch (std::runtime_error& error) {
             CTP_LOG(ctp::logERROR, *pLog) << "Do input: failed loading orbitals from " << orbFileB << flush;
             cout << *pLog;
@@ -371,9 +368,8 @@ namespace votca {
 
 
 
-        CheckpointFile cpfA(orbFileA, true);
         try {
-          _orbitalsA.ReadFromCpt(cpfA);
+          _orbitalsA.ReadFromCpt(orbFileA);
         } catch (std::runtime_error& error) {
           CTP_LOG(ctp::logERROR, *pLog) << "Failed loading orbitals from " << orbFileA << flush;
           cout << *pLog;
@@ -384,9 +380,8 @@ namespace votca {
           return jres;
         }
 
-        CheckpointFile cpfB(orbFileB, true);
         try {
-          _orbitalsB.ReadFromCpt(cpfB);
+          _orbitalsB.ReadFromCpt(orbFileB);
         } catch (std::runtime_error& error) {
           CTP_LOG(ctp::logERROR, *pLog) << "Failed loading orbitals from " << orbFileB << flush;
           cout << *pLog;
@@ -458,8 +453,7 @@ namespace votca {
           _orbitalsAB.eh_x().resize(0, 0);
         }
 
-        CheckpointFile cpf(orbFileAB, true);
-        _orbitalsAB.WriteToCpt(cpf);
+        _orbitalsAB.WriteToCpt(orbFileAB);
       } else {
         CTP_LOG(ctp::logDEBUG, *pLog) << "Orb file is not saved according to options " << flush;
       }

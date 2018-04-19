@@ -264,8 +264,7 @@ namespace votca {
         } else {
           CTP_LOG(ctp::logDEBUG, *pLog) << ctp::TimeStamp() << " Loading data from " << ORB_FILE << flush;
         }
-        CheckpointFile cpf(ORB_FILE, true);
-        _orbitals.ReadFromCpt(cpf);
+        _orbitals.ReadFromCpt(ORB_FILE);
       }
       _qmpackage->CleanUp();
       delete _qmpackage;
@@ -330,8 +329,7 @@ namespace votca {
         string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir+ "/" + orb_file;
         boost::filesystem::create_directories(DIR);
         string ORBFILE=DIR + "/" + orb_file;
-        CheckpointFile cpf(ORBFILE, true);
-        _orbitals.WriteToCpt(cpf);
+        _orbitals.WriteToCpt(ORBFILE);
       }
 
       // output of the JOB 

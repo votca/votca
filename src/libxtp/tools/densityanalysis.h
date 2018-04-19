@@ -83,8 +83,7 @@ bool DensityAnalysis::Evaluate() {
     // load the QM data from serialized orbitals object
 
     CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-    CheckpointFile cpf(_orbfile, true);
-    _orbitals.ReadFromCpt(cpf);
+    _orbitals.ReadFromCpt(_orbfile);
 
     Density2Gyration density2gyration=Density2Gyration(&_log);
     density2gyration.Initialize(&_gyration_options);

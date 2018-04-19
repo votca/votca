@@ -79,10 +79,15 @@ namespace votca {
             // Read molecular geometry from xyz file and store in a segment (WHY SEGMENT?)
             std::vector <ctp::Segment* > _segments;
             ctp::Segment _segment(0, "mol");
+            
+            if(_orbitals.hasQMAtoms()){
+              
+            }
             CTP_LOG(ctp::logDEBUG, _log) << "Reading molecular coordinates from " << _xyzfile << flush;
-            _orbitals.LoadFromXYZ(_xyzfile);
+            Orbitals temp;
+            temp.LoadFromXYZ(_xyzfile);
             QMMInterface qminterface;
-            qminterface.Orbitals2Segment(&_segment,&_orbitals);
+            qminterface.Orbitals2Segment(&_segment,&temp);
             _segments.push_back(&_segment);
 
             // Get and initialize QMPackage for DFT ground state
@@ -108,8 +113,7 @@ namespace votca {
             }
 
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
-            CheckpointFile cpf(_archive_file, true);
-            _orbitals.WriteToCpt(cpf);
+            _orbitals.WriteToCpt(_archive_file);
             
             Property _summary = _gwbse_engine.ReportSummary();
             if(_summary.exists("output")){  //only do gwbse summary output if we actually did gwbse

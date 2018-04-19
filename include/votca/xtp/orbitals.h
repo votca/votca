@@ -693,14 +693,19 @@ namespace votca {
 
             void LoadFromXYZ(std::string filename);
 
-            void WriteToCpt(CheckpointFile f);
-            void WriteToCpt(CptLoc parent);
-
-            void ReadFromCpt(CheckpointFile f);
-            void ReadFromCpt(CptLoc parent);
+            void WriteToCpt(const std::string& filename);
+            
+            void ReadFromCpt(const std::string& filename);
+            
 
 
         private:
+            
+            void WriteToCpt(CheckpointFile f);
+            void WriteToCpt(CptLoc parent);
+            
+            void ReadFromCpt(CheckpointFile f);
+            void ReadFromCpt(CptLoc parent);
             std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const string& spin,int state = 0);
             std::vector<Eigen::MatrixXd >DensityMatrixExcitedState_AR(const string& spin,int state = 0);
 

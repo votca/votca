@@ -307,9 +307,8 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
            boost::filesystem::path arg_path;
            string ORB_FILE = ( arg_path / ORB_DIR / (format("molecule_%1%.orb") % ID ).str() ).c_str() ;
            CTP_LOG(ctp::logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;  
-           CheckpointFile cpf(ORB_FILE, true);
            try{
-               _orbitals.ReadFromCpt(cpf);
+               _orbitals.ReadFromCpt(ORB_FILE);
            }
            catch(std::runtime_error& error){
                CTP_LOG(ctp::logERROR,*pLog) << "Failed loading orbitals from " << ORB_FILE << flush; 
@@ -334,8 +333,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     // save orbitals
     string ORB_FILE = "molecule_" + ID + ".orb";
     CTP_LOG(ctp::logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
-    CheckpointFile cpf(ORB_FILE, true);
-    _orbitals.WriteToCpt(cpf);
+    _orbitals.WriteToCpt(ORB_FILE);
     // ofs.close();
     
      if(_qmpackage->getPackageName()=="orca"){

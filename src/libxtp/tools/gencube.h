@@ -157,8 +157,7 @@ namespace votca {
 
             Orbitals _orbitals;
             CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-            CheckpointFile cpf(_orbfile, true);
-            _orbitals.ReadFromCpt(cpf);
+            _orbitals.ReadFromCpt(_orbfile);
 
             if (_do_qp && !_orbitals.hasQPdiag()) {
                 throw std::runtime_error("Orbitals file does not contain QP coefficients");

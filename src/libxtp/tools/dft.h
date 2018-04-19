@@ -134,7 +134,6 @@ namespace votca {
 
         bool DFT::Evaluate() {
 
-
             if (_reporting == "silent") _log.setReportLevel(ctp::logERROR); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
             if (_reporting == "noisy") _log.setReportLevel(ctp::logDEBUG); // OUTPUT ALL THE THINGS
             if (_reporting == "default") _log.setReportLevel(ctp::logINFO); // 
@@ -152,14 +151,11 @@ namespace votca {
 
             if (_do_guess) {
                 CTP_LOG(ctp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
-                CheckpointFile cpf_guess(_guess_file, true);
-                _orbitals.ReadFromCpt(cpf_guess);
+                _orbitals.ReadFromCpt(_guess_file);
             } else {
                 CTP_LOG(ctp::logDEBUG, _log) << "Reading structure from " << _xyzfile << flush;
                 _orbitals.LoadFromXYZ(_xyzfile);
             }
-
-
 
             // initialize the DFTENGINE
             DFTENGINE _dft;
@@ -184,8 +180,7 @@ namespace votca {
 
 
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _output_file << flush;
-            CheckpointFile cpf(_output_file, true);
-            _orbitals.WriteToCpt(cpf);
+            _orbitals.WriteToCpt(_output_file);
           
             return true;
         }

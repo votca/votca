@@ -17,17 +17,9 @@
 #ifndef _VOTCA_XTP_CHECKPOINT_H
 #define _VOTCA_XTP_CHECKPOINT_H
 
-#include <Eigen/Eigen>
-#include <H5Cpp.h>
-#include <string>
-#include <typeinfo>
-#include <vector>
-#include <type_traits>
-#include <votca/tools/vec.h>
 
+#include <H5Cpp.h>
 #include <votca/xtp/checkpoint_utils.h>
-#include <votca/xtp/checkpointwriter.h>
-#include <votca/xtp/checkpointreader.h>
 
 
 namespace votca {
@@ -46,7 +38,7 @@ class CheckpointFile {
  private:
   std::string _fileName;
   H5::H5File _fileHandle;
-  std::string _version;
+
 };
 
 

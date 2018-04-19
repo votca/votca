@@ -17,10 +17,20 @@
  *
  */
 
-#include "gitversion.h"
+
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <votca/xtp/votca_config.h>
+
+#include <string>
+#include <typeinfo>
+#include <vector>
+#include <type_traits>
+#include <votca/tools/vec.h>
+#include <votca/xtp/checkpoint_utils.h>
+#include <votca/xtp/checkpointwriter.h>
+#include <votca/xtp/checkpointreader.h>
 #include <votca/xtp/checkpoint.h>
 namespace votca {
 namespace xtp {
@@ -32,7 +42,7 @@ CheckpointFile::CheckpointFile(std::string fN){
 }
 
 CheckpointFile::CheckpointFile(std::string fN, bool overWrite)
-    : _fileName(fN), _version(gitversion) {
+    : _fileName(fN){
 
   try {
       bool fileExists = false;
@@ -51,11 +61,7 @@ CheckpointFile::CheckpointFile(std::string fN, bool overWrite)
       else {
           _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
       }
-
-      CheckpointWriter w(_fileHandle.openGroup("/"));
-
-      w(gitversion, "Version");
-
+      
   } catch (H5::Exception& error) {
     error.printError();
     throw std::runtime_error(error.getDetailMsg());
@@ -63,7 +69,6 @@ CheckpointFile::CheckpointFile(std::string fN, bool overWrite)
 };
 
 std::string CheckpointFile::getFileName() { return _fileName; };
-std::string CheckpointFile::getVersion() { return _version; };
 
 H5::H5File CheckpointFile::getHandle() { return _fileHandle; };
 

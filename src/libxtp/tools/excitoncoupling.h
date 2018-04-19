@@ -122,16 +122,13 @@ bool ExcitonCoupling::Evaluate() {
     // load the QM data from serialized orbitals objects
 
     CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
-    CheckpointFile cpfA(_orbA, true);
-    _orbitalsA.ReadFromCpt(cpfA);
+    _orbitalsA.ReadFromCpt(_orbA);
     
     CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
-    CheckpointFile cpfB(_orbB, true);
-    _orbitalsB.ReadFromCpt(cpfB);
+    _orbitalsB.ReadFromCpt(_orbB);
 
     CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
-    CheckpointFile cpfAB(_orbAB, true);
-    _orbitalsAB.ReadFromCpt(cpfAB);
+    _orbitalsAB.ReadFromCpt(_orbAB);
    
      BSECoupling _bsecoupling; 
      _bsecoupling.setLogger(&_log);

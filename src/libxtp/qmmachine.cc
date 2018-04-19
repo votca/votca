@@ -417,9 +417,8 @@ namespace votca {
                             Orbitals _orbitals_N_1;
                             // load the QM data from serialized orbitals object
                            
-                            CheckpointFile cpf(orbfile_N_1, true);
                             CTP_LOG(ctp::logDEBUG, *_log) << " Loading QM data from " << orbfile_N_1 << flush;
-                            _orbitals_N_1.ReadFromCpt(cpf);
+                            _orbitals_N_1.ReadFromCpt(orbfile_N_1);
                             
                             Eigen::MatrixXd lambda_N_1 = _orbitals_N_1.LambdaMatrixQuasiParticle();
                             // calculate QP overlaps
@@ -617,8 +616,7 @@ namespace votca {
                 // save orbitals
                 std::string ORB_FILE = runFolder + "/system.orb";
                 CTP_LOG(ctp::logDEBUG, *_log) << "Archiving data to " << ORB_FILE << flush;
-                CheckpointFile cpf(ORB_FILE, true);
-                orb_iter_input.WriteToCpt(cpf);
+                orb_iter_input.WriteToCpt(ORB_FILE);
             }
 
             CTP_LOG(ctp::logINFO, *_log)

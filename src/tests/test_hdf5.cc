@@ -26,7 +26,7 @@
 BOOST_AUTO_TEST_SUITE(test_hdf5)
 using namespace votca::xtp;
 BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
-    CheckpointFile cpf("xtp_testing.hdf5", true);
+   
 
     int basisSetSize = 17;
     int occupiedLevels = 4;
@@ -119,16 +119,12 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         orbWrite.TransitionDipoles() = transitionDipolesTest;
         orbWrite.BSETripletEnergies() = BSETripletEnergiesTest;
         orbWrite.BSETripletCoefficients() = BSETripletCoefficientsTest;
-
-        orbWrite.WriteToCpt(cpf);
+        orbWrite.WriteToCpt("xtp_testing.hdf5");
     }
-
-
     // Read Orbitals
     Orbitals orbRead;
 
-    orbRead.ReadFromCpt(cpf);
-
+    orbRead.ReadFromCpt("xtp_testing.hdf5");
     double tol = 1e-6;
 
     // Test the read values
