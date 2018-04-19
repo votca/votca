@@ -98,7 +98,7 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git)
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
-find_package(Boost 1.48.0 REQUIRED COMPONENTS program_options serialization filesystem system timer)
+find_package(Boost 1.54.0 REQUIRED COMPONENTS program_options serialization filesystem system timer)
 include_directories(${Boost_INCLUDE_DIRS})
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
 set(BOOST_LIBS_PKG "-L${Boost_LIBRARY_DIRS}")
@@ -117,9 +117,6 @@ find_package(VOTCA_TOOLS REQUIRED)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
 find_package(VOTCA_CSG REQUIRED)
 include_directories(${VOTCA_CSG_INCLUDE_DIRS})
-#votca/ctp/topology.h incl. moo's jcalc.h
-find_package(VOTCA_MOO REQUIRED)
-include_directories(${VOTCA_MOO_INCLUDE_DIRS})
 find_package(VOTCA_CTP REQUIRED)
 include_directories(${VOTCA_CTP_INCLUDE_DIRS})
 ########################################################################

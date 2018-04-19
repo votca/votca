@@ -1145,9 +1145,8 @@ if (_lmax_col > 5) {
     
     int AOCoulomb::Symmetrize(const ub::matrix<double>& _gwoverlap_cholesky){
         
-       //This converts V into L(LT V L)-1/2 LT, which is needed to construct 4c integrals,
-        //we do not simply use V-1/2 because that is a different metric than the ppm model, for normal 4c integrals V-1/2   
-        // is good, but here we transform to a different space, and then transform back via the ppm model
+       //This converts V into (LT V L)-1/2 LT, which is needed to construct 4c integrals,
+        //(LTVL)-1/2 is the orthogonal form of the sqrt of V, LT is used because Mmn auxbasis is non- orthogonal, this orthogonalises the auxbasis 
          ub::matrix<double> _temp = ub::prod( _aomatrix , _gwoverlap_cholesky);
          ub::matrix<double> _trans=ub::trans( _gwoverlap_cholesky );
         _aomatrix = ub::prod( _trans,_temp);
@@ -1173,8 +1172,8 @@ if (_lmax_col > 5) {
     _aomatrix = ub::prod( _aomatrix,_temp );
     
     
-       _temp = ub::prod( _aomatrix , ub::trans(_gwoverlap_cholesky));
-       _aomatrix = ub::prod( _gwoverlap_cholesky ,_temp);
+       _aomatrix = ub::prod( _aomatrix , ub::trans(_gwoverlap_cholesky));
+    
    
     
     return removed_basisfunctions; 
