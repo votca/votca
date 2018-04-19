@@ -197,7 +197,7 @@ namespace votca {
 
 
             cout << "Number of linker names " << linker_names.size() << endl;
-            for (int i = 0; i < linker_names.size(); i++) {
+            for (size_t i = 0; i < linker_names.size(); i++) {
                 cout << linker_names[i] << endl;
             }
 
