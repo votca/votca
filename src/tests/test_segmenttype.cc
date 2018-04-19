@@ -15,14 +15,25 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE glink_test
+#define BOOST_TEST_MODULE segmenttype_test
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/glink.h>
+#include <votca/xtp/segmenttype.h>
 
 using namespace votca::xtp;
+BOOST_AUTO_TEST_SUITE(segmenttype_test)
 
-BOOST_AUTO_TEST_SUITE(glink_test)
+BOOST_AUTO_TEST_CASE(constructors_test) { 
+  SegmentType segT;
+  SegmentType segT2(1,"Name","SP","file.orb","coord.xyz",true);
+}
 
-BOOST_AUTO_TEST_CASE(constructors_test) { GLink glin; }
+BOOST_AUTO_TEST_CASE(getters_test) {
+  SegmentType segT(1,"Name","SP","file.orb","coord.xyz",true);
+  BOOST_CHECK_EQUAL(segT.getBasisName(),"SP");
+  BOOST_CHECK_EQUAL(segT.getOrbitalsFile(),"file.orb");
+  BOOST_CHECK_EQUAL(segT.getQMCoordsFile(),"coord.xyz");
+  BOOST_CHECK_EQUAL(segT.canRigidify(),true);
+  BOOST_CHECK_EQUAL(segT.getId(),1); 
+}
 
 BOOST_AUTO_TEST_SUITE_END()
