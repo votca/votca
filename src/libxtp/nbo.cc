@@ -18,6 +18,7 @@
  */
 
 
+#include <exception>
 #include <votca/xtp/nbo.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/tools/linalg.h>
@@ -42,7 +43,8 @@ void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,const  ub::matrix<double
     vector < QMAtom* > :: iterator atom;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
     
-   
+    
+      throw invalid_argument("Evaluate NBO function is incomplete");    
       
     }
     //cout << id << " " << _dmat.size1() << endl;

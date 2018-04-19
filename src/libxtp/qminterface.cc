@@ -25,7 +25,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/espfit.h>
 #include <votca/xtp/qminterface.h>

@@ -21,7 +21,7 @@
 #define	__XTP_GRID__H
 
 
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <string>
 #include <vector>
 #include <boost/numeric/ublas/matrix.hpp>
