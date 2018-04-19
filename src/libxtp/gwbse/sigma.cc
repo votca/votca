@@ -154,6 +154,7 @@ namespace votca {
        
       #pragma omp parallel 
       {
+
         const unsigned _levelsum = _Mmn.get_ntot(); // total number of bands
         const unsigned _gwsize = _Mmn.getAuxDimension(); // size of the GW basis
         const double fourpi = 4*boost::math::constants::pi<double>();
@@ -166,7 +167,7 @@ namespace votca {
         const MatrixXfd Mmn1=_Mmn[ _gw_level1 + _qpmin ];
         for (unsigned _gw_level2 = _gw_level1+1; _gw_level2 < _qptotal; _gw_level2++) {
           const double qpmin2 = gwa_energies(_gw_level2 + _qpmin);
-          const MatrixXfd Mmn2=_Mmn[ _gw_level2 + _qpmin ].cwiseProduct(Mmn1);       
+          const MatrixXfd Mmn1xMmn2=_Mmn[ _gw_level2 + _qpmin ].cwiseProduct(Mmn1);       
           double sigma_c=0;
           for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
             // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
@@ -191,13 +192,13 @@ namespace votca {
               if (std::abs(_denom1) < 0.25) {
                   _stab = 0.5 * (1.0 - std::cos(fourpi * _denom1));
               }
-              double factor = _stab / _denom1; //Hartree
+              double factor =fac* _stab / _denom1; //Hartree
               _stab = 1.0;
               if (std::abs(_denom2) < 0.25) {
                   _stab = 0.5 * (1.0 - std::cos(fourpi * _denom2));
               }
-              factor+= _stab / _denom2; //Hartree}
-              sigma_c+=Mmn2(_i_gw,_i)*fac*factor;
+              factor+=fac* _stab / _denom2; //Hartree}
+              sigma_c+=Mmn1xMmn2(_i_gw,_i)*factor;
             }
           }
           _sigma_c(_gw_level1, _gw_level2) = sigma_c;

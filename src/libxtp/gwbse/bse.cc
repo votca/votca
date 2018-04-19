@@ -54,7 +54,6 @@ namespace votca {
       // Nuclear Physics A146(1970)449, Nuclear Physics A163(1971)257.
 
       // setup resonant (A) and RARC blocks (B)
-      // TOCHECK: Isn't that memory overkill here? _A and _B are never needed again?
 #if (GWBSE_DOUBLE)
       Eigen::MatrixXd _ApB = (_eh_d + _eh_d2 + 4.0 * _eh_x);
       Eigen::MatrixXd _AmB = (_eh_d - _eh_d2);
@@ -68,7 +67,7 @@ namespace votca {
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Trying Cholesky decomposition of KAA-KAB" << flush;
       Eigen::LLT< Eigen::Ref<Eigen::MatrixXd> > L(_AmB);
       _AmB = L.matrixL();
-      _ApB = _AmB.transpose() * _ApB*_AmB;
+      _ApB =L.matrixL().transpose() * _ApB*L.matrixL();
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_ApB);
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
       _bse_singlet_energies = es.eigenvalues().cwiseSqrt().cast<real_gwbse>();
@@ -81,6 +80,7 @@ namespace votca {
       Eigen::MatrixXd LmT = _AmB.transpose().inverse();
 
       int dim = _ApB.rows();
+      _bse_singlet_energies.resize(_bse_nmax);
       _bse_singlet_coefficients.resize(dim, _bse_nmax); // resonant part (_X_evec)
       _bse_singlet_coefficients_AR.resize(dim, _bse_nmax); // anti-resonant part (_Y_evec)
       for (int _i = 0; _i < _bse_nmax; _i++) {
@@ -89,8 +89,8 @@ namespace votca {
         double sqrt_eval = sqrt(_bse_singlet_energies(_i));
         // get l-th reduced EV
         Eigen::VectorXd _reduced_evec = es.eigenvectors().col(_i);
-        _bse_singlet_coefficients.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT + _AmB) * _reduced_evec).cast<real_gwbse>();
-        _bse_singlet_coefficients_AR.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT - _AmB) * _reduced_evec).cast<real_gwbse>();
+        _bse_singlet_coefficients.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT + L.matrixL()) * _reduced_evec).cast<real_gwbse>();
+        _bse_singlet_coefficients_AR.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT - L.matrixL()) * _reduced_evec).cast<real_gwbse>();
 
       }
 

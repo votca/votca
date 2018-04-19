@@ -29,7 +29,6 @@
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/grid_containers.h>
 #include <votca/xtp/vxc_functionals.h>
-#include <votca/xtp/exchange_correlation.h>
 #include <votca/xtp/gridbox.h>
 #include <votca/xtp/qmatom.h>
 
@@ -89,7 +88,6 @@ namespace votca { namespace xtp {
             std::vector< GridBox > _grid_boxes;
             std::vector<unsigned> thread_start;
             std::vector<unsigned> thread_stop;
-            ExchangeCorrelation _xc;
             int xfunc_id;
             double EXC;
             bool density_set;

@@ -722,7 +722,7 @@ bool GWBSE::Evaluate() {
                                  << _auxcoulomb.Matrix().rows() << flush;
  
 
-  Eigen::MatrixXd inverse=_auxcoulomb.Pseudo_InvSqrt_GWBSE(_auxoverlap,1e-8);
+  Eigen::MatrixXd Coulomb_sqrtInv=_auxcoulomb.Pseudo_InvSqrt_GWBSE(_auxoverlap,1e-8);
     _auxoverlap.Matrix().resize(0, 0);
     _auxcoulomb.Matrix().resize(0,0);
   CTP_LOG(ctp::logDEBUG, *_pLog)
@@ -746,7 +746,7 @@ bool GWBSE::Evaluate() {
       << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
 
   // make _Mmn symmetric
-  _Mmn.MultiplyLeftWithAuxMatrix(inverse);
+  _Mmn.MultiplyLeftWithAuxMatrix(Coulomb_sqrtInv);
   
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
@@ -795,14 +795,7 @@ bool GWBSE::Evaluate() {
    *
    */
 
-  TCMatrix_gwbse _Mmn_backup;
-  if (_iterate_gw) {
-
-    // make copy of _Mmn, memory++
-    _Mmn_backup=_Mmn;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                   << " Made backup of _Mmn  " << flush;
-  } else {
+  if (!_iterate_gw) {
     _gw_sc_max_iterations = 1;
   }
 
@@ -824,8 +817,15 @@ bool GWBSE::Evaluate() {
     ppm.PPM_construct_parameters(rpa);
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                    << " Constructed PPM parameters  " << flush;
-
+    
+    
+    if(gw_iteration==0){
     _Mmn.MultiplyLeftWithAuxMatrix(ppm.getPpm_phi_T());
+    }else{
+      _Mmn.Fill(auxbasis, dftbasis, _orbitals->MOCoefficients());
+      Eigen::MatrixXd coulomb_x_ppm=ppm.getPpm_phi_T()*Coulomb_sqrtInv;
+      _Mmn.MultiplyLeftWithAuxMatrix(coulomb_x_ppm);
+    }
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Prepared threecenters for sigma  " << flush;
 
@@ -880,8 +880,6 @@ bool GWBSE::Evaluate() {
             << "          Run continues. Inspect results carefully!" << flush;
         break;
       }
-      _Mmn=_Mmn_backup;
-      
     }else
     {
       sigma.setGWAEnergies(gwa_energies);
@@ -890,16 +888,9 @@ bool GWBSE::Evaluate() {
    
   ppm.FreeMatrix();
   rpa.FreeMatrices();
-   
-  if (_iterate_gw) {
-    _Mmn_backup.Cleanup();
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Cleaned up PPM, MmnRPA and Mmn_backup "
-        << flush;
-  } else {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                   << " Cleaned up PPM and MmnRPA" << flush;
-  }
+  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                                   << " Cleaned up PPM and MmnRPA Matrices" << flush;
+  
 
   // Output of quasiparticle energies after all is done:
   PrintGWA_Energies(vxc, sigma, _dft_energies);
@@ -919,7 +910,7 @@ bool GWBSE::Evaluate() {
   }
  
 
-  // constructing full quasiparticle Hamiltonian and diagonalize, if requested
+  
   if (_do_qp_diag || _do_bse_singlets || _do_bse_triplets) {
       CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculating offdiagonal part of Sigma  " << flush;
@@ -938,10 +929,8 @@ bool GWBSE::Evaluate() {
     
     CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Diagonalized QP Hamiltonian  " <<es.info()<< flush;
-        
-      
+            
       PrintQP_Energies(gwa_energies, qp_diag_energies);
-
 
       if (_store_qp_diag) {
         _orbitals->QPdiagCoefficients()=es.eigenvectors();
