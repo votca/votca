@@ -110,7 +110,7 @@ namespace votca {
                     }
                 } else {
                     // Linker
-                    CTP_LOG(ctp::logERROR, *_pLog) << (format("Neither Monomer A nor Monomer B contains atom %s on line %u. Hence, this atom is part of a linker. \n") %dimer->getType() %(i+1) ).str()<<flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << (format("Neither Monomer A nor Monomer B contains atom %s on line %u. Hence, this atom is part of a linker. \n") %dimer->getType() %(i+1) ).str()<<flush;
                     continue;
                 }
                 
@@ -148,31 +148,19 @@ namespace votca {
 
             //       | Orbitals_A          0 |      | Overlap_A |     
             //       | 0          Orbitals_B |  X   | Overlap_B |  X  Transpose( Orbitals_AB )
-            //ub::zero_matrix<double> zeroB(_levelsA, _basisB);
-            //ub::zero_matrix<double> zeroA(_levelsB, _basisA);
-
             
-            // CHANGE _basisA + _basisB to "_basisAB" of the dimer + extra
             ub::matrix<double>_psi_AxB= ub::zero_matrix<double>(_levelsA + _levelsB ,_orbitalsAB->getBasisSetSize());
-            // ADD another zero matrix for "padding", OR initialize _psi_AxB as zero_matrix directly!
-            
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Constructing direct product AxB ["
                     << _psi_AxB.size1() << "x"
                     << _psi_AxB.size2() << "]" << flush;
 
-
-            // nothing needs to be done here, if _psi_AxB is initialized as zero_matrix
-            //ub::project(_psi_AxB, ub::range(0, _levelsA), ub::range(_basisA, _basisA + _basisB)) = zeroB;
-            //ub::project(_psi_AxB, ub::range(_levelsA, _levelsA + _levelsB), ub::range(0, _basisA)) = zeroA;
             ub::project(_psi_AxB, ub::range(0, _levelsA), ub::range(0, _basisA)) = _orbitalsA->MOCoefficients();
             ub::project(_psi_AxB, ub::range(_levelsA, _levelsA + _levelsB), ub::range(_basisA, _basisA + _basisB)) = _orbitalsB->MOCoefficients();
 
             
             
             // psi_AxB * S_AB * psi_AB
-
-            // NO CHANGE NEEDED
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Projecting dimer onto monomer orbitals" << flush;
             ub::matrix<double> overlap;
             if (_orbitalsAB->hasAOOverlap()) {
