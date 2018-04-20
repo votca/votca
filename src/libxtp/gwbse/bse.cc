@@ -29,7 +29,8 @@ namespace votca {
     void BSE::Solve_triplets() {
 
       // add full QP Hamiltonian contributions to free transitions
-      linalg_eigenvalues(_eh_d, _bse_triplet_energies, _bse_triplet_coefficients ,_bse_nmax );
+      MatrixXfd _bse = _eh_d;
+      linalg_eigenvalues(_bse, _bse_triplet_energies, _bse_triplet_coefficients ,_bse_nmax );
       return;
     }
 
@@ -71,7 +72,7 @@ namespace votca {
       if(L.info()!=0){
         success="not successful";
       }
-      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<"Cholesky decomposition of KAA-KAB was "<< success<<flush;
+      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<" Cholesky decomposition of KAA-KAB was "<< success<<flush;
       _ApB =_AmB.transpose() * _ApB*_AmB;
       
       Eigen::VectorXd eigenvalues;
@@ -90,7 +91,7 @@ namespace votca {
      
       Eigen::MatrixXd LmT = _AmB.transpose().inverse();
 
-      int dim = _ApB.rows();
+      int dim = LmT.rows();
       _bse_singlet_energies.resize(_bse_nmax);
       _bse_singlet_coefficients.resize(dim, _bse_nmax); // resonant part (_X_evec)
       _bse_singlet_coefficients_AR.resize(dim, _bse_nmax); // anti-resonant part (_Y_evec)
@@ -99,14 +100,10 @@ namespace votca {
         //real_gwbse sqrt_eval = sqrt(_eigenvalues(_i));
         double sqrt_eval = sqrt(_bse_singlet_energies(_i));
         // get l-th reduced EV
-        Eigen::VectorXd _reduced_evec =eigenvectors.col(_i);
-        _bse_singlet_coefficients.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT + _AmB) * _reduced_evec).cast<real_gwbse>();
-        _bse_singlet_coefficients_AR.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT - _AmB) * _reduced_evec).cast<real_gwbse>();
+        _bse_singlet_coefficients.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT + _AmB) * eigenvectors.col(_i)).cast<real_gwbse>();
+        _bse_singlet_coefficients_AR.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT - _AmB) * eigenvectors.col(_i)).cast<real_gwbse>();
 
       }
-
-
-      //TODO solve for a few eigenvectors
 
       return;
     }
@@ -191,10 +188,10 @@ namespace votca {
         } else {
           double _ppm_factor = sqrt(ppm.getPpm_weight()(_i_gw));
           for (size_t _v = 0; _v < (_bse_vtotal * _bse_vtotal); _v++) {
-            _storage_v(_i_gw,_v ) = _ppm_factor * _storage_v(_i_gw,_v);
+            _storage_v(_i_gw,_v ) *= _ppm_factor;
           }
           for (size_t _c = 0; _c < (_bse_ctotal * _bse_ctotal); _c++) {
-            _storage_c(_i_gw, _c) = _ppm_factor * _storage_c(_i_gw, _c);
+            _storage_c(_i_gw, _c) *= _ppm_factor;
           }
         }
       }
@@ -233,10 +230,10 @@ namespace votca {
     void BSE::Setup_Hd_BTDA(const TCMatrix_gwbse& _Mmn, const PPM & ppm) {
       // gwbasis size
       size_t auxsize = _Mmn.getAuxDimension();
-
+      size_t bse_vxc_total=_bse_vtotal * _bse_ctotal;
       // messy procedure, first get two matrices for occ and empty subbparts
       // store occs directly transposed
-      MatrixXfd _storage_cv = MatrixXfd::Zero(auxsize,_bse_vtotal * _bse_ctotal);
+      MatrixXfd _storage_cv = MatrixXfd::Zero(auxsize,bse_vxc_total);
 #pragma omp parallel for
       for (size_t _c1 = 0; _c1 < _bse_ctotal; _c1++) {
         const MatrixXfd& Mmn = _Mmn[_c1 + _bse_cmin ];
@@ -248,7 +245,7 @@ namespace votca {
         }
       }
 
-      MatrixXfd _storage_vc = MatrixXfd::Zero(auxsize, _bse_vtotal * _bse_ctotal);
+      MatrixXfd _storage_vc = MatrixXfd::Zero(auxsize, bse_vxc_total);
 #pragma omp parallel for
       for (size_t _v1 = 0; _v1 < _bse_vtotal; _v1++) {
         const MatrixXfd& Mmn = _Mmn[_v1 + _bse_vmin];
@@ -268,25 +265,25 @@ namespace votca {
 #pragma omp parallel for
       for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
         if (ppm.getPpm_weight()(_i_gw) < 1.e-9) {
-          for (size_t _v = 0; _v < (_bse_vtotal * _bse_ctotal); _v++) {
+          for (size_t _v = 0; _v < bse_vxc_total; _v++) {
             _storage_vc(_i_gw, _v) = 0;
           }
-          for (size_t _c = 0; _c < (_bse_ctotal * _bse_vtotal); _c++) {
+          for (size_t _c = 0; _c < bse_vxc_total; _c++) {
             _storage_cv(_i_gw,_c ) = 0;
           }
         } else {
           double _ppm_factor = sqrt(ppm.getPpm_weight()(_i_gw));
-          for (size_t _v = 0; _v < (_bse_vtotal * _bse_ctotal); _v++) {
-            _storage_vc(_i_gw, _v) = _ppm_factor * _storage_vc(_i_gw, _v);
+          for (size_t _v = 0; _v < bse_vxc_total; _v++) {
+            _storage_vc(_i_gw, _v) *= _ppm_factor;
           }
-          for (size_t _c = 0; _c < (_bse_ctotal * _bse_vtotal); _c++) {
-            _storage_cv(_i_gw,_c ) = _ppm_factor * _storage_cv(_i_gw,_c);
+          for (size_t _c = 0; _c < bse_vxc_total; _c++) {
+            _storage_cv(_i_gw,_c ) *= _ppm_factor;
           }
         }
       }
 
       // multiply and subtract from _storage_prod
-      _storage_prod -= _storage_cv * _storage_vc;
+      _storage_prod -= _storage_cv.transpose() * _storage_vc;
 
       // free storage_v and storage_c
       _storage_cv.resize(0, 0);
@@ -568,7 +565,6 @@ namespace votca {
             if (_bse_singlet_coefficients_AR.rows()>0) {
               factor += sqrt2 * _bse_singlet_coefficients_AR(index_vc, _i_exc);
             }
-
             // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
             _tdipole.x() += factor * interlevel_dipoles[0](_v, _c);
             _tdipole.y() += factor * interlevel_dipoles[1](_v, _c);
