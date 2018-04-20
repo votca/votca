@@ -114,6 +114,7 @@ struct Population {
 
  private:
  
+      
 ctp::Logger *_log;
   unsigned _homo;
   unsigned  _bse_vmin;

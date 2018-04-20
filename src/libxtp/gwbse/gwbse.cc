@@ -209,8 +209,11 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
   if (_bse_cmax > _qpmax) _qpmax = _bse_cmax;
 
   _qptotal = _qpmax - _qpmin + 1;
-  if (_bse_maxeigenvectors > int(bse_size) || _bse_maxeigenvectors < 0) _bse_maxeigenvectors = bse_size;
-  if (_bse_maxeigenvectors > _bse_maxeigenvectors) _bse_maxeigenvectors = _bse_maxeigenvectors;
+  
+  
+  
+ 
+
 
  
 
@@ -230,13 +233,9 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
       << ctp::TimeStamp() << " BSE Hamiltonian has size " << bse_size << "x"
       << bse_size << flush;
   
-  
-  
-
   _bse_maxeigenvectors =
       options->ifExistsReturnElseReturnDefault<int>(key + ".exctotal", 25);
-  _bse_maxeigenvectors =
-      options->ifExistsReturnElseReturnDefault<int>(key + ".print", 25);
+   if (_bse_maxeigenvectors > int(bse_size) || _bse_maxeigenvectors < 0) _bse_maxeigenvectors = bse_size;
   _fragA = options->ifExistsReturnElseReturnDefault<int>(key + ".fragment", -1);
 
   string BSEtype =

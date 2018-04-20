@@ -41,11 +41,9 @@
         <itemPath>../../src/libxtp/tools/excitoncoupling.h</itemPath>
         <itemPath>../../src/libxtp/tools/gencube.h</itemPath>
         <itemPath>../../src/libxtp/tools/log2mps.h</itemPath>
-        <itemPath>../../src/libxtp/tools/matrixproduct.h</itemPath>
         <itemPath>../../src/libxtp/tools/partialcharges.h</itemPath>
         <itemPath>../../src/libxtp/tools/pdb2map.h</itemPath>
         <itemPath>../../src/libxtp/tools/pdb2top.h</itemPath>
-        <itemPath>../../src/libxtp/tools/qmanalyze.h</itemPath>
         <itemPath>../../src/libxtp/tools/qmsandbox.h</itemPath>
         <itemPath>../../src/libxtp/tools/spectrum.h</itemPath>
       </logicalFolder>
@@ -103,6 +101,7 @@
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
+      <itemPath>../../include/votca/xtp/linalg.h</itemPath>
       <itemPath>../../include/votca/xtp/lowdin.h</itemPath>
       <itemPath>../../include/votca/xtp/mixing.h</itemPath>
       <itemPath>../../include/votca/xtp/mulliken.h</itemPath>
@@ -221,6 +220,7 @@
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/gyration.cc</itemPath>
+      <itemPath>../../src/libxtp/linalg.cc</itemPath>
       <itemPath>../../src/libxtp/lowdin.cc</itemPath>
       <itemPath>../../src/libxtp/mulliken.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
@@ -248,6 +248,7 @@
       <itemPath>../../src/tests/test_fragment.cc</itemPath>
       <itemPath>../../src/tests/test_glink.cc</itemPath>
       <itemPath>../../src/tests/test_hdf5.cc</itemPath>
+      <itemPath>../../src/tests/test_linalg.cc</itemPath>
       <itemPath>../../src/tests/test_molecule.cc</itemPath>
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
@@ -417,6 +418,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/linalg.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -811,6 +814,8 @@
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/linalg.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/mixing.cc" ex="false" tool="1" flavor2="0">
@@ -933,11 +938,6 @@
       </item>
       <item path="../../src/libxtp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libxtp/tools/matrixproduct.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/tools/partialcharges.h"
             ex="false"
             tool="3"
@@ -946,8 +946,6 @@
       <item path="../../src/libxtp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/pdb2top.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/qmsandbox.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -983,6 +981,8 @@
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1154,6 +1154,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/linalg.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1548,6 +1550,8 @@
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/linalg.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/mixing.cc" ex="false" tool="1" flavor2="0">
@@ -1670,11 +1674,6 @@
       </item>
       <item path="../../src/libxtp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libxtp/tools/matrixproduct.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/tools/partialcharges.h"
             ex="false"
             tool="3"
@@ -1683,8 +1682,6 @@
       <item path="../../src/libxtp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/pdb2top.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/tools/qmanalyze.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/qmsandbox.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1720,6 +1717,8 @@
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
       </item>

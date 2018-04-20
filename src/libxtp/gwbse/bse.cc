@@ -19,7 +19,7 @@
 
 
 #include <votca/xtp/bse.h>
-
+#include <votca/xtp/linalg.h>
 using boost::format;
 
 
@@ -29,21 +29,15 @@ namespace votca {
     void BSE::Solve_triplets() {
 
       // add full QP Hamiltonian contributions to free transitions
-
-      Eigen::SelfAdjointEigenSolver<MatrixXfd> es(_eh_d);
-      _bse_triplet_energies = es.eigenvalues();
-      _bse_triplet_coefficients = es.eigenvectors();
-
+      linalg_eigenvalues(_eh_d, _bse_triplet_energies, _bse_triplet_coefficients ,_bse_nmax );
       return;
     }
 
     void BSE::Solve_singlets() {
 
       MatrixXfd _bse = _eh_d + 2.0 * _eh_x;
-      Eigen::SelfAdjointEigenSolver<MatrixXfd> es(_bse);
-      _bse_singlet_energies = es.eigenvalues();
-      _bse_singlet_coefficients = es.eigenvectors();
-
+      linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients , _bse_nmax );
+     
       return;
     }
     
@@ -68,9 +62,13 @@ namespace votca {
       Eigen::LLT< Eigen::Ref<Eigen::MatrixXd> > L(_AmB);
       _AmB = L.matrixL();
       _ApB =L.matrixL().transpose() * _ApB*L.matrixL();
-      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_ApB);
+      
+      Eigen::VectorXd eigenvalues;
+      Eigen::MatrixXd eigenvectors;
+      linalg_eigenvalues(_ApB, eigenvalues, eigenvectors ,_bse_nmax);
+    
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
-      _bse_singlet_energies = es.eigenvalues().cwiseSqrt().cast<real_gwbse>();
+      _bse_singlet_energies = eigenvalues.cwiseSqrt().cast<real_gwbse>();
 
 
       // reconstruct real eigenvectors X_l = 1/2 [sqrt(eps_l) (L^T)^-1 + 1/sqrt(eps_l)L ] R_l
@@ -88,7 +86,7 @@ namespace votca {
         //real_gwbse sqrt_eval = sqrt(_eigenvalues(_i));
         double sqrt_eval = sqrt(_bse_singlet_energies(_i));
         // get l-th reduced EV
-        Eigen::VectorXd _reduced_evec = es.eigenvectors().col(_i);
+        Eigen::VectorXd _reduced_evec =eigenvectors.col(_i);
         _bse_singlet_coefficients.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT + _AmB) * _reduced_evec).cast<real_gwbse>();
         _bse_singlet_coefficients_AR.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT - _AmB) * _reduced_evec).cast<real_gwbse>();
 
@@ -578,7 +576,7 @@ namespace votca {
       }
       return dipols;
     }
-
+    
 
 
   }
