@@ -60,13 +60,24 @@ namespace votca {
       //(A-B) is not needed any longer and can be overwritten
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Trying Cholesky decomposition of KAA-KAB" << flush;
       Eigen::LLT< Eigen::Ref<Eigen::MatrixXd> > L(_AmB);
-      _AmB = L.matrixL();
-      _ApB =L.matrixL().transpose() * _ApB*L.matrixL();
+       for (int i=0;i<_AmB.rows();++i){
+          for (int j=0;j<i;++j){
+          _AmB(i,j)=0;
+          }
+        }
+      
+      
+      std::string success="successful";
+      if(L.info()!=0){
+        success="not successful";
+      }
+      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<"Cholesky decomposition of KAA-KAB was "<< success<<flush;
+      _ApB =_AmB.transpose() * _ApB*_AmB;
       
       Eigen::VectorXd eigenvalues;
       Eigen::MatrixXd eigenvectors;
       linalg_eigenvalues(_ApB, eigenvalues, eigenvectors ,_bse_nmax);
-    
+      _ApB.resize(0,0);
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
       _bse_singlet_energies = eigenvalues.cwiseSqrt().cast<real_gwbse>();
 
@@ -75,6 +86,8 @@ namespace votca {
       //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 - 1/sqrt(eps_l)L ] R_l
 
       // determine inverse of L^T
+       
+     
       Eigen::MatrixXd LmT = _AmB.transpose().inverse();
 
       int dim = _ApB.rows();
@@ -110,12 +123,12 @@ namespace votca {
         for (size_t _c1 = 0; _c1 < _bse_ctotal; _c1++) {
           size_t _index_vc = _bse_ctotal * _v1 + _c1;
           // diagonal
-          _eh_d(_index_vc, _index_vc) += Hqp(_c1 + _bse_vtotal, _c1 + _bse_vtotal) - Hqp(_v1, _v1);
+          matrix(_index_vc, _index_vc) += Hqp(_c1 + _bse_vtotal, _c1 + _bse_vtotal) - Hqp(_v1, _v1);
           // v->c
           for (size_t _c2 = 0; _c2 < _bse_ctotal; _c2++) {
             size_t _index_vc2 = _bse_ctotal * _v1 + _c2;
             if (_c1 != _c2) {
-              _eh_d(_index_vc, _index_vc2) += Hqp(_c1 + _bse_vtotal, _c2 + _bse_vtotal);
+              matrix(_index_vc, _index_vc2) += Hqp(_c1 + _bse_vtotal, _c2 + _bse_vtotal);
             }
           }
 
@@ -123,7 +136,7 @@ namespace votca {
           for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
             size_t _index_vc2 = _bse_ctotal * _v2 + _c1;
             if (_v1 != _v2) {
-              _eh_d(_index_vc, _index_vc2) -= Hqp(_v1, _v2);
+              matrix(_index_vc, _index_vc2) -= Hqp(_v1, _v2);
             }
           }
         }
@@ -137,42 +150,39 @@ namespace votca {
 
       // messy procedure, first get two matrices for occ and empty subbparts
       // store occs directly transposed
-      MatrixXfd _storage_v = MatrixXfd::Zero(_bse_vtotal * _bse_vtotal, auxsize);
+      MatrixXfd _storage_v = MatrixXfd::Zero(auxsize, _bse_vtotal * _bse_vtotal);
 #pragma omp parallel for
       for (size_t _v1 = 0; _v1 < _bse_vtotal; _v1++) {
         const MatrixXfd& Mmn = _Mmn[_v1 + _bse_vmin ];
-        for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
-          size_t _index_vv = _bse_vtotal * _v1 + _v2;
-          for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
-            _storage_v(_index_vv, _i_gw) = Mmn(_i_gw, _v2 + _bse_vmin);
-          }
+        for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
+          for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
+            size_t _index_vv = _bse_vtotal * _v1 + _v2;         
+              _storage_v(_i_gw,_index_vv) = Mmn(_i_gw, _v2 + _bse_vmin);
+            }
         }
       }
-
 
       MatrixXfd _storage_c = MatrixXfd::Zero(auxsize, _bse_ctotal * _bse_ctotal);
 #pragma omp parallel for
       for (size_t _c1 = 0; _c1 < _bse_ctotal; _c1++) {
         const MatrixXfd& Mmn = _Mmn[_c1 + _bse_cmin];
-        for (size_t _c2 = 0; _c2 < _bse_ctotal; _c2++) {
-          size_t _index_cc = _bse_ctotal * _c1 + _c2;
-          for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
+        for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
+          for (size_t _c2 = 0; _c2 < _bse_ctotal; _c2++) {
+            size_t _index_cc = _bse_ctotal * _c1 + _c2;
             _storage_c(_i_gw, _index_cc) = Mmn(_i_gw, _c2 + _bse_cmin);
           }
         }
       }
 
       // store elements in a vtotal^2 x ctotal^2 matrix
-      // cout << "BSE_d_setup 1 [" << _storage_v.size1() << "x" << _storage_v.size2() << "]\n" << std::flush;
-      MatrixXfd _storage_prod = _storage_v *_storage_c;
-
+      MatrixXfd _storage_prod = _storage_v.transpose() *_storage_c;
 
       // now patch up _storage for screened interaction
 #pragma omp parallel for
       for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
         if (ppm.getPpm_weight()(_i_gw) < 1.e-9) {
           for (size_t _v = 0; _v < (_bse_vtotal * _bse_vtotal); _v++) {
-            _storage_v(_v, _i_gw) = 0;
+            _storage_v(_i_gw,_v ) = 0;
           }
           for (size_t _c = 0; _c < (_bse_ctotal * _bse_ctotal); _c++) {
             _storage_c(_i_gw, _c) = 0;
@@ -181,7 +191,7 @@ namespace votca {
         } else {
           double _ppm_factor = sqrt(ppm.getPpm_weight()(_i_gw));
           for (size_t _v = 0; _v < (_bse_vtotal * _bse_vtotal); _v++) {
-            _storage_v(_v, _i_gw) = _ppm_factor * _storage_v(_v, _i_gw);
+            _storage_v(_i_gw,_v ) = _ppm_factor * _storage_v(_i_gw,_v);
           }
           for (size_t _c = 0; _c < (_bse_ctotal * _bse_ctotal); _c++) {
             _storage_c(_i_gw, _c) = _ppm_factor * _storage_c(_i_gw, _c);
@@ -191,14 +201,13 @@ namespace votca {
 
       // multiply and subtract from _storage_prod
 
-      _storage_prod -= _storage_v*_storage_c;
+      _storage_prod -= _storage_v.transpose()*_storage_c;
 
       // free storage_v and storage_c
       _storage_c.resize(0, 0);
       _storage_v.resize(0, 0);
 
       // finally resort into _eh_d
-      // can be limited to upper diagonal !
       _eh_d = MatrixXfd::Zero(_bse_size, _bse_size);
 #pragma omp parallel for
       for (size_t _v1 = 0; _v1 < _bse_vtotal; _v1++) {
@@ -207,7 +216,6 @@ namespace votca {
 
           for (size_t _c1 = 0; _c1 < _bse_ctotal; _c1++) {
             size_t _index_vc1 = _bse_ctotal * _v1 + _c1;
-
 
             for (size_t _c2 = 0; _c2 < _bse_ctotal; _c2++) {
               size_t _index_vc2 = _bse_ctotal * _v2 + _c2;
@@ -228,14 +236,14 @@ namespace votca {
 
       // messy procedure, first get two matrices for occ and empty subbparts
       // store occs directly transposed
-      MatrixXfd _storage_cv = MatrixXfd::Zero(_bse_vtotal * _bse_ctotal, auxsize);
+      MatrixXfd _storage_cv = MatrixXfd::Zero(auxsize,_bse_vtotal * _bse_ctotal);
 #pragma omp parallel for
       for (size_t _c1 = 0; _c1 < _bse_ctotal; _c1++) {
         const MatrixXfd& Mmn = _Mmn[_c1 + _bse_cmin ];
-        for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
-          size_t _index_cv = _bse_vtotal * _c1 + _v2;
-          for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
-            _storage_cv(_index_cv, _i_gw) = Mmn(_i_gw, _v2 + _bse_vmin);
+        for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
+          for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
+            size_t _index_cv = _bse_vtotal * _c1 + _v2;
+            _storage_cv(_i_gw,_index_cv ) = Mmn(_i_gw, _v2 + _bse_vmin);
           }
         }
       }
@@ -244,16 +252,16 @@ namespace votca {
 #pragma omp parallel for
       for (size_t _v1 = 0; _v1 < _bse_vtotal; _v1++) {
         const MatrixXfd& Mmn = _Mmn[_v1 + _bse_vmin];
-        for (size_t _c2 = 0; _c2 < _bse_ctotal; _c2++) {
-          size_t _index_vc = _bse_ctotal * _v1 + _c2;
-          for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
+        for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
+          for (size_t _c2 = 0; _c2 < _bse_ctotal; _c2++) {
+            size_t _index_vc = _bse_ctotal * _v1 + _c2;
             _storage_vc(_i_gw, _index_vc) = Mmn(_i_gw, _c2 + _bse_cmin);
           }
         }
       }
 
       // store elements in a vtotal^2 x ctotal^2 matrix
-      MatrixXfd _storage_prod = _storage_cv* _storage_vc;
+      MatrixXfd _storage_prod = _storage_cv.transpose()* _storage_vc;
 
 
       // now patch up _storage for screened interaction
@@ -264,7 +272,7 @@ namespace votca {
             _storage_vc(_i_gw, _v) = 0;
           }
           for (size_t _c = 0; _c < (_bse_ctotal * _bse_vtotal); _c++) {
-            _storage_cv(_c, _i_gw) = 0;
+            _storage_cv(_i_gw,_c ) = 0;
           }
         } else {
           double _ppm_factor = sqrt(ppm.getPpm_weight()(_i_gw));
@@ -272,7 +280,7 @@ namespace votca {
             _storage_vc(_i_gw, _v) = _ppm_factor * _storage_vc(_i_gw, _v);
           }
           for (size_t _c = 0; _c < (_bse_ctotal * _bse_vtotal); _c++) {
-            _storage_cv(_c, _i_gw) = _ppm_factor * _storage_cv(_c, _i_gw);
+            _storage_cv(_i_gw,_c ) = _ppm_factor * _storage_cv(_i_gw,_c);
           }
         }
       }
@@ -285,7 +293,7 @@ namespace votca {
       _storage_vc.resize(0, 0);
       // finally resort into _eh_d
       // can be limited to upper diagonal !
-      _eh_d2 = MatrixXfd(_bse_size, _bse_size);
+      _eh_d2 = MatrixXfd::Zero(_bse_size, _bse_size);
 #pragma omp parallel for
       for (size_t _v1 = 0; _v1 < _bse_vtotal; _v1++) {
         for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
@@ -309,10 +317,7 @@ namespace votca {
 
     void BSE::Setup_Hx(TCMatrix_gwbse& _Mmn) {
 
-      /* unlike the fortran code, we store eh interaction directly in
-       * a suitable matrix form instead of a four-index array
-       */
-
+    
       // gwbasis size
       size_t auxsize = _Mmn.getAuxDimension();
 
@@ -325,9 +330,9 @@ namespace votca {
 
         const MatrixXfd& Mmn = _Mmn[_v + _bse_vmin];
         // empty levels
-        for (size_t _c = 0; _c < _bse_ctotal; _c++) {
-          size_t _index_vc = _bse_ctotal * _v + _c;
-          for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
+        for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
+          for (size_t _c = 0; _c < _bse_ctotal; _c++) {
+            size_t _index_vc = _bse_ctotal * _v + _c;
             _storage(_i_gw, _index_vc) = Mmn(_i_gw, _c + _bse_cmin);
           }
         }

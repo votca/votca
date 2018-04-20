@@ -21,118 +21,114 @@
 #include <votca/xtp/threecenter.h>
 
 namespace votca {
-    namespace xtp {
+  namespace xtp {
 
+    void TCMatrix_gwbse::Initialize(int _basissize, int mmin, int mmax, int nmin, int nmax) {
 
-        void TCMatrix_gwbse::Initialize ( int _basissize, int mmin, int mmax, int nmin, int nmax){
+      // here as storage indices starting from zero
+      _nmin = nmin;
+      _nmax = nmax;
+      _ntotal = nmax - nmin + 1;
+      _mmin = mmin;
+      _mmax = mmax;
+      _mtotal = mmax - mmin + 1;
+      basissize = _basissize;
 
-            // here as storage indices starting from zero
-            _nmin=nmin;
-            _nmax=nmax;
-            _ntotal=nmax - nmin +1;
-            _mmin=mmin;
-            _mmax=mmax;
-            _mtotal=mmax - mmin +1;
-            basissize=_basissize;
-           
-            // vector has mtotal elements
-            _matrix.resize(_mtotal);
-            
-            // each element is a gwabasis-by-n matrix, initialize to zero
-            for ( int i = 0; i < this->get_mtot() ; i++){
-                _matrix[i] = MatrixXfd::Zero(basissize,_ntotal);
-            }
-        
-        }
+      // vector has mtotal elements
+      _matrix.resize(_mtotal);
+
+      // each element is a gwabasis-by-n matrix, initialize to zero
+      for (int i = 0; i < this->get_mtot(); i++) {
+        _matrix[i] = MatrixXfd::Zero(basissize, _ntotal);
+      }
       
-        /*
-         * Cleaning TCMatrix data and free memory
-         */
-        void TCMatrix_gwbse::Cleanup() {
+    }
 
-            for (unsigned _i = 0; _i < _matrix.size(); _i++) {
-                _matrix[ _i ].resize(0, 0);
-            }
-            _matrix.clear();
-            return;
-        } // TCMatrix::Cleanup
+    /*
+     * Cleaning TCMatrix data and free memory
+     */
+    void TCMatrix_gwbse::Cleanup() {
 
-        
-        /*
-         * Modify 3-center matrix elements consistent with use of symmetrized 
-         * Coulomb interaction. 
-         */
-        void TCMatrix_gwbse::MultiplyLeftWithAuxMatrix(const Eigen::MatrixXd& matrix) {
+      for (unsigned _i = 0; _i < _matrix.size(); _i++) {
+        _matrix[ _i ].resize(0, 0);
+      }
+      _matrix.clear();
+      return;
+    } // TCMatrix::Cleanup
+
+    /*
+     * Modify 3-center matrix elements consistent with use of symmetrized 
+     * Coulomb interaction. 
+     */
+    void TCMatrix_gwbse::MultiplyLeftWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 #if (GWBSE_DOUBLE)
-         const Eigen::MatrixXd& m=matrix;
+      const Eigen::MatrixXd& m = matrix;
 #else
-         const Eigen::MatrixXf m=matrix.cast<float>();
+      const Eigen::MatrixXf m = matrix.cast<float>();
 #endif
-            #pragma omp parallel for
-            for (int _i_occ = 0; _i_occ < this->get_mtot(); _i_occ++) {
-	      _matrix[ _i_occ ] = m*_matrix[ _i_occ ];
-            }
-            return;
-        } // TCMatrix::Symmetrize
-        
-           void TCMatrix_gwbse::Print(string _ident) {
+#pragma omp parallel for
+      for (int _i_occ = 0; _i_occ < this->get_mtot(); _i_occ++) {
+        _matrix[ _i_occ ] = m * _matrix[ _i_occ ];
+      }
+      return;
+    } // TCMatrix::Symmetrize
 
-            for (int k = 0; k < this->_mtotal; k++) {
-                for (unsigned i = 0; i < _matrix[1].rows(); i++) {
-                    for (int j = 0; j< this->_ntotal; j++) {
-                        cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
-                    }
-                }
-            }
-            return;
+    void TCMatrix_gwbse::Print(string _ident) {
+
+      for (int k = 0; k < this->_mtotal; k++) {
+        for (unsigned i = 0; i < _matrix[1].rows(); i++) {
+          for (int j = 0; j< this->_ntotal; j++) {
+            cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
+          }
         }
+      }
+      return;
+    }
 
-        
-        /*
-         * Fill the 3-center object by looping over shells of GW basis set and
-         * calling FillBlock, which calculates all 3-center overlap integrals
-         * associated to a particular shell, convoluted with the DFT orbital
-         * coefficients
-         */
-        void TCMatrix_gwbse::Fill(const AOBasis& _gwbasis,const AOBasis& _dftbasis,const Eigen::MatrixXd& _dft_orbitals) {
+    /*
+     * Fill the 3-center object by looping over shells of GW basis set and
+     * calling FillBlock, which calculates all 3-center overlap integrals
+     * associated to a particular shell, convoluted with the DFT orbital
+     * coefficients
+     */
+    void TCMatrix_gwbse::Fill(const AOBasis& _gwbasis, const AOBasis& _dftbasis, const Eigen::MatrixXd& _dft_orbitals) {
 
-            // loop over all shells in the GW basis and get _Mmn for that shell
-            #pragma omp parallel for schedule(guided)//private(_block)
-            for ( unsigned _is= 0; _is <  _gwbasis.getNumofShells() ; _is++ ){ 
-                const AOShell* shell = _gwbasis.getShell(_is);
-                std::vector< Eigen::MatrixXd > block;
-                for (int i = 0; i < _mtotal; i++) {
-                    block.push_back(Eigen::MatrixXd::Zero(shell->getNumFunc(), _ntotal));
-                }
-                // Fill block for this shell (3-center overlap with _dft_basis + multiplication with _dft_orbitals )
-                FillBlock(block, shell, _dftbasis, _dft_orbitals);
-                
-                // put into correct position
-                for (int m_level = 0; m_level < this->get_mtot(); m_level++) {
-                    for (int i_gw = 0; i_gw < shell->getNumFunc(); i_gw++) {
-                        for (int n_level = 0; n_level < this->get_ntot(); n_level++) {
+      // loop over all shells in the GW basis and get _Mmn for that shell
+#pragma omp parallel for schedule(guided)//private(_block)
+      for (unsigned _is = 0; _is < _gwbasis.getNumofShells(); _is++) {
+        const AOShell* shell = _gwbasis.getShell(_is);
+        std::vector< Eigen::MatrixXd > block;
+        for (int i = 0; i < _mtotal; i++) {
+          block.push_back(Eigen::MatrixXd::Zero(shell->getNumFunc(), _ntotal));
+        }
+        // Fill block for this shell (3-center overlap with _dft_basis + multiplication with _dft_orbitals )
+        FillBlock(block, shell, _dftbasis, _dft_orbitals);
 
-                            _matrix[m_level](shell->getStartIndex() + i_gw, n_level) = block[m_level](i_gw, n_level);
+        // put into correct position
+        for (int m_level = 0; m_level < this->get_mtot(); m_level++) {
+          for (int i_gw = 0; i_gw < shell->getNumFunc(); i_gw++) {
+            for (int n_level = 0; n_level < this->get_ntot(); n_level++) {
 
-                        } // n-th DFT orbital
-                    } // GW basis function in shell
-                } // m-th DFT orbital
-            } // shells of GW basis set
-            return;
-        } 
+              _matrix[m_level](shell->getStartIndex() + i_gw, n_level) = block[m_level](i_gw, n_level);
 
-        
-        /*
-         * Determines the 3-center integrals for a given shell in the GW basis
-         * by calculating the 3-center overlap integral of the functions in the
-         * GW shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock),
-         * followed by a convolution of those with the DFT orbital coefficients 
-         */
+            } // n-th DFT orbital
+          } // GW basis function in shell
+        } // m-th DFT orbital
+      } // shells of GW basis set
+      return;
+    }
+
+    /*
+     * Determines the 3-center integrals for a given shell in the GW basis
+     * by calculating the 3-center overlap integral of the functions in the
+     * GW shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock),
+     * followed by a convolution of those with the DFT orbital coefficients 
+     */
 
     void TCMatrix_gwbse::FillBlock(std::vector< Eigen::MatrixXd >& _block, const AOShell* _auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& _dft_orbitals) {
 
       std::vector<Eigen::MatrixXd> symmstorage;
-      for (unsigned i=0;i<_auxshell->getNumFunc();++i) {
+      for (unsigned i = 0; i < _auxshell->getNumFunc(); ++i) {
         symmstorage.push_back(Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize()));
       }
       const Eigen::MatrixXd dftm = _dft_orbitals.block(0, _mmin, _dft_orbitals.rows(), _mtotal);
@@ -157,10 +153,10 @@ namespace votca {
           }
 
           bool nonzero = FillThreeCenterRepBlock(threec_block, _auxshell, _shell_row, _shell_col);
-          if (nonzero) {           
+          if (nonzero) {
             for (int _aux = 0; _aux < _auxshell->getNumFunc(); _aux++) {
               for (int _row = 0; _row < _shell_row->getNumFunc(); _row++) {
-                for (int _col = 0; _col < _shell_col->getNumFunc(); _col++) {           
+                for (int _col = 0; _col < _shell_col->getNumFunc(); _col++) {
                   //symmetry
                   if ((_col_start + _col)>(_row_start + _row)) {
                     continue;
@@ -172,8 +168,8 @@ namespace votca {
           }
         } // gamma-loop
       } // alpha-loop
-      for (unsigned k=0;k<_auxshell->getNumFunc();++k) {
-        Eigen::MatrixXd& matrix=symmstorage[k];   
+      for (unsigned k = 0; k < _auxshell->getNumFunc(); ++k) {
+        Eigen::MatrixXd& matrix = symmstorage[k];
         for (unsigned i = 0; i < matrix.rows(); ++i) {
           for (unsigned j = 0; j < i; ++j) {
             matrix(j, i) = matrix(i, j);
@@ -182,32 +178,31 @@ namespace votca {
         Eigen::MatrixXd threec_inMo = dftm.transpose() * matrix*dftn;
         for (unsigned i = 0; i < threec_inMo.rows(); ++i) {
           for (unsigned j = 0; j < threec_inMo.cols(); ++j) {
-            _block[i](k,j)=threec_inMo(i,j);
+            _block[i](k, j) = threec_inMo(i, j);
           }
         }
       }
       return;
     } // TCMatrix::FillBlock
 
-        
-        void TCMatrix_gwbse::Prune (int min, int max){
+    void TCMatrix_gwbse::Prune(int min, int max) {
 
-            int size1 = _matrix[0].rows();           
-            // vector needs only max entries
-            _matrix.resize( max + 1 );
-            // entries until min can be freed
-            for ( int i = 0; i < min ; i++){
-                _matrix[i].resize(0,0);
-            }
-            for ( unsigned i=min; i < _matrix.size(); i++){
-                _matrix[i].resize(size1,max+1);
-            }
-            return;
-        }
-        
- 
-
-
+      int size1 = _matrix[0].rows();
+      // vector needs only max entries
+      _matrix.resize(max + 1);
+      // entries until min can be freed
+      for (int i = 0; i < min; i++) {
+        _matrix[i].resize(0, 0);
+      }
+      for (unsigned i = min; i < _matrix.size(); i++) {
+        _matrix[i].resize(size1, max + 1);
+      }
+      return;
     }
+
+
+
+
+  }
 }
 
