@@ -186,16 +186,15 @@ namespace votca {
     } // TCMatrix::FillBlock
 
     void TCMatrix_gwbse::Prune(int min, int max) {
+        
 
-      int size1 = _matrix[0].rows();
-      // vector needs only max entries
       _matrix.resize(max + 1);
       // entries until min can be freed
       for (int i = 0; i < min; i++) {
         _matrix[i].resize(0, 0);
       }
       for (unsigned i = min; i < _matrix.size(); i++) {
-        _matrix[i].resize(size1, max + 1);
+        _matrix[i].conservativeResize(Eigen::NoChange, max + 1);
       }
       return;
     }

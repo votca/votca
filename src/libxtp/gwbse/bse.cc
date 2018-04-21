@@ -147,10 +147,12 @@ namespace votca {
     void BSE::Setup_Hd(const TCMatrix_gwbse& _Mmn, const PPM & ppm) {
       // gwbasis size
       size_t auxsize = _Mmn.getAuxDimension();
+      size_t vxv_size=_bse_vtotal * _bse_vtotal;
+      size_t cxc_size=_bse_ctotal * _bse_ctotal;
 
       // messy procedure, first get two matrices for occ and empty subbparts
       // store occs directly transposed
-      MatrixXfd _storage_v = MatrixXfd::Zero(auxsize, _bse_vtotal * _bse_vtotal);
+      MatrixXfd _storage_v = MatrixXfd::Zero(auxsize, vxv_size);
 #pragma omp parallel for
       for (size_t _v1 = 0; _v1 < _bse_vtotal; _v1++) {
         const MatrixXfd& Mmn = _Mmn[_v1 + _bse_vmin ];
@@ -162,7 +164,7 @@ namespace votca {
         }
       }
 
-      MatrixXfd _storage_c = MatrixXfd::Zero(auxsize, _bse_ctotal * _bse_ctotal);
+      MatrixXfd _storage_c = MatrixXfd::Zero(auxsize,cxc_size);
 #pragma omp parallel for
       for (size_t _c1 = 0; _c1 < _bse_ctotal; _c1++) {
         const MatrixXfd& Mmn = _Mmn[_c1 + _bse_cmin];
@@ -181,19 +183,19 @@ namespace votca {
 #pragma omp parallel for
       for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
         if (ppm.getPpm_weight()(_i_gw) < 1.e-9) {
-          for (size_t _v = 0; _v < (_bse_vtotal * _bse_vtotal); _v++) {
+          for (size_t _v = 0; _v < vxv_size; _v++) {
             _storage_v(_i_gw,_v ) = 0;
           }
-          for (size_t _c = 0; _c < (_bse_ctotal * _bse_ctotal); _c++) {
+          for (size_t _c = 0; _c < cxc_size; _c++) {
             _storage_c(_i_gw, _c) = 0;
           }
 
         } else {
           double _ppm_factor = sqrt(ppm.getPpm_weight()(_i_gw));
-          for (size_t _v = 0; _v < (_bse_vtotal * _bse_vtotal); _v++) {
+          for (size_t _v = 0; _v < vxv_size; _v++) {
             _storage_v(_i_gw,_v ) *= _ppm_factor;
           }
-          for (size_t _c = 0; _c < (_bse_ctotal * _bse_ctotal); _c++) {
+          for (size_t _c = 0; _c < cxc_size; _c++) {
             _storage_c(_i_gw, _c) *= _ppm_factor;
           }
         }
