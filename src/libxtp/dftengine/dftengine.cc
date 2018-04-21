@@ -178,7 +178,7 @@ namespace votca {
         MOEnergies.resize(_dftbasis.AOBasisSize());
       }
       if (MOCoeff.rows() != _dftbasis.AOBasisSize() || MOCoeff.cols() != _dftbasis.AOBasisSize()) {
-        MOCoeff.resize(_dftbasis.AOBasisSize(), _dftbasis.AOBasisSize());
+        MOCoeff.conservativeResize(_dftbasis.AOBasisSize(), _dftbasis.AOBasisSize());
       }
 
       /**** Construct initial density  ****/

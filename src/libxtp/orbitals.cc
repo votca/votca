@@ -184,12 +184,12 @@ namespace votca {
         void Orbitals::Trim(int factor) {
 
             if (hasMOCoefficients()) {
-                _mo_coefficients.resize(factor * _occupied_levels, _basis_set_size);
+                _mo_coefficients.conservativeResize(factor * _occupied_levels, _basis_set_size);
                 _unoccupied_levels = (factor - 1) * _occupied_levels;
             }
 
             if (hasMOEnergies()) {
-                _mo_energies.resize(factor * _occupied_levels);
+                _mo_energies.conservativeResize(factor * _occupied_levels);
                 _unoccupied_levels = (factor - 1) * _occupied_levels;
             }
             return;
