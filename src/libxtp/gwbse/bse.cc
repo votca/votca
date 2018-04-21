@@ -61,13 +61,16 @@ namespace votca {
       //(A-B) is not needed any longer and can be overwritten
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Trying Cholesky decomposition of KAA-KAB" << flush;
       Eigen::LLT< Eigen::Ref<Eigen::MatrixXd> > L(_AmB);
+      
+      Eigen::MatrixXd bla=L.matrixL();
+      
+      
        for (int i=0;i<_AmB.rows();++i){
-          for (int j=0;j<i;++j){
+          for (int j=i+1;j<_AmB.cols();++j){
           _AmB(i,j)=0;
           }
         }
-      
-      
+            
       std::string success="successful";
       if(L.info()!=0){
         success="not successful";
@@ -542,10 +545,10 @@ namespace votca {
       // now transition dipole elements for free interlevel transitions
       std::vector<Eigen::MatrixXd > interlevel_dipoles;
 
-      Eigen::MatrixXd empty = dft_orbitals.block(_bse_cmin, 0, _bse_ctotal, dftbasis.AOBasisSize());
-      Eigen::MatrixXd occ = dft_orbitals.block(_bse_vmin, 0, _bse_vtotal, dftbasis.AOBasisSize());
+      Eigen::MatrixXd empty = dft_orbitals.block(0,_bse_cmin,dftbasis.AOBasisSize() , _bse_ctotal);
+      Eigen::MatrixXd occ = dft_orbitals.block(0,_bse_vmin, dftbasis.AOBasisSize(), _bse_vtotal);
       for (int _i_comp = 0; _i_comp < 3; _i_comp++) {
-        interlevel_dipoles.push_back(occ * _dft_dipole.Matrix()[_i_comp] * empty.transpose());
+        interlevel_dipoles.push_back(occ.transpose() * _dft_dipole.Matrix()[_i_comp] * empty);
       }
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;
       return interlevel_dipoles;

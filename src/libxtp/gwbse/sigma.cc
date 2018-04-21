@@ -144,14 +144,14 @@ namespace votca {
             } // occupied bands
           } // gwbasis functions
           _sigma_x(_gw_level1, _gw_level2) = (1.0 - _ScaHFX) * sigma_x;
-          _sigma_x(_gw_level1, _gw_level1) = (1.0 - _ScaHFX) * sigma_x;
+          _sigma_x(_gw_level2, _gw_level1) = (1.0 - _ScaHFX) * sigma_x;
         }
       }
       return;
     }
 
     void Sigma::C_offdiag(const TCMatrix_gwbse& _Mmn, const PPM& ppm){
-       
+            
       #pragma omp parallel 
       {
 
@@ -159,8 +159,8 @@ namespace votca {
         const unsigned _gwsize = _Mmn.getAuxDimension(); // size of the GW basis
         const double fourpi = 4*boost::math::constants::pi<double>();
         const Eigen::VectorXd gwa_energies=_gwa_energies;
-        const Eigen::VectorXd& ppm_weight=ppm.getPpm_weight();
-        const Eigen::VectorXd& ppm_freqs=ppm.getPpm_weight();
+        const Eigen::VectorXd ppm_weight=ppm.getPpm_weight();
+        const Eigen::VectorXd ppm_freqs=ppm.getPpm_freq();
         #pragma omp for schedule(dynamic,4)
         for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
         const double qpmin1 = gwa_energies(_gw_level1 + _qpmin);
