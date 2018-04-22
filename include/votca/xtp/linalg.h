@@ -19,7 +19,7 @@
 
 #ifndef _VOTCA_XTP_LINALG_H
 #define _VOTCA_XTP_LINALG_H
-#include <votca/xtp/votca_config.h>
+#include <votca/xtp/eigen.h>
 
 //this file is temporary till conversion to eigen in all of votca is realized
 

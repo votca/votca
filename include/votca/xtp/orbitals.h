@@ -22,7 +22,7 @@
 
 
 //for openmp
-#include <votca/xtp/votca_config.h>
+#include <votca/xtp/eigen.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/qmatom.h>
@@ -420,24 +420,28 @@ namespace votca {
 
 
 
-            bool hasEHinteraction() {
-                return ( _eh_d.cols() > 0) ? true : false;
+            bool hasEHinteraction_triplet() {
+                return ( _eh_t.cols() > 0) ? true : false;
+            }
+            
+            bool hasEHinteraction_singlet() {
+                return ( _eh_s.cols() > 0) ? true : false;
             }
 
-            const MatrixXfd &eh_x() const {
-                return _eh_x;
+            const MatrixXfd &eh_s() const {
+                return _eh_s;
             }
 
-            MatrixXfd &eh_x() {
-                return _eh_x;
+            MatrixXfd &eh_s() {
+                return _eh_s;
             }
 
-            const MatrixXfd &eh_d() const {
-                return _eh_d;
+            const MatrixXfd &eh_t() const {
+                return _eh_t;
             }
 
-            MatrixXfd &eh_d() {
-                return _eh_d;
+            MatrixXfd &eh_t() {
+                return _eh_t;
             }
 
             // access to triplet energies and wave function coefficients
@@ -769,8 +773,8 @@ namespace votca {
 
 
 
-            MatrixXfd _eh_d;
-            MatrixXfd _eh_x;
+            MatrixXfd _eh_t;
+            MatrixXfd _eh_s;
             VectorXfd _BSE_singlet_energies;
             MatrixXfd _BSE_singlet_coefficients;
             MatrixXfd _BSE_singlet_coefficients_AR;

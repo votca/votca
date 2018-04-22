@@ -17,7 +17,7 @@
 
 #define BOOST_TEST_MODULE eigen_test
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/basisset.h>
+#include <votca/xtp/eigen.h>
 #include <iostream>
 
 

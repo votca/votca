@@ -22,7 +22,7 @@
 
 
 
-#include <votca/xtp/basisset.h> 
+#include <votca/xtp/eigen.h> 
 
 namespace votca { namespace xtp {
 

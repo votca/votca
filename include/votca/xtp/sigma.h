@@ -19,7 +19,7 @@
 
 #ifndef _VOTCA_XTP_SIGMA_H
 #define _VOTCA_XTP_SIGMA_H
-#include <votca/xtp/votca_config.h>
+#include <votca/xtp/eigen.h>
 #include <votca/xtp/ppm.h>
 #include <votca/ctp/logger.h>
 

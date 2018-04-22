@@ -21,8 +21,7 @@
 #define	__XTP_FOURCENTER__H
 
 
-//openmp 
-#include <votca/xtp/votca_config.h>
+#include <votca/xtp/eigen.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/orbitals.h>
 

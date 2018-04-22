@@ -736,16 +736,16 @@ bool GWBSE::Evaluate() {
   // container => M_mn
   // prepare 3-center integral object
 
-  TCMatrix_gwbse _Mmn;
+  TCMatrix_gwbse Mmn;
   //rpamin here, because RPA needs till rpamin
-  _Mmn.Initialize(auxbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
-  _Mmn.Fill(auxbasis, dftbasis, _orbitals->MOCoefficients());
+  Mmn.Initialize(auxbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
+  Mmn.Fill(auxbasis, dftbasis, _orbitals->MOCoefficients());
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
       << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
 
   // make _Mmn symmetric
-  _Mmn.MultiplyLeftWithAuxMatrix(Coulomb_sqrtInv);
+  Mmn.MultiplyLeftWithAuxMatrix(Coulomb_sqrtInv);
   
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
@@ -763,7 +763,7 @@ bool GWBSE::Evaluate() {
   rpa.setScreening(screen_r,screen_i);
     // for use in RPA, make a copy of _Mmn with dimensions
   // (1:HOMO)(gwabasissize,LUMO:nmax)
-  rpa.prepare_threecenters(_Mmn);
+  rpa.prepare_threecenters(Mmn);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Prepared Mmn_beta for RPA  " << flush;
   
@@ -819,16 +819,16 @@ bool GWBSE::Evaluate() {
     
     
     if(gw_iteration==0){
-    _Mmn.MultiplyLeftWithAuxMatrix(ppm.getPpm_phi_T());
+    Mmn.MultiplyLeftWithAuxMatrix(ppm.getPpm_phi_T());
     }else{
-      _Mmn.Fill(auxbasis, dftbasis, _orbitals->MOCoefficients());
+      Mmn.Fill(auxbasis, dftbasis, _orbitals->MOCoefficients());
       Eigen::MatrixXd coulomb_x_ppm=ppm.getPpm_phi_T()*Coulomb_sqrtInv;
-      _Mmn.MultiplyLeftWithAuxMatrix(coulomb_x_ppm);
+      Mmn.MultiplyLeftWithAuxMatrix(coulomb_x_ppm);
     }
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Prepared threecenters for sigma  " << flush;
 
-    sigma.CalcdiagElements(_Mmn,ppm);
+    sigma.CalcdiagElements(Mmn,ppm);
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Calculated diagonal part of Sigma  " << flush;
     // iterative refinement of qp energies
@@ -913,12 +913,12 @@ bool GWBSE::Evaluate() {
   if (_do_qp_diag || _do_bse_singlets || _do_bse_triplets) {
       CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculating offdiagonal part of Sigma  " << flush;
-  sigma.CalcOffDiagElements(_Mmn,ppm);
+  sigma.CalcOffDiagElements(Mmn,ppm);
    CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
     // free no longer required three-center matrices in _Mmn
   // max required is _bse_cmax (could be smaller than _qpmax)
-  _Mmn.Prune(_bse_vmin, _bse_cmax);   
+  Mmn.Prune(_bse_vmin, _bse_cmax);   
     Eigen::MatrixXd Hqp=sigma.SetupFullQPHamiltonian(vxc);
  
     if (_do_qp_diag) {
@@ -943,62 +943,53 @@ bool GWBSE::Evaluate() {
       
       BSE bse=BSE(_orbitals,_pLog,_min_print_weight);
       bse.setBSEindices(_homo,_bse_vmin,_bse_vmax,_bse_cmin,_bse_cmax,_bse_maxeigenvectors);
+      bse.setGWData(&Mmn,&ppm,&Hqp);
        // calculate direct part of eh interaction, needed for singlets and triplets
-      bse.Setup_Hd(_Mmn,ppm);
-      bse.Add_HqpToHd(Hqp);
+    
       
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Direct part of e-h interaction " << flush;
 
-    if (_do_full_BSE) {
-      bse.Setup_Hd_BTDA(_Mmn,ppm);
-      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                     << " Direct part of e-h interaction RARC "
-                                     << flush;
+
+        if (_do_bse_triplets && _do_bse_diag) {
+            bse.Solve_triplets();
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                    << " Solved BSE for triplets " << flush;
+            // analyze and report results
+            bse.Analyze_triplets(dftbasis);
+
+            if (!_store_bse_triplets) {
+                bse.FreeTriplets();
+            }
+
+        } // do_triplets
+
+        if (_do_bse_singlets && _do_bse_diag) {
+
+            if (_do_full_BSE) {
+                bse.Solve_singlets_BTDA();
+                CTP_LOG(ctp::logDEBUG, *_pLog)
+                        << ctp::TimeStamp() << " Solved full BSE for singlets " << flush;
+            } else {
+                bse.Solve_singlets();
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                        << " Solved BSE for singlets " << flush;
+            }
+            bse.Analyze_singlets(dftbasis);
+            if (!_store_bse_singlets) {
+                bse.FreeSinglets();
+            }
+        }
+
+        if (_store_eh_interaction) {
+            if (_do_bse_singlets) {
+                bse.SetupHs();
+            }
+            if (_do_bse_triplets) {
+                bse.SetupHt();
+            }
+        }
     }
-
-    if (_do_bse_triplets && _do_bse_diag) {
-      bse.Solve_triplets();
-      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                     << " Solved BSE for triplets " << flush;
-      // analyze and report results
-      bse.Analyze_triplets(dftbasis,Hqp);
-      
-      if(!_store_bse_triplets){
-        bse.FreeTriplets();
-      }
-
-    }  // do_triplets
-
-    // constructing electron-hole interaction for BSE
-    if (_do_bse_singlets) {
-      // calculate exchange part of eh interaction, only needed for singlets
-      bse.Setup_Hx(_Mmn);
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << ctp::TimeStamp() << " Exchange part of e-h interaction " << flush;
-    }
-
-    if (_do_bse_singlets && _do_bse_diag) {
-
-      if (_do_full_BSE) {
-        bse.Solve_singlets_BTDA();
-        CTP_LOG(ctp::logDEBUG, *_pLog)
-            << ctp::TimeStamp() << " Solved full BSE for singlets " << flush;
-      } else {
-        bse.Solve_singlets();
-        
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                       << " Solved BSE for singlets " << flush;   
-      }
-      bse.Analyze_singlets(dftbasis,Hqp);
-      if (!_store_bse_singlets){
-        bse.FreeSinglets();
-      }
-    }
-    if (!_store_eh_interaction) {
-          bse.FreeMatrices();
-    }
-  }
   }
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " GWBSE calculation finished " << flush;

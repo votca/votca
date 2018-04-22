@@ -449,8 +449,8 @@ namespace votca {
 
         // serialization of electron-hole interaction only if explicitly requested
         if (!_store_ehint) {
-          _orbitalsAB.eh_d().resize(0, 0);
-          _orbitalsAB.eh_x().resize(0, 0);
+          _orbitalsAB.eh_t().resize(0, 0);
+          _orbitalsAB.eh_s().resize(0, 0);
         }
 
         _orbitalsAB.WriteToCpt(orbFileAB);

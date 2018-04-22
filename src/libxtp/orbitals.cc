@@ -676,9 +676,9 @@ namespace votca {
                 w(_QPdiag_energies, "QPdiag_energies");
 
                 w(_QPdiag_coefficients, "QPdiag_coefficients");
-                w(_eh_d, "eh_d");
+                w(_eh_t, "eh_d");
 
-                w(_eh_x, "eh_x");
+                w(_eh_s, "eh_x");
 
                 w(_BSE_singlet_energies, "BSE_singlet_energies");
 
@@ -761,9 +761,9 @@ namespace votca {
                 r(_QPdiag_energies, "QPdiag_energies");
 
                 r(_QPdiag_coefficients, "QPdiag_coefficients");
-                r(_eh_d, "eh_d");
+                r(_eh_t, "eh_t");
 
-                r(_eh_x, "eh_x");
+                r(_eh_s, "eh_s");
 
                 r(_BSE_singlet_energies, "BSE_singlet_energies");
 

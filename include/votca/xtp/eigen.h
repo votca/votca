@@ -17,24 +17,36 @@
  *
  */
 
-#ifndef _VOTCA_XTP_CONFIG_H
-#define _VOTCA_XTP_CONFIG_H
+#ifndef __XTP_EIGEN__H
+#define	__XTP_EIGEN__H
 
-/* OpenMP */
+#include <votca/xtp/votca_config.h>
 
-#if defined(_OPENMP)
-   #include <omp.h>
+#if (GWBSE_DOUBLE)
+#define real_gwbse double
+#else
+#define real_gwbse float
 #endif
 
-/* Version number of package */
-#define VERSION "@PROJECT_VERSION@"
 
-/* Contact address of package */
-#define PACKAGE_BUGREPORT "@PROJECT_CONTACT@"
+#if defined(MKL)
+#include <mkl.h>
+  #define EIGEN_USE_MKL_ALL 
+#endif
+#include <Eigen/Dense>
+
+namespace votca {
+    namespace xtp {
+ typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, Eigen::Dynamic> MatrixXfd;
+ typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, 1> VectorXfd;
+ 
+ 
+
+    }}
 
 
-#cmakedefine MKL
 
 
 
-#endif // _VOTCA_XTP_CONFIG_H
+#endif	/*XTP_EIGEN__H */
+

@@ -19,7 +19,7 @@
 
 #ifndef _VOTCA_XTP_RPA_H
 #define _VOTCA_XTP_RPA_H
-#include <votca/xtp/votca_config.h>
+#include <votca/xtp/eigen.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/threecenter.h>
 

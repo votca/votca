@@ -22,7 +22,7 @@
 #define BOOST_DISABLE_ASSERTS 
 
 //openmp 
-#include <votca/xtp/votca_config.h>
+#include <votca/xtp/eigen.h>
 #include <boost/multi_array.hpp>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/symmetric_matrix.h>

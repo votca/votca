@@ -29,18 +29,35 @@ namespace votca {
     void BSE::Solve_triplets() {
 
       // add full QP Hamiltonian contributions to free transitions
-      MatrixXfd _bse = _eh_d;
-      linalg_eigenvalues(_bse, _bse_triplet_energies, _bse_triplet_coefficients ,_bse_nmax );
+      MatrixXfd H = MatrixXfd::Zero(_bse_size,_bse_size);
+      Add_Hd<real_gwbse>(H);
+      Add_Hqp<real_gwbse>(H);
+      linalg_eigenvalues(H , _bse_triplet_energies, _bse_triplet_coefficients ,_bse_nmax );
       return;
     }
 
     void BSE::Solve_singlets() {
-
-      MatrixXfd _bse = _eh_d + 2.0 * _eh_x;
-      linalg_eigenvalues(_bse, _bse_singlet_energies, _bse_singlet_coefficients , _bse_nmax );
-     
+       
+      MatrixXfd H = MatrixXfd::Zero(_bse_size,_bse_size);
+      Add_Hd<real_gwbse>(H);
+      Add_Hqp<real_gwbse>(H);
+      Add_Hx<real_gwbse>(H,2.0);
+      linalg_eigenvalues(H, _bse_singlet_energies, _bse_singlet_coefficients , _bse_nmax );
       return;
     }
+    
+     void BSE::SetupHs(){
+      _eh_s = MatrixXfd::Zero(_bse_size,_bse_size);
+      Add_Hd<real_gwbse>(_eh_s);
+      Add_Hqp<real_gwbse>(_eh_s);
+      Add_Hx<real_gwbse>(_eh_s,2.0);
+     }
+  
+  void BSE::SetupHt(){
+      _eh_t = MatrixXfd::Zero(_bse_size,_bse_size);
+      Add_Hd<real_gwbse>(_eh_t);
+      Add_Hqp<real_gwbse>(_eh_t);
+  }
     
 
     void BSE::Solve_singlets_BTDA() {
@@ -49,21 +66,26 @@ namespace votca {
       // Nuclear Physics A146(1970)449, Nuclear Physics A163(1971)257.
 
       // setup resonant (A) and RARC blocks (B)
-#if (GWBSE_DOUBLE)
-      Eigen::MatrixXd _ApB = (_eh_d + _eh_d2 + 4.0 * _eh_x);
-      Eigen::MatrixXd _AmB = (_eh_d - _eh_d2);
-#else
-      Eigen::MatrixXd _ApB = (_eh_d + _eh_d2 + 4.0 * _eh_x).cast<double>();
-      Eigen::MatrixXd _AmB = (_eh_d - _eh_d2).cast<double>();
-#endif         
+        
+       //corresponds to 
+      // _ApB = (_eh_d +_eh_qp + _eh_d2 + 4.0 * _eh_x);
+      // _AmB = (_eh_d +_eh_qp - _eh_d2);
+        Eigen::MatrixXd _ApB=Eigen::MatrixXd::Zero(_bse_size,_bse_size);
+        Add_Hd<double>(_ApB);
+        Add_Hqp<double>(_ApB);
+        
+        
+        Eigen::MatrixXd _AmB=_ApB;
+        Add_Hd2<double>(_AmB,-1.0);
+        
+        Add_Hx<double>(_ApB,4.0);
+        Add_Hd2<double>(_ApB,1.0);
+     
 
       // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not positive definite
       //(A-B) is not needed any longer and can be overwritten
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Trying Cholesky decomposition of KAA-KAB" << flush;
       Eigen::LLT< Eigen::Ref<Eigen::MatrixXd> > L(_AmB);
-      
-      Eigen::MatrixXd bla=L.matrixL();
-      
       
        for (int i=0;i<_AmB.rows();++i){
           for (int j=i+1;j<_AmB.cols();++j){
@@ -111,24 +133,23 @@ namespace votca {
       return;
     }
 
-    void BSE::Add_HqpToHd(const Eigen::MatrixXd& Hqp) {
-      Add_HqpToMatrix(Hqp, _eh_d);
-      return;
-    }
-
-    void BSE::Add_HqpToMatrix(const Eigen::MatrixXd& Hqp, MatrixXfd& matrix) {
+   
+template <typename T>
+    void BSE::Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
+    
+    const Eigen::MatrixXd& Hqp=*_Hqp;
 
 #pragma omp parallel for
       for (size_t _v1 = 0; _v1 < _bse_vtotal; _v1++) {
         for (size_t _c1 = 0; _c1 < _bse_ctotal; _c1++) {
           size_t _index_vc = _bse_ctotal * _v1 + _c1;
           // diagonal
-          matrix(_index_vc, _index_vc) += Hqp(_c1 + _bse_vtotal, _c1 + _bse_vtotal) - Hqp(_v1, _v1);
+          H(_index_vc, _index_vc) += Hqp(_c1 + _bse_vtotal, _c1 + _bse_vtotal) -Hqp(_v1, _v1);
           // v->c
           for (size_t _c2 = 0; _c2 < _bse_ctotal; _c2++) {
             size_t _index_vc2 = _bse_ctotal * _v1 + _c2;
             if (_c1 != _c2) {
-              matrix(_index_vc, _index_vc2) += Hqp(_c1 + _bse_vtotal, _c2 + _bse_vtotal);
+              H(_index_vc, _index_vc2) += Hqp(_c1 + _bse_vtotal, _c2 + _bse_vtotal);
             }
           }
 
@@ -136,7 +157,7 @@ namespace votca {
           for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
             size_t _index_vc2 = _bse_ctotal * _v2 + _c1;
             if (_v1 != _v2) {
-              matrix(_index_vc, _index_vc2) -= Hqp(_v1, _v2);
+              H(_index_vc, _index_vc2) -= Hqp(_v1, _v2);
             }
           }
         }
@@ -144,18 +165,20 @@ namespace votca {
       return;
     }
 
-    void BSE::Setup_Hd(const TCMatrix_gwbse& _Mmn, const PPM & ppm) {
+template <typename T>
+    void BSE::Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
       // gwbasis size
-      size_t auxsize = _Mmn.getAuxDimension();
+      size_t auxsize = _Mmn->getAuxDimension();
       size_t vxv_size=_bse_vtotal * _bse_vtotal;
       size_t cxc_size=_bse_ctotal * _bse_ctotal;
 
+      
       // messy procedure, first get two matrices for occ and empty subbparts
       // store occs directly transposed
       MatrixXfd _storage_v = MatrixXfd::Zero(auxsize, vxv_size);
 #pragma omp parallel for
       for (size_t _v1 = 0; _v1 < _bse_vtotal; _v1++) {
-        const MatrixXfd& Mmn = _Mmn[_v1 + _bse_vmin ];
+        const MatrixXfd& Mmn = (*_Mmn)[_v1 + _bse_vmin ];
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
             size_t _index_vv = _bse_vtotal * _v1 + _v2;         
@@ -167,7 +190,7 @@ namespace votca {
       MatrixXfd _storage_c = MatrixXfd::Zero(auxsize,cxc_size);
 #pragma omp parallel for
       for (size_t _c1 = 0; _c1 < _bse_ctotal; _c1++) {
-        const MatrixXfd& Mmn = _Mmn[_c1 + _bse_cmin];
+        const MatrixXfd& Mmn = (*_Mmn)[_c1 + _bse_cmin];
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _c2 = 0; _c2 < _bse_ctotal; _c2++) {
             size_t _index_cc = _bse_ctotal * _c1 + _c2;
@@ -182,7 +205,7 @@ namespace votca {
       // now patch up _storage for screened interaction
 #pragma omp parallel for
       for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
-        if (ppm.getPpm_weight()(_i_gw) < 1.e-9) {
+        if (_ppm->getPpm_weight()(_i_gw) < 1.e-9) {
           for (size_t _v = 0; _v < vxv_size; _v++) {
             _storage_v(_i_gw,_v ) = 0;
           }
@@ -191,12 +214,12 @@ namespace votca {
           }
 
         } else {
-          double _ppm_factor = sqrt(ppm.getPpm_weight()(_i_gw));
+          double ppm_factor = sqrt(_ppm->getPpm_weight()(_i_gw));
           for (size_t _v = 0; _v < vxv_size; _v++) {
-            _storage_v(_i_gw,_v ) *= _ppm_factor;
+            _storage_v(_i_gw,_v ) *= ppm_factor;
           }
           for (size_t _c = 0; _c < cxc_size; _c++) {
-            _storage_c(_i_gw, _c) *= _ppm_factor;
+            _storage_c(_i_gw, _c) *= ppm_factor;
           }
         }
       }
@@ -210,7 +233,7 @@ namespace votca {
       _storage_v.resize(0, 0);
 
       // finally resort into _eh_d
-      _eh_d = MatrixXfd::Zero(_bse_size, _bse_size);
+      
 #pragma omp parallel for
       for (size_t _v1 = 0; _v1 < _bse_vtotal; _v1++) {
         for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
@@ -223,7 +246,7 @@ namespace votca {
               size_t _index_vc2 = _bse_ctotal * _v2 + _c2;
               size_t _index_cc = _bse_ctotal * _c1 + _c2;
 
-              _eh_d(_index_vc1, _index_vc2) = -_storage_prod(_index_vv, _index_cc);
+              H(_index_vc1, _index_vc2) -= _storage_prod(_index_vv, _index_cc);
             }
           }
         }
@@ -231,17 +254,17 @@ namespace votca {
 
       return;
     }
-
-    void BSE::Setup_Hd_BTDA(const TCMatrix_gwbse& _Mmn, const PPM & ppm) {
+template <typename T>
+    void BSE::Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor) {
       // gwbasis size
-      size_t auxsize = _Mmn.getAuxDimension();
+      size_t auxsize = _Mmn->getAuxDimension();
       size_t bse_vxc_total=_bse_vtotal * _bse_ctotal;
       // messy procedure, first get two matrices for occ and empty subbparts
       // store occs directly transposed
       MatrixXfd _storage_cv = MatrixXfd::Zero(auxsize,bse_vxc_total);
 #pragma omp parallel for
       for (size_t _c1 = 0; _c1 < _bse_ctotal; _c1++) {
-        const MatrixXfd& Mmn = _Mmn[_c1 + _bse_cmin ];
+        const MatrixXfd& Mmn = (*_Mmn)[_c1 + _bse_cmin ];
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
             size_t _index_cv = _bse_vtotal * _c1 + _v2;
@@ -253,7 +276,7 @@ namespace votca {
       MatrixXfd _storage_vc = MatrixXfd::Zero(auxsize, bse_vxc_total);
 #pragma omp parallel for
       for (size_t _v1 = 0; _v1 < _bse_vtotal; _v1++) {
-        const MatrixXfd& Mmn = _Mmn[_v1 + _bse_vmin];
+        const MatrixXfd& Mmn = (*_Mmn)[_v1 + _bse_vmin];
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _c2 = 0; _c2 < _bse_ctotal; _c2++) {
             size_t _index_vc = _bse_ctotal * _v1 + _c2;
@@ -269,7 +292,7 @@ namespace votca {
       // now patch up _storage for screened interaction
 #pragma omp parallel for
       for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
-        if (ppm.getPpm_weight()(_i_gw) < 1.e-9) {
+        if (_ppm->getPpm_weight()(_i_gw) < 1.e-9) {
           for (size_t _v = 0; _v < bse_vxc_total; _v++) {
             _storage_vc(_i_gw, _v) = 0;
           }
@@ -277,12 +300,12 @@ namespace votca {
             _storage_cv(_i_gw,_c ) = 0;
           }
         } else {
-          double _ppm_factor = sqrt(ppm.getPpm_weight()(_i_gw));
+          double ppm_factor = sqrt(_ppm->getPpm_weight()(_i_gw));
           for (size_t _v = 0; _v < bse_vxc_total; _v++) {
-            _storage_vc(_i_gw, _v) *= _ppm_factor;
+            _storage_vc(_i_gw, _v) *= ppm_factor;
           }
           for (size_t _c = 0; _c < bse_vxc_total; _c++) {
-            _storage_cv(_i_gw,_c ) *= _ppm_factor;
+            _storage_cv(_i_gw,_c ) *= ppm_factor;
           }
         }
       }
@@ -293,9 +316,7 @@ namespace votca {
       // free storage_v and storage_c
       _storage_cv.resize(0, 0);
       _storage_vc.resize(0, 0);
-      // finally resort into _eh_d
-      // can be limited to upper diagonal !
-      _eh_d2 = MatrixXfd::Zero(_bse_size, _bse_size);
+  
 #pragma omp parallel for
       for (size_t _v1 = 0; _v1 < _bse_vtotal; _v1++) {
         for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
@@ -308,7 +329,7 @@ namespace votca {
               size_t _index_v2c2 = _bse_ctotal * _v2 + _c2;
               size_t _index_v1c2 = _bse_ctotal * _v1 + _c2;
 
-              _eh_d2(_index_v1c1, _index_v2c2) = -_storage_prod(_index_c1v2, _index_v1c2);
+              H(_index_v1c1, _index_v2c2) -= factor*_storage_prod(_index_c1v2, _index_v1c2);
 
             }
           }
@@ -316,12 +337,12 @@ namespace votca {
       }
       return;
     }
-
-    void BSE::Setup_Hx(TCMatrix_gwbse& _Mmn) {
+template <typename T>
+    void BSE::Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor) {
 
     
       // gwbasis size
-      size_t auxsize = _Mmn.getAuxDimension();
+      size_t auxsize = _Mmn->getAuxDimension();
 
       // get a different storage for 3-center integrals we need
       MatrixXfd _storage = MatrixXfd::Zero(auxsize, _bse_size);
@@ -330,7 +351,7 @@ namespace votca {
 #pragma omp parallel for
       for (size_t _v = 0; _v < _bse_vtotal; _v++) {
 
-        const MatrixXfd& Mmn = _Mmn[_v + _bse_vmin];
+        const MatrixXfd& Mmn = (*_Mmn)[_v + _bse_vmin];
         // empty levels
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _c = 0; _c < _bse_ctotal; _c++) {
@@ -340,9 +361,8 @@ namespace votca {
         }
       }
 
-      _Mmn.Cleanup();
       // with this storage, _eh_x is obtained by matrix multiplication
-      _eh_x = _storage.transpose() * _storage;
+      H += factor*_storage.transpose() * _storage;
       return;
     }
 
@@ -362,7 +382,7 @@ namespace votca {
       return;
     }
 
-    void BSE::Analyze_singlets(const AOBasis& dftbasis, const Eigen::MatrixXd& H_qp) {
+    void BSE::Analyze_singlets(const AOBasis& dftbasis) {
 
       Interaction act;
       Population pop;
@@ -372,7 +392,7 @@ namespace votca {
       std::vector<double> oscs = _orbitals->Oscillatorstrengths();
       
       if(tools::globals::verbose){
-        act = Analyze_eh_interaction("singlet",H_qp);
+        act = Analyze_eh_interaction("singlet");
       }
       if(dftbasis.getAOBasisFragA()>0){
         pop=FragmentPopulations("singlet",dftbasis);
@@ -421,13 +441,13 @@ namespace votca {
     
     
     
-    void BSE::Analyze_triplets(const AOBasis& dftbasis, const Eigen::MatrixXd& H_qp) {
+    void BSE::Analyze_triplets(const AOBasis& dftbasis) {
 
       Interaction act;
       Population pop;
             
       if(tools::globals::verbose){
-        act = Analyze_eh_interaction("triplet",H_qp);
+        act = Analyze_eh_interaction("triplet");
       }
       if(dftbasis.getAOBasisFragA()>0){
         pop=FragmentPopulations("triplet",dftbasis);
@@ -466,41 +486,47 @@ namespace votca {
       return;
     }
 
-    BSE::Interaction BSE::Analyze_eh_interaction(const std::string& spin, const Eigen::MatrixXd& H_qp) {
+    Eigen::VectorXd BSE::Analyze_IndividualContribution(const std::string& spin,const MatrixXfd& H){
+        Eigen::VectorXd contrib=Eigen::VectorXd::Zero(_bse_nmax);
+        if (spin == "singlet") {
+            for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
+                MatrixXfd _slice_R = _bse_singlet_coefficients.block(0, i_exc, _bse_size, 1);
+                contrib(i_exc) =  (_slice_R.transpose()*H * _slice_R).value();
+                if (_bse_singlet_coefficients_AR.cols() > 0) {
+                    MatrixXfd _slice_AR = _bse_singlet_coefficients_AR.block(0, i_exc, _bse_size, 1);
+                    // get anti-resonant contribution from direct Keh 
+                    contrib(i_exc)-= (_slice_AR.transpose()*H * _slice_AR).value();           
+                }
+            }
+        } else if (spin == "triplet") {
+            for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
+                MatrixXfd _slice_R = _bse_triplet_coefficients.block(0, i_exc, _bse_size, 1);
+                contrib(i_exc) =  (_slice_R.transpose()*H * _slice_R).value();
+            }
+        } else {
+            throw runtime_error("BSE::Analyze_eh_interaction:Spin not known!");
+        }
+        return contrib;
+    }
+
+    BSE::Interaction BSE::Analyze_eh_interaction(const std::string& spin) {
 
       Interaction analysis;
-      analysis.direct_contrib = Eigen::VectorXd::Zero(_bse_nmax);
-      analysis.qp_contrib = Eigen::VectorXd::Zero(_bse_nmax);
-      MatrixXfd _eh_qp = MatrixXfd::Zero(_bse_size, _bse_size);
-      this->Add_HqpToMatrix(H_qp, _eh_qp);
+      MatrixXfd H = MatrixXfd::Zero(_bse_size, _bse_size);
+      Add_Hqp(H); 
+      analysis.qp_contrib=Analyze_IndividualContribution(spin,H);
+      
+      H = MatrixXfd::Zero(_bse_size, _bse_size);
+      Add_Hd(H);
+      analysis.direct_contrib=Analyze_IndividualContribution(spin,H);
       if (spin == "singlet") {
-        analysis.exchange_contrib = Eigen::VectorXd::Zero(_bse_nmax);
-        for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
-          MatrixXfd _slice_R = _bse_singlet_coefficients.block(0, i_exc, _bse_size, 1);
-          analysis.direct_contrib(i_exc) = (_slice_R.transpose()*(_eh_d - _eh_qp) * _slice_R).value();
-          analysis.exchange_contrib(i_exc) = 2.0 * (_slice_R.transpose() * _eh_x * _slice_R).value();
-          analysis.qp_contrib(i_exc) = _bse_singlet_energies(i_exc) - (analysis.direct_contrib(i_exc) + analysis.exchange_contrib(i_exc));
-          if (_bse_singlet_coefficients_AR.cols() > 0) {
-            MatrixXfd _slice_AR = _bse_singlet_coefficients_AR.block(0, i_exc, _bse_size, 1);
-            // get anti-resonant contribution from direct Keh 
-            double eh_d_AR = (_slice_R.transpose()*(_eh_d - _eh_qp) * _slice_AR).value();
-            analysis.direct_contrib(i_exc) -= eh_d_AR;
-            analysis.qp_contrib(i_exc) -= eh_d_AR;
-            double eh_x_AR = (_slice_R.transpose() * _eh_x * _slice_AR).value();
-            analysis.exchange_contrib(i_exc) -= 2.0 * eh_x_AR;
-            analysis.qp_contrib(i_exc) -= 2 * eh_x_AR;
-          }
-        }
-      } else if (spin == "triplet") {
-        analysis.exchange_contrib = Eigen::VectorXd::Zero(0);
-        for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
-          MatrixXfd _slice_R = _bse_triplet_coefficients.block(0, i_exc, _bse_size, 1);
-          analysis.direct_contrib(i_exc) = (_slice_R.transpose()*(_eh_d - _eh_qp) * _slice_R).value();
-          analysis.qp_contrib(i_exc) = _bse_singlet_energies(i_exc) - analysis.direct_contrib(i_exc);
-        }
-      } else {
-        throw runtime_error("BSE::Analyze_eh_interaction:Spin not known!");
+          H = MatrixXfd::Zero(_bse_size, _bse_size);
+          Add_Hx(H,2.0);
+          analysis.exchange_contrib=Analyze_IndividualContribution(spin,H);
+      }else{
+            analysis.exchange_contrib=Eigen::VectorXd::Zero(0);
       }
+      
       return analysis;
     }
 

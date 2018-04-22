@@ -23,7 +23,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <votca/xtp/votca_config.h>
+
 
 
 namespace votca { namespace xtp {

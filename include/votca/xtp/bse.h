@@ -19,7 +19,7 @@
 
 #ifndef _VOTCA_XTP_BSE_H
 #define _VOTCA_XTP_BSE_H
-#include <votca/xtp/votca_config.h>
+#include <votca/xtp/linalg.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/ppm.h>
 #include <votca/xtp/threecenter.h>
@@ -54,8 +54,8 @@ struct Population {
   BSE(Orbitals* orbitals,ctp::Logger *log,double min_print_weight):
         _log(log),
         _orbitals(orbitals),
-        _eh_x(orbitals->eh_x()),
-        _eh_d(orbitals->eh_d()),
+        _eh_s(orbitals->eh_s()),
+        _eh_t(orbitals->eh_t()),
         _bse_singlet_energies(orbitals->BSESingletEnergies()),
         _bse_singlet_coefficients(orbitals->BSESingletCoefficients()),
         _bse_singlet_coefficients_AR(orbitals->BSESingletCoefficientsAR()),
@@ -64,6 +64,13 @@ struct Population {
         _min_print_weight(min_print_weight){};
 
   ~BSE(){};
+  
+  void setGWData(const TCMatrix_gwbse* Mmn,const PPM* ppm,const Eigen::MatrixXd* Hqp){
+      _Mmn=Mmn;
+      _ppm=ppm;
+      _Hqp=Hqp;
+      
+  }
   
   void setBSEindices(unsigned homo,int vmin, int vmax, int cmin, int cmax, int nmax) {
                 _homo=homo;
@@ -85,22 +92,21 @@ struct Population {
                 return;
             }
 
-  void Setup_Hx(TCMatrix_gwbse& _Mmn);
-  void Setup_Hd(const TCMatrix_gwbse& _Mmn,const PPM & ppm);
-  void Setup_Hd_BTDA(const TCMatrix_gwbse& _Mmn,const PPM & ppm);
-  void Add_HqpToHd(const Eigen::MatrixXd& Hqp );
-  
+   
   void Solve_triplets();
   void Solve_singlets();
   void Solve_singlets_BTDA();
-  void Analyze_triplets(const AOBasis& dftbasis, const Eigen::MatrixXd& H_qp);
-  void Analyze_singlets(const AOBasis& dftbasis, const Eigen::MatrixXd& H_qp);
+  void Analyze_triplets(const AOBasis& dftbasis);
+  void Analyze_singlets(const AOBasis& dftbasis);
    
   void FreeMatrices(){
-      _eh_d.resize(0, 0);
-      _eh_x.resize(0, 0);
-      _eh_d2.resize(0,0);
+      _eh_t.resize(0, 0);
+      _eh_s.resize(0, 0);
   }
+  
+  void SetupHs();
+  
+  void SetupHt();
   
   void FreeTriplets(){
       _bse_triplet_coefficients.resize(0,0);
@@ -126,14 +132,17 @@ ctp::Logger *_log;
   unsigned  _bse_ctotal;
   int _bse_nmax;
   double _min_print_weight;
-
+  bool _do_full_BSE;
   Orbitals* _orbitals;
+  
+  const TCMatrix_gwbse* _Mmn;
+  const PPM* _ppm;
+  const Eigen::MatrixXd* _Hqp;
   
 
   // BSE variables and functions
-  MatrixXfd& _eh_x;  // stored in orbitals object
-  MatrixXfd& _eh_d;  // stored in orbitals object
-  MatrixXfd _eh_d2;  // because it is not stored in orbitals object
+  MatrixXfd& _eh_s;  // only for storage in orbitals object
+  MatrixXfd& _eh_t;  // only for storage in orbitals object
 
   VectorXfd& _bse_singlet_energies;  // stored in orbitals object
   MatrixXfd& _bse_singlet_coefficients;  // stored in orbitals
@@ -144,8 +153,16 @@ ctp::Logger *_log;
   MatrixXfd& _bse_triplet_coefficients;  // stored in orbitals
                                                       // object
 
-   
-  void Add_HqpToMatrix(const Eigen::MatrixXd& Hqp,MatrixXfd& matrix );
+   template <typename T>
+  void Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
+   template <typename T>
+  void Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor);
+   template <typename T>
+   void Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
+   template <typename T>
+  void Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor);
+  
+  
   
   std::vector<int> _index2v;
   std::vector<int> _index2c;
@@ -154,7 +171,9 @@ ctp::Logger *_log;
  void printWeights(unsigned i_bse, double weight);
  
   
-  Interaction Analyze_eh_interaction(const std::string& spin, const Eigen::MatrixXd& H_qp);
+  Interaction Analyze_eh_interaction(const std::string& spin);
+  Eigen::VectorXd Analyze_IndividualContribution(const std::string& spin, const MatrixXfd& H);
+
 
   Population FragmentPopulations(const std::string& spin, const AOBasis& dftbasis);
 

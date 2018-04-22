@@ -22,7 +22,7 @@
 
 
 #include <boost/math/constants/constants.hpp>
-#include <votca/xtp/basisset.h>
+#include <votca/xtp/eigen.h>
 #include <votca/tools/constants.h>
 
 

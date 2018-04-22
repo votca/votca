@@ -332,15 +332,22 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     int _bseAB_ctotal = _bseAB_cmax - _bseAB_cmin +1 ;
     int _bseAB_size   = _bseAB_vtotal * _bseAB_ctotal;
     // check if electron-hole interaction matrices are stored
-    if ( ! _orbitalsAB->hasEHinteraction() ){
-        CTP_LOG(ctp::logERROR,*_pLog) << "BSE EH int not stored in dimer " << flush;
+    if ( ! _orbitalsAB->hasEHinteraction_triplet() && _doTriplets){
+        CTP_LOG(ctp::logERROR,*_pLog) << "BSE EH for triplets not stored " << flush;
         return false;
     }
-    const MatrixXfd&    _eh_d = _orbitalsAB->eh_d(); 
-    const MatrixXfd&    _eh_x = _orbitalsAB->eh_x(); 
-    
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   dimer AB has BSE EH interaction (direct)   with dimension " << _eh_d.rows() << " x " <<  _eh_d.cols() << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   dimer AB has BSE EH interaction (exchange) with dimension " << _eh_x.rows() << " x " <<  _eh_x.cols() << flush;
+    if ( ! _orbitalsAB->hasEHinteraction_singlet() && _doSinglets){
+        CTP_LOG(ctp::logERROR,*_pLog) << "BSE EH for singlets not stored " << flush;
+        return false;
+    }
+    const MatrixXfd&    _eh_t = _orbitalsAB->eh_t(); 
+    const MatrixXfd&    _eh_s = _orbitalsAB->eh_s(); 
+    if(_doTriplets){
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   dimer AB has BSE EH interaction triplet with dimension " << _eh_t.rows() << " x " <<  _eh_t.cols() << flush;
+    }
+    if(_doSinglets){
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   dimer AB has BSE EH interaction singlet with dimension " << _eh_s.rows() << " x " <<  _eh_s.cols() << flush;
+    }
     // now, two storage assignment matrices for two-particle functions
     Eigen::MatrixXi _combAB;
     _combAB.resize(_bseAB_size,2);
@@ -551,10 +558,9 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             if (_doSinglets) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "   Evaluating singlets" << flush;
                 // get singlet BSE Hamiltonian from _orbitalsAB
-                Eigen::MatrixXd _Hamiltonian_AB = (_eh_d + 2.0 * _eh_x).cast<double>();;
+                Eigen::MatrixXd _Hamiltonian_AB = _eh_s.cast<double>();
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "   Setup Hamiltonian" << flush;
                 const Eigen::MatrixXd _bseA_T = _orbitalsA->BSESingletCoefficients().block(0,0,_orbitalsA->BSESingletCoefficients().rows(),_levA).transpose().cast<double>();
-                
                 const Eigen::MatrixXd _bseB_T =_orbitalsB->BSESingletCoefficients().block(0,0,_orbitalsB->BSESingletCoefficients().rows(),_levB).transpose().cast<double>();
                 
                 JAB_singlet = ProjectExcitons(_bseA_T, _bseB_T, _Hamiltonian_AB);
@@ -566,8 +572,8 @@ bool BSECoupling::CalculateCouplings(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             if (_doTriplets) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "   Evaluating triplets" << flush;
                 // get triplet BSE Hamiltonian from _orbitalsAB
-                Eigen::MatrixXd _Hamiltonian_AB = _eh_d.cast<double>();
-                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "  Converted Hamiltonian to double" << flush;
+                Eigen::MatrixXd _Hamiltonian_AB = _eh_s.cast<double>();
+                CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "  Converted Hamiltonian to double" << flush;         
                 const Eigen::MatrixXd _bseA_T = _orbitalsA->BSETripletCoefficients().block(0,0,_orbitalsA->BSETripletCoefficients().rows(),_levA).transpose().cast<double>();
                 const Eigen::MatrixXd _bseB_T =_orbitalsB->BSETripletCoefficients().block(0,0,_orbitalsB->BSETripletCoefficients().rows(),_levB).transpose().cast<double>();
                 JAB_triplet = ProjectExcitons(_bseA_T, _bseB_T, _Hamiltonian_AB);
