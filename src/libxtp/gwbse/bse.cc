@@ -345,7 +345,7 @@ template <typename T>
       size_t auxsize = _Mmn->getAuxDimension();
 
       // get a different storage for 3-center integrals we need
-      MatrixXfd _storage = MatrixXfd::Zero(auxsize, _bse_size);
+      Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> _storage = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(auxsize, _bse_size);
 
       // occupied levels
 #pragma omp parallel for
