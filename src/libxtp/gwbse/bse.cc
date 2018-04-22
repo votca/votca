@@ -109,8 +109,9 @@ namespace votca {
         success="not successful";
       }
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<" Cholesky decomposition of KAA-KAB was "<< success<<flush;
-      _ApB =_AmB.transpose() * _ApB*_AmB;
       
+      _ApB =_AmB.transpose() * _ApB*_AmB;
+      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
       Eigen::VectorXd eigenvalues;
       Eigen::MatrixXd eigenvectors;
       CTP_LOG(ctp::logDEBUG, *_log)
