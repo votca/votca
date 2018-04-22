@@ -17,7 +17,6 @@
 
 #define BOOST_TEST_MODULE convergenceacc_test
 #include <boost/test/unit_test.hpp>
-#include <Eigen/Dense>
 #include <votca/xtp/convergenceacc.h>
 #include <votca/xtp/orbitals.h>
 using namespace votca::xtp;

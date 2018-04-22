@@ -947,8 +947,7 @@ bool GWBSE::Evaluate() {
        // calculate direct part of eh interaction, needed for singlets and triplets
     
       
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Direct part of e-h interaction " << flush;
+    
 
 
         if (_do_bse_triplets && _do_bse_diag) {

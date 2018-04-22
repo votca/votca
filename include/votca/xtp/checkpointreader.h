@@ -16,7 +16,7 @@
 #ifndef _VOTCA_XTP_CHECKPOINT_READER_H
 #define _VOTCA_XTP_CHECKPOINT_READER_H
 
-#include <Eigen/Eigen>
+#include <votca/xtp/eigen.h>
 #include <H5Cpp.h>
 #include <string>
 #include <typeinfo>

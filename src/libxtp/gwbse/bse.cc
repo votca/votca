@@ -32,6 +32,11 @@ namespace votca {
       MatrixXfd H = MatrixXfd::Zero(_bse_size,_bse_size);
       Add_Hd<real_gwbse>(H);
       Add_Hqp<real_gwbse>(H);
+      
+      CTP_LOG(ctp::logDEBUG, *_log)
+        << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
+      CTP_LOG(ctp::logDEBUG, *_log)
+        << ctp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
       linalg_eigenvalues(H , _bse_triplet_energies, _bse_triplet_coefficients ,_bse_nmax );
       return;
     }
@@ -42,6 +47,10 @@ namespace votca {
       Add_Hd<real_gwbse>(H);
       Add_Hqp<real_gwbse>(H);
       Add_Hx<real_gwbse>(H,2.0);
+      CTP_LOG(ctp::logDEBUG, *_log)
+        << ctp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
+      CTP_LOG(ctp::logDEBUG, *_log)
+        << ctp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
       linalg_eigenvalues(H, _bse_singlet_energies, _bse_singlet_coefficients , _bse_nmax );
       return;
     }
@@ -80,6 +89,8 @@ namespace votca {
         
         Add_Hx<double>(_ApB,4.0);
         Add_Hd2<double>(_ApB,1.0);
+        CTP_LOG(ctp::logDEBUG, *_log)
+        << ctp::TimeStamp() << " Setup singlet hamiltonian " << flush;
      
 
       // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not positive definite
@@ -102,6 +113,8 @@ namespace votca {
       
       Eigen::VectorXd eigenvalues;
       Eigen::MatrixXd eigenvectors;
+      CTP_LOG(ctp::logDEBUG, *_log)
+        << ctp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
       linalg_eigenvalues(_ApB, eigenvalues, eigenvectors ,_bse_nmax);
       _ApB.resize(0,0);
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
