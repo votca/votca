@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,11 @@
  *
  */
 
-#ifndef __XTP_NBO__H
-#define	__XTP_NBO__H
+#ifndef __VOTCA_XTP_NBO__H
+#define	__VOTCA_XTP_NBO__H
 
 
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/qmatom.h>
@@ -54,7 +54,7 @@ public:
 private:
     
      ctp::Logger *_log;
-     Elements _elements; 
+     votca::tools::Elements _elements; 
      bool _ECP;
     
     ub::matrix<double> IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< ctp::QMAtom* >& _atomlist, BasisSet &bs);
@@ -62,6 +62,6 @@ private:
 };
 }}
 
-#endif /* NBO_H */
+#endif /* __VOTCA_XTP_NBO_H */
 
 

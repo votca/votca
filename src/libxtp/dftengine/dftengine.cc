@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -35,7 +35,7 @@
 #include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
 
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/xtp/diis.h>
 
 #include <votca/ctp/xinteractor.h>
@@ -513,7 +513,7 @@ namespace votca {
                 }
             }
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " " << uniqueelements.size() << " unique elements found" << flush;
-            Elements _elements;
+            votca::tools::Elements _elements;
             for (st = uniqueelements.begin(); st < uniqueelements.end(); ++st) {
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating atom density for " << (*st)->type << flush;
@@ -838,7 +838,7 @@ namespace votca {
                         << " for external field with " << _gridIntegration_ext.getGridpoints().size() << " points" << flush;
             }
 
-            Elements _elements;
+            votca::tools::Elements _elements;
             //set number of electrons and such
 
 
@@ -927,7 +927,7 @@ namespace votca {
         }
 
         void DFTENGINE::NuclearRepulsion() {
-            Elements element;
+            votca::tools::Elements element;
             E_nucnuc = 0.0;
 
             std::vector<double> charge;
@@ -956,7 +956,7 @@ namespace votca {
         }
 
         double DFTENGINE::ExternalRepulsion(ctp::Topology* top) {
-            Elements element;
+            votca::tools::Elements element;
 
             if (_externalsites.size() == 0) {
                 return 0;
@@ -1003,7 +1003,7 @@ namespace votca {
         }
 
         double DFTENGINE::ExternalGridRepulsion(std::vector<double> externalpotential_nuc) {
-            Elements element;
+            votca::tools::Elements element;
             double E_ext = 0.0;
 
             if (!_do_externalfield) {

@@ -17,11 +17,11 @@
  *
  */
 
-#ifndef __XTP_LOWDIN__H
-#define	__XTP_LOWDIN__H
+#ifndef __VOTCA_XTP_LOWDIN__H
+#define	__VOTCA_XTP_LOWDIN__H
 
 
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/ctp/qmatom.h>
 
@@ -50,7 +50,7 @@ public:
    
 private:
     
-     Elements _elements; 
+     votca::tools::Elements _elements; 
      bool _use_ecp;
      
  
@@ -62,4 +62,4 @@ private:
 
 }}
 
-#endif	/* ESPFIT_H */
+#endif	// VOTCA_XTP_ESPFIT_H 
