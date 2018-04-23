@@ -91,7 +91,7 @@ void Density2Gyration::Initialize(Property* options) {
         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Converting to Eigenframe " << flush;
         gyro.gyration.SolveEigensystem(system); 
         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating Quaternion " << flush;
-        Eigen::Quaterniond _quaternion = get_quaternion( system );
+        //Eigen::Quaterniond _quaternion = get_quaternion( system );
         // report results
         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Reporting " << flush;
         ReportAnalysis(_state, gyro,system);
@@ -104,7 +104,7 @@ void Density2Gyration::Initialize(Property* options) {
         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Converting to Eigenframe " << flush;
         gyro_hole.gyration.SolveEigensystem(system_h); 
         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating Quaternion " << flush;
-        Eigen::Quaterniond _quaternion_h = get_quaternion(system_h );
+        //Eigen::Quaterniond _quaternion_h = get_quaternion(system_h );
         // report results
         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Reporting " << flush;
         ReportAnalysis("hole", gyro_hole,system_h);
@@ -115,7 +115,7 @@ void Density2Gyration::Initialize(Property* options) {
         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Converting to Eigenframe " << flush;
         gyro_electron.gyration.SolveEigensystem(system_e); 
         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating Quaternion " << flush;
-        Eigen::Quaterniond _quaternion_e = get_quaternion( system_e );
+        //Eigen::Quaterniond _quaternion_e = get_quaternion( system_e );
         // report results
         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Reporting " << flush;
         ReportAnalysis("electron", gyro_electron,system_e);
@@ -147,7 +147,7 @@ void Density2Gyration::Initialize(Property* options) {
         gyro.gyration=gyration;
         tools::matrix::eigensystem_t system;
         gyration.SolveEigensystem(system); 
-        Eigen::Quaterniond _quaternion = get_quaternion( system );
+        //Eigen::Quaterniond _quaternion = get_quaternion( system );
         // report results
         ReportAnalysis( "geometry", gyro,system );   
     }
