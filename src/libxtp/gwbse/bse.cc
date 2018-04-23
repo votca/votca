@@ -109,9 +109,10 @@ namespace votca {
         success="not successful";
       }
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<" Cholesky decomposition of KAA-KAB was "<< success<<flush;
-      
-      _ApB =_AmB.transpose() * _ApB*_AmB;
-      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
+      Eigen::MatrixXd temp= _ApB*_AmB;
+      _ApB.noalias() =_AmB.transpose() *temp;
+      temp.resize(0,0);
+      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
       Eigen::VectorXd eigenvalues;
       Eigen::MatrixXd eigenvectors;
       CTP_LOG(ctp::logDEBUG, *_log)
@@ -127,8 +128,7 @@ namespace votca {
 
       // determine inverse of L^T
        
-     
-      Eigen::MatrixXd LmT = _AmB.transpose().inverse();
+     Eigen::MatrixXd LmT = _AmB.inverse().transpose();
 
       int dim = LmT.rows();
       _bse_singlet_energies.resize(_bse_nmax);
