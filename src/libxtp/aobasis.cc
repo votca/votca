@@ -59,7 +59,7 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd &v, const std::string& start, const std
     std::vector<int> order = getReorderVector(start, target);
     
     // Sanity check
-    if (v.rows() != order.size()) {
+    if (v.rows() != int(order.size())) {
         cerr << "Size mismatch in ReorderMOs" << v.rows() << ":" << order.size() << endl;
         throw std::runtime_error("Abort!");
     }
@@ -94,7 +94,7 @@ void AOBasis::ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const st
     std::vector<int> order = getReorderVector(start, target);
     vector<int> multiplier=getMultiplierVector(start,target);
     
-     if (v.cols() != order.size()) {
+     if (v.cols() != int(order.size())) {
         std::cerr << "Size mismatch in ReorderMatrix" << v.cols() << ":" << order.size() << std::endl;
         throw std::runtime_error("Abort!");
     }
@@ -123,7 +123,7 @@ void AOBasis::ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const st
 
 void AOBasis::MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier )  {
           // Sanity check
-          if ( v.cols() != multiplier.size() ) {
+          if ( v.cols() != int(multiplier.size()) ) {
               std::cerr << "Size mismatch in MultiplyMOs" << v.cols() << ":" << multiplier.size() << std::endl;
               throw std::runtime_error( "Abort!");
           }

@@ -20,10 +20,6 @@
 #ifndef _VOTCA_XTP_CONVERGENCEACC__H
 #define _VOTCA_XTP_CONVERGENCEACC__H
 
-
-
-   
-
 #include <votca/xtp/basisset.h>
 #include <votca/ctp/logger.h>
 #include <votca/xtp/adiis.h>
@@ -40,7 +36,7 @@ public:
     
     enum KSmode { closed, open, fractional };
 
-    ConvergenceAcc() {KSmode _mode=closed;
+    ConvergenceAcc() {_mode=KSmode::closed;
                         _diiserror=std::numeric_limits<double>::max();
                       _maxerrorindex=0;
                       _maxerror=0.0;};

@@ -131,7 +131,7 @@ ctp::Logger *_log;
   unsigned  _bse_vtotal;
   unsigned  _bse_ctotal;
   int _bse_nmax;
-  double _min_print_weight;
+  
   bool _do_full_BSE;
   Orbitals* _orbitals;
   
@@ -152,6 +152,8 @@ ctp::Logger *_log;
   VectorXfd& _bse_triplet_energies;  // stored in orbitals object
   MatrixXfd& _bse_triplet_coefficients;  // stored in orbitals
                                                       // object
+  
+  double _min_print_weight;
 
    template <typename T>
   void Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);

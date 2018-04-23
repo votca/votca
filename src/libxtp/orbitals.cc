@@ -353,15 +353,15 @@ namespace votca {
                 int _c = _index2c[_idx1];
                 // electron assist matrix A_{cc'}
 #pragma omp parallel for
-                for (int _c2 = _bse_cmin; _c2 <= _bse_cmax; _c2++) {
-                    int _idx2 = (_bse_cmax - _bse_cmin + 1)*(_v - _bse_vmin)+(_c2 - _bse_cmin);
+                for (unsigned _c2 = _bse_cmin; _c2 <= _bse_cmax; _c2++) {
+                    unsigned _idx2 = (_bse_cmax - _bse_cmin + 1)*(_v - _bse_vmin)+(_c2 - _bse_cmin);
                     _Acc(_c - _bse_cmin, _c2 - _bse_cmin) += _BSECoefs(_idx1, state) * _BSECoefs(_idx2, state);
                 }
 
                 // hole assist matrix A_{vv'}
 #pragma omp parallel for
-                for (int _v2 = _bse_vmin; _v2 <= _bse_vmax; _v2++) {
-                    int _idx2 = (_bse_cmax - _bse_cmin + 1)*(_v2 - _bse_vmin)+(_c - _bse_cmin);
+                for (unsigned _v2 = _bse_vmin; _v2 <= _bse_vmax; _v2++) {
+                    unsigned _idx2 = (_bse_cmax - _bse_cmin + 1)*(_v2 - _bse_vmin)+(_c - _bse_cmin);
                     _Avv(_v - _bse_vmin, _v2 - _bse_vmin) += _BSECoefs(_idx1, state) * _BSECoefs(_idx2, state);
                 }
             }
@@ -431,15 +431,15 @@ namespace votca {
                 int _c = _index2c[_idx1];
                 // hole assist matrix B_{cc'}
 #pragma omp parallel for
-                for (int _c2 = _bse_cmin; _c2 <= _bse_cmax; _c2++) {
-                    int _idx2 = (_bse_cmax - _bse_cmin + 1)*(_v - _bse_vmin)+(_c2 - _bse_cmin);
+                for (unsigned _c2 = _bse_cmin; _c2 <= _bse_cmax; _c2++) {
+                    unsigned _idx2 = (_bse_cmax - _bse_cmin + 1)*(_v - _bse_vmin)+(_c2 - _bse_cmin);
                     _Bcc(_c - _bse_cmin, _c2 - _bse_cmin) += _BSECoefs_AR(_idx1, state) * _BSECoefs_AR(_idx2, state);
                 }
 
                 // electron assist matrix B_{vv'}
 #pragma omp parallel for
-                for (int _v2 = _bse_vmin; _v2 <= _bse_vmax; _v2++) {
-                    int _idx2 = (_bse_cmax - _bse_cmin + 1)*(_v2 - _bse_vmin)+(_c - _bse_cmin);
+                for (unsigned _v2 = _bse_vmin; _v2 <= _bse_vmax; _v2++) {
+                    unsigned _idx2 = (_bse_cmax - _bse_cmin + 1)*(_v2 - _bse_vmin)+(_c - _bse_cmin);
                     _Bvv(_v - _bse_vmin, _v2 - _bse_vmin) += _BSECoefs_AR(_idx1, state) * _BSECoefs_AR(_idx2, state);
                 }
             }

@@ -56,7 +56,7 @@ namespace votca {
                         jac(i, i) += 2.0 * x(i) / xnorm;
                     }
                     Eigen::VectorXd dEdxv = jac.transpose() * dEdc;
-                    for (size_t i = 0; i < dEdxv.size(); ++i) {
+                    for (int i = 0; i < dEdxv.size(); ++i) {
                         gradient[i] = dEdxv(i);
                     }
                 }

@@ -44,6 +44,7 @@ CheckpointReader(const CptLoc& loc) : _loc(loc){};
     typename std::enable_if<std::is_fundamental<T>::value, T>::type
     operator()(T& var, const std::string& name){
         ReadScalar(_loc, var, name);
+        return true;
     }
 
     void operator()(std::string& var, const std::string& name){
@@ -85,7 +86,7 @@ private:
         H5::DataSpace dp = dataset.getSpace();
 
         hsize_t dims[2];
-        int ndims = dp.getSimpleExtentDims(dims, NULL); // ndims is always 2 for us
+        //int ndims = dp.getSimpleExtentDims(dims, NULL); // ndims is always 2 for us
 
         matrix.derived().resize(dims[0], dims[1]);
         dataset.read(matrix.derived().data(), *dataType);
@@ -102,7 +103,7 @@ private:
         const H5::DataType* dataType = InferDataType<T>::get();
 
         hsize_t dims[2];
-        int ndims = dp.getSimpleExtentDims(dims, NULL);
+        //int ndims = dp.getSimpleExtentDims(dims, NULL);
 
         v.resize(dims[0]);
 

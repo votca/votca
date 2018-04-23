@@ -59,7 +59,7 @@ namespace votca {
                     for (int _n_level = 0; _n_level < _Mmn_RPA.get_ntot(); _n_level++) {
                         const double _deltaE = qp_energies(_n_level + index_n) - _qp_energy_m;
                         const double denom=4.0 * _deltaE / (_deltaE * _deltaE + screen_freq2); 
-                        for (unsigned aux=0;aux<_size;++aux){
+                        for (int aux=0;aux<_size;++aux){
                           denom_x_Mmn_RPA(_n_level,aux) =Mmn_RPA(aux,_n_level)*denom; //hartree    
                         }
                     }
@@ -76,7 +76,7 @@ namespace votca {
                     for (int _n_level = 0;  _n_level < _Mmn_RPA.get_ntot(); _n_level++) {
                         const double _deltaE = qp_energies(_n_level + index_n) - _qp_energy_m;
                         const double denom=2.0 * (1.0 / (_deltaE - screen_freq_r(i)) + 1.0 / (_deltaE + screen_freq_r(i)));
-                        for (unsigned aux=0;aux<_size;++aux){
+                        for (int aux=0;aux<_size;++aux){
                           denom_x_Mmn_RPA(_n_level,aux) =Mmn_RPA(aux,_n_level)*denom; //hartree    
                         }
                     }

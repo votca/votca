@@ -78,9 +78,9 @@ namespace votca {
                     const AOShell* _shell_col = dftbasis.getShell(_col);
                     int _col_start = _shell_col->getStartIndex();
                     tensor3d threec_block(extents[ range(0, _auxshell->getNumFunc()) ][ range(0, _shell_row->getNumFunc()) ][ range(0, _shell_col->getNumFunc())]);
-                    for (unsigned i = 0; i < _auxshell->getNumFunc(); ++i) {
-                      for (unsigned j = 0; j < _shell_row->getNumFunc(); ++j) {
-                        for (unsigned k = 0; k < _shell_col->getNumFunc(); ++k) {
+                    for (int i = 0; i < _auxshell->getNumFunc(); ++i) {
+                      for (int j = 0; j < _shell_row->getNumFunc(); ++j) {
+                        for (int k = 0; k < _shell_col->getNumFunc(); ++k) {
                           threec_block[i][j][k] = 0.0;
                         }
                       }

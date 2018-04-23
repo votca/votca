@@ -76,7 +76,7 @@ namespace votca {
     void TCMatrix_gwbse::Print(string _ident) {
 
       for (int k = 0; k < this->_mtotal; k++) {
-        for (unsigned i = 0; i < _matrix[1].rows(); i++) {
+        for (int i = 0; i < this->getAuxDimension(); i++) {
           for (int j = 0; j< this->_ntotal; j++) {
             cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
           }
@@ -128,7 +128,7 @@ namespace votca {
     void TCMatrix_gwbse::FillBlock(std::vector< Eigen::MatrixXd >& _block, const AOShell* _auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& _dft_orbitals) {
 
       std::vector<Eigen::MatrixXd> symmstorage;
-      for (unsigned i = 0; i < _auxshell->getNumFunc(); ++i) {
+      for (int i = 0; i < _auxshell->getNumFunc(); ++i) {
         symmstorage.push_back(Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize()));
       }
       const Eigen::MatrixXd dftm = _dft_orbitals.block(0, _mmin, _dft_orbitals.rows(), _mtotal);
@@ -144,9 +144,9 @@ namespace votca {
           const int _col_start = _shell_col->getStartIndex();
 
           tensor3d threec_block(extents[ range(0, _auxshell->getNumFunc()) ][ range(0, _shell_row->getNumFunc()) ][ range(0, _shell_col->getNumFunc())]);
-          for (unsigned i = 0; i < _auxshell->getNumFunc(); ++i) {
-            for (unsigned j = 0; j < _shell_row->getNumFunc(); ++j) {
-              for (unsigned k = 0; k < _shell_col->getNumFunc(); ++k) {
+          for (int i = 0; i < _auxshell->getNumFunc(); ++i) {
+            for (int j = 0; j < _shell_row->getNumFunc(); ++j) {
+              for (int k = 0; k < _shell_col->getNumFunc(); ++k) {
                 threec_block[i][j][k] = 0.0;
               }
             }
@@ -168,16 +168,16 @@ namespace votca {
           }
         } // gamma-loop
       } // alpha-loop
-      for (unsigned k = 0; k < _auxshell->getNumFunc(); ++k) {
+      for (int k = 0; k < _auxshell->getNumFunc(); ++k) {
         Eigen::MatrixXd& matrix = symmstorage[k];
-        for (unsigned i = 0; i < matrix.rows(); ++i) {
-          for (unsigned j = 0; j < i; ++j) {
+        for (int i = 0; i < matrix.rows(); ++i) {
+          for (int j = 0; j < i; ++j) {
             matrix(j, i) = matrix(i, j);
           }
         }
         Eigen::MatrixXd threec_inMo = dftm.transpose() * matrix*dftn;
-        for (unsigned i = 0; i < threec_inMo.rows(); ++i) {
-          for (unsigned j = 0; j < threec_inMo.cols(); ++j) {
+        for (int i = 0; i < threec_inMo.rows(); ++i) {
+          for (int j = 0; j < threec_inMo.cols(); ++j) {
             _block[i](k, j) = threec_inMo(i, j);
           }
         }

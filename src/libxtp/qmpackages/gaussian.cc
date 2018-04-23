@@ -765,13 +765,13 @@ namespace votca {
             // copying energies to the orbitals object
            Eigen::VectorXd &mo_energies = _orbitals->MOEnergies();
             mo_energies.resize(_levels);
-            for (size_t i = 0; i < mo_energies.size(); i++) mo_energies[i] = _energies[ i + 1 ];
+            for (int i = 0; i < mo_energies.size(); i++) mo_energies[i] = _energies[ i + 1 ];
 
             // copying mo coefficients to the orbitals object
             Eigen::MatrixXd &mo_coefficients = _orbitals->MOCoefficients();
             mo_coefficients.resize(_levels, _basis_size);
-            for (size_t i = 0; i < mo_coefficients.rows(); i++){
-                for (size_t j = 0; j < mo_coefficients.cols(); j++){
+            for (int i = 0; i < mo_coefficients.rows(); i++){
+                for (int j = 0; j < mo_coefficients.cols(); j++){
                     mo_coefficients(j, i) = _coefficients[i + 1][j];
                 }
             }

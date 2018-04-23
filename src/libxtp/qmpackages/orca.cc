@@ -780,7 +780,7 @@ namespace votca {
             // copying energies to a matrix
             _orbitals->MOEnergies().resize(_levels);
             //_level = 1;
-            for (size_t i = 0; i < _orbitals->MOEnergies().size(); i++) {
+            for (int i = 0; i < _orbitals->MOEnergies().size(); i++) {
                 _orbitals->MOEnergies()[i] = _energies[ i ];
             }
 
@@ -876,8 +876,8 @@ namespace votca {
 
             // i -> MO, j -> AO
             (_orbitals->MOCoefficients()).resize(_levels, _basis_size);
-            for (size_t i = 0; i < _orbitals->MOCoefficients().rows(); i++) {
-                for (size_t j = 0; j < _orbitals->MOCoefficients().cols(); j++) {
+            for (int i = 0; i < _orbitals->MOCoefficients().rows(); i++) {
+                for (int j = 0; j < _orbitals->MOCoefficients().cols(); j++) {
                     _orbitals->MOCoefficients()(j, i) = _coefficients[j * _basis_size + i];
                    
                 }

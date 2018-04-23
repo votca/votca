@@ -395,7 +395,7 @@ void GWBSE::addoutput(Property *_summary) {
   _dft_summary->setAttribute("HOMO", _homo);
   _dft_summary->setAttribute("LUMO", _homo + 1);
   
-  for (int state = _qpmin; state < _qpmax+1; state++) {
+  for (unsigned state = _qpmin; state < _qpmax+1; state++) {
 
     Property *_level_summary = &_dft_summary->add("level", "");
     _level_summary->setAttribute("number", state);
@@ -775,9 +775,9 @@ bool GWBSE::Evaluate() {
   // initialize _qp_energies;
   // shift unoccupied levels by the shift
   Eigen::VectorXd gwa_energies = Eigen::VectorXd::Zero(_orbitals->getNumberOfLevels());
-  for (size_t i = 0; i < gwa_energies.size(); ++i) {
+  for (int i = 0; i < gwa_energies.size(); ++i) {
     gwa_energies(i) = _orbitals->MOEnergies()(i);
-    if (i > _homo) {
+    if (i > int(_homo)) {
       gwa_energies(i) += _shift;
     }
   }

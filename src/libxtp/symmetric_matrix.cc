@@ -38,8 +38,8 @@ namespace votca { namespace xtp {
    std::ostream &operator<<(std::ostream &out, const Symmetric_Matrix& a) {
 
     out << "[" << a.dimension << "," << a.dimension << "]\n";
-    for (int i = 0; i < a.dimension; ++i) {
-      for (int j = 0; j <= i; ++j) {
+    for (unsigned i = 0; i < a.dimension; ++i) {
+      for (unsigned j = 0; j <= i; ++j) {
         out<<a(i,j);
         if(i==j){
           out<<"\n";
