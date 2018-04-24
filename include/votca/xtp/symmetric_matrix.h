@@ -47,7 +47,7 @@ Symmetric_Matrix(size_t dim) {
     Symmetric_Matrix(const Eigen::MatrixXd& full);
     
     int size() {
-            return size();
+            return dimension;
         }
 
     double TraceofProd(const Symmetric_Matrix& a) const{
