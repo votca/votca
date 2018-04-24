@@ -24,6 +24,7 @@
 
 #include <votca/xtp/eigen.h>
 #include <iostream>
+#include <vector>
 
 
 
