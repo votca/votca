@@ -18,7 +18,7 @@
  */
 
 #include "votca/xtp/orbitals.h"
-#include "gitversion.h"
+#include <votca/xtp/version.h>
 #include <votca/tools/elements.h>
 #include <stdio.h>
 #include <iostream>
@@ -629,7 +629,7 @@ namespace votca {
         void Orbitals::WriteToCpt(CptLoc parent) {
             try {
                 CheckpointWriter w(parent);
-                w(gitversion, "Version");
+                w(XtpVersionStr(), "Version");
                 w(_basis_set_size, "basis_set_size");
                 w(_occupied_levels, "occupied_levels");
                 w(_unoccupied_levels, "unoccupied_levels");
@@ -676,9 +676,9 @@ namespace votca {
                 w(_QPdiag_energies, "QPdiag_energies");
 
                 w(_QPdiag_coefficients, "QPdiag_coefficients");
-                w(_eh_t, "eh_d");
+                w(_eh_t, "eh_t");
 
-                w(_eh_s, "eh_x");
+                w(_eh_s, "eh_s");
 
                 w(_BSE_singlet_energies, "BSE_singlet_energies");
 
@@ -711,7 +711,6 @@ namespace votca {
         void Orbitals::ReadFromCpt(CptLoc parent) {
             try {
                 CheckpointReader r(parent);
-
                 r(_basis_set_size, "basis_set_size");
                 r(_occupied_levels, "occupied_levels");
                 r(_unoccupied_levels, "unoccupied_levels");
@@ -719,7 +718,6 @@ namespace votca {
 
                 r(_mo_energies, "mo_energies");
                 r(_mo_coefficients, "mo_coefficients");
-
                 // Read qmatoms
                 {
                     CptLoc qmAtomsGr = parent.openGroup("qmatoms");

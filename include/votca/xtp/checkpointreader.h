@@ -86,7 +86,7 @@ private:
         H5::DataSpace dp = dataset.getSpace();
 
         hsize_t dims[2];
-        //int ndims = dp.getSimpleExtentDims(dims, NULL); // ndims is always 2 for us
+        dp.getSimpleExtentDims(dims, NULL); // ndims is always 2 for us
 
         matrix.derived().resize(dims[0], dims[1]);
         dataset.read(matrix.derived().data(), *dataType);
@@ -103,7 +103,7 @@ private:
         const H5::DataType* dataType = InferDataType<T>::get();
 
         hsize_t dims[2];
-        //int ndims = dp.getSimpleExtentDims(dims, NULL);
+        dp.getSimpleExtentDims(dims, NULL);
 
         v.resize(dims[0]);
 

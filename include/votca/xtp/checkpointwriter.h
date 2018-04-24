@@ -85,8 +85,8 @@ private:
         void WriteData(const CptLoc& loc, const Eigen::MatrixBase<T>& matrix,
                        const std::string& name) {
 
-        hsize_t dims[2] = {matrix.rows(),
-                           matrix.cols()};  // eigen vectors are n,1 matrices
+        hsize_t dims[2] = {size_t(matrix.rows()),
+                           size_t(matrix.cols())};  // eigen vectors are n,1 matrices
 
         if (dims[1] == 0) dims[1] = 1;
 

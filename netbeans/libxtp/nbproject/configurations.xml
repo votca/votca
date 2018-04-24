@@ -226,6 +226,7 @@
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/basisset.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
+      <itemPath>../../src/libxtp/checkpoint.cc</itemPath>
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
@@ -761,6 +762,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1538,6 +1541,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>

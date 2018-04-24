@@ -331,7 +331,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(const AOBasis* aobasis,std::vector<QMA
             if ( expo > 40.0 ) {
                 value = 0.0;
             } else {
-                value = 0.5 * sqrt(  pi /alpha  ) * erfc(expo);
+                value = 0.5 * sqrt(  pi /alpha  ) * std::erfc(expo);
             }
         }
         

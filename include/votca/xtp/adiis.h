@@ -23,6 +23,7 @@
 
 
 #include <votca/xtp/eigen.h> 
+#include <vector>
 
 namespace votca { namespace xtp {
 
