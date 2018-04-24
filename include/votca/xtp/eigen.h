@@ -33,12 +33,22 @@
 #include <mkl.h>
   #define EIGEN_USE_MKL_ALL 
 #endif
-#ifdef __GNUG__
+
+//! Macro to detect strictly gcc.
+//! \details __GNUC__ and __GNUG__ were intended to indicate the GNU compilers.
+//! However, they're also defined by Clang/LLVM and Intel compilers to indicate
+//! compatibility. This macro can be used to detect strictly gcc and not clang
+//! or icc.
+#if (defined(__GNUC__) || defined(__GNUG__)) && !(defined(__clang__) || defined(__INTEL_COMPILER))
+  #define STRICT_GNUC
+#endif
+
+#ifdef STRICT_GNUC
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #endif
 #include <Eigen/Dense>
-#ifdef __GNUG__
+#ifdef STRICT_GNUC
 #pragma GCC diagnostic pop
 #endif
 
