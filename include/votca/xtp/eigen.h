@@ -33,7 +33,14 @@
 #include <mkl.h>
   #define EIGEN_USE_MKL_ALL 
 #endif
+#ifdef __GNUG__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-in-bool-context"
+#endif
 #include <Eigen/Dense>
+#ifdef __GNUG__
+#pragma GCC diagnostic pop
+#endif
 
 namespace votca {
     namespace xtp {
