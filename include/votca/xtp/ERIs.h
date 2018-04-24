@@ -64,7 +64,6 @@ namespace votca { namespace xtp {
         Eigen::MatrixXd _ERIs;
         Eigen::MatrixXd _EXXs;
         double _ERIsenergy;
-        double _EXXenergy;
         void CalculateEnergy(const Eigen::MatrixXd &DMAT);
         void CalculateEXXEnergy(const Eigen::MatrixXd &DMAT);
     };
