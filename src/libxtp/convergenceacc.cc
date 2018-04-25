@@ -23,20 +23,32 @@
 
 namespace votca { namespace xtp {
   
-  void ConvergenceAcc::setOverlap(Eigen::MatrixXd* _S){
+  void ConvergenceAcc::setOverlap(Eigen::MatrixXd* _S,double etol){
        S=_S;
        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es((*S));
        if(_noisy){
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<es.eigenvalues()(0) << flush;
             }
-       Sminusahalf = es.operatorInverseSqrt();
+      Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
+      int removedfunctions=0;
+      for (unsigned i=0;i<diagonal.size();++i){
+          if(es.eigenvalues()(i)<etol){
+              removedfunctions++;
+          }else{
+              diagonal(i)=1.0/std::sqrt(es.eigenvalues()(i));
+          }
+      }
+      if(_noisy){
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<removedfunctions<<" basisfunction from inverse overlap matrix" << flush;
+        }
+       Sminusahalf =es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
        Sonehalf=es.operatorSqrt();
        mix.Configure(_mixingparameter,S);
        return;
    }
    
    
-    Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,const Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE){
+    Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE){
       Eigen::MatrixXd H_guess=Eigen::MatrixXd::Zero(H.rows(),H.cols());    
     
       if(_mathist.size()>_histlength){
@@ -49,6 +61,14 @@ namespace votca { namespace xtp {
           }
           
       _totE.push_back(totE);
+      
+    double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
+      
+    if((_diiserror>_levelshiftend && _levelshift>0.0) || gap<1e-6){
+      if(_mode!=KSmode::fractional){
+        Levelshift(H);
+      }
+    }
       
       Eigen::MatrixXd errormatrix=Sminusahalf.transpose()*(H*dmat*(*S)-(*S)*dmat*H)*Sminusahalf;
       _diiserror=errormatrix.cwiseAbs().maxCoeff();
@@ -106,13 +126,7 @@ namespace votca { namespace xtp {
         H_guess=H;     
     }
       
-    double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
-      
-    if((_diiserror>_levelshiftend && _levelshift>0.0) || gap<1e-6){
-      if(_mode!=KSmode::fractional){
-        Levelshift(H_guess);
-      }
-    }
+    
     SolveFockmatrix( MOenergies,MOs,H_guess);
     Eigen::MatrixXd dmatout=DensityMatrix(MOs,MOenergies);
     
@@ -138,6 +152,9 @@ namespace votca { namespace xtp {
     }
     
     void ConvergenceAcc::Levelshift(Eigen::MatrixXd& H) {
+      if(_levelshift<1e-9){
+        return;
+      }
       if(MOsinv.rows()<1){
         throw runtime_error("ConvergenceAcc::Levelshift: Call SolveFockmatrix before Levelshift, MOsinv not initialized");
       }

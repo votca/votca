@@ -188,6 +188,8 @@
         <itemPath>../../src/libxtp/xtpapplication.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f7" displayName="dftengine" projectFiles="true">
+        <itemPath>../../src/libxtp/adiis.cc</itemPath>
+        <itemPath>../../src/libxtp/convergenceacc.cc</itemPath>
         <itemPath>../../src/libxtp/dftengine/dftengine.cc</itemPath>
         <itemPath>../../src/libxtp/diis.cc</itemPath>
         <itemPath>../../src/libxtp/mixing.cc</itemPath>
@@ -638,6 +640,8 @@
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/aobasis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aodipole.cc"
@@ -764,6 +768,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1417,6 +1423,8 @@
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/aobasis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aodipole.cc"
@@ -1543,6 +1551,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>

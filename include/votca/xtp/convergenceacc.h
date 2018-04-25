@@ -72,14 +72,14 @@ public:
   
    }
    
-   void setOverlap(Eigen::MatrixXd* _S);
+   void setOverlap(Eigen::MatrixXd* _S, double etol);
    
    
    double getDIIsError(){return _diiserror;}
    
    
     void setLogger(ctp::Logger *pLog){_pLog=pLog;}
-    Eigen::MatrixXd Iterate(const Eigen::MatrixXd& dmat,const Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE);
+    Eigen::MatrixXd Iterate(const Eigen::MatrixXd& dmat,Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE);
     void SolveFockmatrix(Eigen::VectorXd& MOenergies,Eigen::MatrixXd& MOs,const Eigen::MatrixXd&H);
     void Levelshift(Eigen::MatrixXd& H);
 

@@ -38,7 +38,7 @@ namespace votca {
             exit(0);
           }
           int shellsize=dftbasis.getNumofShells();
-          #pragma omp parallel for
+          #pragma omp parallel for schedule(dynamic)
           for(int i=0;i<shellsize;++i){
           
             const AOShell* _shell_3 = dftbasis.getShell(i);

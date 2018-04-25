@@ -119,12 +119,7 @@ namespace votca {
           _maxout = false;
         }
 
-        if (options->exists(key + ".convergence.mixing")) {
-          _mixingparameter = options->get(key + ".convergence.mixing").as<double>();
-        } else {
-          _mixingparameter = -10;
-        }
-
+        _mixingparameter= options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.mixing",-10.0);
         _levelshift = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift", 0.0);
         _levelshiftend = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift_end", 0.8);
         _maxout = options->ifExistsReturnElseReturnDefault<bool>(key + ".convergence.DIIS_maxout", false);
@@ -419,7 +414,7 @@ namespace votca {
       conv_accelerator.Configure(ConvergenceAcc::KSmode::closed, _usediis,
               true, _histlength, _maxout, _adiis_start, _diis_start, _levelshift, _levelshiftend, _numofelectrons / 2, _mixingparameter);
       conv_accelerator.setLogger(_pLog);
-      conv_accelerator.setOverlap(&_dftAOoverlap.Matrix());
+      conv_accelerator.setOverlap(&_dftAOoverlap.Matrix(),1e-8);
 
 
       if (_with_RI) {
@@ -430,7 +425,7 @@ namespace votca {
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
 
-        Eigen::MatrixXd Inverse=_auxAOcoulomb.Pseudo_Invert(1e-7);
+        Eigen::MatrixXd Inverse=_auxAOcoulomb.Pseudo_Invert(1e-8);
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inverted AUX Coulomb matrix, removed " << _auxAOcoulomb.Removedfunctions() << " functions from aux basis" << flush;
 
@@ -532,10 +527,10 @@ namespace votca {
 
         Convergence_alpha.Configure(ConvergenceAcc::KSmode::open, true, false, 20, 0, adiisstart, diisstart, 0.1, diisstart, alpha_e, -1);
         Convergence_alpha.setLogger(_pLog);
-        Convergence_alpha.setOverlap(&dftAOoverlap.Matrix());      
+        Convergence_alpha.setOverlap(&dftAOoverlap.Matrix(),1e-8);      
         Convergence_beta.Configure(ConvergenceAcc::KSmode::open, true, false, 20, 0, adiisstart, diisstart, 0.1, diisstart, beta_e, -1);
         Convergence_beta.setLogger(_pLog);
-        Convergence_beta.setOverlap(&dftAOoverlap.Matrix());
+        Convergence_beta.setOverlap(&dftAOoverlap.Matrix(),1e-8);
         /**** Construct initial density  ****/
 
         Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
