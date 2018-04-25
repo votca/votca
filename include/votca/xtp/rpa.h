@@ -80,7 +80,6 @@ namespace votca {
             unsigned _homo; // HOMO index
             unsigned _rpamin;
             unsigned _rpamax;
-            double _shift; // pre-shift of DFT energies
 
             // container for the epsilon matrix
             std::vector<Eigen::MatrixXd > _epsilon_r;

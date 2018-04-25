@@ -132,7 +132,6 @@ ctp::Logger *_log;
   unsigned  _bse_ctotal;
   int _bse_nmax;
   
-  bool _do_full_BSE;
   Orbitals* _orbitals;
   
   const TCMatrix_gwbse* _Mmn;

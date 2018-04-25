@@ -736,7 +736,6 @@ namespace votca {
 
             Eigen::MatrixXd _mo_couplings;
 
-            bool _has_basis_set;
             BasisSet _basis_set;
 
             // new variables for GW-BSE storage

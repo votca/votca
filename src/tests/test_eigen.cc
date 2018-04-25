@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(symmetric_test) {
   bool symmetry=true;
   for(unsigned i=0;i<sym.rows();++i){
     for(unsigned j=0;j<=i;++j){
-      if(std::abs(sym(i,j)-sym(j,i)>1e-9)){
+      if(std::abs(sym(i,j)-sym(j,i))>1e-9){
         symmetry=false;
         break;
       }

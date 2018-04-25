@@ -93,7 +93,6 @@ class GWBSE {
 
   // fragment definitions
   int _fragA;
-  int _fragB;
 
   // BSE variant
   bool _do_full_BSE;
