@@ -923,12 +923,14 @@ for (int l = 4; l < _lmax_delta+1; l++) {
 
             tensor4d R4_sph;
             R4_sph.resize(extents4[ _ntrafo_alpha ][ _ntrafo_beta ][ _ntrafo_gamma ][ _ntrafo_delta ]);
-
-            for (int _i_delta = 0; _i_delta < _ntrafo_delta; _i_delta++) {
-              for (int _i_gamma = 0; _i_gamma < _ntrafo_gamma; _i_gamma++) {
-
-                for (int _j = 0; _j < _ntrafo_alpha; _j++) {
+            
+            for (int _j = 0; _j < _ntrafo_alpha; _j++) {
                   for (int _k = 0; _k < _ntrafo_beta; _k++) {
+                        for (int _i_gamma = 0; _i_gamma < _ntrafo_gamma; _i_gamma++) {
+                            for (int _i_delta = 0; _i_delta < _ntrafo_delta; _i_delta++) {
+             
+
+                
 
                     R4_sph[ _j ][ _k ][ _i_gamma ][ _i_delta ] = 0.0;
 
