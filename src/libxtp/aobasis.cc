@@ -19,7 +19,7 @@
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/qmatom.h"
-#include "votca/xtp/elements.h"
+#include "votca/tools/elements.h"
 #include "votca/xtp/aomatrix.h"
 #include <votca/tools/constants.h>
 
@@ -552,7 +552,7 @@ int AOBasis::getFuncperAtom(int AtomId) const{
 
 
 void AOBasis::AOBasisFill(BasisSet* bs , std::vector<QMAtom* > _atoms, int _fragbreak  ) {
-  Elements elementinfo;
+  tools::Elements elementinfo;
   std::vector<QMAtom* > :: iterator ait;
 
  _AOBasisSize =0;

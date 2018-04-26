@@ -296,8 +296,8 @@ namespace votca {
           } // End omp parallel
 
           // Fill lower triangular part using symmetry
-          for (int i = 0; i < DMAT.size1(); i++)
-            for (int j = i + 1; j < DMAT.size2(); j++)
+          for (size_t i = 0; i < DMAT.size1(); i++)
+            for (size_t j = i + 1; j < DMAT.size2(); j++)
               _ERIs(j, i) = _ERIs(i, j);
 
           CalculateEnergy(DMAT.data());

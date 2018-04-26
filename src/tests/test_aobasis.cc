@@ -56,7 +56,7 @@ aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
 
 const AOShell* shell=aobasis.getShell(0);
 AOShell::GaussianIterator it;
-std:;vector<double> ref_results={0.1831079647,0.9155398233};
+std::vector<double> ref_results={0.1831079647,0.9155398233};
 int i=0;
 bool check_norm=true;
 for(it=shell->firstGaussian();it<shell->lastGaussian();++it){
