@@ -115,7 +115,6 @@ BOOST_AUTO_TEST_CASE(fourcenter_cache){
 ERIs eris;
 eris.Initialize_4c_small_molecule(aobasis);
 eris.CalculateERIs_4c_small_molecule(dmat);
-std::cout<<eris.getERIs()<<std::endl;
 
 Eigen::MatrixXd eris_ref=Eigen::MatrixXd::Zero(17,17);     
 eris_ref<<7.97316 ,1.45564 ,-3.0651e-17 ,8.17169e-17 ,3.42098e-16 ,1.39992 ,-3.24766e-18 ,1.13521e-17 ,4.75743e-17 ,0.145934 ,0.627171 ,0.145934 ,0.627171 ,0.145934 ,0.627171 ,0.145934 ,0.627171,
