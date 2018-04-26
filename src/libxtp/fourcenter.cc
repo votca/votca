@@ -24,7 +24,7 @@ namespace votca {
     namespace xtp {
 
        void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
-
+         tensor4d::extent_gen extents;
           //cout << endl;
           //cout << "fourcenters_dft.cc FCMatrix_dft::Fill_4c_small_molecule" << endl;
           int dftBasisSize = dftbasis.AOBasisSize();
@@ -60,10 +60,18 @@ namespace votca {
                   const AOShell* _shell_2 = dftbasis.getShell(l);
                   int _start_2 = _shell_2->getStartIndex();
                   int NumFunc_2 = _shell_2->getNumFunc();
-                  // get 4-center directly as _subvector
-                  Eigen::MatrixXd _subvector = Eigen::MatrixXd::Zero(NumFunc_1 * NumFunc_2, NumFunc_3 * NumFunc_4);
                   
-                  bool nonzero=FillFourCenterRepBlock(_subvector, _shell_1, _shell_2, _shell_3, _shell_4);
+                  tensor4d block(extents[ range(0, NumFunc_1) ][ range(0, NumFunc_2) ][ range(0, NumFunc_3)][ range(0, NumFunc_4)]);
+                  for (int i = 0; i < _shell_1->getNumFunc(); ++i) {
+                    for (int j = 0; j < _shell_2->getNumFunc(); ++j) {
+                      for (int k = 0; k < _shell_3->getNumFunc(); ++k) {
+                        for (int l = 0; l < _shell_4->getNumFunc(); ++l) {
+                          block[i][j][k][l] = 0.0;
+                        }
+                      }
+                    }
+                  }
+                  bool nonzero=FillFourCenterRepBlock(block, _shell_1, _shell_2, _shell_3, _shell_4);
 
                   if (nonzero) {
 
@@ -84,7 +92,7 @@ namespace votca {
                             if (ind_1 > ind_2) continue;
                             int _index_12 = dftBasisSize * ind_1 - sum_ind_1 + ind_2;
                             if (_index_34 > _index_12) continue;
-                            _4c_vector(_index_34_12_a + _index_12) = _subvector(NumFunc_1 * _i_2 + _i_1, _index_subv_34);
+                            _4c_vector(_index_34_12_a + _index_12) = block[ind_1][ind_2][_i_3][_i_4];
 
                           } // _i_2
                         } // _i_1

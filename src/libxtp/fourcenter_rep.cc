@@ -45,7 +45,7 @@ namespace votca {
          */
 
       
-        bool FCMatrix::FillFourCenterRepBlock(Eigen::MatrixXd& _subvector,
+        bool FCMatrix::FillFourCenterRepBlock(tensor4d& block,
                 const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3, const AOShell* _shell_4) {
 
             const double pi = boost::math::constants::pi<double>();
@@ -947,54 +947,43 @@ for (int l = 4; l < _lmax_delta+1; l++) {
               }
             }
 
-
-
+            
+            
 
             int NumFunc_alpha = _shell_alpha->getNumFunc();
             int NumFunc_beta = _shell_beta->getNumFunc();
             int NumFunc_gamma = _shell_gamma->getNumFunc();
             int NumFunc_delta = _shell_delta->getNumFunc();
-            int _index_ab;
-            int _index_cd;
+            
+            
+            for (int i_alpha = 0; i_alpha < NumFunc_alpha; i_alpha++) {
+                for (int i_beta = 0; i_beta < NumFunc_beta; i_beta++) {
+                  int a=i_alpha;
+                  int b=i_beta;
+                  if (alphabetaswitch) {
+                    a=i_beta;
+                    b=i_alpha;
+                  }
 
-            for (int _i_alpha = 0; _i_alpha < NumFunc_alpha; _i_alpha++) {
-              for (int _i_beta = 0; _i_beta < NumFunc_beta; _i_beta++) {
-
-                if (alphabetaswitch==true) {
-                  _index_ab = NumFunc_beta * _i_alpha + _i_beta;
-                } else {
-                  _index_ab = NumFunc_alpha * _i_beta + _i_alpha;
-                }
-
-                for (int _i_gamma = 0; _i_gamma < NumFunc_gamma; _i_gamma++) {
-                  for (int _i_delta = 0; _i_delta < NumFunc_delta; _i_delta++) {
-
-                    if (gammadeltaswitch==true) {
-                      _index_cd = NumFunc_delta * _i_gamma + _i_delta;
-                    } else {
-                      _index_cd = NumFunc_gamma * _i_delta + _i_gamma;
+                  for (int i_gamma = 0; i_gamma < NumFunc_gamma; i_gamma++) {
+                    for (int i_delta = 0; i_delta < NumFunc_delta; i_delta++) {
+                      int c=i_gamma;
+                      int d=i_delta;
+                      if (gammadeltaswitch) {
+                        c=i_delta;
+                        d=i_gamma;
+                      }
+                      if (ab_cd_switch) {
+                        block[c][d][a][b] += R4_sph[_offset_alpha + i_alpha][_offset_beta + i_beta][_offset_gamma + i_gamma][_offset_delta + i_delta];
+                      } else {
+                        block[a][b][c][d] += R4_sph[_offset_alpha + i_alpha][_offset_beta + i_beta][_offset_gamma + i_gamma][_offset_delta + i_delta];
+                      }
                     }
-
-                    if (ab_cd_switch==true) {
-                      _subvector(_index_cd, _index_ab) +=
-                        R4_sph[_offset_alpha + _i_alpha][_offset_beta + _i_beta][_offset_gamma + _i_gamma][_offset_delta + _i_delta];
-                    } else {
-                      _subvector(_index_ab, _index_cd) +=
-                        R4_sph[_offset_alpha + _i_alpha][_offset_beta + _i_beta][_offset_gamma + _i_gamma][_offset_delta + _i_delta];
-                    }
-
                   }
                 }
               }
-            } 
 
-
-
-
-
-            
-            
-
+           
                  } // GaussianIterator itdelta
               } // GaussianIterator itgamma
            } // GaussianIterator itbeta
