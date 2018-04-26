@@ -348,12 +348,8 @@ bool GWBSE::Evaluate() {
                                  << " DFT data was created by " << _dft_package
                                  << flush;
 
-  std::vector<ctp::QMAtom *> _atoms;
-  for (const auto &atom : _orbitals->QMAtoms()) {
-    if (!atom->from_environment) {
-      _atoms.push_back(atom);
-    }
-  }
+            std::vector<QMAtom*>& _atoms=_orbitals->QMAtoms();
+            
   // load DFT basis set (element-wise information) from xml file
   BasisSet dftbs;
 
@@ -374,7 +370,7 @@ bool GWBSE::Evaluate() {
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled DFT Basis of size "
                                  << _dftbasis.AOBasisSize() << flush;
-  if (_dftbasis._AOBasisFragB > 0) {
+  if (_dftbasis._AOBasisFragB > 0 && _dftbasis._AOBasisFragA>0) {
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size "
                                    << _dftbasis._AOBasisFragA << flush;
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size "
@@ -398,14 +394,18 @@ bool GWBSE::Evaluate() {
   // convert _rpamax if needed
   _homo = _orbitals->getNumberOfElectrons() - 1;  // indexed from 0
 
-  unsigned int _ignored_corelevels = 0;
+  unsigned _ignored_corelevels = 0;
   if (_ignore_corelevels) {
-    std::string _ecpsave = _orbitals->getECP();
-    _orbitals->setECP("ecp");
-    int _valence_levels =
-        _orbitals->FragmentNuclearCharges(_atoms.size())(0) / 2;
-    _orbitals->setECP(_ecpsave);
-    _ignored_corelevels = _orbitals->getNumberOfElectrons() - _valence_levels;
+    if(!_orbitals->hasECP()){
+      BasisSet basis;
+      basis.LoadBasisSet("ecp");//
+      unsigned coreElectrons=0;
+      for(const auto& atom:_atoms){
+        coreElectrons+=basis.getElement(atom->getType())->getNcore();   
+      }
+       _ignored_corelevels = coreElectrons/2;
+    }
+   
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Can ignore "
                                    << _ignored_corelevels << " core levels "
                                    << flush;
@@ -562,16 +562,13 @@ bool GWBSE::Evaluate() {
            ScaHFX_temp % _ScaHFX)
               .str());
     }
-    _numint.GridSetup(_grid, &dftbs, _atoms, &_dftbasis);
+                    _numint.GridSetup(_grid, _atoms,&_dftbasis);
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp()
         << " Setup grid for integration with gridsize: " << _grid << " with "
         << _numint.getGridSize() << " points, divided into "
         << _numint.getBoxesSize() << " boxes" << flush;
 
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Converted DFT orbital coefficient order from "
-        << _dft_package << " to XTP" << flush;
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Integrating Vxc in VOTCA with functional "
         << _functional << flush;
@@ -662,14 +659,7 @@ bool GWBSE::Evaluate() {
     }
   }
 
-  ub::matrix<double> _gwoverlap_cholesky_inverse;  // will also be needed in PPM
-                                                   // itself
-  int removed =
-      linalg_invert_svd(_gwoverlap_cholesky, _gwoverlap_cholesky_inverse, 1e7);
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Removed " << removed
-      << " functions from gwoverlap to avoid near linear dependencies" << flush;
-
+ 
   int removed_functions = _gwcoulomb.Symmetrize(_gwoverlap_cholesky);
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Prepared GW Coulomb matrix for symmetric PPM"
@@ -778,7 +768,7 @@ bool GWBSE::Evaluate() {
 
     // for symmetric PPM, we can initialize _epsilon with the overlap matrix!
     for (unsigned _i_freq = 0; _i_freq < _screening_freq.size1(); _i_freq++) {
-      _epsilon[_i_freq] = _gwoverlap.Matrix();
+      _epsilon[_i_freq] = ub::identity_matrix<double>(gwbasis.AOBasisSize(),gwbasis.AOBasisSize());
     }
 
     // determine epsilon from RPA
@@ -787,7 +777,7 @@ bool GWBSE::Evaluate() {
                                    << " Calculated epsilon via RPA  " << flush;
 
     // construct PPM parameters
-    PPM_construct_parameters(_gwoverlap_cholesky_inverse);
+    PPM_construct_parameters();
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                    << " Constructed PPM parameters  " << flush;
 
@@ -863,7 +853,6 @@ bool GWBSE::Evaluate() {
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
   _gwoverlap.Matrix().resize(0, 0);
-  _gwoverlap_cholesky_inverse.resize(0, 0);
   _Mmn_RPA.Cleanup();
   if (_iterate_gw) {
     _Mmn_backup.Cleanup();

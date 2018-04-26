@@ -107,7 +107,7 @@ private:
     bool _static_qmmm;
     Orbitals orb_iter_input;
 
-    void Density2Charges( GWBSE* gwbse=NULL, std::vector<int> state_index ={});
+    void Density2Charges( std::vector<int> state_index ={});
 
 };
 

@@ -328,7 +328,8 @@ namespace votca {
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 ctp::Logger gwbse_logger(ctp::logDEBUG);
                 gwbse_logger.setMultithreading(false);
-                _gwbse.setLogger(&gwbse_logger);
+                _gwbse.setLogger(_log);
+                //_gwbse.setLogger(&gwbse_logger);
                 gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
                 gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
                 gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
@@ -539,7 +540,7 @@ namespace votca {
                 } // only if state >0
 
                 if (!_static_qmmm) {
-                    Density2Charges(&_gwbse,_state_index);
+                    Density2Charges(_state_index);
                 } // for polarized QMMM
 
             } //_do_gwbse
@@ -597,7 +598,7 @@ namespace votca {
                     thisIter->getQMMMEnergy());
 
             // EXTRACT & SAVE QMATOM DATA
-            std::vector< ctp::QMAtom* > &atoms = orb_iter_input.QMAtoms();
+            std::vector< QMAtom* > &atoms = orb_iter_input.QMAtoms();
 
             thisIter->UpdatePosChrgFromQMAtoms(atoms, _job->getPolarTop()->QM0());
 
@@ -615,14 +616,8 @@ namespace votca {
                 
             }
 
-            unsigned qmsize = 0;
-            std::vector< ctp::QMAtom* > ::iterator ait;
-            for (ait = atoms.begin(); ait < atoms.end(); ++ait) {
-
-                if ( !(*ait)->from_environment ) qmsize++;
-                //CTP_LOG(ctp::logINFO, *_log) << (*ait)->type << " " << (*ait)->x << " "  << (*ait)->y << " " << (*ait)->z << flush;
-
-            }
+           
+            
             // serialize this iteration
             if (_do_archive) {
                 // save orbitals
@@ -634,7 +629,7 @@ namespace votca {
             CTP_LOG(ctp::logINFO, *_log)
                     << format("Summary - iteration %1$d:") % (iterCnt + 1) << flush;
             CTP_LOG(ctp::logINFO, *_log)
-                    << format("... QM Size  = %1$d atoms") % int(qmsize) << flush;
+                    << format("... QM Size  = %1$d atoms") % int(atoms.size()) << flush;
             CTP_LOG(ctp::logINFO, *_log)
                     << format("... E(QM)    = %1$+4.9e") % thisIter->getQMEnergy() << flush;
             CTP_LOG(ctp::logINFO, *_log)
@@ -664,7 +659,7 @@ namespace votca {
 
 
         template<class QMPackage>
-        void QMMachine<QMPackage>::Density2Charges( GWBSE* _gwbse, std::vector<int> _state_index ){
+        void QMMachine<QMPackage>::Density2Charges(std::vector<int> _state_index ){
 
                    
                     // load DFT basis set (element-wise information) from xml file
@@ -672,10 +667,7 @@ namespace votca {
                     if (orb_iter_input.getDFTbasis() != "") {
                         dftbs.LoadBasisSet(orb_iter_input.getDFTbasis());
                         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
-                    } else {
-                        //dftbs.LoadBasisSet(_gwbse->get_dftbasis_name());
-                        //CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _gwbse.get_dftbasis_name() << flush;
-                    }
+                    } 
 
                     // fill DFT AO basis by going through all atoms
                     AOBasis dftbasis;
@@ -704,13 +696,10 @@ namespace votca {
                     }
 
                     // fill DFT AO basis by going through all atoms
-                    std::vector< ctp::QMAtom* >& Atomlist = orb_iter_input.QMAtoms();
+                    std::vector< QMAtom* >& Atomlist = orb_iter_input.QMAtoms();
 
                     Espfit esp = Espfit(_log);
-                    if (_qmpack->ECPRequested()) {
-                        esp.setUseECPs(true);
-                    }
-                    esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, dftbs, "medium");
+                    esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, "medium");
 
 
 

@@ -49,7 +49,7 @@ public:
        }
     };
 
-     std::string Identify() { return "xneighborlist"; }
+     std::string Identify() { return "neighborlist"; }
     
     void Initialize(tools::Property *options);
     bool EvaluateFrame(ctp::Topology *top);

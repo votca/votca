@@ -79,14 +79,12 @@ private:
     int BasisSetSize( std::string _line );
     int EnergiesFromLog( std::string _line, std::ifstream inputfile );
     std::string FortranFormat(double number);
-    void WriteBasisset(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
-    void WriteECP(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
-    //void WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
-    
+    void WriteBasisset(ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
+    void WriteECP(ofstream& _com_file, std::vector<QMAtom*>& qmatoms);   
     void WriteBackgroundCharges(ofstream& _com_file,std::vector<ctp::PolarSeg*> PolarSegments);
     void WriteGuess(Orbitals* orbitals_guess, ofstream& _com_file);
     void WriteVXCRunInputFile();
-    void WriteCoordinates(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms);
+    void WriteCoordinates(ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
     void WriteHeader(ofstream& _com_file);
 
 };

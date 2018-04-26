@@ -38,15 +38,15 @@ public:
     TrajExtractor() { };
    ~TrajExtractor() { };
 
-    string Identify() { return "extract.trajectory"; }
+    std::string Identify() { return "extract.trajectory"; }
 
     void Initialize(tools::Property *options);
     bool EvaluateFrame(ctp::Topology *top);
 
 private:
 
-    string _outPDBmd;
-    string _outPDBqm;
+    std::string _outPDBmd;
+    std::string _outPDBqm;
     
 };
 
@@ -69,13 +69,13 @@ bool TrajExtractor::EvaluateFrame(ctp::Topology *top) {
     outPDBmd = fopen(_outPDBmd.c_str(), "w");
     outPDBqm = fopen(_outPDBqm.c_str(), "w");
 
-    fprintf(outPDBmd, "TITLE     VOT CAtastrophic title \n");
-    fprintf(outPDBmd, "Model %8d \n" , 1);
+    std::fprintf(outPDBmd, "TITLE     VOT CAtastrophic title \n");
+    std::fprintf(outPDBmd, "Model %8d \n" , 1);
 
-    fprintf(outPDBqm, "TITLE     VOT CAtastrophic title \n");
-    fprintf(outPDBqm, "Model %8d \n", 1);
+    std::fprintf(outPDBqm, "TITLE     VOT CAtastrophic title \n");
+    std::fprintf(outPDBqm, "Model %8d \n", 1);
 
-    vector< ctp::Segment* > ::iterator sit;
+    std::vector< ctp::Segment* > ::iterator sit;
     for (sit = top->Segments().begin();
          sit < top->Segments().end();
          sit++) {
@@ -84,11 +84,11 @@ bool TrajExtractor::EvaluateFrame(ctp::Topology *top) {
         (*sit)->WritePDB(outPDBqm, "Atoms", "QM");
     }
 
-    fprintf(outPDBmd, "TER\nENDMDL\n");
-    fprintf(outPDBqm, "TER\nENDMDL\n");
+    std::fprintf(outPDBmd, "TER\nENDMDL\n");
+    std::fprintf(outPDBqm, "TER\nENDMDL\n");
 
-    fclose(outPDBmd);
-    fclose(outPDBqm);
+    std::fclose(outPDBmd);
+    std::fclose(outPDBqm);
     
     return true;
 }

@@ -71,7 +71,7 @@ private:
     
     DFTENGINE dftengine;
     
-    void SetupPolarSiteGrids( const std::vector< const vec *>& gridpoints,const std::vector< ctp::QMAtom* >& atoms);
+    void SetupPolarSiteGrids( const std::vector< const vec *>& gridpoints,const std::vector< QMAtom* >& atoms);
     
     std::vector<double> ExtractNucGrid_fromPolarsites();
     std::vector<double> ExtractElGrid_fromPolarsites();

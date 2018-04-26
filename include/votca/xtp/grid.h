@@ -27,7 +27,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/numeric/ublas/io.hpp>
-#include <votca/ctp/qmatom.h>
+#include <votca/xtp/qmatom.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/apolarsite.h>
 #include <votca/ctp/polarseg.h>
@@ -37,8 +37,6 @@
 * 
 * 
 */
-using namespace std;
-using namespace votca::tools;
 
 
 namespace votca { namespace xtp {
@@ -72,20 +70,12 @@ namespace votca { namespace xtp {
         Grid& operator=(const Grid &obj);
         
         const std::vector< vec > &getGrid() const {return _gridpoints;}
-
         std::vector< ctp::APolarSite* > &Sites() {return _gridsites;}
-        std::vector< ctp::APolarSite*>* getSites() {return &_gridsites;} 
-       
-
         
         void setCutoffs(double cutoff, double cutoff_inside){_cutoff=cutoff;_cutoff_inside=cutoff_inside;}
-        void setCutoffshifts(double shift_cutoff, double shift_cutoff_inside){_shift_cutoff=shift_cutoff;_shift_cutoff_inside=shift_cutoff_inside;}
-        void setSpacing(double spacing){_gridspacing=spacing;}
-        void setPadding(double padding){_padding=padding;}
-        void setCubegrid(bool cubegrid){_cubegrid=cubegrid;_createpolarsites=true;}
-		bool getCubegrid(void){return(_cubegrid);}     
-		void setAtomlist(std::vector< ctp::QMAtom* >* Atomlist){_atomlist=Atomlist;}
-        int  getsize(){return _gridpoints.size();}
+        
+        void setAtomlist(std::vector< QMAtom* >* Atomlist){_atomlist=Atomlist;}
+        unsigned getsize(){return _gridpoints.size();}
         
         int getTotalSize(){
             int size=0.0;
@@ -100,16 +90,13 @@ namespace votca { namespace xtp {
        
         void printgridtoCubefile(std::string filename);
         
-        void setupradialgrid(int depth);
         
         void setupgrid();
-        
-        void setup2D(std::vector< vec > points);
        
         void setupCHELPgrid(){
-            //_padding=2.8; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
-            _gridspacing=0.3; // Grid spacing according to same paper 
-            _cutoff=2.8;
+            _padding=3*tools::conv::ang2bohr; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
+            _gridspacing=0.3*tools::conv::ang2bohr; // Grid spacing according to same paper 
+            _cutoff=2.8*tools::conv::ang2bohr;
             _useVdWcutoff_inside=true;
             _shift_cutoff_inside=0.0;
             _useVdWcutoff=false;
@@ -122,7 +109,6 @@ namespace votca { namespace xtp {
       std::vector< vec > _gridpoints;
       std::vector< ctp::APolarSite* > _gridsites;
       std::vector< ctp::APolarSite* > _all_gridsites;
-      double _gridspacingX, _gridspacingY, _gridspacingZ; 
       
       double _cutoff;
       double _gridspacing;
@@ -134,14 +120,10 @@ namespace votca { namespace xtp {
       bool   _cubegrid;
       double _padding;
       bool   _createpolarsites; 
-      std::vector< ctp::QMAtom* >* _atomlist;
+      std::vector< QMAtom* >* _atomlist;
       vec _lowerbound;
       int _xsteps, _ysteps, _zsteps;
       
-  
-      
-      void subdivide(const vec &v1, const vec &v2, const vec &v3, std::vector<vec> &spherepoints, const int depth);
-      void initialize_sphere(std::vector<vec> &spherepoints, const int depth);
  
     };   
     

@@ -23,6 +23,7 @@
 #include <boost/format.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
+#include <boost/filesystem.hpp>
 
 #include <votca/ctp/logger.h>
 #include <votca/xtp/qmpackagefactory.h>
@@ -151,7 +152,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     int LUMO_A;
     int LUMO_B;
     Orbitals _orbitalsA, _orbitalsB;
-    Overlap _overlap; 
+    DFTcoupling dftcoupling; 
 
 
 
@@ -207,6 +208,17 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         boost::filesystem::create_directories( _qmpackage_work_dir );
         Orbitals *_orbitalsAB = NULL;        
         if ( _qmpackage->GuessRequested() ) { // do not want to do an SCF loop for a dimer
+          
+          if(_qmpackage->getPackageName()=="orca"){
+            CTP_LOG(ctp::logINFO,*pLog) << "Copying monomer .gbw files to pair folder" << flush;
+             string gbwFileA  = (arg_pathA /  edft_work_dir / "molecules" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_A % ".gbw").str()).c_str();
+             string gbwFileB  = (arg_pathB /  edft_work_dir / "molecules" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_B % ".gbw").str()).c_str();
+             string gbwFileA_workdir = (_qmpackage_work_dir / "molA.gbw").c_str();
+             string gbwFileB_workdir = (_qmpackage_work_dir / "molB.gbw").c_str();
+             boost::filesystem::copy_file(gbwFileA, gbwFileA_workdir,boost::filesystem::copy_option::overwrite_if_exists);
+             boost::filesystem::copy_file(gbwFileB, gbwFileB_workdir,boost::filesystem::copy_option::overwrite_if_exists);
+            
+          }else{
             CTP_LOG(ctp::logINFO,*pLog) << "Guess requested, reading molecular orbitals" << flush;
             Orbitals _orbitalsA, _orbitalsB;   
             _orbitalsAB = new Orbitals();
@@ -234,8 +246,8 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
             }
             CTP_LOG(ctp::logERROR,*pLog) << "Writing guess from monomer orbitals"<< flush; 
             Orbitals::PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
+          }
         }
-        
         // if a pair object is available, take into account PBC, otherwise write as is
         ctp::QMNBList* nblist = &top->NBList();
         ctp::QMPair* pair = nblist->FindPair(seg_A, seg_B);
@@ -383,12 +395,12 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         }
         } // _do_trim
      
-        _overlap.setLogger(pLog);
+        dftcoupling.setLogger(pLog);
          
         // 10 seconds for a small system
         //_calculate_integrals = _overlap.CalculateIntegralsOptimized( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );
         // 7 seconds with GSL overloading
-        _calculate_integrals = _overlap.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );
+        _calculate_integrals = dftcoupling.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );
 
         if ( !_calculate_integrals ) {
                 output += "integrals failed; " ;
@@ -408,11 +420,11 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         double J_e;
         
         if ( _trim_factor == -1 ){
-            J_h = _overlap.getCouplingElement( _degAH , _degBH, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
-            J_e = _overlap.getCouplingElement( _degAH +1 ,_degBH +1, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
+            J_h = dftcoupling.getCouplingElement( _degAH , _degBH, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
+            J_e = dftcoupling.getCouplingElement( _degAH +1 ,_degBH +1, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
         } else{
-            J_h = _overlap.getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
-            J_e = _overlap.getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );          
+            J_h = dftcoupling.getCouplingElement( HOMO_A , HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
+            J_e = dftcoupling.getCouplingElement( LUMO_A , LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );          
         }
         CTP_LOG(ctp::logINFO,*pLog) << "Couplings h/e " << ID_A << ":" << ID_B << " " << J_h  << ":" << J_e  << flush; 
        
@@ -508,7 +520,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
          if ( _trim_factor == -1 ) {
 
                 // HOMO-HOMO coupling
-                double JAB = _overlap.getCouplingElement(_degAH, _degBH , &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference);
+                double JAB = dftcoupling.getCouplingElement(_degAH, _degBH , &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference);
                 Property *_overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<string>(JAB));
                 double energyA = _orbitalsA.getEnergy(_degAH);
                 double energyB = _orbitalsB.getEnergy(_degBH);
@@ -519,7 +531,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
                 _overlap_summary->setAttribute("eB", energyB);
                 
                 // LUMO-LUMO coupling
-                JAB = _overlap.getCouplingElement(_degAH+1, _degBH+1 , &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference);
+                JAB = dftcoupling.getCouplingElement(_degAH+1, _degBH+1 , &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference);
                 _overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<string>(JAB));
                 energyA = _orbitalsA.getEnergy(_degAH +1);
                 energyB = _orbitalsB.getEnergy(_degBH +1);
@@ -535,7 +547,7 @@ ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         for (int levelA = HOMO_A - _max_occupied_levels +1; levelA <= LUMO_A + _max_unoccupied_levels - 1; ++levelA ) {
                 for (int levelB = HOMO_B - _max_occupied_levels + 1; levelB <= LUMO_B + _max_unoccupied_levels -1 ; ++levelB ) {        
                         Property *_overlap_summary = &_pair_summary->add("overlap",""); 
-                        double JAB = _overlap.getCouplingElement( levelA , levelB, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
+                        double JAB = dftcoupling.getCouplingElement( levelA , levelB, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference );
                         double energyA = _orbitalsA.getEnergy( levelA );
                         double energyB = _orbitalsB.getEnergy( levelB );
                         _overlap_summary->setAttribute("orbA", levelA);

@@ -62,10 +62,9 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
             return;
         }
 
-        void QMMIter::UpdatePosChrgFromQMAtoms(std::vector< ctp::QMAtom* > &qmatoms,
+        void QMMIter::UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &qmatoms,
                 std::vector< ctp::PolarSeg* > &psegs) {
 
-            double AA_to_NM = tools::conv::ang2nm;
 
             double dR_RMS = 0.0;
             double dQ_RMS = 0.0;
@@ -75,11 +74,11 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
                 ctp::PolarSeg *pseg = psegs[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j, ++qac) {
 
-                    // Retrieve info from ctp::QMAtom
-                    ctp::QMAtom *qmatm = qmatoms[qac];
+                    // Retrieve info from QMAtom
+                    QMAtom *qmatm = qmatoms[qac];
                     vec upd_r = qmatm->getPos();
-                    upd_r *= AA_to_NM;
-                    double upd_Q00 = qmatm->charge;
+                    upd_r *= tools::conv::bohr2nm;
+                    double upd_Q00 = qmatm->getPartialcharge();
 
 
                     // Compare to previous r, Q00

@@ -182,7 +182,6 @@ class GWBSE {
   // container for frequencies in screening (index 0: real part, index 1:
   // imaginary part)
   ub::matrix<double> _screening_freq;
-  void symmetrize_threecenters(TCMatrix& _Mmn, ub::matrix<double>& _coulomb);
   void RPA_calculate_epsilon(const TCMatrix& _Mmn_RPA);
 
   ub::matrix<double> RPA_real(const TCMatrix& _Mmn_RPA,
@@ -198,8 +197,7 @@ class GWBSE {
   ub::vector<double> _ppm_freq;
   ub::vector<double> _ppm_weight;
 
-  void PPM_construct_parameters(
-      const ub::matrix<double>& _overlap_cholesky_inverse);
+  void PPM_construct_parameters();
 
   // Sigma related variables and functions
   ub::symmetric_matrix<double> _sigma_x;  // exchange term

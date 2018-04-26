@@ -57,5 +57,8 @@ install_manifest.txt
 /netbeans/xtp_app/dist/
 /netbeans/libxtp/dist/
 /netbeans/libxtp/nbproject/private/private.xml
+/netbeans/libxtp/nbproject/Makefile-Release.mk
+/netbeans/libxtp/nbproject/configurations.xml
+
 
 /build
