@@ -195,11 +195,9 @@ namespace votca {
 
             _does_contribute = true;
             // if it does, go on and create multiarray
-            typedef boost::multi_array<double, 3> ma_type;
-            typedef boost::multi_array_types::extent_range range;
-
-            ma_type::extent_gen extents;
-            ma_type S;
+           
+            tensor3d::extent_gen extents;
+            tensor3d S;
 ////////            S.resize(extents[ range(1, _nalpha + 1) ][ range(1, _ngw + 1) ][ range(1, _ngamma + 1)]);
             S.resize(extents[ range(0, _nalpha) ][ range(0, _ngw) ][ range(0, _ngamma) ]); /////////////////
 

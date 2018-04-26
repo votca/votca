@@ -257,14 +257,13 @@ namespace votca {
             double wmc2 = wmc.getZ();
             
           
-            
-//            cout << "los" << endl;
+            tensor3d::extent_gen extents;
             tensor3d R_temp;
             R_temp.resize(extents[ range(0, _ncombined ) ][ range(0, _ngamma ) ][ range(0, max(2,_mmax+1))]);
             //initialize to zero
-            for (index i = 0; i != _ncombined; ++i) {
-                for (index j = 0; j != _ngamma; ++j) { 
-                    for (index k = 0; k != _mmax+1; ++k) { 
+            for (index3d i = 0; i != _ncombined; ++i) {
+                for (index3d j = 0; j != _ngamma; ++j) { 
+                    for (index3d k = 0; k != _mmax+1; ++k) { 
                                        R_temp[i][j][k] = 0.0;
                                    }
                                }
@@ -273,9 +272,9 @@ namespace votca {
             tensor3d R;
             R.resize(extents[ range(0, _ncombined ) ][ range(0, _nbeta ) ][ range(0, _ngamma)]);
             //initialize to zero
-            for (index i = 0; i != _ncombined; ++i) {
-                for (index j = 0; j != _nbeta; ++j) {
-                    for (index k = 0; k != _ngamma; ++k) {
+            for (index3d i = 0; i != _ncombined; ++i) {
+                for (index3d j = 0; j != _nbeta; ++j) {
+                    for (index3d k = 0; k != _ngamma; ++k) {
 
                                        R[i][j][k] = 0.0;
                                    }
@@ -1107,9 +1106,9 @@ if (_lmax_gamma > 5) {
 
 //copy into new array for 3D use.
 
-for (index i = 0; i < n_orbitals[_lmax_alpha_beta]; ++i) {
+for (index3d i = 0; i < n_orbitals[_lmax_alpha_beta]; ++i) {
 
-         for (index k = 0; k < (_lmax_gamma+1)*(_lmax_gamma+1); ++k) {
+         for (index3d k = 0; k < (_lmax_gamma+1)*(_lmax_gamma+1); ++k) {
 
                             R[i][0][k] = R_temp[i][k][1];
                         }

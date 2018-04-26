@@ -24,12 +24,7 @@
 #include <votca/xtp/aoshell.h>
 #include <votca/ctp/apolarsite.h>
 #include <votca/ctp/polarseg.h>
-#define BOOST_DISABLE_ASSERTS //could be used to slighlty speed up calculation but the compile time simply goes boom
-#include <boost/multi_array.hpp>
-
-
-
-
+#include <votca/xtp/multiarray.h>
 
 
 namespace Cart {
@@ -57,20 +52,14 @@ namespace Cart {
 namespace votca { namespace xtp {
 
 
-    
-    
-    
     /* "superclass" AOSuperMatrix contains all common functionality for
      * atomic orbital matrix types
      */
         class AOSuperMatrix{
     public:
         
-        static int getBlockSize( int size );
-        
-        
+        static int getBlockSize( int _lmax );
         static Eigen::MatrixXd getTrafo( const AOGaussianPrimitive& gaussian);
-        
         void PrintIndexToFunction(const AOBasis& aobasis);
         
         
@@ -81,13 +70,11 @@ namespace votca { namespace xtp {
     class AOMatrix : public AOSuperMatrix {
     public:
         
-
 	// Access functions
 	int Dimension(){ return  _aomatrix.rows();};
 	Eigen::MatrixXd &Matrix(){ return _aomatrix ;};
 
         const Eigen::MatrixXd &Matrix() const{ return _aomatrix ;};
-        
         
         void Fill(const AOBasis& aobasis, vec r = vec(0,0,0) , AOBasis* ecp = NULL );
         
@@ -99,7 +86,6 @@ namespace votca { namespace xtp {
    
         virtual void FillBlock(Eigen::Block<Eigen::MatrixXd>&_matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp = NULL) {} ;
 
-        // ~AOMatrix(){};
     protected:
         Eigen::MatrixXd _aomatrix; 
         vec _gridpoint;
@@ -113,28 +99,21 @@ namespace votca { namespace xtp {
      */
     class AOMatrix3D : public AOSuperMatrix {
     public:
-        
-        
-       
 
         const std::vector<Eigen::MatrixXd > &Matrix() const{ return _aomatrix ;};
 
         // matrix print 
         void Print( std::string _ident);
 
-        
         void Fill(const AOBasis& aobasis );
 
         // block fill prototype
       
         virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp = NULL) {} ;
-
         
         void Cleanup();
     protected:
         std::vector<Eigen::MatrixXd > _aomatrix; 
-        
-      //  ~AOMatrix3D();
         
     };
     
@@ -158,11 +137,8 @@ namespace votca { namespace xtp {
      */
     class AODipole : public AOMatrix3D { 
         
-        //block fill for gradient/momentum operator, implementation in aomomentum.cc
-
         void FillBlock(std::vector< Eigen::Block<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp = NULL);
-        
-        
+       
     };
     
     
@@ -179,7 +155,6 @@ namespace votca { namespace xtp {
         const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
-        // ~AOESP();
     private:    
         Eigen::MatrixXd _nuclearpotential;
         Eigen::MatrixXd _externalpotential;
@@ -193,16 +168,13 @@ namespace votca { namespace xtp {
         //block fill for overlap, implementation in aoesp.cc
         
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
-
         
-        typedef boost::multi_array<double, 3> type_3D;
+        Eigen::MatrixXd calcVNLmatrix(int _lmax_ecp,const vec& posC,
+                const AOGaussianPrimitive& _g_row,const AOGaussianPrimitive& _g_col,
+                const  Eigen::Matrix<int,4,5>& _power_ecp,const Eigen::Matrix<double,4,5>& _gamma_ecp,
+                const Eigen::Matrix<double,4,5>& _pref_ecp   );
         
-        
-        Eigen::MatrixXd calcVNLmatrix(int _lmax_ecp,const vec& posC, const AOGaussianPrimitive& _g_row,const AOGaussianPrimitive& _g_col,const  Eigen::Matrix<int,4,5>& _power_ecp,const Eigen::Matrix<double,4,5>& _gamma_ecp,const Eigen::Matrix<double,4,5>& _pref_ecp   );
-        
-        
-        
-        void getBLMCOF(int _lmax_ecp, int _lmax_dft, const vec& pos, type_3D& BLC, type_3D& C  );
+        void getBLMCOF(int _lmax_ecp, int _lmax_dft, const vec& pos, tensor3d& BLC, tensor3d& C  );
         Eigen::VectorXd CalcNorms( double decay,int size);
         Eigen::VectorXd CalcInt_r_exp( int nmax, double decay );
     };
@@ -286,8 +258,7 @@ namespace votca { namespace xtp {
     private:
         
         int removedfunctions;
-        typedef boost::multi_array<double, 3> ma_type;
-        typedef ma_type::index index;
+       
         
         
         

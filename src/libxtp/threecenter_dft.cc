@@ -65,7 +65,7 @@ namespace votca {
         
         void TCMatrix_dft::FillBlock(const AOShell* _auxshell, const AOBasis& dftbasis) {
 
-
+          tensor3d::extent_gen extents;
             int _start = _auxshell->getStartIndex();
 
             // alpha-loop over the "left" DFT basis function

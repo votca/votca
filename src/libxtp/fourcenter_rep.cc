@@ -238,11 +238,8 @@ namespace votca {
             int _ncombined_ab = AOSuperMatrix::getBlockSize(_lmax_alpha+_lmax_beta);
             int _ncombined_cd = AOSuperMatrix::getBlockSize(_lmax_gamma+_lmax_delta);
             
-            typedef boost::multi_array<double, 3> ma_type;
-            typedef boost::multi_array<double, 4> ma4_type; //////////////////
-            typedef boost::multi_array_types::extent_range range;
-            typedef ma_type::index index;
-            ma_type::extent_gen extents;
+            tensor3d::extent_gen extents;
+            tensor4d::extent_gen extents4;
 
             double _dist_AB = (_pos_alpha - _pos_beta) * (_pos_alpha - _pos_beta);
             double _dist_CD = (_pos_gamma - _pos_delta) * (_pos_gamma - _pos_delta);
@@ -331,12 +328,12 @@ namespace votca {
 
 
 
-            ma_type R_temp;
+            tensor3d R_temp;
             R_temp.resize(extents[ range(0, _ncombined_ab ) ][ range(0, _ncombined_cd ) ][ range(0, _mmax+1)]);
             //initialize to zero
-            for (index i = 0; i != _ncombined_ab; ++i) {
-              for (index j = 0; j != _ncombined_cd; ++j) {
-                for (index k = 0; k != _mmax+1; ++k) {
+            for (index3d i = 0; i != _ncombined_ab; ++i) {
+              for (index3d j = 0; j != _ncombined_cd; ++j) {
+                for (index3d k = 0; k != _mmax+1; ++k) {
 
                   R_temp[i][j][k] = 0.0;
 
@@ -345,12 +342,12 @@ namespace votca {
              }
 
 
-            ma_type R;
+            tensor3d R;
             R.resize(extents[ range(0, _ncombined_ab ) ][ range(0, _nbeta ) ][ range(0, _ncombined_cd)]);
             //initialize to zero
-            for (index i = 0; i != _ncombined_ab; ++i) {
-              for (index j = 0; j != _nbeta; ++j) {
-                for (index k = 0; k != _ncombined_cd; ++k) {
+            for (index3d i = 0; i != _ncombined_ab; ++i) {
+              for (index3d j = 0; j != _nbeta; ++j) {
+                for (index3d k = 0; k != _ncombined_cd; ++k) {
 
                   R[i][j][k] = 0.0;
 
@@ -650,8 +647,8 @@ for (int l = 4; l < _lmax_gamma_delta+1; l++) {
 
 //copy into new array for 3D use.
 
-for (index i = 0; i < n_orbitals[_lmax_alpha_beta]; ++i) {
-  for (index k = 0; k < n_orbitals[_lmax_gamma_delta]; ++k) {
+for (index3d i = 0; i < n_orbitals[_lmax_alpha_beta]; ++i) {
+  for (index3d k = 0; k < n_orbitals[_lmax_gamma_delta]; ++k) {
 
     R[i][0][k] = R_temp[i][k][0];
 
@@ -768,7 +765,7 @@ for (int l = 4; l < _lmax_beta+1; l++) {
             const Eigen::MatrixXd _trafo_alpha = AOSuperMatrix::getTrafo(*italpha);
             const Eigen::MatrixXd _trafo_beta = AOSuperMatrix::getTrafo(*itbeta);
 
-            ma_type R3_ab_sph;
+            tensor3d R3_ab_sph;
             R3_ab_sph.resize(extents[ _ntrafo_alpha ][ _ntrafo_beta ][ _ncombined_cd ]);
 
             for (int _i_beta = 0; _i_beta < _ntrafo_beta; _i_beta++) {
@@ -800,13 +797,13 @@ for (int l = 4; l < _lmax_beta+1; l++) {
 
 
 //copy into new 4D array.
-ma4_type R4_ab_sph;
-R4_ab_sph.resize(extents[ _ntrafo_alpha ][ _ntrafo_beta ][ _ncombined_cd ][ _ndelta ]);
+tensor4d R4_ab_sph;
+R4_ab_sph.resize(extents4[ _ntrafo_alpha ][ _ntrafo_beta ][ _ncombined_cd ][ _ndelta ]);
 //ma4_type R4_ab_sph(boost::extents[ _ntrafo_alpha ][ _ntrafo_beta ][ _ncombined_cd ][ _ndelta ]);
 
-for (index j = 0; j < _ntrafo_alpha; ++j) {
-  for (index k = 0; k < _ntrafo_beta; ++k) {
-    for (index i = 0; i < _ncombined_cd; ++i) {
+for (index3d j = 0; j < _ntrafo_alpha; ++j) {
+  for (index3d k = 0; k < _ntrafo_beta; ++k) {
+    for (index3d i = 0; i < _ncombined_cd; ++i) {
 
       R4_ab_sph[j][k][i][0] = R3_ab_sph[j][k][i];
 
@@ -924,8 +921,8 @@ for (int l = 4; l < _lmax_delta+1; l++) {
             const Eigen::MatrixXd _trafo_delta = AOSuperMatrix::getTrafo(*itdelta);
 
 
-            ma4_type R4_sph;
-            R4_sph.resize(extents[ _ntrafo_alpha ][ _ntrafo_beta ][ _ntrafo_gamma ][ _ntrafo_delta ]);
+            tensor4d R4_sph;
+            R4_sph.resize(extents4[ _ntrafo_alpha ][ _ntrafo_beta ][ _ntrafo_gamma ][ _ntrafo_delta ]);
 
             for (int _i_delta = 0; _i_delta < _ntrafo_delta; _i_delta++) {
               for (int _i_gamma = 0; _i_gamma < _ntrafo_gamma; _i_gamma++) {

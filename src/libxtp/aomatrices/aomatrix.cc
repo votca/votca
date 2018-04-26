@@ -135,17 +135,6 @@ namespace votca { namespace xtp {
        return; 
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
-   
-    
-    
     void AOMatrix::Print( string _ident){
         cout << "\n" << endl;
         std::cout.precision(12);
@@ -154,8 +143,7 @@ namespace votca { namespace xtp {
                 cout << _ident << "[" << i+1 << ":" << j+1 << "] " << scientific <<_aomatrix(i,j) << endl;
             }
         }
-    }
-    
+    }   
     
        void AOMatrix3D::Print( string _ident){
         cout << "\n" << endl;

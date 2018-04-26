@@ -143,13 +143,13 @@ namespace votca { namespace xtp {
                        const double powfactor_col=itc->getPowfactor();
                       
                          
-                         ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
+                         tensor3d _cou(boost::extents[_nrows][_ncols][_nextra]);
                          
                          
                                   
-                           for (index i = 0; i != _nrows; ++i) {
-                               for (index j = 0; j != _ncols; ++j) {
-                                   for (index k = 0; k != _nextra; ++k) {
+                           for (index3d i = 0; i != _nrows; ++i) {
+                               for (index3d j = 0; j != _ncols; ++j) {
+                                   for (index3d k = 0; k != _nextra; ++k) {
                                        _cou[i][j][k] = 0.0;
                                    }
                                }
@@ -183,7 +183,7 @@ namespace votca { namespace xtp {
             const std::vector<double> _FmT=XIntegrate(_nextra, _T);
 
             // get initial data from _FmT -> s-s element
-            for (index i = 0; i != _nextra; ++i) {
+            for (index3d i = 0; i != _nextra; ++i) {
                 _cou[0][0][i] = _fak * _FmT[i];
             }
 
