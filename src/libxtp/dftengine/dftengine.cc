@@ -75,11 +75,14 @@ namespace votca {
             } else {
                 _with_RI = false;
             }
+
+            if (!_with_RI) {
+              std::vector<std::string> choices = {"direct", "cache"};
+              _four_center_method = options->ifExistsAndinListReturnElseThrowRuntimeError<std::string>(key + ".four_center_method", choices);
             
-            _four_center_method = options->ifExistsReturnElseReturnDefault<string>(key + ".four_center_method", "cache");
-            
-            _with_screening = options->ifExistsReturnElseReturnDefault<bool>(key + ".with_screening", false);
-            _screening_eps = options->ifExistsReturnElseReturnDefault<double>(key + ".screening_eps", 1e-7);
+              _with_screening = options->ifExistsReturnElseReturnDefault<bool>(key + ".with_screening", true);
+              _screening_eps = options->ifExistsReturnElseReturnDefault<double>(key + ".screening_eps", 1e-9);
+            }
             
             if (options->exists(key + ".ecp")) {
                 _ecp_name = options->get(key + ".ecp").as<string>();
@@ -1083,8 +1086,6 @@ namespace votca {
             _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
           else if (_four_center_method.compare("direct") == 0)
             _ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
-          
-          // TODO: Throw error?
         }
     }
 }

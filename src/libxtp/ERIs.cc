@@ -337,6 +337,8 @@ namespace votca {
               } // End loop over functions in shell 1
             } // End loop over functions in shell 4
           } // End loop over functions in shell 3
+          
+          return;
         }
         
         
@@ -387,6 +389,8 @@ namespace votca {
               } // End loop over functions in shell 1
             } // End loop over shell 2
           } // End loop over shell 1
+          
+          return;
         }
         
 
