@@ -81,7 +81,6 @@ namespace votca {
                       for (int _i_4 = 0; _i_4 < NumFunc_4; _i_4++) {
                         int ind_4 = _start_4 + _i_4;
                         if (ind_3 > ind_4) continue;
-                        int _index_subv_34 = NumFunc_3 * _i_4 + _i_3;
                         int _index_34 = dftBasisSize * ind_3 - sum_ind_3 + ind_4;
                         int _index_34_12_a = vectorSize * _index_34 - (_index_34*(_index_34+1))/2;
                         for (int _i_1 = 0; _i_1 < NumFunc_1; _i_1++) {
@@ -92,7 +91,7 @@ namespace votca {
                             if (ind_1 > ind_2) continue;
                             int _index_12 = dftBasisSize * ind_1 - sum_ind_1 + ind_2;
                             if (_index_34 > _index_12) continue;
-                            _4c_vector(_index_34_12_a + _index_12) = block[ind_1][ind_2][_i_3][_i_4];
+                            _4c_vector(_index_34_12_a + _index_12) = block[_i_1][_i_2][_i_3][_i_4];
 
                           } // _i_2
                         } // _i_1
