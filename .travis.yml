@@ -27,15 +27,8 @@ env:
     - ENV=14
     - ENV=15
     - ENV=16
-
-matrix:
-  exclude:
-  - compiler: clang #taking too long
-    env: TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)" CMAKE_BUILD_TYPE=None COVERAGE=yes
-  - compiler: clang #taking too long
-    env: TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re" CMAKE_BUILD_TYPE=None COVERAGE=yes
-  - compiler: clang #no new info when using clang
-    env: TESTING=OFF CMAKE_BUILD_TYPE=Release DOXYGEN=yes 
+    - ENV=17
+    - ENV=18
 
 before_script:
  - git checkout -b current_commit

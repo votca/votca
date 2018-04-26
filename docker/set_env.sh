@@ -5,6 +5,7 @@ die () {
   exit 1
 }
 
+set -x
 if [[ $ENV -eq 1 ]]; then 
   export TESTING=ON 
   export TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)" 
@@ -84,6 +85,11 @@ elif [[ $ENV -eq 16 ]]; then
   export TESTING=OFF 
   export CMAKE_BUILD_TYPE=Release 
   export MINIMAL=yes
+elif [[ $ENV -eq 17 ]]; then 
+  export SKIP=yes
+elif [[ $ENV -eq 18 ]]; then 
+  export SKIP=yes
 else
   die "Unknown enviorment"
 fi
+set +x
