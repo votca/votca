@@ -20,17 +20,16 @@
 #ifndef __XTP_AOSHELL__H
 #define	__XTP_AOSHELL__H
 
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
+
 #include <boost/math/constants/constants.hpp>
-#include <votca/xtp/basisset.h>
+#include <votca/xtp/eigen.h>
 #include <votca/tools/constants.h>
 
 
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
-namespace ub = boost::numeric::ublas;
+
 class AOBasis;
 class AOShell;  
 
@@ -106,8 +105,9 @@ public:
     
     double getMinDecay() const{return _mindecay;}
     
-    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, const vec& grid_pos ) const;
-    void EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues,ub::matrix_range<ub::matrix<double> >& AODervalues, const vec& grid_pos ) const;
+    
+  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues, const vec& grid_pos ) const;
+  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues,Eigen::Block< Eigen::MatrixX3d >& AODervalues, const vec& grid_pos ) const;
 
     // iterator over pairs (decay constant; contraction coefficient)
     typedef std::vector< AOGaussianPrimitive >::const_iterator GaussianIterator;

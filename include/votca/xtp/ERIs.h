@@ -21,15 +21,11 @@
 #define	_VOTCA_XTP_ERIS_H
 
 
-
-#include <votca/xtp/threecenters.h>
-#include <votca/tools/linalg.h>
-
-
-
+#include <votca/xtp/threecenter.h>
+#include <votca/xtp/fourcenter.h>
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+   
 /**
 * \brief Takes a density matrix and and an auxillary basis set and calculates the electron repulsion integrals. 
 *
@@ -42,35 +38,34 @@ namespace votca { namespace xtp {
       
         
         
-        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis, const ub::matrix<double> &inverse_Coulomb);
-        void Initialize_4c_small_molecule(AOBasis &_dftbasis); ///////////
+        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis, const Eigen::MatrixXd &inverse_Coulomb);
+        void Initialize_4c_small_molecule(AOBasis &_dftbasis); 
       
-        const ub::matrix<double>& getEXX() const{return _EXXs;}
+        const Eigen::MatrixXd& getEXX() const{return _EXXs;}
         
-        const ub::matrix<double>& getERIs() const{return _ERIs;}
+        const Eigen::MatrixXd& getERIs() const{return _ERIs;}
         double& getERIsenergy(){return _ERIsenergy;}
         
-        void CalculateERIs(const ub::matrix<double> &DMAT);
-        void CalculateERIs_4c_small_molecule(const ub::matrix<double> &DMAT); ///////////////////////////////////////
-        void CalculateEXX_4c_small_molecule(const ub::matrix<double> &DMAT);
+        void CalculateERIs(const Eigen::MatrixXd &DMAT);
+        void CalculateERIs_4c_small_molecule(const Eigen::MatrixXd &DMAT); 
+        void CalculateEXX_4c_small_molecule(const Eigen::MatrixXd &DMAT);
         
-        int getSize1(){return _ERIs.size1();}
-        int getSize2(){return _ERIs.size2();}
+        int getSize1(){return _ERIs.rows();}
+        int getSize2(){return _ERIs.cols();}
         
         void printERIs();
         
     private:
-        ub::matrix<double> _inverse_Coulomb;
+        Eigen::MatrixXd _inverse_Coulomb;
         
         TCMatrix_dft _threecenter;
-        FCMatrix_dft _fourcenter; ////////////////////////
+        FCMatrix _fourcenter; 
        
-        ub::matrix<double> _ERIs;
-        ub::matrix<double> _EXXs;
+        Eigen::MatrixXd _ERIs;
+        Eigen::MatrixXd _EXXs;
         double _ERIsenergy;
-        double _EXXenergy;
-        void CalculateEnergy(const ub::vector<double> &dmatasarray);
-        void CalculateEXXEnergy(const ub::vector<double> &dmatasarray);
+        void CalculateEnergy(const Eigen::MatrixXd &DMAT);
+        void CalculateEXXEnergy(const Eigen::MatrixXd &DMAT);
     };
     
     

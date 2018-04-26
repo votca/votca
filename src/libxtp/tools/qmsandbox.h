@@ -27,10 +27,9 @@
 #include <votca/xtp/qmpackagefactory.h>
 #include<votca/xtp/aobasis.h>
 #include<votca/xtp/aomatrix.h>
-#include<boost/numeric/ublas/matrix.hpp>
 
 namespace votca { namespace xtp {
-    using namespace std;
+
     
 class QMSandbox : public ctp::QMTool
 {
@@ -39,39 +38,38 @@ public:
     QMSandbox() { };
    ~QMSandbox() { };
 
-    string Identify() { return "qmsandbox"; }
+    std::string Identify() { return "qmsandbox"; }
 
-    void   Initialize(Property *options);
+    void   Initialize(tools::Property *options);
     bool   Evaluate();
 
 
 private:
     
-    string      _orbfile;
-    string      _output_file;
+    std::string      _orbfile;
+    std::string      _output_file;
     
     ctp::Logger      _log;
  
-    string      _logfile;
+    std::string      _logfile;
 
-    string      _package;
-    Property    _package_options; 
+    std::string      _package;
+    tools::Property    _package_options; 
     
     void CheckContent(  Orbitals& _orbitals );
 
 };
 
-void QMSandbox::Initialize(Property* options) {
+void QMSandbox::Initialize(tools::Property* options) {
 
     // update options with the VOTCASHARE defaults   
     //UpdateWithDefaults( options, "xtp" );
  
 
-    string key = "options." + Identify();
+    std::string key = "options." + Identify();
 
     // orbitals file or pure DFT output
-    _logfile  = options->get(key + ".log").as<string> ();
-    _package  = options->get(key + ".package").as<string> ();
+    
     
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");    
@@ -83,10 +81,23 @@ void QMSandbox::Initialize(Property* options) {
 }
 
 bool QMSandbox::Evaluate() {
-
-
     
+  Eigen::MatrixXd m(2,2);
+  
+  m(0,0) = 3;
+  m(1,0) = 2.5;
+  m(0,1) = -1;
+  m(1,1) = m(1,0) + m(0,1);
+  std::cout << m << std::endl;
+
+  Eigen::MatrixXd c(2,2);
+  c(0,0) = 3;
+  c(1,0) = 2.5;
+  c(0,1) = -1;
+  c(1,1) = c(1,0) + c(0,1);
+  std::cout << m << std::endl;
     
+    std::cout << (m*c) << std::endl;
     return true;
 }
 

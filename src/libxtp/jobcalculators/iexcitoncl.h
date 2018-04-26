@@ -23,7 +23,6 @@
 #include <votca/tools/property.h>
 
 #include <votca/ctp/parallelxjobcalc.h>
-#include <boost/numeric/ublas/io.hpp>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
 #include <votca/ctp/xmapper.h>

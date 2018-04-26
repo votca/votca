@@ -16,8 +16,7 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <boost/math/constants/constants.hpp>
 #include "votca/xtp/radial_euler_maclaurin_rule.h"
@@ -74,7 +73,7 @@ namespace votca { namespace xtp {
      }
     
      
-void EulerMaclaurinGrid::getRadialCutoffs(AOBasis* aobasis,std::vector<QMAtom* > _atoms, const string& gridtype) {
+void EulerMaclaurinGrid::getRadialCutoffs(const AOBasis* aobasis,std::vector<QMAtom* > _atoms, const string& gridtype) {
 
             map<string, min_exp>::iterator it;
             std::vector< QMAtom* > ::iterator ait;
@@ -97,8 +96,8 @@ void EulerMaclaurinGrid::getRadialCutoffs(AOBasis* aobasis,std::vector<QMAtom* >
                     // get first range estimate and add to map
                     min_exp this_atom;
                     double range_max = 0.0;
-                    const std::vector<AOShell*>  shells=aobasis->getShellsperAtom((*ait)->getAtomID());
-                    std::vector<AOShell*>::const_iterator its;
+                    const std::vector<const AOShell*>  shells=aobasis->getShellsperAtom((*ait)->getAtomID());
+                    std::vector<const AOShell*>::const_iterator its;
                     // and loop over all shells to figure out minimum decay constant and angular momentum of this function
                     for (its =shells.begin(); its !=shells.end() ; its++) {
                         int _lmax = (*its)->getLmax();
@@ -189,11 +188,11 @@ void EulerMaclaurinGrid::getRadialCutoffs(AOBasis* aobasis,std::vector<QMAtom* >
                     if (aidx != bidx) {
 
                         // find overlap block of these two atoms
-                        ub::matrix<double> _overlapblock = ub::project(_overlap.Matrix(), ub::range(_a_start, _a_stop), ub::range(_b_start, _b_stop));
+                        Eigen::MatrixXd _overlapblock = _overlap.Matrix().block(_a_start,_b_start, _a_stop-_a_start,_b_stop-_b_start);
                         // determine abs max of this block
                         s_max = 0.0;
-                        for (unsigned i = 0; i < _overlapblock.size1(); i++) {
-                            for (unsigned j = 0; j < _overlapblock.size2(); j++) {
+                        for (unsigned i = 0; i < _overlapblock.rows(); i++) {
+                            for (unsigned j = 0; j < _overlapblock.cols(); j++) {
                                 s_max = std::max(s_max, std::abs(_overlapblock(i, j)));
                             }
                         }
@@ -234,7 +233,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(AOBasis* aobasis,std::vector<QMAtom* >
     
     
     
-    void EulerMaclaurinGrid::getRadialGrid(AOBasis* aobasis , std::vector<QMAtom* > _atoms,const string& type, GridContainers& _grid) {
+    void EulerMaclaurinGrid::getRadialGrid(const AOBasis* aobasis , std::vector<QMAtom* > _atoms,const string& type, GridContainers& _grid) {
 
         
             map<string, min_exp>::iterator it;
@@ -332,7 +331,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(AOBasis* aobasis,std::vector<QMAtom* >
             if ( expo > 40.0 ) {
                 value = 0.0;
             } else {
-                value = 0.5 * sqrt(  pi /alpha  ) * erfc(expo);
+                value = 0.5 * sqrt(  pi /alpha  ) * std::erfc(expo);
             }
         }
         

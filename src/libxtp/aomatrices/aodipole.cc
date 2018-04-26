@@ -16,8 +16,7 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/aomatrix.h>
 
@@ -25,13 +24,13 @@
 #include <string>
 #include <vector>
 
-using namespace votca::tools;
+
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+    
 
     
-    void AODipole::FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp) {
+    void AODipole::FillBlock( std::vector< Eigen::Block<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp) {
 
         
         /* Calculating the AO matrix of the gradient operator requires 
@@ -53,15 +52,15 @@ namespace votca { namespace xtp {
         int _ncols = this->getBlockSize( _lmax_col ); 
     
         // initialize local matrix block for unnormalized cartesians
-        std::vector< ub::matrix<double> > _dip;
+        std::vector< Eigen::MatrixXd > _dip;
         for (int _i_comp = 0; _i_comp < 3; _i_comp++){
-            _dip.push_back(ub::zero_matrix<double>(_nrows,_ncols));
+            _dip.push_back(Eigen::MatrixXd::Zero(_nrows,_ncols));
         }
         
         // initialize local matrix block for unnormalized cartesians of overlap
         // int _ncols_ol = this->getBlockSize( _lmax_col +1 ); 
         
-        ub::matrix<double> _ol = ub::zero_matrix<double>(_nrows,_ncols);
+        Eigen::MatrixXd _ol =Eigen::MatrixXd::Zero(_nrows,_ncols);
         
          // get shell positions
         const vec& _pos_row = _shell_row->getPos();
@@ -116,8 +115,8 @@ namespace votca { namespace xtp {
         // some helpers
        
         // definition of a center around which the moment should be calculated
-        std::vector<double> _center(3,0.0); // here: origin, can be changed later
-        std::vector<double> _pmc(3,0.0);
+        tools::vec _center(0.0); // here: origin, can be changed later
+        tools::vec  _pmc(0.0);
         
         
         // iterate over Gaussians in this _shell_row
@@ -148,16 +147,10 @@ namespace votca { namespace xtp {
         const double PmB0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _pos_col.getX();
         const double PmB1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_col.getY();
         const double PmB2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_col.getZ();        
-                
-        _pmc[0] = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _center[0];
-        _pmc[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _center[1];
-        _pmc[2] = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _center[2];
         
         
-        
-
-        
-        
+        _pmc= _fak2*(_decay_row * _pos_row + _decay_col * _pos_col)-_center;
+   
         // calculate s-s- overlap matrix element
         _ol(0,0) = pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq); // s-s element
 
@@ -576,27 +569,24 @@ if (_lmax_col > 3) {
 
        
         
-        ub::matrix<double> _trafo_row = getTrafo(*itr);
-        ub::matrix<double> _trafo_col_tposed = ub::trans(getTrafo(*itc));       
-        //ub::matrix<double> _trafo_col_tposed = ub::trans( _trafo_col );
-
+        Eigen::MatrixXd _trafo_row = getTrafo(*itr);
+        Eigen::MatrixXd _trafo_col= getTrafo(*itc);       
+       
         // cartesian -> spherical
        
         for ( int _i_comp = 0; _i_comp < 3; _i_comp++){
 
-            ub::matrix<double> _dip_tmp = ub::prod( _trafo_row, _dip[ _i_comp ] );
-
-            ub::matrix<double> _dip_sph = ub::prod( _dip_tmp, _trafo_col_tposed );
+            Eigen::MatrixXd _dip_sph = _trafo_row*_dip[ _i_comp ] * _trafo_col.transpose() ;
             
             // save to _matrix
-            for ( unsigned i = 0; i< _matrix[0].size1(); i++ ) {
-                for (unsigned j = 0; j < _matrix[0].size2(); j++){
+            for ( unsigned i = 0; i< _matrix[0].rows(); i++ ) {
+                for (unsigned j = 0; j < _matrix[0].cols(); j++){
                     _matrix[ _i_comp ](i,j) += _dip_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
                 }
             }
         }
         
-        _ol.clear();
+       
             }// _shell_col Gaussians
         }// _shell_row Gaussians
     }

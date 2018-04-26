@@ -21,11 +21,11 @@
 #include <math.h>       /* ceil */
 #include <votca/tools/constants.h>
 
-using namespace votca::tools;
+
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+
     
 Grid::Grid(const Grid &obj)
     :_cutoff(obj._cutoff),_gridspacing(obj._gridspacing),_cutoff_inside(obj._cutoff_inside),_shift_cutoff(obj._shift_cutoff),

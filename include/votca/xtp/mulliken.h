@@ -45,7 +45,7 @@ public:
    ~Mulliken(){};
     
   
-    void EvaluateMulliken(std::vector< QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,const AOBasis &basis,bool _do_transition);
+    void EvaluateMulliken(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat,const AOBasis &basis,bool _do_transition);
   
 
    

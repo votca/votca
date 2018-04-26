@@ -17,12 +17,10 @@
 
 #include <votca/xtp/kmccalculator.h>
 #include <votca/xtp/gnode.h>
-#include <votca/tools/property.h>
 #include <votca/tools/constants.h>
 #include <boost/format.hpp>
 #include <votca/ctp/topology.h>
 #include <locale>
-#include <boost/format.hpp>
 
 using namespace std;
 

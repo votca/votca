@@ -24,12 +24,7 @@
 #include <votca/xtp/gwbse.h>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/numeric/ublas/operation.hpp>
-
 #include <boost/math/constants/constants.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
-#include <votca/tools/linalg.h>
-
 #include <votca/ctp/logger.h>
 
 
@@ -39,7 +34,7 @@ using namespace boost::filesystem;
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+      
         // +++++++++++++++++++++++++++++ //
         // GWBSEENGINE MEMBER FUNCTIONS  //
         // +++++++++++++++++++++++++++++ //
@@ -121,14 +116,9 @@ namespace votca {
                     // load the corresponding monomer orbitals and prepare the dimer guess
 
                     // failed to load; wrap-up and finish current job
-                    if (!_orbitalsA.Load(_guess_archiveA)) {
-                        throw runtime_error(string("Do input: failed loading orbitals from ") + _guess_archiveA);
-                    }
-
-                    if (!_orbitalsB.Load(_guess_archiveB)) {
-                        throw runtime_error(string("Do input: failed loading orbitals from ") + _guess_archiveB);
-
-                    }
+                       
+                    _orbitalsA.ReadFromCpt(_guess_archiveA);
+                    _orbitalsB.ReadFromCpt(_guess_archiveB);
 
                     _orbitals->PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
 
@@ -159,6 +149,7 @@ namespace votca {
                     
                     _qmpackage->ParseOrbitalsFile(_orbitals);
                 }
+                
                 _orbitals->setDFTbasis(_qmpackage->getBasisSetName());
             }
 
@@ -169,7 +160,7 @@ namespace votca {
                 } else {
                     CTP_LOG_SAVE(ctp::logINFO, *_pLog) << "Loading serialized data from " << _archive_file << flush;
                 }
-                _orbitals->Load(_archive_file);
+                _orbitals->ReadFromCpt(_archive_file);
             }
 
             if (_do_gwbse) {
