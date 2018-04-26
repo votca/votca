@@ -55,8 +55,7 @@ private:
 
 void DensityAnalysis::Initialize(Property* options) {
     
-    string key = "options." + Identify();
-           
+    string key = "options." + Identify(); 
     _orbfile      = options->get(key + ".input").as<string> ();
 
     string _gyration_xml = options->get(key + ".gyration_options").as<string> ();
@@ -66,13 +65,10 @@ void DensityAnalysis::Initialize(Property* options) {
     char *votca_share = getenv("VOTCASHARE");    
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
 
-  
-   
 }
 
 bool DensityAnalysis::Evaluate() {
     
-
     _log.setReportLevel( ctp::logDEBUG );
     _log.setMultithreading( true );
     
@@ -87,17 +83,12 @@ bool DensityAnalysis::Evaluate() {
     // load the QM data from serialized orbitals object
 
     CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-    _orbitals.Load(_orbfile.c_str());
+    _orbitals.ReadFromCpt(_orbfile);
 
     Density2Gyration density2gyration=Density2Gyration(&_log);
     density2gyration.Initialize(&_gyration_options);
     density2gyration.AnalyzeDensity(_orbitals);
-    
-    //esp2multipole.WritetoFile(_output_file);
-    
-    
-    //LOG(logDEBUG, _log) << "Written charges to " << _output_file << flush;
-    
+     
     return true;
 }
 

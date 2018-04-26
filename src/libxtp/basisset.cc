@@ -17,7 +17,7 @@
  *
  */
 #include "votca/xtp/basisset.h"
-
+#include <votca/tools/property.h>
 
 
 namespace votca { namespace xtp {

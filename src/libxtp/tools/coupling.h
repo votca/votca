@@ -182,7 +182,7 @@ bool Coupling::Evaluate() {
      DFTcoupling dftcoupling; 
     dftcoupling.setLogger(&_log);
           
-    ub::matrix<double> _JAB;
+    Eigen::MatrixXd _JAB;
     bool _calculate_integrals = dftcoupling.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );  
     if ( !_calculate_integrals ) { CTP_LOG(ctp::logERROR,_log) << "Failed to evaluate integrals" << std::flush; }
 

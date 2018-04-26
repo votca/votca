@@ -17,8 +17,7 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 #include <votca/xtp/qmiter.h>
 #include <sys/stat.h>
 #include <boost/algorithm/string.hpp>

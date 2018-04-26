@@ -16,8 +16,7 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/aomatrix.h>
 
@@ -27,13 +26,11 @@
 
 
 
-using namespace votca::tools;
-
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+
 
     
-    void AOOverlap::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp ) {
+    void AOOverlap::FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp ) {
        
        
         // shell info, only lmax tells how far to go
@@ -135,7 +132,7 @@ namespace votca { namespace xtp {
             double _exparg = _fak2 * _decay_row * _decay_col *_distsq;
             if ( _exparg > 30.0 ) { continue; }
              // initialize local matrix block for unnormalized cartesians
-            ub::matrix<double> _ol = ub::zero_matrix<double>(_nrows,_ncols);
+            Eigen::MatrixXd _ol = Eigen::MatrixXd::Zero(_nrows,_ncols);
         
 
             
@@ -560,22 +557,17 @@ if (_lmax_col > 5) {
 
         //cout << "Done with unnormalized matrix " << endl;
         
-        ub::matrix<double> _trafo_row = getTrafo(*itr);
-        ub::matrix<double> _trafo_col_tposed = ub::trans(getTrafo(*itc));      
-
-        // cartesian -> spherical
-             
-        ub::matrix<double> _ol_tmp = ub::prod( _trafo_row, _ol );
-        ub::matrix<double> _ol_sph = ub::prod( _ol_tmp, _trafo_col_tposed );
+        Eigen::MatrixXd _ol_sph = getTrafo(*itr)*_ol*getTrafo(*itc).transpose();
         // save to _matrix
-        for ( unsigned i = 0; i< _matrix.size1(); i++ ) {
-            for (unsigned j = 0; j < _matrix.size2(); j++){
+        
+        for ( unsigned i = 0; i< _matrix.rows(); i++ ) {
+            for (unsigned j = 0; j < _matrix.cols(); j++) {
                 _matrix(i,j) += _ol_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
             }
         }
         
         
-        _ol.clear();
+        
             } // _shell_col Gaussians
         } // _shell_row Gaussians
     }

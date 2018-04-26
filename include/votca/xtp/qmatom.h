@@ -20,11 +20,10 @@
 #ifndef __VOTCA_XTP_QMATOM_H
 #define	__VOTCA_XTP_QMATOM_H
 
-// Binary archive 
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
 #include <votca/tools/vec.h> 
 #include <votca/xtp/aoshell.h>
+#include <votca/xtp/checkpointwriter.h>
+#include <votca/xtp/checkpointreader.h>
 
 
 namespace votca { namespace xtp {
@@ -79,16 +78,28 @@ private:
 
    
  public: 
-   template<typename Archive> 
-   void serialize(Archive& ar, const unsigned version) {
-       ar & index;
-       ar & type;
-       ar & pos;
-       ar & nuccharge;
-       ar & ecpcharge;
-       ar & partialcharge;
-       
-   }  
+   
+   void WriteToCpt(CptLoc parent){
+       CheckpointWriter w(parent);
+
+       w(index, "index");
+       w(type, "type");
+       w(pos, "pos");
+       w(nuccharge, "nuccharge");
+       w(ecpcharge, "ecpcharge");
+       w(partialcharge, "partialcharge");
+   }
+
+   void ReadFromCpt(CptLoc parent){
+       CheckpointReader r(parent);
+
+       r(index, "index");
+       r(type, "type");
+       r(pos, "pos");
+       r(nuccharge, "nuccharge");
+       r(ecpcharge, "ecpcharge");
+       r(partialcharge, "partialcharge");
+   }
 };
     
 }}
