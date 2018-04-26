@@ -214,6 +214,7 @@
         <itemPath>../../src/libxtp/gwbse/bse.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbse.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbseengine.cc</itemPath>
+        <itemPath>../../src/libxtp/gwbse/ppm.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/rpa.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/sigma.cc</itemPath>
       </logicalFolder>
@@ -851,6 +852,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1634,6 +1637,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>

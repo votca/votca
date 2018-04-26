@@ -31,24 +31,17 @@ namespace votca {
             Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.GetEpsilon_r()[0]); 
             //we store _ppm_phi_T instead of _ppm_phi because we need it for later transformations
             _ppm_phi_T=es.eigenvectors().transpose();
-          
-            
+                   
             // store PPM weights from eigenvalues
-            _ppm_weight.resize(es.eigenvalues().size());
-            for (unsigned _i = 0; _i < es.eigenvalues().size(); _i++) {
-                _ppm_weight(_i) = 1.0 - 1.0 / es.eigenvalues()(_i);
-            }
-
-            // determine PPM frequencies
-            _ppm_freq.resize(es.eigenvalues().size());
+            _ppm_weight=Eigen::VectorXd::Ones(es.eigenvalues().size())-es.eigenvalues().cwiseInverse();
+                                
             // a) phi^t * epsilon(1) * phi e.g. transform epsilon(1) to the same space as epsilon(0)
            Eigen::MatrixXd ortho=_ppm_phi_T*rpa.GetEpsilon_i()[0]*_ppm_phi_T.transpose();
            Eigen::MatrixXd epsilon_1_inv=ortho.inverse();
-           
-            
+           // determine PPM frequencies
+             _ppm_freq.resize(es.eigenvalues().size());
             #pragma omp parallel for 
             for (unsigned _i = 0; _i < es.eigenvalues().size(); _i++) {
-  
                     if (_ppm_weight(_i) < 1.e-5) {
                         _ppm_weight(_i) = 0.0;
                         _ppm_freq(_i) = 0.5;//Hartree
@@ -58,9 +51,7 @@ namespace votca {
                         double _frac = -1.0 * _nom / (_nom + _ppm_weight(_i)) * screening_i *screening_i;
                         _ppm_freq(_i) = sqrt(std::abs(_frac));
                     }
-
             }
-
             return;
         }
 
