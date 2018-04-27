@@ -34,42 +34,42 @@ elif [[ $ENV -eq 5 ]]; then
   export TESTING=ON
   export TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
   export CMAKE_BUILD_TYPE=Release
-  [[ ${TRAVIS_REPO_SLUG} = */csg ]] || export SKIP=yes # only csg uses gromacs
+  [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 elif [[ $ENV -eq 6 ]]; then
   # Release build with gromacs-2016 (double)
   export DISTRO=fedora_gmx2016_d
   export TESTING=ON
   export TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
   export CMAKE_BUILD_TYPE=Release
-  [[ ${TRAVIS_REPO_SLUG} = */csg ]] || export SKIP=yes # only csg uses gromacs
+  [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 elif [[ $ENV -eq 7 ]]; then
   # Release build with gromacs-2018
   export DISTRO=fedora_gmx2018
   export TESTING=ON
   export TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
   export CMAKE_BUILD_TYPE=Release
-  [[ ${TRAVIS_REPO_SLUG} = */csg ]] || export SKIP=yes # only csg uses gromacs
+  [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 elif [[ $ENV -eq 8 ]]; then
   # Release build with gromacs-2018 (double)
   export DISTRO=fedora_gmx2018_d
   export TESTING=ON
   export TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
   export CMAKE_BUILD_TYPE=Release
-  [[ ${TRAVIS_REPO_SLUG} = */csg ]] || export SKIP=yes # only csg uses gromacs
+  [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 elif [[ $ENV -eq 9 ]]; then
   # Release build with gromacs master
   export DISTRO=fedora_gmx9999
   export TESTING=ON
   export TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
   export CMAKE_BUILD_TYPE=Release
-  [[ ${TRAVIS_REPO_SLUG} = */csg ]] || export SKIP=yes # only csg uses gromacs
+  [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 elif [[ $ENV -eq 10 ]]; then
   # Release build with gromacs master (double)
   export DISTRO=fedora_gmx9999_d
   export TESTING=ON
   export TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
   export CMAKE_BUILD_TYPE=Release
-  [[ ${TRAVIS_REPO_SLUG} = */csg ]] || export SKIP=yes # only csg uses gromacs
+  [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 elif [[ $ENV -eq 11 ]]; then
   # Release build on Ubuntu
   export DISTRO=ubuntu
