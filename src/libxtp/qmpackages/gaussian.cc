@@ -146,10 +146,10 @@ namespace votca {
          * 'elementname'.gbs files, which are then included in the
          * Gaussian input file using @'elementname'.gbs
          */
-        void Gaussian::WriteBasisset(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
+        void Gaussian::WriteBasisset(ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
 
 
-            std::vector< ctp::QMAtom* >::iterator it;
+            std::vector< QMAtom* >::iterator it;
 
 
             list<std::string> elements;
@@ -160,8 +160,8 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if (!(*it)->from_environment) {
-                    std::string element_name = (*it)->type;
+               
+                    std::string element_name = (*it)->getType();
 
                     //cout << "looking up basis set for element " << element_name << endl;
 
@@ -227,7 +227,7 @@ namespace votca {
                         _el_file.close();
 
                     }
-                }
+                
             }
 
             _com_file << endl;
@@ -238,9 +238,9 @@ namespace votca {
         /* If custom ECPs are used, they need to be specified in the input file
          * in a section following the basis set includes.
          */
-        void Gaussian::WriteECP(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
+        void Gaussian::WriteECP(ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
 
-            std::vector< ctp::QMAtom* >::iterator it;
+            std::vector< QMAtom* >::iterator it;
 
             list<std::string> elements;
 
@@ -253,8 +253,8 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
 
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if (!(*it)->from_environment) {
-                    std::string element_name = (*it)->type;
+                
+                    std::string element_name = (*it)->getType();
 
                     list<std::string>::iterator ite;
                     ite = find(elements.begin(), elements.end(), element_name);
@@ -282,7 +282,7 @@ namespace votca {
                             }
                         }
                     }
-                }
+                
             }
             // }
             _com_file << endl;
@@ -294,8 +294,7 @@ namespace votca {
          * keyword "charge" Gaussian expects them in x,y,z,q format in the
          * input file. In g03 AFTER basis sets and ECPs, in g09 BEFORE.
          */
-        //void Gaussian::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
-
+     
         void Gaussian::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::PolarSeg*> segments) {
             std::vector< ctp::PolarSeg* >::iterator it;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
@@ -408,17 +407,17 @@ namespace votca {
         /* Coordinates are written in standard Element,x,y,z format to the
          * input file.
          */
-        void Gaussian::WriteCoordinates(ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
-            std::vector< ctp::QMAtom* >::iterator it;
+        void Gaussian::WriteCoordinates(ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
+            std::vector< QMAtom* >::iterator it;
 
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if (!(*it)->from_environment) {
-                    _com_file << setw(3) << (*it)->type.c_str()
-                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
-                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
-                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->z
+              tools::vec pos=(*it)->getPos()*tools::conv::bohr2ang;
+                    _com_file << setw(3) << (*it)->getType().c_str()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()
                             << endl;
-                }
+               
             }
 
             _com_file << endl;
@@ -463,7 +462,7 @@ namespace votca {
             // updated positions of the QM region, hence vector<Segments*> is
             // NULL in the QMMachine and the QM region is also printed here
 
-            std::vector< ctp::QMAtom* > qmatoms;
+            std::vector< QMAtom* > qmatoms;
             if (_write_charges) {
                 qmatoms = orbitals_guess->QMAtoms();
             } else {
@@ -1009,15 +1008,13 @@ namespace votca {
                         boost::trim(_line);
                         boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                         nfields = _row.size();
-
+                        QMAtom* pAtom;
                         if (_has_atoms == false) {
-                            _orbitals->AddAtom(atom_type, 0, 0, 0, atom_charge);
+                            pAtom =_orbitals->AddAtom(atom_id - 1,atom_type, 0, 0, 0);
                         } else {
-                            ctp::QMAtom* pAtom = _orbitals->_atoms.at(atom_id - 1);
-                            pAtom->type = atom_type;
-                            pAtom->charge = atom_charge;
+                            pAtom = _orbitals->_atoms.at(atom_id - 1);
                         }
-
+                        pAtom->setPartialcharge(atom_charge);
                     }
                     //_orbitals->_has_atoms = true;
                 }
@@ -1067,18 +1064,17 @@ namespace votca {
                         double _z = boost::lexical_cast<double>(*(--it_atom));
                         double _y = boost::lexical_cast<double>(*(--it_atom));
                         double _x = boost::lexical_cast<double>(*(--it_atom));
+                        tools::vec pos=tools::vec(_x,_y,_z);
+                        pos*=tools::conv::ang2bohr;
 
                         if (_has_atoms == false) {
-                            _orbitals->AddAtom(_atom_type, _x, _y, _z);
+                            _orbitals->AddAtom(aindex,_atom_type, pos);
                         } else {
-                            ctp::QMAtom* pAtom = _orbitals->_atoms.at(aindex);
-                            pAtom->type = _atom_type;
-                            pAtom->x = _x;
-                            pAtom->y = _y;
-                            pAtom->z = _z;
-                            aindex++;
+                            QMAtom* pAtom = _orbitals->_atoms.at(aindex);
+                            pAtom->setPos(pos);
+                            
                         }
-
+                        aindex++;
                     }
 
                     // get the QM energy out

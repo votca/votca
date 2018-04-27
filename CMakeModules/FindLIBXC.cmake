@@ -24,8 +24,8 @@
 find_package(PkgConfig)
 pkg_check_modules(PC_libxc libxc)
 
-find_path(LIBXC_INCLUDE_DIR NAMES xc.h HINTS HINTS ${PC_LIBXC_INCLUDE_DIRS})
-find_library(LIBXC_LIBRARY NAMES xc HINTS ${PC_LIBXC_LIBRARY_DIRS} )
+find_path(LIBXC_INCLUDE_DIR NAMES xc.h HINTS HINTS ${PC_libxc_INCLUDE_DIRS})
+find_library(LIBXC_LIBRARY NAMES xc HINTS ${PC_libxc_LIBRARY_DIRS} )
 
 
 set(LIBXC_LIBRARIES "${LIBXC_LIBRARY}" )

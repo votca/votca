@@ -23,7 +23,6 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/operation.hpp>
-#include <votca/ctp/qmatom.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/segment.h>
 #include <stdio.h>
@@ -33,7 +32,7 @@
 
 
 
-using namespace std;
+
 
 namespace votca {
     namespace xtp {
@@ -100,11 +99,11 @@ namespace votca {
             double _trust_radius_max;
             double _delta_energy_estimate;
             double _norm_delta_pos;
-            string _spintype;
-            string _forces;
-            string _opt_type;
-            string _optimizer;
-            string _force_method;
+            std::string _spintype;
+            std::string _forces;
+            std::string _opt_type;
+            std::string _optimizer;
+            std::string _force_method;
             unsigned _max_iteration;
 
             
@@ -132,7 +131,7 @@ namespace votca {
             bool OutsideTrustRegion(const double& _step);
             bool GeometryConverged();
 
-            string Converged(bool converged);
+            std::string Converged(bool converged);
 
 
             // vector storage for steps, let's rethink that later

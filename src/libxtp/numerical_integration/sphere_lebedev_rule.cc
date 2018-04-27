@@ -29,15 +29,15 @@ namespace votca { namespace xtp {
 
     double pi=boost::math::constants::pi<double>();
     
-    void LebedevGrid::getSphericalGrid(std::vector<ctp::QMAtom*> _atoms, std::string type, GridContainers& _grids){
+    void LebedevGrid::getSphericalGrid(std::vector<QMAtom*> _atoms, std::string type, GridContainers& _grids){
 
-            std::vector< ctp::QMAtom* > ::iterator ait;
+            std::vector< QMAtom* > ::iterator ait;
             std::map<std::string,GridContainers::spherical_grid>::iterator it;
 
 
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
-                 std::string name = (*ait)->type;
+                 std::string name = (*ait)->getType();
                  // is this element already in map?
                  it = _grids._spherical_grids.find(name);
                   // only proceed, if element data does not exist yet
@@ -81,12 +81,7 @@ namespace votca { namespace xtp {
                   _weight.push_back(4.0*pi*w[_i]);
                   
               }               
-    
-  
-              
-              
-              
-              
+           return;   
     }
     
     
@@ -112,27 +107,19 @@ namespace votca { namespace xtp {
                   _weight.push_back(4.0*pi*w[_i]);
                   
               }               
-    
-  
-              
-              
-              
-              
+             
+        return;      
     }
     
     
-        int LebedevGrid::Type2MaxOrder(std::string element, std::string type){
-            
+        int LebedevGrid::Type2MaxOrder(std::string element, std::string type){   
            return  this->getOrder(element, type);
-            
-            
         }
     
     
-    int LebedevGrid::getOrder(std::string element, std::string type){
+    int LebedevGrid::getOrder(const std::string & element, const std::string& type){
         
         if ( type == "medium"){
-            
             return MediumOrder.at(element);                        
         }
         else if ( type == "coarse"){
@@ -149,10 +136,6 @@ namespace votca { namespace xtp {
         }
         throw std::runtime_error("Grid type "+type+" is not implemented");
         return -1;
-        
-        
-        
-        
     }
     
     

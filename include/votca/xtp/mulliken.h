@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,13 +17,13 @@
  *
  */
 
-#ifndef __VOTCA_XTP_MULLIKEN__H
-#define	__VOTCA_XTP_MULLIKEN__H
+#ifndef __XTP_MULLIKEN__H
+#define	__XTP_MULLIKEN__H
 
 
 #include <votca/tools/elements.h>
 #include <votca/xtp/aobasis.h>
-#include <votca/ctp/qmatom.h>
+#include <votca/xtp/qmatom.h>
 
 
 /**
@@ -41,17 +41,14 @@ namespace votca { namespace xtp {
 class Mulliken{
 public:
     
-    Mulliken(){_use_ecp=false;}
+    Mulliken(){}
    ~Mulliken(){};
     
-    void setUseECPs(bool use_ecp){_use_ecp=use_ecp;}
-    void EvaluateMulliken(std::vector< ctp::QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,const AOBasis &basis,BasisSet &bs,  bool _do_transition);
   
+    void EvaluateMulliken(std::vector< QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,const AOBasis &basis,bool _do_transition);
+  
+
    
-private:
-    
-     votca::tools::Elements _elements; 
-     bool _use_ecp;
      
  
     
@@ -62,4 +59,4 @@ private:
 
 }}
 
-#endif	// VOTCA_XTP_ESPFIT_H
+#endif	/* ESPFIT_H */

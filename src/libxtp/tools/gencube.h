@@ -196,7 +196,7 @@ namespace votca {
               
 
                 // get atoms
-                std::vector<ctp::QMAtom*> _atoms = _orbitals.QMAtoms();
+                std::vector<QMAtom*> _atoms = _orbitals.QMAtoms();
 
                 // determine min and max in each cartesian direction
                 double xmin = std::numeric_limits<double>::max();
@@ -206,21 +206,19 @@ namespace votca {
                 double zmin = xmin;
                 double zmax = xmax;
 
-                vector< ctp::QMAtom* > ::iterator ait;
+                vector< QMAtom* > ::iterator ait;
                 for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
+                    const tools::vec& pos=(*ait)->getPos();
                     // get center coordinates in Bohr
-                    double x = (*ait)->x * tools::conv::ang2bohr;
-                    double y = (*ait)->y * tools::conv::ang2bohr;
-                    double z = (*ait)->z * tools::conv::ang2bohr;
-
+                    double x = pos.getX();
+                    double y = pos.getY();
+                    double z = pos.getZ();
                     if (x > xmax) xmax = x;
                     if (x < xmin) xmin = x;
                     if (y > ymax) ymax = y;
                     if (y < ymin) ymin = y;
                     if (z > zmax) zmax = z;
                     if (z < zmin) zmin = z;
-
-
                 }
                 // generate cube grid
                 double xstart = xmin - _padding;
@@ -271,18 +269,16 @@ namespace votca {
                 fprintf(out, "%d 0.0 0.0 %f \n", _zsteps + 1, zincr);
                 Elements _elements;
                 for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
+                    const tools::vec& pos=(*ait)->getPos();
                     // get center coordinates in Bohr
-                    double x = (*ait)->x * tools::conv::ang2bohr;
-                    double y = (*ait)->y * tools::conv::ang2bohr;
-                    double z = (*ait)->z * tools::conv::ang2bohr;
+                    double x = pos.getX();
+                    double y = pos.getY();
+                    double z = pos.getZ();
 
-                    string element = (*ait)->type;
+                    string element = (*ait)->getType();
                     int atnum =_elements.getEleNum(element);
-                    double crg = _elements.getNucCrgECP(element);
-
+                    double crg = (*ait)->getNuccharge();
                     fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, y, z);
-
-
                 }
 
                 if ( _do_qp || _do_ks ){

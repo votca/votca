@@ -33,7 +33,7 @@
 
 
 
-using namespace votca::tools;
+
 /**
 * \brief Calculates three electron overlap integrals for GW and DFT.
 *

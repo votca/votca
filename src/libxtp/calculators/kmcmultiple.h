@@ -58,6 +58,7 @@ private:
             std::string _trajectoryfile;
             std::string _timefile;
             double _maxrealtime;
+            int _intermediateoutput_frequency;
            
 };
 

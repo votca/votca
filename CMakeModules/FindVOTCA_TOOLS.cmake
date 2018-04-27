@@ -41,14 +41,6 @@ find_library(VOTCA_TOOLS_LIBRARY NAMES votca_tools HINTS ${PC_VOTCA_TOOLS_LIBRAR
 
 set(VOTCA_TOOLS_LIBRARIES "${VOTCA_TOOLS_LIBRARY}" )
 
-find_path(VOTCA_TOOLS_HAS_GSL votca/tools/votca_gsl_boost_ublas_matrix_prod.h HINTS ${VOTCA_TOOLS_INCLUDE_DIR} ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
-if (VOTCA_TOOLS_HAS_GSL)
-  #due to include <gsl.h> in votca_gsl_boost_ublas_matrix_prod.h
-  find_package(GSL REQUIRED)
-  set(VOTCA_TOOLS_INCLUDE_DIRS "${VOTCA_TOOLS_INCLUDE_DIR};${GSL_INCLUDE_DIR}")
-  set(VOTCA_TOOLS_LIBRARIES "${VOTCA_TOOLS_LIBRARIES};${GSL_LIBRARIES}" )
-endif (VOTCA_TOOLS_HAS_GSL)
-
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set VOTCA_TOOLS_FOUND to TRUE
 # if all listed variables are TRUE
