@@ -41,14 +41,19 @@
 //! or icc.
 #if (defined(__GNUC__) || defined(__GNUG__)) && !(defined(__clang__) || defined(__INTEL_COMPILER))
   #define STRICT_GNUC
+#define GCC_VERSION (__GNUC__ * 10000 \
+                     + __GNUC_MINOR__ * 100 \
+                     + __GNUC_PATCHLEVEL__)
 #endif
 
-#ifdef STRICT_GNUC
+
+
+#if(defined STRICT_GNUC) && GCC_VERSION>70000
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #endif
 #include <Eigen/Dense>
-#ifdef STRICT_GNUC
+#if(defined STRICT_GNUC) && GCC_VERSION>70000
 #pragma GCC diagnostic pop
 #endif
 

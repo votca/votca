@@ -25,9 +25,7 @@ namespace votca { namespace xtp {
   void AOShell::normalizeContraction(){
     
     AOOverlap overlap;
-    Eigen::MatrixXd block=Eigen::MatrixXd::Zero(_numFunc,_numFunc);
-    Eigen::Block<Eigen::MatrixXd> submatrix=block.block(0,0,_numFunc,_numFunc);
-    overlap.FillBlock(submatrix,this,this);
+    Eigen::MatrixXd block=overlap.FillShell(this);
     std::vector<int> numsubshell=NumFuncSubShell(_type);
     int contraction_index=_Lmin;
     int aoindex=0;

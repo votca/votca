@@ -141,7 +141,6 @@ namespace votca {
         _levelshiftend = 0.8;
       }
 
-            _with_periodic_embedding = options->ifExistsReturnElseReturnDefault<bool>(key + ".embedding.periodic", false);
 
 
       return;
@@ -186,7 +185,9 @@ namespace votca {
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed initial density " << flush;
 
       NuclearRepulsion();
-
+      if(_with_ecp){
+          H0+=_dftAOECP.Matrix();
+      }
  
 
       if (_addexternalsites) {
@@ -398,10 +399,8 @@ namespace votca {
 
 
       if (_with_ecp) {
-
         _dftAOECP.Fill(_dftbasis, vec(0, 0, 0), &_ecp);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOECP.Dimension() << flush;
-        _dftAOESP.getNuclearpotential() += _dftAOECP.Matrix();
       }
 
       conv_accelerator.Configure(ConvergenceAcc::KSmode::closed, _usediis,

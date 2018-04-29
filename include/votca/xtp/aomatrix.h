@@ -85,9 +85,10 @@ namespace votca { namespace xtp {
         static std::vector<double> XIntegrate( int _n, double _T );
         // block fill prototype
    
-        virtual void FillBlock(Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >&_matrix,const  AOShell* _shell_row,const AOShell* _shell_col) {} ;
+       
 
     protected:
+        virtual void FillBlock(Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >&_matrix,const  AOShell* _shell_row,const AOShell* _shell_col) {} ;
         Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> _aomatrix;   
         vec _gridpoint;
         AOBasis* _ecp;
@@ -111,11 +112,12 @@ namespace votca { namespace xtp {
 
         // block fill prototype
       
-        virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col) {} ;
+        
         
         void Cleanup();
     protected:
         std::vector<Eigen::MatrixXd > _aomatrix; 
+        virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col) {} ;
         
     };
     
@@ -127,7 +129,7 @@ namespace votca { namespace xtp {
     class AOMomentum : public AOMatrix3D { 
         
         //block fill for gradient/momentum operator, implementation in aomomentum.cc
-       
+    protected:  
         void FillBlock(std::vector< Eigen::Block<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col);
         
     };
@@ -138,7 +140,7 @@ namespace votca { namespace xtp {
      * electical transition dipoles
      */
     class AODipole : public AOMatrix3D { 
-        
+    protected:   
         void FillBlock(std::vector< Eigen::Block<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col);
        
     };
@@ -147,17 +149,14 @@ namespace votca { namespace xtp {
     // derived class for atomic orbital nuclear potential
     class AOESP : public AOMatrix<double>{
     public:
-        //block fill for overlap, implementation in aoesp.cc
-        
-        void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix ,const AOShell* _shell_row,const AOShell* _shell_col);
-        //void Print();
+     
         void Fillnucpotential(const AOBasis& aobasis, std::vector<QMAtom*>& _atoms);
         void Fillextpotential(const AOBasis& aobasis, const std::vector<ctp::PolarSeg*>& _sites);
-        Eigen::MatrixXd &getNuclearpotential(){ return _nuclearpotential;}
         const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
-        Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
-    private:    
+    protected:   
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix ,const AOShell* _shell_row,const AOShell* _shell_col);
+    private:
         Eigen::MatrixXd _nuclearpotential;
         Eigen::MatrixXd _externalpotential;
     };
@@ -166,11 +165,10 @@ namespace votca { namespace xtp {
     
     // derived class for Effective Core Potentials
     class AOECP : public AOMatrix<double>{
-    public:
-        //block fill for overlap, implementation in aoesp.cc
         
+    protected: 
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col);
-        
+    private:
         Eigen::MatrixXd calcVNLmatrix(int _lmax_ecp,const vec& posC,
                 const AOGaussianPrimitive& _g_row,const AOGaussianPrimitive& _g_col,
                 const  Eigen::Matrix<int,4,5>& _power_ecp,const Eigen::Matrix<double,4,5>& _gamma_ecp,
@@ -185,8 +183,7 @@ namespace votca { namespace xtp {
     
     // derived class for kinetic energy
     class AOKinetic : public AOMatrix<double>{
-    public:
-        //block fill for overlap, implementation in aokinetic.cc
+    protected:
        
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix , const AOShell* _shell_row, const AOShell* _shell_col);
  
@@ -197,6 +194,13 @@ namespace votca { namespace xtp {
     // derived class for atomic orbital overlap
     class AOOverlap : public AOMatrix<double>{
     public:
+        Eigen::MatrixXd FillShell(const AOShell* shell){
+            Eigen::MatrixXd block=Eigen::MatrixXd::Zero(shell->getNumFunc(),shell->getNumFunc());
+            Eigen::Block<Eigen::MatrixXd> submatrix=block.block(0,0,shell->getNumFunc(),shell->getNumFunc());
+            FillBlock(submatrix,shell,shell);
+            return block;
+        }
+    protected:
         //block fill for overlap, implementation in aooverlap.cc
       
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col);
@@ -205,18 +209,14 @@ namespace votca { namespace xtp {
     
     class AODipole_Potential : public AOMatrix<double>{
     public:
-        //block fill for overlap, implementation in aooverlap.cc
-       
-        void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col);
-        
+  
         void Fillextpotential(const AOBasis& aobasis, const std::vector<ctp::PolarSeg*>& _sites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         
-        //void Print();
-        
-	//        ~AOOverlap();
-    private: 
+    protected: 
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col);
+    private:
         void setAPolarSite(ctp::APolarSite* site){
             apolarsite=site;
         };
@@ -226,21 +226,18 @@ namespace votca { namespace xtp {
     
     class AOQuadrupole_Potential : public AOMatrix<double>{
     public:
-        //block fill for overlap, implementation in aooverlap.cc
-   
-        void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col);
-        //void Print();
         
         void Fillextpotential(const AOBasis& aobasis, const std::vector<ctp::PolarSeg*>& _sites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
-        //void Print();
-        
-	//        ~AOOverlap();
-    private: 
+     
+    protected: 
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col);
+    private:
         void setAPolarSite(ctp::APolarSite* site){
             apolarsite=site;
         };
+        
         ctp::APolarSite* apolarsite;
         Eigen::MatrixXd _externalpotential;
     };
@@ -251,25 +248,30 @@ namespace votca { namespace xtp {
     //derived class for atomic orbital Coulomb interaction
     class AOCoulomb : public AOMatrix<double>{
     public:
-    
-        void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col);
+         
         Eigen::MatrixXd Pseudo_InvSqrt_GWBSE(const AOOverlap& _auxoverlap,double etol);
         Eigen::MatrixXd Pseudo_Invert(double etol);
         int Removedfunctions(){return removedfunctions;}
-        
+    protected:
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col);
     private:
         
         int removedfunctions;
 
     };
     
-    class AOPlanewave : public AOMatrix<std::complex<double>>
-        {
-            public:
-            //block fill for plane wave component, implementation in aoplanewave.cc
-            void FillBlock(
-                    Eigen::Block<Eigen::MatrixXcd>& _matrix,
-                    const AOShell* _shell_row, const AOShell* _shell_col);
+    class AOPlanewave : public AOMatrix<std::complex<double> >{
+    public:
+        void Fillextpotential(const AOBasis& aobasis, const std::vector< tools::vec>& _kpoints);
+      
+        const Eigen::MatrixXcd &getExternalpotential()const{ return _externalpotential;}
+        protected:
+        //block fill for plane wave component, implementation in aoplanewave.cc
+        void FillBlock(
+                Eigen::Block<Eigen::MatrixXcd>& _matrix,
+                const AOShell* _shell_row, const AOShell* _shell_col);
+    private:
+        Eigen::MatrixXcd _externalpotential;
 };
     
     

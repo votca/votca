@@ -120,7 +120,7 @@ namespace votca {
                     }
 
                     // initialize local matrix block for unnormalized cartesians
-                    ub::matrix<std::complex<double>> _olk = ub::zero_matrix<std::complex<double>>(_nrows, _ncols);
+                    Eigen::MatrixXcd _olk = Eigen::MatrixXcd::Zero(_nrows, _ncols);
 
                     typedef std::complex<double> COMPLEX; // Define an abbreviation for complex numbers 
 
@@ -542,22 +542,20 @@ namespace votca {
 
                     } // end if (_lmax_col > 5)        
 
-                    ub::matrix<std::complex<double>> _trafo_row = getTrafo(*itr);
-                    ub::matrix<std::complex<double>> _trafo_col_tposed = ub::trans(getTrafo(*itc));
+                    Eigen::MatrixXd _trafo_row = getTrafo(*itr);
+                    Eigen::MatrixXd _trafo_col = getTrafo(*itc);
 
                     // cartesian -> spherical
-
-                    ub::matrix<std::complex<double>> _olk_tmp = ub::prod(_trafo_row, _olk);
-                    ub::matrix<std::complex<double>> _olk_sph = ub::prod(_olk_tmp, _trafo_col_tposed);
+                    Eigen::MatrixXcd _olk_sph=_trafo_row*_olk*_trafo_col.transpose();
+                   
 
                     // save to _matrix
-                    for (unsigned i = 0; i < _matrix.size1(); i++) {
-                        for (unsigned j = 0; j < _matrix.size2(); j++) {
+                    for (int i = 0; i < _matrix.rows(); i++) {
+                        for (int j = 0; j < _matrix.cols(); j++) {
                             _matrix(i, j) += _olk_sph(i + _shell_row->getOffset(), j + _shell_col->getOffset());
                         }
                     }
 
-                    _olk.clear();
 
                 } // close Gaussian _shell_col     
 
@@ -565,6 +563,21 @@ namespace votca {
 
 
         } // End AOPlanewave
+        
+        
+        
+        void AOPlanewave::Fillextpotential(const AOBasis& aobasis, const std::vector< tools::vec>& _kpoints) {
+            
+            _externalpotential = Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+
+            for (const auto& kpoint:_kpoints) {
+                    _aomatrix = Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+                    Fill(aobasis, kpoint);
+                    _externalpotential+=_aomatrix;     
+                }
+            
+            return;
+        }   
 
     }
 }
