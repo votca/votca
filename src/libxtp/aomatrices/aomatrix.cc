@@ -46,9 +46,10 @@ namespace votca {
         
         // AOMatrix is now templated to allow for both double and complex types
         template< class T> 
-        void AOMatrix<T>::Fill(const AOBasis& aobasis, vec r, AOBasis* ecp) {
+        void AOMatrix<T>::Fill(const AOBasis& aobasis, vec gridpoint, AOBasis* ecp) {
             _aomatrix = ub::zero_matrix<T>(aobasis.AOBasisSize());
-            _gridpoint = r;
+            _ecp=ecp;
+            _gridpoint =gridpoint;
             // loop row
 #pragma omp parallel for
             for (unsigned _row = 0; _row < aobasis.getNumofShells(); _row++) {
@@ -69,7 +70,7 @@ namespace votca {
                     ub::matrix_range< ub::matrix<T> > _submatrix = ub::subrange(_aomatrix, _row_start, _row_end, _col_start, _col_end);
 
                     // Fill block
-                    FillBlock(_submatrix, _shell_row, _shell_col, ecp, r);
+                    FillBlock(_submatrix, _shell_row, _shell_col);
 
                 }
             }
@@ -449,9 +450,10 @@ namespace votca {
             return _trafo;
         }
 
+
         template<class T> 
-        std::vector<T> AOMatrix<T>::XIntegrate(int _n, double _T) {
-            std::vector<T> _FmT = std::vector<T>(_n, 0.0);
+        std::vector<double> AOMatrix<T>::XIntegrate(int _n, double _T) {
+            std::vector<double> _FmT = std::vector<double>(_n, 0.0);
             const int _mm = _FmT.size() - 1;
             const double pi = boost::math::constants::pi<double>();
             if (_mm < 0) {
@@ -494,47 +496,19 @@ namespace votca {
 
             return _FmT;
         }
-
-        int AOSuperMatrix::getBlockSize(int _lmax) {
-            int _block_size;
-            if (_lmax == 0) {
-                _block_size = 1;
-            }// s
-            else if (_lmax == 1) {
-                _block_size = 4;
-            }// p
-            else if (_lmax == 2) {
-                _block_size = 10;
-            }// d
-            else if (_lmax == 3) {
-                _block_size = 20;
-            }// f
-            else if (_lmax == 4) {
-                _block_size = 35;
-            }// g
-            else if (_lmax == 5) {
-                _block_size = 56;
-            }// h
-            else if (_lmax == 6) {
-                _block_size = 84;
-            }// i
-            else if (_lmax == 7) {
-                _block_size = 120;
-            }// j //////
-            else if (_lmax == 8) {
-                _block_size = 165;
-            }// k //////
-            else {
-                cerr << "GetBlocksize for l greater 8 not implemented!" << flush;
-                exit(1);
-            }
-            return _block_size;
-        }
+        
+int AOSuperMatrix::getBlockSize(int _lmax) {
+      //Each cartesian shells has (l+1)(l+2)/2 elements
+      //Sum of all shells up to _lmax leads to blocksize=1+11/6 l+l^2+1/6 l^3
+      int blocksize = 6 + 11 * _lmax + 6 * _lmax * _lmax + _lmax * _lmax*_lmax;
+      blocksize /= 6;
+      return blocksize;
+    }
 
 
 
 template class AOMatrix<double>;
-template class AOMatrix<std::complex<double>>;
+template class AOMatrix< std::complex<double> >;
 
     }
 }

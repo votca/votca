@@ -43,7 +43,7 @@ namespace votca { namespace xtp {
     using namespace votca::tools;
 
 
-    void AOECP::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col, AOBasis* ecp, const vec &r) {
+    void AOECP::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col) {
 
         /*
          *
@@ -122,13 +122,13 @@ namespace votca { namespace xtp {
                     ub::matrix<double> _decay_matrix = ub::zero_matrix<double>(4, 5);
                     ub::matrix<double> _coef_matrix  = ub::zero_matrix<double>(4, 5);
 
-                    AOBasis::AOShellIterator final_iter = ecp->lastShell();
+                    AOBasis::AOShellIterator final_iter = _ecp->lastShell();
                     --final_iter;
                     vec _ecp_eval_pos = vec(0.0);
                     int _lmax_ecp = 0;
-                    for (AOBasis::AOShellIterator _ecp = ecp->firstShell(); _ecp != ecp->lastShell(); ++_ecp) {
+                    for (AOBasis::AOShellIterator _ecpit = _ecp->firstShell(); _ecpit != _ecp->lastShell(); ++_ecpit) {
 
-                        const AOShell* _shell_ecp = ecp->getShell(_ecp);
+                        const AOShell* _shell_ecp = _ecp->getShell(_ecpit);
                         const vec& _ecp_pos = _shell_ecp->getPos();
 
                         int this_atom = _shell_ecp->getIndex();
@@ -156,7 +156,7 @@ namespace votca { namespace xtp {
                                     _coef_matrix(i_fit, _ecp_l )  = _contraction_ecp;
                                 }
                                 
-                                if ((this_atom != _atomidx ) || ( _ecp == final_iter)) {
+                                if ((this_atom != _atomidx ) || ( _ecpit == final_iter)) {
                                     if (this_atom != _atomidx) {
                                        _lmax_ecp = _lmax_ecp_old;
                                     }

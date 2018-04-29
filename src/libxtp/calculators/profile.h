@@ -101,8 +101,8 @@ bool Profile::EvaluateFrame(ctp::Topology *top) {
     // Collect profile positions from atoms in system, order by segment name //
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
-    double MAX = -1e100;
-    double MIN =  1e100;
+    double MAX = std::numeric_limits<double>::min();;
+    double MIN =  std::numeric_limits<double>::max();;
     //double RES = _resolution;
 
     for (sit = top->Segments().begin();

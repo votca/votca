@@ -39,7 +39,7 @@ namespace votca { namespace xtp {
     
 
     
-    void AODipole_Potential::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp, const vec &r) {
+    void AODipole_Potential::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col) {
 
         const double pi = boost::math::constants::pi<double>();
 

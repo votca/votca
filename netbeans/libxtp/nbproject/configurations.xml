@@ -570,6 +570,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/calculators/profile.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/calculators/rates.h"
             ex="false"
             tool="3"
@@ -1224,6 +1229,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/neighborlist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/profile.h"
             ex="false"
             tool="3"
             flavor2="0">
