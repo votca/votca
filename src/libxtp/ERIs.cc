@@ -260,8 +260,8 @@ namespace votca {
           } 
 
           // Fill lower triangular part using symmetry
-          for (size_t i = 0; i < DMAT.cols(); i++){
-            for (size_t j = i + 1; j < DMAT.rows(); j++){
+          for (int i = 0; i < DMAT.cols(); i++){
+            for (int j = i + 1; j < DMAT.rows(); j++){
               _ERIs(j, i) = _ERIs(i, j);
             }
           }
