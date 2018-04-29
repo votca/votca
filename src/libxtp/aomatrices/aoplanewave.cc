@@ -16,25 +16,15 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 
 #include <votca/xtp/aomatrix.h>
 
-#include <votca/xtp/aobasis.h>
-
-#include <vector>
-
-#include <complex>
-
-
-using namespace votca::tools;
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+       
 
-        void AOPlanewave::FillBlock(ub::matrix_range< ub::matrix<std::complex<double>> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col) {
+        void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& _matrix, const AOShell* _shell_row, const AOShell* _shell_col) {
 
           const tools::vec& _k=_gridpoint;
             // shell info, only lmax tells how far to go

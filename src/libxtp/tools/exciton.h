@@ -29,8 +29,6 @@
 #include <votca/ctp/atom.h>
 #include <votca/ctp/qmtool.h>
 #include <votca/ctp/segment.h>
-
-#include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
 
 
@@ -75,8 +73,6 @@ namespace votca {
             ctp::Logger _log;
 
             bool _do_optimize;
-
-            void ReadXYZ(ctp::Segment* _segment, string filename);
 
         };
 

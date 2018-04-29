@@ -16,8 +16,6 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 
 
 #include "votca/xtp/sphere_lebedev_rule.h"

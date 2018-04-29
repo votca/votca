@@ -16,8 +16,7 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/aomatrix.h>
 
@@ -25,14 +24,13 @@
 #include <vector>
 
 
-using namespace votca::tools;
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+
 
  
 
-    void AOCoulomb::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col) {
+    void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col) {
       
             // shell info, only lmax tells how far to go
             const int _lmax_row = _shell_row->getLmax();
@@ -145,13 +143,13 @@ namespace votca { namespace xtp {
                        const double powfactor_col=itc->getPowfactor();
                       
                          
-                         ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
+                         tensor3d _cou(boost::extents[_nrows][_ncols][_nextra]);
                          
                          
                                   
-                           for (index i = 0; i != _nrows; ++i) {
-                               for (index j = 0; j != _ncols; ++j) {
-                                   for (index k = 0; k != _nextra; ++k) {
+                           for (index3d i = 0; i != _nrows; ++i) {
+                               for (index3d j = 0; j != _ncols; ++j) {
+                                   for (index3d k = 0; k != _nextra; ++k) {
                                        _cou[i][j][k] = 0.0;
                                    }
                                }
@@ -185,7 +183,7 @@ namespace votca { namespace xtp {
             const std::vector<double> _FmT=XIntegrate(_nextra, _T);
 
             // get initial data from _FmT -> s-s element
-            for (index i = 0; i != _nextra; ++i) {
+            for (index3d i = 0; i != _nextra; ++i) {
                 _cou[0][0][i] = _fak * _FmT[i];
             }
 
@@ -650,10 +648,7 @@ if (_lmax_col > 5) {
             int _ntrafo_row = _shell_row->getNumFunc() + _shell_row->getOffset();
             int _ntrafo_col = _shell_col->getNumFunc() + _shell_col->getOffset();
 
-            //cout << " _ntrafo_row " << _ntrafo_row << ":" << _shell_row->getType() << endl;
-            //cout << " _ntrafo_col " << _ntrafo_col << ":" << _shell_col->getType() << endl;
-            ub::matrix<double> _trafo_row = ub::zero_matrix<double>(_ntrafo_row, _nrows);
-            ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col, _ncols);
+            
 
             // get transformation matrices including contraction coefficients
           const std::vector<double>& _contractions_row = itr->getContraction();
@@ -661,15 +656,15 @@ if (_lmax_col > 5) {
 
           
 
-            // put _cou[i][j][0] into ublas matrix
-            ub::matrix<double> _coumat = ub::zero_matrix<double>(_nrows, _ncols);
-            for (unsigned i = 0; i < _coumat.size1(); i++) {
-                for (unsigned j = 0; j < _coumat.size2(); j++) {
+            // put _cou[i][j][0] into eigen matrix
+            Eigen::MatrixXd _coumat = Eigen::MatrixXd::Zero(_nrows, _ncols);
+            for (unsigned i = 0; i < _coumat.rows(); i++) {
+                for (unsigned j = 0; j < _coumat.cols(); j++) {
                     _coumat(i, j) = _cou[i][j][0];
                 }
             }
 
-            ub::matrix<double> _cou_tmp = ub::zero_matrix<double>(_ntrafo_row, _ncols);
+            Eigen::MatrixXd _cou_tmp = Eigen::MatrixXd::Zero(_ntrafo_row, _ncols);
             
             
               // s-functions
@@ -900,7 +895,7 @@ if (_lmax_col > 5) {
                 
             
 
-    ub::matrix<double> _cou_sph = ub::zero_matrix<double>(_ntrafo_row, _ntrafo_col);  ////////////////////////////////////
+    Eigen::MatrixXd _cou_sph = Eigen::MatrixXd::Zero(_ntrafo_row, _ntrafo_col);  ////////////////////////////////////
 
         
               // s-functions
@@ -1130,8 +1125,8 @@ if (_lmax_col > 5) {
 
 
             // save to _matrix
-            for (unsigned i = 0; i < _matrix.size1(); i++) {
-                for (unsigned j = 0; j < _matrix.size2(); j++) {
+            for (unsigned i = 0; i < _matrix.rows(); i++) {
+                for (unsigned j = 0; j < _matrix.cols(); j++) {
                     _matrix(i, j) += _cou_sph(i + _shell_row->getOffset(), j + _shell_col->getOffset());
                 }
             }
@@ -1143,67 +1138,43 @@ if (_lmax_col > 5) {
     
 
     
-    int AOCoulomb::Symmetrize(const ub::matrix<double>& _gwoverlap_cholesky){
+    Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt_GWBSE(const AOOverlap& _auxoverlap, double etol){
         
-       //This converts V into (LT V L)-1/2 LT, which is needed to construct 4c integrals,
-        //(LTVL)-1/2 is the orthogonal form of the sqrt of V, LT is used because Mmn auxbasis is non- orthogonal, this orthogonalises the auxbasis 
-         ub::matrix<double> _temp = ub::prod( _aomatrix , _gwoverlap_cholesky);
-         ub::matrix<double> _trans=ub::trans( _gwoverlap_cholesky );
-        _aomatrix = ub::prod( _trans,_temp);
         
-        ub::vector<double> S_eigenvalues;
-        linalg_eigenvalues( S_eigenvalues, _aomatrix);
-        
-        if ( S_eigenvalues[0] < 0.0 ) {
-            throw runtime_error("LT V L has negative eigenvalues");
-        }
-     
-        int removed_basisfunctions=0;
-    ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
-     for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
-         if(S_eigenvalues[_i]<5.e-7){
-             removed_basisfunctions++;
-         }
-         else{
-         _diagS(_i,_i) = 1.0/sqrt(S_eigenvalues[_i]);
-         }
-     }
-    _temp = ub::prod( _diagS, ub::trans(_aomatrix));
-    _aomatrix = ub::prod( _aomatrix,_temp );
-    
-    
-       _aomatrix = ub::prod( _aomatrix , ub::trans(_gwoverlap_cholesky));
-    
-   
-    
-    return removed_basisfunctions; 
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eo(_auxoverlap.Matrix());
+    Eigen::MatrixXd Ssqrt=eo.operatorSqrt();
+    //This converts V into (S1/2 V S1/2)-1/2 S1/2, which is needed to construct 4c integrals,
+       
+      Eigen::MatrixXd ortho=Ssqrt*_aomatrix*Ssqrt;
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho); 
+      Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
+      removedfunctions=0;
+      for (unsigned i=0;i<diagonal.size();++i){
+          if(es.eigenvalues()(i)<etol){
+              removedfunctions++;
+          }else{
+              diagonal(i)=1.0/std::sqrt(es.eigenvalues()(i));
+          }
+      }
+      
+      Eigen::MatrixXd Vm1=es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
+       
+    return Vm1*Ssqrt;
     }
     
-     int AOCoulomb::Invert_DFT(){
-        
-       //This converts V into V-1 while checking 
-        
-        
-        ub::vector<double> S_eigenvalues;
-        linalg_eigenvalues( S_eigenvalues, _aomatrix);
-        if ( S_eigenvalues[0] < 0.0 ) {
-            cerr << " \n Negative eigenvalues in matrix_sqrt transformation " << endl;
-            return -1;
-        }
-        int removed_basisfunctions=0;
-    ub::matrix<double> _diagS = ub::zero_matrix<double>(_aomatrix.size1(),_aomatrix.size2() );
-     for ( unsigned _i =0; _i < _aomatrix.size1() ; _i++){
-         if(S_eigenvalues[_i]<1.e-6){
-             removed_basisfunctions++;
-         }
-         else{
-         _diagS(_i,_i) = 1.0/S_eigenvalues[_i];
-         }
-     }
-    ub::matrix<double> _temp = ub::prod( _diagS, ub::trans(_aomatrix));
-    _aomatrix = ub::prod( _aomatrix,_temp );
-    
-    return removed_basisfunctions; 
+     Eigen::MatrixXd AOCoulomb::Pseudo_Invert(double etol){
+       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_aomatrix);
+       Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
+      removedfunctions=0;
+      for (unsigned i=0;i<diagonal.size();++i){
+          if(es.eigenvalues()(i)<etol){
+              removedfunctions++;
+          }else{
+              diagonal(i)=1.0/(es.eigenvalues()(i));
+          }
+      }
+           
+     return es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
     }
     
     

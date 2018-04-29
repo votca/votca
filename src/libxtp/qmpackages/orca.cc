@@ -24,9 +24,6 @@
 
 #include <votca/tools/elements.h>
 #include <boost/algorithm/string.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <stdio.h>
@@ -38,7 +35,7 @@
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+       
 
         void Orca::Initialize(Property *options) {
 
@@ -630,7 +627,7 @@ namespace votca {
                         if (_has_QMAtoms == false) {
                             _orbitals->AddAtom(atom_id,_atom_type, pos);
                         } else {
-                            QMAtom* pAtom = _orbitals->_atoms.at(atom_id);
+                            QMAtom* pAtom = _orbitals->QMAtoms().at(atom_id);
                             pAtom->setPos(pos);
                         }
                         atom_id++;
@@ -758,7 +755,7 @@ namespace votca {
                         if (_has_atoms == false) {
                             pAtom =_orbitals->AddAtom(atom_id - 1,atom_type, 0, 0, 0);
                         } else {
-                            pAtom = _orbitals->_atoms.at(atom_id - 1);
+                            pAtom = _orbitals->QMAtoms().at(atom_id - 1);
                         }
                         pAtom->setPartialcharge(atom_charge);
                     }
@@ -789,7 +786,7 @@ namespace votca {
             // copying energies to a matrix
             _orbitals->MOEnergies().resize(_levels);
             //_level = 1;
-            for (size_t i = 0; i < _orbitals->MOEnergies().size(); i++) {
+            for (int i = 0; i < _orbitals->MOEnergies().size(); i++) {
                 _orbitals->MOEnergies()[i] = _energies[ i ];
             }
 
@@ -885,9 +882,9 @@ namespace votca {
 
             // i -> MO, j -> AO
             (_orbitals->MOCoefficients()).resize(_levels, _basis_size);
-            for (size_t i = 0; i < _orbitals->MOCoefficients().size1(); i++) {
-                for (size_t j = 0; j < _orbitals->MOCoefficients().size2(); j++) {
-                    _orbitals->MOCoefficients()(i, j) = _coefficients[j * _basis_size + i];
+            for (int i = 0; i < _orbitals->MOCoefficients().rows(); i++) {
+                for (int j = 0; j < _orbitals->MOCoefficients().cols(); j++) {
+                    _orbitals->MOCoefficients()(j, i) = _coefficients[j * _basis_size + i];
                    
                 }
             }

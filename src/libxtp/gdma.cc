@@ -21,23 +21,23 @@
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/algorithm/string.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/xtp/gdma.h>
 
 
-using namespace votca::tools;
+
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+      
+      using namespace std;
 
         // initialize the GDMA object, set parameters
         // for use of external code -> Rank
 
-        void GDMA::Initialize(Property* options) {
+        void GDMA::Initialize(tools::Property* options) {
 
             string key = "gdma";
             if (options->exists(key + ".chk")) {

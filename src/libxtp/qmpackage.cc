@@ -23,8 +23,6 @@
 namespace votca {
     namespace xtp {
 
-        namespace ub = boost::numeric::ublas;
-
         void QMPackage::ReorderOutput(Orbitals* _orbitals) {
             BasisSet _dftbasisset;
             _dftbasisset.LoadBasisSet(_basisset_name);
