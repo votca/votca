@@ -264,7 +264,7 @@ namespace votca { namespace xtp {
     public:
         void Fillextpotential(const AOBasis& aobasis, const std::vector< tools::vec>& _kpoints);
       
-        const Eigen::MatrixXcd &getExternalpotential()const{ return _externalpotential;}
+        const Eigen::MatrixXcd &getExternalpotential()const{ return _externalpotential.real();}
         protected:
         //block fill for plane wave component, implementation in aoplanewave.cc
         void FillBlock(
