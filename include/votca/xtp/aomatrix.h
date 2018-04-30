@@ -252,7 +252,7 @@ namespace votca { namespace xtp {
     
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp);
         Eigen::MatrixXd Pseudo_InvSqrt_GWBSE(const AOOverlap& _auxoverlap,double etol);
-        Eigen::MatrixXd Pseudo_Invert(double etol);
+        Eigen::MatrixXd Pseudo_InvSqrt(double etol);
         int Removedfunctions(){return removedfunctions;}
         
     private:

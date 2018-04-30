@@ -56,7 +56,7 @@ namespace votca { namespace xtp {
         void printERIs();
         
     private:
-        Eigen::MatrixXd _inverse_Coulomb;
+        
         
         TCMatrix_dft _threecenter;
         FCMatrix _fourcenter; 

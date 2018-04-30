@@ -218,9 +218,9 @@ BOOST_AUTO_TEST_CASE(aocoulomb_inv_test) {
   AOCoulomb cou;
 cou.Fill(aobasis);
 
-Eigen::MatrixXd PseudoInv=cou.Pseudo_Invert(1e-7);
+Eigen::MatrixXd PseudoInvSqrt=cou.Pseudo_InvSqrt(1e-7);
 
-Eigen::MatrixXd Reformed=PseudoInv*cou.Matrix();
+Eigen::MatrixXd Reformed=PseudoInvSqrt*PseudoInvSqrt*cou.Matrix();
   
 bool check_inv = Reformed.isApprox(Eigen::MatrixXd::Identity(17,17),0.0001);
 if(!check_inv){

@@ -27,67 +27,50 @@ namespace votca {
         
         
         
-    void ERIs::Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis,const Eigen::MatrixXd &inverse_Coulomb) {
-
-           _inverse_Coulomb=inverse_Coulomb;
-           
-            _threecenter.Fill( _auxbasis, _dftbasis );
-          
-
+    void ERIs::Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis,const Eigen::MatrixXd &inversesqrt_Coulomb) {
+            _threecenter.Fill( _auxbasis, _dftbasis,inversesqrt_Coulomb);
             return;
         }
-
-
 
         void ERIs::Initialize_4c_small_molecule(AOBasis &_dftbasis) {
-
           _fourcenter.Fill_4c_small_molecule( _dftbasis );
-
           return;
         }
-
         
         
-        void ERIs::CalculateERIs (const Eigen::MatrixXd &DMAT){
-          
-           Symmetric_Matrix dmat_sym=Symmetric_Matrix(DMAT);
-            _ERIs=Eigen::MatrixXd::Zero(DMAT.rows(),DMAT.cols());
-            Eigen::VectorXd Itilde=Eigen::VectorXd::Zero(_threecenter.getSize());
-          
-            #pragma omp parallel for
-            for ( int _i=0; _i<_threecenter.getSize();_i++){
-                const Symmetric_Matrix &threecenter=_threecenter.getDatamatrix(_i);
-                // Trace over prod::DMAT,I(l)=componentwise product over 
-                
-                Itilde(_i)=threecenter.TraceofProd(dmat_sym);
-            }
-            const Eigen::VectorXd K=_inverse_Coulomb*Itilde;
-            
-            unsigned nthreads = 1;
-            #ifdef _OPENMP
-               nthreads = omp_get_max_threads();
-            #endif
-               std::vector<Eigen::MatrixXd >ERIS_thread;
-               
-               for(unsigned i=0;i<nthreads;++i){
-                   Eigen::MatrixXd thread=Eigen::MatrixXd::Zero(_ERIs.rows(),_ERIs.cols());
-                   ERIS_thread.push_back(thread);
-               }
-            
-            #pragma omp parallel for
-            for (unsigned thread=0;thread<nthreads;++thread){
-                for ( unsigned _i = thread; _i < K.size(); _i+=nthreads){
-                _threecenter.getDatamatrix(_i).AddtoEigenMatrix(ERIS_thread[thread],K(_i));    
-                }
-            }
-              
-            for (unsigned thread=0;thread<nthreads;++thread){
-                _ERIs+=ERIS_thread[thread];
-            }    
+void ERIs::CalculateERIs(const Eigen::MatrixXd &DMAT) {
+      Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
+      _ERIs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
 
-            CalculateEnergy(DMAT);
-            return;
+      unsigned nthreads = 1;
+#ifdef _OPENMP
+      nthreads = omp_get_max_threads();
+#endif
+      std::vector<Eigen::MatrixXd >ERIS_thread;
+
+      for (unsigned i = 0; i < nthreads; ++i) {
+        Eigen::MatrixXd thread = Eigen::MatrixXd::Zero(_ERIs.rows(), _ERIs.cols());
+        ERIS_thread.push_back(thread);
+      }
+
+#pragma omp parallel for
+      for (unsigned thread = 0; thread < nthreads; ++thread) {
+        Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
+        for (int _i = thread; _i < _threecenter.getSize(); _i += nthreads) {
+          const Symmetric_Matrix &threecenter = _threecenter.getDatamatrix(_i);
+          // Trace over prod::DMAT,I(l)=componentwise product over 
+          double factor = threecenter.TraceofProd(dmat_sym);
+          threecenter.AddtoEigenMatrix(ERIS_thread[thread], factor);
         }
+      }
+
+      for (const auto& thread : ERIS_thread) {
+        _ERIs += thread;
+      }
+
+      CalculateEnergy(DMAT);
+      return;
+    }
 
 
 

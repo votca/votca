@@ -23,99 +23,94 @@
 #include <votca/xtp/symmetric_matrix.h>
 
 namespace votca {
-    namespace xtp {
+  namespace xtp {
 
-      
+    void TCMatrix_dft::Fill(AOBasis& _auxbasis, AOBasis& _dftbasis, const Eigen::MatrixXd& V_sqrtm1) {
 
-      
-  
-        void TCMatrix_dft::Fill(AOBasis& _auxbasis, AOBasis& _dftbasis) {
+      for (unsigned int i = 0; i < _auxbasis.AOBasisSize(); i++) {
+        try {
+          _matrix.push_back(Symmetric_Matrix(_dftbasis.AOBasisSize()));
+        } catch (std::bad_alloc& ba) {
+          std::cerr << "Basisset/aux basis too large for 3c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << endl;
+          exit(0);
+        }
 
-            for (unsigned int i=0; i< _auxbasis.AOBasisSize(); i++){
-                 try{
-                _matrix.push_back(Symmetric_Matrix(_dftbasis.AOBasisSize()));   
-                }
-                catch(std::bad_alloc& ba){
-                    std::cerr << "Basisset/aux basis too large for 3c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << endl;
-                    exit(0);
-                }
-               
+      }
+      //#pragma omp parallel for schedule(guided)
+      for (unsigned _is = 0; _is < _dftbasis.getNumofShells(); _is++) {
+        const AOShell* _dftshell = _dftbasis.getShell(_is);
+        std::vector< Eigen::MatrixXd > block;
+        for (int i = 0; i < _dftshell->getNumFunc(); i++) {
+          int size = _dftshell->getStartIndex() + i+1;
+          block.push_back(Eigen::MatrixXd::Zero(_auxbasis.AOBasisSize(), size));
+        }
+        FillBlock(block, _is, _dftbasis, _auxbasis);
+        int offset = _dftshell->getStartIndex();
+        for (unsigned i = 0; i < block.size(); ++i) {
+          Eigen::MatrixXd temp = V_sqrtm1 * block[i];
+          for (int mu = 0; mu < temp.rows(); ++mu) {
+            for (int j = 0; j < temp.cols(); ++j) {
+              _matrix[mu](i + offset, j) = temp(mu, j);
             }
-            // loop over all shells in the GW basis and get _Mmn for that shell
-            #pragma omp parallel for //private(_block)
-            for ( unsigned _is= 0; _is <  _auxbasis.getNumofShells() ; _is++ ){
-          
-                const AOShell* _shell = _auxbasis.getShell(_is);
-
-                // Fill block for this shell (3-center overlap with _dft_basis )
-                FillBlock(_shell, _dftbasis);
-               
-                
-            } // shells of aux basis set
-            return;
-        } // TCMatrix_dft::Fill
-
-
-        
-        /*
-         * Determines the 3-center integrals for a given shell in the aux basis
-         * by calculating the 3-center overlap integral of the functions in the
-         * aux shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock)
-         */
-        
-        void TCMatrix_dft::FillBlock(const AOShell* _auxshell, const AOBasis& dftbasis) {
-
-          tensor3d::extent_gen extents;
-            int _start = _auxshell->getStartIndex();
-
-            // alpha-loop over the "left" DFT basis function
-            for (AOBasis::AOShellIterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); ++_row) {
-                const AOShell* _shell_row = dftbasis.getShell(_row);
-                int _row_start = _shell_row->getStartIndex();
-
-                // gamma-loop over the "right" DFT basis function with symmetry
-                for (AOBasis::AOShellIterator _col = dftbasis.firstShell(); _col <= _row; ++_col) {
-                    const AOShell* _shell_col = dftbasis.getShell(_col);
-                    int _col_start = _shell_col->getStartIndex();
-                    tensor3d threec_block(extents[ range(0, _auxshell->getNumFunc()) ][ range(0, _shell_row->getNumFunc()) ][ range(0, _shell_col->getNumFunc())]);
-                    for (int i = 0; i < _auxshell->getNumFunc(); ++i) {
-                      for (int j = 0; j < _shell_row->getNumFunc(); ++j) {
-                        for (int k = 0; k < _shell_col->getNumFunc(); ++k) {
-                          threec_block[i][j][k] = 0.0;
-                        }
-                      }
-                    }
-                    // get 3-center overlap directly as _subvector
-                    
-                    bool nonzero = FillThreeCenterRepBlock(threec_block, _auxshell, _shell_row, _shell_col);
-                    if (nonzero) {
-                        // and put it into the block it belongs to
-                        // functions in ONE AUXshell
-                        for (int _aux = 0; _aux < _auxshell->getNumFunc(); _aux++) {
-                            // column in ONE DFTshell
-                                for (int _row = 0; _row < _shell_row->getNumFunc(); _row++) {
-                                  for (int _col = 0; _col < _shell_col->getNumFunc(); _col++) {
-                                    //symmetry
-                                    if ((_col_start + _col)>(_row_start + _row)) {
-                                        continue;
-                                    }
-                                   
-                                    _matrix[_start + _aux](_row_start + _row, _col_start + _col) = threec_block[_aux][_row][_col];
-                                   
-
-                                } // ROW copy
-                            } // COL copy
-                        } // AUX copy
-                    }
-                } // DFT col
-            } // DFT row
-            return;
-        } // TCMatrix_dft::FillBlock
-
-
-        
- 
-
-
+          }
+        }
+      }
+      return;
     }
+
+    /*
+     * Determines the 3-center integrals for a given shell in the aux basis
+     * by calculating the 3-center overlap integral of the functions in the
+     * aux shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock)
+     */
+
+    void TCMatrix_dft::FillBlock(std::vector< Eigen::MatrixXd >& _block, int shellindex, const AOBasis& dftbasis, const AOBasis& auxbasis) {
+      const AOShell* left_dftshell = dftbasis.getShell(shellindex);
+      tensor3d::extent_gen extents;
+      int _start = left_dftshell->getStartIndex();
+      // alpha-loop over the aux basis function
+      for (AOBasis::AOShellIterator _auxS = auxbasis.firstShell(); _auxS != auxbasis.lastShell(); ++_auxS) {
+        const AOShell* _shell_aux = auxbasis.getShell(_auxS);
+        int _aux_start = _shell_aux->getStartIndex();
+
+
+        for (unsigned _is = 0; _is <= shellindex; _is++) {
+
+          const AOShell* _shell_col = dftbasis.getShell(_is);
+          int _col_start=_shell_col->getStartIndex();
+          tensor3d threec_block(extents[ range(0, _shell_aux->getNumFunc()) ][ range(0, left_dftshell->getNumFunc()) ][ range(0, _shell_col->getNumFunc())]);
+          for (int i = 0; i < _shell_aux->getNumFunc(); ++i) {
+            for (int j = 0; j < left_dftshell->getNumFunc(); ++j) {
+              for (int k = 0; k < _shell_col->getNumFunc(); ++k) {
+                threec_block[i][j][k] = 0.0;
+              }
+            }
+          }
+
+          bool nonzero = FillThreeCenterRepBlock(threec_block, _shell_aux, left_dftshell, _shell_col);
+          if (nonzero) {
+
+            for (int _left = 0; _left < left_dftshell->getNumFunc(); _left++) {
+              for (int _aux = 0; _aux < _shell_aux->getNumFunc(); _aux++) {
+                for (int _col = 0; _col < _shell_col->getNumFunc(); _col++) {
+                  //symmetry
+                  if ((_col_start + _col)>(_start + _left)) {
+                    break;
+                  }
+                  _block[_left](_aux_start + _aux, _col_start + _col) = threec_block[_aux][_left][_col];
+                }
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
+
+
+
+
+
+
+  }
 }

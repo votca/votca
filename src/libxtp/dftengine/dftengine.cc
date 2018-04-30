@@ -425,7 +425,7 @@ namespace votca {
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
 
-        Eigen::MatrixXd Inverse=_auxAOcoulomb.Pseudo_Invert(1e-8);
+        Eigen::MatrixXd Inverse=_auxAOcoulomb.Pseudo_InvSqrt(1e-8);
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inverted AUX Coulomb matrix, removed " << _auxAOcoulomb.Removedfunctions() << " functions from aux basis" << flush;
 
