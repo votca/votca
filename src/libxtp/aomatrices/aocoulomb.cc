@@ -30,7 +30,7 @@ namespace votca { namespace xtp {
 
  
 
-    void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp) {
+    void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col) {
       
             // shell info, only lmax tells how far to go
             const int _lmax_row = _shell_row->getLmax();

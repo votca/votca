@@ -13,19 +13,8 @@
   <writepseudopotentials>false</writepseudopotentials>
   <outputVxc>0</outputVxc>
   <options>
-! DFT PBE NoFinalGrid
+! DFT PBE 
 
-%scf
-  TolE  1e-2
-  ConvCheckMode 1
-  Guess MORead
-  MOInp "dimer.gbw"
-end 
-%output
-Print [P_Mayer] 0
-Print [P_Mulliken] 0
-Print [P_Loewdin] 0
-end
   </options>
   <cleanup></cleanup>
   </package>

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -141,6 +141,8 @@ namespace votca {
         _levelshiftend = 0.8;
       }
 
+
+
       return;
     }
 
@@ -183,7 +185,9 @@ namespace votca {
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed initial density " << flush;
 
       NuclearRepulsion();
-
+      if(_with_ecp){
+          H0+=_dftAOECP.Matrix();
+      }
  
 
       if (_addexternalsites) {
@@ -341,20 +345,10 @@ namespace votca {
     // SETUP INVARIANT AOMatrices
 
     void DFTENGINE::SetupInvariantMatrices() {
-
-
-      // local variables for checks
-      // check eigenvalues of overlap matrix, if too small basis might have linear dependencies
-
-
-      {
+      
         // DFT AOOverlap matrix
         _dftAOoverlap.Fill(_dftbasis);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
-        //cout<<"overlap"<<_dftAOoverlap.Matrix()<<endl;
-     
-      }
-
 
       _dftAOkinetic.Fill(_dftbasis);
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOkinetic.Dimension() << flush;
@@ -405,10 +399,8 @@ namespace votca {
 
 
       if (_with_ecp) {
-
         _dftAOECP.Fill(_dftbasis, vec(0, 0, 0), &_ecp);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOECP.Dimension() << flush;
-        _dftAOESP.getNuclearpotential() += _dftAOECP.Matrix();
       }
 
       conv_accelerator.Configure(ConvergenceAcc::KSmode::closed, _usediis,
