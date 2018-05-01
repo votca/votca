@@ -55,7 +55,7 @@ namespace votca {
             virtual bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {}) = 0;
 
             /// writes a coordinate file of a pair WITH PBCs and the orbital guess [if needed]
-            bool WriteInputFilePBC(ctp::QMPair* pair, Orbitals* orbitals = NULL);
+            bool WriteInputFilePBC(ctp::QMPair* pair, Orbitals* orbitals = NULL, std::vector<std::string> linker_names ={});
 
             virtual bool Run(Orbitals* _orbitals = NULL) = 0;
 
@@ -174,7 +174,9 @@ namespace votca {
             std::vector<std::vector<double> > SplitMultipoles(ctp::APolarSite* site);
             void ReorderOutput(Orbitals* _orbitals);
             void ReorderMOsBack(Orbitals* _orbitals);
-            
+            void addLinkers(std::vector< ctp::Segment* > &segments, ctp::QMPair* pair, std::vector< std::string> linker_names );
+            bool isLinker( std::string name, std::vector< std::string> linker_names );
+
             
         };
         

@@ -28,6 +28,8 @@
 #include "calculators/einternal.h"
 #include "calculators/kmclifetime.h"
 #include "calculators/kmcmultiple.h"
+#include "calculators/profile.h"
+
 
 namespace votca { namespace xtp {
 
@@ -42,5 +44,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<EInternal>           ("einternal");
         Calculators().Register<KMCLifetime>         ("kmclifetime");
         Calculators().Register<KMCMultiple>         ("kmcmultiple");
+        Calculators().Register<Profile>             ("profile");
+
 }
 }}

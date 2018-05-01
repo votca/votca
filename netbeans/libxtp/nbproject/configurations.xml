@@ -180,6 +180,7 @@
         <itemPath>../../src/libxtp/aomatrices/aomatrix.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aomomentum.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aooverlap.cc</itemPath>
+        <itemPath>../../src/libxtp/aomatrices/aoplanewave.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aoquadrupole_potential.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="Applications" projectFiles="true">
@@ -530,11 +531,6 @@
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/multiarray.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
@@ -686,6 +682,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aooverlap.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/aomatrices/aoplanewave.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1092,8 +1093,6 @@
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_eris.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_fragment.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1322,11 +1321,6 @@
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/multiarray.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
@@ -1478,6 +1472,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aooverlap.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/aomatrices/aoplanewave.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1884,8 +1883,6 @@
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_eris.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_fragment.cc" ex="false" tool="1" flavor2="0">
       </item>

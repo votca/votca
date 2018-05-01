@@ -29,7 +29,7 @@ namespace votca { namespace xtp {
 
 
     
-    void AOKinetic::FillBlock( Eigen::Block<Eigen::MatrixXd> & _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp) {
+    void AOKinetic::FillBlock( Eigen::Block<Eigen::MatrixXd> & _matrix,const AOShell* _shell_row,const AOShell* _shell_col) {
        
        
         // shell info, only lmax tells how far to go

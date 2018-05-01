@@ -71,6 +71,8 @@ private:
     int                 _max_occupied_levels;
     int                 _max_unoccupied_levels;     
     int                 _trim_factor;
+    std::vector< string > _linker_names;
+
     
     string              _package;
     Property            _package_options; 

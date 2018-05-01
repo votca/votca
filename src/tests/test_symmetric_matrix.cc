@@ -71,6 +71,19 @@ BOOST_CHECK_EQUAL(check_matrices2, 1);
 
 }
 
+BOOST_AUTO_TEST_CASE(FullMatrix_test) {
+  
+int dim=3;
+Eigen::MatrixXd test=Eigen::MatrixXd::Random(dim,dim);
+ Eigen::MatrixXd trans=test.transpose();
+test+=trans;
+Symmetric_Matrix sym=Symmetric_Matrix(test);
+Eigen::MatrixXd result=sym.FullMatrix();
+bool check_matrices=test.isApprox(result,0.000001);
+
+BOOST_CHECK_EQUAL(check_matrices, 1);
+}
+
 
 BOOST_AUTO_TEST_CASE(TraceofProd_test) {
   
