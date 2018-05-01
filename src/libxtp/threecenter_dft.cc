@@ -75,7 +75,7 @@ namespace votca {
         int _aux_start = _shell_aux->getStartIndex();
 
 
-        for (unsigned _is = 0; _is <= shellindex; _is++) {
+        for (int _is = 0; _is <= shellindex; _is++) {
 
           const AOShell* _shell_col = dftbasis.getShell(_is);
           int _col_start=_shell_col->getStartIndex();
