@@ -7,8 +7,10 @@ set(PROJECT_VERSION "1.5-dev")
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
+include(GNUInstallDirs)
+
 option(ENABLE_TESTING "Build and copy testing stuff" OFF)
-if(VOTCA_PATH AND ENABLE_TESTING)
+if(ENABLE_TESTING)
   enable_testing()
   find_package(LMP)
   find_package(MDRUN_MPI)
@@ -20,6 +22,10 @@ if(VOTCA_PATH AND ENABLE_TESTING)
       message(FATAL_ERROR "Could not find ${prog}")
     endif()
   endforeach()
+  find_path(VOTCA_PATH csg_stat PATH_SUFFIXES ${CMAKE_INSTALL_BINDIR} bin)
+  if(NOT VOTCA_PATH)
+    message(FATAL_ERROR "Auto-detectiong failed, we need VOTCA_PATH set for testing!")
+  endif()
   if(NOT VOTCA_SHARE)
     execute_process(COMMAND ${CSG_CALL} --show-share OUTPUT_VARIABLE VOTCA_SHARE OUTPUT_STRIP_TRAILING_WHITESPACE)
   endif()
@@ -70,11 +76,8 @@ if(VOTCA_PATH AND ENABLE_TESTING)
     endif()
   endforeach(DIR ${DIRS})
   message(STATUS "Use VOTCASHARE=${VOTCA_SHARE} PATH=${VOTCA_PATH}:\$PATH VOTCA_CSG_DEFAULTS=${VOTCA_CSG_DEFAULTS} for out-of-cmake testing")
-elseif(ENABLE_TESTING)
-  message(FATAL_ERROR "We need VOTCA_PATH set for testing!")
 endif()
 
-include(GNUInstallDirs)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/csg-tutorials
 	PATTERN ".git*" EXCLUDE PATTERN "step_*" EXCLUDE
 	PATTERN "CMake*" EXCLUDE PATTERN "cmake_install.cmake" EXCLUDE
