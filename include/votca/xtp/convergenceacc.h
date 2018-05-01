@@ -37,6 +37,7 @@ public:
     enum KSmode { closed, open, fractional };
 
     ConvergenceAcc() {_mode=KSmode::closed;
+                       _usemixing=true;
                         _diiserror=std::numeric_limits<double>::max();
                       _maxerrorindex=0;
                       _maxerror=0.0;};
@@ -77,6 +78,8 @@ public:
    
    double getDIIsError(){return _diiserror;}
    
+    bool getUseMixing(){return _usemixing;}
+   
    
     void setLogger(ctp::Logger *pLog){_pLog=pLog;}
     Eigen::MatrixXd Iterate(const Eigen::MatrixXd& dmat,Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE);
@@ -93,6 +96,7 @@ public:
     Eigen::MatrixXd DensityMatrixGroundState_unres(const Eigen::MatrixXd& MOs);
     Eigen::MatrixXd DensityMatrixGroundState_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies);
      
+    bool                                _usemixing;
      
     ctp::Logger *                       _pLog;
     Eigen::MatrixXd* S;

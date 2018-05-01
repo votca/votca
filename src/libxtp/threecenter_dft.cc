@@ -21,7 +21,7 @@
 
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/symmetric_matrix.h>
-
+#include <votca/xtp/eigen.h>
 namespace votca {
   namespace xtp {
 
@@ -36,8 +36,9 @@ namespace votca {
         }
 
       }
-      //#pragma omp parallel for schedule(guided)
-      for (unsigned _is = 0; _is < _dftbasis.getNumofShells(); _is++) {
+      #pragma omp parallel for schedule(dynamic)
+      for (unsigned _is = _dftbasis.getNumofShells()-1; _is >=0; _is--) {
+        const Eigen::MatrixXd V=V_sqrtm1;
         const AOShell* _dftshell = _dftbasis.getShell(_is);
         std::vector< Eigen::MatrixXd > block;
         for (int i = 0; i < _dftshell->getNumFunc(); i++) {
@@ -47,7 +48,7 @@ namespace votca {
         FillBlock(block, _is, _dftbasis, _auxbasis);
         int offset = _dftshell->getStartIndex();
         for (unsigned i = 0; i < block.size(); ++i) {
-          Eigen::MatrixXd temp = V_sqrtm1 * block[i];
+          Eigen::MatrixXd temp =V * block[i];
           for (int mu = 0; mu < temp.rows(); ++mu) {
             for (int j = 0; j < temp.cols(); ++j) {
               _matrix[mu](i + offset, j) = temp(mu, j);

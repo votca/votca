@@ -220,6 +220,7 @@ namespace votca {
             bool _addexternalsites;
 
             // exchange and correlation
+            double _ScaHFX;
             std::string _xc_functional_name;
 
 

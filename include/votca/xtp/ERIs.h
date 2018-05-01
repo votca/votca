@@ -45,8 +45,11 @@ namespace votca { namespace xtp {
         
         const Eigen::MatrixXd& getERIs() const{return _ERIs;}
         double& getERIsenergy(){return _ERIsenergy;}
+        double& getEXXsenergy(){return _EXXsenergy;}
         
         void CalculateERIs(const Eigen::MatrixXd &DMAT);
+        void CalculateEXX(const Eigen::MatrixXd &DMAT);
+        void CalculateEXX(const Eigen::Block<Eigen::MatrixXd>& occMos,const Eigen::MatrixXd &DMAT);
         void CalculateERIs_4c_small_molecule(const Eigen::MatrixXd &DMAT); 
         void CalculateEXX_4c_small_molecule(const Eigen::MatrixXd &DMAT);
         
@@ -64,6 +67,7 @@ namespace votca { namespace xtp {
         Eigen::MatrixXd _ERIs;
         Eigen::MatrixXd _EXXs;
         double _ERIsenergy;
+        double _EXXsenergy;
         void CalculateEnergy(const Eigen::MatrixXd &DMAT);
         void CalculateEXXEnergy(const Eigen::MatrixXd &DMAT);
     };
