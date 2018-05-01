@@ -18,6 +18,7 @@
 #define BOOST_TEST_MODULE eris_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/ERIs.h>
+#include <votca/xtp/convergenceacc.h>
 
 using namespace votca::xtp;
 
@@ -162,6 +163,121 @@ exx_ref<<0.389974 ,0.688493 ,3.79471e-17 ,7.81168e-17 ,1.08518e-15 ,0.517741 ,4.
  bool exxs_check=eris.getEXX().isApprox(exx_ref,0.00001); 
 BOOST_CHECK_EQUAL(exxs_check, 1);
 }
+
+BOOST_AUTO_TEST_CASE(threecenter){
+  
+  ofstream xyzfile("molecule.xyz");
+  xyzfile << " 5" << endl;
+  xyzfile << " methane" << endl;
+  xyzfile << " C            .000000     .000000     .000000" << endl;
+  xyzfile << " H            .629118     .629118     .629118" << endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << endl;
+  xyzfile.close();
+
+ ofstream basisfile("3-21G.xml");
+  basisfile <<"<basis name=\"3-21G\">" << endl;
+  basisfile << "  <element name=\"H\">" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
+  basisfile << "      <constant decay=\"5.447178e+00\">" << endl;
+  basisfile << "        <contractions factor=\"1.562850e-01\" type=\"S\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"8.245470e-01\">" << endl;
+  basisfile << "        <contractions factor=\"9.046910e-01\" type=\"S\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
+  basisfile << "      <constant decay=\"1.831920e-01\">" << endl;
+  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "  </element>" << endl;
+  basisfile << "  <element name=\"C\">" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
+  basisfile << "      <constant decay=\"1.722560e+02\">" << endl;
+  basisfile << "        <contractions factor=\"6.176690e-02\" type=\"S\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"2.591090e+01\">" << endl;
+  basisfile << "        <contractions factor=\"3.587940e-01\" type=\"S\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"5.533350e+00\">" << endl;
+  basisfile << "        <contractions factor=\"7.007130e-01\" type=\"S\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
+  basisfile << "      <constant decay=\"3.664980e+00\">" << endl;
+  basisfile << "        <contractions factor=\"-3.958970e-01\" type=\"S\"/>" << endl;
+  basisfile << "        <contractions factor=\"2.364600e-01\" type=\"P\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"7.705450e-01\">" << endl;
+  basisfile << "        <contractions factor=\"1.215840e+00\" type=\"S\"/>" << endl;
+  basisfile << "        <contractions factor=\"8.606190e-01\" type=\"P\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
+  basisfile << "      <constant decay=\"1.958570e-01\">" << endl;
+  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>" << endl;
+  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"P\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "  </element>" << endl;
+  basisfile << "</basis>" << endl;
+  basisfile.close();
+  
+  Orbitals orbitals;
+  orbitals.LoadFromXYZ("molecule.xyz");
+  BasisSet basis;
+  basis.LoadBasisSet("3-21G.xml");
+ 
+  AOBasis aobasis;
+  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+ 
+   Orbitals orb;
+  orb.setBasisSetSize(17);
+  orb.setNumberOfLevels(4,13);
+  
+  Eigen::MatrixXd H=Eigen::MatrixXd::Zero(17,17);
+  //generated from 3-21G with ecp on methane independent electron guess
+  H<<13.2967782,-1.99797328,0,0,0,-0.26575698,0,0,0,-0.0909339466,-0.147466802,-0.0909339466,-0.147466802,-0.0909339466,-0.147466802,-0.0909339466,-0.147466802,
+-1.99797328,-4.04412972,0,0,0,-3.49418055,0,0,0,-0.994581408,-1.89398582,-0.994581408,-1.89398582,-0.994581408,-1.89398582,-0.994581408,-1.89398582,
+0,0,-3.93848515,0,0,0,-2.25634153,0,0,-0.780335933,-0.599314142,-0.780335933,-0.599314142,0.780335933,0.599314142,0.780335933,0.599314142,
+0,0,0,-3.93848515,0,0,0,-2.25634153,0,-0.780335933,-0.599314142,0.780335933,0.599314142,0.780335933,0.599314142,-0.780335933,-0.599314142,
+0,0,0,0,-3.93848515,0,0,0,-2.25634153,-0.780335933,-0.599314142,0.780335933,0.599314142,-0.780335933,-0.599314142,0.780335933,0.599314142,
+-0.26575698,-3.49418055,0,0,0,-3.88216043,0,0,0,-1.38139383,-2.47288528,-1.38139383,-2.47288528,-1.38139383,-2.47288528,-1.38139383,-2.47288528,
+0,0,-2.25634153,0,0,0,-3.02562938,0,0,-1.03641022,-0.99951947,-1.03641022,-0.99951947,1.03641022,0.99951947,1.03641022,0.99951947,
+0,0,0,-2.25634153,0,0,0,-3.02562938,0,-1.03641022,-0.99951947,1.03641022,0.99951947,1.03641022,0.99951947,-1.03641022,-0.99951947,
+0,0,0,0,-2.25634153,0,0,0,-3.02562938,-1.03641022,-0.99951947,1.03641022,0.99951947,-1.03641022,-0.99951947,1.03641022,0.99951947,
+-0.0909339466,-0.994581408,-0.780335933,-0.780335933,-0.780335933,-1.38139383,-1.03641022,-1.03641022,-1.03641022,-3.00123345,-2.29509192,-0.0552940511,-0.512094198,-0.0552940511,-0.512094198,-0.0552940511,-0.512094198,
+-0.147466802,-1.89398582,-0.599314142,-0.599314142,-0.599314142,-2.47288528,-0.99951947,-0.99951947,-0.99951947,-2.29509192,-2.99604761,-0.512094198,-1.30279378,-0.512094198,-1.30279378,-0.512094198,-1.30279378,
+-0.0909339466,-0.994581408,-0.780335933,0.780335933,0.780335933,-1.38139383,-1.03641022,1.03641022,1.03641022,-0.0552940511,-0.512094198,-3.00123345,-2.29509192,-0.0552940511,-0.512094198,-0.0552940511,-0.512094198,
+-0.147466802,-1.89398582,-0.599314142,0.599314142,0.599314142,-2.47288528,-0.99951947,0.99951947,0.99951947,-0.512094198,-1.30279378,-2.29509192,-2.99604761,-0.512094198,-1.30279378,-0.512094198,-1.30279378,
+-0.0909339466,-0.994581408,0.780335933,0.780335933,-0.780335933,-1.38139383,1.03641022,1.03641022,-1.03641022,-0.0552940511,-0.512094198,-0.0552940511,-0.512094198,-3.00123345,-2.29509192,-0.0552940511,-0.512094198,
+-0.147466802,-1.89398582,0.599314142,0.599314142,-0.599314142,-2.47288528,0.99951947,0.99951947,-0.99951947,-0.512094198,-1.30279378,-0.512094198,-1.30279378,-2.29509192,-2.99604761,-0.512094198,-1.30279378,
+-0.0909339466,-0.994581408,0.780335933,-0.780335933,0.780335933,-1.38139383,1.03641022,-1.03641022,1.03641022,-0.0552940511,-0.512094198,-0.0552940511,-0.512094198,-0.0552940511,-0.512094198,-3.00123345,-2.29509192,
+-0.147466802,-1.89398582,0.599314142,-0.599314142,0.599314142,-2.47288528,0.99951947,-0.99951947,0.99951947,-0.512094198,-1.30279378,-0.512094198,-1.30279378,-0.512094198,-1.30279378,-2.29509192,-2.99604761;
+Eigen::MatrixXd overlap_ref=Eigen::MatrixXd::Zero(17,17);
+ 
+AOOverlap aoverlap;
+aoverlap.Fill(aobasis);
+  
+  ConvergenceAcc d;
+  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,0.0,0,4,0);
+  d.setOverlap(&aoverlap.Matrix(),1e-8);
+  d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
+ Eigen::MatrixXd dmat=orb.DensityMatrixGroundState();
+ ERIs eris;
+ eris.Initialize(aobasis,aobasis,Eigen::MatrixXd::Identity(17,17));
+ eris.CalculateEXX(dmat);
+ Eigen::MatrixXd eri_d=eris.getERIs();
+ eris.CalculateEXX(orb.MOCoefficients().block(0,0,17,4),dmat);
+ Eigen::MatrixXd eri_mo=eris.getERIs();
+ 
+ bool compare_eris=eri_mo.isApprox(eri_d,1e-4);
+ BOOST_CHECK_EQUAL(compare_eris, 1);
+ 
+}
+
 
 
 

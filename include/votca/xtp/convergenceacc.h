@@ -73,7 +73,7 @@ public:
   
    }
    
-   void setOverlap(Eigen::MatrixXd* _S, double etol);
+   void setOverlap(const Eigen::MatrixXd* _S, double etol);
    
    
    double getDIIsError(){return _diiserror;}
@@ -99,7 +99,7 @@ public:
     bool                                _usemixing;
      
     ctp::Logger *                       _pLog;
-    Eigen::MatrixXd* S;
+    const Eigen::MatrixXd* S;
     
     bool                              _usediis;
     bool                              _noisy;

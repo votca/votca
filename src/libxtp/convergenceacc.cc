@@ -23,7 +23,7 @@
 
 namespace votca { namespace xtp {
   
-  void ConvergenceAcc::setOverlap(Eigen::MatrixXd* _S,double etol){
+  void ConvergenceAcc::setOverlap(const Eigen::MatrixXd* _S,double etol){
        S=_S;
        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es((*S));
        if(_noisy){

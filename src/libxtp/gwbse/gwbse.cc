@@ -722,8 +722,8 @@ bool GWBSE::Evaluate() {
  
 
   Eigen::MatrixXd Coulomb_sqrtInv=_auxcoulomb.Pseudo_InvSqrt_GWBSE(_auxoverlap,1e-8);
-    _auxoverlap.Matrix().resize(0, 0);
-    _auxcoulomb.Matrix().resize(0,0);
+    _auxoverlap.FreeMatrix();
+    _auxcoulomb.FreeMatrix();
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculated Matrix Sqrt of Aux Coulomb Matrix"
       << flush;

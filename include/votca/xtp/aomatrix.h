@@ -73,14 +73,17 @@ namespace votca { namespace xtp {
         
 	// Access functions
 	int Dimension(){ return  _aomatrix.rows();};
-	 Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &Matrix(){ return _aomatrix ;};
-
+	 
         const  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &Matrix() const{ return _aomatrix ;};
         
         void Fill(const AOBasis& aobasis, vec r = vec(0,0,0) , AOBasis* ecp = NULL );
         
         // matrix print 
         void Print( std::string _ident);
+        
+        void FreeMatrix(){
+            _aomatrix.resize(0,0);
+        }
         // integrate F
         static std::vector<double> XIntegrate( int _n, double _T );
         // block fill prototype
@@ -113,8 +116,7 @@ namespace votca { namespace xtp {
         // block fill prototype
       
         
-        
-        void Cleanup();
+        void FreeMatrix();
     protected:
         std::vector<Eigen::MatrixXd > _aomatrix; 
         virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col) {} ;
