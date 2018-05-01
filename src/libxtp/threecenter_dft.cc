@@ -37,7 +37,7 @@ namespace votca {
 
       }
       #pragma omp parallel for schedule(dynamic)
-      for (unsigned _is = _dftbasis.getNumofShells()-1; _is >=0; _is--) {
+      for (int _is = _dftbasis.getNumofShells()-1; _is >=0; _is--) {
         const Eigen::MatrixXd V=V_sqrtm1;
         const AOShell* _dftshell = _dftbasis.getShell(_is);
         std::vector< Eigen::MatrixXd > block;
