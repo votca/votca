@@ -59,6 +59,13 @@
 
 namespace votca {
     namespace xtp {
+        #if defined(MKL)
+        const bool XTP_USE_MKL=true;
+#else
+        const bool XTP_USE_MKL=false;
+#endif
+       
+        
         
 
  typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, Eigen::Dynamic> MatrixXfd;

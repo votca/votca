@@ -618,6 +618,16 @@ bool GWBSE::Evaluate() {
                                    << flush;
   }
 #endif
+  
+  if(XTP_USE_MKL){
+     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                                 << " Using MKL overload for Eigen "<< flush;
+  }else{
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                                 << " Using native Eigen implementation, no BLAS overload "<< flush;
+  }
+  
+  
   /* check which QC program was used for the DFT run
    * -> implicit info about MO coefficient storage order
    */

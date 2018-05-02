@@ -696,6 +696,13 @@ namespace votca {
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using " << omp_get_max_threads() << " threads" << flush;
 
 #endif
+      if(XTP_USE_MKL){
+     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                                 << " Using MKL overload for Eigen "<< flush;
+  }else{
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                                 << " Using native Eigen implementation, no BLAS overload " << flush;
+  }
 
       if (_atoms.size() == 0) {
         _atoms = _orbitals->QMAtoms();
