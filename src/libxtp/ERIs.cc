@@ -74,21 +74,21 @@ void ERIs::CalculateERIs(const Eigen::MatrixXd &DMAT) {
 
     void ERIs::CalculateEXX(const Eigen::MatrixXd &DMAT) {
       
-      unsigned nthreads = 1;
+      int nthreads = 1;
 #ifdef _OPENMP
       nthreads = omp_get_max_threads();
 #endif
       std::vector<Eigen::MatrixXd >EXX_thread;
 
-      for (unsigned i = 0; i < nthreads; ++i) {
+      for (int i = 0; i < nthreads; ++i) {
         Eigen::MatrixXd thread = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
         EXX_thread.push_back(thread);
       }
       
       #pragma omp parallel for
-      for (unsigned thread = 0; thread < nthreads; ++thread) {
+      for (int thread = 0; thread < nthreads; ++thread) {
         Eigen::MatrixXd D=DMAT;
-        for(unsigned i=thread;i<_threecenter.getSize();i+= nthreads){
+        for(int i=thread;i<_threecenter.getSize();i+= nthreads){
           const Eigen::MatrixXd threecenter = _threecenter.getDatamatrix(i).FullMatrix();
           EXX_thread[thread]+=threecenter*D*threecenter;
         }
@@ -104,21 +104,21 @@ void ERIs::CalculateERIs(const Eigen::MatrixXd &DMAT) {
     
      void ERIs::CalculateEXX(const Eigen::Block<Eigen::MatrixXd>& occMos,const Eigen::MatrixXd  &DMAT) {
       
-      unsigned nthreads = 1;
+      int nthreads = 1;
 #ifdef _OPENMP
       nthreads = omp_get_max_threads();
 #endif
       std::vector<Eigen::MatrixXd >EXX_thread;
 
-      for (unsigned i = 0; i < nthreads; ++i) {
+      for (int i = 0; i < nthreads; ++i) {
         Eigen::MatrixXd thread = Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows());
         EXX_thread.push_back(thread);
       }
       
       #pragma omp parallel for
-      for (unsigned thread = 0; thread < nthreads; ++thread) {
+      for (int thread = 0; thread < nthreads; ++thread) {
         Eigen::MatrixXd occ=occMos;
-        for(unsigned i=thread;i<_threecenter.getSize();i+= nthreads){
+        for(int i=thread;i<_threecenter.getSize();i+= nthreads){
           const Eigen::MatrixXd TCxMOs_T = occ.transpose()*_threecenter.getDatamatrix(i).FullMatrix();
           EXX_thread[thread]+=TCxMOs_T.transpose()*TCxMOs_T;
         }
@@ -177,7 +177,7 @@ void ERIs::CalculateERIs(const Eigen::MatrixXd &DMAT) {
         
         
         void ERIs::CalculateEXX_4c_small_molecule(const Eigen::MatrixXd &DMAT) {
-            unsigned nthreads = 1;
+            int nthreads = 1;
             #ifdef _OPENMP
                   nthreads = omp_get_max_threads();
             #endif  
@@ -185,7 +185,7 @@ void ERIs::CalculateERIs(const Eigen::MatrixXd &DMAT) {
           
           std::vector<Eigen::MatrixXd >EXX_thread;
 
-      for (unsigned i = 0; i < nthreads; ++i) {
+      for (int i = 0; i < nthreads; ++i) {
         Eigen::MatrixXd thread = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
         EXX_thread.push_back(thread);
       }
@@ -195,7 +195,7 @@ void ERIs::CalculateERIs(const Eigen::MatrixXd &DMAT) {
           int dftBasisSize = DMAT.rows();
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
         #pragma omp parallel for
-        for (unsigned thread = 0; thread < nthreads; ++thread) {
+        for (int thread = 0; thread < nthreads; ++thread) {
           for (int _i = thread; _i < dftBasisSize; _i+= nthreads) {
             int sum_i = (_i*(_i+1))/2;
             for (int _j = _i; _j < dftBasisSize; _j++) {
@@ -247,8 +247,8 @@ void ERIs::CalculateERIs(const Eigen::MatrixXd &DMAT) {
         
         
         void ERIs::printERIs(){
-          for (unsigned i=0; i< _ERIs.cols(); i++){
-                for (unsigned j=0; j< _ERIs.rows();j++){
+          for (int i=0; i< _ERIs.cols(); i++){
+                for (int j=0; j< _ERIs.rows();j++){
                     cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<endl;
                 }
             }
