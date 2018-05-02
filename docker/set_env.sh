@@ -113,7 +113,7 @@ elif [[ $ENV -eq 16 ]]; then
   [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */tools || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # minimal build is only for tools, csg and superbuild
 elif [[ $ENV -eq 17 ]]; then
   # module build
-  export MODULE_BULID=ON
+  export MODULE_BUILD=ON
   export TESTING=ON
   export TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)"
   [[ $CC = clang ]] && export SKIP=yes # no new info when using clang

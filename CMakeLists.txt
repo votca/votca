@@ -46,6 +46,7 @@ endif()
 ########################################################################
 option(MODULE_BUILD "Build VOTCA modules one-by-one" OFF)
 if(MODULE_BUILD)
+  message(STATUS "Doing Module build")
   include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/BuildModules.cmake)
   return()
 endif()
