@@ -56,7 +56,7 @@ namespace votca {
         class TCMatrix_dft : public TCMatrix {
         public:
 
-            void Fill(AOBasis& auxbasis, AOBasis& dftbasis);
+            void Fill(AOBasis& auxbasis, AOBasis& dftbasis,const Eigen::MatrixXd& V_sqrtm1);
 
             int getSize() {
                 return _matrix.size();
@@ -76,7 +76,7 @@ namespace votca {
         private:
             std::vector< Symmetric_Matrix > _matrix;
 
-            void FillBlock(const AOShell* _auxshell, const AOBasis& dftbasis);
+            void FillBlock(std::vector< Eigen::MatrixXd >& _block,int shellindex, const AOBasis& dftbasis, const AOBasis& auxbasis);
 
         };
 

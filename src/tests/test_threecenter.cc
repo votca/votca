@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(threecenter_dft) {
   AOBasis aobasis;
   aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
   TCMatrix_dft threec;
-  threec.Fill(aobasis,aobasis);
+  threec.Fill(aobasis,aobasis,Eigen::MatrixXd::Identity(aobasis.AOBasisSize(),aobasis.AOBasisSize()));
   
   
   

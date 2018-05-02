@@ -112,7 +112,7 @@ namespace votca {
             return;
         }
 
-        void AOMatrix3D::Cleanup() {
+        void AOMatrix3D::FreeMatrix() {
 
             for (int i = 0; i < 3; i++) {
 

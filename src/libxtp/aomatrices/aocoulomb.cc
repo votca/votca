@@ -1162,7 +1162,7 @@ if (_lmax_col > 5) {
     return Vm1*Ssqrt;
     }
     
-     Eigen::MatrixXd AOCoulomb::Pseudo_Invert(double etol){
+     Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt(double etol){
        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_aomatrix);
        Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
       removedfunctions=0;
@@ -1170,7 +1170,7 @@ if (_lmax_col > 5) {
           if(es.eigenvalues()(i)<etol){
               removedfunctions++;
           }else{
-              diagonal(i)=1.0/(es.eigenvalues()(i));
+              diagonal(i)=1.0/std::sqrt(es.eigenvalues()(i));
           }
       }
            

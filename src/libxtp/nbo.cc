@@ -28,10 +28,10 @@ void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,const  Eigen::MatrixXd &
     AOOverlap _overlap;
     // Fill overlap
     _overlap.Fill(basis);
-  
-    Eigen::MatrixXd P=_overlap.Matrix()*_dmat*_overlap.Matrix();
+    Eigen::MatrixXd S=_overlap.Matrix();
+    Eigen::MatrixXd P=S*_dmat*S;
    
-    Eigen::MatrixXd PNAOs_trans=IntercenterOrthogonalisation(P,_overlap.Matrix(), _atomlist ,bs);
+    Eigen::MatrixXd PNAOs_trans=IntercenterOrthogonalisation(P,S, _atomlist ,bs);
     
     cout<<P<<endl;
     cout<<_overlap.Matrix()<<endl;

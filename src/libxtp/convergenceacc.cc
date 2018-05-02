@@ -23,7 +23,7 @@
 
 namespace votca { namespace xtp {
   
-  void ConvergenceAcc::setOverlap(Eigen::MatrixXd* _S,double etol){
+  void ConvergenceAcc::setOverlap(const Eigen::MatrixXd* _S,double etol){
        S=_S;
        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es((*S));
        if(_noisy){
@@ -132,10 +132,13 @@ namespace votca { namespace xtp {
     
     mix.Updatemix(dmat,dmatout);
     if(_diiserror>_adiis_start ||!_usediis || diis_error ||_mathist.size()<=2 ){
+      _usemixing=true;
       dmatout=mix.MixDmat(dmat,dmatout);
       if(_noisy){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using Mixing with alpha="<<mix.getAlpha() << flush;
         }
+    }else{
+      _usemixing=false;
     }
     return dmatout;
     }

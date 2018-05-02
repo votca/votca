@@ -618,6 +618,16 @@ bool GWBSE::Evaluate() {
                                    << flush;
   }
 #endif
+  
+  if(XTP_USE_MKL){
+     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                                 << " Using MKL overload for Eigen "<< flush;
+  }else{
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                                 << " Using native Eigen implementation, no BLAS overload "<< flush;
+  }
+  
+  
   /* check which QC program was used for the DFT run
    * -> implicit info about MO coefficient storage order
    */
@@ -722,8 +732,8 @@ bool GWBSE::Evaluate() {
  
 
   Eigen::MatrixXd Coulomb_sqrtInv=_auxcoulomb.Pseudo_InvSqrt_GWBSE(_auxoverlap,1e-8);
-    _auxoverlap.Matrix().resize(0, 0);
-    _auxcoulomb.Matrix().resize(0,0);
+    _auxoverlap.FreeMatrix();
+    _auxcoulomb.FreeMatrix();
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Calculated Matrix Sqrt of Aux Coulomb Matrix"
       << flush;

@@ -28,7 +28,6 @@
 #include <boost/filesystem.hpp>
 #include <votca/xtp/aomatrix.h>
 
-
 #include <votca/xtp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/constants.h>
@@ -244,6 +243,15 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix " << flush;
           }
           Eigen::MatrixXd H = H0 + _ERIs.getERIs() + _orbitals->AOVxc();
+          if(_ScaHFX>0){
+              if (_with_RI) {
+             _ERIs.CalculateEXX(_dftAOdmat);
+           } else {
+             _ERIs.CalculateEXX_4c_small_molecule(_dftAOdmat);
+           }
+            H-=0.5*_ScaHFX*_ERIs.getEXX();
+          }
+          
           conv_accelerator.SolveFockmatrix(MOEnergies, MOCoeff, H);
           _dftAOdmat = _orbitals->DensityMatrixGroundState();
 
@@ -285,12 +293,28 @@ namespace votca {
           vxcenergy = _gridIntegration.getTotEcontribution();
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix " << flush;
         }
-        //cout<<_dftAOdmat<<endl;
+        
         Eigen::MatrixXd H = H0 + _ERIs.getERIs() + _orbitals->AOVxc();
-        //cout<<H0<<endl;
-        //exit(0);
+        if(_ScaHFX>0){
+              if (_with_RI) {
+                if(conv_accelerator.getUseMixing()){
+                  _ERIs.CalculateEXX(_dftAOdmat); 
+                }else{
+                  Eigen::Block<Eigen::MatrixXd> occblock=MOCoeff.block(0,0,MOEnergies.rows(), _numofelectrons / 2);
+                  _ERIs.CalculateEXX(occblock,_dftAOdmat); 
+                }
+           } else {
+             _ERIs.CalculateEXX_4c_small_molecule(_dftAOdmat);
+           } 
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Electron exchange matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2() << flush;
+            H-=0.5*_ScaHFX*_ERIs.getEXX();
+          }
+      
         double Eone = _dftAOdmat.cwiseProduct(H0).sum();
         double Etwo = 0.5 * _ERIs.getERIsenergy() + vxcenergy;
+        if(_ScaHFX>0){
+          Etwo-=_ScaHFX/4*_ERIs.getEXXsenergy();
+        }
         double totenergy = Eone + E_nucnuc + Etwo;
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Single particle energy " << std::setprecision(12) << Eone << flush;
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Two particle energy " << std::setprecision(12) << Etwo << flush;
@@ -346,14 +370,11 @@ namespace votca {
 
     void DFTENGINE::SetupInvariantMatrices() {
       
-        // DFT AOOverlap matrix
         _dftAOoverlap.Fill(_dftbasis);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftAOoverlap.Dimension() << flush;
 
       _dftAOkinetic.Fill(_dftbasis);
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Kinetic energy matrix of dimension: " << _dftAOkinetic.Dimension() << flush;
-
-
 
       _dftAOESP.Fillnucpotential(_dftbasis, _atoms);
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT nuclear potential matrix of dimension: " << _dftAOESP.Dimension() << flush;
@@ -395,9 +416,6 @@ namespace votca {
         }
       }
 
-
-
-
       if (_with_ecp) {
         _dftAOECP.Fill(_dftbasis, vec(0, 0, 0), &_ecp);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOECP.Dimension() << flush;
@@ -408,19 +426,13 @@ namespace votca {
       conv_accelerator.setLogger(_pLog);
       conv_accelerator.setOverlap(&_dftAOoverlap.Matrix(),1e-8);
 
-
       if (_with_RI) {
 
         AOCoulomb _auxAOcoulomb;
-
         _auxAOcoulomb.Fill(_auxbasis);
-
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
-
-        Eigen::MatrixXd Inverse=_auxAOcoulomb.Pseudo_Invert(1e-8);
-
+        Eigen::MatrixXd Inverse=_auxAOcoulomb.Pseudo_InvSqrt(1e-8);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inverted AUX Coulomb matrix, removed " << _auxAOcoulomb.Removedfunctions() << " functions from aux basis" << flush;
-
 
         // prepare invariant part of electron repulsion integrals
         _ERIs.Initialize(_dftbasis, _auxbasis,Inverse );
@@ -542,7 +554,7 @@ namespace votca {
         Convergence_beta.SolveFockmatrix(MOEnergies_beta, MOCoeff_beta,H0);
         Eigen::MatrixXd dftAOdmat_beta = Convergence_beta.DensityMatrix(MOCoeff_beta, MOEnergies_beta);
 
-        bool _HF = false;
+        
         double energyold = 0;
         int maxiter = 50;
         for (int this_iter = 0; this_iter < maxiter; this_iter++) {
@@ -551,17 +563,7 @@ namespace votca {
           double E_two_beta = ERIs_atom.getERIs().cwiseProduct(dftAOdmat_beta).sum();
           Eigen::MatrixXd H_alpha = H0 + ERIs_atom.getERIs();
           Eigen::MatrixXd H_beta = H0 + ERIs_atom.getERIs();
-          if (_HF) {
-            ERIs_atom.CalculateEXX_4c_small_molecule(dftAOdmat_alpha);
-            double E_exx_alpha = -ERIs_atom.getEXX().cwiseProduct(dftAOdmat_alpha).sum();
-            H_alpha -= ERIs_atom.getEXX();
-            E_two_alpha += E_exx_alpha;
-            ERIs_atom.CalculateEXX_4c_small_molecule(dftAOdmat_beta);
-            double E_exx_beta = -ERIs_atom.getEXX().cwiseProduct(dftAOdmat_beta).sum();
-            H_beta -= ERIs_atom.getEXX();
-            E_two_beta += E_exx_beta;
-
-          } else {
+          
             Eigen::MatrixXd AOVxc_alpha = gridIntegration.IntegrateVXC(dftAOdmat_alpha);
             double E_vxc_alpha = gridIntegration.getTotEcontribution();
 
@@ -571,9 +573,19 @@ namespace votca {
             H_beta += AOVxc_beta;
             E_two_alpha += E_vxc_alpha;
             E_two_beta += E_vxc_beta;
-
-          }
           
+            if(_ScaHFX>0){
+              ERIs_atom.CalculateEXX_4c_small_molecule(dftAOdmat_alpha);
+              double E_exx_alpha =-0.5*_ScaHFX*ERIs_atom.getEXX().cwiseProduct(dftAOdmat_alpha).sum();
+              H_alpha -=_ScaHFX* ERIs_atom.getEXX();
+              E_two_alpha += E_exx_alpha;
+              ERIs_atom.CalculateEXX_4c_small_molecule(dftAOdmat_beta);
+              double E_exx_beta =-0.5*_ScaHFX*ERIs_atom.getEXX().cwiseProduct(dftAOdmat_beta).sum();
+              H_beta -=_ScaHFX*ERIs_atom.getEXX();
+              E_two_beta += E_exx_beta;
+            }
+
+         
           double E_one_alpha = dftAOdmat_alpha.cwiseProduct(H0).sum();
           double E_one_beta = dftAOdmat_beta.cwiseProduct(H0).sum();        
           double E_alpha = E_one_alpha + E_two_alpha;
@@ -647,6 +659,7 @@ namespace votca {
       }
       _orbitals->setDFTbasis(_dftbasis_name);
       _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
+      _orbitals->setScaHFX(_ScaHFX);
       if (_with_ecp) {
         _orbitals->setECP(_ecp_name);
       }
@@ -683,6 +696,13 @@ namespace votca {
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using " << omp_get_max_threads() << " threads" << flush;
 
 #endif
+      if(XTP_USE_MKL){
+     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                                 << " Using MKL overload for Eigen "<< flush;
+  }else{
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                                 << " Using native Eigen implementation, no BLAS overload " << flush;
+  }
 
       if (_atoms.size() == 0) {
         _atoms = _orbitals->QMAtoms();
@@ -719,6 +739,11 @@ namespace votca {
       // setup numerical integration grid
       _gridIntegration.GridSetup(_grid_name, _atoms, &_dftbasis);
       _gridIntegration.setXCfunctional(_xc_functional_name);
+      
+      _ScaHFX=_gridIntegration.getExactExchange(_xc_functional_name);
+      if(_ScaHFX>0){
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using hybrid functional with alpha="<<_ScaHFX<< flush;
+      }
 
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup numerical integration grid " << _grid_name << " for vxc functional "
               << _xc_functional_name << " with " << _gridIntegration.getGridSize() << " points" << flush;
