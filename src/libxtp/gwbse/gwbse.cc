@@ -178,7 +178,7 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
   if (ignore_corelevels) {
     if(!_orbitals->hasECP()){
       BasisSet basis;
-      basis.LoadBasisSet("ecp");//
+      basis.LoadPseudopotentialSet("corelevels");//
       unsigned coreElectrons=0;
       for(const auto& atom:_orbitals->QMAtoms()){
         coreElectrons+=basis.getElement(atom->getType())->getNcore();   
