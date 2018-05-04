@@ -59,7 +59,7 @@
       </mdrun>
       <imc>
         <topol>sim1/topol.tpr</topol>
-        <traj>sim1/traj1.trr</traj>
+        <traj>sim1/traj.trr</traj>
       </imc>
       <mdp>
         <sim0>grompp0.mdp</sim0>
