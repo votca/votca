@@ -111,7 +111,7 @@ cache:
 
 compiler:
   - gcc
-  - clang
+#  - clang
 
 notifications:
   email:
