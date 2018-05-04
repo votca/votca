@@ -20,7 +20,6 @@
 #ifndef _VOTCA_XTP_PPM_H
 #define _VOTCA_XTP_PPM_H
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/basisset.h>
 #include <votca/xtp/rpa.h>
 
 

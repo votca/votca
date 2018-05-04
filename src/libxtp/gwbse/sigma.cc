@@ -131,10 +131,10 @@ namespace votca {
 
     void Sigma::X_offdiag(const TCMatrix_gwbse& _Mmn){
       unsigned _gwsize = _Mmn.getAuxDimension();
-      #pragma omp parallel for
+      #pragma omp parallel for schedule(dynamic)
       for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
-        const MatrixXfd & Mmn1 = _Mmn[ _gw_level1 + _qpmin ];
-        for (unsigned _gw_level2 = 0; _gw_level2 < _gw_level1; _gw_level2++) {
+        const MatrixXfd Mmn1 = _Mmn[ _gw_level1 + _qpmin ].block(0,0,_gwsize,_homo+1);
+        for (unsigned _gw_level2 = _gw_level1+1; _gw_level2 < _qptotal; _gw_level2++) {
           const MatrixXfd & Mmn2 = _Mmn[ _gw_level2 + _qpmin ];
           double sigma_x = 0;
           for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
@@ -154,20 +154,20 @@ namespace votca {
             
       #pragma omp parallel 
       {
-
+        unsigned lumo=_homo+1;
         const unsigned _levelsum = _Mmn.get_ntot(); // total number of bands
         const unsigned _gwsize = _Mmn.getAuxDimension(); // size of the GW basis
         const double fourpi = 4*boost::math::constants::pi<double>();
         const Eigen::VectorXd gwa_energies=_gwa_energies;
         const Eigen::VectorXd ppm_weight=ppm.getPpm_weight();
         const Eigen::VectorXd ppm_freqs=ppm.getPpm_freq();
-        #pragma omp for schedule(dynamic,4)
+        #pragma omp for schedule(dynamic)
         for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
-        const double qpmin1 = gwa_energies(_gw_level1 + _qpmin);
         const MatrixXfd Mmn1=_Mmn[ _gw_level1 + _qpmin ];
         for (unsigned _gw_level2 = _gw_level1+1; _gw_level2 < _qptotal; _gw_level2++) {
+          const MatrixXfd Mmn1xMmn2=_Mmn[ _gw_level2 + _qpmin ].cwiseProduct(Mmn1);   
+          const double qpmin1 = gwa_energies(_gw_level1 + _qpmin);
           const double qpmin2 = gwa_energies(_gw_level2 + _qpmin);
-          const MatrixXfd Mmn1xMmn2=_Mmn[ _gw_level2 + _qpmin ].cwiseProduct(Mmn1);       
           double sigma_c=0;
           for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
             // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
@@ -176,23 +176,36 @@ namespace votca {
             }
             const double ppm_freq= ppm_freqs(_i_gw);
             const double fac =0.25* ppm_weight(_i_gw) * ppm_freq;
-            // loop over all screening levels
-            for (unsigned _i = 0; _i < _levelsum; _i++) {              
-              double gwa_energy = gwa_energies(_i);
-              if (_i > _homo){
-                gwa_energy+=ppm_freq;
-              }else{
-                gwa_energy-=ppm_freq;
-              } 
+            // loop over occ screening levels
+            for (unsigned _i = 0; _i <lumo; _i++) {              
+              double gwa_energy = gwa_energies(_i)-ppm_freq;
               // energy denominator
               const double _denom1 = qpmin1 - gwa_energy;
-              const double _denom2 = qpmin2 - gwa_energy;
-
               double _stab = 1.0;
               if (std::abs(_denom1) < 0.25) {
                   _stab = 0.5 * (1.0 - std::cos(fourpi * _denom1));
               }
               double factor =fac* _stab / _denom1; //Hartree
+              const double _denom2 = qpmin2 - gwa_energy;
+              _stab = 1.0;
+              if (std::abs(_denom2) < 0.25) {
+                  _stab = 0.5 * (1.0 - std::cos(fourpi * _denom2));
+              }
+              factor+=fac* _stab / _denom2; //Hartree}
+              sigma_c+=Mmn1xMmn2(_i_gw,_i)*factor;
+            }
+            // loop over unocc screening levels
+            for (unsigned _i = lumo; _i < _levelsum; _i++) {              
+              double gwa_energy = gwa_energies(_i)+ppm_freq;
+              // energy denominator
+              const double _denom1 = qpmin1 - gwa_energy;
+              
+              double _stab = 1.0;
+              if (std::abs(_denom1) < 0.25) {
+                  _stab = 0.5 * (1.0 - std::cos(fourpi * _denom1));
+              }
+              double factor =fac* _stab / _denom1; //Hartree
+              const double _denom2 = qpmin2 - gwa_energy;
               _stab = 1.0;
               if (std::abs(_denom2) < 0.25) {
                   _stab = 0.5 * (1.0 - std::cos(fourpi * _denom2));

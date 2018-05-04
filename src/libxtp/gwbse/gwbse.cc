@@ -101,7 +101,8 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
 
   _homo = _orbitals->getNumberOfElectrons() - 1;  // indexed from 0
 
- 
+ _reset_3c=options->ifExistsReturnElseReturnDefault<int>(
+      key + ".rebuild_threecenter_freq", 5);
 
   _rpamin = 0;  // lowest index occ min(gwa%mmin, screening%nsum_low) ! always 1
   if (ranges == "default" || ranges == "full") {
@@ -209,12 +210,6 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
   if (_bse_cmax > _qpmax) _qpmax = _bse_cmax;
 
   _qptotal = _qpmax - _qpmin + 1;
-  
-  
-  
- 
-
-
  
 
   // information for hybrid DFT
@@ -763,21 +758,14 @@ bool GWBSE::Evaluate() {
   PPM ppm;
   RPA rpa;
   rpa.configure(_homo,_rpamin,_rpamax);
-  
-  
   Eigen::VectorXd screen_r=Eigen::VectorXd::Zero(1);
   screen_r(0)=ppm.getScreening_r();
   Eigen::VectorXd screen_i=Eigen::VectorXd::Zero(1);
   screen_i(0)=ppm.getScreening_i();
-  
   rpa.setScreening(screen_r,screen_i);
-    // for use in RPA, make a copy of _Mmn with dimensions
-  // (1:HOMO)(gwabasissize,LUMO:nmax)
-  rpa.prepare_threecenters(Mmn);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                 << " Prepared Mmn_beta for RPA  " << flush;
+                                 << " Prepared RPA  " << flush;
   
- 
   Sigma sigma=Sigma(_pLog);
   sigma.configure(_homo,_qpmin,_qpmax,_g_sc_max_iterations,_g_sc_limit);
   sigma.setDFTdata(_orbitals->getScaHFX(),&vxc,&_orbitals->MOEnergies());
@@ -818,9 +806,15 @@ bool GWBSE::Evaluate() {
                                      << gw_iteration + 1 << " of "
                                      << _gw_sc_max_iterations << flush;
     }
-
+    
+    
+    if(gw_iteration%_reset_3c==0 && gw_iteration!=0){
+      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Rebuilding Mmn_beta (3-center-repulsion x orbitals)" << flush;
+       Mmn.Fill(auxbasis, dftbasis, _orbitals->MOCoefficients());
+       Mmn.MultiplyLeftWithAuxMatrix(Coulomb_sqrtInv);
+    }
   
-    rpa.calculate_epsilon(gwa_energies);
+    rpa.calculate_epsilon(gwa_energies,Mmn);
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                    << " Calculated epsilon via RPA  " << flush;
     ppm.PPM_construct_parameters(rpa);
@@ -828,13 +822,8 @@ bool GWBSE::Evaluate() {
                                    << " Constructed PPM parameters  " << flush;
     
     
-    if(gw_iteration==0){
+    
     Mmn.MultiplyLeftWithAuxMatrix(ppm.getPpm_phi_T());
-    }else{
-      Mmn.Fill(auxbasis, dftbasis, _orbitals->MOCoefficients());
-      Eigen::MatrixXd coulomb_x_ppm=ppm.getPpm_phi_T()*Coulomb_sqrtInv;
-      Mmn.MultiplyLeftWithAuxMatrix(coulomb_x_ppm);
-    }
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Prepared threecenters for sigma  " << flush;
 

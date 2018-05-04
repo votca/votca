@@ -175,7 +175,6 @@ ctp::Logger *_log;
   Interaction Analyze_eh_interaction(const std::string& spin);
   Eigen::VectorXd Analyze_IndividualContribution(const std::string& spin, const MatrixXfd& H);
 
-
   Population FragmentPopulations(const std::string& spin, const AOBasis& dftbasis);
 
   std::vector<Eigen::MatrixXd > CalcFreeTransition_Dipoles(const AOBasis& dftbasis);

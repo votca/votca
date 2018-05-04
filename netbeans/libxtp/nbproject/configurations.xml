@@ -941,6 +941,8 @@
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/linalg.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/mixing.cc" ex="false" tool="1" flavor2="0">
@@ -1093,8 +1095,6 @@
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_eris.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_fragment.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1733,6 +1733,8 @@
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/linalg.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/mixing.cc" ex="false" tool="1" flavor2="0">
@@ -1885,8 +1887,6 @@
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_eris.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_fragment.cc" ex="false" tool="1" flavor2="0">
       </item>
