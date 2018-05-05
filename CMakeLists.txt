@@ -14,7 +14,7 @@ set(CMAKE_SIZEOF_VOID_P 8)
 include(GNUInstallDirs)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
-	message(FATAL_ERROR "In-source build not supported with UseLATEX.cmake\nDo 'rm CMakeCache.txt; mkdir build; cd build; cmake ..' instead")
+  message(FATAL_ERROR "In-source build not supported with UseLATEX.cmake\nDo 'rm CMakeCache.txt; mkdir build; cd build; cmake ..' instead")
 endif()
 
 ########################################################################
@@ -97,6 +97,12 @@ add_custom_command(OUTPUT manual.pdf
 )
 add_custom_target(csg-manual_pdf ALL DEPENDS manual.pdf)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/manual.pdf DESTINATION ${CMAKE_INSTALL_DOCDIR})
+
+option(ENABLE_TESTING "Test if manual exists" OFF)
+if(ENABLE_TESTING)
+  add_test(ManualExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_CURRENT_BINARY_DIR}/manual.pdf
+           -P ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/FileExists.cmake) 
+endif(ENABLE_TESTING)
 
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
   include(FeatureSummary)
