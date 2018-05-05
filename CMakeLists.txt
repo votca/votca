@@ -100,6 +100,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/manual.pdf DESTINATION ${CMAKE_INSTALL
 
 option(ENABLE_TESTING "Test if manual exists" OFF)
 if(ENABLE_TESTING)
+  enable_testing()
   add_test(ManualExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_CURRENT_BINARY_DIR}/manual.pdf
            -P ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/FileExists.cmake) 
 endif(ENABLE_TESTING)
