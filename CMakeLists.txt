@@ -30,6 +30,8 @@ if(ENABLE_TESTING)
   enable_testing()
 endif()
 
+option(BUILD_SHARED_LIBS "Build shared libs" ON)
+
 option(ENABLE_COVERAGE_BUILD "Do a coverage build" OFF)
 if(ENABLE_COVERAGE_BUILD)
     message(STATUS "Enabling coverage build")
@@ -37,6 +39,16 @@ if(ENABLE_COVERAGE_BUILD)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -O0")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
+endif()
+
+########################################################################
+#Find external packages
+########################################################################
+option(MODULE_BUILD "Build VOTCA modules one-by-one" OFF)
+if(MODULE_BUILD)
+  message(STATUS "Doing Module build")
+  include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/BuildModules.cmake)
+  return()
 endif()
 
 ########################################################################
