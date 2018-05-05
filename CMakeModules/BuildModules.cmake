@@ -34,7 +34,6 @@ foreach(VOTCA_MODULE ${ENABLED_VOTCA_PACKAGES})
     set(VOTCA_DEPENDS csg)
   elseif(VOTCA_MODULE STREQUAL "csg-manual")
     set(VOTCA_DEPENDS csg)
-    set(VOTCA_TEST_ENABLED 0) # manual has no tests
   elseif(VOTCA_MODULE STREQUAL "csg-tutorials")
     set(VOTCA_DEPENDS csg)
     list(REMOVE_ITEM VOTCA_EXTRA_OPTS -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS})
@@ -72,3 +71,11 @@ foreach(VOTCA_MODULE ${ENABLED_VOTCA_PACKAGES})
      ${VOTCA_EXTRA_OPTS}
   )
 endforeach()
+
+if(ENABLE_TESTING)
+  add_test(IncludeExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_INSTALL_FULL_INCLUDEDIR}/votca
+           -P ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/FileExists.cmake) 
+endif(ENABLE_TESTING)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/../README.md DESTINATION ${CMAKE_INSTALL_DOCDIR})
+
+
