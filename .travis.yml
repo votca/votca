@@ -61,7 +61,7 @@ script:
  - if [[ ! ${SKIP} ]]; then
      travis_retry docker build  --build-arg TESTOPTS="${TESTOPTS}" --build-arg COVERAGE=${COVERAGE}
                  --build-arg CC=${CC} --build-arg CXX=${CXX} --build-arg CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                 --build-arg CXXFLAGS="-Wall ${WERROR:+-Werror}"
+                 --build-arg CXXFLAGS="-Wall ${WERROR:+-Werror}" --build-arg MODULE_BUILD=${MODULE_BUILD}
                  --build-arg TESTING=${TESTING} --build-arg DOXYGEN=${DOXYGEN} --build-arg MINIMAL=${MINIMAL}
                  --build-arg CI=${CI} --build-arg TRAVIS=${TRAVIS} --build-arg TRAVIS_OS_NAME=${DISTRO:-fedora}
                  --build-arg TRAVIS_BRANCH=${TRAVIS_BRANCH} --build-arg TRAVIS_JOB_NUMBER=${TRAVIS_JOB_NUMBER}
