@@ -58,9 +58,9 @@ RUN if [ ! ${MODULE_BUILD} ]; then \
     fi
 RUN if [ ${COVERAGE} ]; then \
   if [ ${CC} = clang ]; then \
-    codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" -x "llvm-cov gcov" 2>&1 | grep -v "arcs to entry block"; \
+    codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" -x "llvm-cov gcov" 2>&1 | grep -v "arcs.*block"; \
   else \
-    codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" | grep -v "arcs to entry block"; \
+    codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" | grep -v "arcs.*block"; \
   fi; \
 fi
 USER root
