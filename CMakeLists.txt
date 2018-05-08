@@ -112,21 +112,3 @@ add_subdirectory(share/format)
 
 include(FeatureSummary)
 feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
-
-string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
-message(STATUS "<<< Build configuration >>>
-   Build type       ${CMAKE_BUILD_TYPE}
-   Install path     ${CMAKE_INSTALL_PREFIX}
-   Compilers and Flags:
-   C++ Compiler     ${CMAKE_CXX_COMPILER}
-       Type         ${CMAKE_CXX_COMPILER_ID}
-   C++ Flags        ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}")
-if(CMAKE_EXE_LINKER_FLAGS)
-   message(STATUS "Linker flags:
-   Executable      ${CMAKE_EXE_LINKER_FLAGS}")
-endif()
-if(BUILD_SHARED_LIBS)
-  message(STATUS "Shared libraries  ${CMAKE_SHARED_LINKER_FLAGS}")
-else()
-  message(STATUS "Static libraries  ${CMAKE_STATIC_LINKER_FLAGS}")
-endif()
