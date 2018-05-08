@@ -348,7 +348,6 @@ void JobWriter::mps_single(ctp::Topology *top) {
     ofs << "<jobs>" << endl;
     
     int jobCount = 0;    
-    std::vector<ctp::Segment*>::iterator sit1;
     
     // DEFINE PAIR CHARGE STATES
     std::vector<std::string > states;

@@ -613,7 +613,6 @@ void Md2QmEngine::PrintInfo() {
     vector<CTP::Molecule*>::iterator mit;
     vector<CTP::Segment*>::iterator sit;
     vector<CTP::Fragment*>::iterator fit;
-    vector<CTP::Atom*>::iterator ait;
 
     cout << "Summary ~~~~~"
             "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
