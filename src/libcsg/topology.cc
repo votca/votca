@@ -158,7 +158,6 @@ void Topology::CopyTopologyData(Topology *top)
     BeadContainer::iterator it_bead;
     ResidueContainer::iterator it_res;
     MoleculeContainer::iterator it_mol;
-    InteractionContainer::iterator it_ia;
 
     _bc->setBox(top->getBox());
     _time = top->_time;
@@ -189,6 +188,7 @@ void Topology::CopyTopologyData(Topology *top)
         }
     }
     // TODO: copy interactions
+    //InteractionContainer::iterator it_ia;
     //for(it_ia=top->_interaction.begin();it_ia=top->_interactions.end();++it_ia) {
 
     //}
