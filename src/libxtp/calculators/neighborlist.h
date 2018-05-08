@@ -231,7 +231,7 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
                         cutoff = _cutoffs.at(seg1->getName())
                                          .at(seg2->getName());
                     }
-                    catch (std::out_of_range) {
+                    catch (std::out_of_range&) {
                         std::string pairstring=seg1->getName()+"/"+seg2->getName();
                         if(std::find(skippedpairs.begin(), skippedpairs.end(), pairstring) == skippedpairs.end()){
                             skippedpairs.push_back(pairstring);
