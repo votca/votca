@@ -102,7 +102,7 @@ namespace votca { namespace xtp {
     // make a pointer to the eigen matrix so that LAPACK understands it
     float * pA = A.data();   
     float * pV = V.data();
-    float * pE =E.data();
+    float * pE = E.data();
     // call LAPACK via C interface
     info = LAPACKE_ssyevx( LAPACK_COL_MAJOR, 'V', 'I', 'U', n, pA , lda, vl, vu, il, iu, abstol, &m, pE, pV, n,  ifail );
 

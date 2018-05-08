@@ -28,9 +28,8 @@
 
 #include <votca/xtp/aomatrix.h>
 #include <fstream>
-#include <boost/timer/timer.hpp>
 #include <boost/algorithm/string.hpp>
-
+#include <cmath>
 #include <iterator>
 #include <string>
 

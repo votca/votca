@@ -61,10 +61,9 @@ namespace votca {
 
             void prepare_threecenters(const TCMatrix_gwbse& _Mmn_full);
 
-            void calculate_epsilon(const Eigen::VectorXd& qp_energies);
+            void calculate_epsilon(const Eigen::VectorXd& qp_energies,const TCMatrix_gwbse& _Mmn_full);
 
             void FreeMatrices() {
-                _Mmn_RPA.Cleanup();
                 for (Eigen::MatrixXd & matrix:_epsilon_r){
                     matrix.resize(0,0);
                 }
@@ -75,7 +74,6 @@ namespace votca {
             }
 
         private:
-            TCMatrix_gwbse _Mmn_RPA;
 
             unsigned _homo; // HOMO index
             unsigned _rpamin;

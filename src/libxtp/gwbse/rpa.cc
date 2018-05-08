@@ -28,40 +28,36 @@
 namespace votca {
   namespace xtp {
 
- void RPA::calculate_epsilon(const Eigen::VectorXd& qp_energies) {
-
+ void RPA::calculate_epsilon(const Eigen::VectorXd& qp_energies,const TCMatrix_gwbse& _Mmn_full) {
+const int _size = _Mmn_full.getAuxDimension(); // size of gwbasis
             for (auto& matrix : _epsilon_r) {
-                matrix = Eigen::MatrixXd::Identity(_Mmn_RPA.getAuxDimension(), _Mmn_RPA.getAuxDimension());
+                matrix = Eigen::MatrixXd::Identity(_size,_size);
             }
             for (auto& matrix : _epsilon_i) {
-                matrix = Eigen::MatrixXd::Identity(_Mmn_RPA.getAuxDimension(), _Mmn_RPA.getAuxDimension());
+                matrix = Eigen::MatrixXd::Identity(_size,_size);
             }
 
-
-            const int _size = _Mmn_RPA.getAuxDimension(); // size of gwbasis
-            const int index_n = _Mmn_RPA.get_nmin();
-            const int index_m = _Mmn_RPA.get_mmin();
+            int lumo=_homo+1;
+            int n_occ=lumo-_rpamin;
+            int n_unocc=_rpamax-_homo;
+            
 #pragma omp parallel for 
-            for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
-                const double _qp_energy_m = qp_energies(_m_level + index_m);
+            for (int _m_level = 0; _m_level < n_occ; _m_level++) {
+                const double _qp_energy_m = qp_energies(_m_level + _rpamin);
 #if (GWBSE_DOUBLE)
-                const Eigen::MatrixXd& Mmn_RPA = _Mmn_RPA[ _m_level ];
+                const Eigen::MatrixXd Mmn_RPA = _Mmn_full[ _m_level ].block(0, n_occ, _size, n_unocc);
 #else
-                const Eigen::MatrixXd Mmn_RPA = _Mmn_RPA[ _m_level ].cast<double>();
-                
+                const Eigen::MatrixXd Mmn_RPA = _Mmn_full[ _m_level ].block(0, n_occ, _size, n_unocc).cast<double>();       
 #endif
-                
                 Eigen::MatrixXd tempresult=Eigen::MatrixXd::Zero(_size,_size);
-                Eigen::MatrixXd denom_x_Mmn_RPA=Eigen::MatrixXd::Zero(_Mmn_RPA.get_ntot(),_size);
+                Eigen::MatrixXd denom_x_Mmn_RPA=Eigen::MatrixXd::Zero(n_unocc,_size);
                 for (int i = 0; i < screen_freq_i.size(); ++i) {   
                     // a temporary matrix, that will get filled in empty levels loop
                     const double screen_freq2 = screen_freq_i(i) * screen_freq_i(i);
-                    for (int _n_level = 0; _n_level < _Mmn_RPA.get_ntot(); _n_level++) {
-                        const double _deltaE = qp_energies(_n_level + index_n) - _qp_energy_m;
-                        const double denom=4.0 * _deltaE / (_deltaE * _deltaE + screen_freq2); 
-                        for (int aux=0;aux<_size;++aux){
-                          denom_x_Mmn_RPA(_n_level,aux) =Mmn_RPA(aux,_n_level)*denom; //hartree    
-                        }
+                    for (int _n_level = 0; _n_level < n_unocc; _n_level++) {
+                        const double _deltaE = qp_energies(_n_level + lumo) - _qp_energy_m;
+                        const double denom=4.0 * _deltaE / (_deltaE * _deltaE + screen_freq2);  
+                        denom_x_Mmn_RPA.row(_n_level)=Mmn_RPA.col(_n_level)*denom; //hartree    
                     }
                     tempresult.noalias() = Mmn_RPA * denom_x_Mmn_RPA;
 
@@ -73,12 +69,10 @@ namespace votca {
 
                 //real parts
                 for (int i = 0; i < screen_freq_r.size(); ++i) {
-                    for (int _n_level = 0;  _n_level < _Mmn_RPA.get_ntot(); _n_level++) {
-                        const double _deltaE = qp_energies(_n_level + index_n) - _qp_energy_m;
+                    for (int _n_level = 0;  _n_level < n_unocc; _n_level++) {
+                        const double _deltaE = qp_energies(_n_level + lumo) - _qp_energy_m;
                         const double denom=2.0 * (1.0 / (_deltaE - screen_freq_r(i)) + 1.0 / (_deltaE + screen_freq_r(i)));
-                        for (int aux=0;aux<_size;++aux){
-                          denom_x_Mmn_RPA(_n_level,aux) =Mmn_RPA(aux,_n_level)*denom; //hartree    
-                        }
+                        denom_x_Mmn_RPA.row(_n_level)=Mmn_RPA.col(_n_level)*denom; //hartree    
                     }
                     tempresult.noalias() = Mmn_RPA * denom_x_Mmn_RPA;
 
@@ -94,23 +88,6 @@ namespace votca {
             return;
         }
 
-    void RPA::prepare_threecenters(const TCMatrix_gwbse& _Mmn_full) {
-      //TODO maybe remove and instead not make a copy but use full Mmn with restricted indices
-      _Mmn_RPA.Initialize(_Mmn_full.getAuxDimension(), _rpamin, _homo, _homo + 1,
-              _rpamax);
-      unsigned start = _Mmn_RPA.get_nmin() - _Mmn_full.get_nmin();
-      // loop over m-levels in _Mmn_RPA
-#pragma omp parallel for 
-      for (int _m_level = 0; _m_level < _Mmn_RPA.get_mtot(); _m_level++) {
-        // copy to _Mmn_RPA
-        _Mmn_RPA[ _m_level ] = _Mmn_full[ _m_level ].block(0, start, _Mmn_full.getAuxDimension(), _Mmn_RPA.get_ntot());
-      }// loop m-levels
-      return;
-    }
-
-
-
-
-
+   
   }
 };

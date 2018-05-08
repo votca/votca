@@ -115,13 +115,23 @@ namespace votca {
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
       Eigen::VectorXd eigenvalues;
       Eigen::MatrixXd eigenvectors;
+      
       CTP_LOG(ctp::logDEBUG, *_log)
         << ctp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
-      linalg_eigenvalues(_ApB, eigenvalues, eigenvectors ,_bse_nmax);
+      bool success_diag=linalg_eigenvalues(_ApB, eigenvalues, eigenvectors ,_bse_nmax);
+      if(!success_diag){
+        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Could not solve problem" << flush;
+      }else{
+        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
+      }
       _ApB.resize(0,0);
-      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
-      _bse_singlet_energies = eigenvalues.cwiseSqrt().cast<real_gwbse>();
-
+      eigenvalues=eigenvalues.cwiseSqrt();
+     
+      #if (GWBSE_DOUBLE)
+      _bse_singlet_energies =eigenvalues;
+#else
+      _bse_singlet_energies = eigenvalues.cast<float>(); 
+#endif
 
       // reconstruct real eigenvectors X_l = 1/2 [sqrt(eps_l) (L^T)^-1 + 1/sqrt(eps_l)L ] R_l
       //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 - 1/sqrt(eps_l)L ] R_l
@@ -139,8 +149,13 @@ namespace votca {
         //real_gwbse sqrt_eval = sqrt(_eigenvalues(_i));
         double sqrt_eval = sqrt(_bse_singlet_energies(_i));
         // get l-th reduced EV
-        _bse_singlet_coefficients.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT + _AmB) * eigenvectors.col(_i)).cast<real_gwbse>();
-        _bse_singlet_coefficients_AR.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT - _AmB) * eigenvectors.col(_i)).cast<real_gwbse>();
+          #if (GWBSE_DOUBLE)
+        _bse_singlet_coefficients.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT + _AmB) * eigenvectors.col(_i));
+        _bse_singlet_coefficients_AR.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT - _AmB) * eigenvectors.col(_i));
+#else
+        _bse_singlet_coefficients.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT + _AmB) * eigenvectors.col(_i)).cast<float>();
+        _bse_singlet_coefficients_AR.col(_i) = (0.5 / sqrt_eval * (_bse_singlet_energies(_i) * LmT - _AmB) * eigenvectors.col(_i)).cast<float>();
+#endif
 
       }
 
