@@ -329,7 +329,7 @@ void CsgREupdate::REUpdateLamda() {
     votca::tools::linalg_cholesky_solve(dlamda, HS_, minusDS);
 
   }
-  catch (std::runtime_error){
+  catch (std::runtime_error&){
 
     /* then can not use Newton-Raphson
      * steepest descent with line-search may be helpful
@@ -720,7 +720,7 @@ PotentialInfo::PotentialInfo(int index, bool bonded_, int vec_pos_,
           // setting extrapolation region based on CG rdf
           rmin = new_min;
 
-        }catch(std::runtime_error)
+        }catch(std::runtime_error&)
           {
             throw std::runtime_error("Missing file for CG rdf for the interaction "
                                      + potentialName + "."

@@ -128,12 +128,12 @@ void XMLTopologyReader::ParseMolecule(Property &p, string molname, int nbeads, i
             int resid;
             try {
                 atmass = it->getAttribute<double>("mass");
-            } catch (runtime_error) {
+            } catch (runtime_error&) {
                 atmass = 1.0;
             }
             try {
                 atq = it->getAttribute<double>("q");
-            } catch (runtime_error) {
+            } catch (runtime_error&) {
                 atq = 0.0;
             }
             try {
@@ -142,7 +142,7 @@ void XMLTopologyReader::ParseMolecule(Property &p, string molname, int nbeads, i
                     throw std::invalid_argument(
                         "Residue count for beads in topology.molecules.molecule has to be greater than zero");
                 }
-            } catch (runtime_error) {
+            } catch (runtime_error&) {
                 resid = -1;
             }
             if (!xmlResidues.empty()) {
