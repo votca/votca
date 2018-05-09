@@ -89,6 +89,7 @@ elif [[ $ENV -eq 13 ]]; then
   export TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)"
   export CMAKE_BUILD_TYPE=None
   export COVERAGE=yes
+  export SKIP=yes # bug #67
   [[ $CC = clang ]] && export SKIP=yes # no new info when using clang
 elif [[ $ENV -eq 14 ]]; then
   # Build with no cmake_build_type and coverage on, second half of the tests
@@ -97,6 +98,7 @@ elif [[ $ENV -eq 14 ]]; then
   export TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re"
   export CMAKE_BUILD_TYPE=None
   export COVERAGE=yes
+  export SKIP=yes # bug #67
   [[ $CC = clang ]] && export SKIP=yes # no new info when using clang
 elif [[ $ENV -eq 15 ]]; then
   # Build with doxygen
