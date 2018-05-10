@@ -483,7 +483,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
               order.push_back(_cur_pos + 6);
               order.push_back(_cur_pos + 4);
               order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 0);
+              order.push_back(_cur_pos + 1);
               order.push_back(_cur_pos + 3);
               order.push_back(_cur_pos + 5);
               order.push_back(_cur_pos + 7);
