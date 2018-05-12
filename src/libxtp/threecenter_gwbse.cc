@@ -61,23 +61,25 @@ namespace votca {
      * Coulomb interaction. 
      */
     void TCMatrix_gwbse::MultiplyLeftWithAuxMatrix(const Eigen::MatrixXd& matrix) {
-#if (GWBSE_DOUBLE)
-      const Eigen::MatrixXd& m = matrix;
-#else
-      const Eigen::MatrixXf m = matrix.cast<float>();
-#endif
+
 #pragma omp parallel for
-      for (int _i_occ = 0; _i_occ < this->get_mtot(); _i_occ++) {
-        _matrix[ _i_occ ] = m * _matrix[ _i_occ ];
+      for (int _i_occ = 0; _i_occ < _mtotal; _i_occ++) {
+    #if (GWBSE_DOUBLE)
+       _matrix[ _i_occ ] = matrix * _matrix[ _i_occ ];
+#else  
+       const Eigen::MatrixXd m = _matrix[ _i_occ ].cast<double>();
+       _matrix[ _i_occ ]=(matrix*m).cast<float>();
+#endif
+       
       }
       return;
-    } // TCMatrix::Symmetrize
+    } 
 
     void TCMatrix_gwbse::Print(string _ident) {
 
-      for (int k = 0; k < this->_mtotal; k++) {
+      for (int k = 0; k < _mtotal; k++) {
         for (int i = 0; i < this->getAuxDimension(); i++) {
-          for (int j = 0; j< this->_ntotal; j++) {
+          for (int j = 0; j< _ntotal; j++) {
             cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
           }
         }

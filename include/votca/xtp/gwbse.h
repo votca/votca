@@ -100,7 +100,7 @@ class GWBSE {
   // basis sets
   std::string _auxbasis_name;
   std::string _dftbasis_name;
-  
+  int _reset_3c; //how often the 3c integrals in iterate shoudl be rebuild
   double _shift;  // pre-shift of DFT energies
   unsigned _homo;   // HOMO index
   unsigned _rpamin;
