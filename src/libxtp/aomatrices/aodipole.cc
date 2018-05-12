@@ -30,7 +30,7 @@ namespace votca { namespace xtp {
     
 
     
-    void AODipole::FillBlock( std::vector< Eigen::Block<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp) {
+    void AODipole::FillBlock( std::vector< Eigen::Block<Eigen::MatrixXd> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col) {
 
         
         /* Calculating the AO matrix of the gradient operator requires 

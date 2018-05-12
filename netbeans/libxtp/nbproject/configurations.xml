@@ -180,6 +180,7 @@
         <itemPath>../../src/libxtp/aomatrices/aomatrix.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aomomentum.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aooverlap.cc</itemPath>
+        <itemPath>../../src/libxtp/aomatrices/aoplanewave.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aoquadrupole_potential.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="Applications" projectFiles="true">
@@ -681,6 +682,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aooverlap.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/aomatrices/aoplanewave.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1468,6 +1474,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aooverlap.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/aomatrices/aoplanewave.cc"
             ex="false"
             tool="1"
             flavor2="0">

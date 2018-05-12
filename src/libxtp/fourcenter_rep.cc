@@ -45,7 +45,7 @@ namespace votca {
          */
 
       
-        bool FCMatrix::FillFourCenterRepBlock(Eigen::MatrixXd& _subvector,
+        bool FCMatrix::FillFourCenterRepBlock(tensor4d& block,
                 const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3, const AOShell* _shell_4) {
 
             const double pi = boost::math::constants::pi<double>();
@@ -238,11 +238,8 @@ namespace votca {
             int _ncombined_ab = AOSuperMatrix::getBlockSize(_lmax_alpha+_lmax_beta);
             int _ncombined_cd = AOSuperMatrix::getBlockSize(_lmax_gamma+_lmax_delta);
             
-            typedef boost::multi_array<double, 3> ma_type;
-            typedef boost::multi_array<double, 4> ma4_type; //////////////////
-            typedef boost::multi_array_types::extent_range range;
-            typedef ma_type::index index;
-            ma_type::extent_gen extents;
+            tensor3d::extent_gen extents;
+            tensor4d::extent_gen extents4;
 
             double _dist_AB = (_pos_alpha - _pos_beta) * (_pos_alpha - _pos_beta);
             double _dist_CD = (_pos_gamma - _pos_delta) * (_pos_gamma - _pos_delta);
@@ -331,12 +328,12 @@ namespace votca {
 
 
 
-            ma_type R_temp;
+            tensor3d R_temp;
             R_temp.resize(extents[ range(0, _ncombined_ab ) ][ range(0, _ncombined_cd ) ][ range(0, _mmax+1)]);
             //initialize to zero
-            for (index i = 0; i != _ncombined_ab; ++i) {
-              for (index j = 0; j != _ncombined_cd; ++j) {
-                for (index k = 0; k != _mmax+1; ++k) {
+            for (index3d i = 0; i != _ncombined_ab; ++i) {
+              for (index3d j = 0; j != _ncombined_cd; ++j) {
+                for (index3d k = 0; k != _mmax+1; ++k) {
 
                   R_temp[i][j][k] = 0.0;
 
@@ -345,12 +342,12 @@ namespace votca {
              }
 
 
-            ma_type R;
+            tensor3d R;
             R.resize(extents[ range(0, _ncombined_ab ) ][ range(0, _nbeta ) ][ range(0, _ncombined_cd)]);
             //initialize to zero
-            for (index i = 0; i != _ncombined_ab; ++i) {
-              for (index j = 0; j != _nbeta; ++j) {
-                for (index k = 0; k != _ncombined_cd; ++k) {
+            for (index3d i = 0; i != _ncombined_ab; ++i) {
+              for (index3d j = 0; j != _nbeta; ++j) {
+                for (index3d k = 0; k != _ncombined_cd; ++k) {
 
                   R[i][j][k] = 0.0;
 
@@ -359,7 +356,7 @@ namespace votca {
             }
             
 
-            const vector<double> _FmT=AOMatrix::XIntegrate(_mmax+1, _T);
+            const vector<double> _FmT=AOMatrix<double>::XIntegrate(_mmax+1, _T);
 
             double exp_AB = exp( -2. * _decay_alpha * _decay_beta * rzeta * _dist_AB );
             double exp_CD = exp( -2.* _decay_gamma * _decay_delta * reta * _dist_CD );
@@ -650,8 +647,8 @@ for (int l = 4; l < _lmax_gamma_delta+1; l++) {
 
 //copy into new array for 3D use.
 
-for (index i = 0; i < n_orbitals[_lmax_alpha_beta]; ++i) {
-  for (index k = 0; k < n_orbitals[_lmax_gamma_delta]; ++k) {
+for (index3d i = 0; i < n_orbitals[_lmax_alpha_beta]; ++i) {
+  for (index3d k = 0; k < n_orbitals[_lmax_gamma_delta]; ++k) {
 
     R[i][0][k] = R_temp[i][k][0];
 
@@ -768,7 +765,7 @@ for (int l = 4; l < _lmax_beta+1; l++) {
             const Eigen::MatrixXd _trafo_alpha = AOSuperMatrix::getTrafo(*italpha);
             const Eigen::MatrixXd _trafo_beta = AOSuperMatrix::getTrafo(*itbeta);
 
-            ma_type R3_ab_sph;
+            tensor3d R3_ab_sph;
             R3_ab_sph.resize(extents[ _ntrafo_alpha ][ _ntrafo_beta ][ _ncombined_cd ]);
 
             for (int _i_beta = 0; _i_beta < _ntrafo_beta; _i_beta++) {
@@ -800,13 +797,13 @@ for (int l = 4; l < _lmax_beta+1; l++) {
 
 
 //copy into new 4D array.
-ma4_type R4_ab_sph;
-R4_ab_sph.resize(extents[ _ntrafo_alpha ][ _ntrafo_beta ][ _ncombined_cd ][ _ndelta ]);
+tensor4d R4_ab_sph;
+R4_ab_sph.resize(extents4[ _ntrafo_alpha ][ _ntrafo_beta ][ _ncombined_cd ][ _ndelta ]);
 //ma4_type R4_ab_sph(boost::extents[ _ntrafo_alpha ][ _ntrafo_beta ][ _ncombined_cd ][ _ndelta ]);
 
-for (index j = 0; j < _ntrafo_alpha; ++j) {
-  for (index k = 0; k < _ntrafo_beta; ++k) {
-    for (index i = 0; i < _ncombined_cd; ++i) {
+for (index3d j = 0; j < _ntrafo_alpha; ++j) {
+  for (index3d k = 0; k < _ntrafo_beta; ++k) {
+    for (index3d i = 0; i < _ncombined_cd; ++i) {
 
       R4_ab_sph[j][k][i][0] = R3_ab_sph[j][k][i];
 
@@ -924,14 +921,16 @@ for (int l = 4; l < _lmax_delta+1; l++) {
             const Eigen::MatrixXd _trafo_delta = AOSuperMatrix::getTrafo(*itdelta);
 
 
-            ma4_type R4_sph;
-            R4_sph.resize(extents[ _ntrafo_alpha ][ _ntrafo_beta ][ _ntrafo_gamma ][ _ntrafo_delta ]);
-
-            for (int _i_delta = 0; _i_delta < _ntrafo_delta; _i_delta++) {
-              for (int _i_gamma = 0; _i_gamma < _ntrafo_gamma; _i_gamma++) {
-
-                for (int _j = 0; _j < _ntrafo_alpha; _j++) {
+            tensor4d R4_sph;
+            R4_sph.resize(extents4[ _ntrafo_alpha ][ _ntrafo_beta ][ _ntrafo_gamma ][ _ntrafo_delta ]);
+            
+            for (int _j = 0; _j < _ntrafo_alpha; _j++) {
                   for (int _k = 0; _k < _ntrafo_beta; _k++) {
+                        for (int _i_gamma = 0; _i_gamma < _ntrafo_gamma; _i_gamma++) {
+                            for (int _i_delta = 0; _i_delta < _ntrafo_delta; _i_delta++) {
+             
+
+                
 
                     R4_sph[ _j ][ _k ][ _i_gamma ][ _i_delta ] = 0.0;
 
@@ -950,54 +949,43 @@ for (int l = 4; l < _lmax_delta+1; l++) {
               }
             }
 
-
-
+            
+            
 
             int NumFunc_alpha = _shell_alpha->getNumFunc();
             int NumFunc_beta = _shell_beta->getNumFunc();
             int NumFunc_gamma = _shell_gamma->getNumFunc();
             int NumFunc_delta = _shell_delta->getNumFunc();
-            int _index_ab;
-            int _index_cd;
+            
+            
+            for (int i_alpha = 0; i_alpha < NumFunc_alpha; i_alpha++) {
+                for (int i_beta = 0; i_beta < NumFunc_beta; i_beta++) {
+                  int a=i_alpha;
+                  int b=i_beta;
+                  if (alphabetaswitch) {
+                    a=i_beta;
+                    b=i_alpha;
+                  }
 
-            for (int _i_alpha = 0; _i_alpha < NumFunc_alpha; _i_alpha++) {
-              for (int _i_beta = 0; _i_beta < NumFunc_beta; _i_beta++) {
-
-                if (alphabetaswitch==true) {
-                  _index_ab = NumFunc_beta * _i_alpha + _i_beta;
-                } else {
-                  _index_ab = NumFunc_alpha * _i_beta + _i_alpha;
-                }
-
-                for (int _i_gamma = 0; _i_gamma < NumFunc_gamma; _i_gamma++) {
-                  for (int _i_delta = 0; _i_delta < NumFunc_delta; _i_delta++) {
-
-                    if (gammadeltaswitch==true) {
-                      _index_cd = NumFunc_delta * _i_gamma + _i_delta;
-                    } else {
-                      _index_cd = NumFunc_gamma * _i_delta + _i_gamma;
+                  for (int i_gamma = 0; i_gamma < NumFunc_gamma; i_gamma++) {
+                    for (int i_delta = 0; i_delta < NumFunc_delta; i_delta++) {
+                      int c=i_gamma;
+                      int d=i_delta;
+                      if (gammadeltaswitch) {
+                        c=i_delta;
+                        d=i_gamma;
+                      }
+                      if (ab_cd_switch) {
+                        block[c][d][a][b] += R4_sph[_offset_alpha + i_alpha][_offset_beta + i_beta][_offset_gamma + i_gamma][_offset_delta + i_delta];
+                      } else {
+                        block[a][b][c][d] += R4_sph[_offset_alpha + i_alpha][_offset_beta + i_beta][_offset_gamma + i_gamma][_offset_delta + i_delta];
+                      }
                     }
-
-                    if (ab_cd_switch==true) {
-                      _subvector(_index_cd, _index_ab) +=
-                        R4_sph[_offset_alpha + _i_alpha][_offset_beta + _i_beta][_offset_gamma + _i_gamma][_offset_delta + _i_delta];
-                    } else {
-                      _subvector(_index_ab, _index_cd) +=
-                        R4_sph[_offset_alpha + _i_alpha][_offset_beta + _i_beta][_offset_gamma + _i_gamma][_offset_delta + _i_delta];
-                    }
-
                   }
                 }
               }
-            } 
 
-
-
-
-
-            
-            
-
+           
                  } // GaussianIterator itdelta
               } // GaussianIterator itgamma
            } // GaussianIterator itbeta

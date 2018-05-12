@@ -686,11 +686,11 @@ void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const A
             } else if ((r >= PruningIntervals[0]) && (r < PruningIntervals[1])) {
               order = _sphericalgrid.getOrderFromIndex(4);
             } else if ((r >= PruningIntervals[1]) && (r < PruningIntervals[2])) {
-              order = _sphericalgrid.getOrderFromIndex(max(maxindex - 1, 4));
+              order = _sphericalgrid.getOrderFromIndex(std::max(maxindex - 1, 4));
             } else if ((r >= PruningIntervals[2]) && (r < PruningIntervals[3])) {
               order = maxorder;
             } else {
-              order = _sphericalgrid.getOrderFromIndex(max(maxindex - 1, 1));
+              order = _sphericalgrid.getOrderFromIndex(std::max(maxindex - 1, 1));
             }
           }
 
@@ -748,19 +748,18 @@ void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const A
           } // if ( ait != bit) 
           i_b++;
         }// bit centers
-
+#pragma omp parallel for schedule(guided)
         for (unsigned i_grid = 0; i_grid < _atomgrid.size(); i_grid++) {
           // call some shit called grid_ssw0 in NWChem
           std::vector<double> _p = SSWpartition(i_grid, _atoms.size(), rq);
           // check weight sum
           double wsum = 0.0;
-          for (unsigned i = 0; i < _p.size(); i++) {
-            wsum += _p[i];
+          for (const auto&p:_p) {
+            wsum +=p;
           }
           if (wsum != 0.0) {
             // update the weight of this grid point
-            _atomgrid[i_grid].grid_weight = _atomgrid[i_grid].grid_weight * _p[i_atom] / wsum;
-            //cout << " adjusting gridpoint weight "  << endl;
+            _atomgrid[i_grid].grid_weight *= _p[i_atom] / wsum;
           } else {
             cerr << "\nSum of partition weights of grid point " << i_grid << " of atom " << i_atom << " is zero! ";
             throw std::runtime_error("\nThis should never happen!");
@@ -784,7 +783,7 @@ void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const A
       return;
     }
 
-    std::vector<double> NumericalIntegration::SSWpartition(int igrid, int ncenters, std::vector< std::vector<double> >& rq) {
+    std::vector<double> NumericalIntegration::SSWpartition(int igrid, int ncenters,const std::vector< std::vector<double> >& rq) {
       const double ass = 0.725;
       // initialize partition vector to 1.0
       std::vector<double> p(ncenters, 1.0);
@@ -808,7 +807,7 @@ void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const A
               if (std::abs(mu) < leps) {
                 sk = -1.88603178008 * mu + 0.5;
               } else {
-                sk = erf1c(mu);
+                sk =erf1c(mu);
               }
               if (mu > 0.0) sk = 1.0 - sk;
               p[j] = p[j] * sk;
@@ -828,9 +827,9 @@ void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const A
     double NumericalIntegration::erfcc(double x){
         double tau = 1.0/(1.0+0.5*std::abs(x));
         return tau*exp(-x*x-1.26551223 + 1.00002368*tau + 0.37409196*tau*tau 
-        + 0.09678418*pow(tau,3) - 0.18628806*pow(tau,4) + 0.27886807*pow(tau,5) 
-        -1.13520398*pow(tau,6) + 1.48851587*pow(tau,7)  -0.82215223*pow(tau,8) 
-        + 0.17087277*pow(tau,9));   
+        + 0.09678418*std::pow(tau,3) - 0.18628806*std::pow(tau,4) + 0.27886807*std::pow(tau,5) 
+        -1.13520398*std::pow(tau,6) + 1.48851587*std::pow(tau,7)  -0.82215223*std::pow(tau,8) 
+        + 0.17087277*std::pow(tau,9));   
     }
                                                                                                 
     }

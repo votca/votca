@@ -136,10 +136,6 @@ namespace votca {
 
             int _openmp_threads;
 
-
-            std::string _outParent;
-            std::string _outMonDir;
-
             // options
             std::string _dft_options;
             Property _dftengine_options;
@@ -192,6 +188,7 @@ namespace votca {
             AOECP _dftAOECP;
             AODipole_Potential _dftAODipole_Potential;
             AOQuadrupole_Potential _dftAOQuadrupole_Potential;
+            AOPlanewave _dftAOplanewave;
             bool _with_guess;
             string _initial_guess;
             double E_nucnuc;
@@ -227,6 +224,7 @@ namespace votca {
             bool _addexternalsites;
 
             // exchange and correlation
+            double _ScaHFX;
             std::string _xc_functional_name;
 
 

@@ -75,6 +75,16 @@ Symmetric_Matrix(size_t dim) {
         }
         return;
     }
+    
+    Eigen::MatrixXd FullMatrix(){
+        Eigen::MatrixXd result=Eigen::MatrixXd(dimension,dimension);
+        for (int i = 0; i < result.rows(); ++i) {
+            for (int j = 0; j < result.cols(); ++j) {
+                result(i, j) =this->operator ()(i,j);
+            }
+        }
+        return result;
+    }
 
     double &operator()(const size_t i,const size_t j) {
         size_t index;

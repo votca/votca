@@ -79,7 +79,7 @@ namespace votca { namespace xtp {
            void EvaluateXC(const double rho,const Eigen::Vector3d& grad_rho,double& f_xc, double& df_drho, double& df_dsigma);          
            double erf1c(double x);
            double erfcc(double x);
-           std::vector<double> SSWpartition(int igrid, int ncenters ,  std::vector< std::vector<double> >& rq );
+           std::vector<double> SSWpartition(int igrid, int ncenters ,const std::vector< std::vector<double> >& rq );
            void SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::integration_grid > >& grid);
             
             std::vector<double> Rij;

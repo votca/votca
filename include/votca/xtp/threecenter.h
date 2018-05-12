@@ -19,11 +19,11 @@
 
 #ifndef __XTP_THREECENTER__H
 #define	__XTP_THREECENTER__H
-#define BOOST_DISABLE_ASSERTS 
 
-//openmp 
+
+
 #include <votca/xtp/eigen.h>
-#include <boost/multi_array.hpp>
+#include <votca/xtp/multiarray.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/symmetric_matrix.h>
 #include <votca/xtp/orbitals.h>
@@ -46,12 +46,8 @@ namespace votca {
 
         class TCMatrix {    
         protected:
-            typedef boost::multi_array<double, 3> tensor3d;
-
-            typedef boost::multi_array_types::extent_range range; //////////////////
-            typedef tensor3d::index index; /////////////////////
-            tensor3d::extent_gen extents; /////////////////////
-
+            
+            
             bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col);
             bool FillThreeCenterOLBlock(Eigen::MatrixXd & _subvector, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col);
 
@@ -60,7 +56,7 @@ namespace votca {
         class TCMatrix_dft : public TCMatrix {
         public:
 
-            void Fill(AOBasis& auxbasis, AOBasis& dftbasis);
+            void Fill(AOBasis& auxbasis, AOBasis& dftbasis,const Eigen::MatrixXd& V_sqrtm1);
 
             int getSize() {
                 return _matrix.size();
@@ -80,7 +76,7 @@ namespace votca {
         private:
             std::vector< Symmetric_Matrix > _matrix;
 
-            void FillBlock(const AOShell* _auxshell, const AOBasis& dftbasis);
+            void FillBlock(std::vector< Eigen::MatrixXd >& _block,int shellindex, const AOBasis& dftbasis, const AOBasis& auxbasis);
 
         };
 

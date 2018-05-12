@@ -35,19 +35,18 @@
 namespace votca { namespace xtp {
 
     class FCMatrix{
-    public:
-    
-    void Fill_4c_small_molecule(const AOBasis& dftbasis); 
-    
-    const Eigen::VectorXd& get_4c_vector() { return _4c_vector;}
-    
-    bool FillFourCenterRepBlock(Eigen::MatrixXd& _subvector, const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3,const AOShell* _shell_4); 
-    
-    private:
+      
+      public:
 
+        void Fill_4c_small_molecule(const AOBasis& dftbasis); 
+
+        const Eigen::VectorXd& get_4c_vector() { return _4c_vector;}
+
+        bool FillFourCenterRepBlock(tensor4d& block, const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3,const AOShell* _shell_4);
+
+      private:
         Eigen::VectorXd _4c_vector;
     };
-
 
 }}
 

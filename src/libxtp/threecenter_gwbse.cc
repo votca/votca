@@ -126,7 +126,7 @@ namespace votca {
      */
 
     void TCMatrix_gwbse::FillBlock(std::vector< Eigen::MatrixXd >& _block, const AOShell* _auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& _dft_orbitals) {
-
+      tensor3d::extent_gen extents;
       std::vector<Eigen::MatrixXd> symmstorage;
       for (int i = 0; i < _auxshell->getNumFunc(); ++i) {
         symmstorage.push_back(Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize()));

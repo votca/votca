@@ -31,7 +31,7 @@ namespace votca { namespace xtp {
     
 
     
-    void AOQuadrupole_Potential::FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col ,AOBasis* ecp) {
+    void AOQuadrupole_Potential::FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col) {
 
         const double pi = boost::math::constants::pi<double>();
 

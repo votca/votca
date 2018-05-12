@@ -30,7 +30,7 @@ namespace votca { namespace xtp {
 
  
 
-    void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp) {
+    void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& _matrix,const  AOShell* _shell_row,const AOShell* _shell_col) {
       
             // shell info, only lmax tells how far to go
             const int _lmax_row = _shell_row->getLmax();
@@ -143,13 +143,13 @@ namespace votca { namespace xtp {
                        const double powfactor_col=itc->getPowfactor();
                       
                          
-                         ma_type _cou(boost::extents[_nrows][_ncols][_nextra]);
+                         tensor3d _cou(boost::extents[_nrows][_ncols][_nextra]);
                          
                          
                                   
-                           for (index i = 0; i != _nrows; ++i) {
-                               for (index j = 0; j != _ncols; ++j) {
-                                   for (index k = 0; k != _nextra; ++k) {
+                           for (index3d i = 0; i != _nrows; ++i) {
+                               for (index3d j = 0; j != _ncols; ++j) {
+                                   for (index3d k = 0; k != _nextra; ++k) {
                                        _cou[i][j][k] = 0.0;
                                    }
                                }
@@ -183,7 +183,7 @@ namespace votca { namespace xtp {
             const std::vector<double> _FmT=XIntegrate(_nextra, _T);
 
             // get initial data from _FmT -> s-s element
-            for (index i = 0; i != _nextra; ++i) {
+            for (index3d i = 0; i != _nextra; ++i) {
                 _cou[0][0][i] = _fak * _FmT[i];
             }
 
@@ -1162,7 +1162,7 @@ if (_lmax_col > 5) {
     return Vm1*Ssqrt;
     }
     
-     Eigen::MatrixXd AOCoulomb::Pseudo_Invert(double etol){
+     Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt(double etol){
        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_aomatrix);
        Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
       removedfunctions=0;
@@ -1170,7 +1170,7 @@ if (_lmax_col > 5) {
           if(es.eigenvalues()(i)<etol){
               removedfunctions++;
           }else{
-              diagonal(i)=1.0/(es.eigenvalues()(i));
+              diagonal(i)=1.0/std::sqrt(es.eigenvalues()(i));
           }
       }
            
