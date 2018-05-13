@@ -89,7 +89,7 @@ private:
 
 std::complex<double> ccgamma(std::complex<double> z,int OPT)
 {
-    std::complex<double> g,z0,z1;
+    std::complex<double> g,z1;
     double x0,q1,q2,x,y,th,th1,th2,g0,gr,gi,gr1,gi1;
     double na=0,t,x1=0,y1,sr,si;
     //int i,j,k;
