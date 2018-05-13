@@ -817,7 +817,6 @@ namespace votca {
       QMMInterface qmminter;
       ctp::PolarSeg nuclei = qmminter.Convert(_atoms);
 
-      ctp::PolarSeg::iterator pes;
       for (unsigned i = 0; i < nuclei.size(); ++i) {
         ctp::APolarSite* nucleus = nuclei[i];
         nucleus->setIsoP(0.0);
