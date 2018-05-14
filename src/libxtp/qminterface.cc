@@ -44,7 +44,7 @@ namespace votca {
             double pol = 0.0;
             try {
                 pol = _polar_table.at(elem);
-            } catch (out_of_range) {
+            } catch (const std::exception& out_of_range) {
                 std::cout << std::endl << "QMMInterface - no default polarizability given "
                         << "for element type '" << elem << "'. Defaulting to 1A**3" << std::flush;
                 pol = 1e-3;

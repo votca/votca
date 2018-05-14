@@ -71,6 +71,14 @@ namespace votca {
         _with_RI = false;
       }
 
+      if (!_with_RI) {
+        std::vector<std::string> choices = {"direct", "cache"};
+        _four_center_method = options->ifExistsAndinListReturnElseThrowRuntimeError<std::string>(key + ".four_center_method", choices);
+
+        _with_screening = options->ifExistsReturnElseReturnDefault<bool>(key + ".with_screening", true);
+        _screening_eps = options->ifExistsReturnElseReturnDefault<double>(key + ".screening_eps", 1e-9);
+      }
+
       if (options->exists(key + ".ecp")) {
         _ecp_name = options->get(key + ".ecp").as<string>();
         _with_ecp = true;
@@ -118,7 +126,7 @@ namespace votca {
           _maxout = false;
         }
 
-        _mixingparameter= options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.mixing",-10.0);
+        _mixingparameter = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.mixing", -10.0);
         _levelshift = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift", 0.0);
         _levelshiftend = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift_end", 0.8);
         _maxout = options->ifExistsReturnElseReturnDefault<bool>(key + ".convergence.DIIS_maxout", false);
@@ -184,10 +192,10 @@ namespace votca {
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed initial density " << flush;
 
       NuclearRepulsion();
+
       if(_with_ecp){
           H0+=_dftAOECP.Matrix();
       }
- 
 
       if (_addexternalsites) {
         H0 += _dftAOESP.getExternalpotential();
@@ -229,12 +237,8 @@ namespace votca {
         } else if (_initial_guess == "atom") {
 
           _dftAOdmat = AtomicGuess(_orbitals);
+          CalculateERIs(_dftbasis, _dftAOdmat);
 
-          if (_with_RI) {
-            _ERIs.CalculateERIs(_dftAOdmat);
-          } else {
-            _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
-          }
           if (_use_small_grid) {
             _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
@@ -276,11 +280,7 @@ namespace votca {
         CTP_LOG(ctp::logDEBUG, *_pLog) << flush;
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Iteration " << _this_iter + 1 << " of " << _max_iter << flush;
 
-        if (_with_RI) {
-          _ERIs.CalculateERIs(_dftAOdmat);
-        } else {
-          _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
-        }
+        CalculateERIs(_dftbasis, _dftAOdmat);
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2() << flush;
         double vxcenergy = 0.0;
@@ -325,7 +325,7 @@ namespace votca {
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Total Energy " << std::setprecision(12) << totenergy << flush;
 
         _dftAOdmat = conv_accelerator.Iterate(_dftAOdmat, H, MOEnergies, MOCoeff, totenergy);
-        
+
         if (tools::globals::verbose) {
           for (int i = 0; i<int(MOEnergies.size()); i++) {
             if (i <= _numofelectrons / 2 - 1) {
@@ -427,23 +427,36 @@ namespace votca {
       conv_accelerator.Configure(ConvergenceAcc::KSmode::closed, _usediis,
               true, _histlength, _maxout, _adiis_start, _diis_start, _levelshift, _levelshiftend, _numofelectrons / 2, _mixingparameter);
       conv_accelerator.setLogger(_pLog);
-      conv_accelerator.setOverlap(&_dftAOoverlap.Matrix(),1e-8);
+      conv_accelerator.setOverlap(&_dftAOoverlap.Matrix(), 1e-8);
 
       if (_with_RI) {
 
         AOCoulomb _auxAOcoulomb;
         _auxAOcoulomb.Fill(_auxbasis);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled AUX Coulomb matrix of dimension: " << _auxAOcoulomb.Dimension() << flush;
+
         Eigen::MatrixXd Inverse=_auxAOcoulomb.Pseudo_InvSqrt(1e-8);
+
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Inverted AUX Coulomb matrix, removed " << _auxAOcoulomb.Removedfunctions() << " functions from aux basis" << flush;
 
         // prepare invariant part of electron repulsion integrals
-        _ERIs.Initialize(_dftbasis, _auxbasis,Inverse );
+        _ERIs.Initialize(_dftbasis, _auxbasis, Inverse);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup invariant parts of Electron Repulsion integrals " << flush;
       } else {
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c integrals. " << flush;
-        _ERIs.Initialize_4c_small_molecule(_dftbasis);
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c integrals. " << flush;
+
+        if (_four_center_method=="cache") {
+
+          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c integrals. " << flush;
+          _ERIs.Initialize_4c_small_molecule(_dftbasis);
+          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c integrals. " << flush;
+        }
+
+        if (_with_screening && _four_center_method=="direct") {
+
+          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c diagonals. " << flush;
+          _ERIs.Initialize_4c_screening(_dftbasis, _screening_eps);
+          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c diagonals. " << flush;
+        }
       }
 
       return;
@@ -474,7 +487,7 @@ namespace votca {
         }
       }
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " " << uniqueelements.size() << " unique elements found" << flush;
-            tools::Elements _elements;
+      tools::Elements _elements;
       for (st = uniqueelements.begin(); st < uniqueelements.end(); ++st) {
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating atom density for " << (*st)->getType() << flush;
@@ -486,6 +499,7 @@ namespace votca {
         atom.push_back(*st);
 
         AOBasis dftbasis;
+
 
         NumericalIntegration gridIntegration;
         dftbasis.AOBasisFill(&_dftbasisset, atom);
@@ -534,10 +548,10 @@ namespace votca {
 
         Convergence_alpha.Configure(ConvergenceAcc::KSmode::open, true, false, 20, 0, adiisstart, diisstart, 0.1, diisstart, alpha_e, -1);
         Convergence_alpha.setLogger(_pLog);
-        Convergence_alpha.setOverlap(&dftAOoverlap.Matrix(),1e-8);      
+        Convergence_alpha.setOverlap(&dftAOoverlap.Matrix(), 1e-8);
         Convergence_beta.Configure(ConvergenceAcc::KSmode::open, true, false, 20, 0, adiisstart, diisstart, 0.1, diisstart, beta_e, -1);
         Convergence_beta.setLogger(_pLog);
-        Convergence_beta.setOverlap(&dftAOoverlap.Matrix(),1e-8);
+        Convergence_beta.setOverlap(&dftAOoverlap.Matrix(), 1e-8);
         /**** Construct initial density  ****/
 
         Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
@@ -545,7 +559,7 @@ namespace votca {
           dftAOECP.Fill(dftbasis, vec(0, 0, 0), &ecp);
           H0 += dftAOECP.Matrix();
         }
-        Convergence_alpha.SolveFockmatrix(MOEnergies_alpha, MOCoeff_alpha,H0);
+        Convergence_alpha.SolveFockmatrix(MOEnergies_alpha, MOCoeff_alpha, H0);
 
         Eigen::MatrixXd dftAOdmat_alpha = Convergence_alpha.DensityMatrix(MOCoeff_alpha, MOEnergies_alpha);
         if ((*st)->getType() == "H") {
@@ -554,7 +568,7 @@ namespace votca {
                   " gives N=" << std::setprecision(9) << dftAOdmat_alpha.cwiseProduct(dftAOoverlap.Matrix()).sum() << " electrons." << flush;
           continue;
         }
-        Convergence_beta.SolveFockmatrix(MOEnergies_beta, MOCoeff_beta,H0);
+        Convergence_beta.SolveFockmatrix(MOEnergies_beta, MOCoeff_beta, H0);
         Eigen::MatrixXd dftAOdmat_beta = Convergence_beta.DensityMatrix(MOCoeff_beta, MOEnergies_beta);
 
         
@@ -588,9 +602,8 @@ namespace votca {
               E_two_beta += E_exx_beta;
             }
 
-         
           double E_one_alpha = dftAOdmat_alpha.cwiseProduct(H0).sum();
-          double E_one_beta = dftAOdmat_beta.cwiseProduct(H0).sum();        
+          double E_one_beta = dftAOdmat_beta.cwiseProduct(H0).sum();
           double E_alpha = E_one_alpha + E_two_alpha;
           double E_beta = E_one_beta + E_two_beta;
           double totenergy = E_alpha + E_beta;
@@ -604,9 +617,9 @@ namespace votca {
                     << " Etot " << totenergy << " diise_a " << Convergence_alpha.getDIIsError() << " diise_b " << Convergence_beta.getDIIsError()
                     << " a_gap " << MOEnergies_alpha(alpha_e) - MOEnergies_alpha(alpha_e - 1) << " b_gap " << MOEnergies_beta(beta_e) - MOEnergies_beta(beta_e - 1) << flush;
           }
-          bool converged = (std::abs(totenergy - energyold) < _Econverged && 
-                            Convergence_alpha.getDIIsError() < _error_converged && 
-                            Convergence_beta.getDIIsError() < _error_converged);
+          bool converged = (std::abs(totenergy - energyold) < _Econverged &&
+                  Convergence_alpha.getDIIsError() < _error_converged &&
+                  Convergence_beta.getDIIsError() < _error_converged);
           if (converged || this_iter == maxiter - 1) {
 
             if (converged) {
@@ -614,7 +627,7 @@ namespace votca {
             } else {
               CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Not converged after " << this_iter + 1 <<
                       " iterations. Using unconverged density. DIIsError_alpha=" << Convergence_alpha.getDIIsError()
-                      << " DIIsError_beta=" << Convergence_beta.getDIIsError()<< flush;
+                      << " DIIsError_beta=" << Convergence_beta.getDIIsError() << flush;
             }
 
 
@@ -666,7 +679,7 @@ namespace votca {
       if (_with_ecp) {
         _orbitals->setECP(_ecp_name);
       }
-      if(_with_RI){
+      if (_with_RI) {
         _orbitals->setAuxbasis(_auxbasis_name);
       }
 
@@ -804,7 +817,6 @@ namespace votca {
       QMMInterface qmminter;
       ctp::PolarSeg nuclei = qmminter.Convert(_atoms);
 
-      ctp::PolarSeg::iterator pes;
       for (unsigned i = 0; i < nuclei.size(); ++i) {
         ctp::APolarSite* nucleus = nuclei[i];
         nucleus->setIsoP(0.0);
@@ -940,6 +952,16 @@ namespace votca {
       }
 
       return avdmat;
+    }
+
+    void DFTENGINE::CalculateERIs(const AOBasis& dftbasis, const Eigen::MatrixXd& DMAT) {
+
+      if (_with_RI)
+        _ERIs.CalculateERIs(_dftAOdmat);
+      else if (_four_center_method.compare("cache") == 0)
+        _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
+      else if (_four_center_method.compare("direct") == 0)
+        _ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
     }
   }
 }

@@ -35,11 +35,10 @@ namespace votca { namespace xtp {
     class ERIs{    
         
     public:
-      
-        
-        
-        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis, const Eigen::MatrixXd &inverse_Coulomb);
+
+        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis, const Eigen::MatrixXd& inverse_Coulomb);
         void Initialize_4c_small_molecule(AOBasis &_dftbasis); 
+        void Initialize_4c_screening(AOBasis &_dftbasis, double eps); // Pre-screening
       
         const Eigen::MatrixXd& getEXX() const{return _EXXs;}
         
@@ -53,28 +52,43 @@ namespace votca { namespace xtp {
         void CalculateERIs_4c_small_molecule(const Eigen::MatrixXd &DMAT); 
         void CalculateEXX_4c_small_molecule(const Eigen::MatrixXd &DMAT);
         
+        void CalculateERIs_4c_direct(const AOBasis& dftbasis, const Eigen::MatrixXd& DMAT);
+        
         int getSize1(){return _ERIs.rows();}
         int getSize2(){return _ERIs.cols();}
         
         void printERIs();
         
     private:
+
+        bool _with_screening = false;
+        double _screening_eps;
+        Eigen::MatrixXd _diagonals; // Square matrix containing <ab|ab> for all basis functions a, b
         
+        void CalculateERIsDiagonals(const AOBasis& dftbasis);
+        
+        bool CheckScreen(double eps,
+            const AOShell& shell_1, const AOShell& shell_2,
+            const AOShell& shell_3, const AOShell& shell_4);
         
         TCMatrix_dft _threecenter;
         FCMatrix _fourcenter; 
        
         Eigen::MatrixXd _ERIs;
         Eigen::MatrixXd _EXXs;
+        
         double _ERIsenergy;
         double _EXXsenergy;
+
         void CalculateEnergy(const Eigen::MatrixXd &DMAT);
         void CalculateEXXEnergy(const Eigen::MatrixXd &DMAT);
+        
+        void FillERIsBlock(Eigen::MatrixXd& ERIsCur, const Eigen::MatrixXd& DMAT,
+            const tensor4d& block,
+            const AOShell& shell_1, const AOShell& shell_2,
+            const AOShell& shell_3, const AOShell& shell_4);
+        
     };
-    
-    
-    
-    
 
 }}
 

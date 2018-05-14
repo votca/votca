@@ -114,6 +114,8 @@ namespace votca {
             std::string GetDFTBasisName() {
                 return _dftbasis_name;
             };
+            
+            void CalculateERIs(const AOBasis& dftbasis, const Eigen::MatrixXd &DMAT);
 
         private:
 
@@ -154,8 +156,13 @@ namespace votca {
 
             bool _with_ecp;
             bool _with_RI;
-            string _4cmethod;
-
+            
+            string _four_center_method; // direct | cache
+            
+            // Pre-screening
+            bool _with_screening;
+            double _screening_eps;
+            
             // numerical integration Vxc
             std::string _grid_name;
             std::string _grid_name_small;
