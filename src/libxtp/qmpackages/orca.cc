@@ -65,7 +65,6 @@ namespace votca {
             _memory = options->get(key + ".memory").as<std::string> ();
             _threads = options->get(key + ".threads").as<int> ();
             _scratch_dir = options->get(key + ".scratch").as<std::string> ();
-            _basisset_name = options->get(key + ".basisset").as<std::string> ();
             _cleanup = options->get(key + ".cleanup").as<std::string> ();
             _auxbasisset_name = options->get(key + ".auxbasisset").as<std::string> ();
 
@@ -78,7 +77,7 @@ namespace votca {
                 throw std::runtime_error("Sorry " + _name + " does not support Vxc output");
             }
 
-
+            _basisset_name = options->get(key + ".basisset").as<std::string> ();
             _write_basis_set = options->get(key + ".writebasisset").as<bool> ();
             _write_pseudopotentials = options->get(key + ".writepseudopotentials").as<bool> ();
             if ( _write_pseudopotentials )  _ecp_name = options->get(key + ".ecp").as<std::string> ();

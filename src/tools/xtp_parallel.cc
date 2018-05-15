@@ -165,6 +165,7 @@ bool XtpParallel::EvaluateOptions() {
         if ((*it).compare((iter->first).c_str()) == 0) {
           cout << " This is a CTP app" << endl;
           xtp::JobApplication::AddCalculator(ctp::JobCalculators().Create((*it).c_str()));
+            _found_calc = true;
         }
       }
     }

@@ -286,7 +286,7 @@ void AOBasis::addMultiplierShell(const std::string& start, const std::string& ta
                 if (start == "nwchem") {
                     multiplier.push_back(-1);
                     multiplier.push_back(1);
-                    multiplier.push_back(1);
+                    multiplier.push_back(-1);
                     multiplier.push_back(1);
                     multiplier.push_back(1);
                 } else if (start == "orca"){
@@ -314,11 +314,11 @@ void AOBasis::addMultiplierShell(const std::string& start, const std::string& ta
                     //Not checked yet
                     multiplier.push_back(1);
                     multiplier.push_back(1);
-                    multiplier.push_back(1);
-                    multiplier.push_back(1);
-                    multiplier.push_back(1);
-                    multiplier.push_back(1);
-                    multiplier.push_back(1);
+                    multiplier.push_back(-1);
+                    multiplier.push_back(+1);
+                    multiplier.push_back(-1);
+                    multiplier.push_back(+1);
+                    multiplier.push_back(-1);
                 } else {
                 std::cerr << "Tried to get multipliers f-functions from package " << start << ".";
                 throw std::runtime_error("Multiplication not implemented yet!");
@@ -479,7 +479,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
               order.push_back(_cur_pos + 6);
               order.push_back(_cur_pos + 4);
               order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 0);
+              order.push_back(_cur_pos + 1);
               order.push_back(_cur_pos + 3);
               order.push_back(_cur_pos + 5);
               order.push_back(_cur_pos + 7);

@@ -75,12 +75,15 @@ private:
     bool                                _is_optimization;
 
     std::string                              _cleanup;
+    
+    void WriteBasisset(ofstream& _nw_file, std::vector<QMAtom*>& qmatoms);
+    void WriteECP(ofstream& _nw_file, std::vector<QMAtom*>& qmatoms);   
 
     int NumberOfElectrons( std::string _line );
     int BasisSetSize( std::string _line );
     int EnergiesFromLog( std::string _line, ifstream inputfile );
     std::string FortranFormat( const double &number );
-    void WriteBackgroundCharges(ofstream& _com_file,std::vector<ctp::PolarSeg*> PolarSegments);
+    void WriteBackgroundCharges(ofstream& _nw_file,std::vector<ctp::PolarSeg*> PolarSegments);
 
 };
 
