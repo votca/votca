@@ -311,7 +311,6 @@ void AOBasis::addMultiplierShell(const std::string& start, const std::string& ta
                     multiplier.push_back(-1);
 
                 }else if (start == "nwchem"){
-                    //Not checked yet
                     multiplier.push_back(1);
                     multiplier.push_back(1);
                     multiplier.push_back(-1);
