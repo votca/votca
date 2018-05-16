@@ -286,7 +286,7 @@ void AOBasis::addMultiplierShell(const std::string& start, const std::string& ta
                 if (start == "nwchem") {
                     multiplier.push_back(-1);
                     multiplier.push_back(1);
-                    multiplier.push_back(-1);
+                    multiplier.push_back(1);
                     multiplier.push_back(1);
                     multiplier.push_back(1);
                 } else if (start == "orca"){

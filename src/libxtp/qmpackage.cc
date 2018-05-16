@@ -53,6 +53,9 @@ namespace votca {
             if (_orbitals->hasMOCoefficients()) {
                 _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), getPackageName(), "xtp");
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered MOs" << flush;
+                AOOverlap overlap;
+                overlap.Fill(_dftbasis);
+                cout<<_orbitals->MOCoefficients().transpose()*overlap.Matrix()*_orbitals->MOCoefficients()<<endl;
             }
 
             return;
