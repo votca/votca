@@ -10,7 +10,7 @@ WORKDIR /home/votca/votca
 RUN mkdir build
 WORKDIR build
 RUN ccache -z
-RUN cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=/usr -DLIB=lib64 ..
+RUN cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=OFF -DCMAKE_INSTALL_PREFIX=/usr -DLIB=lib64 ..
 RUN make VERBOSE=1 -j2
 RUN make install DESTDIR=${PWD}
 USER root
