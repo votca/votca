@@ -211,6 +211,10 @@ namespace votca {
             if(_write_basis_set){
               WriteBasisset(_nw_file,qmatoms);
             }
+            
+            if(_write_pseudopotentials){
+              WriteECP(_nw_file,qmatoms);
+            }
 
             
             // write charge of the molecule
@@ -1093,10 +1097,60 @@ namespace votca {
         }
          
          
-         void NWChem::WriteECP(ofstream& _com_file, std::vector<QMAtom*>& qmatoms){
+         void NWChem::WriteECP(ofstream& _nw_file, std::vector<QMAtom*>& qmatoms){
 
 
-            } 
+            std::vector< QMAtom* >::iterator it;
+
+            list<std::string> elements;
+
+            elements.push_back("H");
+            elements.push_back("He");
+
+            BasisSet ecp;
+            ecp.LoadPseudopotentialSet(_ecp_name);
+
+            CTP_LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
+            _nw_file << "ecp "<<"\n";
+           
+            for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
+                
+                    std::string element_name = (*it)->getType();
+
+                    list<std::string>::iterator ite;
+                    ite = find(elements.begin(), elements.end(), element_name);
+
+                    if (ite == elements.end()) {
+                        elements.push_back(element_name);
+
+                        Element* element = ecp.getElement(element_name);
+
+                        // element name, [possibly indeces of centers], zero to indicate the end
+                        _nw_file << element_name << " nelec " << element->getNcore() << endl;
+
+                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+
+                            Shell* shell = (*its);
+                            string shelltype=shell->getType();
+                            if(shell->getLmax()==element->getLmax()){
+                              shelltype="ul";
+                            }
+                            _nw_file<<element_name<<" "<<shelltype<<endl;
+
+                            for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                                GaussianPrimitive* gaussian = *itg;
+                                _nw_file <<"    "<< gaussian->power << " " << FortranFormat(gaussian->decay) << " " << FortranFormat(gaussian->contraction[0]) << endl;
+                            }
+                        }
+                    }
+                
+            }
+           _nw_file << "end\n";  
+            _nw_file << endl;
+            return;
+        }
+
+             
 
         std::string NWChem::FortranFormat(const double &number) {
             std::stringstream _ssnumber;

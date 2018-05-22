@@ -230,7 +230,7 @@ namespace votca {
 
                         //For Orca the order doesn't matter but let's write it in ascending order
                         // write remaining shells in ascending order s,p,d...
-                        for (int i = 0; i < element->getLmax(); i++) {
+                        for (int i = 0; i <= element->getLmax(); i++) {
                             for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                                 Shell* shell = (*its);
                                 if (shell->getLmax() == i) {
@@ -245,22 +245,6 @@ namespace votca {
                                 }
                             }
                         }
-
-                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                            Shell* shell = (*its);
-                            // shell type, number primitives, scale factor
-                            if (shell->getLmax() == element->getLmax()) {
-                                _com_file << shell->getType() << " " << shell->getSize() << endl;
-                                // _com_file << shell->getSize() << endl;
-                                int _sh_idx = 0;
-                                for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                    GaussianPrimitive* gaussian = *itg;
-                                    _sh_idx++;
-                                    _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
-                                }
-                            }
-                        }
-
                         _com_file << "end\n " << "\n" << endl;
                     }
 
