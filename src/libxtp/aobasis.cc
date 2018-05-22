@@ -284,9 +284,9 @@ void AOBasis::addMultiplierShell(const std::string& start, const std::string& ta
             }
             else if (shell_type == "D") {
                 if (start == "nwchem") {
+                    multiplier.push_back(1);
+                    multiplier.push_back(1);
                     multiplier.push_back(-1);
-                    multiplier.push_back(1);
-                    multiplier.push_back(1);
                     multiplier.push_back(1);
                     multiplier.push_back(1);
                 } else if (start == "orca"){
@@ -315,7 +315,7 @@ void AOBasis::addMultiplierShell(const std::string& start, const std::string& ta
                     multiplier.push_back(1);
                     multiplier.push_back(-1);
                     multiplier.push_back(+1);
-                    multiplier.push_back(-1);
+                    multiplier.push_back(+1);
                     multiplier.push_back(+1);
                     multiplier.push_back(-1);
                 } else {
