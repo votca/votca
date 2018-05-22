@@ -131,8 +131,9 @@ namespace votca {
          */
        
 
-        void NWChem::WriteBackgroundCharges(ofstream& _nw_file, std::vector<ctp::PolarSeg*> segments) {
+        int NWChem::WriteBackgroundCharges(ofstream& _nw_file, std::vector<ctp::PolarSeg*> segments) {
             std::vector< ctp::PolarSeg* >::iterator it;
+            int numberofcharges=0;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
             for (it = segments.begin(); it < segments.end(); it++) {
                 vector<ctp::APolarSite*> ::iterator pit;
@@ -142,7 +143,10 @@ namespace votca {
                             % ((*pit)->getPos().getY()*votca::tools::conv::nm2ang) 
                             % ((*pit)->getPos().getZ()*votca::tools::conv::nm2ang) 
                             % (*pit)->getQ00());
-                    if ((*pit)->getQ00() != 0.0) _nw_file << site << endl;
+                    if ((*pit)->getQ00() != 0.0){
+                      _nw_file << site << endl;
+                      numberofcharges++;
+                    }
 
                     if ((*pit)->getRank() > 0 || _with_polarization ) {
 
@@ -150,13 +154,14 @@ namespace votca {
                         for (const auto& mpoles:_split_multipoles){
                            string multipole=boost::str( fmt % mpoles[0] % mpoles[1] % mpoles[2] % mpoles[3]);
                             _nw_file << multipole << endl;
+                            numberofcharges++;
 
                         }
                     }
                 }
             }
             _nw_file << endl;
-            return;
+            return numberofcharges;
         }
         
 
@@ -172,11 +177,13 @@ namespace votca {
             std::string scratch_dir_backup = _scratch_dir;
             std::ofstream _nw_file;
             std::ofstream _crg_file;
+            
+            
 
-            std::string _com_file_name_full = _run_dir + "/" + _input_file_name;
+            std::string _nw_file_name_full = _run_dir + "/" + _input_file_name;
             std::string _crg_file_name_full = _run_dir + "/background.crg";
 
-            _nw_file.open(_com_file_name_full.c_str());
+            _nw_file.open(_nw_file_name_full.c_str());
             // header
             _nw_file << "geometry noautoz noautosym" << endl;
 
@@ -203,9 +210,14 @@ namespace votca {
             if (_write_charges) {
                 // part for the MM charge coordinates
                 _crg_file.open(_crg_file_name_full.c_str());
-                WriteBackgroundCharges(_crg_file, PolarSegments);
+                int numberofcharges=WriteBackgroundCharges(_crg_file, PolarSegments);
                 _crg_file << endl;
                 _crg_file.close();
+                _nw_file<<endl;
+                _nw_file<<"set bq:max_nbq "<<numberofcharges<<endl;
+                _nw_file<<"bq background"<<endl;
+                _nw_file<<"load background.crg format 1 2 3 4"<<endl;
+                _nw_file<<"end\n"<<endl;
             }
             
             if(_write_basis_set){
@@ -219,13 +231,24 @@ namespace votca {
             
             // write charge of the molecule
             _nw_file << "\ncharge " << _charge << "\n";
+           
 
             // writing scratch_dir info
             if (_scratch_dir != "") {
                 std::string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
                 _nw_file << _temp;
             }
-
+            if(_charge!=0.0){
+              std::string dft="dft";
+              if(_options.find(dft) != std::string::npos){
+                int dftpos=_options.find(dft);
+                dftpos+=dft.size();
+                std::string openshell="\nodft\n" +(boost::format("mult %1%\n") % _spin).str();
+                _options.insert(dftpos,openshell,0,openshell.size());
+              }else{
+                throw runtime_error("NWCHEM: dft input data missing");     
+              }
+            }
             _nw_file << _options << "\n";
 
             if (_write_guess) {
@@ -331,9 +354,6 @@ namespace votca {
 
             _scratch_dir = scratch_dir_backup + temp_suffix;
 
-            //boost::filesystem::create_directories(_scratch_dir + temp_suffix);
-            //std::string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
-            //_com_file << _temp;
             WriteShellScript();
             _scratch_dir = scratch_dir_backup;
 
@@ -805,6 +825,7 @@ namespace votca {
                         _found_optimization = true;
                     }
                 }
+                
 
                 std::string::size_type coordinates_pos = _line.find("Output coordinates");
 
@@ -825,28 +846,26 @@ namespace votca {
                     boost::trim(_line);
                     boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     int nfields = _row.size();
-
+                    
                     while (nfields == 6) {
-                        int atom_id = boost::lexical_cast< int >(_row.at(0));
+                        int atom_id = boost::lexical_cast< int >(_row.at(0))-1;
                         std::string _atom_type = _row.at(1);
                         double _x = boost::lexical_cast<double>(_row.at(3));
                         double _y = boost::lexical_cast<double>(_row.at(4));
                         double _z = boost::lexical_cast<double>(_row.at(5));
+                        tools::vec pos=tools::vec(_x,_y,_z);
+                        pos*=tools::conv::ang2bohr;
+                        if (_has_QMAtoms == false) {
+                            _orbitals->AddAtom(atom_id,_atom_type, pos);
+                        } else{
+                            QMAtom* pAtom = _orbitals->QMAtoms().at(atom_id);
+                            pAtom->setPos(pos); 
+                        }
+                        atom_id++;
                         getline(_input_file, _line);
                         boost::trim(_line);
                         boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                         nfields = _row.size();
-                        tools::vec pos=tools::vec(_x,_y,_z);
-                        pos*=tools::conv::ang2bohr;
-
-                        if (_has_QMAtoms == false) {
-                            _orbitals->AddAtom(atom_id,_atom_type, pos);
-                        } else {
-                            QMAtom* pAtom = _orbitals->QMAtoms().at(atom_id);
-                            pAtom->setPos(pos);
-                           
-                        }
-                         atom_id++;
                     }
                 }        
                 

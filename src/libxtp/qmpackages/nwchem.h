@@ -83,7 +83,7 @@ private:
     int BasisSetSize( std::string _line );
     int EnergiesFromLog( std::string _line, ifstream inputfile );
     std::string FortranFormat( const double &number );
-    void WriteBackgroundCharges(ofstream& _nw_file,std::vector<ctp::PolarSeg*> PolarSegments);
+    int WriteBackgroundCharges(ofstream& _nw_file,std::vector<ctp::PolarSeg*> PolarSegments);
 
 };
 
