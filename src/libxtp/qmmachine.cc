@@ -45,6 +45,9 @@ namespace votca {
             _crit_dE_QM = opt->ifExistsReturnElseReturnDefault<double>(key + ".dQdE_QM", 0.001); //eV
             _crit_dE_MM = opt->ifExistsReturnElseReturnDefault<double>(key + ".dE_MM", _crit_dE_QM); //eV
             _maxIter = opt->ifExistsReturnElseReturnDefault<int>(key + ".max_iter", 32);
+            
+           
+  
 
 
             key = sfx;
@@ -63,10 +66,19 @@ namespace votca {
             // check for static or polarized qmmm
             key = sfx + ".tholemodel";
             _static_qmmm = true;
+             qmpack->setWithPolarization(false);
             if (opt->exists(key + ".induce")) {
-                int induce = opt->get(key + ".induce").as< int >();
-                _static_qmmm = (induce == 1) ? false : true;
+                bool induce = opt->get(key + ".induce").as<bool>();
+                
+                if(induce){
+                  qmpack->setWithPolarization(true);
+                  qmpack->setDipoleSpacing(dpl_spacing);
+                }
+           
+                cout<<"STATIC "<<induce<<endl;
+                _static_qmmm = !induce;
             }
+           
 
 
             // GDMA options
@@ -306,7 +318,6 @@ namespace votca {
                 return 1;
             }
 
-            Eigen::MatrixXd DMAT_tot;
             // GW-BSE starts here
             double energy___ex = 0.0;
             std::vector<int> _state_index;
@@ -574,10 +585,6 @@ namespace votca {
                 } // use gdma
             } // _do_gdma
 
-
-            out = fopen((runFolder + "/InputConfig.pdb").c_str(), "w");
-            orb_iter_input.WritePDB(out);
-            fclose(out);
 
             assert(orb_iter_input.hasSelfEnergy());
             assert(orb_iter_input.hasQMEnergy());

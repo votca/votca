@@ -708,41 +708,32 @@ namespace votca {
 
                 if (charge_pos != std::string::npos && _get_charges) {
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Getting charges" << flush;
-                    //_has_charges = true;
                     getline(_input_file, _line);
-                    //getline(_input_file, _line);
-
-                    bool _has_atoms = _orbitals->hasQMAtoms();
 
                     std::vector<std::string> _row;
                     getline(_input_file, _line);
                     boost::trim(_line);
-                    //cout << _line << endl;
                     boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     int nfields = _row.size();
-                    //cout << _row.size() << endl;
 
                     while (nfields == 4) {
                         int atom_id = boost::lexical_cast< int >(_row.at(0));
                         atom_id++;
-                        //int atom_number = boost::lexical_cast< int >(_row.at(0));
                         std::string atom_type = _row.at(1);
                         double atom_charge = boost::lexical_cast< double >(_row.at(3));
-                        if (tools::globals::verbose) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
                         getline(_input_file, _line);
                         boost::trim(_line);
                         boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                         nfields = _row.size();
                         
                         QMAtom* pAtom;
-                        if (_has_atoms == false) {
+                        if (!_orbitals->hasQMAtoms()) {
                             pAtom =_orbitals->AddAtom(atom_id - 1,atom_type, 0, 0, 0);
                         } else {
                             pAtom = _orbitals->QMAtoms().at(atom_id - 1);
                         }
                         pAtom->setPartialcharge(atom_charge);
                     }
-                    //_orbitals->_has_atoms = true;
                 }
             }
 

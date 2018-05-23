@@ -1178,10 +1178,8 @@ namespace votca {
             } else {
                 _ssnumber << "   ";
             }
-
             _ssnumber << setiosflags(ios::fixed) << setprecision(15) << std::scientific << number;
             std::string _snumber = _ssnumber.str();
-            //boost::replace_first(_snumber, "e", "D");
             return _snumber;
         }
 
