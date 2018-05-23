@@ -93,7 +93,7 @@ namespace votca {
 
             // check if the esp keyword is present, if yes, get the charges and save them
             iop_pos = _options.find(" chelpg"); /*electrostatic potential related to partial atomic charges I guess is chelpg in orca but check */
-            if (iop_pos != std::string::npos) {
+            if (iop_pos != std::string::npos ||  _options.find(" CHELPG")!= std::string::npos) {
                 _get_charges = true;
             } else {
                 _get_charges = false;
