@@ -213,9 +213,8 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& _atomlist,const Grid& _g
     else{
        _charges=_Amat.colPivHouseholderQr().solve(_Bvec);
     }
-    
     //remove constraint
-    _charges=_charges.segment(0,_charges.size()-NoOfConstraints);
+    _charges.conservativeResize(_atomlist.size());
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices done."<< flush;
    
     CTP_LOG(ctp::logDEBUG, *_log) << " Sum of fitted charges: " << _charges.sum() << flush;
