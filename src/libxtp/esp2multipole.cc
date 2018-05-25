@@ -171,6 +171,7 @@ namespace votca {
 
             bool _do_transition = false;
             if (_state == "transition") {
+              
                 _do_transition = true;
                 DMAT_tot = _orbitals.TransitionDensityMatrix(_spin, _state_no - 1);
 
