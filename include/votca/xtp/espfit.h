@@ -48,9 +48,9 @@ public:
     
     
     // on grid very fast
-    void Fit2Density(std::vector< QMAtom* >& _atomlist, Eigen::MatrixXd &_dmat, AOBasis &_basis,std::string gridsize);
+    void Fit2Density(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat,const AOBasis &_basis,std::string gridsize);
     // not so fast
-    void Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, Eigen::MatrixXd &_dmat, AOBasis &_basis);
+    void Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, const Eigen::MatrixXd &_dmat,const AOBasis &_basis);
 private:
     
      ctp::Logger *_log;
@@ -60,12 +60,12 @@ private:
      double _conditionnumber;
      
      
-    double getNetcharge( std::vector< QMAtom* >& _atoms, double N );
+    double getNetcharge(const std::vector< QMAtom* >& _atoms, double N );
  
-    Eigen::VectorXd EvalNuclearPotential( std::vector< QMAtom* >& _atoms, Grid _grid );
+    void EvalNuclearPotential(const std::vector< QMAtom* >& _atoms, Grid& _grid );
    
      // Fits partial charges to Potential on a grid, constrains net charge
-    std::vector<double> FitPartialCharges( std::vector< tools::vec >& _fitcenters, Grid& _grid, Eigen::VectorXd& _potential, double& _netcharge );
+    void FitPartialCharges(std::vector< QMAtom* >& _atoms,const Grid& _grid, double _netcharge );
     
 };
 }}

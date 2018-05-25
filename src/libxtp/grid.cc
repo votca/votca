@@ -78,17 +78,16 @@ Grid &Grid::operator=(const Grid & obj){
      return *this;
 }
     
-void Grid::printGridtoxyzfile(const char* _filename){
+void Grid::printGridtoxyzfile(std::string filename){
         //unit is Angstrom in xyz file 
-  
         std::ofstream points;
-        points.open(_filename, std::ofstream::out);
+        points.open(filename.c_str(), std::ofstream::out);
         points << _gridpoints.size() << endl;
         points << endl;
-        for ( unsigned i = 0 ; i < _gridpoints.size(); i++){
-            points << "X " << _gridpoints[i].getX()*conv::bohr2ang << " " 
-                    << _gridpoints[i].getY()*conv::bohr2ang << " " 
-                    << _gridpoints[i].getZ()*conv::bohr2ang << endl;
+        for ( const auto& point:_gridpoints){
+            points << "X " << point.getX()*conv::bohr2ang << " " 
+                    << point.getY()*conv::bohr2ang << " " 
+                    << point.getZ()*conv::bohr2ang << endl;
 
         }
         points.close();
@@ -339,6 +338,8 @@ void Grid::setupgrid(){
                 }                          
             }                  
         }
+    
+    _gridvalues=Eigen::VectorXd::Zero(_gridpoints.size());
     return;
 }
     
