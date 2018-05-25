@@ -58,6 +58,39 @@ namespace votca {
             if (_use_CHELPG) {
                 _integrationmethod = options->get(key + ".integrationmethod").as<string> ();
             }
+            
+            if (options->exists(key + ".constraints")) {
+                 if (options->exists(key + ".constraints.regions")) {
+                     std::list<Property*> prop_region = options->Select(key + ".constraints.regions.region");
+                     for (std::list<Property*> ::iterator it = prop_region.begin(); it != prop_region.end(); ++it) {
+                         std::string indices=(*it)->get("indices").as<std::string>();
+                         tools::Tokenizer tok(indices,"\n\t ,");
+                         Espfit::region reg;
+                         tok.ConvertToVector<int>(reg.atomindices);
+                         reg.charge=(*it)->get("charge").as<double>();
+                         _regionconstraint.push_back(reg);
+                         CTP_LOG(ctp::logDEBUG, *_log) << "Fit constrained by SUM(";
+                         for(int i:reg.atomindices){
+                             CTP_LOG(ctp::logDEBUG, *_log)<<i<<" ";
+                         }
+                        CTP_LOG(ctp::logDEBUG, *_log)<<")="<<reg.charge<< flush;
+                     }
+                 }
+                 if (options->exists(key + ".constraints.pairs")) {
+                     std::list<Property*> prop_pair = options->Select(key + ".constraints.pairs.pair");
+                     for (std::list<Property*> ::iterator it = prop_pair.begin(); it != prop_pair.end(); ++it) {
+                         std::string pairstring=(*it)->as<std::string>();
+                        tools::Tokenizer tok(pairstring,"\n\t ,");
+                        std::vector<int> pairvec;
+                        tok.ConvertToVector<int>(pairvec);
+                        std::pair<int,int> pair;
+                        pair.first=pairvec[0];
+                        pair.second=pairvec[1];
+                        _pairconstraint.push_back(pair);
+                        CTP_LOG(ctp::logDEBUG, *_log) << "Charge "<<pair.first<<" "<<pair.second<<" constrained to be equal."<<flush;
+                     }
+                 }
+            }
 
 
             if (!(_integrationmethod == "numeric" || _integrationmethod == "analytic")) {
@@ -160,6 +193,13 @@ namespace votca {
                 lowdin.EvaluateLowdin(_Atomlist, DMAT_tot, basis, _do_transition);
             } else if (_use_CHELPG) {
                 Espfit esp = Espfit(_log);
+                if(_pairconstraint.size()>0){
+                    esp.setPairConstraint(_pairconstraint);
+                }
+                if(_regionconstraint.size()>0){
+                    esp.setRegionConstraint(_regionconstraint);
+                }
+                
                 if (_do_svd) {
                     esp.setUseSVD(_do_svd, _conditionnumber);
                 }
