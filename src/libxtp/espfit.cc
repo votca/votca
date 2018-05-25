@@ -169,8 +169,8 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& _atomlist,const Grid& _g
     Eigen::VectorXd _Bvec = Eigen::VectorXd::Zero(matrixSize);
     // setting up _Amat
     #pragma omp parallel for
-    for ( unsigned _i =0 ; _i < _atomlist->size(); _i++){
-        for ( unsigned _j=_i; _j<_atomlist->size(); _j++){
+    for ( unsigned _i =0 ; _i < _atomlist.size(); _i++){
+        for ( unsigned _j=_i; _j<_atomlist.size(); _j++){
             for ( unsigned _k=0; _k < _gridpoints.size(); _k++){
                 double dist_i = tools::abs(_atomlist[_i]->getPos()-_gridpoints[_k]);
                 double dist_j = tools::abs(_atomlist[_j]->getPos()-_gridpoints[_k]);
@@ -182,21 +182,21 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& _atomlist,const Grid& _g
     }
 
     for ( int _i =0 ; _i < _Amat.rows(); _i++){
-      _Amat(_i,_atomlist->size()) = 1.0;
-      _Amat(_atomlist->size(),_i) = 1.0;
+      _Amat(_i,_atomlist.size()) = 1.0;
+      _Amat(_atomlist.size(),_i) = 1.0;
     }
-    _Amat(_atomlist->size(),_atomlist->size()) = 0.0;
+    _Amat(_atomlist.size(),_atomlist.size()) = 0.0;
 
     // setting up Bvec
     #pragma omp parallel for
-    for ( unsigned _i =0 ; _i < _atomlist->size(); _i++){
+    for ( unsigned _i =0 ; _i < _atomlist.size(); _i++){
         for ( unsigned _k=0; _k < _gridpoints.size(); _k++){
                 double dist_i = tools::abs(_atomlist[_i]->getPos()-_gridpoints[_k]);
                 _Bvec(_i) += _potential(_k)/dist_i;
         }
        }
 
-    _Bvec(_atomlist->size()) = _netcharge; //netcharge!!!!
+    _Bvec(_atomlist.size()) = _netcharge; //netcharge!!!!
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices "<< flush;
     // invert _Amat
     
