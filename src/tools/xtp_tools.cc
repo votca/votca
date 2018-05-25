@@ -184,6 +184,7 @@ bool XtpTools::EvaluateOptions() {
         if ((*it).compare((iter->first).c_str()) == 0) {
           cout << " This is a CTP app" << endl;
            this->AddTool(ctp::QMTools().Create((*it).c_str()));
+            _found_calc = true;
         }
       }
     }
