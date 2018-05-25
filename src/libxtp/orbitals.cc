@@ -240,7 +240,9 @@ namespace votca {
                 throw runtime_error("Spin type not known for density matrix. Available are singlet and triplet");
             }
             MatrixXfd& _BSECoefs = (spin == "singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
-
+            if(_BSECoefs.rows()<state){
+                throw runtime_error("Orbitals object has no information about that state");
+            }
             Eigen::MatrixXd dmatTS = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
             // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
             double sqrt2 = sqrt(2.0);
@@ -306,7 +308,9 @@ namespace votca {
             }
 
             MatrixXfd & _BSECoefs = (spin == "singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
-
+            if(_BSECoefs.rows()<state){
+                throw runtime_error("Orbitals object has no information about that state");
+            }
             /******
              *
              *    Density matrix for GW-BSE based excitations
@@ -382,9 +386,11 @@ namespace votca {
             if (!(spin == "singlet")) {
                 throw runtime_error("Spin type not known for density matrix. Available is singlet");
             }
-
+            
             MatrixXfd& _BSECoefs_AR = _BSE_singlet_coefficients_AR;
-
+            if(_BSECoefs_AR.rows()<state){
+                throw runtime_error("Orbitals object has no information about that state");
+            }
             /******
              *
              *    Density matrix for GW-BSE based excitations
