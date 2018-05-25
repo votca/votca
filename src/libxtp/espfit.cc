@@ -189,7 +189,7 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& _atomlist,const Grid& _g
        }
     
     //Total charge constraint
-    for ( int _i =0 ; _i < _atomlist.size()+1; _i++){
+    for ( unsigned _i =0 ; _i < _atomlist.size()+1; _i++){
       _Amat(_i,_atomlist.size()) = 1.0;
       _Amat(_atomlist.size(),_i) = 1.0;
     }
