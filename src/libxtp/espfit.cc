@@ -156,9 +156,8 @@ void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist,const Eigen:
 
 void Espfit::FitPartialCharges( std::vector< QMAtom* >& _atomlist,const Grid& _grid,double _netcharge ){
   
-  const int NoOfConstraints=1;
+  const int NoOfConstraints=1+_regionconstraint.size()+_pairconstraint.size();
   const int matrixSize=_atomlist.size()+NoOfConstraints;
-  
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Setting up Matrices for fitting of size "<< matrixSize <<" x " << matrixSize<< flush;
 
     const std::vector< tools::vec >& _gridpoints=_grid.getGridPositions();
@@ -180,14 +179,7 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& _atomlist,const Grid& _g
             _Amat(_j,_i) = _Amat(_i,_j);
         }
     }
-
-    for ( int _i =0 ; _i < _Amat.rows(); _i++){
-      _Amat(_i,_atomlist.size()) = 1.0;
-      _Amat(_atomlist.size(),_i) = 1.0;
-    }
-    _Amat(_atomlist.size(),_atomlist.size()) = 0.0;
-
-    // setting up Bvec
+     // setting up Bvec
     #pragma omp parallel for
     for ( unsigned _i =0 ; _i < _atomlist.size(); _i++){
         for ( unsigned _k=0; _k < _gridpoints.size(); _k++){
@@ -195,13 +187,38 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& _atomlist,const Grid& _g
                 _Bvec(_i) += _potential(_k)/dist_i;
         }
        }
+    
+    //Total charge constraint
+    for ( unsigned _i =0 ; _i < _atomlist.size()+1; _i++){
+      _Amat(_i,_atomlist.size()) = 1.0;
+      _Amat(_atomlist.size(),_i) = 1.0;
+    }
+    _Amat(_atomlist.size(),_atomlist.size()) = 0.0;
+     _Bvec(_atomlist.size()) = _netcharge; //netcharge!!!!
+     
+     
+    // Pairconstraint
+     for (unsigned i=0;i<_pairconstraint.size();i++){
+         const std::pair<int,int>& pair=_pairconstraint[i];
+         _Amat(pair.first,_atomlist.size()+1+i)=1.0;
+         _Amat(_atomlist.size()+1+i,pair.first)=1.0;
+         _Amat(pair.second,_atomlist.size()+1+i)=-1.0;
+         _Amat(_atomlist.size()+1+i,pair.second)=-1.0;
+     }
+     
+     //Regionconstraint
+     for (unsigned i=0;i<_regionconstraint.size();i++){
+         const region& reg=_regionconstraint[i];
+         for (const int& index:reg.atomindices){
+             _Amat(index,_atomlist.size()+i+1+_pairconstraint.size())=1.0;
+             _Amat(_atomlist.size()+i+1+_pairconstraint.size(),index)=1.0;
+         }
+         _Bvec(_atomlist.size()+i+1+_pairconstraint.size())=reg.charge;
+     }
 
-    _Bvec(_atomlist.size()) = _netcharge; //netcharge!!!!
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices "<< flush;
     // invert _Amat
-    
-
-
+ 
     Eigen::VectorXd _charges;
     if(_do_svd){
       Eigen::JacobiSVD<Eigen::MatrixXd> svd;
@@ -213,6 +230,7 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& _atomlist,const Grid& _g
     else{
        _charges=_Amat.colPivHouseholderQr().solve(_Bvec);
     }
+
     //remove constraint
     _charges.conservativeResize(_atomlist.size());
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices done."<< flush;
