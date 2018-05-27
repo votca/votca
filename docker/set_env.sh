@@ -120,8 +120,14 @@ elif [[ $ENV -eq 17 ]]; then
   export TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)"
   [[ $CC = clang ]] && export SKIP=yes # no new info when using clang
 elif [[ $ENV -eq 18 ]]; then
-  # for future use
-  export SKIP=yes
+  # build internal gromacs
+  export DISTRO=fedora_nogmx
+  export BUILD_GROMACS=ON
+  export TESTING=ON
+  export TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)"
+  export CMAKE_BUILD_TYPE=Release
+  [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
+  [[ $CC = clang ]] && export SKIP=yes # no new info when using clang
 else
   die "Unknown environment"
 fi

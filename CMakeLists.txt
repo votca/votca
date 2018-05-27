@@ -51,6 +51,11 @@ if(MODULE_BUILD)
   return()
 endif()
 
+option(BUILD_OWN_GROMACS "Build our own gromacs" OFF)
+if(BUILD_OWN_GROMACS)
+  include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/BuildGromacs.cmake)
+endif()
+
 ########################################################################
 #Find external packages
 ########################################################################
@@ -78,6 +83,10 @@ set(VOTCA_SHARE ${CMAKE_SOURCE_DIR}/csg/share)
 set(CSG_INVERSE ${CMAKE_BINARY_DIR}/csg/scripts/csg_inverse)
 set(CSG_CALL ${CMAKE_BINARY_DIR}/csg/scripts/csg_call)
 set(VOTCA_PATH "${CMAKE_BINARY_DIR}/csg/scripts:${CMAKE_BINARY_DIR}/csg/src/tools")
+if(BUILD_OWN_GROMACS)
+  add_dependencies(votca_csg Gromacs_build)
+  set(VOTCA_PATH "${VOTCA_PATH}:${GROMACS_PATH}")
+endif()
 set(VOTCA_CSG_DEFAULTS ${CMAKE_BINARY_DIR}/csg/share/xml/csg_defaults.xml)
 add_subdirectory(csg-tutorials)
 list(APPEND ENABLED_VOTCA_PACKAGES csg-tutorials)
