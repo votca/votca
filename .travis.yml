@@ -29,6 +29,8 @@ env:
     - ENV=16
     - ENV=17
     - ENV=18
+    - ENV=19
+    - ENV=20
 
 before_script:
  - git checkout -b current_commit

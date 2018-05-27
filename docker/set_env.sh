@@ -135,6 +135,12 @@ elif [[ $ENV -eq 18 ]]; then
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
   [[ $CC = clang ]] && export SKIP=yes # no new info when using clang
+elif [[ $ENV -eq 19 ]]; then
+  # for future use
+  export SKIP=yes
+elif [[ $ENV -eq 20 ]]; then
+  # for future use
+  export SKIP=yes
 else
   die "Unknown environment"
 fi
