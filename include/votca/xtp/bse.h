@@ -72,11 +72,11 @@ struct Population {
       
   }
   
-  void setBSEindices(unsigned homo,int vmin, int vmax, int cmin, int cmax, int nmax) {
+  void setBSEindices(unsigned homo,int vmin, int cmax, int nmax) {
                 _homo=homo;
                 _bse_vmin = vmin;
-                _bse_vmax = vmax;
-                _bse_cmin = cmin;
+                _bse_vmax = homo;
+                _bse_cmin = homo+1;
                 _bse_cmax = cmax;
                 _bse_nmax = nmax;
                 _bse_vtotal = _bse_vmax - _bse_vmin + 1;

@@ -29,10 +29,10 @@
 namespace votca {
   namespace xtp {
 
-    Eigen::MatrixXd Sigma::SetupFullQPHamiltonian(const Eigen::MatrixXd& vxc) {
+    Eigen::MatrixXd Sigma::SetupFullQPHamiltonian() {
 
       // constructing full QP Hamiltonian
-      Eigen::MatrixXd Hqp = _sigma_x + _sigma_c - vxc;
+      Eigen::MatrixXd Hqp = _sigma_x + _sigma_c - (*_vxc);
       // diagonal elements are given by _qp_energies
       for (unsigned _m = 0; _m < Hqp.rows(); _m++) {
         Hqp(_m, _m) = _gwa_energies(_m + _qpmin);
@@ -41,6 +41,10 @@ namespace votca {
     }
 
     void Sigma::CalcdiagElements(const TCMatrix_gwbse& _Mmn, const PPM & ppm) {
+        
+        if(_gwa_energies.size()<1){
+            throw std::runtime_error("Sigma gwa_energies not set!");
+        }
       _sigma_x=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
       _sigma_c=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
       unsigned _levelsum = _Mmn.get_ntot(); // total number of bands
@@ -59,14 +63,12 @@ namespace votca {
         } // gwbasis functions             
         _sigma_x(_gw_level, _gw_level) = (1.0 - _ScaHFX) * sigma_x;
       }
-      
       // initial _qp_energies are dft energies
       Eigen::VectorXd _qp_old = _gwa_energies;
       // only diagonal elements except for in final iteration
       for (unsigned _g_iter = 0; _g_iter < _g_sc_max_iterations; _g_iter++) {
         // loop over all GW levels
-
-#pragma omp parallel for
+//#pragma omp parallel for
         for (unsigned _gw_level = 0; _gw_level < _qptotal; _gw_level++) {
           const MatrixXfd & Mmn = _Mmn[ _gw_level + _qpmin ];
           const double qpmin = _qp_old(_gw_level + _qpmin);

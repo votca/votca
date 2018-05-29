@@ -918,7 +918,7 @@ bool GWBSE::Evaluate() {
     // free no longer required three-center matrices in _Mmn
   // max required is _bse_cmax (could be smaller than _qpmax)
   Mmn.Prune(_bse_vmin, _bse_cmax);   
-    Eigen::MatrixXd Hqp=sigma.SetupFullQPHamiltonian(vxc);
+    Eigen::MatrixXd Hqp=sigma.SetupFullQPHamiltonian();
  
     if (_do_qp_diag) {
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(Hqp);
@@ -941,7 +941,7 @@ bool GWBSE::Evaluate() {
   if (_do_bse_singlets || _do_bse_triplets) {
       
       BSE bse=BSE(_orbitals,_pLog,_min_print_weight);
-      bse.setBSEindices(_homo,_bse_vmin,_bse_vmax,_bse_cmin,_bse_cmax,_bse_maxeigenvectors);
+      bse.setBSEindices(_homo,_bse_vmin,_bse_cmax,_bse_maxeigenvectors);
       bse.setGWData(&Mmn,&ppm,&Hqp);
        // calculate direct part of eh interaction, needed for singlets and triplets
     

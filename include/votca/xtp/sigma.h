@@ -29,7 +29,10 @@ namespace xtp {
 
 class Sigma {
  public:
-  Sigma(ctp::Logger *log){_log = log;}
+  Sigma(ctp::Logger *log){
+_log = log;
+_gwa_energies.resize(0);
+  }
   
   void configure(unsigned homo, unsigned qpmin,unsigned qpmax,unsigned g_sc_max_iterations,
                 double g_sc_limit){
@@ -46,23 +49,16 @@ class Sigma {
       _ScaHFX=ScaHFX;
       _vxc=vxc;
       _dftenergies=dftenergies;
-      
   }
   
-  
-      
 void CalcdiagElements(const TCMatrix_gwbse& _Mmn,const PPM & ppm );
 void CalcOffDiagElements(const TCMatrix_gwbse& _Mmn,const PPM & ppm );
 
-
-
-
-
-Eigen::MatrixXd SetupFullQPHamiltonian(const Eigen::MatrixXd& vxc );
+Eigen::MatrixXd SetupFullQPHamiltonian();
 
 const Eigen::VectorXd& getGWAEnergies()const{return _gwa_energies;}
 
-void setGWAEnergies(Eigen::VectorXd& gwa_energies){_gwa_energies=gwa_energies;}
+void setGWAEnergies(const Eigen::VectorXd& gwa_energies){_gwa_energies=gwa_energies;}
 
 double x(int i)const{return _sigma_x(i,i);}
 double c(int i)const{return _sigma_c(i,i);}

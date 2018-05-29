@@ -259,6 +259,7 @@
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
       <itemPath>../../src/tests/test_apolarsite.cc</itemPath>
       <itemPath>../../src/tests/test_atom.cc</itemPath>
+      <itemPath>../../src/tests/test_bse.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
@@ -271,10 +272,13 @@
       <itemPath>../../src/tests/test_molecule.cc</itemPath>
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
+      <itemPath>../../src/tests/test_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_qmnblist.cc</itemPath>
       <itemPath>../../src/tests/test_qmpair.cc</itemPath>
+      <itemPath>../../src/tests/test_rpa.cc</itemPath>
       <itemPath>../../src/tests/test_segment.cc</itemPath>
       <itemPath>../../src/tests/test_segmenttype.cc</itemPath>
+      <itemPath>../../src/tests/test_sigma.cc</itemPath>
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_threecenter.cc</itemPath>
       <itemPath>../../src/tests/test_topology.cc</itemPath>
@@ -1090,6 +1094,8 @@
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_convergenceacc.cc"
             ex="false"
             tool="1"
@@ -1120,9 +1126,13 @@
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmpair.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_segment.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1130,6 +1140,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_symmetric_matrix.cc"
             ex="false"
@@ -1886,6 +1898,8 @@
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_convergenceacc.cc"
             ex="false"
             tool="1"
@@ -1916,9 +1930,13 @@
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmpair.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_segment.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1926,6 +1944,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_symmetric_matrix.cc"
             ex="false"
