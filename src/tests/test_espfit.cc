@@ -155,7 +155,46 @@ if(!check_esp_ana){
   cout<<pcharges_anal<<endl;
 }
 BOOST_CHECK_EQUAL(check_esp_ana, 1);
+std::vector<std::pair<int,int> > pairconstraint;
+std::pair<int,int> p1;
+p1.first=1;
+p1.second=2;
+pairconstraint.push_back(p1);
+std::pair<int,int> p2;
+p2.first=3;
+p2.second=4;
+pairconstraint.push_back(p2);
+Espfit esp2=Espfit(&_log);
+esp2.setPairConstraint(pairconstraint);
+esp2.Fit2Density(orbitals.QMAtoms(),dmat,aobasis,"medium");
+Eigen::VectorXd pcharges_equal=Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
+index=0;
+for (const QMAtom* atom:orbitals.QMAtoms()){
+    pcharges_equal(index)=atom->getPartialcharge();
+    index++;
+  }
 
+
+bool check_p1=(std::abs(pcharges_equal(1)-pcharges_equal(2))<1e-6);
+bool check_p2=(std::abs(pcharges_equal(3)-pcharges_equal(4))<1e-6);
+BOOST_CHECK_EQUAL(check_p1 && check_p2, 1);
+
+std::vector< Espfit::region > regionconstraint;
+Espfit::region reg;
+reg.atomindices={1,2,3};
+reg.charge=1.0;
+regionconstraint.push_back(reg);
+Espfit esp3=Espfit(&_log);
+esp3.setRegionConstraint(regionconstraint);
+esp3.Fit2Density(orbitals.QMAtoms(),dmat,aobasis,"medium");
+Eigen::VectorXd pcharges_reg=Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
+index=0;
+for (const QMAtom* atom:orbitals.QMAtoms()){
+    pcharges_reg(index)=atom->getPartialcharge();
+    index++;
+  }
+bool check_reg=(std::abs(pcharges_reg.segment(1,3).sum()-1.0)<1e-6);
+BOOST_CHECK_EQUAL(check_reg, 1);
 }
         
 BOOST_AUTO_TEST_SUITE_END()

@@ -7,7 +7,18 @@
         <integrationmethod help="How to integrate potential, etiher numeric or analytic for CHELPG" >numeric</integrationmethod>
 	<method help="Method to use derive partial charges, CHELPG and Mulliken implented">CHELPG</method>
 	<gridsize help="Grid accuracy for numerical integration within CHELPG and GDMA coarse,medium,fine">fine</gridsize>
-	<ecp help="if ECPs were used in the DFT calculation">1</ecp>
+
+<constraints>
+	<regions>
+		<region>
+		<indices>0 1 2 3</indices>
+		<charge>0.5</charge>
+		</region>
+	</regions>
+	<pairs>
+		<pair>0 1</pair>
+	</pairs>
+</constraints>
 	<openmp>4</openmp>
 
 </esp2multipole>

@@ -317,7 +317,7 @@ namespace votca {
             if(!success){
                 return 1;
             }
-
+            
             // GW-BSE starts here
             double energy___ex = 0.0;
             std::vector<int> _state_index;
@@ -558,6 +558,13 @@ namespace votca {
             if (!_static_qmmm && _qmpack->getPackageName() == "xtp" && !_do_gwbse) {
                 Density2Charges();
             } // for polarized QMMM
+            
+            if(tools::globals::verbose){
+              CTP_LOG(ctp::logDEBUG, *_log) <<"Calculated partial charges"<< flush;
+              for(const QMAtom* atom:orb_iter_input.QMAtoms()){
+                CTP_LOG(ctp::logDEBUG, *_log) <<atom->getType()<<" "<< atom->getPartialcharge()<< flush;
+              }
+            }
 
             // Test: go via GDMA instead of point charges, only for DFT with Gaussian!
             GDMA _gdma;

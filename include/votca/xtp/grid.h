@@ -66,7 +66,9 @@ namespace votca { namespace xtp {
         
         Grid& operator=(const Grid &obj);
         
-        const std::vector< vec > &getGrid() const {return _gridpoints;}
+        const std::vector< tools::vec > &getGridPositions() const {return _gridpoints;}
+        Eigen::VectorXd &getGridValues(){return _gridvalues;}
+        const Eigen::VectorXd &getGridValues() const{return _gridvalues;}
         std::vector< ctp::APolarSite* > &Sites() {return _gridsites;}
         
         void setCutoffs(double cutoff, double cutoff_inside){_cutoff=cutoff;_cutoff_inside=cutoff_inside;}
@@ -81,7 +83,7 @@ namespace votca { namespace xtp {
             return size; 
         }
 
-        void printGridtoxyzfile(const char* _filename);
+        void printGridtoxyzfile(std::string filename);
         
         void readgridfromCubeFile(std::string filename, bool ignore_zeros=true);
        
@@ -103,7 +105,8 @@ namespace votca { namespace xtp {
       
   private:
      
-      std::vector< vec > _gridpoints;
+      std::vector< tools::vec > _gridpoints;
+      Eigen::VectorXd _gridvalues;
       std::vector< ctp::APolarSite* > _gridsites;
       std::vector< ctp::APolarSite* > _all_gridsites;
       
