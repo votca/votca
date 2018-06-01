@@ -87,8 +87,35 @@ private:
         hsize_t dims[2];
         dp.getSimpleExtentDims(dims, NULL); // ndims is always 2 for us
 
-        matrix.derived().resize(dims[0], dims[1]);
-        dataset.read(matrix.derived().data(), *dataType);
+        hsize_t matRows = dims[0];
+        hsize_t matCols = dims[1];
+
+        matrix.derived().resize(matRows, matCols);
+
+        hsize_t matColSize = matrix.derived().outerStride();
+
+        hsize_t fileRowSize = matColSize;
+        hsize_t fileRows = matCols;
+
+        hsize_t fStride[2] = {1, fileRows};
+        hsize_t fCount[2] = {1,1};
+        hsize_t fBlock[2] = {1, fileRows};
+
+        hsize_t mStride[2] = {matColSize, 1};
+        hsize_t mCount[2] = {1,1};
+        hsize_t mBlock[2] = {matCols, 1};
+
+        hsize_t mDim[2] = {matCols, matColSize};
+        H5::DataSpace mspace(2, mDim);
+
+        for (hsize_t i = 0; i < matRows; i++){
+            hsize_t fStart[2] = {i, 0};
+            hsize_t mStart[2] = {0, i};
+            dp.selectHyperslab(H5S_SELECT_SET, fCount, fStart, fStride, fBlock);
+            mspace.selectHyperslab(H5S_SELECT_SET, mCount, mStart, mStride, mBlock);
+            dataset.read(matrix.derived().data(), *dataType, mspace, dp);
+        }
+
     }
 
     template <typename T>

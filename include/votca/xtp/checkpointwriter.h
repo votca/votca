@@ -85,19 +85,41 @@ private:
         void WriteData(const CptLoc& loc, const Eigen::MatrixBase<T>& matrix,
                        const std::string& name) {
 
-        hsize_t dims[2] = {size_t(matrix.rows()),
-                           size_t(matrix.cols())};  // eigen vectors are n,1 matrices
+        hsize_t matRows = hsize_t(matrix.rows());
+        hsize_t matCols = hsize_t(matrix.cols());
+
+        hsize_t dims[2] = {matRows, matCols};  // eigen vectors are n,1 matrices
 
         if (dims[1] == 0) dims[1] = 1;
 
-        const H5::DataType* dataType = InferDataType<typename T::Scalar>::get();
-
-        H5::DataSet dataset;
         H5::DataSpace dp(2, dims);
-
+        const H5::DataType* dataType = InferDataType<typename T::Scalar>::get();
+        H5::DataSet dataset;
         dataset = loc.createDataSet(name.c_str(), *dataType, dp);
 
-        dataset.write(matrix.derived().data(), *dataType);
+        hsize_t matColSize = matrix.derived().outerStride();
+
+        hsize_t fileRowSize = matColSize;
+        hsize_t fileRows = matCols;
+
+        hsize_t fStride[2] = {1, fileRows};
+        hsize_t fCount[2] = {1,1};
+        hsize_t fBlock[2] = {1, fileRows};
+
+        hsize_t mStride[2] = {matColSize, 1};
+        hsize_t mCount[2] = {1,1};
+        hsize_t mBlock[2] = {matCols, 1};
+
+        hsize_t mDim[2] = {matCols, matColSize};
+        H5::DataSpace mspace(2, mDim);
+
+        for (hsize_t i = 0; i < matRows; i++){
+            hsize_t fStart[2] = {i, 0};
+            hsize_t mStart[2] = {0, i};
+            dp.selectHyperslab(H5S_SELECT_SET, fCount, fStart, fStride, fBlock);
+            mspace.selectHyperslab(H5S_SELECT_SET, mCount, mStart, mStride, mBlock);
+            dataset.write(matrix.derived().data(), *dataType, mspace, dp);
+        }
     }
 
     template <typename T>
