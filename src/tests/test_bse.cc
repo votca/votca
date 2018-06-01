@@ -180,7 +180,7 @@ bse.setGWData(&Mmn,&ppm,&Hqp);
 
 bse.Solve_singlets();
 
-Eigen::VectorXd se_ref=Eigen::VectorXd::Zero(1);
+VectorXfd se_ref=VectorXfd::Zero(1);
 se_ref<<0.111378;
 bool check_se=se_ref.isApprox(orbitals.BSESingletEnergies(),0.0001);
 if(!check_se){
@@ -190,7 +190,7 @@ if(!check_se){
 }
 
 BOOST_CHECK_EQUAL(check_se, true);
-Eigen::MatrixXd spsi_ref=Eigen::MatrixXd::Zero(60,1);
+MatrixXfd spsi_ref=MatrixXfd::Zero(60,1);
 spsi_ref<<-0.000150849,0.00516987,0.0511522,0.00428958,-0.00966668,-0.000155227,1.02978e-08,5.82225e-05,-0.00216177,0.00907102,6.297e-09,-9.84993e-11,0.00159727,
         0.0039042,0.0481196,0.00495382,-0.0106013,0.00025141,-0.000155626,-0.000382828,-0.00322057,0.0124251,1.32177e-05,6.794e-07,
         -0.0153713,0.0200649,-0.067081,-0.0122678,0.0117612,-0.00358901,0.00605007,0.00404793,0.0108884,-0.0151075,-0.000513827,
@@ -208,7 +208,7 @@ if(!check_spsi){
 BOOST_CHECK_EQUAL(check_spsi, true);
 
 bse.Solve_singlets_BTDA();
-Eigen::VectorXd se_ref_btda=Eigen::VectorXd::Zero(1);
+VectorXfd se_ref_btda=VectorXfd::Zero(1);
 se_ref_btda<<0.0800487;
 bool check_se_btda=se_ref_btda.isApprox(orbitals.BSESingletEnergies(),0.0001);
 if(!check_se_btda){
@@ -219,7 +219,7 @@ if(!check_se_btda){
 
 BOOST_CHECK_EQUAL(check_se_btda, true);
 
-Eigen::MatrixXd spsi_ref_btda=Eigen::MatrixXd::Zero(60,1);
+MatrixXfd spsi_ref_btda=MatrixXfd::Zero(60,1);
 spsi_ref_btda<<-0.000887749,0.00578248,0.05625,0.00248673,-0.00562843,-0.00016897,1.08302e-08,0.000116592,-0.00141149,0.00596725,6.83981e-09,
         -5.48526e-11,0.00121822,0.00169252,0.0204865,0.00247262,-0.00531466,0.000279175,4.77577e-05,-0.000408725,-0.00182068,0.00706912,
         -9.12327e-06,-7.08081e-08,-0.00651909,0.00834763,-0.0284504,-0.00607914,0.00588949,-0.00178978,0.00302131,0.00229263,0.00611307,
@@ -235,7 +235,7 @@ if(!check_spsi_btda){
 
 BOOST_CHECK_EQUAL(check_spsi_btda, true);
 
-Eigen::MatrixXd spsi_ref_btda_AR=Eigen::MatrixXd::Zero(60,1);
+MatrixXfd spsi_ref_btda_AR=MatrixXfd::Zero(60,1);
 spsi_ref_btda_AR<<-0.000318862,0.00207698,0.0202042,-0.00179437,0.00406137,0.000121932,3.9316e-09,-5.40595e-05,0.000654413,-0.00276655,
         3.69017e-09,1.57456e-10,-0.00170711,-0.00237173,-0.0287078,-0.00287232,0.00617377,-0.000324297,-5.77241e-05,0.000345749,
         0.00154014,-0.00597984,-2.82604e-06,5.90132e-07,0.00913531,-0.0116977,0.0398677,0.00706183,-0.00684153,0.00207909,-0.00365198,
@@ -253,7 +253,7 @@ BOOST_CHECK_EQUAL(check_spsi_AR, true);
 
 bse.Solve_triplets();;
 
-Eigen::VectorXd te_ref=Eigen::VectorXd::Zero(1);
+VectorXfd te_ref=VectorXfd::Zero(1);
 te_ref<<0.0308983;
 bool check_te=te_ref.isApprox(orbitals.BSETripletEnergies(),0.0001);
 if(!check_te){
@@ -264,7 +264,7 @@ if(!check_te){
 
 BOOST_CHECK_EQUAL(check_te, true);
 
-Eigen::MatrixXd tpsi_ref=Eigen::MatrixXd::Zero(60,1);
+MatrixXfd tpsi_ref=MatrixXfd::Zero(60,1);
 tpsi_ref<<-0.00114948,0.00562478,0.054375,-0.00289523,0.00656359,0.000235305,-2.41043e-09,0.000244218,-0.00230315,
         0.00976453,-6.32937e-10,3.50928e-11,-0.00118266,-0.00139619,-0.0167904,0.000638838,-0.00137533,8.87567e-05,3.9881e-05,
         1.32949e-05,4.94783e-05,-0.000192509,5.99614e-05,-3.56929e-07,0.00533568,-0.00677318,0.0232808,-0.00156545,0.00152355,
