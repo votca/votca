@@ -344,6 +344,7 @@ namespace votca {
                   " iterations. DIIS error is converged up to " << _error_converged << "[Ha]" << flush;
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Final Single Point Energy " << std::setprecision(12) << totenergy << " Ha" << flush;
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " MO Energies  [Ha]" << flush;
+          
           for (int i = 0; i<int(MOEnergies.size()); i++) {
             if (i <= _numofelectrons / 2 - 1) {
               CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t" << i << " occ " << std::setprecision(12) << MOEnergies(i) << flush;

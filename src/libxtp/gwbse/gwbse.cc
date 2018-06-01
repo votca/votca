@@ -897,7 +897,7 @@ bool GWBSE::Evaluate() {
   // E_qp)
   if (_store_qp_pert) {
     Eigen::MatrixXd &_qp_energies_store = _orbitals->QPpertEnergies();
-    _qp_energies_store.resize(_qptotal, 5);
+    _qp_energies_store=Eigen::MatrixXd::Zero(_qptotal, 5);
     for (unsigned i = 0; i < _qptotal; i++) {
       _qp_energies_store(i, 0) = _dft_energies(i + _qpmin);
       _qp_energies_store(i, 1) = sigma.x(i);

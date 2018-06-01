@@ -64,8 +64,8 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     Eigen::MatrixXd vxcTest = Eigen::MatrixXd::Zero(200,200);
     std::string someECP = "aye aye Cap'n";
 
-    Eigen::MatrixXd QPpertEnergiesTest = Eigen::MatrixXd::Zero(31, 42);
-    Eigen::MatrixXd QPdiagEnergiesTest = Eigen::VectorXd::Zero(21);
+    Eigen::MatrixXd QPpertEnergiesTest = Eigen::MatrixXd::Random(31, 42);
+    Eigen::MatrixXd QPdiagEnergiesTest = Eigen::VectorXd::Random(21);
     Eigen::MatrixXd QPdiagCoefficientsTest = Eigen::MatrixXd::Identity(42, 42);
 
 
