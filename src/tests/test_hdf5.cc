@@ -34,8 +34,8 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     int numElectrons = 12;
 
 
-    Eigen::VectorXd moeTest = Eigen::VectorXd::Zero(17);
-    Eigen::MatrixXd mocTest = Eigen::MatrixXd::Zero(17, 17);
+    Eigen::VectorXd moeTest = Eigen::VectorXd::Random(17);
+    Eigen::MatrixXd mocTest = Eigen::MatrixXd::Random(17,17);
 
     std::vector<QMAtom> atomsTest(1000);
 
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     std::string bseType = "A+";
 
 
-    Eigen::MatrixXd vxcTest = Eigen::MatrixXd::Zero(200,200);
+    Eigen::MatrixXd vxcTest = Eigen::MatrixXd::Random(200,200);
     std::string someECP = "aye aye Cap'n";
 
     Eigen::MatrixXd QPpertEnergiesTest = Eigen::MatrixXd::Random(31, 42);
@@ -69,14 +69,15 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     Eigen::MatrixXd QPdiagCoefficientsTest = Eigen::MatrixXd::Identity(42, 42);
 
 
-    MatrixXfd eh_dTest = MatrixXfd::Zero(32, 290);
-    MatrixXfd eh_xTest = MatrixXfd::Zero(3, 22);
-    VectorXfd BSESingletEnergiesTest = VectorXfd::Zero(25);
-    MatrixXfd BSESingletCoefficientsTest = MatrixXfd::Zero(25, 38);
-    MatrixXfd BSESingletCoefficientsARTest = MatrixXfd::Zero(42, 42);
+    MatrixXfd eh_dTest = MatrixXfd::Random(32, 290);
+    MatrixXfd eh_xTest = MatrixXfd::Random(3, 22);
+    VectorXfd BSESingletEnergiesTest = VectorXfd::Random(25);
+    MatrixXfd BSESingletCoefficientsTest = MatrixXfd::Random(25, 38);
+    MatrixXfd BSESingletCoefficientsARTest = MatrixXfd::Random(42, 42);
 
-    VectorXfd BSETripletEnergiesTest = VectorXfd::Zero(33);
-    MatrixXfd BSETripletCoefficientsTest = MatrixXfd::Zero(33,31);
+    VectorXfd BSETripletEnergiesTest = VectorXfd::Random(33);
+    MatrixXfd BSETripletCoefficientsTest = MatrixXfd::Random(33,31);
+
 
     std::vector <votca::tools::vec> transitionDipolesTest;
     for (size_t i =0; i < 1000; ++i){
