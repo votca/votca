@@ -54,7 +54,9 @@ namespace votca { namespace xtp {
    
    ceres::GradientProblemSolver::Options options;
    options.minimizer_progress_to_stdout=false;
+   options.logging_type=ceres::LoggingType::SILENT;
    options.gradient_tolerance=1e-8;
+   options.max_num_iterations=1000;
    ceres::GradientProblemSolver::Summary summary;
    ceres::Solve(options,problem,coeffs.data(),&summary);
    //std::cout << summary.FullReport() << "\n";

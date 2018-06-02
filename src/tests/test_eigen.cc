@@ -65,10 +65,14 @@ BOOST_AUTO_TEST_CASE(inverse_test) {
 -1.00858,0.364513,2.52534e-06,2.52534e-06,2.52534e-06,-0.192712,-5.74555e-07,-5.74555e-07,-5.74555e-07,-0.0243332,0.0351697,-0.0243273,0.0351687,-0.0243273,0.0351687,-0.0243273,0.0351687;
   
   Eigen::FullPivLU<Eigen::MatrixXd> dec(m);
-  std::cout<<dec.isInvertible()<<" "<<dec.rank()<<" "<<dec.rcond()<<std::endl;
-  std::cout<<m*dec.solve(Eigen::MatrixXd::Identity(17,17))<<std::endl;
+ 
 bool check_inv=(m*dec.inverse()).isApprox(Eigen::MatrixXd::Identity(17,17),0.01);
   
+
+if(!check_inv){
+  std::cout<<dec.isInvertible()<<" "<<dec.rank()<<" "<<dec.rcond()<<std::endl;
+  std::cout<<m*dec.solve(Eigen::MatrixXd::Identity(17,17))<<std::endl;
+}
 BOOST_CHECK_EQUAL(check_inv, 1);
 
 }

@@ -121,6 +121,36 @@ Mmn.Fill(aobasis,aobasis,es.eigenvectors());
   rpa.setScreening(screen_r,screen_i);
   rpa.calculate_epsilon(es.eigenvalues(),Mmn);
   ppm.PPM_construct_parameters(rpa);
+ 
+  
+  Eigen::VectorXd ppm_freq=Eigen::VectorXd::Zero(17);
+  ppm_freq<< 1.94598,0.923413,0.923413, 1.66455, 1.25616, 1.56824,0.939509,0.725025,0.725025, 0.69766, 0.69766,0.789006,0.655588,0.697099, 1.21575, 1.21575, 25.747;
+  Eigen::VectorXd ppm_w=Eigen::VectorXd::Zero(17);
+  ppm_w<<0.000145438,0.000350387,0.000350387,0.000393263,0.000511193, 0.00208969, 0.00455154, 0.0107557, 0.0107557, 0.0456673, 0.0456673, 0.089354, 0.118543, 0.788686, 0.984015, 0.984015, 0.994573;
+ 
+  
+  bool f_check =ppm_freq.isApprox(ppm.getPpm_freq(),0.0001);
+  
+  bool w_check =ppm_w.isApprox(ppm.getPpm_weight(),0.0001);
+   
+ 
+  
+  if(!f_check){
+      cout<<"ppm_freq"<<endl;
+      cout<<ppm.getPpm_freq()<<endl;
+      cout<<"ppm_freq_ref"<<endl;
+      cout<<ppm_freq<<endl;
+  }
+ 
+  if(!w_check){
+      cout<<"ppm_w"<<endl;
+      cout<<ppm.getPpm_weight()<<endl;
+      cout<<"ppm_w_ref"<<endl;
+      cout<<ppm_w<<endl;
+  }
+ 
+ BOOST_CHECK_EQUAL(f_check, 1);
+ BOOST_CHECK_EQUAL(w_check, 1);
 
 }
         
