@@ -99,7 +99,6 @@ private:
 
         hsize_t matColSize = matrix.derived().outerStride();
 
-        hsize_t fileRowSize = matColSize;
         hsize_t fileRows = matCols;
 
         hsize_t fStride[2] = {1, fileRows};
