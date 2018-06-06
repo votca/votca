@@ -87,7 +87,9 @@ class Elements {
   // All polarizabilities in nm**3
   // Isotropic polarizability volume is evaluated from the tensor
   // as (a_xx * a_yy * a_zz )^(1/3) for eigenvalues of the polarizability tensor
-  const double &getPolarizability(std::string name) const { return _ElPolarizability.at(name); }
+  const double &getPolarizability(std::string name) const { if (_ElPolarizability.count(name) == 0)
+      throw std::invalid_argument("Element not found in ElPolarizability map " + name);
+    return _ElPolarizability.at(name); }
   /// Returns the covalent Radii of the atom 
   double getCovRad(std::string name,std::string unit ) const 
   { 
@@ -756,6 +758,7 @@ class Elements {
     _ElPolarizability["Si"] = 3.962e-3;   // B3LYP/6-311+g(2d,2p)
     _ElPolarizability["Zn"] = 5.962e-3;   // B3LYP/6-311+g(2d,2p)
     _ElPolarizability["Al"] = 5.80e-3;   //[1]P. Fuentealba, “The static dipole polarizability of aluminium atom: discrepancy between theory and experiment,” Chemical physics letters, vol. 397, no. 4, pp. 459–461, 2004.
+    };
 };
 }
 }
