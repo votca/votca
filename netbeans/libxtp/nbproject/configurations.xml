@@ -39,11 +39,9 @@
         <itemPath>../../src/libxtp/tools/excitoncoupling.h</itemPath>
         <itemPath>../../src/libxtp/tools/gencube.h</itemPath>
         <itemPath>../../src/libxtp/tools/log2mps.h</itemPath>
-        <itemPath>../../src/libxtp/tools/matrixproduct.h</itemPath>
         <itemPath>../../src/libxtp/tools/partialcharges.h</itemPath>
         <itemPath>../../src/libxtp/tools/pdb2map.h</itemPath>
         <itemPath>../../src/libxtp/tools/pdb2top.h</itemPath>
-        <itemPath>../../src/libxtp/tools/qmanalyze.h</itemPath>
         <itemPath>../../src/libxtp/tools/qmsandbox.h</itemPath>
         <itemPath>../../src/libxtp/tools/spectrum.h</itemPath>
       </logicalFolder>

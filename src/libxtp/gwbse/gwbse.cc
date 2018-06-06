@@ -924,10 +924,11 @@ bool GWBSE::Evaluate() {
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(Hqp);
       const Eigen::VectorXd& qp_diag_energies=es.eigenvalues();
     
-    
+      if(es.info()==Eigen::ComputationInfo::Success){
     CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Diagonalized QP Hamiltonian  " <<es.info()<< flush;
-            
+      << ctp::TimeStamp() << " Diagonalized QP Hamiltonian  "<< flush;
+      }
+      
       PrintQP_Energies(gwa_energies, qp_diag_energies);
 
       if (_store_qp_diag) {
