@@ -15,6 +15,7 @@
       <itemPath>../../include/votca/tools/cubicspline.h</itemPath>
       <itemPath>../../include/votca/tools/database.h</itemPath>
       <itemPath>../../include/votca/tools/datacollection.h</itemPath>
+      <itemPath>../../include/votca/tools/elements.h</itemPath>
       <itemPath>../../include/votca/tools/getline.h</itemPath>
       <itemPath>../../include/votca/tools/globals.h</itemPath>
       <itemPath>../../include/votca/tools/histogram.h</itemPath>
@@ -96,7 +97,7 @@
       <itemPath>../../src/libtools/tokenizer.cc</itemPath>
       <itemPath>../../src/libtools/version.cc</itemPath>
     </logicalFolder>
-    <logicalFolder name="f2" displayName="Tests" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f2" displayName="Tests" projectFiles="true">
       <itemPath>../../src/tests/test_edge_base.cc</itemPath>
       <itemPath>../../src/tests/test_edgecontainer.cc</itemPath>
       <itemPath>../../src/tests/test_elements.cc</itemPath>
@@ -188,6 +189,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/datacollection.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/elements.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -525,6 +531,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/elements.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/getline.h"
             ex="false"
             tool="3"
@@ -854,6 +865,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/datacollection.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/elements.h"
             ex="false"
             tool="3"
             flavor2="0">

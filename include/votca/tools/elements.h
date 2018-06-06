@@ -83,6 +83,13 @@ class Elements {
   const int &getEleNum(std::string name) const { return _EleNum.at(name); }
   /// Returns the mass of each atom in a.u.
   const double &getMass(std::string name) const { return _Mass.at(name); }
+  /// Returns the atomic polarisability of atom 
+  // All polarizabilities in nm**3
+  // Isotropic polarizability volume is evaluated from the tensor
+  // as (a_xx * a_yy * a_zz )^(1/3) for eigenvalues of the polarizability tensor
+  const double &getPolarizability(std::string name) const { if (_ElPolarizability.count(name) == 0)
+      throw std::invalid_argument("Element not found in ElPolarizability map " + name);
+    return _ElPolarizability.at(name); }
   /// Returns the covalent Radii of the atom 
   double getCovRad(std::string name,std::string unit ) const 
   { 
@@ -119,6 +126,8 @@ class Elements {
   std::map<std::string, double> _Mass;
   std::map<std::string, int>    _EleNum;
   std::map<int, std::string>    _EleName;
+  
+  std::map<std::string,double> _ElPolarizability;
 
   std::map<std::string, std::string> _EleShort;
   std::map<std::string, std::string> _EleFull;
@@ -135,6 +144,7 @@ class Elements {
     FillEleShort();
     FillEleFull();
     FillMass();
+    FillPolarizability();
   };
 
   inline void FillMass() {
@@ -737,6 +747,18 @@ class Elements {
     _VdWMK["Cl"] = 1.7;
     _VdWMK["Ag"] = 2.0;
   };
+  
+  inline void FillPolarizability(){
+    _ElPolarizability["H"] = 0.496e-3;
+    _ElPolarizability["C"] = 1.334e-3;
+    _ElPolarizability["N"] = 1.073e-3;
+    _ElPolarizability["O"] = 0.837e-3;
+    _ElPolarizability["S"] = 2.926e-3;
+    _ElPolarizability["F"] = 0.440e-3;
+    _ElPolarizability["Si"] = 3.962e-3;   // B3LYP/6-311+g(2d,2p)
+    _ElPolarizability["Zn"] = 5.962e-3;   // B3LYP/6-311+g(2d,2p)
+    _ElPolarizability["Al"] = 5.80e-3;   //[1]P. Fuentealba, “The static dipole polarizability of aluminium atom: discrepancy between theory and experiment,” Chemical physics letters, vol. 397, no. 4, pp. 459–461, 2004.
+    };
 };
 }
 }
