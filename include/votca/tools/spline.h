@@ -18,13 +18,10 @@
 #ifndef __VOTCA_SPLINE_H
 #define	__VOTCA_SPLINE_H
 
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/vector_expression.hpp>
+#include <votca/tools/eigen.h>
 
 namespace votca{namespace tools{
 
-namespace ub = boost::numeric::ublas;
 
 /**
  * \brief Spline Class
@@ -47,7 +44,7 @@ public:
      * \param y values of data to be interpolated
      * both vectors must be of same size
      */
-    virtual void Interpolate(ub::vector<double> &x, ub::vector<double> &y) = 0;
+    virtual void Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y) = 0;
     
     /**
      * \brief Fit spline through noisy (x,y) values. Points on resulting fitted spline can be obtained via Calculate().
@@ -55,7 +52,7 @@ public:
      * \param y values of data to be fitted
      * both vectors must be of same size
      */
-    virtual void Fit(ub::vector<double> &x, ub::vector<double> &y) = 0;
+    virtual void Fit(Eigen::VectorXd &x, Eigen::VectorXd &y) = 0;
 
     /**
      * \brief Calculate spline function value for a given x value on the spline created by Interpolate() or Fit()
@@ -152,28 +149,28 @@ public:
      * \brief Get the grid array x
      * \return pointer to the corresponding array
      */
-    ub::vector<double> &getX() {return _r; }
+    Eigen::VectorXd &getX() {return _r; }
 
     /**
      * \brief Get the spline data _f
      * \return pointer to the corresponding array
      */
-    ub::vector<double> &getSplineF() { return _f; }
+    Eigen::VectorXd &getSplineF() { return _f; }
 
     /**
      * \brief Get second derivatives (cubic splines)
      * \return pointer to the corresponding array
      */
-    ub::vector<double> &getSplineF2() { return _f2; }
+    Eigen::VectorXd &getSplineF2() { return _f2; }
     
 protected:
     eBoundary _boundaries;
     // the grid points
-    ub::vector<double> _r;
+    Eigen::VectorXd _r;
     // y values of grid points
-    ub::vector<double> _f;
+    Eigen::VectorXd _f;
     // second derivatives of grid points
-    ub::vector<double> _f2;
+    Eigen::VectorXd _f2;
 };
 
 template<typename vector_type1, typename vector_type2>

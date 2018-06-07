@@ -31,11 +31,11 @@ using namespace boost;
 using namespace std;
 
 void Table::resize(int N, bool preserve) {
-  _x.resize(N, preserve);
-  _y.resize(N, preserve);
+  _x.conservativeResize(N);
+  _y.conservativeResize(N);
   _flags.resize(N, preserve);
   if (_has_yerr) {
-    _yerr.resize(N, preserve);
+    _yerr.conservativeResize(N);
   }
 }
 
@@ -66,30 +66,26 @@ void Table::Save(string filename) const {
 }
 
 void Table::clear(void) {
-  _x.clear();
-  _y.clear();
+  _x.resize(0);
+  _y.resize(0);
   _flags.clear();
-  _yerr.clear();
+  _yerr.resize(0);
 }
 
 double Table::getMaxY() const {
-  auto maxY = boost::range::max_element(_y);
-  return *maxY;
+  return  _y.maxCoeff();
 }
 
 double Table::getMinY() const {
-  auto minY = boost::range::min_element(_y);
-  return *minY;
+  return _y.minCoeff();
 }
 
 double Table::getMaxX() const {
-  auto maxX = boost::range::max_element(_x);
-  return *maxX;
+  _x.maxCoeff();
 }
 
 double Table::getMinX() const {
-  auto minX = boost::range::min_element(_x);
-  return *minX;
+  _x.minCoeff();
 }
 
 // TODO: this functon is weired, reading occours twice, cleanup!!

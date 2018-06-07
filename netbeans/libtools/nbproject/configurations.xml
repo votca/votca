@@ -193,6 +193,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/eigen.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/tools/elements.h"
             ex="false"
             tool="3"
@@ -318,81 +320,6 @@
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/cholesky.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/eigensystems.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/invert.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/qrsolve.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/svd.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/cholesky.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/eigensystems.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/invert.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/qrsolve.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/svd.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/cholesky.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/eigensystems.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/invert.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/qrsolve.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/svd.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -531,6 +458,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/eigen.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/tools/elements.h"
             ex="false"
             tool="3"
@@ -656,81 +585,6 @@
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/cholesky.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/eigensystems.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/invert.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/qrsolve.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/svd.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/cholesky.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/eigensystems.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/invert.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/qrsolve.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/svd.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/cholesky.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/eigensystems.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/invert.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/qrsolve.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/svd.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -869,6 +723,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/eigen.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/tools/elements.h"
             ex="false"
             tool="3"
@@ -994,81 +850,6 @@
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/cholesky.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/eigensystems.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/invert.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/qrsolve.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/dummy/svd.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/cholesky.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/eigensystems.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/invert.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/qrsolve.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/gsl/svd.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/cholesky.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/eigensystems.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/invert.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/qrsolve.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/linalg/mkl/svd.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
       </item>

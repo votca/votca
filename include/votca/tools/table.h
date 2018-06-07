@@ -19,13 +19,11 @@
 #define _VOTCA_TOOLS_TABLE_H
 
 #include <iostream>
-#include <boost/numeric/ublas/vector.hpp>
+#include <votca/tools/eigen.h>
 #include <string>
 
 namespace votca {
 namespace tools {
-
-namespace ub = boost::numeric::ublas;
 
 // the entry is invalid, e.g. could not be calculated (ln(0), ...)
 #define TBL_INVALID 1
@@ -106,10 +104,10 @@ class Table {
    */
   double getMinX() const;
 
-  ub::vector<double> &x() { return _x; }
-  ub::vector<double> &y() { return _y; }
-  ub::vector<char> &flags() { return _flags; }
-  ub::vector<double> &yerr() { return _yerr; }
+  Eigen::VectorXd &x() { return _x; }
+  Eigen::VectorXd &y() { return _y; }
+  std::vector<char> &flags() { return _flags; }
+  Eigen::VectorXd &yerr() { return _yerr; }
 
   void push_back(double x, double y, char flags = ' ');
 
@@ -118,10 +116,10 @@ class Table {
   void setErrorDetails(std::string str) { _error_details = str; }
 
  private:
-  ub::vector<double> _x;
-  ub::vector<double> _y;
-  ub::vector<char> _flags;
-  ub::vector<double> _yerr;
+  Eigen::VectorXd _x;
+  Eigen::VectorXd _y;
+  std::vector<char> _flags;
+  Eigen::VectorXd _yerr;
   std::string _error_details;
 
   bool _has_yerr;
