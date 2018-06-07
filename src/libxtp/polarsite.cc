@@ -18,7 +18,7 @@
  */
 /// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#include <votca/xtp/apolarsite.h>
+#include <votca/xtp/polarsite.h>
 #include <boost/math/special_functions/round.hpp>
 #include <boost/format.hpp>
 #include <fstream>

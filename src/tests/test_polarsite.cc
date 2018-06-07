@@ -15,18 +15,18 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE apolararsite_test
+#define BOOST_TEST_MODULE polararsite_test
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/apolarsite.h>
+#include <votca/xtp/polarsite.h>
 
 using namespace votca::xtp;
 
-BOOST_AUTO_TEST_SUITE(apolararsite_test)
+BOOST_AUTO_TEST_SUITE(polararsite_test)
 
-BOOST_AUTO_TEST_CASE(constructors_test) { APolarSite ps(1, "ps1"); }
+BOOST_AUTO_TEST_CASE(constructors_test) { PolarSite ps(1, "ps1"); }
 
 BOOST_AUTO_TEST_CASE(getters_test) {
-  APolarSite ps(1,"ps2");
+  PolarSite ps(1,"ps2");
   BOOST_CHECK_EQUAL(ps.getId(),1);
   BOOST_CHECK_EQUAL(ps.getName(),"ps2");
 }
