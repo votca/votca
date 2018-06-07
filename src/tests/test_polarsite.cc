@@ -31,4 +31,11 @@ BOOST_AUTO_TEST_CASE(getters_test) {
   BOOST_CHECK_EQUAL(ps.getName(),"ps2");
 }
 
+BOOST_AUTO_TEST_CASE(getters_test) {
+  PolarSite ps(1,"ps2");
+  BOOST_CHECK_EQUAL(ps.getId(),1);
+  BOOST_CHECK_EQUAL(ps.getName(),"ps2");
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()
