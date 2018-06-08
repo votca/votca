@@ -34,13 +34,6 @@ void CubicSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y)
 
     const int N = x.size();
     
-    // adjust the grid
-    _r.resize(N);
-    _f.resize(N);
-    _f2.resize(N);
-    
-    // create vector proxies to individually access f and f''
-
     // copy the grid points into f
     _r = x;
     _f = y;
@@ -94,20 +87,22 @@ void CubicSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y)
     // A[i,j] contains the data fitting + the spline smoothing conditions
     
     Eigen::MatrixXd A=Eigen::MatrixXd::Zero(N, 2*ngrid);
-    Eigen::VectorXd b=Eigen::VectorXd(N);    
-    Eigen::MatrixXd B_constr=Eigen::MatrixXd::Zero(ngrid, 2*ngrid);  // Matrix with smoothing conditions
+    Eigen::MatrixXd B=Eigen::MatrixXd::Zero(ngrid, 2*ngrid);  // Matrix with smoothing conditions
 
-    
     // Construct smoothing matrix
-    AddBCToFitMatrix(B_constr, 0);
-
+    AddBCToFitMatrix(B, 0);
     // construct the matrix to fit the points and the vector b
     AddToFitMatrix(A, x, 0);
-    b = -y; // why is it -y?
-
+    cout<<"A"<<endl;
+    cout<<A<<endl;
+    cout<<"B"<<endl;
+    cout<<B<<endl;
     // now do a constrained qr solve
     Eigen::VectorXd sol=Eigen::VectorXd::Zero(2*ngrid);
-    linalg_constrained_qrsolve(sol, A, b, B_constr);
+    linalg_constrained_qrsolve(sol, A, y, B);
+    
+    cout<<"sol"<<endl;
+    cout<<sol<<endl;
 
     // check vector "sol" for nan's
     for(int i=0; i<2*ngrid; i++) {

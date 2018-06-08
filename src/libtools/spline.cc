@@ -33,8 +33,8 @@ namespace votca {
                 _r[i++] = r_init;
             }
             _r[i] = max;
-            _f.resize(_r.size(), false);
-            _f2.resize(_r.size(), false);
+            _f.resize(_r.size());
+            _f2.resize(_r.size());
             return _r.size();
         }
 

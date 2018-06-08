@@ -67,7 +67,7 @@ public:
     
     // fit spline through noisy data
     // x,y are arrays with noisy data, both vectors must be of same size
-    void Fit(Eigen::VectorXd &x, Eigen::VectorXd &y);
+    void Fit(Eigen::VectorXd &x,Eigen::VectorXd &y);
     
     // Calculate the function value
     double Calculate(const double &x);

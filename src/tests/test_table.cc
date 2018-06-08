@@ -73,6 +73,7 @@ BOOST_AUTO_TEST_CASE(getMinMax_test) {
     double y = 2 * x;
     tb.push_back(x, y);
   }
+  
   BOOST_CHECK_EQUAL(boost::lexical_cast<int>(tb.getMinX()), 0);
   BOOST_CHECK_EQUAL(boost::lexical_cast<int>(tb.getMaxX()), 9);
   BOOST_CHECK_EQUAL(boost::lexical_cast<int>(tb.getMinY()), 0);

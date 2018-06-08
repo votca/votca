@@ -197,8 +197,8 @@ inline int Spline::getInterval(const double &r)
 {
     if (r < _r[0]) return 0;
     if(r > _r[_r.size() - 2]) return _r.size()-2;
-    size_t i;
-    for(int i=0; i<_r.size(); ++i)
+    int i;
+    for( i=0; i<_r.size(); ++i)
         if(_r[i]>r) break;
     return i-1;
 }

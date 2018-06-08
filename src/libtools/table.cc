@@ -73,7 +73,7 @@ void Table::clear(void) {
 }
 
 double Table::getMaxY() const {
-  return  _y.maxCoeff();
+  return _y.maxCoeff();
 }
 
 double Table::getMinY() const {
@@ -81,11 +81,11 @@ double Table::getMinY() const {
 }
 
 double Table::getMaxX() const {
-  _x.maxCoeff();
+ return _x.maxCoeff();
 }
 
 double Table::getMinX() const {
-  _x.minCoeff();
+ return _x.minCoeff();
 }
 
 // TODO: this functon is weired, reading occours twice, cleanup!!
