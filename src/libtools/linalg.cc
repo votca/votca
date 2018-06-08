@@ -38,7 +38,9 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A, const Ei
     
     
     Eigen::ColPivHouseholderQR<Eigen::MatrixXd> QR(constr.transpose());
-    Eigen::MatrixXd Q=QR.matrixQ();
+    std::cout<<"QR.hCoeffs()"<<std::endl;
+    std::cout<<QR.hCoeffs()<<std::endl;
+    Eigen::MatrixXd Q=QR.householderQ();
     
     std::cout<<"Q"<<std::endl;
     std::cout<<Q<<std::endl;
