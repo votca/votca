@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(cubicspline_fit_test) {
   }
   BOOST_CHECK_EQUAL(equal1, true);
   
-  bool equal2=F2ref.isApprox(F2,1e-7);
+  bool equal2=F2ref.isApprox(F2,1e-5);
  
   if(!equal2){
     std::cout<<"result F2"<<std::endl;

@@ -36,43 +36,29 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A, const Ei
     const int NoVariables = x.size();
     const int NoConstrains = constr.rows(); //number of constraints is number of rows of constr
     
-    
     Eigen::ColPivHouseholderQR<Eigen::MatrixXd> QR(constr.transpose());
     std::cout<<"QR.hCoeffs()"<<std::endl;
     std::cout<<QR.hCoeffs()<<std::endl;
     Eigen::MatrixXd Q=QR.householderQ();
-    
-    std::cout<<"Q"<<std::endl;
-    std::cout<<Q<<std::endl;
-   
-    //now Q is the one of trans(B)=Q * R
+ 
     // Calculate A * Q and store the result in A
-    A = A*Q.transpose();
-    
-        std::cout<<"A*QT"<<std::endl;
-    std::cout<<A<<std::endl;
-
+    A = A*Q;
     // A = [A1 A2], so A2 is just a block of A
     // [A1 A2] has N rows. A1 has ysize columns 
     //A2 has 2*ngrid-ysize columns 
-    Eigen::MatrixXd A2 = A.block(0,NoConstrains,NoEquations,NoVariables-NoConstrains);
-    std::cout<<"A2"<<std::endl;
-    std::cout<<A2<<std::endl;
+    Eigen::MatrixXd A2 = A.block(0,NoConstrains,A.rows(),NoVariables-NoConstrains);
     //now perform QR-decomposition of A2 to solve the least-squares problem A2 * z = b
     //A2 has N rows and (2*ngrid-ysize) columns -> 
     Eigen::ColPivHouseholderQR<Eigen::MatrixXd> QR2(A2);
     Eigen::VectorXd z=QR2.solve(b);
-
     
     // Next two steps assemble vector from y (which is zero-vector) and z
     Eigen::VectorXd result=Eigen::VectorXd::Zero(NoVariables);
     for (int i = NoConstrains; i < NoVariables; i++ ) {
            result[i] = z(i - NoConstrains);
-    }
-    
+    }  
     // To get the final answer this vector should be multiplied by matrix Q
-    x = Q.transpose()*result;
-    
+    x = Q*result;  
     return;
 }
 }}

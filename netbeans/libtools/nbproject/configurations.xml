@@ -41,30 +41,6 @@
       <itemPath>../../include/votca/tools/votca_config.h.in</itemPath>
       <itemPath>../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h</itemPath>
     </logicalFolder>
-    <logicalFolder name="f1" displayName="Linalg" projectFiles="true">
-      <logicalFolder name="f3" displayName="Dummy" projectFiles="true">
-        <itemPath>../../src/libtools/linalg/dummy/cholesky.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/dummy/eigensystems.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/dummy/invert.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/dummy/qrsolve.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/dummy/svd.cc</itemPath>
-      </logicalFolder>
-      <logicalFolder name="f2" displayName="GSL" projectFiles="true">
-        <itemPath>../../src/libtools/linalg/gsl/cholesky.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/gsl/eigensystems.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/gsl/invert.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/gsl/qrsolve.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/gsl/svd.cc</itemPath>
-      </logicalFolder>
-      <logicalFolder name="f1" displayName="MKL" projectFiles="true">
-        <itemPath>../../src/libtools/linalg/mkl/cholesky.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/mkl/eigensystems.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/mkl/invert.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/mkl/qrsolve.cc</itemPath>
-        <itemPath>../../src/libtools/linalg/mkl/svd.cc</itemPath>
-      </logicalFolder>
-      <itemPath>../../src/libtools/linalg.cc</itemPath>
-    </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
@@ -82,6 +58,7 @@
       <itemPath>../../src/libtools/globals.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/histogramnew.cc</itemPath>
+      <itemPath>../../src/libtools/linalg.cc</itemPath>
       <itemPath>../../src/libtools/linspline.cc</itemPath>
       <itemPath>../../src/libtools/matrix.cc</itemPath>
       <itemPath>../../src/libtools/mutex.cc</itemPath>
@@ -318,6 +295,8 @@
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -587,6 +566,8 @@
       </item>
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/matrix.cc" ex="false" tool="1" flavor2="0">
@@ -854,6 +835,8 @@
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogramnew.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
       </item>
