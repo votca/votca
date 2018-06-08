@@ -87,7 +87,6 @@ void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
     
     const int N = x.size();
     const int ngrid = _r.size();
-    
     // construct the equation
     // A*u = b
     // where u = { {f[i]}, {f''[i]} }
@@ -106,7 +105,7 @@ void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
 
     // construct the matrix to fit the points and the vector b
     AddToFitMatrix(A, x, 0);
-    ub::vector<double> b = y; // why is it -y?
+    ub::vector<double> b = y; 
 
     // now do a constrained qr solve
     ub::vector<double> sol(2*ngrid);

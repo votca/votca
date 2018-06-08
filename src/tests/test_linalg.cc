@@ -20,6 +20,7 @@
 #define BOOST_TEST_MODULE linalg_test
 #include <boost/test/unit_test.hpp>
 #include <votca/tools/linalg.h>
+#include <boost/numeric/ublas/io.hpp>
 #include <iostream>
 
 using namespace votca::tools;
@@ -60,9 +61,9 @@ BOOST_AUTO_TEST_CASE(linalg_constrained_qrsolve_test) {
   }
   if(!equal){
     std::cout<<"result"<<std::endl;
-  std::cout<<x(0)<<" "<<x(1)<<" "<<x(2)<<std::endl;
+  std::cout<<x<<std::endl;
    std::cout<<"ref"<<std::endl;
-  std::cout<<x_ref(0)<<" "<<x_ref(1)<<" "<<x_ref(2)<<std::endl;
+  std::cout<<x_ref<<std::endl;
   }
   BOOST_CHECK_EQUAL(equal, true);
   

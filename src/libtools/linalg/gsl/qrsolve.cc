@@ -17,7 +17,7 @@
 
 #include <votca/tools/linalg.h>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-
+#include <boost/numeric/ublas/io.hpp>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_eigen.h>
@@ -73,6 +73,7 @@ void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<dou
 
 void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::matrix<double> &B)
 {
+
     // check matrix for zero column
     int nonzero_found = 0;
     for(size_t j=0; j<A.size2(); j++) {

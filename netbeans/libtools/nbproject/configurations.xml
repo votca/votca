@@ -98,6 +98,7 @@
       <itemPath>../../src/libtools/version.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="f2" displayName="Tests" projectFiles="true">
+      <itemPath>../../src/tests/test_cubicspline.cc</itemPath>
       <itemPath>../../src/tests/test_edge_base.cc</itemPath>
       <itemPath>../../src/tests/test_edgecontainer.cc</itemPath>
       <itemPath>../../src/tests/test_elements.cc</itemPath>
@@ -422,6 +423,11 @@
       <item path="../../src/libtools/tokenizer.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_cubicspline.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_edge_base.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -763,6 +769,11 @@
       </item>
       <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_cubicspline.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_edge_base.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_edgecontainer.cc"
@@ -1102,6 +1113,11 @@
       <item path="../../src/libtools/tokenizer.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_cubicspline.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_edge_base.cc" ex="false" tool="1" flavor2="0">
       </item>
