@@ -95,12 +95,10 @@ void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
     // and b[i]=0 for i>=N (for smoothing condition)
     // A[i,j] contains the data fitting + the spline smoothing conditions
     
-    ub::matrix<double> A(N, 2*ngrid);
-    ub::vector<double> b(N);    
+    ub::matrix<double> A(N, 2*ngrid); 
     ub::matrix<double> B_constr(ngrid, 2*ngrid);  // Matrix with smoothing conditions
 
     A = ub::zero_matrix<double>(N, 2*ngrid);
-    b  = ub::zero_vector<double>(N);
     B_constr = ub::zero_matrix<double>(ngrid, 2*ngrid);
     
     // Construct smoothing matrix
@@ -108,7 +106,7 @@ void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
 
     // construct the matrix to fit the points and the vector b
     AddToFitMatrix(A, x, 0);
-    b = -y; // why is it -y?
+    ub::vector<double> b = y; // why is it -y?
 
     // now do a constrained qr solve
     ub::vector<double> sol(2*ngrid);
