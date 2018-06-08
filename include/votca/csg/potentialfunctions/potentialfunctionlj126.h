@@ -19,7 +19,6 @@
 #define	POTENTIALFUNCTIONLJ126_H
 
 #include <votca/tools/table.h>
-#include <boost/numeric/ublas/vector.hpp>
 #include <math.h>
 #include "potentialfunction.h"
 

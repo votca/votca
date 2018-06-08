@@ -158,12 +158,9 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
 
   }// end potiter loop
 
-  _DS.resize(_nlamda,false);
-  _DS.clear();
-  _HS.resize(_nlamda,false);
-  _HS.clear();
-  _dUFrame.resize(_nlamda,false);
-  _dUFrame.clear();
+  _DS=Eigen::VectorXd::Zero(_nlamda);
+  _HS=Eigen::VectorXd::Zero(_nlamda);
+  _dUFrame=Eigen::VectorXd::Zero(_nlamda);
   _nframes = 0.0; // no frames processed yet!
 
   // set Temperature
@@ -311,26 +308,17 @@ void CsgREupdate::REFormulateLinEq() {
 void CsgREupdate::REUpdateLamda() {
 
   // first solve _HS dx = -_DS
-  ub::vector<double> dlamda(_nlamda);
-  dlamda.clear();
-  ub::vector<double> minusDS(_nlamda);
+  Eigen::VectorXd dlamda=Eigen::VectorXd::Zero(_nlamda);
+  
+  Eigen::VectorXd minusDS= -_DS;
 
-  // since linalg_cholesky_solve takes full matrix
-  // copy symmetric _HS to full matrix HS_
-  ub::matrix<double> HS_(_nlamda,_nlamda);
-  for(int row = 0; row < _nlamda; row++)
-    for(int col = 0; col<_nlamda; col++)
-      HS_(row,col) = _HS(row,col);
+  
 
-  minusDS = -_DS;
-
-  try {
-
-    votca::tools::linalg_cholesky_solve(dlamda, HS_, minusDS);
-
-  }
-  catch (std::runtime_error&){
-
+  
+    Eigen::LLT<Eigen::MatrixXd> cholesky(_HS); // compute the Cholesky decomposition of _HS
+    dlamda=cholesky.solve(minusDS);
+    if(cholesky.info()==Eigen::ComputationInfo::NumericalIssue){
+  
     /* then can not use Newton-Raphson
      * steepest descent with line-search may be helpful
      * not implemented yet!
@@ -509,12 +497,9 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
 
   }// end potiter loop
 
-  worker->_DS.resize(worker->_nlamda,false);
-  worker->_DS.clear();
-  worker->_HS.resize(worker->_nlamda,false);
-  worker->_HS.clear();
-  worker->_dUFrame.resize(worker->_nlamda,false);
-  worker->_dUFrame.clear();
+  worker->_DS=Eigen::VectorXd::Zero(worker->_nlamda);
+  worker->_HS=Eigen::VectorXd::Zero(worker->_nlamda);
+  worker->_dUFrame=Eigen::VectorXd::Zero(worker->_nlamda);
   worker->_nframes = 0.0; // no frames processed yet!
   // set Temperature
   worker->_beta = (1.0/worker->_options.get("cg.inverse.kBT").as<double>());
@@ -549,7 +534,7 @@ void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *conf_atom){
    * hence store current frame dU/dlamda in _dUFrame!
    */
 
-  _dUFrame.clear();
+  _dUFrame.setZero();
 
   PotentialContainer::iterator potiter;
   for (potiter = _potentials.begin();

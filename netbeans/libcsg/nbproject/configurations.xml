@@ -60,6 +60,10 @@
                    displayName="Resource Files"
                    projectFiles="true">
     </logicalFolder>
+    <logicalFolder name="f3" displayName="share" projectFiles="true" kind="ROOT">
+      <itemPath>../../share/template/template_serial.cc</itemPath>
+      <itemPath>../../share/template/template_threaded.cc</itemPath>
+    </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
@@ -300,6 +304,16 @@
       <item path="../../include/votca/csg/triplelist.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/template/template_serial.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../share/template/template_threaded.cc"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
@@ -723,6 +737,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../share/template/template_serial.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../share/template/template_threaded.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libcsg/boundarycondition.cc"
@@ -1143,6 +1167,16 @@
       <item path="../../include/votca/csg/triplelist.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/template/template_serial.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../share/template/template_threaded.cc"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">

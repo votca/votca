@@ -174,10 +174,6 @@ void CsgTestApp::MergeWorker(Worker *worker) {
 }
 
 void CsgTestApp::EndEvaluate() {
-    _rdf.data().y() = 
-            element_div(_rdf.data().y(),
-            element_prod(_rdf.data().x(), _rdf.data().x())
-            );
-
+    _rdf.data().y() = _rdf.data().y().cwiseQuotient(_rdf.data().x().cwiseAbs2());
     _rdf.data().Save("rdf.dat");
 }

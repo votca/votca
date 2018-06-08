@@ -19,8 +19,6 @@
 #define	POTENTIALFUNCTIONCBSPL_H
 
 #include <votca/tools/table.h>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
 #include <math.h>
 #include "potentialfunction.h"
 
@@ -66,9 +64,9 @@ class PotentialFunctionCBSPL : public PotentialFunction {
 
   int _nbreak;
   double _dr;
-  ub::vector<double> _rbreak;
+  Eigen::VectorXd _rbreak;
 
-  ub::matrix<double> _M;
+  Eigen::MatrixXd _M;
 
 
 };

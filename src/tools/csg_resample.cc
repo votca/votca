@@ -162,8 +162,8 @@ int main(int argc, char** argv)
         cout << "doing " << type << " fit " << sp_min << ":" << sp_step << ":" << sp_max << endl;
 
         // cut off any values out of fitgrid boundaries (exception: do nothing in case of --nocut)
-        ub::vector<double> x_copy;
-        ub::vector<double> y_copy;
+        Eigen::VectorXd x_copy;
+        Eigen::VectorXd y_copy;
         if (!vm.count("nocut")) {
             // determine vector size
             int minindex=-1, maxindex=-1;
@@ -177,8 +177,8 @@ int main(int argc, char** argv)
             }
             // copy data values in [sp_min,sp_max] into new vectors
             minindex++;
-            x_copy = ub::zero_vector<double>(maxindex-minindex+1);
-            y_copy = ub::zero_vector<double>(maxindex-minindex+1);
+            x_copy = Eigen::VectorXd::Zero(maxindex-minindex+1);
+            y_copy = Eigen::VectorXd::Zero(maxindex-minindex+1);
             for (int i=minindex; i<=maxindex; i++) {
                 x_copy(i-minindex) = in.x(i);
                 y_copy(i-minindex) = in.y(i);
@@ -227,10 +227,10 @@ int main(int argc, char** argv)
         out.set_comment(comment);
     }
     out.y() = out.y();
-    out.flags() = ub::scalar_vector<double>(out.flags().size(), 'o');
+    out.flags() = std::vector<char>(out.flags().size(), 'o');
 
     der.GenerateGridSpacing(min, max, step);
-    der.flags() = ub::scalar_vector<double>(der.flags().size(), 'o');
+    der.flags() = std::vector<char>(der.flags().size(), 'o');
 
     unsigned int i=0;
     for(i=0; out.x(i) < in.x(0) && i<out.size(); ++i);

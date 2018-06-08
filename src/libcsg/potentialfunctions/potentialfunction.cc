@@ -21,8 +21,7 @@ PotentialFunction::PotentialFunction(const string& name_,const int nlam_,
                                      const double min_,const double max_){
 
   _name = name_;
-  _lam.resize(nlam_);
-  _lam.clear();
+  _lam=Eigen::VectorXd::Zero(nlam_);
   _min = min_;
   _cut_off = max_;
 
