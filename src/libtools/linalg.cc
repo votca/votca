@@ -37,20 +37,29 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A, const Ei
     const int NoConstrains = constr.rows(); //number of constraints is number of rows of constr
     
     
-    Eigen::HouseholderQR<Eigen::MatrixXd> QR(constr.transpose());
-    Eigen::MatrixXd Q=QR.householderQ();
+    Eigen::ColPivHouseholderQR<Eigen::MatrixXd> QR(constr.transpose());
+    Eigen::MatrixXd Q=QR.matrixQ();
+    
+    std::cout<<"Q"<<std::endl;
+    std::cout<<Q<<std::endl;
    
     //now Q is the one of trans(B)=Q * R
     // Calculate A * Q and store the result in A
     A = A*Q.transpose();
+    
+        std::cout<<"A*QT"<<std::endl;
+    std::cout<<A<<std::endl;
 
     // A = [A1 A2], so A2 is just a block of A
     // [A1 A2] has N rows. A1 has ysize columns 
     //A2 has 2*ngrid-ysize columns 
     Eigen::MatrixXd A2 = A.block(0,NoConstrains,NoEquations,NoVariables-NoConstrains);
+    std::cout<<"A2"<<std::endl;
+    std::cout<<A2<<std::endl;
     //now perform QR-decomposition of A2 to solve the least-squares problem A2 * z = b
     //A2 has N rows and (2*ngrid-ysize) columns -> 
-    Eigen::VectorXd z=A2.householderQr().solve(b);
+    Eigen::ColPivHouseholderQR<Eigen::MatrixXd> QR2(A2);
+    Eigen::VectorXd z=QR2.solve(b);
 
     
     // Next two steps assemble vector from y (which is zero-vector) and z

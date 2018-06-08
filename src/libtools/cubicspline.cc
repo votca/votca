@@ -93,16 +93,9 @@ void CubicSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y)
     AddBCToFitMatrix(B, 0);
     // construct the matrix to fit the points and the vector b
     AddToFitMatrix(A, x, 0);
-    cout<<"A"<<endl;
-    cout<<A<<endl;
-    cout<<"B"<<endl;
-    cout<<B<<endl;
     // now do a constrained qr solve
     Eigen::VectorXd sol=Eigen::VectorXd::Zero(2*ngrid);
     linalg_constrained_qrsolve(sol, A, y, B);
-    
-    cout<<"sol"<<endl;
-    cout<<sol<<endl;
 
     // check vector "sol" for nan's
     for(int i=0; i<2*ngrid; i++) {
