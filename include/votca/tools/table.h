@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <votca/tools/eigen.h>
+#include <vector>
 #include <string>
 
 namespace votca {
@@ -46,7 +47,7 @@ class Table {
 
   void GenerateGridSpacing(double min, double max, double spacing);
   void resize(int N, bool preserve = true);
-  unsigned int size() const { return _x.size(); }
+   int size() const { return _x.size(); }
 
   double &x(int i) { return _x[i]; }
   double &y(int i) { return _y[i]; }
@@ -151,12 +152,12 @@ inline std::ostream &operator<<(std::ostream &out, const Table &t) {
   // TODO: use a smarter precision guess, XXX.YYYYY=8, so 10 should be enough
   out.precision(10);
   if (t._has_yerr) {
-    for (size_t i = 0; i < t._x.size(); ++i) {
+    for (int i = 0; i < t._x.size(); ++i) {
       out << t._x[i] << " " << t._y[i] << " " << t._yerr[i] << " "
           << t._flags[i] << std::endl;
     }
   } else {
-    for (size_t i = 0; i < t._x.size(); ++i) {
+    for (int i = 0; i < t._x.size(); ++i) {
       out << t._x[i] << " " << t._y[i] << " " << t._flags[i] << std::endl;
     }
   }
@@ -164,7 +165,7 @@ inline std::ostream &operator<<(std::ostream &out, const Table &t) {
 }
 // TODO: modify this function to be able to treat _has_yerr == true
 inline void Table::push_back(double x, double y, char flags) {
-  size_t n = size();
+  int n = size();
   resize(n + 1);
   _x[n] = x;
   _y[n] = y;

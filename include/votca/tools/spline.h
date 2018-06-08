@@ -104,7 +104,7 @@ public:
      * \param index of grid point
      * \return grid value
      */
-    inline double getGridPoint(const size_t &i);
+    inline double getGridPoint(const int &i);
 
     /**
      * \brief Calculate spline function values for given x values on the spline created by Interpolate() or Fit()
@@ -198,12 +198,12 @@ inline int Spline::getInterval(const double &r)
     if (r < _r[0]) return 0;
     if(r > _r[_r.size() - 2]) return _r.size()-2;
     size_t i;
-    for(i=0; i<_r.size(); ++i)
+    for(int i=0; i<_r.size(); ++i)
         if(_r[i]>r) break;
     return i-1;
 }
 
-inline double Spline::getGridPoint(const size_t &i)
+inline double Spline::getGridPoint(const int &i)
 {
     if(i>=_r.size()) {
         return 0;
