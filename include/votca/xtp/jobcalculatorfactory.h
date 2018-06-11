@@ -26,7 +26,7 @@
 
 namespace votca { namespace xtp {
 
-using namespace std;
+
 
 class JobCalculatorfactory
 : public tools::ObjectFactory<std::string, ctp::JobCalculator>
@@ -41,7 +41,7 @@ public:
        Create an instance of the object identified by key.
     *  Overwritten to load calculator defaults
     */
-    ctp::JobCalculator *Create(const string &key);
+    ctp::JobCalculator *Create(const std::string &key);
 
     friend JobCalculatorfactory &JobCalculators();
     
@@ -53,7 +53,7 @@ inline JobCalculatorfactory &JobCalculators()
     return _instance;
 }
 
-inline ctp::JobCalculator* JobCalculatorfactory::Create(const string &key)
+inline ctp::JobCalculator* JobCalculatorfactory::Create(const std::string &key)
 {
     assoc_map::const_iterator it(getObjects().find(key));
     if (it != getObjects().end()) {

@@ -18,48 +18,34 @@
  */
 
 
+#include <exception>
 #include <votca/xtp/nbo.h>
 #include <votca/xtp/aomatrix.h>
-#include <votca/tools/linalg.h>
+
 namespace votca { namespace xtp {
 
-void NBO::EvaluateNBO(std::vector< ctp::QMAtom* >& _atomlist,const  ub::matrix<double> &_dmat,const AOBasis &basis, BasisSet &bs){
+void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,const  Eigen::MatrixXd &_dmat,const AOBasis &basis, BasisSet &bs){
     AOOverlap _overlap;
     // Fill overlap
     _overlap.Fill(basis);
-    
-    ub::matrix<double> _prodmat = ub::prod( _dmat, _overlap.Matrix() );
-    
-    
-    
-    ub::matrix<double> P=ub::prod(_overlap.Matrix(),_prodmat);
+    Eigen::MatrixXd S=_overlap.Matrix();
+    Eigen::MatrixXd P=S*_dmat*S;
    
-    ub::matrix<double> PNAOs_trans=IntercenterOrthogonalisation(P,_overlap.Matrix(), _atomlist ,bs);
+    Eigen::MatrixXd PNAOs_trans=IntercenterOrthogonalisation(P,S, _atomlist ,bs);
     
     cout<<P<<endl;
     cout<<_overlap.Matrix()<<endl;
     
-    vector < ctp::QMAtom* > :: iterator atom;
-    for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
-    
-    std::vector<int> func=_elements.getMinimalBasis((*atom)->type,_ECP);
-  
-    
-    
+      throw invalid_argument("Evaluate NBO function is incomplete");    
    
-         //cout << id << " "<< id+nooffunc << endl;
-      
-    }
-    //cout << id << " " << _dmat.size1() << endl;
-
     return;
 }
 
 
-ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::matrix<double> &Overlap,vector< ctp::QMAtom* >& _atomlist , BasisSet &bs){
+Eigen::MatrixXd NBO::IntercenterOrthogonalisation(Eigen::MatrixXd &P, Eigen::MatrixXd &overlap,vector< QMAtom* >& _atomlist , BasisSet &bs){
     
     
-    vector< ctp::QMAtom* >::iterator atom;
+    vector< QMAtom* >::iterator atom;
 
 // make an array which stores for each atom the the starting point for all s functions, p functions, d functions etc...   
     
@@ -70,7 +56,7 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::m
     int functionindex=0;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
         std::map< int,std::vector< int > > shellsort;
-        Element* element = bs.getElement((*atom)->type);
+        Element* element = bs.getElement((*atom)->getType());
         for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
             
            // for loop because shells can also consist of SP shells or alike
@@ -103,8 +89,8 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::m
     }
     
     
-    ub::matrix<double> transformation=ub::zero_matrix<double>(P.size1(),P.size2());
-    ub::vector<double> occupancies=ub::zero_vector<double>(P.size1());
+    Eigen::MatrixXd transformation=Eigen::MatrixXd::Zero(P.rows(),P.cols());
+    Eigen::VectorXd occupancies=Eigen::VectorXd::Zero(P.rows());
     // Stting up atomic transformations
     
     //atoms
@@ -114,8 +100,8 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::m
             int ll=2*(iterator->first)+1;
             std::vector< int >& index=iterator->second;
             unsigned size=index.size();
-            ub::matrix<double> P_L=ub::zero_matrix<double>(size,size);
-            ub::matrix<double> S_L=ub::zero_matrix<double>(size,size);
+            Eigen::MatrixXd P_L=Eigen::MatrixXd::Zero(size,size);
+            Eigen::MatrixXd S_L=Eigen::MatrixXd::Zero(size,size);
             
             //filling P_L and S_L
             for (unsigned i=0;i<size;i++){
@@ -123,7 +109,7 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::m
                     //summing over m
                     for (int m=0;m<ll;m++){
                         P_L(i,j)+=P(index[i]+m,index[j]+m);
-                        S_L(i,j)+=Overlap(index[i]+m,index[j]+m);
+                        S_L(i,j)+=overlap(index[i]+m,index[j]+m);
                     } 
                 }
             }
@@ -131,23 +117,17 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::m
             cout << S_L<<endl;
             
             //Setup generalized eigenproblem for each P_L/S_L
-            ub::vector<double> eigenvalues;
-            ub::matrix<double> eigenvectors;
-            bool check=linalg_eigenvalues_general( P_L,S_L, eigenvalues, eigenvectors);
-            if (!check){
-                throw runtime_error("Diagonalisation failed");
-            }
-            cout << eigenvalues<<endl;
-            cout <<eigenvectors<<endl;
             
+            Eigen::GeneralizedSelfAdjointEigenSolver<  Eigen::MatrixXd > es(P_L,S_L);
+        
             
             for (unsigned i=0;i<size;i++){
                 for (int m=0;m<ll;m++){
-                occupancies(index[i]+m)=eigenvalues(i);
+                occupancies(index[i]+m)=es.eigenvalues()(i);
                 }
                 for (unsigned j=0;j<size;j++){
                     for (int m=0;m<ll;m++){
-                    transformation(index[i]+m,index[j]+m)=eigenvectors(i,j);
+                    transformation(index[i]+m,index[j]+m)=es.eigenvectors()(i,j);
                 }
             }
         }
@@ -156,26 +136,13 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::m
         cout<<transformation<<endl;
         cout<<occupancies<<endl;
     
-        TransformMatrixtoNewBasis(P,transformation);
-        TransformMatrixtoNewBasis(Overlap,transformation);
+       P=transformation*P*transformation.transpose();
+       overlap=transformation*overlap*transformation.transpose();
     
     return transformation;
 }
 
 
-void NBO::TransformMatrixtoNewBasis(ub::matrix<double>& Matrix, const ub::matrix<double>& transformation){
-    ub::matrix<double> temp=ub::prod(Matrix,ub::trans(transformation));
-    Matrix=ub::prod(transformation,temp);
-    return;
-}
 
-
-
-void NBO::LoadMatrices(std::string fn_projectionMatrix, std::string fn_overlapMatrix){
-
-    //TODO: Yuriy, fill this in
-    
-    return;
-    }
 
 }}

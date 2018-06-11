@@ -28,19 +28,23 @@
 #include "calculators/einternal.h"
 #include "calculators/kmclifetime.h"
 #include "calculators/kmcmultiple.h"
+#include "calculators/profile.h"
+
 
 namespace votca { namespace xtp {
 
 void Calculatorfactory::RegisterAll(void)
 {	
         //Calculators().Register<Sandbox>             ("Sandbox");
-        Calculators().Register<Neighborlist>        ("xneighborlist");
-        Calculators().Register<Rates>               ("xrates");
-        Calculators().Register<IAnalyze>            ("xianalyze");
-        Calculators().Register<EAnalyze>            ("xeanalyze");
-        Calculators().Register<JobWriter>           ("xjobwriter");
-        Calculators().Register<EInternal>           ("xeinternal");
+        Calculators().Register<Neighborlist>        ("neighborlist");
+        Calculators().Register<Rates>               ("rates");
+        Calculators().Register<IAnalyze>            ("ianalyze");
+        Calculators().Register<EAnalyze>            ("eanalyze");
+        Calculators().Register<JobWriter>           ("jobwriter");
+        Calculators().Register<EInternal>           ("einternal");
         Calculators().Register<KMCLifetime>         ("kmclifetime");
         Calculators().Register<KMCMultiple>         ("kmcmultiple");
+        Calculators().Register<Profile>             ("profile");
+
 }
 }}

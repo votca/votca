@@ -22,18 +22,13 @@
 
 #include <string>
 #include <map>
-#include <votca/tools/property.h>
 #include <fstream>
-
+#include <votca/tools/property.h>
+#include <votca/ctp/logger.h>
 
 
 
 namespace votca { namespace xtp {
-
-
-using namespace std;
-using namespace votca::tools;
-
 /**
     \brief information about an element
  
@@ -52,7 +47,7 @@ public:
    void WriteInputFile( );
    void RunExternal();
    void ParseOutputFile();
-   void Initialize( Property *options  ); 
+   void Initialize( tools::Property *options  ); 
    
    // functions to override Initialize
    void SetLimit( double rank  ) { _limit = rank; } ;

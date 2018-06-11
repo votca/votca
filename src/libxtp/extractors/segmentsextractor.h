@@ -34,7 +34,7 @@ public:
     SegmentsExtractor() { };
    ~SegmentsExtractor() { };
 
-    string Identify() { return "extract.segments"; }
+    std::string Identify() { return "extract.segments"; }
     void Initialize(tools::Property *options);
     bool EvaluateFrame(ctp::Topology *top);
 
@@ -53,7 +53,7 @@ bool SegmentsExtractor::EvaluateFrame(ctp::Topology *top) {
     // Rigidify std::system (if possible)
     if (!top->Rigidify()) return 0;
     
-    string xmlfile = Identify() + ".xml";    
+    std::string xmlfile = Identify() + ".xml";    
     
     tools::Property state("state", "", "");
     tools::Property &segs = state.add("segments","");
@@ -62,7 +62,7 @@ bool SegmentsExtractor::EvaluateFrame(ctp::Topology *top) {
     using boost::format;
     
     // SEGMENTS
-    vector<ctp::Segment*> ::iterator sit;
+    std::vector<ctp::Segment*> ::iterator sit;
     next = &segs;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
         ctp::Segment *seg = *sit;
@@ -93,7 +93,7 @@ bool SegmentsExtractor::EvaluateFrame(ctp::Topology *top) {
             
             // FRAGMENTS
             tools::Property &fragprop = segprop.add("fragment", "");
-            vector< ctp::Fragment* > ::iterator fit;
+            std::vector< ctp::Fragment* > ::iterator fit;
             for (fit = seg->Fragments().begin(); fit < seg->Fragments().end(); ++fit) {
                 ctp::Fragment *frag = *fit;
                 fragprop.add("id", (format("%1$d") % frag->getId()).str());
@@ -102,7 +102,7 @@ bool SegmentsExtractor::EvaluateFrame(ctp::Topology *top) {
                         % frag->getPos().getX() % frag->getPos().getY() % frag->getPos().getZ()).str());                
                 
                 // ATOMS
-                vector<ctp::Atom*>::iterator ait;
+                std::vector<ctp::Atom*>::iterator ait;
                 for (ait = frag->Atoms().begin(); ait < frag->Atoms().end(); ++ait) {
                     tools::Property &atomprop = fragprop.add("atom", "");
                     ctp::Atom *atm = *ait;
@@ -122,10 +122,10 @@ bool SegmentsExtractor::EvaluateFrame(ctp::Topology *top) {
         }
     }
     
-    ofstream ofs;    
-    ofs.open(xmlfile.c_str(), ofstream::out);
+    std::ofstream ofs;    
+    ofs.open(xmlfile.c_str(), std::ofstream::out);
     if (!ofs.is_open()) {
-        throw runtime_error("Bad file handle: " + xmlfile);
+        throw std::runtime_error("Bad file handle: " + xmlfile);
     }
     ofs << tools::XML << state;
     ofs.close();

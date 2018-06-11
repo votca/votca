@@ -16,6 +16,7 @@
  */
 
 #include "exciton.h"
+#include "votca/xtp/qminterface.h"
 #include <votca/xtp/gwbseengine.h>
 
 
@@ -78,8 +79,15 @@ namespace votca {
             // Read molecular geometry from xyz file and store in a segment (WHY SEGMENT?)
             std::vector <ctp::Segment* > _segments;
             ctp::Segment _segment(0, "mol");
+            
+            if(_orbitals.hasQMAtoms()){
+              
+            }
             CTP_LOG(ctp::logDEBUG, _log) << "Reading molecular coordinates from " << _xyzfile << flush;
-            ReadXYZ(&_segment, _xyzfile);
+            Orbitals temp;
+            temp.LoadFromXYZ(_xyzfile);
+            QMMInterface qminterface;
+            qminterface.Orbitals2Segment(&_segment,&temp);
             _segments.push_back(&_segment);
 
             // Get and initialize QMPackage for DFT ground state
@@ -105,70 +113,20 @@ namespace votca {
             }
 
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
-            _orbitals.Save(_archive_file);
-
+            _orbitals.WriteToCpt(_archive_file);
+            
             Property _summary = _gwbse_engine.ReportSummary();
-            tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
-            CTP_LOG(ctp::logDEBUG, _log) << "Writing output to " << _xml_output << flush;
-            std::ofstream ofout(_xml_output.c_str(), std::ofstream::out);
-            ofout << (_summary.get("output"));
-            ofout.close();
+            if(_summary.exists("output")){  //only do gwbse summary output if we actually did gwbse
+                tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
+                CTP_LOG(ctp::logDEBUG, _log) << "Writing output to " << _xml_output << flush;
+                std::ofstream ofout(_xml_output.c_str(), std::ofstream::out);
+                ofout << (_summary.get("output"));
+                ofout.close();
+            }
 
             return true;
         }
 
-        void Exciton::ReadXYZ(ctp::Segment* _segment, string filename) {
-
-            string line;
-            std::ifstream in;
-
-
-            string label, type;
-            vec pos;
-
-
-            in.open(filename.c_str(), std::ios::in);
-            if (!in) throw runtime_error(string("Error reading coordinates from: ")
-                    + filename);
-
-
-            int atomCount = 1;
-
-            if (in.is_open()) {
-                while (in.good()) {
-                    std::getline(in, line);
-
-                    std::vector< string > split;
-                    Tokenizer toker(line, " \t");
-                    toker.ToVector(split);
-                    if (!split.size() ||
-                            split.size() != 4 ||
-                            split[0] == "#" ||
-                            split[0].substr(0, 1) == "#") {
-                        continue;
-                    }
-
-                    // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
-                    atomCount++;
-                    string element = split[0];
-                    double x = boost::lexical_cast<double>(split[1]) / 10.; //°A to NM
-                    double y = boost::lexical_cast<double>(split[2]) / 10.;
-                    double z = boost::lexical_cast<double>(split[3]) / 10.;
-                    vec Pos = vec(x, y, z);
-                    ctp::Atom *pAtom = new ctp::Atom(atomCount, element);
-                    pAtom->setPos(Pos);
-                    pAtom->setQMPart(atomCount, Pos);
-                    pAtom->setElement(element);
-                    _segment->AddAtom(pAtom);
-
-                }
-            } else {
-                throw std::runtime_error("No such file: '" + filename + "'.");
-            }
-
-            return;
-        }
-
-
+       
     }
 }

@@ -30,7 +30,7 @@ class IAnalyze : public ctp::QMCalculator
 {
 public:
 
-    std::string  Identify() { return "xianalyze"; }
+    std::string  Identify() { return "ianalyze"; }
 
     void    Initialize(tools::Property *options);
     bool    EvaluateFrame(ctp::Topology *top);

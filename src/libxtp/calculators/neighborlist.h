@@ -49,7 +49,7 @@ public:
        }
     };
 
-     std::string Identify() { return "xneighborlist"; }
+     std::string Identify() { return "neighborlist"; }
     
     void Initialize(tools::Property *options);
     bool EvaluateFrame(ctp::Topology *top);
@@ -231,7 +231,7 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
                         cutoff = _cutoffs.at(seg1->getName())
                                          .at(seg2->getName());
                     }
-                    catch (std::out_of_range) {
+                    catch (const std::exception& out_of_range) {
                         std::string pairstring=seg1->getName()+"/"+seg2->getName();
                         if(std::find(skippedpairs.begin(), skippedpairs.end(), pairstring) == skippedpairs.end()){
                             skippedpairs.push_back(pairstring);

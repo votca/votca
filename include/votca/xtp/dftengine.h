@@ -31,13 +31,12 @@
 #include <votca/ctp/apolarsite.h>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/ERIs.h>
-#include <votca/xtp/diis.h>
-#include <votca/xtp/mixing.h>
+#include <votca/xtp/convergenceacc.h>
 #include <votca/ctp/logger.h>
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+
 
 /**
          * \brief Electronic ground-state via Density-Functional Theory
@@ -115,6 +114,8 @@ namespace votca {
             std::string GetDFTBasisName() {
                 return _dftbasis_name;
             };
+            
+            void CalculateERIs(const AOBasis& dftbasis, const Eigen::MatrixXd &DMAT);
 
         private:
 
@@ -122,29 +123,25 @@ namespace votca {
 
             void ConfigOrbfile(Orbitals* _orbitals);
             void SetupInvariantMatrices();
-            ub::matrix<double> AtomicGuess(Orbitals* _orbitals);
-            ub::matrix<double> DensityMatrix_unres(const ub::matrix<double>& MOs, int numofelec);
-            ub::matrix<double> DensityMatrix_frac(const ub::matrix<double>& MOs, const ub::vector<double>& MOEnergies, int numofelec);
+            Eigen::MatrixXd AtomicGuess(Orbitals* _orbitals);
+            Eigen::MatrixXd DensityMatrix_unres(const Eigen::MatrixXd& MOs, int numofelec);
+            Eigen::MatrixXd DensityMatrix_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies, int numofelec);
             string Choosesmallgrid(string largegrid);
             void NuclearRepulsion();
             double ExternalRepulsion(ctp::Topology* top = NULL);
             double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
-            ub::matrix<double> AverageShells(const ub::matrix<double>& dmat, AOBasis& dftbasis);
+            Eigen::MatrixXd AverageShells(const Eigen::MatrixXd& dmat, AOBasis& dftbasis);
 
 
 
             int _openmp_threads;
-
-
-            std::string _outParent;
-            std::string _outMonDir;
 
             // options
             std::string _dft_options;
             Property _dftengine_options;
 
             // atoms
-            std::vector<ctp::QMAtom*> _atoms;
+            std::vector<QMAtom*> _atoms;
 
             // basis sets
             std::string _auxbasis_name;
@@ -159,8 +156,13 @@ namespace votca {
 
             bool _with_ecp;
             bool _with_RI;
-            string _4cmethod;
-
+            
+            string _four_center_method; // direct | cache
+            
+            // Pre-screening
+            bool _with_screening;
+            double _screening_eps;
+            
             // numerical integration Vxc
             std::string _grid_name;
             std::string _grid_name_small;
@@ -177,7 +179,7 @@ namespace votca {
             std::vector<double> _externalgrid;
             std::vector<double> _externalgrid_nuc;
 
-            ub::matrix<double> _dftAOdmat;
+            Eigen::MatrixXd _dftAOdmat;
 
             // AO Matrices
             AOOverlap _dftAOoverlap;
@@ -186,6 +188,7 @@ namespace votca {
             AOECP _dftAOECP;
             AODipole_Potential _dftAODipole_Potential;
             AOQuadrupole_Potential _dftAOQuadrupole_Potential;
+            AOPlanewave _dftAOplanewave;
             bool _with_guess;
             string _initial_guess;
             double E_nucnuc;
@@ -196,7 +199,7 @@ namespace votca {
             double _error_converged;
             int _numofelectrons;
             int _max_iter;
-            int _this_iter;
+            
 
             //levelshift
 
@@ -205,12 +208,11 @@ namespace votca {
 
 
             //DIIS variables
-            Diis _diis;
+            ConvergenceAcc conv_accelerator;
             bool _usediis;
             unsigned _histlength;
             bool _maxout;
-            string _diismethod;
-            ub::matrix<double> _Sminusonehalf;
+            Eigen::MatrixXd _Sminusonehalf;
             double _diis_start;
             double _adiis_start;
             bool _useautomaticmixing;
@@ -222,10 +224,11 @@ namespace votca {
             bool _addexternalsites;
 
             // exchange and correlation
+            double _ScaHFX;
             std::string _xc_functional_name;
 
 
-            ub::matrix<double> last_dmat;
+            Eigen::MatrixXd last_dmat;
             bool guess_set;
         };
 

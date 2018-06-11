@@ -39,7 +39,7 @@
 
 #include <votca/xtp/gnode.h>
 #include <votca/ctp/qmcalculator.h>
-using namespace std;
+
 
 namespace votca { namespace xtp {
     

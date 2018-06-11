@@ -34,11 +34,11 @@ namespace votca { namespace xtp {
 
 void JobCalculatorfactory::RegisterAll(void)
 {	
-        JobCalculators().Register<QMMM>                 ("xqmmm");
+        JobCalculators().Register<QMMM>                 ("qmmm");
         JobCalculators().Register<EGWBSE>               ("egwbse");
         JobCalculators().Register<IGWBSE>               ("igwbse");
-        JobCalculators().Register<EDFT>                 ("xedft");
-        JobCalculators().Register<IDFT>                 ("xidft");
+        JobCalculators().Register<EDFT>                 ("edft");
+        JobCalculators().Register<IDFT>                 ("idft");
         JobCalculators().Register<QMAPE>                ("qmape");
         JobCalculators().Register<IEXCITON>             ("iexcitoncl");
 }

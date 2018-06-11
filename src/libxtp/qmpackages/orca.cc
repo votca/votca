@@ -22,11 +22,8 @@
 
 #include <votca/ctp/segment.h>
 
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <boost/algorithm/string.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <stdio.h>
@@ -38,7 +35,7 @@
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+       
 
         void Orca::Initialize(Property *options) {
 
@@ -68,7 +65,6 @@ namespace votca {
             _memory = options->get(key + ".memory").as<std::string> ();
             _threads = options->get(key + ".threads").as<int> ();
             _scratch_dir = options->get(key + ".scratch").as<std::string> ();
-            _basisset_name = options->get(key + ".basisset").as<std::string> ();
             _cleanup = options->get(key + ".cleanup").as<std::string> ();
             _auxbasisset_name = options->get(key + ".auxbasisset").as<std::string> ();
 
@@ -81,7 +77,7 @@ namespace votca {
                 throw std::runtime_error("Sorry " + _name + " does not support Vxc output");
             }
 
-
+            _basisset_name = options->get(key + ".basisset").as<std::string> ();
             _write_basis_set = options->get(key + ".writebasisset").as<bool> ();
             _write_pseudopotentials = options->get(key + ".writepseudopotentials").as<bool> ();
             if ( _write_pseudopotentials )  _ecp_name = options->get(key + ".ecp").as<std::string> ();
@@ -97,7 +93,7 @@ namespace votca {
 
             // check if the esp keyword is present, if yes, get the charges and save them
             iop_pos = _options.find(" chelpg"); /*electrostatic potential related to partial atomic charges I guess is chelpg in orca but check */
-            if (iop_pos != std::string::npos) {
+            if (iop_pos != std::string::npos ||  _options.find(" CHELPG")!= std::string::npos) {
                 _get_charges = true;
             } else {
                 _get_charges = false;
@@ -115,9 +111,9 @@ namespace votca {
 
             // check if the guess should be prepared, if yes, append the guess later
             _write_guess = false;
-            iop_pos = _options.find("iterations 1 ");
+            iop_pos = _options.find("Guess MORead");
             if (iop_pos != std::string::npos) _write_guess = true;
-            iop_pos = _options.find("iterations 1\n");
+            iop_pos = _options.find("Guess MORead\n");
             if (iop_pos != std::string::npos) _write_guess = true;
         }
 
@@ -126,7 +122,7 @@ namespace votca {
          * the system.bas/aux file(s), which are then included in the
          * Orca input file using GTOName = "system.bas/aux"
          */
-        void Orca::WriteBasisset(std::vector<ctp::QMAtom*>& qmatoms, std::string& _bs_name, std::string& _el_file_name) {
+        void Orca::WriteBasisset(std::vector<QMAtom*>& qmatoms, std::string& _bs_name, std::string& _el_file_name) {
 
             Elements _elements;
             list<std::string> elements;
@@ -138,14 +134,10 @@ namespace votca {
             _el_file.open(_el_file_name.c_str());
             //_com_file << "@" << "system.bas" << endl;
             _el_file << "$DATA" << endl;
-            std::vector< ctp::QMAtom* >::iterator it;
+            std::vector< QMAtom* >::iterator it;
 
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if ((*it)->from_environment) {
-                    continue;
-                }
-
-                std::string element_name = (*it)->type;
+                std::string element_name = (*it)->getType();
                 list<std::string>::iterator ite;
                 ite = find(elements.begin(), elements.end(), element_name);
                 if (ite == elements.end()) {
@@ -186,19 +178,16 @@ namespace votca {
         /* Coordinates are written in standard Element,x,y,z format to the
          * input file.
          */
-        void Orca::WriteCoordinates(std::ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms) {
+        void Orca::WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
 
-            std::vector< ctp::QMAtom* >::iterator it;
+            std::vector< QMAtom* >::iterator it;
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if ((*it)->from_environment) {
-                    continue;
-                }
-
-                _com_file << setw(3) << (*it)->type.c_str()
-                        << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->x
-                        << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->y
-                        << setw(12) << setiosflags(ios::fixed) << setprecision(5) << (*it)->z
-                        << endl;
+                tools::vec pos=(*it)->getPos()*tools::conv::bohr2ang;
+                    _com_file << setw(3) << (*it)->getType().c_str()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()
+                            << endl;
             }
             _com_file << "* \n" << endl;
             return;
@@ -208,9 +197,9 @@ namespace votca {
         /* If custom ECPs are used, they need to be specified in the input file
          * in a section following the basis set includes.
          */
-        void Orca::WriteECP(std::ofstream& _com_file, std::vector<ctp::QMAtom*>& qmatoms){
+        void Orca::WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms){
 
-            std::vector< ctp::QMAtom* >::iterator it;
+            std::vector< QMAtom* >::iterator it;
 
 
             _com_file << endl;
@@ -225,8 +214,8 @@ namespace votca {
 
 
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                if (!(*it)->from_environment) {
-                    std::string element_name = (*it)->type;
+                
+                    std::string element_name = (*it)->getType();
 
 
                     list<std::string>::iterator ite;
@@ -241,7 +230,7 @@ namespace votca {
 
                         //For Orca the order doesn't matter but let's write it in ascending order
                         // write remaining shells in ascending order s,p,d...
-                        for (int i = 0; i < element->getLmax(); i++) {
+                        for (int i = 0; i <= element->getLmax(); i++) {
                             for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                                 Shell* shell = (*its);
                                 if (shell->getLmax() == i) {
@@ -256,26 +245,10 @@ namespace votca {
                                 }
                             }
                         }
-
-                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                            Shell* shell = (*its);
-                            // shell type, number primitives, scale factor
-                            if (shell->getLmax() == element->getLmax()) {
-                                _com_file << shell->getType() << " " << shell->getSize() << endl;
-                                // _com_file << shell->getSize() << endl;
-                                int _sh_idx = 0;
-                                for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                    GaussianPrimitive* gaussian = *itg;
-                                    _sh_idx++;
-                                    _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
-                                }
-                            }
-                        }
-
                         _com_file << "end\n " << "\n" << endl;
                     }
 
-                }
+                
             }
             return;
         }
@@ -350,7 +323,7 @@ namespace votca {
             // header
             _com_file << "* xyz  " << _charge << " " << _spin << endl;
 
-            std::vector< ctp::QMAtom* > qmatoms;
+            std::vector< QMAtom* > qmatoms;
             // This is needed for the QM/MM scheme, since only orbitals have
             // updated positions of the QM region, hence vector<Segments*> is
             // NULL in the QMMachine and the QM region is also printed here
@@ -400,9 +373,7 @@ namespace votca {
 
             _com_file << _options << "\n";
 
-            if (_write_guess) {
-                throw std::runtime_error("Not implemented in orca");
-            }
+           
 
             _com_file << endl;
             _com_file.close();
@@ -426,6 +397,14 @@ namespace votca {
 
             _shell_file << "#!/bin/bash" << endl;
             _shell_file << "mkdir -p " << _scratch_dir << endl;
+            
+            if(_write_guess){
+              if(!(boost::filesystem::exists( _run_dir + "/molA.gbw" ) && boost::filesystem::exists( _run_dir + "/molB.gbw" )  )){
+              throw runtime_error("Using guess relies on a molA.gbw and a molB.gbw file being in the directory.");
+            }
+              
+              _shell_file<<_executable<<"_mergefrag molA.gbw molB.gbw dimer.gbw > merge.log"<<endl;
+            }
 
             if (_threads == 1) {
                 _shell_file << _executable << " " << _input_file_name << " > " << _log_file_name << endl; //" 2> run.error" << endl;
@@ -487,6 +466,13 @@ namespace votca {
          */
         void Orca::CleanUp() {
 
+          if(_write_guess){
+            remove((_run_dir + "/" +"molA.gbw").c_str());
+            remove((_run_dir + "/" +"molB.gbw").c_str());
+            remove((_run_dir + "/" +"dimer.gbw").c_str());
+            
+          }
+          
             // cleaning up the generated files
             if (_cleanup.size() != 0) {
                 Tokenizer tok_cleanup(_cleanup, ",");
@@ -494,6 +480,8 @@ namespace votca {
                 tok_cleanup.ToVector(_cleanup_info);
 
                 std::vector<std::string> ::iterator it;
+                
+                
 
                 for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
                     if (*it == "inp") {
@@ -615,19 +603,17 @@ namespace votca {
                         boost::trim(_line);
                         boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                         nfields = _row.size();
+                        
+                        tools::vec pos=tools::vec(_x,_y,_z);
+                        pos*=tools::conv::ang2bohr;
 
                         if (_has_QMAtoms == false) {
-                            _orbitals->AddAtom(_atom_type, _x, _y, _z);
+                            _orbitals->AddAtom(atom_id,_atom_type, pos);
                         } else {
-
-                            ctp::QMAtom* pAtom = _orbitals->_atoms.at(atom_id);
-                            pAtom->type = _atom_type;
-                            pAtom->x = _x;
-                            pAtom->y = _y;
-                            pAtom->z = _z;
-                            atom_id++;
+                            QMAtom* pAtom = _orbitals->QMAtoms().at(atom_id);
+                            pAtom->setPos(pos);
                         }
-
+                        atom_id++;
                     }
 
                 }
@@ -695,13 +681,19 @@ namespace votca {
                         boost::trim(_oc);
                         double occ = boost::lexical_cast<double>(_oc);
                         // We only count alpha electrons, each orbital must be empty or doubly occupied
-                        if (occ == 2) {
+                        if (occ == 2 || occ == 1) {
                             _number_of_electrons++;
                             _occ[i] = occ;
                         } else if (occ == 0) {
                             _occ[i] = occ;
                         } else {
+                            if (occ == 1){
+                                CTP_LOG(ctp::logDEBUG, *_pLog) << "Watch out! No distinction between alpha and beta electrons. Check if occ = 1 is suitable for your calculation " << flush;
+                                _number_of_electrons++;
+                                _occ[i] = occ;
+                            } else {
                             throw runtime_error("Only empty or doubly occupied orbitals are allowed not running the right kind of DFT calculation");
+                            }
                         }
 
                         std::string _e = results[2];
@@ -716,43 +708,32 @@ namespace votca {
 
                 if (charge_pos != std::string::npos && _get_charges) {
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Getting charges" << flush;
-                    //_has_charges = true;
                     getline(_input_file, _line);
-                    //getline(_input_file, _line);
-
-                    bool _has_atoms = _orbitals->hasQMAtoms();
 
                     std::vector<std::string> _row;
                     getline(_input_file, _line);
                     boost::trim(_line);
-                    //cout << _line << endl;
                     boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     int nfields = _row.size();
-                    //cout << _row.size() << endl;
 
                     while (nfields == 4) {
                         int atom_id = boost::lexical_cast< int >(_row.at(0));
                         atom_id++;
-                        //int atom_number = boost::lexical_cast< int >(_row.at(0));
                         std::string atom_type = _row.at(1);
                         double atom_charge = boost::lexical_cast< double >(_row.at(3));
-                        if (tools::globals::verbose) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
                         getline(_input_file, _line);
                         boost::trim(_line);
                         boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                         nfields = _row.size();
-
-                        if (_has_atoms == false) {
-                            _orbitals->AddAtom(atom_type, 0, 0, 0, atom_charge);
-                            //_orbitals->_has_atoms = true;
+                        
+                        QMAtom* pAtom;
+                        if (!_orbitals->hasQMAtoms()) {
+                            pAtom =_orbitals->AddAtom(atom_id - 1,atom_type, 0, 0, 0);
                         } else {
-                            ctp::QMAtom* pAtom = _orbitals->_atoms.at(atom_id - 1);
-                            pAtom->type = atom_type;
-                            pAtom->charge = atom_charge;
+                            pAtom = _orbitals->QMAtoms().at(atom_id - 1);
                         }
-
+                        pAtom->setPartialcharge(atom_charge);
                     }
-                    //_orbitals->_has_atoms = true;
                 }
             }
 
@@ -779,7 +760,7 @@ namespace votca {
             // copying energies to a matrix
             _orbitals->MOEnergies().resize(_levels);
             //_level = 1;
-            for (size_t i = 0; i < _orbitals->MOEnergies().size(); i++) {
+            for (int i = 0; i < _orbitals->MOEnergies().size(); i++) {
                 _orbitals->MOEnergies()[i] = _energies[ i ];
             }
 
@@ -875,9 +856,9 @@ namespace votca {
 
             // i -> MO, j -> AO
             (_orbitals->MOCoefficients()).resize(_levels, _basis_size);
-            for (size_t i = 0; i < _orbitals->MOCoefficients().size1(); i++) {
-                for (size_t j = 0; j < _orbitals->MOCoefficients().size2(); j++) {
-                    _orbitals->MOCoefficients()(i, j) = _coefficients[j * _basis_size + i];
+            for (int i = 0; i < _orbitals->MOCoefficients().rows(); i++) {
+                for (int j = 0; j < _orbitals->MOCoefficients().cols(); j++) {
+                    _orbitals->MOCoefficients()(j, i) = _coefficients[j * _basis_size + i];
                    
                 }
             }

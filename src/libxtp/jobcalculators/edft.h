@@ -30,9 +30,6 @@
 
 #include <fstream>
 #include <sys/stat.h>
-
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
@@ -56,7 +53,7 @@ public:
     EDFT() {};
    ~EDFT() {};
 
-    string   Identify() { return "xedft"; }
+    string   Identify() { return "edft"; }
     void     Initialize(Property *options);
     void     WriteJobFile(ctp::Topology *top);
     
@@ -310,7 +307,10 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
            boost::filesystem::path arg_path;
            string ORB_FILE = ( arg_path / ORB_DIR / (format("molecule_%1%.orb") % ID ).str() ).c_str() ;
            CTP_LOG(ctp::logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;  
-           if ( ! _orbitals.Load(ORB_FILE) ) { // did not manage to load
+           try{
+               _orbitals.ReadFromCpt(ORB_FILE);
+           }
+           catch(std::runtime_error& error){
                CTP_LOG(ctp::logERROR,*pLog) << "Failed loading orbitals from " << ORB_FILE << flush; 
                output += "failed loading " + ORB_FILE;
                jres.setOutput( output ); 
@@ -318,6 +318,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
                delete _qmpackage;
                return jres;
            }
+           
         }        
        
        _orbitals.Trim(factor);   
@@ -332,10 +333,15 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     // save orbitals
     string ORB_FILE = "molecule_" + ID + ".orb";
     CTP_LOG(ctp::logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
-    std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
-    boost::archive::binary_oarchive oa( ofs );
-    oa << _orbitals;
+    _orbitals.WriteToCpt(ORB_FILE);
     // ofs.close();
+    
+     if(_qmpackage->getPackageName()=="orca"){
+            CTP_LOG(ctp::logINFO,*pLog) << "Copying monomer .gbw file to orb folder" << flush;
+            string   qmpackage_gbw_dir  = edft_work_dir + "/" + _package + "/" + frame_dir + "/mol_" + ID+"/system.gbw";           
+            string gbwFile  = ORB_DIR+"/"+(format("%1%_%2%%3%") % "molecule" % ID % ".gbw").str();
+            boost::filesystem::copy_file(qmpackage_gbw_dir, gbwFile,boost::filesystem::copy_option::overwrite_if_exists);
+    }
     
     CTP_LOG(ctp::logDEBUG,*pLog) << "Done serializing " <<  ORB_FILE << flush;
    }

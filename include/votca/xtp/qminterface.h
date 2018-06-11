@@ -20,12 +20,11 @@
 #ifndef __QMMINTERFACE__H
 #define	__QMMINTERFACE__H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 
 #include <votca/ctp/apolarsite.h>
-#include <votca/ctp/qmatom.h>
+#include <votca/xtp/qmatom.h>
 #include <votca/ctp/polarseg.h>
 #include <votca/ctp/segment.h>
 #include <votca/ctp/polartop.h>
@@ -52,16 +51,16 @@ public:
    ~QMMInterface() {};
     
     // CONVERSION QM -> MM
-    ctp::APolarSite *Convert(ctp::QMAtom *atm, int id = -1);
+    ctp::APolarSite *Convert(QMAtom *atm, int id = -1);
     
-    ctp::PolarSeg Convert(std::vector<ctp::QMAtom*> &atms);
+    ctp::PolarSeg Convert(std::vector<QMAtom*> &atms);
     
     void setMultipoleSplitting(bool split_dpl, double dpl_spacing){
         _split_dpl=split_dpl;
         _dpl_spacing=dpl_spacing;
     }
     
-    std::vector<ctp::QMAtom *> Convert( std::vector<ctp::Segment* > segments);
+    std::vector<QMAtom *> Convert( std::vector<ctp::Segment* > segments);
     
     void GenerateQMAtomsFromPolarSegs(ctp::PolarTop *ptop, Orbitals &orb);
     std::vector<ctp::PolarSeg*> GenerateMultipoleList(ctp::PolarTop *ptop  );

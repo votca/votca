@@ -30,38 +30,37 @@
 #include <boost/filesystem.hpp>
 
 namespace votca { namespace xtp {
-    using namespace std;
+
     
 class Esp2multipole 
 {
 public:
 
-    Esp2multipole (ctp::Logger* log) {_log=log; }
-   ~Esp2multipole () { 
-   
-   std::vector< ctp::QMAtom* >::iterator it;
-    for ( it = _Atomlist.begin(); it != _Atomlist.end(); ++it ) delete *it;};
+    Esp2multipole (ctp::Logger* log) {
+        _log=log; 
+        _pairconstraint.resize(0);
+        _regionconstraint.resize(0);
+        }
+   ~Esp2multipole () {};
 
-    string Identify() { return "esp2multipole"; }
+    std::string Identify() { return "esp2multipole"; }
 
     void   Initialize(Property *options);
     
    
     void Extractingcharges( Orbitals& _orbitals );
-    void WritetoFile(string _output_file,  string identifier="esp2multipole");
-    string GetIdentifier();
+    void WritetoFile(std::string _output_file,  std::string identifier="esp2multipole");
+    std::string GetIdentifier();
 
 private:
     
     int         _state_no;  
     int         _openmp_threads;
-    string      _state;
-    string      _method;
-    string      _spin;
-    string      _integrationmethod;
-    string      _gridsize;
-    bool        _use_mps;
-    bool        _use_pdb;
+    std::string      _state;
+    std::string      _method;
+    std::string      _spin;
+    std::string      _integrationmethod;
+    std::string      _gridsize;
     bool        _use_mulliken;
     bool        _use_lowdin;
     bool        _use_CHELPG;
@@ -72,10 +71,11 @@ private:
     bool        _use_ecp;
     bool        _do_svd;
     double      _conditionnumber;
-    vector< ctp::QMAtom* > _Atomlist;
+    std::vector< QMAtom* > _Atomlist;
     
     ctp::Logger*      _log;
-    
+    std::vector< std::pair<int,int> > _pairconstraint; //  pairconstraint[i] is all the atomindices which have the same charge     
+    std::vector< Espfit::region > _regionconstraint; 
     
 
 };

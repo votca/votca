@@ -39,7 +39,7 @@ void KMCMultiple::Initialize(tools::Property *options){
     _seed=options->ifExistsReturnElseThrowRuntimeError<int>(key+".seed");
     _numberofcharges=options->ifExistsReturnElseThrowRuntimeError<int>(key+".numberofcharges");
     _injection_name=options->ifExistsReturnElseThrowRuntimeError<std::string>(key+".injectionpattern");
-  
+  _intermediateoutput_frequency=options->ifExistsReturnElseReturnDefault<int>(key+".intermediateoutput",1E9);
 
         _maxrealtime=options->ifExistsReturnElseReturnDefault<double>(key+".maxrealtime",1E10);
         _trajectoryfile=options->ifExistsReturnElseReturnDefault<std::string>(key+".trajectoryfile","trajectory.csv");
@@ -54,7 +54,8 @@ void KMCMultiple::Initialize(tools::Property *options){
             _injectionmethod = "random";
         }
          _field = options->ifExistsReturnElseReturnDefault<tools::vec>(key+".field",tools::vec(0,0,0));
-       _field *= 10E-9; 
+         double mtonm=1E9;
+       _field /=mtonm ;//Converting from V/m to V/nm 
       
 	_outputtime = options->ifExistsReturnElseReturnDefault<double>(key+".outputtime",0);
         _timefile = options->ifExistsReturnElseReturnDefault<std::string>(key+".timefile","timedependence.csv");
@@ -200,6 +201,8 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
         if(tools::globals::verbose) {cout << "simtime += " << dt << endl << endl;}
         
         
+        
+        
         for(unsigned int i=0; i<_numberofcharges; i++)
         {
             _carriers[i]->updateOccupationtime(dt);
@@ -282,6 +285,25 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
         if(step%diffusionresolution==0){     
             for(unsigned int i=0; i<_numberofcharges; i++){
                 avgdiffusiontensor += (_carriers[i]->dr_travelled)|(_carriers[i]->dr_travelled);
+            }
+        }
+        
+        if (step != 0 && step % _intermediateoutput_frequency == 0) {
+
+            if (absolute_field == 0) {
+                unsigned long diffusionsteps = step / diffusionresolution;
+                tools::matrix result = avgdiffusiontensor / (diffusionsteps * 2 * simtime * _numberofcharges);
+                cout << endl << "Step: " << step << " Diffusion tensor averaged over all carriers (nm^2/s):" << endl << result << endl;
+            } else {
+                double average_mobility = 0;
+                cout << endl << "Mobilities (nm^2/Vs): " << endl;
+                for (unsigned int i = 0; i < _numberofcharges; i++) {
+                    tools::vec velocity = _carriers[i]->dr_travelled / simtime;
+                    cout << std::scientific << "    charge " << i + 1 << ": mu=" << (velocity * _field) / (absolute_field * absolute_field) << endl;
+                    average_mobility += (velocity * _field) / (absolute_field * absolute_field);
+                }
+                average_mobility /= _numberofcharges;
+                cout << std::scientific << "  Overall average mobility in field direction <mu>=" << average_mobility << " nm^2/Vs  " << endl;
             }
         }
 
@@ -421,7 +443,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
 
 
 bool KMCMultiple::EvaluateFrame(ctp::Topology *top){
-
+    std::cout << std::endl;      
     std::cout << "-----------------------------------" << std::endl;      
     std::cout << "      KMC FOR MULTIPLE CHARGES" << std::endl;
     std::cout << "-----------------------------------" << std::endl << std::endl;      

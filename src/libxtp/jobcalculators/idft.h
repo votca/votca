@@ -24,9 +24,8 @@
 
 #include <votca/ctp/parallelxjobcalc.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/overlap.h>
+#include <votca/xtp/dftcoupling.h>
 
-#include <boost/numeric/ublas/io.hpp>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
 
@@ -54,7 +53,7 @@ public:
    
     void    Initialize(tools::Property *options );
     
-    string  Identify() { return "xidft"; }
+    string  Identify() { return "idft"; }
     
     ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *Thread);
 
@@ -72,6 +71,8 @@ private:
     int                 _max_occupied_levels;
     int                 _max_unoccupied_levels;     
     int                 _trim_factor;
+    std::vector< string > _linker_names;
+
     
     string              _package;
     Property            _package_options; 
