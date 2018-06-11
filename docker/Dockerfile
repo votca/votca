@@ -1,4 +1,4 @@
-from votca/buildenv:latest
+FROM votca/buildenv:latest
 
 ARG TESTOPTS
 ARG COVERAGE
