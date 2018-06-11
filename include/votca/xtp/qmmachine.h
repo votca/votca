@@ -49,15 +49,16 @@ public:
 
     int Evaluate(ctp::XJob *job);
 
-    bool Iterate(string jobFolder, int iterCnt);
-    QMMIter *CreateNewIter();
-    bool hasConverged();
-    bool AssertConvergence() { return _isConverged; }
+    
+    
 
     void setLog(ctp::Logger *log) { _log = log; }
 
 private:
-
+    bool Iterate(string jobFolder, int iterCnt);
+    
+    QMMIter *CreateNewIter();
+    bool hasConverged();
     ctp::XJob *_job;
     ctp::XInductor *_xind;
     QMPackage *_qmpack;
@@ -104,6 +105,9 @@ private:
     bool _do_archive;
     bool _static_qmmm;
     Orbitals orb_iter_input;
+    
+    double _alpha;
+    Eigen::MatrixXd _DMAT_old;
 
     void Density2Charges( std::vector<int> state_index ={});
 

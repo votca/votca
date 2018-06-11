@@ -933,7 +933,7 @@ bool GWBSE::Evaluate() {
 
       if (_store_qp_diag) {
         _orbitals->QPdiagCoefficients()=es.eigenvectors();
-        _orbitals->QPdiagEnergies()=es.eigenvectors();
+        _orbitals->QPdiagEnergies()=es.eigenvalues();
       }
     }  // _do_qp_diag
   
