@@ -25,14 +25,13 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A, const Ei
     // check matrix for zero column
   
     bool nonzero_found =false;
-    for(size_t j=0; j<A.cols(); j++) {
+    for(int j=0; j<A.cols(); j++) {
         nonzero_found = A.col(j).isApproxToConstant(0.0,1e-9);
         if(nonzero_found) {
             throw std::runtime_error("constrained_qrsolve_zero_column_in_matrix");
         }
     }
 
-    const int NoEquations = b.size();
     const int NoVariables = x.size();
     const int NoConstrains = constr.rows(); //number of constraints is number of rows of constr
     

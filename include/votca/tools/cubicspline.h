@@ -188,7 +188,7 @@ template<typename matrix_type, typename vector_type>
 inline void CubicSpline::AddToFitMatrix(matrix_type &M, vector_type &x, 
             int offset1, int offset2)
 {
-    for(size_t i=0; i<x.size(); ++i) {
+    for(int i=0; i<x.size(); ++i) {
         int spi = getInterval(x(i));
         M(offset1+i, offset2 + spi) = A(x(i));
         M(offset1+i, offset2 + spi+1) = B(x(i));
@@ -201,7 +201,7 @@ template<typename matrix_type>
 inline void CubicSpline::AddBCSumZeroToFitMatrix(matrix_type &M,
             int offset1, int offset2)
 {
-    for(size_t i=0; i<_r.size(); ++i) {
+    for(int i=0; i<_r.size(); ++i) {
             M(offset1, offset2 + i) = 1;
             M(offset1, offset2 + _r.size() + i) = 0;
     }
@@ -212,7 +212,7 @@ template<typename matrix_type>
 inline void CubicSpline::AddBCToFitMatrix(matrix_type &M,
             int offset1, int offset2)
 {
-    for(size_t i=0; i<_r.size() - 2; ++i) {
+    for(int i=0; i<_r.size() - 2; ++i) {
             M(offset1+i+1, offset2 + i) = A_prime_l(i);
             M(offset1+i+1, offset2 + i+1) = B_prime_l(i) - A_prime_r(i);
             M(offset1+i+1, offset2 + i+2) = -B_prime_r(i);

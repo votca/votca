@@ -184,7 +184,7 @@ void Table::GenerateGridSpacing(double min, double max, double spacing) {
 
 void Table::Smooth(int Nsmooth) {
   while (Nsmooth-- > 0)
-    for (unsigned int i = 1; i < size() - 1; ++i){
+    for ( int i = 1; i < size() - 1; ++i){
       _y[i] = 0.25 * (_y[i - 1] + 2 * _y[i] + _y[i + 1]);
     }
 }
