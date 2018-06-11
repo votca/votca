@@ -364,9 +364,6 @@ void CGForceMatching::FmatchAccumulateData()
         // Solving linear equations system
         ub::matrix<double> B_constr = _B_constr;
         votca::tools::linalg_constrained_qrsolve(_x, _A, _b, B_constr);
-        _x = -_x;
-        
-
     } else { // Simple Least Squares
         
         ub::vector<double> residual(_b.size());
