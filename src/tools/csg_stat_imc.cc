@@ -594,7 +594,7 @@ void Imc::WriteIMCBlock(const string &suffix)
         if(!out_dS)
             throw runtime_error(string("error, cannot open file ") + name_dS);
 
-        for(size_t i=0; i<dS.size(); ++i) {
+        for(int i=0; i<dS.size(); ++i) {
             out_dS << r[i] << " " << dS[i] << endl;
         }
 

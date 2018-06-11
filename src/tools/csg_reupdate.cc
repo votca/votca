@@ -386,7 +386,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
   // assuming rdf bins are of same size
   double step = _aardfs[indx]->x(2) - _aardfs[indx]->x(1);
 
-  for(unsigned int bin = 0; bin < _aardfs[indx]->size(); bin++) {
+  for(int bin = 0; bin < _aardfs[indx]->size(); bin++) {
 
     double r_hist = _aardfs[indx]->x(bin);
     double r1 = r_hist - 0.5 * step;
@@ -410,7 +410,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
     // compute dU/dlamda and add to _DS
     dU_i = 0.0;
 
-    for(unsigned int bin = 0; bin < _aardfs[indx]->size(); bin++) {
+    for(int bin = 0; bin < _aardfs[indx]->size(); bin++) {
 
       double r_hist = _aardfs[indx]->x(bin);
       double r1 = r_hist - 0.5 * step;
@@ -432,7 +432,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
       // compute d2U/dlamda_i dlamda_j and add to _HS
       d2U_ij = 0.0;
 
-      for(unsigned int bin = 0; bin < _aardfs[indx]->size(); bin++) {
+      for(int bin = 0; bin < _aardfs[indx]->size(); bin++) {
 
         double r_hist = _aardfs[indx]->x(bin);
         double r1 = r_hist - 0.5 * step;
