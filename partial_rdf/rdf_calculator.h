@@ -72,8 +72,8 @@ protected:
     Average<double> _avg_vol;
 
     
-    typedef ub::matrix<double> group_matrix;
-    typedef ub::matrix_range< group_matrix > pair_matrix;
+    typedef Eigen::MatrixXd group_matrix;
+    typedef Eigen::Block<group_matrix > pair_matrix;
     
     /// struct to store collected information for interactions
     struct interaction_t {

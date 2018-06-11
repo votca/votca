@@ -227,9 +227,9 @@ void OrientCorrApp::MergeWorker(Worker *worker) {
 
 // write out the data
 void OrientCorrApp::EndEvaluate() {
-    _cor.data().y() = element_div(_cor.data().y(), _count.data().y());
+    _cor.data().y() = _cor.data().y().cwiseQuotient( _count.data().y());
     _cor.data().Save("correlation.dat");
 
-    _cor_excl.data().y() = element_div(_cor_excl.data().y(), _count_excl.data().y());
+    _cor_excl.data().y() = _cor_excl.data().y().cwiseQuotient(_count_excl.data().y());
     _cor_excl.data().Save("correlation_excl.dat");
 }
