@@ -76,11 +76,11 @@ namespace votca { namespace tools {
      * @param x storage for x
      * @param A matrix for linear equation system
      * @param b inhomogenity
-     * @param constr constrained condition B (or is it the transposed one? check that)
+     * @param B constrained condition
      *
      * This function wraps the qrsolver under constraints
      */
-    void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::matrix<double> &constr);
+    void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::matrix<double> &B);
   
    /**
      * \brief eigenvalues of a symmetric matrix A*x=E*x
