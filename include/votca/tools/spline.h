@@ -176,14 +176,14 @@ protected:
 template<typename vector_type1, typename vector_type2>
 inline void Spline::Calculate(vector_type1 &x, vector_type2 &y)
 {
-    for(size_t i=0; i<x.size(); ++i)
+    for(int i=0; i<x.size(); ++i)
         y(i) = Calculate(x(i));
 }
 
 template<typename vector_type1, typename vector_type2>
 inline void Spline::CalculateDerivative(vector_type1 &x, vector_type2 &y)
 {
-    for(size_t i=0; i<x.size(); ++i)
+    for(int i=0; i<x.size(); ++i)
         y(i) = CalculateDerivative(x(i));
 }
 
