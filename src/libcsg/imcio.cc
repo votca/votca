@@ -42,7 +42,7 @@ void imcio_write_dS(const string &file, Eigen::VectorXd &r, Eigen::VectorXd &dS,
         throw runtime_error(string("error, cannot open file ") + file);
 
     if(list == NULL) {
-        for (size_t i = 0; i < dS.size(); ++i) {
+        for (int i = 0; i < dS.size(); ++i) {
             out_dS << r[i] << " " << dS[i] << endl;
         }
     }
@@ -111,7 +111,7 @@ void imcio_read_dS(const string &filename, Eigen::VectorXd &r, Eigen::VectorXd &
     r.resize(tbl.size());
     dS.resize(tbl.size());
     
-    for(unsigned int i=0; i<tbl.size(); ++i) {
+    for( int i=0; i<tbl.size(); ++i) {
         r(i) = tbl.x(i);
         dS(i) = tbl.y(i);
     }
@@ -126,7 +126,7 @@ void imcio_read_matrix(const string &filename, Eigen::MatrixXd &gmc)
     if(!in)
         throw runtime_error(string("error, cannot open file ") + filename);
 
-    size_t line_count =0;
+    int line_count =0;
     string line;
     // read till the first data line
     while(getline(in, line)) {
@@ -145,7 +145,7 @@ void imcio_read_matrix(const string &filename, Eigen::MatrixXd &gmc)
             gmc.resize(tokens.size(),tokens.size());
         is_initialized=true;
 
-        if(gmc.rows()!=tokens.size())
+        if(gmc.rows()!=int(tokens.size()))
             throw runtime_error(string("error loading ")
                     + filename + ": size mismatchm, number of columns differ");
         for(size_t i=0; i<tokens.size(); ++i)
