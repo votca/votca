@@ -460,7 +460,7 @@ namespace votca {
 
         CTP_LOG(ctp::logDEBUG, *pLog) << "Saving orbitals to " << _pair_file << flush;
 
-        _orbitalsAB.WriteToCpt(_pair_file);
+        _orbitalsAB.WriteToCpt(orbFileAB);
 
       } // end of the projection loop
 

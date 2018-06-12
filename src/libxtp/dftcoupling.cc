@@ -82,30 +82,38 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
     const std::vector<QMAtom*> atomsA=_orbitalsA->QMAtoms();
     const std::vector<QMAtom*> atomsB=_orbitalsB->QMAtoms();
-    const std::vector<QMAtom*> atomsAB=_orbitalsAB->QMAtoms();
+     const std::vector<QMAtom*> atomsAll = _orbitalsAB->QMAtoms();
         
-  for (unsigned i=0;i<atomsAB.size();i++){
-        QMAtom* dimer=atomsAB[i];
-        QMAtom* monomer=NULL;
-        if (i<atomsA.size()){
-            monomer=atomsA[i];
-        }
-        else if (i<atomsB.size()+atomsA.size() ){
-            monomer=atomsB[i-atomsA.size()];
-        }
-        else{
-            throw runtime_error((format("Number of Atoms in dimer %3i and the two monomers A:%3i B:%3i does not agree") %atomsAB.size() %atomsA.size() %atomsB.size()).str());
-        }
-        
-      if(monomer->getType() != dimer->getType()){
-            throw runtime_error("\nERROR: Atom types do not agree in dimer and monomers\n");
-        }
-        if(tools::abs(monomer->getPos()-dimer->getPos())>0.001){
-            CTP_LOG(ctp::logERROR,*_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << flush;
-            break;
-        }
-        
-    }
+  for (unsigned i = 0; i < atomsAll.size(); i++) {
+      QMAtom* dimer = atomsAll[i];
+      QMAtom* monomer = NULL;
+
+      if (i < atomsA.size()) {
+          monomer = atomsA[i];
+          if(!monomer->getPos().isClose(dimer->getPos(), 0.001)){
+              CTP_LOG(ctp::logERROR, *_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << flush;
+              continue;
+          }
+      } else if (i < atomsB.size() + atomsA.size()) {
+          monomer = atomsB[i - atomsA.size()];
+          if(!monomer->getPos().isClose(dimer->getPos(), 0.001)){
+              CTP_LOG(ctp::logERROR, *_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << flush;
+              continue;
+          }
+      } else {
+          // Linker
+          CTP_LOG(ctp::logERROR, *_pLog) << (format("Neither Monomer A nor Monomer B contains atom %s on line %u. Hence, this atom is part of a linker. \n") %dimer->getType() %(i+1) ).str()<<flush;
+          continue;
+      }
+
+      if (monomer->getType() != dimer->getType()) {
+          throw runtime_error("\nERROR: Atom types do not agree in dimer and monomers\n");
+      }
+      if (monomer->getPos().isClose(dimer->getPos(),  0.001)) {
+          CTP_LOG(ctp::logERROR, *_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << flush;
+          break;
+      }
+}
     
     // constructing the direct product orbA x orbB
     int _basisA = _orbitalsA->getBasisSetSize();
