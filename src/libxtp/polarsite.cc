@@ -29,73 +29,67 @@ using namespace std;
 
 namespace votca { namespace xtp {
 
-
- 
-
-void PolarSite::Rotate(const tools::matrix &rot, const tools::vec &refPos) {
-
-    tools::vec dir = _pos - refPos;
-    dir = rot * dir;
-    _pos = refPos + dir;
-       
-    tools::matrix R_T = tools::matrix(rot.getRow(0),rot.getRow(1),rot.getRow(2));
-        
-        // Transform polarizability tensor into global frame
-        tools::matrix P_Global = R * _Ps * R_T;
-        _Ps = P_Global;
-        
-        // Any multipoles for this charge state available?
-        if (_multipoles.size() < 1) { continue; }
-
-        // Transform dipole moment into global frame
-        if (_multipoles.size() > 1) {
-
-            double Qz = _Qs[state+1][1];
-            double Qx = _Qs[state+1][2];
-            double Qy = _Qs[state+1][3];
-
-            vec d = vec(Qx, Qy, Qz);
-            d = R * d;
-
-            _Qs[state+1][1] = d.getZ();
-            _Qs[state+1][2] = d.getX();
-            _Qs[state+1][3] = d.getY();
+// Get Rank: We have at the moment just three cases. Point charges, dipoles and Quadrupoles
+    void PolarSite::calcRank(){
+        int mplen = _multipoles.size();
+        if(mplen == 1){_rank = 0;}
+        else if(mplen == 4){_rank = 1;}
+        else if(mplen == 9){_rank = 2;}
+        else{
+            throw std::runtime_error("PolarSite. multipoles size is not 1,4 or 9.");
         }
-
-        // Transform quadrupole moment into global frame
-        if (_multipoles.size() > 4) {
-
-            double Qzz =      _Qs[state+1][4];
-            double Qxx = -0.5*_Qs[state+1][4] + 0.5*sqrt(3)*_Qs[state+1][7];
-            double Qyy = -0.5*_Qs[state+1][4] - 0.5*sqrt(3)*_Qs[state+1][7];
-
-            double Qxy =  0.5*sqrt(3)*_Qs[state+1][8];
-            double Qxz =  0.5*sqrt(3)*_Qs[state+1][5];
-            double Qyz =  0.5*sqrt(3)*_Qs[state+1][6];
-
-            matrix Q = matrix(vec(Qxx,Qxy,Qxz),
-                              vec(Qxy,Qyy,Qyz),
-                              vec(Qxz,Qyz,Qzz));
-
-            matrix Q_Global  = R * Q * R_T;
-            
-      
-            _Qs[state+1][4] =               Q_Global.get(2,2);  // Q20
-            _Qs[state+1][5] = 2 / sqrt(3) * Q_Global.get(0,2);  // Q21c
-            _Qs[state+1][6] = 2 / sqrt(3) * Q_Global.get(1,2);  // Q21s
-            _Qs[state+1][7] = 1 / sqrt(3) *(Q_Global.get(0,0)
-                                          - Q_Global.get(1,1)); // Q22c
-            _Qs[state+1][8] = 2 / sqrt(3) * Q_Global.get(0,1);  // Q22s
-        }
-
+        return;
     }
+    
+// This function put in the conventional order the dipoles
+    // From Spherical (Q_10=mu_z , Q_11c=mu_x, Q_11s=mu_y)-->(Q_11c,Q_11s,Q_10)
+Eigen::Vector3d PolarSite::getCartesianDipoles(){
+    Eigen::Vector3d cartesiandipole;
+    if(_multipoles.size() > 1){
+    Eigen::VectorXd  MP = _multipoles;
+    cartesiandipole(0)=MP(2);
+    cartesiandipole(1)=MP(3);
+    cartesiandipole(2)=MP(1);
+    return cartesiandipole;
+    }
+}    
+    //Transform Multipoles from Spherical to Cartesian
+    // spherical_multipoles Q = ( Q00,Q10,Q11c,Q11s,Q20,Q21c,Q21s,Q22c,Q22s )
+    // We are trasforming here just quadrupoles
+ Eigen::Matrix3d PolarSite::getCartesianMultipoles() {
+     Eigen::VectorXd MP = _multipoles;
+     if( _rank > 1 ){
+        Eigen::Matrix3d theta;
+        theta(0,0) = 0.5 * (-MP(4)+std::sqrt(3.) * MP(7)); // theta_xx
+        theta(1,1) = 0.5 * (-MP(4)+std::sqrt(3.) * (-MP(7))); // theta_yy
+        theta(2,2) = MP(4); // theta_zz
+        theta(0,1) = theta(1,0) = 0.5 * std::sqrt(3.) * MP(6); // theta_xy = theta_yx
+        theta(0,2) = theta(2,0) = 0.5 * std::sqrt(3.) * MP(5); // theta_xz = theta_zx
+        theta(1,2) = theta(2,1) = 0.5 * std::sqrt(3.) * MP(6); //theta_yz = theta_zy 
+        return theta;
+     }}
 
-return;
-}
+     // Transform Quadrupole Matrix from Cartesian to Spherical
+Eigen::VectorXd PolarSite::CalculateSphericalMultipoles(const Eigen::Matrix3d& _quadrupole_cartesian){
+            Eigen::Matrix3d theta = _quadrupole_cartesian ;
+            Eigen::VectorXd quadrupole_polar;
+            quadrupole_polar(0) = theta(2,2);
+            quadrupole_polar(1) = (2./std::sqrt(3)) * theta(0,2);
+            quadrupole_polar(2) = (2./std::sqrt(3)) * theta(1,2);
+            quadrupole_polar(3) = (1./std::sqrt(3)) * (theta(0,0)-theta(1,1));
+            quadrupole_polar(4) = (2./std::sqrt(3)) * theta(0,1);
+            return quadrupole_polar;
+         }
 
+void PolarSite::Rotate(const Eigen::Matrix3d& R){
+                 Eigen::Matrix3d cartesianquad = getCartesianMultipoles();
+                 Eigen::Matrix3d rotated=R*cartesianquad*R.transpose();
+                 CalculateSphericalMultipoles(rotated);
+                 return;
+             }
+         
 
-
-void PolarSite::Translate(const tools::vec &shift) {
+void PolarSite::Translate(const Eigen::VectorXd &shift) {
     _pos += shift;
     return;
 }
@@ -108,6 +102,8 @@ void PolarSite::Induce(double wSOR) {
     return;  
 }
 
+
+/*
 void PolarSite::WriteMpsLine(std::ostream &out, string unit = "angstrom") {
     
     // Set conversion factor for higher-rank moments (e*nm**k to e*a0**k)
@@ -149,7 +145,7 @@ void PolarSite::WriteMpsLine(std::ostream &out, string unit = "angstrom") {
     
 }
 
-
+*/
 
 
 }}

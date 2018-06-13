@@ -37,5 +37,19 @@ BOOST_AUTO_TEST_CASE(getters_test) {
   BOOST_CHECK_EQUAL(ps.getName(),"ps2");
 }
 
+BOOST_AUTO_TEST_CASE(multipole_test) {
+  PolarSite ps(1,"ps2");
+  Eigen::VectorXd multipoles=Eigen::VectorXd::Zero(9);
+  multipoles<<1,2,3,4,8,7,2,3.3,-0.5;
+  ps.setMultipoles(multipoles);
+  bool check_mpoles=multipoles.isApprox(ps.getMultipoles(),0.0001);
+   BOOST_CHECK_EQUAL(check_mpoles,true);
+   
+   bool check_rank=(ps.getRank()==2);
+   BOOST_CHECK_EQUAL(check_rank,true);
+  
+  
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
