@@ -20,11 +20,12 @@
 
 #include <vector>
 #include <votca/xtp/fragment.h>
-#include <votca/xtp/apolarsite.h>
+#include <votca/xtp/polarsite.h>
 #include <votca/xtp/atom.h>
 
 using namespace std;
 namespace votca { namespace xtp {
+    using namespace tools;
 
 Fragment::Fragment(Fragment *stencil)
          : _id(stencil->getId()), _name(stencil->getName()+"_ghost"),
@@ -56,8 +57,8 @@ void Fragment::AddAtom(Atom* atom) {
     _weights.push_back( atom->getWeight() );
 }
 
-void Fragment::AddAPolarSite(APolarSite *pole) {
-    _apolarSites.push_back(pole);
+void Fragment::AddPolarSite(PolarSite *pole) {
+    _polarSites.push_back(pole);
     pole->setFragment(this);
 }
 
@@ -93,7 +94,7 @@ void Fragment::RotTransQM2MD() {
 }
 
 void Fragment::calcPos(string tag) {
-    vec pos = vec(0,0,0);
+    tools::vec pos = tools::vec(0,0,0);
     double totWeight = 0.0;
     for (unsigned int i = 0; i< _atoms.size(); i++) {
         if (tag == "MD") {
@@ -177,8 +178,8 @@ void Fragment::Rigidify(bool Auto) {
     // Construct trihedra axes //
     // +++++++++++++++++++++++ //
 
-    vec xMD, yMD, zMD;
-    vec xQM, yQM, zQM;
+    tools::vec xMD, yMD, zMD;
+    tools::vec xQM, yQM, zQM;
 
     if (_symmetry == 3) {
         

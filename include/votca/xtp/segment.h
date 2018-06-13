@@ -29,7 +29,7 @@
 namespace votca { namespace xtp {
 
 class Atom;
-class APolarSite;
+class PolarSite;
 class Fragment;
 class SegmentType;
 class Topology;
@@ -108,10 +108,10 @@ public:
 
     void             AddFragment( Fragment* fragment );
     void             AddAtom( Atom* atom );
-    void             AddAPolarSite(APolarSite *pole);
+    void             AddPolarSite(PolarSite *pole);
     std::vector< Fragment* > &Fragments() { return _fragments; }
     std::vector < Atom* >    &Atoms() { return _atoms; }
-    std::vector<APolarSite*> &APolarSites() { return _apolarSites; }
+    std::vector<PolarSite*> &PolarSites() { return _polarSites; }
 
 
     void Rigidify();
@@ -126,7 +126,7 @@ private:
 
     std::vector < Fragment* >    _fragments;
     std::vector < Atom* >        _atoms;
-    std::vector < APolarSite* >  _apolarSites;
+    std::vector < PolarSite* >  _polarSites;
 
     tools::vec         _CoM;
     double   _approxsize;

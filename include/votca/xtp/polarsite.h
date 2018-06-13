@@ -32,8 +32,12 @@ class PolarSite
 {
 
 public:
+    
+    PolarSite(int id, const std::string name)
+            : _id(id), _name(name),
+            PhiP(0.0),PhiU(0.0){_pos=Eigen::Vector3d::Zero(3);}
 
-    PolarSite(int id, const std::string name, const Eigen::VectorXd pos)
+    PolarSite(int id, const std::string name, const Eigen::Vector3d pos)
             : _id(id), _name(name),
             PhiP(0.0),PhiU(0.0){_pos=pos;}
         
@@ -50,7 +54,16 @@ public:
         calcRank();
     }
    
+    void setSegment(Segment* seg){
+        _segment=seg;
+    }
+    void setFragment(Fragment* frag){
+        _fragment=frag;
+    }
     
+    void setTopology(Topology* top){
+        _top=top;
+    }
     // COORDINATES TRANSFORMATION
     void    Translate(const Eigen::VectorXd &shift);
     void Rotate(const Eigen::Matrix3d& R);
@@ -85,7 +98,9 @@ private:
     Eigen::Matrix3d _quadrupole_cartesian; //theta matrix
     Eigen::VectorXd _quadrupole_polar; // Q20, Q21c, Q21s, Q22c, Q22s
     
-    
+    Segment* _segment;
+    Fragment* _fragment;
+    Topology* _top;
     double PhiP;                            // Electric potential (due to perm.)
     double PhiU;                            // Electric potential (due to indu.)
 

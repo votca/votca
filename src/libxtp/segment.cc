@@ -21,7 +21,7 @@
 #include <vector>
 #include <string>
 
-#include <votca/xtp/apolarsite.h>
+#include <votca/xtp/polarsite.h>
 #include <votca/xtp/atom.h>
 #include <votca/xtp/fragment.h>
 #include <votca/xtp/segment.h>
@@ -302,9 +302,9 @@ void Segment::AddAtom(Atom *atom) {
   atom->setSegment(this);
 }
 
-void Segment::AddAPolarSite(APolarSite *pole) {
+void Segment::AddPolarSite(PolarSite *pole) {
 
-  _apolarSites.push_back(pole);
+  _polarSites.push_back(pole);
   pole->setSegment(this);
 }
 
