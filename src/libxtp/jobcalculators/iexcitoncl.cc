@@ -30,8 +30,6 @@
 
 using namespace boost::filesystem;
 using namespace votca::tools;
-
-namespace ub = boost::numeric::ublas;
     
 namespace votca { namespace xtp {
     

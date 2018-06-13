@@ -33,7 +33,6 @@
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
 
 /**
          * \brief Electronic Excitations via Density-Functional Theory

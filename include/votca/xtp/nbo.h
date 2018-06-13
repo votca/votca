@@ -37,7 +37,6 @@
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
     
 class NBO{
 public:

@@ -178,8 +178,9 @@ namespace votca {
         for (unsigned _gw_level2 = _gw_level1+1; _gw_level2 < _qptotal; _gw_level2++) {
           const MatrixXfd Mmn1xMmn2=_Mmn[ _gw_level2 + _qpmin ].cwiseProduct(Mmn1);
           const Eigen::VectorXd gwa_energies=_gwa_energies;
-          const double qpmin1 = gwa_energies(_gw_level1 + _qpmin);
-          const double qpmin2 = gwa_energies(_gw_level2 + _qpmin);
+          Eigen::Array2d qpmin;
+          qpmin(0)=gwa_energies(_gw_level1 + _qpmin);
+          qpmin(1)=gwa_energies(_gw_level2 + _qpmin);
           double sigma_c=0;
           for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
             // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
@@ -193,36 +194,31 @@ namespace votca {
             for (unsigned _i = 0; _i <lumo; _i++) {              
               const double gwa_energy = gwa_energies(_i)-ppm_freq;
               // energy denominator
-              const double _denom1 = qpmin1 - gwa_energy;
-              double _stab1 = 1.0;
-              if (std::abs(_denom1) < 0.25) {
-                  _stab1 = 0.5 * (1.0 - std::cos(fourpi * _denom1));
+              Eigen::Array2d denom=qpmin.array()-gwa_energy;
+              Eigen::Array2d stab=Eigen::Vector2d::Ones();
+              if (std::abs(denom(0)) < 0.25) {
+                  stab(0) = 0.5 * (1.0 - std::cos(fourpi * denom(0)));
               }
-              
-              const double _denom2 = qpmin2 - gwa_energy;
-              double _stab2 = 1.0;
-              if (std::abs(_denom2) < 0.25) {
-                  _stab2 = 0.5 * (1.0 - std::cos(fourpi * _denom2));
+              if (std::abs(denom(1)) < 0.25) {
+                  stab(1) = 0.5 * (1.0 - std::cos(fourpi * denom(1)));
               }
-              const double factor=_stab1/_denom1+_stab2 / _denom2; //Hartree}
+            
+              const double factor=(stab/denom).sum();
               sigma_loc+=Mmn1xMmn2(_i,_i_gw)*factor;
             }
             // loop over unocc screening levels
             for (unsigned _i = lumo; _i < _levelsum; _i++) {              
               const double gwa_energy = gwa_energies(_i)+ppm_freq;
               // energy denominator
-              const double _denom1 = qpmin1 - gwa_energy;
-              double _stab1 = 1.0;
-              if (std::abs(_denom1) < 0.25) {
-                  _stab1 = 0.5 * (1.0 - std::cos(fourpi * _denom1));
+              Eigen::Array2d denom=qpmin.array()-gwa_energy;
+              Eigen::Array2d stab=Eigen::Vector2d::Ones();
+              if (std::abs(denom(0)) < 0.25) {
+                  stab(0) = 0.5 * (1.0 - std::cos(fourpi * denom(0)));
               }
-              
-              const double _denom2 = qpmin2 - gwa_energy;
-              double _stab2 = 1.0;
-              if (std::abs(_denom2) < 0.25) {
-                  _stab2 = 0.5 * (1.0 - std::cos(fourpi * _denom2));
-              }
-              const double factor=_stab1/_denom1+_stab2 / _denom2; //Hartree}
+              if (std::abs(denom(1)) < 0.25) {
+                  stab(1) = 0.5 * (1.0 - std::cos(fourpi * denom(1)));
+              }           
+              const double factor=(stab/denom).sum();
               sigma_loc+=Mmn1xMmn2(_i,_i_gw)*factor;
             }
             sigma_c+=sigma_loc*fac;
