@@ -34,13 +34,13 @@ namespace votca {
             int _nrows = this->getBlockSize(_lmax_row);
             int _ncols = this->getBlockSize(_lmax_col);
             if (_lmax_col > 6 || _lmax_row > 6) {
-                cerr << "Orbitals higher than i are not yet implemented. This should not have happened!" << flush;
+                std::cerr << "Orbitals higher than i are not yet implemented. This should not have happened!" << std::flush;
                 exit(1);
             }
             // get shell positions
-            const vec& _pos_row = _shell_row->getPos(); //get position R_{i}
-            const vec& _pos_col = _shell_col->getPos(); //get position R_{j}
-            const vec _diff = _pos_row - _pos_col; //get difference r_{ij}
+            const tools::vec& _pos_row = _shell_row->getPos(); //get position R_{i}
+            const tools::vec& _pos_col = _shell_col->getPos(); //get position R_{j}
+            const tools::vec _diff = _pos_row - _pos_col; //get difference r_{ij}
             double _distsq = (_diff * _diff); //get |R_{ij}|^2
             // get kvector modulus
             double _kmodulus = (_k * _k); //get |k|^2

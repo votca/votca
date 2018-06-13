@@ -25,7 +25,7 @@ using namespace std;
 namespace votca {
     namespace xtp {
 
-        void Exciton::Initialize(Property* options) {
+        void Exciton::Initialize(tools::Property* options) {
          
             _do_optimize = false;
             // _do_guess=false; //Writing guess for dimer calculation
@@ -115,7 +115,7 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
             _orbitals.WriteToCpt(_archive_file);
             
-            Property _summary = _gwbse_engine.ReportSummary();
+            tools::Property _summary = _gwbse_engine.ReportSummary();
             if(_summary.exists("output")){  //only do gwbse summary output if we actually did gwbse
                 tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
                 CTP_LOG(ctp::logDEBUG, _log) << "Writing output to " << _xml_output << flush;

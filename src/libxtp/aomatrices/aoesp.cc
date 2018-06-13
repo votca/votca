@@ -108,9 +108,9 @@ namespace votca { namespace xtp {
       
         
         // get shell positions
-        const vec& _pos_row = _shell_row->getPos();
-        const vec& _pos_col = _shell_col->getPos();
-        const vec  _diff    = _pos_row - _pos_col;
+        const tools::vec& _pos_row = _shell_row->getPos();
+        const tools::vec& _pos_col = _shell_col->getPos();
+        const tools::vec  _diff    = _pos_row - _pos_col;
         // initialize some helper
       
         double _distsq = (_diff*_diff); 
@@ -440,11 +440,11 @@ if (_lmax_col > 3) {
   // Calculates the electrostatic potential matrix element between two basis functions, for an array of atomcores.
 
     void AOESP::Fillnucpotential(const AOBasis& aobasis, std::vector<QMAtom*>& _atoms) {
-            Elements _elements;
+            tools::Elements _elements;
             _nuclearpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
             for (unsigned j = 0; j < _atoms.size(); j++) {
-                vec positionofatom = _atoms[j]->getPos();
+                tools::vec positionofatom = _atoms[j]->getPos();
 
                 double Znuc = _atoms[j]->getNuccharge();
                 
@@ -462,7 +462,7 @@ if (_lmax_col > 3) {
 
             for (unsigned int i = 0; i < _sites.size(); i++) {
                 for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
-                    vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
+                    tools::vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
                     _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                     Fill(aobasis, positionofsite);
                     _externalpotential -= (*it)->getQ00() * _aomatrix;

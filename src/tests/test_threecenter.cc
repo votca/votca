@@ -22,6 +22,7 @@
 #include <votca/xtp/ERIs.h>
 
 using namespace votca::xtp;
+using namespace std;
 
 BOOST_AUTO_TEST_SUITE(threecenter_test)
 

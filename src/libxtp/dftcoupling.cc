@@ -78,7 +78,7 @@ double DFTcoupling::getCouplingElement( int levelA, int levelB,  Orbitals* _orbi
 bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
     Orbitals* _orbitalsAB, Eigen::MatrixXd* _JAB) {
 
-    CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
+    CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating electronic couplings" << std::flush;
     
     const std::vector<QMAtom*> atomsA=_orbitalsA->QMAtoms();
     const std::vector<QMAtom*> atomsB=_orbitalsB->QMAtoms();
@@ -91,26 +91,26 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
       if (i < atomsA.size()) {
           monomer = atomsA[i];
           if(!monomer->getPos().isClose(dimer->getPos(), 0.001)){
-              CTP_LOG(ctp::logERROR, *_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << flush;
+              CTP_LOG(ctp::logERROR, *_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << std::flush;
               continue;
           }
       } else if (i < atomsB.size() + atomsA.size()) {
           monomer = atomsB[i - atomsA.size()];
           if(!monomer->getPos().isClose(dimer->getPos(), 0.001)){
-              CTP_LOG(ctp::logERROR, *_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << flush;
+              CTP_LOG(ctp::logERROR, *_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << std::flush;
               continue;
           }
       } else {
           // Linker
-          CTP_LOG(ctp::logERROR, *_pLog) << (format("Neither Monomer A nor Monomer B contains atom %s on line %u. Hence, this atom is part of a linker. \n") %dimer->getType() %(i+1) ).str()<<flush;
+          CTP_LOG(ctp::logERROR, *_pLog) << (format("Neither Monomer A nor Monomer B contains atom %s on line %u. Hence, this atom is part of a linker. \n") %dimer->getType() %(i+1) ).str()<<std::flush;
           continue;
       }
 
       if (monomer->getType() != dimer->getType()) {
-          throw runtime_error("\nERROR: Atom types do not agree in dimer and monomers\n");
+          throw std::runtime_error("\nERROR: Atom types do not agree in dimer and monomers\n");
       }
       if (monomer->getPos().isClose(dimer->getPos(),  0.001)) {
-          CTP_LOG(ctp::logERROR, *_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << flush;
+          CTP_LOG(ctp::logERROR, *_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << std::flush;
           break;
       }
 }
@@ -120,7 +120,7 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     int _basisB = _orbitalsB->getBasisSetSize();
     
     if ( ( _basisA == 0 ) || ( _basisB == 0 ) ) {
-        CTP_LOG(ctp::logERROR,*_pLog) << "Basis set size is not stored in monomers" << flush;
+        CTP_LOG(ctp::logERROR,*_pLog) << "Basis set size is not stored in monomers" << std::flush;
         return false;
     }
         
@@ -131,10 +131,10 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     //double _st = t.elapsed();
     
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Levels:Basis A[" << _levelsA << ":" << _basisA << "]"
-                                     << " B[" << _levelsB << ":" << _basisB << "]" << flush;
+                                     << " B[" << _levelsB << ":" << _basisB << "]" << std::flush;
     
     if ( ( _levelsA == 0 ) || (_levelsB == 0) ) {
-        CTP_LOG(ctp::logERROR,*_pLog) << "No information about number of occupied/unoccupied levels is stored" << flush;
+        CTP_LOG(ctp::logERROR,*_pLog) << "No information about number of occupied/unoccupied levels is stored" << std::flush;
         return false;
     } 
     
@@ -146,7 +146,7 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     
       CTP_LOG(ctp::logDEBUG,*_pLog) << "Constructing direct product AxB [" 
             << _psi_AxB.rows() << "x" 
-            << _psi_AxB.cols() << "]" << flush;    
+            << _psi_AxB.cols() << "]" << std::flush;    
     
     // constructing merged orbitals
     _psi_AxB.block(0,0, _basisA,_levelsA) = _orbitalsA->MOCoefficients();
@@ -158,13 +158,13 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
     // psi_AxB * S_AB * psi_AB
     
     
-    CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting dimer onto monomer orbitals" << flush; 
+    CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting dimer onto monomer orbitals" << std::flush; 
     Eigen::MatrixXd overlap;
     if ( _orbitalsAB->hasAOOverlap() ) {
-            CTP_LOG(ctp::logDEBUG,*_pLog) << "Reading overlap matrix from orbitals" << flush; 
+            CTP_LOG(ctp::logDEBUG,*_pLog) << "Reading overlap matrix from orbitals" << std::flush; 
            overlap= _orbitalsAB->AOOverlap();
     }else{
-        CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating overlap matrix for basisset: "<< _orbitalsAB->getDFTbasis()<< flush; 
+        CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating overlap matrix for basisset: "<< _orbitalsAB->getDFTbasis()<< std::flush; 
         BasisSet _dftbasisset;
         AOBasis _dftbasis;
         _dftbasisset.LoadBasisSet(_orbitalsAB->getDFTbasis());
@@ -194,29 +194,29 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
                 level   = i -_levelsA;
                 
             }
-            CTP_LOG(ctp::logERROR,*_pLog) << "\nERROR: " << i << " Projection of orbital " << level << " of monomer " << monomer << " on dimer is insufficient,mag="<<mag<<" maybe the orbital order is screwed up, otherwise increase dimer basis.\n"<<flush;
+            CTP_LOG(ctp::logERROR,*_pLog) << "\nERROR: " << i << " Projection of orbital " << level << " of monomer " << monomer << " on dimer is insufficient,mag="<<mag<<" maybe the orbital order is screwed up, otherwise increase dimer basis.\n"<<std::flush;
         }
     }
     // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
-    CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting the Fock matrix onto the dimer basis" << flush;   
+    CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting the Fock matrix onto the dimer basis" << std::flush;   
       
     Eigen::MatrixXd JAB_dimer = _psi_AxB_dimer_basis*_orbitalsAB->MOEnergies().asDiagonal()*_psi_AxB_dimer_basis.transpose();  
  
     // S = psi_AxB_dimer_basis * psi_AxB_dimer_basis^T
-    CTP_LOG(ctp::logDEBUG,*_pLog) << "Constructing Overlap matrix" << flush;    
+    CTP_LOG(ctp::logDEBUG,*_pLog) << "Constructing Overlap matrix" << std::flush;    
     Eigen::MatrixXd _S_AxB = _psi_AxB_dimer_basis*_psi_AxB_dimer_basis.transpose();  
      
    CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating the effective overlap JAB [" 
               << JAB_dimer.rows() << "x" 
-              << JAB_dimer.cols() << "]" << flush;  
+              << JAB_dimer.cols() << "]" << std::flush;  
    
    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_S_AxB);
    Eigen::MatrixXd Sm1=es.operatorInverseSqrt();
-   CTP_LOG(ctp::logDEBUG,*_pLog) << "Smallest eigenvalue of overlap matrix is "<<es.eigenvalues()(0)<< flush;    
+   CTP_LOG(ctp::logDEBUG,*_pLog) << "Smallest eigenvalue of overlap matrix is "<<es.eigenvalues()(0)<< std::flush;    
    (*_JAB) = Sm1*JAB_dimer*Sm1;
     
     
-    CTP_LOG(ctp::logDEBUG,*_pLog) << "Done with electronic couplings" << flush;
+    CTP_LOG(ctp::logDEBUG,*_pLog) << "Done with electronic couplings" << std::flush;
     
     return true;   
 

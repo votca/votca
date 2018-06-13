@@ -41,15 +41,11 @@ namespace votca { namespace xtp {
             int _ncols = this->getBlockSize(_lmax_col);
             const int _mmax = _lmax_row + _lmax_col; 
             const int _nextra = _mmax +1;
-            
 
-            
-           
-            
             // get shell positions
-            const vec& _pos_row = _shell_row->getPos();
-            const vec& _pos_col = _shell_col->getPos();
-            const vec _diff = _pos_row - _pos_col;
+            const tools::vec& _pos_row = _shell_row->getPos();
+            const tools::vec& _pos_col = _shell_col->getPos();
+            const tools::vec _diff = _pos_row - _pos_col;
             double _distsq = (_diff.getX() * _diff.getX()) + (_diff.getY() * _diff.getY()) + (_diff.getZ() * _diff.getZ());
             
             const double pi = boost::math::constants::pi<double>();
@@ -58,8 +54,6 @@ namespace votca { namespace xtp {
             std::vector<double> _wmq=std::vector<double>(3);
 
              int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84};
-
-
 
 
  // for alphabetical order

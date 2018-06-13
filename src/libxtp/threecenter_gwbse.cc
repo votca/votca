@@ -75,12 +75,12 @@ namespace votca {
       return;
     } 
 
-    void TCMatrix_gwbse::Print(string _ident) {
+    void TCMatrix_gwbse::Print(std::string _ident) {
 
       for (int k = 0; k < _mtotal; k++) {
         for (int i = 0; i < this->getAuxDimension(); i++) {
           for (int j = 0; j< _ntotal; j++) {
-            cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
+            std::cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << std::endl;
           }
         }
       }

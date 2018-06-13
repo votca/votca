@@ -21,6 +21,7 @@
 #include "votca/xtp/orbitals.h"
 #include <fstream>
 using namespace votca::xtp;
+using namespace std;
 
 BOOST_AUTO_TEST_SUITE(numerical_integration_test)
 

@@ -152,6 +152,8 @@
       <itemPath>../../src/libxtp/qmpackages/nwchem.h</itemPath>
       <itemPath>../../src/libxtp/qmpackages/orca.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackages/orca.h</itemPath>
+      <itemPath>../../src/libxtp/qmpackages/xtpdft.cc</itemPath>
+      <itemPath>../../src/libxtp/qmpackages/xtpdft.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -266,7 +268,6 @@
       <itemPath>../../src/tests/test_fragment.cc</itemPath>
       <itemPath>../../src/tests/test_glink.cc</itemPath>
       <itemPath>../../src/tests/test_hdf5.cc</itemPath>
-      <itemPath>../../src/tests/test_linalg.cc</itemPath>
       <itemPath>../../src/tests/test_molecule.cc</itemPath>
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
@@ -1017,6 +1018,16 @@
       </item>
       <item path="../../src/libxtp/qmpackages/orca.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/qmpackages/xtpdft.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpackages/xtpdft.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
@@ -1112,8 +1123,6 @@
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1821,6 +1830,16 @@
       </item>
       <item path="../../src/libxtp/qmpackages/orca.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/qmpackages/xtpdft.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpackages/xtpdft.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
@@ -1916,8 +1935,6 @@
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
       </item>

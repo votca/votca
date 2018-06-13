@@ -23,6 +23,7 @@
 
 
 using namespace votca::xtp;
+using namespace std;
 
 BOOST_AUTO_TEST_SUITE(bse_test)
 

@@ -516,7 +516,7 @@ namespace votca {
         void ERIs::printERIs(){
           for (int i=0; i< _ERIs.cols(); i++){
             for (int j=0; j< _ERIs.rows();j++){
-              cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<endl;
+              std::cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<std::endl;
             }
           }
           return;

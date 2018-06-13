@@ -44,7 +44,7 @@ namespace votca {
             };
 
             void BFGSStep(int& _iteration, bool& _update_hessian, Eigen::MatrixXd& _force, Eigen::MatrixXd& _force_old, Eigen::MatrixXd& _current_xyz, Eigen::MatrixXd& _old_xyz, Eigen::MatrixXd& _hessian, Eigen::MatrixXd& _xyz_shift, Eigen::MatrixXd& _trial_xyz);
-            void Initialize(Property *options);
+            void Initialize(tools::Property *options);
 
             void setLog(ctp::Logger* pLog) {
                 _pLog = pLog;
@@ -72,8 +72,8 @@ namespace votca {
             std::vector<ctp::Segment*> _segments;
             Orbitals* _orbitals;
 
-            Property _optimizer_options;
-            Property _force_options;
+            tools::Property _optimizer_options;
+            tools::Property _force_options;
 
             ctp::Logger *_pLog;
         };

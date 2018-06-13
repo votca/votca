@@ -41,6 +41,8 @@
 
 using boost::format;
 using namespace boost::filesystem;
+using std::flush;
+using namespace votca::tools;
 
 namespace votca {
   namespace xtp {

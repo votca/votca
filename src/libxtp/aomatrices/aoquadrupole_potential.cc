@@ -116,9 +116,9 @@ namespace votca { namespace xtp {
       
         
         // get shell positions
-        const vec& _pos_row = _shell_row->getPos();
-        const vec& _pos_col = _shell_col->getPos();
-        const vec  _diff    = _pos_row - _pos_col;
+        const tools::vec& _pos_row = _shell_row->getPos();
+        const tools::vec& _pos_col = _shell_col->getPos();
+        const tools::vec  _diff    = _pos_row - _pos_col;
         // initialize some helper
       
         double _distsq = (_diff*_diff); 
@@ -1147,7 +1147,7 @@ for (int _i = 0; _i < _nrows; _i++) {
                 for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
 
                     if ((*it)->getRank() > 1) {
-                        vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
+                        tools::vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
                         _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                         setAPolarSite((*it));
                         Fill(aobasis, positionofsite);

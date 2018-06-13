@@ -21,7 +21,7 @@
 #include <votca/xtp/bse.h>
 #include <votca/xtp/linalg.h>
 using boost::format;
-
+using std::flush;
 
 namespace votca {
   namespace xtp {
@@ -533,7 +533,7 @@ template <typename T>
                 contrib(i_exc) =  (_slice_R.transpose()*H * _slice_R).value();
             }
         } else {
-            throw runtime_error("BSE::Analyze_eh_interaction:Spin not known!");
+            throw std::runtime_error("BSE::Analyze_eh_interaction:Spin not known!");
         }
         return contrib;
     }
@@ -616,7 +616,7 @@ template <typename T>
     std::vector<tools::vec > dipols;
       double sqrt2 = sqrt(2.0);
       for (int _i_exc = 0; _i_exc < _bse_nmax; _i_exc++) {
-        tools::vec _tdipole = vec(0, 0, 0);
+        tools::vec _tdipole = tools::vec(0, 0, 0);
 
         for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
           for (unsigned _c = 0; _c < _bse_ctotal; _c++) {

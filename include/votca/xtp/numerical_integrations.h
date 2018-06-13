@@ -56,15 +56,15 @@ namespace votca { namespace xtp {
             
             void GridSetup(std::string type, std::vector<QMAtom* > _atoms,const AOBasis* basis);
             double getExactExchange(const std::string _functional);
-            std::vector<const vec*> getGridpoints();
+            std::vector<const tools::vec*> getGridpoints();
             
             unsigned getGridSize() const{return _totalgridsize;}
             unsigned getBoxesSize() const{return _grid_boxes.size();}
             
-            void setXCfunctional(const string _functional);
+            void setXCfunctional(const std::string _functional);
             
             double IntegrateDensity(const Eigen::MatrixXd& _density_matrix);
-            double IntegratePotential(const vec& rvector);
+            double IntegratePotential(const tools::vec& rvector);
             double IntegrateField(const std::vector<double>& externalfield);
             Eigen::MatrixXd IntegrateExternalPotential(const std::vector<double>& Potentialvalues);
             Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& _density_matrix);          
