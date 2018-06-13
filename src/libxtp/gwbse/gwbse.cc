@@ -750,7 +750,7 @@ bool GWBSE::Evaluate() {
       << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
 
   // make _Mmn symmetric
-  Mmn.MultiplyLeftWithAuxMatrix(Coulomb_sqrtInv);
+  Mmn.MultiplyRightWithAuxMatrix(Coulomb_sqrtInv);
   
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
@@ -811,7 +811,7 @@ bool GWBSE::Evaluate() {
     if(gw_iteration%_reset_3c==0 && gw_iteration!=0){
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Rebuilding Mmn_beta (3-center-repulsion x orbitals)" << flush;
        Mmn.Fill(auxbasis, dftbasis, _orbitals->MOCoefficients());
-       Mmn.MultiplyLeftWithAuxMatrix(Coulomb_sqrtInv);
+       Mmn.MultiplyRightWithAuxMatrix(Coulomb_sqrtInv);
     }
   
     rpa.calculate_epsilon(gwa_energies,Mmn);
@@ -823,7 +823,7 @@ bool GWBSE::Evaluate() {
     
     
     
-    Mmn.MultiplyLeftWithAuxMatrix(ppm.getPpm_phi_T());
+    Mmn.MultiplyRightWithAuxMatrix(ppm.getPpm_phi());
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Prepared threecenters for sigma  " << flush;
 

@@ -211,7 +211,7 @@ template <typename T>
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
             size_t _index_vv = _bse_vtotal * _v1 + _v2;         
-              _storage_v(_i_gw,_index_vv) = Mmn(_i_gw, _v2 + _bse_vmin);
+              _storage_v(_i_gw,_index_vv) = Mmn( _v2 + _bse_vmin,_i_gw);
             }
         }
       }
@@ -223,7 +223,7 @@ template <typename T>
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _c2 = 0; _c2 < _bse_ctotal; _c2++) {
             size_t _index_cc = _bse_ctotal * _c1 + _c2;
-            _storage_c(_i_gw, _index_cc) = Mmn(_i_gw, _c2 + _bse_cmin);
+            _storage_c(_i_gw, _index_cc) = Mmn( _c2 + _bse_cmin,_i_gw);
           }
         }
       }
@@ -297,7 +297,7 @@ template <typename T>
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
             size_t _index_cv = _bse_vtotal * _c1 + _v2;
-            _storage_cv(_i_gw,_index_cv ) = Mmn(_i_gw, _v2 + _bse_vmin);
+            _storage_cv(_i_gw,_index_cv ) = Mmn( _v2 + _bse_vmin,_i_gw);
           }
         }
       }
@@ -309,7 +309,7 @@ template <typename T>
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _c2 = 0; _c2 < _bse_ctotal; _c2++) {
             size_t _index_vc = _bse_ctotal * _v1 + _c2;
-            _storage_vc(_i_gw, _index_vc) = Mmn(_i_gw, _c2 + _bse_cmin);
+            _storage_vc(_i_gw, _index_vc) = Mmn(_c2 + _bse_cmin,_i_gw);
           }
         }
       }
@@ -385,7 +385,7 @@ template <typename T>
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _c = 0; _c < _bse_ctotal; _c++) {
             size_t _index_vc = _bse_ctotal * _v + _c;
-            _storage(_i_gw, _index_vc) = Mmn(_i_gw, _c + _bse_cmin);
+            _storage(_i_gw, _index_vc) = Mmn(_c + _bse_cmin,_i_gw);
           }
         }
       }

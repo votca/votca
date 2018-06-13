@@ -99,7 +99,7 @@ namespace votca {
             Eigen::MatrixXd D=DMAT;
             for(int i=thread;i<_threecenter.getSize();i+= nthreads){
               const Eigen::MatrixXd threecenter = _threecenter.getDatamatrix(i).FullMatrix();
-              EXX_thread[thread]+=threecenter*D*threecenter;
+              EXX_thread[thread].noalias()+=threecenter*D*threecenter;
             }
           }
           _EXXs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
@@ -130,7 +130,7 @@ namespace votca {
             Eigen::MatrixXd occ=occMos;
             for(int i=thread;i<_threecenter.getSize();i+= nthreads){
               const Eigen::MatrixXd TCxMOs_T = occ.transpose()*_threecenter.getDatamatrix(i).FullMatrix();
-              EXX_thread[thread]+=TCxMOs_T.transpose()*TCxMOs_T;
+              EXX_thread[thread].noalias()+=TCxMOs_T.transpose()*TCxMOs_T;
             }
           }
           _EXXs = Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows());

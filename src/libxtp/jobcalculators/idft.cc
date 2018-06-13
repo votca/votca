@@ -128,7 +128,6 @@ namespace votca {
       } catch(std::runtime_error& error){
         CTP_LOG(ctp::logERROR, *log) << "Failed loading orbitals from " << file_name << flush;
       }
-
     }
 
     ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *opThread) {
@@ -403,9 +402,7 @@ namespace votca {
 
         dftcoupling.setLogger(pLog);
 
-        // 10 seconds for a small system
-        //_calculate_integrals = _overlap.CalculateIntegralsOptimized( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );
-        // 7 seconds with GSL overloading
+        
         _calculate_integrals = dftcoupling.CalculateIntegrals(&_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB);
 
         if (!_calculate_integrals) {

@@ -1152,8 +1152,8 @@ if (_lmax_col > 5) {
       }
       
       Eigen::MatrixXd Vm1=es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
-       
-    return Vm1*Ssqrt;
+      Eigen::MatrixXd result=(Vm1*Ssqrt).transpose();
+    return result;
     }
     
      Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt(double etol){
