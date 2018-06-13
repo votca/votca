@@ -820,16 +820,10 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> _ato
 
     double NumericalIntegration::erf1c(double x){ 
         const static double alpha_erf1=1.0/0.30;
-        return 0.5*erfcc((x/(1.0-x*x))*alpha_erf1);              
+        return 0.5*std::erfc(std::abs(x/(1.0-x*x))*alpha_erf1);              
     }
               
-    double NumericalIntegration::erfcc(double x){
-        double tau = 1.0/(1.0+0.5*std::abs(x));
-        return tau*exp(-x*x-1.26551223 + 1.00002368*tau + 0.37409196*tau*tau 
-        + 0.09678418*std::pow(tau,3) - 0.18628806*std::pow(tau,4) + 0.27886807*std::pow(tau,5) 
-        -1.13520398*std::pow(tau,6) + 1.48851587*std::pow(tau,7)  -0.82215223*std::pow(tau,8) 
-        + 0.17087277*std::pow(tau,9));   
-    }
+   
                                                                                                 
     }
 }
