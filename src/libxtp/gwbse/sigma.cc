@@ -87,7 +87,7 @@ namespace votca {
               const double _denom = qpmin - _qp_old(_i) +ppm_freq;
               double _stab = 1.0;
               if (std::abs(_denom) < 0.25) {
-                _stab = 0.5 * (1.0 - std::cos(fourpi * std::abs(_denom)));
+                _stab = 0.5 * (1.0 - std::cos(fourpi * _denom));
               }
               const double _factor = _stab / _denom; //Hartree
               // sigma_c diagonal elements
@@ -97,7 +97,7 @@ namespace votca {
               const double _denom = qpmin - _qp_old(_i) -ppm_freq;
               double _stab = 1.0;
               if (std::abs(_denom) < 0.25) {
-                _stab = 0.5 * (1.0 - std::cos(fourpi * std::abs(_denom)));
+                _stab = 0.5 * (1.0 - std::cos(fourpi * _denom));
               }
               const double _factor = _stab / _denom; //Hartree
               // sigma_c diagonal elements
@@ -194,7 +194,7 @@ namespace votca {
             for (unsigned _i = 0; _i <lumo; _i++) {              
               const double gwa_energy = gwa_energies(_i)-ppm_freq;
               // energy denominator
-              Eigen::Array2d denom=qpmin.array()-gwa_energy;
+              Eigen::Array2d denom=qpmin-gwa_energy;
               Eigen::Array2d stab=Eigen::Vector2d::Ones();
               if (std::abs(denom(0)) < 0.25) {
                   stab(0) = 0.5 * (1.0 - std::cos(fourpi * denom(0)));
@@ -210,7 +210,7 @@ namespace votca {
             for (unsigned _i = lumo; _i < _levelsum; _i++) {              
               const double gwa_energy = gwa_energies(_i)+ppm_freq;
               // energy denominator
-              Eigen::Array2d denom=qpmin.array()-gwa_energy;
+              Eigen::Array2d denom=qpmin-gwa_energy;
               Eigen::Array2d stab=Eigen::Vector2d::Ones();
               if (std::abs(denom(0)) < 0.25) {
                   stab(0) = 0.5 * (1.0 - std::cos(fourpi * denom(0)));
