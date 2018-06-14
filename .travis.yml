@@ -43,7 +43,7 @@ before_script:
      cp -vr ${TRAVIS_REPO_SLUG}/docker ${HOME};
      mv -v ${TRAVIS_REPO_SLUG} $HOME/docker;
    else
-     git clone --recursive --recursive https://github.com/votca/votca.git $HOME/docker/votca;
+     git clone --recursive https://github.com/votca/votca.git $HOME/docker/votca;
      if [[ ${TRAVIS_BRANCH} != master ]]; then
        git -C ${HOME}/docker/votca checkout -b ${TRAVIS_BRANCH} origin/${TRAVIS_BRANCH} && git -C ${HOME}/docker/votca submodule update --recursive --init;
      fi;
@@ -56,7 +56,7 @@ before_script:
  - cp -r $HOME/.ccache ${HOME}/docker/ccache
  - sed -i "1s/latest/${DISTRO:-latest}/" ${HOME}/docker/Dockerfile
  - if [[ ! ${SKIP} ]]; then 
-     travis_retry timeout 540 docker pull $(sed -n '1s/from //p' ${HOME}/docker/Dockerfile);
+     travis_retry timeout 540 docker pull $(sed -n '1s/FROM //p' ${HOME}/docker/Dockerfile);
    fi
 
 script:
