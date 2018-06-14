@@ -59,7 +59,6 @@ add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 
 find_package(MKL)
 if (MKL_FOUND)
-    message("-- MKL found")
 	include_directories(${MKL_INCLUDE_DIRS})
 	set (MKL TRUE )
 else()
@@ -69,26 +68,16 @@ endif()
 
 
 find_package(EIGEN3 3.3.0 REQUIRED)
-
-message(STATUS "${EIGEN3_VERSION}")
 include_directories(${EIGEN3_INCLUDE_DIRS})
 
-
-
 find_package(LIBXC REQUIRED)
-
-message("-- LIBXC found")
 include_directories(${LIBXC_INCLUDE_DIRS})
 
 find_package(CERES REQUIRED)
-
-message(STATUS "Found ceres solver version ${CERES_VERSION}")
 include_directories(${CERES_INCLUDE_DIRS})
 
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
-
-message(STATUS "Found HDF5 version " + ${HDF5_VERSION})
 include_directories(${HDF5_INCLUDE_DIRS})
 
 if (${HDF5_VERSION} GREATER 1.8)
