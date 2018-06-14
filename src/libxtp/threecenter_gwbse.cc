@@ -79,11 +79,8 @@ namespace votca {
     void TCMatrix_gwbse::Print(std::string _ident) {
 
       for (int k = 0; k < _mtotal; k++) {
-        for (int i = 0; i < this->getAuxDimension(); i++) {
-          for (int j = 0; j< _ntotal; j++) {
-            std::cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << std::endl;
-          }
-        }
+        std::cout <<k<<std::endl;
+         std::cout <<this->_matrix[k]<< std::endl;  
       }
       return;
     }
@@ -178,9 +175,9 @@ namespace votca {
             matrix(j, i) = matrix(i, j);
           }
         }
-        Eigen::MatrixXd threec_inMo = dftm.transpose() * matrix*dftn;
-        for (int i = 0; i < threec_inMo.rows(); ++i) {
-          for (int j = 0; j < threec_inMo.cols(); ++j) {
+        Eigen::MatrixXd threec_inMo = dftn.transpose() * matrix*dftm;
+        for (int i = 0; i < threec_inMo.cols(); ++i) {
+          for (int j = 0; j < threec_inMo.rows(); ++j) {
             _block[i](j, k) = threec_inMo(j, i);
           }
         }
