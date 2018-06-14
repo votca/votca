@@ -45,7 +45,7 @@ const int _size = _Mmn_full.getAuxDimension(); // size of gwbasis
             for (int _m_level = 0; _m_level < n_occ; _m_level++) {
                 const double _qp_energy_m = qp_energies(_m_level + _rpamin);
 #if (GWBSE_DOUBLE)
-                const Eigen::MatrixXd Mmn_RPA = _Mmn_full[ _m_level ].block(0, n_occ, _size, n_unocc);
+                const Eigen::MatrixXd Mmn_RPA = _Mmn_full[ _m_level ].block(n_occ, 0,n_unocc, _size );
 #else
                 const Eigen::MatrixXd Mmn_RPA = _Mmn_full[ _m_level ].block(n_occ,0,  n_unocc, _size).cast<double>();       
 #endif
