@@ -736,8 +736,6 @@ bool GWBSE::Evaluate() {
       << ctp::TimeStamp() << " Removed " << _auxcoulomb.Removedfunctions()
       << " functions from Aux Coulomb matrix to avoid near linear dependencies" << flush;
   
-
-  // --- prepare a vector (gwdacay) of matrices (orbitals, orbitals) as
   // container => M_mn
   // prepare 3-center integral object
 

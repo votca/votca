@@ -74,34 +74,34 @@ namespace votca {
           const double qpmin = _qp_old(_gw_level + _qpmin);
           double sigma_c = 0.0;
           // loop over all functions in GW basis
-          for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
+          for (unsigned i_gw = 0; i_gw < _gwsize; i_gw++) {
             // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
-            if (ppm.getPpm_weight()(_i_gw) < 1.e-9) {
+            if (ppm.getPpm_weight()(i_gw) < 1.e-9) {
               continue;
             }
-            const double ppm_freq = ppm.getPpm_freq()(_i_gw);
-            const double fac = 0.5*ppm.getPpm_weight()(_i_gw) * ppm_freq;
+            const double ppm_freq = ppm.getPpm_freq()(i_gw);
+            const double fac = 0.5*ppm.getPpm_weight()(i_gw) * ppm_freq;
             // loop over all bands
             double sigma_c_loc=0.0;
-            for (unsigned _i = 0; _i < _homo+1; _i++) {
-              const double _denom = qpmin - _qp_old(_i) +ppm_freq;
+            for (unsigned i = 0; i < _homo+1; i++) {
+              const double _denom = qpmin - _qp_old(i) +ppm_freq;
               double _stab = 1.0;
               if (std::abs(_denom) < 0.25) {
                 _stab = 0.5 * (1.0 - std::cos(fourpi * _denom));
               }
               const double _factor = _stab / _denom; //Hartree
               // sigma_c diagonal elements
-              sigma_c_loc += _factor * Mmn(_i, _i_gw) * Mmn( _i,_i_gw);
+              sigma_c_loc += _factor * Mmn(i, i_gw) * Mmn( i,i_gw);
             }// bands
-            for (unsigned _i = _homo+1; _i < _levelsum; _i++) {
-              const double _denom = qpmin - _qp_old(_i) -ppm_freq;
+            for (unsigned i = _homo+1; i < _levelsum; i++) {
+              const double _denom = qpmin - _qp_old(i) -ppm_freq;
               double _stab = 1.0;
               if (std::abs(_denom) < 0.25) {
                 _stab = 0.5 * (1.0 - std::cos(fourpi * _denom));
               }
               const double _factor = _stab / _denom; //Hartree
               // sigma_c diagonal elements
-              sigma_c_loc += _factor * Mmn(_i, _i_gw) * Mmn( _i,_i_gw);
+              sigma_c_loc += _factor * Mmn(i,i_gw) * Mmn(i,i_gw);
             }// bands
             sigma_c+=sigma_c_loc*fac;
           }// GW functions
@@ -178,51 +178,54 @@ namespace votca {
         for (unsigned _gw_level2 = _gw_level1+1; _gw_level2 < _qptotal; _gw_level2++) {
           const MatrixXfd Mmn1xMmn2=_Mmn[ _gw_level2 + _qpmin ].cwiseProduct(Mmn1);
           const Eigen::VectorXd gwa_energies=_gwa_energies;
-          Eigen::Array2d qpmin;
-          qpmin(0)=gwa_energies(_gw_level1 + _qpmin);
-          qpmin(1)=gwa_energies(_gw_level2 + _qpmin);
+          const double qpmin1 = gwa_energies(_gw_level1 + _qpmin);
+          const double qpmin2 = gwa_energies(_gw_level2 + _qpmin);
+ 
           double sigma_c=0;
-          for (unsigned _i_gw = 0; _i_gw < _gwsize; _i_gw++) {
+          for (unsigned i_gw = 0; i_gw < _gwsize; i_gw++) {
             // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
-            if (ppm_weight(_i_gw) < 1.e-9) {
+            if (ppm_weight(i_gw) < 1.e-9) {
               continue;
             }
-            const double ppm_freq= ppm_freqs(_i_gw);
-            const double fac =0.25* ppm_weight(_i_gw) * ppm_freq;
+            const double ppm_freq= ppm_freqs(i_gw);
+            const double fac =0.25* ppm_weight(i_gw) * ppm_freq;
             double sigma_loc=0.0;
             // loop over occ screening levels
-            for (unsigned _i = 0; _i <lumo; _i++) {              
-              const double gwa_energy = gwa_energies(_i)-ppm_freq;
-              // energy denominator
-              Eigen::Array2d denom=qpmin-gwa_energy;
-              Eigen::Array2d stab=Eigen::Vector2d::Ones();
-              if (std::abs(denom(0)) < 0.25) {
-                  stab(0) = 0.5 * (1.0 - std::cos(fourpi * denom(0)));
+              for (unsigned i = 0; i < lumo; i++) {
+                const double gwa_energy = gwa_energies(i) - ppm_freq;
+                // energy denominator
+                const double _denom1 = qpmin1 - gwa_energy;
+                double _stab1 = 1.0;
+                if (std::abs(_denom1) < 0.25) {
+                  _stab1 = 0.5 * (1.0 - std::cos(fourpi * _denom1));
+                }
+                const double _denom2 = qpmin2 - gwa_energy;
+                double _stab2 = 1.0;
+                if (std::abs(_denom2) < 0.25) {
+                  _stab2 = 0.5 * (1.0 - std::cos(fourpi * _denom2));
+                }
+                const double factor = _stab1 / _denom1 + _stab2 / _denom2; //Hartree}
+                sigma_loc += Mmn1xMmn2(i, i_gw) * factor;
               }
-              if (std::abs(denom(1)) < 0.25) {
-                  stab(1) = 0.5 * (1.0 - std::cos(fourpi * denom(1)));
+              // loop over unocc screening levels
+              for (unsigned i = lumo; i < _levelsum; i++) {
+                const double gwa_energy = gwa_energies(i) + ppm_freq;
+                // energy denominator
+                const double _denom1 = qpmin1 - gwa_energy;
+                double _stab1 = 1.0;
+                if (std::abs(_denom1) < 0.25) {
+                  _stab1 = 0.5 * (1.0 - std::cos(fourpi * _denom1));
+                }
+                const double _denom2 = qpmin2 - gwa_energy;
+                double _stab2 = 1.0;
+                if (std::abs(_denom2) < 0.25) {
+                  _stab2 = 0.5 * (1.0 - std::cos(fourpi * _denom2));
+                }
+                const double factor = _stab1 / _denom1 + _stab2 / _denom2; //Hartree}
+                sigma_loc += Mmn1xMmn2(i, i_gw) * factor;
               }
-            
-              const double factor=(stab/denom).sum();
-              sigma_loc+=Mmn1xMmn2(_i,_i_gw)*factor;
+              sigma_c += sigma_loc*fac;
             }
-            // loop over unocc screening levels
-            for (unsigned _i = lumo; _i < _levelsum; _i++) {              
-              const double gwa_energy = gwa_energies(_i)+ppm_freq;
-              // energy denominator
-              Eigen::Array2d denom=qpmin-gwa_energy;
-              Eigen::Array2d stab=Eigen::Vector2d::Ones();
-              if (std::abs(denom(0)) < 0.25) {
-                  stab(0) = 0.5 * (1.0 - std::cos(fourpi * denom(0)));
-              }
-              if (std::abs(denom(1)) < 0.25) {
-                  stab(1) = 0.5 * (1.0 - std::cos(fourpi * denom(1)));
-              }           
-              const double factor=(stab/denom).sum();
-              sigma_loc+=Mmn1xMmn2(_i,_i_gw)*factor;
-            }
-            sigma_c+=sigma_loc*fac;
-          }
           _sigma_c(_gw_level1, _gw_level2) = sigma_c;
           _sigma_c(_gw_level2, _gw_level1) = sigma_c;
         }// GW row             
