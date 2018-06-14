@@ -65,7 +65,7 @@ namespace votca {
 #pragma omp parallel for
       for (int _i_occ = 0; _i_occ < _mtotal; _i_occ++) {
     #if (GWBSE_DOUBLE)
-          Eigen::MatrixXd temp=matrix * _matrix[ _i_occ ]
+          Eigen::MatrixXd temp=matrix * _matrix[ _i_occ ];
        _matrix[ _i_occ ] = temp;
 #else  
        const Eigen::MatrixXd m = _matrix[ _i_occ ].cast<double>();
