@@ -166,7 +166,7 @@ TCMatrix_gwbse tc;
 tc.Initialize(aobasis.AOBasisSize(),0,5,0,7);
 tc.Fill(aobasis,aobasis,es.eigenvectors());
 
-Eigen::MatrixXd ref0=Eigen::MatrixXd::Zero(tc[0].rows(),tc[0].cols());
+MatrixXfd ref0=MatrixXfd::Zero(tc[0].rows(),tc[0].cols());
 ref0<<0.0188543,-2.09636e-17,-2.64708e-17,4.4447e-17,-0.0507372,-1.72924e-18,1.21431e-17,1.73472e-18,
 0.109335,4.62536e-17,8.7112e-18,3.53686e-16,-0.305096,-1.5641e-16,1.249e-16,-6.93889e-17,
 -3.26727e-17,-0.000336898,-0.0127171,-0.00202202,3.21476e-17,0.0310386,-0.0284799,-0.000424268,
@@ -194,7 +194,7 @@ if(!check0_before){
  BOOST_CHECK_EQUAL(check0_before , true);
  
  
-Eigen::MatrixXd ref2=Eigen::MatrixXd::Zero(tc[2].rows(),tc[2].cols());
+MatrixXfd ref2=MatrixXfd::Zero(tc[2].rows(),tc[2].cols());
 ref2<<-9.25784e-19,4.57899e-18,0.031268,-7.6619e-19,9.37116e-17,-0.00628935,0.00710029,0.00126093,
 -1.1472e-17,3.2673e-17,0.18166,1.0335e-16,2.59939e-16,-0.0403848,0.045592,0.00809662,
 -0.0127171,-0.000137901,0.000300437,-0.00186657,-0.00721608,0.00498687,0.00532699,0.00724423,
@@ -223,7 +223,7 @@ if(!check2_before){
 BOOST_CHECK_EQUAL(check2_before , true);
  
 
-Eigen::MatrixXd ref4=Eigen::MatrixXd::Zero(tc[4].rows(),tc[4].cols());
+MatrixXfd ref4=MatrixXfd::Zero(tc[4].rows(),tc[4].cols());
 ref4<<-0.0507372,2.92731e-17,1.50368e-16,-3.43875e-17,0.520194,4.25868e-17,1.249e-16,1.52656e-16,
 -0.305096,2.71843e-16,4.84687e-16,-2.41387e-16,2.88868,4.21861e-16,6.66134e-16,6.66134e-16,
 2.89053e-17,-0.000191166,-0.00721608,-0.00114736,7.07072e-18,-0.326743,0.299807,0.00446626,
