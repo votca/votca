@@ -77,6 +77,7 @@ set(VOTCA_TOOLS_LIBRARY votca_tools CACHE STRING "tools library name")
 set(VOTCA_TOOLS_INCLUDE_DIR
   "${CMAKE_CURRENT_SOURCE_DIR}/tools/include;${CMAKE_CURRENT_BINARY_DIR}/tools/include;${MKL_BOOST_INCLUDE_DIR}"
   CACHE PATH "tools include path")
+set(VOTCA_COMPARE ${CMAKE_BINARY_DIR}/tools/scripts/votca_compare)
 add_subdirectory(csg)
 list(APPEND ENABLED_VOTCA_PACKAGES csg)
 set(VOTCA_SHARE ${CMAKE_SOURCE_DIR}/csg/share)
