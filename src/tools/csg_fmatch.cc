@@ -145,6 +145,7 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
         // are assigned to matrix _A
         FmatchAssignSmoothCondsToMatrix(_A);
         // clear _b (only necessary in simple least squares)
+        _b.setZero();
     }
     // resize and clear _x
     _x=Eigen::VectorXd::Zero(_col_cntr);
