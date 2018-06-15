@@ -17,14 +17,15 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_GRAPH_BASIC_VISITOR_H
-#define __VOTCA_TOOLS_GRAPH_BASIC_VISITOR_H
+#ifndef __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
+#define __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
 
 #include <votca/tools/graphvisitor.h>
 #include <deque>
 #include <queue>
 /**
- * \brief A graph visitor that will caclute the distance of each node
+ * \brief A graph visitor that explores the graph, in a breadth first (BF)
+ *        , and first in first out order. 
  *
  */
 namespace votca {
@@ -34,7 +35,7 @@ class Graph;
 class Edge;
 class GraphNode;
 
-class GraphBasicVisitor : public GraphVisitor {
+class Graph_BF_Visitor : public GraphVisitor {
   private:
 
     std::deque<std::queue<Edge>> edge_que_;
@@ -42,9 +43,9 @@ class GraphBasicVisitor : public GraphVisitor {
     void addEdges_(Graph& g, int vertex);
     Edge getEdge_(Graph g);
   public:
-    GraphBasicVisitor(){};
+    Graph_BF_Visitor(){};
     bool queEmpty();
 };
 
 }} 
-#endif // __VOTCA_TOOLS_GRAPH_BASIC_VISITOR_H
+#endif // __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
