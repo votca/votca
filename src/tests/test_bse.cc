@@ -183,7 +183,7 @@ bse.Solve_singlets();
 
 VectorXfd se_ref=VectorXfd::Zero(1);
 se_ref<<0.111378;
-bool check_se=se_ref.isApprox(orbitals.BSESingletEnergies(),0.0001);
+bool check_se=se_ref.isApprox(orbitals.BSESingletEnergies(),0.001);
 if(!check_se){
     cout<<"Singlets energy"<<endl;
     cout<<orbitals.BSESingletEnergies()<<endl;
@@ -214,7 +214,7 @@ BOOST_CHECK_EQUAL(check_spsi, true);
 bse.Solve_singlets_BTDA();
 VectorXfd se_ref_btda=VectorXfd::Zero(1);
 se_ref_btda<<0.0800487;
-bool check_se_btda=se_ref_btda.isApprox(orbitals.BSESingletEnergies(),0.0001);
+bool check_se_btda=se_ref_btda.isApprox(orbitals.BSESingletEnergies(),0.001);
 if(!check_se_btda){
     cout<<"Singlets energy BTDA"<<endl;
     cout<<orbitals.BSESingletEnergies()<<endl;
@@ -264,7 +264,7 @@ bse.Solve_triplets();;
 
 VectorXfd te_ref=VectorXfd::Zero(1);
 te_ref<<0.0308983;
-bool check_te=te_ref.isApprox(orbitals.BSETripletEnergies(),0.0001);
+bool check_te=te_ref.isApprox(orbitals.BSETripletEnergies(),0.001);
 if(!check_te){
     cout<<"Triplet energy"<<endl;
     cout<<orbitals.BSETripletEnergies()<<endl;

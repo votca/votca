@@ -211,17 +211,18 @@ namespace votca {
               for (unsigned i = lumo; i < _levelsum; i++) {
                 const double gwa_energy = gwa_energies(i) + ppm_freq;
                 // energy denominator
-                const double _denom1 = qpmin1 - gwa_energy;
-                double _stab1 = 1.0;
-                if (std::abs(_denom1) < 0.25) {
-                  _stab1 = 0.5 * (1.0 - std::cos(fourpi * _denom1));
+                double _denom = qpmin1 - gwa_energy;
+                double _stab = 1.0;
+                if (std::abs(_denom) < 0.25) {
+                  _stab = 0.5 * (1.0 - std::cos(fourpi * _denom));
                 }
-                const double _denom2 = qpmin2 - gwa_energy;
-                double _stab2 = 1.0;
-                if (std::abs(_denom2) < 0.25) {
-                  _stab2 = 0.5 * (1.0 - std::cos(fourpi * _denom2));
+                double factor= _stab / _denom;
+                _denom = qpmin2 - gwa_energy;
+                _stab = 1.0;
+                if (std::abs(_denom) < 0.25) {
+                  _stab = 0.5 * (1.0 - std::cos(fourpi * _denom));
                 }
-                const double factor = _stab1 / _denom1 + _stab2 / _denom2; //Hartree}
+                factor+= _stab / _denom; //Hartree}
                 sigma_loc += Mmn1xMmn2(i, i_gw) * factor;
               }
               sigma_c += sigma_loc*fac;
