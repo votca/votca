@@ -24,7 +24,7 @@
 #include <deque>
 #include <queue>
 /**
- * \brief A graph visitor that will caclute the distance of each node
+ * \brief A graph visitor that will calculate the distance of each node
  *
  */
 namespace votca {
