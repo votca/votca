@@ -281,6 +281,7 @@ void CsgREupdate::REFormulateLinEq() {
     for( int col = row; col < _nlamda; col++){
 
       _HS(row,col) += (-1.0 * _DS(row) * _DS(col));
+      _HS(col,row) += (-1.0 * _DS(row) * _DS(col));
       // since at this step _DS(i) = -beta*<dU/dlamda_i>cg
 
     }// end loop over col
@@ -439,6 +440,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
       } // end loop pair_iter
 
       _HS(row,col) += (_beta * d2U_ij);
+      _HS(col,row) += (_beta * d2U_ij);
 
     } // end loop col
 
@@ -546,9 +548,10 @@ void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *conf_atom){
 
     _DS(row) += (-1.0 * _beta * _dUFrame(row));
 
-    for (int col = row; col < _nlamda; col++)
+    for (int col = row; col < _nlamda; col++){
       _HS(row, col) += ( _beta * _beta * _dUFrame(row) * _dUFrame(col));
-
+      _HS(col, row) += ( _beta * _beta * _dUFrame(row) * _dUFrame(col));
+    }
   }
 
   _nframes++;
@@ -632,7 +635,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology* conf, PotentialInfo* potinfo) {
         d2U_ij += potinfo->ucg->CalculateD2F(lamda_i, lamda_j, (*pair_iter)->dist());
 
       _HS(row, col) += (-1.0 * _beta * d2U_ij);
-
+      _HS(col, row) += (-1.0 * _beta * d2U_ij);
     } // end loop col
 
   } // end loop row
