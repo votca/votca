@@ -26,7 +26,7 @@
 #include <votca/tools/graph.h>
 #include <votca/tools/graphnode.h>
 #include <votca/tools/graphalgorithm.h>
-#include <votca/tools/graphbasicvisitor.h>
+#include <votca/tools/graph_bf_visitor.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(single_network_algirhtm_test){
 
     Graph g(edges,nodes);
 
-    GraphBasicVisitor gb_v;
+    Graph_BF_Visitor gb_v;
 
     BOOST_CHECK(gb_v.queEmpty());
     BOOST_CHECK_THROW(gb_v.exec(g,ed),runtime_error);
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(single_network_algirhtm_test){
 
     Graph g(edges,nodes);
 
-    GraphBasicVisitor gb_v;
+    Graph_BF_Visitor gb_v;
 
     BOOST_CHECK(gb_v.queEmpty());
     BOOST_CHECK_THROW(gb_v.exec(g,ed),runtime_error);
