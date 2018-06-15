@@ -32,7 +32,7 @@ VOTCAHEADER = '''\
 {progtitle}
 
 please submit bugs to bugs@votca.org 
-tools_compare, version {version}
+votca_compare, version {version}
 
 '''.format(version=VERSION, progtitle=PROGTITLE)
 
@@ -65,7 +65,7 @@ class ToolsHelpFormatter(argparse.HelpFormatter):
   def _format_usage(self, usage, action, group, prefix):
     return VOTCAHEADER
     
-progargs = argparse.ArgumentParser(prog='tools_compare',
+progargs = argparse.ArgumentParser(prog='votca_compare',
     formatter_class=lambda prog: ToolsHelpFormatter(prog,max_help_position=70),
   description=PROGDESCR)
   
