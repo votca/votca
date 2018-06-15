@@ -37,14 +37,14 @@ namespace votca {
         class Forces {
         public:
 
-            Forces(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, vector<ctp::Segment*> segments, Orbitals* orbitals)
+            Forces(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals* orbitals)
             : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals), _remove_total_force(false), _remove_CoM_force(false) {
             };
 
             ~Forces() {
             };
 
-            void Initialize(Property *options);
+            void Initialize(tools::Property *options);
             void Calculate(const double& energy);
 
             Eigen::Vector3d NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait,std::vector<ctp::Segment*> _molecule);
@@ -101,7 +101,7 @@ namespace votca {
 
             Eigen::MatrixX3d _forces;
 
-            Property _force_options;
+            tools::Property _force_options;
 
             void RemoveTotalForce();
             void RemoveCoMForce();

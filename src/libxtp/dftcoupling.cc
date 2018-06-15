@@ -29,7 +29,7 @@
 namespace votca { namespace xtp {
 
 
-
+  using std::flush;
 using boost::format;
 
 

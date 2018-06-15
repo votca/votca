@@ -24,14 +24,14 @@
 #include "votca/xtp/qmatom.h"
 namespace votca { namespace xtp {
 
-void Mulliken::EvaluateMulliken(vector<QMAtom* >& _atomlist,const Eigen::MatrixXd  &_dmat, const AOBasis &basis,bool _do_transition){
+void Mulliken::EvaluateMulliken(std::vector<QMAtom* >& _atomlist,const Eigen::MatrixXd  &_dmat, const AOBasis &basis,bool _do_transition){
     AOOverlap _overlap;
     // Fill overlap
     _overlap.Fill(basis);
     
     Eigen::MatrixXd _prodmat = _dmat* _overlap.Matrix();
     
-    vector <QMAtom* > :: iterator atom;
+    std::vector <QMAtom* > :: iterator atom;
 
     int id =0;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){

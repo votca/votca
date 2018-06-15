@@ -34,7 +34,7 @@ namespace votca { namespace xtp {
             
             EulerMaclaurinGrid() { FillGrids(); };
             
-            void getRadialGrid(const AOBasis* aobasis, vector<QMAtom* > _atoms , const std::string& type, GridContainers& _grids );
+            void getRadialGrid(const AOBasis* aobasis, std::vector<QMAtom* > _atoms , const std::string& type, GridContainers& _grids );
             std::vector<double> getPruningIntervals( const std::string& element );
             
         private:

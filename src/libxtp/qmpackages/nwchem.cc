@@ -29,13 +29,13 @@
 #include <sys/stat.h>
 #include <vector>
 
-using namespace std;
+
 
 namespace votca {
     namespace xtp {
-       
+       using namespace std;
 
-        void NWChem::Initialize(Property *options) {
+        void NWChem::Initialize(tools::Property *options) {
 
             // NWChem file names
             string fileName = "system";
@@ -438,7 +438,7 @@ namespace votca {
 
             // cleaning up the generated files
             if (_cleanup.size() != 0) {
-                Tokenizer tok_cleanup(_cleanup, ",");
+                tools::Tokenizer tok_cleanup(_cleanup, ",");
                 std::vector <std::string> _cleanup_info;
                 tok_cleanup.ToVector(_cleanup_info);
 

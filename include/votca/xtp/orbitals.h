@@ -108,7 +108,7 @@ namespace votca {
                 return ( _ECP !="") ? true : false;
             }
 
-            string getECP() {
+            std::string getECP() {
                 return _ECP;
             };
 
@@ -336,8 +336,8 @@ namespace votca {
 
             // access to list of indices used in BSE
 
-            void setBSEtype(string bsetype){_bsetype=bsetype;}
-            string getBSEtype() const{return _bsetype;}
+            void setBSEtype(std::string bsetype){_bsetype=bsetype;}
+            std::string getBSEtype() const{return _bsetype;}
 
 
             bool hasBSEindices() {
@@ -579,14 +579,14 @@ namespace votca {
 
             // functions for calculating density matrices
             Eigen::MatrixXd DensityMatrixGroundState();
-            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState(const string& spin,int state = 0);
-            Eigen::MatrixXd TransitionDensityMatrix(const string& spin,int state = 0);
+            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState(const std::string& spin,int state = 0);
+            Eigen::MatrixXd TransitionDensityMatrix(const std::string& spin,int state = 0);
             Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0);
             Eigen::MatrixXd LambdaMatrixQuasiParticle();
 
 
 
-            double GetTotalEnergy(string _spintype, int _opt_state);
+            double GetTotalEnergy(std::string _spintype, int _opt_state);
 
             // functions for analyzing fragment charges via Mulliken populations
             Eigen::VectorXd LoewdinPopulation(const Eigen::MatrixXd& _densitymatrix, const Eigen::MatrixXd& _overlapmatrix, int _frag);
@@ -710,15 +710,15 @@ namespace votca {
             
             void ReadFromCpt(CheckpointFile f);
             void ReadFromCpt(CptLoc parent);
-            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const string& spin,int state = 0);
-            std::vector<Eigen::MatrixXd >DensityMatrixExcitedState_AR(const string& spin,int state = 0);
+            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const std::string& spin,int state = 0);
+            std::vector<Eigen::MatrixXd >DensityMatrixExcitedState_AR(const std::string& spin,int state = 0);
 
             int _basis_set_size;
             int _occupied_levels;
             int _unoccupied_levels;
             int _number_of_electrons;
-            string _ECP;
-            string _bsetype;
+            std::string _ECP;
+            std::string _bsetype;
 
 
             std::map<int, std::vector<int> > _level_degeneracy;

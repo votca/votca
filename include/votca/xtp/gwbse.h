@@ -20,7 +20,6 @@
 #ifndef _VOTCA_XTP_GWBSE_H
 #define _VOTCA_XTP_GWBSE_H
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/threecenter.h>
 #include <votca/xtp/sigma.h>
 #include <fstream>
 

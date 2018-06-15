@@ -130,7 +130,7 @@ namespace votca {
             void Print(std::string _ident);
             void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis, const Eigen::MatrixXd& _dft_orbitals);
 
-            void MultiplyLeftWithAuxMatrix(const Eigen::MatrixXd& AuxMatrix);
+            void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& AuxMatrix);
 
             void Cleanup();
 

@@ -23,6 +23,9 @@
 
 namespace votca {
     namespace xtp {
+      using std::cout;
+      using std::endl;
+      using namespace tools;
 
         void BFGSTRM::Initialize(Property *options) {
 

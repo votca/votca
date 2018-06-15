@@ -20,6 +20,7 @@
 #include <votca/xtp/convergenceacc.h>
 #include <votca/xtp/orbitals.h>
 using namespace votca::xtp;
+using namespace std;
 
 BOOST_AUTO_TEST_SUITE(convergenceacc_test)
 

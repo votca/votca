@@ -21,7 +21,7 @@
 
 
 using namespace votca::xtp;
-
+using namespace std;
 BOOST_AUTO_TEST_SUITE(ppm_test)
 
 BOOST_AUTO_TEST_CASE(ppm_full){

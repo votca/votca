@@ -28,6 +28,7 @@
 namespace votca { namespace xtp {
 
 using boost::format;
+using namespace tools;
 
 void BSECoupling::Initialize(Property* options){
     

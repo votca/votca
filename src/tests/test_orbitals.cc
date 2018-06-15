@@ -142,7 +142,7 @@ orb.Trim(2);
 
 bool check=(orb.MOCoefficients().cols()==8);
 if(!check){
-    std::cout<<orb.MOCoefficients()<<endl;
+    std::cout<<orb.MOCoefficients()<<std::endl;
 }
 
 BOOST_CHECK_EQUAL(check, true);
@@ -152,7 +152,7 @@ orb.MOCoefficients()=MOs;
 orb.Trim(2,2);
 bool check2=(orb.MOCoefficients().cols()==4);
 if(!check2){
-    std::cout<<orb.MOCoefficients()<<endl;
+    std::cout<<orb.MOCoefficients()<<std::endl;
 }
 BOOST_CHECK_EQUAL(check2, true);
 

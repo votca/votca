@@ -30,8 +30,9 @@
 
 
 namespace votca { namespace xtp {
-
-void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat,const AOBasis &_basis,string gridsize) {
+  using std::flush;
+    
+void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat,const AOBasis &_basis,std::string gridsize) {
 
 
     // setting up grid
@@ -87,7 +88,7 @@ void Espfit::EvalNuclearPotential(const std::vector< QMAtom* >& _atoms, Grid& _g
 
     for (unsigned i = 0; i < _gridpoints.size(); i++) {
         for (unsigned j = 0; j < _atoms.size(); j++) {
-            const vec& posatom=_atoms[j]->getPos();
+            const tools::vec& posatom=_atoms[j]->getPos();
             double Znuc=_atoms[j]->getNuccharge();
             double dist_j = tools::abs(_gridpoints[i]-posatom);
             _gridvalues(i) += Znuc / dist_j;
@@ -130,7 +131,7 @@ void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist,const Eigen:
     _grid.setAtomlist(&_atomlist);
     _grid.setupCHELPgrid();
 
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << endl;
+    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << std::endl;
     // Calculating nuclear potential at gridpoints
     AOOverlap overlap;
     overlap.Fill(_basis);

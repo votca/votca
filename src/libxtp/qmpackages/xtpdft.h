@@ -44,7 +44,7 @@ namespace votca {
                 return "xtp";
             }
 
-            void Initialize(Property *options);
+            void Initialize(tools::Property *options);
 
             bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
 
@@ -63,7 +63,7 @@ namespace votca {
         private:
 
             DFTENGINE _xtpdft;
-            Property _xtpdft_options;
+            tools::Property _xtpdft_options;
 
             std::string _cleanup;
 
