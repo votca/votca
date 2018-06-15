@@ -25,7 +25,6 @@
 #include <map>
 #include <set>
 #include <votca/tools/edge.h>
-#include <boost/graph/adjacency_list.hpp>
 
 namespace votca {
 namespace tools {

@@ -26,7 +26,7 @@
 #include <boost/filesystem.hpp>
 
 namespace votca { namespace tools {
-
+    using namespace std;
 Application::Application()
     : _op_desc("Allowed options"), _continue_execution(true)
 {

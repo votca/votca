@@ -1,5 +1,5 @@
 find_package(Boost 1.39.0 REQUIRED COMPONENTS unit_test_framework)
-foreach(PROG test_elements test_edge_base test_identity test_name test_typeconverter test_graphalgorithm test_graphbasicvisitor test_graphvisitor test_graphdistvisitor test_graphnode test_edgecontainer)
+foreach(PROG test_elements test_edge_base test_identity test_name test_typeconverter test_graphalgorithm test_graphbasicvisitor test_graphvisitor test_graphdistvisitor test_graphnode test_edgecontainer test_floatingpointcomparison test_vec)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})
   target_link_libraries(unit_${PROG} votca_tools ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
