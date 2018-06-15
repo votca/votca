@@ -159,7 +159,7 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
   }// end potiter loop
 
   _DS=Eigen::VectorXd::Zero(_nlamda);
-  _HS=Eigen::VectorXd::Zero(_nlamda);
+  _HS=Eigen::MatrixXd::Zero(_nlamda,_nlamda);
   _dUFrame=Eigen::VectorXd::Zero(_nlamda);
   _nframes = 0.0; // no frames processed yet!
 
@@ -307,16 +307,9 @@ void CsgREupdate::REFormulateLinEq() {
 // update lamda = lamda + relax*dlamda
 void CsgREupdate::REUpdateLamda() {
 
-  // first solve _HS dx = -_DS
-  Eigen::VectorXd dlamda=Eigen::VectorXd::Zero(_nlamda);
-  
-  Eigen::VectorXd minusDS= -_DS;
-
-  
-
-  
+  // first solve _HS dx = -_DS  
     Eigen::LLT<Eigen::MatrixXd> cholesky(_HS); // compute the Cholesky decomposition of _HS
-    dlamda=cholesky.solve(minusDS);
+    Eigen::VectorXd dlamda=cholesky.solve(-_DS);
     if(cholesky.info()==Eigen::ComputationInfo::NumericalIssue){
   
     /* then can not use Newton-Raphson
@@ -343,8 +336,7 @@ void CsgREupdate::REUpdateLamda() {
         cout << "You can turn on Hessian check by setting command line option --hessian-check=true." <<endl;
 
         cout << "In this case, alternative update option is steepest descent." << endl;
-        dlamda = minusDS;
-
+        dlamda = -_DS;
       }
 
   }
@@ -498,7 +490,7 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
   }// end potiter loop
 
   worker->_DS=Eigen::VectorXd::Zero(worker->_nlamda);
-  worker->_HS=Eigen::VectorXd::Zero(worker->_nlamda);
+  worker->_HS=Eigen::MatrixXd::Zero(worker->_nlamda,worker->_nlamda);
   worker->_dUFrame=Eigen::VectorXd::Zero(worker->_nlamda);
   worker->_nframes = 0.0; // no frames processed yet!
   // set Temperature
