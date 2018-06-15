@@ -35,6 +35,10 @@ BOOST_AUTO_TEST_SUITE(graphalgorithm_test)
 
 BOOST_AUTO_TEST_CASE(single_network_algirhtm_test){
   {
+    // In this test we add two nodes and an edge describing
+    // their connection thus the singleNetwork function will
+    // return true. 
+  
     // Create edge
     Edge ed(0,1);
     vector<Edge> edges;
@@ -61,6 +65,12 @@ BOOST_AUTO_TEST_CASE(single_network_algirhtm_test){
   }
 
   {
+
+    // In this test we add 3 nodes but only one edge
+    // this means that one of the nodes will not be 
+    // attached to the other two. Thus the singleNetwork
+    // function should return false. 
+
     // Create edge
     Edge ed(0,1);
     vector<Edge> edges;
