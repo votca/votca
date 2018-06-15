@@ -25,7 +25,7 @@ endif (WITH_RC_FILES)
 
 set(TOOLS_SCRIPTS) 
 
-foreach(SCRIPT tools_compare)
+foreach(SCRIPT votca_compare)
   configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out @ONLY)
   add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT})
   add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}

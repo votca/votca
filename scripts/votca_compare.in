@@ -37,31 +37,38 @@ tools_compare, version {version}
 '''.format(version=VERSION, progtitle=PROGTITLE)
 
 def okquit(what=''):
-	if what != '': print what
-	sys.exit(0)
+  if what != '': print what
+  sys.exit(0)
 def xxquit(what=''):
-	if what != '':
-		cprint.Error("ERROR: {what}".format(what=what))
-	sys.exit(1)
+  if what != '':
+    cprint.Error("ERROR: {what}".format(what=what))
+  sys.exit(1)
 def sysexe(cmd, silent=False, devfile='/dev/null'):
-	if VERBOSE: print "{0}@{1}$ {2}".format(USER, HOST, cmd)
-	if silent: cmd += ' >> {0} 2>> {0}'.format(devfile)
-	cdx = os.system(cmd)
-	#SYSCMDS.write('{cmd} = {cdx}\n'.format(cmd=cmd, cdx=cdx))
-	return cdx
+  if VERBOSE: print "{0}@{1}$ {2}".format(USER, HOST, cmd)
+  if silent: cmd += ' >> {0} 2>> {0}'.format(devfile)
+  cdx = os.system(cmd)
+  #SYSCMDS.write('{cmd} = {cdx}\n'.format(cmd=cmd, cdx=cdx))
+  return cdx
+
+def RepresentsFloat(s):
+    try: 
+        float(s)
+        return True
+    except ValueError:
+        return False 
 
 # =============================================================================
 # PROGRAM OPTIONS
 # =============================================================================
 
 class ToolsHelpFormatter(argparse.HelpFormatter):
-	def _format_usage(self, usage, action, group, prefix):
-		return VOTCAHEADER
-		
+  def _format_usage(self, usage, action, group, prefix):
+    return VOTCAHEADER
+    
 progargs = argparse.ArgumentParser(prog='tools_compare',
     formatter_class=lambda prog: ToolsHelpFormatter(prog,max_help_position=70),
-	description=PROGDESCR)
-	
+  description=PROGDESCR)
+  
 progargs.add_argument('-f1', '--file1',
     dest='file1',   
     action='store',
@@ -79,32 +86,28 @@ progargs.add_argument('-f2', '--file2',
 progargs.add_argument('--etol',
     dest='etol',   
     action='store',
-    required=True,
     type=float,
     default=1e-5,
-    help='Tolerance when regarded equal,default=1e-5')
+    help='Tolerance for floats to be regarded equal,default=1e-5')
     
 OPTIONS = progargs.parse_args()
-if OPTIONS.sqlfile == '':
-	progargs.print_help()
-	okquit("\nQuit here, because: State file not set (option -f/--file)")
 
 # =============================================================================
 # Compare Execution
 # =============================================================================
 
 
-if not os.path.isfile(OPTIONS.file1) :
+if not os.path.isfile(os.path.join(os.getcwd(),OPTIONS.file1)):
   progargs.print_help()
-	okquit("\nQuit here, because:{} is not a file(option -f1)".format(OPTIONS.file1))
-if not os.path.isfile(OPTIONS.file2) :
+  okquit("\nQuit here, because:{} is not a file(option -f1)".format(OPTIONS.file1))
+if not os.path.isfile(os.path.join(os.getcwd(),OPTIONS.file2)):
   progargs.print_help()
-	okquit("\nQuit here, because:{} is not a file(option -f2)".format(OPTIONS.file2))
+  okquit("\nQuit here, because:{} is not a file(option -f2)".format(OPTIONS.file2))
 
 print "Comparing {} and {} to a tolerance of {}".format(OPTIONS.file1,OPTIONS.file2,OPTIONS.etol)
 
 data1=[]
-with open(OPTIONS.file1,"r") as f1:
+with open(os.path.join(os.getcwd(),OPTIONS.file1),"r") as f1:
   for line in f1:
     if line[0]=="#":
       continue;
@@ -113,7 +116,7 @@ with open(OPTIONS.file1,"r") as f1:
       data1.append(tok)
 data2=[]
 
-with open(OPTIONS.file2,"r") as f2:
+with open(os.path.join(os.getcwd(),OPTIONS.file2),"r") as f2:
   for line in f2:
     if line[0]=="#":
       continue;
@@ -121,22 +124,25 @@ with open(OPTIONS.file2,"r") as f2:
       tok=line.split()
       data2.append(tok)
 
-if(len(data2) not equal len(data1):
+if(len(data2) != len(data1)):
   print "Files have different number of data points {} vs {}".format(len(data1),len(data2))
 
 logs=[]
 
 for i,(d1,d2) in enumerate(zip(data1,data2)):
-  for entry1,entry2 in zip(d1,d2):
-    if abs(float(entry1)-float(entry2))>OPTIONS.etol:
-      logs.append([i,entry1,entry2])
+  for j,(entry1,entry2) in enumerate(zip(d1,d2)):
+    if(RepresentsFloat(entry1) and RepresentsFloat(entry2)):
+      if abs(float(entry1)-float(entry2))>OPTIONS.etol:
+        logs.append([i,j,entry1,entry2])
+    elif entry1!=entry2:
+        logs.append([i,j,entry1,entry2])
 
 if len(logs)==0:
   sys.exit(0)
 else:
-  print "Diff:
+  print "Diff:"
   for diff in logs:
-    print "line {}:{} {}".format(diff[0],diff[1],diff[2])
+    print "row {} col {}:\t{} vs {}".format(diff[0],diff[1],diff[2],diff[3])
   sys.exit(1)
 
 
