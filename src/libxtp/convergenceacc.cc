@@ -73,9 +73,7 @@ namespace votca { namespace xtp {
       
       Eigen::MatrixXd errormatrix=Sminusahalf.transpose()*(H*dmat*(*S)-(*S)*dmat*H)*Sminusahalf;
       _diiserror=errormatrix.cwiseAbs().maxCoeff();
-      if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIs error " << _diiserror << std::flush;
-            }
+     
       Eigen::MatrixXd* old=new Eigen::MatrixXd;     
       *old=H;         
        _mathist.push_back(old);     
