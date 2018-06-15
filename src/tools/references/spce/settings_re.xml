@@ -1,0 +1,19 @@
+<cg>
+  <non-bonded>
+    <name>CG-CG</name>
+    <type1>CG</type1>
+    <type2>CG</type2>
+    <min>0.1</min>
+    <max>0.3</max>
+    <step>0.01</step>
+    <re>
+      <!-- function form for the potential (lj126 or ljg or cbspl)-->
+      <function>cbspl</function>
+      <cbspl>
+        <!-- no. of knots for cbspl function -->
+        <nknots>48</nknots>
+      </cbspl>
+    </re>
+  </non-bonded>
+</cg>
+
