@@ -23,9 +23,12 @@
 #include <votca/tools/graphvisitor.h>
 #include <deque>
 #include <queue>
+
 /**
- * \brief A graph visitor that explores the graph, in a breadth first (BF)
- *        , and first in first out order. 
+ * \brief A breadth first (BF) graph visitor
+ * 
+ * This graph visitor will explore the vertices closest to the starting node
+ * first and proceed outwards. 
  *
  */
 namespace votca {
@@ -40,6 +43,8 @@ class Graph_BF_Visitor : public GraphVisitor {
 
     std::deque<std::queue<Edge>> edge_que_;
 
+    /// The core of the breadth first visitor is in how the edges are added
+    /// to the queue in this function
     void addEdges_(Graph& g, int vertex);
     Edge getEdge_(Graph g);
   public:
