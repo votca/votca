@@ -23,20 +23,34 @@
 #include <iostream>
 #include <string>
 #include <votca/tools/graphnode.h>
-// List of all the graph algorithms 
 
+/**
+ * \brief This file is a compilation of graph related algorithms
+ *
+ * These algorithms require the interplay of the graph and graph visitor
+ * classes and thus cannot be made methods of either. In most cases a graph
+ * visitor is specified explores the graph to determine some metric
+ */
 namespace votca {
 namespace tools {
 
 class Graph;
 class GraphVisitor;
 
+/// The purpose of this algorithm is to simply determine if the graph is one
+/// large network or not. If it is it means every vertex is connected to 
+/// every other one by 1 or more series of edges.
 bool singleNetwork(Graph g, GraphVisitor& gv);
 
-void exploreGraph(Graph& g, GraphVisitor& gv, int starting_vertex=0);
+/// This function will simply explore a graph, any information gained from the
+/// exploration will depend on the graph visitor used. 
+void exploreGraph(Graph& g, GraphVisitor& gv, int starting_vertex = 0);
 
-template<typename GV> 
-std::string findStructureId(Graph& g){
+/// This algorithm is designed to explore the topology of the graph and
+/// return an identifier in the form of the string that is unique to the
+/// topology. 
+template <typename GV>
+std::string findStructureId(Graph& g) {
 
   // Determine the highest degree in the graph
   int maxD = g.getMaxDegree();
@@ -47,45 +61,44 @@ std::string findStructureId(Graph& g){
   // When compared using compare function
   std::string str_id = "";
   std::vector<int> gn_ids;
-  for( auto v : verts ){
+  for (auto v : verts) {
     auto gn = g.getNode(v);
     int comp_int = str_id.compare(gn.getStringId());
-    if(comp_int>0){
+    if (comp_int > 0) {
       str_id = gn.getStringId();
       gn_ids.clear();
       gn_ids.push_back(v);
-    }else if(comp_int==0){
+    } else if (comp_int == 0) {
       gn_ids.push_back(v);
-    } 
+    }
   }
 
   // If the str_id is empty it means the nodes are empty and we will
   // simply have to rely on the degree to choose the vertices to explore from
-  if(str_id.compare("")==0){
+  if (str_id.compare("") == 0) {
     gn_ids = verts;
   }
 
   // If two or more graph nodes are found to be equal then
-  // they must all be explored   
+  // they must all be explored
   std::string chosenId = "";
   Graph g_chosen = g;
 
-  for(auto v : gn_ids ){
-
+  for (auto v : gn_ids) {
     GV gv;
     Graph g_temp = g;
-    exploreGraph(g_temp,gv,v);
+    exploreGraph(g_temp, gv, v);
     std::string temp_struct_id = g_temp.getId();
-    if(chosenId.compare(temp_struct_id)>0){
+    if (chosenId.compare(temp_struct_id) > 0) {
       chosenId = temp_struct_id;
-      g_chosen = g_temp;      
-    }    
-  } 
+      g_chosen = g_temp;
+    }
+  }
 
   g = g_chosen;
   return chosenId;
 }
+}
+}
 
-}
-}
-#endif // __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
+#endif  // __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
