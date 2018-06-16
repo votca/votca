@@ -20,15 +20,15 @@
 #ifndef __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
 #define __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
 
-#include <votca/tools/graphvisitor.h>
 #include <deque>
 #include <queue>
+#include <votca/tools/graphvisitor.h>
 
 /**
  * \brief A breadth first (BF) graph visitor
- * 
+ *
  * This graph visitor will explore the vertices closest to the starting node
- * first and proceed outwards. 
+ * first and proceed outwards.
  *
  */
 namespace votca {
@@ -39,18 +39,18 @@ class Edge;
 class GraphNode;
 
 class Graph_BF_Visitor : public GraphVisitor {
-  private:
+ private:
+  std::deque<std::queue<Edge>> edge_que_;
 
-    std::deque<std::queue<Edge>> edge_que_;
+  /// The core of the breadth first visitor is in how the edges are added
+  /// to the queue in this function
+  void addEdges_(Graph& g, int vertex);
+  Edge getEdge_(Graph g);
 
-    /// The core of the breadth first visitor is in how the edges are added
-    /// to the queue in this function
-    void addEdges_(Graph& g, int vertex);
-    Edge getEdge_(Graph g);
-  public:
-    Graph_BF_Visitor(){};
-    bool queEmpty();
+ public:
+  Graph_BF_Visitor(){};
+  bool queEmpty();
 };
-
-}} 
-#endif // __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
+}
+}
+#endif  // __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
