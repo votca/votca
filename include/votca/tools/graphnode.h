@@ -17,9 +17,9 @@
  *
  */
 
-#include <unordered_map>
-#include <string>
 #include <iostream>
+#include <string>
+#include <unordered_map>
 #include <utility>
 #include <votca/tools/name.h>
 
@@ -39,7 +39,7 @@ class GraphDistVisitor;
  * created they will be considered to be equivalent.
  *
  * NOTE: It may be of interest to take a look at the the Boost property map
- * class, which was designed for a similar purpose. 
+ * class, which was designed for a similar purpose.
  */
 class GraphNode {
  private:
@@ -48,41 +48,53 @@ class GraphNode {
   std::unordered_map<std::string, double> double_vals_;
   std::unordered_map<std::string, std::string> str_vals_;
   void initStringId_();
+
  public:
-  GraphNode() {};
+  GraphNode(){};
+
   /// Constructor
+  /// Each map corresponds to a different content the graph node can contain.
   GraphNode(const std::unordered_map<std::string, int> int_vals,
             const std::unordered_map<std::string, double> double_vals,
             const std::unordered_map<std::string, std::string> str_vals);
+
   /// Basic setters
   void setInt(const std::unordered_map<std::string, int> int_vals);
   void setDouble(const std::unordered_map<std::string, double> double_vals);
   void setStr(const std::unordered_map<std::string, std::string> str_vals);
 
+  /// Basic getters
   int getInt(const std::string str);
   int getDouble(const std::string str);
   int getStr(const std::string str);
-  /// Get the string id unique to the contents
+
+  /// Get the string id unique to the contents of the graph node
   std::string getStringId() const { return str_id_; }
+
   GraphNode& operator=(const GraphNode& gn);
 
   bool operator==(const GraphNode gn) const;
   bool operator!=(const GraphNode gn) const;
+
   // Allow visitor to directly access members of the node
   friend GraphDistVisitor;
 
   friend std::ostream& operator<<(std::ostream& os, const GraphNode gn);
 };
 
-// Do not use < or > to compare nodes because this is ambiguous
-// simply compare the string ids, if gn1 is greater than gn2 return true
-// if not false, this is meant to be used with the stl sort algorithm:
-//
-// vector<GraphNode> vec_gn = { gn1, gn2,...etc };
-// sort(vec_gn.begin(),vec_gn.end(),cmpNodeStrIdLessThan);
-//
-bool cmpNodeStrIdLessThan(GraphNode gn1, GraphNode gn2);
- 
-} 
+/**
+ * \brief Comparison function to be used with stl sort algorithm
+ *
+ * Given a vector of graph node objects this function can be used to sort them
+ * they are sorted based on the contents of the graphnode which are summarized
+ * in the graph nodes string id. E.g.
+ *
+ * vector<GraphNode> vec_gn = { gn1, gn2,...etc };
+ *
+ * sort(vec_gn.begin(),vec_gn.end(),cmpNode);
+ */
+bool cmpNode(GraphNode gn1, GraphNode gn2);
+
+}
 }
 #endif  // _VOTCA_TOOLS_GRAPHNODE_H
