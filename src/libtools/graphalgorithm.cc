@@ -21,7 +21,6 @@
 #include <votca/tools/graphvisitor.h>
 #include <votca/tools/graph.h>
 #include <votca/tools/graphalgorithm.h>
-// List of all the graph algorithms 
 
 using namespace std;
 
@@ -38,10 +37,8 @@ bool singleNetwork(Graph g, GraphVisitor& gv){
          iso_nodes.size() == 0;
 }
 
-// Graph Visitor is passed in but this is an incompete object the
-// graph visitor object must actually be a derived type from the GraphVisitor object
-// here we are making use of polymorphism
 void exploreGraph(Graph& g, GraphVisitor& gv, int starting_vertex){
+
   // Create a list of all vertices and determine if they have all been
   // explored when the visitor que is empty 
   gv.startingVertex(g,starting_vertex);

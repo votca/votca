@@ -43,7 +43,9 @@ class GraphVisitor;
 bool singleNetwork(Graph g, GraphVisitor& gv);
 
 /// This function will simply explore a graph, any information gained from the
-/// exploration will depend on the graph visitor used. 
+/// exploration will depend on the graph visitor used. Note that the
+/// Graph visitor is the base class which will not work on its own. The purpose
+/// of doing this is to make use of polymorphism.  
 void exploreGraph(Graph& g, GraphVisitor& gv, int starting_vertex = 0);
 
 /// This algorithm is designed to explore the topology of the graph and
