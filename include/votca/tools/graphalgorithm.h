@@ -91,12 +91,12 @@ std::string findStructureId(Graph& g) {
     Graph g_temp = g;
     exploreGraph(g_temp, gv, v);
     std::string temp_struct_id = g_temp.getId();
-    if (chosenId.compare(temp_struct_id) > 0) {
+    if (chosenId.compare(temp_struct_id) < 0) {
       chosenId = temp_struct_id;
       g_chosen = g_temp;
     }
   }
-
+  
   g = g_chosen;
   return chosenId;
 }

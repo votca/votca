@@ -21,8 +21,8 @@
 
 #define BOOST_TEST_MODULE graphvisitor_test
 #include <boost/test/unit_test.hpp>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 #include <votca/tools/graph.h>
 #include <votca/tools/graphnode.h>
 #include <votca/tools/graphvisitor.h>
@@ -32,36 +32,34 @@ using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(graphvisitor_test)
 
-BOOST_AUTO_TEST_CASE(constructor_test){
-  GraphVisitor gv;
-}
+BOOST_AUTO_TEST_CASE(constructor_test) { GraphVisitor gv; }
 
-BOOST_AUTO_TEST_CASE(basic_test){
+BOOST_AUTO_TEST_CASE(basic_test) {
   // Create edge
-  Edge ed(0,1);
+  Edge ed(0, 1);
   vector<Edge> edges;
   edges.push_back(ed);
-  
+
   // Create Graph nodes
   GraphNode gn1;
   GraphNode gn2;
-  
-  unordered_map<int,GraphNode> nodes;
+
+  unordered_map<int, GraphNode> nodes;
   nodes[0] = gn1;
   nodes[1] = gn2;
 
-  Graph g(edges,nodes);
+  Graph g(edges, nodes);
 
   GraphVisitor gv;
 
   BOOST_CHECK(gv.queEmpty());
 
-  BOOST_CHECK_THROW(gv.exec(g,ed),runtime_error);
-  BOOST_CHECK_THROW(gv.startingVertex(g),runtime_error);
+  BOOST_CHECK_THROW(gv.exec(g, ed), runtime_error);
+  BOOST_CHECK_THROW(gv.startingVertex(g), runtime_error);
   // No exception should be thrown at this point
-  gv.exec(g,ed);
+  gv.exec(g, ed);
   // Error because no nextEdge function ptr passed in
-  BOOST_CHECK_THROW(gv.nextEdge(g),runtime_error);
+  BOOST_CHECK_THROW(gv.nextEdge(g), runtime_error);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -189,7 +189,7 @@ ostream& operator<<(ostream& os, const GraphNode gn) {
   return os;
 }
 
-bool cmpNodeStrIdLessThan(GraphNode gn1, GraphNode gn2) {
+bool cmpNode(GraphNode gn1, GraphNode gn2) {
   string str1_Id = gn1.getStringId();
   return str1_Id.compare(gn2.getStringId()) < 0;
 }

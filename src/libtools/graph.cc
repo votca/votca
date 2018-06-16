@@ -95,7 +95,7 @@ vector<pair<int, GraphNode>> Graph::getNodes(void) {
 
 void Graph::calcId_() {
   auto nodes = getNodes();
-  sort(nodes.begin(), nodes.end(), cmpVertNode);
+  sort(nodes.begin(), nodes.end(), cmpVertNodePair);
   string struct_Id_temp = "";
   for (auto nd_pr : nodes) {
     struct_Id_temp.append(nd_pr.second.getStringId());

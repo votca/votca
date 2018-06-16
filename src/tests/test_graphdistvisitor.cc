@@ -22,73 +22,71 @@
 #define BOOST_TEST_MODULE graphdistvisitor_test
 #include <boost/test/unit_test.hpp>
 #include <iostream>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 #include <votca/tools/graph.h>
-#include <votca/tools/graphnode.h>
 #include <votca/tools/graphdistvisitor.h>
+#include <votca/tools/graphnode.h>
 
 using namespace std;
 using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(graphdistvisitor_test)
 
-BOOST_AUTO_TEST_CASE(constructor_test){
-  GraphDistVisitor gdv;
-}
+BOOST_AUTO_TEST_CASE(constructor_test) { GraphDistVisitor gdv; }
 
-BOOST_AUTO_TEST_CASE(basic_test){
+BOOST_AUTO_TEST_CASE(basic_test) {
   // Create edge
-  Edge ed(0,1);
+  Edge ed(0, 1);
   vector<Edge> edges;
   edges.push_back(ed);
-  
+
   // Create Graph nodes
   GraphNode gn1;
   GraphNode gn2;
-  
-  unordered_map<int,GraphNode> nodes;
+
+  unordered_map<int, GraphNode> nodes;
   nodes[0] = gn1;
   nodes[1] = gn2;
 
-  Graph g(edges,nodes);
+  Graph g(edges, nodes);
 
   GraphDistVisitor gdv;
   BOOST_CHECK(gdv.queEmpty());
 
-  BOOST_CHECK_THROW(gdv.exec(g,ed),runtime_error);
+  BOOST_CHECK_THROW(gdv.exec(g, ed), runtime_error);
   // Default starts with node index 0
   gdv.startingVertex(g);
-  BOOST_CHECK_EQUAL(gdv.queEmpty(),false);
+  BOOST_CHECK_EQUAL(gdv.queEmpty(), false);
   // No exception should be thrown at this point
   Edge ed1 = gdv.nextEdge(g);
-  BOOST_CHECK_EQUAL(ed,ed1);
-  gdv.exec(g,ed1);
+  BOOST_CHECK_EQUAL(ed, ed1);
+  gdv.exec(g, ed1);
   BOOST_CHECK(gdv.queEmpty());
   GraphNode gn3 = g.getNode(0);
-  int dist = gn3.getInt("Dist"); 
-  BOOST_CHECK_EQUAL(dist,0);
+  int dist = gn3.getInt("Dist");
+  BOOST_CHECK_EQUAL(dist, 0);
   GraphNode gn4 = g.getNode(1);
   dist = gn4.getInt("Dist");
-  BOOST_CHECK_EQUAL(dist,1);
+  BOOST_CHECK_EQUAL(dist, 1);
 }
 
-BOOST_AUTO_TEST_CASE(basic_test2){
+BOOST_AUTO_TEST_CASE(basic_test2) {
   // Create edges
-  // 
+  //
   // 0 - 1 - 2
   // |       |
   // 6 - 4 - 3
   //     |
   //     5
-  // 
-  Edge ed(0,1);
-  Edge ed1(1,2);
-  Edge ed2(2,3);
-  Edge ed3(3,4);
-  Edge ed4(4,5);
-  Edge ed5(4,6);
-  Edge ed6(6,0);
+  //
+  Edge ed(0, 1);
+  Edge ed1(1, 2);
+  Edge ed2(2, 3);
+  Edge ed3(3, 4);
+  Edge ed4(4, 5);
+  Edge ed5(4, 6);
+  Edge ed6(6, 0);
 
   vector<Edge> edges;
   edges.push_back(ed);
@@ -98,7 +96,7 @@ BOOST_AUTO_TEST_CASE(basic_test2){
   edges.push_back(ed4);
   edges.push_back(ed5);
   edges.push_back(ed6);
-  
+
   // Create Graph nodes
   GraphNode gn1;
   GraphNode gn2;
@@ -107,8 +105,8 @@ BOOST_AUTO_TEST_CASE(basic_test2){
   GraphNode gn5;
   GraphNode gn6;
   GraphNode gn7;
-  
-  unordered_map<int,GraphNode> nodes;
+
+  unordered_map<int, GraphNode> nodes;
   nodes[0] = gn1;
   nodes[1] = gn2;
   nodes[2] = gn3;
@@ -117,60 +115,57 @@ BOOST_AUTO_TEST_CASE(basic_test2){
   nodes[5] = gn6;
   nodes[6] = gn7;
 
-  Graph g(edges,nodes);
+  Graph g(edges, nodes);
 
   GraphDistVisitor gdv;
   BOOST_CHECK(gdv.queEmpty());
 
-  BOOST_CHECK_THROW(gdv.exec(g,ed),runtime_error);
+  BOOST_CHECK_THROW(gdv.exec(g, ed), runtime_error);
   // Default starts with node index 0
   gdv.startingVertex(g);
-  BOOST_CHECK_EQUAL(gdv.queEmpty(),false);
+  BOOST_CHECK_EQUAL(gdv.queEmpty(), false);
   // No exception should be thrown at this point
   Edge ed7 = gdv.nextEdge(g);
-  BOOST_CHECK_EQUAL(ed,ed7);
-  gdv.exec(g,ed7);
+  BOOST_CHECK_EQUAL(ed, ed7);
+  gdv.exec(g, ed7);
 
   // Explore the whole graph
-  while(!gdv.queEmpty()){
+  while (!gdv.queEmpty()) {
     ed7 = gdv.nextEdge(g);
-
-    std::cerr << ed7 << std::endl;
-    gdv.exec(g,ed7);
+    gdv.exec(g, ed7);
   }
 
-  // Now let's check that the distances for each node 
+  // Now let's check that the distances for each node
   // are correct. The distances are counted from the starting
   // node which by default is node 0.
 
   GraphNode gn8 = g.getNode(0);
-  int dist = gn8.getInt("Dist"); 
-  BOOST_CHECK_EQUAL(dist,0);
+  int dist = gn8.getInt("Dist");
+  BOOST_CHECK_EQUAL(dist, 0);
 
   gn8 = g.getNode(1);
   dist = gn8.getInt("Dist");
-  BOOST_CHECK_EQUAL(dist,1);
+  BOOST_CHECK_EQUAL(dist, 1);
 
   gn8 = g.getNode(2);
   dist = gn8.getInt("Dist");
-  BOOST_CHECK_EQUAL(dist,2);
+  BOOST_CHECK_EQUAL(dist, 2);
 
   gn8 = g.getNode(3);
   dist = gn8.getInt("Dist");
-  BOOST_CHECK_EQUAL(dist,3);
+  BOOST_CHECK_EQUAL(dist, 3);
 
   gn8 = g.getNode(4);
   dist = gn8.getInt("Dist");
-  BOOST_CHECK_EQUAL(dist,2);
+  BOOST_CHECK_EQUAL(dist, 2);
 
   gn8 = g.getNode(5);
   dist = gn8.getInt("Dist");
-  BOOST_CHECK_EQUAL(dist,3);
+  BOOST_CHECK_EQUAL(dist, 3);
 
   gn8 = g.getNode(6);
   dist = gn8.getInt("Dist");
-  BOOST_CHECK_EQUAL(dist,1);
+  BOOST_CHECK_EQUAL(dist, 1);
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()
