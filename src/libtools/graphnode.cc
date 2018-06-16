@@ -17,15 +17,15 @@
  *
  */
 
-#include <iostream>
-#include <unordered_map>
-#include <string>
-#include <sstream>
-#include <iomanip>
-#include <vector>
 #include <algorithm>
-#include <votca/tools/graphnode.h>
 #include <boost/lexical_cast.hpp>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+#include <vector>
+#include <votca/tools/graphnode.h>
 
 namespace votca {
 namespace tools {
@@ -39,7 +39,7 @@ using namespace boost;
 /// Converts a double into a string with max number of significant
 /// figures indicated by sf
 string sig_fig_(double val, int sf) {
-  return ([val](int number_of_sig_figs)->string {
+  return ([val](int number_of_sig_figs) -> string {
     stringstream lStream;
     lStream << setprecision(number_of_sig_figs) << val;
     return lStream.str();
@@ -133,28 +133,34 @@ void GraphNode::setStr(const unordered_map<string, string> str_vals) {
   initStringId_();
 }
 
-int GraphNode::getInt(const string str){
-  if(int_vals_.count(str)==0) throw invalid_argument("GraphNode does not "
-                                                     "contain value");
+int GraphNode::getInt(const string str) {
+  if (int_vals_.count(str) == 0)
+    throw invalid_argument(
+        "GraphNode does not "
+        "contain value");
   return int_vals_[str];
 }
 
 int GraphNode::getDouble(const string str) {
-  if(double_vals_.count(str)==0) throw invalid_argument("GraphNode does not "
-                                                     "contain value");
+  if (double_vals_.count(str) == 0)
+    throw invalid_argument(
+        "GraphNode does not "
+        "contain value");
   return double_vals_[str];
 }
 
 int GraphNode::getStr(const string str) {
-  if(str_vals_.count(str)==0) throw invalid_argument("GraphNode does not "
-                                                     "contain value");
+  if (str_vals_.count(str) == 0)
+    throw invalid_argument(
+        "GraphNode does not "
+        "contain value");
   return double_vals_[str];
 }
 
 GraphNode& GraphNode::operator=(const GraphNode& gn) {
   str_id_ = gn.str_id_;
   int_vals_ = gn.int_vals_;
-  double_vals_ = gn.double_vals_; 
+  double_vals_ = gn.double_vals_;
   str_vals_ = gn.str_vals_;
   return *this;
 }
@@ -169,25 +175,23 @@ bool GraphNode::operator==(const GraphNode gn) const {
 
 ostream& operator<<(ostream& os, const GraphNode gn) {
   os << "Integer Values" << endl;
-  for(auto it=gn.int_vals_.begin();it!=gn.int_vals_.end();++it){
+  for (auto it = gn.int_vals_.begin(); it != gn.int_vals_.end(); ++it) {
     os << it->first << " " << it->second << endl;
   }
   os << "Double  Values" << endl;
-  for(auto it=gn.double_vals_.begin();it!=gn.double_vals_.end();++it){
+  for (auto it = gn.double_vals_.begin(); it != gn.double_vals_.end(); ++it) {
     os << it->first << " " << it->second << endl;
   }
   os << "String  Values" << endl;
-  for(auto it=gn.str_vals_.begin();it!=gn.str_vals_.end();++it){
+  for (auto it = gn.str_vals_.begin(); it != gn.str_vals_.end(); ++it) {
     os << it->first << " " << it->second << endl;
   }
   return os;
 }
 
-
-bool cmpNodeStrIdLessThan(GraphNode gn1,GraphNode gn2) {
+bool cmpNodeStrIdLessThan(GraphNode gn1, GraphNode gn2) {
   string str1_Id = gn1.getStringId();
-  return str1_Id.compare(gn2.getStringId())<0;
+  return str1_Id.compare(gn2.getStringId()) < 0;
 }
-
 }
 }
