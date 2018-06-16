@@ -17,14 +17,14 @@
  *
  */
 
-#include <unordered_map>
-#include <string>
 #include <iostream>
+#include <string>
+#include <unordered_map>
 #include <utility>
-#include <votca/tools/name.h>
 #include <vector>
-#include <votca/tools/graphnode.h>
 #include <votca/tools/edgecontainer.h>
+#include <votca/tools/graphnode.h>
+#include <votca/tools/name.h>
 
 #ifndef _VOTCA_TOOLS_GRAPH_H
 #define _VOTCA_TOOLS_GRAPH_H
@@ -41,38 +41,38 @@ namespace tools {
 class GraphNode;
 
 class Graph : public EdgeContainer {
-  private:
-    // First int is the index for the graph nodes, these are the same
-    // indices seen in the edge container. 
-    std::unordered_map<int,GraphNode> nodes_;
-    std::string id_;
-    bool id_set_; 
-    void updateIds_(Graph& g);   
-  protected:
-    void calcId_(); 
-  public:
-    Graph() {};
-    /// Constructor
-    Graph(std::vector<Edge> edgs,std::unordered_map<int,GraphNode> nodes) :
-      EdgeContainer::EdgeContainer(edgs),
-      nodes_(nodes),
-      id_set_(false) {}
+ private:
+  // First int is the index for the graph nodes, these are the same
+  // indices seen in the edge container.
+  std::unordered_map<int, GraphNode> nodes_;
+  std::string id_;
+  bool id_set_;
+  void updateIds_(Graph& g);
 
-    std::vector<std::pair<int,GraphNode>> getIsolatedNodes(void);
-    std::vector<int> getVerticesMissingNodes(void);
-    std::vector<std::pair<int,GraphNode>> getNeighNodes(int vert);
-    GraphNode& Node(int vert);    
+ protected:
+  void calcId_();
 
-    GraphNode getNode(int vert);
-    std::vector<std::pair<int,GraphNode>> getNodes(void);
-    bool operator!=(Graph& g); 
-    bool operator==(Graph& g);
+ public:
+  Graph(){};
+  /// Constructor
+  Graph(std::vector<Edge> edgs, std::unordered_map<int, GraphNode> nodes)
+      : EdgeContainer::EdgeContainer(edgs), nodes_(nodes), id_set_(false) {}
 
-    Graph &operator=(const Graph &g);
+  std::vector<std::pair<int, GraphNode>> getIsolatedNodes(void);
+  std::vector<int> getVerticesMissingNodes(void);
+  std::vector<std::pair<int, GraphNode>> getNeighNodes(int vert);
+  GraphNode& Node(int vert);
 
-    std::string getId(void);
+  GraphNode getNode(int vert);
+  std::vector<std::pair<int, GraphNode>> getNodes(void);
+  bool operator!=(Graph& g);
+  bool operator==(Graph& g);
 
-    friend std::ostream& operator<<(std::ostream& os, const Graph g);
+  Graph& operator=(const Graph& g);
+
+  std::string getId(void);
+
+  friend std::ostream& operator<<(std::ostream& os, const Graph g);
 };
 
 // This function is meant to be used with the stl sort algorithm e.g.:
@@ -80,7 +80,8 @@ class Graph : public EdgeContainer {
 // vector<pair<int,GraphNode> > vec_pr_gn = { pr_grn1, pr_grn2 , ... etc };
 // sort(vec_pr_gn.begin(),vec_pr_gn.end(),cmpVertNodePairStrId);
 //
-bool cmpVertNodePairStrIdLessThan(std::pair<int,GraphNode> gn1_pr, std::pair<int,GraphNode>  gn2_pr );
+bool cmpVertNodePairStrIdLessThan(std::pair<int, GraphNode> gn1_pr,
+                                  std::pair<int, GraphNode> gn2_pr);
 }
 }
 #endif  // _VOTCA_TOOLS_GRAPH_H
