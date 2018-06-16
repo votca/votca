@@ -36,7 +36,6 @@ void GraphDistVisitor::exploreNode_(pair<int, GraphNode&> p_gn, Graph& g,
   // Determine if the node has already been explored
   int vertex = p_gn.first;
   if (vertex == startingVertex_) {
-    GraphNode& gn = p_gn.second;
     p_gn.second.int_vals_["Dist"] = 0;
     p_gn.second.initStringId_();
   } else {
