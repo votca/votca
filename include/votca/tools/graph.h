@@ -42,29 +42,59 @@ class GraphNode;
 
 class Graph : public EdgeContainer {
  private:
-  // First int is the index for the graph nodes, these are the same
-  // indices seen in the edge container.
+  /// Parameter description 
+  /// @param int - is the index of the graph nodes / vertex ids
+  /// @param GraphNode - this is the node object at each vertex and contains 
+  /// all the informatino that is relevant to that object
   std::unordered_map<int, GraphNode> nodes_;
+
+  /// This is the id of the graph to graphs that contain the same content 
+  /// are considered equal
   std::string id_;
+
+  /// If the id has been calculated yet
   bool id_set_;
+  /// Update the graphs ids
   void updateIds_(Graph& g);
 
  protected:
+  /// Calculate the id of the graph
   void calcId_();
 
  public:
   Graph(){};
+
   /// Constructor
+  /// @param edgs - vector of edges where each edge is composed of two 
+  /// ints (vertex ids) describing a link between the vertices
+  /// @param nodes - unordered_map where the key is the vertex id and the
+  /// target is the graph node
   Graph(std::vector<Edge> edgs, std::unordered_map<int, GraphNode> nodes)
       : EdgeContainer::EdgeContainer(edgs), nodes_(nodes), id_set_(false) {}
 
+  /// Find all the vertices that are isolated (not connected to any other 
+  /// vertex) and return them in a vector with their corresponding graph node.
   std::vector<std::pair<int, GraphNode>> getIsolatedNodes(void);
+
+  /// Functions determines which vertices do not have a graph node associated
+  /// with them and return their ids in a vector.
   std::vector<int> getVerticesMissingNodes(void);
+
+  /// Returns a vector of the vertices and their graph nodes that are directly
+  /// connected to the vertex 'vert'
   std::vector<std::pair<int, GraphNode>> getNeighNodes(int vert);
+
+  /// Return the graph node object reference associated with vertex id
   GraphNode& Node(int vert);
 
+  /// Return a copy of the graph node at vertex 'vert'
   GraphNode getNode(int vert);
+
+  /// Return all the vertices and their graph nodes that are within the graph
   std::vector<std::pair<int, GraphNode>> getNodes(void);
+
+  /// Equivalence and non equivalence operators work by determine if the 
+  /// contents of each graph node in each of the graphs are the same.  
   bool operator!=(Graph& g);
   bool operator==(Graph& g);
 
@@ -75,13 +105,22 @@ class Graph : public EdgeContainer {
   friend std::ostream& operator<<(std::ostream& os, const Graph g);
 };
 
-// This function is meant to be used with the stl sort algorithm e.g.:
-//
-// vector<pair<int,GraphNode> > vec_pr_gn = { pr_grn1, pr_grn2 , ... etc };
-// sort(vec_pr_gn.begin(),vec_pr_gn.end(),cmpVertNodePairStrId);
-//
-bool cmpVertNodePairStrIdLessThan(std::pair<int, GraphNode> gn1_pr,
-                                  std::pair<int, GraphNode> gn2_pr);
+/**
+ * \brief Compare function pair<int,GraphNode> object
+ * 
+ * This function is meant to be used with the stl sort algorithm. It will sort
+ * a vector of pairs containing the vertex ids and the graphnodes. Only the 
+ * contetns of the graph node object are used to determine precidence e.g.
+ *
+ * pair<int,GraphNode> pr_grn1{ 1, gn };
+ * pair<int,GraphNode> pr_grn2{ 2, gn2 };
+ *
+ * vector<pair<int,GraphNode> > vec_pr_gn = { pr_grn1, pr_grn2 , ... etc };
+ *
+ * sort(vec_pr_gn.begin(),vec_pr_gn.end(),cmpVertNodePair);
+ */
+bool cmpVertNodePair(std::pair<int, GraphNode> gn1_pr,
+                     std::pair<int, GraphNode> gn2_pr);
 }
 }
 #endif  // _VOTCA_TOOLS_GRAPH_H
