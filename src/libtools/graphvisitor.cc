@@ -17,6 +17,7 @@
  *
  */
 
+#include <iostream>
 #include <exception>
 #include <vector>
 #include <votca/tools/graphvisitor.h>
@@ -38,7 +39,7 @@ void GraphVisitor::addEdges_(Graph& g, int vertex){
   throw runtime_error("addEdges_ method must be defined by your visitor");
 }
 
-void GraphVisitor::exploreNode_(pair<int,GraphNode&> p_gn,Graph g,Edge ed){
+void GraphVisitor::exploreNode_(pair<int,GraphNode&> p_gn,Graph& g,Edge ed){
   explored_.insert(p_gn.first);
 }
 
@@ -64,13 +65,18 @@ void GraphVisitor::startingVertex(Graph& g, int vertex){
 
 void GraphVisitor::exec(Graph& g, Edge ed){
   auto unexp_vert = getUnexploredVertex_(ed);    
+  // If no vertices are return than just ignore it means the same
+  // vertex was explored from a different direction
+  if(!unexp_vert.size()) return;
   // If two values are returned this is a problem 
   if(unexp_vert.size()>1){
     throw runtime_error("More than one unexplored vertex in an edge,"
       " did you set the starting node");
   }
   pair<int,GraphNode&> pr(unexp_vert.at(0),g.Node(unexp_vert.at(0)));
+ 
   exploreNode_(pr,g,ed);
+
 }
 
 Edge GraphVisitor::getEdge_(Graph g){
@@ -82,7 +88,11 @@ Edge GraphVisitor::nextEdge(Graph g){
   // Get the edge and at the same time remove it from whatever queue it is in
   Edge ed = getEdge_(g);
   auto vert_v = getUnexploredVertex_(ed);
-  addEdges_(g, vert_v.at(0));  
+  // Do not add neighboring edges if they belong to a vertex that has already 
+  // been explored because they will have already been added
+  if(vert_v.size()){
+    addEdges_(g, vert_v.at(0));  
+  }
   return ed;
 }
 

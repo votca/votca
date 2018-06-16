@@ -17,6 +17,8 @@
  *
  */
 
+#
+#include <algorithm>
 #include <string>
 #include <votca/tools/graph.h>
 
@@ -27,24 +29,33 @@ namespace tools {
 
 class GraphNode;
 
-void Graph::updateStructIds_(Graph& g){
-  if(!this->structure_id_set_){
-    this->calcStructureId_();
-    this->structure_id_set_=true;
+void Graph::updateIds_(Graph& g){
+  if(!this->id_set_){
+    this->calcId_();
+    this->id_set_=true;
   }
-  if(!g.structure_id_set_){
-    g.calcStructureId_();
-    g.structure_id_set_=true;
+  if(!g.id_set_){
+    g.calcId_();
+    g.id_set_=true;
   }
 }
 
 bool Graph::operator!=(Graph& g) {
-  updateStructIds_(g);
-  return structure_id_.compare(g.structure_id_);
+  updateIds_(g);
+  return id_.compare(g.id_);
 }
 
 bool Graph::operator==( Graph& g) {
   return !(*(this)!=g);  
+}
+
+Graph& Graph::operator=(const Graph &g){
+  this->adj_list_ = g.adj_list_;
+  for( auto pr : g.nodes_){
+    this->nodes_[pr.first] = pr.second;
+  } 
+  this->id_ = g.id_;
+  return *this;
 }
 
 vector<pair<int, GraphNode>> Graph::getIsolatedNodes(void){
@@ -89,8 +100,14 @@ vector<pair<int,GraphNode>> Graph::getNodes(void){
   return vec_nodes;
 }
 
-void Graph::calcStructureId_(){
-  throw runtime_error("calcStructureId_ is not yet implemented");
+void Graph::calcId_(){
+  auto nodes = getNodes();
+  sort(nodes.begin(),nodes.end(),cmpVertNodePairStrIdLessThan);
+  string struct_Id_temp = "";
+  for( auto nd_pr : nodes ){
+    struct_Id_temp.append(nd_pr.second.getStringId());
+  }
+  id_=struct_Id_temp;
   return;
 }
 
@@ -102,6 +119,20 @@ ostream& operator<<(ostream& os, const Graph g){
   }
   return os;
 }
+
+string Graph::getId(void) {
+  if(!this->id_set_){
+    this->calcId_();
+    this->id_set_=true;
+  }
+  return id_;
+}
+
+bool cmpVertNodePairStrIdLessThan(pair<int,GraphNode> gn1_pr, pair<int,GraphNode> gn2_pr) {
+  string str1_Id = gn1_pr.second.getStringId();
+  return str1_Id.compare(gn2_pr.second.getStringId())<0;
+}
+
 }
 }
 

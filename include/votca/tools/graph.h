@@ -45,18 +45,18 @@ class Graph : public EdgeContainer {
     // First int is the index for the graph nodes, these are the same
     // indices seen in the edge container. 
     std::unordered_map<int,GraphNode> nodes_;
-    std::string structure_id_;
-    bool structure_id_set_; 
-    void updateStructIds_(Graph& g);   
+    std::string id_;
+    bool id_set_; 
+    void updateIds_(Graph& g);   
   protected:
-    void calcStructureId_(); 
+    void calcId_(); 
   public:
     Graph() {};
     /// Constructor
     Graph(std::vector<Edge> edgs,std::unordered_map<int,GraphNode> nodes) :
       EdgeContainer::EdgeContainer(edgs),
       nodes_(nodes),
-      structure_id_set_(false) {}
+      id_set_(false) {}
 
     std::vector<std::pair<int,GraphNode>> getIsolatedNodes(void);
     std::vector<int> getVerticesMissingNodes(void);
@@ -68,8 +68,19 @@ class Graph : public EdgeContainer {
     bool operator!=(Graph& g); 
     bool operator==(Graph& g);
 
+    Graph &operator=(const Graph &g);
+
+    std::string getId(void);
+
     friend std::ostream& operator<<(std::ostream& os, const Graph g);
 };
+
+// This function is meant to be used with the stl sort algorithm e.g.:
+//
+// vector<pair<int,GraphNode> > vec_pr_gn = { pr_grn1, pr_grn2 , ... etc };
+// sort(vec_pr_gn.begin(),vec_pr_gn.end(),cmpVertNodePairStrId);
+//
+bool cmpVertNodePairStrIdLessThan(std::pair<int,GraphNode> gn1_pr, std::pair<int,GraphNode>  gn2_pr );
 }
 }
 #endif  // _VOTCA_TOOLS_GRAPH_H

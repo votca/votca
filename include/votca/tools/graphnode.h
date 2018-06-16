@@ -64,6 +64,8 @@ class GraphNode {
   int getStr(const std::string str);
   /// Get the string id unique to the contents
   std::string getStringId() const { return str_id_; }
+  GraphNode& operator=(const GraphNode& gn);
+
   bool operator==(const GraphNode gn) const;
   bool operator!=(const GraphNode gn) const;
   // Allow visitor to directly access members of the node
@@ -72,6 +74,15 @@ class GraphNode {
   friend std::ostream& operator<<(std::ostream& os, const GraphNode gn);
 };
 
-}
+// Do not use < or > to compare nodes because this is ambiguous
+// simply compare the string ids, if gn1 is greater than gn2 return true
+// if not false, this is meant to be used with the stl sort algorithm:
+//
+// vector<GraphNode> vec_gn = { gn1, gn2,...etc };
+// sort(vec_gn.begin(),vec_gn.end(),cmpNodeStrIdLessThan);
+//
+bool cmpNodeStrIdLessThan(GraphNode gn1, GraphNode gn2);
+ 
+} 
 }
 #endif  // _VOTCA_TOOLS_GRAPHNODE_H

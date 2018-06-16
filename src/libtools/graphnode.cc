@@ -151,6 +151,14 @@ int GraphNode::getStr(const string str) {
   return double_vals_[str];
 }
 
+GraphNode& GraphNode::operator=(const GraphNode& gn) {
+  str_id_ = gn.str_id_;
+  int_vals_ = gn.int_vals_;
+  double_vals_ = gn.double_vals_; 
+  str_vals_ = gn.str_vals_;
+  return *this;
+}
+
 bool GraphNode::operator!=(const GraphNode gn) const {
   return (str_id_.compare(gn.str_id_) != 0);
 }
@@ -174,5 +182,12 @@ ostream& operator<<(ostream& os, const GraphNode gn) {
   }
   return os;
 }
+
+
+bool cmpNodeStrIdLessThan(GraphNode gn1,GraphNode gn2) {
+  string str1_Id = gn1.getStringId();
+  return str1_Id.compare(gn2.getStringId())<0;
+}
+
 }
 }

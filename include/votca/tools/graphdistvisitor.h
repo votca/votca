@@ -20,6 +20,7 @@
 #ifndef __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
 #define __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
 
+#include <iostream>
 #include <votca/tools/graph_bf_visitor.h>
 #include <deque>
 #include <queue>
@@ -39,10 +40,10 @@ class GraphNode;
 class Graph_BF_Visitor;
 
 class GraphDistVisitor : public Graph_BF_Visitor {
-  private:
+  protected:
 
-    void exploreNode_(std::pair<int,GraphNode&> p_gn, Graph g, Edge ed = DUMMY_EDGE);    
   public:
+    void exploreNode_(std::pair<int,GraphNode&> p_gn, Graph& g, Edge ed = DUMMY_EDGE);    
     GraphDistVisitor(){};
 };
 

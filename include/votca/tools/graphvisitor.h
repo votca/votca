@@ -20,6 +20,7 @@
 #ifndef __VOTCA_TOOLS_GRAPH_VISITOR_H
 #define __VOTCA_TOOLS_GRAPH_VISITOR_H
 
+#include <iostream>
 #include <vector>
 #include <set>
 #include <votca/tools/edge.h>
@@ -37,26 +38,30 @@ class GraphVisitor{
   protected:
     std::set<int> explored_;
     int startingVertex_;
-    // Determine which vertices have been unexplored 
+    /// Determine which vertices have been unexplored 
     std::vector<int> getUnexploredVertex_(Edge ed);
-    // What is done to an individual graph node as it is explored
+    /// What is done to an individual graph node as it is explored
     virtual void addEdges_(Graph& g, int vertex);
     virtual Edge getEdge_(Graph g);
-    // Edge(0,0) is a dummy value
-    virtual void exploreNode_(std::pair<int,GraphNode&> p_gn,Graph g,Edge ed = DUMMY_EDGE);
+    /// Edge(0,0) is a dummy value
   public:
+    virtual void exploreNode_(std::pair<int,GraphNode&> p_gn,Graph& g,Edge ed = DUMMY_EDGE);
 
     GraphVisitor() : startingVertex_(0) {};
     
-    // Determine if the exploration is complete
+    /// Determine if the exploration is complete
     virtual bool queEmpty();
-    // Which node the exploration begins at. 
+    /// Which node the exploration begins at. 
     void startingVertex(Graph& g, int vertex=0);
-    // What the visitor does to each node as it is visited
-    void exec(Graph& g, Edge ed);    
-    // The next node to be explored
+    /// What the visitor does to each node as it is visited, it will 
+    /// simply add the vertex that was explored to the list of explored
+    /// vertices in its current form. 
+    virtual void exec(Graph& g, Edge ed);    
+    /// The next edge to be explored, note that when this function
+    /// is called it removes the edge from the visitors que and will
+    /// no longer be accessible with a second call to nextEdge
     Edge nextEdge(Graph g); 
-    // Get the set of all the vertices that have been explored
+    /// Get the set of all the vertices that have been explored
     std::set<int> getExploredVertices();
 };
 

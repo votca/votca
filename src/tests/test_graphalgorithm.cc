@@ -27,6 +27,7 @@
 #include <votca/tools/graphnode.h>
 #include <votca/tools/graphalgorithm.h>
 #include <votca/tools/graph_bf_visitor.h>
+#include <votca/tools/graphdistvisitor.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -100,4 +101,51 @@ BOOST_AUTO_TEST_CASE(single_network_algirhtm_test){
 
 }
 
+BOOST_AUTO_TEST_CASE(structureid_test){
+  {
+
+    // Create edge
+    Edge ed(0,1);
+    Edge ed1(1,2);
+    Edge ed2(2,3);
+    Edge ed3(3,4);
+    Edge ed4(4,5);
+    Edge ed5(5,0);
+    Edge ed6(3,6);
+  
+    vector<Edge> edges;
+    edges.push_back(ed);
+    edges.push_back(ed1);
+    edges.push_back(ed2);
+    edges.push_back(ed3);
+    edges.push_back(ed4);
+    edges.push_back(ed5);
+    edges.push_back(ed6);
+
+    // Create Graph nodes
+    GraphNode gn1;
+    GraphNode gn2;
+    GraphNode gn3;
+    GraphNode gn4;
+    GraphNode gn5;
+    GraphNode gn6;
+    GraphNode gn7;
+
+    unordered_map<int,GraphNode> nodes;
+    nodes[0] = gn1;
+    nodes[1] = gn2;
+    nodes[2] = gn3;
+    nodes[3] = gn4;
+    nodes[4] = gn5;
+    nodes[5] = gn6;
+    nodes[6] = gn7;
+
+    Graph g(edges,nodes);
+
+    auto structId = findStructureId<GraphDistVisitor>(g);
+    cerr << "Structure ID is" << endl;
+    cout << structId << endl;
+  }
+
+}
 BOOST_AUTO_TEST_SUITE_END()
