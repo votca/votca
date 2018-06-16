@@ -196,7 +196,7 @@ void Application::ParseCommandLine(int argc, char **argv)
         po::store(po::parse_command_line(argc, argv, _op_desc), _op_vm);
         po::notify(_op_vm);
     }
-    catch(boost::program_options::error err) {
+    catch(boost::program_options::error& err) {
         throw runtime_error(string("error parsing command line: ") + err.what());
     }
 }

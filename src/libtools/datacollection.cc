@@ -22,7 +22,6 @@ namespace votca { namespace tools {
 
 ostream& operator<<(ostream& out, DataCollection<double>::selection &sel)
 {
-    DataCollection<double>::selection::iterator iter;
     if(sel.empty()) {
         out << "-- empty selection --" << endl;
         return out;
