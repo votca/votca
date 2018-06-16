@@ -17,13 +17,13 @@
  *
  */
 
-#include <votca/tools/graphdistvisitor.h>
 #include <votca/tools/graph_bf_visitor.h>
+#include <votca/tools/graphdistvisitor.h>
 #include <votca/tools/graphvisitor.h>
 
-#include <votca/tools/graphnode.h>
-#include <votca/tools/graph.h>
 #include <votca/tools/edge.h>
+#include <votca/tools/graph.h>
+#include <votca/tools/graphnode.h>
 
 using namespace std;
 
@@ -31,26 +31,25 @@ namespace votca {
 namespace tools {
 
 // Add the distance to the node that has not yet been explored
-void GraphDistVisitor::exploreNode_(pair<int,GraphNode&> p_gn,Graph& g, Edge ed){
+void GraphDistVisitor::exploreNode_(pair<int, GraphNode&> p_gn, Graph& g,
+                                    Edge ed) {
   // Determine if the node has already been explored
   int vertex = p_gn.first;
-  if(vertex==startingVertex_){
+  if (vertex == startingVertex_) {
     GraphNode& gn = p_gn.second;
     p_gn.second.int_vals_["Dist"] = 0;
     p_gn.second.initStringId_();
-  }else{
+  } else {
     // Node has not been explored
-    if(explored_.count(vertex)==0){ 
+    if (explored_.count(vertex) == 0) {
       int prev_vertex = ed.getOtherV(vertex);
-      GraphNode gn_prev = g.getNode(prev_vertex); 
-      p_gn.second.int_vals_["Dist"]=gn_prev.int_vals_["Dist"]+1;
+      GraphNode gn_prev = g.getNode(prev_vertex);
+      p_gn.second.int_vals_["Dist"] = gn_prev.int_vals_["Dist"] + 1;
       p_gn.second.initStringId_();
     }
   }
   // Ensure the graph node is set to explored
-  GraphVisitor::exploreNode_(p_gn,g);
-
+  GraphVisitor::exploreNode_(p_gn, g);
 }
-
 }
 }
