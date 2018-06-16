@@ -21,50 +21,75 @@
 #define __VOTCA_TOOLS_GRAPH_VISITOR_H
 
 #include <iostream>
-#include <vector>
 #include <set>
+#include <vector>
 #include <votca/tools/edge.h>
 #include <votca/tools/graphnode.h>
 
 /**
- * \brief a graph visitor outline for creating graph visitor objects
+ * \brief A graph visitor class for creating graph visitor objects
+ *
+ * This class serves as the base class for creating graph visitor objects
+ * it contains the framework by which all derived graph visitors should follow.
+ * The function of the graph visitor is to explore a graph, this can be done in
+ * different ways such as a breadth first or depth first algorithm or others.
+ *
+ * The general flow of the class is as follows:
+ * 
+ * 1. Set the node the graph visitor will start on and create an edge queue
+ * 2. Get an edge from the edge queue
+ * 3. Explore the edge and operate on the unexplored node(optional) add more
+ * edges to the edge queue.
+ * 4. Repeat until no more edges exist in the queue.
  */
 namespace votca {
 namespace tools {
 
 class Graph;
 
-class GraphVisitor{
-  protected:
-    std::set<int> explored_;
-    int startingVertex_;
-    /// Determine which vertices have been unexplored 
-    std::vector<int> getUnexploredVertex_(Edge ed);
-    /// What is done to an individual graph node as it is explored
-    virtual void addEdges_(Graph& g, int vertex);
-    virtual Edge getEdge_(Graph g);
-    /// Edge(0,0) is a dummy value
-  public:
-    virtual void exploreNode_(std::pair<int,GraphNode&> p_gn,Graph& g,Edge ed = DUMMY_EDGE);
+class GraphVisitor {
+ protected:
+  /// set containing all the vertix ids that have been explored
+  std::set<int> explored_;
 
-    GraphVisitor() : startingVertex_(0) {};
-    
-    /// Determine if the exploration is complete
-    virtual bool queEmpty();
-    /// Which node the exploration begins at. 
-    void startingVertex(Graph& g, int vertex=0);
-    /// What the visitor does to each node as it is visited, it will 
-    /// simply add the vertex that was explored to the list of explored
-    /// vertices in its current form. 
-    virtual void exec(Graph& g, Edge ed);    
-    /// The next edge to be explored, note that when this function
-    /// is called it removes the edge from the visitors que and will
-    /// no longer be accessible with a second call to nextEdge
-    Edge nextEdge(Graph g); 
-    /// Get the set of all the vertices that have been explored
-    std::set<int> getExploredVertices();
+  /// The vertex the visitor started on
+  int startingVertex_;
+
+  /// Determine which vertices in the edge, if any, have not been explored
+  std::vector<int> getUnexploredVertex_(Edge ed);
+
+  /// What is done to an individual graph node as it is explored
+  virtual void addEdges_(Graph& g, int vertex);
+  virtual Edge getEdge_(Graph g);
+  /// Edge(0,0) is a dummy value
+ public:
+  virtual void exploreNode_(std::pair<int, GraphNode&> p_gn, Graph& g,
+                            Edge ed = DUMMY_EDGE);
+
+  GraphVisitor() : startingVertex_(0){};
+
+  /// Determine if the exploration is complete, this is determined by whether
+  /// the edge queue is empty or not, it does not necessarily mean all 
+  /// vertices in a graph have been explored. 
+  virtual bool queEmpty();
+
+  /// Which node the exploration begins at, by default this is set to vertex 0
+  void startingVertex(Graph& g, int vertex = 0);
+
+  /// What the visitor does to each node as it is visited, it will
+  /// simply add the vertex that was explored to the list of explored
+  /// vertices in its current form.
+  virtual void exec(Graph& g, Edge ed);
+
+  /// The next edge to be explored, note that when this function
+  /// is called it removes the edge from the visitors queue and will
+  /// no longer be accessible with a second call to nextEdge
+  Edge nextEdge(Graph g);
+
+  /// Get the set of all the vertices that have been explored
+  std::set<int> getExploredVertices();
 };
+}
+}
 
-}}
-
-#endif // __VOTCA_TOOLS_GRAPH_VISITOR_H
+#endif  // __VOTCA_TOOLS_GRAPH_VISITOR_H
