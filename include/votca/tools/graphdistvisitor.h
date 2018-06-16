@@ -20,16 +20,26 @@
 #ifndef __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
 #define __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
 
-#include <iostream>
-#include <votca/tools/graph_bf_visitor.h>
 #include <deque>
+#include <iostream>
 #include <queue>
+#include <votca/tools/graph_bf_visitor.h>
+
 /**
- * \brief A graph visitor that will calculate the distance of each node
- * it is built on top of the graph basic visitor which explores in a breadth
- * first manner. The graph nodes themselves should carry the distance
- * that they are from the starting node on completion of the exploration. 
+ * \brief A graph visitor determines the graph topology
  *
+ * This visitor will calculate the distance of each node from the starting node
+ * it is built on top of the graph breadth first visitor. As the visitor moves
+ * through the graph it adds a 'Dist' attribute to each graph node with an
+ * integer value corresponding to how far it is removed from the starting node.
+ *
+ * E.g.
+ *
+ * 0 - 1 - 2 - 3
+ *
+ * If vertex 1 is the starting vertex than the graph node associated with
+ * vertex 1 will have a distance of 0. Vertices 0 and 2 a distance of 1 and
+ * vertex 3 a distnace of 2.
  */
 namespace votca {
 namespace tools {
@@ -40,12 +50,15 @@ class GraphNode;
 class Graph_BF_Visitor;
 
 class GraphDistVisitor : public Graph_BF_Visitor {
-  protected:
+
+  /// Note the only manipulation to the BF visitor is the need to add a
+  /// distance attribute to each of the graph nodes.
+  void exploreNode_(std::pair<int, GraphNode&> p_gn, Graph& g,
+                    Edge ed = DUMMY_EDGE);
 
   public:
-    void exploreNode_(std::pair<int,GraphNode&> p_gn, Graph& g, Edge ed = DUMMY_EDGE);    
     GraphDistVisitor(){};
 };
-
-}} 
-#endif // __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
+}
+}
+#endif  // __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
