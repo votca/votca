@@ -223,23 +223,23 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
 }
 void CGForceMatching::EndEvaluate()
 {
-    cout << "\nWe are done, thank you very much!" << endl;
-     if(_has_existing_forces) {
-         _trjreader_force->Close();
-        delete _trjreader_force;
-     }
-}
-
-void CGForceMatching::WriteOutFiles()
-{
     // sanity check
     if (_nblocks == 0) {
-        cerr << "\nERROR in csg_fmatch::EndCG - No blocks have been processed so far" << endl;
+        cerr << "\nERROR in CGForceMatching::EndEvaluate - No blocks have been processed so far" << endl;
         cerr << "It might be that you are using trajectory, which is smaller than needed for one block" << endl;
         cerr << "Check your input!" << endl;
         exit(-1);
     }
+     
+    cout << "\nWe are done, thank you very much!" << endl;
+    if(_has_existing_forces) {
+        _trjreader_force->Close();
+        delete _trjreader_force;
+    }
+}
 
+void CGForceMatching::WriteOutFiles()
+{
     string file_extension = ".force";
     string file_name;
     Table force_tab;
@@ -287,6 +287,8 @@ void CGForceMatching::WriteOutFiles()
 void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) 
 {
     SplineContainer::iterator spiter;
+    if(conf->BeadCount() == 0)
+        throw std::runtime_error("CG Topology has 0 beads, check your mapping file!");
     if(_has_existing_forces) {
         if(conf->BeadCount() != _top_force.BeadCount())
             throw std::runtime_error("number of beads in topology and force topology does not match");
