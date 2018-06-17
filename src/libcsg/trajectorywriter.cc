@@ -23,6 +23,7 @@
 #include <votca/csg/trajectorywriter.h>
 #include "modules/io/pdbwriter.h"
 #include "modules/io/xyzwriter.h"
+#include "modules/io/lammpswriter.h"
 #include "modules/io/dlpolytrajectorywriter.h"
 
 #ifdef GMX_DOUBLE
@@ -39,6 +40,7 @@ void TrajectoryWriter::RegisterPlugins()
 {
     TrjWriterFactory().Register<PDBWriter>("pdb");
     TrjWriterFactory().Register<XYZWriter>("xyz");
+    TrjWriterFactory().Register<LAMMPSWriter>("dump");
     TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlph");
     TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlpc");
 #ifdef GMX_DOUBLE
