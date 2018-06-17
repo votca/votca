@@ -29,7 +29,18 @@ if(ENABLE_TESTING)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/CG-CG.param.in_re ${RUNPATH}/CG-CG.param.cur)
   add_test(NAME Run_csg_reupdate COMMAND csg_reupdate --gentable true --options ${REFPATH}/settings_re.xml WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(Run_csg_reupdate PROPERTIES LABELS "csg;tools;votca")
-  add_test(NAME Compare_csg_reupdate_results COMMAND ${VOTCA_COMPARE} -f1 CG-CG.pot.new -f2 ${REFPATH}/CG-CG.pot.re WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(Compare_csg_reupdate_results PROPERTIES DEPENDS Run_csg_reupdate)
-  set_tests_properties(Compare_csg_reupdate_results PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Compare_csg_reupdate_output COMMAND ${VOTCA_COMPARE} -f1 CG-CG.pot.new -f2 ${REFPATH}/CG-CG.pot.re WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_reupdate_output PROPERTIES DEPENDS Run_csg_reupdate)
+  set_tests_properties(Compare_csg_reupdate_output PROPERTIES LABELS "csg;tools;votca")
+
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_fmatch)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  add_test(NAME Run_csg_fmatch 
+    COMMAND csg_fmatch --top ${REFPATH}/topol.xml --trj ${REFPATH}/frame.dump --options ${REFPATH}/settings_fmatch.xml
+                      --cg ${REFPATH}/mapping.xml 
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Run_csg_fmatch PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Compare_csg_fmatch_output COMMAND ${VOTCA_COMPARE} -f1 CG-CG.force -f2 ${REFPATH}/CG-CG.force.fmatch WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_fmatch_output PROPERTIES DEPENDS Run_csg_fmatch)
+  set_tests_properties(Compare_csg_fmatch_output PROPERTIES LABELS "csg;tools;votca")
 endif()
