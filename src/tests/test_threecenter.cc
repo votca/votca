@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(threecenter_dft) {
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   TCMatrix_dft threec;
   threec.Fill(aobasis,aobasis,Eigen::MatrixXd::Identity(aobasis.AOBasisSize(),aobasis.AOBasisSize()));
   
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse){
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   
 Eigen::MatrixXd MOs=Eigen::MatrixXd::Ones(17,17);
 MOs<<-0.00761992, -4.69664e-13, 8.35009e-15, -1.15214e-14, -0.0156169, -2.23157e-12, 1.52916e-14, 2.10997e-15, 8.21478e-15, 3.18517e-15, 2.89043e-13, -0.00949189, 1.95787e-12, 1.22168e-14, -2.63092e-15, -0.22227, 1.00844,

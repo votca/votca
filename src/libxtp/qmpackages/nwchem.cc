@@ -1070,7 +1070,7 @@ namespace votca {
                     if (ite == elements.end()) {
                         elements.push_back(element_name);
                          
-                        Element* element = bs.getElement(element_name);
+                        const Element* element = bs.getElement(element_name);
                        
                         for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
 
@@ -1142,7 +1142,7 @@ namespace votca {
                     if (ite == elements.end()) {
                         elements.push_back(element_name);
 
-                        Element* element = ecp.getElement(element_name);
+                        const Element* element = ecp.getElement(element_name);
 
                         // element name, [possibly indeces of centers], zero to indicate the end
                         _nw_file << element_name << " nelec " << element->getNcore() << endl;

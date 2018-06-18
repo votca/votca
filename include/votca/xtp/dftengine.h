@@ -53,6 +53,7 @@ namespace votca {
                 _addexternalsites = false;
                 _do_externalfield = false;
                 guess_set = false;
+                _integrate_ext_density=false;
             };
 
             ~DFTENGINE() {
@@ -129,6 +130,9 @@ namespace votca {
             Eigen::MatrixXd DensityMatrix_unres(const Eigen::MatrixXd& MOs, int numofelec);
             Eigen::MatrixXd DensityMatrix_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies, int numofelec);
             std::string Choosesmallgrid(std::string largegrid);
+            
+            Eigen::MatrixXd IntegrateExternalDensity(const Orbitals& extdensity);
+            
             void NuclearRepulsion();
             double ExternalRepulsion(ctp::Topology* top = NULL);
             double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
@@ -232,6 +236,13 @@ namespace votca {
 
             Eigen::MatrixXd last_dmat;
             bool guess_set;
+            
+            
+            bool _integrate_ext_density;
+            //integrate external density
+            std::string _orbfilename;
+            std::string _gridquality;
+            std::string _state;
         };
 
 

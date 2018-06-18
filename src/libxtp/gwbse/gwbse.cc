@@ -655,7 +655,7 @@ bool GWBSE::Evaluate() {
 
   // fill DFT AO basis by going through all atoms
   AOBasis dftbasis;
-  dftbasis.AOBasisFill(&dftbs, _orbitals->QMAtoms(), _fragA);
+  dftbasis.AOBasisFill(dftbs, _orbitals->QMAtoms(), _fragA);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled DFT Basis of size "
                                  << dftbasis.AOBasisSize() << flush;
@@ -689,7 +689,7 @@ bool GWBSE::Evaluate() {
 
   // fill auxiliary AO basis by going through all atoms
   AOBasis auxbasis;
-  auxbasis.AOBasisFill(&auxbs, _orbitals->QMAtoms());
+  auxbasis.AOBasisFill(auxbs, _orbitals->QMAtoms());
   _orbitals->setAuxbasis(_auxbasis_name);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled Auxbasis of size "

@@ -592,7 +592,7 @@ namespace votca {
     }
 
         
-std::vector<const tools::vec *> NumericalIntegration::getGridpoints() {
+std::vector<const tools::vec *> NumericalIntegration::getGridpoints() const{
     std::vector<const tools::vec *> gridpoints;
     for (unsigned i = 0; i < _grid_boxes.size(); i++) {
       const std::vector<tools::vec>& points = _grid_boxes[i].getGridPoints();
@@ -603,6 +603,28 @@ std::vector<const tools::vec *> NumericalIntegration::getGridpoints() {
     }
     return gridpoints;
   }
+
+
+Eigen::MatrixXd NumericalIntegration::IntegratePotential(const AOBasis& externalbasis){
+  Eigen::MatrixXd Potential=Eigen::MatrixXd::Zero(externalbasis.AOBasisSize(),externalbasis.AOBasisSize());
+  
+  assert(density_set && "Density not calculated");
+  for (unsigned i = 0; i < _grid_boxes.size(); i++) {
+    const std::vector<tools::vec>& points = _grid_boxes[i].getGridPoints();
+    const std::vector<double>& weights = _grid_boxes[i].getGridWeights();
+    const std::vector<double>& densities = _grid_boxes[i].getGridDensities();
+    for (unsigned j = 0; j < points.size(); j++) {
+      double weighteddensity=weights[j]*densities[j];
+      if (weighteddensity<1e-12){
+        continue;
+      }
+      AOESP esp;
+      esp.Fill(externalbasis,points[j]);
+      Potential+=weighteddensity*esp.Matrix();
+    }
+  }
+  return Potential; 
+}
         
         
 void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> _atoms,const AOBasis* basis) {

@@ -90,7 +90,7 @@ ofstream xyzfile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   AOOverlap overlap;
   overlap.Fill(aobasis);
     

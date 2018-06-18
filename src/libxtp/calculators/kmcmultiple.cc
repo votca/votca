@@ -57,7 +57,7 @@ void KMCMultiple::Initialize(tools::Property *options){
          double mtonm=1E9;
        _field /=mtonm ;//Converting from V/m to V/nm 
       
-	_outputtime = options->ifExistsReturnElseReturnDefault<double>(key+".outputtime",0);
+        _outputtime = options->ifExistsReturnElseReturnDefault<double>(key+".outputtime",0);
         _timefile = options->ifExistsReturnElseReturnDefault<std::string>(key+".timefile","timedependence.csv");
 	
         std::string carriertype=options->ifExistsReturnElseReturnDefault<std::string>(key+".carriertype","e");

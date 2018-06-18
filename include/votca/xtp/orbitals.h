@@ -578,11 +578,11 @@ namespace votca {
 
 
             // functions for calculating density matrices
-            Eigen::MatrixXd DensityMatrixGroundState();
-            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState(const std::string& spin,int state = 0);
-            Eigen::MatrixXd TransitionDensityMatrix(const std::string& spin,int state = 0);
-            Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0);
-            Eigen::MatrixXd LambdaMatrixQuasiParticle();
+            Eigen::MatrixXd DensityMatrixGroundState() const;
+            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState(const std::string& spin,int state = 0)const;
+            Eigen::MatrixXd TransitionDensityMatrix(const std::string& spin,int state = 0)const;
+            Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0)const;
+            Eigen::MatrixXd LambdaMatrixQuasiParticle()const;
 
 
 
@@ -710,8 +710,8 @@ namespace votca {
             
             void ReadFromCpt(CheckpointFile f);
             void ReadFromCpt(CptLoc parent);
-            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const std::string& spin,int state = 0);
-            std::vector<Eigen::MatrixXd >DensityMatrixExcitedState_AR(const std::string& spin,int state = 0);
+            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const std::string& spin,int state = 0)const;
+            std::vector<Eigen::MatrixXd >DensityMatrixExcitedState_AR(const std::string& spin,int state = 0)const;
 
             int _basis_set_size;
             int _occupied_levels;

@@ -55,7 +55,7 @@ orbitals.LoadFromXYZ("Al.xyz");
 BasisSet basis;
 basis.LoadBasisSet("notnormalized.xml");
 AOBasis aobasis;
-aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+aobasis.AOBasisFill(basis,orbitals.QMAtoms());
 
 const AOShell* shell=aobasis.getShell(0);
 AOShell::GaussianIterator it;
@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(ReorderMos_test) {
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   AOOverlap overlap;
   overlap.Fill(aobasis);
     

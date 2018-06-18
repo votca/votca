@@ -153,7 +153,7 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
         AOBasis _dftbasis;
         _dftbasisset.LoadBasisSet(_orbitalsAB->getDFTbasis());
 
-        _dftbasis.AOBasisFill(&_dftbasisset, _orbitalsAB->QMAtoms());
+        _dftbasis.AOBasisFill(_dftbasisset, _orbitalsAB->QMAtoms());
         AOOverlap _dftAOoverlap;
         _dftAOoverlap.Fill(_dftbasis);
         overlap=_dftAOoverlap.Matrix();

@@ -31,6 +31,7 @@
 #include <votca/xtp/vxc_functionals.h>
 #include <votca/xtp/gridbox.h>
 #include <votca/xtp/qmatom.h>
+#include <votca/xtp/aomatrix.h>
 
 #include <xc.h>
 #undef LOG
@@ -56,15 +57,15 @@ namespace votca { namespace xtp {
             
             void GridSetup(std::string type, std::vector<QMAtom* > _atoms,const AOBasis* basis);
             double getExactExchange(const std::string _functional);
-            std::vector<const tools::vec*> getGridpoints();
-            
-            unsigned getGridSize() const{return _totalgridsize;}
+            std::vector<const tools::vec*> getGridpoints()const;
+            std::vector<double> getWeightedDensities() const;
+            int getGridSize() const{return _totalgridsize;}
             unsigned getBoxesSize() const{return _grid_boxes.size();}
             
             void setXCfunctional(const std::string _functional);
-            
             double IntegrateDensity(const Eigen::MatrixXd& _density_matrix);
             double IntegratePotential(const tools::vec& rvector);
+            Eigen::MatrixXd IntegratePotential(const AOBasis& externalbasis);
             double IntegrateField(const std::vector<double>& externalfield);
             Eigen::MatrixXd IntegrateExternalPotential(const std::vector<double>& Potentialvalues);
             Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& _density_matrix);          
@@ -83,7 +84,7 @@ namespace votca { namespace xtp {
             
             std::vector<double> Rij;
             const AOBasis* _basis;
-            double  _totalgridsize;
+            int  _totalgridsize;
             std::vector< GridBox > _grid_boxes;
             std::vector<unsigned> thread_start;
             std::vector<unsigned> thread_stop;

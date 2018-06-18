@@ -154,17 +154,17 @@ class Element
     friend class BasisSet;
 public:
     
-    typedef std::vector< Shell* >::iterator ShellIterator;
-    ShellIterator firstShell() { return _shells.begin(); }
-    ShellIterator lastShell(){ return _shells.end(); }
+    typedef std::vector< Shell* >::const_iterator ShellIterator;
+    ShellIterator firstShell() const{ return _shells.begin(); }
+    ShellIterator lastShell() const{ return _shells.end(); }
 
-    std::string getType(){ return _type; }
+    const std::string& getType()const{ return _type; }
     
-    int getLmax() { return _lmax; }
+    int getLmax() const{ return _lmax; }
     
-    int getNcore() { return _ncore; }
+    int getNcore() const{ return _ncore; }
     
-    Shell* getShell( ShellIterator it ) { return (*it); }
+    const Shell* getShell( ShellIterator it ) { return (*it); }
     
     Shell* addShell( std::string shellType, double shellScale ) 
     { 
@@ -210,25 +210,25 @@ public:
 
     void LoadPseudopotentialSet ( std::string name );
     
-    Element* addElement(std::string elementType );
-    
-    // used for pseudopotentials only
-    Element* addElement(std::string elementType, int lmax, int ncore );
- 
-    Element* getElement( std::string element_type ) {
+    const Element* getElement( const std::string& element_type ) const{
         
-         std::map<std::string,Element*>::iterator itm = _elements.find( element_type );
+         std::map<std::string,Element*>::const_iterator itm = _elements.find( element_type );
          
          if ( itm == _elements.end() ) throw std::runtime_error( "Basis set "+_name+" does not have element of type " + element_type );
          
-         Element* element = (*itm).second;
+         const Element* element = (*itm).second;
          return element; 
      }
     
         
     ~BasisSet();
     
-private:    
+private:   
+    
+    Element* addElement(std::string elementType );
+    
+    // used for pseudopotentials only
+    Element* addElement(std::string elementType, int lmax, int ncore );
     std::string _name;
     std::map<std::string,Element*> _elements;
 };

@@ -413,7 +413,7 @@ namespace votca {
 
                             // fill auxiliary GW AO basis by going through all atoms
                             AOBasis dftbasis;
-                            dftbasis.AOBasisFill(&dftbs, orb_iter_input.QMAtoms());
+                            dftbasis.AOBasisFill(dftbs, orb_iter_input.QMAtoms());
                             CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filled DFT Basis of size " << dftbasis.AOBasisSize() << flush;
 
                             // Fill overlap
@@ -680,7 +680,7 @@ namespace votca {
 
                     // fill DFT AO basis by going through all atoms
                     AOBasis dftbasis;
-                    dftbasis.AOBasisFill(&dftbs, orb_iter_input.QMAtoms());
+                    dftbasis.AOBasisFill(dftbs, orb_iter_input.QMAtoms());
 
                     Eigen::MatrixXd DMATGS = orb_iter_input.DensityMatrixGroundState();
 

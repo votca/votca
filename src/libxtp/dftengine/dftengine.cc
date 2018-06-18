@@ -101,6 +101,14 @@ namespace votca {
       _xc_functional_name = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".xc_functional");
 
       _numofelectrons = 0;
+      
+      if (options->exists(key + ".externaldensity")){
+        _integrate_ext_density=true;
+          _orbfilename=options->ifExistsReturnElseThrowRuntimeError<string>(key + ".externaldensity.orbfile");
+          _gridquality=options->ifExistsReturnElseThrowRuntimeError<string>(key + ".externaldensity.gridquality");
+          _state=options->ifExistsReturnElseThrowRuntimeError<string>(key + ".externaldensity.state");        
+      }
+      
 
       if (options->exists(key + ".convergence")) {
 
@@ -511,10 +519,10 @@ namespace votca {
 
 
         NumericalIntegration gridIntegration;
-        dftbasis.AOBasisFill(&_dftbasisset, atom);
+        dftbasis.AOBasisFill(_dftbasisset, atom);
         AOBasis ecp;
         if (with_ecp) {
-          ecp.ECPFill(&_ecpbasisset, atom);
+          ecp.ECPFill(_ecpbasisset, atom);
         }
         gridIntegration.GridSetup(_grid_name, atom, &dftbasis);
         gridIntegration.setXCfunctional(_xc_functional_name);
@@ -741,14 +749,14 @@ namespace votca {
       // load and fill DFT basis set
       _dftbasisset.LoadBasisSet(_dftbasis_name);
 
-      _dftbasis.AOBasisFill(&_dftbasisset, _atoms);
+      _dftbasis.AOBasisFill(_dftbasisset, _atoms);
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
 
       if (_with_RI) {
         // load and fill AUX basis set
         _auxbasisset.LoadBasisSet(_auxbasis_name);
         //_orbitals->setDFTbasis( _dftbasis_name );
-        _auxbasis.AOBasisFill(&_auxbasisset, _atoms);
+        _auxbasis.AOBasisFill(_auxbasisset, _atoms);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded AUX Basis Set " << _auxbasis_name << flush;
       }
       if (_with_ecp) {
@@ -757,7 +765,7 @@ namespace votca {
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded ECP library " << _ecp_name << flush;
 
         // fill auxiliary ECP basis by going through all atoms
-        _ecp.ECPFill(&_ecpbasisset, _atoms);
+        _ecp.ECPFill(_ecpbasisset, _atoms);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled ECP Basis of size " << _ecp.getNumofShells() << flush;
       }
 
@@ -961,6 +969,21 @@ namespace votca {
       }
 
       return avdmat;
+    }
+    
+    
+    Eigen::MatrixXd DFTENGINE::IntegrateExternalDensity(const Orbitals& extdensity){
+      BasisSet basis;
+      basis.LoadBasisSet(extdensity.getDFTbasis());
+      AOBasis aobasis;
+      aobasis.AOBasisFill(basis,extdensity.QMAtoms());
+      NumericalIntegration numint;
+      numint.GridSetup(_gridquality,extdensity.QMAtoms(),&aobasis);
+      Eigen::MatrixXd dmat=extdensity.DensityMatrixGroundState();
+      
+      numint.IntegrateDensity(dmat);
+
+      return numint.IntegratePotential(aobasis);
     }
 
     void DFTENGINE::CalculateERIs(const AOBasis& dftbasis, const Eigen::MatrixXd& DMAT) {

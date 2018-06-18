@@ -169,7 +169,7 @@ namespace votca {
                     if (ite == elements.end()) {
                         elements.push_back(element_name);
 
-                        Element* element = bs.getElement(element_name);
+                        const Element* element = bs.getElement(element_name);
                         /* Alternative is to write each basis set to a element_name.gbs file
                          * and include the gbs file in the com-file via Gaussian's @ function
                          * Advantage: *gbs files can be reused by isogwa later
@@ -260,7 +260,7 @@ namespace votca {
                     if (ite == elements.end()) {
                         elements.push_back(element_name);
 
-                        Element* element = ecp.getElement(element_name);
+                        const Element* element = ecp.getElement(element_name);
 
                         // element name, [possibly indeces of centers], zero to indicate the end
                         _com_file << element_name << " 0\n"
@@ -1272,7 +1272,7 @@ namespace votca {
                     throw runtime_error("Orbitals object has no QMAtoms");
                 }
                 AOBasis _dftbasis;
-                _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
+                _dftbasis.AOBasisFill(_dftbasisset, _orbitals->QMAtoms());
                 
                 
                 Eigen::MatrixXd _carttrafo=_dftbasis.getTransformationCartToSpherical(getPackageName());

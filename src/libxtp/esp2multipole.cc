@@ -167,7 +167,7 @@ namespace votca {
             BasisSet bs;
             bs.LoadBasisSet(_orbitals.getDFTbasis());
             AOBasis basis;
-            basis.AOBasisFill(&bs, _Atomlist);
+            basis.AOBasisFill(bs, _Atomlist);
 
             bool _do_transition = false;
             if (_state == "transition") {

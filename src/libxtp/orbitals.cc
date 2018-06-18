@@ -216,30 +216,30 @@ namespace votca {
 
         // Determine ground state density matrix
 
-        Eigen::MatrixXd Orbitals::DensityMatrixGroundState() {
+        Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const{
 
             Eigen::MatrixXd occstates = _mo_coefficients.block(0, 0, _mo_coefficients.rows(), _occupied_levels);
             Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
             return dmatGS;
         }
 
-        Eigen::MatrixXd Orbitals::LambdaMatrixQuasiParticle() {
+        Eigen::MatrixXd Orbitals::LambdaMatrixQuasiParticle() const{
             return _QPdiag_coefficients * _mo_coefficients.block(0, _qpmin, _mo_coefficients.rows(), _qptotal);
         }
 
         // Determine QuasiParticle Density Matrix
 
-        Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(int state) {
+        Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(int state) const{
             Eigen::MatrixXd lambda = LambdaMatrixQuasiParticle();
             Eigen::MatrixXd dmatQP = lambda.col(state) * lambda.col(state).transpose();
             return dmatQP;
         }
 
-        Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const string& spin, int state) {
+        Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const string& spin, int state) const{
             if (!(spin == "singlet" || spin == "triplet")) {
                 throw runtime_error("Spin type not known for density matrix. Available are singlet and triplet");
             }
-            MatrixXfd& _BSECoefs = (spin == "singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
+            const MatrixXfd& _BSECoefs = (spin == "singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
             if(_BSECoefs.cols()<state || _BSECoefs.rows()<2){
                 throw runtime_error("Orbitals object has no information about that state");
             }
@@ -289,7 +289,7 @@ namespace votca {
             return dmatTS;
         }
 
-        std::vector<Eigen::MatrixXd > Orbitals::DensityMatrixExcitedState(const string& spin, int state) {
+        std::vector<Eigen::MatrixXd > Orbitals::DensityMatrixExcitedState(const string& spin, int state) const{
             std::vector<Eigen::MatrixXd > dmat = DensityMatrixExcitedState_R(spin, state);
             if (_bsetype == "full" && spin == "singlet") {
                 std::vector<Eigen::MatrixXd > dmat_AR = DensityMatrixExcitedState_AR(spin, state);
@@ -301,12 +301,12 @@ namespace votca {
 
         // Excited state density matrix
 
-        std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_R(const string& spin, int state) {
+        std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_R(const string& spin, int state) const{
             if (!(spin == "singlet" || spin == "triplet")) {
                 throw runtime_error("Spin type not known for density matrix. Available are singlet and triplet");
             }
 
-            MatrixXfd & _BSECoefs = (spin == "singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
+            const MatrixXfd & _BSECoefs = (spin == "singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
             if(_BSECoefs.cols()<state || _BSECoefs.rows()<2){
                 throw runtime_error("Orbitals object has no information about that state");
             }
@@ -381,12 +381,12 @@ namespace votca {
 
         // Excited state density matrix
 
-        std::vector<Eigen::MatrixXd > Orbitals::DensityMatrixExcitedState_AR(const string& spin, int state) {
+        std::vector<Eigen::MatrixXd > Orbitals::DensityMatrixExcitedState_AR(const string& spin, int state) const{
             if (!(spin == "singlet")) {
                 throw runtime_error("Spin type not known for density matrix. Available is singlet");
             }
             
-            MatrixXfd& _BSECoefs_AR = _BSE_singlet_coefficients_AR;
+            const MatrixXfd& _BSECoefs_AR = _BSE_singlet_coefficients_AR;
             if(_BSECoefs_AR.cols()<state || _BSECoefs_AR.rows()<2){
                 throw runtime_error("Orbitals object has no information about that state");
             }

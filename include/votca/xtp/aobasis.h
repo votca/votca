@@ -49,8 +49,8 @@ public:
      
       
 
-    void AOBasisFill( BasisSet* bs , std::vector<QMAtom* > segments, int fragbreak = -1);
-    void ECPFill( BasisSet* bs , std::vector<QMAtom* > segments); 
+    void AOBasisFill(const BasisSet& bs , std::vector<QMAtom* > segments, int fragbreak = -1);
+    void ECPFill( const BasisSet& bs , std::vector<QMAtom* > segments); 
     
     
     unsigned AOBasisSize() const {return _AOBasisSize; }

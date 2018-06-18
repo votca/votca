@@ -546,7 +546,7 @@ int AOBasis::getFuncperAtom(int AtomId) const{
 }
 
 
-void AOBasis::AOBasisFill(BasisSet* bs , std::vector<QMAtom* > _atoms, int _fragbreak  ) {
+void AOBasis::AOBasisFill(const BasisSet& bs , std::vector<QMAtom* > _atoms, int _fragbreak  ) {
   tools::Elements elementinfo;
   std::vector<QMAtom* > :: iterator ait;
 
@@ -563,7 +563,7 @@ void AOBasis::AOBasisFill(BasisSet* bs , std::vector<QMAtom* > _atoms, int _frag
     //assign its nuclear charge
     (*ait)->nuccharge=elementinfo.getNucCrg(name);
     // get the basis set entry for this element
-    Element* element = bs->getElement(name);
+    const Element* element = bs.getElement(name);
     
               // and loop over all shells
     for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
@@ -598,7 +598,7 @@ void AOBasis::AOBasisFill(BasisSet* bs , std::vector<QMAtom* > _atoms, int _frag
 
 
 
-void AOBasis::ECPFill(BasisSet* bs , std::vector<QMAtom* > _atoms  ) {
+void AOBasis::ECPFill(const BasisSet& bs , std::vector<QMAtom* > _atoms  ) {
         
         std::vector< QMAtom* > :: iterator ait;
        _AOBasisSize = 0;
@@ -612,7 +612,7 @@ void AOBasis::ECPFill(BasisSet* bs , std::vector<QMAtom* > _atoms  ) {
           std::string  name = (*ait)->getType();
           // get the basis set entry for this element
           if(name=="H" || name=="He"){continue;}
-            Element* element = bs->getElement(name);
+            const Element* element = bs.getElement(name);
             //update nuclear charge of QMAtom
            
             (*ait)->ecpcharge=element->getNcore();
