@@ -1,4 +1,4 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 #
 # Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
@@ -116,7 +116,7 @@ with open(os.path.join(os.getcwd(),OPTIONS.file2),"r") as f2:
       data2.append(tok)
 
 if(len(data2) != len(data1)):
-  print "Files have different number of data points {} vs {}".format(len(data1),len(data2))
+  print ("Files have different number of data points {} vs {}".format(len(data1),len(data2)))
 
 logs=[]
 
@@ -133,7 +133,7 @@ if len(logs)==0:
 else:
   print "Diff:"
   for diff in logs:
-    print "row {} col {}:\t{} vs {}".format(diff[0],diff[1],diff[2],diff[3])
+    print ("row {} col {}:\t{} vs {}".format(diff[0],diff[1],diff[2],diff[3]))
   sys.exit(1)
 
 
