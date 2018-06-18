@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#! /usr/bin/env python
 #
 # Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
@@ -15,12 +15,12 @@
 # limitations under the License.
 #
 
+from __future__ import print_function
 VERSION='@PROJECT_VERSION@ #TOOLS_GIT_ID#'
 import sys
 import os
 import getpass
 import argparse
-
 
 PROGTITLE = 'THE VOTCA::TOOLS FILE COMPARISON'
 PROGDESCR = 'COMPARES TWO FILES TO EACH OTHER'
@@ -95,7 +95,7 @@ if not os.path.isfile(os.path.join(os.getcwd(),OPTIONS.file2)):
   progargs.print_help()
   xxquit("\nQuit here, because:{} is not a file(option -f2)".format(OPTIONS.file2))
 
-print "Comparing {} and {} to a tolerance of {}".format(OPTIONS.file1,OPTIONS.file2,OPTIONS.etol)
+print ("Comparing {} and {} to a tolerance of {}".format(OPTIONS.file1,OPTIONS.file2,OPTIONS.etol))
 
 data1=[]
 with open(os.path.join(os.getcwd(),OPTIONS.file1),"r") as f1:
@@ -131,7 +131,7 @@ for i,(d1,d2) in enumerate(zip(data1,data2)):
 if len(logs)==0:
   sys.exit(0)
 else:
-  print "Diff:"
+  print ("Diff:")
   for diff in logs:
     print ("row {} col {}:\t{} vs {}".format(diff[0],diff[1],diff[2],diff[3]))
   sys.exit(1)
