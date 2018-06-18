@@ -166,8 +166,6 @@ endforeach(FUNC)
 add_subdirectory(include/votca/xtp)
 add_subdirectory(scripts)
 add_subdirectory(src)
-#add_subdirectory(src/dipro)
-#add_subdirectory(share/scripts/dipro)
 add_subdirectory(share)
 
 option(BUILD_XTP_MANUAL "Build xtp-manual" OFF)

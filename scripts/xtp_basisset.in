@@ -1,4 +1,4 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 #
 # Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
@@ -117,7 +117,7 @@ def convertofloat(floatstring):
         a=float(floatstring)
         return a
     except ValueError:
-        print "Cannot figure out what '{}' means".format(floatstring)
+        print ("Cannot figure out what '{}' means".format(floatstring))
         sys.exit()
         return False 
 
@@ -162,7 +162,7 @@ def turbomolegetcontributions(element,lines,basissetstringlist,basis,shells):
                     contraction=lxml.SubElement(constant,"contractions",type=shelltype,factor="{:1.6e}".format(convertofloat(entries[1])))
                     #contraction.text=" "
             else:
-                print "Cannot figure out what line '{}' means".format(line)
+                print ("Cannot figure out what line '{}' means".format(line))
                 sys.exit()
 
     if len(newbasissets)>0:
@@ -185,7 +185,7 @@ shells=["S","P","D","F","G","H","I"]
 
 
 if os.path.isfile(OPTIONS.input):
-    print "File {} seems to be a NWCHEM file".format(OPTIONS.input)
+    print ("File {} seems to be a NWCHEM file".format(OPTIONS.input))
    
 
 
@@ -229,13 +229,13 @@ elif os.path.isdir(OPTIONS.input):
                 element=getelemententry(basis,ele)
                 turbomolegetcontributions(ele.lower(),lines,OPTIONS.turbobasis,element,shells)
         else:
-           print "File {} belonging to element not found. Skipping element!".format(ele.lower(),element)                  
+           print ("File {} belonging to element not found. Skipping element!".format(ele.lower(),element))
                     
     
 
 
             
-print "Imported  new basisset {} from {} written to file {} with xtp_basisset".format(basissetname,OPTIONS.input,OPTIONS.outputfile)
+print ("Imported  new basisset {} from {} written to file {} with xtp_basisset".format(basissetname,OPTIONS.input,OPTIONS.outputfile))
         
 with open(OPTIONS.outputfile, 'w') as f:
             f.write(lxml.tostring(basis, pretty_print=True))
