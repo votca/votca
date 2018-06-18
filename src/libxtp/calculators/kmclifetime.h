@@ -49,7 +49,7 @@ public:
 
 private:
        
-       
+    void WriteDecayProbability(string filename);
             
 	    
             void  RunVSSM(ctp::Topology *top);
@@ -58,7 +58,7 @@ private:
             void ReadLifetimeFile( string filename);
             
             //tools::vec _field;
-            
+            string _probfile;
             bool _do_carrierenergy;
             string _energy_outputfile;
             double _alpha;
