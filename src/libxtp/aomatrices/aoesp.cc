@@ -439,7 +439,7 @@ if (_lmax_col > 3) {
     
   // Calculates the electrostatic potential matrix element between two basis functions, for an array of atomcores.
 
-    void AOESP::Fillnucpotential(const AOBasis& aobasis, std::vector<QMAtom*>& _atoms) {
+    void AOESP::Fillnucpotential(const AOBasis& aobasis, const std::vector<QMAtom*>& _atoms) {
             tools::Elements _elements;
             _nuclearpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 

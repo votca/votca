@@ -163,15 +163,8 @@ namespace votca {
       return;
     }
 
-    /*
-     *    Density Functional theory implementation
-     *
-     */
-
-
-
-
-    void DFTENGINE::PrintMOs(const Eigen::VectorXd& MOEnergies){
+ 
+void DFTENGINE::PrintMOs(const Eigen::VectorXd& MOEnergies){
       CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t Orbital energies: " << flush;
       CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t index occupation energy(Hartree) " << flush;
       for (int i = 0; i<MOEnergies.size(); i++) {
@@ -184,21 +177,18 @@ namespace votca {
       return;
     }
 
+
+   /*
+     *    Density Functional theory implementation
+     *
+     */
     bool DFTENGINE::Evaluate(Orbitals* _orbitals) {
-
-
       // set the parallelization
 #ifdef _OPENMP
-
       omp_set_num_threads(_openmp_threads);
-
 #endif
-      /**** END OF PREPARATION ****/
 
       /**** Density-independent matrices ****/
-
-
-
       Eigen::VectorXd& MOEnergies = _orbitals->MOEnergies();
       Eigen::MatrixXd& MOCoeff = _orbitals->MOCoefficients();
       if (MOEnergies.size() != _dftbasis.AOBasisSize()) {
@@ -211,9 +201,7 @@ namespace votca {
       /**** Construct initial density  ****/
 
       Eigen::MatrixXd H0 = _dftAOkinetic.Matrix() + _dftAOESP.getNuclearpotential();
-
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed initial density " << flush;
-
       NuclearRepulsion();
 
       if(_with_ecp){
@@ -222,14 +210,17 @@ namespace votca {
 
       if (_addexternalsites) {
         H0 += _dftAOESP.getExternalpotential();
-
         H0 += _dftAODipole_Potential.getExternalpotential();
         H0 += _dftAOQuadrupole_Potential.getExternalpotential();
-
         double estat = ExternalRepulsion();
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " E_electrostatic " << estat << flush;
         E_nucnuc += estat;
-
+      }
+      
+      if(_integrate_ext_density){
+        Orbitals extdensity;
+        extdensity.ReadFromCpt(_orbfilename);
+        H0+=IntegrateExternalDensity(extdensity);
       }
 
       if (_do_externalfield) {
@@ -411,7 +402,7 @@ namespace votca {
         if (_dftAOQuadrupole_Potential.Dimension()) {
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT external quadrupole potential matrix of dimension: " << _dftAOQuadrupole_Potential.Dimension() << flush;
         }
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " External sites\t Name \t Coordinates \t charge \t dipole \t quadrupole" << flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " External sites\n\t\t Name \t Coordinates \t charge \t dipole \t quadrupole" << flush;
 
 
         for (unsigned i = 0; i < _externalsites.size(); i++) {
@@ -419,7 +410,7 @@ namespace votca {
           vector<ctp::APolarSite*> ::iterator pit;
           for (pit = _externalsites[i]->begin(); pit < _externalsites[i]->end(); ++pit) {
 
-            CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << (*pit)->getName() << " | " << (*pit)->getPos().getX()
+            CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t" << (*pit)->getName() << "  |  " << (*pit)->getPos().getX()
                     << " " << (*pit)->getPos().getY() << " " << (*pit)->getPos().getZ() << " | " << (*pit)->getQ00();
             if ((*pit)->getRank() > 0) {
               tools::vec dipole = (*pit)->getQ1();
@@ -878,7 +869,7 @@ namespace votca {
       return E_ext;
     }
 
-    string DFTENGINE::Choosesmallgrid(string largegrid) {
+    string DFTENGINE::Choosesmallgrid(const string& largegrid) {
       string smallgrid;
 
       if (largegrid == "xfine") {
@@ -897,7 +888,6 @@ namespace votca {
       } else {
         throw runtime_error("Grid name for Vxc integration not known.");
       }
-
       return smallgrid;
     }
 
@@ -982,8 +972,20 @@ namespace votca {
       Eigen::MatrixXd dmat=extdensity.DensityMatrixGroundState();
       
       numint.IntegrateDensity(dmat);
-
-      return numint.IntegratePotential(aobasis);
+      Eigen::MatrixXd e_contrib=numint.IntegratePotential(_dftbasis);
+      AOESP esp;
+      esp.Fillnucpotential(_dftbasis,extdensity.QMAtoms());
+      
+      double nuc_energy=0.0;
+      for(const QMAtom* atom:_atoms){
+        nuc_energy+=numint.IntegratePotential(atom->getPos())*atom->getNuccharge();
+        for(const QMAtom* extatom:extdensity.QMAtoms()){
+          const double dist=tools::abs(atom->getPos()-extatom->getPos());
+          nuc_energy+=atom->getNuccharge()*extatom->getNuccharge()/dist;
+        }
+      }
+      E_nucnuc+=nuc_energy;
+      return e_contrib+esp.getNuclearpotential();
     }
 
     void DFTENGINE::CalculateERIs(const AOBasis& dftbasis, const Eigen::MatrixXd& DMAT) {

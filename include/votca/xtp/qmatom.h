@@ -58,9 +58,9 @@ public:
 
    const std::string & getType() const { return type;}
    
-  int getAtomID(){ return index;}
+  int getAtomID()const{ return index;}
    
-   int getNuccharge() { return nuccharge-ecpcharge;}
+   int getNuccharge() const{ return nuccharge-ecpcharge;}
        
    void setPartialcharge(double _q){partialcharge=_q;}
    const double & getPartialcharge() const { return partialcharge;}

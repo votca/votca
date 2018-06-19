@@ -56,12 +56,6 @@ namespace votca {
                 _integrate_ext_density=false;
             };
 
-            ~DFTENGINE() {
-
-            };
-
-
-
             void Initialize(tools::Property *options);
 
             std::string Identify() {
@@ -80,25 +74,11 @@ namespace votca {
             }
 
             void setExternalcharges(std::vector<ctp::PolarSeg*> externalsites) {
-                
-
-                _externalsites = externalsites;
-                //for ( int i = 0; i < externalsites.size(); i++){
-                //    ctp::PolarSeg* pseg = &externalsites[i];
-                //    _externalsites.push_back(ctp::PolarSeg(pseg, false));
-                //}
+                _externalsites = externalsites;           
                 _addexternalsites = true;
             }
+                   
             
-           /* void SetExternalMultipoles( ctp::PolarTop *ptop  ){
-                
-                
-                return;
-                
-            }*/
-            
-            
-
             void setExternalGrid(std::vector<double> electrongrid, std::vector<double> nucleigrid) {
                 _externalgrid = electrongrid;
                 _externalgrid_nuc = nucleigrid;
@@ -108,28 +88,24 @@ namespace votca {
                 return _gridIntegration_ext.getGridpoints();
             }
 
-
             bool Evaluate(Orbitals* _orbitals);
             
-
             void Prepare(Orbitals* _orbitals);
 
             std::string GetDFTBasisName() {
                 return _dftbasis_name;
             };
             
-            void CalculateERIs(const AOBasis& dftbasis, const Eigen::MatrixXd &DMAT);
+            
 
         private:
             void PrintMOs(const Eigen::VectorXd& MOEnergies);
-            ctp::Logger *_pLog;
-
+            
+            void CalculateERIs(const AOBasis& dftbasis, const Eigen::MatrixXd &DMAT);
             void ConfigOrbfile(Orbitals* _orbitals);
             void SetupInvariantMatrices();
             Eigen::MatrixXd AtomicGuess(Orbitals* _orbitals);
-            Eigen::MatrixXd DensityMatrix_unres(const Eigen::MatrixXd& MOs, int numofelec);
-            Eigen::MatrixXd DensityMatrix_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies, int numofelec);
-            std::string Choosesmallgrid(std::string largegrid);
+            std::string Choosesmallgrid(const std::string& largegrid);
             
             Eigen::MatrixXd IntegrateExternalDensity(const Orbitals& extdensity);
             
@@ -138,7 +114,7 @@ namespace votca {
             double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
             Eigen::MatrixXd AverageShells(const Eigen::MatrixXd& dmat, AOBasis& dftbasis);
 
-
+            ctp::Logger *_pLog;
 
             int _openmp_threads;
 
