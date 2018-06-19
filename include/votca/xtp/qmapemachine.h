@@ -69,7 +69,7 @@ private:
     ctp::XJob *_job;
     ctp::Ewald3DnD *_cape;
     
-    DFTENGINE dftengine;
+    DFTEngine dftengine;
     
     void SetupPolarSiteGrids( const std::vector< const vec *>& gridpoints,const std::vector< QMAtom* >& atoms);
     

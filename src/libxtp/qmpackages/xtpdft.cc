@@ -116,7 +116,7 @@ namespace votca {
             //
 
             _xtpdft.Evaluate( _orbitals );
-            _basisset_name = _xtpdft.GetDFTBasisName();
+            _basisset_name = _xtpdft.getDFTBasisName();
 
             return true;
 

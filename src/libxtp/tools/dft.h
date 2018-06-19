@@ -49,7 +49,7 @@ namespace votca {
             void Initialize(Property *options);
             bool Evaluate();
 
-            DFTENGINE _dftengine;
+            DFTEngine _dftengine;
 
 
         private:
@@ -157,8 +157,8 @@ namespace votca {
                 _orbitals.LoadFromXYZ(_xyzfile);
             }
 
-            // initialize the DFTENGINE
-            DFTENGINE _dft;
+            // initialize the DFTEngine
+            DFTEngine _dft;
             _dft.Initialize(&_dftengine_options);
             _dft.setLogger(&_log);
             ;

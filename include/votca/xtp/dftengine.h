@@ -37,7 +37,6 @@
 namespace votca {
     namespace xtp {
 
-
 /**
          * \brief Electronic ground-state via Density-Functional Theory
          *
@@ -46,10 +45,11 @@ namespace votca {
          * 
          */
 
-        class DFTENGINE {
+        class DFTEngine {
         public:
 
-            DFTENGINE() {
+            DFTEngine() {
+                _numofelectrons = 0;
                 _addexternalsites = false;
                 _do_externalfield = false;
                 guess_set = false;
@@ -68,7 +68,7 @@ namespace votca {
                 _pLog = pLog;
             }
 
-            void ConfigureExternalGrid(std::string grid_name_ext) {
+            void ConfigureExternalGrid(const std::string& grid_name_ext) {
                 _grid_name_ext = grid_name_ext;
                 _do_externalfield = true;
             }
@@ -92,7 +92,7 @@ namespace votca {
             
             void Prepare(Orbitals* _orbitals);
 
-            std::string GetDFTBasisName() {
+            std::string getDFTBasisName() const{
                 return _dftbasis_name;
             };
             
@@ -105,14 +105,16 @@ namespace votca {
             void ConfigOrbfile(Orbitals* _orbitals);
             void SetupInvariantMatrices();
             Eigen::MatrixXd AtomicGuess(Orbitals* _orbitals);
-            std::string Choosesmallgrid(const std::string& largegrid);
+            std::string ReturnSmallGrid(const std::string& largegrid);
             
             Eigen::MatrixXd IntegrateExternalDensity(const Orbitals& extdensity);
+            
+            Eigen::MatrixXd RunAtomicDFT(QMAtom* uniqueAtom);
             
             void NuclearRepulsion();
             double ExternalRepulsion(ctp::Topology* top = NULL);
             double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
-            Eigen::MatrixXd AverageShells(const Eigen::MatrixXd& dmat, AOBasis& dftbasis);
+            Eigen::MatrixXd SphericalAverageShells(const Eigen::MatrixXd& dmat, AOBasis& dftbasis);
 
             ctp::Logger *_pLog;
 
