@@ -14,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from __future__ import print_function
 import sys
 import os
 import argparse
 VERSION = '@PROJECT_VERSION@ #TOOLS_GIT_ID#'
 
-from __future__ import print_function
 PROGTITLE = 'THE VOTCA::TOOLS FILE COMPARISON'
 PROGDESCR = 'COMPARES TWO FILES TO EACH OTHER'
 VOTCAHEADER = '''
