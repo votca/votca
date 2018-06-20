@@ -34,7 +34,7 @@ namespace votca { namespace xtp {
 
         // Get components of dipole vector somehow
         
-        tools::vec dipole=-(apolarsite->getU1()+apolarsite->getQ1())*tools::conv::nm2bohr;
+        tools::vec dipole=(apolarsite->getU1()+apolarsite->getQ1())*tools::conv::nm2bohr;
        
         double d_0 = dipole.getX();
         double d_1 = dipole.getY();

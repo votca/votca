@@ -854,17 +854,16 @@ void DFTEngine::Prepare(Orbitals* _orbitals) {
       for (ctp::PolarSeg* seg : _externalsites) {
         seg->CalcPos();
         tools::vec s = tools::vec(0.0);
-        if (top == NULL) {
-          s = nuclei.getPos() - seg->getPos();
-        } else {
+        if (top != NULL) {
           s = top->PbShortestConnect(nuclei.getPos(),
                   seg->getPos())+nuclei.getPos()-seg->getPos();
         }
 
         for (auto nucleus : nuclei) {
+          nucleus->Depolarize();
+          nucleus->Charge(0);
           for (auto site : (*seg)) {
             actor.BiasIndu(*nucleus, *site, s);
-            nucleus->Depolarize();
             E_ext += actor.E_f(*nucleus, *site);
 
 

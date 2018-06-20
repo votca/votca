@@ -39,9 +39,9 @@ namespace votca { namespace xtp {
         
         std::vector<double> quadrople=apolarsite->getQ2();
         
-        double ang22bohr2=tools::conv::ang2bohr*tools::conv::ang2bohr;
+        double nm22bohr2=tools::conv::nm2bohr*tools::conv::nm2bohr;
         for(std::vector<double>::iterator it=quadrople.begin();it<quadrople.end();++it){
-            (*it)=ang22bohr2*(*it);
+            (*it)=nm22bohr2*(*it);
         }
         // I am not sure the order definition or anything is correct apolarsite object orders them as Q20, Q21c, Q21s, Q22c, Q22s
         
