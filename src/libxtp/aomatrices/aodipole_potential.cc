@@ -34,11 +34,9 @@ namespace votca { namespace xtp {
 
         // Get components of dipole vector somehow
         
-        tools::vec dipole=(apolarsite->getU1()+apolarsite->getQ1())*tools::conv::nm2bohr;
+        tools::vec dipole=-(apolarsite->getU1()+apolarsite->getQ1())*tools::conv::nm2bohr;
        
-        double d_0 = dipole.getX();
-        double d_1 = dipole.getY();
-        double d_2 = dipole.getZ();
+        std::cout<<dipole<<std::endl;
 
         // cout << _gridpoint << endl;
         // shell info, only lmax tells how far to go
@@ -755,7 +753,7 @@ if (_lmax_col > 3) {
 
 for (int _i = 0; _i < _nrows; _i++) {
   for (int _j = 0; _j < _ncols; _j++) {
-    dip(_i,_j) = d_0 * dip4[_i][_j][0][0] + d_1 * dip4[_i][_j][1][0] + d_2 * dip4[_i][_j][2][0];
+    dip(_i,_j) = dipole.getX() * dip4[_i][_j][0][0] +dipole.getY() * dip4[_i][_j][1][0] + dipole.getZ() * dip4[_i][_j][2][0];
   }
 }                         
 

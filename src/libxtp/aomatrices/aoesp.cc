@@ -464,6 +464,7 @@ if (_lmax_col > 3) {
                 for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
                     tools::vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
                     _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+                    std::cout<<(*it)->getQ00()<<std::endl;
                     Fill(aobasis, positionofsite);
                     _externalpotential -= (*it)->getQ00() * _aomatrix;
                 }
