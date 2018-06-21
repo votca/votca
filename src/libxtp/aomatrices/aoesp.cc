@@ -48,7 +48,7 @@ namespace votca { namespace xtp {
         const double pi = boost::math::constants::pi<double>();
        
         
-        // cout << _gridpoint << endl;
+        
         // shell info, only lmax tells how far to go
         int _lmax_row = _shell_row->getLmax();
         int _lmax_col = _shell_col->getLmax();
@@ -150,9 +150,9 @@ namespace votca { namespace xtp {
         double PmB1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_col.getY();
         double PmB2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_col.getZ();
         
-        double PmC0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _gridpoint.getX();
-        double PmC1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _gridpoint.getY();
-        double PmC2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _gridpoint.getZ();
+        double PmC0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _r.getX();
+        double PmC1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _r.getY();
+        double PmC2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _r.getZ();
         
         
         const double _U = zeta*(PmC0*PmC0+PmC1*PmC1+PmC2*PmC2);
@@ -444,13 +444,10 @@ if (_lmax_col > 3) {
             _nuclearpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
             for (unsigned j = 0; j < _atoms.size(); j++) {
-                tools::vec positionofatom = _atoms[j]->getPos();
-
                 double Znuc = _atoms[j]->getNuccharge();
-                
-               
                 _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                Fill(aobasis, positionofatom);
+                setPosition(_atoms[j]->getPos());
+                Fill(aobasis);
                 _nuclearpotential -= (Znuc) * _aomatrix;        
             }
             return;
@@ -464,7 +461,8 @@ if (_lmax_col > 3) {
                 for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
                     tools::vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
                     _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                    Fill(aobasis, positionofsite);
+                    setPosition(positionofsite);
+                    Fill(aobasis);
                     _externalpotential -= (*it)->getQ00() * _aomatrix;
                 }
             }

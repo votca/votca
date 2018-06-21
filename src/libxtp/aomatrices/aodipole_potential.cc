@@ -35,12 +35,12 @@ namespace votca { namespace xtp {
         // Get components of dipole vector somehow
         
         tools::vec dipole=-(apolarsite->getU1()+apolarsite->getQ1())*tools::conv::nm2bohr;
-       
+        tools::vec position=apolarsite->getPos()*tools::conv::nm2bohr;
         double d_0 = dipole.getX();
         double d_1 = dipole.getY();
         double d_2 = dipole.getZ();
 
-        // cout << _gridpoint << endl;
+       
         // shell info, only lmax tells how far to go
         int _lmax_row = _shell_row->getLmax();
         int _lmax_col = _shell_col->getLmax();
@@ -137,9 +137,9 @@ namespace votca { namespace xtp {
         double PmB1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_col.getY();
         double PmB2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_col.getZ();
 
-        double PmC0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _gridpoint.getX();
-        double PmC1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _gridpoint.getY();
-        double PmC2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _gridpoint.getZ();
+        double PmC0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - position.getX();
+        double PmC1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - position.getY();
+        double PmC2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - position.getZ();
 
         const double _U = zeta*(PmC0*PmC0+PmC1*PmC1+PmC2*PmC2);
 
@@ -781,10 +781,9 @@ for (int _i = 0; _i < _nrows; _i++) {
                 for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
 
                     if ((*it)->getRank() > 0 || (*it)->IsPolarizable()) {
-                        tools::vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
                         _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                         setAPolarSite((*it));
-                        Fill(aobasis, positionofsite);
+                        Fill(aobasis);
                         _externalpotential += _aomatrix;
                     }
                 }

@@ -146,7 +146,8 @@ void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist,const Eigen:
     #pragma omp parallel for
     for ( unsigned i = 0 ; i < _grid.getsize(); i++){
          AOESP _aoesp;
-         _aoesp.Fill(_basis, _grid.getGridPositions()[i]);
+         _aoesp.setPosition(_grid.getGridPositions()[i]);
+         _aoesp.Fill(_basis);
          _grid.getGridValues()(i) -=_dmat.cwiseProduct(_aoesp.Matrix()).sum();
           }
 
