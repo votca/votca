@@ -76,7 +76,7 @@ namespace votca { namespace xtp {
 	 
         const  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &Matrix() const{ return _aomatrix ;};
         
-        void Fill(const AOBasis& aobasis, tools::vec r = tools::vec(0,0,0) , AOBasis* ecp = NULL );
+        void Fill(const AOBasis& aobasis);
         
         // matrix print 
         void Print( std::string _ident);
@@ -88,13 +88,11 @@ namespace votca { namespace xtp {
         static std::vector<double> XIntegrate( int _n, double _T );
         // block fill prototype
    
-       
-
     protected:
         virtual void FillBlock(Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >&_matrix,const  AOShell* _shell_row,const AOShell* _shell_col) {} ;
         Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> _aomatrix;   
-        tools::vec _gridpoint;
-        AOBasis* _ecp;
+        
+        
 
     };
     
@@ -156,9 +154,12 @@ namespace votca { namespace xtp {
         void Fillextpotential(const AOBasis& aobasis, const std::vector<ctp::PolarSeg*>& _sites);
         const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
+        void setPosition(const tools::vec& r){ _r=r;};
     protected:   
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix ,const AOShell* _shell_row,const AOShell* _shell_col);
     private:
+        
+        tools::vec _r;
         Eigen::MatrixXd _nuclearpotential;
         Eigen::MatrixXd _externalpotential;
     };
@@ -167,10 +168,15 @@ namespace votca { namespace xtp {
     
     // derived class for Effective Core Potentials
     class AOECP : public AOMatrix<double>{
-        
+    public:
+        void setECP(const AOBasis* ecp){
+            _ecp=ecp;
+        }
     protected: 
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col);
     private:
+        
+        const AOBasis* _ecp;
         Eigen::MatrixXd calcVNLmatrix(int _lmax_ecp,const tools::vec& posC,
                 const AOGaussianPrimitive& _g_row,const AOGaussianPrimitive& _g_col,
                 const  Eigen::Matrix<int,4,5>& _power_ecp,const Eigen::Matrix<double,4,5>& _gamma_ecp,
@@ -273,6 +279,10 @@ namespace votca { namespace xtp {
                 Eigen::Block<Eigen::MatrixXcd>& _matrix,
                 const AOShell* _shell_row, const AOShell* _shell_col);
     private:
+        void setkVector(const tools::vec& k){
+            _k=k;
+        };
+        tools::vec _k;
         Eigen::MatrixXcd _externalpotential;
 };
     

@@ -26,7 +26,6 @@ namespace votca {
 
         void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& _matrix, const AOShell* _shell_row, const AOShell* _shell_col) {
 
-          const tools::vec& _k=_gridpoint;
             // shell info, only lmax tells how far to go
             int _lmax_row = _shell_row->getLmax();
             int _lmax_col = _shell_col->getLmax();
@@ -572,7 +571,8 @@ namespace votca {
 
             for (const auto& kpoint:_kpoints) {
                     _aomatrix = Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                    Fill(aobasis, kpoint);
+                    setkVector(kpoint);
+                    Fill(aobasis);
                     _externalpotential+=_aomatrix;     
                 }
             

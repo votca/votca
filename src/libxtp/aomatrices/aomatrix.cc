@@ -41,10 +41,8 @@ namespace votca {
 
         
         template< class T> 
-        void AOMatrix<T>::Fill(const AOBasis& aobasis, tools::vec gridpoint, AOBasis* ecp) {
+        void AOMatrix<T>::Fill(const AOBasis& aobasis) {
             _aomatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
-            _ecp=ecp;
-            _gridpoint =gridpoint;
             // loop row
 #pragma omp parallel for
             for (unsigned _row = 0; _row < aobasis.getNumofShells(); _row++) {
@@ -60,7 +58,8 @@ namespace votca {
 
                     // figure out the submatrix
                     int _col_start = _shell_col->getStartIndex();
-                    Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > block=_aomatrix.block(_row_start,_col_start, _shell_row->getNumFunc(),_shell_col->getNumFunc());
+                    Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > block=
+                            _aomatrix.block(_row_start,_col_start, _shell_row->getNumFunc(),_shell_col->getNumFunc());
                     // Fill block
                     FillBlock(block, _shell_row, _shell_col);
 

@@ -420,7 +420,8 @@ void DFTEngine::PrintMOs(const Eigen::VectorXd& MOEnergies){
       }
 
       if (_with_ecp) {
-        _dftAOECP.Fill(_dftbasis, vec(0, 0, 0), &_ecp);
+        _dftAOECP.setECP(&_ecp);
+        _dftAOECP.Fill(_dftbasis);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() 
                 << " Filled DFT ECP matrix" << flush;
       }
@@ -534,7 +535,8 @@ void DFTEngine::PrintMOs(const Eigen::VectorXd& MOEnergies){
 
         Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
         if (with_ecp) {
-          dftAOECP.Fill(dftbasis, vec(0, 0, 0), &ecp);
+          dftAOECP.setECP(&ecp);
+          dftAOECP.Fill(dftbasis);
           H0 += dftAOECP.Matrix();
         }
         Convergence_alpha.SolveFockmatrix(MOEnergies_alpha, MOCoeff_alpha, H0);
