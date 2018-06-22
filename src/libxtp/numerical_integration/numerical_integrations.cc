@@ -619,7 +619,8 @@ Eigen::MatrixXd NumericalIntegration::IntegratePotential(const AOBasis& external
         continue;
       }
       AOESP esp;
-      esp.Fill(externalbasis,points[j]);
+      esp.setPosition(points[j]);
+      esp.Fill(externalbasis);
       Potential+=weighteddensity*esp.Matrix();
     }
   }

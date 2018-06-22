@@ -90,6 +90,8 @@ namespace votca {
 
             bool Evaluate(Orbitals* _orbitals);
             
+
+            
             void Prepare(Orbitals* _orbitals);
 
             std::string getDFTBasisName() const{
@@ -100,7 +102,7 @@ namespace votca {
 
         private:
             void PrintMOs(const Eigen::VectorXd& MOEnergies);
-            
+            void CalcElDipole();
             void CalculateERIs(const AOBasis& dftbasis, const Eigen::MatrixXd &DMAT);
             void ConfigOrbfile(Orbitals* _orbitals);
             void SetupInvariantMatrices();
