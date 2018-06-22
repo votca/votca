@@ -153,6 +153,16 @@ void DFTEngine::PrintMOs(const Eigen::VectorXd& MOEnergies){
     }
 
 
+void DFTEngine::CalcElDipole(){
+  AODipole dipole;
+  dipole.Fill(_dftbasis);
+  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Electric Dipole is[e*bohr]:\n\t\t dx=" 
+                          << _dftAOdmat.cwiseProduct(dipole.Matrix()[0]).sum()
+          << "\n\t\t dy=" << _dftAOdmat.cwiseProduct(dipole.Matrix()[1]).sum()
+          << "\n\t\t dz=" << _dftAOdmat.cwiseProduct(dipole.Matrix()[2]).sum()<<flush;
+  return;
+}
+
    /*
      *    Density Functional theory implementation
      *
@@ -339,7 +349,7 @@ void DFTEngine::PrintMOs(const Eigen::VectorXd& MOEnergies){
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " MO Energies  [Ha]" << flush;
           
           PrintMOs(MOEnergies);
-
+           CalcElDipole();
           last_dmat = _dftAOdmat;
           guess_set = true;
           // orbitals saves total energies in [eV]
@@ -348,6 +358,9 @@ void DFTEngine::PrintMOs(const Eigen::VectorXd& MOEnergies){
         } else {
           energyold = totenergy;
         }
+        
+        
+       
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Density Matrix gives N=" 
                 << _dftAOdmat.cwiseProduct(_dftAOoverlap.Matrix()).sum() << " electrons." << flush;
 
@@ -756,13 +769,15 @@ void DFTEngine::Prepare(Orbitals* _orbitals) {
 
       _dftbasis.AOBasisFill(_dftbasisset, _atoms);
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-              << " Loaded DFT Basis Set " << _dftbasis_name << flush;
+              << " Loaded DFT Basis Set " << _dftbasis_name 
+              << "with "<<_dftbasis.AOBasisSize()<<" functions"<< flush;
 
       if (_with_RI) {
         _auxbasisset.LoadBasisSet(_auxbasis_name);
         _auxbasis.AOBasisFill(_auxbasisset, _atoms);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                << " Loaded AUX Basis Set " << _auxbasis_name << flush;
+                << " Loaded AUX Basis Set " << _auxbasis_name  
+                << "with "<<_auxbasis.AOBasisSize()<<" functions"<< flush;
       }
       if (_with_ecp) {
         _ecpbasisset.LoadPseudopotentialSet(_ecp_name);
