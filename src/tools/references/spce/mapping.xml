@@ -1,0 +1,22 @@
+<cg_molecule>
+  <name>SOL</name> <!-- the name of the molecule after mapping -->
+  <ident>SOL</ident> <!-- the name of the molecule in atomistic topology --> 
+  <topology>
+    <cg_beads>
+      <cg_bead>
+        <name>CG</name>
+        <type>CG</type>
+        <mapping>A</mapping>
+        <beads>
+          1:SOL:OW 1:SOL:HW1 1:SOL:HW2 
+        </beads>
+      </cg_bead>
+    </cg_beads>
+  </topology>
+  <maps>
+    <map>
+      <name>A</name>
+      <weights>16 1 1</weights>
+    </map>
+  </maps>
+</cg_molecule>
