@@ -43,4 +43,14 @@ if(ENABLE_TESTING)
   add_test(NAME Compare_csg_fmatch_output COMMAND ${VOTCA_COMPARE} -f1 CG-CG.force -f2 ${REFPATH}/CG-CG.force.fmatch WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(Compare_csg_fmatch_output PROPERTIES DEPENDS Run_csg_fmatch)
   set_tests_properties(Compare_csg_fmatch_output PROPERTIES LABELS "csg;tools;votca")
+
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_map)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  add_test(NAME Run_csg_map
+    COMMAND csg_map --top ${REFPATH}/topol.xml --trj ${REFPATH}/frame.dump --out frame.dump --no-map --force
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Run_csg_map PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Compare_csg_map_output COMMAND ${VOTCA_COMPARE} -f1 frame.dump -f2 ${REFPATH}/frame.dump WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_map_output PROPERTIES DEPENDS Run_csg_map)
+  set_tests_properties(Compare_csg_map_output PROPERTIES LABELS "csg;tools;votca")
 endif()
