@@ -134,6 +134,7 @@ class Table {
 
 inline Table::Table() {
   _has_yerr = false;
+  _has_comment = false;
   _error_details = "";
 }
 
