@@ -20,8 +20,6 @@
 #ifndef __QMITER__H
 #define	__QMITER__H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>

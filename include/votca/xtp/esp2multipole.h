@@ -36,7 +36,11 @@ class Esp2multipole
 {
 public:
 
-    Esp2multipole (ctp::Logger* log) {_log=log; }
+    Esp2multipole (ctp::Logger* log) {
+        _log=log; 
+        _pairconstraint.resize(0);
+        _regionconstraint.resize(0);
+        }
    ~Esp2multipole () {};
 
     std::string Identify() { return "esp2multipole"; }
@@ -70,7 +74,8 @@ private:
     std::vector< QMAtom* > _Atomlist;
     
     ctp::Logger*      _log;
-    
+    std::vector< std::pair<int,int> > _pairconstraint; //  pairconstraint[i] is all the atomindices which have the same charge     
+    std::vector< Espfit::region > _regionconstraint; 
     
 
 };

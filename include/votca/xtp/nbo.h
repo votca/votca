@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,11 @@
  *
  */
 
-#ifndef __XTP_NBO__H
-#define	__XTP_NBO__H
+#ifndef __VOTCA_XTP_NBO__H
+#define	__VOTCA_XTP_NBO__H
 
 
-#include <votca/xtp/elements.h>
+#include <votca/tools/elements.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/ctp/logger.h>
 #include <votca/xtp/qmatom.h>
@@ -37,7 +37,6 @@
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
     
 class NBO{
 public:
@@ -45,18 +44,18 @@ public:
     NBO(ctp::Logger *log){_log = log;}
    ~NBO(){};
        
-   void EvaluateNBO(std::vector< QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,const AOBasis &_basis, BasisSet &bs);
+   void EvaluateNBO(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd  &_dmat,const AOBasis &_basis, BasisSet &bs);
   
 private:
     
      ctp::Logger *_log;
-     Elements _elements; 
+     votca::tools::Elements _elements; 
     
-    ub::matrix<double> IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< QMAtom* >& _atomlist, BasisSet &bs);
-    void TransformMatrixtoNewBasis(ub::matrix<double>& Matrix,const ub::matrix<double>& transformation);
+    Eigen::MatrixXd IntercenterOrthogonalisation(Eigen::MatrixXd  &P,Eigen::MatrixXd  &Overlap,std::vector< QMAtom* >& _atomlist, BasisSet &bs);
+  
 };
 }}
 
-#endif /* NBO_H */
+#endif /* __VOTCA_XTP_NBO_H */
 
 

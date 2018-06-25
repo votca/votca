@@ -1,4 +1,4 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 #
 # Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
@@ -115,8 +115,8 @@ if(args.element!=""):
     onlyoneelement=args.element
 
 if args.lmax>6:
-	print "ERROR: Higher order functions than H (L=6) are not implemented"
-	sys.exit()
+	print ("ERROR: Higher order functions than H (L=6) are not implemented")
+	sys.exit(1)
 
 
 
@@ -268,7 +268,7 @@ def createauxfunctions(basisfunctions):
 				continue
 			auxfunctions.append(basisfunction(decay,L))
 
-	print "{} aux functions created".format(len(auxfunctions))
+	print ("{} aux functions created".format(len(auxfunctions)))
 	return auxfunctions
 
 def sortauxfunctions(auxfunctions):
@@ -276,7 +276,7 @@ def sortauxfunctions(auxfunctions):
 	for function in auxfunctions:
 		if(function.L)>Lmax:
 			Lmax=function.L
-	print "Maximum angular momentum in aux basisset is {}".format(Lmax)
+	print ("Maximum angular momentum in aux basisset is {}".format(Lmax))
 	functionsperL=[]
 	for i in range(Lmax+1):
 		functionsperL.append([])
@@ -285,16 +285,16 @@ def sortauxfunctions(auxfunctions):
 		functionsperL[function.L].append(function) 
 
 	for i,L in enumerate(functionsperL):
-		print "{} functions have L={}".format(len(L),i)
+		print ("{} functions have L={}".format(len(L),i))
 	return functionsperL
 
 def readinbasisset(xmlfile):
 
-	print "Parsing  {}\n".format(xmlfile)
+	print ("Parsing  {}\n".format(xmlfile))
 	parser=lxml.XMLParser(remove_comments=True)
 	tree = lxml.parse(xmlfile,parser)
 	root = tree.getroot()
-	print "Basisset name is {}".format(root.get("name"))
+	print ("Basisset name is {}".format(root.get("name")))
 	output = lxml.Element("basis",name="aux-"+root.get("name"))
 	for element in root.iter('element'): 
 		if onlyoneelement==False or element.get("name")==onlyoneelement:
@@ -322,9 +322,9 @@ def clusterfunctionsperL(functions):
 					collections.append(newcollection)
 					
 			
-	print "Reduced functions from {} to {}".format(len(functions),len(collections))
+	print ("Reduced functions from {} to {}".format(len(functions),len(collections)))
 	for i,col in enumerate(collections):
-		print "{} Functions: {} Decay {}".format(i,col.size(),col.decay)
+		print ("{} Functions: {} Decay {}".format(i,col.size(),col.decay))
 	return collections
 
 
@@ -342,9 +342,9 @@ def clustercollections(collections):
 					break
 			else:
 				finalshells.append(col)
-	print "Reduced functions from {} to {}".format(len(collections),len(finalshells))
+	print ("Reduced functions from {} to {}".format(len(collections),len(finalshells)))
 	for i,col in enumerate(finalshells):
-		print "{} Functions: {} Decay {} Type {}".format(i,col.size(),col.decay, col.shellstring())
+		print ("{} Functions: {} Decay {} Type {}".format(i,col.size(),col.decay, col.shellstring()))
 	return finalshells
 			
 

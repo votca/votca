@@ -54,7 +54,8 @@ void KMCMultiple::Initialize(tools::Property *options){
             _injectionmethod = "random";
         }
          _field = options->ifExistsReturnElseReturnDefault<tools::vec>(key+".field",tools::vec(0,0,0));
-       _field *= 10E-9; 
+         double mtonm=1E9;
+       _field /=mtonm ;//Converting from V/m to V/nm 
       
 	_outputtime = options->ifExistsReturnElseReturnDefault<double>(key+".outputtime",0);
         _timefile = options->ifExistsReturnElseReturnDefault<std::string>(key+".timefile","timedependence.csv");
