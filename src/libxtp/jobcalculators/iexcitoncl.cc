@@ -23,8 +23,6 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/tools/constants.h>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
 #include <votca/tools/propertyiomanipulator.h>
 
 #include <votca/ctp/logger.h>
@@ -32,8 +30,6 @@
 
 using namespace boost::filesystem;
 using namespace votca::tools;
-
-namespace ub = boost::numeric::ublas;
     
 namespace votca { namespace xtp {
     

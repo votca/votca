@@ -32,7 +32,9 @@
 /* Contact address of package */
 #define PACKAGE_BUGREPORT "@PROJECT_CONTACT@"
 
-/* LIBXC */
-#cmakedefine LIBXC
+
+#cmakedefine MKL
+
+
 
 #endif // _VOTCA_XTP_CONFIG_H

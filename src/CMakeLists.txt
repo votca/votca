@@ -1,0 +1,6 @@
+add_subdirectory(libxtp)
+add_subdirectory(tools)
+set(XTP_PROGS "${XTP_PROGS}" PARENT_SCOPE)
+if(ENABLE_TESTING)
+  add_subdirectory(tests)
+endif()

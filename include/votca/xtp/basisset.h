@@ -23,8 +23,6 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <votca/tools/property.h>
-
 
 
 

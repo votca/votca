@@ -16,8 +16,6 @@
  */
 
 #include "votca/xtp/gnode.h"
-
-#include <votca/tools/property.h>
 #include <boost/format.hpp>
 
 using namespace std;
@@ -77,6 +75,7 @@ void GNode::InitEscapeRate()
          reorg_intorig=seg->getU_nX_nN(carriertype);
          reorg_intdest=seg->getU_xN_xX(carriertype);
      }
+     
     return; 
  }
  

@@ -1,6 +1,6 @@
 <package>
   <name>orca</name>
-  <executable>/opt/orca/orca</executable>
+  <executable>/opt/orca-4.0.1/orca</executable>
   <checkpoint></checkpoint>
   <scratch>temp</scratch>
   <charge>0</charge>
@@ -13,7 +13,7 @@
   <writepseudopotentials>false</writepseudopotentials>
   <outputVxc>0</outputVxc>
   <options>
-! DFT PBE Grid5 DIRECT
+! DFT PBE NoFinalGrid
 
 %scf
   TolE  1e-2
