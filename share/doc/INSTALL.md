@@ -79,11 +79,17 @@ To install the full package:
     emerge votca-csg votca-xtp
 
 ## Spack
+[Spack](https://spack.io/) is an package manager, which allows to build VOTCA and all its dependencies:
 
     git clone clone https://github.com/spack/spack.git spack
     source spack/share/spack/setup-env.sh
     spack install votca-csg
     spack install votca-xtp
+
+### Development version
+Spack can also install the latest development version from git using:
+
+    spack install votca-csg@develop
 
 ## Docker 
 
