@@ -15,11 +15,21 @@ TOOLS -> CSG -> CTP -> XTP
 #### Ubuntu
 Dependencies for core functionality
 
-    sudo apt-get install cmake git g++ libexpat-dev libfftw3-dev libgsl-dev libboost-all-dev txt2tags libsqlite3-dev libhdf5-dev graphviz pkg-config psmisc libeigen3-dev libxc-dev libceres-dev 
+    apt-get install make cmake git g++ libexpat-dev libfftw3-dev libgsl-dev libboost-all-dev txt2tags libsqlite3-dev octave gnuplot python-numpy libhdf5-dev graphviz pkg-config psmisc libint2-dev libeigen3-dev libxc-dev libceres-dev
+    
+Dependencies for Manual
+
+    apt-get install ghostscript texlive inkscape transfig texlive-latex-extra texlive-pstricks
+    
+### Fedora
+Dependencies for core functionality
+
+     dnf install make cmake git gcc-c++ expat-devel fftw-devel gsl-devel boost-devel txt2tags sqlite-devel procps-ng octave gnuplot python2-numpy psmisc hdf5-devel lammps libint2-devel eigen3-devel libxc-devel ceres-solver-devel python-numpy
 
 Dependencies for Manual
 
-    sudo apt-get install xfig inkscape gsfonts-X11 ghostscript texlive texlive-latex-extra texlive-humanities
+     dnf install ghostscript texlive doxygen texlive-appendix texlive-wrapfig texlive-a4wide texlive-xstring inkscape transfig texlive-units texlive-sidecap texlive-bclogo texlive-mdframed texlive-braket graphviz ImageMagick ghostscript-tools-dvipdf
+
 
 ## General Installation Instructions 
 
