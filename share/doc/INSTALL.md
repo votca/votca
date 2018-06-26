@@ -15,10 +15,10 @@ TOOLS -> CSG -> CTP -> XTP
 
 Each of these repositories has different dependencies shown in the table below in alphabetical order. They are marked as following:
 
-r - required 
-o - optional
-n - not needed
-m - needed for building the manual
+* r - required 
+* o - optional
+* n - not needed
+* m - needed for building the manual
 
  Dependency          | csg | ctp | xtp |
  ------------------- | --- | --- | --- |
