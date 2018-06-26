@@ -70,6 +70,14 @@ To install the full package:
     cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
     make -j5
     
+### cmake Flags
+
+* BUILD_CSGAPPS - Build the csg repo (ON/OFF, Default OFF)
+* BUILD_XTP - Build the xtp repo (ON/OFF, Default OFF)
+* BUILD_CTP - Build the ctp repo (ON/OFF, Default OFF)
+* CMAKE_INSTALL_PREFIX - where to install the votca executables (Default is /usr/local/bin)
+* ENABLE_TESTING - compile tests (ON/OFF, Default OFF)
+    
 ## Docker 
 
 Votca is also available through docker and can be accessed and run with the following docker commands:
