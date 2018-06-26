@@ -74,7 +74,7 @@ Eigen::MatrixXd overlap_ref=Eigen::MatrixXd::Zero(17,17);
 0.0808612,0.401447,-0.135615,0.135615,-0.135615,0.668849,-0.340149,0.340149,-0.340149,0.116994,0.354983,0.116994,0.354983,0.116994,0.354983,0.645899,1;
   
   ConvergenceAcc d;
-  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,0.0,0,4,0);
+  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,0.0,0,8,0);
   d.setOverlap(&overlap_ref,1e-8);
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
   Eigen::VectorXd MOEnergies_ref=Eigen::VectorXd::Zero(17);

@@ -111,7 +111,8 @@ namespace votca {
             
             Eigen::MatrixXd IntegrateExternalDensity(const Orbitals& extdensity);
             
-            Eigen::MatrixXd RunAtomicDFT(QMAtom* uniqueAtom);
+            Eigen::MatrixXd RunAtomicDFT_unrestricted(QMAtom* uniqueAtom);
+            Eigen::MatrixXd RunAtomicDFT_fractional(QMAtom* uniqueAtom);
             
             void NuclearRepulsion();
             double ExternalRepulsion(ctp::Topology* top = NULL);
@@ -121,10 +122,6 @@ namespace votca {
             ctp::Logger *_pLog;
 
             int _openmp_threads;
-
-            // options
-            std::string _dft_options;
-            tools::Property _dftengine_options;
 
             // atoms
             std::vector<QMAtom*> _atoms;
@@ -175,18 +172,19 @@ namespace votca {
             AODipole_Potential _dftAODipole_Potential;
             AOQuadrupole_Potential _dftAOQuadrupole_Potential;
             AOPlanewave _dftAOplanewave;
+            double E_nucnuc;
+            
             bool _with_guess;
             std::string _initial_guess;
-            double E_nucnuc;
 
-            // COnvergence 
+            // Convergence 
             double _mixingparameter;
             double _Econverged;
             double _error_converged;
             int _numofelectrons;
             int _max_iter;
             
-
+        
             //levelshift
 
             double _levelshiftend;
@@ -201,7 +199,6 @@ namespace votca {
             Eigen::MatrixXd _Sminusonehalf;
             double _diis_start;
             double _adiis_start;
-            bool _useautomaticmixing;
             //Electron repulsion integrals
             ERIs _ERIs;
 

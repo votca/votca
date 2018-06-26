@@ -36,7 +36,6 @@ namespace votca { namespace xtp {
         
         tools::vec dipole=-(apolarsite->getU1()+apolarsite->getQ1())*tools::conv::nm2bohr;
         tools::vec position=apolarsite->getPos()*tools::conv::nm2bohr;
-        std::cout<<dipole<<std::endl;
 
        
         // shell info, only lmax tells how far to go
@@ -749,8 +748,8 @@ if (_lmax_col > 3) {
   //------------------------------------------------------
 
 } // end if (_lmax_col > 3)
-
-
+std::cout<<dipole<<std::endl;
+//votca dipoles are spherical in ordering z,y,x
 for (int _i = 0; _i < _nrows; _i++) {
   for (int _j = 0; _j < _ncols; _j++) {
     dip(_i,_j) = dipole.getX() * dip4[_i][_j][0][0] +dipole.getY() * dip4[_i][_j][1][0] + dipole.getZ() * dip4[_i][_j][2][0];

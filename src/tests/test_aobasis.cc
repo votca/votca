@@ -169,7 +169,7 @@ BOOST_AUTO_TEST_CASE(ReorderMos_test) {
   ConvergenceAcc d;
   Orbitals orb;
   int occlevels=5;
-  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,levelshift,0,occlevels,0);
+  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,levelshift,0,2*occlevels,0);
   d.setOverlap(&overlap.Matrix(),1e-8);
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
   

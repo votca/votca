@@ -19,6 +19,8 @@
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/convergenceacc.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/aomatrix.h>
+#include <fstream>
 using namespace votca::xtp;
 using namespace std;
 
@@ -104,7 +106,7 @@ ofstream xyzfile("molecule.xyz");
   ConvergenceAcc d;
   Orbitals orb;
   int occlevels=5;
-  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,levelshift,0,occlevels,0);
+  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,levelshift,0,occlevels*2,0);
   d.setOverlap(&overlap.Matrix(),1e-8);
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
   

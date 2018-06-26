@@ -114,7 +114,7 @@ namespace votca {
           _histlength = 1;
           _maxout = false;
         }
-        _mixingparameter = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.mixing", -10.0);
+        _mixingparameter = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.mixing", 0.7);
         _levelshift = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift", 0.0);
         _levelshiftend = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift_end", 0.8);
         _maxout = options->ifExistsReturnElseReturnDefault<bool>(key + ".convergence.DIIS_maxout", false);
@@ -128,7 +128,7 @@ namespace votca {
         _diis_start = 0.01;
         _adiis_start = 2;
         _histlength = 10;
-        _mixingparameter = -10;
+        _mixingparameter = 0.7;
         _usediis = true;
         _max_iter = 100;
         _levelshift = 0.25;
@@ -441,7 +441,7 @@ void DFTEngine::CalcElDipole(){
 
       conv_accelerator.Configure(ConvergenceAcc::KSmode::closed, _usediis,
               true, _histlength, _maxout, _adiis_start, _diis_start,
-              _levelshift, _levelshiftend, _numofelectrons / 2, _mixingparameter);
+              _levelshift, _levelshiftend, _numofelectrons, _mixingparameter);
       conv_accelerator.setLogger(_pLog);
       conv_accelerator.setOverlap(&_dftAOoverlap.Matrix(), 1e-8);
 
@@ -482,7 +482,7 @@ void DFTEngine::CalcElDipole(){
       return;
     }
     
-    Eigen::MatrixXd DFTEngine::RunAtomicDFT(QMAtom* uniqueAtom){
+    Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(QMAtom* uniqueAtom){
       bool with_ecp = _with_ecp;
       if (uniqueAtom->getType() == "H" || uniqueAtom->getType() == "He") {
         with_ecp = false;
@@ -537,11 +537,11 @@ void DFTEngine::CalcElDipole(){
         double diisstart = 0;
 
         Convergence_alpha.Configure(ConvergenceAcc::KSmode::open, true, false, 
-                20, 0, adiisstart, diisstart, 0.1, diisstart, alpha_e, -1);
+                20, 0, adiisstart, diisstart, 0.1, diisstart, alpha_e, _mixingparameter);
         Convergence_alpha.setLogger(_pLog);
         Convergence_alpha.setOverlap(&dftAOoverlap.Matrix(), 1e-8);
         Convergence_beta.Configure(ConvergenceAcc::KSmode::open, true, false, 
-                20, 0, adiisstart, diisstart, 0.1, diisstart, beta_e, -1);
+                20, 0, adiisstart, diisstart, 0.1, diisstart, beta_e, _mixingparameter);
         Convergence_beta.setLogger(_pLog);
         Convergence_beta.setOverlap(&dftAOoverlap.Matrix(), 1e-8);
         /**** Construct initial density  ****/
@@ -562,7 +562,7 @@ void DFTEngine::CalcElDipole(){
         Eigen::MatrixXd dftAOdmat_beta = Convergence_beta.DensityMatrix(MOCoeff_beta, MOEnergies_beta);
    
         double energyold = 0;
-        int maxiter = 50;
+        int maxiter = 80;
         for (int this_iter = 0; this_iter < maxiter; this_iter++) {
           ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);
           double E_two_alpha = ERIs_atom.getERIs().cwiseProduct(dftAOdmat_alpha).sum();
@@ -608,8 +608,10 @@ void DFTEngine::CalcElDipole(){
                     << " Etot " << totenergy 
                     << " diise_a " << Convergence_alpha.getDIIsError() 
                     << " diise_b " << Convergence_beta.getDIIsError()
-                    << " a_gap " << MOEnergies_alpha(alpha_e) - MOEnergies_alpha(alpha_e - 1) 
-                    << " b_gap " << MOEnergies_beta(beta_e) - MOEnergies_beta(beta_e - 1) << flush;
+                    << "\n\t\t a_gap " << MOEnergies_alpha(alpha_e) - MOEnergies_alpha(alpha_e - 1) 
+                    << " b_gap " << MOEnergies_beta(beta_e) - MOEnergies_beta(beta_e - 1) 
+                    <<" Nalpha="<<dftAOoverlap.Matrix().cwiseProduct(dftAOdmat_alpha).sum()
+                    <<" Nbeta="<<dftAOoverlap.Matrix().cwiseProduct(dftAOdmat_beta).sum()<<flush;
           }
           bool converged = (std::abs(totenergy - energyold) < _Econverged &&
                   Convergence_alpha.getDIIsError() < _error_converged &&
@@ -620,7 +622,7 @@ void DFTEngine::CalcElDipole(){
               CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << this_iter + 1 << " iterations" << flush;
             } else {
               CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Not converged after "
-                      << this_iter + 1 <<" iterations. Using unconverged density."
+                      << this_iter + 1 <<" iterations. Unconverged density."
                       <<" DIIsError_alpha=" << Convergence_alpha.getDIIsError()
                       << " DIIsError_beta=" << Convergence_beta.getDIIsError() << flush;
             }
@@ -635,6 +637,9 @@ void DFTEngine::CalcElDipole(){
                 << std::setprecision(9) << avgmatrix.cwiseProduct(dftAOoverlap.Matrix()).sum() << " electrons." << flush;
         return avgmatrix;
     }
+    
+    
+  
 
     Eigen::MatrixXd DFTEngine::AtomicGuess(Orbitals* _orbitals) {
 
@@ -664,11 +669,11 @@ void DFTEngine::CalcElDipole(){
       for ( QMAtom* unique_atom:uniqueelements) {
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating atom density for " << unique_atom->getType() << flush;
-        Eigen::MatrixXd dmat=RunAtomicDFT(unique_atom);
+        Eigen::MatrixXd dmat_unrestricted=RunAtomicDFT_unrestricted(unique_atom);
 
-        uniqueatom_guesses.push_back(dmat);
-        
+        uniqueatom_guesses.push_back(dmat_unrestricted);
       }
+      
       
       
       Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(_dftbasis.AOBasisSize(), _dftbasis.AOBasisSize());
@@ -770,14 +775,14 @@ void DFTEngine::Prepare(Orbitals* _orbitals) {
       _dftbasis.AOBasisFill(_dftbasisset, _atoms);
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
               << " Loaded DFT Basis Set " << _dftbasis_name 
-              << "with "<<_dftbasis.AOBasisSize()<<" functions"<< flush;
+              << " with "<<_dftbasis.AOBasisSize()<<" functions"<< flush;
 
       if (_with_RI) {
         _auxbasisset.LoadBasisSet(_auxbasis_name);
         _auxbasis.AOBasisFill(_auxbasisset, _atoms);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                 << " Loaded AUX Basis Set " << _auxbasis_name  
-                << "with "<<_auxbasis.AOBasisSize()<<" functions"<< flush;
+                << " with "<<_auxbasis.AOBasisSize()<<" functions"<< flush;
       }
       if (_with_ecp) {
         _ecpbasisset.LoadPseudopotentialSet(_ecp_name);

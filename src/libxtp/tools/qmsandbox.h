@@ -95,6 +95,9 @@ bool QMSandbox::Evaluate() {
 
     {
         vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS(_mpsfiled, 0);
+        for (ctp::APolarSite* s: sites){
+            std::cout<<s->getQ1()<<std::endl;
+        }
         ctp::PolarSeg *newPolarSegment = new ctp::PolarSeg(0, sites);
         polar_segments_dipole.push_back(newPolarSegment);
     }   
