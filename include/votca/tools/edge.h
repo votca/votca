@@ -79,7 +79,7 @@ class Edge {
 
 // Value used as a dummy object
 const Edge DUMMY_EDGE(std::numeric_limits<int>::max(),
-  std::numeric_limits<int>::max());
+                      std::numeric_limits<int>::max());
 }
 }
 
