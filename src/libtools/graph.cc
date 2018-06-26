@@ -28,19 +28,16 @@ namespace tools {
 
 class GraphNode;
 
-void Graph::updateIds_(Graph& g) {
+void Graph::updateId_() {
   if (!this->id_set_) {
     this->calcId_();
     this->id_set_ = true;
   }
-  if (!g.id_set_) {
-    g.calcId_();
-    g.id_set_ = true;
-  }
 }
 
 bool Graph::operator!=(Graph& g) {
-  updateIds_(g);
+  this->updateId_();
+  g.updateId_();
   return id_.compare(g.id_);
 }
 

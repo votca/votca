@@ -54,8 +54,9 @@ class Graph : public EdgeContainer {
 
   /// If the id has been calculated yet
   bool id_set_;
-  /// Update the graphs ids
-  void updateIds_(Graph& g);
+  /// Update the graphs id, the id is a string that is determined based on the
+  /// sorted contents of the graph nodes. 
+  void updateId_();
 
  protected:
   /// Calculate the id of the graph
