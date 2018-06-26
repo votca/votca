@@ -48,6 +48,16 @@ Each of these repositories has different dependencies shown in the table below i
  wget                | o   | o   | o   |
  xfig                | n   | n   | m   |
  
+### Dependency Installation
+#### Ubuntu
+Dependencies for core functionality
+
+    sudo apt-get install cmake git g++ libexpat-dev libfftw3-dev libgsl-dev libboost-all-dev txt2tags libsqlite3-dev wget libhdf5-dev graphviz pkg-config psmisc libeigen3-dev libxc-dev libceres-dev 
+
+Dependencies for Manual
+
+    sudo apt-get install xfig inkscape gsfonts-X11 ghostscript texlive texlive-latex-extra texlive-humanities
+
 ## Installation 
 
 To install the full package:
