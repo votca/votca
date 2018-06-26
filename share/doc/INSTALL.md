@@ -41,25 +41,32 @@ To install the full package:
 * `CMAKE_INSTALL_PREFIX` - where to install the votca executables (Default is /usr/local/bin)
 * `ENABLE_TESTING` - compile tests (ON/OFF, Default OFF)
 
-## Yum (Native - CentOS, Fedora)
+## Fedora
+
+    dnf install votca-csg votca-xtp
+
+## CentOs
 
     yum install epel-release
     yum update
     yum install votca-csg
-    yum install votca-xtp
 
-## Zypper (Native - OpenSuse, SLES)
+## OpenSuse
 
-    zypper install votca-csg
-    zypper install votca-xtp
+    zypper install votca-csg votca-xtp
+    
+## SLES
 
-## Apt-get (Native - Debian, Ubuntu)
+    SUSEConnect -p PackageHub/12.2/x86_64
+    zypper install votca-csg    
+
+## Debian / Ubuntu
 
     apt-get install votca-csg
     
-## Emerge (Native - Gentoo)
+## Gentoo 
 
-    emerge votca-csg
+    emerge votca-csg votca-xtp
 
 ## Spack
 
