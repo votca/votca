@@ -28,13 +28,9 @@ namespace votca {
 namespace tools {
 
 bool singleNetwork(Graph g, GraphVisitor& gv){
-
   exploreGraph(g,gv);
-  auto all_vertices = g.getVertices();
-  auto exp_vertices = gv.getExploredVertices(); 
-  auto iso_nodes = g.getIsolatedNodes();
-  return exp_vertices.size()==all_vertices.size() && 
-         iso_nodes.size() == 0;
+  return gv.getExploredVertices().size()==g.getVertices().size() && 
+         g.getIsolatedNodes().size() == 0;
 }
 
 void exploreGraph(Graph& g, GraphVisitor& gv, int starting_vertex){
@@ -42,7 +38,7 @@ void exploreGraph(Graph& g, GraphVisitor& gv, int starting_vertex){
   // Create a list of all vertices and determine if they have all been
   // explored when the visitor que is empty 
   gv.startingVertex(g,starting_vertex);
-  while(gv.queEmpty()==false){
+  while(!gv.queEmpty()){
     auto ed = gv.nextEdge(g);
     gv.exec(g,ed);
   }
