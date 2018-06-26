@@ -45,7 +45,7 @@ class EdgeContainer {
   EdgeContainer(std::vector<Edge> eds);
 
   /// Get the value of the max degree
-  int getMaxDegree(void);
+  int getMaxDegree();
   /// Contains vector of all vertices with degree
   std::vector<int> getVerticesDegree(int degree);
   /// Determine the degree of the vertex/number of edges attached
