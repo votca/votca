@@ -43,15 +43,15 @@ To install the full package:
 
 ## Yum (Native - CentOS, Fedora)
 
-   yum install epel-release
-   yum update
-   yum install votca-csg
-   yum install votca-xtp
+    yum install epel-release
+    yum update
+    yum install votca-csg
+    yum install votca-xtp
 
 ## Zypper (Native - OpenSuse, SLES)
 
-   zypper install votca-csg
-   zypper install votca-xtp
+    zypper install votca-csg
+    zypper install votca-xtp
 
 ## Apt-get (Native - Debian, Ubuntu)
 
