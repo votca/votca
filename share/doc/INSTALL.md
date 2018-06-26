@@ -21,7 +21,7 @@ Dependencies for Manual
 
     apt-get install ghostscript texlive inkscape transfig texlive-latex-extra texlive-pstricks
     
-### Fedora
+#### Fedora
 Dependencies for core functionality
 
      dnf install make cmake git gcc-c++ expat-devel fftw-devel gsl-devel boost-devel txt2tags sqlite-devel procps-ng octave gnuplot python2-numpy psmisc hdf5-devel lammps libint2-devel eigen3-devel libxc-devel ceres-solver-devel python-numpy
@@ -31,7 +31,7 @@ Dependencies for Manual
      dnf install ghostscript texlive doxygen texlive-appendix texlive-wrapfig texlive-a4wide texlive-xstring inkscape transfig texlive-units texlive-sidecap texlive-bclogo texlive-mdframed texlive-braket graphviz ImageMagick ghostscript-tools-dvipdf
 
 
-## General Installation Instructions 
+## General (Source) Installation Instructions 
 
 To install the full package:
 
@@ -43,7 +43,7 @@ To install the full package:
     cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
     make -j5
 
-### cmake Flags
+### Common CMake Flags
 
 * `BUILD_CSGAPPS` - Build the extra csg applications repo (ON/OFF, Default OFF)
 * `BUILD_XTP` - Build the xtp repo (ON/OFF, Default OFF)
@@ -51,34 +51,41 @@ To install the full package:
 * `CMAKE_INSTALL_PREFIX` - where to install the votca executables (Default is /usr/local/bin)
 * `ENABLE_TESTING` - compile tests (ON/OFF, Default OFF)
 
-## Fedora
+### Other CMake Flage
+
+ * `BUILD_CSG_MANUAL` - Build csg pdf manual
+ * `BUILD_CTP_MANUAL` - Build ctp pdf manual
+ * `BUILD_XTP_MANUAL` - Build xtp pdf manual
+
+## Binary Packages for various Linux Distributions
+### Fedora
 
     dnf install votca-csg votca-xtp
 
-## CentOs
+### CentOs
 
     yum install epel-release
     yum update
     yum install votca-csg
 
-## OpenSuse
+### OpenSuse
 
     zypper install votca-csg votca-xtp
     
-## SLES
+### SLES
 
     SUSEConnect -p PackageHub/12.2/x86_64
     zypper install votca-csg    
 
-## Debian / Ubuntu
+### Debian / Ubuntu
 
     apt-get install votca-csg
     
-## Gentoo 
+### Gentoo 
 
     emerge votca-csg votca-xtp
 
-## Spack
+### Spack
 [Spack](https://spack.io/) is an package manager, which allows to build VOTCA and all its dependencies:
 
     git clone clone https://github.com/spack/spack.git spack
@@ -86,12 +93,12 @@ To install the full package:
     spack install votca-csg
     spack install votca-xtp
 
-### Development version
+#### Development version
 Spack can also install the latest development version from git using:
 
     spack install votca-csg@develop
 
-## Docker 
+### Docker 
 
 Votca is also available through docker and can be accessed and run with the following docker commands:
 
