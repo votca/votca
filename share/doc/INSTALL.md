@@ -51,11 +51,12 @@ To install the full package:
 * `CMAKE_INSTALL_PREFIX` - where to install the votca executables (Default is /usr/local/bin)
 * `ENABLE_TESTING` - compile tests (ON/OFF, Default OFF)
 
-### Other CMake Flage
+### Other CMake Flags
 
  * `BUILD_CSG_MANUAL` - Build csg pdf manual
  * `BUILD_CTP_MANUAL` - Build ctp pdf manual
  * `BUILD_XTP_MANUAL` - Build xtp pdf manual
+ * `WITH_GMX` - Build with Gromacs support (ON/OFF, Default ON)
 
 ## Binary Packages for various Linux Distributions
 ### Fedora
