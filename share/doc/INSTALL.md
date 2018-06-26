@@ -11,43 +11,6 @@ VOTCA is currently composed of four major repositories:
 
 TOOLS -> CSG -> CTP -> XTP
 
-## Dependencies
-
-Each of these repositories has different dependencies shown in the table below in alphabetical order. They are marked as following:
-
-* r - required 
-* o - optional
-* n - not needed
-* m - needed for building the manual
-* M - needed for manpage and manual
-
- Dependency          | csg | ctp | xtp |
- ------------------- | --- | --- | --- |
- cmake               | r   | r   | r   |
- ghostscript         | m   | m   | m   |
- git                 | o   | o   | o   |
- graphviz            | n   | n   | r   |
- gromacs-dev         | r   | n   | n   |
- gsfonts-X11         | m   | m   | m   |
- g++                 | r   | r   | r   |
- inkscape            | n   | m   | m   |
- libboost-all-dev    | r   | r   | r   |
- libceres-dev        | n   | n   | r   | 
- libeigen3-dev       | n   | n   | r   |
- libexpat-dev        | r   | r   | r   |
- libfftw3-dev        | r   | r   | r   |
- libgsl-dev          | o   | n   | r   |
- libhdf5-dev         | o   | n   | r   |
- libsqlite3-dev      | o   | o   | o   |
- libxc-dev           | n   | n   | r   |
- pkg-config          | o   | o   | o   |
- psmisc              | r   | n   | r   |
- texlive             | m   | m   | m   |
- texlive-humanities  | m   | m   | m   |
- texlive-latex-extra | m   | m   | m   |
- txt2tags            | M   | m   | m   |
- xfig                | n   | n   | m   |
- 
 ### Dependency Installation
 #### Ubuntu
 Dependencies for core functionality
@@ -58,7 +21,7 @@ Dependencies for Manual
 
     sudo apt-get install xfig inkscape gsfonts-X11 ghostscript texlive texlive-latex-extra texlive-humanities
 
-## Installation 
+## General Installation Instructions 
 
 To install the full package:
 
@@ -69,7 +32,7 @@ To install the full package:
     cd build
     cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
     make -j5
-    
+
 ### cmake Flags
 
 * `BUILD_CSGAPPS` - Build the extra csg applications repo (ON/OFF, Default OFF)
@@ -77,7 +40,34 @@ To install the full package:
 * `BUILD_CTP` - Build the ctp repo (ON/OFF, Default OFF)
 * `CMAKE_INSTALL_PREFIX` - where to install the votca executables (Default is /usr/local/bin)
 * `ENABLE_TESTING` - compile tests (ON/OFF, Default OFF)
+
+## Yum (Native - CentOS, Fedora)
+
+   yum install epel-release
+   yum update
+   yum install votca-csg
+   yum install votca-xtp
+
+## Zypper (Native - OpenSuse, SLES)
+
+   zypper install votca-csg
+   zypper install votca-xtp
+
+## Apt-get (Native - Debian, Ubuntu)
+
+    apt-get install votca-csg
     
+## Emerge (Native - Gentoo)
+
+    emerge votca-csg
+
+## Spack
+
+    git clone clone https://github.com/spack/spack.git spack
+    source spack/share/spack/setup-env.sh
+    spack install votca-csg
+    spack install votca-xtp
+
 ## Docker 
 
 Votca is also available through docker and can be accessed and run with the following docker commands:
