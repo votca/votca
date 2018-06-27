@@ -65,8 +65,8 @@ class GraphNode {
 
   /// Basic getters
   int getInt(const std::string str);
-  int getDouble(const std::string str);
-  int getStr(const std::string str);
+  double getDouble(const std::string str);
+  std::string getStr(const std::string str);
 
   /// Get the string id unique to the contents of the graph node
   std::string getStringId() const { return str_id_; }

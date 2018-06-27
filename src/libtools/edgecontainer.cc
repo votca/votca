@@ -40,7 +40,7 @@ EdgeContainer::EdgeContainer(vector<Edge> eds) {
 int EdgeContainer::getMaxDegree(void){
   int max = 0;
   for(auto const& it : adj_list_) {
-    if(lexical_cast<int>(it.second.size())>max) max = it.second.size();
+    if(it.second.size()>max) max = it.second.size();
   }
   return max;
 }

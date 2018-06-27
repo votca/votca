@@ -141,7 +141,7 @@ int GraphNode::getInt(const string str) {
   return int_vals_[str];
 }
 
-int GraphNode::getDouble(const string str) {
+double GraphNode::getDouble(const string str) {
   if (double_vals_.count(str) == 0)
     throw invalid_argument(
         "GraphNode does not "
@@ -149,12 +149,12 @@ int GraphNode::getDouble(const string str) {
   return double_vals_[str];
 }
 
-int GraphNode::getStr(const string str) {
+std::string GraphNode::getStr(const string str) {
   if (str_vals_.count(str) == 0)
     throw invalid_argument(
         "GraphNode does not "
         "contain value");
-  return double_vals_[str];
+  return str_vals_[str];
 }
 
 GraphNode& GraphNode::operator=(const GraphNode& gn) {
