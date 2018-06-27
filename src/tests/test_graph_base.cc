@@ -41,9 +41,17 @@ BOOST_AUTO_TEST_SUITE(graph_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) { Graph g; }
 
+/** 
+ * \brief Test on isolated nodes method
+ *
+ * The isolated nodes method is meant to grab any nodes that have no edges, as
+ * in they exist as islands within the context of the graph. 
+ */
 BOOST_AUTO_TEST_CASE(isolatednodes_test) {
 
   {
+
+    /// Here gn is a single node as is thus isolated
     vector<Edge> vec_ed;
     GraphNode gn;
     unordered_map<int, GraphNode> m_gn;
@@ -55,6 +63,10 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
   }
 
   {
+
+    /// In this test case gn, gn1 and gn2 are all islands no edges have been
+    /// specified to connect them. Calling getIsolatedNodes() thus returns all
+    /// three of them. 
     vector<Edge> vec_ed;
     GraphNode gn;
     GraphNode gn1;
@@ -83,6 +95,10 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
   }
 
   {
+
+    /// In this test both node 0 and 1 share an edge and are no longer isolated
+    /// however node 2 is isolated, a call getIsolatedNodes() only returns node
+    /// 2
     vector<Edge> vec_ed;
     Edge ed(0, 1);
     vec_ed.push_back(ed);
@@ -114,8 +130,20 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
   }
 }
 
+/** 
+ * \brief Determine which vertices are missing a ndoe object
+ *
+ * The graph class used here is composed of vertices, edges and nodes. The node
+ * objects contain information about the vertex. When the graph is created both
+ * the edges and nodes are passed as arguments. It may happen that an edge 
+ * refers to a vertex that does not contain a corresponding graph object, this 
+ * method will determine which vertices have no graph object associated with 
+ * them.
+ */
 BOOST_AUTO_TEST_CASE(verticesmissingnodes_test) {
   {
+
+    /// Here we have created an edge that corresponds to vertex 0 and 1
     vector<Edge> vec_ed;
     Edge ed(0, 1);
     vec_ed.push_back(ed);
@@ -124,14 +152,15 @@ BOOST_AUTO_TEST_CASE(verticesmissingnodes_test) {
     GraphNode gn2;
     GraphNode gn3;
 
-    // Notice there is no node with id 1 though there is an
-    // edge that refers to vertex 1
+    /// Notice there is no node with id 1 though there is an
+    /// edge that refers to vertex 1
     unordered_map<int, GraphNode> m_gn;
     m_gn[0] = gn;
     m_gn[2] = gn2;
     m_gn[3] = gn3;
 
     Graph g(vec_ed, m_gn);
+    /// A call to getVerticesMissingNodes should return vertex 1
     auto missing_nd = g.getVerticesMissingNodes();
     BOOST_CHECK_EQUAL(missing_nd.at(0), 1);
   }
@@ -139,6 +168,7 @@ BOOST_AUTO_TEST_CASE(verticesmissingnodes_test) {
 
 BOOST_AUTO_TEST_CASE(compare_test) {
   {
+
     unordered_map<string, int> int_vals0 = {{"a", 0}};
     unordered_map<string, int> int_vals1 = {{"b", 1}};
     unordered_map<string, int> int_vals2 = {{"c", 2}};
@@ -211,7 +241,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     GraphNode gn3(int_vals3, double_vals, str_vals);
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
-    // Only difference is here where we have rearanged the nodes
+    /// Only difference is here where we have rearanged the nodes
     unordered_map<int, GraphNode> m_gn;
     m_gn[4] = gn;
     m_gn[1] = gn1;
@@ -232,6 +262,13 @@ BOOST_AUTO_TEST_CASE(compare_test) {
   }
 }
 
+/**
+ * \brief Equivalence test 
+ *
+ * Here we demonstrate how the equivalence test works it is purely dependendent
+ * on whether the contents of the graphnodes in the graph contain the same 
+ * information. 
+ */
 BOOST_AUTO_TEST_CASE(id_test) {
   {
     unordered_map<string, int> int_vals0 = {{"a", 0}};
@@ -241,6 +278,7 @@ BOOST_AUTO_TEST_CASE(id_test) {
     unordered_map<string, int> int_vals4 = {{"e", 4}};
 
     unordered_map<string, double> double_vals;
+
     unordered_map<string, string> str_vals;
 
     vector<Edge> vec_ed;
@@ -260,8 +298,8 @@ BOOST_AUTO_TEST_CASE(id_test) {
     GraphNode gn3(int_vals3, double_vals, str_vals);
     GraphNode gn4(int_vals4, double_vals, str_vals);
 
-    // Only difference is here where we have rearanged the nodes
     unordered_map<int, GraphNode> m_gn;
+    /// Here the graph nodes are assigne to different vertices
     m_gn[4] = gn;
     m_gn[1] = gn1;
     m_gn[3] = gn2;
@@ -270,6 +308,7 @@ BOOST_AUTO_TEST_CASE(id_test) {
 
     Graph g(vec_ed, m_gn);
 
+    /// Here is what the string id of the graph should look like
     string str = "a0b1c2d3e4";
     string s_id = g.getId();
     BOOST_CHECK_EQUAL(s_id, str);
@@ -277,6 +316,9 @@ BOOST_AUTO_TEST_CASE(id_test) {
     Graph g2(vec_ed, m_gn);
     BOOST_CHECK(g == g2);
 
+    /// Here we switch up which vertices contain which graphnodes and show that
+    /// the graph id is the same. This is because the vertex ids are not used to
+    /// create the id and neither the edges. Only the contens in the graphnodes
     m_gn[1] = gn3;
     m_gn[2] = gn1;
     Graph g3(vec_ed, m_gn);
