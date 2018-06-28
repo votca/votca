@@ -52,18 +52,12 @@ class Graph : public EdgeContainer {
   /// are considered equal
   std::string id_;
 
-  /// If the id has been calculated yet
-  bool id_set_;
-  /// Update the graphs id, the id is a string that is determined based on the
-  /// sorted contents of the graph nodes. 
-  void updateId_();
-
  protected:
   /// Calculate the id of the graph
   void calcId_();
 
  public:
-  Graph(){};
+  Graph() : id_("") {};
 
   /// Constructor
   /// @param edgs - vector of edges where each edge is composed of two 
@@ -71,7 +65,9 @@ class Graph : public EdgeContainer {
   /// @param nodes - unordered_map where the key is the vertex id and the
   /// target is the graph node
   Graph(std::vector<Edge> edgs, std::unordered_map<int, GraphNode> nodes)
-      : EdgeContainer::EdgeContainer(edgs), nodes_(nodes), id_set_(false) {}
+      : EdgeContainer::EdgeContainer(edgs), nodes_(nodes) {
+    calcId_();
+  }
 
   /// Find all the vertices that are isolated (not connected to any other 
   /// vertex) and return them in a vector with their corresponding graph node.
@@ -85,8 +81,9 @@ class Graph : public EdgeContainer {
   /// connected to the vertex 'vert'
   std::vector<std::pair<int, GraphNode>> getNeighNodes(int vert);
 
-  /// Return the graph node object reference associated with vertex id
-  GraphNode& Node(int vert);
+  /// set the Node associated with vertex 'vert'
+  void setNode(int vert, GraphNode gn);
+  void setNode(std::pair<int,GraphNode> p_gn);
 
   /// Return a copy of the graph node at vertex 'vert'
   GraphNode getNode(int vert);
@@ -96,12 +93,12 @@ class Graph : public EdgeContainer {
 
   /// Equivalence and non equivalence operators work by determine if the 
   /// contents of each graph node in each of the graphs are the same.  
-  bool operator!=(Graph& g);
-  bool operator==(Graph& g);
+  bool operator!=(const Graph& g) const;
+  bool operator==(const Graph& g) const;
 
   Graph& operator=(const Graph& g);
 
-  std::string getId(void);
+  std::string getId() { return id_; }
 
   friend std::ostream& operator<<(std::ostream& os, const Graph g);
 };

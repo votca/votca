@@ -31,13 +31,15 @@ namespace votca {
 namespace tools {
 
 // Add the distance to the node that has not yet been explored
-void GraphDistVisitor::exploreNode_(pair<int, GraphNode&> p_gn, Graph& g,
+void GraphDistVisitor::exploreNode_(pair<int, GraphNode> &p_gn, Graph& g,
                                     Edge ed) {
   // Determine if the node has already been explored
   int vertex = p_gn.first;
   if (vertex == startingVertex_) {
     p_gn.second.int_vals_["Dist"] = 0;
     p_gn.second.initStringId_();
+    // Update the graph with new graph node
+    g.setNode(p_gn);
   } else {
     // Node has not been explored
     if (explored_.count(vertex) == 0) {
@@ -45,6 +47,7 @@ void GraphDistVisitor::exploreNode_(pair<int, GraphNode&> p_gn, Graph& g,
       GraphNode gn_prev = g.getNode(prev_vertex);
       p_gn.second.int_vals_["Dist"] = gn_prev.int_vals_["Dist"] + 1;
       p_gn.second.initStringId_();
+      g.setNode(p_gn);
     }
   }
   // Ensure the graph node is set to explored

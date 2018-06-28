@@ -63,7 +63,7 @@ class GraphVisitor {
   virtual Edge getEdge_(Graph g);
   /// Edge(0,0) is a dummy value
  public:
-  virtual void exploreNode_(std::pair<int, GraphNode&> p_gn, Graph& g,
+  virtual void exploreNode_(std::pair<int, GraphNode> &p_gn, Graph& g,
                             Edge ed = DUMMY_EDGE);
 
   GraphVisitor() : startingVertex_(0){};
