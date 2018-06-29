@@ -20,29 +20,29 @@
 #ifndef VOTCA_XTP_IANALYZE_H
 #define VOTCA_XTP_IANALYZE_H
 
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 #include <math.h>
-#include <votca/ctp/qmpair.h>
+#include <votca/xtp/qmpair.h>
 
 namespace votca { namespace xtp {
 
-class IAnalyze : public ctp::QMCalculator
+class IAnalyze : public xtp::QMCalculator
 {
 public:
 
     std::string  Identify() { return "ianalyze"; }
 
     void    Initialize(tools::Property *options);
-    bool    EvaluateFrame(ctp::Topology *top);
-    void    IHist(ctp::Topology *top, int state);
-    void    IRdependence(ctp::Topology *top, int state);
+    bool    EvaluateFrame(xtp::Topology *top);
+    void    IHist(xtp::Topology *top, int state);
+    void    IRdependence(xtp::Topology *top, int state);
 
 private:
 
     double      _resolution_logJ2;
     std::vector<int> _states;
     double      _resolution_space;
-    std::vector<ctp::QMPair::PairType> _pairtype;
+    std::vector<xtp::QMPair::PairType> _pairtype;
     bool        _do_pairtype;
     bool        _do_IRdependence;
 
@@ -61,10 +61,10 @@ void IAnalyze::Initialize(tools::Property *opt) {
     if ( opt->exists(key+".pairtype")) {
         _do_pairtype=true;
         std::string _store_stdstring = opt->get(key+".pairtype").as<std::string> ();
-        if (_store_stdstring.find("Hopping") != std::string::npos) _pairtype.push_back(ctp::QMPair::Hopping);
-        if (_store_stdstring.find("SuperExchange") != std::string::npos) _pairtype.push_back(ctp::QMPair::SuperExchange);
-        if (_store_stdstring.find("SuperExchangeAndHopping") != std::string::npos) _pairtype.push_back(ctp::QMPair::SuperExchangeAndHopping);
-        if (_store_stdstring.find("Excitoncl") != std::string::npos) _pairtype.push_back(ctp::QMPair::Excitoncl);
+        if (_store_stdstring.find("Hopping") != std::string::npos) _pairtype.push_back(xtp::QMPair::Hopping);
+        if (_store_stdstring.find("SuperExchange") != std::string::npos) _pairtype.push_back(xtp::QMPair::SuperExchange);
+        if (_store_stdstring.find("SuperExchangeAndHopping") != std::string::npos) _pairtype.push_back(xtp::QMPair::SuperExchangeAndHopping);
+        if (_store_stdstring.find("Excitoncl") != std::string::npos) _pairtype.push_back(xtp::QMPair::Excitoncl);
         if (!_pairtype.size()){
             std::cout << std::endl << "... ... No pairtypes recognized will output all pairs. ";
              _do_pairtype=false;
@@ -80,9 +80,9 @@ void IAnalyze::Initialize(tools::Property *opt) {
 }
 
 
-bool IAnalyze::EvaluateFrame(ctp::Topology *top) {
+bool IAnalyze::EvaluateFrame(xtp::Topology *top) {
 
-    ctp::QMNBList &nblist = top->NBList();
+    xtp::QMNBList &nblist = top->NBList();
 
     if (!nblist.size()) {
         std::cout << std::endl << "... ... No pairs in topology. Skip...";
@@ -91,9 +91,9 @@ bool IAnalyze::EvaluateFrame(ctp::Topology *top) {
     
     if (_do_pairtype){
         bool pairs_exist=false;
-        ctp::QMNBList::iterator nit;
+        xtp::QMNBList::iterator nit;
         for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
-            ctp::QMPair::PairType pairtype=(*nit)->getType();
+            xtp::QMPair::PairType pairtype=(*nit)->getType();
             if(std::find(_pairtype.begin(), _pairtype.end(), pairtype) != _pairtype.end()) {
                 pairs_exist=true;
                 break;
@@ -117,10 +117,10 @@ bool IAnalyze::EvaluateFrame(ctp::Topology *top) {
 }
 
 
-void IAnalyze::IHist(ctp::Topology *top, int state) {
+void IAnalyze::IHist(xtp::Topology *top, int state) {
 
-    ctp::QMNBList &nblist = top->NBList();
-    ctp::QMNBList::iterator nit;
+    xtp::QMNBList &nblist = top->NBList();
+    xtp::QMNBList::iterator nit;
    
 
     double MIN = std::numeric_limits<double>::max();
@@ -132,7 +132,7 @@ void IAnalyze::IHist(ctp::Topology *top, int state) {
    
     for (nit = nblist.begin(); nit != nblist.end(); ++nit) {
         if(_do_pairtype){
-            ctp::QMPair::PairType pairtype=(*nit)->getType();
+            xtp::QMPair::PairType pairtype=(*nit)->getType();
             if(!(std::find(_pairtype.begin(), _pairtype.end(), pairtype) != _pairtype.end())){
                 continue;
             }
@@ -193,10 +193,10 @@ void IAnalyze::IHist(ctp::Topology *top, int state) {
     fclose(out);
 }
 
-void IAnalyze::IRdependence(ctp::Topology *top, int state) {
+void IAnalyze::IRdependence(xtp::Topology *top, int state) {
     
-    ctp::QMNBList &nblist = top->NBList();
-    ctp::QMNBList::iterator nit;
+    xtp::QMNBList &nblist = top->NBList();
+    xtp::QMNBList::iterator nit;
 
     double MIN  = log10(nblist.front()->getJeff2(state));
     double MAX  = log10(nblist.front()->getJeff2(state));

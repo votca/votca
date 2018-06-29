@@ -20,14 +20,14 @@
 #ifndef _VOTCA_XTP_EANALYZE_H
 #define _VOTCA_XTP_EANALYZE_H
 
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 #include <math.h>
 #include <votca/tools/tokenizer.h>
 
 
 namespace votca { namespace xtp {
 
-class EAnalyze : public ctp::QMCalculator
+class EAnalyze : public xtp::QMCalculator
 {
 public:
 
@@ -37,10 +37,10 @@ public:
     std::string Identify() { return "eanalyze"; }
 
     void Initialize(tools::Property *opt);
-    bool EvaluateFrame(ctp::Topology *top);
-    void SiteHist(ctp::Topology *top, int state);
-    void PairHist(ctp::Topology *top, int state);
-    void SiteCorr(ctp::Topology *top, int state);
+    bool EvaluateFrame(xtp::Topology *top);
+    void SiteHist(xtp::Topology *top, int state);
+    void PairHist(xtp::Topology *top, int state);
+    void SiteCorr(xtp::Topology *top, int state);
 
 private:
 
@@ -62,7 +62,7 @@ private:
     int  _atomic_last;
     
     std::string _seg_pattern;
-    std::vector<ctp::Segment*> _seg_shortlist;
+    std::vector<xtp::Segment*> _seg_shortlist;
 
 };
 
@@ -135,10 +135,10 @@ void EAnalyze::Initialize( tools::Property *opt ) {
 
 }
 
-bool EAnalyze::EvaluateFrame(ctp::Topology *top) {
+bool EAnalyze::EvaluateFrame(xtp::Topology *top) {
     
     // Short-list segments according to pattern
-    std::vector<ctp::Segment*>::iterator sit;
+    std::vector<xtp::Segment*>::iterator sit;
     for (sit=top->Segments().begin(); sit!=top->Segments().end(); ++sit) {
         std::string seg_name = (*sit)->getName();
         if (votca::tools::wildcmp(_seg_pattern.c_str(), seg_name.c_str())) {
@@ -159,7 +159,7 @@ bool EAnalyze::EvaluateFrame(ctp::Topology *top) {
     // ... Pair-energy histogram, mean, width
     // ... Site-energy correlation
 
-    ctp::QMNBList &nblist = top->NBList();
+    xtp::QMNBList &nblist = top->NBList();
 
     for (unsigned i = 0; i < _states.size(); ++i) {
 
@@ -206,7 +206,7 @@ bool EAnalyze::EvaluateFrame(ctp::Topology *top) {
     return true;
 }
 
-void EAnalyze::SiteHist(ctp::Topology *top, int state) {
+void EAnalyze::SiteHist(xtp::Topology *top, int state) {
 
     std::vector< double > Es;
     Es.reserve(_seg_shortlist.size());
@@ -218,7 +218,7 @@ void EAnalyze::SiteHist(ctp::Topology *top, int state) {
     double STD = 0.0;
 
     // Collect energies from segments, calc AVG
-    std::vector< ctp::Segment* > ::iterator sit;
+    std::vector< xtp::Segment* > ::iterator sit;
     for (sit = _seg_shortlist.begin(); 
          sit < _seg_shortlist.end();
          ++sit) {
@@ -298,12 +298,12 @@ void EAnalyze::SiteHist(ctp::Topology *top, int state) {
             if ((*sit)->getId() == _atomic_last) { break; }
             double E = (*sit)->getSiteEnergy(state);
 
-            std::vector< ctp::Atom* > ::iterator ait;
+            std::vector< xtp::Atom* > ::iterator ait;
             for (ait = (*sit)->Atoms().begin();
                  ait < (*sit)->Atoms().end();
                  ++ait) {
 
-                ctp::Atom *atm = *ait;
+                xtp::Atom *atm = *ait;
 
                 fprintf(out, "%3s %4.7f %4.7f %4.7f %4.7f\n",
                               (*sit)->getName().c_str(),
@@ -318,10 +318,10 @@ void EAnalyze::SiteHist(ctp::Topology *top, int state) {
 }
 
 
-void EAnalyze::PairHist(ctp::Topology *top, int state) {
+void EAnalyze::PairHist(xtp::Topology *top, int state) {
 
-    ctp::QMNBList &nblist = top->NBList();
-    ctp::QMNBList::iterator pit;
+    xtp::QMNBList &nblist = top->NBList();
+    xtp::QMNBList::iterator pit;
 
     double MIN = nblist.front()->Seg1()->getSiteEnergy(state)
                - nblist.front()->Seg2()->getSiteEnergy(state);
@@ -339,8 +339,8 @@ void EAnalyze::PairHist(ctp::Topology *top, int state) {
     std::vector< double > dEs;    
     for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
 
-        ctp::Segment *seg1 = (*pit)->Seg1();
-        ctp::Segment *seg2 = (*pit)->Seg2();
+        xtp::Segment *seg1 = (*pit)->Seg1();
+        xtp::Segment *seg2 = (*pit)->Seg2();
 
         double dE = seg2->getSiteEnergy(state) - seg1->getSiteEnergy(state);
 
@@ -409,20 +409,20 @@ void EAnalyze::PairHist(ctp::Topology *top, int state) {
 }
 
 
-void EAnalyze::SiteCorr(ctp::Topology *top, int state) {
+void EAnalyze::SiteCorr(xtp::Topology *top, int state) {
 
     double AVG = 0.0;
     double AVGESTATIC = 0.0;
     double VAR = 0.0;
     double STD = 0.0;
 
-    std::vector< ctp::Segment* > ::iterator sit1;
-    std::vector< ctp::Segment* > ::iterator sit2;    
+    std::vector< xtp::Segment* > ::iterator sit1;
+    std::vector< xtp::Segment* > ::iterator sit2;    
 
     // Calculate mean site energy
     std::vector< double > Es;
 
-    std::vector< ctp::Segment* > ::iterator sit;
+    std::vector< xtp::Segment* > ::iterator sit;
     for (sit = _seg_shortlist.begin();
          sit < _seg_shortlist.end();
          ++sit) {
@@ -451,8 +451,8 @@ void EAnalyze::SiteCorr(ctp::Topology *top, int state) {
     double MIN = +1e15;
     double MAX = -1e15;
 
-    std::vector< ctp::Fragment* > ::iterator fit1;
-    std::vector< ctp::Fragment* > ::iterator fit2;
+    std::vector< xtp::Fragment* > ::iterator fit1;
+    std::vector< xtp::Fragment* > ::iterator fit2;
 
     std::cout << std::endl;
     

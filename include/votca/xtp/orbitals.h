@@ -32,7 +32,7 @@
 #include <votca/tools/property.h>
 #include <votca/tools/vec.h>
 
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <boost/format.hpp>
 #include <votca/tools/constants.h>
 

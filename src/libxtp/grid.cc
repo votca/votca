@@ -34,9 +34,9 @@ Grid::Grid(const Grid &obj)
     _xsteps(obj._xsteps),_ysteps(obj._ysteps),_zsteps(obj._zsteps) {
     _lowerbound=obj._lowerbound;
     _gridpoints=obj._gridpoints;
-    std::vector<ctp::APolarSite*>::const_iterator pit;
+    std::vector<xtp::APolarSite*>::const_iterator pit;
     for(pit=obj._all_gridsites.begin();pit<obj._all_gridsites.end();++pit){
-       ctp::APolarSite *apolarsite= new ctp::APolarSite(*pit,false);
+       xtp::APolarSite *apolarsite= new xtp::APolarSite(*pit,false);
        if(!apolarsite->getIsVirtual()) _gridsites.push_back(apolarsite);
        _all_gridsites.push_back(apolarsite);   
     }     
@@ -45,7 +45,7 @@ Grid::Grid(const Grid &obj)
         
         
 Grid::~Grid() {
-        std::vector<ctp::APolarSite*>::iterator pit;
+        std::vector<xtp::APolarSite*>::iterator pit;
         for(pit=_all_gridsites.begin();pit!=_all_gridsites.end();++pit){
              delete *pit;
         }
@@ -68,9 +68,9 @@ Grid &Grid::operator=(const Grid & obj){
     _xsteps=obj._xsteps;
     _ysteps=obj._ysteps;
     _zsteps=obj._zsteps;
-    std::vector<ctp::APolarSite*>::const_iterator pit;
+    std::vector<xtp::APolarSite*>::const_iterator pit;
     for(pit=obj._all_gridsites.begin();pit<obj._all_gridsites.end();++pit){
-       ctp::APolarSite *apolarsite= new ctp::APolarSite(*pit,false);
+       xtp::APolarSite *apolarsite= new xtp::APolarSite(*pit,false);
        if(!apolarsite->getIsVirtual()) _gridsites.push_back(apolarsite);
        _all_gridsites.push_back(apolarsite);   
     }     
@@ -169,7 +169,7 @@ void Grid::readgridfromCubeFile(std::string filename, bool ignore_zeros){
                 double posz=(zstart+_iz*zincr);
                 in1 >> potential;
                 vec pos=vec(posx,posy,posz);
-                ctp::APolarSite *apolarsite= new ctp::APolarSite(0,name);
+                xtp::APolarSite *apolarsite= new xtp::APolarSite(0,name);
                 apolarsite->setRank(0);        
                 apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
                 apolarsite->setIsoP(0.0);
@@ -222,7 +222,7 @@ void Grid::printgridtoCubefile(std::string filename){
 
                     fprintf(out, "%d %d %f %f %f\n", atnum, crg, pos.getX(), pos.getY(), pos.getZ());
                 }
-            std::vector< ctp::APolarSite* >::iterator pit;
+            std::vector< xtp::APolarSite* >::iterator pit;
             int Nrecord=0.0;
             for(pit=_all_gridsites.begin();pit!=_all_gridsites.end();++pit){
                 Nrecord++;
@@ -320,7 +320,7 @@ void Grid::setupgrid(){
                         if(_createpolarsites){
                           
                             std::string name="X";
-                            ctp::APolarSite *apolarsite= new ctp::APolarSite(0,name);
+                            xtp::APolarSite *apolarsite= new xtp::APolarSite(0,name);
                             apolarsite->setRank(0);        
                             apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
                             apolarsite->setIsoP(0.0);

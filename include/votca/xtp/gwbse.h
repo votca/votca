@@ -52,7 +52,7 @@ class GWBSE {
 
   void CleanUp();
 
-  void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
+  void setLogger(xtp::Logger* pLog) { _pLog = pLog; }
 
   bool Evaluate();
     
@@ -64,7 +64,7 @@ class GWBSE {
  void PrintGWA_Energies(const Eigen::MatrixXd& vxc,const Sigma& sigma, const Eigen::VectorXd& _dft_energies);    
  
  Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
- ctp::Logger* _pLog;
+ xtp::Logger* _pLog;
  Orbitals* _orbitals;
   
   // program tasks

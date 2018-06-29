@@ -53,7 +53,7 @@ namespace votca {
         void GeometryOptimization::Evaluate() {
 
 
-            CTP_LOG(ctp::logINFO, *_pLog) << "Requested geometry optimization of excited state " << _spintype << " " << _opt_state << std::flush;
+            XTP_LOG(xtp::logINFO, *_pLog) << "Requested geometry optimization of excited state " << _spintype << " " << _opt_state << std::flush;
 
             // get a force object
             Forces _force_engine(_gwbse_engine, _qmpackage, _segments, _orbitals);

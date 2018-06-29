@@ -22,7 +22,7 @@
 
 #include <votca/tools/property.h>
 
-#include <votca/ctp/parallelxjobcalc.h>
+#include <votca/xtp/parallelxjobcalc.h>
 #include <votca/xtp/orbitals.h>
 //#include <votca/xtp/overlap.h>
 #include <votca/xtp/gwbse.h>
@@ -42,7 +42,7 @@ namespace votca { namespace xtp {
 * Callname: igwbse
 */
 
-class IGWBSE : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
+class IGWBSE : public xtp::ParallelXJobCalc< vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult >
 {
 public:
 
@@ -53,11 +53,11 @@ public:
     
     string  Identify() { return "igwbse"; }
     
-    ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *Thread);
+    xtp::Job::JobResult EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *Thread);
 
-    void WriteJobFile(ctp::Topology *top);
+    void WriteJobFile(xtp::Topology *top);
 
-    void ReadJobFile( ctp::Topology *top );
+    void ReadJobFile( xtp::Topology *top );
     
 
 
@@ -103,7 +103,7 @@ private:
     std::map<std::string, int> FillParseMaps(string Mapstring);
     
     
-    void LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log = NULL );
+    void LoadOrbitals(string file_name, Orbitals* orbitals, xtp::Logger *log = NULL );
         
 };
 

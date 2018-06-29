@@ -453,12 +453,12 @@ if (_lmax_col > 3) {
             return;
         }
 
-        void AOESP::Fillextpotential(const AOBasis& aobasis,const std::vector<ctp::PolarSeg*> & _sites) {
+        void AOESP::Fillextpotential(const AOBasis& aobasis,const std::vector<xtp::PolarSeg*> & _sites) {
             
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
             for (unsigned int i = 0; i < _sites.size(); i++) {
-                for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
+                for (xtp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
                     tools::vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
                     _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                     setPosition(positionofsite);

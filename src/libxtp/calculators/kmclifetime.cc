@@ -20,7 +20,7 @@
 #include <votca/tools/property.h>
 #include <votca/tools/constants.h>
 #include <boost/format.hpp>
-#include <votca/ctp/topology.h>
+#include <votca/xtp/topology.h>
 #include <locale>
 
 
@@ -136,7 +136,7 @@ namespace votca {
     }
 
         
-    void  KMCLifetime::RunVSSM(ctp::Topology *top) {
+    void  KMCLifetime::RunVSSM(xtp::Topology *top) {
 
         int realtime_start = time(NULL);
         cout << endl << "Algorithm: VSSM for Multiple Charges with finite Lifetime" << endl;
@@ -310,7 +310,7 @@ namespace votca {
 
         PrintJumplengthdistro();
         
-        vector< ctp::Segment* >& seg = top->Segments();
+        vector< xtp::Segment* >& seg = top->Segments();
 
         for (unsigned i = 0; i < seg.size(); i++) {
             double occupationprobability=_nodes[i]->occupationtime / simtime;
@@ -325,7 +325,7 @@ namespace votca {
 
 
 
-    bool KMCLifetime::EvaluateFrame(ctp::Topology *top) {
+    bool KMCLifetime::EvaluateFrame(xtp::Topology *top) {
         std::cout << "-----------------------------------" << std::endl;
         std::cout << "      KMCLIFETIME started" << std::endl;
         std::cout << "-----------------------------------" << std::endl << std::endl;

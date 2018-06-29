@@ -38,7 +38,7 @@
 #include <votca/xtp/chargecarrier.h>
 
 #include <votca/xtp/gnode.h>
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 using namespace std;
 
 namespace votca { namespace xtp {
@@ -46,7 +46,7 @@ namespace votca { namespace xtp {
    
 
 
-class KMCCalculator : public ctp::QMCalculator 
+class KMCCalculator : public xtp::QMCalculator 
 {
 public:
     
@@ -67,8 +67,8 @@ protected:
             std::string CarrierInttoShortString(int carriertype);
             int StringtoCarriertype(std::string name);
             
-	    void LoadGraph(ctp::Topology *top);
-            virtual void  RunVSSM(ctp::Topology *top){};
+	    void LoadGraph(xtp::Topology *top);
+            virtual void  RunVSSM(xtp::Topology *top){};
             void InitialRates();
             
             double Promotetime(double cumulated_rate);

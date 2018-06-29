@@ -21,9 +21,9 @@
 #define _VOTCA_XTP_EXCITONCOUPLINGH_H
 
 
-#include <votca/ctp/qmtool.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/xinteractor.h>
+#include <votca/xtp/qmtool.h>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/xinteractor.h>
 
 #include <stdio.h>
 #include <votca/tools/constants.h>
@@ -36,7 +36,7 @@
 namespace votca { namespace xtp {
     using namespace std;
     
-class ExcitonCoupling : public  ctp::QMTool
+class ExcitonCoupling : public  xtp::QMTool
 {
 public:
 
@@ -63,7 +63,7 @@ private:
     //bool        _doTriplets;
     string      _mpsA;
     string      _mpsB;  
-    ctp::Logger      _log;
+    xtp::Logger      _log;
 
 };
 
@@ -108,26 +108,26 @@ void ExcitonCoupling::Initialize(Property* options)
 bool ExcitonCoupling::Evaluate() {
     Property *_job_output=NULL;
     Property _summary; 
-    _log.setReportLevel(  ctp::logDEBUG );
+    _log.setReportLevel(  xtp::logDEBUG );
     _log.setMultithreading( true );
     
-    _log.setPreface( ctp::logINFO,    "\n... ...");
-    _log.setPreface( ctp::logERROR,   "\n... ...");
-    _log.setPreface( ctp::logWARNING, "\n... ...");
-    _log.setPreface( ctp::logDEBUG,   "\n... ..."); 
+    _log.setPreface( xtp::logINFO,    "\n... ...");
+    _log.setPreface( xtp::logERROR,   "\n... ...");
+    _log.setPreface( xtp::logWARNING, "\n... ...");
+    _log.setPreface( xtp::logDEBUG,   "\n... ..."); 
 
     // get the corresponding object from the QMPackageFactory
     if(!_classical){
     Orbitals _orbitalsA, _orbitalsB, _orbitalsAB;
     // load the QM data from serialized orbitals objects
 
-    CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
+    XTP_LOG( xtp::logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
     _orbitalsA.ReadFromCpt(_orbA);
     
-    CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
+    XTP_LOG( xtp::logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
     _orbitalsB.ReadFromCpt(_orbB);
 
-    CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
+    XTP_LOG( xtp::logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
     _orbitalsAB.ReadFromCpt(_orbAB);
    
      BSECoupling _bsecoupling; 
@@ -155,19 +155,19 @@ bool ExcitonCoupling::Evaluate() {
     }
     
     else if (_classical){
-        CTP_LOG( ctp::logDEBUG, _log) << "Calculating electronic coupling using classical transition charges." << _orbB << flush;
-        std::vector< ctp::APolarSite*> seg1= ctp::APS_FROM_MPS(_mpsA, 0);
-        std::vector< ctp::APolarSite*> seg2= ctp::APS_FROM_MPS(_mpsB, 0);
+        XTP_LOG( xtp::logDEBUG, _log) << "Calculating electronic coupling using classical transition charges." << _orbB << flush;
+        std::vector< xtp::APolarSite*> seg1= xtp::APS_FROM_MPS(_mpsA, 0);
+        std::vector< xtp::APolarSite*> seg2= xtp::APS_FROM_MPS(_mpsB, 0);
         
-        ctp::PolarSeg* Seg1 = new  ctp::PolarSeg(1,seg1);
-         ctp::PolarSeg* Seg2 = new  ctp::PolarSeg(2,seg2);
-         ctp::XInteractor actor;
+        xtp::PolarSeg* Seg1 = new  xtp::PolarSeg(1,seg1);
+         xtp::PolarSeg* Seg2 = new  xtp::PolarSeg(2,seg2);
+         xtp::XInteractor actor;
         actor.ResetEnergy();
         vec s = vec(0,0,0);
         
-        //CTP_LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
-         ctp::PolarSeg::iterator pit1;
-         ctp::PolarSeg::iterator pit2;
+        //XTP_LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
+         xtp::PolarSeg::iterator pit1;
+         xtp::PolarSeg::iterator pit2;
         double E = 0.0;
         for (pit1 = Seg1->begin(); pit1 < Seg1->end(); ++pit1) {
             for (pit2 = Seg2->begin(); pit2 < Seg2->end(); ++pit2) {

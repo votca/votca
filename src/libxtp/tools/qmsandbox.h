@@ -21,8 +21,8 @@
 #define _VOTCA_XTP_QMSANDBOX_H
 
 #include <stdio.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/qmtool.h>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/qmtool.h>
 
 #include <votca/xtp/qmpackagefactory.h>
 #include<votca/xtp/aobasis.h>
@@ -31,7 +31,7 @@
 namespace votca { namespace xtp {
 
     
-class QMSandbox : public ctp::QMTool
+class QMSandbox : public xtp::QMTool
 {
 public:
 
@@ -49,7 +49,7 @@ private:
     std::string      _orbfile;
     std::string      _output_file;
     
-    ctp::Logger      _log;
+    xtp::Logger      _log;
  
     std::string      _logfile;
 

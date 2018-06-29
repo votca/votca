@@ -22,7 +22,7 @@
 #define VOTCA_XTP_TRAJEXTRACTOR_H
 
 #include <cstdlib>
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 
 
 namespace votca { namespace xtp {
@@ -30,7 +30,7 @@ namespace votca { namespace xtp {
 
 
 
-class TrajExtractor : public ctp::QMCalculator
+class TrajExtractor : public QMCalculator
 {
 
 public:
@@ -41,7 +41,7 @@ public:
     std::string Identify() { return "extract.trajectory"; }
 
     void Initialize(tools::Property *options);
-    bool EvaluateFrame(ctp::Topology *top);
+    bool EvaluateFrame(Topology *top);
 
 private:
 
@@ -57,7 +57,7 @@ void TrajExtractor::Initialize(tools::Property *options) {
     _outPDBqm = Identify() + "_qm.pdb";
 }
 
-bool TrajExtractor::EvaluateFrame(ctp::Topology *top) {
+bool TrajExtractor::EvaluateFrame(Topology *top) {
 
     // Rigidify std::system (if possible)
     if (!top->Rigidify()) return 0;
@@ -75,14 +75,7 @@ bool TrajExtractor::EvaluateFrame(ctp::Topology *top) {
     std::fprintf(outPDBqm, "TITLE     VOT CAtastrophic title \n");
     std::fprintf(outPDBqm, "Model %8d \n", 1);
 
-    std::vector< ctp::Segment* > ::iterator sit;
-    for (sit = top->Segments().begin();
-         sit < top->Segments().end();
-         sit++) {
-
-        (*sit)->WritePDB(outPDBmd, "Atoms", "MD");
-        (*sit)->WritePDB(outPDBqm, "Atoms", "QM");
-    }
+    std::vector< Segment* > ::iterator sit;
 
     std::fprintf(outPDBmd, "TER\nENDMDL\n");
     std::fprintf(outPDBqm, "TER\nENDMDL\n");

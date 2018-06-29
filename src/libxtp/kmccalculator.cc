@@ -19,7 +19,7 @@
 #include <votca/xtp/gnode.h>
 #include <votca/tools/constants.h>
 #include <boost/format.hpp>
-#include <votca/ctp/topology.h>
+#include <votca/xtp/topology.h>
 #include <locale>
 
 using namespace std;
@@ -29,9 +29,9 @@ namespace votca {
         
         KMCCalculator::KMCCalculator(){};
 
-    void KMCCalculator::LoadGraph(ctp::Topology *top) {
+    void KMCCalculator::LoadGraph(xtp::Topology *top) {
 
-        std::vector< ctp::Segment* >& seg = top->Segments();
+        std::vector< xtp::Segment* >& seg = top->Segments();
         
         if(seg.size()<1){
           throw std::runtime_error("Your sql file contains no segments!");
@@ -48,13 +48,13 @@ namespace votca {
             _nodes.push_back(newNode);
         }
 
-        ctp::QMNBList &nblist = top->NBList();
+        xtp::QMNBList &nblist = top->NBList();
         if(nblist.size()<1){
           throw std::runtime_error("Your sql file contains no pairs!");    
         }
         
         
-        for (ctp::QMNBList::iterator it = nblist.begin(); it < nblist.end(); ++it) {
+        for (xtp::QMNBList::iterator it = nblist.begin(); it < nblist.end(); ++it) {
             _nodes[(*it)->Seg1()->getId()-1]->AddEventfromQmPair(*it, _carriertype);
             _nodes[(*it)->Seg2()->getId()-1]->AddEventfromQmPair(*it, _carriertype);
         }

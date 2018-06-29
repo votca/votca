@@ -22,17 +22,17 @@
 
 
 
-#include <votca/ctp/segment.h>
+#include <votca/xtp/segment.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/ctp/polarseg.h>
+#include <votca/xtp/polarseg.h>
 
-#include <votca/ctp/topology.h>
+#include <votca/xtp/topology.h>
 #include <votca/xtp/numerical_integrations.h>
-#include <votca/ctp/apolarsite.h>
+#include <votca/xtp/apolarsite.h>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/ERIs.h>
 #include <votca/xtp/convergenceacc.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 
 namespace votca {
     namespace xtp {
@@ -69,7 +69,7 @@ namespace votca {
 
             void CleanUp();
 
-            void setLogger(ctp::Logger* pLog) {
+            void setLogger(xtp::Logger* pLog) {
                 _pLog = pLog;
             }
 
@@ -78,18 +78,18 @@ namespace votca {
                 _do_externalfield = true;
             }
 
-            void setExternalcharges(std::vector<ctp::PolarSeg*> externalsites) {
+            void setExternalcharges(std::vector<xtp::PolarSeg*> externalsites) {
                 
 
                 _externalsites = externalsites;
                 //for ( int i = 0; i < externalsites.size(); i++){
-                //    ctp::PolarSeg* pseg = &externalsites[i];
-                //    _externalsites.push_back(ctp::PolarSeg(pseg, false));
+                //    xtp::PolarSeg* pseg = &externalsites[i];
+                //    _externalsites.push_back(xtp::PolarSeg(pseg, false));
                 //}
                 _addexternalsites = true;
             }
             
-           /* void SetExternalMultipoles( ctp::PolarTop *ptop  ){
+           /* void SetExternalMultipoles( xtp::PolarTop *ptop  ){
                 
                 
                 return;
@@ -121,7 +121,7 @@ namespace votca {
 
         private:
             void PrintMOs(const Eigen::VectorXd& MOEnergies);
-            ctp::Logger *_pLog;
+            xtp::Logger *_pLog;
 
             void ConfigOrbfile(Orbitals* _orbitals);
             void SetupInvariantMatrices();
@@ -130,7 +130,7 @@ namespace votca {
             Eigen::MatrixXd DensityMatrix_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies, int numofelec);
             std::string Choosesmallgrid(std::string largegrid);
             void NuclearRepulsion();
-            double ExternalRepulsion(ctp::Topology* top = NULL);
+            double ExternalRepulsion(xtp::Topology* top = NULL);
             double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
             Eigen::MatrixXd AverageShells(const Eigen::MatrixXd& dmat, AOBasis& dftbasis);
 
@@ -222,7 +222,7 @@ namespace votca {
             ERIs _ERIs;
 
             // external charges
-            std::vector<ctp::PolarSeg*> _externalsites;
+            std::vector<xtp::PolarSeg*> _externalsites;
             bool _addexternalsites;
 
             // exchange and correlation

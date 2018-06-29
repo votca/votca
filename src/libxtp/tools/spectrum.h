@@ -23,15 +23,15 @@
 #include <stdio.h>
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/constants.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/qmtool.h>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/qmtool.h>
 
 
 namespace votca {
     namespace xtp {
         using namespace std;
 
-        class Spectrum : public ctp::QMTool {
+        class Spectrum : public xtp::QMTool {
         public:
 
             Spectrum() {
@@ -53,7 +53,7 @@ namespace votca {
             string _orbfile;
             string _output_file;
 
-            ctp::Logger _log;
+            xtp::Logger _log;
 
             void CheckContent(Orbitals& _orbitals);
 
@@ -107,21 +107,21 @@ namespace votca {
 
         bool Spectrum::Evaluate() {
 
-            _log.setReportLevel(ctp::logDEBUG);
+            _log.setReportLevel(xtp::logDEBUG);
             _log.setMultithreading(true);
 
-            _log.setPreface(ctp::logINFO, "\n... ...");
-            _log.setPreface(ctp::logERROR, "\n... ...");
-            _log.setPreface(ctp::logWARNING, "\n... ...");
-            _log.setPreface(ctp::logDEBUG, "\n... ...");
+            _log.setPreface(xtp::logINFO, "\n... ...");
+            _log.setPreface(xtp::logERROR, "\n... ...");
+            _log.setPreface(xtp::logWARNING, "\n... ...");
+            _log.setPreface(xtp::logDEBUG, "\n... ...");
 
-            CTP_LOG(ctp::logDEBUG, _log) << "Calculating absorption spectrum plot " << _orbfile << flush;
+            XTP_LOG(xtp::logDEBUG, _log) << "Calculating absorption spectrum plot " << _orbfile << flush;
 
             Orbitals _orbitals;
             // load the QM data from serialized orbitals object
 
             std::ifstream ifs((_orbfile).c_str());
-            CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+            XTP_LOG(xtp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
             _orbitals.ReadFromCpt(_orbfile);
 
 
@@ -142,11 +142,11 @@ namespace votca {
             int _n_exc = _maxexc - _minexc + 1;
 
             if (_maxexc > int(TransitionDipoles.size())) {
-                CTP_LOG(ctp::logDEBUG, _log) << " Transition dipoles for some excitations missing! " << flush;
+                XTP_LOG(xtp::logDEBUG, _log) << " Transition dipoles for some excitations missing! " << flush;
                 exit(1);
             }
 
-            CTP_LOG(ctp::logDEBUG, _log) << " Considering " << _n_exc << " excitation with max energy " << BSESingletEnergies(_maxexc) * tools::conv::hrt2ev << " eV / min wave length " << evtonm(BSESingletEnergies[_maxexc - 1] * tools::conv::hrt2ev) << " nm" << flush;
+            XTP_LOG(xtp::logDEBUG, _log) << " Considering " << _n_exc << " excitation with max energy " << BSESingletEnergies(_maxexc) * tools::conv::hrt2ev << " eV / min wave length " << evtonm(BSESingletEnergies[_maxexc - 1] * tools::conv::hrt2ev) << " nm" << flush;
 
             /*
              * 
@@ -209,7 +209,7 @@ namespace votca {
 
                 }
 
-                CTP_LOG(ctp::logDEBUG, _log) << " Spectrum in energy range from  " << _lower << " to " << _upper << " eV and with broadening of FWHM " << _fwhm * tools::conv::hrt2ev << " eV written to file  " << _output_file << flush;
+                XTP_LOG(xtp::logDEBUG, _log) << " Spectrum in energy range from  " << _lower << " to " << _upper << " eV and with broadening of FWHM " << _fwhm * tools::conv::hrt2ev << " eV written to file  " << _output_file << flush;
             }
 
             if (_spectrum_type == "wavelength") {
@@ -237,7 +237,7 @@ namespace votca {
 
                     ofs << _lambda << "    " << _eps_Gaussian << "   " << _imeps_Gaussian << "   " << _eps_Lorentzian << "   " << _imeps_Lorentzian << "   " << _eps_TruncLorentzian << "   " << _imeps_TruncLorentzian << endl;
                 }
-                CTP_LOG(ctp::logDEBUG, _log) << " Spectrum in wavelength range from  " << _lower << " to " << _upper << " nm and with broadening of FWHM " << _fwhm << " nm written to file  " << _output_file << flush;
+                XTP_LOG(xtp::logDEBUG, _log) << " Spectrum in wavelength range from  " << _lower << " to " << _upper << " nm and with broadening of FWHM " << _fwhm << " nm written to file  " << _output_file << flush;
             }
 
             ofs.close();

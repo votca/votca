@@ -21,8 +21,8 @@
 #define __XTP_BFGSTRM__H
 
 
-#include <votca/ctp/logger.h>
-#include <votca/ctp/segment.h>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/segment.h>
 #include <stdio.h>
 #include <votca/xtp/gwbseengine.h>
 #include <votca/xtp/forces.h>
@@ -39,7 +39,7 @@ namespace votca {
         class BFGSTRM {
         public:
 
-            BFGSTRM(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals* orbitals, Forces& force_engine)
+            BFGSTRM(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<xtp::Segment*> segments, Orbitals* orbitals, Forces& force_engine)
             : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals), _force_engine(force_engine), _iteration(0) {
             };
 
@@ -50,10 +50,10 @@ namespace votca {
                 return _iteration;
             };
             void Initialize(tools::Property *options);
-            void Checkpoint(std::vector<ctp::Segment* >& _molecule);
-            void WriteIteration(FILE* out, ctp::Segment* _segment);
+            void Checkpoint(std::vector<xtp::Segment* >& _molecule);
+            void WriteIteration(FILE* out, xtp::Segment* _segment);
 
-            void setLog(ctp::Logger* pLog) {
+            void setLog(xtp::Logger* pLog) {
                 _pLog = pLog;
             }
 
@@ -65,7 +65,7 @@ namespace votca {
             
             GWBSEENGINE _gwbse_engine;
             QMPackage* _qmpackage;
-            std::vector<ctp::Segment*> _segments;
+            std::vector<xtp::Segment*> _segments;
             Orbitals* _orbitals;
             Forces _force_engine;
 
@@ -107,7 +107,7 @@ namespace votca {
             tools::Property _optimizer_options;
             tools::Property _force_options;
 
-            ctp::Logger *_pLog;
+            xtp::Logger *_pLog;
 
             void BFGSStep();
             void Rewrite2Vectors();

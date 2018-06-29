@@ -28,7 +28,7 @@ namespace votca { namespace xtp {
        S=_S;
        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es((*S));
        if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<es.eigenvalues()(0) << std::flush;
+            XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<es.eigenvalues()(0) << std::flush;
             }
       Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
       int removedfunctions=0;
@@ -40,7 +40,7 @@ namespace votca { namespace xtp {
           }
       }
       if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<removedfunctions<<" basisfunction from inverse overlap matrix" << std::flush;
+            XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " Removed "<<removedfunctions<<" basisfunction from inverse overlap matrix" << std::flush;
         }
        Sminusahalf =es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
        Sonehalf=es.operatorSqrt();
@@ -100,18 +100,18 @@ namespace votca { namespace xtp {
             coeffs=adiis.CalcCoeff(_dmatHist,_mathist);
             diis_error=!adiis.Info();
             if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << std::flush;
+            XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " Using ADIIS" << std::flush;
             }
         }
         else{
              coeffs=diis.CalcCoeff();
              diis_error=!diis.Info();
              if(_noisy){
-             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using DIIS" << std::flush;
+             XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " Using DIIS" << std::flush;
              }
         }
         if(diis_error){
-          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIS failed using mixing instead" << std::flush;
+          XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " DIIS failed using mixing instead" << std::flush;
           H_guess=H;
         }else{
         for (unsigned i=0;i<coeffs.size();i++){  
@@ -134,7 +134,7 @@ namespace votca { namespace xtp {
       _usemixing=true;
       dmatout=mix.MixDmat(dmat,dmatout);
       if(_noisy){
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using Mixing with alpha="<<mix.getAlpha() << std::flush;
+        XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " Using Mixing with alpha="<<mix.getAlpha() << std::flush;
         }
     }else{
       _usemixing=false;
@@ -166,7 +166,7 @@ namespace votca { namespace xtp {
             }
 
         if(_noisy){
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << _levelshift << " Hartree" << std::flush;
+        XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " Using levelshift:" << _levelshift << " Hartree" << std::flush;
         }
         Eigen::MatrixXd vir=  MOsinv.transpose()*virt*MOsinv ; 
         H+=vir;

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <map>
 #include <votca/xtp/qmdatabase.h>
-#include <votca/ctp/topology.h>
+#include <votca/xtp/topology.h>
 #include <boost/interprocess/sync/file_lock.hpp>
 
 namespace votca { namespace xtp {
@@ -37,7 +37,7 @@ public:
     StateSaverSQLite() { };
    ~StateSaverSQLite() { _db.Close(); }
 
-    void Open(ctp::Topology &qmtop, const std::string &file, bool lock = true);
+    void Open(xtp::Topology &qmtop, const std::string &file, bool lock = true);
     void Close() { _db.Close(); }
     bool NextFrame();
 
@@ -62,14 +62,14 @@ public:
     void ReadSuperExchange(int topId);
 
     int  FramesInDatabase();
-    ctp::Topology *getTopology() { return _qmtop; }
-    bool HasTopology(ctp::Topology *top);
+    xtp::Topology *getTopology() { return _qmtop; }
+    bool HasTopology(xtp::Topology *top);
     
     void LockStateFile();
     void UnlockStateFile();
     
 private:
-    ctp::Topology       *_qmtop;
+    xtp::Topology       *_qmtop;
     QMDatabase      _db;
 
     int             _frame;

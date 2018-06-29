@@ -23,8 +23,8 @@
 
 #include <votca/xtp/gwbse.h> // including GWBSE functionality
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/ctp/parallelxjobcalc.h>
-#include <votca/ctp/segment.h>
+#include <votca/xtp/parallelxjobcalc.h>
+#include <votca/xtp/segment.h>
 
 
 
@@ -38,7 +38,7 @@ namespace votca { namespace xtp {
 * Callname: egwbse
 */
 
-class EGWBSE : public ctp::ParallelXJobCalc< vector< ctp::Job*>,  ctp::Job*,  ctp::Job::JobResult >
+class EGWBSE : public xtp::ParallelXJobCalc< vector< xtp::Job*>,  xtp::Job*,  xtp::Job::JobResult >
 {
 public:
 
@@ -47,7 +47,7 @@ public:
 
     string  Identify() { return "egwbse"; }
     void    Initialize( Property *options);
-     ctp::Job::JobResult EvalJob( ctp::Topology *top,  ctp::Job *job,  ctp::QMThread *thread);
+     xtp::Job::JobResult EvalJob( xtp::Topology *top,  xtp::Job *job,  xtp::QMThread *thread);
     
     string              _package;
     Property            _package_options; 
@@ -55,7 +55,7 @@ public:
     Property            _esp_options;
     
     void    CleanUp();
-    void WriteJobFile( ctp::Topology *top);
+    void WriteJobFile( xtp::Topology *top);
 
     
     // what to do

@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,17 +17,14 @@
  *
  */
 
-#ifndef __QMMINTERFACE__H
-#define	__QMMINTERFACE__H
+#ifndef __VOTCA_XTP_QMMINTERFACE__H
+#define	__VOTCA_XTP_QMMINTERFACE__H
 
-
-
-
-#include <votca/ctp/apolarsite.h>
+#include <votca/xtp/apolarsite.h>
 #include <votca/xtp/qmatom.h>
-#include <votca/ctp/polarseg.h>
-#include <votca/ctp/segment.h>
-#include <votca/ctp/polartop.h>
+#include <votca/xtp/polarseg.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/polartop.h>
 // add gwbse header for excited state support
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/qmpackagefactory.h>
@@ -47,28 +44,28 @@ class QMMInterface
 {
 public:
     
-    QMMInterface() { _polar_table = ctp::POLAR_TABLE(); };
+    QMMInterface() { _polar_table = xtp::POLAR_TABLE(); };
    ~QMMInterface() {};
     
     // CONVERSION QM -> MM
-    ctp::APolarSite *Convert(QMAtom *atm, int id = -1);
+    xtp::APolarSite *Convert(QMAtom *atm, int id = -1);
     
-    ctp::PolarSeg Convert(std::vector<QMAtom*> &atms);
+    xtp::PolarSeg Convert(std::vector<QMAtom*> &atms);
     
     void setMultipoleSplitting(bool split_dpl, double dpl_spacing){
         _split_dpl=split_dpl;
         _dpl_spacing=dpl_spacing;
     }
     
-    std::vector<QMAtom *> Convert( std::vector<ctp::Segment* > segments);
+    std::vector<QMAtom *> Convert( std::vector<xtp::Segment* > segments);
     
-    void GenerateQMAtomsFromPolarSegs(ctp::PolarTop *ptop, Orbitals &orb);
-    std::vector<ctp::PolarSeg*> GenerateMultipoleList(ctp::PolarTop *ptop  );
-    void Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals);
+    void GenerateQMAtomsFromPolarSegs(xtp::PolarTop *ptop, Orbitals &orb);
+    std::vector<xtp::PolarSeg*> GenerateMultipoleList(xtp::PolarTop *ptop  );
+    void Orbitals2Segment(xtp::Segment* _segment, Orbitals* _orbitals);
     
      
 private:
-    void addMMAtomtoOrb(ctp::APolarSite * aps,Orbitals &orb, bool with_polarisation);
+    void addMMAtomtoOrb(xtp::APolarSite * aps,Orbitals &orb, bool with_polarisation);
     // Allocates polarizabilities in A**3 to element types
     std::map<std::string,double> _polar_table;
     bool _split_dpl;

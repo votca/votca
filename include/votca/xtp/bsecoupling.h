@@ -18,7 +18,7 @@
  */
 
 #include <votca/xtp/orbitals.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 
 #ifndef _VOTCA_XTP_BSECOUPLING_H
 #define	_VOTCA_XTP_BSECOUPLING_H
@@ -64,11 +64,11 @@ public:
     
     double getTripletCouplingElement( int levelA, int levelB, int methodindex);
    
-    void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
+    void setLogger( xtp::Logger* pLog ) { _pLog = pLog; }
     
 private:
     
-    ctp::Logger *_pLog;
+    xtp::Logger *_pLog;
   
     
     std::vector< Eigen::MatrixXd >ProjectExcitons(const Eigen::MatrixXd& _bseA_T,const Eigen::MatrixXd& _bseB_T, 

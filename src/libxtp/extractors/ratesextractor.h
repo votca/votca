@@ -20,14 +20,15 @@
 #ifndef VOTCA_XTP_RATESEXTRACTOR_H
 #define VOTCA_XTP_RATESEXTRACTOR_H
 
+#include <fstream>
 #include <votca/tools/propertyiomanipulator.h>
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 #include <boost/format.hpp>
 
 namespace votca { namespace xtp {
 
 
-class RatesExtractor : public ctp::QMCalculator
+class RatesExtractor : public QMCalculator
 {
 public:
 
@@ -36,7 +37,7 @@ public:
 
     std::string Identify() { return "extract.rates"; }
     void Initialize(tools::Property *options);
-    bool EvaluateFrame(ctp::Topology *top);
+    bool EvaluateFrame(Topology *top);
 
 private:
 
@@ -48,7 +49,7 @@ void RatesExtractor::Initialize(tools::Property *options) {
 }
 
 
-bool RatesExtractor::EvaluateFrame(ctp::Topology *top) {
+bool RatesExtractor::EvaluateFrame(Topology *top) {
     
     std::string xmlfile = Identify() + ".xml";    
     
@@ -58,10 +59,10 @@ bool RatesExtractor::EvaluateFrame(ctp::Topology *top) {
     using boost::format;
     
     // PAIRS
-    ctp::QMNBList::iterator pit;
-    ctp::QMNBList &nb = top->NBList();
+    QMNBList::iterator pit;
+    QMNBList &nb = top->NBList();
     for (pit = nb.begin(); pit != nb.end(); ++pit) {
-        ctp::QMPair *qmp = *pit;
+        QMPair *qmp = *pit;
         tools::Property &pairprop = pairs.add("pair", "");
         pairprop.add("id1",   (format("%1$d")   % qmp->Seg1()->getId()).str());
         pairprop.add("name1", (format("%1$s")   % qmp->Seg1()->getName()).str());

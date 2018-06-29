@@ -22,8 +22,8 @@
 
 
 #include <votca/xtp/qmatom.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/segment.h>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/segment.h>
 #include <stdio.h>
 #include <votca/xtp/gwbseengine.h>
 #include <votca/xtp/qminterface.h>
@@ -37,7 +37,7 @@ namespace votca {
         class Forces {
         public:
 
-            Forces(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals* orbitals)
+            Forces(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<xtp::Segment*> segments, Orbitals* orbitals)
             : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals), _remove_total_force(false), _remove_CoM_force(false) {
             };
 
@@ -47,10 +47,10 @@ namespace votca {
             void Initialize(tools::Property *options);
             void Calculate(const double& energy);
 
-            Eigen::Vector3d NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait,std::vector<ctp::Segment*> _molecule);
-            Eigen::Vector3d NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait,std::vector<ctp::Segment*> _molecule);
+            Eigen::Vector3d NumForceForward(double energy, std::vector< xtp::Atom* > ::iterator ait,std::vector<xtp::Segment*> _molecule);
+            Eigen::Vector3d NumForceCentral(double energy, std::vector< xtp::Atom* > ::iterator ait,std::vector<xtp::Segment*> _molecule);
 
-            void setLog(ctp::Logger* pLog) {
+            void setLog(xtp::Logger* pLog) {
                 _pLog = pLog;
             }
 
@@ -94,7 +94,7 @@ namespace votca {
 
             GWBSEENGINE _gwbse_engine;
             QMPackage* _qmpackage;
-            std::vector<ctp::Segment*> _segments;
+            std::vector<xtp::Segment*> _segments;
             Orbitals* _orbitals;
             bool _remove_total_force;
             bool _remove_CoM_force;
@@ -108,7 +108,7 @@ namespace votca {
             Eigen::Vector3d TotalForce();
 
             QMMInterface _qminterface;
-            ctp::Logger *_pLog;
+            xtp::Logger *_pLog;
         };
 
     }

@@ -63,27 +63,27 @@ namespace votca {
         bool Exciton::Evaluate() {
 
 
-            if (_reporting == "silent")  _log.setReportLevel(ctp::logERROR); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
-            if (_reporting == "noisy")   _log.setReportLevel(ctp::logDEBUG); // OUTPUT ALL THE THINGS
-            if (_reporting == "default") _log.setReportLevel(ctp::logINFO); // 
+            if (_reporting == "silent")  _log.setReportLevel(xtp::logERROR); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
+            if (_reporting == "noisy")   _log.setReportLevel(xtp::logDEBUG); // OUTPUT ALL THE THINGS
+            if (_reporting == "default") _log.setReportLevel(xtp::logINFO); // 
 
             _log.setMultithreading(true);
-            _log.setPreface(ctp::logINFO,    "\n... ...");
-            _log.setPreface(ctp::logERROR,   "\n... ...");
-            _log.setPreface(ctp::logWARNING, "\n... ...");
-            _log.setPreface(ctp::logDEBUG,   "\n... ...");
+            _log.setPreface(xtp::logINFO,    "\n... ...");
+            _log.setPreface(xtp::logERROR,   "\n... ...");
+            _log.setPreface(xtp::logWARNING, "\n... ...");
+            _log.setPreface(xtp::logDEBUG,   "\n... ...");
             
             // Get orbitals object
             Orbitals _orbitals;
 
             // Read molecular geometry from xyz file and store in a segment (WHY SEGMENT?)
-            std::vector <ctp::Segment* > _segments;
-            ctp::Segment _segment(0, "mol");
+            std::vector <xtp::Segment* > _segments;
+            xtp::Segment _segment(0, "mol");
             
             if(_orbitals.hasQMAtoms()){
               
             }
-            CTP_LOG(ctp::logDEBUG, _log) << "Reading molecular coordinates from " << _xyzfile << flush;
+            XTP_LOG(xtp::logDEBUG, _log) << "Reading molecular coordinates from " << _xyzfile << flush;
             Orbitals temp;
             temp.LoadFromXYZ(_xyzfile);
             QMMInterface qminterface;
@@ -112,13 +112,13 @@ namespace votca {
                 _gwbse_engine.ExcitationEnergies(_qmpackage, _segments, &_orbitals);
             }
 
-            CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
+            XTP_LOG(xtp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
             _orbitals.WriteToCpt(_archive_file);
             
             tools::Property _summary = _gwbse_engine.ReportSummary();
             if(_summary.exists("output")){  //only do gwbse summary output if we actually did gwbse
                 tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
-                CTP_LOG(ctp::logDEBUG, _log) << "Writing output to " << _xml_output << flush;
+                XTP_LOG(xtp::logDEBUG, _log) << "Writing output to " << _xml_output << flush;
                 std::ofstream ofout(_xml_output.c_str(), std::ofstream::out);
                 ofout << (_summary.get("output"));
                 ofout.close();

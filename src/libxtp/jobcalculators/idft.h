@@ -22,7 +22,7 @@
 
 #include <votca/tools/property.h>
 
-#include <votca/ctp/parallelxjobcalc.h>
+#include <votca/xtp/parallelxjobcalc.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/dftcoupling.h>
 
@@ -44,7 +44,7 @@ namespace votca { namespace xtp {
 * Callname: idft
 */
 
-class IDFT : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
+class IDFT : public xtp::ParallelXJobCalc< vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult >
 {
 public:
 
@@ -55,11 +55,11 @@ public:
     
     string  Identify() { return "idft"; }
     
-    ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *Thread);
+    xtp::Job::JobResult EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *Thread);
 
-    void WriteJobFile(ctp::Topology *top);
+    void WriteJobFile(xtp::Topology *top);
 
-    void ReadJobFile( ctp::Topology *top );
+    void ReadJobFile( xtp::Topology *top );
     
 /*  
     void    EvalPair(Topology *top, QMPair *pair, int slot);
@@ -96,7 +96,7 @@ private:
         
     void ParseOptionsXML( tools::Property *opt);    
     
-    void LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log = NULL );
+    void LoadOrbitals(string file_name, Orbitals* orbitals, xtp::Logger *log = NULL );
         
 };
 

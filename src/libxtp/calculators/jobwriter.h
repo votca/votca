@@ -20,30 +20,30 @@
 #ifndef _VOTCA_XTP_JOBWRITER_H
 #define _VOTCA_XTP_JOBWRITER_H
 
-#include<votca/ctp/topology.h>
-#include<votca/ctp/qmcalculator.h>
+#include<votca/xtp/topology.h>
+#include<votca/xtp/qmcalculator.h>
 
 
 namespace votca { namespace xtp {
     
   
-class JobWriter : public ctp::QMCalculator
+class JobWriter : public xtp::QMCalculator
 {
 
 public:
 
-    typedef void (JobWriter::*WriteFunct)(ctp::Topology*);
+    typedef void (JobWriter::*WriteFunct)(xtp::Topology*);
     
     std::string Identify() { return "jobwriter"; }
     void Initialize(tools::Property *options);
-    bool EvaluateFrame(ctp::Topology *top);    
+    bool EvaluateFrame(xtp::Topology *top);    
     
     // NEED TO REGISTER ALL WRITE MEMBERS IN ::Initialize
-    void mps_ct(ctp::Topology *top);
-    void mps_chrg(ctp::Topology *top);
-    void mps_kmc(ctp::Topology *top);
-    void mps_background(ctp::Topology *top);
-    void mps_single(ctp::Topology *top);
+    void mps_ct(xtp::Topology *top);
+    void mps_chrg(xtp::Topology *top);
+    void mps_kmc(xtp::Topology *top);
+    void mps_background(xtp::Topology *top);
+    void mps_single(xtp::Topology *top);
     
 
     

@@ -51,7 +51,7 @@ struct Population {
  public:
  
     
-  BSE(Orbitals* orbitals,ctp::Logger *log,double min_print_weight):
+  BSE(Orbitals* orbitals,xtp::Logger *log,double min_print_weight):
         _log(log),
         _orbitals(orbitals),
         _eh_s(orbitals->eh_s()),
@@ -121,7 +121,7 @@ struct Population {
  private:
  
       
-ctp::Logger *_log;
+xtp::Logger *_log;
   unsigned _homo;
   unsigned  _bse_vmin;
   unsigned  _bse_vmax;

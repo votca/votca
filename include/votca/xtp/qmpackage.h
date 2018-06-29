@@ -20,13 +20,13 @@
 #ifndef _XTP_QM_PACKAGE_H
 #define _XTP_QM_PACKAGE_H
 
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/tools/property.h>
-#include <votca/ctp/segment.h>
-#include <votca/ctp/polarseg.h>
-#include <votca/ctp/qmpair.h>
-#include <votca/ctp/topology.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/polarseg.h>
+#include <votca/xtp/qmpair.h>
+#include <votca/xtp/topology.h>
 #include <boost/format.hpp>
 
 namespace votca {
@@ -52,10 +52,10 @@ namespace votca {
             virtual void Initialize(tools::Property *options) = 0;
 
             /// writes a coordinate file WITHOUT taking into account PBCs
-            virtual bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {}) = 0;
+            virtual bool WriteInputFile(std::vector< xtp::Segment* > segments, Orbitals* orbitals = NULL, std::vector<xtp::PolarSeg*> PolarSegments = {}) = 0;
 
             /// writes a coordinate file of a pair WITH PBCs and the orbital guess [if needed]
-            bool WriteInputFilePBC(ctp::QMPair* pair, Orbitals* orbitals = NULL, std::vector<std::string> linker_names ={});
+            bool WriteInputFilePBC(xtp::QMPair* pair, Orbitals* orbitals = NULL, std::vector<std::string> linker_names ={});
 
             virtual bool Run(Orbitals* _orbitals = NULL) = 0;
 
@@ -63,7 +63,7 @@ namespace votca {
 
             virtual bool ParseOrbitalsFile(Orbitals* _orbitals) = 0;
 
-            virtual bool setMultipoleBackground( std::vector<ctp::PolarSeg*> PolarSegments) = 0;
+            virtual bool setMultipoleBackground( std::vector<xtp::PolarSeg*> PolarSegments) = 0;
 
             virtual void CleanUp() = 0;
 
@@ -83,7 +83,7 @@ namespace votca {
                 _orb_file_name = orb_file;
             }
 
-            void setLog(ctp::Logger* pLog) {
+            void setLog(xtp::Logger* pLog) {
                 _pLog = pLog;
             }
 
@@ -167,14 +167,14 @@ namespace votca {
 
             bool _output_Vxc;
 
-            ctp::Logger* _pLog;
+            xtp::Logger* _pLog;
 
             double _dpl_spacing;
             bool _with_polarization;
-            std::vector<std::vector<double> > SplitMultipoles(ctp::APolarSite* site);
+            std::vector<std::vector<double> > SplitMultipoles(xtp::APolarSite* site);
             void ReorderOutput(Orbitals* _orbitals);
             void ReorderMOsBack(Orbitals* _orbitals);
-            void addLinkers(std::vector< ctp::Segment* > &segments, ctp::QMPair* pair, std::vector< std::string> linker_names );
+            void addLinkers(std::vector< xtp::Segment* > &segments, xtp::QMPair* pair, std::vector< std::string> linker_names );
             bool isLinker( std::string name, std::vector< std::string> linker_names );
 
             

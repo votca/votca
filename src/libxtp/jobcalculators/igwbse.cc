@@ -23,7 +23,7 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/tools/constants.h>
 #include <votca/xtp/qmpackagefactory.h>
 
@@ -155,21 +155,21 @@ namespace votca {
       return type2level;
     }
 
-    void IGWBSE::LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log) {
+    void IGWBSE::LoadOrbitals(string file_name, Orbitals* orbitals, xtp::Logger *log) {
 
-      CTP_LOG(ctp::logDEBUG, *log) << "Loading " << file_name << flush;
+      XTP_LOG(xtp::logDEBUG, *log) << "Loading " << file_name << flush;
       try {
         orbitals->ReadFromCpt(file_name);
       } catch (std::runtime_error& error) {
-        CTP_LOG(ctp::logERROR, *log) << "Failed loading orbitals from " << file_name << flush;
+        XTP_LOG(xtp::logERROR, *log) << "Failed loading orbitals from " << file_name << flush;
       }
 
     }
 
-    ctp::Job::JobResult IGWBSE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *opThread) {
+    xtp::Job::JobResult IGWBSE::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *opThread) {
 
       // report back to the progress observer
-      ctp::Job::JobResult jres = ctp::Job::JobResult();
+      xtp::Job::JobResult jres = xtp::Job::JobResult();
 
       string igwbse_work_dir = "OR_FILES";
       string egwbse_work_dir = "OR_FILES";
@@ -184,7 +184,7 @@ namespace votca {
 
 
       // get the logger from the thread
-      ctp::Logger* pLog = opThread->getLogger();
+      xtp::Logger* pLog = opThread->getLogger();
 
       // get the information about the job executed by the thread
       int _job_ID = job->getId();
@@ -205,18 +205,18 @@ namespace votca {
       string orbFileAB = (arg_pathAB / igwbse_work_dir / "pairs_gwbse" / frame_dir / (format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb").str()).c_str();
       string _orb_dir = (arg_path / igwbse_work_dir / "pairs_gwbse" / frame_dir).c_str();
 
-      ctp::Segment *seg_A = top->getSegment(ID_A);
+      xtp::Segment *seg_A = top->getSegment(ID_A);
       assert(seg_A->getName() == type_A);
 
-      ctp::Segment *seg_B = top->getSegment(ID_B);
+      xtp::Segment *seg_B = top->getSegment(ID_B);
       assert(seg_B->getName() == type_B);
 
-      vector < ctp::Segment* > segments;
+      vector < xtp::Segment* > segments;
       segments.push_back(seg_A);
       segments.push_back(seg_B);
 
 
-      CTP_LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Evaluating pair "
+      XTP_LOG(xtp::logINFO, *pLog) << xtp::TimeStamp() << " Evaluating pair "
               << _job_ID << " [" << ID_A << ":" << ID_B << "] out of " <<
               (top->NBList()).size() << flush;
 
@@ -237,7 +237,7 @@ namespace votca {
         boost::filesystem::create_directories(_qmpackage_work_dir);
         Orbitals *_orbitalsAB = NULL;
         if (_qmpackage->GuessRequested()) { // do not want to do an SCF loop for a dimer
-          CTP_LOG(ctp::logINFO, *pLog) << "Guess requested, reading molecular orbitals" << flush;
+          XTP_LOG(xtp::logINFO, *pLog) << "Guess requested, reading molecular orbitals" << flush;
           Orbitals _orbitalsA, _orbitalsB;
           _orbitalsAB = new Orbitals();
           // load the corresponding monomer orbitals and prepare the dimer guess 
@@ -246,11 +246,11 @@ namespace votca {
           try {
             _orbitalsA.ReadFromCpt(orbFileA);
           } catch (std::runtime_error& error) {
-            CTP_LOG(ctp::logERROR, *pLog) << "Do input: failed loading orbitals from " << orbFileA << flush;
+            XTP_LOG(xtp::logERROR, *pLog) << "Do input: failed loading orbitals from " << orbFileA << flush;
             cout << *pLog;
             output += "failed on " + orbFileA;
             jres.setOutput(output);
-            jres.setStatus(ctp::Job::FAILED);
+            jres.setStatus(xtp::Job::FAILED);
             delete _qmpackage;
             return jres;
           }
@@ -258,29 +258,29 @@ namespace votca {
           try {
             _orbitalsB.ReadFromCpt(orbFileB);
           } catch (std::runtime_error& error) {
-            CTP_LOG(ctp::logERROR, *pLog) << "Do input: failed loading orbitals from " << orbFileB << flush;
+            XTP_LOG(xtp::logERROR, *pLog) << "Do input: failed loading orbitals from " << orbFileB << flush;
             cout << *pLog;
             output += "failed on " + orbFileB;
             jres.setOutput(output);
-            jres.setStatus(ctp::Job::FAILED);
+            jres.setStatus(xtp::Job::FAILED);
             delete _qmpackage;
             return jres;
           }
-          CTP_LOG(ctp::logDEBUG, *pLog) << "Constructing the guess for dimer orbitals" << flush;
+          XTP_LOG(xtp::logDEBUG, *pLog) << "Constructing the guess for dimer orbitals" << flush;
           Orbitals::PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
         }
 
 
 
         // if a pair object is available, take into account PBC, otherwise write as is
-        ctp::QMNBList* nblist = &top->NBList();
-        ctp::QMPair* pair = nblist->FindPair(seg_A, seg_B);
+        xtp::QMNBList* nblist = &top->NBList();
+        xtp::QMPair* pair = nblist->FindPair(seg_A, seg_B);
 
         if (pair == NULL) {
-          vector < ctp::Segment* > segments;
+          vector < xtp::Segment* > segments;
           segments.push_back(seg_A);
           segments.push_back(seg_B);
-          CTP_LOG(ctp::logWARNING, *pLog) << "PBCs are not taken into account when writing the coordinate file!" << flush;
+          XTP_LOG(xtp::logWARNING, *pLog) << "PBCs are not taken into account when writing the coordinate file!" << flush;
           _qmpackage->WriteInputFile(segments, _orbitalsAB);
         } else {
           _qmpackage->WriteInputFilePBC(pair, _orbitalsAB);
@@ -300,10 +300,10 @@ namespace votca {
         _run_dft_status = _qmpackage->Run();
         if (!_run_dft_status) {
           output += "run failed; ";
-          CTP_LOG(ctp::logERROR, *pLog) << _qmpackage->getPackageName() << " run failed" << flush;
+          XTP_LOG(xtp::logERROR, *pLog) << _qmpackage->getPackageName() << " run failed" << flush;
           cout << *pLog;
           jres.setOutput(output);
-          jres.setStatus(ctp::Job::FAILED);
+          jres.setStatus(xtp::Job::FAILED);
           delete _qmpackage;
           return jres;
         }
@@ -319,10 +319,10 @@ namespace votca {
 
         if (!_parse_log_status) {
           output += "log incomplete; ";
-          CTP_LOG(ctp::logERROR, *pLog) << "LOG parsing failed" << flush;
+          XTP_LOG(xtp::logERROR, *pLog) << "LOG parsing failed" << flush;
           cout << *pLog;
           jres.setOutput(output);
-          jres.setStatus(ctp::Job::FAILED);
+          jres.setStatus(xtp::Job::FAILED);
           delete _qmpackage;
           return jres;
         }
@@ -331,10 +331,10 @@ namespace votca {
 
         if (!_parse_orbitals_status) {
           output += "Orbitals parsing failed; ";
-          CTP_LOG(ctp::logERROR, *pLog) << "Orbitals parsing failed" << flush;
+          XTP_LOG(xtp::logERROR, *pLog) << "Orbitals parsing failed" << flush;
           cout << *pLog;
           jres.setOutput(output);
-          jres.setStatus(ctp::Job::FAILED);
+          jres.setStatus(xtp::Job::FAILED);
           delete _qmpackage;
           return jres;
         }
@@ -371,11 +371,11 @@ namespace votca {
         try {
           _orbitalsA.ReadFromCpt(orbFileA);
         } catch (std::runtime_error& error) {
-          CTP_LOG(ctp::logERROR, *pLog) << "Failed loading orbitals from " << orbFileA << flush;
+          XTP_LOG(xtp::logERROR, *pLog) << "Failed loading orbitals from " << orbFileA << flush;
           cout << *pLog;
           output += "failed on " + orbFileA;
           jres.setOutput(output);
-          jres.setStatus(ctp::Job::FAILED);
+          jres.setStatus(xtp::Job::FAILED);
           delete _qmpackage;
           return jres;
         }
@@ -383,11 +383,11 @@ namespace votca {
         try {
           _orbitalsB.ReadFromCpt(orbFileB);
         } catch (std::runtime_error& error) {
-          CTP_LOG(ctp::logERROR, *pLog) << "Failed loading orbitals from " << orbFileB << flush;
+          XTP_LOG(xtp::logERROR, *pLog) << "Failed loading orbitals from " << orbFileB << flush;
           cout << *pLog;
           output += "failed on " + orbFileB;
           jres.setOutput(output);
-          jres.setStatus(ctp::Job::FAILED);
+          jres.setStatus(xtp::Job::FAILED);
           delete _qmpackage;
           return jres;
         }
@@ -400,10 +400,10 @@ namespace votca {
 
         if (!_calculate_integrals) {
           output += "integrals failed; ";
-          CTP_LOG(ctp::logERROR, *pLog) << "Calculating integrals failed" << flush;
+          XTP_LOG(xtp::logERROR, *pLog) << "Calculating integrals failed" << flush;
           cout << *pLog;
           jres.setOutput(output);
-          jres.setStatus(ctp::Job::FAILED);
+          jres.setStatus(xtp::Job::FAILED);
           return jres;
         }
 
@@ -421,12 +421,12 @@ namespace votca {
 
       votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
       sout << iomXML << _job_summary;
-      CTP_LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush;
+      XTP_LOG(xtp::logINFO, *pLog) << xtp::TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush;
       if (_write_orbfile) {
         // save orbitals 
         boost::filesystem::create_directories(_orb_dir);
 
-        CTP_LOG(ctp::logDEBUG, *pLog) << "Saving orbitals to " << orbFileAB << flush;
+        XTP_LOG(xtp::logDEBUG, *pLog) << "Saving orbitals to " << orbFileAB << flush;
         
 
 
@@ -455,7 +455,7 @@ namespace votca {
 
         _orbitalsAB.WriteToCpt(orbFileAB);
       } else {
-        CTP_LOG(ctp::logDEBUG, *pLog) << "Orb file is not saved according to options " << flush;
+        XTP_LOG(xtp::logDEBUG, *pLog) << "Orb file is not saved according to options " << flush;
       }
 
       // cleanup whatever is not needed
@@ -463,12 +463,12 @@ namespace votca {
       delete _qmpackage;
 
       jres.setOutput(_job_summary);
-      jres.setStatus(ctp::Job::COMPLETE);
+      jres.setStatus(xtp::Job::COMPLETE);
 
       return jres;
     }
 
-    void IGWBSE::WriteJobFile(ctp::Topology *top) {
+    void IGWBSE::WriteJobFile(xtp::Topology *top) {
 
       cout << endl << "... ... Writing job file " << flush;
       std::ofstream ofs;
@@ -476,8 +476,8 @@ namespace votca {
       if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
 
 
-      ctp::QMNBList::iterator pit;
-      ctp::QMNBList &nblist = top->NBList();
+      xtp::QMNBList::iterator pit;
+      xtp::QMNBList &nblist = top->NBList();
 
       int jobCount = 0;
       if (nblist.size() == 0) {
@@ -489,7 +489,7 @@ namespace votca {
       string tag = "";
 
       for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
-        if ((*pit)->getType() == ctp::QMPair::Excitoncl) {
+        if ((*pit)->getType() == xtp::QMPair::Excitoncl) {
           continue;
         }
         //if ((*pit)->HasGhost()){ // Used to only produce jobs concerned with pbcs
@@ -510,7 +510,7 @@ namespace votca {
         pSegment->setAttribute<string>("type", name2);
         pSegment->setAttribute<int>("id", id2);
 
-        ctp::Job job(id, tag, Input, ctp::Job::AVAILABLE);
+        xtp::Job job(id, tag, Input, xtp::Job::AVAILABLE);
         job.ToStream(ofs, "xml");
         //}
       }
@@ -527,21 +527,21 @@ namespace votca {
      * Imports electronic couplings with superexchange
      */
 
-    void IGWBSE::ReadJobFile(ctp::Topology *top) {
+    void IGWBSE::ReadJobFile(xtp::Topology *top) {
 
       Property xml;
 
       vector<Property*> records;
 
       // gets the neighborlist from the topology
-      ctp::QMNBList &nblist = top->NBList();
+      xtp::QMNBList &nblist = top->NBList();
       int _number_of_pairs = nblist.size();
       int _current_pairs = 0;
       int _incomplete_jobs = 0;
 
       // output using logger
-      ctp::Logger _log;
-      _log.setReportLevel(ctp::logINFO);
+      xtp::Logger _log;
+      _log.setReportLevel(xtp::logINFO);
 
 
       // load the QC results in a vector indexed by the pair ID
@@ -575,13 +575,13 @@ namespace votca {
           double idB = id[1];
 
           // segments which correspond to these ids           
-          ctp::Segment *segA = top->getSegment(idA);
-          ctp::Segment *segB = top->getSegment(idB);
+          xtp::Segment *segA = top->getSegment(idA);
+          xtp::Segment *segB = top->getSegment(idB);
           // pair that corresponds to the two segments
-          ctp::QMPair *qmp = nblist.FindPair(segA, segB);
+          xtp::QMPair *qmp = nblist.FindPair(segA, segB);
 
           if (qmp == NULL) { // there is no pair in the neighbor list with this name
-            CTP_LOG_SAVE(ctp::logINFO, _log) << "No pair " << idA << ":" << idB << " found in the neighbor list. Ignoring" << flush;
+            XTP_LOG_SAVE(xtp::logINFO, _log) << "No pair " << idA << ":" << idB << " found in the neighbor list. Ignoring" << flush;
           } else {
             //cout << "Store in record: " <<  idA << ":" << idB << flush; 
             records[qmp->getId()] = &((*it)->get("output.pair.type"));
@@ -595,25 +595,25 @@ namespace votca {
 
       // loop over all pairs in the neighbor list
       std::cout << "Neighborlist size " << top->NBList().size() << std::endl;
-      for (ctp::QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
+      for (xtp::QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
 
-        ctp::QMPair *pair = *ipair;
+        xtp::QMPair *pair = *ipair;
         if (records[ pair->getId() ] == NULL) continue; //skip pairs which are not in the jobfile
 
-        ctp::Segment* segmentA = pair->Seg1();
-        ctp::Segment* segmentB = pair->Seg2();
+        xtp::Segment* segmentA = pair->Seg1();
+        xtp::Segment* segmentB = pair->Seg2();
 
 
 
         //cout << "Processing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
 
-        ctp::QMPair::PairType _ptype = pair->getType();
+        xtp::QMPair::PairType _ptype = pair->getType();
         Property* pair_property = records[ pair->getId() ];
 
 
 
         // If a pair is of a direct type 
-        if (_ptype == ctp::QMPair::PairType::Hopping || _ptype == ctp::QMPair::PairType::SuperExchangeAndHopping) {
+        if (_ptype == xtp::QMPair::PairType::Hopping || _ptype == xtp::QMPair::PairType::SuperExchangeAndHopping) {
           bool foundsinglet = false;
           bool foundtriplet = false;
 
@@ -666,7 +666,7 @@ namespace votca {
 
       }
 
-      CTP_LOG_SAVE(ctp::logINFO, _log) << "Pairs [total:updated] " << _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush;
+      XTP_LOG_SAVE(xtp::logINFO, _log) << "Pairs [total:updated] " << _number_of_pairs << ":" << _current_pairs << " Incomplete jobs: " << _incomplete_jobs << flush;
       cout << _log;
       return;
     }

@@ -22,8 +22,13 @@
 #define __VOTCA_XTP_NEIGHBORLIST_H
 
 #include <votca/tools/globals.h>
-#include <votca/ctp/qmcalculator.h>
-#include <votca/ctp/qmpair.h>
+#include <votca/xtp/qmcalculator.h>
+#include <votca/xtp/qmpair.h>
+#include <votca/xtp/qmnblist.h>
+#include <votca/xtp/topology.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/fragment.h>
+#include <votca/xtp/atom.h>
 #include <votca/tools/property.h>
 #include <boost/progress.hpp>
 #include <boost/format.hpp>
@@ -34,9 +39,7 @@
 
 namespace votca { namespace xtp {
 
-
-    
-class Neighborlist : public ctp::QMCalculator
+class Neighborlist : public xtp::QMCalculator
 {
 
 public:
@@ -44,7 +47,7 @@ public:
     Neighborlist() { };
    ~Neighborlist() {
        // cleanup the list of superexchange pair types
-       for ( std::list<ctp::QMNBList::SuperExchangeType*>::iterator it = _superexchange.begin() ; it != _superexchange.end(); it++  ) {
+       for ( std::list<xtp::QMNBList::SuperExchangeType*>::iterator it = _superexchange.begin() ; it != _superexchange.end(); it++  ) {
            delete *it;
        }
     };
@@ -52,8 +55,8 @@ public:
      std::string Identify() { return "neighborlist"; }
     
     void Initialize(tools::Property *options);
-    bool EvaluateFrame(ctp::Topology *top);
-    void GenerateFromFile(ctp::Topology *top,  std::string filename);
+    bool EvaluateFrame(xtp::Topology *top);
+    void GenerateFromFile(xtp::Topology *top,  std::string filename);
   
 
 private:
@@ -69,7 +72,7 @@ private:
     bool                              _generate_from_file;
     bool                              _generate_unsafe;
     bool                              _do_bridging;
-    std::list<ctp::QMNBList::SuperExchangeType*>        _superexchange;
+    std::list<xtp::QMNBList::SuperExchangeType*>        _superexchange;
 
 };
     
@@ -150,7 +153,7 @@ void Neighborlist::Initialize(tools::Property *options) {
 
         for (seIt = _se.begin(); seIt != _se.end(); seIt++) {
              std::string types = (*seIt)->get("type").as< std::string>();
-            ctp::QMNBList::SuperExchangeType* _su = new ctp::QMNBList::SuperExchangeType(types);
+            xtp::QMNBList::SuperExchangeType* _su = new xtp::QMNBList::SuperExchangeType(types);
             _superexchange.push_back(_su); 
         }
     }
@@ -160,7 +163,7 @@ void Neighborlist::Initialize(tools::Property *options) {
             
 }
 
-bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
+bool Neighborlist::EvaluateFrame(xtp::Topology *top) {
   
 
     top->NBList().Cleanup();
@@ -180,11 +183,11 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
         if(min>box.get(1,1)){min=box.get(1,1);}
         if(min>box.get(2,2)){min=box.get(2,2);}
     
-        std::vector< ctp::Segment* > segs;
+        std::vector< xtp::Segment* > segs;
     
-        for (std::vector< ctp::Segment* > ::iterator segit1 = top->Segments().begin();              
+        for (std::vector< xtp::Segment* > ::iterator segit1 = top->Segments().begin();              
                     segit1 < top->Segments().end();++segit1) {
-            ctp::Segment *seg1 = *segit1;
+            xtp::Segment *seg1 = *segit1;
             if(_useConstantCutoff || std::find(_included_segments.begin(), _included_segments.end(), seg1->getName()) != _included_segments.end()){
                 segs.push_back(seg1);
                 seg1->calcPos();
@@ -205,12 +208,12 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
         std::cout << "\r ... ... Evaluating " <<std::flush; 
         std::vector<std::string> skippedpairs;
        
-        for (std::vector< ctp::Segment* > ::iterator segit1 = segs.begin();segit1 < segs.end();++segit1) {
-                ctp::Segment *seg1 = *segit1;
+        for (std::vector< xtp::Segment* > ::iterator segit1 = segs.begin();segit1 < segs.end();++segit1) {
+                xtp::Segment *seg1 = *segit1;
                 
-                std::vector< ctp::Segment* > ::iterator segit2;
-                std::vector< ctp::Fragment* > ::iterator fragit1;
-                std::vector< ctp::Fragment* > ::iterator fragit2;
+                std::vector< xtp::Segment* > ::iterator segit2;
+                std::vector< xtp::Fragment* > ::iterator fragit1;
+                std::vector< xtp::Fragment* > ::iterator fragit2;
                 double cutoff;
                 tools::vec r1;
                 tools::vec r2;
@@ -223,7 +226,7 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
 
             for (segit2 = segit1 + 1;segit2 < segs.end();++segit2) {
 
-                ctp::Segment *seg2 = *segit2;
+                xtp::Segment *seg2 = *segit2;
 
                 if (!_useConstantCutoff) {
                     // Find cut-off
@@ -308,12 +311,12 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
     std::cout << std::endl << " ... ... Created " << top->NBList().size() << " direct pairs.";
     if(_useExcitonCutoff){
         std::cout << std::endl << " ... ... Determining classical pairs "<<std::endl;
-        ctp::QMNBList &nblist = top->NBList();
-        for (ctp::QMNBList::iterator pit = nblist.begin(); pit != nblist.end(); ++pit) {
+        xtp::QMNBList &nblist = top->NBList();
+        for (xtp::QMNBList::iterator pit = nblist.begin(); pit != nblist.end(); ++pit) {
             tools::vec r1;
             tools::vec r2;
-             std::vector< ctp::Fragment* > ::iterator fragit1;
-             std::vector< ctp::Fragment* > ::iterator fragit2;
+             std::vector< xtp::Fragment* > ::iterator fragit1;
+             std::vector< xtp::Fragment* > ::iterator fragit2;
             
             bool stopLoop = false;
                 for (fragit1 =  (*pit)->Seg1()->Fragments().begin();
@@ -354,10 +357,10 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
         tools::Property *_bridges = &bridges_summary.add("bridges","");
 
         std::cout << "Bridged Pairs \n [idA:idB] com distance" << std::endl;
-        for (ctp::QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
-                ctp::QMPair *pair = *ipair;
-                ctp::Segment* segment1 = pair->Seg1PbCopy();
-                ctp::Segment* segment2 = pair->Seg2PbCopy();
+        for (xtp::QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
+                xtp::QMPair *pair = *ipair;
+                xtp::Segment* segment1 = pair->Seg1PbCopy();
+                xtp::Segment* segment2 = pair->Seg2PbCopy();
                 
                 std::cout << " [" << segment1->getId() << ":" << segment2->getId()<< "] " 
                              << pair->Dist()<< " bridges: " 
@@ -366,7 +369,7 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
                              << pair->getType() 
                              << " | " << std::flush;
                 
-                std::vector<ctp::Segment*> bsegments = pair->getBridgingSegments();
+                std::vector<xtp::Segment*> bsegments = pair->getBridgingSegments();
  
                 tools::Property *_pair_property = &_bridges->add("pair","");
                                    
@@ -378,7 +381,7 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
                                     
                 tools::Property *_bridge_property = &_pair_property->add("bridge","");
 
-                for (  std::vector<ctp::Segment*>::iterator itb = bsegments.begin(); itb != bsegments.end(); itb++ ) {
+                for (  std::vector<xtp::Segment*>::iterator itb = bsegments.begin(); itb != bsegments.end(); itb++ ) {
                     std::cout << (*itb)->getId() << " " ;
                     _bridge_property->setAttribute("id", (*itb)->getId());
                 }        
@@ -395,7 +398,7 @@ bool Neighborlist::EvaluateFrame(ctp::Topology *top) {
 
 
 
-void Neighborlist::GenerateFromFile(ctp::Topology *top,  std::string filename) {
+void Neighborlist::GenerateFromFile(xtp::Topology *top,  std::string filename) {
     
     std::string line;
     std::ifstream intt;
@@ -420,8 +423,8 @@ void Neighborlist::GenerateFromFile(ctp::Topology *top,  std::string filename) {
             int seg1id          = boost::lexical_cast<int>(split[1]);
             int seg2id          = boost::lexical_cast<int>(split[2]);
             
-            ctp::Segment* seg1 = top->getSegment(seg1id);
-            ctp::Segment* seg2 = top->getSegment(seg2id);
+            xtp::Segment* seg1 = top->getSegment(seg1id);
+            xtp::Segment* seg2 = top->getSegment(seg2id);
             
             if (not _generate_unsafe) {
                  std::string seg1name     = boost::lexical_cast<std::string>(split[7]);

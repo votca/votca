@@ -18,7 +18,7 @@
  */
 
 #include <votca/xtp/numerical_integrations.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/espfit.h>
 #include <votca/xtp/aomatrix.h>
 
@@ -39,7 +39,7 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd
     Grid _grid;
     _grid.setAtomlist(&_atomlist);
     _grid.setupCHELPgrid();
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << flush;
 
     // Calculating nuclear potential at gridpoints
     AOOverlap overlap;
@@ -49,28 +49,28 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd
     NumericalIntegration numway;
 
     numway.GridSetup(gridsize,_atomlist,&_basis);
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Setup "<<gridsize<<" Numerical Grid with "<<numway.getGridSize()<<" gridpoints."<< flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Setup "<<gridsize<<" Numerical Grid with "<<numway.getGridSize()<<" gridpoints."<< flush;
     double N=numway.IntegrateDensity(_dmat);
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculated Densities at Numerical Grid, Number of electrons is "<< N << flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Calculated Densities at Numerical Grid, Number of electrons is "<< N << flush;
 
     if(std::abs(N-N_comp)>0.001){
-        CTP_LOG(ctp::logDEBUG, *_log) <<"=======================" << flush;
-        CTP_LOG(ctp::logDEBUG, *_log) <<"WARNING: Calculated Densities at Numerical Grid, Number of electrons "<< N <<" is far away from the the real value "<< N_comp<<", you should increase the accuracy of the integration grid."<< flush;
+        XTP_LOG(xtp::logDEBUG, *_log) <<"=======================" << flush;
+        XTP_LOG(xtp::logDEBUG, *_log) <<"WARNING: Calculated Densities at Numerical Grid, Number of electrons "<< N <<" is far away from the the real value "<< N_comp<<", you should increase the accuracy of the integration grid."<< flush;
         N=N_comp;
-        CTP_LOG(ctp::logDEBUG, *_log) <<"WARNING: Electronnumber set to "<< N << flush;
-        CTP_LOG(ctp::logDEBUG, *_log) <<"=======================" << flush;
+        XTP_LOG(xtp::logDEBUG, *_log) <<"WARNING: Electronnumber set to "<< N << flush;
+        XTP_LOG(xtp::logDEBUG, *_log) <<"=======================" << flush;
     }
 
     double netcharge=getNetcharge( _atomlist,N );
 
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;
     //boost::progress_display show_progress( _grid.getsize() );
     #pragma omp parallel for
     for ( unsigned i = 0 ; i < _grid.getsize(); i++){
         _grid.getGridValues()(i)=numway.IntegratePotential(_grid.getGridPositions()[i]);
     }
 
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Electron contribution calculated"  << flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Electron contribution calculated"  << flush;
     if (!_do_Transition){
       EvalNuclearPotential(  _atomlist,  _grid );
     }
@@ -84,7 +84,7 @@ void Espfit::EvalNuclearPotential(const std::vector< QMAtom* >& _atoms, Grid& _g
   
     const std::vector< tools::vec >& _gridpoints = _grid.getGridPositions();
     Eigen::VectorXd& _gridvalues=_grid.getGridValues();
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points" << flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points" << flush;
 
     for (unsigned i = 0; i < _gridpoints.size(); i++) {
         for (unsigned j = 0; j < _atoms.size(); j++) {
@@ -100,7 +100,7 @@ void Espfit::EvalNuclearPotential(const std::vector< QMAtom* >& _atoms, Grid& _g
 double Espfit::getNetcharge(const std::vector< QMAtom* >& _atoms, double N ){
     double netcharge = 0.0;
       if (std::abs(N) < 0.05) {
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp()<< " Number of Electrons is " << N << " transitiondensity is used for fit" << flush;
+        XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp()<< " Number of Electrons is " << N << " transitiondensity is used for fit" << flush;
         _do_Transition = true;
       } else {
         double Znuc = 0.0;
@@ -109,16 +109,16 @@ double Espfit::getNetcharge(const std::vector< QMAtom* >& _atoms, double N ){
         }
 
         if (std::abs(Znuc - N) < 4) {
-          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp()<< " Number of Electrons minus Nucleus charge is " << Znuc - N << "." << flush;
+          XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp()<< " Number of Electrons minus Nucleus charge is " << Znuc - N << "." << flush;
         } else {
-          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp()<< " Warning: Your molecule is highly ionized." << flush;
+          XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp()<< " Warning: Your molecule is highly ionized." << flush;
         }
         netcharge = Znuc - N;
         _do_Transition = false;
       }
 
       netcharge = std::round(netcharge);
-      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp()<< " Netcharge constrained to " << netcharge << flush;
+      XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp()<< " Netcharge constrained to " << netcharge << flush;
 
       return netcharge;
 }
@@ -131,7 +131,7 @@ void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist,const Eigen:
     _grid.setAtomlist(&_atomlist);
     _grid.setupCHELPgrid();
 
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << std::endl;
+    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() <<  " Done setting up CHELPG grid with " << _grid.getsize() << " points " << std::endl;
     // Calculating nuclear potential at gridpoints
     AOOverlap overlap;
     overlap.Fill(_basis);
@@ -142,7 +142,7 @@ void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& _atomlist,const Eigen:
         EvalNuclearPotential(_atomlist, _grid);
     }
 
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;
     #pragma omp parallel for
     for ( unsigned i = 0 ; i < _grid.getsize(); i++){
          AOESP _aoesp;
@@ -160,11 +160,11 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& _atomlist,const Grid& _g
   
   const int NoOfConstraints=1+_regionconstraint.size()+_pairconstraint.size();
   const int matrixSize=_atomlist.size()+NoOfConstraints;
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Setting up Matrices for fitting of size "<< matrixSize <<" x " << matrixSize<< flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Setting up Matrices for fitting of size "<< matrixSize <<" x " << matrixSize<< flush;
 
     const std::vector< tools::vec >& _gridpoints=_grid.getGridPositions();
     const Eigen::VectorXd & _potential=_grid.getGridValues();
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using "<< _atomlist.size() <<" Fittingcenters and " << _gridpoints.size()<< " Gridpoints."<< flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Using "<< _atomlist.size() <<" Fittingcenters and " << _gridpoints.size()<< " Gridpoints."<< flush;
 
     Eigen::MatrixXd _Amat = Eigen::MatrixXd::Zero(matrixSize,matrixSize);
     Eigen::VectorXd _Bvec = Eigen::VectorXd::Zero(matrixSize);
@@ -218,7 +218,7 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& _atomlist,const Grid& _g
          _Bvec(_atomlist.size()+i+1+_pairconstraint.size())=reg.charge;
      }
 
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices "<< flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Inverting Matrices "<< flush;
     // invert _Amat
  
     Eigen::VectorXd _charges;
@@ -227,7 +227,7 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& _atomlist,const Grid& _g
       svd.setThreshold(_conditionnumber);
       svd.compute(_Amat);
       _charges=svd.solve(_Bvec);
-      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << "SVD Done. "<<_Bvec.size()-svd.nonzeroSingularValues()<<" could not be fitted and are set to zero."<< flush;
+      XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << "SVD Done. "<<_Bvec.size()-svd.nonzeroSingularValues()<<" could not be fitted and are set to zero."<< flush;
     }
     else{
        _charges=_Amat.colPivHouseholderQr().solve(_Bvec);
@@ -235,9 +235,9 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& _atomlist,const Grid& _g
 
     //remove constraint
     _charges.conservativeResize(_atomlist.size());
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices done."<< flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Inverting Matrices done."<< flush;
    
-    CTP_LOG(ctp::logDEBUG, *_log) << " Sum of fitted charges: " << _charges.sum() << flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << " Sum of fitted charges: " << _charges.sum() << flush;
     for (unsigned i=0;i<_atomlist.size();i++){
       _atomlist[i]->setPartialcharge(_charges(i));
     }
@@ -254,8 +254,8 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& _atomlist,const Grid& _g
         _rmse += (_potential(_k) - temp)*(_potential(_k) - temp);
         _totalPotSq += _potential(_k)*_potential(_k);
     }
-    CTP_LOG(ctp::logDEBUG, *_log) << " RMSE of fit:  " << sqrt(_rmse/_gridpoints.size()) << flush;
-    CTP_LOG(ctp::logDEBUG, *_log) << " RRMSE of fit: " << sqrt(_rmse/_totalPotSq) << flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << " RMSE of fit:  " << sqrt(_rmse/_gridpoints.size()) << flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << " RRMSE of fit: " << sqrt(_rmse/_totalPotSq) << flush;
 
     return;
    }

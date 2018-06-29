@@ -19,11 +19,11 @@
 #ifndef __QMMMCALC__H
 #define	__QMMMCALC__H
 
-#include <votca/ctp/parallelxjobcalc.h>
-#include <votca/ctp/xmapper.h>
-#include <votca/ctp/xjob.h>
-#include <votca/ctp/xinductor.h>
-#include <votca/ctp/xinteractor.h>
+#include <votca/xtp/parallelxjobcalc.h>
+#include <votca/xtp/xmapper.h>
+#include <votca/xtp/xjob.h>
+#include <votca/xtp/xinductor.h>
+#include <votca/xtp/xinteractor.h>
 // add gwbse header of excited state support
 #include <votca/xtp/gwbse.h>
 // --------
@@ -36,7 +36,7 @@ using boost::format;
 namespace votca { namespace xtp {
 
 
-class QMMM : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
+class QMMM : public xtp::ParallelXJobCalc< vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult >
 {
 
 public:
@@ -47,10 +47,10 @@ public:
     string          Identify() { return "qmmm"; }
     void            Initialize(Property *);
 
-    void            CustomizeLogger(ctp::QMThread *thread);
-    void            PreProcess(ctp::Topology *top);
-    ctp::Job::JobResult  EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *thread);
-    ctp::XJob            ProcessInputString(ctp::Job *job, ctp::Topology *top, ctp::QMThread *thread);
+    void            CustomizeLogger(xtp::QMThread *thread);
+    void            PreProcess(xtp::Topology *top);
+    xtp::Job::JobResult  EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *thread);
+    xtp::XJob            ProcessInputString(xtp::Job *job, xtp::Topology *top, xtp::QMThread *thread);
 
 
 private:
@@ -63,7 +63,7 @@ private:
     // Polar-site mapping
     string                         _emp_file;
     string                         _xml_file;
-    ctp::XMpsMap                        _mps_mapper;
+    xtp::XMpsMap                        _mps_mapper;
 
     // Control over induction-state output
     string                          _pdb_check;
@@ -229,7 +229,7 @@ void QMMM::Initialize(Property *options) {
 }
 
 
-void QMMM::PreProcess(ctp::Topology *top) {
+void QMMM::PreProcess(xtp::Topology *top) {
 
     // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
     cout << endl << "... ... Initialize MPS-mapper: " << flush;
@@ -237,17 +237,17 @@ void QMMM::PreProcess(ctp::Topology *top) {
 }
 
 
-void QMMM::CustomizeLogger(ctp::QMThread *thread) {
+void QMMM::CustomizeLogger(xtp::QMThread *thread) {
 
     // CONFIGURE LOGGER
-    ctp::Logger* log = thread->getLogger();
-    log->setReportLevel(ctp::logDEBUG);
+    xtp::Logger* log = thread->getLogger();
+    log->setReportLevel(xtp::logDEBUG);
     log->setMultithreading(_maverick);
 
-    log->setPreface(ctp::logINFO,    (format("\nT%1$02d ... ...") % thread->getId()).str());
-    log->setPreface(ctp::logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
-    log->setPreface(ctp::logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
-    log->setPreface(ctp::logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());
+    log->setPreface(xtp::logINFO,    (format("\nT%1$02d ... ...") % thread->getId()).str());
+    log->setPreface(xtp::logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
+    log->setPreface(xtp::logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
+    log->setPreface(xtp::logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str());
 }
 
 
@@ -256,10 +256,10 @@ void QMMM::CustomizeLogger(ctp::QMThread *thread) {
 // ========================================================================== //
 
 
-ctp::XJob QMMM::ProcessInputString(ctp::Job *job, ctp::Topology *top, ctp::QMThread *thread) {
+xtp::XJob QMMM::ProcessInputString(xtp::Job *job, xtp::Topology *top, xtp::QMThread *thread) {
 
     string input = job->getInput().as<string>();
-    vector<ctp::Segment*> qmSegs;
+    vector<xtp::Segment*> qmSegs;
     vector<string>   qmSegMps;
     vector<string> split;
     Tokenizer toker(input, " \t\n");
@@ -276,9 +276,9 @@ ctp::XJob QMMM::ProcessInputString(ctp::Job *job, ctp::Topology *top, ctp::QMThr
         string segName = split_id_seg_mps[1];
         string mpsFile = split_id_seg_mps[2];
 
-        ctp::Segment *seg = top->getSegment(segId);
+        xtp::Segment *seg = top->getSegment(segId);
         if (seg->getName() != segName) {
-            CTP_LOG(ctp::logERROR,*(thread->getLogger()))
+            XTP_LOG(xtp::logERROR,*(thread->getLogger()))
                 << "ERROR: Seg " << segId << ":" << seg->getName() << " "
                 << " maltagged as " << segName << ". Skip job ..." << flush;
             throw std::runtime_error("Input does not match topology.");
@@ -288,26 +288,26 @@ ctp::XJob QMMM::ProcessInputString(ctp::Job *job, ctp::Topology *top, ctp::QMThr
         qmSegMps.push_back(mpsFile);
     }
 
-    return ctp::XJob(job->getId(), job->getTag(), qmSegs, qmSegMps, top);
+    return xtp::XJob(job->getId(), job->getTag(), qmSegs, qmSegMps, top);
 }
 
 
-ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *thread) {
+xtp::Job::JobResult QMMM::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *thread) {
 
     // SILENT LOGGER FOR QMPACKAGE
-    ctp::Logger* log = thread->getLogger();
-    ctp::Logger* qlog = new ctp::Logger();
-    qlog->setReportLevel(ctp::logDEBUG);
+    xtp::Logger* log = thread->getLogger();
+    xtp::Logger* qlog = new xtp::Logger();
+    qlog->setReportLevel(xtp::logDEBUG);
     qlog->setMultithreading(_maverick);
-    qlog->setPreface(ctp::logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
-    qlog->setPreface(ctp::logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
-    qlog->setPreface(ctp::logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
-    qlog->setPreface(ctp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
+    qlog->setPreface(xtp::logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
+    qlog->setPreface(xtp::logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
+    qlog->setPreface(xtp::logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
+    qlog->setPreface(xtp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
 
     // CREATE XJOB FROM JOB INPUT STRING
-    CTP_LOG(ctp::logINFO,*log)
+    XTP_LOG(xtp::logINFO,*log)
         << "Job input = " << job->getInput().as<string>() << flush;
-    ctp::XJob xjob = this->ProcessInputString(job, top, thread);
+    xtp::XJob xjob = this->ProcessInputString(job, top, thread);
 
     // GENERATE POLAR TOPOLOGY FOR JOB
     double co1 = _cutoff1;
@@ -329,14 +329,14 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     }
 
 
-    CTP_LOG(ctp::logINFO,*log)
+    XTP_LOG(xtp::logINFO,*log)
          << xjob.getPolarTop()->ShellInfoStr() << flush;
 
     if (tools::globals::verbose){
         xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_QM0_MM1_MM2.pdb");
     }
     // INDUCTOR, QM RUNNER, QM-MM MACHINE
-    ctp::XInductor xind = ctp::XInductor(top, &_options, "options."+Identify(),
+    xtp::XInductor xind = xtp::XInductor(top, &_options, "options."+Identify(),
         _subthreads, _maverick);
     xind.setLog(thread->getLogger());
 
@@ -369,17 +369,17 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     xjob.setInfoLine(true,true);
 
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
-    ctp::Job::JobResult jres = ctp::Job::JobResult();
+    xtp::Job::JobResult jres = xtp::Job::JobResult();
     jres.setOutput(xjob.getInfoLine());
-    jres.setStatus(ctp::Job::COMPLETE);
+    jres.setStatus(xtp::Job::COMPLETE);
 
     if (!xind.hasConverged()) {
-        jres.setStatus(ctp::Job::FAILED);
+        jres.setStatus(xtp::Job::FAILED);
         jres.setError(xind.getError());
-        CTP_LOG(ctp::logERROR,*log) << xind.getError() << flush;
+        XTP_LOG(xtp::logERROR,*log) << xind.getError() << flush;
     }
     if(error!=0){
-        jres.setStatus(ctp::Job::FAILED);
+        jres.setStatus(xtp::Job::FAILED);
     }
 
     return jres;

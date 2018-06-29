@@ -20,7 +20,7 @@
 #include <votca/tools/property.h>
 #include <votca/tools/constants.h>
 #include <boost/format.hpp>
-#include <votca/ctp/topology.h>
+#include <votca/xtp/topology.h>
 #include <locale>
 
 
@@ -74,7 +74,7 @@ void KMCMultiple::Initialize(tools::Property *options){
         
 
 
-void KMCMultiple::RunVSSM(ctp::Topology *top)
+void KMCMultiple::RunVSSM(xtp::Topology *top)
 {
 
     int realtime_start = time(NULL);
@@ -364,7 +364,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
     }
 
     
-    vector< ctp::Segment* >& seg = top->Segments();
+    vector< xtp::Segment* >& seg = top->Segments();
     for (unsigned i = 0; i < seg.size(); i++) {
             double occupationprobability=_nodes[i]->occupationtime / simtime;
             seg[i]->setOcc(occupationprobability,_carriertype);
@@ -442,7 +442,7 @@ void KMCMultiple::RunVSSM(ctp::Topology *top)
 
 
 
-bool KMCMultiple::EvaluateFrame(ctp::Topology *top){
+bool KMCMultiple::EvaluateFrame(xtp::Topology *top){
     std::cout << std::endl;      
     std::cout << "-----------------------------------" << std::endl;      
     std::cout << "      KMC FOR MULTIPLE CHARGES" << std::endl;

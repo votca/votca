@@ -21,7 +21,7 @@
 #define	__VOTCA_XTP_ORCA_H
 
 
-#include <votca/ctp/apolarsite.h>
+#include <votca/xtp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 
 #include <string>
@@ -47,7 +47,7 @@ public:
    /* Writes Orca input file with coordinates of segments
 
     */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
+   bool WriteInputFile( std::vector< xtp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<xtp::PolarSeg*> PolarSegments = {});
 
    bool WriteShellScript();
 
@@ -60,7 +60,7 @@ public:
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
-   bool setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){ return true; };
+   bool setMultipoleBackground( std::vector<xtp::PolarSeg*> multipoles){ return true; };
 
 
 
@@ -85,7 +85,7 @@ private:
     void WriteBasisset(std::vector<QMAtom*>& qmatoms, std::string& _bs_name, std::string& _el_file_name);
     void WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
     void WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
-    void WriteBackgroundCharges(std::vector<ctp::PolarSeg*> PolarSegments);
+    void WriteBackgroundCharges(std::vector<xtp::PolarSeg*> PolarSegments);
 };
 
 

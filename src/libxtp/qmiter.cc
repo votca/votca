@@ -23,7 +23,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <votca/tools/constants.h>
-#include <votca/ctp/apolarsite.h>
+#include <votca/xtp/apolarsite.h>
 
 using boost::format;
 
@@ -31,11 +31,11 @@ namespace votca {
     namespace xtp {
 
      
-void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, std::vector< ctp::PolarSeg* > &psegs) {
+void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, std::vector< xtp::PolarSeg* > &psegs) {
 
 
             for (unsigned int i = 0, qac = 0; i < psegs.size(); ++i) {
-                ctp::PolarSeg *pseg = psegs[i];
+                xtp::PolarSeg *pseg = psegs[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j, ++qac) {
 
                     // Retrieve multipole info of this atom
@@ -51,7 +51,7 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
                         update[m] *= pow(tools::conv::bohr2nm, 2);
                     }
 
-                    ctp::APolarSite *aps = (*pseg)[j];
+                    xtp::APolarSite *aps = (*pseg)[j];
                    
                     aps->setQs(update, 0);
 
@@ -62,7 +62,7 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
         }
 
         void QMMIter::UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &qmatoms,
-                std::vector< ctp::PolarSeg* > &psegs) {
+                std::vector< xtp::PolarSeg* > &psegs) {
 
 
             double dR_RMS = 0.0;
@@ -70,7 +70,7 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
             double dQ_SUM = 0.0;
 
             for (unsigned int i = 0, qac = 0; i < psegs.size(); ++i) {
-                ctp::PolarSeg *pseg = psegs[i];
+                xtp::PolarSeg *pseg = psegs[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j, ++qac) {
 
                     // Retrieve info from QMAtom
@@ -81,7 +81,7 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
 
 
                     // Compare to previous r, Q00
-                    ctp::APolarSite *aps = (*pseg)[j];
+                    xtp::APolarSite *aps = (*pseg)[j];
                     vec old_r = aps->getPos();
                     double old_Q00 = aps->getQ00();
                     double dR = abs(upd_r - old_r);

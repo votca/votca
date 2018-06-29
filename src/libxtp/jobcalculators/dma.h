@@ -25,8 +25,8 @@
 
 #include <votca/xtp/qmpackagefactory.h>
 
-#include <votca/ctp/parallelxjobcalc.h>
-#include <votca/ctp/segment.h>
+#include <votca/xtp/parallelxjobcalc.h>
+#include <votca/xtp/segment.h>
 
 #include <fstream>
 
@@ -46,7 +46,7 @@ namespace votca { namespace xtp {
 * Callname: dma
 */
 
-class DMA : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
+class DMA : public xtp::ParallelXJobCalc< vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult >
 {
 public:
 
@@ -55,9 +55,9 @@ public:
 
     string   Identify() { return "dma"; }
     void     Initialize(Property *options);
-    void     WriteJobFile(ctp::Topology *top);
+    void     WriteJobFile(xtp::Topology *top);
     
-    ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *thread);
+    xtp::Job::JobResult EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *thread);
 
 private:
 

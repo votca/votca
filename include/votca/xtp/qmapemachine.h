@@ -28,9 +28,9 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/espfit.h>
 
-#include <votca/ctp/ewaldnd.h>
-#include <votca/ctp/xjob.h>
-#include <votca/ctp/xinductor.h>
+#include <votca/xtp/ewaldnd.h>
+#include <votca/xtp/xjob.h>
+#include <votca/xtp/xinductor.h>
 
 #include <votca/xtp/qminterface.h>
 #include <votca/xtp/qmiter.h>
@@ -44,30 +44,30 @@ class QMAPEMachine
     
 public:
 
-	QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape, 
+	QMAPEMachine(xtp::XJob *job, xtp::Ewald3DnD *cape, 
               Property *opt, std::string sfx, int nst);
    ~QMAPEMachine();
     
-    void Evaluate(ctp::XJob *job);
+    void Evaluate(xtp::XJob *job);
     bool Iterate(std::string jobFolder, int iterCnt);
     bool EvaluateGWBSE(Orbitals &orb, std::string runFolder);
     QMMIter *CreateNewIter();
     bool hasConverged();
     bool AssertConvergence() { return _isConverged; }
     
-    void setLog(ctp::Logger *log) { _log = log; }
+    void setLog(xtp::Logger *log) { _log = log; }
     
 private:    
     
     QMMInterface qminterface;
-    ctp::Logger *_log;
+    xtp::Logger *_log;
 
     bool _run_ape;
     bool _run_dft;
     bool _run_gwbse;
 
-    ctp::XJob *_job;
-    ctp::Ewald3DnD *_cape;
+    xtp::XJob *_job;
+    xtp::Ewald3DnD *_cape;
     
     DFTENGINE dftengine;
     
@@ -106,8 +106,8 @@ private:
     bool _convg_dE_MM;
     
     
-    std::vector< ctp::PolarSeg* > target_bg;     
-    std::vector< ctp::PolarSeg* > target_fg;     
+    std::vector< xtp::PolarSeg* > target_bg;     
+    std::vector< xtp::PolarSeg* > target_fg;     
 
 };
 

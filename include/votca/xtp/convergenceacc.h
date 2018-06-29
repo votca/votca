@@ -21,7 +21,7 @@
 #define _VOTCA_XTP_CONVERGENCEACC__H
 
 #include <votca/xtp/basisset.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/adiis.h>
 #include <votca/xtp/diis.h>
 #include <votca/xtp/mixing.h>
@@ -81,7 +81,7 @@ public:
     bool getUseMixing(){return _usemixing;}
    
    
-    void setLogger(ctp::Logger *pLog){_pLog=pLog;}
+    void setLogger(xtp::Logger *pLog){_pLog=pLog;}
     Eigen::MatrixXd Iterate(const Eigen::MatrixXd& dmat,Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE);
     void SolveFockmatrix(Eigen::VectorXd& MOenergies,Eigen::MatrixXd& MOs,const Eigen::MatrixXd&H);
     void Levelshift(Eigen::MatrixXd& H);
@@ -98,7 +98,7 @@ public:
      
     bool                                _usemixing;
      
-    ctp::Logger *                       _pLog;
+    xtp::Logger *                       _pLog;
     const Eigen::MatrixXd* S;
     
     bool                              _usediis;

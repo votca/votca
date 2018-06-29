@@ -46,7 +46,7 @@ class Atom {
  public:
   Atom(Molecule *owner, std::string residue_name, int resnr,
        std::string md_atom_name, int md_atom_id, bool hasQMPart, int qm_atom_id,
-       votca::tools::vec qmPos, std::string element, double weight)
+       tools::vec qmPos, std::string element, double weight)
       : _id(md_atom_id),
         _name(md_atom_name),
         _mol(owner),
@@ -99,10 +99,10 @@ class Atom {
   inline void setResnr(const int &resnr) { _resnr = resnr; }
   inline void setResname(const std::string &resname) { _resname = resname; }
   inline void setWeight(const double &weight) { _weight = weight; }
-  inline void setQMPart(const int &qmid, votca::tools::vec qmPos);
-  inline void setQMPos(const votca::tools::vec &qmPos) { _qmPos = qmPos; }
+  inline void setQMPart(const int &qmid, tools::vec qmPos);
+  inline void setQMPos(const tools::vec &qmPos) { _qmPos = qmPos; }
   inline void setElement(const std::string &element) { _element = element; }
-  inline void TranslateBy(const votca::tools::vec &shift) {
+  inline void TranslateBy(const tools::vec &shift) {
     _pos = _pos + shift;
   }
 
@@ -110,7 +110,7 @@ class Atom {
   inline const std::string &getResname() { return _resname; }
   inline const double &getWeight() { return _weight; }
   inline const int &getQMId() { return _qmId; }
-  inline const votca::tools::vec &getQMPos() { return _qmPos; }
+  inline const tools::vec &getQMPos() { return _qmPos; }
   inline const std::string &getElement() { return _element; }
 
   inline const double &getQ(int state) { return _Q.at(state); }
@@ -118,24 +118,24 @@ class Atom {
   inline void setQ(std::map<int, double> Q) { _Q = Q; }
   void chrg(int state) { _q = _Q.find(state); }
 
-  inline void setPTensor(votca::tools::matrix &ptensor) { _ptensor = ptensor; }
-  const votca::tools::matrix &getPTensor() { return _ptensor; }
+  inline void setPTensor(tools::matrix &ptensor) { _ptensor = ptensor; }
+  const tools::matrix &getPTensor() { return _ptensor; }
 
   /**
    * get the position of the atom
    * \return atom position
    */
-  const votca::tools::vec &getPos() const;
+  const tools::vec &getPos() const;
   /**
    * set the position of the atom
    * \param r atom position
    */
-  void setPos(const votca::tools::vec &r);
+  void setPos(const tools::vec &r);
   /**
    * direct access (read/write) to the position of the atom
    * \return reference to position
    */
-  votca::tools::vec &Pos() { return _pos; }
+  tools::vec &Pos() { return _pos; }
   /** does this configuration store positions? */
   bool HasPos() { return _bPos; }
   /** dose the bead store a position */
@@ -160,33 +160,33 @@ class Atom {
   int _resnr;
   std::string _resname;
   double _weight;
-  votca::tools::vec _pos;
+  tools::vec _pos;
   bool _bPos;
 
   bool _hasQM;
   int _qmId;
-  votca::tools::vec _qmPos;
+  tools::vec _qmPos;
   std::string _element;
 
   // charge state of segment => partial charge
   std::map<int, double> _Q;
   std::map<int, double>::iterator _q;
-  votca::tools::matrix _ptensor;
+  tools::matrix _ptensor;
 };
 
-inline void Atom::setPos(const votca::tools::vec &r) {
+inline void Atom::setPos(const tools::vec &r) {
   _bPos = true;
   _pos = r;
 }
 
-inline const votca::tools::vec &Atom::getPos() const {
+inline const tools::vec &Atom::getPos() const {
   if (!_bPos) throw std::runtime_error("Position has not yet been set");
   return _pos;
 }
 
 inline void Atom::HasPos(bool b) { _bPos = b; }
 
-inline void Atom::setQMPart(const int &qmid, votca::tools::vec qmPos) {
+inline void Atom::setQMPart(const int &qmid, tools::vec qmPos) {
   if (qmid > -1) {
     _hasQM = true;
     _qmId = qmid;

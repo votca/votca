@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -30,11 +30,17 @@
 #include <votca/tools/globals.h>
 #include "Md2QmEngine.h"
 
+#include <votca/xtp/topology.h>
+#include <votca/xtp/molecule.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/fragment.h>
+#include <votca/xtp/atom.h>
+#include <votca/xtp/segmenttype.h>
+
 using namespace std;
 
 namespace CSG = votca::csg;
 namespace XTP = votca::xtp;
-namespace CTP = votca::ctp;
 namespace TOOLS = votca::tools;
 
 class XtpMap : public Application
@@ -58,7 +64,7 @@ public:
 protected:
     Property               _options;
     CSG::Topology          _mdtopol;
-    CTP::Topology          _qmtopol;
+    XTP::Topology          _qmtopol;
 
     Md2QmEngine            _md2qm;
     XTP::StateSaverSQLite  _statsav;
@@ -219,7 +225,7 @@ void XtpMap::Save(string mode) {
     _statsav.WriteFrame();
 
     if (TOOLS::globals::verbose) {
-        CTP::Topology *TopSQL = NULL;
+        XTP::Topology *TopSQL = NULL;
         TopSQL = _statsav.getTopology();
         cout << endl << "Checking topology read from SQL file." << endl;
         string pdbfile = "system.pdb";

@@ -123,8 +123,6 @@ find_package(VOTCA_TOOLS REQUIRED)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
 find_package(VOTCA_CSG REQUIRED)
 include_directories(${VOTCA_CSG_INCLUDE_DIRS})
-find_package(VOTCA_CTP REQUIRED)
-include_directories(${VOTCA_CTP_INCLUDE_DIRS})
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################

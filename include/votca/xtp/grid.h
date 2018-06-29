@@ -25,9 +25,9 @@
 #include <string>
 #include <vector>
 #include <votca/xtp/qmatom.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/apolarsite.h>
-#include <votca/ctp/polarseg.h>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/apolarsite.h>
+#include <votca/xtp/polarseg.h>
 /**
 * \brief Takes a list of atoms, and creates different grids for it. Right now only CHELPG grid.
 *
@@ -68,7 +68,7 @@ namespace votca { namespace xtp {
         const std::vector< tools::vec > &getGridPositions() const {return _gridpoints;}
         Eigen::VectorXd &getGridValues(){return _gridvalues;}
         const Eigen::VectorXd &getGridValues() const{return _gridvalues;}
-        std::vector< ctp::APolarSite* > &Sites() {return _gridsites;}
+        std::vector< xtp::APolarSite* > &Sites() {return _gridsites;}
         
         void setCutoffs(double cutoff, double cutoff_inside){_cutoff=cutoff;_cutoff_inside=cutoff_inside;}
         
@@ -106,8 +106,8 @@ namespace votca { namespace xtp {
      
       std::vector< tools::vec > _gridpoints;
       Eigen::VectorXd _gridvalues;
-      std::vector< ctp::APolarSite* > _gridsites;
-      std::vector< ctp::APolarSite* > _all_gridsites;
+      std::vector< xtp::APolarSite* > _gridsites;
+      std::vector< xtp::APolarSite* > _all_gridsites;
       
       double _cutoff;
       double _gridspacing;

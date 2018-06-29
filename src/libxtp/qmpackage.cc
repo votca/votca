@@ -20,7 +20,8 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include "votca/xtp/qmpackage.h"
 #include "votca/xtp/aomatrix.h"
-
+#include <votca/xtp/molecule.h>
+#include <votca/xtp/atom.h>
 namespace votca {
     namespace xtp {
       using std::flush;
@@ -44,15 +45,15 @@ namespace votca {
 
             if (_orbitals->hasAOOverlap()) {
                 _dftbasis.ReorderMatrix(_orbitals->AOOverlap(), getPackageName(), "xtp");
-                CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered Overlap matrix" << flush;
+                XTP_LOG(xtp::logDEBUG, *_pLog) << "Reordered Overlap matrix" << flush;
             }
             if (_orbitals->hasAOVxc()) {
                 _dftbasis.ReorderMatrix(_orbitals->AOVxc(), getPackageName(), "xtp");
-                CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered VXC matrix" << flush;
+                XTP_LOG(xtp::logDEBUG, *_pLog) << "Reordered VXC matrix" << flush;
             }
             if (_orbitals->hasMOCoefficients()) {
                 _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), getPackageName(), "xtp");
-                CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered MOs" << flush;
+                XTP_LOG(xtp::logDEBUG, *_pLog) << "Reordered MOs" << flush;
             }
 
             return;
@@ -70,7 +71,7 @@ namespace votca {
             return;
         }
 
-        std::vector<std::vector<double> > QMPackage::SplitMultipoles(ctp::APolarSite* aps) {
+        std::vector<std::vector<double> > QMPackage::SplitMultipoles(xtp::APolarSite* aps) {
 
             std::vector< std::vector<double> > multipoles_split;
 
@@ -120,13 +121,13 @@ namespace votca {
             return multipoles_split;
         }
 
-        void QMPackage::addLinkers(std::vector< ctp::Segment* > &segments, ctp::QMPair* pair, std::vector<std::string> linker_names) {
-            ctp::Segment* seg1 = pair->Seg1();
-            ctp::Segment* seg2 = pair->Seg2();
-            ctp::Topology* _top = seg1->getTopology();
-            std::vector<ctp::Segment*> segmentsInMolecule = _top->Segments();
-            ctp::Molecule* moleculeSeg1 = seg1->getMolecule();
-            ctp::Molecule* moleculeSeg2 = seg2->getMolecule();
+        void QMPackage::addLinkers(std::vector< xtp::Segment* > &segments, xtp::QMPair* pair, std::vector<std::string> linker_names) {
+            xtp::Segment* seg1 = pair->Seg1();
+            xtp::Segment* seg2 = pair->Seg2();
+            xtp::Topology* _top = seg1->getTopology();
+            std::vector<xtp::Segment*> segmentsInMolecule = _top->Segments();
+            xtp::Molecule* moleculeSeg1 = seg1->getMolecule();
+            xtp::Molecule* moleculeSeg2 = seg2->getMolecule();
             int moleculeIdSeg1 = moleculeSeg1-> getId();
             int moleculeIdSeg2 = moleculeSeg2-> getId();
 
@@ -137,9 +138,9 @@ namespace votca {
 
                 std::cout << "\n\nsegment size before addLinker: " << segments.size() << "\n";
 
-                std::vector<ctp::Segment*>::iterator it;
+                std::vector<xtp::Segment*>::iterator it;
                 for (it = segmentsInMolecule.begin(); it != segmentsInMolecule.end(); ++it) {
-                    ctp::Molecule* moleculeSegIt = (*it)->getMolecule();
+                    xtp::Molecule* moleculeSegIt = (*it)->getMolecule();
                     int moleculeIdOfSegIt = moleculeSegIt-> getId();
                     int idIterator = (*it)->getId();
                     if (moleculeIdOfSegIt == moleculeIdSeg1 && idIterator != idSeg1 && idIterator != idSeg2
@@ -158,32 +159,32 @@ namespace votca {
             return (std::find(linker_names.begin(), linker_names.end(), name) != linker_names.end());
         }
 
-        bool QMPackage::WriteInputFilePBC(ctp::QMPair* pair, Orbitals* orbitals, std::vector<std::string> linker_names) {
+        bool QMPackage::WriteInputFilePBC(xtp::QMPair* pair, Orbitals* orbitals, std::vector<std::string> linker_names) {
 
             //std::cout << "IDFT writes input with PBC" << std::endl;
 
-            ctp::Segment* seg1 = pair->Seg1();
-            ctp::Segment* seg2 = pair->Seg2();
-            ctp::Segment* ghost = NULL;
+            xtp::Segment* seg1 = pair->Seg1();
+            xtp::Segment* seg2 = pair->Seg2();
+            xtp::Segment* ghost = NULL;
 
-            ctp::Topology* _top = seg1->getTopology();
+            xtp::Topology* _top = seg1->getTopology();
 
-            ctp::vec r1 = seg1->getPos();
-            ctp::vec r2 = seg2->getPos();
+            xtp::vec r1 = seg1->getPos();
+            xtp::vec r2 = seg2->getPos();
 
-            ctp::vec _R = _top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
+            xtp::vec _R = _top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
 
             // Check whether pair formed across periodic boundary
             if (abs(r2 - r1 - _R) > 1e-8) {
-                ghost = new ctp::Segment(seg2);
+                ghost = new xtp::Segment(seg2);
                 //ghost->TranslateBy(r1 - r2 + _R); // DO NOT USE THIS METHOD !
-                std::vector<ctp::Atom*>::iterator ait;
+                std::vector<xtp::Atom*>::iterator ait;
                 for (ait = ghost->Atoms().begin(); ait != ghost->Atoms().end(); ++ait) {
                     (*ait)->setQMPos((*ait)->getQMPos() + r1 - r2 + _R);
                 }
             }
 
-            std::vector< ctp::Segment* > segments;
+            std::vector< xtp::Segment* > segments;
             segments.push_back(seg1);
 
             if (ghost) {

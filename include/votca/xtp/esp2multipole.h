@@ -25,7 +25,7 @@
 #include <votca/xtp/mulliken.h>
 #include <votca/xtp/lowdin.h>
 #include <votca/xtp/nbo.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/qmmachine.h>
 #include <boost/filesystem.hpp>
 
@@ -36,7 +36,7 @@ class Esp2multipole
 {
 public:
 
-    Esp2multipole (ctp::Logger* log) {
+    Esp2multipole (xtp::Logger* log) {
         _log=log; 
         _pairconstraint.resize(0);
         _regionconstraint.resize(0);
@@ -73,7 +73,7 @@ private:
     double      _conditionnumber;
     std::vector< QMAtom* > _Atomlist;
     
-    ctp::Logger*      _log;
+    xtp::Logger*      _log;
     std::vector< std::pair<int,int> > _pairconstraint; //  pairconstraint[i] is all the atomindices which have the same charge     
     std::vector< Espfit::region > _regionconstraint; 
     

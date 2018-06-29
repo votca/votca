@@ -22,18 +22,18 @@
 
 #include <stdio.h>
 
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/dftengine.h>
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/ctp/atom.h>
-#include <votca/ctp/segment.h>
-#include <votca/ctp/apolarsite.h>
+#include <votca/xtp/atom.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/apolarsite.h>
 
 namespace votca {
     namespace xtp {
         using namespace std;
 
-        class DFT : public ctp::QMTool {
+        class DFT : public xtp::QMTool {
         public:
 
             DFT() {
@@ -67,7 +67,7 @@ namespace votca {
             string _output_file;
 
             string _reporting;
-            ctp::Logger _log;
+            xtp::Logger _log;
 
             string _mpsfile;
             bool _do_external;
@@ -134,15 +134,15 @@ namespace votca {
 
         bool DFT::Evaluate() {
 
-            if (_reporting == "silent") _log.setReportLevel(ctp::logERROR); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
-            if (_reporting == "noisy") _log.setReportLevel(ctp::logDEBUG); // OUTPUT ALL THE THINGS
-            if (_reporting == "default") _log.setReportLevel(ctp::logINFO); // 
+            if (_reporting == "silent") _log.setReportLevel(xtp::logERROR); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
+            if (_reporting == "noisy") _log.setReportLevel(xtp::logDEBUG); // OUTPUT ALL THE THINGS
+            if (_reporting == "default") _log.setReportLevel(xtp::logINFO); // 
 
             _log.setMultithreading(true);
-            _log.setPreface(ctp::logINFO, "\n... ...");
-            _log.setPreface(ctp::logERROR, "\n... ...");
-            _log.setPreface(ctp::logWARNING, "\n... ...");
-            _log.setPreface(ctp::logDEBUG, "\n... ...");
+            _log.setPreface(xtp::logINFO, "\n... ...");
+            _log.setPreface(xtp::logERROR, "\n... ...");
+            _log.setPreface(xtp::logWARNING, "\n... ...");
+            _log.setPreface(xtp::logDEBUG, "\n... ...");
 
             //TLogLevel _ReportLevel = _log.getReportLevel( ); // backup report level
 
@@ -150,10 +150,10 @@ namespace votca {
             Orbitals _orbitals;
 
             if (_do_guess) {
-                CTP_LOG(ctp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
+                XTP_LOG(xtp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
                 _orbitals.ReadFromCpt(_guess_file);
             } else {
-                CTP_LOG(ctp::logDEBUG, _log) << "Reading structure from " << _xyzfile << flush;
+                XTP_LOG(xtp::logDEBUG, _log) << "Reading structure from " << _xyzfile << flush;
                 _orbitals.LoadFromXYZ(_xyzfile);
             }
 
@@ -164,11 +164,11 @@ namespace votca {
             ;
 
             if (_do_external) {
-                CTP_LOG (ctp::logDEBUG, _log) << " Let's create the background "  << flush; 
-                vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS(_mpsfile, 0);
-                std::vector<ctp::PolarSeg*> polar_segments;
-                //ctp::PolarSeg *thisPolarSegment = NULL;
-                ctp::PolarSeg *newPolarSegment = new ctp::PolarSeg(0, sites);
+                XTP_LOG (xtp::logDEBUG, _log) << " Let's create the background "  << flush; 
+                vector<xtp::APolarSite*> sites = xtp::APS_FROM_MPS(_mpsfile, 0);
+                std::vector<xtp::PolarSeg*> polar_segments;
+                //xtp::PolarSeg *thisPolarSegment = NULL;
+                xtp::PolarSeg *newPolarSegment = new xtp::PolarSeg(0, sites);
                 polar_segments.push_back(newPolarSegment);
                 polar_segments[0]->WriteMPS("test.mps", "test");
                 _dft.setExternalcharges(polar_segments);
@@ -179,7 +179,7 @@ namespace votca {
             _dft.Evaluate(&_orbitals);
 
 
-            CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _output_file << flush;
+            XTP_LOG(xtp::logDEBUG, _log) << "Saving data to " << _output_file << flush;
             _orbitals.WriteToCpt(_output_file);
           
             return true;

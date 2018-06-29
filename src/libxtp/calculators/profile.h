@@ -19,17 +19,17 @@
 #ifndef VOTCA_XTP_PROFILE_H
 #define VOTCA_XTP_PROFILE_H
 
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 
 namespace votca { namespace xtp {
 
-class Profile : public ctp::QMCalculator
+class Profile : public xtp::QMCalculator
 {
 public:
 
     string      Identify() { return "profile"; }
     void        Initialize(tools::Property *options);
-    bool        EvaluateFrame(ctp::Topology *top);
+    bool        EvaluateFrame(xtp::Topology *top);
 
 private:
     
@@ -87,15 +87,15 @@ void Profile::Initialize(tools::Property *options) {
 
 
 
-bool Profile::EvaluateFrame(ctp::Topology *top) {
+bool Profile::EvaluateFrame(xtp::Topology *top) {
 
     map< string, vector< double > > map_seg_zs; // for atomistic number density
     map< string, vector< double > > map_com_zs; // for segment number density
-    map< string, vector< ctp::Segment* > > map_com_seg;
+    map< string, vector< xtp::Segment* > > map_com_seg;
     map< string, bool > set_seg;
 
-    vector< ctp::Segment* > ::iterator sit;
-    vector< ctp::Atom* > ::iterator ait;
+    vector< xtp::Segment* > ::iterator sit;
+    vector< xtp::Atom* > ::iterator ait;
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
     // Collect profile positions from atoms in system, order by segment name //
@@ -109,7 +109,7 @@ bool Profile::EvaluateFrame(ctp::Topology *top) {
          sit < top->Segments().end();
          ++sit) {
 
-        ctp::Segment *seg = *sit;
+        xtp::Segment *seg = *sit;
 
         // Within specified segment range?
         if (seg->getId() < _firstSegId) { continue; }
@@ -166,7 +166,7 @@ bool Profile::EvaluateFrame(ctp::Topology *top) {
         string segName = setit->first;
         vector< double > seg_zs = map_seg_zs[segName];
         vector< double > com_zs = map_com_zs[segName];
-        vector< ctp::Segment* > com_seg = map_com_seg[segName];
+        vector< xtp::Segment* > com_seg = map_com_seg[segName];
         vector< vector< double > > hist_zs;
         vector< vector< double > > hist_zs_com;
         vector< vector< double > > binned_ea; // anion site energies  (<> EA)
@@ -178,7 +178,7 @@ bool Profile::EvaluateFrame(ctp::Topology *top) {
         
         // Perform binning
         vector< double > ::iterator zit;
-        vector< ctp::Segment* > ::iterator sit;
+        vector< xtp::Segment* > ::iterator sit;
         for (zit = seg_zs.begin(); zit < seg_zs.end(); ++zit) {
 
             int bin = int( ((*zit)-MIN)/_resolution + 0.5 );

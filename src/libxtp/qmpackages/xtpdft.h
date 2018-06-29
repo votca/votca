@@ -21,7 +21,7 @@
 #define __VOTCA_XTP_XTPDFT_H
 
 
-#include <votca/ctp/apolarsite.h>
+#include <votca/xtp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 #include <votca/xtp/dftengine.h>
 
@@ -46,7 +46,7 @@ namespace votca {
 
             void Initialize(tools::Property *options);
 
-            bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
+            bool WriteInputFile(std::vector< xtp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<xtp::PolarSeg*> PolarSegments = {});
 
             bool Run(Orbitals* _orbitals = NULL);
 
@@ -58,7 +58,7 @@ namespace votca {
 
             bool ParseOrbitalsFile(Orbitals* _orbitals);
             
-            bool setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles);
+            bool setMultipoleBackground( std::vector<xtp::PolarSeg*> multipoles);
 
         private:
 

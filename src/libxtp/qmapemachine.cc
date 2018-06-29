@@ -22,7 +22,7 @@
 #include <votca/xtp/qmapemachine.h>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 
 #include <votca/tools/elements.h>
 #include <votca/xtp/espfit.h>
@@ -31,7 +31,7 @@ using boost::format;
 
 namespace votca { namespace xtp {
 
-QMAPEMachine::QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape,
+QMAPEMachine::QMAPEMachine(xtp::XJob *job, xtp::Ewald3DnD *cape,
 	 Property *opt, string sfx, int nst)
    : _job(job), _cape(cape),_isConverged(false) {
     
@@ -112,7 +112,7 @@ QMAPEMachine::~QMAPEMachine() {
     }
     _iters.clear();
     
-    std::vector<ctp::PolarSeg*> ::iterator pit;
+    std::vector<xtp::PolarSeg*> ::iterator pit;
     for (pit = target_bg.begin(); pit < target_bg.end(); ++pit) {
         delete *pit;
     }
@@ -126,19 +126,19 @@ QMAPEMachine::~QMAPEMachine() {
 }
 
 
-void QMAPEMachine::Evaluate(ctp::XJob *job) {
+void QMAPEMachine::Evaluate(xtp::XJob *job) {
     
 	// PREPARE JOB DIRECTORY
 	string jobFolder = "qmapejob_" + boost::lexical_cast<string>(_job->getId())
 					 + "_" + _job->getTag();
 	bool created = boost::filesystem::create_directory(jobFolder);
 
-	CTP_LOG(ctp::logINFO,*_log) << flush;
+	XTP_LOG(xtp::logINFO,*_log) << flush;
 	if (created) {
-		CTP_LOG(ctp::logINFO,*_log) << "Created directory " << jobFolder << flush;
+		XTP_LOG(xtp::logINFO,*_log) << "Created directory " << jobFolder << flush;
         }
 
-    CTP_LOG(ctp::logINFO,*_log)
+    XTP_LOG(xtp::logINFO,*_log)
        << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
        % _crit_dR % _crit_dQ % _crit_dE_QM % _crit_dE_MM % _maxIter << flush;
     
@@ -149,7 +149,7 @@ void QMAPEMachine::Evaluate(ctp::XJob *job) {
     }
     int chrg = round(dQ);
     int spin = ( (chrg < 0) ? -chrg:chrg ) % 2 + 1;
-    CTP_LOG(ctp::logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
+    XTP_LOG(xtp::logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
     
     if(chrg!=0){
         throw runtime_error("Charged DFT calculations are not possible at the moment");
@@ -160,17 +160,17 @@ void QMAPEMachine::Evaluate(ctp::XJob *job) {
     int iterCnt = 0;
     int iterMax = _maxIter;
     for ( ; iterCnt < iterMax; ++iterCnt) {
-        CTP_LOG(ctp::logINFO,*_log) << "QMMM ITERATION:" << iterCnt+1<<" of "<<iterMax << flush;
+        XTP_LOG(xtp::logINFO,*_log) << "QMMM ITERATION:" << iterCnt+1<<" of "<<iterMax << flush;
         //bool code = Iterate(jobFolder, iterCnt);
         Iterate(jobFolder, iterCnt);
         if (hasConverged()) {
-            CTP_LOG(ctp::logINFO,*_log) << "QMMM CONVERGED after:" << iterCnt+1<<" iterations."<< flush;
+            XTP_LOG(xtp::logINFO,*_log) << "QMMM CONVERGED after:" << iterCnt+1<<" iterations."<< flush;
         
         break; }
     }
     
     if (iterCnt == iterMax-1 && !_isConverged) {
-        CTP_LOG(ctp::logWARNING,*_log)
+        XTP_LOG(xtp::logWARNING,*_log)
             << format("Not converged within %1$d iterations.") % iterMax;
     }
     
@@ -185,12 +185,12 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
     int iter = iterCnt;
     string runFolder = jobFolder + "/iter_" + boost::lexical_cast<string>(iter);
        
-    CTP_LOG(ctp::logINFO,*_log) << flush;
+    XTP_LOG(xtp::logINFO,*_log) << flush;
     bool created = boost::filesystem::create_directory(runFolder);
     if (created) 
-        CTP_LOG(ctp::logDEBUG,*_log) << "Created directory " << runFolder << flush;
+        XTP_LOG(xtp::logDEBUG,*_log) << "Created directory " << runFolder << flush;
     else
-        CTP_LOG(ctp::logWARNING,*_log) << "Could not create directory " << runFolder << flush;
+        XTP_LOG(xtp::logWARNING,*_log) << "Could not create directory " << runFolder << flush;
     
     Orbitals orb_iter_input;
     
@@ -278,34 +278,34 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
     _gwbse.setLogger(_log);
     
     if (_state > 0) {
-        CTP_LOG(ctp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
-        CTP_LOG(ctp::logDEBUG, *_log) << "  --- type:              " << _type << flush;
-        CTP_LOG(ctp::logDEBUG, *_log) << "  --- state:             " << _state << flush;
+        XTP_LOG(xtp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
+        XTP_LOG(xtp::logDEBUG, *_log) << "  --- type:              " << _type << flush;
+        XTP_LOG(xtp::logDEBUG, *_log) << "  --- state:             " << _state << flush;
         if (_has_osc_filter) {
-            CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
+            XTP_LOG(xtp::logDEBUG, *_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
         }
         if (_has_dQ_filter) {
-            CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
+            XTP_LOG(xtp::logDEBUG, *_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
         }
         if (_has_loc_filter){
             if (_loc_threshold>0.5){
-             CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: localisation > " << _loc_threshold << flush;
+             XTP_LOG(xtp::logDEBUG, *_log) << "  --- filter: localisation > " << _loc_threshold << flush;
             }else{
-                CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: localisation < " << _loc_threshold << flush;
+                XTP_LOG(xtp::logDEBUG, *_log) << "  --- filter: localisation < " << _loc_threshold << flush;
             }
         }
 
         if (_has_osc_filter && _has_dQ_filter) {
-            CTP_LOG(ctp::logDEBUG, *_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... " << flush;
+            XTP_LOG(xtp::logDEBUG, *_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... " << flush;
         }
 
         // define own logger for GW-BSE that is written into a runFolder logfile
-        ctp::Logger gwbse_logger(ctp::logDEBUG);
+        xtp::Logger gwbse_logger(xtp::logDEBUG);
         gwbse_logger.setMultithreading(false);
-        //gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
-        gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
-        gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
-        gwbse_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
+        //gwbse_logger.setPreface(xtp::logINFO, (format("\nGWBSE INF ...")).str());
+        gwbse_logger.setPreface(xtp::logERROR, (format("\nGWBSE ERR ...")).str());
+        gwbse_logger.setPreface(xtp::logWARNING, (format("\nGWBSE WAR ...")).str());
+        gwbse_logger.setPreface(xtp::logDEBUG, (format("\nGWBSE DBG ...")).str());
         _gwbse.Initialize(&_gwbse_options);
         // actual GW-BSE run
 
@@ -378,10 +378,10 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
             _state_index = _state_index_copy;
         }
         if (_state_index.size() < 1) {
-            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " WARNING: FILTER yielded no state. Taking lowest excitation"<< flush;
+            XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " WARNING: FILTER yielded no state. Taking lowest excitation"<< flush;
             _state_index.push_back(0);
         }else{
-                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filter yielded state"<<_type<<":"<<_state_index[_state - 1]+1<< flush;
+                        XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Filter yielded state"<<_type<<":"<<_state_index[_state - 1]+1<< flush;
         }
     } // only if state >0
     
@@ -392,7 +392,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
     
     dftbs.LoadBasisSet(orb.getDFTbasis());
     
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb.getDFTbasis() << flush;
+    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Loaded DFT Basis Set " << orb.getDFTbasis() << flush;
 
     // fill DFT AO basis by going through all atoms
     AOBasis dftbasis;
@@ -418,8 +418,8 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 void QMAPEMachine::SetupPolarSiteGrids(const std::vector<const vec *>& gridpoints,const std::vector<QMAtom*>& atoms){
     NumberofAtoms=0;
     std::vector<QMAtom*>::const_iterator qmt;
-    std::vector<ctp::APolarSite*> sites1;
-    std::vector<ctp::APolarSite*> sites2;
+    std::vector<xtp::APolarSite*> sites1;
+    std::vector<xtp::APolarSite*> sites2;
     
     for(qmt=atoms.begin();qmt!=atoms.end();++qmt){
         NumberofAtoms++;
@@ -430,8 +430,8 @@ void QMAPEMachine::SetupPolarSiteGrids(const std::vector<const vec *>& gridpoint
     
     std::vector<const vec *>::const_iterator grt;
     for (grt=gridpoints.begin();grt<gridpoints.end();++grt){
-        ctp::APolarSite* site1=new ctp::APolarSite();
-        ctp::APolarSite* site2=new ctp::APolarSite();
+        xtp::APolarSite* site1=new xtp::APolarSite();
+        xtp::APolarSite* site2=new xtp::APolarSite();
         tools::vec pos=*(*grt)*tools::conv::bohr2nm;
         site1->setPos(pos);
         site2->setPos(pos);
@@ -440,8 +440,8 @@ void QMAPEMachine::SetupPolarSiteGrids(const std::vector<const vec *>& gridpoint
     }
     
     
-    target_bg.push_back( new ctp::PolarSeg(0, sites1));
-    target_fg.push_back( new ctp::PolarSeg(0, sites2));
+    target_bg.push_back( new xtp::PolarSeg(0, sites1));
+    target_fg.push_back( new xtp::PolarSeg(0, sites2));
     
     return;
         }
@@ -451,10 +451,10 @@ std::vector<double> QMAPEMachine::ExtractNucGrid_fromPolarsites() {
     double int2hrt = tools::conv::int2V * tools::conv::ev2hrt;
     for (unsigned i = 0; i < target_bg.size(); ++i) {
         for (unsigned j = 0; j < NumberofAtoms; ++j) {
-            ctp::PolarSeg* seg1 = target_bg[i];
-            ctp::PolarSeg* seg2 = target_fg[i];
-            ctp::APolarSite* site1 = (*seg1)[j];
-            ctp::APolarSite* site2 = (*seg2)[j];
+            xtp::PolarSeg* seg1 = target_bg[i];
+            xtp::PolarSeg* seg2 = target_fg[i];
+            xtp::APolarSite* site1 = (*seg1)[j];
+            xtp::APolarSite* site2 = (*seg2)[j];
             double value = (site1->getPhi() + site2->getPhi()) * int2hrt;
             gridpoints.push_back(value);
         }
@@ -467,10 +467,10 @@ std::vector<double> QMAPEMachine::ExtractElGrid_fromPolarsites() {
     double int2hrt = tools::conv::int2V * tools::conv::ev2hrt;
     for (unsigned i = 0; i < target_bg.size(); ++i) {
         for (unsigned j = NumberofAtoms; j < target_bg[i]->size(); ++j) {
-            ctp::PolarSeg* seg1 = target_bg[i];
-            ctp::PolarSeg* seg2 = target_fg[i];
-            ctp::APolarSite* site1 = (*seg1)[j];
-            ctp::APolarSite* site2 = (*seg2)[j];
+            xtp::PolarSeg* seg1 = target_bg[i];
+            xtp::PolarSeg* seg2 = target_fg[i];
+            xtp::APolarSite* site1 = (*seg1)[j];
+            xtp::APolarSite* site2 = (*seg2)[j];
             double value = (site1->getPhi() + site2->getPhi()) * int2hrt;
             gridpoints.push_back(value);
         }
@@ -506,15 +506,15 @@ bool QMAPEMachine::hasConverged() {
     
     _isConverged = ((_convg_dR && _convg_dQ) && (_convg_dE_QM && _convg_dE_MM));
     
-    CTP_LOG(ctp::logINFO,*_log) 
+    XTP_LOG(xtp::logINFO,*_log) 
         << (format("Convergence check")) << flush;
-    CTP_LOG(ctp::logINFO,*_log)
+    XTP_LOG(xtp::logINFO,*_log)
         << format("  o Converged dR ? %s") % (_convg_dR ? "True" : "False") << flush;
-    CTP_LOG(ctp::logINFO,*_log) 
+    XTP_LOG(xtp::logINFO,*_log) 
         << format("  o Converged dQ ? %s") % (_convg_dQ ? "True" : "False") << flush;
-    CTP_LOG(ctp::logINFO,*_log) 
+    XTP_LOG(xtp::logINFO,*_log) 
         << format("  o Converged QM ? %s") % (_convg_dE_QM ? "True" : "False") << flush;
-    CTP_LOG(ctp::logINFO,*_log) 
+    XTP_LOG(xtp::logINFO,*_log) 
         << format("  o Converged MM ? %s") % (_convg_dE_MM ? "True" : "False") << flush;
     
     return _isConverged;

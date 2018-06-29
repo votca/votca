@@ -18,7 +18,7 @@
  */
 
 #include "xtpdft.h"
-#include <votca/ctp/segment.h>
+#include <votca/xtp/segment.h>
 #include <votca/xtp/qminterface.h>
 
 #include <boost/algorithm/string.hpp>
@@ -74,25 +74,25 @@ namespace votca {
         /**
          * Dummy for use of XTPDFT as QMPackage, needs no input file
          */
-        bool XTPDFT::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess, std::vector<ctp::PolarSeg* > polar_segments ) {
+        bool XTPDFT::WriteInputFile(std::vector<xtp::Segment* > segments, Orbitals* orbitals_guess, std::vector<xtp::PolarSeg* > polar_segments ) {
 
             //if ( orbitals_guess != NULL )  {
-            //    CTP_LOG(ctp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
+            //    XTP_LOG(xtp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
             //    _orbitals.Load(_guess_file);
 
             //} else {
 
            // }
-            CTP_LOG(ctp::logDEBUG, *_pLog) << "Preparing XTP DFTENGINE "  << flush;
+            XTP_LOG(xtp::logDEBUG, *_pLog) << "Preparing XTP DFTENGINE "  << flush;
             _xtpdft.setLogger(_pLog);
             _xtpdft.Prepare( orbitals_guess );
-            CTP_LOG(ctp::logDEBUG, *_pLog) << " done "  << flush;
+            XTP_LOG(xtp::logDEBUG, *_pLog) << " done "  << flush;
 
             return true;
         }
 
 
-        bool XTPDFT::setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){
+        bool XTPDFT::setMultipoleBackground( std::vector<xtp::PolarSeg*> multipoles){
 
             _xtpdft.setExternalcharges(multipoles);
 
@@ -107,12 +107,12 @@ namespace votca {
         bool XTPDFT::Run( Orbitals* _orbitals ) {
 
             if ( !_orbitals->hasQMAtoms() ){
-                CTP_LOG(ctp::logDEBUG, *_pLog) << "Reading structure from " << _xyz_file_name << flush;
+                XTP_LOG(xtp::logDEBUG, *_pLog) << "Reading structure from " << _xyz_file_name << flush;
                 _orbitals->LoadFromXYZ(_xyz_file_name);
             }
 
 
-            CTP_LOG(ctp::logDEBUG, *_pLog) << "Running XTP DFT " << flush;
+            XTP_LOG(xtp::logDEBUG, *_pLog) << "Running XTP DFT " << flush;
             //
 
             _xtpdft.Evaluate( _orbitals );

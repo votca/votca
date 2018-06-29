@@ -21,7 +21,7 @@
 #define	_VOTCA_XTP_DFTCOUPLING_H
 
 #include <votca/xtp/orbitals.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 
 
 
@@ -57,11 +57,11 @@ public:
                                double _energy_difference = 0
                                 );
     
-    void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
+    void setLogger( xtp::Logger* pLog ) { _pLog = pLog; }
     
 private:
     
-    ctp::Logger *_pLog;
+    xtp::Logger *_pLog;
     
   
 

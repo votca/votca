@@ -22,13 +22,13 @@
 
 #include <stdio.h>
 
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/dftcoupling.h>
 #include <votca/xtp/qmpackagefactory.h>
 
 namespace votca { namespace xtp {
     
-class Coupling : public ctp::QMTool
+class Coupling : public xtp::QMTool
 {
 public:
 
@@ -55,7 +55,7 @@ private:
     
     std::string      _output_file;
     
-    ctp::Logger      _log;
+    xtp::Logger      _log;
 
 };
 
@@ -63,7 +63,7 @@ void Coupling::Initialize(tools::Property* options)
 {
 
    // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options, "ctp" );
+    UpdateWithDefaults( options, "xtp" );
     std::string key = "options." + Identify();    
     
     _degeneracy = options->get(key + ".degeneracy").as<double> ();
@@ -97,13 +97,13 @@ void Coupling::Initialize(tools::Property* options)
 
 bool Coupling::Evaluate() {
 
-    _log.setReportLevel( ctp::logDEBUG );
+    _log.setReportLevel( xtp::logDEBUG );
     _log.setMultithreading( true );
     
-    _log.setPreface(ctp::logINFO,    "\n... ...");
-    _log.setPreface(ctp::logERROR,   "\n... ...");
-    _log.setPreface(ctp::logWARNING, "\n... ...");
-    _log.setPreface(ctp::logDEBUG,   "\n... ..."); 
+    _log.setPreface(xtp::logINFO,    "\n... ...");
+    _log.setPreface(xtp::logERROR,   "\n... ...");
+    _log.setPreface(xtp::logWARNING, "\n... ...");
+    _log.setPreface(xtp::logDEBUG,   "\n... ..."); 
 
     // get the corresponding object from the QMPackageFactory
     QMPackage *_qmpackage =  QMPackages().Create( _package );
@@ -116,27 +116,27 @@ bool Coupling::Evaluate() {
    
     _qmpackage->setLogFileName( _logA );
     bool _parse_logA_status = _qmpackage->ParseLogFile( &_orbitalsA );
-    if ( !_parse_logA_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read log of molecule A" << std::flush; }
+    if ( !_parse_logA_status ) { CTP_LOG(xtp::logERROR,_log) << "Failed to read log of molecule A" << std::flush; }
     
     _qmpackage->setLogFileName( _logB );
     bool _parse_logB_status = _qmpackage->ParseLogFile( &_orbitalsB );
-    if ( !_parse_logB_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read log of molecule B" << std::flush; }
+    if ( !_parse_logB_status ) { CTP_LOG(xtp::logERROR,_log) << "Failed to read log of molecule B" << std::flush; }
     
     _qmpackage->setLogFileName( _logAB );
     bool _parse_logAB_status = _qmpackage->ParseLogFile( &_orbitalsAB );
-    if ( !_parse_logAB_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read log of molecule AB" << std::flush; }
+    if ( !_parse_logAB_status ) { CTP_LOG(xtp::logERROR,_log) << "Failed to read log of molecule AB" << std::flush; }
     
         _qmpackage->setOrbitalsFileName( _orbA );
     bool _parse_orbitalsA_status = _qmpackage->ParseOrbitalsFile( &_orbitalsA );
-    if ( !_parse_orbitalsA_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read orbitals of molecule A" << std::flush; }
+    if ( !_parse_orbitalsA_status ) { CTP_LOG(xtp::logERROR,_log) << "Failed to read orbitals of molecule A" << std::flush; }
 
     _qmpackage->setOrbitalsFileName( _orbB );   
     bool _parse_orbitalsB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsB );
-    if ( !_parse_orbitalsB_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read orbitals of molecule B" << std::flush; }
+    if ( !_parse_orbitalsB_status ) { CTP_LOG(xtp::logERROR,_log) << "Failed to read orbitals of molecule B" << std::flush; }
     
     _qmpackage->setOrbitalsFileName( _orbAB );   
     bool _parse_orbitalsAB_status = _qmpackage->ParseOrbitalsFile( &_orbitalsAB );
-     if ( !_parse_orbitalsAB_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read orbitals of dimer AB" << std::flush; }
+     if ( !_parse_orbitalsAB_status ) { CTP_LOG(xtp::logERROR,_log) << "Failed to read orbitals of dimer AB" << std::flush; }
 
     int _degAH = 1;
     int _degAL = 1;
@@ -164,14 +164,14 @@ bool Coupling::Evaluate() {
     } else {
  
         if ( _orbitalsA.getNumberOfElectrons()*(_trimA-1) <  int(_orbitalsA.getNumberOfLevels()) - _orbitalsA.getNumberOfElectrons() ) {
-            CTP_LOG(ctp::logDEBUG,_log) << "Trimming virtual orbitals A:" 
+            CTP_LOG(xtp::logDEBUG,_log) << "Trimming virtual orbitals A:" 
                     << _orbitalsA.getNumberOfLevels() - _orbitalsA.getNumberOfElectrons() << "->" 
                     << _orbitalsA.getNumberOfElectrons()*(_trimA-1) << std::flush;  
             _orbitalsA.Trim(_trimA);
         }
     
         if ( _orbitalsB.getNumberOfElectrons()*(_trimB-1) <   int(_orbitalsB.getNumberOfLevels()) - _orbitalsB.getNumberOfElectrons() ) {
-            CTP_LOG(ctp::logDEBUG,_log) << "Trimming virtual orbitals B:" 
+            CTP_LOG(xtp::logDEBUG,_log) << "Trimming virtual orbitals B:" 
                     << _orbitalsB.getNumberOfLevels() - _orbitalsB.getNumberOfElectrons() << "->" 
                     << _orbitalsB.getNumberOfElectrons()*(_trimB-1) << std::flush;      
             _orbitalsB.Trim(_trimB);
@@ -184,7 +184,7 @@ bool Coupling::Evaluate() {
           
     Eigen::MatrixXd _JAB;
     bool _calculate_integrals = dftcoupling.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );  
-    if ( !_calculate_integrals ) { CTP_LOG(ctp::logERROR,_log) << "Failed to evaluate integrals" << std::flush; }
+    if ( !_calculate_integrals ) { CTP_LOG(xtp::logERROR,_log) << "Failed to evaluate integrals" << std::flush; }
 
      std::cout << _log;
  

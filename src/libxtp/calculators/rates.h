@@ -21,14 +21,14 @@
 #ifndef Rates_H
 #define Rates_H
 
-#include <votca/ctp/paircalculator.h>
+#include <votca/xtp/paircalculator.h>
 #include <cmath>
 #include <complex>
 //#include <boost/math/special_functions/gamma.hpp>
 
 namespace votca { namespace xtp {
    
-class Rates : public ctp::PairCalculator2
+class Rates : public xtp::PairCalculator2
 {
 public:
 
@@ -38,9 +38,9 @@ public:
     std::string Identify() { return "rates"; }
 
     void Initialize(tools::Property *options);
-    void ParseEnergiesXML(ctp::Topology *top, tools::Property *opt);
-    void EvaluatePair(ctp::Topology *top, ctp::QMPair *pair);
-    void CalculateRate(ctp::Topology *top, ctp::QMPair *pair, int state);
+    void ParseEnergiesXML(xtp::Topology *top, tools::Property *opt);
+    void EvaluatePair(xtp::Topology *top, xtp::QMPair *pair);
+    void CalculateRate(xtp::Topology *top, xtp::QMPair *pair, int state);
 
 
 private:
@@ -252,7 +252,7 @@ void Rates::Initialize(tools::Property *options) {
 }
 
 
-void Rates::ParseEnergiesXML(ctp::Topology *top, tools::Property *opt) {
+void Rates::ParseEnergiesXML(xtp::Topology *top, tools::Property *opt) {
 
     std::string key = "options.rates";
     std::string energiesXML = opt->get(key+".energiesXML").as<std::string> ();
@@ -354,7 +354,7 @@ void Rates::ParseEnergiesXML(ctp::Topology *top, tools::Property *opt) {
 }
 
 
-void Rates::EvaluatePair(ctp::Topology *top, ctp::QMPair *qmpair) {
+void Rates::EvaluatePair(xtp::Topology *top, xtp::QMPair *qmpair) {
 
     std::cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << ". " << std::flush;
 
@@ -398,13 +398,13 @@ void Rates::EvaluatePair(ctp::Topology *top, ctp::QMPair *qmpair) {
 }
 
 
-void Rates::CalculateRate(ctp::Topology *top, ctp::QMPair *qmpair, int state) {
+void Rates::CalculateRate(xtp::Topology *top, xtp::QMPair *qmpair, int state) {
 
     const double NM2M    = 1.e-9;
     const double hbar_eV = 6.58211899e-16;
 
-    ctp::Segment *seg1 = qmpair->first;
-    ctp::Segment *seg2 = qmpair->second;
+    xtp::Segment *seg1 = qmpair->first;
+    xtp::Segment *seg2 = qmpair->second;
 
     double rate12 = 0.;                                       // 1->2
 

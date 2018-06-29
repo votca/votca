@@ -20,6 +20,8 @@
 #include <votca/xtp/forces.h>
 #include <boost/format.hpp>
 
+#include <votca/xtp/atom.h>
+
 namespace votca {
     namespace xtp {
 
@@ -59,27 +61,27 @@ namespace votca {
 
         void Forces::Calculate(const double& energy) {
 
-            ctp::TLogLevel _ReportLevel = _pLog->getReportLevel(); // backup report level
+            xtp::TLogLevel _ReportLevel = _pLog->getReportLevel(); // backup report level
             if ( ! _noisy_output ){
-                _pLog->setReportLevel(ctp::logERROR); // go silent for force calculations
+                _pLog->setReportLevel(xtp::logERROR); // go silent for force calculations
             }
             
             //backup current coordinates (WHY?)
-            std::vector <ctp::Segment* > _molecule;
-            ctp::Segment _current_coordinates(0, "mol");
+            std::vector <xtp::Segment* > _molecule;
+            xtp::Segment _current_coordinates(0, "mol");
             _qminterface.Orbitals2Segment(&_current_coordinates, _orbitals);
             _molecule.push_back(&_current_coordinates);
 
             // displace all atoms in each Cartesian coordinate and get new energy
-            std::vector< ctp::Atom* > _atoms;
-            std::vector< ctp::Atom* > ::iterator ait;
+            std::vector< xtp::Atom* > _atoms;
+            std::vector< xtp::Atom* > ::iterator ait;
             _atoms = _current_coordinates.Atoms();
 
             int _i_atom = 0;
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
                 if ( _noisy_output ){
-                    CTP_LOG(ctp::logINFO, *_pLog) << "FORCES--DEBUG working on atom " << _i_atom << flush;
+                    XTP_LOG(xtp::logINFO, *_pLog) << "FORCES--DEBUG working on atom " << _i_atom << flush;
                 }
                 Eigen::Vector3d atom_force;
                 // Calculate Force on this atom
@@ -101,13 +103,13 @@ namespace votca {
 
         void Forces::Report() {
 
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   ---- FORCES (Hartree/Bohr)   ")).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        %1$s differences   ") % _force_method).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        displacement %1$1.4f Angstrom   ") % _displacement).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << flush;
+            XTP_LOG(xtp::logINFO, *_pLog) << (boost::format("   ---- FORCES (Hartree/Bohr)   ")).str() << flush;
+            XTP_LOG(xtp::logINFO, *_pLog) << (boost::format("        %1$s differences   ") % _force_method).str() << flush;
+            XTP_LOG(xtp::logINFO, *_pLog) << (boost::format("        displacement %1$1.4f Angstrom   ") % _displacement).str() << flush;
+            XTP_LOG(xtp::logINFO, *_pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << flush;
 
             for (unsigned _i = 0; _i < _forces.rows(); _i++) {
-                CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
+                XTP_LOG(xtp::logINFO, *_pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
                         % _i % _forces(_i, 0) % _forces(_i, 1) % _forces(_i, 2)).str() << flush;
             }
 
@@ -116,7 +118,7 @@ namespace votca {
         }
 
         /* Calculate forces on an atom numerically by forward differences */
-        Eigen::Vector3d Forces::NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait, std::vector<ctp::Segment*> _molecule) {
+        Eigen::Vector3d Forces::NumForceForward(double energy, std::vector< xtp::Atom* > ::iterator ait, std::vector<xtp::Segment*> _molecule) {
             Eigen::Vector3d force=Eigen::Vector3d::Zero();
             // get this atoms's current coordinates
             tools::vec _current_pos = (*ait)->getQMPos(); // in nm
@@ -154,7 +156,7 @@ namespace votca {
         }
 
         /* Calculate forces on atoms numerically by central differences */
-        Eigen::Vector3d Forces::NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait, std::vector<ctp::Segment*> _molecule) {
+        Eigen::Vector3d Forces::NumForceCentral(double energy, std::vector< xtp::Atom* > ::iterator ait, std::vector<xtp::Segment*> _molecule) {
 
 
             tools::vec _current_pos = (*ait)->getQMPos(); // in nm
@@ -163,7 +165,7 @@ namespace votca {
             for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
 
                 if ( _noisy_output ){
-                    CTP_LOG(ctp::logINFO, *_pLog) << "FORCES--DEBUG           Cartesian component " << _i_cart << flush;
+                    XTP_LOG(xtp::logINFO, *_pLog) << "FORCES--DEBUG           Cartesian component " << _i_cart << flush;
                 }
                 
                 // get displacement vector in positive direction

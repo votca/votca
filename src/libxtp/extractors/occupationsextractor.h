@@ -21,13 +21,13 @@
 #define VOTCA_XTP_OCCUPATIONSEXTRACTOR_H
 
 #include <votca/tools/propertyiomanipulator.h>
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 #include <boost/format.hpp>
 
 namespace votca { namespace xtp {
 
 
-class OccupationsExtractor : public ctp::QMCalculator
+class OccupationsExtractor : public QMCalculator
 {
 public:
 
@@ -36,7 +36,7 @@ public:
 
     std::string Identify() { return "extract.occupations"; }
     void Initialize(tools::Property *options);
-    bool EvaluateFrame(ctp::Topology *top);
+    bool EvaluateFrame(Topology *top);
 
 private:
 
@@ -48,7 +48,7 @@ void OccupationsExtractor::Initialize(tools::Property *options) {
 }
 
 
-bool OccupationsExtractor::EvaluateFrame(ctp::Topology *top) {
+bool OccupationsExtractor::EvaluateFrame(Topology *top) {
     
     std::string xmlfile = Identify() + ".xml";    
     
@@ -60,10 +60,10 @@ bool OccupationsExtractor::EvaluateFrame(ctp::Topology *top) {
     using boost::format;
     
     // SEGMENTS
-    std::vector<ctp::Segment*> ::iterator sit;
+    std::vector<Segment*> ::iterator sit;
     next = &segs;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
-        ctp::Segment *seg = *sit;
+        Segment *seg = *sit;
         tools::Property &segprop = next->add("segment", "");
         segprop.add("id", (format("%1$d") % seg->getId()).str());
         segprop.add("name", seg->getName());

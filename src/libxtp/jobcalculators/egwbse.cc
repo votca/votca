@@ -113,7 +113,7 @@ namespace votca {
 
     }
 
-    void EGWBSE::WriteJobFile(ctp::Topology *top) {
+    void EGWBSE::WriteJobFile(xtp::Topology *top) {
 
       cout << endl << "... ... Writing job file: " << flush;
       std::ofstream ofs;
@@ -125,8 +125,8 @@ namespace votca {
 
       int jobCount = 0;
 
-      std::vector<ctp::Segment*> segments = top->Segments();
-      std::vector<ctp::Segment*>::iterator sit;
+      std::vector<xtp::Segment*> segments = top->Segments();
+      std::vector<xtp::Segment*>::iterator sit;
       for (sit = segments.begin(); sit != segments.end(); ++sit) {
 
         int id = ++jobCount;
@@ -137,7 +137,7 @@ namespace votca {
         Property *pSegment = &pInput->add("segment", (format("%1$s") % (*sit)->getId()).str());
         pSegment->setAttribute<string>("type", (*sit)->getName());
         pSegment->setAttribute<int>("id", (*sit)->getId());
-        ctp::Job job(id, tag, Input, ctp::Job::AVAILABLE);
+        xtp::Job job(id, tag, Input, xtp::Job::AVAILABLE);
         job.ToStream(ofs, "xml");
       }
 
@@ -149,25 +149,25 @@ namespace votca {
 
     }
 
-    ctp::Job::JobResult EGWBSE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *opThread) {
+    xtp::Job::JobResult EGWBSE::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *opThread) {
 
 
       Orbitals _orbitals;
-      ctp::Job::JobResult jres = ctp::Job::JobResult();
+      xtp::Job::JobResult jres = xtp::Job::JobResult();
       Property _job_input = job->getInput();
       list<Property*> lSegments = _job_input.Select("segment");
 
-      vector < ctp::Segment* > segments;
+      vector < xtp::Segment* > segments;
       int segId = lSegments.front()->getAttribute<int>("id");
       string segType = lSegments.front()->getAttribute<string>("type");
 
-      ctp::Segment *seg = top->getSegment(segId);
+      xtp::Segment *seg = top->getSegment(segId);
       assert(seg->getName() == segType);
       segments.push_back(seg);
 
-      ctp::Logger* pLog = opThread->getLogger();
+      xtp::Logger* pLog = opThread->getLogger();
 
-      CTP_LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Evaluating site " << seg->getId() << flush;
+      XTP_LOG(xtp::logINFO, *pLog) << xtp::TimeStamp() << " Evaluating site " << seg->getId() << flush;
 
 
       string output;
@@ -216,10 +216,10 @@ namespace votca {
         _run_dft_status = _qmpackage->Run();
         if (!_run_dft_status) {
           output += "run failed; ";
-          CTP_LOG(ctp::logERROR, *pLog) << _qmpackage->getPackageName() << " run failed" << flush;
+          XTP_LOG(xtp::logERROR, *pLog) << _qmpackage->getPackageName() << " run failed" << flush;
           cout << *pLog;
           jres.setOutput(output);
-          jres.setStatus(ctp::Job::FAILED);
+          jres.setStatus(xtp::Job::FAILED);
           delete _qmpackage;
           return jres;
         }
@@ -233,10 +233,10 @@ namespace votca {
 
         if (!_parse_log_status) {
           output += "log incomplete; ";
-          CTP_LOG(ctp::logERROR, *pLog) << "LOG parsing failed" << flush;
+          XTP_LOG(xtp::logERROR, *pLog) << "LOG parsing failed" << flush;
           cout << *pLog;
           jres.setOutput(output);
-          jres.setStatus(ctp::Job::FAILED);
+          jres.setStatus(xtp::Job::FAILED);
           delete _qmpackage;
           return jres;
         }
@@ -245,10 +245,10 @@ namespace votca {
 
         if (!_parse_orbitals_status) {
           output += "orbfile failed; ";
-          CTP_LOG(ctp::logERROR, *pLog) << "Orbitals parsing failed" << flush;
+          XTP_LOG(xtp::logERROR, *pLog) << "Orbitals parsing failed" << flush;
           cout << *pLog;
           jres.setOutput(output);
-          jres.setStatus(ctp::Job::FAILED);
+          jres.setStatus(xtp::Job::FAILED);
           delete _qmpackage;
           return jres;
         }
@@ -260,9 +260,9 @@ namespace votca {
         // load the DFT data from serialized orbitals object
         string ORB_FILE = egwbse_work_dir + "/molecules_gwbse/" + frame_dir + "/" + orb_file;
         if (_do_gwbse) {
-          CTP_LOG(ctp::logDEBUG, *pLog) << ctp::TimeStamp() << " Loading DFT data from " << ORB_FILE << flush;
+          XTP_LOG(xtp::logDEBUG, *pLog) << xtp::TimeStamp() << " Loading DFT data from " << ORB_FILE << flush;
         } else {
-          CTP_LOG(ctp::logDEBUG, *pLog) << ctp::TimeStamp() << " Loading data from " << ORB_FILE << flush;
+          XTP_LOG(xtp::logDEBUG, *pLog) << xtp::TimeStamp() << " Loading data from " << ORB_FILE << flush;
         }
         _orbitals.ReadFromCpt(ORB_FILE);
       }
@@ -278,13 +278,13 @@ namespace votca {
 
 
         // define own logger for GW-BSE that is written into a runFolder logfile
-        ctp::Logger gwbse_logger(ctp::logDEBUG);
+        xtp::Logger gwbse_logger(xtp::logDEBUG);
         gwbse_logger.setMultithreading(false);
         _gwbse.setLogger(&gwbse_logger);
-        gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
-        gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
-        gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
-        gwbse_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
+        gwbse_logger.setPreface(xtp::logINFO, (format("\nGWBSE INF ...")).str());
+        gwbse_logger.setPreface(xtp::logERROR, (format("\nGWBSE ERR ...")).str());
+        gwbse_logger.setPreface(xtp::logWARNING, (format("\nGWBSE WAR ...")).str());
+        gwbse_logger.setPreface(xtp::logDEBUG, (format("\nGWBSE DBG ...")).str());
 
         _gwbse.Evaluate();
         _gwbse.addoutput(_segment_summary);
@@ -318,14 +318,14 @@ namespace votca {
         esp2multipole.WritetoFile((ESPDIR + "/" + mps_file).c_str(), Identify());
 
 
-        CTP_LOG(ctp::logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
+        XTP_LOG(xtp::logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
 
         _segment_summary->add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
       }
-      CTP_LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
+      XTP_LOG(xtp::logINFO, *pLog) << xtp::TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
 
       if (_do_dft_parse || _do_gwbse) {
-        CTP_LOG(ctp::logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
+        XTP_LOG(xtp::logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
         string DIR = egwbse_work_dir + "/molecules_gwbse/" + frame_dir+ "/" + orb_file;
         boost::filesystem::create_directories(DIR);
         string ORBFILE=DIR + "/" + orb_file;
@@ -334,7 +334,7 @@ namespace votca {
 
       // output of the JOB 
       jres.setOutput(_job_summary);
-      jres.setStatus(ctp::Job::COMPLETE);
+      jres.setStatus(xtp::Job::COMPLETE);
 
       // dump the LOG
 

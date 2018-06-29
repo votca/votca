@@ -45,14 +45,14 @@ public:
     delete _RandomVariable;};
    std::string Identify() { return "kmclifetime"; }
     void Initialize(tools::Property *options);
-    bool EvaluateFrame(ctp::Topology *top);
+    bool EvaluateFrame(xtp::Topology *top);
 
 private:
        
     void WriteDecayProbability(string filename);
             
 	    
-            void  RunVSSM(ctp::Topology *top);
+            void  RunVSSM(xtp::Topology *top);
             
             
             void ReadLifetimeFile( string filename);

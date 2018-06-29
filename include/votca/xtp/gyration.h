@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/numerical_integrations.h>
 namespace votca { namespace xtp {
@@ -33,7 +33,7 @@ class Density2Gyration
 {
 public:
 
-    Density2Gyration (ctp::Logger* log) {_log=log; }
+    Density2Gyration (xtp::Logger* log) {_log=log; }
    ~Density2Gyration () { 
    
     std::vector< QMAtom* >::iterator it;
@@ -64,7 +64,7 @@ private:
 
    std::vector< QMAtom* > _Atomlist;
     
-    ctp::Logger*      _log;
+    xtp::Logger*      _log;
     
     
 

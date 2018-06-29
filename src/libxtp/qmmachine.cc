@@ -33,7 +33,7 @@ namespace votca {
     namespace xtp {
 
         template<class QMPackage>
-        QMMachine<QMPackage>::QMMachine(ctp::XJob *job, ctp::XInductor *xind, QMPackage *qmpack,
+        QMMachine<QMPackage>::QMMachine(xtp::XJob *job, xtp::XInductor *xind, QMPackage *qmpack,
                 Property *opt, string sfx, int nst, bool mav)
         : _job(job), _xind(xind), _qmpack(qmpack), _subthreads(nst),
         _isConverged(false) {
@@ -169,9 +169,9 @@ namespace votca {
         }
 
         template<class QMPackage>
-        int QMMachine<QMPackage>::Evaluate(ctp::XJob *job) {
+        int QMMachine<QMPackage>::Evaluate(xtp::XJob *job) {
 
-            CTP_LOG(ctp::logINFO, *_log)
+            XTP_LOG(xtp::logINFO, *_log)
                     << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
                     % _crit_dR % _crit_dQ % _crit_dE_QM % _crit_dE_MM % _maxIter << flush;
 
@@ -182,7 +182,7 @@ namespace votca {
             }
             int chrg = round(dQ);
             int spin = ((chrg < 0) ? -chrg : chrg) % 2 + 1;
-            CTP_LOG(ctp::logINFO, *_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
+            XTP_LOG(xtp::logINFO, *_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
 
 
             // PREPARE JOB DIRECTORY
@@ -190,7 +190,7 @@ namespace votca {
                     + "_" + _job->getTag();
             bool created = boost::filesystem::create_directory(jobFolder);
             if (created) {
-                CTP_LOG(ctp::logINFO, *_log) << "Created directory " << jobFolder << flush;
+                XTP_LOG(xtp::logINFO, *_log) << "Created directory " << jobFolder << flush;
             }
 
 
@@ -208,7 +208,7 @@ namespace votca {
                 // check for polarized QM/MM convergence
             int info= Iterate(jobFolder, iterCnt);
             if(info!=0){
-                 CTP_LOG(ctp::logERROR, *_log)
+                 XTP_LOG(xtp::logERROR, *_log)
                         << format("Iterating job failed!")<<flush;
                  return 1;
             }
@@ -222,7 +222,7 @@ namespace votca {
             }
 
             if (iterCnt == iterMax - 1 && !_isConverged) {
-                CTP_LOG(ctp::logWARNING, *_log)
+                XTP_LOG(xtp::logWARNING, *_log)
                         << format("Not converged within %1$d iterations.") % iterMax;
                 return 2;
             }
@@ -240,9 +240,9 @@ namespace votca {
 
             bool created = boost::filesystem::create_directory(runFolder);
             if (created)
-                CTP_LOG(ctp::logDEBUG, *_log) << "Created directory " << runFolder << flush;
+                XTP_LOG(xtp::logDEBUG, *_log) << "Created directory " << runFolder << flush;
             else
-                CTP_LOG(ctp::logWARNING, *_log) << "Could not create directory " << runFolder << flush;
+                XTP_LOG(xtp::logWARNING, *_log) << "Could not create directory " << runFolder << flush;
 
 
             // RUN CLASSICAL INDUCTION & SAVE
@@ -257,7 +257,7 @@ namespace votca {
                     _job->getEM1(), _job->getEM2(), _job->getETOT());
 
 
-            std::vector<ctp::Segment*> empty;
+            std::vector<xtp::Segment*> empty;
             /* Translate atoms in QM0() to QMAtoms in orbitals object
              * to be used in writing the QM input files for the
              * external QMPackages or directly in internal DFT engine.
@@ -272,7 +272,7 @@ namespace votca {
              * in the external QMPackages or in the direct evaluation
              * in the internal DFT engine.
              */
-            std::vector<ctp::PolarSeg*> MultipolesBackground = qminterface.GenerateMultipoleList( _job->getPolarTop() );
+            std::vector<xtp::PolarSeg*> MultipolesBackground = qminterface.GenerateMultipoleList( _job->getPolarTop() );
 
             // if XTP DFT is used, pass this list of polar segments
             if ( _qmpack->getPackageName() == "xtp" )  _qmpack->setMultipoleBackground( MultipolesBackground );
@@ -293,7 +293,7 @@ namespace votca {
              * this recalculation is required. Should be split off the
              * Prepare() function for efficiency.
              */
-            CTP_LOG(ctp::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
+            XTP_LOG(xtp::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
             _qmpack->WriteInputFile(empty, &orb_iter_input, MultipolesBackground);
 
 
@@ -336,14 +336,14 @@ namespace votca {
                 // Get a GWBSE object
                 GWBSE _gwbse = GWBSE(&orb_iter_input);
                 // define own logger for GW-BSE that is written into a runFolder logfile
-                ctp::Logger gwbse_logger(ctp::logDEBUG);
+                xtp::Logger gwbse_logger(xtp::logDEBUG);
                 gwbse_logger.setMultithreading(false);
                 //_gwbse.setLogger(_log);
                 _gwbse.setLogger(&gwbse_logger);
-                gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
-                gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
-                gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
-                gwbse_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
+                gwbse_logger.setPreface(xtp::logINFO, (format("\nGWBSE INF ...")).str());
+                gwbse_logger.setPreface(xtp::logERROR, (format("\nGWBSE ERR ...")).str());
+                gwbse_logger.setPreface(xtp::logWARNING, (format("\nGWBSE WAR ...")).str());
+                gwbse_logger.setPreface(xtp::logDEBUG, (format("\nGWBSE DBG ...")).str());
 
                 // Initialize with options
                 _gwbse.Initialize(&_gwbse_options);
@@ -353,28 +353,28 @@ namespace votca {
                  * exactly the same way for polarized QMMM.
                  */
                 if (_state > 0) {
-                    CTP_LOG(ctp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
-                    CTP_LOG(ctp::logDEBUG, *_log) << "  --- type:              " << _type << flush;
-                    CTP_LOG(ctp::logDEBUG, *_log) << "  --- state:             " << _state << flush;
+                    XTP_LOG(xtp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
+                    XTP_LOG(xtp::logDEBUG, *_log) << "  --- type:              " << _type << flush;
+                    XTP_LOG(xtp::logDEBUG, *_log) << "  --- state:             " << _state << flush;
                     if (_has_overlap_filter) {
-                        CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: overlap  " <<  flush;
+                        XTP_LOG(xtp::logDEBUG, *_log) << "  --- filter: overlap  " <<  flush;
                     }
                     if (_has_osc_filter) {
-                        CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
+                        XTP_LOG(xtp::logDEBUG, *_log) << "  --- filter: osc.str. > " << _osc_threshold << flush;
                     }
                     if (_has_dQ_filter) {
-                        CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
+                        XTP_LOG(xtp::logDEBUG, *_log) << "  --- filter: crg.trs. > " << _dQ_threshold << flush;
                     }
                     if (_has_loc_filter){
                         if (_localiseonA){
-                         CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: localisation on A > " << _loc_threshold << flush;
+                         XTP_LOG(xtp::logDEBUG, *_log) << "  --- filter: localisation on A > " << _loc_threshold << flush;
                         }else{
-                            CTP_LOG(ctp::logDEBUG, *_log) << "  --- filter: localisation on B > " << _loc_threshold << flush;
+                            XTP_LOG(xtp::logDEBUG, *_log) << "  --- filter: localisation on B > " << _loc_threshold << flush;
                         }
                     }
 
                     if (_has_osc_filter && _has_dQ_filter) {
-                        CTP_LOG(ctp::logDEBUG, *_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... " << flush;
+                        XTP_LOG(xtp::logDEBUG, *_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... " << flush;
                     }
 
                     // actual GW-BSE run
@@ -409,16 +409,16 @@ namespace votca {
                             // load dft  basis set (element-wise information) from xml file
                             BasisSet dftbs;
                             dftbs.LoadBasisSet(orb_iter_input.getDFTbasis());
-                            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
+                            XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
 
                             // fill auxiliary GW AO basis by going through all atoms
                             AOBasis dftbasis;
                             dftbasis.AOBasisFill(&dftbs, orb_iter_input.QMAtoms());
-                            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filled DFT Basis of size " << dftbasis.AOBasisSize() << flush;
+                            XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Filled DFT Basis of size " << dftbasis.AOBasisSize() << flush;
 
                             // Fill overlap
                             _dftoverlap.Fill(dftbasis);
-                            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().rows() << flush;
+                            XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().rows() << flush;
 
 
                             // 'LAMBDA' matrix of the present iteration
@@ -430,7 +430,7 @@ namespace votca {
                             Orbitals _orbitals_N_1;
                             // load the QM data from serialized orbitals object
                            
-                            CTP_LOG(ctp::logDEBUG, *_log) << " Loading QM data from " << orbfile_N_1 << flush;
+                            XTP_LOG(xtp::logDEBUG, *_log) << " Loading QM data from " << orbfile_N_1 << flush;
                             _orbitals_N_1.ReadFromCpt(orbfile_N_1);
                             
                             Eigen::MatrixXd lambda_N_1 = _orbitals_N_1.LambdaMatrixQuasiParticle();
@@ -442,7 +442,7 @@ namespace votca {
                             if (tools::globals::verbose) {
                                 for (unsigned i = 0; i < qpoverlaps.rows(); i++) {
                                     for (unsigned j = 0; j < qpoverlaps.cols(); j++) {
-                                        CTP_LOG(ctp::logDEBUG, *_log) << " [" << i << " , " << j << "]: " << qpoverlaps(i, j) << flush;
+                                        XTP_LOG(xtp::logDEBUG, *_log) << " [" << i << " , " << j << "]: " << qpoverlaps(i, j) << flush;
                                     }
                                 }
                             }
@@ -456,7 +456,7 @@ namespace votca {
                                     }
                                 }
                                 _state_index.push_back(maxi);
-                                CTP_LOG(ctp::logDEBUG, *_log) << " [" << maxi << " , " << _j << "]: " << qpoverlaps(maxi, _j) << flush;
+                                XTP_LOG(xtp::logDEBUG, *_log) << " [" << maxi << " , " << _j << "]: " << qpoverlaps(maxi, _j) << flush;
                             }
 
                         }
@@ -519,13 +519,13 @@ namespace votca {
 
 
                     if (_state_index.size() < 1) {
-                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " WARNING: FILTER yielded no state. Taking lowest excitation" << flush;
+                        XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " WARNING: FILTER yielded no state. Taking lowest excitation" << flush;
                         _state_index.push_back(0);
                     }else{
                         if ( _type == "quasiparticle" ){
-                            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filter yielded QP index: "<<_state_index[_state - 1 - orb_iter_input.getGWAmin()]<< flush;
+                            XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Filter yielded QP index: "<<_state_index[_state - 1 - orb_iter_input.getGWAmin()]<< flush;
                         }else {
-                            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filter yielded state"<<_type<<":"<<_state_index[_state - 1]+1<< flush;
+                            XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Filter yielded state"<<_type<<":"<<_state_index[_state - 1]+1<< flush;
                         }
                     }
                     // - output its energy
@@ -562,9 +562,9 @@ namespace votca {
             } // for polarized QMMM
             
             if(tools::globals::verbose){
-              CTP_LOG(ctp::logDEBUG, *_log) <<"Calculated partial charges"<< flush;
+              XTP_LOG(xtp::logDEBUG, *_log) <<"Calculated partial charges"<< flush;
               for(const QMAtom* atom:orb_iter_input.QMAtoms()){
-                CTP_LOG(ctp::logDEBUG, *_log) <<atom->getType()<<" "<< atom->getPartialcharge()<< flush;
+                XTP_LOG(xtp::logDEBUG, *_log) <<atom->getType()<<" "<< atom->getPartialcharge()<< flush;
               }
             }
 
@@ -581,7 +581,7 @@ namespace votca {
                     _gdma.setLog(_log);
                     _gdma.SetRunDir(runFolder);
 
-                    CTP_LOG(ctp::logINFO, *_log) << "Running GDMA " << flush;
+                    XTP_LOG(xtp::logINFO, *_log) << "Running GDMA " << flush;
                     // prepare a GDMA input file
                     _gdma.WriteInputFile();
 
@@ -631,32 +631,32 @@ namespace votca {
             if (_do_archive) {
                 // save orbitals
                 std::string ORB_FILE = runFolder + "/system.orb";
-                CTP_LOG(ctp::logDEBUG, *_log) << "Archiving data to " << ORB_FILE << flush;
+                XTP_LOG(xtp::logDEBUG, *_log) << "Archiving data to " << ORB_FILE << flush;
                 orb_iter_input.WriteToCpt(ORB_FILE);
             }
 
-            CTP_LOG(ctp::logINFO, *_log)
+            XTP_LOG(xtp::logINFO, *_log)
                     << format("Summary - iteration %1$d:") % (iterCnt + 1) << flush;
-            CTP_LOG(ctp::logINFO, *_log)
+            XTP_LOG(xtp::logINFO, *_log)
                     << format("... QM Size  = %1$d atoms") % int(atoms.size()) << flush;
-            CTP_LOG(ctp::logINFO, *_log)
+            XTP_LOG(xtp::logINFO, *_log)
                     << format("... E(QM)    = %1$+4.9e") % thisIter->getQMEnergy() << flush;
-            CTP_LOG(ctp::logINFO, *_log)
+            XTP_LOG(xtp::logINFO, *_log)
                     << format("... E(GWBSE) = %1$+4.9e") % thisIter->getGWBSEEnergy() << flush;
-            CTP_LOG(ctp::logINFO, *_log)
+            XTP_LOG(xtp::logINFO, *_log)
                     << format("... E(SF)    = %1$+4.9e") % thisIter->getSFEnergy() << flush;
-            CTP_LOG(ctp::logINFO, *_log)
+            XTP_LOG(xtp::logINFO, *_log)
                     << format("... E(FM)    = %1$+4.9e") % thisIter->getFMEnergy() << flush;
-            CTP_LOG(ctp::logINFO, *_log)
+            XTP_LOG(xtp::logINFO, *_log)
                     << format("... E(MM)    = %1$+4.9e") % thisIter->getMMEnergy() << flush;
-            CTP_LOG(ctp::logINFO, *_log)
+            XTP_LOG(xtp::logINFO, *_log)
                     << format("... E(QMMM)  = %1$+4.9e") % thisIter->getQMMMEnergy() << flush;
             if (!_static_qmmm) {
-                CTP_LOG(ctp::logINFO, *_log)
+                XTP_LOG(xtp::logINFO, *_log)
                         << format("... RMS(dR)  = %1$+4.9e") % thisIter->getRMSdR() << flush;
-                CTP_LOG(ctp::logINFO, *_log)
+                XTP_LOG(xtp::logINFO, *_log)
                         << format("... RMS(dQ)  = %1$+4.9e") % thisIter->getRMSdQ() << flush;
-                CTP_LOG(ctp::logINFO, *_log)
+                XTP_LOG(xtp::logINFO, *_log)
                         << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
             }
             // CLEAN DIRECTORY
@@ -675,7 +675,7 @@ namespace votca {
                     BasisSet dftbs;
                     if (orb_iter_input.getDFTbasis() != "") {
                         dftbs.LoadBasisSet(orb_iter_input.getDFTbasis());
-                        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
+                        XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
                     }
 
                     // fill DFT AO basis by going through all atoms
@@ -752,9 +752,9 @@ namespace votca {
                 double dE_QM = iter_1->getQMEnergy() - iter_0->getQMEnergy();
                 double dE_MM = iter_1->getMMEnergy() - iter_0->getMMEnergy();
 
-                CTP_LOG(ctp::logINFO, *_log)
+                XTP_LOG(xtp::logINFO, *_log)
                         << format("... dE_QM  = %1$+4.9e") % dE_QM << flush;
-                CTP_LOG(ctp::logINFO, *_log)
+                XTP_LOG(xtp::logINFO, *_log)
                         << format("... dE_MM  = %1$+4.9e") % dE_MM << flush;
 
                 if (dR <= _crit_dR) _convg_dR = true;
@@ -767,13 +767,13 @@ namespace votca {
 
 
 
-            CTP_LOG(ctp::logINFO, *_log)
+            XTP_LOG(xtp::logINFO, *_log)
                     << format("... Convg dR = %s") % (_convg_dR ? "true" : "false") << flush;
-            CTP_LOG(ctp::logINFO, *_log)
+            XTP_LOG(xtp::logINFO, *_log)
                     << format("... Convg dQ = %s") % (_convg_dQ ? "true" : "false") << flush;
-            CTP_LOG(ctp::logINFO, *_log)
+            XTP_LOG(xtp::logINFO, *_log)
                     << format("... Convg QM = %s") % (_convg_dE_QM ? "true" : "false") << flush;
-            CTP_LOG(ctp::logINFO, *_log)
+            XTP_LOG(xtp::logINFO, *_log)
                     << format("... Convg MM = %s") % (_convg_dE_MM ? "true" : "false") << flush;
 
             return _isConverged;

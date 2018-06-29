@@ -21,7 +21,7 @@
 #define _VOTCA_XTP_SIGMA_H
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/ppm.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 
 namespace votca {
 namespace xtp {
@@ -29,7 +29,7 @@ namespace xtp {
 
 class Sigma {
  public:
-  Sigma(ctp::Logger *log){
+  Sigma(xtp::Logger *log){
 _log = log;
 _gwa_energies.resize(0);
   }
@@ -71,7 +71,7 @@ void FreeMatrices(){
  private:
   void C_offdiag(const TCMatrix_gwbse& _Mmn, const PPM& ppm);
   void X_offdiag(const TCMatrix_gwbse& _Mmn);   
-ctp::Logger *_log;
+xtp::Logger *_log;
   unsigned _homo;   // HOMO index
   unsigned _qpmin;
   unsigned _qpmax;

@@ -21,11 +21,11 @@
 #ifndef SANDBOX2_H
 #define SANDBOX2_H
 
-#include <votca/ctp/parallelpaircalc.h>
+#include <votca/xtp/parallelpaircalc.h>
 
 namespace votca { namespace xtp {
 
-class Sandbox : public ctp::ParallelPairCalculator
+class Sandbox : public xtp::ParallelPairCalculator
 {
 
 public:
@@ -35,8 +35,8 @@ public:
 
     string  Identify() { return "Sandbox"; }
     void    Initialize(Property *options);
-    using ctp::ParallelPairCalculator::EvalPair;
-    void    EvalPair(ctp::Topology *top, ctp::QMPair *qmpair, int slot);
+    using xtp::ParallelPairCalculator::EvalPair;
+    void    EvalPair(xtp::Topology *top, xtp::QMPair *qmpair, int slot);
 
 };
 
@@ -53,7 +53,7 @@ void Sandbox::Initialize(Property *options) {
 }
 
 
-void Sandbox::EvalPair(ctp::Topology *top, ctp::QMPair *qmpair, int slot) {
+void Sandbox::EvalPair(xtp::Topology *top, xtp::QMPair *qmpair, int slot) {
   
     this->LockCout();
     cout << "\r... ... Overloading pair " << qmpair->getId() << ". " << flush;
@@ -66,11 +66,11 @@ void Sandbox::EvalPair(ctp::Topology *top, ctp::QMPair *qmpair, int slot) {
         }
     }
 
-    vector<ctp::Segment*> ::iterator sit;
+    vector<xtp::Segment*> ::iterator sit;
     for (sit = top->Segments().begin(); sit != top->Segments().end(); sit++) {
         //Segment *seg = *sit;
 
-        vector<ctp::Atom*> ::iterator ait;
+        vector<xtp::Atom*> ::iterator ait;
         for (ait= top->Atoms().begin(); ait != top->Atoms().end(); ait++) {
             //Atom *atm = *ait;
 

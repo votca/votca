@@ -21,7 +21,7 @@
 #define	__VOTCA_XTP_GAUSSIAN_H
 
 
-#include <votca/ctp/apolarsite.h>
+#include <votca/xtp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 
 #include <string>
@@ -48,7 +48,7 @@ public:
     * and a guess for the dimer (if requested) constructed from the
     * monomer orbitals
     */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
+   bool WriteInputFile( std::vector< xtp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<xtp::PolarSeg*> PolarSegments = {});
 
    bool WriteShellScript();
 
@@ -62,7 +62,7 @@ public:
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
 
-   bool setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){ return true; };
+   bool setMultipoleBackground( std::vector<xtp::PolarSeg*> multipoles){ return true; };
 
    std::string getScratchDir( ) { return _scratch_dir; }
 
@@ -81,7 +81,7 @@ private:
     std::string FortranFormat(double number);
     void WriteBasisset(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
     void WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);   
-    void WriteBackgroundCharges(std::ofstream& _com_file,std::vector<ctp::PolarSeg*> PolarSegments);
+    void WriteBackgroundCharges(std::ofstream& _com_file,std::vector<xtp::PolarSeg*> PolarSegments);
     void WriteGuess(Orbitals* orbitals_guess, std::ofstream& _com_file);
     void WriteVXCRunInputFile();
     void WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);

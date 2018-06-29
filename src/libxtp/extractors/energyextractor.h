@@ -20,14 +20,19 @@
 #ifndef VOTCA_XTP_ENERGYEXTRACTOR_H
 #define VOTCA_XTP_ENERGYEXTRACTOR_H
 
+#include <fstream>
+
 #include <votca/tools/propertyiomanipulator.h>
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 #include <boost/format.hpp>
+
+#include <votca/xtp/topology.h>
+#include <votca/xtp/segment.h>
 
 namespace votca { namespace xtp {
 
 
-class EnergyExtractor : public ctp::QMCalculator
+class EnergyExtractor : public QMCalculator
 {
 public:
 
@@ -36,7 +41,7 @@ public:
 
     std::string Identify() { return "extract.energy"; }
     void Initialize(tools::Property *options);
-    bool EvaluateFrame(ctp::Topology *top);
+    bool EvaluateFrame(Topology *top);
 
 private:
 
@@ -48,7 +53,7 @@ void EnergyExtractor::Initialize(tools::Property *options) {
 }
 
 
-bool EnergyExtractor::EvaluateFrame(ctp::Topology *top) {
+bool EnergyExtractor::EvaluateFrame(Topology *top) {
     
     std::string xmlfile = Identify() + ".xml";    
     
@@ -61,10 +66,10 @@ bool EnergyExtractor::EvaluateFrame(ctp::Topology *top) {
     using boost::format;
     
     // SEGMENTS
-    std::vector<ctp::Segment*> ::iterator sit;
+    std::vector<Segment*> ::iterator sit;
     next = &segs;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
-        ctp::Segment *seg = *sit;
+        Segment *seg = *sit;
         tools::Property &segprop = next->add("segment", "");
         segprop.add("id", (format("%1$d") % seg->getId()).str());
         segprop.add("name", seg->getName());
@@ -86,11 +91,11 @@ bool EnergyExtractor::EvaluateFrame(ctp::Topology *top) {
     
     if (tools::globals::verbose) {
         // PAIRS
-        ctp::QMNBList::iterator pit;
-        ctp::QMNBList &nb = top->NBList();
+        QMNBList::iterator pit;
+        QMNBList &nb = top->NBList();
         next = &pairs;
         for (pit = nb.begin(); pit != nb.end(); ++pit) {
-            ctp::QMPair *qmp = *pit;
+            QMPair *qmp = *pit;
             tools::Property &pairprop = next->add("pair", "");
             pairprop.add("id1",   (format("%1$d")   % qmp->Seg1()->getId()).str());
             pairprop.add("name1", (format("%1$s")   % qmp->Seg1()->getName()).str());

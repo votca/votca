@@ -21,8 +21,8 @@
 #define	__QMITER__H
 
 
-#include <votca/ctp/xjob.h>
-#include <votca/ctp/xinductor.h>
+#include <votca/xtp/xjob.h>
+#include <votca/xtp/xinductor.h>
 #include <votca/xtp/qminterface.h>
 // add gwbse header for excited state support
 #include <votca/xtp/gwbse.h>
@@ -42,11 +42,11 @@ public:
     QMMIter(int id) : _id(id), _hasdRdQ(false), _hasQM(false), _hasMM(false)  { ; }
    ~QMMIter() { ; }
 
-   void ConvertPSitesToQMAtoms(std::vector< ctp::PolarSeg* > &, std::vector< QMAtom* > &);
-   void ConvertQMAtomsToPSites(std::vector< QMAtom* > &, std::vector< ctp::PolarSeg* > &);
-   void UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &, std::vector< ctp::PolarSeg* > &);  
-   void UpdateMPSFromGDMA( std::vector<std::vector<double> > &multipoles,  std::vector< ctp::PolarSeg* > &psegs);
-   void GenerateQMAtomsFromPolarSegs(ctp::PolarTop *ptop, Orbitals &orb, bool split_dpl, double dpl_spacing);   
+   void ConvertPSitesToQMAtoms(std::vector< xtp::PolarSeg* > &, std::vector< QMAtom* > &);
+   void ConvertQMAtomsToPSites(std::vector< QMAtom* > &, std::vector< xtp::PolarSeg* > &);
+   void UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &, std::vector< xtp::PolarSeg* > &);  
+   void UpdateMPSFromGDMA( std::vector<std::vector<double> > &multipoles,  std::vector< xtp::PolarSeg* > &psegs);
+   void GenerateQMAtomsFromPolarSegs(xtp::PolarTop *ptop, Orbitals &orb, bool split_dpl, double dpl_spacing);   
 
    void setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM);
    void setQMSF(double energy_QM, double energy_SF, double energy_GWBSE);

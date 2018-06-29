@@ -21,8 +21,8 @@
 #define	__QMMACHINE__H
 
 
-#include <votca/ctp/xjob.h>
-#include <votca/ctp/xinductor.h>
+#include <votca/xtp/xjob.h>
+#include <votca/xtp/xinductor.h>
 
 // add gwbse header for excited state support
 #include <votca/xtp/gwbse.h>
@@ -43,26 +43,26 @@ class QMMachine
 
 public:
 
-    QMMachine(ctp::XJob *job, ctp::XInductor *xind, QMPackage *qmpack,
+    QMMachine(xtp::XJob *job, xtp::XInductor *xind, QMPackage *qmpack,
               Property *opt, string sfx, int nst, bool mav);
    ~QMMachine();
 
-    int Evaluate(ctp::XJob *job);
+    int Evaluate(xtp::XJob *job);
 
     
     
 
-    void setLog(ctp::Logger *log) { _log = log; }
+    void setLog(xtp::Logger *log) { _log = log; }
 
 private:
     bool Iterate(string jobFolder, int iterCnt);
     
     QMMIter *CreateNewIter();
     bool hasConverged();
-    ctp::XJob *_job;
-    ctp::XInductor *_xind;
+    xtp::XJob *_job;
+    xtp::XInductor *_xind;
     QMPackage *_qmpack;
-    ctp::Logger *_log;
+    xtp::Logger *_log;
     int _subthreads;
 
     std::vector<QMMIter*> _iters;

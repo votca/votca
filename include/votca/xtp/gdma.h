@@ -24,7 +24,7 @@
 #include <map>
 #include <fstream>
 #include <votca/tools/property.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 
 
 
@@ -58,7 +58,7 @@ public:
    void SetRadius( double radius ) { _radius = radius;};
    void SetSwitch( double sw ) { _switch = sw; };
    
-   void setLog( ctp::Logger* pLog ) { _log = pLog; };
+   void setLog( xtp::Logger* pLog ) { _log = pLog; };
    std::vector< std::vector<double> > &GetMultipoles() { return _multipoles; };
    
    
@@ -76,7 +76,7 @@ private:
     double  _radius; 
     double  _switch; 
     std::string  _outFile; 
-    ctp::Logger*                             _log;
+    xtp::Logger*                             _log;
     
  
 };

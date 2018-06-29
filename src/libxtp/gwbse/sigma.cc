@@ -121,16 +121,16 @@ namespace votca {
         if (tools::globals::verbose) {
           double _DFTgap = (*_dftenergies)(_homo + 1) - (*_dftenergies)(_homo);
           double _QPgap = _gwa_energies(_homo + 1) - _gwa_energies(_homo);
-          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " G_Iteration: " << _g_iter + 1 << " shift=" << _QPgap - _DFTgap << " E_diff max=" << diff_max << " StateNo:" << state << std::flush;
+          XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " G_Iteration: " << _g_iter + 1 << " shift=" << _QPgap - _DFTgap << " E_diff max=" << diff_max << " StateNo:" << state << std::flush;
         }
         double alpha = 0.0;
         _gwa_energies = (1 - alpha) * _gwa_energies + alpha*_qp_old;
 
         if (energies_converged) {
-          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Converged after " << _g_iter + 1 << " G iterations." << std::flush;
+          XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Converged after " << _g_iter + 1 << " G iterations." << std::flush;
           break;
         } else if (_g_iter == _g_sc_max_iterations - 1) {
-          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " G-self-consistency cycle not converged after " << _g_sc_max_iterations << " iterations." << std::flush;
+          XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " G-self-consistency cycle not converged after " << _g_sc_max_iterations << " iterations." << std::flush;
           break;
 
         } else {

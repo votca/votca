@@ -25,8 +25,10 @@
 #include <votca/tools/constants.h>
 #include <votca/tools/propertyiomanipulator.h>
 
-#include <votca/ctp/logger.h>
-#include <votca/ctp/xinteractor.h>
+#include <votca/xtp/apolarsite.h>
+#include <votca/xtp/polarseg.h>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/xinteractor.h>
 
 using namespace boost::filesystem;
 using namespace votca::tools;
@@ -106,7 +108,7 @@ void IEXCITON::Initialize(tools::Property* options ) {
 
 
 
-void IEXCITON::PreProcess(ctp::Topology *top) {
+void IEXCITON::PreProcess(xtp::Topology *top) {
 
     // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
      cout << endl << "... ... Initialize MPS-mapper: "  << flush; 
@@ -115,28 +117,28 @@ void IEXCITON::PreProcess(ctp::Topology *top) {
 }
 
 
-void IEXCITON::CustomizeLogger(ctp::QMThread *thread) {
+void IEXCITON::CustomizeLogger(xtp::QMThread *thread) {
     
     // CONFIGURE LOGGER
-    ctp::Logger* log = thread->getLogger();
-    log->setReportLevel(ctp::logDEBUG);
+    xtp::Logger* log = thread->getLogger();
+    log->setReportLevel(xtp::logDEBUG);
     log->setMultithreading(_maverick);
 
-    log->setPreface(ctp::logINFO,    (boost::format("\nT%1$02d INF ...") % thread->getId()).str());
-    log->setPreface(ctp::logERROR,   (boost::format("\nT%1$02d ERR ...") % thread->getId()).str());
-    log->setPreface(ctp::logWARNING, (boost::format("\nT%1$02d WAR ...") % thread->getId()).str());
-    log->setPreface(ctp::logDEBUG,   (boost::format("\nT%1$02d DBG ...") % thread->getId()).str());        
+    log->setPreface(xtp::logINFO,    (boost::format("\nT%1$02d INF ...") % thread->getId()).str());
+    log->setPreface(xtp::logERROR,   (boost::format("\nT%1$02d ERR ...") % thread->getId()).str());
+    log->setPreface(xtp::logWARNING, (boost::format("\nT%1$02d WAR ...") % thread->getId()).str());
+    log->setPreface(xtp::logDEBUG,   (boost::format("\nT%1$02d DBG ...") % thread->getId()).str());        
 }
 
 
 
-ctp::Job::JobResult IEXCITON::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *opThread) {
+xtp::Job::JobResult IEXCITON::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *opThread) {
     
      // report back to the progress observer
-    ctp::Job::JobResult jres = ctp::Job::JobResult();
+    xtp::Job::JobResult jres = xtp::Job::JobResult();
     
     // get the logger from the thread
-    ctp::Logger* pLog = opThread->getLogger();   
+    xtp::Logger* pLog = opThread->getLogger();   
     
     // get the information about the job executed by the thread
     int _job_ID = job->getId();
@@ -151,26 +153,26 @@ ctp::Job::JobResult IEXCITON::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QM
 
     
   
-    ctp::Segment *seg_A = top->getSegment( ID_A );   
+    xtp::Segment *seg_A = top->getSegment( ID_A );   
     assert( seg_A->getName() == type_A );
     
-    ctp::Segment *seg_B = top->getSegment( ID_B );
+    xtp::Segment *seg_B = top->getSegment( ID_B );
     assert( seg_B->getName() == type_B );
     
-    CTP_LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Evaluating pair "  
+    XTP_LOG(xtp::logINFO,*pLog) << xtp::TimeStamp() << " Evaluating pair "  
             << _job_ID << " ["  << ID_A << ":" << ID_B << "]" << flush; 
     
-   vector<ctp::APolarSite*> seg_A_raw=ctp::APS_FROM_MPS(mps_fileA,0,opThread);
-   vector<ctp::APolarSite*> seg_B_raw=ctp::APS_FROM_MPS(mps_fileB,0,opThread);
+   vector<xtp::APolarSite*> seg_A_raw=xtp::APS_FROM_MPS(mps_fileA,0,opThread);
+   vector<xtp::APolarSite*> seg_B_raw=xtp::APS_FROM_MPS(mps_fileB,0,opThread);
    
-   ctp::PolarSeg* seg_A_polar=_mps_mapper.MapPolSitesToSeg(seg_A_raw,seg_A);
-   ctp::PolarSeg* seg_B_polar=_mps_mapper.MapPolSitesToSeg(seg_B_raw,seg_B);
+   xtp::PolarSeg* seg_A_polar=_mps_mapper.MapPolSitesToSeg(seg_A_raw,seg_A);
+   xtp::PolarSeg* seg_B_polar=_mps_mapper.MapPolSitesToSeg(seg_B_raw,seg_B);
    
 
    
    double JAB=EvaluatePair(top,seg_A_polar,seg_B_polar, pLog);
    
-   std::vector< ctp::APolarSite* >::iterator it;
+   std::vector< xtp::APolarSite* >::iterator it;
     
    for (it = seg_A_raw.begin() ; it !=seg_A_raw.end(); ++it){
          delete *it;
@@ -209,21 +211,21 @@ ctp::Job::JobResult IEXCITON::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QM
  
    
     jres.setOutput( _job_summary );   
-    jres.setStatus(ctp::Job::COMPLETE);
+    jres.setStatus(xtp::Job::COMPLETE);
     
     return jres;
 }
 
-double IEXCITON::EvaluatePair(ctp::Topology *top,ctp::PolarSeg* Seg1,ctp::PolarSeg* Seg2, ctp::Logger* pLog ){
+double IEXCITON::EvaluatePair(xtp::Topology *top,xtp::PolarSeg* Seg1,xtp::PolarSeg* Seg2, xtp::Logger* pLog ){
     
-    ctp::XInteractor actor;
+    xtp::XInteractor actor;
     actor.ResetEnergy();
     Seg1->CalcPos();
     Seg2->CalcPos();
     vec s=top->PbShortestConnect(Seg1->getPos(),Seg2->getPos())+Seg1->getPos()-Seg2->getPos();
-    //CTP_LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
-    ctp::PolarSeg::iterator pit1;
-    ctp::PolarSeg::iterator pit2;
+    //XTP_LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
+    xtp::PolarSeg::iterator pit1;
+    xtp::PolarSeg::iterator pit2;
     double E=0.0;
     for (pit1=Seg1->begin();pit1<Seg1->end();++pit1){
         for (pit2=Seg2->begin();pit2<Seg2->end();++pit2){
@@ -248,7 +250,7 @@ double IEXCITON::EvaluatePair(ctp::Topology *top,ctp::PolarSeg* Seg1,ctp::PolarS
 }
 
 
-void IEXCITON::WriteJobFile(ctp::Topology *top) {
+void IEXCITON::WriteJobFile(xtp::Topology *top) {
 
     cout << endl << "... ... Writing job file " << flush;
     std::ofstream ofs;
@@ -256,8 +258,8 @@ void IEXCITON::WriteJobFile(ctp::Topology *top) {
     if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
 
  
-    ctp::QMNBList::iterator pit;
-    ctp::QMNBList &nblist = top->NBList();    
+    xtp::QMNBList::iterator pit;
+    xtp::QMNBList &nblist = top->NBList();    
 
     int jobCount = 0;
     if (nblist.size() == 0) {
@@ -292,7 +294,7 @@ void IEXCITON::WriteJobFile(ctp::Topology *top) {
             pSegment->setAttribute<int>("id", id2 );
             pSegment->setAttribute<string>("mps_file",mps_file2);
 
-            ctp::Job job(id, tag, Input, ctp::Job::AVAILABLE );
+            xtp::Job job(id, tag, Input, xtp::Job::AVAILABLE );
             job.ToStream(ofs,"xml");
         }
     }
@@ -305,20 +307,20 @@ void IEXCITON::WriteJobFile(ctp::Topology *top) {
     
 }
 
-void IEXCITON::ReadJobFile(ctp::Topology *top) {
+void IEXCITON::ReadJobFile(xtp::Topology *top) {
 
     Property xml;
 
     vector<Property*> records;
     
     // gets the neighborlist from the topology
-    ctp::QMNBList &nblist = top->NBList();
+    xtp::QMNBList &nblist = top->NBList();
     int _number_of_pairs = nblist.size();
     int _current_pairs=0;
     
     // output using logger
-    ctp::Logger _log;
-    _log.setReportLevel(ctp::logINFO);
+    xtp::Logger _log;
+    _log.setReportLevel(xtp::logINFO);
     
 
     // load the QC results in a vector indexed by the pair ID
@@ -341,15 +343,15 @@ void IEXCITON::ReadJobFile(ctp::Topology *top) {
             int idA = poutput.getAttribute<int>("idA");
             int idB = poutput.getAttribute<int>("idB");
             // segments which correspond to these ids           
-            ctp::Segment *segA = top->getSegment(idA);
-            ctp::Segment *segB = top->getSegment(idB);
+            xtp::Segment *segA = top->getSegment(idA);
+            xtp::Segment *segB = top->getSegment(idB);
             // pair that corresponds to the two segments
-            ctp::QMPair *qmp = nblist.FindPair(segA,segB);
+            xtp::QMPair *qmp = nblist.FindPair(segA,segB);
             
             if (qmp == NULL) { // there is no pair in the neighbor list with this name
-                CTP_LOG_SAVE(ctp::logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
+                XTP_LOG_SAVE(xtp::logINFO, _log) << "No pair " <<  idA << ":" << idB << " found in the neighbor list. Ignoring" << flush; 
             }   else {
-                //CTP_LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
+                //XTP_LOG(logINFO, _log) << "Store in record: " <<  idA << ":" << idB << flush; 
                 records[qmp->getId()] = & ((*it)->get("output.pair"));
             }
         } else {
@@ -360,10 +362,10 @@ void IEXCITON::ReadJobFile(ctp::Topology *top) {
 
 
     // loop over all pairs in the neighbor list
-    CTP_LOG_SAVE(ctp::logINFO, _log) << "Neighborlist size " << top->NBList().size() << flush; 
-    for (ctp::QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
+    XTP_LOG_SAVE(xtp::logINFO, _log) << "Neighborlist size " << top->NBList().size() << flush; 
+    for (xtp::QMNBList::iterator ipair = top->NBList().begin(); ipair != top->NBList().end(); ++ipair) {
         
-        ctp::QMPair *pair = *ipair;
+        xtp::QMPair *pair = *ipair;
         
         if (records[ pair->getId() ]==NULL) continue; //skip pairs which are not in the jobfile
         
@@ -376,7 +378,7 @@ void IEXCITON::ReadJobFile(ctp::Topology *top) {
         //cout << "\nProcessing pair " << segmentA->getId() << ":" << segmentB->getId() << flush;
         
         
-        if ( pair->getType() == ctp::QMPair::Excitoncl){
+        if ( pair->getType() == xtp::QMPair::Excitoncl){
         Property* pair_property = records[ pair->getId() ];
  
         list<Property*> pCoupling = pair_property->Select("Coupling");
@@ -396,7 +398,7 @@ void IEXCITON::ReadJobFile(ctp::Topology *top) {
         }
     }
                     
-    CTP_LOG_SAVE(ctp::logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs  << flush; 
+    XTP_LOG_SAVE(xtp::logINFO, _log) << "Pairs [total:updated] " <<  _number_of_pairs << ":" << _current_pairs  << flush; 
     cout << _log;
 }
 

@@ -22,8 +22,8 @@
 
 
 #include <boost/format.hpp>
-#include <votca/ctp/qmtool.h>
-#include <votca/ctp/topology.h>
+#include <votca/xtp/qmtool.h>
+#include <votca/xtp/topology.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/qmmachine.h>
 
@@ -31,7 +31,7 @@
 namespace votca { namespace xtp {
 
 
-class Log2Mps : public ctp::QMTool
+class Log2Mps : public xtp::QMTool
 {
 public:
 
@@ -74,14 +74,14 @@ void Log2Mps::Initialize(Property *opt) {
 bool Log2Mps::Evaluate() {
     
     // Logger (required for QM package, so we can just as well use it)
-    ctp::Logger log;
-    log.setPreface(ctp::logINFO, "\n... ...");
-    log.setPreface(ctp::logDEBUG, "\n... ...");
-    log.setReportLevel(ctp::logDEBUG);
+    xtp::Logger log;
+    log.setPreface(xtp::logINFO, "\n... ...");
+    log.setPreface(xtp::logDEBUG, "\n... ...");
+    log.setReportLevel(xtp::logDEBUG);
     log.setMultithreading(true);  
     
     // Set-up QM package
-    CTP_LOG_SAVE(ctp::logINFO,log) << "Using package <" << _package << ">" << flush;
+    XTP_LOG_SAVE(xtp::logINFO,log) << "Using package <" << _package << ">" << flush;
     QMPackage *qmpack = QMPackages().Create(_package);    
     qmpack->doGetCharges(true);
     qmpack->setLog(&log);
@@ -109,13 +109,13 @@ bool Log2Mps::Evaluate() {
             << ". Abort.\n" << flush;
         throw std::runtime_error("(see above, input or parsing error)");
     }
-    CTP_LOG_SAVE(ctp::logINFO,log) 
+    XTP_LOG_SAVE(xtp::logINFO,log) 
         << qmatoms.size() << " QM atoms, total charge Q = " << Q << flush;    
     
     
     // Convert to polar segment & write mps-file
     QMMInterface qmmface;
-    ctp::PolarSeg pseg = qmmface.Convert(qmatoms);
+    xtp::PolarSeg pseg = qmmface.Convert(qmatoms);
     
     string tag = "::LOG2MPS " 
         + (boost::format("(log-file='%1$s' : %2$d QM atoms)")

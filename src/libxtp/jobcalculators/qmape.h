@@ -20,12 +20,12 @@
 #ifndef VOTCA_XTP_QMAPECALC_H
 #define	VOTCA_XTP_QMAPECALC_H
 
-#include <votca/ctp/pewald3d.h>
-#include <votca/ctp/parallelxjobcalc.h>
-#include <votca/ctp/xmapper.h>
-#include <votca/ctp/xjob.h>
-#include <votca/ctp/xinductor.h>
-#include <votca/ctp/xinteractor.h>
+#include <votca/xtp/pewald3d.h>
+#include <votca/xtp/parallelxjobcalc.h>
+#include <votca/xtp/xmapper.h>
+#include <votca/xtp/xjob.h>
+#include <votca/xtp/xinductor.h>
+#include <votca/xtp/xinteractor.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/qmapemachine.h>
 #include <boost/format.hpp>
@@ -35,7 +35,7 @@ using boost::format;
 namespace votca { namespace xtp {
 
    
-class QMAPE : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
+class QMAPE : public xtp::ParallelXJobCalc< vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult >
 {
 
 public:
@@ -46,10 +46,10 @@ public:
     string          Identify() { return "qmape"; }
     void            Initialize(Property *);
 
-    void            CustomizeLogger(ctp::QMThread *thread);
-    void            PreProcess(ctp::Topology *top);
-    ctp::Job::JobResult  EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *thread);
-    ctp::XJob            ProcessInputString(ctp::Job *job, ctp::Topology *top, ctp::QMThread *thread);
+    void            CustomizeLogger(xtp::QMThread *thread);
+    void            PreProcess(xtp::Topology *top);
+    xtp::Job::JobResult  EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *thread);
+    xtp::XJob            ProcessInputString(xtp::Job *job, xtp::Topology *top, xtp::QMThread *thread);
 
 private:
     
@@ -60,7 +60,7 @@ private:
 	string                         _xml_file;
 	string                         _mps_table;
 	string                         _polar_bg_arch;
-	ctp::XMpsMap                   _mps_mapper;
+	xtp::XMpsMap                   _mps_mapper;
 	bool                           _pdb_check;
 	bool                           _ptop_check;
     
@@ -140,7 +140,7 @@ void QMAPE::Initialize(Property *options) {
 }
 
 
-void QMAPE::PreProcess(ctp::Topology *top) {
+void QMAPE::PreProcess(xtp::Topology *top) {
     // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
     cout << endl << "... ... Initialize MPS-mapper: " << flush;
     _mps_mapper.GenerateMap(_xml_file, _mps_table, top);
@@ -148,17 +148,17 @@ void QMAPE::PreProcess(ctp::Topology *top) {
 }
 
 
-void QMAPE::CustomizeLogger(ctp::QMThread *thread) {
+void QMAPE::CustomizeLogger(xtp::QMThread *thread) {
     
     // CONFIGURE LOGGER
-    ctp::Logger* log = thread->getLogger();
-    log->setReportLevel(ctp::logDEBUG);
+    xtp::Logger* log = thread->getLogger();
+    log->setReportLevel(xtp::logDEBUG);
     log->setMultithreading(_maverick);
 
-    log->setPreface(ctp::logINFO,    (format("\nT%1$02d INF ...") % thread->getId()).str());
-    log->setPreface(ctp::logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
-    log->setPreface(ctp::logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
-    log->setPreface(ctp::logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str()); 
+    log->setPreface(xtp::logINFO,    (format("\nT%1$02d INF ...") % thread->getId()).str());
+    log->setPreface(xtp::logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
+    log->setPreface(xtp::logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
+    log->setPreface(xtp::logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str()); 
     return;
 }
 
@@ -168,13 +168,13 @@ void QMAPE::CustomizeLogger(ctp::QMThread *thread) {
 // ========================================================================== //
 
 
-ctp::XJob QMAPE::ProcessInputString(ctp::Job *job,ctp::Topology *top, ctp::QMThread *thread) {
+xtp::XJob QMAPE::ProcessInputString(xtp::Job *job,xtp::Topology *top, xtp::QMThread *thread) {
 
     // Input string looks like this:
     // <id1>:<name1>:<mpsfile1> <id2>:<name2>: ... ... ...
 
     string input = job->getInput().as<string>();
-    vector<ctp::Segment*> qmSegs;
+    vector<xtp::Segment*> qmSegs;
     vector<string>   qmSegMps;
     vector<string> split;
     Tokenizer toker(input, " \t\n");
@@ -191,9 +191,9 @@ ctp::XJob QMAPE::ProcessInputString(ctp::Job *job,ctp::Topology *top, ctp::QMThr
         string segName = split_id_seg_mps[1];
         string mpsFile = split_id_seg_mps[2];
 
-        ctp::Segment *seg = top->getSegment(segId);
+        xtp::Segment *seg = top->getSegment(segId);
         if (seg->getName() != segName) {
-            CTP_LOG(ctp::logERROR,*(thread->getLogger()))
+            XTP_LOG(xtp::logERROR,*(thread->getLogger()))
                 << "ERROR: Seg " << segId << ":" << seg->getName() << " "
                 << " maltagged as " << segName << ". Skip job ..." << flush;
             throw std::runtime_error("Input does not match topology.");
@@ -203,41 +203,41 @@ ctp::XJob QMAPE::ProcessInputString(ctp::Job *job,ctp::Topology *top, ctp::QMThr
         qmSegMps.push_back(mpsFile);
     }
 
-    return ctp::XJob(job->getId(), job->getTag(), qmSegs, qmSegMps, top);
+    return xtp::XJob(job->getId(), job->getTag(), qmSegs, qmSegMps, top);
 }
 
 
-ctp::Job::JobResult QMAPE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *thread) {
+xtp::Job::JobResult QMAPE::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *thread) {
     
     // SILENT LOGGER FOR QMPACKAGE
-    ctp::Logger* log = thread->getLogger();    
-    ctp::Logger* qlog = new ctp::Logger();
-    qlog->setReportLevel(ctp::logDEBUG);
+    xtp::Logger* log = thread->getLogger();    
+    xtp::Logger* qlog = new xtp::Logger();
+    qlog->setReportLevel(xtp::logDEBUG);
     qlog->setMultithreading(_maverick);
-    qlog->setPreface(ctp::logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
-    qlog->setPreface(ctp::logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
-    qlog->setPreface(ctp::logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
-    qlog->setPreface(ctp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
+    qlog->setPreface(xtp::logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
+    qlog->setPreface(xtp::logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
+    qlog->setPreface(xtp::logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
+    qlog->setPreface(xtp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
 
     // CREATE XJOB FROM JOB INPUT STRING
-    CTP_LOG(ctp::logINFO,*log)
+    XTP_LOG(xtp::logINFO,*log)
         << "Job input = " << job->getInput().as<string>() << flush;
-    ctp::XJob xjob = this->ProcessInputString(job, top, thread);  
+    xtp::XJob xjob = this->ProcessInputString(job, top, thread);  
 
 	// SETUP POLAR TOPOLOGY (GENERATE VS LOAD IF PREPOLARIZED)
 	if (_polar_bg_arch == "") {
-		CTP_LOG(ctp::logINFO,*log) << "Mps-Mapper: Generate FGC FGN BGN" << flush;
+		XTP_LOG(xtp::logINFO,*log) << "Mps-Mapper: Generate FGC FGN BGN" << flush;
 		_mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
 	}
 	else {
-		CTP_LOG(ctp::logINFO,*log) << "Mps-Mapper: Generate FGC, load FGN BGN from '"
+		XTP_LOG(xtp::logINFO,*log) << "Mps-Mapper: Generate FGC, load FGN BGN from '"
 				<< _polar_bg_arch << "'" << flush;
 		_mps_mapper.Gen_FGC_Load_FGN_BGN(top, &xjob, _polar_bg_arch, thread);
 	}
-    CTP_LOG(ctp::logINFO,*log) << xjob.getPolarTop()->ShellInfoStr() << flush;
+    XTP_LOG(xtp::logINFO,*log) << xjob.getPolarTop()->ShellInfoStr() << flush;
 
     // SETUP MM METHOD
-    ctp::PEwald3D3D cape = ctp::PEwald3D3D(top, xjob.getPolarTop(), _options,
+    xtp::PEwald3D3D cape = xtp::PEwald3D3D(top, xjob.getPolarTop(), _options,
 		thread->getLogger());
 	if (_pdb_check)
 		cape.WriteDensitiesPDB(xjob.getTag()+".densities.pdb");
@@ -252,9 +252,9 @@ ctp::Job::JobResult QMAPE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThr
     machine.Evaluate(&xjob);
 
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
-    ctp::Job::JobResult jres = ctp::Job::JobResult();
+    xtp::Job::JobResult jres = xtp::Job::JobResult();
     jres.setOutput(xjob.getInfoLine());
-    jres.setStatus(ctp::Job::COMPLETE);
+    jres.setStatus(xtp::Job::COMPLETE);
     
  
     delete qlog;

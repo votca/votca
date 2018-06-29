@@ -20,14 +20,21 @@
 #ifndef VOTCA_XTP_SEGMENTSEXTRACTOR_H
 #define VOTCA_XTP_SEGMENTSEXTRACTOR_H
 
+#include <fstream>
 #include <votca/tools/propertyiomanipulator.h>
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 #include <boost/format.hpp>
+
+#include <votca/xtp/topology.h>
+#include <votca/xtp/molecule.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/fragment.h>
+#include <votca/xtp/atom.h>
 
 namespace votca { namespace xtp {
 
 
-class SegmentsExtractor : public ctp::QMCalculator
+class SegmentsExtractor : public QMCalculator
 {
 public:
 
@@ -36,7 +43,7 @@ public:
 
     std::string Identify() { return "extract.segments"; }
     void Initialize(tools::Property *options);
-    bool EvaluateFrame(ctp::Topology *top);
+    bool EvaluateFrame(Topology *top);
 
 private:
 
@@ -48,7 +55,7 @@ void SegmentsExtractor::Initialize(tools::Property *options) {
 }
 
 
-bool SegmentsExtractor::EvaluateFrame(ctp::Topology *top) {
+bool SegmentsExtractor::EvaluateFrame(Topology *top) {
     
     // Rigidify std::system (if possible)
     if (!top->Rigidify()) return 0;
@@ -62,10 +69,10 @@ bool SegmentsExtractor::EvaluateFrame(ctp::Topology *top) {
     using boost::format;
     
     // SEGMENTS
-    std::vector<ctp::Segment*> ::iterator sit;
+    std::vector<Segment*> ::iterator sit;
     next = &segs;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
-        ctp::Segment *seg = *sit;
+        Segment *seg = *sit;
         tools::Property &segprop = next->add("segment", "");
         segprop.add("id", (format("%1$d") % seg->getId()).str());
         segprop.add("name", seg->getName());
@@ -93,19 +100,19 @@ bool SegmentsExtractor::EvaluateFrame(ctp::Topology *top) {
             
             // FRAGMENTS
             tools::Property &fragprop = segprop.add("fragment", "");
-            std::vector< ctp::Fragment* > ::iterator fit;
+            std::vector< Fragment* > ::iterator fit;
             for (fit = seg->Fragments().begin(); fit < seg->Fragments().end(); ++fit) {
-                ctp::Fragment *frag = *fit;
+                Fragment *frag = *fit;
                 fragprop.add("id", (format("%1$d") % frag->getId()).str());
                 fragprop.add("name", frag->getName());
                 fragprop.add("xyz", (format("%1$+1.4f %2$+1.4f %3$+1.4f")
                         % frag->getPos().getX() % frag->getPos().getY() % frag->getPos().getZ()).str());                
                 
                 // ATOMS
-                std::vector<ctp::Atom*>::iterator ait;
+                std::vector<Atom*>::iterator ait;
                 for (ait = frag->Atoms().begin(); ait < frag->Atoms().end(); ++ait) {
                     tools::Property &atomprop = fragprop.add("atom", "");
-                    ctp::Atom *atm = *ait;
+                    Atom *atm = *ait;
                     atomprop.add("id", (format("%1$d") % atm->getId()).str());
                     atomprop.add("element", atm->getElement());
                     atomprop.add("name", atm->getName());
