@@ -274,8 +274,7 @@ namespace votca {
              */
             std::vector<ctp::PolarSeg*> MultipolesBackground = qminterface.GenerateMultipoleList( _job->getPolarTop() );
 
-            // if XTP DFT is used, pass this list of polar segments
-            if ( _qmpack->getPackageName() == "xtp" )  _qmpack->setMultipoleBackground( MultipolesBackground );
+            _qmpack->setMultipoleBackground( MultipolesBackground );
 
             // setting RUNDIR for the external QMPackages, dummy for internal
             _qmpack->setRunDir(runFolder);
@@ -294,7 +293,7 @@ namespace votca {
              * Prepare() function for efficiency.
              */
             CTP_LOG(ctp::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
-            _qmpack->WriteInputFile(empty, &orb_iter_input, MultipolesBackground);
+            _qmpack->WriteInputFile(empty, &orb_iter_input);
 
 
             FILE *out;
