@@ -53,4 +53,36 @@ if(ENABLE_TESTING)
   add_test(NAME Compare_csg_map_output COMMAND ${VOTCA_COMPARE} -f1 frame.dump -f2 ${REFPATH}/frame.dump WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(Compare_csg_map_output PROPERTIES DEPENDS Run_csg_map)
   set_tests_properties(Compare_csg_map_output PROPERTIES LABELS "csg;tools;votca")
+
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_resample)
+  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/csg_resample)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  add_test(NAME Run_csg_resample_akima
+    COMMAND csg_resample --in ${REFPATH}/table_in --out table_akima --type akima --grid 0:0.1:3
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Run_csg_resample_akima PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Compare_csg_resample_akima_output COMMAND ${VOTCA_COMPARE} -f1 table_akima -f2 ${REFPATH}/table_akima WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_resample_akima_output PROPERTIES DEPENDS Run_csg_resample_akima)
+  set_tests_properties(Compare_csg_resample_akima_output PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Run_csg_resample_cubic
+    COMMAND csg_resample --in ${REFPATH}/table_in --out table_cubic --type cubic --grid 0:0.1:3
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Run_csg_resample_cubic PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Compare_csg_resample_cubic_output COMMAND ${VOTCA_COMPARE} -f1 table_cubic -f2 ${REFPATH}/table_cubic WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_resample_cubic_output PROPERTIES DEPENDS Run_csg_resample_cubic)
+  set_tests_properties(Compare_csg_resample_cubic_output PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Run_csg_resample_linear
+    COMMAND csg_resample --in ${REFPATH}/table_in --out table_linear --type linear --grid 0:0.1:3
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Run_csg_resample_linear PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Compare_csg_resample_linear_output COMMAND ${VOTCA_COMPARE} -f1 table_linear -f2 ${REFPATH}/table_linear WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_resample_linear_output PROPERTIES DEPENDS Run_csg_resample_linear)
+  set_tests_properties(Compare_csg_resample_linear_output PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Run_csg_resample_cubicfit
+    COMMAND csg_resample --in ${REFPATH}/table_in --out table_cubicfit --type cubic --grid 0:1:9 --fitgrid 0:2:9
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Run_csg_resample_cubicfit PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Compare_csg_resample_cubicfit_output COMMAND ${VOTCA_COMPARE} -f1 table_cubicfit -f2 ${REFPATH}/table_cubicfit WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_resample_cubicfit_output PROPERTIES DEPENDS Run_csg_resample_cubicfit)
+  set_tests_properties(Compare_csg_resample_cubicfit_output PROPERTIES LABELS "csg;tools;votca")
 endif()
