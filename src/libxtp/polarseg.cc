@@ -19,6 +19,7 @@
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #include <votca/xtp/polarseg.h>
+#include <votca/tools/globals.h>
 #include <boost/format.hpp>
 #include <votca/xtp/dmaspace.h>
 #include <votca/xtp/molpolengine.h>
