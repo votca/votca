@@ -43,10 +43,10 @@ class Table {
 
   ~Table() {};
 
-  void clear(void);
+  void clear();
 
   void GenerateGridSpacing(double min, double max, double spacing);
-  void resize(int N, bool preserve = true);
+  void resize(int N);
    int size() const { return _x.size(); }
 
   double &x(int i) { return _x[i]; }

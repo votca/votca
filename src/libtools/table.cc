@@ -30,10 +30,10 @@ namespace tools {
 using namespace boost;
 using namespace std;
 
-void Table::resize(int N, bool preserve) {
+void Table::resize(int N) {
   _x.conservativeResize(N);
   _y.conservativeResize(N);
-  _flags.resize(N, preserve);
+  _flags.resize(N);
   if (_has_yerr) {
     _yerr.conservativeResize(N);
   }
@@ -68,7 +68,7 @@ void Table::Save(string filename) const {
 void Table::clear(void) {
   _x.resize(0);
   _y.resize(0);
-  _flags.clear();
+  _flags.resize(0);
   _yerr.resize(0);
 }
 
