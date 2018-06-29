@@ -41,7 +41,7 @@ namespace votca { namespace xtp {
         tools::vec position=apolarsite->getPos()*tools::conv::nm2bohr;
         double nm22bohr2=tools::conv::nm2bohr*tools::conv::nm2bohr;
         for(double & entry:quadrupole){
-            entry*=nm22bohr2;
+            entry*=-nm22bohr2;
         }
         // I am not sure the order definition or anything is correct apolarsite object orders them as Q20, Q21c, Q21s, Q22c, Q22s
         
@@ -53,8 +53,6 @@ namespace votca { namespace xtp {
         double q_02 = sqrt(3)*quadrupole[1];
         double q_12 = sqrt(3)*quadrupole[2];
         double q_11 = -quadrupole[0]-sqrt(3)*quadrupole[3]; // tensor is traceless, q_22 = - (q_00 + q_11)
-
-        // cout << _gridpoint << endl;
         // shell info, only lmax tells how far to go
         int _lmax_row = _shell_row->getLmax();
         int _lmax_col = _shell_col->getLmax();

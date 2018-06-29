@@ -100,15 +100,14 @@ namespace votca {
                 tools::matrix components = aps->getQ2cartesian();
                 tools::matrix::eigensystem_t system;
                 components.SolveEigensystem(system);
-                double a = 2 * _dpl_spacing;
                 for (unsigned i = 0; i < 3; i++) {
-
-                    double q = system.eigenvalues[i] / (a * a);
+                    //the factor of 1/3 results from the definition of the quadrupole moment, for which we use the stone version
+                    double q =1/3.0*system.eigenvalues[i] / (_dpl_spacing * _dpl_spacing);
                     if (std::abs(q) < 1e-9) {
                         continue;
                     }
-                    tools::vec vec1 = pos + 0.5 * a * system.eigenvecs[i] * tools::conv::nm2ang;
-                    tools::vec vec2 = pos - 0.5 * a * system.eigenvecs[i] * tools::conv::nm2ang;
+                    tools::vec vec1 = pos + _dpl_spacing * system.eigenvecs[i] * tools::conv::nm2ang;
+                    tools::vec vec2 = pos - _dpl_spacing * system.eigenvecs[i] * tools::conv::nm2ang;
 
                     multipoles_split.push_back({vec1.getX(), vec1.getY(), vec1.getZ(), q});
                     multipoles_split.push_back({vec2.getX(), vec2.getY(), vec2.getZ(), q});
