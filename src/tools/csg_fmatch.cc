@@ -246,7 +246,7 @@ void CGForceMatching::WriteOutFiles()
         file_name = file_name + file_extension;
         
         // resize table
-        force_tab.resize((*is)->num_outgrid, false);
+        force_tab.resize((*is)->num_outgrid);
 
         // print output file names on stdout
         cout << "Updating file: " << file_name << endl;

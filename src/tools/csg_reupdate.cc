@@ -139,7 +139,7 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
 
   cout << "Total number of parameters to optimize: " << _nlamda << endl;
 
-  _lamda.resize(_nlamda,false);
+  _lamda.resize(_nlamda);
 
   // need to store initial guess of parameters in _lamda
   PotentialContainer::iterator potiter;
@@ -472,7 +472,7 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
 
   }
 
-  worker->_lamda.resize(worker->_nlamda,false);
+  worker->_lamda.resize(worker->_nlamda);
 
   // need to store initial guess of parameters in _lamda
   PotentialContainer::iterator potiter;

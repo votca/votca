@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="97">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
-    <logicalFolder name="f1"
-                   displayName="executables"
-                   projectFiles="true"
-                   kind="ROOT">
+    <logicalFolder name="f1" displayName="executables" projectFiles="true">
       <itemPath>../../src/tools/csg_density.cc</itemPath>
       <itemPath>../../src/tools/csg_dlptopol.cc</itemPath>
       <itemPath>../../src/tools/csg_dump.cc</itemPath>
@@ -60,7 +57,7 @@
                    displayName="Resource Files"
                    projectFiles="true">
     </logicalFolder>
-    <logicalFolder name="f3" displayName="share" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f3" displayName="share" projectFiles="true">
       <itemPath>../../share/template/template_serial.cc</itemPath>
       <itemPath>../../share/template/template_threaded.cc</itemPath>
     </logicalFolder>
@@ -136,7 +133,7 @@
       <itemPath>../../src/libcsg/version.cc</itemPath>
       <itemPath>../../src/libcsg/version_nb.cc</itemPath>
     </logicalFolder>
-    <logicalFolder name="f2" displayName="Tests" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f2" displayName="Tests" projectFiles="true">
       <itemPath>../../src/tests/test_pdbreader.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"

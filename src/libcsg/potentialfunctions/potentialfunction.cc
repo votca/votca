@@ -50,7 +50,7 @@ void PotentialFunction::SaveParam(const string& filename){
 
   Table param;
   param.SetHasYErr(false);
-  param.resize(_lam.size(), false);
+  param.resize(_lam.size());
 
   for (unsigned int i = 0; i < _lam.size(); i++)
     param.set(i, i, _lam(i), 'i');
@@ -65,7 +65,7 @@ void PotentialFunction::SavePotTab(const string& filename,
   int ngrid = (int) ((_cut_off - _min) / step + 1.00000001);
   Table pot_tab;
   pot_tab.SetHasYErr(false);
-  pot_tab.resize(ngrid, false);
+  pot_tab.resize(ngrid);
   double r_init;
   int i;
 
@@ -83,7 +83,7 @@ void PotentialFunction::SavePotTab(const string& filename,
   int ngrid = (int) ((rcut - rmin) / step + 1.00000001);
   Table pot_tab;
   pot_tab.SetHasYErr(false);
-  pot_tab.resize(ngrid, false);
+  pot_tab.resize(ngrid);
   double r_init;
   int i;
   char flag = 'i';

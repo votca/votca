@@ -112,7 +112,7 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
 
   Table param;
   param.SetHasYErr(false);
-  param.resize(_lam.size(), false);
+  param.resize(_lam.size());
 
   // write extrapolated knots with flag 'o'
   // points close to rmin can also be stastically not reliable

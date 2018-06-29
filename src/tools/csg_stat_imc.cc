@@ -25,6 +25,7 @@
 #include "csg_stat_imc.h"
 #include <votca/csg/imcio.h>
 #include <Eigen/src/Core/VectorBlock.h>
+#include <Eigen/src/Core/Matrix.h>
 
 namespace votca { namespace csg {
 
@@ -539,6 +540,8 @@ void Imc::CalcDeltaS(interaction_t *interaction, Eigen::VectorBlock< Eigen::Vect
 
 void Imc::WriteIMCBlock(const string &suffix)
 {
+  
+
     if(!_do_imc) return;
     //map<string, interaction_t *>::iterator ic_iter;
     map<string, group_t *>::iterator group_iter;
