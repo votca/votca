@@ -190,21 +190,14 @@ double PotentialFunctionCBSPL::CalculateF (const double r) const {
   if( r <= _cut_off){
 
     double u = 0.0;
-
-    Eigen::VectorXd R=Eigen::VectorXd::Zero(4);
-    Eigen::VectorXd B=Eigen::VectorXd::Zero(4);
-
     int indx = min( int( r /_dr ) , _nbreak-2 );;
     double rk = indx*_dr;;
     double t = (r - rk)/_dr;
-
+    
+    Eigen::VectorXd R=Eigen::VectorXd::Zero(4);
     R(0) = 1.0; R(1) = t; R(2) = t*t; R(3) = t*t*t;
-    Eigen::VectorXd RM = R*_M;
-    B(0) = _lam(indx); B(1) = _lam(indx+1); B(2) = _lam(indx+2);
-    B(3) = _lam(indx+3);
-
-    u += (B.transpose()*RM).value();
-
+    Eigen::VectorXd B=_lam.segment(indx,4);
+    u += ((R.transpose()*_M)*B).value();
     return u;
 
   } else
@@ -235,7 +228,7 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const{
 
       R(0) = 1.0; R(1) = t; R(2) = t*t; R(3) = t*t*t;
 
-      Eigen::VectorXd RM = R*_M;
+      Eigen::VectorXd RM = R.transpose()*_M;
 
       return RM(i_opt-indx);
 
