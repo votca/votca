@@ -1,19 +1,24 @@
 find_package(Boost 1.39.0 REQUIRED COMPONENTS unit_test_framework)
-list(APPEND test_cases test_edge_base)
-list(APPEND test_cases test_edgecontainer)
-list(APPEND test_cases test_elements)
-list(APPEND test_cases test_floatingpointcomparison)
-list(APPEND test_cases test_graphnode)
-list(APPEND test_cases test_histogramnew)
-list(APPEND test_cases test_identity)
-list(APPEND test_cases test_matrix)
-list(APPEND test_cases test_name)
-list(APPEND test_cases test_table)
-list(APPEND test_cases test_typeconverter)
-list(APPEND test_cases test_vec)
-list(APPEND test_cases test_linalg)
-list(APPEND test_cases test_cubicspline)
-foreach(PROG ${test_cases})
+foreach(PROG test_edge_base
+test_edgecontainer
+test_elements
+test_floatingpointcomparison
+test_graph_base
+test_graph_bf_visitor
+test_graphalgorithm
+test_graphdistvisitor
+test_graphnode
+test_graphvisitor
+test_histogramnew
+test_identity
+test_matrix
+test_name
+test_table
+test_typeconverter
+test_vec
+test_linalg
+test_cubicspline)
+
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})
   target_link_libraries(unit_${PROG} votca_tools ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
@@ -21,4 +26,6 @@ foreach(PROG ${test_cases})
   add_test(unit_${PROG} unit_${PROG})
   # run tests for tools (for coverage) as well
   set_tests_properties(unit_${PROG} PROPERTIES LABELS "tools;votca")
+  message("${PROG}")
+
 endforeach(PROG)
