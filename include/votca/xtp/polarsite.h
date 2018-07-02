@@ -43,8 +43,8 @@ public:
         
      
     // GET & SET & IMPORT FUNCTIONS
-    int    getId() { return _id; }
-    int getRank(){return _rank;}
+    int    getId() const{ return _id; }
+    int getRank()const{return _rank;}
     const std::string &getName() const{ return _name; }
     const Eigen::Vector3d &getPos() const{ return _pos; }
     
@@ -71,8 +71,8 @@ public:
     // MULTIPOLES DEFINITION
     const Eigen::VectorXd & getMultipoles()const {return _multipoles;}//Q00,Q10, Q11s, Q11c,Q20, Q21c, Q21s, Q22c, Q22s,...[following Stone order]
     //Eigen::MatrixXd getQuad_cartesian(){return _quadrupole_cartesian;} //theta matrix
-    Eigen::VectorXd getQuad(){return _quadrupole_polar;}//Q20, Q21c, Q21s, Q22c, Q22s
-    Eigen::Vector3d getCartesianDipoles();// mu_x,mu_y,mu_z  
+    Eigen::VectorXd getQuad()const{return _quadrupole_polar;}//Q20, Q21c, Q21s, Q22c, Q22s
+    Eigen::Vector3d getCartesianDipoles() const;// mu_x,mu_y,mu_z  
     Eigen::Matrix3d getCartesianMultipoles(); 
     Eigen::VectorXd CalculateSphericalMultipoles(const Eigen::Matrix3d& _quadrupole_cartesian);
     
@@ -80,11 +80,14 @@ public:
     //void WriteMpsLine(std::ostream &out, string unit = "angstrom");
     void Induce(double wSOR);
     
+    Eigen::MatrixXd Interaction(const PolarSite& otherSite);
+    
+    
 private:
  void calcRank(); 
     int     _id;
     std::string  _name;
-    Eigen::Vector3d _pos;   
+    Eigen::Vector3d _pos;
     int     _rank;
 
     Eigen::Matrix3d _Ps;
