@@ -172,6 +172,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/eigen.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/tools/elements.h"
             ex="false"
             tool="3"
@@ -442,6 +444,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/eigen.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/tools/elements.h"
             ex="false"
             tool="3"
@@ -711,6 +715,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/eigen.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/elements.h"
             ex="false"

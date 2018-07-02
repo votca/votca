@@ -33,7 +33,19 @@ namespace votca { namespace tools {
     void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
             const Eigen::VectorXd &b, const Eigen::MatrixXd &constr);
   
- 
+  /**
+     * \brief solves A*x=b under the constraint B*x = 0
+     * @param x storage for x
+     * @param A matrix for linear equation system
+     * @param b inhomogenity
+     * @param constr constrained condition B (or is it the transposed one? check that)
+     *
+     * This function wraps the qrsolver under constraints
+     */
+    
+     bool linalg_eigenvalues(Eigen::MatrixXd&A, Eigen::VectorXd &E, Eigen::MatrixXd&V , int nmax );
+     
+    bool linalg_eigenvalues(Eigen::MatrixXf&A, Eigen::VectorXf &E, Eigen::MatrixXf&V , int nmax );
    
    
 }}

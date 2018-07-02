@@ -22,6 +22,12 @@ namespace votca { namespace tools {
         bool globals::verbose = false;
         std::string globals::url = "http://www.votca.org";
         std::string globals::email = "devs@votca.org";
+        
+#if defined(MKL)
+        bool globals::VOTCA_MKL=true;
+#else
+        bool globals::VOTCA_MKL=false;
+#endif
 
         std::string globals::man::option(".TP\n\\fB%1%\\fR\n%2%\n");
 

@@ -20,6 +20,7 @@
 #define	__VOTCA_TOOLS_GLOBALS_H
 
 #include <string>
+#include <votca/tools/votca_config.h>
 
 namespace votca { namespace tools {
 
@@ -37,6 +38,9 @@ struct globals
         static std::string url;
         /// email address of the developers
         static std::string email;
+        
+        // If Eigen is overloaded with MKL
+        static bool VOTCA_MKL;
         
         /// man pages format strings
         struct man {
