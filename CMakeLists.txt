@@ -57,18 +57,6 @@ else()
 endif()
 add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 
-find_package(MKL)
-if (MKL_FOUND)
-	include_directories(${MKL_INCLUDE_DIRS})
-	set (MKL TRUE )
-else()
-	set(MKL_LIBRARIES)
-endif()
-
-
-
-find_package(EIGEN3 3.3.0 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIRS})
 
 find_package(LIBXC REQUIRED)
 include_directories(${LIBXC_INCLUDE_DIRS})
