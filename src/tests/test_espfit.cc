@@ -195,6 +195,10 @@ for (const QMAtom* atom:orbitals.QMAtoms()){
     index++;
   }
 bool check_reg=(std::abs(pcharges_reg.segment(1,3).sum()-1.0)<1e-6);
+if(!check_reg){
+  std::cout<<"All charges "<<pcharges_reg<<std::endl;
+  std::cout<<"Sum of charges 1,2,3 should equal 1:"<<pcharges_reg.segment(1,3).sum()<<std::endl;
+}
 BOOST_CHECK_EQUAL(check_reg, 1);
 }
         
