@@ -379,17 +379,7 @@ namespace votca {
         }
         
         
-    void Orca::setMultipoleBackground(std::vector<ctp::PolarSeg*> PolarSegments) {
-      _PolarSegments = PolarSegments;
-      _get_charges = true;
-      _get_self_energy = true;
-
-      std::string::size_type iop_pos = _options.find("pointcharges");
-      if (iop_pos != std::string::npos) {
-        _options = _options + " pointcharges";
-      }
-      return;
-    }
+   
 
         bool Orca::WriteShellScript() {
             ofstream _shell_file;

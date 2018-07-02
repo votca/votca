@@ -395,16 +395,7 @@ namespace votca {
         }
         
         
-    void Gaussian::setMultipoleBackground(std::vector<ctp::PolarSeg*> PolarSegments) {
-      _PolarSegments = PolarSegments;
-      _get_charges = true;
-      _get_self_energy = true;
-
-      std::string::size_type iop_pos = _options.find("charge");
-      if (iop_pos != std::string::npos) {
-        _options = _options + " charge";
-      }
-    }
+   
         
 
         /* Coordinates are written in standard Element,x,y,z format to the

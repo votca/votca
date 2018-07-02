@@ -64,9 +64,12 @@ namespace votca {
 
             virtual bool ParseOrbitalsFile(Orbitals* _orbitals) = 0;
 
-            virtual void setMultipoleBackground( std::vector<ctp::PolarSeg*> PolarSegments) = 0;
+            
 
             virtual void CleanUp() = 0;
+            
+            
+            virtual void setMultipoleBackground( std::vector<ctp::PolarSeg*> PolarSegments);
 
             void setRunDir(std::string run_dir) {
                 _run_dir = run_dir;
@@ -135,6 +138,7 @@ namespace votca {
             }
 
         protected:
+            virtual std::string getChargeOption() =0;
 
             int _charge;
             int _spin; // 2S+1

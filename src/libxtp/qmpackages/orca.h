@@ -61,7 +61,6 @@ public:
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
 
-   void setMultipoleBackground(std::vector<ctp::PolarSeg*> PolarSegments);
 
    std::string getScratchDir( ) { return _scratch_dir; }
 
@@ -73,7 +72,7 @@ private:
 
     std::string                              _cleanup;
 
-
+    std::string getChargeOption() { return "pointcharges";}
 
     int NumberOfElectrons( std::string _line );
     int BasisSetSize( std::string _line );

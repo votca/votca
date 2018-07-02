@@ -58,11 +58,13 @@ public:
 
    bool CheckLogFile();
 
+   
+   
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
    
-   void setMultipoleBackground(std::vector<ctp::PolarSeg*> PolarSegments);
+
 
    std::string getScratchDir( ) { return _scratch_dir; }
 
@@ -87,6 +89,8 @@ private:
     void WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
     void WriteHeader(std::ofstream& _com_file);
 
+    std::string getChargeOption() { return "charge";}
+    
 };
 
 

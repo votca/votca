@@ -62,11 +62,12 @@ public:
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
    
-   void setMultipoleBackground(std::vector<ctp::PolarSeg*> PolarSegments);
 
    std::string getScratchDir( ) { return _scratch_dir; }
 
 private:
+    std::string getChargeOption() { return "set bq background";}
+    
 
     std::string                              _shell_file_name;
     std::string                              _chk_file_name;
