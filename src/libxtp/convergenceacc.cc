@@ -209,7 +209,7 @@ namespace votca { namespace xtp {
             if (_numberofelectrons == 0) {
                 return Eigen::MatrixXd::Zero(MOs.rows(),MOs.cols());
             }
-            unsigned numofelec=_numberofelectrons;
+            int numofelec=_numberofelectrons;
             Eigen::VectorXd occupation = Eigen::VectorXd::Zero(MOEnergies.size());
 
             std::vector< std::vector<int> > degeneracies;

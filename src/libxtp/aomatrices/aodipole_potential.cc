@@ -748,7 +748,6 @@ if (_lmax_col > 3) {
   //------------------------------------------------------
 
 } // end if (_lmax_col > 3)
-std::cout<<dipole<<std::endl;
 //votca dipoles are spherical in ordering z,y,x
 for (int _i = 0; _i < _nrows; _i++) {
   for (int _j = 0; _j < _ncols; _j++) {
@@ -775,11 +774,12 @@ for (int _i = 0; _i < _nrows; _i++) {
 
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
             for (unsigned int i = 0; i < _sites.size(); i++) {
-                for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
+                for (ctp::APolarSite* site:*(_sites[i])) {
 
-                    if ((*it)->getRank() > 0 || (*it)->IsPolarizable()) {
+                    if (site->getRank() > 0 || site->IsPolarizable()) {
                         _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                        setAPolarSite((*it));
+                        if(tools::abs(site->getU1()+site->getQ1())<1e-12){continue;}
+                        setAPolarSite(site);
                         Fill(aobasis);
                         _externalpotential += _aomatrix;
                     }
