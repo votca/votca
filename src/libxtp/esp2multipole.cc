@@ -202,7 +202,7 @@ namespace votca {
                 }
                 
                 if (_do_svd) {
-                    esp.setUseSVD(_do_svd, _conditionnumber);
+                    esp.setUseSVD(_conditionnumber);
                 }
                 if (_integrationmethod == "numeric") {
                     esp.Fit2Density(_Atomlist, DMAT_tot, basis, _gridsize);

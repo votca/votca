@@ -1022,6 +1022,8 @@
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/linalg.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
@@ -1831,6 +1833,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
