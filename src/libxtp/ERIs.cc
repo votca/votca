@@ -24,25 +24,25 @@
 namespace votca {
     namespace xtp {
 
-        void ERIs::Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis,const Eigen::MatrixXd &inversesqrt_Coulomb) {
+        void ERIs::Initialize(AOBasis &dftbasis, AOBasis &auxbasis,const Eigen::MatrixXd &inversesqrt_Coulomb) {
           
-          _threecenter.Fill( _auxbasis, _dftbasis,inversesqrt_Coulomb);
+          _threecenter.Fill( auxbasis, dftbasis,inversesqrt_Coulomb);
           return;
         }
 
         
-        void ERIs::Initialize_4c_small_molecule(AOBasis &_dftbasis) {
+        void ERIs::Initialize_4c_small_molecule(AOBasis &dftbasis) {
           
-          _fourcenter.Fill_4c_small_molecule( _dftbasis );
+          _fourcenter.Fill_4c_small_molecule( dftbasis );
           return;
         }
 
         
-        void ERIs::Initialize_4c_screening(AOBasis &_dftbasis, double eps) {
+        void ERIs::Initialize_4c_screening(AOBasis &dftbasis, double eps) {
           
           _with_screening = true;
           _screening_eps = eps;
-          CalculateERIsDiagonals(_dftbasis);
+          CalculateERIsDiagonals(dftbasis);
           return;
         }
         

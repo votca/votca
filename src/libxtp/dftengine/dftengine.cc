@@ -885,9 +885,9 @@ void DFTEngine::Prepare(Orbitals* _orbitals) {
           nucleus->Depolarize();
           nucleus->Charge(0);
           for (auto site : (*seg)) {
+            site->Charge(0);
             actor.BiasIndu(*nucleus, *site, s);
             E_ext += actor.E_f(*nucleus, *site);
-
 
           }
         }

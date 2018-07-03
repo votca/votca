@@ -46,7 +46,10 @@ public:
 
 private:
     
+    double CalcEnergy(ctp::PolarSeg& nuclei,ctp::PolarSeg& other);
+    
     std::string      _orbfile;
+    std::string      _espfile;
     std::string      _mpsfiled;
     std::string      _mpsfileds;
     std::string      _mpsfileq;
@@ -55,6 +58,29 @@ private:
    
 
 };
+
+
+double QMSandbox::CalcEnergy(ctp::PolarSeg& nuclei,ctp::PolarSeg& other){
+    ctp::XInteractor actor;
+    actor.ResetEnergy();
+    double E_ext = 0.0;
+    nuclei.CalcPos();
+    other.CalcPos();
+
+        for (auto nucleus : nuclei) {
+          nucleus->Depolarize();
+          nucleus->Charge(0);
+          for (auto site : other) {
+            site->Charge(0);
+            actor.BiasIndu(*nucleus, *site);
+            E_ext += actor.E_f(*nucleus, *site);
+          }
+        }
+      
+      double E=E_ext * tools::conv::int2eV * tools::conv::ev2hrt;
+    
+      return E;
+}
 
 void QMSandbox::Initialize(tools::Property* options) {
 
@@ -65,6 +91,7 @@ void QMSandbox::Initialize(tools::Property* options) {
     std::string key = "options." + Identify();
 
     _orbfile = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".orbfile");
+    _espfile =options->ifExistsReturnElseThrowRuntimeError<string>(key + ".espfile");
     _mpsfiled = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".dipole");
      
     _mpsfileds = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".dipole_split");
@@ -75,8 +102,19 @@ void QMSandbox::Initialize(tools::Property* options) {
 }
 
 bool QMSandbox::Evaluate() {
-     Orbitals _orbitals;
-    _orbitals.ReadFromCpt(_orbfile);
+     Orbitals orbitals;
+    orbitals.ReadFromCpt(_orbfile);
+    
+    QMMInterface qmminter;
+    ctp::PolarSeg nuclei = qmminter.Convert(orbitals.QMAtoms());
+    
+    for (unsigned i = 0; i < nuclei.size(); ++i) {
+        ctp::APolarSite* nucleus = nuclei[i];
+        nucleus->setIsoP(0.0);
+        double Q = orbitals.QMAtoms()[i]->getNuccharge();
+        nucleus->setQ00(Q, 0);
+      }
+      
     
   #ifdef _OPENMP
  
@@ -87,11 +125,17 @@ bool QMSandbox::Evaluate() {
   
 #endif
 
+    std::vector<ctp::PolarSeg*> polar_segments_mol;
+    
     std::vector<ctp::PolarSeg*> polar_segments_dipole;
     std::vector<ctp::PolarSeg*> polar_segments_dipole_split;
     std::vector<ctp::PolarSeg*> polar_segments_quadrupole;
     std::vector<ctp::PolarSeg*> polar_segments_quadrupole_split;
-
+    {
+        vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS(_espfile, 0);
+        ctp::PolarSeg *newPolarSegment = new ctp::PolarSeg(0, sites);
+        polar_segments_mol.push_back(newPolarSegment);
+    }   
 
     {
         vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS(_mpsfiled, 0);
@@ -114,13 +158,13 @@ bool QMSandbox::Evaluate() {
         polar_segments_quadrupole_split.push_back(newPolarSegment);
     }        
   
-    Eigen::MatrixXd dmat=_orbitals.DensityMatrixGroundState();
+    Eigen::MatrixXd dmat=orbitals.DensityMatrixGroundState();
     
     BasisSet basis;
-    basis.LoadBasisSet(_orbitals.getDFTbasis());
+    basis.LoadBasisSet(orbitals.getDFTbasis());
     
     AOBasis aobasis;
-    aobasis.AOBasisFill(basis,_orbitals.QMAtoms());
+    aobasis.AOBasisFill(basis,orbitals.QMAtoms());
     
     
     AOESP esp1;
@@ -146,9 +190,17 @@ bool QMSandbox::Evaluate() {
     double equadrupole=quad.getExternalpotential().cwiseProduct(dmat).sum();  
     cout<<""<<endl;
     cout<<"dipole: "<<edipole<<endl;
+    cout<<"dipole_classic: "<<CalcEnergy(*polar_segments_mol[0],*polar_segments_dipole[0])<<endl;
+    cout<<"dipole_nuc: "<<CalcEnergy(nuclei,*polar_segments_dipole[0])<<endl;
     cout<<"dipole_split: "<<edipole_split<<endl;
+    cout<<"dipole_split_classic: "<<CalcEnergy(*polar_segments_mol[0],*polar_segments_dipole_split[0])<<endl;
+    cout<<"dipole_split_nuc: "<<CalcEnergy(nuclei,*polar_segments_dipole_split[0])<<endl;
     cout<<"quadrupole: "<<equadrupole<<endl;
+    cout<<"quadrupole_classic: "<<CalcEnergy(*polar_segments_mol[0],*polar_segments_quadrupole[0])<<endl;
+    cout<<"quadrupole_nuc: "<<CalcEnergy(nuclei,*polar_segments_quadrupole[0])<<endl;
     cout<<"quadrupole_split: "<<equadrupole_split<<endl;
+    cout<<"quadrupole_split_classic: "<<CalcEnergy(*polar_segments_mol[0],*polar_segments_quadrupole_split[0])<<endl;
+    cout<<"quadrupole_split_nuc: "<<CalcEnergy(nuclei,*polar_segments_quadrupole_split[0])<<endl;
     
     return true;
 }
