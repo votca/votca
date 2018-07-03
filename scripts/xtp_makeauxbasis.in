@@ -1,6 +1,6 @@
-#! /usr/bin/env python3
+#! /usr/bin/env python
 #
-# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 
+from __future__ import print_function
 VERSION='@PROJECT_VERSION@ #CSG_GIT_ID#'
 import sys
 import os
