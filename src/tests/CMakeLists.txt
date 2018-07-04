@@ -1,23 +1,23 @@
 find_package(Boost 1.39.0 REQUIRED COMPONENTS unit_test_framework)
 foreach(PROG test_edge_base
-test_edgecontainer
-test_elements
-test_floatingpointcomparison
-test_graph_base
-test_graph_bf_visitor
-test_graphalgorithm
-test_graphdistvisitor
-test_graphnode
-test_graphvisitor
-test_histogramnew
-test_identity
-test_matrix
-test_name
-test_table
-test_typeconverter
-test_vec
-test_linalg
-test_cubicspline)
+    test_edgecontainer
+    test_elements
+    test_floatingpointcomparison
+    test_graph_base
+    test_graph_bf_visitor
+    test_graphalgorithm
+    test_graphdistvisitor
+    test_graphnode
+    test_graphvisitor
+    test_histogramnew
+    test_identity
+    test_matrix
+    test_name
+    test_table
+    test_typeconverter
+    test_vec
+    test_linalg
+    test_cubicspline)
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})
@@ -26,6 +26,5 @@ test_cubicspline)
   add_test(unit_${PROG} unit_${PROG})
   # run tests for tools (for coverage) as well
   set_tests_properties(unit_${PROG} PROPERTIES LABELS "tools;votca")
-  message("${PROG}")
 
 endforeach(PROG)
