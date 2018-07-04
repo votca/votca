@@ -402,32 +402,33 @@ void DFTEngine::CalcElDipole(){
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() 
                   << " Filled DFT external quadrupole potential matrix."<< flush;
         }
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() 
-                << " External sites\n\t\t Name \t Coordinates \t charge \t dipole \t quadrupole" << flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()<< " External sites"<<flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog)<<" Name      Coordinates[nm]     charge[e]        dipole[e*nm]    " 
+                                        "                       quadrupole[e*nm^2]         " << flush;
 
 
         for (unsigned i = 0; i < _externalsites.size(); i++) {
-
-          vector<ctp::APolarSite*> ::iterator pit;
-          for (pit = _externalsites[i]->begin(); pit < _externalsites[i]->end(); ++pit) {
-
-            CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t" << (*pit)->getName() << "  |  " 
-                    << (*pit)->getPos().getX()
-                    << " " << (*pit)->getPos().getY() 
-                    << " " << (*pit)->getPos().getZ() 
-                    << " | " << (*pit)->getQ00();
-            if ((*pit)->getRank() > 0) {
-              tools::vec dipole = (*pit)->getQ1();
-              CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << " | " << dipole.getX()
-                      << " " << dipole.getY() << " " << dipole.getZ();
+          ctp::PolarSeg::iterator pit;
+          for (pit=_externalsites[i]->begin();pit!=_externalsites[i]->end();++pit){
+            ctp::APolarSite* site=(*pit);
+            std::string output=(boost::format("  %1$s"
+                                            "   %2$+1.4f %3$+1.4f %4$+1.4f"
+                                            "   %5$+1.4f")
+                                            %site->getName()
+                                            %site->getPos().getX() %site->getPos().getY() %site->getPos().getZ() 
+                                            %site->getQ00()).str();
+            if (site->getRank() > 0) {
+              tools::vec dipole = site->getQ1();
+              output+=(boost::format("   %1$+1.4f %2$+1.4f %3$+1.4f")
+                                     %dipole.getX() %dipole.getY() %dipole.getZ()).str();
             }
-            if ((*pit)->getRank() > 1) {
-              std::vector<double> quadrupole = (*pit)->getQ2();
-              CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << " | " 
-                      << quadrupole[0] << " " << quadrupole[1] << " " << quadrupole[2] << " "
-                      << quadrupole[3] << " " << quadrupole[4];
+            if (site->getRank() > 1) {
+              std::vector<double> quadrupole = site->getQ2();
+              output+=(boost::format("   %1$+1.4f %2$+1.4f %3$+1.4f %4$+1.4f %5$+1.4f")
+                                     %quadrupole[0] %quadrupole[1] %quadrupole[2] 
+                                     %quadrupole[3] %quadrupole[4]).str();
             }
-            CTP_LOG(ctp::logDEBUG, *_pLog) << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) <<output<< flush;
           }
         }
       }
@@ -764,9 +765,9 @@ void DFTEngine::Prepare(Orbitals* _orbitals) {
         _atoms = _orbitals->QMAtoms();
       }
 
-      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Molecule Coordinates [A] " << flush;
+      CTP_LOG(ctp::logDEBUG, *_pLog) << " Molecule Coordinates [A] " << flush;
       for (unsigned i = 0; i < _atoms.size(); i++) {
-        CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << _atoms[i]->getType() << " "
+        CTP_LOG(ctp::logDEBUG, *_pLog) << " " << _atoms[i]->getType() << " "
                 << _atoms[i]->getPos() * conv::bohr2ang << " " << flush;
       }
 
@@ -805,17 +806,17 @@ void DFTEngine::Prepare(Orbitals* _orbitals) {
 
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup numerical integration grid "
               << _grid_name << " for vxc functional "
-              << _xc_functional_name << " with " << _gridIntegration.getGridSize() << " points" << flush;
-      CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << " divided into "
-              << _gridIntegration.getBoxesSize() << " boxes" << flush;
+              << _xc_functional_name <<  flush;
+      CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t "<<" with " << _gridIntegration.getGridSize() << " points" 
+              << " divided into "<< _gridIntegration.getBoxesSize() << " boxes" << flush;
       if (_use_small_grid) {
         _gridIntegration_small.GridSetup(_grid_name_small, _atoms, &_dftbasis);
         _gridIntegration_small.setXCfunctional(_xc_functional_name);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup small numerical integration grid "
                 << _grid_name_small << " for vxc functional "
-                << _xc_functional_name << " with " << _gridIntegration_small.getGridSize() << " points" << flush;
-        CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << " divided into "
-                << _gridIntegration_small.getBoxesSize() << " boxes" << flush;
+                << _xc_functional_name  << flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << " with " << _gridIntegration_small.getGridSize() << " points"
+                << " divided into "<< _gridIntegration_small.getBoxesSize() << " boxes" << flush;
       }
 
       if (_do_externalfield) {
@@ -1010,7 +1011,9 @@ void DFTEngine::Prepare(Orbitals* _orbitals) {
       Eigen::MatrixXd dmat=extdensity.DensityMatrixGroundState();
       
       numint.IntegrateDensity(dmat);
+      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Calculated external density"<<flush;
       Eigen::MatrixXd e_contrib=numint.IntegratePotential(_dftbasis);
+      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Calculated potential from electron density"<<flush;
       AOESP esp;
       esp.Fillnucpotential(_dftbasis,extdensity.QMAtoms());
       
@@ -1022,6 +1025,7 @@ void DFTEngine::Prepare(Orbitals* _orbitals) {
           nuc_energy+=atom->getNuccharge()*extatom->getNuccharge()/dist;
         }
       }
+      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Calculated potential from nuclei"<<flush;
       E_nucnuc+=nuc_energy;
       return e_contrib+esp.getNuclearpotential();
     }
