@@ -80,8 +80,8 @@ public:
     //void WriteMpsLine(std::ostream &out, string unit = "angstrom");
     void Induce(double wSOR);
     
-    Eigen::MatrixXd Interaction(const PolarSite& otherSite);
-    
+    Eigen::MatrixXd FillInteraction(const PolarSite& otherSite);
+    void InteractionAB(PolarSite& otherSite);
     
 private:
  void calcRank(); 

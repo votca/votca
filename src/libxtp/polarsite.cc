@@ -44,6 +44,7 @@ namespace votca { namespace xtp {
     
 // This function put in the conventional order the dipoles
     // From Spherical (Q_10=mu_z , Q_11c=mu_x, Q_11s=mu_y)-->(Q_11c,Q_11s,Q_10)
+        //UPDATE: I'M PRETTY SURE WE DON'T NEED THAT ANYMORE. SAME ORDER FOR SPHERICAL AND CARTESIAN!
 Eigen::Vector3d PolarSite::getCartesianDipoles()const{
     Eigen::Vector3d cartesiandipole;
     if(_multipoles.size() > 1){
@@ -103,7 +104,7 @@ void PolarSite::Induce(double wSOR) {
     return;  
 }
 
-Eigen::MatrixXd PolarSite::Interaction(const PolarSite& otherSite){
+Eigen::MatrixXd PolarSite::FillInteraction(const PolarSite& otherSite){
     
     const Eigen::Vector3d& posB= otherSite.getPos();
     const Eigen::Vector3d& posA=this->getPos();
@@ -115,7 +116,7 @@ Eigen::MatrixXd PolarSite::Interaction(const PolarSite& otherSite){
     Eigen::Vector3d pos_a=e_AB; //unit vector on the sites reciprocal direction; This points toward A
     Eigen::Vector3d pos_b=-e_AB; //unit vector on the sites reciprocal direction; This points toward B   
     double R = r_AB.norm(); //Norm of distance vector
-    double fac0=1/R;
+    
     
     Eigen::Matrix3d c = Eigen::Matrix3d::Identity(); //Following Stone's notation. Here we are assuming that the sites are in the same localframe (Jens dixit)
     
@@ -125,6 +126,7 @@ Eigen::MatrixXd PolarSite::Interaction(const PolarSite& otherSite){
     int rankA=this->getRank();
     int rankB=otherSite.getRank();
     
+    double fac0=1/R;
     double fac1=std::pow(fac0,2);
     double fac2=std::pow(fac0,3);
     double fac3=std::pow(fac0,4);
@@ -136,7 +138,8 @@ Eigen::MatrixXd PolarSite::Interaction(const PolarSite& otherSite){
     Eigen::Matrix3d BxB = pos_b*pos_b.transpose(); 
     
     
-    //Q_A T Q_B
+    //Q_A T Q_B    
+    
     
     //Charge-Charge Interaction
     interaction(0,0)=fac0; //T_00,00
@@ -195,51 +198,87 @@ Eigen::MatrixXd PolarSite::Interaction(const PolarSite& otherSite){
     if (rankA > 1 && rankB > 1){               
         //Quadrupole-Quadrupole Interaction
         interaction(4,4)=fac4*(3./4.)*(35*AxA(2,2)*BxB(2,2)-5*AxA(2,2)-5*BxB(2,2)+20*AxB(2,2)*c(2,2)+2*c(2,2)*c(2,2)+1); //T20,20
+        
         interaction(4,5)=0.5*fac4*sqr3*(35*AxA(2,2)*BxB(0,2)-5*BxB(0,2)+10*AxB(2,0)*c(2,2)+10*AxB(2,2)*c(2,1)+2*c(2,0)*c(2,2)); //T20,21c
+        
         interaction(4,6)=0.5*fac4*sqr3*(35*AxA(2,2)*BxB(1,2)-5*BxB(1,2)+10*AxB(2,1)*c(2,2)+10*AxB(2,2)*c(2,1)+2*c(2,1)*c(2,2)) ; //T20,21s
+        
         interaction(4,7)=0.25*fac4*sqr3*(35*AxB(2,0)-35*AxB(2,1)-5*BxB(0,0)+5*BxB(1,1)+20*AxB(2,0)*c(2,0)-20*AxB(2,1)*c(2,1)+2*c(2,0)*c(2,0)-2*c(2,1)*c(2,1));//T20,22c
+        
         interaction(4,8)=0.5*fac4*sqr3*(35*AxA(2,2)*BxB(0,1)-5*BxB(0,1)+10*AxB(2,0)*c(2,1)+10*AxB(2,1)*c(2,0)+2*c(2,0)*c(2,1)) ; //T20,22s
+        
         interaction(5,5)=fac4*(35*AxA(0,2)*BxB(0,2)+5*AxB(0,0)*c(2,2)+5*AxB(0,2)*c(2,0)+5*AxB(2,0)*c(0,2)+5*AxB(2,2)*c(0,0)+c(0,0)*c(2,2)+c(0,2)*c(2,0)); //T21c,21c
+        
         interaction(5,6)=fac4*(35*AxA(0,2)*BxB(1,2)+5*AxB(0,1)*c(2,2)+5*AxB(0,2)*c(2,1)+5*AxB(2,1)*c(0,2)+5*AxB(2,2)*c(0,1)+c(0,1)*c(2,2)+c(0,2)*c(2,1)); //T21c,21s
+        
         interaction(5,7)=0.5*fac4*(35*AxA(0,2)*BxB(0,0)-35*AxA(0,2)*BxB(1,1)+10*AxB(0,0)*c(2,0)-10*AxB(0,1)*c(2,1)+10*AxB(0,0)*c(0,0)-10*AxB(2,1)*c(0,1)+2*c(0,0)*c(2,0)-2*c(0,1)*c(2,1)); //T21c,22c
+        
         interaction(5,8)=fac4*(35*AxA(0,2)*BxB(0,1)+5*AxB(0,0)*c(2,1)+5*AxB(0,1)*c(2,0)+5*AxB(2,0)*c(0,1)+5*AxB(2,1)*c(0,0)+c(0,0)*c(2,1)+c(0,1)*c(2,0)); //T21c,22s
+        
         interaction(6,6)=fac4*(35*AxA(1,2)*BxB(1,2)+5*AxB(1,1)*c(2,2)+5*AxB(1,2)*c(2,1)+5*AxB(2,1)*c(1,2)+5*AxB(2,2)*c(1,1)+c(1,1)*c(2,2)+c(1,2)*c(2,1)); //T21s,21s
+        
         interaction(6,7)=0.5*fac4*(35*AxA(1,2)*BxB(0,0)-35*AxA(1,2)*BxB(1,1)+10*AxB(1,2)*c(2,0)-10*AxB(1,1)*c(2,1)+10*AxB(2,0)*c(1,0)-10*AxB(2,1)*c(1,1)+2*c(1,0)*c(2,0)-2*c(1,1)*c(2,1)); //T21s,22c
+        
         interaction(6,8)=fac4*(35*AxA(1,2)*BxB(0,1)+5*AxB(1,0)*c(2,1)+5*AxB(1,1)*c(2,1)+5*AxB(2,0)*c(1,1)+5*AxB(2,1)*c(1,2)+c(1,0)*c(2,1)+c(1,1)*c(2,0)); //T21s,22s
+        
         interaction(7,7)=0.25*fac4*(35*AxA(0,0)*BxB(0,0)-35*AxA(0,0)*BxB(1,1)-35*AxA(1,1)*BxB(0,0)+35*AxA(1,1)*BxB(1,1)+20*AxB(0,0)*c(0,0)-20*AxB(0,1)*c(0,1)-20*AxB(1,0)*c(1,0)
                 +20*AxB(0,0)*c(1,1)+2*c(0,0)*c(0,0)-2*c(0,1)*c(0,1)-2*c(1,0)*c(1,0)+2*c(1,1)*c(1,1)); //T22c,22c
+        
         interaction(7,8)= 0.5*fac4*(35*BxB(0,1)*AxA(0,0)-35*BxB(1,2)*AxA(1,1)+10*AxB(0,0)*c(0,1)+10*AxB(0,1)*c(0,0)-10*AxB(1,0)*c(1,1)-10*AxB(1,1)*c(1,2)+2*c(0,0)*c(0,1)-2*c(1,0)*c(1,1)); //T22c,22s
+        
         interaction(8,8)=0.5*fac4*(35*AxA(0,1)*BxB(0,1)+5*AxB(0,0)*c(1,1)+5*AxB(0,1)*c(1,0)+5*AxB(1,0)*c(0,1)+5*AxB(1,1)*c(0,0)+c(0,0)*c(1,1)+c(0,1)*c(1,0)); //T22s,22s
+        
         interaction(5,4)=0.5*fac4*sqr3*(35*BxB(2,2)*AxA(0,2)-5*AxA(0,2)+10*AxB(0,2)*c(2,2)+10*AxB(2,2)*c(1,2)+2*c(0,2)*c(2,2)); //T21c,20
+        
         interaction(6,4)=0.5*fac4*sqr3*(35*BxB(2,2)*AxA(1,2)-5*AxA(1,2)+10*AxB(1,2)*c(2,2)+10*AxB(2,2)*c(1,2)+2*c(1,2)*c(2,2)) ; //T21s,20
+        
         interaction(6,5)=fac4*(35*BxB(0,2)*AxA(1,2)+5*AxB(1,0)*c(2,2)+5*AxB(2,0)*c(1,2)+5*AxB(2,1)*c(2,0)+5*AxB(2,2)*c(1,0)+c(1,0)*c(2,2)+c(2,0)*c(1,2)); //T21s,21c
+        
         interaction(7,4)=0.25*fac4*sqr3*(35*AxB(0,2)-35*BxB(2,2)*AxA(1,1)-5*AxA(0,0)+5*AxA(1,1)+20*AxB(0,2)*c(0,2)-20*AxB(1,2)*c(1,2)+2*c(0,2)*c(0,2)-2*c(1,2)*c(1,2)); //T22c,20
+        
         interaction(7,5)=0.5*fac4*(35*BxB(0,2)*AxA(0,0)-35*BxB(0,2)*AxA(1,1)+10*AxB(0,0)*c(0,2)-10*AxB(1,0)*c(1,2)+10*AxB(0,0)*c(0,0)-10*AxB(1,2)*c(1,0)+2*c(0,0)*c(0,2)-2*c(1,0)*c(1,2)); //T22c,21c
+        
         interaction(7,6)=0.5*fac4*(35*BxB(1,2)*AxA(0,0)-35*BxB(1,2)*AxA(1,1)+10*AxB(2,1)*c(0,2)-10*AxB(1,1)*c(1,2)+10*AxB(0,2)*c(0,1)-10*AxB(1,2)*c(1,1)+2*c(0,1)*c(0,2)-2*c(1,1)*c(1,2)); //T22c,21s
+        
         interaction(8,4)=0.5*fac4*sqr3*(35*BxB(2,2)*AxA(0,1)-5*AxA(0,1)+10*AxB(0,2)*c(1,2)+10*AxB(1,2)*c(0,2)+2*c(0,2)*c(1,2)) ; //T22s,20
+        
         interaction(8,5)=fac4*(35*BxB(0,2)*AxA(1,0)+5*AxB(0,0)*c(1,2)+5*AxB(1,0)*c(0,2)+5*AxB(0,2)*c(1,0)+5*AxB(1,2)*c(0,0)+c(0,0)*c(1,2)+c(1,0)*c(0,2)); //T22s,21c
+        
         interaction(8,6)=fac4*(35*BxB(1,2)*AxA(0,1)+5*AxB(0,1)*c(1,2)+5*AxB(1,1)*c(1,2)+5*AxB(0,2)*c(1,1)+5*AxB(1,2)*c(2,1)+c(0,1)*c(1,2)+c(1,1)*c(0,2)) ; //T22s,21s
+        
         interaction(8,7)= 0.5*fac4*(35*AxA(1,0)*BxB(0,0)-35*AxA(1,2)*BxB(1,1)+10*AxB(0,0)*c(1,0)+10*AxB(1,0)*c(0,0)-10*AxB(0,1)*c(1,1)-10*AxB(1,1)*c(2,1)+2*c(0,0)*c(1,0)-2*c(0,1)*c(1,1)); //T22s,22c          
     }
-     
 return interaction; //in units of 4piepsilon0
         
 }
     
+ 
+
+
+
+
+
+
+
+void PolarSite::InteractionAB(PolarSite& otherSite){   
     
-       
-
-
-
-
-
-/*
-void PolarSite::CalculateMultipolesEnergy() {
-    Eigen::VectorXd mp_a; //Multipoles on site a
-    Eigen::VectorXd mp_b; //Multipoles on site b
+    Eigen::MatrixXd Tab=FillInteraction(otherSite); // T^(ab)_tu
     
+    Eigen::MatrixXd Tba=Tab.transpose(); // T^(ba)_ut
+    
+    Eigen::VectorXd multipolesA=this->getMultipoles(); //Q^(a)_t
+    
+    Eigen::VectorXd multipolesB=otherSite.getMultipoles(); //Q^(b)_u  
+    
+    Eigen::VectorXd potentialSiteAfromB=Tab*multipolesB;  //Potential on site A due to B
+    
+    Eigen::VectorXd potentialSiteBfromA=Tba*multipolesA;  //Potential on site B due to A
+    
+    double EnergyAB=multipolesA.dot(potentialSiteAfromB); //Interaction Energy between sites A and B
+    
+    return;
 }
- */
+
 
 /*
 void PolarSite::WriteMpsLine(std::ostream &out, string unit = "angstrom") {
