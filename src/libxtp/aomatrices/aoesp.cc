@@ -422,7 +422,7 @@ if (_lmax_col > 3) {
         
        
         
-         Eigen::MatrixXd _nuc_sph = getTrafo(*itr)*nuc*getTrafo(*itc).transpose();
+         Eigen::MatrixXd _nuc_sph = getTrafo(*itr).transpose()*nuc*getTrafo(*itc);
         // save to _matrix
         
         for ( unsigned i = 0; i< _matrix.rows(); i++ ) {

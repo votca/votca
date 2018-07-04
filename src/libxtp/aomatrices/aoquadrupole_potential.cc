@@ -1119,7 +1119,7 @@ for (int _i = 0; _i < _nrows; _i++) {
 }                         
 
         
-        Eigen::MatrixXd quad_sph = getTrafo(*itr)*quad*getTrafo(*itc).transpose();
+        Eigen::MatrixXd quad_sph = getTrafo(*itr).transpose()*quad*getTrafo(*itc);
         // save to _matrix
         
         for ( unsigned i = 0; i< _matrix.rows(); i++ ) {

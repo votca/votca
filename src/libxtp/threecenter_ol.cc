@@ -955,7 +955,7 @@ if (_lmax_gamma > 5) {
 
                                   
                                     S_sph+= S[ _i_alpha_t ][ _i_gw_t ][ _i_gamma_t ]  /////////////////
-                                            * _trafo_alpha(_i_alpha, _i_alpha_t) * _trafo_gw(_i_gw, _i_gw_t) * _trafo_gamma(_i_gamma, _i_gamma_t);
+                                            * _trafo_alpha(_i_alpha_t, _i_alpha) * _trafo_gw(_i_gw_t, _i_gw) * _trafo_gamma(_i_gamma_t, _i_gamma);
 
 
 

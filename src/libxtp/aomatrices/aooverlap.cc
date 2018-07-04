@@ -564,7 +564,7 @@ namespace votca {
 
                     //cout << "Done with unnormalized matrix " << endl;
 
-        Eigen::MatrixXd _ol_sph = getTrafo(*itr)*_ol*getTrafo(*itc).transpose();
+        Eigen::MatrixXd _ol_sph = getTrafo(*itr).transpose()*_ol*getTrafo(*itc);
                     // save to _matrix
         
         for ( unsigned i = 0; i< _matrix.rows(); i++ ) {

@@ -532,7 +532,7 @@ if (_lmax_col > 3) {
 } // end if (_lmax_col > 3)
 
                 // normalization and cartesian -> spherical factors
-             Eigen::MatrixXd _kin_sph = getTrafo(*itr)*kin*getTrafo(*itc).transpose();
+             Eigen::MatrixXd _kin_sph = getTrafo(*itr).transpose()*kin*getTrafo(*itc);
         // save to _matrix
         
         for ( unsigned i = 0; i< _matrix.rows(); i++ ) {

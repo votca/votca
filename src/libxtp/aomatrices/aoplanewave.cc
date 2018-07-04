@@ -545,7 +545,7 @@ namespace votca {
                     Eigen::MatrixXd _trafo_col = getTrafo(*itc);
 
                     // cartesian -> spherical
-                    Eigen::MatrixXcd _olk_sph=_trafo_row*_olk*_trafo_col.transpose();
+                    Eigen::MatrixXcd _olk_sph=_trafo_row.transpose()*_olk*_trafo_col;
                    
 
                     // save to _matrix

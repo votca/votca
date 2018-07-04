@@ -757,7 +757,7 @@ for (int _i = 0; _i < _nrows; _i++) {
 
         
         
-        Eigen::MatrixXd _dip_sph = getTrafo(*itr)*dip*getTrafo(*itc).transpose();
+        Eigen::MatrixXd _dip_sph = getTrafo(*itr).transpose()*dip*getTrafo(*itc);
         // save to _matrix
         
         for ( unsigned i = 0; i< _matrix.rows(); i++ ) {
@@ -776,9 +776,9 @@ for (int _i = 0; _i < _nrows; _i++) {
             for (unsigned int i = 0; i < _sites.size(); i++) {
                 for (ctp::APolarSite* site:*(_sites[i])) {
 
-                    if (site->getRank() > 0 || site->IsPolarizable()) {
-                        _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+                    if (site->getRank() > 0 || site->IsPolarizable()) {  
                         if(tools::abs(site->getU1()+site->getQ1())<1e-12){continue;}
+                        _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                         setAPolarSite(site);
                         Fill(aobasis);
                         _externalpotential += _aomatrix;

@@ -565,7 +565,7 @@ for (int _i = 0; _i < _ncols; _i++) {
       Eigen::MatrixXd _trafo_col = getTrafo(*itc);
           // cartesian -> spherical
       for (int _i_comp = 0; _i_comp < 3; _i_comp++) {
-        Eigen::MatrixXd _mom_sph = _trafo_row * _mom[ _i_comp ] * _trafo_col.transpose();
+        Eigen::MatrixXd _mom_sph = _trafo_row.transpose() * _mom[ _i_comp ] * _trafo_col;
         // save to _matrix
         for (unsigned i = 0; i < _matrix[0].rows(); i++) {
           for (unsigned j = 0; j < _matrix[0].cols(); j++) {
