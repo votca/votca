@@ -187,7 +187,7 @@ reg.charge=1.0;
 regionconstraint.push_back(reg);
 Espfit esp3=Espfit(&_log);
 esp3.setRegionConstraint(regionconstraint);
-esp3.setUseSVD(1e8);
+esp3.setUseSVD(1e-8);
 esp3.Fit2Density(orbitals.QMAtoms(),dmat,aobasis,"medium");
 Eigen::VectorXd pcharges_reg=Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
 index=0;
