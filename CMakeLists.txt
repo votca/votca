@@ -86,9 +86,8 @@ else()
 endif()
 
 find_package(EIGEN3 3.3.0 REQUIRED)
-
-message(STATUS "${EIGEN3_VERSION}")
 include_directories(${EIGEN3_INCLUDE_DIRS})
+set(EIGEN3_PKG eigen3)
 
 option(WITH_FFTW "Use FFTW3, disabling leads to reduced functionality!" ON)
 if (WITH_FFTW)
