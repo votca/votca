@@ -6,7 +6,7 @@
 #  VOTCA_TOOLS_FOUND        - True if expat found.
 #  VOTCA_TOOLS_HAS_SQLITE3  - True if votca tools was build with sqlite3 support
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
