@@ -15,6 +15,7 @@
       <itemPath>../../include/votca/tools/cubicspline.h</itemPath>
       <itemPath>../../include/votca/tools/database.h</itemPath>
       <itemPath>../../include/votca/tools/datacollection.h</itemPath>
+      <itemPath>../../include/votca/tools/eigen.h</itemPath>
       <itemPath>../../include/votca/tools/elements.h</itemPath>
       <itemPath>../../include/votca/tools/getline.h</itemPath>
       <itemPath>../../include/votca/tools/globals.h</itemPath>

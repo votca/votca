@@ -22,7 +22,6 @@
 #include <votca/tools/eigen.h>
 #include <iostream>
 
-using namespace std;
 namespace votca { namespace tools {
 
 

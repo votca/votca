@@ -39,7 +39,7 @@ struct globals
         /// email address of the developers
         static std::string email;
         
-        // If Eigen is overloaded with MKL
+        /// If Eigen is overloaded with MKL
         static bool VOTCA_MKL;
         
         /// man pages format strings

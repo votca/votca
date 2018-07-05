@@ -26,25 +26,23 @@ namespace votca { namespace tools {
      * @param x storage for x
      * @param A matrix for linear equation system
      * @param b inhomogenity
-     * @param constr constrained condition B (or is it the transposed one? check that)
+     * @param constr constrained condition
      *
-     * This function wraps the qrsolver under constraints
+     * This function implements the qrsolver under constraints
      */
     void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
             const Eigen::VectorXd &b, const Eigen::MatrixXd &constr);
   
   /**
-     * \brief solves A*x=b under the constraint B*x = 0
-     * @param x storage for x
-     * @param A matrix for linear equation system
-     * @param b inhomogenity
-     * @param constr constrained condition B (or is it the transposed one? check that)
+     * \brief solves A*V=E*V for the first n eigenvalues
+     * @param A symmetric matrix to diagonalize, is destroyed during iteration
+     * @param E, eigenvalues
+     * @param V, eigenvectors, each column is one eigenvector
+     * @param nmax number of eigenvalues to return
      *
-     * This function wraps the qrsolver under constraints
+     * This function is only useful if MKL is used, wraps LAPACKE_ssyevx/LAPACKE_dsyevx
      */
-    
-     bool linalg_eigenvalues(Eigen::MatrixXd&A, Eigen::VectorXd &E, Eigen::MatrixXd&V , int nmax );
-     
+    bool linalg_eigenvalues(Eigen::MatrixXd&A, Eigen::VectorXd &E, Eigen::MatrixXd&V , int nmax );
     bool linalg_eigenvalues(Eigen::MatrixXf&A, Eigen::VectorXf &E, Eigen::MatrixXf&V , int nmax );
    
    
@@ -52,5 +50,5 @@ namespace votca { namespace tools {
 
 
 
-#endif	/* __VOTCA_TOOLS_LINALG_H */
+#endif	// __VOTCA_TOOLS_LINALG_H 
 

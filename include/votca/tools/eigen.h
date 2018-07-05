@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __TOOLS_EIGEN__H
-#define	__TOOLS_EIGEN__H
+#ifndef __VOTCA_TOOLS_EIGEN__H
+#define	__VOTCA_TOOLS_EIGEN__H
 
 #include <votca/tools/votca_config.h>
 
@@ -53,5 +53,5 @@
 
 
 
-#endif	/*_EIGEN__H */
+#endif	//__VOTCA_TOOLS_EIGEN__H
 
