@@ -65,11 +65,11 @@ public:
         _top=top;
     }
     // COORDINATES TRANSFORMATION
-    void    Translate(const Eigen::VectorXd &shift);
+    void Translate(const Eigen::VectorXd &shift);
     void Rotate(const Eigen::Matrix3d& R);
  
     // MULTIPOLES DEFINITION
-    const Eigen::VectorXd & getMultipoles()const {return _multipoles;}//Q00,Q10, Q11s, Q11c,Q20, Q21c, Q21s, Q22c, Q22s,...[following Stone order]
+    const Eigen::VectorXd & getMultipoles()const {return _multipoles;}//Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s,...[NOT following Stone order for dipoles]
     //Eigen::MatrixXd getQuad_cartesian(){return _quadrupole_cartesian;} //theta matrix
     Eigen::VectorXd getQuad()const{return _quadrupole_polar;}//Q20, Q21c, Q21s, Q22c, Q22s
     Eigen::Vector3d getCartesianDipoles() const;// mu_x,mu_y,mu_z  
@@ -79,12 +79,12 @@ public:
 
     //void WriteMpsLine(std::ostream &out, string unit = "angstrom");
     void Induce(double wSOR);
-    
-    Eigen::MatrixXd FillInteraction(const PolarSite& otherSite);
-    void InteractionAB(PolarSite& otherSite);
+       
+    double InteractionAB(PolarSite& otherSite);
     
 private:
  void calcRank(); 
+ Eigen::MatrixXd FillInteraction(const PolarSite& otherSite);
     int     _id;
     std::string  _name;
     Eigen::Vector3d _pos;
@@ -96,7 +96,7 @@ private:
     Eigen::Vector3d _inducedDipole;
     Eigen::Vector3d _inducedDipole_old;
     
-    Eigen::VectorXd _multipoles; //Q00,Q10, Q11c, Q11s,Q20, Q21c, Q21s, Q22c, Q22s
+    Eigen::VectorXd _multipoles; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
     Eigen::Vector3d _dipole; // mu_x, mu_y, mu_z
     Eigen::Matrix3d _quadrupole_cartesian; //theta matrix
     Eigen::VectorXd _quadrupole_polar; // Q20, Q21c, Q21s, Q22c, Q22s

@@ -29,9 +29,10 @@ using namespace std;
 
 namespace votca { namespace xtp {
 
-// Get Rank: We have at the moment just three cases. Point charges, dipoles and Quadrupoles
-    //It calculates the rank in the spherical case
+
     void PolarSite::calcRank(){
+        // Get Rank: We have at the moment just three cases. Point charges, dipoles and Quadrupoles
+        //It calculates the rank in the spherical case
         int mplen = _multipoles.size();
         if(mplen == 1){_rank = 0;}
         else if(mplen == 4){_rank = 1;}
@@ -42,10 +43,11 @@ namespace votca { namespace xtp {
         return;
     }
     
-// This function put in the conventional order the dipoles
-    // From Spherical (Q_10=mu_z , Q_11c=mu_x, Q_11s=mu_y)-->(Q_11c,Q_11s,Q_10)
-        //UPDATE: I'M PRETTY SURE WE DON'T NEED THAT ANYMORE. SAME ORDER FOR SPHERICAL AND CARTESIAN!
+/*
 Eigen::Vector3d PolarSite::getCartesianDipoles()const{
+    // This function put in the conventional order the dipoles
+    // From Spherical (Q_10=mu_z , Q_11c=mu_x, Q_11s=mu_y)-->(Q_11c,Q_11s,Q_10)
+    //UPDATE: I'M PRETTY SURE WE DON'T NEED THAT ANYMORE. SAME ORDER FOR SPHERICAL AND CARTESIAN!
     Eigen::Vector3d cartesiandipole;
     if(_multipoles.size() > 1){
     Eigen::VectorXd  MP = _multipoles;
@@ -55,40 +57,53 @@ Eigen::Vector3d PolarSite::getCartesianDipoles()const{
     return cartesiandipole;
     }
 }    
-    //Transform Multipoles from Spherical to Cartesian
+*/
+    
+ Eigen::Matrix3d PolarSite::getCartesianMultipoles() {
     // spherical_multipoles Q = ( Q00,Q10,Q11c,Q11s,Q20,Q21c,Q21s,Q22c,Q22s )
     // We are trasforming here just quadrupoles
- Eigen::Matrix3d PolarSite::getCartesianMultipoles() {
      Eigen::VectorXd MP = _multipoles;
      if( _rank > 1 ){
         Eigen::Matrix3d theta;
-        theta(0,0) = 0.5 * (-MP(4)+std::sqrt(3.) * MP(7)); // theta_xx
-        theta(1,1) = 0.5 * (-MP(4)+std::sqrt(3.) * (-MP(7))); // theta_yy
+        double sqr3=std::sqrt(3);
+        theta(0,0) = 0.5 * (-MP(4)+sqr3 * MP(7)); // theta_xx
+        theta(1,1) = 0.5 * (-MP(4)+sqr3 * (-MP(7))); // theta_yy
         theta(2,2) = MP(4); // theta_zz
-        theta(0,1) = theta(1,0) = 0.5 * std::sqrt(3.) * MP(6); // theta_xy = theta_yx
-        theta(0,2) = theta(2,0) = 0.5 * std::sqrt(3.) * MP(5); // theta_xz = theta_zx
-        theta(1,2) = theta(2,1) = 0.5 * std::sqrt(3.) * MP(6); //theta_yz = theta_zy 
+        theta(0,1) = theta(1,0) = 0.5 * sqr3 * MP(8); // theta_xy = theta_yx
+        theta(0,2) = theta(2,0) = 0.5 * sqr3 * MP(5); // theta_xz = theta_zx
+        theta(1,2) = theta(2,1) = 0.5 * sqr3 * MP(6); //theta_yz = theta_zy 
         return theta;
-     }}
+     }
+ }
 
-     // Transform Quadrupole Matrix from Cartesian to Spherical
+
 Eigen::VectorXd PolarSite::CalculateSphericalMultipoles(const Eigen::Matrix3d& _quadrupole_cartesian){
             Eigen::Matrix3d theta = _quadrupole_cartesian ;
-            Eigen::VectorXd quadrupole_polar;
+            Eigen::VectorXd quadrupole_polar=Eigen::VectorXd::Zero(4);
+            double sqr3=std::sqrt(3);
             quadrupole_polar(0) = theta(2,2);
-            quadrupole_polar(1) = (2./std::sqrt(3)) * theta(0,2);
-            quadrupole_polar(2) = (2./std::sqrt(3)) * theta(1,2);
-            quadrupole_polar(3) = (1./std::sqrt(3)) * (theta(0,0)-theta(1,1));
-            quadrupole_polar(4) = (2./std::sqrt(3)) * theta(0,1);
+            quadrupole_polar(1) = (2./sqr3) * theta(0,2);
+            quadrupole_polar(2) = (2./sqr3) * theta(1,2);
+            quadrupole_polar(3) = (1./sqr3) * (theta(0,0)-theta(1,1));
+            quadrupole_polar(4) = (2./sqr3) * theta(0,1);
             return quadrupole_polar;
          }
 
 void PolarSite::Rotate(const Eigen::Matrix3d& R){
-                 Eigen::Matrix3d cartesianquad = getCartesianMultipoles();
-                 Eigen::Matrix3d rotated=R*cartesianquad*R.transpose();
-                 CalculateSphericalMultipoles(rotated);
-                 return;
-             }
+    _pos= R*_pos; //Rotated Position
+
+if (_multipoles.size()>0){
+    if(_rank>0){
+        _multipoles.segment<3>(1)=R*_multipoles.segment<3>(1);
+    } 
+    if(_rank>1){
+        Eigen::Matrix3d cartesianquad = getCartesianMultipoles();
+        Eigen::Matrix3d rotated=R*cartesianquad*R.transpose();
+        _multipoles.segment<5>(4)=CalculateSphericalMultipoles(rotated);
+    }
+}
+    return;
+}
          
 
 void PolarSite::Translate(const Eigen::VectorXd &shift) {
@@ -253,14 +268,7 @@ return interaction; //in units of 4piepsilon0
 }
     
  
-
-
-
-
-
-
-
-void PolarSite::InteractionAB(PolarSite& otherSite){   
+double PolarSite::InteractionAB(PolarSite& otherSite){   
     
     Eigen::MatrixXd Tab=FillInteraction(otherSite); // T^(ab)_tu
     
@@ -276,8 +284,9 @@ void PolarSite::InteractionAB(PolarSite& otherSite){
     
     double EnergyAB=multipolesA.dot(potentialSiteAfromB); //Interaction Energy between sites A and B
     
-    return;
+    return EnergyAB;
 }
+
 
 
 /*
