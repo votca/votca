@@ -140,14 +140,16 @@ namespace votca {
 
  
 void DFTEngine::PrintMOs(const Eigen::VectorXd& MOEnergies){
-      CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t Orbital energies: " << flush;
-      CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t index occupation energy(Hartree) " << flush;
+      CTP_LOG(ctp::logDEBUG, *_pLog) << "  Orbital energies: " << flush;
+      CTP_LOG(ctp::logDEBUG, *_pLog) << "  index occupation energy(Hartree) " << flush;
       for (int i = 0; i<MOEnergies.size(); i++) {
         int occupancy=0;
         if (i < _numofelectrons / 2 ) {
           occupancy=2;
         }
-          CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << i << "\t"<<occupancy<<"\t"<< std::setprecision(12) << MOEnergies(i) << flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) <<(boost::format(" %1$5d      %2$1d   %3$+1.10f")
+                                     %i %occupancy %MOEnergies(i)).str()<<flush;
+         
       }
       return;
     }
@@ -623,7 +625,7 @@ void DFTEngine::CalcElDipole(){
               CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Converged after " << this_iter + 1 << " iterations" << flush;
             } else {
               CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Not converged after "
-                      << this_iter + 1 <<" iterations. Unconverged density."
+                      << this_iter + 1 <<" iterations. Unconverged density.\n\t\t\t"
                       <<" DIIsError_alpha=" << Convergence_alpha.getDIIsError()
                       << " DIIsError_beta=" << Convergence_beta.getDIIsError() << flush;
             }
@@ -766,9 +768,14 @@ void DFTEngine::Prepare(Orbitals* _orbitals) {
       }
 
       CTP_LOG(ctp::logDEBUG, *_pLog) << " Molecule Coordinates [A] " << flush;
-      for (unsigned i = 0; i < _atoms.size(); i++) {
-        CTP_LOG(ctp::logDEBUG, *_pLog) << " " << _atoms[i]->getType() << " "
-                << _atoms[i]->getPos() * conv::bohr2ang << " " << flush;
+      for (const QMAtom* atom:_atoms) {
+        
+      std::string output=(boost::format("  %1$s"
+                                         "   %2$+1.4f %3$+1.4f %4$+1.4f")
+                         %atom->getType() %atom->getPos().getX() 
+                         %atom->getPos().getY() %atom->getPos().getZ()).str();
+        
+        CTP_LOG(ctp::logDEBUG, *_pLog) <<output<< flush;
       }
 
       _dftbasisset.LoadBasisSet(_dftbasis_name);
