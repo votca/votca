@@ -19,6 +19,8 @@
 
  - [tools](https://github.com/votca/tools/issues)
  - [csg](https://github.com/votca/csg/issues)
+ - [csgapps](https://github.com/votca/csgapps/issues)
+ - [csg-manual](https://github.com/votca/csg-manual/issues)
  - [ctp](https://github.com/votca/ctp/issues)
  - [xtp](https://github.com/votca/xtp/issues)
  - [votca](https://github.com/votca/votca/issues)
