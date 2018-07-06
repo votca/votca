@@ -17,11 +17,11 @@
 
  Issues can be directed created on the appropriate github repo:
 
- - [tools](https://github.com/votca/tools)
- - [csg](https://github.com/votca/csg)
- - [ctp](https://github.com/votca/ctp)
- - [xtp](https://github.com/votca/xtp)
- - [votca](https://github.com/votca/votca)
+ - [tools](https://github.com/votca/tools/issues)
+ - [csg](https://github.com/votca/csg/issues)
+ - [ctp](https://github.com/votca/ctp/issues)
+ - [xtp](https://github.com/votca/xtp/issues)
+ - [votca](https://github.com/votca/votca/issues)
 
 ## C++ Resources
 
