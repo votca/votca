@@ -58,7 +58,7 @@ To install the full package:
  * `BUILD_XTP_MANUAL` - Build xtp pdf manual
  * `WITH_GMX` - Build with Gromacs support (ON/OFF, Default ON)
 
-## Legacy Installation Instructions
+## Legacy (Source) Installation Instructions
 
 Check the csg and tools [dependencies](https://github.com/votca/csg/wiki/Dependencies) first. Do **NOT** download anything yourself, this is done by `build.sh` below.
 
