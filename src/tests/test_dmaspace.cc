@@ -20,13 +20,14 @@
 #include <votca/xtp/dmaspace.h>
 #include <votca/tools/vec.h>
 
-using namespace votca::xtp;
+using namespace votca::tools;
+using namespace votca::xtp::DMA;
 
 BOOST_AUTO_TEST_SUITE(dmaspace_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) { 
   vec r(1.0,2.0,3.0);
-  RegularSphericaflHarmonics RegSph(r);
+  RegularSphericalHarmonics RegSph(r);
   BOOST_CHECK_EQUAL(static_cast<int>(RegSph.R00()),1);
   BOOST_CHECK_EQUAL(static_cast<int>(RegSph.R10()),3);
   BOOST_CHECK_EQUAL(static_cast<int>(RegSph.R11c()),1);

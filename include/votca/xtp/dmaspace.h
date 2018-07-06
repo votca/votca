@@ -92,7 +92,7 @@ public:
     ComplexSphericalMoments(const std::vector<double> &Qlm) : _Qlm(Qlm) 
     { 
       if(_Qlm.size()!=9){
-        throw invalid_argument("ComplexSphericalMoments must take a 9 value vector");
+        throw std::invalid_argument("ComplexSphericalMoments must take a 9 value vector");
       }
     }
    ~ComplexSphericalMoments() {}
@@ -161,7 +161,7 @@ public:
     RealSphericalMoments(const std::vector<cmplx> &Xlm) : _Xlm(Xlm) 
     { 
       if(_Xlm.size()!=9){
-        throw invalid_argument("RealsphericalMoments class must take a 9 value vector");
+        throw std::invalid_argument("RealsphericalMoments class must take a 9 value vector");
       }
     }
    ~RealSphericalMoments() {}
@@ -214,7 +214,7 @@ public:
     
     void AddToVector(std::vector<double> &base) {        
       if(base.size()!=9){
-        throw invalid_argument("AddToVector function must take a 9 value vector");
+        throw std::invalid_argument("AddToVector function must take a 9 value vector");
       }
       base[0] += Q00();
       base[1] += Q10();
