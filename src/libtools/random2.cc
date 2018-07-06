@@ -17,8 +17,8 @@
 
 #include <votca/tools/random2.h>
 #include <stdexcept>
-#include <string>
 #include <iostream>
+#include <votca/tools/constants.h>
 
 namespace votca { namespace tools {
 
@@ -54,14 +54,12 @@ void Random2::init( int nA1, int nA2, int nA3, int nB1 ) {
     int mA1, mA2, mA3, mANEW, mB1, mHELP ;
     int i1, i2 ;
     double varS, varT ;
-
-    MARSarray = (double*)malloc(MARS_FIELD_SIZE*sizeof(double));
-
+    MARSarray=std::vector<double>(MARS_FIELD_SIZE);
     mA1 = nA1 ; mA2 = nA2 ; mA3 = nA3 ;
     mB1 = nB1 ;
     MARSi  = 97 ; MARSj  = 33 ;
 
-    for( i1 = 1 ; i1 < 98 ; i1++ )
+    for( i1 = 1 ; i1 < MARS_FIELD_SIZE ; i1++ )
     {
     varS = 0.0 ;
     varT = 0.5 ;
@@ -87,75 +85,6 @@ void Random2::init( int nA1, int nA2, int nA3, int nB1 ) {
 
     return;
 }
-
-
-void Random2::save( char *fileName ) {
-
-    FILE *ranFP;
-    int c[2];
-    double w[3];
-    size_t t;
-
-    ranFP = fopen(fileName, "wb");
-    if (ranFP==NULL)
-    {
-            throw runtime_error(string("error, cannot open file ") + fileName);
-    }
-
-    c[0] = MARSi; c[1] = MARSj;
-    t=fwrite(c, sizeof(int), 2, ranFP);
-    if (t==0){
-      fclose(ranFP);
-      throw runtime_error("cannot write ranFP file ");
-    }
-    w[0] = MARSc; w[1] = MARScd; w[2] = MARScm;
-    t=fwrite(w, sizeof(double), 3, ranFP);
-    if (t==0){
-      fclose(ranFP);
-      throw runtime_error("cannot write ranFP file ");
-    }
-    t=fwrite(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
-    if (t==0){
-      fclose(ranFP);
-      throw runtime_error("cannot write ranFP file ");
-    }
-    fclose(ranFP);
-}
-
-
-void Random2::restore( char *fileName ) {
-
-    FILE *ranFP;
-    double w[3];
-    int c[2];
-    size_t t;
-
-    ranFP = fopen(fileName, "rb");
-    if (ranFP==NULL)
-    {
-            throw runtime_error(string("error, cannot open file ") + fileName);
-    }
-
-    t=fread(c, sizeof(int), 2, ranFP);
-    if (t==0){
-      fclose(ranFP);
-      throw runtime_error("cannot read ranFP file ");
-    }
-    MARSi = c[0]; MARSj = c[1];
-    t=fread(w, sizeof(double), 3, ranFP);
-    if (t==0){
-      fclose(ranFP);
-      throw runtime_error("cannot read ranFP file ");
-    }
-    MARSc = w[0]; MARScd = w[1]; MARScm = w[2];
-    t=fread(MARSarray, sizeof(double), MARS_FIELD_SIZE, ranFP);
-    if (t==0){
-      fclose(ranFP);
-      throw runtime_error("cannot read ranFP file ");
-    }
-    fclose(ranFP);
-}
-
 
 double Random2::rand_uniform( void ) {
 
@@ -202,9 +131,9 @@ int Random2::rand_uniform_int( int max_int ) {
 /** generates a  gaussian distributed value 
  */
 double Random2::rand_gaussian( double sigma ) {
-
+  
     double r = sigma * sqrt( -2.0*log ( 1 - Random2::rand_uniform()) );
-    double theta = 2.0 * _pi * Random2::rand_uniform() ;
+    double theta = 2.0 * conv::Pi * Random2::rand_uniform() ;
     return r * cos(theta); // second independent number is r*sin(theta)
 }
 
