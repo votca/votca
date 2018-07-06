@@ -58,6 +58,28 @@ To install the full package:
  * `BUILD_XTP_MANUAL` - Build xtp pdf manual
  * `WITH_GMX` - Build with Gromacs support (ON/OFF, Default ON)
 
+## Legacy Installation Instructions
+
+Check the csg and tools [dependencies](https://github.com/votca/csg/wiki/Dependencies) first. Do **NOT** download anything yourself, this is done by `build.sh` below.
+
+When installing for the first time, run the following commands in bash:
+```
+prefix=WHERE/TO/INSTALL/VOTCA
+mkdir -p ${prefix}/src
+cd ${prefix}/src
+wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh
+chmod +x build.sh
+./build.sh --prefix ${prefix} --dev tools csg ctp xtp
+```
+Replace the _WHERE/TO/INSTALL/VOTCA_ with directory where you want to install votca, usually ${HOME}/votca is good choice.
+
+This commands will:
+  * Create a directory, where the sources are to be stored (above `${prefix}/src`)
+  * Go there
+  * Download our build script
+  * Make the build script executable
+  * Run the build script to download all votca modules using git, it uses the development version, as xtp still undergoes extensive development and no releases are available yet.
+
 ## Binary Packages for various Linux Distributions
 ### Fedora
 
