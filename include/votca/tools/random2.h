@@ -23,8 +23,8 @@
      uniformly distributed in the range [0,1)
 *************************************************/
 
-#ifndef _RANMARS2_H_
-#define _RANMARS2_H_
+#ifndef _VOTCA_TOOLS_RANDOM2_H_
+#define _VOTCA_TOOLS_RANDOM2_H_
 
 
 #include <vector>
