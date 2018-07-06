@@ -18,7 +18,7 @@
 #define BOOST_TEST_MODULE espfit_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/espfit.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 
 #include "votca/xtp/orbitals.h"
 
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(esp_charges){
 -0.00445632,-0.095475,0.0402359,-0.0402359,0.0402359,-0.0873567,0.00569686,-0.00569686,0.00569686,-0.00801753,0.0115445,-0.00801753,0.0115445,-0.00801753,0.0115445,-0.0230264,0.0157992;
   
   
-  votca::ctp::Logger _log;
+  Logger _log;
   
   Espfit esp=Espfit(&_log);
   esp.Fit2Density(orbitals.QMAtoms(),dmat,aobasis,"medium");

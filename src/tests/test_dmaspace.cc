@@ -16,10 +16,13 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE dmaspace_test
+#include <vector>
+
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/dmaspace.h>
 #include <votca/tools/vec.h>
 
+using namespace std;
 using namespace votca::tools;
 using namespace votca::xtp::DMA;
 
@@ -33,7 +36,8 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
   BOOST_CHECK_EQUAL(static_cast<int>(RegSph.R11c()),1);
   BOOST_CHECK_EQUAL(static_cast<int>(RegSph.R11s()),2);
 
-  ComplexSphericalMoments CompSph(r);
+  vector<double> r2 = {1.0, 2.0, 3.0,4.0,5.0,6.0,7.0,8.0,9.0};
+  ComplexSphericalMoments CompSph(r2);
   
 }
 
