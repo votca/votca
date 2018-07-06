@@ -1,4 +1,4 @@
-foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg-imcrepack csg_gmxtopol csg_dlptopol csg_density)
+foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol csg_dlptopol csg_density)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
   target_link_libraries(${PROG} votca_csg)
@@ -70,7 +70,7 @@ if(ENABLE_TESTING)
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/CG-CG.imc.tgt ${RUNPATH}/CG-CG.dist.tgt)
   add_test(NAME Run_csg_stat-imc
     COMMAND csg_stat --top ${REFPATH}/topol.xml --trj ${REFPATH}/frame.dump --do-imc
-                     --options  ${REFPATH}/settings-imc.xml --cg ${REFPATH}/mapping.xml
+                     --options  ${REFPATH}/settings_imc.xml --cg ${REFPATH}/mapping.xml
     WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(Run_csg_stat-imc PROPERTIES LABELS "csg;tools;votca")
   add_test(NAME Compare_csg_stat-imc_output COMMAND ${VOTCA_COMPARE} -f1 CG-CG.imc -f2 ${REFPATH}/CG-CG.imc WORKING_DIRECTORY ${RUNPATH})
