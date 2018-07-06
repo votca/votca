@@ -60,7 +60,7 @@ To install the full package:
 
 ## Legacy (Source) Installation Instructions
 
-Check [dependencies](#Dependency-Installation) first. Do **NOT** download anything yourself, this is done by `build.sh` below.
+Check [dependencies](#dependency-installation) first. Do **NOT** download anything yourself, this is done by `build.sh` below.
 
 When installing for the first time, run the following commands in bash:
 ```
