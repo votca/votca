@@ -8,7 +8,8 @@ foreach(PROG xtp_map xtp_run xtp_tools xtp_parallel xtp_dump)
      add_executable(${PROG} ${${PROG}_SOURCES})
   endif()
 
-  target_link_libraries(${PROG} votca_xtp)
+  target_link_libraries(${PROG} votca_xtp )
+
   install(TARGETS ${PROG} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
   if (BUILD_MANPAGES)
