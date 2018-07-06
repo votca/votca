@@ -403,8 +403,8 @@ void DFTEngine::CalcElDipole(){
                   << " Filled DFT external quadrupole potential matrix."<< flush;
         }
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()<< " External sites"<<flush;
-        CTP_LOG(ctp::logDEBUG, *_pLog)<<" Name      Coordinates[nm]     charge[e]        dipole[e*nm]    " 
-                                        "                       quadrupole[e*nm^2]         " << flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog)<<" Name      Coordinates[nm]     charge[e]         dipole[e*nm]    " 
+                                        "              quadrupole[e*nm^2]         " << flush;
 
 
         for (unsigned i = 0; i < _externalsites.size(); i++) {
@@ -1026,6 +1026,7 @@ void DFTEngine::Prepare(Orbitals* _orbitals) {
         }
       }
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Calculated potential from nuclei"<<flush;
+      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Elelctrostatic: "<<nuc_energy<<flush;
       E_nucnuc+=nuc_energy;
       return e_contrib+esp.getNuclearpotential();
     }
