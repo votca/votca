@@ -58,10 +58,10 @@ public:
    
    virtual std::string  Identify() = 0;
    virtual void    Initialize(tools::Property *options) = 0;
-int _carriertype;
+
 protected:
        
-       
+       int _carriertype;
             
             std::string CarrierInttoLongString(int carriertype);
             std::string CarrierInttoShortString(int carriertype);
@@ -86,7 +86,7 @@ protected:
             void PrintJumplengthdistro();
             std::vector<GNode*> _nodes;
             std::vector< Chargecarrier* > _carriers;
-            tools::Random2 * _RandomVariable;
+            tools::Random2 _RandomVariable;
            
             std::string _injection_name;
             std::string _injectionmethod;
