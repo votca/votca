@@ -15,8 +15,8 @@ Using this code via docker:
 docker pull votca/votca
 docker run -it votca/votca bin/bash
 
-For further details see
+For further details see:
 1. [Installation](share/doc/INSTALL.md) 
-2. [Developers Guide](share/doc/DEVERLOPERS_GUIDE.md)
+2. [Further Information](http://www.votca.org)
+3. [Developers Guide](share/doc/DEVERLOPERS_GUIDE.md)
 
-Further information on VOTCA can be found at http://www.votca.org
