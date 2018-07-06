@@ -16,7 +16,7 @@ Using this code via docker:
 
 ```
 docker pull votca/votca
-docker run -it votca/votca bin/bash
+docker run -it votca/votca /bin/bash
 ```
 
 For further details see:
