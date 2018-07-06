@@ -29,14 +29,14 @@
 namespace XTP = votca::xtp;
 namespace CSG = votca::csg;
 namespace TOOLS = votca::tools;
-
+/*
 class XTP::Topology;
 class XTP::Molecule;
 class XTP::Segment;
 class XTP::SegmentType;
 class XTP::Fragment;
 class XTP::Atom;
-
+*/
 class Md2QmEngine
 {
 public:
