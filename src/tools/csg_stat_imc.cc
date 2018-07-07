@@ -24,8 +24,7 @@
 #include <votca/csg/nblistgrid.h>
 #include "csg_stat_imc.h"
 #include <votca/csg/imcio.h>
-#include <Eigen/src/Core/VectorBlock.h>
-#include <Eigen/src/Core/Matrix.h>
+
 
 namespace votca { namespace csg {
 
@@ -364,10 +363,6 @@ void Imc::DoCorrelations(Imc::Worker *worker) {
             Eigen::VectorXd &b = worker->_current_hists[pair->_i2->_index].data().y();
             pair_matrix &M = pair->_corr;
 
-            // M_ij += a_i*b_j
-            //for(int i=0; i<M.size1(); ++i)
-            //    for(int j=i; j<M.size2(); ++j)
-            //        M(i,j) = ((((double)_nframes-1.0)*M(i,j)) + (a(i)*b(j)))/(double)_nframes;
             M = ((((double)_nframes-1.0)*M) + a*b.transpose())/(double)_nframes;
         }
     }
@@ -461,7 +456,6 @@ void Imc::WriteIMCData(const string &suffix) {
             sub_r = ic->_average.data().x();
             
             // save size
-
             RangeParser rp;
             int end = begin  + ic->_average.getNBins() -1;
             rp.Add(begin, end);
@@ -493,14 +487,9 @@ void Imc::WriteIMCData(const string &suffix) {
             
           
             pair_matrix M=gmc.block(i,j,n1,n2);
-                    
-            // A_ij = -(<a_i*a_j>  - <a_i>*<b_j>)
-            //for(i=0; i<M.size1(); ++i)
-            //    for(j=i; j<M.size2(); ++j)
-            //        M(i,j) = -(M(i,j) - a(i)*b(j));
             M = -(M - a*b.transpose());
             //matrix is symmetric
-            gmc.block(j,i,n2,n1)=M.transpose();
+            gmc.block(j,i,n2,n1)=M.transpose().eval();
         }
         
         imcio_write_dS(grp_name + suffix + ".imc", r, dS);
