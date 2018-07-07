@@ -65,20 +65,20 @@ if(ENABLE_TESTING)
   set_tests_properties(Compare_csg_stat_output PROPERTIES DEPENDS Run_csg_stat)
   set_tests_properties(Compare_csg_stat_output PROPERTIES LABELS "csg;tools;votca")
   
-  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_stat_imc)
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_stat-imc)
   file(MAKE_DIRECTORY ${RUNPATH})
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/CG-CG.imc.tgt ${RUNPATH}/CG-CG.dist.tgt)
-  add_test(NAME Run_csg_stat_imc
+  add_test(NAME Run_csg_stat-imc
     COMMAND csg_stat --top ${REFPATH}/topol.xml --trj ${REFPATH}/frame.dump --do-imc
                      --options  ${REFPATH}/settings_imc.xml --cg ${REFPATH}/mapping.xml
     WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(Run_csg_stat_imc PROPERTIES LABELS "csg;tools;votca")
-  add_test(NAME Compare_csg_stat_imc_output COMMAND ${VOTCA_COMPARE} -f1 CG-CG.imc -f2 ${REFPATH}/CG-CG.imc WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(Compare_csg_stat_imc_output PROPERTIES DEPENDS Run_csg_stat_imc)
-  set_tests_properties(Compare_csg_stat_imc_output PROPERTIES LABELS "csg;tools;votca")
-  add_test(NAME Compare_csg_stat_imc_output_2 COMMAND ${VOTCA_COMPARE} -f1 CG-CG.dist.new -f2 ${REFPATH}/CG-CG.dist.imc WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(Compare_csg_stat_imc_output_2 PROPERTIES DEPENDS Run_csg_stat_imc)
-  set_tests_properties(Compare_csg_stat_imc_output_2 PROPERTIES LABELS "csg;tools;votca")
+  set_tests_properties(Run_csg_stat-imc PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Compare_csg_stat-imc_output COMMAND ${VOTCA_COMPARE} -f1 CG-CG.imc -f2 ${REFPATH}/CG-CG.imc WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_stat-imc_output PROPERTIES DEPENDS Run_csg_stat-imc)
+  set_tests_properties(Compare_csg_stat-imc_output PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Compare_csg_stat-imc_output_2 COMMAND ${VOTCA_COMPARE} -f1 CG-CG.dist.new -f2 ${REFPATH}/CG-CG.dist.imc WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_stat-imc_output_2 PROPERTIES DEPENDS Run_csg_stat-imc)
+  set_tests_properties(Compare_csg_stat-imc_output_2 PROPERTIES LABELS "csg;tools;votca")
   
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_resample)
   set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/csg_resample)
