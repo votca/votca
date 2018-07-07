@@ -23,15 +23,11 @@
      uniformly distributed in the range [0,1)
 *************************************************/
 
-#ifndef _RANMARS2_H_
-#define _RANMARS2_H_
+#ifndef _VOTCA_TOOLS_RANDOM2_H_
+#define _VOTCA_TOOLS_RANDOM2_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
 
-#define MARS_FIELD_SIZE 98
-#define _pi 3.1415926535897932384626433832795
+#include <vector>
 
 namespace votca { namespace tools {
 
@@ -50,16 +46,17 @@ public:
    ~Random2() {};
 
     void    init( int nA1, int nA2, int nA3, int nB1 );
-    void    save( char *fileName );
-    void    restore( char *fileName );
 
     double  rand_uniform( void );
     int     rand_uniform_int( int max_int );
     double  rand_gaussian( double sigma );
 
 private:
-
-    double  *MARSarray, MARSc, MARScd, MARScm ;
+    
+    
+    static const int MARS_FIELD_SIZE = 98;
+    std::vector<double> MARSarray;
+    double  MARSc, MARScd, MARScm ;
     int     MARSi, MARSj ; 
 };
 
