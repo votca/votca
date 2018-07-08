@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,243 +17,38 @@
 
 #ifndef __VOTCA_TOOLS_LINALG_H
 #define	__VOTCA_TOOLS_LINALG_H
-#include <votca/tools/votca_config.h>
-#if defined(GSL)
-    #include "votca_gsl_boost_ublas_matrix_prod.h"
-#elif defined(MKL)
-    #include "mkl_boost_ublas_matrix_prod.hpp"
-#endif
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
+#include <votca/tools/eigen.h>
 
 namespace votca { namespace tools {
-    namespace ub = boost::numeric::ublas;
-
-    /**
-     * \brief inverts A
-     * @param A symmetric positive definite matrix
-     * @param V inverse matrix
-     *
-     * This function wraps the inversion of a matrix
-     */
-    void linalg_invert( const ub::matrix<double> &A, ub::matrix<double> &V );
-    void linalg_invert( const ub::matrix<float> &A, ub::matrix<float> &V );
  
-    /**
-     * \brief determines Cholesky decomposition of matrix A
-     * @param A symmetric positive definite matrix
-     *
-     * This function wraps the Cholesky decomposition
-     */
-    void linalg_cholesky_decompose( ub::matrix<double> &A );
-    void linalg_cholesky_decompose( ub::matrix<float> &A );
-    /**
-     * \brief solves A*x=b
-     * @param x storage for x
-     * @param A symmetric positive definite matrix for linear system
-     * @param b inhomogeniety
-     * @param if A is not symmetric positive definite throws error code 
-     *
-     * This function wraps the cholesky linear system solver
-     */
-    void linalg_cholesky_solve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b);
-
-    /**
-     * \brief solves A*x=b
-     * @param x storage for x
-     * @param A matrix for linear equation system
-     * @param b inhomogenity
-     * @param residual if non-zero, residual will be stored here
-     *
-     * This function wrapps the qrsolver
-     */
-    void linalg_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::vector<double> *residual=NULL);
-
     /**
      * \brief solves A*x=b under the constraint B*x = 0
      * @param x storage for x
      * @param A matrix for linear equation system
      * @param b inhomogenity
-     * @param B constrained condition
+     * @param constr constrained condition
      *
-     * This function wraps the qrsolver under constraints
+     * This function implements the qrsolver under constraints
      */
-    void linalg_constrained_qrsolve(ub::vector<double> &x, ub::matrix<double> &A, ub::vector<double> &b, ub::matrix<double> &B);
+    void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
+            const Eigen::VectorXd &b, const Eigen::MatrixXd &constr);
   
-   /**
-     * \brief eigenvalues of a symmetric matrix A*x=E*x
-     * @param A matrix 
-     * @param E vector of eigenvalues
-     * @param V matrix of eigenvalues
-     * 
-     * This function wraps gsl_eigen_symmv / DSYEV
-     * 
+  /**
+     * \brief solves A*V=E*V for the first n eigenvalues
+     * @param A symmetric matrix to diagonalize, is destroyed during iteration
+     * @param E, eigenvalues
+     * @param V, eigenvectors, each column is one eigenvector
+     * @param nmax number of eigenvalues to return
+     *
+     * This function is only useful if MKL is used, wraps LAPACKE_ssyevx/LAPACKE_dsyevx
      */
-    bool linalg_eigenvalues(const ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V );
-    
-    
-   /**
-     * \brief eigenvalues of a symmetric matrix A*x=E*x
-     * @param E vector of eigenvalues
-     * @param V input: matrix to diagonalize
-     * @param V output: eigenvectors      
-     * 
-     * This function wrapps gsl_eigen_symmv / DSYEV
-     * 
-     */
-    bool linalg_eigenvalues( ub::vector<double> &E, ub::matrix<double> &V );
-    
-    
-       /**
-     * \brief eigenvalues of a symmetric matrix A*x=E*x
-     * @param E vector of eigenvalues
-     * @param V input: matrix to diagonalize
-     * @param V output: eigenvectors      
-     * 
-     * This function wrapps gsl_eigen_symmv / DSYEV
-     * 
-     */
-    bool linalg_eigenvalues( ub::vector<float> &E, ub::matrix<float> &V );
-    
-   /**
-     * \brief eigenvalues of a symmetric matrix A*x=E*x
-     * @param E vector of eigenvalues
-     * @param V input: matrix to diagonalize
-     * @param V output: eigenvectors      
-     * 
-     * This function wrapps gsl_eigen_symmv / DSYEV
-     * 
-     */
-    bool linalg_eigenvalues(ub::matrix<double> &A, ub::vector<double> &E, ub::matrix<double> &V , int nmax );
-    
-      /**
-     * \brief eigenvalues of a symmetric matrix A*x=E*x single precision
-     * @param E vector of eigenvalues
-     * @param V input: matrix to diagonalize
-     * @param V output: eigenvectors      
-     * 
-     * This function wrapps gsl_eigen_symmv / DSYEV
-     * 
-     */
-    bool linalg_eigenvalues(ub::matrix<float> &A, ub::vector<float> &E, ub::matrix<float> &V , int nmax );
-    
-     /**
-     * \brief eigenvalues of a symmetric matrix A*x=E*B*x double precision
-     * @param E vector of eigenvalues
-     * @param A input: matrix to diagonalize
-     * @param B input: overlap matrix
-     * @param V output: eigenvectors      
-     * 
-     * This function wrapps gsl_eigen_gensymmv / dsygv
-     * 
-     */
-    bool linalg_eigenvalues_general(const ub::matrix<double> &A,const ub::matrix<double> &B, ub::vector<double> &E, ub::matrix<double> &V);
-    /**
-     * \brief computes Singular value decomposition A = U S V^T double precision
-     * @param S vector of singular values
-     * @param A input: matrix for SVD, is oerwritten with U
-     * @param B input: overlap matrix
-     * @param V output: eigenvectors      
-     * 
-     * This function wrapps eigen_gensymmv / dsygv
-     * 
-     */
-   bool linalg_singular_value_decomposition(ub::matrix<double> &A, ub::matrix<double> &VT, ub::vector<double> &S );
-    
-   /**
-     * \brief inverts A via svd
-     * @param A symmetric positive definite matrix
-     * @param V inverse matrix
-     * @param lower limit of condition number of the matrix, singular values below that will be set to zero
-     * This function wraps the inversion of a matrix via svd
-     */
-   int linalg_invert_svd(const ub::matrix<double> &A, ub::matrix<double> &V,double limitCN);
-   
-   /**
-     * \brief calculates loewdin transformation of matrices
-     * @param J matrix to transform, returns transformed matrix
-     * @param S, overlap matrix, returns S-1/2
-     * @param returns smallest eigenvalue of S
-     * This function calculates the loewdin transformation of a matrix
-     */
-   double linalg_loewdin(ub::matrix<double> &J, ub::matrix<double> &S);
-/**
-     * \brief calculates matrix sqrt of a matrix
-     * @param matrix to calculate sqrt of S, return S1/2
-   
-     * This function calculates the sqrt of a matrix
-     */
-   int linalg_matrixsqrt(ub::matrix<double> &S);
-   /**
-     * \brief returns the the element with the largest (absolute) value of a matrix
-     * @param matrix to find largest value of
-   * @param bool to determine if maximum or maximum of absolute values should be found
-     * returns the the element with the largest (absolute) value of a matrix
-     */
-   
-   double linalg_getMax( const ub::matrix<double>& _matrix, bool absolut=false );
-   /**
-    *  * \brief returns the matrix of abs values of a matrix
-     * @param matrix to find  abs value of
-   
-     * returns the matrix of abs values of a matrix
-     */
-   
-   ub::matrix<double> linalg_abs( const ub::matrix<double>& _matrix );
-   
-      /**
-     * \brief returns the the element with the largest (absolute) value of a vector
-     * @param vector to find largest value of
-   * @param bool to determine if maximum or maximum of absolute values should be found
-     * returns the the element with the largest (absolute) value of a matrix
-     */
-   
-   double linalg_getMax( const ub::vector<double>& _vector, bool absolut=false );
-   /**
-    *  * \brief returns the vector of abs values of a vector
-     * @param vector to find  abs value of
-   
-     * returns the vector of abs values of a vector
-     */
-   
-   ub::vector<double> linalg_abs( const ub::vector<double>& _vector );
-   
-    /**
-    *  * \brief returns the rms value of a matrix
-     * @param matrix to find  rms value of
-   
-     * returns the rms value of a matrix
-     */
-   
-   double linalg_getRMS(const ub::matrix<double>& _matrix );
-   
-   /**
-    * \brief returns Tr(A*B)
-    * @param A, first matrix
-    * * @param B, second matrix
-     * @param returns smallest eigenvalue of S
-     * @param Trace of the product of two matrices
-    
-     * returns the the Trace of the product of two matrices
-     */
-   double linalg_traceofProd(const ub::matrix<double>& A,const ub::matrix<double>& B );
-   
-    /**
-    * \brief solves A*x=b
-    * @param A, first matrix
-    * * @param b,  inhomogenity, destroyed and contains the x afterwards
-    
-    
-     * returns the the solves A*x=b for a matrix of b.
-     */
-   bool linalg_solve(const ub::matrix<double> &A, ub::vector<double> &b);
+    bool linalg_eigenvalues(Eigen::MatrixXd&A, Eigen::VectorXd &E, Eigen::MatrixXd&V , int nmax );
+    bool linalg_eigenvalues(Eigen::MatrixXf&A, Eigen::VectorXf &E, Eigen::MatrixXf&V , int nmax );
    
    
 }}
 
 
 
-#endif	/* __VOTCA_TOOLS_LINALG_H */
+#endif	// __VOTCA_TOOLS_LINALG_H 
 

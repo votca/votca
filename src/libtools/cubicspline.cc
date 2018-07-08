@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
  */
 
 #include <votca/tools/cubicspline.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
 #include <votca/tools/linalg.h>
 #include <iostream>
 #include <cmath>
@@ -27,7 +24,7 @@ namespace votca { namespace tools {
 
 using namespace std;
 
-void CubicSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
+void CubicSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y)
 {    
     if(x.size() != y.size())
         throw std::invalid_argument("error in CubicSpline::Interpolate : sizes of vectors x and y do not match");
@@ -37,21 +34,13 @@ void CubicSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
 
     const int N = x.size();
     
-    // adjust the grid
-    _r.resize(N);
-    _f.resize(N);
-    _f2.resize(N);
-    
-    // create vector proxies to individually access f and f''
-
     // copy the grid points into f
     _r = x;
     _f = y;
-    _f2 = ub::zero_vector<double>(N);
+    _f2 = Eigen::VectorXd::Zero(N);
     
     // not calculate the f''
-    ub::matrix<double> A(N, N);
-    A = ub::zero_matrix<double>(N,N);
+    Eigen::MatrixXd A = Eigen::MatrixXd::Zero(N,N);
     
     for(int i=0; i<N - 2; ++i) {
             _f2(i+1) = -( A_prime_l(i)*_f(i)
@@ -76,17 +65,20 @@ void CubicSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
 	    throw std::runtime_error("erro in CubicSpline::Interpolate: case splineDerivativeZero not implemented yet");
 	    break;
     }
-
-    votca::tools::linalg_qrsolve(_f2, A, _f2);
+    
+    Eigen::HouseholderQR<Eigen::MatrixXd> QR(A);
+    _f2=QR.solve(_f2);
+    
 }
 
-void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
+void CubicSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y)
 {
     if(x.size() != y.size())
         throw std::invalid_argument("error in CubicSpline::Fit : sizes of vectors x and y do not match");
     
     const int N = x.size();
     const int ngrid = _r.size();
+    
     // construct the equation
     // A*u = b
     // where u = { {f[i]}, {f''[i]} }
@@ -94,22 +86,16 @@ void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
     // and b[i]=0 for i>=N (for smoothing condition)
     // A[i,j] contains the data fitting + the spline smoothing conditions
     
-    ub::matrix<double> A(N, 2*ngrid); 
-    ub::matrix<double> B_constr(ngrid, 2*ngrid);  // Matrix with smoothing conditions
+    Eigen::MatrixXd A=Eigen::MatrixXd::Zero(N, 2*ngrid);
+    Eigen::MatrixXd B=Eigen::MatrixXd::Zero(ngrid, 2*ngrid);  // Matrix with smoothing conditions
 
-    A = ub::zero_matrix<double>(N, 2*ngrid);
-    B_constr = ub::zero_matrix<double>(ngrid, 2*ngrid);
-    
     // Construct smoothing matrix
-    AddBCToFitMatrix(B_constr, 0);
-
+    AddBCToFitMatrix(B, 0);
     // construct the matrix to fit the points and the vector b
     AddToFitMatrix(A, x, 0);
-    ub::vector<double> b = y; 
-
     // now do a constrained qr solve
-    ub::vector<double> sol(2*ngrid);
-    votca::tools::linalg_constrained_qrsolve(sol, A, b, B_constr);
+    Eigen::VectorXd sol=Eigen::VectorXd::Zero(2*ngrid);
+    linalg_constrained_qrsolve(sol, A, y, B);
 
     // check vector "sol" for nan's
     for(int i=0; i<2*ngrid; i++) {
@@ -118,8 +104,8 @@ void CubicSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
         }
     }
 
-    _f = ub::vector_range<ub::vector<double> >(sol, ub::range (0, ngrid));
-    _f2 = ub::vector_range<ub::vector<double> >(sol, ub::range (ngrid, 2*ngrid));
+    _f = sol.segment(0,ngrid);
+    _f2 = sol.segment(ngrid, ngrid);
 }
 
 }}

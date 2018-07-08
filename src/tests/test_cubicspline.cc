@@ -20,7 +20,6 @@
 #define BOOST_TEST_MODULE cubicspline_test
 #include <boost/test/unit_test.hpp>
 #include <votca/tools/cubicspline.h>
-#include <boost/numeric/ublas/io.hpp>
 #include <iostream>
 
 using namespace votca::tools;
@@ -30,8 +29,8 @@ BOOST_AUTO_TEST_SUITE(cubicspline_test)
 BOOST_AUTO_TEST_CASE(cubicspline_fit_test) {
   
   int size=80;
-  ub::vector<double> x=ub::zero_vector<double>(size);
-  ub::vector<double> y=ub::zero_vector<double>(size);
+  Eigen::VectorXd x=Eigen::VectorXd::Zero(size);
+  Eigen::VectorXd y=Eigen::VectorXd::Zero(size);
   for (int i=0;i<size;++i){
     x(i)=0.25*i;
     y(i)=std::sin(x(i));
@@ -40,26 +39,18 @@ BOOST_AUTO_TEST_CASE(cubicspline_fit_test) {
   cspline.setBCInt(0);
   cspline.GenerateGrid(0.4,0.6,0.1);
   cspline.Fit(x,y);
-  
-  ub::vector<double> Fref=ub::zero_vector<double>(3);
-  ub::vector<double> F2ref=ub::zero_vector<double>(3);
+  Eigen::VectorXd Fref=Eigen::VectorXd::Zero(3);
+  Eigen::VectorXd F2ref=Eigen::VectorXd::Zero(3);
   Fref(0)=0.313364;
   Fref(1)=0.309062;
   Fref(2)=0.304759;
   F2ref(0)=0;
   F2ref(1)=-4.10698e-05;
   F2ref(2)=-7.3746e-17;
+  Eigen::VectorXd F=cspline.getSplineF();
+  Eigen::VectorXd F2=cspline.getSplineF2();
   
-  ub::vector<double> F=cspline.getSplineF();
-  ub::vector<double> F2=cspline.getSplineF2();
-  
-  bool equal1=true;
-  for( unsigned i=0;i<F.size();i++){
-    if(std::abs(Fref(i)-F(i))>1e-5){
-      equal1=false;
-      break;
-    }
-  }
+  bool equal1=Fref.isApprox(F,1e-5);
   if(!equal1){
     std::cout<<"result F"<<std::endl;
   std::cout<<F<<std::endl;
@@ -68,13 +59,8 @@ BOOST_AUTO_TEST_CASE(cubicspline_fit_test) {
   }
   BOOST_CHECK_EQUAL(equal1, true);
   
-  bool equal2=true;
-  for( unsigned i=0;i<F2.size();i++){
-    if(std::abs(F2ref(i)-F2(i))>1e-7){
-      equal2=false;
-      break;
-    }
-  }
+  bool equal2=F2ref.isApprox(F2,1e-5);
+ 
   if(!equal2){
     std::cout<<"result F2"<<std::endl;
   std::cout<<F2<<std::endl;

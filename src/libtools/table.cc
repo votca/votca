@@ -30,12 +30,12 @@ namespace tools {
 using namespace boost;
 using namespace std;
 
-void Table::resize(int N, bool preserve) {
-  _x.resize(N, preserve);
-  _y.resize(N, preserve);
-  _flags.resize(N, preserve);
+void Table::resize(int N) {
+  _x.conservativeResize(N);
+  _y.conservativeResize(N);
+  _flags.resize(N);
   if (_has_yerr) {
-    _yerr.resize(N, preserve);
+    _yerr.conservativeResize(N);
   }
 }
 
@@ -66,30 +66,26 @@ void Table::Save(string filename) const {
 }
 
 void Table::clear(void) {
-  _x.clear();
-  _y.clear();
-  _flags.clear();
-  _yerr.clear();
+  _x.resize(0);
+  _y.resize(0);
+  _flags.resize(0);
+  _yerr.resize(0);
 }
 
 double Table::getMaxY() const {
-  auto maxY = boost::range::max_element(_y);
-  return *maxY;
+  return _y.maxCoeff();
 }
 
 double Table::getMinY() const {
-  auto minY = boost::range::min_element(_y);
-  return *minY;
+  return _y.minCoeff();
 }
 
 double Table::getMaxX() const {
-  auto maxX = boost::range::max_element(_x);
-  return *maxX;
+ return _x.maxCoeff();
 }
 
 double Table::getMinX() const {
-  auto minX = boost::range::min_element(_x);
-  return *minX;
+ return _x.minCoeff();
 }
 
 // TODO: this functon is weired, reading occours twice, cleanup!!
@@ -188,7 +184,7 @@ void Table::GenerateGridSpacing(double min, double max, double spacing) {
 
 void Table::Smooth(int Nsmooth) {
   while (Nsmooth-- > 0)
-    for (unsigned int i = 1; i < size() - 1; ++i){
+    for ( int i = 1; i < size() - 1; ++i){
       _y[i] = 0.25 * (_y[i - 1] + 2 * _y[i] + _y[i + 1]);
     }
 }

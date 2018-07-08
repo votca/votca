@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #define	__VOTCA_TOOLS_GLOBALS_H
 
 #include <string>
+#include <votca/tools/votca_config.h>
 
 namespace votca { namespace tools {
 
@@ -37,6 +38,9 @@ struct globals
         static std::string url;
         /// email address of the developers
         static std::string email;
+        
+        /// If Eigen is overloaded with MKL
+        static bool VOTCA_MKL;
         
         /// man pages format strings
         struct man {

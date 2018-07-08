@@ -19,13 +19,12 @@
 #define _VOTCA_TOOLS_TABLE_H
 
 #include <iostream>
-#include <boost/numeric/ublas/vector.hpp>
+#include <votca/tools/eigen.h>
+#include <vector>
 #include <string>
 
 namespace votca {
 namespace tools {
-
-namespace ub = boost::numeric::ublas;
 
 // the entry is invalid, e.g. could not be calculated (ln(0), ...)
 #define TBL_INVALID 1
@@ -44,11 +43,11 @@ class Table {
 
   ~Table() {};
 
-  void clear(void);
+  void clear();
 
   void GenerateGridSpacing(double min, double max, double spacing);
-  void resize(int N, bool preserve = true);
-  unsigned int size() const { return _x.size(); }
+  void resize(int N);
+   int size() const { return _x.size(); }
 
   double &x(int i) { return _x[i]; }
   double &y(int i) { return _y[i]; }
@@ -106,10 +105,10 @@ class Table {
    */
   double getMinX() const;
 
-  ub::vector<double> &x() { return _x; }
-  ub::vector<double> &y() { return _y; }
-  ub::vector<char> &flags() { return _flags; }
-  ub::vector<double> &yerr() { return _yerr; }
+  Eigen::VectorXd &x() { return _x; }
+  Eigen::VectorXd &y() { return _y; }
+  std::vector<char> &flags() { return _flags; }
+  Eigen::VectorXd &yerr() { return _yerr; }
 
   void push_back(double x, double y, char flags = ' ');
 
@@ -118,10 +117,10 @@ class Table {
   void setErrorDetails(std::string str) { _error_details = str; }
 
  private:
-  ub::vector<double> _x;
-  ub::vector<double> _y;
-  ub::vector<char> _flags;
-  ub::vector<double> _yerr;
+  Eigen::VectorXd _x;
+  Eigen::VectorXd _y;
+  std::vector<char> _flags;
+  Eigen::VectorXd _yerr;
   std::string _error_details;
 
   bool _has_yerr;
@@ -154,12 +153,12 @@ inline std::ostream &operator<<(std::ostream &out, const Table &t) {
   // TODO: use a smarter precision guess, XXX.YYYYY=8, so 10 should be enough
   out.precision(10);
   if (t._has_yerr) {
-    for (size_t i = 0; i < t._x.size(); ++i) {
+    for (int i = 0; i < t._x.size(); ++i) {
       out << t._x[i] << " " << t._y[i] << " " << t._yerr[i] << " "
           << t._flags[i] << std::endl;
     }
   } else {
-    for (size_t i = 0; i < t._x.size(); ++i) {
+    for (int i = 0; i < t._x.size(); ++i) {
       out << t._x[i] << " " << t._y[i] << " " << t._flags[i] << std::endl;
     }
   }
@@ -167,7 +166,7 @@ inline std::ostream &operator<<(std::ostream &out, const Table &t) {
 }
 // TODO: modify this function to be able to treat _has_yerr == true
 inline void Table::push_back(double x, double y, char flags) {
-  size_t n = size();
+  int n = size();
   resize(n + 1);
   _x[n] = x;
   _y[n] = y;

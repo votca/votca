@@ -22,7 +22,6 @@
 #include <cmath>
 #include <stdexcept>
 #include <string>
-#include <boost/numeric/ublas/lu.hpp>
 #include <votca/tools/floatingpointcomparison.h>
 #include "tokenizer.h"
 
@@ -46,7 +45,6 @@ public:
     vec(const vec &v);
     vec(const double r[3]);
     vec(const double x, const double y, const double z);
-    vec(const boost::numeric::ublas::vector<double> &v);
     vec(const std::string &str);
     
     
@@ -121,9 +119,7 @@ public:
         }
         return true;
 }
-    
-    
-    
+
     /**
      * \brief normalize the vector
      * @return normalized vector
@@ -132,7 +128,6 @@ public:
      */
     vec &normalize();
     
-    boost::numeric::ublas::vector<double> converttoub();
     
     template<class Archive>
     void serialize(Archive &arch, const unsigned int version) { arch & _x; arch & _y; arch & _z; }
@@ -160,15 +155,6 @@ inline vec::vec(const vec &v)
 inline vec::vec(const double r[3])
     : _x(r[0]), _y(r[1]), _z(r[2]) {}
 
-inline vec::vec(const boost::numeric::ublas::vector<double> &ublas)
-{
-    try
-        {_x=ublas(0);
-         _y=ublas(1);
-         _z=ublas(2);
-        }
-    catch(std::exception &err){throw std::length_error("Conversion from ub::vector to votca-vec failed");} 
-}
 
 inline vec::vec(const std::string &str)
 {
@@ -360,13 +346,6 @@ inline vec &vec::normalize()
     return ((*this)*=1./abs(*this));
 }
 
-inline boost::numeric::ublas::vector<double> vec::converttoub() {
-    boost::numeric::ublas::vector<double> temp=boost::numeric::ublas::zero_vector<double>(3);
-    temp(0)=_x;
-    temp(1)=_y;
-    temp(2)=_z;
-    return temp;
-}
 
 }}
 #endif	/* _vec_H */
