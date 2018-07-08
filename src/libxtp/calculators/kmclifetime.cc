@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,9 @@ namespace votca {
     _numberofcharges=options->ifExistsReturnElseThrowRuntimeError<int>(key+".numberofcharges");
     _injection_name=options->ifExistsReturnElseThrowRuntimeError<std::string>(key+".injectionpattern");
     _lifetimefile=options->ifExistsReturnElseThrowRuntimeError<string>(key+".lifetimefile");
+    
+    
+    _probfile=options->ifExistsReturnElseReturnDefault<std::string>(key+".decayprobfile","");
 
     _maxrealtime=options->ifExistsReturnElseReturnDefault<double>(key+".maxrealtime",1E10);
      _trajectoryfile=options->ifExistsReturnElseReturnDefault<std::string>(key+".trajectoryfile","trajectory.csv");
@@ -74,7 +77,30 @@ namespace votca {
     
     return;
     }
-
+    
+    
+    void KMCLifetime::WriteDecayProbability(string filename){
+        fstream probs;
+        probs.open ( filename.c_str(), fstream::out);
+        probs<<"#SiteID, Relative Prob"<<endl;
+        for (const GNode* node:_nodes){
+            if(node->hasdecay){
+                double decayrate=0;
+                for(const auto& event:node->events){
+                    if(event.decayevent){
+                        decayrate=event.rate;
+                        break;
+                    }
+                }
+            probs<<node->id<<" "<<decayrate/node->escape_rate<<endl;
+                    
+            }else{
+                probs<<node->id<<" "<<0<<endl;
+            }
+        }
+        probs.close();
+        return;
+    }
 
         
     void KMCLifetime::ReadLifetimeFile(std::string filename){
@@ -314,6 +340,8 @@ namespace votca {
         LoadGraph(top);
         ReadLifetimeFile(_lifetimefile);
         
+        
+        
         if(_rates == "calculate")
         {
            cout << "Calculating rates (i.e. rates from state file are not used)." << endl;
@@ -322,6 +350,9 @@ namespace votca {
         else
         {
             cout << "Using rates from state file." << endl;
+        }
+        if(_probfile!=""){
+            WriteDecayProbability(_probfile);
         }
         RunVSSM(top);
 

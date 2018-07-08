@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -184,6 +184,7 @@ bool XtpTools::EvaluateOptions() {
         if ((*it).compare((iter->first).c_str()) == 0) {
           cout << " This is a CTP app" << endl;
            this->AddTool(ctp::QMTools().Create((*it).c_str()));
+            _found_calc = true;
         }
       }
     }

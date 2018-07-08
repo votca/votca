@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -42,7 +42,6 @@ public:
     // two access functions for egwbse interface
     
 
-
 private:
     
     string      _orbfile;
@@ -58,16 +57,8 @@ void Partialcharges::Initialize(Property* options) {
     
             // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options, "xtp" );
- 
-
     string key = "options." + Identify();
-            // _jobfile = options->get(key + ".file").as<string>();
-
-            // key = "options." + Identify();
  
-       
-           // orbitals file or pure DFT output
-           
     _orbfile      = options->get(key + ".input").as<string> ();
     _output_file  = options->get(key + ".output").as<string> ();
     string _esp2multipole_xml = options->get(key + ".esp_options").as<string> ();
@@ -76,13 +67,10 @@ void Partialcharges::Initialize(Property* options) {
     char *votca_share = getenv("VOTCASHARE");    
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
 
-  
-   
 }
 
 bool Partialcharges::Evaluate() {
     
-
     _log.setReportLevel( ctp::logDEBUG );
     _log.setMultithreading( true );
     
@@ -97,7 +85,7 @@ bool Partialcharges::Evaluate() {
     // load the QM data from serialized orbitals object
 
     CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-    _orbitals.Load(_orbfile.c_str());
+    _orbitals.ReadFromCpt(_orbfile);
 
     Esp2multipole esp2multipole=Esp2multipole(&_log);
     esp2multipole.Initialize(&_esp_options);

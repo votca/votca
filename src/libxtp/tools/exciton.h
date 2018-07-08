@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -29,14 +29,12 @@
 #include <votca/ctp/atom.h>
 #include <votca/ctp/qmtool.h>
 #include <votca/ctp/segment.h>
-
-#include <votca/tools/linalg.h>
 #include <votca/tools/constants.h>
 
 
 namespace votca {
     namespace xtp {
-        using namespace std;
+       
 
         class Exciton : public ctp::QMTool {
         public:
@@ -47,11 +45,11 @@ namespace votca {
             ~Exciton() {
             };
 
-            string Identify() {
+            std::string Identify() {
                 return "exciton";
             }
 
-            void Initialize(Property *options);
+            void Initialize(tools::Property *options);
             bool Evaluate();
 
 
@@ -60,23 +58,21 @@ namespace votca {
         private:
 
 
-            string _xyzfile;
-            string _xml_output;    // .xml output
-            string _package;
-            string _archive_file; // .orb file to parse to
-            string _reporting;
-            string _guess_orbA;
-            string _guess_orbB;
+            std::string _xyzfile;
+            std::string _xml_output;    // .xml output
+            std::string _package;
+            std::string _archive_file; // .orb file to parse to
+            std::string _reporting;
+            std::string _guess_orbA;
+            std::string _guess_orbB;
 
-            Property _package_options;
-            Property _gwbseengine_options;
-            Property _geoopt_options;
+            tools::Property _package_options;
+            tools::Property _gwbseengine_options;
+            tools::Property _geoopt_options;
 
             ctp::Logger _log;
 
             bool _do_optimize;
-
-            void ReadXYZ(ctp::Segment* _segment, string filename);
 
         };
 

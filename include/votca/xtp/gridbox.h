@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,15 +21,16 @@
 #define	__XTP_GRIDBOX__H
 
 #include <votca/tools/vec.h>
-
-#include <votca/tools/linalg.h>
 #include <votca/xtp/grid_containers.h>
 #include <votca/xtp/aoshell.h>
 
 namespace votca { namespace xtp {
 
-    namespace ub = boost::numeric::ublas;
 
+        struct GridboxRange{
+                int start;
+                int size;
+            };
         class GridBox {
             
         public: 
@@ -42,7 +43,7 @@ namespace votca { namespace xtp {
             
             const std::vector<const AOShell* >& getShells() const{return significant_shells;}
             
-            const std::vector<ub::range>& getAOranges() const{return aoranges;}
+            const std::vector<GridboxRange>& getAOranges() const{return aoranges;}
             
             unsigned size() const{return grid_pos.size();}
             
@@ -83,9 +84,9 @@ namespace votca { namespace xtp {
             
             void PrepareForIntegration();
             
-            ub::matrix<double> ReadFromBigMatrix(const ub::matrix<double>& bigmatrix);
+            Eigen::MatrixXd ReadFromBigMatrix(const Eigen::MatrixXd& bigmatrix);
             
-            void AddtoBigMatrix(ub::matrix<double>& bigmatrix,const ub::matrix<double>& smallmatrix);
+            void AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,const Eigen::MatrixXd& smallmatrix);
             
             void setIndexoffirstgridpoint(unsigned indexoffirstgridpoint){_indexoffirstgridpoint=indexoffirstgridpoint;}
             unsigned getIndexoffirstgridpoint() const{return _indexoffirstgridpoint;}
@@ -112,14 +113,14 @@ namespace votca { namespace xtp {
             
                 unsigned _indexoffirstgridpoint;
                 unsigned matrix_size=0;
-                std::vector<ub::range> aoranges;
-                std::vector<ub::range> ranges;
-                std::vector<ub::range> inv_ranges;
+                std::vector<GridboxRange> aoranges;
+                std::vector<GridboxRange> ranges;
+                std::vector<GridboxRange> inv_ranges;
                 std::vector< tools::vec > grid_pos;//bohr
                 std::vector<const AOShell* > significant_shells;
                 std::vector< double > weights;
                 std::vector< double > densities;
-                std::vector< ub::matrix<double> > dens_grad;
+                std::vector< Eigen::MatrixXd > dens_grad;
                 
             };
 

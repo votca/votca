@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,22 +17,22 @@
  *
  */
 
-#include <votca/tools/linalg.h>
 #include <votca/xtp/lowdin.h>
 #include <votca/xtp/aomatrix.h>
 
 #include "votca/xtp/qmatom.h"
 namespace votca { namespace xtp {
 
-void Lowdin::EvaluateLowdin(vector< QMAtom* >& _atomlist,const ub::matrix<double> &_dmat, AOBasis &basis, bool _do_transition){
+void Lowdin::EvaluateLowdin(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat, AOBasis &basis, bool _do_transition){
     AOOverlap _overlap;
     // Fill overlap
     _overlap.Fill(basis);
     
-    linalg_matrixsqrt(_overlap.Matrix());
-    ub::matrix<double> temp = ub::prod( _dmat, _overlap.Matrix() );
-    ub::matrix<double> _prodmat=ub::prod(_overlap.Matrix(),temp);
-    vector < QMAtom* > :: iterator atom;
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_overlap.Matrix());
+    
+    Eigen::MatrixXd Smsqrt=es.operatorSqrt();
+    Eigen::MatrixXd _prodmat=Smsqrt*_dmat*Smsqrt;
+    std::vector < QMAtom* > :: iterator atom;
 
     int id =0;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){

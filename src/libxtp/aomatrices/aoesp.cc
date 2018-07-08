@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,8 +16,7 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/aomatrix.h>
 
@@ -26,15 +25,11 @@
 #include <map>
 #include <vector>
 #include <votca/tools/property.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/math/constants/constants.hpp>
-#include <votca/tools/linalg.h>
 #include <votca/tools/elements.h>
 #include <votca/tools/constants.h>
 
 #include "votca/xtp/qmatom.h"
-//#include <boost/timer/timer.hpp>
+
 
 
 
@@ -42,19 +37,18 @@
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
-    using namespace votca::tools;
+
     
 
     
-    void AOESP::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col , AOBasis* ecp) {
+    void AOESP::FillBlock( Eigen::Block<Eigen::MatrixXd>& _matrix,const AOShell* _shell_row,const AOShell* _shell_col) {
         /*cout << "\nAO block: "<< endl;
         cout << "\t row: " << _shell_row->getType() << " at " << _shell_row->getPos() << endl;
         cout << "\t col: " << _shell_col->getType() << " at " << _shell_col->getPos() << endl;*/
         const double pi = boost::math::constants::pi<double>();
        
         
-        // cout << _gridpoint << endl;
+        
         // shell info, only lmax tells how far to go
         int _lmax_row = _shell_row->getLmax();
         int _lmax_col = _shell_col->getLmax();
@@ -64,7 +58,7 @@ namespace votca { namespace xtp {
         int _ncols = this->getBlockSize( _lmax_col ); 
     
         // initialize local matrix block for unnormalized cartesians
-        ub::matrix<double> nuc   = ub::zero_matrix<double>(_nrows,_ncols);
+        Eigen::MatrixXd nuc   = Eigen::MatrixXd::Zero(_nrows,_ncols);
         
 
         //cout << nuc.size1() << ":" << nuc.size2() << endl;
@@ -114,9 +108,9 @@ namespace votca { namespace xtp {
       
         
         // get shell positions
-        const vec& _pos_row = _shell_row->getPos();
-        const vec& _pos_col = _shell_col->getPos();
-        const vec  _diff    = _pos_row - _pos_col;
+        const tools::vec& _pos_row = _shell_row->getPos();
+        const tools::vec& _pos_col = _shell_col->getPos();
+        const tools::vec  _diff    = _pos_row - _pos_col;
         // initialize some helper
       
         double _distsq = (_diff*_diff); 
@@ -156,9 +150,9 @@ namespace votca { namespace xtp {
         double PmB1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_col.getY();
         double PmB2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_col.getZ();
         
-        double PmC0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _gridpoint.getX();
-        double PmC1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _gridpoint.getY();
-        double PmC2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _gridpoint.getZ();
+        double PmC0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _r.getX();
+        double PmC1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _r.getY();
+        double PmC2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _r.getZ();
         
         
         const double _U = zeta*(PmC0*PmC0+PmC1*PmC1+PmC2*PmC2);
@@ -428,16 +422,11 @@ if (_lmax_col > 3) {
         
        
         
-        ub::matrix<double> _trafo_row = getTrafo(*itr);
-        ub::matrix<double> _trafo_col_tposed = ub::trans(getTrafo(*itc));      
-             
-        ub::matrix<double> _nuc_tmp = ub::prod( _trafo_row, nuc );
-        
-        ub::matrix<double> _nuc_sph = ub::prod( _nuc_tmp, _trafo_col_tposed );
+         Eigen::MatrixXd _nuc_sph = getTrafo(*itr)*nuc*getTrafo(*itc).transpose();
         // save to _matrix
         
-        for ( unsigned i = 0; i< _matrix.size1(); i++ ) {
-            for (unsigned j = 0; j < _matrix.size2(); j++){
+        for ( unsigned i = 0; i< _matrix.rows(); i++ ) {
+            for (unsigned j = 0; j < _matrix.cols(); j++) {
                 _matrix(i,j) += _nuc_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
             }
         }
@@ -451,17 +440,14 @@ if (_lmax_col > 3) {
   // Calculates the electrostatic potential matrix element between two basis functions, for an array of atomcores.
 
     void AOESP::Fillnucpotential(const AOBasis& aobasis, std::vector<QMAtom*>& _atoms) {
-            Elements _elements;
-            _nuclearpotential = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+            tools::Elements _elements;
+            _nuclearpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
             for (unsigned j = 0; j < _atoms.size(); j++) {
-                vec positionofatom = _atoms[j]->getPos();
-
                 double Znuc = _atoms[j]->getNuccharge();
-                
-               
-                _aomatrix = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                Fill(aobasis, positionofatom);
+                _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+                setPosition(_atoms[j]->getPos());
+                Fill(aobasis);
                 _nuclearpotential -= (Znuc) * _aomatrix;        
             }
             return;
@@ -469,13 +455,14 @@ if (_lmax_col > 3) {
 
         void AOESP::Fillextpotential(const AOBasis& aobasis,const std::vector<ctp::PolarSeg*> & _sites) {
             
-            _externalpotential = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+            _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
             for (unsigned int i = 0; i < _sites.size(); i++) {
                 for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
-                    vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
-                    _aomatrix = ub::zero_matrix<double>(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                    Fill(aobasis, positionofsite);
+                    tools::vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
+                    _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+                    setPosition(positionofsite);
+                    Fill(aobasis);
                     _externalpotential -= (*it)->getQ00() * _aomatrix;
                 }
             }

@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2012 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -182,7 +182,7 @@ bool Coupling::Evaluate() {
      DFTcoupling dftcoupling; 
     dftcoupling.setLogger(&_log);
           
-    ub::matrix<double> _JAB;
+    Eigen::MatrixXd _JAB;
     bool _calculate_integrals = dftcoupling.CalculateIntegrals( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );  
     if ( !_calculate_integrals ) { CTP_LOG(ctp::logERROR,_log) << "Failed to evaluate integrals" << std::flush; }
 

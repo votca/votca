@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -241,7 +241,7 @@ bool EInternal::EvaluateFrame(ctp::Topology *top) {
         try {
             //bool has_seg = _has_seg.at(segName);
         }
-        catch (std::out_of_range&) {
+        catch (const std::exception& out_of_range) {
             std::cout << std::endl << "... ... WARNING: No energy information for seg ["
                          << segName << "]. Skipping... ";
             continue;

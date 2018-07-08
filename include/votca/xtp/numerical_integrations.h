@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,106 +20,85 @@
 #ifndef __XTP_NUMERICAL_INTEGRATION__H
 #define	__XTP_NUMERICAL_INTEGRATION__H
 
-#ifdef LIBXC
-#include <xc.h>
-#undef LOG
-#endif
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
-#include <boost/numeric/ublas/operation.hpp>
+
+
+#include <votca/tools/matrix.h>
+#include <votca/tools/vec.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/grid_containers.h>
 #include <votca/xtp/vxc_functionals.h>
-#include <votca/xtp/exchange_correlation.h>
 #include <votca/xtp/gridbox.h>
 #include <votca/xtp/qmatom.h>
+
+#include <xc.h>
+#undef LOG
+
 
 
 namespace votca { namespace xtp {
 
-    namespace ub = boost::numeric::ublas;
+  
     
-    
+    struct Gyrationtensor{
+        double mass;
+        tools::vec centroid;
+        tools::matrix gyration;
+    };
 
         class NumericalIntegration {
         public: 
             
             NumericalIntegration():density_set(false),setXC(false) {};
-            
-            
+
             ~NumericalIntegration(){};
             
-            void GridSetup(std::string type, std::vector<QMAtom* > _atoms,AOBasis* basis  );
-            
-         
+            void GridSetup(std::string type, std::vector<QMAtom* > _atoms,const AOBasis* basis);
             double getExactExchange(const std::string _functional);
-            std::vector<const vec*> getGridpoints();
+            std::vector<const tools::vec*> getGridpoints();
             
             unsigned getGridSize() const{return _totalgridsize;}
             unsigned getBoxesSize() const{return _grid_boxes.size();}
             
-            void setXCfunctional(const string _functional);
+            void setXCfunctional(const std::string _functional);
             
-            double IntegrateDensity(const ub::matrix<double>& _density_matrix);
-            double IntegratePotential(const vec& rvector);
+            double IntegrateDensity(const Eigen::MatrixXd& _density_matrix);
+            double IntegratePotential(const tools::vec& rvector);
             double IntegrateField(const std::vector<double>& externalfield);
-            ub::matrix<double> IntegrateExternalPotential(const std::vector<double>& Potentialvalues);
-            
-            ub::vector<double> IntegrateGyrationTensor(const ub::matrix<double>& _density_matrix);
-            
-           
-           
-            ub::matrix<double> IntegrateVXC (const ub::matrix<double>& _density_matrix);
-            
-           
-            
+            Eigen::MatrixXd IntegrateExternalPotential(const std::vector<double>& Potentialvalues);
+            Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& _density_matrix);          
+            Eigen::MatrixXd IntegrateVXC (const Eigen::MatrixXd& _density_matrix);
             // this gives int (e_xc-V_xc)*rho d3r
             double getTotEcontribution(){return EXC;}
           
             
         private:
             
-            
            void FindSignificantShells();
-            
-           void EvaluateXC(const double rho,const ub::matrix<double>& grad_rho,double& f_xc, double& df_drho, double& df_dsigma);
-          
-           
-           
+           void EvaluateXC(const double rho,const Eigen::Vector3d& grad_rho,double& f_xc, double& df_drho, double& df_dsigma);          
            double erf1c(double x);
-           double erfcc(double x);
-           std::vector<double> SSWpartition(int igrid, int ncenters ,  std::vector< std::vector<double> >& rq );
+           std::vector<double> SSWpartition(int igrid, int ncenters ,const std::vector< std::vector<double> >& rq );
            void SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::integration_grid > >& grid);
             
             std::vector<double> Rij;
-            AOBasis* _basis;
-
+            const AOBasis* _basis;
             double  _totalgridsize;
-            
             std::vector< GridBox > _grid_boxes;
             std::vector<unsigned> thread_start;
             std::vector<unsigned> thread_stop;
-            
-            ExchangeCorrelation _xc;
-            bool _use_votca;
             int xfunc_id;
-            
-           
-            
-            
             double EXC;
             bool density_set;
             bool setXC;
             
             
-            #ifdef LIBXC
+           
             bool _use_separate;
             int cfunc_id;
             xc_func_type xfunc; // handle for exchange functional
             xc_func_type cfunc; // handle for correlation functional
-            #endif
+
             
         };
 

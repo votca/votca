@@ -1,12 +1,12 @@
 <options>
 
-<xrates help="Hopping rates using classical or semi-classical expression" label="calc:xrates">
+<rates help="Hopping rates using classical or semi-classical expression" label="calc:xrates">
 	<field help="Field in x y z direction" unit=""> 1000000 0 0 </field>
 	<temperature help="Temperature for rates" unit="K">300</temperature>
 	<method help="Method chosen to compute rates. Can either be **marcus** or **jortner**. The first is the high temperature limit of Marcus theory, the second is the rate proposed by Jortner and Bixon">marcus</method>
 	<nmaxvib help="If the method of choice is **jortner**, the maximal number of excited vibrations on the molecules has to be specified as an integer for the summation" unit="" default="20">20</nmaxvib>
 	<omegavib help="If the method of choice is **jortner**, the vibration frequency of the quantum mode has to be given in units of eV. The default value is close to the CC bond-stretch at 0.2eV" unit="eV" default="0.2">0.2</omegavib>
 
-</xrates>
+</rates>
 
 </options>

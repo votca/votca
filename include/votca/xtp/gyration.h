@@ -22,10 +22,10 @@
 
 
 #include <stdio.h>
+#include <votca/xtp/orbitals.h>
 #include <votca/ctp/logger.h>
-#include <votca/xtp/qmmachine.h>
 #include <boost/filesystem.hpp>
-
+#include <votca/xtp/numerical_integrations.h>
 namespace votca { namespace xtp {
     
     
@@ -41,16 +41,14 @@ public:
 
     std::string Identify() { return "density2gyration"; }
 
-    void   Initialize(Property *options);
+    void   Initialize( tools::Property *options);
     
-    ub::vector<double> get_quaternion( ub::matrix<double> &eigenframe );
+    Eigen::Quaterniond get_quaternion( const tools::matrix::eigensystem_t& system );
    
-    void Convert2Eigenframe( ub::vector<double> V, ub::vector<double> &_diagonal, ub::matrix<double> &_eigenframe  );
-    void ReportAnalysis( std::string label, ub::vector<double> _tensor_elements, ub::vector<double> _tensor_diagonal, ub::matrix<double> _tensor_frame );
-    
+    void ReportAnalysis( std::string label,Gyrationtensor gyro, tools::matrix::eigensystem_t system );
     
     void AnalyzeDensity( Orbitals& _orbitals );
-    void AnalyzeGeometry( vector< QMAtom* > _atoms );
+    void AnalyzeGeometry( std::vector< QMAtom* > _atoms );
 
 private:
     
@@ -64,7 +62,7 @@ private:
 
 
 
-    vector< QMAtom* > _Atomlist;
+   std::vector< QMAtom* > _Atomlist;
     
     ctp::Logger*      _log;
     

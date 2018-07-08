@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2012 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,21 +17,13 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-
-
-#include <votca/xtp/threecenters.h>
-
-
-
+#include <votca/xtp/threecenter.h>
 
 using namespace std;
-using namespace votca::tools;
+
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
-
  
         
         /*
@@ -50,7 +42,7 @@ namespace votca {
          */
         
       
-        bool TCrawMatrix::FillThreeCenterRepBlock(ub::matrix<double>& _subvector, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
+        bool TCMatrix::FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
 
             const double pi = boost::math::constants::pi<double>();
             const double gwaccuracy = 1.e-11;
@@ -90,9 +82,9 @@ namespace votca {
             }
             _shell_gamma=_shell_3;
             
-            const vec& _pos_alpha = _shell_alpha->getPos();
-            const vec& _pos_beta = _shell_beta->getPos();
-            const vec& _pos_gamma = _shell_gamma->getPos();
+            const tools::vec& _pos_alpha = _shell_alpha->getPos();
+            const tools::vec& _pos_beta = _shell_beta->getPos();
+            const tools::vec& _pos_gamma = _shell_gamma->getPos();
             
             int _lmax_alpha = _shell_alpha->getLmax();
             int _lmax_beta  = _shell_beta->getLmax();
@@ -102,11 +94,7 @@ namespace votca {
             int _nbeta = AOSuperMatrix::getBlockSize(_lmax_beta);
             int _ncombined =AOSuperMatrix::getBlockSize(_lmax_alpha+_lmax_beta);
             
-            typedef boost::multi_array<double, 3> ma_type;
-            typedef boost::multi_array_types::extent_range range;
-            typedef ma_type::index index;
-            ma_type::extent_gen extents;
-            
+                       
 
             //int n_orb = ((_lmax_gamma + 1)*(_lmax_gamma + 2)*(_lmax_gamma + 3))/6;
             int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84, 120, 165};
@@ -209,7 +197,7 @@ namespace votca {
             
 
             
-            vec amb=_pos_alpha-_pos_beta;
+            tools::vec amb=_pos_alpha-_pos_beta;
             double amb0=amb.getX();
             double amb1=amb.getY();
             double amb2=amb.getZ();
@@ -225,8 +213,8 @@ namespace votca {
                 for ( AOShell::GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta){
                     const double _decay_beta = itbeta->getDecay();
                     double rzeta = 0.5 / (_decay_alpha+_decay_beta);
-                    vec _P = 2.0 * (_decay_alpha*_pos_alpha+_decay_beta*_pos_beta) * rzeta;
-                    vec pma = _P - _pos_alpha;
+                    tools::vec _P = 2.0 * (_decay_alpha*_pos_alpha+_decay_beta*_pos_beta) * rzeta;
+                    tools::vec pma = _P - _pos_alpha;
                     double pma0 = pma.getX();
                     double pma1 = pma.getY();
                     double pma2 = pma.getZ();
@@ -253,11 +241,11 @@ namespace votca {
 
             double gfak=_decay_gamma/_decay;
             double cfak= (_decay_alpha + _decay_beta)/_decay;         
-            vec _W=(_decay_alpha*_pos_alpha+_decay_beta*_pos_beta+_decay_gamma*_pos_gamma)/_decay;
+            tools::vec _W=(_decay_alpha*_pos_alpha+_decay_beta*_pos_beta+_decay_gamma*_pos_gamma)/_decay;
             double _T = (_decay_alpha+_decay_beta)*_decay_gamma/_decay*(_P-_pos_gamma)*(_P-_pos_gamma);
 
-            vec wmp = _W - _P; 
-            vec wmc = _W - _pos_gamma;
+            tools::vec wmp = _W - _P; 
+            tools::vec wmc = _W - _pos_gamma;
 
             double wmp0 = wmp.getX();
             double wmc0 = wmc.getX();
@@ -269,25 +257,24 @@ namespace votca {
             double wmc2 = wmc.getZ();
             
           
-            
-//            cout << "los" << endl;
-            ma_type R_temp;
+            tensor3d::extent_gen extents;
+            tensor3d R_temp;
             R_temp.resize(extents[ range(0, _ncombined ) ][ range(0, _ngamma ) ][ range(0, max(2,_mmax+1))]);
             //initialize to zero
-            for (index i = 0; i != _ncombined; ++i) {
-                for (index j = 0; j != _ngamma; ++j) { 
-                    for (index k = 0; k != _mmax+1; ++k) { 
+            for (index3d i = 0; i != _ncombined; ++i) {
+                for (index3d j = 0; j != _ngamma; ++j) { 
+                    for (index3d k = 0; k != _mmax+1; ++k) { 
                                        R_temp[i][j][k] = 0.0;
                                    }
                                }
                            }
             
-            ma_type R;
+            tensor3d R;
             R.resize(extents[ range(0, _ncombined ) ][ range(0, _nbeta ) ][ range(0, _ngamma)]);
             //initialize to zero
-            for (index i = 0; i != _ncombined; ++i) {
-                for (index j = 0; j != _nbeta; ++j) {
-                    for (index k = 0; k != _ngamma; ++k) {
+            for (index3d i = 0; i != _ncombined; ++i) {
+                for (index3d j = 0; j != _nbeta; ++j) {
+                    for (index3d k = 0; k != _ngamma; ++k) {
 
                                        R[i][j][k] = 0.0;
                                    }
@@ -295,7 +282,7 @@ namespace votca {
                            }
 
 
-            const vector<double> _FmT=AOMatrix::XIntegrate(_mmax+1, _T);
+            const std::vector<double> _FmT=AOMatrix<double>::XIntegrate(_mmax+1, _T);
 
             //ss integrals
 
@@ -1119,9 +1106,9 @@ if (_lmax_gamma > 5) {
 
 //copy into new array for 3D use.
 
-for (index i = 0; i < n_orbitals[_lmax_alpha_beta]; ++i) {
+for (index3d i = 0; i < n_orbitals[_lmax_alpha_beta]; ++i) {
 
-         for (index k = 0; k < (_lmax_gamma+1)*(_lmax_gamma+1); ++k) {
+         for (index3d k = 0; k < (_lmax_gamma+1)*(_lmax_gamma+1); ++k) {
 
                             R[i][0][k] = R_temp[i][k][1];
                         }
@@ -1208,91 +1195,52 @@ if (_lmax_beta > 3) {
             int istart[] = {0, 1, 1, 1, 4, 4, 4, 4, 4, 10, 10, 10, 10, 10, 10, 10, 20, 20, 20, 20, 20, 20, 20, 20, 20 };
             int istop[] =  {0, 3, 3, 3, 9, 9, 9, 9, 9, 19, 19, 19, 19, 19, 19, 19, 34, 34, 34, 34, 34, 34, 34, 34, 34 };
 
-            // ub::vector<ub::matrix<double> >& _subvector
+        
             // which ones do we want to store
             int _offset_beta = _shell_beta->getOffset();
             int _offset_alpha = _shell_alpha->getOffset();
             int _offset_gamma = _shell_gamma->getOffset();
-/////////            cout << "_offset_alpha = " << _offset_alpha << "   _offset_beta = " << _offset_beta << "   _offset_gamma = " << _offset_gamma << endl;
 
-            // prepare transformation matrices
-            int _ntrafo_beta = _shell_beta->getNumFunc() + _offset_beta;
-            int _ntrafo_alpha = _shell_alpha->getNumFunc() + _offset_alpha;
-            int _ntrafo_gamma = _shell_gamma->getNumFunc() + _offset_gamma;
-            // cout << "_ntrafo_alpha = " << _ntrafo_alpha << "   _ntrafo_beta = " << _ntrafo_beta << "   _ntrafo_gamma = " << _ntrafo_gamma << endl;
-
-            
-            
-            const ub::matrix<double> _trafo_beta=AOSuperMatrix::getTrafo(*itbeta);
-            const ub::matrix<double> _trafo_alpha=AOSuperMatrix::getTrafo(*italpha);
+            const Eigen::MatrixXd _trafo_beta=AOSuperMatrix::getTrafo(*itbeta);
+            const Eigen::MatrixXd _trafo_alpha=AOSuperMatrix::getTrafo(*italpha);
             
        
-            ma_type R_sph;
-            R_sph.resize(extents[ _ntrafo_alpha ][ _ntrafo_beta ][ _ntrafo_gamma ]);
 
-            for (int _i_beta = 0; _i_beta < _ntrafo_beta; _i_beta++) {
-                for (int _i_alpha = 0; _i_alpha < _ntrafo_alpha; _i_alpha++) {
-                    for (int _i_gamma = 0; _i_gamma < _ntrafo_gamma; _i_gamma++) {
+            if (alphabetaswitch == true) {
 
-                        R_sph[ _i_alpha ][ _i_beta ][ _i_gamma ] = 0.0;
-
-                        for (int _i_beta_t = istart[ _i_beta ]; _i_beta_t <= istop[ _i_beta ]; _i_beta_t++) {
-                            for (int _i_alpha_t = istart[ _i_alpha ]; _i_alpha_t <= istop[ _i_alpha ]; _i_alpha_t++) {
-
-                                    R_sph[ _i_alpha ][ _i_beta ][ _i_gamma ] += R[ _i_alpha_t ][ _i_beta_t][ _i_gamma]
-                                            * _trafo_alpha(_i_alpha, _i_alpha_t) * _trafo_beta(_i_beta, _i_beta_t);
-
-
-                            }
-                        }
+              for (int _i_alpha = 0; _i_alpha < _shell_alpha->getNumFunc(); _i_alpha++) {
+                int _i_alpha_off = _i_alpha + _offset_alpha;
+                for (int _i_beta = 0; _i_beta < _shell_beta->getNumFunc(); _i_beta++) {
+                  int _i_beta_off = _i_beta + _offset_beta;
+                  for (int _i_gamma = 0; _i_gamma < _shell_gamma->getNumFunc(); _i_gamma++) {
+                    int _i_gamma_off = _i_gamma + _offset_gamma;
+                    for (int _i_beta_t = istart[ _i_beta_off ]; _i_beta_t <= istop[ _i_beta_off ]; _i_beta_t++) {
+                      for (int _i_alpha_t = istart[ _i_alpha_off ]; _i_alpha_t <= istop[_i_alpha_off ]; _i_alpha_t++) {
+                        threec_block[_i_gamma][_i_beta][_i_alpha] += R[ _i_alpha_t ][ _i_beta_t][ _i_gamma_off] * _trafo_alpha(_i_alpha_off, _i_alpha_t) * _trafo_beta(_i_beta_off, _i_beta_t);
+                      }
                     }
+                  }
                 }
+              }
             }
-
-
-
-
-
-            
-            if(alphabetaswitch==true){
-//            cout << "switched back" << endl;    
-            // only store the parts, we need
-           
-               for (int _i_gamma = 0; _i_gamma < _shell_gamma->getNumFunc(); _i_gamma++) {
-                for (int _i_alpha = 0; _i_alpha < _shell_alpha->getNumFunc(); _i_alpha++) {
-                    for (int _i_beta = 0; _i_beta < _shell_beta->getNumFunc(); _i_beta++) {
-
-
-                        int _i_index = _shell_alpha->getNumFunc() * _i_gamma + _i_alpha;
-
-                        _subvector(_i_beta, _i_index) += R_sph[ _offset_alpha + _i_alpha ][ _offset_beta + _i_beta ][ _offset_gamma + _i_gamma ];
-
+            else {
+              for (int _i_alpha = 0; _i_alpha < _shell_alpha->getNumFunc(); _i_alpha++) {
+                int _i_alpha_off = _i_alpha + _offset_alpha;
+                for (int _i_beta = 0; _i_beta < _shell_beta->getNumFunc(); _i_beta++) {
+                  int _i_beta_off = _i_beta + _offset_beta;
+                  for (int _i_gamma = 0; _i_gamma < _shell_gamma->getNumFunc(); _i_gamma++) {
+                    int _i_gamma_off = _i_gamma + _offset_gamma;
+                    for (int _i_beta_t = istart[ _i_beta_off ]; _i_beta_t <= istop[ _i_beta_off ]; _i_beta_t++) {
+                      for (int _i_alpha_t = istart[ _i_alpha_off ]; _i_alpha_t <= istop[_i_alpha_off ]; _i_alpha_t++) {
+                        threec_block[_i_gamma][_i_alpha][_i_beta] += R[ _i_alpha_t ][ _i_beta_t][ _i_gamma_off] * _trafo_alpha(_i_alpha_off, _i_alpha_t) * _trafo_beta(_i_beta_off, _i_beta_t);
+                      }
                     }
+                  }
                 }
-            } 
+              }
+
+
             }
-            
-            else{
-
-            
-               for (int _i_gamma = 0; _i_gamma < _shell_gamma->getNumFunc(); _i_gamma++) {
-                for (int _i_alpha = 0; _i_alpha < _shell_alpha->getNumFunc(); _i_alpha++) {
-                    for (int _i_beta = 0; _i_beta < _shell_beta->getNumFunc(); _i_beta++) {
-
-
-                        int _i_index = _shell_beta->getNumFunc() * _i_gamma + _i_beta;
-
-                        _subvector(_i_alpha, _i_index) += R_sph[ _offset_alpha + _i_alpha ][ _offset_beta + _i_beta ][ _offset_gamma + _i_gamma ];
-
-                    }
-                }
-            } 
-            }
-            
-            
-            
-            
-
 
                 }
             }

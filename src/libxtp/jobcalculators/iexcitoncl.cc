@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,8 +23,6 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/tools/constants.h>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
 #include <votca/tools/propertyiomanipulator.h>
 
 #include <votca/ctp/logger.h>
@@ -32,8 +30,6 @@
 
 using namespace boost::filesystem;
 using namespace votca::tools;
-
-namespace ub = boost::numeric::ublas;
     
 namespace votca { namespace xtp {
     

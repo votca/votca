@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,7 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 
 #include <sys/stat.h>
@@ -26,7 +25,6 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/tools/elements.h>
-#include <votca/tools/linalg.h>
 #include <votca/xtp/espfit.h>
 #include <votca/xtp/qminterface.h>
 
@@ -46,14 +44,14 @@ namespace votca {
             double pol = 0.0;
             try {
                 pol = _polar_table.at(elem);
-            } catch (out_of_range&) {
+            } catch (const std::exception& out_of_range) {
                 std::cout << std::endl << "QMMInterface - no default polarizability given "
                         << "for element type '" << elem << "'. Defaulting to 1A**3" << std::flush;
                 pol = 1e-3;
             }
             new_aps->setIsoP(pol);
                    
-            vec pos = atm->getPos()*tools::conv::bohr2nm;
+            tools::vec pos = atm->getPos()*tools::conv::bohr2nm;
             double q = atm->getPartialcharge();
             new_aps->setRank(0);
             new_aps->setPos(pos);
@@ -87,7 +85,7 @@ namespace votca {
                       continue;
                     }
 
-                    vec pos = (*ait)->getQMPos() * tools::conv::nm2bohr;
+                    tools::vec pos = (*ait)->getQMPos() * tools::conv::nm2bohr;
                     std::string name = (*ait)->getElement();
                     //be careful charges are set to zero because most of the time ctp::Atom has getQ not set, the construct is very weird, ctp is shit
                     QMAtom* qmatom = new QMAtom(AtomId,name, pos);
@@ -106,7 +104,7 @@ namespace votca {
                 ctp::PolarSeg *pseg = ptop->QM0()[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j) {
                     ctp::APolarSite *aps = (*pseg)[j];
-                    vec pos = aps->getPos() * tools::conv::nm2bohr;
+                    tools::vec pos = aps->getPos() * tools::conv::nm2bohr;
                     orb.AddAtom(AtomID,aps->getName(), pos);
                     AtomID++;
                 }
@@ -142,7 +140,7 @@ namespace votca {
             std::vector<QMAtom* > ::iterator ait;
             std::vector< QMAtom* >_atoms = _orbitals->QMAtoms();
 
-            string type;
+            std::string type;
             int id = 1;
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
 
@@ -150,7 +148,7 @@ namespace votca {
                 type = (*ait)->getType();
                 
                 ctp::Atom *pAtom = new ctp::Atom(id++, type);
-                vec position= (*ait)->getPos()*votca::tools::conv::bohr2nm;
+                tools::vec position= (*ait)->getPos()*votca::tools::conv::bohr2nm;
                 pAtom->setPos(position);
                 pAtom->setQMPart(id, position);
                 pAtom->setElement(type);

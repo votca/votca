@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,9 +24,6 @@
 #include <votca/tools/elements.h>
 #include <string>
 #include <vector>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <votca/xtp/qmatom.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/apolarsite.h>
@@ -40,7 +37,6 @@
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
    
   class Grid{
     public:
@@ -50,16 +46,16 @@ namespace votca { namespace xtp {
             :_cutoff(3),_gridspacing(0.3),_cutoff_inside(1.5),_shift_cutoff(0.0),_shift_cutoff_inside(0.0),
              _useVdWcutoff(useVdWcutoff),_useVdWcutoff_inside(useVdWcutoff_inside),_cubegrid(false),_padding(3.0),
              _createpolarsites(createpolarsites), _atomlist(NULL), 
-            _lowerbound(vec(0,0,0)), _xsteps(0),_ysteps(0),_zsteps(0) {};
+            _lowerbound(tools::vec(0,0,0)), _xsteps(0),_ysteps(0),_zsteps(0) {};
            
         
         Grid()
             :_cutoff(3),_gridspacing(0.3),_cutoff_inside(1.5),_shift_cutoff(0.0),_shift_cutoff_inside(0.0),
              _useVdWcutoff(false),_useVdWcutoff_inside(false),_cubegrid(false),_padding(3.0),
              _createpolarsites(false), _atomlist(NULL),
-             _lowerbound(vec(0,0,0)),_xsteps(0),_ysteps(0),_zsteps(0) {};
+             _lowerbound(tools::vec(0,0,0)),_xsteps(0),_ysteps(0),_zsteps(0) {};
              
-        Grid(std::vector< vec > points)
+        Grid(std::vector< tools::vec > points)
              :_gridpoints(points){};
            
         
@@ -69,7 +65,9 @@ namespace votca { namespace xtp {
         
         Grid& operator=(const Grid &obj);
         
-        const std::vector< vec > &getGrid() const {return _gridpoints;}
+        const std::vector< tools::vec > &getGridPositions() const {return _gridpoints;}
+        Eigen::VectorXd &getGridValues(){return _gridvalues;}
+        const Eigen::VectorXd &getGridValues() const{return _gridvalues;}
         std::vector< ctp::APolarSite* > &Sites() {return _gridsites;}
         
         void setCutoffs(double cutoff, double cutoff_inside){_cutoff=cutoff;_cutoff_inside=cutoff_inside;}
@@ -84,7 +82,7 @@ namespace votca { namespace xtp {
             return size; 
         }
 
-        void printGridtoxyzfile(const char* _filename);
+        void printGridtoxyzfile(std::string filename);
         
         void readgridfromCubeFile(std::string filename, bool ignore_zeros=true);
        
@@ -106,7 +104,8 @@ namespace votca { namespace xtp {
       
   private:
      
-      std::vector< vec > _gridpoints;
+      std::vector< tools::vec > _gridpoints;
+      Eigen::VectorXd _gridvalues;
       std::vector< ctp::APolarSite* > _gridsites;
       std::vector< ctp::APolarSite* > _all_gridsites;
       
@@ -121,7 +120,7 @@ namespace votca { namespace xtp {
       double _padding;
       bool   _createpolarsites; 
       std::vector< QMAtom* >* _atomlist;
-      vec _lowerbound;
+      tools::vec _lowerbound;
       int _xsteps, _ysteps, _zsteps;
       
  

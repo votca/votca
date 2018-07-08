@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -30,9 +30,6 @@
 
 #include <fstream>
 #include <sys/stat.h>
-
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
@@ -310,7 +307,10 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
            boost::filesystem::path arg_path;
            string ORB_FILE = ( arg_path / ORB_DIR / (format("molecule_%1%.orb") % ID ).str() ).c_str() ;
            CTP_LOG(ctp::logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;  
-           if ( ! _orbitals.Load(ORB_FILE) ) { // did not manage to load
+           try{
+               _orbitals.ReadFromCpt(ORB_FILE);
+           }
+           catch(std::runtime_error& error){
                CTP_LOG(ctp::logERROR,*pLog) << "Failed loading orbitals from " << ORB_FILE << flush; 
                output += "failed loading " + ORB_FILE;
                jres.setOutput( output ); 
@@ -318,6 +318,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
                delete _qmpackage;
                return jres;
            }
+           
         }        
        
        _orbitals.Trim(factor);   
@@ -330,11 +331,10 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
    
    if ( _do_parse ){
     // save orbitals
+    
     string ORB_FILE = "molecule_" + ID + ".orb";
     CTP_LOG(ctp::logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
-    std::ofstream ofs( (ORB_DIR + "/" + ORB_FILE).c_str() );
-    boost::archive::binary_oarchive oa( ofs );
-    oa << _orbitals;
+    _orbitals.WriteToCpt(ORB_DIR+"/"+ORB_FILE);
     // ofs.close();
     
      if(_qmpackage->getPackageName()=="orca"){

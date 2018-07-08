@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,9 +20,7 @@
 #ifndef __XTP_BFGSTRM__H
 #define __XTP_BFGSTRM__H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
-#include <boost/numeric/ublas/operation.hpp>
+
 #include <votca/ctp/logger.h>
 #include <votca/ctp/segment.h>
 #include <stdio.h>
@@ -37,12 +35,11 @@
 namespace votca {
     namespace xtp {
 
-        namespace ub = boost::numeric::ublas;
-
+       
         class BFGSTRM {
         public:
 
-            BFGSTRM(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, vector<ctp::Segment*> segments, Orbitals* orbitals, Forces& force_engine)
+            BFGSTRM(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals* orbitals, Forces& force_engine)
             : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals), _force_engine(force_engine), _iteration(0) {
             };
 
@@ -52,7 +49,7 @@ namespace votca {
             int Iteration() {
                 return _iteration;
             };
-            void Initialize(Property *options);
+            void Initialize(tools::Property *options);
             void Checkpoint(std::vector<ctp::Segment* >& _molecule);
             void WriteIteration(FILE* out, ctp::Segment* _segment);
 
@@ -68,21 +65,20 @@ namespace votca {
             
             GWBSEENGINE _gwbse_engine;
             QMPackage* _qmpackage;
-            vector<ctp::Segment*> _segments;
+            std::vector<ctp::Segment*> _segments;
             Orbitals* _orbitals;
             Forces _force_engine;
 
             unsigned _natoms;
             unsigned _nsegments;
             unsigned _iteration;
-            ub::matrix<double> _force;
-            ub::matrix<double> _force_old;
-            ub::matrix<double> _xyz_shift;
-            ub::matrix<double> _speed;
-            ub::matrix<double> _current_xyz;
-            ub::matrix<double> _old_xyz;
-            ub::matrix<double> _trial_xyz;
-            ub::matrix<double> _hessian;
+            Eigen::MatrixX3d _force;
+            Eigen::MatrixX3d _force_old;
+            Eigen::MatrixX3d _xyz_shift;
+            Eigen::MatrixX3d _current_xyz;
+            Eigen::MatrixX3d _old_xyz;
+            Eigen::MatrixX3d _trial_xyz;
+            Eigen::MatrixXd _hessian;
 
             bool _step_accepted;
             bool _update_hessian;
@@ -108,8 +104,8 @@ namespace votca {
 
             
 
-            Property _optimizer_options;
-            Property _force_options;
+            tools::Property _optimizer_options;
+            tools::Property _force_options;
 
             ctp::Logger *_pLog;
 
@@ -136,11 +132,11 @@ namespace votca {
 
             // vector storage for steps, let's rethink that later
             unsigned _dim;
-            ub::vector<double> _previous_pos;
-            ub::vector<double> _current_pos;
-            ub::vector<double> _previous_gradient;
-            ub::vector<double> _current_gradient;
-            ub::vector<double> _delta_pos;
+            Eigen::VectorXd _previous_pos;
+            Eigen::VectorXd _current_pos;
+            Eigen::VectorXd _previous_gradient;
+            Eigen::VectorXd _current_gradient;
+            Eigen::VectorXd _delta_pos;
             double _new_energy;
             double _last_energy;
             double _energy_delta;

@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,11 +21,11 @@
 #include <math.h>       /* ceil */
 #include <votca/tools/constants.h>
 
-using namespace votca::tools;
+
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+  using namespace tools;
     
 Grid::Grid(const Grid &obj)
     :_cutoff(obj._cutoff),_gridspacing(obj._gridspacing),_cutoff_inside(obj._cutoff_inside),_shift_cutoff(obj._shift_cutoff),
@@ -78,17 +78,16 @@ Grid &Grid::operator=(const Grid & obj){
      return *this;
 }
     
-void Grid::printGridtoxyzfile(const char* _filename){
+void Grid::printGridtoxyzfile(std::string filename){
         //unit is Angstrom in xyz file 
-  
         std::ofstream points;
-        points.open(_filename, std::ofstream::out);
+        points.open(filename.c_str(), std::ofstream::out);
         points << _gridpoints.size() << endl;
         points << endl;
-        for ( unsigned i = 0 ; i < _gridpoints.size(); i++){
-            points << "X " << _gridpoints[i].getX()*conv::bohr2ang << " " 
-                    << _gridpoints[i].getY()*conv::bohr2ang << " " 
-                    << _gridpoints[i].getZ()*conv::bohr2ang << endl;
+        for ( const auto& point:_gridpoints){
+            points << "X " << point.getX()*conv::bohr2ang << " " 
+                    << point.getY()*conv::bohr2ang << " " 
+                    << point.getZ()*conv::bohr2ang << endl;
 
         }
         points.close();
@@ -217,7 +216,7 @@ void Grid::printgridtoCubefile(std::string filename){
             for (ait=_atomlist->begin(); ait != _atomlist->end(); ++ait) {
               const tools::vec& pos=(*ait)->getPos();
                    
-                    string element = (*ait)->getType();
+                    std::string element = (*ait)->getType();
                     int atnum = _elements.getEleNum (element);
                     int crg=(*ait)->getNuccharge();
 
@@ -320,7 +319,7 @@ void Grid::setupgrid(){
                         
                         if(_createpolarsites){
                           
-                            string name="X";
+                            std::string name="X";
                             ctp::APolarSite *apolarsite= new ctp::APolarSite(0,name);
                             apolarsite->setRank(0);        
                             apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'
@@ -339,6 +338,8 @@ void Grid::setupgrid(){
                 }                          
             }                  
         }
+    
+    _gridvalues=Eigen::VectorXd::Zero(_gridpoints.size());
     return;
 }
     

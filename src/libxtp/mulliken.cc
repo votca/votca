@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,14 +24,14 @@
 #include "votca/xtp/qmatom.h"
 namespace votca { namespace xtp {
 
-void Mulliken::EvaluateMulliken(vector<QMAtom* >& _atomlist,const ub::matrix<double> &_dmat, const AOBasis &basis,bool _do_transition){
+void Mulliken::EvaluateMulliken(std::vector<QMAtom* >& _atomlist,const Eigen::MatrixXd  &_dmat, const AOBasis &basis,bool _do_transition){
     AOOverlap _overlap;
     // Fill overlap
     _overlap.Fill(basis);
     
-    ub::matrix<double> _prodmat = ub::prod( _dmat, _overlap.Matrix() );
+    Eigen::MatrixXd _prodmat = _dmat* _overlap.Matrix();
     
-    vector <QMAtom* > :: iterator atom;
+    std::vector <QMAtom* > :: iterator atom;
 
     int id =0;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){

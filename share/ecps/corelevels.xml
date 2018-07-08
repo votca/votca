@@ -1,0 +1,36 @@
+<pseudopotential name="corelevels">
+
+	<element name="C" lmax="0" ncore="2">
+	</element>
+
+        <element name="H" lmax="0" ncore="0">
+	</element>
+
+
+	<element name="N" lmax="0" ncore="2">
+	</element>
+
+	<element name="S" lmax="0" ncore="10">
+	</element>
+
+        <element name="O" lmax="0" ncore="2">
+       </element>
+
+        <element name="F" lmax="0" ncore="2">
+        </element>
+
+
+    <element name="Al" lmax="0" ncore="10">
+       </element>
+
+
+
+
+        <element name="Hg" lmax="0" ncore="60">
+       </element>
+
+<element name="Ag" lmax="0" ncore="28">
+</element>
+
+
+</pseudopotential>

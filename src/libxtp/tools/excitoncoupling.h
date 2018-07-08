@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -84,7 +84,6 @@ void ExcitonCoupling::Initialize(Property* options)
     }
     
     if(!_classical){
-    
         
         string _coupling_xml=options->get(key + ".bsecoupling_options").as<string>();
         load_property_from_xml(_coupling_options, _coupling_xml.c_str());
@@ -93,7 +92,6 @@ void ExcitonCoupling::Initialize(Property* options)
         _orbB  = options->get(key + ".orbitalsB").as<string> ();
         _orbAB = options->get(key + ".orbitalsAB").as<string> ();
 
-       
     }
     else{
         _mpsA= options->get(key + ".mpsA").as<string> ();
@@ -123,25 +121,15 @@ bool ExcitonCoupling::Evaluate() {
     Orbitals _orbitalsA, _orbitalsB, _orbitalsAB;
     // load the QM data from serialized orbitals objects
 
-    std::ifstream ifa( (_orbA ).c_str());
     CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
-    boost::archive::binary_iarchive ia(ifa);
-    ia >> _orbitalsA;
-    ifa.close();
+    _orbitalsA.ReadFromCpt(_orbA);
     
-    std::ifstream ifb( (_orbB ).c_str());
     CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
-    boost::archive::binary_iarchive ib(ifb);
-    ib >> _orbitalsB;
-    ifb.close();
-    
-    
-    std::ifstream ifab( (_orbAB ).c_str());
-    CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
-    boost::archive::binary_iarchive iab(ifab);
-    iab >> _orbitalsAB;
-    ifab.close();
+    _orbitalsB.ReadFromCpt(_orbB);
 
+    CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
+    _orbitalsAB.ReadFromCpt(_orbAB);
+   
      BSECoupling _bsecoupling; 
      _bsecoupling.setLogger(&_log);
      _bsecoupling.Initialize(&_coupling_options);

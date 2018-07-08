@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,9 +22,6 @@
 #include <votca/xtp/qminterface.h>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/tools/constants.h>
@@ -37,9 +34,9 @@
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+      using namespace std;
 
-        void XTPDFT::Initialize(Property *options) {
+        void XTPDFT::Initialize(tools::Property *options) {
 
             // GAUSSIAN file names
             std::string fileName = "system";

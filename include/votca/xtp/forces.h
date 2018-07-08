@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,9 +20,7 @@
 #ifndef __XTP_FORCES__H
 #define __XTP_FORCES__H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
-#include <boost/numeric/ublas/operation.hpp>
+
 #include <votca/xtp/qmatom.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/segment.h>
@@ -35,25 +33,22 @@
 namespace votca {
     namespace xtp {
 
-        namespace ub = boost::numeric::ublas;
 
         class Forces {
         public:
 
-            Forces(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, vector<ctp::Segment*> segments, Orbitals* orbitals)
+            Forces(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals* orbitals)
             : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals), _remove_total_force(false), _remove_CoM_force(false) {
             };
 
             ~Forces() {
             };
 
-            void Initialize(Property *options);
+            void Initialize(tools::Property *options);
             void Calculate(const double& energy);
 
-            void NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait, ub::matrix_range< ub::matrix<double> >& _force,
-                    std::vector<ctp::Segment*> _molecule);
-            void NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait, ub::matrix_range< ub::matrix<double> >& _force,
-                    std::vector<ctp::Segment*> _molecule);
+            Eigen::Vector3d NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait,std::vector<ctp::Segment*> _molecule);
+            Eigen::Vector3d NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait,std::vector<ctp::Segment*> _molecule);
 
             void setLog(ctp::Logger* pLog) {
                 _pLog = pLog;
@@ -75,7 +70,7 @@ namespace votca {
                 return _opt_state;
             };
 
-            ub::matrix<double> GetForces() {
+            Eigen::MatrixXd GetForces() {
                 return _forces;
             };
             void Report();
@@ -104,13 +99,13 @@ namespace votca {
             bool _remove_total_force;
             bool _remove_CoM_force;
 
-            ub::matrix<double> _forces;
+            Eigen::MatrixX3d _forces;
 
-            Property _force_options;
+            tools::Property _force_options;
 
             void RemoveTotalForce();
             void RemoveCoMForce();
-            ub::vector<double> TotalForce();
+            Eigen::Vector3d TotalForce();
 
             QMMInterface _qminterface;
             ctp::Logger *_pLog;

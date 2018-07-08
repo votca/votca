@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,20 +17,12 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
 
-
-#include <votca/xtp/threecenters.h>
-
-
-using namespace votca::tools;
+#include <votca/xtp/threecenter.h>
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
-
- 
-        
+                
         /*
          * Calculate 3-center overlap integrals 
          *    S_{abc} = int{ phi_a^DFT phi_b^GW phi_c^DFT d3r }
@@ -45,14 +37,14 @@ namespace votca {
          *      S,P,D,F,G,H,I   functions in GW  basis
          * 
          */
-        bool TCMatrix::FillThreeCenterOLBlock(ub::matrix<double>& _subvector,const AOShell* _shell_gw,
+        bool TCMatrix::FillThreeCenterOLBlock(Eigen::MatrixXd& _subvector,const AOShell* _shell_gw,
                 const AOShell* _shell_alpha,const AOShell* _shell_gamma) {
 	  
             const double pi = boost::math::constants::pi<double>();
               // get shell positions
-            const vec& _pos_gw = _shell_gw->getPos();
-            const vec& _pos_alpha = _shell_alpha->getPos();
-            const vec& _pos_gamma = _shell_gamma->getPos();
+            const tools::vec& _pos_gw = _shell_gw->getPos();
+            const tools::vec& _pos_alpha = _shell_alpha->getPos();
+            const tools::vec& _pos_gamma = _shell_gamma->getPos();
 
             // shell info, only lmax tells how far to go
             int _lmax_gw = _shell_gw->getLmax();
@@ -131,7 +123,7 @@ namespace votca {
                 for ( AOShell::GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
                     const double _decay_gamma = itgamma->getDecay();
                     // check third threshold
-                    vec _diff = _pos_alpha - _pos_gamma;
+                    tools::vec _diff = _pos_alpha - _pos_gamma;
                     double test = _decay_alpha * _decay_gamma * _diff*_diff;
                     
                     for ( AOShell::GaussianIterator itgw = _shell_gw->firstGaussian(); itgw != _shell_gw->lastGaussian(); ++itgw){
@@ -180,10 +172,10 @@ namespace votca {
             //double _dist3=(_pos_alpha - _pos_gw) * (_pos_alpha - _pos_gw);
             
                   
-            vec gvv = fak2 * (_decay_alpha * _pos_alpha + _decay_gw * _pos_gw + _decay_gamma * _pos_gamma);
-            vec gma = gvv - _pos_alpha;
-            vec gmb = gvv - _pos_gamma;
-            vec gmc = gvv - _pos_gw; 
+            tools::vec gvv = fak2 * (_decay_alpha * _pos_alpha + _decay_gw * _pos_gw + _decay_gamma * _pos_gamma);
+            tools::vec gma = gvv - _pos_alpha;
+            tools::vec gmb = gvv - _pos_gamma;
+            tools::vec gmc = gvv - _pos_gw; 
             
             double gma0 = gma.getX();
             double gmb0 = gmb.getX();
@@ -203,11 +195,9 @@ namespace votca {
 
             _does_contribute = true;
             // if it does, go on and create multiarray
-            typedef boost::multi_array<double, 3> ma_type;
-            typedef boost::multi_array_types::extent_range range;
-
-            ma_type::extent_gen extents;
-            ma_type S;
+           
+            tensor3d::extent_gen extents;
+            tensor3d S;
 ////////            S.resize(extents[ range(1, _nalpha + 1) ][ range(1, _ngw + 1) ][ range(1, _ngamma + 1)]);
             S.resize(extents[ range(0, _nalpha) ][ range(0, _ngw) ][ range(0, _ngamma) ]); /////////////////
 
@@ -915,7 +905,7 @@ if (_lmax_gamma > 5) {
 
 
             // data is now stored in unnormalized cartesian Gaussians in the multiarray
-            // Now, weird-looking construction since multiarray is not accessible for ub::prod
+            // Now, weird-looking construction since multiarray is not accessible for product
             //              s px py pz dxz dyz dxy d3z2-r2 dx2-y2  f1  f2  f3  f4  f5  f6  f7  g1  g2  g3  g4  g5  g6  g7  g8  g9 
 /////            int istart[] = {0, 1, 2, 3, 5,  6,  4,   7,     7,    12,  10, 11, 11, 10, 19, 15,  5, 25, 27, 23, 20, 25, 27, 23, 20}; //extend for g
 /////            int istop[] =  {0, 1, 2, 3, 5,  6,  4,   9,     8,    17,  16, 18, 13, 14, 19, 17, 31, 33, 32 ,34, 30, 33, 32, 24, 31}; // extend for g
@@ -939,9 +929,9 @@ if (_lmax_gamma > 5) {
             
             
 
-            const ub::matrix<double> _trafo_gw = AOSuperMatrix::getTrafo(*itgw);
-            const ub::matrix<double> _trafo_alpha = AOSuperMatrix::getTrafo(*italpha);
-            const ub::matrix<double> _trafo_gamma = AOSuperMatrix::getTrafo(*itgamma);
+            const Eigen::MatrixXd _trafo_gw = AOSuperMatrix::getTrafo(*itgw);
+            const Eigen::MatrixXd _trafo_alpha = AOSuperMatrix::getTrafo(*italpha);
+            const Eigen::MatrixXd _trafo_gamma = AOSuperMatrix::getTrafo(*itgamma);
 
        
             

@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -130,7 +130,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                 if (taken)
                     throw runtime_error("(see above, naming collision)");
             }
-            catch (out_of_range&) {
+            catch (const std::exception& out_of_range) {
                 fragname_isTaken[fragment->getName()] = true;
             }
             
@@ -244,7 +244,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                                 << intCoords.at(qm_atom_id).first << endl;
                        }
                    }
-                   catch (out_of_range&) {
+                   catch (const std::exception& out_of_range) {
                        ; // No QM coordinates specified
                    }
                }
@@ -281,7 +281,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                         << endl;
                    throw runtime_error( "Ambiguity in atom definition." );
                }
-               catch ( out_of_range& ) {
+               catch ( const std::exception& out_of_range ) {
                    this->_map_mol_resNr_atm_atmType[molMdName]
                                                    [residue_number]
                                                    [md_atom_name] = atom;
@@ -384,7 +384,7 @@ CTP::Molecule *Md2QmEngine::MoleculeFactory(CSG::Molecule *molMDTemplate) {
                                    atomMD->getName());
             counterpart->setPos(atomMD->getPos());
         }
-        catch (out_of_range&) {
+        catch (const std::exception& out_of_range) {
             cout << "WARNING: No mapping instruction found for atom "
                  << atomMD->getName() << " in residue number "
                  << atomMD->getResnr() << " in molecule "
@@ -544,7 +544,7 @@ CTP::Molecule *Md2QmEngine::getMoleculeType(const string &name) {
     try {
         return _map_MoleculeName_MoleculeType.at(name);
     }
-    catch ( out_of_range& ) {
+    catch ( const std::exception& out_of_range ) {
         cout << "WARNING: Molecule '" << name
              << "' not included in mapping definition. Skipping... ";
         cout << endl;
@@ -556,7 +556,7 @@ const string &Md2QmEngine::getMoleculeName(const string &mdname) {
     try {
         return _map_MoleculeMDName_MoleculeName.at(mdname);
     }
-    catch ( out_of_range& ) {
+    catch ( const std::exception& out_of_range ) {
         return mdname;
     }
 }

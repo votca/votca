@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,7 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/qmapemachine.h>
 #include <boost/format.hpp>
@@ -337,7 +336,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
                 if (osc > _osc_threshold) _state_index.push_back(_i);
             }
         } else {
-            const ub::vector<real_gwbse>& energies = (_type=="singlet") 
+            const VectorXfd& energies = (_type=="singlet") 
                         ? orb.BSESingletEnergies() : orb.BSETripletEnergies();
                        
                         for (unsigned _i = 0; _i < energies.size(); _i++) {
@@ -348,7 +347,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
        // filter according to charge transfer, go through list of excitations in _state_index
         if (_has_dQ_filter) {
             std::vector<int> _state_index_copy;
-            const std::vector< ub::vector<double> >& dQ_frag= (_type=="singlet") 
+            const std::vector< Eigen::VectorXd >& dQ_frag= (_type=="singlet") 
             ? orb.getFragmentChargesSingEXC():orb.getFragmentChargesTripEXC();
             for (unsigned _i = 0; _i < _state_index.size(); _i++) {
                 if (std::abs(dQ_frag[_state_index[_i]](0)) > _dQ_threshold) {
@@ -359,9 +358,9 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
         }
         else if (_has_loc_filter) {
             std::vector<int> _state_index_copy;
-            const std::vector< ub::vector<double> >& popE= (_type=="singlet") 
+            const std::vector< Eigen::VectorXd >& popE= (_type=="singlet") 
             ? orb.getFragment_E_localisation_singlet():orb.getFragment_E_localisation_triplet();
-            const std::vector< ub::vector<double> >& popH= (_type=="singlet") 
+            const std::vector< Eigen::VectorXd >& popH= (_type=="singlet") 
             ? orb.getFragment_H_localisation_singlet():orb.getFragment_H_localisation_triplet();
             if(_localiseonA){
                 for (unsigned _i = 0; _i < _state_index.size(); _i++) {
@@ -399,12 +398,12 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
     AOBasis dftbasis;
     dftbasis.AOBasisFill(&dftbs, orb.QMAtoms() );
     // TBD: Need to switch between singlets and triplets depending on _type
-    ub::matrix<double> DMATGS = orb.DensityMatrixGroundState();
-    ub::matrix<double> DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
+   Eigen::MatrixXd DMATGS = orb.DensityMatrixGroundState();
+    Eigen::MatrixXd DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
 
     if (_state > 0) {
         
-        std::vector<ub::matrix<double> > DMAT = orb.DensityMatrixExcitedState(_type, _state_index[_state - 1]);
+        std::vector< Eigen::MatrixXd > DMAT = orb.DensityMatrixExcitedState(_type, _state_index[_state - 1]);
         DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
     }
 

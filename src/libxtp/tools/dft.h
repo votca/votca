@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -82,29 +82,13 @@ namespace votca {
             // update options with the VOTCASHARE defaults   
             UpdateWithDefaults(options, "xtp");
 
-            /*    _do_dft_input = false;
-            _do_dft_run = false;
-            _do_dft_parse = false;
-            _do_gwbse = false;
-            _do_optimize = false;
-            _restart_opt = false;
-             */
-
+ 
             string key = "options." + Identify();
             _output_file = options->get(key + ".archive").as<string>();
             _reporting = options->get(key + ".reporting").as<string> ();
 
-            // options for dft package
-
-            //cout << endl << "... ... Parsing " << _package_xml << endl ;
-
-
-
-
             // options for dftengine
             key = "options." + Identify();
-
-
 
             if (options->exists(key + ".guess")) {
                 _do_guess = true;
@@ -126,7 +110,6 @@ namespace votca {
                 _orbfile = options->get(key + ".molecule.orbitals").as<string> ();
             }
 
-
             if (options->exists(key + ".mpsfile")) {
                 _do_external = true;
                 _mpsfile = options->get(key + ".mpsfile").as<string> ();
@@ -134,18 +117,14 @@ namespace votca {
                 _do_external = false;
             }
 
-
             // initial coordinates
             _xyzfile = options->get(key + ".xyz").as<string>();
-
 
             // get the path to the shared folders with xml files
             char *votca_share = getenv("VOTCASHARE");
             if (votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
             string xmlFile = string(getenv("VOTCASHARE")) + string("/xtp/packages/") + _package + string("_idft_pair.xml");
-            //load_property_from_xml(_package_options, xmlFile);
-
-            // register all QM packages (Gaussian, TURBOMOLE, etc)
+         
             QMPackageFactory::RegisterAll();
 
 
@@ -154,7 +133,6 @@ namespace votca {
         }
 
         bool DFT::Evaluate() {
-
 
             if (_reporting == "silent") _log.setReportLevel(ctp::logERROR); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
             if (_reporting == "noisy") _log.setReportLevel(ctp::logDEBUG); // OUTPUT ALL THE THINGS
@@ -173,14 +151,11 @@ namespace votca {
 
             if (_do_guess) {
                 CTP_LOG(ctp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
-                _orbitals.Load(_guess_file);
-
+                _orbitals.ReadFromCpt(_guess_file);
             } else {
                 CTP_LOG(ctp::logDEBUG, _log) << "Reading structure from " << _xyzfile << flush;
                 _orbitals.LoadFromXYZ(_xyzfile);
             }
-
-
 
             // initialize the DFTENGINE
             DFTENGINE _dft;
@@ -205,14 +180,8 @@ namespace votca {
 
 
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _output_file << flush;
-            std::ofstream ofs((_output_file).c_str());
-            boost::archive::binary_oarchive oa(ofs);
-
-
-
-            oa << _orbitals;
-            ofs.close();
-
+            _orbitals.WriteToCpt(_output_file);
+          
             return true;
         }
 

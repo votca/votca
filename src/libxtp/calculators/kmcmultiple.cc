@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,8 @@ void KMCMultiple::Initialize(tools::Property *options){
             _injectionmethod = "random";
         }
          _field = options->ifExistsReturnElseReturnDefault<tools::vec>(key+".field",tools::vec(0,0,0));
-       _field *= 10E-9; 
+         double mtonm=1E9;
+       _field /=mtonm ;//Converting from V/m to V/nm 
       
 	_outputtime = options->ifExistsReturnElseReturnDefault<double>(key+".outputtime",0);
         _timefile = options->ifExistsReturnElseReturnDefault<std::string>(key+".timefile","timedependence.csv");

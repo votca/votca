@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,8 +16,6 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 
 
 #include "votca/xtp/sphere_lebedev_rule.h"

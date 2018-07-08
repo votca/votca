@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,9 +20,7 @@
 #ifndef __XTP_GEOMETRY_OPTIMIZATION__H
 #define __XTP_GEOMETRY_OPTIMIZATION__H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
-#include <boost/numeric/ublas/operation.hpp>
+
 #include <votca/xtp/qmatom.h>
 #include <votca/ctp/logger.h>
 #include <votca/ctp/segment.h>
@@ -34,7 +32,7 @@
 namespace votca {
     namespace xtp {
 
-        namespace ub = boost::numeric::ublas;
+
 
         class GeometryOptimization {
         public:
@@ -45,8 +43,8 @@ namespace votca {
             ~GeometryOptimization() {
             };
 
-            void BFGSStep(int& _iteration, bool& _update_hessian, ub::matrix<double>& _force, ub::matrix<double>& _force_old, ub::matrix<double>& _current_xyz, ub::matrix<double>& _old_xyz, ub::matrix<double>& _hessian, ub::matrix<double>& _xyz_shift, ub::matrix<double>& _trial_xyz);
-            void Initialize(Property *options);
+            void BFGSStep(int& _iteration, bool& _update_hessian, Eigen::MatrixXd& _force, Eigen::MatrixXd& _force_old, Eigen::MatrixXd& _current_xyz, Eigen::MatrixXd& _old_xyz, Eigen::MatrixXd& _hessian, Eigen::MatrixXd& _xyz_shift, Eigen::MatrixXd& _trial_xyz);
+            void Initialize(tools::Property *options);
 
             void setLog(ctp::Logger* pLog) {
                 _pLog = pLog;
@@ -74,8 +72,8 @@ namespace votca {
             std::vector<ctp::Segment*> _segments;
             Orbitals* _orbitals;
 
-            Property _optimizer_options;
-            Property _force_options;
+            tools::Property _optimizer_options;
+            tools::Property _force_options;
 
             ctp::Logger *_pLog;
         };

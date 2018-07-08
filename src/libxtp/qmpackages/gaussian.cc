@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,9 +22,7 @@
 #include <votca/xtp/qminterface.h>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
+
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/tools/constants.h>
@@ -37,9 +35,9 @@
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+      using namespace std;
 
-        void Gaussian::Initialize(Property *options) {
+        void Gaussian::Initialize(tools::Property *options) {
 
             // GAUSSIAN file names
             std::string fileName = "system";
@@ -146,13 +144,13 @@ namespace votca {
          * 'elementname'.gbs files, which are then included in the
          * Gaussian input file using @'elementname'.gbs
          */
-        void Gaussian::WriteBasisset(ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
+        void Gaussian::WriteBasisset(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
 
 
             std::vector< QMAtom* >::iterator it;
 
 
-            list<std::string> elements;
+            std::list<std::string> elements;
             BasisSet bs;
             // std::string basis_name(_basis);
 
@@ -165,7 +163,7 @@ namespace votca {
 
                     //cout << "looking up basis set for element " << element_name << endl;
 
-                    list<std::string>::iterator ite;
+                    std::list<std::string>::iterator ite;
                     ite = find(elements.begin(), elements.end(), element_name);
 
                     if (ite == elements.end()) {
@@ -238,11 +236,11 @@ namespace votca {
         /* If custom ECPs are used, they need to be specified in the input file
          * in a section following the basis set includes.
          */
-        void Gaussian::WriteECP(ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
+        void Gaussian::WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
 
             std::vector< QMAtom* >::iterator it;
 
-            list<std::string> elements;
+            std::list<std::string> elements;
 
             elements.push_back("H");
             elements.push_back("He");
@@ -256,7 +254,7 @@ namespace votca {
                 
                     std::string element_name = (*it)->getType();
 
-                    list<std::string>::iterator ite;
+                    std::list<std::string>::iterator ite;
                     ite = find(elements.begin(), elements.end(), element_name);
 
                     if (ite == elements.end()) {
@@ -295,7 +293,7 @@ namespace votca {
          * input file. In g03 AFTER basis sets and ECPs, in g09 BEFORE.
          */
      
-        void Gaussian::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::PolarSeg*> segments) {
+        void Gaussian::WriteBackgroundCharges(std::ofstream& _com_file, std::vector<ctp::PolarSeg*> segments) {
             std::vector< ctp::PolarSeg* >::iterator it;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
             for (it = segments.begin(); it < segments.end(); it++) {
@@ -329,7 +327,7 @@ namespace votca {
          * Fortran fixed format 5D15.8. The information about the guess
          * itself is taken from a prepared orbitals object.
          */
-        void Gaussian::WriteGuess(Orbitals* orbitals_guess, ofstream& _com_file) {
+        void Gaussian::WriteGuess(Orbitals* orbitals_guess, std::ofstream& _com_file) {
             if (orbitals_guess == NULL) {
                 throw std::runtime_error("A guess for dimer orbitals has not been prepared.");
             } else {
@@ -349,7 +347,7 @@ namespace votca {
 
                     _com_file << setw(5) << level << endl;
 
-                    ub::matrix_row< ub::matrix<double> > mr(orbitals_guess->MOCoefficients(), *soi);
+                  Eigen::VectorXd mr=orbitals_guess->MOCoefficients().col(*soi);
 
                     int column = 1;
                     for (unsigned j = 0; j < mr.size(); ++j) {
@@ -376,7 +374,7 @@ namespace votca {
          * electron density from the checkpoint file, setting run to serial.
          */
         void Gaussian::WriteVXCRunInputFile() {
-            ofstream _com_file2;
+            std::ofstream _com_file2;
 
             std::string _com_file_name_full2 = _run_dir + "/" + _input_vxc_file_name;
 
@@ -407,7 +405,7 @@ namespace votca {
         /* Coordinates are written in standard Element,x,y,z format to the
          * input file.
          */
-        void Gaussian::WriteCoordinates(ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
+        void Gaussian::WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
             std::vector< QMAtom* >::iterator it;
 
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
@@ -428,7 +426,7 @@ namespace votca {
          * memory, shared processor request, option string containing all
          * relevant keywords, charge, and spin information.
          */
-        void Gaussian::WriteHeader(ofstream& _com_file) {
+        void Gaussian::WriteHeader(std::ofstream& _com_file) {
             if (_chk_file_name.size()) _com_file << "%chk=" << _chk_file_name << endl;
             if (_memory.size()) _com_file << "%mem=" << _memory << endl;
             if (_threads > 0) _com_file << "%nprocshared=" << _threads << endl;
@@ -451,7 +449,7 @@ namespace votca {
             std::string temp_suffix = "/id";
             std::string scratch_dir_backup = _scratch_dir;
 
-            ofstream _com_file;
+            std::ofstream _com_file;
             std::string _com_file_name_full = _run_dir + "/" + _input_file_name;
             _com_file.open(_com_file_name_full.c_str());
 
@@ -541,7 +539,7 @@ namespace votca {
          * using patched g03. This function writes the shell script.
          */
         bool Gaussian::WriteShellScript() {
-            ofstream _shell_file;
+            std::ofstream _shell_file;
 
             std::string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
 
@@ -611,7 +609,7 @@ namespace votca {
             if (_cleanup.size() != 0) {
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
-                Tokenizer tok_cleanup(_cleanup, ", ");
+                tools::Tokenizer tok_cleanup(_cleanup, ", ");
                 std::vector <std::string> _cleanup_info;
                 tok_cleanup.ToVector(_cleanup_info);
 
@@ -765,16 +763,16 @@ namespace votca {
             _orbitals->setBasisSetSize(_basis_size); // = _basis_size;
 
             // copying energies to the orbitals object
-            ub::vector<double> &mo_energies = _orbitals->MOEnergies();
+           Eigen::VectorXd &mo_energies = _orbitals->MOEnergies();
             mo_energies.resize(_levels);
-            for (size_t i = 0; i < mo_energies.size(); i++) mo_energies[i] = _energies[ i + 1 ];
+            for (int i = 0; i < mo_energies.size(); i++) mo_energies[i] = _energies[ i + 1 ];
 
             // copying mo coefficients to the orbitals object
-            ub::matrix<double> &mo_coefficients = _orbitals->MOCoefficients();
+            Eigen::MatrixXd &mo_coefficients = _orbitals->MOCoefficients();
             mo_coefficients.resize(_levels, _basis_size);
-            for (size_t i = 0; i < mo_coefficients.size1(); i++){
-                for (size_t j = 0; j < mo_coefficients.size2(); j++){
-                    mo_coefficients(i, j) = _coefficients[i + 1][j];
+            for (int i = 0; i < mo_coefficients.rows(); i++){
+                for (int j = 0; j < mo_coefficients.cols(); j++){
+                    mo_coefficients(j, i) = _coefficients[i + 1][j];
                 }
             }
             
@@ -1012,7 +1010,7 @@ namespace votca {
                         if (_has_atoms == false) {
                             pAtom =_orbitals->AddAtom(atom_id - 1,atom_type, 0, 0, 0);
                         } else {
-                            pAtom = _orbitals->_atoms.at(atom_id - 1);
+                            pAtom = _orbitals->QMAtoms().at(atom_id - 1);
                         }
                         pAtom->setPartialcharge(atom_charge);
                     }
@@ -1044,7 +1042,7 @@ namespace votca {
                     std::vector<std::string> results;
                     boost::iter_split(stringList, archive, boost::first_finder("\\\\"));
 
-                    list<std::string>::iterator coord_block = stringList.begin();
+                    std::list<std::string>::iterator coord_block = stringList.begin();
                     std::advance(coord_block, 3);
 
                     std::vector<std::string> atom_block;
@@ -1070,7 +1068,7 @@ namespace votca {
                         if (_has_atoms == false) {
                             _orbitals->AddAtom(aindex,_atom_type, pos);
                         } else {
-                            QMAtom* pAtom = _orbitals->_atoms.at(aindex);
+                            QMAtom* pAtom = _orbitals->QMAtoms().at(aindex);
                             pAtom->setPos(pos);
                             
                         }
@@ -1130,10 +1128,10 @@ namespace votca {
                 if (overlap_pos != std::string::npos) {
 
                     // prepare the container
-                    ub::symmetric_matrix<double>& overlap=_orbitals->AOOverlap();
+                    Eigen::MatrixXd& overlap=_orbitals->AOOverlap();
 
                     // _orbitals->_has_overlap = true;
-                    overlap.resize(_basis_set_size);
+                    overlap.resize(_basis_set_size,_basis_set_size);
 
                     _has_overlap_matrix = true;
                     //cout << "Found the overlap matrix!" << endl;
@@ -1183,6 +1181,7 @@ namespace votca {
                                 int _j_index = *_j_iter;
                                 //_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
                                 overlap(_i_index - 1, _j_index - 1) = boost::lexical_cast<double>(_coefficient);
+                                overlap(_j_index - 1, _i_index - 1) = boost::lexical_cast<double>(_coefficient);
                                 _j_iter++;
 
                             }
@@ -1236,8 +1235,8 @@ namespace votca {
                 if (_input_file.good()) {
                     // prepare the container
                     // _orbitals->_has_vxc = true;
-                    ub::symmetric_matrix<double> _vxc;
-                    _vxc.resize(_cart_basis_set_size);
+                    Eigen::MatrixXd _vxc;
+                    _vxc.resize(_cart_basis_set_size,_cart_basis_set_size);
 
 
                     // _has_vxc_matrix = true;
@@ -1259,6 +1258,7 @@ namespace votca {
                         int _j_index = boost::lexical_cast<int>(_row[1]);
                         //cout << "Vxc element [" << _i_index << ":" << _j_index << "] " << boost::lexical_cast<double>( _row[2] ) << endl;
                         _vxc(_i_index - 1, _j_index - 1) = boost::lexical_cast<double>(_row[2]);
+                        _vxc(_j_index - 1, _i_index - 1) = boost::lexical_cast<double>(_row[2]);
                     }
 
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;
@@ -1274,12 +1274,9 @@ namespace votca {
                 AOBasis _dftbasis;
                 _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
                 
-                ub::matrix<double> vxc_full=_vxc;
                 
-                ub::matrix<double> _carttrafo=_dftbasis.getTransformationCartToSpherical(getPackageName());
-                ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_full);
-                vxc_full = ub::prod(_temp, ub::trans(_carttrafo));
-                _orbitals->AOVxc()=vxc_full;
+                Eigen::MatrixXd _carttrafo=_dftbasis.getTransformationCartToSpherical(getPackageName());
+                _orbitals->AOVxc()=_carttrafo*_vxc*_carttrafo.transpose();
                 } else {
                     throw std::runtime_error("Vxc file does not exist.");
                 }

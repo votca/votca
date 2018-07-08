@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,9 +24,6 @@
 
 #include <votca/tools/elements.h>
 #include <boost/algorithm/string.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <stdio.h>
@@ -38,9 +35,9 @@
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+      using namespace std;
 
-        void Orca::Initialize(Property *options) {
+        void Orca::Initialize(tools::Property *options) {
 
             //good luck
 
@@ -68,7 +65,6 @@ namespace votca {
             _memory = options->get(key + ".memory").as<std::string> ();
             _threads = options->get(key + ".threads").as<int> ();
             _scratch_dir = options->get(key + ".scratch").as<std::string> ();
-            _basisset_name = options->get(key + ".basisset").as<std::string> ();
             _cleanup = options->get(key + ".cleanup").as<std::string> ();
             _auxbasisset_name = options->get(key + ".auxbasisset").as<std::string> ();
 
@@ -81,7 +77,7 @@ namespace votca {
                 throw std::runtime_error("Sorry " + _name + " does not support Vxc output");
             }
 
-
+            _basisset_name = options->get(key + ".basisset").as<std::string> ();
             _write_basis_set = options->get(key + ".writebasisset").as<bool> ();
             _write_pseudopotentials = options->get(key + ".writepseudopotentials").as<bool> ();
             if ( _write_pseudopotentials )  _ecp_name = options->get(key + ".ecp").as<std::string> ();
@@ -97,7 +93,7 @@ namespace votca {
 
             // check if the esp keyword is present, if yes, get the charges and save them
             iop_pos = _options.find(" chelpg"); /*electrostatic potential related to partial atomic charges I guess is chelpg in orca but check */
-            if (iop_pos != std::string::npos) {
+            if (iop_pos != std::string::npos ||  _options.find(" CHELPG")!= std::string::npos) {
                 _get_charges = true;
             } else {
                 _get_charges = false;
@@ -128,7 +124,7 @@ namespace votca {
          */
         void Orca::WriteBasisset(std::vector<QMAtom*>& qmatoms, std::string& _bs_name, std::string& _el_file_name) {
 
-            Elements _elements;
+            tools::Elements _elements;
             list<std::string> elements;
             BasisSet bs;
             bs.LoadBasisSet(_bs_name);
@@ -234,7 +230,7 @@ namespace votca {
 
                         //For Orca the order doesn't matter but let's write it in ascending order
                         // write remaining shells in ascending order s,p,d...
-                        for (int i = 0; i < element->getLmax(); i++) {
+                        for (int i = 0; i <= element->getLmax(); i++) {
                             for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                                 Shell* shell = (*its);
                                 if (shell->getLmax() == i) {
@@ -249,22 +245,6 @@ namespace votca {
                                 }
                             }
                         }
-
-                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
-                            Shell* shell = (*its);
-                            // shell type, number primitives, scale factor
-                            if (shell->getLmax() == element->getLmax()) {
-                                _com_file << shell->getType() << " " << shell->getSize() << endl;
-                                // _com_file << shell->getSize() << endl;
-                                int _sh_idx = 0;
-                                for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                                    GaussianPrimitive* gaussian = *itg;
-                                    _sh_idx++;
-                                    _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
-                                }
-                            }
-                        }
-
                         _com_file << "end\n " << "\n" << endl;
                     }
 
@@ -495,7 +475,7 @@ namespace votca {
           
             // cleaning up the generated files
             if (_cleanup.size() != 0) {
-                Tokenizer tok_cleanup(_cleanup, ",");
+                tools::Tokenizer tok_cleanup(_cleanup, ",");
                 std::vector <std::string> _cleanup_info;
                 tok_cleanup.ToVector(_cleanup_info);
 
@@ -630,7 +610,7 @@ namespace votca {
                         if (_has_QMAtoms == false) {
                             _orbitals->AddAtom(atom_id,_atom_type, pos);
                         } else {
-                            QMAtom* pAtom = _orbitals->_atoms.at(atom_id);
+                            QMAtom* pAtom = _orbitals->QMAtoms().at(atom_id);
                             pAtom->setPos(pos);
                         }
                         atom_id++;
@@ -701,13 +681,19 @@ namespace votca {
                         boost::trim(_oc);
                         double occ = boost::lexical_cast<double>(_oc);
                         // We only count alpha electrons, each orbital must be empty or doubly occupied
-                        if (occ == 2) {
+                        if (occ == 2 || occ == 1) {
                             _number_of_electrons++;
                             _occ[i] = occ;
                         } else if (occ == 0) {
                             _occ[i] = occ;
                         } else {
+                            if (occ == 1){
+                                CTP_LOG(ctp::logDEBUG, *_pLog) << "Watch out! No distinction between alpha and beta electrons. Check if occ = 1 is suitable for your calculation " << flush;
+                                _number_of_electrons++;
+                                _occ[i] = occ;
+                            } else {
                             throw runtime_error("Only empty or doubly occupied orbitals are allowed not running the right kind of DFT calculation");
+                            }
                         }
 
                         std::string _e = results[2];
@@ -722,41 +708,32 @@ namespace votca {
 
                 if (charge_pos != std::string::npos && _get_charges) {
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Getting charges" << flush;
-                    //_has_charges = true;
                     getline(_input_file, _line);
-                    //getline(_input_file, _line);
-
-                    bool _has_atoms = _orbitals->hasQMAtoms();
 
                     std::vector<std::string> _row;
                     getline(_input_file, _line);
                     boost::trim(_line);
-                    //cout << _line << endl;
                     boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     int nfields = _row.size();
-                    //cout << _row.size() << endl;
 
                     while (nfields == 4) {
                         int atom_id = boost::lexical_cast< int >(_row.at(0));
                         atom_id++;
-                        //int atom_number = boost::lexical_cast< int >(_row.at(0));
                         std::string atom_type = _row.at(1);
                         double atom_charge = boost::lexical_cast< double >(_row.at(3));
-                        if (tools::globals::verbose) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
                         getline(_input_file, _line);
                         boost::trim(_line);
                         boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                         nfields = _row.size();
                         
                         QMAtom* pAtom;
-                        if (_has_atoms == false) {
+                        if (!_orbitals->hasQMAtoms()) {
                             pAtom =_orbitals->AddAtom(atom_id - 1,atom_type, 0, 0, 0);
                         } else {
-                            pAtom = _orbitals->_atoms.at(atom_id - 1);
+                            pAtom = _orbitals->QMAtoms().at(atom_id - 1);
                         }
                         pAtom->setPartialcharge(atom_charge);
                     }
-                    //_orbitals->_has_atoms = true;
                 }
             }
 
@@ -783,7 +760,7 @@ namespace votca {
             // copying energies to a matrix
             _orbitals->MOEnergies().resize(_levels);
             //_level = 1;
-            for (size_t i = 0; i < _orbitals->MOEnergies().size(); i++) {
+            for (int i = 0; i < _orbitals->MOEnergies().size(); i++) {
                 _orbitals->MOEnergies()[i] = _energies[ i ];
             }
 
@@ -879,9 +856,9 @@ namespace votca {
 
             // i -> MO, j -> AO
             (_orbitals->MOCoefficients()).resize(_levels, _basis_size);
-            for (size_t i = 0; i < _orbitals->MOCoefficients().size1(); i++) {
-                for (size_t j = 0; j < _orbitals->MOCoefficients().size2(); j++) {
-                    _orbitals->MOCoefficients()(i, j) = _coefficients[j * _basis_size + i];
+            for (int i = 0; i < _orbitals->MOCoefficients().rows(); i++) {
+                for (int j = 0; j < _orbitals->MOCoefficients().cols(); j++) {
+                    _orbitals->MOCoefficients()(j, i) = _coefficients[j * _basis_size + i];
                    
                 }
             }

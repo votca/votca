@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,8 +16,6 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 
 #include <votca/xtp/aomatrix.h>
 
@@ -27,13 +25,11 @@
 
 
 
-using namespace votca::tools;
-
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+
 
     
-    void AOKinetic::FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix,const AOShell* _shell_row,const AOShell* _shell_col, AOBasis* ecp) {
+    void AOKinetic::FillBlock( Eigen::Block<Eigen::MatrixXd> & _matrix,const AOShell* _shell_row,const AOShell* _shell_col) {
        
        
         // shell info, only lmax tells how far to go
@@ -42,7 +38,7 @@ namespace votca { namespace xtp {
         
         
         if (_lmax_col >4 || _lmax_row >4){
-            cerr << "Orbitals higher than g are not yet implemented. This should not have happened!" << flush;
+            std::cerr << "Orbitals higher than g are not yet implemented. This should not have happened!" << std::flush;
              exit(1);
         }
 
@@ -51,9 +47,9 @@ namespace votca { namespace xtp {
         int _ncols = this->getBlockSize( _lmax_col ); 
         
              // get shell positions
-        const vec& _pos_row = _shell_row->getPos();
-        const vec& _pos_col = _shell_col->getPos();
-        const vec  _diff    = _pos_row - _pos_col;
+        const tools::vec& _pos_row = _shell_row->getPos();
+        const tools::vec& _pos_col = _shell_col->getPos();
+        const tools::vec  _diff    = _pos_row - _pos_col;
        
           
         double _distsq = (_diff*_diff);   
@@ -142,9 +138,9 @@ namespace votca { namespace xtp {
              const double _fak_b = rzeta * _decay_row; ////////////
             
             // matrix for kinetic energies
-            ub::matrix<double> kin = ub::zero_matrix<double>(_nrows,_ncols);
+            Eigen::MatrixXd kin = Eigen::MatrixXd::Zero(_nrows,_ncols);
             //matrix for unnormalized overlap integrals
-            ub::matrix<double> ol = ub::zero_matrix<double>(_nrows,_ncols);
+            Eigen::MatrixXd ol = Eigen::MatrixXd::Zero(_nrows,_ncols);
         
             // s-s overlap integral
             ol(Cart::s,Cart::s) = pow(rzeta,1.5)*pow(4.0*_decay_row*_decay_col,0.75) * exp(-_exparg);
@@ -536,17 +532,14 @@ if (_lmax_col > 3) {
 } // end if (_lmax_col > 3)
 
                 // normalization and cartesian -> spherical factors
-            ub::matrix<double> _trafo_row = getTrafo(*itr);
-            ub::matrix<double> _trafo_col_tposed = ub::trans(getTrafo(*itc));      
-
-             ub::matrix<double> kin_tmp = ub::prod( _trafo_row, kin );
-             ub::matrix<double> kin_sph = ub::prod( kin_tmp, _trafo_col_tposed );
-             // save to _matrix
-             for ( unsigned i = 0; i< _matrix.size1(); i++ ) {
-                 for (unsigned j = 0; j < _matrix.size2(); j++){
-                     _matrix(i,j) += kin_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
-                    }
+             Eigen::MatrixXd _kin_sph = getTrafo(*itr)*kin*getTrafo(*itc).transpose();
+        // save to _matrix
+        
+        for ( unsigned i = 0; i< _matrix.rows(); i++ ) {
+            for (unsigned j = 0; j < _matrix.cols(); j++) {
+                _matrix(i,j) += _kin_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
             }
+        }
         
         
         

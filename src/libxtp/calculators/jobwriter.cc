@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -348,7 +348,7 @@ void JobWriter::mps_single(ctp::Topology *top) {
     ofs << "<jobs>" << endl;
     
     int jobCount = 0;    
-    
+   
     // DEFINE PAIR CHARGE STATES
     std::vector<std::string > states;
     std::vector<std::string> ::iterator vit;

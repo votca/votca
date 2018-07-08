@@ -37,7 +37,6 @@
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
     
 class NBO{
 public:
@@ -45,15 +44,15 @@ public:
     NBO(ctp::Logger *log){_log = log;}
    ~NBO(){};
        
-   void EvaluateNBO(std::vector< QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,const AOBasis &_basis, BasisSet &bs);
+   void EvaluateNBO(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd  &_dmat,const AOBasis &_basis, BasisSet &bs);
   
 private:
     
      ctp::Logger *_log;
      votca::tools::Elements _elements; 
     
-    ub::matrix<double> IntercenterOrthogonalisation(ub::matrix<double> &P,ub::matrix<double> &Overlap,vector< QMAtom* >& _atomlist, BasisSet &bs);
-    void TransformMatrixtoNewBasis(ub::matrix<double>& Matrix,const ub::matrix<double>& transformation);
+    Eigen::MatrixXd IntercenterOrthogonalisation(Eigen::MatrixXd  &P,Eigen::MatrixXd  &Overlap,std::vector< QMAtom* >& _atomlist, BasisSet &bs);
+  
 };
 }}
 

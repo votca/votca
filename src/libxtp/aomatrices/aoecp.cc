@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,34 +16,16 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/aomatrix.h>
 
-#include <votca/xtp/aobasis.h>
-#include <string>
-#include <map>
-#include <vector>
-#include <votca/tools/property.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/math/constants/constants.hpp>
-#include <boost/math/special_functions/factorials.hpp>
-#include <votca/tools/linalg.h>
-#include <votca/tools/elements.h>
-
-
-
-
-
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
-    using namespace votca::tools;
 
 
-    void AOECP::FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, const AOShell* _shell_row, const AOShell* _shell_col, AOBasis* ecp) {
+
+    void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& _matrix, const AOShell* _shell_row, const AOShell* _shell_col) {
 
         /*
          *
@@ -70,9 +52,9 @@ namespace votca { namespace xtp {
 
 
 
-            const vec& _pos_row = _shell_row->getPos();
-            const vec& _pos_col = _shell_col->getPos();
-            const vec _diff = _pos_row - _pos_col;
+            const tools::vec& _pos_row = _shell_row->getPos();
+            const tools::vec& _pos_col = _shell_col->getPos();
+            const tools::vec _diff = _pos_row - _pos_col;
             // initialize some helper
             double _distsq = _diff*_diff;
 
@@ -118,18 +100,18 @@ namespace votca { namespace xtp {
                     // for each atom and its pseudopotential, get a matrix
                     int _atomidx = 0;
 
-                    ub::matrix<int> _power_matrix = ub::zero_matrix<int>(4, 5); // 4 fit components, non-local ECPs l = 0, 1, 2, 3, 4
-                    ub::matrix<double> _decay_matrix = ub::zero_matrix<double>(4, 5);
-                    ub::matrix<double> _coef_matrix  = ub::zero_matrix<double>(4, 5);
+                    Eigen::Matrix<int,4,5> _power_matrix = Eigen::Matrix<int,4,5>::Zero(); // 4 fit components, non-local ECPs l = 0, 1, 2, 3, 4
+                    Eigen::Matrix<double,4,5> _decay_matrix = Eigen::Matrix<double,4,5>::Zero();
+                    Eigen::Matrix<double,4,5> _coef_matrix  = Eigen::Matrix<double,4,5>::Zero();
 
-                    AOBasis::AOShellIterator final_iter = ecp->lastShell();
+                    AOBasis::AOShellIterator final_iter = _ecp->lastShell();
                     --final_iter;
-                    vec _ecp_eval_pos = vec(0.0);
+                    tools::vec _ecp_eval_pos = tools::vec(0.0);
                     int _lmax_ecp = 0;
-                    for (AOBasis::AOShellIterator _ecp = ecp->firstShell(); _ecp != ecp->lastShell(); ++_ecp) {
+                    for (AOBasis::AOShellIterator _ecpit = _ecp->firstShell(); _ecpit != _ecp->lastShell(); ++_ecpit) {
 
-                        const AOShell* _shell_ecp = ecp->getShell(_ecp);
-                        const vec& _ecp_pos = _shell_ecp->getPos();
+                        const AOShell* _shell_ecp = _ecp->getShell(_ecpit);
+                        const tools::vec& _ecp_pos = _shell_ecp->getPos();
 
                         int this_atom = _shell_ecp->getIndex();
 
@@ -156,28 +138,28 @@ namespace votca { namespace xtp {
                                     _coef_matrix(i_fit, _ecp_l )  = _contraction_ecp;
                                 }
                                 
-                                if ((this_atom != _atomidx ) || ( _ecp == final_iter)) {
+                                if ((this_atom != _atomidx ) || ( _ecpit == final_iter)) {
                                     if (this_atom != _atomidx) {
                                        _lmax_ecp = _lmax_ecp_old;
                                     }
 
                                     // evaluate collected data, returns a (10x10) matrix of already normalized matrix elements
-                                    ub::matrix<double> VNL_ECP = calcVNLmatrix(_lmax_ecp, _ecp_eval_pos, *itr, *itc,  _power_matrix ,_decay_matrix, _coef_matrix);
+                                    Eigen::MatrixXd VNL_ECP = calcVNLmatrix(_lmax_ecp, _ecp_eval_pos, *itr, *itc,  _power_matrix ,_decay_matrix, _coef_matrix);
 
                                     // consider contractions
                                     // cut out block that is needed. sum
                                     //                                   cout << "_matrix.size1,2()   " << _matrix.size1() << "    " << _matrix.size2() << endl;
-                                    for ( unsigned i = 0; i < _matrix.size1(); i++ ) {
-                                        for (unsigned j = 0; j < _matrix.size2(); j++) {
+                                    for ( unsigned i = 0; i < _matrix.rows(); i++ ) {
+                                        for (unsigned j = 0; j < _matrix.cols(); j++) {
                                             _matrix(i,j) += VNL_ECP(i+_shell_row->getOffset(),j+_shell_col->getOffset()) * _contractions_row_full[i+_shell_row->getOffset()]* _contractions_col_full[j+_shell_col->getOffset()];
                                         }
                                     }
 
 
                                     // reset atom ECP containers
-                                    _power_matrix = ub::zero_matrix<int>(4, 5); // 4 fit components, non-local ECPs l = 0, 1, 2, 3, 4
-                                    _decay_matrix = ub::zero_matrix<double>(4, 5);
-                                    _coef_matrix  = ub::zero_matrix<double>(4, 5);
+                                    _power_matrix = Eigen::Matrix<int,4,5>::Zero(); // 4 fit components, non-local ECPs l = 0, 1, 2, 3, 4
+                                    _decay_matrix = Eigen::Matrix<double,4,5>::Zero();
+                                    _coef_matrix  = Eigen::Matrix<double,4,5>::Zero();
                                     _atomidx++;
                                     i_fit = 0;
                                     //cout << "setting new matrix " << i_fit << " l " << _ecp_l << " alpha  " << _decay_ecp <<  " pref " << _contraction_ecp << endl;
@@ -197,7 +179,7 @@ namespace votca { namespace xtp {
             return;
         }
 
-        ub::matrix<double> AOECP::calcVNLmatrix(int _lmax_ecp, const vec& posC, const AOGaussianPrimitive& _g_row, const AOGaussianPrimitive& _g_col,const ub::matrix<int>& _power_ecp, const ub::matrix<double>& _gamma_ecp,const ub::matrix<double>& _pref_ecp) {
+        Eigen::MatrixXd AOECP::calcVNLmatrix(int _lmax_ecp, const tools::vec& posC, const AOGaussianPrimitive& _g_row, const AOGaussianPrimitive& _g_col,const  Eigen::Matrix<int,4,5>& _power_ecp, const Eigen::Matrix<double,4,5>& _gamma_ecp,const Eigen::Matrix<double,4,5>& _pref_ecp) {
 
             /* calculate the contribution of the nonlocal 
              *     ECP of atom at posC with 
@@ -221,8 +203,8 @@ namespace votca { namespace xtp {
 
             double alpha = _g_row.getDecay();
             double beta = _g_col.getDecay();
-            const vec& posA = _g_row.getShell()->getPos();
-            const vec& posB = _g_col.getShell()->getPos();
+            const tools::vec& posA = _g_row.getShell()->getPos();
+            const tools::vec& posB = _g_col.getShell()->getPos();
             int _lmax_row = _g_row.getShell()->getLmax();
             int _lmax_col = _g_col.getShell()->getLmax();
             int _lmin = std::min({_lmax_row, _lmax_col, _lmax_ecp});
@@ -230,8 +212,8 @@ namespace votca { namespace xtp {
             int _nsph_row = (_lmax_row + 1) * (_lmax_row + 1);
             int _nsph_col = (_lmax_col + 1) * (_lmax_col + 1);
 
-            vec AVS = posA - posC;
-            vec BVS = posB - posC;
+            tools::vec AVS = posA - posC;
+            tools::vec BVS = posB - posC;
             double AVS2 = AVS * AVS;
             double BVS2 = BVS * BVS;     
 
@@ -240,8 +222,8 @@ namespace votca { namespace xtp {
             if (BVS2 > 0.01) INULL++;
 
 
-            ub::matrix<double> matrix = ub::zero_matrix<double>(_nsph_row,_nsph_col);
-            const int nnonsep = _gamma_ecp.size1();
+            Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_nsph_row,_nsph_col);
+            const int nnonsep = _gamma_ecp.rows();
             int nmax;
             if (INULL == 0) {
                 nmax = 2 * _lmin;
@@ -250,7 +232,7 @@ namespace votca { namespace xtp {
             } else {
                 nmax = NMAX + 2 * _lmax;
             }
-            ub::matrix<double> XI = ub::zero_matrix<double>(_lmax_ecp + 1, nmax + 1);
+            Eigen::MatrixXd XI = Eigen::MatrixXd::Zero(_lmax_ecp + 1, nmax + 1);
 
             double f_even_r0 = .5 * SQPI;
             double f_even_r1 = .5;
@@ -401,21 +383,14 @@ namespace votca { namespace xtp {
 
 
 
-
-
-
-
             /****** ORIGINAL CKO SUBROUTINE **********/
-            // get a multi dimensional array
-            typedef boost::multi_array<double, 4> ma_type;
-            typedef boost::multi_array_types::extent_range range;
-            typedef ma_type::index index;
-            ma_type::extent_gen extents;
-            ma_type COEF;
+
+            tensor4d::extent_gen extent;
+            tensor4d COEF;
 
             if (INULL != 0) {
 
-                COEF.resize(extents[range(0, 5)][range(0, 5)][range(0, 9)][range(0, NMAX + 1)]);
+                COEF.resize(extent[range(0, 5)][range(0, 5)][range(0, 9)][range(0, NMAX + 1)]);
 
                 int _lmin_dft_ecp=0;
                 int _lmax_dft_ecp=0;
@@ -431,7 +406,7 @@ namespace votca { namespace xtp {
                     _lmax_dft_ecp = std::max(_lmax_dft, _lmax_ecp);
                 }
 
-                for ( index i4 = 0; i4 <= NMAX; i4++ ) {
+                for ( index4d i4 = 0; i4 <= NMAX; i4++ ) {
                 /********** ORIGINAL CKOEF SUBROUTINE *************************/
                     int NU = i4 % 2;
                     int NG = (i4 + 1) % 2;
@@ -595,7 +570,7 @@ namespace votca { namespace xtp {
 
                         if (_lmin_dft_ecp > 3) {
 
-                             cout << "Sorry, not yet supported: Combination of G functions in DFT basis and ECPs with l = 4." << endl;
+                             std::cerr << "Sorry, not yet supported: Combination of G functions in DFT basis and ECPs with l = 4." << std::endl;
                              exit(1);
 
                         }
@@ -608,17 +583,15 @@ namespace votca { namespace xtp {
 
 
 
-            type_3D BLMA;
-            type_3D CA;
+            tensor3d BLMA;
+            tensor3d CA;
             getBLMCOF(_lmax_ecp, _lmax_row, AVS, BLMA, CA);
 
-            type_3D BLMB;
-            type_3D CB;
+            tensor3d BLMB;
+            tensor3d CB;
             getBLMCOF(_lmax_ecp, _lmax_col, BVS, BLMB, CB);
 
-            typedef boost::multi_array_types::extent_range range;
-            typedef type_3D::index index;
-            type_3D::extent_gen extents3D;
+            tensor3d::extent_gen extents3D;
 
 
             switch (INULL) {
@@ -628,9 +601,9 @@ namespace votca { namespace xtp {
 
                     for (int i = 0; i < _nsph_row; i++) {
                         for (int j = 0; j < _nsph_col; j++) {
-                            for (index L = 0; L <= _lmin; L++) {
+                            for (index3d L = 0; L <= _lmin; L++) {
                                 double XI_L = XI(L, L + L);
-                                for (index M = 4 - L; M <= 4 + L; M++) {
+                                for (index3d M = 4 - L; M <= 4 + L; M++) {
                                     matrix(i,j) += BLMA[i][L][M] * BLMB[j][L][M] * XI_L;
                                 }
                             }
@@ -643,12 +616,12 @@ namespace votca { namespace xtp {
                 case 1:  //  AVSSQ <= 0.1
                 {
 
-                    type_3D SUMCI3;
+                    tensor3d SUMCI3;
                     SUMCI3.resize(extents3D[range(0, 5)][range(0, 5)][range(0, 9)]);
-                    for (index L = 0; L <= _lmax_ecp; L++) {
-                        for (index L2 = 0; L2 <= _lmax_col; L2++) {
+                    for (index3d L = 0; L <= _lmax_ecp; L++) {
+                        for (index3d L2 = 0; L2 <= _lmax_col; L2++) {
                             int range_M2 = std::min(L2, L);
-                            for (index M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+                            for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
                                 double VAR2 = 0.0;
                                 double fak = 2.0 * beta * BVSSQ;
@@ -676,12 +649,12 @@ namespace votca { namespace xtp {
                     for (int i = 0; i < _nsph_row; i++) {
                         for (int j = 0; j < _nsph_col; j++) {
 
-                            for (index L = 0; L <= std::min(_lmax_row, _lmax_ecp); L++) {
-                                for (index L2 = 0; L2 <= _lmax_col; L2++) {
+                            for (index3d L = 0; L <= std::min(_lmax_row, _lmax_ecp); L++) {
+                                for (index3d L2 = 0; L2 <= _lmax_col; L2++) {
                                     int range_M2 = std::min(L2, L);
-                                    for (index M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+                                    for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
-                                        for (index M1 = 4 - L; M1 <= 4 + L; M1++) {
+                                        for (index3d M1 = 4 - L; M1 <= 4 + L; M1++) {
                                             matrix(i,j) += BLMA[i][L][M1] * BLMB[j][L2][M2] * SUMCI3[L][L2][M2] * CB[L][M1][M2];
                                         }
                                     }
@@ -697,12 +670,12 @@ namespace votca { namespace xtp {
                 case 2:  //  BVSSQ <= 0.1
                 {
 
-                    type_3D SUMCI3;
+                    tensor3d SUMCI3;
                     SUMCI3.resize(extents3D[range(0, 5)][range(0, 5)][range(0, 9)]);
-                    for (index L = 0; L <= _lmax_ecp; L++) {
-                        for (index L1 = 0; L1 <= _lmax_row; L1++) {
+                    for (index3d L = 0; L <= _lmax_ecp; L++) {
+                        for (index3d L1 = 0; L1 <= _lmax_row; L1++) {
                             int range_M1 = std::min(L1, L);
-                            for (index M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+                            for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
 
                                 double VAR1 = 0.0;
                                 double fak = 2.0 * alpha * AVSSQ;
@@ -731,12 +704,12 @@ namespace votca { namespace xtp {
                     for (int i = 0; i < _nsph_row; i++) {
                         for (int j = 0; j < _nsph_col; j++) {
 
-                            for (index L = 0; L <= std::min(_lmax_col, _lmax_ecp); L++) {
-                                for (index L1 = 0; L1 <= _lmax_row; L1++) {
+                            for (index3d L = 0; L <= std::min(_lmax_col, _lmax_ecp); L++) {
+                                for (index3d L1 = 0; L1 <= _lmax_row; L1++) {
                                     int range_M1 = std::min(L1, L);
-                                    for (index M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+                                    for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
 
-                                        for (index M2 = 4 - L; M2 <= 4 + L; M2++) {
+                                        for (index3d M2 = 4 - L; M2 <= 4 + L; M2++) {
                                             matrix(i,j) += BLMA[i][L1][M1] * BLMB[j][L][M2] * SUMCI3[L][L1][M1] * CA[L][M2][M1];
                                         }
                                     }
@@ -752,15 +725,15 @@ namespace votca { namespace xtp {
                 case 3:
                 {
 
-                    type_3D CC;
+                    tensor3d CC;
                     CC.resize(extents3D[range(0, 5)][range(0, 9)][range(0, 9)]);
-                    for (index L = 0; L <= _lmax_ecp; L++) {
+                    for (index3d L = 0; L <= _lmax_ecp; L++) {
                         int range_M1 = std::min(_lmax_row, int(L));
                         int range_M2 = std::min(_lmax_col, int(L));
-                        for ( index M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
-                            for (index M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+                        for ( index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+                            for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
                                 CC[L][M1][M2] = 0.0;
-                                for (index M = 4 - L; M <= 4 + L; M++) {
+                                for (index3d M = 4 - L; M <= 4 + L; M++) {
                                     CC[L][M1][M2] += CA[L][M][M1] * CB[L][M][M2];
                                 }
                             }
@@ -771,13 +744,13 @@ namespace votca { namespace xtp {
                     type_5D::extent_gen extents5D;
                     type_5D SUMCI;
                     SUMCI.resize(extents5D[range(0, 5)][range(0, 5)][range(0, 5)][range(0, 9)][range(0, 9)]);
-                    for (index L = 0; L <= _lmax_ecp; L++) {
-                        for (index L1 = 0; L1 <= _lmax_row; L1++) {
+                    for (index3d L = 0; L <= _lmax_ecp; L++) {
+                        for (index3d L1 = 0; L1 <= _lmax_row; L1++) {
                             int range_M1 = std::min(L1, L);
-                            for (index L2 = 0; L2 <= _lmax_col; L2++) {
+                            for (index3d L2 = 0; L2 <= _lmax_col; L2++) {
                                 int range_M2 = std::min(L2, L);
-                                for (index M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
-                                    for (index M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+                                for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+                                    for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
                                         SUMCI[L][L1][L2][M1][M2]  = 0.0;
 
@@ -822,13 +795,13 @@ namespace votca { namespace xtp {
                     for (int i = 0; i < _nsph_row; i++) {
                         for (int j = 0; j < _nsph_col; j++) {
 
-                            for (index L = 0; L <= _lmax_ecp; L++) {
-                                for (index L1 = 0; L1 <= _lmax_row; L1++) {
+                            for (index3d L = 0; L <= _lmax_ecp; L++) {
+                                for (index3d L1 = 0; L1 <= _lmax_row; L1++) {
                                     int range_M1 = std::min(L1, L);
-                                    for (index L2 = 0; L2 <= _lmax_col; L2++) {
+                                    for (index3d L2 = 0; L2 <= _lmax_col; L2++) {
                                         int range_M2 = std::min(L2, L);
-                                        for (index M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
-                                            for (index M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+                                        for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+                                            for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
                                                 matrix(i,j) += BLMA[i][L1][M1] * BLMB[j][L2][M2] * SUMCI[L][L1][L2][M1][M2] * CC[L][M1][M2];
 
@@ -845,19 +818,19 @@ namespace votca { namespace xtp {
 
 
                 default:
-                    cout << "Wrong ECP summation mode";
+                    std::cerr << "Wrong ECP summation mode";
                     exit(1);
             } // switch
 
 
             // GET TRAFO HERE ALREADY
-            ub::vector<double> NormA = CalcNorms(alpha, _nsph_row);
-            ub::vector<double> NormB = CalcNorms(beta, _nsph_col);
+            Eigen::VectorXd NormA = CalcNorms(alpha, _nsph_row);
+            Eigen::VectorXd NormB = CalcNorms(beta, _nsph_col);
 
             for (int i = 0; i < _nsph_row; i++) {
                 for (int j = 0; j < _nsph_col; j++) {
 
-                    matrix(i,j) = matrix(i,j) * GAUSS * NormA[i] * NormB[j];
+                    matrix(i,j) = matrix(i,j) * GAUSS * NormA(i) * NormB(j);
 
                 }
             }
@@ -867,31 +840,31 @@ namespace votca { namespace xtp {
         }
 
 
-        ub::vector<double> AOECP::CalcNorms(double decay, int size) {
-            ub::vector<double> Norms = ub::vector<double>(size);
+        Eigen::VectorXd AOECP::CalcNorms(double decay, int size) {
+            Eigen::VectorXd Norms = Eigen::VectorXd(size);
             const double PI = boost::math::constants::pi<double>();
             double SQ2, SQ3, SQ5;
 
             double Norm_S = pow(2.0 * decay / PI, 0.75);
             double Norm_P=0.0;
             double Norm_D=0.0;
-            Norms[0] = Norm_S;  //  Y 00
+            Norms(0) = Norm_S;  //  Y 00
 
             if (size > 1) {
                 Norm_P = 2.0 * sqrt(decay) * Norm_S;
-                Norms[1] = Norm_P;  //  Y 10
-                Norms[2] = Norm_P;  //  Y 1-1
-                Norms[3] = Norm_P;  //  Y 11
+                Norms(1) = Norm_P;  //  Y 10
+                Norms(2) = Norm_P;  //  Y 1-1
+                Norms(3) = Norm_P;  //  Y 11
             }
 
             if (size > 4) {
                 SQ3 = sqrt(3.);
                 double Norm_D = 4.00 * decay * Norm_S;
-                Norms[4] = .5 * Norm_D / SQ3;  //  Y 20
-                Norms[5] = Norm_D;             //  Y 2-1
-                Norms[6] = Norm_D;             //  Y 21
-                Norms[7] = Norm_D;             //  Y 2-2
-                Norms[8] = .5 * Norm_D;        //  Y 22
+                Norms(4) = .5 * Norm_D / SQ3;  //  Y 20
+                Norms(5) = Norm_D;             //  Y 2-1
+                Norms(6) = Norm_D;             //  Y 21
+                Norms(7) = Norm_D;             //  Y 2-2
+                Norms(8) = .5 * Norm_D;        //  Y 22
             }
 
             if (size > 9) {
@@ -900,13 +873,13 @@ namespace votca { namespace xtp {
                 double Norm_F = 4.00 * decay * Norm_P;
                 double Norm_F_1 = .5 * Norm_F / (SQ2 * SQ5);
                 double Norm_F_3 = .5 * Norm_F / (SQ2 * SQ3);
-                Norms[9] =  .5 * Norm_F / (SQ3 * SQ5);  //  Y 30
-                Norms[10] = Norm_F_1;                   //  Y 3-1
-                Norms[11] = Norm_F_1;                   //  Y 31
-                Norms[12] = Norm_F;                     //  Y 3-2
-                Norms[13] = .5 * Norm_F;                //  Y 32
-                Norms[14] = Norm_F_3;                   //  Y 3-3
-                Norms[15] = Norm_F_3;                   //  Y 33
+                Norms(9) =  .5 * Norm_F / (SQ3 * SQ5);  //  Y 30
+                Norms(10) = Norm_F_1;                   //  Y 3-1
+                Norms(11) = Norm_F_1;                   //  Y 31
+                Norms(12) = Norm_F;                     //  Y 3-2
+                Norms(13) = .5 * Norm_F;                //  Y 32
+                Norms(14) = Norm_F_3;                   //  Y 3-3
+                Norms(15) = Norm_F_3;                   //  Y 33
             }
 
             if (size > 16) {
@@ -916,24 +889,23 @@ namespace votca { namespace xtp {
                 double Norm_G_m2 = .5 * Norm_G / (SQ3 * SQ7);
                 double Norm_G_3 = .5 * Norm_G / (SQ2 * SQ3);
                 double Norm_G_m4 = .5 * Norm_G / SQ3;
-                Norms[16] =  .125 * Norm_G / (SQ3 * SQ5 * SQ7);  //  Y 40
-                Norms[17] = Norm_G_1;                            //  Y 4-1
-                Norms[18] = Norm_G_1;                            //  Y 41
-                Norms[19] = Norm_G_m2;                           //  Y 4-2
-                Norms[20] = .5 * Norm_G_m2;                      //  Y 42
-                Norms[21] = Norm_G_3;                            //  Y 4-3
-                Norms[22] = Norm_G_3;                            //  Y 43
-                Norms[23] = Norm_G_m4;                           //  Y 4-4
-                Norms[24] = .25 * Norm_G_m4;                     //  Y 44
+                Norms(16) =  .125 * Norm_G / (SQ3 * SQ5 * SQ7);  //  Y 40
+                Norms(17) = Norm_G_1;                            //  Y 4-1
+                Norms(18) = Norm_G_1;                            //  Y 41
+                Norms(19) = Norm_G_m2;                           //  Y 4-2
+                Norms(20) = .5 * Norm_G_m2;                      //  Y 42
+                Norms(21) = Norm_G_3;                            //  Y 4-3
+                Norms(22) = Norm_G_3;                            //  Y 43
+                Norms(23) = Norm_G_m4;                           //  Y 4-4
+                Norms(24) = .25 * Norm_G_m4;                     //  Y 44
             }
             return Norms;
         }
 
-        void AOECP::getBLMCOF(int _lmax_ecp, int _lmax_dft, const vec& pos, type_3D& BLC, type_3D& C) {
+        void AOECP::getBLMCOF(int _lmax_ecp, int _lmax_dft, const tools::vec& pos, tensor3d& BLC, tensor3d& C) {
 
-            typedef boost::multi_array_types::extent_range range;
-            typedef type_3D::index index;
-            type_3D::extent_gen extents;
+           
+            tensor3d::extent_gen extents;
 
             int _nsph = (_lmax_dft + 1) * (_lmax_dft + 1);
             int _lmax_dft_ecp = std::max(_lmax_dft, _lmax_ecp);
@@ -943,7 +915,7 @@ namespace votca { namespace xtp {
 ///            C.resize(extents[range(0, _lmax_dft_ecp+1)][range(0, 9)][range(0, 9)]);
             C.resize(extents[range(0, 5)][range(0, 9)][range(0, 9)]);
 
-            type_3D BLM;
+            tensor3d BLM;
 ///            BLM.resize(extents[range(0, _nsph)][range(0, _lmax_dft+1)][range(0, 9)]);
             BLM.resize(extents[range(0, _nsph)][range(0, 5)][range(0, 9)]);
 
@@ -959,9 +931,9 @@ namespace votca { namespace xtp {
             double XP, XD, XD_0, XD_p2;
             double XF_0, XF_1, XF_m2, XF_p2, XF_3;
       
-            for (index I = 0; I < _nsph; I++) {
-                for (index L = 0; L <= _lmax_dft; L++) {
-                    for (index M = 4 - L; M <= 4 + L; M++) {
+            for (index3d I = 0; I < _nsph; I++) {
+                for (index3d L = 0; L <= _lmax_dft; L++) {
+                    for (index3d M = 4 - L; M <= 4 + L; M++) {
                         BLM[I][L][M] = 0.0;
                     }
                 }
@@ -1232,9 +1204,9 @@ namespace votca { namespace xtp {
 
 
 
-            for (index L = 0; L <= _lmax_dft_ecp; L++) {
-                for (index M = 4 - L; M <= 4 + L; M++) {
-                    for (index MM = 4 - L; MM <= 4 + L; MM++) {
+            for (index3d L = 0; L <= _lmax_dft_ecp; L++) {
+                for (index3d M = 4 - L; M <= 4 + L; M++) {
+                    for (index3d MM = 4 - L; MM <= 4 + L; MM++) {
                         C[L][M][MM] = 0.0;
                     }
                 }
@@ -1578,11 +1550,11 @@ namespace votca { namespace xtp {
                 }
 
 
-                for (index I = 0; I < _nsph; I++) {
-                    for (index L = 0; L <= _lmax_dft; L++) {
-                        for ( index M = 4 - L; M <= 4 + L; M++) {
+                for (index3d I = 0; I < _nsph; I++) {
+                    for (index3d L = 0; L <= _lmax_dft; L++) {
+                        for ( index3d M = 4 - L; M <= 4 + L; M++) {
                             BLC[I][L][M] = 0.0;
-                            for (index M1 = 4 - L; M1 <= 4 + L; M1++) {
+                            for (index3d M1 = 4 - L; M1 <= 4 + L; M1++) {
                                 BLC[I][L][M] += BLM[I][L][M1] * C[L][M1][M];
                             }
                         }
@@ -1593,16 +1565,16 @@ namespace votca { namespace xtp {
 
             } else {
 
-                for (index L = 0; L <= _lmax_dft_ecp; L++) {
-                    for (index M = 4 - L; M <= 4 + L; M++) {
+                for (index3d L = 0; L <= _lmax_dft_ecp; L++) {
+                    for (index3d M = 4 - L; M <= 4 + L; M++) {
                         C[L][M][M] = 1.;
                     }
                 }
 
 
-                for (index I = 0; I < _nsph; I++) {
-                    for (index L = 0; L <= _lmax_dft; L++) {
-                        for ( index M = 4 - L; M <= 4 + L; M++) {
+                for (index3d I = 0; I < _nsph; I++) {
+                    for (index3d L = 0; L <= _lmax_dft; L++) {
+                        for ( index3d M = 4 - L; M <= 4 + L; M++) {
                             BLC[I][L][M] = BLM[I][L][M];
                         }
                     }

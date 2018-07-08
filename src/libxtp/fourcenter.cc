@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,46 +17,28 @@
  *
  */
 
+#include <votca/xtp/fourcenter.h>
 
-
-#include <votca/xtp/threecenters.h>
-#include <new>
-
-
-using namespace votca::tools;
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
 
-        /*
-         * Cleaning FCMatrix_dft data and free memory
-         */
-       
-
-
-
-
-
-
-
-
-        void FCMatrix_dft::Fill_4c_small_molecule(const AOBasis& dftbasis) {
-
+       void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
+         tensor4d::extent_gen extents;
           //cout << endl;
           //cout << "fourcenters_dft.cc FCMatrix_dft::Fill_4c_small_molecule" << endl;
           int dftBasisSize = dftbasis.AOBasisSize();
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
           
           try{
-          _4c_vector = ub::zero_vector<double>((vectorSize*(vectorSize+1))/2);
+          _4c_vector = Eigen::VectorXd::Zero((vectorSize*(vectorSize+1))/2);
           }
           catch(std::bad_alloc& ba){
-            std::cerr << "Basisset too large for 4c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << endl;
+            std::cerr << "Basisset too large for 4c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << std::endl;
             exit(0);
           }
           int shellsize=dftbasis.getNumofShells();
-          #pragma omp parallel for
+          #pragma omp parallel for schedule(dynamic)
           for(int i=0;i<shellsize;++i){
           
             const AOShell* _shell_3 = dftbasis.getShell(i);
@@ -78,10 +60,18 @@ namespace votca {
                   const AOShell* _shell_2 = dftbasis.getShell(l);
                   int _start_2 = _shell_2->getStartIndex();
                   int NumFunc_2 = _shell_2->getNumFunc();
-                  // get 4-center directly as _subvector
-                  ub::matrix<double> _subvector = ub::zero_matrix<double>(NumFunc_1 * NumFunc_2, NumFunc_3 * NumFunc_4);
                   
-                  bool nonzero=FillFourCenterRepBlock(_subvector, _shell_1, _shell_2, _shell_3, _shell_4);
+                  tensor4d block(extents[ range(0, NumFunc_1) ][ range(0, NumFunc_2) ][ range(0, NumFunc_3)][ range(0, NumFunc_4)]);
+                  for (int i = 0; i < _shell_1->getNumFunc(); ++i) {
+                    for (int j = 0; j < _shell_2->getNumFunc(); ++j) {
+                      for (int k = 0; k < _shell_3->getNumFunc(); ++k) {
+                        for (int l = 0; l < _shell_4->getNumFunc(); ++l) {
+                          block[i][j][k][l] = 0.0;
+                        }
+                      }
+                    }
+                  }
+                  bool nonzero=FillFourCenterRepBlock(block, _shell_1, _shell_2, _shell_3, _shell_4);
 
                   if (nonzero) {
 
@@ -91,7 +81,6 @@ namespace votca {
                       for (int _i_4 = 0; _i_4 < NumFunc_4; _i_4++) {
                         int ind_4 = _start_4 + _i_4;
                         if (ind_3 > ind_4) continue;
-                        int _index_subv_34 = NumFunc_3 * _i_4 + _i_3;
                         int _index_34 = dftBasisSize * ind_3 - sum_ind_3 + ind_4;
                         int _index_34_12_a = vectorSize * _index_34 - (_index_34*(_index_34+1))/2;
                         for (int _i_1 = 0; _i_1 < NumFunc_1; _i_1++) {
@@ -102,7 +91,7 @@ namespace votca {
                             if (ind_1 > ind_2) continue;
                             int _index_12 = dftBasisSize * ind_1 - sum_ind_1 + ind_2;
                             if (_index_34 > _index_12) continue;
-                            _4c_vector(_index_34_12_a + _index_12) = _subvector(NumFunc_1 * _i_2 + _i_1, _index_subv_34);
+                            _4c_vector(_index_34_12_a + _index_12) = block[_i_1][_i_2][_i_3][_i_4];
 
                           } // _i_2
                         } // _i_1
@@ -117,17 +106,6 @@ namespace votca {
 
           return;
         } // FCMatrix_dft::Fill_4c_small_molecule
-        
-       
-
-
-
-
-
-
-
  
-
-
     }
 }

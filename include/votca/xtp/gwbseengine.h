@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -33,7 +33,6 @@
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
 
 /**
          * \brief Electronic Excitations via Density-Functional Theory
@@ -56,18 +55,18 @@ namespace votca {
                 return "gwbse_engine";
             }
 
-            void Initialize(Property *options, string _archive_filename);
-            void ExcitationEnergies(QMPackage* _qmpackage, vector<ctp::Segment*> _segments, Orbitals* _orbitals);
+            void Initialize(tools::Property *options, std::string _archive_filename);
+            void ExcitationEnergies(QMPackage* _qmpackage, std::vector<ctp::Segment*> _segments, Orbitals* _orbitals);
 
             void setLog(ctp::Logger* pLog) {
                 _pLog = pLog;
             }
 
-            string GetDFTLog() {
+            std::string GetDFTLog() {
                 return _dftlog_file;
             };
 
-            void setLoggerFile(string logger_file) {
+            void setLoggerFile(std::string logger_file) {
                 _logger_file = logger_file;
             };
 
@@ -76,7 +75,7 @@ namespace votca {
             };
             
             
-            Property ReportSummary(){ return _summary;};
+            tools::Property ReportSummary(){ return _summary;};
 
 
         private:
@@ -92,16 +91,16 @@ namespace votca {
             bool _redirect_logger;
 
             // DFT log and MO file names
-            string _MO_file; // file containing the MOs from qmpackage...
-            string _dftlog_file; // file containing the Energies etc... from qmpackage...
-            string _logger_file;
-            string _archive_file;
-            string _guess_archiveA;
-            string _guess_archiveB;
+            std::string _MO_file; // file containing the MOs from qmpackage...
+            std::string _dftlog_file; // file containing the Energies etc... from qmpackage...
+            std::string _logger_file;
+            std::string _archive_file;
+            std::string _guess_archiveA;
+            std::string _guess_archiveB;
 
             // Options for GWBSE module
-            Property _gwbse_options;
-            Property _summary;
+            tools::Property _gwbse_options;
+            tools::Property _summary;
 
             void SaveRedirectedLogger(ctp::Logger* pLog);
 

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,42 +21,31 @@
 #include <exception>
 #include <votca/xtp/nbo.h>
 #include <votca/xtp/aomatrix.h>
-#include <votca/tools/linalg.h>
+
 namespace votca { namespace xtp {
 
-void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,const  ub::matrix<double> &_dmat,const AOBasis &basis, BasisSet &bs){
+
+void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,const  Eigen::MatrixXd &_dmat,const AOBasis &basis, BasisSet &bs){
     AOOverlap _overlap;
     // Fill overlap
     _overlap.Fill(basis);
-    
-    ub::matrix<double> _prodmat = ub::prod( _dmat, _overlap.Matrix() );
-    
-    
-    
-    ub::matrix<double> P=ub::prod(_overlap.Matrix(),_prodmat);
+    Eigen::MatrixXd S=_overlap.Matrix();
+    Eigen::MatrixXd P=S*_dmat*S;
    
-    ub::matrix<double> PNAOs_trans=IntercenterOrthogonalisation(P,_overlap.Matrix(), _atomlist ,bs);
+    Eigen::MatrixXd PNAOs_trans=IntercenterOrthogonalisation(P,S, _atomlist ,bs);
     
-    cout<<P<<endl;
-    cout<<_overlap.Matrix()<<endl;
+   
     
-    vector < QMAtom* > :: iterator atom;
-    for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
-    
-    
-      throw invalid_argument("Evaluate NBO function is incomplete");    
-      
-    }
-    //cout << id << " " << _dmat.size1() << endl;
-
+      throw std::invalid_argument("Evaluate NBO function is incomplete");    
+   
     return;
 }
 
 
-ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::matrix<double> &overlap,vector< QMAtom* >& _atomlist , BasisSet &bs){
+Eigen::MatrixXd NBO::IntercenterOrthogonalisation(Eigen::MatrixXd &P, Eigen::MatrixXd &overlap,std::vector< QMAtom* >& _atomlist , BasisSet &bs){
     
     
-    vector< QMAtom* >::iterator atom;
+    std::vector< QMAtom* >::iterator atom;
 
 // make an array which stores for each atom the the starting point for all s functions, p functions, d functions etc...   
     
@@ -72,7 +61,7 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::m
             
            // for loop because shells can also consist of SP shells or alike
             for(unsigned i = 0; i <(*its)->getType().length(); ++i) {
-            string local_shell = string( (*its)->getType(), i, 1 );
+            std::string local_shell = std::string( (*its)->getType(), i, 1 );
             int l=FindLmax(local_shell);
             std::vector< int >& index =shellsort[l];
            
@@ -85,23 +74,8 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::m
          }
     typedef std::map< int,std::vector< int > >::iterator it_type;
     
-    
-    for (unsigned i=0;i<sorting.size();i++){
-        cout << "Atom "<<i<<endl;
-        
-        for(it_type iterator = sorting[i].begin(); iterator != sorting[i].end(); iterator++) {
-    cout<< "Shell "<<iterator->first<<":";
-    std::vector< int >& index=iterator->second;
-    for (unsigned j=0;j<index.size();j++){
-        cout <<" "<<index[j];
-    }
-    cout<<endl;
-}
-    }
-    
-    
-    ub::matrix<double> transformation=ub::zero_matrix<double>(P.size1(),P.size2());
-    ub::vector<double> occupancies=ub::zero_vector<double>(P.size1());
+    Eigen::MatrixXd transformation=Eigen::MatrixXd::Zero(P.rows(),P.cols());
+    Eigen::VectorXd occupancies=Eigen::VectorXd::Zero(P.rows());
     // Stting up atomic transformations
     
     //atoms
@@ -111,8 +85,8 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::m
             int ll=2*(iterator->first)+1;
             std::vector< int >& index=iterator->second;
             unsigned size=index.size();
-            ub::matrix<double> P_L=ub::zero_matrix<double>(size,size);
-            ub::matrix<double> S_L=ub::zero_matrix<double>(size,size);
+            Eigen::MatrixXd P_L=Eigen::MatrixXd::Zero(size,size);
+            Eigen::MatrixXd S_L=Eigen::MatrixXd::Zero(size,size);
             
             //filling P_L and S_L
             for (unsigned i=0;i<size;i++){
@@ -124,46 +98,34 @@ ub::matrix<double>NBO::IntercenterOrthogonalisation(ub::matrix<double> &P, ub::m
                     } 
                 }
             }
-            cout << P_L<< endl;
-            cout << S_L<<endl;
+         
             
             //Setup generalized eigenproblem for each P_L/S_L
-            ub::vector<double> eigenvalues;
-            ub::matrix<double> eigenvectors;
-            bool check=linalg_eigenvalues_general( P_L,S_L, eigenvalues, eigenvectors);
-            if (!check){
-                throw runtime_error("Diagonalisation failed");
-            }
-            cout << eigenvalues<<endl;
-            cout <<eigenvectors<<endl;
             
+            Eigen::GeneralizedSelfAdjointEigenSolver<  Eigen::MatrixXd > es(P_L,S_L);
+        
             
             for (unsigned i=0;i<size;i++){
                 for (int m=0;m<ll;m++){
-                occupancies(index[i]+m)=eigenvalues(i);
+                occupancies(index[i]+m)=es.eigenvalues()(i);
                 }
                 for (unsigned j=0;j<size;j++){
                     for (int m=0;m<ll;m++){
-                    transformation(index[i]+m,index[j]+m)=eigenvectors(i,j);
+                    transformation(index[i]+m,index[j]+m)=es.eigenvectors()(i,j);
                 }
             }
         }
         }
     }
-        cout<<transformation<<endl;
-        cout<<occupancies<<endl;
+        
     
-        TransformMatrixtoNewBasis(P,transformation);
-        TransformMatrixtoNewBasis(overlap,transformation);
+       P=transformation*P*transformation.transpose();
+       overlap=transformation*overlap*transformation.transpose();
     
     return transformation;
 }
 
 
-void NBO::TransformMatrixtoNewBasis(ub::matrix<double>& Matrix, const ub::matrix<double>& transformation){
-    ub::matrix<double> temp=ub::prod(Matrix,ub::trans(transformation));
-    Matrix=ub::prod(transformation,temp);
-    return;
-}
+
 
 }}

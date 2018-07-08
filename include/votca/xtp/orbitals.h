@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2017 The VOTCA Development Team
+/*
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,67 +20,33 @@
 #ifndef __VOTCA_XTP_ORBITALS_H
 #define __VOTCA_XTP_ORBITALS_H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 //for openmp
-#include <votca/xtp/votca_config.h>
+#include <votca/xtp/eigen.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/qmatom.h>
 
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
-#include <boost/numeric/ublas/io.hpp>
-
+#include <votca/xtp/checkpoint.h>
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
 #include <votca/tools/vec.h>
 
 #include <votca/ctp/logger.h>
 #include <boost/format.hpp>
-// Text archive that defines boost::archive::text_oarchive
-// and boost::archive::text_iarchive
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-
-// XML archive that defines boost::archive::xml_oarchive
-// and boost::archive::xml_iarchive
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-
-// XML archive which uses wide characters (use for UTF-8 output ),
-// defines boost::archive::xml_woarchive
-// and boost::archive::xml_wiarchive
-#include <boost/archive/xml_woarchive.hpp>
-#include <boost/archive/xml_wiarchive.hpp>
-
-// Binary archive that defines boost::archive::binary_oarchive
-// and boost::archive::binary_iarchive
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-
-#include <boost/serialization/version.hpp>
-#include <boost/serialization/map.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/version.hpp>
 #include <votca/tools/constants.h>
 
-#if (GWBSE_DOUBLE)
-#define real_gwbse double
-#else
-#define real_gwbse float
-#endif
 
-namespace ub = boost::numeric::ublas;
 
 namespace votca {
     namespace xtp {
+       
 
         /**
          * \brief container for molecular orbitals
-         * 
+         *
          * The Orbitals class stores orbital id, energy, MO coefficients, basis set
-         *     
+         *
          */
         class Orbitals {
         public:
@@ -91,9 +57,9 @@ namespace votca {
             static void PrepareGuess(Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB);
 
             /*
-             * 
+             *
              *  ************** NEW ACCESS STRATEGY ****************
-             * 
+             *
              *  Scalars:              get and set functions
              *  Vectors and matrixes: const and non-const refs, has-function via size
              */
@@ -137,12 +103,12 @@ namespace votca {
                 _number_of_electrons = electrons;
             }
 
-            
+
             bool hasECP(){
                 return ( _ECP !="") ? true : false;
             }
-            
-            string getECP() {
+
+            std::string getECP() {
                 return _ECP;
             };
 
@@ -167,14 +133,14 @@ namespace votca {
             // access to DFT AO overlap matrix, new, tested
 
             bool hasAOOverlap() {
-                return ( _overlap.size1() > 0) ? true : false;
+                return ( _overlap.rows() > 0) ? true : false;
             }
 
-            const ub::symmetric_matrix<double> &AOOverlap() const {
+            const Eigen::MatrixXd &AOOverlap() const {
                 return _overlap;
             }
 
-            ub::symmetric_matrix<double> &AOOverlap() {
+            Eigen::MatrixXd &AOOverlap() {
                 return _overlap;
             }
 
@@ -184,11 +150,11 @@ namespace votca {
                 return ( _mo_energies.size() > 0) ? true : false;
             }
 
-            const ub::vector<double> &MOEnergies() const {
+            const Eigen::VectorXd &MOEnergies() const {
                 return _mo_energies;
             }
 
-            ub::vector<double> &MOEnergies() {
+            Eigen::VectorXd &MOEnergies() {
                 return _mo_energies;
             }
 
@@ -201,28 +167,28 @@ namespace votca {
             // access to DFT molecular orbital coefficients, new, tested
 
             bool hasMOCoefficients() {
-                return ( _mo_coefficients.size1() > 0) ? true : false;
+                return ( _mo_coefficients.cols() > 0) ? true : false;
             }
 
-            const ub::matrix<double> &MOCoefficients() const {
+            const Eigen::MatrixXd &MOCoefficients() const {
                 return _mo_coefficients;
             }
 
-            ub::matrix<double> &MOCoefficients() {
+            Eigen::MatrixXd &MOCoefficients() {
                 return _mo_coefficients;
             }
 
             // access to DFT transfer integrals, new, tested
 
             bool hasMOCouplings() {
-                return ( _mo_couplings.size1() > 0) ? true : false;
+                return ( _mo_couplings.cols() > 0) ? true : false;
             }
 
-            const ub::matrix<double> &MOCouplings() const {
+            const Eigen::MatrixXd &MOCouplings() const {
                 return _mo_couplings;
             }
 
-            ub::matrix<double> &MOCouplings() {
+            Eigen::MatrixXd &MOCouplings() {
                 return _mo_couplings;
             }
 
@@ -299,29 +265,29 @@ namespace votca {
             // access to exchange-correlation AO matrix, new, tested
 
             bool hasAOVxc() {
-                return ( _vxc.size1() > 0) ? true : false;
+                return ( _vxc.rows() > 0) ? true : false;
             }
 
-            ub::symmetric_matrix<double> &AOVxc() {
+            Eigen::MatrixXd &AOVxc() {
                 return _vxc;
             }
 
-            const ub::symmetric_matrix<double> &AOVxc() const {
+            const Eigen::MatrixXd &AOVxc() const {
                 return _vxc;
             }
 
-            // access to GW auxiliary basis set name
+            // access to auxiliary basis set name
 
-            bool hasGWbasis() {
-                return ( !_gwbasis.empty()) ? true : false;
+            bool hasAuxbasis() {
+                return ( !_auxbasis.empty()) ? true : false;
             }
 
-            void setGWbasis(std::string basis) {
-                _gwbasis = basis;
+            void setAuxbasis(std::string basis) {
+                _auxbasis = basis;
             }
 
-            const std::string getGWbasis() const {
-                return _gwbasis;
+            const std::string getAuxbasis() const {
+                return _auxbasis;
             }
 
 
@@ -370,10 +336,10 @@ namespace votca {
 
             // access to list of indices used in BSE
 
-            void setBSEtype(string bsetype){_bsetype=bsetype;}
-            string getBSEtype() const{return _bsetype;}
-            
-            
+            void setBSEtype(std::string bsetype){_bsetype=bsetype;}
+            std::string getBSEtype() const{return _bsetype;}
+
+
             bool hasBSEindices() {
                 return ( _bse_cmax > 0) ? true : false;
             }
@@ -417,14 +383,14 @@ namespace votca {
             // access to perturbative QP energies
 
             bool hasQPpert() {
-                return ( _QPpert_energies.size1() > 0) ? true : false;
+                return ( _QPpert_energies.size() > 0) ? true : false;
             }
 
-            const ub::matrix<double> &QPpertEnergies() const {
+            const Eigen::MatrixXd &QPpertEnergies() const {
                 return _QPpert_energies;
             }
 
-            ub::matrix<double> &QPpertEnergies() {
+            Eigen::MatrixXd &QPpertEnergies() {
                 return _QPpert_energies;
             }
 
@@ -434,97 +400,101 @@ namespace votca {
                 return ( _QPdiag_energies.size() > 0) ? true : false;
             }
 
-            const ub::vector<double> &QPdiagEnergies() const {
+            const Eigen::VectorXd &QPdiagEnergies() const {
                 return _QPdiag_energies;
             }
 
-            ub::vector<double> &QPdiagEnergies() {
+            Eigen::VectorXd &QPdiagEnergies() {
                 return _QPdiag_energies;
             }
 
-            const ub::matrix<double> &QPdiagCoefficients() const {
+            const Eigen::MatrixXd &QPdiagCoefficients() const {
                 return _QPdiag_coefficients;
             }
 
-            ub::matrix<double> &QPdiagCoefficients() {
+            Eigen::MatrixXd &QPdiagCoefficients() {
                 return _QPdiag_coefficients;
             }
 
             // access to eh interaction
+
+
+
+            bool hasEHinteraction_triplet() {
+                return ( _eh_t.cols() > 0) ? true : false;
+            }
             
-         
-
-            bool hasEHinteraction() {
-                return ( _eh_d.size1() > 0) ? true : false;
+            bool hasEHinteraction_singlet() {
+                return ( _eh_s.cols() > 0) ? true : false;
             }
 
-            const ub::matrix<real_gwbse> &eh_x() const {
-                return _eh_x;
+            const MatrixXfd &eh_s() const {
+                return _eh_s;
             }
 
-            ub::matrix<real_gwbse> &eh_x() {
-                return _eh_x;
+            MatrixXfd &eh_s() {
+                return _eh_s;
             }
 
-            const ub::matrix<real_gwbse> &eh_d() const {
-                return _eh_d;
+            const MatrixXfd &eh_t() const {
+                return _eh_t;
             }
 
-            ub::matrix<real_gwbse> &eh_d() {
-                return _eh_d;
+            MatrixXfd &eh_t() {
+                return _eh_t;
             }
 
             // access to triplet energies and wave function coefficients
 
             bool hasBSETriplets() {
-                return ( _BSE_triplet_energies.size() > 0) ? true : false;
+                return ( _BSE_triplet_energies.cols() > 0) ? true : false;
             }
 
-            const ub::vector<real_gwbse> &BSETripletEnergies() const {
+            const VectorXfd &BSETripletEnergies() const {
                 return _BSE_triplet_energies;
             }
 
-            ub::vector<real_gwbse> &BSETripletEnergies() {
+            VectorXfd &BSETripletEnergies() {
                 return _BSE_triplet_energies;
             }
 
-            const ub::matrix<real_gwbse> &BSETripletCoefficients() const {
+            const MatrixXfd &BSETripletCoefficients() const {
                 return _BSE_triplet_coefficients;
             }
 
-            ub::matrix<real_gwbse> &BSETripletCoefficients() {
+            MatrixXfd &BSETripletCoefficients() {
                 return _BSE_triplet_coefficients;
             }
 
             // access to singlet energies and wave function coefficients
 
             bool hasBSESinglets() {
-                return (_BSE_singlet_energies.size() > 0) ? true : false;
+                return (_BSE_singlet_energies.cols() > 0) ? true : false;
             }
 
-            const ub::vector<real_gwbse> &BSESingletEnergies() const {
+            const VectorXfd &BSESingletEnergies() const {
                 return _BSE_singlet_energies;
             }
 
-            ub::vector<real_gwbse> &BSESingletEnergies() {
+            VectorXfd &BSESingletEnergies() {
                 return _BSE_singlet_energies;
             }
 
-            const ub::matrix<real_gwbse> &BSESingletCoefficients() const {
+            const MatrixXfd &BSESingletCoefficients() const {
                 return _BSE_singlet_coefficients;
             }
 
-            ub::matrix<real_gwbse> &BSESingletCoefficients() {
+            MatrixXfd &BSESingletCoefficients() {
                 return _BSE_singlet_coefficients;
             }
 
             // for anti-resonant part in full BSE
 
-            const ub::matrix<real_gwbse> &BSESingletCoefficientsAR() const {
+            const MatrixXfd &BSESingletCoefficientsAR() const {
                 return _BSE_singlet_coefficients_AR;
             }
 
-            ub::matrix<real_gwbse> &BSESingletCoefficientsAR() {
+            MatrixXfd &BSESingletCoefficientsAR() {
                 return _BSE_singlet_coefficients_AR;
             }
 
@@ -547,36 +517,36 @@ namespace votca {
             // access to singlet coupling elements
 
             bool hasSingletCouplings() {
-                return (_BSE_singlet_couplings.size1() > 0) ? true : false;
+                return (_BSE_singlet_couplings.cols() > 0) ? true : false;
             }
 
-            const ub::matrix<real_gwbse> &SingletCouplings() const {
+            const Eigen::MatrixXd &SingletCouplings() const {
                 return _BSE_singlet_couplings;
             }
 
-            ub::matrix<real_gwbse> &SingletCouplings() {
+            Eigen::MatrixXd &SingletCouplings() {
                 return _BSE_singlet_couplings;
             }
 
-            void setSingletCouplings(ub::matrix<real_gwbse> couplings) {
+            void setSingletCouplings(Eigen::MatrixXd couplings) {
                 _BSE_singlet_couplings = couplings;
             }
 
             // access to triplet coupling elements
 
             bool hasTripletCouplings() {
-                return (_BSE_triplet_couplings.size1() > 0) ? true : false;
+                return (_BSE_triplet_couplings.cols() > 0) ? true : false;
             }
 
-            const ub::matrix<real_gwbse> &TripletCouplings() const {
+            const Eigen::MatrixXd &TripletCouplings() const {
                 return _BSE_triplet_couplings;
             }
 
-            ub::matrix<real_gwbse> &TripletCouplings() {
+            Eigen::MatrixXd &TripletCouplings() {
                 return _BSE_triplet_couplings;
             }
 
-            void setTripletCouplings(ub::matrix<real_gwbse> couplings) {
+            void setTripletCouplings(Eigen::MatrixXd couplings) {
                 _BSE_triplet_couplings = couplings;
             }
 
@@ -608,17 +578,18 @@ namespace votca {
 
 
             // functions for calculating density matrices
-            ub::matrix<double> DensityMatrixGroundState();
-            std::vector<ub::matrix<double> > DensityMatrixExcitedState(const string& spin,int state = 0);
-            ub::matrix<double > TransitionDensityMatrix(const string& spin,int state = 0);
-            ub::matrix<double> DensityMatrixQuasiParticle(int state = 0);
-            ub::matrix<double> LambdaMatrixQuasiParticle();
+            Eigen::MatrixXd DensityMatrixGroundState();
+            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState(const std::string& spin,int state = 0);
+            Eigen::MatrixXd TransitionDensityMatrix(const std::string& spin,int state = 0);
+            Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0);
+            Eigen::MatrixXd LambdaMatrixQuasiParticle();
 
 
-            double GetTotalEnergy(string _spintype, int _opt_state);
+
+            double GetTotalEnergy(std::string _spintype, int _opt_state);
 
             // functions for analyzing fragment charges via Mulliken populations
-            ub::vector<double> LoewdinPopulation(const ub::matrix<double>& _densitymatrix, const ub::matrix<double>& _overlapmatrix, int _frag);
+            Eigen::VectorXd LoewdinPopulation(const Eigen::MatrixXd& _densitymatrix, const Eigen::MatrixXd& _overlapmatrix, int _frag);
 
             // access to fragment charges of singlet excitations
 
@@ -626,15 +597,15 @@ namespace votca {
                 return (_DqS_frag.size() > 0) ? true : false;
             }
 
-            const std::vector< ub::vector<double> > &getFragmentChargesSingEXC() const {
+            const std::vector< Eigen::VectorXd > &getFragmentChargesSingEXC() const {
                 return _DqS_frag;
             }
 
-             void setFragmentChargesSingEXC(std::vector< ub::vector<double> > DqS_frag) {
+             void setFragmentChargesSingEXC(std::vector< Eigen::VectorXd > DqS_frag) {
                 _DqS_frag=DqS_frag;
             }
-             
-            
+
+
 
             // access to fragment charges of triplet excitations
 
@@ -642,58 +613,55 @@ namespace votca {
                 return (_DqT_frag.size() > 0) ? true : false;
             }
 
-            const std::vector< ub::vector<double> > &getFragmentChargesTripEXC() const {
+            const std::vector< Eigen::VectorXd > &getFragmentChargesTripEXC() const {
                 return _DqT_frag;
             }
 
-            void setFragmentChargesTripEXC(std::vector< ub::vector<double> > DqT_frag) {
+            void setFragmentChargesTripEXC(std::vector< Eigen::VectorXd > DqT_frag) {
                 _DqT_frag=DqT_frag;
             }
 
             // access to fragment charges in ground state
 
-            const ub::vector<double> &getFragmentChargesGS() const {
+            const Eigen::VectorXd &getFragmentChargesGS() const {
                 return _GSq_frag;
             }
 
-             void setFragmentChargesGS(ub::vector<double> GSq_frag) {
+             void setFragmentChargesGS(Eigen::VectorXd GSq_frag) {
                  _GSq_frag=GSq_frag;
             }
-             
-            void setFragment_E_localisation_singlet(std::vector< ub::vector<double> >& popE){
+
+            void setFragment_E_localisation_singlet(std::vector< Eigen::VectorXd >& popE){
                 _popE_s=popE;
             }
-            
-            void setFragment_H_localisation_singlet(std::vector< ub::vector<double> > & popH){
+
+            void setFragment_H_localisation_singlet(std::vector< Eigen::VectorXd > & popH){
                 _popH_s=popH;
             }
-            
-            void setFragment_E_localisation_triplet(std::vector< ub::vector<double> > & popE){
+
+            void setFragment_E_localisation_triplet(std::vector< Eigen::VectorXd > & popE){
                 _popE_t=popE;
             }
-            
-            void setFragment_H_localisation_triplet(std::vector< ub::vector<double> > & popH){
+
+            void setFragment_H_localisation_triplet(std::vector< Eigen::VectorXd > & popH){
                 _popE_s=popH;
             }
-            
 
-            const std::vector< ub::vector<double> >& getFragment_E_localisation_singlet()const{
+
+            const std::vector< Eigen::VectorXd >& getFragment_E_localisation_singlet()const{
                 return _popE_s;
             }
-            const std::vector< ub::vector<double> >& getFragment_H_localisation_singlet()const{
+            const std::vector< Eigen::VectorXd >& getFragment_H_localisation_singlet()const{
                 return _popH_s;
             }
-            const std::vector< ub::vector<double> >& getFragment_E_localisation_triplet()const{
+            const std::vector< Eigen::VectorXd >& getFragment_E_localisation_triplet()const{
                 return _popE_t;
             }
-            const std::vector< ub::vector<double> >& getFragment_H_localisation_triplet()const{
+            const std::vector< Eigen::VectorXd >& getFragment_H_localisation_triplet()const{
                 return _popH_t;
             }
 
-            ub::vector<double> FragmentNuclearCharges(int _frag);
-
-
-
+            Eigen::VectorXd FragmentNuclearCharges(int _frag);
 
             // returns indeces of a re-sorted in a descending order vector of energies
             std::vector<int> SortEnergies();
@@ -718,12 +686,6 @@ namespace votca {
                 return pAtom;
             }
 
-            void setStorage(bool _store_orbitals, bool _store_overlap, bool _store_integrals) {
-                // _has_mo_coefficients = _store_orbitals;
-                //hasOverlap() = _store_overlap;
-                // _has_integrals = _store_integrals;
-                ;
-            }
 
             void WritePDB(FILE *out, std::string tag = "");
 
@@ -733,46 +695,47 @@ namespace votca {
             // reduces number of virtual orbitals to [HOMO-degG:LUMO+degL]
             void Trim(int degH, int degL);
 
-            /** Loads orbitals from a file
-             * Returns true if successful and does not throw an exception.
-             * If exception is required, please use the << overload.
-             */
-            bool Load(std::string file_name);
-
-            bool Save(std::string file_name);
-
             void LoadFromXYZ(std::string filename);
-           
+
+            void WriteToCpt(const std::string& filename);
+            
+            void ReadFromCpt(const std::string& filename);
+            
+
 
         private:
-            std::vector<ub::matrix<double> > DensityMatrixExcitedState_R(const string& spin,int state = 0);
-            std::vector<ub::matrix<double> >DensityMatrixExcitedState_AR(const string& spin,int state = 0);
+            
+            void WriteToCpt(CheckpointFile f);
+            void WriteToCpt(CptLoc parent);
+            
+            void ReadFromCpt(CheckpointFile f);
+            void ReadFromCpt(CptLoc parent);
+            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const std::string& spin,int state = 0);
+            std::vector<Eigen::MatrixXd >DensityMatrixExcitedState_AR(const std::string& spin,int state = 0);
 
             int _basis_set_size;
             int _occupied_levels;
             int _unoccupied_levels;
             int _number_of_electrons;
-            string _ECP;
-            
-            string _bsetype;
-            
+            std::string _ECP;
+            std::string _bsetype;
+
 
             std::map<int, std::vector<int> > _level_degeneracy;
 
-            ub::vector<double> _mo_energies;
-            ub::matrix<double> _mo_coefficients;
+            Eigen::VectorXd _mo_energies;
+            Eigen::MatrixXd _mo_coefficients;
 
-            ub::symmetric_matrix<double> _overlap;
-            ub::symmetric_matrix<double> _vxc;
+            Eigen::MatrixXd _overlap;
+            Eigen::MatrixXd _vxc;
 
             std::vector< QMAtom* > _atoms;
 
             double _qm_energy;
             double _self_energy;
 
-            ub::matrix<double> _mo_couplings;
+            Eigen::MatrixXd _mo_couplings;
 
-            bool _has_basis_set;
             BasisSet _basis_set;
 
             // new variables for GW-BSE storage
@@ -795,47 +758,47 @@ namespace votca {
             double _ScaHFX;
 
             std::string _dftbasis;
-            std::string _gwbasis;
+            std::string _auxbasis;
 
             std::string _qm_package;
 
             // perturbative quasiparticle energies
-            ub::matrix<double> _QPpert_energies;
+            Eigen::MatrixXd _QPpert_energies;
 
             // quasiparticle energies and coefficients after diagonalization
-            ub::vector<double> _QPdiag_energies;
-            ub::matrix<double> _QPdiag_coefficients;
+            Eigen::VectorXd _QPdiag_energies;
+            Eigen::MatrixXd _QPdiag_coefficients;
             // excitons
-            
 
 
-            ub::matrix<real_gwbse> _eh_d;
-            ub::matrix<real_gwbse> _eh_x;
-            ub::vector<real_gwbse> _BSE_singlet_energies;
-            ub::matrix<real_gwbse> _BSE_singlet_coefficients;
-            ub::matrix<real_gwbse> _BSE_singlet_coefficients_AR;
+
+            MatrixXfd _eh_t;
+            MatrixXfd _eh_s;
+            VectorXfd _BSE_singlet_energies;
+            MatrixXfd _BSE_singlet_coefficients;
+            MatrixXfd _BSE_singlet_coefficients_AR;
 
             std::vector< tools::vec > _transition_dipoles;
-            ub::vector<real_gwbse> _BSE_triplet_energies;
-            ub::matrix<real_gwbse> _BSE_triplet_coefficients;
+            VectorXfd _BSE_triplet_energies;
+            MatrixXfd _BSE_triplet_coefficients;
 
-            ub::matrix<real_gwbse> _BSE_singlet_couplings;
-            ub::matrix<real_gwbse> _BSE_triplet_couplings;
+            Eigen::MatrixXd _BSE_singlet_couplings;
+            Eigen::MatrixXd _BSE_triplet_couplings;
             int _couplingsA;
             int _couplingsB;
 
 
 
-            std::vector< ub::vector<double> > _DqS_frag; // fragment charge changes in exciton
+            std::vector< Eigen::VectorXd > _DqS_frag; // fragment charge changes in exciton
 
-            std::vector< ub::vector<double> > _DqT_frag;
+            std::vector< Eigen::VectorXd > _DqT_frag;
 
-            ub::vector<double> _GSq_frag; // ground state effective fragment charges
+            Eigen::VectorXd _GSq_frag; // ground state effective fragment charges
 
-            std::vector< ub::vector<double> > _popE_s;
-            std::vector< ub::vector<double> > _popE_t;
-            std::vector< ub::vector<double> > _popH_s;
-            std::vector< ub::vector<double> > _popH_t;
+            std::vector< Eigen::VectorXd > _popE_s;
+            std::vector< Eigen::VectorXd > _popE_t;
+            std::vector< Eigen::VectorXd > _popH_s;
+            std::vector< Eigen::VectorXd > _popH_t;
 
 
             /**
@@ -844,304 +807,11 @@ namespace votca {
              */
             bool CheckDegeneracy(double _energy_difference);
 
-            // Allow serialization to access non-public data members
-            friend class boost::serialization::access;
-
-            //Allow  object to access non-public data members
-            friend class Gaussian;
-            friend class Turbomole;
-            friend class NWChem;
-            friend class Orca;
-            friend class GW;
-
-            // serialization itself (template implementation stays in the header)
-
-            template<typename Archive>
-            void serialize(Archive& ar, const unsigned int version) {
-                //check with which votca version orbitals object was created
-                if (version > 1) {
-                    string test = "float";
-#if (GWBSE_DOUBLE)
-                    test = "double";
-#endif
-
-                    if (Archive::is_loading::value) {
-                        string floatordouble = "float";
-                        ar & floatordouble;
-                        if (test != floatordouble) {
-                            throw std::runtime_error((boost::format("This votca is compiled with %1%. The orbitals file you want to read in is compiled with %2%") % test % floatordouble).str());
-                        }
-                    } else {
-                        ar & test;
-                    }
-                }
-                ar & _basis_set_size;
-                ar & _occupied_levels;
-                ar & _unoccupied_levels;
-                ar & _number_of_electrons;
-                ar & _level_degeneracy;
-                ar & _mo_energies;
-                ar & _mo_coefficients;
-
-
-                // symmetric matrix does not serialize by default
-                if (Archive::is_saving::value) {
-                    unsigned int size = _overlap.size1();
-                    ar & size;
-                }
-
-                // copy the values back if loading
-                if (Archive::is_loading::value) {
-                    unsigned int size;
-                    ar & size;
-                    _overlap.resize(size);
-                    if(version==0){
-                        cerr<<endl;
-                        cerr<<"WARNING! .orb file is of version 0. The overlap matrix will have the wrong ordering"<<endl;
-                    }
-                }
-
-                for (unsigned int i = 0; i < _overlap.size1(); ++i)
-                    for (unsigned int j = 0; j <= i; ++j)
-                        ar & _overlap(i, j);
-
-                ar & _atoms;
-               
-                
-                ar & _qm_energy;
-                ar & _qm_package;
-                ar & _self_energy;
-                ar & _mo_couplings;
-
-                // GW-BSE storage
-                if (version > 0) {
-                    
-                    
-
-                    ar & _dftbasis;
-                    ar & _gwbasis;
-                    ar & _rpamin;
-                    ar & _rpamax;
-                    ar & _qpmin;
-                    ar & _qpmax;
-                    ar & _bse_vmin;
-                    ar & _bse_vmax;
-                    ar & _bse_cmin;
-                    ar & _bse_cmax;
-                    ar & _bse_nmax;
-                    std::vector<int> _index2v;
-                    std::vector<int> _index2c;
-                    ar & _index2c;
-                    ar & _index2v;
-                    ar & _ScaHFX;
-                    
-                    if (Archive::is_loading::value && version < 4) {
-                        _bsetype="TDA";
-                        _ECP="ecp";   
-                    } else {
-                        ar & _bsetype;
-                        ar & _ECP;
-                    }
-                    
-
-                    if (Archive::is_loading::value && version < 3) {
-                        ub::matrix<real_gwbse> temp;
-                        ar &temp;
-                        _QPpert_energies.resize(temp.size1(), temp.size2());
-                        _QPpert_energies = 0.5 * temp;
-                    } else {
-                        ar & _QPpert_energies;
-                    }
-
-                    if (Archive::is_loading::value && version == 1) {
-                        std::vector<double> temp;
-                        ar &temp;
-                        _QPdiag_energies.resize(temp.size());
-                        for (unsigned i = 0; i < temp.size(); i++) {
-                            _QPdiag_energies(i) = temp[i];
-                        }
-                    } else if (Archive::is_loading::value && version == 2) {
-                        ub::vector<real_gwbse> temp;
-                        ar &temp;
-                        _QPdiag_energies.resize(temp.size());
-                        _QPdiag_energies = 0.5 * temp;
-
-                    } else {
-                        ar & _QPdiag_energies;
-                    }
-
-                    ar & _QPdiag_coefficients;
-
-
-
-                    if (Archive::is_loading::value && version < 3) {
-                        ub::matrix<real_gwbse> temp;
-                        ar &temp;
-                        _eh_d.resize(temp.size1(), temp.size2());
-                        _eh_d = 0.5 * temp;
-                    } else {
-                        ar & _eh_d;
-                    }
-                    if (Archive::is_loading::value && version < 3) {
-                        ub::matrix<real_gwbse> temp;
-                        ar &temp;
-                        _eh_x.resize(temp.size1(), temp.size2());
-                        _eh_x = 0.5 * temp;
-                    } else {
-                        ar & _eh_x;
-                    }
-
-
-
-                    if (Archive::is_loading::value && version == 1) {
-                        std::vector<real_gwbse> temp;
-                        ar &temp;
-                        _BSE_singlet_energies.resize(temp.size());
-                        for (unsigned i = 0; i < temp.size(); i++) {
-                            _BSE_singlet_energies(i) = temp[i];
-                        }
-                    } else if (Archive::is_loading::value && version == 2) {
-                        ub::vector<real_gwbse> temp;
-                        ar &temp;
-                        _BSE_singlet_energies.resize(temp.size());
-                        _BSE_singlet_energies = 0.5 * temp;
-
-                    } else {
-                        ar & _BSE_singlet_energies;
-                    }
-
-
-                    ar & _BSE_singlet_coefficients;
-                    
-                    if (Archive::is_loading::value && version < 4) {
-                        _BSE_singlet_coefficients_AR=ub::matrix<double>(0,0);
-                    } else {
-                        ar & _BSE_singlet_coefficients_AR;
-                    }
-                    
-
-                    if (Archive::is_loading::value && version == 1) {
-                        std::vector< std::vector<double> > temp;
-                        ar &temp;
-                        for (unsigned _i = 0; _i < temp.size(); _i++) {
-                            ub::vector< double > vector_temp(3);
-                            vector_temp(0) = temp[_i][0];
-                            vector_temp(1) = temp[_i][1];
-                            vector_temp(2) = temp[_i][2];
-                            _transition_dipoles.push_back(vector_temp);
-                        }
-                    } else if (Archive::is_loading::value && version == 2) {
-                        std::vector< ub::vector<double> > temp;
-                        ar &temp;
-                        for (unsigned _i = 0; _i < temp.size(); _i++) {
-                            tools::vec vector_temp = tools::vec(temp[_i]);
-                            _transition_dipoles.push_back(vector_temp);
-                        }
-                    } else {
-                        ar & _transition_dipoles;
-                    }
-
-
-
-                    if (Archive::is_loading::value && version == 1) {
-                        std::vector<real_gwbse> temp;
-                        ar &temp;
-                        _BSE_triplet_energies.resize(temp.size());
-                        for (unsigned i = 0; i < temp.size(); i++) {
-                            _BSE_triplet_energies(i) = 0.5 * temp[i];
-                        }
-                    } else if (Archive::is_loading::value && version == 2) {
-                        ub::vector<real_gwbse> temp;
-                        ar &temp;
-                        _BSE_triplet_energies.resize(temp.size());
-                        _BSE_triplet_energies = 0.5 * temp;
-                    } else {
-                        ar & _BSE_triplet_energies;
-                    }
-
-                    ar & _BSE_triplet_coefficients;
-
-
-                    if (Archive::is_loading::value && version < 3) {
-                        ub::matrix<real_gwbse> temp;
-                        ar &temp;
-                        _BSE_singlet_couplings.resize(temp.size1(), temp.size2());
-                        _BSE_singlet_couplings = 0.5 * temp;
-                    } else {
-                        ar & _BSE_singlet_couplings;
-                    }
-
-
-                    if (Archive::is_loading::value && version < 3) {
-                        ub::matrix<real_gwbse> temp;
-                        ar &temp;
-                        _BSE_triplet_couplings.resize(temp.size1(), temp.size2());
-                        _BSE_triplet_couplings = 0.5 * temp;
-                    } else {
-                        ar & _BSE_triplet_couplings;
-                    }
-
-
-
-                    ar & _couplingsA;
-                    ar & _couplingsB;
-
-                    // symmetric matrix does not serialize by default
-                    if (Archive::is_saving::value) {
-                        unsigned int size = _vxc.size1();
-                        ar & size;
-                    }
-
-                    // copy the values back if loading
-                    if (Archive::is_loading::value) {
-                        unsigned int size;
-                        ar & size;
-                        _vxc.resize(size);
-                    }
-
-                    for (unsigned int i = 0; i < _vxc.size1(); ++i)
-                        for (unsigned int j = 0; j <= i; ++j)
-                            ar & _vxc(i, j);
-
-            if (Archive::is_loading::value && version < 4) {
-                BasisSet _dftbasisset;
-                _dftbasisset.LoadBasisSet(_dftbasis);
-
-                if(!hasQMAtoms()){
-                    throw runtime_error("Orbitals object has no QMAtoms");
-                }
-            AOBasis _dftbasis;
-            _dftbasis.AOBasisFill(&_dftbasisset, QMAtoms());
-            if(this->hasAOOverlap()){
-                 _dftbasis.ReorderMatrix(_overlap,_qm_package , "xtp");
-
-            }
-            if(this->hasAOVxc()){
-                
-               
-                if(_qm_package=="gaussian"){
-                ub::matrix<double> vxc_full=_vxc;
-                
-                ub::matrix<double> _carttrafo=_dftbasis.getTransformationCartToSpherical(_qm_package);
-                ub::matrix<double> _temp = ub::prod(_carttrafo, vxc_full);
-                _vxc = ub::prod(_temp, ub::trans(_carttrafo));
-                }
-                 _dftbasis.ReorderMatrix(_vxc,_qm_package , "xtp");
-                
-            }   
-            if(this->hasMOCoefficients()){
-                _dftbasis.ReorderMOs(_mo_coefficients,_qm_package , "xtp");
-            }  
-                }
-
-                } // end version 1: GW-BSE storage
-            }// end of serialization
+ 
         };
 
     }
 }
 
-BOOST_CLASS_VERSION(votca::xtp::Orbitals, 4)
 
 #endif /* __VOTCA_XTP_ORBITALS_H */
-

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -49,13 +49,13 @@ namespace votca {
             virtual std::string getPackageName() = 0;
 
 
-            virtual void Initialize(Property *options) = 0;
+            virtual void Initialize(tools::Property *options) = 0;
 
             /// writes a coordinate file WITHOUT taking into account PBCs
             virtual bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {}) = 0;
 
             /// writes a coordinate file of a pair WITH PBCs and the orbital guess [if needed]
-            bool WriteInputFilePBC(ctp::QMPair* pair, Orbitals* orbitals = NULL);
+            bool WriteInputFilePBC(ctp::QMPair* pair, Orbitals* orbitals = NULL, std::vector<std::string> linker_names ={});
 
             virtual bool Run(Orbitals* _orbitals = NULL) = 0;
 
@@ -79,7 +79,7 @@ namespace votca {
                 _log_file_name = log_file_name;
             }
 
-            void setOrbitalsFileName(string orb_file) {
+            void setOrbitalsFileName(std::string orb_file) {
                 _orb_file_name = orb_file;
             }
 
@@ -174,7 +174,9 @@ namespace votca {
             std::vector<std::vector<double> > SplitMultipoles(ctp::APolarSite* site);
             void ReorderOutput(Orbitals* _orbitals);
             void ReorderMOsBack(Orbitals* _orbitals);
-            
+            void addLinkers(std::vector< ctp::Segment* > &segments, ctp::QMPair* pair, std::vector< std::string> linker_names );
+            bool isLinker( std::string name, std::vector< std::string> linker_names );
+
             
         };
         

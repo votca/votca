@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -44,7 +44,7 @@ namespace votca {
                 return "xtp";
             }
 
-            void Initialize(Property *options);
+            void Initialize(tools::Property *options);
 
             bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
 
@@ -63,7 +63,7 @@ namespace votca {
         private:
 
             DFTENGINE _xtpdft;
-            Property _xtpdft_options;
+            tools::Property _xtpdft_options;
 
             std::string _cleanup;
 

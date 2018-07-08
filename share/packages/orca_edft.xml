@@ -1,0 +1,20 @@
+<package>
+  <name>orca</name>
+  <executable>/opt/orca-4.0.1/orca</executable>
+  <checkpoint></checkpoint>
+  <scratch>temp</scratch>
+  <charge>0</charge>
+  <spin>1</spin>
+  <threads>1</threads>
+  <memory></memory>
+  <basisset>OPTIONFILES/def2-TZVP.xml</basisset>
+  <auxbasisset></auxbasisset>
+  <writebasisset>true</writebasisset>
+  <writepseudopotentials>false</writepseudopotentials>
+  <outputVxc>0</outputVxc>
+  <options>
+! DFT PBE 
+
+  </options>
+  <cleanup></cleanup>
+  </package>

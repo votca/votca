@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -69,8 +69,6 @@ private:
     string                          _pdb_check;
     bool                            _write_chk;
     string                          _write_chk_suffix;
-    bool                            _chk_split_dpl;
-    double                          _chk_dpl_spacing;
     string                          _chk_format;
 
 
@@ -78,10 +76,7 @@ private:
     // INDUCTION + ENERGY EVALUATION            //
     // ======================================== //
 
-    // Induction, subthreading (-> base class)
-    //bool                            _induce;
-    //bool                            _induce_intra_pair;
-
+  
     // Multipole Interaction parameters
     string                          _method;
     bool                            _useCutoff;
@@ -95,7 +90,6 @@ private:
     // GWBSE options
     string                          _gwbse;
     Property                        _gwbse_opt;
-    int                             _state;
 
     // XJob logbook (file output)
     string                          _outFile;
@@ -168,18 +162,7 @@ void QMMM::Initialize(Property *options) {
         }
         else { _chk_format = "xyz"; }
 
-        if ( options->exists(key+".split_dpl")) {
-            _chk_split_dpl = ( options->get(key+".split_dpl").as<int>() == 1) ?
-                         true : false;
-        }
-        else { _chk_split_dpl = true; }
-
-        if ( options->exists(key+".dpl_spacing")) {
-            _chk_dpl_spacing = options->get(key+".dpl_spacing").as<double>();
-        }
-        else {
-            _chk_dpl_spacing = 1.0e-6;
-        }
+        
 
 
     key = "options."+Identify()+".coulombmethod";
@@ -238,12 +221,6 @@ void QMMM::Initialize(Property *options) {
             throw runtime_error("GWBSE options not specified.");
         }
 
-        _state = options->get(key+".state").as< int >();
-        
-  
-        
-        
-        
     }
 
     // register all QM packages (Gaussian, turbomole, etc))
@@ -359,7 +336,7 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         xjob.getPolarTop()->PrintPDB(xjob.getTag()+"_QM0_MM1_MM2.pdb");
     }
     // INDUCTOR, QM RUNNER, QM-MM MACHINE
-    ctp::XInductor xind = ctp::XInductor(top, &_options, "options.xqmmm",
+    ctp::XInductor xind = ctp::XInductor(top, &_options, "options."+Identify(),
         _subthreads, _maverick);
     xind.setLog(thread->getLogger());
 
@@ -371,16 +348,10 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     qmpack->Initialize( &_qmpack_opt );
 
     qmpack->setLog(qlog);
-    qmpack->setWithPolarization(false);
-    if (_options.exists("options.xqmmm.tholemodel.induce")){
-        if (_options.get("options.xqmmm.tholemodel.induce").as<int>() == 1 ){
-            qmpack->setWithPolarization(true);
-            qmpack->setDipoleSpacing(_chk_dpl_spacing);
-        }
-    }
+    
 
     QMMachine<QMPackage> machine = QMMachine<QMPackage>(&xjob, &xind, qmpack,
-        &_options, "options.xqmmm", _subthreads, _maverick);
+        &_options, "options."+Identify(), _subthreads, _maverick);
     machine.setLog(thread->getLogger());
 
     // EVALUATE: ITERATE UNTIL CONVERGED

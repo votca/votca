@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,14 +24,12 @@
 #include "tools/log2mps.h"
 #include "tools/pdb2top.h"
 #include "tools/exciton.h"
-#include "tools/qmanalyze.h"
 #include "tools/qmsandbox.h"
 #include "tools/spectrum.h"
 #include "tools/excitoncoupling.h"
 #include "tools/dft.h"
 #include "tools/gencube.h"
 #include "tools/partialcharges.h"
-#include "tools/matrixproduct.h"
 #include "tools/densityanalysis.h"
 #include "tools/coupling.h"
 
@@ -43,7 +41,6 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<PDB2Map>            ("pdb2map");
         QMTools().Register<Log2Mps>            ("log2mps");
         QMTools().Register<Exciton>            ("exciton");
-        QMTools().Register<QMAnalyze>          ("qmanalyze");
         QMTools().Register<QMSandbox>          ("qmsandbox");
         QMTools().Register<Spectrum>           ("spectrum");
         QMTools().Register<ExcitonCoupling>    ("excitoncoupling");
@@ -51,7 +48,6 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<DFT>                ("dft");
         QMTools().Register<GenCube>            ("gencube");
         QMTools().Register<Partialcharges>     ("partialcharges");
-        //QMTools().Register<MatProd>            ("matrixproduct");
         QMTools().Register<DensityAnalysis>    ("densityanalysis");
         QMTools().Register<Coupling>           ("coupling");
 

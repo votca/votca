@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,7 +20,7 @@
 #ifndef _VOTCA_XTP_MIXING__H
 #define _VOTCA_XTP_MIXING__H
 
-#include <votca/tools/linalg.h>
+
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/ctp/logger.h>
@@ -28,46 +28,54 @@
 
 
 namespace votca { namespace xtp {
- namespace ub = boost::numeric::ublas;
+
   
- 
+ //Mixing according to Zerner, M.C., Hehenberger, M., 1979. 
+ //A dynamical damping scheme for converging molecular scf calculations. 
+ //Chemical Physics Letters 62, 550–554. https://doi.org/10.1016/0009-2614(79)80761-7
+
  class Mixing{
 public:
 
-    Mixing(bool automaticmixing,double mixingparameter,ub::matrix<double>* _S,votca::ctp::Logger *pLog) {
-        _mixingparameter=mixingparameter;
-        _automaticmixing=automaticmixing;
-        S=_S;
-        _pLog=pLog;
-    };
+    Mixing() {};
+    
+    
    ~Mixing() {
-    for (std::vector< ub::vector<double>* >::iterator it = _Pout.begin() ; it !=_Pout.end(); ++it){
+    for (std::vector< Eigen::VectorXd* >::iterator it = _Pout.begin() ; it !=_Pout.end(); ++it){
          delete *it;
      }
      _Pout.clear();
-     for (std::vector< ub::vector<double>* >::iterator it = _Pin.begin() ; it !=_Pin.end(); ++it){
+     for (std::vector< Eigen::VectorXd* >::iterator it = _Pin.begin() ; it !=_Pin.end(); ++it){
          delete *it;
      }
      _Pin.clear();
    }
    
-  
+   void Configure(double mixingparameter,const  Eigen::MatrixXd* S){
+       _S=S;
+        _mixingparameter=mixingparameter;
+        if(_mixingparameter>0 && _mixingparameter<1.0){
+            _automaticmixing=false;
+        }else{
+            _automaticmixing=true;
+        }
+   }
    
-  ub::matrix<double> MixDmat(const ub::matrix<double>& dmatin,const ub::matrix<double>& dmatout,bool noisy=true );
-   void Updatemix(const ub::matrix<double>& dmatin,const ub::matrix<double>& dmatout ); 
+   double getAlpha(){return _alpha;}
+   
+  Eigen::MatrixXd MixDmat(const Eigen::MatrixXd& dmatin,const Eigen::MatrixXd& dmatout);
+   void Updatemix(const Eigen::MatrixXd& dmatin,const Eigen::MatrixXd& dmatout ); 
    
  private:
      
      
-    
-   ub::vector<double> Mullikencharges(const ub::matrix<double>& dmat);
-  
-    ctp::Logger *_pLog;
-    ub::matrix<double>* S;
+    Eigen::VectorXd Mullikencharges(const Eigen::MatrixXd& dmat);
+    const Eigen::MatrixXd*_S;
+    double _alpha;
     bool _automaticmixing;
     double _mixingparameter;
-    std::vector< ub::vector<double>* >      _Pin;
-    std::vector< ub::vector<double>* >      _Pout;
+    std::vector< Eigen::VectorXd* >      _Pin;
+    std::vector< Eigen::VectorXd* >      _Pout;
     
   
  };

@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -36,7 +36,6 @@
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
     
 class Mulliken{
 public:
@@ -45,7 +44,7 @@ public:
    ~Mulliken(){};
     
   
-    void EvaluateMulliken(std::vector< QMAtom* >& _atomlist,const ub::matrix<double> &_dmat,const AOBasis &basis,bool _do_transition);
+    void EvaluateMulliken(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat,const AOBasis &basis,bool _do_transition);
   
 
    

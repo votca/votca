@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,7 +26,6 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/dftcoupling.h>
 
-#include <boost/numeric/ublas/io.hpp>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
 
@@ -72,6 +71,8 @@ private:
     int                 _max_occupied_levels;
     int                 _max_unoccupied_levels;     
     int                 _trim_factor;
+    std::vector< string > _linker_names;
+
     
     string              _package;
     Property            _package_options; 

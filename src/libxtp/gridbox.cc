@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,14 +24,14 @@
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
     
-            void GridBox::AddtoBigMatrix(ub::matrix<double>& bigmatrix, const ub::matrix<double>& smallmatrix) {
+            void GridBox::AddtoBigMatrix(Eigen::MatrixXd& bigmatrix, const Eigen::MatrixXd& smallmatrix) {
 
 
             for (unsigned i = 0; i < ranges.size(); i++) {
                 for (unsigned j = 0; j < ranges.size(); j++) {
-                    ub::project(bigmatrix, ranges[i], ranges[j]) += ub::project(smallmatrix, inv_ranges[i], inv_ranges[j]);
+                    bigmatrix.block(ranges[i].start, ranges[j].start,ranges[i].size,ranges[j].size) += 
+                            smallmatrix.block(inv_ranges[i].start, inv_ranges[j].start,inv_ranges[i].size, inv_ranges[j].size);
                 }
             }
             return;
@@ -39,13 +39,12 @@ namespace votca { namespace xtp {
 
             
 
-        ub::matrix<double> GridBox::ReadFromBigMatrix(const ub::matrix<double>& bigmatrix) {
-            
-            ub::matrix<double> _matrix = ub::matrix<double>(matrix_size,matrix_size);
+        Eigen::MatrixXd GridBox::ReadFromBigMatrix(const Eigen::MatrixXd& bigmatrix) {
+            Eigen::MatrixXd _matrix = Eigen::MatrixXd(matrix_size,matrix_size);
             for (unsigned i = 0; i < ranges.size(); i++) {
                 for (unsigned j = 0; j < ranges.size(); j++) {
-                    
-                    ub::project(_matrix, inv_ranges[i], inv_ranges[j]) = ub::project(bigmatrix, ranges[i], ranges[j]);
+                    _matrix.block(inv_ranges[i].start, inv_ranges[j].start,inv_ranges[i].size, inv_ranges[j].size)
+                            = bigmatrix.block(ranges[i].start, ranges[j].start,ranges[i].size,ranges[j].size);
                 }
             }
             return _matrix;
@@ -53,14 +52,17 @@ namespace votca { namespace xtp {
 
         void GridBox::PrepareForIntegration() {
             unsigned index = 0;
-            aoranges=std::vector<ub::range>(0);
-            ranges=std::vector<ub::range>(0);
-            inv_ranges=std::vector<ub::range>(0);   
+            aoranges=std::vector<GridboxRange>(0);
+            ranges=std::vector<GridboxRange>(0);
+            inv_ranges=std::vector<GridboxRange>(0);   
             std::vector<unsigned> start;
             std::vector<unsigned> end;
 
             for (const auto shell:significant_shells) {
-                aoranges.push_back(ub::range(index, index+shell->getNumFunc()));
+              GridboxRange temp;
+              temp.size=shell->getNumFunc();
+              temp.start=index;
+                aoranges.push_back(temp);
                 index += shell->getNumFunc();
                 start.push_back(shell->getStartIndex());
                 end.push_back(shell->getStartIndex() + shell->getNumFunc());
@@ -86,11 +88,15 @@ namespace votca { namespace xtp {
              }
             unsigned shellstart = 0;
             for (unsigned i = 0; i < startindex.size(); ++i) {
-                ranges.push_back(ub::range(startindex[i], endindex[i]));
-                
                 unsigned size = endindex[i]-startindex[i];
-                
-                inv_ranges.push_back(ub::range(shellstart, shellstart + size));
+                GridboxRange temp;
+                temp.size=size;
+                temp.start=startindex[i];
+                ranges.push_back(temp);
+                GridboxRange temp2;
+                temp2.size=size;
+                temp2.start=shellstart;
+                inv_ranges.push_back(temp2);
                 shellstart += size;
             }
 

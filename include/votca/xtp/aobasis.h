@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,20 +20,15 @@
 #ifndef __XTP_AOBASIS__H
 #define	__XTP_AOBASIS__H
 
-#include <votca/tools/property.h>
 
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/basisset.h>
-#include <boost/numeric/ublas/symmetric.hpp>
-
+#include <votca/tools/vec.h>
+#include <votca/xtp/eigen.h>
 
 
 
 namespace votca { namespace xtp {
-namespace ub = boost::numeric::ublas;
 
 class AOShell;
 class QMAtom;
@@ -48,9 +43,9 @@ public:
         AOBasis( ) { ; }
         ~AOBasis(); 
       
-       void ReorderMOs(ub::matrix<double> &v,const std::string& start, const std::string& target ); 
+       void ReorderMOs(Eigen::MatrixXd &v,const std::string& start, const std::string& target ); 
        
-       void ReorderMatrix(ub::symmetric_matrix<double> &v,const std::string& start,const std::string& target );
+       void ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target );
      
       
 
@@ -64,7 +59,7 @@ public:
     AOShellIterator firstShell() const{ return _aoshells.begin(); }
     AOShellIterator lastShell() const{ return _aoshells.end(); }
 
-    ub::matrix<double> getTransformationCartToSpherical(const std::string& package);
+    Eigen::MatrixXd getTransformationCartToSpherical(const std::string& package);
    
         
     const AOShell* getShell( AOShellIterator it ) const{ return (*it); }
@@ -76,19 +71,19 @@ public:
     
     const std::vector<AOShell*>& getShells() const{ return _aoshells; }
     
-    std::vector<AOShell*> getShellsperAtom(int AtomId);
+    const std::vector<const AOShell*> getShellsperAtom(int AtomId)const;
     
     int getFuncperAtom(int AtomId) const;
     
     unsigned getNumofShells() const{return _aoshells.size();}
    
-
-   int _AOBasisFragA;
-   int _AOBasisFragB;
+    int getAOBasisFragA() const{return _AOBasisFragA;}
+    
+   int getAOBasisFragB() const{return _AOBasisFragB;}
    private:
        
        
-  void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
+  void MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier );
    
     std::vector<AOShell*> _aoshells;
 
@@ -101,14 +96,13 @@ public:
     std::vector<int> getMultiplierVector(const std::string& start,const std::string& target );
     
     void addMultiplierShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& multiplier );  
-    
-    
-    
-    void addTrafoCartShell( const AOShell* shell , ub::matrix_range< ub::matrix<double> >& _submatrix );
+  
+    void addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& _submatrix );
     
     int getMaxFunctions ( );
     
-  
+   int _AOBasisFragA;
+   int _AOBasisFragB;
     unsigned int _AOBasisSize;
     
 };

@@ -48,12 +48,12 @@ public:
     bool CalculateIntegrals(   Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB, 
                                Orbitals* _orbitalsAB, 
-                               boost::numeric::ublas::matrix<double>* _JAB);
+                               Eigen::MatrixXd* _JAB);
     
     double getCouplingElement( int levelA, int levelB,  
                                Orbitals* _orbitalsA,  
                                Orbitals* _orbitalsB, 
-                               boost::numeric::ublas::matrix<double>* _JAB,
+                               Eigen::MatrixXd* _JAB,
                                double _energy_difference = 0
                                 );
     

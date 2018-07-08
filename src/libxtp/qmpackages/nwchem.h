@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -42,7 +42,7 @@ public:
 
    std::string getPackageName() { return "nwchem"; }
 
-   void Initialize( Property *options );
+   void Initialize( tools::Property *options );
 
    /* Writes Gaussian input file with coordinates of segments
     * and a guess for the dimer (if requested) constructed from the
@@ -75,12 +75,15 @@ private:
     bool                                _is_optimization;
 
     std::string                              _cleanup;
+    
+    void WriteBasisset(std::ofstream& _nw_file, std::vector<QMAtom*>& qmatoms);
+    void WriteECP(std::ofstream& _nw_file, std::vector<QMAtom*>& qmatoms);   
 
     int NumberOfElectrons( std::string _line );
     int BasisSetSize( std::string _line );
-    int EnergiesFromLog( std::string _line, ifstream inputfile );
+    int EnergiesFromLog( std::string _line, std::ifstream inputfile );
     std::string FortranFormat( const double &number );
-    void WriteBackgroundCharges(ofstream& _com_file,std::vector<ctp::PolarSeg*> PolarSegments);
+    int WriteBackgroundCharges(std::ofstream& _nw_file,std::vector<ctp::PolarSeg*> PolarSegments);
 
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public:
 
 private:
        
-       
+    void WriteDecayProbability(string filename);
             
 	    
             void  RunVSSM(ctp::Topology *top);
@@ -58,7 +58,7 @@ private:
             void ReadLifetimeFile( string filename);
             
             //tools::vec _field;
-            
+            string _probfile;
             bool _do_carrierenergy;
             string _energy_outputfile;
             double _alpha;

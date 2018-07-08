@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -28,6 +28,8 @@
 #include "calculators/einternal.h"
 #include "calculators/kmclifetime.h"
 #include "calculators/kmcmultiple.h"
+#include "calculators/profile.h"
+
 
 namespace votca { namespace xtp {
 
@@ -42,5 +44,7 @@ void Calculatorfactory::RegisterAll(void)
         Calculators().Register<EInternal>           ("einternal");
         Calculators().Register<KMCLifetime>         ("kmclifetime");
         Calculators().Register<KMCMultiple>         ("kmcmultiple");
+        Calculators().Register<Profile>             ("profile");
+
 }
 }}

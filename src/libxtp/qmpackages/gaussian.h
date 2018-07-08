@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -42,7 +42,7 @@ public:
 
    std::string getPackageName() { return "gaussian"; }
 
-   void Initialize( Property *options );
+   void Initialize( tools::Property *options );
 
    /* Writes Gaussian input file with coordinates of segments
     * and a guess for the dimer (if requested) constructed from the
@@ -79,13 +79,13 @@ private:
     int BasisSetSize( std::string _line );
     int EnergiesFromLog( std::string _line, std::ifstream inputfile );
     std::string FortranFormat(double number);
-    void WriteBasisset(ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
-    void WriteECP(ofstream& _com_file, std::vector<QMAtom*>& qmatoms);   
-    void WriteBackgroundCharges(ofstream& _com_file,std::vector<ctp::PolarSeg*> PolarSegments);
-    void WriteGuess(Orbitals* orbitals_guess, ofstream& _com_file);
+    void WriteBasisset(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
+    void WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);   
+    void WriteBackgroundCharges(std::ofstream& _com_file,std::vector<ctp::PolarSeg*> PolarSegments);
+    void WriteGuess(Orbitals* orbitals_guess, std::ofstream& _com_file);
     void WriteVXCRunInputFile();
-    void WriteCoordinates(ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
-    void WriteHeader(ofstream& _com_file);
+    void WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
+    void WriteHeader(std::ofstream& _com_file);
 
 };
 

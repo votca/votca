@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -25,7 +25,7 @@
 
 namespace votca { namespace xtp {
 
-namespace ub = boost::numeric::ublas;
+
 /**
 * \brief Evaluates electronic coupling elements
 *
@@ -41,14 +41,14 @@ public:
     BSECoupling() {};
    ~BSECoupling() {};
    
-   void    Initialize( Property *options);
-    string  Identify() { return "bsecoupling"; }
+   void    Initialize( tools::Property *options);
+   std::string  Identify() { return "bsecoupling"; }
   
     
-    ub::matrix<double> getJAB_singletstorage(){ return (_output_perturbation ?  JAB_singlet[0]:JAB_singlet[1]);}
+    Eigen::MatrixXd getJAB_singletstorage(){ return (_output_perturbation ?  JAB_singlet[0]:JAB_singlet[1]);}
        
-    ub::matrix<double> getJAB_tripletstorage(){ return (_output_perturbation ?  JAB_triplet[0]: JAB_triplet[1]);}
-    void addoutput(Property *_type_summary,Orbitals* _orbitalsA, 
+    Eigen::MatrixXd getJAB_tripletstorage(){ return (_output_perturbation ?  JAB_triplet[0]: JAB_triplet[1]);}
+    void addoutput(tools::Property *_type_summary,Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB);
     
     bool CalculateCouplings(   Orbitals* _orbitalsA, 
@@ -71,15 +71,15 @@ private:
     ctp::Logger *_pLog;
   
     
-    std::vector< ub::matrix<double> >ProjectExcitons(const ub::matrix<double>& _bseA_T,const ub::matrix<double>& _bseB_T, 
-                         ub::matrix<double>& _H);
+    std::vector< Eigen::MatrixXd >ProjectExcitons(const Eigen::MatrixXd& _bseA_T,const Eigen::MatrixXd& _bseB_T, 
+                         Eigen::MatrixXd& _H);
     
-    ub::matrix<double> Fulldiag(const ub::matrix<double>& _J_dimer);
+    Eigen::MatrixXd Fulldiag(const Eigen::MatrixXd& _J_dimer);
     
-    ub::matrix<double> Perturbation(const ub::matrix<double>& _J_dimer);
+    Eigen::MatrixXd Perturbation(const Eigen::MatrixXd& _J_dimer);
     
-    std::vector< ub::matrix<double> > JAB_singlet;
-    std::vector< ub::matrix<double> > JAB_triplet;
+    std::vector< Eigen::MatrixXd > JAB_singlet;
+    std::vector< Eigen::MatrixXd > JAB_triplet;
 
     bool _doTriplets;
     bool _doSinglets;
@@ -103,10 +103,10 @@ private:
     
     unsigned _ct;
     
-     ub::matrix<double> ctAB;
-     ub::matrix<double> ctBA;
-     ub::matrix<double> _kap;
-     ub::matrix<double> _kbp;
+     Eigen::MatrixXd ctAB;
+     Eigen::MatrixXd ctBA;
+     Eigen::MatrixXd _kap;
+     Eigen::MatrixXd _kbp;
     
     
 };

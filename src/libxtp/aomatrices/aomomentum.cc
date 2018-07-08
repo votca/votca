@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,8 +16,7 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/aomatrix.h>
 
@@ -27,13 +26,11 @@
 
 
 
-using namespace votca::tools;
-
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+
 
     
-    void AOMomentum::FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, const AOShell* _shell_row,const AOShell* _shell_col ,AOBasis* ecp) {
+    void AOMomentum::FillBlock( std::vector< Eigen::Block<Eigen::MatrixXd> >& _matrix, const AOShell* _shell_row,const AOShell* _shell_col) {
 
         
         /* Calculating the AO matrix of the gradient operator requires 
@@ -63,7 +60,7 @@ namespace votca { namespace xtp {
         int _lmax_col = _shell_col->getLmax();
         
         if ( _lmax_col > 4 ) {
-            cerr << "Momentum transition dipoles only implemented for S,P,D,F,G functions in DFT basis!" << flush;
+            std::cerr << "Momentum transition dipoles only implemented for S,P,D,F,G functions in DFT basis!" << std::flush;
             exit(1);
         }
 
@@ -72,14 +69,14 @@ namespace votca { namespace xtp {
         int _ncols = this->getBlockSize( _lmax_col ); 
     
         // initialize local matrix block for unnormalized cartesians
-        std::vector< ub::matrix<double> > _mom;
+        std::vector< Eigen::MatrixXd > _mom;
         for (int _i_comp = 0; _i_comp < 3; _i_comp++){
-            _mom.push_back(ub::zero_matrix<double>(_nrows,_ncols));
+            _mom.push_back(Eigen::MatrixXd ::Zero(_nrows,_ncols));
         }
 
-        std::vector< ub::matrix<double> > _2nd_mom; //////////////
+        std::vector< Eigen::MatrixXd > _2nd_mom; //////////////
         for (int _i_comp = 0; _i_comp < 6; _i_comp++){ //////////////
-            _2nd_mom.push_back(ub::zero_matrix<double>(_nrows,_ncols)); //////////////
+            _2nd_mom.push_back(Eigen::MatrixXd ::Zero(_nrows,_ncols)); //////////////
         } //////////////
         
         // initialize local matrix block for unnormalized cartesians of overlap
@@ -88,13 +85,13 @@ namespace votca { namespace xtp {
         // make copy of shell_col and change type, lmax
         //AOShell _shell_col_local = (*_shell_col);
 
-/////        ub::matrix<double> _ol = ub::zero_matrix<double>(_nrows,_ncols_ol);
-        ub::matrix<double> _ol = ub::zero_matrix<double>(_nrows_ol,_ncols_ol); //////////////
+
+        Eigen::MatrixXd _ol = Eigen::MatrixXd::Zero(_nrows_ol,_ncols_ol); //////////////
         
         // get shell positions
-        const vec& _pos_row = _shell_row->getPos();
-        const vec& _pos_col = _shell_col->getPos();
-        const vec  _diff    = _pos_row - _pos_col;
+        const tools::vec& _pos_row = _shell_row->getPos();
+        const tools::vec& _pos_col = _shell_col->getPos();
+        const tools::vec  _diff    = _pos_row - _pos_col;
 
         double _distsq = (_diff*_diff);
 
@@ -564,31 +561,21 @@ for (int _i = 0; _i < _ncols; _i++) {
   }
 }
 
-
-
-
-
-        
-        ub::matrix<double> _trafo_row = getTrafo(*itr);
-        ub::matrix<double> _trafo_col_tposed = ub::trans(getTrafo(*itc));      
-
-        // cartesian -> spherical
-       
-        for ( int _i_comp = 0; _i_comp < 3; _i_comp++){
-
-            ub::matrix<double> _mom_tmp = ub::prod( _trafo_row, _mom[ _i_comp ] );
-
-            ub::matrix<double> _mom_sph = ub::prod( _mom_tmp, _trafo_col_tposed );
-            
-            // save to _matrix
-            for ( unsigned i = 0; i< _matrix[0].size1(); i++ ) {
-                for (unsigned j = 0; j < _matrix[0].size2(); j++){
-                    _matrix[ _i_comp ](i,j) += _mom_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
-                }
-            }
+      Eigen::MatrixXd _trafo_row = getTrafo(*itr);
+      Eigen::MatrixXd _trafo_col = getTrafo(*itc);
+          // cartesian -> spherical
+      for (int _i_comp = 0; _i_comp < 3; _i_comp++) {
+        Eigen::MatrixXd _mom_sph = _trafo_row * _mom[ _i_comp ] * _trafo_col.transpose();
+        // save to _matrix
+        for (unsigned i = 0; i < _matrix[0].rows(); i++) {
+          for (unsigned j = 0; j < _matrix[0].cols(); j++) {
+            _matrix[ _i_comp ](i, j) += _mom_sph(i + _shell_row->getOffset(), j + _shell_col->getOffset());
+          }
         }
+      }
         
-        _ol.clear();
+        
+       
             }// _shell_col Gaussians
         }// _shell_row Gaussians
     }

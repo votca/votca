@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,9 +22,6 @@
 #include <votca/xtp/qminterface.h>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <stdio.h>
@@ -32,13 +29,13 @@
 #include <sys/stat.h>
 #include <vector>
 
-using namespace std;
+
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+       using namespace std;
 
-        void NWChem::Initialize(Property *options) {
+        void NWChem::Initialize(tools::Property *options) {
 
             // NWChem file names
             string fileName = "system";
@@ -65,6 +62,12 @@ namespace votca {
             _threads = options->get(key + ".threads").as<int> ();
             _scratch_dir = options->get(key + ".scratch").as<string> ();
             _cleanup = options->get(key + ".cleanup").as<string> ();
+            
+            _basisset_name = options->get(key + ".basisset").as<std::string> ();
+            _write_basis_set = options->get(key + ".writebasisset").as<bool> ();
+            _write_pseudopotentials = options->get(key + ".writepseudopotentials").as<bool> ();
+            
+            if ( _write_pseudopotentials )  _ecp_name = options->get(key + ".ecp").as<std::string> ();
 
             if (options->exists(key + ".outputVxc")) {
                 _output_Vxc = options->get(key + ".outputVxc").as<bool> ();
@@ -128,8 +131,9 @@ namespace votca {
          */
        
 
-        void NWChem::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::PolarSeg*> segments) {
+        int NWChem::WriteBackgroundCharges(ofstream& _nw_file, std::vector<ctp::PolarSeg*> segments) {
             std::vector< ctp::PolarSeg* >::iterator it;
+            int numberofcharges=0;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
             for (it = segments.begin(); it < segments.end(); it++) {
                 vector<ctp::APolarSite*> ::iterator pit;
@@ -139,21 +143,25 @@ namespace votca {
                             % ((*pit)->getPos().getY()*votca::tools::conv::nm2ang) 
                             % ((*pit)->getPos().getZ()*votca::tools::conv::nm2ang) 
                             % (*pit)->getQ00());
-                    if ((*pit)->getQ00() != 0.0) _com_file << site << endl;
+                    if ((*pit)->getQ00() != 0.0){
+                      _nw_file << site << endl;
+                      numberofcharges++;
+                    }
 
                     if ((*pit)->getRank() > 0 || _with_polarization ) {
 
                         std::vector< std::vector<double> > _split_multipoles = SplitMultipoles(*pit);
                         for (const auto& mpoles:_split_multipoles){
                            string multipole=boost::str( fmt % mpoles[0] % mpoles[1] % mpoles[2] % mpoles[3]);
-                            _com_file << multipole << endl;
+                            _nw_file << multipole << endl;
+                            numberofcharges++;
 
                         }
                     }
                 }
             }
-            _com_file << endl;
-            return;
+            _nw_file << endl;
+            return numberofcharges;
         }
         
 
@@ -167,18 +175,17 @@ namespace votca {
             //int qmatoms = 0;
             std::string temp_suffix = "/id";
             std::string scratch_dir_backup = _scratch_dir;
-            std::ofstream _com_file;
+            std::ofstream _nw_file;
             std::ofstream _crg_file;
+            
+            
 
-            std::string _com_file_name_full = _run_dir + "/" + _input_file_name;
+            std::string _nw_file_name_full = _run_dir + "/" + _input_file_name;
             std::string _crg_file_name_full = _run_dir + "/background.crg";
 
-            _com_file.open(_com_file_name_full.c_str());
+            _nw_file.open(_nw_file_name_full.c_str());
             // header
-            _com_file << "geometry noautoz noautosym" << endl;
-
-
-
+            _nw_file << "geometry noautoz noautosym" << endl;
 
             std::vector< QMAtom* > qmatoms;
             // This is needed for the QM/MM scheme, since only orbitals have
@@ -191,43 +198,58 @@ namespace votca {
                 qmatoms = qmmface.Convert(segments);
             }
 
-            std::vector< QMAtom* >::iterator it;
-
-
-
-            for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-                tools::vec pos=(*it)->getPos()*tools::conv::bohr2ang;
-                    _com_file << setw(3) << (*it)->getType().c_str()
+            for (const QMAtom* atom:qmatoms) {
+                tools::vec pos=atom->getPos()*tools::conv::bohr2ang;
+                    _nw_file << setw(3) << atom->getType().c_str()
                             << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()
                             << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()
                             << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()
-                            << endl;
-                
+                            << endl;      
             }
-
+            _nw_file << "end\n";
             if (_write_charges) {
                 // part for the MM charge coordinates
                 _crg_file.open(_crg_file_name_full.c_str());
-                WriteBackgroundCharges(_crg_file, PolarSegments);
+                int numberofcharges=WriteBackgroundCharges(_crg_file, PolarSegments);
                 _crg_file << endl;
                 _crg_file.close();
+                _nw_file<<endl;
+                _nw_file<<"set bq:max_nbq "<<numberofcharges<<endl;
+                _nw_file<<"bq background"<<endl;
+                _nw_file<<"load background.crg format 1 2 3 4"<<endl;
+                _nw_file<<"end\n"<<endl;
+            }
+            
+            if(_write_basis_set){
+              WriteBasisset(_nw_file,qmatoms);
+            }
+            
+            if(_write_pseudopotentials){
+              WriteECP(_nw_file,qmatoms);
             }
 
-            _com_file << "end\n";
+            
             // write charge of the molecule
-            _com_file << "\ncharge " << _charge << "\n";
+            _nw_file << "\ncharge " << _charge << "\n";
+           
 
             // writing scratch_dir info
             if (_scratch_dir != "") {
-
-                CTP_LOG(ctp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
-
-                // boost::filesystem::create_directories( _scratch_dir + temp_suffix );
                 std::string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
-                _com_file << _temp;
+                _nw_file << _temp;
             }
-
-            _com_file << _options << "\n";
+            if(_charge!=0.0){
+              std::string dft="dft";
+              if(_options.find(dft) != std::string::npos){
+                int dftpos=_options.find(dft);
+                dftpos+=dft.size();
+                std::string openshell="\nodft\n" +(boost::format("mult %1%\n") % _spin).str();
+                _options.insert(dftpos,openshell,0,openshell.size());
+              }else{
+                throw runtime_error("NWCHEM: dft input data missing");     
+              }
+            }
+            _nw_file << _options << "\n";
 
             if (_write_guess) {
                 if (orbitals_guess == NULL) {
@@ -295,7 +317,7 @@ namespace votca {
 
                     // write coefficients in same format
                     for (std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++soi) {
-                        ub::matrix_row< ub::matrix<double> > mr(orbitals_guess->MOCoefficients(), *soi);
+                        Eigen::VectorXd mr=orbitals_guess->MOCoefficients().col(*soi);
                         column = 1;
                         for (unsigned j = 0; j < mr.size(); ++j) {
                             _orb_file << FortranFormat(mr[j]);
@@ -324,17 +346,14 @@ namespace votca {
                 }
             }
 
-            _com_file << endl;
-            _com_file.close();
+            _nw_file << endl;
+            _nw_file.close();
 
             // and now generate a shell script to run both jobs, if neccessary
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
             _scratch_dir = scratch_dir_backup + temp_suffix;
 
-            //boost::filesystem::create_directories(_scratch_dir + temp_suffix);
-            //std::string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
-            //_com_file << _temp;
             WriteShellScript();
             _scratch_dir = scratch_dir_backup;
 
@@ -419,7 +438,7 @@ namespace votca {
 
             // cleaning up the generated files
             if (_cleanup.size() != 0) {
-                Tokenizer tok_cleanup(_cleanup, ",");
+                tools::Tokenizer tok_cleanup(_cleanup, ",");
                 std::vector <std::string> _cleanup_info;
                 tok_cleanup.ToVector(_cleanup_info);
 
@@ -573,35 +592,24 @@ namespace votca {
 
             // copying information to the orbitals object
             _orbitals->setBasisSetSize(_basis_size);
-            //_orbitals->_has_basis_set_size = true;
             _orbitals->setNumberOfElectrons(_number_of_electrons);
-            // _orbitals->_has_number_of_electrons = true;
-            // _orbitals->_has_mo_coefficients = true;
-            // _orbitals->_has_mo_energies = true;
-            //_orbitals->_has_occupied_levels = true;
-            //_orbitals->_has_unoccupied_levels = true;
-            //_orbitals->_occupied_levels = _occupied_levels;
-            //_orbitals->_unoccupied_levels = _unoccupied_levels;
             _orbitals->setNumberOfLevels(_occupied_levels, _unoccupied_levels);
-
             // copying energies to a matrix
             _orbitals->MOEnergies().resize(_levels);
             //_level = 1;
-            for (size_t i = 0; i < _orbitals->MOEnergies().size(); i++) {
+            for (int i = 0; i < _orbitals->MOEnergies().size(); i++) {
                 _orbitals->MOEnergies()[i] = _energies[ i ];
             }
 
 
             // copying orbitals to the matrix
             (_orbitals->MOCoefficients()).resize(_levels, _basis_size);
-            for (size_t i = 0; i < _orbitals->MOCoefficients().size1(); i++) {
-                for (size_t j = 0; j < _orbitals->MOCoefficients().size2(); j++) {
-                    _orbitals->MOCoefficients()(i, j) = _coefficients[i][j];
-                    //cout << i << " " << j << endl;
+            for (int i = 0; i < _orbitals->MOCoefficients().rows(); i++) {
+                for (int j = 0; j < _orbitals->MOCoefficients().cols(); j++) {
+                    _orbitals->MOCoefficients()(j, i) = _coefficients[i][j];
                 }
             }
             
-
             // cleanup
             _coefficients.clear();
             _energies.clear();
@@ -762,15 +770,10 @@ namespace votca {
 
                 }
 
-
-
-
                 /*
                  *  Partial charges from the input file
                  */
                 std::string::size_type charge_pos = _line.find("ESP");
-
-
                 if (charge_pos != std::string::npos && _get_charges) {
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Getting charges" << flush;
                     _has_charges = true;
@@ -802,7 +805,7 @@ namespace votca {
                         if (_orbitals->hasQMAtoms() == false) {
                             pAtom =_orbitals->AddAtom(atom_id - 1,atom_type, 0, 0, 0);
                         } else {
-                            pAtom = _orbitals->_atoms.at(atom_id - 1);
+                            pAtom = _orbitals->QMAtoms().at(atom_id - 1);
                         }
                         pAtom->setPartialcharge(atom_charge);
                         }
@@ -822,6 +825,7 @@ namespace votca {
                         _found_optimization = true;
                     }
                 }
+                
 
                 std::string::size_type coordinates_pos = _line.find("Output coordinates");
 
@@ -840,42 +844,30 @@ namespace votca {
                     std::vector<std::string> _row;
                     getline(_input_file, _line);
                     boost::trim(_line);
-
                     boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     int nfields = _row.size();
-
-
+                    
                     while (nfields == 6) {
-                        int atom_id = boost::lexical_cast< int >(_row.at(0));
-                        //int atom_number = boost::lexical_cast< int >( _row.at(0) );
+                        int atom_id = boost::lexical_cast< int >(_row.at(0))-1;
                         std::string _atom_type = _row.at(1);
                         double _x = boost::lexical_cast<double>(_row.at(3));
                         double _y = boost::lexical_cast<double>(_row.at(4));
                         double _z = boost::lexical_cast<double>(_row.at(5));
-                        //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
+                        tools::vec pos=tools::vec(_x,_y,_z);
+                        pos*=tools::conv::ang2bohr;
+                        if (_has_QMAtoms == false) {
+                            _orbitals->AddAtom(atom_id,_atom_type, pos);
+                        } else{
+                            QMAtom* pAtom = _orbitals->QMAtoms().at(atom_id);
+                            pAtom->setPos(pos); 
+                        }
+                        atom_id++;
                         getline(_input_file, _line);
                         boost::trim(_line);
                         boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                         nfields = _row.size();
-
-                        tools::vec pos=tools::vec(_x,_y,_z);
-                        pos*=tools::conv::ang2bohr;
-
-                        if (_has_QMAtoms == false) {
-                            _orbitals->AddAtom(atom_id,_atom_type, pos);
-                        } else {
-                            QMAtom* pAtom = _orbitals->_atoms.at(atom_id);
-                            pAtom->setPos(pos);
-                           
-                        }
-                         atom_id++;
                     }
-
-                    // _orbitals->_has_atoms = true;
-
-                }
-                
-                
+                }        
                 
                 /*
                  * Vxc matrix
@@ -888,8 +880,8 @@ namespace votca {
 
                     // prepare the container
                     // _orbitals->_has_vxc = true;
-                    ub::symmetric_matrix<double>& _vxc = _orbitals->AOVxc();
-                    _vxc.resize(_basis_set_size);
+                    Eigen::MatrixXd _vxc = _orbitals->AOVxc();
+                    _vxc.resize(_basis_set_size,_basis_set_size);
 
 
                     //_has_vxc_matrix = true;
@@ -932,6 +924,7 @@ namespace votca {
                                 int _j_index = *_j_iter;
                                 // _orbitals->_overlap( _i_index-1 , _j_index-1 ) = boost::lexical_cast<double>( _coefficient );
                                 _vxc(_i_index - 1, _j_index - 1) = boost::lexical_cast<double>(_coefficient);
+                                _vxc(_j_index - 1, _i_index - 1) = boost::lexical_cast<double>(_coefficient);
                                 _j_iter++;
 
                             }
@@ -970,7 +963,7 @@ namespace votca {
 
                     // prepare the container
                     // _orbitals->_has_overlap = true;
-                    (_orbitals->AOOverlap()).resize(_basis_set_size);
+                    (_orbitals->AOOverlap()).resize(_basis_set_size,_basis_set_size);
 
                     _has_overlap_matrix = true;
                     std::vector<int> _j_indeces;
@@ -1011,6 +1004,7 @@ namespace votca {
 
                                 int _j_index = *_j_iter;
                                 _orbitals->AOOverlap()(_i_index - 1, _j_index - 1) = boost::lexical_cast<double>(_coefficient);
+                                _orbitals->AOOverlap()(_j_index - 1, _i_index - 1) = boost::lexical_cast<double>(_coefficient);
                                 _j_iter++;
 
                             }
@@ -1057,6 +1051,125 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;
             return true;
         }
+        
+        
+         void NWChem::WriteBasisset(ofstream& _nw_file, std::vector<QMAtom*>& qmatoms){
+           
+          list<std::string> elements;
+          BasisSet bs;
+          bs.LoadBasisSet(_basisset_name);
+          CTP_LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
+          _nw_file<<"basis spherical"<<endl;
+            for (const auto& atom:qmatoms) {
+               
+                    std::string element_name = atom->getType();
+
+                    list<std::string>::iterator ite;
+                    ite = find(elements.begin(), elements.end(), element_name);
+
+                    if (ite == elements.end()) {
+                        elements.push_back(element_name);
+                         
+                        Element* element = bs.getElement(element_name);
+                       
+                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+
+                            Shell* shell = (*its);
+                            //nwchem can only use S,P,SP,D,F,G shells so we split them up if not SP
+
+                            if (!shell->combined()) {
+                                // shell type, number primitives, scale factor
+                                _nw_file <<element_name<<" "<< boost::algorithm::to_lower_copy(shell->getType()) << endl;
+                                for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                                    GaussianPrimitive* gaussian = *itg;
+                                    for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
+                                        if (gaussian->contraction[_icontr] != 0.0) {
+                                            _nw_file<<FortranFormat(gaussian->decay)<< " " << FortranFormat(gaussian->contraction[_icontr])<<endl;
+                                        }
+                                    }
+                                }
+                                
+                            } else {
+                                string type = shell->getType();
+                                for (unsigned i = 0; i < type.size(); ++i) {
+                                    string subtype = string(type, i, 1);
+                                    _nw_file <<element_name<<" "<< boost::algorithm::to_lower_copy(subtype) << endl;
+
+                                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                                        GaussianPrimitive* gaussian = *itg;
+                                        _nw_file << FortranFormat(gaussian->decay)<< " " << FortranFormat(gaussian->contraction[FindLmax(subtype)])<<endl;
+                                    }
+                                    
+                                }
+                            }
+
+                        }
+
+
+                    }
+                
+            }
+            _nw_file << "end\n";  
+            _nw_file << endl;
+             
+            return;
+        }
+         
+         
+         void NWChem::WriteECP(ofstream& _nw_file, std::vector<QMAtom*>& qmatoms){
+
+
+            std::vector< QMAtom* >::iterator it;
+
+            list<std::string> elements;
+
+            elements.push_back("H");
+            elements.push_back("He");
+
+            BasisSet ecp;
+            ecp.LoadPseudopotentialSet(_ecp_name);
+
+            CTP_LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
+            _nw_file << "ecp "<<"\n";
+           
+            for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
+                
+                    std::string element_name = (*it)->getType();
+
+                    list<std::string>::iterator ite;
+                    ite = find(elements.begin(), elements.end(), element_name);
+
+                    if (ite == elements.end()) {
+                        elements.push_back(element_name);
+
+                        Element* element = ecp.getElement(element_name);
+
+                        // element name, [possibly indeces of centers], zero to indicate the end
+                        _nw_file << element_name << " nelec " << element->getNcore() << endl;
+
+                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+
+                            Shell* shell = (*its);
+                            string shelltype=shell->getType();
+                            if(shell->getLmax()==element->getLmax()){
+                              shelltype="ul";
+                            }
+                            _nw_file<<element_name<<" "<<shelltype<<endl;
+
+                            for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
+                                GaussianPrimitive* gaussian = *itg;
+                                _nw_file <<"    "<< gaussian->power << " " << FortranFormat(gaussian->decay) << " " << FortranFormat(gaussian->contraction[0]) << endl;
+                            }
+                        }
+                    }
+                
+            }
+           _nw_file << "end\n";  
+            _nw_file << endl;
+            return;
+        }
+
+             
 
         std::string NWChem::FortranFormat(const double &number) {
             std::stringstream _ssnumber;
@@ -1065,10 +1178,8 @@ namespace votca {
             } else {
                 _ssnumber << "   ";
             }
-
             _ssnumber << setiosflags(ios::fixed) << setprecision(15) << std::scientific << number;
             std::string _snumber = _ssnumber.str();
-            //boost::replace_first(_snumber, "e", "D");
             return _snumber;
         }
 

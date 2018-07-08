@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -36,7 +36,11 @@ class Esp2multipole
 {
 public:
 
-    Esp2multipole (ctp::Logger* log) {_log=log; }
+    Esp2multipole (ctp::Logger* log) {
+        _log=log; 
+        _pairconstraint.resize(0);
+        _regionconstraint.resize(0);
+        }
    ~Esp2multipole () {};
 
     std::string Identify() { return "esp2multipole"; }
@@ -70,7 +74,8 @@ private:
     std::vector< QMAtom* > _Atomlist;
     
     ctp::Logger*      _log;
-    
+    std::vector< std::pair<int,int> > _pairconstraint; //  pairconstraint[i] is all the atomindices which have the same charge     
+    std::vector< Espfit::region > _regionconstraint; 
     
 
 };

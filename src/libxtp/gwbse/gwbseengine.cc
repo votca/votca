@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,34 +24,29 @@
 #include <votca/xtp/gwbse.h>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/numeric/ublas/operation.hpp>
-
 #include <boost/math/constants/constants.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
-#include <votca/tools/linalg.h>
-
 #include <votca/ctp/logger.h>
 
 
 
 using boost::format;
 using namespace boost::filesystem;
-
+using std::flush;
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+      
         // +++++++++++++++++++++++++++++ //
         // GWBSEENGINE MEMBER FUNCTIONS  //
         // +++++++++++++++++++++++++++++ //
 
-        void GWBSEENGINE::Initialize(Property* options, string _archive_filename) {
+        void GWBSEENGINE::Initialize(tools::Property* options, std::string _archive_filename) {
 
 
             _archive_file = _archive_filename;
-            string key = Identify();
+            std::string key = Identify();
 
             // get the tasks
-            string _tasks_string = options->get(".tasks").as<string> ();
+            std::string _tasks_string = options->get(".tasks").as<std::string> ();
             _do_guess = false;
             _do_dft_input = false;
             _do_dft_run = false;
@@ -65,12 +60,12 @@ namespace votca {
             if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
 
             // XML option file for GWBSE
-            string _gwbse_xml = options->get(".gwbse_options").as<string> ();
+            std::string _gwbse_xml = options->get(".gwbse_options").as<std::string> ();
             load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
 
             // DFT log and MO file names
-            _MO_file = options->get(".mofile").as<string> ();
-            _dftlog_file = options->get(".dftlog").as<string> ();
+            _MO_file = options->get(".mofile").as<std::string> ();
+            _dftlog_file = options->get(".dftlog").as<std::string> ();
 
             // Logger redirection
             _redirect_logger = options->ifExistsReturnElseReturnDefault<bool>(".redirect_logger", false);
@@ -78,8 +73,8 @@ namespace votca {
             
             // for requested merged guess, two archived orbitals objects are needed
             if ( _do_guess ){
-                _guess_archiveA = options->ifExistsReturnElseThrowRuntimeError<string>(".archiveA");
-                _guess_archiveB = options->ifExistsReturnElseThrowRuntimeError<string>(".archiveB");
+                _guess_archiveA = options->ifExistsReturnElseThrowRuntimeError<std::string>(".archiveA");
+                _guess_archiveB = options->ifExistsReturnElseThrowRuntimeError<std::string>(".archiveB");
             }
 
             return;
@@ -91,7 +86,7 @@ namespace votca {
          */
 
 
-        void GWBSEENGINE::ExcitationEnergies(QMPackage* _qmpackage, vector<ctp::Segment*> _segments, Orbitals* _orbitals) {
+        void GWBSEENGINE::ExcitationEnergies(QMPackage* _qmpackage, std::vector<ctp::Segment*> _segments, Orbitals* _orbitals) {
 
 
             //redirect log, if required
@@ -121,14 +116,9 @@ namespace votca {
                     // load the corresponding monomer orbitals and prepare the dimer guess
 
                     // failed to load; wrap-up and finish current job
-                    if (!_orbitalsA.Load(_guess_archiveA)) {
-                        throw runtime_error(string("Do input: failed loading orbitals from ") + _guess_archiveA);
-                    }
-
-                    if (!_orbitalsB.Load(_guess_archiveB)) {
-                        throw runtime_error(string("Do input: failed loading orbitals from ") + _guess_archiveB);
-
-                    }
+                       
+                    _orbitalsA.ReadFromCpt(_guess_archiveA);
+                    _orbitalsB.ReadFromCpt(_guess_archiveB);
 
                     _orbitals->PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
 
@@ -141,7 +131,7 @@ namespace votca {
 
                 bool run_success = _qmpackage->Run( _orbitals );
                 if (!run_success) {
-                    throw runtime_error(string("\n GW-BSE without DFT is difficult. Stopping!"));
+                    throw std::runtime_error(std::string("\n GW-BSE without DFT is difficult. Stopping!"));
                 }
             }
 
@@ -159,6 +149,7 @@ namespace votca {
                     
                     _qmpackage->ParseOrbitalsFile(_orbitals);
                 }
+                
                 _orbitals->setDFTbasis(_qmpackage->getBasisSetName());
             }
 
@@ -169,7 +160,7 @@ namespace votca {
                 } else {
                     CTP_LOG_SAVE(ctp::logINFO, *_pLog) << "Loading serialized data from " << _archive_file << flush;
                 }
-                _orbitals->Load(_archive_file);
+                _orbitals->ReadFromCpt(_archive_file);
             }
 
             if (_do_gwbse) {
@@ -179,7 +170,7 @@ namespace votca {
                 _gwbse.Initialize(&_gwbse_options);
                 _gwbse.Evaluate();
                 if (_redirect_logger) SaveRedirectedLogger(&_gwbse_engine_logger);
-                Property *_output_summary = &(_summary.add("output", ""));
+                 tools::Property *_output_summary = &(_summary.add("output", ""));
                 _gwbse.addoutput(_output_summary);
             }
             return;
@@ -193,9 +184,9 @@ namespace votca {
             //string gwbse_logfile = "gwbse.log";
             ofs.open(_logger_file.c_str(), std::ofstream::out);
             if (!ofs.is_open()) {
-                throw runtime_error("Bad file handle: " + _logger_file);
+                throw std::runtime_error("Bad file handle: " + _logger_file);
             }
-            ofs << (*pLog) << endl;
+            ofs << (*pLog) << std::endl;
             ofs.close();
             return;
         }

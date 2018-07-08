@@ -925,7 +925,7 @@ vector<APolarSite*> APS_FROM_MPS(string filename, int state, QMThread *thread) {
             try {
                 alpha = polar_table.at(elem);
             }
-            catch(out_of_range&){
+            catch(const std::exception& out_of_range){
                 cout << endl << "WARNING No default polarizability given for "
                     << "polar site type '" << elem << "'. Defaulting to 1 A**3. " 
                     << flush;
