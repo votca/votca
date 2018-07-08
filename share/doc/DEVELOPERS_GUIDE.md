@@ -1,10 +1,32 @@
 
-# Developers Guide
+# Developer and Contributor Guide
 
  The page is designed to give new developers general guidelines for
  implementing code consistent with the VOTCA and c++ style and standard.
 
-## Resources
+## Reporting Bugs
+
+ To report a bug please create an issue on the appropriate github repo. Please
+ be sure to provide as much information as possible such as:
+
+ - The error messages
+ - The operating system 
+ - What compiler was used
+ - What dependencies were installed
+ - The calculation that was being run
+
+ Issues can be directed created on the appropriate github repo:
+
+ - [tools](https://github.com/votca/tools/issues)
+ - [csg](https://github.com/votca/csg/issues)
+ - [csgapps](https://github.com/votca/csgapps/issues)
+ - [csg-manual](https://github.com/votca/csg-manual/issues)
+ - [csg-tutorials](https://github.com/votca/csg-tutorials/issues)
+ - [ctp](https://github.com/votca/ctp/issues)
+ - [xtp](https://github.com/votca/xtp/issues)
+ - [votca](https://github.com/votca/votca/issues)
+
+## C++ Resources
 
  A good starting point is to take a look at the c++ standard. Though the code
  has not always consistently followed the c++ standard we now make an
