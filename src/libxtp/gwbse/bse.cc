@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,7 +19,7 @@
 
 
 #include <votca/xtp/bse.h>
-#include <votca/xtp/linalg.h>
+#include <votca/tools/linalg.h>
 using boost::format;
 using std::flush;
 
@@ -37,7 +37,7 @@ namespace votca {
         << xtp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
       XTP_LOG(xtp::logDEBUG, *_log)
         << xtp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
-      linalg_eigenvalues(H , _bse_triplet_energies, _bse_triplet_coefficients ,_bse_nmax );
+      tools::linalg_eigenvalues(H , _bse_triplet_energies, _bse_triplet_coefficients ,_bse_nmax );
       return;
     }
 
@@ -51,7 +51,7 @@ namespace votca {
         << xtp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
       XTP_LOG(xtp::logDEBUG, *_log)
         << xtp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
-      linalg_eigenvalues(H, _bse_singlet_energies, _bse_singlet_coefficients , _bse_nmax );
+      tools::linalg_eigenvalues(H, _bse_singlet_energies, _bse_singlet_coefficients , _bse_nmax );
       return;
     }
     
@@ -118,7 +118,7 @@ namespace votca {
       
       XTP_LOG(xtp::logDEBUG, *_log)
         << xtp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
-      bool success_diag=linalg_eigenvalues(_ApB, eigenvalues, eigenvectors ,_bse_nmax);
+      bool success_diag=tools::linalg_eigenvalues(_ApB, eigenvalues, eigenvectors ,_bse_nmax);
       if(!success_diag){
         XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Could not solve problem" << flush;
       }else{

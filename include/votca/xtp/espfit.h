@@ -52,7 +52,7 @@ public:
     }
    ~Espfit(){};
    
-   void setUseSVD(bool do_svd,double conditionnumber){_do_svd=do_svd;_conditionnumber=conditionnumber;}
+   void setUseSVD(double conditionnumber){_do_svd=true;_conditionnumber=conditionnumber;}
     
    void setPairConstraint(std::vector< std::pair<int,int> > pairconstraint){
        _pairconstraint=pairconstraint;
@@ -62,9 +62,9 @@ public:
        _regionconstraint=regionconstraint;
    }
     // on grid very fast
-    void Fit2Density(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat,const AOBasis &_basis,std::string gridsize);
+    void Fit2Density(std::vector< QMAtom* >& atomlist,const Eigen::MatrixXd &dmat,const AOBasis &basis,std::string gridsize);
     // not so fast
-    void Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, const Eigen::MatrixXd &_dmat,const AOBasis &_basis);
+    void Fit2Density_analytic(std::vector< QMAtom* >& atomlist, const Eigen::MatrixXd &dmat,const AOBasis &basis);
 private:
     
      xtp::Logger *_log;
@@ -77,12 +77,12 @@ private:
      
      std::vector< region > _regionconstraint; 
      
-    double getNetcharge(const std::vector< QMAtom* >& _atoms, double N );
+    double getNetcharge(const std::vector< QMAtom* >& atoms, double N );
  
-    void EvalNuclearPotential(const std::vector< QMAtom* >& _atoms, Grid& _grid );
+    void EvalNuclearPotential(const std::vector< QMAtom* >& atoms, Grid& grid );
    
      // Fits partial charges to Potential on a grid, constrains net charge
-    void FitPartialCharges(std::vector< QMAtom* >& _atoms,const Grid& _grid, double _netcharge );
+    void FitPartialCharges(std::vector< QMAtom* >& atoms,const Grid& grid, double netcharge );
     
 };
 }}

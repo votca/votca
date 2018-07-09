@@ -1,6 +1,6 @@
 #! /usr/bin/env python2
 #
-# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 
+from __future__ import print_function
 VERSION='@PROJECT_VERSION@ #CSG_GIT_ID#'
 import sys
 import os
@@ -45,8 +46,8 @@ xtp_testsuite, version {version}
 try:
 	VOTCASHARE = os.environ['VOTCASHARE']    
 except KeyError:
-	print "ERROR: VOTCASHARE not set. Abort."
-	print "(You need to source the VOTCARC located in '/your/votca/path/bin/')"
+	print("ERROR: VOTCASHARE not set. Abort.")
+	print("(You need to source the VOTCARC located in '/your/votca/path/bin/')")
 	sys.exit(1)
 
 # =============================================================================
@@ -169,31 +170,31 @@ USER			 = getpass.getuser()
 HOST			 = socket.gethostname()
 BASEDIR			 = os.getcwd()
 
-print OPTIONS.mailto
+print(OPTIONS.mailto)
 # =============================================================================
 # CONVENIENCE FUNCTIONS & CLASSES
 # =============================================================================
 
 def okquit(what=''):
-	if what != '': print what
+	if what != '': print(what)
 	sys.exit(0)
 def xxquit(what=''):
 	if what != '':
 		cprint.Error("ERROR: {what}".format(what=what))
 	sys.exit(1)
 def sysexe(cmd, silent=False, devfile='/dev/null'):
-	if VERBOSE: print "{0}@{1}$ {2}".format(USER, HOST, cmd)
+	if VERBOSE: print("{0}@{1}$ {2}".format(USER, HOST, cmd))
 	if silent: cmd += ' >> {0} 2>> {0}'.format(devfile)
 	cdx = os.system(cmd)
 	#SYSCMDS.write('{cmd} = {cdx}\n'.format(cmd=cmd, cdx=cdx))
 	return cdx
 
 def nnprint(msg):
-	print "{0:100s} {1}".format(msg, cprint.NN)
+	print("{0:100s} {1}".format(msg, cprint.NN))
 def okprint(msg):
-	print "{0:100s} {1}".format(msg[0:97], cprint.OK)
+	print("{0:100s} {1}".format(msg[0:97], cprint.OK))
 def xxprint(msg):
-	print "{0:100s} {1}".format(msg, cprint.XX)
+	print("{0:100s} {1}".format(msg, cprint.XX))
 
 def isfloat(item):
 	try: float(item); return True
@@ -201,7 +202,7 @@ def isfloat(item):
 def xmlsplit(string, regex='<|>|/| '):
 	return re.split(regex, string)
 def sendmail(to, subject):
-	print "Send mail to", to, "re:", subject
+	print("Send mail to", to, "re:", subject)
 	sysexe("/usr/bin/echo . | /usr/bin/mail -s '{subject}' -a 'testsuite.txt' {to}".format(subject=subject, to=to))
 	return
 
@@ -221,9 +222,9 @@ class CPrint(object):
 		self.XX = self.RED + 'XX' + self.ENDC
 		self.NN = self.WARNING + ':/' + self.ENDC
 	def Head(self, msg):
-		print self.YELLOW+msg+self.ENDC
+		print(self.YELLOW+msg+self.ENDC)
 	def Error(self, msg):
-		print self.ERROR+msg+self.ENDC
+		print(self.ERROR+msg+self.ENDC)
 	def Green(self, msg):
 		return self.GREEN+msg+self.ENDC
 	def Red(self, msg):
@@ -247,7 +248,7 @@ class CPrint(object):
 		return
 		
 def TestDependency_t1_smaller_t2(t1, t2):
-	print "Compare", t1.name, t2.name
+	print("Compare", t1.name, t2.name)
 	if t1.name in t2.requires:
 		if t2.name in t1.requires:
 			xxquit("Circular dependencies: "+ t1.name+ " <> "+ t2.name+ " => Abort.")
@@ -309,7 +310,7 @@ class Suite(object):
 			dependencies = test.requires
 			for requ in dependencies:
 				requstr += requ+' '
-			print "  o {name:18s} exe : {exe:20s} dep : {requ}".format(name=test.name, exe=test.execute_cmd.split()[0], requ=requstr)
+			print("  o {name:18s} exe : {exe:20s} dep : {requ}".format(name=test.name, exe=test.execute_cmd.split()[0], requ=requstr))
 			#print "  o {name:18s}  REQUIRES={requ}".format(name=test.name, exe=test.execute_cmd, requ=requstr)
 		return
 	def GetDependencies(self, test):
@@ -349,7 +350,7 @@ class Suite(object):
 	def Run(self):
 		cprint.Head('This suite will be running the following tests:')
 		for test in self.tests:
-			print "  o {name:18s}{exe:20s}".format(name=test.name, exe=test.execute_cmd)		
+			print("  o {name:18s}{exe:20s}".format(name=test.name, exe=test.execute_cmd))		
 		# Execute all tests and collect targets
 		tested = []
 		all_targets = []
@@ -593,14 +594,14 @@ class XmlNodeValue(object):
 
 def CleanXmlTree(node, level='', verbose=False):
 	rm = []
-	if verbose: print level + node.nodeName
+	if verbose: print(level + node.nodeName)
 	for child in node.childNodes:		
 		CleanXmlTree(child, level=level+'    ', verbose=verbose)		
 		if 'text' in child.nodeName:
-			if verbose: print level + "Remove", child.nodeName
+			if verbose: print(level + "Remove", child.nodeName)
 			rm.append(child)
 		else:
-			if verbose: print level + "Keep", node.firstChild.nodeName
+			if verbose: print(level + "Keep", node.firstChild.nodeName)
 	for child in rm:
 		node.removeChild(child)
 	return node
@@ -629,15 +630,15 @@ def GenerateNodeDict(node, path='', abbreviate=False):
 cprint = CPrint()
 suite = Suite(TESTSUITEXML, OPTIONS)
 if OPTIONS.listonly:
-	print '{0}'.format(VOTCAHEADER)
+	print('{0}'.format(VOTCAHEADER))
 	suite.ListTests()
 	okquit()
 if OPTIONS.compareonly:
 	cprint.Head('{0}: Compare only, then quit.'.format(PROGTITLE))
 	abs_tar_folder = '{0}/{1}'.format(BASEDIR, OPTIONS.target_dir)
 	abs_ref_folder = '{0}/{1}'.format(BASEDIR, OPTIONS.reference_dir)
-	print "  o Target directory    =", abs_tar_folder
-	print "  o Reference directory =", abs_ref_folder
+	print("  o Target directory    =", abs_tar_folder)
+	print("  o Reference directory =", abs_ref_folder)
 	Comparator(abs_tar_folder, abs_ref_folder)
 	okquit()
 if OPTIONS.sourcedirectory == '':
@@ -712,7 +713,7 @@ if TESTDIR in os.listdir('./') and CLEANTESTFOLDER:
 	sysexe('rm -r {testdir}'.format(testdir=TESTDIR))
 
 if OPTIONS.mailto != "":
-        now = datetime.datetime.now()
+	now = datetime.datetime.now()
 	sys.stdout = sys.__stdout__
 	sendmail( OPTIONS.mailto, now.strftime("%Y-%m-%d %H:%M") )	
 okquit()

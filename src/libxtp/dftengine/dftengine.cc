@@ -723,7 +723,7 @@ namespace votca {
       XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " Using " << omp_get_max_threads() << " threads" << flush;
 
 #endif
-      if(XTP_USE_MKL){
+      if(tools::globals::VOTCA_MKL){
      XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp()
                                  << " Using MKL overload for Eigen "<< flush;
   }else{

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -202,7 +202,7 @@ namespace votca {
                 }
                 
                 if (_do_svd) {
-                    esp.setUseSVD(_do_svd, _conditionnumber);
+                    esp.setUseSVD(_conditionnumber);
                 }
                 if (_integrationmethod == "numeric") {
                     esp.Fit2Density(_Atomlist, DMAT_tot, basis, _gridsize);
