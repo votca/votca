@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -28,6 +28,7 @@
 namespace votca { namespace xtp {
 
 using boost::format;
+using namespace tools;
 
 void BSECoupling::Initialize(Property* options){
     

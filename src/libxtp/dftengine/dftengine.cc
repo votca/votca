@@ -41,6 +41,8 @@
 
 using boost::format;
 using namespace boost::filesystem;
+using std::flush;
+using namespace votca::tools;
 
 namespace votca {
   namespace xtp {
@@ -160,6 +162,19 @@ namespace votca {
 
 
 
+
+    void DFTENGINE::PrintMOs(const Eigen::VectorXd& MOEnergies){
+      CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t Orbital energies: " << flush;
+      CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t index occupation energy(Hartree) " << flush;
+      for (int i = 0; i<MOEnergies.size(); i++) {
+        int occupancy=0;
+        if (i < _numofelectrons / 2 ) {
+          occupancy=2;
+        }
+          CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << i << "\t"<<occupancy<<"\t"<< std::setprecision(12) << MOEnergies(i) << flush;
+      }
+      return;
+    }
 
     bool DFTENGINE::Evaluate(Orbitals* _orbitals) {
 
@@ -326,15 +341,14 @@ namespace votca {
 
         _dftAOdmat = conv_accelerator.Iterate(_dftAOdmat, H, MOEnergies, MOCoeff, totenergy);
 
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIs error " << conv_accelerator.getDIIsError() << std::flush;
+        double deltaE=totenergy - energyold;
+        if(_this_iter == 0){
+          deltaE=0;
+        }
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Delta Etot " <<deltaE<< std::flush;
         if (tools::globals::verbose) {
-          for (int i = 0; i<int(MOEnergies.size()); i++) {
-            if (i <= _numofelectrons / 2 - 1) {
-              CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t" << i << " occ " << MOEnergies(i) << flush;
-            } else {
-              CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t" << i << " vir " << MOEnergies(i) << flush;
-
-            }
-          }
+          PrintMOs(MOEnergies);
         }
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\tGAP " << MOEnergies(_numofelectrons / 2) - MOEnergies(_numofelectrons / 2 - 1) << flush;
@@ -345,13 +359,7 @@ namespace votca {
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Final Single Point Energy " << std::setprecision(12) << totenergy << " Ha" << flush;
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " MO Energies  [Ha]" << flush;
           
-          for (int i = 0; i<int(MOEnergies.size()); i++) {
-            if (i <= _numofelectrons / 2 - 1) {
-              CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t" << i << " occ " << std::setprecision(12) << MOEnergies(i) << flush;
-            } else {
-              CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t" << i << " vir " << std::setprecision(12) << MOEnergies(i) << flush;
-            }
-          }
+          PrintMOs(MOEnergies);
 
           last_dmat = _dftAOdmat;
           guess_set = true;
@@ -421,7 +429,8 @@ namespace votca {
       }
 
       if (_with_ecp) {
-        _dftAOECP.Fill(_dftbasis, vec(0, 0, 0), &_ecp);
+        _dftAOECP.setECP(&_ecp);
+        _dftAOECP.Fill(_dftbasis);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT ECP matrix of dimension: " << _dftAOECP.Dimension() << flush;
       }
 
@@ -557,7 +566,8 @@ namespace votca {
 
         Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
         if (with_ecp) {
-          dftAOECP.Fill(dftbasis, vec(0, 0, 0), &ecp);
+          dftAOECP.setECP(&ecp);
+          dftAOECP.Fill(dftbasis);
           H0 += dftAOECP.Matrix();
         }
         Convergence_alpha.SolveFockmatrix(MOEnergies_alpha, MOCoeff_alpha, H0);
@@ -713,7 +723,7 @@ namespace votca {
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using " << omp_get_max_threads() << " threads" << flush;
 
 #endif
-      if(XTP_USE_MKL){
+      if(tools::globals::VOTCA_MKL){
      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Using MKL overload for Eigen "<< flush;
   }else{

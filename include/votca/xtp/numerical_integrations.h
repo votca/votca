@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -56,15 +56,15 @@ namespace votca { namespace xtp {
             
             void GridSetup(std::string type, std::vector<QMAtom* > _atoms,const AOBasis* basis);
             double getExactExchange(const std::string _functional);
-            std::vector<const vec*> getGridpoints();
+            std::vector<const tools::vec*> getGridpoints();
             
             unsigned getGridSize() const{return _totalgridsize;}
             unsigned getBoxesSize() const{return _grid_boxes.size();}
             
-            void setXCfunctional(const string _functional);
+            void setXCfunctional(const std::string _functional);
             
             double IntegrateDensity(const Eigen::MatrixXd& _density_matrix);
-            double IntegratePotential(const vec& rvector);
+            double IntegratePotential(const tools::vec& rvector);
             double IntegrateField(const std::vector<double>& externalfield);
             Eigen::MatrixXd IntegrateExternalPotential(const std::vector<double>& Potentialvalues);
             Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& _density_matrix);          
@@ -78,7 +78,6 @@ namespace votca { namespace xtp {
            void FindSignificantShells();
            void EvaluateXC(const double rho,const Eigen::Vector3d& grad_rho,double& f_xc, double& df_drho, double& df_dsigma);          
            double erf1c(double x);
-           double erfcc(double x);
            std::vector<double> SSWpartition(int igrid, int ncenters ,const std::vector< std::vector<double> >& rq );
            void SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::integration_grid > >& grid);
             

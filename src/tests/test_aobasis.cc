@@ -24,6 +24,7 @@
 #include <fstream>
 
 using namespace votca::xtp;
+using namespace std;
 
 BOOST_AUTO_TEST_SUITE(aobasis_test)
 

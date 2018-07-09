@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -130,7 +130,7 @@ namespace votca {
             void Print(std::string _ident);
             void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis, const Eigen::MatrixXd& _dft_orbitals);
 
-            void MultiplyLeftWithAuxMatrix(const Eigen::MatrixXd& AuxMatrix);
+            void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& AuxMatrix);
 
             void Cleanup();
 

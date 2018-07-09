@@ -19,8 +19,10 @@
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/aomatrix.h>
+#include <votca/tools/vec.h>
 
 using namespace votca::xtp;
+using namespace std;
 
 BOOST_AUTO_TEST_SUITE(aomatrix_test)
 
@@ -182,7 +184,8 @@ AOBasis ecpbasis;
 ecpbasis.ECPFill(&ecps,orbitals.QMAtoms());
 
 AOECP ecp;
-ecp.Fill(aobasis,vec(0.0),&ecpbasis);
+ecp.setECP(&ecpbasis);
+ecp.Fill(aobasis);
 Eigen::MatrixXd ecp_ref= Eigen::MatrixXd::Zero(17,17);
 ecp_ref<<21.6188,1.34835,0,0,0,2.29744,0,0,0,0.209711,1.01592,0.209711,1.01592,0.209711,1.01592,0.209711,1.01592,
 1.34835,0.702249,0,0,0,0.4993,0,0,0,0.0564639,0.225665,0.0564639,0.225665,0.0564639,0.225665,0.0564639,0.225665,

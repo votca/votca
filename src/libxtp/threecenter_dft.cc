@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -31,7 +31,7 @@ namespace votca {
         try {
           _matrix.push_back(Symmetric_Matrix(_dftbasis.AOBasisSize()));
         } catch (std::bad_alloc& ba) {
-          std::cerr << "Basisset/aux basis too large for 3c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << endl;
+          std::cerr << "Basisset/aux basis too large for 3c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << std::endl;
           exit(0);
         }
 

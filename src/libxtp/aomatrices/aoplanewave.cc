@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,7 +26,6 @@ namespace votca {
 
         void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& _matrix, const AOShell* _shell_row, const AOShell* _shell_col) {
 
-          const tools::vec& _k=_gridpoint;
             // shell info, only lmax tells how far to go
             int _lmax_row = _shell_row->getLmax();
             int _lmax_col = _shell_col->getLmax();
@@ -34,13 +33,13 @@ namespace votca {
             int _nrows = this->getBlockSize(_lmax_row);
             int _ncols = this->getBlockSize(_lmax_col);
             if (_lmax_col > 6 || _lmax_row > 6) {
-                cerr << "Orbitals higher than i are not yet implemented. This should not have happened!" << flush;
+                std::cerr << "Orbitals higher than i are not yet implemented. This should not have happened!" << std::flush;
                 exit(1);
             }
             // get shell positions
-            const vec& _pos_row = _shell_row->getPos(); //get position R_{i}
-            const vec& _pos_col = _shell_col->getPos(); //get position R_{j}
-            const vec _diff = _pos_row - _pos_col; //get difference r_{ij}
+            const tools::vec& _pos_row = _shell_row->getPos(); //get position R_{i}
+            const tools::vec& _pos_col = _shell_col->getPos(); //get position R_{j}
+            const tools::vec _diff = _pos_row - _pos_col; //get difference r_{ij}
             double _distsq = (_diff * _diff); //get |R_{ij}|^2
             // get kvector modulus
             double _kmodulus = (_k * _k); //get |k|^2
@@ -572,7 +571,8 @@ namespace votca {
 
             for (const auto& kpoint:_kpoints) {
                     _aomatrix = Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                    Fill(aobasis, kpoint);
+                    setkVector(kpoint);
+                    Fill(aobasis);
                     _externalpotential+=_aomatrix;     
                 }
             

@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -33,18 +33,16 @@ namespace votca {
             for (AOBasis::AOShellIterator _row = aobasis.firstShell(); _row != aobasis.lastShell(); _row++) {
                 const AOShell* _shell_row = aobasis.getShell(_row);
                 int _row_start = _shell_row->getStartIndex();
-                string type = _shell_row->getType();
-                cout << "Shell " << type << "starts at " << _row_start + 1 << endl;
+                std::string type = _shell_row->getType();
+                std::cout << "Shell " << type << "starts at " << _row_start + 1 << std::endl;
             }
             return;
         }
 
         
         template< class T> 
-        void AOMatrix<T>::Fill(const AOBasis& aobasis, vec gridpoint, AOBasis* ecp) {
+        void AOMatrix<T>::Fill(const AOBasis& aobasis) {
             _aomatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
-            _ecp=ecp;
-            _gridpoint =gridpoint;
             // loop row
 #pragma omp parallel for
             for (unsigned _row = 0; _row < aobasis.getNumofShells(); _row++) {
@@ -60,7 +58,8 @@ namespace votca {
 
                     // figure out the submatrix
                     int _col_start = _shell_col->getStartIndex();
-                    Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > block=_aomatrix.block(_row_start,_col_start, _shell_row->getNumFunc(),_shell_col->getNumFunc());
+                    Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > block=
+                            _aomatrix.block(_row_start,_col_start, _shell_row->getNumFunc(),_shell_col->getNumFunc());
                     // Fill block
                     FillBlock(block, _shell_row, _shell_col);
 
@@ -123,21 +122,21 @@ namespace votca {
             return;
         }
 
-        template<class T> void AOMatrix<T>::Print(string _ident) {
-            cout << "\n" << endl;
+        template<class T> void AOMatrix<T>::Print(std::string _ident) {
+            std::cout << "\n" << std::endl;
             std::cout.precision(12);
         for ( unsigned i =0; i< _aomatrix.rows(); i++){
             for ( unsigned j =0; j< _aomatrix.cols(); j++){
-                cout << _ident << "[" << i+1 << ":" << j+1 << "] " << scientific <<_aomatrix(i,j) << endl;
+                std::cout << _ident << "[" << i+1 << ":" << j+1 << "] " << std::scientific <<_aomatrix(i,j) << std::endl;
                 }
             }
     }   
 
-        void AOMatrix3D::Print(string _ident) {
-            cout << "\n" << endl;
+        void AOMatrix3D::Print(std::string _ident) {
+            std::cout << "\n" << std::endl;
         for ( unsigned i =0; i< _aomatrix[0].rows(); i++){
             for ( unsigned j =0; j< _aomatrix[0].cols(); j++){
-                cout << _ident << "[" << i+1 << ":" << j+1 << "] " <<  _aomatrix[0](i,j) << " : " <<  _aomatrix[1](i,j) << " : " <<  _aomatrix[2](i,j)  << endl;
+                std::cout << _ident << "[" << i+1 << ":" << j+1 << "] " <<  _aomatrix[0](i,j) << " : " <<  _aomatrix[1](i,j) << " : " <<  _aomatrix[2](i,j)  << std::endl;
                 }
             }
         }
@@ -427,12 +426,12 @@ namespace votca {
             const int _mm = _FmT.size() - 1;
             const double pi = boost::math::constants::pi<double>();
             if (_mm < 0) {
-                cerr << "mm is: " << _mm << " This should not have happened!" << flush;
+                std::cerr << "mm is: " << _mm << " This should not have happened!" << std::flush;
                 exit(1);
             }
 
             if (_T < 0.0) {
-                cerr << "T is: " << _T << " This should not have happened!" << flush;
+                std::cerr << "T is: " << _T << " This should not have happened!" << std::flush;
                 exit(1);
             }
 

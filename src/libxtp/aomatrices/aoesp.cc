@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -48,7 +48,7 @@ namespace votca { namespace xtp {
         const double pi = boost::math::constants::pi<double>();
        
         
-        // cout << _gridpoint << endl;
+        
         // shell info, only lmax tells how far to go
         int _lmax_row = _shell_row->getLmax();
         int _lmax_col = _shell_col->getLmax();
@@ -108,9 +108,9 @@ namespace votca { namespace xtp {
       
         
         // get shell positions
-        const vec& _pos_row = _shell_row->getPos();
-        const vec& _pos_col = _shell_col->getPos();
-        const vec  _diff    = _pos_row - _pos_col;
+        const tools::vec& _pos_row = _shell_row->getPos();
+        const tools::vec& _pos_col = _shell_col->getPos();
+        const tools::vec  _diff    = _pos_row - _pos_col;
         // initialize some helper
       
         double _distsq = (_diff*_diff); 
@@ -150,9 +150,9 @@ namespace votca { namespace xtp {
         double PmB1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_col.getY();
         double PmB2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_col.getZ();
         
-        double PmC0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _gridpoint.getX();
-        double PmC1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _gridpoint.getY();
-        double PmC2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _gridpoint.getZ();
+        double PmC0 = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _r.getX();
+        double PmC1 = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _r.getY();
+        double PmC2 = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _r.getZ();
         
         
         const double _U = zeta*(PmC0*PmC0+PmC1*PmC1+PmC2*PmC2);
@@ -440,17 +440,14 @@ if (_lmax_col > 3) {
   // Calculates the electrostatic potential matrix element between two basis functions, for an array of atomcores.
 
     void AOESP::Fillnucpotential(const AOBasis& aobasis, std::vector<QMAtom*>& _atoms) {
-            Elements _elements;
+            tools::Elements _elements;
             _nuclearpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
             for (unsigned j = 0; j < _atoms.size(); j++) {
-                vec positionofatom = _atoms[j]->getPos();
-
                 double Znuc = _atoms[j]->getNuccharge();
-                
-               
                 _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                Fill(aobasis, positionofatom);
+                setPosition(_atoms[j]->getPos());
+                Fill(aobasis);
                 _nuclearpotential -= (Znuc) * _aomatrix;        
             }
             return;
@@ -462,9 +459,10 @@ if (_lmax_col > 3) {
 
             for (unsigned int i = 0; i < _sites.size(); i++) {
                 for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
-                    vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
+                    tools::vec positionofsite = (*it)->getPos() * tools::conv::nm2bohr;
                     _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                    Fill(aobasis, positionofsite);
+                    setPosition(positionofsite);
+                    Fill(aobasis);
                     _externalpotential -= (*it)->getQ00() * _aomatrix;
                 }
             }

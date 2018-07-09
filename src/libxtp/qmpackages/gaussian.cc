@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -35,9 +35,9 @@
 
 namespace votca {
     namespace xtp {
-      
+      using namespace std;
 
-        void Gaussian::Initialize(Property *options) {
+        void Gaussian::Initialize(tools::Property *options) {
 
             // GAUSSIAN file names
             std::string fileName = "system";
@@ -144,13 +144,13 @@ namespace votca {
          * 'elementname'.gbs files, which are then included in the
          * Gaussian input file using @'elementname'.gbs
          */
-        void Gaussian::WriteBasisset(ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
+        void Gaussian::WriteBasisset(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
 
 
             std::vector< QMAtom* >::iterator it;
 
 
-            list<std::string> elements;
+            std::list<std::string> elements;
             BasisSet bs;
             // std::string basis_name(_basis);
 
@@ -163,7 +163,7 @@ namespace votca {
 
                     //cout << "looking up basis set for element " << element_name << endl;
 
-                    list<std::string>::iterator ite;
+                    std::list<std::string>::iterator ite;
                     ite = find(elements.begin(), elements.end(), element_name);
 
                     if (ite == elements.end()) {
@@ -236,11 +236,11 @@ namespace votca {
         /* If custom ECPs are used, they need to be specified in the input file
          * in a section following the basis set includes.
          */
-        void Gaussian::WriteECP(ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
+        void Gaussian::WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
 
             std::vector< QMAtom* >::iterator it;
 
-            list<std::string> elements;
+            std::list<std::string> elements;
 
             elements.push_back("H");
             elements.push_back("He");
@@ -254,7 +254,7 @@ namespace votca {
                 
                     std::string element_name = (*it)->getType();
 
-                    list<std::string>::iterator ite;
+                    std::list<std::string>::iterator ite;
                     ite = find(elements.begin(), elements.end(), element_name);
 
                     if (ite == elements.end()) {
@@ -293,7 +293,7 @@ namespace votca {
          * input file. In g03 AFTER basis sets and ECPs, in g09 BEFORE.
          */
      
-        void Gaussian::WriteBackgroundCharges(ofstream& _com_file, std::vector<ctp::PolarSeg*> segments) {
+        void Gaussian::WriteBackgroundCharges(std::ofstream& _com_file, std::vector<ctp::PolarSeg*> segments) {
             std::vector< ctp::PolarSeg* >::iterator it;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
             for (it = segments.begin(); it < segments.end(); it++) {
@@ -327,7 +327,7 @@ namespace votca {
          * Fortran fixed format 5D15.8. The information about the guess
          * itself is taken from a prepared orbitals object.
          */
-        void Gaussian::WriteGuess(Orbitals* orbitals_guess, ofstream& _com_file) {
+        void Gaussian::WriteGuess(Orbitals* orbitals_guess, std::ofstream& _com_file) {
             if (orbitals_guess == NULL) {
                 throw std::runtime_error("A guess for dimer orbitals has not been prepared.");
             } else {
@@ -374,7 +374,7 @@ namespace votca {
          * electron density from the checkpoint file, setting run to serial.
          */
         void Gaussian::WriteVXCRunInputFile() {
-            ofstream _com_file2;
+            std::ofstream _com_file2;
 
             std::string _com_file_name_full2 = _run_dir + "/" + _input_vxc_file_name;
 
@@ -405,7 +405,7 @@ namespace votca {
         /* Coordinates are written in standard Element,x,y,z format to the
          * input file.
          */
-        void Gaussian::WriteCoordinates(ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
+        void Gaussian::WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
             std::vector< QMAtom* >::iterator it;
 
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
@@ -426,7 +426,7 @@ namespace votca {
          * memory, shared processor request, option string containing all
          * relevant keywords, charge, and spin information.
          */
-        void Gaussian::WriteHeader(ofstream& _com_file) {
+        void Gaussian::WriteHeader(std::ofstream& _com_file) {
             if (_chk_file_name.size()) _com_file << "%chk=" << _chk_file_name << endl;
             if (_memory.size()) _com_file << "%mem=" << _memory << endl;
             if (_threads > 0) _com_file << "%nprocshared=" << _threads << endl;
@@ -449,7 +449,7 @@ namespace votca {
             std::string temp_suffix = "/id";
             std::string scratch_dir_backup = _scratch_dir;
 
-            ofstream _com_file;
+            std::ofstream _com_file;
             std::string _com_file_name_full = _run_dir + "/" + _input_file_name;
             _com_file.open(_com_file_name_full.c_str());
 
@@ -539,7 +539,7 @@ namespace votca {
          * using patched g03. This function writes the shell script.
          */
         bool Gaussian::WriteShellScript() {
-            ofstream _shell_file;
+            std::ofstream _shell_file;
 
             std::string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
 
@@ -609,7 +609,7 @@ namespace votca {
             if (_cleanup.size() != 0) {
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
-                Tokenizer tok_cleanup(_cleanup, ", ");
+                tools::Tokenizer tok_cleanup(_cleanup, ", ");
                 std::vector <std::string> _cleanup_info;
                 tok_cleanup.ToVector(_cleanup_info);
 
@@ -1042,7 +1042,7 @@ namespace votca {
                     std::vector<std::string> results;
                     boost::iter_split(stringList, archive, boost::first_finder("\\\\"));
 
-                    list<std::string>::iterator coord_block = stringList.begin();
+                    std::list<std::string>::iterator coord_block = stringList.begin();
                     std::advance(coord_block, 3);
 
                     std::vector<std::string> atom_block;

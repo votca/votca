@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -45,9 +45,9 @@ const int _size = _Mmn_full.getAuxDimension(); // size of gwbasis
             for (int _m_level = 0; _m_level < n_occ; _m_level++) {
                 const double _qp_energy_m = qp_energies(_m_level + _rpamin);
 #if (GWBSE_DOUBLE)
-                const Eigen::MatrixXd Mmn_RPA = _Mmn_full[ _m_level ].block(0, n_occ, _size, n_unocc);
+                const Eigen::MatrixXd Mmn_RPA = _Mmn_full[ _m_level ].block(n_occ, 0,n_unocc, _size );
 #else
-                const Eigen::MatrixXd Mmn_RPA = _Mmn_full[ _m_level ].block(0, n_occ, _size, n_unocc).cast<double>();       
+                const Eigen::MatrixXd Mmn_RPA = _Mmn_full[ _m_level ].block(n_occ,0,  n_unocc, _size).cast<double>();       
 #endif
                 Eigen::MatrixXd tempresult=Eigen::MatrixXd::Zero(_size,_size);
                 Eigen::MatrixXd denom_x_Mmn_RPA=Eigen::MatrixXd::Zero(n_unocc,_size);
@@ -57,9 +57,9 @@ const int _size = _Mmn_full.getAuxDimension(); // size of gwbasis
                     for (int _n_level = 0; _n_level < n_unocc; _n_level++) {
                         const double _deltaE = qp_energies(_n_level + lumo) - _qp_energy_m;
                         const double denom=4.0 * _deltaE / (_deltaE * _deltaE + screen_freq2);  
-                        denom_x_Mmn_RPA.row(_n_level)=Mmn_RPA.col(_n_level)*denom; //hartree    
+                        denom_x_Mmn_RPA.row(_n_level)=Mmn_RPA.row(_n_level)*denom; //hartree    
                     }
-                    tempresult.noalias() = Mmn_RPA * denom_x_Mmn_RPA;
+                    tempresult.noalias() = Mmn_RPA.transpose() * denom_x_Mmn_RPA;
 
 #pragma omp critical
                     {
@@ -72,9 +72,9 @@ const int _size = _Mmn_full.getAuxDimension(); // size of gwbasis
                     for (int _n_level = 0;  _n_level < n_unocc; _n_level++) {
                         const double _deltaE = qp_energies(_n_level + lumo) - _qp_energy_m;
                         const double denom=2.0 * (1.0 / (_deltaE - screen_freq_r(i)) + 1.0 / (_deltaE + screen_freq_r(i)));
-                        denom_x_Mmn_RPA.row(_n_level)=Mmn_RPA.col(_n_level)*denom; //hartree    
+                        denom_x_Mmn_RPA.row(_n_level)=Mmn_RPA.row(_n_level)*denom; //hartree    
                     }
-                    tempresult.noalias() = Mmn_RPA * denom_x_Mmn_RPA;
+                    tempresult.noalias() = Mmn_RPA.transpose() * denom_x_Mmn_RPA;
 
 #pragma omp critical
                     {

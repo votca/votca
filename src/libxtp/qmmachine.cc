@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -45,6 +45,8 @@ namespace votca {
             _crit_dE_QM = opt->ifExistsReturnElseReturnDefault<double>(key + ".dQdE_QM", 0.001); //eV
             _crit_dE_MM = opt->ifExistsReturnElseReturnDefault<double>(key + ".dE_MM", _crit_dE_QM); //eV
             _maxIter = opt->ifExistsReturnElseReturnDefault<int>(key + ".max_iter", 32);
+            
+             _alpha = opt->ifExistsReturnElseReturnDefault<double>(key + ".mixing", 0.0); 
             
            
   
@@ -705,11 +707,19 @@ namespace votca {
                     // fill DFT AO basis by going through all atoms
                     std::vector< QMAtom* >& Atomlist = orb_iter_input.QMAtoms();
 
-                    Espfit esp = Espfit(_log);
-                    esp.Fit2Density(Atomlist, DMAT_tot, dftbasis, "medium");
+  Espfit esp = Espfit(_log);
+                    
 
+  int iter=_iters.size()-1;
+  Eigen::MatrixXd DMAT_mixed;
+  if (iter == 0) {
+    DMAT_mixed = DMAT_tot;
+  } else {
+    DMAT_mixed = _alpha * _DMAT_old + (1 - _alpha) * DMAT_tot;
+  }
 
-
+  _DMAT_old = DMAT_mixed;
+  esp.Fit2Density(Atomlist, DMAT_mixed, dftbasis,  "medium");
 
             return;
         }

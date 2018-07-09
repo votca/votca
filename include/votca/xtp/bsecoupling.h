@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -41,14 +41,14 @@ public:
     BSECoupling() {};
    ~BSECoupling() {};
    
-   void    Initialize( Property *options);
-    string  Identify() { return "bsecoupling"; }
+   void    Initialize( tools::Property *options);
+   std::string  Identify() { return "bsecoupling"; }
   
     
     Eigen::MatrixXd getJAB_singletstorage(){ return (_output_perturbation ?  JAB_singlet[0]:JAB_singlet[1]);}
        
     Eigen::MatrixXd getJAB_tripletstorage(){ return (_output_perturbation ?  JAB_triplet[0]: JAB_triplet[1]);}
-    void addoutput(Property *_type_summary,Orbitals* _orbitalsA, 
+    void addoutput(tools::Property *_type_summary,Orbitals* _orbitalsA, 
                                Orbitals* _orbitalsB);
     
     bool CalculateCouplings(   Orbitals* _orbitalsA, 

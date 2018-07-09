@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -331,9 +331,10 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
    
    if ( _do_parse ){
     // save orbitals
+    
     string ORB_FILE = "molecule_" + ID + ".orb";
     CTP_LOG(ctp::logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
-    _orbitals.WriteToCpt(ORB_FILE);
+    _orbitals.WriteToCpt(ORB_DIR+"/"+ORB_FILE);
     // ofs.close();
     
      if(_qmpackage->getPackageName()=="orca"){

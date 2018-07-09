@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -32,7 +32,7 @@
 
 using boost::format;
 using namespace boost::filesystem;
-
+using std::flush;
 namespace votca {
 namespace xtp {
 
@@ -42,7 +42,7 @@ namespace xtp {
 
 void GWBSE::CleanUp() {}
 
-void GWBSE::Initialize(Property *options) {
+void GWBSE::Initialize(tools::Property *options) {
 
 #if (GWBSE_DOUBLE)
   CTP_LOG(ctp::logDEBUG, *_pLog) << " Compiled with full double support"
@@ -52,7 +52,7 @@ void GWBSE::Initialize(Property *options) {
       << " Compiled with float/double mixture (standard)" << flush;
 #endif
 
-  string key = Identify();
+  std::string key = Identify();
 
   // getting level ranges
 double qpminfactor=0;
@@ -60,7 +60,7 @@ double qpminfactor=0;
   double rpamaxfactor=0;
   double bseminfactor=0;
   double bsemaxfactor=0;
-std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ranges",
+std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key + ".ranges",
                                                              "default");
 
   // now check validity, and get rpa, qp, and bse level ranges accordingly
@@ -84,7 +84,7 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
   } else if (ranges == "full") {
     ranges = "full";
   } else {
-    cerr << "\nSpecified range option " << ranges << " invalid. ";
+    std::cerr << "\nSpecified range option " << ranges << " invalid. ";
     throw std::runtime_error(
         "\nValid options are: default,factor,explicit,full");
   }
@@ -233,8 +233,8 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
    if (_bse_maxeigenvectors > int(bse_size) || _bse_maxeigenvectors < 0) _bse_maxeigenvectors = bse_size;
   _fragA = options->ifExistsReturnElseReturnDefault<int>(key + ".fragment", -1);
 
-  string BSEtype =
-      options->ifExistsReturnElseReturnDefault<string>(key + ".BSEtype", "TDA");
+  std::string BSEtype =
+      options->ifExistsReturnElseReturnDefault<std::string>(key + ".BSEtype", "TDA");
 
   if (BSEtype == "full") {
     _do_full_BSE = true;
@@ -251,17 +251,17 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
     _doVxc =
         options->ifExistsReturnElseThrowRuntimeError<bool>(key + ".vxc.dovxc");
     if (_doVxc) {
-      _functional = options->ifExistsReturnElseThrowRuntimeError<string>(
+      _functional = options->ifExistsReturnElseThrowRuntimeError<std::string>(
           key + ".vxc.functional");
-      _grid = options->ifExistsReturnElseReturnDefault<string>(
+      _grid = options->ifExistsReturnElseReturnDefault<std::string>(
           key + ".vxc.grid", "medium");
     }
   }
 
   _auxbasis_name =
-      options->ifExistsReturnElseThrowRuntimeError<string>(key + ".gwbasis");
+      options->ifExistsReturnElseThrowRuntimeError<std::string>(key + ".gwbasis");
   _dftbasis_name =
-      options->ifExistsReturnElseThrowRuntimeError<string>(key + ".dftbasis");
+      options->ifExistsReturnElseThrowRuntimeError<std::string>(key + ".dftbasis");
 
   _shift = options->ifExistsReturnElseThrowRuntimeError<double>(key + ".shift");
   _g_sc_limit = options->ifExistsReturnElseReturnDefault<double>(
@@ -278,8 +278,8 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
   _gw_sc_limit = options->ifExistsReturnElseReturnDefault<double>(
       key + ".gw_sc_limit", 0.00001);  // convergence criteria for shift it
   _iterate_gw = false;
-  string _shift_type =
-      options->ifExistsReturnElseThrowRuntimeError<string>(key + ".shift_type");
+  std::string _shift_type =
+      options->ifExistsReturnElseThrowRuntimeError<std::string>(key + ".shift_type");
   if (_shift_type != "fixed") {
     _iterate_gw = true;
   }
@@ -300,8 +300,8 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
   _do_bse_triplets = false;
   // possible tasks
   // diagQP, singlets, triplets, all, ibse
-  string _tasks_string =
-      options->ifExistsReturnElseThrowRuntimeError<string>(key + ".tasks");
+  std::string _tasks_string =
+      options->ifExistsReturnElseThrowRuntimeError<std::string>(key + ".tasks");
   if (_tasks_string.find("all") != std::string::npos) {
     _do_qp_diag = true;
     _do_bse_singlets = true;
@@ -329,8 +329,8 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
   _store_qp_diag = false;
   _store_bse_triplets = false;
   _store_bse_singlets = false;
-  string _store_string =
-      options->ifExistsReturnElseThrowRuntimeError<string>(key + ".store");
+  std::string _store_string =
+      options->ifExistsReturnElseThrowRuntimeError<std::string>(key + ".store");
   if ((_store_string.find("all") != std::string::npos) ||
       (_store_string.find("") != std::string::npos)) {
     // store according to tasks choice
@@ -373,10 +373,10 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<string>(key + ".ra
   return;
 }
 
-void GWBSE::addoutput(Property *_summary) {
+void GWBSE::addoutput(tools::Property *_summary) {
 
   const double hrt2ev = tools::conv::hrt2ev;
-  Property *_gwbse_summary = &_summary->add("GWBSE", "");
+  tools::Property *_gwbse_summary = &_summary->add("GWBSE", "");
   _gwbse_summary->setAttribute("units", "eV");
   _gwbse_summary->setAttribute("DeltaHLGap",
                                (format("%1$+1.6f ") % (_shift * hrt2ev)).str());
@@ -386,13 +386,13 @@ void GWBSE::addoutput(Property *_summary) {
   int printlimit = _bse_maxeigenvectors;  // I use this to determine how much is printed,
                                  // I do not want another option to pipe through
 
-  Property *_dft_summary = &_gwbse_summary->add("dft", "");
+  tools::Property *_dft_summary = &_gwbse_summary->add("dft", "");
   _dft_summary->setAttribute("HOMO", _homo);
   _dft_summary->setAttribute("LUMO", _homo + 1);
   
   for (unsigned state = _qpmin; state < _qpmax+1; state++) {
 
-    Property *_level_summary = &_dft_summary->add("level", "");
+     tools::Property *_level_summary = &_dft_summary->add("level", "");
     _level_summary->setAttribute("number", state);
     _level_summary->add("dft_energy",
                         (format("%1$+1.6f ") %
@@ -412,9 +412,9 @@ void GWBSE::addoutput(Property *_summary) {
   }
 
   if (_do_bse_singlets) {
-    Property *_singlet_summary = &_gwbse_summary->add("singlets", "");
+     tools::Property *_singlet_summary = &_gwbse_summary->add("singlets", "");
     for (int state = 0; state < _bse_maxeigenvectors; ++state) {
-      Property *_level_summary = &_singlet_summary->add("level", "");
+       tools::Property *_level_summary = &_singlet_summary->add("level", "");
       _level_summary->setAttribute("number", state + 1);
       _level_summary->add("omega", (format("%1$+1.6f ") %
                                     (_orbitals->BSESingletEnergies()(state) * hrt2ev))
@@ -425,7 +425,7 @@ void GWBSE::addoutput(Property *_summary) {
         double f = 2 * dipoles * dipoles * _orbitals->BSESingletEnergies()(state) / 3.0;
 
         _level_summary->add("f", (format("%1$+1.6f ") % f).str());
-        Property *_dipol_summary = &_level_summary->add(
+         tools::Property *_dipol_summary = &_level_summary->add(
             "Trdipole", (format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles.getX() %
                          dipoles.getY() % dipoles.getZ())
                             .str());
@@ -435,10 +435,10 @@ void GWBSE::addoutput(Property *_summary) {
     }
   }
   if (_do_bse_triplets) {
-    Property *_triplet_summary = &_gwbse_summary->add("triplets", "");
+     tools::Property *_triplet_summary = &_gwbse_summary->add("triplets", "");
     for (int state = 0; state < printlimit; ++state) {
 
-      Property *_level_summary = &_triplet_summary->add("level", "");
+       tools::Property *_level_summary = &_triplet_summary->add("level", "");
       _level_summary->setAttribute("number", state + 1);
       _level_summary->add("omega", (format("%1$+1.6f ") %
                                     (_orbitals->BSETripletEnergies()(state) * hrt2ev))
@@ -614,7 +614,7 @@ bool GWBSE::Evaluate() {
   }
 #endif
   
-  if(XTP_USE_MKL){
+  if(tools::globals::VOTCA_MKL){
      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Using MKL overload for Eigen "<< flush;
   }else{
@@ -626,7 +626,7 @@ bool GWBSE::Evaluate() {
   /* check which QC program was used for the DFT run
    * -> implicit info about MO coefficient storage order
    */
-  string _dft_package = _orbitals->getQMpackage();
+  std::string _dft_package = _orbitals->getQMpackage();
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " DFT data was created by " << _dft_package
                                  << flush;
@@ -736,8 +736,6 @@ bool GWBSE::Evaluate() {
       << ctp::TimeStamp() << " Removed " << _auxcoulomb.Removedfunctions()
       << " functions from Aux Coulomb matrix to avoid near linear dependencies" << flush;
   
-
-  // --- prepare a vector (gwdacay) of matrices (orbitals, orbitals) as
   // container => M_mn
   // prepare 3-center integral object
 
@@ -750,7 +748,7 @@ bool GWBSE::Evaluate() {
       << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
 
   // make _Mmn symmetric
-  Mmn.MultiplyLeftWithAuxMatrix(Coulomb_sqrtInv);
+  Mmn.MultiplyRightWithAuxMatrix(Coulomb_sqrtInv);
   
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
@@ -811,7 +809,7 @@ bool GWBSE::Evaluate() {
     if(gw_iteration%_reset_3c==0 && gw_iteration!=0){
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Rebuilding Mmn_beta (3-center-repulsion x orbitals)" << flush;
        Mmn.Fill(auxbasis, dftbasis, _orbitals->MOCoefficients());
-       Mmn.MultiplyLeftWithAuxMatrix(Coulomb_sqrtInv);
+       Mmn.MultiplyRightWithAuxMatrix(Coulomb_sqrtInv);
     }
   
     rpa.calculate_epsilon(gwa_energies,Mmn);
@@ -823,7 +821,7 @@ bool GWBSE::Evaluate() {
     
     
     
-    Mmn.MultiplyLeftWithAuxMatrix(ppm.getPpm_phi_T());
+    Mmn.MultiplyRightWithAuxMatrix(ppm.getPpm_phi());
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Prepared threecenters for sigma  " << flush;
 
@@ -933,7 +931,7 @@ bool GWBSE::Evaluate() {
 
       if (_store_qp_diag) {
         _orbitals->QPdiagCoefficients()=es.eigenvectors();
-        _orbitals->QPdiagEnergies()=es.eigenvectors();
+        _orbitals->QPdiagEnergies()=es.eigenvalues();
       }
     }  // _do_qp_diag
   

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,12 +23,12 @@
 
 namespace votca {
     namespace xtp {
-
+      using std::flush;
         void QMPackage::ReorderOutput(Orbitals* _orbitals) {
             BasisSet _dftbasisset;
             _dftbasisset.LoadBasisSet(_basisset_name);
             if (!_orbitals->hasQMAtoms()) {
-                throw runtime_error("Orbitals object has no QMAtoms");
+                throw std::runtime_error("Orbitals object has no QMAtoms");
             }
 
 
@@ -62,7 +62,7 @@ namespace votca {
             BasisSet _dftbasisset;
             _dftbasisset.LoadBasisSet(_basisset_name);
             if (!_orbitals->hasQMAtoms()) {
-                throw runtime_error("Orbitals object has no QMAtoms");
+                throw std::runtime_error("Orbitals object has no QMAtoms");
             }
             AOBasis _dftbasis;
             _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
@@ -101,8 +101,6 @@ namespace votca {
                 tools::matrix::eigensystem_t system;
                 components.SolveEigensystem(system);
                 double a = 2 * _dpl_spacing;
-                //string Atomnameplus[] = {"X", "Y", "Z"};
-                //string Atomnameminus[] = {"X", "Y", "Z"};
                 for (unsigned i = 0; i < 3; i++) {
 
                     double q = system.eigenvalues[i] / (a * a);
@@ -126,7 +124,7 @@ namespace votca {
             ctp::Segment* seg1 = pair->Seg1();
             ctp::Segment* seg2 = pair->Seg2();
             ctp::Topology* _top = seg1->getTopology();
-            vector<ctp::Segment*> segmentsInMolecule = _top->Segments();
+            std::vector<ctp::Segment*> segmentsInMolecule = _top->Segments();
             ctp::Molecule* moleculeSeg1 = seg1->getMolecule();
             ctp::Molecule* moleculeSeg2 = seg2->getMolecule();
             int moleculeIdSeg1 = moleculeSeg1-> getId();
@@ -156,7 +154,7 @@ namespace votca {
             return;
         }
 
-        bool QMPackage::isLinker(string name, std::vector< std::string> linker_names) {
+        bool QMPackage::isLinker(std::string name, std::vector< std::string> linker_names) {
             return (std::find(linker_names.begin(), linker_names.end(), name) != linker_names.end());
         }
 
@@ -195,9 +193,9 @@ namespace votca {
             }
 
 
-            cout << "Number of linker names " << linker_names.size() << endl;
+            std::cout << "Number of linker names " << linker_names.size() << std::endl;
             for (size_t i = 0; i < linker_names.size(); i++) {
-                cout << linker_names[i] << endl;
+                std::cout << linker_names[i] << std::endl;
             }
 
             addLinkers(segments, pair, linker_names);

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -50,12 +50,12 @@ double getScreening_i()const{return screening_i;}
      return _ppm_freq;
  }
 
- const Eigen::MatrixXd& getPpm_phi_T() const {
-     return _ppm_phi_T;
+ const Eigen::MatrixXd& getPpm_phi() const {
+     return _ppm_phi;
  }     
      
  void FreeMatrix(){
-     _ppm_phi_T.resize(0,0);
+     _ppm_phi.resize(0,0);
  }
      
  private:
@@ -64,7 +64,7 @@ double getScreening_i()const{return screening_i;}
      double screening_i;
 
   // PPM related variables and functions
-  Eigen::MatrixXd _ppm_phi_T;
+  Eigen::MatrixXd _ppm_phi;
   Eigen::VectorXd _ppm_freq;
   Eigen::VectorXd _ppm_weight;
   

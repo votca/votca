@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -42,7 +42,7 @@ public:
 
    std::string getPackageName() { return "orca"; }
 
-   void Initialize( Property *options );
+   void Initialize( tools::Property *options );
 
    /* Writes Orca input file with coordinates of segments
 
@@ -78,7 +78,7 @@ private:
 
     int NumberOfElectrons( std::string _line );
     int BasisSetSize( std::string _line );
-    int EnergiesFromLog( std::string _line, ifstream inputfile );
+    int EnergiesFromLog( std::string _line, std::ifstream inputfile );
     std::string indent( const double &number );
     std::string getLName(int lnum);
 

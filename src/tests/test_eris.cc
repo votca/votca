@@ -21,6 +21,7 @@
 #include <votca/xtp/convergenceacc.h>
 
 using namespace votca::xtp;
+using namespace std;
 
 BOOST_AUTO_TEST_SUITE(eris_test)
 

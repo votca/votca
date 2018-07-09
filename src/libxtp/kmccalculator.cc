@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,11 @@ namespace votca {
 
     void KMCCalculator::LoadGraph(ctp::Topology *top) {
 
-        vector< ctp::Segment* >& seg = top->Segments();
+        std::vector< ctp::Segment* >& seg = top->Segments();
+        
+        if(seg.size()<1){
+          throw std::runtime_error("Your sql file contains no segments!");
+        }
         
         for (unsigned i = 0; i < seg.size(); i++) {
             GNode *newNode = new GNode();
@@ -45,7 +49,9 @@ namespace votca {
         }
 
         ctp::QMNBList &nblist = top->NBList();
-
+        if(nblist.size()<1){
+          throw std::runtime_error("Your sql file contains no pairs!");    
+        }
         
         
         for (ctp::QMNBList::iterator it = nblist.begin(); it < nblist.end(); ++it) {
@@ -280,7 +286,10 @@ namespace votca {
 
                     double destindex = _nodes[i]->events[j].destination;
                     double reorg = _nodes[i]->reorg_intorig + _nodes[destindex]->reorg_intdest + _nodes[i]->events[j].reorg_out;
-                    
+                     if(std::abs(reorg)<1e-12){
+                        throw std::runtime_error("Reorganisation energy for a pair is extremly close to zero,\n"
+                                " you probably forgot to import reorganisation energies into your sql file.");
+                    }
                     double dG_Field =0.0;
                     if(charge!=0.0){
                         dG_Field=charge * (_nodes[i]->events[j].dr*_field);

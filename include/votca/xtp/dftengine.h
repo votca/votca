@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -61,7 +61,7 @@ namespace votca {
 
 
 
-            void Initialize(Property *options);
+            void Initialize(tools::Property *options);
 
             std::string Identify() {
                 return "dftengine";
@@ -73,7 +73,7 @@ namespace votca {
                 _pLog = pLog;
             }
 
-            void ConfigureExternalGrid(string grid_name_ext) {
+            void ConfigureExternalGrid(std::string grid_name_ext) {
                 _grid_name_ext = grid_name_ext;
                 _do_externalfield = true;
             }
@@ -103,12 +103,14 @@ namespace votca {
                 _externalgrid_nuc = nucleigrid;
             }
 
-            std::vector< const vec *> getExternalGridpoints() {
+            std::vector< const tools::vec *> getExternalGridpoints() {
                 return _gridIntegration_ext.getGridpoints();
             }
 
 
             bool Evaluate(Orbitals* _orbitals);
+            
+
             void Prepare(Orbitals* _orbitals);
 
             std::string GetDFTBasisName() {
@@ -118,7 +120,7 @@ namespace votca {
             void CalculateERIs(const AOBasis& dftbasis, const Eigen::MatrixXd &DMAT);
 
         private:
-
+            void PrintMOs(const Eigen::VectorXd& MOEnergies);
             ctp::Logger *_pLog;
 
             void ConfigOrbfile(Orbitals* _orbitals);
@@ -126,7 +128,7 @@ namespace votca {
             Eigen::MatrixXd AtomicGuess(Orbitals* _orbitals);
             Eigen::MatrixXd DensityMatrix_unres(const Eigen::MatrixXd& MOs, int numofelec);
             Eigen::MatrixXd DensityMatrix_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies, int numofelec);
-            string Choosesmallgrid(string largegrid);
+            std::string Choosesmallgrid(std::string largegrid);
             void NuclearRepulsion();
             double ExternalRepulsion(ctp::Topology* top = NULL);
             double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
@@ -138,7 +140,7 @@ namespace votca {
 
             // options
             std::string _dft_options;
-            Property _dftengine_options;
+            tools::Property _dftengine_options;
 
             // atoms
             std::vector<QMAtom*> _atoms;
@@ -157,7 +159,7 @@ namespace votca {
             bool _with_ecp;
             bool _with_RI;
             
-            string _four_center_method; // direct | cache
+            std::string _four_center_method; // direct | cache
             
             // Pre-screening
             bool _with_screening;
@@ -190,7 +192,7 @@ namespace votca {
             AOQuadrupole_Potential _dftAOQuadrupole_Potential;
             AOPlanewave _dftAOplanewave;
             bool _with_guess;
-            string _initial_guess;
+            std::string _initial_guess;
             double E_nucnuc;
 
             // COnvergence 

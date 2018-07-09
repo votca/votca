@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2012 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -126,10 +126,10 @@ namespace votca {
 
 
 
-            const vec& _pos_alpha = _shell_alpha->getPos();
-            const vec& _pos_beta = _shell_beta->getPos();
-            const vec& _pos_gamma = _shell_gamma->getPos();
-            const vec& _pos_delta = _shell_delta->getPos();
+            const tools::vec& _pos_alpha = _shell_alpha->getPos();
+            const tools::vec& _pos_beta = _shell_beta->getPos();
+            const tools::vec& _pos_gamma = _shell_gamma->getPos();
+            const tools::vec& _pos_delta = _shell_delta->getPos();
             
             int _lmax_alpha = _shell_alpha->getLmax();
             int _lmax_beta  = _shell_beta->getLmax();
@@ -244,7 +244,7 @@ namespace votca {
             double _dist_AB = (_pos_alpha - _pos_beta) * (_pos_alpha - _pos_beta);
             double _dist_CD = (_pos_gamma - _pos_delta) * (_pos_gamma - _pos_delta);
             
-            vec amb = _pos_alpha - _pos_beta;
+            tools::vec amb = _pos_alpha - _pos_beta;
             double amb0 = 0.0;
             double amb1 = 0.0;
             double amb2 = 0.0;
@@ -254,7 +254,7 @@ namespace votca {
               amb2 = amb.getZ();
             }
 
-            vec cmd = _pos_gamma - _pos_delta;
+            tools::vec cmd = _pos_gamma - _pos_delta;
             double cmd0 = 0.0;
             double cmd1 = 0.0;
             double cmd2 = 0.0;
@@ -290,13 +290,13 @@ namespace votca {
             double rdecay = 0.5/_decay;
             double gfak = eta/_decay;
             double cfak = zeta/_decay;         
-            vec _P = (_decay_alpha*_pos_alpha + _decay_beta*_pos_beta)/zeta;
-            vec _Q = (_decay_gamma*_pos_gamma + _decay_delta*_pos_delta)/eta;
-            vec _W = (zeta*_P + eta*_Q)/_decay;
+            tools::vec _P = (_decay_alpha*_pos_alpha + _decay_beta*_pos_beta)/zeta;
+            tools::vec _Q = (_decay_gamma*_pos_gamma + _decay_delta*_pos_delta)/eta;
+            tools::vec _W = (zeta*_P + eta*_Q)/_decay;
             double _T = rho*(_P-_Q)*(_P-_Q);
 
 
-            vec pma = _P - _pos_alpha;
+            tools::vec pma = _P - _pos_alpha;
             double pma0 = 0.0;
             double pma1 = 0.0;
             double pma2 = 0.0;
@@ -306,7 +306,7 @@ namespace votca {
               pma2 = pma.getZ();
             }
 
-            vec qmc = _Q - _pos_gamma;
+            tools::vec qmc = _Q - _pos_gamma;
             double qmc0 = 0.0;
             double qmc1 = 0.0;
             double qmc2 = 0.0;
@@ -316,12 +316,12 @@ namespace votca {
               qmc2 = qmc.getZ();
             }
 
-            vec wmp = _W - _P;
+            tools::vec wmp = _W - _P;
             double wmp0 = wmp.getX();
             double wmp1 = wmp.getY();
             double wmp2 = wmp.getZ();
 
-            vec wmq = _W - _Q;
+            tools::vec wmq = _W - _Q;
             double wmq0 = wmq.getX();
             double wmq1 = wmq.getY();
             double wmq2 = wmq.getZ();
@@ -356,7 +356,7 @@ namespace votca {
             }
             
 
-            const vector<double> _FmT=AOMatrix<double>::XIntegrate(_mmax+1, _T);
+            const std::vector<double> _FmT=AOMatrix<double>::XIntegrate(_mmax+1, _T);
 
             double exp_AB = exp( -2. * _decay_alpha * _decay_beta * rzeta * _dist_AB );
             double exp_CD = exp( -2.* _decay_gamma * _decay_delta * reta * _dist_CD );

@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,9 +24,6 @@
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/eigen.h>
 #include <votca/tools/constants.h>
-
-
-using namespace votca::tools;
 
 namespace votca { namespace xtp {
 
@@ -88,7 +85,7 @@ public:
     int getLmax(  ) const{ return _Lmax;}
     int getLmin(  ) const{ return _Lmin;}
     
-    const vec& getPos() const{ return _pos; }
+    const tools::vec& getPos() const{ return _pos; }
     double getScale() const{ return _scale; }
     
     int getSize() const{ return _gaussians.size(); }
@@ -106,8 +103,8 @@ public:
     double getMinDecay() const{return _mindecay;}
     
     
-  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues, const vec& grid_pos ) const;
-  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues,Eigen::Block< Eigen::MatrixX3d >& AODervalues, const vec& grid_pos ) const;
+  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues, const tools::vec& grid_pos ) const;
+  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues,Eigen::Block< Eigen::MatrixX3d >& AODervalues, const tools::vec& grid_pos ) const;
 
     // iterator over pairs (decay constant; contraction coefficient)
     typedef std::vector< AOGaussianPrimitive >::const_iterator GaussianIterator;
@@ -134,8 +131,8 @@ public:
 private:   
 
     // only class aobasis can construct shells    
-    AOShell( string type,int Lmax,int Lmin, double scale, int numFunc, int startIndex, 
-            int offset, vec pos, string atomname, int atomindex, AOBasis* aobasis = NULL )
+    AOShell( std::string type,int Lmax,int Lmin, double scale, int numFunc, int startIndex, 
+            int offset, tools::vec pos, std::string atomname, int atomindex, AOBasis* aobasis = NULL )
             : _type(type),_Lmax(Lmax),_Lmin(Lmin), _scale(scale), _numFunc(numFunc),
                     _startIndex(startIndex), _offset(offset), _pos(pos) , 
                     _atomname(atomname), _atomindex(atomindex) { ; }
@@ -144,7 +141,7 @@ private:
             ~AOShell(){};
     
     // shell type (S, P, D))
-    string _type;
+    std::string _type;
     int _Lmax;
     int _Lmin;
     // scaling factor
@@ -154,8 +151,8 @@ private:
     double _mindecay;
     int _startIndex;
     int _offset;
-    vec _pos;
-    string _atomname;
+    tools::vec _pos;
+    std::string _atomname;
     int _atomindex;
      
 

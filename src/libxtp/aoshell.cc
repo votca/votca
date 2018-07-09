@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -43,10 +43,10 @@ namespace votca { namespace xtp {
   }
   
   
-  void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, Eigen::Block< Eigen::MatrixX3d >& gradAOvalues, const vec& grid_pos)const {
+  void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, Eigen::Block< Eigen::MatrixX3d >& gradAOvalues, const tools::vec& grid_pos)const {
 
       // need position of shell
-      const vec center = grid_pos - _pos;
+      const tools::vec center = grid_pos - _pos;
       const double center_x = center.getX();
       const double center_y = center.getY();
       const double center_z = center.getZ();
@@ -287,10 +287,10 @@ namespace votca { namespace xtp {
             _i_func += 9;
             ;
           } else if (single_shell == 'H') {
-            cerr << "H functions not implemented in AOeval at the moment!" << endl;
+            std::cerr << "H functions not implemented in AOeval at the moment!" << std::endl;
             exit(1);
           } else {
-            cerr << "Single shell type" << single_shell << " not known " << endl;
+            std::cerr << "Single shell type" << single_shell << " not known " << std::endl;
             exit(1);
           }
         }
@@ -300,11 +300,11 @@ namespace votca { namespace xtp {
 
            
      
-void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const vec& grid_pos )const{
+void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const tools::vec& grid_pos )const{
 
            
             // need position of shell
-             const vec center=grid_pos-this->_pos;
+             const tools::vec center=grid_pos-this->_pos;
              const double center_x = center.getX();
              const double center_y = center.getY();
              const double center_z = center.getZ();
@@ -390,7 +390,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const v
                       _i_func += 9;
                     }
                     else{
-                        cerr << "Single shell type"<<single_shell<<" not known " << endl;
+                        std::cerr << "Single shell type"<<single_shell<<" not known " << std::endl;
                         exit(1);
                     }
                 }

@@ -37,7 +37,6 @@
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
     
 class NBO{
 public:
@@ -52,7 +51,7 @@ private:
      ctp::Logger *_log;
      votca::tools::Elements _elements; 
     
-    Eigen::MatrixXd IntercenterOrthogonalisation(Eigen::MatrixXd  &P,Eigen::MatrixXd  &Overlap,vector< QMAtom* >& _atomlist, BasisSet &bs);
+    Eigen::MatrixXd IntercenterOrthogonalisation(Eigen::MatrixXd  &P,Eigen::MatrixXd  &Overlap,std::vector< QMAtom* >& _atomlist, BasisSet &bs);
   
 };
 }}

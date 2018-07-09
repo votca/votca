@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -30,7 +30,7 @@
 namespace votca { namespace xtp { 
     
     
-    std::vector<double> EulerMaclaurinGrid::getPruningIntervals(const string & element){
+    std::vector<double> EulerMaclaurinGrid::getPruningIntervals(const std::string & element){
         
         std::vector<double> _r;
         
@@ -65,7 +65,7 @@ namespace votca { namespace xtp {
             
         } else {
             
-            cerr << "Pruning unsupported for RowType " << RowType << endl;
+            std::cerr << "Pruning unsupported for RowType " << RowType << std::endl;
             exit(1);
         }
 
@@ -73,9 +73,9 @@ namespace votca { namespace xtp {
      }
     
      
-void EulerMaclaurinGrid::getRadialCutoffs(const AOBasis* aobasis,std::vector<QMAtom* > _atoms, const string& gridtype) {
+void EulerMaclaurinGrid::getRadialCutoffs(const AOBasis* aobasis,std::vector<QMAtom* > _atoms, const std::string& gridtype) {
 
-            map<string, min_exp>::iterator it;
+            std::map<std::string, min_exp>::iterator it;
             std::vector< QMAtom* > ::iterator ait;
             std::vector< QMAtom* > ::iterator bit;
 
@@ -88,7 +88,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(const AOBasis* aobasis,std::vector<QMA
 
             for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
                 // get element type of the atom
-                string name = (*ait)->getType();
+                std::string name = (*ait)->getType();
                 // is this element already in map?
                 it = _element_ranges.find(name);
                 // only proceed, if element data does not exist yet
@@ -173,7 +173,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(const AOBasis* aobasis,std::vector<QMA
                 double exp_iat = _element_ranges.at((*ait)->getType()).alpha;
                 int l_iat = _element_ranges.at((*ait)->getType()).l;
 
-                const vec& pos_a = (*ait)->getPos();
+                const tools::vec& pos_a = (*ait)->getPos();
 
 
                 
@@ -182,7 +182,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(const AOBasis* aobasis,std::vector<QMA
 
                     int _b_start = idxstart[bidx];
                     int _b_stop = idxstop[bidx];
-                    const vec& pos_b = (*bit)->getPos();
+                    const tools::vec& pos_b = (*bit)->getPos();
                     // now do some overlap gymnastics
                     double s_max =  std::numeric_limits<double>::max();
                     if (aidx != bidx) {
@@ -233,10 +233,10 @@ void EulerMaclaurinGrid::getRadialCutoffs(const AOBasis* aobasis,std::vector<QMA
     
     
     
-    void EulerMaclaurinGrid::getRadialGrid(const AOBasis* aobasis , std::vector<QMAtom* > _atoms,const string& type, GridContainers& _grid) {
+    void EulerMaclaurinGrid::getRadialGrid(const AOBasis* aobasis , std::vector<QMAtom* > _atoms,const std::string& type, GridContainers& _grid) {
 
         
-            map<string, min_exp>::iterator it;
+            std::map<std::string, min_exp>::iterator it;
             getRadialCutoffs(aobasis,_atoms,type);
             
             // go through all elements
@@ -357,7 +357,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(const AOBasis* aobasis,std::vector<QMA
     
 
     
-    int EulerMaclaurinGrid::getGrid(const string& element, const string& type){
+    int EulerMaclaurinGrid::getGrid(const std::string& element, const std::string& type){
         
         if ( type == "medium"){
             

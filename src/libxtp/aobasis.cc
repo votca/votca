@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -29,7 +29,7 @@
 namespace votca { namespace xtp {
 
  AOBasis::~AOBasis() {
-        for (vector< AOShell* >::iterator it = _aoshells.begin(); it != _aoshells.end() ; it++ ) delete (*it);
+        for (std::vector< AOShell* >::iterator it = _aoshells.begin(); it != _aoshells.end() ; it++ ) delete (*it);
         _aoshells.clear();
          }
 
@@ -49,7 +49,7 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd &v, const std::string& start, const std
     }
     
     if(target=="orca" || target=="nwchem"){
-        vector<int> multiplier = getMultiplierVector(target,start);
+        std::vector<int> multiplier = getMultiplierVector(target,start);
         // and reorder rows of _orbitals->_mo_coefficients() accordingly
         MultiplyMOs(v, multiplier);
     }
@@ -60,7 +60,7 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd &v, const std::string& start, const std
     
     // Sanity check
     if (v.rows() != int(order.size())) {
-        cerr << "Size mismatch in ReorderMOs" << v.rows() << ":" << order.size() << endl;
+        std::cerr << "Size mismatch in ReorderMOs" << v.rows() << ":" << order.size() << std::endl;
         throw std::runtime_error("Abort!");
     }
 
@@ -70,14 +70,14 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd &v, const std::string& start, const std
             for (d = order[s]; d < s; d = order[d]) {
                 ;
             }
-            if (d == s) while (d = order[d], d != s) swap(v(s,_i_orbital), v(d,_i_orbital));
+            if (d == s) while (d = order[d], d != s) std::swap(v(s,_i_orbital), v(d,_i_orbital));
         }
     }
 
     // NWChem has some strange minus in d-functions
     if (start == "nwchem" || start == "orca") {
         
-        vector<int> multiplier = getMultiplierVector(start, target);
+        std::vector<int> multiplier = getMultiplierVector(start, target);
         // and reorder rows of _orbitals->_mo_coefficients() accordingly
         MultiplyMOs(v, multiplier);
 
@@ -92,7 +92,7 @@ void AOBasis::ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const st
         return;
     }
     std::vector<int> order = getReorderVector(start, target);
-    vector<int> multiplier=getMultiplierVector(start,target);
+    std::vector<int> multiplier=getMultiplierVector(start,target);
     
      if (v.cols() != int(order.size())) {
         std::cerr << "Size mismatch in ReorderMatrix" << v.cols() << ":" << order.size() << std::endl;
@@ -214,7 +214,7 @@ void AOBasis::addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::Matr
      }
 
     if ( _lmax > 2 ){
-        cerr << " Gaussian input with f- functions or higher not yet supported!" << endl;
+        std::cerr << " Gaussian input with f- functions or higher not yet supported!" << std::endl;
         exit(1);
     }
 
@@ -348,7 +348,7 @@ void AOBasis::addMultiplierShell(const std::string& start, const std::string& ta
             // for combined shells, iterate over all contributions
             //_nbf = 0;
             for (unsigned i = 0; i < shell_type.length(); ++i) {
-                string local_shell = string(shell_type, i, 1);
+                std::string local_shell = std::string(shell_type, i, 1);
                 addMultiplierShell(start, target, local_shell, multiplier);
             }
         }
@@ -431,7 +431,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
               order.push_back(_cur_pos + 2);
               order.push_back(_cur_pos + 1);
             } else {
-              cerr << "Tried to reorder p-functions from package " << start << ".";
+              std::cerr << "Tried to reorder p-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented yet!");
             }
           }//for P
@@ -458,7 +458,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
               order.push_back(_cur_pos + 1);
               order.push_back(_cur_pos + 5);
             } else {
-              cerr << "Tried to reorder d-functions from package " << start << ".";
+              std::cerr << "Tried to reorder d-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented yet!");
             }
           } else if (shell_type == "F") {
@@ -483,7 +483,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
               order.push_back(_cur_pos + 5);
               order.push_back(_cur_pos + 7);
             } else {
-              cerr << "Tried to reorder f-functions from package " << start << ".";
+              std::cerr << "Tried to reorder f-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented yet!");
             }
           }else if (shell_type == "G") {
@@ -500,11 +500,11 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
               order.push_back(_cur_pos + 9);
               order.push_back(_cur_pos + 8);
             }else  {
-              cerr << "Tried to reorder g-functions from package " << start << ".";
+              std::cerr << "Tried to reorder g-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented");
             }
           }else {
-            cerr << "Tried to reorder functions  of shell type " << shell_type << endl;
+            std::cerr << "Tried to reorder functions  of shell type " << shell_type << std::endl;
             throw std::runtime_error("Reordering not implemented");
           }
         } else {
@@ -517,7 +517,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
         }
 
       } else {
-        cerr << "Tried to reorder functions (neworder) from " << start << " to " << target << endl;
+        std::cerr << "Tried to reorder functions (neworder) from " << start << " to " << target << std::endl;
         throw std::runtime_error("Reordering not implemented yet!");
       }
       return;
@@ -553,9 +553,6 @@ void AOBasis::AOBasisFill(BasisSet* bs , std::vector<QMAtom* > _atoms, int _frag
  _AOBasisSize =0;
  _AOBasisFragA=0;
  _AOBasisFragB=0;
-
- 
-
  // loop over atoms
  for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
     
@@ -606,14 +603,13 @@ void AOBasis::ECPFill(BasisSet* bs , std::vector<QMAtom* > _atoms  ) {
         std::vector< QMAtom* > :: iterator ait;
        _AOBasisSize = 0;
       
-
        // loop over atoms
        for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
           
           // get coordinates of this atom and convert from Angstrom to Bohr
           const tools::vec &pos=(*ait)->getPos();
           // get element type of the atom
-          string  name = (*ait)->getType();
+          std::string  name = (*ait)->getType();
           // get the basis set entry for this element
           if(name=="H" || name=="He"){continue;}
             Element* element = bs->getElement(name);
@@ -626,7 +622,7 @@ void AOBasis::ECPFill(BasisSet* bs , std::vector<QMAtom* > _atoms  ) {
           for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
                Shell* shell = (*its);
                if(shell->getType().size()>1){
-                   throw runtime_error("In ecps no combined shells e.g. SP are allowed");
+                   throw std::runtime_error("In ecps no combined shells e.g. SP are allowed");
                }
                int l=FindLmax(shell->getType() );
                if (its == element->firstShell()) lmax = l;

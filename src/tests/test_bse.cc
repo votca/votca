@@ -23,6 +23,7 @@
 
 
 using namespace votca::xtp;
+using namespace std;
 
 BOOST_AUTO_TEST_SUITE(bse_test)
 
@@ -148,7 +149,7 @@ mo_energy<<-0.612601,-0.341755,-0.341755,-0.341755, 0.137304,  0.16678,  0.16678
 TCMatrix_gwbse Mmn;
 Mmn.Initialize(aobasis.AOBasisSize(),0,16,0,16);
 Mmn.Fill(aobasis,aobasis,MOs);
-Mmn.MultiplyLeftWithAuxMatrix(cou.Pseudo_InvSqrt_GWBSE(ov,1e-7));
+Mmn.MultiplyRightWithAuxMatrix(cou.Pseudo_InvSqrt_GWBSE(ov,1e-7));
 
   RPA rpa;
   rpa.configure(4,0,16);
@@ -163,7 +164,7 @@ Mmn.MultiplyLeftWithAuxMatrix(cou.Pseudo_InvSqrt_GWBSE(ov,1e-7));
  
   rpa.calculate_epsilon(mo_energy,Mmn);
   ppm.PPM_construct_parameters(rpa);
-  Mmn.MultiplyLeftWithAuxMatrix(ppm.getPpm_phi_T());
+  Mmn.MultiplyRightWithAuxMatrix(ppm.getPpm_phi());
   
    votca::ctp::Logger _log;
   Sigma sigma=Sigma(&_log);
@@ -182,7 +183,7 @@ bse.Solve_singlets();
 
 VectorXfd se_ref=VectorXfd::Zero(1);
 se_ref<<0.111378;
-bool check_se=se_ref.isApprox(orbitals.BSESingletEnergies(),0.0001);
+bool check_se=se_ref.isApprox(orbitals.BSESingletEnergies(),0.001);
 if(!check_se){
     cout<<"Singlets energy"<<endl;
     cout<<orbitals.BSESingletEnergies()<<endl;
@@ -213,7 +214,7 @@ BOOST_CHECK_EQUAL(check_spsi, true);
 bse.Solve_singlets_BTDA();
 VectorXfd se_ref_btda=VectorXfd::Zero(1);
 se_ref_btda<<0.0800487;
-bool check_se_btda=se_ref_btda.isApprox(orbitals.BSESingletEnergies(),0.0001);
+bool check_se_btda=se_ref_btda.isApprox(orbitals.BSESingletEnergies(),0.001);
 if(!check_se_btda){
     cout<<"Singlets energy BTDA"<<endl;
     cout<<orbitals.BSESingletEnergies()<<endl;
@@ -263,7 +264,7 @@ bse.Solve_triplets();;
 
 VectorXfd te_ref=VectorXfd::Zero(1);
 te_ref<<0.0308983;
-bool check_te=te_ref.isApprox(orbitals.BSETripletEnergies(),0.0001);
+bool check_te=te_ref.isApprox(orbitals.BSETripletEnergies(),0.001);
 if(!check_te){
     cout<<"Triplet energy"<<endl;
     cout<<orbitals.BSETripletEnergies()<<endl;

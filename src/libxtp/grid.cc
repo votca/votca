@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -25,7 +25,7 @@
 
 
 namespace votca { namespace xtp {
-
+  using namespace tools;
     
 Grid::Grid(const Grid &obj)
     :_cutoff(obj._cutoff),_gridspacing(obj._gridspacing),_cutoff_inside(obj._cutoff_inside),_shift_cutoff(obj._shift_cutoff),
@@ -216,7 +216,7 @@ void Grid::printgridtoCubefile(std::string filename){
             for (ait=_atomlist->begin(); ait != _atomlist->end(); ++ait) {
               const tools::vec& pos=(*ait)->getPos();
                    
-                    string element = (*ait)->getType();
+                    std::string element = (*ait)->getType();
                     int atnum = _elements.getEleNum (element);
                     int crg=(*ait)->getNuccharge();
 
@@ -319,7 +319,7 @@ void Grid::setupgrid(){
                         
                         if(_createpolarsites){
                           
-                            string name="X";
+                            std::string name="X";
                             ctp::APolarSite *apolarsite= new ctp::APolarSite(0,name);
                             apolarsite->setRank(0);        
                             apolarsite->setQ00(0,0); // <- charge state 0 <> 'neutral'

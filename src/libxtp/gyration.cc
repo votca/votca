@@ -26,7 +26,7 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
 
-void Density2Gyration::Initialize(Property* options) {
+void Density2Gyration::Initialize( tools::Property* options) {
     string key = Identify();
 
     _state    = options->get(key + ".state").as<string> (); 

@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -37,7 +37,6 @@
 
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
    
   class Grid{
     public:
@@ -47,16 +46,16 @@ namespace votca { namespace xtp {
             :_cutoff(3),_gridspacing(0.3),_cutoff_inside(1.5),_shift_cutoff(0.0),_shift_cutoff_inside(0.0),
              _useVdWcutoff(useVdWcutoff),_useVdWcutoff_inside(useVdWcutoff_inside),_cubegrid(false),_padding(3.0),
              _createpolarsites(createpolarsites), _atomlist(NULL), 
-            _lowerbound(vec(0,0,0)), _xsteps(0),_ysteps(0),_zsteps(0) {};
+            _lowerbound(tools::vec(0,0,0)), _xsteps(0),_ysteps(0),_zsteps(0) {};
            
         
         Grid()
             :_cutoff(3),_gridspacing(0.3),_cutoff_inside(1.5),_shift_cutoff(0.0),_shift_cutoff_inside(0.0),
              _useVdWcutoff(false),_useVdWcutoff_inside(false),_cubegrid(false),_padding(3.0),
              _createpolarsites(false), _atomlist(NULL),
-             _lowerbound(vec(0,0,0)),_xsteps(0),_ysteps(0),_zsteps(0) {};
+             _lowerbound(tools::vec(0,0,0)),_xsteps(0),_ysteps(0),_zsteps(0) {};
              
-        Grid(std::vector< vec > points)
+        Grid(std::vector< tools::vec > points)
              :_gridpoints(points){};
            
         
@@ -121,7 +120,7 @@ namespace votca { namespace xtp {
       double _padding;
       bool   _createpolarsites; 
       std::vector< QMAtom* >* _atomlist;
-      vec _lowerbound;
+      tools::vec _lowerbound;
       int _xsteps, _ysteps, _zsteps;
       
  

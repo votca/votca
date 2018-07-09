@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -34,7 +34,7 @@ namespace votca { namespace xtp {
             
             EulerMaclaurinGrid() { FillGrids(); };
             
-            void getRadialGrid(const AOBasis* aobasis, vector<QMAtom* > _atoms , const std::string& type, GridContainers& _grids );
+            void getRadialGrid(const AOBasis* aobasis, std::vector<QMAtom* > _atoms , const std::string& type, GridContainers& _grids );
             std::vector<double> getPruningIntervals( const std::string& element );
             
         private:

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,7 +20,6 @@
 #ifndef _VOTCA_XTP_GWBSE_H
 #define _VOTCA_XTP_GWBSE_H
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/threecenter.h>
 #include <votca/xtp/sigma.h>
 #include <fstream>
 

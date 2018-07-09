@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -43,7 +43,7 @@ namespace votca {
             int _ncols = this->getBlockSize(_lmax_col);
 
             if (_lmax_col > 6 || _lmax_row > 6) {
-                cerr << "Orbitals higher than i are not yet implemented. This should not have happened!" << flush;
+                std::cerr << "Orbitals higher than i are not yet implemented. This should not have happened!" << std::flush;
                 exit(1);
             }
 
@@ -53,9 +53,9 @@ namespace votca {
              */
 
             // get shell positions
-            const vec& _pos_row = _shell_row->getPos();
-            const vec& _pos_col = _shell_col->getPos();
-            const vec _diff = _pos_row - _pos_col;
+            const tools::vec& _pos_row = _shell_row->getPos();
+            const tools::vec& _pos_col = _shell_col->getPos();
+            const tools::vec _diff = _pos_row - _pos_col;
             std::vector<double> _pma(3, 0.0);
             std::vector<double> _pmb(3, 0.0);
 

@@ -57,38 +57,15 @@ else()
 endif()
 add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 
-find_package(MKL)
-if (MKL_FOUND)
-    message("-- MKL found")
-	include_directories(${MKL_INCLUDE_DIRS})
-	set (MKL TRUE )
-else()
-	set(MKL_LIBRARIES)
-endif()
-
-
-
-find_package(EIGEN3 3.3.0 REQUIRED)
-
-message(STATUS "${EIGEN3_VERSION}")
-include_directories(${EIGEN3_INCLUDE_DIRS})
-
-
 
 find_package(LIBXC REQUIRED)
-
-message("-- LIBXC found")
 include_directories(${LIBXC_INCLUDE_DIRS})
 
 find_package(CERES REQUIRED)
-
-message(STATUS "Found ceres solver version ${CERES_VERSION}")
 include_directories(${CERES_INCLUDE_DIRS})
 
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
-
-message(STATUS "Found HDF5 version " + ${HDF5_VERSION})
 include_directories(${HDF5_INCLUDE_DIRS})
 
 if (${HDF5_VERSION} GREATER 1.8)
@@ -177,8 +154,6 @@ endforeach(FUNC)
 add_subdirectory(include/votca/xtp)
 add_subdirectory(scripts)
 add_subdirectory(src)
-#add_subdirectory(src/dipro)
-#add_subdirectory(share/scripts/dipro)
 add_subdirectory(share)
 
 option(BUILD_XTP_MANUAL "Build xtp-manual" OFF)

@@ -21,6 +21,7 @@
 
 
 using namespace votca::xtp;
+using namespace std;
 
 BOOST_AUTO_TEST_SUITE(sigma_test)
 
@@ -146,7 +147,7 @@ mo_energy<<-0.612601,-0.341755,-0.341755,-0.341755, 0.137304,  0.16678,  0.16678
 TCMatrix_gwbse Mmn;
 Mmn.Initialize(aobasis.AOBasisSize(),0,16,0,16);
 Mmn.Fill(aobasis,aobasis,MOs);
-Mmn.MultiplyLeftWithAuxMatrix(cou.Pseudo_InvSqrt_GWBSE(ov,1e-7));
+Mmn.MultiplyRightWithAuxMatrix(cou.Pseudo_InvSqrt_GWBSE(ov,1e-7));
 
   RPA rpa;
   rpa.configure(4,0,16);
@@ -161,7 +162,7 @@ Mmn.MultiplyLeftWithAuxMatrix(cou.Pseudo_InvSqrt_GWBSE(ov,1e-7));
  
   rpa.calculate_epsilon(mo_energy,Mmn);
   ppm.PPM_construct_parameters(rpa);
-  Mmn.MultiplyLeftWithAuxMatrix(ppm.getPpm_phi_T());
+  Mmn.MultiplyRightWithAuxMatrix(ppm.getPpm_phi());
   
    votca::ctp::Logger _log;
   Sigma sigma=Sigma(&_log);

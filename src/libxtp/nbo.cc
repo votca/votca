@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,6 +24,7 @@
 
 namespace votca { namespace xtp {
 
+
 void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,const  Eigen::MatrixXd &_dmat,const AOBasis &basis, BasisSet &bs){
     AOOverlap _overlap;
     // Fill overlap
@@ -33,19 +34,18 @@ void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,const  Eigen::MatrixXd &
    
     Eigen::MatrixXd PNAOs_trans=IntercenterOrthogonalisation(P,S, _atomlist ,bs);
     
-    cout<<P<<endl;
-    cout<<_overlap.Matrix()<<endl;
+   
     
-      throw invalid_argument("Evaluate NBO function is incomplete");    
+      throw std::invalid_argument("Evaluate NBO function is incomplete");    
    
     return;
 }
 
 
-Eigen::MatrixXd NBO::IntercenterOrthogonalisation(Eigen::MatrixXd &P, Eigen::MatrixXd &overlap,vector< QMAtom* >& _atomlist , BasisSet &bs){
+Eigen::MatrixXd NBO::IntercenterOrthogonalisation(Eigen::MatrixXd &P, Eigen::MatrixXd &overlap,std::vector< QMAtom* >& _atomlist , BasisSet &bs){
     
     
-    vector< QMAtom* >::iterator atom;
+    std::vector< QMAtom* >::iterator atom;
 
 // make an array which stores for each atom the the starting point for all s functions, p functions, d functions etc...   
     
@@ -61,7 +61,7 @@ Eigen::MatrixXd NBO::IntercenterOrthogonalisation(Eigen::MatrixXd &P, Eigen::Mat
             
            // for loop because shells can also consist of SP shells or alike
             for(unsigned i = 0; i <(*its)->getType().length(); ++i) {
-            string local_shell = string( (*its)->getType(), i, 1 );
+            std::string local_shell = std::string( (*its)->getType(), i, 1 );
             int l=FindLmax(local_shell);
             std::vector< int >& index =shellsort[l];
            
@@ -73,21 +73,6 @@ Eigen::MatrixXd NBO::IntercenterOrthogonalisation(Eigen::MatrixXd &P, Eigen::Mat
         sorting.push_back(shellsort);
          }
     typedef std::map< int,std::vector< int > >::iterator it_type;
-    
-    
-    for (unsigned i=0;i<sorting.size();i++){
-        cout << "Atom "<<i<<endl;
-        
-        for(it_type iterator = sorting[i].begin(); iterator != sorting[i].end(); iterator++) {
-    cout<< "Shell "<<iterator->first<<":";
-    std::vector< int >& index=iterator->second;
-    for (unsigned j=0;j<index.size();j++){
-        cout <<" "<<index[j];
-    }
-    cout<<endl;
-}
-    }
-    
     
     Eigen::MatrixXd transformation=Eigen::MatrixXd::Zero(P.rows(),P.cols());
     Eigen::VectorXd occupancies=Eigen::VectorXd::Zero(P.rows());
@@ -113,8 +98,7 @@ Eigen::MatrixXd NBO::IntercenterOrthogonalisation(Eigen::MatrixXd &P, Eigen::Mat
                     } 
                 }
             }
-            cout << P_L<< endl;
-            cout << S_L<<endl;
+         
             
             //Setup generalized eigenproblem for each P_L/S_L
             
@@ -133,8 +117,7 @@ Eigen::MatrixXd NBO::IntercenterOrthogonalisation(Eigen::MatrixXd &P, Eigen::Mat
         }
         }
     }
-        cout<<transformation<<endl;
-        cout<<occupancies<<endl;
+        
     
        P=transformation*P*transformation.transpose();
        overlap=transformation*overlap*transformation.transpose();

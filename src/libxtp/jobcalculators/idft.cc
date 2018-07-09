@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -128,7 +128,6 @@ namespace votca {
       } catch(std::runtime_error& error){
         CTP_LOG(ctp::logERROR, *log) << "Failed loading orbitals from " << file_name << flush;
       }
-
     }
 
     ctp::Job::JobResult IDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *opThread) {
@@ -403,9 +402,7 @@ namespace votca {
 
         dftcoupling.setLogger(pLog);
 
-        // 10 seconds for a small system
-        //_calculate_integrals = _overlap.CalculateIntegralsOptimized( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB );
-        // 7 seconds with GSL overloading
+        
         _calculate_integrals = dftcoupling.CalculateIntegrals(&_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB);
 
         if (!_calculate_integrals) {
@@ -460,7 +457,7 @@ namespace votca {
 
         CTP_LOG(ctp::logDEBUG, *pLog) << "Saving orbitals to " << _pair_file << flush;
 
-        _orbitalsAB.WriteToCpt(_pair_file);
+        _orbitalsAB.WriteToCpt(orbFileAB);
 
       } // end of the projection loop
 

@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -43,7 +43,7 @@ namespace votca { namespace xtp {
         int _lmax_col = _shell_col->getLmax();
         
         if ( _lmax_col > 4 ) {
-            cerr << "Momentum transition dipoles only implemented for S,P,D,F,G functions in DFT basis!" << flush;
+            std::cerr << "Momentum transition dipoles only implemented for S,P,D,F,G functions in DFT basis!" << std::flush;
             exit(1);
         }
 
@@ -63,12 +63,10 @@ namespace votca { namespace xtp {
         Eigen::MatrixXd _ol =Eigen::MatrixXd::Zero(_nrows,_ncols);
         
          // get shell positions
-        const vec& _pos_row = _shell_row->getPos();
-        const vec& _pos_col = _shell_col->getPos();
-        const vec  _diff    = _pos_row - _pos_col;
+        const tools::vec& _pos_row = _shell_row->getPos();
+        const tools::vec& _pos_col = _shell_col->getPos();
+        const tools::vec  _diff    = _pos_row - _pos_col;
         double _distsq = (_diff*_diff); 
-
-
 
 
  int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84};

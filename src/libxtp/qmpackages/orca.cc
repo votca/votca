@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -35,9 +35,9 @@
 
 namespace votca {
     namespace xtp {
-       
+      using namespace std;
 
-        void Orca::Initialize(Property *options) {
+        void Orca::Initialize(tools::Property *options) {
 
             //good luck
 
@@ -124,7 +124,7 @@ namespace votca {
          */
         void Orca::WriteBasisset(std::vector<QMAtom*>& qmatoms, std::string& _bs_name, std::string& _el_file_name) {
 
-            Elements _elements;
+            tools::Elements _elements;
             list<std::string> elements;
             BasisSet bs;
             bs.LoadBasisSet(_bs_name);
@@ -475,7 +475,7 @@ namespace votca {
           
             // cleaning up the generated files
             if (_cleanup.size() != 0) {
-                Tokenizer tok_cleanup(_cleanup, ",");
+                tools::Tokenizer tok_cleanup(_cleanup, ",");
                 std::vector <std::string> _cleanup_info;
                 tok_cleanup.ToVector(_cleanup_info);
 

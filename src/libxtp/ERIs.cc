@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -99,7 +99,7 @@ namespace votca {
             Eigen::MatrixXd D=DMAT;
             for(int i=thread;i<_threecenter.getSize();i+= nthreads){
               const Eigen::MatrixXd threecenter = _threecenter.getDatamatrix(i).FullMatrix();
-              EXX_thread[thread]+=threecenter*D*threecenter;
+              EXX_thread[thread].noalias()+=threecenter*D*threecenter;
             }
           }
           _EXXs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
@@ -130,7 +130,7 @@ namespace votca {
             Eigen::MatrixXd occ=occMos;
             for(int i=thread;i<_threecenter.getSize();i+= nthreads){
               const Eigen::MatrixXd TCxMOs_T = occ.transpose()*_threecenter.getDatamatrix(i).FullMatrix();
-              EXX_thread[thread]+=TCxMOs_T.transpose()*TCxMOs_T;
+              EXX_thread[thread].noalias()+=TCxMOs_T.transpose()*TCxMOs_T;
             }
           }
           _EXXs = Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows());
@@ -516,7 +516,7 @@ namespace votca {
         void ERIs::printERIs(){
           for (int i=0; i< _ERIs.cols(); i++){
             for (int j=0; j< _ERIs.rows();j++){
-              cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<endl;
+              std::cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<std::endl;
             }
           }
           return;

@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -42,9 +42,9 @@ namespace votca {
 	  
             const double pi = boost::math::constants::pi<double>();
               // get shell positions
-            const vec& _pos_gw = _shell_gw->getPos();
-            const vec& _pos_alpha = _shell_alpha->getPos();
-            const vec& _pos_gamma = _shell_gamma->getPos();
+            const tools::vec& _pos_gw = _shell_gw->getPos();
+            const tools::vec& _pos_alpha = _shell_alpha->getPos();
+            const tools::vec& _pos_gamma = _shell_gamma->getPos();
 
             // shell info, only lmax tells how far to go
             int _lmax_gw = _shell_gw->getLmax();
@@ -123,7 +123,7 @@ namespace votca {
                 for ( AOShell::GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
                     const double _decay_gamma = itgamma->getDecay();
                     // check third threshold
-                    vec _diff = _pos_alpha - _pos_gamma;
+                    tools::vec _diff = _pos_alpha - _pos_gamma;
                     double test = _decay_alpha * _decay_gamma * _diff*_diff;
                     
                     for ( AOShell::GaussianIterator itgw = _shell_gw->firstGaussian(); itgw != _shell_gw->lastGaussian(); ++itgw){
@@ -172,10 +172,10 @@ namespace votca {
             //double _dist3=(_pos_alpha - _pos_gw) * (_pos_alpha - _pos_gw);
             
                   
-            vec gvv = fak2 * (_decay_alpha * _pos_alpha + _decay_gw * _pos_gw + _decay_gamma * _pos_gamma);
-            vec gma = gvv - _pos_alpha;
-            vec gmb = gvv - _pos_gamma;
-            vec gmc = gvv - _pos_gw; 
+            tools::vec gvv = fak2 * (_decay_alpha * _pos_alpha + _decay_gw * _pos_gw + _decay_gamma * _pos_gamma);
+            tools::vec gma = gvv - _pos_alpha;
+            tools::vec gmb = gvv - _pos_gamma;
+            tools::vec gmc = gvv - _pos_gw; 
             
             double gma0 = gma.getX();
             double gmb0 = gmb.getX();

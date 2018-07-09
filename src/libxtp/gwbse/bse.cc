@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,9 +19,9 @@
 
 
 #include <votca/xtp/bse.h>
-#include <votca/xtp/linalg.h>
+#include <votca/tools/linalg.h>
 using boost::format;
-
+using std::flush;
 
 namespace votca {
   namespace xtp {
@@ -37,7 +37,7 @@ namespace votca {
         << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
       CTP_LOG(ctp::logDEBUG, *_log)
         << ctp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
-      linalg_eigenvalues(H , _bse_triplet_energies, _bse_triplet_coefficients ,_bse_nmax );
+      tools::linalg_eigenvalues(H , _bse_triplet_energies, _bse_triplet_coefficients ,_bse_nmax );
       return;
     }
 
@@ -51,7 +51,7 @@ namespace votca {
         << ctp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
       CTP_LOG(ctp::logDEBUG, *_log)
         << ctp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
-      linalg_eigenvalues(H, _bse_singlet_energies, _bse_singlet_coefficients , _bse_nmax );
+      tools::linalg_eigenvalues(H, _bse_singlet_energies, _bse_singlet_coefficients , _bse_nmax );
       return;
     }
     
@@ -118,7 +118,7 @@ namespace votca {
       
       CTP_LOG(ctp::logDEBUG, *_log)
         << ctp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
-      bool success_diag=linalg_eigenvalues(_ApB, eigenvalues, eigenvectors ,_bse_nmax);
+      bool success_diag=tools::linalg_eigenvalues(_ApB, eigenvalues, eigenvectors ,_bse_nmax);
       if(!success_diag){
         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Could not solve problem" << flush;
       }else{
@@ -211,7 +211,7 @@ template <typename T>
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
             size_t _index_vv = _bse_vtotal * _v1 + _v2;         
-              _storage_v(_i_gw,_index_vv) = Mmn(_i_gw, _v2 + _bse_vmin);
+              _storage_v(_i_gw,_index_vv) = Mmn( _v2 + _bse_vmin,_i_gw);
             }
         }
       }
@@ -223,7 +223,7 @@ template <typename T>
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _c2 = 0; _c2 < _bse_ctotal; _c2++) {
             size_t _index_cc = _bse_ctotal * _c1 + _c2;
-            _storage_c(_i_gw, _index_cc) = Mmn(_i_gw, _c2 + _bse_cmin);
+            _storage_c(_i_gw, _index_cc) = Mmn( _c2 + _bse_cmin,_i_gw);
           }
         }
       }
@@ -297,7 +297,7 @@ template <typename T>
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _v2 = 0; _v2 < _bse_vtotal; _v2++) {
             size_t _index_cv = _bse_vtotal * _c1 + _v2;
-            _storage_cv(_i_gw,_index_cv ) = Mmn(_i_gw, _v2 + _bse_vmin);
+            _storage_cv(_i_gw,_index_cv ) = Mmn( _v2 + _bse_vmin,_i_gw);
           }
         }
       }
@@ -309,7 +309,7 @@ template <typename T>
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _c2 = 0; _c2 < _bse_ctotal; _c2++) {
             size_t _index_vc = _bse_ctotal * _v1 + _c2;
-            _storage_vc(_i_gw, _index_vc) = Mmn(_i_gw, _c2 + _bse_cmin);
+            _storage_vc(_i_gw, _index_vc) = Mmn(_c2 + _bse_cmin,_i_gw);
           }
         }
       }
@@ -385,7 +385,7 @@ template <typename T>
         for (size_t _i_gw = 0; _i_gw < auxsize; _i_gw++) {
           for (size_t _c = 0; _c < _bse_ctotal; _c++) {
             size_t _index_vc = _bse_ctotal * _v + _c;
-            _storage(_i_gw, _index_vc) = Mmn(_i_gw, _c + _bse_cmin);
+            _storage(_i_gw, _index_vc) = Mmn(_c + _bse_cmin,_i_gw);
           }
         }
       }
@@ -533,7 +533,7 @@ template <typename T>
                 contrib(i_exc) =  (_slice_R.transpose()*H * _slice_R).value();
             }
         } else {
-            throw runtime_error("BSE::Analyze_eh_interaction:Spin not known!");
+            throw std::runtime_error("BSE::Analyze_eh_interaction:Spin not known!");
         }
         return contrib;
     }
@@ -616,7 +616,7 @@ template <typename T>
     std::vector<tools::vec > dipols;
       double sqrt2 = sqrt(2.0);
       for (int _i_exc = 0; _i_exc < _bse_nmax; _i_exc++) {
-        tools::vec _tdipole = vec(0, 0, 0);
+        tools::vec _tdipole = tools::vec(0, 0, 0);
 
         for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
           for (unsigned _c = 0; _c < _bse_ctotal; _c++) {

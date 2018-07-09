@@ -41,7 +41,7 @@ public:
 
     std::string Identify() { return "density2gyration"; }
 
-    void   Initialize(Property *options);
+    void   Initialize( tools::Property *options);
     
     Eigen::Quaterniond get_quaternion( const tools::matrix::eigensystem_t& system );
    

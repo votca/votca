@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -180,12 +180,12 @@ namespace votca {
             return;
         }
 
-        // reduces the number of virtual orbitals to factor*number_of_occupied_orbitals
+        // reduces the number of virtual orbitals to (factor-1)*number_of_occupied_orbitals
 
         void Orbitals::Trim(int factor) {
 
             if (hasMOCoefficients()) {
-                _mo_coefficients.conservativeResize(factor * _occupied_levels, _basis_set_size);
+                _mo_coefficients.conservativeResize(_basis_set_size,factor * _occupied_levels);
                 _unoccupied_levels = (factor - 1) * _occupied_levels;
             }
 
@@ -202,10 +202,10 @@ namespace votca {
         void Orbitals::Trim(int degH, int degL) {
 
             if (hasMOCoefficients()) {
-                _mo_coefficients = _mo_coefficients.block(_occupied_levels - degH, 0, degL + degH, _basis_set_size);
+                _mo_coefficients = _mo_coefficients.block(0,_occupied_levels - degH,_basis_set_size, degL + degH).eval();
             }
             if (hasMOEnergies()) {
-                _mo_energies = _mo_energies.segment(_occupied_levels - degH, degL + degH);
+                _mo_energies = _mo_energies.segment(_occupied_levels - degH, degL + degH).eval();
             }
             _occupied_levels = degH;
             _unoccupied_levels = degL;

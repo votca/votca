@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2012 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -82,9 +82,9 @@ namespace votca {
             }
             _shell_gamma=_shell_3;
             
-            const vec& _pos_alpha = _shell_alpha->getPos();
-            const vec& _pos_beta = _shell_beta->getPos();
-            const vec& _pos_gamma = _shell_gamma->getPos();
+            const tools::vec& _pos_alpha = _shell_alpha->getPos();
+            const tools::vec& _pos_beta = _shell_beta->getPos();
+            const tools::vec& _pos_gamma = _shell_gamma->getPos();
             
             int _lmax_alpha = _shell_alpha->getLmax();
             int _lmax_beta  = _shell_beta->getLmax();
@@ -197,7 +197,7 @@ namespace votca {
             
 
             
-            vec amb=_pos_alpha-_pos_beta;
+            tools::vec amb=_pos_alpha-_pos_beta;
             double amb0=amb.getX();
             double amb1=amb.getY();
             double amb2=amb.getZ();
@@ -213,8 +213,8 @@ namespace votca {
                 for ( AOShell::GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta){
                     const double _decay_beta = itbeta->getDecay();
                     double rzeta = 0.5 / (_decay_alpha+_decay_beta);
-                    vec _P = 2.0 * (_decay_alpha*_pos_alpha+_decay_beta*_pos_beta) * rzeta;
-                    vec pma = _P - _pos_alpha;
+                    tools::vec _P = 2.0 * (_decay_alpha*_pos_alpha+_decay_beta*_pos_beta) * rzeta;
+                    tools::vec pma = _P - _pos_alpha;
                     double pma0 = pma.getX();
                     double pma1 = pma.getY();
                     double pma2 = pma.getZ();
@@ -241,11 +241,11 @@ namespace votca {
 
             double gfak=_decay_gamma/_decay;
             double cfak= (_decay_alpha + _decay_beta)/_decay;         
-            vec _W=(_decay_alpha*_pos_alpha+_decay_beta*_pos_beta+_decay_gamma*_pos_gamma)/_decay;
+            tools::vec _W=(_decay_alpha*_pos_alpha+_decay_beta*_pos_beta+_decay_gamma*_pos_gamma)/_decay;
             double _T = (_decay_alpha+_decay_beta)*_decay_gamma/_decay*(_P-_pos_gamma)*(_P-_pos_gamma);
 
-            vec wmp = _W - _P; 
-            vec wmc = _W - _pos_gamma;
+            tools::vec wmp = _W - _P; 
+            tools::vec wmc = _W - _pos_gamma;
 
             double wmp0 = wmp.getX();
             double wmc0 = wmc.getX();
@@ -282,7 +282,7 @@ namespace votca {
                            }
 
 
-            const vector<double> _FmT=AOMatrix<double>::XIntegrate(_mmax+1, _T);
+            const std::vector<double> _FmT=AOMatrix<double>::XIntegrate(_mmax+1, _T);
 
             //ss integrals
 

@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -52,9 +52,9 @@ namespace votca { namespace xtp {
 
 
 
-            const vec& _pos_row = _shell_row->getPos();
-            const vec& _pos_col = _shell_col->getPos();
-            const vec _diff = _pos_row - _pos_col;
+            const tools::vec& _pos_row = _shell_row->getPos();
+            const tools::vec& _pos_col = _shell_col->getPos();
+            const tools::vec _diff = _pos_row - _pos_col;
             // initialize some helper
             double _distsq = _diff*_diff;
 
@@ -106,12 +106,12 @@ namespace votca { namespace xtp {
 
                     AOBasis::AOShellIterator final_iter = _ecp->lastShell();
                     --final_iter;
-                    vec _ecp_eval_pos = vec(0.0);
+                    tools::vec _ecp_eval_pos = tools::vec(0.0);
                     int _lmax_ecp = 0;
                     for (AOBasis::AOShellIterator _ecpit = _ecp->firstShell(); _ecpit != _ecp->lastShell(); ++_ecpit) {
 
                         const AOShell* _shell_ecp = _ecp->getShell(_ecpit);
-                        const vec& _ecp_pos = _shell_ecp->getPos();
+                        const tools::vec& _ecp_pos = _shell_ecp->getPos();
 
                         int this_atom = _shell_ecp->getIndex();
 
@@ -179,7 +179,7 @@ namespace votca { namespace xtp {
             return;
         }
 
-        Eigen::MatrixXd AOECP::calcVNLmatrix(int _lmax_ecp, const vec& posC, const AOGaussianPrimitive& _g_row, const AOGaussianPrimitive& _g_col,const  Eigen::Matrix<int,4,5>& _power_ecp, const Eigen::Matrix<double,4,5>& _gamma_ecp,const Eigen::Matrix<double,4,5>& _pref_ecp) {
+        Eigen::MatrixXd AOECP::calcVNLmatrix(int _lmax_ecp, const tools::vec& posC, const AOGaussianPrimitive& _g_row, const AOGaussianPrimitive& _g_col,const  Eigen::Matrix<int,4,5>& _power_ecp, const Eigen::Matrix<double,4,5>& _gamma_ecp,const Eigen::Matrix<double,4,5>& _pref_ecp) {
 
             /* calculate the contribution of the nonlocal 
              *     ECP of atom at posC with 
@@ -203,8 +203,8 @@ namespace votca { namespace xtp {
 
             double alpha = _g_row.getDecay();
             double beta = _g_col.getDecay();
-            const vec& posA = _g_row.getShell()->getPos();
-            const vec& posB = _g_col.getShell()->getPos();
+            const tools::vec& posA = _g_row.getShell()->getPos();
+            const tools::vec& posB = _g_col.getShell()->getPos();
             int _lmax_row = _g_row.getShell()->getLmax();
             int _lmax_col = _g_col.getShell()->getLmax();
             int _lmin = std::min({_lmax_row, _lmax_col, _lmax_ecp});
@@ -212,8 +212,8 @@ namespace votca { namespace xtp {
             int _nsph_row = (_lmax_row + 1) * (_lmax_row + 1);
             int _nsph_col = (_lmax_col + 1) * (_lmax_col + 1);
 
-            vec AVS = posA - posC;
-            vec BVS = posB - posC;
+            tools::vec AVS = posA - posC;
+            tools::vec BVS = posB - posC;
             double AVS2 = AVS * AVS;
             double BVS2 = BVS * BVS;     
 
@@ -570,7 +570,7 @@ namespace votca { namespace xtp {
 
                         if (_lmin_dft_ecp > 3) {
 
-                             cout << "Sorry, not yet supported: Combination of G functions in DFT basis and ECPs with l = 4." << endl;
+                             std::cerr << "Sorry, not yet supported: Combination of G functions in DFT basis and ECPs with l = 4." << std::endl;
                              exit(1);
 
                         }
@@ -818,7 +818,7 @@ namespace votca { namespace xtp {
 
 
                 default:
-                    cout << "Wrong ECP summation mode";
+                    std::cerr << "Wrong ECP summation mode";
                     exit(1);
             } // switch
 
@@ -902,7 +902,7 @@ namespace votca { namespace xtp {
             return Norms;
         }
 
-        void AOECP::getBLMCOF(int _lmax_ecp, int _lmax_dft, const vec& pos, tensor3d& BLC, tensor3d& C) {
+        void AOECP::getBLMCOF(int _lmax_ecp, int _lmax_dft, const tools::vec& pos, tensor3d& BLC, tensor3d& C) {
 
            
             tensor3d::extent_gen extents;

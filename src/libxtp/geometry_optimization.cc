@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,24 +24,24 @@
 namespace votca {
     namespace xtp {
 
-        void GeometryOptimization::Initialize(Property *options) {
+        void GeometryOptimization::Initialize(tools::Property *options) {
 
             // checking if there is only one segment
             _nsegments = _segments.size();
-            if (_nsegments > 1) throw runtime_error(string("\n Geometry optimization of more than 1 conjugated segment not supported. Stopping!"));
+            if (_nsegments > 1) throw std::runtime_error(std::string("\n Geometry optimization of more than 1 conjugated segment not supported. Stopping!"));
 
             _opt_state = options->ifExistsReturnElseReturnDefault<int>(".state", 1);
-            _spintype = options->ifExistsReturnElseReturnDefault<string>(".spintype", "singlet");
+            _spintype = options->ifExistsReturnElseReturnDefault<std::string>(".spintype", "singlet");
 
 
             // pre-check optimizer method
-            std::vector<string> choices = {"BFGS-TRM"};
-            _optimizer = options->ifExistsAndinListReturnElseThrowRuntimeError<string>(".optimizer.method", choices);
+            std::vector<std::string> choices = {"BFGS-TRM"};
+            _optimizer = options->ifExistsAndinListReturnElseThrowRuntimeError<std::string>(".optimizer.method", choices);
             _optimizer_options = options->get(".optimizer");
 
             // pre-check forces method
             choices = {"forward", "central"};
-            _force_method = options->ifExistsAndinListReturnElseThrowRuntimeError<string>(".forces.method", choices);
+            _force_method = options->ifExistsAndinListReturnElseThrowRuntimeError<std::string>(".forces.method", choices);
             _force_options = options->get(".forces");
 
             _natoms = _segments[0]->Atoms().size();
@@ -53,7 +53,7 @@ namespace votca {
         void GeometryOptimization::Evaluate() {
 
 
-            CTP_LOG(ctp::logINFO, *_pLog) << "Requested geometry optimization of excited state " << _spintype << " " << _opt_state << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << "Requested geometry optimization of excited state " << _spintype << " " << _opt_state << std::flush;
 
             // get a force object
             Forces _force_engine(_gwbse_engine, _qmpackage, _segments, _orbitals);

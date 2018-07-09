@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,12 +22,13 @@
 
 
 namespace votca { namespace xtp {
+
   
   void ConvergenceAcc::setOverlap(const Eigen::MatrixXd* _S,double etol){
        S=_S;
        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es((*S));
        if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<es.eigenvalues()(0) << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<es.eigenvalues()(0) << std::flush;
             }
       Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
       int removedfunctions=0;
@@ -39,7 +40,7 @@ namespace votca { namespace xtp {
           }
       }
       if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<removedfunctions<<" basisfunction from inverse overlap matrix" << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<removedfunctions<<" basisfunction from inverse overlap matrix" << std::flush;
         }
        Sminusahalf =es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
        Sonehalf=es.operatorSqrt();
@@ -72,9 +73,7 @@ namespace votca { namespace xtp {
       
       Eigen::MatrixXd errormatrix=Sminusahalf.transpose()*(H*dmat*(*S)-(*S)*dmat*H)*Sminusahalf;
       _diiserror=errormatrix.cwiseAbs().maxCoeff();
-      if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIs error " << _diiserror << flush;
-            }
+     
       Eigen::MatrixXd* old=new Eigen::MatrixXd;     
       *old=H;         
        _mathist.push_back(old);     
@@ -101,18 +100,18 @@ namespace votca { namespace xtp {
             coeffs=adiis.CalcCoeff(_dmatHist,_mathist);
             diis_error=!adiis.Info();
             if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << std::flush;
             }
         }
         else{
              coeffs=diis.CalcCoeff();
              diis_error=!diis.Info();
              if(_noisy){
-             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using DIIS" << flush;
+             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using DIIS" << std::flush;
              }
         }
         if(diis_error){
-          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIS failed using mixing instead" << flush;
+          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIS failed using mixing instead" << std::flush;
           H_guess=H;
         }else{
         for (unsigned i=0;i<coeffs.size();i++){  
@@ -135,7 +134,7 @@ namespace votca { namespace xtp {
       _usemixing=true;
       dmatout=mix.MixDmat(dmat,dmatout);
       if(_noisy){
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using Mixing with alpha="<<mix.getAlpha() << flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using Mixing with alpha="<<mix.getAlpha() << std::flush;
         }
     }else{
       _usemixing=false;
@@ -147,6 +146,9 @@ namespace votca { namespace xtp {
         //transform to orthogonal for
         Eigen::MatrixXd H_ortho=Sminusahalf.transpose()*H*Sminusahalf;
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H_ortho);
+        if(es.info()!=Eigen::ComputationInfo::Success){
+          throw std::runtime_error("SolveFockmatrix: Matrix Diagonalisation failed!");
+        }
         MOsinv=es.eigenvectors().transpose()*Sonehalf;
         MOenergies=es.eigenvalues();
         
@@ -159,7 +161,7 @@ namespace votca { namespace xtp {
         return;
       }
       if(MOsinv.rows()<1){
-        throw runtime_error("ConvergenceAcc::Levelshift: Call SolveFockmatrix before Levelshift, MOsinv not initialized");
+        throw std::runtime_error("ConvergenceAcc::Levelshift: Call SolveFockmatrix before Levelshift, MOsinv not initialized");
       }
         Eigen::MatrixXd virt = Eigen::MatrixXd::Zero(H.rows(),H.cols());
         for (unsigned _i = _nocclevels; _i < H.rows(); _i++) {
@@ -167,7 +169,7 @@ namespace votca { namespace xtp {
             }
 
         if(_noisy){
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << _levelshift << " Hartree" << flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << _levelshift << " Hartree" << std::flush;
         }
         Eigen::MatrixXd vir=  MOsinv.transpose()*virt*MOsinv ; 
         H+=vir;

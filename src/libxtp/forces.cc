@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,15 +23,16 @@
 namespace votca {
     namespace xtp {
 
-        void Forces::Initialize(Property *options) {
+      using std::flush;
+        void Forces::Initialize(tools::Property *options) {
 
             // checking if there is only one segment
             _nsegments = _segments.size();
-            if (_nsegments > 1) throw runtime_error(string("\n Force calculation for more than 1 conjugated segment not supported. Stopping!"));
+            if (_nsegments > 1) throw std::runtime_error(std::string("\n Force calculation for more than 1 conjugated segment not supported. Stopping!"));
 
             // pre-check forces method
-            std::vector<string> choices = {"forward", "central"};
-            _force_method = options->ifExistsAndinListReturnElseThrowRuntimeError<string>(".method", choices);
+            std::vector<std::string> choices = {"forward", "central"};
+            _force_method = options->ifExistsAndinListReturnElseThrowRuntimeError<std::string>(".method", choices);
 
             // output level
             _noisy_output = options->ifExistsReturnElseReturnDefault<bool>(".noisy", false); 
@@ -44,7 +45,7 @@ namespace votca {
 
             // check for force removal options
             choices = {"total", "CoM", "none"};
-            string _force_removal = options->ifExistsAndinListReturnElseThrowRuntimeError<string>(".removal", choices);
+            std::string _force_removal = options->ifExistsAndinListReturnElseThrowRuntimeError<std::string>(".removal", choices);
             if (_force_removal == "total") _remove_total_force = true;
             if (_force_removal == "CoM") _remove_CoM_force = true;
 
@@ -118,12 +119,12 @@ namespace votca {
         Eigen::Vector3d Forces::NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait, std::vector<ctp::Segment*> _molecule) {
             Eigen::Vector3d force=Eigen::Vector3d::Zero();
             // get this atoms's current coordinates
-            vec _current_pos = (*ait)->getQMPos(); // in nm
+            tools::vec _current_pos = (*ait)->getQMPos(); // in nm
 
             for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
 
                 // get displacement std::vector
-                vec _displaced(0, 0, 0);
+                tools::vec _displaced(0, 0, 0);
                 if (_i_cart == 0) {
                     _displaced.setX(_displacement * tools::conv::ang2nm); // x, _displacement in Angstrom, now in nm
                 }
@@ -135,7 +136,7 @@ namespace votca {
                 }
 
                 // update the coordinate
-                vec _pos_displaced = _current_pos + _displaced;
+                tools::vec _pos_displaced = _current_pos + _displaced;
 
                 (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
 
@@ -156,7 +157,7 @@ namespace votca {
         Eigen::Vector3d Forces::NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait, std::vector<ctp::Segment*> _molecule) {
 
 
-            vec _current_pos = (*ait)->getQMPos(); // in nm
+            tools::vec _current_pos = (*ait)->getQMPos(); // in nm
             Eigen::Vector3d force=Eigen::Vector3d::Zero();
             // go through all cartesian components
             for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
@@ -166,7 +167,7 @@ namespace votca {
                 }
                 
                 // get displacement vector in positive direction
-                vec _displaced(0, 0, 0);
+                tools::vec _displaced(0, 0, 0);
                 if (_i_cart == 0) {
                     _displaced.setX(_displacement * tools::conv::ang2nm); // x, _displacement in Bohr
                 }
@@ -178,7 +179,7 @@ namespace votca {
                 }
 
                 // update the coordinate
-                vec _pos_displaced = _current_pos + _displaced;
+                tools::vec _pos_displaced = _current_pos + _displaced;
                 (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
 
                 // run DFT and GW-BSE for this geometry

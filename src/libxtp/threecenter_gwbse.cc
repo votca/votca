@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -39,7 +39,7 @@ namespace votca {
 
       // each element is a gwabasis-by-n matrix, initialize to zero
       for (int i = 0; i < this->get_mtot(); i++) {
-        _matrix[i] = MatrixXfd::Zero(basissize, _ntotal);
+        _matrix[i] = MatrixXfd::Zero(_ntotal,basissize);
       }
       
     }
@@ -60,29 +60,27 @@ namespace votca {
      * Modify 3-center matrix elements consistent with use of symmetrized 
      * Coulomb interaction. 
      */
-    void TCMatrix_gwbse::MultiplyLeftWithAuxMatrix(const Eigen::MatrixXd& matrix) {
+    void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 
 #pragma omp parallel for
       for (int _i_occ = 0; _i_occ < _mtotal; _i_occ++) {
     #if (GWBSE_DOUBLE)
-       _matrix[ _i_occ ] = matrix * _matrix[ _i_occ ];
+          Eigen::MatrixXd temp= _matrix[ _i_occ ]*matrix;
+       _matrix[ _i_occ ] = temp;
 #else  
        const Eigen::MatrixXd m = _matrix[ _i_occ ].cast<double>();
-       _matrix[ _i_occ ]=(matrix*m).cast<float>();
+       _matrix[ _i_occ ].noalias()=(m*matrix).cast<float>();
 #endif
        
       }
       return;
     } 
 
-    void TCMatrix_gwbse::Print(string _ident) {
+    void TCMatrix_gwbse::Print(std::string _ident) {
 
       for (int k = 0; k < _mtotal; k++) {
-        for (int i = 0; i < this->getAuxDimension(); i++) {
-          for (int j = 0; j< _ntotal; j++) {
-            cout << _ident << "[" << i + 1 << ":" << k + 1 << ":" << j + 1 << "] " << this->_matrix[k](i, j) << endl;
-          }
-        }
+        std::cout <<k<<std::endl;
+         std::cout <<this->_matrix[k]<< std::endl;  
       }
       return;
     }
@@ -101,7 +99,7 @@ namespace votca {
         const AOShell* shell = _gwbasis.getShell(_is);
         std::vector< Eigen::MatrixXd > block;
         for (int i = 0; i < _mtotal; i++) {
-          block.push_back(Eigen::MatrixXd::Zero(shell->getNumFunc(), _ntotal));
+          block.push_back(Eigen::MatrixXd::Zero(_ntotal,shell->getNumFunc()));
         }
         // Fill block for this shell (3-center overlap with _dft_basis + multiplication with _dft_orbitals )
         FillBlock(block, shell, _dftbasis, _dft_orbitals);
@@ -111,7 +109,7 @@ namespace votca {
           for (int i_gw = 0; i_gw < shell->getNumFunc(); i_gw++) {
             for (int n_level = 0; n_level < this->get_ntot(); n_level++) {
 
-              _matrix[m_level](shell->getStartIndex() + i_gw, n_level) = block[m_level](i_gw, n_level);
+              _matrix[m_level]( n_level,shell->getStartIndex() + i_gw) = block[m_level](n_level,i_gw);
 
             } // n-th DFT orbital
           } // GW basis function in shell
@@ -177,10 +175,10 @@ namespace votca {
             matrix(j, i) = matrix(i, j);
           }
         }
-        Eigen::MatrixXd threec_inMo = dftm.transpose() * matrix*dftn;
-        for (int i = 0; i < threec_inMo.rows(); ++i) {
-          for (int j = 0; j < threec_inMo.cols(); ++j) {
-            _block[i](k, j) = threec_inMo(i, j);
+        Eigen::MatrixXd threec_inMo = dftn.transpose() * matrix*dftm;
+        for (int i = 0; i < threec_inMo.cols(); ++i) {
+          for (int j = 0; j < threec_inMo.rows(); ++j) {
+            _block[i](j, k) = threec_inMo(j, i);
           }
         }
       }
@@ -196,7 +194,7 @@ namespace votca {
         _matrix[i].resize(0, 0);
       }
       for (unsigned i = min; i < _matrix.size(); i++) {
-        _matrix[i].conservativeResize(Eigen::NoChange, max + 1);
+        _matrix[i].conservativeResize( max + 1,Eigen::NoChange);
       }
       return;
     }

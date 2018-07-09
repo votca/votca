@@ -1,6 +1,6 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python
 #
-# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,19 +15,14 @@
 # limitations under the License.
 #
 
+from __future__ import print_function
 VERSION='@PROJECT_VERSION@ #CSG_GIT_ID#'
 import sys
 import os
-import getpass
-import socket
-import commands as cmds
+import time
 import numpy as np
 import lxml.etree as lxml
-import time
 import argparse
-import re
-import math
-import sqlite3
 
 PROGTITLE = 'THE VOTCA::XTP converter basissetfiles'
 PROGDESCR = 'Creates votca xml basissetfiles from NWCHEM basissetfiles'
@@ -44,37 +39,37 @@ xtp_update, version {version}
 '''.format(version=VERSION, progtitle=PROGTITLE)
 
 def okquit(what=''):
-	if what != '': print what
-	sys.exit(0)
+    if what != '': print (what)
+    sys.exit(0)
 def xxquit(what=''):
-	if what != '':
-		cprint.Error("ERROR: {what}".format(what=what))
-	sys.exit(1)
+    if what != '':
+        print("ERROR: {what}".format(what=what))
+    sys.exit(1)
 def sysexe(cmd, silent=False, devfile='/dev/null'):
-	if VERBOSE: print "{0}@{1}$ {2}".format(USER, HOST, cmd)
-	if silent: cmd += ' >> {0} 2>> {0}'.format(devfile)
-	cdx = os.system(cmd)
-	#SYSCMDS.write('{cmd} = {cdx}\n'.format(cmd=cmd, cdx=cdx))
-	return cdx
+    if VERBOSE: print("{0}@{1}$ {2}".format(USER, HOST, cmd))
+    if silent: cmd += ' >> {0} 2>> {0}'.format(devfile)
+    cdx = os.system(cmd)
+    #SYSCMDS.write('{cmd} = {cdx}\n'.format(cmd=cmd, cdx=cdx))
+    return cdx
 
 # =============================================================================
 # PROGRAM OPTIONS
 # =============================================================================
 
 class XtpHelpFormatter(argparse.HelpFormatter):
-	def _format_usage(self, usage, action, group, prefix):
-		return VOTCAHEADER
-		
+    def _format_usage(self, usage, action, group, prefix):
+        return VOTCAHEADER
+        
 progargs = argparse.ArgumentParser(prog='xtp_basisset',
     formatter_class=lambda prog: XtpHelpFormatter(prog,max_help_position=70),
-	description=PROGDESCR)
-	
+    description=PROGDESCR)
+    
 progargs.add_argument('-f', '--input',
     dest='input',   
     action='store',
     required=False,
     type=str,
-	default='',
+    default='',
     help='NWchem file containing the basisset or Turbomole folder with element names.')
 
 progargs.add_argument('-o', '--outputvotca',
@@ -82,7 +77,7 @@ progargs.add_argument('-o', '--outputvotca',
     action='store',
     required=False,
     type=str,
-	default='',
+    default='',
     help='Path of votca outputfile')
 
 
@@ -91,20 +86,20 @@ progargs.add_argument('-t', '--turbomolebasisset',
     action='store',
     required=False,
     type=str,
-	default='',
+    default='',
     help='For turbomole specify the basisset that is supposed to be extracted from Files, for auxbasis sets the basisset the aux basisset is supposed to be used for.')
     
 OPTIONS = progargs.parse_args()
 if OPTIONS.input == '':
-	progargs.print_help()
-	okquit("\nQuit here, because: Inputfile not set (option -f/--input)")
+    progargs.print_help()
+    okquit("\nQuit here, because: Inputfile not set (option -f/--input)")
 if OPTIONS.outputfile == '':
-	progargs.print_help()
-	okquit("\nQuit here, because: outputfile not set (option -o/--outputvotca)")
+    progargs.print_help()
+    okquit("\nQuit here, because: outputfile not set (option -o/--outputvotca)")
 
 def getelemententry(root,element):
     for e in root:
-	#print e.get("name")
+    #print e.get("name")
         if e.get("name")==element:
             return e
     return lxml.SubElement(root,"element",name=element)
@@ -117,7 +112,7 @@ def convertofloat(floatstring):
         a=float(floatstring)
         return a
     except ValueError:
-        print "Cannot figure out what '{}' means".format(floatstring)
+        print("Cannot figure out what '{}' means".format(floatstring))
         sys.exit()
         return False 
 
@@ -162,7 +157,7 @@ def turbomolegetcontributions(element,lines,basissetstringlist,basis,shells):
                     contraction=lxml.SubElement(constant,"contractions",type=shelltype,factor="{:1.6e}".format(convertofloat(entries[1])))
                     #contraction.text=" "
             else:
-                print "Cannot figure out what line '{}' means".format(line)
+                print("Cannot figure out what line '{}' means".format(line))
                 sys.exit()
 
     if len(newbasissets)>0:
@@ -185,7 +180,7 @@ shells=["S","P","D","F","G","H","I"]
 
 
 if os.path.isfile(OPTIONS.input):
-    print "File {} seems to be a NWCHEM file".format(OPTIONS.input)
+    print("File {} seems to be a NWCHEM file".format(OPTIONS.input))
    
 
 
@@ -217,27 +212,27 @@ if os.path.isfile(OPTIONS.input):
 
 elif os.path.isdir(OPTIONS.input):
 
-    print "Directory {} seems to be a Turbomole folder".format(OPTIONS.input)
+    print("Directory {} seems to be a Turbomole folder".format(OPTIONS.input))
     if OPTIONS.turbobasis == '':
-	progargs.print_help()
-	okquit("\nQuit here, because: Turbomole basisset not set (option -t/--turbomolebasisset)")
+        progargs.print_help()
+        okquit("\nQuit here, because: Turbomole basisset not set (option -t/--turbomolebasisset)")
     for ele in elements:
         if os.path.isfile(ele.lower()):
-            print "Opening {}".format(ele.lower())
+            print ("Opening {}".format(ele.lower()))
             with open(ele.lower(),'r') as f:
                 lines=f.readlines()
                 element=getelemententry(basis,ele)
                 turbomolegetcontributions(ele.lower(),lines,OPTIONS.turbobasis,element,shells)
         else:
-           print "File {} belonging to element not found. Skipping element!".format(ele.lower(),element)                  
+           print("File {} belonging to element not found. Skipping element!".format(ele.lower(),element))
                     
     
 
 
             
-print "Imported  new basisset {} from {} written to file {} with xtp_basisset".format(basissetname,OPTIONS.input,OPTIONS.outputfile)
+print("Imported  new basisset {} from {} written to file {} with xtp_basisset".format(basissetname,OPTIONS.input,OPTIONS.outputfile))
         
-with open(OPTIONS.outputfile, 'w') as f:
+with open(OPTIONS.outputfile, 'wb') as f:
             f.write(lxml.tostring(basis, pretty_print=True))
 
 sys.exit(0)

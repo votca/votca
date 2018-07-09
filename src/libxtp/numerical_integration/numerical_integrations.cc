@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -40,11 +40,11 @@ namespace votca {
     namespace xtp {
      
 
-    double NumericalIntegration::getExactExchange(const string _functional) {      
+    double NumericalIntegration::getExactExchange(const std::string _functional) {      
 
       double exactexchange = 0.0;
       Vxc_Functionals map;
-      std::vector<string> strs;
+      std::vector<std::string> strs;
 
       boost::split(strs, _functional, boost::is_any_of(" "));
       if (strs.size() > 2) {
@@ -77,10 +77,10 @@ namespace votca {
     
    
         
-  void NumericalIntegration::setXCfunctional(const string _functional) {
+  void NumericalIntegration::setXCfunctional(const std::string _functional) {
 
       Vxc_Functionals map;
-      std::vector<string> strs;
+      std::vector<std::string> strs;
       boost::split(strs, _functional, boost::is_any_of(" "));
       xfunc_id = 0;
 
@@ -94,7 +94,7 @@ namespace votca {
         xfunc_id = map.getID(strs[1]);
         _use_separate = true;
       } else {
-        cout << "LIBXC " << strs.size() << endl;
+        std::cout << "LIBXC " << strs.size() << std::endl;
         throw std::runtime_error("LIBXC. Please specify one combined or an exchange and a correlation functionals");
       }
       
@@ -163,7 +163,7 @@ namespace votca {
     }
         
         
-    double NumericalIntegration::IntegratePotential(const vec& rvector) {
+    double NumericalIntegration::IntegratePotential(const tools::vec& rvector) {
 
       double result = 0.0;
       assert(density_set && "Density not calculated");
@@ -186,8 +186,8 @@ namespace votca {
       const double boxsize = 1;//1 bohr
 
       std::vector< std::vector< std::vector< std::vector< GridContainers::integration_grid* > > > > boxes;
-      tools::vec min = vec(std::numeric_limits<double>::max());
-      tools::vec max = vec(std::numeric_limits<double>::min());
+      tools::vec min = tools::vec(std::numeric_limits<double>::max());
+      tools::vec max = tools::vec(std::numeric_limits<double>::min());
 
       for (unsigned i = 0; i < grid.size(); i++) {
         for (unsigned j = 0; j < grid[i].size(); j++) {
@@ -210,9 +210,9 @@ namespace votca {
         }
       }
 
-      vec molextension = (max - min);
-      vec numberofboxes = molextension / boxsize;
-      vec roundednumofbox = vec(std::ceil(numberofboxes.getX()), std::ceil(numberofboxes.getY()), std::ceil(numberofboxes.getZ()));
+      tools::vec molextension = (max - min);
+      tools::vec numberofboxes = molextension / boxsize;
+      tools::vec roundednumofbox = tools::vec(std::ceil(numberofboxes.getX()), std::ceil(numberofboxes.getY()), std::ceil(numberofboxes.getZ()));
 
       //creating temparray
       for (unsigned i = 0; i<unsigned(roundednumofbox.getX()); i++) {
@@ -605,7 +605,7 @@ std::vector<const tools::vec *> NumericalIntegration::getGridpoints() {
   }
         
         
-void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const AOBasis* basis) {
+void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> _atoms,const AOBasis* basis) {
       _basis = basis;
       std::vector< std::vector< GridContainers::integration_grid > > grid;
       const double pi = boost::math::constants::pi<double>();
@@ -614,7 +614,7 @@ void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const A
       // get radial grid per element
       EulerMaclaurinGrid _radialgrid;
       _radialgrid.getRadialGrid(basis, _atoms, type, initialgrids); // this checks out 1:1 with NWChem results! AWESOME
-      map<string, GridContainers::radial_grid>::iterator it;
+      std::map<std::string, GridContainers::radial_grid>::iterator it;
       LebedevGrid _sphericalgrid;
       for (it = initialgrids._radial_grids.begin(); it != initialgrids._radial_grids.end(); ++it) {
         _sphericalgrid.getSphericalGrid(_atoms, type, initialgrids);
@@ -622,17 +622,17 @@ void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const A
       // for the partitioning, we need all inter-center distances later, stored in one-directional list
       int ij = 0;
       Rij.push_back(0.0); // 1st center "self-distance"
-      vector< QMAtom* > ::iterator ait;
-      vector< QMAtom* > ::iterator bit;
+      std::vector< QMAtom* > ::iterator ait;
+      std::vector< QMAtom* > ::iterator bit;
       int i = 1;
       for (ait = _atoms.begin() + 1; ait != _atoms.end(); ++ait) {
         // get center coordinates in Bohr
-        vec pos_a = (*ait)->getPos();
+        tools::vec pos_a = (*ait)->getPos();
         int j = 0;
         for (bit = _atoms.begin(); bit != ait; ++bit) {
           ij++;
           // get center coordinates in Bohr
-          vec pos_b = (*bit)->getPos();
+          tools::vec pos_b = (*bit)->getPos();
           Rij.push_back(1.0 / abs(pos_a - pos_b));
           j++;
         } // atoms
@@ -645,8 +645,8 @@ void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const A
       for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
         // get center coordinates in Bohr
         std::vector< GridContainers::integration_grid > _atomgrid;
-        const vec & atomA_pos = (*ait)->getPos();
-        const string & name = (*ait)->getType();
+        const tools::vec & atomA_pos = (*ait)->getPos();
+        const std::string & name = (*ait)->getType();
         // get radial grid information for this atom type
         GridContainers::radial_grid _radial_grid = initialgrids._radial_grids.at(name);
         // get spherical grid information for this atom type
@@ -706,7 +706,7 @@ void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const A
             double p = _phi[_i_sph] * pi / 180.0; // back to rad
             double t = _theta[_i_sph] * pi / 180.0; // back to rad
             double ws = _weight[_i_sph];
-            const vec s = vec(sin(p) * cos(t), sin(p) * sin(t), cos(p));
+            const tools::vec s = tools::vec(sin(p) * cos(t), sin(p) * sin(t), cos(p));
             GridContainers::integration_grid _gridpoint;
             _gridpoint.grid_pos = atomA_pos + r*s;
             _gridpoint.grid_weight = _radial_grid.weight[_i_rad] * ws;
@@ -720,7 +720,7 @@ void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const A
         // for each center
         for (bit = _atoms.begin(); bit < _atoms.end(); ++bit) {
           // get center coordinates
-          const vec & atom_pos = (*bit)->getPos();
+          const tools::vec & atom_pos = (*bit)->getPos();
           std::vector<double> temp;
           // for each gridpoint
           for (std::vector<GridContainers::integration_grid >::iterator git = _atomgrid.begin(); git != _atomgrid.end(); ++git) {
@@ -731,13 +731,13 @@ void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const A
         
         // find nearest-neighbor of this atom
         double distNN = std::numeric_limits<double>::max();
-        vector< QMAtom* > ::iterator NNit;
+        std::vector< QMAtom* > ::iterator NNit;
               // now check all other centers
         int i_b = 0;
         for (bit = _atoms.begin(); bit != _atoms.end(); ++bit) {
           if (bit != ait) {
             // get center coordinates
-            const vec & atomB_pos = (*bit)->getPos();
+            const tools::vec & atomB_pos = (*bit)->getPos();
             double distSQ = (atomA_pos - atomB_pos)*(atomA_pos - atomB_pos);
             // update NN distance and iterator
             if (distSQ < distNN) {
@@ -760,7 +760,7 @@ void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const A
             // update the weight of this grid point
             _atomgrid[i_grid].grid_weight *= _p[i_atom] / wsum;
           } else {
-            cerr << "\nSum of partition weights of grid point " << i_grid << " of atom " << i_atom << " is zero! ";
+            std::cerr << "\nSum of partition weights of grid point " << i_grid << " of atom " << i_atom << " is zero! ";
             throw std::runtime_error("\nThis should never happen!");
           }
         } // partition weight for each gridpoint
@@ -820,16 +820,10 @@ void NumericalIntegration::GridSetup(string type, vector<QMAtom*> _atoms,const A
 
     double NumericalIntegration::erf1c(double x){ 
         const static double alpha_erf1=1.0/0.30;
-        return 0.5*erfcc((x/(1.0-x*x))*alpha_erf1);              
+        return 0.5*std::erfc(std::abs(x/(1.0-x*x))*alpha_erf1);              
     }
               
-    double NumericalIntegration::erfcc(double x){
-        double tau = 1.0/(1.0+0.5*std::abs(x));
-        return tau*exp(-x*x-1.26551223 + 1.00002368*tau + 0.37409196*tau*tau 
-        + 0.09678418*std::pow(tau,3) - 0.18628806*std::pow(tau,4) + 0.27886807*std::pow(tau,5) 
-        -1.13520398*std::pow(tau,6) + 1.48851587*std::pow(tau,7)  -0.82215223*std::pow(tau,8) 
-        + 0.17087277*std::pow(tau,9));   
-    }
+   
                                                                                                 
     }
 }
