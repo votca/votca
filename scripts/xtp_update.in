@@ -1,6 +1,6 @@
-#! /usr/bin/env python3
+#! /usr/bin/env python
 #
-# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,18 +15,13 @@
 # limitations under the License.
 #
 
+from __future__ import print_function
 VERSION='@PROJECT_VERSION@ #CSG_GIT_ID#'
 import sys
 import os
-import getpass
-import socket
-import commands as cmds
 import numpy as np
-import xml.dom.minidom as xmld
 import time
 import argparse
-import re
-import math
 import sqlite3
 
 PROGTITLE = 'THE VOTCA::XTP STATE-FILE UPDATER'
@@ -43,19 +38,6 @@ xtp_update, version {version}
 
 '''.format(version=VERSION, progtitle=PROGTITLE)
 
-def okquit(what=''):
-	if what != '': print what
-	sys.exit(0)
-def xxquit(what=''):
-	if what != '':
-		cprint.Error("ERROR: {what}".format(what=what))
-	sys.exit(1)
-def sysexe(cmd, silent=False, devfile='/dev/null'):
-	if VERBOSE: print "{0}@{1}$ {2}".format(USER, HOST, cmd)
-	if silent: cmd += ' >> {0} 2>> {0}'.format(devfile)
-	cdx = os.system(cmd)
-	#SYSCMDS.write('{cmd} = {cdx}\n'.format(cmd=cmd, cdx=cdx))
-	return cdx
 
 # =============================================================================
 # PROGRAM OPTIONS
@@ -72,15 +54,11 @@ progargs = argparse.ArgumentParser(prog='xtp_testsuite',
 progargs.add_argument('-f', '--file',
     dest='sqlfile',   
     action='store',
-    required=False,
-    type=str,
-	default='',
+    required=True,
+    type=argparse.FileType('w'),
     help='State file to update.')
     
 OPTIONS = progargs.parse_args()
-if OPTIONS.sqlfile == '':
-	progargs.print_help()
-	okquit("\nQuit here, because: State file not set (option -f/--file)")
 
 # =============================================================================
 # SQLITE3 EXECUTION
