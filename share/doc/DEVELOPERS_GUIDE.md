@@ -59,12 +59,14 @@
  * Functions should not have more than one use. So use boolean arguments sparingly.
  * Do not write code, which you may use in the future. Only write code you will use now. Write code, you need later, later. This avoids cluttering the codebase with unused "at some point we will need this functions".
  * When creating header gruards use the following form, where "VOTCA-REPO-NAME" is replaced by whichever repo the header is in tools/csg/ctp/xtp, and where "CLASS-NAME" is replaced by the name of the class described in the header file:
-    #ifndef _VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
-    #define _VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
-    :
-    Code
-    :
-    #endif // _VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
+```
+#ifndef _VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
+#define _VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
+:
+Code
+:
+#endif // _VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
+```
  * Never use the "using namespace" in a header file.
  * Avoid using includes in header files. If possible forward declare a class instead. 
 
