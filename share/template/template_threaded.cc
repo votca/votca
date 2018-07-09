@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,10 +174,6 @@ void CsgTestApp::MergeWorker(Worker *worker) {
 }
 
 void CsgTestApp::EndEvaluate() {
-    _rdf.data().y() = 
-            element_div(_rdf.data().y(),
-            element_prod(_rdf.data().x(), _rdf.data().x())
-            );
-
+    _rdf.data().y() = _rdf.data().y().cwiseQuotient(_rdf.data().x().cwiseAbs2());
     _rdf.data().Save("rdf.dat");
 }

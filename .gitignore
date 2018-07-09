@@ -49,11 +49,16 @@ Makefile-variables.mk
 Package-Debug.bash
 Package-Release.bash
 Package-profile_release.bash
-
+netbeans/libcsg/nbproject/private/
 CMakeFiles
 cmake_install.cmake
 cmake_uninstall.cmake
 CMakeCache.txt
 install_manifest.txt
+netbeans/libcsg/nbproject/Makefile-Debug.mk
+netbeans/libcsg/nbproject/Makefile-Release.mk
+netbeans/libcsg/nbproject/Makefile-impl.mk
+netbeans/libcsg/nbproject/Makefile-profile_release.mk
+
 
 build*

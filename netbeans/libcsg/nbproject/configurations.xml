@@ -1,12 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="69">
-  <logicalFolder name="root" displayName="root" projectFiles="true">
+<configurationDescriptor version="97">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f1" displayName="executables" projectFiles="true">
+      <itemPath>../../src/tools/csg_density.cc</itemPath>
+      <itemPath>../../src/tools/csg_dlptopol.cc</itemPath>
+      <itemPath>../../src/tools/csg_dump.cc</itemPath>
+      <itemPath>../../src/tools/csg_fmatch.cc</itemPath>
+      <itemPath>../../src/tools/csg_fmatch.h</itemPath>
+      <itemPath>../../src/tools/csg_gmxtopol.cc</itemPath>
+      <itemPath>../../src/tools/csg_imcrepack.cc</itemPath>
+      <itemPath>../../src/tools/csg_map.cc</itemPath>
+      <itemPath>../../src/tools/csg_property.cc</itemPath>
+      <itemPath>../../src/tools/csg_resample.cc</itemPath>
+      <itemPath>../../src/tools/csg_reupdate.cc</itemPath>
+      <itemPath>../../src/tools/csg_reupdate.h</itemPath>
+      <itemPath>../../src/tools/csg_stat.cc</itemPath>
+      <itemPath>../../src/tools/csg_stat_imc.cc</itemPath>
+      <itemPath>../../src/tools/csg_stat_imc.h</itemPath>
+    </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>../../include/votca/csg/bead.h</itemPath>
       <itemPath>../../include/votca/csg/beadlist.h</itemPath>
       <itemPath>../../include/votca/csg/beadpair.h</itemPath>
+      <itemPath>../../include/votca/csg/beadtriple.h</itemPath>
       <itemPath>../../include/votca/csg/beadtype.h</itemPath>
       <itemPath>../../include/votca/csg/boundarycondition.h</itemPath>
       <itemPath>../../include/votca/csg/cgengine.h</itemPath>
@@ -33,11 +51,15 @@
       <itemPath>../../include/votca/csg/trajectoryreader.h</itemPath>
       <itemPath>../../include/votca/csg/trajectorywriter.h</itemPath>
       <itemPath>../../include/votca/csg/triclinicbox.h</itemPath>
-      <itemPath>../../include/votca/csg/version.h</itemPath>
+      <itemPath>../../include/votca/csg/triplelist.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="f3" displayName="share" projectFiles="true">
+      <itemPath>../../share/template/template_serial.cc</itemPath>
+      <itemPath>../../share/template/template_threaded.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
@@ -45,37 +67,48 @@
       <logicalFolder name="libcsg" displayName="libcsg" projectFiles="true">
         <logicalFolder name="modules" displayName="modules" projectFiles="true">
           <logicalFolder name="io" displayName="io" projectFiles="true">
-            <itemPath>../../src/libcsg/modules/io/esptopologyreader.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/esptopologyreader.h</itemPath>
-            <itemPath>../../src/libcsg/modules/io/esptrajectoryreader.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/esptrajectoryreader.h</itemPath>
-            <itemPath>../../src/libcsg/modules/io/gmx_print_version.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/gmx_version_check.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/gmx_version_check.h</itemPath>
-            <itemPath>../../src/libcsg/modules/io/gmx_version_nb.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/dlpolytopologyreader.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/dlpolytopologyreader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/dlpolytrajectoryreader.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/dlpolytrajectoryreader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/dlpolytrajectorywriter.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/dlpolytrajectorywriter.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtopologyreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtrajectoryreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtrajectoryreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtrajectorywriter.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/gmxtrajectorywriter.h</itemPath>
-            <itemPath>../../src/libcsg/modules/io/grotopologyreader.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/grotopologyreader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/groreader.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/groreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/growriter.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/growriter.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/h5mdtrajectoryreader.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/h5mdtrajectoryreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/lammpsreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/lammpsreader.h</itemPath>
-            <itemPath>../../src/libcsg/modules/io/pdbtopologyreader.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/pdbtopologyreader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/pdbreader.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/pdbreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbwriter.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbwriter.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/xyzreader.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/xyzreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/xyzwriter.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/xyzwriter.h</itemPath>
           </logicalFolder>
         </logicalFolder>
+      </logicalFolder>
+      <logicalFolder name="f1" displayName="Potentialfunctions" projectFiles="true">
+        <itemPath>../../src/libcsg/potentialfunctions/potentialfunction.cc</itemPath>
+        <itemPath>../../include/votca/csg/potentialfunctions/potentialfunction.h</itemPath>
+        <itemPath>../../src/libcsg/potentialfunctions/potentialfunctioncbspl.cc</itemPath>
+        <itemPath>../../include/votca/csg/potentialfunctions/potentialfunctioncbspl.h</itemPath>
+        <itemPath>../../src/libcsg/potentialfunctions/potentialfunctionlj126.cc</itemPath>
+        <itemPath>../../include/votca/csg/potentialfunctions/potentialfunctionlj126.h</itemPath>
+        <itemPath>../../src/libcsg/potentialfunctions/potentialfunctionljg.cc</itemPath>
+        <itemPath>../../include/votca/csg/potentialfunctions/potentialfunctionljg.h</itemPath>
       </logicalFolder>
       <itemPath>../../src/libcsg/beadlist.cc</itemPath>
       <itemPath>../../src/libcsg/boundarycondition.cc</itemPath>
@@ -97,8 +130,11 @@
       <itemPath>../../src/libcsg/trajectoryreader.cc</itemPath>
       <itemPath>../../src/libcsg/trajectorywriter.cc</itemPath>
       <itemPath>../../src/libcsg/triclinicbox.cc</itemPath>
-      <itemPath>../../include/version.h</itemPath>
+      <itemPath>../../src/libcsg/version.cc</itemPath>
       <itemPath>../../src/libcsg/version_nb.cc</itemPath>
+    </logicalFolder>
+    <logicalFolder name="f2" displayName="Tests" projectFiles="true">
+      <itemPath>../../src/tests/test_pdbreader.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -114,9 +150,9 @@
   <confs>
     <conf name="Debug" type="3">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <ccTool>
@@ -131,12 +167,416 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadlist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadpair.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadtriple.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadtype.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/boundarycondition.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/cgengine.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/cgmoleculedef.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/cgobserver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/csgapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/exclusionlist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/fileformatfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/imcio.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/interaction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/map.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/molecule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/nblist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/nblistgrid.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/nematicorder.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/openbox.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/orthorhombicbox.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/pairlist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/potentialfunctions/potentialfunction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/potentialfunctions/potentialfunctioncbspl.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/potentialfunctions/potentialfunctionlj126.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/potentialfunctions/potentialfunctionljg.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/residue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/topology.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/topologyitem.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/topologymap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/topologyreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/trajectoryreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/trajectorywriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/triclinicbox.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/triplelist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/template/template_serial.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../share/template/template_threaded.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/boundarycondition.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/cgengine.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/cgmoleculedef.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/csgapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/exclusionlist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/imcio.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/map.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytopologyreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytopologyreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytrajectoryreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytrajectoryreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytrajectorywriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytrajectorywriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtopologyreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtopologyreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtrajectoryreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtrajectoryreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtrajectorywriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtrajectorywriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/groreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/groreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/growriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/growriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/h5mdtrajectoryreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/h5mdtrajectoryreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/pdbreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/pdbreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/pdbwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/pdbwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xmltopologyreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xmltopologyreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xyzreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xyzreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xyzwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xyzwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/nblist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/nblistgrid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/nematicorder.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/openbox.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/orthorhombicbox.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/potentialfunctions/potentialfunction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/potentialfunctions/potentialfunctioncbspl.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/potentialfunctions/potentialfunctionlj126.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/potentialfunctions/potentialfunctionljg.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/topology.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/topologymap.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/topologyreader.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/trajectoryreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/trajectorywriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/triclinicbox.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/version.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/version_nb.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_pdbreader.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_density.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_dlptopol.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_dump.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_fmatch.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_fmatch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_gmxtopol.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_imcrepack.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_map.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_property.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_resample.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_reupdate.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_reupdate.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_stat.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_stat_imc.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_stat_imc.h" ex="false" tool="3" flavor2="0">
+      </item>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -158,12 +598,416 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadlist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadpair.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadtriple.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadtype.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/boundarycondition.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/cgengine.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/cgmoleculedef.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/cgobserver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/csgapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/exclusionlist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/fileformatfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/imcio.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/interaction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/map.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/molecule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/nblist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/nblistgrid.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/nematicorder.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/openbox.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/orthorhombicbox.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/pairlist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/potentialfunctions/potentialfunction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/potentialfunctions/potentialfunctioncbspl.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/potentialfunctions/potentialfunctionlj126.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/potentialfunctions/potentialfunctionljg.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/residue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/topology.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/topologyitem.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/topologymap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/topologyreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/trajectoryreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/trajectorywriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/triclinicbox.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/triplelist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/template/template_serial.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../share/template/template_threaded.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/boundarycondition.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/cgengine.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/cgmoleculedef.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/csgapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/exclusionlist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/imcio.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/map.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytopologyreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytopologyreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytrajectoryreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytrajectoryreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytrajectorywriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytrajectorywriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtopologyreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtopologyreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtrajectoryreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtrajectoryreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtrajectorywriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtrajectorywriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/groreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/groreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/growriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/growriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/h5mdtrajectoryreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/h5mdtrajectoryreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/pdbreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/pdbreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/pdbwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/pdbwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xmltopologyreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xmltopologyreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xyzreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xyzreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xyzwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xyzwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/nblist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/nblistgrid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/nematicorder.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/openbox.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/orthorhombicbox.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/potentialfunctions/potentialfunction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/potentialfunctions/potentialfunctioncbspl.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/potentialfunctions/potentialfunctionlj126.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/potentialfunctions/potentialfunctionljg.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/topology.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/topologymap.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/topologyreader.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/trajectoryreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/trajectorywriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/triclinicbox.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/version.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/version_nb.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_pdbreader.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_density.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_dlptopol.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_dump.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_fmatch.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_fmatch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_gmxtopol.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_imcrepack.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_map.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_property.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_resample.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_reupdate.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_reupdate.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_stat.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_stat_imc.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_stat_imc.h" ex="false" tool="3" flavor2="0">
+      </item>
     </conf>
     <conf name="profile_release" type="3">
       <toolsSet>
-        <developmentServer>localhost</developmentServer>
         <compilerSet>GNU|GNU</compilerSet>
-        <platform>2</platform>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
@@ -186,6 +1030,410 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadlist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadpair.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadtriple.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadtype.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/boundarycondition.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/cgengine.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/cgmoleculedef.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/cgobserver.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/csgapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/exclusionlist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/fileformatfactory.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/imcio.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/interaction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/map.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/molecule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/nblist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/nblistgrid.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/nematicorder.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/openbox.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/orthorhombicbox.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/pairlist.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/potentialfunctions/potentialfunction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/potentialfunctions/potentialfunctioncbspl.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/potentialfunctions/potentialfunctionlj126.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/potentialfunctions/potentialfunctionljg.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/residue.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/topology.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/topologyitem.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/topologymap.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/topologyreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/trajectoryreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/trajectorywriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/triclinicbox.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/triplelist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/template/template_serial.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../share/template/template_threaded.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/boundarycondition.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/cgengine.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/cgmoleculedef.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/csgapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/exclusionlist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/imcio.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/map.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytopologyreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytopologyreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytrajectoryreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytrajectoryreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytrajectorywriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/dlpolytrajectorywriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtopologyreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtopologyreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtrajectoryreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtrajectoryreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtrajectorywriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/gmxtrajectorywriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/groreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/groreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/growriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/growriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/h5mdtrajectoryreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/h5mdtrajectoryreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/pdbreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/pdbreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/pdbwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/pdbwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xmltopologyreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xmltopologyreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xyzreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xyzreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xyzwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/xyzwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/nblist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/nblistgrid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/nematicorder.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/openbox.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/orthorhombicbox.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/potentialfunctions/potentialfunction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/potentialfunctions/potentialfunctioncbspl.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/potentialfunctions/potentialfunctionlj126.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/potentialfunctions/potentialfunctionljg.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/topology.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/topologymap.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/topologyreader.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/trajectoryreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/trajectorywriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/triclinicbox.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/version.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/version_nb.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_pdbreader.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_density.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_dlptopol.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_dump.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_fmatch.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_fmatch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_gmxtopol.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_imcrepack.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_map.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_property.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_resample.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_reupdate.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_reupdate.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_stat.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_stat_imc.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_stat_imc.h" ex="false" tool="3" flavor2="0">
+      </item>
     </conf>
   </confs>
 </configurationDescriptor>

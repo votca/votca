@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 #define	POTENTIALFUNCTION_H
 
 #include <votca/tools/table.h>
-#include <boost/numeric/ublas/vector.hpp>
 #include <boost/lexical_cast.hpp>
 #include <cstdlib>
 #include <math.h>
@@ -45,7 +44,7 @@ public:
     virtual void SavePotTab(const string& filename, const double step,
 			    const double rmin, const double rcut);
     // set all parameters
-    void setParam(const ub::vector<double> param){ _lam = param; }
+    void setParam(const Eigen::VectorXd& param){ _lam = param; }
     // set ith parameter
     void setParam(const int i, const double val) { _lam(i) = val; }
     // set ith parameter among those to be optimized
@@ -63,7 +62,7 @@ public:
     // calculate second derivative w.r.t. ith parameter
     virtual double CalculateD2F(const int i, const int j, const double r) const = 0;
     // return parameter
-    ub::vector<double>& Params() { return _lam; }
+    Eigen::VectorXd& Params() { return _lam; }
     // return ith parameter
     double getParam(const int i) const { return _lam(i); }
     // return ith parameter among those to be optimized
@@ -83,7 +82,7 @@ protected:
     PotentialFunction(const string& name_,const int nlam_,const double min_,const double max_);
 
     string _name;
-    ub::vector<double> _lam;
+    Eigen::VectorXd _lam;
     double _cut_off;
     double _min;
 };

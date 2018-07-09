@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,6 @@
 #include <fstream>
 #include <stdio.h>
 #include <sstream>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix_sparse.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
 #include <votca/csg/nblistgrid.h>
 #include <votca/csg/beadlist.h>
@@ -123,13 +120,12 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
         _least_sq_offset = 0;
 
         // resize and clear _B_constr
-        _B_constr.resize(_line_cntr, _col_cntr, false);
-        _B_constr.clear();
+        _B_constr=Eigen::MatrixXd::Zero(_line_cntr, _col_cntr);
 
         // resize matrix _A
-        _A.resize(3 * _nbeads *_nframes, _col_cntr, false);
+        _A=Eigen::MatrixXd::Zero(3 * _nbeads *_nframes, _col_cntr);
         // resize vector _b
-        _b.resize(3 * _nbeads *_nframes, false); 
+        _b=Eigen::VectorXd::Zero(3 * _nbeads *_nframes);
 
         // in case of constrained least squares smoothing conditions
         // are assigned to matrix _B_constr
@@ -141,19 +137,18 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom)
         _least_sq_offset = _line_cntr;
 
         // resize matrix _A
-        _A.resize(_line_cntr + 3 * _nbeads *_nframes, _col_cntr, false);
+        _A=Eigen::MatrixXd::Zero(_line_cntr + 3 * _nbeads *_nframes, _col_cntr);
         // resize vector _b
-        _b.resize(_line_cntr + 3 * _nbeads *_nframes, false); 
+        _b=Eigen::VectorXd::Zero(_line_cntr + 3 * _nbeads *_nframes); 
 
         // in case of simple least squares smoothing conditions
         // are assigned to matrix _A
         FmatchAssignSmoothCondsToMatrix(_A);
         // clear _b (only necessary in simple least squares)
-        _b.clear();
+        _b.setZero();
     }
     // resize and clear _x
-    _x.resize(_col_cntr);
-    _x.clear();
+    _x=Eigen::VectorXd::Zero(_col_cntr);
 
     if(_has_existing_forces) {
         _top_force.CopyTopologyData(top);
@@ -209,16 +204,12 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_, 
     dx_out = options->get("fmatch.out_step").as<double>();
     // number of output grid points
     num_outgrid = 1 + (int)((grid_max-grid_min)/dx_out);
-    result.resize(num_outgrid, false);
-    result.clear();
-    error.resize(num_outgrid, false);
-    error.clear();
-    resSum.resize(num_outgrid, false);
-    resSum.clear();
-    resSum2.resize(num_outgrid, false);
-    resSum2.clear();
-    block_res_f.resize(num_gridpoints, false);
-    block_res_f2.resize(num_gridpoints, false);
+    result=Eigen::VectorXd::Zero(num_outgrid);
+    error=Eigen::VectorXd::Zero(num_outgrid);
+    resSum=Eigen::VectorXd::Zero(num_outgrid);
+    resSum2=Eigen::VectorXd::Zero(num_outgrid);
+    block_res_f=Eigen::VectorXd::Zero(num_outgrid);
+    block_res_f2=Eigen::VectorXd::Zero(num_outgrid);
 
 }
 void CGForceMatching::EndEvaluate()
@@ -255,7 +246,7 @@ void CGForceMatching::WriteOutFiles()
         file_name = file_name + file_extension;
         
         // resize table
-        force_tab.resize((*is)->num_outgrid, false);
+        force_tab.resize((*is)->num_outgrid);
 
         // print output file names on stdout
         cout << "Updating file: " << file_name << endl;
@@ -344,15 +335,15 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
         _frame_counter = 0;
         if (_constr_least_sq) { //Constrained Least Squares
             // Matrices should be cleaned after each block is evaluated
-            _A.clear();
-            _b.clear();
+            _A.setZero();
+            _b.setZero();
             // clear and assign smoothing conditions to _B_constr
             FmatchAssignSmoothCondsToMatrix(_B_constr);
         } else { // Simple Least Squares
             // Matrices should be cleaned after each block is evaluated            
             // clear and assign smoothing conditions to _A
             FmatchAssignSmoothCondsToMatrix(_A);
-            _b.clear();
+            _b.setZero();
         }
     }
     if(_has_existing_forces)
@@ -361,22 +352,17 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
 
 void CGForceMatching::FmatchAccumulateData() 
 {
-    _x.clear();
     if (_constr_least_sq) { // Constrained Least Squares
         // Solving linear equations system
-        ub::matrix<double> B_constr = _B_constr;
-        votca::tools::linalg_constrained_qrsolve(_x, _A, _b, B_constr);
+        votca::tools::linalg_constrained_qrsolve(_x, _A, _b, _B_constr);
     } else { // Simple Least Squares
         
-        ub::vector<double> residual(_b.size());
-        votca::tools::linalg_qrsolve(_x, _A, _b, &residual);
-
+        Eigen::HouseholderQR<Eigen::MatrixXd> dec(_A);
+        _x=dec.solve(_b);
+        Eigen::VectorXd residual=_b-_A*_x;
         // calculate FM residual - quality of FM
         // FM residual is initially calculated in (kJ/(mol*nm))^2
-        double fm_resid = 0;
-
-        for (size_t i = 0; i < _b.size(); i++)
-            fm_resid += residual(i) * residual(i);
+        double fm_resid = residual.cwiseAbs2().sum();
 
         // strange number is units conversion -> now (kcal/(mol*angstrom))^2
         fm_resid /= 3 * _nbeads * _frame_counter * 1750.5856;
@@ -421,7 +407,7 @@ void CGForceMatching::FmatchAccumulateData()
     }
 }
 
-void CGForceMatching::FmatchAssignSmoothCondsToMatrix(ub::matrix<double> &Matrix)
+void CGForceMatching::FmatchAssignSmoothCondsToMatrix(Eigen::MatrixXd &Matrix)
 {
 // This function assigns Spline smoothing conditions to the Matrix.
 // For the simple least squares the function is used for matrix _A
@@ -430,7 +416,7 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(ub::matrix<double> &Matrix
     line_tmp = 0;
     col_tmp = 0;
 
-    Matrix.clear();
+    Matrix.setZero();
 
 
     SplineContainer::iterator is;

@@ -6,7 +6,7 @@
 #  VOTCA_TOOLS_FOUND        - True if expat found.
 #  VOTCA_TOOLS_HAS_SQLITE3  - True if votca tools was build with sqlite3 support
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,19 +26,25 @@ find_package(PkgConfig)
 pkg_check_modules(PC_VOTCA_TOOLS libvotca_tools)
 find_path(VOTCA_TOOLS_INCLUDE_DIR votca/tools/version.h HINTS ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
 
+find_package(EIGEN3 3.3.0 REQUIRED)
+find_package(MKL)
+if (NOT MKL_FOUND)
+	set(MKL_LIBRARIES)
+	set(MKL_INCLUDE_DIRS)
+endif()
+
 find_path(VOTCA_TOOLS_HAS_SQLITE3 votca/tools/database.h HINTS ${VOTCA_TOOLS_INCLUDE_DIR} ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
 if (VOTCA_TOOLS_HAS_SQLITE3)
   #due to include <sqlite3.h> in database.h
   find_package(SQLITE3 REQUIRED)
-  set(VOTCA_TOOLS_INCLUDE_DIRS "${VOTCA_TOOLS_INCLUDE_DIR};${SQLITE3_INCLUDE_DIR}" )
 else(VOTCA_TOOLS_HAS_SQLITE3)
-  set(VOTCA_TOOLS_INCLUDE_DIRS "${VOTCA_TOOLS_INCLUDE_DIR}" )
+  set(SQLITE3_INCLUDE_DIR)
 endif (VOTCA_TOOLS_HAS_SQLITE3)
-
 
 find_library(VOTCA_TOOLS_LIBRARY NAMES votca_tools HINTS ${PC_VOTCA_TOOLS_LIBRARY_DIRS} )
 
-set(VOTCA_TOOLS_LIBRARIES "${VOTCA_TOOLS_LIBRARY}" )
+set(VOTCA_TOOLS_INCLUDE_DIRS "${VOTCA_TOOLS_INCLUDE_DIR};${SQLITE3_INCLUDE_DIR};${EIGEN3_INCLUDE_DIRS};${MKL_INCLUDE_DIRS}" )
+set(VOTCA_TOOLS_LIBRARIES "${VOTCA_TOOLS_LIBRARY};${MKL_LIBRARIES}" )
 
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set VOTCA_TOOLS_FOUND to TRUE

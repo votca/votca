@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@ PotentialFunction::PotentialFunction(const string& name_,const int nlam_,
                                      const double min_,const double max_){
 
   _name = name_;
-  _lam.resize(nlam_);
-  _lam.clear();
+  _lam=Eigen::VectorXd::Zero(nlam_);
   _min = min_;
   _cut_off = max_;
 
@@ -51,7 +50,7 @@ void PotentialFunction::SaveParam(const string& filename){
 
   Table param;
   param.SetHasYErr(false);
-  param.resize(_lam.size(), false);
+  param.resize(_lam.size());
 
   for (unsigned int i = 0; i < _lam.size(); i++)
     param.set(i, i, _lam(i), 'i');
@@ -66,7 +65,7 @@ void PotentialFunction::SavePotTab(const string& filename,
   int ngrid = (int) ((_cut_off - _min) / step + 1.00000001);
   Table pot_tab;
   pot_tab.SetHasYErr(false);
-  pot_tab.resize(ngrid, false);
+  pot_tab.resize(ngrid);
   double r_init;
   int i;
 
@@ -84,7 +83,7 @@ void PotentialFunction::SavePotTab(const string& filename,
   int ngrid = (int) ((rcut - rmin) / step + 1.00000001);
   Table pot_tab;
   pot_tab.SetHasYErr(false);
-  pot_tab.resize(ngrid, false);
+  pot_tab.resize(ngrid);
   double r_init;
   int i;
   char flag = 'i';
