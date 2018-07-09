@@ -590,7 +590,15 @@ namespace votca {
                     + filename);
             int atomCount = 0;
             std::getline(in, line);
+            
+            Tokenizer tok1(line," \t");
+            std::vector<std::string> line1;
+            tok1.ToVector(line1);
+            if(line1.size()!=1){
+              throw std::runtime_error("First line of xyz file should contain number of atoms, nothing else.");
+            }
             std::getline(in, line);
+            
             if (in.is_open()) {
                 while (in.good()) {
                     std::getline(in, line);

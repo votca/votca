@@ -19,11 +19,36 @@
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/convergenceacc.h>
 #include <votca/xtp/orbitals.h>
-
+#include <fstream>
 
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(orbitals_test)
+BOOST_AUTO_TEST_CASE(readxyztest){
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " C 0.0 3 1" << std::endl;
+  xyzfile << " methane" << std::endl;
+  xyzfile << " C            .000000     .000000     .000000" << std::endl;
+  xyzfile << " H            .629118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
+  xyzfile.close();
+  
+  
+  bool errorhappen=false;
+  Orbitals orb;
+  try{
+    orb.LoadFromXYZ("molecule.xyz");
+  }catch (const std::runtime_error& error)
+{
+    std::cout<<error.what()<<std::endl;
+    errorhappen=true;
+  }
+  
+   BOOST_CHECK_EQUAL(errorhappen, true);
+}
+
 
 BOOST_AUTO_TEST_CASE(densmatgs_test) {
   
