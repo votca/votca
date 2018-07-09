@@ -46,18 +46,12 @@
 
  Here are a few general tips that should be followed:
  
- * Do not comment out code, if you do not use it delete it.
- * Variables should have clear and explicit names.
- * Do not duplicate code.
+### Files ###
+  * each class goes into a separate file
+  * filename is name of class in lowercase
+
+### Header Files ###
  * One class, one header.
- * Make functions short.
- * Functions should have no more than 3 arguments. Otherwise create a class.
- * XYZ positions should be described using tools::vec, 3x3 matrices tools::matrix, or classes and or functions in the eigen library.
- * Readability is more important the elegant design.
- * Leave the code better than you found it.
- * Use pointers sparingly and especially try not to pass them around objects. Prefer references.
- * Functions should not have more than one use. So use boolean arguments sparingly.
- * Do not write code, which you may use in the future. Only write code you will use now. Write code, you need later, later. This avoids cluttering the codebase with unused "at some point we will need this functions".
  * When creating header gruards use the following form, where "VOTCA-REPO-NAME" is replaced by whichever repo the header is in tools/csg/ctp/xtp, and where "CLASS-NAME" is replaced by the name of the class described in the header file:
 ```
 #ifndef _VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
@@ -68,8 +62,48 @@ Code
 #endif // _VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
 ```
  * Never use the "using namespace" in a header file.
- * Avoid using includes in header files. If possible forward declare a class instead. 
+ * Avoid using includes in header files. If possible forward declare a class instead.
+ 
+### Braces ###
+  * in functions/classes, the { is in the next line
+  * for for loops, if, ..., the { is n the same line as if,for
 
+### Classes ###
+  * normally begin in upper case
+  * exceptions: classes which define "small" types (e.g. `vec`, `matrix`)
+  * order in class definition:
+    * first `public` all functions
+    * then `private`/`protected` all member variables
+    * then `private`/`protected` member functions
+    * no rule where to define a `public typedef` in the class
+  * all member variables are `private`/`public` (again exception e.g. `vec`, `matrix`)
+  * maximum one-line-function implementation in class declaration, everything else moves to separate file or inline at end of header.
+
+### Naming in Classes ###
+  * all member variables are in lower case and end with `_`
+  * all functions start with upper case, no `_` in names
+  * exception: `get`/`set` functions
+
+### get/set Functions ###
+  * get/set functions start with a lowercase set/get (these are only functions which directly set/get a private member variable)
+  * get must return a constant reference and keep the `class const`: `const int &getId() const;`
+  * set only sets the member, e.g. `void setId(const int &id) {_id=id;}`
+ 
+### Functions ###
+ * Make functions short.
+ * Functions should not have more than one use. So use boolean arguments sparingly.
+ 
+### General ###
+ * Do not comment out code, if you do not use it delete it.
+ * Variables should have clear and explicit names.
+ * Do not duplicate code.
+ * Functions should have no more than 3 arguments. Otherwise create a class.
+ * XYZ positions should be described using tools::vec, 3x3 matrices tools::matrix, or classes and or functions in the eigen library.
+ * Readability is more important the elegant design.
+ * Leave the code better than you found it.
+ * Use pointers sparingly and especially try not to pass them around objects. Prefer references.
+ * Do not write code, which you may use in the future. Only write code you will use now. Write code, you need later, later. This avoids cluttering the codebase with unused "at some point we will need this functions".
+  
 ## Testing
 
  Each repository contains a src folder. Within the src folder exists a 
