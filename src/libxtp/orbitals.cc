@@ -589,7 +589,8 @@ namespace votca {
             if (!in) throw runtime_error(string("Error reading coordinates from: ")
                     + filename);
             int atomCount = 0;
-
+            std::getline(in, line);
+            std::getline(in, line);
             if (in.is_open()) {
                 while (in.good()) {
                     std::getline(in, line);
