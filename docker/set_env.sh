@@ -123,9 +123,8 @@ elif [[ $ENV -eq 16 ]]; then
 elif [[ $ENV -eq 17 ]]; then
   # module build
   add_to_docker_opts MODULE_BUILD=ON
-  add_to_docker_opts TESTING=ON
+  [[ $CC = clang ]] && add_to_docker_opts TESTING=ON || add_to_docker_opts TESTING=OFF
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)"
-  [[ $CC = clang ]] && export SKIP=yes # no new info when using clang
 elif [[ $ENV -eq 18 ]]; then
   # build internal gromacs
   export DISTRO=fedora_nogmx
