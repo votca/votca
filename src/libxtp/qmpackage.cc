@@ -119,6 +119,21 @@ namespace votca {
 
             return multipoles_split;
         }
+        
+      void QMPackage::setMultipoleBackground(std::vector<ctp::PolarSeg*> PolarSegments) {
+        if(PolarSegments.size()==0){
+          std::cout<<"WARNING::The Multipole Background has no entries!"<<std::endl;
+          return;
+        }
+      _PolarSegments = PolarSegments;
+      _get_charges = true;
+      _get_self_energy = true;
+
+      std::string::size_type iop_pos = _options.find(getChargeOption());
+      if (iop_pos != std::string::npos) {
+        _options = _options + " "+getChargeOption();
+      }
+    }
 
         void QMPackage::addLinkers(std::vector< ctp::Segment* > &segments, ctp::QMPair* pair, std::vector<std::string> linker_names) {
             ctp::Segment* seg1 = pair->Seg1();
