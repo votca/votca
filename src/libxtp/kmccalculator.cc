@@ -372,6 +372,9 @@ namespace votca {
         }
         
         Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate){
+            if(_carriers.size()==1){
+                return _carriers[0];
+            }
             Chargecarrier* carrier=NULL;
             double u = 1 - _RandomVariable->rand_uniform();
             for (unsigned int i = 0; i < _numberofcharges; i++) {
