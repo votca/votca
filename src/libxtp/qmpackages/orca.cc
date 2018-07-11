@@ -99,15 +99,6 @@ namespace votca {
                 _get_charges = false;
             }
 
-            // check if the charge keyword is present, if yes, get the self energy and save it
-            iop_pos = _options.find("pointcharges"); /*??*/
-            if (iop_pos != std::string::npos) {
-                _get_self_energy = true;
-                _write_charges = true;
-            } else {
-                _get_self_energy = false;
-                _write_charges = false;
-            }
 
             // check if the guess should be prepared, if yes, append the guess later
             _write_guess = false;
@@ -257,14 +248,14 @@ namespace votca {
          * their atomic partial charge distributions. ORCA expects them in
          * q,x,y,z format in a separate file "background.crg"
          */
-        void Orca::WriteBackgroundCharges(std::vector<ctp::PolarSeg*> segments) {
+        void Orca::WriteBackgroundCharges() {
             std::ofstream _crg_file;
             std::string _crg_file_name_full = _run_dir + "/background.crg";
             _crg_file.open(_crg_file_name_full.c_str());
             int _total_background = 0;
 
             std::vector< ctp::PolarSeg* >::iterator it;
-            for (it = segments.begin(); it < segments.end(); it++) {
+            for (it = _PolarSegments.begin(); it < _PolarSegments.end(); it++) {
                 vector<ctp::APolarSite*> ::iterator pit;
                 for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
                     if ((*pit)->getQ00() != 0.0) _total_background++;
@@ -281,7 +272,7 @@ namespace votca {
             _crg_file << _total_background << endl;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
             //now write
-            for (it = segments.begin(); it < segments.end(); it++) {
+            for (it = _PolarSegments.begin(); it < _PolarSegments.end(); it++) {
                 vector<ctp::APolarSite*> ::iterator pit;
                 for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
                     
@@ -310,7 +301,7 @@ namespace votca {
          * Prepares the *.inp file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied, Not implemented yet
          */
-        bool Orca::WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess , std::vector<ctp::PolarSeg*> PolarSegments ) {
+        bool Orca::WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess ) {
 
             std::vector<std::string> results;
             std::string temp_suffix = "/id";
@@ -367,8 +358,7 @@ namespace votca {
 
 
             if (_write_charges) {
-                // actual writing of charges
-                WriteBackgroundCharges( PolarSegments);
+                WriteBackgroundCharges();
             }
 
             _com_file << _options << "\n";
@@ -387,6 +377,9 @@ namespace votca {
 
             return true;
         }
+        
+        
+   
 
         bool Orca::WriteShellScript() {
             ofstream _shell_file;
