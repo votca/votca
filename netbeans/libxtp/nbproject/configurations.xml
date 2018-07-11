@@ -73,7 +73,6 @@
       <itemPath>../../include/votca/xtp/aobasis.h</itemPath>
       <itemPath>../../include/votca/xtp/aomatrix.h</itemPath>
       <itemPath>../../include/votca/xtp/aoshell.h</itemPath>
-      <itemPath>../../include/votca/xtp/apolarsite.h</itemPath>
       <itemPath>../../include/votca/xtp/atom.h</itemPath>
       <itemPath>../../include/votca/xtp/basisset.h</itemPath>
       <itemPath>../../include/votca/xtp/bfgs-trm.h</itemPath>
@@ -109,7 +108,6 @@
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
-      <itemPath>../../include/votca/xtp/linalg.h</itemPath>
       <itemPath>../../include/votca/xtp/lowdin.h</itemPath>
       <itemPath>../../include/votca/xtp/mixing.h</itemPath>
       <itemPath>../../include/votca/xtp/molecule.h</itemPath>
@@ -117,6 +115,7 @@
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
+      <itemPath>../../include/votca/xtp/polarsite.h</itemPath>
       <itemPath>../../include/votca/xtp/ppm.h</itemPath>
       <itemPath>../../include/votca/xtp/qmapemachine.h</itemPath>
       <itemPath>../../include/votca/xtp/qmatom.h</itemPath>
@@ -228,7 +227,6 @@
       <itemPath>../../src/libxtp/ERIs.cc</itemPath>
       <itemPath>../../src/libxtp/aobasis.cc</itemPath>
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
-      <itemPath>../../src/libxtp/apolarsite.cc</itemPath>
       <itemPath>../../src/libxtp/basisset.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libxtp/checkpoint.cc</itemPath>
@@ -242,6 +240,7 @@
       <itemPath>../../src/libxtp/mulliken.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
+      <itemPath>../../src/libxtp/polarsite.cc</itemPath>
       <itemPath>../../src/libxtp/qmapemachine.cc</itemPath>
       <itemPath>../../src/libxtp/qmdatabase.cc</itemPath>
       <itemPath>../../src/libxtp/qminterface.cc</itemPath>
@@ -257,7 +256,6 @@
       <itemPath>../../src/tests/test_adiis.cc</itemPath>
       <itemPath>../../src/tests/test_aobasis.cc</itemPath>
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
-      <itemPath>../../src/tests/test_apolarsite.cc</itemPath>
       <itemPath>../../src/tests/test_atom.cc</itemPath>
       <itemPath>../../src/tests/test_bse.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
@@ -272,6 +270,7 @@
       <itemPath>../../src/tests/test_molecule.cc</itemPath>
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
+      <itemPath>../../src/tests/test_polarsite.cc</itemPath>
       <itemPath>../../src/tests/test_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_qmnblist.cc</itemPath>
       <itemPath>../../src/tests/test_qmpair.cc</itemPath>
@@ -468,11 +467,6 @@
       </item>
       <item path="../../include/votca/xtp/aoshell.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/apolarsite.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
@@ -600,8 +594,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/linalg.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mixing.h" ex="false" tool="3" flavor2="0">
@@ -618,6 +610,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/polarsite.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/ppm.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -777,8 +774,6 @@
       </item>
       <item path="../../src/libxtp/aoshell.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/apolarsite.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/basisset.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/bfgs-trm.cc" ex="false" tool="1" flavor2="0">
@@ -1022,8 +1017,6 @@
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/linalg.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
@@ -1046,6 +1039,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/orbitals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmapemachine.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1172,8 +1167,6 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tests/test_apolarsite.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
@@ -1205,6 +1198,8 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1279,11 +1274,6 @@
       <item path="../../include/votca/xtp/aomatrix.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/aoshell.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/apolarsite.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1412,8 +1402,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/linalg.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mixing.h" ex="false" tool="3" flavor2="0">
@@ -1430,6 +1418,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/polarsite.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/ppm.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1589,8 +1582,6 @@
       </item>
       <item path="../../src/libxtp/aoshell.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/apolarsite.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/basisset.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/bfgs-trm.cc" ex="false" tool="1" flavor2="0">
@@ -1834,8 +1825,6 @@
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/linalg.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
@@ -1858,6 +1847,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/orbitals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmapemachine.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1984,8 +1975,6 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tests/test_apolarsite.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
@@ -2017,6 +2006,8 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
