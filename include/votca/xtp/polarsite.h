@@ -41,7 +41,7 @@ public:
             : _id(id), _name(name),_isPolarisable(false),
             PhiP(0.0),PhiU(0.0),
             _quadrupole(_multipole,4,5),_dipole(_multipole,1,3),
-            _pos(pos),
+            _pos(pos),_eigendamp(0.0),
             _localpermanetField(Eigen::Vector3d::Zero()),
             _localinducedField(Eigen::Vector3d::Zero()){};
             
@@ -50,7 +50,7 @@ public:
          PhiP(0.0),PhiU(0.0),
          _quadrupole(_multipole,4,5),
          _dipole(_multipole,1,3),
-         _pos(Eigen::Vector3d::Zero()),
+         _pos(Eigen::Vector3d::Zero()),_eigendamp(0.0),
         _localpermanetField(Eigen::Vector3d::Zero()),
         _localinducedField(Eigen::Vector3d::Zero()){};
         
@@ -75,6 +75,9 @@ public:
     
     void setPolarisation(const Eigen::Matrix3d pol){
         _Ps=pol;
+        Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+        es.computeDirect(_Ps,Eigen::EigenvaluesOnly);
+        _eigendamp=es.eigenvalues().maxCoeff();
     }
    
     void setSegment(Segment* seg){
@@ -110,33 +113,34 @@ public:
        
     double InteractStatic(PolarSite& otherSite);
     
-    double InteractInduction(PolarSite& otherSite);
+    double InteractInduction(PolarSite& otherSite, double a);
+    
+    double InductionWork() { return -0.5*_inducedDipole.transpose()*getField();}
     
 private:
     
     
     void calcRank(); 
+    Eigen::MatrixXd FillTholeInteraction(const PolarSite& otherSite, double a);
     Eigen::MatrixXd FillInteraction(const PolarSite& otherSite);
     
     int     _id;
     std::string  _name;
     Eigen::Vector3d _pos;
     int     _rank;
+    Eigen::VectorXd _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
+    Eigen::VectorBlock< const Eigen::VectorXd,5 > _quadrupole;
+    Eigen::VectorBlock< const Eigen::VectorXd,3 > _dipole;
 
     
+    //required for polarisation
     bool _isPolarisable;
     Eigen::Matrix3d _Ps;
     Eigen::Vector3d _localpermanetField;
     Eigen::Vector3d _localinducedField;
     Eigen::Vector3d _inducedDipole;
     Eigen::Vector3d _inducedDipole_old;
-    
-    Eigen::VectorXd _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
-    Eigen::VectorBlock< const Eigen::VectorXd,5 > _quadrupole;
-    Eigen::VectorBlock< const Eigen::VectorXd,3 > _dipole;
-    
-    
-    
+    double _eigendamp;
     
     Segment* _segment;
     Fragment* _fragment;

@@ -249,6 +249,149 @@ namespace votca {
       }
       return interaction; //in units of 4piepsilon0  
     }
+    
+    Eigen::MatrixXd PolarSite::FillTholeInteraction(const PolarSite& otherSite, double a) {
+
+      const Eigen::Vector3d& posB = otherSite.getPos();
+      const Eigen::Vector3d& posA = this->getPos();
+      int rankA = this->getRank();
+      int rankB = otherSite.getRank();
+      int size1 = this->getPermMultipole().size();
+      if (this->isPolarisable() && rankA<1) {
+        rankA=1;
+        size1=4;
+      }
+      int size2 = otherSite.getPermMultipole().size();
+      if (otherSite.isPolarisable() && rankB<1) {
+        rankB=1;
+        size2=4;
+      }
+      
+      Eigen::MatrixXd interaction = Eigen::MatrixXd::Zero(size1, size2);
+      const Eigen::Vector3d r_AB = posB - posA; //Vector of the distance between polar sites
+      const double R = r_AB.norm(); //Norm of distance vector
+      const Eigen::Vector3d pos_a = r_AB / R; //unit vector on the sites reciprocal direction; This points toward A
+      const Eigen::Vector3d pos_b = -pos_a; //unit vector on the sites reciprocal direction; This points toward B   
+
+      const double fac0 = 1 / R;
+      
+      const double sqr3 = std::sqrt(3);
+      const Eigen::Matrix3d AxA = pos_a * pos_a.transpose();
+      const Eigen::Matrix3d BxB = pos_b * pos_b.transpose();
+
+      const double fac1 = std::pow(fac0, 2);
+      const double fac2 = std::pow(fac0, 3);
+
+      if (rankA > 0) {
+        //Dipole-Charge Interaction
+        interaction.block<3, 1>(1, 0) = fac1*pos_a; //T_1alpha,00 (alpha=x,y,z)
+      }
+      if (rankA > 1) {
+        //Quadrupole-Charge interaction
+        interaction(4, 0) = fac2 * 0.5 * (3 * AxA(2, 2) - 1); //T20,00
+        interaction(5, 0) = fac2 * sqr3 * AxA(0, 2); //21c,00
+        interaction(6, 0) = fac2 * sqr3 * AxA(1, 2); //T21s,000
+        interaction(7, 0) = fac2 * 0.5 * sqr3 * (AxA(0, 0) - AxA(1, 1)); //T22c,00
+        interaction(8, 0) = fac2 * sqr3 * AxA(0, 1); //T22s,00
+      }
+
+      if (rankB > 0 ) {
+        //Charge-Dipole Interaction
+        interaction.block<1, 3>(0, 1) = fac1*pos_b; //T_00,1alpha (alpha=x,y,z)
+      }
+      if (rankB > 1) {
+        //Charge-Quadrupole Interaction
+        interaction(0, 4) = fac2 * 0.5 * (3 * BxB(2, 2) - 1); //T00,20
+        interaction(0, 5) = fac2 * sqr3 * BxB(0, 2); //T00,21c
+        interaction(0, 6) = fac2 * sqr3 * BxB(1, 2); //T00,21s
+        interaction(0, 7) = fac2 * 0.5 * sqr3 * (BxB(0, 0) - BxB(1, 1)); //T00,22c
+        interaction(0, 8) = fac2 * sqr3 * BxB(0, 1); //T00,22s
+      }
+
+      const Eigen::Matrix3d c = Eigen::Matrix3d::Identity();
+      if (rankA > 0 && rankB > 0 ){
+        const Eigen::Matrix3d AxB = pos_a * pos_b.transpose();
+        //Dipole-Dipole Interaction 
+        interaction.block<3, 3>(1, 1) = fac2 * (3 * AxB); //T_1alpha,1beta (alpha,beta=x,y,z) 
+      const double fac3 = std::pow(fac0, 4);
+      if (rankA > 1) {
+        //Quadrupole-Dipole Interaction
+        interaction.block<1, 3>(4, 1) = 0.5 * fac3 * (15 * AxA(2, 2) * pos_b.transpose() + 6 * pos_a(2) * c.row(2) - 3 * pos_b.transpose()); //T20-1beta (beta=x,y,z)
+        interaction.block<1, 3>(5, 1) = fac3 * sqr3 * (pos_a(0) * c.row(2) + c.row(0) * pos_a(2) + 5 * AxA(0, 2) * pos_b.transpose()); //T21c-1beta (beta=x,y,z)
+        interaction.block<1, 3>(6, 1) = fac3 * sqr3 * (pos_a(1) * c.row(2) + c.row(1) * pos_a(2) + 5 * AxA(1, 2) * pos_a.transpose()); //T21s-1beta (beta=x,y,z)
+        interaction.block<1, 3>(7, 1) = fac3 * 0.5 * sqr3 * (5 * (AxA(0, 0) - AxA(1, 1)) * pos_b.transpose() + 2 * pos_a(0) * c.row(0) - 2 * pos_a(1) * c.row(1)); //T22c-1beta (beta=x,y,z)
+        interaction.block<1, 3>(8, 1) = fac3 * sqr3 * (5 * AxA(0, 1) * pos_b.transpose() + pos_a(0) * c.row(1) + pos_a(1) * c.row(0)); //T22s-1beta (beta=x,y,z)    
+      }
+      if (rankB > 1) {
+        //Dipole-Quadrupole Interaction
+        interaction.block<3, 1>(1, 4) = 0.5 * fac3 * (15 * BxB(2, 2) * pos_a + 6 * pos_b(2) * c.col(2) - 3 * pos_a); //T1beta-20 (beta=x,y,z)
+        interaction.block<3, 1>(1, 5) = fac3 * sqr3 * (pos_b(0) * c.col(2) + c.col(0) * pos_b(2) + 5 * BxB(0, 2) * pos_a); //T1beta-21c (beta=x,y,z)
+        interaction.block<3, 1>(1, 6) = fac3 * sqr3 * (pos_b(1) * c.col(2) + c.col(1) * pos_b(2) + 5 * BxB(1, 2) * pos_b); //T1beta-21s (beta=x,y,z)
+        interaction.block<3, 1>(1, 7) = 0.5 * fac3 * sqr3 * (5 * (BxB(0, 0) - BxB(1, 1)) * pos_a + 2 * pos_b(0) * c.col(0) - 2 * pos_b(1) * c.col(1)); //T1beta-22c (beta=x,y,z)
+        interaction.block<3, 1>(1, 8) = fac3 * sqr3 * (5 * BxB(0, 1) * pos_a + pos_b(0) * c.col(1) + pos_b(1) * c.col(0)); //T1beta-22s (beta=x,y,z)    
+      }
+
+      if (rankA > 1 && rankB > 1) {
+        const double fac4 = std::pow(fac0, 5);
+        //Quadrupole-Quadrupole Interaction
+        interaction(4, 4) = fac4 * (3. / 4.)*(35 * AxA(2, 2) * BxB(2, 2) - 5 * AxA(2, 2) - 5 * BxB(2, 2) + 20 * AxB(2, 2) * c(2, 2) + 2 * c(2, 2) * c(2, 2) + 1); //T20,20
+
+        interaction(4, 5) = 0.5 * fac4 * sqr3 * (35 * AxA(2, 2) * BxB(0, 2) - 5 * BxB(0, 2) + 10 * AxB(2, 0) * c(2, 2) + 10 * AxB(2, 2) * c(2, 1) + 2 * c(2, 0) * c(2, 2)); //T20,21c
+
+        interaction(4, 6) = 0.5 * fac4 * sqr3 * (35 * AxA(2, 2) * BxB(1, 2) - 5 * BxB(1, 2) + 10 * AxB(2, 1) * c(2, 2) + 10 * AxB(2, 2) * c(2, 1) + 2 * c(2, 1) * c(2, 2)); //T20,21s
+
+        interaction(4, 7) = 0.25 * fac4 * sqr3 * (35 * AxB(2, 0) - 35 * AxB(2, 1) - 5 * BxB(0, 0) + 5 * BxB(1, 1) + 20 * AxB(2, 0) * c(2, 0) - 20 * AxB(2, 1) * c(2, 1) + 2 * c(2, 0) * c(2, 0) - 2 * c(2, 1) * c(2, 1)); //T20,22c
+
+        interaction(4, 8) = 0.5 * fac4 * sqr3 * (35 * AxA(2, 2) * BxB(0, 1) - 5 * BxB(0, 1) + 10 * AxB(2, 0) * c(2, 1) + 10 * AxB(2, 1) * c(2, 0) + 2 * c(2, 0) * c(2, 1)); //T20,22s
+
+        interaction(5, 5) = fac4 * (35 * AxA(0, 2) * BxB(0, 2) + 5 * AxB(0, 0) * c(2, 2) + 5 * AxB(0, 2) * c(2, 0) + 5 * AxB(2, 0) * c(0, 2) + 5 * AxB(2, 2) * c(0, 0) + c(0, 0) * c(2, 2) + c(0, 2) * c(2, 0)); //T21c,21c
+
+        interaction(5, 6) = fac4 * (35 * AxA(0, 2) * BxB(1, 2) + 5 * AxB(0, 1) * c(2, 2) + 5 * AxB(0, 2) * c(2, 1) + 5 * AxB(2, 1) * c(0, 2) + 5 * AxB(2, 2) * c(0, 1) + c(0, 1) * c(2, 2) + c(0, 2) * c(2, 1)); //T21c,21s
+
+        interaction(5, 7) = 0.5 * fac4 * (35 * AxA(0, 2) * BxB(0, 0) - 35 * AxA(0, 2) * BxB(1, 1) + 10 * AxB(0, 0) * c(2, 0) - 10 * AxB(0, 1) * c(2, 1) + 10 * AxB(0, 0) * c(0, 0) - 10 * AxB(2, 1) * c(0, 1) + 2 * c(0, 0) * c(2, 0) - 2 * c(0, 1) * c(2, 1)); //T21c,22c
+
+        interaction(5, 8) = fac4 * (35 * AxA(0, 2) * BxB(0, 1) + 5 * AxB(0, 0) * c(2, 1) + 5 * AxB(0, 1) * c(2, 0) + 5 * AxB(2, 0) * c(0, 1) + 5 * AxB(2, 1) * c(0, 0) + c(0, 0) * c(2, 1) + c(0, 1) * c(2, 0)); //T21c,22s
+
+        interaction(6, 6) = fac4 * (35 * AxA(1, 2) * BxB(1, 2) + 5 * AxB(1, 1) * c(2, 2) + 5 * AxB(1, 2) * c(2, 1) + 5 * AxB(2, 1) * c(1, 2) + 5 * AxB(2, 2) * c(1, 1) + c(1, 1) * c(2, 2) + c(1, 2) * c(2, 1)); //T21s,21s
+
+        interaction(6, 7) = 0.5 * fac4 * (35 * AxA(1, 2) * BxB(0, 0) - 35 * AxA(1, 2) * BxB(1, 1) + 10 * AxB(1, 2) * c(2, 0) - 10 * AxB(1, 1) * c(2, 1) + 10 * AxB(2, 0) * c(1, 0) - 10 * AxB(2, 1) * c(1, 1) + 2 * c(1, 0) * c(2, 0) - 2 * c(1, 1) * c(2, 1)); //T21s,22c
+
+        interaction(6, 8) = fac4 * (35 * AxA(1, 2) * BxB(0, 1) + 5 * AxB(1, 0) * c(2, 1) + 5 * AxB(1, 1) * c(2, 1) + 5 * AxB(2, 0) * c(1, 1) + 5 * AxB(2, 1) * c(1, 2) + c(1, 0) * c(2, 1) + c(1, 1) * c(2, 0)); //T21s,22s
+
+        interaction(7, 7) = 0.25 * fac4 * (35 * AxA(0, 0) * BxB(0, 0) - 35 * AxA(0, 0) * BxB(1, 1) - 35 * AxA(1, 1) * BxB(0, 0) + 35 * AxA(1, 1) * BxB(1, 1) + 20 * AxB(0, 0) * c(0, 0) - 20 * AxB(0, 1) * c(0, 1) - 20 * AxB(1, 0) * c(1, 0)
+                + 20 * AxB(0, 0) * c(1, 1) + 2 * c(0, 0) * c(0, 0) - 2 * c(0, 1) * c(0, 1) - 2 * c(1, 0) * c(1, 0) + 2 * c(1, 1) * c(1, 1)); //T22c,22c
+
+        interaction(7, 8) = 0.5 * fac4 * (35 * BxB(0, 1) * AxA(0, 0) - 35 * BxB(1, 2) * AxA(1, 1) + 10 * AxB(0, 0) * c(0, 1) + 10 * AxB(0, 1) * c(0, 0) - 10 * AxB(1, 0) * c(1, 1) - 10 * AxB(1, 1) * c(1, 2) + 2 * c(0, 0) * c(0, 1) - 2 * c(1, 0) * c(1, 1)); //T22c,22s
+
+        interaction(8, 8) = 0.5 * fac4 * (35 * AxA(0, 1) * BxB(0, 1) + 5 * AxB(0, 0) * c(1, 1) + 5 * AxB(0, 1) * c(1, 0) + 5 * AxB(1, 0) * c(0, 1) + 5 * AxB(1, 1) * c(0, 0) + c(0, 0) * c(1, 1) + c(0, 1) * c(1, 0)); //T22s,22s
+
+        interaction(5, 4) = 0.5 * fac4 * sqr3 * (35 * BxB(2, 2) * AxA(0, 2) - 5 * AxA(0, 2) + 10 * AxB(0, 2) * c(2, 2) + 10 * AxB(2, 2) * c(1, 2) + 2 * c(0, 2) * c(2, 2)); //T21c,20
+
+        interaction(6, 4) = 0.5 * fac4 * sqr3 * (35 * BxB(2, 2) * AxA(1, 2) - 5 * AxA(1, 2) + 10 * AxB(1, 2) * c(2, 2) + 10 * AxB(2, 2) * c(1, 2) + 2 * c(1, 2) * c(2, 2)); //T21s,20
+
+        interaction(6, 5) = fac4 * (35 * BxB(0, 2) * AxA(1, 2) + 5 * AxB(1, 0) * c(2, 2) + 5 * AxB(2, 0) * c(1, 2) + 5 * AxB(2, 1) * c(2, 0) + 5 * AxB(2, 2) * c(1, 0) + c(1, 0) * c(2, 2) + c(2, 0) * c(1, 2)); //T21s,21c
+
+        interaction(7, 4) = 0.25 * fac4 * sqr3 * (35 * AxB(0, 2) - 35 * BxB(2, 2) * AxA(1, 1) - 5 * AxA(0, 0) + 5 * AxA(1, 1) + 20 * AxB(0, 2) * c(0, 2) - 20 * AxB(1, 2) * c(1, 2) + 2 * c(0, 2) * c(0, 2) - 2 * c(1, 2) * c(1, 2)); //T22c,20
+
+        interaction(7, 5) = 0.5 * fac4 * (35 * BxB(0, 2) * AxA(0, 0) - 35 * BxB(0, 2) * AxA(1, 1) + 10 * AxB(0, 0) * c(0, 2) - 10 * AxB(1, 0) * c(1, 2) + 10 * AxB(0, 0) * c(0, 0) - 10 * AxB(1, 2) * c(1, 0) + 2 * c(0, 0) * c(0, 2) - 2 * c(1, 0) * c(1, 2)); //T22c,21c
+
+        interaction(7, 6) = 0.5 * fac4 * (35 * BxB(1, 2) * AxA(0, 0) - 35 * BxB(1, 2) * AxA(1, 1) + 10 * AxB(2, 1) * c(0, 2) - 10 * AxB(1, 1) * c(1, 2) + 10 * AxB(0, 2) * c(0, 1) - 10 * AxB(1, 2) * c(1, 1) + 2 * c(0, 1) * c(0, 2) - 2 * c(1, 1) * c(1, 2)); //T22c,21s
+
+        interaction(8, 4) = 0.5 * fac4 * sqr3 * (35 * BxB(2, 2) * AxA(0, 1) - 5 * AxA(0, 1) + 10 * AxB(0, 2) * c(1, 2) + 10 * AxB(1, 2) * c(0, 2) + 2 * c(0, 2) * c(1, 2)); //T22s,20
+
+        interaction(8, 5) = fac4 * (35 * BxB(0, 2) * AxA(1, 0) + 5 * AxB(0, 0) * c(1, 2) + 5 * AxB(1, 0) * c(0, 2) + 5 * AxB(0, 2) * c(1, 0) + 5 * AxB(1, 2) * c(0, 0) + c(0, 0) * c(1, 2) + c(1, 0) * c(0, 2)); //T22s,21c
+
+        interaction(8, 6) = fac4 * (35 * BxB(1, 2) * AxA(0, 1) + 5 * AxB(0, 1) * c(1, 2) + 5 * AxB(1, 1) * c(1, 2) + 5 * AxB(0, 2) * c(1, 1) + 5 * AxB(1, 2) * c(2, 1) + c(0, 1) * c(1, 2) + c(1, 1) * c(0, 2)); //T22s,21s
+
+        interaction(8, 7) = 0.5 * fac4 * (35 * AxA(1, 0) * BxB(0, 0) - 35 * AxA(1, 2) * BxB(1, 1) + 10 * AxB(0, 0) * c(1, 0) + 10 * AxB(1, 0) * c(0, 0) - 10 * AxB(0, 1) * c(1, 1) - 10 * AxB(1, 1) * c(2, 1) + 2 * c(0, 0) * c(1, 0) - 2 * c(0, 1) * c(1, 1)); //T22s,22c          
+      }
+
+      }
+      return interaction; //in units of 4piepsilon0  
+    }
+    
+    
+    
 
     double PolarSite::InteractStatic(PolarSite& otherSite) {
 
@@ -271,6 +414,28 @@ namespace votca {
 
       return EnergyAB;
     }
+    
+     
+    
+    double PolarSite::InteractInduction(PolarSite& otherSite, double a){
+      
+      
+      //Calculate Potential due to induced Dipoles
+      
+      
+      //Calculate Field due to induced Dipoles
+      
+      
+      //Calculate Interaction induced Dipole static Poles
+      
+      //Calculate Interaction induced Dipole induced Dipole
+      
+      
+      
+      const double EnergyAB=0;
+      return EnergyAB;
+    }
+    
 
 
 
