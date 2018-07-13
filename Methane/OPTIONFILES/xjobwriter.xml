@@ -1,7 +1,0 @@
-<options>
-	<xjobwriter help="Writes list of jobs for a parallel execusion" section="sec:xjobwriter">	
-		<keys help="job type" >mps.ct</keys>
-		
-		
-	</xjobwriter>
-</options>

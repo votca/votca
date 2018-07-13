@@ -1,9 +1,0 @@
-<options>
-
-<pdb2map help="Converts MD + QM files to VOTCA mapping. Combinations: pdb+xyz,gro+xyz,pdb" label="calc:pdb2map" section="sec:pdb2map">
-        <gro help="Input gro file" default="conf.gro">MD_FILES/conf.gro</gro>
-        <xyz help="Input xyz file" default="conf.xyz">QC_FILES/methane_opt.xyz</xyz>
-        <xml help="Resulting xml file" default="conf.xml">system.xml</xml>
-</pdb2map>
-
-</options>

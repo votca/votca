@@ -1,8 +1,0 @@
-<options>
-
-
-<xneighborlist>
-        <constant>1.5</constant>
-        <exciton_cutoff>0.5</exciton_cutoff>
-</xneighborlist>
-</options>

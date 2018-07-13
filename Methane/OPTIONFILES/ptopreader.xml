@@ -1,5 +1,0 @@
-<options>
-	<ptopreader help="Reads binary .ptop-files (serialized from ewdbgpol) and processes them into something readable" label="tool:ptopreader">
-		<ptop_file help="Binary archive .ptop-file">bgp_main.ptop</ptop_file>
-	</ptopreader>
-</options>
