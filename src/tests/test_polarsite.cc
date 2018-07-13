@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(translate_test) {
 BOOST_AUTO_TEST_CASE(rotation_test){
   PolarSite ps(1,"ps2",Eigen::Vector3d::UnitY());
   
-  Eigen::Matrix3d R; //Rotation around z axes
+  Eigen::Matrix3d R=Eigen::Matrix3d::Zero(); //Rotation around z axes
   R << 0, -1, 0,
       1,  0,  0,
       0,  0,  1 ;
@@ -64,9 +64,7 @@ BOOST_AUTO_TEST_CASE(rotation_test){
   Eigen::VectorXd multipoles=Eigen::VectorXd::Zero(9);
   multipoles<<1,1,0,0,0,1,0,0,0; //q=1, mu_x=1 and Q_21c=1 the rest is 0
   ps.setMultipole(multipoles);
-
   ps.Rotate(R,Eigen::Vector3d::Zero());
-  
 bool equalpos=ps.getPos().isApprox(Eigen::Vector3d(-1,0,0),1e-5);
 if(!equalpos){
   std::cout<<"Result "<<std::endl;
@@ -75,7 +73,7 @@ if(!equalpos){
   std::cout<<Eigen::Vector3d(-1,0,0)<<std::endl;
 }
 BOOST_CHECK_EQUAL(equalpos,true); 
-std::cout<<R<<std::endl;
+
 
 Eigen::VectorXd rotmultipoles=Eigen::VectorXd::Zero(9);
 rotmultipoles<<1,0,1,0,0,0,1,0,0; //q=1, mu_y=1 and Q_21s=1 is 0
@@ -97,8 +95,8 @@ BOOST_AUTO_TEST_CASE(interaction_test) {
   Eigen::VectorXd mp2 = Eigen::VectorXd::Zero(1);
   mp1<<1;
   mp2<<-1;
-  ps1.setPolarisable(true);
-  ps2.setPolarisable(true);
+  ps1.setPolarisable(false);
+  ps2.setPolarisable(false);
   ps1.setMultipole(mp1);
   ps2.setMultipole(mp2);
   
@@ -134,6 +132,36 @@ BOOST_AUTO_TEST_CASE(interaction_test) {
   ps4.setMultipole(multipole);
   ps3.InteractStatic(ps4);
 }
+
+
+BOOST_AUTO_TEST_CASE(induction_test) {
+  PolarSite ps1(1,"ps1");
+  PolarSite ps2(2,"ps2",Eigen::Vector3d::UnitX());
+  
+  Eigen::VectorXd mp1 = Eigen::VectorXd::Zero(1);
+  Eigen::VectorXd mp2 = Eigen::VectorXd::Zero(1);
+  mp1<<1;
+  mp2<<-1;
+  ps1.setPolarisable(true);
+  ps2.setPolarisable(true);
+  ps1.setMultipole(mp1);
+  ps2.setMultipole(mp2);
+  Eigen::Matrix3d poltensor=Eigen::Matrix3d::Zero();
+  poltensor<<2,1,0,
+            1,3,1,
+            0,1,2.5;
+  
+  ps1.setPolarisation(poltensor);
+  ps2.setPolarisation(poltensor);
+  
+  double Energy= ps1.InteractStatic(ps2);
+  ps1.Induce(1);
+  ps2.Induce(1);
+  double alpha=0.39;
+  double InductionEnergy=ps1.InteractInduction(ps2,alpha);
+ 
+}
+
 
 
 
