@@ -39,11 +39,11 @@ public:
 
     PolarSite(int id, const std::string& name, const Eigen::Vector3d& pos)
             : _id(id), _name(name),_pos(pos),_isPolarisable(false),
-            _eigendamp(0.0),
-            PhiP(0.0),PhiU(0.0),
+            _Ps(Eigen::Matrix3d::Zero()),
             _localpermanetField(Eigen::Vector3d::Zero()),
             _localinducedField(Eigen::Vector3d::Zero()),
-            _Ps(Eigen::Matrix3d::Zero()){};
+            _eigendamp(0.0),
+            PhiP(0.0),PhiU(0.0){};
             
     PolarSite(int id, const std::string& name)
                     :PolarSite(id,name,Eigen::Vector3d::Zero()){};
