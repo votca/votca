@@ -42,6 +42,7 @@ To install the full package:
     cd build
     cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
     make -j5
+    make install
 
 ### Common CMake Flags
 
