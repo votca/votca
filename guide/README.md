@@ -12,31 +12,27 @@ The simplest way is to use the build script which can be downloaded from github 
 
 ```bash
 prefix=~/votca # installation folder (executables will be in the $prefix/bin)
-mkdir -p ${prefix}/src # source code folder
-cd ${prefix}/src
-wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh # get the build script
-chmod +x build.sh
-./build.sh --prefix ${prefix} -ud tools csg # install tools and csg
+git clone --recursive https://github.com/votca/votca.git
+cd votca
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=${prefix} ..
+make -j5
+make install
 ```
 
 The following option might be needed to disable sqlite3 libraries `-DWITH_SQLITE3=OFF`. 
 To build a gromacs version use
 
 ```bash
-./build.sh --prefix ${prefix} -ud gromacs
+cmake -DBUILD_OWN_GROMACS=ON ..
+make -j5
+make innstall
 ```
 
-## Downloading the tutorials
+## Using the tutorials
 
-```bash
-git clone https://github.com/votca/csg-tutorials.git csg-tutorials
-```
-
-or
-
-```bash
-./build.sh --prefix ${prefix} -du csg-tutorials
-```
+All the tutorials are in the installation folder, i.e. `${prefix}/share/votca/csg-tutorials`.
 
 ## Downloading the manual
 
