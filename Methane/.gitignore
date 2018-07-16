@@ -1,1 +1,4 @@
 state.sql
+OPTIONFILES/*
+*.pdb
+*.jobs
