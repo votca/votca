@@ -1,5 +1,14 @@
 #!/bin/bash
 
+#convienience function to change xml option
+changeoption(){
+    sed -i "s&<${1}.*>.*</${1}>&<${1}>${2}</${1}>&" $3
+}
+#convienience function to delete xml option
+deleteoption(){
+ sed -i "s&<${1}.*>.*</${1}>&&" $2
+}
+
 echo $VOTCASHARE
 
 #runs the mapping from MD coordinates to segments and creates .sql file
@@ -20,7 +29,7 @@ mkdir OPTIONFILES
 
 cp $VOTCASHARE/xtp/xml/neighborlist.xml OPTIONFILES/
 
-sed -i "s_<constant>.*</constant>_<constant>0.25</constant>_" OPTIONFILES/neighborlist.xml
+changeoption constant 0.25 OPTIONFILES/neighborlist.xml
 
 #run neighborlist calculator
 
@@ -40,15 +49,28 @@ xtp_run -e einternal -o OPTIONFILES/einternal.xml -f state.sql
 
 cp $VOTCASHARE/xtp/xml/jobwriter.xml OPTIONFILES/
 
-sed -i "s_<keys.*>.*</keys>_<keys>mps.chrg</keys>_" OPTIONFILES/jobwriter.xml 
+changeoption keys "mps.chrg mps.background" OPTIONFILES/jobwriter.xml 
 
 xtp_run -e jobwriter -o OPTIONFILES/jobwriter.xml -f state.sql -s 0
 
 mv jobwriter.mps.chrg.xml xqmultipole.jobs
+mv jobwriter.mps.background.tab mps.tab
 
 #running xqmultipole
 
+cp $VOTCASHARE/ctp/xml/xqmultipole.xml OPTIONFILES/
 
+changeoption job_file xqmultipole.jobs OPTIONFILES/xqmultipole.xml
+changeoption emp_file mps.tab OPTIONFILES/xqmultipole.xml
+#switch polarisation off for tutorial
+changeoption induce 0 OPTIONFILES/xqmultipole.xml
+
+changeoption pdb_check 0 OPTIONFILES/xqmultipole.xml
+deleteoption write_chk OPTIONFILES/xqmultipole.xml
+echo "Running xqmultipole, rerouting output to xqmultipole.log"
+xtp_parallel -e xqmultipole -f state.sql -o OPTIONFILES/xqmultipole.xml -s 0 -t 1 -c 1000 -j "run" > xqmultipole.log
+
+# xqmultipole has no parser to read the siteenergies into the sql file, write a python script or look at https://github.com/JensWehner/votca-scripts/blob/master/xtp/xtp_parseewald.py
 
 
 

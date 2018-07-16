@@ -2,3 +2,5 @@ state.sql
 OPTIONFILES/*
 *.pdb
 *.jobs
+*.tab
+*.log
