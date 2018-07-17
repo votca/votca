@@ -104,15 +104,7 @@ namespace votca {
                 _get_charges = false;
             }
 
-            // check if the charge keyword is present, if yes, get the self energy and save it
-            iop_pos = _options.find("set bq background");
-            if (iop_pos != std::string::npos) {
-                _get_self_energy = true;
-                _write_charges = true;
-            } else {
-                _get_self_energy = false;
-                _write_charges = false;
-            }
+            
 
             // check if the guess should be prepared, if yes, append the guess later
             _write_guess = false;
@@ -131,11 +123,11 @@ namespace votca {
          */
        
 
-        int NWChem::WriteBackgroundCharges(ofstream& _nw_file, std::vector<ctp::PolarSeg*> segments) {
+        int NWChem::WriteBackgroundCharges(ofstream& _nw_file) {
             std::vector< ctp::PolarSeg* >::iterator it;
             int numberofcharges=0;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-            for (it = segments.begin(); it < segments.end(); it++) {
+            for (it = _PolarSegments.begin(); it < _PolarSegments.end(); it++) {
                 vector<ctp::APolarSite*> ::iterator pit;
                 for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
                     
@@ -169,7 +161,7 @@ namespace votca {
          * Prepares the *.nw file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied
          */
-        bool NWChem::WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess , std::vector<ctp::PolarSeg*> PolarSegments ){
+        bool NWChem::WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess){
 
             std::vector<std::string> results;
             //int qmatoms = 0;
@@ -210,7 +202,7 @@ namespace votca {
             if (_write_charges) {
                 // part for the MM charge coordinates
                 _crg_file.open(_crg_file_name_full.c_str());
-                int numberofcharges=WriteBackgroundCharges(_crg_file, PolarSegments);
+                int numberofcharges=WriteBackgroundCharges(_crg_file);
                 _crg_file << endl;
                 _crg_file.close();
                 _nw_file<<endl;
@@ -360,6 +352,9 @@ namespace votca {
             return true;
 
         }
+        
+
+        
 
         bool NWChem::WriteShellScript() {
             ofstream _shell_file;

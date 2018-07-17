@@ -24,7 +24,7 @@ import argparse
 import sqlite3
 
 PROGTITLE = 'THE VOTCA::XTP STATE-FILE UPDATER FOR EXCITON EXTENSION'
-PROGDESCR = 'Updates the state file for singlets and triplets +'
+PROGDESCR = 'Updates the CTP state file to additionally use singlets and triplets +'
 VOTCAHEADER = '''\
 ==================================================
 ========   VOTCA (http://www.votca.org)   ========

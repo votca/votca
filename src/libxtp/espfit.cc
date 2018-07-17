@@ -219,19 +219,13 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& atomlist,const Grid& gri
      }
 
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Solving linear Equation "<< flush;
-    std::cout<<Amat<<std::endl;
-    std::cout<<Bvec<<std::endl;
+
     Eigen::VectorXd charges;
     if(_do_svd){
-      std::cout<<"hello"<<std::endl;
       Eigen::JacobiSVD<Eigen::MatrixXd> svd;
-      std::cout<<"hello2"<<std::endl;
-      //svd.setThreshold(_conditionnumber);
-      std::cout<<"hello3"<<std::endl;
+      svd.setThreshold(_conditionnumber);
       svd.compute(Amat,Eigen::ComputeThinU | Eigen::ComputeThinV);
-      std::cout<<"hello4"<<std::endl;
       charges=svd.solve(Bvec);
-      std::cout<<"hello5"<<std::endl;
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << "SVD Done. "<<Bvec.size()-svd.nonzeroSingularValues()<<" could not be fitted and are set to zero."<< flush;
     }
     else{

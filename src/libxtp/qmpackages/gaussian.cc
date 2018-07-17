@@ -111,14 +111,7 @@ namespace votca {
             }
 
             // check if the charge keyword is present, if yes, get the self energy and save it
-            iop_pos = _options.find("charge");
-            if (iop_pos != std::string::npos) {
-                _get_self_energy = true;
-                _write_charges = true;
-            } else {
-                _get_self_energy = false;
-                _write_charges = false;
-            }
+            
 
             // check if the basis set is available ("/gen")
             iop_pos = _options.find("gen");
@@ -293,10 +286,10 @@ namespace votca {
          * input file. In g03 AFTER basis sets and ECPs, in g09 BEFORE.
          */
      
-        void Gaussian::WriteBackgroundCharges(std::ofstream& _com_file, std::vector<ctp::PolarSeg*> segments) {
+        void Gaussian::WriteBackgroundCharges(std::ofstream& _com_file) {
             std::vector< ctp::PolarSeg* >::iterator it;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-            for (it = segments.begin(); it < segments.end(); it++) {
+            for (it = _PolarSegments.begin(); it < _PolarSegments.end(); it++) {
                 vector<ctp::APolarSite*> ::iterator pit;
                 for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
                     
@@ -400,7 +393,10 @@ namespace votca {
             _com_file2.close();
             return;
         }
-
+        
+        
+   
+        
 
         /* Coordinates are written in standard Element,x,y,z format to the
          * input file.
@@ -444,7 +440,7 @@ namespace votca {
          * Prepares the com file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied
          */
-        bool Gaussian::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess, std::vector<ctp::PolarSeg*> PolarSegments ) {
+        bool Gaussian::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
 
             std::string temp_suffix = "/id";
             std::string scratch_dir_backup = _scratch_dir;
@@ -485,7 +481,7 @@ namespace votca {
 
                 // write the background charges
                 //if (_write_charges) WriteBackgroundCharges(_com_file, qmatoms);
-                if (_write_charges) WriteBackgroundCharges(_com_file, PolarSegments);
+                if (_write_charges) WriteBackgroundCharges(_com_file);
 
                 // write inital guess
                 if (_write_guess){
@@ -497,7 +493,7 @@ namespace votca {
 
                 // write the background charges
                 //if (_write_charges) WriteBackgroundCharges(_com_file, qmatoms);
-                if (_write_charges) WriteBackgroundCharges(_com_file, PolarSegments);
+                if (_write_charges) WriteBackgroundCharges(_com_file);
                 // if we need to write basis sets, do it now
                 if (_write_basis_set) WriteBasisset(_com_file, qmatoms);
 

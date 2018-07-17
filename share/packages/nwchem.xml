@@ -1,0 +1,25 @@
+<package>
+  <name>nwchem</name>
+  <executable>nwchem</executable>
+  <checkpoint></checkpoint>
+  <scratch>/tmp/nwchem</scratch>
+  <charge>0</charge>
+  <spin>1</spin>
+  <threads>1</threads>
+  <memory></memory>
+  <basisset>cc-pVTZ</basisset>
+  <auxbasisset>cc-pVTZ</auxbasisset>
+  <ecp>ecp</ecp>
+  <writebasisset>true</writebasisset>
+  <writepseudopotentials>false</writepseudopotentials>
+  <outputVxc>0</outputVxc>
+  <options>
+dft
+xc pbe0
+direct
+end
+
+task dft
+</options>
+  <cleanup></cleanup>
+</package>

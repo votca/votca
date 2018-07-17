@@ -47,7 +47,7 @@ public:
    /* Writes Orca input file with coordinates of segments
 
     */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
+   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
 
    bool WriteShellScript();
 
@@ -60,8 +60,6 @@ public:
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
-   bool setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){ return true; };
-
 
 
    std::string getScratchDir( ) { return _scratch_dir; }
@@ -74,7 +72,7 @@ private:
 
     std::string                              _cleanup;
 
-
+    std::string getChargeOption() { return "pointcharges";}
 
     int NumberOfElectrons( std::string _line );
     int BasisSetSize( std::string _line );
@@ -85,7 +83,7 @@ private:
     void WriteBasisset(std::vector<QMAtom*>& qmatoms, std::string& _bs_name, std::string& _el_file_name);
     void WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
     void WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
-    void WriteBackgroundCharges(std::vector<ctp::PolarSeg*> PolarSegments);
+    void WriteBackgroundCharges();
 };
 
 
