@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(esp_charges){
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   
  Eigen::MatrixXd dmat=Eigen::MatrixXd::Zero(17,17);       
  dmat<<0.00157507,0.0337454,4.48905e-16,-5.93152e-16,7.87133e-17,0.030876,2.51254e-16,-1.49094e-16,5.77899e-17,0.00415998,-0.00445632,0.00415998,-0.00445632,0.00415998,-0.00445632,0.00415998,-0.00445632,

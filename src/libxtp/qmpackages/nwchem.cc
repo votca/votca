@@ -1065,9 +1065,9 @@ namespace votca {
                     if (ite == elements.end()) {
                         elements.push_back(element_name);
                          
-                        Element* element = bs.getElement(element_name);
+                        const Element& element = bs.getElement(element_name);
                        
-                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        for (Element::ShellIterator its = element.firstShell(); its != element.lastShell(); its++) {
 
                             Shell* shell = (*its);
                             //nwchem can only use S,P,SP,D,F,G shells so we split them up if not SP
@@ -1137,16 +1137,16 @@ namespace votca {
                     if (ite == elements.end()) {
                         elements.push_back(element_name);
 
-                        Element* element = ecp.getElement(element_name);
+                        const Element& element = ecp.getElement(element_name);
 
                         // element name, [possibly indeces of centers], zero to indicate the end
-                        _nw_file << element_name << " nelec " << element->getNcore() << endl;
+                        _nw_file << element_name << " nelec " << element.getNcore() << endl;
 
-                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        for (Element::ShellIterator its = element.firstShell(); its != element.lastShell(); its++) {
 
                             Shell* shell = (*its);
                             string shelltype=shell->getType();
-                            if(shell->getLmax()==element->getLmax()){
+                            if(shell->getLmax()==element.getLmax()){
                               shelltype="ul";
                             }
                             _nw_file<<element_name<<" "<<shelltype<<endl;

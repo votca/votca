@@ -60,7 +60,7 @@ void Density2Gyration::Initialize( tools::Property* options) {
       BasisSet bs;
       bs.LoadBasisSet(_orbitals.getDFTbasis());
       AOBasis basis;
-      basis.AOBasisFill(&bs, _Atomlist);
+      basis.AOBasisFill(bs, _Atomlist);
       // Analyze geometry
       AnalyzeGeometry(_Atomlist);
       std::vector<Eigen::MatrixXd > DMAT;

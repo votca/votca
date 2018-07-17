@@ -56,8 +56,8 @@ Eigen::MatrixXd NBO::IntercenterOrthogonalisation(Eigen::MatrixXd &P, Eigen::Mat
     int functionindex=0;
     for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
         std::map< int,std::vector< int > > shellsort;
-        Element* element = bs.getElement((*atom)->getType());
-        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+        const Element& element = bs.getElement((*atom)->getType());
+        for (Element::ShellIterator its = element.firstShell(); its != element.lastShell(); its++) {
             
            // for loop because shells can also consist of SP shells or alike
             for(unsigned i = 0; i <(*its)->getType().length(); ++i) {

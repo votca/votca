@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(aomatrices_test) {
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   AOOverlap overlap;
   overlap.Fill(aobasis);
   Eigen::MatrixXd overlap_ref=Eigen::MatrixXd::Zero(17,17);
@@ -181,7 +181,7 @@ ecpfile << "</pseudopotential>" << endl;
 BasisSet ecps;
 ecps.LoadPseudopotentialSet("ecp.xml");
 AOBasis ecpbasis;
-ecpbasis.ECPFill(&ecps,orbitals.QMAtoms());
+ecpbasis.ECPFill(ecps,orbitals.QMAtoms());
 
 AOECP ecp;
 ecp.setECP(&ecpbasis);
@@ -216,7 +216,7 @@ BOOST_AUTO_TEST_CASE(aocoulomb_inv_test) {
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   
   AOCoulomb cou;
 cou.Fill(aobasis);

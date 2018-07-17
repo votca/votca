@@ -58,12 +58,12 @@ public:
     Shell* shell;
 private:
     // private constructor, only a shell can create a primitive
-    GaussianPrimitive( double _decay, std::vector<double> _contraction, Shell *_shell = NULL ) 
+    GaussianPrimitive( double _decay, std::vector<double> _contraction, Shell *_shell) 
     : decay(_decay),
     contraction(_contraction),
     shell(_shell) { ; }
 
-    GaussianPrimitive( int _power, double _decay, std::vector<double> _contraction, Shell *_shell = NULL ) 
+    GaussianPrimitive( int _power, double _decay, std::vector<double> _contraction, Shell *_shell ) 
     : power(_power),
     decay(_decay),
     contraction(_contraction),
@@ -76,30 +76,34 @@ class Shell
     friend class Element;   
 public:
 
-    std::string getType() { return _type; }
+    std::string getType() const{ return _type; }
     
-    bool combined(){
+    bool combined()const{
         if (_type.length()>1){
             return true;
         }
         return false;
     }
     
-    int getLmax(  ) {
+    int getLmax() const{
         return FindLmax(_type);
     }
     
-    int getLmin(  ) {
+    int getLmin()const {
         return FindLmin(_type);
     }
     
-    int getnumofFunc() {
+    int getnumofFunc() const{
         return NumFuncShell(_type);
     }; 
-
-    double getScale() { return _scale; }
     
-    int getSize() { return _gaussians.size(); }
+    int getOffset()const{
+        return OffsetFuncShell(_type);
+    }
+
+    double getScale() const{ return _scale; }
+    
+    int getSize() const{ return _gaussians.size(); }
     
     // iterator over pairs (decay constant; contraction coefficient)
     typedef std::vector< GaussianPrimitive* >::iterator GaussianIterator;
@@ -134,12 +138,10 @@ private:
        for (std::vector< GaussianPrimitive* >::iterator it = _gaussians.begin(); it != _gaussians.end() ; it++ ) delete (*it); 
        _gaussians.clear();
    }
-    
-   
+
     std::string _type;
     // scaling factor
     double _scale;
-     
 
     // vector of pairs of decay constants and contraction coefficients
     std::vector< GaussianPrimitive* > _gaussians;
@@ -154,26 +156,22 @@ class Element
     friend class BasisSet;
 public:
     
-    typedef std::vector< Shell* >::iterator ShellIterator;
-    ShellIterator firstShell() { return _shells.begin(); }
-    ShellIterator lastShell(){ return _shells.end(); }
+    typedef std::vector< Shell* >::const_iterator ShellIterator;
+    ShellIterator firstShell() const{ return _shells.begin(); }
+    ShellIterator lastShell() const{ return _shells.end(); }
 
-    std::string getType(){ return _type; }
+    const std::string& getType()const{ return _type; }
     
-    int getLmax() { return _lmax; }
+    int getLmax() const{ return _lmax; }
     
-    int getNcore() { return _ncore; }
-    
-    Shell* getShell( ShellIterator it ) { return (*it); }
-    
+    int getNcore() const{ return _ncore; }
+      
     Shell* addShell( std::string shellType, double shellScale ) 
     { 
         Shell* shell = new Shell( shellType, shellScale, this );
         _shells.push_back(shell); 
         return shell;
     }
-    
-    std::vector<Shell*> getShells() { return _shells; }
     
 private:  
     
@@ -206,23 +204,23 @@ class BasisSet
 {
 public:
     
-    void LoadBasisSet ( std::string name );
+    void LoadBasisSet ( const std::string& name );
 
-    void LoadPseudopotentialSet ( std::string name );
+    void LoadPseudopotentialSet ( const std::string& name );
     
     Element* addElement(std::string elementType );
     
     // used for pseudopotentials only
     Element* addElement(std::string elementType, int lmax, int ncore );
  
-    Element* getElement( std::string element_type ) {
+    const Element& getElement( std::string element_type ) const{
         
-         std::map<std::string,Element*>::iterator itm = _elements.find( element_type );
+         std::map<std::string,Element*>::const_iterator itm = _elements.find( element_type );
          
          if ( itm == _elements.end() ) throw std::runtime_error( "Basis set "+_name+" does not have element of type " + element_type );
          
-         Element* element = (*itm).second;
-         return element; 
+         const Element* element = (*itm).second;
+         return *element; 
      }
     
         

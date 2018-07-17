@@ -33,13 +33,13 @@ namespace votca {
 
 
             AOBasis _dftbasis;
-            _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
+            _dftbasis.AOBasisFill(_dftbasisset, _orbitals->QMAtoms());
             //necessary to update nuclear charges on qmatoms
             if (_write_pseudopotentials) {
                 BasisSet _ecps;
                 _ecps.LoadPseudopotentialSet(_ecp_name);
                 AOBasis _ecpbasis;
-                _ecpbasis.ECPFill(&_ecps, _orbitals->QMAtoms());
+                _ecpbasis.ECPFill(_ecps, _orbitals->QMAtoms());
             }
 
             if (_orbitals->hasAOOverlap()) {
@@ -65,7 +65,7 @@ namespace votca {
                 throw std::runtime_error("Orbitals object has no QMAtoms");
             }
             AOBasis _dftbasis;
-            _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
+            _dftbasis.AOBasisFill(_dftbasisset, _orbitals->QMAtoms());
             _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), "xtp", getPackageName());
             return;
         }

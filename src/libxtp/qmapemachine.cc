@@ -396,7 +396,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
     // fill DFT AO basis by going through all atoms
     AOBasis dftbasis;
-    dftbasis.AOBasisFill(&dftbs, orb.QMAtoms() );
+    dftbasis.AOBasisFill(dftbs, orb.QMAtoms() );
     // TBD: Need to switch between singlets and triplets depending on _type
    Eigen::MatrixXd DMATGS = orb.DensityMatrixGroundState();
     Eigen::MatrixXd DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution

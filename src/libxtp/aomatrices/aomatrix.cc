@@ -31,7 +31,7 @@ namespace votca {
 
         void AOSuperMatrix::PrintIndexToFunction(const AOBasis& aobasis) {
             for (AOBasis::AOShellIterator _row = aobasis.firstShell(); _row != aobasis.lastShell(); _row++) {
-                const AOShell* _shell_row = aobasis.getShell(_row);
+                const AOShell* _shell_row = *_row;
                 int _row_start = _shell_row->getStartIndex();
                 std::string type = _shell_row->getType();
                 std::cout << "Shell " << type << "starts at " << _row_start + 1 << std::endl;
@@ -93,7 +93,7 @@ namespace votca {
 
                 // loop column
                 for (AOBasis::AOShellIterator _col = aobasis.firstShell(); _col != aobasis.lastShell(); _col++) {
-                    const AOShell* _shell_col = aobasis.getShell(_col);
+                    const AOShell* _shell_col = *_col;
 
                     // figure out the submatrix
                     int _col_start = _shell_col->getStartIndex();

@@ -71,7 +71,7 @@ namespace votca {
       int _start = left_dftshell->getStartIndex();
       // alpha-loop over the aux basis function
       for (AOBasis::AOShellIterator _auxS = auxbasis.firstShell(); _auxS != auxbasis.lastShell(); ++_auxS) {
-        const AOShell* _shell_aux = auxbasis.getShell(_auxS);
+        const AOShell* _shell_aux = *_auxS;
         int _aux_start = _shell_aux->getStartIndex();
 
 

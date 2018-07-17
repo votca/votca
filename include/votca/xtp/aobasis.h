@@ -34,24 +34,22 @@ class AOShell;
 class QMAtom;
 
 
-/*
- * A collection of shells associated with a specific element  
+/**
+ * \brief Container to hold Basisfunctions for all atoms 
+ * 
+ * It is constructed from a vector of QMAtoms and a BasisSet.
  */
 class AOBasis 
 {   
 public:
-        AOBasis( ) { ; }
-        ~AOBasis(); 
-      
-       void ReorderMOs(Eigen::MatrixXd &v,const std::string& start, const std::string& target ); 
-       
-       void ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target );
-     
-      
-
-    void AOBasisFill( BasisSet* bs , std::vector<QMAtom* > segments, int fragbreak = -1);
-    void ECPFill( BasisSet* bs , std::vector<QMAtom* > segments); 
     
+    ~AOBasis();//has to be declared, deletes std::vector<*Shell>_aoshells
+    void ReorderMOs(Eigen::MatrixXd &v,const std::string& start, const std::string& target ); 
+       
+    void ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target );
+
+    void AOBasisFill( const BasisSet& bs , std::vector<QMAtom* > segments, int fragbreak = -1);
+    void ECPFill( const BasisSet& bs , std::vector<QMAtom* > segments); 
     
     unsigned AOBasisSize() const {return _AOBasisSize; }
     
@@ -60,15 +58,9 @@ public:
     AOShellIterator lastShell() const{ return _aoshells.end(); }
 
     Eigen::MatrixXd getTransformationCartToSpherical(const std::string& package);
-   
-        
-    const AOShell* getShell( AOShellIterator it ) const{ return (*it); }
     
     const AOShell* getShell( int idx )const{ return _aoshells[idx] ;}
-    
-    AOShell* addShell( std::string shellType,int Lmax,int Lmin, double shellScale, int shellFunc, int startIndex, int offset, tools::vec pos, std::string name, int index ); 
-  
-    
+
     const std::vector<AOShell*>& getShells() const{ return _aoshells; }
     
     const std::vector<const AOShell*> getShellsperAtom(int AtomId)const;
@@ -80,8 +72,14 @@ public:
     int getAOBasisFragA() const{return _AOBasisFragA;}
     
    int getAOBasisFragB() const{return _AOBasisFragB;}
-   private:
-       
+  
+
+private:
+    
+  AOShell* addShell( const Shell& shell, const QMAtom& atom, int startIndex );  
+  
+  AOShell* addECPShell( const Shell& shell, const QMAtom& atom, int startIndex,bool nonlocal);  
+    
        
   void MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier );
    
@@ -99,7 +97,6 @@ public:
   
     void addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& _submatrix );
     
-    int getMaxFunctions ( );
     
    int _AOBasisFragA;
    int _AOBasisFragB;

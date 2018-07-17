@@ -512,10 +512,10 @@ namespace votca {
 
 
         NumericalIntegration gridIntegration;
-        dftbasis.AOBasisFill(&_dftbasisset, atom);
+        dftbasis.AOBasisFill(_dftbasisset, atom);
         AOBasis ecp;
         if (with_ecp) {
-          ecp.ECPFill(&_ecpbasisset, atom);
+          ecp.ECPFill(_ecpbasisset, atom);
         }
         gridIntegration.GridSetup(_grid_name, atom, &dftbasis);
         gridIntegration.setXCfunctional(_xc_functional_name);
@@ -743,14 +743,14 @@ namespace votca {
       // load and fill DFT basis set
       _dftbasisset.LoadBasisSet(_dftbasis_name);
 
-      _dftbasis.AOBasisFill(&_dftbasisset, _atoms);
+      _dftbasis.AOBasisFill(_dftbasisset, _atoms);
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
 
       if (_with_RI) {
         // load and fill AUX basis set
         _auxbasisset.LoadBasisSet(_auxbasis_name);
         //_orbitals->setDFTbasis( _dftbasis_name );
-        _auxbasis.AOBasisFill(&_auxbasisset, _atoms);
+        _auxbasis.AOBasisFill(_auxbasisset, _atoms);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded AUX Basis Set " << _auxbasis_name << flush;
       }
       if (_with_ecp) {
@@ -759,7 +759,7 @@ namespace votca {
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded ECP library " << _ecp_name << flush;
 
         // fill auxiliary ECP basis by going through all atoms
-        _ecp.ECPFill(&_ecpbasisset, _atoms);
+        _ecp.ECPFill(_ecpbasisset, _atoms);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled ECP Basis of size " << _ecp.getNumofShells() << flush;
       }
 
@@ -905,7 +905,7 @@ namespace votca {
       std::vector<int> starts;
       std::vector<int> ends;
       for (it = dftbasis.firstShell(); it < dftbasis.lastShell(); ++it) {
-        const AOShell* shell = dftbasis.getShell(it);
+        const AOShell* shell = *it;
         int end = shell->getNumFunc() + start;
 
         if (shell->getLmax() != shell->getLmin()) {

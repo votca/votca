@@ -263,7 +263,7 @@ namespace votca {
 
             // fill DFT AO basis by going through all atoms 
             AOBasis dftbasis;
-            dftbasis.AOBasisFill(&dftbs, _orbitals.QMAtoms());
+            dftbasis.AOBasisFill(dftbs, _orbitals.QMAtoms());
 
             // now depending on the type of cube
             if (_do_groundstate || _do_bse || _do_transition) {

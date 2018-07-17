@@ -38,14 +38,9 @@ namespace votca { namespace xtp {
          *        S, P, D, F  functions in DFT basis and non-local ECPs with l = 0, 1, 2, 3, 4
          *
          */
-
-
-
-            // get shell positions       
     
             int _lmax_row = _shell_row->getLmax();
             std::vector<double> _contractions_row_full((_lmax_row + 1)*(_lmax_row + 1));
-
 
             int _lmax_col = _shell_col->getLmax();
             std::vector<double> _contractions_col_full((_lmax_col + 1)*(_lmax_col + 1));
@@ -110,15 +105,15 @@ namespace votca { namespace xtp {
                     int _lmax_ecp = 0;
                     for (AOBasis::AOShellIterator _ecpit = _ecp->firstShell(); _ecpit != _ecp->lastShell(); ++_ecpit) {
 
-                        const AOShell* _shell_ecp = _ecp->getShell(_ecpit);
+                        const AOShell* _shell_ecp = *_ecpit;
                         const tools::vec& _ecp_pos = _shell_ecp->getPos();
 
                         int this_atom = _shell_ecp->getIndex();
 
-                        const int _ecp_l = _shell_ecp->getOffset(); //  angular momentum l is stored in offset for ECP
+                        const int _ecp_l = _shell_ecp->getLmax(); // as ECP shells are never combined Lmax=Lmin=l
 
                         // only do the non-local parts
-                        if (_ecp_l < _shell_ecp->getNumFunc()) {
+                        if (_shell_ecp->isNonLocal()) {
                             int _lmax_ecp_old = _lmax_ecp;
                             _lmax_ecp = _shell_ecp->getNumFunc() - 1;
                             int i_fit = -1;

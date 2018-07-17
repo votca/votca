@@ -208,7 +208,7 @@ int OffsetFuncShell_cartesian(const std::string& shell_type ) {
 }    
     
 
-void BasisSet::LoadBasisSet ( std::string name ) 
+void BasisSet::LoadBasisSet (const std::string& name ) 
 {    
     tools::Property basis_property;
     _name=name;
@@ -253,7 +253,6 @@ void BasisSet::LoadBasisSet ( std::string name )
                 for (std::list<tools::Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont){
                     std::string contrType = (*itcont)->getAttribute<std::string>("type");
                     double contrFactor = (*itcont)->getAttribute<double>("factor");
-                    //cout << " factor " << contrFactor << endl;
                     if ( contrType == "S" ) contraction[0] = contrFactor;
                     else if ( contrType == "P" ) contraction[1] = contrFactor;
                     else if ( contrType == "D" ) contraction[2] = contrFactor;
@@ -276,7 +275,7 @@ void BasisSet::LoadBasisSet ( std::string name )
 }
 
 
-void BasisSet::LoadPseudopotentialSet ( std::string name ) 
+void BasisSet::LoadPseudopotentialSet (const std::string& name ) 
 {    
     tools::Property basis_property;
     _name=name;
@@ -293,7 +292,9 @@ void BasisSet::LoadPseudopotentialSet ( std::string name )
     }
     bool success = load_property_from_xml(basis_property, xmlFile);
     
-    if ( !success ) {; }
+    if ( !success ) {
+      throw std::runtime_error("Basisset could not be loaded!");
+    }
     
     std::list<tools::Property*> elementProps = basis_property.Select("pseudopotential.element");
         
@@ -313,20 +314,15 @@ void BasisSet::LoadPseudopotentialSet ( std::string name )
             double shellScale = 1.0;
             
             Shell* shell = element->addShell( shellType, shellScale );
-            //cout << "\n\tShell " << shellType;
             
             std::list<tools::Property*> constProps = (*its)->Select("constant");
             for (std::list<tools::Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
             {
                 int power = (*itc)->getAttribute<int>("power");
                 double decay = (*itc)->getAttribute<double>("decay");
-                //double contraction = (*itc)->getAttribute<double>("contraction");
                 std::vector<double> contraction;
-                // just testing here with single value 
                 contraction.push_back((*itc)->getAttribute<double>("contraction"));
-                //shell->addGaussian(decay, contraction);
                 shell->addGaussian(power, decay, contraction);
-                //cout << "\n\t\t" << decay << " " << contraction << endl;
             }
             
         }

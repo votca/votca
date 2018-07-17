@@ -162,7 +162,7 @@ namespace votca {
                     if (ite == elements.end()) {
                         elements.push_back(element_name);
 
-                        Element* element = bs.getElement(element_name);
+                        const Element& element = bs.getElement(element_name);
                         /* Alternative is to write each basis set to a element_name.gbs file
                          * and include the gbs file in the com-file via Gaussian's @ function
                          * Advantage: *gbs files can be reused by isogwa later
@@ -175,7 +175,7 @@ namespace votca {
                         //_com_file << element_name << " 0" << endl;
                         _com_file << "@" << element_name << ".gbs" << endl;
                         _el_file << element_name << " 0" << endl;
-                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        for (Element::ShellIterator its = element.firstShell(); its != element.lastShell(); its++) {
 
                             Shell* shell = (*its);
                             //gaussian can only use S,P,SP,D,F,G shells so we split them up if not SP
@@ -253,14 +253,14 @@ namespace votca {
                     if (ite == elements.end()) {
                         elements.push_back(element_name);
 
-                        Element* element = ecp.getElement(element_name);
+                        const Element& element = ecp.getElement(element_name);
 
                         // element name, [possibly indeces of centers], zero to indicate the end
                         _com_file << element_name << " 0\n"
                                 << _ecp_name << " "
-                                << element->getLmax() << " " << element->getNcore() << endl;
+                                << element.getLmax() << " " << element.getNcore() << endl;
 
-                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        for (Element::ShellIterator its = element.firstShell(); its != element.lastShell(); its++) {
 
                             Shell* shell = (*its);
                             // shell type, number primitives, scale factor
@@ -1268,7 +1268,7 @@ namespace votca {
                     throw runtime_error("Orbitals object has no QMAtoms");
                 }
                 AOBasis _dftbasis;
-                _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
+                _dftbasis.AOBasisFill(_dftbasisset, _orbitals->QMAtoms());
                 
                 
                 Eigen::MatrixXd _carttrafo=_dftbasis.getTransformationCartToSpherical(getPackageName());

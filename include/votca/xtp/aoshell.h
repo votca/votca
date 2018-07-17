@@ -25,12 +25,13 @@
 #include <votca/xtp/eigen.h>
 #include <votca/tools/constants.h>
 
+#include <votca/xtp/basisset.h>
+#include "qmatom.h"
+
 namespace votca { namespace xtp {
 
 class AOBasis;
 class AOShell;  
-
-
 
 
 // Gaussian function: contraction*exp(-decay*r^2)
@@ -85,6 +86,8 @@ public:
     int getLmax(  ) const{ return _Lmax;}
     int getLmin(  ) const{ return _Lmin;}
     
+    bool isNonLocal(  ) const{ return _nonlocal;}
+    
     const tools::vec& getPos() const{ return _pos; }
     double getScale() const{ return _scale; }
     
@@ -131,14 +134,21 @@ public:
 private:   
 
     // only class aobasis can construct shells    
-    AOShell( std::string type,int Lmax,int Lmin, double scale, int numFunc, int startIndex, 
-            int offset, tools::vec pos, std::string atomname, int atomindex, AOBasis* aobasis = NULL )
-            : _type(type),_Lmax(Lmax),_Lmin(Lmin), _scale(scale), _numFunc(numFunc),
-                    _startIndex(startIndex), _offset(offset), _pos(pos) , 
-                    _atomname(atomname), _atomindex(atomindex) { ; }
+    AOShell( const Shell& shell, const QMAtom & atom, int startIndex)
+            : _type(shell.getType()),_Lmax(shell.getLmax()),_Lmin(shell.getLmin()),
+                    _scale(shell.getScale()), _numFunc(shell.getnumofFunc()),
+                    _startIndex(startIndex), _offset(shell.getOffset()), _pos(atom.getPos()) , 
+                    _atomname(atom.getType()), _atomindex(atom.getAtomID()) { ; }
+    // for ECPs
+    AOShell( const Shell& shell, const QMAtom & atom, int startIndex, bool nonlocal)
+            : _type(shell.getType()),_Lmax(shell.getLmax()),_Lmin(shell.getLmin()),
+                    _scale(shell.getScale()), _numFunc(shell.getnumofFunc()),
+                    _startIndex(startIndex), _offset(shell.getOffset()), _pos(atom.getPos()) , 
+                    _atomname(atom.getType()), _atomindex(atom.getAtomID()),_nonlocal(nonlocal) { ; }
+            
     
     // only class aobasis can destruct shells
-            ~AOShell(){};
+    ~AOShell(){};
     
     // shell type (S, P, D))
     std::string _type;
@@ -154,9 +164,10 @@ private:
     tools::vec _pos;
     std::string _atomname;
     int _atomindex;
-     
-
     
+    //used for ecp calculations
+    bool _nonlocal;
+     
     // vector of pairs of decay constants and contraction coefficients
     std::vector< AOGaussianPrimitive > _gaussians;
     

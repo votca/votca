@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian){
   basis.LoadBasisSet("3-21G.xml");
   
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   
   Orbitals orb;
   orb.setBasisSetSize(17);

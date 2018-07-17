@@ -21,7 +21,6 @@
 #define	__VOTCA_XTP_QMATOM_H
 
 #include <votca/tools/vec.h> 
-#include <votca/xtp/aoshell.h>
 #include <votca/xtp/checkpointwriter.h>
 #include <votca/xtp/checkpointreader.h>
 
@@ -42,7 +41,7 @@ public:
             :index(_index), type( _element), nuccharge(0), ecpcharge(0),partialcharge(0.0)
             {pos=tools::vec(_x,_y,_z);}
             
-   QMAtom (int _index,std::string _element, tools::vec _pos)
+   QMAtom (int _index,std::string _element,const tools::vec& _pos)
             :index(_index), type( _element ),nuccharge(0), ecpcharge(0),partialcharge(0.0)
             {pos=_pos;}
    
@@ -58,15 +57,13 @@ public:
 
    const std::string & getType() const { return type;}
    
-  int getAtomID(){ return index;}
+  int getAtomID()const{ return index;}
    
-   int getNuccharge() { return nuccharge-ecpcharge;}
+   int getNuccharge() const{ return nuccharge-ecpcharge;}
        
    void setPartialcharge(double _q){partialcharge=_q;}
    const double & getPartialcharge() const { return partialcharge;}
-   
-  
-   
+
 private:
     
    int index;

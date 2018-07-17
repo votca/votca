@@ -133,9 +133,9 @@ namespace votca {
                 ite = find(elements.begin(), elements.end(), element_name);
                 if (ite == elements.end()) {
                     elements.push_back(element_name);
-                    Element* element = bs.getElement(element_name);
+                    const Element& element = bs.getElement(element_name);
                     _el_file << _elements.getEleFull(element_name) << endl;
-                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                    for (Element::ShellIterator its = element.firstShell(); its != element.lastShell(); its++) {
                         Shell* shell = (*its);
 
                         string type = shell->getType();
@@ -213,16 +213,16 @@ namespace votca {
                     ite = find(elements.begin(), elements.end(), element_name);
                     if (ite == elements.end()) {
                         elements.push_back(element_name);
-                        Element* element = ecp.getElement(element_name);
+                        const Element& element = ecp.getElement(element_name);
                         _com_file << "\n" << "NewECP" << " " << element_name << endl;
-                        _com_file << "N_core" << " " << element->getNcore() << endl;
+                        _com_file << "N_core" << " " << element.getNcore() << endl;
                         //lmaxnum2lmaxname
-                        _com_file << "lmax" << " " << getLName(element->getLmax()) << endl;
+                        _com_file << "lmax" << " " << getLName(element.getLmax()) << endl;
 
                         //For Orca the order doesn't matter but let's write it in ascending order
                         // write remaining shells in ascending order s,p,d...
-                        for (int i = 0; i <= element->getLmax(); i++) {
-                            for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        for (int i = 0; i <= element.getLmax(); i++) {
+                            for (Element::ShellIterator its = element.firstShell(); its != element.lastShell(); its++) {
                                 Shell* shell = (*its);
                                 if (shell->getLmax() == i) {
                                     // shell type, number primitives, scale factor
