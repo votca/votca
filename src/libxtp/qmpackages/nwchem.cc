@@ -186,7 +186,7 @@ namespace votca {
             if (_write_charges) {
                 qmatoms = orbitals_guess->QMAtoms();
             } else {
-                QMMInterface qmmface;
+                QMInterface qmmface;
                 qmatoms = qmmface.Convert(segments);
             }
 

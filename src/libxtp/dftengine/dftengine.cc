@@ -825,7 +825,7 @@ namespace votca {
         return 0;
       }
 
-      QMMInterface qmminter;
+      QMInterface qmminter;
       ctp::PolarSeg nuclei = qmminter.Convert(_atoms);
 
       for (unsigned i = 0; i < nuclei.size(); ++i) {

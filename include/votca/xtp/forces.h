@@ -107,7 +107,7 @@ namespace votca {
             void RemoveCoMForce();
             Eigen::Vector3d TotalForce();
 
-            QMMInterface _qminterface;
+            QMInterface _qminterface;
             ctp::Logger *_pLog;
         };
 

@@ -86,7 +86,7 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, _log) << "Reading molecular coordinates from " << _xyzfile << flush;
             Orbitals temp;
             temp.LoadFromXYZ(_xyzfile);
-            QMMInterface qminterface;
+            QMInterface qminterface;
             qminterface.Orbitals2Segment(&_segment,&temp);
             _segments.push_back(&_segment);
 

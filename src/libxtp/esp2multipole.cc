@@ -147,7 +147,7 @@ namespace votca {
             }
             string tag = "TOOL:" + Identify() + "_" + GetIdentifier() + "_" + _spin;
 
-            QMMInterface Converter;
+            QMInterface Converter;
             ctp::PolarSeg result = Converter.Convert(_Atomlist);
 
             result.WriteMPS(_output_file, tag);

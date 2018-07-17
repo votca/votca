@@ -73,7 +73,7 @@ private:
     // GDMA _gdma;
     Property _gdma_options;
     bool _do_gdma;
-    QMMInterface qminterface;
+    QMInterface qminterface;
 
 
 

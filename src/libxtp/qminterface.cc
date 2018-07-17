@@ -35,7 +35,7 @@ using boost::format;
 namespace votca {
     namespace xtp {
 
-        ctp::APolarSite *QMMInterface::Convert(QMAtom *atm, int id) {
+        ctp::APolarSite *QMInterface::Convert(QMAtom *atm, int id) {
           
             
             std::string elem = atm->getType();
@@ -60,7 +60,7 @@ namespace votca {
             return new_aps;
         }
 
-        ctp::PolarSeg QMMInterface::Convert(std::vector<QMAtom*> &atms) {
+        ctp::PolarSeg QMInterface::Convert(std::vector<QMAtom*> &atms) {
             ctp::PolarSeg new_pseg = ctp::PolarSeg();
             std::vector<QMAtom*>::iterator it;
             for (it = atms.begin(); it < atms.end(); ++it) {
@@ -70,7 +70,7 @@ namespace votca {
             return new_pseg;
         }
 
-        std::vector<QMAtom *> QMMInterface::Convert(std::vector<ctp::Segment* > segments) {
+        std::vector<QMAtom *> QMInterface::Convert(std::vector<ctp::Segment* > segments) {
 
             std::vector<QMAtom *> qmatoms;
 
@@ -97,7 +97,7 @@ namespace votca {
             return qmatoms;
         }
 
-        void QMMInterface::GenerateQMAtomsFromPolarSegs(ctp::PolarTop *ptop, Orbitals &orb) {
+        void QMInterface::GenerateQMAtomsFromPolarSegs(ctp::PolarTop *ptop, Orbitals &orb) {
           int AtomID=0;
             // INNER SHELL QM0
             for (unsigned int i = 0; i < ptop->QM0().size(); ++i) {
@@ -114,7 +114,7 @@ namespace votca {
         }
 
 
-        std::vector<ctp::PolarSeg*> QMMInterface::GenerateMultipoleList(ctp::PolarTop *ptop  ) {
+        std::vector<ctp::PolarSeg*> QMInterface::GenerateMultipoleList(ctp::PolarTop *ptop  ) {
 
             std::vector<ctp::PolarSeg*> MultipoleList;
 
@@ -134,7 +134,7 @@ namespace votca {
         }
 
 
-        void QMMInterface::Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals) {
+        void QMInterface::Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals) {
 
             
             std::vector<QMAtom* > ::iterator ait;

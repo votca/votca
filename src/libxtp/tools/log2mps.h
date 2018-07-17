@@ -114,7 +114,7 @@ bool Log2Mps::Evaluate() {
     
     
     // Convert to polar segment & write mps-file
-    QMMInterface qmmface;
+    QMInterface qmmface;
     ctp::PolarSeg pseg = qmmface.Convert(qmatoms);
     
     string tag = "::LOG2MPS " 

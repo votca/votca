@@ -59,7 +59,7 @@ public:
     
 private:    
     
-    QMMInterface qminterface;
+    QMInterface qminterface;
     ctp::Logger *_log;
 
     bool _run_ape;

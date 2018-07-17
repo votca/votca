@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __QMMINTERFACE__H
-#define	__QMMINTERFACE__H
+#ifndef __QMINTERFACE__H
+#define	__QMINTERFACE__H
 
 
 
@@ -43,12 +43,12 @@ namespace votca { namespace xtp {
 // QM-MM INTERFACE CLASS - CONVERTS BETWEEN QMATOMS <> POLAR OBJECTS          //
 // ========================================================================== //
     
-class QMMInterface
+class QMInterface
 {
 public:
     
-    QMMInterface() { _polar_table = ctp::POLAR_TABLE(); };
-   ~QMMInterface() {};
+    QMInterface() { _polar_table = ctp::POLAR_TABLE(); };
+   ~QMInterface() {};
     
     // CONVERSION QM -> MM
     ctp::APolarSite *Convert(QMAtom *atm, int id = -1);
