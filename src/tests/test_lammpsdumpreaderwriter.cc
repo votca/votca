@@ -17,7 +17,7 @@
 
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE lammpsdumptrajectorywriter_test
+#define BOOST_TEST_MODULE lammpdumpstrajectoryreaderwriter_test
 #include <boost/test/unit_test.hpp>
 
 #include <cmath>
@@ -68,11 +68,11 @@ BOOST_AUTO_TEST_SUITE(lammpsdumpreaderwriter_test)
 		// and read from it. Create a topology object with the same 
 		// molecule to enable the ability to read in the trajectory 
 		// file
-		string filename = "test_thiophene.dump";
-		if(fexists(filename)){
-			remove(filename.c_str());
+		string lammpsdumpfilename = "test_thiophene.dump";
+		if(fexists(lammpsdumpfilename)){
+			remove(lammpsdumpfilename.c_str());
 		}
-		ofstream outfile(filename);
+		ofstream outfile(lammpsdumpfilename);
 		
 		// Atom Coordinates
 		vector<vector<double>> atom_xyz_file = {
@@ -250,8 +250,8 @@ BOOST_AUTO_TEST_SUITE(lammpsdumpreaderwriter_test)
 
 		TrajectoryReader::RegisterPlugins();
 		TrajectoryReader* reader;
-		reader = TrjReaderFactory().Create(filename);
-		reader->Open(filename);
+		reader = TrjReaderFactory().Create(lammpsdumpfilename);
+		reader->Open(lammpsdumpfilename);
 		reader->FirstFrame(top);
 		reader->Close();
 
@@ -267,6 +267,13 @@ BOOST_AUTO_TEST_SUITE(lammpsdumpreaderwriter_test)
 
 	}
 
+  /** 
+   * \brief Testing trajectory writer
+   *
+   * This test first creates a topology object and assigns default values to
+   * it. It then writes the topology info to a lammps dump file. The dump 
+	 * file is then read into the topology file and the values are compared. 
+   */
 	BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
 
 		// Create a topology object with a simple system (2-bonded thiophene monomers)
@@ -379,15 +386,14 @@ BOOST_AUTO_TEST_SUITE(lammpsdumpreaderwriter_test)
 			b->F().z() = atom_forces.at(ind).at(2);
 		}
 
-		string filename = "test_thiophene.dump";
-		if(fexists(filename)){
-			remove(filename.c_str());
+		string lammpsDumpFileName = "test_thiophene.dump";
+		if(fexists(lammpsDumpFileName)){
+			remove(lammpsDumpFileName.c_str());
 		}
 
 		// Write the topology object to a file
 		TrajectoryWriter::RegisterPlugins();
 		TrajectoryWriter* writer;
-		string lammpsDumpFileName = filename;
 		writer = TrjWriterFactory().Create(lammpsDumpFileName);
 		writer->Open(lammpsDumpFileName);
 		writer->Write(&top);
@@ -396,8 +402,8 @@ BOOST_AUTO_TEST_SUITE(lammpsdumpreaderwriter_test)
 		// Read the .dump file and ensure the information is correct
 		TrajectoryReader::RegisterPlugins();
 		TrajectoryReader* reader;
-		reader = TrjReaderFactory().Create(filename);
-		reader->Open(filename);
+		reader = TrjReaderFactory().Create(lammpsDumpFileName);
+		reader->Open(lammpsDumpFileName);
 		reader->FirstFrame(top);
 		reader->Close();
 
