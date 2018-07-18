@@ -40,8 +40,8 @@ class LAMMPSDumpReader :
     public TrajectoryReader, public TopologyReader
 {
     public:
-        LAMMPSReader() {}
-        ~LAMMPSReader() {}
+        LAMMPSDumpReader() {}
+        ~LAMMPSDumpReader() {}
         
         /// open a topology file
         bool ReadTopology(string file, Topology &top);
