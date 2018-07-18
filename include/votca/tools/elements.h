@@ -111,6 +111,21 @@ class Elements {
   const std::string &getEleShort(std::string elefull) const {
     return _EleShort.at(elefull);
   }
+
+	/// Get the shortened element name given a mass similar in size to one of 
+	/// the elements. 
+	std::string getEleShortClosestInMass(double mass){
+		std::string eleShort = "H";
+		double diff = abs(mass-_Mass[eleShort]);
+		for(auto & ele_pr : _Mass ){
+			if(abs(ele_pr.second-mass)<diff){
+				eleShort = ele_pr.first;
+				diff = abs(ele_pr.second-mass);
+			}
+		}
+		return eleShort;
+	}
+
   /// Provided the element symbol returns the element name
   /// "Pb" = "LEAD", "Na" = "SODIUM", ....
   const std::string &getEleFull(std::string eleshort) const {
