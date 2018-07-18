@@ -113,8 +113,9 @@ class Elements {
   }
 
 	/// Get the shortened element name given a mass similar in size to one of 
-	/// the elements. 
-	std::string getEleShortClosestInMass(double mass){
+	/// the elements. Provided the mass is within the specified tolerance of 
+	/// the match.  
+	std::string getEleShortClosestInMass(double mass,double tolerance){
 		std::string eleShort = "H";
 		double diff = abs(mass-_Mass[eleShort]);
 		for(auto & ele_pr : _Mass ){
@@ -122,6 +123,9 @@ class Elements {
 				eleShort = ele_pr.first;
 				diff = abs(ele_pr.second-mass);
 			}
+		}
+		if(diff/_Mass[eleShort]>tolerance){
+			throw std::runtime_error("Mass exceeds tolerance of match");
 		}
 		return eleShort;
 	}

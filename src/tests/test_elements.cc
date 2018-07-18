@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   BOOST_CHECK_EQUAL(ele.getPolarizability("F"), 0.440e-3);
   BOOST_CHECK_THROW(ele.getPolarizability("Pb"), invalid_argument);
 
-	BOOST_CHECK_EQUAL("C",ele.getEleShortClosestInMass(12.01));
+	BOOST_CHECK_EQUAL("C",ele.getEleShortClosestInMass(12.01,0.01));
   
 }
 
