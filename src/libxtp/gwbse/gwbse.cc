@@ -99,45 +99,45 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key +
    *  - number of excitations calculates in BSE
    */
 
-  _homo = _orbitals->getNumberOfElectrons() - 1;  // indexed from 0
+  _homo = _orbitals.getNumberOfElectrons() - 1;  // indexed from 0
 
  _reset_3c=options->ifExistsReturnElseReturnDefault<int>(
       key + ".rebuild_threecenter_freq", 5);
 
   _rpamin = 0;  // lowest index occ min(gwa%mmin, screening%nsum_low) ! always 1
   if (ranges == "default" || ranges == "full") {
-    _rpamax = _orbitals->getNumberOfLevels() - 1;  // total number of levels
+    _rpamax = _orbitals.getNumberOfLevels() - 1;  // total number of levels
   } else if (ranges == "factor") {
-    _rpamax = rpamaxfactor * _orbitals->getNumberOfLevels() -
+    _rpamax = rpamaxfactor * _orbitals.getNumberOfLevels() -
               1;  // total number of levels
   }
-  if (_rpamax > _orbitals->getNumberOfLevels() - 1) {
-    _rpamax = _orbitals->getNumberOfLevels() - 1;
+  if (_rpamax > _orbitals.getNumberOfLevels() - 1) {
+    _rpamax = _orbitals.getNumberOfLevels() - 1;
   }
   // convert _qpmin and _qpmax if needed
   if (ranges == "default") {
     _qpmin = 0;              // indexed from 0
     _qpmax = 2 * _homo + 1;  // indexed from 0
   } else if (ranges == "factor") {
-    if (_orbitals->getNumberOfElectrons() -
-            int(qpminfactor * _orbitals->getNumberOfElectrons()) - 1 <
+    if (_orbitals.getNumberOfElectrons() -
+            int(qpminfactor * _orbitals.getNumberOfElectrons()) - 1 <
         0) {
       _qpmin = 0;
     } else {
-      _qpmin = _orbitals->getNumberOfElectrons() -
-               int(qpminfactor * _orbitals->getNumberOfElectrons()) - 1;
+      _qpmin = _orbitals.getNumberOfElectrons() -
+               int(qpminfactor * _orbitals.getNumberOfElectrons()) - 1;
     }
-    _qpmax = _orbitals->getNumberOfElectrons() +
-             int(qpmaxfactor * _orbitals->getNumberOfElectrons()) - 1;
+    _qpmax = _orbitals.getNumberOfElectrons() +
+             int(qpmaxfactor * _orbitals.getNumberOfElectrons()) - 1;
   } else if (ranges == "explicit") {
     _qpmin -= 1;
     _qpmax -= 1;
   } else if (ranges == "full") {
     _qpmin = 0;
-    _qpmax = _orbitals->getNumberOfLevels() - 1;
+    _qpmax = _orbitals.getNumberOfLevels() - 1;
   }
-  if (_qpmax > unsigned(_orbitals->getNumberOfLevels() - 1)) {
-    _qpmax = _orbitals->getNumberOfLevels() - 1;
+  if (_qpmax > unsigned(_orbitals.getNumberOfLevels() - 1)) {
+    _qpmax = _orbitals.getNumberOfLevels() - 1;
   }
   
  
@@ -151,24 +151,24 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key +
     _bse_vmin = 0;              // indexed from 0
     _bse_cmax = 2 * _homo + 1;  // indexed from 0
   } else if (ranges == "factor") {
-    _bse_vmin = _orbitals->getNumberOfElectrons() -
-                int(bseminfactor * _orbitals->getNumberOfElectrons()) - 1;
-    if (_orbitals->getNumberOfElectrons() -
-            int(bseminfactor * _orbitals->getNumberOfElectrons()) - 1 <
+    _bse_vmin = _orbitals.getNumberOfElectrons() -
+                int(bseminfactor * _orbitals.getNumberOfElectrons()) - 1;
+    if (_orbitals.getNumberOfElectrons() -
+            int(bseminfactor * _orbitals.getNumberOfElectrons()) - 1 <
         0) {
       _bse_vmin = 0;
     }
-    _bse_cmax = _orbitals->getNumberOfElectrons() +
-                int(bsemaxfactor * _orbitals->getNumberOfElectrons()) - 1;
+    _bse_cmax = _orbitals.getNumberOfElectrons() +
+                int(bsemaxfactor * _orbitals.getNumberOfElectrons()) - 1;
   } else if (ranges == "explicit") {
     _bse_vmin -= 1;
     _bse_cmax -= 1;
   } else if (ranges == "full") {
     _bse_vmin = 0;
-    _bse_cmax = _orbitals->getNumberOfLevels() - 1;
+    _bse_cmax = _orbitals.getNumberOfLevels() - 1;
   }
-  if (_bse_cmax > unsigned(_orbitals->getNumberOfLevels() - 1)) {
-    _bse_cmax = _orbitals->getNumberOfLevels() - 1;
+  if (_bse_cmax > unsigned(_orbitals.getNumberOfLevels() - 1)) {
+    _bse_cmax = _orbitals.getNumberOfLevels() - 1;
   }
 
   bool ignore_corelevels = options->ifExistsReturnElseReturnDefault<bool>(
@@ -177,11 +177,11 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key +
   
    unsigned _ignored_corelevels = 0;
   if (ignore_corelevels) {
-    if(!_orbitals->hasECP()){
+    if(!_orbitals.hasECP()){
       BasisSet basis;
       basis.LoadPseudopotentialSet("corelevels");//
       unsigned coreElectrons=0;
-      for(const auto& atom:_orbitals->QMAtoms()){
+      for(const auto& atom:_orbitals.QMAtoms()){
         coreElectrons+=basis.getElement(atom->getType()).getNcore();   
       }
        _ignored_corelevels = coreElectrons/2;
@@ -382,7 +382,7 @@ void GWBSE::addoutput(tools::Property *_summary) {
                                (format("%1$+1.6f ") % (_shift * hrt2ev)).str());
 
   _gwbse_summary->setAttribute(
-      "DFTEnergy", (format("%1$+1.6f ") % _orbitals->getQMEnergy()).str());
+      "DFTEnergy", (format("%1$+1.6f ") % _orbitals.getQMEnergy()).str());
   int printlimit = _bse_maxeigenvectors;  // I use this to determine how much is printed,
                                  // I do not want another option to pipe through
 
@@ -396,17 +396,17 @@ void GWBSE::addoutput(tools::Property *_summary) {
     _level_summary->setAttribute("number", state);
     _level_summary->add("dft_energy",
                         (format("%1$+1.6f ") %
-                         ((_orbitals->MOEnergies())(_qpmin + state) * hrt2ev))
+                         ((_orbitals.MOEnergies())(_qpmin + state) * hrt2ev))
                             .str());
     _level_summary->add(
         "gw_energy",
-        (format("%1$+1.6f ") % (_orbitals->QPpertEnergies()(_qpmin + state) * hrt2ev)).str());
+        (format("%1$+1.6f ") % (_orbitals.QPpertEnergies()(_qpmin + state) * hrt2ev)).str());
 
     if (_do_qp_diag) {
       // cout << "_do_qp_diag" <<_do_qp_diag<<endl;
       _level_summary->add(
           "qp_energy",
-          (format("%1$+1.6f ") % (_orbitals->QPdiagEnergies()(_qpmin + state) * hrt2ev))
+          (format("%1$+1.6f ") % (_orbitals.QPdiagEnergies()(_qpmin + state) * hrt2ev))
               .str());
     }
   }
@@ -417,12 +417,12 @@ void GWBSE::addoutput(tools::Property *_summary) {
        tools::Property *_level_summary = &_singlet_summary->add("level", "");
       _level_summary->setAttribute("number", state + 1);
       _level_summary->add("omega", (format("%1$+1.6f ") %
-                                    (_orbitals->BSESingletEnergies()(state) * hrt2ev))
+                                    (_orbitals.BSESingletEnergies()(state) * hrt2ev))
                                        .str());
-      if (_orbitals->hasTransitionDipoles()) {
+      if (_orbitals.hasTransitionDipoles()) {
 
-        const tools::vec &dipoles = (_orbitals->TransitionDipoles())[state];
-        double f = 2 * dipoles * dipoles * _orbitals->BSESingletEnergies()(state) / 3.0;
+        const tools::vec &dipoles = (_orbitals.TransitionDipoles())[state];
+        double f = 2 * dipoles * dipoles * _orbitals.BSESingletEnergies()(state) / 3.0;
 
         _level_summary->add("f", (format("%1$+1.6f ") % f).str());
          tools::Property *_dipol_summary = &_level_summary->add(
@@ -441,7 +441,7 @@ void GWBSE::addoutput(tools::Property *_summary) {
        tools::Property *_level_summary = &_triplet_summary->add("level", "");
       _level_summary->setAttribute("number", state + 1);
       _level_summary->add("omega", (format("%1$+1.6f ") %
-                                    (_orbitals->BSETripletEnergies()(state) * hrt2ev))
+                                    (_orbitals.BSETripletEnergies()(state) * hrt2ev))
                                        .str());
     }
   }
@@ -463,7 +463,7 @@ void GWBSE::addoutput(tools::Property *_summary) {
 Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis){
   
   Eigen::MatrixXd vxc_ao;
-  if (_orbitals->hasAOVxc()) {
+  if (_orbitals.hasAOVxc()) {
     if (_doVxc) {
       CTP_LOG(ctp::logDEBUG, *_pLog)
               << ctp::TimeStamp()
@@ -475,21 +475,21 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis){
     }
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
             << " Loaded external Vxc matrix" << flush;
-    vxc_ao = _orbitals->AOVxc();
+    vxc_ao = _orbitals.AOVxc();
   } else if (_doVxc) {
     
     NumericalIntegration _numint;
     _numint.setXCfunctional(_functional);
     double ScaHFX_temp = _numint.getExactExchange(_functional);
-    if (ScaHFX_temp != _orbitals->getScaHFX()) {
+    if (ScaHFX_temp != _orbitals.getScaHFX()) {
       throw std::runtime_error(
               (boost::format("GWBSE exact exchange a=%s differs from qmpackage "
               "exact exchange a=%s, probably your functionals are "
               "inconsistent") %
-              ScaHFX_temp %  _orbitals->getScaHFX())
+              ScaHFX_temp %  _orbitals.getScaHFX())
               .str());
     }
-    _numint.GridSetup(_grid, _orbitals->QMAtoms(),&dftbasis);
+    _numint.GridSetup(_grid, _orbitals.QMAtoms(),&dftbasis);
     CTP_LOG(ctp::logDEBUG, *_pLog)
             << ctp::TimeStamp()
             << " Setup grid for integration with gridsize: " << _grid << " with "
@@ -498,7 +498,7 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis){
     CTP_LOG(ctp::logDEBUG, *_pLog)
             << ctp::TimeStamp() << " Integrating Vxc in VOTCA with functional "
             << _functional << flush;
-    Eigen::MatrixXd DMAT = _orbitals->DensityMatrixGroundState();
+    Eigen::MatrixXd DMAT = _orbitals.DensityMatrixGroundState();
     
     vxc_ao = _numint.IntegrateVXC(DMAT);
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
@@ -511,11 +511,11 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis){
   }
   
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-          << " Set hybrid exchange factor: " <<  _orbitals->getScaHFX()
+          << " Set hybrid exchange factor: " <<  _orbitals.getScaHFX()
           << flush;
   
   // now get expectation values but only for those in _qpmin:_qpmax range
-  Eigen::MatrixXd _mos = _orbitals->MOCoefficients().block(0,_qpmin,_orbitals->MOCoefficients().rows(),_qptotal);
+  Eigen::MatrixXd _mos = _orbitals.MOCoefficients().block(0,_qpmin,_orbitals.MOCoefficients().rows(),_qptotal);
   
   Eigen::MatrixXd vxc =_mos.transpose()*vxc_ao*_mos;
   CTP_LOG(ctp::logDEBUG, *_pLog)
@@ -626,15 +626,15 @@ bool GWBSE::Evaluate() {
   /* check which QC program was used for the DFT run
    * -> implicit info about MO coefficient storage order
    */
-  std::string _dft_package = _orbitals->getQMpackage();
+  std::string _dft_package = _orbitals.getQMpackage();
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " DFT data was created by " << _dft_package
                                  << flush;
   
    // store information in _orbitals for later use
-  _orbitals->setRPAindices(_rpamin, _rpamax);
-  _orbitals->setGWAindices(_qpmin, _qpmax);
-  _orbitals->setBSEindices(_bse_vmin, _bse_vmax, _bse_cmin, _bse_cmax,
+  _orbitals.setRPAindices(_rpamin, _rpamax);
+  _orbitals.setGWAindices(_qpmin, _qpmax);
+  _orbitals.setBSEindices(_bse_vmin, _bse_vmax, _bse_cmin, _bse_cmax,
                            _bse_maxeigenvectors);
 
 
@@ -642,20 +642,20 @@ bool GWBSE::Evaluate() {
   // load DFT basis set (element-wise information) from xml file
   BasisSet dftbs;
 
-  if (_dftbasis_name != _orbitals->getDFTbasis()) {
+  if (_dftbasis_name != _orbitals.getDFTbasis()) {
     throw std::runtime_error(
-        "Name of the Basisset from .orb file: " + _orbitals->getDFTbasis() +
+        "Name of the Basisset from .orb file: " + _orbitals.getDFTbasis() +
         " and from GWBSE optionfile " + _dftbasis_name + " do not agree.");
   }
 
   dftbs.LoadBasisSet(_dftbasis_name);
-  _orbitals->setDFTbasis(_dftbasis_name);
+  _orbitals.setDFTbasis(_dftbasis_name);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded DFT Basis Set "
                                  << _dftbasis_name << flush;
 
   // fill DFT AO basis by going through all atoms
   AOBasis dftbasis;
-  dftbasis.AOBasisFill(dftbs, _orbitals->QMAtoms(), _fragA);
+  dftbasis.AOBasisFill(dftbs, _orbitals.QMAtoms(), _fragA);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled DFT Basis of size "
                                  << dftbasis.AOBasisSize() << flush;
@@ -667,9 +667,9 @@ bool GWBSE::Evaluate() {
   }
 
   if (_do_full_BSE)
-    _orbitals->setBSEtype("full");
+    _orbitals.setBSEtype("full");
   else {
-    _orbitals->setBSEtype("TDA");
+    _orbitals.setBSEtype("TDA");
   }
   
 
@@ -689,8 +689,8 @@ bool GWBSE::Evaluate() {
 
   // fill auxiliary AO basis by going through all atoms
   AOBasis auxbasis;
-  auxbasis.AOBasisFill(auxbs, _orbitals->QMAtoms());
-  _orbitals->setAuxbasis(_auxbasis_name);
+  auxbasis.AOBasisFill(auxbs, _orbitals.QMAtoms());
+  _orbitals.setAuxbasis(_auxbasis_name);
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Filled Auxbasis of size "
                                  << auxbasis.AOBasisSize() << flush;
@@ -742,7 +742,7 @@ bool GWBSE::Evaluate() {
   TCMatrix_gwbse Mmn;
   //rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
-  Mmn.Fill(auxbasis, dftbasis, _orbitals->MOCoefficients());
+  Mmn.Fill(auxbasis, dftbasis, _orbitals.MOCoefficients());
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
       << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
@@ -766,13 +766,13 @@ bool GWBSE::Evaluate() {
   
   Sigma sigma=Sigma(_pLog);
   sigma.configure(_homo,_qpmin,_qpmax,_g_sc_max_iterations,_g_sc_limit);
-  sigma.setDFTdata(_orbitals->getScaHFX(),&vxc,&_orbitals->MOEnergies());
+  sigma.setDFTdata(_orbitals.getScaHFX(),&vxc,&_orbitals.MOEnergies());
  
   // initialize _qp_energies;
   // shift unoccupied levels by the shift
-  Eigen::VectorXd gwa_energies = Eigen::VectorXd::Zero(_orbitals->getNumberOfLevels());
+  Eigen::VectorXd gwa_energies = Eigen::VectorXd::Zero(_orbitals.getNumberOfLevels());
   for (int i = 0; i < gwa_energies.size(); ++i) {
-    gwa_energies(i) = _orbitals->MOEnergies()(i);
+    gwa_energies(i) = _orbitals.MOEnergies()(i);
     if (i > int(_homo)) {
       gwa_energies(i) += _shift;
     }
@@ -794,7 +794,7 @@ bool GWBSE::Evaluate() {
     _gw_sc_max_iterations = 1;
   }
 
-  const Eigen::VectorXd &_dft_energies = _orbitals->MOEnergies();
+  const Eigen::VectorXd &_dft_energies = _orbitals.MOEnergies();
   for (unsigned gw_iteration = 0; gw_iteration < _gw_sc_max_iterations;
        ++gw_iteration) {
 
@@ -808,7 +808,7 @@ bool GWBSE::Evaluate() {
     
     if(gw_iteration%_reset_3c==0 && gw_iteration!=0){
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Rebuilding Mmn_beta (3-center-repulsion x orbitals)" << flush;
-       Mmn.Fill(auxbasis, dftbasis, _orbitals->MOCoefficients());
+       Mmn.Fill(auxbasis, dftbasis, _orbitals.MOCoefficients());
        Mmn.MultiplyRightWithAuxMatrix(Coulomb_sqrtInv);
     }
   
@@ -894,7 +894,7 @@ bool GWBSE::Evaluate() {
   // store perturbative QP energy data in orbitals object (DFT, S_x,S_c, V_xc,
   // E_qp)
   if (_store_qp_pert) {
-    Eigen::MatrixXd &_qp_energies_store = _orbitals->QPpertEnergies();
+    Eigen::MatrixXd &_qp_energies_store = _orbitals.QPpertEnergies();
     _qp_energies_store=Eigen::MatrixXd::Zero(_qptotal, 5);
     for (unsigned i = 0; i < _qptotal; i++) {
       _qp_energies_store(i, 0) = _dft_energies(i + _qpmin);
@@ -930,8 +930,8 @@ bool GWBSE::Evaluate() {
       PrintQP_Energies(gwa_energies, qp_diag_energies);
 
       if (_store_qp_diag) {
-        _orbitals->QPdiagCoefficients()=es.eigenvectors();
-        _orbitals->QPdiagEnergies()=es.eigenvalues();
+        _orbitals.QPdiagCoefficients()=es.eigenvectors();
+        _orbitals.QPdiagEnergies()=es.eigenvalues();
       }
     }  // _do_qp_diag
   

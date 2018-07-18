@@ -314,7 +314,7 @@ namespace votca {
              * IF the internal ESPFITs should be used, the MOcoefficients
              * need to be parsed too.
              */
-            bool success=_qmpack->ParseLogFile(&orb_iter_input);
+            bool success=_qmpack->ParseLogFile(orb_iter_input);
             if(!success){
                 return 1;
             }
@@ -329,11 +329,11 @@ namespace votca {
                  * for GW-BSE. Internal DFTENGINE has stored coefficients
                  * into orb_iter_input already, so this is a dummy for that.
                  */
-                _qmpack->ParseOrbitalsFile(&orb_iter_input);
+                _qmpack->ParseOrbitalsFile(orb_iter_input);
                 orb_iter_input.setDFTbasis(_qmpack->getBasisSetName());
 
                 // Get a GWBSE object
-                GWBSE _gwbse = GWBSE(&orb_iter_input);
+                GWBSE _gwbse = GWBSE(orb_iter_input);
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 ctp::Logger gwbse_logger(ctp::logDEBUG);
                 gwbse_logger.setMultithreading(false);

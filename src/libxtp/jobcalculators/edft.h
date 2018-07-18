@@ -273,7 +273,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         
    // Parse log files
     if ( _do_parse ) {
-        _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
+        _parse_log_status = _qmpackage->ParseLogFile( _orbitals );
         if ( !_parse_log_status ) {
             output += "log incomplete; ";
             CTP_LOG(ctp::logERROR,*pLog) << "QM log incomplete" << flush;
@@ -286,7 +286,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         }
 
        // Parse orbitals file
-       _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
+       _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( _orbitals );
         if ( !_parse_orbitals_status ) {
             output += "orbitals failed; " ;
             CTP_LOG(ctp::logERROR,*pLog) << "QM orbitals not parsed" << flush;

@@ -86,7 +86,7 @@ namespace votca {
          */
 
 
-        void GWBSEENGINE::ExcitationEnergies(QMPackage* _qmpackage, std::vector<ctp::Segment*> _segments, Orbitals* _orbitals) {
+        void GWBSEENGINE::ExcitationEnergies(QMPackage* _qmpackage, std::vector<ctp::Segment*> _segments, Orbitals& _orbitals) {
 
 
             //redirect log, if required
@@ -120,7 +120,7 @@ namespace votca {
                     _orbitalsA.ReadFromCpt(_guess_archiveA);
                     _orbitalsB.ReadFromCpt(_guess_archiveB);
 
-                    _orbitals->PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
+                    Orbitals::PrepareGuess(_orbitalsA, _orbitalsB, *_orbitalsAB);
 
                 }
                 
@@ -129,7 +129,7 @@ namespace votca {
 
             if (_do_dft_run) {
 
-                bool run_success = _qmpackage->Run( _orbitals );
+                bool run_success = _qmpackage->Run( &_orbitals );
                 if (!run_success) {
                     throw std::runtime_error(std::string("\n GW-BSE without DFT is difficult. Stopping!"));
                 }
@@ -150,7 +150,7 @@ namespace votca {
                     _qmpackage->ParseOrbitalsFile(_orbitals);
                 }
                 
-                _orbitals->setDFTbasis(_qmpackage->getBasisSetName());
+                _orbitals.setDFTbasis(_qmpackage->getBasisSetName());
             }
 
             // if no parsing of DFT data is requested, reload serialized orbitals object
@@ -160,7 +160,7 @@ namespace votca {
                 } else {
                     CTP_LOG_SAVE(ctp::logINFO, *_pLog) << "Loading serialized data from " << _archive_file << flush;
                 }
-                _orbitals->ReadFromCpt(_archive_file);
+                _orbitals.ReadFromCpt(_archive_file);
             }
 
             if (_do_gwbse) {

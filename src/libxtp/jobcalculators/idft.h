@@ -96,7 +96,7 @@ private:
         
     void ParseOptionsXML( tools::Property *opt);    
     
-    void LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log = NULL );
+    void LoadOrbitals(string file_name, Orbitals& orbitals, ctp::Logger *log = NULL );
         
 };
 

@@ -420,18 +420,18 @@ template <typename T>
       Population pop;
       
       std::vector< tools::vec > transition_dipoles=CalcCoupledTransition_Dipoles(dftbasis);
-      _orbitals->TransitionDipoles()=transition_dipoles;
-      std::vector<double> oscs = _orbitals->Oscillatorstrengths();
+      _orbitals.TransitionDipoles()=transition_dipoles;
+      std::vector<double> oscs = _orbitals.Oscillatorstrengths();
       
       if(tools::globals::verbose){
         act = Analyze_eh_interaction("singlet");
       }
       if(dftbasis.getAOBasisFragA()>0){
         pop=FragmentPopulations("singlet",dftbasis);
-        _orbitals->setFragmentChargesSingEXC(pop.Crgs);
-        _orbitals->setFragment_E_localisation_singlet(pop.popE);
-        _orbitals->setFragment_H_localisation_singlet(pop.popH);
-        _orbitals->setFragmentChargesGS(pop.popGs);
+        _orbitals.setFragmentChargesSingEXC(pop.Crgs);
+        _orbitals.setFragment_E_localisation_singlet(pop.popE);
+        _orbitals.setFragment_H_localisation_singlet(pop.popH);
+        _orbitals.setFragmentChargesGS(pop.popGs);
       }
       
       double hrt2ev = tools::conv::hrt2ev;
@@ -483,10 +483,10 @@ template <typename T>
       }
       if(dftbasis.getAOBasisFragA()>0){
         pop=FragmentPopulations("triplet",dftbasis);
-        _orbitals->setFragmentChargesTripEXC(pop.Crgs);
-        _orbitals->setFragment_E_localisation_triplet(pop.popE);
-        _orbitals->setFragment_H_localisation_triplet(pop.popH);
-        _orbitals->setFragmentChargesGS(pop.popGs);
+        _orbitals.setFragmentChargesTripEXC(pop.Crgs);
+        _orbitals.setFragment_E_localisation_triplet(pop.popE);
+        _orbitals.setFragment_H_localisation_triplet(pop.popH);
+        _orbitals.setFragmentChargesGS(pop.popGs);
       }
       CTP_LOG(ctp::logINFO, *_log) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
       int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
@@ -571,21 +571,21 @@ template <typename T>
         _dftoverlap.Fill(dftbasis);
         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << _dftoverlap.Matrix().rows() << flush;
         // ground state populations
-        Eigen::MatrixXd DMAT = _orbitals->DensityMatrixGroundState();
+        Eigen::MatrixXd DMAT = _orbitals.DensityMatrixGroundState();
 
-        Eigen::VectorXd nuccharges = _orbitals->FragmentNuclearCharges(dftbasis.getAOBasisFragA());
-        Eigen::VectorXd pops = _orbitals->LoewdinPopulation(DMAT, _dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
+        Eigen::VectorXd nuccharges = _orbitals.FragmentNuclearCharges(dftbasis.getAOBasisFragA());
+        Eigen::VectorXd pops = _orbitals.LoewdinPopulation(DMAT, _dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
         pop.popGs=nuccharges - pops;
         // population to electron charges and add nuclear charges         
         for (int _i_state = 0; _i_state < _bse_nmax; _i_state++) {
 
           // checking Density Matrices
-          std::vector< Eigen::MatrixXd > DMAT = _orbitals->DensityMatrixExcitedState(spin, _i_state);
+          std::vector< Eigen::MatrixXd > DMAT = _orbitals.DensityMatrixExcitedState(spin, _i_state);
           // hole part
-          Eigen::VectorXd popsH = _orbitals->LoewdinPopulation(DMAT[0], _dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
+          Eigen::VectorXd popsH = _orbitals.LoewdinPopulation(DMAT[0], _dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
           pop.popH.push_back(popsH);
           // electron part
-          Eigen::VectorXd popsE = _orbitals->LoewdinPopulation(DMAT[1], _dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
+          Eigen::VectorXd popsE = _orbitals.LoewdinPopulation(DMAT[1], _dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
           pop.popE.push_back(popsE);
           // update effective charges
           Eigen::VectorXd diff = popsH - popsE;
@@ -597,7 +597,7 @@ template <typename T>
     }
 
     std::vector<Eigen::MatrixXd > BSE::CalcFreeTransition_Dipoles(const AOBasis& dftbasis) {
-      const Eigen::MatrixXd& dft_orbitals = _orbitals->MOCoefficients();
+      const Eigen::MatrixXd& dft_orbitals = _orbitals.MOCoefficients();
       // Testing electric dipole AOMatrix
       AODipole _dft_dipole;
       _dft_dipole.Fill(dftbasis);

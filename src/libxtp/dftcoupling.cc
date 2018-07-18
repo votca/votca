@@ -33,15 +33,15 @@ namespace votca { namespace xtp {
 using boost::format;
 
 
-double DFTcoupling::getCouplingElement( int levelA, int levelB,  Orbitals* _orbitalsA,
-    Orbitals* _orbitalsB, Eigen::MatrixXd* _JAB, double  _energy_difference ) {
+double DFTcoupling::getCouplingElement( int levelA, int levelB,  Orbitals&_orbitalsA,
+    Orbitals& _orbitalsB, Eigen::MatrixXd* _JAB, double  _energy_difference ) {
 
     
-    int _levelsA = _orbitalsA->getNumberOfLevels();
+    int _levelsA = _orbitalsA.getNumberOfLevels();
     
     if ( _energy_difference != 0 ) {
-        std::vector<int> list_levelsA = *_orbitalsA->getDegeneracy( levelA, _energy_difference );
-        std::vector<int> list_levelsB = *_orbitalsA->getDegeneracy( levelB, _energy_difference );
+        std::vector<int> list_levelsA = _orbitalsA.getDegeneracy( levelA, _energy_difference );
+        std::vector<int> list_levelsB = _orbitalsA.getDegeneracy( levelB, _energy_difference );
         
         double _JAB_sq = 0; double _JAB_one_level;
         
@@ -74,14 +74,14 @@ double DFTcoupling::getCouplingElement( int levelA, int levelB,  Orbitals* _orbi
  * @param _JAB matrix with electronic couplings
  * @return false if failed
  */
-bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB, 
-    Orbitals* _orbitalsAB, Eigen::MatrixXd* _JAB) {
+Eigen::MatrixXd DFTcoupling::CalculateIntegrals(Orbitals& _orbitalsA, Orbitals& _orbitalsB, 
+    Orbitals& _orbitalsAB) {
 
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
     
-    const std::vector<QMAtom*> atomsA=_orbitalsA->QMAtoms();
-    const std::vector<QMAtom*> atomsB=_orbitalsB->QMAtoms();
-     const std::vector<QMAtom*> atomsAll = _orbitalsAB->QMAtoms();
+    const std::vector<QMAtom*>& atomsA=_orbitalsA.QMAtoms();
+    const std::vector<QMAtom*>& atomsB=_orbitalsB.QMAtoms();
+     const std::vector<QMAtom*>& atomsAll = _orbitalsAB.QMAtoms();
      
   for (unsigned i = 0; i < atomsAll.size(); i++) {
       QMAtom* dimer = atomsAll[i];
@@ -107,16 +107,15 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
 }
     
     // constructing the direct product orbA x orbB
-    int _basisA = _orbitalsA->getBasisSetSize();
-    int _basisB = _orbitalsB->getBasisSetSize();
+    int _basisA = _orbitalsA.getBasisSetSize();
+    int _basisB = _orbitalsB.getBasisSetSize();
     
     if ( ( _basisA == 0 ) || ( _basisB == 0 ) ) {
-        CTP_LOG(ctp::logERROR,*_pLog) << "Basis set size is not stored in monomers" << flush;
-        return false;
+       throw std::runtime_error( "Basis set size is not stored in monomers");
     }
         
-    int _levelsA = _orbitalsA->getNumberOfLevels();
-    int _levelsB = _orbitalsB->getNumberOfLevels();
+    int _levelsA = _orbitalsA.getNumberOfLevels();
+    int _levelsB = _orbitalsB.getNumberOfLevels();
     
     //boost::timer t; // start timing
     //double _st = t.elapsed();
@@ -125,8 +124,7 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
                                      << " B[" << _levelsB << ":" << _basisB << "]" << flush;
     
     if ( ( _levelsA == 0 ) || (_levelsB == 0) ) {
-        CTP_LOG(ctp::logERROR,*_pLog) << "No information about number of occupied/unoccupied levels is stored" << flush;
-        return false;
+         throw std::runtime_error("No information about number of occupied/unoccupied levels is stored");
     } 
     
     //       | Orbitals_A          0 |      | Overlap_A |     
@@ -140,26 +138,26 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
             << _psi_AxB.cols() << "]" << flush;    
     
     // constructing merged orbitals
-    _psi_AxB.block(0,0, _basisA,_levelsA) = _orbitalsA->MOCoefficients();
-    _psi_AxB.block(_basisA,_levelsA, _basisB,_levelsB) =_orbitalsB->MOCoefficients(); 
+    _psi_AxB.block(0,0, _basisA,_levelsA) = _orbitalsA.MOCoefficients();
+    _psi_AxB.block(_basisA,_levelsA, _basisB,_levelsB) =_orbitalsB.MOCoefficients(); 
    
     Eigen::MatrixXd overlap;
-    if ( _orbitalsAB->hasAOOverlap() ) {
+    if ( _orbitalsAB.hasAOOverlap() ) {
             CTP_LOG(ctp::logDEBUG,*_pLog) << "Reading overlap matrix from orbitals" << flush; 
-           overlap= _orbitalsAB->AOOverlap();
+           overlap= _orbitalsAB.AOOverlap();
     }else{
-        CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating overlap matrix for basisset: "<< _orbitalsAB->getDFTbasis()<< flush; 
+        CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating overlap matrix for basisset: "<< _orbitalsAB.getDFTbasis()<< flush; 
         BasisSet _dftbasisset;
         AOBasis _dftbasis;
-        _dftbasisset.LoadBasisSet(_orbitalsAB->getDFTbasis());
+        _dftbasisset.LoadBasisSet(_orbitalsAB.getDFTbasis());
 
-        _dftbasis.AOBasisFill(_dftbasisset, _orbitalsAB->QMAtoms());
+        _dftbasis.AOBasisFill(_dftbasisset, _orbitalsAB.QMAtoms());
         AOOverlap _dftAOoverlap;
         _dftAOoverlap.Fill(_dftbasis);
         overlap=_dftAOoverlap.Matrix();
     }
      CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting dimer onto monomer orbitals" << flush; 
-    Eigen::MatrixXd _psi_AxB_dimer_basis =_psi_AxB.transpose()*overlap*_orbitalsAB->MOCoefficients(); 
+    Eigen::MatrixXd _psi_AxB_dimer_basis =_psi_AxB.transpose()*overlap*_orbitalsAB.MOCoefficients(); 
 
     unsigned int LevelsA = _levelsA;
     for (unsigned i=0;i<_psi_AxB_dimer_basis.rows();i++){
@@ -175,13 +173,15 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
                 level   = i -_levelsA;
                 
             }
-            CTP_LOG(ctp::logERROR,*_pLog) << "\nERROR: " << i << " Projection of orbital " << level << " of monomer " << monomer << " on dimer is insufficient,mag="<<mag<<" maybe the orbital order is screwed up, otherwise increase dimer basis.\n"<<flush;
+            CTP_LOG(ctp::logERROR,*_pLog) << "\nWarning: " << i << " Projection of orbital " << level 
+                    << " of monomer " << monomer << " on dimer is insufficient,mag="<<mag
+                    <<" maybe the orbital order is screwed up, otherwise increase dimer basis.\n"<<flush;
         }
     }
     // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting the Fock matrix onto the dimer basis" << flush;   
       
-    Eigen::MatrixXd JAB_dimer = _psi_AxB_dimer_basis*_orbitalsAB->MOEnergies().asDiagonal()*_psi_AxB_dimer_basis.transpose();  
+    Eigen::MatrixXd JAB_dimer = _psi_AxB_dimer_basis*_orbitalsAB.MOEnergies().asDiagonal()*_psi_AxB_dimer_basis.transpose();  
     // S = psi_AxB_dimer_basis * psi_AxB_dimer_basis^T
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Constructing Overlap matrix" << flush;    
     Eigen::MatrixXd _S_AxB = _psi_AxB_dimer_basis*_psi_AxB_dimer_basis.transpose();  
@@ -193,11 +193,11 @@ bool DFTcoupling::CalculateIntegrals(Orbitals* _orbitalsA, Orbitals* _orbitalsB,
    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_S_AxB);
    Eigen::MatrixXd Sm1=es.operatorInverseSqrt();
    CTP_LOG(ctp::logDEBUG,*_pLog) << "Smallest eigenvalue of overlap matrix is "<<es.eigenvalues()(0)<< flush;    
-   (*_JAB) = Sm1*JAB_dimer*Sm1;
+   Eigen::MatrixXd _JAB = Sm1*JAB_dimer*Sm1;
     
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Done with electronic couplings" << flush;
     
-    return true;   
+    return _JAB;   
 
 }
 

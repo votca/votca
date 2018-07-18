@@ -134,11 +134,11 @@ namespace votca {
         }
 
 
-        void QMInterface::Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals) {
+        void QMInterface::Orbitals2Segment(ctp::Segment* _segment, const Orbitals& _orbitals) {
 
             
             std::vector<QMAtom* > ::iterator ait;
-            std::vector< QMAtom* >_atoms = _orbitals->QMAtoms();
+            std::vector< QMAtom* >_atoms = _orbitals.QMAtoms();
 
             std::string type;
             int id = 1;

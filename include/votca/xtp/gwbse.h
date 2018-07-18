@@ -43,7 +43,7 @@ namespace xtp {
 
 class GWBSE {
  public:
-  GWBSE(Orbitals* orbitals)
+  GWBSE(Orbitals& orbitals)
       : _orbitals(orbitals){};
 
   void Initialize(tools::Property* options);
@@ -65,7 +65,7 @@ class GWBSE {
  
  Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
  ctp::Logger* _pLog;
- Orbitals* _orbitals;
+ Orbitals& _orbitals;
   
   // program tasks
   bool _do_qp_diag;

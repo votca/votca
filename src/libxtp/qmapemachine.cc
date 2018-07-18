@@ -274,7 +274,7 @@ QMMIter *QMAPEMachine::CreateNewIter() {
 bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
 
     std::vector<int> _state_index;
-    GWBSE _gwbse(&orb);
+    GWBSE _gwbse(orb);
     _gwbse.setLogger(_log);
     
     if (_state > 0) {

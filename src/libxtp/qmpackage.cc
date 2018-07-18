@@ -24,49 +24,49 @@
 namespace votca {
     namespace xtp {
       using std::flush;
-        void QMPackage::ReorderOutput(Orbitals* _orbitals) {
+        void QMPackage::ReorderOutput(Orbitals& _orbitals) {
             BasisSet _dftbasisset;
             _dftbasisset.LoadBasisSet(_basisset_name);
-            if (!_orbitals->hasQMAtoms()) {
+            if (!_orbitals.hasQMAtoms()) {
                 throw std::runtime_error("Orbitals object has no QMAtoms");
             }
 
 
             AOBasis _dftbasis;
-            _dftbasis.AOBasisFill(_dftbasisset, _orbitals->QMAtoms());
+            _dftbasis.AOBasisFill(_dftbasisset, _orbitals.QMAtoms());
             //necessary to update nuclear charges on qmatoms
             if (_write_pseudopotentials) {
                 BasisSet _ecps;
                 _ecps.LoadPseudopotentialSet(_ecp_name);
                 AOBasis _ecpbasis;
-                _ecpbasis.ECPFill(_ecps, _orbitals->QMAtoms());
+                _ecpbasis.ECPFill(_ecps, _orbitals.QMAtoms());
             }
 
-            if (_orbitals->hasAOOverlap()) {
-                _dftbasis.ReorderMatrix(_orbitals->AOOverlap(), getPackageName(), "xtp");
+            if (_orbitals.hasAOOverlap()) {
+                _dftbasis.ReorderMatrix(_orbitals.AOOverlap(), getPackageName(), "xtp");
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered Overlap matrix" << flush;
             }
-            if (_orbitals->hasAOVxc()) {
-                _dftbasis.ReorderMatrix(_orbitals->AOVxc(), getPackageName(), "xtp");
+            if (_orbitals.hasAOVxc()) {
+                _dftbasis.ReorderMatrix(_orbitals.AOVxc(), getPackageName(), "xtp");
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered VXC matrix" << flush;
             }
-            if (_orbitals->hasMOCoefficients()) {
-                _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), getPackageName(), "xtp");
+            if (_orbitals.hasMOCoefficients()) {
+                _dftbasis.ReorderMOs(_orbitals.MOCoefficients(), getPackageName(), "xtp");
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered MOs" << flush;
             }
 
             return;
         }
 
-        void QMPackage::ReorderMOsBack(Orbitals* _orbitals) {
+        void QMPackage::ReorderMOsBack(Orbitals& _orbitals) {
             BasisSet _dftbasisset;
             _dftbasisset.LoadBasisSet(_basisset_name);
-            if (!_orbitals->hasQMAtoms()) {
+            if (!_orbitals.hasQMAtoms()) {
                 throw std::runtime_error("Orbitals object has no QMAtoms");
             }
             AOBasis _dftbasis;
-            _dftbasis.AOBasisFill(_dftbasisset, _orbitals->QMAtoms());
-            _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), "xtp", getPackageName());
+            _dftbasis.AOBasisFill(_dftbasisset, _orbitals.QMAtoms());
+            _dftbasis.ReorderMOs(_orbitals.MOCoefficients(), "xtp", getPackageName());
             return;
         }
 

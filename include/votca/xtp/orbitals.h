@@ -54,7 +54,9 @@ namespace votca {
             Orbitals();
             ~Orbitals();
 
-            static void PrepareGuess(Orbitals* _orbitalsA, Orbitals* _orbitalsB, Orbitals* _orbitalsAB);
+            static void PrepareGuess(const Orbitals& _orbitalsA,const Orbitals& _orbitalsB, Orbitals& _orbitalsAB);
+             // functions for analyzing fragment charges via Mulliken populations
+            static Eigen::VectorXd LoewdinPopulation(const Eigen::MatrixXd& _densitymatrix, const Eigen::MatrixXd& _overlapmatrix, int _frag);
 
             /*
              *
@@ -66,32 +68,32 @@ namespace votca {
 
             // access to DFT basis set size, new, tested
 
-            bool hasBasisSetSize() {
+            bool hasBasisSetSize() const{
                 return ( _basis_set_size > 0) ? true : false;
             }
 
-            int getBasisSetSize() {
+            int getBasisSetSize() const{
                 return _basis_set_size;
             }
 
-            void setBasisSetSize(const int &basis_set_size) {
+            void setBasisSetSize(int basis_set_size) {
                 _basis_set_size = basis_set_size;
             }
 
             // access to DFT number of levels, new, tested
 
-            bool hasNumberOfLevels() {
+            bool hasNumberOfLevels() const{
                 return ( (_occupied_levels > 0) && (_unoccupied_levels > 0) ? true : false);
             }
 
-            unsigned int getNumberOfLevels() {
+            unsigned int getNumberOfLevels() const{
                 return ( _occupied_levels + _unoccupied_levels);
             }
-            void setNumberOfLevels(const int &occupied_levels, const int &unoccupied_levels);
+            void setNumberOfLevels(int occupied_levels, int unoccupied_levels);
 
             // access to DFT number of electrons, new, tested
 
-            bool hasNumberOfElectrons() {
+            bool hasNumberOfElectrons() const{
                 return ( _number_of_electrons > 0) ? true : false;
             }
 
@@ -104,35 +106,35 @@ namespace votca {
             }
 
 
-            bool hasECP(){
+            bool hasECP()const{
                 return ( _ECP !="") ? true : false;
             }
 
-            std::string getECP() {
+            const std::string& getECP() const{
                 return _ECP;
             };
 
-            void setECP(const std::string &ECP) {
+            void setECP(const std::string& ECP) {
                 _ECP = ECP;
             };
 
             // access to QM package name, new, tested
 
-            bool hasQMpackage() {
+            bool hasQMpackage() const{
                 return (!_qm_package.empty());
             }
 
-            std::string getQMpackage() {
+            const std::string& getQMpackage() const{
                 return _qm_package;
             }
 
-            void setQMpackage(std::string qmpackage) {
+            void setQMpackage(const std::string& qmpackage) {
                 _qm_package = qmpackage;
             }
 
             // access to DFT AO overlap matrix, new, tested
 
-            bool hasAOOverlap() {
+            bool hasAOOverlap() const{
                 return ( _overlap.rows() > 0) ? true : false;
             }
 
@@ -146,7 +148,7 @@ namespace votca {
 
             // access to DFT molecular orbital energies, new, tested
 
-            bool hasMOEnergies() {
+            bool hasMOEnergies() const{
                 return ( _mo_energies.size() > 0) ? true : false;
             }
 
@@ -160,13 +162,13 @@ namespace votca {
 
             // access to DFT molecular orbital energy of a specific level (in eV)
 
-            double getEnergy(int level) {
+            double getEnergy(int level) const{
                 return ( hasMOEnergies()) ? votca::tools::conv::hrt2ev * _mo_energies[level - 1] : 0;
             }
 
             // access to DFT molecular orbital coefficients, new, tested
 
-            bool hasMOCoefficients() {
+            bool hasMOCoefficients() const{
                 return ( _mo_coefficients.cols() > 0) ? true : false;
             }
 
@@ -180,7 +182,7 @@ namespace votca {
 
             // access to DFT transfer integrals, new, tested
 
-            bool hasMOCouplings() {
+            bool hasMOCouplings() const{
                 return ( _mo_couplings.cols() > 0) ? true : false;
             }
 
@@ -195,10 +197,10 @@ namespace votca {
 
             // determine (pseudo-)degeneracy of a DFT molecular orbital
 
-            bool hasDegeneracy() {
+            bool hasDegeneracy() const{
                 return ( !_level_degeneracy.empty()) ? true : false;
             }
-            std::vector<int>* getDegeneracy(int level, double _energy_difference);
+            const std::vector<int>& getDegeneracy(int level, double _energy_difference);
 
             // access to QM atoms
 
@@ -216,11 +218,11 @@ namespace votca {
 
             // access to classical self-energy in MM environment, new, tested
 
-            bool hasSelfEnergy() {
+            bool hasSelfEnergy() const{
                 return ( _self_energy != 0.0) ? true : false;
             }
 
-            double getSelfEnergy() {
+            double getSelfEnergy() const{
                 return _self_energy;
             }
 
@@ -230,11 +232,11 @@ namespace votca {
 
             // access to QM total energy, new, tested
 
-            bool hasQMEnergy() {
+            bool hasQMEnergy() const{
                 return ( _qm_energy != 0.0) ? true : false;
             }
 
-            double getQMEnergy() {
+            double getQMEnergy() const{
                 return _qm_energy;
             }
 
@@ -244,7 +246,7 @@ namespace votca {
 
             // access to DFT basis set name
 
-            bool hasDFTbasis() {
+            bool hasDFTbasis() const{
                 return ( !_dftbasis.empty()) ? true : false;
             }
 
@@ -252,7 +254,7 @@ namespace votca {
                 _dftbasis = basis;
             }
 
-            const std::string getDFTbasis() const {
+            const std::string& getDFTbasis() const {
                 return _dftbasis;
             }
 
@@ -264,7 +266,7 @@ namespace votca {
 
             // access to exchange-correlation AO matrix, new, tested
 
-            bool hasAOVxc() {
+            bool hasAOVxc() const{
                 return ( _vxc.rows() > 0) ? true : false;
             }
 
@@ -278,7 +280,7 @@ namespace votca {
 
             // access to auxiliary basis set name
 
-            bool hasAuxbasis() {
+            bool hasAuxbasis() const{
                 return ( !_auxbasis.empty()) ? true : false;
             }
 
@@ -286,14 +288,14 @@ namespace votca {
                 _auxbasis = basis;
             }
 
-            const std::string getAuxbasis() const {
+            const std::string& getAuxbasis() const {
                 return _auxbasis;
             }
 
 
             // access to list of indices used in GWA
 
-            bool hasGWAindices() {
+            bool hasGWAindices() const{
                 return ( _qpmax > 0) ? true : false;
             }
 
@@ -317,7 +319,7 @@ namespace votca {
 
             // access to list of indices used in RPA
 
-            bool hasRPAindices() {
+            bool hasRPAindices() const{
                 return ( _rpamax > 0) ? true : false;
             }
 
@@ -337,10 +339,10 @@ namespace votca {
             // access to list of indices used in BSE
 
             void setBSEtype(std::string bsetype){_bsetype=bsetype;}
-            std::string getBSEtype() const{return _bsetype;}
+            const std::string& getBSEtype() const{return _bsetype;}
 
 
-            bool hasBSEindices() {
+            bool hasBSEindices() const{
                 return ( _bse_cmax > 0) ? true : false;
             }
 
@@ -382,7 +384,7 @@ namespace votca {
 
             // access to perturbative QP energies
 
-            bool hasQPpert() {
+            bool hasQPpert() const{
                 return ( _QPpert_energies.size() > 0) ? true : false;
             }
 
@@ -396,7 +398,7 @@ namespace votca {
 
             // access to diagonalized QP energies and wavefunctions
 
-            bool hasQPdiag() {
+            bool hasQPdiag() const{
                 return ( _QPdiag_energies.size() > 0) ? true : false;
             }
 
@@ -420,11 +422,11 @@ namespace votca {
 
 
 
-            bool hasEHinteraction_triplet() {
+            bool hasEHinteraction_triplet() const{
                 return ( _eh_t.cols() > 0) ? true : false;
             }
             
-            bool hasEHinteraction_singlet() {
+            bool hasEHinteraction_singlet() const{
                 return ( _eh_s.cols() > 0) ? true : false;
             }
 
@@ -446,7 +448,7 @@ namespace votca {
 
             // access to triplet energies and wave function coefficients
 
-            bool hasBSETriplets() {
+            bool hasBSETriplets() const{
                 return ( _BSE_triplet_energies.cols() > 0) ? true : false;
             }
 
@@ -468,7 +470,7 @@ namespace votca {
 
             // access to singlet energies and wave function coefficients
 
-            bool hasBSESinglets() {
+            bool hasBSESinglets() const{
                 return (_BSE_singlet_energies.cols() > 0) ? true : false;
             }
 
@@ -500,7 +502,7 @@ namespace votca {
 
             // access to transition dipole moments
 
-            bool hasTransitionDipoles() {
+            bool hasTransitionDipoles() const{
                 return (_transition_dipoles.size() > 0) ? true : false;
             }
 
@@ -512,11 +514,11 @@ namespace votca {
                 return _transition_dipoles;
             }
 
-            std::vector<double> Oscillatorstrengths();
+            std::vector<double> Oscillatorstrengths()const;
 
             // access to singlet coupling elements
 
-            bool hasSingletCouplings() {
+            bool hasSingletCouplings() const{
                 return (_BSE_singlet_couplings.cols() > 0) ? true : false;
             }
 
@@ -528,13 +530,13 @@ namespace votca {
                 return _BSE_singlet_couplings;
             }
 
-            void setSingletCouplings(Eigen::MatrixXd couplings) {
+            void setSingletCouplings(const Eigen::MatrixXd& couplings) {
                 _BSE_singlet_couplings = couplings;
             }
 
             // access to triplet coupling elements
 
-            bool hasTripletCouplings() {
+            bool hasTripletCouplings() const{
                 return (_BSE_triplet_couplings.cols() > 0) ? true : false;
             }
 
@@ -546,17 +548,17 @@ namespace votca {
                 return _BSE_triplet_couplings;
             }
 
-            void setTripletCouplings(Eigen::MatrixXd couplings) {
+            void setTripletCouplings(const Eigen::MatrixXd& couplings) {
                 _BSE_triplet_couplings = couplings;
             }
 
             // exciton coupling number of levels information
 
-            bool hasCoupledExcitonsA() {
+            bool hasCoupledExcitonsA() const{
                 return ( _couplingsA > 0) ? true : false;
             }
 
-            int getCoupledExcitonsA() {
+            int getCoupledExcitonsA() const{
                 return _couplingsA;
             }
 
@@ -568,32 +570,31 @@ namespace votca {
                 return ( _couplingsB > 0) ? true : false;
             }
 
-            int getCoupledExcitonsB() {
+            int getCoupledExcitonsB() const{
                 return _couplingsB;
             }
 
-            void setCoupledExcitonsB(const int &excitons) {
+            void setCoupledExcitonsB(int excitons) {
                 _couplingsB = excitons;
             }
 
 
             // functions for calculating density matrices
-            Eigen::MatrixXd DensityMatrixGroundState();
-            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState(const std::string& spin,int state = 0);
-            Eigen::MatrixXd TransitionDensityMatrix(const std::string& spin,int state = 0);
-            Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0);
-            Eigen::MatrixXd LambdaMatrixQuasiParticle();
+            Eigen::MatrixXd DensityMatrixGroundState() const;
+            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState(const std::string& spin,int state = 0)const;
+            Eigen::MatrixXd TransitionDensityMatrix(const std::string& spin,int state = 0)const;
+            Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0)const;
+            Eigen::MatrixXd LambdaMatrixQuasiParticle()const;
 
 
 
-            double GetTotalEnergy(std::string _spintype, int _opt_state);
+            double GetTotalEnergy (std::string _spintype, int _opt_state)const;
 
-            // functions for analyzing fragment charges via Mulliken populations
-            Eigen::VectorXd LoewdinPopulation(const Eigen::MatrixXd& _densitymatrix, const Eigen::MatrixXd& _overlapmatrix, int _frag);
+           
 
             // access to fragment charges of singlet excitations
 
-            bool hasFragmentChargesSingEXC() {
+            bool hasFragmentChargesSingEXC() const{
                 return (_DqS_frag.size() > 0) ? true : false;
             }
 
@@ -601,7 +602,7 @@ namespace votca {
                 return _DqS_frag;
             }
 
-             void setFragmentChargesSingEXC(std::vector< Eigen::VectorXd > DqS_frag) {
+             void setFragmentChargesSingEXC(const std::vector< Eigen::VectorXd >& DqS_frag) {
                 _DqS_frag=DqS_frag;
             }
 
@@ -609,7 +610,7 @@ namespace votca {
 
             // access to fragment charges of triplet excitations
 
-            bool hasFragmentChargesTripEXC() {
+            bool hasFragmentChargesTripEXC() const{
                 return (_DqT_frag.size() > 0) ? true : false;
             }
 
@@ -617,7 +618,7 @@ namespace votca {
                 return _DqT_frag;
             }
 
-            void setFragmentChargesTripEXC(std::vector< Eigen::VectorXd > DqT_frag) {
+            void setFragmentChargesTripEXC(const std::vector< Eigen::VectorXd >& DqT_frag) {
                 _DqT_frag=DqT_frag;
             }
 
@@ -627,23 +628,23 @@ namespace votca {
                 return _GSq_frag;
             }
 
-             void setFragmentChargesGS(Eigen::VectorXd GSq_frag) {
+             void setFragmentChargesGS(const Eigen::VectorXd& GSq_frag) {
                  _GSq_frag=GSq_frag;
             }
 
-            void setFragment_E_localisation_singlet(std::vector< Eigen::VectorXd >& popE){
+            void setFragment_E_localisation_singlet(const std::vector< Eigen::VectorXd >& popE){
                 _popE_s=popE;
             }
 
-            void setFragment_H_localisation_singlet(std::vector< Eigen::VectorXd > & popH){
+            void setFragment_H_localisation_singlet(const std::vector< Eigen::VectorXd > & popH){
                 _popH_s=popH;
             }
 
-            void setFragment_E_localisation_triplet(std::vector< Eigen::VectorXd > & popE){
+            void setFragment_E_localisation_triplet(const std::vector< Eigen::VectorXd > & popE){
                 _popE_t=popE;
             }
 
-            void setFragment_H_localisation_triplet(std::vector< Eigen::VectorXd > & popH){
+            void setFragment_H_localisation_triplet(const std::vector< Eigen::VectorXd > & popH){
                 _popE_s=popH;
             }
 
@@ -661,7 +662,7 @@ namespace votca {
                 return _popH_t;
             }
 
-            Eigen::VectorXd FragmentNuclearCharges(int _frag);
+            Eigen::VectorXd FragmentNuclearCharges(int _frag)const;
 
             // returns indeces of a re-sorted in a descending order vector of energies
             std::vector<int> SortEnergies();
@@ -687,7 +688,7 @@ namespace votca {
             }
 
 
-            void WritePDB(FILE *out, std::string tag = "");
+            void WritePDB (FILE *out, std::string tag = "")const;
 
             // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
             void Trim(int factor);
@@ -697,21 +698,26 @@ namespace votca {
 
             void LoadFromXYZ(std::string filename);
 
-            void WriteToCpt(const std::string& filename);
+            void WriteToCpt (const std::string& filename)const;
             
             void ReadFromCpt(const std::string& filename);
             
 
 
         private:
+             /**
+             * @param _energy_difference [ev] Two levels are degenerate if their energy is smaller than this value
+             * @return A map with key as a level and a vector which is a list of close lying orbitals
+             */
+            bool CheckDegeneracy(double _energy_difference);
             
-            void WriteToCpt(CheckpointFile f);
-            void WriteToCpt(CptLoc parent);
+            void WriteToCpt(CheckpointFile f)const;
+            void WriteToCpt(CptLoc parent)const;
             
             void ReadFromCpt(CheckpointFile f);
             void ReadFromCpt(CptLoc parent);
-            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const std::string& spin,int state = 0);
-            std::vector<Eigen::MatrixXd >DensityMatrixExcitedState_AR(const std::string& spin,int state = 0);
+            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const std::string& spin,int state = 0)const;
+            std::vector<Eigen::MatrixXd >DensityMatrixExcitedState_AR(const std::string& spin,int state = 0)const;
 
             int _basis_set_size;
             int _occupied_levels;
@@ -801,11 +807,7 @@ namespace votca {
             std::vector< Eigen::VectorXd > _popH_t;
 
 
-            /**
-             * @param _energy_difference [ev] Two levels are degenerate if their energy is smaller than this value
-             * @return A map with key as a level and a vector which is a list of close lying orbitals
-             */
-            bool CheckDegeneracy(double _energy_difference);
+           
 
  
         };

@@ -34,7 +34,7 @@ namespace votca {
 
 
         // ========================================================================== //
-        // QMPackage base class for wrappers of TURBOMOLE, GAUSSIAN, etc              //
+        // QMPackage base class for wrappers of ORCA, GAUSSIAN, NWCHEM etc              //
         // ========================================================================== //
 
         class QMPackage {
@@ -60,9 +60,9 @@ namespace votca {
 
             virtual bool Run(Orbitals* _orbitals = NULL) = 0;
 
-            virtual bool ParseLogFile(Orbitals* _orbitals) = 0;
+            virtual bool ParseLogFile(Orbitals& _orbitals) = 0;
 
-            virtual bool ParseOrbitalsFile(Orbitals* _orbitals) = 0;
+            virtual bool ParseOrbitalsFile(Orbitals& _orbitals) = 0;
 
             
 
@@ -71,19 +71,19 @@ namespace votca {
             
             virtual void setMultipoleBackground( std::vector<ctp::PolarSeg*> PolarSegments);
 
-            void setRunDir(std::string run_dir) {
+            void setRunDir(const std::string& run_dir) {
                 _run_dir = run_dir;
             }
 
-            void setInputFileName(std::string input_file_name) {
+            void setInputFileName(const std::string& input_file_name) {
                 _input_file_name = input_file_name;
             }
 
-            void setLogFileName(std::string log_file_name) {
+            void setLogFileName(const std::string& log_file_name) {
                 _log_file_name = log_file_name;
             }
 
-            void setOrbitalsFileName(std::string orb_file) {
+            void setOrbitalsFileName(const std::string& orb_file) {
                 _orb_file_name = orb_file;
             }
 
@@ -119,11 +119,11 @@ namespace votca {
                 _get_charges = do_get_charges;
             }
 
-            std::string getBasisSetName() {
+            const std::string& getBasisSetName() {
                 return _basisset_name;
             }
 
-            std::string getExecutable() {
+            const std::string& getExecutable() {
                 return _executable;
             };
 
@@ -179,8 +179,8 @@ namespace votca {
             double _dpl_spacing;
             bool _with_polarization;
             std::vector<std::vector<double> > SplitMultipoles(ctp::APolarSite* site);
-            void ReorderOutput(Orbitals* _orbitals);
-            void ReorderMOsBack(Orbitals* _orbitals);
+            void ReorderOutput(Orbitals& _orbitals);
+            void ReorderMOsBack(Orbitals& _orbitals);
             void addLinkers(std::vector< ctp::Segment* > &segments, ctp::QMPair* pair, std::vector< std::string> linker_names );
             bool isLinker( std::string name, std::vector< std::string> linker_names );
 

@@ -229,7 +229,7 @@ namespace votca {
       bool _parse_log_status = false;
       bool _parse_orbitals_status = false;
       if (_do_dft_parse) {
-        _parse_log_status = _qmpackage->ParseLogFile(&_orbitals);
+        _parse_log_status = _qmpackage->ParseLogFile(_orbitals);
 
         if (!_parse_log_status) {
           output += "log incomplete; ";
@@ -241,7 +241,7 @@ namespace votca {
           return jres;
         }
 
-        _parse_orbitals_status = _qmpackage->ParseOrbitalsFile(&_orbitals);
+        _parse_orbitals_status = _qmpackage->ParseOrbitalsFile(_orbitals);
 
         if (!_parse_orbitals_status) {
           output += "orbfile failed; ";
@@ -271,7 +271,7 @@ namespace votca {
 
       if (_do_gwbse) {
 
-        GWBSE _gwbse = GWBSE(&_orbitals);
+        GWBSE _gwbse = GWBSE(_orbitals);
 
         _gwbse.setLogger(pLog);
         _gwbse.Initialize(&_gwbse_options);

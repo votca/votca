@@ -45,14 +45,13 @@ public:
 
 
 
-    bool CalculateIntegrals(   Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB, 
-                               Eigen::MatrixXd* _JAB);
+    Eigen::MatrixXd CalculateIntegrals(Orbitals& _orbitalsA, 
+                               Orbitals& _orbitalsB, 
+                               Orbitals& _orbitalsAB);
     
     double getCouplingElement( int levelA, int levelB,  
-                               Orbitals* _orbitalsA,  
-                               Orbitals* _orbitalsB, 
+                               Orbitals& _orbitalsA,  
+                               Orbitals& _orbitalsB, 
                                Eigen::MatrixXd* _JAB,
                                double _energy_difference = 0
                                 );

@@ -60,6 +60,10 @@ void Log2Mps::Initialize(Property *opt) {
     
     string key = "options.log2mps";
     _package = opt->get(key+".package").as<string>();
+    
+    if(_package=="xtp"){
+        throw std::runtime_error("XTP has no log file. For xtp package just run the partialcharges tool on you .orb file");
+    }
     _logfile = opt->get(key+".logfile").as<string>();
     
 
@@ -81,6 +85,7 @@ bool Log2Mps::Evaluate() {
     log.setMultithreading(true);  
     
     // Set-up QM package
+    
     CTP_LOG_SAVE(ctp::logINFO,log) << "Using package <" << _package << ">" << flush;
     QMPackage *qmpack = QMPackages().Create(_package);    
     qmpack->doGetCharges(true);
@@ -90,7 +95,7 @@ bool Log2Mps::Evaluate() {
     
     // Create orbitals, fill with life & extract QM atoms
     Orbitals orbs;
-    int cdx = qmpack->ParseLogFile(&orbs);
+    int cdx = qmpack->ParseLogFile(orbs);
     if (!cdx) {
         cout << "\nERROR Parsing " << _logfile << "failed. Abort." << endl;
         throw std::runtime_error("(see above, parsing error)");

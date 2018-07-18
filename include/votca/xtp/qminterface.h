@@ -64,7 +64,7 @@ public:
     
     void GenerateQMAtomsFromPolarSegs(ctp::PolarTop *ptop, Orbitals &orb);
     std::vector<ctp::PolarSeg*> GenerateMultipoleList(ctp::PolarTop *ptop  );
-    void Orbitals2Segment(ctp::Segment* _segment, Orbitals* _orbitals);
+    void Orbitals2Segment(ctp::Segment* _segment, const Orbitals& _orbitals);
     
      
 private:

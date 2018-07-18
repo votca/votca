@@ -60,9 +60,9 @@ public:
 
    
    
-   bool ParseLogFile( Orbitals* _orbitals );
+   bool ParseLogFile( Orbitals& _orbitals );
 
-   bool ParseOrbitalsFile( Orbitals* _orbitals );
+   bool ParseOrbitalsFile( Orbitals& _orbitals );
    
 
 

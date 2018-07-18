@@ -39,7 +39,7 @@ namespace votca {
         class BFGSTRM {
         public:
 
-            BFGSTRM(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals* orbitals, Forces& force_engine)
+            BFGSTRM(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals& orbitals, Forces& force_engine)
             : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals), _force_engine(force_engine), _iteration(0) {
             };
 
@@ -66,7 +66,7 @@ namespace votca {
             GWBSEENGINE _gwbse_engine;
             QMPackage* _qmpackage;
             std::vector<ctp::Segment*> _segments;
-            Orbitals* _orbitals;
+            Orbitals& _orbitals;
             Forces _force_engine;
 
             unsigned _natoms;

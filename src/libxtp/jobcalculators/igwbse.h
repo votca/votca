@@ -103,7 +103,7 @@ private:
     std::map<std::string, int> FillParseMaps(string Mapstring);
     
     
-    void LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log = NULL );
+    void LoadOrbitals(string file_name, Orbitals& orbitals, ctp::Logger *log = NULL );
         
 };
 

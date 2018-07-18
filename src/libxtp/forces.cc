@@ -144,7 +144,7 @@ namespace votca {
                 _gwbse_engine.ExcitationEnergies(_qmpackage, _molecule, _orbitals);
 
                 // get total energy for this excited state
-                double energy_displaced = _orbitals->GetTotalEnergy(_spin_type, _opt_state);
+                double energy_displaced = _orbitals.GetTotalEnergy(_spin_type, _opt_state);
 
                 // calculate force and put into matrix
                 force(_i_cart) = (energy - energy_displaced) / (_displacement * votca::tools::conv::ang2bohr); // force a.u./a.u.
@@ -186,7 +186,7 @@ namespace votca {
                 _gwbse_engine.ExcitationEnergies(_qmpackage, _molecule, _orbitals);
 
                 // get total energy for this excited state
-                double energy_displaced_plus = _orbitals->GetTotalEnergy(_spin_type, _opt_state);
+                double energy_displaced_plus = _orbitals.GetTotalEnergy(_spin_type, _opt_state);
 
                 // get displacement vector in negative direction
 
@@ -198,7 +198,7 @@ namespace votca {
                 _gwbse_engine.ExcitationEnergies(_qmpackage, _molecule, _orbitals);
 
                 // get total energy for this excited state
-                double energy_displaced_minus = _orbitals->GetTotalEnergy(_spin_type, _opt_state);
+                double energy_displaced_minus = _orbitals.GetTotalEnergy(_spin_type, _opt_state);
 
                 // calculate force and put into matrix
                 force(_i_cart) = 0.5 * (energy_displaced_minus - energy_displaced_plus) / (_displacement * votca::tools::conv::ang2bohr); // force a.u./a.u.

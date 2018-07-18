@@ -57,9 +57,9 @@ public:
 
    bool CheckLogFile();
 
-   bool ParseLogFile( Orbitals* _orbitals );
+   bool ParseLogFile( Orbitals& _orbitals );
 
-   bool ParseOrbitalsFile( Orbitals* _orbitals );
+   bool ParseOrbitalsFile( Orbitals& _orbitals );
 
 
    std::string getScratchDir( ) { return _scratch_dir; }

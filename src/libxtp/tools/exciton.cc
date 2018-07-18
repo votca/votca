@@ -87,7 +87,7 @@ namespace votca {
             Orbitals temp;
             temp.LoadFromXYZ(_xyzfile);
             QMInterface qminterface;
-            qminterface.Orbitals2Segment(&_segment,&temp);
+            qminterface.Orbitals2Segment(&_segment,temp);
             _segments.push_back(&_segment);
 
             // Get and initialize QMPackage for DFT ground state
@@ -103,13 +103,13 @@ namespace votca {
 
             if ( _do_optimize ) {
                 // Run Geometry Optimization
-                GeometryOptimization _geoopt(_gwbse_engine,_qmpackage, _segments, &_orbitals);
+                GeometryOptimization _geoopt(_gwbse_engine,_qmpackage, _segments, _orbitals);
                 _geoopt.setLog(&_log);
                 _geoopt.Initialize(&_geoopt_options);
                 _geoopt.Evaluate();
             } else {
                 // Run GWBSE
-                _gwbse_engine.ExcitationEnergies(_qmpackage, _segments, &_orbitals);
+                _gwbse_engine.ExcitationEnergies(_qmpackage, _segments, _orbitals);
             }
 
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;

@@ -510,14 +510,14 @@ namespace votca {
             return;
         }
 
-        bool Orca::ParseLogFile(Orbitals* _orbitals) {
+        bool Orca::ParseLogFile(Orbitals& _orbitals) {
             const double _conv_Hrt_eV = tools::conv::hrt2ev;
 
-            _orbitals->setQMpackage("orca");
-            _orbitals->setDFTbasis(_basisset_name);
+            _orbitals.setQMpackage("orca");
+            _orbitals.setDFTbasis(_basisset_name);
 
             if (_write_pseudopotentials) {
-                _orbitals->setECP(_ecp_name);
+                _orbitals.setECP(_ecp_name);
             } 
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
@@ -570,7 +570,7 @@ namespace votca {
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Getting the coordinates" << flush;
 
                     //_has_coordinates = true;
-                    bool _has_QMAtoms = _orbitals->hasQMAtoms();
+                    bool _has_QMAtoms = _orbitals.hasQMAtoms();
 
                     // three garbage lines
                     getline(_input_file, _line);
@@ -601,9 +601,9 @@ namespace votca {
                         pos*=tools::conv::ang2bohr;
 
                         if (_has_QMAtoms == false) {
-                            _orbitals->AddAtom(atom_id,_atom_type, pos);
+                            _orbitals.AddAtom(atom_id,_atom_type, pos);
                         } else {
-                            QMAtom* pAtom = _orbitals->QMAtoms().at(atom_id);
+                            QMAtom* pAtom = _orbitals.QMAtoms().at(atom_id);
                             pAtom->setPos(pos);
                         }
                         atom_id++;
@@ -618,9 +618,9 @@ namespace votca {
                     std::string _energy = results[3];
                     boost::trim(_energy);
                     //cout << _energy << endl;
-                    _orbitals->setQMEnergy(_conv_Hrt_eV * boost::lexical_cast<double>(_energy));
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals->getQMEnergy()).str() << flush;
-                    // _orbitals->_has_qm_energy = true;
+                    _orbitals.setQMEnergy(_conv_Hrt_eV * boost::lexical_cast<double>(_energy));
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals.getQMEnergy()).str() << flush;
+                    // _orbitals._has_qm_energy = true;
                 }
 
                 /* Check for ScaHFX = factor of HF exchange included in functional */
@@ -628,7 +628,7 @@ namespace votca {
                 if (HFX_pos != std::string::npos) {
                     boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
                     double _ScaHFX = boost::lexical_cast<double>(results.back());
-                    _orbitals->setScaHFX(_ScaHFX);
+                    _orbitals.setScaHFX(_ScaHFX);
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "DFT with " << _ScaHFX << " of HF exchange!" << flush;
                 }
 
@@ -720,10 +720,10 @@ namespace votca {
                         nfields = _row.size();
                         
                         QMAtom* pAtom;
-                        if (!_orbitals->hasQMAtoms()) {
-                            pAtom =_orbitals->AddAtom(atom_id - 1,atom_type, 0, 0, 0);
+                        if (!_orbitals.hasQMAtoms()) {
+                            pAtom =_orbitals.AddAtom(atom_id - 1,atom_type, 0, 0, 0);
                         } else {
-                            pAtom = _orbitals->QMAtoms().at(atom_id - 1);
+                            pAtom = _orbitals.QMAtoms().at(atom_id - 1);
                         }
                         pAtom->setPartialcharge(atom_charge);
                     }
@@ -741,20 +741,20 @@ namespace votca {
             /************************************************************/
 
             // copying information to the orbitals object
-            /* _orbitals->setBasisSetSize(  _basis_size );*/
-            _orbitals->setBasisSetSize(_levels);
+       
+            _orbitals.setBasisSetSize(_levels);
 
-            _orbitals->setNumberOfElectrons(_number_of_electrons);
+            _orbitals.setNumberOfElectrons(_number_of_electrons);
 
-            _orbitals->setNumberOfLevels(_occupied_levels, _unoccupied_levels);
+            _orbitals.setNumberOfLevels(_occupied_levels, _unoccupied_levels);
 
-            _orbitals->setSelfEnergy(0.0);
+            _orbitals.setSelfEnergy(0.0);
 
             // copying energies to a matrix
-            _orbitals->MOEnergies().resize(_levels);
+            _orbitals.MOEnergies().resize(_levels);
             //_level = 1;
-            for (int i = 0; i < _orbitals->MOEnergies().size(); i++) {
-                _orbitals->MOEnergies()[i] = _energies[ i ];
+            for (int i = 0; i < _orbitals.MOEnergies().size(); i++) {
+                _orbitals.MOEnergies()[i] = _energies[ i ];
             }
 
 
@@ -802,11 +802,11 @@ namespace votca {
 
         // Parses the Orca gbw file and stores data in the Orbitals object
 
-        bool Orca::ParseOrbitalsFile(Orbitals* _orbitals) {
+        bool Orca::ParseOrbitalsFile(Orbitals& _orbitals) {
             if (!CheckLogFile()) return false;
             std::vector<double> _coefficients;
-            int _basis_size = _orbitals->getBasisSetSize();
-            int _levels = _orbitals->getNumberOfLevels();
+            int _basis_size = _orbitals.getBasisSetSize();
+            int _levels = _orbitals.getNumberOfLevels();
 
             if (_basis_size == 0 || _levels == 0) {
                 throw runtime_error("Basis size not set, calculator does not parse log file first");
@@ -848,10 +848,10 @@ namespace votca {
 
 
             // i -> MO, j -> AO
-            (_orbitals->MOCoefficients()).resize(_levels, _basis_size);
-            for (int i = 0; i < _orbitals->MOCoefficients().rows(); i++) {
-                for (int j = 0; j < _orbitals->MOCoefficients().cols(); j++) {
-                    _orbitals->MOCoefficients()(j, i) = _coefficients[j * _basis_size + i];
+            (_orbitals.MOCoefficients()).resize(_levels, _basis_size);
+            for (int i = 0; i < _orbitals.MOCoefficients().rows(); i++) {
+                for (int j = 0; j < _orbitals.MOCoefficients().cols(); j++) {
+                    _orbitals.MOCoefficients()(j, i) = _coefficients[j * _basis_size + i];
                    
                 }
             }

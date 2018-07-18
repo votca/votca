@@ -123,20 +123,15 @@ namespace votca {
         /**
          * Dummy, because XTPDFT adds info to orbitals directly
          */
-        bool XTPDFT::ParseOrbitalsFile(Orbitals * _orbitals) {
+        bool XTPDFT::ParseOrbitalsFile(Orbitals & _orbitals) {
             return true;
         }
 
-        /* DON'T THINK THIS IS NEEDED */
-        bool XTPDFT::CheckLogFile() {
-
-            return true;
-        }
 
         /**
          * Dummy, because information is directly stored in orbitals
          */
-        bool XTPDFT::ParseLogFile(Orbitals * _orbitals) {
+        bool XTPDFT::ParseLogFile(Orbitals & _orbitals) {
 
             return true;
         }

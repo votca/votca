@@ -51,16 +51,16 @@ struct Population {
  public:
  
     
-  BSE(Orbitals* orbitals,ctp::Logger *log,double min_print_weight):
+  BSE(Orbitals& orbitals,ctp::Logger *log,double min_print_weight):
         _log(log),
         _orbitals(orbitals),
-        _eh_s(orbitals->eh_s()),
-        _eh_t(orbitals->eh_t()),
-        _bse_singlet_energies(orbitals->BSESingletEnergies()),
-        _bse_singlet_coefficients(orbitals->BSESingletCoefficients()),
-        _bse_singlet_coefficients_AR(orbitals->BSESingletCoefficientsAR()),
-        _bse_triplet_energies(orbitals->BSETripletEnergies()),
-        _bse_triplet_coefficients(orbitals->BSETripletCoefficients()),
+        _eh_s(orbitals.eh_s()),
+        _eh_t(orbitals.eh_t()),
+        _bse_singlet_energies(orbitals.BSESingletEnergies()),
+        _bse_singlet_coefficients(orbitals.BSESingletCoefficients()),
+        _bse_singlet_coefficients_AR(orbitals.BSESingletCoefficientsAR()),
+        _bse_triplet_energies(orbitals.BSETripletEnergies()),
+        _bse_triplet_coefficients(orbitals.BSETripletCoefficients()),
         _min_print_weight(min_print_weight){};
 
   ~BSE(){};
@@ -132,7 +132,7 @@ ctp::Logger *_log;
   unsigned  _bse_ctotal;
   int _bse_nmax;
   
-  Orbitals* _orbitals;
+  Orbitals& _orbitals;
   
   const TCMatrix_gwbse* _Mmn;
   const PPM* _ppm;

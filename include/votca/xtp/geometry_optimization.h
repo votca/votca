@@ -37,13 +37,18 @@ namespace votca {
         class GeometryOptimization {
         public:
 
-            GeometryOptimization(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals* orbitals) : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals) {
+            GeometryOptimization(GWBSEENGINE& gwbse_engine, QMPackage *qmpackage, 
+                    std::vector<ctp::Segment*> segments, Orbitals& orbitals) : 
+            _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals) {
+                
             };
 
             ~GeometryOptimization() {
             };
 
-            void BFGSStep(int& _iteration, bool& _update_hessian, Eigen::MatrixXd& _force, Eigen::MatrixXd& _force_old, Eigen::MatrixXd& _current_xyz, Eigen::MatrixXd& _old_xyz, Eigen::MatrixXd& _hessian, Eigen::MatrixXd& _xyz_shift, Eigen::MatrixXd& _trial_xyz);
+            void BFGSStep(int& _iteration, bool& _update_hessian, Eigen::MatrixXd& _force, 
+            Eigen::MatrixXd& _force_old, Eigen::MatrixXd& _current_xyz, 
+            Eigen::MatrixXd& _old_xyz, Eigen::MatrixXd& _hessian, Eigen::MatrixXd& _xyz_shift, Eigen::MatrixXd& _trial_xyz);
             void Initialize(tools::Property *options);
 
             void setLog(ctp::Logger* pLog) {
@@ -70,7 +75,7 @@ namespace votca {
             GWBSEENGINE _gwbse_engine;
             QMPackage* _qmpackage;
             std::vector<ctp::Segment*> _segments;
-            Orbitals* _orbitals;
+            Orbitals& _orbitals;
 
             tools::Property _optimizer_options;
             tools::Property _force_options;

@@ -18,9 +18,6 @@
  */
 #include "votca/xtp/convergenceacc.h"
 
-
-
-
 namespace votca { namespace xtp {
 
   
@@ -58,7 +55,6 @@ namespace votca { namespace xtp {
                _totE.erase(_totE.begin()+_maxerrorindex);
               _mathist.erase(_mathist.begin()+_maxerrorindex);
               _dmatHist.erase(_dmatHist.begin()+_maxerrorindex);
-              
           }
           
       _totE.push_back(totE);

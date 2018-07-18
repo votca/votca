@@ -120,11 +120,11 @@ namespace votca {
 
     }
 
-    void IDFT::LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log) {
+    void IDFT::LoadOrbitals(string file_name, Orbitals& orbitals, ctp::Logger *log) {
 
       CTP_LOG(ctp::logDEBUG, *log) << "Loading " << file_name << flush;
       try {
-        orbitals->ReadFromCpt(file_name);
+        orbitals.ReadFromCpt(file_name);
       } catch(std::runtime_error& error){
         CTP_LOG(ctp::logERROR, *log) << "Failed loading orbitals from " << file_name << flush;
       }
@@ -247,7 +247,7 @@ namespace votca {
               return jres;
             }
             CTP_LOG(ctp::logERROR, *pLog) << "Writing guess from monomer orbitals" << flush;
-            Orbitals::PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
+            Orbitals::PrepareGuess(_orbitalsA, _orbitalsB, *_orbitalsAB);
           }
         }
         // if a pair object is available, take into account PBC, otherwise write as is
@@ -288,7 +288,7 @@ namespace votca {
       Orbitals _orbitalsAB;
       // parse the log/orbitals files
       if (_do_parse) {
-        _parse_log_status = _qmpackage->ParseLogFile(&_orbitalsAB);
+        _parse_log_status = _qmpackage->ParseLogFile(_orbitalsAB);
 
         if (!_parse_log_status) {
           output += "log incomplete; ";
@@ -302,7 +302,7 @@ namespace votca {
 
 
 
-        _parse_orbitals_status = _qmpackage->ParseOrbitalsFile(&_orbitalsAB);
+        _parse_orbitals_status = _qmpackage->ParseOrbitalsFile(_orbitalsAB);
 
         if (!_parse_orbitals_status) {
           output += "Orbitals parsing failed; ";
@@ -317,7 +317,7 @@ namespace votca {
 
       // orbital file used to archive parsed data
       string _pair_file = (format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb").str();
-      Eigen::MatrixXd _JAB;
+      
 
 
       Property _job_summary;
@@ -328,10 +328,12 @@ namespace votca {
       int _degAL = 1;
       int _degBH = 1;
       int _degBL = 1;
+      
+      Eigen::MatrixXd JAB;
       if (_do_project) {
 
         // orbitals must be loaded from a file
-        if (!_do_parse) LoadOrbitals(orbFileAB, &_orbitalsAB, pLog);
+        if (!_do_parse) LoadOrbitals(orbFileAB, _orbitalsAB, pLog);
 
 
         // failed to load; wrap-up and finish current job
@@ -358,19 +360,19 @@ namespace votca {
           return jres;
         }
 
-
+       
 
         if (_trim_factor == -1) {
 
           // find degeneracy of HOMOs and LUMOs
-          std::vector<int> list_levelsAH = (*_orbitalsA.getDegeneracy(_orbitalsA.getNumberOfElectrons() - 1, _energy_difference));
+          std::vector<int> list_levelsAH = (_orbitalsA.getDegeneracy(_orbitalsA.getNumberOfElectrons() - 1, _energy_difference));
           _degAH = list_levelsAH.size();
-          std::vector<int> list_levelsAL = (*_orbitalsA.getDegeneracy(_orbitalsA.getNumberOfElectrons(), _energy_difference));
+          std::vector<int> list_levelsAL = (_orbitalsA.getDegeneracy(_orbitalsA.getNumberOfElectrons(), _energy_difference));
           _degAL = list_levelsAL.size();
 
-          std::vector<int> list_levelsBH = (*_orbitalsB.getDegeneracy(_orbitalsB.getNumberOfElectrons() - 1, _energy_difference));
+          std::vector<int> list_levelsBH = (_orbitalsB.getDegeneracy(_orbitalsB.getNumberOfElectrons() - 1, _energy_difference));
           _degBH = list_levelsBH.size();
-          std::vector<int> list_levelsBL = (*_orbitalsB.getDegeneracy(_orbitalsB.getNumberOfElectrons(), _energy_difference));
+          std::vector<int> list_levelsBL = (_orbitalsB.getDegeneracy(_orbitalsB.getNumberOfElectrons(), _energy_difference));
           _degBL = list_levelsBL.size();
         }
 
@@ -403,16 +405,7 @@ namespace votca {
         dftcoupling.setLogger(pLog);
 
         
-        _calculate_integrals = dftcoupling.CalculateIntegrals(&_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB);
-
-        if (!_calculate_integrals) {
-          output += "integrals failed; ";
-          CTP_LOG(ctp::logERROR, *pLog) << "Calculating integrals failed" << flush;
-          cout << *pLog;
-          jres.setOutput(output);
-          jres.setStatus(ctp::Job::FAILED);
-          return jres;
-        }
+       JAB = dftcoupling.CalculateIntegrals(_orbitalsA, _orbitalsB, _orbitalsAB);
 
         HOMO_A = _orbitalsA.getNumberOfElectrons();
         HOMO_B = _orbitalsB.getNumberOfElectrons();
@@ -423,11 +416,11 @@ namespace votca {
         double J_e;
 
         if (_trim_factor == -1) {
-          J_h = dftcoupling.getCouplingElement(_degAH, _degBH, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference);
-          J_e = dftcoupling.getCouplingElement(_degAH + 1, _degBH + 1, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference);
+          J_h = dftcoupling.getCouplingElement(_degAH, _degBH, _orbitalsA, _orbitalsB, &JAB, _energy_difference);
+          J_e = dftcoupling.getCouplingElement(_degAH + 1, _degBH + 1, _orbitalsA, _orbitalsB, &JAB, _energy_difference);
         } else {
-          J_h = dftcoupling.getCouplingElement(HOMO_A, HOMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference);
-          J_e = dftcoupling.getCouplingElement(LUMO_A, LUMO_B, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference);
+          J_h = dftcoupling.getCouplingElement(HOMO_A, HOMO_B, _orbitalsA, _orbitalsB, &JAB, _energy_difference);
+          J_e = dftcoupling.getCouplingElement(LUMO_A, LUMO_B, _orbitalsA, _orbitalsB, &JAB, _energy_difference);
         }
         CTP_LOG(ctp::logINFO, *pLog) << "Couplings h/e " << ID_A << ":" << ID_B << " " << J_h << ":" << J_e << flush;
 
@@ -449,8 +442,7 @@ namespace votca {
           CTP_LOG(ctp::logINFO, *pLog) << "Not storing integrals" << flush;
         } else {
           // _orbitalsAB.setIntegrals( &_JAB );
-          Eigen::MatrixXd& _JAB_store = _orbitalsAB.MOCouplings();
-          _JAB_store = _JAB;
+          _orbitalsAB.MOCouplings() = JAB;
         }
         // save orbitals 
         boost::filesystem::create_directories(_orb_dir);
@@ -463,20 +455,20 @@ namespace votca {
 
 
       if (_do_extract) {
-        LoadOrbitals(orbFileAB, &_orbitalsAB, pLog);
-        LoadOrbitals(orbFileA, &_orbitalsA, pLog);
-        LoadOrbitals(orbFileB, &_orbitalsB, pLog);
+        LoadOrbitals(orbFileAB, _orbitalsAB, pLog);
+        LoadOrbitals(orbFileA, _orbitalsA, pLog);
+        LoadOrbitals(orbFileB, _orbitalsB, pLog);
         if (_trim_factor == -1) {
 
           // find degeneracy of HOMOs and LUMOs
-          std::vector<int> list_levelsAH = (*_orbitalsA.getDegeneracy(_orbitalsA.getNumberOfElectrons() - 1, _energy_difference));
+          std::vector<int> list_levelsAH = (_orbitalsA.getDegeneracy(_orbitalsA.getNumberOfElectrons() - 1, _energy_difference));
           _degAH = list_levelsAH.size();
-          std::vector<int> list_levelsAL = (*_orbitalsA.getDegeneracy(_orbitalsA.getNumberOfElectrons(), _energy_difference));
+          std::vector<int> list_levelsAL = (_orbitalsA.getDegeneracy(_orbitalsA.getNumberOfElectrons(), _energy_difference));
           _degAL = list_levelsAL.size();
 
-          std::vector<int> list_levelsBH = (*_orbitalsB.getDegeneracy(_orbitalsB.getNumberOfElectrons() - 1, _energy_difference));
+          std::vector<int> list_levelsBH = (_orbitalsB.getDegeneracy(_orbitalsB.getNumberOfElectrons() - 1, _energy_difference));
           _degBH = list_levelsBH.size();
-          std::vector<int> list_levelsBL = (*_orbitalsB.getDegeneracy(_orbitalsB.getNumberOfElectrons(), _energy_difference));
+          std::vector<int> list_levelsBL = (_orbitalsB.getDegeneracy(_orbitalsB.getNumberOfElectrons(), _energy_difference));
           _degBL = list_levelsBL.size();
 
           _orbitalsA.Trim(_degAH, _degAL);
@@ -486,7 +478,7 @@ namespace votca {
           _orbitalsA.Trim(_trim_factor);
           _orbitalsB.Trim(_trim_factor);
         }
-        _JAB = _orbitalsAB.MOCouplings();
+        JAB = _orbitalsAB.MOCouplings();
         HOMO_A = _orbitalsA.getNumberOfElectrons();
         HOMO_B = _orbitalsB.getNumberOfElectrons();
         LUMO_A = HOMO_A + 1;
@@ -511,24 +503,24 @@ namespace votca {
         if (_trim_factor == -1) {
 
           // HOMO-HOMO coupling
-          double JAB = dftcoupling.getCouplingElement(_degAH, _degBH, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference);
+          double J = dftcoupling.getCouplingElement(_degAH, _degBH, _orbitalsA, _orbitalsB, &JAB, _energy_difference);
           Property *_overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<string>(JAB));
           double energyA = _orbitalsA.getEnergy(_degAH);
           double energyB = _orbitalsB.getEnergy(_degBH);
           _overlap_summary->setAttribute("orbA", HOMO_A);
           _overlap_summary->setAttribute("orbB", HOMO_B);
-          _overlap_summary->setAttribute("jAB", JAB);
+          _overlap_summary->setAttribute("jAB", J);
           _overlap_summary->setAttribute("eA", energyA);
           _overlap_summary->setAttribute("eB", energyB);
 
           // LUMO-LUMO coupling
-          JAB = dftcoupling.getCouplingElement(_degAH + 1, _degBH + 1, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference);
+          J = dftcoupling.getCouplingElement(_degAH + 1, _degBH + 1, _orbitalsA, _orbitalsB, &JAB, _energy_difference);
           _overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<string>(JAB));
           energyA = _orbitalsA.getEnergy(_degAH + 1);
           energyB = _orbitalsB.getEnergy(_degBH + 1);
           _overlap_summary->setAttribute("orbA", LUMO_A);
           _overlap_summary->setAttribute("orbB", LUMO_B);
-          _overlap_summary->setAttribute("jAB", JAB);
+          _overlap_summary->setAttribute("jAB", J);
           _overlap_summary->setAttribute("eA", energyA);
           _overlap_summary->setAttribute("eB", energyB);
 
@@ -538,12 +530,12 @@ namespace votca {
           for (int levelA = HOMO_A - _max_occupied_levels + 1; levelA <= LUMO_A + _max_unoccupied_levels - 1; ++levelA) {
             for (int levelB = HOMO_B - _max_occupied_levels + 1; levelB <= LUMO_B + _max_unoccupied_levels - 1; ++levelB) {
               Property *_overlap_summary = &_pair_summary->add("overlap", "");
-              double JAB = dftcoupling.getCouplingElement(levelA, levelB, &_orbitalsA, &_orbitalsB, &_JAB, _energy_difference);
+              double J = dftcoupling.getCouplingElement(levelA, levelB, _orbitalsA, _orbitalsB, &JAB, _energy_difference);
               double energyA = _orbitalsA.getEnergy(levelA);
               double energyB = _orbitalsB.getEnergy(levelB);
               _overlap_summary->setAttribute("orbA", levelA);
               _overlap_summary->setAttribute("orbB", levelB);
-              _overlap_summary->setAttribute("jAB", JAB);
+              _overlap_summary->setAttribute("jAB", J);
               _overlap_summary->setAttribute("eA", energyA);
               _overlap_summary->setAttribute("eB", energyB);
             }

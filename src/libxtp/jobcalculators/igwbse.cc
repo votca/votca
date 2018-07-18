@@ -155,11 +155,11 @@ namespace votca {
       return type2level;
     }
 
-    void IGWBSE::LoadOrbitals(string file_name, Orbitals* orbitals, ctp::Logger *log) {
+    void IGWBSE::LoadOrbitals(string file_name, Orbitals& orbitals, ctp::Logger *log) {
 
       CTP_LOG(ctp::logDEBUG, *log) << "Loading " << file_name << flush;
       try {
-        orbitals->ReadFromCpt(file_name);
+        orbitals.ReadFromCpt(file_name);
       } catch (std::runtime_error& error) {
         CTP_LOG(ctp::logERROR, *log) << "Failed loading orbitals from " << file_name << flush;
       }
@@ -267,7 +267,7 @@ namespace votca {
             return jres;
           }
           CTP_LOG(ctp::logDEBUG, *pLog) << "Constructing the guess for dimer orbitals" << flush;
-          Orbitals::PrepareGuess(&_orbitalsA, &_orbitalsB, _orbitalsAB);
+          Orbitals::PrepareGuess(_orbitalsA, _orbitalsB, *_orbitalsAB);
         }
 
 
@@ -315,7 +315,7 @@ namespace votca {
       Orbitals _orbitalsAB;
       // parse the log/orbitals files
       if (_do_dft_parse) {
-        _parse_log_status = _qmpackage->ParseLogFile(&_orbitalsAB);
+        _parse_log_status = _qmpackage->ParseLogFile(_orbitalsAB);
 
         if (!_parse_log_status) {
           output += "log incomplete; ";
@@ -327,7 +327,7 @@ namespace votca {
           return jres;
         }
 
-        _parse_orbitals_status = _qmpackage->ParseOrbitalsFile(&_orbitalsAB);
+        _parse_orbitals_status = _qmpackage->ParseOrbitalsFile(_orbitalsAB);
 
         if (!_parse_orbitals_status) {
           output += "Orbitals parsing failed; ";
@@ -344,27 +344,24 @@ namespace votca {
 
       }// end of the parse orbitals/log
       else {
-        LoadOrbitals(orbFileAB, &_orbitalsAB, pLog);
+        LoadOrbitals(orbFileAB, _orbitalsAB, pLog);
       }
       BSECoupling _bsecoupling;
       // do excited states calculation
       if (_do_gwbse) {
-        GWBSE _gwbse = GWBSE(&_orbitalsAB);
-        ;
+        GWBSE _gwbse = GWBSE(_orbitalsAB);
         _gwbse.setLogger(pLog);
         _gwbse.Initialize(&_gwbse_options);
         _gwbse.Evaluate();
-        //bool _evaluate = _gwbse.Evaluate( &_orbitalsAB );
-        // std::cout << *pLog;
+    
       } // end of excited state calculation, exciton data is in _orbitalsAB
-      // ~GWBSE _gwbse;
-
+  
       // calculate the coupling
       Property _job_summary;
       Orbitals _orbitalsA, _orbitalsB;
       if (_do_coupling) {
         // orbitals must be loaded from a file
-        if (!_do_gwbse) LoadOrbitals(orbFileAB, &_orbitalsAB, pLog);
+        if (!_do_gwbse) LoadOrbitals(orbFileAB, _orbitalsAB, pLog);
 
 
 

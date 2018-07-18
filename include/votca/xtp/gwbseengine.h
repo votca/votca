@@ -56,7 +56,7 @@ namespace votca {
             }
 
             void Initialize(tools::Property *options, std::string _archive_filename);
-            void ExcitationEnergies(QMPackage* _qmpackage, std::vector<ctp::Segment*> _segments, Orbitals* _orbitals);
+            void ExcitationEnergies(QMPackage* _qmpackage, std::vector<ctp::Segment*> _segments, Orbitals& _orbitals);
 
             void setLog(ctp::Logger* pLog) {
                 _pLog = pLog;
