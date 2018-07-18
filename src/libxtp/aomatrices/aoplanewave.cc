@@ -97,12 +97,12 @@ namespace votca {
                 0, 0, 20, 0, 21, 22, 0, 23, 24, 25, 0, 26, 27, 28, 29, 0, 30, 31, 32, 33, 34,
                 0, 0, 35, 0, 36, 37, 0, 38, 39, 40, 0, 41, 42, 43, 44, 0, 45, 46, 47, 48, 49, 0, 50, 51, 52, 53, 54, 55};
             // iterate over Gaussians in this _shell_row   
-            for (AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr) {
+            for (AOShell::GaussianIterator itr = _shell_row->begin(); itr != _shell_row->end(); ++itr) {
                 // iterate over Gaussians in this _shell_col
                 // get decay constant
                 const double _decay_row = itr->getDecay();
 
-                for (AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc) {
+                for (AOShell::GaussianIterator itc = _shell_col->begin(); itc != _shell_col->end(); ++itc) {
                     //get decay constant
                     const double _decay_col = itc->getDecay();
 

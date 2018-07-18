@@ -900,12 +900,10 @@ namespace votca {
 
     Eigen::MatrixXd DFTENGINE::AverageShells(const Eigen::MatrixXd& dmat, AOBasis& dftbasis) {
       Eigen::MatrixXd avdmat = Eigen::MatrixXd::Zero(dmat.rows(), dmat.cols());
-      AOBasis::AOShellIterator it;
       int start = 0.0;
       std::vector<int> starts;
       std::vector<int> ends;
-      for (it = dftbasis.firstShell(); it < dftbasis.lastShell(); ++it) {
-        const AOShell* shell = *it;
+      for ( const AOShell* shell:dftbasis) {
         int end = shell->getNumFunc() + start;
 
         if (shell->getLmax() != shell->getLmin()) {

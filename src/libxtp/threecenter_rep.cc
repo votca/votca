@@ -207,10 +207,10 @@ namespace votca {
 
             
 
-            for ( AOShell::GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
+            for ( AOShell::GaussianIterator italpha = _shell_alpha->begin(); italpha != _shell_alpha->end(); ++italpha){
                 const double _decay_alpha = italpha->getDecay();
             
-                for ( AOShell::GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta){
+                for ( AOShell::GaussianIterator itbeta = _shell_beta->begin(); itbeta != _shell_beta->end(); ++itbeta){
                     const double _decay_beta = itbeta->getDecay();
                     double rzeta = 0.5 / (_decay_alpha+_decay_beta);
                     tools::vec _P = 2.0 * (_decay_alpha*_pos_alpha+_decay_beta*_pos_beta) * rzeta;
@@ -221,7 +221,7 @@ namespace votca {
                     double xi = 2.0 * _decay_alpha * _decay_beta * rzeta;
                     double fact_alpha_beta = 16.0 * xi * pow(pi / (_decay_alpha * _decay_beta), 0.25) * exp(-xi * _dist3);
                     
-                    for ( AOShell::GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
+                    for ( AOShell::GaussianIterator itgamma = _shell_gamma->begin(); itgamma != _shell_gamma->end(); ++itgamma){
                         const double _decay_gamma = itgamma->getDecay();
             
     

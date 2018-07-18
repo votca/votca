@@ -70,17 +70,16 @@ namespace votca {
       tensor3d::extent_gen extents;
       int _start = left_dftshell->getStartIndex();
       // alpha-loop over the aux basis function
-      for (AOBasis::AOShellIterator _auxS = auxbasis.firstShell(); _auxS != auxbasis.lastShell(); ++_auxS) {
-        const AOShell* _shell_aux = *_auxS;
-        int _aux_start = _shell_aux->getStartIndex();
+      for (const AOShell* shell_aux:auxbasis) {
+        int _aux_start = shell_aux->getStartIndex();
 
 
         for (int _is = 0; _is <= shellindex; _is++) {
 
           const AOShell* _shell_col = dftbasis.getShell(_is);
           int _col_start=_shell_col->getStartIndex();
-          tensor3d threec_block(extents[ range(0, _shell_aux->getNumFunc()) ][ range(0, left_dftshell->getNumFunc()) ][ range(0, _shell_col->getNumFunc())]);
-          for (int i = 0; i < _shell_aux->getNumFunc(); ++i) {
+          tensor3d threec_block(extents[ range(0, shell_aux->getNumFunc()) ][ range(0, left_dftshell->getNumFunc()) ][ range(0, _shell_col->getNumFunc())]);
+          for (int i = 0; i < shell_aux->getNumFunc(); ++i) {
             for (int j = 0; j < left_dftshell->getNumFunc(); ++j) {
               for (int k = 0; k < _shell_col->getNumFunc(); ++k) {
                 threec_block[i][j][k] = 0.0;
@@ -88,11 +87,11 @@ namespace votca {
             }
           }
 
-          bool nonzero = FillThreeCenterRepBlock(threec_block, _shell_aux, left_dftshell, _shell_col);
+          bool nonzero = FillThreeCenterRepBlock(threec_block, shell_aux, left_dftshell, _shell_col);
           if (nonzero) {
 
             for (int _left = 0; _left < left_dftshell->getNumFunc(); _left++) {
-              for (int _aux = 0; _aux < _shell_aux->getNumFunc(); _aux++) {
+              for (int _aux = 0; _aux < shell_aux->getNumFunc(); _aux++) {
                 for (int _col = 0; _col < _shell_col->getNumFunc(); _col++) {
                   //symmetry
                   if ((_col_start + _col)>(_start + _left)) {

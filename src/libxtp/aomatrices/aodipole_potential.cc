@@ -51,15 +51,7 @@ namespace votca { namespace xtp {
     
         // initialize local matrix block for unnormalized cartesians
         Eigen::MatrixXd dip = Eigen::MatrixXd::Zero(_nrows,_ncols);
-        
 
-        //cout << nuc.size1() << ":" << nuc.size2() << endl;
-        
-        /* FOR CONTRACTED FUNCTIONS, ADD LOOP OVER ALL DECAYS IN CONTRACTION
-         * MULTIPLY THE TRANSFORMATION MATRICES BY APPROPRIATE CONTRACTION 
-         * COEFFICIENTS, AND ADD TO matrix(i,j)
-         */
-        
  int n_orbitals[] = { 1, 4, 10, 20, 35, 56, 84 };
 
  int nx[] = { 0,
@@ -110,12 +102,12 @@ namespace votca { namespace xtp {
         
         
         // iterate over Gaussians in this _shell_row
-        for (AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr) {
+        for (AOShell::GaussianIterator itr = _shell_row->begin(); itr != _shell_row->end(); ++itr) {
             // iterate over Gaussians in this _shell_col
             // get decay constant
             const double _decay_row = itr->getDecay();
             
-            for ( AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc) {
+            for ( AOShell::GaussianIterator itc = _shell_col->begin(); itc != _shell_col->end(); ++itc) {
                 //get decay constant
                 const double _decay_col = itc->getDecay();
 

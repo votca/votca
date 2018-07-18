@@ -64,10 +64,6 @@ public:
     bool                _do_dft_parse;
     bool                _do_gwbse;
     bool                _do_esp;
-
-    
-    // all GWBSE functionality is in GWBSE object
-    //GWBSE _gwbse; 
     
     
     void ParseOptionsXML( Property *options);    

@@ -51,7 +51,7 @@ namespace votca {
 
         private:
 
-
+            Eigen::VectorXd EvaluateBasisAtPosition(const AOBasis& dftbasis,const tools::vec& pos);
 
             void calculateCube();
             void subtractCubes();
@@ -182,9 +182,8 @@ namespace votca {
             double zmin = xmin;
             double zmax = xmax;
 
-            vector< QMAtom* > ::iterator ait;
-            for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
-                const tools::vec& pos = (*ait)->getPos();
+            for (const QMAtom* atom:_atoms) {
+                const tools::vec& pos = atom->getPos();
                 // get center coordinates in Bohr
                 double x = pos.getX();
                 double y = pos.getY();
@@ -239,16 +238,15 @@ namespace votca {
             fprintf(out, "%d 0.0 %f 0.0 \n", _ysteps + 1, yincr);
             fprintf(out, "%d 0.0 0.0 %f \n", _zsteps + 1, zincr);
             Elements _elements;
-            for (ait = _atoms.begin(); ait != _atoms.end(); ++ait) {
-                const tools::vec& pos = (*ait)->getPos();
+            for (const QMAtom* atom:_atoms) {
+                const tools::vec& pos = atom->getPos();
                 // get center coordinates in Bohr
                 double x = pos.getX();
                 double y = pos.getY();
                 double z = pos.getZ();
-
-                string element = (*ait)->getType();
+                string element = atom->getType();
                 int atnum = _elements.getEleNum(element);
-                double crg = (*ait)->getNuccharge();
+                double crg = atom->getNuccharge();
                 fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, y, z);
             }
 
@@ -302,19 +300,7 @@ namespace votca {
                             double _z = zstart + double(_iz) * zincr;
                             Nrecord++;
                             vec pos = vec(_x, _y, _z);
-                            // get value of orbitals at each gridpoint
-                            Eigen::VectorXd tmat = Eigen::VectorXd::Zero(dftbasis.AOBasisSize());
-                            for (AOBasis::AOShellIterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
-                                const double decay = (*_row)->getMinDecay();
-                                const tools::vec& shellpos = (*_row)->getPos();
-                                tools::vec dist = shellpos - pos;
-                                double distsq = dist*dist;
-                                // if contribution is smaller than -ln(1e-10), calc density
-                                if ((decay * distsq) < 20.7) {
-                                    Eigen::VectorBlock<Eigen::VectorXd> tmat_block = tmat.segment((*_row)->getStartIndex(), (*_row)->getNumFunc());
-                                    (*_row)->EvalAOspace(tmat_block, pos);
-                                }
-                            }
+                            Eigen::VectorXd tmat=EvaluateBasisAtPosition(dftbasis,pos);
                             double density_at_grid = (tmat.transpose() * DMAT_tot * tmat).value();
                             if (Nrecord == 6 || _iz == _zsteps) {
                                 fprintf(out, "%E \n", density_at_grid);
@@ -334,9 +320,7 @@ namespace votca {
                 Eigen::VectorXd Ftemp;
                 if (_do_qp) {
                     Eigen::VectorXd QPcoefs = _orbitals.QPdiagCoefficients().col(_state - 1);
-                    // get QPdiag coefficients for the requested state
                     Eigen::MatrixXd MOs = _orbitals.MOCoefficients().block(_orbitals.getGWAmin(), 0, _orbitals.getGWAtot(), dftbasis.AOBasisSize());
-                    // get DFT MO coefficients
                     Ftemp = MOs.transpose() * QPcoefs;
                 }
                 if (_do_ks) {
@@ -350,20 +334,8 @@ namespace votca {
                         for (int _iz = 0; _iz <= _zsteps; _iz++) {
                             double _z = zstart + double(_iz) * zincr;
                             Nrecord++;
-                            // get value of orbitals at each gridpoint
-                            Eigen::VectorXd tmat = Eigen::VectorXd::Zero(dftbasis.AOBasisSize());
                             vec pos = vec(_x, _y, _z);
-                            for (AOBasis::AOShellIterator _row = dftbasis.firstShell(); _row != dftbasis.lastShell(); _row++) {
-                                const double decay = (*_row)->getMinDecay();
-                                const tools::vec& shellpos = (*_row)->getPos();
-                                tools::vec dist = shellpos - pos;
-                                double distsq = dist*dist;
-                                // if contribution is smaller than -ln(1e-10), calc density
-                                if ((decay * distsq) < 20.7) {
-                                    Eigen::VectorBlock<Eigen::VectorXd> tmat_block = tmat.segment((*_row)->getStartIndex(), (*_row)->getNumFunc());
-                                    (*_row)->EvalAOspace(tmat_block, pos);
-                                }
-                            }
+                            Eigen::VectorXd tmat=EvaluateBasisAtPosition(dftbasis,pos);
                             double QP_at_grid = (Ftemp.transpose() * tmat).value();
                             if (Nrecord == 6 || _iz == _zsteps) {
                                 fprintf(out, "%E \n", QP_at_grid);
@@ -380,6 +352,24 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, _log) << "Wrote cube data to " << _output_file << flush;
 
             return;
+        }
+        
+        Eigen::VectorXd GenCube::EvaluateBasisAtPosition(const AOBasis& dftbasis,const tools::vec& pos){
+            
+        // get value of orbitals at each gridpoint
+        Eigen::VectorXd tmat = Eigen::VectorXd::Zero(dftbasis.AOBasisSize());
+        for (const AOShell* shell:dftbasis) {
+            const double decay =shell->getMinDecay();
+            const tools::vec& shellpos = shell->getPos();
+            tools::vec dist = shellpos - pos;
+            double distsq = dist*dist;
+            // if contribution is smaller than -ln(1e-10), calc density
+            if ((decay * distsq) < 20.7) {
+                Eigen::VectorBlock<Eigen::VectorXd> tmat_block = tmat.segment(shell->getStartIndex(), shell->getNumFunc());
+                shell->EvalAOspace(tmat_block, pos);
+            }
+        }
+        return tmat;
         }
 
         void GenCube::subtractCubes() {

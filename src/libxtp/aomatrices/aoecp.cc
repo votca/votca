@@ -55,7 +55,7 @@ namespace votca { namespace xtp {
 
 
             // iterate over Gaussians in this _shell_row
-            for (AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr) {
+            for (AOShell::GaussianIterator itr = _shell_row->begin(); itr != _shell_row->end(); ++itr) {
                 // iterate over Gaussians in this _shell_col
                 // get decay constant
                 const double _decay_row = itr->getDecay();
@@ -71,7 +71,7 @@ namespace votca { namespace xtp {
                 }
 
 
-                for (AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc) {
+                for (AOShell::GaussianIterator itc = _shell_col->begin(); itc != _shell_col->end(); ++itc) {
                     //get decay constant
                     const double _decay_col = itc->getDecay();
                     const double _fak  = 0.5 / (_decay_row + _decay_col);
@@ -99,11 +99,11 @@ namespace votca { namespace xtp {
                     Eigen::Matrix<double,4,5> _decay_matrix = Eigen::Matrix<double,4,5>::Zero();
                     Eigen::Matrix<double,4,5> _coef_matrix  = Eigen::Matrix<double,4,5>::Zero();
 
-                    AOBasis::AOShellIterator final_iter = _ecp->lastShell();
+                    AOBasis::AOShellIterator final_iter = _ecp->end();
                     --final_iter;
                     tools::vec _ecp_eval_pos = tools::vec(0.0);
                     int _lmax_ecp = 0;
-                    for (AOBasis::AOShellIterator _ecpit = _ecp->firstShell(); _ecpit != _ecp->lastShell(); ++_ecpit) {
+                    for (AOBasis::AOShellIterator _ecpit = _ecp->begin(); _ecpit != _ecp->end(); ++_ecpit) {
 
                         const AOShell* _shell_ecp = *_ecpit;
                         const tools::vec& _ecp_pos = _shell_ecp->getPos();
@@ -117,7 +117,7 @@ namespace votca { namespace xtp {
                             int _lmax_ecp_old = _lmax_ecp;
                             _lmax_ecp = _shell_ecp->getNumFunc() - 1;
                             int i_fit = -1;
-                            for (AOShell::GaussianIterator itecp = _shell_ecp->firstGaussian(); itecp != _shell_ecp->lastGaussian(); ++itecp) {
+                            for (AOShell::GaussianIterator itecp = _shell_ecp->begin(); itecp != _shell_ecp->end(); ++itecp) {
                                 i_fit++;
 
                                 // get info for this angular momentum shell

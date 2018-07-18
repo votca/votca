@@ -52,15 +52,13 @@ namespace votca { namespace xtp {
       const double center_z = center.getZ();
       const double distsq = center*center;
 
-
-
       // iterate over Gaussians in this shell
-      for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
+      for (const AOGaussianPrimitive& gaussian:(*this)) {
 
-        const double alpha = itr->getDecay();
-        const std::vector<double>& _contractions = itr->getContraction();
+        const double alpha = gaussian.getDecay();
+        const std::vector<double>& _contractions = gaussian.getContraction();
 
-        const double _expofactor = itr->getPowfactor() * exp(-alpha * distsq);
+        const double _expofactor = gaussian.getPowfactor() * exp(-alpha * distsq);
 
         // split combined shells
         int _i_func = -1;
@@ -302,7 +300,6 @@ namespace votca { namespace xtp {
      
 void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const tools::vec& grid_pos )const{
 
-           
             // need position of shell
              const tools::vec center=grid_pos-this->_pos;
              const double center_x = center.getX();
@@ -312,12 +309,12 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const t
 
             
             // iterate over Gaussians in this shell
-            for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
+             for (const AOGaussianPrimitive& gaussian:(*this)) {
 
-                const double alpha = itr->getDecay();
-                const std::vector<double>& _contractions = itr->getContraction();
+                const double alpha = gaussian.getDecay();
+                const std::vector<double>& _contractions = gaussian.getContraction();
 
-                double _expofactor =itr->getPowfactor() * exp(-alpha * distsq);
+                double _expofactor =gaussian.getPowfactor() * exp(-alpha * distsq);
 
                 // split combined shells
                 int _i_func = -1;

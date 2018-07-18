@@ -19,7 +19,6 @@
 
 
 #include <votca/xtp/aomatrix.h>
-
 #include <votca/xtp/aobasis.h>
 #include <vector>
 
@@ -124,12 +123,12 @@ namespace votca { namespace xtp {
             
           
         // iterate over Gaussians in this _shell_row
-            for ( AOShell::GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
+            for ( AOShell::GaussianIterator itr = _shell_row->begin(); itr != _shell_row->end(); ++itr){
             // iterate over Gaussians in this _shell_col
                 const double _decay_row = itr->getDecay();
                 const double r_decay_row = 0.5/_decay_row;
                 const double powfactor_row=itr->getPowfactor();
-                for ( AOShell::GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
+                for ( AOShell::GaussianIterator itc = _shell_col->begin(); itc != _shell_col->end(); ++itc){
                     
                      // get decay constants 
                         const double _decay_col = itc->getDecay();
@@ -138,8 +137,6 @@ namespace votca { namespace xtp {
                       
                          
                          tensor3d _cou(boost::extents[_nrows][_ncols][_nextra]);
-                         
-                         
                                   
                            for (index3d i = 0; i != _nrows; ++i) {
                                for (index3d j = 0; j != _ncols; ++j) {

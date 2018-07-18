@@ -62,8 +62,8 @@ AOShell::GaussianIterator it;
 std::vector<double> ref_results={0.1831079647,0.9155398233};
 int i=0;
 bool check_norm=true;
-for(it=shell->firstGaussian();it<shell->lastGaussian();++it){
-  if(std::abs(ref_results[i]-it->getContraction()[2])>1e-7){
+for(const AOGaussianPrimitive& gaussian:*shell){
+  if(std::abs(ref_results[i]-gaussian.getContraction()[2])>1e-7){
    check_norm=false;
    break;
   }
@@ -73,8 +73,8 @@ for(it=shell->firstGaussian();it<shell->lastGaussian();++it){
 
 i=0;
 if(!check_norm){
-  for(it=shell->firstGaussian();it<shell->lastGaussian();++it){
-  std::cout<<"Ref:"<<ref_results[i]<<" result:"<<it->getContraction()[2]<<std::endl;
+  for(const AOGaussianPrimitive& gaussian:*shell){
+  std::cout<<"Ref:"<<ref_results[i]<<" result:"<<gaussian.getContraction()[2]<<std::endl;
    i++;
   }
  

@@ -30,10 +30,9 @@ namespace votca {
     namespace xtp {
 
         void AOSuperMatrix::PrintIndexToFunction(const AOBasis& aobasis) {
-            for (AOBasis::AOShellIterator _row = aobasis.firstShell(); _row != aobasis.lastShell(); _row++) {
-                const AOShell* _shell_row = *_row;
-                int _row_start = _shell_row->getStartIndex();
-                std::string type = _shell_row->getType();
+            for ( const AOShell* shell_row:aobasis) {
+                int _row_start = shell_row->getStartIndex();
+                std::string type = shell_row->getType();
                 std::cout << "Shell " << type << "starts at " << _row_start + 1 << std::endl;
             }
             return;
@@ -88,23 +87,21 @@ namespace votca {
 #pragma omp parallel for
             for (unsigned _row = 0; _row < aobasis.getNumofShells(); _row++) {
 
-                const AOShell* _shell_row = aobasis.getShell(_row);
-                int _row_start = _shell_row->getStartIndex();
+                const AOShell* shell_row = aobasis.getShell(_row);
+                int _row_start = shell_row->getStartIndex();
 
                 // loop column
-                for (AOBasis::AOShellIterator _col = aobasis.firstShell(); _col != aobasis.lastShell(); _col++) {
-                    const AOShell* _shell_col = *_col;
-
+                for (const AOShell* shell_col:aobasis) {
                     // figure out the submatrix
-                    int _col_start = _shell_col->getStartIndex();
+                    int _col_start = shell_col->getStartIndex();
                 std::vector< Eigen::Block<Eigen::MatrixXd> > _submatrix;
                     for (int _i = 0; _i < 3; _i++) {
-                   Eigen::Block<Eigen::MatrixXd> block=_aomatrix[_i].block( _row_start,_col_start,_shell_row->getNumFunc(),_shell_col->getNumFunc());
+                   Eigen::Block<Eigen::MatrixXd> block=_aomatrix[_i].block( _row_start,_col_start,shell_row->getNumFunc(),shell_col->getNumFunc());
                    _submatrix.push_back(block );
 
                     }
                     // Fill block
-                    FillBlock(_submatrix, _shell_row, _shell_col);
+                    FillBlock(_submatrix, shell_row, shell_col);
 
                 }
             }

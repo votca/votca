@@ -262,21 +262,19 @@ namespace votca {
 
       for (unsigned i = 0; i < _grid_boxes.size(); ++i) {
         GridBox & box = _grid_boxes[i];
-        for (AOBasis::AOShellIterator _row = _basis->firstShell(); _row != _basis->lastShell(); _row++) {
-          const AOShell* _store = (*_row);
-          const double decay = (*_row)->getMinDecay();
-          const tools::vec& shellpos = (*_row)->getPos();
+        for (const AOShell* store:(*_basis)) {
+          const double decay = store->getMinDecay();
+          const tools::vec& shellpos =store->getPos();
           for (const auto& point : box.getGridPoints()) {
             tools::vec dist = shellpos - point;
             double distsq = dist*dist;
             // if contribution is smaller than -ln(1e-10), add atom to list
             if ((decay * distsq) < 20.7) {
-              box.addShell(_store);
+              box.addShell(store);
               break;
             }
           }
         }
-        //cout<<box.significant_shells.size()<<" "<<box.grid_pos.size()<<endl;
       }
 
       std::vector< GridBox > _grid_boxes_copy;

@@ -142,9 +142,8 @@ void AOBasis::MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier
         // go through basisset, determine function sizes
         int _dim_sph = 0;
         int _dim_cart = 0;
-        for (AOShellIterator _is = this->firstShell(); _is != this->lastShell(); _is++) {
-          const AOShell* _shell = *_is;
-          const std::string& _type = _shell->getType();
+        for (const AOShell* shell:(*this)) {
+          const std::string& _type = shell->getType();
 
           _dim_sph += NumFuncShell(_type);
           _dim_cart += NumFuncShell_cartesian(_type);
@@ -154,13 +153,12 @@ void AOBasis::MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier
 
         int _row_start = 0;
         int _col_start = 0;
-        for (AOShellIterator _is = this->firstShell(); _is != this->lastShell(); _is++) {
-          const AOShell* _shell = *_is;
-          const std::string& _type = _shell->getType();
+         for (const AOShell* shell:(*this)) {
+          const std::string& _type = shell->getType();
           int _row_end = _row_start + NumFuncShell(_type);
           int _col_end = _col_start + NumFuncShell_cartesian(_type);
           Eigen::Block<Eigen::MatrixXd> block = _trafomatrix.block(_row_start, _col_start, NumFuncShell(_type), NumFuncShell_cartesian(_type));
-          addTrafoCartShell(_shell, block);
+          addTrafoCartShell(shell, block);
           _row_start = _row_end;
           _col_start = _col_end;
 
@@ -228,9 +226,8 @@ std::vector<int> AOBasis::getMultiplierVector( const std::string& start, const s
       t=target;
     }
     // go through basisset
-    for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
-        const AOShell* _shell = *_is;
-        addMultiplierShell(  s, t, _shell->getType(), multiplier );
+    for (const AOShell* shell:(*this)) { 
+        addMultiplierShell(  s, t, shell->getType(), multiplier );
     }
     return multiplier;
     }
@@ -346,9 +343,8 @@ std::vector<int>  AOBasis::getReorderVector(const std::string& start,const std::
       t=target;
     }
     // go through basisset
-    for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
-        const AOShell* _shell = *_is;
-        addReorderShell( s, t, _shell->getType(), neworder );
+     for (const AOShell* shell:(*this)) {
+        addReorderShell( s, t, shell->getType(), neworder );
     }
      if(start=="xtp"){
        neworder=invertOrder(neworder);
@@ -517,7 +513,6 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       _AOBasisFragB = 0;
       // loop over atoms
       for (QMAtom* atom : _atoms) {
-        const tools::vec& pos = atom->getPos();
         const std::string& name = atom->getType();
         atom->nuccharge = elementinfo.getNucCrg(name);
         const Element& element = bs.getElement(name);
@@ -550,7 +545,6 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       std::vector< QMAtom* > ::iterator ait;
       _AOBasisSize = 0;
       for (QMAtom* atom : _atoms) {
-        const tools::vec &pos = atom->getPos();
         std::string name = atom->getType();
         if (name == "H" || name == "He") {
           continue;

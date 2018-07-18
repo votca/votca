@@ -111,8 +111,8 @@ public:
 
     // iterator over pairs (decay constant; contraction coefficient)
     typedef std::vector< AOGaussianPrimitive >::const_iterator GaussianIterator;
-    GaussianIterator firstGaussian() const{ return _gaussians.begin(); }
-    GaussianIterator lastGaussian()const{ return _gaussians.end(); }
+    GaussianIterator begin() const{ return _gaussians.begin(); }
+    GaussianIterator end()const{ return _gaussians.end(); }
    
     // adds a Gaussian 
     void  addGaussian( double decay, std::vector<double> contraction ) 

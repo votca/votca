@@ -54,8 +54,8 @@ public:
     unsigned AOBasisSize() const {return _AOBasisSize; }
     
     typedef std::vector< AOShell* >::const_iterator AOShellIterator;
-    AOShellIterator firstShell() const{ return _aoshells.begin(); }
-    AOShellIterator lastShell() const{ return _aoshells.end(); }
+    AOShellIterator begin() const{ return _aoshells.begin(); }
+    AOShellIterator end() const{ return _aoshells.end(); }
 
     Eigen::MatrixXd getTransformationCartToSpherical(const std::string& package);
     
