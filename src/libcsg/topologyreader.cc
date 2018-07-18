@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 #endif
 
 #include <votca/csg/topologyreader.h>
-#include "modules/io/lammpsreader.h"
+#include "modules/io/lammpsdumpreader.h"
 #include "modules/io/xmltopologyreader.h"
 #include "modules/io/xyzreader.h"
 #include "modules/io/groreader.h"
@@ -36,7 +36,7 @@ namespace votca { namespace csg {
 void TopologyReader::RegisterPlugins(void)
 {
     TopReaderFactory().Register<XMLTopologyReader>("xml");
-    TopReaderFactory().Register<LAMMPSReader>("dump");
+    TopReaderFactory().Register<LAMMPSDumpReader>("dump");
     TopReaderFactory().Register<XYZReader>("xyz");
     TopReaderFactory().Register<GROReader>("gro");
 #ifdef GMX_DOUBLE
