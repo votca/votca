@@ -23,9 +23,8 @@
 
 #include "jobcalculators/qmmm.h"
 #include "jobcalculators/egwbse.h"
-#include "jobcalculators/igwbse.h"
+#include "jobcalculators/iqm.h"
 #include "jobcalculators/qmape.h"
-#include "jobcalculators/idft.h"
 #include "jobcalculators/edft.h"
 #include "jobcalculators/iexcitoncl.h"
 
@@ -36,9 +35,8 @@ void JobCalculatorfactory::RegisterAll(void)
 {	
         JobCalculators().Register<QMMM>                 ("qmmm");
         JobCalculators().Register<EGWBSE>               ("egwbse");
-        JobCalculators().Register<IGWBSE>               ("igwbse");
+        JobCalculators().Register<IQM>                  ("iqm");
         JobCalculators().Register<EDFT>                 ("edft");
-        JobCalculators().Register<IDFT>                 ("idft");
         JobCalculators().Register<QMAPE>                ("qmape");
         JobCalculators().Register<IEXCITON>             ("iexcitoncl");
 }

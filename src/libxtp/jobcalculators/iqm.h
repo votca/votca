@@ -46,12 +46,10 @@ class IQM : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job
 {
 public:
 
-    IGWBSE() {};
-   ~IGWBSE() {};
    
     void    Initialize(tools::Property *options );
     
-    string  Identify() { return "igwbse"; }
+    string  Identify() { return "iqm"; }
     
     ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *Thread);
 
@@ -62,24 +60,20 @@ public:
 
 
 private:
-
- 
-    //int                 _max_unoccupied_levels;     
-    //int                 _trim_factor;
     
     string              _package;
-    Property            _package_options; 
+    Property            _dftpackage_options; 
     Property            _gwbse_options; 
-    Property            _coupling_options; 
-    
- 
+    Property            _bsecoupling_options; 
+    Property            _dftcoupling_options; 
 
     // what to do
     bool                _do_dft_input;
     bool                _do_dft_run;
     bool                _do_dft_parse;
+    bool                _do_dftcoupling;
     bool                _do_gwbse;
-    bool                _do_coupling;
+    bool                _do_bsecoupling;
     
     // what to write in the storage
     bool                _store_dft;

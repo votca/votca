@@ -38,21 +38,18 @@ namespace votca {
    
     void IQM::Initialize(votca::tools::Property* options) {
 
-      // tasks to be done by IBSE: dft_input, dft_run, dft_parse, mgbft, bse_coupling
+      
       _do_dft_input = false;
       _do_dft_run = false;
       _do_dft_parse = false;
+      _do_dftcoupling = false;
       _do_gwbse = false;
-      _do_coupling = false;
-
+      _do_bsecoupling = false;
+      
       _store_dft = false;
       _store_singlets = false;
       _store_triplets = false;
       _store_ehint = false;
-      _write_orbfile = false;
-
-
-
       ParseOptionsXML(options);
 
       // register all QM packages (Gaussian, turbomole, etc))
@@ -60,7 +57,7 @@ namespace votca {
       return;
     }
 
-    void IGWBSE::ParseOptionsXML(votca::tools::Property *opt) {
+    void IQM::ParseOptionsXML(votca::tools::Property *opt) {
 
 
       // parsing general ibse options
@@ -73,8 +70,9 @@ namespace votca {
       if (_tasks_string.find("input") != std::string::npos) _do_dft_input = true;
       if (_tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
       if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
+      if (_tasks_string.find("dftcoupling") != std::string::npos) _do_dftcoupling = true;
       if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
-      if (_tasks_string.find("coupling") != std::string::npos) _do_coupling = true;
+      if (_tasks_string.find("bsecoupling") != std::string::npos) _do_bsecoupling = true;
 
       // storage options
       string _store_string = opt->get(key + ".store").as<string> ();
@@ -82,32 +80,29 @@ namespace votca {
       if (_store_string.find("singlets") != std::string::npos) _store_singlets = true;
       if (_store_string.find("triplets") != std::string::npos) _store_triplets = true;
       if (_store_string.find("ehint") != std::string::npos) _store_ehint = true;
-      if (_store_dft || _store_singlets || _store_triplets || _store_ehint) {
-        _write_orbfile = true;
+      
+      
+      if(_do_dft_input || _do_dft_run || _do_dft_parse){
+        string _package_xml = opt->get(key + ".dftpackage").as<string> ();
+        load_property_from_xml(_dftpackage_options, _package_xml.c_str());
+        key = "package";
+        _package = _dftpackage_options.get(key + ".name").as<string> ();
       }
-      // options for gwbse
-      string _gwbse_xml = opt->get(key + ".gwbse_options").as<string> ();
-      //cout << endl << "... ... Parsing " << _package_xml << endl ;
-      load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
+      
+      if(_do_dftcoupling){
+        _dftcoupling_options = opt->get(key + ".dftcoupling_options");
+      }
+      
+      if(_do_gwbse){
+        string _gwbse_xml = opt->get(key + ".gwbse_options").as<string> ();
+        load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
+      }
+      if(_do_bsecoupling){
       string _coupling_xml = opt->get(key + ".bsecoupling_options").as<string>();
-      load_property_from_xml(_coupling_options, _coupling_xml.c_str());
-
-      // options for dft package
-      string _package_xml = opt->get(key + ".dftpackage").as<string> ();
-      //cout << endl << "... ... Parsing " << _package_xml << endl ;
-      load_property_from_xml(_package_options, _package_xml.c_str());
-      key = "package";
-      _package = _package_options.get(key + ".name").as<string> ();
-
-      // job file specification
-      key = "options." + Identify();
-
-      if (opt->exists(key + ".job_file")) {
-        _jobfile = opt->get(key + ".job_file").as<string>();
-      } else {
-        throw std::runtime_error("Job-file not set. Abort.");
+      load_property_from_xml(_bsecoupling_options, _coupling_xml.c_str());
       }
-
+      
+      
       //options for parsing data into sql file   
       key = "options." + Identify() + ".readjobfile";
       if (opt->exists(key + ".singlets")) {
@@ -118,11 +113,22 @@ namespace votca {
         string _parse_string_t = opt->get(key + ".triplets").as<string> ();
         _triplet_levels = FillParseMaps(_parse_string_t);
       }
+      
+      // job file specification
+      key = "options." + Identify();
+
+      if (opt->exists(key + ".job_file")) {
+        _jobfile = opt->get(key + ".job_file").as<string>();
+      } else {
+        throw std::runtime_error("Job-file not set. Abort.");
+      }
+
+      
 
       return;
     }
 
-    std::map<std::string, int> IGWBSE::FillParseMaps(string Mapstring) {
+    std::map<std::string, int> IQM::FillParseMaps(string Mapstring) {
       Tokenizer tok_cleanup(Mapstring, ", \t\n");
       std::vector <std::string> strings_vec;
       tok_cleanup.ToVector(strings_vec);
@@ -150,7 +156,7 @@ namespace votca {
       return type2level;
     }
 
-    void IGWBSE::LoadOrbitals(string file_name, Orbitals& orbitals, ctp::Logger *log) {
+    void IQM::LoadOrbitals(string file_name, Orbitals& orbitals, ctp::Logger *log) {
 
       CTP_LOG(ctp::logDEBUG, *log) << "Loading " << file_name << flush;
       try {
@@ -161,20 +167,20 @@ namespace votca {
 
     }
 
-    ctp::Job::JobResult IGWBSE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *opThread) {
+    ctp::Job::JobResult IQM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *opThread) {
 
       // report back to the progress observer
       ctp::Job::JobResult jres = ctp::Job::JobResult();
 
-      string igwbse_work_dir = "OR_FILES";
-      string egwbse_work_dir = "OR_FILES";
+      string iqm_work_dir = "OR_FILES";
+      string eqm_work_dir = "OR_FILES";
       string frame_dir = "frame_" + boost::lexical_cast<string>(top->getDatabaseId());
 
       bool _run_dft_status = false;
       bool _parse_log_status = false;
       bool _parse_orbitals_status = false;
       bool _calculate_integrals = false;
-      stringstream sout;
+      
       string output;
 
 
@@ -195,10 +201,10 @@ namespace votca {
 
       path arg_path, arg_pathA, arg_pathB, arg_pathAB;
 
-      string orbFileA = (arg_pathA / egwbse_work_dir / "molecules_gwbse" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_A % ".orb").str()).c_str();
-      string orbFileB = (arg_pathB / egwbse_work_dir / "molecules_gwbse" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_B % ".orb").str()).c_str();
-      string orbFileAB = (arg_pathAB / igwbse_work_dir / "pairs_gwbse" / frame_dir / (format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb").str()).c_str();
-      string _orb_dir = (arg_path / igwbse_work_dir / "pairs_gwbse" / frame_dir).c_str();
+      string orbFileA = (arg_pathA / eqm_work_dir / "molecules_gwbse" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_A % ".orb").str()).c_str();
+      string orbFileB = (arg_pathB / eqm_work_dir / "molecules_gwbse" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_B % ".orb").str()).c_str();
+      string orbFileAB = (arg_pathAB / iqm_work_dir / "pairs_gwbse" / frame_dir / (format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb").str()).c_str();
+      string _orb_dir = (arg_path / iqm_work_dir / "pairs_gwbse" / frame_dir).c_str();
 
       ctp::Segment *seg_A = top->getSegment(ID_A);
       assert(seg_A->getName() == type_A);
@@ -217,7 +223,7 @@ namespace votca {
 
       string _package_append = _package + "_gwbse";
 
-      string _qmpackage_work_dir = (arg_path / igwbse_work_dir / _package_append / frame_dir / _pair_dir).c_str();
+      string _qmpackage_work_dir = (arg_path / iqm_work_dir / _package_append / frame_dir / _pair_dir).c_str();
       // get the corresponding object from the QMPackageFactory
       QMPackage *_qmpackage = QMPackages().Create(_package);
       // set a log file for the package
@@ -225,7 +231,7 @@ namespace votca {
       // set the run dir 
       _qmpackage->setRunDir(_qmpackage_work_dir);
       // get the package options
-      _qmpackage->Initialize(&_package_options);
+      _qmpackage->Initialize(&_dftpackage_options);
 
       // if asked, prepare the input files
       if (_do_dft_input) {
@@ -354,7 +360,7 @@ namespace votca {
       // calculate the coupling
       Property _job_summary;
       Orbitals _orbitalsA, _orbitalsB;
-      if (_do_coupling) {
+      if (_do_bsecoupling) {
         // orbitals must be loaded from a file
         if (!_do_gwbse) LoadOrbitals(orbFileAB, _orbitalsAB, pLog);
 
@@ -407,14 +413,15 @@ namespace votca {
         _orbitalsAB.setTripletCouplings(_bsecoupling.getJAB_tripletstorage());
         Property *_pair_summary = &_job_output->add("pair", "");
         Property *_type_summary = &_pair_summary->add("type", "");
-        _bsecoupling.addoutput(_type_summary, &_orbitalsA, & _orbitalsB);
+        _bsecoupling.Addoutput(_type_summary, &_orbitalsA, & _orbitalsB);
       }
 
 
       votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 1, "");
+      stringstream sout;
       sout << iomXML << _job_summary;
       CTP_LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush;
-      if (_write_orbfile) {
+     if (_store_dft || _store_singlets || _store_triplets || _store_ehint) {
         // save orbitals 
         boost::filesystem::create_directories(_orb_dir);
 
@@ -460,7 +467,7 @@ namespace votca {
       return jres;
     }
 
-    void IGWBSE::WriteJobFile(ctp::Topology *top) {
+    void IQM::WriteJobFile(ctp::Topology *top) {
 
       cout << endl << "... ... Writing job file " << flush;
       std::ofstream ofs;
@@ -519,7 +526,7 @@ namespace votca {
      * Imports electronic couplings with superexchange
      */
 
-    void IGWBSE::ReadJobFile(ctp::Topology *top) {
+    void IQM::ReadJobFile(ctp::Topology *top) {
 
       Property xml;
 

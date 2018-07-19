@@ -32,11 +32,18 @@ namespace votca { namespace xtp {
 using std::flush;
 using boost::format;
 
+void DFTcoupling::Initialize(tools::Property& options){
+  
+  std::string key="";
+  _degeneracy=options.ifExistsReturnElseReturnDefault<bool>(key+"degeneracy",0.0);
+  _numberofstates=options.ifExistsReturnElseReturnDefault<int>(key+"numberofstates",1);
+
+}
 
 void DFTcoupling::WriteToProperty(tools::Property& type_summary, const Orbitals& orbitalsA,
                                   const Orbitals& orbitalsB, int a, int b){
   double J = getCouplingElement(a,b, orbitalsA, orbitalsB);
-  tools::Property& overlap_summary = type_summary.add("coupling", boost::lexical_cast<string>(J));
+  tools::Property& overlap_summary = type_summary.add(Identify(), boost::lexical_cast<string>(J));
   double energyA = orbitalsA.getEnergy(a);
   double energyB = orbitalsB.getEnergy(b);
   overlap_summary.setAttribute("levelA", a);
@@ -123,6 +130,8 @@ double DFTcoupling::getCouplingElement( int levelA, int levelB, const Orbitals&o
       }
 }
 
+
+
 /**
  * \brief evaluates electronic couplings  
  * @param _orbitalsA molecular orbitals of molecule A
@@ -130,37 +139,12 @@ double DFTcoupling::getCouplingElement( int levelA, int levelB, const Orbitals&o
  * @param _orbitalsAB molecular orbitals of the dimer AB
  * @return JAB matrix with electronic couplings
  */
-void DFTcoupling::CalculateIntegrals(const Orbitals& orbitalsA, const Orbitals& orbitalsB, 
+void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB, 
     const Orbitals& orbitalsAB) {
 
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
     
-    const std::vector<QMAtom*>& atomsA=orbitalsA.QMAtoms();
-    const std::vector<QMAtom*>& atomsB=orbitalsB.QMAtoms();
-    const std::vector<QMAtom*>& atomsAll = orbitalsAB.QMAtoms();
-     
-  for (unsigned i = 0; i < atomsAll.size(); i++) {
-      QMAtom* dimer = atomsAll[i];
-      QMAtom* monomer = NULL;
-
-      if (i < atomsA.size()) {
-          monomer = atomsA[i];
-      } else if (i < atomsB.size() + atomsA.size()) {
-          monomer = atomsB[i - atomsA.size()]; 
-      } else {
-          // Linker
-          CTP_LOG(ctp::logERROR, *_pLog) << (format("Neither Monomer A nor Monomer B contains atom %s on line %u. Hence, this atom is part of a linker.") %dimer->getType() %(i+1) ).str()<<flush;
-          continue;
-      }
-      
-      if(!monomer->getPos().isClose(dimer->getPos(), 0.001)){
-              CTP_LOG(ctp::logINFO, *_pLog) << "======WARNING=======\n Coordinates of monomer and dimer atoms do not agree, do you know what you are doing?" << flush;
-          }
-
-      if (monomer->getType() != dimer->getType()) {
-          throw std::runtime_error("\nERROR: Atom types do not agree in dimer and monomers\n");
-      }
-}
+    CheckAtomCoordinates(orbitalsA, orbitalsB, orbitalsAB);
     
     // constructing the direct product orbA x orbB
     int basisA = orbitalsA.getBasisSetSize();

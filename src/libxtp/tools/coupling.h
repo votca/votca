@@ -182,7 +182,7 @@ bool Coupling::Evaluate() {
      DFTcoupling dftcoupling; 
     dftcoupling.setLogger(&_log);
           
-    Eigen::MatrixXd _JAB = dftcoupling.CalculateIntegrals( _orbitalsA, _orbitalsB, _orbitalsAB);  
+    Eigen::MatrixXd _JAB = dftcoupling.CalculateCouplings( _orbitalsA, _orbitalsB, _orbitalsAB);  
     std::cout << _log;
  
      

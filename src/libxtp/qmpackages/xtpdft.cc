@@ -53,13 +53,11 @@ namespace votca {
 
             _charge = options->get(key + ".charge").as<int> ();
             _spin = options->get(key + ".spin").as<int> ();
-            _options = options->get(key + ".options").as<std::string> ();
             _threads = options->get(key + ".threads").as<int> ();
             _cleanup = options->get(key + ".cleanup").as<std::string> ();
 
             // pass the information about the dftengine options and init
-            load_property_from_xml(_xtpdft_options, _options.c_str());
-            _xtpdft.Initialize( &_xtpdft_options );
+            _xtpdft.Initialize( *options );
 
             // check if ECPs are used in xtpdft
             _write_pseudopotentials=false;

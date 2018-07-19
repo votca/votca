@@ -20,10 +20,7 @@
 #ifndef _VOTCA_XTP_DFTCOUPLING_H
 #define	_VOTCA_XTP_DFTCOUPLING_H
 
-#include <votca/xtp/orbitals.h>
-#include <votca/ctp/logger.h>
-
-
+#include <votca/xtp/couplingbase.h>
 
 namespace votca { namespace xtp {
 
@@ -36,18 +33,19 @@ namespace votca { namespace xtp {
 * 
 */
 
-class DFTcoupling 
+class DFTcoupling :CouplingBase
 {
 public:
-    
-    DFTcoupling(double degeneracy,double numberofstates,ctp::Logger* log):
-    _degeneracy(degeneracy),_numberofstates(numberofstates),_pLog(log){;}
 
-    void CalculateIntegrals(const Orbitals& orbitalsA, 
+    std::string  Identify() { return "dftcoupling"; }
+    DFTcoupling(ctp::Logger* log):
+    _degeneracy(0.0),_numberofstates(0),_pLog(log){;}
+
+    void CalculateCouplings(const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB, 
                                const Orbitals& orbitalsAB);
     
-    
+    void Initialize(tools::Property&);
     
     void Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB);

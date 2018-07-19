@@ -147,7 +147,7 @@ bool ExcitonCoupling::Evaluate() {
     _job_output = &_summary.add("output","");
     Property *_pair_summary = &_job_output->add("pair","");
     Property *_type_summary = &_pair_summary->add("type","");
-    _bsecoupling.addoutput(_type_summary,&_orbitalsA, & _orbitalsB);
+    _bsecoupling.Addoutput(_type_summary,&_orbitalsA, & _orbitalsB);
     
    
    

@@ -389,7 +389,7 @@ namespace votca {
         dftcoupling.setLogger(pLog);
 
         
-       JAB = dftcoupling.CalculateIntegrals(_orbitalsA, _orbitalsB, _orbitalsAB);
+       JAB = dftcoupling.CalculateCouplings(_orbitalsA, _orbitalsB, _orbitalsAB);
 
         HOMO_A = _orbitalsA.getNumberOfElectrons();
         HOMO_B = _orbitalsB.getNumberOfElectrons();

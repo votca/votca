@@ -55,19 +55,19 @@ namespace votca {
 
     }
 
-    void DFTENGINE::Initialize(Property* options) {
+    void DFTENGINE::Initialize(Property& options) {
 
-      string key = Identify();
+      string key = "";
 
       // get OpenMP thread number
 
-      _openmp_threads = options->ifExistsReturnElseReturnDefault<int>(key + ".openmp", 0);
+      _openmp_threads = options.ifExistsReturnElseReturnDefault<int>(key + ".openmp", 0);
 
       // basis sets
-      _dftbasis_name = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".dftbasis");
+      _dftbasis_name = options.ifExistsReturnElseThrowRuntimeError<string>(key + ".dftbasis");
 
-      if (options->exists(key + ".auxbasis")) {
-        _auxbasis_name = options->get(key + ".auxbasis").as<string>();
+      if (options.exists(key + ".auxbasis")) {
+        _auxbasis_name = options.get(key + ".auxbasis").as<string>();
         _with_RI = true;
       } else {
         _with_RI = false;
@@ -75,43 +75,43 @@ namespace votca {
 
       if (!_with_RI) {
         std::vector<std::string> choices = {"direct", "cache"};
-        _four_center_method = options->ifExistsAndinListReturnElseThrowRuntimeError<std::string>(key + ".four_center_method", choices);
+        _four_center_method = options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(key + ".four_center_method", choices);
 
-        _with_screening = options->ifExistsReturnElseReturnDefault<bool>(key + ".with_screening", true);
-        _screening_eps = options->ifExistsReturnElseReturnDefault<double>(key + ".screening_eps", 1e-9);
+        _with_screening = options.ifExistsReturnElseReturnDefault<bool>(key + ".with_screening", true);
+        _screening_eps = options.ifExistsReturnElseReturnDefault<double>(key + ".screening_eps", 1e-9);
       }
 
-      if (options->exists(key + ".ecp")) {
-        _ecp_name = options->get(key + ".ecp").as<string>();
+      if (options.exists(key + ".ecp")) {
+        _ecp_name = options.get(key + ".ecp").as<string>();
         _with_ecp = true;
       } else {
         _with_ecp = false;
       }
-      _with_guess = options->ifExistsReturnElseReturnDefault<bool>(key + ".read_guess", false);
-      _initial_guess = options->ifExistsReturnElseReturnDefault<string>(key + ".initial_guess", "atom");
+      _with_guess = options.ifExistsReturnElseReturnDefault<bool>(key + ".read_guess", false);
+      _initial_guess = options.ifExistsReturnElseReturnDefault<string>(key + ".initial_guess", "atom");
 
 
       // numerical integrations
-      _grid_name = options->ifExistsReturnElseReturnDefault<string>(key + ".integration_grid", "medium");
-      _use_small_grid = options->ifExistsReturnElseReturnDefault<bool>(key + ".integration_grid_small", true);
+      _grid_name = options.ifExistsReturnElseReturnDefault<string>(key + ".integration_grid", "medium");
+      _use_small_grid = options.ifExistsReturnElseReturnDefault<bool>(key + ".integration_grid_small", true);
       _grid_name_small = Choosesmallgrid(_grid_name);
 
       // exchange and correlation as in libXC
 
-      _xc_functional_name = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".xc_functional");
+      _xc_functional_name = options.ifExistsReturnElseThrowRuntimeError<string>(key + ".xc_functional");
 
       _numofelectrons = 0;
 
-      if (options->exists(key + ".convergence")) {
+      if (options.exists(key + ".convergence")) {
 
-        _Econverged = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.energy", 1e-7);
-        _error_converged = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.error", 1e-7);
-        _max_iter = options->ifExistsReturnElseReturnDefault<int>(key + ".convergence.max_iterations", 100);
+        _Econverged = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.energy", 1e-7);
+        _error_converged = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.error", 1e-7);
+        _max_iter = options.ifExistsReturnElseReturnDefault<int>(key + ".convergence.max_iterations", 100);
 
 
 
-        if (options->exists(key + ".convergence.method")) {
-          string method = options->get(key + ".convergence.method").as<string>();
+        if (options.exists(key + ".convergence.method")) {
+          string method = options.get(key + ".convergence.method").as<string>();
           if (method == "DIIS") {
             _usediis = true;
           } else if (method == "mixing") {
@@ -128,13 +128,13 @@ namespace votca {
           _maxout = false;
         }
 
-        _mixingparameter = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.mixing", -10.0);
-        _levelshift = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift", 0.0);
-        _levelshiftend = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift_end", 0.8);
-        _maxout = options->ifExistsReturnElseReturnDefault<bool>(key + ".convergence.DIIS_maxout", false);
-        _histlength = options->ifExistsReturnElseReturnDefault<int>(key + ".convergence.DIIS_length", 10);
-        _diis_start = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.DIIS_start", 0.01);
-        _adiis_start = options->ifExistsReturnElseReturnDefault<double>(key + ".convergence.ADIIS_start", 2);
+        _mixingparameter = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.mixing", -10.0);
+        _levelshift = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift", 0.0);
+        _levelshiftend = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift_end", 0.8);
+        _maxout = options.ifExistsReturnElseReturnDefault<bool>(key + ".convergence.DIIS_maxout", false);
+        _histlength = options.ifExistsReturnElseReturnDefault<int>(key + ".convergence.DIIS_length", 10);
+        _diis_start = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.DIIS_start", 0.01);
+        _adiis_start = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.ADIIS_start", 2);
 
       } else {
         _Econverged = 1e-7;

@@ -59,13 +59,8 @@ namespace votca {
 
             };
 
+            void Initialize(tools::Property &options);
 
-
-            void Initialize(tools::Property *options);
-
-            std::string Identify() {
-                return "dftengine";
-            }
 
             void CleanUp();
 
