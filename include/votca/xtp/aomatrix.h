@@ -27,7 +27,11 @@
 #include <votca/xtp/multiarray.h>
 
 
-namespace Cart {
+
+
+namespace votca { namespace xtp {
+    
+    namespace Cart {
         enum Index {
                     s,                                                                                                                                                     // s
                     x, y, z,                                                                                                                                               // p
@@ -48,8 +52,6 @@ namespace Cart {
                     xyyyyyzz, xyyyyzzz, xyyyzzzz, xyyzzzzz, xyzzzzzz, xzzzzzzz, yyyyyyyy, yyyyyyyz, yyyyyyzz, yyyyyzzz, yyyyzzzz, yyyzzzzz, yyzzzzzz, yzzzzzzz, zzzzzzzz,
                 };
 }
-
-namespace votca { namespace xtp {
 
 
     /* "superclass" AOSuperMatrix contains all common functionality for

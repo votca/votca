@@ -45,8 +45,6 @@ namespace votca {
             _couplingsB = 0;
             _ECP = "";
             _bsetype = "";
-            //_has_atoms = false;
-
 
             // GW-BSE
             _qpmin = 0;
@@ -72,7 +70,6 @@ namespace votca {
         Orbitals::~Orbitals() {
             std::vector< QMAtom* >::iterator it;
             for (it = _atoms.begin(); it != _atoms.end(); ++it) delete *it;
-
         };
 
         void Orbitals::setNumberOfLevels(int occupied_levels,int unoccupied_levels) {
@@ -80,58 +77,26 @@ namespace votca {
             _unoccupied_levels = unoccupied_levels;
         }
 
-        /**
+      
+         /**
          *
          * @param _energy_difference [ev] Two levels are degenerate if their energy is smaller than this value
-         * @return A map with key as a level and a vector which is a list of close lying orbitals
+         * @return vector with indices off all aorbitals degenerate to this including itself
          */
-        bool Orbitals::CheckDegeneracy(double _energy_difference) {
+        std::vector<int> Orbitals::CheckDegeneracy(int level, double energy_difference)const{
+          
+          std::vector<int> result=std::vector<int>(0);
+          if(level>_mo_energies.size()){
+            throw std::runtime_error("Level for degeneracy is higher than maximum level");
+          }
+          double MOEnergyLevel =_mo_energies(level);
 
-            if (tools::globals::verbose) {
-                cout << endl << "... ... Checking level degeneracy " << endl;
-            }
-            bool _degenerate = false;
-            _level_degeneracy.clear();
-            for (unsigned i = 0; i < _mo_energies.size(); ++i) {
-                // add the level itself - it is easier to loo over all levels later
-                // in all containers counters start with 0; real life - with 1
-                _level_degeneracy[i + 1].push_back(i + 1);
-                for (unsigned j = i + 1; j < _mo_energies.size(); ++j) {
-                    if (std::abs(_mo_energies(i) - _mo_energies(j)) * tools::conv::hrt2ev < _energy_difference) {
-                        _level_degeneracy[i + 1].push_back(j + 1);
-                        _level_degeneracy[j + 1].push_back(i + 1);
-                        _degenerate = true;
+                for (int i =0; i < _mo_energies.size(); ++i) {
+                    if (std::abs(_mo_energies(i) - MOEnergyLevel) * tools::conv::hrt2ev < energy_difference) {
+                      result.push_back(i);
                     }
                 }
-            }
-            if (tools::globals::verbose) {
-
-                if (_degenerate) {
-                    cout << "... ... Some levels are degenerate" << endl;
-                    for (std::map<int, std::vector<int> >::iterator it = _level_degeneracy.begin();
-                            it != _level_degeneracy.end();
-                            ++it) {
-                        // output only degenerate levels
-                        if ((it->second).size() > 1) {
-                            std::cout << "... ... level  " << it->first << " : ";
-                            for (vector<int>::iterator lev = (it->second).begin(); lev != (it->second).end(); lev++)
-                                cout << *lev << " ";
-                            cout << endl;
-                        }
-                    }
-                } else {
-                    cout << "... ... No degeneracy found" << endl;
-                }
-                cout << "... ... Done checking level degeneracy" << endl;
-            }
-            return _degenerate;
-        }
-
-        const std::vector<int>& Orbitals::getDegeneracy(int level, double _energy_difference){
-            if (!hasDegeneracy()) {
-                CheckDegeneracy(_energy_difference);
-            }
-            return _level_degeneracy.at(level);
+          return result;
         }
 
         std::vector<int> Orbitals::SortEnergies() {
@@ -489,7 +454,7 @@ namespace votca {
             return oscs;
         }
 
-        double Orbitals::GetTotalEnergy(string _spintype, int _opt_state) const{
+        double Orbitals::getTotalEnergy(string _spintype, int _opt_state) const{
 
             // total energy of the excited state
             double _total_energy;

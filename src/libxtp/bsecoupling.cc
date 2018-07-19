@@ -73,19 +73,14 @@ void BSECoupling::Initialize(Property* options){
                     _output_perturbation=true;
                  }
    }
-    
-   
-    
+
         _levA  = options->get(key + ".moleculeA.states").as<int> ();
         _levB  = options->get(key + ".moleculeB.states").as<int> ();
         _occA  = options->get(key + ".moleculeA.occLevels").as<int> ();
         _occB  = options->get(key + ".moleculeB.occLevels").as<int> ();
         _unoccA  = options->get(key + ".moleculeA.unoccLevels").as<int> ();
         _unoccB  = options->get(key + ".moleculeB.unoccLevels").as<int> ();
-        
-   
-        
-        
+  
 }
 
 void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA, 
@@ -99,7 +94,7 @@ void BSECoupling::addoutput(Property *_type_summary,Orbitals* _orbitalsA,
     }
     _type_summary->setAttribute("algorithm",algorithm);
     if (_doSinglets){
-        Property *_singlet_summary = &_type_summary->add("singlets","");
+        Property *_singlet_summary = _type_summary->add("singlets","");
         for (int stateA = 0; stateA < _levA ; ++stateA ) {
            for (int stateB = 0; stateB <_levB ; ++stateB ) {
                double JAB = getSingletCouplingElement( stateA , stateB, methodindex);
@@ -149,7 +144,6 @@ double BSECoupling::getSingletCouplingElement( int levelA, int levelB, int metho
 
 
 double BSECoupling::getTripletCouplingElement( int levelA, int levelB, int methodindex) {
-
     return JAB_triplet[methodindex]( levelA  , levelB + _levA ) * votca::tools::conv::hrt2ev;
 }
 

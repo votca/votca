@@ -39,28 +39,42 @@ namespace votca { namespace xtp {
 class DFTcoupling 
 {
 public:
-
-    DFTcoupling() {};
-   ~DFTcoupling() {};
-
-
-
-    Eigen::MatrixXd CalculateIntegrals(Orbitals& _orbitalsA, 
-                               Orbitals& _orbitalsB, 
-                               Orbitals& _orbitalsAB);
     
-    double getCouplingElement( int levelA, int levelB,  
-                               Orbitals& _orbitalsA,  
-                               Orbitals& _orbitalsB, 
-                               Eigen::MatrixXd* _JAB,
-                               double _energy_difference = 0
-                                );
+    DFTcoupling(double degeneracy,double numberofstates,ctp::Logger* log):
+    _degeneracy(degeneracy),_numberofstates(numberofstates),_pLog(log){;}
+
+    void CalculateIntegrals(const Orbitals& orbitalsA, 
+                               const Orbitals& orbitalsB, 
+                               const Orbitals& orbitalsAB);
     
-    void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
     
+    
+    void Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
+                               const Orbitals& orbitalsB);
+    
+
 private:
     
+    
+    void WriteToProperty(tools::Property& type_summary, const Orbitals& orbitalsA,
+            const Orbitals& orbitalsB, int a, int b);
+    double getCouplingElement( int levelA, int levelB,  
+                               const Orbitals& orbitalsA,  
+                               const Orbitals& orbitalsB
+                                )const;
+    
+    
+    std::pair<int,int> DetermineRangeOfStates(const Orbitals& orbital)const;
+    
+    Eigen::MatrixXd JAB;
+    
     ctp::Logger *_pLog;
+    double _degeneracy;
+    double _numberofstates;
+    
+    
+    std::pair<int,int> Range_orbA;
+    std::pair<int,int> Range_orbB;
     
   
 

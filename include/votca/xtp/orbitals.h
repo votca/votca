@@ -58,16 +58,6 @@ namespace votca {
              // functions for analyzing fragment charges via Mulliken populations
             static Eigen::VectorXd LoewdinPopulation(const Eigen::MatrixXd& _densitymatrix, const Eigen::MatrixXd& _overlapmatrix, int _frag);
 
-            /*
-             *
-             *  ************** NEW ACCESS STRATEGY ****************
-             *
-             *  Scalars:              get and set functions
-             *  Vectors and matrixes: const and non-const refs, has-function via size
-             */
-
-            // access to DFT basis set size, new, tested
-
             bool hasBasisSetSize() const{
                 return ( _basis_set_size > 0) ? true : false;
             }
@@ -80,6 +70,13 @@ namespace votca {
                 _basis_set_size = basis_set_size;
             }
 
+            int getLumo()const{
+                return _occupied_levels;
+            }
+            
+            int getHomo()const{
+                return _occupied_levels-1;
+            }
             // access to DFT number of levels, new, tested
 
             bool hasNumberOfLevels() const{
@@ -163,7 +160,7 @@ namespace votca {
             // access to DFT molecular orbital energy of a specific level (in eV)
 
             double getEnergy(int level) const{
-                return ( hasMOEnergies()) ? votca::tools::conv::hrt2ev * _mo_energies[level - 1] : 0;
+                return ( hasMOEnergies()) ? votca::tools::conv::hrt2ev * _mo_energies[level] : 0;
             }
 
             // access to DFT molecular orbital coefficients, new, tested
@@ -194,16 +191,10 @@ namespace votca {
                 return _mo_couplings;
             }
 
-
             // determine (pseudo-)degeneracy of a DFT molecular orbital
-
-            bool hasDegeneracy() const{
-                return ( !_level_degeneracy.empty()) ? true : false;
-            }
-            const std::vector<int>& getDegeneracy(int level, double _energy_difference);
+            std::vector<int> CheckDegeneracy(int level, double energy_difference)const;
 
             // access to QM atoms
-
             bool hasQMAtoms() {
                 return ( _atoms.size() > 0) ? true : false;
             }
@@ -586,11 +577,8 @@ namespace votca {
             Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0)const;
             Eigen::MatrixXd LambdaMatrixQuasiParticle()const;
 
+            double getTotalEnergy (std::string _spintype, int _opt_state)const;
 
-
-            double GetTotalEnergy (std::string _spintype, int _opt_state)const;
-
-           
 
             // access to fragment charges of singlet excitations
 
@@ -705,12 +693,7 @@ namespace votca {
 
 
         private:
-             /**
-             * @param _energy_difference [ev] Two levels are degenerate if their energy is smaller than this value
-             * @return A map with key as a level and a vector which is a list of close lying orbitals
-             */
-            bool CheckDegeneracy(double _energy_difference);
-            
+
             void WriteToCpt(CheckpointFile f)const;
             void WriteToCpt(CptLoc parent)const;
             
@@ -726,8 +709,6 @@ namespace votca {
             std::string _ECP;
             std::string _bsetype;
 
-
-            std::map<int, std::vector<int> > _level_degeneracy;
 
             Eigen::VectorXd _mo_energies;
             Eigen::MatrixXd _mo_coefficients;
@@ -776,8 +757,6 @@ namespace votca {
             Eigen::MatrixXd _QPdiag_coefficients;
             // excitons
 
-
-
             MatrixXfd _eh_t;
             MatrixXfd _eh_s;
             VectorXfd _BSE_singlet_energies;
@@ -792,8 +771,6 @@ namespace votca {
             Eigen::MatrixXd _BSE_triplet_couplings;
             int _couplingsA;
             int _couplingsB;
-
-
 
             std::vector< Eigen::VectorXd > _DqS_frag; // fragment charge changes in exciton
 

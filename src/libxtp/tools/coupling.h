@@ -147,14 +147,14 @@ bool Coupling::Evaluate() {
     if ((_trimA < 0) || (_trimB <0) ) { // any -1 overrides the specification of the other 
         
         // find degeneracy of HOMOs and LUMOs
-        std::vector<int> list_levelsAH  = (_orbitalsA.getDegeneracy( _orbitalsA.getNumberOfElectrons()-1, _degeneracy ));
+        std::vector<int> list_levelsAH  = (_orbitalsA.CheckDegeneracy( _orbitalsA.getNumberOfElectrons(), _degeneracy ));
         _degAH = list_levelsAH.size();
-        std::vector<int> list_levelsAL  = (_orbitalsA.getDegeneracy( _orbitalsA.getNumberOfElectrons(), _degeneracy ));
+        std::vector<int> list_levelsAL  = (_orbitalsA.CheckDegeneracy( _orbitalsA.getNumberOfElectrons()+1, _degeneracy ));
         _degAL = list_levelsAL.size();  
         
-        std::vector<int> list_levelsBH  = (_orbitalsB.getDegeneracy( _orbitalsB.getNumberOfElectrons()-1, _degeneracy ));
+        std::vector<int> list_levelsBH  = (_orbitalsB.CheckDegeneracy( _orbitalsB.getNumberOfElectrons(), _degeneracy ));
         _degBH = list_levelsBH.size();
-        std::vector<int> list_levelsBL  = (_orbitalsB.getDegeneracy( _orbitalsB.getNumberOfElectrons(), _degeneracy ));
+        std::vector<int> list_levelsBL  = (_orbitalsB.CheckDegeneracy( _orbitalsB.getNumberOfElectrons()+1, _degeneracy ));
         _degBL = list_levelsBL.size();  
         
         _orbitalsA.Trim(_degAH,_degAL);
@@ -200,7 +200,7 @@ bool Coupling::Evaluate() {
     if ( (_trimA <0) || (_trimB <0) ) {
 
         // HOMO-HOMO coupling
-        double JAB = dftcoupling.getCouplingElement(_degAH, _degBH , _orbitalsA, _orbitalsB, &_JAB, _degeneracy);
+        double JAB = dftcoupling.getCouplingElement(_degAH, _degBH , _orbitalsA, _orbitalsB, _JAB, _degeneracy);
         tools::Property *_overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<std::string>(JAB));
         double energyA = _orbitalsA.getEnergy(_degAH);
         double energyB = _orbitalsB.getEnergy(_degBH);
@@ -211,7 +211,7 @@ bool Coupling::Evaluate() {
         _overlap_summary->setAttribute("eB", energyB);
                 
         // LUMO-LUMO coupling
-        JAB = dftcoupling.getCouplingElement(_degAH+1, _degBH+1 , _orbitalsA, _orbitalsB, &_JAB, _degeneracy);
+        JAB = dftcoupling.getCouplingElement(_degAH+1, _degBH+1 , _orbitalsA, _orbitalsB, _JAB, _degeneracy);
         _overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<std::string>(JAB));
         energyA = _orbitalsA.getEnergy(_degAH +1);
         energyB = _orbitalsB.getEnergy(_degBH +1);
@@ -225,7 +225,7 @@ bool Coupling::Evaluate() {
     
         for (int levelA = HOMO_A - _levA +1; levelA <= LUMO_A + _levA - 1; ++levelA ) {
             for (int levelB = HOMO_B - _levB + 1; levelB <= LUMO_B + _levB -1 ; ++levelB ) {        
-                double JAB = dftcoupling.getCouplingElement( levelA , levelB, _orbitalsA, _orbitalsB, &_JAB, _degeneracy );
+                double JAB = dftcoupling.getCouplingElement( levelA , levelB, _orbitalsA, _orbitalsB, _JAB, _degeneracy );
                 tools::Property *_overlap_summary = &_pair_summary->add("overlap", boost::lexical_cast<std::string>(JAB)); 
                 double energyA = _orbitalsA.getEnergy( levelA );
                 double energyB = _orbitalsB.getEnergy( levelB );

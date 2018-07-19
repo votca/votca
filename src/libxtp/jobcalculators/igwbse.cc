@@ -18,14 +18,13 @@
  */
 
 
-#include "igwbse.h"
+#include "iqm.h"
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/tools/constants.h>
-#include <votca/xtp/qmpackagefactory.h>
 
 using boost::format;
 using namespace boost::filesystem;
@@ -36,11 +35,8 @@ using namespace boost::filesystem;
 namespace votca {
   namespace xtp {
 
-    // +++++++++++++++++++++++++++++ //
-    // IGWBSE MEMBER FUNCTIONS         //
-    // +++++++++++++++++++++++++++++ //
-
-    void IGWBSE::Initialize(votca::tools::Property* options) {
+   
+    void IQM::Initialize(votca::tools::Property* options) {
 
       // tasks to be done by IBSE: dft_input, dft_run, dft_parse, mgbft, bse_coupling
       _do_dft_input = false;
@@ -48,7 +44,6 @@ namespace votca {
       _do_dft_parse = false;
       _do_gwbse = false;
       _do_coupling = false;
-      _do_trim = false;
 
       _store_dft = false;
       _store_singlets = false;

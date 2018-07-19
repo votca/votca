@@ -17,14 +17,14 @@
  *
  */
 
-#ifndef _CALC_INTEGRALS_BSE_H
-#define	_CALC_INTEGRALS_BSE_H
+#ifndef _CALC_XTP_IQM_H
+#define	_CALC_XTP_IQM_H
 
 #include <votca/tools/property.h>
 
 #include <votca/ctp/parallelxjobcalc.h>
 #include <votca/xtp/orbitals.h>
-//#include <votca/xtp/overlap.h>
+#include <votca/xtp/dftcoupling.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/bsecoupling.h>
 #include <sys/stat.h>
@@ -33,16 +33,16 @@
 namespace votca { namespace xtp {
     
 /**
-* \brief GWBSE-based exciton coupling elements
+* \brief DFT & GWBSE-based coupling elements
 *
-* Evaluates GWBSE-based exciton coupling elements for all conjugated
+* Evaluates DFT & GWBSE-based coupling elements for all conjugated
 * segments from the neighbor list. Requires molecular orbitals of two monomers
-* and a dimer in GAUSSIAN, NWChem, or TURBOMOLE (sometime) format.
+* and a dimer in GAUSSIAN, NWChem, or ORCAformat.
 * 
-* Callname: igwbse
+* Callname: iqm
 */
 
-class IGWBSE : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
+class IQM : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
 {
 public:
 
@@ -80,7 +80,6 @@ private:
     bool                _do_dft_parse;
     bool                _do_gwbse;
     bool                _do_coupling;
-    bool                _do_trim;
     
     // what to write in the storage
     bool                _store_dft;

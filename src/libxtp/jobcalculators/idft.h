@@ -70,7 +70,6 @@ private:
 
     int                 _max_occupied_levels;
     int                 _max_unoccupied_levels;     
-    int                 _trim_factor;
     std::vector< string > _linker_names;
 
     
@@ -83,11 +82,9 @@ private:
     bool                _do_parse;
     bool                _do_project;
     bool                _do_trim;
-    bool                _do_extract;
     
     // what to write in the storage
     bool                _store_orbitals;
-    bool                _store_overlap;
     bool                _store_integrals;
     
     double              _energy_difference;    

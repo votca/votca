@@ -25,7 +25,7 @@
 
 namespace votca { namespace xtp {
 
-
+    
 /**
 * \brief Evaluates electronic coupling elements
 *
@@ -48,35 +48,37 @@ public:
     Eigen::MatrixXd getJAB_singletstorage(){ return (_output_perturbation ?  JAB_singlet[0]:JAB_singlet[1]);}
        
     Eigen::MatrixXd getJAB_tripletstorage(){ return (_output_perturbation ?  JAB_triplet[0]: JAB_triplet[1]);}
-    void addoutput(tools::Property *_type_summary,Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB);
+    void addoutput(tools::Property *_type_summary,Orbitals& orbitalsA, 
+                               Orbitals& orbitalsB);
     
-    bool CalculateCouplings(   Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB 
+    bool CalculateCouplings(   Orbitals& orbitalsA, 
+                               Orbitals& orbitalsB, 
+                               Orbitals& orbitalsAB 
                              );  
     
   
     
 
      
-    double getSingletCouplingElement( int levelA, int levelB, int methodindex);
-    
-    double getTripletCouplingElement( int levelA, int levelB, int methodindex);
+   
    
     void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
     
 private:
     
+    double getSingletCouplingElement( int levelA, int levelB, int methodindex);
+    
+    double getTripletCouplingElement( int levelA, int levelB, int methodindex);
+    
     ctp::Logger *_pLog;
   
     
-    std::vector< Eigen::MatrixXd >ProjectExcitons(const Eigen::MatrixXd& _bseA_T,const Eigen::MatrixXd& _bseB_T, 
-                         Eigen::MatrixXd& _H);
+    std::vector< Eigen::MatrixXd >ProjectExcitons(const Eigen::MatrixXd& bseA_T,const Eigen::MatrixXd& bseB_T, 
+                         Eigen::MatrixXd& H);
     
-    Eigen::MatrixXd Fulldiag(const Eigen::MatrixXd& _J_dimer);
+    Eigen::MatrixXd Fulldiag(const Eigen::MatrixXd& J_dimer);
     
-    Eigen::MatrixXd Perturbation(const Eigen::MatrixXd& _J_dimer);
+    Eigen::MatrixXd Perturbation(const Eigen::MatrixXd& J_dimer);
     
     std::vector< Eigen::MatrixXd > JAB_singlet;
     std::vector< Eigen::MatrixXd > JAB_triplet;
