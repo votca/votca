@@ -46,7 +46,7 @@ class GWBSE {
   GWBSE(Orbitals& orbitals)
       : _orbitals(orbitals){};
 
-  void Initialize(tools::Property* options);
+  void Initialize(tools::Property& options);
 
   std::string Identify() { return "gwbse"; }
 

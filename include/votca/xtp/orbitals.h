@@ -177,20 +177,6 @@ namespace votca {
                 return _mo_coefficients;
             }
 
-            // access to DFT transfer integrals, new, tested
-
-            bool hasMOCouplings() const{
-                return ( _mo_couplings.cols() > 0) ? true : false;
-            }
-
-            const Eigen::MatrixXd &MOCouplings() const {
-                return _mo_couplings;
-            }
-
-            Eigen::MatrixXd &MOCouplings() {
-                return _mo_couplings;
-            }
-
             // determine (pseudo-)degeneracy of a DFT molecular orbital
             std::vector<int> CheckDegeneracy(int level, double energy_difference)const;
 
@@ -506,70 +492,7 @@ namespace votca {
             }
 
             std::vector<double> Oscillatorstrengths()const;
-
-            // access to singlet coupling elements
-
-            bool hasSingletCouplings() const{
-                return (_BSE_singlet_couplings.cols() > 0) ? true : false;
-            }
-
-            const Eigen::MatrixXd &SingletCouplings() const {
-                return _BSE_singlet_couplings;
-            }
-
-            Eigen::MatrixXd &SingletCouplings() {
-                return _BSE_singlet_couplings;
-            }
-
-            void setSingletCouplings(const Eigen::MatrixXd& couplings) {
-                _BSE_singlet_couplings = couplings;
-            }
-
-            // access to triplet coupling elements
-
-            bool hasTripletCouplings() const{
-                return (_BSE_triplet_couplings.cols() > 0) ? true : false;
-            }
-
-            const Eigen::MatrixXd &TripletCouplings() const {
-                return _BSE_triplet_couplings;
-            }
-
-            Eigen::MatrixXd &TripletCouplings() {
-                return _BSE_triplet_couplings;
-            }
-
-            void setTripletCouplings(const Eigen::MatrixXd& couplings) {
-                _BSE_triplet_couplings = couplings;
-            }
-
-            // exciton coupling number of levels information
-
-            bool hasCoupledExcitonsA() const{
-                return ( _couplingsA > 0) ? true : false;
-            }
-
-            int getCoupledExcitonsA() const{
-                return _couplingsA;
-            }
-
-            void setCoupledExcitonsA(const int &excitons) {
-                _couplingsA = excitons;
-            }
-
-            bool hasCoupledExcitonsB() {
-                return ( _couplingsB > 0) ? true : false;
-            }
-
-            int getCoupledExcitonsB() const{
-                return _couplingsB;
-            }
-
-            void setCoupledExcitonsB(int excitons) {
-                _couplingsB = excitons;
-            }
-
-
+        
             // functions for calculating density matrices
             Eigen::MatrixXd DensityMatrixGroundState() const;
             std::vector<Eigen::MatrixXd > DensityMatrixExcitedState(const std::string& spin,int state = 0)const;
@@ -636,7 +559,6 @@ namespace votca {
                 _popE_s=popH;
             }
 
-
             const std::vector< Eigen::VectorXd >& getFragment_E_localisation_singlet()const{
                 return _popE_s;
             }
@@ -675,14 +597,7 @@ namespace votca {
                 return pAtom;
             }
 
-
             void WritePDB (FILE *out, std::string tag = "")const;
-
-            // reduces number of virtual orbitals to factor*number_of_occupied_orbitals
-            void Trim(int factor);
-
-            // reduces number of virtual orbitals to [HOMO-degG:LUMO+degL]
-            void Trim(int degH, int degL);
 
             void LoadFromXYZ(std::string filename);
 
@@ -690,8 +605,6 @@ namespace votca {
             
             void ReadFromCpt(const std::string& filename);
             
-
-
         private:
 
             void WriteToCpt(CheckpointFile f)const;
@@ -720,8 +633,6 @@ namespace votca {
 
             double _qm_energy;
             double _self_energy;
-
-            Eigen::MatrixXd _mo_couplings;
 
             BasisSet _basis_set;
 
@@ -767,11 +678,6 @@ namespace votca {
             VectorXfd _BSE_triplet_energies;
             MatrixXfd _BSE_triplet_coefficients;
 
-            Eigen::MatrixXd _BSE_singlet_couplings;
-            Eigen::MatrixXd _BSE_triplet_couplings;
-            int _couplingsA;
-            int _couplingsB;
-
             std::vector< Eigen::VectorXd > _DqS_frag; // fragment charge changes in exciton
 
             std::vector< Eigen::VectorXd > _DqT_frag;
@@ -782,10 +688,6 @@ namespace votca {
             std::vector< Eigen::VectorXd > _popE_t;
             std::vector< Eigen::VectorXd > _popH_s;
             std::vector< Eigen::VectorXd > _popH_t;
-
-
-           
-
  
         };
 

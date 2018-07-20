@@ -187,14 +187,7 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
            overlap= orbitalsAB.AOOverlap();
     }else{
         CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating overlap matrix for basisset: "<< orbitalsAB.getDFTbasis()<< flush; 
-        BasisSet dftbasisset;
-        AOBasis dftbasis;
-        dftbasisset.LoadBasisSet(orbitalsAB.getDFTbasis());
-
-        dftbasis.AOBasisFill(dftbasisset, orbitalsAB.QMAtoms());
-        AOOverlap dftAOoverlap;
-        dftAOoverlap.Fill(dftbasis);
-        overlap=dftAOoverlap.Matrix();
+        overlap=CalculateOverlapMatrix(orbitalsAB);
     }
      CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting dimer onto monomer orbitals" << flush; 
     Eigen::MatrixXd psi_AxB_dimer_basis =psi_AxB.transpose()*overlap*orbitalsAB.MOCoefficients(); 

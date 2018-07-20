@@ -42,25 +42,21 @@ public:
 
    std::string getPackageName() { return "nwchem"; }
 
-   void Initialize( tools::Property *options );
+   void Initialize( tools::Property &options );
 
-   /* Writes Gaussian input file with coordinates of segments
-    * and a guess for the dimer (if requested) constructed from the
-    * monomer orbitals
-    */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( Orbitals& orbitals);
 
    bool WriteShellScript();
 
-   bool Run( Orbitals* _orbitals = NULL );
+   bool Run( Orbitals& orbitals );
 
    void CleanUp();
 
    bool CheckLogFile();
 
-   bool ParseLogFile( Orbitals& _orbitals );
+   bool ParseLogFile( Orbitals& orbitals );
 
-   bool ParseOrbitalsFile( Orbitals& _orbitals );
+   bool ParseOrbitalsFile( Orbitals& orbitals );
    
 
    std::string getScratchDir( ) { return _scratch_dir; }

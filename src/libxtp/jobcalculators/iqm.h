@@ -52,6 +52,8 @@ public:
     string  Identify() { return "iqm"; }
     
     ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *Thread);
+    
+
 
     void WriteJobFile(ctp::Topology *top);
 
@@ -60,6 +62,16 @@ public:
 
 
 private:
+    
+    void SetJobToFailed(ctp::Job::JobResult& jres, ctp::Logger* pLog, const string& errormessage);
+    
+    void addLinkers(std::vector< ctp::Segment* > &segments, ctp::Topology *top);
+    bool isLinker(const std::string& name);
+    void WriteCoordinatesToOrbitalsPBC(ctp::QMPair& pair, Orbitals& orbitals);
+    
+     void ParseOptionsXML( tools::Property &opt);    
+    
+    std::map<std::string, int> FillParseMaps(const string& Mapstring);
     
     string              _package;
     Property            _dftpackage_options; 
@@ -74,6 +86,9 @@ private:
     bool                _do_dftcoupling;
     bool                _do_gwbse;
     bool                _do_bsecoupling;
+    
+    
+    std::vector< std::string > _linker_names;
     
     // what to write in the storage
     bool                _store_dft;
@@ -91,12 +106,7 @@ private:
     std::map<std::string, int> _singlet_levels;
     std::map<std::string, int> _triplet_levels;
 
-    void ParseOptionsXML( tools::Property *opt);    
-    
-    std::map<std::string, int> FillParseMaps(string Mapstring);
-    
-    
-    void LoadOrbitals(string file_name, Orbitals& orbitals, ctp::Logger *log = NULL );
+   
         
 };
 

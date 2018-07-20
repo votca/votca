@@ -186,8 +186,8 @@ namespace votca {
       // if asked, prepare the input files
       if (_do_input) {
         boost::filesystem::create_directories(_qmpackage_work_dir);
-        Orbitals *_orbitalsAB = NULL;
-        if (_qmpackage->GuessRequested()) {
+        
+        if (_qmpackage->GuessRequested() && _linker_names.size()==0) {
 
           if (_qmpackage->getPackageName() == "orca") {
             CTP_LOG(ctp::logINFO, *pLog) << "Copying monomer .gbw files to pair folder" << flush;
@@ -201,11 +201,7 @@ namespace votca {
           } else {
             CTP_LOG(ctp::logINFO, *pLog) << "Guess requested, reading molecular orbitals" << flush;
             Orbitals _orbitalsA, _orbitalsB;
-            _orbitalsAB = new Orbitals();
-            // load the corresponding monomer orbitals and prepare the dimer guess 
-
-            // failed to load; wrap-up and finish current job
-           
+                       
             try {
               _orbitalsA.ReadFromCpt(orbFileA);
             } catch (std::runtime_error& error) {

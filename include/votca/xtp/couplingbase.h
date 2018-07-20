@@ -56,11 +56,21 @@ protected:
     
     void CheckAtomCoordinates(const Orbitals& orbitalsA, const Orbitals& orbitalsB, const Orbitals& orbitalsAB);
    
-    
+   Eigen::MatrixXd CalculateOverlapMatrix(const Orbitals& orbitalsAB); 
   
 
-
 };
+
+inline Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(const Orbitals& orbitalsAB){
+  BasisSet dftbasisset;
+  AOBasis dftbasis;
+  dftbasisset.LoadBasisSet(orbitalsAB.getDFTbasis());
+  dftbasis.AOBasisFill(dftbasisset, orbitalsAB.QMAtoms());
+  AOOverlap dftAOoverlap;
+  dftAOoverlap.Fill(dftbasis);
+  Eigen::MatrixXd overlapAB=dftAOoverlap.Matrix();
+  return overlapAB;
+}
 
 inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA, 
                           const Orbitals& orbitalsB, const Orbitals& orbitalsAB){

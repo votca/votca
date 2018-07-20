@@ -110,7 +110,6 @@
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
-      <itemPath>../../include/votca/xtp/linalg.h</itemPath>
       <itemPath>../../include/votca/xtp/lowdin.h</itemPath>
       <itemPath>../../include/votca/xtp/mixing.h</itemPath>
       <itemPath>../../include/votca/xtp/molecule.h</itemPath>
@@ -749,8 +748,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/linalg.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1564,8 +1561,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/linalg.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
       </item>

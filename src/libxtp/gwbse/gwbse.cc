@@ -42,7 +42,7 @@ namespace xtp {
 
 void GWBSE::CleanUp() {}
 
-void GWBSE::Initialize(tools::Property *options) {
+void GWBSE::Initialize(tools::Property& options) {
 
 #if (GWBSE_DOUBLE)
   CTP_LOG(ctp::logDEBUG, *_pLog) << " Compiled with full double support"
@@ -60,25 +60,25 @@ double qpminfactor=0;
   double rpamaxfactor=0;
   double bseminfactor=0;
   double bsemaxfactor=0;
-std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key + ".ranges",
+std::string ranges = options.ifExistsReturnElseReturnDefault<std::string>(key + ".ranges",
                                                              "default");
 
   // now check validity, and get rpa, qp, and bse level ranges accordingly
 
   if (ranges == "factor") {
     // get factors
-    rpamaxfactor = options->get(key + ".rpamax").as<double>();
-    qpminfactor = options->get(key + ".qpmin").as<double>();
-    qpmaxfactor = options->get(key + ".qpmax").as<double>();
-    bseminfactor = options->get(key + ".bsemin").as<double>();
-    bsemaxfactor = options->get(key + ".bsemax").as<double>();
+    rpamaxfactor = options.get(key + ".rpamax").as<double>();
+    qpminfactor = options.get(key + ".qpmin").as<double>();
+    qpmaxfactor = options.get(key + ".qpmax").as<double>();
+    bseminfactor = options.get(key + ".bsemin").as<double>();
+    bsemaxfactor = options.get(key + ".bsemax").as<double>();
   } else if (ranges == "explicit") {
     // get explicit numbers
-    _rpamax = options->get(key + ".rpamax").as<unsigned>();
-    _qpmin = options->get(key + ".qpmin").as<unsigned>();
-    _qpmax = options->get(key + ".qpmax").as<unsigned>();
-    _bse_vmin = options->get(key + ".bsemin").as<unsigned>();
-    _bse_cmax = options->get(key + ".bsemax").as<unsigned>();
+    _rpamax = options.get(key + ".rpamax").as<unsigned>();
+    _qpmin = options.get(key + ".qpmin").as<unsigned>();
+    _qpmax = options.get(key + ".qpmax").as<unsigned>();
+    _bse_vmin = options.get(key + ".bsemin").as<unsigned>();
+    _bse_cmax = options.get(key + ".bsemax").as<unsigned>();
   } else if (ranges == "" || ranges == "default") {
     ranges = "default";
   } else if (ranges == "full") {
@@ -101,7 +101,7 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key +
 
   _homo = _orbitals.getNumberOfElectrons() - 1;  // indexed from 0
 
- _reset_3c=options->ifExistsReturnElseReturnDefault<int>(
+ _reset_3c=options.ifExistsReturnElseReturnDefault<int>(
       key + ".rebuild_threecenter_freq", 5);
 
   _rpamin = 0;  // lowest index occ min(gwa%mmin, screening%nsum_low) ! always 1
@@ -171,7 +171,7 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key +
     _bse_cmax = _orbitals.getNumberOfLevels() - 1;
   }
 
-  bool ignore_corelevels = options->ifExistsReturnElseReturnDefault<bool>(
+  bool ignore_corelevels = options.ifExistsReturnElseReturnDefault<bool>(
       key + ".ignore_corelevels", false);
   
   
@@ -229,12 +229,12 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key +
       << bse_size << flush;
   
   _bse_maxeigenvectors =
-      options->ifExistsReturnElseReturnDefault<int>(key + ".exctotal", 25);
+      options.ifExistsReturnElseReturnDefault<int>(key + ".exctotal", 25);
    if (_bse_maxeigenvectors > int(bse_size) || _bse_maxeigenvectors < 0) _bse_maxeigenvectors = bse_size;
-  _fragA = options->ifExistsReturnElseReturnDefault<int>(key + ".fragment", -1);
+  _fragA = options.ifExistsReturnElseReturnDefault<int>(key + ".fragment", -1);
 
   std::string BSEtype =
-      options->ifExistsReturnElseReturnDefault<std::string>(key + ".BSEtype", "TDA");
+      options.ifExistsReturnElseReturnDefault<std::string>(key + ".BSEtype", "TDA");
 
   if (BSEtype == "full") {
     _do_full_BSE = true;
@@ -245,41 +245,41 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key +
   }
 
   _openmp_threads =
-      options->ifExistsReturnElseReturnDefault<int>(key + ".openmp", 0);
+      options.ifExistsReturnElseReturnDefault<int>(key + ".openmp", 0);
 
-  if (options->exists(key + ".vxc")) {
+  if (options.exists(key + ".vxc")) {
     _doVxc =
-        options->ifExistsReturnElseThrowRuntimeError<bool>(key + ".vxc.dovxc");
+        options.ifExistsReturnElseThrowRuntimeError<bool>(key + ".vxc.dovxc");
     if (_doVxc) {
-      _functional = options->ifExistsReturnElseThrowRuntimeError<std::string>(
+      _functional = options.ifExistsReturnElseThrowRuntimeError<std::string>(
           key + ".vxc.functional");
-      _grid = options->ifExistsReturnElseReturnDefault<std::string>(
+      _grid = options.ifExistsReturnElseReturnDefault<std::string>(
           key + ".vxc.grid", "medium");
     }
   }
 
   _auxbasis_name =
-      options->ifExistsReturnElseThrowRuntimeError<std::string>(key + ".gwbasis");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".gwbasis");
   _dftbasis_name =
-      options->ifExistsReturnElseThrowRuntimeError<std::string>(key + ".dftbasis");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".dftbasis");
 
-  _shift = options->ifExistsReturnElseThrowRuntimeError<double>(key + ".shift");
-  _g_sc_limit = options->ifExistsReturnElseReturnDefault<double>(
+  _shift = options.ifExistsReturnElseThrowRuntimeError<double>(key + ".shift");
+  _g_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
       key + ".g_sc_limit",
       0.00001);  // convergence criteria for qp iteration [Hartree]]
-  _g_sc_max_iterations = options->ifExistsReturnElseReturnDefault<int>(
+  _g_sc_max_iterations = options.ifExistsReturnElseReturnDefault<int>(
       key + ".g_sc_max_iterations",
       40);  // convergence criteria for qp iteration [Hartree]]
 
-  _gw_sc_max_iterations = options->ifExistsReturnElseReturnDefault<int>(
+  _gw_sc_max_iterations = options.ifExistsReturnElseReturnDefault<int>(
       key + ".gw_sc_max_iterations",
       20);  // convergence criteria for qp iteration [Hartree]]
 
-  _gw_sc_limit = options->ifExistsReturnElseReturnDefault<double>(
+  _gw_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
       key + ".gw_sc_limit", 0.00001);  // convergence criteria for shift it
   _iterate_gw = false;
   std::string _shift_type =
-      options->ifExistsReturnElseThrowRuntimeError<std::string>(key + ".shift_type");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".shift_type");
   if (_shift_type != "fixed") {
     _iterate_gw = true;
   }
@@ -290,7 +290,7 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key +
     CTP_LOG(ctp::logDEBUG, *_pLog) << " gw_sc_limit [Hartree]: " << _gw_sc_limit
                                    << flush;
   }
-  _min_print_weight = options->ifExistsReturnElseReturnDefault<double>(
+  _min_print_weight = options.ifExistsReturnElseReturnDefault<double>(
       key + ".bse_print_weight",
       0.2);  // print exciton WF composition weight larger that thin minimum
 
@@ -301,7 +301,7 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key +
   // possible tasks
   // diagQP, singlets, triplets, all, ibse
   std::string _tasks_string =
-      options->ifExistsReturnElseThrowRuntimeError<std::string>(key + ".tasks");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".tasks");
   if (_tasks_string.find("all") != std::string::npos) {
     _do_qp_diag = true;
     _do_bse_singlets = true;
@@ -330,7 +330,7 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key +
   _store_bse_triplets = false;
   _store_bse_singlets = false;
   std::string _store_string =
-      options->ifExistsReturnElseThrowRuntimeError<std::string>(key + ".store");
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".store");
   if ((_store_string.find("all") != std::string::npos) ||
       (_store_string.find("") != std::string::npos)) {
     // store according to tasks choice

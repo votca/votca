@@ -44,19 +44,19 @@ namespace votca {
                 return "xtp";
             }
 
-            void Initialize(tools::Property *options);
+            void Initialize(tools::Property &options);
 
-            bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
+            bool WriteInputFile( Orbitals& orbitals);
 
-            bool Run(Orbitals* _orbitals = NULL);
+            bool Run(Orbitals& orbitals);
 
             void CleanUp();
 
             bool CheckLogFile();
 
-            bool ParseLogFile(Orbitals& _orbitals);
+            bool ParseLogFile(Orbitals& orbitals);
 
-            bool ParseOrbitalsFile(Orbitals& _orbitals);
+            bool ParseOrbitalsFile(Orbitals& orbitals);
             
             void setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles);
 

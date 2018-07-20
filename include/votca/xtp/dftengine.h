@@ -55,12 +55,9 @@ namespace votca {
                 guess_set = false;
             };
 
-            ~DFTENGINE() {
-
-            };
+         
 
             void Initialize(tools::Property &options);
-
 
             void CleanUp();
 
@@ -74,23 +71,9 @@ namespace votca {
             }
 
             void setExternalcharges(std::vector<ctp::PolarSeg*> externalsites) {
-                
-
                 _externalsites = externalsites;
-                //for ( int i = 0; i < externalsites.size(); i++){
-                //    ctp::PolarSeg* pseg = &externalsites[i];
-                //    _externalsites.push_back(ctp::PolarSeg(pseg, false));
-                //}
                 _addexternalsites = true;
             }
-            
-           /* void SetExternalMultipoles( ctp::PolarTop *ptop  ){
-                
-                
-                return;
-                
-            }*/
-            
             
 
             void setExternalGrid(std::vector<double> electrongrid, std::vector<double> nucleigrid) {
@@ -103,10 +86,10 @@ namespace votca {
             }
 
 
-            bool Evaluate(Orbitals* _orbitals);
+            bool Evaluate(Orbitals& orbitals);
             
 
-            void Prepare(Orbitals* _orbitals);
+            void Prepare(Orbitals& orbitals);
 
             std::string GetDFTBasisName() {
                 return _dftbasis_name;
@@ -118,9 +101,9 @@ namespace votca {
             void PrintMOs(const Eigen::VectorXd& MOEnergies);
             ctp::Logger *_pLog;
 
-            void ConfigOrbfile(Orbitals* _orbitals);
+            void ConfigOrbfile(Orbitals& orbitals);
             void SetupInvariantMatrices();
-            Eigen::MatrixXd AtomicGuess(Orbitals* _orbitals);
+            Eigen::MatrixXd AtomicGuess(Orbitals& orbitals);
             Eigen::MatrixXd DensityMatrix_unres(const Eigen::MatrixXd& MOs, int numofelec);
             Eigen::MatrixXd DensityMatrix_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies, int numofelec);
             std::string Choosesmallgrid(std::string largegrid);

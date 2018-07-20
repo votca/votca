@@ -139,6 +139,8 @@ double BSECoupling::getTripletCouplingElement( int levelA, int levelB, int metho
 }
 
 
+
+
 /**
  * \brief evaluates electronic couplings  
  *   
@@ -147,48 +149,16 @@ double BSECoupling::getTripletCouplingElement( int levelA, int levelB, int metho
  * @param _orbitalsAB molecular orbitals of the dimer AB
  * @return false if failed
  */
-bool BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB, const Orbitals& orbitalsAB) {
+void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB, const Orbitals& orbitalsAB) {
        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "  Calculating exciton couplings" << flush;
-     // set the parallelization 
     #ifdef _OPENMP
     
     if ( _openmp_threads > 0 ) omp_set_num_threads(_openmp_threads);      
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << " Using "<< omp_get_max_threads()<<" threads" << flush;
     #endif
     
-    
-    
-    orbitalsAB.setCoupledExcitonsA(_levA);
-    orbitalsAB.setCoupledExcitonsB(_levB);
-    //check to see if ordering of atoms agrees
-    const std::vector<QMAtom*> atomsA=orbitalsA.QMAtoms();
-    const std::vector<QMAtom*> atomsB=orbitalsB.QMAtoms();
-    const std::vector<QMAtom*> atomsAB=orbitalsAB.QMAtoms();
-    
-    for (int i=0;i<atomsAB.size();i++){
-        QMAtom* dimer=atomsAB[i];
-        QMAtom* monomer=NULL;
-        if (i<atomsA.size()){
-            monomer=atomsA[i];
-        }
-        else if (i<atomsB.size()+atomsA.size() ){
-            monomer=atomsB[i-atomsA.size()];
-        }
-        else{
-            throw runtime_error((boost::format("Number of Atoms in dimer %3i and the two monomers A:%3i B:%3i does not agree") %atomsAB.size() %atomsA.size() %atomsB.size()).str());
-        }
-        
-        if(monomer->getType() != dimer->getType()){
-            throw runtime_error("\nERROR: Atom types do not agree in dimer and monomers\n");
-        }
-        if(tools::abs(monomer->getPos()-dimer->getPos())>0.001){
-            CTP_LOG(ctp::logERROR,*_pLog) << "======WARNING=======\n Coordinates of monomers and dimer atoms do not agree, do you know what you are doing?\n " << flush;
-            break;
-        }
-        
-    }
-    
-    
+    CheckAtomCoordinates(orbitalsA, orbitalsB, orbitalsAB);
+   
     // constructing the direct product orbA x orbB
     int _basisA = orbitalsA.getBasisSetSize();
     int _basisB = orbitalsB.getBasisSetSize();
@@ -199,10 +169,9 @@ bool BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
     }
 
     // number of levels stored in monomers
-    int _levelsA = orbitalsA.getNumberOfLevels();
-    int _levelsB = orbitalsB.getNumberOfLevels();
-    
-        
+    int levelsA = orbitalsA.getNumberOfLevels();
+    int levelsB = orbitalsB.getNumberOfLevels();
+            
     // get exciton information of molecule A
     int _bseA_cmax        = orbitalsA.getBSEcmax();
     int _bseA_cmin        = orbitalsA.getBSEcmin();
@@ -218,14 +187,14 @@ bool BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   molecule A has " << _bseA_triplet_exc << " triplet excitons with dimension " << _bseA_size << flush;
     
     // now, two storage assignment matrices for two-particle functions
-    Eigen::MatrixXi _combA;
-    _combA.resize(_bseA_size,2);
-    int _cnt = 0;
+    Eigen::MatrixXi combA;
+    combA.resize(_bseA_size,2);
+    int cnt = 0;
     for ( int _v = 0; _v < _bseA_vtotal; _v++){
         for ( int _c = 0; _c < _bseA_ctotal; _c++){
-            _combA(_cnt,0) = _v;
-            _combA(_cnt,1) = _bseA_vtotal + _c;
-            _cnt++;
+            combA(cnt,0) = _v;
+            combA(cnt,1) = _bseA_vtotal + _c;
+            cnt++;
         }
     }
     
@@ -239,21 +208,19 @@ bool BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
     int _bseB_size        = _bseB_vtotal * _bseB_ctotal;
     int _bseB_singlet_exc = orbitalsB.BSESingletCoefficients().cols();
     int _bseB_triplet_exc = orbitalsB.BSETripletCoefficients().cols();
-    
 
-    
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   molecule B has " << _bseB_singlet_exc << " singlet excitons with dimension " << _bseB_size << flush;
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   molecule B has " << _bseB_triplet_exc << " triplet excitons with dimension " << _bseB_size << flush;
     
     // now, two storage assignment matrices for two-particle functions
-    Eigen::MatrixXi _combB;
-    _combB.resize(_bseB_size,2);
-    _cnt = 0;
+    Eigen::MatrixXi combB;
+    combB.resize(_bseB_size,2);
+    cnt = 0;
     for ( int _v = 0; _v < _bseB_vtotal; _v++){
         for ( int _c = 0; _c < _bseB_ctotal; _c++){
-            _combB(_cnt,0) = _bseA_vtotal + _bseA_ctotal + _v;
-            _combB(_cnt,1) = _bseA_vtotal + _bseA_ctotal + _bseB_vtotal + _c;
-            _cnt++;
+            combB(cnt,0) = _bseA_vtotal + _bseA_ctotal + _v;
+            combB(cnt,1) = _bseA_vtotal + _bseA_ctotal + _bseB_vtotal + _c;
+            cnt++;
         }
     }
     
@@ -265,7 +232,6 @@ bool BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "  Number of excitons you want is greater than stored for molecule B. Setting to max number available" << flush; 
         _levB=_bseB_singlet_exc;
     }
-    
     
     if(_levA>_bseA_singlet_exc){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "  Number of Frenkel states you want is greater than stored for molecule A. Setting to max number available" << flush; 
@@ -304,10 +270,7 @@ bool BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
     }else if (_occB<0){
         _occB=_bseB_vtotal;
     }
-    
-    
-   
-    
+
     // get exciton information of pair AB
     int _bseAB_cmax = orbitalsAB.getBSEcmax();
     int _bseAB_cmin = orbitalsAB.getBSEcmin();
@@ -325,41 +288,33 @@ bool BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
         CTP_LOG(ctp::logERROR,*_pLog) << "BSE EH for singlets not stored " << flush;
         return false;
     }
-    const MatrixXfd&    _eh_t = _orbitalsAB.eh_t(); 
-    const MatrixXfd&    _eh_s = _orbitalsAB.eh_s(); 
+    const MatrixXfd&    eh_t = _orbitalsAB.eh_t(); 
+    const MatrixXfd&    eh_s = _orbitalsAB.eh_s(); 
     if(_doTriplets){
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   dimer AB has BSE EH interaction triplet with dimension " << _eh_t.rows() << " x " <<  _eh_t.cols() << flush;
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   dimer AB has BSE EH interaction triplet with dimension " << eh_t.rows() << " x " <<  eh_t.cols() << flush;
     }
     if(_doSinglets){
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   dimer AB has BSE EH interaction singlet with dimension " << _eh_s.rows() << " x " <<  _eh_s.cols() << flush;
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   dimer AB has BSE EH interaction singlet with dimension " << eh_s.rows() << " x " <<  eh_s.cols() << flush;
     }
     // now, two storage assignment matrices for two-particle functions
-    Eigen::MatrixXi _combAB;
-    _combAB.resize(_bseAB_size,2);
-    _cnt = 0;
+    Eigen::MatrixXi combAB;
+    combAB.resize(_bseAB_size,2);
+    cnt = 0;
     for ( int _v = 0; _v < _bseAB_vtotal; _v++){
-        for ( int _c = 0; _c < _bseAB_ctotal; _c++){
-            //_combAB(_cnt,0) = _v;
-            //_combAB(_cnt,1) = _bseAB_vtotal + _c;
-            
-            _combAB(_cnt,0) = _bseAB_vmin + _v;
-            _combAB(_cnt,1) = _bseAB_vmin + _bseAB_vtotal + _c;
-            
-            _cnt++;
+        for ( int _c = 0; _c < _bseAB_ctotal; _c++){           
+            combAB(cnt,0) = _bseAB_vmin + _v;
+            combAB(cnt,1) = _bseAB_vmin + _bseAB_vtotal + _c;
+            cnt++;
         }
     }
     
-    
-
-    
     // DFT levels of monomers can be reduced to those used in BSE
-    _levelsA = _bseA_vtotal + _bseA_ctotal;
-    _levelsB = _bseB_vtotal + _bseB_ctotal;
+    levelsA = _bseA_vtotal + _bseA_ctotal;
+    levelsB = _bseB_vtotal + _bseB_ctotal;
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "   levels used in BSE of molA: " << _bseA_vmin << " to " << _bseA_cmax << " total: " << _bseA_vtotal + _bseA_ctotal <<  flush;
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "   levels used in BSE of molB: " << _bseB_vmin << " to " << _bseB_cmax << " total: " << _bseB_vtotal + _bseB_ctotal <<  flush;
     
-    
-    if ( ( _levelsA == 0 ) || (_levelsB == 0) ) {
+    if ( ( levelsA == 0 ) || (levelsB == 0) ) {
         CTP_LOG(ctp::logERROR,*_pLog) << "No information about number of occupied/unoccupied levels is stored" << flush;
         return false;
     } 
@@ -367,42 +322,28 @@ bool BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
     //       | Orbitals_A          0 |      | Overlap_A |     
     //       | 0          Orbitals_B |.T  X   | Overlap_B |  X  ( Orbitals_AB )
     
-    Eigen::MatrixXd _psi_AxB =Eigen::MatrixXd::Zero( _levelsA + _levelsB, _basisA + _basisB  );
-    
-  
-    
+    Eigen::MatrixXd _psi_AxB =Eigen::MatrixXd::Zero( _levelsA + levelsB, _basisA + _basisB  );
     // constructing merged orbitals
-    _psi_AxB.block(0,0,_levelsA , _basisA) = orbitalsA.MOCoefficients().block(_bseA_vmin,0, _bseA_cmax+1-_bseA_vmin, _basisA );
-    _psi_AxB.block(_levelsA, _basisA,_levelsB,_basisB) =orbitalsB.MOCoefficients().block(_bseB_vmin,0,_bseB_cmax+1-_bseA_vmin,_basisB); 
+    psi_AxB.block(0,0,levelsA , _basisA) = orbitalsA.MOCoefficients().block(_bseA_vmin,0, _bseA_cmax+1-_bseA_vmin, _basisA );
+    psi_AxB.block(levelsA, _basisA,levelsB,_basisB) =orbitalsB.MOCoefficients().block(_bseB_vmin,0,_bseB_cmax+1-_bseA_vmin,_basisB); 
     
     // psi_AxB * S_AB * psi_AB
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "   projecting monomer onto dimer orbitals" << flush; 
     
-     Eigen::MatrixXd _overlapAB;
+    Eigen::MatrixXd overlapAB;
     if ( orbitalsAB.hasAOOverlap() ) {
             CTP_LOG(ctp::logDEBUG,*_pLog) << "Reading overlap matrix from orbitals" << flush; 
-           _overlapAB= orbitalsAB.AOOverlap();
+           overlapAB= orbitalsAB.AOOverlap();
     }else{
         CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating overlap matrix for basisset: "<< orbitalsAB.getDFTbasis()<< flush; 
-        BasisSet _dftbasisset;
-        AOBasis _dftbasis;
-        _dftbasisset.LoadBasisSet(orbitalsAB.getDFTbasis());
-
-        _dftbasis.AOBasisFill(_dftbasisset, orbitalsAB.QMAtoms());
-        AOOverlap _dftAOoverlap;
-        _dftAOoverlap.Fill(_dftbasis);
-        _overlapAB=_dftAOoverlap.Matrix();
+        overlapAB=CalculateOverlapMatrix(orbitalsAB);
     }
-    
   
-    Eigen::MatrixXd _psi_AxB_dimer_basis = _psi_AxB.transpose()*_overlapAB*orbitalsAB.MOCoefficients();  
-    _overlapAB.resize(0,0);
-    
-    
-    //cout<< "_psi_AxB_dimer"<<endl;
-    int LevelsA = _levelsA;
-    for (int i=0;i<_psi_AxB_dimer_basis.rows();i++){
-        double mag=_psi_AxB_dimer_basis.row(i).squaredNorm();
+    Eigen::MatrixXd psi_AxB_dimer_basis = psi_AxB.transpose()*overlapAB*orbitalsAB.MOCoefficients();  
+    overlapAB.resize(0,0);
+    int LevelsA = levelsA;
+    for (int i=0;i<psi_AxB_dimer_basis.rows();i++){
+        double mag=psi_AxB_dimer_basis.row(i).squaredNorm();
         if (mag<0.95){
             int monomer = 0;
             int level = 0;
@@ -411,14 +352,14 @@ bool BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
                 level   = _bseA_vmin + i;
             } else {
                 monomer = 2;
-                level   = _bseB_vmin + i -_levelsA;
-                
+                level   = _bseB_vmin + i -levelsA;   
             }
-            CTP_LOG(ctp::logERROR,*_pLog) << "\nERROR: " << i << " Projection of orbital " << level << " of monomer " << monomer << " on dimer is insufficient,mag="<<mag<<" maybe the orbital order is screwed up, otherwise increase dimer basis.\n"<<flush;
+            CTP_LOG(ctp::logERROR,*_pLog) << "\nERROR: " << i << " Projection of orbital " 
+                    << level << " of monomer " << monomer << " on dimer is insufficient,mag="
+                    <<mag<<" maybe the orbital order is screwed up, otherwise increase dimer basis.\n"<<flush;
         }
     }
    
-    
     //notation AB is CT states with A+B-, BA is the counterpart
     //Setting up CT-states:
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "   Setting up CT-states" << flush; 
@@ -427,37 +368,33 @@ bool BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
     //Number of A-B+ states
     int noBA=_unoccA*_occB;
     
-    
     Eigen::MatrixXi comb_CTAB=Eigen::MatrixXi::Zero(noAB,2);
-    
-    _cnt = 0;   
+    cnt = 0;   
     // iterate A over occupied, B over unoccupied
     int v_start=_bseA_vtotal-_occA;
     for ( int _v = v_start; _v < _bseA_vtotal; _v++){
         for ( int _c = 0; _c <_unoccB; _c++){            
-            comb_CTAB(_cnt,0) =_v;
-            comb_CTAB(_cnt,1) = _bseA_vtotal+_bseA_ctotal+_bseB_vtotal + _c;
+            comb_CTAB(cnt,0) =_v;
+            comb_CTAB(cnt,1) = _bseA_vtotal+_bseA_ctotal+_bseB_vtotal + _c;
            
-            _cnt++;
+            cnt++;
         }
     }
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  <<"  "<<noAB <<" CT states A+B- created" << flush;
  
     Eigen::MatrixXi  comb_CTBA=Eigen::MatrixXi::Zero(noBA,2);
-    _cnt = 0;
+    cnt = 0;
     // iterate A over unoccupied, B over occupied
     v_start=_bseB_vtotal-_occB;
     for ( int _v = v_start; _v < _bseB_vtotal; _v++){
         for ( int _c = 0; _c <_unoccA; _c++){            
-            comb_CTBA(_cnt,0) =_bseA_vtotal+_bseA_ctotal+_v;
-            comb_CTBA(_cnt,1) = _bseA_vtotal+ _c;
+            comb_CTBA(cnt,0) =_bseA_vtotal+_bseA_ctotal+_v;
+            comb_CTBA(cnt,1) = _bseA_vtotal+ _c;
             
-            _cnt++;
+            cnt++;
         }
     }
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  <<"  "<<noBA <<" CT states B+A- created" << flush;
-    
-    
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  <<"  "<<noBA <<" CT states B+A- created" << flush; 
     
     // these 4 matrixes, matrix(i,j) contains the j-th dimer MO component of the i-th excitation
    
@@ -465,54 +402,45 @@ bool BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
     #pragma omp parallel for
     for ( int _i_CT = 0 ; _i_CT < noAB ; _i_CT++){
     for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
-        ctAB(_i_CT,_i_bseAB)=_psi_AxB_dimer_basis( comb_CTAB(_i_CT,0), _combAB( _i_bseAB,0) ) * _psi_AxB_dimer_basis( comb_CTAB(_i_CT,1), _combAB( _i_bseAB,1) );
+        ctAB(_i_CT,_i_bseAB)=psi_AxB_dimer_basis( comb_CTAB(_i_CT,0), combAB( _i_bseAB,0) ) * psi_AxB_dimer_basis( comb_CTAB(_i_CT,1), combAB( _i_bseAB,1) );
         }
     }
-    
-    
+
     ctBA.resize(noBA,_bseAB_size);
     #pragma omp parallel for
     for ( int _i_CT = 0 ; _i_CT < noBA ; _i_CT++){
     for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
-        ctBA(_i_CT,_i_bseAB)=_psi_AxB_dimer_basis( comb_CTBA(_i_CT,0), _combAB( _i_bseAB,0) ) * _psi_AxB_dimer_basis( comb_CTBA(_i_CT,1), _combAB( _i_bseAB,1) );
+        ctBA(_i_CT,_i_bseAB)=psi_AxB_dimer_basis( comb_CTBA(_i_CT,0), combAB( _i_bseAB,0) ) * psi_AxB_dimer_basis( comb_CTBA(_i_CT,1), combAB( _i_bseAB,1) );
         }
     }
-    
-      
-    // some more convenient storage
-    
-    
+
     _kap.resize(_bseA_size,_bseAB_size);
     #pragma omp parallel for
     for ( int _i_bseA = 0 ; _i_bseA < _bseA_size ; _i_bseA++){
         for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
-            _kap(_i_bseA,_i_bseAB) = _psi_AxB_dimer_basis( _combA(_i_bseA,0), _combAB( _i_bseAB,0) ) * _psi_AxB_dimer_basis( _combA(_i_bseA,1), _combAB( _i_bseAB,1) );
+            _kap(_i_bseA,_i_bseAB) = psi_AxB_dimer_basis( combA(_i_bseA,0), combAB( _i_bseAB,0) ) * psi_AxB_dimer_basis( combA(_i_bseA,1), combAB( _i_bseAB,1) );
             
         }
     }
-
-    
-    
 
     _kbp.resize(_bseB_size,_bseAB_size);
     #pragma omp parallel for
     for ( int _i_bseB = 0 ; _i_bseB < _bseB_size ; _i_bseB++){
         for ( int _i_bseAB = 0 ; _i_bseAB < _bseAB_size ; _i_bseAB++){
-            _kbp(_i_bseB,_i_bseAB) = _psi_AxB_dimer_basis( _combB(_i_bseB,0), _combAB( _i_bseAB,0) ) * _psi_AxB_dimer_basis( _combB(_i_bseB,1), _combAB( _i_bseAB,1) );
+            _kbp(_i_bseB,_i_bseAB) = psi_AxB_dimer_basis( combB(_i_bseB,0), combAB( _i_bseAB,0) ) * psi_AxB_dimer_basis( combB(_i_bseB,1), combAB( _i_bseAB,1) );
         }
     }
-    
   
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   construct projection of product functions " << flush; 
  
-    _psi_AxB_dimer_basis.resize(0,0);
-    _combAB.resize(0,0);
-    _combA.resize(0,0);
-    _combB.resize(0,0);
+    psi_AxB_dimer_basis.resize(0,0);
+    combAB.resize(0,0);
+    combA.resize(0,0);
+    combB.resize(0,0);
     // now the different spin types
             if (_doSinglets) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "   Evaluating singlets" << flush;
-                Eigen::MatrixXd Hamiltonian_AB = _eh_s.cast<double>();
+                Eigen::MatrixXd Hamiltonian_AB = eh_s.cast<double>();
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "   Setup Hamiltonian" << flush;
                 const Eigen::MatrixXd bseA_T = orbitalsA.BSESingletCoefficients().block(0,0,orbitalsA.BSESingletCoefficients().rows(),_levA).transpose().cast<double>();
                 const Eigen::MatrixXd bseB_T =orbitalsB.BSESingletCoefficients().block(0,0,orbitalsB.BSESingletCoefficients().rows(),_levB).transpose().cast<double>();
@@ -525,7 +453,7 @@ bool BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
 
             if (_doTriplets) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "   Evaluating triplets" << flush;
-                Eigen::MatrixXd Hamiltonian_AB = _eh_s.cast<double>();
+                Eigen::MatrixXd Hamiltonian_AB = eh_s.cast<double>();
                 CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << "  Converted Hamiltonian to double" << flush;         
                 const Eigen::MatrixXd bseA_T = orbitalsA.BSETripletCoefficients().block(0,0,orbitalsA.BSETripletCoefficients().rows(),_levA).transpose().cast<double>();
                 const Eigen::MatrixXd bseB_T =orbitalsB.BSETripletCoefficients().block(0,0,orbitalsB.BSETripletCoefficients().rows(),_levB).transpose().cast<double>();
@@ -534,7 +462,7 @@ bool BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
             }
     
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "  Done with exciton couplings" << flush;
-    return true;   
+    return;
 };
 
 

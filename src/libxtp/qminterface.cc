@@ -71,27 +71,19 @@ namespace votca {
         }
 
         std::vector<QMAtom *> QMInterface::Convert(std::vector<ctp::Segment* > segments) {
-
             std::vector<QMAtom *> qmatoms;
-
-            std::vector< ctp::Atom* > ::iterator ait;
-            std::vector< ctp::Segment* >::iterator sit;
             int AtomId=0;
-            for (sit = segments.begin(); sit != segments.end(); ++sit) {
-                std::vector < ctp::Atom* >& _atoms = (*sit)->Atoms();
-
-                for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-                    if(!(*ait)->HasQMPart()){
+            for (ctp::Segment* segment:segments) {
+                std::vector < ctp::Atom* >& atoms = segment->Atoms();
+                for (ctp::Atom* atom: atoms) {
+                    if(!atom->HasQMPart()){
                       continue;
                     }
-
-                    tools::vec pos = (*ait)->getQMPos() * tools::conv::nm2bohr;
-                    std::string name = (*ait)->getElement();
-                    //be careful charges are set to zero because most of the time ctp::Atom has getQ not set, the construct is very weird, ctp is shit
+                    tools::vec pos = atom->getQMPos() * tools::conv::nm2bohr;
+                    std::string name = atom->getElement();
                     QMAtom* qmatom = new QMAtom(AtomId,name, pos);
                     AtomId++;
                     qmatoms.push_back(qmatom);
-
                 }
             }
             return qmatoms;

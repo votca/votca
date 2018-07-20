@@ -176,23 +176,14 @@ namespace votca {
       return;
     }
 
-    bool DFTENGINE::Evaluate(Orbitals* _orbitals) {
+    bool DFTENGINE::Evaluate(Orbitals& orbitals) {
 
-
-      // set the parallelization
 #ifdef _OPENMP
-
       omp_set_num_threads(_openmp_threads);
-
 #endif
-      /**** END OF PREPARATION ****/
 
-      /**** Density-independent matrices ****/
-
-
-
-      Eigen::VectorXd& MOEnergies = _orbitals->MOEnergies();
-      Eigen::MatrixXd& MOCoeff = _orbitals->MOCoefficients();
+      Eigen::VectorXd& MOEnergies = orbitals.MOEnergies();
+      Eigen::MatrixXd& MOCoeff = orbitals.MOCoefficients();
       if (MOEnergies.size() != _dftbasis.AOBasisSize()) {
         MOEnergies.resize(_dftbasis.AOBasisSize());
       }
@@ -200,12 +191,7 @@ namespace votca {
         MOCoeff.conservativeResize(_dftbasis.AOBasisSize(), _dftbasis.AOBasisSize());
       }
 
-      /**** Construct initial density  ****/
-
       Eigen::MatrixXd H0 = _dftAOkinetic.Matrix() + _dftAOESP.getNuclearpotential();
-
-      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed initial density " << flush;
-
       NuclearRepulsion();
 
       if(_with_ecp){
@@ -238,30 +224,30 @@ namespace votca {
       // if we have a guess we do not need this.
       if (_with_guess) {
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Reading guess from orbitals object/file" << flush;
-        _dftAOdmat = _orbitals->DensityMatrixGroundState();
+        _dftAOdmat = orbitals.DensityMatrixGroundState();
       } else if (guess_set) {
-        ConfigOrbfile(_orbitals);
+        ConfigOrbfile(orbitals);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using starting guess from last QM/MM iteration" << flush;
         _dftAOdmat = last_dmat;
       } else {
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup Initial Guess using: " << _initial_guess << flush;
         if (_initial_guess == "independent") {
           conv_accelerator.SolveFockmatrix(MOEnergies, MOCoeff, H0);
-          _dftAOdmat = _orbitals->DensityMatrixGroundState();
+          _dftAOdmat = orbitals.DensityMatrixGroundState();
 
         } else if (_initial_guess == "atom") {
 
-          _dftAOdmat = AtomicGuess(_orbitals);
+          _dftAOdmat = AtomicGuess(orbitals);
           CalculateERIs(_dftbasis, _dftAOdmat);
 
           if (_use_small_grid) {
-            _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
+            orbitals.AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
           } else {
-            _orbitals->AOVxc() = _gridIntegration.IntegrateVXC(_dftAOdmat);
+            orbitals.AOVxc() = _gridIntegration.IntegrateVXC(_dftAOdmat);
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix " << flush;
           }
-          Eigen::MatrixXd H = H0 + _ERIs.getERIs() + _orbitals->AOVxc();
+          Eigen::MatrixXd H = H0 + _ERIs.getERIs() + orbitals.AOVxc();
           if(_ScaHFX>0){
               if (_with_RI) {
              _ERIs.CalculateEXX(_dftAOdmat);
@@ -272,7 +258,7 @@ namespace votca {
           }
           
           conv_accelerator.SolveFockmatrix(MOEnergies, MOCoeff, H);
-          _dftAOdmat = _orbitals->DensityMatrixGroundState();
+          _dftAOdmat = orbitals.DensityMatrixGroundState();
 
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Full atomic density Matrix gives N=" << std::setprecision(9) << _dftAOdmat.cwiseProduct(_dftAOoverlap.Matrix()).sum() << " electrons." << flush;
         } else {
@@ -281,15 +267,12 @@ namespace votca {
 
       }
 
-
-      _orbitals->setQMpackage("xtp");
+      orbitals.setQMpackage("xtp");
 
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " STARTING SCF cycle" << flush;
       CTP_LOG(ctp::logDEBUG, *_pLog) << " --------------------------------------------------------------------------" << flush;
 
       double energyold = std::numeric_limits<double>::max();
-
-
 
       for (int _this_iter = 0; _this_iter < _max_iter; _this_iter++) {
         CTP_LOG(ctp::logDEBUG, *_pLog) << flush;
@@ -300,16 +283,16 @@ namespace votca {
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Electron repulsion matrix of dimension: " << _ERIs.getSize1() << " x " << _ERIs.getSize2() << flush;
         double vxcenergy = 0.0;
         if (_use_small_grid && conv_accelerator.getDIIsError() > 1e-3) {
-          _orbitals->AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
+          orbitals.AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
           vxcenergy = _gridIntegration_small.getTotEcontribution();
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
         } else {
-          _orbitals->AOVxc() = _gridIntegration.IntegrateVXC(_dftAOdmat);
+          orbitals.AOVxc() = _gridIntegration.IntegrateVXC(_dftAOdmat);
           vxcenergy = _gridIntegration.getTotEcontribution();
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Vxc matrix " << flush;
         }
         
-        Eigen::MatrixXd H = H0 + _ERIs.getERIs() + _orbitals->AOVxc();
+        Eigen::MatrixXd H = H0 + _ERIs.getERIs() + orbitals.AOVxc();
         if(_ScaHFX>0){
               if (_with_RI) {
                 if(conv_accelerator.getUseMixing()){
@@ -364,7 +347,7 @@ namespace votca {
           last_dmat = _dftAOdmat;
           guess_set = true;
           // orbitals saves total energies in [eV]
-          _orbitals->setQMEnergy(totenergy * tools::conv::hrt2ev);
+          orbitals.setQMEnergy(totenergy * tools::conv::hrt2ev);
           break;
         } else {
           energyold = totenergy;
@@ -404,7 +387,6 @@ namespace votca {
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT external quadrupole potential matrix of dimension: " << _dftAOQuadrupole_Potential.Dimension() << flush;
         }
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " External sites\t Name \t Coordinates \t charge \t dipole \t quadrupole" << flush;
-
 
         for (unsigned i = 0; i < _externalsites.size(); i++) {
 
@@ -472,7 +454,7 @@ namespace votca {
       return;
     }
 
-    Eigen::MatrixXd DFTENGINE::AtomicGuess(Orbitals* _orbitals) {
+    Eigen::MatrixXd DFTENGINE::AtomicGuess(Orbitals& orbitals) {
       Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(_dftbasis.AOBasisSize(), _dftbasis.AOBasisSize());
 
       std::vector<QMAtom*> uniqueelements;
@@ -480,36 +462,35 @@ namespace votca {
       std::vector<QMAtom*>::iterator st;
       std::vector< Eigen::MatrixXd > uniqueatom_guesses;
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Scanning molecule of size " << _atoms.size() << " for unique elements" << flush;
-      for (at = _atoms.begin(); at < _atoms.end(); ++at) {
+      for (QMAtom* atom:_atoms) {
         bool exists = false;
         if (uniqueelements.size() == 0) {
           exists = false;
         } else {
-          for (st = uniqueelements.begin(); st < uniqueelements.end(); ++st) {
-            if ((*at)->getType() == (*st)->getType()) {
+          for (QMAtom* uniqueatom: uniqueelements) {
+            if (atom->getType() == uniqueatom->getType()) {
               exists = true;
               break;
             }
           }
         }
         if (!exists) {
-          uniqueelements.push_back((*at));
+          uniqueelements.push_back(atom);
         }
       }
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " " << uniqueelements.size() << " unique elements found" << flush;
       tools::Elements _elements;
-      for (st = uniqueelements.begin(); st < uniqueelements.end(); ++st) {
+      for (QMAtom* uniqueatom: uniqueelements) {
 
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating atom density for " << (*st)->getType() << flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating atom density for " << uniqueatom->getType() << flush;
         bool with_ecp = _with_ecp;
-        if ((*st)->getType() == "H" || (*st)->getType() == "He") {
+        if (uniqueatom->getType() == "H" || uniqueatom->getType() == "He") {
           with_ecp = false;
         }
         std::vector<QMAtom*> atom;
-        atom.push_back(*st);
+        atom.push_back(uniqueatom);
 
         AOBasis dftbasis;
-
 
         NumericalIntegration gridIntegration;
         dftbasis.AOBasisFill(_dftbasisset, atom);
@@ -673,42 +654,42 @@ namespace votca {
       return guess;
     }
 
-    void DFTENGINE::ConfigOrbfile(Orbitals* _orbitals) {
+    void DFTENGINE::ConfigOrbfile(Orbitals& orbitals) {
       if (_with_guess) {
 
-        if (_orbitals->hasDFTbasis()) {
-          if (_orbitals->getDFTbasis() != _dftbasis_name) {
-            throw runtime_error((boost::format("Basisset Name in guess orb file and in dftengine option file differ %1% vs %2%") % _orbitals->getDFTbasis() % _dftbasis_name).str());
+        if (orbitals.hasDFTbasis()) {
+          if (orbitals.getDFTbasis() != _dftbasis_name) {
+            throw runtime_error((boost::format("Basisset Name in guess orb file and in dftengine option file differ %1% vs %2%") % orbitals.getDFTbasis() % _dftbasis_name).str());
           }
         } else {
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " WARNING: Orbital file has no basisset information,using it as a guess might work or not for calculation with " << _dftbasis_name << flush;
         }
       }
-      _orbitals->setDFTbasis(_dftbasis_name);
-      _orbitals->setBasisSetSize(_dftbasis.AOBasisSize());
-      _orbitals->setScaHFX(_ScaHFX);
+      orbitals.setDFTbasis(_dftbasis_name);
+      orbitals.setBasisSetSize(_dftbasis.AOBasisSize());
+      orbitals.setScaHFX(_ScaHFX);
       if (_with_ecp) {
-        _orbitals->setECP(_ecp_name);
+        orbitals.setECP(_ecp_name);
       }
       if (_with_RI) {
-        _orbitals->setAuxbasis(_auxbasis_name);
+        orbitals.setAuxbasis(_auxbasis_name);
       }
 
       if (_with_guess) {
-        if (_orbitals->hasECP() || _with_ecp) {
-          if (_orbitals->getECP() != _ecp_name) {
-            throw runtime_error((boost::format("ECPs in orb file: %1% and options %2% differ") % _orbitals->getECP() % _ecp_name).str());
+        if (orbitals.hasECP() || _with_ecp) {
+          if (orbitals.getECP() != _ecp_name) {
+            throw runtime_error((boost::format("ECPs in orb file: %1% and options %2% differ") % orbitals.getECP() % _ecp_name).str());
           }
         }
-        if (_orbitals->getNumberOfElectrons() != _numofelectrons / 2) {
-          throw runtime_error((boost::format("Number of electron in guess orb file: %1% and in dftengine: %2% differ.") % _orbitals->getNumberOfElectrons() % (_numofelectrons / 2)).str());
+        if (orbitals.getNumberOfElectrons() != _numofelectrons / 2) {
+          throw runtime_error((boost::format("Number of electron in guess orb file: %1% and in dftengine: %2% differ.") % orbitals.getNumberOfElectrons() % (_numofelectrons / 2)).str());
         }
-        if (_orbitals->getNumberOfLevels() != _dftbasis.AOBasisSize()) {
-          throw runtime_error((boost::format("Number of levels in guess orb file: %1% and in dftengine: %2% differ.") % _orbitals->getNumberOfLevels() % _dftbasis.AOBasisSize()).str());
+        if (orbitals.getNumberOfLevels() != _dftbasis.AOBasisSize()) {
+          throw runtime_error((boost::format("Number of levels in guess orb file: %1% and in dftengine: %2% differ.") % orbitals.getNumberOfLevels() % _dftbasis.AOBasisSize()).str());
         }
       } else {
-        _orbitals->setNumberOfElectrons(_numofelectrons / 2);
-        _orbitals->setNumberOfLevels(_numofelectrons / 2, _dftbasis.AOBasisSize() - _numofelectrons / 2);
+        orbitals.setNumberOfElectrons(_numofelectrons / 2);
+        orbitals.setNumberOfLevels(_numofelectrons / 2, _dftbasis.AOBasisSize() - _numofelectrons / 2);
       }
       return;
     }
@@ -716,7 +697,7 @@ namespace votca {
 
     // PREPARATION
 
-    void DFTENGINE::Prepare(Orbitals* _orbitals) {
+    void DFTENGINE::Prepare(Orbitals& orbitals) {
 #ifdef _OPENMP
 
       omp_set_num_threads(_openmp_threads);
@@ -732,7 +713,7 @@ namespace votca {
   }
 
       if (_atoms.size() == 0) {
-        _atoms = _orbitals->QMAtoms();
+        _atoms = orbitals.QMAtoms();
       }
 
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Molecule Coordinates [A] " << flush;
@@ -749,7 +730,7 @@ namespace votca {
       if (_with_RI) {
         // load and fill AUX basis set
         _auxbasisset.LoadBasisSet(_auxbasis_name);
-        //_orbitals->setDFTbasis( _dftbasis_name );
+        //_orbitals.setDFTbasis( _dftbasis_name );
         _auxbasis.AOBasisFill(_auxbasisset, _atoms);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded AUX Basis Set " << _auxbasis_name << flush;
       }
@@ -798,7 +779,7 @@ namespace votca {
 
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Total number of electrons: " << _numofelectrons << flush;
 
-      ConfigOrbfile(_orbitals);
+      ConfigOrbfile(orbitals);
       SetupInvariantMatrices();
       return;
     }

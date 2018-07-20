@@ -35,7 +35,7 @@ namespace votca {
     namespace xtp {
        using namespace std;
 
-        void NWChem::Initialize(tools::Property *options) {
+        void NWChem::Initialize(tools::Property &options) {
 
             // NWChem file names
             string fileName = "system";
@@ -47,46 +47,46 @@ namespace votca {
             _orb_file_name = fileName + ".movecs";
 
             string key = "package";
-            string _name = options->get(key + ".name").as<string> ();
+            string _name = options.get(key + ".name").as<string> ();
 
             if (_name != "nwchem") {
                 cerr << "Tried to use " << _name << " package. ";
                 throw std::runtime_error("Wrong options file");
             }
 
-            _executable = options->get(key + ".executable").as<string> ();
-            _charge = options->get(key + ".charge").as<int> ();
-            _spin = options->get(key + ".spin").as<int> ();
-            _options = options->get(key + ".options").as<string> ();
-            _memory = options->get(key + ".memory").as<string> ();
-            _threads = options->get(key + ".threads").as<int> ();
-            _scratch_dir = options->get(key + ".scratch").as<string> ();
-            _cleanup = options->get(key + ".cleanup").as<string> ();
+            _executable = options.get(key + ".executable").as<string> ();
+            _charge = options.get(key + ".charge").as<int> ();
+            _spin = options.get(key + ".spin").as<int> ();
+            _options = options.get(key + ".options").as<string> ();
+            _memory = options.get(key + ".memory").as<string> ();
+            _threads = options.get(key + ".threads").as<int> ();
+            _scratch_dir = options.get(key + ".scratch").as<string> ();
+            _cleanup = options.get(key + ".cleanup").as<string> ();
             
-            _basisset_name = options->get(key + ".basisset").as<std::string> ();
-            _write_basis_set = options->get(key + ".writebasisset").as<bool> ();
-            _write_pseudopotentials = options->get(key + ".writepseudopotentials").as<bool> ();
+            _basisset_name = options.get(key + ".basisset").as<std::string> ();
+            _write_basis_set = options.get(key + ".writebasisset").as<bool> ();
+            _write_pseudopotentials = options.get(key + ".writepseudopotentials").as<bool> ();
             
-            if ( _write_pseudopotentials )  _ecp_name = options->get(key + ".ecp").as<std::string> ();
+            if ( _write_pseudopotentials )  _ecp_name = options.get(key + ".ecp").as<std::string> ();
 
-            if (options->exists(key + ".outputVxc")) {
-                _output_Vxc = options->get(key + ".outputVxc").as<bool> ();
+            if (options.exists(key + ".outputVxc")) {
+                _output_Vxc = options.get(key + ".outputVxc").as<bool> ();
             } else _output_Vxc = false;
             // check whether options string contains vxc output, the _outputVxc is set to true
             std::string::size_type iop_pos = _options.find(" intermediate tXC matrix");
             if (iop_pos != std::string::npos) {
                 if (_output_Vxc) {
-                    cout << "=== You do not have to specify outputting Vxc twice. Next time remove the print ""intermediate tXC matrix"" part from your options string. Please continue" << endl;
+                    cout << "=== You do not have to specify outputting Vxc twice. Next time remove "
+                            "the print ""intermediate tXC matrix"" part from your options string. Please continue" << endl;
                 } else {
-                    cout << "=== So you do not want to output Vxc but still put it in the options string? I will assume that you want to output Vxc, be more consistent next time. " << endl;
+                    cout << "=== So you do not want to output Vxc but still put it in the options string? "
+                            "I will assume that you want to output Vxc, be more consistent next time. " << endl;
                 }
                 _output_Vxc = true;
             }
             else if (_output_Vxc == true) {
                 _options = _options + "\n\ndft\nprint \"intermediate tXC matrix\"\nvectors input system.movecs\nnoscf\nend\ntask dft";
             }
-
-
 
             // check if the optimize keyword is present, if yes, read updated coords
             iop_pos = _options.find(" optimize");
@@ -104,8 +104,6 @@ namespace votca {
                 _get_charges = false;
             }
 
-            
-
             // check if the guess should be prepared, if yes, append the guess later
             _write_guess = false;
             iop_pos = _options.find("iterations 1 ");
@@ -113,9 +111,7 @@ namespace votca {
             iop_pos = _options.find("iterations 1\n");
             if (iop_pos != std::string::npos) _write_guess = true;
         }
-        
-        
-        
+
          /* For QM/MM the molecules in the MM environment are represented by
          * their atomic partial charge distributions. Triggered by the option
          * keyword "set bq background" NWChem expects them in x,y,z,q format in the
@@ -130,7 +126,6 @@ namespace votca {
             for (it = _PolarSegments.begin(); it < _PolarSegments.end(); it++) {
                 vector<ctp::APolarSite*> ::iterator pit;
                 for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
-                    
                     string site=boost::str(fmt % (((*pit)->getPos().getX())*votca::tools::conv::nm2ang) 
                             % ((*pit)->getPos().getY()*votca::tools::conv::nm2ang) 
                             % ((*pit)->getPos().getZ()*votca::tools::conv::nm2ang) 
@@ -139,9 +134,7 @@ namespace votca {
                       _nw_file << site << endl;
                       numberofcharges++;
                     }
-
                     if ((*pit)->getRank() > 0 || _with_polarization ) {
-
                         std::vector< std::vector<double> > _split_multipoles = SplitMultipoles(*pit);
                         for (const auto& mpoles:_split_multipoles){
                            string multipole=boost::str( fmt % mpoles[0] % mpoles[1] % mpoles[2] % mpoles[3]);
@@ -161,16 +154,13 @@ namespace votca {
          * Prepares the *.nw file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied
          */
-        bool NWChem::WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess){
+        bool NWChem::WriteInputFile(Orbitals& orbitals){
 
             std::vector<std::string> results;
-            //int qmatoms = 0;
             std::string temp_suffix = "/id";
             std::string scratch_dir_backup = _scratch_dir;
             std::ofstream _nw_file;
             std::ofstream _crg_file;
-            
-            
 
             std::string _nw_file_name_full = _run_dir + "/" + _input_file_name;
             std::string _crg_file_name_full = _run_dir + "/background.crg";
@@ -179,17 +169,8 @@ namespace votca {
             // header
             _nw_file << "geometry noautoz noautosym" << endl;
 
-            std::vector< QMAtom* > qmatoms;
-            // This is needed for the QM/MM scheme, since only orbitals have
-            // updated positions of the QM region, hence vector<Segments*> is
-            // NULL in the QMMachine and the QM region is also printed here
-            if (_write_charges) {
-                qmatoms = orbitals_guess->QMAtoms();
-            } else {
-                QMInterface qmmface;
-                qmatoms = qmmface.Convert(segments);
-            }
-
+            std::vector< QMAtom* > qmatoms = orbitals.QMAtoms();
+          
             for (const QMAtom* atom:qmatoms) {
                 tools::vec pos=atom->getPos()*tools::conv::bohr2ang;
                     _nw_file << setw(3) << atom->getType().c_str()
@@ -220,11 +201,9 @@ namespace votca {
               WriteECP(_nw_file,qmatoms);
             }
 
-            
             // write charge of the molecule
             _nw_file << "\ncharge " << _charge << "\n";
            
-
             // writing scratch_dir info
             if (_scratch_dir != "") {
                 std::string _temp("scratch_dir " + _scratch_dir + temp_suffix + "\n");
@@ -242,11 +221,8 @@ namespace votca {
               }
             }
             _nw_file << _options << "\n";
-
             if (_write_guess) {
-                if (orbitals_guess == NULL) {
-                    throw std::runtime_error("A guess for dimer orbitals has not been prepared.");
-                } else {
+               
                     ofstream _orb_file;
                     std::string _orb_file_name_full = _run_dir + "/" + _orb_file_name;
                     // get name of temporary ascii file and open it
@@ -256,21 +232,19 @@ namespace votca {
 
                     // header
                     _orb_file << "#generated by VOTCA\nbasisum\ngeomsum\n\nscf\nFri Sep 13 00:00:00 2013\nscf\n1\n\n8\nao basis\n1\n" << flush;
-                    int _size_of_basis = (orbitals_guess->MOEnergies()).size();
+                    int _size_of_basis = (orbitals.MOEnergies()).size();
                     // number of basis functions
                     _orb_file << _size_of_basis << endl;
                     // number of orbitals
                     _orb_file << _size_of_basis << endl;
-
-                    ReorderMOsBack(*orbitals_guess);
-                    std::vector<int> _sort_index=orbitals_guess->SortEnergies();
-                    orbitals_guess->QMAtoms()=qmatoms;
+                    ReorderMOsBack(*orbitals);
+                    std::vector<int> _sort_index=orbitals.SortEnergies();
                     int level = 1;
                     int ncolumns = 3;
                     // write occupations as double in three columns
                     // occupied levels
                     int column = 1;
-                    for (int i = 0; i < orbitals_guess->getNumberOfElectrons(); i++) {
+                    for (int i = 0; i < orbitals.getNumberOfElectrons(); i++) {
                         _orb_file << FortranFormat(2.0);
                         if (column == ncolumns) {
                             _orb_file << endl;
@@ -279,7 +253,7 @@ namespace votca {
                         column++;
                     }
                     // unoccupied levels
-                    for (int i = orbitals_guess->getNumberOfElectrons(); i < _size_of_basis; i++) {
+                    for (int i = orbitals.getNumberOfElectrons(); i < _size_of_basis; i++) {
                         _orb_file << FortranFormat(0.0);
                         if (column == ncolumns) {
                             _orb_file << endl;
@@ -295,7 +269,7 @@ namespace votca {
                     // write all energies in same format
                     column = 1;
                     for (std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++soi) {
-                        double _energy = (orbitals_guess->MOEnergies())[*soi];
+                        double _energy = (orbitals.MOEnergies())[*soi];
                         _orb_file << FortranFormat(_energy);
                         if (column == ncolumns) {
                             _orb_file << endl;
@@ -304,12 +278,10 @@ namespace votca {
                         column++;
                     }
                     if (column != 1) _orb_file << endl;
-                    
-                    
 
                     // write coefficients in same format
                     for (std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++soi) {
-                        Eigen::VectorXd mr=orbitals_guess->MOCoefficients().col(*soi);
+                        Eigen::VectorXd mr=orbitals.MOCoefficients().col(*soi);
                         column = 1;
                         for (unsigned j = 0; j < mr.size(); ++j) {
                             _orb_file << FortranFormat(mr[j]);
@@ -335,12 +307,11 @@ namespace votca {
                         CTP_LOG(ctp::logERROR, *_pLog) << "Conversion of binary MO file to binary failed. " << flush;
                         return false;
                     }
-                }
+                
             }
 
             _nw_file << endl;
             _nw_file.close();
-
             // and now generate a shell script to run both jobs, if neccessary
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
@@ -350,7 +321,6 @@ namespace votca {
             _scratch_dir = scratch_dir_backup;
 
             return true;
-
         }
         
 
@@ -358,21 +328,16 @@ namespace votca {
 
         bool NWChem::WriteShellScript() {
             ofstream _shell_file;
-
             std::string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
-
             _shell_file.open(_shell_file_name_full.c_str());
-
             _shell_file << "#!/bin/bash" << endl;
             _shell_file << "mkdir -p " << _scratch_dir << endl;
-
             if (_threads == 1) {
                 _shell_file << _executable << " " << _input_file_name << " > " << _log_file_name << " 2> run.error" << endl;
             } else {
                 _shell_file << "mpirun -np " << boost::lexical_cast<std::string>(_threads) << " " << _executable << " " << _input_file_name << " > " << _log_file_name << " 2> run.error" << endl;
             }
             _shell_file.close();
-
             return true;
         }
 
@@ -391,20 +356,9 @@ namespace votca {
                 remove(file_name.c_str());
                 file_name = _run_dir + "/" + _log_file_name;
                 remove(file_name.c_str());
-                file_name = _run_dir + "/" + _orb_file_name;
-                //remove ( file_name.c_str() );
-
-                // if threads is provided and > 1, run mpi;
-                std::string _command;
-                if (_threads == 1) {
-                    //_command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir + "; " + _executable + " " + _input_file_name + "> " +  _log_file_name ;
-                    _command = "cd " + _run_dir + "; sh " + _shell_file_name;
-                } else {
-                    //_command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir + ";  mpirun -np " +  boost::lexical_cast<std::string>(_threads) + " " + _executable + " " + _input_file_name + "> "+  _log_file_name ;
-                    _command = "cd " + _run_dir + "; sh " + _shell_file_name;
-                }
-
-                //int i = std::system ( _command.c_str() );
+               
+                std::string _command = "cd " + _run_dir + "; sh " + _shell_file_name;
+    
                 int check = std::system(_command.c_str());
                 if (check == -1) {
                     CTP_LOG(ctp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
@@ -434,33 +388,33 @@ namespace votca {
             // cleaning up the generated files
             if (_cleanup.size() != 0) {
                 tools::Tokenizer tok_cleanup(_cleanup, ",");
-                std::vector <std::string> _cleanup_info;
-                tok_cleanup.ToVector(_cleanup_info);
+                std::vector <std::string> cleanup_info;
+                tok_cleanup.ToVector(cleanup_info);
 
                 std::vector<std::string> ::iterator it;
 
-                for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
-                    if (*it == "nw") {
+                for (const std::string& substring:cleanup_info) {
+                    if (substring== "nw") {
                         std::string file_name = _run_dir + "/" + _input_file_name;
                         remove(file_name.c_str());
                     }
 
-                    if (*it == "db") {
+                    if (substring == "db") {
                         std::string file_name = _run_dir + "/system.db";
                         remove(file_name.c_str());
                     }
 
-                    if (*it == "log") {
+                    if (substring == "log") {
                         std::string file_name = _run_dir + "/" + _log_file_name;
                         remove(file_name.c_str());
                     }
 
-                    if (*it == "movecs") {
+                    if (substring == "movecs") {
                         std::string file_name = _run_dir + "/" + _orb_file_name;
                         remove(file_name.c_str());
                     }
 
-                    if (*it == "gridpts") {
+                    if (substring == "gridpts") {
                         std::string file_name = _run_dir + "/system.gridpts.*";
                         remove(file_name.c_str());
                     }

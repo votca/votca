@@ -37,7 +37,7 @@ namespace votca {
     namespace xtp {
       using namespace std;
 
-        void Gaussian::Initialize(tools::Property *options) {
+        void Gaussian::Initialize(tools::Property &options) {
 
             // GAUSSIAN file names
             std::string fileName = "system";
@@ -51,31 +51,31 @@ namespace votca {
 
 
             std::string key = "package";
-            std::string _name = options->get(key + ".name").as<std::string> ();
+            std::string _name = options.get(key + ".name").as<std::string> ();
 
             if (_name != "gaussian") {
                 cerr << "Tried to use " << _name << " package. ";
                 throw std::runtime_error("Wrong options file");
             }
 
-            _executable = options->get(key + ".executable").as<std::string> ();
-            _charge = options->get(key + ".charge").as<int> ();
-            _spin = options->get(key + ".spin").as<int> ();
-            _options = options->get(key + ".options").as<std::string> ();
-            _memory = options->get(key + ".memory").as<std::string> ();
-            _threads = options->get(key + ".threads").as<int> ();
-            _chk_file_name = options->get(key + ".checkpoint").as<std::string> ();
-            _scratch_dir = options->get(key + ".scratch").as<std::string> ();
-            _cleanup = options->get(key + ".cleanup").as<std::string> ();
+            _executable = options.get(key + ".executable").as<std::string> ();
+            _charge = options.get(key + ".charge").as<int> ();
+            _spin = options.get(key + ".spin").as<int> ();
+            _options = options.get(key + ".options").as<std::string> ();
+            _memory = options.get(key + ".memory").as<std::string> ();
+            _threads = options.get(key + ".threads").as<int> ();
+            _chk_file_name = options.get(key + ".checkpoint").as<std::string> ();
+            _scratch_dir = options.get(key + ".scratch").as<std::string> ();
+            _cleanup = options.get(key + ".cleanup").as<std::string> ();
 
 
-            if (options->exists(key + ".vdWRadii")) {
-                _vdWfooter = options->get(key + ".vdWRadii").as<std::string> ();
+            if (options.exists(key + ".vdWRadii")) {
+                _vdWfooter = options.get(key + ".vdWRadii").as<std::string> ();
             } else _vdWfooter = "";
 
 
-            if (options->exists(key + ".outputVxc")) {
-                _output_Vxc = options->get(key + ".outputVxc").as<bool> ();
+            if (options.exists(key + ".outputVxc")) {
+                _output_Vxc = options.get(key + ".outputVxc").as<bool> ();
             } else _output_Vxc = false;
             
 
@@ -117,7 +117,7 @@ namespace votca {
             iop_pos = _options.find("gen");
             if (iop_pos != std::string::npos) {
                 _write_basis_set = true;
-                _basisset_name = options->get(key + ".basisset").as<std::string> ();
+                _basisset_name = options.get(key + ".basisset").as<std::string> ();
             } else {
                 _write_basis_set = false;
             }
@@ -126,7 +126,7 @@ namespace votca {
             iop_pos = _options.find("pseudo");
             if (iop_pos != std::string::npos) {
                 _write_pseudopotentials = true;
-                _ecp_name = options->get(key + ".ecp").as<std::string> ();
+                _ecp_name = options.get(key + ".ecp").as<std::string> ();
             } else {
                 _write_pseudopotentials = false;
             }
@@ -320,12 +320,12 @@ namespace votca {
          * Fortran fixed format 5D15.8. The information about the guess
          * itself is taken from a prepared orbitals object.
          */
-        void Gaussian::WriteGuess(Orbitals* orbitals_guess, std::ofstream& _com_file) {
+        void Gaussian::WriteGuess(Orbitals& orbitals_guess, std::ofstream& _com_file) {
             if (orbitals_guess == NULL) {
                 throw std::runtime_error("A guess for dimer orbitals has not been prepared.");
             } else {
                 
-                std::vector<int> _sort_index=orbitals_guess->SortEnergies();
+                std::vector<int> _sort_index=orbitals_guess.SortEnergies();
                 ReorderMOsBack(*orbitals_guess);
                 
                 
@@ -340,7 +340,7 @@ namespace votca {
 
                     _com_file << setw(5) << level << endl;
 
-                  Eigen::VectorXd mr=orbitals_guess->MOCoefficients().col(*soi);
+                  Eigen::VectorXd mr=orbitals_guess.MOCoefficients().col(*soi);
 
                     int column = 1;
                     for (unsigned j = 0; j < mr.size(); ++j) {
@@ -393,17 +393,13 @@ namespace votca {
             _com_file2.close();
             return;
         }
-        
-        
-   
-        
+
 
         /* Coordinates are written in standard Element,x,y,z format to the
          * input file.
          */
         void Gaussian::WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
             std::vector< QMAtom* >::iterator it;
-
             for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
               tools::vec pos=(*it)->getPos()*tools::conv::bohr2ang;
                     _com_file << setw(3) << (*it)->getType().c_str()
@@ -413,7 +409,6 @@ namespace votca {
                             << endl;
                
             }
-
             _com_file << endl;
             return;
         }
@@ -440,7 +435,7 @@ namespace votca {
          * Prepares the com file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied
          */
-        bool Gaussian::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
+        bool Gaussian::WriteInputFile(Orbitals& orbitals) {
 
             std::string temp_suffix = "/id";
             std::string scratch_dir_backup = _scratch_dir;
@@ -452,18 +447,7 @@ namespace votca {
             // header
             WriteHeader(_com_file);
 
-            // This is needed for the QM/MM scheme, since only orbitals have
-            // updated positions of the QM region, hence vector<Segments*> is
-            // NULL in the QMMachine and the QM region is also printed here
-
-            std::vector< QMAtom* > qmatoms;
-            if (_write_charges) {
-                qmatoms = orbitals_guess->QMAtoms();
-            } else {
-                QMInterface qmmface;
-                qmatoms = qmmface.Convert(segments);
-                
-            }
+            std::vector< QMAtom* > qmatoms = orbitals.QMAtoms();
 
             WriteCoordinates(_com_file, qmatoms);
 
@@ -485,8 +469,7 @@ namespace votca {
 
                 // write inital guess
                 if (_write_guess){
-                    orbitals_guess->QMAtoms()=qmatoms;
-                    WriteGuess(orbitals_guess, _com_file);
+                    WriteGuess(orbitals, _com_file);
                 }
 
             } else if (_executable == "g09") {
@@ -502,8 +485,7 @@ namespace votca {
 
                 // write inital guess
                 if (_write_guess){
-                    orbitals_guess->QMAtoms()=qmatoms;
-                    WriteGuess(orbitals_guess, _com_file);
+                    WriteGuess(orbitals, _com_file);
                 }
 
             } else {
@@ -524,7 +506,6 @@ namespace votca {
             _scratch_dir = scratch_dir_backup + temp_suffix;
             WriteShellScript();
             _scratch_dir = scratch_dir_backup;
-
 
             return true;
         }
@@ -560,8 +541,7 @@ namespace votca {
         /**
          * Runs the Gaussian job.
          */
-        bool Gaussian::Run( Orbitals* _orbitals ) {
-
+        bool Gaussian::Run( Orbitals& orbitals ) {
             CTP_LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: running [" << _executable << " " << _input_file_name << "]" << flush;
 
             if (std::system(NULL)) {
@@ -574,8 +554,6 @@ namespace votca {
                 } else {
                     _command = "cd " + _run_dir + "; mkdir -p $GAUSS_SCRDIR; " + _executable + " " + _input_file_name;
                 }
-
-                //int i = std::system(_command.c_str());
                 int check = std::system(_command.c_str());
                 if (check == -1) {
                     CTP_LOG(ctp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
@@ -591,9 +569,7 @@ namespace votca {
                 CTP_LOG(ctp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
                 return false;
             }
-
             return true;
-
         }
 
         /**
@@ -606,14 +582,11 @@ namespace votca {
 
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
                 tools::Tokenizer tok_cleanup(_cleanup, ", ");
-                std::vector <std::string> _cleanup_info;
-                tok_cleanup.ToVector(_cleanup_info);
+                std::vector <std::string> cleanup_info;
+                tok_cleanup.ToVector(cleanup_info);
+                for (const std::string& substring:cleanup_info) {
 
-                std::vector<std::string> ::iterator it;
-
-                for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
-
-                    if (*it == "com") {
+                    if (substring == "com") {
                         std::string file_name = _run_dir + "/" + _input_file_name;
                         remove(file_name.c_str());
                         if (_output_Vxc) {
@@ -622,12 +595,12 @@ namespace votca {
                         }
                     }
 
-                    if (*it == "sh") {
+                    if (substring == "sh") {
                         std::string file_name = _run_dir + "/" + _shell_file_name;
                         remove(file_name.c_str());
                     }
 
-                    if (*it == "log") {
+                    if (substring == "log") {
                         std::string file_name = _run_dir + "/" + _log_file_name;
                         remove(file_name.c_str());
                         if (_output_Vxc) {
@@ -641,12 +614,12 @@ namespace votca {
                         }
                     }
 
-                    if (*it == "chk") {
+                    if (substring == "chk") {
                         std::string file_name = _run_dir + "/" + _chk_file_name;
                         remove(file_name.c_str());
                     }
 
-                    if (*it == "fort.7") {
+                    if (substring == "fort.7") {
                         std::string file_name = _run_dir + "/" + *it;
                         remove(file_name.c_str());
                         if (_output_Vxc) {
@@ -655,12 +628,10 @@ namespace votca {
                         }
                     }
 
-                    if (*it == "gbs" && _write_basis_set) {
-
+                    if (substring == "gbs" && _write_basis_set) {
                         std::vector<std::string> fileswithfileending;
                         boost::filesystem::recursive_directory_iterator fit(_run_dir);
                         boost::filesystem::recursive_directory_iterator endit;
-
                         while (fit != endit) {
                             if (boost::filesystem::is_regular_file(* fit) && fit->path().extension() == *it) fileswithfileending.push_back(fit->path().filename().string());
                             ++fit;
@@ -679,7 +650,7 @@ namespace votca {
         /**
          * Reads in the MO coefficients from a GAUSSIAN fort.7 file
          */
-        bool Gaussian::ParseOrbitalsFile(Orbitals & _orbitals) {
+        bool Gaussian::ParseOrbitalsFile(Orbitals & orbitals) {
             std::map <int, std::vector<double> > _coefficients;
             std::map <int, double> _energies;
 
@@ -756,15 +727,15 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Basis set size: " << _basis_size << flush;
 
             // copying information to the orbitals object
-            _orbitals.setBasisSetSize(_basis_size); // = _basis_size;
+            orbitals.setBasisSetSize(_basis_size); // = _basis_size;
 
             // copying energies to the orbitals object
-           Eigen::VectorXd &mo_energies = _orbitals.MOEnergies();
+           Eigen::VectorXd &mo_energies = orbitals.MOEnergies();
             mo_energies.resize(_levels);
             for (int i = 0; i < mo_energies.size(); i++) mo_energies[i] = _energies[ i + 1 ];
 
             // copying mo coefficients to the orbitals object
-            Eigen::MatrixXd &mo_coefficients = _orbitals.MOCoefficients();
+            Eigen::MatrixXd &mo_coefficients = orbitals.MOCoefficients();
             mo_coefficients.resize(_levels, _basis_size);
             for (int i = 0; i < mo_coefficients.rows(); i++){
                 for (int j = 0; j < mo_coefficients.cols(); j++){
@@ -772,7 +743,7 @@ namespace votca {
                 }
             }
             
-            ReorderOutput(_orbitals);
+            ReorderOutput(orbitals);
             CTP_LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: done reading MOs" << flush;
 
             return true;
@@ -823,14 +794,48 @@ namespace votca {
             }
         }
 
+        bool Gaussian::GetESPCharges(Orbitals& orbitals, std::string& line, ifstream& input_file){
+          std::string::size_type charge_pos = line.find("Charges from ESP fit, RMS");
+          bool has_charges=false;
+          if (charge_pos != std::string::npos && _get_charges) {
+            CTP_LOG(ctp::logDEBUG, *_pLog) << "Getting charges" << flush;
+            has_charges = true;
+            getline(input_file, line);
+            getline(input_file, line);
+            
+            bool _has_atoms = orbitals.hasQMAtoms();
+            
+            std::vector<std::string> _row;
+            getline(input_file, line);
+            boost::trim(line);
+            boost::algorithm::split(_row, line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+            int nfields = _row.size();
+            
+            while (nfields == 3) {
+              int atom_id = boost::lexical_cast< int >(_row.at(0));
+              std::string atom_type = _row.at(1);
+              double atom_charge = boost::lexical_cast< double >(_row.at(2));
+              getline(input_file, line);
+              boost::trim(line);
+              boost::algorithm::split(_row, line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+              nfields = _row.size();
+              QMAtom* pAtom;
+              if (_has_atoms == false) {
+                pAtom =orbitals.AddAtom(atom_id - 1,atom_type, 0, 0, 0);
+              } else {
+                pAtom = orbitals.QMAtoms().at(atom_id - 1);
+              }
+              pAtom->setPartialcharge(atom_charge);
+            }
+          }
+          return has_charges;
+        }
+
         /**
          * Parses the Gaussian Log file and stores data in the Orbitals object
          */
-        bool Gaussian::ParseLogFile(Orbitals & _orbitals) {
-
-
-
-            std::string _line;
+        bool Gaussian::ParseLogFile(Orbitals & orbitals) {
+            std::string line;
             std::vector<std::string> results;
             bool _has_occupied_levels = false;
             bool _has_unoccupied_levels = false;
@@ -860,29 +865,29 @@ namespace votca {
             if (!CheckLogFile()) return false;
 
             // save qmpackage name
-            _orbitals.setQMpackage("gaussian");
-            _orbitals.setDFTbasis(_basisset_name);
+            orbitals.setQMpackage("gaussian");
+            orbitals.setDFTbasis(_basisset_name);
 
 
             if (_write_pseudopotentials) {
-                _orbitals.setECP(_ecp_name);
+                orbitals.setECP(_ecp_name);
             }
 
             _read_vxc = _output_Vxc;
             bool vxc_found = false;
             // Start parsing the file line by line
-            ifstream _input_file(_log_file_name_full.c_str());
-            while (_input_file) {
+            ifstream input_file(_log_file_name_full.c_str());
+            while (input_file) {
 
-                getline(_input_file, _line);
-                boost::trim(_line);
+                getline(input_file, line);
+                boost::trim(line);
 
                 /* Check for ScaHFX = factor of HF exchange included in functional */
-                std::string::size_type HFX_pos = _line.find("ScaHFX=");
+                std::string::size_type HFX_pos = line.find("ScaHFX=");
                 if (HFX_pos != std::string::npos) {
-                    boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+                    boost::algorithm::split(results, line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     double _ScaHFX = boost::lexical_cast<double>(results.back());
-                    _orbitals.setScaHFX(_ScaHFX);
+                    orbitals.setScaHFX(_ScaHFX);
                     vxc_found = true;
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "DFT with " << _ScaHFX << " of HF exchange!" << flush;
                 }
@@ -893,12 +898,12 @@ namespace votca {
                  * number of occupied and virtual orbitals
                  * N alpha electrons      M beta electrons
                  */
-                std::string::size_type electrons_pos = _line.find("alpha electrons");
+                std::string::size_type electrons_pos = line.find("alpha electrons");
                 if (electrons_pos != std::string::npos) {
-                    boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+                    boost::algorithm::split(results, line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     _has_number_of_electrons = true;
                     _number_of_electrons = boost::lexical_cast<int>(results.front());
-                    _orbitals.setNumberOfElectrons(_number_of_electrons);
+                    orbitals.setNumberOfElectrons(_number_of_electrons);
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Alpha electrons: " << _number_of_electrons << flush;
                 }
 
@@ -906,12 +911,12 @@ namespace votca {
                  * basis set size
                  * N basis functions,  M primitive gaussians,   K cartesian basis functions
                  */
-                std::string::size_type basis_pos = _line.find("basis functions,");
+                std::string::size_type basis_pos = line.find("basis functions,");
                 if (basis_pos != std::string::npos) {
-                    boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+                    boost::algorithm::split(results, line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     _has_basis_set_size = true;
                     _basis_set_size = boost::lexical_cast<int>(results.front());
-                    _orbitals.setBasisSetSize(_basis_set_size);
+                    orbitals.setBasisSetSize(_basis_set_size);
                     _cart_basis_set_size = boost::lexical_cast<int>(results[6]);
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Basis functions: " << _basis_set_size << flush;
                     if (_read_vxc) {
@@ -923,7 +928,7 @@ namespace votca {
                  * energies of occupied/unoccupied levels
                  * Alpha  occ.(virt.) eigenvalues -- e1 e2 e3 e4 e5
                  */
-                std::string::size_type eigenvalues_pos = _line.find("Alpha");
+                std::string::size_type eigenvalues_pos = line.find("Alpha");
                 if (eigenvalues_pos != std::string::npos) {
 
                     std::list<std::string> stringList;
@@ -931,7 +936,7 @@ namespace votca {
                     while (eigenvalues_pos != std::string::npos && !_has_occupied_levels && !_has_unoccupied_levels) {
                         //cout << _line << endl;
 
-                        boost::iter_split(stringList, _line, boost::first_finder("--"));
+                        boost::iter_split(stringList, line, boost::first_finder("--"));
 
                         std::vector<std::string> energies;
                         boost::trim(stringList.back());
@@ -948,88 +953,45 @@ namespace votca {
                             energies.clear();
                         }
 
-                        getline(_input_file, _line);
-                        eigenvalues_pos = _line.find("Alpha");
-                        boost::trim(_line);
-
-                        //boost::iter_split(stringList, _line, boost::first_finder("--"));
+                        getline(input_file, line);
+                        eigenvalues_pos = line.find("Alpha");
+                        boost::trim(line);
 
                         if (eigenvalues_pos == std::string::npos) {
                             _has_occupied_levels = true;
                             _has_unoccupied_levels = true;
-                            _orbitals.setNumberOfLevels(_occupied_levels, _unoccupied_levels);
+                            orbitals.setNumberOfLevels(_occupied_levels, _unoccupied_levels);
                             CTP_LOG(ctp::logDEBUG, *_pLog) << "Occupied levels: " << _occupied_levels << flush;
                             CTP_LOG(ctp::logDEBUG, *_pLog) << "Unoccupied levels: " << _unoccupied_levels << flush;
                         }
                     } // end of the while loop
                 } // end of the eigenvalue parsing
 
-
-               
-
-
                 /*
                  *  Partial charges from the input file
                  */
-                std::string::size_type charge_pos = _line.find("Charges from ESP fit, RMS");
-
-                if (charge_pos != std::string::npos && _get_charges) {
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << "Getting charges" << flush;
-                    _has_charges = true;
-                    getline(_input_file, _line);
-                    getline(_input_file, _line);
-                    
-                    bool _has_atoms = _orbitals.hasQMAtoms();
-
-                    std::vector<std::string> _row;
-                    getline(_input_file, _line);
-                    boost::trim(_line);
-                    //cout << _line << endl;
-                    boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-                    int nfields = _row.size();
-                    //cout << _row.size() << endl;
-
-                    while (nfields == 3) {
-                        int atom_id = boost::lexical_cast< int >(_row.at(0));
-                        //int atom_number = boost::lexical_cast< int >(_row.at(0));
-                        std::string atom_type = _row.at(1);
-                        double atom_charge = boost::lexical_cast< double >(_row.at(2));
-                        //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
-                        getline(_input_file, _line);
-                        boost::trim(_line);
-                        boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-                        nfields = _row.size();
-                        QMAtom* pAtom;
-                        if (_has_atoms == false) {
-                            pAtom =_orbitals.AddAtom(atom_id - 1,atom_type, 0, 0, 0);
-                        } else {
-                            pAtom = _orbitals.QMAtoms().at(atom_id - 1);
-                        }
-                        pAtom->setPartialcharge(atom_charge);
-                    }
-                }
-
+                _has_charges=GetESPCharges(orbitals, line,input_file);
 
                 /*
                  * Coordinates of the final configuration
                  * stored in the archive at the end of the file
                  */
                 int cpn = 0; // marker appearence marker
-                std::string::size_type coordinates_pos = _line.find("\\");
+                std::string::size_type coordinates_pos = line.find("\\");
 
                 if (coordinates_pos != std::string::npos && cpn == 0) {
                     ++cpn; // updates but ignores
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Getting the coordinates" << flush;
                     //_has_coordinates = true;
-                    boost::trim(_line);
-                    std::string archive = _line;
-                    while (_line.size() != 0) {
-                        getline(_input_file, _line);
-                        boost::trim(_line);
-                        archive += _line;
+                    boost::trim(line);
+                    std::string archive = line;
+                    while (line.size() != 0) {
+                        getline(input_file, line);
+                        boost::trim(line);
+                        archive += line;
                     }
 
-                    bool _has_atoms = _orbitals.hasQMAtoms();
+                    bool _has_atoms = orbitals.hasQMAtoms();
                     std::list<std::string> stringList;
                     std::vector<std::string> results;
                     boost::iter_split(stringList, archive, boost::first_finder("\\\\"));
@@ -1045,10 +1007,8 @@ namespace votca {
 
                     for (atom_block_it = ++atom_block.begin(); atom_block_it != atom_block.end(); ++atom_block_it) {
                         std::vector<std::string> atom;
-
                         boost::algorithm::split(atom, *atom_block_it, boost::is_any_of(","), boost::algorithm::token_compress_on);
                         std::string _atom_type = atom.front();
-
                         std::vector<std::string>::iterator it_atom;
                         it_atom = atom.end();
                         double _z = boost::lexical_cast<double>(*(--it_atom));
@@ -1058,15 +1018,14 @@ namespace votca {
                         pos*=tools::conv::ang2bohr;
 
                         if (_has_atoms == false) {
-                            _orbitals.AddAtom(aindex,_atom_type, pos);
+                            orbitals.AddAtom(aindex,_atom_type, pos);
                         } else {
-                            QMAtom* pAtom = _orbitals.QMAtoms().at(aindex);
+                            QMAtom* pAtom = orbitals.QMAtoms().at(aindex);
                             pAtom->setPos(pos);
                             
                         }
                         aindex++;
                     }
-
                     // get the QM energy out
                     std::advance(coord_block, 1);
                     std::vector<std::string> block;
@@ -1079,12 +1038,10 @@ namespace votca {
                         boost::algorithm::split(property, *block_it, boost::is_any_of("="), boost::algorithm::token_compress_on);
                         properties[property[0]] = property[1];
                     }
-
-
                     if (properties.count("HF") > 0) {
                         double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
-                        _orbitals. setQMEnergy(tools::conv::hrt2ev * energy_hartree);
-                        CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % _orbitals.getQMEnergy()).str() << flush;
+                        orbitals. setQMEnergy(tools::conv::hrt2ev * energy_hartree);
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
                     } else {
                         cout << endl;
                         throw std::runtime_error("ERROR No energy in archive");
@@ -1092,53 +1049,44 @@ namespace votca {
 
                 }
 
-                /*
-                 * Self-energy of external charges
-                 */
-                std::string::size_type self_energy_pos = _line.find("Self energy of the charges");
+                std::string::size_type self_energy_pos = line.find("Self energy of the charges");
 
                 if (self_energy_pos != std::string::npos) {
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Getting the self energy\n";
                     std::vector<std::string> block;
                     std::vector<std::string> energy;
-                    boost::algorithm::split(block, _line, boost::is_any_of("="), boost::algorithm::token_compress_on);
+                    boost::algorithm::split(block, line, boost::is_any_of("="), boost::algorithm::token_compress_on);
                     boost::algorithm::split(energy, block[1], boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-                    _orbitals.setSelfEnergy(tools::conv::hrt2ev * boost::lexical_cast<double> (energy[1]));
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << "Self energy " << _orbitals.getSelfEnergy() << flush;
+                    orbitals.setSelfEnergy(tools::conv::hrt2ev * boost::lexical_cast<double> (energy[1]));
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << "Self energy " << orbitals.getSelfEnergy() << flush;
 
                 }
-                
-                
-                 /*
-                 * overlap matrix
-                 * stored after the *** Overlap *** line
-                 */
-                std::string::size_type overlap_pos = _line.find("*** Overlap ***");
+ 
+                std::string::size_type overlap_pos = line.find("*** Overlap ***");
                 if (overlap_pos != std::string::npos) {
 
                     // prepare the container
-                    Eigen::MatrixXd& overlap=_orbitals.AOOverlap();
+                    Eigen::MatrixXd& overlap=orbitals.AOOverlap();
                     overlap.resize(_basis_set_size,_basis_set_size);
                     _has_overlap_matrix = true;
                     std::vector<int> _j_indeces;
                     int _n_blocks = 1 + ((_basis_set_size - 1) / 5);
-                    getline(_input_file, _line);
-                    boost::trim(_line);
+                    getline(input_file, line);
+                    boost::trim(line);
 
                     for (int _block = 0; _block < _n_blocks; _block++) {
                         // first line gives the j index in the matrix
-                        boost::tokenizer<> tok(_line);
+                        boost::tokenizer<> tok(line);
                         std::transform(tok.begin(), tok.end(), std::back_inserter(_j_indeces), &boost::lexical_cast<int, std::string>);
 
                         // read the block of max _basis_size lines + the following header
                         for (int i = 0; i <= _basis_set_size; i++) {
-                            getline(_input_file, _line);
-                            if (std::string::npos == _line.find("D")) break;
-
+                            getline(input_file, line);
+                            if (std::string::npos == line.find("D")) break;
                             // split the line on the i index and the rest
                             std::vector<std::string> _row;
-                            boost::trim(_line);
-                            boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+                            boost::trim(line);
+                            boost::algorithm::split(_row, line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                             int _i_index = boost::lexical_cast<int>(_row.front());
                             _row.erase(_row.begin());
                             std::vector<int>::iterator _j_iter = _j_indeces.begin();
@@ -1158,7 +1106,6 @@ namespace votca {
  
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Read the overlap matrix" << flush;
                 } // end of the if "Overlap" found
-
                 // check if all information has been accumulated and quit
                 if (_has_number_of_electrons &&
                         _has_basis_set_size &&
@@ -1172,15 +1119,15 @@ namespace votca {
             } // end of reading the file line-by-line
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;
-            _input_file.close();
+            input_file.close();
 
             if (!vxc_found) {
-                CTP_LOG(ctp::logDEBUG, *_pLog) << "WARNING === WARNING \n, could not find ScaHFX= entry in log.\n probably you forgt #P in the beginning of the input file.\n If you are running a hybrid functional calculation redo it! Now! Please!\n ===WARNING=== \n"
+                CTP_LOG(ctp::logDEBUG, *_pLog) << "WARNING === WARNING \n, could not find ScaHFX= entry in log."
+                        "\n probably you forgt #P in the beginning of the input file.\n"
+                        " If you are running a hybrid functional calculation redo it! Now! Please!\n ===WARNING=== \n"
                         << flush;
-                _orbitals.setScaHFX(0.0);
+                orbitals.setScaHFX(0.0);
             }
-
-
             // - parse atomic orbitals Vxc matrix
             if (_read_vxc) {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Parsing fort.24 for Vxc" << flush;
@@ -1196,22 +1143,16 @@ namespace votca {
                     // prepare the container
                     Eigen::MatrixXd _vxc;
                     _vxc.resize(_cart_basis_set_size,_cart_basis_set_size);
-
-
-                    // _has_vxc_matrix = true;
-                    //cout << "Found the overlap matrix!" << endl;
                     std::vector<int> _j_indeces;
-
-
                     // Start parsing the file line by line
 
                     while (_input_file) {
-                        getline(_input_file, _line);
+                        getline(_input_file, line);
                         if (_input_file.eof()) break;
 
                         std::vector<std::string> _row;
-                        boost::trim(_line);
-                        boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
+                        boost::trim(line);
+                        boost::algorithm::split(_row, line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
 
                         int _i_index = boost::lexical_cast<int>(_row[0]);
                         int _j_index = boost::lexical_cast<int>(_row[1]);
@@ -1222,27 +1163,19 @@ namespace votca {
 
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;
                     _input_file.close();
-                
-                
-                
                 BasisSet _dftbasisset;
                 _dftbasisset.LoadBasisSet(_basisset_name);
-                if(!_orbitals.hasQMAtoms()){
+                if(!orbitals.hasQMAtoms()){
                     throw runtime_error("Orbitals object has no QMAtoms");
                 }
                 AOBasis _dftbasis;
-                _dftbasis.AOBasisFill(_dftbasisset, _orbitals.QMAtoms());
-                
-                
+                _dftbasis.AOBasisFill(_dftbasisset, orbitals.QMAtoms());
                 Eigen::MatrixXd _carttrafo=_dftbasis.getTransformationCartToSpherical(getPackageName());
-                _orbitals.AOVxc()=_carttrafo*_vxc*_carttrafo.transpose();
+                orbitals.AOVxc()=_carttrafo*_vxc*_carttrafo.transpose();
                 } else {
                     throw std::runtime_error("Vxc file does not exist.");
                 }
-
             }
-
-
             return true;
         }
 
@@ -1254,8 +1187,6 @@ namespace votca {
             boost::replace_first(_snumber, "e", "D");
             return _snumber;
         }
-
-
 
 
     }

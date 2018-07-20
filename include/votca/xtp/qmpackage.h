@@ -50,19 +50,16 @@ namespace votca {
             virtual std::string getPackageName() = 0;
 
 
-            virtual void Initialize(tools::Property *options) = 0;
+            virtual void Initialize(tools::Property &options) = 0;
 
             /// writes a coordinate file WITHOUT taking into account PBCs
-            virtual bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals = NULL) = 0;
+            virtual bool WriteInputFile(Orbitals& orbitals) = 0;
 
-            /// writes a coordinate file of a pair WITH PBCs and the orbital guess [if needed]
-            bool WriteInputFilePBC(ctp::QMPair* pair, Orbitals* orbitals = NULL, std::vector<std::string> linker_names ={});
+            virtual bool Run(Orbitals& orbitals) = 0;
 
-            virtual bool Run(Orbitals* _orbitals = NULL) = 0;
+            virtual bool ParseLogFile(Orbitals& orbitals) = 0;
 
-            virtual bool ParseLogFile(Orbitals& _orbitals) = 0;
-
-            virtual bool ParseOrbitalsFile(Orbitals& _orbitals) = 0;
+            virtual bool ParseOrbitalsFile(Orbitals& orbitals) = 0;
 
             
 
