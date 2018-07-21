@@ -36,7 +36,8 @@ Dependencies for Manual
 To install the full package:
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    git clone --recursive https://github.com/votca/votca.git
+    version=master # or 'stable' or 'v1.4.1'
+    git clone -b ${version} --recursive https://github.com/votca/votca.git
     cd votca
     mkdir build
     cd build
