@@ -116,6 +116,7 @@ elif [[ $ENV -eq 15 ]]; then
   [[ ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes #only votca/votca actually deploys doxygen - re-enable if we check for doxygen warnings
 elif [[ $ENV -eq 16 ]]; then
   # minimal build without external libs (tools & csg only)
+  export DISTRO=fedora_nogmx
   add_to_docker_opts TESTING=OFF
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   add_to_docker_opts MINIMAL=yes
