@@ -41,6 +41,11 @@ if(ENABLE_COVERAGE_BUILD)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
 endif()
 
+option(WITH_SQLITE3 "Use SQLite3, at this point only needed for charge transport parts!" ON)
+if(NOT WITH_SQLITE3 AND ( BUILD_CTP OR BUILD_XTP) )
+  message(FATAL_ERROR "ctp needs tools to be build with sqlite3")
+endif()
+
 ########################################################################
 #Find external packages
 ########################################################################
