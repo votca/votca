@@ -118,7 +118,7 @@ class Elements {
 	std::string getEleShortClosestInMass(double mass,double tolerance){
 		std::string eleShort = "H";
 		double diff = abs(mass-_Mass[eleShort]);
-		for(auto & ele_pr : _Mass ){
+		for(const auto & ele_pr : _Mass ){
 			if(abs(ele_pr.second-mass)<diff){
 				eleShort = ele_pr.first;
 				diff = abs(ele_pr.second-mass);
