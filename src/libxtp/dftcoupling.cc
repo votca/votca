@@ -43,7 +43,7 @@ void DFTcoupling::Initialize(tools::Property& options){
 void DFTcoupling::WriteToProperty(tools::Property& type_summary, const Orbitals& orbitalsA,
                                   const Orbitals& orbitalsB, int a, int b){
   double J = getCouplingElement(a,b, orbitalsA, orbitalsB);
-  tools::Property& overlap_summary = type_summary.add(Identify(), boost::lexical_cast<string>(J));
+  tools::Property& overlap_summary = type_summary.add(Identify(), boost::lexical_cast<std::string>(J));
   double energyA = orbitalsA.getEnergy(a);
   double energyB = orbitalsB.getEnergy(b);
   overlap_summary.setAttribute("levelA", a);
@@ -55,14 +55,14 @@ void DFTcoupling::WriteToProperty(tools::Property& type_summary, const Orbitals&
 
  void DFTcoupling::Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB){
-   Property &hole_summary = type_summary.add("holes","");
+   tools::Property &hole_summary = type_summary.add("holes","");
    //hole hole
    for (int a=Range_orbA.first;a<=orbitalsA.getHomo();++a){
      for (int b=Range_orbB.first;b<=orbitalsB.getHomo();++b){
           WriteToProperty(hole_summary, orbitalsA, orbitalsB, a, b);
     }
    }
-   Property &electron_summary = type_summary.add("electrons","");
+   tools::Property &electron_summary = type_summary.add("electrons","");
    //electron-//electron
    for (int a=orbitalsA.getLumo();a<=Range_orbA.first+Range_orbA.second;++a){
      for (int b=orbitalsB.getLumo();b<=Range_orbB.first+Range_orbB.second;++b){
@@ -74,7 +74,7 @@ void DFTcoupling::WriteToProperty(tools::Property& type_summary, const Orbitals&
 
 
 
-std::pair<int,int> DFTcoupling::DetermineRangeOfStates(const Orbitals& orbital){
+std::pair<int,int> DFTcoupling::DetermineRangeOfStates(const Orbitals& orbital)const{
   const Eigen::VectorXd& MOEnergies=orbital.MOEnergies();
   if(std::abs(MOEnergies(orbital.getHomo())-MOEnergies(orbital.getLumo()))<_degeneracy){
     throw std::runtime_error("Homo Lumo Gap is smaller than degeneracy. "
@@ -102,12 +102,12 @@ std::pair<int,int> DFTcoupling::DetermineRangeOfStates(const Orbitals& orbital){
   result.first=minimal;//start
   result.second=maximal-minimal+1;//size
   
-  return;
+  return result;
 }
 
 
 double DFTcoupling::getCouplingElement( int levelA, int levelB, const Orbitals&orbitalsA,
-    const Orbitals& orbitalsB) {
+    const Orbitals& orbitalsB)const {
 
     
     int levelsA =Range_orbA.second;

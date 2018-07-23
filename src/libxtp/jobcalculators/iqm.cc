@@ -371,7 +371,8 @@ namespace votca {
         } 
        Property _job_summary;
        if (_do_dftcoupling) {
-        DFTcoupling dftcoupling = DFTcoupling(pLog);
+        DFTcoupling dftcoupling = DFTcoupling();
+        dftcoupling.setLogger(pLog);
         dftcoupling.Initialize(_dftcoupling_options);
         Orbitals orbitalsB;
         Orbitals orbitalsA;

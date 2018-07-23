@@ -83,8 +83,8 @@ void BSECoupling::Initialize(Property& options){
 }
 
 void BSECoupling::WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orbitalsB, 
-                        Property& triplet_summary, int stateA, int stateB, double JAB){
-  Property &coupling_summary = triplet_summary.add("coupling", (format("%1$1.6e") % JAB).str()); 
+                        Property& summary, int stateA, int stateB, double JAB){
+  Property &coupling_summary = summary.add("coupling", (format("%1$1.6e") % JAB).str()); 
   double energyA = orbitalsA.BSETripletEnergies()(stateA)*conv::hrt2ev;
   double energyB = orbitalsB.BSETripletEnergies()(stateB)*conv::hrt2ev;
   coupling_summary.setAttribute("excitonA", stateA);
@@ -95,8 +95,8 @@ void BSECoupling::WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orb
   coupling_summary.setAttribute("diag", (format("%1$1.6e") % getTripletCouplingElement( stateA , stateB, 1)).str());
 }
 
-void BSECoupling::Addoutput(Property &type_summary,Orbitals& orbitalsA, 
-                               Orbitals& orbitalsB){
+void BSECoupling::Addoutput(Property &type_summary,const Orbitals& orbitalsA, 
+                               const Orbitals& orbitalsB){
    
     string algorithm="full_diag";
     int methodindex=1;
@@ -160,12 +160,11 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
     CheckAtomCoordinates(orbitalsA, orbitalsB, orbitalsAB);
    
     // constructing the direct product orbA x orbB
-    int _basisA = orbitalsA.getBasisSetSize();
-    int _basisB = orbitalsB.getBasisSetSize();
+    int basisA = orbitalsA.getBasisSetSize();
+    int basisB = orbitalsB.getBasisSetSize();
     
-    if ( ( _basisA == 0 ) || ( _basisB == 0 ) ) {
-        CTP_LOG(ctp::logERROR,*_pLog) << "Basis set size is not stored in monomers" << flush;
-        return false;
+    if ( ( basisA == 0 ) || ( basisB == 0 ) ) {
+        throw std::runtime_error("Basis set size is not stored in monomers");
     }
 
     // number of levels stored in monomers
@@ -281,15 +280,13 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
     int _bseAB_size   = _bseAB_vtotal * _bseAB_ctotal;
     // check if electron-hole interaction matrices are stored
     if ( ! orbitalsAB.hasEHinteraction_triplet() && _doTriplets){
-        CTP_LOG(ctp::logERROR,*_pLog) << "BSE EH for triplets not stored " << flush;
-        return false;
+       throw std::runtime_error( "BSE EH for triplets not stored " );
     }
     if ( ! orbitalsAB.hasEHinteraction_singlet() && _doSinglets){
-        CTP_LOG(ctp::logERROR,*_pLog) << "BSE EH for singlets not stored " << flush;
-        return false;
+       throw std::runtime_error( "BSE EH for singlets not stored " );
     }
-    const MatrixXfd&    eh_t = _orbitalsAB.eh_t(); 
-    const MatrixXfd&    eh_s = _orbitalsAB.eh_s(); 
+    const MatrixXfd&    eh_t = orbitalsAB.eh_t(); 
+    const MatrixXfd&    eh_s = orbitalsAB.eh_s(); 
     if(_doTriplets){
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()   << "   dimer AB has BSE EH interaction triplet with dimension " << eh_t.rows() << " x " <<  eh_t.cols() << flush;
     }
@@ -315,17 +312,16 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "   levels used in BSE of molB: " << _bseB_vmin << " to " << _bseB_cmax << " total: " << _bseB_vtotal + _bseB_ctotal <<  flush;
     
     if ( ( levelsA == 0 ) || (levelsB == 0) ) {
-        CTP_LOG(ctp::logERROR,*_pLog) << "No information about number of occupied/unoccupied levels is stored" << flush;
-        return false;
+        throw std::runtime_error("No information about number of occupied/unoccupied levels is stored" );
     } 
     
     //       | Orbitals_A          0 |      | Overlap_A |     
     //       | 0          Orbitals_B |.T  X   | Overlap_B |  X  ( Orbitals_AB )
     
-    Eigen::MatrixXd _psi_AxB =Eigen::MatrixXd::Zero( _levelsA + levelsB, _basisA + _basisB  );
+    Eigen::MatrixXd psi_AxB =Eigen::MatrixXd::Zero( levelsA + levelsB, basisA + basisB  );
     // constructing merged orbitals
-    psi_AxB.block(0,0,levelsA , _basisA) = orbitalsA.MOCoefficients().block(_bseA_vmin,0, _bseA_cmax+1-_bseA_vmin, _basisA );
-    psi_AxB.block(levelsA, _basisA,levelsB,_basisB) =orbitalsB.MOCoefficients().block(_bseB_vmin,0,_bseB_cmax+1-_bseA_vmin,_basisB); 
+    psi_AxB.block(0,0,levelsA , basisA) = orbitalsA.MOCoefficients().block(_bseA_vmin,0, _bseA_cmax+1-_bseA_vmin, basisA );
+    psi_AxB.block(levelsA, basisA,levelsB,basisB) =orbitalsB.MOCoefficients().block(_bseB_vmin,0,_bseB_cmax+1-_bseA_vmin,basisB); 
     
     // psi_AxB * S_AB * psi_AB
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "   projecting monomer onto dimer orbitals" << flush; 

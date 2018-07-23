@@ -22,7 +22,7 @@
 
 #include <votca/xtp/orbitals.h>
 #include <votca/ctp/logger.h>
-
+#include <boost/format.hpp>
 
 
 namespace votca { namespace xtp {
@@ -51,9 +51,9 @@ public:
     virtual void Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB)=0;
     
-
+    void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
 protected:
-    
+     ctp::Logger *_pLog;
     void CheckAtomCoordinates(const Orbitals& orbitalsA, const Orbitals& orbitalsB, const Orbitals& orbitalsAB);
    
    Eigen::MatrixXd CalculateOverlapMatrix(const Orbitals& orbitalsAB); 
@@ -88,14 +88,14 @@ inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA,
       monomer = atomsB[i - atomsA.size()]; 
     } else {
       // Linker
-      CTP_LOG(ctp::logERROR, *_pLog) << (format("Neither Monomer A nor Monomer B contains "
-              "atom %s on line %u. Hence, this atom is part of a linker.") %dimer->getType() %(i+1) ).str()<<flush;
+      CTP_LOG(ctp::logERROR, *_pLog) << (boost::format("Neither Monomer A nor Monomer B contains "
+              "atom %s on line %u. Hence, this atom is part of a linker.") %dimer->getType() %(i+1) ).str()<<std::flush;
       continue;
     }
     
     if(!monomer->getPos().isClose(dimer->getPos(), 0.001)){
       CTP_LOG(ctp::logINFO, *_pLog) << "======WARNING=======\n Coordinates of monomer "
-              "and dimer atoms do not agree, do you know what you are doing?" << flush;
+              "and dimer atoms do not agree, do you know what you are doing?" << std::flush;
     }
     
     if (monomer->getType() != dimer->getType()) {

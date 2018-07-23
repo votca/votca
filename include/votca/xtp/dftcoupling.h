@@ -38,8 +38,8 @@ class DFTcoupling :CouplingBase
 public:
 
     std::string  Identify() { return "dftcoupling"; }
-    DFTcoupling(ctp::Logger* log):
-    _degeneracy(0.0),_numberofstates(0),_pLog(log){;}
+    DFTcoupling():
+    _degeneracy(0.0),_numberofstates(0){;}
 
     void CalculateCouplings(const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB, 
@@ -66,7 +66,6 @@ private:
     
     Eigen::MatrixXd JAB;
     
-    ctp::Logger *_pLog;
     double _degeneracy;
     double _numberofstates;
     

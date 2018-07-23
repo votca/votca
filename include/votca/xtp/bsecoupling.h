@@ -55,18 +55,18 @@ public:
                              );
      
    
-    void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
+    
     
 private:
     
     void WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orbitalsB,
-                        Property& triplet_summary, int stateA, int stateB, double JAB);
+                        tools::Property& summary, int stateA, int stateB, double JAB);
     
     double getSingletCouplingElement( int levelA, int levelB, int methodindex);
     
     double getTripletCouplingElement( int levelA, int levelB, int methodindex);
     
-    ctp::Logger *_pLog;
+   
   
     
     std::vector< Eigen::MatrixXd >ProjectExcitons(const Eigen::MatrixXd& bseA_T,const Eigen::MatrixXd& bseB_T, 
