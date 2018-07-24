@@ -33,13 +33,13 @@ namespace votca { namespace xtp {
 * 
 */
 
-class DFTcoupling :CouplingBase
+class DFTcoupling : public CouplingBase
 {
 public:
 
     std::string  Identify() { return "dftcoupling"; }
     DFTcoupling():
-    _degeneracy(0.0),_numberofstates(0){;}
+    _degeneracy(0.0),_numberofstatesA(0),_numberofstatesB(0){;}
 
     void CalculateCouplings(const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB, 
@@ -67,7 +67,8 @@ private:
     Eigen::MatrixXd JAB;
     
     double _degeneracy;
-    double _numberofstates;
+    int _numberofstatesA;
+    int _numberofstatesB;
     
     
     std::pair<int,int> Range_orbA;

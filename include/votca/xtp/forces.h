@@ -37,18 +37,18 @@ namespace votca {
         class Forces {
         public:
 
-            Forces(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals& orbitals)
-            : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals), _remove_total_force(false), _remove_CoM_force(false) {
+            Forces(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, Orbitals& orbitals)
+            : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _orbitals(orbitals), _remove_total_force(false), _remove_CoM_force(false) {
             };
 
             ~Forces() {
             };
 
-            void Initialize(tools::Property *options);
-            void Calculate(const double& energy);
+            void Initialize(tools::Property &options);
+            void Calculate(double energy);
 
-            Eigen::Vector3d NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait,std::vector<ctp::Segment*> _molecule);
-            Eigen::Vector3d NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait,std::vector<ctp::Segment*> _molecule);
+            Eigen::Vector3d NumForceForward(double energy, int atom_index);
+            Eigen::Vector3d NumForceCentral(double energy, int atom_index);
 
             void setLog(ctp::Logger* pLog) {
                 _pLog = pLog;

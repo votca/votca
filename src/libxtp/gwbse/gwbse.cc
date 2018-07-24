@@ -373,38 +373,37 @@ std::string ranges = options.ifExistsReturnElseReturnDefault<std::string>(key + 
   return;
 }
 
-void GWBSE::addoutput(tools::Property *_summary) {
+void GWBSE::addoutput(tools::Property& _summary) {
 
   const double hrt2ev = tools::conv::hrt2ev;
-  tools::Property *_gwbse_summary = &_summary->add("GWBSE", "");
-  _gwbse_summary->setAttribute("units", "eV");
-  _gwbse_summary->setAttribute("DeltaHLGap",
+  tools::Property _gwbse_summary = _summary.add("GWBSE", "");
+  _gwbse_summary.setAttribute("units", "eV");
+  _gwbse_summary.setAttribute("DeltaHLGap",
                                (format("%1$+1.6f ") % (_shift * hrt2ev)).str());
 
-  _gwbse_summary->setAttribute(
+  _gwbse_summary.setAttribute(
       "DFTEnergy", (format("%1$+1.6f ") % _orbitals.getQMEnergy()).str());
   int printlimit = _bse_maxeigenvectors;  // I use this to determine how much is printed,
                                  // I do not want another option to pipe through
 
-  tools::Property *_dft_summary = &_gwbse_summary->add("dft", "");
-  _dft_summary->setAttribute("HOMO", _homo);
-  _dft_summary->setAttribute("LUMO", _homo + 1);
+  tools::Property &_dft_summary = _gwbse_summary.add("dft", "");
+  _dft_summary.setAttribute("HOMO", _homo);
+  _dft_summary.setAttribute("LUMO", _homo + 1);
   
   for (unsigned state = _qpmin; state < _qpmax+1; state++) {
 
-     tools::Property *_level_summary = &_dft_summary->add("level", "");
-    _level_summary->setAttribute("number", state);
-    _level_summary->add("dft_energy",
+     tools::Property& _level_summary = _dft_summary.add("level", "");
+    _level_summary.setAttribute("number", state);
+    _level_summary.add("dft_energy",
                         (format("%1$+1.6f ") %
                          ((_orbitals.MOEnergies())(_qpmin + state) * hrt2ev))
                             .str());
-    _level_summary->add(
+    _level_summary.add(
         "gw_energy",
         (format("%1$+1.6f ") % (_orbitals.QPpertEnergies()(_qpmin + state) * hrt2ev)).str());
 
     if (_do_qp_diag) {
-      // cout << "_do_qp_diag" <<_do_qp_diag<<endl;
-      _level_summary->add(
+      _level_summary.add(
           "qp_energy",
           (format("%1$+1.6f ") % (_orbitals.QPdiagEnergies()(_qpmin + state) * hrt2ev))
               .str());
@@ -412,11 +411,11 @@ void GWBSE::addoutput(tools::Property *_summary) {
   }
 
   if (_do_bse_singlets) {
-     tools::Property *_singlet_summary = &_gwbse_summary->add("singlets", "");
+     tools::Property &_singlet_summary = _gwbse_summary.add("singlets", "");
     for (int state = 0; state < _bse_maxeigenvectors; ++state) {
-       tools::Property *_level_summary = &_singlet_summary->add("level", "");
-      _level_summary->setAttribute("number", state + 1);
-      _level_summary->add("omega", (format("%1$+1.6f ") %
+       tools::Property &_level_summary = _singlet_summary.add("level", "");
+      _level_summary.setAttribute("number", state + 1);
+      _level_summary.add("omega", (format("%1$+1.6f ") %
                                     (_orbitals.BSESingletEnergies()(state) * hrt2ev))
                                        .str());
       if (_orbitals.hasTransitionDipoles()) {
@@ -424,23 +423,23 @@ void GWBSE::addoutput(tools::Property *_summary) {
         const tools::vec &dipoles = (_orbitals.TransitionDipoles())[state];
         double f = 2 * dipoles * dipoles * _orbitals.BSESingletEnergies()(state) / 3.0;
 
-        _level_summary->add("f", (format("%1$+1.6f ") % f).str());
-         tools::Property *_dipol_summary = &_level_summary->add(
+        _level_summary.add("f", (format("%1$+1.6f ") % f).str());
+         tools::Property& _dipol_summary = _level_summary.add(
             "Trdipole", (format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles.getX() %
                          dipoles.getY() % dipoles.getZ())
                             .str());
-        _dipol_summary->setAttribute("unit", "e*bohr");
-        _dipol_summary->setAttribute("gauge", "length");
+        _dipol_summary.setAttribute("unit", "e*bohr");
+        _dipol_summary.setAttribute("gauge", "length");
       }
     }
   }
   if (_do_bse_triplets) {
-     tools::Property *_triplet_summary = &_gwbse_summary->add("triplets", "");
+     tools::Property &_triplet_summary = _gwbse_summary.add("triplets", "");
     for (int state = 0; state < printlimit; ++state) {
 
-       tools::Property *_level_summary = &_triplet_summary->add("level", "");
-      _level_summary->setAttribute("number", state + 1);
-      _level_summary->add("omega", (format("%1$+1.6f ") %
+       tools::Property &_level_summary = _triplet_summary.add("level", "");
+      _level_summary.setAttribute("number", state + 1);
+      _level_summary.add("omega", (format("%1$+1.6f ") %
                                     (_orbitals.BSETripletEnergies()(state) * hrt2ev))
                                        .str());
     }

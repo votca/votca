@@ -27,27 +27,23 @@ namespace votca {
       using std::endl;
       using namespace tools;
 
-        void BFGSTRM::Initialize(Property *options) {
-
-            // checking if there is only one segment
-            _nsegments = _segments.size();
-            if (_nsegments > 1) throw runtime_error(string("\n Geometry optimization of more than 1 conjugated segment not supported. Stopping!"));
+        void BFGSTRM::Initialize(Property &options) {
 
             // default convergence parameters from ORCA
-            _convergence = options->ifExistsReturnElseReturnDefault<double>(".convergence.energy", 1.e-6); // Hartree
-            _RMSForce_convergence = options->ifExistsReturnElseReturnDefault<double>(".convergence.RMSForce", 3.e-5); // Hartree/Bohr
-            _MaxForce_convergence = options->ifExistsReturnElseReturnDefault<double>(".convergence.MaxForce", 1.e-4); // Hartree/Bohr
-            _RMSStep_convergence = options->ifExistsReturnElseReturnDefault<double>(".convergence.RMSStep", 6.e-4); // Bohr
-            _MaxStep_convergence = options->ifExistsReturnElseReturnDefault<double>(".convergence.MaxStep", 1.e-3); // Bohr
+            _convergence = options.ifExistsReturnElseReturnDefault<double>(".convergence.energy", 1.e-6); // Hartree
+            _RMSForce_convergence = options.ifExistsReturnElseReturnDefault<double>(".convergence.RMSForce", 3.e-5); // Hartree/Bohr
+            _MaxForce_convergence = options.ifExistsReturnElseReturnDefault<double>(".convergence.MaxForce", 1.e-4); // Hartree/Bohr
+            _RMSStep_convergence = options.ifExistsReturnElseReturnDefault<double>(".convergence.RMSStep", 6.e-4); // Bohr
+            _MaxStep_convergence = options.ifExistsReturnElseReturnDefault<double>(".convergence.MaxStep", 1.e-3); // Bohr
 
             // initial trust radius
-            _trust_radius = options->ifExistsReturnElseReturnDefault<double>(".trust", 0.01); // Angstrom
+            _trust_radius = options.ifExistsReturnElseReturnDefault<double>(".trust", 0.01); // Angstrom
 
             // maximum number of iterations
-            _max_iteration = options->ifExistsReturnElseReturnDefault<unsigned>(".maxiter", 50);
+            _max_iteration = options.ifExistsReturnElseReturnDefault<unsigned>(".maxiter", 50);
 
             // restart from saved history
-            _restart_opt = options->ifExistsReturnElseReturnDefault<bool>(".restart", false);
+            _restart_opt = options.ifExistsReturnElseReturnDefault<bool>(".restart", false);
             if (_restart_opt && !boost::filesystem::exists("optimization.restart")) {
                 throw runtime_error(string("\n Restart requested but optimization.restart file not found!"));
             };
@@ -59,7 +55,7 @@ namespace votca {
             _spintype = _force_engine.GetSpinType();
             _opt_state = _force_engine.GetOptState();
 
-            _natoms = _segments[0]->Atoms().size();
+            _natoms =_orbitals.QMAtoms().size();
             _force =Eigen::MatrixX3d::Zero(_natoms,3);
             _force_old = Eigen::MatrixX3d::Zero(_natoms,3);
             _xyz_shift = Eigen::MatrixX3d::Zero(_natoms,3);
@@ -76,7 +72,7 @@ namespace votca {
             _current_gradient = Eigen::VectorXd::Zero(_dim);
 
             // Initial coordinates
-            Segment2BFGS();
+            OrbitalsToMatrix();
 
             return;
 
@@ -114,7 +110,7 @@ namespace votca {
                     BFGSStep();
 
                     // update coordinates in segment
-                    UpdateSegment();
+                    UpdateCoordinatesOrbitals();
 
                     // for the updated geometry, get new reference energy
                     _new_energy = GetEnergy();
@@ -192,7 +188,7 @@ namespace votca {
             _gwbse_engine.setRedirectLogger(true);
             string _logger_file = "gwbse_iteration_" + (boost::format("%1%") % _iteration).str() + ".log";
             _gwbse_engine.setLoggerFile(_logger_file);
-            _gwbse_engine.ExcitationEnergies(_qmpackage, _segments, _orbitals);
+            _gwbse_engine.ExcitationEnergies(_qmpackage, _orbitals);
             double _energy = _orbitals.getTotalEnergy(_spintype, _opt_state); // in Hartree
             _gwbse_engine.setRedirectLogger(false);
 
@@ -274,22 +270,12 @@ namespace votca {
 
         }
 
-        /* Update segment with new coordinates*/
-        void BFGSTRM::UpdateSegment() {
-
-            std::vector< ctp::Atom* > _atoms;
-            std::vector< ctp::Atom* > ::iterator ait;
-            _atoms = _segments[0]->Atoms();
-
-            // put trial coordinates into _segment
-            int _i_atom = 0;
-            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-                // put trial coordinates (_trial_xyz is in Bohr, segments in nm)
-                vec _pos_displaced(_trial_xyz(_i_atom, 0) * tools::conv::bohr2nm, _trial_xyz(_i_atom, 1) * tools::conv::bohr2nm, _trial_xyz(_i_atom, 2) * tools::conv::bohr2nm);
-                (*ait)->setQMPos(_pos_displaced); // put updated coordinate into segment
-                _i_atom++;
+        void BFGSTRM::UpdateCoordinatesOrbitals() {
+            std::vector<QMAtom*>& atoms= _orbitals.QMAtoms();
+            for ( int i = 0; i< atoms.size(); i++) {
+                tools::vec pos_displaced(_trial_xyz(i, 0), _trial_xyz(i, 1) , _trial_xyz(i, 2));
+                atoms[i]->setPos(pos_displaced);
             }
-
             return;
 
         }
@@ -413,17 +399,10 @@ namespace votca {
                 _max_step_squared = 0.0;
                 _lambda -= 0.05 * std::abs(es.eigenvalues()(0));
                 for (unsigned _i = 0; _i < _dim; _i++) {
-
-
-                    //cout << " forece is of dim " << _current_force.size1() << "  " << _current_force.size2() << endl;
                     double _temp = es.eigenvectors().col(_i).transpose()* _current_gradient;
-                    //cout << " slice is of dim " << _slice.size1() << "  " << _slice.size2() << endl;            cout << " tmep is of dim " << _temp.size1() << "  " << _temp.size2() << endl;
-                    // cout << " into max_step_sq " << _temp << " and  "  << ( _eigenvalues(_i) - _lambda ) << endl;
                     _max_step_squared += _temp * _temp / (es.eigenvalues()(_i) - _lambda) / (es.eigenvalues()(_i) - _lambda);
                 }
             }
-
-            //CTP_LOG(ctp::logDEBUG,_log) << " BFGS-TRM: with lambda " << _lambda << " max step sq is " << _max_step_squared << flush;
 
             _delta_pos = Eigen::VectorXd::Zero(_dim);
             for (unsigned _i = 0; _i < _dim; _i++) {
@@ -444,8 +423,6 @@ namespace votca {
         /* Rewrite the vector data back to matrices (to rethink) */
         void BFGSTRM::Rewrite2Matrices() {
             Eigen::VectorXd _new_pos = _current_pos + _delta_pos;
-            //CTP_LOG(ctp::logDEBUG,_log) << "BFGS-TRM: step " << sqrt(_norm_delta_pos) << " vs TR " << sqrt(_trust_radius_squared) << flush  ;
-            // update atom coordinates
             Eigen::VectorXd _total_shift=Eigen::VectorXd::Zero(3);
             for (unsigned _i_atom = 0; _i_atom < _natoms; _i_atom++) {
                 for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
@@ -457,22 +434,14 @@ namespace votca {
             return;
         }
 
-        /* Segment info to xyz */
-        void BFGSTRM::Segment2BFGS() {
+        void BFGSTRM::OrbitalsToMatrix() {
 
-
-            std::vector< ctp::Atom* > _atoms;
-            std::vector< ctp::Atom* > ::iterator ait;
-            _atoms = _segments[0]->Atoms();
-
-            // put trial coordinates into _segment
-            unsigned _i_atom = 0;
-            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+           std::vector<QMAtom*> atoms = _orbitals.QMAtoms();
+           for (unsigned i=0;i<atoms.size();i++) {
                 // put trial coordinates (_current_xyz is in Bohr, segments in nm)
-                _current_xyz(_i_atom, 0) = (*ait)->getQMPos().getX() * tools::conv::nm2bohr;
-                _current_xyz(_i_atom, 1) = (*ait)->getQMPos().getY() * tools::conv::nm2bohr;
-                _current_xyz(_i_atom, 2) = (*ait)->getQMPos().getZ() * tools::conv::nm2bohr;
-                _i_atom++;
+                _current_xyz(i, 0) = atoms[i]->getPos().getX();
+                _current_xyz(i, 1) = atoms[i]->getPos().getY();
+                _current_xyz(i, 2) = atoms[i]->getPos().getZ();
             }
 
             return;
@@ -484,11 +453,7 @@ namespace votca {
         /* Write accepted geometry to xyz trajectory file */
         void BFGSTRM::WriteTrajectory() {
 
-
-            std::vector< ctp::Atom* > _atoms;
-            std::vector< ctp::Atom* > ::iterator ait;
-            _atoms = _segments[0]->Atoms();
-
+           std::vector< QMAtom* > _atoms = _orbitals.QMAtoms();
             // write logger to log file
             ofstream ofs;
             string _trajectory_file = "optimization.trj";
@@ -506,9 +471,10 @@ namespace votca {
             ofs << _atoms.size() << endl;
             ofs << "iteration " << _iteration << " energy " << _last_energy << " Hartree" << endl;
 
-            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+            for (const QMAtom* atom:_atoms) {
+                tools::vec pos=atom->getPos()*tools::conv::bohr2ang;
                 // put trial coordinates (_current_xyz is in Bohr, segments in nm)
-                ofs << (*ait)->getElement() << " " << (*ait)->getQMPos().getX() * tools::conv::nm2ang << " " << (*ait)->getQMPos().getY() * tools::conv::nm2ang << " " << (*ait)->getQMPos().getZ() * tools::conv::nm2ang << endl;
+                ofs << atom->getType() << " " << pos.getX() << " " << pos.getY() << " " << pos.getZ() << endl;
             }
             ofs.close();
             return;

@@ -469,10 +469,10 @@ std::vector< Eigen::MatrixXd > BSECoupling::ProjectExcitons(const Eigen::MatrixX
      Eigen::MatrixXd _proj_excA = bseA_T* _kap;
      Eigen::MatrixXd _proj_excB =  bseB_T* _kbp;
      
-     _bse_exc=_levA+_levB
-     int _ctAB=ctAB.rows();
-     int _ctBA=ctBA.rows();
-     _ct=_ctAB+_ctBA;
+     _bse_exc=_levA+_levB;
+     int ctABsize=ctAB.rows();
+     int ctBAsize=ctBA.rows();
+     _ct=ctABsize+ctBAsize;
      int nobasisfunc=H.rows();
  
      Eigen::MatrixXd fe_states=Eigen::MatrixXd::Zero(_bse_exc,nobasisfunc);
@@ -485,11 +485,11 @@ std::vector< Eigen::MatrixXd > BSECoupling::ProjectExcitons(const Eigen::MatrixX
         //orthogonalize ct-states with respect to the FE states. 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Orthogonalizing CT-states with respect to FE-states" << flush;
 
-        if (_ctAB > 0) {
-          ct_states.block(0, 0, _ctAB, nobasisfunc) = ctAB;
+        if (ctABsize > 0) {
+          ct_states.block(0, 0, ctABsize, nobasisfunc) = ctAB;
         }
-        if (_ctBA > 0) {
-          ct_states.block(_ctAB, 0, _ctBA, nobasisfunc) = ctBA;
+        if (ctBAsize > 0) {
+          ct_states.block(ctABsize, 0, ctBAsize, nobasisfunc) = ctBA;
         }
 
         //orthogonalize ct-states with respect to FE states

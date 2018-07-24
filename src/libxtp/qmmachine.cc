@@ -257,7 +257,6 @@ namespace votca {
                     _job->getEM1(), _job->getEM2(), _job->getETOT());
 
 
-            std::vector<ctp::Segment*> empty;
             /* Translate atoms in QM0() to QMAtoms in orbitals object
              * to be used in writing the QM input files for the
              * external QMPackages or directly in internal DFT engine.
@@ -293,18 +292,16 @@ namespace votca {
              * Prepare() function for efficiency.
              */
             CTP_LOG(ctp::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
-            _qmpack->WriteInputFile(empty, &orb_iter_input);
+            _qmpack->WriteInputFile(orb_iter_input);
 
 
-            FILE *out;
-            out = fopen((runFolder + "/system.pdb").c_str(), "w");
-            orb_iter_input.WritePDB(out);
-            fclose(out);
+            orb_iter_input.WriteXYZ(runFolder + "/system_full.xyz");
+
 
             /* Runs the external QMPackage or the self-consistent part of
              * DFTENGINE
              */
-            _qmpack->Run( &orb_iter_input );
+            _qmpack->Run( orb_iter_input );
 
             /* Parse information from the LOGFILE into orbitals, if
              * external QMPackage is run. Dummy for internal DFTENGINE.

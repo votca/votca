@@ -208,9 +208,6 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     bool _parse_log_status;
     bool _parse_orbitals_status;
 
-   
-    
-    Orbitals _orbitals;
     ctp::Job::JobResult jres = ctp::Job::JobResult();
     Property _job_input = job->getInput();  
     list<Property*> lSegments = _job_input.Select( "segment" );  
@@ -221,6 +218,9 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     ctp::Segment *seg = top->getSegment( segId );
     assert( seg->getName() == segType ); 
     segments.push_back( seg );
+    QMInterface interface;
+    Orbitals orbital;
+    orbital.QMAtoms()=interface.Convert(segments);
     ctp::Logger* pLog = opThread->getLogger();
     CTP_LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Evaluating site " << seg->getId() << flush; 
 
@@ -235,7 +235,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     QMPackage *_qmpackage =  QMPackages().Create( _package );
     
    _qmpackage->setLog( pLog );  
-   _qmpackage->Initialize( &_package_options );
+   _qmpackage->Initialize( _package_options );
 
 
 
@@ -253,12 +253,12 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
    
     // if asked, prepare the input files
     if ( _do_input ) {
-        _qmpackage->WriteInputFile( segments );
+        _qmpackage->WriteInputFile( orbital );
     }
         
    // Run the executable
     if ( _do_run ) {
-        _run_status = _qmpackage->Run( );
+        _run_status = _qmpackage->Run( orbital);
         if ( !_run_status ) {
             output += "run failed; " ;
             CTP_LOG(ctp::logERROR,*pLog) << _package << " run failed" << flush;
@@ -273,7 +273,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         
    // Parse log files
     if ( _do_parse ) {
-        _parse_log_status = _qmpackage->ParseLogFile( _orbitals );
+        _parse_log_status = _qmpackage->ParseLogFile( orbital );
         if ( !_parse_log_status ) {
             output += "log incomplete; ";
             CTP_LOG(ctp::logERROR,*pLog) << "QM log incomplete" << flush;
@@ -286,7 +286,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
         }
 
        // Parse orbitals file
-       _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( _orbitals );
+       _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( orbital );
         if ( !_parse_orbitals_status ) {
             output += "orbitals failed; " ;
             CTP_LOG(ctp::logERROR,*pLog) << "QM orbitals not parsed" << flush;
@@ -308,7 +308,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
            string ORB_FILE = ( arg_path / ORB_DIR / (format("molecule_%1%.orb") % ID ).str() ).c_str() ;
            CTP_LOG(ctp::logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;  
            try{
-               _orbitals.ReadFromCpt(ORB_FILE);
+               orbital.ReadFromCpt(ORB_FILE);
            }
            catch(std::runtime_error& error){
                CTP_LOG(ctp::logERROR,*pLog) << "Failed loading orbitals from " << ORB_FILE << flush; 
@@ -321,11 +321,6 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
            
         }        
        
-       _orbitals.Trim(factor);   
-        CTP_LOG(ctp::logDEBUG,*pLog) << "Trimming virtual orbitals from " 
-         << _orbitals.getNumberOfLevels() - _orbitals.getNumberOfElectrons() << " to " 
-         << _orbitals.getNumberOfElectrons()*factor << flush;   
-       output += "orbitals trimmed; " ;
     }   
 
    
@@ -334,7 +329,7 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     
     string ORB_FILE = "molecule_" + ID + ".orb";
     CTP_LOG(ctp::logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
-    _orbitals.WriteToCpt(ORB_DIR+"/"+ORB_FILE);
+    orbital.WriteToCpt(ORB_DIR+"/"+ORB_FILE);
     // ofs.close();
     
      if(_qmpackage->getPackageName()=="orca"){
@@ -362,8 +357,8 @@ ctp::Job::JobResult EDFT::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
          segId = seg->getId();
         _segment_summary->setAttribute("id", segId);
         _segment_summary->setAttribute("type", segName);
-        _segment_summary->setAttribute("homo", _orbitals.getEnergy( _orbitals.getNumberOfElectrons() ));
-        _segment_summary->setAttribute("lumo", _orbitals.getEnergy( _orbitals.getNumberOfElectrons() + 1 ));
+        _segment_summary->setAttribute("homo", orbital.getEnergy( orbital.getNumberOfElectrons() ));
+        _segment_summary->setAttribute("lumo", orbital.getEnergy( orbital.getNumberOfElectrons() + 1 ));
     
     // output of the JOB 
     jres.setOutput( _job_summary );

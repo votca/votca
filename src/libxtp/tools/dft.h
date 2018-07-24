@@ -72,9 +72,6 @@ namespace votca {
             string _mpsfile;
             bool _do_external;
 
-            void XYZ2Orbitals(Orbitals* _orbitals, string filename);
-
-
         };
 
         void DFT::Initialize(Property* options) {
@@ -147,20 +144,20 @@ namespace votca {
             //TLogLevel _ReportLevel = _log.getReportLevel( ); // backup report level
 
             // Create new orbitals object and fill with atom coordinates
-            Orbitals _orbitals;
+            Orbitals orbitals;
 
             if (_do_guess) {
                 CTP_LOG(ctp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
-                _orbitals.ReadFromCpt(_guess_file);
+                orbitals.ReadFromCpt(_guess_file);
             } else {
                 CTP_LOG(ctp::logDEBUG, _log) << "Reading structure from " << _xyzfile << flush;
-                _orbitals.LoadFromXYZ(_xyzfile);
+                orbitals.LoadFromXYZ(_xyzfile);
             }
 
             // initialize the DFTENGINE
-            DFTENGINE _dft;
-            _dft.Initialize(&_dftengine_options);
-            _dft.setLogger(&_log);
+            DFTENGINE dft;
+            dft.Initialize(_dftengine_options);
+            dft.setLogger(&_log);
             ;
 
             if (_do_external) {
@@ -171,16 +168,16 @@ namespace votca {
                 ctp::PolarSeg *newPolarSegment = new ctp::PolarSeg(0, sites);
                 polar_segments.push_back(newPolarSegment);
                 polar_segments[0]->WriteMPS("test.mps", "test");
-                _dft.setExternalcharges(polar_segments);
+                dft.setExternalcharges(polar_segments);
             }
 
             // RUN
-            _dft.Prepare(&_orbitals);
-            _dft.Evaluate(&_orbitals);
+            dft.Prepare(orbitals);
+            dft.Evaluate(orbitals);
 
 
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _output_file << flush;
-            _orbitals.WriteToCpt(_output_file);
+            orbitals.WriteToCpt(_output_file);
           
             return true;
         }

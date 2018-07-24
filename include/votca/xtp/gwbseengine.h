@@ -55,8 +55,8 @@ namespace votca {
                 return "gwbse_engine";
             }
 
-            void Initialize(tools::Property *options, std::string _archive_filename);
-            void ExcitationEnergies(QMPackage* _qmpackage, std::vector<ctp::Segment*> _segments, Orbitals& _orbitals);
+            void Initialize(tools::Property &options, std::string _archive_filename);
+            void ExcitationEnergies(QMPackage* _qmpackage, Orbitals& _orbitals);
 
             void setLog(ctp::Logger* pLog) {
                 _pLog = pLog;
@@ -75,7 +75,7 @@ namespace votca {
             };
             
             
-            tools::Property ReportSummary(){ return _summary;};
+            tools::Property& ReportSummary(){ return _summary;};
 
 
         private:

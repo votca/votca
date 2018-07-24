@@ -24,27 +24,20 @@
 namespace votca {
     namespace xtp {
 
-        void GeometryOptimization::Initialize(tools::Property *options) {
+        void GeometryOptimization::Initialize(tools::Property &options) {
 
-            // checking if there is only one segment
-            _nsegments = _segments.size();
-            if (_nsegments > 1) throw std::runtime_error(std::string("\n Geometry optimization of more than 1 conjugated segment not supported. Stopping!"));
-
-            _opt_state = options->ifExistsReturnElseReturnDefault<int>(".state", 1);
-            _spintype = options->ifExistsReturnElseReturnDefault<std::string>(".spintype", "singlet");
-
+            _opt_state = options.ifExistsReturnElseReturnDefault<int>(".state", 1);
+            _spintype = options.ifExistsReturnElseReturnDefault<std::string>(".spintype", "singlet");
 
             // pre-check optimizer method
             std::vector<std::string> choices = {"BFGS-TRM"};
-            _optimizer = options->ifExistsAndinListReturnElseThrowRuntimeError<std::string>(".optimizer.method", choices);
-            _optimizer_options = options->get(".optimizer");
+            _optimizer = options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(".optimizer.method", choices);
+            _optimizer_options = options.get(".optimizer");
 
             // pre-check forces method
             choices = {"forward", "central"};
-            _force_method = options->ifExistsAndinListReturnElseThrowRuntimeError<std::string>(".forces.method", choices);
-            _force_options = options->get(".forces");
-
-            _natoms = _segments[0]->Atoms().size();
+            _force_method = options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(".forces.method", choices);
+            _force_options = options.get(".forces");
 
             return;
 
@@ -56,8 +49,8 @@ namespace votca {
             CTP_LOG(ctp::logINFO, *_pLog) << "Requested geometry optimization of excited state " << _spintype << " " << _opt_state << std::flush;
 
             // get a force object
-            Forces _force_engine(_gwbse_engine, _qmpackage, _segments, _orbitals);
-            _force_engine.Initialize(&_force_options);
+            Forces _force_engine(_gwbse_engine, _qmpackage,_orbitals);
+            _force_engine.Initialize(_force_options);
             _force_engine.setLog(_pLog);
             _force_engine.SetOptState(_opt_state);
             _force_engine.SetSpinType(_spintype);
@@ -66,8 +59,8 @@ namespace votca {
             // get the optimizer
             if (_optimizer == "BFGS-TRM") {
 
-                BFGSTRM _bfgstrm(_gwbse_engine, _qmpackage, _segments, _orbitals, _force_engine);
-                _bfgstrm.Initialize(&_optimizer_options);
+                BFGSTRM _bfgstrm(_gwbse_engine, _qmpackage, _orbitals, _force_engine);
+                _bfgstrm.Initialize(_optimizer_options);
                 _bfgstrm.setLog(_pLog);
                 _bfgstrm.Optimize();
 

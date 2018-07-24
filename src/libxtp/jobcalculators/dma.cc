@@ -21,6 +21,7 @@
 #include "dma.h"
 
 #include <boost/algorithm/string/replace.hpp>
+#include <votca/xtp/qminterface.h>
 
 
 using boost::format;
@@ -126,13 +127,15 @@ ctp::Job::JobResult DMA::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThrea
     Property _job_input = job->getInput();  
     list<Property*> lSegments = _job_input.Select( "segment" );  
     
-    vector < ctp::Segment* > segments;    
     int segId = lSegments.front()->getAttribute<int>( "id" );
     string segType = lSegments.front()->getAttribute<string>( "type" );
     
     ctp::Segment *seg = top->getSegment( segId );
     assert( seg->getName() == segType ); 
     segments.push_back( seg );
+    QMInterface interface;
+    Orbitals orbital;
+    orbital.QMAtoms()=interface.Convert(segments);
     ctp::Logger* pLog = opThread->getLogger();
     CTP_LOG(ctp::logINFO,*pLog) << ctp::TimeStamp() << " Evaluating site " << seg->getId() << flush; 
 
@@ -147,7 +150,7 @@ ctp::Job::JobResult DMA::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThrea
     QMPackage *_qmpackage =  QMPackages().Create( _package );
     
    _qmpackage->setLog( pLog );  
-   _qmpackage->Initialize( &_package_options );
+   _qmpackage->Initialize( _package_options );
 
    string qmpackage_work_dir;
    
@@ -158,12 +161,12 @@ ctp::Job::JobResult DMA::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThrea
    
     // if asked, prepare the input files
     if ( _do_input ) {
-        _qmpackage->WriteInputFile( segments );
+        _qmpackage->WriteInputFile( orbital );
     }
         
    // Run the Gaussian executable
     if ( _do_orbitals ) {
-        _orbitals_status = _qmpackage->Run( );
+        _orbitals_status = _qmpackage->Run( orbital);
         if ( !_orbitals_status ) {
             output += "run failed; " ;
             CTP_LOG(ctp::logERROR,*pLog) << _package << " run failed" << flush;

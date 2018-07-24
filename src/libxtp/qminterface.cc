@@ -126,7 +126,7 @@ namespace votca {
         }
 
 
-        void QMInterface::Orbitals2Segment(ctp::Segment* _segment, const Orbitals& _orbitals) {
+        void QMInterface::Orbitals2Segment(ctp::Segment& segment, const Orbitals& _orbitals) {
 
             
             std::vector<QMAtom* > ::iterator ait;
@@ -144,7 +144,7 @@ namespace votca {
                 pAtom->setPos(position);
                 pAtom->setQMPart(id, position);
                 pAtom->setElement(type);
-                _segment->AddAtom(pAtom);
+                segment.AddAtom(pAtom);
             }
             return;
         }

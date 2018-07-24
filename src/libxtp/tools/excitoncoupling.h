@@ -118,40 +118,30 @@ bool ExcitonCoupling::Evaluate() {
 
     // get the corresponding object from the QMPackageFactory
     if(!_classical){
-    Orbitals _orbitalsA, _orbitalsB, _orbitalsAB;
+    Orbitals orbitalsA, orbitalsB, orbitalsAB;
     // load the QM data from serialized orbitals objects
 
     CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
-    _orbitalsA.ReadFromCpt(_orbA);
+    orbitalsA.ReadFromCpt(_orbA);
     
     CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
-    _orbitalsB.ReadFromCpt(_orbB);
+    orbitalsB.ReadFromCpt(_orbB);
 
     CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
-    _orbitalsAB.ReadFromCpt(_orbAB);
+    orbitalsAB.ReadFromCpt(_orbAB);
    
      BSECoupling _bsecoupling; 
      _bsecoupling.setLogger(&_log);
-     _bsecoupling.Initialize(&_coupling_options);
-     //bool _doSinglets=_bsecoupling.get_doSinglets();   
-     //bool _dotriplets=_bsecoupling.get_doTriplets();   
-     
-
-     //bool _calculate_integrals = _bsecoupling.CalculateCouplings_OLD( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB_singlet );   
-     bool _calculate_integrals = _bsecoupling.CalculateCouplings( &_orbitalsA, &_orbitalsB, &_orbitalsAB );   
+     _bsecoupling.Initialize(_coupling_options);
+  
+     _bsecoupling.CalculateCouplings( orbitalsA,orbitalsB, orbitalsAB );   
      std::cout << _log;
  
-    if ( _calculate_integrals ){ 
-     // output the results
-    
     _job_output = &_summary.add("output","");
     Property *_pair_summary = &_job_output->add("pair","");
-    Property *_type_summary = &_pair_summary->add("type","");
-    _bsecoupling.Addoutput(_type_summary,&_orbitalsA, & _orbitalsB);
-    
-   
-   
-    }
+    Property& _type_summary = _pair_summary->add("type","");
+    _bsecoupling.Addoutput(_type_summary,orbitalsA,  orbitalsB);
+
     }
     
     else if (_classical){

@@ -74,46 +74,37 @@ namespace votca {
             _log.setPreface(ctp::logDEBUG,   "\n... ...");
             
             // Get orbitals object
-            Orbitals _orbitals;
+            Orbitals orbitals;
 
-            // Read molecular geometry from xyz file and store in a segment (WHY SEGMENT?)
-            std::vector <ctp::Segment* > _segments;
-            ctp::Segment _segment(0, "mol");
-            
-            if(_orbitals.hasQMAtoms()){
-              
-            }
+       
             CTP_LOG(ctp::logDEBUG, _log) << "Reading molecular coordinates from " << _xyzfile << flush;
-            Orbitals temp;
-            temp.LoadFromXYZ(_xyzfile);
-            QMInterface qminterface;
-            qminterface.Orbitals2Segment(&_segment,temp);
-            _segments.push_back(&_segment);
+            orbitals.LoadFromXYZ(_xyzfile);
+           
 
             // Get and initialize QMPackage for DFT ground state
             QMPackage *_qmpackage = QMPackages().Create(_package);
             _qmpackage->setLog(&_log);
-            _qmpackage->Initialize(&_package_options);
+            _qmpackage->Initialize(_package_options);
             _qmpackage->setRunDir(".");
 
             // Get GWBSEENGINE Object and initialize
             GWBSEENGINE _gwbse_engine;
             _gwbse_engine.setLog(&_log);
-            _gwbse_engine.Initialize(&_gwbseengine_options, _archive_file);
+            _gwbse_engine.Initialize(_gwbseengine_options, _archive_file);
 
             if ( _do_optimize ) {
                 // Run Geometry Optimization
-                GeometryOptimization _geoopt(_gwbse_engine,_qmpackage, _segments, _orbitals);
+                GeometryOptimization _geoopt(_gwbse_engine,_qmpackage, orbitals);
                 _geoopt.setLog(&_log);
-                _geoopt.Initialize(&_geoopt_options);
+                _geoopt.Initialize(_geoopt_options);
                 _geoopt.Evaluate();
             } else {
                 // Run GWBSE
-                _gwbse_engine.ExcitationEnergies(_qmpackage, _segments, _orbitals);
+                _gwbse_engine.ExcitationEnergies(_qmpackage, orbitals);
             }
 
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
-            _orbitals.WriteToCpt(_archive_file);
+            orbitals.WriteToCpt(_archive_file);
             
             tools::Property _summary = _gwbse_engine.ReportSummary();
             if(_summary.exists("output")){  //only do gwbse summary output if we actually did gwbse

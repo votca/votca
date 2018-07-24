@@ -56,7 +56,7 @@ class GWBSE {
 
   bool Evaluate();
     
-  void addoutput(tools::Property* _summary);
+  void addoutput(tools::Property& _summary);
 
  private:
      

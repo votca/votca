@@ -33,7 +33,7 @@ namespace votca { namespace xtp {
 * 
 */
 
-class BSECoupling : CouplingBase
+class BSECoupling : public CouplingBase
 {
 public:
    

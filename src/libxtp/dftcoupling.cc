@@ -36,7 +36,8 @@ void DFTcoupling::Initialize(tools::Property& options){
   
   std::string key="";
   _degeneracy=options.ifExistsReturnElseReturnDefault<bool>(key+"degeneracy",0.0);
-  _numberofstates=options.ifExistsReturnElseReturnDefault<int>(key+"numberofstates",1);
+  _numberofstatesA=options.ifExistsReturnElseReturnDefault<int>(key+"levA",1);
+  _numberofstatesB=options.ifExistsReturnElseReturnDefault<int>(key+"levB",1);
 
 }
 
@@ -74,15 +75,15 @@ void DFTcoupling::WriteToProperty(tools::Property& type_summary, const Orbitals&
 
 
 
-std::pair<int,int> DFTcoupling::DetermineRangeOfStates(const Orbitals& orbital)const{
+std::pair<int,int> DFTcoupling::DetermineRangeOfStates(const Orbitals& orbital, int numberofstates)const{
   const Eigen::VectorXd& MOEnergies=orbital.MOEnergies();
   if(std::abs(MOEnergies(orbital.getHomo())-MOEnergies(orbital.getLumo()))<_degeneracy){
     throw std::runtime_error("Homo Lumo Gap is smaller than degeneracy. "
             "Either your degeneracy is too large or your Homo and Lumo are degenerate");
   }
   
-  int minimal=orbital.getHomo()-_numberofstates+1;
-  int maximal=orbital.getLumo()+_numberofstates-1;
+  int minimal=orbital.getHomo()-numberofstates+1;
+  int maximal=orbital.getLumo()+numberofstates-1;
   
   std::vector<int> deg_min=orbital.CheckDegeneracy(minimal,_degeneracy);
   for(int i:deg_min){
@@ -154,8 +155,8 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
        throw std::runtime_error( "Basis set size is not stored in monomers");
     }
     
-    Range_orbA=DetermineRangeOfStates(orbitalsA);
-    Range_orbB=DetermineRangeOfStates(orbitalsB);
+    Range_orbA=DetermineRangeOfStates(orbitalsA,_numberofstatesA);
+    Range_orbB=DetermineRangeOfStates(orbitalsB,_numberofstatesB);
     
     int levelsA = Range_orbA.second;
     int levelsB = Range_orbB.second;

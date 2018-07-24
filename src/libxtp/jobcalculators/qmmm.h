@@ -345,7 +345,7 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     // get the corresponding object from the QMPackageFactory
     QMPackage *qmpack =  QMPackages().Create( _package );
 
-    qmpack->Initialize( &_qmpack_opt );
+    qmpack->Initialize( _qmpack_opt );
 
     qmpack->setLog(qlog);
     

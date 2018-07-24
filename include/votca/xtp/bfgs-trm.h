@@ -39,8 +39,8 @@ namespace votca {
         class BFGSTRM {
         public:
 
-            BFGSTRM(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals& orbitals, Forces& force_engine)
-            : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals), _force_engine(force_engine), _iteration(0) {
+            BFGSTRM(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, Orbitals& orbitals, Forces& force_engine)
+            : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _orbitals(orbitals), _force_engine(force_engine), _iteration(0) {
             };
 
             ~BFGSTRM() {
@@ -49,7 +49,7 @@ namespace votca {
             int Iteration() {
                 return _iteration;
             };
-            void Initialize(tools::Property *options);
+            void Initialize(tools::Property &options);
             void Checkpoint(std::vector<ctp::Segment* >& _molecule);
             void WriteIteration(FILE* out, ctp::Segment* _segment);
 
@@ -65,12 +65,10 @@ namespace votca {
             
             GWBSEENGINE _gwbse_engine;
             QMPackage* _qmpackage;
-            std::vector<ctp::Segment*> _segments;
             Orbitals& _orbitals;
             Forces _force_engine;
 
             unsigned _natoms;
-            unsigned _nsegments;
             unsigned _iteration;
             Eigen::MatrixX3d _force;
             Eigen::MatrixX3d _force_old;
@@ -116,9 +114,9 @@ namespace votca {
             void PredictDisplacement();
             void RegularizeStep();
             void QuadraticEnergy();
-            void UpdateSegment();
+            void UpdateCoordinatesOrbitals();
             void Report();
-            void Segment2BFGS();
+            void OrbitalsToMatrix();
             void AcceptReject();
             void WriteTrajectory();
 

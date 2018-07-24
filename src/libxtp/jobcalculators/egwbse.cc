@@ -191,12 +191,12 @@ namespace votca {
       // set the run dir 
       _qmpackage->setRunDir(_qmpackage_work_dir);
       // get the package options
-      _qmpackage->Initialize(&_package_options);
+      _qmpackage->Initialize(_package_options);
 
 
       Property _job_summary;
-      Property *_output_summary = &_job_summary.add("output", "");
-      Property *_segment_summary = &_output_summary->add("segment", "");
+      Property &_output_summary = _job_summary.add("output", "");
+      Property &_segment_summary = _output_summary.add("segment", "");
       string segName = seg->getName();
       segId = seg->getId();
       _segment_summary->setAttribute("id", segId);
@@ -320,7 +320,7 @@ namespace votca {
 
         CTP_LOG(ctp::logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
 
-        _segment_summary->add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
+        _segment_summary.add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
       }
       CTP_LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
 

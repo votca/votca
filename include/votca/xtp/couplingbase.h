@@ -52,8 +52,9 @@ public:
                                const Orbitals& orbitalsB)=0;
     
     void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
+    
 protected:
-     ctp::Logger *_pLog;
+    ctp::Logger *_pLog;
     void CheckAtomCoordinates(const Orbitals& orbitalsA, const Orbitals& orbitalsB, const Orbitals& orbitalsAB);
    
    Eigen::MatrixXd CalculateOverlapMatrix(const Orbitals& orbitalsAB); 

@@ -200,10 +200,10 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
     
      
     if (iterCnt == 0) {
-    dftengine.Initialize(&_dft_options);
+    dftengine.Initialize(_dft_options);
     dftengine.setLogger(_log);
     dftengine.ConfigureExternalGrid(_externalgridaccuracy);  
-    dftengine.Prepare(&orb_iter_input);
+    dftengine.Prepare(orb_iter_input);
     SetupPolarSiteGrids(dftengine.getExternalGridpoints(),orb_iter_input.QMAtoms());
     }
 
@@ -223,12 +223,10 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
     dftengine.setExternalGrid(ExtractElGrid_fromPolarsites(),ExtractNucGrid_fromPolarsites());
     
     if (_run_dft) {
-    dftengine.Evaluate(&orb_iter_input);
+    dftengine.Evaluate(orb_iter_input);
     }
-    FILE *out;
-	out = fopen((runFolder + "/system.pdb").c_str(),"w");
-	orb_iter_input.WritePDB(out,"Full structure");
-	fclose(out);
+  
+	orb_iter_input.WriteXYZ(runFolder + "/Fullstructure.xyz","Full structure");
 
     // Run GWBSE
 	if (_run_gwbse){
@@ -306,7 +304,7 @@ bool QMAPEMachine::EvaluateGWBSE(Orbitals &orb, string runFolder) {
         gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
         gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
         gwbse_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
-        _gwbse.Initialize(&_gwbse_options);
+        _gwbse.Initialize(_gwbse_options);
         // actual GW-BSE run
 
         _gwbse.Evaluate();
