@@ -111,6 +111,25 @@ class Elements {
   const std::string &getEleShort(std::string elefull) const {
     return _EleShort.at(elefull);
   }
+
+	/// Get the shortened element name given a mass similar in size to one of 
+	/// the elements. Provided the mass is within the specified tolerance of 
+	/// the match.  
+	std::string getEleShortClosestInMass(double mass,double tolerance){
+		std::string eleShort = "H";
+		double diff = abs(mass-_Mass[eleShort]);
+		for(const auto & ele_pr : _Mass ){
+			if(abs(ele_pr.second-mass)<diff){
+				eleShort = ele_pr.first;
+				diff = abs(ele_pr.second-mass);
+			}
+		}
+		if(diff/_Mass[eleShort]>tolerance){
+			throw std::runtime_error("Mass exceeds tolerance of match");
+		}
+		return eleShort;
+	}
+
   /// Provided the element symbol returns the element name
   /// "Pb" = "LEAD", "Na" = "SODIUM", ....
   const std::string &getEleFull(std::string eleshort) const {
