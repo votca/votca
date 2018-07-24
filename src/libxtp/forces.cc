@@ -110,11 +110,11 @@ namespace votca {
 
             for (unsigned i_cart = 0; i_cart < 3; i_cart++) {
 
-                tools::vec displaced(0, 0, 0);          
-                displaced[i_cart](_displacement * tools::conv::ang2bohr); //  _displacement in Angstrom
+                tools::vec displacement_vec(0, 0, 0);          
+                displacement_vec[i_cart]=_displacement * tools::conv::ang2bohr; //  _displacement in Angstrom
                
                 // update the coordinate
-                tools::vec pos_displaced = current_pos + displaced;
+                tools::vec pos_displaced = current_pos + displacement_vec;
 
                 atom->setPos(pos_displaced); 
 
@@ -139,17 +139,17 @@ namespace votca {
             const tools::vec current_pos =atom->getPos();
             Eigen::Vector3d force=Eigen::Vector3d::Zero();
             // go through all cartesian components
-            for (unsigned _i_cart = 0; _i_cart < 3; _i_cart++) {
+            for (unsigned i_cart = 0; i_cart < 3; i_cart++) {
 
                 if ( _noisy_output ){
-                    CTP_LOG(ctp::logINFO, *_pLog) << "FORCES--DEBUG           Cartesian component " << _i_cart << flush;
+                    CTP_LOG(ctp::logINFO, *_pLog) << "FORCES--DEBUG           Cartesian component " << i_cart << flush;
                 }
                 
-                tools::vec displaced(0, 0, 0);          
-                displaced[i_cart](_displacement * tools::conv::ang2bohr); //  _displacement in Angstrom
+                tools::vec displacement_vec(0, 0, 0);          
+                displacement_vec[i_cart]=_displacement * tools::conv::ang2bohr; //  _displacement in Angstrom
 
                 // update the coordinate
-                tools::vec pos_displaced = current_pos + displaced;
+                tools::vec pos_displaced = current_pos + displacement_vec;
 
                 atom->setPos(pos_displaced); 
 
@@ -163,7 +163,7 @@ namespace votca {
                 // get displacement vector in negative direction
 
                 // update the coordinate
-                pos_displaced = current_pos - displaced;
+                pos_displaced = current_pos - displacement_vec;
                 atom->setPos(pos_displaced); 
 
                 // run DFT and GW-BSE for this geometry
@@ -173,7 +173,7 @@ namespace votca {
                 double energy_displaced_minus = _orbitals.getTotalEnergy(_spin_type, _opt_state);
 
                 // calculate force and put into matrix
-                force(_i_cart) = 0.5 * (energy_displaced_minus - energy_displaced_plus) / (_displacement * votca::tools::conv::ang2bohr); // force a.u./a.u.
+                force(i_cart) = 0.5 * (energy_displaced_minus - energy_displaced_plus) / (_displacement * votca::tools::conv::ang2bohr); // force a.u./a.u.
                 atom->setPos(current_pos); // restore original coordinate into segment
             }
 

@@ -23,6 +23,7 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/ctp/logger.h>
 #include <boost/format.hpp>
+#include <votca/xtp/aomatrix.h>
 
 
 namespace votca { namespace xtp {

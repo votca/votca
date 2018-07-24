@@ -237,7 +237,7 @@ namespace votca {
                     _orb_file << _size_of_basis << endl;
                     // number of orbitals
                     _orb_file << _size_of_basis << endl;
-                    ReorderMOsBack(*orbitals);
+                    ReorderMOsBack(orbitals);
                     std::vector<int> _sort_index=orbitals.SortEnergies();
                     int level = 1;
                     int ncolumns = 3;
@@ -344,7 +344,7 @@ namespace votca {
         /**
          * Runs the NWChem job.
          */
-        bool NWChem::Run( Orbitals* _orbitals ) {
+        bool NWChem::Run( Orbitals& orbitals ) {
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Running NWChem job" << flush;
 

@@ -485,7 +485,7 @@ namespace votca {
         }
         //TODO move to Filereader
 
-        void Orbitals::LoadFromXYZ(std::string filename) {
+        void Orbitals::LoadFromXYZ(const std::string& filename) {
 
             string line;
             std::ifstream in;

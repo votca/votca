@@ -371,7 +371,7 @@ namespace votca {
         } 
        Property _job_summary;
        if (_do_dftcoupling) {
-        DFTcoupling dftcoupling = DFTcoupling();
+        DFTcoupling dftcoupling;
         dftcoupling.setLogger(pLog);
         dftcoupling.Initialize(_dftcoupling_options);
         Orbitals orbitalsB;
@@ -393,6 +393,7 @@ namespace votca {
 
         try {
           dftcoupling.CalculateCouplings();
+          dftcoupling.Addoutput(_job_input,orbitalsA,orbitalsB)
         } catch (std::runtime_error& error) {
           SetJobToFailed(jres, pLog, error.what().str());
           return jres;
@@ -456,14 +457,11 @@ namespace votca {
         }
 
         }
-        Property *_job_output = &_job_summary.add("output", "");
-        if (_calculate_integrals) {
-          // adding coupling elements 
-          _orbitalsAB.setSingletCouplings(bsecoupling.getJAB_singletstorage());
-          _orbitalsAB.setTripletCouplings(bsecoupling.getJAB_tripletstorage());
-          Property *_pair_summary = &_job_output->add("pair", "");
-          Property *_type_summary = &_pair_summary->add("type", "");
-          bsecoupling.Addoutput(_type_summary, &_orbitalsA, & _orbitalsB);
+        Property &job_output = _job_summary.add("output", "");
+        if (_do_bsecoupling) {
+          Property &_pair_summary = _job_output->add("pair", "");
+          Property &_type_summary = _pair_summary->add("type", "");
+          bsecoupling.Addoutput(_type_summary, _orbitalsA,  _orbitalsB);
         }
 
 

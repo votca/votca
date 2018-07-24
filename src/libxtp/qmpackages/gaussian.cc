@@ -321,42 +321,37 @@ namespace votca {
          * itself is taken from a prepared orbitals object.
          */
         void Gaussian::WriteGuess(Orbitals& orbitals_guess, std::ofstream& _com_file) {
-            if (orbitals_guess == NULL) {
-                throw std::runtime_error("A guess for dimer orbitals has not been prepared.");
-            } else {
-                
-                std::vector<int> _sort_index=orbitals_guess.SortEnergies();
-                ReorderMOsBack(*orbitals_guess);
-                
-                
 
-                _com_file << "(5D15.8)" << endl;
+            std::vector<int> _sort_index = orbitals_guess.SortEnergies();
+            ReorderMOsBack(orbitals_guess);
 
-                int level = 1;
-                int ncolumns = 5;
+            _com_file << "(5D15.8)" << endl;
 
-                for (std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++soi) {
+            int level = 1;
+            int ncolumns = 5;
+
+            for (std::vector< int > ::iterator soi = _sort_index.begin(); soi != _sort_index.end(); ++soi) {
 
 
-                    _com_file << setw(5) << level << endl;
+                _com_file << setw(5) << level << endl;
 
-                  Eigen::VectorXd mr=orbitals_guess.MOCoefficients().col(*soi);
+                Eigen::VectorXd mr = orbitals_guess.MOCoefficients().col(*soi);
 
-                    int column = 1;
-                    for (unsigned j = 0; j < mr.size(); ++j) {
-                        _com_file << FortranFormat(mr[j]);
-                        if (column == ncolumns) {
-                            _com_file << std::endl;
-                            column = 0;
-                        }
-                        column++;
+                int column = 1;
+                for (unsigned j = 0; j < mr.size(); ++j) {
+                    _com_file << FortranFormat(mr[j]);
+                    if (column == ncolumns) {
+                        _com_file << std::endl;
+                        column = 0;
                     }
-
-                    level++;
-                    if (column != 1) _com_file << endl;
+                    column++;
                 }
-                _com_file << 0 << endl;
+
+                level++;
+                if (column != 1) _com_file << endl;
             }
+            _com_file << 0 << endl;
+
             return;
         }
 
@@ -620,7 +615,7 @@ namespace votca {
                     }
 
                     if (substring == "fort.7") {
-                        std::string file_name = _run_dir + "/" + *it;
+                        std::string file_name = _run_dir + "/" + substring;
                         remove(file_name.c_str());
                         if (_output_Vxc) {
                             std::string file_name = _run_dir + "/" + "fort.24";
@@ -633,7 +628,7 @@ namespace votca {
                         boost::filesystem::recursive_directory_iterator fit(_run_dir);
                         boost::filesystem::recursive_directory_iterator endit;
                         while (fit != endit) {
-                            if (boost::filesystem::is_regular_file(* fit) && fit->path().extension() == *it) fileswithfileending.push_back(fit->path().filename().string());
+                            if (boost::filesystem::is_regular_file(* fit) && fit->path().extension() == substring) fileswithfileending.push_back(fit->path().filename().string());
                             ++fit;
                         }
                         for (const auto filename : fileswithfileending) {

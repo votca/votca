@@ -42,7 +42,7 @@ public:
 
    std::string getPackageName() { return "orca"; }
 
-   void Initialize( tools::Property *options );
+   void Initialize( tools::Property &options );
 
    bool WriteInputFile( Orbitals& orbitals);
 

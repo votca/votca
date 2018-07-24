@@ -62,7 +62,7 @@ private:
                                 )const;
     
     
-    std::pair<int,int> DetermineRangeOfStates(const Orbitals& orbital)const;
+    std::pair<int,int> DetermineRangeOfStates(const Orbitals& orbital, int numberofstates)const;
     
     Eigen::MatrixXd JAB;
     

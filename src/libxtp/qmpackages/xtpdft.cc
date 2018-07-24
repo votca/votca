@@ -76,7 +76,7 @@ namespace votca {
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Preparing XTP DFTENGINE "  << flush;
             _xtpdft.setLogger(_pLog);
-            _xtpdft.Prepare( orbitals_guess );
+            _xtpdft.Prepare( orbitals );
             CTP_LOG(ctp::logDEBUG, *_pLog) << " done "  << flush;
 
             return true;
@@ -94,9 +94,9 @@ namespace votca {
          */
         bool XTPDFT::Run( Orbitals& _orbitals ) {
 
-            if ( !_orbitals->hasQMAtoms() ){
+            if ( !_orbitals.hasQMAtoms() ){
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Reading structure from " << _xyz_file_name << flush;
-                _orbitals->LoadFromXYZ(_xyz_file_name);
+                _orbitals.LoadFromXYZ(_xyz_file_name);
             }
 
 

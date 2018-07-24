@@ -170,7 +170,7 @@ namespace votca {
 
       for (QMAtom* atom : qmatoms) {
         tools::vec pos = atom->getPos() * tools::conv::bohr2ang;
-        _com_file << setw(3) << (*it)->getType().c_str()
+        _com_file << setw(3) << atom->getType().c_str()
                 << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()
                 << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()
                 << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()
@@ -290,7 +290,7 @@ namespace votca {
             // header
             _com_file << "* xyz  " << _charge << " " << _spin << endl;
 
-            std::vector< QMAtom* > qmatoms = orbitals_guess->QMAtoms();
+            std::vector< QMAtom* > qmatoms = orbitals.QMAtoms();
             // put coordinates
             WriteCoordinates(_com_file, qmatoms);
             // add parallelization info

@@ -330,19 +330,19 @@ namespace votca {
                 orb_iter_input.setDFTbasis(_qmpack->getBasisSetName());
 
                 // Get a GWBSE object
-                GWBSE _gwbse = GWBSE(orb_iter_input);
+                GWBSE gwbse = GWBSE(orb_iter_input);
                 // define own logger for GW-BSE that is written into a runFolder logfile
                 ctp::Logger gwbse_logger(ctp::logDEBUG);
                 gwbse_logger.setMultithreading(false);
                 //_gwbse.setLogger(_log);
-                _gwbse.setLogger(&gwbse_logger);
+                gwbse.setLogger(&gwbse_logger);
                 gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
                 gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
                 gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
                 gwbse_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
 
                 // Initialize with options
-                _gwbse.Initialize(&_gwbse_options);
+                gwbse.Initialize(_gwbse_options);
 
                 /* Only execute GWBSE if excited state is requested. This is a bit
                  * weird construction to have ground state calculation treated in
@@ -374,7 +374,7 @@ namespace votca {
                     }
 
                     // actual GW-BSE run
-                    _gwbse.Evaluate();
+                    gwbse.Evaluate();
 
                     // write logger to log file
                     ofstream ofs;
