@@ -79,6 +79,29 @@ BOOST_AUTO_TEST_CASE(test_topologyreader){
 	cerr << "Reading topology file" << endl;
 	lammpsDataReader = TopReaderFactory().Create("data");
 	lammpsDataReader->ReadTopology(lammpsdatafilename,top);
+	
+	BOOST_CHECK_EQUAL(top.BeadCount(),100);
+
+	vec first_bead_correct_pos(58.137,52.820,51.610);
+	Bead * firstBead = top.getBead(0);
+	auto first_bead_pos = firstBead->getPos();
+	BOOST_CHECK(first_bead_correct_pos.isClose(first_bead_pos,0.01));
+
+	vec last_bead_correct_pos(81.477,73.715,74.455);
+	Bead * lastBead = top.getBead(99);
+	auto last_bead_pos = lastBead->getPos();
+	BOOST_CHECK(last_bead_correct_pos.isClose(last_bead_pos,0.01));
+
+	auto mol = top.getMolecule(0);
+	cerr << "Bead count " << mol->BeadCount() << endl;
+	BOOST_CHECK_EQUAL(mol->BeadCount(),100);
+
+	auto interaction_cont = top.BondedInteractions();
+	int numBondInter = 99;
+	int numAngleInter = 98;
+	int numDihedralInter = 97;
+	int totalInter = numBondInter+numAngleInter+numDihedralInter;
+	BOOST_CHECK_EQUAL(interaction_cont.size(),totalInter);
 }
 
 /*****************************************************************************

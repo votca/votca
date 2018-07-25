@@ -35,16 +35,13 @@ namespace votca { namespace csg {
 
 		
 		topology_ = true;
-		cerr << "Cleaning topology" << endl;
 		top.Cleanup();
-		cerr << "Opening file" << endl;
 		fl_.open(file.c_str());
 		if(!fl_.is_open())
 			throw std::ios_base::failure("Error on open topology file: " + file);
 
 		fname_=file;
 
-		cerr << "Calling Next Frame" << endl;
 		NextFrame(top);
 
 		fl_.close();
@@ -78,11 +75,9 @@ namespace votca { namespace csg {
 
 		int timestep = -1;
 		string line;
-		cerr << "Calling get line " << endl;
 		getline(fl_, line);
 		while(!fl_.eof()) {
 
-			cerr << line << endl;
 			bool labelMatched = false;
 			Tokenizer tok(line, " ");
 			vector<string> fields;
@@ -130,12 +125,9 @@ namespace votca { namespace csg {
 	bool LAMMPSDataReader::MatchOneFieldLabel_(vector<string> fields,Topology & top){
 
 		if(fields.at(0) == "Masses"){
-			cerr << "Sorting Masses into data group" << endl;
 			SortIntoDataGroup_("Masses");
-			cerr << "Initializing atom types " << endl;
 			InitializeAtomTypes_();
 		}else if(fields.at(0) == "Atoms" ){
-			cerr << "Reading Atoms now " << endl;
 			ReadAtoms_(top);
 		}else if(fields.at(0) == "Bonds" ){
 			ReadBonds_(top);
@@ -253,7 +245,7 @@ namespace votca { namespace csg {
 
 		for( auto mass : data_["Masses"] ){
 			// Determine the mass associated with the atom 
-			double mass_atom = stod(mass.at(1));
+			double mass_atom = boost::lexical_cast<double>(mass.at(1));
 			// Determine the element (Symbol) by looking at the mass
 			// Second argument is the tolerance
 			string eleShort = elements.getEleShortClosestInMass(mass_atom,0.01);
@@ -271,7 +263,7 @@ namespace votca { namespace csg {
 		int index=0;
 		for( auto mass : data_["Masses"] ){
 			// Determine the mass associated with the atom 
-			double mass_atom = stod(mass.at(1));
+			double mass_atom = boost::lexical_cast<double>(mass.at(1));
 			// Determine the element (Symbol) by looking at the mass
 			// Second argument is the tolerance
 			string eleShort = elements.getEleShortClosestInMass(mass_atom,0.01);
@@ -295,7 +287,7 @@ namespace votca { namespace csg {
 	{
 		matrix m;
 		m.ZeroMatrix();
-		m[0][0] = stod(fields.at(1))-stod(fields.at(0)); 
+		m[0][0] = boost::lexical_cast<double>(fields.at(1))-boost::lexical_cast<double>(fields.at(0)); 
 
 		for(int i=1; i<3; ++i) {
 			string line;
@@ -306,7 +298,7 @@ namespace votca { namespace csg {
 				throw runtime_error("invalid box format in the lammps data file");
 			}
 
-			m[i][i] = stod(fields.at(1))-stod(fields.at(0)); 
+			m[i][i] = boost::lexical_cast<double>(fields.at(1))-boost::lexical_cast<double>(fields.at(0)); 
 		}
 		top.setBox(m);
 	}
@@ -371,7 +363,6 @@ namespace votca { namespace csg {
 		double x, y, z;
 
 		while(!line.empty()){
-			cerr << line << endl;
 			istringstream iss(line);
 			iss >> atomId;
 			iss >> moleculeId;
@@ -384,21 +375,18 @@ namespace votca { namespace csg {
 			moleculeId--;
 			atomTypeId--;
 
-			cerr << "Atom to molecule Id setting up map" << endl;
 			atomIdToMoleculeId_[atomId]=moleculeId;
 
 			Molecule * mol;
 			if(!molecules_.count(moleculeId)){
-				cerr << "Creating molecule" << endl;
 				mol = top.CreateMolecule("Unknown");
 				molecules_[moleculeId] = mol;
 			}else{
-				cerr << "Grabbing molecule if it doesn't exist" << endl;
 				mol = molecules_[moleculeId];
 			}
 
 			int symmetry = 1; // spherical
-			double mass = stod(data_["Masses"].at(atomTypeId).at(1));
+			double mass = boost::lexical_cast<double>(data_["Masses"].at(atomTypeId).at(1));
 			string bead_type_name = atomtypes_[atomTypeId].at(1);	
 			BeadType * bead_type = top.GetOrCreateBeadType(bead_type_name);
 
@@ -419,6 +407,9 @@ namespace votca { namespace csg {
 					mass,
 					charge);
 
+			vec xyz_pos(x,y,z);
+			b->setPos(xyz_pos);
+			mol->AddBead(b,bead_type_name);
 			b->setMolecule(mol);
 
 			getline(fl_,line);
@@ -457,19 +448,12 @@ namespace votca { namespace csg {
 			bondTypeId--;
 
 			Interaction * ic = new IBond(atom1Id,atom2Id);
-			cerr << "Setting group" << endl;
 			ic->setGroup("BONDS");
-			cerr << "Setting bond Id" << endl;
 			ic->setIndex(bondId);
-			cerr << "Getting Bead " << endl;
 			auto b = top.getBead(atom1Id);
-			cerr << "Getting molecule " << endl;
 			auto mi = b->getMolecule();
-			cerr << "Attaching interaction with Molecule " << endl;
 			ic->setMolecule(atomIdToMoleculeId_[atom1Id]);
-			cerr << "Adding Interaction to topology " << endl;
 			top.AddBondedInteraction(ic);
-			cerr << "Adding molecule to interaction" << endl;
 			mi->AddInteraction(ic);
 
 			++bond_count;
