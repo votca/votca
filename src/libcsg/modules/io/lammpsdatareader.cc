@@ -424,6 +424,14 @@ namespace votca { namespace csg {
 			getline(fl_,line);
 		}
 
+		if(top.BeadCount()!=numberOf_["atoms"]){
+			string err = "The number of atoms read in is not equivalent to the "
+				"number of atoms indicated to exist in the lammps data file. \n"
+				"Number of atoms that should exist " + to_string(numberOf_["atoms"]) +
+				"\nNumber of atoms that were read in " + to_string(top.BeadCount()) + 
+				"\n";
+			throw runtime_error(err);
+		}
 	}
 
 	void LAMMPSDataReader::ReadBonds_(Topology &top) {
@@ -435,6 +443,7 @@ namespace votca { namespace csg {
 		int bondTypeId;
 		int atom1Id, atom2Id;
 
+		int bond_count = 0;
 		while(!line.empty()){
 			istringstream iss(line);
 			iss >> bondId;
@@ -463,8 +472,19 @@ namespace votca { namespace csg {
 			cerr << "Adding molecule to interaction" << endl;
 			mi->AddInteraction(ic);
 
+			++bond_count;
 			getline(fl_,line);
 		}
+
+		if(bond_count!=numberOf_["bonds"]){
+			string err = "The number of bonds read in is not equivalent to the "
+				"number of bonds indicated to exist in the lammps data file. \n"
+				"Number of bonds that should exist " + to_string(numberOf_["bonds"]) +
+				"\nNumber of bonds that were read in " + to_string(bond_count) + 
+				"\n";
+			throw runtime_error(err);
+		}
+
 	}
 
 	void LAMMPSDataReader::ReadAngles_(Topology &top) {
@@ -475,6 +495,8 @@ namespace votca { namespace csg {
 		int angleId;
 		int angleTypeId;
 		int atom1Id, atom2Id, atom3Id;
+
+		int angle_count = 0;
 
 		while(!line.empty()){
 			istringstream iss(line);
@@ -499,7 +521,18 @@ namespace votca { namespace csg {
 			top.AddBondedInteraction(ic);
 			mi->AddInteraction(ic);
 
+			++angle_count;
+
 			getline(fl_,line);
+		}
+
+		if(angle_count!=numberOf_["angles"]){
+			string err = "The number of angles read in is not equivalent to the "
+				"number of angles indicated to exist in the lammps data file. \n"
+				"Number of angles that should exist " + to_string(numberOf_["angles"]) +
+				"\nNumber of angles that were read in " + to_string(angle_count) + 
+				"\n";
+			throw runtime_error(err);
 		}
 	}
 
@@ -512,6 +545,7 @@ namespace votca { namespace csg {
 		int dihedralTypeId;
 		int atom1Id, atom2Id, atom3Id, atom4Id;
 
+		int dihedral_count = 0;
 		while(!line.empty()){
 			istringstream iss(line);
 			iss >> dihedralId;
@@ -537,7 +571,17 @@ namespace votca { namespace csg {
 			top.AddBondedInteraction(ic);
 			mi->AddInteraction(ic);
 
+			++dihedral_count;
 			getline(fl_,line);
+		}
+
+		if(dihedral_count!=numberOf_["dihedrals"]){
+			string err = "The number of dihedrals read in is not equivalent to the "
+				"number of dihedrals indicated to exist in the lammps data file. \n"
+				"Number of dihedrals that should exist " + to_string(numberOf_["dihedrals"]) +
+				"\nNumber of dihedrals that were read in " + to_string(dihedral_count) + 
+				"\n";
+			throw runtime_error(err);
 		}
 	}
 
