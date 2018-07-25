@@ -27,6 +27,7 @@
 #include <votca/tools/matrix.h>
 #include <votca/tools/types.h>
 #include <votca/tools/elements.h>
+#include <votca/csg/topologyreader.h>
 #include <votca/csg/orthorhombicbox.h>
 #include <votca/csg/bead.h>
 #include <votca/csg/trajectorywriter.h>
@@ -36,6 +37,8 @@ using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
 
+BOOST_AUTO_TEST_SUITE(lammpsdatareaderwriter_test)
+
 // used for rounding doubles so we can compare them
 double round_(double v, int p);
 
@@ -44,51 +47,39 @@ bool fexists_(const string filename);
 
 void printTestFile_(const string filename);
 
-BOOST_AUTO_TEST_SUITE(lammpsdatareaderwriter_test)
-
-	/**
-	 * \brief Test the trajectory reader
-	 *
-	 * This test is designed to test the trajectory reader this is done by
-	 * creating a small lammps data file. A topology object is created with
-	 * some default values. The file is then read in with the 
-	 * trajectory reader and the values in the top object are then examined
-	 * to ensure they no longer represent the default state but the values 
-	 * from the file. 
-	 */
-	BOOST_AUTO_TEST_CASE(test_trajectoryreader){
-
-		// Create a .data file with (polymer strand)
-		// and read from it. Create a topology object with the same 
-		// molecule to enable the ability to read in the trajectory 
-		// file
-		string lammpsdatafilename = "test_polymer.data";
-		if(fexists_(lammpsdatafilename)){
-			remove(lammpsdatafilename.c_str());
-		}
-		printTestFile_(lammpsdatafilename);
-
-		Topology top;
-
-
-	}
-
-/** 
- * \brief Testing trajectory writer
+/**
+ * \brief Test the trajectory reader
  *
- * This test first creates a topology object and assigns default values to
- * it. It then writes the topology info to a lammps data file. The data 
- * file is then read into the topology file and the values are compared. 
+ * This test is designed to test the trajectory reader this is done by
+ * creating a small lammps data file. A topology object is created with
+ * some default values. The file is then read in with the 
+ * trajectory reader and the values in the top object are then examined
+ * to ensure they no longer represent the default state but the values 
+ * from the file. 
  */
-BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
+BOOST_AUTO_TEST_CASE(test_topologyreader){
 
-	// Create a topology object with a simple system (polymer strand)
-	// and write it to a lammps data file
+	// Create a .data file with (polymer strand)
+	// and read from it. Create a topology object with the same 
+	// molecule to enable the ability to read in the trajectory 
+	// file
+	string lammpsdatafilename = "test_polymer.data";
+	if(fexists_(lammpsdatafilename)){
+		remove(lammpsdatafilename.c_str());
+	}
+	cerr << "Creating test file" << endl;
+	printTestFile_(lammpsdatafilename);
+
 	Topology top;
 
+	cerr << "Register plugins" << endl;
+	TopologyReader::RegisterPlugins();
+	cerr << "Creating Topology Reader" << endl;
+	TopologyReader * lammpsDataReader;
+	cerr << "Reading topology file" << endl;
+	lammpsDataReader = TopReaderFactory().Create("data");
+	lammpsDataReader->ReadTopology(lammpsdatafilename,top);
 }
-
-BOOST_AUTO_TEST_SUITE_END()
 
 /*****************************************************************************
  * Internal test functions                                                   *
@@ -653,4 +644,4 @@ void printTestFile_(const string filename){
 	outfile.close();
 }
 
-
+BOOST_AUTO_TEST_SUITE_END()

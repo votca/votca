@@ -32,14 +32,19 @@ namespace votca { namespace csg {
 
 	bool LAMMPSDataReader::ReadTopology(string file,  Topology &top)
 	{
-		topology_ = true;
-		top.Cleanup();
 
+		
+		topology_ = true;
+		cerr << "Cleaning topology" << endl;
+		top.Cleanup();
+		cerr << "Opening file" << endl;
 		fl_.open(file.c_str());
 		if(!fl_.is_open())
 			throw std::ios_base::failure("Error on open topology file: " + file);
+
 		fname_=file;
 
+		cerr << "Calling Next Frame" << endl;
 		NextFrame(top);
 
 		fl_.close();
@@ -73,9 +78,11 @@ namespace votca { namespace csg {
 
 		int timestep = -1;
 		string line;
+		cerr << "Calling get line " << endl;
 		getline(fl_, line);
 		while(!fl_.eof()) {
 
+			cerr << line << endl;
 			bool labelMatched = false;
 			Tokenizer tok(line, " ");
 			vector<string> fields;
@@ -123,9 +130,12 @@ namespace votca { namespace csg {
 	bool LAMMPSDataReader::MatchOneFieldLabel_(vector<string> fields,Topology & top){
 
 		if(fields.at(0) == "Masses"){
+			cerr << "Sorting Masses into data group" << endl;
 			SortIntoDataGroup_("Masses");
+			cerr << "Initializing atom types " << endl;
 			InitializeAtomTypes_();
 		}else if(fields.at(0) == "Atoms" ){
+			cerr << "Reading Atoms now " << endl;
 			ReadAtoms_(top);
 		}else if(fields.at(0) == "Bonds" ){
 			ReadBonds_(top);
@@ -285,7 +295,7 @@ namespace votca { namespace csg {
 	{
 		matrix m;
 		m.ZeroMatrix();
-		m[0][0] = stod(fields.at(1))-stod(fields.at(2)); 
+		m[0][0] = stod(fields.at(1))-stod(fields.at(0)); 
 
 		for(int i=1; i<3; ++i) {
 			string line;
@@ -296,7 +306,7 @@ namespace votca { namespace csg {
 				throw runtime_error("invalid box format in the lammps data file");
 			}
 
-			m[i][i] = stod(fields.at(1))-stod(fields.at(2)); 
+			m[i][i] = stod(fields.at(1))-stod(fields.at(0)); 
 		}
 		top.setBox(m);
 	}
@@ -305,14 +315,13 @@ namespace votca { namespace csg {
 		string line;
 		getline(fl_,line);
 		getline(fl_,line);
-
+		
 		vector<vector<string>> group;		
 		string data_elem;
-		while(line!=""){
+		while(!line.empty()){
 			vector<string> mini_group;
 			istringstream iss(line);
-			iss >> data_elem;
-			while(!iss.str().empty()){
+			while(iss){
 				iss >> data_elem;
 				mini_group.push_back(data_elem);
 			}
@@ -358,31 +367,39 @@ namespace votca { namespace csg {
 		int moleculeId;
 		int atomTypeId;
 
-		double charge;
+		double charge = 0;
 		double x, y, z;
 
-		while(line!=""){
+		while(!line.empty()){
+			cerr << line << endl;
 			istringstream iss(line);
 			iss >> atomId;
 			iss >> moleculeId;
 			iss >> atomTypeId;
-			iss >> charge;
 			iss >> x;
 			iss >> y;
 			iss >> z;
 
+			atomId--;
+			moleculeId--;
+			atomTypeId--;
+
+			cerr << "Atom to molecule Id setting up map" << endl;
 			atomIdToMoleculeId_[atomId]=moleculeId;
 
 			Molecule * mol;
 			if(!molecules_.count(moleculeId)){
+				cerr << "Creating molecule" << endl;
 				mol = top.CreateMolecule("Unknown");
+				molecules_[moleculeId] = mol;
 			}else{
+				cerr << "Grabbing molecule if it doesn't exist" << endl;
 				mol = molecules_[moleculeId];
 			}
 
 			int symmetry = 1; // spherical
 			double mass = stod(data_["Masses"].at(atomTypeId).at(1));
-			string bead_type_name = atomtypes_[atomTypeId].at(2);	
+			string bead_type_name = atomtypes_[atomTypeId].at(1);	
 			BeadType * bead_type = top.GetOrCreateBeadType(bead_type_name);
 
 			// Will use the molecule id as the resnum for lack of a better option	
@@ -416,22 +433,35 @@ namespace votca { namespace csg {
 		int bondTypeId;
 		int atom1Id, atom2Id;
 
-		while(line!=""){
+		while(!line.empty()){
 			istringstream iss(line);
 			iss >> bondId;
 			iss >> bondTypeId;
 			iss >> atom1Id;
 			iss >> atom2Id;
+				
+			atom1Id--;
+			atom2Id--;
+			bondId--; 
+			bondTypeId--;
 
 			Interaction * ic = new IBond(atom1Id,atom2Id);
+			cerr << "Setting group" << endl;
 			ic->setGroup("BONDS");
+			cerr << "Setting bond Id" << endl;
 			ic->setIndex(bondId);
+			cerr << "Getting Bead " << endl;
 			auto b = top.getBead(atom1Id);
+			cerr << "Getting molecule " << endl;
 			auto mi = b->getMolecule();
+			cerr << "Attaching interaction with Molecule " << endl;
 			ic->setMolecule(atomIdToMoleculeId_[atom1Id]);
+			cerr << "Adding Interaction to topology " << endl;
 			top.AddBondedInteraction(ic);
+			cerr << "Adding molecule to interaction" << endl;
 			mi->AddInteraction(ic);
 
+			getline(fl_,line);
 		}
 	}
 
@@ -444,13 +474,19 @@ namespace votca { namespace csg {
 		int angleTypeId;
 		int atom1Id, atom2Id, atom3Id;
 
-		while(line!=""){
+		while(!line.empty()){
 			istringstream iss(line);
 			iss >> angleId;
 			iss >> angleTypeId;
 			iss >> atom1Id;
 			iss >> atom2Id;
 			iss >> atom3Id;
+				
+			angleId--;
+			angleTypeId--;
+			atom1Id--;
+			atom2Id--;
+			atom3Id--;
 
 			Interaction * ic = new IAngle(atom1Id,atom2Id,atom3Id);
 			ic->setGroup("ANGLES");
@@ -473,7 +509,7 @@ namespace votca { namespace csg {
 		int dihedralTypeId;
 		int atom1Id, atom2Id, atom3Id, atom4Id;
 
-		while(line!=""){
+		while(!line.empty()){
 			istringstream iss(line);
 			iss >> dihedralId;
 			iss >> dihedralTypeId;
@@ -481,6 +517,13 @@ namespace votca { namespace csg {
 			iss >> atom2Id;
 			iss >> atom3Id;
 			iss >> atom4Id;
+
+			dihedralId--;
+			dihedralTypeId--;
+			atom1Id--;
+			atom2Id--;
+			atom3Id--;
+			atom4Id--;
 
 			Interaction * ic = new IDihedral(atom1Id,atom2Id,atom3Id,atom4Id);
 			ic->setGroup("DIHEDRALS");

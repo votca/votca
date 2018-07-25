@@ -46,7 +46,7 @@ class LAMMPSDataReader :
         /// open a topology file
         bool ReadTopology(std::string file, Topology &top);
 
-        /// open a trejectory file
+        /// open a trajectory file
         bool Open(const std::string &file);
         /// read in the first frame
         bool FirstFrame(Topology &top);

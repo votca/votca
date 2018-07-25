@@ -21,6 +21,7 @@
 
 #include <votca/csg/topologyreader.h>
 #include "modules/io/lammpsdumpreader.h"
+#include "modules/io/lammpsdatareader.h"
 #include "modules/io/xmltopologyreader.h"
 #include "modules/io/xyzreader.h"
 #include "modules/io/groreader.h"
@@ -37,6 +38,7 @@ void TopologyReader::RegisterPlugins(void)
 {
     TopReaderFactory().Register<XMLTopologyReader>("xml");
     TopReaderFactory().Register<LAMMPSDumpReader>("dump");
+    TopReaderFactory().Register<LAMMPSDataReader>("data");
     TopReaderFactory().Register<XYZReader>("xyz");
     TopReaderFactory().Register<GROReader>("gro");
 #ifdef GMX_DOUBLE
