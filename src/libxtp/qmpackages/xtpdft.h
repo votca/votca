@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -46,7 +46,7 @@ namespace votca {
 
             void Initialize(tools::Property *options);
 
-            bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
+            bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
 
             bool Run(Orbitals* _orbitals = NULL);
 
@@ -58,13 +58,12 @@ namespace votca {
 
             bool ParseOrbitalsFile(Orbitals* _orbitals);
             
-            bool setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles);
+            void setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles);
 
         private:
-
+            std::string getChargeOption() { return "";}
             DFTENGINE _xtpdft;
             tools::Property _xtpdft_options;
-
             std::string _cleanup;
 
             

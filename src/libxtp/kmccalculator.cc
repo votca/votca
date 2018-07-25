@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -372,6 +372,9 @@ namespace votca {
         }
         
         Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate){
+            if(_carriers.size()==1){
+                return _carriers[0];
+            }
             Chargecarrier* carrier=NULL;
             double u = 1 - _RandomVariable->rand_uniform();
             for (unsigned int i = 0; i < _numberofcharges; i++) {

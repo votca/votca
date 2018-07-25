@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -48,7 +48,7 @@ public:
     * and a guess for the dimer (if requested) constructed from the
     * monomer orbitals
     */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
+   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
 
    bool WriteShellScript();
 
@@ -58,11 +58,13 @@ public:
 
    bool CheckLogFile();
 
+   
+   
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
+   
 
-   bool setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){ return true; };
 
    std::string getScratchDir( ) { return _scratch_dir; }
 
@@ -81,12 +83,14 @@ private:
     std::string FortranFormat(double number);
     void WriteBasisset(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
     void WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);   
-    void WriteBackgroundCharges(std::ofstream& _com_file,std::vector<ctp::PolarSeg*> PolarSegments);
+    void WriteBackgroundCharges(std::ofstream& _com_file);
     void WriteGuess(Orbitals* orbitals_guess, std::ofstream& _com_file);
     void WriteVXCRunInputFile();
     void WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
     void WriteHeader(std::ofstream& _com_file);
 
+    std::string getChargeOption() { return "charge";}
+    
 };
 
 

@@ -10,8 +10,6 @@
         <archive>system.orb</archive>
         <molecule>system.xyz</molecule>
 
-
-
         <gwbse_engine>
             <tasks help="guess,input,dft,parse,gwbse">input,dft,parse,gwbse</tasks>
             <dftlog>system.log</dftlog>
@@ -19,9 +17,6 @@
             <gwbse_options>mbgft.xml</gwbse_options>
             <redirect_logger>0</redirect_logger>
         </gwbse_engine>
-
-
-
 
         <geometry_optimization>
             <state>1</state>

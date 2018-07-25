@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -48,7 +48,7 @@ public:
     * and a guess for the dimer (if requested) constructed from the
     * monomer orbitals
     */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
+   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
 
    bool WriteShellScript();
 
@@ -61,13 +61,13 @@ public:
    bool ParseLogFile( Orbitals* _orbitals );
 
    bool ParseOrbitalsFile( Orbitals* _orbitals );
-
-   bool setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){ return true; };
-
+   
 
    std::string getScratchDir( ) { return _scratch_dir; }
 
 private:
+    std::string getChargeOption() { return "set bq background";}
+    
 
     std::string                              _shell_file_name;
     std::string                              _chk_file_name;
@@ -83,7 +83,7 @@ private:
     int BasisSetSize( std::string _line );
     int EnergiesFromLog( std::string _line, std::ifstream inputfile );
     std::string FortranFormat( const double &number );
-    int WriteBackgroundCharges(std::ofstream& _nw_file,std::vector<ctp::PolarSeg*> PolarSegments);
+    int WriteBackgroundCharges(std::ofstream& _nw_file);
 
 };
 

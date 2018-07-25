@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -144,7 +144,7 @@ namespace votca {
       unsigned _gwsize = _Mmn.getAuxDimension();
       #pragma omp parallel for schedule(dynamic)
       for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
-        const MatrixXfd Mmn1 = _Mmn[ _gw_level1 + _qpmin ].block(0,0,_homo+1,_gwsize);
+        const MatrixXfd& Mmn1 = _Mmn[ _gw_level1 + _qpmin ];
         for (unsigned _gw_level2 = _gw_level1+1; _gw_level2 < _qptotal; _gw_level2++) {
           const MatrixXfd & Mmn2 = _Mmn[ _gw_level2 + _qpmin ];
           double sigma_x = 0;
@@ -174,7 +174,7 @@ namespace votca {
         const Eigen::VectorXd ppm_freqs=ppm.getPpm_freq();
         #pragma omp for schedule(dynamic)
         for (unsigned _gw_level1 = 0; _gw_level1 < _qptotal; _gw_level1++) {
-        const MatrixXfd Mmn1=_Mmn[ _gw_level1 + _qpmin ];
+        const MatrixXfd& Mmn1=_Mmn[ _gw_level1 + _qpmin ];
         for (unsigned _gw_level2 = _gw_level1+1; _gw_level2 < _qptotal; _gw_level2++) {
           const MatrixXfd Mmn1xMmn2=_Mmn[ _gw_level2 + _qpmin ].cwiseProduct(Mmn1);
           const Eigen::VectorXd gwa_energies=_gwa_energies;

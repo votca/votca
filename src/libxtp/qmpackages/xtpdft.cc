@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -74,15 +74,8 @@ namespace votca {
         /**
          * Dummy for use of XTPDFT as QMPackage, needs no input file
          */
-        bool XTPDFT::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess, std::vector<ctp::PolarSeg* > polar_segments ) {
+        bool XTPDFT::WriteInputFile(std::vector<ctp::Segment* > segments, Orbitals* orbitals_guess) {
 
-            //if ( orbitals_guess != NULL )  {
-            //    CTP_LOG(ctp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
-            //    _orbitals.Load(_guess_file);
-
-            //} else {
-
-           // }
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Preparing XTP DFTENGINE "  << flush;
             _xtpdft.setLogger(_pLog);
             _xtpdft.Prepare( orbitals_guess );
@@ -92,11 +85,8 @@ namespace votca {
         }
 
 
-        bool XTPDFT::setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){
-
+        void XTPDFT::setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){
             _xtpdft.setExternalcharges(multipoles);
-
-            return true;
         }
 
 

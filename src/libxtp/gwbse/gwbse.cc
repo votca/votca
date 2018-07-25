@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -614,7 +614,7 @@ bool GWBSE::Evaluate() {
   }
 #endif
   
-  if(XTP_USE_MKL){
+  if(tools::globals::VOTCA_MKL){
      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                                  << " Using MKL overload for Eigen "<< flush;
   }else{

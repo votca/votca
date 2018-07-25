@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -41,6 +41,7 @@ namespace votca {
         public:
 
             QMPackage() {
+                
             };
 
             virtual ~QMPackage() {
@@ -52,7 +53,7 @@ namespace votca {
             virtual void Initialize(tools::Property *options) = 0;
 
             /// writes a coordinate file WITHOUT taking into account PBCs
-            virtual bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {}) = 0;
+            virtual bool WriteInputFile(std::vector< ctp::Segment* > segments, Orbitals* orbitals = NULL) = 0;
 
             /// writes a coordinate file of a pair WITH PBCs and the orbital guess [if needed]
             bool WriteInputFilePBC(ctp::QMPair* pair, Orbitals* orbitals = NULL, std::vector<std::string> linker_names ={});
@@ -63,9 +64,12 @@ namespace votca {
 
             virtual bool ParseOrbitalsFile(Orbitals* _orbitals) = 0;
 
-            virtual bool setMultipoleBackground( std::vector<ctp::PolarSeg*> PolarSegments) = 0;
+            
 
             virtual void CleanUp() = 0;
+            
+            
+            virtual void setMultipoleBackground( std::vector<ctp::PolarSeg*> PolarSegments);
 
             void setRunDir(std::string run_dir) {
                 _run_dir = run_dir;
@@ -134,6 +138,7 @@ namespace votca {
             }
 
         protected:
+            virtual std::string getChargeOption() =0;
 
             int _charge;
             int _spin; // 2S+1
@@ -169,6 +174,8 @@ namespace votca {
 
             ctp::Logger* _pLog;
 
+            
+            std::vector<ctp::PolarSeg*> _PolarSegments;
             double _dpl_spacing;
             bool _with_polarization;
             std::vector<std::vector<double> > SplitMultipoles(ctp::APolarSite* site);

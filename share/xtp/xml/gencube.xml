@@ -1,9 +1,6 @@
 <options>
 
-<gencube help="Tool to generate cube files from .orb file" section="sec:overlap">
-
-
-
+<gencube help="Tool to generate cube files from .orb file" section="sec:gencube">
 
         <output help="Output file" default="state.cube">H2O.cube</output>
         <input help="Input file" default="system.orb">system.orb</input>

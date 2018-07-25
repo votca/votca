@@ -187,6 +187,7 @@ reg.charge=1.0;
 regionconstraint.push_back(reg);
 Espfit esp3=Espfit(&_log);
 esp3.setRegionConstraint(regionconstraint);
+esp3.setUseSVD(1e-8);
 esp3.Fit2Density(orbitals.QMAtoms(),dmat,aobasis,"medium");
 Eigen::VectorXd pcharges_reg=Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
 index=0;
@@ -195,6 +196,10 @@ for (const QMAtom* atom:orbitals.QMAtoms()){
     index++;
   }
 bool check_reg=(std::abs(pcharges_reg.segment(1,3).sum()-1.0)<1e-6);
+if(!check_reg){
+  std::cout<<"All charges "<<pcharges_reg<<std::endl;
+  std::cout<<"Sum of charges 1,2,3 should equal 1:"<<pcharges_reg.segment(1,3).sum()<<std::endl;
+}
 BOOST_CHECK_EQUAL(check_reg, 1);
 }
         
