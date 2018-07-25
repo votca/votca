@@ -654,10 +654,11 @@ namespace votca {
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Energy levels: " << _levels << flush;
                 }
                 /********************************************************/
-
+                
 
                 std::string::size_type OE_pos = _line.find("ORBITAL ENERGIES");
                 if (OE_pos != std::string::npos) {
+                    _number_of_electrons=0;
                     getline(_input_file, _line);
                     getline(_input_file, _line);
                     getline(_input_file, _line);
