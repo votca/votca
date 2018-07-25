@@ -75,7 +75,13 @@ class LAMMPSDataReader :
 				// String is the type .e.g. "atom", "bond" etc
 				// int is the number of them
 				std::map<string,int> numberOf_;
+
+				// First int is the molecule id
+				// Second int is the molecule ptr
 				std::map<int,Molecule *> molecules_;
+
+				// First int is the atom id second the molecule id
+				std::map<int,int> atomIdToMoleculeId_;
 
 				bool MatchOneFieldLabel_(std::vector<std::string> fields,Topology &top);
 				bool MatchTwoFieldLabels_(std::vector<std::string> fields,Topology &top);
@@ -88,11 +94,13 @@ class LAMMPSDataReader :
 				void SortIntoDataGroup_(std::string tag);
 				void ReadNumTypes_(std::vector<string> fields, string type);
 
-				void ReadNumAtoms_(std::vector<std::string> fields, Topology &top);
-				void ReadNumBonds_(std::vector<std::string> fields, Topology &top);
-				void ReadNumAngles_(std::vector<std::string> fields, Topology &top);
-				void ReadNumDihedrals_(std::vector<std::string> fields, Topology &top);
-				void ReadNumImpropers_(std::vector<std::string> fields, Topology &top);
+				std::vector<std::string> TrimCommentsFrom_(std::vector<std::string> fields);
+
+				void ReadNumOfAtoms_(std::vector<std::string> fields, Topology &top);
+				void ReadNumOfBonds_(std::vector<std::string> fields);
+				void ReadNumOfAngles_(std::vector<std::string> fields);
+				void ReadNumOfDihedrals_(std::vector<std::string> fields);
+				void ReadNumOfImpropers_(std::vector<std::string> fields);
 
 				void ReadAtoms_(Topology &top);
 				void ReadBonds_(Topology &top);
