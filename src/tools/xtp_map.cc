@@ -97,6 +97,10 @@ bool XtpMap::EvaluateOptions() {
 }
 
 void XtpMap::Run() {
+  
+    std::string name = ProgramName();
+    if (VersionString() != "") name = name + ", version " + VersionString();
+    votca::xtp::HelpTextHeader(name);
 
     // +++++++++++++++++++++++++++++++++++++ //
     // Initialize MD2QM Engine and SQLite Db //

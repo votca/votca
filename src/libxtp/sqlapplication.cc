@@ -58,8 +58,9 @@ bool SqlApplication::EvaluateOptions(void) {
 
 void SqlApplication::Run() {
 
-    // load_property_from_xml(_options, _op_vm["options"].as<string>());
-
+    std::string name = ProgramName();
+    if (VersionString() != "") name = name + ", version " + VersionString();
+    votca::xtp::HelpTextHeader(name);
     // EVALUATE OPTIONS
     int nThreads = OptionsMap()["nthreads"].as<int>();
     int nframes = OptionsMap()["nframes"].as<int>();

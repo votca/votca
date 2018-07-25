@@ -25,6 +25,7 @@
 #include <votca/xtp/toolfactory.h>
 #include <votca/xtp/xtpapplication.h>
 #include <stdio.h>
+#include <votca/xtp/version.h>
 
 
 
@@ -204,11 +205,14 @@ void XtpTools::Run() {
   tools::load_property_from_xml(_options, optionsFile);
 
   int nThreads = OptionsMap()["nthreads"].as<int>();
-
+  std::string name = ProgramName();
+  if (VersionString() != "") name = name + ", version " + VersionString();
+  votca::xtp::HelpTextHeader(name);
   cout << "Initializing tools " << endl;
   BeginEvaluate(nThreads);
 
   cout << "Evaluating tools " << endl;
+  
   Evaluate();
 
   EndEvaluate();
