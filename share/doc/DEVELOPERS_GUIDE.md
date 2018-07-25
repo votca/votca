@@ -83,6 +83,7 @@ Code
   * all member variables are in lower case and end with `_`
   * all functions start with upper case, no `_` in names
   * exception: `get`/`set` functions
+  * for consistency all Ids should start at 0 not 1 
 
 ### get/set Functions ###
   * get/set functions start with a lowercase set/get (these are only functions which directly set/get a private member variable)
