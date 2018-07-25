@@ -57,7 +57,7 @@ namespace votca {
 
     void DFTENGINE::Initialize(Property& options) {
 
-      string key = "";
+      string key = "package";
 
       // get OpenMP thread number
 

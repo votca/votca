@@ -74,10 +74,8 @@ namespace votca {
          */
         bool XTPDFT::WriteInputFile(Orbitals& orbitals) {
 
-            CTP_LOG(ctp::logDEBUG, *_pLog) << "Preparing XTP DFTENGINE "  << flush;
             _xtpdft.setLogger(_pLog);
             _xtpdft.Prepare( orbitals );
-            CTP_LOG(ctp::logDEBUG, *_pLog) << " done "  << flush;
 
             return true;
         }
