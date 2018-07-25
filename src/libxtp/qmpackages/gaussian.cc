@@ -92,6 +92,8 @@ namespace votca {
                     _options = _options + " int=nobasistransform ";
                 }
             }
+            
+            
 
 
             // check if the guess keyword is present, if yes, append the guess later
@@ -130,6 +132,19 @@ namespace votca {
             } else {
                 _write_pseudopotentials = false;
             }
+
+        }
+
+        void Gaussian::WriteChargeOption() {
+          std::string::size_type iop_pos = _options.find("charge");
+          if (iop_pos == std::string::npos) {
+            std::string::size_type pos = _options.find('\n');
+            if (pos != std::string::npos) {
+              _options.insert(pos, " charge");
+            } else {
+              _options = _options + " charge";
+            }
+          }
 
         }
 

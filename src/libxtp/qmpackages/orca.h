@@ -72,7 +72,6 @@ private:
 
     std::string                              _cleanup;
 
-    std::string getChargeOption() { return "pointcharges";}
 
     int NumberOfElectrons( std::string _line );
     int BasisSetSize( std::string _line );
@@ -84,6 +83,8 @@ private:
     void WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
     void WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
     void WriteBackgroundCharges();
+    
+    void WriteChargeOption();
 };
 
 

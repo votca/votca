@@ -61,7 +61,7 @@ namespace votca {
             void setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles);
 
         private:
-            std::string getChargeOption() { return "";}
+            void WriteChargeOption() { return ;}
             DFTENGINE _xtpdft;
             tools::Property _xtpdft_options;
             std::string _cleanup;
