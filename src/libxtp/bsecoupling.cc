@@ -97,16 +97,16 @@ void BSECoupling::WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orb
 
 void BSECoupling::Addoutput(Property &type_summary,const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB){
-   
+    tools::Property& bsecoupling= type_summary.add(Identify(),"");
     string algorithm="full_diag";
     int methodindex=1;
     if (_output_perturbation){
         algorithm="perturbation";
         methodindex=0;
     }
-    type_summary.setAttribute("algorithm",algorithm);
+    bsecoupling.setAttribute("algorithm",algorithm);
     if (_doSinglets){
-        Property &singlet_summary = type_summary.add("singlets","");
+        Property &singlet_summary = bsecoupling.add("singlets","");
         for (int stateA = 0; stateA < _levA ; ++stateA ) {
            for (int stateB = 0; stateB <_levB ; ++stateB ) {
                double JAB = getSingletCouplingElement( stateA , stateB, methodindex);
@@ -117,7 +117,7 @@ void BSECoupling::Addoutput(Property &type_summary,const Orbitals& orbitalsA,
     
     
     if ( _doTriplets){
-        Property &triplet_summary = type_summary.add("triplets","");
+        Property &triplet_summary = bsecoupling.add("triplets","");
         for (int stateA = 0; stateA < _levA ; ++stateA ) {
            for (int stateB = 0; stateB < _levA ; ++stateB ) {
                double JAB = getTripletCouplingElement( stateA , stateB, methodindex);

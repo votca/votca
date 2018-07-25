@@ -88,7 +88,7 @@ private:
     void WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
     void WriteHeader(std::ofstream& _com_file);
 
-    std::string getChargeOption() { return "charge";}
+    void WriteChargeOption();
     
 };
 

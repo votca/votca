@@ -1128,6 +1128,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/jobcalculators/eqm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/eqm.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/jobcalculators/idft.cc"
             ex="false"
             tool="1"
@@ -1939,6 +1949,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/egwbse.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/eqm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/eqm.h"
             ex="false"
             tool="3"
             flavor2="0">

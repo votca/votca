@@ -60,8 +60,14 @@ public:
     void ReadJobFile( ctp::Topology *top );
     
 
+    
+
+    
+
 
 private:
+    double GetBSECouplingFromProp(tools::Property& bseprop, int stateA, int stateB);
+    double GetDFTCouplingFromProp(tools::Property& dftprop, int stateA, int stateB);
     
     void SetJobToFailed(ctp::Job::JobResult& jres, ctp::Logger* pLog, const string& errormessage);
     
@@ -105,6 +111,9 @@ private:
     // parsing options
     std::map<std::string, int> _singlet_levels;
     std::map<std::string, int> _triplet_levels;
+    
+    std::map<std::string, int> _hole_levels;
+    std::map<std::string, int> _electron_levels;
 
    
         

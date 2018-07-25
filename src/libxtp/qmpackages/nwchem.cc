@@ -103,6 +103,7 @@ namespace votca {
             } else {
                 _get_charges = false;
             }
+  
 
             // check if the guess should be prepared, if yes, append the guess later
             _write_guess = false;
@@ -117,6 +118,13 @@ namespace votca {
          * keyword "set bq background" NWChem expects them in x,y,z,q format in the
          * backround.crg file.
          */
+        
+        void NWChem::WriteChargeOption(){
+              std::string::size_type iop_pos = _options.find("set bq background");
+              if (iop_pos != std::string::npos) {
+                _options = _options + "\n set bq background";
+              }
+        }
        
 
         int NWChem::WriteBackgroundCharges(ofstream& _nw_file) {

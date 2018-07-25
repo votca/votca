@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _CALC_GWBSE_TOOL_H
-#define	_CALC_GWBSE_TOOL_H
+#ifndef _CALC_XTP_EQM_H
+#define	_CALC_XTP_EQM_H
 
 
 #include <votca/xtp/gwbse.h> // including GWBSE functionality
@@ -33,19 +33,20 @@ namespace votca { namespace xtp {
 /**
 * \brief GWBSE implementation
 *
-* Requires a first-principles package, i.e. GAUSSIAN installation
+* Evaluates DFT and GWBSE for all molecules
+* Requires a first-principles package, i.e. GAUSSIAN, ORCA, NWChem
 *
-* Callname: egwbse
+* Callname: eqm
 */
 
-class EGWBSE : public ctp::ParallelXJobCalc< vector< ctp::Job*>,  ctp::Job*,  ctp::Job::JobResult >
+class EQM : public ctp::ParallelXJobCalc< vector< ctp::Job*>,  ctp::Job*,  ctp::Job::JobResult >
 {
 public:
 
-    EGWBSE() {};
-   ~EGWBSE() {};
+    EQM() {};
+   ~EQM() {};
 
-    string  Identify() { return "egwbse"; }
+    string  Identify() { return "eqm"; }
     void    Initialize( Property *options);
      ctp::Job::JobResult EvalJob( ctp::Topology *top,  ctp::Job *job,  ctp::QMThread *thread);
     

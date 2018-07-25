@@ -62,7 +62,7 @@ public:
    std::string getScratchDir( ) { return _scratch_dir; }
 
 private:
-    std::string getChargeOption() { return "set bq background";}
+
     
 
     std::string                              _shell_file_name;
@@ -80,7 +80,7 @@ private:
     int EnergiesFromLog( std::string _line, std::ifstream inputfile );
     std::string FortranFormat( const double &number );
     int WriteBackgroundCharges(std::ofstream& _nw_file);
-
+    void WriteChargeOption();
 };
 
 

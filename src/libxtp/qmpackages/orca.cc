@@ -77,11 +77,11 @@ namespace votca {
                 throw std::runtime_error("Sorry " + _name + " does not support Vxc output");
             }
 
+            if ( _write_pseudopotentials )  _ecp_name = options.get(key + ".ecp").as<std::string> ();
             _basisset_name = options.get(key + ".basisset").as<std::string> ();
             _write_basis_set = options.get(key + ".writebasisset").as<bool> ();
             _write_pseudopotentials = options.get(key + ".writepseudopotentials").as<bool> ();
             if ( _write_pseudopotentials )  _ecp_name = options.get(key + ".ecp").as<std::string> ();
-
 
             // check if the optimize keyword is present, if yes, read updated coords
             std::string::size_type iop_pos = _options.find(" Opt"); /*optimization word in orca*/
@@ -226,12 +226,23 @@ namespace votca {
       }
       return;
     }
+        
+        void Orca::WriteChargeOption(){
+           std::string::size_type iop_pos = _options.find("pointcharges");
+              if (iop_pos == std::string::npos) {
+                _options = _options + "\n %pointcharges \"background.crg\"";
+              }
+        }
 
         /* For QM/MM the molecules in the MM environment are represented by
          * their atomic partial charge distributions. ORCA expects them in
          * q,x,y,z format in a separate file "background.crg"
          */
         void Orca::WriteBackgroundCharges() {
+
+             
+          
+          
             std::ofstream _crg_file;
             std::string _crg_file_name_full = _run_dir + "/background.crg";
             _crg_file.open(_crg_file_name_full.c_str());
@@ -531,6 +542,7 @@ namespace votca {
 
                 std::string::size_type OE_pos = _line.find("ORBITAL ENERGIES");
                 if (OE_pos != std::string::npos) {
+                    _number_of_electrons=0;
                     getline(_input_file, _line);
                     getline(_input_file, _line);
                     getline(_input_file, _line);

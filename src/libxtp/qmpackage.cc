@@ -126,13 +126,10 @@ namespace votca {
           return;
         }
       _PolarSegments = PolarSegments;
-      _get_charges = true;
-      _get_self_energy = true;
+      _write_charges = true;
+      
+      WriteChargeOption();
 
-      std::string::size_type iop_pos = _options.find(getChargeOption());
-      if (iop_pos != std::string::npos) {
-        _options = _options + " "+getChargeOption();
-      }
     }
 
     }

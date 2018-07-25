@@ -45,7 +45,7 @@ public:
 
     std::string Identify() { return "esp2multipole"; }
 
-    void   Initialize(Property *options);
+    void   Initialize(Property &options);
     
    
     void Extractingcharges( Orbitals& _orbitals );

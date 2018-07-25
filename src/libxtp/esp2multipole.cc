@@ -25,7 +25,7 @@
 namespace votca {
     namespace xtp {
 
-        void Esp2multipole::Initialize(Property* options) {
+        void Esp2multipole::Initialize(Property& options) {
             string key = Identify();
             _use_ecp = false;
             _do_svd = false;
@@ -38,14 +38,14 @@ namespace votca {
             _use_lowdin = false;
             _use_NBO = false;
 
-            _state = options->get(key + ".state").as<string> ();
-            _state_no = options->get(key + ".statenumber").as<int> ();
-            _spin = options->get(key + ".spin").as<string> ();
-            if (options->exists(key + ".ecp")) {
-                _use_ecp = options->get(key + ".ecp").as<bool> ();
+            _state = options.get(key + ".state").as<string> ();
+            _state_no = options.get(key + ".statenumber").as<int> ();
+            _spin = options.get(key + ".spin").as<string> ();
+            if (options.exists(key + ".ecp")) {
+                _use_ecp = options.get(key + ".ecp").as<bool> ();
             }
-            if (options->exists(key + ".method")) {
-                _method = options->get(key + ".method").as<string> ();
+            if (options.exists(key + ".method")) {
+                _method = options.get(key + ".method").as<string> ();
                 if (_method == "Mulliken" || _method == "mulliken")_use_mulliken = true;
                 else if (_method == "loewdin" || _method == "Loewdin") _use_lowdin = true;
                 else if (_method == "CHELPG")_use_CHELPG = true;
@@ -56,12 +56,12 @@ namespace votca {
             } else _use_CHELPG = true;
 
             if (_use_CHELPG) {
-                _integrationmethod = options->get(key + ".integrationmethod").as<string> ();
+                _integrationmethod = options.get(key + ".integrationmethod").as<string> ();
             }
             
-            if (options->exists(key + ".constraints")) {
-                 if (options->exists(key + ".constraints.regions")) {
-                     std::list<Property*> prop_region = options->Select(key + ".constraints.regions.region");
+            if (options.exists(key + ".constraints")) {
+                 if (options.exists(key + ".constraints.regions")) {
+                     std::list<Property*> prop_region = options.Select(key + ".constraints.regions.region");
                      for (std::list<Property*> ::iterator it = prop_region.begin(); it != prop_region.end(); ++it) {
                          std::string indices=(*it)->get("indices").as<std::string>();
                          tools::Tokenizer tok(indices,"\n\t ,");
@@ -76,8 +76,8 @@ namespace votca {
                         CTP_LOG(ctp::logDEBUG, *_log)<<")="<<reg.charge<< flush;
                      }
                  }
-                 if (options->exists(key + ".constraints.pairs")) {
-                     std::list<Property*> prop_pair = options->Select(key + ".constraints.pairs.pair");
+                 if (options.exists(key + ".constraints.pairs")) {
+                     std::list<Property*> prop_pair = options.Select(key + ".constraints.pairs.pair");
                      for (std::list<Property*> ::iterator it = prop_pair.begin(); it != prop_pair.end(); ++it) {
                          std::string pairstring=(*it)->as<std::string>();
                         tools::Tokenizer tok(pairstring,"\n\t ,");
@@ -96,15 +96,15 @@ namespace votca {
             if (!(_integrationmethod == "numeric" || _integrationmethod == "analytic")) {
                 std::runtime_error("Method not recognized. Only numeric and analytic available");
             }
-            if (options->exists(key + ".gridsize")) {
-                _gridsize = options->get(key + ".gridsize").as<string>();
+            if (options.exists(key + ".gridsize")) {
+                _gridsize = options.get(key + ".gridsize").as<string>();
             } else _gridsize = "medium";
-            if (options->exists(key + ".openmp")) {
-                _openmp_threads = options->get(key + ".openmp").as<int>();
+            if (options.exists(key + ".openmp")) {
+                _openmp_threads = options.get(key + ".openmp").as<int>();
             } else _openmp_threads = 0;
-            if (options->exists(key + ".svd")) {
-                _do_svd = options->get(key + ".svd.do_svd").as<bool>();
-                _conditionnumber = options->get(key + ".svd.conditionnumber").as<double>();
+            if (options.exists(key + ".svd")) {
+                _do_svd = options.get(key + ".svd.do_svd").as<bool>();
+                _conditionnumber = options.get(key + ".svd.conditionnumber").as<double>();
             }
 
             // get the path to the shared folders with xml files

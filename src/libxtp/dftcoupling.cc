@@ -44,19 +44,22 @@ void DFTcoupling::Initialize(tools::Property& options){
 void DFTcoupling::WriteToProperty(tools::Property& type_summary, const Orbitals& orbitalsA,
                                   const Orbitals& orbitalsB, int a, int b){
   double J = getCouplingElement(a,b, orbitalsA, orbitalsB);
-  tools::Property& overlap_summary = type_summary.add(Identify(), boost::lexical_cast<std::string>(J));
+  tools::Property& coupling = type_summary.add("coupling", boost::lexical_cast<std::string>(J));
   double energyA = orbitalsA.getEnergy(a);
   double energyB = orbitalsB.getEnergy(b);
-  overlap_summary.setAttribute("levelA", a);
-  overlap_summary.setAttribute("levelB", b);
-  overlap_summary.setAttribute("jAB", J);
-  overlap_summary.setAttribute("eA", energyA);
-  overlap_summary.setAttribute("eB", energyB);
+  type_summary.setAttribute("levelA", a);
+  type_summary.setAttribute("levelB", b);
+  type_summary.setAttribute("jAB", J);
+  type_summary.setAttribute("eA", energyA);
+  type_summary.setAttribute("eB", energyB);
 }
 
  void DFTcoupling::Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB){
-   tools::Property &hole_summary = type_summary.add("holes","");
+  tools::Property& dftcoupling= type_summary.add(Identify(),"");
+  dftcoupling.setAttribute("homoA",orbitalsA.getHomo());
+  dftcoupling.setAttribute("homoB",orbitalsB.getHomo());
+   tools::Property &hole_summary = dftcoupling.add("holes","");
    //hole hole
    for (int a=Range_orbA.first;a<=orbitalsA.getHomo();++a){
      for (int b=Range_orbB.first;b<=orbitalsB.getHomo();++b){

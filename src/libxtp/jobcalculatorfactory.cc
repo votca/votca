@@ -22,10 +22,9 @@
 
 
 #include "jobcalculators/qmmm.h"
-#include "jobcalculators/egwbse.h"
+#include "jobcalculators/eqm.h"
 #include "jobcalculators/iqm.h"
 #include "jobcalculators/qmape.h"
-#include "jobcalculators/edft.h"
 #include "jobcalculators/iexcitoncl.h"
 
 
@@ -34,9 +33,8 @@ namespace votca { namespace xtp {
 void JobCalculatorfactory::RegisterAll(void)
 {	
         JobCalculators().Register<QMMM>                 ("qmmm");
-        JobCalculators().Register<EGWBSE>               ("egwbse");
         JobCalculators().Register<IQM>                  ("iqm");
-        JobCalculators().Register<EDFT>                 ("edft");
+        JobCalculators().Register<EQM>                  ("eqm");
         JobCalculators().Register<QMAPE>                ("qmape");
         JobCalculators().Register<IEXCITON>             ("iexcitoncl");
 }
