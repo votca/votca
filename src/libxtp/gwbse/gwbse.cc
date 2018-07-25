@@ -622,6 +622,11 @@ bool GWBSE::Evaluate() {
                                  << " Using native Eigen implementation, no BLAS overload "<< flush;
   }
   
+  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Molecule Coordinates [A] " << flush;
+  for (QMAtom* atom:_orbitals->QMAtoms()) {
+    CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << atom->getType() << " " << atom->getPos() * tools::conv::bohr2ang << " " << flush;
+  }
+  
   
   /* check which QC program was used for the DFT run
    * -> implicit info about MO coefficient storage order
