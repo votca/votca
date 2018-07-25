@@ -1216,7 +1216,7 @@ if (_lmax_beta > 3) {
                     int _i_gamma_off = _i_gamma + _offset_gamma;
                     for (int _i_beta_t = istart[ _i_beta_off ]; _i_beta_t <= istop[ _i_beta_off ]; _i_beta_t++) {
                       for (int _i_alpha_t = istart[ _i_alpha_off ]; _i_alpha_t <= istop[_i_alpha_off ]; _i_alpha_t++) {
-                        threec_block[_i_gamma][_i_beta][_i_alpha] += R[ _i_alpha_t ][ _i_beta_t][ _i_gamma_off] * _trafo_alpha(_i_alpha_off, _i_alpha_t) * _trafo_beta(_i_beta_off, _i_beta_t);
+                        threec_block[_i_gamma][_i_beta][_i_alpha] += R[ _i_alpha_t ][ _i_beta_t][ _i_gamma_off] * _trafo_alpha(_i_alpha_t, _i_alpha_off) * _trafo_beta(_i_beta_t, _i_beta_off);
                       }
                     }
                   }
@@ -1232,7 +1232,7 @@ if (_lmax_beta > 3) {
                     int _i_gamma_off = _i_gamma + _offset_gamma;
                     for (int _i_beta_t = istart[ _i_beta_off ]; _i_beta_t <= istop[ _i_beta_off ]; _i_beta_t++) {
                       for (int _i_alpha_t = istart[ _i_alpha_off ]; _i_alpha_t <= istop[_i_alpha_off ]; _i_alpha_t++) {
-                        threec_block[_i_gamma][_i_alpha][_i_beta] += R[ _i_alpha_t ][ _i_beta_t][ _i_gamma_off] * _trafo_alpha(_i_alpha_off, _i_alpha_t) * _trafo_beta(_i_beta_off, _i_beta_t);
+                        threec_block[_i_gamma][_i_alpha][_i_beta] += R[ _i_alpha_t ][ _i_beta_t][ _i_gamma_off] * _trafo_alpha(_i_alpha_t, _i_alpha_off) * _trafo_beta(_i_beta_t, _i_beta_off);
                       }
                     }
                   }

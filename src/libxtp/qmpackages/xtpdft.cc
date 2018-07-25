@@ -73,13 +73,10 @@ namespace votca {
          * Dummy for use of XTPDFT as QMPackage, needs no input file
          */
         bool XTPDFT::WriteInputFile(Orbitals& orbitals) {
-
             _xtpdft.setLogger(_pLog);
             _xtpdft.Prepare( orbitals );
-
             return true;
         }
-
 
         void XTPDFT::setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){
             _xtpdft.setExternalcharges(multipoles);
@@ -96,13 +93,8 @@ namespace votca {
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Reading structure from " << _xyz_file_name << flush;
                 _orbitals.LoadFromXYZ(_xyz_file_name);
             }
-
-
-            CTP_LOG(ctp::logDEBUG, *_pLog) << "Running XTP DFT " << flush;
-            //
-
             _xtpdft.Evaluate( _orbitals );
-            _basisset_name = _xtpdft.GetDFTBasisName();
+            _basisset_name = _xtpdft.getDFTBasisName();
 
             return true;
 

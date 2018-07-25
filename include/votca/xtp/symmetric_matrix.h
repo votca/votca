@@ -68,8 +68,8 @@ Symmetric_Matrix(size_t dim) {
     }
 
     void AddtoEigenMatrix(Eigen::MatrixXd& full, double factor = 1.0) const{
-        for (int i = 0; i < full.rows(); ++i) {
-            for (int j = 0; j < full.cols(); ++j) {
+        for (int j = 0; j < full.cols(); ++j) {
+            for (int i = 0; i < full.rows(); ++i) {
                 full(i, j) += factor * this->operator ()(i,j);
             }
         }
@@ -77,10 +77,10 @@ Symmetric_Matrix(size_t dim) {
     }
     
     Eigen::MatrixXd FullMatrix(){
-        Eigen::MatrixXd result=Eigen::MatrixXd(dimension,dimension);
-        for (int i = 0; i < result.rows(); ++i) {
+        Eigen::MatrixXd result=Eigen::MatrixXd(dimension,dimension); 
             for (int j = 0; j < result.cols(); ++j) {
-                result(i, j) =this->operator ()(i,j);
+                for (int i = 0; i < result.rows(); ++i) {
+                    result(i, j) =this->operator ()(i,j);
             }
         }
         return result;

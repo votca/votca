@@ -345,8 +345,8 @@ namespace votca {
             cout << endl << "Initialising random number generator" << endl;
         }
         std::srand(_seed); // srand expects any integer in order to initialise the random number generator
-        _RandomVariable = new tools::Random2();
-        _RandomVariable->init(rand(), rand(), rand(), rand());
+        _RandomVariable = tools::Random2();
+        _RandomVariable.init(rand(), rand(), rand(), rand());
         LoadGraph(top);
         ReadLifetimeFile(_lifetimefile);
         

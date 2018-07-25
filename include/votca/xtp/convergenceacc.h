@@ -24,7 +24,7 @@
 #include <votca/ctp/logger.h>
 #include <votca/xtp/adiis.h>
 #include <votca/xtp/diis.h>
-#include <votca/xtp/mixing.h>
+
 
 
 
@@ -56,7 +56,7 @@ public:
    void Configure(KSmode mode,bool usediis,bool noisy, 
                     unsigned histlength, bool maxout, double adiis_start,
                     double diis_start,double levelshift,double levelshiftend,
-                    unsigned nocclevels, double mixingparameter){
+                    unsigned numberofelectrons, double mixingparameter){
        _mode=mode;
        _usediis=usediis;
        _noisy=noisy;
@@ -68,8 +68,16 @@ public:
        _levelshift=levelshift;
        _levelshiftend=levelshiftend;
        _mixingparameter=mixingparameter;
-       _nocclevels=nocclevels;
-       
+       _numberofelectrons=numberofelectrons;
+       if(mode==KSmode::closed){
+           _nocclevels=_numberofelectrons/2;
+       }
+       else if(mode==KSmode::open){
+           _nocclevels=_numberofelectrons;
+       }
+       else if(mode==KSmode::fractional){
+           _nocclevels=0;
+       }
   
    }
    
@@ -119,12 +127,13 @@ public:
     double                              _mixingparameter;
     std::vector<double>                 _totE;
    
+    unsigned _numberofelectrons;
     unsigned _nocclevels;
     double _levelshift;
     
     ADIIS adiis;
     DIIS diis;
-    Mixing mix;
+   
     
     
     

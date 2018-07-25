@@ -43,7 +43,7 @@ namespace votca {
         void AOMatrix<T>::Fill(const AOBasis& aobasis) {
             _aomatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
             // loop row
-#pragma omp parallel for
+#pragma omp parallel for schedule(guided)
             for (unsigned _row = 0; _row < aobasis.getNumofShells(); _row++) {
 
                 const AOShell* _shell_row = aobasis.getShell(_row);
@@ -51,7 +51,7 @@ namespace votca {
       
 
                 // AOMatrix is symmetric, restrict explicit calculation to triangular matrix
-                for (unsigned _col = 0; _col <= _row; _col++) {
+                for (unsigned _col = _row; _col <  aobasis.getNumofShells(); _col++) {
 
                     const AOShell* _shell_col = aobasis.getShell(_col);
 
@@ -68,7 +68,7 @@ namespace votca {
             // Fill whole matrix by copying
         for ( unsigned _i=0; _i < _aomatrix.rows(); _i++){
                 for (unsigned _j = 0; _j < _i; _j++) {
-                    _aomatrix(_j, _i) = _aomatrix(_i, _j);
+                    _aomatrix(_i, _j) = _aomatrix(_j, _i);
 
                 }
             }
@@ -146,7 +146,7 @@ namespace votca {
             const double _decay = gaussian.getDecay();
             const int _lmax = shell->getLmax();
             const int n = getBlockSize(_lmax);
-         Eigen::MatrixXd _trafo=Eigen::MatrixXd::Zero(ntrafo,n); 
+         Eigen::MatrixXd _trafo=Eigen::MatrixXd::Zero(n,ntrafo); 
             const std::vector<double>& contractions = gaussian.getContraction();
 
             // s-functions
@@ -154,27 +154,27 @@ namespace votca {
             // p-functions
             if (_lmax > 0) { // order of functions changed
                 const double factor = 2. * sqrt(_decay) * contractions[1];
-                _trafo(1, 3) = factor; // Y 1,0
+                _trafo(3, 1) = factor; // Y 1,0
                 _trafo(2, 2) = factor; // Y 1,-1
-                _trafo(3, 1) = factor; // Y 1,1
+                _trafo(1, 3) = factor; // Y 1,1
             }
 
             // d-functions
             if (_lmax > 1) { // order of functions changed
                 const double factor = 2. * _decay * contractions[2];
                 const double factor_1 = factor / sqrt(3.);
-                _trafo(4, Cart::xx) = -factor_1; // d3z2-r2 (dxx)
-                _trafo(4, Cart::yy) = -factor_1; // d3z2-r2 (dyy)  Y 2,0
-                _trafo(4, Cart::zz) = 2. * factor_1; // d3z2-r2 (dzz)
+                _trafo(Cart::xx,4) = -factor_1; // d3z2-r2 (dxx)
+                _trafo(Cart::yy,4) = -factor_1; // d3z2-r2 (dyy)  Y 2,0
+                _trafo(Cart::zz,4) = 2. * factor_1; // d3z2-r2 (dzz)
 
-                _trafo(5, Cart::yz) = 2. * factor; // dyz           Y 2,-1
+                _trafo(Cart::yz,5) = 2. * factor; // dyz           Y 2,-1
 
-                _trafo(6, Cart::xz) = 2. * factor; // dxz           Y 2,1
+                _trafo(Cart::xz,6) = 2. * factor; // dxz           Y 2,1
 
-                _trafo(7, Cart::xy) = 2. * factor; // dxy           Y 2,-2
+                _trafo(Cart::xy,7) = 2. * factor; // dxy           Y 2,-2
 
-                _trafo(8, Cart::xx) = factor; // dx2-y2 (dxx)   Y 2,2
-                _trafo(8, Cart::yy) = -factor; // dx2-y2 (dzz)
+                _trafo(Cart::xx,8) = factor; // dx2-y2 (dxx)   Y 2,2
+                _trafo(Cart::yy,8) = -factor; // dx2-y2 (dzz)
             }
 
             // f-functions
@@ -184,28 +184,28 @@ namespace votca {
                 const double factor_2 = factor * sqrt(2.) / sqrt(5.);
                 const double factor_3 = factor * sqrt(2.) / sqrt(3.);
 
-                _trafo(9, Cart::xxz) = -3. * factor_1; // f1 (f??) xxz 13
-                _trafo(9, Cart::yyz) = -3. * factor_1; // f1 (f??) yyz 15        Y 3,0
-                _trafo(9, Cart::zzz) = 2. * factor_1; // f1 (f??) zzz 19
+                _trafo(Cart::xxz,9) = -3. * factor_1; // f1 (f??) xxz 13
+                _trafo(Cart::yyz,9) = -3. * factor_1; // f1 (f??) yyz 15        Y 3,0
+                _trafo(Cart::zzz,9) = 2. * factor_1; // f1 (f??) zzz 19
 
-                _trafo(10, Cart::xxy) = -factor_2; // f3 xxy 10
-                _trafo(10, Cart::yyy) = -factor_2; // f3 yyy 18   Y 3,-1
-                _trafo(10, Cart::yzz) = 4. * factor_2; // f3 yzz 16
+                _trafo(Cart::xxy) = -factor_2; // f3 xxy 10
+                _trafo(Cart::yyy,10) = -factor_2; // f3 yyy 18   Y 3,-1
+                _trafo(Cart::yzz,10) = 4. * factor_2; // f3 yzz 16
 
-                _trafo(11, Cart::xxx) = -factor_2; // f2 xxx 17
-                _trafo(11, Cart::xyy) = -factor_2; // f2 xyy 11   Y 3,1
-                _trafo(11, Cart::xzz) = 4. * factor_2; // f2 xzz 14
+                _trafo(Cart::xxx,11) = -factor_2; // f2 xxx 17
+                _trafo(Cart::xyy,11) = -factor_2; // f2 xyy 11   Y 3,1
+                _trafo(Cart::xzz,11) = 4. * factor_2; // f2 xzz 14
 
-                _trafo(12, Cart::xyz) = 4. * factor; // f6 xyz 12     Y 3,-2
+                _trafo(Cart::xyz,12) = 4. * factor; // f6 xyz 12     Y 3,-2
 
-                _trafo(13, Cart::xxz) = 2. * factor; // f7 (f??)   xxz   13
-                _trafo(13, Cart::yyz) = -2. * factor; // f7 (f??)   yyz   15   Y 3,2
+                _trafo(Cart::xxz,13) = 2. * factor; // f7 (f??)   xxz   13
+                _trafo(Cart::yyz,13) = -2. * factor; // f7 (f??)   yyz   15   Y 3,2
 
-                _trafo(14, Cart::xxy) = 3. * factor_3; // f4 xxy 10
-                _trafo(14, Cart::yyy) = -factor_3; // f4 yyy 18   Y 3,-3
+                _trafo(Cart::xxy,14) = 3. * factor_3; // f4 xxy 10
+                _trafo(Cart::yyy,14) = -factor_3; // f4 yyy 18   Y 3,-3
 
-                _trafo(15, Cart::xxx) = factor_3; // f5 (f??) xxx 17
-                _trafo(15, Cart::xyy) = -3. * factor_3; // f5 (f??) xyy 11     Y 3,3
+                _trafo(Cart::xxx,15) = factor_3; // f5 (f??) xxx 17
+                _trafo(Cart::xyy,15) = -3. * factor_3; // f5 (f??) xyy 11     Y 3,3
             }
 
             // g-functions
@@ -216,42 +216,42 @@ namespace votca {
                 const double factor_3 = factor * 2. / sqrt(7.);
                 const double factor_4 = factor * 2. * sqrt(2.);
 
-                _trafo(16, Cart::xxxx) = 3. * factor_1; /// Y 4,0
-                _trafo(16, Cart::xxyy) = 6. * factor_1;
-                _trafo(16, Cart::xxzz) = -24. * factor_1;
-                _trafo(16, Cart::yyyy) = 3. * factor_1;
-                _trafo(16, Cart::yyzz) = -24. * factor_1;
-                _trafo(16, Cart::zzzz) = 8. * factor_1;
+                _trafo(Cart::xxxx,16) = 3. * factor_1; /// Y 4,0
+                _trafo(Cart::xxyy,16) = 6. * factor_1;
+                _trafo(Cart::xxzz,16) = -24. * factor_1;
+                _trafo(Cart::yyyy,16) = 3. * factor_1;
+                _trafo(Cart::yyzz,16) = -24. * factor_1;
+                _trafo(Cart::zzzz,16) = 8. * factor_1;
 
-                _trafo(17, Cart::xxyz) = -3. * factor_2; /// Y 4,-1
-                _trafo(17, Cart::yyyz) = -3. * factor_2;
-                _trafo(17, Cart::yzzz) = 4. * factor_2;
+                _trafo(Cart::xxyz,17) = -3. * factor_2; /// Y 4,-1
+                _trafo(Cart::yyyz,17) = -3. * factor_2;
+                _trafo(Cart::yzzz,17) = 4. * factor_2;
 
-                _trafo(18, Cart::xxxz) = -3. * factor_2; /// Y 4,1
-                _trafo(18, Cart::xyyz) = -3. * factor_2;
-                _trafo(18, Cart::xzzz) = 4. * factor_2;
+                _trafo(Cart::xxxz,18) = -3. * factor_2; /// Y 4,1
+                _trafo(Cart::xyyz,18) = -3. * factor_2;
+                _trafo(Cart::xzzz,18) = 4. * factor_2;
 
-                _trafo(19, Cart::xxxy) = -2. * factor_3; /// Y 4,-2
-                _trafo(19, Cart::xyyy) = -2. * factor_3;
-                _trafo(19, Cart::xyzz) = 12. * factor_3;
+                _trafo(Cart::xxxy,19) = -2. * factor_3; /// Y 4,-2
+                _trafo(Cart::xyyy,19) = -2. * factor_3;
+                _trafo(Cart::xyzz,19) = 12. * factor_3;
 
-                _trafo(20, Cart::xxxx) = -factor_3; /// Y 4,2
-                _trafo(20, Cart::xxzz) = 6. * factor_3;
-                _trafo(20, Cart::yyyy) = factor_3;
-                _trafo(20, Cart::yyzz) = -6. * factor_3;
+                _trafo(Cart::xxxx,20) = -factor_3; /// Y 4,2
+                _trafo(Cart::xxzz,20) = 6. * factor_3;
+                _trafo(Cart::yyyy,20) = factor_3;
+                _trafo(Cart::yyzz,20) = -6. * factor_3;
 
-                _trafo(21, Cart::xxyz) = 3. * factor_4; /// Y 4,-3
-                _trafo(21, Cart::yyyz) = -factor_4;
+                _trafo(Cart::xxyz,21) = 3. * factor_4; /// Y 4,-3
+                _trafo(Cart::yyyz,21) = -factor_4;
 
-                _trafo(22, Cart::xxxz) = factor_4; /// Y 4,3
-                _trafo(22, Cart::xyyz) = -3. * factor_4;
+                _trafo(Cart::xxxz,22) = factor_4; /// Y 4,3
+                _trafo(Cart::xyyz,22) = -3. * factor_4;
 
-                _trafo(23, Cart::xxxy) = 4. * factor; /// Y 4,-4
-                _trafo(23, Cart::xyyy) = -4. * factor;
+                _trafo(Cart::xxxy,23) = 4. * factor; /// Y 4,-4
+                _trafo(Cart::xyyy,23) = -4. * factor;
 
-                _trafo(24, Cart::xxxx) = factor; /// Y 4,4
-                _trafo(24, Cart::xxyy) = -6. * factor;
-                _trafo(24, Cart::yyyy) = factor;
+                _trafo(Cart::xxxx,24) = factor; /// Y 4,4
+                _trafo(Cart::xxyy,24) = -6. * factor;
+                _trafo(Cart::yyyy,24) = factor;
             }
             // h-functions
             if (_lmax > 4) {
@@ -262,62 +262,62 @@ namespace votca {
                 const double factor_4 = factor * 2. * sqrt(3.);
                 const double factor_5 = factor * .2 * sqrt(30.);
 
-                _trafo(25, Cart::xxxxz) = 15. * factor_1; /// Y 5,0
-                _trafo(25, Cart::xxyyz) = 30. * factor_1;
-                _trafo(25, Cart::xxzzz) = -40. * factor_1;
-                _trafo(25, Cart::yyyyz) = 15. * factor_1;
-                _trafo(25, Cart::yyzzz) = -40. * factor_1;
-                _trafo(25, Cart::zzzzz) = 8. * factor_1;
+                _trafo(Cart::xxxxz,25) = 15. * factor_1; /// Y 5,0
+                _trafo(Cart::xxyyz,25) = 30. * factor_1;
+                _trafo(Cart::xxzzz,25) = -40. * factor_1;
+                _trafo(Cart::yyyyz,25) = 15. * factor_1;
+                _trafo(Cart::yyzzz,25) = -40. * factor_1;
+                _trafo(Cart::zzzzz,25) = 8. * factor_1;
 
-                _trafo(26, Cart::xxxxy) = factor_2; /// Y 5,-1
-                _trafo(26, Cart::xxyyy) = 2. * factor_2;
-                _trafo(26, Cart::xxyzz) = -12. * factor_2;
-                _trafo(26, Cart::yyyyy) = factor_2;
-                _trafo(26, Cart::yyyzz) = -12. * factor_2;
-                _trafo(26, Cart::yzzzz) = 8. * factor_2;
+                _trafo(Cart::xxxxy,26) = factor_2; /// Y 5,-1
+                _trafo(Cart::xxyyy,26) = 2. * factor_2;
+                _trafo(Cart::xxyzz,26) = -12. * factor_2;
+                _trafo(Cart::yyyyy,26) = factor_2;
+                _trafo(Cart::yyyzz,26) = -12. * factor_2;
+                _trafo(Cart::yzzzz,26) = 8. * factor_2;
 
-                _trafo(27, Cart::xxxxx) = factor_2; /// Y 5,1
-                _trafo(27, Cart::xxxyy) = 2. * factor_2;
-                _trafo(27, Cart::xxxzz) = -12. * factor_2;
-                _trafo(27, Cart::xyyyy) = factor_2;
-                _trafo(27, Cart::xyyzz) = -12. * factor_2;
-                _trafo(27, Cart::xzzzz) = 8. * factor_2;
+                _trafo(Cart::xxxxx,27) = factor_2; /// Y 5,1
+                _trafo(Cart::xxxyy,27) = 2. * factor_2;
+                _trafo(Cart::xxxzz,27) = -12. * factor_2;
+                _trafo(Cart::xyyyy,27) = factor_2;
+                _trafo(Cart::xyyzz,27) = -12. * factor_2;
+                _trafo(Cart::xzzzz,27) = 8. * factor_2;
 
-                _trafo(28, Cart::xxxyz) = -8. * factor; /// Y 5,-2
-                _trafo(28, Cart::xyyyz) = -8. * factor;
-                _trafo(28, Cart::xyzzz) = 16. * factor;
+                _trafo(Cart::xxxyz,28) = -8. * factor; /// Y 5,-2
+                _trafo(Cart::xyyyz,28) = -8. * factor;
+                _trafo(Cart::xyzzz,28) = 16. * factor;
 
-                _trafo(29, Cart::xxxxz) = -4. * factor; /// Y 5,2
-                _trafo(29, Cart::xxzzz) = 8. * factor;
-                _trafo(29, Cart::yyyyz) = 4. * factor;
-                _trafo(29, Cart::yyzzz) = -8. * factor;
+                _trafo(Cart::xxxxz,29) = -4. * factor; /// Y 5,2
+                _trafo(Cart::xxzzz,29) = 8. * factor;
+                _trafo(Cart::yyyyz,29) = 4. * factor;
+                _trafo(Cart::yyzzz,29) = -8. * factor;
 
-                _trafo(30, Cart::xxxxy) = -3. * factor_3; /// Y 5,-3
-                _trafo(30, Cart::xxyyy) = -2. * factor_3;
-                _trafo(30, Cart::xxyzz) = 24. * factor_3;
-                _trafo(30, Cart::yyyyy) = factor_3;
-                _trafo(30, Cart::yyyzz) = -8. * factor_3;
+                _trafo(Cart::xxxxy,30) = -3. * factor_3; /// Y 5,-3
+                _trafo(Cart::xxyyy,30) = -2. * factor_3;
+                _trafo(Cart::xxyzz,30) = 24. * factor_3;
+                _trafo(Cart::yyyyy,30) = factor_3;
+                _trafo(Cart::yyyzz,30) = -8. * factor_3;
 
-                _trafo(31, Cart::xxxxx) = -factor_3; /// Y 5,3
-                _trafo(31, Cart::xxxyy) = 2. * factor_3;
-                _trafo(31, Cart::xxxzz) = 8. * factor_3;
-                _trafo(31, Cart::xyyyy) = 3. * factor_3;
-                _trafo(31, Cart::xyyzz) = -24. * factor_3;
+                _trafo(Cart::xxxxx,31) = -factor_3; /// Y 5,3
+                _trafo(Cart::xxxyy,31) = 2. * factor_3;
+                _trafo(Cart::xxxzz,31) = 8. * factor_3;
+                _trafo(Cart::xyyyy,31) = 3. * factor_3;
+                _trafo(Cart::xyyzz,31) = -24. * factor_3;
 
-                _trafo(32, Cart::xxxyz) = 4. * factor_4; /// Y 5,-4
-                _trafo(32, Cart::xyyyz) = -4. * factor_4;
+                _trafo(Cart::xxxyz,32) = 4. * factor_4; /// Y 5,-4
+                _trafo(Cart::xyyyz,32) = -4. * factor_4;
 
-                _trafo(33, Cart::xxxxz) = factor_4; /// Y 5,4
-                _trafo(33, Cart::xxyyz) = -6. * factor_4;
-                _trafo(33, Cart::yyyyz) = factor_4;
+                _trafo(Cart::xxxxz,33) = factor_4; /// Y 5,4
+                _trafo(Cart::xxyyz,33) = -6. * factor_4;
+                _trafo(Cart::yyyyz,33) = factor_4;
 
-                _trafo(34, Cart::xxxxy) = 5. * factor_5; /// Y 5,-5
-                _trafo(34, Cart::xxyyy) = -10. * factor_5;
-                _trafo(34, Cart::yyyyy) = factor_5;
+                _trafo(Cart::xxxxy,34) = 5. * factor_5; /// Y 5,-5
+                _trafo(Cart::xxyyy,34) = -10. * factor_5;
+                _trafo(Cart::yyyyy,34) = factor_5;
 
-                _trafo(35, Cart::xxxxx) = factor_5; /// Y 5,5
-                _trafo(35, Cart::xxxyy) = -10. * factor_5;
-                _trafo(35, Cart::xyyyy) = 5. * factor_5;
+                _trafo(Cart::xxxxx,35) = factor_5; /// Y 5,5
+                _trafo(Cart::xxxyy,35) = -10. * factor_5;
+                _trafo(Cart::xyyyy,35) = 5. * factor_5;
             }
 
             // i-functions
@@ -330,88 +330,88 @@ namespace votca {
                 const double factor_5 = factor * .4 * sqrt(30.);
                 const double factor_6 = factor * .2 * sqrt(10.);
 
-                _trafo(36, Cart::xxxxxx) = -5. * factor_1; /// Y 6,0
-                _trafo(36, Cart::xxxxyy) = -15. * factor_1;
-                _trafo(36, Cart::xxxxzz) = 90. * factor_1;
-                _trafo(36, Cart::xxyyyy) = -15. * factor_1;
-                _trafo(36, Cart::xxyyzz) = 180. * factor_1;
-                _trafo(36, Cart::xxzzzz) = -120. * factor_1;
-                _trafo(36, Cart::yyyyyy) = -5. * factor_1;
-                _trafo(36, Cart::yyyyzz) = 90. * factor_1;
-                _trafo(36, Cart::yyzzzz) = -120. * factor_1;
-                _trafo(36, Cart::zzzzzz) = 16. * factor_1;
+                _trafo(Cart::xxxxxx,36) = -5. * factor_1; /// Y 6,0
+                _trafo(Cart::xxxxyy,36) = -15. * factor_1;
+                _trafo(Cart::xxxxzz,36) = 90. * factor_1;
+                _trafo(Cart::xxyyyy,36) = -15. * factor_1;
+                _trafo(Cart::xxyyzz,36) = 180. * factor_1;
+                _trafo(Cart::xxzzzz,36) = -120. * factor_1;
+                _trafo(Cart::yyyyyy,36) = -5. * factor_1;
+                _trafo(Cart::yyyyzz,36) = 90. * factor_1;
+                _trafo(Cart::yyzzzz,36) = -120. * factor_1;
+                _trafo(Cart::zzzzzz,36) = 16. * factor_1;
 
-                _trafo(37, Cart::xxxxyz) = 5. * factor_2; /// Y 6,-1
-                _trafo(37, Cart::xxyyyz) = 10. * factor_2;
-                _trafo(37, Cart::xxyzzz) = -20. * factor_2;
-                _trafo(37, Cart::yyyyyz) = 5. * factor_2;
-                _trafo(37, Cart::yyyzzz) = -20. * factor_2;
-                _trafo(37, Cart::yzzzzz) = 8. * factor_2;
+                _trafo(Cart::xxxxyz,37) = 5. * factor_2; /// Y 6,-1
+                _trafo(Cart::xxyyyz,37) = 10. * factor_2;
+                _trafo(Cart::xxyzzz,37) = -20. * factor_2;
+                _trafo(Cart::yyyyyz,37) = 5. * factor_2;
+                _trafo(Cart::yyyzzz,37) = -20. * factor_2;
+                _trafo(Cart::yzzzzz,37) = 8. * factor_2;
 
-                _trafo(38, Cart::xxxxxz) = 5. * factor_2; /// Y 6,1
-                _trafo(38, Cart::xxxyyz) = 10. * factor_2;
-                _trafo(38, Cart::xxxzzz) = -20. * factor_2;
-                _trafo(38, Cart::xyyyyz) = 5. * factor_2;
-                _trafo(38, Cart::xyyzzz) = -20. * factor_2;
-                _trafo(38, Cart::xzzzzz) = 8. * factor_2;
+                _trafo(Cart::xxxxxz,38) = 5. * factor_2; /// Y 6,1
+                _trafo(Cart::xxxyyz,38) = 10. * factor_2;
+                _trafo(Cart::xxxzzz,38) = -20. * factor_2;
+                _trafo(Cart::xyyyyz,38) = 5. * factor_2;
+                _trafo(Cart::xyyzzz,38) = -20. * factor_2;
+                _trafo(Cart::xzzzzz,38) = 8. * factor_2;
 
-                _trafo(39, Cart::xxxxxy) = 2. * factor_3; /// Y 6,-2
-                _trafo(39, Cart::xxxyyy) = 4. * factor_3;
-                _trafo(39, Cart::xxxyzz) = -32. * factor_3;
-                _trafo(39, Cart::xyyyyy) = 2. * factor_3;
-                _trafo(39, Cart::xyyyzz) = -32. * factor_3;
-                _trafo(39, Cart::xyzzzz) = 32. * factor_3;
+                _trafo(Cart::xxxxxy,39) = 2. * factor_3; /// Y 6,-2
+                _trafo(Cart::xxxyyy,39) = 4. * factor_3;
+                _trafo(Cart::xxxyzz,39) = -32. * factor_3;
+                _trafo(Cart::xyyyyy,39) = 2. * factor_3;
+                _trafo(Cart::xyyyzz,39) = -32. * factor_3;
+                _trafo(Cart::xyzzzz,39) = 32. * factor_3;
 
-                _trafo(40, Cart::xxxxxy) = factor_3; /// Y 6,2
-                _trafo(40, Cart::xxxxyy) = factor_3;
-                _trafo(40, Cart::xxxxzz) = -16. * factor_3;
-                _trafo(40, Cart::xxyyyy) = -factor_3;
-                _trafo(40, Cart::xxzzzz) = 16. * factor_3;
-                _trafo(40, Cart::yyyyyy) = -factor_3;
-                _trafo(40, Cart::yyyyzz) = 16. * factor_3;
-                _trafo(40, Cart::yyzzzz) = -16. * factor_3;
+                _trafo(Cart::xxxxxy,40) = factor_3; /// Y 6,2
+                _trafo(Cart::xxxxyy,40) = factor_3;
+                _trafo(Cart::xxxxzz,40) = -16. * factor_3;
+                _trafo(Cart::xxyyyy,40) = -factor_3;
+                _trafo(Cart::xxzzzz,40) = 16. * factor_3;
+                _trafo(Cart::yyyyyy,40) = -factor_3;
+                _trafo(Cart::yyyyzz,40) = 16. * factor_3;
+                _trafo(Cart::yyzzzz,40) = -16. * factor_3;
 
-                _trafo(41, Cart::xxxxyz) = -18. * factor_3; /// Y 6,-3
-                _trafo(41, Cart::xxyyyz) = -12. * factor_3;
-                _trafo(41, Cart::xxyzzz) = 48. * factor_3;
-                _trafo(41, Cart::yyyyyz) = 6. * factor_3;
-                _trafo(41, Cart::yyyzzz) = -16. * factor_3;
+                _trafo(Cart::xxxxyz,41) = -18. * factor_3; /// Y 6,-3
+                _trafo(Cart::xxyyyz,41) = -12. * factor_3;
+                _trafo(Cart::xxyzzz,41) = 48. * factor_3;
+                _trafo(Cart::yyyyyz,41) = 6. * factor_3;
+                _trafo(Cart::yyyzzz,41) = -16. * factor_3;
 
-                _trafo(42, Cart::xxxxxz) = -6. * factor_3; /// Y 6,3
-                _trafo(42, Cart::xxxyyz) = 12. * factor_3;
-                _trafo(42, Cart::xxxzzz) = 16. * factor_3;
-                _trafo(42, Cart::xyyyyz) = 18. * factor_3;
-                _trafo(42, Cart::xyyzzz) = -48. * factor_3;
+                _trafo(Cart::xxxxxz,42) = -6. * factor_3; /// Y 6,3
+                _trafo(Cart::xxxyyz,42) = 12. * factor_3;
+                _trafo(Cart::xxxzzz,42) = 16. * factor_3;
+                _trafo(Cart::xyyyyz,42) = 18. * factor_3;
+                _trafo(Cart::xyyzzz,42) = -48. * factor_3;
 
-                _trafo(43, Cart::xxxxxy) = -4. * factor_4; /// Y 6,-4
-                _trafo(43, Cart::xxxyzz) = 40. * factor_4;
-                _trafo(43, Cart::xyyyyy) = 4. * factor_4;
-                _trafo(43, Cart::xyyyzz) = -40. * factor_4;
+                _trafo(Cart::xxxxxy,43) = -4. * factor_4; /// Y 6,-4
+                _trafo(Cart::xxxyzz,43) = 40. * factor_4;
+                _trafo(Cart::xyyyyy,43) = 4. * factor_4;
+                _trafo(Cart::xyyyzz,43) = -40. * factor_4;
 
-                _trafo(44, Cart::xxxxxx) = -factor_4; /// Y 6,4
-                _trafo(44, Cart::xxxxyy) = 5. * factor_4;
-                _trafo(44, Cart::xxxxzz) = 10. * factor_4;
-                _trafo(44, Cart::xxyyyy) = 5. * factor_4;
-                _trafo(44, Cart::xxyyzz) = -60. * factor_4;
-                _trafo(44, Cart::yyyyyy) = -factor_4;
-                _trafo(44, Cart::yyyyzz) = 10. * factor_4;
+                _trafo(Cart::xxxxxx,44) = -factor_4; /// Y 6,4
+                _trafo(Cart::xxxxyy,44) = 5. * factor_4;
+                _trafo(Cart::xxxxzz,44) = 10. * factor_4;
+                _trafo(Cart::xxyyyy,44) = 5. * factor_4;
+                _trafo(Cart::xxyyzz,44) = -60. * factor_4;
+                _trafo(Cart::yyyyyy,44) = -factor_4;
+                _trafo(Cart::yyyyzz,44) = 10. * factor_4;
 
-                _trafo(45, Cart::xxxxyz) = 5. * factor_5; /// Y 6,-5
-                _trafo(45, Cart::xxyyyz) = -10. * factor_5;
-                _trafo(45, Cart::yyyyyz) = factor_5;
+                _trafo(Cart::xxxxyz,45) = 5. * factor_5; /// Y 6,-5
+                _trafo(Cart::xxyyyz,45) = -10. * factor_5;
+                _trafo(Cart::yyyyyz,45) = factor_5;
 
-                _trafo(46, Cart::xxxxxz) = factor_5; /// Y 6,5
-                _trafo(46, Cart::xxxyyz) = -10. * factor_5;
-                _trafo(46, Cart::xyyyyz) = 5. * factor_5;
+                _trafo(Cart::xxxxxz,46) = factor_5; /// Y 6,5
+                _trafo(Cart::xxxyyz,46) = -10. * factor_5;
+                _trafo(Cart::xyyyyz,46) = 5. * factor_5;
 
-                _trafo(47, Cart::xxxxxy) = 6. * factor_6; /// Y 6,-6
-                _trafo(47, Cart::xxxyyy) = -20. * factor_6;
-                _trafo(47, Cart::xyyyyy) = 6. * factor_6;
+                _trafo(Cart::xxxxxy,47) = 6. * factor_6; /// Y 6,-6
+                _trafo(Cart::xxxyyy,47) = -20. * factor_6;
+                _trafo(Cart::xyyyyy,47) = 6. * factor_6;
 
-                _trafo(48, Cart::xxxxxx) = factor_6; /// Y 6,6
-                _trafo(48, Cart::xxxxyy) = -15. * factor_6;
-                _trafo(48, Cart::xxyyyy) = 15. * factor_6;
-                _trafo(48, Cart::yyyyyy) = -factor_6;
+                _trafo(Cart::xxxxxx,48) = factor_6; /// Y 6,6
+                _trafo(Cart::xxxxyy,48) = -15. * factor_6;
+                _trafo(Cart::xxyyyy,48) = 15. * factor_6;
+                _trafo(Cart::yyyyyy,48) = -factor_6;
             }
             return _trafo;
         }

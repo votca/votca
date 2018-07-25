@@ -779,7 +779,7 @@ for (int l = 4; l < _lmax_beta+1; l++) {
                     for (int _i_alpha_t = istart[ _i_alpha ]; _i_alpha_t <= istop[ _i_alpha ]; _i_alpha_t++) {
 
                       R3_ab_sph[ _i_alpha ][ _i_beta ][ _j ] += R[ _i_alpha_t ][ _i_beta_t][ _j]
-                                                                * _trafo_alpha(_i_alpha, _i_alpha_t) * _trafo_beta(_i_beta, _i_beta_t);
+                                                                * _trafo_alpha(_i_alpha_t, _i_alpha) * _trafo_beta(_i_beta_t, _i_beta);
 
 
                     }
@@ -938,7 +938,7 @@ for (int l = 4; l < _lmax_delta+1; l++) {
                       for (int _i_gamma_t = istart[ _i_gamma ]; _i_gamma_t <= istop[ _i_gamma ]; _i_gamma_t++) {
 
                         R4_sph[ _j ][ _k ][ _i_gamma ][ _i_delta ] += R4_ab_sph[_j][_k][ _i_gamma_t ][ _i_delta_t]
-                                                                      * _trafo_gamma(_i_gamma, _i_gamma_t) * _trafo_delta(_i_delta, _i_delta_t);
+                                                                      * _trafo_gamma(_i_gamma_t, _i_gamma) * _trafo_delta(_i_delta_t, _i_delta);
 
                       }
                     }

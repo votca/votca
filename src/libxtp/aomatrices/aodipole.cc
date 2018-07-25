@@ -571,7 +571,7 @@ if (_lmax_col > 3) {
        
         for ( int _i_comp = 0; _i_comp < 3; _i_comp++){
 
-            Eigen::MatrixXd _dip_sph = _trafo_row*_dip[ _i_comp ] * _trafo_col.transpose() ;
+            Eigen::MatrixXd _dip_sph = _trafo_row.transpose()*_dip[ _i_comp ] * _trafo_col ;
             
             // save to _matrix
             for ( unsigned i = 0; i< _matrix[0].rows(); i++ ) {

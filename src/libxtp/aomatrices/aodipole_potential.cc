@@ -36,9 +36,6 @@ namespace votca { namespace xtp {
         
         tools::vec dipole=-(apolarsite->getU1()+apolarsite->getQ1())*tools::conv::nm2bohr;
         tools::vec position=apolarsite->getPos()*tools::conv::nm2bohr;
-        double d_0 = dipole.getX();
-        double d_1 = dipole.getY();
-        double d_2 = dipole.getZ();
 
        
         // shell info, only lmax tells how far to go
@@ -743,17 +740,16 @@ if (_lmax_col > 3) {
   //------------------------------------------------------
 
 } // end if (_lmax_col > 3)
-
-
+//votca dipoles are spherical in ordering z,y,x
 for (int _i = 0; _i < _nrows; _i++) {
   for (int _j = 0; _j < _ncols; _j++) {
-    dip(_i,_j) = d_0 * dip4[_i][_j][0][0] + d_1 * dip4[_i][_j][1][0] + d_2 * dip4[_i][_j][2][0];
+    dip(_i,_j) = dipole.getX() * dip4[_i][_j][0][0] +dipole.getY() * dip4[_i][_j][1][0] + dipole.getZ() * dip4[_i][_j][2][0];
   }
 }                         
 
         
         
-        Eigen::MatrixXd _dip_sph = getTrafo(*itr)*dip*getTrafo(*itc).transpose();
+        Eigen::MatrixXd _dip_sph = getTrafo(*itr).transpose()*dip*getTrafo(*itc);
         // save to _matrix
         
         for ( unsigned i = 0; i< _matrix.rows(); i++ ) {
@@ -770,11 +766,12 @@ for (int _i = 0; _i < _nrows; _i++) {
 
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
             for (unsigned int i = 0; i < _sites.size(); i++) {
-                for (ctp::PolarSeg::const_iterator it = _sites[i]->begin(); it < _sites[i]->end(); ++it) {
+                for (ctp::APolarSite* site:*(_sites[i])) {
 
-                    if ((*it)->getRank() > 0 || (*it)->IsPolarizable()) {
+                    if (site->getRank() > 0 || site->IsPolarizable()) {  
+                        if(tools::abs(site->getU1()+site->getQ1())<1e-12){continue;}
                         _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                        setAPolarSite((*it));
+                        setAPolarSite(site);
                         Fill(aobasis);
                         _externalpotential += _aomatrix;
                     }

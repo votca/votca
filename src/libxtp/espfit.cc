@@ -219,7 +219,6 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& atomlist,const Grid& gri
      }
 
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Solving linear Equation "<< flush;
-
     Eigen::VectorXd charges;
     if(_do_svd){
       Eigen::JacobiSVD<Eigen::MatrixXd> svd;
@@ -234,11 +233,10 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& atomlist,const Grid& gri
         throw std::runtime_error("Espfit: Solving the constrained equation failed. Maybe try SVD.");
       }
       charges=QR.solve(Bvec);
+      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Solved linear least square fit ."<< flush;
     }
-
     //remove constraint
     charges.conservativeResize(atomlist.size());
-    CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Inverting Matrices done."<< flush;
    
     CTP_LOG(ctp::logDEBUG, *_log) << " Sum of fitted charges: " << charges.sum() << flush;
     for (unsigned i=0;i<atomlist.size();i++){

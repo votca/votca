@@ -464,12 +464,19 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis){
   Eigen::MatrixXd vxc_ao;
   if (_orbitals.hasAOVxc()) {
     if (_doVxc) {
+      if(_orbitals.getQMpackage()=="xtp"){
+        CTP_LOG(ctp::logDEBUG, *_pLog)
+              << ctp::TimeStamp()
+              << " Taking VXC from xtp DFT run."
+              << flush;
+      }else{
       CTP_LOG(ctp::logDEBUG, *_pLog)
               << ctp::TimeStamp()
               << " There is already a Vxc matrix loaded from DFT, did you maybe "
               "run a DFT code with outputVxc?\n I will take the external "
               "implementation"
               << flush;
+      }
       _doVxc = false;
     }
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()

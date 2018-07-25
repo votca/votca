@@ -152,7 +152,7 @@ namespace votca { namespace xtp {
     class AOESP : public AOMatrix<double>{
     public:
      
-        void Fillnucpotential(const AOBasis& aobasis, std::vector<QMAtom*>& _atoms);
+        void Fillnucpotential(const AOBasis& aobasis,const std::vector<QMAtom*>& _atoms);
         void Fillextpotential(const AOBasis& aobasis, const std::vector<ctp::PolarSeg*>& _sites);
         const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}

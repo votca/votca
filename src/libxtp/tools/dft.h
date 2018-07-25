@@ -49,7 +49,6 @@ namespace votca {
             void Initialize(Property *options);
             bool Evaluate();
 
-            DFTENGINE _dftengine;
 
 
         private:
@@ -154,20 +153,16 @@ namespace votca {
                 orbitals.LoadFromXYZ(_xyzfile);
             }
 
-            // initialize the DFTENGINE
-            DFTENGINE dft;
+            // initialize the DFTEngine
+            DFTEngine dft;
             dft.Initialize(_dftengine_options);
             dft.setLogger(&_log);
-            ;
 
             if (_do_external) {
-                CTP_LOG (ctp::logDEBUG, _log) << " Let's create the background "  << flush; 
                 vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS(_mpsfile, 0);
                 std::vector<ctp::PolarSeg*> polar_segments;
-                //ctp::PolarSeg *thisPolarSegment = NULL;
                 ctp::PolarSeg *newPolarSegment = new ctp::PolarSeg(0, sites);
                 polar_segments.push_back(newPolarSegment);
-                polar_segments[0]->WriteMPS("test.mps", "test");
                 dft.setExternalcharges(polar_segments);
             }
 

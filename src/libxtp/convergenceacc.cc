@@ -41,7 +41,6 @@ namespace votca { namespace xtp {
         }
        Sminusahalf =es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
        Sonehalf=es.operatorSqrt();
-       mix.Configure(_mixingparameter,S);
        return;
    }
    
@@ -58,14 +57,12 @@ namespace votca { namespace xtp {
           }
           
       _totE.push_back(totE);
-      
-    double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
-      
-    if((_diiserror>_levelshiftend && _levelshift>0.0) || gap<1e-6){
-      if(_mode!=KSmode::fractional){
-        Levelshift(H);
+     if(_mode!=KSmode::fractional){ 
+        double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
+        if((_diiserror>_levelshiftend && _levelshift>0.0) || gap<1e-6){
+          Levelshift(H);
+        }
       }
-    }
       
       Eigen::MatrixXd errormatrix=Sminusahalf.transpose()*(H*dmat*(*S)-(*S)*dmat*H)*Sminusahalf;
       _diiserror=errormatrix.cwiseAbs().maxCoeff();
@@ -125,12 +122,12 @@ namespace votca { namespace xtp {
     SolveFockmatrix( MOenergies,MOs,H_guess);
     Eigen::MatrixXd dmatout=DensityMatrix(MOs,MOenergies);
     
-    mix.Updatemix(dmat,dmatout);
+    
     if(_diiserror>_adiis_start ||!_usediis || diis_error ||_mathist.size()<=2 ){
       _usemixing=true;
-      dmatout=mix.MixDmat(dmat,dmatout);
+      dmatout=_mixingparameter*dmat+(1.0-_mixingparameter)*dmatout;
       if(_noisy){
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using Mixing with alpha="<<mix.getAlpha() << std::flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using Mixing with alpha="<<_mixingparameter << std::flush;
         }
     }else{
       _usemixing=false;
@@ -143,8 +140,10 @@ namespace votca { namespace xtp {
         Eigen::MatrixXd H_ortho=Sminusahalf.transpose()*H*Sminusahalf;
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H_ortho);
         if(es.info()!=Eigen::ComputationInfo::Success){
-          throw std::runtime_error("SolveFockmatrix: Matrix Diagonalisation failed!");
+          std::cerr<<"DiagInfo "<<es.info()<<std::endl;
+          throw std::runtime_error("Matrix Diagonalisation failed");
         }
+        
         MOsinv=es.eigenvectors().transpose()*Sonehalf;
         MOenergies=es.eigenvalues();
         
@@ -203,29 +202,37 @@ namespace votca { namespace xtp {
         }
 
         Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies) {
-            if (_nocclevels == 0) {
+            if (_numberofelectrons == 0) {
                 return Eigen::MatrixXd::Zero(MOs.rows(),MOs.cols());
             }
-            unsigned numofelec=2*_nocclevels;
+            int numofelec=_numberofelectrons;
             Eigen::VectorXd occupation = Eigen::VectorXd::Zero(MOEnergies.size());
 
-            double buffer = 0.0001;
-            double homo_energy = MOEnergies(numofelec - 1);
-            std::vector<unsigned> degeneracies;
-
-            for (unsigned _level = 0; _level < occupation.size(); _level++) {
-                if (MOEnergies(_level)<(homo_energy - buffer)) {
-                    occupation(_level) = 1.0;
-                    numofelec--;
-                } else if (std::abs(MOEnergies(_level) - homo_energy) < buffer) {
-                    degeneracies.push_back(_level);
-                } else if (MOEnergies(_level)>(homo_energy + buffer)) {
-                    occupation(_level) = 0.0;
-                }
+            std::vector< std::vector<int> > degeneracies;
+            double buffer=1e-4;
+            degeneracies.push_back(std::vector<int>{0});
+            for (int i=1;i<occupation.size();i++){
+              if(MOEnergies(i)<MOEnergies(degeneracies[degeneracies.size()-1][0])+buffer){
+                degeneracies[degeneracies.size()-1].push_back(i);
+              }
+              else{
+                degeneracies.push_back(std::vector<int>{i});
+              }    
             }
-            double deg_occupation = double(numofelec) / double(degeneracies.size());
-            for (unsigned _level = 0; _level < degeneracies.size(); _level++) {
-                occupation(degeneracies[_level]) = deg_occupation;
+            for (const std::vector<int>& deglevel:degeneracies){
+              int numofpossibleelectrons=2*deglevel.size();
+              if(numofpossibleelectrons<=numofelec){
+                for (const int& i:deglevel){
+                  occupation(i)=2;
+                }
+                numofelec-=numofpossibleelectrons;
+              }else if(numofpossibleelectrons>numofelec){
+                double occ=double(numofelec)/double(deglevel.size());
+                for (const int& i:deglevel){
+                  occupation(i)=occ;
+                }
+                break;
+              }
             }
             Eigen::MatrixXd _dmatGS =MOs*occupation.asDiagonal()*MOs.transpose();
             return _dmatGS;

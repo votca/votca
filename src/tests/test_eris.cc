@@ -261,7 +261,7 @@ BOOST_AUTO_TEST_CASE(threecenter){
   aoverlap.Fill(aobasis);
   
   ConvergenceAcc d;
-  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,0.0,0,4,0);
+  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,0.0,0,8,0);
   d.setOverlap(&aoverlap.Matrix(),1e-8);
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
   Eigen::MatrixXd dmat=orb.DensityMatrixGroundState();

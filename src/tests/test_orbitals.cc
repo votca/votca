@@ -19,11 +19,36 @@
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/convergenceacc.h>
 #include <votca/xtp/orbitals.h>
-
+#include <fstream>
 
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(orbitals_test)
+BOOST_AUTO_TEST_CASE(readxyztest){
+  std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " C 0.0 3 1" << std::endl;
+  xyzfile << " methane" << std::endl;
+  xyzfile << " C            .000000     .000000     .000000" << std::endl;
+  xyzfile << " H            .629118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
+  xyzfile.close();
+  
+  
+  bool errorhappen=false;
+  Orbitals orb;
+  try{
+    orb.LoadFromXYZ("molecule.xyz");
+  }catch (const std::runtime_error& error)
+{
+    std::cout<<error.what()<<std::endl;
+    errorhappen=true;
+  }
+  
+   BOOST_CHECK_EQUAL(errorhappen, true);
+}
+
 
 BOOST_AUTO_TEST_CASE(densmatgs_test) {
   
@@ -74,7 +99,7 @@ Eigen::MatrixXd overlap_ref=Eigen::MatrixXd::Zero(17,17);
 0.0808612,0.401447,-0.135615,0.135615,-0.135615,0.668849,-0.340149,0.340149,-0.340149,0.116994,0.354983,0.116994,0.354983,0.116994,0.354983,0.645899,1;
   
   ConvergenceAcc d;
-  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,0.0,0,4,0);
+  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,0.0,0,8,0);
   d.setOverlap(&overlap_ref,1e-8);
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
   Eigen::VectorXd MOEnergies_ref=Eigen::VectorXd::Zero(17);
