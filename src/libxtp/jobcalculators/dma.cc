@@ -132,6 +132,7 @@ ctp::Job::JobResult DMA::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThrea
     
     ctp::Segment *seg = top->getSegment( segId );
     assert( seg->getName() == segType ); 
+    std::vector<ctp::Segment*> segments;
     segments.push_back( seg );
     QMInterface interface;
     Orbitals orbital;

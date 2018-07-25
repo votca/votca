@@ -519,31 +519,29 @@ namespace votca {
         ofs << "<jobs>" << endl;
         string tag = "";
 
-        for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
-          if ((*pit)->getType() == ctp::QMPair::Excitoncl) {
+        for (ctp::QMPair* pair: nblist) {
+          if (pair->getType() == ctp::QMPair::Excitoncl) {
             continue;
           }
-          //if ((*pit)->HasGhost()){ // Used to only produce jobs concerned with pbcs
-          int id1 = (*pit)->Seg1()->getId();
-          string name1 = (*pit)->Seg1()->getName();
-          int id2 = (*pit)->Seg2()->getId();
-          string name2 = (*pit)->Seg2()->getName();
+          int id1 = pair->Seg1()->getId();
+          string name1 = pair->Seg1()->getName();
+          int id2 = pair->Seg2()->getId();
+          string name2 = pair->Seg2()->getName();
 
           int id = ++jobCount;
 
           Property Input;
-          Property *pInput = &Input.add("input", "");
-          Property *pSegment = &pInput->add("segment", boost::lexical_cast<string>(id1));
-          pSegment->setAttribute<string>("type", name1);
-          pSegment->setAttribute<int>("id", id1);
+          Property &pInput = Input.add("input", "");
+          Property &pSegment = pInput.add("segment", boost::lexical_cast<string>(id1));
+          pSegment.setAttribute<string>("type", name1);
+          pSegment.setAttribute<int>("id", id1);
 
-          pSegment = &pInput->add("segment", boost::lexical_cast<string>(id2));
-          pSegment->setAttribute<string>("type", name2);
-          pSegment->setAttribute<int>("id", id2);
+          pSegment = pInput.add("segment", boost::lexical_cast<string>(id2));
+          pSegment.setAttribute<string>("type", name2);
+          pSegment.setAttribute<int>("id", id2);
 
           ctp::Job job(id, tag, Input, ctp::Job::AVAILABLE);
           job.ToStream(ofs, "xml");
-          //}
         }
 
         // CLOSE STREAM
