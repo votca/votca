@@ -419,6 +419,8 @@ namespace votca { namespace csg {
 					mass,
 					charge);
 
+			b->setMolecule(mol);
+
 			getline(fl_,line);
 		}
 
@@ -497,6 +499,7 @@ namespace votca { namespace csg {
 			top.AddBondedInteraction(ic);
 			mi->AddInteraction(ic);
 
+			getline(fl_,line);
 		}
 	}
 
@@ -534,6 +537,7 @@ namespace votca { namespace csg {
 			top.AddBondedInteraction(ic);
 			mi->AddInteraction(ic);
 
+			getline(fl_,line);
 		}
 	}
 
