@@ -120,7 +120,7 @@ namespace votca {
             return multipoles_split;
         }
         
-      void QMPackage::setMultipoleBackground(std::vector<ctp::PolarSeg*> PolarSegments) {
+      void QMPackage::setMultipoleBackground(std::vector<std::shared_ptr<ctp::PolarSeg> > PolarSegments) {
         if(PolarSegments.size()==0){
           std::cout<<"WARNING::The Multipole Background has no entries!"<<std::endl;
           return;

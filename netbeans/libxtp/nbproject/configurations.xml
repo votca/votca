@@ -20,11 +20,6 @@
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
         <itemPath>../../src/libxtp/jobcalculators/dma.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/dma.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/edft.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/egwbse.cc</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/egwbse.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/idft.cc</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/idft.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iqm.cc</itemPath>
@@ -34,9 +29,8 @@
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
         <itemPath>../../src/libxtp/tools/coupling.h</itemPath>
-        <itemPath>../../src/libxtp/tools/dft.h</itemPath>
-        <itemPath>../../src/libxtp/tools/exciton.cc</itemPath>
-        <itemPath>../../src/libxtp/tools/exciton.h</itemPath>
+        <itemPath>../../src/libxtp/tools/dftgwbse.cc</itemPath>
+        <itemPath>../../src/libxtp/tools/dftgwbse.h</itemPath>
         <itemPath>../../src/libxtp/tools/excitoncoupling.h</itemPath>
         <itemPath>../../src/libxtp/tools/gencube.h</itemPath>
         <itemPath>../../src/libxtp/tools/log2mps.h</itemPath>
@@ -194,6 +188,7 @@
         <itemPath>../../src/libxtp/convergenceacc.cc</itemPath>
         <itemPath>../../src/libxtp/dftengine/dftengine.cc</itemPath>
         <itemPath>../../src/libxtp/diis.cc</itemPath>
+        <itemPath>../../src/libxtp/mixing.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="Factories" projectFiles="true">
         <itemPath>../../src/libxtp/calculatorfactory.cc</itemPath>
@@ -285,6 +280,294 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
     <Elem>../../include</Elem>
     <Elem>../../../../include</Elem>
     <Elem>../../include</Elem>
@@ -1112,41 +1395,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/edft.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/egwbse.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/egwbse.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/eqm.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/eqm.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/idft.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/idft.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/jobcalculators/iexcitoncl.cc"
             ex="false"
             tool="1"
@@ -1289,11 +1537,9 @@
       </item>
       <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
+      <item path="../../src/libxtp/tools/dftgwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/tools/exciton.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/tools/exciton.h" ex="false" tool="3" flavor2="0">
+      <item path="../../src/libxtp/tools/dftgwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/excitoncoupling.h"
             ex="false"
@@ -1939,41 +2185,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/edft.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/egwbse.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/egwbse.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/eqm.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/eqm.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/idft.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/idft.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/jobcalculators/iexcitoncl.cc"
             ex="false"
             tool="1"
@@ -2116,11 +2327,9 @@
       </item>
       <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libxtp/tools/dft.h" ex="false" tool="3" flavor2="0">
+      <item path="../../src/libxtp/tools/dftgwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/tools/exciton.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/tools/exciton.h" ex="false" tool="3" flavor2="0">
+      <item path="../../src/libxtp/tools/dftgwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/excitoncoupling.h"
             ex="false"

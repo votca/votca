@@ -153,7 +153,7 @@ namespace votca { namespace xtp {
     public:
      
         void Fillnucpotential(const AOBasis& aobasis,const std::vector<QMAtom*>& _atoms);
-        void Fillextpotential(const AOBasis& aobasis, const std::vector<ctp::PolarSeg*>& _sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<ctp::PolarSeg> >& _sites);
         const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         void setPosition(const tools::vec& r){ _r=r;};
@@ -220,7 +220,7 @@ namespace votca { namespace xtp {
     class AODipole_Potential : public AOMatrix<double>{
     public:
   
-        void Fillextpotential(const AOBasis& aobasis, const std::vector<ctp::PolarSeg*>& _sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<ctp::PolarSeg> >& _sites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         
@@ -237,7 +237,7 @@ namespace votca { namespace xtp {
     class AOQuadrupole_Potential : public AOMatrix<double>{
     public:
         
-        void Fillextpotential(const AOBasis& aobasis, const std::vector<ctp::PolarSeg*>& _sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<ctp::PolarSeg> >& _sites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
      

@@ -15,7 +15,7 @@
  *
  */
 
-#include "exciton.h"
+#include "dftgwbse.h"
 #include "votca/xtp/qminterface.h"
 #include <votca/xtp/gwbseengine.h>
 
@@ -25,12 +25,29 @@ using namespace std;
 namespace votca {
     namespace xtp {
 
-        void Exciton::Initialize(tools::Property* options) {
+        void DftGwBse::Initialize(tools::Property* options) {
          
             _do_optimize = false;
-            // _do_guess=false; //Writing guess for dimer calculation
+             std::string key = "options." + Identify();
+             
+             
+            if (options->exists(key + ".mpsfile")) {
+                _do_external = true;
+                _mpsfile = options->get(key + ".mpsfile").as<string> ();
+               _dipole_spacing= options->get(key + ".multipolespacing").as<double> ();
+            } else {
+                _do_external = false;
+            }
+            
+            if (options->exists(key + ".guess")) {
+                _do_guess = true;
+                _guess_file = options->get(key + ".guess").as<string> ();
 
-            std::string key = "options." + Identify();
+            } else {
+                _do_guess = false;
+            }
+
+           
             _archive_file = options->ifExistsReturnElseReturnDefault<string>(key + ".archive", "system.orb");
             _reporting    = options->ifExistsReturnElseReturnDefault<string>(key + ".reporting", "default");
 
@@ -55,12 +72,12 @@ namespace votca {
             // if optimization is chosen, get options for geometry_optimizer
             if (_do_optimize) _geoopt_options = options->get(key + ".geometry_optimization");
 
-            // register all QM packages (Gaussian, TURBOMOLE, etc)
+            // register all QM packages (Gaussian, NWCHEM, etc)
             QMPackageFactory::RegisterAll();
 
         }
 
-        bool Exciton::Evaluate() {
+        bool DftGwBse::Evaluate() {
 
 
             if (_reporting == "silent")  _log.setReportLevel(ctp::logERROR); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
@@ -77,41 +94,54 @@ namespace votca {
             Orbitals orbitals;
 
        
-            CTP_LOG(ctp::logDEBUG, _log) << "Reading molecular coordinates from " << _xyzfile << flush;
-            orbitals.LoadFromXYZ(_xyzfile);
-           
+            if (_do_guess) {
+                CTP_LOG(ctp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
+                orbitals.ReadFromCpt(_guess_file);
+            } else {
+                CTP_LOG(ctp::logDEBUG, _log) << "Reading structure from " << _xyzfile << flush;
+                orbitals.LoadFromXYZ(_xyzfile);
+            }
 
             // Get and initialize QMPackage for DFT ground state
-            QMPackage *_qmpackage = QMPackages().Create(_package);
-            _qmpackage->setLog(&_log);
-            _qmpackage->Initialize(_package_options);
-            _qmpackage->setRunDir(".");
+            QMPackage *qmpackage = QMPackages().Create(_package);
+            qmpackage->setLog(&_log);
+            qmpackage->Initialize(_package_options);
+            qmpackage->setRunDir(".");
+            std::vector<std::shared_ptr<ctp::PolarSeg> > polar_segments;
+            if (_do_external) {
+                vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS(_mpsfile, 0);
+                std::shared_ptr<ctp::PolarSeg> newPolarSegment (new ctp::PolarSeg(0, sites));
+                polar_segments.push_back(newPolarSegment);
+                qmpackage->setMultipoleBackground(polar_segments);
+                qmpackage->setDipoleSpacing(_dipole_spacing);
+                qmpackage->setWithPolarization(true);
+            }
 
             // Get GWBSEENGINE Object and initialize
-            GWBSEENGINE _gwbse_engine;
-            _gwbse_engine.setLog(&_log);
-            _gwbse_engine.Initialize(_gwbseengine_options, _archive_file);
+            GWBSEENGINE gwbse_engine;
+            gwbse_engine.setLog(&_log);
+            gwbse_engine.Initialize(_gwbseengine_options, _archive_file);
 
             if ( _do_optimize ) {
                 // Run Geometry Optimization
-                GeometryOptimization _geoopt(_gwbse_engine,_qmpackage, orbitals);
-                _geoopt.setLog(&_log);
-                _geoopt.Initialize(_geoopt_options);
-                _geoopt.Evaluate();
+                GeometryOptimization geoopt(gwbse_engine,qmpackage, orbitals);
+                geoopt.setLog(&_log);
+                geoopt.Initialize(_geoopt_options);
+                geoopt.Evaluate();
             } else {
                 // Run GWBSE
-                _gwbse_engine.ExcitationEnergies(_qmpackage, orbitals);
+                gwbse_engine.ExcitationEnergies(qmpackage, orbitals);
             }
 
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
             orbitals.WriteToCpt(_archive_file);
             
-            tools::Property _summary = _gwbse_engine.ReportSummary();
-            if(_summary.exists("output")){  //only do gwbse summary output if we actually did gwbse
+            tools::Property summary = gwbse_engine.ReportSummary();
+            if(summary.exists("output")){  //only do gwbse summary output if we actually did gwbse
                 tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
                 CTP_LOG(ctp::logDEBUG, _log) << "Writing output to " << _xml_output << flush;
                 std::ofstream ofout(_xml_output.c_str(), std::ofstream::out);
-                ofout << (_summary.get("output"));
+                ofout << (summary.get("output"));
                 ofout.close();
             }
 

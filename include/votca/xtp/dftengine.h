@@ -70,7 +70,7 @@ namespace votca {
                 _do_externalfield = true;
             }
 
-            void setExternalcharges(std::vector<ctp::PolarSeg*> externalsites) {
+            void setExternalcharges(std::vector<std::shared_ptr<ctp::PolarSeg> > externalsites) {
                 _externalsites = externalsites;           
                 _addexternalsites = true;
             }
@@ -199,7 +199,7 @@ namespace votca {
             ERIs _ERIs;
 
             // external charges
-            std::vector<ctp::PolarSeg*> _externalsites;
+            std::vector<std::shared_ptr<ctp::PolarSeg> > _externalsites;
             bool _addexternalsites;
 
             // exchange and correlation

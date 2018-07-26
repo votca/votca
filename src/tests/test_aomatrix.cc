@@ -231,8 +231,8 @@ mpsfile<<"     100 0 0 0 0"<<endl;
 mpsfile<<"P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387 "<<endl;
 
 std::vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS("polarsite.mps", 0);
-std::vector<ctp::PolarSeg*> polar_segments;
-ctp::PolarSeg *newPolarSegment = new ctp::PolarSeg(0, sites);
+std::vector<std::shared_ptr<ctp::PolarSeg> > polar_segments;
+std::shared_ptr<ctp::PolarSeg>  newPolarSegment(new ctp::PolarSeg(0, sites));
 polar_segments.push_back(newPolarSegment);
 AODipole_Potential dip;
 dip.Fillextpotential(aobasis,polar_segments);

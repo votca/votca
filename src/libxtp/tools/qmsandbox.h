@@ -125,36 +125,36 @@ bool QMSandbox::Evaluate() {
   
 #endif
 
-    std::vector<ctp::PolarSeg*> polar_segments_mol;
+    std::vector<std::shared_ptr<ctp::PolarSeg> > polar_segments_mol;
     
-    std::vector<ctp::PolarSeg*> polar_segments_dipole;
-    std::vector<ctp::PolarSeg*> polar_segments_dipole_split;
-    std::vector<ctp::PolarSeg*> polar_segments_quadrupole;
-    std::vector<ctp::PolarSeg*> polar_segments_quadrupole_split;
+    std::vector<std::shared_ptr<ctp::PolarSeg> > polar_segments_dipole;
+    std::vector<std::shared_ptr<ctp::PolarSeg> > polar_segments_dipole_split;
+    std::vector<std::shared_ptr<ctp::PolarSeg> > polar_segments_quadrupole;
+    std::vector<std::shared_ptr<ctp::PolarSeg> > polar_segments_quadrupole_split;
     {
         vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS(_espfile, 0);
-        ctp::PolarSeg *newPolarSegment = new ctp::PolarSeg(0, sites);
+        std::shared_ptr<ctp::PolarSeg>  newPolarSegment (new ctp::PolarSeg(0, sites));
         polar_segments_mol.push_back(newPolarSegment);
     }   
 
     {
         vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS(_mpsfiled, 0);
-        ctp::PolarSeg *newPolarSegment = new ctp::PolarSeg(0, sites);
+        std::shared_ptr<ctp::PolarSeg>  newPolarSegment (new ctp::PolarSeg(0, sites));
         polar_segments_dipole.push_back(newPolarSegment);
     }   
     {
         vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS(_mpsfileds, 0);
-        ctp::PolarSeg *newPolarSegment = new ctp::PolarSeg(0, sites);
+        std::shared_ptr<ctp::PolarSeg>  newPolarSegment (new ctp::PolarSeg(0, sites));
         polar_segments_dipole_split.push_back(newPolarSegment);
     }        
     {
         vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS(_mpsfileq, 0);
-        ctp::PolarSeg *newPolarSegment = new ctp::PolarSeg(0, sites);
+         std::shared_ptr<ctp::PolarSeg>  newPolarSegment (new ctp::PolarSeg(0, sites));
         polar_segments_quadrupole.push_back(newPolarSegment);
     }        
     {
         vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS(_mpsfileqs, 0);
-        ctp::PolarSeg *newPolarSegment = new ctp::PolarSeg(0, sites);
+         std::shared_ptr<ctp::PolarSeg>  newPolarSegment (new ctp::PolarSeg(0, sites));
         polar_segments_quadrupole_split.push_back(newPolarSegment);
     }        
   

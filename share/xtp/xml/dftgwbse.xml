@@ -1,7 +1,7 @@
 <options>
 
 <!-- xtp_tools -e exciton options.xml -->
-<exciton help="Electronic Excitations using GW-BSE">
+<dftgwbse help="Electronic Excitations using GW-BSE">
 
         <dftpackage help="Package for DFT ground state">orca_gwbse.xml</dftpackage>
 
@@ -41,6 +41,6 @@
         </geometry_optimization>
 
 
-</exciton>
+</dftgwbse>
 
 </options>

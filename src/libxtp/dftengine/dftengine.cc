@@ -881,7 +881,7 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
       actor.ResetEnergy();
       nuclei.CalcPos();
       double E_ext = 0.0;
-      for (ctp::PolarSeg* seg : _externalsites) {
+      for (std::shared_ptr<ctp::PolarSeg>  seg : _externalsites) {
         seg->CalcPos();
         tools::vec s = tools::vec(0.0);
         if (top != NULL) {

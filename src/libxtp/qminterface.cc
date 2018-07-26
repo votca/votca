@@ -106,41 +106,33 @@ namespace votca {
         }
 
 
-        std::vector<ctp::PolarSeg*> QMInterface::GenerateMultipoleList(ctp::PolarTop *ptop  ) {
-
-            std::vector<ctp::PolarSeg*> MultipoleList;
+        std::vector<std::shared_ptr<ctp::PolarSeg> > QMInterface::GenerateMultipoleList(ctp::PolarTop *ptop  ) {
+            std::vector<std::shared_ptr<ctp::PolarSeg> > MultipoleList;
 
             // MIDDLE SHELL MM1
             for (unsigned int i = 0; i < ptop->MM1().size(); ++i) {
-                ctp::PolarSeg *pseg = new ctp::PolarSeg(ptop->MM1()[i],false);
+                std::shared_ptr<ctp::PolarSeg>  pseg ( new ctp::PolarSeg(ptop->MM1()[i],false));
                 MultipoleList.push_back(pseg);
             }
 
             // OUTER SHELL MM2
             for (unsigned int i = 0; i < ptop->MM2().size(); ++i) {
-                ctp::PolarSeg *pseg = new ctp::PolarSeg(ptop->MM2()[i],false);
+                std::shared_ptr<ctp::PolarSeg>  pseg (new ctp::PolarSeg(ptop->MM2()[i],false));
                 MultipoleList.push_back(pseg);
             }
-
             return MultipoleList;
         }
 
 
         void QMInterface::Orbitals2Segment(ctp::Segment& segment, const Orbitals& _orbitals) {
 
-            
-            std::vector<QMAtom* > ::iterator ait;
             std::vector< QMAtom* >_atoms = _orbitals.QMAtoms();
-
             std::string type;
             int id = 1;
-            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-
-
-                type = (*ait)->getType();
-                
+            for (QMAtom* atom: _atoms) {
+                type = atom->getType();
                 ctp::Atom *pAtom = new ctp::Atom(id++, type);
-                tools::vec position= (*ait)->getPos()*votca::tools::conv::bohr2nm;
+                tools::vec position= atom->getPos()*votca::tools::conv::bohr2nm;
                 pAtom->setPos(position);
                 pAtom->setQMPart(id, position);
                 pAtom->setElement(type);

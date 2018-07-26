@@ -66,7 +66,7 @@ namespace votca {
             virtual void CleanUp() = 0;
             
             
-            virtual void setMultipoleBackground( std::vector<ctp::PolarSeg*> PolarSegments);
+            virtual void setMultipoleBackground( std::vector<std::shared_ptr<ctp::PolarSeg> > PolarSegments);
 
             void setRunDir(const std::string& run_dir) {
                 _run_dir = run_dir;
@@ -172,7 +172,7 @@ namespace votca {
             ctp::Logger* _pLog;
 
             
-            std::vector<ctp::PolarSeg*> _PolarSegments;
+            std::vector<std::shared_ptr<ctp::PolarSeg>  >_PolarSegments;
             double _dpl_spacing;
             bool _with_polarization;
             std::vector<std::vector<double> > SplitMultipoles(ctp::APolarSite* site);

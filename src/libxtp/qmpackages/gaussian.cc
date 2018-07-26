@@ -302,21 +302,20 @@ namespace votca {
          */
      
         void Gaussian::WriteBackgroundCharges(std::ofstream& _com_file) {
-            std::vector< ctp::PolarSeg* >::iterator it;
+            
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-            for (it = _PolarSegments.begin(); it < _PolarSegments.end(); it++) {
-                vector<ctp::APolarSite*> ::iterator pit;
-                for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
+            for (std::shared_ptr<ctp::PolarSeg> seg:_PolarSegments) {
+                for (ctp::APolarSite* site:*seg) {
                     
-                    string site=boost::str(fmt % (((*pit)->getPos().getX())*votca::tools::conv::nm2ang) 
-                            % ((*pit)->getPos().getY()*votca::tools::conv::nm2ang) 
-                            % ((*pit)->getPos().getZ()*votca::tools::conv::nm2ang) 
-                            % (*pit)->getQ00());
-                    if ((*pit)->getQ00() != 0.0) _com_file << site << endl;
+                    string sitestring=boost::str(fmt % ((site->getPos().getX())*votca::tools::conv::nm2ang) 
+                            % (site->getPos().getY()*votca::tools::conv::nm2ang) 
+                            % (site->getPos().getZ()*votca::tools::conv::nm2ang) 
+                            % site->getQ00());
+                    if (site->getQ00() != 0.0) _com_file << sitestring << endl;
 
-                    if ((*pit)->getRank() > 0 || _with_polarization ) {
+                    if (site->getRank() > 0 || _with_polarization ) {
 
-                        std::vector< std::vector<double> > _split_multipoles = SplitMultipoles(*pit);
+                        std::vector< std::vector<double> > _split_multipoles = SplitMultipoles(site);
                         for (const auto& mpoles:_split_multipoles){
                            string multipole=boost::str( fmt % mpoles[0] % mpoles[1] % mpoles[2] % mpoles[3]);
                             _com_file << multipole << endl;

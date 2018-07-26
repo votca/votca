@@ -272,7 +272,7 @@ namespace votca {
              * in the external QMPackages or in the direct evaluation
              * in the internal DFT engine.
              */
-            std::vector<ctp::PolarSeg*> MultipolesBackground = qminterface.GenerateMultipoleList( _job->getPolarTop() );
+            std::vector<std::shared_ptr<ctp::PolarSeg> > MultipolesBackground = qminterface.GenerateMultipoleList( _job->getPolarTop() );
 
             _qmpack->setMultipoleBackground( MultipolesBackground );
 

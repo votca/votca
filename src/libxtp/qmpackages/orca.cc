@@ -248,15 +248,13 @@ namespace votca {
             _crg_file.open(_crg_file_name_full.c_str());
             int _total_background = 0;
 
-            std::vector< ctp::PolarSeg* >::iterator it;
-            for (it = _PolarSegments.begin(); it < _PolarSegments.end(); it++) {
-                vector<ctp::APolarSite*> ::iterator pit;
-                for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
-                    if ((*pit)->getQ00() != 0.0) _total_background++;
+            for (std::shared_ptr<ctp::PolarSeg> seg:_PolarSegments) {
+                for (ctp::APolarSite* site:*seg) {
+                    if (site->getQ00() != 0.0) _total_background++;
 
-                    if ((*pit)->getRank() > 0 || _with_polarization ) {
+                    if (site->getRank() > 0 || _with_polarization ) {
 
-                        std::vector<std::vector<double>> _split_multipoles = SplitMultipoles(*pit);
+                        std::vector<std::vector<double>> _split_multipoles = SplitMultipoles(site);
                         _total_background+= _split_multipoles.size();
                     }
                 }
@@ -265,16 +263,15 @@ namespace votca {
             _crg_file << _total_background << endl;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
             //now write
-            for (it = _PolarSegments.begin(); it < _PolarSegments.end(); it++) {
-                vector<ctp::APolarSite*> ::iterator pit;
-                for (pit = (*it)->begin(); pit < (*it)->end(); ++pit) {
-                    string site=boost::str(fmt % (*pit)->getQ00() % (((*pit)->getPos().getX())*votca::tools::conv::nm2ang) 
-                            % ((*pit)->getPos().getY()*votca::tools::conv::nm2ang) 
-                            % ((*pit)->getPos().getZ()*votca::tools::conv::nm2ang) 
+            for (std::shared_ptr<ctp::PolarSeg> seg:_PolarSegments) {
+                for (ctp::APolarSite* site:*seg) {
+                    string sitestring=boost::str(fmt % site->getQ00() % ((site->getPos().getX())*votca::tools::conv::nm2ang) 
+                            % (site->getPos().getY()*votca::tools::conv::nm2ang) 
+                            % (site->getPos().getZ()*votca::tools::conv::nm2ang) 
                             );
-                    if ((*pit)->getQ00() != 0.0) _crg_file << site << endl;
-                    if ((*pit)->getRank() > 0 || _with_polarization ) {
-                        std::vector< std::vector<double> > _split_multipoles = SplitMultipoles(*pit);
+                    if (site->getQ00() != 0.0) _crg_file << sitestring << endl;
+                    if (site->getRank() > 0 || _with_polarization ) {
+                        std::vector< std::vector<double> > _split_multipoles = SplitMultipoles(site);
                         for (const auto& mpoles:_split_multipoles){
                            string multipole=boost::str( fmt % mpoles[3] % mpoles[0] % mpoles[1] % mpoles[2] );
                             _crg_file << multipole << endl;
