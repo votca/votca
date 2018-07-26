@@ -31,6 +31,7 @@
  - [csg-tutorials](https://github.com/votca/csg-tutorials/issues)
  - [ctp](https://github.com/votca/ctp/issues)
  - [xtp](https://github.com/votca/xtp/issues)
+ - [xtp-tutorials](https://github.com/votca/xtp-tutorials/issues)
  - [votca](https://github.com/votca/votca/issues)
 
 ## CPP Resources
@@ -99,6 +100,7 @@ Code
  * Variables should have clear and explicit names.
  * Do not duplicate code.
  * Functions should have no more than 3 arguments. Otherwise create a class.
+ * Do not use raw pointers, `new` and `delete` should not be used, instead use `std::shared_ptr` or `std::unique_ptr`
  * XYZ positions should be described using tools::vec, 3x3 matrices tools::matrix, or classes and or functions in the eigen library.
  * Readability is more important the elegant design.
  * Leave the code better than you found it.
