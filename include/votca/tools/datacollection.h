@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _datacollection_H
-#define	_datacollection_H
+#ifndef _VOTCA_TOOLS_DATACOLLECTION_H
+#define	_VOTCA_TOOLS_DATACOLLECTION_H
 
 #include <assert.h>
 #include <vector>
@@ -215,5 +215,5 @@ ostream& operator<<(ostream& out, DataCollection<double>::selection &sel);
 
 }}
 
-#endif	/* _datacontainer_H */
+#endif	// _VOTCA_TOOLS_DATACOLLECTION_H
 
