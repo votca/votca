@@ -56,7 +56,7 @@ class DataCollection {
 			private:
 				string _name;            
 		};
-		//typedef vector< T > array;
+
 		typedef vector< array * > container;
 		typedef typename vector< array * >::iterator iterator;
 
@@ -106,37 +106,27 @@ class DataCollection {
 		 */    
 		array *CreateArray(string name);
 
-		/*
-			 \brief create a new group
-		 */    
-		//selection *CreateGroup(string group);
-
 		/**
 			\brief access the data container
 		 */
 		container &Data() { return _data; }
+
 		/**
 			\brief access an array by name
 		 */
 		array *ArrayByName(string name);
-
-		/*
-			 \brief group an array by name
-		 */
-		//selection *GroupByName(string name);
 
 		/** 
 			\brief select a set of arrays
 		 */
 		selection *select(string strselection, selection *sel_append=NULL);
 
-		//map<string, selection *> &Groups() { return _group_by_name; }
 
 	private:
 		container _data;
 
 		map<string, array *> _array_by_name;
-		//map<string, selection *> _group_by_name;
+
 };
 
 
