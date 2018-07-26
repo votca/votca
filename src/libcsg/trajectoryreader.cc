@@ -21,6 +21,7 @@
 
 #include <votca/csg/trajectoryreader.h>
 #include "modules/io/lammpsdumpreader.h"
+#include "modules/io/lammpsdatareader.h"
 #include "modules/io/xyzreader.h"
 
 #ifdef GMX_DOUBLE
@@ -39,6 +40,7 @@ namespace votca { namespace csg {
 void TrajectoryReader::RegisterPlugins(void)
 {
     TrjReaderFactory().Register<LAMMPSDumpReader>("dump");
+    TrjReaderFactory().Register<LAMMPSDataReader>("data");
     TrjReaderFactory().Register<XYZReader>("xyz");
 #ifdef GMX_DOUBLE
     TrjReaderFactory().Register<GMXTrajectoryReader>("trr");

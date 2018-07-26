@@ -33,7 +33,6 @@ namespace votca { namespace csg {
 	bool LAMMPSDataReader::ReadTopology(string file,  Topology &top)
 	{
 
-		
 		topology_ = true;
 		top.Cleanup();
 		fl_.open(file.c_str());
@@ -129,9 +128,9 @@ namespace votca { namespace csg {
 			InitializeAtomTypes_();
 		}else if(fields.at(0) == "Atoms" ){
 			ReadAtoms_(top);
-		}else if(fields.at(0) == "Bonds" ){
+		}else if(fields.at(0) == "Bonds"){
 			ReadBonds_(top);
-		}else if(fields.at(0) == "Angles" ){
+		}else if(fields.at(0) == "Angles"){
 			ReadAngles_(top);
 		}else if(fields.at(0) == "Dihedrals"){
 			ReadDihedrals_(top); 
@@ -362,8 +361,20 @@ namespace votca { namespace csg {
 		double charge = 0;
 		double x, y, z;
 
+		map<int,string> sorted_file;
+
 		while(!line.empty()){
+
 			istringstream iss(line);
+			iss >> atomId;
+			--atomId;
+			sorted_file[atomId] = line;
+			getline(fl_,line);
+		}
+
+		for(int atomIndex=0;atomIndex<sorted_file.size();++atomIndex){
+
+			istringstream iss(sorted_file[atomIndex]);
 			iss >> atomId;
 			iss >> moleculeId;
 			iss >> atomTypeId;
@@ -375,44 +386,51 @@ namespace votca { namespace csg {
 			moleculeId--;
 			atomTypeId--;
 
-			atomIdToMoleculeId_[atomId]=moleculeId;
+			Bead * b;
+			if(topology_){
+			
+				atomIdToIndex_[atomId] = atomIndex;
+				atomIdToMoleculeId_[atomId]=moleculeId;
 
-			Molecule * mol;
-			if(!molecules_.count(moleculeId)){
-				mol = top.CreateMolecule("Unknown");
-				molecules_[moleculeId] = mol;
+				Molecule * mol;
+				if(!molecules_.count(moleculeId)){
+					mol = top.CreateMolecule("Unknown");
+					molecules_[moleculeId] = mol;
+				}else{
+					mol = molecules_[moleculeId];
+				}
+
+				int symmetry = 1; // spherical
+				double mass = boost::lexical_cast<double>(data_["Masses"].at(atomTypeId).at(1));
+				// Will use the molecule id as the resnum for lack of a better option	
+				int resnr = moleculeId;
+
+				string bead_type_name = atomtypes_[atomTypeId].at(1);	
+				BeadType * bead_type = top.GetOrCreateBeadType(bead_type_name);
+				if(atomtypes_.count(atomTypeId)==0){
+					string err = "Unrecognized atomTypeId, the atomtypes map "
+						"may be uninitialized";
+					throw runtime_error(err);
+				}
+
+				b = top.CreateBead(
+						symmetry,
+						bead_type_name,
+						bead_type,
+						resnr,
+						mass,
+						charge);
+
+				mol->AddBead(b,bead_type_name);
+				b->setMolecule(mol);
+
 			}else{
-				mol = molecules_[moleculeId];
+				b = top.getBead(atomIndex);
 			}
-
-			int symmetry = 1; // spherical
-			double mass = boost::lexical_cast<double>(data_["Masses"].at(atomTypeId).at(1));
-			string bead_type_name = atomtypes_[atomTypeId].at(1);	
-			BeadType * bead_type = top.GetOrCreateBeadType(bead_type_name);
-
-			// Will use the molecule id as the resnum for lack of a better option	
-			int resnr = moleculeId;
-
-			if(atomtypes_.count(atomTypeId)==0){
-				string err = "Unrecognized atomTypeId, the atomtypes map "
-					"may be uninitialized";
-				throw runtime_error(err);
-			}
-
-			Bead * b = top.CreateBead(
-					symmetry,
-					bead_type_name,
-					bead_type,
-					resnr,
-					mass,
-					charge);
 
 			vec xyz_pos(x,y,z);
 			b->setPos(xyz_pos);
-			mol->AddBead(b,bead_type_name);
-			b->setMolecule(mol);
 
-			getline(fl_,line);
 		}
 
 		if(top.BeadCount()!=numberOf_["atoms"]){
@@ -436,25 +454,31 @@ namespace votca { namespace csg {
 
 		int bond_count = 0;
 		while(!line.empty()){
-			istringstream iss(line);
-			iss >> bondId;
-			iss >> bondTypeId;
-			iss >> atom1Id;
-			iss >> atom2Id;
-				
-			atom1Id--;
-			atom2Id--;
-			bondId--; 
-			bondTypeId--;
 
-			Interaction * ic = new IBond(atom1Id,atom2Id);
-			ic->setGroup("BONDS");
-			ic->setIndex(bondId);
-			auto b = top.getBead(atom1Id);
-			auto mi = b->getMolecule();
-			ic->setMolecule(atomIdToMoleculeId_[atom1Id]);
-			top.AddBondedInteraction(ic);
-			mi->AddInteraction(ic);
+			if(topology_){
+				istringstream iss(line);
+				iss >> bondId;
+				iss >> bondTypeId;
+				iss >> atom1Id;
+				iss >> atom2Id;
+
+				atom1Id--;
+				atom2Id--;
+				bondId--; 
+				bondTypeId--;
+
+				int atom1Index = atomIdToIndex_[atom1Id];
+				int atom2Index = atomIdToIndex_[atom2Id];
+
+				Interaction * ic = new IBond(atom1Index,atom2Index);
+				ic->setGroup("BONDS");
+				ic->setIndex(bondId);
+				auto b = top.getBead(atom1Index);
+				auto mi = b->getMolecule();
+				ic->setMolecule(atomIdToMoleculeId_[atom1Index]);
+				top.AddBondedInteraction(ic);
+				mi->AddInteraction(ic);
+			}
 
 			++bond_count;
 			getline(fl_,line);
@@ -483,27 +507,34 @@ namespace votca { namespace csg {
 		int angle_count = 0;
 
 		while(!line.empty()){
-			istringstream iss(line);
-			iss >> angleId;
-			iss >> angleTypeId;
-			iss >> atom1Id;
-			iss >> atom2Id;
-			iss >> atom3Id;
-				
-			angleId--;
-			angleTypeId--;
-			atom1Id--;
-			atom2Id--;
-			atom3Id--;
+			
+			if(topology_){
+				istringstream iss(line);
+				iss >> angleId;
+				iss >> angleTypeId;
+				iss >> atom1Id;
+				iss >> atom2Id;
+				iss >> atom3Id;
 
-			Interaction * ic = new IAngle(atom1Id,atom2Id,atom3Id);
-			ic->setGroup("ANGLES");
-			ic->setIndex(angleId);
-			auto b = top.getBead(atom1Id);
-			auto mi = b->getMolecule();
-			ic->setMolecule(atomIdToMoleculeId_[atom1Id]);
-			top.AddBondedInteraction(ic);
-			mi->AddInteraction(ic);
+				angleId--;
+				angleTypeId--;
+				atom1Id--;
+				atom2Id--;
+				atom3Id--;
+
+				int atom1Index = atomIdToIndex_[atom1Id];
+				int atom2Index = atomIdToIndex_[atom2Id];
+				int atom3Index = atomIdToIndex_[atom3Id];
+
+				Interaction * ic = new IAngle(atom1Index,atom2Index,atom3Index);
+				ic->setGroup("ANGLES");
+				ic->setIndex(angleId);
+				auto b = top.getBead(atom1Index);
+				auto mi = b->getMolecule();
+				ic->setMolecule(atomIdToMoleculeId_[atom1Index]);
+				top.AddBondedInteraction(ic);
+				mi->AddInteraction(ic);
+			}
 
 			++angle_count;
 
@@ -531,30 +562,37 @@ namespace votca { namespace csg {
 
 		int dihedral_count = 0;
 		while(!line.empty()){
-			istringstream iss(line);
-			iss >> dihedralId;
-			iss >> dihedralTypeId;
-			iss >> atom1Id;
-			iss >> atom2Id;
-			iss >> atom3Id;
-			iss >> atom4Id;
+			
+			if(topology_){
+				istringstream iss(line);
+				iss >> dihedralId;
+				iss >> dihedralTypeId;
+				iss >> atom1Id;
+				iss >> atom2Id;
+				iss >> atom3Id;
+				iss >> atom4Id;
 
-			dihedralId--;
-			dihedralTypeId--;
-			atom1Id--;
-			atom2Id--;
-			atom3Id--;
-			atom4Id--;
+				dihedralId--;
+				dihedralTypeId--;
+				atom1Id--;
+				atom2Id--;
+				atom3Id--;
+				atom4Id--;
 
-			Interaction * ic = new IDihedral(atom1Id,atom2Id,atom3Id,atom4Id);
-			ic->setGroup("DIHEDRALS");
-			ic->setIndex(dihedralId);
-			auto b = top.getBead(atom1Id);
-			auto mi = b->getMolecule();
-			ic->setMolecule(atomIdToMoleculeId_[atom1Id]);
-			top.AddBondedInteraction(ic);
-			mi->AddInteraction(ic);
+				int atom1Index = atomIdToIndex_[atom1Id];
+				int atom2Index = atomIdToIndex_[atom2Id];
+				int atom3Index = atomIdToIndex_[atom3Id];
+				int atom4Index = atomIdToIndex_[atom4Id];
 
+				Interaction * ic = new IDihedral(atom1Index,atom2Index,atom3Index,atom4Index);
+				ic->setGroup("DIHEDRALS");
+				ic->setIndex(dihedralId);
+				auto b = top.getBead(atom1Index);
+				auto mi = b->getMolecule();
+				ic->setMolecule(atomIdToMoleculeId_[atom1Index]);
+				top.AddBondedInteraction(ic);
+				mi->AddInteraction(ic);
+			}
 			++dihedral_count;
 			getline(fl_,line);
 		}

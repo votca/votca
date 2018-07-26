@@ -83,6 +83,9 @@ class LAMMPSDataReader :
 				// First int is the atom id second the molecule id
 				std::map<int,int> atomIdToMoleculeId_;
 
+				// First int is the atom id second the atom index
+				std::map<int,int> atomIdToIndex_;
+
 				bool MatchOneFieldLabel_(std::vector<std::string> fields,Topology &top);
 				bool MatchTwoFieldLabels_(std::vector<std::string> fields,Topology &top);
 				bool MatchThreeFieldLabels_(std::vector<std::string> fields,Topology &top);
