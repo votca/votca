@@ -46,7 +46,6 @@ namespace votca {
             } else {
                 _do_guess = false;
             }
-
            
             _archive_file = options->ifExistsReturnElseReturnDefault<string>(key + ".archive", "system.orb");
             _reporting    = options->ifExistsReturnElseReturnDefault<string>(key + ".reporting", "default");
@@ -67,7 +66,7 @@ namespace votca {
             _xyzfile = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".molecule");
 
             // XML OUTPUT
-            _xml_output = options->ifExistsReturnElseReturnDefault<string>(key + ".output", "exciton.out.xml");
+            _xml_output = options->ifExistsReturnElseReturnDefault<string>(key + ".output", "dftgwbse.out.xml");
             
             // if optimization is chosen, get options for geometry_optimizer
             if (_do_optimize) _geoopt_options = options->get(key + ".geometry_optimization");

@@ -328,7 +328,6 @@ namespace votca {
                  * into orb_iter_input already, so this is a dummy for that.
                  */
                 _qmpack->ParseOrbitalsFile(orb_iter_input);
-                orb_iter_input.setDFTbasis(_qmpack->getBasisSetName());
 
                 // Get a GWBSE object
                 GWBSE gwbse = GWBSE(orb_iter_input);

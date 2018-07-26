@@ -45,18 +45,12 @@ namespace votca {
         class GWBSEENGINE {
         public:
 
-            GWBSEENGINE() {
-            };
-
-            ~GWBSEENGINE() {
-            };
-
             std::string Identify() {
                 return "gwbse_engine";
             }
 
-            void Initialize(tools::Property &options, std::string _archive_filename);
-            void ExcitationEnergies(QMPackage* _qmpackage, Orbitals& _orbitals);
+            void Initialize(tools::Property &options, std::string archive_filename);
+            void ExcitationEnergies(QMPackage* qmpackage, Orbitals& orbitals);
 
             void setLog(ctp::Logger* pLog) {
                 _pLog = pLog;
@@ -102,7 +96,7 @@ namespace votca {
             tools::Property _gwbse_options;
             tools::Property _summary;
 
-            void SaveRedirectedLogger(ctp::Logger* pLog);
+            void WriteLoggerToFile(ctp::Logger* pLog);
 
 
 
