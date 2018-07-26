@@ -4,12 +4,12 @@
  The page is designed to give new developers general guidelines for
  implementing code consistent with the VOTCA and cpp style and standard.
  
- - [Reporting Bugs](#Reporting-Bugs)
- - [CPP Resoures](#CPP-Resources)
- - [CPP Tips](#CPP-Tips)
- - [Testing](#Testing)
- - [CPP Codeing Style Guide](#CPP-Codeing-Style-Guide)
- - [CPP Comment Guide](#CPP-Comment-Guide)
+ - [Reporting Bugs](#reporting-bugs)
+ - [CPP Resoures](#cpp-resources)
+ - [CPP Tips](#cpp-tips)
+ - [Testing](#testing)
+ - [CPP Codeing Style Guide](#cpp-codeing-style-guide)
+ - [CPP Comment Guide](#cpp-comment-guide)
 
 ## Reporting Bugs
 
