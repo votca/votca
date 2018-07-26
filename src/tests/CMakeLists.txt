@@ -1,5 +1,8 @@
 find_package(Boost 1.39.0 REQUIRED COMPONENTS unit_test_framework)
-foreach(PROG test_datacollection
+
+# Each test listed in Alphabetical order
+foreach(PROG test_cubicspline
+		test_datacollection
 		test_edge_base
     test_edgecontainer
     test_elements
@@ -12,13 +15,12 @@ foreach(PROG test_datacollection
     test_graphvisitor
     test_histogramnew
     test_identity
+		test_linalg
     test_matrix
     test_name
     test_table
     test_typeconverter
-    test_vec
-    test_linalg
-    test_cubicspline)
+    test_vec)
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})
