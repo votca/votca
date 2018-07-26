@@ -1,5 +1,6 @@
 find_package(Boost 1.39.0 REQUIRED COMPONENTS unit_test_framework)
-foreach(PROG test_edge_base
+foreach(PROG test_datacollection
+		test_edge_base
     test_edgecontainer
     test_elements
     test_floatingpointcomparison
