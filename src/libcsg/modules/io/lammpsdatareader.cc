@@ -329,7 +329,7 @@ namespace votca { namespace csg {
 	void LAMMPSDataReader::ReadNumOfAtoms_(vector<string> fields, Topology &top){
 		numberOf_["atoms"] = stoi(fields.at(0));
 		if(!topology_ && numberOf_["atoms"] !=top.BeadCount())
-			std::runtime_error("number of beads in topology and trajectory differ");
+			std::runtime_error("Number of beads in topology and trajectory differ");
 	}
 
 	void LAMMPSDataReader::ReadNumOfBonds_(vector<string> fields){
@@ -382,6 +382,7 @@ namespace votca { namespace csg {
 			iss >> y;
 			iss >> z;
 
+      // We want to start with an index of 0 not 1 
 			atomId--;
 			moleculeId--;
 			atomTypeId--;
