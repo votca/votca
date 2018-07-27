@@ -103,14 +103,14 @@ namespace tools {
        * @param v value
        */
       void set(const byte_t &i, const byte_t &j, const double &v) {
-        _m[i * 3 + j] = v;
+        checkBounds_(i); checkBounds_(j); _m[i * 3 + j] = v;
       }
 
       /**
        * \brief get an element of the matrix
        */
       const double &get(const byte_t &i, const byte_t &j) const {
-        return _m[i * 3 + j];
+        checkBounds_(i); checkBounds_(j); return _m[i * 3 + j];
       }
 
       /**
@@ -118,14 +118,18 @@ namespace tools {
        * @param i row
        * @return row vector i
        */
-      vec getRow(const byte_t &i) const { return vec(&_m[i * 3]); }
+      vec getRow(const byte_t &i) const { 
+        checkBounds_(i); return vec(&_m[i * 3]); 
+      }
 
       /**
        * \brief get a column vector
        * @param i column
        * @return column vector i
        */
-      vec getCol(const byte_t &i) const { return vec(_m[i], _m[i + 3], _m[i + 6]); }
+      vec getCol(const byte_t &i) const { 
+        checkBounds_(i); return vec(_m[i], _m[i + 3], _m[i + 6]);
+      }
 
       /**
        * \brief direct read/write access
@@ -133,7 +137,9 @@ namespace tools {
        * @return pointer to beginning of row i
        * use it as matrix[a][b]
        */
-      double *operator[](size_t i) { return &_m[i * 3]; }
+      double *operator[](size_t i) { 
+        checkBounds_(i); return &_m[i * 3]; 
+      }
 
       struct eigensystem_t {
         double eigenvalues[3];
@@ -236,6 +242,13 @@ namespace tools {
 
     private:
       double _m[9];
+      void checkBounds_(const byte_t row_or_col) const {
+        if(row_or_col>2 || row_or_col<0){
+          std::string err="matrix row or col is out of bounds must be between ";
+          err+= "0-2 but it is: "+to_string(row_or_col)+"\n";
+          throw std::runtime_error(err);
+        }
+      }
   };
 
   inline matrix &matrix::operator=(const double &v) {
