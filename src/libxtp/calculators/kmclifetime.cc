@@ -22,6 +22,7 @@
 #include <boost/format.hpp>
 #include <votca/ctp/topology.h>
 #include <locale>
+#include <votca/xtp/eigen.h>
 
 
 using namespace std;
@@ -80,23 +81,32 @@ namespace votca {
     
     
     void KMCLifetime::WriteDecayProbability(string filename){
+        
+        Eigen::VectorXd outrates=Eigen::VectorXd::Zero(_nodes.size());
+        Eigen::VectorXd inrates=Eigen::VectorXd::Zero(_nodes.size());
+        Eigen::VectorXd decayrates=Eigen::VectorXd::Ones(_nodes.size());
+        
+        for (unsigned i=0;i<_nodes.size();i++){
+            GNode* node=_nodes[i];
+            if(node->hasdecay){
+                for(const GLink& event:node->events){
+                    if(event.decayevent){
+                        decayrates[i]=event.rate;
+                    }else{
+                        inrates[event.destination]+=event.rate;
+                        outrates[i]+=event.rate;
+                    }   
+                }
+            }
+        }
+        outrates=decayrates.cwiseQuotient(outrates+decayrates);
+        inrates=decayrates.cwiseQuotient(inrates+decayrates);
+        
         fstream probs;
         probs.open ( filename.c_str(), fstream::out);
-        probs<<"#SiteID, Relative Prob"<<endl;
-        for (const GNode* node:_nodes){
-            if(node->hasdecay){
-                double decayrate=0;
-                for(const auto& event:node->events){
-                    if(event.decayevent){
-                        decayrate=event.rate;
-                        break;
-                    }
-                }
-            probs<<node->id<<" "<<decayrate/node->escape_rate<<endl;
-                    
-            }else{
-                probs<<node->id<<" "<<0<<endl;
-            }
+        probs<<"#SiteID, Relative Prob outgoing, Relative Prob ingoing"<<endl;
+        for (unsigned i=0;i<_nodes.size();i++){
+            probs<<_nodes[i]->id<<" "<<outrates[i]<<" "<<inrates[i]<<endl;
         }
         probs.close();
         return;

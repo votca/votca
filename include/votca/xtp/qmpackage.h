@@ -138,7 +138,7 @@ namespace votca {
             }
 
         protected:
-            virtual std::string getChargeOption() =0;
+            virtual void WriteChargeOption() =0;
 
             int _charge;
             int _spin; // 2S+1
@@ -163,7 +163,7 @@ namespace votca {
             bool _get_orbitals;
             bool _get_overlap;
             bool _get_charges;
-            bool _get_self_energy;
+            
 
             bool _write_guess;
             bool _write_charges;

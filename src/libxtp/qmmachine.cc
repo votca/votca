@@ -55,7 +55,7 @@ namespace votca {
             key = sfx;
             bool split_dpl = opt->ifExistsReturnElseReturnDefault<bool>(key + ".split_dpl", true);
             double dpl_spacing = opt->ifExistsReturnElseReturnDefault<double>(key + ".dpl_spacing", 1e-3);
-            qminterface.setMultipoleSplitting(split_dpl, dpl_spacing);
+          
 
             // check for archiving
             std::string _archiving_string = opt->ifExistsReturnElseReturnDefault<std::string>(key + ".archiving", "");
@@ -266,6 +266,7 @@ namespace votca {
              *           iteration updates orb_iter_input (TO BE TESTED)
              */
             if (iterCnt == 0) qminterface.GenerateQMAtomsFromPolarSegs(_job->getPolarTop(), orb_iter_input);
+         
 
             /* Generate list of polar segments in the MM1() and MM2()
              * region to be used in writing the background multipoles
