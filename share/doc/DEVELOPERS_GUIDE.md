@@ -176,8 +176,7 @@ Ensure you have an up to date version of cmake or use cmake3
 ## CPP Codeing Style Guide
 
  VOTCA uses the clang formatter to automatically ensure consistent style.
- The style is essentially the same, as what is used by google, with the 
- exception that types and = are aligned to make the code more readable. 
+ The style follows the google style fomatting rules. 
  Have a look at `.clang-format file` in the
  [main votca repository](https://github.com/votca/votca/blob/master/.clang-format) for details.
 
@@ -192,6 +191,9 @@ clang-format -i -style=file file.cc
      changes without implementing them.
 '-style=file' ensures the format is read from the .clang-format file otherwise 
      it will use a default style guide. 
+
+By default tabs should not be used to indent, avoid inserting '\t', it is
+preferable that spaces be used instead. 
 
 ## CPP Comment Guide
  
