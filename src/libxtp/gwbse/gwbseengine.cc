@@ -99,10 +99,9 @@ namespace votca {
                 gwbse_engine_logger.setPreface(ctp::logERROR, (format("\n ...")).str());
                 gwbse_engine_logger.setPreface(ctp::logWARNING, (format("\n ...")).str());
                 gwbse_engine_logger.setPreface(ctp::logDEBUG, (format("\n ...")).str());
-                qmpackage->setLog(&gwbse_engine_logger);
                 logger=&gwbse_engine_logger;
             }
-
+            qmpackage->setLog(logger);
             if (_do_dft_input) {
                 // required for merged guess
                 if (qmpackage->GuessRequested() && _do_guess) { // do not want to do an SCF loop for a dimer

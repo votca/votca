@@ -26,8 +26,6 @@ namespace votca {
       using std::flush;
         void Forces::Initialize(tools::Property &options) {
 
-          
-
             // pre-check forces method
             std::vector<std::string> choices = {"forward", "central"};
             _force_method = options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(".method", choices);
@@ -73,12 +71,10 @@ namespace votca {
                 
                 if (_force_method == "forward") atom_force=NumForceForward(energy, atom_index);
                 if (_force_method == "central") atom_force=NumForceCentral(energy, atom_index);
-                _forces.col(atom_index)=atom_force;
+                
+                _forces.row(atom_index)=atom_force.transpose();
             }
-
             _pLog->setReportLevel(ReportLevel); // 
-
-            // Remove Total Force, if requested
             if (_remove_total_force) RemoveTotalForce();
             //Report();
 
@@ -152,10 +148,8 @@ namespace votca {
                 tools::vec pos_displaced = current_pos + displacement_vec;
 
                 atom->setPos(pos_displaced); 
-
                 // run DFT and GW-BSE for this geometry
                 _gwbse_engine.ExcitationEnergies(_qmpackage, _orbitals);
-
 
                 // get total energy for this excited state
                 double energy_displaced_plus = _orbitals.getTotalEnergy(_spin_type, _opt_state);
@@ -165,13 +159,11 @@ namespace votca {
                 // update the coordinate
                 pos_displaced = current_pos - displacement_vec;
                 atom->setPos(pos_displaced); 
-
                 // run DFT and GW-BSE for this geometry
                 _gwbse_engine.ExcitationEnergies(_qmpackage,_orbitals);
 
                 // get total energy for this excited state
                 double energy_displaced_minus = _orbitals.getTotalEnergy(_spin_type, _opt_state);
-
                 // calculate force and put into matrix
                 force(i_cart) = 0.5 * (energy_displaced_minus - energy_displaced_plus) / (_displacement * votca::tools::conv::ang2bohr); // force a.u./a.u.
                 atom->setPos(current_pos); // restore original coordinate into segment
@@ -186,14 +178,14 @@ namespace votca {
             Eigen::Vector3d _total_force = TotalForce();
             // zero total force
             for (unsigned _i_atom = 0; _i_atom < _natoms; _i_atom++) {
-                _forces.col(_i_atom)-=_total_force/double(_natoms);
+                _forces.row(_i_atom)-=_total_force/double(_natoms);
             }
             return;
         }
 
         /* Determine Total Force on all atoms */
          Eigen::Vector3d Forces::TotalForce() {
-            return _forces.rowwise().sum();
+            return _forces.colwise().sum();
         }
     }
 }

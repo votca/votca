@@ -102,23 +102,17 @@ namespace votca {
                 // calculate the forces for the present configuration
                 _force_engine.Calculate(_last_energy);
                 _force = _force_engine.GetForces();
-
                 _step_accepted = false;
                 while (!_step_accepted) {
-
                     // determine new trial configuration according to BFGS
                     BFGSStep();
-
                     // update coordinates in segment
                     UpdateCoordinatesOrbitals();
-
                     // for the updated geometry, get new reference energy
                     _new_energy = GetEnergy();
                     _energy_delta = _new_energy - _last_energy;
-
                     // check the energy at the trial coordinates, accept/reject step, and adjust trust radius
                     AcceptReject();
-
 
                 } // checking step to be trusted
 
