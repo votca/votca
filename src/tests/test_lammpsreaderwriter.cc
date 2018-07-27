@@ -148,13 +148,13 @@ BOOST_AUTO_TEST_SUITE(lammpsreaderwriter_test)
 		//  0 10  0
 		//  0  0 10 
 		box.ZeroMatrix();
+		box.set(0,0,10);
 		box.set(1,1,10);
 		box.set(2,2,10);
-		box.set(3,3,10);
 
 		top.setBox(box);
 		auto boxType = top.getBoxType();
-
+    BOOST_CHECK_EQUAL(boxType,BoundaryCondition::typeOrthorhombic);
 		OrthorhombicBox ortho_box;
 		ortho_box.setBox(box);
 		top.setStep(1);
@@ -227,7 +227,7 @@ BOOST_AUTO_TEST_SUITE(lammpsreaderwriter_test)
 		double charge = 0.0;
 		byte_t symmetry = 1;
 
-		for(auto ind=0; ind<atom_types.size();++ind){
+		for(size_t ind=0; ind<atom_types.size();++ind){
 			BeadType *type = top.GetOrCreateBeadType(atom_types.at(ind));
 			Bead *b = top.CreateBead(
 				symmetry,
@@ -255,7 +255,7 @@ BOOST_AUTO_TEST_SUITE(lammpsreaderwriter_test)
 		reader->FirstFrame(top);
 		reader->Close();
 
-		for(auto ind=0; ind<atom_types.size();++ind){
+		for(size_t ind=0; ind<atom_types.size();++ind){
 			Bead *b = top.getBead(ind);
 			BOOST_CHECK_CLOSE(b->Pos().x(),atom_xyz_file.at(ind).at(0),0.01); 
 			BOOST_CHECK_CLOSE(b->Pos().y(),atom_xyz_file.at(ind).at(1),0.01); 
@@ -286,12 +286,13 @@ BOOST_AUTO_TEST_SUITE(lammpsreaderwriter_test)
 		//  0 10  0
 		//  0  0 10 
 		box.ZeroMatrix();
+		box.set(0,0,10);
 		box.set(1,1,10);
 		box.set(2,2,10);
-		box.set(3,3,10);
 
 		top.setBox(box);
 		auto boxType = top.getBoxType();
+    BOOST_CHECK_EQUAL(boxType,BoundaryCondition::typeOrthorhombic);
 
 		OrthorhombicBox ortho_box;
 		ortho_box.setBox(box);
@@ -365,7 +366,7 @@ BOOST_AUTO_TEST_SUITE(lammpsreaderwriter_test)
 		double charge = 0.0;
 		byte_t symmetry = 1;
 
-		for(auto ind=0; ind<atom_types.size();++ind){
+		for(size_t ind=0; ind<atom_types.size();++ind){
 			BeadType *type = top.GetOrCreateBeadType(atom_types.at(ind));
 			Bead *b = top.CreateBead(
 				symmetry,
@@ -407,7 +408,7 @@ BOOST_AUTO_TEST_SUITE(lammpsreaderwriter_test)
 		reader->FirstFrame(top);
 		reader->Close();
 
-		for(auto ind=0; ind<atom_types.size();++ind){
+		for(size_t ind=0; ind<atom_types.size();++ind){
 			Bead *b = top.getBead(ind);
 			BOOST_CHECK_CLOSE(b->Pos().x(),atom_xyz.at(ind).at(0),0.01); 
 			BOOST_CHECK_CLOSE(b->Pos().y(),atom_xyz.at(ind).at(1),0.01); 
