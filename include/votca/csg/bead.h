@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _bead_H
-#define	_bead_H
+#ifndef _VOTCA_CSG_BEAD_H
+#define	_VOTCA_CSG_BEAD_H
 
 #include <string>
 #include <votca/tools/types.h>
@@ -311,6 +311,7 @@ public:
      */
     Molecule *getMolecule() { return _mol; }
 
+    void setMolecule( Molecule * mol);
     /**
      * If it is a mapped beads, returns te bead id the cg bead was created from
      * \return vector of bead ids of reference atoms
@@ -397,6 +398,10 @@ protected:
 
     friend class Molecule;
 };
+
+inline void Bead::setMolecule(Molecule *mol){
+	_mol = mol;
+}
 
 inline void Bead::setPos(const vec &r)
 {
@@ -502,5 +507,5 @@ inline void Bead::HasW(bool b)
 
 }}
 
-#endif	/* _beadinfo_H */
+#endif	// _VOTCA_CSG_BEAD_H
 
