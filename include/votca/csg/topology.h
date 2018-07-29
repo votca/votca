@@ -65,6 +65,7 @@ public:
     Topology() {
         _bc = new OpenBox();
         _has_vel=false;
+        _has_force=false;
     }
     virtual ~Topology();
     
