@@ -19,3 +19,6 @@
 [submodule "csg-manual"]
 	path = csg-manual
 	url = ../../votca/csg-manual.git
+[submodule "xtp-tutorials"]
+	path = xtp-tutorials
+	url = ../../votca/xtp-tutorials
