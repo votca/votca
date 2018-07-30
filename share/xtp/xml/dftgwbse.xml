@@ -5,7 +5,7 @@
 
         <dftpackage help="Package for DFT ground state">orca_gwbse.xml</dftpackage>
 
-        <tasks help="Calculator tasks: energy or optimize">energy</tasks>
+        <mode help="Calculator mode: energy or optimize">energy</mode>
         <reporting>noisy</reporting>
         <archive>system.orb</archive>
         <molecule>system.xyz</molecule>

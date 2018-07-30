@@ -37,7 +37,7 @@ namespace votca {
         class Forces {
         public:
 
-            Forces(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, Orbitals& orbitals)
+            Forces(GWBSEEngine& gwbse_engine, QMPackage* qmpackage, Orbitals& orbitals)
             : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _orbitals(orbitals), _remove_total_force(false), _remove_CoM_force(false) {
             };
 
@@ -92,7 +92,7 @@ namespace votca {
             unsigned _natoms;
             int _opt_state;
 
-            GWBSEENGINE _gwbse_engine;
+            GWBSEEngine _gwbse_engine;
             QMPackage* _qmpackage;
             std::vector<ctp::Segment*> _segments;
             Orbitals& _orbitals;

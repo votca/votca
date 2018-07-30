@@ -39,7 +39,7 @@ namespace votca {
         // GWBSEENGINE MEMBER FUNCTIONS  //
         // +++++++++++++++++++++++++++++ //
 
-        void GWBSEENGINE::Initialize(tools::Property& options, std::string archive_filename) {
+        void GWBSEEngine::Initialize(tools::Property& options, std::string archive_filename) {
 
 
             _archive_file = archive_filename;
@@ -86,8 +86,7 @@ namespace votca {
          */
 
 
-        void GWBSEENGINE::ExcitationEnergies(QMPackage* qmpackage, Orbitals& orbitals) {
-
+        void GWBSEEngine::ExcitationEnergies(QMPackage* qmpackage, Orbitals& orbitals) {
 
             //redirect log, if required
             // define own logger for GW-BSE that is written into a runFolder logfile
@@ -147,7 +146,7 @@ namespace votca {
             return;
         }
 
-        void GWBSEENGINE::WriteLoggerToFile(ctp::Logger* pLog) {
+        void GWBSEEngine::WriteLoggerToFile(ctp::Logger* pLog) {
             std::ofstream ofs;
             ofs.open(_logger_file.c_str(), std::ofstream::out);
             if (!ofs.is_open()) {

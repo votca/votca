@@ -500,7 +500,7 @@ namespace votca {
             Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0)const;
             Eigen::MatrixXd LambdaMatrixQuasiParticle()const;
 
-            double getTotalEnergy (std::string _spintype, int _opt_state)const;
+            double getTotalExcitedStateEnergy (const std::string& spintype, int opt_state)const;
 
 
             // access to fragment charges of singlet excitations

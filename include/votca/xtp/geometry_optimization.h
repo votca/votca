@@ -37,7 +37,7 @@ namespace votca {
         class GeometryOptimization {
         public:
 
-            GeometryOptimization(GWBSEENGINE& gwbse_engine, QMPackage *qmpackage, 
+            GeometryOptimization(GWBSEEngine& gwbse_engine, QMPackage *qmpackage, 
                    Orbitals& orbitals) : 
             _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _orbitals(orbitals) {
                 
@@ -67,7 +67,7 @@ namespace votca {
             std::string _optimizer;
             std::string _force_method;
 
-            GWBSEENGINE _gwbse_engine;
+            GWBSEEngine _gwbse_engine;
             QMPackage* _qmpackage;
             Orbitals& _orbitals;
 

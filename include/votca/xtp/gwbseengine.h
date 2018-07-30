@@ -42,7 +42,7 @@ namespace votca {
          * 
          */
 
-        class GWBSEENGINE {
+        class GWBSEEngine {
         public:
 
             std::string Identify() {

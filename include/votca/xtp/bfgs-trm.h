@@ -39,7 +39,7 @@ namespace votca {
         class BFGSTRM {
         public:
 
-            BFGSTRM(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, Orbitals& orbitals, Forces& force_engine)
+            BFGSTRM(GWBSEEngine& gwbse_engine, QMPackage* qmpackage, Orbitals& orbitals, Forces& force_engine)
             : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _orbitals(orbitals), _force_engine(force_engine), _iteration(0) {
             };
 
@@ -63,7 +63,7 @@ namespace votca {
 
         private:
             
-            GWBSEENGINE _gwbse_engine;
+            GWBSEEngine& _gwbse_engine;
             QMPackage* _qmpackage;
             Orbitals& _orbitals;
             Forces _force_engine;

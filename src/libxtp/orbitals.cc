@@ -400,7 +400,7 @@ namespace votca {
             return oscs;
         }
 
-        double Orbitals::getTotalEnergy(string _spintype, int _opt_state) const{
+        double Orbitals::getTotalExcitedStateEnergy(const string& spintype, int opt_state) const{
 
             // total energy of the excited state
             double _total_energy;
@@ -408,10 +408,16 @@ namespace votca {
 
             double _dft_energy = getQMEnergy();
 
-            if (_spintype == "singlet") {
-                _omega = BSESingletEnergies()[_opt_state - 1];
-            } else if (_spintype == "triplet") {
-                _omega = BSETripletEnergies()[_opt_state - 1];
+            if (spintype == "singlet") {
+              if(BSESingletEnergies().size()<opt_state){
+                throw std::runtime_error("Orbitals::getTotalEnergy You want a singlet which has not been calculated");
+              }
+                _omega = BSESingletEnergies()[opt_state - 1];
+            } else if (spintype == "triplet") {
+               if(BSETripletEnergies().size()<opt_state){
+                throw std::runtime_error("Orbitals::getTotalEnergy You want a triplet which has not been calculated");
+              }
+                _omega = BSETripletEnergies()[opt_state - 1];
             } else {
                 throw std::runtime_error("GetTotalEnergy only knows spintypes:singlet,triplet");
             }

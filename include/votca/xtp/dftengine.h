@@ -52,7 +52,6 @@ namespace votca {
                 _numofelectrons = 0;
                 _addexternalsites = false;
                 _do_externalfield = false;
-                guess_set = false;
                 _integrate_ext_density=false;
             };
 
@@ -207,9 +206,7 @@ namespace votca {
             std::string _xc_functional_name;
 
 
-            Eigen::MatrixXd last_dmat;
-            bool guess_set;
-            
+             
             
             bool _integrate_ext_density;
             //integrate external density

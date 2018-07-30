@@ -51,8 +51,9 @@ namespace votca {
             _reporting    = options->ifExistsReturnElseReturnDefault<string>(key + ".reporting", "default");
 
             // job tasks
-            string _tasks_string = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".tasks");
-            if (_tasks_string.find("optimize") != std::string::npos) _do_optimize = true;
+            std::vector<string> choices={"optimize","energy"};
+            string mode = options->ifExistsAndinListReturnElseThrowRuntimeError<string>(key + ".mode",choices);
+            if (mode=="optimize")_do_optimize = true;
 
             // GWBSEENGINE options
             _gwbseengine_options = options->get(key + ".gwbse_engine"); 
@@ -117,7 +118,7 @@ namespace votca {
             }
 
             // Get GWBSEENGINE Object and initialize
-            GWBSEENGINE gwbse_engine;
+            GWBSEEngine gwbse_engine;
             gwbse_engine.setLog(&_log);
             gwbse_engine.Initialize(_gwbseengine_options, _archive_file);
 

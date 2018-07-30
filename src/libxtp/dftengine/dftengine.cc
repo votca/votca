@@ -52,7 +52,7 @@ namespace votca {
 
       string key = "package";
 
-      _openmp_threads = options.ifExistsReturnElseReturnDefault<int>(key + ".openmp", 0);
+      _openmp_threads = options.ifExistsReturnElseReturnDefault<int>(key + ".threads", 0);
 
       _dftbasis_name = options.ifExistsReturnElseThrowRuntimeError<string>(key + ".dftbasis");
 
@@ -223,11 +223,6 @@ void DFTEngine::CalcElDipole(){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                 << " Reading guess from orbitals object/file" << flush;
         _dftAOdmat = orbitals.DensityMatrixGroundState();
-      } else if (guess_set) {
-        ConfigOrbfile(orbitals);
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                << " Using starting guess from last QM/MM iteration" << flush;
-        _dftAOdmat = last_dmat;
       } else {
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                 << " Setup Initial Guess using: " << _initial_guess << flush;
@@ -352,8 +347,6 @@ void DFTEngine::CalcElDipole(){
           
           PrintMOs(MOEnergies);
            CalcElDipole();
-          last_dmat = _dftAOdmat;
-          guess_set = true;
           // orbitals saves total energies in [eV]
           orbitals.setQMEnergy(totenergy * tools::conv::hrt2ev);
           break;
