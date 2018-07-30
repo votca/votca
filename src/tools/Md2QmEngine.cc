@@ -573,6 +573,7 @@ void Md2QmEngine::getIntCoords(string &file,
 
 
     int atomCount = 0;
+    int linecount = 0;
 
     std::string line;
     std::ifstream intt;
@@ -582,24 +583,27 @@ void Md2QmEngine::getIntCoords(string &file,
         while ( intt.good() ) {
             std::getline(intt, line);
 
-            vector< string > split;
-            Tokenizer toker(line, " \t");
-            toker.ToVector(split);
-            if ( !split.size()      ||
-                  split.size() != 4 ||
-                  split[0] == "#"   ||
-                  split[0].substr(0,1) == "#" ) { continue; }
+            if ( linecount > 1 ) {
+              vector< string > split;
+              Tokenizer toker(line, " \t");
+              toker.ToVector(split);
+              if ( !split.size()      ||
+                    split.size() != 4 ||
+                    split[0] == "#"   ||
+                    split[0].substr(0,1) == "#" ) { continue; }
 
-            // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
-            atomCount++;
-            string element = split[0];
-            double x = boost::lexical_cast<double>( split[1] ) / 10.; //°A to NM
-            double y = boost::lexical_cast<double>( split[2] ) / 10.;
-            double z = boost::lexical_cast<double>( split[3] ) / 10.;
-            vec qmPos = vec(x,y,z);
+              // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
+              atomCount++;
+              string element = split[0];
+              double x = boost::lexical_cast<double>( split[1] ) / 10.; //°A to NM
+              double y = boost::lexical_cast<double>( split[2] ) / 10.;
+              double z = boost::lexical_cast<double>( split[3] ) / 10.;
+              vec qmPos = vec(x,y,z);
 
-            pair<string, vec> qmTypePos(element, qmPos);
-            intCoords[atomCount] = qmTypePos;
+              pair<string, vec> qmTypePos(element, qmPos);
+              intCoords[atomCount] = qmTypePos;
+            }
+            linecount += 1;
         }
     }
     else {
