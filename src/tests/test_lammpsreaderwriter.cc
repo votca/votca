@@ -237,15 +237,20 @@ BOOST_AUTO_TEST_SUITE(lammpsreaderwriter_test)
 				elements.getMass(atom_types.at(ind)),
 				charge);
 
-			b->Pos().x() = atom_xyz.at(ind).at(0);
-			b->Pos().y() = atom_xyz.at(ind).at(1);
-			b->Pos().z() = atom_xyz.at(ind).at(2);
-			b->Vel().x() = atom_vel.at(ind).at(0);
-			b->Vel().y() = atom_vel.at(ind).at(1);
-			b->Vel().z() = atom_vel.at(ind).at(2);
-			b->F().x() = atom_forces.at(ind).at(0);
-			b->F().y() = atom_forces.at(ind).at(1);
-			b->F().z() = atom_forces.at(ind).at(2);
+      vec xyz(atom_xyz.at(ind).at(0),
+              atom_xyz.at(ind).at(1),
+              atom_xyz.at(ind).at(2));
+			b->setPos(xyz);
+      
+      vec xyz_vel(atom_vel.at(ind).at(0),
+                  atom_vel.at(ind).at(1),
+                  atom_vel.at(ind).at(2));
+			b->setVel(xyz_vel);
+
+      vec xyz_forces(atom_forces.at(ind).at(0),
+                    atom_forces.at(ind).at(1),
+                    atom_forces.at(ind).at(2));
+			b->setF(xyz_forces);
 		}
 
 		TrajectoryReader::RegisterPlugins();
