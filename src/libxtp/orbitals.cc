@@ -508,7 +508,7 @@ namespace votca {
             if(line1.size()!=1){
               throw std::runtime_error("First line of xyz file should contain number of atoms, nothing else.");
             }
-            std::getline(in, line);
+            std::getline(in, line);//Comment line
             
             if (in.is_open()) {
                 while (in.good()) {
