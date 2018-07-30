@@ -249,14 +249,12 @@ class matrix {
 
  private:
   double _m[9];
-  void checkBounds_(const byte_t row_or_col) const {
-    if (row_or_col > 2 || row_or_col < 0) {
-      std::string err = "matrix row or col is out of bounds must be between ";
-      err += "0-2 but it is: " + to_string(row_or_col) + "\n";
-      throw std::runtime_error(err);
-    }
-  }
+  void checkBounds_(const byte_t row_or_col) const;
 };
+
+inline void matrix::checkBounds_(const byte_t row_or_col) const {
+  assert( row_or_col > 2 || row_or_col < 0);
+} 
 
 inline matrix &matrix::operator=(const double &v) {
   for (size_t i = 0; i < 9; ++i) _m[i] = v;
