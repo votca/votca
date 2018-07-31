@@ -253,7 +253,7 @@ class matrix {
 };
 
 inline void matrix::checkBounds_(const byte_t row_or_col) const {
-  assert( row_or_col > 2 || row_or_col < 0);
+  assert( row_or_col > -1 && row_or_col < 3);
 } 
 
 inline matrix &matrix::operator=(const double &v) {
