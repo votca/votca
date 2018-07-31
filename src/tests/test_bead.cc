@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(test_bead_constructor) {
 	double mass = 1.21;
 	double charge = -0.87;
 
-	Bead * b = top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
+	top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
 }
 
 BOOST_AUTO_TEST_CASE(test_bead_getters) {

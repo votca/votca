@@ -1,5 +1,8 @@
 find_package(Boost 1.39.0 REQUIRED COMPONENTS unit_test_framework)
-foreach(PROG test_pdbreader test_bead test_lammpsdumpreaderwriter test_lammpsdatareader)
+foreach(PROG test_bead 
+  test_lammpsdatareader 
+  test_lammpsdumpreaderwriter 
+  test_pdbreader )
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})
   target_link_libraries(unit_${PROG} votca_csg ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
