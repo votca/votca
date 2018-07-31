@@ -50,22 +50,25 @@ public:
     string getName() const { return _name; }
         
     void setGroup(const string &group) { _group = group; RebuildName(); }
-    const string &getGroup() const { return _group; }
+    const string &getGroup() const { assert(_group.compare("")!=0); return _group; }
 
     // the group id is set by topology, when interaction is added to it
     // \todo if the group name is changed later, group id should be updated by topology
-    int getGroupId() { return _group_id; }
+    int getGroupId() { assert(_group_id!=-1); return _group_id; }
     void setGroupId(int id) { _group_id = id; }
 
     void setIndex(const int &index) { _index = index; RebuildName(); }
-    const int &getIndex() const { return _index; }
+    const int &getIndex() const { assert(_index!=-1); return _index; }
     
     void setMolecule(const int &mol) { _mol = mol; RebuildName(); }
-    const int &getMolecule() const { return _mol; }
+    const int &getMolecule() const { assert(_mol!=-1); return _mol; }
     
     virtual vec Grad(const Topology &top, int bead) = 0;
     int BeadCount() { return _beads.size(); }
-    int getBeadId(int bead) { return _beads[bead]; }
+    int getBeadId(int bead) { 
+      assert(bead>-1 && bead<_beads.size());
+      return _beads[bead]; 
+    }
     
 protected:
     int _index;
@@ -81,9 +84,14 @@ protected:
 inline void Interaction::RebuildName()
 {
     stringstream s;
-    if(_mol!=-1) s << _mol+1;
-    if(_group.compare("")==0) s << ":" << _group;
-    if(_index!=-1) s << ":" << _index+1;
+    if(_mol!=-1) s << "molecule " << _mol+1;
+    if(_group.compare("")==0) {
+      s << ":" << _group;
+      if(_group_id!=-1){
+        s << " " << _group_id;
+      }
+    }
+    if(_index!=-1) s << ":bond " << _index+1;
     _name = s.str();
 }
 
