@@ -37,10 +37,16 @@ using namespace std;
 class Interaction
 {
 public:
+    Interaction() :
+      _index(-1),
+      _group(""),
+      _group_id(-1),
+      _name(""),
+      _mol(-1) {};
+
     virtual ~Interaction() { }
     virtual double EvaluateVar(const Topology &top) = 0;
         
-    void setName(const string &name) { _name = name; }
     string getName() const { return _name; }
         
     void setGroup(const string &group) { _group = group; RebuildName(); }
@@ -75,7 +81,9 @@ protected:
 inline void Interaction::RebuildName()
 {
     stringstream s;
-    s << _mol+1  << ":" << _group << ":" << _index+1;
+    if(_mol!=-1) s << _mol+1;
+    if(_group.compare("")==0) s << ":" << _group;
+    if(_index!=-1) s << ":" << _index+1;
     _name = s.str();
 }
 
