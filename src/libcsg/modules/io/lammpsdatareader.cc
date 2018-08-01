@@ -65,7 +65,6 @@ bool LAMMPSDataReader::FirstFrame(Topology &top) {
 
 bool LAMMPSDataReader::NextFrame(Topology &top) {
 
-  int timestep = -1;
   string line;
   getline(fl_, line);
   while (!fl_.eof()) {
@@ -197,7 +196,7 @@ bool LAMMPSDataReader::MatchFourFieldLabels_(vector<string> fields,
 
 bool LAMMPSDataReader::MatchFieldsTimeStepLabel_(vector<string> fields,
                                                  Topology &top) {
-  int index = 0;
+  size_t index = 0;
   for (auto field : fields) {
     if (field == "timestep" && (index + 2) < fields.size()) {
       top.setStep(stoi(fields.at(index + 2)));
@@ -372,7 +371,9 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     getline(fl_, line);
   }
 
-  for (int atomIndex = 0; atomIndex < sorted_file.size(); ++atomIndex) {
+  for (int atomIndex = 0; 
+    boost::lexical_cast<int>(atomIndex) < sorted_file.size(); 
+    ++atomIndex) {
 
     istringstream iss(sorted_file[atomIndex]);
     iss >> atomId;
