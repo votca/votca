@@ -181,6 +181,7 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& atomlist,const Grid& gri
             Amat(_j,_i) = Amat(_i,_j);
         }
     }
+
      // setting up Bvec
     #pragma omp parallel for
     for ( unsigned _i =0 ; _i < atomlist.size(); _i++){
@@ -189,7 +190,6 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& atomlist,const Grid& gri
                 Bvec(_i) += potential(_k)/dist_i;
         }
        }
-    
     //Total charge constraint
     for ( unsigned _i =0 ; _i < atomlist.size()+1; _i++){
       Amat(_i,atomlist.size()) = 1.0;
