@@ -45,7 +45,7 @@ class Identity {
     return (id_set_ ? id_ : throw std::runtime_error("ID not set"));
   }
   /// Set the id
-  void setId(T id) { id_ = id; }
+  void setId(T id) { _id_set_ = true; id_ = id; }
 };
 }
 }
