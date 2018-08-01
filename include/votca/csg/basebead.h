@@ -18,6 +18,8 @@
 #ifndef _VOTCA_CSG_BASEBEAD_H
 #define _VOTCA_CSG_BASEBEAD_H
 
+#include <votca/csg/topologyitem.h>
+
 #include <votca/tools/identity.h>
 #include <votca/tools/name.h>
 #include <votca/tools/vec.h>
@@ -37,10 +39,15 @@ class BeadType;
  * charge and the residue it belongs to and the position
  *
  **/
-class BaseBead : public TopologyItem, public Name, public Identity {
+class BaseBead : public TopologyItem, public Name, public Identity<int> {
 public:
   BaseBead()
-      : _type(nullptr), _mol(nullptr), _mass(0.0), _q(0.0), _bpos(false) {};
+      : _type(nullptr), 
+        _mol(nullptr), 
+        _mass(0.0), 
+        _q(0.0), 
+        _bPos(false),
+        TopologyItem(nullptr) {};
 
   /**
    * destructor
@@ -63,7 +70,7 @@ public:
    * get the mass of the base bead
    * \return base bead mass
    */
-  const double &getMass() const { return _m; }
+  const double &getMass() const { return _mass; }
 
   /**
    * get the charge of the base bead
@@ -75,7 +82,7 @@ public:
    * set the mass of the base bead
    * \param m base bead mass
    */
-  void setMass(const double &m) { _m = m; }
+  void setMass(const double &m) { _mass = m; }
 
   /**
    * set the charge of the base bead
@@ -126,14 +133,14 @@ protected:
   bool _bPos;
 };
 
-inline void Bead::setMolecule(Molecule *mol) { _mol = mol; }
+inline void BaseBead::setMolecule(Molecule *mol) { _mol = mol; }
 
-inline void Bead::setPos(const vec &r) {
+inline void BaseBead::setPos(const vec &r) {
   _bPos = true;
   _pos = r;
 }
 
-inline const vec &Bead::getPos() const {
+inline const vec &BaseBead::getPos() const {
   assert(_bPos);
   return _pos;
 }
