@@ -167,22 +167,6 @@ inline double IAngle::EvaluateVar(const Topology &top)
 
 inline vec IAngle::Grad(const Topology &top, int bead)
 {
-    /*vec v1(top.getDist(_beads[1], _beads[0]));
-    vec v2(top.getDist(_beads[1], _beads[2]));
-    
-    double av1 = abs(v1);
-    double av2 = abs(v2);
-    double cosphi = v1*v2 / (av1*av2);
-    double acos_prime = -1.0 / (sqrt(1 - (cosphi*cosphi) ));
-    
-    switch (bead) {
-        case (0): return acos_prime * (v2 / (av1*av2) - v1*cosphi/(av1*av1)); break;
-        case (1): return -acos_prime * ( (v1+v2)/(av1 * av2)) - 
-                cosphi * ( v1/(av1*av1) + v2/(av2*av2) ); break;
-        case (2): return acos_prime * (v1 / (av1*av2) - v2*cosphi/(av2*av2)); break;
-    }
-    return 0;
-    */
     vec v1(top.getDist(_beads[1], _beads[0]));
     vec v2(top.getDist(_beads[1], _beads[2]));
     
@@ -207,8 +191,6 @@ inline double IDihedral::EvaluateVar(const Topology &top)
     n2 = v2^v3; // calculate the normal vector
     double sign = (v1*n2 < 0) ? -1 : 1;
     return sign*acos(n1*n2/sqrt((n1*n1) * (n2*n2)));
-    //return sign*acos(n1*n2/sqrt((n1*n1) * (n2*n2))) + 1;
-    //return pow(acos(n1*n2/sqrt((n1*n1) * (n2*n2))), 2);
 }
 
 inline vec IDihedral::Grad(const Topology &top, int bead)
@@ -217,8 +199,6 @@ inline vec IDihedral::Grad(const Topology &top, int bead)
     vec v2(top.getDist(_beads[1], _beads[2]));
     vec v3(top.getDist(_beads[2], _beads[3]));
     vec n1, n2;
-    //cout << "v1: " << v1 << " , v2: " << v2 <<  " , v3: " << v3 <<endl;
-    //cout << "n1: " << n1 << " , n2: " << n2 << endl;
     n1 = v1^v2; // calculate the normal vector
     n2 = v2^v3; // calculate the normal vector
     double sign = (v1*n2 < 0) ? -1 : 1;
