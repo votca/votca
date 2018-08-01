@@ -396,6 +396,8 @@ BOOST_AUTO_TEST_SUITE(lammpsreaderwriter_test)
                     atom_forces.at(ind).at(2));
 			b->setF(xyz_forces);
 		}
+    top.SetHasForce(true);
+    top.SetHasVel(true);
 
 		string lammpsDumpFileName = "test_thiophene.dump";
 		if(fexists(lammpsDumpFileName)){
