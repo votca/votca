@@ -270,15 +270,15 @@ inline vec IDihedral::Grad(const Topology &top, int bead) {
       sign;
   switch (bead) {
   case (0): { //
-    returnvec0 = acos_prime * (
-      (n2 * (v2 ^ e0)) / (abs(n1) * abs(n2)) -
-      ((n1 * n2) * (n1 * (v2 ^ e0))) / (abs(n1) * abs(n1) * abs(n1) * abs(n2)));
-    returnvec1 = acos_prime * (
-      (n2 * (v2 ^ e1)) / (abs(n1) * abs(n2)) -
-      ((n1 * n2) * (n1 * (v2 ^ e1))) / (abs(n1) * abs(n1) * abs(n1) * abs(n2)));
-    returnvec2 = acos_prime * (
-      (n2 * (v2 ^ e2)) / (abs(n1) * abs(n2)) -
-      ((n1 * n2) * (n1 * (v2 ^ e2))) / (abs(n1) * abs(n1) * abs(n1) * abs(n2)));
+    returnvec0 = acos_prime * ((n2 * (v2 ^ e0)) / (abs(n1) * abs(n2)) -
+                               ((n1 * n2) * (n1 * (v2 ^ e0))) /
+                                   (abs(n1) * abs(n1) * abs(n1) * abs(n2)));
+    returnvec1 = acos_prime * ((n2 * (v2 ^ e1)) / (abs(n1) * abs(n2)) -
+                               ((n1 * n2) * (n1 * (v2 ^ e1))) /
+                                   (abs(n1) * abs(n1) * abs(n1) * abs(n2)));
+    returnvec2 = acos_prime * ((n2 * (v2 ^ e2)) / (abs(n1) * abs(n2)) -
+                               ((n1 * n2) * (n1 * (v2 ^ e2))) /
+                                   (abs(n1) * abs(n1) * abs(n1) * abs(n2)));
     returnvec.setX(returnvec0);
     returnvec.setY(returnvec1);
     returnvec.setZ(returnvec2);
