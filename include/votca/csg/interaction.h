@@ -83,7 +83,7 @@ public:
   virtual vec Grad(const Topology &top, int bead) = 0;
   int BeadCount() { return _beads.size(); }
   int getBeadId(int bead) {
-    assert(bead > -1 && bead < _beads.size());
+    assert(bead > -1 && boost::lexical_cast<size_t>(bead) < _beads.size());
     return _beads[bead];
   }
 
