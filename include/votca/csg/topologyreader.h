@@ -31,7 +31,7 @@ class TopologyReader
 {
 public:
     virtual ~TopologyReader() {}
-    /// open a trajectory file
+    /// open, read and close topology file
     virtual bool ReadTopology(string file, Topology &top) = 0;
         
     static void RegisterPlugins(void);

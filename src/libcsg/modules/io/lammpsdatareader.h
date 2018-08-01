@@ -42,16 +42,16 @@ public:
   LAMMPSDataReader() {}
   ~LAMMPSDataReader() {}
 
-  /// open a topology file
+  /// open, read and close topology file
   bool ReadTopology(std::string file, Topology &top);
 
   /// open a trajectory file
   bool Open(const std::string &file);
-  /// read in the first frame
+  /// read in the first frame of trajectory file
   bool FirstFrame(Topology &top);
-  /// read in the next frame
+  /// read in the next frame of trajectory file
   bool NextFrame(Topology &top);
-
+  /// close the topology file
   void Close();
 
 private:
