@@ -51,8 +51,9 @@ _gwa_energies.resize(0);
       _dftenergies=dftenergies;
   }
   
-void CalcdiagElements(const TCMatrix_gwbse& _Mmn,const PPM & ppm );
-void CalcOffDiagElements(const TCMatrix_gwbse& _Mmn,const PPM & ppm );
+void CalcdiagElements(const TCMatrix_gwbse& Mmn,const PPM & ppm );
+
+void CalcOffDiagElements(const TCMatrix_gwbse& Mmn,const PPM & ppm );
 
 Eigen::MatrixXd SetupFullQPHamiltonian();
 
@@ -69,10 +70,14 @@ void FreeMatrices(){
 }
 
  private:
-  void C_offdiag(const TCMatrix_gwbse& _Mmn, const PPM& ppm);
+     
+  void C_diag(const TCMatrix_gwbse& Mmn, const PPM& ppm, const Eigen::VectorXd& qp_old);
+  void C_offdiag(const TCMatrix_gwbse& Mmn, const PPM& ppm);
+  
   inline double SumSymmetric(real_gwbse Mmn1xMmn2, double qpmin1, double qpmin2, const double gwa_energy);
 
-  void X_offdiag(const TCMatrix_gwbse& _Mmn);   
+  void X_offdiag(const TCMatrix_gwbse& Mmn);   
+  void X_diag(const TCMatrix_gwbse& Mmn);
 ctp::Logger *_log;
   unsigned _homo;   // HOMO index
   unsigned _qpmin;
