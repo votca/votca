@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _interaction_H
-#define	_interaction_H
+#ifndef _VOTCA_CSG_INTERACTION_H
+#define	_VOTCA_CSG_INTERACTION_H
 
 #include <string>
 #include <sstream>
@@ -84,14 +84,14 @@ protected:
 inline void Interaction::RebuildName()
 {
     stringstream s;
-    if(_mol!=-1) s << "molecule " << _mol+1;
-    if(_group.compare("")==0) {
+    if(_mol!=-1) s << "molecule " << _mol;
+    if(!_group.empty()) {
       s << ":" << _group;
       if(_group_id!=-1){
         s << " " << _group_id;
       }
     }
-    if(_index!=-1) s << ":bond " << _index+1;
+    if(_index!=-1) s << ":index " << _index;
     _name = s.str();
 }
 
@@ -279,5 +279,5 @@ inline vec IDihedral::Grad(const Topology &top, int bead)
 
 }}
 
-#endif	/* _interaction_H */
+#endif	// _VOTCA_CSG_INTERACTION_H 
 
