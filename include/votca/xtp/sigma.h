@@ -70,6 +70,8 @@ void FreeMatrices(){
 
  private:
   void C_offdiag(const TCMatrix_gwbse& _Mmn, const PPM& ppm);
+  inline double SumSymmetric(real_gwbse Mmn1xMmn2, double qpmin1, double qpmin2, const double gwa_energy);
+
   void X_offdiag(const TCMatrix_gwbse& _Mmn);   
 ctp::Logger *_log;
   unsigned _homo;   // HOMO index
