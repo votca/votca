@@ -29,6 +29,7 @@
 
 using namespace std;
 using namespace votca::csg;
+using namespace votca::tools;
 
 // used for rounding doubles so we can compare them
 double round_(double v, int p) {
@@ -47,31 +48,42 @@ BOOST_AUTO_TEST_CASE(test_basebead_constructor) {
 BOOST_AUTO_TEST_CASE(test_basebead_getters_setters) {
 
   BaseBead basebead; 
-  BOOST_CHECK_EQUAL(_round(basebead.getMass(),3),_round(0.0,3));
-  BOOST_CHECK_EQUAL(_round(basebead.getQ(),3),_round(0.0,3));
-  BOOST_CHECK(!basebead.HasPos(());
+  BOOST_CHECK_EQUAL(round_(basebead.getMass(),3),round_(0.0,3));
+  BOOST_CHECK_EQUAL(round_(basebead.getQ(),3),round_(0.0,3));
+  BOOST_CHECK(!basebead.HasPos());
 
+  basebead.setId(0);
+  BOOST_CHECK_EQUAL(basebead.getId(),0);
+  
+  basebead.setName("Bead1");
+  string name = "Bead1";
+  BOOST_CHECK(name == basebead.getName());
 
-	Topology top;
-	string bead_type_name = "C1";
-	BeadType * b_type = top.GetOrCreateBeadType(bead_type_name);
+  basebead.setMass(1.0);
+  BOOST_CHECK_EQUAL(round_(basebead.getMass(),3),round_(1.0,3));
+  
+  basebead.setQ(2.0);
+  BOOST_CHECK_EQUAL(round_(basebead.getQ(),3),round_(2.0,3));
+ 
+  vec xyz(-1.3,2.9,9.2);
+  basebead.setPos(xyz);
+  BOOST_CHECK(basebead.HasPos());
+  auto xyz2 = basebead.getPos();
+  BOOST_CHECK_EQUAL(round_(xyz2.x(),3),round_(-1.3,3));
+  BOOST_CHECK_EQUAL(round_(xyz2.y(),3),round_(2.9,3));
+  BOOST_CHECK_EQUAL(round_(xyz2.z(),3),round_(9.2,3));
+  
+  auto xyz3 = basebead.Pos();
+  BOOST_CHECK_EQUAL(round_(xyz3.x(),3),round_(-1.3,3));
+  BOOST_CHECK_EQUAL(round_(xyz3.y(),3),round_(2.9,3));
+  BOOST_CHECK_EQUAL(round_(xyz3.z(),3),round_(9.2,3));
 
-	int symmetry = 1;
-	string name = "dummy";
-	int resnr = 0;
-	double mass = 1.21;
-	double charge = -0.87;
-
-	Bead * b = top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
-
-	BOOST_CHECK_EQUAL(round_(b->getM(),3),round_(mass,3));
-	BOOST_CHECK_EQUAL(round_(b->getQ(),3),round_(charge,3));
-	BOOST_CHECK_EQUAL(b->getId(),0);
-	BOOST_CHECK_EQUAL(b->getName(),name);
-	BOOST_CHECK_EQUAL(b->getResnr(),resnr);
-	BOOST_CHECK_EQUAL(b->getSymmetry(),symmetry);
+  Topology top;
+  auto mol = top.CreateMolecule("Molecule1");
+  basebead.setMolecule(mol);
+  auto mol2 = basebead.getMolecule();
+  bool molecules_equal = mol2->getName()=="Molecule1";
+  BOOST_CHECK(molecules_equal);
 
 }
-
-
 BOOST_AUTO_TEST_SUITE_END()
