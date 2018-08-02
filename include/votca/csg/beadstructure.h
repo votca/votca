@@ -25,6 +25,7 @@
 namespace votca { namespace csg {
 using namespace votca::tools;
 
+class BaseBead;
 /**
  * \brief Designed to determine if the structure beads passed in
  *
@@ -44,11 +45,12 @@ public:
     // This assumes that a bead is never composed of more than a single molecule
     bool isSingleMolecule();
 
-    int NumBeads();
-    AddBead(Bead * bead);
+    // Follows same method name as topology class
+    int BeadCount();
+    AddBead(BaseBead * bead);
 
-    std::vector<Bead *> getNeighBeads(int index);
-    Bead * getBead(int index);
+    std::vector<BaseBead *> getNeighBeads(int index);
+    BaseBead * getBead(int index);
 
     std::vector<BeadStructure *> breakIntoMolecules();
 
