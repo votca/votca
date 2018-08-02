@@ -17,6 +17,8 @@
 
 #ifndef _VOTCA_TOOLS_MAT_H
 #define _VOTCA_TOOLS_MAT_H
+
+#include <boost/lexical_cast.hpp>
 #include "floatingpointcomparison.h"
 #include "ostream"
 #include "types.h"
@@ -253,7 +255,7 @@ class matrix {
 };
 
 inline void matrix::checkBounds_(const byte_t row_or_col) const {
-  assert( lexical_cast<int>(row_or_col) > -1 && lexical_cast<int>(row_or_col) < 3);
+  assert( boost::lexical_cast<int>(row_or_col) > -1 && boost::lexical_cast<int>(row_or_col) < 3);
 } 
 
 inline matrix &matrix::operator=(const double &v) {
