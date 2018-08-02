@@ -1174,6 +1174,8 @@
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_basisset.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_convergenceacc.cc"
@@ -1983,6 +1985,8 @@
       <item path="../../src/tests/test_apolarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_basisset.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>

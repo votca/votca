@@ -83,7 +83,6 @@ BOOST_CHECK_EQUAL(check_norm, 1);
 
 }
 
-
 BOOST_AUTO_TEST_CASE(ReorderMos_test) {
   
   ofstream xyzfile("molecule.xyz");

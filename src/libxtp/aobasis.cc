@@ -566,7 +566,7 @@ void AOBasis::AOBasisFill(BasisSet* bs , std::vector<QMAtom* > _atoms, int _frag
     Element* element = bs->getElement(name);
     
               // and loop over all shells
-    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+    for (Element::ShellIterator its = element->begin(); its != element->end(); its++) {
               Shell* shell = (*its);
               int numfuncshell=NumFuncShell(shell->getType());
               AOShell* aoshell = addShell(shell->getType(), shell->getLmax(), shell->getLmin(), shell->getScale(),
@@ -574,7 +574,7 @@ void AOBasis::AOBasisFill(BasisSet* bs , std::vector<QMAtom* > _atoms, int _frag
               _AOBasisSize += numfuncshell;
               for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                   GaussianPrimitive* gaussian = *itg;
-                  aoshell->addGaussian(gaussian->decay, gaussian->contraction);
+                  aoshell->addGaussian(gaussian->_decay, gaussian->_contraction);
               }
               aoshell->CalcMinDecay();
               aoshell->normalizeContraction();
@@ -619,13 +619,13 @@ void AOBasis::ECPFill(BasisSet* bs , std::vector<QMAtom* > _atoms  ) {
           // and loop over all shells
            
           int lmax=0;
-          for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+          for (Element::ShellIterator its = element->begin(); its != element->end(); its++) {
                Shell* shell = (*its);
                if(shell->getType().size()>1){
                    throw std::runtime_error("In ecps no combined shells e.g. SP are allowed");
                }
                int l=FindLmax(shell->getType() );
-               if (its == element->firstShell()) lmax = l;
+               if (its == element->begin()) lmax = l;
                // first shell is local component, identification my negative angular momentum
 
                 //why is the shell not properly used, apparently it is only used in aoecp.cc and there it is iterated over so l and l make no difference CHECK!!
@@ -633,7 +633,7 @@ void AOBasis::ECPFill(BasisSet* bs , std::vector<QMAtom* > _atoms  ) {
                    _AOBasisSize += NumFuncShell( shell->getType() );
                    for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                       GaussianPrimitive* gaussian = *itg;
-                      aoshell->addGaussian(gaussian->power, gaussian->decay, gaussian->contraction);
+                      aoshell->addGaussian(gaussian->_power, gaussian->_decay, gaussian->_contraction);
                }
                    aoshell->CalcMinDecay();
                  
