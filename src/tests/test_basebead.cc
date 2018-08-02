@@ -39,15 +39,20 @@ double round_(double v, int p) {
   return v;
 }
 
+class TestBead : public BaseBead{
+  public:
+    TestBead() : BaseBead() {};
+};
+
 BOOST_AUTO_TEST_SUITE(basebead_test)
 
 BOOST_AUTO_TEST_CASE(test_basebead_constructor) {
-  BaseBead basebead;
+  TestBead basebead;
 }
 
 BOOST_AUTO_TEST_CASE(test_basebead_getters_setters) {
 
-  BaseBead basebead; 
+  TestBead basebead; 
   BOOST_CHECK_EQUAL(round_(basebead.getMass(),3),round_(0.0,3));
   BOOST_CHECK_EQUAL(round_(basebead.getQ(),3),round_(0.0,3));
   BOOST_CHECK(!basebead.HasPos());

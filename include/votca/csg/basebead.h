@@ -41,14 +41,6 @@ class BeadType;
  **/
 class BaseBead : public TopologyItem, public Name, public Identity<int> {
 public:
-  BaseBead()
-      : _type(nullptr), 
-        _mol(nullptr), 
-        _mass(0.0), 
-        _q(0.0), 
-        _bPos(false),
-        TopologyItem(nullptr) {};
-
   /**
    * destructor
    */
@@ -58,55 +50,55 @@ public:
    * get the bead type
    * \return bead type object
    */
-  const BeadType *getType() const { return _type; }
+  virtual const BeadType *getType() const { return _type; }
 
   /**
    * set the bead type
    * \param bead type object
    */
-  void setType(BeadType *type) { _type = type; }
+  virtual void setType(BeadType *type) { _type = type; }
 
   /**
    * get the mass of the base bead
    * \return base bead mass
    */
-  const double &getMass() const { return _mass; }
+  virtual const double &getMass() const { return _mass; }
 
   /**
    * get the charge of the base bead
    * \return base bead charge
    */
-  const double &getQ() const { return _q; }
+  virtual const double &getQ() const { return _q; }
 
   /**
    * set the mass of the base bead
    * \param m base bead mass
    */
-  void setMass(const double &m) { _mass = m; }
+  virtual void setMass(const double &m) { _mass = m; }
 
   /**
    * set the charge of the base bead
    * \param q base bead charge
    */
-  void setQ(const double &q) { _q = q; }
+  virtual void setQ(const double &q) { _q = q; }
 
   /**
    * set the position of the base bead
    * \param r base bead position
    */
-  void setPos(const vec &r);
+  virtual void setPos(const vec &r);
 
   /**
    * get the position of the base bead
    * \return base bead position
    */
-  const vec &getPos() const;
+  virtual const vec &getPos() const;
 
   /**
    * direct access (read/write) to the position of the base bead
    * \return reference to position
    */
-  vec &Pos() {
+  virtual vec &Pos() {
     assert(_bPos);
     return _pos;
   }
@@ -118,11 +110,19 @@ public:
    * molecule the base bead belongs to
    * \return Molecule object
    */
-  Molecule *getMolecule() { return _mol; }
+  virtual Molecule *getMolecule() { return _mol; }
 
-  void setMolecule(Molecule *mol);
+  virtual void setMolecule(Molecule *mol);
 
 protected:
+  BaseBead()
+      : _type(nullptr), 
+        _mol(nullptr), 
+        _mass(0.0), 
+        _q(0.0), 
+        _bPos(false),
+        TopologyItem(nullptr) {};
+
   BeadType *_type;
   Molecule *_mol;
 
