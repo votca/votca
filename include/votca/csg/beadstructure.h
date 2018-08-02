@@ -41,6 +41,7 @@ public:
     BeadGraph() {};
     ~BeadGraph() {}
 
+    // This assumes that a bead is never composed of more than a single molecule
     bool isSingleMolecule();
 
     int NumBeads();
