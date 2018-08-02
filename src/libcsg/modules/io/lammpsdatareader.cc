@@ -372,7 +372,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
   }
 
   for (int atomIndex = 0; 
-    boost::lexical_cast<int>(atomIndex) < sorted_file.size(); 
+    boost::lexical_cast<size_t>(atomIndex) < sorted_file.size(); 
     ++atomIndex) {
 
     istringstream iss(sorted_file[atomIndex]);
