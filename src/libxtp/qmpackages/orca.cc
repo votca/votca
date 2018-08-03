@@ -112,53 +112,44 @@ namespace votca {
      * the system.bas/aux file(s), which are then included in the
      * Orca input file using GTOName = "system.bas/aux"
      */
-    void Orca::WriteBasisset(std::vector<QMAtom*>& qmatoms, std::string& _bs_name, std::string& _el_file_name) {
+    void Orca::WriteBasisset(std::vector<QMAtom*>& qmatoms, std::string& bs_name, std::string& el_file_name) {
 
-      tools::Elements _elements;
-      list<std::string> elements;
+      
+      std::vector<std::string> UniqueElements= FindUniqueElements(qmatoms);
+      
+      tools::Elements elementInfo;
       BasisSet bs;
-      bs.LoadBasisSet(_bs_name);
-      CTP_LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << _bs_name << flush;
-      ofstream _el_file;
+      bs.LoadBasisSet(bs_name);
+      CTP_LOG(ctp::logDEBUG, *_pLog) << "Loaded Basis Set " << bs_name << flush;
+      ofstream el_file;
 
-      _el_file.open(_el_file_name.c_str());
-      _el_file << "$DATA" << endl;
+      el_file.open(el_file_name.c_str());
+      el_file << "$DATA" << endl;
       std::vector< QMAtom* >::iterator it;
 
-      for (QMAtom* atom : qmatoms)  {
-        std::string element_name = atom->getType();
-        list<std::string>::iterator ite;
-        ite = find(elements.begin(), elements.end(), element_name);
-        if (ite == elements.end()) {
-          elements.push_back(element_name);
+        for (const std::string& element_name:UniqueElements) {
           const Element& element = bs.getElement(element_name);
-          _el_file << _elements.getEleFull(element_name) << endl;
-          for (Element::ShellIterator its = element.firstShell(); its != element.lastShell(); its++) {
-            Shell* shell = (*its);
-
-            string type = shell->getType();
+          el_file << elementInfo.getEleFull(element_name) << endl;
+          for (const Shell& shell:element) {
+            string type = shell.getType();
             // check combined shells
-
             for (unsigned i = 0; i < type.size(); ++i) {
               string subtype = string(type, i, 1);
-              _el_file << subtype << " " << shell->getSize() << endl;
-              int _sh_idx = 0;
-              for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                GaussianPrimitive* gaussian = *itg;
-                _sh_idx++;
-                _el_file << " " << _sh_idx << " " << indent(gaussian->decay);
-                _el_file << " " << indent(gaussian->contraction[FindLmax(subtype)]);
-
-                _el_file << endl;
+              el_file << subtype << " " << shell.getSize() << endl;
+              int sh_idx = 0;
+              for (const GaussianPrimitive& gaussian:shell) {
+                sh_idx++;
+                el_file << " " << sh_idx << " " << indent(gaussian._decay);
+                el_file << " " << indent(gaussian._contraction[FindLmax(subtype)]);
+                el_file << endl;
               }
 
             }
           }
 
         }
-      }
-      _el_file << "STOP\n";
-      _el_file.close();
+      el_file << "STOP\n";
+      el_file.close();
 
       return;
     }
@@ -166,17 +157,17 @@ namespace votca {
 /* Coordinates are written in standard Element,x,y,z format to the
      * input file.
      */
-    void Orca::WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
+    void Orca::WriteCoordinates(std::ofstream& inp_file, std::vector<QMAtom*>& qmatoms) {
 
       for (QMAtom* atom : qmatoms) {
         tools::vec pos = atom->getPos() * tools::conv::bohr2ang;
-        _com_file << setw(3) << atom->getType().c_str()
+        inp_file << setw(3) << atom->getType().c_str()
                 << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()
                 << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()
                 << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()
                 << endl;
       }
-      _com_file << "* \n" << endl;
+      inp_file << "* \n" << endl;
       return;
     }
 
@@ -184,46 +175,45 @@ namespace votca {
 /* If custom ECPs are used, they need to be specified in the input file
      * in a section following the basis set includes.
      */
-    void Orca::WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms) {
+    void Orca::WriteECP(std::ofstream& inp_file, std::vector<QMAtom*>& qmatoms) {
 
-      _com_file << endl;
-      list<std::string> elements;
-      elements.push_back("H");
-      elements.push_back("He");
+      inp_file << endl;
+      std::vector<std::string> UniqueElements= FindUniqueElements(qmatoms);
+           
       BasisSet ecp;
       ecp.LoadPseudopotentialSet(_ecp_name);
+
       CTP_LOG(ctp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
-      for (QMAtom* atom:qmatoms) {
-        std::string element_name = atom->getType();
-        list<std::string>::iterator ite;
-        ite = find(elements.begin(), elements.end(), element_name);
-        if (ite == elements.end()) {
-          elements.push_back(element_name);
+
+      for (const std::string& element_name:UniqueElements) {
+          try{    
+           const Element& element = ecp.getElement(element_name);
+          }catch(std::runtime_error& error){
+            CTP_LOG(ctp::logDEBUG, *_pLog) << "No pseudopotential for " << element_name<<" available" << flush;
+            continue;
+          }
           const Element& element = ecp.getElement(element_name);
-          _com_file << "\n" << "NewECP" << " " << element_name << endl;
-          _com_file << "N_core" << " " << element.getNcore() << endl;
-          //lmaxnum2lmaxname
-          _com_file << "lmax" << " " << getLName(element.getLmax()) << endl;
+ 
+          inp_file << "\n" << "NewECP" << " " << element_name << endl;
+          inp_file << "N_core" << " " << element.getNcore() << endl;
+          inp_file << "lmax" << " " << getLName(element.getLmax()) << endl;
           //For Orca the order doesn't matter but let's write it in ascending order
           // write remaining shells in ascending order s,p,d...
           for (int i = 0; i <= element.getLmax(); i++) {
-            for (Element::ShellIterator its = element.firstShell(); its != element.lastShell(); its++) {
-              Shell* shell = (*its);
-              if (shell->getLmax() == i) {
+              for (const Shell& shell:element) {
+                if (shell.getLmax() == i) {
                 // shell type, number primitives, scale factor
-                _com_file << shell->getType() << " " << shell->getSize() << endl;
-                int _sh_idx = 0;
-                for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                  GaussianPrimitive* gaussian = *itg;
-                  _sh_idx++;
-                  _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
+                inp_file << shell.getType() << " " << shell.getSize() << endl;
+                int sh_idx = 0;
+                 for (const GaussianPrimitive& gaussian:shell) {
+                  sh_idx++;
+                  inp_file << sh_idx << " " << gaussian._decay << " " << gaussian._contraction[0] << " " << gaussian._power << endl;
                 }
               }
             }
           }
-          _com_file << "end\n " << "\n" << endl;
+          inp_file << "end\n " << "\n" << endl;
         }
-      }
       return;
     }
         
@@ -239,28 +229,23 @@ namespace votca {
          * q,x,y,z format in a separate file "background.crg"
          */
         void Orca::WriteBackgroundCharges() {
-
-             
           
-          
-            std::ofstream _crg_file;
+            std::ofstream crg_file;
             std::string _crg_file_name_full = _run_dir + "/background.crg";
-            _crg_file.open(_crg_file_name_full.c_str());
-            int _total_background = 0;
+            crg_file.open(_crg_file_name_full.c_str());
+            int total_background = 0;
 
             for (std::shared_ptr<ctp::PolarSeg> seg:_PolarSegments) {
                 for (ctp::APolarSite* site:*seg) {
-                    if (site->getQ00() != 0.0) _total_background++;
-
+                    if (site->getQ00() != 0.0) total_background++;
                     if (site->getRank() > 0 || _with_polarization ) {
-
                         std::vector<std::vector<double>> _split_multipoles = SplitMultipoles(site);
-                        _total_background+= _split_multipoles.size();
+                        total_background+= _split_multipoles.size();
                     }
                 }
             } //counting only
             
-            _crg_file << _total_background << endl;
+            crg_file << total_background << endl;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
             //now write
             for (std::shared_ptr<ctp::PolarSeg> seg:_PolarSegments) {
@@ -269,12 +254,12 @@ namespace votca {
                             % (site->getPos().getY()*votca::tools::conv::nm2ang) 
                             % (site->getPos().getZ()*votca::tools::conv::nm2ang) 
                             );
-                    if (site->getQ00() != 0.0) _crg_file << sitestring << endl;
+                    if (site->getQ00() != 0.0) crg_file << sitestring << endl;
                     if (site->getRank() > 0 || _with_polarization ) {
                         std::vector< std::vector<double> > _split_multipoles = SplitMultipoles(site);
                         for (const auto& mpoles:_split_multipoles){
                            string multipole=boost::str( fmt % mpoles[3] % mpoles[0] % mpoles[1] % mpoles[2] );
-                            _crg_file << multipole << endl;
+                            crg_file << multipole << endl;
                         }
                     }
                 }
@@ -292,44 +277,44 @@ namespace votca {
             std::vector<std::string> results;
             std::string temp_suffix = "/id";
             std::string scratch_dir_backup = _scratch_dir;
-            std::ofstream _com_file;
-            std::string _com_file_name_full = _run_dir + "/" + _input_file_name;
-            _com_file.open(_com_file_name_full.c_str());
+            std::ofstream inp_file;
+            std::string inp_file_name_full = _run_dir + "/" + _input_file_name;
+            inp_file.open(inp_file_name_full.c_str());
             // header
-            _com_file << "* xyz  " << _charge << " " << _spin << endl;
+            inp_file << "* xyz  " << _charge << " " << _spin << endl;
 
             std::vector< QMAtom* > qmatoms = orbitals.QMAtoms();
             // put coordinates
-            WriteCoordinates(_com_file, qmatoms);
+            WriteCoordinates(inp_file, qmatoms);
             // add parallelization info
-            _com_file << "%pal\n " << "nprocs " << _threads << "\nend" << "\n" << endl;
+            inp_file << "%pal\n " << "nprocs " << _threads << "\nend" << "\n" << endl;
             // basis set info
             if (_write_basis_set) {
-                std::string _el_file_name = _run_dir + "/" + "system.bas";
-                WriteBasisset(qmatoms, _basisset_name, _el_file_name);
-                _com_file << "%basis\n " << endl;
-                _com_file << "GTOName" << " " << "=" << "\"system.bas\";" << endl;
+                std::string el_file_name = _run_dir + "/" + "system.bas";
+                WriteBasisset(qmatoms, _basisset_name, el_file_name);
+                inp_file << "%basis\n " << endl;
+                inp_file << "GTOName" << " " << "=" << "\"system.bas\";" << endl;
                 if (_auxbasisset_name != "") {
-                    std::string _aux_file_name = _run_dir + "/" + "system.aux";
-                    WriteBasisset(qmatoms, _auxbasisset_name, _aux_file_name);
-                    _com_file << "GTOAuxName" << " " << "=" << "\"system.aux\";" << endl;
+                    std::string aux_file_name = _run_dir + "/" + "system.aux";
+                    WriteBasisset(qmatoms, _auxbasisset_name, aux_file_name);
+                    inp_file << "GTOAuxName" << " " << "=" << "\"system.aux\";" << endl;
                 }
             } // write_basis set
 
             // ECPs
             /* WRITING ECP INTO system.inp FILE for ORCA**/
             if (_write_pseudopotentials) {
-                WriteECP(_com_file, qmatoms);
+                WriteECP(inp_file, qmatoms);
             } // write pseudopotentials
             /* END   OF WRITING BASISSET/ECP INTO system.inp FILE for ORCA*************/
-            _com_file << "end\n " << "\n" << endl; //This end is for the basis set block
+            inp_file << "end\n " << "\n" << endl; //This end is for the basis set block
             if (_write_charges) {
                 WriteBackgroundCharges();
             }
 
-            _com_file << _options << "\n";
-            _com_file << endl;
-            _com_file.close();
+            inp_file << _options << "\n";
+            inp_file << endl;
+            inp_file.close();
             // and now generate a shell script to run both jobs, if neccessary
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
             _scratch_dir = scratch_dir_backup + temp_suffix;
@@ -339,20 +324,20 @@ namespace votca {
         }
 
         bool Orca::WriteShellScript() {
-            ofstream _shell_file;
-            std::string _shell_file_name_full = _run_dir + "/" + _shell_file_name;
-            _shell_file.open(_shell_file_name_full.c_str());
-            _shell_file << "#!/bin/bash" << endl;
-            _shell_file << "mkdir -p " << _scratch_dir << endl;
+            ofstream shell_file;
+            std::string shell_file_name_full = _run_dir + "/" + _shell_file_name;
+            shell_file.open(shell_file_name_full.c_str());
+            shell_file << "#!/bin/bash" << endl;
+            shell_file << "mkdir -p " << _scratch_dir << endl;
             
             if(_write_guess){
               if(!(boost::filesystem::exists( _run_dir + "/molA.gbw" ) && boost::filesystem::exists( _run_dir + "/molB.gbw" )  )){
               throw runtime_error("Using guess relies on a molA.gbw and a molB.gbw file being in the directory.");
             }
-              _shell_file<<_executable<<"_mergefrag molA.gbw molB.gbw dimer.gbw > merge.log"<<endl;
+              shell_file<<_executable<<"_mergefrag molA.gbw molB.gbw dimer.gbw > merge.log"<<endl;
             }
-            _shell_file << _executable << " " << _input_file_name << " > " << _log_file_name << endl; //" 2> run.error" << endl;
-            _shell_file.close();
+            shell_file << _executable << " " << _input_file_name << " > " << _log_file_name << endl; //" 2> run.error" << endl;
+            shell_file.close();
             return true;
         }
 
@@ -434,7 +419,7 @@ namespace votca {
         }
 
         bool Orca::ParseLogFile(Orbitals& orbitals) {
-            const double _conv_Hrt_eV = tools::conv::hrt2ev;
+            const double conv_Hrt_eV = tools::conv::hrt2ev;
 
             orbitals.setQMpackage("orca");
             orbitals.setDFTbasis(_basisset_name);
@@ -442,66 +427,57 @@ namespace votca {
                 orbitals.setECP(_ecp_name);
             } 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
-            std::string _log_file_name_full = _run_dir + "/" + _log_file_name;
+            std::string log_file_name_full = _run_dir + "/" + _log_file_name;
             // check if LOG file is complete
             if (!CheckLogFile()) return false;
-            std::map <int, double> _energies;
-            std::map <int, double> _occ;
+            std::map <int, double> energies;
+            std::map <int, double> occupancy;
 
-            std::string _line;
-            unsigned _levels = 0;
-            int _number_of_electrons = 0;
+            std::string line;
+            unsigned levels = 0;
+            int number_of_electrons = 0;
             std::vector<std::string> results;
 
-            std::ifstream _input_file(_log_file_name_full.c_str());
+            std::ifstream input_file(log_file_name_full.c_str());
 
-            if (_input_file.fail()) {
-                CTP_LOG(ctp::logERROR, *_pLog) << "File " << _log_file_name_full << " not found " << flush;
+            if (input_file.fail()) {
+                CTP_LOG(ctp::logERROR, *_pLog) << "File " << log_file_name_full << " not found " << flush;
                 return false;
             } else {
-                CTP_LOG(ctp::logDEBUG, *_pLog) << "Reading Coordinates and occupationnumbers and energies from " << _log_file_name_full << flush;
+                CTP_LOG(ctp::logDEBUG, *_pLog) << "Reading Coordinates and occupationnumbers and energies from " << log_file_name_full << flush;
             }
             //Coordinates of the final configuration depending on whether it is an optimization or not
-            while (_input_file) {
-                getline(_input_file, _line);
-                boost::trim(_line);
+            while (input_file) {
+                getline(input_file, line);
+                boost::trim(line);
 
                 if (_is_optimization) {
                     throw runtime_error("Not implemented yet!");
                 }
-                bool _found_optimization = true;
-                std::string::size_type coordinates_pos = _line.find("CARTESIAN COORDINATES (ANGSTROEM)");
+                bool found_optimization = true;
+                std::string::size_type coordinates_pos = line.find("CARTESIAN COORDINATES (ANGSTROEM)");
 
-                if (_found_optimization && coordinates_pos != std::string::npos) {
+                if (found_optimization && coordinates_pos != std::string::npos) {
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Getting the coordinates" << flush;
-                    //_has_coordinates = true;
-                    bool _has_QMAtoms = orbitals.hasQMAtoms();
+                    bool has_QMAtoms = orbitals.hasQMAtoms();
                     // three garbage lines
-                    getline(_input_file, _line);
+                    getline(input_file, line);
                     // now starts the data in format
                     // _id type Qnuc x y z
-                    std::vector<std::string> _row;
-                    getline(_input_file, _line);
-                    boost::trim(_line);
-                    boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-                    int nfields = _row.size();
+                    std::vector<std::string> row=GetLineAndSplit(input_file, "\t ");
+                    int nfields = row.size();
                     int atom_id = 0;
                     while (nfields == 4) {
-                        //int atom_id = boost::lexical_cast< int >( _row.at(0) );
-                        //int atom_number = boost::lexical_cast< int >( _row.at(0) );
-                        std::string _atom_type = _row.at(0);
-                        double _x = boost::lexical_cast<double>(_row.at(1));
-                        double _y = boost::lexical_cast<double>(_row.at(2));
-                        double _z = boost::lexical_cast<double>(_row.at(3));
-                        //if ( tools::globals::verbose ) cout << "... ... " << atom_id << " " << atom_type << " " << atom_charge << endl;
-                        getline(_input_file, _line);
-                        boost::trim(_line);
-                        boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-                        nfields = _row.size();
-                        tools::vec pos=tools::vec(_x,_y,_z);
+                        std::string atom_type = row.at(0);
+                        double x = boost::lexical_cast<double>(row.at(1));
+                        double y = boost::lexical_cast<double>(row.at(2));
+                        double z = boost::lexical_cast<double>(row.at(3));
+                        row=GetLineAndSplit(input_file, "\t ");
+                        nfields = row.size();
+                        tools::vec pos=tools::vec(x,y,z);
                         pos*=tools::conv::ang2bohr;
-                        if (_has_QMAtoms == false) {
-                            orbitals.AddAtom(atom_id,_atom_type, pos);
+                        if (has_QMAtoms == false) {
+                            orbitals.AddAtom(atom_id,atom_type, pos);
                         } else {
                             QMAtom* pAtom = orbitals.QMAtoms().at(atom_id);
                             pAtom->setPos(pos);
@@ -510,97 +486,90 @@ namespace votca {
                     }
                 }
 
-                std::string::size_type energy_pos = _line.find("Total Energy");
+                std::string::size_type energy_pos = line.find("Total Energy");
                 if (energy_pos != std::string::npos) {
-                    boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
-                    std::string _energy = results[3];
-                    boost::trim(_energy);
-                    orbitals.setQMEnergy(_conv_Hrt_eV * boost::lexical_cast<double>(_energy));
+                    boost::algorithm::split(results, line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
+                    std::string energy = results[3];
+                    boost::trim(energy);
+                    orbitals.setQMEnergy(conv_Hrt_eV * boost::lexical_cast<double>(energy));
                     CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
                 }
 
-                std::string::size_type HFX_pos = _line.find("Fraction HF Exchange ScalHFX");
+                std::string::size_type HFX_pos = line.find("Fraction HF Exchange ScalHFX");
                 if (HFX_pos != std::string::npos) {
-                    boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
-                    double _ScaHFX = boost::lexical_cast<double>(results.back());
-                    orbitals.setScaHFX(_ScaHFX);
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << "DFT with " << _ScaHFX << " of HF exchange!" << flush;
+                    boost::algorithm::split(results, line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
+                    double ScaHFX = boost::lexical_cast<double>(results.back());
+                    orbitals.setScaHFX(ScaHFX);
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << "DFT with " << ScaHFX << " of HF exchange!" << flush;
                 }
 
-                std::string::size_type dim_pos = _line.find("Basis Dimension");
+                std::string::size_type dim_pos = line.find("Basis Dimension");
                 if (dim_pos != std::string::npos) {
-                    boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
-                    std::string _dim = results[4]; //The 4th element of results vector is the Basis Dim
-                    boost::trim(_dim);
-                    _levels = boost::lexical_cast<int>(_dim);
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << "Basis Dimension: " << _levels << flush;
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << "Energy levels: " << _levels << flush;
+                    boost::algorithm::split(results, line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
+                    std::string dim = results[4]; //The 4th element of results vector is the Basis Dim
+                    boost::trim(dim);
+                    levels = boost::lexical_cast<int>(dim);
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << "Basis Dimension: " << levels << flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << "Energy levels: " << levels << flush;
                 }
 
-                std::string::size_type OE_pos = _line.find("ORBITAL ENERGIES");
+                std::string::size_type OE_pos = line.find("ORBITAL ENERGIES");
                 if (OE_pos != std::string::npos) {
-                    _number_of_electrons=0;
-                    getline(_input_file, _line);
-                    getline(_input_file, _line);
-                    getline(_input_file, _line);
-                    if (_line.find("E(Eh)") == std::string::npos) {
+                    number_of_electrons=0;
+                    getline(input_file, line);
+                    getline(input_file, line);
+                    getline(input_file, line);
+                    if (line.find("E(Eh)") == std::string::npos) {
                         CTP_LOG(ctp::logDEBUG, *_pLog) << "Warning: Orbital Energies not found in log file" << flush;
                     }
-                    for (unsigned i = 0; i < _levels; i++) {
-                        getline(_input_file, _line);
-                        boost::trim(_line);
-                        boost::algorithm::split(results, _line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
-                        std::string _no = results[0];
-                        boost::trim(_no);
-                        unsigned levelnumber = boost::lexical_cast<unsigned>(_no);
+                    for (unsigned i = 0; i < levels; i++) {
+                        results=GetLineAndSplit(input_file, " ");
+                        std::string no = results[0];
+                        boost::trim(no);
+                        unsigned levelnumber = boost::lexical_cast<unsigned>(no);
                         if (levelnumber != i) {
                             CTP_LOG(ctp::logDEBUG, *_pLog) << "Have a look at the orbital energies something weird is going on" << flush;
                         }
-                        std::string _oc = results[1];
-                        boost::trim(_oc);
-                        double occ = boost::lexical_cast<double>(_oc);
+                        std::string oc = results[1];
+                        boost::trim(oc);
+                        double occ = boost::lexical_cast<double>(oc);
                         // We only count alpha electrons, each orbital must be empty or doubly occupied
                         if (occ == 2 || occ == 1) {
-                            _number_of_electrons++;
-                            _occ[i] = occ;
+                            number_of_electrons++;
+                            occupancy[i] = occ;
                         } else if (occ == 0) {
-                            _occ[i] = occ;
+                            occupancy[i] = occ;
                         } else {
                             if (occ == 1){
                                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Watch out! No distinction between alpha and beta electrons. Check if occ = 1 is suitable for your calculation " << flush;
-                                _number_of_electrons++;
-                                _occ[i] = occ;
+                                number_of_electrons++;
+                                occupancy[i] = occ;
                             } else {
                             throw runtime_error("Only empty or doubly occupied orbitals are allowed not running the right kind of DFT calculation");
                             }
                         }
-                        std::string _e = results[2];
-                        boost::trim(_e);
-                        _energies [i] = boost::lexical_cast<double>(_e);
+                        std::string e = results[2];
+                        boost::trim(e);
+                        energies [i] = boost::lexical_cast<double>(e);
                     }
                 }
                 /*
                  *  Partial charges from the input file
                  */
-                std::string::size_type charge_pos = _line.find("CHELPG Charges");
+                std::string::size_type charge_pos = line.find("CHELPG Charges");
 
                 if (charge_pos != std::string::npos && _get_charges) {
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Getting charges" << flush;
-                    getline(_input_file, _line);
-                    std::vector<std::string> _row;
-                    getline(_input_file, _line);
-                    boost::trim(_line);
-                    boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-                    int nfields = _row.size();
+                    getline(input_file, line);
+                    std::vector<std::string> row=GetLineAndSplit(input_file, "\t ");
+                    int nfields = row.size();
                     while (nfields == 4) {
-                        int atom_id = boost::lexical_cast< int >(_row.at(0));
+                        int atom_id = boost::lexical_cast< int >(row.at(0));
                         atom_id++;
-                        std::string atom_type = _row.at(1);
-                        double atom_charge = boost::lexical_cast< double >(_row.at(3));
-                        getline(_input_file, _line);
-                        boost::trim(_line);
-                        boost::algorithm::split(_row, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-                        nfields = _row.size();
+                        std::string atom_type = row.at(1);
+                        double atom_charge = boost::lexical_cast< double >(row.at(3));
+                        row=GetLineAndSplit(input_file, "\t ");
+                        nfields = row.size();
                         QMAtom* pAtom;
                         if (!orbitals.hasQMAtoms()) {
                             pAtom =orbitals.AddAtom(atom_id - 1,atom_type, 0, 0, 0);
@@ -612,26 +581,26 @@ namespace votca {
                 }
             }
 
-            CTP_LOG(ctp::logDEBUG, *_pLog) << "Alpha electrons: " << _number_of_electrons << flush;
-            int _occupied_levels = _number_of_electrons;
-            int _unoccupied_levels = _levels - _occupied_levels;
-            CTP_LOG(ctp::logDEBUG, *_pLog) << "Occupied levels: " << _occupied_levels << flush;
-            CTP_LOG(ctp::logDEBUG, *_pLog) << "Unoccupied levels: " << _unoccupied_levels << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << "Alpha electrons: " << number_of_electrons << flush;
+            int occupied_levels = number_of_electrons;
+            int unoccupied_levels = levels - occupied_levels;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << "Occupied levels: " << occupied_levels << flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << "Unoccupied levels: " << unoccupied_levels << flush;
 
             /************************************************************/
 
             // copying information to the orbitals object
        
-            orbitals.setBasisSetSize(_levels);
-            orbitals.setNumberOfElectrons(_number_of_electrons);
-            orbitals.setNumberOfLevels(_occupied_levels, _unoccupied_levels);
+            orbitals.setBasisSetSize(levels);
+            orbitals.setNumberOfElectrons(number_of_electrons);
+            orbitals.setNumberOfLevels(occupied_levels, unoccupied_levels);
             orbitals.setSelfEnergy(0.0);
 
             // copying energies to a vector
-            orbitals.MOEnergies().resize(_levels);
+            orbitals.MOEnergies().resize(levels);
             //_level = 1;
             for (int i = 0; i < orbitals.MOEnergies().size(); i++) {
-                orbitals.MOEnergies()[i] = _energies[ i ];
+                orbitals.MOEnergies()[i] = energies[ i ];
             }
 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done reading Log file" << flush;
@@ -640,23 +609,23 @@ namespace votca {
 
         bool Orca::CheckLogFile() {
             // check if the log file exists
-            ifstream _input_file((_run_dir + "/" + _log_file_name).c_str());
+            ifstream input_file((_run_dir + "/" + _log_file_name).c_str());
 
-            if (_input_file.fail()) {
+            if (input_file.fail()) {
                 CTP_LOG(ctp::logERROR, *_pLog) << "Orca LOG is not found" << flush;
                 return false;
             };
 
-            std::string _line;
-            while (_input_file) {
-                getline(_input_file, _line);
-                boost::trim(_line);
-                std::string::size_type error = _line.find("FATAL ERROR ENCOUNTERED");
+            std::string line;
+            while (input_file) {
+                getline(input_file, line);
+                boost::trim(line);
+                std::string::size_type error = line.find("FATAL ERROR ENCOUNTERED");
                 if (error != std::string::npos) {
                     CTP_LOG(ctp::logERROR, *_pLog) << "ORCA encountered a fatal error, maybe a look in the log file may help." << flush;
                     return false;
                 }
-                error = _line.find("mpirun detected that one or more processes exited with non-zero status");
+                error = line.find("mpirun detected that one or more processes exited with non-zero status");
                 if (error != std::string::npos) {
                     CTP_LOG(ctp::logERROR, *_pLog) << "ORCA had an mpi problem, maybe your openmpi version is not good." << flush;
                     return false;
@@ -667,12 +636,12 @@ namespace votca {
 
         // Parses the Orca gbw file and stores data in the Orbitals object
 
-        bool Orca::ParseOrbitalsFile(Orbitals& _orbitals) {
+        bool Orca::ParseOrbitalsFile(Orbitals& orbitals) {
             if (!CheckLogFile()) return false;
-            std::vector<double> _coefficients;
-            int _basis_size = _orbitals.getBasisSetSize();
-            int _levels = _orbitals.getNumberOfLevels();
-            if (_basis_size == 0 || _levels == 0) {
+            std::vector<double> coefficients;
+            int basis_size = orbitals.getBasisSetSize();
+            int levels = orbitals.getNumberOfLevels();
+            if (basis_size == 0 || levels == 0) {
                 throw runtime_error("Basis size not set, calculator does not parse log file first");
             }
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Reading the gbw file, this may or may not work so be careful: " << flush;
@@ -701,20 +670,20 @@ namespace votca {
                 infile.read(buffer, 8);
                 double mocoeff = *((double*) buffer);
                 //CTP_LOG(logDEBUG,*_pLog) << mocoeff<< flush ;
-                _coefficients.push_back(mocoeff);
+                coefficients.push_back(mocoeff);
             }
             delete[] buffer;
 
             infile.close();
             // i -> MO, j -> AO
-            (_orbitals.MOCoefficients()).resize(_levels, _basis_size);
-            for (int i = 0; i < _orbitals.MOCoefficients().rows(); i++) {
-                for (int j = 0; j < _orbitals.MOCoefficients().cols(); j++) {
-                    _orbitals.MOCoefficients()(j, i) = _coefficients[j * _basis_size + i];
+            (orbitals.MOCoefficients()).resize(levels, basis_size);
+            for (int i = 0; i < orbitals.MOCoefficients().rows(); i++) {
+                for (int j = 0; j < orbitals.MOCoefficients().cols(); j++) {
+                    orbitals.MOCoefficients()(j, i) = coefficients[j * basis_size + i];
                    
                 }
             }  
-           ReorderOutput(_orbitals);
+           ReorderOutput(orbitals);
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Done parsing" << flush;
             return true;
         }
@@ -735,16 +704,15 @@ namespace votca {
         }
 
         std::string Orca::indent(const double &number) {
-            std::stringstream _ssnumber;
+            std::stringstream ssnumber;
             if (number >= 0) {
-                _ssnumber << "    ";
+                ssnumber << "    ";
             } else {
-                _ssnumber << "   ";
+                ssnumber << "   ";
             }
-            _ssnumber << setiosflags(ios::fixed) << setprecision(15) << std::scientific << number;
-            std::string _snumber = _ssnumber.str();
-            //boost::replace_first(_snumber, "e", "D");
-            return _snumber;
+            ssnumber << setiosflags(ios::fixed) << setprecision(15) << std::scientific << number;
+            std::string snumber = ssnumber.str();
+            return snumber;
         }
 
 

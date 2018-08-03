@@ -104,7 +104,7 @@ namespace votca {
             Eigen::MatrixXd AtomicGuess(Orbitals& orbitals);
             std::string ReturnSmallGrid(const std::string& largegrid);
             
-            Eigen::MatrixXd IntegrateExternalDensity(const Orbitals& extdensity);
+            Eigen::MatrixXd IntegrateExternalDensity(Orbitals& extdensity);
             
             Eigen::MatrixXd RunAtomicDFT_unrestricted(QMAtom* uniqueAtom);
             Eigen::MatrixXd RunAtomicDFT_fractional(QMAtom* uniqueAtom);

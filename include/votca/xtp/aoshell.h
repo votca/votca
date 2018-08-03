@@ -33,8 +33,6 @@ namespace votca { namespace xtp {
 class AOBasis;
 class AOShell;  
 
-
-// Gaussian function: contraction*exp(-decay*r^2)
 class AOGaussianPrimitive 
 {
     friend class AOShell;
@@ -42,29 +40,24 @@ public:
     
     
 
-    double getPowfactor()const {return powfactor;}
-    int    getPower()const{return power;}
-    double getDecay()const {return decay;}
-    const std::vector<double>& getContraction()const {return contraction;}
-    const AOShell* getShell() const{return aoshell;}
+    double getPowfactor()const {return _powfactor;}
+    int    getPower()const{return _power;}
+    double getDecay()const {return _decay;}
+    const std::vector<double>& getContraction()const {return _contraction;}
+    const AOShell* getShell() const{return _aoshell;}
 private:
      
-    int power; // used in pseudopotenials only
-    double decay;
-    std::vector<double> contraction;
-    AOShell* aoshell;
-    double powfactor;//used in evalspace to speed up DFT
+    int _power; // used in pseudopotenials only
+    double _decay;
+    std::vector<double> _contraction;
+    AOShell* _aoshell;
+    double _powfactor;//used in evalspace to speed up DFT
     // private constructor, only a shell can create a primitive
-    AOGaussianPrimitive( double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
-    : power(-1),decay(_decay),
-            contraction(_contraction),
-            aoshell(_aoshell) {powfactor=pow(2.0 * decay / boost::math::constants::pi<double>(), 0.75) ; }
-
-    AOGaussianPrimitive( int _power, double _decay, std::vector<double> _contraction, AOShell *_aoshell = NULL ) 
-    : power(_power),
-    decay(_decay),
-    contraction(_contraction),
-    aoshell(_aoshell) {powfactor=pow(2.0 * decay / boost::math::constants::pi<double>(), 0.75) ; }
+    AOGaussianPrimitive( const GaussianPrimitive& gaussian, AOShell *aoshell ) 
+    : _power(gaussian._power),
+    _decay(gaussian._decay),
+    _contraction(gaussian._contraction),
+    _aoshell(aoshell) {_powfactor=std::pow(2.0 * _decay / boost::math::constants::pi<double>(), 0.75) ; }
 };      
     
 /*
@@ -115,19 +108,11 @@ public:
     GaussianIterator end()const{ return _gaussians.end(); }
    
     // adds a Gaussian 
-    void  addGaussian( double decay, std::vector<double> contraction ) 
-    {
-        AOGaussianPrimitive gaussian = AOGaussianPrimitive(decay, contraction, this);
-        _gaussians.push_back( gaussian );
+    void  addGaussian( const GaussianPrimitive& gaussian ){
+        AOGaussianPrimitive aogaussian = AOGaussianPrimitive(gaussian, this);
+        _gaussians.push_back( aogaussian );
         return;
-    }
-    // used for ecps
-    void  addGaussian( int power, double decay, std::vector<double> contraction ) 
-    {                                                                                
-        AOGaussianPrimitive gaussian = AOGaussianPrimitive(power, decay, contraction, this); 
-        _gaussians.push_back( gaussian );                                                  
-        return;                                                                 
-    }                                                                                
+    }                                                                  
 
     void normalizeContraction();
     

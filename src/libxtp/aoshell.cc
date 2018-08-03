@@ -33,7 +33,7 @@ namespace votca { namespace xtp {
       double norm=std::sqrt(block(aoindex,aoindex));
       
       for(auto& gaussian:_gaussians){
-        gaussian.contraction[contraction_index]/=norm;
+        gaussian._contraction[contraction_index]/=norm;
       }
       aoindex+=numsubshell[i];
       contraction_index++;

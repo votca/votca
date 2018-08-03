@@ -147,9 +147,8 @@ double BSECoupling::getTripletCouplingElement( int levelA, int levelB, int metho
  * @param _orbitalsA molecular orbitals of molecule A
  * @param _orbitalsB molecular orbitals of molecule B
  * @param _orbitalsAB molecular orbitals of the dimer AB
- * @return false if failed
  */
-void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB, const Orbitals& orbitalsAB) {
+void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB, Orbitals& orbitalsAB) {
        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << "  Calculating exciton couplings" << flush;
     #ifdef _OPENMP
     

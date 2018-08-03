@@ -74,19 +74,16 @@ private:
     std::string                              _cleanup;
     std::string                              _vdWfooter;
 
-     bool GetESPCharges(Orbitals& orbitals, std::string& line, std::ifstream& input_file);
+    bool ReadESPCharges(Orbitals& orbitals, std::string& line, std::ifstream& input_file);
     
-    int NumberOfElectrons( std::string _line );
-    int BasisSetSize( std::string _line );
-    int EnergiesFromLog( std::string _line, std::ifstream inputfile );
     std::string FortranFormat(double number);
-    void WriteBasisset(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
-    void WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);   
-    void WriteBackgroundCharges(std::ofstream& _com_file);
-    void WriteGuess(Orbitals& orbitals_guess, std::ofstream& _com_file);
+    void WriteBasisset(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms);
+    void WriteECP(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms);   
+    void WriteBackgroundCharges(std::ofstream& com_file);
+    void WriteGuess(Orbitals& orbitals_guess, std::ofstream& com_file);
     void WriteVXCRunInputFile();
-    void WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
-    void WriteHeader(std::ofstream& _com_file);
+    void WriteCoordinates(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms);
+    void WriteHeader(std::ofstream& com_file);
 
     void WriteChargeOption();
     

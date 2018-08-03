@@ -51,7 +51,7 @@ public:
     
     void CalculateCouplings(   const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB, 
-                               const Orbitals& orbitalsAB 
+                               Orbitals& orbitalsAB 
                              );
      
    

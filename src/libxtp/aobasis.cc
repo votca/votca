@@ -505,25 +505,23 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       return number;
     }
 
-    void AOBasis::AOBasisFill(const BasisSet& bs, std::vector<QMAtom* > _atoms, int _fragbreak) {
+    void AOBasis::AOBasisFill(const BasisSet& bs, std::vector<QMAtom* >& atoms, int _fragbreak) {
       tools::Elements elementinfo;
       std::vector<QMAtom* > ::iterator ait;
       _AOBasisSize = 0;
       _AOBasisFragA = 0;
       _AOBasisFragB = 0;
       // loop over atoms
-      for (QMAtom* atom : _atoms) {
+      for (QMAtom* atom : atoms) {
         const std::string& name = atom->getType();
-        atom->nuccharge = elementinfo.getNucCrg(name);
+        atom->_nuccharge = elementinfo.getNucCrg(name);
         const Element& element = bs.getElement(name);
-        for (Element::ShellIterator its = element.firstShell(); its != element.lastShell(); its++) {
-          Shell* shell = (*its);
-          int numfuncshell = NumFuncShell(shell->getType());
-          AOShell* aoshell = addShell(*shell, *atom, _AOBasisSize);
+        for (const Shell& shell:element) {
+          int numfuncshell = NumFuncShell(shell.getType());
+          AOShell* aoshell = addShell(shell, *atom, _AOBasisSize);
           _AOBasisSize += numfuncshell;
-          for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-            GaussianPrimitive* gaussian = *itg;
-            aoshell->addGaussian(gaussian->decay, gaussian->contraction);
+          for (const GaussianPrimitive& gaussian:shell) {
+            aoshell->addGaussian(gaussian);
           }
           aoshell->CalcMinDecay();
           aoshell->normalizeContraction();
@@ -540,34 +538,31 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       return;
     }
 
-    void AOBasis::ECPFill(const BasisSet& bs, std::vector<QMAtom* > _atoms) {
+    void AOBasis::ECPFill(const BasisSet& bs, std::vector<QMAtom* >& atoms) {
 
-      std::vector< QMAtom* > ::iterator ait;
       _AOBasisSize = 0;
-      for (QMAtom* atom : _atoms) {
+      for (QMAtom* atom : atoms) {
         std::string name = atom->getType();
         if (name == "H" || name == "He") {
           continue;
         }
         const Element& element = bs.getElement(name);
-        atom->ecpcharge = element.getNcore();
+        atom->_ecpcharge = element.getNcore();
         int lmax = element.getLmax();
-        for (Element::ShellIterator its = element.firstShell(); its != element.lastShell(); its++) {
-          Shell* shell = (*its);
-          if (shell->getType().size() > 1) {
+        for (const Shell& shell:element) {
+          if (shell.getType().size() > 1) {
             throw std::runtime_error("In ecps no combined shells e.g. SP are allowed");
           }
           //Local part is with L=Lmax
           bool nonlocal = false;
-          if (shell->getLmax() < lmax) {
+          if (shell.getLmax() < lmax) {
             nonlocal = true;
           }
 
-          AOShell* aoshell = addECPShell(*shell, *atom, _AOBasisSize, nonlocal);
-          _AOBasisSize += NumFuncShell(shell->getType());
-          for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-            GaussianPrimitive* gaussian = *itg;
-            aoshell->addGaussian(gaussian->power, gaussian->decay, gaussian->contraction);
+          AOShell* aoshell = addECPShell(shell, *atom, _AOBasisSize, nonlocal);
+          _AOBasisSize += NumFuncShell(shell.getType());
+         for (const GaussianPrimitive& gaussian:shell) {
+            aoshell->addGaussian(gaussian);
           }
           aoshell->CalcMinDecay();
         }

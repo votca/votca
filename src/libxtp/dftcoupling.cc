@@ -141,10 +141,9 @@ double DFTcoupling::getCouplingElement( int levelA, int levelB, const Orbitals&o
  * @param _orbitalsA molecular orbitals of molecule A
  * @param _orbitalsB molecular orbitals of molecule B
  * @param _orbitalsAB molecular orbitals of the dimer AB
- * @return JAB matrix with electronic couplings
  */
 void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB, 
-    const Orbitals& orbitalsAB) {
+    Orbitals& orbitalsAB) {
 
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
     

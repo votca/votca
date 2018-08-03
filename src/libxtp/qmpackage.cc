@@ -20,6 +20,7 @@
 // Overload of uBLAS prod function with MKL/GSL implementations
 #include "votca/xtp/qmpackage.h"
 #include "votca/xtp/aomatrix.h"
+#include <boost/algorithm/string.hpp>
 
 namespace votca {
     namespace xtp {
@@ -129,8 +130,40 @@ namespace votca {
       _write_charges = true;
       
       WriteChargeOption();
-
     }
+      
+      std::vector<std::string> QMPackage::GetLineAndSplit(std::ifstream& input_file,const std::string separators ){
+          std::string line;
+          getline(input_file, line);
+          boost::trim(line);
+          std::vector<std::string> row;
+          boost::algorithm::split(row, line, boost::is_any_of(separators), boost::algorithm::token_compress_on);
+          return row;
+        }
+      
+    
+      
+      std::vector<std::string> QMPackage::FindUniqueElements(const std::vector<QMAtom*> atoms){
+        std::vector<std::string> result;
+        for (QMAtom* atom:atoms) {
+        bool exists = false;
+        if (result.size() == 0) {
+          exists = false;
+        } else {
+          for (const std::string& type:result){
+            if (atom->getType() == type) {
+              exists = true;
+              break;
+            }
+          }
+        }
+        if (!exists) {
+          result.push_back(atom->getType());
+        }
+      }
+        return result;
+      }
+      
 
     }
 }

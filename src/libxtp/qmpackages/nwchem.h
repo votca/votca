@@ -55,6 +55,8 @@ public:
    bool CheckLogFile();
 
    bool ParseLogFile( Orbitals& orbitals );
+   
+
 
    bool ParseOrbitalsFile( Orbitals& orbitals );
    
@@ -63,6 +65,8 @@ public:
 
 private:
 
+  
+    
     
 
     std::string                              _shell_file_name;
@@ -72,14 +76,11 @@ private:
 
     std::string                              _cleanup;
     
-    void WriteBasisset(std::ofstream& _nw_file, std::vector<QMAtom*>& qmatoms);
-    void WriteECP(std::ofstream& _nw_file, std::vector<QMAtom*>& qmatoms);   
+    void WriteBasisset(std::ofstream& nw_file, std::vector<QMAtom*>& qmatoms);
+    void WriteECP(std::ofstream& nw_file, std::vector<QMAtom*>& qmatoms);   
 
-    int NumberOfElectrons( std::string _line );
-    int BasisSetSize( std::string _line );
-    int EnergiesFromLog( std::string _line, std::ifstream inputfile );
     std::string FortranFormat( const double &number );
-    int WriteBackgroundCharges(std::ofstream& _nw_file);
+    int WriteBackgroundCharges(std::ofstream& nw_file);
     void WriteChargeOption();
 };
 

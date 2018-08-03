@@ -660,7 +660,6 @@ void DFTEngine::CalcElDipole(){
       }
       
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " " << uniqueelements.size() << " unique elements found" << flush;
-      tools::Elements _elements;
       std::vector< Eigen::MatrixXd > uniqueatom_guesses;
       for ( QMAtom* unique_atom:uniqueelements) {
 
@@ -999,7 +998,7 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
     }
     
     
-    Eigen::MatrixXd DFTEngine::IntegrateExternalDensity(const Orbitals& extdensity){
+    Eigen::MatrixXd DFTEngine::IntegrateExternalDensity(Orbitals& extdensity){
       BasisSet basis;
       basis.LoadBasisSet(extdensity.getDFTbasis());
       AOBasis aobasis;

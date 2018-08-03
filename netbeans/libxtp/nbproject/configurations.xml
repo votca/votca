@@ -1069,8 +1069,6 @@
       </item>
       <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/mixing.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
@@ -1964,8 +1962,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/mixing.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>

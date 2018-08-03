@@ -48,8 +48,8 @@ public:
        
     void ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target );
 
-    void AOBasisFill( const BasisSet& bs , std::vector<QMAtom* > segments, int fragbreak = -1);
-    void ECPFill( const BasisSet& bs , std::vector<QMAtom* > segments); 
+    void AOBasisFill( const BasisSet& bs , std::vector<QMAtom* >& segments, int fragbreak = -1);
+    void ECPFill( const BasisSet& bs , std::vector<QMAtom* >& segments); 
     
     unsigned AOBasisSize() const {return _AOBasisSize; }
     

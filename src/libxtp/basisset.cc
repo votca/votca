@@ -22,7 +22,7 @@
 
 namespace votca { namespace xtp {
     
-
+  
        
 int FindLmax(const std::string& _type ){
 
@@ -226,33 +226,25 @@ void BasisSet::LoadBasisSet (const std::string& name )
     bool success = load_property_from_xml(basis_property, xmlFile);
     
     if ( !success ) {; }
-    
     std::list<tools::Property*> elementProps = basis_property.Select("basis.element");
         
-    for (std::list<tools::Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
-    {       
-        std::string elementName = (*ite)->getAttribute<std::string>("name");
-        Element *element = addElement( elementName );
-        //cout << "\nElement " << elementName;
-        
-        std::list<tools::Property*> shellProps = (*ite)->Select("shell");
-        for (std::list<tools::Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
-        {            
-            std::string shellType = (*its)->getAttribute<std::string>("type");
-            double shellScale = (*its)->getAttribute<double>("scale");
+    for (tools::Property* elementProp:elementProps){       
+        std::string elementName = elementProp->getAttribute<std::string>("name");
+        Element &element = addElement( elementName );
+        std::list<tools::Property*> shellProps =elementProp->Select("shell");
+        for (tools::Property* shellProp:shellProps){            
+            std::string shellType = shellProp->getAttribute<std::string>("type");
+            double shellScale = shellProp->getAttribute<double>("scale");
             
-            Shell* shell = element->addShell( shellType, shellScale );
-            //cout << "\n\tShell " << shellType;
-            
-            std::list<tools::Property*> constProps = (*its)->Select("constant");
-            for (std::list<tools::Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) {
-                double decay = (*itc)->getAttribute<double>("decay");
-                // << " decay "<<decay<<endl;
-                std::vector<double> contraction=std::vector<double>(shell->getLmax()+1,0.0);
-                std::list<tools::Property*> contrProps = (*itc)->Select("contractions");
-                for (std::list<tools::Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont){
-                    std::string contrType = (*itcont)->getAttribute<std::string>("type");
-                    double contrFactor = (*itcont)->getAttribute<double>("factor");
+            Shell& shell = element.addShell( shellType, shellScale );
+            std::list<tools::Property*> constProps = shellProp->Select("constant");
+            for (tools::Property* constProp: constProps) {
+                double decay = constProp->getAttribute<double>("decay");
+                std::vector<double> contraction=std::vector<double>(shell.getLmax()+1,0.0);
+                std::list<tools::Property*> contrProps = constProp->Select("contractions");
+                for (tools::Property* contrProp:contrProps){
+                    std::string contrType = contrProp->getAttribute<std::string>("type");
+                    double contrFactor = contrProp->getAttribute<double>("factor");
                     if ( contrType == "S" ) contraction[0] = contrFactor;
                     else if ( contrType == "P" ) contraction[1] = contrFactor;
                     else if ( contrType == "D" ) contraction[2] = contrFactor;
@@ -264,8 +256,7 @@ void BasisSet::LoadBasisSet (const std::string& name )
                         throw std::runtime_error("LoadBasiset:Contractiontype not known");
                     }
                 }    
-                 
-                shell->addGaussian(decay, contraction);
+                shell.addGaussian(decay, contraction);
             }
             
         }
@@ -298,64 +289,84 @@ void BasisSet::LoadPseudopotentialSet (const std::string& name )
     
     std::list<tools::Property*> elementProps = basis_property.Select("pseudopotential.element");
         
-    for (std::list<tools::Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
-    {       
-        std::string elementName = (*ite)->getAttribute<std::string>("name");
-        int lmax = (*ite)->getAttribute<int>("lmax");
-        int ncore = (*ite)->getAttribute<int>("ncore");
+   for (tools::Property* elementProp:elementProps){     
+        std::string elementName = elementProp->getAttribute<std::string>("name");
+        int lmax = elementProp->getAttribute<int>("lmax");
+        int ncore = elementProp->getAttribute<int>("ncore");
         
-        Element *element = addElement( elementName, lmax, ncore );
-        //cout << "\nElement " << elementName;
+        Element &element = addElement( elementName, lmax, ncore );
         
-        std::list<tools::Property*> shellProps = (*ite)->Select("shell");
-        for (std::list<tools::Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
-        {            
-            std::string shellType = (*its)->getAttribute<std::string>("type");
+        std::list<tools::Property*> shellProps = elementProp->Select("shell");
+       for (tools::Property* shellProp:shellProps){        
+            std::string shellType = shellProp->getAttribute<std::string>("type");
             double shellScale = 1.0;
             
-            Shell* shell = element->addShell( shellType, shellScale );
+            Shell& shell = element.addShell( shellType, shellScale );
             
-            std::list<tools::Property*> constProps = (*its)->Select("constant");
-            for (std::list<tools::Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
-            {
-                int power = (*itc)->getAttribute<int>("power");
-                double decay = (*itc)->getAttribute<double>("decay");
+            std::list<tools::Property*> constProps = shellProp->Select("constant");
+            for (tools::Property* constProp: constProps) {
+                int power = constProp->getAttribute<int>("power");
+                double decay = constProp->getAttribute<double>("decay");
                 std::vector<double> contraction;
-                contraction.push_back((*itc)->getAttribute<double>("contraction"));
-                shell->addGaussian(power, decay, contraction);
-            }
-            
-        }
-       
+                contraction.push_back(constProp->getAttribute<double>("contraction"));
+                shell.addGaussian(power, decay, contraction);
+            }      
+        }      
     }
     return;
 }
 
 // adding an Element to a Basis Set
-Element* BasisSet::addElement( std::string elementType ) {
-    Element *element = new Element( elementType );
+Element& BasisSet::addElement( std::string elementType ) {
+     std::shared_ptr<Element> element( new Element( elementType ));
     _elements[elementType] = element;
-    return element;
+    return *element;
 };
 
 // adding an Element to a Pseudopotential Library
-Element* BasisSet::addElement( std::string elementType, int lmax, int ncore ) {
-    Element *element = new Element( elementType, lmax, ncore );
+Element& BasisSet::addElement( std::string elementType, int lmax, int ncore ) {
+     std::shared_ptr<Element> element( new Element( elementType,lmax,ncore ));
     _elements[elementType] = element;
-    return element;
+    return *element;
 };
 
-// cleanup the basis set
-BasisSet::~BasisSet() {
-    
-    for ( std::map< std::string,Element* >::iterator it = _elements.begin(); it !=  _elements.end(); it++ ) {
-         delete (*it).second;
+
+ const Element& BasisSet::getElement( std::string element_type ) const{
+         std::map<std::string,std::shared_ptr<Element> >::const_iterator itm = _elements.find( element_type );
+         if ( itm == _elements.end() ){
+           throw std::runtime_error( "Basis set "+_name+" does not have element of type " + element_type );
+         }
+         const Element& element = *((*itm).second);
+         return element; 
      }
-    
-    _elements.clear();
-};
         
 
+std::ostream &operator<<(std::ostream &out, const Shell& shell) {
+
+    out <<"Type:"<<shell.getType() <<" Scale:"<<shell.getScale()
+            << " Func: "<<shell.getnumofFunc()<<"\n";
+    for (const auto& gaussian:shell._gaussians){
+      out<<" Gaussian Decay: "<<gaussian._decay;
+      out<<" Contractions:";
+      for (const double& contraction:gaussian._contraction){
+        out<<" "<<contraction;
+      }
+      out<<"\n";
+    }
+      
+        }
+
+
+ GaussianPrimitive&  Shell::addGaussian( double decay, std::vector<double> contraction ){
+        _gaussians.push_back( GaussianPrimitive(decay, contraction) );
+        return _gaussians.back();
+    }
+
+    // adds a Gaussian of a pseudopotential
+    GaussianPrimitive&  Shell::addGaussian( int power, double decay, std::vector<double> contraction ){
+        _gaussians.push_back( GaussianPrimitive(power, decay, contraction) );
+        return _gaussians.back();
+    }
 
 
 }}

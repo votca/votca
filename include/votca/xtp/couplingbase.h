@@ -44,7 +44,7 @@ public:
     
     virtual void CalculateCouplings(const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB, 
-                               const Orbitals& orbitalsAB)=0;
+                               Orbitals& orbitalsAB)=0;
     
     
     virtual void Initialize(tools::Property&)=0;
@@ -58,12 +58,12 @@ protected:
     ctp::Logger *_pLog;
     void CheckAtomCoordinates(const Orbitals& orbitalsA, const Orbitals& orbitalsB, const Orbitals& orbitalsAB);
    
-   Eigen::MatrixXd CalculateOverlapMatrix(const Orbitals& orbitalsAB); 
+   Eigen::MatrixXd CalculateOverlapMatrix( Orbitals& orbitalsAB); 
   
 
 };
 
-inline Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(const Orbitals& orbitalsAB){
+inline Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(Orbitals& orbitalsAB){
   BasisSet dftbasisset;
   AOBasis dftbasis;
   dftbasisset.LoadBasisSet(orbitalsAB.getDFTbasis());

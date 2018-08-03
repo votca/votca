@@ -37,8 +37,7 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& atomlist,const Eigen::MatrixXd 
 
     // setting up grid
     Grid grid;
-    grid.setAtomlist(&atomlist);
-    grid.setupCHELPgrid();
+    grid.setupCHELPGGrid(atomlist);
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << grid.getsize() << " points " << flush;
 
     // Calculating nuclear potential at gridpoints
@@ -128,8 +127,7 @@ double Espfit::getNetcharge(const std::vector< QMAtom* >& atoms, double N ){
 void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& atomlist,const Eigen::MatrixXd &dmat,const AOBasis &basis) {
     // setting up grid
     Grid grid;
-    grid.setAtomlist(&atomlist);
-    grid.setupCHELPgrid();
+    grid.setupCHELPGGrid(atomlist);
 
     CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<  " Done setting up CHELPG grid with " << grid.getsize() << " points " << std::endl;
     // Calculating nuclear potential at gridpoints

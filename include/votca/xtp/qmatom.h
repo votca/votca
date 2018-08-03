@@ -37,41 +37,41 @@ class QMAtom
      friend class AOBasis;
 public:
     
-   QMAtom (int _index,std::string _element, double _x, double _y, double _z)
-            :index(_index), type( _element), nuccharge(0), ecpcharge(0),partialcharge(0.0)
-            {pos=tools::vec(_x,_y,_z);}
+   QMAtom (int index,std::string element, double x, double y, double z)
+            :_index(index), _type( element), _nuccharge(0), _ecpcharge(0),_partialcharge(0.0)
+            {_pos=tools::vec(x,y,z);}
             
-   QMAtom (int _index,std::string _element,const tools::vec& _pos)
-            :index(_index), type( _element ),nuccharge(0), ecpcharge(0),partialcharge(0.0)
-            {pos=_pos;}
+   QMAtom (int index,std::string element,const tools::vec& pos)
+            :_index(index), _type(element ),_nuccharge(0), _ecpcharge(0),_partialcharge(0.0)
+            {_pos=pos;}
    
    
    QMAtom ()
-            :index(0), type(""),nuccharge(0), ecpcharge(0),partialcharge(0.0)
-            {pos=tools::vec(0.0);}
+            :_index(0), _type(""),_nuccharge(0), _ecpcharge(0),_partialcharge(0.0)
+            {_pos=tools::vec(0.0);}
        
-   const tools::vec & getPos() const {return pos;}
+   const tools::vec & getPos() const {return _pos;}
    
   
-   void setPos(tools::vec position){pos=position;}
+   void setPos(tools::vec position){_pos=position;}
 
-   const std::string & getType() const { return type;}
+   const std::string & getType() const { return _type;}
    
-  int getAtomID()const{ return index;}
+  int getAtomID()const{ return _index;}
    
-   int getNuccharge() const{ return nuccharge-ecpcharge;}
+   int getNuccharge() const{ return _nuccharge-_ecpcharge;}
        
-   void setPartialcharge(double _q){partialcharge=_q;}
-   const double & getPartialcharge() const { return partialcharge;}
+   void setPartialcharge(double q){_partialcharge=q;}
+   const double & getPartialcharge() const { return _partialcharge;}
 
 private:
     
-   int index;
-   std::string type;
-   tools::vec pos;// Bohr
-   int nuccharge;//nuc charge is set in aobasis fill and ecpfill
-   int ecpcharge;
-   double partialcharge;
+   int _index;
+   std::string _type;
+   tools::vec _pos;// Bohr
+   int _nuccharge;//nuc charge is set in aobasis fill and ecpfill
+   int _ecpcharge;
+   double _partialcharge;
 
    
  public: 
@@ -79,23 +79,23 @@ private:
    void WriteToCpt(CptLoc parent){
        CheckpointWriter w(parent);
 
-       w(index, "index");
-       w(type, "type");
-       w(pos, "pos");
-       w(nuccharge, "nuccharge");
-       w(ecpcharge, "ecpcharge");
-       w(partialcharge, "partialcharge");
+       w(_index, "index");
+       w(_type, "type");
+       w(_pos, "pos");
+       w(_nuccharge, "nuccharge");
+       w(_ecpcharge, "ecpcharge");
+       w(_partialcharge, "partialcharge");
    }
 
    void ReadFromCpt(CptLoc parent){
        CheckpointReader r(parent);
 
-       r(index, "index");
-       r(type, "type");
-       r(pos, "pos");
-       r(nuccharge, "nuccharge");
-       r(ecpcharge, "ecpcharge");
-       r(partialcharge, "partialcharge");
+       r(_index, "index");
+       r(_type, "type");
+       r(_pos, "pos");
+       r(_nuccharge, "nuccharge");
+       r(_ecpcharge, "ecpcharge");
+       r(_partialcharge, "partialcharge");
    }
 };
     

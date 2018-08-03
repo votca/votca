@@ -136,7 +136,15 @@ namespace votca {
 
         protected:
             virtual void WriteChargeOption() =0;
-
+             std::vector<std::vector<double> > SplitMultipoles(ctp::APolarSite* site);
+            void ReorderOutput(Orbitals& _orbitals);
+            void ReorderMOsBack(Orbitals& _orbitals);
+            void addLinkers(std::vector< ctp::Segment* > &segments, ctp::QMPair* pair, std::vector< std::string> linker_names );
+            bool isLinker( std::string name, std::vector< std::string> linker_names );
+            
+            std::vector<std::string> FindUniqueElements(const std::vector<QMAtom*> atoms);
+            std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,const std::string separators );
+            
             int _charge;
             int _spin; // 2S+1
             int _threads;
@@ -175,11 +183,7 @@ namespace votca {
             std::vector<std::shared_ptr<ctp::PolarSeg>  >_PolarSegments;
             double _dpl_spacing;
             bool _with_polarization;
-            std::vector<std::vector<double> > SplitMultipoles(ctp::APolarSite* site);
-            void ReorderOutput(Orbitals& _orbitals);
-            void ReorderMOsBack(Orbitals& _orbitals);
-            void addLinkers(std::vector< ctp::Segment* > &segments, ctp::QMPair* pair, std::vector< std::string> linker_names );
-            bool isLinker( std::string name, std::vector< std::string> linker_names );
+           
 
             
         };

@@ -23,6 +23,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <memory>
 
 
 
@@ -52,22 +53,19 @@ class GaussianPrimitive
 {
     friend class Shell;
 public:
-    int power; // used in pseudopotenials only
-    double decay;
-    std::vector<double> contraction;
-    Shell* shell;
+    int _power; // used in pseudopotenials only
+    double _decay;
+    std::vector<double> _contraction;
 private:
     // private constructor, only a shell can create a primitive
-    GaussianPrimitive( double _decay, std::vector<double> _contraction, Shell *_shell) 
-    : decay(_decay),
-    contraction(_contraction),
-    shell(_shell) { ; }
+    GaussianPrimitive( double decay, std::vector<double> contraction ) 
+    : _decay(decay),
+    _contraction(contraction){ ; }
 
-    GaussianPrimitive( int _power, double _decay, std::vector<double> _contraction, Shell *_shell ) 
-    : power(_power),
-    decay(_decay),
-    contraction(_contraction),
-    shell(_shell) { ; }
+    GaussianPrimitive( int power, double decay, std::vector<double> contraction ) 
+    : _power(power),
+    _decay(decay),
+    _contraction(contraction){ ; }
 };      
     
 
@@ -76,7 +74,7 @@ class Shell
     friend class Element;   
 public:
 
-    std::string getType() const{ return _type; }
+    const std::string& getType() const{ return _type; }
     
     bool combined()const{
         if (_type.length()>1){
@@ -89,7 +87,7 @@ public:
         return FindLmax(_type);
     }
     
-    int getLmin()const {
+    int getLmin() const{
         return FindLmin(_type);
     }
     
@@ -105,46 +103,29 @@ public:
     
     int getSize() const{ return _gaussians.size(); }
     
-    // iterator over pairs (decay constant; contraction coefficient)
-    typedef std::vector< GaussianPrimitive* >::iterator GaussianIterator;
-    GaussianIterator firstGaussian() { return _gaussians.begin(); }
-    GaussianIterator lastGaussian(){ return _gaussians.end(); }
+    std::vector< GaussianPrimitive >::const_iterator begin() const{ return _gaussians.begin(); }
+    std::vector< GaussianPrimitive >::const_iterator end() const{ return _gaussians.end(); }
    
     // adds a Gaussian 
-    GaussianPrimitive*  addGaussian( double decay, std::vector<double> contraction ) 
-    {
-        GaussianPrimitive* gaussian = new GaussianPrimitive(decay, contraction, this);
-        _gaussians.push_back( gaussian );
-        return gaussian;
-    }
+    GaussianPrimitive& addGaussian( double decay, std::vector<double> contraction );
+   
 
     // adds a Gaussian of a pseudopotential
-    GaussianPrimitive*  addGaussian( int power, double decay, std::vector<double> contraction ) 
-    {
-        GaussianPrimitive* gaussian = new GaussianPrimitive(power, decay, contraction, this);
-        _gaussians.push_back( gaussian );
-        return gaussian;
-    }     // shell type (S, P, D))
+   GaussianPrimitive& addGaussian( int power, double decay, std::vector<double> contraction );
+  
     
-    
+    friend std::ostream &operator<<(std::ostream &out, const Shell& shell);
 private:   
 
     // only class Element can construct shells    
-    Shell( std::string type, double scale, Element* element = NULL ) : _type(type), _scale(scale) { ; }
-    
-    // only class Element can destruct shells
-   ~Shell() 
-   { 
-       for (std::vector< GaussianPrimitive* >::iterator it = _gaussians.begin(); it != _gaussians.end() ; it++ ) delete (*it); 
-       _gaussians.clear();
-   }
-
+    Shell( std::string type, double scale) : _type(type), _scale(scale) { ; }
+ 
     std::string _type;
     // scaling factor
     double _scale;
 
     // vector of pairs of decay constants and contraction coefficients
-    std::vector< GaussianPrimitive* > _gaussians;
+    std::vector< GaussianPrimitive > _gaussians;
 
 };
 
@@ -156,9 +137,9 @@ class Element
     friend class BasisSet;
 public:
     
-    typedef std::vector< Shell* >::const_iterator ShellIterator;
-    ShellIterator firstShell() const{ return _shells.begin(); }
-    ShellIterator lastShell() const{ return _shells.end(); }
+    typedef std::vector< Shell >::const_iterator ShellIterator;
+     ShellIterator begin() const{ return _shells.begin(); }
+     ShellIterator end() const{ return _shells.end(); }
 
     const std::string& getType()const{ return _type; }
     
@@ -166,11 +147,9 @@ public:
     
     int getNcore() const{ return _ncore; }
       
-    Shell* addShell( std::string shellType, double shellScale ) 
-    { 
-        Shell* shell = new Shell( shellType, shellScale, this );
-        _shells.push_back(shell); 
-        return shell;
+    Shell& addShell( const std::string& shellType, double shellScale ){ 
+        _shells.push_back(Shell( shellType, shellScale)); 
+        return _shells.back();
     }
     
 private:  
@@ -182,11 +161,7 @@ private:
     Element( std::string type, int lmax, int ncore ) : _type(type), _lmax(lmax), _ncore(ncore)  { ; }
     
     // only class BasisSet can destruct Elements
-   ~Element() 
-   { 
-       for (std::vector< Shell* >::iterator it = _shells.begin(); it != _shells.end() ; it++ ) delete (*it); 
-       _shells.clear();
-   }    
+   
    
     std::string _type;    
     // lmax is used in the pseudopotentials only (applies to the highest angular momentum lmax)
@@ -194,7 +169,7 @@ private:
     // ncore is used in the pseudopotentials only (replaces ncore electrons))
     int _ncore;
     
-    std::vector<Shell*> _shells;    
+    std::vector<Shell> _shells;    
 };
 
 /*
@@ -208,27 +183,19 @@ public:
 
     void LoadPseudopotentialSet ( const std::string& name );
     
-    Element* addElement(std::string elementType );
+    Element& addElement(std::string elementType );
     
     // used for pseudopotentials only
-    Element* addElement(std::string elementType, int lmax, int ncore );
+    Element& addElement(std::string elementType, int lmax, int ncore );
  
-    const Element& getElement( std::string element_type ) const{
-        
-         std::map<std::string,Element*>::const_iterator itm = _elements.find( element_type );
-         
-         if ( itm == _elements.end() ) throw std::runtime_error( "Basis set "+_name+" does not have element of type " + element_type );
-         
-         const Element* element = (*itm).second;
-         return *element; 
-     }
+    const Element& getElement( std::string element_type ) const;
     
-        
-    ~BasisSet();
-    
+    std::map< std::string,std::shared_ptr<Element> >::iterator begin() { return _elements.begin(); }
+    std::map< std::string,std::shared_ptr<Element> >::iterator end(){ return _elements.end(); }
+
 private:    
     std::string _name;
-    std::map<std::string,Element*> _elements;
+    std::map<std::string,std::shared_ptr<Element> > _elements;
 };
 
 
