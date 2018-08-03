@@ -940,13 +940,12 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
       for (AOShell* shell:dftbasis) {
         int end = shell->getNumFunc() + start;
 
-        if (shell->getLmax() != shell->getLmin()) {
+        if (shell->isCombined()) {
           std::vector<int> temp = NumFuncSubShell(shell->getType());
           int numfunc = start;
-          for (unsigned i = 0; i < temp.size(); i++) {
-
+          for (int & SubshellFunc:temp) {
             starts.push_back(numfunc);
-            numfunc += temp[i];
+            numfunc +=SubshellFunc;
             ends.push_back(numfunc);
           }
         } else {

@@ -61,7 +61,7 @@ private:
 };      
     
 /*
- * S, P, or D functions in a Gaussian-basis expansion
+ * shells in a Gaussian-basis expansion
  */
 class AOShell 
 {
@@ -73,11 +73,14 @@ public:
     int    getNumFunc() const{ return _numFunc ;}
     int    getStartIndex() const{ return _startIndex ;}
     int    getOffset() const{ return _offset ;}
-    int    getIndex() const{ return _atomindex;}
-    const std::string& getName() const{ return _atomname;}
+    int    getAtomIndex() const{ return _qmatom->getAtomID();}
+    const std::string& getAtomType() const{ return _qmatom->getType();}
     
     int getLmax(  ) const{ return _Lmax;}
-    int getLmin(  ) const{ return _Lmin;}
+    
+    bool isCombined()const{
+        return _type.length()>1;
+    }
     
     bool isNonLocal(  ) const{ return _nonlocal;}
     
@@ -116,20 +119,22 @@ public:
 
     void normalizeContraction();
     
+    friend std::ostream &operator<<(std::ostream &out, const AOShell& shell);
+    
 private:   
 
     // only class aobasis can construct shells    
     AOShell( const Shell& shell, const QMAtom & atom, int startIndex)
-            : _type(shell.getType()),_Lmax(shell.getLmax()),_Lmin(shell.getLmin()),
+            : _type(shell.getType()),_Lmax(shell.getLmax()),
                     _scale(shell.getScale()), _numFunc(shell.getnumofFunc()),
                     _startIndex(startIndex), _offset(shell.getOffset()), _pos(atom.getPos()) , 
-                    _atomname(atom.getType()), _atomindex(atom.getAtomID()) { ; }
+                    _qmatom(&atom) { ; }
     // for ECPs
     AOShell( const Shell& shell, const QMAtom & atom, int startIndex, bool nonlocal)
-            : _type(shell.getType()),_Lmax(shell.getLmax()),_Lmin(shell.getLmin()),
+            : _type(shell.getType()),_Lmax(shell.getLmax()),
                     _scale(shell.getScale()), _numFunc(shell.getnumofFunc()),
                     _startIndex(startIndex), _offset(shell.getOffset()), _pos(atom.getPos()) , 
-                    _atomname(atom.getType()), _atomindex(atom.getAtomID()),_nonlocal(nonlocal) { ; }
+                    _qmatom(&atom),_nonlocal(nonlocal) { ; }
             
     
     // only class aobasis can destruct shells
@@ -138,7 +143,6 @@ private:
     // shell type (S, P, D))
     std::string _type;
     int _Lmax;
-    int _Lmin;
     // scaling factor
     double _scale;
     // number of functions in shell
@@ -147,9 +151,8 @@ private:
     int _startIndex;
     int _offset;
     tools::vec _pos;
-    std::string _atomname;
     int _atomindex;
-    
+    const QMAtom* _qmatom;
     //used for ecp calculations
     bool _nonlocal;
      

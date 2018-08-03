@@ -24,114 +24,107 @@ namespace votca { namespace xtp {
     
   
        
-int FindLmax(const std::string& _type ){
-
-        int _lmax;
+int FindLmax(const std::string& type ){
+        int lmax;
         // single type shells
-        if ( _type.length() == 1 ){
-            if ( _type == "S" ){ _lmax = 0;}
-            else if ( _type == "P" ){ _lmax = 1;}
-            else if ( _type == "D" ){ _lmax = 2;}
-            else if ( _type == "F" ){ _lmax = 3;}
-            else if ( _type == "G" ){ _lmax = 4;}
-            else if ( _type == "H" ){ _lmax = 5;}
-            else if ( _type == "I" ){ _lmax = 6;}
+        if ( type.length() == 1 ){
+            if ( type == "S" ){ lmax = 0;}
+            else if ( type == "P" ){ lmax = 1;}
+            else if ( type == "D" ){ lmax = 2;}
+            else if ( type == "F" ){ lmax = 3;}
+            else if ( type == "G" ){ lmax = 4;}
+            else if ( type == "H" ){ lmax = 5;}
+            else if ( type == "I" ){ lmax = 6;}
             else{
                 throw std::runtime_error("FindLmax: Shelltype not known");
             }
         } else {
-            _lmax = -1;
-            for(unsigned i = 0; i < _type.length(); ++i) {
-                std::string local_shell = std::string( _type, i, 1 );
-                int _test = FindLmax( local_shell  );
-                if ( _test > _lmax ) { _lmax = _test;} 
+            lmax = -1;
+            for(unsigned i = 0; i < type.length(); ++i) {
+                std::string local_shell = std::string( type, i, 1 );
+                int test = FindLmax( local_shell  );
+                if ( test > lmax ) { lmax = test;} 
             }   
         }
-
-        return _lmax;
-        
+        return lmax;     
     }
- 
- int FindLmin(const std::string& _type ){
 
-        int _lmin;
-        // single type shells
-        if ( _type.length() == 1 ){
-            if ( _type == "S" ){ _lmin = 0;}
-            else if ( _type == "P" ){ _lmin = 1;}
-            else if ( _type == "D" ){ _lmin = 2;}
-            else if ( _type == "F" ){ _lmin = 3;}
-            else if ( _type == "G" ){ _lmin = 4;}
-            else if ( _type == "H" ){ _lmin = 5;}
-            else if ( _type == "I" ){ _lmin = 6;}
-            else{
-                throw std::runtime_error("FindLmax: Shelltype not known");
-            }
-        } else {
-            _lmin = 10;
-            for(unsigned i = 0; i < _type.length(); ++i) {
-                std::string local_shell = std::string( _type, i, 1 );
-                int _test = FindLmin( local_shell  );
-                if(_test==0){return 0;}
-                if ( _test < _lmin ) { _lmin = _test;} 
-            }   
-        }
 
-        return _lmin;
+ int FindLmin(const std::string& type ){
+        int lmin;
+        if ( type.length() == 1 ){
+            if ( type == "S" ){ lmin = 0;}
+            else if ( type == "P" ){ lmin = 1;}
+            else if ( type == "D" ){ lmin = 2;}
+            else if ( type == "F" ){ lmin = 3;}
+            else if ( type == "G" ){ lmin = 4;}
+            else if ( type == "H" ){ lmin = 5;}
+            else if ( type == "I" ){ lmin = 6;}
+
+             else{
+                 throw std::runtime_error("FindLmax: Shelltype not known");
+             }
+         } else {
+            lmin = 1000;
+           for(unsigned i = 0; i < type.length(); ++i) {
+                std::string local_shell = std::string( type, i, 1 );
+              int test = FindLmin( local_shell  );
+               if(test==0){return 0;}
+         }
+         }
+       return lmin;
+ }
         
-    }
- 
   int OffsetFuncShell(const std::string& shell_type ) {
-    int _nbf;
+    int nbf;
     // single type shells
     if ( shell_type.length() == 1 ){
-       if ( shell_type == "S" ){ _nbf = 0;}
-       else if ( shell_type == "P" ){ _nbf = 1;}
-       else if ( shell_type == "D" ){ _nbf = 4;}
-       else if ( shell_type == "F" ){ _nbf = 9;}
-       else if ( shell_type == "G" ){ _nbf = 16;}
-       else if ( shell_type == "H" ){ _nbf = 25;}
-       else if ( shell_type == "I" ){ _nbf = 36;}
+       if ( shell_type == "S" ){ nbf = 0;}
+       else if ( shell_type == "P" ){ nbf = 1;}
+       else if ( shell_type == "D" ){ nbf = 4;}
+       else if ( shell_type == "F" ){ nbf = 9;}
+       else if ( shell_type == "G" ){ nbf = 16;}
+       else if ( shell_type == "H" ){ nbf = 25;}
+       else if ( shell_type == "I" ){ nbf = 36;}
        else{
                 throw std::runtime_error("OffsetFuncShell: Shelltype not known");
             }
     } else {
         // for combined shells, go over all contributions and find minimal offset
-        _nbf = 1000;
+        nbf = 1000;
         for(unsigned i = 0; i < shell_type.length(); ++i) {
             std::string local_shell = std::string( shell_type, i, 1 );
-            int _test = OffsetFuncShell( local_shell  );
-            if ( _test < _nbf ) { _nbf = _test;} 
+            int test = OffsetFuncShell( local_shell  );
+            if ( test < nbf ) { nbf = test;} 
         }   
     }
-    return _nbf;
+    return nbf;
         } 
   
   
     int NumFuncShell( const std::string& shell_type) {
-        int _nbf = 0;
+        int nbf = 0;
         // single type shells
         if ( shell_type.length() == 1 ){
-            if ( shell_type == "S" ){ _nbf = 1;}
-            else if ( shell_type == "P" ){ _nbf = 3;}
-            else if ( shell_type == "D" ){ _nbf = 5;}
-            else if ( shell_type == "F" ){ _nbf = 7;}
-            else if ( shell_type == "G" ){ _nbf = 9;}
-            else if ( shell_type == "H" ){ _nbf = 11;}
-            else if ( shell_type == "I" ){ _nbf = 13;}
+            if ( shell_type == "S" ){ nbf = 1;}
+            else if ( shell_type == "P" ){ nbf = 3;}
+            else if ( shell_type == "D" ){ nbf = 5;}
+            else if ( shell_type == "F" ){ nbf = 7;}
+            else if ( shell_type == "G" ){ nbf = 9;}
+            else if ( shell_type == "H" ){ nbf = 11;}
+            else if ( shell_type == "I" ){ nbf = 13;}
             else{
                 throw std::runtime_error("FindnumofFunc: Shelltype not known");
             }
     } else {
         // for combined shells, go over all contributions and add functions
-        _nbf = 0;
-        
+        nbf = 0;
            for (unsigned i = 0; i < shell_type.length(); ++i) {
                     std::string local_shell = std::string(shell_type, i, 1);
-                    _nbf += NumFuncShell(local_shell);
+                    nbf += NumFuncShell(local_shell);
             }   
     }
-    return _nbf;
+    return nbf;
         
     }
     
@@ -144,7 +137,7 @@ int FindLmax(const std::string& _type ){
         // for combined shells, go over all contributions and add functions
         }else{
            for (unsigned i = 0; i < shell_type.length(); ++i) {
-                    std::string local_shell = std::string(shell_type, i, 1);
+                   std::string local_shell = std::string(shell_type, i, 1);
                    subshells.push_back( NumFuncShell(local_shell));
             }   
     }
@@ -152,29 +145,29 @@ int FindLmax(const std::string& _type ){
     }
     
     int NumFuncShell_cartesian(const std::string& shell_type ) {
-    int _nbf;
+    int nbf;
     // single type shells defined here
     if ( shell_type.length() == 1 ){
-       if ( shell_type == "S" ){ _nbf = 1;}
-       else if ( shell_type == "P" ){ _nbf = 3;}
-       else if ( shell_type == "D" ){ _nbf = 6;}
-       else if ( shell_type == "F" ){ _nbf = 10;}
-       else if ( shell_type == "G" ){ _nbf = 15;}
-       else if ( shell_type == "H" ){ _nbf = 21;}
-       else if ( shell_type == "I" ){ _nbf = 28;}
+       if ( shell_type == "S" ){ nbf = 1;}
+       else if ( shell_type == "P" ){ nbf = 3;}
+       else if ( shell_type == "D" ){ nbf = 6;}
+       else if ( shell_type == "F" ){ nbf = 10;}
+       else if ( shell_type == "G" ){ nbf = 15;}
+       else if ( shell_type == "H" ){ nbf = 21;}
+       else if ( shell_type == "I" ){ nbf = 28;}
        else {
                     throw std::runtime_error("NumFuncShell_cartesian shell_type not known");
                 }
     } else {
         // for combined shells, sum over all contributions
-        _nbf = 0;
+        nbf = 0;
         for( unsigned i = 0; i < shell_type.length(); ++i) {
-            std::string local_shell =    std::string( shell_type, i, 1 );
-            _nbf += NumFuncShell_cartesian( local_shell  );
+            std::string local_shell = std::string( shell_type, i, 1 );
+            nbf += NumFuncShell_cartesian( local_shell  );
         }
     }
 
-    return _nbf;
+    return nbf;
 }
     
     
@@ -182,29 +175,29 @@ int FindLmax(const std::string& _type ){
        
 
 int OffsetFuncShell_cartesian(const std::string& shell_type ) {
-    int _nbf;
+    int nbf;
     // single type shells
     if ( shell_type.length() == 1 ){
-       if ( shell_type == "S" ){ _nbf = 0;}
-       else if ( shell_type == "P" ){ _nbf = 1;}
-       else if ( shell_type == "D" ){ _nbf = 4;}
-       else if ( shell_type == "F" ){ _nbf = 10;}
-       else if ( shell_type == "G" ){ _nbf = 20;}
-       else if ( shell_type == "H" ){ _nbf = 35;}
-       else if ( shell_type == "I" ){ _nbf = 56;}
+       if ( shell_type == "S" ){ nbf = 0;}
+       else if ( shell_type == "P" ){ nbf = 1;}
+       else if ( shell_type == "D" ){ nbf = 4;}
+       else if ( shell_type == "F" ){ nbf = 10;}
+       else if ( shell_type == "G" ){ nbf = 20;}
+       else if ( shell_type == "H" ){ nbf = 35;}
+       else if ( shell_type == "I" ){ nbf = 56;}
        else {
                     throw std::runtime_error("OffsetFuncShell_cartesian shell_type not known");
                 }
     } else {
         // for combined shells, go over all contributions and find minimal offset
-        _nbf = 1000;
+        nbf = 1000;
         for(unsigned i = 0; i < shell_type.length(); ++i) {
             std::string local_shell = std::string( shell_type, i, 1 );
-            int _test = OffsetFuncShell_cartesian( local_shell  );
-            if ( _test < _nbf ) { _nbf = _test;} 
+            int test = OffsetFuncShell_cartesian( local_shell  );
+            if ( test < nbf ) { nbf = test;} 
         }   
     }
-    return _nbf;
+    return nbf;
 }    
     
 

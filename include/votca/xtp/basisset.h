@@ -76,19 +76,12 @@ public:
 
     const std::string& getType() const{ return _type; }
     
-    bool combined()const{
-        if (_type.length()>1){
-            return true;
-        }
-        return false;
+    bool isCombined()const{
+        return (_type.length()>1);
     }
     
     int getLmax() const{
         return FindLmax(_type);
-    }
-    
-    int getLmin() const{
-        return FindLmin(_type);
     }
     
     int getnumofFunc() const{

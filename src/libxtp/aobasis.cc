@@ -168,46 +168,43 @@ void AOBasis::MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier
     }
 
 
-void AOBasis::addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& _submatrix ){
+void AOBasis::addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& submatrix ){
 
     // fill _local according to _lmax;
-    int _lmax = shell->getLmax();
-    std::string _type = shell->getType();
+    int lmax = shell->getLmax();
+    std::string type = shell->getType();
 
-    int _sph_size =NumFuncShell( _type ) + OffsetFuncShell( _type );
-    int _cart_size = NumFuncShell_cartesian( _type ) + OffsetFuncShell_cartesian( _type )  ;
-    Eigen::MatrixXd _local = Eigen::MatrixXd::Zero(_sph_size,_cart_size);
+    int sph_size =NumFuncShell( type ) + OffsetFuncShell( type );
+    int cart_size = NumFuncShell_cartesian( type ) + OffsetFuncShell_cartesian( type )  ;
+    Eigen::MatrixXd local = Eigen::MatrixXd::Zero(sph_size,cart_size);
 
     // s-functions
-    _local(0,0) = 1.0; // s
+    local(0,0) = 1.0; // s
     // p-functions
-    if ( _lmax > 0 ){
-        _local(1,1) = 1.0;
-        _local(2,2) = 1.0;
-        _local(3,3) = 1.0;
+    if ( lmax > 0 ){
+        local(1,1) = 1.0;
+        local(2,2) = 1.0;
+        local(3,3) = 1.0;
     }
     // d-functions
-    if ( _lmax > 1 ){
-        _local(4,4) = -0.5;             // d3z2-r2 (dxx)
-        _local(4,5) = -0.5;             // d3z2-r2 (dyy)
-        _local(4,6) =  1.0;             // d3z2-r2 (dzz)
-        _local(5,8) =  1.0;             // dxz
-        _local(6,9) =  1.0;             // dyz
-        _local(7,4) = 0.5*sqrt(3.0);    // dx2-y2 (dxx)
-        _local(7,5) = -_local(7,4);      // dx2-y2 (dyy)
-        _local(8,7) = 1.0;              // dxy
+    if ( lmax > 1 ){
+        local(4,4) = -0.5;             // d3z2-r2 (dxx)
+        local(4,5) = -0.5;             // d3z2-r2 (dyy)
+        local(4,6) =  1.0;             // d3z2-r2 (dzz)
+        local(5,8) =  1.0;             // dxz
+        local(6,9) =  1.0;             // dyz
+        local(7,4) = 0.5*sqrt(3.0);    // dx2-y2 (dxx)
+        local(7,5) = -local(7,4);      // dx2-y2 (dyy)
+        local(8,7) = 1.0;              // dxy
      }
-    if ( _lmax > 2 ){
+    if ( lmax > 2 ){
         std::cerr << " Gaussian input with f- functions or higher not yet supported!" << std::endl;
         exit(1);
     }
     // now copy to _trafo
-    for ( int _i_sph = 0 ; _i_sph < NumFuncShell( _type ) ; _i_sph++ ){
-        for  ( int _i_cart = 0 ; _i_cart < NumFuncShell_cartesian( _type ) ; _i_cart++ ){
-
-
-            _submatrix( _i_sph , _i_cart ) = _local( _i_sph + OffsetFuncShell( _type ) , _i_cart +  OffsetFuncShell_cartesian( _type ) );
-
+    for ( int i_sph = 0 ; i_sph < NumFuncShell( type ) ; i_sph++ ){
+        for  ( int i_cart = 0 ; i_cart < NumFuncShell_cartesian( type ) ; i_cart++ ){
+            submatrix( i_sph , i_cart ) = local( i_sph + OffsetFuncShell( type ) , i_cart +  OffsetFuncShell_cartesian( type ) );
         }
     }
     return;
@@ -366,32 +363,32 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
         
       // current length of vector
 
-      int _cur_pos = order.size() - 1;
+      int cur_pos = order.size() - 1;
 
       if (target == "xtp") {
         // single type shells defined here
         if (shell_type.length() == 1) {
           if (shell_type == "S") {
-            order.push_back(_cur_pos + 1);
+            order.push_back(cur_pos + 1);
           }//for S
 
             //votca order is z,y,x e.g. Y1,0 Y1,-1 Y1,1
           else if (shell_type == "P") {
             if (start == "orca") {
                 //orca order is z,x,y Y1,0,Y1,1,Y1,-1
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
             } else if (start == "gaussian" || start == "nwchem") {
                 //nwchem gaussian x,y,z Y1,1 Y1,-1 Y1,0
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 1);
             } else if (start == "votca") {//for usage with old orb files
                  //old votca x,y,z Y1,1 Y1,-1 Y1,0
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 1);
             } else {
               std::cerr << "Tried to reorder p-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented yet!");
@@ -401,24 +398,24 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
           else if (shell_type == "D") {
             //orca order is d3z2-r2 dxz dyz dx2-y2 dxy e.g. Y2,0 Y2,1 Y2,-1 Y2,2 Y2,-2
             if (start == "gaussian" || start == "orca") {
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 5);
-              order.push_back(_cur_pos + 4);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 5);
+              order.push_back(cur_pos + 4);
             } else if (start == "nwchem") {
               // nwchem order is dxy dyz d3z2-r2 -dxz dx2-y2, e.g. Y2,-2 Y2,-1 Y2,0 Y2,1 Y2,2 
-              order.push_back(_cur_pos + 4);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 5);
+              order.push_back(cur_pos + 4);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 5);
             } else if (start == "votca") { //for usage with old orb files
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 4);
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 5);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 4);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 5);
             } else {
               std::cerr << "Tried to reorder d-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented yet!");
@@ -427,23 +424,23 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
                //ordering for votca is Yl,0 Yl,-1 Yl,1 ......Yl,-m Yl,m
             if (start == "gaussian" || start == "orca") {
                 //ordering for gaussian and orca is Yl,0 Yl,1 Yl,-1 ......Yl,m Yl,-m
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 5);
-              order.push_back(_cur_pos + 4);
-              order.push_back(_cur_pos + 7);
-              order.push_back(_cur_pos + 6);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 5);
+              order.push_back(cur_pos + 4);
+              order.push_back(cur_pos + 7);
+              order.push_back(cur_pos + 6);
             } else if (start == "nwchem") {
                 //ordering for nwchem is fxxy-yyy, fxyz,fyzz-xxy-yyy,fzzz-xxz-yyz,f-xzz+xxx+xyy,fxxz-yyz,fxyy-xxx
                 // e.g. Y3,-3 Y3,-2 Y3,-1 Y3,0 Y3,1 Y3,2 Y3,3
-              order.push_back(_cur_pos + 6);
-              order.push_back(_cur_pos + 4);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 5);
-              order.push_back(_cur_pos + 7);
+              order.push_back(cur_pos + 6);
+              order.push_back(cur_pos + 4);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 5);
+              order.push_back(cur_pos + 7);
             } else {
               std::cerr << "Tried to reorder f-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented yet!");
@@ -452,15 +449,15 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
                //ordering for votca is Yl,0 Yl,-1 Yl,1 ......Yl,-m Yl,m
             if (start == "gaussian" || start == "orca") {
                  //ordering for gaussian and orca is Yl,0 Yl,1 Yl,-1 ......Yl,m Yl,-m
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 5);
-              order.push_back(_cur_pos + 4);
-              order.push_back(_cur_pos + 7);
-              order.push_back(_cur_pos + 6);
-              order.push_back(_cur_pos + 9);
-              order.push_back(_cur_pos + 8);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 5);
+              order.push_back(cur_pos + 4);
+              order.push_back(cur_pos + 7);
+              order.push_back(cur_pos + 6);
+              order.push_back(cur_pos + 9);
+              order.push_back(cur_pos + 8);
             }else  {
               std::cerr << "Tried to reorder g-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented");
@@ -505,7 +502,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       return number;
     }
 
-    void AOBasis::AOBasisFill(const BasisSet& bs, std::vector<QMAtom* >& atoms, int _fragbreak) {
+    void AOBasis::AOBasisFill(const BasisSet& bs, std::vector<QMAtom* >& atoms, int fragbreak) {
       tools::Elements elementinfo;
       std::vector<QMAtom* > ::iterator ait;
       _AOBasisSize = 0;
@@ -526,10 +523,10 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
           aoshell->CalcMinDecay();
           aoshell->normalizeContraction();
         }
-        if (atom->getAtomID() < _fragbreak) _AOBasisFragA = _AOBasisSize;
+        if (atom->getAtomID() < fragbreak) _AOBasisFragA = _AOBasisSize;
       }
 
-      if (_fragbreak < 0) {
+      if (fragbreak < 0) {
         _AOBasisFragA = _AOBasisSize;
         _AOBasisFragB = 0;
       } else {

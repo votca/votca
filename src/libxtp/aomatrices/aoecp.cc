@@ -108,7 +108,7 @@ namespace votca { namespace xtp {
                         const AOShell* _shell_ecp = *_ecpit;
                         const tools::vec& _ecp_pos = _shell_ecp->getPos();
 
-                        int this_atom = _shell_ecp->getIndex();
+                        int this_atom = _shell_ecp->getAtomIndex();
 
                         const int _ecp_l = _shell_ecp->getLmax(); // as ECP shells are never combined Lmax=Lmin=l
 

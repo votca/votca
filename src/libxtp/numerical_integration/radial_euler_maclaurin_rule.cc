@@ -141,7 +141,7 @@ void EulerMaclaurinGrid::getRadialCutoffs(const AOBasis* aobasis,std::vector<QMA
             int start = 0;
             int end = 0;
             for (const AOShell* shell_row: (*aobasis)) {
-                if (shell_row->getIndex() == atidx) {
+                if (shell_row->getAtomIndex() == atidx) {
                     end += shell_row->getNumFunc();
                 } else {
                     idxstart.push_back(start);

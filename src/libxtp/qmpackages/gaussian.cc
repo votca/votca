@@ -175,7 +175,7 @@ namespace votca {
                         el_file << element_name << " 0" << endl;
                         for (const Shell& shell:element) {
                             //gaussian can only use S,P,SP,D,F,G shells so we split them up if not SP
-                            if (shell.getType() == "SP" || !shell.combined()) {
+                            if (shell.getType() == "SP" || !shell.isCombined()) {
                                 // shell type, number primitives, scale factor
                                 el_file << shell.getType() << " " << shell.getSize() << " " << FortranFormat(shell.getScale()) << endl;
                                 for (const GaussianPrimitive& gaussian:shell) {

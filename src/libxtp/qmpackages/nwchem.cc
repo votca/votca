@@ -975,7 +975,7 @@ namespace votca {
         const Element& element = bs.getElement(element_name);
         for (const Shell& shell : element) {
           //nwchem can only use S,P,SP,D,F,G shells so we split them up if not SP
-          if (!shell.combined()) {
+          if (!shell.isCombined()) {
             // shell type, number primitives, scale factor
             nw_file << element_name << " " << boost::algorithm::to_lower_copy(shell.getType()) << endl;
             for (const GaussianPrimitive& gaussian : shell) {
