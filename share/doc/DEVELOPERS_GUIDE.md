@@ -10,6 +10,7 @@
  - [Testing](#testing)
  - [CPP Codeing Style Guide](#cpp-codeing-style-guide)
  - [CPP Comment Guide](#cpp-comment-guide)
+ - [Updating Git Submodules](#updating-git-submodules)
 
 ## Reporting Bugs
 
@@ -224,4 +225,24 @@ The doxygen commenting will help future developers maintain the code, in its
 fully compiled state it may be found at: http://doc.votca.org
 
 NOTE: Compilation of the doxygen documentation is automated when code is merged
-into the master votca branch! 
+into the master votca branch!
+
+## Updating Git Submodules
+
+ Votca with all of its repos can be build by using the parent [votca repo](https://github.com/votca/votca). All
+ the other necessary repos appear as submodules in the parent repo. It is worth
+ noting that the submodules are not automatically updated whenever changes are
+ made to their respective master branches. In essence a submodule refers to a
+ specific commit of the repo it represents. If a new commit is merged into the
+ master branch of a repository the submodule state in the parent repo has to be
+ updated for the commit to propagate to the parent votca repository. 
+
+ To update the state of a submodule the following commands can be used:
+
+```
+git submodule foreach git checkout master
+git submodule foreach git pull
+git add -u
+git commit -m "update all submodules"
+```
+ 
