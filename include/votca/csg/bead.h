@@ -221,37 +221,37 @@ public:
      * direct access (read/write) to the position of the bead
      * \return reference to position 
      */
-    vec &Pos() { return _pos; }
+    vec &Pos() { assert(_bPos); return _pos; }
 
     /**
      * direct access (read/write) to the velocity of the bead
      * \return reference to velocity
      */
-    vec &Vel() { return _vel; }
+    vec &Vel() { assert(_bVel); return _vel; }
 
     /**
      * direct access (read/write) to orientation u of the bead
      * \return reference to u
      */
-    vec &U() { return _u; }
+    vec &U() { assert(_bU); return _u; }
 
     /**
      * direct access (read/write) to the orientation v of the bead
      * \return reference to v
      */
-    vec &V() { return _v; }
+    vec &V() { assert(_bV); return _v; }
 
     /**
      * direct access (read/write) to the orientation w of the bead
      * \return reference to w
      */
-    vec &W() { return _w; }
+    vec &W() { assert(_bW); return _w; }
 
     /**
      * direct access (read/write) to the force of the bead
      * \return reference to force
      */
-    vec &F() { return _f; }
+    vec &F() { assert(_bF); return _f; }
  
     /**
      * set force acting on bead
