@@ -19,8 +19,11 @@
 #define	_VOTCA_CSG_BEADSTRUCTURE_H
 
 #include <string>
+#include <map>
 #include <list>
 #include "topology.h"
+
+#include <votca/tools/graph.h>
 
 namespace votca { namespace csg {
 using namespace votca::tools;
@@ -31,36 +34,68 @@ class BaseBead;
  *
  * Essentially it will have the functionality to determine if the stored beads
  * make up a single molecule. It can also break the stored beads up into
- * molecules. It can compare to bead structures and determine if they are the same
- * structure. 
+ * molecules. It can compare two bead structures and determine if they are the 
+ * same structure. 
  **/
 
 class BeadStructure
-    : protected Graph
 {
 public:
-    BeadGraph() {};
-    ~BeadGraph() {}
+    BeadStructure() {};
+    ~BeadStructure() {}
 
     // This assumes that a bead is never composed of more than a single molecule
     bool isSingleMolecule();
 
     // Follows same method name as topology class
-    int BeadCount();
-    AddBead(BaseBead * bead);
-
+    int BeadCount() { return beads_.size(); }
+    void AddBead(BaseBead * bead) { beads_[bead->getId()] = bead;}
+    BaseBead * getBead(int index) { return beads_[index];}
+    void ConnectBeads(int bead1_index, int bead2_index );
+/*
     std::vector<BaseBead *> getNeighBeads(int index);
     BaseBead * getBead(int index);
 
     std::vector<BeadStructure *> breakIntoMolecules();
 
-    BeadStructure!=(const BeadStructure&) const;
-    BeadStructure==(const BeadStructure&) const;
-    
-       
+    bool isStructureEquivalent(const BeadGraph &beadgraph) const; 
+*/
 private:
-    
+  Graph graph_;
+  std::map<int,BaseBead *> beads_;    
 };
+    
+inline void BeadStructure::ConnectBeads(int bead1_index, int bead2_index ) {
+  if(!(beads_.count(bead1_index)) || !(beads_.count(bead2_index))) {
+    throw std::invalid_argument("Cannot connect beads in bead structure that do not exist");
+  }
+  graph_.addEdge(Edge(bead1_index,bead2_index));
+  /// Add graphnodes
+  
+
+}
+/*
+inline std::vector<bead *> BeadStructure::getNeighBeads(int index){
+  auto neighbornodes = graph.getNeighNodes(index);
+  std::vector<bead *> neighbeads;
+  for( auto node_pair : neighbornodes ) {
+    neighbeads.push_back(beads_[node_pair.first]); 
+  }
+  return neighbeads;
+}
+
+inline bool BeadStructure::isStructureEquivalent(const BeadGraph &beadgraph){
+  return (graph==beadgraph.graph);
+}
+*/
+inline bool BeadStructure::isSingleMolecule(){
+  auto vertices = graph_.getVertices();
+  auto isolated_nodes = graph_.getIsolatedNodes();
+  if( beads_.size()==0 ) return false;
+  if( isolated_nodes.size() !=0 ) return false;
+  if( vertices.size()!= beads_.size() ) return false;
+  return true; 
+}
 
 }}
 
