@@ -1,5 +1,6 @@
 find_package(Boost 1.39.0 REQUIRED COMPONENTS unit_test_framework)
-foreach(PROG test_bead 
+foreach(PROG test_bead
+  test_interaction
   test_lammpsdatareader 
   test_lammpsdumpreaderwriter 
   test_pdbreader )
