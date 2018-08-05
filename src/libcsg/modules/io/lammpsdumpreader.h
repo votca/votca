@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _lammpsreader_H
-#define	_lammpsreader_H
+#ifndef _VOTCA_CSG_LAMMPSDUMPREADER_H
+#define	_VOTCA_CSG_LAMMPSDUMPREADER_H
 
 #include <string>
 #include <iostream>
@@ -36,17 +36,17 @@ using namespace std;
     for lammps dump files
 
 */
-class LAMMPSReader : 
+class LAMMPSDumpReader : 
     public TrajectoryReader, public TopologyReader
 {
     public:
-        LAMMPSReader() {}
-        ~LAMMPSReader() {}
+        LAMMPSDumpReader() {}
+        ~LAMMPSDumpReader() {}
         
-       /// open a topology file
-         bool ReadTopology(string file, Topology &top);
+        /// open a topology file
+        bool ReadTopology(string file, Topology &top);
 
-    /// open a trejectory file
+        /// open a trejectory file
         bool Open(const string &file);
         /// read in the first frame
         bool FirstFrame(Topology &top);
@@ -70,5 +70,6 @@ class LAMMPSReader :
 
 }}
 
-#endif	/* _gmxtrajectoryreader_H */
+#endif	// _VOTCA_CSG_LAMMPSDUMPREADER_H
+
 

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@
 #include <vector>
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/getline.h>
-#include "lammpsreader.h"
+#include "lammpsdumpreader.h"
 
 namespace votca { namespace csg {
     using namespace boost;
 using namespace std;
 
-bool LAMMPSReader::ReadTopology(string file,  Topology &top)
+bool LAMMPSDumpReader::ReadTopology(string file,  Topology &top)
 {
    _topology = true;
    top.Cleanup();
@@ -41,7 +41,7 @@ bool LAMMPSReader::ReadTopology(string file,  Topology &top)
     return true;
 }
 
-bool LAMMPSReader::Open(const string &file)
+bool LAMMPSDumpReader::Open(const string &file)
 {
     _fl.open(file.c_str());
     if(!_fl.is_open())
@@ -50,19 +50,19 @@ bool LAMMPSReader::Open(const string &file)
     return true;
 }
 
-void LAMMPSReader::Close()
+void LAMMPSDumpReader::Close()
 {
     _fl.close();
 }
 
-bool LAMMPSReader::FirstFrame(Topology &top)
+bool LAMMPSDumpReader::FirstFrame(Topology &top)
 {
     _topology = false;
     NextFrame(top);
     return true;
 }
 
-bool LAMMPSReader::NextFrame(Topology &top)
+bool LAMMPSDumpReader::NextFrame(Topology &top)
 {
     string line;
     getline(_fl, line);
@@ -94,7 +94,7 @@ bool LAMMPSReader::NextFrame(Topology &top)
     return !_fl.eof();;
 }
 
-void LAMMPSReader::ReadTimestep(Topology &top, string itemline)
+void LAMMPSDumpReader::ReadTimestep(Topology &top, string itemline)
 {
     string s;
     getline(_fl, s);
@@ -102,7 +102,7 @@ void LAMMPSReader::ReadTimestep(Topology &top, string itemline)
     cout << "Reading frame, timestep " << top.getStep() << endl;
 }
 
-void LAMMPSReader::ReadBox(Topology &top, string itemline)
+void LAMMPSDumpReader::ReadBox(Topology &top, string itemline)
 {
     string s;
 
@@ -121,7 +121,7 @@ void LAMMPSReader::ReadBox(Topology &top, string itemline)
     top.setBox(m );
 }
 
-void LAMMPSReader::ReadNumAtoms(Topology &top, string itemline)
+void LAMMPSDumpReader::ReadNumAtoms(Topology &top, string itemline)
 {
     string s;
     getline(_fl, s);
@@ -130,7 +130,7 @@ void LAMMPSReader::ReadNumAtoms(Topology &top, string itemline)
         std::runtime_error("number of beads in topology and trajectory differ");
 }
 
-void LAMMPSReader::ReadAtoms(Topology &top, string itemline) {
+void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
     if(_topology){
       top.CreateResidue("dum");
       for(int i=0; i<_natoms; ++i) {
