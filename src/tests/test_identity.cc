@@ -27,14 +27,14 @@ using namespace votca::tools;
 BOOST_AUTO_TEST_SUITE(identity_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) {
-  Identity id;
-  Identity id2(232);
+  Identity<int> id;
+  Identity<long int> id2(232);
 }
 
 BOOST_AUTO_TEST_CASE(simple_test) {
-  Identity id;
+  Identity<int> id;
   BOOST_CHECK_THROW(id.getId(), runtime_error);
-  Identity id2(32);
+  Identity<int> id2(32);
   BOOST_CHECK_EQUAL(id2.getId(), 32);
   id2.setId(34);
   BOOST_CHECK_EQUAL(id2.getId(), 34);
