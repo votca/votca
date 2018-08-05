@@ -88,8 +88,9 @@ std::string findStructureId(Graph& g) {
 
   for (auto v : gn_ids) {
     GV gv;
+    gv.setStartingVertex(v);
     Graph g_temp = g;
-    exploreGraph(g_temp, gv, v);
+    exploreGraph(g_temp, gv);
     std::string temp_struct_id = g_temp.getId();
     if (chosenId.compare(temp_struct_id) < 0) {
       chosenId = temp_struct_id;
