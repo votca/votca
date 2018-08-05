@@ -60,6 +60,10 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   gv.exec(g, ed);
   // Error because no nextEdge function ptr passed in
   BOOST_CHECK_THROW(gv.nextEdge(g), runtime_error);
+
+  BOOST_CHECK_EQUAL(gv.getStartingVertex(),0);
+  gv.setStartingVertex(2);
+  BOOST_CHECK_EQUAL(gv.getStartingVertex(),2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
