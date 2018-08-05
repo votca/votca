@@ -17,7 +17,7 @@
 
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE lammpstrajectoryreaderwriter_test
+#define BOOST_TEST_MODULE lammpdumpstrajectoryreaderwriter_test
 #include <boost/test/unit_test.hpp>
 
 #include <cmath>
@@ -50,7 +50,7 @@ bool fexists(const string filename) {
   return (bool)ifile;
 }
 
-BOOST_AUTO_TEST_SUITE(lammpsreaderwriter_test)
+BOOST_AUTO_TEST_SUITE(lammpsdumpreaderwriter_test)
 
 /**
 * \brief Test the trajectory reader

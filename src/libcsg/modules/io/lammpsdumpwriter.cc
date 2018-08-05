@@ -17,22 +17,21 @@
 
 #include <stdio.h>
 #include <string>
-#include "lammpswriter.h"
-
+#include "lammpsdumpwriter.h"
 
 namespace votca { namespace csg {
 
-void LAMMPSWriter::Open(std::string file, bool bAppend)
+void LAMMPSDumpWriter::Open(std::string file, bool bAppend)
 {
     _out = fopen(file.c_str(), bAppend ? "at" : "wt");
 }
 
-void LAMMPSWriter::Close()
+void LAMMPSDumpWriter::Close()
 {
     fclose(_out);
 }
 
-void LAMMPSWriter::Write(Topology *conf)
+void LAMMPSDumpWriter::Write(Topology *conf)
 {
     Topology *top = conf;
     votca::tools::matrix box = conf->getBox();

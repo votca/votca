@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __VOTCA_CSG_LAMMPSWRITER_H
-#define __VOTCA_CSG_LAMMPSWRITER_H
+#ifndef __VOTCA_CSG_LAMMPSDUMPWRITER_H
+#define __VOTCA_CSG_LAMMPSDUMPWRITER_H
 
 #include <stdio.h>
 #include <votca/csg/topology.h>
@@ -24,7 +24,7 @@
 
 namespace votca { namespace csg {
 
-class LAMMPSWriter
+class LAMMPSDumpWriter
 : public TrajectoryWriter
 {
 public:
@@ -42,4 +42,4 @@ private:
 
 }}
 
-#endif
+#endif // __VOTCA_CSG_LAMMPSDUMPWRITER_H
