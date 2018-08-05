@@ -21,12 +21,13 @@
 #include <string>
 #include <map>
 #include <list>
-#include "topology.h"
+#include <memory>
+
+#include <votca/csg/basebead.h>
 
 #include <votca/tools/graph.h>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
 
 class BaseBead;
 /**
@@ -50,8 +51,8 @@ public:
     // Follows same method name as topology class
     int BeadCount() { return beads_.size(); }
     void AddBead(BaseBead * bead) { beads_[bead->getId()] = bead;}
-    BaseBead * getBead(int index) { return beads_[index];}
-    void ConnectBeads(int bead1_index, int bead2_index );
+    BaseBead * getBead(int id) { return beads_[id];}
+    void ConnectBeads(int bead1_id, int bead2_id );
 /*
     std::vector<BaseBead *> getNeighBeads(int index);
     BaseBead * getBead(int index);
@@ -61,19 +62,10 @@ public:
     bool isStructureEquivalent(const BeadGraph &beadgraph) const; 
 */
 private:
-  Graph graph_;
+  votca::tools::Graph graph_;
   std::map<int,BaseBead *> beads_;    
+  std::map<int,std::shared_ptr<votca::tools::GraphNode>> graphnodes_;
 };
-    
-inline void BeadStructure::ConnectBeads(int bead1_index, int bead2_index ) {
-  if(!(beads_.count(bead1_index)) || !(beads_.count(bead2_index))) {
-    throw std::invalid_argument("Cannot connect beads in bead structure that do not exist");
-  }
-  graph_.addEdge(Edge(bead1_index,bead2_index));
-  /// Add graphnodes
-  
-
-}
 /*
 inline std::vector<bead *> BeadStructure::getNeighBeads(int index){
   auto neighbornodes = graph.getNeighNodes(index);
