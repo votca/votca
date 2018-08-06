@@ -33,8 +33,8 @@ namespace votca {
 namespace tools {
 
 /**
- * \brief A graph object that contains the graph nodes and the edges describing
- *        the bonds between nodes.
+ * \brief A graph object that contains the graph nodes and the edges describing 
+ * the bonds between nodes.
  *
  */
 
