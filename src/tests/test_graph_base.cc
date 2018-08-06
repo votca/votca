@@ -262,6 +262,87 @@ BOOST_AUTO_TEST_CASE(compare_test) {
   }
 }
 
+BOOST_AUTO_TEST_CASE(neighbornode_test) {
+  unordered_map<string, int> int_vals0 = {{"a", 0}};
+  unordered_map<string, int> int_vals1 = {{"b", 1}};
+  unordered_map<string, int> int_vals2 = {{"c", 2}};
+  unordered_map<string, int> int_vals3 = {{"d", 3}};
+  unordered_map<string, int> int_vals4 = {{"e", 4}};
+
+  unordered_map<string, double> double_vals;
+
+  unordered_map<string, string> str_vals;
+
+  vector<Edge> vec_ed;
+  Edge ed(0, 1);
+  Edge ed1(1, 2);
+  Edge ed2(2, 3);
+  Edge ed3(2, 4);
+
+  vec_ed.push_back(ed);
+  vec_ed.push_back(ed1);
+  vec_ed.push_back(ed2);
+  vec_ed.push_back(ed3);
+
+  GraphNode gn(int_vals0, double_vals, str_vals);
+  GraphNode gn1(int_vals1, double_vals, str_vals);
+  GraphNode gn2(int_vals2, double_vals, str_vals);
+  GraphNode gn3(int_vals3, double_vals, str_vals);
+  GraphNode gn4(int_vals4, double_vals, str_vals);
+
+  unordered_map<int, GraphNode> m_gn;
+  /// Here the graph nodes are assigne to different vertices
+  m_gn[0] = gn4;
+  m_gn[1] = gn1;
+  m_gn[2] = gn3;
+  m_gn[3] = gn2;
+  m_gn[4] = gn;
+
+  Graph g(vec_ed, m_gn);
+
+  auto neigh1 = g.getNeighNodes(0);
+  BOOST_CHECK_EQUAL(neigh1.size(),1);
+  bool neigh1_found1 = neigh1.at(0).second==gn1;
+  BOOST_CHECK(neigh1_found1);
+  
+  auto neigh2 = g.getNeighNodes(1);
+  BOOST_CHECK_EQUAL(neigh2.size(),2);
+  bool neigh2_found1 = false;
+  bool neigh2_found2 = false;
+  for(auto neigh_pr : neigh2){
+    if(neigh_pr.second==gn4) neigh2_found1=true;
+    if(neigh_pr.second==gn3) neigh2_found2=true;
+  }
+  BOOST_CHECK(neigh2_found1);
+  BOOST_CHECK(neigh2_found2);
+
+  auto neigh3 = g.getNeighNodes(2);
+  BOOST_CHECK_EQUAL(neigh3.size(),3);
+  bool neigh3_found1 = false;
+  bool neigh3_found2 = false;
+  bool neigh3_found3 = false;
+  for(auto neigh_pr : neigh3){
+    if(neigh_pr.second==gn1) neigh3_found1=true;
+    if(neigh_pr.second==gn2) neigh3_found2=true;
+    if(neigh_pr.second==gn) neigh3_found3=true;
+  }
+  BOOST_CHECK(neigh3_found1);
+  BOOST_CHECK(neigh3_found2);
+  BOOST_CHECK(neigh3_found3);
+
+  auto neigh4 = g.getNeighNodes(3);
+  BOOST_CHECK_EQUAL(neigh4.size(),1);
+  bool neigh4_found1 = neigh4.at(0).second==gn3;
+  BOOST_CHECK(neigh4_found1);
+
+  auto neigh5 = g.getNeighNodes(4);
+  BOOST_CHECK_EQUAL(neigh5.size(),1);
+  bool neigh5_found1 = neigh5.at(0).second==gn3;
+  BOOST_CHECK(neigh5_found1);
+
+}
+
+
 /**
  * \brief Equivalence test 
  *
