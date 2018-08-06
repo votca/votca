@@ -73,8 +73,11 @@ class GraphVisitor {
   /// vertices in a graph have been explored. 
   virtual bool queEmpty();
 
-  /// Which node the exploration begins at, by default this is set to vertex 0
-  void startingVertex(Graph& g, int vertex = 0);
+  void setStartingVertex(int vertex) { startingVertex_ = vertex; }
+  int getStartingVertex() { return startingVertex_; }
+
+  /// Initialize the graphvisitor the default starting point is 0
+  void initialize(Graph& g);
 
   /// What the visitor does to each node as it is visited, it will
   /// simply add the vertex that was explored to the list of explored

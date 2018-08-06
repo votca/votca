@@ -32,6 +32,9 @@
 using namespace std;
 using namespace votca::tools;
 
+using namespace boost;
+using namespace boost::unit_test;
+
 BOOST_AUTO_TEST_SUITE(graphalgorithm_test)
 
 BOOST_AUTO_TEST_CASE(single_network_algirhtm_test) {
@@ -63,6 +66,10 @@ BOOST_AUTO_TEST_CASE(single_network_algirhtm_test) {
     bool single_n = singleNetwork(g, gb_v);
     BOOST_CHECK(single_n);
     BOOST_CHECK(gb_v.queEmpty());
+
+    Graph_BF_Visitor gb_v2;
+    gb_v2.setStartingVertex(2);
+    BOOST_CHECK_THROW(singleNetwork(g,gb_v2),invalid_argument);
   }
 
   {
@@ -145,6 +152,7 @@ BOOST_AUTO_TEST_CASE(structureid_test) {
 
     string answer = "Dist0Dist1Dist1Dist1Dist2Dist2Dist3";
     BOOST_CHECK_EQUAL(structId,answer);
+
   }
 }
 BOOST_AUTO_TEST_SUITE_END()

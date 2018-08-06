@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(basic_test) {
 
   BOOST_CHECK_THROW(gdv.exec(g, ed), runtime_error);
   // Default starts with node index 0
-  gdv.startingVertex(g);
+  gdv.initialize(g);
   BOOST_CHECK_EQUAL(gdv.queEmpty(), false);
   // No exception should be thrown at this point
   Edge ed1 = gdv.nextEdge(g);
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
 
   BOOST_CHECK_THROW(gdv.exec(g, ed), runtime_error);
   // Default starts with node index 0
-  gdv.startingVertex(g);
+  gdv.initialize(g);
   BOOST_CHECK_EQUAL(gdv.queEmpty(), false);
   // No exception should be thrown at this point
   Edge ed7 = gdv.nextEdge(g);

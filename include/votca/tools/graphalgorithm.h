@@ -46,7 +46,7 @@ bool singleNetwork(Graph g, GraphVisitor& gv);
 /// exploration will depend on the graph visitor used. Note that the
 /// Graph visitor is the base class which will not work on its own. The purpose
 /// of doing this is to make use of polymorphism.  
-void exploreGraph(Graph& g, GraphVisitor& gv, int starting_vertex = 0);
+void exploreGraph(Graph& g, GraphVisitor& gv);
 
 /// This algorithm is designed to explore the topology of the graph and
 /// return an identifier in the form of the string that is unique to the
@@ -88,8 +88,9 @@ std::string findStructureId(Graph& g) {
 
   for (auto v : gn_ids) {
     GV gv;
+    gv.setStartingVertex(v);
     Graph g_temp = g;
-    exploreGraph(g_temp, gv, v);
+    exploreGraph(g_temp, gv);
     std::string temp_struct_id = g_temp.getId();
     if (chosenId.compare(temp_struct_id) < 0) {
       chosenId = temp_struct_id;
