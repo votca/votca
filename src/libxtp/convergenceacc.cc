@@ -21,15 +21,15 @@
 namespace votca { namespace xtp {
 
   
-  void ConvergenceAcc::setOverlap(const Eigen::MatrixXd* _S,double etol){
-       S=_S;
-       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es((*S));
+  void ConvergenceAcc::setOverlap(const Eigen::MatrixXd* S,double etol){
+       _S=S;
+       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es((*_S));
        if(_noisy){
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<es.eigenvalues()(0) << std::flush;
             }
       Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
       int removedfunctions=0;
-      for (unsigned i=0;i<diagonal.size();++i){
+      for (int i=0;i<diagonal.size();++i){
           if(es.eigenvalues()(i)<etol){
               removedfunctions++;
           }else{
@@ -64,7 +64,7 @@ namespace votca { namespace xtp {
         }
       }
       
-      Eigen::MatrixXd errormatrix=Sminusahalf.transpose()*(H*dmat*(*S)-(*S)*dmat*H)*Sminusahalf;
+      Eigen::MatrixXd errormatrix=Sminusahalf.transpose()*(H*dmat*(*_S)-(*_S)*dmat*H)*Sminusahalf;
       _diiserror=errormatrix.cwiseAbs().maxCoeff();
      
       Eigen::MatrixXd* old=new Eigen::MatrixXd;     
@@ -81,7 +81,7 @@ namespace votca { namespace xtp {
         }
       } 
        
-    diis.Update(_maxerrorindex,errormatrix);
+    _diis.Update(_maxerrorindex,errormatrix);
     bool diis_error=false; 
    
        
@@ -90,15 +90,15 @@ namespace votca { namespace xtp {
         //use ADIIs if energy has risen a lot in current iteration
 
         if(_diiserror>_diis_start || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
-            coeffs=adiis.CalcCoeff(_dmatHist,_mathist);
-            diis_error=!adiis.Info();
+            coeffs=_adiis.CalcCoeff(_dmatHist,_mathist);
+            diis_error=!_adiis.Info();
             if(_noisy){
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << std::flush;
             }
         }
         else{
-             coeffs=diis.CalcCoeff();
-             diis_error=!diis.Info();
+             coeffs=_diis.CalcCoeff();
+             diis_error=!_diis.Info();
              if(_noisy){
              CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using DIIS" << std::flush;
              }
@@ -107,7 +107,7 @@ namespace votca { namespace xtp {
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIS failed using mixing instead" << std::flush;
           H_guess=H;
         }else{
-        for (unsigned i=0;i<coeffs.size();i++){  
+        for (int i=0;i<coeffs.size();i++){  
             if(std::abs(coeffs(i))<1e-8){ continue;}
             H_guess+=coeffs(i)*(*_mathist[i]);
             }
@@ -159,8 +159,8 @@ namespace votca { namespace xtp {
         throw std::runtime_error("ConvergenceAcc::Levelshift: Call SolveFockmatrix before Levelshift, MOsinv not initialized");
       }
         Eigen::MatrixXd virt = Eigen::MatrixXd::Zero(H.rows(),H.cols());
-        for (unsigned _i = _nocclevels; _i < H.rows(); _i++) {
-                        virt(_i, _i) = _levelshift; 
+        for (int i = _nocclevels; i < H.rows(); i++) {
+                        virt(i, i) = _levelshift; 
             }
 
         if(_noisy){

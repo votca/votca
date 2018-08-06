@@ -18,7 +18,13 @@
 #define BOOST_TEST_MODULE sigma_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/sigma.h>
-
+#include <fstream> 
+#include <votca/xtp/orbitals.h>
+#include <votca/xtp/aobasis.h>
+#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/threecenter.h>
+#include <votca/xtp/rpa.h>
+#include <votca/xtp/ppm.h>
 
 using namespace votca::xtp;
 using namespace std;

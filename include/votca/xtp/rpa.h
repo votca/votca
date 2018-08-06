@@ -29,7 +29,7 @@ namespace votca {
         class RPA {
         public:
 
-            void configure(unsigned homo, unsigned rpamin, unsigned rpamax) {
+            void configure(int homo, int rpamin, int rpamax) {
                 _homo = homo;
                 _rpamin = rpamin;
                 _rpamax = rpamax;
@@ -75,9 +75,9 @@ namespace votca {
 
         private:
 
-            unsigned _homo; // HOMO index
-            unsigned _rpamin;
-            unsigned _rpamax;
+            int _homo; // HOMO index
+            int _rpamin;
+            int _rpamax;
 
             // container for the epsilon matrix
             std::vector<Eigen::MatrixXd > _epsilon_r;

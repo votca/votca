@@ -28,12 +28,8 @@
 #include <votca/ctp/polarseg.h>
 #include <votca/ctp/segment.h>
 #include <votca/ctp/polartop.h>
-// add gwbse header for excited state support
-#include <votca/xtp/gwbse.h>
-#include <votca/xtp/qmpackagefactory.h>
+#include <votca/tools/elements.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/espfit.h>
-#include <votca/xtp/gdma.h>
 
 
 namespace votca { namespace xtp {
@@ -47,26 +43,22 @@ class QMInterface
 {
 public:
     
-    QMInterface() { _polar_table = ctp::POLAR_TABLE(); };
-   ~QMInterface() {};
-    
     // CONVERSION QM -> MM
     ctp::APolarSite *Convert(QMAtom *atm, int id = -1);
     
     ctp::PolarSeg Convert(std::vector<QMAtom*> &atms);
     
-    
     std::vector<QMAtom *> Convert( std::vector<ctp::Segment* > segments);
     
     void GenerateQMAtomsFromPolarSegs(ctp::PolarTop *ptop, Orbitals &orb);
     std::vector<std::shared_ptr<ctp::PolarSeg> > GenerateMultipoleList(ctp::PolarTop *ptop  );
-    void Orbitals2Segment(ctp::Segment& segment, const Orbitals& _orbitals);
+    void Orbitals2Segment(ctp::Segment& segment, const Orbitals& orbitals);
     
      
 private:
     void addMMAtomtoOrb(ctp::APolarSite * aps,Orbitals &orb, bool with_polarisation);
     // Allocates polarizabilities in A**3 to element types
-    std::map<std::string,double> _polar_table;
+    tools::Elements _element;
    
 };
 

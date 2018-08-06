@@ -28,13 +28,13 @@
 namespace votca {
   namespace xtp {
 
- void RPA::calculate_epsilon(const Eigen::VectorXd& qp_energies,const TCMatrix_gwbse& _Mmn_full) {
-const int _size = _Mmn_full.getAuxDimension(); // size of gwbasis
+ void RPA::calculate_epsilon(const Eigen::VectorXd& qp_energies,const TCMatrix_gwbse& Mmn_full) {
+const int size = Mmn_full.getAuxDimension(); // size of gwbasis
             for (auto& matrix : _epsilon_r) {
-                matrix = Eigen::MatrixXd::Identity(_size,_size);
+                matrix = Eigen::MatrixXd::Identity(size,size);
             }
             for (auto& matrix : _epsilon_i) {
-                matrix = Eigen::MatrixXd::Identity(_size,_size);
+                matrix = Eigen::MatrixXd::Identity(size,size);
             }
 
             int lumo=_homo+1;
@@ -42,22 +42,22 @@ const int _size = _Mmn_full.getAuxDimension(); // size of gwbasis
             int n_unocc=_rpamax-_homo;
             
 #pragma omp parallel for 
-            for (int _m_level = 0; _m_level < n_occ; _m_level++) {
-                const double _qp_energy_m = qp_energies(_m_level + _rpamin);
+            for (int m_level = 0; m_level < n_occ; m_level++) {
+                const double qp_energy_m = qp_energies(m_level + _rpamin);
 #if (GWBSE_DOUBLE)
-                const Eigen::MatrixXd Mmn_RPA = _Mmn_full[ _m_level ].block(n_occ, 0,n_unocc, _size );
+                const Eigen::MatrixXd Mmn_RPA = Mmn_full[ m_level ].block(n_occ, 0,n_unocc, size );
 #else
-                const Eigen::MatrixXd Mmn_RPA = _Mmn_full[ _m_level ].block(n_occ,0,  n_unocc, _size).cast<double>();       
+                const Eigen::MatrixXd Mmn_RPA = Mmn_full[ m_level ].block(n_occ,0,  n_unocc, size).cast<double>();       
 #endif
-                Eigen::MatrixXd tempresult=Eigen::MatrixXd::Zero(_size,_size);
-                Eigen::MatrixXd denom_x_Mmn_RPA=Eigen::MatrixXd::Zero(n_unocc,_size);
+                Eigen::MatrixXd tempresult=Eigen::MatrixXd::Zero(size,size);
+                Eigen::MatrixXd denom_x_Mmn_RPA=Eigen::MatrixXd::Zero(n_unocc,size);
                 for (int i = 0; i < screen_freq_i.size(); ++i) {   
                     // a temporary matrix, that will get filled in empty levels loop
                     const double screen_freq2 = screen_freq_i(i) * screen_freq_i(i);
-                    for (int _n_level = 0; _n_level < n_unocc; _n_level++) {
-                        const double _deltaE = qp_energies(_n_level + lumo) - _qp_energy_m;
-                        const double denom=4.0 * _deltaE / (_deltaE * _deltaE + screen_freq2);  
-                        denom_x_Mmn_RPA.row(_n_level)=Mmn_RPA.row(_n_level)*denom; //hartree    
+                    for (int n_level = 0; n_level < n_unocc; n_level++) {
+                        const double deltaE = qp_energies(n_level + lumo) - qp_energy_m;
+                        const double denom=4.0 * deltaE / (deltaE * deltaE + screen_freq2);  
+                        denom_x_Mmn_RPA.row(n_level)=Mmn_RPA.row(n_level)*denom; //hartree    
                     }
                     tempresult.noalias() = Mmn_RPA.transpose() * denom_x_Mmn_RPA;
 
@@ -69,10 +69,10 @@ const int _size = _Mmn_full.getAuxDimension(); // size of gwbasis
 
                 //real parts
                 for (int i = 0; i < screen_freq_r.size(); ++i) {
-                    for (int _n_level = 0;  _n_level < n_unocc; _n_level++) {
-                        const double _deltaE = qp_energies(_n_level + lumo) - _qp_energy_m;
-                        const double denom=2.0 * (1.0 / (_deltaE - screen_freq_r(i)) + 1.0 / (_deltaE + screen_freq_r(i)));
-                        denom_x_Mmn_RPA.row(_n_level)=Mmn_RPA.row(_n_level)*denom; //hartree    
+                    for (int n_level = 0;  n_level < n_unocc; n_level++) {
+                        const double deltaE = qp_energies(n_level + lumo) - qp_energy_m;
+                        const double denom=2.0 * (1.0 / (deltaE - screen_freq_r(i)) + 1.0 / (deltaE + screen_freq_r(i)));
+                        denom_x_Mmn_RPA.row(n_level)=Mmn_RPA.row(n_level)*denom; //hartree    
                     }
                     tempresult.noalias() = Mmn_RPA.transpose() * denom_x_Mmn_RPA;
 

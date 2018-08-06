@@ -19,13 +19,17 @@
 
 #ifndef _VOTCA_XTP_GWBSE_H
 #define _VOTCA_XTP_GWBSE_H
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/sigma.h>
+#include <votca/ctp/logger.h>
+#include <votca/tools/property.h>
 #include <fstream>
+#include <votca/xtp/eigen.h>
+
 
 namespace votca {
 namespace xtp {
-
+    class Orbitals;
+    class Sigma;
+    class AOBasis;
 /**
 * \brief Electronic excitations from GW-BSE
 *
@@ -50,18 +54,16 @@ class GWBSE {
 
   std::string Identify() { return "gwbse"; }
 
-  void CleanUp();
-
   void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
 
   bool Evaluate();
     
-  void addoutput(tools::Property& _summary);
+  void addoutput(tools::Property& summary);
 
  private:
      
  void PrintQP_Energies(const Eigen::VectorXd& gwa_energies, const Eigen::VectorXd& qp_diag_energies);
- void PrintGWA_Energies(const Eigen::MatrixXd& vxc,const Sigma& sigma, const Eigen::VectorXd& _dft_energies);    
+ void PrintGWA_Energies(const Eigen::MatrixXd& vxc,const Sigma& sigma, const Eigen::VectorXd& dft_energies);    
  
  Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
  ctp::Logger* _pLog;
@@ -101,21 +103,21 @@ class GWBSE {
   std::string _dftbasis_name;
   int _reset_3c; //how often the 3c integrals in iterate shoudl be rebuild
   double _shift;  // pre-shift of DFT energies
-  unsigned _homo;   // HOMO index
-  unsigned _rpamin;
-  unsigned _rpamax;
-  unsigned _qpmin;
-  unsigned _qpmax;
-  unsigned _qptotal;
+  int _homo;   // HOMO index
+  int _rpamin;
+  int _rpamax;
+  int _qpmin;
+  int _qpmax;
+  int _qptotal;
   double _g_sc_limit;  // convergence criteria for g iteration [Hartree]]
-  unsigned _g_sc_max_iterations;
-  unsigned _gw_sc_max_iterations;
+  int _g_sc_max_iterations;
+  int _gw_sc_max_iterations;
   double _gw_sc_limit;  // convergence criteria for gw iteration [Hartree]]
   
-  unsigned _bse_vmin;
-  unsigned _bse_vmax;
-  unsigned _bse_cmin;
-  unsigned _bse_cmax;
+  int _bse_vmin;
+  int _bse_vmax;
+  int _bse_cmin;
+  int _bse_cmax;
   int _bse_maxeigenvectors;
   double _min_print_weight;
 

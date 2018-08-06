@@ -20,22 +20,17 @@
 #ifndef _VOTCA_XTP_DFTENGINE_H
 #define _VOTCA_XTP_DFTENGINE_H
 
-
-
-#include <votca/ctp/segment.h>
-#include <votca/xtp/orbitals.h>
-#include <votca/ctp/polarseg.h>
-
-#include <votca/ctp/topology.h>
 #include <votca/xtp/numerical_integrations.h>
-#include <votca/ctp/apolarsite.h>
 #include <boost/filesystem.hpp>
+#include <votca/ctp/logger.h>
+#include <votca/ctp/polarseg.h>
+#include <votca/ctp/topology.h>
 #include <votca/xtp/ERIs.h>
 #include <votca/xtp/convergenceacc.h>
-#include <votca/ctp/logger.h>
 
 namespace votca {
     namespace xtp {
+        class Orbitals;
 
 /**
          * \brief Electronic ground-state via Density-Functional Theory
@@ -167,7 +162,7 @@ namespace votca {
             AODipole_Potential _dftAODipole_Potential;
             AOQuadrupole_Potential _dftAOQuadrupole_Potential;
             AOPlanewave _dftAOplanewave;
-            double E_nucnuc;
+            double _E_nucnuc;
             
             bool _with_guess;
             std::string _initial_guess;
@@ -181,17 +176,14 @@ namespace votca {
             
         
             //levelshift
-
             double _levelshiftend;
             double _levelshift;
 
-
             //DIIS variables
-            ConvergenceAcc conv_accelerator;
+            ConvergenceAcc _conv_accelerator;
             bool _usediis;
-            unsigned _histlength;
+            int _histlength;
             bool _maxout;
-            Eigen::MatrixXd _Sminusonehalf;
             double _diis_start;
             double _adiis_start;
             //Electron repulsion integrals
@@ -205,9 +197,6 @@ namespace votca {
             double _ScaHFX;
             std::string _xc_functional_name;
 
-
-             
-            
             bool _integrate_ext_density;
             //integrate external density
             std::string _orbfilename;

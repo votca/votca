@@ -516,7 +516,7 @@ xyzfile.close();
   BasisSet basis;
   basis.LoadBasisSet("contracted.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   AOOverlap overlap;
   overlap.Fill(aobasis);
   Eigen::MatrixXd overlap_ref=Eigen::MatrixXd::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
@@ -584,7 +584,8 @@ xyzfile.close();
 
 bool check_overlap = overlap.Matrix().isApprox(overlap_ref,0.0001);
 if(!check_overlap){
-  std::cout<<"ref"<<std::endl;
+    std::cout<<std::endl;
+  std::cout<<"Ref"<<std::endl;
   std::cout<<overlap_ref<<std::endl;
     std::cout<<"Result"<<std::endl;
   std::cout<<overlap.Matrix()<<std::endl;

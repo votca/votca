@@ -22,8 +22,7 @@
 
 namespace votca { namespace xtp {
     
-  void AOShell::normalizeContraction(){
-    
+  void AOShell::normalizeContraction(){   
     AOOverlap overlap;
     Eigen::MatrixXd block=overlap.FillShell(this);
     std::vector<int> numsubshells=NumFuncSubShell(_type);
@@ -37,7 +36,6 @@ namespace votca { namespace xtp {
       aoindex+=numsubshell;
       contraction_index++;
     }
-    
     return;
   }
   

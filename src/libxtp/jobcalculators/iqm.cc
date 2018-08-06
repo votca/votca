@@ -26,7 +26,7 @@
 #include <votca/ctp/logger.h>
 #include <votca/tools/constants.h>
 #include <votca/xtp/qminterface.h>
-
+#include <votca/xtp/qmpackagefactory.h>
 
 
 using boost::format;

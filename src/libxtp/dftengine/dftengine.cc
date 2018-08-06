@@ -27,15 +27,12 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/aomatrix.h>
-
+#include <votca/xtp/orbitals.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/constants.h>
-
 #include <votca/tools/elements.h>
-
 #include <votca/ctp/xinteractor.h>
-#include <votca/ctp/logger.h>
 
 
 
@@ -198,7 +195,7 @@ void DFTEngine::CalcElDipole(){
         H0 += _dftAOQuadrupole_Potential.getExternalpotential();
         double estat = ExternalRepulsion();
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " E_electrostatic " << estat << flush;
-        E_nucnuc += estat;
+        _E_nucnuc += estat;
       }
       
       if(_integrate_ext_density){
@@ -213,11 +210,11 @@ void DFTEngine::CalcElDipole(){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() 
                 << " Nuclei external potential interaction " << externalgrid_nucint << " Hartree" << flush;
         H0 += _gridIntegration_ext.IntegrateExternalPotential(_externalgrid);
-        E_nucnuc += externalgrid_nucint;
+        _E_nucnuc += externalgrid_nucint;
       }
 
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-              << " Nuclear Repulsion Energy is " << E_nucnuc << flush;
+              << " Nuclear Repulsion Energy is " << _E_nucnuc << flush;
 
       if (_with_guess) {
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
@@ -227,8 +224,8 @@ void DFTEngine::CalcElDipole(){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                 << " Setup Initial Guess using: " << _initial_guess << flush;
         if (_initial_guess == "independent") {
-          conv_accelerator.SolveFockmatrix(MOEnergies, MOCoeff, H0);
-          _dftAOdmat = conv_accelerator.DensityMatrix(MOCoeff,MOEnergies);
+          _conv_accelerator.SolveFockmatrix(MOEnergies, MOCoeff, H0);
+          _dftAOdmat = _conv_accelerator.DensityMatrix(MOCoeff,MOEnergies);
 
         } else if (_initial_guess == "atom") {
           _dftAOdmat = AtomicGuess(orbitals);
@@ -250,8 +247,8 @@ void DFTEngine::CalcElDipole(){
            }
             H-=0.5*_ScaHFX*_ERIs.getEXX();
           }      
-          conv_accelerator.SolveFockmatrix(MOEnergies, MOCoeff, H);
-          _dftAOdmat = conv_accelerator.DensityMatrix(MOCoeff,MOEnergies);
+          _conv_accelerator.SolveFockmatrix(MOEnergies, MOCoeff, H);
+          _dftAOdmat = _conv_accelerator.DensityMatrix(MOCoeff,MOEnergies);
 
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Full atomic density Matrix gives N="
                   << std::setprecision(9) << _dftAOdmat.cwiseProduct(_dftAOoverlap.Matrix()).sum() << " electrons." << flush;
@@ -275,7 +272,7 @@ void DFTEngine::CalcElDipole(){
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Electron repulsion matrix" << flush;
         double vxcenergy = 0.0;
-        if (_use_small_grid && conv_accelerator.getDIIsError() > 1e-3) {
+        if (_use_small_grid && _conv_accelerator.getDIIsError() > 1e-3) {
           orbitals.AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
           vxcenergy = _gridIntegration_small.getTotEcontribution();
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
@@ -288,7 +285,7 @@ void DFTEngine::CalcElDipole(){
         Eigen::MatrixXd H = H0 + _ERIs.getERIs() + orbitals.AOVxc();
         if(_ScaHFX>0){
               if (_with_RI) {
-                if(conv_accelerator.getUseMixing()){
+                if(_conv_accelerator.getUseMixing()){
                   _ERIs.CalculateEXX(_dftAOdmat); 
                 }else{
                   Eigen::Block<Eigen::MatrixXd> occblock=MOCoeff.block(0,0,MOEnergies.rows(), _numofelectrons / 2);
@@ -306,7 +303,7 @@ void DFTEngine::CalcElDipole(){
         if(_ScaHFX>0){
           Etwo-=_ScaHFX/4*_ERIs.getEXXsenergy();
         }
-        double totenergy = Eone + E_nucnuc + Etwo;
+        double totenergy = Eone + _E_nucnuc + Etwo;
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Single particle energy "
                 << std::setprecision(12) << Eone << flush;
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Two particle energy " 
@@ -320,10 +317,10 @@ void DFTEngine::CalcElDipole(){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                 << " Total Energy " << std::setprecision(12) << totenergy << flush;
 
-        _dftAOdmat = conv_accelerator.Iterate(_dftAOdmat, H, MOEnergies, MOCoeff, totenergy);
+        _dftAOdmat = _conv_accelerator.Iterate(_dftAOdmat, H, MOEnergies, MOCoeff, totenergy);
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                << " DIIs error " << conv_accelerator.getDIIsError() << std::flush;
+                << " DIIs error " << _conv_accelerator.getDIIsError() << std::flush;
         double deltaE=totenergy - energyold;
         if(_this_iter == 0){
           deltaE=0;
@@ -336,7 +333,7 @@ void DFTEngine::CalcElDipole(){
         CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\tGAP " 
                 << MOEnergies(_numofelectrons / 2) - MOEnergies(_numofelectrons / 2 - 1) << flush;
 
-        if (std::abs(totenergy - energyold) < _Econverged && conv_accelerator.getDIIsError() < _error_converged) {
+        if (std::abs(totenergy - energyold) < _Econverged && _conv_accelerator.getDIIsError() < _error_converged) {
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() 
                   << " Total Energy has converged to " << std::setprecision(9) 
                   << std::abs(totenergy - energyold) << "[Ha] after " << _this_iter + 1 <<
@@ -402,10 +399,8 @@ void DFTEngine::CalcElDipole(){
                                         "              quadrupole[e*nm^2]         " << flush;
 
 
-        for (unsigned i = 0; i < _externalsites.size(); i++) {
-          ctp::PolarSeg::iterator pit;
-          for (pit=_externalsites[i]->begin();pit!=_externalsites[i]->end();++pit){
-            ctp::APolarSite* site=(*pit);
+        for (auto segment:_externalsites) {
+          for (ctp::APolarSite* site:*segment){
             std::string output=(boost::format("  %1$s"
                                             "   %2$+1.4f %3$+1.4f %4$+1.4f"
                                             "   %5$+1.4f")
@@ -435,23 +430,23 @@ void DFTEngine::CalcElDipole(){
                 << " Filled DFT ECP matrix" << flush;
       }
 
-      conv_accelerator.Configure(ConvergenceAcc::KSmode::closed, _usediis,
+      _conv_accelerator.Configure(ConvergenceAcc::KSmode::closed, _usediis,
               true, _histlength, _maxout, _adiis_start, _diis_start,
               _levelshift, _levelshiftend, _numofelectrons, _mixingparameter);
-      conv_accelerator.setLogger(_pLog);
-      conv_accelerator.setOverlap(&_dftAOoverlap.Matrix(), 1e-8);
+      _conv_accelerator.setLogger(_pLog);
+      _conv_accelerator.setOverlap(&_dftAOoverlap.Matrix(), 1e-8);
 
       if (_with_RI) {
 
-        AOCoulomb _auxAOcoulomb;
-        _auxAOcoulomb.Fill(_auxbasis);
+        AOCoulomb auxAOcoulomb;
+        auxAOcoulomb.Fill(_auxbasis);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                 << " Filled auxiliary Coulomb matrix"<< flush;
 
-        Eigen::MatrixXd Inverse=_auxAOcoulomb.Pseudo_InvSqrt(1e-8);
+        Eigen::MatrixXd Inverse=auxAOcoulomb.Pseudo_InvSqrt(1e-8);
 
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                << " Inverted AUX Coulomb matrix, removed " << _auxAOcoulomb.Removedfunctions()
+                << " Inverted AUX Coulomb matrix, removed " << auxAOcoulomb.Removedfunctions()
                 << " functions from aux basis" << flush;
 
         // prepare invariant part of electron repulsion integrals
@@ -468,7 +463,6 @@ void DFTEngine::CalcElDipole(){
         }
 
         if (_with_screening && _four_center_method=="direct") {
-
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating 4c diagonals. " << flush;
           _ERIs.Initialize_4c_screening(_dftbasis, _screening_eps);
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculated 4c diagonals. " << flush;
@@ -672,10 +666,10 @@ void DFTEngine::CalcElDipole(){
       
       
       Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(_dftbasis.AOBasisSize(), _dftbasis.AOBasisSize());
-      unsigned start = 0;
+      int start = 0;
       for (QMAtom* atom:_atoms) {
-        unsigned index = 0;
-        for (unsigned i = 0; i < uniqueelements.size(); i++) {
+        int index = 0;
+        for (int i = 0; i < int(uniqueelements.size()); i++) {
           if (atom->getType() == uniqueelements[i]->getType()) {
             index = i;
             break;
@@ -839,7 +833,7 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
     }
 
     void DFTEngine::NuclearRepulsion() {
-      E_nucnuc = 0.0;
+      _E_nucnuc = 0.0;
 
       for (unsigned i = 0; i < _atoms.size(); i++) {
         const tools::vec& r1 = _atoms[i]->getPos();
@@ -847,7 +841,7 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
         for (unsigned j = 0; j < i; j++) {
           const tools::vec& r2 = _atoms[j]->getPos();
           double charge2 = _atoms[j]->getNuccharge();
-          E_nucnuc += charge1 * charge2 / (abs(r1 - r2));
+          _E_nucnuc += charge1 * charge2 / (abs(r1 - r2));
         }
       }
       return;
@@ -1023,7 +1017,7 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
       }
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Calculated potential from nuclei"<<flush;
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() <<" Elelctrostatic: "<<nuc_energy<<flush;
-      E_nucnuc+=nuc_energy;
+      _E_nucnuc+=nuc_energy;
       return e_contrib+esp.getNuclearpotential();
     }
 

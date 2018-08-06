@@ -20,15 +20,8 @@
 
 
 
-#include <sys/stat.h>
-#include <boost/algorithm/string.hpp>
-#include <boost/format.hpp>
-#include <boost/filesystem.hpp>
-#include <votca/tools/elements.h>
-#include <votca/xtp/espfit.h>
-#include <votca/xtp/qminterface.h>
 
-#include "votca/xtp/qmatom.h"
+#include <votca/xtp/qminterface.h>
 
 using boost::format;
 
@@ -36,15 +29,14 @@ namespace votca {
     namespace xtp {
 
         ctp::APolarSite *QMInterface::Convert(QMAtom *atm, int id) {
-          
-            
+                
             std::string elem = atm->getType();
             ctp::APolarSite *new_aps = new ctp::APolarSite(id, elem);
             
             double pol = 0.0;
             try {
-                pol = _polar_table.at(elem);
-            } catch (const std::exception& out_of_range) {
+                pol = _element.getPolarizability(elem);
+            } catch (const std::invalid_argument& out_of_range) {
                 std::cout << std::endl << "QMMInterface - no default polarizability given "
                         << "for element type '" << elem << "'. Defaulting to 1A**3" << std::flush;
                 pol = 1e-3;
@@ -124,9 +116,9 @@ namespace votca {
         }
 
 
-        void QMInterface::Orbitals2Segment(ctp::Segment& segment, const Orbitals& _orbitals) {
+        void QMInterface::Orbitals2Segment(ctp::Segment& segment, const Orbitals& orbitals) {
 
-            std::vector< QMAtom* >_atoms = _orbitals.QMAtoms();
+            std::vector< QMAtom* >_atoms = orbitals.QMAtoms();
             std::string type;
             int id = 1;
             for (QMAtom* atom: _atoms) {

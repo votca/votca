@@ -72,7 +72,7 @@ struct Population {
       
   }
   
-  void setBSEindices(unsigned homo,int vmin, int cmax, int nmax) {
+  void setBSEindices(int homo,int vmin, int cmax, int nmax) {
                 _homo=homo;
                 _bse_vmin = vmin;
                 _bse_vmax = homo;
@@ -83,10 +83,10 @@ struct Population {
                 _bse_ctotal = _bse_cmax - _bse_cmin + 1;
                 _bse_size = _bse_vtotal * _bse_ctotal;
                 // indexing info BSE vector index to occupied/virtual orbital
-                for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
-                    for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
-                        _index2v.push_back(_bse_vmin + _v);
-                        _index2c.push_back(_bse_cmin + _c);
+                for (int v = 0; v < _bse_vtotal; v++) {
+                    for (int c = 0; c < _bse_ctotal; c++) {
+                        _index2v.push_back(_bse_vmin + v);
+                        _index2c.push_back(_bse_cmin + c);
                     }
                 }
                 return;
@@ -122,14 +122,14 @@ struct Population {
  
       
 ctp::Logger *_log;
-  unsigned _homo;
-  unsigned  _bse_vmin;
-  unsigned  _bse_vmax;
-  unsigned  _bse_cmin;
-  unsigned  _bse_cmax;
-  unsigned  _bse_size;
-  unsigned  _bse_vtotal;
-  unsigned  _bse_ctotal;
+  int _homo;
+  int  _bse_vmin;
+  int  _bse_vmax;
+  int  _bse_cmin;
+  int  _bse_cmax;
+  int  _bse_size;
+  int  _bse_vtotal;
+  int  _bse_ctotal;
   int _bse_nmax;
   
   Orbitals& _orbitals;
@@ -169,7 +169,7 @@ ctp::Logger *_log;
   std::vector<int> _index2c;
 
  void printFragInfo(Population& pop, int i);
- void printWeights(unsigned i_bse, double weight);
+ void printWeights(int i_bse, double weight);
  
   
   Interaction Analyze_eh_interaction(const std::string& spin);

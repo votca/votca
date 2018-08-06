@@ -70,6 +70,7 @@ int FindLmax(const std::string& type ){
                 std::string local_shell = std::string( type, i, 1 );
               int test = FindLmin( local_shell  );
                if(test==0){return 0;}
+               if ( test < lmin ) { lmin = test;} 
          }
          }
        return lmin;

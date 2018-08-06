@@ -25,6 +25,7 @@
 #include <boost/filesystem.hpp>
 #include <votca/tools/elements.h>
 #include <votca/xtp/espfit.h>
+#include <votca/xtp/aomatrix.h>
 
 
 using boost::format;

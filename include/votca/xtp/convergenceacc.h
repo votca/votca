@@ -38,7 +38,7 @@ public:
 
     ConvergenceAcc() {_mode=KSmode::closed;
                        _usemixing=true;
-                        _diiserror=std::numeric_limits<double>::max();
+                      _diiserror=std::numeric_limits<double>::max();
                       _maxerrorindex=0;
                       _maxerror=0.0;};
                       
@@ -54,14 +54,14 @@ public:
    }
    
    void Configure(KSmode mode,bool usediis,bool noisy, 
-                    unsigned histlength, bool maxout, double adiis_start,
+                    int histlength, bool maxout, double adiis_start,
                     double diis_start,double levelshift,double levelshiftend,
-                    unsigned numberofelectrons, double mixingparameter){
+                    int numberofelectrons, double mixingparameter){
        _mode=mode;
        _usediis=usediis;
        _noisy=noisy;
        _histlength=histlength;
-       diis.setHistLength(histlength);
+       _diis.setHistLength(histlength);
        _maxout=maxout;
        _adiis_start=adiis_start;
        _diis_start=diis_start;
@@ -81,7 +81,7 @@ public:
   
    }
    
-   void setOverlap(const Eigen::MatrixXd* _S, double etol);
+   void setOverlap(const Eigen::MatrixXd* S, double etol);
    
    
    double getDIIsError(){return _diiserror;}
@@ -107,11 +107,11 @@ public:
     bool                                _usemixing;
      
     ctp::Logger *                       _pLog;
-    const Eigen::MatrixXd* S;
+    const Eigen::MatrixXd* _S;
     
     bool                              _usediis;
     bool                              _noisy;
-    unsigned                          _histlength;
+    int                          _histlength;
     bool                              _maxout;
     Eigen::MatrixXd                 Sminusahalf;
     Eigen::MatrixXd                 Sonehalf;
@@ -121,18 +121,18 @@ public:
     double                              _adiis_start;  
     double                              _diis_start;
     double                              _levelshiftend;
-    unsigned                            _maxerrorindex;
+    int                            _maxerrorindex;
     std::vector< Eigen::MatrixXd* >   _mathist;
     std::vector< Eigen::MatrixXd* >   _dmatHist;
     double                              _mixingparameter;
     std::vector<double>                 _totE;
    
-    unsigned _numberofelectrons;
-    unsigned _nocclevels;
+    int _numberofelectrons;
+    int _nocclevels;
     double _levelshift;
     
-    ADIIS adiis;
-    DIIS diis;
+    ADIIS _adiis;
+    DIIS _diis;
    
     
     
