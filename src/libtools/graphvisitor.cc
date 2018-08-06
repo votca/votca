@@ -54,13 +54,12 @@ vector<int> GraphVisitor::getUnexploredVertex_(Edge ed){
   return unexp_vert;
 }
 
-void GraphVisitor::startingVertex(Graph& g, int vertex){
-  startingVertex_ = vertex;
-  auto neigh_eds = g.getNeighEdges(vertex);
-  GraphNode gn = g.getNode(vertex);
-  pair<int, GraphNode> p_gn(vertex,gn);
+void GraphVisitor::initialize(Graph& g){
+  auto neigh_eds = g.getNeighEdges(startingVertex_);
+  GraphNode gn = g.getNode(startingVertex_);
+  pair<int, GraphNode> p_gn(startingVertex_,gn);
   exploreNode_(p_gn,g);
-  addEdges_(g, vertex);
+  addEdges_(g, startingVertex_);
 }
 
 void GraphVisitor::exec(Graph& g, Edge ed){

@@ -33,11 +33,18 @@ bool singleNetwork(Graph g, GraphVisitor& gv){
          g.getIsolatedNodes().size() == 0;
 }
 
-void exploreGraph(Graph& g, GraphVisitor& gv, int starting_vertex){
+void exploreGraph(Graph& g, GraphVisitor& gv){
 
+  if(!g.vertexExist(gv.getStartingVertex())){
+    string err = "Cannot explore graph starting at vertex " +
+      to_string(gv.getStartingVertex()) + " because it does not exist in the "
+      "graph. You can change the starting vertex by using the "
+      "setStartingVertex method of the visitor instance.";
+    throw invalid_argument(err);
+  }
   // Create a list of all vertices and determine if they have all been
   // explored when the visitor que is empty 
-  gv.startingVertex(g,starting_vertex);
+  gv.initialize(g);
   while(!gv.queEmpty()){
     auto ed = gv.nextEdge(g);
     gv.exec(g,ed);

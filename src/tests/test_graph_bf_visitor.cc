@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(basic_test) {
   BOOST_CHECK(gb_v.queEmpty());
   BOOST_CHECK_THROW(gb_v.exec(g, ed), runtime_error);
   // Default starts with node index 0
-  gb_v.startingVertex(g);
+  gb_v.initialize(g);
   BOOST_CHECK_EQUAL(gb_v.queEmpty(), false);
   // No exception should be thrown at this point
   Edge ed1 = gb_v.nextEdge(g);
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   BOOST_CHECK(gb_v.queEmpty());
   BOOST_CHECK_THROW(gb_v.exec(g, ed), runtime_error);
   // Default starts with node index 0
-  gb_v.startingVertex(g);
+  gb_v.initialize(g);
   BOOST_CHECK_EQUAL(gb_v.queEmpty(), false);
   // No exception should be thrown at this point
   Edge ed5 = gb_v.nextEdge(g);
