@@ -256,7 +256,7 @@ class matrix {
 };
 
 inline void matrix::checkBounds_(const byte_t row_or_col) const {
-  assert( row_or_col > boost::lexical_cast<byte_t>(-1) && row_or_col < boost::lexical_cast<byte_t>(3));
+  assert( row_or_col < boost::lexical_cast<byte_t>(3));
 } 
 
 inline matrix &matrix::operator=(const double &v) {
