@@ -116,8 +116,8 @@ public:
 
 protected:
   BaseBead()
-      : _type(nullptr), _mol(nullptr), _mass(0.0), _q(0.0), _bPos(false),
-        TopologyItem(nullptr){};
+      : TopologyItem(nullptr), _type(nullptr), _mol(nullptr), _mass(0.0), 
+      _q(0.0), _bPos(false) {};
 
   BeadType *_type;
   Molecule *_mol;
