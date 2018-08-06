@@ -19,6 +19,7 @@
 #define	_VOTCA_CSG_BEADSTRUCTURE_H
 
 #include <string>
+#include <set>
 #include <map>
 #include <list>
 #include <memory>
@@ -42,52 +43,36 @@ class BaseBead;
 class BeadStructure
 {
 public:
-    BeadStructure() {};
-    ~BeadStructure() {}
+  BeadStructure() : structureIdUpToDate(false), graphUpToDate(false) {};
+  ~BeadStructure() {}
 
-    // This assumes that a bead is never composed of more than a single molecule
-    bool isSingleMolecule();
+  // This assumes that a bead is never composed of more than a single molecule
+  bool isSingleMolecule();
 
-    // Follows same method name as topology class
-    int BeadCount() { return beads_.size(); }
-    void AddBead(BaseBead * bead) { beads_[bead->getId()] = bead;}
-    BaseBead * getBead(int id) { return beads_[id];}
-    void ConnectBeads(int bead1_id, int bead2_id );
-/*
-    std::vector<BaseBead *> getNeighBeads(int index);
-    BaseBead * getBead(int index);
+  // Follows same method name as topology class
+  int BeadCount() { return beads_.size(); }
+  void AddBead(BaseBead * bead); 
+  BaseBead * getBead(int id);
+  void ConnectBeads(int bead1_id, int bead2_id );
 
-    std::vector<BeadStructure *> breakIntoMolecules();
+  std::vector<BaseBead *> getNeighBeads(int index);
+  /*
+     std::vector<BeadStructure *> breakIntoMolecules();
 
-    bool isStructureEquivalent(const BeadGraph &beadgraph) const; 
 */
+  bool isStructureEquivalent(BeadStructure &beadstructure); 
 private:
-  votca::tools::Graph graph_;
+
+  void InitializeGraph_();
+  void CalculateStructure_();
+  
+  bool structureIdUpToDate;
+  bool graphUpToDate;
+  shared_ptr<votca::tools::Graph> graph_;
+  std::set<Edge> connections_;
   std::map<int,BaseBead *> beads_;    
   std::map<int,std::shared_ptr<votca::tools::GraphNode>> graphnodes_;
 };
-/*
-inline std::vector<bead *> BeadStructure::getNeighBeads(int index){
-  auto neighbornodes = graph.getNeighNodes(index);
-  std::vector<bead *> neighbeads;
-  for( auto node_pair : neighbornodes ) {
-    neighbeads.push_back(beads_[node_pair.first]); 
-  }
-  return neighbeads;
-}
-
-inline bool BeadStructure::isStructureEquivalent(const BeadGraph &beadgraph){
-  return (graph==beadgraph.graph);
-}
-*/
-inline bool BeadStructure::isSingleMolecule(){
-  auto vertices = graph_.getVertices();
-  auto isolated_nodes = graph_.getIsolatedNodes();
-  if( beads_.size()==0 ) return false;
-  if( isolated_nodes.size() !=0 ) return false;
-  if( vertices.size()!= beads_.size() ) return false;
-  return true; 
-}
 
 }}
 
