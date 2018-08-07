@@ -28,13 +28,11 @@ namespace tools {
 
 class GraphNode;
 
-bool Graph::operator!=(const Graph& g) const {
-  return id_.compare(g.id_);
-}
+bool Graph::operator!=(const Graph& g) const { return id_.compare(g.id_); }
 
 bool Graph::operator==(const Graph& g) const { return !(*(this) != g); }
 
-Graph::Graph(const Graph& g){
+Graph::Graph(const Graph& g) {
   this->adj_list_ = g.adj_list_;
   for (auto pr : g.nodes_) {
     this->nodes_[pr.first] = pr.second;
@@ -51,7 +49,7 @@ Graph& Graph::operator=(const Graph& g) {
   return *this;
 }
 
-Graph& Graph::operator=(Graph && g) {
+Graph& Graph::operator=(Graph&& g) {
   this->adj_list_ = move(g.adj_list_);
   this->nodes_ = move(g.nodes_);
   this->id_ = move(g.id_);
@@ -84,18 +82,18 @@ vector<int> Graph::getVerticesMissingNodes(void) {
   return missing;
 }
 
-void Graph::setNode(int vert, GraphNode gn){
-  if(nodes_.count(vert)){
+void Graph::setNode(int vert, GraphNode gn) {
+  if (nodes_.count(vert)) {
     nodes_[vert] = gn;
-  }else{
+  } else {
     string errMsg = "Vertex does not exist within graph cannot, reset node";
     throw runtime_error(errMsg);
   }
   calcId_();
 }
 
-void Graph::setNode(std::pair<int,GraphNode> p_gn){
-  setNode(p_gn.first,p_gn.second);
+void Graph::setNode(std::pair<int, GraphNode> p_gn) {
+  setNode(p_gn.first, p_gn.second);
 }
 
 GraphNode Graph::getNode(int vert) { return nodes_[vert]; }
