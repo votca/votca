@@ -139,7 +139,7 @@ namespace votca {
       
     
       
-      std::vector<std::string> QMPackage::FindUniqueElements(const std::vector<QMAtom*> atoms){
+      static std::vector<std::string> QMPackage::FindUniqueElements(const std::vector<QMAtom*> atoms){
         std::vector<std::string> result;
         for (QMAtom* atom:atoms) {
         bool exists = false;
