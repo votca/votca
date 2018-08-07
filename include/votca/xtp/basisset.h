@@ -188,6 +188,9 @@ public:
     std::map< std::string,std::shared_ptr<Element> >::iterator begin() { return _elements.begin(); }
     std::map< std::string,std::shared_ptr<Element> >::iterator end(){ return _elements.end(); }
     
+    std::map< std::string,std::shared_ptr<Element> >::const_iterator begin() const{ return _elements.begin(); }
+    std::map< std::string,std::shared_ptr<Element> >::const_iterator end()const{ return _elements.end(); }
+    
      friend std::ostream &operator<<(std::ostream &out, const BasisSet& basis);
 
 private:    
