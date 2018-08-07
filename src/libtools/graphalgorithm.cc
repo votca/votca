@@ -56,16 +56,16 @@ bool singleNetwork(Graph g, GraphVisitor& gv) {
 
 vector<shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph g) {
 
+  auto vertices_list = vectorToList_(g.getVertices());
   vector<shared_ptr<Graph>> subGraphs;
   {
     Graph_BF_Visitor gv_breadth_first;
+    gv_breadth_first.setStartingVertex(*vertices_list.begin());
     if (singleNetwork(g, gv_breadth_first)) {
       subGraphs.push_back(make_shared<Graph>(g));
       return subGraphs;
     }
   }
-
-  auto vertices_list = vectorToList_(g.getVertices());
 
   auto v_it = vertices_list.begin();
   unordered_map<int, GraphNode> sub_graph_nodes;
