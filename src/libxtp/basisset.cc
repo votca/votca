@@ -351,6 +351,19 @@ std::ostream &operator<<(std::ostream &out, const Shell& shell) {
         }
 
 
+std::ostream &operator<<(std::ostream &out, const Element& element) {
+    out <<"Element:"<<element.getType()<<"\n";
+    for(const auto& shell:element)
+      out<<shell;
+        }
+
+std::ostream &operator<<(std::ostream &out, const BasisSet& basis){
+  out<<"BasisSet:"<<basis._name<<"\n";
+  for (const auto* element:basis){
+    out<<element;
+  }
+}
+
  GaussianPrimitive&  Shell::addGaussian( double decay, std::vector<double> contraction ){
         _gaussians.push_back( GaussianPrimitive(decay, contraction) );
         return _gaussians.back();

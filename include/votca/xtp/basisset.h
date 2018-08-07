@@ -145,6 +145,8 @@ public:
         return _shells.back();
     }
     
+    friend std::ostream &operator<<(std::ostream &out, const Element& element);
+    
 private:  
     
     // only class BasisSet can create Elements
@@ -185,6 +187,8 @@ public:
     
     std::map< std::string,std::shared_ptr<Element> >::iterator begin() { return _elements.begin(); }
     std::map< std::string,std::shared_ptr<Element> >::iterator end(){ return _elements.end(); }
+    
+     friend std::ostream &operator<<(std::ostream &out, const BasisSet& basis);
 
 private:    
     std::string _name;

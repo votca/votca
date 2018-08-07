@@ -151,7 +151,6 @@ private:
     int _startIndex;
     int _offset;
     tools::vec _pos;
-    int _atomindex;
     const QMAtom* _qmatom;
     //used for ecp calculations
     bool _nonlocal;

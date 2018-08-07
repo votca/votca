@@ -182,7 +182,7 @@ void DFTEngine::CalcElDipole(){
       }
 
       Eigen::MatrixXd H0 = _dftAOkinetic.Matrix() + _dftAOESP.getNuclearpotential();
-      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed initial density " << flush;
+      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed independent particle hamiltonian " << flush;
       NuclearRepulsion();
 
       if(_with_ecp){
@@ -656,30 +656,25 @@ void DFTEngine::CalcElDipole(){
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " " << uniqueelements.size() << " unique elements found" << flush;
       std::vector< Eigen::MatrixXd > uniqueatom_guesses;
       for ( QMAtom* unique_atom:uniqueelements) {
-
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Calculating atom density for " << unique_atom->getType() << flush;
         Eigen::MatrixXd dmat_unrestricted=RunAtomicDFT_unrestricted(unique_atom);
-
         uniqueatom_guesses.push_back(dmat_unrestricted);
       }
-      
-      
-      
+ 
       Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(_dftbasis.AOBasisSize(), _dftbasis.AOBasisSize());
       int start = 0;
       for (QMAtom* atom:_atoms) {
-        int index = 0;
-        for (int i = 0; i < int(uniqueelements.size()); i++) {
-          if (atom->getType() == uniqueelements[i]->getType()) {
-            index = i;
+        unsigned index = 0;
+        for (index = 0; index < uniqueelements.size(); index++) {
+          if (atom->getType() == uniqueelements[index]->getType()) {
             break;
           }
         }
-        double size = _dftbasis.getFuncperAtom(atom->getAtomID());
-        guess.block(start, start, size, size) = uniqueatom_guesses[index];
-        start += size;
+        Eigen::MatrixXd& dmat_unrestricted= uniqueatom_guesses[index];
+        guess.block(start, start, dmat_unrestricted.rows(),dmat_unrestricted.cols())=dmat_unrestricted;
+        start += dmat_unrestricted.rows();
       }
-
+      
       return guess;
     }
 
@@ -758,13 +753,15 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
         
       std::string output=(boost::format("  %1$s"
                                          "   %2$+1.4f %3$+1.4f %4$+1.4f")
-                         %atom->getType() %atom->getPos().getX() 
-                         %atom->getPos().getY() %atom->getPos().getZ()).str();
+                         %atom->getType() %(atom->getPos().getX()*tools::conv::bohr2ang)
+                         %(atom->getPos().getY()*tools::conv::bohr2ang)
+                         %(atom->getPos().getZ()*tools::conv::bohr2ang) ).str();
         
         CTP_LOG(ctp::logDEBUG, *_pLog) <<output<< flush;
       }
 
       _dftbasisset.LoadBasisSet(_dftbasis_name);
+       CTP_LOG(ctp::logDEBUG, *_pLog) <<_dftbasisset<<flush;
 
       _dftbasis.AOBasisFill(_dftbasisset, _atoms);
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()

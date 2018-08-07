@@ -120,7 +120,8 @@ namespace votca {
             }
 
             // parse DFT data, if required
-            if (_do_dft_parse) {
+            if (_do_dft_parse && qmpackage->getPackageName()!="xtp") {
+                  
                      CTP_LOG_SAVE(ctp::logINFO,*logger) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
                     qmpackage->setLogFileName(_dftlog_file);
                     qmpackage->setOrbitalsFileName(_MO_file);
