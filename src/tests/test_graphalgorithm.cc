@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(single_network_algorithm_test) {
 
     Graph_BF_Visitor gb_v2;
     gb_v2.setStartingVertex(2);
-    BOOST_CHECK_THROW(singleNetwork(g,gb_v2),invalid_argument);
+    BOOST_CHECK_THROW(singleNetwork(g, gb_v2), invalid_argument);
   }
 
   {
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(decoupleIsolatedSubGraphs_algorithm_test) {
   {
     // In this test we add two nodes and an edge describing
     // their connection
-    
+
     // Create edge
     Edge ed(0, 1);
     vector<Edge> edges;
@@ -128,10 +128,9 @@ BOOST_AUTO_TEST_CASE(decoupleIsolatedSubGraphs_algorithm_test) {
     Graph g(edges, nodes);
 
     auto subGraphs = decoupleIsolatedSubGraphs(g);
-  
-    BOOST_CHECK_EQUAL(subGraphs.size(),1);
-    BOOST_CHECK_EQUAL(*(subGraphs.at(0)),g);
 
+    BOOST_CHECK_EQUAL(subGraphs.size(), 1);
+    BOOST_CHECK_EQUAL(*(subGraphs.at(0)), g);
   }
 
   {
@@ -144,14 +143,14 @@ BOOST_AUTO_TEST_CASE(decoupleIsolatedSubGraphs_algorithm_test) {
     //     4
 
     Edge ed1(0, 1);
-    Edge ed2(1,2);
-    Edge ed3(1,3);
-    Edge ed4(1,4);
-  
-    // 
+    Edge ed2(1, 2);
+    Edge ed3(1, 3);
+    Edge ed4(1, 4);
+
+    //
     // 5 - 6
     //
-    Edge ed5(5,6);
+    Edge ed5(5, 6);
 
     vector<Edge> edges;
     edges.push_back(ed1);
@@ -181,10 +180,10 @@ BOOST_AUTO_TEST_CASE(decoupleIsolatedSubGraphs_algorithm_test) {
     Graph g(edges, nodes);
 
     vector<std::shared_ptr<Graph>> sub_graphs = decoupleIsolatedSubGraphs(g);
-    BOOST_CHECK_EQUAL(sub_graphs.size(),2);
+    BOOST_CHECK_EQUAL(sub_graphs.size(), 2);
 
     // Create sub graphs to compare with the graphs stored in 'sub_graphs'
-    
+
     vector<Edge> sub_graph1_edges;
     sub_graph1_edges.push_back(ed1);
     sub_graph1_edges.push_back(ed2);
@@ -194,27 +193,28 @@ BOOST_AUTO_TEST_CASE(decoupleIsolatedSubGraphs_algorithm_test) {
     vector<Edge> sub_graph2_edges;
     sub_graph2_edges.push_back(ed5);
 
-    unordered_map<int,GraphNode> sub_graph1_nodes;
+    unordered_map<int, GraphNode> sub_graph1_nodes;
     sub_graph1_nodes[0] = gn1;
     sub_graph1_nodes[1] = gn2;
     sub_graph1_nodes[2] = gn3;
     sub_graph1_nodes[3] = gn4;
     sub_graph1_nodes[4] = gn5;
 
-    unordered_map<int,GraphNode> sub_graph2_nodes;
+    unordered_map<int, GraphNode> sub_graph2_nodes;
     sub_graph2_nodes[0] = gn6;
     sub_graph2_nodes[1] = gn7;
 
-    Graph sub_graph1(sub_graph1_edges,sub_graph1_nodes);
-    Graph sub_graph2(sub_graph2_edges,sub_graph2_nodes);
+    Graph sub_graph1(sub_graph1_edges, sub_graph1_nodes);
+    Graph sub_graph2(sub_graph2_edges, sub_graph2_nodes);
 
     // Cycle sub_graphs
     bool sub_graph1_found = false;
     bool sub_graph2_found = false;
 
-    for(auto graph_sub_it = sub_graphs.begin();graph_sub_it!=sub_graphs.end();++graph_sub_it){
-      if(**graph_sub_it == sub_graph1) sub_graph1_found = true;
-      if(**graph_sub_it == sub_graph2) sub_graph2_found = true;
+    for (auto graph_sub_it = sub_graphs.begin();
+         graph_sub_it != sub_graphs.end(); ++graph_sub_it) {
+      if (**graph_sub_it == sub_graph1) sub_graph1_found = true;
+      if (**graph_sub_it == sub_graph2) sub_graph2_found = true;
     }
     BOOST_CHECK(sub_graph1_found);
     BOOST_CHECK(sub_graph2_found);
@@ -265,8 +265,7 @@ BOOST_AUTO_TEST_CASE(structureid_test) {
     auto structId = findStructureId<GraphDistVisitor>(g);
 
     string answer = "Dist0Dist1Dist1Dist1Dist2Dist2Dist3";
-    BOOST_CHECK_EQUAL(structId,answer);
-
+    BOOST_CHECK_EQUAL(structId, answer);
   }
 }
 BOOST_AUTO_TEST_SUITE_END()
