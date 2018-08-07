@@ -40,6 +40,8 @@ namespace votca {
         class QMPackage {
         public:
 
+            static std::vector<std::string> FindUniqueElements(const std::vector<QMAtom*> atoms);
+            
             QMPackage() {
                 
             };
@@ -142,7 +144,7 @@ namespace votca {
             void addLinkers(std::vector< ctp::Segment* > &segments, ctp::QMPair* pair, std::vector< std::string> linker_names );
             bool isLinker( std::string name, std::vector< std::string> linker_names );
             
-            std::vector<std::string> FindUniqueElements(const std::vector<QMAtom*> atoms);
+            
             std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,const std::string separators );
             
             int _charge;
