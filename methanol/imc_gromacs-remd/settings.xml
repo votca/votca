@@ -58,8 +58,8 @@
         <multidir>sim0 sim1 sim2 sim3</multidir>
       </mdrun>
       <imc>
-        <topol>topol1.tpr</topol>
-        <traj>traj1.trr</traj>
+        <topol>sim1/topol.tpr</topol>
+        <traj>sim1/traj.trr</traj>
       </imc>
       <mdp>
         <sim0>grompp0.mdp</sim0>
