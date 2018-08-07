@@ -42,13 +42,13 @@ class GraphNode;
 
 class Graph : public EdgeContainer {
  private:
-  /// Parameter description 
+  /// Parameter description
   /// @param int - is the index of the graph nodes / vertex ids
-  /// @param GraphNode - this is the node object at each vertex and contains 
+  /// @param GraphNode - this is the node object at each vertex and contains
   /// all the informatino that is relevant to that object
   std::unordered_map<int, GraphNode> nodes_;
 
-  /// This is the id of the graph to graphs that contain the same content 
+  /// This is the id of the graph to graphs that contain the same content
   /// are considered equal
   std::string id_;
 
@@ -57,11 +57,11 @@ class Graph : public EdgeContainer {
   void calcId_();
 
  public:
-  Graph() : id_("") {};
-  ~Graph() {};
+  Graph() : id_(""){};
+  ~Graph(){};
 
   /// Constructor
-  /// @param edgs - vector of edges where each edge is composed of two 
+  /// @param edgs - vector of edges where each edge is composed of two
   /// ints (vertex ids) describing a link between the vertices
   /// @param nodes - unordered_map where the key is the vertex id and the
   /// target is the graph node
@@ -70,8 +70,21 @@ class Graph : public EdgeContainer {
     calcId_();
   }
 
+  /// Copy constructor
   Graph(const Graph& g);
-  /// Find all the vertices that are isolated (not connected to any other 
+
+  /// Equivalence and non equivalence operators work by determine if the
+  /// contents of each graph node in each of the graphs are the same.
+  bool operator!=(const Graph& g) const;
+  bool operator==(const Graph& g) const;
+
+  /// Copy Assignment
+  Graph& operator=(const Graph& g);
+
+  /// Move Assignment
+  Graph& operator=(Graph&& g);
+
+  /// Find all the vertices that are isolated (not connected to any other
   /// vertex) and return them in a vector with their corresponding graph node.
   std::vector<std::pair<int, GraphNode>> getIsolatedNodes(void);
 
@@ -85,21 +98,13 @@ class Graph : public EdgeContainer {
 
   /// set the Node associated with vertex 'vert'
   void setNode(int vert, GraphNode gn);
-  void setNode(std::pair<int,GraphNode> p_gn);
+  void setNode(std::pair<int, GraphNode> p_gn);
 
   /// Return a copy of the graph node at vertex 'vert'
   GraphNode getNode(int vert);
 
   /// Return all the vertices and their graph nodes that are within the graph
   std::vector<std::pair<int, GraphNode>> getNodes(void);
-
-  /// Equivalence and non equivalence operators work by determine if the 
-  /// contents of each graph node in each of the graphs are the same.  
-  bool operator!=(const Graph& g) const;
-  bool operator==(const Graph& g) const;
-
-  Graph& operator=(const Graph& g);
-  Graph& operator=(Graph&& g);
 
   std::string getId() { return id_; }
 
@@ -108,9 +113,9 @@ class Graph : public EdgeContainer {
 
 /**
  * \brief Compare function pair<int,GraphNode> object
- * 
+ *
  * This function is meant to be used with the stl sort algorithm. It will sort
- * a vector of pairs containing the vertex ids and the graphnodes. Only the 
+ * a vector of pairs containing the vertex ids and the graphnodes. Only the
  * contetns of the graph node object are used to determine precidence e.g.
  *
  * pair<int,GraphNode> pr_grn1{ 1, gn };
