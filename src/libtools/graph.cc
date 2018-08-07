@@ -82,7 +82,7 @@ vector<int> Graph::getVerticesMissingNodes(void) {
   return missing;
 }
 
-vector<pair<int,GraphNode>> Graph::Nodes(int vert){
+vector<pair<int,GraphNode>> Graph::getNeighNodes(int vert){
   auto neigh_vertices = getNeighVertices(vert);
   vector<pair<int,GraphNode>> neigh_vertices_pr;
   for(auto neigh_vert : neigh_vertices){
