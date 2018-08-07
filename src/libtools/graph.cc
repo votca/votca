@@ -82,8 +82,18 @@ vector<int> Graph::getVerticesMissingNodes(void) {
   return missing;
 }
 
-void Graph::setNode(int vert, GraphNode gn) {
-  if (nodes_.count(vert)) {
+vector<pair<int,GraphNode>> Graph::Nodes(int vert){
+  auto neigh_vertices = getNeighVertices(vert);
+  vector<pair<int,GraphNode>> neigh_vertices_pr;
+  for(auto neigh_vert : neigh_vertices){
+    auto node_pr = pair<int,GraphNode>(neigh_vert,nodes_[neigh_vert]);
+    neigh_vertices_pr.push_back(node_pr);
+  }
+  return neigh_vertices_pr;
+}
+
+void Graph::setNode(int vert, GraphNode gn){
+  if(nodes_.count(vert)){
     nodes_[vert] = gn;
   } else {
     string errMsg = "Vertex does not exist within graph cannot, reset node";
