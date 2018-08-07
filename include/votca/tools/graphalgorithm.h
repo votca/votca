@@ -22,6 +22,7 @@
 
 #include <iostream>
 #include <string>
+#include <memory>
 #include <votca/tools/graphnode.h>
 
 /**
@@ -42,7 +43,7 @@ class GraphVisitor;
 /// every other one by 1 or more series of edges.
 bool singleNetwork(Graph g, GraphVisitor& gv);
 
-std::vector<shared_ptr<Graph>> decoupleIsolatedGraphs(Graph g);
+std::vector<std::shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph g);
 
 /// This function will simply explore a graph, any information gained from the
 /// exploration will depend on the graph visitor used. Note that the

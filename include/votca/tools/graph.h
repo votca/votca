@@ -58,6 +58,7 @@ class Graph : public EdgeContainer {
 
  public:
   Graph() : id_("") {};
+  ~Graph() {};
 
   /// Constructor
   /// @param edgs - vector of edges where each edge is composed of two 
@@ -69,6 +70,7 @@ class Graph : public EdgeContainer {
     calcId_();
   }
 
+  Graph(const Graph& g);
   /// Find all the vertices that are isolated (not connected to any other 
   /// vertex) and return them in a vector with their corresponding graph node.
   std::vector<std::pair<int, GraphNode>> getIsolatedNodes(void);
@@ -97,6 +99,7 @@ class Graph : public EdgeContainer {
   bool operator==(const Graph& g) const;
 
   Graph& operator=(const Graph& g);
+  Graph& operator=(Graph&& g);
 
   std::string getId() { return id_; }
 

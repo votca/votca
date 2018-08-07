@@ -34,12 +34,27 @@ bool Graph::operator!=(const Graph& g) const {
 
 bool Graph::operator==(const Graph& g) const { return !(*(this) != g); }
 
+Graph::Graph(const Graph& g){
+  this->adj_list_ = g.adj_list_;
+  for (auto pr : g.nodes_) {
+    this->nodes_[pr.first] = pr.second;
+  }
+  this->id_ = g.id_;
+}
+
 Graph& Graph::operator=(const Graph& g) {
   this->adj_list_ = g.adj_list_;
   for (auto pr : g.nodes_) {
     this->nodes_[pr.first] = pr.second;
   }
   this->id_ = g.id_;
+  return *this;
+}
+
+Graph& Graph::operator=(Graph && g) {
+  this->adj_list_ = move(g.adj_list_);
+  this->nodes_ = move(g.nodes_);
+  this->id_ = move(g.id_);
   return *this;
 }
 
