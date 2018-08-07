@@ -56,14 +56,14 @@ BOOST_AUTO_TEST_CASE(xy_test) {
   for (int i = 0; i < 10; ++i) {
     int x = i;
     int y = 2 * x;
-    BOOST_CHECK_EQUAL(boost::lexical_cast<int>(x_v(i)),
-                      boost::lexical_cast<int>(tb.x(i)));
-    BOOST_CHECK_EQUAL(boost::lexical_cast<int>(y_v(i)),
-                      boost::lexical_cast<int>(tb.y(i)));
-    BOOST_CHECK_EQUAL(x, boost::lexical_cast<int>(tb.x(i)));
-    BOOST_CHECK_EQUAL(y, boost::lexical_cast<int>(tb.y(i)));
-    BOOST_CHECK_EQUAL(x, boost::lexical_cast<int>(x_v(i)));
-    BOOST_CHECK_EQUAL(y, boost::lexical_cast<int>(y_v(i)));
+    BOOST_CHECK_EQUAL(static_cast<int>(x_v(i)),
+                      static_cast<int>(tb.x(i)));
+    BOOST_CHECK_EQUAL(static_cast<int>(y_v(i)),
+                      static_cast<int>(tb.y(i)));
+    BOOST_CHECK_EQUAL(x, static_cast<int>(tb.x(i)));
+    BOOST_CHECK_EQUAL(y, static_cast<int>(tb.y(i)));
+    BOOST_CHECK_EQUAL(x, static_cast<int>(x_v(i)));
+    BOOST_CHECK_EQUAL(y, static_cast<int>(y_v(i)));
   }
 }
 
@@ -74,10 +74,10 @@ BOOST_AUTO_TEST_CASE(getMinMax_test) {
     tb.push_back(x, y);
   }
   
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(tb.getMinX()), 0);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(tb.getMaxX()), 9);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(tb.getMinY()), 0);
-  BOOST_CHECK_EQUAL(boost::lexical_cast<int>(tb.getMaxY()), 18);
+  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMinX()), 0);
+  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMaxX()), 9);
+  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMinY()), 0);
+  BOOST_CHECK_EQUAL(static_cast<int>(tb.getMaxY()), 18);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
