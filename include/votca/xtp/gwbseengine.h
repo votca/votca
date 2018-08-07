@@ -23,9 +23,7 @@
 
 
 #include <votca/ctp/segment.h>
-#include <votca/xtp/orbitals.h>
 #include <votca/ctp/polarseg.h>
-#include <votca/xtp/qmpackage.h>
 #include <votca/ctp/topology.h>
 #include <votca/ctp/apolarsite.h>
 #include <boost/filesystem.hpp>
@@ -33,6 +31,8 @@
 
 namespace votca {
     namespace xtp {
+        class QMPackage;
+        class Orbitals;
 
 /**
          * \brief Electronic Excitations via Density-Functional Theory

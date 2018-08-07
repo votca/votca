@@ -24,7 +24,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/constants.h>
 #include <votca/xtp/ppm.h>
-
+#include <votca/xtp/threecenter.h>
 
 
 namespace votca {

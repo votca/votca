@@ -51,9 +51,9 @@ const int size = Mmn_full.getAuxDimension(); // size of gwbasis
 #endif
                 Eigen::MatrixXd tempresult=Eigen::MatrixXd::Zero(size,size);
                 Eigen::MatrixXd denom_x_Mmn_RPA=Eigen::MatrixXd::Zero(n_unocc,size);
-                for (int i = 0; i < screen_freq_i.size(); ++i) {   
+                for (int i = 0; i < _screen_freq_i.size(); ++i) {   
                     // a temporary matrix, that will get filled in empty levels loop
-                    const double screen_freq2 = screen_freq_i(i) * screen_freq_i(i);
+                    const double screen_freq2 = _screen_freq_i(i) * _screen_freq_i(i);
                     for (int n_level = 0; n_level < n_unocc; n_level++) {
                         const double deltaE = qp_energies(n_level + lumo) - qp_energy_m;
                         const double denom=4.0 * deltaE / (deltaE * deltaE + screen_freq2);  
@@ -68,10 +68,10 @@ const int size = Mmn_full.getAuxDimension(); // size of gwbasis
                 }
 
                 //real parts
-                for (int i = 0; i < screen_freq_r.size(); ++i) {
+                for (int i = 0; i < _screen_freq_r.size(); ++i) {
                     for (int n_level = 0;  n_level < n_unocc; n_level++) {
                         const double deltaE = qp_energies(n_level + lumo) - qp_energy_m;
-                        const double denom=2.0 * (1.0 / (deltaE - screen_freq_r(i)) + 1.0 / (deltaE + screen_freq_r(i)));
+                        const double denom=2.0 * (1.0 / (deltaE - _screen_freq_r(i)) + 1.0 / (deltaE + _screen_freq_r(i)));
                         denom_x_Mmn_RPA.row(n_level)=Mmn_RPA.row(n_level)*denom; //hartree    
                     }
                     tempresult.noalias() = Mmn_RPA.transpose() * denom_x_Mmn_RPA;

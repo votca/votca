@@ -20,14 +20,13 @@
 #include "nwchem.h"
 #include <votca/ctp/segment.h>
 #include <votca/xtp/qminterface.h>
-
+#include <votca/xtp/basisset.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <stdio.h>
 #include <iomanip>
-#include <sys/stat.h>
-#include <vector>
+
 
 
 

@@ -30,6 +30,7 @@
 
 
 
+
 namespace votca {
     namespace xtp {
 
@@ -75,17 +76,12 @@ namespace votca {
             };
             void Report();
 
-
-
-
         private:
 
             double _displacement;
             std::string _force_method;
             std::string _spin_type;
 
-            
-            
             bool _noisy_output;
 
             int _nsegments;

@@ -20,11 +20,8 @@
 #ifndef __VOTCA_XTP_ORBITALS_H
 #define __VOTCA_XTP_ORBITALS_H
 
-
-//for openmp
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/basisset.h>
-#include <votca/xtp/aobasis.h>
+
 #include <votca/xtp/qmatom.h>
 
 #include <votca/xtp/checkpoint.h>
@@ -54,9 +51,9 @@ namespace votca {
             Orbitals();
             ~Orbitals();
 
-            static void PrepareGuess(const Orbitals& _orbitalsA,const Orbitals& _orbitalsB, Orbitals& _orbitalsAB);
+            static void PrepareDimerGuess(const Orbitals& orbitalsA,const Orbitals& orbitalsB, Orbitals& orbitalsAB);
              // functions for analyzing fragment charges via Mulliken populations
-            static Eigen::VectorXd LoewdinPopulation(const Eigen::MatrixXd& _densitymatrix, const Eigen::MatrixXd& _overlapmatrix, int _frag);
+            static Eigen::VectorXd LoewdinPopulation(const Eigen::MatrixXd& densitymatrix, const Eigen::MatrixXd& overlapmatrix, int frag);
 
             bool hasBasisSetSize() const{
                 return ( _basis_set_size > 0) ? true : false;
@@ -497,6 +494,7 @@ namespace votca {
             Eigen::MatrixXd DensityMatrixGroundState() const;
             std::vector<Eigen::MatrixXd > DensityMatrixExcitedState(const std::string& spin,int state = 0)const;
             Eigen::MatrixXd TransitionDensityMatrix(const std::string& spin,int state = 0)const;
+            
             Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0)const;
             Eigen::MatrixXd LambdaMatrixQuasiParticle()const;
 
@@ -607,6 +605,15 @@ namespace votca {
             
         private:
 
+            struct Index2MO{
+                std::vector<int> I2v;
+                std::vector<int> I2c;
+            };
+            
+            
+            Index2MO BSEIndex2MOIndex()const;
+
+
             void WriteToCpt(CheckpointFile f)const;
             void WriteToCpt(CptLoc parent)const;
             
@@ -633,8 +640,6 @@ namespace votca {
 
             double _qm_energy;
             double _self_energy;
-
-            BasisSet _basis_set;
 
             // new variables for GW-BSE storage
             int _rpamin;

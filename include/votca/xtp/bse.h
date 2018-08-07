@@ -19,7 +19,7 @@
 
 #ifndef _VOTCA_XTP_BSE_H
 #define _VOTCA_XTP_BSE_H
-#include <votca/tools/linalg.h>
+
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/ppm.h>
 #include <votca/xtp/threecenter.h>

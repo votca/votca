@@ -18,7 +18,9 @@
 #define BOOST_TEST_MODULE ppm_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/ppm.h>
-
+#include <votca/xtp/aobasis.h>
+#include <votca/xtp/orbitals.h>
+#include <votca/xtp/threecenter.h>
 
 using namespace votca::xtp;
 using namespace std;

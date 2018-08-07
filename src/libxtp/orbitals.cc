@@ -20,6 +20,8 @@
 #include "votca/xtp/orbitals.h"
 #include <votca/xtp/version.h>
 #include <votca/tools/elements.h>
+#include <votca/xtp/basisset.h>
+#include <votca/xtp/aobasis.h>
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
@@ -146,6 +148,17 @@ namespace votca {
             return dmatQP;
         }
 
+        Orbitals::Index2MO Orbitals::BSEIndex2MOIndex()const{
+          Index2MO result;
+          for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
+            for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
+              result.I2v.push_back(_bse_vmin + _v);
+              result.I2c.push_back(_bse_cmin + _c);
+            }
+          }
+          return result;
+        }
+
         Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const string& spin, int state) const{
             if (!(spin == "singlet" || spin == "triplet")) {
                 throw runtime_error("Spin type not known for density matrix. Available are singlet and triplet");
@@ -160,16 +173,9 @@ namespace votca {
             /*Trying to implement D_{alpha,beta}= sqrt2*sum_{i}^{occ}sum_{j}^{virt}{BSEcoef(i,j)*MOcoef(alpha,i)*MOcoef(beta,j)} */
             // c stands for conduction band and thus virtual orbitals
             // v stand for valence band and thus occupied orbitals
-            std::vector<int> _index2v;
-            std::vector<int> _index2c;
-
+            
             // indexing info BSE vector index to occupied/virtual orbital
-            for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
-                for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
-                    _index2v.push_back(_bse_vmin + _v);
-                    _index2c.push_back(_bse_cmin + _c);
-                }
-            }
+            Index2MO index=BSEIndex2MOIndex();
 
             if (_bsetype == "full" && spin == "singlet") {
                 const MatrixXfd& _BSECoefs_AR = _BSE_singlet_coefficients_AR;
@@ -177,8 +183,8 @@ namespace votca {
                 for (unsigned a = 0; a < dmatTS.rows(); a++) {
                     for (unsigned b = 0; b < dmatTS.cols(); b++) {
                         for (unsigned i = 0; i < _bse_size; i++) {
-                            int occ = _index2v[i];
-                            int virt = _index2c[i];
+                            int occ = index.I2v[i];
+                            int virt =index.I2c[i];
                             dmatTS(a, b) += sqrt2 * (_BSECoefs(i, state) + _BSECoefs_AR(i, state)) * _mo_coefficients(a, occ) * _mo_coefficients(b, virt); //check factor 2??
                         }
                     }
@@ -189,8 +195,8 @@ namespace votca {
                 for (unsigned a = 0; a < dmatTS.rows(); a++) {
                     for (unsigned b = 0; b < dmatTS.cols(); b++) {
                         for (unsigned i = 0; i < _bse_size; i++) {
-                            int occ = _index2v[i];
-                            int virt = _index2c[i];
+                            int occ = index.I2v[i];
+                            int virt =index.I2c[i];
                             dmatTS(a, b) += sqrt2 * _BSECoefs(i, state) * _mo_coefficients(a, occ) * _mo_coefficients(b, virt); //check factor 2??
                         }
                     }
@@ -217,8 +223,8 @@ namespace votca {
                 throw runtime_error("Spin type not known for density matrix. Available are singlet and triplet");
             }
 
-            const MatrixXfd & _BSECoefs = (spin == "singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
-            if(_BSECoefs.cols()<state || _BSECoefs.rows()<2){
+            const MatrixXfd & BSECoefs = (spin == "singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
+            if(BSECoefs.cols()<state || BSECoefs.rows()<2){
                 throw runtime_error("Orbitals object has no information about that state");
             }
             /******
@@ -247,46 +253,37 @@ namespace votca {
             dmatEX.resize(2);
             dmatEX[0] = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
             dmatEX[1] = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
-
-            std::vector<int> _index2v;
-            std::vector<int> _index2c;
-            // indexing info BSE vector index to occupied/virtual orbital
-            for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
-                for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
-                    _index2v.push_back(_bse_vmin + _v);
-                    _index2c.push_back(_bse_cmin + _c);
-                }
-            }
+            Index2MO index=BSEIndex2MOIndex();
 
             // electron assist matrix A_{cc'}
-            Eigen::MatrixXd _Acc = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_ctotal);
-            Eigen::MatrixXd _Avv = Eigen::MatrixXd::Zero(_bse_vtotal, _bse_vtotal);
+            Eigen::MatrixXd Acc = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_ctotal);
+            Eigen::MatrixXd Avv = Eigen::MatrixXd::Zero(_bse_vtotal, _bse_vtotal);
 
-            for (unsigned _idx1 = 0; _idx1 < _bse_size; _idx1++) {
-                int _v = _index2v[_idx1];
-                int _c = _index2c[_idx1];
+            for (unsigned idx1 = 0; idx1 < _bse_size; idx1++) {
+                int v = index.I2v[idx1];
+                int c = index.I2c[idx1];
                 // electron assist matrix A_{cc'}
 #pragma omp parallel for
                 for (unsigned _c2 = _bse_cmin; _c2 <= _bse_cmax; _c2++) {
-                    unsigned _idx2 = (_bse_cmax - _bse_cmin + 1)*(_v - _bse_vmin)+(_c2 - _bse_cmin);
-                    _Acc(_c - _bse_cmin, _c2 - _bse_cmin) += _BSECoefs(_idx1, state) * _BSECoefs(_idx2, state);
+                    unsigned _idx2 = (_bse_cmax - _bse_cmin + 1)*(v - _bse_vmin)+(_c2 - _bse_cmin);
+                    Acc(c - _bse_cmin, _c2 - _bse_cmin) += BSECoefs(idx1, state) * BSECoefs(_idx2, state);
                 }
 
                 // hole assist matrix A_{vv'}
 #pragma omp parallel for
-                for (unsigned _v2 = _bse_vmin; _v2 <= _bse_vmax; _v2++) {
-                    unsigned _idx2 = (_bse_cmax - _bse_cmin + 1)*(_v2 - _bse_vmin)+(_c - _bse_cmin);
-                    _Avv(_v - _bse_vmin, _v2 - _bse_vmin) += _BSECoefs(_idx1, state) * _BSECoefs(_idx2, state);
+                for (unsigned v2 = _bse_vmin; v2 <= _bse_vmax; v2++) {
+                    unsigned idx2 = (_bse_cmax - _bse_cmin + 1)*(v2 - _bse_vmin)+(c - _bse_cmin);
+                    Avv(v - _bse_vmin, v2 - _bse_vmin) += BSECoefs(idx1, state) * BSECoefs(idx2, state);
                 }
             }
 
             // hole part as matrix products
-            Eigen::MatrixXd _occlevels = _mo_coefficients.block(0, _bse_vmin, _mo_coefficients.rows(), _bse_vtotal);
-            dmatEX[0] = _occlevels * _Avv * _occlevels.transpose();
+            Eigen::MatrixXd occlevels = _mo_coefficients.block(0, _bse_vmin, _mo_coefficients.rows(), _bse_vtotal);
+            dmatEX[0] = occlevels * Avv * occlevels.transpose();
 
             // electron part as matrix products
-            Eigen::MatrixXd _virtlevels = _mo_coefficients.block(0, _bse_cmin, _mo_coefficients.rows(), _bse_ctotal);
-            dmatEX[1] = _virtlevels * _Acc * _virtlevels.transpose();
+            Eigen::MatrixXd virtlevels = _mo_coefficients.block(0, _bse_cmin, _mo_coefficients.rows(), _bse_ctotal);
+            dmatEX[1] = virtlevels * Acc * virtlevels.transpose();
             return dmatEX;
         }
 
@@ -297,8 +294,8 @@ namespace votca {
                 throw runtime_error("Spin type not known for density matrix. Available is singlet");
             }
             
-            const MatrixXfd& _BSECoefs_AR = _BSE_singlet_coefficients_AR;
-            if(_BSECoefs_AR.cols()<state || _BSECoefs_AR.rows()<2){
+            const MatrixXfd& BSECoefs_AR = _BSE_singlet_coefficients_AR;
+            if(BSECoefs_AR.cols()<state || BSECoefs_AR.rows()<2){
                 throw runtime_error("Orbitals object has no information about that state");
             }
             /******
@@ -327,61 +324,52 @@ namespace votca {
             dmatAR.resize(2);
             dmatAR[0] = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
             dmatAR[1] = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
-            std::vector<int> _index2v;
-            std::vector<int> _index2c;
-
-            // indexing info BSE vector index to occupied/virtual orbital
-            for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
-                for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
-                    _index2v.push_back(_bse_vmin + _v);
-                    _index2c.push_back(_bse_cmin + _c);
-                }
-            }
+            Index2MO index=BSEIndex2MOIndex();
 
             // hole assist matrix B_{cc'}
-            Eigen::MatrixXd _Bcc = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_ctotal);
-            Eigen::MatrixXd _Bvv = Eigen::MatrixXd::Zero(_bse_vtotal, _bse_vtotal);
+            Eigen::MatrixXd Bcc = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_ctotal);
+            Eigen::MatrixXd Bvv = Eigen::MatrixXd::Zero(_bse_vtotal, _bse_vtotal);
 
-            for (unsigned _idx1 = 0; _idx1 < _bse_size; _idx1++) {
-                int _v = _index2v[_idx1];
-                int _c = _index2c[_idx1];
+            for (unsigned idx1 = 0; idx1 < _bse_size; idx1++) {
+                int v = index.I2v[idx1];
+                int c = index.I2c[idx1];
                 // hole assist matrix B_{cc'}
 #pragma omp parallel for
-                for (unsigned _c2 = _bse_cmin; _c2 <= _bse_cmax; _c2++) {
-                    unsigned _idx2 = (_bse_cmax - _bse_cmin + 1)*(_v - _bse_vmin)+(_c2 - _bse_cmin);
-                    _Bcc(_c - _bse_cmin, _c2 - _bse_cmin) += _BSECoefs_AR(_idx1, state) * _BSECoefs_AR(_idx2, state);
+                for (unsigned c2 = _bse_cmin; c2 <= _bse_cmax; c2++) {
+                    unsigned idx2 = (_bse_cmax - _bse_cmin + 1)*(v - _bse_vmin)+(c2 - _bse_cmin);
+                    Bcc(c - _bse_cmin, c2 - _bse_cmin) += BSECoefs_AR(idx1, state) * BSECoefs_AR(idx2, state);
                 }
 
                 // electron assist matrix B_{vv'}
 #pragma omp parallel for
-                for (unsigned _v2 = _bse_vmin; _v2 <= _bse_vmax; _v2++) {
-                    unsigned _idx2 = (_bse_cmax - _bse_cmin + 1)*(_v2 - _bse_vmin)+(_c - _bse_cmin);
-                    _Bvv(_v - _bse_vmin, _v2 - _bse_vmin) += _BSECoefs_AR(_idx1, state) * _BSECoefs_AR(_idx2, state);
+                for (unsigned v2 = _bse_vmin; v2 <= _bse_vmax; v2++) {
+                    unsigned idx2 = (_bse_cmax - _bse_cmin + 1)*(v2 - _bse_vmin)+(c - _bse_cmin);
+                    Bvv(v - _bse_vmin, v2 - _bse_vmin) += BSECoefs_AR(idx1, state) * BSECoefs_AR(idx2, state);
                 }
             }
 
             // hole part as matrix products
-            Eigen::MatrixXd _occlevels = _mo_coefficients.block(0, _bse_vmin, _mo_coefficients.rows(), _bse_vtotal);
-            dmatAR[0] = _occlevels * _Bvv * _occlevels.transpose();
+            Eigen::MatrixXd occlevels = _mo_coefficients.block(0, _bse_vmin, _mo_coefficients.rows(), _bse_vtotal);
+            dmatAR[0] = occlevels * Bvv * occlevels.transpose();
             // electron part as matrix products
-            Eigen::MatrixXd _virtlevels = _mo_coefficients.block(0, _bse_cmin, _mo_coefficients.rows(), _bse_ctotal);
-            dmatAR[1] = _virtlevels * _Bcc * _virtlevels.transpose();
+            Eigen::MatrixXd virtlevels = _mo_coefficients.block(0, _bse_cmin, _mo_coefficients.rows(), _bse_ctotal);
+            dmatAR[1] = virtlevels * Bcc * virtlevels.transpose();
             return dmatAR;
         }
 
-        Eigen::VectorXd Orbitals::LoewdinPopulation(const Eigen::MatrixXd & _densitymatrix, const Eigen::MatrixXd & _overlapmatrix, int _frag){
+        Eigen::VectorXd Orbitals::LoewdinPopulation(const Eigen::MatrixXd & densitymatrix, const Eigen::MatrixXd & overlapmatrix, int frag){
 
             Eigen::VectorXd fragmentCharges = Eigen::VectorXd::Zero(2);
             Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es;
-            es.compute(_overlapmatrix);
+            es.compute(overlapmatrix);
             Eigen::MatrixXd sqrtm1 = es.operatorInverseSqrt();
-            Eigen::MatrixXd _prodmat = sqrtm1 * _densitymatrix*sqrtm1;
+            Eigen::MatrixXd prodmat = sqrtm1 * densitymatrix*sqrtm1;
 
-            for (int _i = 0; _i < _frag; _i++) {
-                fragmentCharges(0) += _prodmat(_i, _i);
+            for (int _i = 0; _i < frag; _i++) {
+                fragmentCharges(0) += prodmat(_i, _i);
             }
-            for (unsigned _i = _frag; _i < _overlapmatrix.rows(); _i++) {
-                fragmentCharges(1) += _prodmat(_i, _i);
+            for (unsigned _i = frag; _i < overlapmatrix.rows(); _i++) {
+                fragmentCharges(1) += prodmat(_i, _i);
             }
 
             return fragmentCharges;
@@ -403,33 +391,33 @@ namespace votca {
         double Orbitals::getTotalExcitedStateEnergy(const string& spintype, int opt_state) const{
 
             // total energy of the excited state
-            double _total_energy;
-            double _omega = 0.0;
+            double total_energy;
+            double omega = 0.0;
 
-            double _dft_energy = getQMEnergy();
+            double dft_energy = getQMEnergy();
 
             if (spintype == "singlet") {
               if(BSESingletEnergies().size()<opt_state){
                 throw std::runtime_error("Orbitals::getTotalEnergy You want a singlet which has not been calculated");
               }
-                _omega = BSESingletEnergies()[opt_state - 1];
+                omega = BSESingletEnergies()[opt_state - 1];
             } else if (spintype == "triplet") {
                if(BSETripletEnergies().size()<opt_state){
                 throw std::runtime_error("Orbitals::getTotalEnergy You want a triplet which has not been calculated");
               }
-                _omega = BSETripletEnergies()[opt_state - 1];
+                omega = BSETripletEnergies()[opt_state - 1];
             } else {
                 throw std::runtime_error("GetTotalEnergy only knows spintypes:singlet,triplet");
             }
 
             // DFT total energy is stored in eV
             // singlet energies are stored in Hrt...
-            return _total_energy = _dft_energy * tools::conv::ev2hrt + _omega; //  e.g. hartree
+            return total_energy = dft_energy * tools::conv::ev2hrt + omega; //  e.g. hartree
         }
 
-        Eigen::VectorXd Orbitals::FragmentNuclearCharges(int _frag) const{
+        Eigen::VectorXd Orbitals::FragmentNuclearCharges(int frag) const{
          
-            if (_frag < 0) {
+            if (frag < 0) {
                 throw runtime_error("Orbitals::FragmentNuclearCharges Fragment index is smaller than zero");
             }
 
@@ -440,7 +428,7 @@ namespace votca {
                 // get element type and determine its nuclear charge
                 double crg = atom->getNuccharge();
                 // add to either fragment
-                if (id <= _frag) {
+                if (id <= frag) {
                     fragmentNuclearCharges(0) += crg;
                 } else {
                     fragmentNuclearCharges(1) += crg;
@@ -456,37 +444,36 @@ namespace votca {
          * orbitals: | A 0 | and energies: [EA, EB]
          *           | 0 B |
          */
-        void Orbitals::PrepareGuess(const Orbitals& _orbitalsA,const Orbitals& _orbitalsB, Orbitals& _orbitalsAB) {
+        void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,const Orbitals& orbitalsB, Orbitals& orbitalsAB) {
 
             // constructing the direct product orbA x orbB
-            int _basisA = _orbitalsA.getBasisSetSize();
-            int _basisB = _orbitalsB.getBasisSetSize();
+            int basisA = orbitalsA.getBasisSetSize();
+            int basisB = orbitalsB.getBasisSetSize();
 
-            int _levelsA = _orbitalsA.getNumberOfLevels();
-            int _levelsB = _orbitalsB.getNumberOfLevels();
+            int levelsA = orbitalsA.getNumberOfLevels();
+            int levelsB = orbitalsB.getNumberOfLevels();
 
-            int _electronsA = _orbitalsA.getNumberOfElectrons();
-            int _electronsB = _orbitalsB.getNumberOfElectrons();
+            int electronsA = orbitalsA.getNumberOfElectrons();
+            int electronsB = orbitalsB.getNumberOfElectrons();
 
-
-            Eigen::MatrixXd& _mo_coefficients = _orbitalsAB.MOCoefficients();
-            _mo_coefficients = Eigen::MatrixXd::Zero(_basisA + _basisB, _levelsA + _levelsB);
+            Eigen::MatrixXd& mo_coefficients = orbitalsAB.MOCoefficients();
+            mo_coefficients = Eigen::MatrixXd::Zero(basisA + basisB, levelsA + levelsB);
 
             // AxB = | A 0 |  //   A = [EA, EB]  //
             //       | 0 B |  //                 //
-            _orbitalsAB.setBasisSetSize(_basisA + _basisB);
-            _orbitalsAB.setNumberOfLevels(_electronsA - _electronsB,
-                    _levelsA + _levelsB - _electronsA - _electronsB);
-            _orbitalsAB.setNumberOfElectrons(_electronsA + _electronsB);
+            orbitalsAB.setBasisSetSize(basisA + basisB);
+            orbitalsAB.setNumberOfLevels(electronsA - electronsB,
+                    levelsA + levelsB - electronsA - electronsB);
+            orbitalsAB.setNumberOfElectrons(electronsA + electronsB);
 
-            _mo_coefficients.block(0, 0, _basisA, _levelsA) = _orbitalsA.MOCoefficients();
-            _mo_coefficients.block(_basisA, _levelsA, _basisB, _levelsB) = _orbitalsB.MOCoefficients();
+            mo_coefficients.block(0, 0, basisA, levelsA) = orbitalsA.MOCoefficients();
+            mo_coefficients.block(basisA, levelsA, basisB, levelsB) = orbitalsB.MOCoefficients();
 
-            Eigen::VectorXd& _energies = _orbitalsAB.MOEnergies();
-            _energies.resize(_levelsA + _levelsB);
+            Eigen::VectorXd& energies = orbitalsAB.MOEnergies();
+            energies.resize(levelsA + levelsB);
 
-            _energies.segment(0, _levelsA) = _orbitalsA.MOEnergies();
-            _energies.segment(_levelsA, _levelsB) = _orbitalsB.MOEnergies();
+            energies.segment(0, levelsA) = orbitalsA.MOEnergies();
+            energies.segment(levelsA, levelsB) = orbitalsB.MOEnergies();
             return;
         }
         //TODO move to Filereader

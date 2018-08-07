@@ -20,7 +20,7 @@
 #include "gaussian.h"
 #include <votca/ctp/segment.h>
 #include <votca/xtp/qminterface.h>
-
+#include <votca/xtp/aobasis.h>
 #include <boost/algorithm/string.hpp>
 
 #include <boost/format.hpp>
@@ -28,8 +28,6 @@
 #include <votca/tools/constants.h>
 #include <stdio.h>
 #include <iomanip>
-#include <sys/stat.h>
-#include <vector>
 
 
 

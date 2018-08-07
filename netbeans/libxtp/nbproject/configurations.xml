@@ -105,9 +105,7 @@
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
-      <itemPath>../../include/votca/xtp/linalg.h</itemPath>
       <itemPath>../../include/votca/xtp/lowdin.h</itemPath>
-      <itemPath>../../include/votca/xtp/mixing.h</itemPath>
       <itemPath>../../include/votca/xtp/molecule.h</itemPath>
       <itemPath>../../include/votca/xtp/mulliken.h</itemPath>
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>

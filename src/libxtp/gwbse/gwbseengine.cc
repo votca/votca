@@ -26,6 +26,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <votca/ctp/logger.h>
+#include <votca/xtp/qmpackage.h>
 
 
 
@@ -108,7 +109,7 @@ namespace votca {
                     Orbitals orbitalsA, orbitalsB;
                     orbitalsA.ReadFromCpt(_guess_archiveA);
                     orbitalsB.ReadFromCpt(_guess_archiveB);
-                    Orbitals::PrepareGuess(orbitalsA, orbitalsB, orbitals);
+                    Orbitals::PrepareDimerGuess(orbitalsA, orbitalsB, orbitals);
                 }  
                 qmpackage->WriteInputFile(orbitals);
             }

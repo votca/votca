@@ -335,7 +335,7 @@ namespace votca {
                 return jres;
               }
               CTP_LOG(ctp::logDEBUG, *pLog) << "Constructing the guess for dimer orbitals" << flush;
-              Orbitals::PrepareGuess(orbitalsA, orbitalsB, orbitalsAB);
+              Orbitals::PrepareDimerGuess(orbitalsA, orbitalsB, orbitalsAB);
             }
           }
           qmpackage->WriteInputFile(orbitalsAB);

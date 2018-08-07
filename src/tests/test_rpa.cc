@@ -18,6 +18,9 @@
 #define BOOST_TEST_MODULE rpa_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/rpa.h>
+#include <votca/xtp/aobasis.h>
+#include <votca/xtp/orbitals.h>
+#include <votca/xtp/threecenter.h>
 
 
 using namespace votca::xtp;
