@@ -761,7 +761,6 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
       }
 
       _dftbasisset.LoadBasisSet(_dftbasis_name);
-       CTP_LOG(ctp::logDEBUG, *_pLog) <<_dftbasisset<<flush;
 
       _dftbasis.AOBasisFill(_dftbasisset, _atoms);
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()

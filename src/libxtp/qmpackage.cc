@@ -25,49 +25,48 @@
 namespace votca {
     namespace xtp {
       using std::flush;
-        void QMPackage::ReorderOutput(Orbitals& _orbitals) {
-            BasisSet _dftbasisset;
-            _dftbasisset.LoadBasisSet(_basisset_name);
-            if (!_orbitals.hasQMAtoms()) {
+        void QMPackage::ReorderOutput(Orbitals& orbitals) {
+            BasisSet dftbasisset;
+            dftbasisset.LoadBasisSet(_basisset_name);
+            if (!orbitals.hasQMAtoms()) {
                 throw std::runtime_error("Orbitals object has no QMAtoms");
             }
 
-
-            AOBasis _dftbasis;
-            _dftbasis.AOBasisFill(_dftbasisset, _orbitals.QMAtoms());
+            AOBasis dftbasis;
+            dftbasis.AOBasisFill(dftbasisset, orbitals.QMAtoms());
             //necessary to update nuclear charges on qmatoms
             if (_write_pseudopotentials) {
-                BasisSet _ecps;
-                _ecps.LoadPseudopotentialSet(_ecp_name);
-                AOBasis _ecpbasis;
-                _ecpbasis.ECPFill(_ecps, _orbitals.QMAtoms());
+                BasisSet ecps;
+                ecps.LoadPseudopotentialSet(_ecp_name);
+                AOBasis ecpbasis;
+                ecpbasis.ECPFill(ecps, orbitals.QMAtoms());
             }
 
-            if (_orbitals.hasAOOverlap()) {
-                _dftbasis.ReorderMatrix(_orbitals.AOOverlap(), getPackageName(), "xtp");
+            if (orbitals.hasAOOverlap()) {
+                dftbasis.ReorderMatrix(orbitals.AOOverlap(), getPackageName(), "xtp");
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered Overlap matrix" << flush;
             }
-            if (_orbitals.hasAOVxc()) {
-                _dftbasis.ReorderMatrix(_orbitals.AOVxc(), getPackageName(), "xtp");
+            if (orbitals.hasAOVxc()) {
+                dftbasis.ReorderMatrix(orbitals.AOVxc(), getPackageName(), "xtp");
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered VXC matrix" << flush;
             }
-            if (_orbitals.hasMOCoefficients()) {
-                _dftbasis.ReorderMOs(_orbitals.MOCoefficients(), getPackageName(), "xtp");
+            if (orbitals.hasMOCoefficients()) {
+                dftbasis.ReorderMOs(orbitals.MOCoefficients(), getPackageName(), "xtp");
                 CTP_LOG(ctp::logDEBUG, *_pLog) << "Reordered MOs" << flush;
             }
 
             return;
         }
 
-        void QMPackage::ReorderMOsBack(Orbitals& _orbitals) {
-            BasisSet _dftbasisset;
-            _dftbasisset.LoadBasisSet(_basisset_name);
-            if (!_orbitals.hasQMAtoms()) {
+        void QMPackage::ReorderMOsBack(Orbitals& orbitals) {
+            BasisSet dftbasisset;
+            dftbasisset.LoadBasisSet(_basisset_name);
+            if (!orbitals.hasQMAtoms()) {
                 throw std::runtime_error("Orbitals object has no QMAtoms");
             }
-            AOBasis _dftbasis;
-            _dftbasis.AOBasisFill(_dftbasisset, _orbitals.QMAtoms());
-            _dftbasis.ReorderMOs(_orbitals.MOCoefficients(), "xtp", getPackageName());
+            AOBasis dftbasis;
+            dftbasis.AOBasisFill(dftbasisset, orbitals.QMAtoms());
+            dftbasis.ReorderMOs(orbitals.MOCoefficients(), "xtp", getPackageName());
             return;
         }
 
@@ -96,7 +95,6 @@ namespace votca {
                 multipoles_split.push_back({B.getX(), B.getY(), B.getZ(), qB});
             }
 
-
             if (aps->getRank() > 1) {
                 tools::matrix components = aps->getQ2cartesian();
                 tools::matrix::eigensystem_t system;
@@ -115,9 +113,7 @@ namespace votca {
                     multipoles_split.push_back({vec2.getX(), vec2.getY(), vec2.getZ(), q});
 
                 }
-
             }
-
             return multipoles_split;
         }
         
