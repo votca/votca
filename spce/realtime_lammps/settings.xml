@@ -59,13 +59,13 @@
       <!-- lammps script to run !-->
       <script>spce.in</script>
       <!-- topology to be used by  csg_stat !-->
-      <topol>topol.xml</topol>
+      <topol>spce.data</topol>
       <!-- traj file created by lammps !-->
       <traj>traj.dump</traj>
     </lammps>
     <initial_configuration>maindir</initial_configuration>
     <!-- these files are copied for each new run -->
-    <filelist>spce.data spce.in topol.xml spce.dump</filelist>
+    <filelist>spce.data spce.in</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
     <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
