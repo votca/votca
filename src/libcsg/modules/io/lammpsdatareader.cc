@@ -27,6 +27,30 @@ using namespace boost;
 using namespace std;
 
 /*****************************************************************************
+ * Internal Helper Functions                                                 *
+ *****************************************************************************/
+
+bool withinTolerance_(double value1, double value2, double tolerance){
+  return (value1-value2)/min(value1,value2) < tolerance;
+}
+
+string getStringGivenDoubleAndMap_(
+    double value, 
+    map<string,double> nameValue,
+    double tolerance){
+
+  for ( auto string_value_pair : nameValue ){
+    if(withinTolerance_(value,string_value_pair.second,tolerance)){
+      return string_value_pair.first;
+    }
+  }  
+  throw runtime_error("getStringGivenDoubleAndMap_ function fails. This method "
+      "is meant to be passed a double that is to be matched within a tolerance"
+      " with a double in a map<string,double> and then return the string. It is"
+      " likely that none of the doubles were a close enough match.");
+}
+
+/*****************************************************************************
  * Public Facing Methods                                                     *
  *****************************************************************************/
 
@@ -75,6 +99,11 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
     tok.ToVector(fields);
     fields = TrimCommentsFrom_(fields);
 
+    cout << "Original line" << endl;
+    cout << line << endl;
+    for( auto field : fields ) {
+      cout << "Field " << field << endl;
+    }
     // If not check the size of the vector and parse according
     // to the number of fields
     if (fields.size() == 1) {
@@ -119,7 +148,8 @@ bool LAMMPSDataReader::MatchOneFieldLabel_(vector<string> fields,
 
   if (fields.at(0) == "Masses") {
     SortIntoDataGroup_("Masses");
-    InitializeAtomTypes_();
+    InitializeAtomAndBeadTypes_();
+    cout << "types initialized" << endl;
   } else if (fields.at(0) == "Atoms") {
     ReadAtoms_(top);
   } else if (fields.at(0) == "Bonds") {
@@ -208,11 +238,48 @@ bool LAMMPSDataReader::MatchFieldsTimeStepLabel_(vector<string> fields,
   return false;
 }
 
+
+map<string,double> LAMMPSDataReader::determineBaseNameAssociatedWithMass_(){
+  Elements elements;
+  map<string,double> baseNamesAndMasses;
+  for (auto mass : data_["Masses"]) {
+    double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
+    string beadElementName;
+    if(elements.isMassAssociatedWithElement(mass_atom_bead,0.01)){
+      beadElementName = elements.getEleShortClosestInMass(mass_atom_bead, 0.01);
+    }else{
+      beadElementName = "Bead";
+    }
+    baseNamesAndMasses[beadElementName] = mass_atom_bead;
+  }
+  return baseNamesAndMasses; 
+}
+
+map<string,int> LAMMPSDataReader::determineAtomAndBeadCountBasedOnMass_(
+    map<string,double> baseNamesAndMasses ){
+
+  map<std::string, int> countSameElementOrBead;
+
+  for (auto mass : data_["Masses"]) {
+    double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
+
+    auto baseName = getStringGivenDoubleAndMap_(
+        mass_atom_bead,
+        baseNamesAndMasses,
+        0.01);
+
+    countSameElementOrBead[baseName]++;
+  }
+  return countSameElementOrBead;
+}
+
 // The purpose of this function is to take lammps output where there are more
 // than a single atom type of the same element. For instance there may be 4
 // atom types with mass of 12.01. Well this means that they are all carbon but
-// are treated differently in lammps. It makes since to keep track of this. So
-// When creating the atom names we will take into account so say we have the
+// are treated differently in lammps. It makes since to keep track of this. If
+// a mass cannot be associated with an element we will assume it is pseudo atom
+// or course grained watom which we will represent with as a bead. So when 
+// creating the atom names we will take into account so say we have the 
 // following masses in the lammps .data file:
 // Masses
 //
@@ -221,6 +288,9 @@ bool LAMMPSDataReader::MatchFieldsTimeStepLabel_(vector<string> fields,
 // 3 12.01
 // 4 16.0
 // 5 12.01
+// 6 15.2
+// 7 12.8
+// 8 15.2
 //
 // Then we would translate this to the following atom names
 // 1 H
@@ -228,53 +298,47 @@ bool LAMMPSDataReader::MatchFieldsTimeStepLabel_(vector<string> fields,
 // 3 C2
 // 4 O
 // 5 C3
+// 6 Bead1
+// 7 Bead2
+// 8 Bead3
 //
 // Note that we do not append a number if it is singular, in such cases the
 // element and the atom name is the same.
-void LAMMPSDataReader::InitializeAtomTypes_() {
+void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
   if (!data_.count("Masses")) {
     string err = "Masses must first be parsed before the atoms can be read.";
     throw runtime_error(err);
   }
 
-  std::map<std::string, int> countAtomsOfSameElement;
-  Elements elements;
+  auto baseNamesMasses =  determineBaseNameAssociatedWithMass_();
+  auto baseNamesCount = determineAtomAndBeadCountBasedOnMass_(baseNamesMasses);  
 
-  for (auto mass : data_["Masses"]) {
-    // Determine the mass associated with the atom
-    double mass_atom = boost::lexical_cast<double>(mass.at(1));
-    // Determine the element (Symbol) by looking at the mass
-    // Second argument is the tolerance
-    string eleShort = elements.getEleShortClosestInMass(mass_atom, 0.01);
-    // Count the number of atoms
-    if (!countAtomsOfSameElement.count(eleShort)) {
-      countAtomsOfSameElement[eleShort] = 1;
-    }
-    countAtomsOfSameElement[eleShort]++;
-  }
+  cout << "Determined element type from mass" << endl;
 
-  vector<int> indices(0, countAtomsOfSameElement.size());
   // If there is more than one atom type of the same element append a number
   // to the atom type name
-  map<string, int> eleShortIndices;
+  map<string, int> baseNameIndices;
   int index = 0;
   for (auto mass : data_["Masses"]) {
     // Determine the mass associated with the atom
-    double mass_atom = boost::lexical_cast<double>(mass.at(1));
-    // Determine the element (Symbol) by looking at the mass
-    // Second argument is the tolerance
-    string eleShort = elements.getEleShortClosestInMass(mass_atom, 0.01);
-    string label = eleShort;
-    if (countAtomsOfSameElement[eleShort] > 1) {
-      if (eleShortIndices.count(eleShort) == 0) {
+    double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
+
+    auto baseName = getStringGivenDoubleAndMap_(
+        mass_atom_bead,
+        baseNamesMasses,
+        0.01);
+
+    string label = baseName;
+    if (baseNamesCount[baseName] > 1) {
+      if (baseNameIndices.count(baseName) == 0) {
         label += "1";
-        eleShortIndices[eleShort] = 1;
+        baseNameIndices[baseName] = 1;
       } else {
-        eleShortIndices[eleShort]++;
-        label += to_string(eleShortIndices[eleShort]);
+        baseNameIndices[baseName]++;
+        label += to_string(baseNameIndices[baseName]);
       }
     }
-    atomtypes_[index].push_back(eleShort);
+    atomtypes_[index].push_back(baseName);
     atomtypes_[index].push_back(label);
     ++index;
   }
@@ -304,21 +368,30 @@ void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
 void LAMMPSDataReader::SortIntoDataGroup_(string tag) {
   string line;
   getline(fl_, line);
+  cout << "tag " << tag << endl;
+  cout << "Unused line " << endl;
+  cout << line << endl;
   getline(fl_, line);
+  cout << "First line " << endl;
+  cout << line << endl;
 
   vector<vector<string>> group;
   string data_elem;
   while (!line.empty()) {
     vector<string> mini_group;
     istringstream iss(line);
-    while (iss) {
+    while (!iss.eof()) {
       iss >> data_elem;
+      cout << "data elem " << data_elem << endl;
       mini_group.push_back(data_elem);
     }
     group.push_back(mini_group);
     getline(fl_, line);
+    cout << "Next lines " << endl;
+    cout << line << endl;
   }
   data_[tag] = group;
+  cout << "Sorted into date group " << endl;
 }
 
 void LAMMPSDataReader::ReadNumTypes_(vector<string> fields, string type) {

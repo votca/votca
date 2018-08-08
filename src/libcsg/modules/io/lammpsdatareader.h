@@ -62,8 +62,9 @@ private:
   std::map<std::string, std::vector<std::vector<std::string>>> data_;
 
   // int - atom type starting index of 0
-  // .at(0) - element symbol
-  // .at(1) - atom name may be the same as the element symbol
+  // .at(0) - element symbol or bead
+  // .at(1) - atom name may be the same as the element symbol or bead depending
+  //          on if there is more than one atom type for a given element
   std::map<int, std::vector<std::string>> atomtypes_;
 
   // String is the type .e.g. "atom","bond" etc
@@ -91,7 +92,7 @@ private:
   bool MatchFieldsTimeStepLabel_(std::vector<std::string> fields,
                                  Topology &top);
 
-  void InitializeAtomTypes_();
+  void InitializeAtomAndBeadTypes_();
   void ReadBox_(std::vector<std::string> fields, Topology &top);
   void SortIntoDataGroup_(std::string tag);
   void ReadNumTypes_(std::vector<string> fields, string type);
@@ -109,6 +110,11 @@ private:
   void ReadAngles_(Topology &top);
   void ReadDihedrals_(Topology &top);
   void ReadImpropers_(Topology &top);
+
+  std::map<std::string,double> determineBaseNameAssociatedWithMass_();
+  std::map<std::string,int> determineAtomAndBeadCountBasedOnMass_(         
+          std::map<std::string,double> baseNamesAndMasses );
+
 };
 }
 }
