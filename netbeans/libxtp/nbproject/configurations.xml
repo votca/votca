@@ -254,6 +254,7 @@
       <itemPath>../../src/tests/test_atom.cc</itemPath>
       <itemPath>../../src/tests/test_bse.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
+      <itemPath>../../src/tests/test_dftcoupling.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
       <itemPath>../../src/tests/test_eris.cc</itemPath>
@@ -1877,6 +1878,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_dftcoupling.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
@@ -2770,6 +2776,11 @@
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_convergenceacc.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_dftcoupling.cc"
             ex="false"
             tool="1"
             flavor2="0">
