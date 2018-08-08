@@ -39,7 +39,7 @@ class BeadType;
  * charge and the residue it belongs to and the position
  *
  **/
-class BaseBead : public TopologyItem, virtual public Name, virtual public Identity<int> {
+class BaseBead : public TopologyItem, public virtual Name, public virtual Identity<int> {
 public:
   /**
    * destructor
