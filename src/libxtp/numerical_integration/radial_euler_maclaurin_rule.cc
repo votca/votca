@@ -160,22 +160,23 @@ namespace votca { namespace xtp {
      return result;
     }
     
-   GridContainers::radial_grid EulerMaclaurinGrid::CalculateRadialGridforAtom(const std::string& type,const std::pair<std::string,min_exp>& element){
-     GridContainers::radial_grid result;
-     int np = getGridParameters(element.first, type);
-     double cutoff=element.second.range;
-     
-        double alpha = -cutoff/(log(1.0 - std::pow(  (1.0 + double(np))/(2.0 + double(np)),3)) );  
-        double factor = 3.0/(1.0+double(np));
-        
-        for ( int i = 0; i < np; i++){
-            double q = double(i+1)/(double(np)+1.0);
-            double r = -alpha*std::log(1.0-std::pow(q,3));
-            double w = factor * alpha * r*r/( 1.0 - std::pow(q,3) ) * std::pow(q,2);
-            result.radius.push_back(r);
-            result.weight.push_back(w);
-        } 
-        return result;
+    GridContainers::radial_grid EulerMaclaurinGrid::CalculateRadialGridforAtom(const std::string& type, const std::pair<std::string, min_exp>& element) {
+      GridContainers::radial_grid result;
+      int np = getGridParameters(element.first, type);
+      double cutoff = element.second.range;
+      result.radius=Eigen::VectorXd::Zero(np);
+      result.weight=Eigen::VectorXd::Zero(np);
+      double alpha = -cutoff / (log(1.0 - std::pow((1.0 + double(np)) / (2.0 + double(np)), 3)));
+      double factor = 3.0 / (1.0 + double(np));
+
+      for (int i = 0; i < np; i++) {
+        double q = double(i + 1) / (double(np) + 1.0);
+        double r = -alpha * std::log(1.0 - std::pow(q, 3));
+        double w = factor * alpha * r * r / (1.0 - std::pow(q, 3)) * std::pow(q, 2);
+        result.radius[i]=r;
+        result.weight[i]=w;
+      }
+      return result;
     }
 
     double EulerMaclaurinGrid::DetermineCutoff(double alpha, int l, double eps){      

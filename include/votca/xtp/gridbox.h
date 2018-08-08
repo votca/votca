@@ -62,7 +62,7 @@ namespace votca { namespace xtp {
                 return;
             }
             
-            void addGridPoint(const GridContainers::integration_grid& point){
+            void addGridPoint(const GridContainers::Cartesian_gridpoint& point){
                 grid_pos.push_back(point.grid_pos);
                 weights.push_back(point.grid_weight);
             };

@@ -43,13 +43,16 @@ namespace votca { namespace xtp {
     GridContainers::spherical_grid LebedevGrid::CalculateUnitSphereGrid(int order) {
       const double fourpi = 4 * tools::conv::Pi;
       GridContainers::spherical_grid result;
+      result.phi=Eigen::VectorXd::Zero(order);
+      result.theta=Eigen::VectorXd::Zero(order);
+      result.weight=Eigen::VectorXd::Zero(order);
       Eigen::Matrix4Xd xyzw=ld_by_order(order);
       for (int i = 0; i <order; i++) {
         Eigen::Vector3d xyz=xyzw.col(i).head<3>();
         Eigen::Vector2d spherical=this->Cartesian2SphericalAngle(xyz);
-        result.phi.push_back(spherical[0]);
-        result.theta.push_back(spherical[1]);
-        result.weight.push_back(fourpi *xyzw.col(i)[3]);
+        result.phi[i]=spherical[0];
+        result.theta[i]=spherical[1];
+        result.weight[i]=fourpi *xyzw.col(i)[3];
       }
       return result;
     }
@@ -6815,7 +6818,7 @@ Eigen::Vector2d LebedevGrid::Cartesian2SphericalAngle ( const Eigen::Vector3d& r
   Eigen::Vector2d result;
   result[0] = std::acos(r(2));
   result[1]=  std::atan2(r(1),r(0));
-  return result*180.0/tools::conv::Pi;
+  return result;
 }
 }
 }

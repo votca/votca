@@ -185,10 +185,10 @@ namespace votca {
         
         
         
-  void NumericalIntegration::SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::integration_grid > >& grid) {
+  void NumericalIntegration::SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::Cartesian_gridpoint > >& grid) {
       const double boxsize = 1;//1 bohr
 
-      std::vector< std::vector< std::vector< std::vector< GridContainers::integration_grid* > > > > boxes;
+      std::vector< std::vector< std::vector< std::vector< GridContainers::Cartesian_gridpoint* > > > > boxes;
       tools::vec min = tools::vec(std::numeric_limits<double>::max());
       tools::vec max = tools::vec(std::numeric_limits<double>::min());
 
@@ -219,11 +219,11 @@ namespace votca {
 
       //creating temparray
       for (unsigned i = 0; i<unsigned(roundednumofbox.getX()); i++) {
-        std::vector< std::vector< std::vector< GridContainers::integration_grid* > > > boxes_yz;
+        std::vector< std::vector< std::vector< GridContainers::Cartesian_gridpoint* > > > boxes_yz;
         for (unsigned j = 0; j<unsigned(roundednumofbox.getY()); j++) {
-          std::vector< std::vector< GridContainers::integration_grid* > > boxes_z;
+          std::vector< std::vector< GridContainers::Cartesian_gridpoint* > > boxes_z;
           for (unsigned k = 0; k<unsigned(roundednumofbox.getZ()); k++) {
-            std::vector< GridContainers::integration_grid* > box;
+            std::vector< GridContainers::Cartesian_gridpoint* > box;
             box.reserve(100);
             boxes_z.push_back(box);
           }
@@ -628,88 +628,135 @@ Eigen::MatrixXd NumericalIntegration::IntegratePotential(const AOBasis& external
   return Potential; 
 }
         
+
+Eigen::MatrixXd NumericalIntegration::CalcInverseAtomDist(std::vector<QMAtom*>& atoms){
+  Eigen::MatrixXd result=Eigen::MatrixXd::Zero(atoms.size(),atoms.size());
+#pragma omp parallel for
+  for (unsigned i=0;i<atoms.size();++i) {
+    QMAtom* atom_a=atoms[i];
+    const tools::vec& pos_a = atom_a->getPos();
+   for (unsigned j=0;j<i;++j) {
+      QMAtom* atom_b=atoms[j];
+      const tools::vec& pos_b = atom_b->getPos();
+      result(j,i)=1/tools::abs(pos_a-pos_b);
+    } 
+  }
+  return result+result.transpose();
+}
+
+int NumericalIntegration::UpdateOrder(LebedevGrid& sphericalgridofElement, int maxorder, std::vector<double>& PruningIntervals, double r){
+  int order;
+  int maxindex=sphericalgridofElement.getIndexFromOrder(maxorder);
+  if (maxindex == 1) {
+    // smallest possible grid anyway, nothing to do
+    order = maxorder;
+  } else if (maxindex == 2) {
+    // only three intervals
+    if (r < PruningIntervals[0]) {
+      order = sphericalgridofElement.getOrderFromIndex(1); //1;
+    } else if ((r >= PruningIntervals[0]) && (r < PruningIntervals[3])) {
+      order = sphericalgridofElement.getOrderFromIndex(2);
+    } else {
+      order = sphericalgridofElement.getOrderFromIndex(1);
+    } // maxorder == 2
+  } else {
+    // five intervals
+    if (r < PruningIntervals[0]) {
+      order = sphericalgridofElement.getOrderFromIndex(2);
+    } else if ((r >= PruningIntervals[0]) && (r < PruningIntervals[1])) {
+      order = sphericalgridofElement.getOrderFromIndex(4);
+    } else if ((r >= PruningIntervals[1]) && (r < PruningIntervals[2])) {
+      order = sphericalgridofElement.getOrderFromIndex(std::max(maxindex - 1, 4));
+    } else if ((r >= PruningIntervals[2]) && (r < PruningIntervals[3])) {
+      order = maxorder;
+    } else {
+      order = sphericalgridofElement.getOrderFromIndex(std::max(maxindex - 1, 1));
+    }
+  }
+  return order;
+    }
+
+    GridContainers::Cartesian_gridpoint NumericalIntegration::CreateCartesianGridpoint(const tools::vec& atomA_pos,
+            GridContainers::radial_grid& radial_grid, GridContainers::spherical_grid& spherical_grid,
+            unsigned i_rad, unsigned i_sph) {
+      GridContainers::Cartesian_gridpoint gridpoint;
+      double p = spherical_grid.phi[i_sph];
+      double t = spherical_grid.theta[i_sph];
+      const tools::vec s = tools::vec(sin(p) * cos(t), sin(p) * sin(t), cos(p));
+      double r = radial_grid.radius[i_rad];
+      gridpoint.grid_pos = atomA_pos + r*s;
+      gridpoint.grid_weight = radial_grid.weight[i_rad] * spherical_grid.weight[i_sph];
+      return gridpoint;
+    }
+
+    Eigen::MatrixXd NumericalIntegration::CalcDistanceAtomsGridpoints(std::vector<QMAtom*>& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid){
+      Eigen::MatrixXd result=Eigen::MatrixXd::Zero(atoms.size(),atomgrid.size());
+     #pragma omp parallel for
+      for (unsigned i=0;i<atoms.size();++i) {
+        QMAtom* atom=atoms[i];
+        const tools::vec & atom_pos =atom->getPos();
+        for (unsigned j=0;j<atomgrid.size();++j) {
+          const auto& gridpoint=atomgrid[j];
+          result(i,j)=tools::abs(atom_pos-gridpoint.grid_pos);
+        } 
+      }
+      return result;
+    }
+
+    void NumericalIntegration::SSWpartitionAtom(std::vector<QMAtom*>& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, unsigned i_atom){
+      Eigen::MatrixXd AtomGridDist=CalcDistanceAtomsGridpoints(atoms, atomgrid);
+      
+#pragma omp parallel for schedule(guided)
+      for (unsigned i_grid = 0; i_grid < atomgrid.size(); i_grid++) {
+        // call some shit called grid_ssw0 in NWChem
+        Eigen::VectorXd p = SSWpartition(i_grid, atoms.size(), AtomGridDist);
+        // check weight sum
+        double wsum = p.sum();
+        if (wsum != 0.0) {
+          // update the weight of this grid point
+          atomgrid[i_grid].grid_weight *= p[i_atom] / wsum;
+        } else {
+          std::cerr << "\nSum of partition weights of grid point " << i_grid << " of atom " << i_atom << " is zero! ";
+          throw std::runtime_error("\nThis should never happen!");
+        }
+      } // partition weight for each gridpoint
+    }
         
 void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> atoms,const AOBasis* basis) {
       _basis = basis;
-      std::vector< std::vector< GridContainers::integration_grid > > grid;
+      std::vector< std::vector< GridContainers::Cartesian_gridpoint > > grid;
       const double pi = boost::math::constants::pi<double>();
       GridContainers initialgrids;
       // get radial grid per element
       EulerMaclaurinGrid radialgridofElement;
-      initialgrids._radial_grids=radialgridofElement.CalculateAtomicRadialGrids(basis, atoms, type); // this checks out 1:1 with NWChem results! AWESOME
+      initialgrids.radial_grids=radialgridofElement.CalculateAtomicRadialGrids(basis, atoms, type); // this checks out 1:1 with NWChem results! AWESOME
       LebedevGrid sphericalgridofElement;
-      initialgrids._spherical_grids=sphericalgridofElement.CalculateSphericalGrids(atoms,type);
+      initialgrids.spherical_grids=sphericalgridofElement.CalculateSphericalGrids(atoms,type);
       
-      // for the partitioning, we need all inter-center distances later, stored in one-directional list
-      int ij = 0;
-      Rij.push_back(0.0); // 1st center "self-distance"
-      std::vector< QMAtom* > ::iterator ait;
-      std::vector< QMAtom* > ::iterator bit;
-      int i = 1;
-      for (ait = atoms.begin() + 1; ait != atoms.end(); ++ait) {
-        // get center coordinates in Bohr
-        tools::vec pos_a = (*ait)->getPos();
-        int j = 0;
-        for (bit = atoms.begin(); bit != ait; ++bit) {
-          ij++;
-          // get center coordinates in Bohr
-          tools::vec pos_b = (*bit)->getPos();
-          Rij.push_back(1.0 / abs(pos_a - pos_b));
-          j++;
-        } // atoms
-        Rij.push_back(0.0); // self-distance again
-        i++;
-      } // atoms
-
-      int i_atom = 0;
+      // for the partitioning, we need all inter-center distances later, stored in matrix
+      Rij=CalcInverseAtomDist(atoms);
       _totalgridsize = 0;
-      for (ait = atoms.begin(); ait < atoms.end(); ++ait) {
-        // get center coordinates in Bohr
-        std::vector< GridContainers::integration_grid > _atomgrid;
-        const tools::vec & atomA_pos = (*ait)->getPos();
-        const std::string & name = (*ait)->getType();
-        // get radial grid information for this atom type
-        GridContainers::radial_grid radial_grid = initialgrids._radial_grids.at(name);
-        // get spherical grid information for this atom type
-        GridContainers::spherical_grid spherical_grid = initialgrids._spherical_grids.at(name);
+      
+      std::vector< GridContainers::Cartesian_gridpoint > atomgrid;
+      for (unsigned i_atom=0;i_atom<atoms.size();++i_atom) {
+        QMAtom* atom=atoms[i_atom];
+
+        const tools::vec & atomA_pos =atom->getPos();
+        const std::string & name = atom->getType();
+        GridContainers::radial_grid radial_grid = initialgrids.radial_grids.at(name);
+        GridContainers::spherical_grid spherical_grid = initialgrids.spherical_grids.at(name);
+                
         // maximum order (= number of points) in spherical integration grid
         int maxorder = sphericalgridofElement.Type2MaxOrder(name, type);
-        int maxindex = sphericalgridofElement.getIndexFromOrder(maxorder);
         // for pruning of integration grid, get interval boundaries for this element
         std::vector<double> PruningIntervals = radialgridofElement.CalculatePruningIntervals(name);
         int current_order = 0;
         // for each radial value
         for (unsigned i_rad = 0; i_rad < radial_grid.radius.size(); i_rad++) {
           double r = radial_grid.radius[i_rad];
-          int order;
-          // which Lebedev order for this point?
-          if (maxindex == 1) {
-            // smallest possible grid anyway, nothing to do
-            order = maxorder;
-          } else if (maxindex == 2) {
-            // only three intervals
-            if (r < PruningIntervals[0]) {
-              order = sphericalgridofElement.getOrderFromIndex(1); //1;
-            } else if ((r >= PruningIntervals[0]) && (r < PruningIntervals[3])) {
-              order = sphericalgridofElement.getOrderFromIndex(2);
-            } else {
-              order = sphericalgridofElement.getOrderFromIndex(1);
-            } // maxorder == 2
-          } else {
-            // five intervals
-            if (r < PruningIntervals[0]) {
-              order = sphericalgridofElement.getOrderFromIndex(int(2));
-            } else if ((r >= PruningIntervals[0]) && (r < PruningIntervals[1])) {
-              order = sphericalgridofElement.getOrderFromIndex(4);
-            } else if ((r >= PruningIntervals[1]) && (r < PruningIntervals[2])) {
-              order = sphericalgridofElement.getOrderFromIndex(std::max(maxindex - 1, 4));
-            } else if ((r >= PruningIntervals[2]) && (r < PruningIntervals[3])) {
-              order = maxorder;
-            } else {
-              order = sphericalgridofElement.getOrderFromIndex(std::max(maxindex - 1, 1));
-            }
-          }
 
+          // which Lebedev order for this point?
+          int order=UpdateOrder(sphericalgridofElement, maxorder, PruningIntervals, r);
           // get new spherical grid, if order changed
           if (order != current_order) {
             spherical_grid=sphericalgridofElement.CalculateUnitSphereGrid(order);
@@ -717,100 +764,42 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> atom
           }
 
           for (unsigned i_sph = 0; i_sph < spherical_grid.phi.size(); i_sph++) {
-            double p = spherical_grid.phi[i_sph] * pi / 180.0; // back to rad
-            double t = spherical_grid.theta[i_sph] * pi / 180.0; // back to rad
-            double ws = spherical_grid.weight[i_sph];
-            const tools::vec s = tools::vec(sin(p) * cos(t), sin(p) * sin(t), cos(p));
-            GridContainers::integration_grid _gridpoint;
-            _gridpoint.grid_pos = atomA_pos + r*s;
-            _gridpoint.grid_weight = radial_grid.weight[i_rad] * ws;
-            _atomgrid.push_back(_gridpoint);
+            GridContainers::Cartesian_gridpoint gridpoint=CreateCartesianGridpoint(atomA_pos, radial_grid, spherical_grid, i_rad,i_sph);
+            atomgrid.push_back(gridpoint);
           } // spherical gridpoints
         } // radial gridpoint
 
-
-        // get all distances from grid points to centers
-        std::vector< std::vector<double> > rq;
-        // for each center
-        for (bit = atoms.begin(); bit < atoms.end(); ++bit) {
-          // get center coordinates
-          const tools::vec & atom_pos = (*bit)->getPos();
-          std::vector<double> temp;
-          // for each gridpoint
-          for (std::vector<GridContainers::integration_grid >::iterator git = _atomgrid.begin(); git != _atomgrid.end(); ++git) {
-            temp.push_back(abs(git->grid_pos - atom_pos));
-          } // gridpoint of _atomgrid
-          rq.push_back(temp);
-        } // centers
-        
-        // find nearest-neighbor of this atom
-        double distNN = std::numeric_limits<double>::max();
-        std::vector< QMAtom* > ::iterator NNit;
-              // now check all other centers
-        int i_b = 0;
-        for (bit = atoms.begin(); bit != atoms.end(); ++bit) {
-          if (bit != ait) {
-            // get center coordinates
-            const tools::vec & atomB_pos = (*bit)->getPos();
-            double distSQ = (atomA_pos - atomB_pos)*(atomA_pos - atomB_pos);
-            // update NN distance and iterator
-            if (distSQ < distNN) {
-              distNN = distSQ;
-              NNit = bit;
-            }
-          } // if ( ait != bit) 
-          i_b++;
-        }// bit centers
-#pragma omp parallel for schedule(guided)
-        for (unsigned i_grid = 0; i_grid < _atomgrid.size(); i_grid++) {
-          // call some shit called grid_ssw0 in NWChem
-          std::vector<double> _p = SSWpartition(i_grid, atoms.size(), rq);
-          // check weight sum
-          double wsum = 0.0;
-          for (const auto&p:_p) {
-            wsum +=p;
-          }
-          if (wsum != 0.0) {
-            // update the weight of this grid point
-            _atomgrid[i_grid].grid_weight *= _p[i_atom] / wsum;
-          } else {
-            std::cerr << "\nSum of partition weights of grid point " << i_grid << " of atom " << i_atom << " is zero! ";
-            throw std::runtime_error("\nThis should never happen!");
-          }
-        } // partition weight for each gridpoint
+        SSWpartitionAtom(atoms, atomgrid, i_atom);
 
         // now remove points from the grid with negligible weights
-        for (std::vector<GridContainers::integration_grid >::iterator git = _atomgrid.begin(); git != _atomgrid.end();) {
+        for (std::vector<GridContainers::Cartesian_gridpoint >::iterator git = atomgrid.begin(); git != atomgrid.end();) {
           if (git->grid_weight < 1e-13) {
-            git = _atomgrid.erase(git);
+            git = atomgrid.erase(git);
           } else {
             ++git;
           }
         }
-        _totalgridsize += _atomgrid.size();
-        grid.push_back(_atomgrid);
-        i_atom++;
+        _totalgridsize += atomgrid.size();
+        grid.push_back(atomgrid);
       } // atoms
       SortGridpointsintoBlocks(grid);
       FindSignificantShells();
       return;
     }
 
-    std::vector<double> NumericalIntegration::SSWpartition(int igrid, int ncenters,const std::vector< std::vector<double> >& rq) {
+    Eigen::VectorXd NumericalIntegration::SSWpartition(int igrid, int ncenters,const Eigen::MatrixXd & rq) {
       const double ass = 0.725;
       // initialize partition vector to 1.0
-      std::vector<double> p(ncenters, 1.0);
+      Eigen::VectorXd p=Eigen::VectorXd::Ones(ncenters);
       const double tol_scr = 1e-10;
       const double leps = 1e-6;
       // go through centers
       for (int i = 1; i < ncenters; i++) {
-        int ij = i * (i + 1) / 2 - 1; // indexing magic
-        double rag = rq[i][igrid];
+        double rag = rq(i,igrid);
         // through all other centers (one-directional)
         for (int j = 0; j < i; j++) {
-          ij++;
           if ((std::abs(p[i]) > tol_scr) || (std::abs(p[j]) > tol_scr)) {
-            double mu = (rag - rq[j][igrid]) * Rij[ij];
+            double mu = (rag - rq(j,igrid)) * Rij(j,i);
             if (mu > ass) {
               p[i] = 0.0;
             } else if (mu < -ass) {
