@@ -21,6 +21,7 @@
 #define __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
 
 #include <iostream>
+#include <memory>
 #include <string>
 #include <votca/tools/graphnode.h>
 
@@ -37,20 +38,58 @@ namespace tools {
 class Graph;
 class GraphVisitor;
 
-/// The purpose of this algorithm is to simply determine if the graph is one
-/// large network or not. If it is it means every vertex is connected to 
-/// every other one by 1 or more series of edges.
+/**
+ * \brief Determine if every vertex is connected to every other one through some
+ *        combination of edges
+ *
+ * The purpose of this algorithm is to simply determine if the graph is one
+ * large network or not. If it is it means every vertex is connected to every
+ * other one by 1 or more series of edges.
+ *
+ * @param[in] - Graph instance
+ * @param[in,out] - Graph visitor reference instance used to explore the graph
+ * @return - Boolean value (true - if single network)
+ */
 bool singleNetwork(Graph g, GraphVisitor& gv);
 
-/// This function will simply explore a graph, any information gained from the
-/// exploration will depend on the graph visitor used. Note that the
-/// Graph visitor is the base class which will not work on its own. The purpose
-/// of doing this is to make use of polymorphism.  
+/**
+ * \brief Break graph into smaller graph instances if the network is made up of
+ *        isolated sub networks
+ *
+ * This algorithm will determine if there are groups of vertices that are
+ * connected, but where there are no connections shared between the groups.
+ * These groups will be brocken up into their own Graph instances.
+ *
+ * @param[in] - Graph instance
+ * @return - vector containing shared pointers to all the sub graphs if there
+ *           are no subgraphs than the input graph is returned.
+ */
+std::vector<std::shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph g);
+
+/**
+ * \brief Explore a graph with a graph visitor
+ *
+ * This function will simply explore a graph, any information gained from the
+ * exploration will depend on the graph visitor used. Note that the Graph
+ * visitor is the base class which will not work on its own. The purpose of
+ * doing this is to make use of polymorphism.
+ *
+ * @param[in,out] - Graph reference instance
+ * @param[in,out] - graph visitor
+ */
 void exploreGraph(Graph& g, GraphVisitor& gv);
 
-/// This algorithm is designed to explore the topology of the graph and
-/// return an identifier in the form of the string that is unique to the
-/// topology. 
+/**
+ * \brief Find a unique identifier that describes graph structure
+ *
+ * This algorithm is designed to explore the topology of the graph and return an
+ * identifier in the form of the string that is unique to the topology. It does
+ * this by taking into account the contents of the graphnodes. How it does this
+ * is specific to the graph visitor specified.
+ *
+ * @param[in,out] - Graph reference instance
+ * @return - string identifier
+ */
 template <typename GV>
 std::string findStructureId(Graph& g) {
 
@@ -97,7 +136,7 @@ std::string findStructureId(Graph& g) {
       g_chosen = g_temp;
     }
   }
-  
+
   g = g_chosen;
   return chosenId;
 }
