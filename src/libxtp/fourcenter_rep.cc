@@ -936,18 +936,12 @@ for (int l = 4; l < lmax_delta+1; l++) {
 
                         R4_sph[ j ][ k ][ i_gamma ][ i_delta ] += R4_ab_sph[j][k][ i_gamma_t ][ i_delta_t]
                                                                       * trafo_gamma(i_gamma_t, i_gamma) * trafo_delta(i_delta_t, i_delta);
-
                       }
                     }
-
                   }
                 }
-
               }
             }
-
-            
-            
 
             int NumFunc_alpha = shell_alpha->getNumFunc();
             int NumFunc_beta = shell_beta->getNumFunc();

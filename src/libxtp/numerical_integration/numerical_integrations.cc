@@ -413,10 +413,10 @@ namespace votca {
             double df_drho; // v_xc_rho(r) = df/drho
             double df_dsigma; // df/dsigma ( df/dgrad(rho) = df/dsigma * dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
             EvaluateXC(rho, rho_grad, f_xc, df_drho, df_dsigma);          
-            auto _addXC = weight * (0.5*df_drho * ao+ 2.0 * df_dsigma *ao_grad*rho_grad);
+            auto addXC = weight * (0.5*df_drho * ao+ 2.0 * df_dsigma *ao_grad*rho_grad);
             // Exchange correlation energy
             EXC_box += weight * rho * f_xc;
-            Vxc_here.noalias() += _addXC* ao.transpose();
+            Vxc_here.noalias() += addXC* ao.transpose();
           }
           box.AddtoBigMatrix(vxc_thread[thread], Vxc_here);
           Exc_thread[thread] += EXC_box;
@@ -464,8 +464,8 @@ namespace votca {
               Eigen::VectorBlock<Eigen::VectorXd> ao_block=ao.segment(aoranges[j].start,aoranges[j].size);
               shells[j]->EvalAOspace(ao_block, points[p]);
             }
-            Eigen::VectorXd _addEX = weights[p] * Potentialvalues[box.getIndexoffirstgridpoint() + p] * ao;
-            Vex_here += _addEX.transpose() * ao;
+            Eigen::VectorXd addEX = weights[p] * Potentialvalues[box.getIndexoffirstgridpoint() + p] * ao;
+            Vex_here += addEX.transpose() * ao;
           }
           box.AddtoBigMatrix(vex_thread[thread], Vex_here);
 
@@ -724,7 +724,7 @@ int NumericalIntegration::UpdateOrder(LebedevGrid& sphericalgridofElement, int m
         
 void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> atoms,const AOBasis* basis) {
       _basis = basis;
-      std::vector< std::vector< GridContainers::Cartesian_gridpoint > > grid;
+      
       const double pi = boost::math::constants::pi<double>();
       GridContainers initialgrids;
       // get radial grid per element
@@ -736,8 +736,8 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> atom
       // for the partitioning, we need all inter-center distances later, stored in matrix
       Rij=CalcInverseAtomDist(atoms);
       _totalgridsize = 0;
+      std::vector< std::vector< GridContainers::Cartesian_gridpoint > > grid;
       
-      std::vector< GridContainers::Cartesian_gridpoint > atomgrid;
       for (unsigned i_atom=0;i_atom<atoms.size();++i_atom) {
         QMAtom* atom=atoms[i_atom];
 
@@ -752,6 +752,7 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> atom
         std::vector<double> PruningIntervals = radialgridofElement.CalculatePruningIntervals(name);
         int current_order = 0;
         // for each radial value
+        std::vector< GridContainers::Cartesian_gridpoint > atomgrid;
         for (unsigned i_rad = 0; i_rad < radial_grid.radius.size(); i_rad++) {
           double r = radial_grid.radius[i_rad];
 
