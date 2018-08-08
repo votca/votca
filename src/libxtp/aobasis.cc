@@ -504,7 +504,6 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
 
     void AOBasis::AOBasisFill(const BasisSet& bs, std::vector<QMAtom* >& atoms, int fragbreak) {
       tools::Elements elementinfo;
-      std::vector<QMAtom* > ::iterator ait;
       _AOBasisSize = 0;
       _AOBasisFragA = 0;
       _AOBasisFragB = 0;
