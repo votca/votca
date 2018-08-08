@@ -25,7 +25,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(sphere_lebedev_rule_test)
 
-BOOST_AUTO_TEST_CASE(vxc_test) {
+BOOST_AUTO_TEST_CASE(setup_test) {
   
   ofstream xyzfile("molecule.xyz");
   xyzfile << " 5" << endl;
@@ -91,16 +91,16 @@ BOOST_AUTO_TEST_CASE(vxc_test) {
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   
-  GridContainers grid;
+
   
   LebedevGrid spheregrid;
   
-  spheregrid.getSphericalGrid(orbitals.QMAtoms(),"medium",grid);
+  auto grid=spheregrid.CalculateSphericalGrids(orbitals.QMAtoms(),"medium");
   
-  auto Hgrid=grid._spherical_grids.at("H");
-  auto Cgrid=grid._spherical_grids.at("C");
+  auto Hgrid=grid.at("H");
+  auto Cgrid=grid.at("C");
   
   std::vector<double> C_phi_ref=std::vector<double>{90,90,90,90,0,180,45,45,135,135,45,45,135,135,90,90,90,90,54.7356,54.7356,54.7356,
           54.7356,125.264,125.264,125.264,125.264,77.7225,77.7225,77.7225,77.7225,102.278,102.278,102.278,102.278,46.2959,46.2959,46.2959,
@@ -128,7 +128,7 @@ BOOST_AUTO_TEST_CASE(vxc_test) {
           84.3059,95.6941,95.6941,95.6941,95.6941,20.4166,20.4166,20.4166,20.4166,159.583,159.583,159.583,159.583,70.4617,70.4617,70.4617,70.4617,109.538,
           109.538,109.538,109.538,20.4166,20.4166,20.4166,20.4166,159.583,159.583,159.583,159.583};
 
-    std::vector<double> C_theta_ref=std::vector<double>{0,180,90,-90,90,90,90,-90,90,-90,0,180,0,180,45,135,-45,-135,45,135,-45,-135,45,135,-45,
+    std::vector<double> C_theta_ref=std::vector<double>{0,180,90,-90,0,0,90,-90,90,-90,0,180,0,180,45,135,-45,-135,45,135,-45,-135,45,135,-45,
             -135,45,135,-45,-135,45,135,-45,-135,17.1066,162.893,-17.1066,-162.893,17.1066,162.893,-17.1066,-162.893,72.8934,107.107,-72.8934,
             -107.107,72.8934,107.107,-72.8934,-107.107,45,135,-45,-135,45,135,-45,-135,79.61,100.39,-79.61,-100.39,79.61,100.39,-79.61,-100.39,10.39,
             169.61,-10.39,-169.61,10.39,169.61,-10.39,-169.61,45,135,-45,-135,45,135,-45,-135,55.6481,124.352,-55.6481,-124.352,55.6481,124.352,-55.6481,
@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_CASE(vxc_test) {
              109.538,109.538,109.538,84.3059,84.3059,84.3059,84.3059,95.6941,95.6941,95.6941,95.6941,20.4166,20.4166,20.4166,20.4166,159.583,159.583,159.583,159.583,
              70.4617,70.4617,70.4617,70.4617,109.538,109.538,109.538,109.538,20.4166,20.4166,20.4166,20.4166,159.583,159.583,159.583,159.583};
 
-    std::vector<double> H_theta_ref=std::vector<double>{0,180,90,-90,90,90,90,-90,90,-90,0,180,0,180,45,135,-45,-135,45,135,-45,-135,45,135,-45,-135,45,135,-45,-135,45,
+    std::vector<double> H_theta_ref=std::vector<double>{0,180,90,-90,0,0,90,-90,90,-90,0,180,0,180,45,135,-45,-135,45,135,-45,-135,45,135,-45,-135,45,135,-45,-135,45,
             135,-45,-135,17.1066,162.893,-17.1066,-162.893,17.1066,162.893,-17.1066,-162.893,72.8934,107.107,-72.8934,-107.107,72.8934,107.107,-72.8934,-107.107,45,135,
             -45,-135,45,135,-45,-135,79.61,100.39,-79.61,-100.39,79.61,100.39,-79.61,-100.39,10.39,169.61,-10.39,-169.61,10.39,169.61,-10.39,-169.61,45,135,-45,-135,45,135,
             -45,-135,55.6481,124.352,-55.6481,-124.352,55.6481,124.352,-55.6481,-124.352,34.3519,145.648,-34.3519,-145.648,34.3519,145.648,-34.3519,-145.648,45,135,-45,
@@ -265,6 +265,14 @@ BOOST_AUTO_TEST_CASE(vxc_test) {
    
    bool Cphi=std::equal(Cgrid.phi.begin(),Cgrid.phi.end(),C_phi_ref.begin(),[](double a,double b){return (std::abs(a-b)<1e-2);});
    bool Ctheta=std::equal(Cgrid.theta.begin(),Cgrid.theta.end(),C_theta_ref.begin(),[](double a,double b){return (std::abs(a-b)<1e-2);});
+   if(!Cphi || !Ctheta){
+          std::cout<<"phi_ref : Phi_comp | theta_ref : theta_comp"<<std::endl;
+   for (unsigned i=0;i<C_phi_ref.size();i++){
+     std::cout<<Cgrid.phi[i]<<":"<<C_phi_ref[i]<<" | "<<Cgrid.theta[i]<<":"<<C_theta_ref[i]<<std::endl;
+   }
+   }
+   
+    
    bool Cweight=std::equal(Cgrid.weight.begin(),Cgrid.weight.end(),C_weight_ref.begin(),[](double a,double b){return (std::abs(a-b)<1e-5);});
   BOOST_CHECK_EQUAL(Cphi,true);
   BOOST_CHECK_EQUAL(Ctheta,true);

@@ -49,7 +49,6 @@ namespace votca {
             
 
         private:
-            //const double pi = 3.1415926535897932384626433832795028841971693993751058209;
             int available_table(int rule);
             int gen_oh(int code, double a, double b, double v, double *x,
                     double *y, double *z, double *w);

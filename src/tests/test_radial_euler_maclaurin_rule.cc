@@ -92,16 +92,14 @@ BOOST_AUTO_TEST_CASE(setup_test) {
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
-  
-  GridContainers grid;
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
+
   
    EulerMaclaurinGrid radialgrid;
-            
-   radialgrid.getRadialGrid(&aobasis, orbitals.QMAtoms(), "medium", grid );
-   
-   auto Cgrid =grid._radial_grids.at("C");
-   auto Hgrid =grid._radial_grids.at("H");
+   auto grid=radialgrid.CalculateAtomicRadialGrids(&aobasis, orbitals.QMAtoms(), "medium");
+
+   auto Cgrid =grid.at("C");
+   auto Hgrid =grid.at("H");
    
    std::vector<double> C_radius_ref=std::vector<double>{2.80419e-05,0.000224341,
            0.00075721,0.00179513,0.00350698,0.00606227,0.00963155,0.0143869,0.0205023,0.0281546,0.0375238,0.0487943,0.0621556,0.0778038,0.0959422,
