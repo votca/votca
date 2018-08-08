@@ -161,7 +161,6 @@
         <itemPath>../../src/libxtp/fourcenter_rep.cc</itemPath>
         <itemPath>../../src/libxtp/threecenter_dft.cc</itemPath>
         <itemPath>../../src/libxtp/threecenter_gwbse.cc</itemPath>
-        <itemPath>../../src/libxtp/threecenter_ol.cc</itemPath>
         <itemPath>../../src/libxtp/threecenter_rep.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f5" displayName="aomatrices" projectFiles="true">
@@ -1820,8 +1819,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/threecenter_ol.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/threecenter_rep.cc"
             ex="false"
             tool="1"
@@ -1922,11 +1919,6 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_sphere_lebedev_rule.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/tests/test_symmetric_matrix.cc"
             ex="false"
@@ -2727,8 +2719,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/threecenter_ol.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/threecenter_rep.cc"
             ex="false"
             tool="1"
@@ -2829,11 +2819,6 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_sphere_lebedev_rule.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/tests/test_symmetric_matrix.cc"
             ex="false"

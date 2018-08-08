@@ -31,9 +31,9 @@ namespace votca {
 
         void AOSuperMatrix::PrintIndexToFunction(const AOBasis& aobasis) {
             for ( const AOShell* shell_row:aobasis) {
-                int _row_start = shell_row->getStartIndex();
+                int row_start = shell_row->getStartIndex();
                 std::string type = shell_row->getType();
-                std::cout << "Shell " << type << "starts at " << _row_start + 1 << std::endl;
+                std::cout << "Shell " << type << "starts at " << row_start + 1 << std::endl;
             }
             return;
         }
@@ -413,49 +413,49 @@ namespace votca {
 
 
         template<class T> 
-        std::vector<double> AOMatrix<T>::XIntegrate(int n, double T) {
-            std::vector<double> FmT = std::vector<double>(n, 0.0);
-            const int mm = FmT.size() - 1;
+        std::vector<double> AOMatrix<T>::XIntegrate(int size, double U) {
+            std::vector<double> FmU = std::vector<double>(size, 0.0);
+            const int mm = FmU.size() - 1;
             const double pi = boost::math::constants::pi<double>();
             if (mm < 0) {
                 std::cerr << "mm is: " << mm << " This should not have happened!" << std::flush;
                 exit(1);
             }
 
-            if (T < 0.0) {
-                std::cerr << "T is: " << T << " This should not have happened!" << std::flush;
+            if (U < 0.0) {
+                std::cerr << "U is: " << U << " This should not have happened!" << std::flush;
                 exit(1);
             }
 
-            if (T >= 10.0) {
+            if (U >= 10.0) {
                 // forward iteration
-                FmT[0] = 0.50 * sqrt(pi / T) * erf(sqrt(T));
+                FmU[0] = 0.50 * sqrt(pi / U) * erf(sqrt(U));
 
-                for (unsigned m = 1; m < FmT.size(); m++) {
-                    FmT[m] = (2.0 * m - 1) * FmT[m - 1] / (2.0 * T) - exp(-T) / (2.0 * T);
+                for (unsigned m = 1; m < FmU.size(); m++) {
+                    FmU[m] = (2.0 * m - 1) * FmU[m - 1] / (2.0 * U) - exp(-U) / (2.0 * U);
                 }
             }
 
-            if (T < 1e-10) {
-                for (unsigned m = 0; m < FmT.size(); m++) {
-                    FmT[m] = 1.0 / (2.0 * m + 1.0) - T / (2.0 * m + 3.0);
+            if (U < 1e-10) {
+                for (unsigned m = 0; m < FmU.size(); m++) {
+                    FmU[m] = 1.0 / (2.0 * m + 1.0) - U / (2.0 * m + 3.0);
                 }
             }
 
 
-            if (T >= 1e-10 && T < 10.0) {
+            if (U >= 1e-10 && U < 10.0) {
                 // backward iteration
                 double fm = 0.0;
                 for (int m = 60; m >= mm; m--) {
-                    fm = (2.0 * T) / (2.0 * m + 1.0) * (fm + exp(-T) / (2.0 * T));
+                    fm = (2.0 * U) / (2.0 * m + 1.0) * (fm + exp(-U) / (2.0 * U));
                 }
-                FmT[mm] = fm;
+                FmU[mm] = fm;
                 for (int m = mm - 1; m >= 0; m--) {
-                    FmT[m] = (2.0 * T) / (2.0 * m + 1.0) * (FmT[m + 1] + exp(-T) / (2.0 * T));
+                    FmU[m] = (2.0 * U) / (2.0 * m + 1.0) * (FmU[m + 1] + exp(-U) / (2.0 * U));
                 }
             }
 
-            return FmT;
+            return FmU;
         }
         
 int AOSuperMatrix::getBlockSize(int lmax) {

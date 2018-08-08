@@ -25,7 +25,7 @@ namespace votca { namespace xtp {
 
 
 
-    void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& _matrix, const AOShell* _shell_row, const AOShell* _shell_col) {
+    void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix, const AOShell* shell_row, const AOShell* shell_col) {
 
         /*
          *
@@ -39,85 +39,85 @@ namespace votca { namespace xtp {
          *
          */
     
-            int _lmax_row = _shell_row->getLmax();
-            std::vector<double> _contractions_row_full((_lmax_row + 1)*(_lmax_row + 1));
+            int lmax_row = shell_row->getLmax();
+            std::vector<double> contractions_row_full((lmax_row + 1)*(lmax_row + 1));
 
-            int _lmax_col = _shell_col->getLmax();
-            std::vector<double> _contractions_col_full((_lmax_col + 1)*(_lmax_col + 1));
+            int lmax_col = shell_col->getLmax();
+            std::vector<double> contractions_col_full((lmax_col + 1)*(lmax_col + 1));
 
 
 
-            const tools::vec& _pos_row = _shell_row->getPos();
-            const tools::vec& _pos_col = _shell_col->getPos();
-            const tools::vec _diff = _pos_row - _pos_col;
+            const tools::vec& pos_row = shell_row->getPos();
+            const tools::vec& pos_col = shell_col->getPos();
+            const tools::vec diff = pos_row - pos_col;
             // initialize some helper
-            double _distsq = _diff*_diff;
+            double distsq = diff*diff;
 
 
-            // iterate over Gaussians in this _shell_row
-            for (AOShell::GaussianIterator itr = _shell_row->begin(); itr != _shell_row->end(); ++itr) {
-                // iterate over Gaussians in this _shell_col
+            // iterate over Gaussians in this shell_row
+            for (AOShell::GaussianIterator itr = shell_row->begin(); itr != shell_row->end(); ++itr) {
+                // iterate over Gaussians in this shell_col
                 // get decay constant
-                const double _decay_row = itr->getDecay();
+                const double decay_row = itr->getDecay();
 
-                //if ( _decay_row > 0.08 ) continue;
+                //if ( decay_row > 0.08 ) continue;
 
                 const std::vector<double>& _contractions_row = itr->getContraction();
                 // shitty magic
-                for (int L = 0; L <= _lmax_row; L++) {
+                for (int L = 0; L <= lmax_row; L++) {
                     for (int M = L*L; M < (L + 1)*(L + 1); M++) {
-                        _contractions_row_full[M] = _contractions_row[L];
+                        contractions_row_full[M] = _contractions_row[L];
                     }
                 }
 
 
-                for (AOShell::GaussianIterator itc = _shell_col->begin(); itc != _shell_col->end(); ++itc) {
+                for (AOShell::GaussianIterator itc = shell_col->begin(); itc != shell_col->end(); ++itc) {
                     //get decay constant
-                    const double _decay_col = itc->getDecay();
-                    const double _fak  = 0.5 / (_decay_row + _decay_col);
-                    const double _fak2 = 2.0 * _fak;
+                    const double decay_col = itc->getDecay();
+                    const double fak  = 0.5 / (decay_row + decay_col);
+                    const double fak2 = 2.0 * fak;
                 
                 
-                    double _exparg = _fak2 * _decay_row * _decay_col *_distsq;
+                    double exparg = fak2 * decay_row * decay_col *distsq;
         
                     // check if distance between postions is big, then skip step   
        
-                    if ( _exparg > 30.0 ) {
+                    if ( exparg > 30.0 ) {
                         continue;
                     }
 
                     const std::vector<double>& _contractions_col = itc->getContraction();
-                    for (int L = 0; L <= _lmax_col; L++) {
+                    for (int L = 0; L <= lmax_col; L++) {
                         for (int M = L * L; M < (L + 1)*(L + 1); M++) {
-                            _contractions_col_full[M] = _contractions_col[L];
+                            contractions_col_full[M] = _contractions_col[L];
                         }
                     }
                     // for each atom and its pseudopotential, get a matrix
-                    int _atomidx = 0;
+                    int atomidx = 0;
 
-                    Eigen::Matrix<int,4,5> _power_matrix = Eigen::Matrix<int,4,5>::Zero(); // 4 fit components, non-local ECPs l = 0, 1, 2, 3, 4
-                    Eigen::Matrix<double,4,5> _decay_matrix = Eigen::Matrix<double,4,5>::Zero();
-                    Eigen::Matrix<double,4,5> _coef_matrix  = Eigen::Matrix<double,4,5>::Zero();
+                    Eigen::Matrix<int,4,5> powermatrix = Eigen::Matrix<int,4,5>::Zero(); // 4 fit components, non-local ECPs l = 0, 1, 2, 3, 4
+                    Eigen::Matrix<double,4,5> decaymatrix = Eigen::Matrix<double,4,5>::Zero();
+                    Eigen::Matrix<double,4,5> coefmatrix  = Eigen::Matrix<double,4,5>::Zero();
 
                     AOBasis::AOShellIterator final_iter = _ecp->end();
                     --final_iter;
-                    tools::vec _ecp_eval_pos = tools::vec(0.0);
-                    int _lmax_ecp = 0;
-                    for (AOBasis::AOShellIterator _ecpit = _ecp->begin(); _ecpit != _ecp->end(); ++_ecpit) {
+                    tools::vec ecp_eval_pos = tools::vec(0.0);
+                    int lmax_ecp = 0;
+                    for (AOBasis::AOShellIterator ecpit = _ecp->begin(); ecpit != _ecp->end(); ++ecpit) {
 
-                        const AOShell* _shell_ecp = *_ecpit;
-                        const tools::vec& _ecp_pos = _shell_ecp->getPos();
+                        const AOShell* shell_ecp = *ecpit;
+                        const tools::vec& ecp_pos = shell_ecp->getPos();
 
-                        int this_atom = _shell_ecp->getAtomIndex();
+                        int this_atom = shell_ecp->getAtomIndex();
 
-                        const int _ecp_l = _shell_ecp->getLmax(); // as ECP shells are never combined Lmax=Lmin=l
+                        const int ecp_l = shell_ecp->getLmax(); // as ECP shells are never combined Lmax=Lmin=l
 
                         // only do the non-local parts
-                        if (_shell_ecp->isNonLocal()) {
-                            int _lmax_ecp_old = _lmax_ecp;
-                            _lmax_ecp = _shell_ecp->getNumFunc() - 1;
+                        if (shell_ecp->isNonLocal()) {
+                            int _lmax_ecp_old = lmax_ecp;
+                            lmax_ecp = shell_ecp->getNumFunc() - 1;
                             int i_fit = -1;
-                            for (AOShell::GaussianIterator itecp = _shell_ecp->begin(); itecp != _shell_ecp->end(); ++itecp) {
+                            for (AOShell::GaussianIterator itecp = shell_ecp->begin(); itecp != shell_ecp->end(); ++itecp) {
                                 i_fit++;
 
                                 // get info for this angular momentum shell
@@ -126,41 +126,41 @@ namespace votca { namespace xtp {
                                 const double _contraction_ecp = itecp->getContraction()[0];
 
                                 // collect atom ECP
-                                if (this_atom == _atomidx) {
-                                    _ecp_eval_pos = _ecp_pos;
-                                    _power_matrix(i_fit, _ecp_l ) = _power_ecp;
-                                    _decay_matrix(i_fit, _ecp_l ) = _decay_ecp;
-                                    _coef_matrix(i_fit, _ecp_l )  = _contraction_ecp;
+                                if (this_atom == atomidx) {
+                                    ecp_eval_pos = ecp_pos;
+                                    powermatrix(i_fit, ecp_l ) = _power_ecp;
+                                    decaymatrix(i_fit, ecp_l ) = _decay_ecp;
+                                    coefmatrix(i_fit, ecp_l )  = _contraction_ecp;
                                 }
                                 
-                                if ((this_atom != _atomidx ) || ( _ecpit == final_iter)) {
-                                    if (this_atom != _atomidx) {
-                                       _lmax_ecp = _lmax_ecp_old;
+                                if ((this_atom != atomidx ) || ( ecpit == final_iter)) {
+                                    if (this_atom != atomidx) {
+                                       lmax_ecp = _lmax_ecp_old;
                                     }
 
                                     // evaluate collected data, returns a (10x10) matrix of already normalized matrix elements
-                                    Eigen::MatrixXd VNL_ECP = calcVNLmatrix(_lmax_ecp, _ecp_eval_pos, *itr, *itc,  _power_matrix ,_decay_matrix, _coef_matrix);
+                                    Eigen::MatrixXd VNL_ECP = calcVNLmatrix(lmax_ecp, ecp_eval_pos, *itr, *itc,  powermatrix ,decaymatrix, coefmatrix);
 
                                     // consider contractions
                                     // cut out block that is needed. sum
-                                    //                                   cout << "_matrix.size1,2()   " << _matrix.size1() << "    " << _matrix.size2() << endl;
-                                    for ( unsigned i = 0; i < _matrix.rows(); i++ ) {
-                                        for (unsigned j = 0; j < _matrix.cols(); j++) {
-                                            _matrix(i,j) += VNL_ECP(i+_shell_row->getOffset(),j+_shell_col->getOffset()) * _contractions_row_full[i+_shell_row->getOffset()]* _contractions_col_full[j+_shell_col->getOffset()];
+                                    //                                   cout << "matrix.size1,2()   " << matrix.size1() << "    " << matrix.size2() << endl;
+                                    for ( unsigned i = 0; i < matrix.rows(); i++ ) {
+                                        for (unsigned j = 0; j < matrix.cols(); j++) {
+                                            matrix(i,j) += VNL_ECP(i+shell_row->getOffset(),j+shell_col->getOffset()) * contractions_row_full[i+shell_row->getOffset()]* contractions_col_full[j+shell_col->getOffset()];
                                         }
                                     }
 
 
                                     // reset atom ECP containers
-                                    _power_matrix = Eigen::Matrix<int,4,5>::Zero(); // 4 fit components, non-local ECPs l = 0, 1, 2, 3, 4
-                                    _decay_matrix = Eigen::Matrix<double,4,5>::Zero();
-                                    _coef_matrix  = Eigen::Matrix<double,4,5>::Zero();
-                                    _atomidx++;
+                                    powermatrix = Eigen::Matrix<int,4,5>::Zero(); // 4 fit components, non-local ECPs l = 0, 1, 2, 3, 4
+                                    decaymatrix = Eigen::Matrix<double,4,5>::Zero();
+                                    coefmatrix  = Eigen::Matrix<double,4,5>::Zero();
+                                    atomidx++;
                                     i_fit = 0;
                                     //cout << "setting new matrix " << i_fit << " l " << _ecp_l << " alpha  " << _decay_ecp <<  " pref " << _contraction_ecp << endl;
-                                    _power_matrix(i_fit, _ecp_l ) = _power_ecp;
-                                    _decay_matrix(i_fit, _ecp_l ) = _decay_ecp;
-                                    _coef_matrix(i_fit, _ecp_l )  = _contraction_ecp;
+                                    powermatrix(i_fit, ecp_l ) = _power_ecp;
+                                    decaymatrix(i_fit, ecp_l ) = _decay_ecp;
+                                    coefmatrix(i_fit, ecp_l )  = _contraction_ecp;
                                 } // evaluate if new atom is found
 
                             } // all Gaussians in ecp_shell
@@ -168,13 +168,16 @@ namespace votca { namespace xtp {
 
                     } // all ecp_shells
                   
-                }// _shell_col Gaussians
-            }// _shell_row Gaussians
+                }// shell_col Gaussians
+            }// shell_row Gaussians
          
             return;
         }
 
-        Eigen::MatrixXd AOECP::calcVNLmatrix(int _lmax_ecp, const tools::vec& posC, const AOGaussianPrimitive& _g_row, const AOGaussianPrimitive& _g_col,const  Eigen::Matrix<int,4,5>& _power_ecp, const Eigen::Matrix<double,4,5>& _gamma_ecp,const Eigen::Matrix<double,4,5>& _pref_ecp) {
+        Eigen::MatrixXd AOECP::calcVNLmatrix(int lmax_ecp, const tools::vec& posC, 
+                const AOGaussianPrimitive& g_row, const AOGaussianPrimitive& g_col,
+                const  Eigen::Matrix<int,4,5>& power_ecp, const Eigen::Matrix<double,4,5>& gamma_ecp,
+                const Eigen::Matrix<double,4,5>& pref_ecp) {
 
             /* calculate the contribution of the nonlocal 
              *     ECP of atom at posC with 
@@ -196,16 +199,16 @@ namespace votca { namespace xtp {
             double SQ5 = sqrt(5.);
             double SQ7 = sqrt(7.);
 
-            double alpha = _g_row.getDecay();
-            double beta = _g_col.getDecay();
-            const tools::vec& posA = _g_row.getShell()->getPos();
-            const tools::vec& posB = _g_col.getShell()->getPos();
-            int _lmax_row = _g_row.getShell()->getLmax();
-            int _lmax_col = _g_col.getShell()->getLmax();
-            int _lmin = std::min({_lmax_row, _lmax_col, _lmax_ecp});
-            int _lmax = std::max({_lmax_row, _lmax_col, _lmax_ecp});
-            int _nsph_row = (_lmax_row + 1) * (_lmax_row + 1);
-            int _nsph_col = (_lmax_col + 1) * (_lmax_col + 1);
+            double alpha = g_row.getDecay();
+            double beta = g_col.getDecay();
+            const tools::vec& posA = g_row.getShell()->getPos();
+            const tools::vec& posB = g_col.getShell()->getPos();
+            int lmax_row = g_row.getShell()->getLmax();
+            int lmax_col = g_col.getShell()->getLmax();
+            int lmin = std::min({lmax_row, lmax_col, lmax_ecp});
+            int lmax = std::max({lmax_row, lmax_col, lmax_ecp});
+            int nsph_row = (lmax_row + 1) * (lmax_row + 1);
+            int nsph_col = (lmax_col + 1) * (lmax_col + 1);
 
             tools::vec AVS = posA - posC;
             tools::vec BVS = posB - posC;
@@ -217,17 +220,17 @@ namespace votca { namespace xtp {
             if (BVS2 > 0.01) INULL++;
 
 
-            Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_nsph_row,_nsph_col);
-            const int nnonsep = _gamma_ecp.rows();
+            Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(nsph_row,nsph_col);
+            const int nnonsep = gamma_ecp.rows();
             int nmax;
             if (INULL == 0) {
-                nmax = 2 * _lmin;
+                nmax = 2 * lmin;
             } else if (INULL == 3) {
-                nmax = 2 * NMAX + _lmax_row + _lmax_col;
+                nmax = 2 * NMAX + lmax_row + lmax_col;
             } else {
-                nmax = NMAX + 2 * _lmax;
+                nmax = NMAX + 2 * lmax;
             }
-            Eigen::MatrixXd XI = Eigen::MatrixXd::Zero(_lmax_ecp + 1, nmax + 1);
+            Eigen::MatrixXd XI = Eigen::MatrixXd::Zero(lmax_ecp + 1, nmax + 1);
 
             double f_even_r0 = .5 * SQPI;
             double f_even_r1 = .5;
@@ -247,17 +250,17 @@ namespace votca { namespace xtp {
                     double DFAK_r1 = .5 * double(N + 2);
                     double DFAK_r2 = .5 * double(N + 3);
 
-                    for (int L = 0; L <= _lmax_ecp; L++) {
+                    for (int L = 0; L <= lmax_ecp; L++) {
 
                         for (int I = 0; I < nnonsep; I++) {
-                        int power = _power_ecp(I, L);
-                        double DLI = (alpha + beta + _gamma_ecp(I, L));
+                        int power = power_ecp(I, L);
+                        double DLI = (alpha + beta + gamma_ecp(I, L));
                             if (power == 2) {
-                                XI(L, N) += f_even_r2 * _pref_ecp(I, L) / pow(DLI, DFAK_r2); // r^2 terms
+                                XI(L, N) += f_even_r2 * pref_ecp(I, L) / pow(DLI, DFAK_r2); // r^2 terms
                             } else if (power == 0) {
-                                XI(L, N) += f_even_r0 * _pref_ecp(I, L) / pow(DLI, DFAK_r0); // r^0 terms
+                                XI(L, N) += f_even_r0 * pref_ecp(I, L) / pow(DLI, DFAK_r0); // r^0 terms
                             } else if (power == 1) {
-                                XI(L, N) += f_even_r1 * _pref_ecp(I, L) / pow(DLI, DFAK_r1); // r^1 terms
+                                XI(L, N) += f_even_r1 * pref_ecp(I, L) / pow(DLI, DFAK_r1); // r^1 terms
                             }
                         }
 
@@ -267,16 +270,9 @@ namespace votca { namespace xtp {
 
             }
 
-
-
-
-
-
             /**** PREPARATIONS DONE, NOW START ******/
 
             // some limit determinations
-
-
             double G1 = 1.;
             double AVSSQ = 0.;
             int NMAX1 = 0;
@@ -296,9 +292,9 @@ namespace votca { namespace xtp {
                     }
                     double AF = G1 * Pow / factorialNN;
                     if ((NN % 2) == 0) {
-                        int ii = NN + 2 * _lmax;
+                        int ii = NN + 2 * lmax;
 
-                        switch (_lmax) {
+                        switch (lmax) {
                             case 0:
                                 AMAX = AF * XI(0, ii);
                                 break;
@@ -345,9 +341,9 @@ namespace votca { namespace xtp {
                     }
                     double BF = G2 * Pow / factorialNN;
                     if ((NN % 2) == 0) {
-                        int ii = NN + 2 * _lmax;
+                        int ii = NN + 2 * lmax;
 
-                        switch (_lmax) {
+                        switch (lmax) {
                             case 0:
                                 BMAX = BF * XI(0, ii);
                                 break;
@@ -377,7 +373,6 @@ namespace votca { namespace xtp {
             double GAUSS = G1 * G2;
 
 
-
             /****** ORIGINAL CKO SUBROUTINE **********/
 
             tensor4d::extent_gen extent;
@@ -387,18 +382,18 @@ namespace votca { namespace xtp {
 
                 COEF.resize(extent[range(0, 5)][range(0, 5)][range(0, 9)][range(0, NMAX + 1)]);
 
-                int _lmin_dft_ecp=0;
-                int _lmax_dft_ecp=0;
+                int lmin_dft_ecp=0;
+                int lmax_dft_ecp=0;
                 if (INULL == 2) {
-                    _lmin_dft_ecp = std::min(_lmax_row, _lmax_ecp);
-                    _lmax_dft_ecp = std::max(_lmax_row, _lmax_ecp);
+                    lmin_dft_ecp = std::min(lmax_row, lmax_ecp);
+                    lmax_dft_ecp = std::max(lmax_row, lmax_ecp);
                 } else if (INULL == 1) {
-                    _lmin_dft_ecp = std::min(_lmax_col, _lmax_ecp);
-                    _lmax_dft_ecp = std::max(_lmax_col, _lmax_ecp);
+                    lmin_dft_ecp = std::min(lmax_col, lmax_ecp);
+                    lmax_dft_ecp = std::max(lmax_col, lmax_ecp);
                 } else if (INULL == 3) {
-                    int _lmax_dft = std::max(_lmax_row, _lmax_col);
-                    _lmin_dft_ecp = std::min(_lmax_dft, _lmax_ecp);
-                    _lmax_dft_ecp = std::max(_lmax_dft, _lmax_ecp);
+                    int _lmax_dft = std::max(lmax_row, lmax_col);
+                    lmin_dft_ecp = std::min(_lmax_dft, lmax_ecp);
+                    lmax_dft_ecp = std::max(_lmax_dft, lmax_ecp);
                 }
 
                 for ( index4d i4 = 0; i4 <= NMAX; i4++ ) {
@@ -416,13 +411,13 @@ namespace votca { namespace xtp {
 
                     COEF[0][0][4][i4] = NG/FN1;  //  M0                      Mn is a modified spherical Bessel function of the first kind
 
-                    if (_lmax_dft_ecp > 0) {
+                    if (lmax_dft_ecp > 0) {
 
                         double COEFF = NU/FN2*SQ3;  //  SQ(3) * M1
                         COEF[0][1][4][i4] = COEFF;
                         COEF[1][0][4][i4] = COEFF;
 
-                        if (_lmin_dft_ecp > 0) {
+                        if (lmin_dft_ecp > 0) {
                             COEF[1][1][4][i4] = NG*3.0/FN3;        //  M0 + 2 * M2
                             COEFF = 3.0/2.0*NG*(1.0/FN1-1.0/FN3);  //  M0 - M2
                             COEF[1][1][3][i4] = COEFF;
@@ -431,13 +426,13 @@ namespace votca { namespace xtp {
 
                     }
 
-                    if (_lmax_dft_ecp > 1) {
+                    if (lmax_dft_ecp > 1) {
 
                         double COEFF = NG/2.0*SQ5*(3.0/FN3-1.0/FN1);  //  SQ(5) * M2
                         COEF[0][2][4][i4] = COEFF;
                         COEF[2][0][4][i4] = COEFF;
 
-                        if (_lmin_dft_ecp > 0) {
+                        if (lmin_dft_ecp > 0) {
                             COEFF = SQ3*SQ5/2.0*NU*(3.0/FN4-1.0/FN2);  //  ( SQ(15)/5 ) * ( 2 * M1 + 3 * M3 )
                             COEF[1][2][4][i4] = COEFF;
                             COEF[2][1][4][i4] = COEFF;
@@ -448,7 +443,7 @@ namespace votca { namespace xtp {
                             COEF[2][1][5][i4] = COEFF;
                         }
 
-                        if (_lmin_dft_ecp > 1) {
+                        if (lmin_dft_ecp > 1) {
                             COEF[2][2][4][i4] = 5.0/4.0*NG*(9.0/FN5-6.0/FN3+1.0/FN1);  //  (1/7) * ( 7 * M0 + 10 * M2 + 18 * M4 )
                             COEFF = NG*15.0/2.0*(1.0/FN3-1.0/FN5);                     //  (1/7) * ( 7 * M0 + 5 * M2 - 12 * M4 )
                             COEF[2][2][3][i4] = COEFF;
@@ -460,13 +455,13 @@ namespace votca { namespace xtp {
 
                     }
 
-                    if (_lmax_dft_ecp > 2) {
+                    if (lmax_dft_ecp > 2) {
 
                         double COEFF = NU*.5*SQ7 * (5./FN4 - 3./FN2); //  SQ(7) * M3
                         COEF[0][3][4][i4] = COEFF;
                         COEF[3][0][4][i4] = COEFF;
 
-                        if (_lmin_dft_ecp > 0) {
+                        if (lmin_dft_ecp > 0) {
                             COEFF = NG*.5*SQ3*SQ7 * (5./FN5 - 3./FN3);              //  ( SQ(21)/7 ) * ( 3 * M2 + 4 * M4 )
                             COEF[1][3][4][i4] = COEFF;
                             COEF[3][1][4][i4] = COEFF;
@@ -477,7 +472,7 @@ namespace votca { namespace xtp {
                             COEF[3][1][5][i4] = COEFF;
                         }
 
-                        if (_lmin_dft_ecp > 1) {
+                        if (lmin_dft_ecp > 1) {
                             COEFF = NU*.25*SQ5*SQ7 * (15./FN6 - 14./FN4 + 3./FN2);      //  ( SQ(35)/105 ) * ( 27 * M1 + 28 * M3 + 50 * M5 )
                             COEF[2][3][4][i4] = COEFF;
                             COEF[3][2][4][i4] = COEFF;
@@ -493,7 +488,7 @@ namespace votca { namespace xtp {
                             COEF[3][2][6][i4] = COEFF;
                         }
 
-                        if (_lmin_dft_ecp > 2) {
+                        if (lmin_dft_ecp > 2) {
                             COEF[3][3][4][i4] = NG*1.75 * (50./FN7 - 30./FN5 + 9./FN3);   //  (1/33) * ( 33 * M0 + 44 * M2 + 54 * M4 + 100 * M6 )
                             COEFF = NG*1.3125 * (-25./FN7 + 35./FN5 - 11./FN3 + 1./FN1);  //  (1/11) * ( 11 * M0 + 11 * M2 + 3 * M4 - 25 * M6 )
                             COEF[3][3][3][i4] = COEFF;
@@ -509,13 +504,13 @@ namespace votca { namespace xtp {
                     }
 
 
-                    if (_lmax_dft_ecp > 3) {
+                    if (lmax_dft_ecp > 3) {
 
                         double COEFF = NG*.375 * (35./FN5 - 30./FN3 + 3./FN1);  //  3 * M4
                         COEF[0][4][4][i4] = COEFF;
                         COEF[4][0][4][i4] = COEFF;
 
-                        if (_lmin_dft_ecp > 0) {
+                        if (lmin_dft_ecp > 0) {
                             COEFF = NU*.375*SQ3 * (35./FN6 - 30./FN4 + 3./FN2);          //  ( SQ(3)/3 ) * ( 4 * M3 + 5 * M5 )
                             COEF[1][4][4][i4] = COEFF;
                             COEF[4][1][4][i4] = COEFF;
@@ -526,7 +521,7 @@ namespace votca { namespace xtp {
                             COEF[4][1][5][i4] = COEFF;
                         }
 
-                        if (_lmin_dft_ecp > 1) {
+                        if (lmin_dft_ecp > 1) {
                             COEFF = NG*.1875*SQ5 * (105./FN7 - 125./FN5 + 39./FN3 - 3./FN1);  //  ( (3*SQ(5))/77 ) * ( 22 * M2 + 20 * M4 + 35 * M6 )
                             COEF[2][4][4][i4] = COEFF;
                             COEF[4][2][4][i4] = COEFF;
@@ -542,7 +537,7 @@ namespace votca { namespace xtp {
                             COEF[4][2][6][i4] = COEFF;
                         }
 
-                        if (_lmin_dft_ecp > 2) {
+                        if (lmin_dft_ecp > 2) {
                             COEFF = NU*.1875*SQ7 * (175./FN8 - 255./FN6 + 105./FN4 - 9./FN2);        //  ( SQ(7)/1001 ) * ( 572 * M1 + 546 * M3 + 660 * M5 + 1225 * M7)
                             COEF[3][4][4][i4] = COEFF;
                             COEF[4][3][4][i4] = COEFF;
@@ -563,7 +558,7 @@ namespace votca { namespace xtp {
                             COEF[4][3][7][i4] = COEFF;
                         }
 
-                        if (_lmin_dft_ecp > 3) {
+                        if (lmin_dft_ecp > 3) {
 
                              std::cerr << "Sorry, not yet supported: Combination of G functions in DFT basis and ECPs with l = 4." << std::endl;
                              exit(1);
@@ -576,27 +571,22 @@ namespace votca { namespace xtp {
 
             } // end if (INULL != 0)
 
-
-
             tensor3d BLMA;
             tensor3d CA;
-            getBLMCOF(_lmax_ecp, _lmax_row, AVS, BLMA, CA);
-
+            getBLMCOF(lmax_ecp, lmax_row, AVS, BLMA, CA);
             tensor3d BLMB;
             tensor3d CB;
-            getBLMCOF(_lmax_ecp, _lmax_col, BVS, BLMB, CB);
-
+            getBLMCOF(lmax_ecp, lmax_col, BVS, BLMB, CB);
             tensor3d::extent_gen extents3D;
-
-
+            
             switch (INULL) {
 
                 case 0:  //  AVSSQ <= 0.1 && BVSSQ <= 0.1
                 {
 
-                    for (int i = 0; i < _nsph_row; i++) {
-                        for (int j = 0; j < _nsph_col; j++) {
-                            for (index3d L = 0; L <= _lmin; L++) {
+                    for (int i = 0; i < nsph_row; i++) {
+                        for (int j = 0; j < nsph_col; j++) {
+                            for (index3d L = 0; L <= lmin; L++) {
                                 double XI_L = XI(L, L + L);
                                 for (index3d M = 4 - L; M <= 4 + L; M++) {
                                     matrix(i,j) += BLMA[i][L][M] * BLMB[j][L][M] * XI_L;
@@ -607,14 +597,13 @@ namespace votca { namespace xtp {
                     break;
                 }
 
-
                 case 1:  //  AVSSQ <= 0.1
                 {
 
                     tensor3d SUMCI3;
                     SUMCI3.resize(extents3D[range(0, 5)][range(0, 5)][range(0, 9)]);
-                    for (index3d L = 0; L <= _lmax_ecp; L++) {
-                        for (index3d L2 = 0; L2 <= _lmax_col; L2++) {
+                    for (index3d L = 0; L <= lmax_ecp; L++) {
+                        for (index3d L2 = 0; L2 <= lmax_col; L2++) {
                             int range_M2 = std::min(L2, L);
                             for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
@@ -641,11 +630,11 @@ namespace votca { namespace xtp {
                         } // end L2
                     } // end L
 
-                    for (int i = 0; i < _nsph_row; i++) {
-                        for (int j = 0; j < _nsph_col; j++) {
+                    for (int i = 0; i < nsph_row; i++) {
+                        for (int j = 0; j < nsph_col; j++) {
 
-                            for (index3d L = 0; L <= std::min(_lmax_row, _lmax_ecp); L++) {
-                                for (index3d L2 = 0; L2 <= _lmax_col; L2++) {
+                            for (index3d L = 0; L <= std::min(lmax_row, lmax_ecp); L++) {
+                                for (index3d L2 = 0; L2 <= lmax_col; L2++) {
                                     int range_M2 = std::min(L2, L);
                                     for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
@@ -661,14 +650,13 @@ namespace votca { namespace xtp {
                     break;
                 }
 
-
                 case 2:  //  BVSSQ <= 0.1
                 {
 
                     tensor3d SUMCI3;
                     SUMCI3.resize(extents3D[range(0, 5)][range(0, 5)][range(0, 9)]);
-                    for (index3d L = 0; L <= _lmax_ecp; L++) {
-                        for (index3d L1 = 0; L1 <= _lmax_row; L1++) {
+                    for (index3d L = 0; L <= lmax_ecp; L++) {
+                        for (index3d L1 = 0; L1 <= lmax_row; L1++) {
                             int range_M1 = std::min(L1, L);
                             for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
 
@@ -695,12 +683,11 @@ namespace votca { namespace xtp {
                         } // end L1
                     } // end L
 
+                    for (int i = 0; i < nsph_row; i++) {
+                        for (int j = 0; j < nsph_col; j++) {
 
-                    for (int i = 0; i < _nsph_row; i++) {
-                        for (int j = 0; j < _nsph_col; j++) {
-
-                            for (index3d L = 0; L <= std::min(_lmax_col, _lmax_ecp); L++) {
-                                for (index3d L1 = 0; L1 <= _lmax_row; L1++) {
+                            for (index3d L = 0; L <= std::min(lmax_col, lmax_ecp); L++) {
+                                for (index3d L1 = 0; L1 <= lmax_row; L1++) {
                                     int range_M1 = std::min(L1, L);
                                     for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
 
@@ -716,15 +703,14 @@ namespace votca { namespace xtp {
                     break;
                 }
 
-
                 case 3:
                 {
 
                     tensor3d CC;
                     CC.resize(extents3D[range(0, 5)][range(0, 9)][range(0, 9)]);
-                    for (index3d L = 0; L <= _lmax_ecp; L++) {
-                        int range_M1 = std::min(_lmax_row, int(L));
-                        int range_M2 = std::min(_lmax_col, int(L));
+                    for (index3d L = 0; L <= lmax_ecp; L++) {
+                        int range_M1 = std::min(lmax_row, int(L));
+                        int range_M2 = std::min(lmax_col, int(L));
                         for ( index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
                             for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
                                 CC[L][M1][M2] = 0.0;
@@ -739,10 +725,10 @@ namespace votca { namespace xtp {
                     type_5D::extent_gen extents5D;
                     type_5D SUMCI;
                     SUMCI.resize(extents5D[range(0, 5)][range(0, 5)][range(0, 5)][range(0, 9)][range(0, 9)]);
-                    for (index3d L = 0; L <= _lmax_ecp; L++) {
-                        for (index3d L1 = 0; L1 <= _lmax_row; L1++) {
+                    for (index3d L = 0; L <= lmax_ecp; L++) {
+                        for (index3d L1 = 0; L1 <= lmax_row; L1++) {
                             int range_M1 = std::min(L1, L);
-                            for (index3d L2 = 0; L2 <= _lmax_col; L2++) {
+                            for (index3d L2 = 0; L2 <= lmax_col; L2++) {
                                 int range_M2 = std::min(L2, L);
                                 for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
                                     for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
@@ -787,13 +773,13 @@ namespace votca { namespace xtp {
                         } // end L1 
                     } // end L
 
-                    for (int i = 0; i < _nsph_row; i++) {
-                        for (int j = 0; j < _nsph_col; j++) {
+                    for (int i = 0; i < nsph_row; i++) {
+                        for (int j = 0; j < nsph_col; j++) {
 
-                            for (index3d L = 0; L <= _lmax_ecp; L++) {
-                                for (index3d L1 = 0; L1 <= _lmax_row; L1++) {
+                            for (index3d L = 0; L <= lmax_ecp; L++) {
+                                for (index3d L1 = 0; L1 <= lmax_row; L1++) {
                                     int range_M1 = std::min(L1, L);
-                                    for (index3d L2 = 0; L2 <= _lmax_col; L2++) {
+                                    for (index3d L2 = 0; L2 <= lmax_col; L2++) {
                                         int range_M2 = std::min(L2, L);
                                         for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
                                             for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
@@ -819,11 +805,11 @@ namespace votca { namespace xtp {
 
 
             // GET TRAFO HERE ALREADY
-            Eigen::VectorXd NormA = CalcNorms(alpha, _nsph_row);
-            Eigen::VectorXd NormB = CalcNorms(beta, _nsph_col);
+            Eigen::VectorXd NormA = CalcNorms(alpha, nsph_row);
+            Eigen::VectorXd NormB = CalcNorms(beta,  nsph_col);
 
-            for (int i = 0; i < _nsph_row; i++) {
-                for (int j = 0; j < _nsph_col; j++) {
+            for (int i = 0; i < nsph_row; i++) {
+                for (int j = 0; j < nsph_col; j++) {
 
                     matrix(i,j) = matrix(i,j) * GAUSS * NormA(i) * NormB(j);
 
@@ -897,22 +883,20 @@ namespace votca { namespace xtp {
             return Norms;
         }
 
-        void AOECP::getBLMCOF(int _lmax_ecp, int _lmax_dft, const tools::vec& pos, tensor3d& BLC, tensor3d& C) {
+        void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const tools::vec& pos, tensor3d& BLC, tensor3d& C) {
 
            
             tensor3d::extent_gen extents;
 
-            int _nsph = (_lmax_dft + 1) * (_lmax_dft + 1);
-            int _lmax_dft_ecp = std::max(_lmax_dft, _lmax_ecp);
-            int _lmin_dft_ecp = std::min(_lmax_dft, _lmax_ecp);
+            int nsph = (lmax_dft + 1) * (lmax_dft + 1);
+            int lmax_dft_ecp = std::max(lmax_dft, lmax_ecp);
+            int lmin_dft_ecp = std::min(lmax_dft, lmax_ecp);
 
-            BLC.resize(extents[range(0, _nsph)][range(0, 5)][range(0, 9)]);
-///            C.resize(extents[range(0, _lmax_dft_ecp+1)][range(0, 9)][range(0, 9)]);
+            BLC.resize(extents[range(0, nsph)][range(0, 5)][range(0, 9)]);
             C.resize(extents[range(0, 5)][range(0, 9)][range(0, 9)]);
 
             tensor3d BLM;
-///            BLM.resize(extents[range(0, _nsph)][range(0, _lmax_dft+1)][range(0, 9)]);
-            BLM.resize(extents[range(0, _nsph)][range(0, 5)][range(0, 9)]);
+            BLM.resize(extents[range(0, nsph)][range(0, 5)][range(0, 9)]);
 
             const double PI = boost::math::constants::pi<double>();
             double SQPI = sqrt(PI);
@@ -926,8 +910,8 @@ namespace votca { namespace xtp {
             double XP, XD, XD_0, XD_p2;
             double XF_0, XF_1, XF_m2, XF_p2, XF_3;
       
-            for (index3d I = 0; I < _nsph; I++) {
-                for (index3d L = 0; L <= _lmax_dft; L++) {
+            for (index3d I = 0; I < nsph; I++) {
+                for (index3d L = 0; L <= lmax_dft; L++) {
                     for (index3d M = 4 - L; M <= 4 + L; M++) {
                         BLM[I][L][M] = 0.0;
                     }
@@ -945,7 +929,7 @@ namespace votca { namespace xtp {
 
             BLM[0][0][4] = XS;  //  Y 00
 
-            if (_lmax_dft > 0) {
+            if (lmax_dft > 0) {
 
                 XP = XS / SQ3;
 
@@ -960,7 +944,7 @@ namespace votca { namespace xtp {
 
             }
 
-            if (_lmax_dft > 1) {
+            if (lmax_dft > 1) {
 
                 BVS_XY = BVS_X * BVS_Y;
                 BVS_XZ = BVS_X * BVS_Z;
@@ -997,7 +981,7 @@ namespace votca { namespace xtp {
                 BLM[8][2][6] = XD_p2;
             }
 
-            if (_lmax_dft > 2) {
+            if (lmax_dft > 2) {
 
                 XF_0 = 4. * SQPI / SQ7;
                 XF_1 = 4. * SQ2PI / (SQ3 * SQ7);
@@ -1067,7 +1051,7 @@ namespace votca { namespace xtp {
                 BLM[15][3][7] = XF_3;
             }
 
-            if (_lmax_dft > 3) {
+            if (lmax_dft > 3) {
 
                 double XG_0 = 16. * SQPI / 3.;
                 double XG_1 = 4. * SQ2PI / (3. * SQ5);
@@ -1197,9 +1181,7 @@ namespace votca { namespace xtp {
 
             }
 
-
-
-            for (index3d L = 0; L <= _lmax_dft_ecp; L++) {
+            for (index3d L = 0; L <= lmax_dft_ecp; L++) {
                 for (index3d M = 4 - L; M <= 4 + L; M++) {
                     for (index3d MM = 4 - L; MM <= 4 + L; MM++) {
                         C[L][M][MM] = 0.0;
@@ -1224,12 +1206,12 @@ namespace votca { namespace xtp {
 
                 C[0][4][4] = 1.0;          // 2*SQ(pi) * (Y 00)
 
-                if (_lmax_dft_ecp > 0) {
+                if (lmax_dft_ecp > 0) {
    
                     C[1][3][4] = ST * SP;       // 2*SQ(pi/3) * (Y 1-1)
                     C[1][4][4] = CT;            // 2*SQ(pi/3) * (Y 10)
                     C[1][5][4] = ST * CP;       // 2*SQ(pi/3) * (Y 11)                  Definition of (Z lm) :
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         C[1][3][3] = CP;        // 2*SQ(pi/3) * (Z 1-1)                 (Z lm)  :=  ( 1 / sin(theta) ) * ( d (Y lm) / d phi )
                         C[1][3][5] = CT * SP;   // 2*SQ(pi/3) * (Y 1-1)'
                         C[1][4][3] = 0.0;
@@ -1240,14 +1222,14 @@ namespace votca { namespace xtp {
 
                 }
 
-                if (_lmax_dft_ecp > 1) {
+                if (lmax_dft_ecp > 1) {
 
                     C[2][2][4] = SQ3 * ST * ST * CP * SP;              // 2*SQ(pi/5) * (Y 2-2)
                     C[2][3][4] = SQ3 * CT * ST * SP;                   // 2*SQ(pi/5) * (Y 2-1)
                     C[2][4][4] = 1.5 * CT * CT - 0.5;                  // 2*SQ(pi/5) * (Y 20)
                     C[2][5][4] = SQ3 * CT * ST * CP;                   // 2*SQ(pi/5) * (Y 21)
                     C[2][6][4] = SQ3 * ST * ST * (CP * CP - .5);       // 2*SQ(pi/5) * (Y 22)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         C[2][2][3] = ST * (2.0 * CP * CP - 1.0);       // 2*SQ(pi/15) * (Z 2-2)
                         C[2][2][5] = 2.0 * CT * ST * CP * SP;          // 2*SQ(pi/15) * (Y 2-2)'
                         C[2][3][3] = CT * CP;                          // 2*SQ(pi/15) * (Z 2-1)
@@ -1259,7 +1241,7 @@ namespace votca { namespace xtp {
                         C[2][6][3] = -2.0 * ST * CP * SP;              // 2*SQ(pi/15) * (Z 22)
                         C[2][6][5] = CT * ST * (2.0 * CP * CP - 1.);   // 2*SQ(pi/15) * (Y 22)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[2][2][2] = CT * (2.0 * CP * CP - 1.0);       // 2*SQ(pi/15) * (Z 2-2)'
                         C[2][2][6] = (1.0 + CT * CT) * CP * SP;        // 2*SQ(pi/15) * ( (Y 2-2)'' + 3*(Y 2-2) )
                         C[2][3][2] = -ST * CP;                         // 2*SQ(pi/15) * (Z 2-1)'
@@ -1274,116 +1256,116 @@ namespace votca { namespace xtp {
 
                 }
 
-                if (_lmax_dft_ecp > 2) {
+                if (lmax_dft_ecp > 2) {
 
                     double f_phi, df_dphi;
 
                     f_phi = (4. * CP * CP - 1.) * SP;  // sin(3*phi)
                     C[3][1][4] = (.5*SQ5/SQ2) *         ST * ST * ST                   * f_phi;   // 2*SQ(pi/7) * (Y 3-3)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = 3. * (1. - 4. * SP * SP) * CP;
                         C[3][1][3] = (.25*SQ5/SQ3) *    ST * ST                        * df_dphi; // SQ((2*pi)/21) * (Z 3-3)
                         C[3][1][5] = (.25*SQ5/SQ3) *    3. * ST * ST * CT              * f_phi;   // SQ((2*pi)/21) * (Y 3-3)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[3][1][2] = (.5/(SQ2*SQ3)) *   2. * ST * CT                   * df_dphi; // 2*SQ(pi/105) * (Z 3-3)'
                         C[3][1][6] = (.5/(SQ2*SQ3)) *   3. * (1. + CT * CT) * ST       * f_phi;   // 2*SQ(pi/105) * ( (Y 3-3)'' + 6*(Y 3-3) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[3][1][1] = (1./6.) *          (.5 + 1.5 * CT * CT)           * df_dphi; // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Z 3-3) + (Z 3-3)'' )
                         C[3][1][7] = (1./6.) *          1.5 * (3. + CT * CT) * CT      * f_phi;   // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 3-3)' + ( (Y 3-3)'' + 6*(Y 3-3) )' )
                     }
 
                     f_phi = CP * SP;  // (1/2)*sin(2*phi)
                     C[3][2][4] = (SQ3*SQ5) *            ST * ST * CT                   * f_phi;   // 2*SQ(pi/7) * (Y 3-2)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = 1. - 2. * SP * SP;
                         C[3][2][3] = (SQ5/SQ2) *        ST * CT                        * df_dphi; // SQ((2*pi)/21) * (Z 3-2)
                         C[3][2][5] = (SQ5/SQ2) *        (3. * CT * CT - 1.) * ST       * f_phi;   // SQ((2*pi)/21) * (Y 3-2)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[3][2][2] =                    (1. - 2. * ST * ST)            * df_dphi; // 2*SQ(pi/105) * (Z 3-2)'
                         C[3][2][6] =                    (3. * CT * CT - 1.) * CT       * f_phi;   // 2*SQ(pi/105) * ( (Y 3-2)'' + 6*(Y 3-2) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[3][2][1] = (SQ2/SQ3) *        (-1.5) * ST * CT               * df_dphi; // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Z 3-2) + (Z 3-2)'' )
                         C[3][2][7] = (SQ2/SQ3) *        (-1.5) * (1. + CT * CT) * ST   * f_phi;   // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 3-2)' + ( (Y 3-2)'' + 6*(Y 3-2) )' )
                     }
 
                     f_phi = SP;
                     C[3][3][4] = (.5*SQ3/SQ2) *         (5. * CT * CT - 1.) * ST       * f_phi;   // 2*SQ(pi/7) * (Y 3-1)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = CP;
                         C[3][3][3] = .25 *              (5. * CT * CT - 1.)            * df_dphi; // SQ((2*pi)/21) * (Z 3-1)
                         C[3][3][5] = .25 *              (4. - 15. * ST * ST) * CT      * f_phi;   // SQ((2*pi)/21) * (Y 3-1)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[3][3][2] = (.5/(SQ2*SQ5)) *   (-10.) * ST * CT               * df_dphi; // 2*SQ(pi/105) * (Z 3-1)'
                         C[3][3][6] = (.5/(SQ2*SQ5)) *   (5. - 15. * CT * CT) * ST      * f_phi;   // 2*SQ(pi/105) * ( (Y 3-1)'' + 6*(Y 3-1) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[3][3][1] = (.5/(SQ3*SQ5)) *   7.5 * ST * ST                  * df_dphi; // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Z 3-1) + (Z 3-1)'' )
                         C[3][3][7] = (.5/(SQ3*SQ5)) *   7.5 * ST * ST * CT             * f_phi;   // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 3-1)' + ( (Y 3-1)'' + 6*(Y 3-1) )' )
                     }
 
                     C[3][4][4] = .5 *                   (5. * CT * CT - 3.) * CT;                 // 2*SQ(pi/7) * (Y 30)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         C[3][4][3] = 0.;
                         C[3][4][5] = (.5/(SQ2*SQ3)) *   (3. - 15. * CT * CT) * ST;                // SQ((2*pi)/21) * (Y 30)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[3][4][2] = 0.;
                         C[3][4][6] = (.5/(SQ3*SQ5)) *   15. * ST * ST * CT;                       // 2*SQ(pi/105) * ( (Y 30)'' + 6*(Y 30) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[3][4][1] = 0.;
                         C[3][4][7] = (SQ2/(6.*SQ5)) *   (-7.5) * ST * ST * ST;                    // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 30)' + ( (Y 30)'' + 6*(Y 30) )' )
                     }
 
                     f_phi = CP;
                     C[3][5][4] = (.5*SQ3/SQ2) *         (5. * CT * CT - 1.) * ST       * f_phi;   // 2*SQ(pi/7) * (Y 31)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = -SP; 
                         C[3][5][3] = .25 *              (5. * CT * CT - 1.)            * df_dphi; // SQ((2*pi)/21) * (Z 31)
                         C[3][5][5] = .25 *              (4. - 15. * ST * ST) * CT      * f_phi;   // SQ((2*pi)/21) * (Y 31)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[3][5][2] = (.5/(SQ2*SQ5)) *   (-10.) * ST * CT               * df_dphi; // 2*SQ(pi/105) * (Z 31)'
                         C[3][5][6] = (.5/(SQ2*SQ5)) *   (5. - 15. * CT * CT) * ST      * f_phi;   // 2*SQ(pi/105) * ( (Y 31)'' + 6*(Y 31) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[3][5][1] = (.5/(SQ3*SQ5)) *   7.5 * ST * ST                  * df_dphi; // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Z 31) + (Z 31)'' )
                         C[3][5][7] = (.5/(SQ3*SQ5)) *   7.5 * ST * ST * CT             * f_phi;   // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 31)' + ( (Y 31)'' + 6*(Y 31) )' )
                     }
 
                     f_phi = 1. - 2. * SP * SP;  // cos(2*phi)
                     C[3][6][4] = (.5*SQ3*SQ5) *         ST * ST * CT                   * f_phi;   // 2*SQ(pi/7) * (Y 32)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = - 4. * CP * SP;
                         C[3][6][3] = (.5*SQ5/SQ2) *     ST * CT                        * df_dphi; // SQ((2*pi)/21) * (Z 32)
                         C[3][6][5] = (.5*SQ5/SQ2) *     (3. * CT * CT - 1.) * ST       * f_phi;   // SQ((2*pi)/21) * (Y 32)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[3][6][2] = .5 *               (1. - 2. * ST * ST)            * df_dphi; // 2*SQ(pi/105) * (Z 32)'
                         C[3][6][6] = .5 *               (3. * CT * CT - 1.) * CT       * f_phi;   // 2*SQ(pi/105) * ( (Y 32)'' + 6*(Y 32) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[3][6][1] = (1./(SQ2*SQ3)) *   (-1.5) * ST * CT               * df_dphi; // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Z 32) + (Z 32)'' )
                         C[3][6][7] = (1./(SQ2*SQ3)) *   (-1.5) * (1. + CT * CT) * ST   * f_phi;   // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 32)' + ( (Y 32)'' + 6*(Y 32) )' )
                     }
 
                     f_phi = (1. - 4. * SP * SP) * CP;  // cos(3*phi)
                     C[3][7][4] = (.5*SQ5/SQ2) *         ST * ST * ST                   * f_phi;   // 2*SQ(pi/7) * (Y 33)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = 3. * (1. - 4. * CP * CP) * SP;
                         C[3][7][3] = (.25*SQ5/SQ3) *    ST * ST                        * df_dphi; // SQ((2*pi)/21) * (Z 33)
                         C[3][7][5] = (.25*SQ5/SQ3) *    3. * ST * ST * CT              * f_phi;   // SQ((2*pi)/21) * (Y 33)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[3][7][2] = (.5/(SQ2*SQ3)) *   2. * ST * CT                   * df_dphi; // 2*SQ(pi/105) * (Z 33)'
                         C[3][7][6] = (.5/(SQ2*SQ3)) *   3. * (1. + CT * CT) * ST       * f_phi;   // 2*SQ(pi/105) * ( (Y 33)'' + 6*(Y 33) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[3][7][1] = (1./6.) *          (.5 + 1.5 * CT * CT)           * df_dphi; // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Z 33) + (Z 33)'' )
                         C[3][7][7] = (1./6.) *          1.5 * (3. + CT * CT) * CT      * f_phi;   // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 33)' + ( (Y 33)'' + 6*(Y 33) )' )
                     }
@@ -1391,7 +1373,7 @@ namespace votca { namespace xtp {
                 }
 
 
-                if (_lmax_dft_ecp > 3) {
+                if (lmax_dft_ecp > 3) {
 
                     double S2T = ST * ST;
                     double C2T = CT * CT;
@@ -1401,143 +1383,143 @@ namespace votca { namespace xtp {
 
                     f_phi = CP * SP * (C2P - S2P);  // (1/4)*sin(4*phi)
                     C[4][0][4] =                          (.5*SQ5*SQ7) *  S2T * S2T                  * f_phi;   // (2/3)*SQ(pi) * (Y 4-4)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = (C2P - S2P) * (C2P - S2P) - 4. * C2P * S2P;
                         C[4][0][3] = (1./(SQ2*SQ5))     * (.5*SQ5*SQ7) *  S2T * ST                   * df_dphi; // (1/3)*SQ((2*pi)/5) * (Z 4-4)
                         C[4][0][5] = (1./(SQ2*SQ5))     * (.5*SQ5*SQ7) *  4. * S2T * ST * CT         * f_phi;   // (1/3)*SQ((2*pi)/5) * (Y 4-4)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[4][0][2] = (1./(3.*SQ5))      * (.5*SQ5*SQ7) *  3. * S2T * CT              * df_dphi; // (2/9)*SQ(pi/5) * (Z 4-4)'
                         C[4][0][6] = (1./(3.*SQ5))      * (.5*SQ5*SQ7) *  6. * (C2T + 1.) * S2T      * f_phi;   // (2/9)*SQ(pi/5) * ( (Y 4-4)'' + 10*(Y 4-4) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[4][0][1] = (SQ2/(3.*SQ5*SQ7)) * (.5*SQ5*SQ7) *  (4.5 * C2T + 1.5) * ST     * df_dphi; // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 4-4) + (Z 4-4)'' )
                         C[4][0][7] = (SQ2/(3.*SQ5*SQ7)) * (.5*SQ5*SQ7) *  6. * (C2T + 3.) * ST * CT  * f_phi;   // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 4-4)' + ( (Y 4-4)'' + 10*(Y 4-4) )' )
                     }
 
                     f_phi = (4. * C2P - 1.) * SP;  // sin(3*phi)
                     C[4][1][4] =                          (.5*SQ5*SQ7/SQ2) *  S2T * ST * CT                 * f_phi;   // (2/3)*SQ(pi) * (Y 4-3)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = 3. * (1. - 4. * SP * SP) * CP;
                         C[4][1][3] = (1./(SQ2*SQ5))     * (.5*SQ5*SQ7/SQ2) *  S2T * CT                      * df_dphi; // (1/3)*SQ((2*pi)/5) * (Z 4-3)
                         C[4][1][5] = (1./(SQ2*SQ5))     * (.5*SQ5*SQ7/SQ2) *  (4. * C2T - 1.) * S2T         * f_phi;   // (1/3)*SQ((2*pi)/5) * (Y 4-3)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[4][1][2] = (1./(3.*SQ5))      * (.5*SQ5*SQ7/SQ2) *  (3. * C2T - 1.) * ST          * df_dphi; // (2/9)*SQ(pi/5) * (Z 4-3)'
                         C[4][1][6] = (1./(3.*SQ5))      * (.5*SQ5*SQ7/SQ2) *  6. * C2T * CT * ST            * f_phi;   // (2/9)*SQ(pi/5) * ( (Y 4-3)'' + 10*(Y 4-3) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[4][1][1] = (SQ2/(3.*SQ5*SQ7)) * (.5*SQ5*SQ7/SQ2) *  (2. - 4.5 * S2T) * CT         * df_dphi; // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 4-3) + (Z 4-3)'' )
                         C[4][1][7] = (SQ2/(3.*SQ5*SQ7)) * (.5*SQ5*SQ7/SQ2) *  (6. * C2T * C2T - 4.5 * S2T)  * f_phi;   // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 4-3)' + ( (Y 4-3)'' + 10*(Y 4-3) )' )
                     }
 
                     f_phi = CP * SP;  // (1/2)*sin(2*phi)
                     C[4][2][4] =                          (.5*SQ5) *  (7. * C2T - 1.) * S2T               * f_phi;   // (2/3)*SQ(pi) * (Y 4-2)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = 1. - 2. * SP * SP;
                         C[4][2][3] = (1./(SQ2*SQ5))     * (.5*SQ5) *  (7. * C2T - 1.) * ST                * df_dphi; // (1/3)*SQ((2*pi)/5) * (Z 4-2)
                         C[4][2][5] = (1./(SQ2*SQ5))     * (.5*SQ5) *  (14. * (C2T - S2T) - 2.) * ST * CT  * f_phi;   // (1/3)*SQ((2*pi)/5) * (Y 4-2)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[4][2][2] = (1./(3.*SQ5))      * (.5*SQ5) *  (6. - 21. * S2T) * CT               * df_dphi; // (2/9)*SQ(pi/5) * (Z 4-2)'
                         C[4][2][6] = (1./(3.*SQ5))      * (.5*SQ5) *  6. * (1. + C2T - 7. * S2T * C2T)    * f_phi;   // (2/9)*SQ(pi/5) * ( (Y 4-2)'' + 10*(Y 4-2) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[4][2][1] = (SQ2/(3.*SQ5*SQ7)) * (.5*SQ5) *  10.5 * (1. - 3. * C2T) * ST         * df_dphi; // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 4-2) + (Z 4-2)'' )
                         C[4][2][7] = (SQ2/(3.*SQ5*SQ7)) * (.5*SQ5) *  (-42.) * C2T * CT * ST              * f_phi;   // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 4-2)' + ( (Y 4-2)'' + 10*(Y 4-2) )' )
                     }
 
                     f_phi = SP;
                     C[4][3][4] =                          (.5*SQ5/SQ2) *  (7. * C2T - 3.) * ST * CT       * f_phi;   // (2/3)*SQ(pi) * (Y 4-1)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = CP;
                         C[4][3][3] = (1./(SQ2*SQ5))     * (.5*SQ5/SQ2) *  (7. * C2T - 3.) * CT            * df_dphi; // (1/3)*SQ((2*pi)/5) * (Z 4-1)
                         C[4][3][5] = (1./(SQ2*SQ5))     * (.5*SQ5/SQ2) *  (3. + (1. - 28. * S2T) * C2T)   * f_phi;   // (1/3)*SQ((2*pi)/5) * (Y 4-1)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[4][3][2] = (1./(3.*SQ5))      * (.5*SQ5/SQ2) *  3. * (1. - 7. * C2T) * ST       * df_dphi; // (2/9)*SQ(pi/5) * (Z 4-1)'
                         C[4][3][6] = (1./(3.*SQ5))      * (.5*SQ5/SQ2) *  6. * (7. * S2T - 3.) * ST * CT  * f_phi;   // (2/9)*SQ(pi/5) * ( (Y 4-1)'' + 10*(Y 4-1) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[4][3][1] = (SQ2/(3.*SQ5*SQ7)) * (.5*SQ5/SQ2) *  .5 * 63. * S2T * CT             * df_dphi; // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 4-1) + (Z 4-1)'' )
                         C[4][3][7] = (SQ2/(3.*SQ5*SQ7)) * (.5*SQ5/SQ2) *  21. * (1.5 - 2. * S2T) * S2T    * f_phi;   // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 4-1)' + ( (Y 4-1)'' + 10*(Y 4-1) )' )
                     }
 
 
                     C[4][4][4] =                          .125 *       ((35. * C2T - 30.) * C2T + 3.);         // (2/3)*SQ(pi) * (Y 40)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         C[4][4][3] = 0.;
                         C[4][4][5] = (1./(SQ2*SQ5))     * .125 *       20. * (3.  - 7. * C2T) * CT * ST;     // (1/3)*SQ((2*pi)/5) * (Y 40)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[4][4][2] = 0.;
                         C[4][4][6] = (1./(3.*SQ5))      * .125 *       30. * (7. * C2T - 1.) * S2T;          // (2/9)*SQ(pi/5) * ( (Y 40)'' + 10*(Y 40) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[4][4][1] = 0.;
                         C[4][4][7] = (SQ2/(3.*SQ5*SQ7)) * .125 *       (-210.) * S2T * ST * CT;              // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 40)' + ( (Y 40)'' + 10*(Y 40) )' )
                     }
 
                     f_phi = CP;
                     C[4][5][4] =                          (.5*SQ5/SQ2) *  (7. * C2T - 3.) * ST * CT       * f_phi;   // (2/3)*SQ(pi) * (Y 41)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = -SP;
                         C[4][5][3] = (1./(SQ2*SQ5))     * (.5*SQ5/SQ2) *  (7. * C2T - 3.) * CT            * df_dphi; // (1/3)*SQ((2*pi)/5) * (Z 41)
                         C[4][5][5] = (1./(SQ2*SQ5))     * (.5*SQ5/SQ2) *  (3. + (1. - 28. * S2T) * C2T)   * f_phi;   // (1/3)*SQ((2*pi)/5) * (Y 41)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[4][5][2] = (1./(3.*SQ5))      * (.5*SQ5/SQ2) *  3. * (1. - 7. * C2T) * ST       * df_dphi; // (2/9)*SQ(pi/5) * (Z 41)'
                         C[4][5][6] = (1./(3.*SQ5))      * (.5*SQ5/SQ2) *  6. * (7. * S2T - 3.) * ST * CT  * f_phi;   // (2/9)*SQ(pi/5) * ( (Y 41)'' + 10*(Y 41) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[4][5][1] = (SQ2/(3.*SQ5*SQ7)) * (.5*SQ5/SQ2) *  .5 * 63. * S2T * CT             * df_dphi; // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 41) + (Z 41)'' )
                         C[4][5][7] = (SQ2/(3.*SQ5*SQ7)) * (.5*SQ5/SQ2) *  21. * (1.5 - 2. * S2T) * S2T    * f_phi;   // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 41)' + ( (Y 41)'' + 10*(Y 41) )' )
                     }
 
                     f_phi = C2P - S2P;  // cos(2*phi)
                     C[4][6][4] =                          (.25*SQ5) *  (7. * C2T - 1.) * S2T               * f_phi;   // (2/3)*SQ(pi) * (Y 42)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = - 4. * CP * SP;
                         C[4][6][3] = (1./(SQ2*SQ5))     * (.25*SQ5) *  (7. * C2T - 1.) * ST                * df_dphi; // (1/3)*SQ((2*pi)/5) * (Z 42)
                         C[4][6][5] = (1./(SQ2*SQ5))     * (.25*SQ5) *  (14. * (C2T - S2T) - 2.) * ST * CT  * f_phi;   // (1/3)*SQ((2*pi)/5) * (Y 42)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[4][6][2] = (1./(3.*SQ5))      * (.25*SQ5) *  (6. - 21. * S2T) * CT               * df_dphi; // (2/9)*SQ(pi/5) * (Z 42)'
                         C[4][6][6] = (1./(3.*SQ5))      * (.25*SQ5) *  6. * (1. + C2T - 7. * S2T * C2T)    * f_phi;   // (2/9)*SQ(pi/5) * ( (Y 42)'' + 10*(Y 42) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[4][6][1] = (SQ2/(3.*SQ5*SQ7)) * (.25*SQ5) *  10.5 * (1. - 3. * C2T) * ST         * df_dphi; // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 42) + (Z 42)'' )
                         C[4][6][7] = (SQ2/(3.*SQ5*SQ7)) * (.25*SQ5) *  (-42.) * C2T * CT * ST              * f_phi;   // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 42)' + ( (Y 42)'' + 10*(Y 42) )' )
                     }
 
                     f_phi = (1. - 4. * S2P) * CP;  // cos(3*phi)
                     C[4][7][4] =                          (.5*SQ5*SQ7/SQ2) *  S2T * ST * CT                 * f_phi;   // (2/3)*SQ(pi) * (Y 43)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = 3. * (1. - 4. * CP * CP) * SP;
                         C[4][7][3] = (1./(SQ2*SQ5))     * (.5*SQ5*SQ7/SQ2) *  S2T * CT                      * df_dphi; // (1/3)*SQ((2*pi)/5) * (Z 43)
                         C[4][7][5] = (1./(SQ2*SQ5))     * (.5*SQ5*SQ7/SQ2) *  (4. * C2T - 1.) * S2T         * f_phi;   // (1/3)*SQ((2*pi)/5) * (Y 43)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[4][7][2] = (1./(3.*SQ5))      * (.5*SQ5*SQ7/SQ2) *  (3. * C2T - 1.) * ST          * df_dphi; // (2/9)*SQ(pi/5) * (Z 43)'
                         C[4][7][6] = (1./(3.*SQ5))      * (.5*SQ5*SQ7/SQ2) *  6. * C2T * CT * ST            * f_phi;   // (2/9)*SQ(pi/5) * ( (Y 43)'' + 10*(Y 43) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[4][7][1] = (SQ2/(3.*SQ5*SQ7)) * (.5*SQ5*SQ7/SQ2) *  (2. - 4.5 * S2T) * CT         * df_dphi; // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 43) + (Z 43)'' )
                         C[4][7][7] = (SQ2/(3.*SQ5*SQ7)) * (.5*SQ5*SQ7/SQ2) *  (6. * C2T * C2T - 4.5 * S2T)  * f_phi;   // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 43)' + ( (Y 43)'' + 10*(Y 43) )' )
                     }
 
                     f_phi = (C2P - S2P) * (C2P - S2P) - 4. * C2P * S2P;  // cos(4*phi)
                     C[4][8][4] =                          (.125*SQ5*SQ7) *  S2T * S2T                  * f_phi;   // (2/3)*SQ(pi) * (Y 44)
-                    if (_lmin_dft_ecp > 0) {
+                    if (lmin_dft_ecp > 0) {
                         df_dphi = 16. * CP * SP * (S2P - C2P);
                         C[4][8][3] = (1./(SQ2*SQ5))     * (.125*SQ5*SQ7) *  S2T * ST                   * df_dphi; // (1/3)*SQ((2*pi)/5) * (Z 44)
                         C[4][8][5] = (1./(SQ2*SQ5))     * (.125*SQ5*SQ7) *  4. * S2T * ST * CT         * f_phi;   // (1/3)*SQ((2*pi)/5) * (Y 44)'
                     }
-                    if (_lmin_dft_ecp > 1) {
+                    if (lmin_dft_ecp > 1) {
                         C[4][8][2] = (1./(3.*SQ5))      * (.125*SQ5*SQ7) *  3. * S2T * CT              * df_dphi; // (2/9)*SQ(pi/5) * (Z 44)'
                         C[4][8][6] = (1./(3.*SQ5))      * (.125*SQ5*SQ7) *  6. * (C2T + 1.) * S2T      * f_phi;   // (2/9)*SQ(pi/5) * ( (Y 44)'' + 10*(Y 44) )
                     }
-                    if (_lmin_dft_ecp > 2) {
+                    if (lmin_dft_ecp > 2) {
                         C[4][8][1] = (SQ2/(3.*SQ5*SQ7)) * (.125*SQ5*SQ7) *  (4.5 * C2T + 1.5) * ST     * df_dphi; // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 44) + (Z 44)'' )
                         C[4][8][7] = (SQ2/(3.*SQ5*SQ7)) * (.125*SQ5*SQ7) *  6. * (C2T + 3.) * ST * CT  * f_phi;   // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 44)' + ( (Y 44)'' + 10*(Y 44) )' )
                     }
@@ -1545,8 +1527,8 @@ namespace votca { namespace xtp {
                 }
 
 
-                for (index3d I = 0; I < _nsph; I++) {
-                    for (index3d L = 0; L <= _lmax_dft; L++) {
+                for (index3d I = 0; I < nsph; I++) {
+                    for (index3d L = 0; L <= lmax_dft; L++) {
                         for ( index3d M = 4 - L; M <= 4 + L; M++) {
                             BLC[I][L][M] = 0.0;
                             for (index3d M1 = 4 - L; M1 <= 4 + L; M1++) {
@@ -1560,15 +1542,15 @@ namespace votca { namespace xtp {
 
             } else {
 
-                for (index3d L = 0; L <= _lmax_dft_ecp; L++) {
+                for (index3d L = 0; L <= lmax_dft_ecp; L++) {
                     for (index3d M = 4 - L; M <= 4 + L; M++) {
                         C[L][M][M] = 1.;
                     }
                 }
 
 
-                for (index3d I = 0; I < _nsph; I++) {
-                    for (index3d L = 0; L <= _lmax_dft; L++) {
+                for (index3d I = 0; I < nsph; I++) {
+                    for (index3d L = 0; L <= lmax_dft; L++) {
                         for ( index3d M = 4 - L; M <= 4 + L; M++) {
                             BLC[I][L][M] = BLM[I][L][M];
                         }
