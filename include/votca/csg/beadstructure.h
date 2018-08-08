@@ -56,10 +56,9 @@ public:
   void ConnectBeads(int bead1_id, int bead2_id );
 
   std::vector<BaseBead *> getNeighBeads(int index);
-  /*
-     std::vector<BeadStructure *> breakIntoMolecules();
+ 
+  std::vector<std::shared_ptr<BeadStructure>> breakIntoMolecules();
 
-*/
   bool isStructureEquivalent(BeadStructure &beadstructure); 
 private:
 
