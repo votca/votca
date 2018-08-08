@@ -63,7 +63,7 @@ public:
 
     const std::vector<AOShell*>& getShells() const{ return _aoshells; }
     
-    const std::vector<const AOShell*> getShellsperAtom(int AtomId)const;
+    const std::vector<const AOShell*> getShellsofAtom(int AtomId)const;
     
     int getFuncperAtom(int AtomId) const;
     
@@ -72,6 +72,10 @@ public:
     int getAOBasisFragA() const{return _AOBasisFragA;}
     
    int getAOBasisFragB() const{return _AOBasisFragB;}
+   
+   int getFuncOfAtom(int AtomIndex)const{return _FuncperAtom[AtomIndex];}
+   
+   const std::vector<int>& getFuncPerAtom()const {return _FuncperAtom;}
   
 
 private:
@@ -97,6 +101,7 @@ private:
   
     void addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& _submatrix );
     
+    std::vector<int> _FuncperAtom;
     
    int _AOBasisFragA;
    int _AOBasisFragB;

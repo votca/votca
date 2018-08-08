@@ -51,9 +51,9 @@ namespace votca { namespace xtp {
         class NumericalIntegration {
         public: 
             
-            NumericalIntegration():density_set(false),setXC(false) {};
+            NumericalIntegration():_density_set(false),_setXC(false) {};
 
-            ~NumericalIntegration(){};
+            ~NumericalIntegration();
             
             void GridSetup(std::string type, std::vector<QMAtom* > _atoms,const AOBasis* basis);
             double getExactExchange(const std::string _functional);
@@ -71,7 +71,7 @@ namespace votca { namespace xtp {
             Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& _density_matrix);          
             Eigen::MatrixXd IntegrateVXC (const Eigen::MatrixXd& _density_matrix);
             // this gives int (e_xc-V_xc)*rho d3r
-            double getTotEcontribution(){return EXC;}
+            double getTotEcontribution(){return _EXC;}
           
             
         private:
@@ -89,9 +89,9 @@ namespace votca { namespace xtp {
             std::vector<unsigned> thread_start;
             std::vector<unsigned> thread_stop;
             int xfunc_id;
-            double EXC;
-            bool density_set;
-            bool setXC;
+            double _EXC;
+            bool _density_set;
+            bool _setXC;
             
             
            

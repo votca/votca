@@ -38,7 +38,17 @@
 
 namespace votca {
     namespace xtp {
-     
+
+    NumericalIntegration::~NumericalIntegration(){
+      if (_setXC) {
+        xc_func_end(&xfunc);
+        if (_use_separate) {
+          xc_func_end(&cfunc);
+        }
+      }
+    }
+
+    
 
     double NumericalIntegration::getExactExchange(const std::string _functional) {      
 
@@ -69,7 +79,9 @@ namespace votca {
           throw std::runtime_error("You have specified two functionals with exact exchange");
         }
         exactexchange += func.cam_alpha;
+        xc_func_end(&func);
       }
+      
       return exactexchange;
 
     }
@@ -119,7 +131,7 @@ namespace votca {
         }
       
 
-      setXC = true;
+      _setXC = true;
       return;
     }
 
@@ -166,7 +178,7 @@ namespace votca {
     double NumericalIntegration::IntegratePotential(const tools::vec& rvector) {
 
       double result = 0.0;
-      assert(density_set && "Density not calculated");
+      assert(_density_set && "Density not calculated");
       for (unsigned i = 0; i < _grid_boxes.size(); i++) {
         const std::vector<tools::vec>& points = _grid_boxes[i].getGridPoints();
         const std::vector<double>& weights = _grid_boxes[i].getGridWeights();
@@ -360,7 +372,7 @@ namespace votca {
         
   Eigen::MatrixXd NumericalIntegration::IntegrateVXC(const Eigen::MatrixXd& _density_matrix) {
       Eigen::MatrixXd Vxc = Eigen::MatrixXd::Zero(_density_matrix.rows(), _density_matrix.cols());
-      EXC = 0;
+      _EXC = 0;
       unsigned nthreads = 1;
 #ifdef _OPENMP
       nthreads = omp_get_max_threads();
@@ -421,7 +433,7 @@ namespace votca {
       }
       for (unsigned i = 0; i < nthreads; ++i) {
         Vxc += vxc_thread[i];
-        EXC += Exc_thread[i];
+        _EXC += Exc_thread[i];
       }
     
       return Vxc+Vxc.transpose();
@@ -515,7 +527,7 @@ namespace votca {
       for (unsigned i = 0; i < nthreads; ++i) {
         N += N_thread[i];
       }
-      density_set = true;
+      _density_set = true;
       return N;
     }
         
@@ -575,7 +587,7 @@ namespace votca {
         centroid += centroid_thread[i];
         gyration += gyration_thread[i];
       }
-      density_set = true;
+      _density_set = true;
 
       // Normalize
       centroid = centroid / N;
@@ -606,7 +618,7 @@ std::vector<const tools::vec *> NumericalIntegration::getGridpoints() const{
 Eigen::MatrixXd NumericalIntegration::IntegratePotential(const AOBasis& externalbasis){
   Eigen::MatrixXd Potential=Eigen::MatrixXd::Zero(externalbasis.AOBasisSize(),externalbasis.AOBasisSize());
   
-  assert(density_set && "Density not calculated");
+  assert(_density_set && "Density not calculated");
   for (unsigned i = 0; i < _grid_boxes.size(); i++) {
     const std::vector<tools::vec>& points = _grid_boxes[i].getGridPoints();
     const std::vector<double>& weights = _grid_boxes[i].getGridWeights();
@@ -634,7 +646,7 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> _ato
       GridContainers initialgrids;
       // get radial grid per element
       EulerMaclaurinGrid _radialgrid;
-      _radialgrid.getRadialGrid(basis, _atoms, type, initialgrids); // this checks out 1:1 with NWChem results! AWESOME
+      initialgrids._radial_grids=_radialgrid.CalculateAtomicRadialGrids(basis, _atoms, type); // this checks out 1:1 with NWChem results! AWESOME
       std::map<std::string, GridContainers::radial_grid>::iterator it;
       LebedevGrid _sphericalgrid;
       for (it = initialgrids._radial_grids.begin(); it != initialgrids._radial_grids.end(); ++it) {
@@ -676,7 +688,7 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> _ato
         int maxorder = _sphericalgrid.Type2MaxOrder(name, type);
         int maxindex = _sphericalgrid.getIndexFromOrder(maxorder);
         // for pruning of integration grid, get interval boundaries for this element
-        std::vector<double> PruningIntervals = _radialgrid.getPruningIntervals(name);
+        std::vector<double> PruningIntervals = _radialgrid.CalculatePruningIntervals(name);
         int current_order = 0;
         // get spherical grid
         std::vector<double> _theta;

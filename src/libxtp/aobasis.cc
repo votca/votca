@@ -482,7 +482,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       return;
     }
 
-    const std::vector<const AOShell*> AOBasis::getShellsperAtom(int AtomId)const {
+    const std::vector<const AOShell*> AOBasis::getShellsofAtom(int AtomId)const {
       std::vector<const AOShell*> result;
       for (const auto& aoshell : _aoshells) {
         if (aoshell->getAtomIndex() == AtomId) {
@@ -508,8 +508,10 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       _AOBasisSize = 0;
       _AOBasisFragA = 0;
       _AOBasisFragB = 0;
+      _FuncperAtom=std::vector<int>(0);
       // loop over atoms
       for (QMAtom* atom : atoms) {
+        int atomfunc=0;
         const std::string& name = atom->getType();
         atom->_nuccharge = elementinfo.getNucCrg(name);
         const Element& element = bs.getElement(name);
@@ -517,6 +519,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
           int numfuncshell = NumFuncShell(shell.getType());
           AOShell* aoshell = addShell(shell, *atom, _AOBasisSize);
           _AOBasisSize += numfuncshell;
+          atomfunc+=numfuncshell;
           for (const GaussianPrimitive& gaussian:shell) {
             aoshell->addGaussian(gaussian);
           }
@@ -524,6 +527,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
           aoshell->normalizeContraction();
         }
         if (atom->getAtomID() < fragbreak) _AOBasisFragA = _AOBasisSize;
+        _FuncperAtom.push_back(atomfunc);
       }
 
       if (fragbreak < 0) {
@@ -536,11 +540,13 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
     }
 
     void AOBasis::ECPFill(const BasisSet& bs, std::vector<QMAtom* >& atoms) {
-
+      _FuncperAtom=std::vector<int>(0);
       _AOBasisSize = 0;
       for (QMAtom* atom : atoms) {
+        int atomfunc=0;
         std::string name = atom->getType();
         if (name == "H" || name == "He") {
+          _FuncperAtom.push_back(0);
           continue;
         }
         const Element& element = bs.getElement(name);
@@ -555,14 +561,15 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
           if (shell.getLmax() < lmax) {
             nonlocal = true;
           }
-
           AOShell* aoshell = addECPShell(shell, *atom, _AOBasisSize, nonlocal);
           _AOBasisSize += NumFuncShell(shell.getType());
+          atomfunc+=NumFuncShell(shell.getType());
          for (const GaussianPrimitive& gaussian:shell) {
             aoshell->addGaussian(gaussian);
           }
           aoshell->CalcMinDecay();
         }
+        _FuncperAtom.push_back(atomfunc);
       }
       return;
     }
