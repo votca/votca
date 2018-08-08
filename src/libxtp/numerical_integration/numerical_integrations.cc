@@ -50,13 +50,13 @@ namespace votca {
 
     
 
-    double NumericalIntegration::getExactExchange(const std::string _functional) {      
+    double NumericalIntegration::getExactExchange(const std::string functional) {      
 
       double exactexchange = 0.0;
       Vxc_Functionals map;
       std::vector<std::string> strs;
 
-      boost::split(strs, _functional, boost::is_any_of(" "));
+      boost::split(strs, functional, boost::is_any_of(" "));
       if (strs.size() > 2) {
         throw std::runtime_error("Too many functional names");
       } else if (strs.size() < 1) {
@@ -72,8 +72,7 @@ namespace votca {
         }
         xc_func_type func;
         if (xc_func_init(&func, func_id, XC_UNPOLARIZED) != 0) {
-          fprintf(stderr, "Functional '%d' not found\n", func_id);
-          exit(1);
+         throw std::runtime_error((boost::format("Functional %s not found\n") %strs[i]).str());
         }
         if (exactexchange > 0 && func.cam_alpha > 0) {
           throw std::runtime_error("You have specified two functionals with exact exchange");
@@ -87,50 +86,42 @@ namespace votca {
     }
     
     
-   
-        
-  void NumericalIntegration::setXCfunctional(const std::string _functional) {
+   void NumericalIntegration::setXCfunctional(const std::string _functional) {
 
       Vxc_Functionals map;
       std::vector<std::string> strs;
       boost::split(strs, _functional, boost::is_any_of(" "));
       xfunc_id = 0;
-
-
       _use_separate = false;
       cfunc_id = 0;
       if (strs.size() == 1) {
         xfunc_id = map.getID(strs[0]);
       } else if (strs.size() == 2) {
-        cfunc_id = map.getID(strs[0]);
-        xfunc_id = map.getID(strs[1]);
+        xfunc_id = map.getID(strs[0]);
+        cfunc_id = map.getID(strs[1]);
         _use_separate = true;
       } else {
         std::cout << "LIBXC " << strs.size() << std::endl;
         throw std::runtime_error("LIBXC. Please specify one combined or an exchange and a correlation functionals");
       }
-      
-        if (xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED) != 0) {
-          fprintf(stderr, "Functional '%d' not found\n", xfunc_id);
-          exit(1);
-        }
-        xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
-        if (xfunc.info->kind != 2 && !_use_separate) {
-          throw std::runtime_error("Your functional misses either correlation or exchange, please specify another functional, separated by whitespace");
-        }
-        if (_use_separate) {
-          if (xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED) != 0) {
-            fprintf(stderr, "Functional '%d' not found\n", cfunc_id);
-            exit(1);
-          }
-          xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED);
-          xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
-          if ((xfunc.info->kind + cfunc.info->kind) != 1) {
-            throw std::runtime_error("Your functionals are not one exchange and one correlation");
-          }
-        }
-      
 
+      if (xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED) != 0) {
+        throw std::runtime_error((boost::format("Functional %s not found\n") %strs[0]).str());
+      }
+      xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
+      if (xfunc.info->kind != 2 && !_use_separate) {
+        throw std::runtime_error("Your functional misses either correlation or exchange, please specify another functional, separated by whitespace");
+      }
+      if (_use_separate) {
+        if (xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED) != 0) {
+          throw std::runtime_error((boost::format("Functional %s not found\n") %strs[1]).str());
+        }
+        xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED);
+        xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
+        if ((xfunc.info->kind + cfunc.info->kind) != 1) {
+          throw std::runtime_error("Your functionals are not one exchange and one correlation");
+        }
+      }
       _setXC = true;
       return;
     }
@@ -638,31 +629,28 @@ Eigen::MatrixXd NumericalIntegration::IntegratePotential(const AOBasis& external
 }
         
         
-void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> _atoms,const AOBasis* basis) {
+void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> atoms,const AOBasis* basis) {
       _basis = basis;
       std::vector< std::vector< GridContainers::integration_grid > > grid;
       const double pi = boost::math::constants::pi<double>();
-      // get GridContainer
       GridContainers initialgrids;
       // get radial grid per element
-      EulerMaclaurinGrid _radialgrid;
-      initialgrids._radial_grids=_radialgrid.CalculateAtomicRadialGrids(basis, _atoms, type); // this checks out 1:1 with NWChem results! AWESOME
-      std::map<std::string, GridContainers::radial_grid>::iterator it;
-      LebedevGrid _sphericalgrid;
-      for (it = initialgrids._radial_grids.begin(); it != initialgrids._radial_grids.end(); ++it) {
-        _sphericalgrid.getSphericalGrid(_atoms, type, initialgrids);
-      }
+      EulerMaclaurinGrid radialgridofElement;
+      initialgrids._radial_grids=radialgridofElement.CalculateAtomicRadialGrids(basis, atoms, type); // this checks out 1:1 with NWChem results! AWESOME
+      LebedevGrid sphericalgridofElement;
+      initialgrids._spherical_grids=sphericalgridofElement.CalculateSphericalGrids(atoms,type);
+      
       // for the partitioning, we need all inter-center distances later, stored in one-directional list
       int ij = 0;
       Rij.push_back(0.0); // 1st center "self-distance"
       std::vector< QMAtom* > ::iterator ait;
       std::vector< QMAtom* > ::iterator bit;
       int i = 1;
-      for (ait = _atoms.begin() + 1; ait != _atoms.end(); ++ait) {
+      for (ait = atoms.begin() + 1; ait != atoms.end(); ++ait) {
         // get center coordinates in Bohr
         tools::vec pos_a = (*ait)->getPos();
         int j = 0;
-        for (bit = _atoms.begin(); bit != ait; ++bit) {
+        for (bit = atoms.begin(); bit != ait; ++bit) {
           ij++;
           // get center coordinates in Bohr
           tools::vec pos_b = (*bit)->getPos();
@@ -675,28 +663,24 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> _ato
 
       int i_atom = 0;
       _totalgridsize = 0;
-      for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
+      for (ait = atoms.begin(); ait < atoms.end(); ++ait) {
         // get center coordinates in Bohr
         std::vector< GridContainers::integration_grid > _atomgrid;
         const tools::vec & atomA_pos = (*ait)->getPos();
         const std::string & name = (*ait)->getType();
         // get radial grid information for this atom type
-        GridContainers::radial_grid _radial_grid = initialgrids._radial_grids.at(name);
+        GridContainers::radial_grid radial_grid = initialgrids._radial_grids.at(name);
         // get spherical grid information for this atom type
-        GridContainers::spherical_grid _spherical_grid = initialgrids._spherical_grids.at(name);
+        GridContainers::spherical_grid spherical_grid = initialgrids._spherical_grids.at(name);
         // maximum order (= number of points) in spherical integration grid
-        int maxorder = _sphericalgrid.Type2MaxOrder(name, type);
-        int maxindex = _sphericalgrid.getIndexFromOrder(maxorder);
+        int maxorder = sphericalgridofElement.Type2MaxOrder(name, type);
+        int maxindex = sphericalgridofElement.getIndexFromOrder(maxorder);
         // for pruning of integration grid, get interval boundaries for this element
-        std::vector<double> PruningIntervals = _radialgrid.CalculatePruningIntervals(name);
+        std::vector<double> PruningIntervals = radialgridofElement.CalculatePruningIntervals(name);
         int current_order = 0;
-        // get spherical grid
-        std::vector<double> _theta;
-        std::vector<double> _phi;
-        std::vector<double> _weight;
         // for each radial value
-        for (unsigned _i_rad = 0; _i_rad < _radial_grid.radius.size(); _i_rad++) {
-          double r = _radial_grid.radius[_i_rad];
+        for (unsigned i_rad = 0; i_rad < radial_grid.radius.size(); i_rad++) {
+          double r = radial_grid.radius[i_rad];
           int order;
           // which Lebedev order for this point?
           if (maxindex == 1) {
@@ -705,44 +689,41 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> _ato
           } else if (maxindex == 2) {
             // only three intervals
             if (r < PruningIntervals[0]) {
-              order = _sphericalgrid.getOrderFromIndex(1); //1;
+              order = sphericalgridofElement.getOrderFromIndex(1); //1;
             } else if ((r >= PruningIntervals[0]) && (r < PruningIntervals[3])) {
-              order = _sphericalgrid.getOrderFromIndex(2);
+              order = sphericalgridofElement.getOrderFromIndex(2);
             } else {
-              order = _sphericalgrid.getOrderFromIndex(1);
+              order = sphericalgridofElement.getOrderFromIndex(1);
             } // maxorder == 2
           } else {
             // five intervals
             if (r < PruningIntervals[0]) {
-              order = _sphericalgrid.getOrderFromIndex(int(2));
+              order = sphericalgridofElement.getOrderFromIndex(int(2));
             } else if ((r >= PruningIntervals[0]) && (r < PruningIntervals[1])) {
-              order = _sphericalgrid.getOrderFromIndex(4);
+              order = sphericalgridofElement.getOrderFromIndex(4);
             } else if ((r >= PruningIntervals[1]) && (r < PruningIntervals[2])) {
-              order = _sphericalgrid.getOrderFromIndex(std::max(maxindex - 1, 4));
+              order = sphericalgridofElement.getOrderFromIndex(std::max(maxindex - 1, 4));
             } else if ((r >= PruningIntervals[2]) && (r < PruningIntervals[3])) {
               order = maxorder;
             } else {
-              order = _sphericalgrid.getOrderFromIndex(std::max(maxindex - 1, 1));
+              order = sphericalgridofElement.getOrderFromIndex(std::max(maxindex - 1, 1));
             }
           }
 
           // get new spherical grid, if order changed
           if (order != current_order) {
-            _theta.clear();
-            _phi.clear();
-            _weight.clear();
-            _sphericalgrid.getUnitSphereGrid(order, _theta, _phi, _weight);
+            spherical_grid=sphericalgridofElement.CalculateUnitSphereGrid(order);
             current_order = order;
           }
 
-          for (unsigned _i_sph = 0; _i_sph < _phi.size(); _i_sph++) {
-            double p = _phi[_i_sph] * pi / 180.0; // back to rad
-            double t = _theta[_i_sph] * pi / 180.0; // back to rad
-            double ws = _weight[_i_sph];
+          for (unsigned i_sph = 0; i_sph < spherical_grid.phi.size(); i_sph++) {
+            double p = spherical_grid.phi[i_sph] * pi / 180.0; // back to rad
+            double t = spherical_grid.theta[i_sph] * pi / 180.0; // back to rad
+            double ws = spherical_grid.weight[i_sph];
             const tools::vec s = tools::vec(sin(p) * cos(t), sin(p) * sin(t), cos(p));
             GridContainers::integration_grid _gridpoint;
             _gridpoint.grid_pos = atomA_pos + r*s;
-            _gridpoint.grid_weight = _radial_grid.weight[_i_rad] * ws;
+            _gridpoint.grid_weight = radial_grid.weight[i_rad] * ws;
             _atomgrid.push_back(_gridpoint);
           } // spherical gridpoints
         } // radial gridpoint
@@ -751,7 +732,7 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> _ato
         // get all distances from grid points to centers
         std::vector< std::vector<double> > rq;
         // for each center
-        for (bit = _atoms.begin(); bit < _atoms.end(); ++bit) {
+        for (bit = atoms.begin(); bit < atoms.end(); ++bit) {
           // get center coordinates
           const tools::vec & atom_pos = (*bit)->getPos();
           std::vector<double> temp;
@@ -767,7 +748,7 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> _ato
         std::vector< QMAtom* > ::iterator NNit;
               // now check all other centers
         int i_b = 0;
-        for (bit = _atoms.begin(); bit != _atoms.end(); ++bit) {
+        for (bit = atoms.begin(); bit != atoms.end(); ++bit) {
           if (bit != ait) {
             // get center coordinates
             const tools::vec & atomB_pos = (*bit)->getPos();
@@ -783,7 +764,7 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> _ato
 #pragma omp parallel for schedule(guided)
         for (unsigned i_grid = 0; i_grid < _atomgrid.size(); i_grid++) {
           // call some shit called grid_ssw0 in NWChem
-          std::vector<double> _p = SSWpartition(i_grid, _atoms.size(), rq);
+          std::vector<double> _p = SSWpartition(i_grid, atoms.size(), rq);
           // check weight sum
           double wsum = 0.0;
           for (const auto&p:_p) {
