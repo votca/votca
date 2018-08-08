@@ -187,10 +187,10 @@ critical $mdrun -s "${tpr}" -c "${confout}" -o "${traj%.*}".trr -x "${traj%.*}".
 
 if [[ ${multidir} ]]; then
   for dir in "${multidir[@]}"; do
-    [[ ! -f ${dir}/${confout} ]] || [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
+    [[ ! -f ${dir}/${confout} ]] || [[ -z "$(critical sed -n '/[nN][aA][nN]/p' ${dir}/${confout})" ]] || die "${0##*/}: There is a nan in '${dir}/${confout}', this seems to be wrong."
   done
 else
-  [[ ! -f ${confout} ]] || [[ -z "$(sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
+  [[ ! -f ${confout} ]] || [[ -z "$(critical sed -n '/[nN][aA][nN]/p' ${confout})" ]] || die "${0##*/}: There is a nan in '${confout}', this seems to be wrong."
 fi
 
 if [[ ${multidir} ]]; then
