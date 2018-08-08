@@ -51,11 +51,11 @@ const double & Elements::getPolarizability(string name) const {
 double Elements::getCovRad(string name,string unit ) const { 
   //TODO - This should be replaced with an object, an object that should
   //       auto recognise the units and return it in a standard type
-  if(!unit.compare("bohr")) return votca::tools::conv::ang2bohr*_CovRad.find(name)->second;
-  if(!unit.compare("nm"))   return votca::tools::conv::ang2nm*_CovRad.find(name)->second;
+  if(!unit.compare("bohr")) return conv::ang2bohr*_CovRad.find(name)->second;
+  if(!unit.compare("nm"))   return conv::ang2nm*_CovRad.find(name)->second;
   if(!unit.compare("ang"))  return _CovRad.find(name)->second; 
-
-  throw invalid_argument("Must specify appropriate units " + unit + " is not known");
+  throw invalid_argument("Must specify appropriate units " + 
+      unit + " is not known");
 }
 
 const string & Elements::getEleName(int elenum) const {
