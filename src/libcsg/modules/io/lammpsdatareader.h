@@ -92,12 +92,9 @@ private:
   bool MatchFieldsTimeStepLabel_(std::vector<std::string> fields,
                                  Topology &top);
 
-  void InitializeAtomAndBeadTypes_();
   void ReadBox_(std::vector<std::string> fields, Topology &top);
   void SortIntoDataGroup_(std::string tag);
   void ReadNumTypes_(std::vector<string> fields, string type);
-
-  std::vector<std::string> TrimCommentsFrom_(std::vector<std::string> fields);
 
   void ReadNumOfAtoms_(std::vector<std::string> fields, Topology &top);
   void ReadNumOfBonds_(std::vector<std::string> fields);
@@ -111,6 +108,50 @@ private:
   void ReadDihedrals_(Topology &top);
   void ReadImpropers_(Topology &top);
 
+  enum lammps_format {
+    style_angle_bond_molecule = 0,
+    style_atomic = 1,
+    style_full = 2
+  };
+  lammps_format determineDataFileFormat_(std::string line);
+
+  /**
+   * \brief Determines atom and bead types based on masses in lammps files
+   *
+   * The purpose of this function is to take lammps output where there are more 
+   * than a single atom type of the same element. For instance there may be 4 
+   * atom types with mass of 12.01. Well this means that they are all carbon but
+   * are treated differently in lammps. It makes since to keep track of this. If
+   * a mass cannot be associated with an element we will assume it is pseudo 
+   * atom or course grained watom which we will represent with as a bead. So 
+   * when creating the atom names we will take into account so say we have the 
+   * following masses in the lammps .data file:
+   *
+   * Masses
+   *
+   * 1 1.0
+   * 2 12.01
+   * 3 12.01
+   * 4 16.0
+   * 5 12.01
+   * 6 15.2
+   * 7 12.8
+   * 8 15.2
+   * 
+   * Then we would translate this to the following atom names
+   * 1 H
+   * 2 C1
+   * 3 C2
+   * 4 O
+   * 5 C3
+   * 6 Bead1
+   * 7 Bead2
+   * 8 Bead3
+   *
+   * Note that we do not append a number if it is singular, in such cases the 
+   * element and the atom name is the same.
+   **/
+  void InitializeAtomAndBeadTypes_();
   std::map<std::string,double> determineBaseNameAssociatedWithMass_();
   std::map<std::string,int> determineAtomAndBeadCountBasedOnMass_(         
           std::map<std::string,double> baseNamesAndMasses );

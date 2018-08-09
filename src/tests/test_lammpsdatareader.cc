@@ -140,10 +140,16 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader){
 	Bead * firstBead = top.getBead(0);
 	auto first_bead_pos = firstBead->getPos();
 
+  cout << first_bead_correct_pos << endl;
+  cout << first_bead_pos << endl;
+
 	BOOST_CHECK(first_bead_correct_pos.isClose(first_bead_pos,0.01));
 	vec last_bead_correct_pos(108.431,83.94695,68.5254);
 	Bead * lastBead = top.getBead(99);
 	auto last_bead_pos = lastBead->getPos();
+
+  cout << last_bead_correct_pos << endl;
+  cout << last_bead_pos << endl;
 	BOOST_CHECK(last_bead_correct_pos.isClose(last_bead_pos,0.01));
 
 	auto mol = top.getMolecule(0);

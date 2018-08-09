@@ -29,6 +29,15 @@ using namespace std;
 /*****************************************************************************
  * Internal Helper Functions                                                 *
  *****************************************************************************/
+vector<string> TrimCommentsFrom_(vector<string> fields) {
+  vector<string> tempFields;
+  for (auto field : fields) {
+    if (field.at(0) == '#')
+      return tempFields;
+    tempFields.push_back(field);
+  }
+  return tempFields;
+}
 
 bool withinTolerance_(double value1, double value2, double tolerance){
   return (value1-value2)/min(value1,value2) < tolerance;
@@ -55,6 +64,24 @@ string getStringGivenDoubleAndMap_(
  *****************************************************************************/
 
 bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
+
+  cout << endl;
+  cout << "WARNING: The votca lammps data reader is only able to read lammps "
+    "files formatted in the following styles:" << endl;
+  cout << "angle" << endl;
+  cout << "atom" << endl;
+  cout << "bond" << endl;
+  cout << "full" << endl;
+  cout << "molecule" << endl;
+  cout << endl;
+  cout << "These styles use the following formats in the atom block:"  << endl;
+  cout << "atom-ID molecule-ID atom-type charge x y z" << endl;
+  cout << "atom-ID molecule-ID atom-type charge x y z nx ny nz" << endl;
+  cout << "atom-ID molecule-ID atom-type x y z" << endl;
+  cout << "atom-ID molecule-ID atom-type x y z nx ny nz" << endl;
+  cout << "atom-ID atom-type x y z" << endl;
+  cout << "atom-ID atom-type x y z nx ny nz" << endl;
+  cout << endl;
 
   topology_ = true;
   top.Cleanup();
@@ -99,11 +126,6 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
     tok.ToVector(fields);
     fields = TrimCommentsFrom_(fields);
 
-    cout << "Original line" << endl;
-    cout << line << endl;
-    for( auto field : fields ) {
-      cout << "Field " << field << endl;
-    }
     // If not check the size of the vector and parse according
     // to the number of fields
     if (fields.size() == 1) {
@@ -133,23 +155,12 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
  * Private Facing Methods                                                    *
  *****************************************************************************/
 
-vector<string> LAMMPSDataReader::TrimCommentsFrom_(vector<string> fields) {
-  vector<string> tempFields;
-  for (auto field : fields) {
-    if (field.at(0) == '#')
-      return tempFields;
-    tempFields.push_back(field);
-  }
-  return tempFields;
-}
-
 bool LAMMPSDataReader::MatchOneFieldLabel_(vector<string> fields,
                                            Topology &top) {
 
   if (fields.at(0) == "Masses") {
     SortIntoDataGroup_("Masses");
     InitializeAtomAndBeadTypes_();
-    cout << "types initialized" << endl;
   } else if (fields.at(0) == "Atoms") {
     ReadAtoms_(top);
   } else if (fields.at(0) == "Bonds") {
@@ -238,6 +249,43 @@ bool LAMMPSDataReader::MatchFieldsTimeStepLabel_(vector<string> fields,
   return false;
 }
 
+void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
+  if (!data_.count("Masses")) {
+    string err = "Masses must first be parsed before the atoms can be read.";
+    throw runtime_error(err);
+  }
+
+  auto baseNamesMasses = determineBaseNameAssociatedWithMass_();
+  auto baseNamesCount = determineAtomAndBeadCountBasedOnMass_(baseNamesMasses);  
+
+  // If there is more than one atom type of the same element append a number
+  // to the atom type name
+  map<string, int> baseNameIndices;
+  int index = 0;
+  for (auto mass : data_["Masses"]) {
+    // Determine the mass associated with the atom
+    double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
+
+    auto baseName = getStringGivenDoubleAndMap_(
+        mass_atom_bead,
+        baseNamesMasses,
+        0.01);
+
+    string label = baseName;
+    if (baseNamesCount[baseName] > 1) {
+      if (baseNameIndices.count(baseName) == 0) {
+        label += "1";
+        baseNameIndices[baseName] = 1;
+      } else {
+        baseNameIndices[baseName]++;
+        label += to_string(baseNameIndices[baseName]);
+      }
+    }
+    atomtypes_[index].push_back(baseName);
+    atomtypes_[index].push_back(label);
+    ++index;
+  }
+}
 
 map<string,double> LAMMPSDataReader::determineBaseNameAssociatedWithMass_(){
   Elements elements;
@@ -273,77 +321,6 @@ map<string,int> LAMMPSDataReader::determineAtomAndBeadCountBasedOnMass_(
   return countSameElementOrBead;
 }
 
-// The purpose of this function is to take lammps output where there are more
-// than a single atom type of the same element. For instance there may be 4
-// atom types with mass of 12.01. Well this means that they are all carbon but
-// are treated differently in lammps. It makes since to keep track of this. If
-// a mass cannot be associated with an element we will assume it is pseudo atom
-// or course grained watom which we will represent with as a bead. So when 
-// creating the atom names we will take into account so say we have the 
-// following masses in the lammps .data file:
-// Masses
-//
-// 1 1.0
-// 2 12.01
-// 3 12.01
-// 4 16.0
-// 5 12.01
-// 6 15.2
-// 7 12.8
-// 8 15.2
-//
-// Then we would translate this to the following atom names
-// 1 H
-// 2 C1
-// 3 C2
-// 4 O
-// 5 C3
-// 6 Bead1
-// 7 Bead2
-// 8 Bead3
-//
-// Note that we do not append a number if it is singular, in such cases the
-// element and the atom name is the same.
-void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
-  if (!data_.count("Masses")) {
-    string err = "Masses must first be parsed before the atoms can be read.";
-    throw runtime_error(err);
-  }
-
-  auto baseNamesMasses =  determineBaseNameAssociatedWithMass_();
-  auto baseNamesCount = determineAtomAndBeadCountBasedOnMass_(baseNamesMasses);  
-
-  cout << "Determined element type from mass" << endl;
-
-  // If there is more than one atom type of the same element append a number
-  // to the atom type name
-  map<string, int> baseNameIndices;
-  int index = 0;
-  for (auto mass : data_["Masses"]) {
-    // Determine the mass associated with the atom
-    double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
-
-    auto baseName = getStringGivenDoubleAndMap_(
-        mass_atom_bead,
-        baseNamesMasses,
-        0.01);
-
-    string label = baseName;
-    if (baseNamesCount[baseName] > 1) {
-      if (baseNameIndices.count(baseName) == 0) {
-        label += "1";
-        baseNameIndices[baseName] = 1;
-      } else {
-        baseNameIndices[baseName]++;
-        label += to_string(baseNameIndices[baseName]);
-      }
-    }
-    atomtypes_[index].push_back(baseName);
-    atomtypes_[index].push_back(label);
-    ++index;
-  }
-}
-
 void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
   matrix m;
   m.ZeroMatrix();
@@ -368,12 +345,7 @@ void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
 void LAMMPSDataReader::SortIntoDataGroup_(string tag) {
   string line;
   getline(fl_, line);
-  cout << "tag " << tag << endl;
-  cout << "Unused line " << endl;
-  cout << line << endl;
   getline(fl_, line);
-  cout << "First line " << endl;
-  cout << line << endl;
 
   vector<vector<string>> group;
   string data_elem;
@@ -382,16 +354,13 @@ void LAMMPSDataReader::SortIntoDataGroup_(string tag) {
     istringstream iss(line);
     while (!iss.eof()) {
       iss >> data_elem;
-      cout << "data elem " << data_elem << endl;
       mini_group.push_back(data_elem);
     }
     group.push_back(mini_group);
     getline(fl_, line);
-    cout << "Next lines " << endl;
     cout << line << endl;
   }
   data_[tag] = group;
-  cout << "Sorted into date group " << endl;
 }
 
 void LAMMPSDataReader::ReadNumTypes_(vector<string> fields, string type) {
@@ -420,23 +389,41 @@ void LAMMPSDataReader::ReadNumOfImpropers_(vector<string> fields) {
   numberOf_["impropers"] = stoi(fields.at(0));
 }
 
+LAMMPSDataReader::lammps_format 
+LAMMPSDataReader::determineDataFileFormat_(string line){
+
+  Tokenizer tok(line, " ");
+  vector<string> fields;
+  tok.ConvertToVector(fields);
+  lammps_format format;
+  if (fields.size() == 5 || fields.size()== 8) {
+    format = style_atomic; 
+  }else if(fields.size() == 6 || fields.size() == 9){
+    format = style_angle_bond_molecule;
+  }else if(fields.size() == 7 || fields.size() == 10){
+    format = style_full;
+  }else{
+    throw runtime_error("You have submitted a lammps data file with an "
+        "unsupported format.");
+  }
+  return format;
+}
+
 void LAMMPSDataReader::ReadAtoms_(Topology &top) {
 
   string line;
   getline(fl_, line);
   getline(fl_, line);
 
+  lammps_format format = determineDataFileFormat_(line);
+  bool chargeRead = false;
+  bool moleculeRead = false;
+  if(format==style_angle_bond_molecule) moleculeRead = true; 
+  if(format==style_full) {moleculeRead = true; chargeRead = true;} 
+
   int atomId;
-  int moleculeId;
-  int atomTypeId;
-
-  double charge = 0;
-  double x, y, z;
-
   map<int, string> sorted_file;
-
   while (!line.empty()) {
-
     istringstream iss(line);
     iss >> atomId;
     --atomId;
@@ -448,10 +435,16 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     boost::lexical_cast<size_t>(atomIndex) < sorted_file.size(); 
     ++atomIndex) {
 
+    int atomTypeId;
+    int moleculeId = 1;
+    double charge = 0;
+    double x, y, z;
+
     istringstream iss(sorted_file[atomIndex]);
     iss >> atomId;
-    iss >> moleculeId;
+    if(moleculeRead) iss >> moleculeId;
     iss >> atomTypeId;
+    if(chargeRead) iss >> charge;
     iss >> x;
     iss >> y;
     iss >> z;
@@ -460,7 +453,6 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     atomId--;
     moleculeId--;
     atomTypeId--;
-
     Bead *b;
     if (topology_) {
 
@@ -480,7 +472,6 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
           boost::lexical_cast<double>(data_["Masses"].at(atomTypeId).at(1));
       // Will use the molecule id as the resnum for lack of a better option
       int resnr = moleculeId;
-
       string bead_type_name = atomtypes_[atomTypeId].at(1);
       BeadType *bead_type = top.GetOrCreateBeadType(bead_type_name);
       if (atomtypes_.count(atomTypeId) == 0) {
