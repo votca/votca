@@ -347,6 +347,7 @@ std::ostream &operator<<(std::ostream &out, const Shell& shell) {
       }
       out<<"\n";
     }
+    return out;
         }
 
 
@@ -355,6 +356,7 @@ std::ostream &operator<<(std::ostream &out, const Element& element) {
     for(const auto& shell:element){
       out<<shell;
     }
+    return out;
         }
 
 std::ostream &operator<<(std::ostream &out, const BasisSet& basis){
@@ -363,6 +365,7 @@ std::ostream &operator<<(std::ostream &out, const BasisSet& basis){
     out<<(*element.second);
   }
    out<<std::flush;
+   return out;
 }
 
  GaussianPrimitive&  Shell::addGaussian( double decay, std::vector<double> contraction ){

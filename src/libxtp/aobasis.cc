@@ -573,14 +573,4 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       return;
     }
 
-
-
-
-
-
-
-
-
-
-
 }}

@@ -404,7 +404,7 @@ std::ostream &operator<<(std::ostream &out, const AOShell& shell) {
       }
       out<<"\n";
     }
-      
+    return out;
   }
         
 
