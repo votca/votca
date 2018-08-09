@@ -634,6 +634,11 @@ namespace votca {
                 {
                     CptLoc qmAtomsGr = parent.openGroup("qmatoms");
                     size_t count = qmAtomsGr.getNumObjs();
+                    if(this->QMAtoms().size()>0){
+                      std::vector< QMAtom* >::iterator it;
+                      for (it = _atoms.begin(); it != _atoms.end(); ++it) delete *it;
+                      _atoms.clear();
+                    }
 
                     for (size_t i = 0; i < count; ++i) {
                         CptLoc tempLoc = qmAtomsGr.openGroup("atom" + std::to_string(i));

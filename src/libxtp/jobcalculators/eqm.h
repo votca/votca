@@ -18,7 +18,7 @@
  */
 
 #ifndef _CALC_XTP_EQM_H
-#define	_CALC_XTP_EQM_H
+#define _CALC_XTP_EQM_H
 
 
 #include <votca/xtp/gwbse.h> // including GWBSE functionality
@@ -29,49 +29,54 @@
 
 
 
-namespace votca { namespace xtp {
-/**
-* \brief GWBSE implementation
-*
-* Evaluates DFT and GWBSE for all molecules
-* Requires a first-principles package, i.e. GAUSSIAN, ORCA, NWChem
-*
-* Callname: eqm
-*/
+namespace votca {
+    namespace xtp {
 
-class EQM : public ctp::ParallelXJobCalc< vector< ctp::Job*>,  ctp::Job*,  ctp::Job::JobResult >
-{
-public:
+        /**
+         * \brief GWBSE implementation
+         *
+         * Evaluates DFT and GWBSE for all molecules
+         * Requires a first-principles package, i.e. GAUSSIAN, ORCA, NWChem
+         *
+         * Callname: eqm
+         */
 
-    EQM() {};
-   ~EQM() {};
+        class EQM : public ctp::ParallelXJobCalc< vector< ctp::Job*>, ctp::Job*, ctp::Job::JobResult > {
+        public:
 
-    string  Identify() { return "eqm"; }
-    void    Initialize( Property *options);
-     ctp::Job::JobResult EvalJob( ctp::Topology *top,  ctp::Job *job,  ctp::QMThread *thread);
-    
-    string              _package;
-    Property            _package_options; 
-    Property            _gwbse_options; 
-    Property            _esp_options;
-    
-    void    CleanUp();
-    void WriteJobFile( ctp::Topology *top);
+            string Identify() {
+                return "eqm";
+            }
+            void Initialize(Property *options);
+            ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *thread);
 
-    
-    // what to do
-    bool                _do_dft_input;
-    bool                _do_dft_run;
-    bool                _do_dft_parse;
-    bool                _do_gwbse;
-    bool                _do_esp;
-    
-    
-    void ParseOptionsXML( Property *options);    
+            void CleanUp() {
+                ;
+            }
+            void WriteJobFile(ctp::Topology *top);
+            void ParseOptionsXML(Property *options);
 
-};
+            string _package;
+            Property _package_options;
+            Property _gwbse_options;
+            Property _esp_options;
 
 
-}}
 
-#endif	/* _CALC_GWBSE_TOOL_H */
+            // what to do
+            bool _do_dft_input;
+            bool _do_dft_run;
+            bool _do_dft_parse;
+            bool _do_gwbse;
+            bool _do_esp;
+
+
+
+
+        };
+
+
+    }
+}
+
+#endif /* _CALC_GWBSE_TOOL_H */

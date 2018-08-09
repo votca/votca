@@ -23,7 +23,6 @@
 #include <votca/xtp/calculatorfactory.h>
 #include <votca/tools/property.h>
 #include <votca/xtp/statesaversqlite.h>
-#include <votca/moo/units.h>
 #include <votca/ctp/topology.h>
 #include <votca/csg/topology.h>
 

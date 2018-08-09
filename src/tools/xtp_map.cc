@@ -28,7 +28,7 @@
 #include <votca/xtp/statesaversqlite.h>
 #include <votca/xtp/version.h>
 #include <votca/tools/globals.h>
-#include "Md2QmEngine.h"
+#include <votca/xtp/Md2QmEngine.h>
 
 using namespace std;
 

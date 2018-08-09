@@ -135,16 +135,15 @@ namespace votca {
                 CTP_LOG_SAVE(ctp::logINFO, *logger) << "Loading serialized data from " << _archive_file << flush;
                 orbitals.ReadFromCpt(_archive_file);
             }
-
+            tools::Property &output_summary = _summary.add("output", "");
             if (_do_gwbse) {
                 GWBSE gwbse = GWBSE(orbitals);
                 gwbse.setLogger(logger);
                 gwbse.Initialize(_gwbse_options);
                 gwbse.Evaluate();
-                if (_redirect_logger) WriteLoggerToFile(logger);
-                tools::Property &output_summary = _summary.add("output", "");
                 gwbse.addoutput(output_summary);
             }
+            if (_redirect_logger) WriteLoggerToFile(logger);
             return;
         }
 

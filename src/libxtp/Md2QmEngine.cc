@@ -17,7 +17,7 @@
  *
  */
 
-#include "Md2QmEngine.h"
+#include <votca/xtp/Md2QmEngine.h>
 #include <votca/csg/boundarycondition.h>
 #include <votca/tools/globals.h>
 

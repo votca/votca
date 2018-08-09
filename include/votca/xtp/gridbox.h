@@ -35,8 +35,6 @@ namespace votca { namespace xtp {
             
         public: 
             
-            
-            
             const std::vector<tools::vec>& getGridPoints() const{return grid_pos;}
             
             const std::vector<double>& getGridWeights() const{return weights;}

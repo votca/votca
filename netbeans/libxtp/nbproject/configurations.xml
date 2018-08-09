@@ -43,8 +43,6 @@
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="f5" displayName="Executables" projectFiles="true">
-      <itemPath>../../src/tools/Md2QmEngine.cc</itemPath>
-      <itemPath>../../src/tools/Md2QmEngine.h</itemPath>
       <itemPath>../../src/tools/xtp_dump.cc</itemPath>
       <itemPath>../../src/tools/xtp_map.cc</itemPath>
       <itemPath>../../src/tools/xtp_parallel.cc</itemPath>
@@ -64,6 +62,7 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>../../include/votca/xtp/ERIs.h</itemPath>
+      <itemPath>../../include/votca/xtp/Md2QmEngine.h</itemPath>
       <itemPath>../../include/votca/xtp/adiis.h</itemPath>
       <itemPath>../../include/votca/xtp/adiis_costfunction.h</itemPath>
       <itemPath>../../include/votca/xtp/aobasis.h</itemPath>
@@ -218,6 +217,7 @@
         <itemPath>../../src/libxtp/numerical_integration/sphere_lebedev_rule.cc</itemPath>
       </logicalFolder>
       <itemPath>../../src/libxtp/ERIs.cc</itemPath>
+      <itemPath>../../src/libxtp/Md2QmEngine.cc</itemPath>
       <itemPath>../../src/libxtp/aobasis.cc</itemPath>
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/apolarsite.cc</itemPath>
@@ -1066,6 +1066,11 @@
       </compileType>
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/Md2QmEngine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/adiis_costfunction.h"
@@ -1435,6 +1440,8 @@
       <item path="../../share/xtp/xml/vaverage.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1944,10 +1951,6 @@
       </item>
       <item path="../../src/tests/test_topology.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tools/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tools/Md2QmEngine.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../src/tools/xtp_dump.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/xtp_map.cc" ex="false" tool="1" flavor2="0">
@@ -1975,6 +1978,11 @@
         </archiverTool>
       </compileType>
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/Md2QmEngine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2345,6 +2353,8 @@
       <item path="../../share/xtp/xml/vaverage.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
       </item>

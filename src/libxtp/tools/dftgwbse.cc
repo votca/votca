@@ -132,7 +132,8 @@ namespace votca {
                 // Run GWBSE
                 gwbse_engine.ExcitationEnergies(qmpackage, orbitals);
             }
-
+            delete qmpackage; 
+            
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
             orbitals.WriteToCpt(_archive_file);
             
@@ -144,7 +145,7 @@ namespace votca {
                 ofout << (summary.get("output"));
                 ofout.close();
             }
-
+            
             return true;
         }
 
