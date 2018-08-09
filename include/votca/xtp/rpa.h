@@ -20,6 +20,7 @@
 #ifndef _VOTCA_XTP_RPA_H
 #define _VOTCA_XTP_RPA_H
 #include <votca/xtp/eigen.h>
+#include <vector>
 
 
 namespace votca {
