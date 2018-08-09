@@ -80,7 +80,7 @@ namespace votca {
                 return ( (_occupied_levels > 0) && (_unoccupied_levels > 0) ? true : false);
             }
 
-            unsigned int getNumberOfLevels() const{
+            int getNumberOfLevels() const{
                 return ( _occupied_levels + _unoccupied_levels);
             }
             void setNumberOfLevels(int occupied_levels, int unoccupied_levels);
@@ -279,15 +279,15 @@ namespace votca {
                 _qptotal = _qpmax - _qpmin + 1;
             }
 
-            unsigned getGWAmin() const {
+            int getGWAmin() const {
                 return _qpmin;
             }
 
-            unsigned getGWAmax() const {
+            int getGWAmax() const {
                 return _qpmax;
             }
 
-            unsigned getGWAtot() const {
+            int getGWAtot() const {
                 return (_qpmax - _qpmin + 1);
             }
 
@@ -645,17 +645,17 @@ namespace votca {
             int _rpamin;
             int _rpamax;
 
-            unsigned int _qpmin;
-            unsigned int _qpmax;
-            unsigned int _qptotal;
+             int _qpmin;
+             int _qpmax;
+             int _qptotal;
 
-            unsigned int _bse_vmin;
-            unsigned int _bse_vmax;
-            unsigned int _bse_cmin;
-            unsigned int _bse_cmax;
-            unsigned int _bse_size;
-            unsigned int _bse_vtotal;
-            unsigned int _bse_ctotal;
+             int _bse_vmin;
+             int _bse_vmax;
+             int _bse_cmin;
+             int _bse_cmax;
+             int _bse_size;
+             int _bse_vtotal;
+             int _bse_ctotal;
             int _bse_nmax;
 
             double _ScaHFX;

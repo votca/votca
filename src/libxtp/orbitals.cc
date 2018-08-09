@@ -150,10 +150,10 @@ namespace votca {
 
         Orbitals::Index2MO Orbitals::BSEIndex2MOIndex()const{
           Index2MO result;
-          for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
-            for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
-              result.I2v.push_back(_bse_vmin + _v);
-              result.I2c.push_back(_bse_cmin + _c);
+          for (int v = 0; v < _bse_vtotal; v++) {
+            for (int c = 0; c < _bse_ctotal; c++) {
+              result.I2v.push_back(_bse_vmin + v);
+              result.I2c.push_back(_bse_cmin + c);
             }
           }
           return result;
@@ -180,9 +180,9 @@ namespace votca {
             if (_bsetype == "full" && spin == "singlet") {
                 const MatrixXfd& _BSECoefs_AR = _BSE_singlet_coefficients_AR;
 #pragma omp parallel for
-                for (unsigned a = 0; a < dmatTS.rows(); a++) {
-                    for (unsigned b = 0; b < dmatTS.cols(); b++) {
-                        for (unsigned i = 0; i < _bse_size; i++) {
+                for (int a = 0; a < dmatTS.rows(); a++) {
+                    for (int b = 0; b < dmatTS.cols(); b++) {
+                        for (int i = 0; i < _bse_size; i++) {
                             int occ = index.I2v[i];
                             int virt =index.I2c[i];
                             dmatTS(a, b) += sqrt2 * (_BSECoefs(i, state) + _BSECoefs_AR(i, state)) * _mo_coefficients(a, occ) * _mo_coefficients(b, virt); //check factor 2??
@@ -192,9 +192,9 @@ namespace votca {
             } else {
 
 #pragma omp parallel for
-                for (unsigned a = 0; a < dmatTS.rows(); a++) {
-                    for (unsigned b = 0; b < dmatTS.cols(); b++) {
-                        for (unsigned i = 0; i < _bse_size; i++) {
+                for (int a = 0; a < dmatTS.rows(); a++) {
+                    for (int b = 0; b < dmatTS.cols(); b++) {
+                        for (int i = 0; i < _bse_size; i++) {
                             int occ = index.I2v[i];
                             int virt =index.I2c[i];
                             dmatTS(a, b) += sqrt2 * _BSECoefs(i, state) * _mo_coefficients(a, occ) * _mo_coefficients(b, virt); //check factor 2??
@@ -259,20 +259,20 @@ namespace votca {
             Eigen::MatrixXd Acc = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_ctotal);
             Eigen::MatrixXd Avv = Eigen::MatrixXd::Zero(_bse_vtotal, _bse_vtotal);
 
-            for (unsigned idx1 = 0; idx1 < _bse_size; idx1++) {
+            for (int idx1 = 0; idx1 < _bse_size; idx1++) {
                 int v = index.I2v[idx1];
                 int c = index.I2c[idx1];
                 // electron assist matrix A_{cc'}
 #pragma omp parallel for
-                for (unsigned _c2 = _bse_cmin; _c2 <= _bse_cmax; _c2++) {
-                    unsigned _idx2 = (_bse_cmax - _bse_cmin + 1)*(v - _bse_vmin)+(_c2 - _bse_cmin);
-                    Acc(c - _bse_cmin, _c2 - _bse_cmin) += BSECoefs(idx1, state) * BSECoefs(_idx2, state);
+                for (int c2 = _bse_cmin; c2 <= _bse_cmax; c2++) {
+                    int idx2 = (_bse_cmax - _bse_cmin + 1)*(v - _bse_vmin)+(c2 - _bse_cmin);
+                    Acc(c - _bse_cmin, c2 - _bse_cmin) += BSECoefs(idx1, state) * BSECoefs(idx2, state);
                 }
 
                 // hole assist matrix A_{vv'}
 #pragma omp parallel for
-                for (unsigned v2 = _bse_vmin; v2 <= _bse_vmax; v2++) {
-                    unsigned idx2 = (_bse_cmax - _bse_cmin + 1)*(v2 - _bse_vmin)+(c - _bse_cmin);
+                for (int v2 = _bse_vmin; v2 <= _bse_vmax; v2++) {
+                    int idx2 = (_bse_cmax - _bse_cmin + 1)*(v2 - _bse_vmin)+(c - _bse_cmin);
                     Avv(v - _bse_vmin, v2 - _bse_vmin) += BSECoefs(idx1, state) * BSECoefs(idx2, state);
                 }
             }
@@ -330,20 +330,20 @@ namespace votca {
             Eigen::MatrixXd Bcc = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_ctotal);
             Eigen::MatrixXd Bvv = Eigen::MatrixXd::Zero(_bse_vtotal, _bse_vtotal);
 
-            for (unsigned idx1 = 0; idx1 < _bse_size; idx1++) {
+            for (int idx1 = 0; idx1 < _bse_size; idx1++) {
                 int v = index.I2v[idx1];
                 int c = index.I2c[idx1];
                 // hole assist matrix B_{cc'}
 #pragma omp parallel for
-                for (unsigned c2 = _bse_cmin; c2 <= _bse_cmax; c2++) {
-                    unsigned idx2 = (_bse_cmax - _bse_cmin + 1)*(v - _bse_vmin)+(c2 - _bse_cmin);
+                for (int c2 = _bse_cmin; c2 <= _bse_cmax; c2++) {
+                    int idx2 = (_bse_cmax - _bse_cmin + 1)*(v - _bse_vmin)+(c2 - _bse_cmin);
                     Bcc(c - _bse_cmin, c2 - _bse_cmin) += BSECoefs_AR(idx1, state) * BSECoefs_AR(idx2, state);
                 }
 
                 // electron assist matrix B_{vv'}
 #pragma omp parallel for
-                for (unsigned v2 = _bse_vmin; v2 <= _bse_vmax; v2++) {
-                    unsigned idx2 = (_bse_cmax - _bse_cmin + 1)*(v2 - _bse_vmin)+(c - _bse_cmin);
+                for (int v2 = _bse_vmin; v2 <= _bse_vmax; v2++) {
+                    int idx2 = (_bse_cmax - _bse_cmin + 1)*(v2 - _bse_vmin)+(c - _bse_cmin);
                     Bvv(v - _bse_vmin, v2 - _bse_vmin) += BSECoefs_AR(idx1, state) * BSECoefs_AR(idx2, state);
                 }
             }
@@ -365,11 +365,11 @@ namespace votca {
             Eigen::MatrixXd sqrtm1 = es.operatorInverseSqrt();
             Eigen::MatrixXd prodmat = sqrtm1 * densitymatrix*sqrtm1;
 
-            for (int _i = 0; _i < frag; _i++) {
-                fragmentCharges(0) += prodmat(_i, _i);
+            for (int i = 0; i < frag; i++) {
+                fragmentCharges(0) += prodmat(i, i);
             }
-            for (unsigned _i = frag; _i < overlapmatrix.rows(); _i++) {
-                fragmentCharges(1) += prodmat(_i, _i);
+            for (int i = frag; i < overlapmatrix.rows(); i++) {
+                fragmentCharges(1) += prodmat(i, i);
             }
 
             return fragmentCharges;
@@ -377,11 +377,11 @@ namespace votca {
 
         std::vector<double> Orbitals::Oscillatorstrengths() const{
             std::vector<double> oscs;
-            unsigned size = _transition_dipoles.size();
+            int size = _transition_dipoles.size();
             if (size > _BSE_singlet_energies.size()) {
                 size = _BSE_singlet_energies.size();
             }
-            for (unsigned i = 0; i < size; ++i) {
+            for (int i = 0; i < size; ++i) {
                 double osc = (_transition_dipoles[i] * _transition_dipoles[i]) * 2.0 / 3.0 * (_BSE_singlet_energies(i));
                 oscs.push_back(osc);
             }
