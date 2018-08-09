@@ -494,7 +494,7 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis){
               ScaHFX_temp %  _orbitals.getScaHFX())
               .str());
     }
-    numint.GridSetup(_grid, _orbitals.QMAtoms(),&dftbasis);
+    numint.GridSetup(_grid, _orbitals.QMAtoms(),dftbasis);
     CTP_LOG(ctp::logDEBUG, *_pLog)
             << ctp::TimeStamp()
             << " Setup grid for integration with gridsize: " << _grid << " with "

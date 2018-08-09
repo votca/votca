@@ -84,9 +84,9 @@ namespace votca { namespace xtp {
             
             void PrepareForIntegration();
             
-            Eigen::MatrixXd ReadFromBigMatrix(const Eigen::MatrixXd& bigmatrix);
+            Eigen::MatrixXd ReadFromBigMatrix (const Eigen::MatrixXd& bigmatrix)const;
             
-            void AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,const Eigen::MatrixXd& smallmatrix);
+            void AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,const Eigen::MatrixXd& smallmatrix)const;
             
             void setIndexoffirstgridpoint(unsigned indexoffirstgridpoint){_indexoffirstgridpoint=indexoffirstgridpoint;}
             unsigned getIndexoffirstgridpoint() const{return _indexoffirstgridpoint;}

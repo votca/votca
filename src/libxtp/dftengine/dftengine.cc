@@ -488,7 +488,7 @@ void DFTEngine::CalcElDipole(){
         if (with_ecp) {
           ecp.ECPFill(_ecpbasisset, atom);
         }
-        gridIntegration.GridSetup(_grid_name, atom, &dftbasis);
+        gridIntegration.GridSetup(_grid_name, atom, dftbasis);
         gridIntegration.setXCfunctional(_xc_functional_name);
         int numofelectrons = uniqueAtom->getNuccharge();
         int alpha_e = 0;
@@ -784,7 +784,7 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
                 << " Filled ECP Basis of size " << _ecp.getNumofShells() << flush;
       }
 
-      _gridIntegration.GridSetup(_grid_name, _atoms, &_dftbasis);
+      _gridIntegration.GridSetup(_grid_name, _atoms, _dftbasis);
       _gridIntegration.setXCfunctional(_xc_functional_name);
 
       _ScaHFX = _gridIntegration.getExactExchange(_xc_functional_name);
@@ -799,7 +799,7 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
       CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t "<<" with " << _gridIntegration.getGridSize() << " points" 
               << " divided into "<< _gridIntegration.getBoxesSize() << " boxes" << flush;
       if (_use_small_grid) {
-        _gridIntegration_small.GridSetup(_grid_name_small, _atoms, &_dftbasis);
+        _gridIntegration_small.GridSetup(_grid_name_small, _atoms, _dftbasis);
         _gridIntegration_small.setXCfunctional(_xc_functional_name);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup small numerical integration grid "
                 << _grid_name_small << " for vxc functional "
@@ -809,7 +809,7 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
       }
 
       if (_do_externalfield) {
-        _gridIntegration_ext.GridSetup(_grid_name_ext, _atoms, &_dftbasis);
+        _gridIntegration_ext.GridSetup(_grid_name_ext, _atoms, _dftbasis);
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Setup numerical integration grid "
                 << _grid_name_ext << " for external field with "
                 << _gridIntegration_ext.getGridpoints().size() << " points" << flush;
@@ -993,7 +993,7 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
       AOBasis aobasis;
       aobasis.AOBasisFill(basis,extdensity.QMAtoms());
       NumericalIntegration numint;
-      numint.GridSetup(_gridquality,extdensity.QMAtoms(),&aobasis);
+      numint.GridSetup(_gridquality,extdensity.QMAtoms(),aobasis);
       Eigen::MatrixXd dmat=extdensity.DensityMatrixGroundState();
       
       numint.IntegrateDensity(dmat);

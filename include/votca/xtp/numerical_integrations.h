@@ -56,34 +56,32 @@ namespace votca { namespace xtp {
 
             ~NumericalIntegration();
             
-            void GridSetup(std::string type, std::vector<QMAtom* > _atoms,const AOBasis* basis);
-            
-
+            void GridSetup(const std::string& type, std::vector<QMAtom* > atoms,const AOBasis& basis);
            
-            double getExactExchange(const std::string _functional);
+            double getExactExchange(const std::string& functional);
             std::vector<const tools::vec*> getGridpoints()const;
             std::vector<double> getWeightedDensities() const;
             int getGridSize() const{return _totalgridsize;}
             unsigned getBoxesSize() const{return _grid_boxes.size();}
             
-            void setXCfunctional(const std::string _functional);
-            double IntegrateDensity(const Eigen::MatrixXd& _density_matrix);
+            void setXCfunctional(const std::string & functional);
+            double IntegrateDensity(const Eigen::MatrixXd& density_matrix);
             double IntegratePotential(const tools::vec& rvector);
             Eigen::MatrixXd IntegratePotential(const AOBasis& externalbasis);
-            double IntegrateField(const std::vector<double>& externalfield);
+
+            
             Eigen::MatrixXd IntegrateExternalPotential(const std::vector<double>& Potentialvalues);
-            Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& _density_matrix);          
-            Eigen::MatrixXd IntegrateVXC (const Eigen::MatrixXd& _density_matrix);
-            // this gives int (e_xc-V_xc)*rho d3r
+            Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& density_matrix);          
+            Eigen::MatrixXd IntegrateVXC (const Eigen::MatrixXd& density_matrix);
             double getTotEcontribution(){return _EXC;}
           
             
         private:
             
-           void FindSignificantShells();
+           void FindSignificantShells(const AOBasis& basis);
            void EvaluateXC(const double rho,const Eigen::Vector3d& grad_rho,double& f_xc, double& df_drho, double& df_dsigma);          
            double erf1c(double x);
-           Eigen::VectorXd SSWpartition(int igrid, int ncenters ,const Eigen::MatrixXd& rq );
+           
            void SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::Cartesian_gridpoint > >& grid);
            
            Eigen::MatrixXd CalcInverseAtomDist(std::vector<QMAtom*>& atoms);
@@ -93,11 +91,10 @@ namespace votca { namespace xtp {
                                         GridContainers::radial_grid& radial_grid, GridContainers::spherical_grid& spherical_grid,
                                         unsigned i_rad,unsigned i_sph);
            
-            void SSWpartitionAtom(std::vector<QMAtom*>& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, unsigned i_atom);
+           Eigen::VectorXd SSWpartition(int igrid, int ncenters ,const Eigen::MatrixXd& rq,const Eigen::MatrixXd& Rij );
+            void SSWpartitionAtom(std::vector<QMAtom*>& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, unsigned i_atom,const Eigen::MatrixXd& Rij);
             Eigen::MatrixXd CalcDistanceAtomsGridpoints(std::vector<QMAtom*>& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid);
             
-            Eigen::MatrixXd Rij;
-            const AOBasis* _basis;
             int  _totalgridsize;
             std::vector< GridBox > _grid_boxes;
             std::vector<unsigned> thread_start;
@@ -106,7 +103,7 @@ namespace votca { namespace xtp {
             double _EXC;
             bool _density_set;
             bool _setXC;
-            
+            int _AOBasisSize;
             
            
             bool _use_separate;

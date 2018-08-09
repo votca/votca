@@ -56,7 +56,7 @@ namespace votca { namespace xtp {
         return r;
      }
     
-    void EulerMaclaurinGrid::FillElementRangeMap(const AOBasis* aobasis, std::vector<QMAtom*>& atoms, double eps){
+    void EulerMaclaurinGrid::FillElementRangeMap(const AOBasis& aobasis, std::vector<QMAtom*>& atoms, double eps){
       std::map<std::string, min_exp>::iterator it;
       for (QMAtom* atom:atoms) {
         std::string name = atom->getType();
@@ -68,7 +68,7 @@ namespace votca { namespace xtp {
           double range_max = std::numeric_limits<double>::min();
           double decaymin = std::numeric_limits<double>::max();
           int    lvalue = std::numeric_limits<int>::min();
-          const std::vector<const AOShell*>  shells=aobasis->getShellsofAtom(atom->getAtomID());
+          const std::vector<const AOShell*>  shells=aobasis.getShellsofAtom(atom->getAtomID());
           // and loop over all shells to figure out minimum decay constant and angular momentum of this function
           for (const AOShell* shell:shells) {
             int lmax = shell->getLmax();
@@ -89,13 +89,13 @@ namespace votca { namespace xtp {
       } // atoms
     }
 
-    void EulerMaclaurinGrid::RefineElementRangeMap(const AOBasis* aobasis, std::vector<QMAtom*>& atoms, double eps){
+    void EulerMaclaurinGrid::RefineElementRangeMap(const AOBasis& aobasis, std::vector<QMAtom*>& atoms, double eps){
       AOOverlap overlap;
-      overlap.Fill(*aobasis);
+      overlap.Fill(aobasis);
       
       // get collapsed index list
       std::vector<int> idxstart;
-      const std::vector<int>& idxsize = aobasis->getFuncPerAtom();
+      const std::vector<int>& idxsize = aobasis.getFuncPerAtom();
       int start = 0;
       for (int size : idxsize) {
         idxstart.push_back(start);
@@ -142,7 +142,7 @@ namespace votca { namespace xtp {
       }
     }
 
-    void EulerMaclaurinGrid::CalculateRadialCutoffs(const AOBasis* aobasis, std::vector<QMAtom* > atoms, const std::string& gridtype) {
+    void EulerMaclaurinGrid::CalculateRadialCutoffs(const AOBasis& aobasis, std::vector<QMAtom* > atoms, const std::string& gridtype) {
 
       double eps = Accuracy[gridtype];
       FillElementRangeMap(aobasis, atoms, eps);
@@ -150,7 +150,7 @@ namespace votca { namespace xtp {
       return;
     } 
     
-    std::map<std::string, GridContainers::radial_grid> EulerMaclaurinGrid::CalculateAtomicRadialGrids(const AOBasis* aobasis , std::vector<QMAtom* > atoms,const std::string& type) {
+    std::map<std::string, GridContainers::radial_grid> EulerMaclaurinGrid::CalculateAtomicRadialGrids(const AOBasis& aobasis , std::vector<QMAtom* > atoms,const std::string& type) {
      
     CalculateRadialCutoffs(aobasis,atoms,type);
     std::map<std::string,GridContainers::radial_grid>result;

@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE(vxc_test) {
  
  
  NumericalIntegration num;
- num.GridSetup("medium",orbitals.QMAtoms(),&aobasis);
+ num.GridSetup("medium",orbitals.QMAtoms(),aobasis);
  num.setXCfunctional("XC_GGA_X_PBE XC_GGA_C_PBE");
  Eigen::MatrixXd vxc=num.IntegrateVXC(dmat);
 

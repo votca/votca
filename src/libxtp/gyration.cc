@@ -82,7 +82,7 @@ void Density2Gyration::Initialize( tools::Property* options) {
 
       // setup numerical integration grid
       NumericalIntegration numway;
-      numway.GridSetup(_gridsize, _Atomlist, &basis);
+      numway.GridSetup(_gridsize, _Atomlist, basis);
 
       if (_state == "ground" || _state == "excited") {
         //LOG(logDEBUG, *_log) << TimeStamp() << " Calculate Densities at Numerical Grid with gridsize "<< _gridsize  << flush; 

@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(setup_test) {
 
   
    EulerMaclaurinGrid radialgrid;
-   auto grid=radialgrid.CalculateAtomicRadialGrids(&aobasis, orbitals.QMAtoms(), "medium");
+   auto grid=radialgrid.CalculateAtomicRadialGrids(aobasis, orbitals.QMAtoms(), "medium");
 
    auto Cgrid =grid.at("C");
    auto Hgrid =grid.at("H");

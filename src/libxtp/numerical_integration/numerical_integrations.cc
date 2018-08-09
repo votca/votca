@@ -50,7 +50,7 @@ namespace votca {
 
     
 
-    double NumericalIntegration::getExactExchange(const std::string functional) {      
+    double NumericalIntegration::getExactExchange(const std::string& functional) {      
 
       double exactexchange = 0.0;
       Vxc_Functionals map;
@@ -86,11 +86,11 @@ namespace votca {
     }
     
     
-   void NumericalIntegration::setXCfunctional(const std::string _functional) {
+   void NumericalIntegration::setXCfunctional(const std::string& functional) {
 
       Vxc_Functionals map;
       std::vector<std::string> strs;
-      boost::split(strs, _functional, boost::is_any_of(" "));
+      boost::split(strs, functional, boost::is_any_of(" "));
       xfunc_id = 0;
       _use_separate = false;
       cfunc_id = 0;
@@ -261,11 +261,10 @@ namespace votca {
       return;
     }
         
-  void NumericalIntegration::FindSignificantShells() {
-
+  void NumericalIntegration::FindSignificantShells(const AOBasis& basis) {
       for (unsigned i = 0; i < _grid_boxes.size(); ++i) {
         GridBox & box = _grid_boxes[i];
-        for (const AOShell* store:(*_basis)) {
+        for (const AOShell* store:basis) {
           const double decay = store->getMinDecay();
           const tools::vec& shellpos =store->getPos();
           for (const auto& point : box.getGridPoints()) {
@@ -280,8 +279,7 @@ namespace votca {
         }
       }
 
-      std::vector< GridBox > _grid_boxes_copy;
-
+      std::vector< GridBox > grid_boxes_copy;
       int combined = 0;
       std::vector<bool> Compared = std::vector<bool>(_grid_boxes.size(), false);
       for (unsigned i = 0; i < _grid_boxes.size(); i++) {
@@ -299,14 +297,12 @@ namespace votca {
             box.addGridBox(_grid_boxes[j]);
             combined++;
           }
-
         }
-        _grid_boxes_copy.push_back(box);
+        grid_boxes_copy.push_back(box);
       }
-
       std::vector<unsigned> sizes;
-      sizes.reserve(_grid_boxes_copy.size());
-      for (auto& box : _grid_boxes_copy) {
+      sizes.reserve(grid_boxes_copy.size());
+      for (auto& box : grid_boxes_copy) {
         sizes.push_back(box.size() * box.Matrixsize());
       }
       std::vector<unsigned> indexes = std::vector<unsigned>(sizes.size());
@@ -349,7 +345,7 @@ namespace votca {
         thread_stop.push_back(stop);
         start = stop;
         for (const unsigned index : thread_index) {
-          GridBox newbox = _grid_boxes_copy[index];
+          GridBox newbox = grid_boxes_copy[index];
           newbox.setIndexoffirstgridpoint(indexoffirstgridpoint);
           indexoffirstgridpoint += newbox.size();
           newbox.PrepareForIntegration();
@@ -361,8 +357,8 @@ namespace votca {
         
         
         
-  Eigen::MatrixXd NumericalIntegration::IntegrateVXC(const Eigen::MatrixXd& _density_matrix) {
-      Eigen::MatrixXd Vxc = Eigen::MatrixXd::Zero(_density_matrix.rows(), _density_matrix.cols());
+  Eigen::MatrixXd NumericalIntegration::IntegrateVXC(const Eigen::MatrixXd& density_matrix) {
+      Eigen::MatrixXd Vxc = Eigen::MatrixXd::Zero(density_matrix.rows(), density_matrix.cols());
       _EXC = 0;
       unsigned nthreads = 1;
 #ifdef _OPENMP
@@ -371,24 +367,22 @@ namespace votca {
       std::vector<Eigen::MatrixXd >vxc_thread;
       std::vector<double> Exc_thread = std::vector<double>(nthreads, 0.0);
       for (unsigned i = 0; i < nthreads; ++i) {
-        Eigen::MatrixXd Vxc_thread = Eigen::MatrixXd::Zero(_density_matrix.rows(), _density_matrix.cols());
+        Eigen::MatrixXd Vxc_thread = Eigen::MatrixXd::Zero(density_matrix.rows(), density_matrix.cols());
         vxc_thread.push_back(Vxc_thread);
       }
       
-
 #pragma omp parallel for
       for (unsigned thread = 0; thread < nthreads; ++thread) {
         for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
 
           double EXC_box = 0.0;
-          GridBox& box = _grid_boxes[i];
-          const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(_density_matrix);
+          const GridBox& box = _grid_boxes[i];
+          const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
           const Eigen::MatrixXd DMAT_symm= DMAT_here+DMAT_here.transpose();
-          double cutoff=1.e-40/_density_matrix.rows()/_density_matrix.rows();
+          double cutoff=1.e-40/density_matrix.rows()/density_matrix.rows();
           if (DMAT_here.cwiseAbs2().maxCoeff()<cutoff ){
             continue;
-          }
-          
+          }     
           Eigen::MatrixXd Vxc_here = Eigen::MatrixXd::Zero(DMAT_here.rows(), DMAT_here.cols());
           const std::vector<tools::vec>& points = box.getGridPoints();
           const std::vector<double>& weights = box.getGridWeights();
@@ -425,15 +419,14 @@ namespace votca {
       for (unsigned i = 0; i < nthreads; ++i) {
         Vxc += vxc_thread[i];
         _EXC += Exc_thread[i];
-      }
-    
+      }    
       return Vxc+Vxc.transpose();
     }
   
   
    Eigen::MatrixXd NumericalIntegration::IntegrateExternalPotential(const std::vector<double>& Potentialvalues) {
 
-      Eigen::MatrixXd ExternalMat = Eigen::MatrixXd::Zero(_basis->AOBasisSize(), _basis->AOBasisSize());
+      Eigen::MatrixXd ExternalMat = Eigen::MatrixXd::Zero(_AOBasisSize, _AOBasisSize);
       unsigned nthreads = 1;
 #ifdef _OPENMP
       nthreads = omp_get_max_threads();
@@ -445,12 +438,11 @@ namespace votca {
         vex_thread.push_back(Vex_thread);
       }
 
-
 #pragma omp parallel for
       for (unsigned thread = 0; thread < nthreads; ++thread) {
         for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
 
-          GridBox& box = _grid_boxes[i];
+          const GridBox& box = _grid_boxes[i];
           Eigen::MatrixXd Vex_here = Eigen::MatrixXd::Zero(box.Matrixsize(), box.Matrixsize());
           const std::vector<tools::vec>& points = box.getGridPoints();
           const std::vector<double>& weights = box.getGridWeights();
@@ -468,19 +460,16 @@ namespace votca {
             Vex_here += addEX.transpose() * ao;
           }
           box.AddtoBigMatrix(vex_thread[thread], Vex_here);
-
         }
       }
       for (unsigned i = 0; i < nthreads; ++i) {
         ExternalMat += vex_thread[i];
       }
-
       ExternalMat += ExternalMat.transpose();
       return ExternalMat;
-
     }
       
-  double NumericalIntegration::IntegrateDensity(const Eigen::MatrixXd& _density_matrix) {
+  double NumericalIntegration::IntegrateDensity(const Eigen::MatrixXd& density_matrix) {
       double N = 0;
       unsigned nthreads = 1;
 #ifdef _OPENMP
@@ -494,11 +483,10 @@ namespace votca {
 
           double N_box = 0.0;
           GridBox& box = _grid_boxes[i];
-          const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(_density_matrix);
+          const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
           const std::vector<tools::vec>& points = box.getGridPoints();
           const std::vector<double>& weights = box.getGridWeights();
           box.prepareDensity();
-
           //iterate over gridpoints
           for (unsigned p = 0; p < box.size(); p++) {
             Eigen::VectorXd ao = Eigen::VectorXd::Zero(box.Matrixsize());
@@ -522,8 +510,7 @@ namespace votca {
       return N;
     }
         
-      Gyrationtensor NumericalIntegration::IntegrateGyrationTensor(const Eigen::MatrixXd& _density_matrix) {
-
+      Gyrationtensor NumericalIntegration::IntegrateGyrationTensor(const Eigen::MatrixXd& density_matrix) {
       double N = 0;
       tools::vec centroid = tools::vec(0.0);
       tools::matrix gyration = tools::matrix(0.0);
@@ -549,7 +536,7 @@ namespace votca {
           tools::vec centroid_box = tools::vec(0.0);
           tools::matrix gyration_box = tools::matrix(0.0);
           GridBox& box = _grid_boxes[i];
-          const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(_density_matrix);
+          const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
           const std::vector<tools::vec>& points = box.getGridPoints();
           const std::vector<double>& weights = box.getGridWeights();
           box.prepareDensity();
@@ -579,7 +566,6 @@ namespace votca {
         gyration += gyration_thread[i];
       }
       _density_set = true;
-
       // Normalize
       centroid = centroid / N;
       gyration = gyration / N;
@@ -599,7 +585,6 @@ std::vector<const tools::vec *> NumericalIntegration::getGridpoints() const{
       const std::vector<tools::vec>& points = _grid_boxes[i].getGridPoints();
       for (unsigned j = 0; j < points.size(); j++) {
         gridpoints.push_back(&points[j]);
-
       }
     }
     return gridpoints;
@@ -703,13 +688,14 @@ int NumericalIntegration::UpdateOrder(LebedevGrid& sphericalgridofElement, int m
       return result;
     }
 
-    void NumericalIntegration::SSWpartitionAtom(std::vector<QMAtom*>& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, unsigned i_atom){
+    void NumericalIntegration::SSWpartitionAtom(std::vector<QMAtom*>& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid
+                                                , unsigned i_atom, const Eigen::MatrixXd& Rij){
       Eigen::MatrixXd AtomGridDist=CalcDistanceAtomsGridpoints(atoms, atomgrid);
       
 #pragma omp parallel for schedule(guided)
       for (unsigned i_grid = 0; i_grid < atomgrid.size(); i_grid++) {
         // call some shit called grid_ssw0 in NWChem
-        Eigen::VectorXd p = SSWpartition(i_grid, atoms.size(), AtomGridDist);
+        Eigen::VectorXd p = SSWpartition(i_grid, atoms.size(), AtomGridDist,Rij);
         // check weight sum
         double wsum = p.sum();
         if (wsum != 0.0) {
@@ -722,9 +708,8 @@ int NumericalIntegration::UpdateOrder(LebedevGrid& sphericalgridofElement, int m
       } // partition weight for each gridpoint
     }
         
-void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> atoms,const AOBasis* basis) {
-      _basis = basis;
-      
+void NumericalIntegration::GridSetup(const std::string& type, std::vector<QMAtom*> atoms,const AOBasis& basis) {
+      _AOBasisSize=basis.AOBasisSize();
       const double pi = boost::math::constants::pi<double>();
       GridContainers initialgrids;
       // get radial grid per element
@@ -734,7 +719,7 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> atom
       initialgrids.spherical_grids=sphericalgridofElement.CalculateSphericalGrids(atoms,type);
       
       // for the partitioning, we need all inter-center distances later, stored in matrix
-      Rij=CalcInverseAtomDist(atoms);
+      Eigen::MatrixXd Rij=CalcInverseAtomDist(atoms);
       _totalgridsize = 0;
       std::vector< std::vector< GridContainers::Cartesian_gridpoint > > grid;
       
@@ -770,7 +755,7 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> atom
           } // spherical gridpoints
         } // radial gridpoint
 
-        SSWpartitionAtom(atoms, atomgrid, i_atom);
+        SSWpartitionAtom(atoms, atomgrid, i_atom,Rij);
 
         // now remove points from the grid with negligible weights
         for (std::vector<GridContainers::Cartesian_gridpoint >::iterator git = atomgrid.begin(); git != atomgrid.end();) {
@@ -784,11 +769,11 @@ void NumericalIntegration::GridSetup(std::string type, std::vector<QMAtom*> atom
         grid.push_back(atomgrid);
       } // atoms
       SortGridpointsintoBlocks(grid);
-      FindSignificantShells();
+      FindSignificantShells(basis);
       return;
     }
 
-    Eigen::VectorXd NumericalIntegration::SSWpartition(int igrid, int ncenters,const Eigen::MatrixXd & rq) {
+    Eigen::VectorXd NumericalIntegration::SSWpartition(int igrid, int ncenters,const Eigen::MatrixXd & rq,const Eigen::MatrixXd& Rij) {
       const double ass = 0.725;
       // initialize partition vector to 1.0
       Eigen::VectorXd p=Eigen::VectorXd::Ones(ncenters);
