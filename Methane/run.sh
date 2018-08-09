@@ -29,7 +29,7 @@ mkdir OPTIONFILES
 
 cp $VOTCASHARE/xtp/xml/neighborlist.xml OPTIONFILES/
 
-changeoption constant 0.25 OPTIONFILES/neighborlist.xml
+changeoption constant 0.8 OPTIONFILES/neighborlist.xml
 
 #run neighborlist calculator
 
@@ -52,9 +52,14 @@ cp $VOTCASHARE/xtp/xml/jobwriter.xml OPTIONFILES/
 changeoption keys "mps.chrg mps.background" OPTIONFILES/jobwriter.xml 
 
 xtp_run -e jobwriter -o OPTIONFILES/jobwriter.xml -f state.sql -s 0
-
-mv jobwriter.mps.chrg.xml xqmultipole.jobs
 mv jobwriter.mps.background.tab mps.tab
+mv jobwriter.mps.chrg.xml xqmultipole.jobs
+#Only run the first 3 jobs and set the rest to complete
+sed -i "s/AVAILABLE/COMPLETE/g" xqmultipole.jobs
+sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' xqmultipole.jobs
+sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' xqmultipole.jobs
+sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' xqmultipole.jobs
+
 
 #running xqmultipole
 
@@ -71,6 +76,57 @@ echo "Running xqmultipole, rerouting output to xqmultipole.log"
 xtp_parallel -e xqmultipole -f state.sql -o OPTIONFILES/xqmultipole.xml -s 0 -t 1 -c 1000 -j "run" > xqmultipole.log
 
 # xqmultipole has no parser to read the siteenergies into the sql file, write a python script or look at https://github.com/JensWehner/votca-scripts/blob/master/xtp/xtp_parseewald.py
+
+
+#running eqm
+
+cp $VOTCASHARE/xtp/xml/eqm.xml OPTIONFILES/
+cp $VOTCASHARE/xtp/packages/mbgft.xml OPTIONFILES/
+cp $VOTCASHARE/xtp/packages/xtpdft.xml OPTIONFILES/
+cp $VOTCASHARE/xtp/packages/esp2multipole.xml OPTIONFILES/
+
+changeoption dftpackage OPTIONFILES/xtpdft.xml OPTIONFILES/eqm.xml
+changeoption gwbse_options OPTIONFILES/mbgft.xml OPTIONFILES/eqm.xml
+
+changeoption threads 0 OPTIONFILES/xtpdft.xml
+changeoption openmp 0 OPTIONFILES/mbgft.xml
+changeoption openmp 0 OPTIONFILES/esp2multipole.xml
+
+xtp_parallel -e eqm -o OPTIONFILES/eqm.xml -f state.sql -s 0 -j "write"
+sed -i "s/AVAILABLE/COMPLETE/g" eqm.jobs
+sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' eqm.jobs
+sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' eqm.jobs
+
+xtp_parallel -e eqm -o OPTIONFILES/eqm.xml -f state.sql -s 0 -j run -c 1 -t 1
+
+#running iqm
+
+cp $VOTCASHARE/xtp/xml/iqm.xml OPTIONFILES/
+cp $VOTCASHARE/xtp/packages/mbgft.xml OPTIONFILES/mbgft_pair.xml
+cp $VOTCASHARE/xtp/packages/xtpdft.xml OPTIONFILES/xtpdft_pair.xml
+cp $VOTCASHARE/xtp/packages/bsecoupling.xml OPTIONFILES/
+
+changeoption bsecoupling_options OPTIONFILES/bsecoupling.xml OPTIONFILES/iqm.xml
+changeoption dftpackage OPTIONFILES/xtpdft_pair.xml OPTIONFILES/iqm.xml
+changeoption gwbse_options OPTIONFILES/mbgft_pair.xml OPTIONFILES/iqm.xml
+changeoption read_guess 1 OPTIONFILES/xtpdft_pair.xml
+changeoption energy 1e-2 OPTIONFILES/xtpdft_pair.xml
+
+changeoption threads 0 OPTIONFILES/xtpdft_pair.xml
+changeoption openmp 0 OPTIONFILES/mbgft_pair.xml
+changeoption openmp 0 OPTIONFILES/bsecoupling.xml
+changeoption openmp 0 OPTIONFILES/bsecoupling.xml
+
+changeoption tasks "singlets,triplets,iqm" OPTIONFILES/mbgft_pair.xml
+
+
+
+xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.sql -s 0 -j "write"
+sed -i "s/AVAILABLE/COMPLETE/g" iqm.jobs
+sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' iqm.jobs
+
+xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.sql -s 0 -j run -c 1 -t 1
+
 
 
 

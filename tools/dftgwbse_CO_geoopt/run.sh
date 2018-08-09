@@ -20,6 +20,10 @@ changeoption molecule CO.xyz dftgwbse.xml
 changeoption openmp 4 mbgft.xml
 changeoption threads 4 xtpdft.xml
 changeoption shift_type iterate mbgft.xml
+changeoption dftbasis def2-SVP mbgft.xml
+changeoption gwbasis aux-def2-SVP mbgft.xml
+changeoption dftbasis def2-SVP xtpdft.xml
+changeoption auxbasis aux-def2-SVP xtpdft.xml
 echo "Running dft + gwbse, output can be found in dftgwbse.log"
 xtp_tools -e dftgwbse -o dftgwbse.xml > dftgwbse.log
 

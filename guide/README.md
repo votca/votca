@@ -15,3 +15,11 @@ and a slack channel:
 At the moment we are also working on a manual:
 
 [Manual](http://doc.votca.org/xtp-manual.pdf)
+
+
+The tutorial is organised as follows:
+
+
+
+
+
