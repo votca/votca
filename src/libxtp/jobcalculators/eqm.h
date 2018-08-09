@@ -44,19 +44,24 @@ namespace votca {
         class EQM : public ctp::ParallelXJobCalc< vector< ctp::Job*>, ctp::Job*, ctp::Job::JobResult > {
         public:
 
-            string Identify() {
+            std::string Identify() {
                 return "eqm";
             }
             void Initialize(Property *options);
             ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *thread);
+            
+
 
             void CleanUp() {
                 ;
             }
             void WriteJobFile(ctp::Topology *top);
+        private:
+            
+            void WriteLoggerToFile(const std::string& logfile, ctp::Logger& logger);
             void ParseOptionsXML(Property *options);
 
-            string _package;
+            std::string _package;
             Property _package_options;
             Property _gwbse_options;
             Property _esp_options;

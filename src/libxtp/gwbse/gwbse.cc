@@ -376,7 +376,7 @@ std::string ranges = options.ifExistsReturnElseReturnDefault<std::string>(key + 
 void GWBSE::addoutput(tools::Property& summary) {
 
   const double hrt2ev = tools::conv::hrt2ev;
-  tools::Property gwbse_summary = summary.add("GWBSE", "");
+  tools::Property& gwbse_summary = summary.add("GWBSE", "");
   gwbse_summary.setAttribute("units", "eV");
   gwbse_summary.setAttribute("DeltaHLGap",
                                (format("%1$+1.6f ") % (_shift * hrt2ev)).str());

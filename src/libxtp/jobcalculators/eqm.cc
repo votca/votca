@@ -116,6 +116,16 @@ namespace votca {
 
     }
 
+    void EQM::WriteLoggerToFile(const string& logfile, ctp::Logger& logger){
+      std::ofstream ofs;
+      ofs.open(logfile.c_str(), std::ofstream::out);
+      if (!ofs.is_open()) {
+        throw runtime_error("Bad file handle: " + logfile);
+      }
+      ofs << logger << endl;
+      ofs.close();
+    }
+
     ctp::Job::JobResult EQM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *opThread) {
 
       Orbitals orbitals;
@@ -152,9 +162,16 @@ namespace votca {
       segment_summary.setAttribute("id", segId);
       segment_summary.setAttribute("type", segName);
       if (_do_dft_input || _do_dft_run || _do_dft_parse) {
+        
+        ctp::Logger dft_logger(ctp::logDEBUG);
+        dft_logger.setMultithreading(false);
+        dft_logger.setPreface(ctp::logINFO, (format("\nDFT INF ...")).str());
+        dft_logger.setPreface(ctp::logERROR, (format("\nDFT ERR ...")).str());
+        dft_logger.setPreface(ctp::logWARNING, (format("\nDFT WAR ...")).str());
+        dft_logger.setPreface(ctp::logDEBUG, (format("\nDFT DBG ...")).str());
 
         QMPackage *qmpackage = QMPackages().Create(_package);
-        qmpackage->setLog(pLog);
+        qmpackage->setLog(&dft_logger);
         qmpackage->setRunDir(work_dir);
         qmpackage->Initialize(_package_options);
 
@@ -205,6 +222,7 @@ namespace votca {
         }// end of the parse orbitals/log
         qmpackage->CleanUp();
         delete qmpackage;
+         WriteLoggerToFile(work_dir + "/dft.log",dft_logger);
       }
 
       if (!_do_dft_parse) {
@@ -217,27 +235,20 @@ namespace votca {
       if (_do_gwbse) {
 
         GWBSE gwbse = GWBSE(orbitals);
-        gwbse.setLogger(pLog);
+        
         // define own logger for GW-BSE that is written into a runFolder logfile
         ctp::Logger gwbse_logger(ctp::logDEBUG);
         gwbse_logger.setMultithreading(false);
-        gwbse.setLogger(&gwbse_logger);
         gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
         gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
         gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
         gwbse_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
+        gwbse.setLogger(&gwbse_logger);
         gwbse.Initialize(_gwbse_options);
         gwbse.Evaluate();
         gwbse.addoutput(segment_summary);
         // write logger to log file
-        std::ofstream ofs;
-        string gwbse_logfile = work_dir + "/gwbse.log";
-        ofs.open(gwbse_logfile.c_str(), std::ofstream::out);
-        if (!ofs.is_open()) {
-          throw runtime_error("Bad file handle: " + gwbse_logfile);
-        }
-        ofs << gwbse_logger << endl;
-        ofs.close();
+        WriteLoggerToFile(work_dir + "/gwbse.log", gwbse_logger);
 
       }
 
@@ -257,7 +268,7 @@ namespace votca {
 
       if (_do_dft_parse || _do_gwbse) {
         CTP_LOG(ctp::logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
-        string DIR = eqm_work_dir + "/molecules_gwbse/" + frame_dir + "/" + orb_file;
+        string DIR = eqm_work_dir + "/molecules_gwbse/" + frame_dir;
         boost::filesystem::create_directories(DIR);
         string ORBFILE = DIR + "/" + orb_file;
         orbitals.WriteToCpt(ORBFILE);
