@@ -95,6 +95,9 @@ bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
 
   fl_.close();
 
+  top.RebuildExclusions();
+
+  cout << "Successful call to ReadTopology" << endl;
   return true;
 }
 
@@ -461,7 +464,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
 
       Molecule *mol;
       if (!molecules_.count(moleculeId)) {
-        mol = top.CreateMolecule("Unknown");
+        mol = top.CreateMolecule("UNKNOWN");
         molecules_[moleculeId] = mol;
       } else {
         mol = molecules_[moleculeId];
@@ -471,7 +474,14 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       double mass =
           boost::lexical_cast<double>(data_["Masses"].at(atomTypeId).at(1));
       // Will use the molecule id as the resnum for lack of a better option
-      int resnr = moleculeId;
+      int resnr = moleculeId+1;
+      if(resnr > top.ResidueCount()){
+        while((resnr-1)>top.ResidueCount()){
+          top.CreateResidue("DUMMY");
+        }
+        top.CreateResidue("DUMMY");
+      }
+
       string bead_type_name = atomtypes_[atomTypeId].at(1);
       BeadType *bead_type = top.GetOrCreateBeadType(bead_type_name);
       if (atomtypes_.count(atomTypeId) == 0) {
