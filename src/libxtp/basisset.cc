@@ -358,7 +358,7 @@ std::ostream &operator<<(std::ostream &out, const Shell& shell) {
       }
       out<<"\n";
     }
-      
+      return out;
         }
 
 
