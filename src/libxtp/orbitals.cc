@@ -461,8 +461,16 @@ namespace votca {
 
             // AxB = | A 0 |  //   A = [EA, EB]  //
             //       | 0 B |  //                 //
+            if(orbitalsA.getDFTbasis()!=orbitalsB.getDFTbasis()){
+              throw std::runtime_error("Basissets of Orbitals A and B differ "+orbitalsA.getDFTbasis()+":"+orbitalsB.getDFTbasis());
+            }
+            orbitalsAB.setDFTbasis(orbitalsA.getDFTbasis());
+            if(orbitalsA.getECP()!=orbitalsB.getECP()){
+              throw std::runtime_error("ECPs of Orbitals A and B differ "+orbitalsA.getECP()+":"+orbitalsB.getECP());
+            }
+            orbitalsAB.setECP(orbitalsA.getECP());
             orbitalsAB.setBasisSetSize(basisA + basisB);
-            orbitalsAB.setNumberOfLevels(electronsA - electronsB,
+            orbitalsAB.setNumberOfLevels(electronsA + electronsB,
                     levelsA + levelsB - electronsA - electronsB);
             orbitalsAB.setNumberOfElectrons(electronsA + electronsB);
 

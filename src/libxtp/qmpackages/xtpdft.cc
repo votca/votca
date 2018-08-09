@@ -59,10 +59,13 @@ namespace votca {
             // pass the information about the dftengine options and init
             _xtpdft.Initialize( options );
 
+            _write_guess=options.ifExistsReturnElseReturnDefault<bool>(key + ".read_guess", false);
+
+            
             // check if ECPs are used in xtpdft
             _write_pseudopotentials=false;
-            if (_xtpdft_options.exists("dftengine.ecp")){
-                if (_xtpdft_options.get("dftengine.ecp").as<std::string> () !="") {
+            if (_xtpdft_options.exists(key + ".ecp")){
+                if (_xtpdft_options.get(key + ".ecp").as<std::string> () !="") {
                     _write_pseudopotentials=true;
                 }
             }

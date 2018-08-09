@@ -151,7 +151,7 @@ namespace votca {
       string frame_dir = "frame_" + boost::lexical_cast<string>(top->getDatabaseId());
       string orb_file = (format("%1%_%2%%3%") % "molecule" % segId % ".orb").str();
       string mol_dir = (format("%1%%2%%3%") % "molecule" % "_" % segId).str();
-      string package_append = _package + "_gwbse";
+      string package_append = _package + "_"+Identify();
       string work_dir = (arg_path / eqm_work_dir / package_append / frame_dir / mol_dir).c_str();
 
       Property job_summary;

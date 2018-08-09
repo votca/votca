@@ -315,7 +315,7 @@ std::string ranges = options.ifExistsReturnElseReturnDefault<std::string>(key + 
   _store_eh_interaction = false;
   _do_bse_diag = true;
   // special construction for ibse mode
-  if (_tasks_string.find("igwbse") != std::string::npos) {
+  if (_tasks_string.find("iqm") != std::string::npos) {
     _do_qp_diag = false;   // no qp diagonalization
     _do_bse_diag = false;  // no diagonalization of BSE Hamiltonian
     _store_eh_interaction = true;

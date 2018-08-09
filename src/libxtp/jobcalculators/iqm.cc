@@ -87,8 +87,8 @@ namespace votca {
       if (_do_dft_input || _do_dft_run || _do_dft_parse) {
         string _package_xml = opt.get(key + ".dftpackage").as<string> ();
         load_property_from_xml(_dftpackage_options, _package_xml.c_str());
-        key = "package";
-        _package = _dftpackage_options.get(key + ".name").as<string> ();
+        string dftname = "package.name";
+        _package = _dftpackage_options.get(dftname).as<string> ();
       }
 
       // read linker groups
@@ -144,15 +144,13 @@ namespace votca {
 
     std::map<std::string, int> IQM::FillParseMaps(const string& Mapstring) {
       Tokenizer split_options(Mapstring, ", \t\n");
-      std::vector <std::string> strings_vec;
-      split_options.ToVector(strings_vec);
       std::map<std::string, int> type2level;
-      for (const string& substring : strings_vec) {
+      for (const string& substring : split_options) {
         std::vector<string> segmentpnumber;
-        Tokenizer tok(substring, ": ");
+        Tokenizer tok(substring, ":");
         tok.ToVector(segmentpnumber);
         if (segmentpnumber.size() != 2) {
-          throw runtime_error("Parser igwbse: Segment and exciton labels are not separated properly");
+          throw runtime_error("Parser iqm: Segment and exciton labels:"+substring+"are not separated properly");
         }
         if (segmentpnumber[1].size() != 2) {
           throw runtime_error("State identifier " + segmentpnumber[1] + " unknown, right now only states up to number 9 are parsed. s1,s2,t1,h1,e1 etc..");
@@ -249,10 +247,10 @@ namespace votca {
 
       path arg_path, arg_pathA, arg_pathB, arg_pathAB;
 
-      string orbFileA = (arg_pathA / eqm_work_dir / "molecules_gwbse" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_A % ".orb").str()).c_str();
-      string orbFileB = (arg_pathB / eqm_work_dir / "molecules_gwbse" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_B % ".orb").str()).c_str();
-      string orbFileAB = (arg_pathAB / iqm_work_dir / "pairs_gwbse" / frame_dir / (format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb").str()).c_str();
-      string _orb_dir = (arg_path / iqm_work_dir / "pairs_gwbse" / frame_dir).c_str();
+      string orbFileA = (arg_pathA / eqm_work_dir / "molecules_eqm" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_A % ".orb").str()).c_str();
+      string orbFileB = (arg_pathB / eqm_work_dir / "molecules_eqm" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_B % ".orb").str()).c_str();
+      string orbFileAB = (arg_pathAB / iqm_work_dir / "pairs_iqm" / frame_dir / (format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb").str()).c_str();
+      string _orb_dir = (arg_path / iqm_work_dir / "pairs_iqm" / frame_dir).c_str();
 
       ctp::Segment *seg_A = top->getSegment(ID_A);
       assert(seg_A->getName() == type_A);
@@ -266,7 +264,7 @@ namespace votca {
               << _job_ID << " [" << ID_A << ":" << ID_B << "] out of " <<
               (top->NBList()).size() << flush;
 
-      string _package_append = _package + "_" + Identify();
+      string package_append = _package + "_" + Identify();
       std::vector< ctp::Segment* > segments;
       segments.push_back(seg_A);
       segments.push_back(seg_B);
@@ -288,17 +286,17 @@ namespace votca {
       }
 
       if (_do_dft_input || _do_dft_run || _do_dft_parse) {
-        string _qmpackage_work_dir = (arg_path / iqm_work_dir / _package_append / frame_dir / _pair_dir).c_str();
+        string qmpackage_work_dir = (arg_path / iqm_work_dir / package_append / frame_dir / _pair_dir).c_str();
         // get the corresponding object from the QMPackageFactory
         QMPackage *qmpackage = QMPackages().Create(_package);
         qmpackage->setLog(pLog);
-        qmpackage->setRunDir(_qmpackage_work_dir);
+        qmpackage->setRunDir(qmpackage_work_dir);
         qmpackage->Initialize(_dftpackage_options);
 
 
         // if asked, prepare the input files
         if (_do_dft_input) {
-          boost::filesystem::create_directories(_qmpackage_work_dir);
+          boost::filesystem::create_directories(qmpackage_work_dir);
           if (qmpackage->GuessRequested()) {
             if (_linker_names.size() > 0) {
               throw std::runtime_error("Error: You are using a linker and want "
@@ -311,8 +309,8 @@ namespace votca {
               CTP_LOG(ctp::logINFO, *pLog) << "Copying monomer .gbw files to pair folder" << flush;
               string gbwFileA = (arg_pathA / eqm_work_dir / "molecules" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_A % ".gbw").str()).c_str();
               string gbwFileB = (arg_pathB / eqm_work_dir / "molecules" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_B % ".gbw").str()).c_str();
-              string gbwFileA_workdir = (_qmpackage_work_dir / "molA.gbw").c_str();
-              string gbwFileB_workdir = (_qmpackage_work_dir / "molB.gbw").c_str();
+              string gbwFileA_workdir = (qmpackage_work_dir / "molA.gbw").c_str();
+              string gbwFileB_workdir = (qmpackage_work_dir / "molB.gbw").c_str();
               boost::filesystem::copy_file(gbwFileA, gbwFileA_workdir, boost::filesystem::copy_option::overwrite_if_exists);
               boost::filesystem::copy_file(gbwFileB, gbwFileB_workdir, boost::filesystem::copy_option::overwrite_if_exists);
             } else {
@@ -336,7 +334,10 @@ namespace votca {
               }
               CTP_LOG(ctp::logDEBUG, *pLog) << "Constructing the guess for dimer orbitals" << flush;
               Orbitals::PrepareDimerGuess(orbitalsA, orbitalsB, orbitalsAB);
+              cout<<orbitalsAB.getNumberOfElectrons()<<std::endl;
             }
+          }else{
+            CTP_LOG(ctp::logINFO, *pLog) << "No Guess requested, starting from DFT starting Guess" << flush;
           }
           qmpackage->WriteInputFile(orbitalsAB);
         }
@@ -533,16 +534,15 @@ namespace votca {
           string name1 = pair->Seg1()->getName();
           int id2 = pair->Seg2()->getId();
           string name2 = pair->Seg2()->getName();
-          int id = ++jobCount;
+          int id = pair->getId();
           Property Input;
           Property &pInput = Input.add("input", "");
-          Property &pSegment = pInput.add("segment", boost::lexical_cast<string>(id1));
-          pSegment.setAttribute<string>("type", name1);
-          pSegment.setAttribute<int>("id", id1);
-          pSegment = pInput.add("segment", boost::lexical_cast<string>(id2));
-          pSegment.setAttribute<string>("type", name2);
-          pSegment.setAttribute<int>("id", id2);
-
+          Property &pSegmentA = pInput.add("segment", boost::lexical_cast<string>(id1));
+          pSegmentA.setAttribute<string>("type", name1);
+          pSegmentA.setAttribute<int>("id", id1);
+          Property & pSegmentB= pInput.add("segment", boost::lexical_cast<string>(id2));
+          pSegmentB.setAttribute<string>("type", name2);
+          pSegmentB.setAttribute<int>("id", id2);
           ctp::Job job(id, tag, Input, ctp::Job::AVAILABLE);
           job.ToStream(ofs, "xml");
         }
