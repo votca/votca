@@ -62,7 +62,6 @@ namespace votca {
 
         private:
             void WriteChargeOption() { return ;}
-            DFTEngine _xtpdft;
             tools::Property _xtpdft_options;
             std::string _cleanup;
 

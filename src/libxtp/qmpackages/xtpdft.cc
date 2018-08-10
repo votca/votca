@@ -37,30 +37,22 @@ namespace votca {
       using namespace std;
 
         void XTPDFT::Initialize(tools::Property &options) {
-
-            // GAUSSIAN file names
-            std::string fileName = "system";
-
-            _xyz_file_name = fileName + ".xyz";
+            _xtpdft_options=options;
 
             std::string key = "package";
-            std::string _name = options.get(key + ".name").as<std::string> ();
+            std::string packagename = _xtpdft_options.get(key + ".name").as<std::string> ();
 
-            if (_name != "xtp") {
-                cerr << "Tried to use " << _name << " package. ";
+            if (packagename != "xtp") {
+                cerr << "Tried to use " << packagename << " package. ";
                 throw std::runtime_error("Wrong options file");
             }
 
-            _charge = options.get(key + ".charge").as<int> ();
-            _spin = options.get(key + ".spin").as<int> ();
-            _threads = options.get(key + ".threads").as<int> ();
-            _cleanup = options.get(key + ".cleanup").as<std::string> ();
-
-            // pass the information about the dftengine options and init
-            _xtpdft.Initialize( options );
-
-            _write_guess=options.ifExistsReturnElseReturnDefault<bool>(key + ".read_guess", false);
-
+            _charge = _xtpdft_options.get(key + ".charge").as<int> ();
+            _spin = _xtpdft_options.get(key + ".spin").as<int> ();
+            _threads = _xtpdft_options.get(key + ".threads").as<int> ();
+            _cleanup = _xtpdft_options.get(key + ".cleanup").as<std::string> ();
+           
+            _write_guess=_xtpdft_options.ifExistsReturnElseReturnDefault<bool>(key + ".read_guess", false);
             
             // check if ECPs are used in xtpdft
             _write_pseudopotentials=false;
@@ -76,29 +68,27 @@ namespace votca {
          * Dummy for use of XTPDFT as QMPackage, needs no input file
          */
         bool XTPDFT::WriteInputFile(Orbitals& orbitals) {
-            _xtpdft.setLogger(_pLog);
-            _xtpdft.Prepare( orbitals );
             return true;
         }
 
-        void XTPDFT::setMultipoleBackground( std::vector<std::shared_ptr<ctp::PolarSeg > >multipoles){
-            _xtpdft.setExternalcharges(multipoles);
-        }
-
-
-
+    
         /**
          * Run calls DFTENGINE
          */
-        bool XTPDFT::Run( Orbitals& _orbitals ) {
+        bool XTPDFT::Run( Orbitals& orbitals ) {
+          DFTEngine xtpdft;
+          xtpdft.Initialize(_xtpdft_options);
+          xtpdft.setLogger(_pLog);
+          xtpdft.Prepare( orbitals );
+            
+          if(_write_charges){
+            xtpdft.setExternalcharges(_PolarSegments);
+          }
 
-            if ( !_orbitals.hasQMAtoms() ){
-                CTP_LOG(ctp::logDEBUG, *_pLog) << "Reading structure from " << _xyz_file_name << flush;
-                _orbitals.LoadFromXYZ(_xyz_file_name);
-            }
-            _xtpdft.Evaluate( _orbitals );
-            _basisset_name = _xtpdft.getDFTBasisName();
-
+           
+          xtpdft.Evaluate( orbitals );
+          _basisset_name = xtpdft.getDFTBasisName();
+          orbitals.WriteToCpt("system.orb");
             return true;
 
         }
@@ -106,24 +96,27 @@ namespace votca {
         /**
          * Clean up dummy, may be required if use of scratch will be added
          */
-        void XTPDFT::CleanUp() {
-
+        void XTPDFT::CleanUp() {    
             return;
         }
 
         /**
          * Dummy, because XTPDFT adds info to orbitals directly
          */
-        bool XTPDFT::ParseOrbitalsFile(Orbitals & _orbitals) {
+        bool XTPDFT::ParseOrbitalsFile(Orbitals & orbitals) {
             return true;
         }
-
 
         /**
          * Dummy, because information is directly stored in orbitals
          */
-        bool XTPDFT::ParseLogFile(Orbitals & _orbitals) {
-
+        bool XTPDFT::ParseLogFile(Orbitals & orbitals) {
+          try{
+          orbitals.ReadFromCpt(_log_file_name);
+          }catch(std::runtime_error& error){
+            CTP_LOG(ctp::logDEBUG, *_pLog) << "Reading"<<_log_file_name<<" failed" << flush;
+            return false;
+          }
             return true;
         }
 

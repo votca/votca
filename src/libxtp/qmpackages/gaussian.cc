@@ -39,8 +39,6 @@ namespace votca {
 
             // GAUSSIAN file names
             std::string fileName = "system";
-
-            _xyz_file_name = fileName + ".xyz";
             _input_file_name = fileName + ".com";
             _log_file_name = fileName + ".log";
             _shell_file_name = fileName + ".sh";

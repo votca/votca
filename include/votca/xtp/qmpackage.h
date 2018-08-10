@@ -66,7 +66,7 @@ namespace votca {
             virtual void CleanUp() = 0;
             
             
-            virtual void setMultipoleBackground( std::vector<std::shared_ptr<ctp::PolarSeg> > PolarSegments);
+            void setMultipoleBackground( std::vector<std::shared_ptr<ctp::PolarSeg> > PolarSegments);
 
             void setRunDir(const std::string& run_dir) {
                 _run_dir = run_dir;
@@ -154,7 +154,6 @@ namespace votca {
             std::string _executable;
             std::string _input_file_name;
             std::string _log_file_name;
-            std::string _xyz_file_name;
             std::string _orb_file_name;
 
             std::string _run_dir;

@@ -43,7 +43,6 @@ namespace votca {
             // Orca file names
             std::string fileName = "system";
 
-            _xyz_file_name = fileName + ".xyz";
             _input_file_name = fileName + ".inp";
             _log_file_name = fileName + ".log";
             _shell_file_name = fileName + ".sh";

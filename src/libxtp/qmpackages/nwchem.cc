@@ -39,7 +39,6 @@ namespace votca {
             // NWChem file names
             string fileName = "system";
 
-            _xyz_file_name = fileName + ".xyz";
             _input_file_name = fileName + ".nw";
             _log_file_name = fileName + ".log";
             _shell_file_name = fileName + ".sh";
