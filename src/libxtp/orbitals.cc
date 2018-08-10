@@ -99,11 +99,10 @@ namespace votca {
         }
 
         std::vector<int> Orbitals::SortEnergies() {
-            if (tools::globals::verbose) cout << "... ... Sorting energies" << endl;
             std::vector<int>index = std::vector<int>(_mo_energies.size());
             std::iota(index.begin(), index.end(), 0);
             std::stable_sort(index.begin(), index.end(), [this](int i1, int i2) {
-                return this->MOEnergies()[i1] > this->MOEnergies()[i2];
+                return this->MOEnergies()[i1] < this->MOEnergies()[i2];
             });
             return index;
         }
@@ -436,6 +435,21 @@ namespace votca {
             }
             return fragmentNuclearCharges;
         }
+        
+        
+        void Orbitals::OrderMOsbyEnergy(){
+          std::vector<int> sort_index = this->SortEnergies();
+          
+          Eigen::MatrixXd MOcopy=this->MOCoefficients();
+          Eigen::VectorXd Energy=this->MOEnergies();
+          
+          for(int i=0;i<Energy.size();++i){
+            this->MOEnergies()(i)=Energy(sort_index[i]);
+          }
+          for(int i=0;i<Energy.size();++i){
+            this->MOCoefficients().col(i)=MOcopy.col(sort_index[i]);
+          }
+        }
 
                 /**
          * \brief Guess for a dimer based on monomer orbitals
@@ -482,6 +496,9 @@ namespace votca {
 
             energies.segment(0, levelsA) = orbitalsA.MOEnergies();
             energies.segment(levelsA, levelsB) = orbitalsB.MOEnergies();
+            
+            orbitalsAB.OrderMOsbyEnergy();
+            
             return;
         }
         //TODO move to Filereader

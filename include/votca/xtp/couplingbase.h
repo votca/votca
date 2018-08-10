@@ -97,7 +97,7 @@ inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA,
     
     if(!monomer->getPos().isClose(dimer->getPos(), 0.001)){
       CTP_LOG(ctp::logINFO, *_pLog) << "======WARNING=======\n Coordinates of monomer "
-              "and dimer atoms do not agree, do you know what you are doing?" << std::flush;
+              "and dimer atoms do not agree" << std::flush;
     }
     
     if (monomer->getType() != dimer->getType()) {

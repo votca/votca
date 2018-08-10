@@ -49,6 +49,26 @@ BOOST_AUTO_TEST_CASE(readxyztest){
    BOOST_CHECK_EQUAL(errorhappen, true);
 }
 
+BOOST_AUTO_TEST_CASE(sortEnergies){
+  
+  Orbitals orb;
+  Eigen::VectorXd Energies=Eigen::VectorXd::LinSpaced(10,-5,5);
+  Eigen::VectorXd switched=Energies;
+  switched(3)=Energies(5);
+  switched(5)=Energies(3);
+  orb.MOEnergies()=switched;
+  orb.MOCoefficients()=Eigen::MatrixXd::Zero(10,10);
+  orb.OrderMOsbyEnergy();
+  bool issorted=Energies.isApprox(orb.MOEnergies(),0.001);
+  if(!issorted){
+    std::cout<<"before"<<std::endl;
+    std::cout<<Energies<<std::endl;
+    std::cout<<"after"<<std::endl;
+    std::cout<<orb.MOEnergies()<<std::endl;
+  }
+  BOOST_CHECK_EQUAL(issorted, true);
+}
+
 
 BOOST_AUTO_TEST_CASE(densmatgs_test) {
   

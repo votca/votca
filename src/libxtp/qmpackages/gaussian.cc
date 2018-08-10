@@ -287,22 +287,13 @@ namespace votca {
          * itself is taken from a prepared orbitals object.
          */
         void Gaussian::WriteGuess(Orbitals& orbitals_guess, std::ofstream& com_file) {
-
-            std::vector<int> sort_index = orbitals_guess.SortEnergies();
             ReorderMOsBack(orbitals_guess);
-
             com_file << "(5D15.8)" << endl;
-
             int level = 1;
             int ncolumns = 5;
-
-            for (std::vector< int > ::iterator soi = sort_index.begin(); soi != sort_index.end(); ++soi) {
-
-
+            for (int i=0;i<orbitals_guess.MOCoefficients().cols();++i) {
                 com_file << setw(5) << level << endl;
-
-                Eigen::VectorXd mr = orbitals_guess.MOCoefficients().col(*soi);
-
+                Eigen::VectorXd mr = orbitals_guess.MOCoefficients().col(i);
                 int column = 1;
                 for (unsigned j = 0; j < mr.size(); ++j) {
                     com_file << FortranFormat(mr[j]);
@@ -312,12 +303,10 @@ namespace votca {
                     }
                     column++;
                 }
-
                 level++;
                 if (column != 1) com_file << endl;
             }
             com_file << 0 << endl;
-
             return;
         }
 

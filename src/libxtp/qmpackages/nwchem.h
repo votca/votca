@@ -46,17 +46,11 @@ public:
 
    bool WriteInputFile( Orbitals& orbitals);
 
-   bool WriteShellScript();
-
    bool Run( Orbitals& orbitals );
 
    void CleanUp();
 
-   bool CheckLogFile();
-
    bool ParseLogFile( Orbitals& orbitals );
-   
-
 
    bool ParseOrbitalsFile( Orbitals& orbitals );
    
@@ -64,7 +58,9 @@ public:
    std::string getScratchDir( ) { return _scratch_dir; }
 
 private:
-
+    bool CheckLogFile();
+    bool WriteShellScript();
+    bool WriteGuess(Orbitals& orbitals);
   
     
     

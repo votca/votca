@@ -247,10 +247,10 @@ namespace votca {
 
       path arg_path, arg_pathA, arg_pathB, arg_pathAB;
 
-      string orbFileA = (arg_pathA / eqm_work_dir / "molecules_eqm" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_A % ".orb").str()).c_str();
-      string orbFileB = (arg_pathB / eqm_work_dir / "molecules_eqm" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_B % ".orb").str()).c_str();
+      string orbFileA = (arg_pathA / eqm_work_dir / "molecules" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_A % ".orb").str()).c_str();
+      string orbFileB = (arg_pathB / eqm_work_dir / "molecules" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_B % ".orb").str()).c_str();
       string orbFileAB = (arg_pathAB / iqm_work_dir / "pairs_iqm" / frame_dir / (format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb").str()).c_str();
-      string _orb_dir = (arg_path / iqm_work_dir / "pairs_iqm" / frame_dir).c_str();
+      string orb_dir = (arg_path / iqm_work_dir / "pairs_iqm" / frame_dir).c_str();
 
       ctp::Segment *seg_A = top->getSegment(ID_A);
       assert(seg_A->getName() == type_A);
@@ -334,7 +334,6 @@ namespace votca {
               }
               CTP_LOG(ctp::logDEBUG, *pLog) << "Constructing the guess for dimer orbitals" << flush;
               Orbitals::PrepareDimerGuess(orbitalsA, orbitalsB, orbitalsAB);
-              cout<<orbitalsAB.getNumberOfElectrons()<<std::endl;
             }
           }else{
             CTP_LOG(ctp::logINFO, *pLog) << "No Guess requested, starting from DFT starting Guess" << flush;
@@ -478,7 +477,7 @@ namespace votca {
         sout << iomXML << _job_summary;
         CTP_LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush;
         if (_store_dft || _store_singlets || _store_triplets || _store_ehint) {
-          boost::filesystem::create_directories(_orb_dir);
+          boost::filesystem::create_directories(orb_dir);
           CTP_LOG(ctp::logDEBUG, *pLog) << "Saving orbitals to " << orbFileAB << flush;
           if (!_store_dft) {
             orbitalsAB.AOVxc().resize(0, 0);

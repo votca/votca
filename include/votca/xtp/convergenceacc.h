@@ -78,16 +78,13 @@ public:
        else if(mode==KSmode::fractional){
            _nocclevels=0;
        }
-  
    }
    
    void setOverlap(const Eigen::MatrixXd* S, double etol);
    
-   
    double getDIIsError(){return _diiserror;}
    
     bool getUseMixing(){return _usemixing;}
-   
    
     void setLogger(ctp::Logger *pLog){_pLog=pLog;}
     Eigen::MatrixXd Iterate(const Eigen::MatrixXd& dmat,Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE);
@@ -95,7 +92,6 @@ public:
     void Levelshift(Eigen::MatrixXd& H);
 
     Eigen::MatrixXd DensityMatrix(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies);
-    
    
  private:
      

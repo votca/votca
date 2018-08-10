@@ -629,7 +629,13 @@ bool GWBSE::Evaluate() {
   
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Molecule Coordinates [A] " << flush;
   for (QMAtom* atom:_orbitals.QMAtoms()) {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\t " << atom->getType() << " " << atom->getPos() * tools::conv::bohr2ang << " " << flush;
+    std::string output=(boost::format("  %1$s"
+                                         "   %2$+1.4f %3$+1.4f %4$+1.4f")
+                         %atom->getType() %(atom->getPos().getX()*tools::conv::bohr2ang)
+                         %(atom->getPos().getY()*tools::conv::bohr2ang)
+                         %(atom->getPos().getZ()*tools::conv::bohr2ang) ).str();
+        
+        CTP_LOG(ctp::logDEBUG, *_pLog) <<output<< flush;
   }
   
   

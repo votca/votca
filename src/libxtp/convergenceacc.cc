@@ -23,7 +23,7 @@ namespace votca { namespace xtp {
   
   void ConvergenceAcc::setOverlap(const Eigen::MatrixXd* S,double etol){
        _S=S;
-       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es((*_S));
+       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(*_S);
        if(_noisy){
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<es.eigenvalues()(0) << std::flush;
             }

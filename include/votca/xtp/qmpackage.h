@@ -63,8 +63,6 @@ namespace votca {
 
             virtual bool ParseOrbitalsFile(Orbitals& orbitals) = 0;
 
-            
-
             virtual void CleanUp() = 0;
             
             

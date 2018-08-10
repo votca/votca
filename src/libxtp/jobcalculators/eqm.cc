@@ -227,7 +227,7 @@ namespace votca {
 
       if (!_do_dft_parse) {
         // load the DFT data from serialized orbitals object
-        string ORB_FILE = eqm_work_dir + "/molecules_gwbse/" + frame_dir + "/" + orb_file;
+        string ORB_FILE =eqm_work_dir + "/molecules/" + frame_dir+ "/" + orb_file;
         CTP_LOG(ctp::logDEBUG, *pLog) << ctp::TimeStamp() << " Loading DFT data from " << ORB_FILE << flush;
         orbitals.ReadFromCpt(ORB_FILE);
       }
@@ -268,7 +268,7 @@ namespace votca {
 
       if (_do_dft_parse || _do_gwbse) {
         CTP_LOG(ctp::logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
-        string DIR = eqm_work_dir + "/molecules_gwbse/" + frame_dir;
+        string DIR = eqm_work_dir + "/molecules/" + frame_dir;
         boost::filesystem::create_directories(DIR);
         string ORBFILE = DIR + "/" + orb_file;
         orbitals.WriteToCpt(ORBFILE);

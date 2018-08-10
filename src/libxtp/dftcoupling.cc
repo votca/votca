@@ -47,11 +47,11 @@ void DFTcoupling::WriteToProperty(tools::Property& type_summary, const Orbitals&
   tools::Property& coupling = type_summary.add("coupling", boost::lexical_cast<std::string>(J));
   double energyA = orbitalsA.getEnergy(a);
   double energyB = orbitalsB.getEnergy(b);
-  type_summary.setAttribute("levelA", a);
-  type_summary.setAttribute("levelB", b);
-  type_summary.setAttribute("jAB", J);
-  type_summary.setAttribute("eA", energyA);
-  type_summary.setAttribute("eB", energyB);
+  coupling.setAttribute("levelA", a);
+  coupling.setAttribute("levelB", b);
+  coupling.setAttribute("jAB", J);
+  coupling.setAttribute("eA", energyA);
+  coupling.setAttribute("eB", energyB);
 }
 
  void DFTcoupling::Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
@@ -66,7 +66,7 @@ void DFTcoupling::WriteToProperty(tools::Property& type_summary, const Orbitals&
           WriteToProperty(hole_summary, orbitalsA, orbitalsB, a, b);
     }
    }
-   tools::Property &electron_summary = type_summary.add("electrons","");
+   tools::Property &electron_summary = dftcoupling.add("electrons","");
    //electron-//electron
    for (int a=orbitalsA.getLumo();a<=Range_orbA.first+Range_orbA.second;++a){
      for (int b=orbitalsB.getLumo();b<=Range_orbB.first+Range_orbB.second;++b){

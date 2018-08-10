@@ -52,13 +52,7 @@ public:
 
    void CleanUp();
 
-   bool CheckLogFile();
-
-   
-   
    bool ParseLogFile( Orbitals& orbitals );
-
-  
 
    bool ParseOrbitalsFile( Orbitals& orbitals );
    
@@ -67,6 +61,8 @@ public:
 
 private:
 
+    bool CheckLogFile();
+    
     std::string                              _shell_file_name;
     std::string                              _chk_file_name;
     std::string                              _scratch_dir;

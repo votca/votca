@@ -893,10 +893,10 @@ for (int l = 4; l < lmax_delta+1; l++) {
         for (int m = 0; m < ncart_2; m++) {
           R4_ab_sph[j][k][i][norb_1 + m] = R4_ab_sph[j][k][imx_i][norb_2 + m] + cmd0*R4_ab_sph[j][k][i][norb_2 + m];
         }
-        for (int k = 0; k < l; k++) {
-          int k2 = norb_2 + ncart_2 + k;
-          R4_ab_sph[j][k][i][norb_1 + ncart_2 + k] = R4_ab_sph[j][k][imx_i][k2] + cmd0*R4_ab_sph[j][k][i][k2];
-          R4_ab_sph[j][k][i][norb_1 + ncart_1 + k] = R4_ab_sph[j][k][imy_i][k2] + cmd1*R4_ab_sph[j][k][i][k2];
+        for (int m = 0; m < l; m++) {
+          int n = norb_2 + ncart_2 + m;
+          R4_ab_sph[j][k][i][norb_1 + ncart_2 + m] = R4_ab_sph[j][k][imx_i][n] + cmd0*R4_ab_sph[j][k][i][n];
+          R4_ab_sph[j][k][i][norb_1 + ncart_1 + m] = R4_ab_sph[j][k][imy_i][n] + cmd1*R4_ab_sph[j][k][i][n];
         }
         R4_ab_sph[j][k][i][norb-1] = R4_ab_sph[j][k][imz_i][norb_1-1] + cmd2*R4_ab_sph[j][k][i][norb_1-1];
       }

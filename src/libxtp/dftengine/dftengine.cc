@@ -219,6 +219,7 @@ void DFTEngine::CalcElDipole(){
       if (_with_guess) {
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                 << " Reading guess from orbitals object/file" << flush;
+        orbitals.MOCoefficients()=OrthogonalizeGuess(orbitals.MOCoefficients() );
         _dftAOdmat = orbitals.DensityMatrixGroundState();
       } else {
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
@@ -263,10 +264,10 @@ void DFTEngine::CalcElDipole(){
 
       double energyold = std::numeric_limits<double>::max();
 
-      for (int _this_iter = 0; _this_iter < _max_iter; _this_iter++) {
+      for (int this_iter = 0; this_iter < _max_iter; this_iter++) {
         CTP_LOG(ctp::logDEBUG, *_pLog) << flush;
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Iteration " 
-                << _this_iter + 1 << " of " << _max_iter << flush;
+                << this_iter + 1 << " of " << _max_iter << flush;
 
         
 
@@ -322,7 +323,7 @@ void DFTEngine::CalcElDipole(){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                 << " DIIs error " << _conv_accelerator.getDIIsError() << std::flush;
         double deltaE=totenergy - energyold;
-        if(_this_iter == 0){
+        if(this_iter == 0){
           deltaE=0;
         }
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Delta Etot " <<deltaE<< std::flush;
@@ -336,7 +337,7 @@ void DFTEngine::CalcElDipole(){
         if (std::abs(totenergy - energyold) < _Econverged && _conv_accelerator.getDIIsError() < _error_converged) {
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() 
                   << " Total Energy has converged to " << std::setprecision(9) 
-                  << std::abs(totenergy - energyold) << "[Ha] after " << _this_iter + 1 <<
+                  << std::abs(totenergy - energyold) << "[Ha] after " << this_iter + 1 <<
                   " iterations. DIIS error is converged up to " << _error_converged << "[Ha]" << flush;
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Final Single Point Energy "
                   << std::setprecision(12) << totenergy << " Ha" << flush;
@@ -1026,5 +1027,13 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
       else if (_four_center_method.compare("direct") == 0)
         _ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
     }
+    
+    Eigen::MatrixXd DFTEngine::OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs ){
+      Eigen::MatrixXd nonortho=GuessMOs.transpose()*_dftAOoverlap.Matrix()*GuessMOs;
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(nonortho);
+      Eigen::MatrixXd result=GuessMOs*es.operatorInverseSqrt();
+      return result;
+    }
+    
   }
 }
