@@ -29,7 +29,7 @@ mkdir OPTIONFILES
 
 cp $VOTCASHARE/xtp/xml/neighborlist.xml OPTIONFILES/
 
-changeoption constant 0.8 OPTIONFILES/neighborlist.xml
+changeoption constant 0.6 OPTIONFILES/neighborlist.xml
 
 #run neighborlist calculator
 
@@ -90,6 +90,7 @@ changeoption gwbse_options OPTIONFILES/mbgft.xml OPTIONFILES/eqm.xml
 
 changeoption threads 0 OPTIONFILES/xtpdft.xml
 changeoption openmp 0 OPTIONFILES/mbgft.xml
+changeoption ranges full OPTIONFILES/mbgft.xml
 changeoption openmp 0 OPTIONFILES/esp2multipole.xml
 
 xtp_parallel -e eqm -o OPTIONFILES/eqm.xml -f state.sql -s 0 -j "write"
@@ -113,6 +114,7 @@ changeoption read_guess 1 OPTIONFILES/xtpdft_pair.xml
 changeoption energy 1e-2 OPTIONFILES/xtpdft_pair.xml
 
 changeoption threads 0 OPTIONFILES/xtpdft_pair.xml
+changeoption ranges full OPTIONFILES/mbgft_pair.xml
 changeoption openmp 0 OPTIONFILES/mbgft_pair.xml
 changeoption openmp 0 OPTIONFILES/bsecoupling.xml
 changeoption openmp 0 OPTIONFILES/bsecoupling.xml
