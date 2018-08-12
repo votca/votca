@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(single_network_algorithm_test) {
     gb_v2.setStartingVertex(2);
     BOOST_CHECK_THROW(singleNetwork(g, gb_v2), invalid_argument);
   }
-/*
+
   {
 
     // In this test we add 3 nodes but only one edge
@@ -105,9 +105,9 @@ BOOST_AUTO_TEST_CASE(single_network_algorithm_test) {
     bool single_n = singleNetwork(g, gb_v);
     BOOST_CHECK(!single_n);
     BOOST_CHECK(gb_v.queEmpty());
-  }*/
+  }
 }
-/*
+
 BOOST_AUTO_TEST_CASE(decoupleIsolatedSubGraphs_algorithm_test) {
   {
     // In this test we add two nodes and an edge describing
@@ -268,5 +268,5 @@ BOOST_AUTO_TEST_CASE(structureid_test) {
     BOOST_CHECK_EQUAL(structId, answer);
   }
 }
-*/
+
 BOOST_AUTO_TEST_SUITE_END()
