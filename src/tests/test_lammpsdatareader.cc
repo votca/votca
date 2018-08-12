@@ -93,6 +93,7 @@ BOOST_AUTO_TEST_CASE(test_topologyreader){
 	int numDihedralInter = 97;
 	int totalInter = numBondInter+numAngleInter+numDihedralInter;
 	BOOST_CHECK_EQUAL(interaction_cont.size(),totalInter);
+  
 }
 
 /**
@@ -107,7 +108,7 @@ BOOST_AUTO_TEST_CASE(test_topologyreader){
 
 BOOST_AUTO_TEST_CASE(test_trajectoryreader){
 
-	string lammpsdatafilename = "test_polymer.data";
+	string lammpsdatafilename = "test_polymer3.data";
 	if(fexists_(lammpsdatafilename)){
 		remove(lammpsdatafilename.c_str());
 	}
@@ -120,7 +121,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader){
 	lammpsDataReader = TopReaderFactory().Create("data");
 	lammpsDataReader->ReadTopology(lammpsdatafilename,top);
 	
-	string lammpsdatafilename2 = "test_polymer2.data";
+	string lammpsdatafilename2 = "test_polymer4.data";
 	if(fexists_(lammpsdatafilename2)){
 		remove(lammpsdatafilename2.c_str());
 	}
@@ -133,7 +134,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader){
 	lammpsDataReaderTrj->Open(lammpsdatafilename2);
 	lammpsDataReaderTrj->FirstFrame(top);
 	lammpsDataReaderTrj->Close();
-	
+
 	BOOST_CHECK_EQUAL(top.BeadCount(),100);
 
 	vec first_bead_correct_pos(65.7991,51.04235,58.480193);
@@ -152,6 +153,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader){
   cout << last_bead_pos << endl;
 	BOOST_CHECK(last_bead_correct_pos.isClose(last_bead_pos,0.01));
 
+  
 	auto mol = top.getMolecule(0);
 	BOOST_CHECK_EQUAL(mol->BeadCount(),100);
 
