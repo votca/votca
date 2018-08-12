@@ -77,18 +77,21 @@ vector<shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph g) {
     ++v_it;
     auto sub_graph_explored_vertices = gv_breadth_first.getExploredVertices();
     set<Edge> sub_graph_edges;
-    for (auto sub_graph_vertex : sub_graph_explored_vertices) {
-      if (*v_it == sub_graph_vertex) {
+
+    auto sub_graph_vertex_it = sub_graph_explored_vertices.begin();
+    while(sub_graph_vertex_it!=sub_graph_explored_vertices.end()) {
+      if (*v_it == *sub_graph_vertex_it) {
         ++v_it;
       }
-      vertices_list.remove(sub_graph_vertex);
+      vertices_list.remove(*sub_graph_vertex_it);
 
-      auto sub_graph_neigh_edges = g.getNeighEdges(sub_graph_vertex);
+      auto sub_graph_neigh_edges = g.getNeighEdges(*sub_graph_vertex_it);
       for (auto sub_graph_edge : sub_graph_neigh_edges) {
         sub_graph_edges.insert(sub_graph_edge);
       }
 
-      sub_graph_nodes[sub_graph_vertex] = g.getNode(sub_graph_vertex);
+      sub_graph_nodes[*sub_graph_vertex_it] = g.getNode(*sub_graph_vertex_it);
+      ++sub_graph_vertex_it;
     }
 
     auto sub_graph_vector_edges = edgeSetToVector_(sub_graph_edges);
