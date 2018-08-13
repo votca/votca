@@ -108,7 +108,7 @@ void BeadStructure::CalculateStructure_() {
   InitializeGraph_();
   if (!structureIdUpToDate) {
     findStructureId<GraphDistVisitor>(*graph_);
-    structureIdUpToDate = false;
+    structureIdUpToDate = true;
   }
 }
 
