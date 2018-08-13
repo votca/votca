@@ -41,11 +41,12 @@ class Identity {
   /// Constructor that takes initial id
   Identity(const T &id) : id_(id), id_set_(true) {};
   /// Gets the id returns error of the id has not been set
-  const T getId() {
-    return (id_set_ ? id_ : throw std::runtime_error("ID not set"));
+  const T &getId() const {
+    if(!id_set_) throw std::runtime_error("ID not set");
+    return id_;
   }
   /// Set the id
-  void setId(T id) { id_set_ = true; id_ = id; }
+  void setId(const T & id) { id_set_ = true; id_ = id; }
 };
 }
 }
