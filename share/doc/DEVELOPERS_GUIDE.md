@@ -8,6 +8,7 @@
  - [CPP Resoures](#cpp-resources)
  - [CPP Tips](#cpp-tips)
  - [Testing](#testing)
+ - [Failed Travis Builds](#failed-travis-builds)
  - [CPP Codeing Style Guide](#cpp-codeing-style-guide)
  - [CPP Comment Guide](#cpp-comment-guide)
  - [Updating Git Submodules](#updating-git-submodules)
@@ -173,6 +174,44 @@ make test
 ```
 
 Ensure you have an up to date version of cmake or use cmake3 
+
+## Failed Travis Builds
+
+There may come a time where one of the docker builds fails. It may be the case
+that the error message is clear an it can be reproduced on your host os.
+However, in the case that the error is specific to the enviorment used in the
+build the local enviornment can be simulated using a docker container. 
+
+Before you can use this approach docker must be installed on your host OS. Begin
+by running a docker image of the os you wish to test. Here we will use ubuntu:
+
+```
+docker run -it ubuntu:trusty /bin/bash
+```
+
+This will run an interative docer container which you can interact with in bash.
+The next commands will need to be adjusted to whatever local environment you 
+will need to reproduce whatever error you are getting. However, in general they
+will follow a similar format. 
+
+
+```
+apt-get update
+apt-get -yq --no-install-suggests --no-install-recommends install software-properties-common
+apt-add-repository -y "ppa:kzemek/boost"
+apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
+apt-add-repository -y "ppa:lkoppel/robotics"
+add-apt-repository -y ppa:george-edison55/cmake-3.x
+apt-get update
+apt-get -yq --no-install-suggests --no-install-recommends $TRAVIS_APT_OPTS install ccache gcc-4.8 g++-4.8 libfftw3-dev cmake cmake-data libgsl0-dev txt2tags libboost1.58-dev libboost-program-options1.58-dev libboost-filesystem1.58-dev libboost-system1.58-dev libboost-serialization1.58-dev libboost-timer1.58-dev libboost-test1.58-dev libexpat1-dev libsqlite3-dev libhdf5-serial-dev pkg-config pgf texlive-fonts-recommended texlive-latex-extra texlive-latex-recommended cm-super doxygen graphviz ghostscript python-numpy gnuplot-nox octave libeigen3-dev libxc-dev libceres-dev git make
+git clone https://github.com/votca/tools
+cd tools/
+mkdir build
+cd build/
+CXX=g++-4.8 CC=gcc-4.8 cmake .. -DENABLE_TESTING=ON -DCMAKE_CXX_FLAGS=-Wall
+make -j5
+make test
+```
 
 ## CPP Codeing Style Guide
 
