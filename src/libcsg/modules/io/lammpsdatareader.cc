@@ -93,12 +93,9 @@ bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
 
   NextFrame(top);
 
-  cout << "Closing" << endl;
   fl_.close();
-  cout << "Building Exclusions " << endl;
   top.RebuildExclusions();
 
-  cout << "Successful call to ReadTopology" << endl;
   return true;
 }
 
@@ -129,8 +126,6 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
     vector<string> fields;
     tok.ToVector(fields);
     fields = TrimCommentsFrom_(fields);
-    cout << "NextFrame" << endl;
-    cout << line << endl;
     // If not check the size of the vector and parse according
     // to the number of fields
     if (fields.size() == 1) {
@@ -151,7 +146,6 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
         throw runtime_error(err);
       }
     }
-    cout << "end of if checks" << endl;
     getline(fl_, line);
   }
   return !fl_.eof();
@@ -165,25 +159,16 @@ bool LAMMPSDataReader::MatchOneFieldLabel_(vector<string> fields,
                                            Topology &top) {
 
   if (fields.at(0) == "Masses") {
-    cout << "Masses Flag triggered" << endl;
     SortIntoDataGroup_("Masses");
     InitializeAtomAndBeadTypes_();
   } else if (fields.at(0) == "Atoms") {
-    cout << "Read atoms " << endl;
     ReadAtoms_(top);
-    cout << "Done reading atoms " << endl;
   } else if (fields.at(0) == "Bonds") {
-    cout << "Read bonds " << endl;
     ReadBonds_(top);
-    cout << "Done reading bonds " << endl;
   } else if (fields.at(0) == "Angles") {
-    cout << "Read angles " << endl;
     ReadAngles_(top);
-    cout << "Done reading angles " << endl;
   } else if (fields.at(0) == "Dihedrals") {
-    cout << "Reading Dihedrals" << endl;
     ReadDihedrals_(top);
-    cout << "Done reading dihedrals " << endl;
   } else if (fields.at(0) == "Impropers") {
   } else {
     return false;
@@ -256,7 +241,6 @@ bool LAMMPSDataReader::MatchFieldsTimeStepLabel_(vector<string> fields,
   for (auto field : fields) {
     if (field == "timestep" && (index + 2) < fields.size()) {
       top.setStep(stoi(fields.at(index + 2)));
-      cout << "Reading frame, timestep " << top.getStep() << endl;
       return true;
     }
     ++index;
@@ -270,9 +254,7 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
     throw runtime_error(err);
   }
 
-  cout << "Determine base name" << endl;
   auto baseNamesMasses = determineBaseNameAssociatedWithMass_();
-  cout << "Determine base count" << endl;
   auto baseNamesCount = determineAtomAndBeadCountBasedOnMass_(baseNamesMasses);  
 
   // If there is more than one atom type of the same element append a number
@@ -280,7 +262,6 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
   map<string, int> baseNameIndices;
   int index = 0;
 
-  cout << "Getting names" << endl;
   for (auto mass : data_["Masses"]) {
     // Determine the mass associated with the atom
     double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
@@ -377,7 +358,6 @@ void LAMMPSDataReader::SortIntoDataGroup_(string tag) {
     }
     group.push_back(mini_group);
     getline(fl_, line);
-    cout << line << endl;
   }
   data_[tag] = group;
 }
@@ -440,9 +420,6 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
   if(format==style_angle_bond_molecule) moleculeRead = true; 
   if(format==style_full) {moleculeRead = true; chargeRead = true;} 
 
-  cout << "First line " << endl;
-  cout << line << endl;
-
   map<int, string> sorted_file;
   int startingIndex;
   int startingIndexMolecule = 0;
@@ -468,7 +445,6 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     if(moleculeId<startingIndexMolecule) startingIndexMolecule=moleculeId;
   }
 
-  cout << "Sorted file size " << sorted_file.size() << endl;
   for (int atomIndex = startingIndex; 
     static_cast<size_t>(atomIndex-startingIndex) < sorted_file.size(); 
     ++atomIndex) {
@@ -477,7 +453,6 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     double charge = 0;
     double x, y, z;
 
-    cout << "line: " << sorted_file[atomIndex] << endl;
     istringstream iss(sorted_file[atomIndex]);
     iss >> atomId;
     if(moleculeRead) {
@@ -496,12 +471,6 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     --atomTypeId;
     moleculeId-=startingIndexMolecule;
 
-    cout << endl;
-    cout << "Atom Id " << atomId << " ";
-    cout << "moleculeId " << moleculeId << " ";
-    cout << "atomTypeId " << atomTypeId << " ";
-    cout << "charge " << charge << " ";
-    cout << "xyz " << x << " " << y << " " << z << endl;
     // We want to start with an index of 0 not 1
     //atomId;
     Bead *b;
@@ -509,24 +478,18 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
 
       atomIdToIndex_[atomId] = atomIndex-startingIndex;
       atomIdToMoleculeId_[atomId] = moleculeId;
-      cout << "MoleculeId " << moleculeId << endl;
       Molecule *mol;
       if (!molecules_.count(moleculeId)) {
-        cout << "Creating Molecule " << endl;
         mol = top.CreateMolecule("UNKNOWN");
         molecules_[moleculeId] = mol;
       } else {
         mol = molecules_[moleculeId];
       }
-      cout << "Molecule succesffully created " << endl;
-      cout << "AtomTypeId " << atomTypeId;
       int symmetry = 1; // spherical
-      cout << "mass value " << data_["Masses"].at(atomTypeId).at(1) <<endl;
       double mass = boost::lexical_cast<double>(data_["Masses"].at(atomTypeId).at(1));
       
       int residue_index = moleculeId;
       if(residue_index >= top.ResidueCount()){
-        cout << "Creating Residue" << endl;
         while((residue_index-1)>=top.ResidueCount()){
           top.CreateResidue("DUMMY");
         }
@@ -541,22 +504,17 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
         throw runtime_error(err);
       }
 
-      cout << "Creating Bead " << atomId << endl;
       b = top.CreateBead(symmetry, bead_type_name, bead_type, residue_index, mass,
                          charge);
   
-      cout << "Adding bead to molecule " << endl;
       mol->AddBead(b, bead_type_name);
-      cout << "Adding molecular pointer to bead" << endl;
       b->setMolecule(mol);
 
     } else {
-      cout << "Grabbing bead that already exists " << atomId << endl;
       b = top.getBead(atomIndex-startingIndex);
     }
 
     vec xyz_pos(x, y, z);
-    cout << "Setting Bead position " << endl;
     b->setPos(xyz_pos);
   }
 
