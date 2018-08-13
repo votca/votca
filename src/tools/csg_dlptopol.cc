@@ -261,8 +261,10 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg)
                     out << "dihedrals ";
                     break;
                 default:
-                    throw runtime_error(string("cannot handle number of beads in interaction:") +
-                            ic->getName());
+                    string err = "cannot handle number of beads in interaction:";
+                    err += to_string(ic->getMolecule()+1)+":"+ic->getGroup();
+                    err += ":"+to_string(ic->getIndex()+1);
+                    throw runtime_error(err);
             }
         }
 	n_entries++;
@@ -271,8 +273,10 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg)
         sout << " tab ";
         for(int i=0; i<nb; ++i)
 	  sout << ic->getBeadId(i)+1 << " ";
-        sout << "   1.00000  0.00000" << " # " << ic->getName() << endl;
-        //sout << "   1.00000  0.00000" << " # " << ic->getGroup() << endl;
+        sout << "   1.00000  0.00000" << " # ";
+        sout << to_string(ic->getMolecule()+1) ;
+        sout << ":"+ic->getGroup();
+        sout << ":"+to_string(ic->getIndex()+1) << endl;
     }
     if(sout.str()!="") out << n_entries << endl << sout.str();
 }
