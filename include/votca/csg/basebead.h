@@ -48,7 +48,7 @@ public:
 
   /**
    * get the bead type
-   * \return bead type object
+   * \return const bead type pointer
    */
   virtual const BeadType *getType() const { return _type; }
 
@@ -59,32 +59,38 @@ public:
   virtual void setType(BeadType *type) { _type = type; }
 
   /**
+   * get the bead type
+   * \return - non constant bead type pointer
+   */
+  virtual BeadType *getType() const { return _type; }
+
+  /**
    * get the mass of the base bead
-   * \return base bead mass
+   * \return - base bead mass
    */
   virtual const double &getMass() const { return _mass; }
 
   /**
-   * get the charge of the base bead
-   * \return base bead charge
-   */
-  virtual const double &getQ() const { return _q; }
-
-  /**
    * set the mass of the base bead
-   * \param m base bead mass
+   * \param - base bead mass
    */
   virtual void setMass(const double &m) { _mass = m; }
 
   /**
+   * get the charge of the base bead
+   * \return - base bead charge
+   */
+  virtual const double &getQ() const { return _q; }
+
+  /**
    * set the charge of the base bead
-   * \param q base bead charge
+   * \param - base bead charge
    */
   virtual void setQ(const double &q) { _q = q; }
 
   /**
    * set the position of the base bead
-   * \param r base bead position
+   * \param - base bead position
    */
   virtual void setPos(const vec &r);
 
@@ -104,7 +110,7 @@ public:
   }
 
   /** does this configuration store positions? */
-  bool HasPos() { return _bPos; }
+  bool HasPos() const { return _bPos; }
 
   /**
    * molecule the base bead belongs to

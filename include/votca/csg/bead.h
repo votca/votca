@@ -50,43 +50,43 @@ public:
      */
     virtual ~Bead() {}
 
-    /**
-     * get the id of the bead
-     *
-     * \return bead id
-     */
-    const int &getId() const { return _id; }
+//    /**
+//     * get the id of the bead
+//     *
+//     * \return bead id
+//     */
+//    const int &getId() const { return _id; }
     
-    /**
-     * get bead name
-     * \return bead name
-     */
-    const string &getName() const { return _name; }
-    
-    /**
-     * set bead name
-     * \param name bead name
-     */
-    void setName(const string &name) { _name=name; }
-
-    /**
-     * get the bead type
-     * \return bead type object
-     */
-    const BeadType *getType() const { return _type; }
-
-    /**
-     * set the bead type
-     * \param bead type object
-     */
-    void setType(BeadType *type) { _type=type; }
-
-    /**
-     * get the bead type pointer (not constant)
-     * \return bead type object
-     */
-    BeadType *Type() const { return _type; }
-
+//    /**
+//     * get bead name
+//     * \return bead name
+//     */
+//    const string &getName() const { return _name; }
+//    
+//    /**
+//     * set bead name
+//     * \param name bead name
+//     */
+//    void setName(const string &name) { _name=name; }
+//
+//    /**
+//     * get the bead type
+//     * \return bead type object
+//     */
+//    const BeadType *getType() const { return _type; }
+//
+//    /**
+//     * set the bead type
+//     * \param bead type object
+//     */
+//    void setType(BeadType *type) { _type=type; }
+//
+//    /**
+//     * get the bead type pointer (not constant)
+//     * \return bead type object
+//     */
+//    BeadType *Type() const { return _type; }
+//
     /**
      * get the residu number of the bead
      * \return residue id
@@ -97,25 +97,31 @@ public:
      * get the mass of the bead
      * \return bead mass
      */
-    const double &getM() const { return _m; }
+    const double &getM() const { 
+      std::cerr << "WARNING getM is depricated use getMass" << std::endl;
+      return getMass(); 
+    }
 
-    /**
-     * get the charge of the bead
-     * \return bead charge
-     */
-    const double &getQ() const { return _q; }
+//    /**
+//     * get the charge of the bead
+//     * \return bead charge
+//     */
+//    const double &getQ() const { return _q; }
     
     /**
      * set the mass of the bead
      * \param m bead mass
      */
-    void setM(const double &m) { _m=m; }
+    void setM(const double &m) { 
+      std::cerr << "WARNING setM is depricated use setMass" << std::endl;
+      _m=m; 
+    }
 
-    /**
-     * set the charge of the bead
-     * \param q bead charge
-     */
-    void setQ(const double &q) { _q=q; }
+//    /**
+//     * set the charge of the bead
+//     * \param q bead charge
+//     */
+//    void setQ(const double &q) { _q=q; }
 
     /**
      * \brief get the symmetry of the bead
@@ -129,17 +135,17 @@ public:
      */
     byte_t getSymmetry() const { return _symmetry; }
 
-    /**
-     * set the position of the bead
-     * \param r bead position
-     */
-    void setPos(const vec &r);
+//    /**
+//     * set the position of the bead
+//     * \param r bead position
+//     */
+//    void setPos(const vec &r);
 
-    /**
-     * get the position of the bead
-     * \return bead position
-     */
-    const vec &getPos() const;
+//    /**
+//     * get the position of the bead
+//     * \return bead position
+//     */
+//    const vec &getPos() const;
 
     /**
      * set the velocity of the bead
@@ -217,11 +223,11 @@ public:
      */
     const vec &getW() const;
         
-    /**
-     * direct access (read/write) to the position of the bead
-     * \return reference to position 
-     */
-    vec &Pos() { assert(_bPos); return _pos; }
+//    /**
+//     * direct access (read/write) to the position of the bead
+//     * \return reference to position 
+//     */
+//    vec &Pos() { assert(_bPos); return _pos; }
 
     /**
      * direct access (read/write) to the velocity of the bead
@@ -287,8 +293,8 @@ public:
     /** does this configuration store w-orientations? */
     bool HasW() {return _bW; }
         
-    /** dos the bead store a position */
-    void HasPos(bool b);
+//    /** dos the bead store a position */
+//    void HasPos(bool b);
 
     /** dos the bead store a velocity */
     void HasVel(bool b);
@@ -305,13 +311,13 @@ public:
     /** doe the bead store an orientation w */
     void HasW(bool b);
     
-    /**
-     * molecule the bead belongs to
-     * \return Molecule object
-     */
-    Molecule *getMolecule() { return _mol; }
-
-    void setMolecule( Molecule * mol);
+//    /**
+//     * molecule the bead belongs to
+//     * \return Molecule object
+//     */
+//    Molecule *getMolecule() { return _mol; }
+//
+//    void setMolecule( Molecule * mol);
     /**
      * If it is a mapped beads, returns te bead id the cg bead was created from
      * \return vector of bead ids of reference atoms
@@ -357,25 +363,25 @@ public:
     void setOptions(Property &options) { _options = &options; }
 
 protected:
-    int _id;
+//    int _id;
     vector<int> _parent_beads;
-    BeadType *_type;
-    Molecule *_mol;
+//    BeadType *_type;
+//    Molecule *_mol;
     
     // TODO: this is so far a pointer. this should change! each bead should have own options.
     Property *_options;
 
     byte_t _symmetry;
-    string _name;
+//    string _name;
     
     int _resnr;
     
-    double _m;
-    double _q;
+//    double _m;
+//    double _q;
+//  vec _pos;  
+    vec _vel, _f, _u, _v, _w;
     
-    vec _pos, _vel, _f, _u, _v, _w;
-    
-    bool _bPos;
+//    bool _bPos;
     bool _bVel;
     bool _bU;
     bool _bV;
