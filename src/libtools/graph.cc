@@ -18,6 +18,7 @@
  */
 
 #include <algorithm>
+#include <cassert>
 #include <string>
 #include <votca/tools/graph.h>
 
@@ -106,7 +107,10 @@ void Graph::setNode(std::pair<int, GraphNode> p_gn) {
   setNode(p_gn.first, p_gn.second);
 }
 
-GraphNode Graph::getNode(int vert) { return nodes_[vert]; }
+GraphNode Graph::getNode(int vert) { 
+  assert(nodes_.count(vert));
+  return nodes_[vert]; 
+}
 
 vector<pair<int, GraphNode>> Graph::getNodes(void) {
   vector<pair<int, GraphNode>> vec_nodes;

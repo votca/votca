@@ -109,12 +109,14 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   GraphNode gn2;
   GraphNode gn3;
   GraphNode gn4;
+  GraphNode gn5;
 
   unordered_map<int, GraphNode> nodes;
   nodes[0] = gn1;
   nodes[1] = gn2;
   nodes[2] = gn3;
   nodes[3] = gn4;
+  nodes[4] = gn5;
 
   Graph g(edges, nodes);
 
