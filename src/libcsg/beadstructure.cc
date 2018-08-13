@@ -31,8 +31,8 @@ using namespace std;
  **********************/
 
 shared_ptr<GraphNode> BaseBeadToGraphNode(BaseBead * basebead){
-  std::unordered_map<std::string,double> attributes1;
-  std::unordered_map<std::string,std::string> attributes2;
+  std::unordered_map<string,double> attributes1;
+  std::unordered_map<string,string> attributes2;
   
   attributes1["Mass"] = basebead->getMass();
   attributes1["Charge"] = basebead->getQ();
@@ -51,6 +51,13 @@ shared_ptr<GraphNode> BaseBeadToGraphNode(BaseBead * basebead){
  ***************************/
 
 void BeadStructure::AddBead(BaseBead * bead) {
+  if(beads_.count(bead->getId())){
+    string err = "Cannot add bead with Id ";
+    err += to_string(bead->getId());
+    err += " because each bead must have a unique Id and a bead with that Id ";
+    err += "already exists within the beadstructure";
+    throw invalid_argument(err);
+  }
   auto numberOfBeads = beads_.size();
   beads_[bead->getId()] = bead;
   if(numberOfBeads!=beads_.size()){
@@ -61,9 +68,13 @@ void BeadStructure::AddBead(BaseBead * bead) {
 
 void BeadStructure::ConnectBeads(int bead1_id, int bead2_id ) {
   if(!(beads_.count(bead1_id)) || !(beads_.count(bead2_id))) {
-    throw std::invalid_argument("Cannot connect beads in bead structure that do not exist");
+    string err = "Cannot connect beads in bead structure that do not exist";
+    throw std::invalid_argument(err);
   }
-
+  if(bead1_id == bead2_id ){
+    string err = "Beads cannot be self-connected";
+    throw std::invalid_argument(err);
+  }
   auto numberOfConnections = connections_.size();
   connections_.insert(Edge(bead1_id,bead2_id));
   if(numberOfConnections!=connections_.size()){

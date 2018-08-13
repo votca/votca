@@ -405,5 +405,99 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoMolecules){
   } 
   BOOST_CHECK(structure1_found);
   BOOST_CHECK(structure2_found);
-} 
+
+  // Adding another water
+  // 
+  // H - O - H
+  //
+
+  TestBead testbead9;
+  testbead9.setName("Hydrogen");
+  testbead9.setId(9);
+
+  TestBead testbead11;
+  testbead11.setName("Hydrogen");
+  testbead11.setId(11);
+
+  TestBead testbead10;
+  testbead10.setName("Oxygen");
+  testbead10.setId(10);
+  
+  // Adding the water
+  beadstructure.AddBead(&testbead9);  
+  beadstructure.AddBead(&testbead10);  
+  beadstructure.AddBead(&testbead11);  
+  
+  beadstructure.ConnectBeads(9,10);
+  beadstructure.ConnectBeads(11,10);
+
+  structures = beadstructure.breakIntoMolecules();
+  
+  structure1_found = false;
+  structure2_found = false;
+  int structure2_count = 0;
+  for( auto structure : structures ){
+    if( structure->isStructureEquivalent(beadstructure1) ){
+      structure1_found = true;
+    }
+    if( structure->isStructureEquivalent(beadstructure2) ){
+      structure2_found = true;
+      ++structure2_count;
+    }
+  } 
+  BOOST_CHECK(structure1_found);
+  BOOST_CHECK(structure2_found);
+  BOOST_CHECK_EQUAL(structure2_count,2);
+
+}
+
+BOOST_AUTO_TEST_CASE(test_beadstructure_catchError){
+
+  {
+    // Intentionally fail to set id
+    TestBead testbead1;
+    testbead1.setName("Hydrogen");
+
+    BeadStructure beadstructure1;
+    BOOST_CHECK_THROW(beadstructure1.AddBead(&testbead1), runtime_error);
+  }
+
+  {
+    TestBead testbead1;
+    testbead1.setName("Hydrogen");
+    testbead1.setId(1);
+
+    TestBead testbead2;
+    testbead2.setName("Carbon");
+    testbead2.setId(2);
+
+    TestBead testbead3;
+    testbead3.setName("Hydrogen");
+    testbead3.setId(3);
+
+    TestBead testbead4;
+    testbead4.setName("Hydrogen");
+    testbead4.setId(4);
+
+    TestBead testbead5;
+    testbead5.setName("Hydrogen");
+    testbead5.setId(5);
+
+    TestBead testbead6;
+    testbead6.setName("Hydrogen");
+    testbead6.setId(5);
+    
+    BeadStructure beadstructure;
+    beadstructure.AddBead(&testbead1);  
+    beadstructure.AddBead(&testbead2);  
+    beadstructure.AddBead(&testbead3);  
+    beadstructure.AddBead(&testbead4);  
+    beadstructure.AddBead(&testbead5); 
+
+    BOOST_CHECK_THROW(beadstructure.AddBead(&testbead6),invalid_argument);
+    BOOST_CHECK_THROW(beadstructure.ConnectBeads(0,1),invalid_argument);
+    BOOST_CHECK_THROW(beadstructure.ConnectBeads(5,6),invalid_argument);
+    BOOST_CHECK_THROW(beadstructure.ConnectBeads(1,1),invalid_argument);
+  } 
+}
 BOOST_AUTO_TEST_SUITE_END()
