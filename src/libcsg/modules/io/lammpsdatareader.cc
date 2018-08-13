@@ -94,7 +94,6 @@ bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
   NextFrame(top);
 
   fl_.close();
-  top.RebuildExclusions();
 
   return true;
 }
