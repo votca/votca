@@ -490,12 +490,12 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       int residue_index = moleculeId;
       if(residue_index >= top.ResidueCount()){
         while((residue_index-1)>=top.ResidueCount()){
-          top.CreateResidue("DUMMY");
+          top.CreateResidue("DUM");
         }
-        top.CreateResidue("DUMMY");
+        top.CreateResidue("DUM");
       }
 
-      string bead_type_name = atomtypes_[atomTypeId].at(1);
+      string bead_type_name = to_string(atomTypeId+1);
       BeadType *bead_type = top.GetOrCreateBeadType(bead_type_name);
       if (atomtypes_.count(atomTypeId) == 0) {
         string err = "Unrecognized atomTypeId, the atomtypes map "
@@ -503,7 +503,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
         throw runtime_error(err);
       }
 
-      b = top.CreateBead(symmetry, bead_type_name, bead_type, residue_index, mass,
+      b = top.CreateBead(symmetry, bead_type_name , bead_type, residue_index, mass,
                          charge);
   
       mol->AddBead(b, bead_type_name);
