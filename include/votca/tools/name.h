@@ -36,7 +36,7 @@ namespace tools {
  */
 class Name {
  private:
-  std::string name_{""};
+  std::string name_;
   bool name_set_{false};
 
  public:
@@ -46,8 +46,9 @@ class Name {
     name_ = name;
     name_set_ = true;
   }
-  std::string getName() {
-    return (!name_set_ ? throw std::runtime_error("Name not set") : name_);
+  const std::string &getName() const {
+    if(!name_set_) throw std::runtime_error("Name not set");
+    return name_;
   }
 };
 }
