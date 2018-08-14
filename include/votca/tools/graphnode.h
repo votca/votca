@@ -21,7 +21,6 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
-#include <votca/tools/name.h>
 
 #ifndef _VOTCA_TOOLS_GRAPHNODE_H
 #define _VOTCA_TOOLS_GRAPHNODE_H
