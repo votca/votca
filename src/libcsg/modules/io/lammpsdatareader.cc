@@ -27,10 +27,61 @@ using namespace boost;
 using namespace std;
 
 /*****************************************************************************
+ * Internal Helper Functions                                                 *
+ *****************************************************************************/
+vector<string> TrimCommentsFrom_(vector<string> fields) {
+  vector<string> tempFields;
+  for (auto field : fields) {
+    if (field.at(0) == '#')
+      return tempFields;
+    tempFields.push_back(field);
+  }
+  return tempFields;
+}
+
+bool withinTolerance_(double value1, double value2, double tolerance){
+  return (value1-value2)/min(value1,value2) < tolerance;
+}
+
+string getStringGivenDoubleAndMap_(
+    double value, 
+    map<string,double> nameValue,
+    double tolerance){
+
+  for ( auto string_value_pair : nameValue ){
+    if(withinTolerance_(value,string_value_pair.second,tolerance)){
+      return string_value_pair.first;
+    }
+  }  
+  throw runtime_error("getStringGivenDoubleAndMap_ function fails. This method "
+      "is meant to be passed a double that is to be matched within a tolerance"
+      " with a double in a map<string,double> and then return the string. It is"
+      " likely that none of the doubles were a close enough match.");
+}
+
+/*****************************************************************************
  * Public Facing Methods                                                     *
  *****************************************************************************/
 
 bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
+
+  cout << endl;
+  cout << "WARNING: The votca lammps data reader is only able to read lammps "
+    "files formatted in the following styles:" << endl;
+  cout << "angle" << endl;
+  cout << "atom" << endl;
+  cout << "bond" << endl;
+  cout << "full" << endl;
+  cout << "molecule" << endl;
+  cout << endl;
+  cout << "These styles use the following formats in the atom block:"  << endl;
+  cout << "atom-ID molecule-ID atom-type charge x y z" << endl;
+  cout << "atom-ID molecule-ID atom-type charge x y z nx ny nz" << endl;
+  cout << "atom-ID molecule-ID atom-type x y z" << endl;
+  cout << "atom-ID molecule-ID atom-type x y z nx ny nz" << endl;
+  cout << "atom-ID atom-type x y z" << endl;
+  cout << "atom-ID atom-type x y z nx ny nz" << endl;
+  cout << endl;
 
   topology_ = true;
   top.Cleanup();
@@ -74,7 +125,6 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
     vector<string> fields;
     tok.ToVector(fields);
     fields = TrimCommentsFrom_(fields);
-
     // If not check the size of the vector and parse according
     // to the number of fields
     if (fields.size() == 1) {
@@ -104,22 +154,12 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
  * Private Facing Methods                                                    *
  *****************************************************************************/
 
-vector<string> LAMMPSDataReader::TrimCommentsFrom_(vector<string> fields) {
-  vector<string> tempFields;
-  for (auto field : fields) {
-    if (field.at(0) == '#')
-      return tempFields;
-    tempFields.push_back(field);
-  }
-  return tempFields;
-}
-
 bool LAMMPSDataReader::MatchOneFieldLabel_(vector<string> fields,
                                            Topology &top) {
 
   if (fields.at(0) == "Masses") {
     SortIntoDataGroup_("Masses");
-    InitializeAtomTypes_();
+    InitializeAtomAndBeadTypes_();
   } else if (fields.at(0) == "Atoms") {
     ReadAtoms_(top);
   } else if (fields.at(0) == "Bonds") {
@@ -200,7 +240,6 @@ bool LAMMPSDataReader::MatchFieldsTimeStepLabel_(vector<string> fields,
   for (auto field : fields) {
     if (field == "timestep" && (index + 2) < fields.size()) {
       top.setStep(stoi(fields.at(index + 2)));
-      cout << "Reading frame, timestep " << top.getStep() << endl;
       return true;
     }
     ++index;
@@ -208,76 +247,77 @@ bool LAMMPSDataReader::MatchFieldsTimeStepLabel_(vector<string> fields,
   return false;
 }
 
-// The purpose of this function is to take lammps output where there are more
-// than a single atom type of the same element. For instance there may be 4
-// atom types with mass of 12.01. Well this means that they are all carbon but
-// are treated differently in lammps. It makes since to keep track of this. So
-// When creating the atom names we will take into account so say we have the
-// following masses in the lammps .data file:
-// Masses
-//
-// 1 1.0
-// 2 12.01
-// 3 12.01
-// 4 16.0
-// 5 12.01
-//
-// Then we would translate this to the following atom names
-// 1 H
-// 2 C1
-// 3 C2
-// 4 O
-// 5 C3
-//
-// Note that we do not append a number if it is singular, in such cases the
-// element and the atom name is the same.
-void LAMMPSDataReader::InitializeAtomTypes_() {
+void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
   if (!data_.count("Masses")) {
     string err = "Masses must first be parsed before the atoms can be read.";
     throw runtime_error(err);
   }
 
-  std::map<std::string, int> countAtomsOfSameElement;
-  Elements elements;
+  auto baseNamesMasses = determineBaseNameAssociatedWithMass_();
+  auto baseNamesCount = determineAtomAndBeadCountBasedOnMass_(baseNamesMasses);  
 
-  for (auto mass : data_["Masses"]) {
-    // Determine the mass associated with the atom
-    double mass_atom = boost::lexical_cast<double>(mass.at(1));
-    // Determine the element (Symbol) by looking at the mass
-    // Second argument is the tolerance
-    string eleShort = elements.getEleShortClosestInMass(mass_atom, 0.01);
-    // Count the number of atoms
-    if (!countAtomsOfSameElement.count(eleShort)) {
-      countAtomsOfSameElement[eleShort] = 1;
-    }
-    countAtomsOfSameElement[eleShort]++;
-  }
-
-  vector<int> indices(0, countAtomsOfSameElement.size());
   // If there is more than one atom type of the same element append a number
   // to the atom type name
-  map<string, int> eleShortIndices;
+  map<string, int> baseNameIndices;
   int index = 0;
+
   for (auto mass : data_["Masses"]) {
     // Determine the mass associated with the atom
-    double mass_atom = boost::lexical_cast<double>(mass.at(1));
-    // Determine the element (Symbol) by looking at the mass
-    // Second argument is the tolerance
-    string eleShort = elements.getEleShortClosestInMass(mass_atom, 0.01);
-    string label = eleShort;
-    if (countAtomsOfSameElement[eleShort] > 1) {
-      if (eleShortIndices.count(eleShort) == 0) {
+    double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
+
+    auto baseName = getStringGivenDoubleAndMap_(
+        mass_atom_bead,
+        baseNamesMasses,
+        0.01);
+
+    string label = baseName;
+    if (baseNamesCount[baseName] > 1) {
+      if (baseNameIndices.count(baseName) == 0) {
         label += "1";
-        eleShortIndices[eleShort] = 1;
+        baseNameIndices[baseName] = 1;
       } else {
-        eleShortIndices[eleShort]++;
-        label += to_string(eleShortIndices[eleShort]);
+        baseNameIndices[baseName]++;
+        label += to_string(baseNameIndices[baseName]);
       }
     }
-    atomtypes_[index].push_back(eleShort);
+    atomtypes_[index].push_back(baseName);
     atomtypes_[index].push_back(label);
     ++index;
   }
+}
+
+map<string,double> LAMMPSDataReader::determineBaseNameAssociatedWithMass_(){
+  Elements elements;
+  map<string,double> baseNamesAndMasses;
+  for (auto mass : data_["Masses"]) {
+    double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
+    string beadElementName;
+    if(elements.isMassAssociatedWithElement(mass_atom_bead,0.01)){
+      beadElementName = elements.getEleShortClosestInMass(mass_atom_bead, 0.01);
+    }else{
+      beadElementName = "Bead";
+    }
+    baseNamesAndMasses[beadElementName] = mass_atom_bead;
+  }
+  return baseNamesAndMasses; 
+}
+
+map<string,int> LAMMPSDataReader::determineAtomAndBeadCountBasedOnMass_(
+    map<string,double> baseNamesAndMasses ){
+
+  map<std::string, int> countSameElementOrBead;
+
+  for (auto mass : data_["Masses"]) {
+    double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
+
+    auto baseName = getStringGivenDoubleAndMap_(
+        mass_atom_bead,
+        baseNamesAndMasses,
+        0.01);
+
+    countSameElementOrBead[baseName]++;
+  }
+  return countSameElementOrBead;
 }
 
 void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
@@ -311,7 +351,7 @@ void LAMMPSDataReader::SortIntoDataGroup_(string tag) {
   while (!line.empty()) {
     vector<string> mini_group;
     istringstream iss(line);
-    while (iss) {
+    while (!iss.eof()) {
       iss >> data_elem;
       mini_group.push_back(data_elem);
     }
@@ -347,68 +387,115 @@ void LAMMPSDataReader::ReadNumOfImpropers_(vector<string> fields) {
   numberOf_["impropers"] = stoi(fields.at(0));
 }
 
+LAMMPSDataReader::lammps_format 
+LAMMPSDataReader::determineDataFileFormat_(string line){
+
+  Tokenizer tok(line, " ");
+  vector<string> fields;
+  tok.ConvertToVector(fields);
+  lammps_format format;
+  if (fields.size() == 5 || fields.size()== 8) {
+    format = style_atomic; 
+  }else if(fields.size() == 6 || fields.size() == 9){
+    format = style_angle_bond_molecule;
+  }else if(fields.size() == 7 || fields.size() == 10){
+    format = style_full;
+  }else{
+    throw runtime_error("You have submitted a lammps data file with an "
+        "unsupported format.");
+  }
+  return format;
+}
+
 void LAMMPSDataReader::ReadAtoms_(Topology &top) {
 
   string line;
   getline(fl_, line);
   getline(fl_, line);
 
-  int atomId;
-  int moleculeId;
-  int atomTypeId;
-
-  double charge = 0;
-  double x, y, z;
+  lammps_format format = determineDataFileFormat_(line);
+  bool chargeRead = false;
+  bool moleculeRead = false;
+  if(format==style_angle_bond_molecule) moleculeRead = true; 
+  if(format==style_full) {moleculeRead = true; chargeRead = true;} 
 
   map<int, string> sorted_file;
+  int startingIndex;
+  int startingIndexMolecule = 0;
+  istringstream issfirst(line);
+  issfirst >> startingIndex;
+  if(moleculeRead) {
+    issfirst >> startingIndexMolecule;
+  }
+  sorted_file[startingIndex] = line;
+  getline(fl_, line);
 
+  int atomId;
+  int moleculeId = 0;
   while (!line.empty()) {
-
     istringstream iss(line);
     iss >> atomId;
-    --atomId;
+    if(moleculeRead) {
+      iss >> moleculeId;
+    }
     sorted_file[atomId] = line;
     getline(fl_, line);
+    if(atomId<startingIndex) startingIndex=atomId;
+    if(moleculeId<startingIndexMolecule) startingIndexMolecule=moleculeId;
   }
 
-  for (int atomIndex = 0; 
-    boost::lexical_cast<size_t>(atomIndex) < sorted_file.size(); 
+  for (int atomIndex = startingIndex; 
+    static_cast<size_t>(atomIndex-startingIndex) < sorted_file.size(); 
     ++atomIndex) {
+
+    int atomTypeId;
+    double charge = 0;
+    double x, y, z;
 
     istringstream iss(sorted_file[atomIndex]);
     iss >> atomId;
-    iss >> moleculeId;
+    if(moleculeRead) {
+      iss >> moleculeId;
+    }else{
+      moleculeId = atomId;
+    }
     iss >> atomTypeId;
+    if(chargeRead) iss >> charge;
     iss >> x;
     iss >> y;
     iss >> z;
 
-    // We want to start with an index of 0 not 1
-    atomId--;
-    moleculeId--;
-    atomTypeId--;
+    // Exclusion list assumes beads start with ids of 0
+    --atomId;
+    --atomTypeId;
+    moleculeId-=startingIndexMolecule;
 
+    // We want to start with an index of 0 not 1
+    //atomId;
     Bead *b;
     if (topology_) {
 
-      atomIdToIndex_[atomId] = atomIndex;
+      atomIdToIndex_[atomId] = atomIndex-startingIndex;
       atomIdToMoleculeId_[atomId] = moleculeId;
-
       Molecule *mol;
       if (!molecules_.count(moleculeId)) {
-        mol = top.CreateMolecule("Unknown");
+        mol = top.CreateMolecule("UNKNOWN");
         molecules_[moleculeId] = mol;
       } else {
         mol = molecules_[moleculeId];
       }
-
       int symmetry = 1; // spherical
-      double mass =
-          boost::lexical_cast<double>(data_["Masses"].at(atomTypeId).at(1));
-      // Will use the molecule id as the resnum for lack of a better option
-      int resnr = moleculeId;
+      double mass = boost::lexical_cast<double>(data_["Masses"].at(atomTypeId).at(1));
+      
+      int residue_index = moleculeId;
+      if(residue_index >= top.ResidueCount()){
+        while((residue_index-1)>=top.ResidueCount()){
+          top.CreateResidue("DUM");
+        }
+        top.CreateResidue("DUM");
+      }
 
-      string bead_type_name = atomtypes_[atomTypeId].at(1);
+      string bead_type_name = to_string(atomTypeId+1);
       BeadType *bead_type = top.GetOrCreateBeadType(bead_type_name);
       if (atomtypes_.count(atomTypeId) == 0) {
         string err = "Unrecognized atomTypeId, the atomtypes map "
@@ -416,14 +503,14 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
         throw runtime_error(err);
       }
 
-      b = top.CreateBead(symmetry, bead_type_name, bead_type, resnr, mass,
+      b = top.CreateBead(symmetry, bead_type_name , bead_type, residue_index, mass,
                          charge);
-
+  
       mol->AddBead(b, bead_type_name);
       b->setMolecule(mol);
 
     } else {
-      b = top.getBead(atomIndex);
+      b = top.getBead(atomIndex-startingIndex);
     }
 
     vec xyz_pos(x, y, z);
@@ -460,10 +547,10 @@ void LAMMPSDataReader::ReadBonds_(Topology &top) {
       iss >> atom1Id;
       iss >> atom2Id;
 
-      atom1Id--;
-      atom2Id--;
-      bondId--;
-      bondTypeId--;
+      --atom1Id;
+      --atom2Id;
+      --bondTypeId;
+      --bondId;
 
       int atom1Index = atomIdToIndex_[atom1Id];
       int atom2Index = atomIdToIndex_[atom2Id];
@@ -514,11 +601,11 @@ void LAMMPSDataReader::ReadAngles_(Topology &top) {
       iss >> atom2Id;
       iss >> atom3Id;
 
-      angleId--;
-      angleTypeId--;
-      atom1Id--;
-      atom2Id--;
-      atom3Id--;
+      --angleId;
+      --atom1Id;
+      --atom2Id;
+      --atom3Id;
+      --angleTypeId;
 
       int atom1Index = atomIdToIndex_[atom1Id];
       int atom2Index = atomIdToIndex_[atom2Id];
@@ -571,12 +658,12 @@ void LAMMPSDataReader::ReadDihedrals_(Topology &top) {
       iss >> atom3Id;
       iss >> atom4Id;
 
-      dihedralId--;
-      dihedralTypeId--;
-      atom1Id--;
-      atom2Id--;
-      atom3Id--;
-      atom4Id--;
+      --dihedralId;
+      --atom1Id;
+      --atom2Id;
+      --atom3Id;
+      --atom4Id;
+      --dihedralTypeId;
 
       int atom1Index = atomIdToIndex_[atom1Id];
       int atom2Index = atomIdToIndex_[atom2Id];
