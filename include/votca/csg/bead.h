@@ -24,6 +24,7 @@
 #include <votca/tools/property.h>
 #include <assert.h>
 #include "beadtype.h"
+#include "basebead.h"
 #include "topologyitem.h"
 
 namespace votca { namespace csg {
@@ -41,7 +42,7 @@ class Molecule;
     \todo change resnr to pointer
     \todo make sure bead belongs to topology
 */
-class Bead : public TopologyItem
+class Bead : public BaseBead
 {
 public:   
 
@@ -50,43 +51,6 @@ public:
      */
     virtual ~Bead() {}
 
-//    /**
-//     * get the id of the bead
-//     *
-//     * \return bead id
-//     */
-//    const int &getId() const { return _id; }
-    
-//    /**
-//     * get bead name
-//     * \return bead name
-//     */
-//    const string &getName() const { return _name; }
-//    
-//    /**
-//     * set bead name
-//     * \param name bead name
-//     */
-//    void setName(const string &name) { _name=name; }
-//
-//    /**
-//     * get the bead type
-//     * \return bead type object
-//     */
-//    const BeadType *getType() const { return _type; }
-//
-//    /**
-//     * set the bead type
-//     * \param bead type object
-//     */
-//    void setType(BeadType *type) { _type=type; }
-//
-//    /**
-//     * get the bead type pointer (not constant)
-//     * \return bead type object
-//     */
-//    BeadType *Type() const { return _type; }
-//
     /**
      * get the residu number of the bead
      * \return residue id
@@ -102,26 +66,14 @@ public:
       return getMass(); 
     }
 
-//    /**
-//     * get the charge of the bead
-//     * \return bead charge
-//     */
-//    const double &getQ() const { return _q; }
-    
     /**
      * set the mass of the bead
      * \param m bead mass
      */
     void setM(const double &m) { 
       std::cerr << "WARNING setM is depricated use setMass" << std::endl;
-      _m=m; 
+      setMass(m); 
     }
-
-//    /**
-//     * set the charge of the bead
-//     * \param q bead charge
-//     */
-//    void setQ(const double &q) { _q=q; }
 
     /**
      * \brief get the symmetry of the bead
@@ -134,18 +86,6 @@ public:
      * \return bead symmetry
      */
     byte_t getSymmetry() const { return _symmetry; }
-
-//    /**
-//     * set the position of the bead
-//     * \param r bead position
-//     */
-//    void setPos(const vec &r);
-
-//    /**
-//     * get the position of the bead
-//     * \return bead position
-//     */
-//    const vec &getPos() const;
 
     /**
      * set the velocity of the bead
@@ -223,12 +163,6 @@ public:
      */
     const vec &getW() const;
         
-//    /**
-//     * direct access (read/write) to the position of the bead
-//     * \return reference to position 
-//     */
-//    vec &Pos() { assert(_bPos); return _pos; }
-
     /**
      * direct access (read/write) to the velocity of the bead
      * \return reference to velocity
@@ -275,9 +209,6 @@ public:
      */
     const vec &getF() const;
 
-    /** does this configuration store positions? */
-    bool HasPos() {return _bPos; }
-    
     /** does this configuration store velocities? */
     bool HasVel() {return _bVel; }
     
@@ -293,9 +224,6 @@ public:
     /** does this configuration store w-orientations? */
     bool HasW() {return _bW; }
         
-//    /** dos the bead store a position */
-//    void HasPos(bool b);
-
     /** dos the bead store a velocity */
     void HasVel(bool b);
     
@@ -311,13 +239,6 @@ public:
     /** doe the bead store an orientation w */
     void HasW(bool b);
     
-//    /**
-//     * molecule the bead belongs to
-//     * \return Molecule object
-//     */
-//    Molecule *getMolecule() { return _mol; }
-//
-//    void setMolecule( Molecule * mol);
     /**
      * If it is a mapped beads, returns te bead id the cg bead was created from
      * \return vector of bead ids of reference atoms
@@ -363,25 +284,17 @@ public:
     void setOptions(Property &options) { _options = &options; }
 
 protected:
-//    int _id;
     vector<int> _parent_beads;
-//    BeadType *_type;
-//    Molecule *_mol;
     
     // TODO: this is so far a pointer. this should change! each bead should have own options.
     Property *_options;
 
     byte_t _symmetry;
-//    string _name;
     
     int _resnr;
     
-//    double _m;
-//    double _q;
-//  vec _pos;  
     vec _vel, _f, _u, _v, _w;
     
-//    bool _bPos;
     bool _bVel;
     bool _bU;
     bool _bV;
@@ -390,8 +303,15 @@ protected:
     
     /// constructur
     Bead(Topology *owner, int id, BeadType *type, byte_t symmetry, string name, int resnr, double m, double q)
-        : TopologyItem(owner), _id(id), _type(type), _symmetry(symmetry), _name(name), _resnr(resnr), _m(m), _q(q)
-    {_bPos=false;
+        :  _symmetry(symmetry), _resnr(resnr)
+    {
+    _parent = owner;
+    setId(id);
+    setType(type);
+    setName(name);
+    setMass(m);
+    setQ(q);
+     _bPos=false;
     _bVel=false;
     _bU=false;
     _bV=false;
@@ -404,22 +324,6 @@ protected:
 
     friend class Molecule;
 };
-
-inline void Bead::setMolecule(Molecule *mol){
-	_mol = mol;
-}
-
-inline void Bead::setPos(const vec &r)
-{
-    _bPos=true;
-    _pos = r;
-}
-
-inline const vec &Bead::getPos() const
-{
-    assert(_bPos);
-    return _pos;
-}
 
 inline void Bead::setVel(const vec &r)
 {
@@ -479,11 +383,6 @@ inline const vec &Bead::getF() const
 {
     assert(_bF);
     return _f;
-}
-
-inline void Bead::HasPos(bool b)
-{
-    _bPos=b;
 }
 
 inline void Bead::HasVel(bool b)

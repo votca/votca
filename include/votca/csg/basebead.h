@@ -62,7 +62,7 @@ public:
    * get the bead type
    * \return - non constant bead type pointer
    */
-  virtual BeadType *getType() const { return _type; }
+  virtual BeadType *Type() const { return _type; }
 
   /**
    * get the mass of the base bead
@@ -111,6 +111,9 @@ public:
 
   /** does this configuration store positions? */
   bool HasPos() const { return _bPos; }
+
+  /** set has position to true */
+  bool HasPos(bool true_or_false ) { _bPos = true_or_false; }
 
   /**
    * molecule the base bead belongs to
