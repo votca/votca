@@ -39,7 +39,9 @@ class BeadType;
  * charge and the residue it belongs to and the position
  *
  **/
-class BaseBead : public TopologyItem, public virtual Name, public virtual Identity<int> {
+class BaseBead : public TopologyItem,
+                 public virtual Name,
+                 public virtual Identity<int> {
 public:
   /**
    * destructor
@@ -113,7 +115,7 @@ public:
   bool HasPos() const { return _bPos; }
 
   /** set has position to true */
-  bool HasPos(bool true_or_false ) { _bPos = true_or_false; }
+  bool HasPos(bool true_or_false) { _bPos = true_or_false; }
 
   /**
    * molecule the base bead belongs to
@@ -125,8 +127,8 @@ public:
 
 protected:
   BaseBead()
-      : TopologyItem(nullptr), _type(nullptr), _mol(nullptr), _mass(0.0), 
-      _q(0.0), _bPos(false) {};
+      : TopologyItem(nullptr), _type(nullptr), _mol(nullptr), _mass(0.0),
+        _q(0.0), _bPos(false){};
 
   BeadType *_type;
   Molecule *_mol;
