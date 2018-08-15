@@ -37,6 +37,7 @@ using namespace boost::unit_test;
 
 BOOST_AUTO_TEST_SUITE(graphalgorithm_test)
 
+
 BOOST_AUTO_TEST_CASE(single_network_algorithm_test) {
   {
     // In this test we add two nodes and an edge describing
@@ -178,7 +179,6 @@ BOOST_AUTO_TEST_CASE(decoupleIsolatedSubGraphs_algorithm_test) {
     nodes[6] = gn7;
 
     Graph g(edges, nodes);
-
     vector<std::shared_ptr<Graph>> sub_graphs = decoupleIsolatedSubGraphs(g);
     BOOST_CHECK_EQUAL(sub_graphs.size(), 2);
 
@@ -268,4 +268,5 @@ BOOST_AUTO_TEST_CASE(structureid_test) {
     BOOST_CHECK_EQUAL(structId, answer);
   }
 }
+
 BOOST_AUTO_TEST_SUITE_END()
