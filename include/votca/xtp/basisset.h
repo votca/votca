@@ -52,22 +52,19 @@ class GaussianPrimitive
 {
     friend class Shell;
 public:
-    int power; // used in pseudopotenials only
-    double decay;
-    std::vector<double> contraction;
-    Shell* shell;
+    int _power; // used in pseudopotenials only
+    double _decay;
+    std::vector<double> _contraction;
 private:
     // private constructor, only a shell can create a primitive
-    GaussianPrimitive( double _decay, std::vector<double> _contraction, Shell *_shell = NULL ) 
-    : decay(_decay),
-    contraction(_contraction),
-    shell(_shell) { ; }
+    GaussianPrimitive( double decay, std::vector<double> contraction ) 
+    : _decay(decay),
+    _contraction(contraction){ ; }
 
-    GaussianPrimitive( int _power, double _decay, std::vector<double> _contraction, Shell *_shell = NULL ) 
-    : power(_power),
-    decay(_decay),
-    contraction(_contraction),
-    shell(_shell) { ; }
+    GaussianPrimitive( int power, double decay, std::vector<double> contraction ) 
+    : _power(power),
+    _decay(decay),
+    _contraction(contraction){ ; }
 };      
     
 
@@ -76,30 +73,30 @@ class Shell
     friend class Element;   
 public:
 
-    std::string getType() { return _type; }
+    const std::string& getType() const{ return _type; }
     
-    bool combined(){
+    bool combined()const{
         if (_type.length()>1){
             return true;
         }
         return false;
     }
     
-    int getLmax(  ) {
+    int getLmax() const{
         return FindLmax(_type);
     }
     
-    int getLmin(  ) {
+    int getLmin() const{
         return FindLmin(_type);
     }
     
-    int getnumofFunc() {
+    int getnumofFunc() const{
         return NumFuncShell(_type);
     }; 
 
-    double getScale() { return _scale; }
+    double getScale() const{ return _scale; }
     
-    int getSize() { return _gaussians.size(); }
+    int getSize() const{ return _gaussians.size(); }
     
     // iterator over pairs (decay constant; contraction coefficient)
     typedef std::vector< GaussianPrimitive* >::iterator GaussianIterator;
@@ -107,22 +104,14 @@ public:
     GaussianIterator lastGaussian(){ return _gaussians.end(); }
    
     // adds a Gaussian 
-    GaussianPrimitive*  addGaussian( double decay, std::vector<double> contraction ) 
-    {
-        GaussianPrimitive* gaussian = new GaussianPrimitive(decay, contraction, this);
-        _gaussians.push_back( gaussian );
-        return gaussian;
-    }
+    GaussianPrimitive*  addGaussian( double decay, std::vector<double> contraction );
+   
 
     // adds a Gaussian of a pseudopotential
-    GaussianPrimitive*  addGaussian( int power, double decay, std::vector<double> contraction ) 
-    {
-        GaussianPrimitive* gaussian = new GaussianPrimitive(power, decay, contraction, this);
-        _gaussians.push_back( gaussian );
-        return gaussian;
-    }     // shell type (S, P, D))
+    GaussianPrimitive*  addGaussian( int power, double decay, std::vector<double> contraction );
+  
     
-    
+    friend std::ostream &operator<<(std::ostream &out, const Shell& shell);
 private:   
 
     // only class Element can construct shells    
@@ -155,14 +144,14 @@ class Element
 public:
     
     typedef std::vector< Shell* >::iterator ShellIterator;
-    ShellIterator firstShell() { return _shells.begin(); }
-    ShellIterator lastShell(){ return _shells.end(); }
+     std::vector< Shell* >::iterator begin() { return _shells.begin(); }
+     std::vector< Shell* >::iterator end(){ return _shells.end(); }
 
     std::string getType(){ return _type; }
     
-    int getLmax() { return _lmax; }
+    int getLmax() const{ return _lmax; }
     
-    int getNcore() { return _ncore; }
+    int getNcore() const{ return _ncore; }
     
     Shell* getShell( ShellIterator it ) { return (*it); }
     
@@ -224,6 +213,10 @@ public:
          Element* element = (*itm).second;
          return element; 
      }
+    
+    std::map< std::string,Element* >::iterator begin() { return _elements.begin(); }
+    std::map< std::string,Element* >::iterator end(){ return _elements.end(); }
+
     
         
     ~BasisSet();

@@ -108,7 +108,7 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key +
   if (ranges == "default" || ranges == "full") {
     _rpamax = _orbitals->getNumberOfLevels() - 1;  // total number of levels
   } else if (ranges == "factor") {
-    _rpamax = rpamaxfactor * _orbitals->getNumberOfLevels() -
+    _rpamax = rpamaxfactor * _orbitals->getNumberOfElectrons() -
               1;  // total number of levels
   }
   if (_rpamax > _orbitals->getNumberOfLevels() - 1) {
@@ -138,6 +138,9 @@ std::string ranges = options->ifExistsReturnElseReturnDefault<std::string>(key +
   }
   if (_qpmax > unsigned(_orbitals->getNumberOfLevels() - 1)) {
     _qpmax = _orbitals->getNumberOfLevels() - 1;
+  }
+  if (_qpmax> _rpamax){
+    _qpmax=_rpamax;
   }
   
  

@@ -29,7 +29,6 @@ namespace votca {
         
             //Solve Eigensystem
             Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.GetEpsilon_r()[0]); 
-            //we store _ppm_phi_T instead of _ppm_phi because we need it for later transformations
             _ppm_phi=es.eigenvectors();
                    
             // store PPM weights from eigenvalues
@@ -41,15 +40,15 @@ namespace votca {
            // determine PPM frequencies
              _ppm_freq.resize(es.eigenvalues().size());
             #pragma omp parallel for 
-            for (unsigned _i = 0; _i < es.eigenvalues().size(); _i++) {
-                    if (_ppm_weight(_i) < 1.e-5) {
-                        _ppm_weight(_i) = 0.0;
-                        _ppm_freq(_i) = 0.5;//Hartree
+            for (unsigned i = 0; i < es.eigenvalues().size(); i++) {
+                    if (_ppm_weight(i) < 1.e-5) {
+                        _ppm_weight(i) = 0.0;
+                        _ppm_freq(i) = 0.5;//Hartree
                         continue;
                     } else {
-                        double _nom = epsilon_1_inv(_i, _i) - 1.0;
-                        double _frac = -1.0 * _nom / (_nom + _ppm_weight(_i)) * screening_i *screening_i;
-                        _ppm_freq(_i) = sqrt(std::abs(_frac));
+                        double nom = epsilon_1_inv(i, i) - 1.0;
+                        double frac = -1.0 * nom / (nom + _ppm_weight(i)) * screening_i *screening_i;
+                        _ppm_freq(i) = std::sqrt(std::abs(frac));
                     }
             }
             return;

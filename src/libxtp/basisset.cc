@@ -22,7 +22,7 @@
 
 namespace votca { namespace xtp {
     
-
+  
        
 int FindLmax(const std::string& _type ){
 
@@ -226,15 +226,12 @@ void BasisSet::LoadBasisSet ( std::string name )
     bool success = load_property_from_xml(basis_property, xmlFile);
     
     if ( !success ) {; }
-    
     std::list<tools::Property*> elementProps = basis_property.Select("basis.element");
         
     for (std::list<tools::Property*> ::iterator  ite = elementProps.begin(); ite != elementProps.end(); ++ite) 
     {       
         std::string elementName = (*ite)->getAttribute<std::string>("name");
         Element *element = addElement( elementName );
-        //cout << "\nElement " << elementName;
-        
         std::list<tools::Property*> shellProps = (*ite)->Select("shell");
         for (std::list<tools::Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
         {            
@@ -242,18 +239,14 @@ void BasisSet::LoadBasisSet ( std::string name )
             double shellScale = (*its)->getAttribute<double>("scale");
             
             Shell* shell = element->addShell( shellType, shellScale );
-            //cout << "\n\tShell " << shellType;
-            
             std::list<tools::Property*> constProps = (*its)->Select("constant");
             for (std::list<tools::Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) {
                 double decay = (*itc)->getAttribute<double>("decay");
-                // << " decay "<<decay<<endl;
                 std::vector<double> contraction=std::vector<double>(shell->getLmax()+1,0.0);
                 std::list<tools::Property*> contrProps = (*itc)->Select("contractions");
                 for (std::list<tools::Property*> ::iterator itcont = contrProps.begin(); itcont != contrProps.end(); ++itcont){
                     std::string contrType = (*itcont)->getAttribute<std::string>("type");
                     double contrFactor = (*itcont)->getAttribute<double>("factor");
-                    //cout << " factor " << contrFactor << endl;
                     if ( contrType == "S" ) contraction[0] = contrFactor;
                     else if ( contrType == "P" ) contraction[1] = contrFactor;
                     else if ( contrType == "D" ) contraction[2] = contrFactor;
@@ -265,7 +258,6 @@ void BasisSet::LoadBasisSet ( std::string name )
                         throw std::runtime_error("LoadBasiset:Contractiontype not known");
                     }
                 }    
-                 
                 shell->addGaussian(decay, contraction);
             }
             
@@ -304,7 +296,6 @@ void BasisSet::LoadPseudopotentialSet ( std::string name )
         int ncore = (*ite)->getAttribute<int>("ncore");
         
         Element *element = addElement( elementName, lmax, ncore );
-        //cout << "\nElement " << elementName;
         
         std::list<tools::Property*> shellProps = (*ite)->Select("shell");
         for (std::list<tools::Property*> ::iterator  its = shellProps.begin(); its != shellProps.end(); ++its) 
@@ -313,20 +304,15 @@ void BasisSet::LoadPseudopotentialSet ( std::string name )
             double shellScale = 1.0;
             
             Shell* shell = element->addShell( shellType, shellScale );
-            //cout << "\n\tShell " << shellType;
             
             std::list<tools::Property*> constProps = (*its)->Select("constant");
             for (std::list<tools::Property*> ::iterator  itc = constProps.begin(); itc != constProps.end(); ++itc) 
             {
                 int power = (*itc)->getAttribute<int>("power");
                 double decay = (*itc)->getAttribute<double>("decay");
-                //double contraction = (*itc)->getAttribute<double>("contraction");
                 std::vector<double> contraction;
-                // just testing here with single value 
                 contraction.push_back((*itc)->getAttribute<double>("contraction"));
-                //shell->addGaussian(decay, contraction);
                 shell->addGaussian(power, decay, contraction);
-                //cout << "\n\t\t" << decay << " " << contraction << endl;
             }
             
         }
@@ -360,6 +346,34 @@ BasisSet::~BasisSet() {
 };
         
 
+std::ostream &operator<<(std::ostream &out, const Shell& shell) {
+
+    out <<"Type:"<<shell.getType() <<" Scale:"<<shell.getScale()
+            << " Func: "<<shell.getnumofFunc()<<"\n";
+    for (const auto& gaussian:shell._gaussians){
+      out<<" Gaussian Decay: "<<gaussian->_decay;
+      out<<" Contractions:";
+      for (const double& contraction:gaussian->_contraction){
+        out<<" "<<contraction;
+      }
+      out<<"\n";
+    }
+      return out;
+        }
+
+
+ GaussianPrimitive*  Shell::addGaussian( double decay, std::vector<double> contraction ){
+        GaussianPrimitive* gaussian = new GaussianPrimitive(decay, contraction);
+        _gaussians.push_back( gaussian );
+        return gaussian;
+    }
+
+    // adds a Gaussian of a pseudopotential
+    GaussianPrimitive*  Shell::addGaussian( int power, double decay, std::vector<double> contraction ){
+        GaussianPrimitive* gaussian = new GaussianPrimitive(power, decay, contraction);
+        _gaussians.push_back( gaussian );
+        return gaussian;
+    }
 
 
 }}

@@ -190,7 +190,7 @@ namespace votca {
                         //_com_file << element_name << " 0" << endl;
                         _com_file << "@" << element_name << ".gbs" << endl;
                         _el_file << element_name << " 0" << endl;
-                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        for (Element::ShellIterator its = element->begin(); its != element->end(); its++) {
 
                             Shell* shell = (*its);
                             //gaussian can only use S,P,SP,D,F,G shells so we split them up if not SP
@@ -202,10 +202,10 @@ namespace votca {
                                 for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                     GaussianPrimitive* gaussian = *itg;
                                     //_com_file << gaussian->decay << " " << gaussian->contraction << endl;
-                                    _el_file << FortranFormat(gaussian->decay);
-                                    for (unsigned _icontr = 0; _icontr < gaussian->contraction.size(); _icontr++) {
-                                        if (gaussian->contraction[_icontr] != 0.0) {
-                                            _el_file << " " << FortranFormat(gaussian->contraction[_icontr]);
+                                    _el_file << FortranFormat(gaussian->_decay);
+                                    for (unsigned _icontr = 0; _icontr < gaussian->_contraction.size(); _icontr++) {
+                                        if (gaussian->_contraction[_icontr] != 0.0) {
+                                            _el_file << " " << FortranFormat(gaussian->_contraction[_icontr]);
                                         }
                                     }
                                     _el_file << endl;
@@ -219,8 +219,8 @@ namespace votca {
 
                                     for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                         GaussianPrimitive* gaussian = *itg;
-                                        _el_file << FortranFormat(gaussian->decay);
-                                        _el_file << " " << FortranFormat(gaussian->contraction[FindLmax(subtype)]);
+                                        _el_file << FortranFormat(gaussian->_decay);
+                                        _el_file << " " << FortranFormat(gaussian->_contraction[FindLmax(subtype)]);
                                     }
                                     _el_file << endl;
                                     
@@ -275,7 +275,7 @@ namespace votca {
                                 << _ecp_name << " "
                                 << element->getLmax() << " " << element->getNcore() << endl;
 
-                        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                        for (Element::ShellIterator its = element->begin(); its != element->end(); its++) {
 
                             Shell* shell = (*its);
                             // shell type, number primitives, scale factor
@@ -284,7 +284,7 @@ namespace votca {
 
                             for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                 GaussianPrimitive* gaussian = *itg;
-                                _com_file << gaussian->power << " " << FortranFormat(gaussian->decay) << " " << FortranFormat(gaussian->contraction[0]) << endl;
+                                _com_file << gaussian->_power << " " << FortranFormat(gaussian->_decay) << " " << FortranFormat(gaussian->_contraction[0]) << endl;
                             }
                         }
                     }

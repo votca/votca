@@ -138,7 +138,7 @@ namespace votca {
                     elements.push_back(element_name);
                     Element* element = bs.getElement(element_name);
                     _el_file << _elements.getEleFull(element_name) << endl;
-                    for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                    for (Element::ShellIterator its = element->begin(); its != element->end(); its++) {
                         Shell* shell = (*its);
 
                         string type = shell->getType();
@@ -151,8 +151,8 @@ namespace votca {
                             for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                 GaussianPrimitive* gaussian = *itg;
                                 _sh_idx++;
-                                _el_file << " " << _sh_idx << " " << indent(gaussian->decay);
-                                _el_file << " " << indent(gaussian->contraction[FindLmax(subtype)]);
+                                _el_file << " " << _sh_idx << " " << indent(gaussian->_decay);
+                                _el_file << " " << indent(gaussian->_contraction[FindLmax(subtype)]);
 
                                 _el_file << endl;
                             }
@@ -225,7 +225,7 @@ namespace votca {
                         //For Orca the order doesn't matter but let's write it in ascending order
                         // write remaining shells in ascending order s,p,d...
                         for (int i = 0; i <= element->getLmax(); i++) {
-                            for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+                            for (Element::ShellIterator its = element->begin(); its != element->end(); its++) {
                                 Shell* shell = (*its);
                                 if (shell->getLmax() == i) {
                                     // shell type, number primitives, scale factor
@@ -234,7 +234,7 @@ namespace votca {
                                     for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
                                         GaussianPrimitive* gaussian = *itg;
                                         _sh_idx++;
-                                        _com_file << _sh_idx << " " << gaussian->decay << " " << gaussian->contraction[0] << " " << gaussian->power << endl;
+                                        _com_file << _sh_idx << " " << gaussian->_decay << " " << gaussian->_contraction[0] << " " << gaussian->_power << endl;
                                     }
                                 }
                             }

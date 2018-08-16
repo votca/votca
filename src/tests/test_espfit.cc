@@ -119,6 +119,7 @@ BOOST_AUTO_TEST_CASE(esp_charges){
   votca::ctp::Logger _log;
   
   Espfit esp=Espfit(&_log);
+  esp.setUseSVD(1e-8);
   esp.Fit2Density(orbitals.QMAtoms(),dmat,aobasis,"medium");
   Eigen::VectorXd pcharges=Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
   int index=0;
@@ -166,6 +167,7 @@ p2.first=3;
 p2.second=4;
 pairconstraint.push_back(p2);
 Espfit esp2=Espfit(&_log);
+esp2.setUseSVD(1e-8);
 esp2.setPairConstraint(pairconstraint);
 esp2.Fit2Density(orbitals.QMAtoms(),dmat,aobasis,"medium");
 Eigen::VectorXd pcharges_equal=Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
