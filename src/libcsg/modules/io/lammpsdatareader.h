@@ -144,9 +144,9 @@ private:
    * 3 C2
    * 4 O
    * 5 C3
-   * 6 Bead1
+   * 6 Bead1 1
    * 7 Bead2
-   * 8 Bead3
+   * 8 Bead1 2
    *
    * Note that we do not append a number if it is singular, in such cases the 
    * element and the atom name is the same.

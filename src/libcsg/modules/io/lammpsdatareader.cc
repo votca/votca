@@ -39,8 +39,28 @@ vector<string> TrimCommentsFrom_(vector<string> fields) {
   return tempFields;
 }
 
+//trim from start (in place)
+static inline void ltrim_(std::string &s) {
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+        return !std::isspace(ch);
+        }));
+}
+
+// trim from end (in place)
+static inline void rtrim_(std::string &s) {
+  s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+        return !std::isspace(ch);
+        }).base(), s.end());
+}
+
+// trim from both ends (in place)
+static inline void trim_(std::string &s) {
+  ltrim_(s);
+  rtrim_(s);
+}
+
 bool withinTolerance_(double value1, double value2, double tolerance){
-  return (value1-value2)/min(value1,value2) < tolerance;
+  return abs(value1-value2)/min(value1,value2) < tolerance;
 }
 
 string getStringGivenDoubleAndMap_(
@@ -273,11 +293,11 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
     string label = baseName;
     if (baseNamesCount[baseName] > 1) {
       if (baseNameIndices.count(baseName) == 0) {
-        label += "1";
+        label += "Type 1";
         baseNameIndices[baseName] = 1;
       } else {
         baseNameIndices[baseName]++;
-        label += to_string(baseNameIndices[baseName]);
+        label += "Type "+to_string(baseNameIndices[baseName]);
       }
     }
     atomtypes_[index].push_back(baseName);
@@ -289,13 +309,15 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
 map<string,double> LAMMPSDataReader::determineBaseNameAssociatedWithMass_(){
   Elements elements;
   map<string,double> baseNamesAndMasses;
+  int bead_index_type = 1;
   for (auto mass : data_["Masses"]) {
     double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
     string beadElementName;
     if(elements.isMassAssociatedWithElement(mass_atom_bead,0.01)){
       beadElementName = elements.getEleShortClosestInMass(mass_atom_bead, 0.01);
     }else{
-      beadElementName = "Bead";
+      beadElementName = "Bead"+to_string(bead_index_type);
+      ++bead_index_type;
     }
     baseNamesAndMasses[beadElementName] = mass_atom_bead;
   }
@@ -306,16 +328,18 @@ map<string,int> LAMMPSDataReader::determineAtomAndBeadCountBasedOnMass_(
     map<string,double> baseNamesAndMasses ){
 
   map<std::string, int> countSameElementOrBead;
-
   for (auto mass : data_["Masses"]) {
     double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
-
     auto baseName = getStringGivenDoubleAndMap_(
         mass_atom_bead,
         baseNamesAndMasses,
         0.01);
 
-    countSameElementOrBead[baseName]++;
+    if(countSameElementOrBead.count(baseName)==0){
+      countSameElementOrBead[baseName]=1;
+    }else{
+      countSameElementOrBead[baseName]++;
+    }
   }
   return countSameElementOrBead;
 }
@@ -350,14 +374,18 @@ void LAMMPSDataReader::SortIntoDataGroup_(string tag) {
   string data_elem;
   while (!line.empty()) {
     vector<string> mini_group;
-    istringstream iss(line);
-    while (!iss.eof()) {
-      iss >> data_elem;
-      mini_group.push_back(data_elem);
+    trim_(line);
+    Tokenizer tok(line, " ");
+    vector<string> fields;
+    tok.ToVector(fields);
+    for( auto field : fields ){
+      trim_(field);
+      mini_group.push_back(field);
     }
     group.push_back(mini_group);
     getline(fl_, line);
   }
+
   data_[tag] = group;
 }
 
@@ -429,8 +457,9 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
   }
   sorted_file[startingIndex] = line;
   getline(fl_, line);
+  trim_(line);
 
-  int atomId;
+  int atomId = 0;
   int moleculeId = 0;
   while (!line.empty()) {
     istringstream iss(line);
@@ -440,6 +469,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     }
     sorted_file[atomId] = line;
     getline(fl_, line);
+    trim_(line);
     if(atomId<startingIndex) startingIndex=atomId;
     if(moleculeId<startingIndexMolecule) startingIndexMolecule=moleculeId;
   }
@@ -532,6 +562,7 @@ void LAMMPSDataReader::ReadBonds_(Topology &top) {
   string line;
   getline(fl_, line);
   getline(fl_, line);
+  trim_(line);
 
   int bondId;
   int bondTypeId;
@@ -567,6 +598,7 @@ void LAMMPSDataReader::ReadBonds_(Topology &top) {
 
     ++bond_count;
     getline(fl_, line);
+    trim_(line);
   }
 
   if (bond_count != numberOf_["bonds"]) {
@@ -584,6 +616,7 @@ void LAMMPSDataReader::ReadAngles_(Topology &top) {
   string line;
   getline(fl_, line);
   getline(fl_, line);
+  trim_(line);
 
   int angleId;
   int angleTypeId;
@@ -624,6 +657,7 @@ void LAMMPSDataReader::ReadAngles_(Topology &top) {
     ++angle_count;
 
     getline(fl_, line);
+    trim_(line);
   }
 
   if (angle_count != numberOf_["angles"]) {
@@ -641,6 +675,7 @@ void LAMMPSDataReader::ReadDihedrals_(Topology &top) {
   string line;
   getline(fl_, line);
   getline(fl_, line);
+  trim_(line);
 
   int dihedralId;
   int dihedralTypeId;
@@ -682,6 +717,7 @@ void LAMMPSDataReader::ReadDihedrals_(Topology &top) {
     }
     ++dihedral_count;
     getline(fl_, line);
+    trim_(line);
   }
 
   if (dihedral_count != numberOf_["dihedrals"]) {
