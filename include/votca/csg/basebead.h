@@ -115,7 +115,7 @@ public:
   bool HasPos() const { return _bPos; }
 
   /** set has position to true */
-  bool HasPos(bool true_or_false) { _bPos = true_or_false; }
+  void HasPos(bool true_or_false) { _bPos = true_or_false; }
 
   /**
    * molecule the base bead belongs to
