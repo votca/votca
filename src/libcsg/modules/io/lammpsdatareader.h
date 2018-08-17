@@ -118,13 +118,13 @@ private:
   /**
    * \brief Determines atom and bead types based on masses in lammps files
    *
-   * The purpose of this function is to take lammps output where there are more 
-   * than a single atom type of the same element. For instance there may be 4 
+   * The purpose of this function is to take lammps output where there are more
+   * than a single atom type of the same element. For instance there may be 4
    * atom types with mass of 12.01. Well this means that they are all carbon but
    * are treated differently in lammps. It makes since to keep track of this. If
-   * a mass cannot be associated with an element we will assume it is pseudo 
-   * atom or course grained watom which we will represent with as a bead. So 
-   * when creating the atom names we will take into account so say we have the 
+   * a mass cannot be associated with an element we will assume it is pseudo
+   * atom or course grained watom which we will represent with as a bead. So
+   * when creating the atom names we will take into account so say we have the
    * following masses in the lammps .data file:
    *
    * Masses
@@ -137,25 +137,24 @@ private:
    * 6 15.2
    * 7 12.8
    * 8 15.2
-   * 
+   *
    * Then we would translate this to the following atom names
    * 1 H
    * 2 C1
    * 3 C2
    * 4 O
    * 5 C3
-   * 6 Bead1
-   * 7 Bead2
-   * 8 Bead3
+   * 6 Bead1 BeadType 1
+   * 7 Bead2 BeadType
+   * 8 Bead1 BeadType 2
    *
-   * Note that we do not append a number if it is singular, in such cases the 
+   * Note that we do not append a number if it is singular, in such cases the
    * element and the atom name is the same.
    **/
   void InitializeAtomAndBeadTypes_();
-  std::map<std::string,double> determineBaseNameAssociatedWithMass_();
-  std::map<std::string,int> determineAtomAndBeadCountBasedOnMass_(         
-          std::map<std::string,double> baseNamesAndMasses );
-
+  std::map<std::string, double> determineBaseNameAssociatedWithMass_();
+  std::map<std::string, int> determineAtomAndBeadCountBasedOnMass_(
+      std::map<std::string, double> baseNamesAndMasses);
 };
 }
 }
