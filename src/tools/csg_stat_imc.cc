@@ -560,7 +560,7 @@ void Imc::WriteDist(const string &suffix)
         Table dist(t);
         
         //preliminary, if no average force calculation, dummy table
-        Table force,force_perp,force_perp_dot,force_perp_x,force_perp_y,force_perp_z;        
+        Table force//,force_perp,force_perp_dot,force_perp_x,force_perp_y,force_perp_z;        
         //if average force calculation, table force contains force data
         if (iter->second->_force){
             Table &f = iter->second->_average_force.data();
@@ -581,7 +581,7 @@ void Imc::WriteDist(const string &suffix)
             //Preleminary: Quickest way to incorporate 3 body correlations
             if (iter->second->_threebody){
 	        // \TODO normalize bond and angle differently....
-                double norm=ub::norm_1(dist.y());
+                double norm=dist.y().cwiseAbs().sum();
                 if ( norm > 0 ) {
                     dist.y() = iter->second->_norm * dist.y() / ( norm * iter->second->_step );
                 }           
@@ -596,20 +596,20 @@ void Imc::WriteDist(const string &suffix)
                     //check if any number of pairs has been found at this distance, then normalize
                     if (dist.y()[i]!=0){
                         force.y()[i]/=dist.y()[i];
-                        force_perp.y()[i]/=dist.y()[i];
+                        /*force_perp.y()[i]/=dist.y()[i];
                         force_perp_dot.y()[i]/=dist.y()[i];                        
                         force_perp_x.y()[i]/=dist.y()[i]; 
                         force_perp_y.y()[i]/=dist.y()[i]; 
-                        force_perp_z.y()[i]/=dist.y()[i];                         
+                        force_perp_z.y()[i]/=dist.y()[i];*/
                     }
                     //else set to zero
                     else{
                         force.y()[i]=0;
-                        force_perp.y()[i]=0;
+                        /*force_perp.y()[i]=0;
                         force_perp_dot.y()[i]=0;                        
                         force_perp_x.y()[i]=0;
                         force_perp_y.y()[i]=0;
-                        force_perp_z.y()[i]=0;                        
+                        force_perp_z.y()[i]=0;*/
                     }
                 }                
                 
@@ -643,7 +643,7 @@ void Imc::WriteDist(const string &suffix)
         if (iter->second->_force){
             force.Save((iter->first) + ".force.new");
             cout << "written " << (iter->first) + ".force.new" << "\n";
-            force_perp.Save((iter->first) + ".force_perp.new");
+            /*force_perp.Save((iter->first) + ".force_perp.new");
             cout << "written " << (iter->first) + ".force_perp.new" << "\n";
             force_perp_dot.Save((iter->first) + ".force_perp_dot.new");
             cout << "written " << (iter->first) + ".force_perp_dot.new" << "\n";            
@@ -652,7 +652,7 @@ void Imc::WriteDist(const string &suffix)
             force_perp_y.Save((iter->first) + ".force_perp_y.new");
             cout << "written " << (iter->first) + ".force_perp_y.new" << "\n"; 
             force_perp_z.Save((iter->first) + ".force_perp_z.new");
-            cout << "written " << (iter->first) + ".force_perp_z.new" << "\n";             
+            cout << "written " << (iter->first) + ".force_perp_z.new" << "\n";*/             
         } 
     }
 }
