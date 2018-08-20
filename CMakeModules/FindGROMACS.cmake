@@ -7,7 +7,7 @@
 #  GROMACS_DEFINITIONS  - Extra definies needed by gromacs
 #  GROMACS_VERSION      - Gromacs lib interface version
 #
-# Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,8 +42,12 @@ pkg_check_modules(PC_GROMACS_D libgromacs_d)
 pkg_check_modules(PC_GROMACS libgromacs)
 
 find_library(GROMACS_LIBRARY NAMES gromacs_d gromacs HINTS ${PC_GROMACS_D_LIBRARY_DIRS} ${PC_GROMACS_LIBRARY_DIRS})
-if (GROMACS_LIBRARY)
+if (GROMACS_LIBRARY AND NOT GROMACS_LIBRARY STREQUAL "gromacs")
   include(CheckCXXLibraryExists)
+  check_cxx_library_exists("${GROMACS_LIBRARY}" gmx_version "" FOUND_GROMACS_VERSION_CXX)
+  if(NOT FOUND_GROMACS_VERSION_CXX)
+    message(FATAL_ERROR "Could not find a suitable gromacs library. gmx_version is not  defined in the gromacs library, that is very very strange, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. This most likely means that your gromacs version is too old, we need at least gromacs 2016!")
+  endif()
   check_cxx_library_exists("${GROMACS_LIBRARY}" gmx_is_single_precision "" FOUND_GMX_IS_SINGLE_PRECISION)
   check_cxx_library_exists("${GROMACS_LIBRARY}" gmx_is_double_precision "" FOUND_GMX_IS_DOUBLE_PRECISION)
   if(FOUND_GMX_IS_DOUBLE_PRECISION)
@@ -53,10 +57,11 @@ if (GROMACS_LIBRARY)
   elseif(NOT FOUND_GMX_IS_SINGLE_PRECISION)
     message(FATAL_ERROR "Could not find a suitable gromacs library. Neither gmx_is_single_precision nor gmx_is_double_precision is defined in the gromacs library, that is very very strange, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. This most likely means that your gromacs version is too old, we need at least gromacs 2016!")
   endif()
-endif (GROMACS_LIBRARY)
+endif()
 
 find_path(GROMACS_INCLUDE_DIR gromacs/version.h HINTS ${PC_GROMACS_D_INCLUDE_DIRS} ${PC_GROMACS_INCLUDE_DIRS})
-if(GROMACS_INCLUDE_DIR AND EXISTS ${GROMACS_INCLUDE_DIR}/gromacs/version.h)
+if(GROMACS_VERSION)
+elseif(GROMACS_INCLUDE_DIR AND EXISTS ${GROMACS_INCLUDE_DIR}/gromacs/version.h)
   _GROMACS_GET_VERSION(GROMACS_VERSION ${GROMACS_INCLUDE_DIR}/gromacs/version.h)
 else()
   set(GROMACS_VERSION 0)

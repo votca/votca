@@ -89,7 +89,8 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref)
 			(*mol)->getBead(i)->getType()->getName() << " Mass " <<
 			(*mol)->getBead(i)->getM() << " Resnr " <<
 			resnr << " Resname " <<
-			top->getResidue(resnr)->getName() <<
+			top->getResidue(resnr)->getName() << " Charge " <<
+			(*mol)->getBead(i)->getQ() <<
 			endl;
             }
         }

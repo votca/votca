@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 #define	POTENTIALFUNCTIONLJ126_H
 
 #include <votca/tools/table.h>
-#include <boost/numeric/ublas/vector.hpp>
 #include <math.h>
 #include "potentialfunction.h"
 

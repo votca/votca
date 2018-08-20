@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 #include <votca/csg/nblistgrid_3body.h>
 #include "csg_stat_imc.h"
 #include <votca/csg/imcio.h>
+
 
 namespace votca { namespace csg {
 
@@ -180,16 +181,16 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
     }    
     
     // initialize the current and average histogram
-    int n = (int)((i->_max - i->_min) / i->_step + 1.000000001);
+    int n = static_cast<int>((i->_max - i->_min) / i->_step + 1.000000001);
 
-    i->_average.Initialize(i->_min, i->_max+i->_step, n);
+    i->_average.Initialize(i->_min, i->_max, n);
     if (i->_force){
-        i->_average_force.Initialize(i->_min, i->_max+i->_step, n);
-        i->_average_force_perp.Initialize(i->_min, i->_max+i->_step, n);
-        i->_average_force_perp_dot.Initialize(i->_min, i->_max+i->_step, n);        
-        i->_average_force_perp_x.Initialize(i->_min, i->_max+i->_step, n);
-        i->_average_force_perp_y.Initialize(i->_min, i->_max+i->_step, n);
-        i->_average_force_perp_z.Initialize(i->_min, i->_max+i->_step, n);        
+        i->_average_force.Initialize(i->_min, i->_max, n);
+        /*i->_average_force_perp.Initialize(i->_min, i->_max, n);
+        i->_average_force_perp_dot.Initialize(i->_min, i->_max, n);        
+        i->_average_force_perp_x.Initialize(i->_min, i->_max, n);
+        i->_average_force_perp_y.Initialize(i->_min, i->_max, n);
+        i->_average_force_perp_z.Initialize(i->_min, i->_max, n);*/
     }
     
     return i;
@@ -241,15 +242,16 @@ void Imc::ClearAverages()
         ic_iter->second->_average.Clear();
         if (ic_iter->second->_force){
             ic_iter->second->_average_force.Clear();
-            ic_iter->second->_average_force_perp.Clear();
+            /*ic_iter->second->_average_force_perp.Clear();
             ic_iter->second->_average_force_perp_dot.Clear();            
             ic_iter->second->_average_force_perp_x.Clear();
             ic_iter->second->_average_force_perp_y.Clear();            
-            ic_iter->second->_average_force_perp_z.Clear();            
+            ic_iter->second->_average_force_perp_z.Clear();*/
         }
     
-    for (group_iter = _groups.begin(); group_iter != _groups.end(); ++group_iter)
-        group_iter->second->_corr.clear();      
+    for (group_iter = _groups.begin(); group_iter != _groups.end(); ++group_iter){
+        group_iter->second->_corr.setZero(); 
+    }
 }
 
 class IMCNBSearchHandler {
@@ -278,11 +280,11 @@ void Imc::Worker::DoNonbonded(Topology *top)
         // clear the current histogram
         _current_hists[i._index].Clear();
         _current_hists_force[i._index].Clear();      
-        _current_hists_force_perp[i._index].Clear();
+        /*_current_hists_force_perp[i._index].Clear();
         _current_hists_force_perp_dot[i._index].Clear();        
         _current_hists_force_perp_x[i._index].Clear();
         _current_hists_force_perp_y[i._index].Clear();
-        _current_hists_force_perp_z[i._index].Clear();        
+        _current_hists_force_perp_z[i._index].Clear();*/
         
         bool gridsearch=true;
 
@@ -414,7 +416,6 @@ void Imc::Worker::DoNonbonded(Topology *top)
                 //preliminary: process all pairs to calculate the projection of the 
                 //mean force on bead 1 on the pair distance: F1 * r12
                 NBList::iterator pair_iter;
-                //int count = 0;
                 for(pair_iter = nb->begin(); pair_iter!=nb->end();++pair_iter) {
                     vec F2 = (*pair_iter)->second->getF();
                     vec F1 = (*pair_iter)->first->getF();                    
@@ -424,7 +425,7 @@ void Imc::Worker::DoNonbonded(Topology *top)
                     double scale = F2*r12;
                     _current_hists_force[i._index].Process(var,scale);
                     
-                    vec F21_perp = F2-scale*r12;                    
+                    /*vec F21_perp = F2-scale*r12;                    
                     _current_hists_force_perp_x[i._index].Process(var,F21_perp.getX());
                     _current_hists_force_perp_y[i._index].Process(var,F21_perp.getY());
                     _current_hists_force_perp_z[i._index].Process(var,F21_perp.getZ());  
@@ -436,9 +437,7 @@ void Imc::Worker::DoNonbonded(Topology *top)
                     
                     //reuse it again
                     scale = sqrt(F21_perp.getX()*F21_perp.getX()+F21_perp.getY()*F21_perp.getY()+F21_perp.getZ()*F21_perp.getZ());
-                    _current_hists_force_perp[i._index].Process(var,scale);
-                    
-                    //++count;
+                    _current_hists_force_perp[i._index].Process(var,scale);*/
                 }
                 delete nb;                 
             }           
@@ -504,8 +503,7 @@ void Imc::InitializeGroups()
         group_matrix &M = grp->_corr;
         
         // initialize matrix with zeroes
-        M.resize(n,n);
-        M = ub::zero_matrix<double>(n, n);
+        M=Eigen::MatrixXd::Zero(n,n);
         
         // now create references to the sub matrices
         int i, j;
@@ -520,7 +518,7 @@ void Imc::InitializeGroups()
                 int n2 = (*i2)->_average.getNBins();
                 
                 // create matrix proxy with sub-matrix
-                pair_matrix corr(M, ub::range(i, i+n1), ub::range(j, j+n2));
+                pair_matrix corr=M.block(i,j,n1,n2);
                 // add the pair
                 grp->_pairs.push_back(pair_t(*i1, *i2, i, j, corr));
                 j+=n2;
@@ -540,15 +538,11 @@ void Imc::DoCorrelations(Imc::Worker *worker) {
         group_t *grp = (*group_iter).second;      
         // update correlation for all pairs
         for (pair = grp->_pairs.begin(); pair != grp->_pairs.end(); ++pair) {
-            ub::vector<double> &a = worker->_current_hists[pair->_i1->_index].data().y();
-            ub::vector<double> &b = worker->_current_hists[pair->_i2->_index].data().y();
+            Eigen::VectorXd &a = worker->_current_hists[pair->_i1->_index].data().y();
+            Eigen::VectorXd &b = worker->_current_hists[pair->_i2->_index].data().y();
             pair_matrix &M = pair->_corr;
 
-            // M_ij += a_i*b_j
-            //for(int i=0; i<M.size1(); ++i)
-            //    for(int j=i; j<M.size2(); ++j)
-            //        M(i,j) = ((((double)_nframes-1.0)*M(i,j)) + (a(i)*b(j)))/(double)_nframes;
-            M = ((((double)_nframes-1.0)*M) + ub::outer_prod(a, b))/(double)_nframes;
+            M = ((((double)_nframes-1.0)*M) + a*b.transpose())/(double)_nframes;
         }
     }
 }
@@ -571,7 +565,7 @@ void Imc::WriteDist(const string &suffix)
         if (iter->second->_force){
             Table &f = iter->second->_average_force.data();
             force = f;
-            Table &f_perp = iter->second->_average_force_perp.data();
+            /*Table &f_perp = iter->second->_average_force_perp.data();
             force_perp = f_perp;
             Table &f_perp_dot = iter->second->_average_force_perp_dot.data();
             force_perp_dot = f_perp_dot;            
@@ -580,7 +574,7 @@ void Imc::WriteDist(const string &suffix)
             Table &f_perp_y = iter->second->_average_force_perp_y.data();
             force_perp_y = f_perp_y;
             Table &f_perp_z = iter->second->_average_force_perp_z.data();
-            force_perp_z = f_perp_z;            
+            force_perp_z = f_perp_z;*/
         }    
         
         if(!iter->second->_is_bonded) {
@@ -636,7 +630,7 @@ void Imc::WriteDist(const string &suffix)
         }
         else {
 	    // \TODO normalize bond and angle differently....
-            double norm=ub::norm_1(dist.y());
+            double norm=dist.y().cwiseAbs().sum();
             if ( norm > 0 ) {
                 dist.y() = iter->second->_norm * dist.y() / ( norm * iter->second->_step );
             }
@@ -682,13 +676,13 @@ void Imc::WriteIMCData(const string &suffix) {
         list<interaction_t *>::iterator iter;
         
         // number of total bins for all interactions in group is matrix dimension
-        int n=grp->_corr.size1();
+        int n=grp->_corr.rows();
                 
         // build full set of equations + copy some data to make
         // code better to read
         group_matrix gmc(grp->_corr);
-        ub::vector<double> dS(n);
-        ub::vector<double> r(n);
+        Eigen::VectorXd dS(n);
+        Eigen::VectorXd r(n);
         // the next two variables are to later extract the individual parts
         // from the whole data after solving equations
         vector<RangeParser> ranges; // sizes of the individual interactions
@@ -701,12 +695,10 @@ void Imc::WriteIMCData(const string &suffix) {
             interaction_t *ic = *iter;
             
             // sub vector for dS
-            ub::vector_range< ub::vector<double> > sub_dS(dS, 
-                    ub::range(n, n + ic->_average.getNBins()));
+            Eigen::VectorBlock< Eigen::VectorXd > sub_dS=dS.segment(n,ic->_average.getNBins());
             
             // sub vector for r
-            ub::vector_range< ub::vector<double> > sub_r(r, 
-                    ub::range(n, n + ic->_average.getNBins()));
+           Eigen::VectorBlock< Eigen::VectorXd > sub_r=r.segment(n,ic->_average.getNBins());
             
             // read in target and calculate dS
             CalcDeltaS(ic, sub_dS);
@@ -715,7 +707,6 @@ void Imc::WriteIMCData(const string &suffix) {
             sub_r = ic->_average.data().x();
             
             // save size
-
             RangeParser rp;
             int end = begin  + ic->_average.getNBins() -1;
             rp.Add(begin, end);
@@ -736,25 +727,20 @@ void Imc::WriteIMCData(const string &suffix) {
             interaction_t *i2 = pair->_i2;
             
             // make reference to <S_i>
-            ub::vector<double> &a = i1->_average.data().y();
+           Eigen::VectorXd &a = i1->_average.data().y();
             // make reference to <S_j>
-            ub::vector<double> &b = i2->_average.data().y();
+            Eigen::VectorXd &b = i2->_average.data().y();
             
             int i=pair->_offset_i;
             int j=pair->_offset_j;
             int n1=i1->_average.getNBins();
             int n2=i2->_average.getNBins();
             
-            // sub matrix for these two interactions
-            // we only need to take care about one sub-matrix and not the mirrored
-            // one since ublas makes sure the matrix is symmetric
-            pair_matrix M(gmc, ub::range(i, i+n1),
-                               ub::range(j, j+n2));
-            // A_ij = -(<a_i*a_j>  - <a_i>*<b_j>)
-            //for(i=0; i<M.size1(); ++i)
-            //    for(j=i; j<M.size2(); ++j)
-            //        M(i,j) = -(M(i,j) - a(i)*b(j));
-            M = -(M - ub::outer_prod(a, b));
+          
+            pair_matrix M=gmc.block(i,j,n1,n2);
+            M = -(M - a*b.transpose());
+            //matrix is symmetric
+            gmc.block(j,i,n2,n1)=M.transpose().eval();
         }
         
         imcio_write_dS(grp_name + suffix + ".imc", r, dS);
@@ -765,7 +751,7 @@ void Imc::WriteIMCData(const string &suffix) {
 }
 
 // calculate deviation from target vectors
-void Imc::CalcDeltaS(interaction_t *interaction, ub::vector_range< ub::vector<double> > &dS)
+void Imc::CalcDeltaS(interaction_t *interaction, Eigen::VectorBlock< Eigen::VectorXd > &dS)
 {
     const string &name = interaction->_p->get("name").as<string>();
                 
@@ -794,6 +780,8 @@ void Imc::CalcDeltaS(interaction_t *interaction, ub::vector_range< ub::vector<do
 
 void Imc::WriteIMCBlock(const string &suffix)
 {
+  
+
     if(!_do_imc) return;
     //map<string, interaction_t *>::iterator ic_iter;
     map<string, group_t *>::iterator group_iter;
@@ -805,13 +793,13 @@ void Imc::WriteIMCBlock(const string &suffix)
         list<interaction_t *>::iterator iter;
 
         // number of total bins for all interactions in group is matrix dimension
-        int n=grp->_corr.size1();
+        int n=grp->_corr.rows();
 
         // build full set of equations + copy some data to make
         // code better to read
         group_matrix gmc(grp->_corr);
-        ub::vector<double> dS(n);
-        ub::vector<double> r(n);
+        Eigen::VectorXd dS(n);
+        Eigen::VectorXd r(n);
         // the next two variables are to later extract the individual parts
         // from the whole data after solving equations
         vector<int> sizes; // sizes of the individual interactions
@@ -823,12 +811,10 @@ void Imc::WriteIMCBlock(const string &suffix)
             interaction_t *ic = *iter;
 
             // sub vector for dS
-            ub::vector_range< ub::vector<double> > sub_dS(dS,
-                    ub::range(n, n + ic->_average.getNBins()));
-
+            Eigen::VectorBlock< Eigen::VectorXd > sub_dS=dS.segment(n,ic->_average.getNBins());
+            
             // sub vector for r
-            ub::vector_range< ub::vector<double> > sub_r(r,
-                    ub::range(n, n + ic->_average.getNBins()));
+           Eigen::VectorBlock< Eigen::VectorXd > sub_r=r.segment(n,ic->_average.getNBins());
 
             // read in target and calculate dS
             sub_dS = ic->_average.data().y();
@@ -851,7 +837,7 @@ void Imc::WriteIMCBlock(const string &suffix)
         if(!out_dS)
             throw runtime_error(string("error, cannot open file ") + name_dS);
 
-        for(size_t i=0; i<dS.size(); ++i) {
+        for(int i=0; i<dS.size(); ++i) {
             out_dS << r[i] << " " << dS[i] << endl;
         }
 
@@ -867,8 +853,8 @@ void Imc::WriteIMCBlock(const string &suffix)
         if(!out_cor)
             throw runtime_error(string("error, cannot open file ") + name_cor);
 
-        for(group_matrix::size_type i=0; i<grp->_corr.size1(); ++i) {
-            for(group_matrix::size_type j=0; j<grp->_corr.size2(); ++j) {
+        for(int i=0; i<grp->_corr.rows(); ++i) {
+            for(int j=0; j<grp->_corr.cols(); ++j) {
                 out_cor << grp->_corr(i, j) << " ";
             }
             out_cor << endl;
@@ -886,11 +872,11 @@ CsgApplication::Worker *Imc::ForkWorker()
 
     worker->_current_hists.resize(_interactions.size());
     worker->_current_hists_force.resize(_interactions.size());
-    worker->_current_hists_force_perp.resize(_interactions.size());
+    /*worker->_current_hists_force_perp.resize(_interactions.size());
     worker->_current_hists_force_perp_dot.resize(_interactions.size());    
     worker->_current_hists_force_perp_x.resize(_interactions.size());
     worker->_current_hists_force_perp_y.resize(_interactions.size());
-    worker->_current_hists_force_perp_z.resize(_interactions.size());    
+    worker->_current_hists_force_perp_z.resize(_interactions.size());*/
     worker->_imc = this;
 
     for (ic_iter = _interactions.begin(); ic_iter != _interactions.end(); ++ic_iter) {
@@ -905,7 +891,7 @@ CsgApplication::Worker *Imc::ForkWorker()
             i->_average_force.getMin(),
             i->_average_force.getMax(),
             i->_average_force.getNBins());
-            worker->_current_hists_force_perp[i->_index].Initialize(
+            /*worker->_current_hists_force_perp[i->_index].Initialize(
             i->_average_force_perp.getMin(),
             i->_average_force_perp.getMax(),
             i->_average_force_perp.getNBins());
@@ -924,7 +910,7 @@ CsgApplication::Worker *Imc::ForkWorker()
             worker->_current_hists_force_perp_z[i->_index].Initialize(
             i->_average_force_perp_z.getMin(),
             i->_average_force_perp_z.getMax(),
-            i->_average_force_perp_z.getNBins());            
+            i->_average_force_perp_z.getNBins());*/            
         }
     }
     return worker;
@@ -948,7 +934,7 @@ void Imc::MergeWorker(CsgApplication::Worker* worker_)
         if (i->_force){
             i->_average_force.data().y() = (((double)_nframes-1.0)*i->_average_force.data().y()
                 + worker->_current_hists_force[i->_index].data().y())/(double)_nframes;
-            i->_average_force_perp.data().y() = (((double)_nframes-1.0)*i->_average_force_perp.data().y()
+            /*i->_average_force_perp.data().y() = (((double)_nframes-1.0)*i->_average_force_perp.data().y()
                 + worker->_current_hists_force_perp[i->_index].data().y())/(double)_nframes;
             i->_average_force_perp_dot.data().y() = (((double)_nframes-1.0)*i->_average_force_perp_dot.data().y()
                 + worker->_current_hists_force_perp_dot[i->_index].data().y())/(double)_nframes;            
@@ -957,7 +943,7 @@ void Imc::MergeWorker(CsgApplication::Worker* worker_)
             i->_average_force_perp_y.data().y() = (((double)_nframes-1.0)*i->_average_force_perp_y.data().y()
                 + worker->_current_hists_force_perp_y[i->_index].data().y())/(double)_nframes;  
             i->_average_force_perp_z.data().y() = (((double)_nframes-1.0)*i->_average_force_perp_z.data().y()
-                + worker->_current_hists_force_perp_z[i->_index].data().y())/(double)_nframes;              
+                + worker->_current_hists_force_perp_z[i->_index].data().y())/(double)_nframes;*/
         }       
     }
 

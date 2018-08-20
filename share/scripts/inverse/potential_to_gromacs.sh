@@ -147,5 +147,5 @@ potmax="$(csg_get_property --allow-empty cg.inverse.gromacs.pot_max)"
 do_external convert_potential xvg ${potmax:+--max} ${potmax} --type "${xvgtype}" "${tshift}" "${output}"
 if [[ $clean ]]; then
   rm -f "${smooth}" "${interpol}" "${extrapol}" "${tshift}"
-  [[ ${input} != ${scale} ]] && rm -f "${scale}"
+  [[ ${input} = ${scale} ]] || rm -f "${scale}"
 fi

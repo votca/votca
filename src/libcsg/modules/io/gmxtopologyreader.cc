@@ -45,7 +45,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 
     (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,&mtop);
 
-    int ifirstatom = 0;
+    size_t ifirstatom = 0;
     
 #if GROMACS_VERSION >= 20190000
     size_t nmolblock=mtop.molblock.size();
@@ -70,8 +70,13 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
         for(int imol=0; imol<mtop.molblock[iblock].nmol; ++imol) {
             Molecule *mi = top.CreateMolecule(molname);
 
+#if GROMACS_VERSION >= 20190000
+            size_t natoms_mol = mtop.moltype[mtop.molblock[iblock].type].atoms.nr;
+#else
+            size_t natoms_mol = mtop.molblock[iblock].natoms_mol;
+#endif
             // read the atoms
-            for(int iatom=0; iatom<mtop.molblock[iblock].natoms_mol; iatom++) {
+            for(size_t iatom=0; iatom<natoms_mol; iatom++) {
                 t_atom *a = &(atoms->atom[iatom]);
 
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
@@ -83,7 +88,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
             }
 
             // add exclusions
-            for(int iatom=0; iatom<mtop.molblock[iblock].natoms_mol; iatom++) {
+            for(size_t iatom=0; iatom<natoms_mol; iatom++) {
                 // read exclusions
                 t_blocka * excl = &(mol->excls);
                 // insert exclusions
@@ -93,7 +98,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
                 }
                 top.InsertExclusion(top.getBead(iatom+ifirstatom), excl_list);
             }
-            ifirstatom+=mtop.molblock[iblock].natoms_mol;
+            ifirstatom+=natoms_mol;
         }
     }
 

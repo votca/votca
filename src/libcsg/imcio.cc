@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,10 @@
 
 namespace votca { namespace csg {
 
-typedef ub::matrix<double> group_matrix;
+typedef Eigen::MatrixXd group_matrix;
 using namespace std;
 
-void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double> &dS, std::list<int> *list)
+void imcio_write_dS(const string &file, Eigen::VectorXd &r, Eigen::VectorXd &dS, std::list<int> *list)
 {
     // write the dS
     ofstream out_dS;
@@ -42,7 +42,7 @@ void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double
         throw runtime_error(string("error, cannot open file ") + file);
 
     if(list == NULL) {
-        for (size_t i = 0; i < dS.size(); ++i) {
+        for (int i = 0; i < dS.size(); ++i) {
             out_dS << r[i] << " " << dS[i] << endl;
         }
     }
@@ -57,7 +57,7 @@ void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double
     cout << "written " << file << endl;
 }
 
-void imcio_write_matrix(const string &file, ub::matrix<double> &gmc, std::list<int> *list)
+void imcio_write_matrix(const string &file, Eigen::MatrixXd &gmc, std::list<int> *list)
 {
     ofstream out_A;
     out_A.open(file.c_str());
@@ -67,8 +67,8 @@ void imcio_write_matrix(const string &file, ub::matrix<double> &gmc, std::list<i
         throw runtime_error(string("error, cannot open file ") + file);
 
     if(list == NULL) {
-        for (group_matrix::size_type i = 0; i < gmc.size1(); ++i) {
-            for (group_matrix::size_type j = 0; j < gmc.size2(); ++j) {
+        for (int i = 0; i < gmc.rows(); ++i) {
+            for (int j = 0; j < gmc.cols(); ++j) {
                 out_A << gmc(min(i,j), max(i,j)) << " ";
             }
             out_A << endl;
@@ -103,7 +103,7 @@ void imcio_write_index(const string &file, vector<string> &names, vector<RangePa
     cout << "written " << file << endl;
 }
 
-void imcio_read_dS(const string &filename, ub::vector<double> &r, ub::vector<double> &dS)
+void imcio_read_dS(const string &filename, Eigen::VectorXd &r, Eigen::VectorXd &dS)
 {
     Table tbl;
     tbl.Load(filename);
@@ -111,13 +111,13 @@ void imcio_read_dS(const string &filename, ub::vector<double> &r, ub::vector<dou
     r.resize(tbl.size());
     dS.resize(tbl.size());
     
-    for(unsigned int i=0; i<tbl.size(); ++i) {
+    for( int i=0; i<tbl.size(); ++i) {
         r(i) = tbl.x(i);
         dS(i) = tbl.y(i);
     }
 }
 
-void imcio_read_matrix(const string &filename, ub::matrix<double> &gmc)
+void imcio_read_matrix(const string &filename, Eigen::MatrixXd &gmc)
 {
     ifstream in;
     in.open(filename.c_str());
@@ -126,7 +126,7 @@ void imcio_read_matrix(const string &filename, ub::matrix<double> &gmc)
     if(!in)
         throw runtime_error(string("error, cannot open file ") + filename);
 
-    size_t line_count =0;
+    int line_count =0;
     string line;
     // read till the first data line
     while(getline(in, line)) {
@@ -145,14 +145,14 @@ void imcio_read_matrix(const string &filename, ub::matrix<double> &gmc)
             gmc.resize(tokens.size(),tokens.size());
         is_initialized=true;
 
-        if(gmc.size1()!=tokens.size())
+        if(gmc.rows()!=int(tokens.size()))
             throw runtime_error(string("error loading ")
                     + filename + ": size mismatchm, number of columns differ");
         for(size_t i=0; i<tokens.size(); ++i)
             gmc(line_count,i) = boost::lexical_cast<double>(tokens[i]);
         ++line_count;
     }
-    if(line_count != gmc.size1())
+    if(line_count != gmc.rows())
             throw runtime_error(string("error loading ")
                     + filename + ": size mismatch, not enough lines");
     in.close();

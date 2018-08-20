@@ -15,10 +15,22 @@
                 <sourceRootElem>../../include</sourceRootElem>
             </sourceRootList>
             <confList>
-                <confElem>Debug</confElem>
-                <confElem>Release</confElem>
-                <confElem>profile_release</confElem>
+                <confElem>
+                    <name>Debug</name>
+                    <type>3</type>
+                </confElem>
+                <confElem>
+                    <name>Release</name>
+                    <type>3</type>
+                </confElem>
+                <confElem>
+                    <name>profile_release</name>
+                    <type>3</type>
+                </confElem>
             </confList>
+            <formatting>
+                <project-formatting-style>false</project-formatting-style>
+            </formatting>
         </data>
     </configuration>
 </project>

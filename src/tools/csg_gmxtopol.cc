@@ -108,13 +108,18 @@ void GmxTopolApp::WriteInteractions(ostream &out, Molecule &cg)
                     out << "\n[ dihedrals ]\n";
                     break;
                 default:
-                    throw runtime_error(string("cannot handle number of beads in interaction:") +
-                            ic->getName());
+                    string err = "cannot handle number of beads in interaction:";
+                    err += to_string(ic->getMolecule()+1)+":"+ic->getGroup();
+                    err += ":"+to_string(ic->getIndex()+1);
+                    throw runtime_error(err);
             }
         }
         for(int i=0; i<nb; ++i)
             out << ic->getBeadId(i)+1 << " ";
-        out << "  1  ; " << ic->getName() << endl;
+        out << "  1  ; ";
+        out << to_string(ic->getMolecule()+1) ;
+        out << ":"+ic->getGroup();
+        out << ":"+to_string(ic->getIndex()+1) << endl;
     }
 }
 

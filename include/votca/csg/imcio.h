@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,7 @@
 
 #include <string>
 #include <list>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
+#include <votca/tools/eigen.h>
 #include <votca/tools/rangeparser.h>
 
 namespace votca { namespace csg {
@@ -30,12 +28,12 @@ using namespace votca::tools;
 
 using namespace std;
 
-void imcio_write_dS(const string &file, ub::vector<double> &r, ub::vector<double> &dS, std::list<int> *list=NULL);
-void imcio_write_matrix(const string &file, ub::matrix<double> &gmc, std::list<int> *list=NULL);
+void imcio_write_dS(const string &file, Eigen::VectorXd &r, Eigen::VectorXd &dS, std::list<int> *list=NULL);
+void imcio_write_matrix(const string &file, Eigen::MatrixXd &gmc, std::list<int> *list=NULL);
 void imcio_write_index(const string &file, vector<string> &names, vector<RangeParser> &ranges);
 
-void imcio_read_dS(const string &file, ub::vector<double> &r, ub::vector<double> &dS);
-void imcio_read_matrix(const string &file, ub::matrix<double> &gmc);
+void imcio_read_dS(const string &file, Eigen::VectorXd &r, Eigen::VectorXd &dS);
+void imcio_read_matrix(const string &file, Eigen::MatrixXd &gmc);
 void imcio_read_index(const string &file, vector<string> &names, vector<RangeParser> &ranges);
 
 }}

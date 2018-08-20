@@ -85,6 +85,17 @@ if (WITH_GMX)
   find_package(GROMACS 20160000 REQUIRED)
 endif(WITH_GMX) 
 
+if(ENABLE_TESTING)
+  foreach(prog votca_compare)
+    string(TOUPPER "${prog}" PROG)
+    find_program(${PROG} ${prog})
+    find_package_handle_standard_args(${PROG} REQUIRED_VARS ${PROG})
+    if(NOT ${PROG}_FOUND)
+      message(FATAL_ERROR "Could not find ${prog}")
+    endif()
+  endforeach()
+endif(ENABLE_TESTING)
+
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
@@ -135,7 +146,7 @@ if(NOT TARGET uninstall)
 endif()
 add_dependencies(uninstall uninstall-csg)
 
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   include(FeatureSummary)
   feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
-endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

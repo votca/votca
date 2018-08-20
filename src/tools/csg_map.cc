@@ -72,10 +72,8 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
             // we want to combine atomistic and coarse-grained into one topology
             Topology *hybtol = new Topology();
 
-            BeadContainer::iterator it_bead;
             ResidueContainer::iterator it_res;
             MoleculeContainer::iterator it_mol;
-            InteractionContainer::iterator it_ia;
 
             hybtol->setBox(top->getBox());
             hybtol->setTime(top->getTime());

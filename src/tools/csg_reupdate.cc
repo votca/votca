@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,7 +139,7 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
 
   cout << "Total number of parameters to optimize: " << _nlamda << endl;
 
-  _lamda.resize(_nlamda,false);
+  _lamda.resize(_nlamda);
 
   // need to store initial guess of parameters in _lamda
   PotentialContainer::iterator potiter;
@@ -158,12 +158,9 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom){
 
   }// end potiter loop
 
-  _DS.resize(_nlamda,false);
-  _DS.clear();
-  _HS.resize(_nlamda,false);
-  _HS.clear();
-  _dUFrame.resize(_nlamda,false);
-  _dUFrame.clear();
+  _DS=Eigen::VectorXd::Zero(_nlamda);
+  _HS=Eigen::MatrixXd::Zero(_nlamda,_nlamda);
+  _dUFrame=Eigen::VectorXd::Zero(_nlamda);
   _nframes = 0.0; // no frames processed yet!
 
   // set Temperature
@@ -284,6 +281,7 @@ void CsgREupdate::REFormulateLinEq() {
     for( int col = row; col < _nlamda; col++){
 
       _HS(row,col) += (-1.0 * _DS(row) * _DS(col));
+      _HS(col,row) += (-1.0 * _DS(row) * _DS(col));
       // since at this step _DS(i) = -beta*<dU/dlamda_i>cg
 
     }// end loop over col
@@ -310,27 +308,11 @@ void CsgREupdate::REFormulateLinEq() {
 // update lamda = lamda + relax*dlamda
 void CsgREupdate::REUpdateLamda() {
 
-  // first solve _HS dx = -_DS
-  ub::vector<double> dlamda(_nlamda);
-  dlamda.clear();
-  ub::vector<double> minusDS(_nlamda);
-
-  // since linalg_cholesky_solve takes full matrix
-  // copy symmetric _HS to full matrix HS_
-  ub::matrix<double> HS_(_nlamda,_nlamda);
-  for(int row = 0; row < _nlamda; row++)
-    for(int col = 0; col<_nlamda; col++)
-      HS_(row,col) = _HS(row,col);
-
-  minusDS = -_DS;
-
-  try {
-
-    votca::tools::linalg_cholesky_solve(dlamda, HS_, minusDS);
-
-  }
-  catch (std::runtime_error){
-
+  // first solve _HS dx = -_DS  
+    Eigen::LLT<Eigen::MatrixXd> cholesky(_HS); // compute the Cholesky decomposition of _HS
+    Eigen::VectorXd dlamda=cholesky.solve(-_DS);
+    if(cholesky.info()==Eigen::ComputationInfo::NumericalIssue){
+  
     /* then can not use Newton-Raphson
      * steepest descent with line-search may be helpful
      * not implemented yet!
@@ -355,8 +337,7 @@ void CsgREupdate::REUpdateLamda() {
         cout << "You can turn on Hessian check by setting command line option --hessian-check=true." <<endl;
 
         cout << "In this case, alternative update option is steepest descent." << endl;
-        dlamda = minusDS;
-
+        dlamda = -_DS;
       }
 
   }
@@ -398,7 +379,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
   // assuming rdf bins are of same size
   double step = _aardfs[indx]->x(2) - _aardfs[indx]->x(1);
 
-  for(unsigned int bin = 0; bin < _aardfs[indx]->size(); bin++) {
+  for(int bin = 0; bin < _aardfs[indx]->size(); bin++) {
 
     double r_hist = _aardfs[indx]->x(bin);
     double r1 = r_hist - 0.5 * step;
@@ -422,7 +403,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
     // compute dU/dlamda and add to _DS
     dU_i = 0.0;
 
-    for(unsigned int bin = 0; bin < _aardfs[indx]->size(); bin++) {
+    for(int bin = 0; bin < _aardfs[indx]->size(); bin++) {
 
       double r_hist = _aardfs[indx]->x(bin);
       double r1 = r_hist - 0.5 * step;
@@ -444,7 +425,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
       // compute d2U/dlamda_i dlamda_j and add to _HS
       d2U_ij = 0.0;
 
-      for(unsigned int bin = 0; bin < _aardfs[indx]->size(); bin++) {
+      for(int bin = 0; bin < _aardfs[indx]->size(); bin++) {
 
         double r_hist = _aardfs[indx]->x(bin);
         double r1 = r_hist - 0.5 * step;
@@ -459,6 +440,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo* potinfo) {
       } // end loop pair_iter
 
       _HS(row,col) += (_beta * d2U_ij);
+      _HS(col,row) += (_beta * d2U_ij);
 
     } // end loop col
 
@@ -490,7 +472,7 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
 
   }
 
-  worker->_lamda.resize(worker->_nlamda,false);
+  worker->_lamda.resize(worker->_nlamda);
 
   // need to store initial guess of parameters in _lamda
   PotentialContainer::iterator potiter;
@@ -509,12 +491,9 @@ CsgApplication::Worker * CsgREupdate::ForkWorker(){
 
   }// end potiter loop
 
-  worker->_DS.resize(worker->_nlamda,false);
-  worker->_DS.clear();
-  worker->_HS.resize(worker->_nlamda,false);
-  worker->_HS.clear();
-  worker->_dUFrame.resize(worker->_nlamda,false);
-  worker->_dUFrame.clear();
+  worker->_DS=Eigen::VectorXd::Zero(worker->_nlamda);
+  worker->_HS=Eigen::MatrixXd::Zero(worker->_nlamda,worker->_nlamda);
+  worker->_dUFrame=Eigen::VectorXd::Zero(worker->_nlamda);
   worker->_nframes = 0.0; // no frames processed yet!
   // set Temperature
   worker->_beta = (1.0/worker->_options.get("cg.inverse.kBT").as<double>());
@@ -549,7 +528,7 @@ void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *conf_atom){
    * hence store current frame dU/dlamda in _dUFrame!
    */
 
-  _dUFrame.clear();
+  _dUFrame.setZero();
 
   PotentialContainer::iterator potiter;
   for (potiter = _potentials.begin();
@@ -569,9 +548,10 @@ void CsgREupdateWorker::EvalConfiguration(Topology *conf, Topology *conf_atom){
 
     _DS(row) += (-1.0 * _beta * _dUFrame(row));
 
-    for (int col = row; col < _nlamda; col++)
+    for (int col = row; col < _nlamda; col++){
       _HS(row, col) += ( _beta * _beta * _dUFrame(row) * _dUFrame(col));
-
+      _HS(col, row) += ( _beta * _beta * _dUFrame(row) * _dUFrame(col));
+    }
   }
 
   _nframes++;
@@ -655,7 +635,7 @@ void CsgREupdateWorker::EvalNonbonded(Topology* conf, PotentialInfo* potinfo) {
         d2U_ij += potinfo->ucg->CalculateD2F(lamda_i, lamda_j, (*pair_iter)->dist());
 
       _HS(row, col) += (-1.0 * _beta * d2U_ij);
-
+      _HS(col, row) += (-1.0 * _beta * d2U_ij);
     } // end loop col
 
   } // end loop row
@@ -720,7 +700,7 @@ PotentialInfo::PotentialInfo(int index, bool bonded_, int vec_pos_,
           // setting extrapolation region based on CG rdf
           rmin = new_min;
 
-        }catch(std::runtime_error)
+        }catch(std::runtime_error&)
           {
             throw std::runtime_error("Missing file for CG rdf for the interaction "
                                      + potentialName + "."
