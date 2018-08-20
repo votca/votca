@@ -560,7 +560,8 @@ void Imc::WriteDist(const string &suffix)
         Table dist(t);
         
         //preliminary, if no average force calculation, dummy table
-        Table force//,force_perp,force_perp_dot,force_perp_x,force_perp_y,force_perp_z;        
+        Table force;
+        //Table force_perp,force_perp_dot,force_perp_x,force_perp_y,force_perp_z;        
         //if average force calculation, table force contains force data
         if (iter->second->_force){
             Table &f = iter->second->_average_force.data();
